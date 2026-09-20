@@ -1,8 +1,8 @@
 {
-  "name": "atlas-systemizer",
+  "name": "atlas-studio",
   "private": true,
   "type": "module",
-  "description": "Atlas Systemizer root workspace. Rust engineering semantics live under core/runtime/adapter; TypeScript UI lives under apps/ui; .atlas is the sole repository knowledge root.",
+  "description": "Atlas Studio workspace. Rust engineering semantics live under core/runtime/adapter; TypeScript UI lives under apps/ui; .atlas is the sole repository knowledge root.",
   "scripts": {
     "atlas:contract": "cargo run -p runtime --bin atlas-systemizer -- contract --format json",
     "atlas:systemize": "cargo run -p runtime --bin atlas-systemizer -- systemize --root . --out .atlas/evidence/systemize-report.json",
