@@ -1,16 +1,15 @@
-schema = "atlas.systemizer.subsystem.v1"
+schema = "atlas.systemizer.subsystem.v2"
 name = "Atlas Systemizer"
 repository = "llgtrn/Atlas-Systemizer"
 binary = "atlas-systemizer"
 cli_api = "atlas.systemizer.cli.v1"
-subsystem_kind = "DEVELOPMENT_ENGINEERING_TOOL"
+subsystem_kind = "SYSTEM_INVENTION_FORGE"
 
 [boundary]
-canonical_product_repo = "llgtrn/Chronica"
-runtime_dependency_allowed = false
-chronica_imports_atlas_crates = false
-atlas_may_read_chronica_source = true
-atlas_may_emit_analysis = true
+runtime_dependency_allowed_in_targets = false
+target_repositories_require_atlas_files = false
+atlas_may_read_registered_repositories = true
+atlas_may_emit_analysis_and_plans = true
 atlas_has_merge_authority = false
 generated_state_is_canonical = false
 
@@ -21,15 +20,16 @@ donor_engines_are_runtime_dependencies = false
 
 [documentation]
 standard = "atlas.docs.v1"
-source_repository = "llgtrn/Chronica"
-source_revision = "23de9af295a74b14fdeddc0fe7e02006dcb6fe2a"
+source_repository = "llgtrn/Atlas-Systemizer"
+lineage_origin_repository = "llgtrn/Chronica"
+lineage_origin_revision = "bea475df7fc04e04836055171a23daf94f095069"
 exceptions_allowed = false
 coding_requires_docs_gate = true
 
 [stable_cli]
 contract = ["contract", "--format", "json"]
 fleet_connect = ["fleet", "connect", "--manifest", "fleet/repos.yaml", "--format", "json"]
-systemize = ["systemize", "--root", "<workspace>", "--config", "<config>", "--out", "<report>"]
+systemize = ["systemize", "--root", "<workspace>", "--out", "<report>"]
 docs_audit = ["docs", "audit", "--root", "<docs-root>", "--format", "json"]
 code_analyze = ["code", "analyze", "--root", "<source-root>", "--format", "json"]
 work_prepare = ["work", "prepare", "--repo", "<registered-repo>", "--root", "<checkout>", "--base-sha", "<exact-sha>", "--scope", "<scope>"]

@@ -55,9 +55,8 @@ fn run(args: &[String]) -> Result<(),String> {
         }
         [cmd, rest @ ..] if cmd == "systemize" => {
             let root=value(rest,"--root").ok_or("systemize requires --root")?;
-            let config=value(rest,"--config").ok_or("systemize requires --config")?;
             let out=value(rest,"--out").ok_or("systemize requires --out")?;
-            let report=atlas_core::systemize(&root,&config).map_err(|e| e.to_string())?;
+            let report=atlas_core::systemize(&root).map_err(|e| e.to_string())?;
             let text=json(&report)?+"\n";
             let out=PathBuf::from(out);
             if let Some(parent)=out.parent(){fs::create_dir_all(parent).map_err(|e| e.to_string())?;}

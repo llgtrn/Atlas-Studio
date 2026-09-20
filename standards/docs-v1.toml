@@ -1,7 +1,8 @@
 schema = "atlas.docs.v1"
 version = 1
-source_standard = "llgtrn/Chronica"
-source_standard_revision = "23de9af295a74b14fdeddc0fe7e02006dcb6fe2a"
+source_standard = "llgtrn/Atlas-Systemizer"
+lineage_origin_repository = "llgtrn/Chronica"
+lineage_origin_revision = "bea475df7fc04e04836055171a23daf94f095069"
 exceptions_allowed = false
 coding_requires_docs_gate = true
 all_markdown_requires_frontmatter = true
@@ -38,3 +39,7 @@ blueprint_required = true
 contracts_required = true
 development_guide_required = true
 code_before_docs_forbidden = true
+
+[target_repository]
+atlas_metadata_required = false
+atlas_runtime_dependency_allowed = false
