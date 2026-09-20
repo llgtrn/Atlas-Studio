@@ -1,4 +1,4 @@
-schema = "atlas.repo.v3"
+schema = "atlas.repo.v2"
 repo = "llgtrn/Atlas-Studio"
 system_kind = "SYSTEM_INVENTION_FORGE"
 kind = "SYSTEM_INVENTION_FORGE"
