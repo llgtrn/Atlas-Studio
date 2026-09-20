@@ -1,6 +1,7 @@
 schema = "atlas.docs.v1"
 version = 1
 source_standard = "llgtrn/Chronica"
+source_standard_revision = "23de9af295a74b14fdeddc0fe7e02006dcb6fe2a"
 exceptions_allowed = false
 coding_requires_docs_gate = true
 all_markdown_requires_frontmatter = true
