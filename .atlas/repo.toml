@@ -1,4 +1,4 @@
-schema = "atlas.repo.v2"
+schema = "atlas.repo.v3"
 repo = "llgtrn/Atlas-Studio"
 system_kind = "SYSTEM_INVENTION_FORGE"
 kind = "SYSTEM_INVENTION_FORGE"
@@ -15,7 +15,49 @@ knowledge_root = ".atlas"
 temporary_root = ".atlas/temporary"
 provenance_root = ".atlas/provenance"
 license_root = ".atlas/licenses"
+artifact_root = ".atlas/artifacts"
 legacy_docs_root_forbidden = true
+
+[genome]
+source = ".atlas/genome/atlas.genome.toml"
+compiled_artifact = ".atlas/artifacts/atlas-genome.atlas"
+hash_required = true
+pin_on_census = true
+pin_on_plan = true
+pin_on_materialization = true
+
+[formats]
+dense_engineering_artifact_extension = ".atlas"
+expanded_executable_suffix = ".atlasx"
+atlas_binary_required = true
+atlasx_markdown_authority_forbidden = true
+atlasx_json_authority_forbidden = true
+deterministic_materialization_required = true
+
+[graph]
+universal_spine_required = true
+global_identity_required = true
+cross_repository_binding_supported = true
+sovereign_repository_partition_required = true
+required_primitives = [
+  "identity",
+  "scope",
+  "node",
+  "edge",
+  "binding",
+  "state",
+  "event",
+  "temporal",
+  "evidence",
+  "provenance",
+  "claim",
+  "constraint",
+  "invariant",
+  "interface",
+  "capability",
+  "effect",
+  "materialization"
+]
 
 [code]
 source_roots = ["core", "runtime", "adapter"]
@@ -29,12 +71,12 @@ test = "cargo test --workspace"
 format = "cargo fmt --all"
 
 [atlas]
-human_readable = true
 durable_roots = [
   ".atlas/architecture",
   ".atlas/blueprints",
   ".atlas/contracts",
   ".atlas/decisions",
+  ".atlas/genome",
   ".atlas/guides",
   ".atlas/standards",
   ".atlas/declared",
