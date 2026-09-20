@@ -60,9 +60,28 @@ fn run(args: &[String]) -> Result<(), String> {
             fs::write(&out, &text).map_err(|e| e.to_string())?;
             print!("{text}");
         }
+        [cmd, sub, rest @ ..] if cmd == "work" && sub == "prepare" => {
+            let root = value(rest, "--root").ok_or("work prepare requires --root")?;
+            let goal = value(rest, "--goal").ok_or("work prepare requires --goal")?;
+            let expected_base_sha = value(rest, "--base-sha");
+            let report =
+                runtime::prepare_work(&root, goal, expected_base_sha).map_err(|e| e.to_string())?;
+            let text = json(&report)? + "\n";
+            if let Some(out) = value(rest, "--out") {
+                let out = PathBuf::from(out);
+                if let Some(parent) = out.parent() {
+                    fs::create_dir_all(parent).map_err(|e| e.to_string())?;
+                }
+                fs::write(&out, &text).map_err(|e| e.to_string())?;
+            }
+            print!("{text}");
+            if !report.allowed {
+                return Err("WORK_PREPARE_NOT_ALLOWED".into());
+            }
+        }
         _ => {
             return Err(
-                "usage: atlas-systemizer <contract|systemize|docs audit|code analyze> ...".into(),
+                "usage: atlas-systemizer <contract|systemize|docs audit|code analyze|work prepare> ...".into(),
             );
         }
     }

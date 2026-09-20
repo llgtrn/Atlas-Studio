@@ -103,6 +103,25 @@ pub struct Evidence {
     pub revision: Option<RevisionRef>,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct RepositorySnapshot {
+    pub schema: String,
+    pub root: String,
+    pub head_sha: String,
+    pub branch: Option<String>,
+    pub dirty: bool,
+    pub status_entries: Vec<String>,
+}
+
+impl RepositorySnapshot {
+    pub fn revision(&self) -> RevisionRef {
+        RevisionRef {
+            kind: "git".into(),
+            value: self.head_sha.clone(),
+        }
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct EngineeringGraph {
     pub schema: String,
@@ -209,10 +228,36 @@ pub struct CodingAdmission {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct WorkRequest {
+    pub schema: String,
+    pub repository: String,
+    pub base_revision: RevisionRef,
+    pub goal: String,
+    pub scope: Vec<String>,
+    pub allowed_paths: Vec<String>,
+    pub forbidden_paths: Vec<String>,
+    pub required_verification: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct WorkPrepareReport {
+    pub schema: String,
+    pub request: WorkRequest,
+    pub repository: RepoAudit,
+    pub snapshot: RepositorySnapshot,
+    pub graph: GraphSummary,
+    pub coding_admission: CodingAdmission,
+    pub allowed: bool,
+    pub blockers: Vec<String>,
+    pub evidence: Vec<Evidence>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct SystemizeReport {
     pub schema: String,
     pub cli_api: String,
     pub root: String,
+    pub snapshot: RepositorySnapshot,
     pub repository: RepoAudit,
     pub docs: DocsReport,
     pub coding_admission: CodingAdmission,
