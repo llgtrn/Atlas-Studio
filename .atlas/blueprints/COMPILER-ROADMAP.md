@@ -92,6 +92,33 @@ Deliver:
 12. SIMD/vector/atomics/hardware-aware specialization;
 13. whole-program graph-guided optimization.
 
+## Digital Organism Target Lane
+
+Digital Organism is a compiler target profile, not a separate compiler universe.
+
+Before training new weights, Atlas must be able to compile and instantiate the organism substrate:
+
+```text
+Organism Genome
+  ↓
+organs / circuits / body / brain bindings
+  ↓
+memory / world / learning / homeostasis / metabolism
+  ↓
+capability + authority + lifecycle substrate
+  ↓
+phenotype repository/product
+```
+
+Cognition may bind to an external API, self-hosted checkpoint, deterministic implementation or hybrid set. Later compiler phases optimize model placement, GPU kernels and provider routing without changing durable organism identity or authority semantics.
+
+Training/evolution is downstream of substrate maturity:
+
+```text
+experience → memory → dataset → candidate model/weights/rules
+→ evaluation/simulation/regression → admission → activation
+```
+
 ## Production Optimization Lane
 
 All mature backends support:
