@@ -2,6 +2,8 @@
 
 Atlas Studio is a product-neutral engineering-world compiler and system invention environment.
 
+Digital Organism is a first-class Atlas target, but Atlas remains independent of any generated organism or external runtime. An organism may use external LLM/model APIs, self-hosted models, deterministic cognition or hybrid bindings; weights are optional organs, not the organism itself.
+
 It performs strict, evidence-linked census from multi-repository scope down to every discovered function and required semantic atom; reconciles gaps/conflicts to a fixed point; synthesizes and validates target-native designs; publishes them as a dense logical `*.atlas`; materializes selected executable worlds as `*.atlasx/`; and compiles them into verified target products.
 
 ```text
