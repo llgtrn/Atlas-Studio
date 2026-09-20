@@ -6,8 +6,8 @@ connection:
   auto_connect_registered_repositories: true
   mode: READ_ONLY_OBSERVATION
   resolve_exact_head_sha: true
-  target_repo_requires_atlas_metadata: false
-  canonical_docs_root: docs
+  target_repo_requires_atlas_metadata: true
+  canonical_knowledge_root: .atlas
 
 coding:
   mode: ONE_REPOSITORY_AT_A_TIME

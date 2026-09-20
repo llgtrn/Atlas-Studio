@@ -4,6 +4,8 @@ use std::{collections::BTreeMap, fs, io, path::{Path, PathBuf}};
 const STANDARD: &str = "atlas.docs.v1";
 const TYPES: &[&str] = &["decision","blueprint","architecture","contract","runbook","reference","generated-evidence"];
 const REQUIRED: &[&str] = &["id","type","status","canonical"];
+const FORBIDDEN_PLACEHOLDERS: &[&str] = &["TODO","TBD","PLACEHOLDER","FILL_ME"];
+const REQUIRED_SECTION_MIN_CHARS: usize = 40;
 const CONTROL_DOCS: &[&str] = &[
     "README.md",
     "INDEX.md",
@@ -33,6 +35,13 @@ fn required_headings(path: &str) -> &'static [&'static str] {
         "references/README.md" => &["## Reference Rules","## Provenance","## Freshness"],
         _ => &[],
     }
+}
+
+fn section_body<'a>(text: &'a str, heading: &str) -> Option<&'a str> {
+    let start = text.find(heading)? + heading.len();
+    let tail = &text[start..];
+    let end = tail.find("\n## ").unwrap_or(tail.len());
+    Some(tail[..end].trim())
 }
 
 fn visit(dir: &Path, docs: &mut Vec<PathBuf>) -> io::Result<()> {
@@ -82,6 +91,8 @@ pub fn audit(root: impl AsRef<Path>) -> io::Result<DocsReport> {
 
     let mut required_control_docs_missing = Vec::new();
     let mut required_headings_missing = Vec::new();
+    let mut insufficient_sections = Vec::new();
+    let mut forbidden_placeholders = Vec::new();
     for relative in CONTROL_DOCS {
         let path = root.join(relative);
         if !path.is_file() {
@@ -92,6 +103,16 @@ pub fn audit(root: impl AsRef<Path>) -> io::Result<DocsReport> {
         for heading in required_headings(relative) {
             if !text.lines().any(|line| line.trim() == *heading) {
                 required_headings_missing.push(format!("{relative}:{heading}"));
+                continue;
+            }
+            match section_body(&text, heading) {
+                Some(body) if body.chars().filter(|c| !c.is_whitespace()).count() >= REQUIRED_SECTION_MIN_CHARS => {}
+                _ => insufficient_sections.push(format!("{relative}:{heading}")),
+            }
+        }
+        for token in FORBIDDEN_PLACEHOLDERS {
+            if text.contains(token) {
+                forbidden_placeholders.push(format!("{relative}:{token}"));
             }
         }
     }
@@ -146,6 +167,8 @@ pub fn audit(root: impl AsRef<Path>) -> io::Result<DocsReport> {
     let hard_violations_total =
         required_control_docs_missing.len()
         + required_headings_missing.len()
+        + insufficient_sections.len()
+        + forbidden_placeholders.len()
         + missing_frontmatter.len()
         + missing_required_fields.len()
         + invalid_type.len()
@@ -163,6 +186,8 @@ pub fn audit(root: impl AsRef<Path>) -> io::Result<DocsReport> {
         canonical_frontmatter_total,
         required_control_docs_missing,
         required_headings_missing,
+        insufficient_sections,
+        forbidden_placeholders,
         missing_frontmatter,
         missing_required_fields,
         invalid_type,

@@ -54,6 +54,8 @@ pub struct DocsReport {
     pub canonical_frontmatter_total: usize,
     pub required_control_docs_missing: Vec<String>,
     pub required_headings_missing: Vec<String>,
+    pub insufficient_sections: Vec<String>,
+    pub forbidden_placeholders: Vec<String>,
     pub missing_frontmatter: Vec<String>,
     pub missing_required_fields: Vec<String>,
     pub invalid_type: Vec<String>,

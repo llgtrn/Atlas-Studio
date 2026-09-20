@@ -35,8 +35,8 @@ pub fn systemize(root: impl AsRef<Path>) -> io::Result<SystemizeReport> {
         graph,
         invariants: vec![
             "ATLAS_IS_EXTERNAL_ENGINEERING_FORGE".into(),
-            "CANONICAL_REPOSITORY_KNOWLEDGE_IS_IN_DOCS".into(),
-            "ATLAS_METADATA_IS_NONCANONICAL_AND_REBUILDABLE".into(),
+            "CANONICAL_REPOSITORY_KNOWLEDGE_IS_IN_ATLAS_ROOT".into(),
+            "ATLAS_GENERATED_PROJECTIONS_ARE_REBUILDABLE".into(),
             "ATLAS_OUTPUT_IS_HUMAN_READABLE".into(),
             "ANALYZE_NEVER_GRANTS_AUTHORITY".into(),
             "NO_COMPLETE_DOCS_NO_CODING".into(),

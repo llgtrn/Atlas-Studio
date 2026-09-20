@@ -2,26 +2,25 @@ schema = "atlas.docs.v1"
 version = 1
 source_standard = "llgtrn/Chronica"
 exceptions_allowed = false
-canonical_docs_root = "docs"
-atlas_metadata_root = ".atlas"
-atlas_metadata_may_contain_canonical_docs = false
+canonical_knowledge_root = ".atlas"
+legacy_docs_root_forbidden = true
 coding_requires_docs_gate = true
 all_markdown_requires_frontmatter = true
 required_frontmatter = ["id", "type", "status", "canonical"]
 document_types = ["decision", "blueprint", "architecture", "contract", "runbook", "reference", "generated-evidence"]
 
 required_control_docs = [
-  "docs/README.md",
-  "docs/INDEX.md",
-  "docs/TEMPLATE.md",
-  "docs/architecture/README.md",
-  "docs/architecture/constitution/NORTH-STAR.md",
-  "docs/architecture/SYSTEM.md",
-  "docs/blueprints/SYSTEM-BLUEPRINT.md",
-  "docs/contracts/SYSTEM-CONTRACT.md",
-  "docs/decisions/README.md",
-  "docs/guides/DEVELOPMENT.md",
-  "docs/references/README.md",
+  "README.md",
+  "INDEX.md",
+  "TEMPLATE.md",
+  "architecture/README.md",
+  "architecture/constitution/NORTH-STAR.md",
+  "architecture/SYSTEM.md",
+  "blueprints/SYSTEM-BLUEPRINT.md",
+  "contracts/SYSTEM-CONTRACT.md",
+  "decisions/README.md",
+  "guides/DEVELOPMENT.md",
+  "references/README.md",
 ]
 
 [semantic_sufficiency]
@@ -34,9 +33,10 @@ meaning_changes_require_review = true
 duplicate_canonical_ids_forbidden = true
 broken_internal_refs_forbidden = true
 superseded_docs_must_link_successor = true
-duplicate_atlas_docs_forbidden = true
+legacy_docs_duplicate_forbidden = true
 
 [coding_admission]
+repo_gate_required = true
 docs_gate_required = true
 north_star_required = true
 architecture_required = true

@@ -8,7 +8,7 @@ canonical: true
 
 ## Required Frontmatter
 
-Every maintained Markdown file under docs carries id, type, status and canonical. Missing frontmatter is a hard violation.
+Every maintained Markdown file under .atlas carries id, type, status and canonical. Missing frontmatter is a hard violation.
 
 ## Required Control Documents
 
