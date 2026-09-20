@@ -1,0 +1,6 @@
+#!/usr/bin/env sh
+# DIM 9 — autonomous discovery trigger. After each commit, print the discovery-staleness signal so the
+# strategic backlog stays in sync with the code (the execution feedback loop). Non-blocking (always
+# exits 0). Install once: `git config core.hooksPath tools/git-hooks`.
+node tools/capabilities/track.mjs discover-due 2>/dev/null || true
+exit 0

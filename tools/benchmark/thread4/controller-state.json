@@ -1,0 +1,325 @@
+{
+  "schema": "chronica.thread4.controller-state.v1",
+  "role": "integration_audit_metadata",
+  "not_product_runtime": true,
+  "ci_phase": "DEFERRED",
+  "p0_codex_ci_green": false,
+  "p0_ci_state": "IN_PROGRESS",
+  "p0_branch": "cursor/repo-integrity-authoritative-ci-69ee",
+  "p0_head": "e41c99b75034f4bef1a2652341d18f83f2b2bf4b",
+  "p0_authoritative_ci": {
+    "status": "SUCCESS",
+    "run": "https://github.com/llgtrn/Chronica/actions/runs/32508049699"
+  },
+  "p0_rust_workflow": {
+    "status": "IN_PROGRESS",
+    "run": "https://github.com/llgtrn/Chronica/actions/runs/32508049789"
+  },
+  "benchmark_branch": "cursor/benchmark-fic-grounding-6635",
+  "benchmark_head": "a9e8b50e0b19807af7e28a4ff2714d2eb0d2bb23",
+  "benchmark_release": "BR-2026.08.21.1",
+  "standard_versions": {
+    "WEB2APP": "1.1.0",
+    "EMPLOYMENT": "1.0.0",
+    "STORE": "1.0.0",
+    "BLACKBOX": "1.0.0",
+    "FIC": "55",
+    "FIVE_PLANE": "PROVISIONAL_BASELINE"
+  },
+  "main_head": "fe2136134608a3de3b959ee7de05db8a3f7d263b",
+  "thread4_branch": "cursor/thread4-benchmark-authoritative-consolidation-ce57",
+  "ancestry": {
+    "benchmark_contains_main": true,
+    "base": "origin/cursor/benchmark-fic-grounding-6635"
+  },
+  "caps": {
+    "CAP01": {
+      "branch": "cursor/crm-support-debt-burn",
+      "current_remote_head": "6f9f2769bcaa1371702c4ead948558fcd67197d0",
+      "disposition": "AUDITED_NOT_INTEGRATED",
+      "current_head": "6f9f2769bcaa1371702c4ead948558fcd67197d0",
+      "last_audited": "6f9f2769bcaa1371702c4ead948558fcd67197d0"
+    },
+    "CAP02": {
+      "branch": "cursor/social-feed-debt-burn",
+      "current_remote_head": "ee36ab89fa3b5b40b6a8e94a6541b9a424ff3ba0",
+      "disposition": "SALVAGED_PARTIAL",
+      "current_head": "ee36ab89fa3b5b40b6a8e94a6541b9a424ff3ba0",
+      "last_audited": "ee36ab89fa3b5b40b6a8e94a6541b9a424ff3ba0",
+      "note": "Remainer-2 CAP02 social leftovers salvaged onto Thread4: connected-accounts GET-only, scheduled-posts create/list/transition, comments, marketplace submit/approve. CAP02 remote still unintegrated (compiler 30 behind). News-feed-observation 0426/0427 still collide. GBF-011 stays PARTIAL."
+    },
+    "CAP03": {
+      "branch": "cursor/backup-restore-debt-burn",
+      "current_remote_head": "acb9a695dc344069729946795519662221bc6774",
+      "disposition": "SALVAGED_PARTIAL",
+      "current_head": "acb9a695dc344069729946795519662221bc6774",
+      "last_audited": "acb9a695dc344069729946795519662221bc6774",
+      "note": "Remainer HTTP leftovers salvaged: EventRepo backup, worker-registry site backup, event-maintenance, patch-installer, installer doctor, setup provisioning, exporter-queue. Archive zip is shared-substrate infra.archive_io not CAP03. GBF-009 OLTP scheduled backup still NOT_BUILT. storage_cli has backup-events only."
+    },
+    "CAP04": {
+      "branch": "cursor/observability-debt-burn-dfcc",
+      "current_remote_head": "bf1334a6cfdedbd6f5ed12ccff60b5e54fc2b02c",
+      "disposition": "BLOCKED_SUBSTRATE",
+      "note": "c8b1f916+16c475dd dialect HTTP callers exist but depend on CAP04-only chronica-otel-foundation business.rs (~999 lines) absent on Benchmark/Thread4. Do not harvest until otel business vocabulary is reconciled. Docs bf1334/d07c7e skipped.",
+      "current_head": "bf1334a6cfdedbd6f5ed12ccff60b5e54fc2b02c",
+      "last_audited": "c8b1f9169622440c7829756c920b6c858c1eb24c"
+    },
+    "CAP05": {
+      "branch": "cursor/crm-debt-burn",
+      "current_remote_head": "86a78e7bda85a7f06da8c9a4df39fc44b18d79d8",
+      "disposition": "SALVAGED_PARTIAL",
+      "note": "Salvaged 40a0ca662c nested subscriber/deferred q= GET lists. Customer SoT remains CRM. Store helpdesk tickets now go through CAP01, not crm_issues. Remainer-2 entity-trigger HTTP 656ab2845e still unintegrated (needs get_trigger + workflow-dispatch cfg). Later 8e5ac1c4ce custom-field timeline still unintegrated.",
+      "current_head": "86a78e7bda85a7f06da8c9a4df39fc44b18d79d8",
+      "last_audited": "86a78e7bda85a7f06da8c9a4df39fc44b18d79d8",
+      "last_integrated_head": "40a0ca662c76960dbbb3c82b606a1d72dad65954"
+    },
+    "CAP06": {
+      "branch": "cursor/scheduler-routine-debt-burn-c9be",
+      "current_remote_head": "d1d28e9d2ac27dc1f08c8132dba2954aa41ec7c1",
+      "disposition": "AUDITED_NOT_INTEGRATED",
+      "current_head": "d1d28e9d2ac27dc1f08c8132dba2954aa41ec7c1",
+      "last_audited": "d1d28e9d2ac27dc1f08c8132dba2954aa41ec7c1"
+    },
+    "CAP07": {
+      "branch": "cursor/notifications-debt-burn-0085",
+      "current_remote_head": "f00551555101456ce645cffb6c1b1d523b6676cc",
+      "disposition": "THREAD4_IMPLEMENTED_PARTIAL",
+      "note": "GBF-004 projector implemented on Thread4; CAP07 remote still has no inbound consumer. Not Helpdesk/Social/CRMv2.",
+      "last_audited_head": "f00551555101456ce645cffb6c1b1d523b6676cc",
+      "current_head": "f00551555101456ce645cffb6c1b1d523b6676cc",
+      "last_audited": "f00551555101456ce645cffb6c1b1d523b6676cc"
+    },
+    "CAP08": {
+      "branch": "cursor/artifacts-documents-debt-burn",
+      "current_remote_head": "ec937c3bdfa914e87d8ea5441a4829662cd07f9e",
+      "disposition": "AUDITED_NOT_INTEGRATED",
+      "note": "EvidenceView version-history UI",
+      "current_head": "ec937c3bdfa914e87d8ea5441a4829662cd07f9e",
+      "last_audited": "ec937c3bdfa914e87d8ea5441a4829662cd07f9e"
+    },
+    "CAP09": {
+      "branch": "cursor/company-organization-debt-burn",
+      "current_remote_head": "d264afe925f3cae2b55f073100f02cac2c6c05b7",
+      "disposition": "AUDITED_NOT_INTEGRATED",
+      "current_head": "d264afe925f3cae2b55f073100f02cac2c6c05b7",
+      "last_audited": "d264afe925f3cae2b55f073100f02cac2c6c05b7",
+      "note": "42ef2c5fdc invitee inbox: organization.rs +655 vs Thread4. Later d264afe tracking/docs. Bounded hunk not independently applicable."
+    },
+    "CAP10": {
+      "branch": "cursor/data-lifecycle-debt-burn",
+      "current_remote_head": "ee861bf7461f152517db5de2556c2fe1f3e72217",
+      "disposition": "AUDITED_NOT_INTEGRATED",
+      "current_head": "ee861bf7461f152517db5de2556c2fe1f3e72217",
+      "last_audited": "ee861bf7461f152517db5de2556c2fe1f3e72217"
+    },
+    "CAP11": {
+      "branch": "cursor/comments-collaboration-debt-burn-7c10",
+      "current_remote_head": "f89137328ef97d1de2e7048d6ee16ced5de4680a",
+      "disposition": "AUDITED_NOT_INTEGRATED",
+      "current_head": "f89137328ef97d1de2e7048d6ee16ced5de4680a",
+      "last_audited": "f89137328ef97d1de2e7048d6ee16ced5de4680a"
+    },
+    "CAP12": {
+      "branch": "cursor/identity-access-debt-burn-af1b",
+      "current_remote_head": "bb5dc4f72294678d74a667609c157388fbef5c99",
+      "disposition": "AUDITED_NOT_INTEGRATED",
+      "note": "9ad29fe93f GET-by-id requires api_key_persist substrate Thread4 does not have. Not a 3-file salvage.",
+      "current_head": "bb5dc4f72294678d74a667609c157388fbef5c99",
+      "last_audited": "f6f40249afc4c677ce734e61d0a9c9d83556912e"
+    },
+    "CAP13": {
+      "branch": "cursor/inbound-webhook-ingestion-debt-burn-a912",
+      "disposition": "SALVAGED_PARTIAL",
+      "current_remote_head": "1876d323e7ea28329a735f890ea3095258bca73c",
+      "last_audited_head": "1876d323e7ea28329a735f890ea3095258bca73c",
+      "last_integrated_head": "2fc15a7e7d27a57fd6e119d130b7d46d31e8eb74",
+      "rejected": "WHOLE_BRANCH_MERGE",
+      "note": "GBF-004 ingest salvaged at 2fc15a7e; notify projector is Thread4 CAP07 consumer (0436). 1876d323 docs-only skipped.",
+      "current_head": "1876d323e7ea28329a735f890ea3095258bca73c",
+      "last_audited": "1876d323e7ea28329a735f890ea3095258bca73c"
+    },
+    "CAP14": {
+      "branch": "cursor/pages-knowledge-debt-burn-0085",
+      "current_remote_head": "b0a740e0ede4243a6e8626c064621dcab6d4d9ce",
+      "disposition": "AUDITED_NOT_INTEGRATED",
+      "note": "b0a740e0ed docs-only wave-19. Anonymous PUT/DELETE test lives on evolved social_pages_route.rs Thread4 lacks.",
+      "current_head": "b0a740e0ede4243a6e8626c064621dcab6d4d9ce",
+      "last_audited": "ba17233a3020b947d32723fb8a7c2a5655f507d7"
+    },
+    "CAP15": {
+      "branch": "cursor/webappvm-web-cli-debt-burn-0085",
+      "disposition": "SALVAGED_PARTIAL",
+      "current_remote_head": "a4cd144c82c367d282273067a3122b2ad80a5bed",
+      "last_audited_head": "a4cd144c82c367d282273067a3122b2ad80a5bed",
+      "last_integrated_head": "a4cd144c82c367d282273067a3122b2ad80a5bed",
+      "rejected": "WHOLE_BRANCH_MERGE",
+      "note": "WEB2APP kernel+HTTP+CLI salvaged; 0425 renumbered to 0429. GBF-008 agent grant bind implemented on Thread4 (not salvaged from CAP15/16 remotes).",
+      "current_head": "a4cd144c82c367d282273067a3122b2ad80a5bed",
+      "last_audited": "a4cd144c82c367d282273067a3122b2ad80a5bed"
+    },
+    "CAP16": {
+      "branch": "cursor/agent-employment-contract-debt-burn-da44",
+      "disposition": "SALVAGED_PARTIAL",
+      "current_remote_head": "4c60739df6f41fd42097add4f76330ea4eca8e6b",
+      "last_audited_head": "4c60739df6f41fd42097add4f76330ea4eca8e6b",
+      "last_integrated_head": "4c60739df6f41fd42097add4f76330ea4eca8e6b",
+      "rejected": "WHOLE_BRANCH_MERGE",
+      "note": "GBF-008 authorize_webapp_invoke is Thread4-authored over salvaged identity/contract. Not EmploymentV2.",
+      "current_head": "4c60739df6f41fd42097add4f76330ea4eca8e6b",
+      "last_audited": "4c60739df6f41fd42097add4f76330ea4eca8e6b"
+    },
+    "CAP17": {
+      "branch": "cursor/store-platform-hosting-fabric-debt-burn",
+      "disposition": "SALVAGED_PARTIAL",
+      "current_remote_head": "7f1cff9ab08c33abe4824e90c93f824ceb6bdd26",
+      "last_audited_head": "7f1cff9ab08c33abe4824e90c93f824ceb6bdd26",
+      "last_integrated_head": "50272a125da89a89fcbc7ae7db1b7bed59d3f1ba",
+      "rejected": "WHOLE_BRANCH_MERGE",
+      "note": "CAP8 digest verify + lifecycle receipts salvaged. GBF-007 helpdesk tickets persist via CAP01 conversation_store with Store-local Idempotency-Key claims (0437). crm_issues is not the ticket SoT. Customer SoT remains CAP05. Overlay cannot fake compiler PASS.",
+      "current_head": "7f1cff9ab08c33abe4824e90c93f824ceb6bdd26",
+      "last_audited": "7f1cff9ab08c33abe4824e90c93f824ceb6bdd26"
+    },
+    "CAP18": {
+      "branch": "cursor/confidential-blackbox-data-plane-debt-burn-7424",
+      "disposition": "SALVAGED_PARTIAL",
+      "current_remote_head": "e78f3d5776a69b9b04c96e15bc66479b133453bf",
+      "last_audited_head": "c4dba30c5ac661f0ea74039970f483d926558435",
+      "last_integrated_head": "c4dba30c5ac661f0ea74039970f483d926558435",
+      "rejected": "WHOLE_BRANCH_MERGE",
+      "note": "CSAT GET salvaged c4dba30c5a. e78f3d5776 cloud shard skipped.",
+      "current_head": "e78f3d5776a69b9b04c96e15bc66479b133453bf",
+      "last_audited": "42c0eef84864a1a526e2f9f39ed6905001c2ef5a"
+    }
+  },
+  "snapshot": {
+    "BENCHMARK_SHA": "a9e8b50e0b19807af7e28a4ff2714d2eb0d2bb23",
+    "SOURCE_TYPE": "THREAD4_HARVEST",
+    "SOURCE_BRANCH": "cursor/thread4-benchmark-authoritative-consolidation-ce57",
+    "SOURCE_SHA": "ed18a38b907afec069aa42a6209ca6314dfde410",
+    "THREAD4_BEFORE_SHA": "392c52a8388f88446a832309a35cfb093b7c2a7a",
+    "THREAD4_AFTER_SHA": "ed18a38b907afec069aa42a6209ca6314dfde410",
+    "FLOW_IDS": [
+      "FLOW-CAP02-CONNECTED-001",
+      "FLOW-CAP02-SCHEDULED-001"
+    ],
+    "CAPABILITY_KEYS": [
+      "crm-support.connected_accounts",
+      "workflow-runtime.scheduled_statuses"
+    ]
+  },
+  "notes": [
+    "Whole-branch CAP merges rejected: every CAP is 30 commits behind Benchmark compiler.",
+    "CAP16 took migrations 0425-0427; CAP13 inbound salvaged as 0428.",
+    "CAP17 helpdesk tickets persist through CAP01 conversation_store; crm_issues is not the ticket SoT. Store-local Idempotency-Key claims (0437) cover PO-IDEMPOTENCY in overlay only; compiler GBF-007 stays PARTIAL.",
+    "CAP13 ingest is LIVE on Thread4; GBF-004 still PARTIAL until CAP07 consumes inbound receipts.",
+    "Signing secrets remain consume-site plaintext matching existing webhook rows; CAP12 vault later. Not VaultV2.",
+    "GBF-004: CAP07 projector UNIQUE(company_id, inbound_event_id); migration 0436; CAP13 receipt remains SoT.",
+    "Remainer-2 CAP02 social leftovers harvested this tick: connected-accounts, scheduled-posts, comments, marketplace approval HTTP. Overlay flows, not GBF-011. Remainer-1 vis+cloud skipped (already on Thread4). Entity-trigger CAP05 leftover remains. Remainer-3 set_status next."
+  ],
+  "updated_at": "2026-08-21T18:20:00Z",
+  "p0_ci_phase": "DEFERRED",
+  "p0_rust_run_url": "https://github.com/llgtrn/Chronica/actions/runs/32508049789",
+  "p0_authoritative_run_url": "https://github.com/llgtrn/Chronica/actions/runs/32508049699",
+  "p0_authoritative_conclusion": "success",
+  "p0_rust_status": "in_progress",
+  "p0_prior_authoritative_run_url": "https://github.com/llgtrn/Chronica/actions/runs/32504827251",
+  "p0_prior_authoritative_conclusion": "failure",
+  "p0_prior_rust_run_url": "https://github.com/llgtrn/Chronica/actions/runs/32504827297",
+  "p0_prior_rust_conclusion": "cancelled",
+  "remainer": {
+    "branch": "cursor/remainer-full-benchmark-residual-burn",
+    "current_head": "1a68db86815d984ba2120f313ec8ff5133b97ee6",
+    "last_audited": "1a68db86815d984ba2120f313ec8ff5133b97ee6",
+    "last_harvested": "eb29f3fffb963a3c8f381091f3c6fe61bf28c8fb",
+    "commits_seen": 20,
+    "commits_harvested": 11,
+    "commits_superseded": 0,
+    "commits_rejected": 12,
+    "unique_vs_main": 20,
+    "unique_vs_thread4": 2,
+    "disposition": "REMAINER_PRODUCT_HEAD_HARVESTED",
+    "note": "Harvested EventRepo backup through trust-subscription HTTP. Skipped twelve cloud-final/vis reports including 6a12251b51 (already on Thread4) and 1a68db8681. GBF-009 OLTP still NOT_BUILT. Worker != Employee. Not CAP9. Not ActivityPub Follow.",
+    "flow_ids_harvested": [
+      "FLOW-CAP03-BACKUP-001",
+      "FLOW-INFRA-WORKER-GROUP-001",
+      "FLOW-INFRA-SITE-BACKUP-001",
+      "FLOW-INFRA-EVENT-MAINT-001",
+      "FLOW-INFRA-PATCH-INSTALLER-001",
+      "FLOW-INFRA-INSTALLER-DOCTOR-001",
+      "FLOW-INFRA-SETUP-PROVISION-001",
+      "FLOW-INFRA-EXPORTER-QUEUE-001",
+      "FLOW-INFRA-ARCHIVE-IO-001",
+      "FLOW-INFRA-USER-KV-001",
+      "FLOW-INFRA-TRUST-SUB-001"
+    ],
+    "capability_keys_harvested": [
+      "infra.archive_and_backup",
+      "infra.server_groups_api",
+      "infra.server_registry",
+      "infra.site_backup_restore",
+      "infra.maintenance_stats",
+      "infra.migration_installer",
+      "infra.installer",
+      "infra.setup_provisioning",
+      "infra.exporter_queue",
+      "infra.archive_io",
+      "other.user_kv_feedback",
+      "osint.instance_info_api"
+    ]
+  },
+  "remainer_3": {
+    "branch": "cursor/remainer-3-full-benchmark-residual-burn-8779",
+    "current_head": "9b74102f4a0852f697bee076765d7629333bb006",
+    "last_audited": "9b74102f4a0852f697bee076765d7629333bb006",
+    "last_harvested": "b10ad0b945434d847fbfa2863227dc50cbd4ae54",
+    "commits_seen": 8,
+    "commits_harvested": 3,
+    "commits_rejected": 4,
+    "disposition": "REMAINER3_NEW_PRODUCT_HEAD",
+    "note": "Harvested sandbox-lease grant, artifact get_meta, task_status HTTP. Skipped cloud-finals. Next product HEAD is integration set_status f5984c396c then OSINT investigation set_status 6d6105a26e. Worker != Employee. Not WEB2APP. Not GBF-009.",
+    "flow_ids_harvested": [
+      "FLOW-INFRA-SANDBOX-LEASE-001",
+      "FLOW-INFRA-ARTIFACT-META-001",
+      "FLOW-INFRA-TASK-STATUS-001"
+    ],
+    "capability_keys_harvested": [
+      "infra.resource_lifecycle",
+      "infra.file_upload_api",
+      "infra.background_task_tracking"
+    ]
+  },
+  "news_observation_extra": {
+    "branch": "cursor/news-feed-observation-cdf5",
+    "current_head": "6350a387af4b",
+    "semantic_owner": "CAP02",
+    "disposition": "AUDITED_NOT_INTEGRATED",
+    "note": "6350a387af docs-only cloud shard skipped. Nested Atom HTML still unintegrated; 0426/0427 collide with CAP16. Not WEB2APP news.search."
+  },
+  "thread4_head": "ed18a38b907afec069aa42a6209ca6314dfde410",
+  "blockers": [
+    "CAP04 dialect HTTP blocked on otel business.rs substrate (not on Benchmark)",
+    "CAP12 API-key GET-by-id blocked on api_key_persist",
+    "P0 Authoritative CI SUCCESS but Rust still IN_PROGRESS; CI_PHASE=DEFERRED until Rust is genuinely GREEN"
+  ],
+  "next_highest_value_gap": "Remainer-2 CAP05 entity-trigger HTTP (656ab2845e); Remainer-3 integration set_status; then CAP12 OAuth GET-by-id (not api_key_persist); CAP04 after otel substrate; GBF-009 OLTP backup",
+  "remainer_2": {
+    "branch": "cursor/remainer-2-full-benchmark-residual-burn-8779",
+    "current_head": "74ab2a67ed54028118e63b7bd2d420ccdff9ee02",
+    "last_audited": "74ab2a67ed54028118e63b7bd2d420ccdff9ee02",
+    "last_harvested": "74ab2a67ed54028118e63b7bd2d420ccdff9ee02",
+    "commits_seen": 9,
+    "commits_harvested": 4,
+    "commits_rejected": 4,
+    "disposition": "REMAINER2_SOCIAL_HARVESTED_ENTITY_TRIGGER_REMAINS",
+    "semantic_owner": "CAP02",
+    "note": "Harvested connected-accounts, scheduled-posts, comments, marketplace approval HTTP as CAP02. Skipped four cloud-final reports. Remaining product leftover is CRM entity-trigger 656ab2845e (CAP05, not CAP02). Worker != Employee. Not CAP16. Does not close GBF-011.",
+    "flow_ids_harvested": [
+      "FLOW-CAP02-CONNECTED-001",
+      "FLOW-CAP02-SCHEDULED-001"
+    ],
+    "capability_keys_harvested": [
+      "crm-support.connected_accounts",
+      "workflow-runtime.scheduled_statuses"
+    ]
+  }
+}

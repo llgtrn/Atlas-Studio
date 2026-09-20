@@ -1,0 +1,256 @@
+{
+  "flows": [
+    {
+      "from_kind": "capability",
+      "from_label": "Money Gate (evaluate_gate)",
+      "to_kind": "capability",
+      "to_label": "One authoritative gate for all money-moving actions",
+      "rationale": "Slice-4 gate enforces capital control; grounded in chronica-policy/src/gate.rs, crates/chronica-runtime/src/invoke/gateway.rs (commit be8b2cd0); invariant #10 verified 0 bypass paths"
+    },
+    {
+      "from_kind": "capability",
+      "from_label": "One authoritative gate for all money-moving actions",
+      "to_kind": "capability",
+      "to_label": "Board approval (ApprovalRequest + ApprovalDecision)",
+      "rationale": "GateVerdict output routes to board-only approval for RequiresApproval; SoD enforced via request.rs:114 decider != requester (commit be8b2cd0); chronica-approvals/src/decision_ledger.rs"
+    },
+    {
+      "from_kind": "capability",
+      "from_label": "Board approval (ApprovalRequest + ApprovalDecision)",
+      "to_kind": "capability",
+      "to_label": "Merkle audit chain (SHA-256 hash-chained CostRecords)",
+      "rationale": "Every money action appends to core/audit.rs AuditEntry after approval + execution; 7 hermetic tests + 2 live tests GREEN (memory:audit-2026-06.md); tamper-evident via verify_audit_chain"
+    },
+    {
+      "from_kind": "capability",
+      "from_label": "Merkle audit chain (SHA-256 hash-chained CostRecords)",
+      "to_kind": "user_value",
+      "to_label": "Trustworthy financial records for board decisions",
+      "rationale": "Board and auditors read the audit chain to prove what actually happened; non-repudiation via hash chain prevents 'I never approved that'; grounded in L0 trust kernel (holding-os-architecture.md section 2)"
+    },
+    {
+      "from_kind": "capability",
+      "from_label": "Money Gate (evaluate_gate)",
+      "to_kind": "capability",
+      "to_label": "ERP Finance Core (invoice/payment/stock/asset operations)",
+      "rationale": "73 money-moving ERP caps in 030 roadmap (erp.invoice.create_purchase/sales/pos, erp.payment.create_entry_register, erp.asset.capitalize_asset) all route through the ONE gate before posting GL; grounded in crates/chronica-erp/"
+    },
+    {
+      "from_kind": "capability",
+      "from_label": "ERP Finance Core (invoice/payment/stock/asset operations)",
+      "to_kind": "user_value",
+      "to_label": "Accurate company books + double-entry ledger truth",
+      "rationale": "Every money action balances DR/CR via post_gl_entries; stock valuation tracked (manufacturing work-order, asset capitalization); CostRecord tied to journal entry; 63 ERP money-cap financial_control tests GREEN (030-cap-erp-finance.md)"
+    },
+    {
+      "from_kind": "capability",
+      "from_label": "Accurate company books + double-entry ledger truth",
+      "to_kind": "business_value",
+      "to_label": "Consolidated multi-company financials (Group/Company/Project scope via ScopePath)",
+      "rationale": "5-level ScopePath (account=Group, workspace=Company, project=Project) enables hierarchical rollups; capital allocation runs at Group scope (chronica-company/allocation/mod.rs); board sees true portfolio P&L per company"
+    },
+    {
+      "from_kind": "capability",
+      "from_label": "Consolidated multi-company financials (Group/Company/Project scope via ScopePath)",
+      "to_kind": "capability",
+      "to_label": "Data Quality Report + Financial Valuation (ROIC/WACC/FCF bounded EV)",
+      "rationale": "DataQualityReport routes stale/incomplete data to human_required (chronica-analytics/data_quality.rs commit 2cfad935); EnterpriseValueVector confidence-weighted + capped floor (chronica-strategy/valuation.rs); reuses chronica-simulation EV math (no fork)"
+    },
+    {
+      "from_kind": "capability",
+      "from_label": "Data Quality Report + Financial Valuation (ROIC/WACC/FCF bounded EV)",
+      "to_kind": "capability",
+      "to_label": "Profit Screening Verdict (tighten-only advisory)",
+      "rationale": "ProfitScreeningVerdict + EvidenceRef (chronica-strategy/screening.rs) assesses Go/No-Go/human_required/board_required; evidence contracts downgrade self-reports; authorizes_money==false (doctrine.rs enforced)"
+    },
+    {
+      "from_kind": "capability",
+      "from_label": "Profit Screening Verdict (tighten-only advisory)",
+      "to_kind": "capability",
+      "to_label": "Decision Brief engine (game-state diagnosis opportunity brief)",
+      "rationale": "cognition::OpportunityBrief (chronica-strategy/cognition/brief.rs) structures CFO advice: situation, metrics, game diagnosis, evidence quality, recommended action; bridges to capital proposal via cognition::proposal_bridge"
+    },
+    {
+      "from_kind": "capability",
+      "from_label": "Decision Brief engine (game-state diagnosis opportunity brief)",
+      "to_kind": "capability",
+      "to_label": "Capital allocation orchestrator (evaluate_capital_proposal route gate board commit)",
+      "rationale": "chronica-strategy/orchestrator.rs evaluate_capital_proposal (commit 8aee8263) maps screening to gate to ApprovalRequest to board PENDING; wired into POST /api/companies/:id/decision-briefs; test company_ceo_cannot_perform_a_council_only_capital_action enforces authority split"
+    },
+    {
+      "from_kind": "capability",
+      "from_label": "Capital allocation orchestrator (evaluate_capital_proposal route gate board commit)",
+      "to_kind": "user_value",
+      "to_label": "Evidence-backed capital decisions with game-theoretic audit trail",
+      "rationale": "Board sees evidence-scored brief, game-state diagnosis (incentive conflicts, data quality), and a tighten-only screening verdict BEFORE committing; Merkle audit records both brief + board decision; agents cannot auto-approve (invariant #11)"
+    },
+    {
+      "from_kind": "user_value",
+      "from_label": "Evidence-backed capital decisions with game-theoretic audit trail",
+      "to_kind": "business_value",
+      "to_label": "Strategic portfolio allocation (Reinvest/Hold/Harvest/Turnaround/Exit)",
+      "rationale": "Group Council/President uses consolidated company EV + calibration score to rank portfolio assets (chronica-simulation/lib.rs rank_branches); each capital move audited + traceable to a board decision (invariant #10)"
+    },
+    {
+      "from_kind": "business_value",
+      "from_label": "Strategic portfolio allocation (Reinvest/Hold/Harvest/Turnaround/Exit)",
+      "to_kind": "revenue",
+      "to_label": "Reduced misallocation costs + faster capital velocity",
+      "rationale": "Profit-OS mechanism design (profit-os-architecture.md section 6.1): hiding problems becomes unprofitable; good behavior (capital-efficient focus) becomes rational equilibrium; audit trail enables claw-back/reallocation on discovery"
+    },
+    {
+      "from_kind": "capability",
+      "from_label": "ERP Finance Core (invoice/payment/stock/asset operations)",
+      "to_kind": "capability",
+      "to_label": "Commerce checkout + money-gated actions",
+      "rationale": "commerce.create_checkout routes through evaluate_gate (031 roadmap: 3 money caps); CommerceErpBinding maps listing to item, order to sales outcome; no second gate, no parallel money truth"
+    },
+    {
+      "from_kind": "capability",
+      "from_label": "Commerce checkout + money-gated actions",
+      "to_kind": "user_value",
+      "to_label": "Customer revenue transactions with real-time reconciliation",
+      "rationale": "Every e-commerce purchase maps to erp.invoice.create_sales (confirmed via CostRecord); inventory reserved + GL posted atomically; platform tracks customer lifetime value, churn, pricing elasticity via unified BusinessEvent stream"
+    },
+    {
+      "from_kind": "capability",
+      "from_label": "Customer revenue transactions with real-time reconciliation",
+      "to_kind": "business_value",
+      "to_label": "Multi-channel commerce platform (storefront billing compliance all audit-gated)",
+      "rationale": "Helpdesk/CRM (81/167 crm-support caps verified) + messenger + commerce + billing unified under one company scope + one gate = single source of truth for customer lifetime, churn, margin; no orphaned financials"
+    },
+    {
+      "from_kind": "business_value",
+      "from_label": "Multi-channel commerce platform (storefront billing compliance all audit-gated)",
+      "to_kind": "revenue",
+      "to_label": "Sell SaaS/commerce infrastructure to operating companies",
+      "rationale": "revenue-erp-billing-subscription-suite (opportunities.json item 3): 29 unimplemented billing caps (erp.billing.create_subscription, meter_usage_and_bill, process_stripe_billing_webhook); actual revenue surface through one proven gate (70/99 money caps verified)"
+    },
+    {
+      "from_kind": "capability",
+      "from_label": "One authoritative gate for all money-moving actions",
+      "to_kind": "capability",
+      "to_label": "Budget policy enforcement (hard-stop ceiling per scope)",
+      "rationale": "invoke_tool_budgeted (chronica-runtime/invoke/gateway.rs:80 commit be8b2cd0) threads BudgetPolicy into evaluate_gate; HardStopped verdict blocks even AutoAllow actions if projected spend >= ceiling; G7 FIXED"
+    },
+    {
+      "from_kind": "capability",
+      "from_label": "Budget policy enforcement (hard-stop ceiling per scope)",
+      "to_kind": "user_value",
+      "to_label": "Autonomous AI agents with hard spend ceilings",
+      "rationale": "agent.invoke_tool_call routes through budget check BEFORE risk classification; invoke_tool never mints money above ceiling; agents propose, board/budget controls ceiling"
+    },
+    {
+      "from_kind": "user_value",
+      "from_label": "Autonomous AI agents with hard spend ceilings",
+      "to_kind": "business_value",
+      "to_label": "Governance of AI agent autonomy via trust tiers",
+      "rationale": "calibration.rs PlayerCalibration (commit 1e83eeaa) scores forecast_accuracy + evidence_completeness; chronica-engine calibration adapters (9e1d1876) project track record from audit chain; high-calibration agents get lighter HITL, never money-commit"
+    },
+    {
+      "from_kind": "business_value",
+      "from_label": "Governance of AI agent autonomy via trust tiers",
+      "to_kind": "revenue",
+      "to_label": "Productized AI agent management (sell as SaaS feature agents as first-class workers)",
+      "rationale": "Strategy Brain pillar 100% complete (37/37 verified caps); feed surfaces agent activity + strategy posts; template instantiation creates working agents with measurable productivity; agents become sellable as part of Chronica Group OS"
+    },
+    {
+      "from_kind": "capability",
+      "from_label": "Data Quality Report + Financial Valuation (ROIC/WACC/FCF bounded EV)",
+      "to_kind": "capability",
+      "to_label": "Real-time OLAP + business-event analytics",
+      "rationale": "chronica-events (Slice 173) captures EVERYTHING as BusinessEvent (scope_path + ERP dimensions); chronica-olap (Slice 177) streams to ClickHouse; shared SignalCommon for commerce signals (chronica-commerce-signals)"
+    },
+    {
+      "from_kind": "capability",
+      "from_label": "Real-time OLAP + business-event analytics",
+      "to_kind": "user_value",
+      "to_label": "Live KPI dashboards (agent spend velocity cohort churn revenue per unit)",
+      "rationale": "Observability pillar 46% complete (201/440 verified); Prometheus alerting (opportunities.json item 12: score 5) enables real-time anomaly detection; dashboard cards render materialized KPIs + SLA breach alerts"
+    },
+    {
+      "from_kind": "user_value",
+      "from_label": "Live KPI dashboards (agent spend velocity cohort churn revenue per unit)",
+      "to_kind": "business_value",
+      "to_label": "Operational metrics feed back into governance (fast decision loop)",
+      "rationale": "Capital-allocation lifecycle (holding-os-architecture.md section 2.5.2): Observe to Reconcile to Diagnose to Propose to Screen to Approve/Escalate to Execute to Audit to Measure to Calibrate to Reallocate; OLAP aggregates are measured signal for Calibrate step"
+    },
+    {
+      "from_kind": "capability",
+      "from_label": "Durable workflow runtime (Temporal-style crash-safe execution)",
+      "to_kind": "capability",
+      "to_label": "Billing/subscription/SLA automation (quota-limiting dunning snooze)",
+      "rationale": "workflow-runtime caps (33 caps in 033 roadmap): workflow-runtime.execute_workflow, durable_state, history_management; currently 54% complete (134/247 verified); opportunities.json item 4 unlocks revenue-billing-subscription-suite downstream"
+    },
+    {
+      "from_kind": "capability",
+      "from_label": "Billing/subscription/SLA automation (quota-limiting dunning snooze)",
+      "to_kind": "user_value",
+      "to_label": "Automated customer lifecycle workflows (onboarding usage limit-enforcement renewal/churn)",
+      "rationale": "Helpdesk SLA (frt/nrt/resolution + breach notifications); quota_limiting cap gates usage above plan; dunning recovers overdue accounts; all durable against restarts + audited"
+    },
+    {
+      "from_kind": "user_value",
+      "from_label": "Automated customer lifecycle workflows (onboarding usage limit-enforcement renewal/churn)",
+      "to_kind": "business_value",
+      "to_label": "Efficient subscription/SaaS operations (reduced manual billing faster churn detection)",
+      "rationale": "workflow-runtime is the production loop (operationalize the business); every recurring business process rides it; quota system + metering remove manual billing effort; automated dunning recovers cash faster"
+    },
+    {
+      "from_kind": "business_value",
+      "from_label": "Efficient subscription/SaaS operations (reduced manual billing faster churn detection)",
+      "to_kind": "revenue",
+      "to_label": "Sell Chronica Group OS as a SaaS product (B2B offering workspace-as-company)",
+      "rationale": "Workspace = a running operating company (workspace-holding-company-model.md); 3-tier templates (Project subsetof Company subsetof Group); external companies stand up on Chronica + pay per API call / monthly / overages; Chronica takes a take-rate on all money through the gate"
+    },
+    {
+      "from_kind": "capability",
+      "from_label": "X-like operational social feed (posts = approvals/decisions/runs/erp/strategy)",
+      "to_kind": "capability",
+      "to_label": "Feed-first UI redesign (35% complete core feed approve/comments/messenger)",
+      "rationale": "ui/src/feed/ redesigned post-X visual (studied live x.com/home); PostCard + approvals + messenger inline; 150/150 feed vitest + vite build GREEN"
+    },
+    {
+      "from_kind": "capability",
+      "from_label": "Feed-first UI redesign (35% complete core feed approve/comments/messenger)",
+      "to_kind": "user_value",
+      "to_label": "Operator console surface (one place to see approvals strategy posts agent activity)",
+      "rationale": "Feed is the operating surface, not a BI dashboard; strategy-assessment posts show game-class/EV/confidence; agents visible as first-class actors"
+    },
+    {
+      "from_kind": "user_value",
+      "from_label": "Operator console surface (one place to see approvals strategy posts agent activity)",
+      "to_kind": "business_value",
+      "to_label": "Fast operating loop (CEO/Council can decide in minutes not days)",
+      "rationale": "Single feed index sorts by time; inline approval/reject avoids context switches; right-rail agent activity shows what's running; live KPI cards give context; decision lead-time is factor in EV multiplier (profit-os-architecture.md section 5)"
+    },
+    {
+      "from_kind": "capability",
+      "from_label": "Security auth bridge (OIDC prod claim-mapping deploy attestation)",
+      "to_kind": "user_value",
+      "to_label": "Production-authed UI (local dev path done OIDC prod escalated)",
+      "rationale": "dev-session signer route (dev_auth.rs c9a4214d) proves local UI runs authed vs real verifier; prod OIDC bridge (opportunities.json item 8) gates live-authed helpdesk UI click-through test"
+    },
+    {
+      "from_kind": "user_value",
+      "from_label": "Production-authed UI (local dev path done OIDC prod escalated)",
+      "to_kind": "business_value",
+      "to_label": "Live-running Chronica Group OS (all routes authed all money real audit complete)",
+      "rationale": "prod readiness dims A-H tracked in production-readiness.md; auth-bridge is escalation L1/L2 (disjoint key + boot-abort); once prod OIDC lands, entire system runs authenticated against live capital decisions"
+    },
+    {
+      "from_kind": "business_value",
+      "from_label": "Live-running Chronica Group OS (all routes authed all money real audit complete)",
+      "to_kind": "revenue",
+      "to_label": "Paid customers running real companies on Chronica (revenue from capital efficiency)",
+      "rationale": "Customer success metric = capital allocation quality (profit-os-architecture.md section 5 EnterpriseValue = CapitalAllocationQuality times ... times RiskDiscipline); Chronica takes a take-rate on all allocation decisions + all ERP money; billing caps live (revenue-erp-billing-subscription-suite opportunities.json item 3)"
+    }
+  ],
+  "orphans": [
+    "Media & Creative (9% complete, 5/54 caps verified) - no revenue path identified (programmatic video/image content generation for content-producing companies is a speculative use case with no business model grounded in current code)",
+    "Infra & Company Instantiation (23% complete, 61/260 caps verified) - most k8s/deploy/template-instantiation scaffolding but no revenue path until templates are sold as a product; currently internal tech debt (G5 portfolio optimizer, G6 reallocation/dividend ops, G9 SpendPolicy wiring, G11 account_id coercion all still missing implementation)",
+    "External Arena / Browser-Internet-Hand (35% complete, 112/319 caps verified) - 37 caps unimplemented; F3 money-mint ungated (P1 issue money-f3-internet-hand-ungated-mint); governance/browser automation wiring blocked until F3 gates properly; speculative OSINT/market-intel surface without clear monetization",
+    "Agent System & Autonomy (37% complete, 118/317 caps verified) - skill-forge platform not yet wired; multi-agent orchestration kernel still forward design; value only realized after skill-generation + trust-tier governance converge with productized agent selling (currently 35% feed product surface, no agent-profile UI yet)",
+    "Support & CRM (49% complete, 81/167 caps verified) - helpdesk built but not yet surfaced in holding feed (P3 issue product-helpdesk-not-in-holding-feed); CSAT#14, custom-attrs#10, working-hours#15, notifications#16, KB#18, channels#6 still unimplemented; value chain incomplete (customer satisfaction data not feeding back to capital allocation)"
+  ]
+}

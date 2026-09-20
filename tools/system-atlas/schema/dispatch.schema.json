@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "chronica.system-atlas.dispatch.v0",
+  "title": "Chronica System Atlas Dispatch Plan",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "dispatch_contract_version", "source_base_sha", "atlas_generation_sha", "generated_at", "waves"],
+  "properties": {
+    "schema": { "const": "chronica.system-atlas.dispatch.v0" },
+    "dispatch_contract_version": {
+      "const": 3,
+      "description": "Frozen as of B.2 (version 1); bumped to version 2 in B.2.1; bumped to version 3 in B.2.2 -- see docs/_machine/system-atlas/README.md's 'Dispatch contract freeze' section for the full frozen interface list (Task/Wave/Lease/Dispatch Lock/Dispatch Journal/Recovery Record/Node/Edge/Shard). A breaking change to any of those interfaces' required fields, enum values, or operational/on-disk-location contract must bump this number, which downstream consumers (Lane C, Lane D integration) pin against. Version 2's change: the Dispatch Journal interface's on-disk location moved from one shared well-known path to one immutable file per transaction (closing an architect-identified ABA journal-generation race), not a change to the persisted journal record's own JSON field shape. Version 3's changes (both real breaks for a consumer that assumed the old shape/semantics, not silent): (a) the Dispatch Lock record's required fields grew host_id and process_start_identity (schema/dispatch-lock.schema.json), and reclaiming an expired lock now additionally requires machine-verified proof the previous owner is dead -- TTL expiry alone is never sufficient (closing an architect-identified stale-owner lost-update); (b) the Dispatch Journal interface's recovery path now validates full record integrity (operation/hash/target-path authority) before acting on anything read from disk, and journal publication is exclusive (a transaction_id collision is refused, never silently overwritten)."
+    },
+    "source_base_sha": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+    "atlas_generation_sha": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+    "generated_at": { "type": "string" },
+    "waves": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["wave_id", "accounts", "proves_no_owned_path_overlap", "proves_dependency_safe", "safety_report"],
+        "properties": {
+          "wave_id": { "type": "string" },
+          "description": { "type": "string" },
+          "accounts": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "array",
+              "items": { "type": "string" }
+            }
+          },
+          "proves_no_owned_path_overlap": {
+            "type": "boolean",
+            "description": "Must be derived by scripts/system-atlas/dependency-safety.mjs's analyzeWave() from an empty ownedPathOverlaps/forbiddenPathOverlaps/sharedFileConflicts set -- never hand-set to true."
+          },
+          "proves_dependency_safe": {
+            "type": "boolean",
+            "description": "Must be derived by analyzeWave() from an empty cycles/blockedByCycles set and no blocked/unresolved task in the wave -- never hand-set to true."
+          },
+          "safety_report": {
+            "type": "object",
+            "description": "The full analyzeWave() output this wave's two proves_* booleans were derived from, kept for auditability.",
+            "additionalProperties": true
+          }
+        }
+      }
+    },
+    "lease_states": {
+      "type": "array",
+      "description": "This is the task lifecycle enum (see task.schema.json's status field), not the separate Lease record status enum (see lease.schema.json: ACTIVE/EXPIRED/RELEASED/COMPLETED).",
+      "items": {
+        "type": "string",
+        "enum": ["READY", "PLANNED", "DESIGN_REQUIRED", "LEASED", "IN_PROGRESS", "READY_TO_VERIFY", "VERIFIED", "READY_TO_INTEGRATE", "INTEGRATED", "RECOVERY_REQUIRED", "BLOCKED_DEPENDENCY", "BLOCKED_ENV", "BLOCKED_SEMANTICS", "FAILED"]
+      }
+    }
+  }
+}

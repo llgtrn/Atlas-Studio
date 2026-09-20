@@ -1,0 +1,34 @@
+{
+  "schema": "chronica.blackbox.evaluation.v1",
+  "fixture_kind": "BENCHMARK_FIXTURE_ONLY",
+  "web2app": {
+    "independent": true
+  },
+  "employment": {
+    "independent": true
+  },
+  "case_id": "output-dlp-block",
+  "claimed_blackbox_maturity": "B4",
+  "at_rest": {
+    "sealed": true
+  },
+  "opaque": {
+    "boundary_ref": true
+  },
+  "secrets": {
+    "handle": true,
+    "envelope": true,
+    "use_without_disclose": true
+  },
+  "agent": {
+    "semantic_view": true,
+    "send_by_handle": true
+  },
+  "output_dlp": {
+    "enforced": true
+  },
+  "provider": {
+    "minimized": true
+  },
+  "notes": "Destination-sensitive output denied/redacted. Fixture evaluator shape."
+}

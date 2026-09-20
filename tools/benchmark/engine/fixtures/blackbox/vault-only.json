@@ -1,0 +1,21 @@
+{
+  "schema": "chronica.blackbox.evaluation.v1",
+  "fixture_kind": "BENCHMARK_FIXTURE_ONLY",
+  "web2app": {
+    "independent": true
+  },
+  "employment": {
+    "independent": true
+  },
+  "case_id": "vault-only",
+  "claimed_blackbox_maturity": "B5",
+  "vault_only": true,
+  "at_rest": {
+    "sealed": true
+  },
+  "secrets": {
+    "handle": true,
+    "envelope": true
+  },
+  "notes": "Vault/transit exists. Not a Black-Box data plane."
+}

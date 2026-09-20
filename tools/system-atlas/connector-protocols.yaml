@@ -1,0 +1,125 @@
+schema: chronica.connector-protocol-targets.v1
+protocols:
+  - id: OPC_UA
+    category: industrial
+    donor_ids: [D318]
+    production_evidence_paths: []
+    proof_evidence_paths: []
+  - id: MODBUS
+    category: industrial
+    donor_ids: [D280]
+    production_evidence_paths: []
+    proof_evidence_paths: []
+  - id: S7
+    category: industrial
+    donor_ids: [D335]
+    production_evidence_paths: []
+    proof_evidence_paths: []
+  - id: ETHERNET_IP
+    category: industrial
+    donor_ids: [D335, D337]
+    production_evidence_paths: []
+    proof_evidence_paths: []
+  - id: ETHERCAT
+    category: industrial
+    donor_ids: [D210]
+    production_evidence_paths: []
+    proof_evidence_paths: []
+  - id: ROS2
+    category: robotics
+    donor_ids: [D262, D264]
+    production_evidence_paths: []
+    proof_evidence_paths: []
+  - id: ZENOH
+    category: robotics
+    donor_ids: [D080]
+    production_evidence_paths: []
+    proof_evidence_paths: []
+  - id: MQTT
+    category: iot
+    donor_ids: [D077]
+    production_evidence_paths: []
+    proof_evidence_paths: []
+  - id: MATTER
+    category: iot
+    donor_ids: [D336]
+    production_evidence_paths: []
+    proof_evidence_paths: []
+  - id: COAP
+    category: iot
+    donor_ids: []
+    production_evidence_paths: []
+    proof_evidence_paths: []
+  - id: BACNET
+    category: building
+    donor_ids: [D028]
+    production_evidence_paths: []
+    proof_evidence_paths: []
+  - id: KNX
+    category: building
+    donor_ids: [D313]
+    production_evidence_paths: []
+    proof_evidence_paths: []
+  - id: CAN
+    category: vehicle
+    donor_ids: [D338]
+    production_evidence_paths: []
+    proof_evidence_paths: []
+  - id: CANOPEN
+    category: vehicle
+    donor_ids: [D038]
+    production_evidence_paths: []
+    proof_evidence_paths: []
+  - id: J1939
+    category: vehicle
+    donor_ids: [D338]
+    production_evidence_paths: []
+    proof_evidence_paths: []
+  - id: OBD_II
+    category: vehicle
+    donor_ids: []
+    production_evidence_paths: []
+    proof_evidence_paths: []
+  - id: VEHICLE_SIGNAL
+    category: vehicle
+    donor_ids: [D339]
+    production_evidence_paths: []
+    proof_evidence_paths: []
+  - id: RTSP
+    category: media
+    donor_ids: []
+    production_evidence_paths: []
+    proof_evidence_paths: []
+  - id: HTTP_API
+    category: digital
+    donor_ids: []
+    production_evidence_paths:
+      - adapter/src/api_effect.rs
+    proof_evidence_paths: []
+  - id: FILESYSTEM
+    category: digital
+    donor_ids: []
+    production_evidence_paths:
+      - adapter/src/filesystem_effect.rs
+    proof_evidence_paths: []
+  - id: POSTGRESQL
+    category: digital
+    donor_ids: []
+    production_evidence_paths:
+      - adapter/src/postgres.rs
+    proof_evidence_paths: []
+  - id: MCP
+    category: digital
+    donor_ids: []
+    production_evidence_paths: []
+    proof_evidence_paths: []
+  - id: GRPC
+    category: digital
+    donor_ids: []
+    production_evidence_paths: []
+    proof_evidence_paths: []
+  - id: WEBSOCKET
+    category: digital
+    donor_ids: []
+    production_evidence_paths: []
+    proof_evidence_paths: []

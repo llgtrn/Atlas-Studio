@@ -1,0 +1,72 @@
+[
+  {
+    "dir": "apps/ui/packages/adapter-utils",
+    "name": "@chronica/adapter-utils",
+    "publishFromCi": true
+  },
+  {
+    "dir": "apps/ui/packages/adapters/acpx-local",
+    "name": "@chronica/adapter-acpx-local",
+    "publishFromCi": true
+  },
+  {
+    "dir": "apps/ui/packages/adapters/claude-local",
+    "name": "@chronica/adapter-claude-local",
+    "publishFromCi": true
+  },
+  {
+    "dir": "apps/ui/packages/adapters/codex-local",
+    "name": "@chronica/adapter-codex-local",
+    "publishFromCi": true
+  },
+  {
+    "dir": "apps/ui/packages/adapters/cursor-cloud",
+    "name": "@chronica/adapter-cursor-cloud",
+    "publishFromCi": true
+  },
+  {
+    "dir": "apps/ui/packages/adapters/cursor-local",
+    "name": "@chronica/adapter-cursor-local",
+    "publishFromCi": true
+  },
+  {
+    "dir": "apps/ui/packages/adapters/gemini-local",
+    "name": "@chronica/adapter-gemini-local",
+    "publishFromCi": true
+  },
+  {
+    "dir": "apps/ui/packages/adapters/grok-local",
+    "name": "@chronica/adapter-grok-local",
+    "publishFromCi": true
+  },
+  {
+    "dir": "apps/ui/packages/adapters/opencode-local",
+    "name": "@chronica/adapter-opencode-local",
+    "publishFromCi": true
+  },
+  {
+    "dir": "apps/ui/packages/adapters/pi-local",
+    "name": "@chronica/adapter-pi-local",
+    "publishFromCi": true
+  },
+  {
+    "dir": "apps/ui/packages/adapters/openclaw-gateway",
+    "name": "@chronica/adapter-openclaw-gateway",
+    "publishFromCi": true
+  },
+  {
+    "dir": "apps/ui/packages/shared",
+    "name": "@chronica/shared",
+    "publishFromCi": true
+  },
+  {
+    "dir": "apps/ui/packages/plugins/sdk",
+    "name": "@chronica/plugin-sdk",
+    "publishFromCi": true
+  },
+  {
+    "dir": "apps/ui",
+    "name": "@chronica/ui",
+    "publishFromCi": true
+  }
+]

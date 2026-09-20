@@ -1,0 +1,68 @@
+{
+  "_doc": "The Reality Engine ledger — things that ACTUALLY occurred at runtime. HARD HONESTY RULE: a smoke/live test is real runtime but SYNTHETIC (test user, test data) => L3_synthetic. L4_production requires user_real=1 AND data_real=1 (a real person + real data, e.g. real money through the gate in production). Today that set is EMPTY — so Reality Ratio = 0%. Do NOT add an L4 row without a real production occurrence; the system refuses to honor a hand-claimed L4.",
+  "events": [
+    {
+      "id": "live-first-l4-chain-end-to-end-dev",
+      "node_kind": "milestone", "node_id": "execution-and-audit-l4",
+      "reality_level": "L3_synthetic", "event_type": "integration_run", "occurred_at": "2026-06-20",
+      "description": "The ENTIRE first-L4 chain ran end-to-end over real HTTP against the booted dev-auth server + real Postgres: dev-login (signed EdDSA, dev kid) -> create bound money_action approval (provider+operation+reversible+maxCostCents=100) -> board approval by a DISTINCT principal (SoD: l4-board != l4-requester) -> money-action commit (status committed, deduped=false) -> Merkle audit finance_event. A repost of the SAME nonce+approval deduped to the SAME commitment (single-use / exactly-once held). Agent-driven with synthetic principals + synthetic $1 + seeded company, LiveMoney NOT armed (no real funds) => L3, NOT L4.",
+      "data_real": 0, "user_real": 0,
+      "outcome_observed": "Whole pipeline (auth->propose->approve->execute->audit) committed exactly once with a real Merkle audit row; SoD + idempotency enforced by the live server. Synthetic actors/amount => Reality Ratio stays 0%; this de-risks the human L4 run to a real person running the identical steps.",
+      "evidence_ref": "autonomous dev run via tools/first-l4 (psql/jq absent -> isolated node fetch driver): commitmentId 03490d32-0474-465b-ba64-a4ce301ec061, finance_event db5e927a-7c77-49f7-8f81-d7eb30d7a1e8, auditTipHash 211755f721a963a0f63630e42b3309c749be681b7b07b3582cecc93d105b436a, repost deduped=true"
+    },
+    {
+      "id": "smoke-deployed-binary-tenancy-7d706d95",
+      "node_kind": "assumption", "node_id": "deny-by-default-tenancy-complete",
+      "reality_level": "L3_synthetic", "event_type": "smoke_test", "occurred_at": "2026-06-16",
+      "description": "A real HTTP request hit the DEPLOYED binary; a dev-auth bearer for the wrong account was rejected 403 by DB-derived tenancy over real HTTP (not a unit test).",
+      "data_real": 0, "user_real": 0,
+      "outcome_observed": "403 cross-account — tenancy enforced by the real running server.",
+      "evidence_ref": "commit 7d706d95 (deployed-binary smoke)"
+    },
+    {
+      "id": "live-dev-auth-route-9b5b5f64",
+      "node_kind": "decision", "node_id": "D008",
+      "reality_level": "L3_synthetic", "event_type": "live_test", "occurred_at": "2026-06-16",
+      "description": "Over real HTTP against the booted server: a dev-signed bearer authenticates a protected route; a wrong-account token still 403s; the /api/dev/login route is absent when the flag is off.",
+      "data_real": 0, "user_real": 0,
+      "outcome_observed": "auth bridge verifies against the real verifier; production provably never exposed.",
+      "evidence_ref": "commit 9b5b5f64 (tests/dev_auth_route.rs 4/4 live)"
+    },
+    {
+      "id": "live-money-concurrency-640-299b1247",
+      "node_kind": "assumption", "node_id": "one-money-gate-sufficient",
+      "reality_level": "L3_synthetic", "event_type": "integration_run", "occurred_at": "2026-06-15",
+      "description": "640 concurrent commit_money_action attempts fired against a real Postgres with the partial-UNIQUE approval index → exactly 1 commit, the rest deduped to ApprovalConsumed.",
+      "data_real": 0, "user_real": 0,
+      "outcome_observed": "single-use money commitment held under real concurrency (synthetic accounts/amounts).",
+      "evidence_ref": "commit 299b1247 (F1.b live tests)"
+    },
+    {
+      "id": "live-money-replay-rejection-05927dad",
+      "node_kind": "decision", "node_id": "D002",
+      "reality_level": "L3_synthetic", "event_type": "live_test", "occurred_at": "2026-06-15",
+      "description": "Against a real DB: a pre-approval bound to provider+operation+ceiling could not be replayed for an unrelated money action (sequential replay hole closed).",
+      "data_real": 0, "user_real": 0,
+      "outcome_observed": "money gate rejected the replay; 2 live tests green.",
+      "evidence_ref": "commit 05927dad (F1: 7 hermetic + 2 live)"
+    },
+    {
+      "id": "live-control-room-routes-14",
+      "node_kind": "opportunity", "node_id": "product-agent-profile-activity-feed",
+      "reality_level": "L3_synthetic", "event_type": "live_test", "occurred_at": "2026-06-14",
+      "description": "After restoring the dev Postgres, 14/14 control-room route tests passed live against the real database (read-model + holding feed isolation).",
+      "data_real": 0, "user_real": 0,
+      "outcome_observed": "read-model routes serve correctly over a real DB with synthetic seed data.",
+      "evidence_ref": "[[chronica-dev-database]] dev DB restored; 14/14 control_room route tests"
+    },
+    {
+      "id": "live-helpdesk-route-suite",
+      "node_kind": "pillar", "node_id": "support-crm",
+      "reality_level": "L3_synthetic", "event_type": "live_test", "occurred_at": "2026-06-12",
+      "description": "Live helpdesk route tests (tenant isolation, closed-set channel/status, redaction, no-money guard) ran against a real Postgres.",
+      "data_real": 0, "user_real": 0,
+      "outcome_observed": "helpdesk routes enforce isolation + redaction over a real DB (synthetic tickets).",
+      "evidence_ref": "helpdesk live_route tests (migration 0019+)"
+    }
+  ]
+}

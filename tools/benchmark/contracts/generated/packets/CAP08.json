@@ -1,0 +1,80 @@
+{
+  "schema": "chronica.benchmark.contract.v1",
+  "generated": true,
+  "source_of_truth": "tools/benchmark/contracts/source",
+  "cap": "CAP08",
+  "name": "Artifacts/documents",
+  "benchmark_release": "BR-2026.08.21.1",
+  "benchmark_sha": "2f0a95472e72842e7ec70cdac6eeef8297df2b55",
+  "contract_schema_version": "1.0.0",
+  "source_hash": "bea492307c825d9bd8fc9b677e0b6028b79cbee119bfb216d7c25d976d82c8f1",
+  "ownership": [
+    "artifacts",
+    "documents",
+    "digest provenance"
+  ],
+  "non_ownership": [
+    "Store runtime",
+    "disclosure policy"
+  ],
+  "standards": {
+    "STORE": "1.0.0",
+    "BLACKBOX": "1.0.0"
+  },
+  "catalog_versions": {
+    "WEB2APP": "1.1.0",
+    "EMPLOYMENT": "1.0.0",
+    "STORE": "1.0.0",
+    "BLACKBOX": "1.0.0",
+    "FIC": "55",
+    "FIVE_PLANE": "PROVISIONAL_BASELINE"
+  },
+  "families": [
+    "FAM-ARTIFACT-REVIEW"
+  ],
+  "owned_flow_ids": [
+    "FLOW-CAP08-ARTIFACT-001"
+  ],
+  "participating_flow_ids": [
+    "FLOW-CAP17-PREVIEW-001",
+    "FLOW-CAP11-COMMENT-001"
+  ],
+  "hard_gates": [],
+  "anti_patterns": [],
+  "forbidden_architecture": [
+    "ArtifactSystemV2"
+  ],
+  "flow_status": {
+    "FLOW-CAP08-ARTIFACT-001": "SPEC_ONLY"
+  },
+  "missing_witnesses": [
+    "FLOW-CAP08-ARTIFACT-001:PO-PERSISTENCE",
+    "FLOW-CAP08-ARTIFACT-001:PO-EVIDENCE",
+    "FLOW-CAP08-ARTIFACT-001:PO-APPROVAL"
+  ],
+  "required_proof_obligations": [
+    "PO-PERSISTENCE",
+    "PO-EVIDENCE",
+    "PO-APPROVAL"
+  ],
+  "blocked_flows": [],
+  "next_actionable": [
+    {
+      "id": "FLOW-CAP08-ARTIFACT-001",
+      "status": "SPEC_ONLY",
+      "missing": [
+        "PO-PERSISTENCE",
+        "PO-EVIDENCE",
+        "PO-APPROVAL"
+      ],
+      "value": "MEDIUM",
+      "golden": [
+        "GBF-005"
+      ]
+    }
+  ],
+  "negatives": [],
+  "this_packet_is_not_source": true,
+  "packet_hash": "dcfb4e896bfc75e8361f6b7e6ca50aa79994cc8e04babebdb37fa587209131b8",
+  "markdown": "# CAP08 Artifacts/documents — acceptance packet\n\nGENERATED. Source of truth is Contract IR (chronica.benchmark.contract.v1). Do not hand-edit.\n\n- BENCHMARK_RELEASE: `BR-2026.08.21.1`\n- BENCHMARK_SHA: `2f0a95472e72842e7ec70cdac6eeef8297df2b55`\n- SOURCE_HASH: `bea492307c825d9bd8fc9b677e0b6028b79cbee119bfb216d7c25d976d82c8f1`\n- PACKET_HASH: `dcfb4e896bfc75e8361f6b7e6ca50aa79994cc8e04babebdb37fa587209131b8`\n- STANDARDS: {\"STORE\":\"1.0.0\",\"BLACKBOX\":\"1.0.0\"}\n\n## Owns\n- artifacts\n- documents\n- digest provenance\n\n## Does not own\n- Store runtime\n- disclosure policy\n\n## Hard gates\n\n## Owned flows\n- `FLOW-CAP08-ARTIFACT-001` SPEC_ONLY missing=PO-PERSISTENCE,PO-EVIDENCE,PO-APPROVAL\n\n## Next actionable\n- `FLOW-CAP08-ARTIFACT-001` (SPEC_ONLY)\n\nIf the standard appears wrong: emit BENCHMARK_CHANGE_REQUEST. Do not weaken fixtures.\n"
+}

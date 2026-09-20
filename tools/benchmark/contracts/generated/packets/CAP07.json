@@ -1,0 +1,76 @@
+{
+  "schema": "chronica.benchmark.contract.v1",
+  "generated": true,
+  "source_of_truth": "tools/benchmark/contracts/source",
+  "cap": "CAP07",
+  "name": "Notifications",
+  "benchmark_release": "BR-2026.08.21.1",
+  "benchmark_sha": "2f0a95472e72842e7ec70cdac6eeef8297df2b55",
+  "contract_schema_version": "1.0.0",
+  "source_hash": "bea492307c825d9bd8fc9b677e0b6028b79cbee119bfb216d7c25d976d82c8f1",
+  "ownership": [
+    "notification projection and delivery"
+  ],
+  "non_ownership": [
+    "canonical business events (CAP13)",
+    "Helpdesk kernel"
+  ],
+  "standards": {
+    "BLACKBOX": "1.0.0"
+  },
+  "catalog_versions": {
+    "WEB2APP": "1.1.0",
+    "EMPLOYMENT": "1.0.0",
+    "STORE": "1.0.0",
+    "BLACKBOX": "1.0.0",
+    "FIC": "55",
+    "FIVE_PLANE": "PROVISIONAL_BASELINE"
+  },
+  "families": [
+    "FAM-NOTIFICATION-LIFECYCLE"
+  ],
+  "owned_flow_ids": [
+    "FLOW-CAP07-DELIVER-001"
+  ],
+  "participating_flow_ids": [
+    "FLOW-CAP18-HELPDESK-001",
+    "FLOW-CAP18-DLP-001",
+    "FLOW-CAP01-NOTIFY-001",
+    "FLOW-CAP13-INGEST-001",
+    "FLOW-CAP02-NOTE-001",
+    "FLOW-CROSS-INBOUND-NOTIFY-001"
+  ],
+  "hard_gates": [],
+  "anti_patterns": [],
+  "forbidden_architecture": [],
+  "flow_status": {
+    "FLOW-CAP07-DELIVER-001": "SPEC_ONLY"
+  },
+  "missing_witnesses": [
+    "FLOW-CAP07-DELIVER-001:PO-CONSUMER",
+    "FLOW-CAP07-DELIVER-001:PO-DISCLOSURE"
+  ],
+  "required_proof_obligations": [
+    "PO-CONSUMER",
+    "PO-DISCLOSURE"
+  ],
+  "blocked_flows": [],
+  "next_actionable": [
+    {
+      "id": "FLOW-CAP07-DELIVER-001",
+      "status": "SPEC_ONLY",
+      "missing": [
+        "PO-CONSUMER",
+        "PO-DISCLOSURE"
+      ],
+      "value": "MEDIUM",
+      "golden": [
+        "GBF-004"
+      ]
+    }
+  ],
+  "negatives": [],
+  "this_packet_is_not_source": true,
+  "packet_hash": "6b8842f6d8cc64834b051556c7294491aaffcc560001d3d2fd63a14933f404eb",
+  "markdown": "# CAP07 Notifications — acceptance packet\n\nGENERATED. Source of truth is Contract IR (chronica.benchmark.contract.v1). Do not hand-edit.\n\n- BENCHMARK_RELEASE: `BR-2026.08.21.1`\n- BENCHMARK_SHA: `2f0a95472e72842e7ec70cdac6eeef8297df2b55`\n- SOURCE_HASH: `bea492307c825d9bd8fc9b677e0b6028b79cbee119bfb216d7c25d976d82c8f1`\n- PACKET_HASH: `6b8842f6d8cc64834b051556c7294491aaffcc560001d3d2fd63a14933f404eb`\n- STANDARDS: {\"BLACKBOX\":\"1.0.0\"}\n\n## Owns\n- notification projection and delivery\n\n## Does not own\n- canonical business events (CAP13)\n- Helpdesk kernel\n\n## Hard gates\n\n## Owned flows\n- `FLOW-CAP07-DELIVER-001` SPEC_ONLY missing=PO-CONSUMER,PO-DISCLOSURE\n\n## Next actionable\n- `FLOW-CAP07-DELIVER-001` (SPEC_ONLY)\n\nIf the standard appears wrong: emit BENCHMARK_CHANGE_REQUEST. Do not weaken fixtures.\n"
+}

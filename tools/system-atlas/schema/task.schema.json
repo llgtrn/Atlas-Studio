@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "chronica.system-atlas.task.v0",
+  "title": "Chronica System Atlas Frontier Task",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["task_id", "action", "node_ids", "priority", "risk", "source_base_sha", "owned_paths", "status"],
+  "properties": {
+    "task_id": { "type": "string", "pattern": "^(REPAIR|BUILD|RETIRE|VERIFY)-[0-9]{4}$" },
+    "action": { "type": "string", "enum": ["REPAIR", "BUILD", "RETIRE", "VERIFY"] },
+    "node_ids": {
+      "type": "array",
+      "items": { "type": "string" },
+      "minItems": 1,
+      "description": "Every task must be traceable to at least one real Atlas node. An empty array must fail validation."
+    },
+    "title": { "type": "string" },
+    "priority": { "type": "number" },
+    "risk": { "type": "string", "enum": ["T0", "T1", "T2", "T3"] },
+    "source_base_sha": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+    "canonical_ownership_note": {
+      "type": "string",
+      "description": "Required (non-empty) for any T3 REPAIR/BUILD task before it may leave DESIGN_REQUIRED -- documents the explicit target ownership/migration semantics a human or authorized design pass has recorded."
+    },
+    "owned_paths": { "type": "array", "items": { "type": "string", "minLength": 1, "pattern": "\\S" } },
+    "forbidden_paths": { "type": "array", "items": { "type": "string", "minLength": 1, "pattern": "\\S" } },
+    "dependencies": { "type": "array", "items": { "type": "string" } },
+    "blocked_by": { "type": "array", "items": { "type": "string" } },
+    "verification_required": { "type": "array", "items": { "type": "string" } },
+    "parallel_conflict_group": { "type": "string" },
+    "parallel_safe_with": { "type": "array", "items": { "type": "string" } },
+    "conflicts_with": { "type": "array", "items": { "type": "string" } },
+    "shared_files_required": { "type": "boolean" },
+    "cross_account_verification_required": { "type": "boolean" },
+    "product_decision_required": {
+      "type": "boolean",
+      "description": "true if an unresolved human product decision blocks this task (checked by the RETIRE dispatch gate, see hygiene-gate.mjs)."
+    },
+    "hygiene_clearance": {
+      "type": "string",
+      "enum": ["NOT_CHECKED", "NO_HISTORICAL_UNIQUE_VALUE", "FULLY_HARVESTED", "BLOCKED_UNIQUE_VALUE", "BLOCKED_UNKNOWN", "AWAITING_CROSS_ACCOUNT_VERIFICATION"],
+      "description": "RETIRE tasks only. Current reachability (no live caller) is never sufficient justification to retire -- historical branches (Lane C repository-hygiene work) may hold unique value. Defaults to NOT_CHECKED, which blocks dispatch. Only NO_HISTORICAL_UNIQUE_VALUE or FULLY_HARVESTED, combined with a non-empty hygiene_evidence_ids, clears the gate -- see scripts/system-atlas/hygiene-gate.mjs."
+    },
+    "hygiene_clearance_source": {
+      "type": "object",
+      "description": "Provenance of hygiene_clearance -- a clean seam for Lane C repository-hygiene evidence to plug into later. Lane B must never hand-fabricate Lane C conclusions here.",
+      "additionalProperties": false,
+      "properties": {
+        "required": { "type": "boolean" },
+        "source": { "type": "string" },
+        "evidence_ids": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "hygiene_evidence_ids": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "e.g. branch-family:<id>, harvest:<id> -- references into future Lane C import records. Empty means no evidence exists yet, which fails the RETIRE dispatch gate closed regardless of hygiene_clearance's stated value."
+    },
+    "status": {
+      "type": "string",
+      "enum": ["READY", "PLANNED", "DESIGN_REQUIRED", "LEASED", "IN_PROGRESS", "READY_TO_VERIFY", "VERIFIED", "READY_TO_INTEGRATE", "INTEGRATED", "RECOVERY_REQUIRED", "BLOCKED_DEPENDENCY", "BLOCKED_ENV", "BLOCKED_SEMANTICS", "FAILED"],
+      "description": "PLANNED means the task appears in a wave plan only -- no real worker has claimed it. LEASED means a real Lease record (see lease.schema.json) exists for this task_id; wave planning alone must never set this. DESIGN_REQUIRED is mandatory for a T3 REPAIR/BUILD task lacking canonical_ownership_note, or for any mutating (REPAIR/BUILD/RETIRE) task lacking real owned_paths -- see mutation-ownership.mjs. RECOVERY_REQUIRED is set whenever an IN_PROGRESS task's lease ends WITHOUT an explicit completeWork() call -- either its lease expires, or its worker voluntarily releases it (see leases.mjs's releaseLease()/expireStaleLeases()). Neither event proves owned_paths were left in a safe state, so the task must not be silently reclaimed by another worker; it requires explicit evidence-backed triage via scripts/system-atlas/recovery.mjs (leases.mjs's recovery-status/resolve-recovery CLI commands) before it can leave RECOVERY_REQUIRED."
+    },
+    "root_cause_family": { "type": "string" },
+    "notes": { "type": "string" }
+  }
+}

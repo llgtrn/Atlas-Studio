@@ -1,0 +1,241 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "chronica.system-atlas.fleet-donor-allocation.v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "generated_at",
+    "canonical_repo",
+    "donor_corpus_total",
+    "allocations_total",
+    "unallocated_total",
+    "skipped_total",
+    "coverage_complete",
+    "ops_targets_total",
+    "primary_ops_total",
+    "primary_chronica_total",
+    "source_relocation_required_total",
+    "allocations",
+    "development_cells_total",
+    "packages_total",
+    "primary_development_cell_total"
+  ],
+  "properties": {
+    "schema": {
+      "const": "chronica.system-atlas.fleet-donor-allocation.v1"
+    },
+    "generated_at": {
+      "type": "string"
+    },
+    "canonical_repo": {
+      "type": "string"
+    },
+    "donor_corpus_total": {
+      "type": "number",
+      "minimum": 0
+    },
+    "allocations_total": {
+      "type": "number",
+      "minimum": 0
+    },
+    "unallocated_total": {
+      "type": "number",
+      "minimum": 0
+    },
+    "skipped_total": {
+      "type": "number",
+      "minimum": 0
+    },
+    "coverage_complete": {
+      "type": "boolean"
+    },
+    "ops_targets_total": {
+      "type": "number",
+      "minimum": 0
+    },
+    "primary_ops_total": {
+      "type": "number",
+      "minimum": 0
+    },
+    "primary_chronica_total": {
+      "type": "number",
+      "minimum": 0
+    },
+    "source_relocation_required_total": {
+      "type": "number",
+      "minimum": 0
+    },
+    "allocations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "donor_id",
+          "repo",
+          "status",
+          "needed",
+          "why_needed",
+          "source_present",
+          "primary_absorber",
+          "primary_kind",
+          "secondary_consumers",
+          "basis",
+          "allocation_state",
+          "source_relocation",
+          "source_path",
+          "primary_cell_id",
+          "primary_package_id",
+          "secondary_consumer_packages",
+          "source_revision_hint",
+          "canonical_upstream"
+        ],
+        "properties": {
+          "donor_id": {
+            "type": "string"
+          },
+          "repo": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "source_present": {
+            "type": "boolean"
+          },
+          "primary_absorber": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "primary_kind": {
+            "enum": [
+              "DEVELOPMENT_CELL",
+              "CHRONICA_NATIVE",
+              "UNALLOCATED"
+            ]
+          },
+          "secondary_consumers": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "type": "string"
+            }
+          },
+          "basis": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "allocation_state": {
+            "enum": [
+              "ALLOCATED",
+              "DUPLICATE_COLLAPSED",
+              "UNALLOCATED_REVIEW"
+            ]
+          },
+          "source_relocation": {
+            "enum": [
+              "NOT_APPLICABLE",
+              "RELOCATION_REQUIRED",
+              "SOURCE_NOT_PRESENT"
+            ]
+          },
+          "source_path": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "primary_cell_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "primary_package_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "secondary_consumer_packages": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "repo",
+                "cell_id",
+                "package_id",
+                "kind"
+              ],
+              "properties": {
+                "repo": {
+                  "type": "string"
+                },
+                "cell_id": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "package_id": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "kind": {
+                  "enum": [
+                    "DEVELOPMENT_CELL",
+                    "CHRONICA_NATIVE"
+                  ]
+                }
+              }
+            }
+          },
+          "source_revision_hint": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^[0-9a-f]{40}$"
+          },
+          "canonical_upstream": {
+            "type": "string",
+            "minLength": 1
+          },
+          "needed": {
+            "enum": [
+              "YES",
+              "NO",
+              "UNKNOWN"
+            ]
+          },
+          "why_needed": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      }
+    },
+    "development_cells_total": {
+      "type": "number",
+      "minimum": 0
+    },
+    "packages_total": {
+      "type": "number",
+      "minimum": 0
+    },
+    "primary_development_cell_total": {
+      "type": "number",
+      "minimum": 0
+    }
+  }
+}

@@ -1,0 +1,107 @@
+{
+  "schema": "chronica.web2app.evaluation.v1",
+  "capability_key": "infra.webhook_ingest",
+  "canonical_status": "implemented_unverified",
+  "runtime_status": "ISLAND",
+  "claimed_web2app_level": "W1",
+  "claimed_observation_maturity": "O2",
+  "product_chain_shape": "KERNEL_ONLY",
+  "semantic_owner": "inbound-ingest",
+  "calibration_case": "CAP13_INBOUND_KERNEL",
+  "notes": "CAP13 inbound kernel from repository substrate: signature-before-dedupe (Slack-style HMAC). Dedupe is an in-memory HashSet, so trusted O3/O4 are forbidden. Google Docs pageToken poller is not claimed as durable poll. Not a domain world model. Do not claim O5.",
+  "semantic_contract": {
+    "schema": "chronica.web2app.semantic-contract.v1",
+    "capability_key": "infra.webhook_ingest",
+    "canonical_name": "Webhook Handler and Google Docs Poller",
+    "product_kind": "INGEST",
+    "actor": "provider callback / poller",
+    "user_intent": "Accept an authenticated inbound event without reprocessing duplicates.",
+    "preconditions": "Shared webhook secret; replay window.",
+    "input": "raw body, timestamp, signature header",
+    "product_action": "verify, dedupe, dispatch signal",
+    "typed_operations": [
+      { "name": "inbound.webhook.verify", "kind": "EXTERNAL", "authority": "integration secret", "receipt": "none" },
+      { "name": "inbound.webhook.accept", "kind": "WRITE", "authority": "integration", "receipt": "dedup key (process-local)" }
+    ],
+    "state_transition": "untrusted payload → verified inbound signal or reject",
+    "output": "IngestOutcome Dispatched | DuplicateIgnored | error",
+    "persistence_requirement": "process-local seen-key set; not a durable UNIQUE store",
+    "authority_requirement": "HMAC signature before dedupe",
+    "tenant_requirement": "intended integration binding; durable tenant mapping is not proven here",
+    "visibility_access_semantics": "integration-scoped; Debug redacts tokens and file ids",
+    "failure_semantics": "signature mismatch and replay window fail closed before dedupe",
+    "idempotency_semantics": "duplicate dedup key is ignored in process memory",
+    "concurrency_semantics": "in-memory set; not a durable UNIQUE constraint",
+    "external_effect_requirement": "none",
+    "money_impact": "none",
+    "user_observable_outcome": "verified events dispatch once per process lifetime; invalid signatures never reach dedupe",
+    "no_ai_behavior": "deterministic HMAC and cursor diff; AI not required",
+    "donor_semantics": "BuilderIO/agent-native webhook-handler + google-docs-poller + Slack HMAC",
+    "chronica_allowed_divergences": "kernel only; no CAP15 WebApp observation adapter and no canonical NewsEvent here",
+    "known_unimplemented_facets": "durable dedupe store, durable checkpoint, canonical reconciliation, shipped caller, O3+",
+    "requires_persistence": false,
+    "requires_ui": false,
+    "requires_external_effect": false,
+    "requires_typed_operations": false,
+    "moves_money": false,
+    "requires_ai": false,
+    "jurisdiction_model": "NOT_APPLICABLE",
+    "transport_independence": true
+  },
+  "entrypoints": [],
+  "actual_witnesses": [
+    "real_actor",
+    "deterministic_kernel",
+    "negative_failure_paths",
+    "auth_boundary",
+    "no_ai_path"
+  ],
+  "observation": {
+    "observation_sources": ["slack-style webhook"],
+    "push_supported": true,
+    "poll_supported": false,
+    "on_demand_refresh": false,
+    "persistent_poll": false,
+    "checkpoint_durable": false,
+    "dedupe_durable": false,
+    "process_local_dedupe_only": true,
+    "reconciliation": false,
+    "freshness_class": "NEAR_REALTIME",
+    "freshness_target": "NEAR_REALTIME",
+    "credential_required": true,
+    "credential_handle_only": true,
+    "subscription_entitlement": false,
+    "source_health": "CONNECTED",
+    "staleness_visible": true,
+    "webhook_authenticated": true,
+    "webhook_signature_verified": true,
+    "restart_replay_proven": false,
+    "real_provider_evidence": false
+  },
+  "facets": [
+    {
+      "name": "signature_before_dedupe",
+      "semantic_state": "LIVE",
+      "evidence": ["crates/chronica-integrations/src/caps_slice8/integrations/webhook_ingest.rs verify_signed_webhook"]
+    },
+    {
+      "name": "durable_dedupe",
+      "semantic_state": "PARTIAL",
+      "evidence": ["WebhookIngestQueue HashSet is process-local"]
+    },
+    {
+      "name": "durable_checkpoint",
+      "semantic_state": "ABSENT",
+      "evidence": ["GoogleDocsPollerState.page_token is not a durable store"]
+    }
+  ],
+  "anti_patterns": [],
+  "semantic_mutations": [],
+  "cap_triangle": {
+    "cap12_credential_session": "WEBHOOK_SECRET_NOT_IN_APP_DEFINITION",
+    "cap13_inbound": "KERNEL_SIGNATURE_BEFORE_DEDUPE",
+    "cap15_webapp": "NOT_A_WEBAPP_CATALOG",
+    "cap6_when_to_poll": "NOT_CLAIMED",
+    "cap7_notification": "NOT_SOURCE_OF_TRUTH"
+  }
+}

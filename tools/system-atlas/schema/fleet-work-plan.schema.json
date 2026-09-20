@@ -1,0 +1,210 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "chronica.system-atlas.fleet-work-plan.v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "generated_at",
+    "canonical_repo",
+    "tasks_total",
+    "ready_wave_total",
+    "deferred_total",
+    "tasks",
+    "ready_wave"
+  ],
+  "properties": {
+    "schema": {
+      "const": "chronica.system-atlas.fleet-work-plan.v1"
+    },
+    "generated_at": {
+      "type": "string"
+    },
+    "canonical_repo": {
+      "type": "string"
+    },
+    "tasks_total": {
+      "type": "number",
+      "minimum": 0
+    },
+    "ready_wave_total": {
+      "type": "number",
+      "minimum": 0
+    },
+    "deferred_total": {
+      "type": "number",
+      "minimum": 0
+    },
+    "tasks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "kind",
+          "target_repo",
+          "target_ref",
+          "base_sha",
+          "donor_id",
+          "donor_repo",
+          "state",
+          "depends_on",
+          "owned_scope",
+          "chronica_reference_sha",
+          "instructions",
+          "candidate_sha",
+          "target_cell_id",
+          "target_package_id",
+          "target_package_kind",
+          "refoundation_generation",
+          "deletion_scope",
+          "donor_source_path",
+          "donor_revision"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "CELL_RESET_BASELINE",
+              "PACKAGE_RECONVERGE",
+              "PACKAGE_VERIFY_INTEGRATE",
+              "PACKAGE_BUILD",
+              "CELL_ENROLL",
+              "OPS_ENROLL",
+              "DONOR_INTAKE",
+              "DONOR_ACCOUNT",
+              "DONOR_RELOCATE",
+              "DONOR_CENSUS",
+              "DONOR_ABSORB_SCOUT",
+              "DONOR_ABSORB_BUILD",
+              "OPS_VERIFY_INTEGRATE",
+              "CHRONICA_CANDIDATE",
+              "CHRONICA_VERIFY_INTEGRATE",
+              "OPS_RECONVERGE"
+            ]
+          },
+          "target_repo": {
+            "type": "string"
+          },
+          "target_ref": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "base_sha": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^[0-9a-f]{40}$"
+          },
+          "donor_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "donor_repo": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "state": {
+            "enum": [
+              "READY",
+              "DEFERRED",
+              "BLOCKED"
+            ]
+          },
+          "depends_on": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "owned_scope": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "chronica_reference_sha": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^[0-9a-f]{40}$"
+          },
+          "instructions": {
+            "type": "string"
+          },
+          "candidate_sha": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^[0-9a-f]{40}$"
+          },
+          "chronica_candidate": {
+            "$ref": "chronica.system-atlas.chronica-candidate.v1"
+          },
+          "target_cell_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "target_package_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "target_package_kind": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "refoundation_generation": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": 1
+          },
+          "deletion_scope": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "donor_source_path": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "donor_revision": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^[0-9a-f]{40}$"
+          }
+        }
+      }
+    },
+    "ready_wave": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}

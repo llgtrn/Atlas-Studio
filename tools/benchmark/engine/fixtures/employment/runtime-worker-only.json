@@ -1,0 +1,27 @@
+{
+  "schema": "chronica.employment.evaluation.v1",
+  "case_id": "runtime-worker-only",
+  "calibration_case": "B",
+  "fixture_kind": "CURRENT_RUNTIME_CALIBRATION",
+  "worker_class": "runtime_worker",
+  "claimed_employment_maturity": "E0",
+  "canonical_status": "implemented_unverified",
+  "runtime_status": "LIVE",
+  "product_status": "RUNTIME_WORKER",
+  "runtime_worker_only": true,
+  "code_refs": ["crates/chronica-ai-workforce/src/worker.rs"],
+  "identity": { "stable_worker_id": true, "process_id_as_identity": false },
+  "organization": { "company_bound": false },
+  "contract": {},
+  "assignment": {},
+  "authority": { "no_ai_enforcement": true },
+  "lifecycle": {},
+  "evidence": { "production_evidenced": false },
+  "facets": {
+    "IDENTITY": "DURABLE",
+    "ORGANIZATION": "ABSENT",
+    "GRANTS": "ABSENT",
+    "RUNTIME_BINDING": "DURABLE"
+  },
+  "notes": "BENCHMARK/CALIBRATION ONLY. chronica-ai-workforce::Worker is a real runtime worker (type, provider, skill vector, constraints, status). It is not an employed organizational worker. Worker != Digital Employee."
+}

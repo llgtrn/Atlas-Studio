@@ -1,0 +1,58 @@
+{
+  "schema": "chronica.store.evaluation.v1",
+  "case_id": "store-with-unclassified-database",
+  "fixture_kind": "BENCHMARK_FIXTURE",
+  "claimed_store_maturity": "S3",
+  "identity": {
+    "stable_store_id": true
+  },
+  "tenant": {
+    "company_bound": true,
+    "isolated": true,
+    "cross_tenant_negative": true
+  },
+  "manifest": {
+    "present": true
+  },
+  "desired": {
+    "present": true
+  },
+  "resource_graph": {
+    "declared": true,
+    "durable": true,
+    "queryable": true
+  },
+  "secrets": {
+    "handle_only": true
+  },
+  "web2app": {
+    "independent": true
+  },
+  "employment": {
+    "independent": true
+  },
+  "preview": {
+    "live": true
+  },
+  "actual": {
+    "observed": true
+  },
+  "deployment": {
+    "executed": true,
+    "receipt": true
+  },
+  "business_bindings": {
+    "present": true
+  },
+  "data": {
+    "bound": true,
+    "source_of_truth_map": true,
+    "authoritative_owner": "crm.customer"
+  },
+  "database": {
+    "bound": true,
+    "census": true,
+    "unclassified": true
+  },
+  "notes": "UNKNOWN database objects require semantic review. Do not LLM-guess into truth."
+}

@@ -1,0 +1,80 @@
+{
+  "schema": "chronica.web2app.evaluation.v1",
+  "capability_key": "workflow-runtime.routines_engine",
+  "canonical_status": "verified",
+  "runtime_status": "FAKE_COUPLING",
+  "claimed_web2app_level": "W2",
+  "product_chain_shape": "HARNESS_ONLY",
+  "semantic_owner": "workflow-routines",
+  "calibration_case": "E-contrast",
+  "caller_created_to_escape_island": true,
+  "notes": "CALLER_FARMING contrast: Event-Driven Routines Engine closed an island with routine-dispatch-event CLI. That CLI is not the intended product outcome unless the frozen contract is an operator diagnostic.",
+  "semantic_contract": {
+    "schema": "chronica.web2app.semantic-contract.v1",
+    "capability_key": "workflow-runtime.routines_engine",
+    "canonical_name": "Event-Driven Routines Engine",
+    "product_kind": "WORKFLOW",
+    "actor": "system event / helpdesk runtime",
+    "user_intent": "On a matching business event, fire ordered routine actions through the gated workflow door.",
+    "preconditions": "Registered active routine; event name; company scope.",
+    "input": "event name, facts, routine set",
+    "product_action": "dispatch_event",
+    "typed_operations": [
+      { "name": "routine.register", "kind": "WRITE", "authority": "company/operator", "receipt": "routine id" },
+      { "name": "routine.dispatch_event", "kind": "WRITE", "authority": "runtime", "receipt": "workflow run and/or action reports" }
+    ],
+    "state_transition": "event → matching routines fire → gated workflow submit",
+    "output": "RoutineFireReport plus submitted runs",
+    "persistence_requirement": "durable routine registry and run records in product form",
+    "authority_requirement": "same gated door as webhook/schedule triggers",
+    "tenant_requirement": "company-scoped routines",
+    "visibility_access_semantics": "operator/runtime; not a public CMS",
+    "failure_semantics": "non-matching event no-op; inactive routine skipped; malformed input fail-closed",
+    "idempotency_semantics": "duplicate routine id rejected",
+    "concurrency_semantics": "ordered dispatch",
+    "external_effect_requirement": "RunWorkflow submit; other actions remain deferred",
+    "money_impact": "none",
+    "user_observable_outcome": "a real workflow run submitted from a live event path",
+    "no_ai_behavior": "deterministic match/dispatch; AI not required",
+    "donor_semantics": "Chatwoot automation rules listener",
+    "chronica_allowed_divergences": "generic actions; left-to-right condition fold",
+    "known_unimplemented_facets": "notification/webhook transports; durable product event bus caller",
+    "requires_persistence": true,
+    "requires_ui": false,
+    "requires_external_effect": false,
+    "requires_authority": true,
+    "moves_money": false,
+    "requires_ai": false,
+    "jurisdiction_model": "NOT_APPLICABLE",
+    "transport_independence": true
+  },
+  "entrypoints": ["chronica-cli routine-dispatch-event stdin evaluator"],
+  "actual_witnesses": [
+    "real_actor",
+    "real_product_entrypoint",
+    "deterministic_kernel",
+    "negative_failure_paths",
+    "no_ai_path",
+    "typed_operations"
+  ],
+  "facets": [
+    {
+      "name": "product_event_bus",
+      "semantic_state": "ABSENT",
+      "evidence": ["CLI stdin evaluator is the shipped caller"]
+    }
+  ],
+  "anti_patterns": [
+    {
+      "tag": "CALLER_FARMING",
+      "evidence": {
+        "caller_exists": true,
+        "intended_product_outcome": false,
+        "caller_created_to_escape_island": true,
+        "note": "routine-dispatch-event CLI",
+        "evidence_paths": ["crates/chronica-cli/src/routine_dispatch_cli.rs"]
+      }
+    }
+  ],
+  "semantic_mutations": []
+}

@@ -1,0 +1,8 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "chronica.system-atlas.evidence-list.v2",
+  "title": "System Atlas v2 shared evidence-list shape: repo-relative paths a finding/classification is derived from. $ref'd by component/dependency/violation rather than duplicated inline.",
+  "type": "array",
+  "minItems": 1,
+  "items": { "type": "string" }
+}

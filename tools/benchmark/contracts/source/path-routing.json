@@ -1,0 +1,28 @@
+{
+  "prefixes": [
+    { "prefix": "crates/chronica-helpdesk/", "cap": "CAP01" },
+    { "prefix": "crates/chronica-api/src/routes/helpdesk", "cap": "CAP01" },
+    { "prefix": "crates/chronica-social/", "cap": "CAP02" },
+    { "prefix": "crates/chronica-observability-collectors/", "cap": "CAP04" },
+    { "prefix": "crates/chronica-alerting/", "cap": "CAP04" },
+    { "prefix": "crates/chronica-crm/", "cap": "CAP05" },
+    { "prefix": "crates/chronica-party/", "cap": "CAP05" },
+    { "prefix": "crates/chronica-scheduler/", "cap": "CAP06" },
+    { "prefix": "crates/chronica-scheduling/", "cap": "CAP06" },
+    { "prefix": "crates/chronica-routines/", "cap": "CAP06" },
+    { "prefix": "crates/chronica-artifacts/", "cap": "CAP08" },
+    { "prefix": "crates/chronica-company/", "cap": "CAP09" },
+    { "prefix": "crates/chronica-organization/", "cap": "CAP09" },
+    { "prefix": "crates/chronica-erasure/", "cap": "CAP10" },
+    { "prefix": "crates/chronica-identity/", "cap": "CAP12" },
+    { "prefix": "crates/chronica-oauth/", "cap": "CAP12" },
+    { "prefix": "crates/chronica-vault/", "cap": "CAP12" },
+    { "prefix": "crates/chronica-security/", "cap": "CAP18" },
+    { "prefix": "crates/chronica-integrations/", "cap": "CAP13" },
+    { "prefix": "crates/chronica-site-hosting/", "cap": "CAP17" },
+    { "prefix": "crates/chronica-ai-workforce/", "cap": "CAP16" },
+    { "prefix": "crates/chronica-agent/", "cap": "CAP16" },
+    { "prefix": "crates/chronica-internet-hand/", "cap": "CAP15" },
+    { "prefix": "crates/chronica-browser/", "cap": "CAP15" }
+  ]
+}

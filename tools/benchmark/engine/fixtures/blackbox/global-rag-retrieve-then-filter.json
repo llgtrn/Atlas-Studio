@@ -1,0 +1,29 @@
+{
+  "schema": "chronica.blackbox.evaluation.v1",
+  "fixture_kind": "BENCHMARK_FIXTURE_ONLY",
+  "web2app": {
+    "independent": true
+  },
+  "employment": {
+    "independent": true
+  },
+  "case_id": "global-rag-retrieve-then-filter",
+  "claimed_blackbox_maturity": "B3",
+  "at_rest": {
+    "sealed": true
+  },
+  "opaque": {
+    "boundary_ref": true
+  },
+  "secrets": {
+    "handle": true,
+    "envelope": true
+  },
+  "agent": {
+    "semantic_view": true
+  },
+  "context": {
+    "global_retrieve_then_filter": true
+  },
+  "notes": "Project B secret document entered ranking candidates then was filtered."
+}

@@ -1,0 +1,61 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "chronica.system-atlas.shard.v0",
+  "title": "Chronica System Atlas Shard",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "lane", "source_base_sha", "atlas_generation_sha", "generated_at", "nodes", "edges"],
+  "properties": {
+    "schema": { "const": "chronica.system-atlas.shard.v0" },
+    "lane": {
+      "type": "string",
+      "enum": ["B1_topology", "B2_capabilities", "B3_runtime", "B4_state_event", "B5_authority_security", "B6_systems", "B7_legacy", "B8_target"]
+    },
+    "source_base_sha": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$",
+      "description": "The exact product-code snapshot this shard's facts were derived from. Must be identical across every shard and aggregate in one Atlas generation -- see docs/_machine/system-atlas/README.md."
+    },
+    "atlas_generation_sha": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$",
+      "description": "The Atlas tooling/docs commit at the moment this file was written. Expected to differ across files and across regenerations; NOT the product snapshot."
+    },
+    "generated_at": { "type": "string" },
+    "generation_method": { "type": "string", "enum": ["SCRIPT_GENERATED", "AGENT_RESEARCHED", "HYBRID"] },
+    "nodes": { "type": "array", "items": { "$ref": "chronica.system-atlas.node.v0" } },
+    "edges": { "type": "array", "items": { "$ref": "chronica.system-atlas.edge.v0" } },
+    "debt_families": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["family_id", "root_cause", "edge_count"],
+        "properties": {
+          "family_id": { "type": "string" },
+          "root_cause": { "type": "string" },
+          "edge_count": { "type": "integer" },
+          "example_edges": { "type": "array", "items": { "type": "string" } },
+          "notes": { "type": "string" }
+        }
+      }
+    },
+    "high_confidence_findings": { "type": "array", "items": { "type": "string" } },
+    "low_confidence_findings": { "type": "array", "items": { "type": "string" } },
+    "major_anomalies": { "type": "array", "items": { "type": "string" } },
+    "repair_candidates": { "type": "array", "items": { "type": "string" } },
+    "build_candidates": { "type": "array", "items": { "type": "string" } },
+    "retire_candidates": { "type": "array", "items": { "type": "string" } },
+    "commands_run": { "type": "array", "items": { "type": "string" } },
+    "ready_to_integrate": { "type": "boolean" },
+    "non_trivial_sccs": {
+      "type": "array",
+      "description": "B1_topology only: strongly-connected components of size > 1 in the crate dependency graph.",
+      "items": { "type": "object" }
+    },
+    "build_order_chain": {
+      "type": "array",
+      "description": "B8_target only: the evidence-adjusted foundational build ordering among ABSENT/PARTIAL target systems, each entry a 1-line rationale string.",
+      "items": { "type": "string" }
+    }
+  }
+}

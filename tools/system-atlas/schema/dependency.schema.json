@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "chronica.system-atlas.dependency.v2",
+  "title": "System Atlas v2 dependency edge between two components",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["source", "target", "dependency_kind", "source_responsibility", "target_responsibility", "evidence"],
+  "properties": {
+    "source": { "type": "string", "description": "Component id (the dependent)." },
+    "target": { "type": "string", "description": "Component id (the dependency)." },
+    "dependency_kind": { "type": "string", "enum": ["cargo", "ts_workspace"] },
+    "source_responsibility": {
+      "type": "string",
+      "enum": ["CORE", "RUNTIME", "ADAPTER", "ORGANISM", "APP", "GRAPH", "BINDING", "OPS", "TOOLING", "PROVENANCE", "LEGACY_CAP", "TEMPORARY_DONOR", "UNKNOWN"]
+    },
+    "target_responsibility": {
+      "type": "string",
+      "enum": ["CORE", "RUNTIME", "ADAPTER", "ORGANISM", "APP", "GRAPH", "BINDING", "OPS", "TOOLING", "PROVENANCE", "LEGACY_CAP", "TEMPORARY_DONOR", "UNKNOWN"]
+    },
+    "evidence": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string" }
+    }
+  }
+}

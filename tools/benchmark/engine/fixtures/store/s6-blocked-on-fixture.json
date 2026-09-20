@@ -1,0 +1,68 @@
+{
+  "schema": "chronica.store.evaluation.v1",
+  "case_id": "s6-blocked-on-fixture",
+  "fixture_kind": "BENCHMARK_FIXTURE",
+  "claimed_store_maturity": "S6",
+  "runtime_status": "TEST_ONLY",
+  "identity": {
+    "stable_store_id": true
+  },
+  "tenant": {
+    "company_bound": true,
+    "isolated": true,
+    "cross_tenant_negative": true
+  },
+  "manifest": {
+    "present": true
+  },
+  "desired": {
+    "present": true
+  },
+  "resource_graph": {
+    "declared": true,
+    "durable": true,
+    "queryable": true
+  },
+  "secrets": {
+    "handle_only": true
+  },
+  "web2app": {
+    "independent": true
+  },
+  "employment": {
+    "independent": true
+  },
+  "preview": {
+    "live": true
+  },
+  "actual": {
+    "observed": true
+  },
+  "deployment": {
+    "executed": true,
+    "receipt": true,
+    "production": true,
+    "production_approved": true,
+    "rollback": true
+  },
+  "business_bindings": {
+    "present": true
+  },
+  "data": {
+    "bound": true,
+    "source_of_truth_map": true,
+    "authoritative_owner": "crm.customer",
+    "business_bearing": true
+  },
+  "reconciliation": {
+    "present": true
+  },
+  "database": {
+    "bound": true,
+    "census": true
+  },
+  "evidence": {
+    "production_evidenced": true
+  },
+  "notes": "BENCHMARK_FIXTURE cannot award S6 even with a production_evidenced flag."
+}

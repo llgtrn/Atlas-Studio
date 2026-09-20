@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "chronica.system-atlas.component.v2",
+  "title": "System Atlas v2 component (a Rust crate or TypeScript package discovered in the repository)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "path", "kind", "responsibility", "evidence"],
+  "properties": {
+    "id": { "type": "string", "description": "Cargo crate name or package.json \"name\", exactly as declared." },
+    "path": { "type": "string", "description": "Repo-relative directory containing the component's manifest." },
+    "kind": { "type": "string", "enum": ["rust_crate", "ts_package"] },
+    "responsibility": {
+      "type": "string",
+      "enum": [
+        "CORE", "RUNTIME", "ADAPTER", "ORGANISM", "APP", "GRAPH", "BINDING", "OPS", "TOOLING",
+        "PROVENANCE", "LEGACY_CAP", "TEMPORARY_DONOR", "UNKNOWN"
+      ]
+    },
+    "evidence": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string" },
+      "description": "Repo-relative paths (manifest file at minimum) this classification was derived from."
+    }
+  }
+}

@@ -1,0 +1,296 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "chronica.system-atlas.organism-models.v1",
+  "title": "System Atlas projection of Organism AI donor/model-substrate reality.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "generated_at",
+    "source_sha",
+    "source_of_truth",
+    "summary",
+    "roles",
+    "donors",
+    "surfaces",
+    "evolution_readiness",
+    "violations"
+  ],
+  "properties": {
+    "schema": {
+      "const": "chronica.system-atlas.organism-models.v1"
+    },
+    "generated_at": {
+      "type": "string"
+    },
+    "source_sha": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "source_of_truth": {
+      "type": "string",
+      "minLength": 1
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "donors_total",
+        "source_present_total",
+        "not_ingested_total",
+        "censused_total",
+        "absorption_started_total",
+        "roles_covered_total",
+        "production_model_artifacts_in_git_total",
+        "organism_semantic_surfaces_present_total",
+        "runtime_model_lifecycle_surfaces_present_total",
+        "adapter_model_mechanics_surfaces_present_total",
+        "evolution_readiness_present_total",
+        "evolution_readiness_proof_only_total",
+        "evolution_readiness_gap_total"
+      ],
+      "properties": {
+        "donors_total": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "source_present_total": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "not_ingested_total": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "censused_total": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "absorption_started_total": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "roles_covered_total": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "production_model_artifacts_in_git_total": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "organism_semantic_surfaces_present_total": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "runtime_model_lifecycle_surfaces_present_total": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "adapter_model_mechanics_surfaces_present_total": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "evolution_readiness_present_total": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "evolution_readiness_proof_only_total": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "evolution_readiness_gap_total": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "roles": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
+    "donors": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "repo",
+          "status",
+          "needed",
+          "source_present",
+          "census_complete",
+          "absorption_state",
+          "roles",
+          "chronica_targets",
+          "native_implementation_refs",
+          "provenance_present",
+          "temporary_path"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^D[0-9]+$"
+          },
+          "repo": {
+            "type": "string",
+            "minLength": 1
+          },
+          "status": {
+            "type": "string",
+            "minLength": 1
+          },
+          "needed": {
+            "type": "string",
+            "minLength": 1
+          },
+          "source_present": {
+            "type": "boolean"
+          },
+          "census_complete": {
+            "type": "boolean"
+          },
+          "absorption_state": {
+            "type": "string"
+          },
+          "roles": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "uniqueItems": true
+          },
+          "chronica_targets": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "uniqueItems": true
+          },
+          "native_implementation_refs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "uniqueItems": true
+          },
+          "provenance_present": {
+            "type": "boolean"
+          },
+          "temporary_path": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      }
+    },
+    "surfaces": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "organism_semantics",
+        "runtime_model_lifecycle",
+        "adapter_model_mechanics"
+      ],
+      "properties": {
+        "organism_semantics": {
+          "$ref": "#/$defs/surfaceList"
+        },
+        "runtime_model_lifecycle": {
+          "$ref": "#/$defs/surfaceList"
+        },
+        "adapter_model_mechanics": {
+          "$ref": "#/$defs/surfaceList"
+        }
+      }
+    },
+    "violations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "type",
+          "severity",
+          "path"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "type": {
+            "const": "PRODUCTION_MODEL_ARTIFACT_TRACKED_IN_GIT"
+          },
+          "severity": {
+            "const": "HARD"
+          },
+          "path": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "evolution_readiness": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "state",
+          "evidence"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "PRESENT",
+              "PROOF_ONLY",
+              "GAP"
+            ]
+          },
+          "evidence": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "surfaceList": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "path",
+          "present"
+        ],
+        "properties": {
+          "path": {
+            "type": "string"
+          },
+          "present": {
+            "type": "boolean"
+          }
+        }
+      }
+    }
+  }
+}

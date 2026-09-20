@@ -1,0 +1,7 @@
+raw/
+*.raw.jsonl
+*.raw.json
+*.zip
+*.7z
+*.tar
+*.tar.gz

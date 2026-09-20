@@ -1,0 +1,16 @@
+{
+  "schema": "chronica.employment.evaluation.v1",
+  "case_id": "role-overclaim-e4",
+  "fixture_kind": "BENCHMARK_FIXTURE",
+  "worker_class": "digital_employee",
+  "claimed_employment_maturity": "E4",
+  "runtime_status": "LIVE",
+  "identity": { "stable_worker_id": false },
+  "organization": { "role_only": true, "company_bound": true, "position_bound": true },
+  "contract": {},
+  "assignment": { "production_path": true, "executes_new_work": true },
+  "authority": { "no_ai_enforcement": true },
+  "lifecycle": {},
+  "evidence": { "production_evidenced": false },
+  "notes": "BENCHMARK FIXTURE ONLY. CompanyAgentRole claimed as E4 digital employee. Must fail ROLE_AS_WORKER and contract-required gate."
+}

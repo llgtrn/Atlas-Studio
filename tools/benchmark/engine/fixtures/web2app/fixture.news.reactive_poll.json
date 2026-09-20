@@ -1,0 +1,110 @@
+{
+  "schema": "chronica.web2app.evaluation.v1",
+  "capability_key": "fixture.news.reactive_poll",
+  "canonical_status": "unimplemented",
+  "runtime_status": "TEST_ONLY",
+  "claimed_web2app_level": "W3",
+  "claimed_observation_maturity": "O2",
+  "product_chain_shape": "BACKEND_COMPLETE",
+  "calibration_case": "REACTIVE_NEWS_POLL",
+  "notes": "First money-free reactive vertical: NewsApp poll observation. This is a Standard 205 evaluator/fixture contract, not Chronica production Reuters. Product observation on this branch remains O0. Reuses CAP6 for when-to-poll conceptually; CAP15 declares watch_news_topic; CAP13 is unused because there is no push. Do not read fixture DB as Chronica truth.",
+  "semantic_contract": {
+    "schema": "chronica.web2app.semantic-contract.v1",
+    "capability_key": "fixture.news.reactive_poll",
+    "canonical_name": "Reactive News Observation (poll fixture)",
+    "product_kind": "INGEST",
+    "actor": "scheduler + company",
+    "user_intent": "Keep a freshness-aware NewsEvent world state from a credentialed news source without scraping DOM each agent turn.",
+    "preconditions": "Tenant-scoped credential_handle; compiled NewsApp observation method.",
+    "input": "topic subscription, checkpoint, ETag",
+    "product_action": "bounded poll → change detect → normalize NewsEvent",
+    "typed_operations": [
+      { "name": "news.search", "kind": "READ", "authority": "tenant entitlement", "receipt": "none" },
+      { "name": "news.watch_topic", "kind": "READ", "authority": "tenant entitlement", "receipt": "subscription row" },
+      { "name": "news.refresh", "kind": "READ", "authority": "tenant entitlement", "receipt": "checkpoint advance" }
+    ],
+    "state_transition": "external article posted → durable NewsEvent + checkpoint vN→vN+1",
+    "output": "NewsEvent with occurred_at and received_at",
+    "persistence_requirement": "durable canonical events and checkpoint",
+    "authority_requirement": "credential_handle only; no secret in agent context",
+    "tenant_requirement": "company-scoped entitlement; no cross-tenant paid reuse",
+    "visibility_access_semantics": "premium content stays in tenant entitlement",
+    "failure_semantics": "AUTH_EXPIRED / ENTITLEMENT_MISSING / STALE visible",
+    "idempotency_semantics": "same provider event id → one NewsEvent",
+    "concurrency_semantics": "out-of-order must not regress checkpoint blindly",
+    "external_effect_requirement": "none",
+    "money_impact": "none",
+    "user_observable_outcome": "agent query sees new canonical NewsEvent",
+    "no_ai_behavior": "LLM must not be kept alive to watch the page; ingest is deterministic",
+    "donor_semantics": "generic news/RSS/premium newspaper observation, not a vendor claim",
+    "chronica_allowed_divergences": "fixture is synthetic; not Reuters production",
+    "known_unimplemented_facets": "real provider evidence; Chronica product NewsApp runtime",
+    "requires_persistence": true,
+    "requires_ui": false,
+    "requires_external_effect": false,
+    "moves_money": false,
+    "requires_ai": false,
+    "requires_typed_operations": true,
+    "jurisdiction_model": "NOT_APPLICABLE",
+    "transport_independence": true
+  },
+  "entrypoints": [
+    "tools/benchmark/engine/web2app-reactive-fixture.mjs#poll",
+    "CAP6 poll schedule (conceptual)",
+    "CAP15 NewsApp.watch_news_topic (declared)"
+  ],
+  "actual_witnesses": [
+    "real_actor",
+    "real_product_entrypoint",
+    "tenant_boundary",
+    "auth_boundary",
+    "deterministic_kernel",
+    "persistence",
+    "negative_failure_paths",
+    "real_readback",
+    "no_ai_path",
+    "typed_operations"
+  ],
+  "observation": {
+    "observation_sources": ["fixture.news.reactive"],
+    "poll_supported": true,
+    "push_supported": false,
+    "on_demand_refresh": true,
+    "persistent_poll": true,
+    "checkpoint_durable": true,
+    "dedupe_durable": true,
+    "process_local_dedupe_only": false,
+    "reconciliation": true,
+    "freshness_class": "POLL_INTERVAL",
+    "freshness_target": "POLL_INTERVAL",
+    "credential_required": true,
+    "credential_handle_only": true,
+    "subscription_entitlement": "tenant-scoped",
+    "source_health": "CONNECTED",
+    "staleness_visible": true,
+    "webhook_authenticated": false,
+    "restart_replay_proven": false,
+    "real_provider_evidence": false
+  },
+  "facets": [
+    {
+      "name": "poll_checkpoint",
+      "semantic_state": "LIVE",
+      "evidence": ["web2app-reactive-fixture.mjs checkpoint"]
+    },
+    {
+      "name": "real_provider",
+      "semantic_state": "ABSENT",
+      "evidence": ["synthetic fixture only"]
+    }
+  ],
+  "anti_patterns": [],
+  "semantic_mutations": [],
+  "cap_triangle": {
+    "cap12_credential_session": "FIXTURE_HANDLE_ONLY",
+    "cap13_inbound": "NOT_USED_PULL_PATH",
+    "cap15_webapp": "DECLARED_OBSERVATION_METHODS",
+    "cap6_when_to_poll": "CONCEPTUAL",
+    "cap7_notification": "NOT_SOURCE_OF_TRUTH"
+  }
+}

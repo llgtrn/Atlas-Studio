@@ -1,0 +1,277 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "chronica.system-atlas.ops-mirror-fleet.v1",
+  "title": "Derived aggregation of Development Cell package Mirror reports. Rebuildable comparison only; never a cross-repository canonical database.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "generated_at",
+    "readiness",
+    "reports_total",
+    "configured_total",
+    "unconfigured_total",
+    "ready_total",
+    "review_required_total",
+    "blocked_total",
+    "hard_violations_total",
+    "review_violations_total",
+    "backend_non_rust_source_files_total",
+    "frontend_non_typescript_source_files_total",
+    "production_donor_references_total",
+    "donors_declared_total",
+    "donor_files_total",
+    "docs_kernel_missing_total",
+    "chronica_reference_shas",
+    "repos",
+    "development_cells_total",
+    "packages_total",
+    "standalone_sovereignty_signal_total",
+    "local_persistence_signal_total",
+    "clean_reset_total",
+    "reset_required_total",
+    "layout_drift_total",
+    "no_oss_no_code_violation_total",
+    "donor_root_policy_violation_total"
+  ],
+  "properties": {
+    "schema": {
+      "const": "chronica.system-atlas.ops-mirror-fleet.v1"
+    },
+    "generated_at": {
+      "type": "string"
+    },
+    "readiness": {
+      "enum": [
+        "READY",
+        "REVIEW_REQUIRED",
+        "BLOCKED"
+      ]
+    },
+    "reports_total": {
+      "type": "number",
+      "minimum": 0
+    },
+    "configured_total": {
+      "type": "number",
+      "minimum": 0
+    },
+    "unconfigured_total": {
+      "type": "number",
+      "minimum": 0
+    },
+    "ready_total": {
+      "type": "number",
+      "minimum": 0
+    },
+    "review_required_total": {
+      "type": "number",
+      "minimum": 0
+    },
+    "blocked_total": {
+      "type": "number",
+      "minimum": 0
+    },
+    "hard_violations_total": {
+      "type": "number",
+      "minimum": 0
+    },
+    "review_violations_total": {
+      "type": "number",
+      "minimum": 0
+    },
+    "backend_non_rust_source_files_total": {
+      "type": "number",
+      "minimum": 0
+    },
+    "frontend_non_typescript_source_files_total": {
+      "type": "number",
+      "minimum": 0
+    },
+    "production_donor_references_total": {
+      "type": "number",
+      "minimum": 0
+    },
+    "donor_files_total": {
+      "type": "number",
+      "minimum": 0
+    },
+    "docs_kernel_missing_total": {
+      "type": "number",
+      "minimum": 0
+    },
+    "chronica_reference_shas": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^[0-9a-f]{40}$"
+      }
+    },
+    "repos": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "ops_repo",
+          "ops_sha",
+          "configuration_state",
+          "readiness",
+          "chronica_reference_sha",
+          "hard_violations",
+          "review_violations",
+          "development_cell_id",
+          "package_id",
+          "package_kind",
+          "cell_repo",
+          "cell_sha",
+          "refoundation_generation",
+          "reset_mode",
+          "pre_reset_head_sha",
+          "preservation_ref"
+        ],
+        "properties": {
+          "ops_repo": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "ops_sha": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "configuration_state": {
+            "enum": [
+              "CONFIGURED",
+              "UNCONFIGURED"
+            ]
+          },
+          "readiness": {
+            "enum": [
+              "READY",
+              "REVIEW_REQUIRED",
+              "BLOCKED"
+            ]
+          },
+          "chronica_reference_sha": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "hard_violations": {
+            "type": "number",
+            "minimum": 0
+          },
+          "review_violations": {
+            "type": "number",
+            "minimum": 0
+          },
+          "development_cell_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "package_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "package_kind": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "cell_repo": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "cell_sha": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "refoundation_generation": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": 1
+          },
+          "reset_mode": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "CLEAN_PACKAGE_BASELINE",
+              null
+            ]
+          },
+          "pre_reset_head_sha": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "preservation_ref": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      }
+    },
+    "donors_declared_total": {
+      "type": "number",
+      "minimum": 0
+    },
+    "development_cells_total": {
+      "type": "number",
+      "minimum": 0
+    },
+    "packages_total": {
+      "type": "number",
+      "minimum": 0
+    },
+    "standalone_sovereignty_signal_total": {
+      "type": "number",
+      "minimum": 0
+    },
+    "local_persistence_signal_total": {
+      "type": "number",
+      "minimum": 0
+    },
+    "clean_reset_total": {
+      "type": "number",
+      "minimum": 0
+    },
+    "reset_required_total": {
+      "type": "number",
+      "minimum": 0
+    },
+    "layout_drift_total": {
+      "type": "number",
+      "minimum": 0
+    },
+    "no_oss_no_code_violation_total": {
+      "type": "number",
+      "minimum": 0
+    },
+    "donor_root_policy_violation_total": {
+      "type": "number",
+      "minimum": 0
+    }
+  }
+}

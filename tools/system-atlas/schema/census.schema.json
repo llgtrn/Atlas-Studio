@@ -1,0 +1,413 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "chronica.system-atlas.census.v2",
+  "title": "System Atlas v2 compact machine-readable census. No hardcoded target numbers -- every field is computed from generated/components.json, dependencies.json, violations.json and the donor corpus at generation time.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "generated_at",
+    "source_sha",
+    "components_total",
+    "rust_crates_total",
+    "ts_packages_total",
+    "core_components",
+    "runtime_components",
+    "adapter_components",
+    "organism_components",
+    "organism_model_donors_total",
+    "organism_model_source_present_total",
+    "organism_model_not_ingested_total",
+    "organism_model_censused_total",
+    "organism_model_absorption_started_total",
+    "organism_model_roles_covered_total",
+    "organism_model_artifact_git_violations_total",
+    "organism_evolution_readiness_present_total",
+    "organism_evolution_readiness_proof_only_total",
+    "organism_evolution_readiness_gap_total",
+    "intelligence_boundary_readiness_present_total",
+    "intelligence_boundary_readiness_proof_only_total",
+    "intelligence_boundary_readiness_gap_total",
+    "intelligence_boundary_hard_violations_total",
+    "intelligence_boundary_review_required_total",
+    "holding_id_reference_files_total",
+    "connector_protocol_total",
+    "connector_discovered_total",
+    "connector_source_present_total",
+    "connector_proof_only_total",
+    "connector_production_total",
+    "connector_physical_protocol_total",
+    "connector_physical_production_total",
+    "connector_runtime_contract_only_total",
+    "connector_runtime_partial_total",
+    "connector_runtime_simulated_only_total",
+    "connector_runtime_gap_total",
+    "connector_hard_violations_total",
+    "connector_review_required_total",
+    "app_components",
+    "legacy_cap_components",
+    "dependency_edges_total",
+    "architecture_violations_total",
+    "review_required_total",
+    "cap_legacy_remaining",
+    "ts_backend_remaining",
+    "graph_source_mode",
+    "graph_drift_count",
+    "binding_source_mode",
+    "binding_drift_count",
+    "donors_identified",
+    "donors_resolved",
+    "donor_responsibilities_unaccounted",
+    "donor_runtime_dependencies",
+    "duplicate_truth_store_signals",
+    "duplicate_execution_universe_signals",
+    "duplicate_authority_universe_signals",
+    "architecture_contracts_declared_total",
+    "organizational_control_contracts_declared_total",
+    "living_architecture_reconciliation_contracts_declared_total",
+    "architecture_contract_runtime_owner_links_total",
+    "architecture_contract_verification_links_total",
+    "ops_mirror_contracts_declared_total",
+    "ops_mirror_runtime_tools_present_total",
+    "ops_mirror_schemas_present_total",
+    "fleet_ops_registered_total",
+    "fleet_donor_allocations_total",
+    "fleet_donor_unallocated_total",
+    "fleet_donor_skipped_total",
+    "fleet_donor_coverage_complete",
+    "fleet_control_tools_present_total",
+    "fleet_control_schemas_present_total",
+    "fleet_control_contracts_declared_total",
+    "fleet_provider_runners_present_total",
+    "development_cells_registered_total",
+    "chronica_packages_declared_total",
+    "cell_reset_contracts_declared_total",
+    "extinction_ratchet_contracts_declared_total",
+    "development_cells_with_reset_generation_total"
+  ],
+  "properties": {
+    "schema": {
+      "const": "chronica.system-atlas.census.v2"
+    },
+    "generated_at": {
+      "type": "string"
+    },
+    "source_sha": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "components_total": {
+      "type": "number",
+      "minimum": 0
+    },
+    "rust_crates_total": {
+      "type": "number",
+      "minimum": 0
+    },
+    "ts_packages_total": {
+      "type": "number",
+      "minimum": 0
+    },
+    "core_components": {
+      "type": "number",
+      "minimum": 0
+    },
+    "runtime_components": {
+      "type": "number",
+      "minimum": 0
+    },
+    "adapter_components": {
+      "type": "number",
+      "minimum": 0
+    },
+    "organism_components": {
+      "type": "number",
+      "minimum": 0
+    },
+    "app_components": {
+      "type": "number",
+      "minimum": 0
+    },
+    "legacy_cap_components": {
+      "type": "number",
+      "minimum": 0
+    },
+    "dependency_edges_total": {
+      "type": "number",
+      "minimum": 0
+    },
+    "architecture_violations_total": {
+      "type": "number",
+      "minimum": 0
+    },
+    "review_required_total": {
+      "type": "number",
+      "minimum": 0
+    },
+    "cap_legacy_remaining": {
+      "type": "number",
+      "minimum": 0
+    },
+    "ts_backend_remaining": {
+      "type": "number",
+      "minimum": 0
+    },
+    "graph_source_mode": {
+      "type": "string",
+      "enum": [
+        "DUAL_MANUAL",
+        "GRAPH_AUTHORITATIVE_RUNTIME_LOADER",
+        "RUST_AUTHORITATIVE_GENERATED_GRAPH",
+        "UNKNOWN"
+      ]
+    },
+    "graph_drift_count": {
+      "type": "number",
+      "minimum": 0
+    },
+    "binding_source_mode": {
+      "type": "string",
+      "enum": [
+        "DUAL_MANUAL",
+        "GRAPH_AUTHORITATIVE_RUNTIME_LOADER",
+        "RUST_AUTHORITATIVE_GENERATED_GRAPH",
+        "UNKNOWN"
+      ]
+    },
+    "binding_drift_count": {
+      "type": "number",
+      "minimum": 0
+    },
+    "donors_identified": {
+      "type": "number",
+      "minimum": 0
+    },
+    "donors_resolved": {
+      "type": "number",
+      "minimum": 0
+    },
+    "donor_responsibilities_unaccounted": {
+      "type": "number",
+      "minimum": 0
+    },
+    "donor_runtime_dependencies": {
+      "type": "number",
+      "minimum": 0
+    },
+    "duplicate_truth_store_signals": {
+      "type": "number",
+      "minimum": 0
+    },
+    "duplicate_execution_universe_signals": {
+      "type": "number",
+      "minimum": 0
+    },
+    "duplicate_authority_universe_signals": {
+      "type": "number",
+      "minimum": 0
+    },
+    "architecture_contracts_declared_total": {
+      "type": "number",
+      "minimum": 0
+    },
+    "organizational_control_contracts_declared_total": {
+      "type": "number",
+      "minimum": 0
+    },
+    "living_architecture_reconciliation_contracts_declared_total": {
+      "type": "number",
+      "minimum": 0
+    },
+    "architecture_contract_runtime_owner_links_total": {
+      "type": "number",
+      "minimum": 0
+    },
+    "architecture_contract_verification_links_total": {
+      "type": "number",
+      "minimum": 0
+    },
+    "ops_mirror_contracts_declared_total": {
+      "type": "number",
+      "minimum": 0
+    },
+    "ops_mirror_runtime_tools_present_total": {
+      "type": "number",
+      "minimum": 0
+    },
+    "ops_mirror_schemas_present_total": {
+      "type": "number",
+      "minimum": 0
+    },
+    "fleet_ops_registered_total": {
+      "type": "number",
+      "minimum": 0
+    },
+    "fleet_donor_allocations_total": {
+      "type": "number",
+      "minimum": 0
+    },
+    "fleet_donor_unallocated_total": {
+      "type": "number",
+      "minimum": 0
+    },
+    "fleet_donor_skipped_total": {
+      "type": "number",
+      "minimum": 0
+    },
+    "fleet_control_tools_present_total": {
+      "type": "number",
+      "minimum": 0
+    },
+    "fleet_control_schemas_present_total": {
+      "type": "number",
+      "minimum": 0
+    },
+    "fleet_donor_coverage_complete": {
+      "type": "boolean"
+    },
+    "fleet_control_contracts_declared_total": {
+      "type": "number",
+      "minimum": 0
+    },
+    "fleet_provider_runners_present_total": {
+      "type": "number",
+      "minimum": 0
+    },
+    "development_cells_registered_total": {
+      "type": "number",
+      "minimum": 0
+    },
+    "chronica_packages_declared_total": {
+      "type": "number",
+      "minimum": 0
+    },
+    "cell_reset_contracts_declared_total": {
+      "type": "number",
+      "minimum": 0
+    },
+    "extinction_ratchet_contracts_declared_total": {
+      "type": "number",
+      "minimum": 0
+    },
+    "development_cells_with_reset_generation_total": {
+      "type": "number",
+      "minimum": 0
+    },
+    "organism_model_donors_total": {
+      "type": "number",
+      "minimum": 0
+    },
+    "organism_model_source_present_total": {
+      "type": "number",
+      "minimum": 0
+    },
+    "organism_model_not_ingested_total": {
+      "type": "number",
+      "minimum": 0
+    },
+    "organism_model_censused_total": {
+      "type": "number",
+      "minimum": 0
+    },
+    "organism_model_absorption_started_total": {
+      "type": "number",
+      "minimum": 0
+    },
+    "organism_model_roles_covered_total": {
+      "type": "number",
+      "minimum": 0
+    },
+    "organism_model_artifact_git_violations_total": {
+      "type": "number",
+      "minimum": 0
+    },
+    "organism_evolution_readiness_present_total": {
+      "type": "number",
+      "minimum": 0
+    },
+    "organism_evolution_readiness_proof_only_total": {
+      "type": "number",
+      "minimum": 0
+    },
+    "organism_evolution_readiness_gap_total": {
+      "type": "number",
+      "minimum": 0
+    },
+    "intelligence_boundary_readiness_present_total": {
+      "type": "number",
+      "minimum": 0
+    },
+    "intelligence_boundary_readiness_proof_only_total": {
+      "type": "number",
+      "minimum": 0
+    },
+    "intelligence_boundary_readiness_gap_total": {
+      "type": "number",
+      "minimum": 0
+    },
+    "intelligence_boundary_hard_violations_total": {
+      "type": "number",
+      "minimum": 0
+    },
+    "intelligence_boundary_review_required_total": {
+      "type": "number",
+      "minimum": 0
+    },
+    "holding_id_reference_files_total": {
+      "type": "number",
+      "minimum": 0
+    },
+    "connector_protocol_total": {
+      "type": "number",
+      "minimum": 0
+    },
+    "connector_discovered_total": {
+      "type": "number",
+      "minimum": 0
+    },
+    "connector_source_present_total": {
+      "type": "number",
+      "minimum": 0
+    },
+    "connector_proof_only_total": {
+      "type": "number",
+      "minimum": 0
+    },
+    "connector_production_total": {
+      "type": "number",
+      "minimum": 0
+    },
+    "connector_physical_protocol_total": {
+      "type": "number",
+      "minimum": 0
+    },
+    "connector_physical_production_total": {
+      "type": "number",
+      "minimum": 0
+    },
+    "connector_runtime_contract_only_total": {
+      "type": "number",
+      "minimum": 0
+    },
+    "connector_runtime_partial_total": {
+      "type": "number",
+      "minimum": 0
+    },
+    "connector_runtime_simulated_only_total": {
+      "type": "number",
+      "minimum": 0
+    },
+    "connector_runtime_gap_total": {
+      "type": "number",
+      "minimum": 0
+    },
+    "connector_hard_violations_total": {
+      "type": "number",
+      "minimum": 0
+    },
+    "connector_review_required_total": {
+      "type": "number",
+      "minimum": 0
+    }
+  }
+}

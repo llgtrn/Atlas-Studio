@@ -1,0 +1,200 @@
+{
+  "schema": "chronica.benchmark.contract.v1",
+  "generated": true,
+  "source_of_truth": "tools/benchmark/contracts/source",
+  "cap": "CAP01",
+  "name": "Helpdesk",
+  "benchmark_release": "BR-2026.08.21.1",
+  "benchmark_sha": "2f0a95472e72842e7ec70cdac6eeef8297df2b55",
+  "contract_schema_version": "1.0.0",
+  "source_hash": "bea492307c825d9bd8fc9b677e0b6028b79cbee119bfb216d7c25d976d82c8f1",
+  "ownership": [
+    "helpdesk threads",
+    "contacts",
+    "inbox routing",
+    "support SLA"
+  ],
+  "non_ownership": [
+    "CRM kernel",
+    "Vault lifecycle",
+    "Store platform",
+    "employment contracts",
+    "black-box maturity"
+  ],
+  "standards": {
+    "BLACKBOX": "1.0.0"
+  },
+  "catalog_versions": {
+    "WEB2APP": "1.1.0",
+    "EMPLOYMENT": "1.0.0",
+    "STORE": "1.0.0",
+    "BLACKBOX": "1.0.0",
+    "FIC": "55",
+    "FIVE_PLANE": "PROVISIONAL_BASELINE"
+  },
+  "families": [
+    "FAM-HELPDESK-TICKET"
+  ],
+  "owned_flow_ids": [
+    "FLOW-CAP01-TICKET-001",
+    "FLOW-CAP01-STATUS-001",
+    "FLOW-CAP01-CONTACT-001",
+    "FLOW-CAP01-SNOOZE-001",
+    "FLOW-CAP01-NOTIFY-001",
+    "FLOW-CROSS-STORE-HELPDESK-001"
+  ],
+  "participating_flow_ids": [
+    "FLOW-CAP18-HELPDESK-001",
+    "FLOW-CAP18-VIEW-001",
+    "FLOW-CAP17-BIND-HD-001",
+    "FLOW-CAP05-CUSTOMER-001"
+  ],
+  "hard_gates": [
+    "SECRET_IN_AGENT_CONTEXT"
+  ],
+  "anti_patterns": [
+    "RAW_OBJECT_TO_AGENT"
+  ],
+  "forbidden_architecture": [],
+  "flow_status": {
+    "FLOW-CAP01-TICKET-001": "RUNTIME_CONNECTED",
+    "FLOW-CAP01-STATUS-001": "RUNTIME_CONNECTED",
+    "FLOW-CAP01-CONTACT-001": "RUNTIME_CONNECTED",
+    "FLOW-CAP01-SNOOZE-001": "SPEC_ONLY",
+    "FLOW-CAP01-NOTIFY-001": "SPEC_ONLY",
+    "FLOW-CROSS-STORE-HELPDESK-001": "SPEC_ONLY"
+  },
+  "missing_witnesses": [
+    "FLOW-CAP01-TICKET-001:PO-STATE",
+    "FLOW-CAP01-TICKET-001:PO-PERSISTENCE",
+    "FLOW-CAP01-TICKET-001:PO-EVIDENCE",
+    "FLOW-CAP01-STATUS-001:PO-TENANCY",
+    "FLOW-CAP01-STATUS-001:PO-PERSISTENCE",
+    "FLOW-CAP01-CONTACT-001:PO-PERSISTENCE",
+    "FLOW-CAP01-CONTACT-001:PO-DISCLOSURE",
+    "FLOW-CAP01-CONTACT-001:PO-IDENTITY",
+    "FLOW-CAP01-SNOOZE-001:PO-STATE",
+    "FLOW-CAP01-SNOOZE-001:PO-TENANCY",
+    "FLOW-CAP01-SNOOZE-001:PO-FAILURE",
+    "FLOW-CAP01-NOTIFY-001:PO-CONSUMER",
+    "FLOW-CAP01-NOTIFY-001:PO-DISCLOSURE",
+    "FLOW-CROSS-STORE-HELPDESK-001:PO-CONSUMER",
+    "FLOW-CROSS-STORE-HELPDESK-001:PO-TENANCY",
+    "FLOW-CROSS-STORE-HELPDESK-001:PO-IDEMPOTENCY"
+  ],
+  "required_proof_obligations": [
+    "PO-ENTRYPOINT",
+    "PO-STATE",
+    "PO-PERSISTENCE",
+    "PO-TENANCY",
+    "PO-EVIDENCE",
+    "PO-DISCLOSURE",
+    "PO-IDENTITY",
+    "PO-FAILURE",
+    "PO-CONSUMER",
+    "PO-IDEMPOTENCY"
+  ],
+  "blocked_flows": [],
+  "next_actionable": [
+    {
+      "id": "FLOW-CROSS-STORE-HELPDESK-001",
+      "status": "SPEC_ONLY",
+      "missing": [
+        "PO-CONSUMER",
+        "PO-TENANCY",
+        "PO-IDEMPOTENCY"
+      ],
+      "value": "HIGH",
+      "golden": [
+        "GBF-007"
+      ]
+    },
+    {
+      "id": "FLOW-CAP01-NOTIFY-001",
+      "status": "SPEC_ONLY",
+      "missing": [
+        "PO-CONSUMER",
+        "PO-DISCLOSURE"
+      ],
+      "value": "MEDIUM",
+      "golden": [
+        "GBF-001"
+      ]
+    },
+    {
+      "id": "FLOW-CAP01-CONTACT-001",
+      "status": "RUNTIME_CONNECTED",
+      "missing": [
+        "PO-PERSISTENCE",
+        "PO-DISCLOSURE",
+        "PO-IDENTITY"
+      ],
+      "value": "HIGH",
+      "golden": [
+        "GBF-001",
+        "GBF-014"
+      ]
+    },
+    {
+      "id": "FLOW-CAP01-TICKET-001",
+      "status": "RUNTIME_CONNECTED",
+      "missing": [
+        "PO-STATE",
+        "PO-PERSISTENCE",
+        "PO-EVIDENCE"
+      ],
+      "value": "HIGH",
+      "golden": [
+        "GBF-001"
+      ]
+    },
+    {
+      "id": "FLOW-CAP01-STATUS-001",
+      "status": "RUNTIME_CONNECTED",
+      "missing": [
+        "PO-TENANCY",
+        "PO-PERSISTENCE"
+      ],
+      "value": "MEDIUM",
+      "golden": [
+        "GBF-001"
+      ]
+    },
+    {
+      "id": "FLOW-CAP01-SNOOZE-001",
+      "status": "SPEC_ONLY",
+      "missing": [
+        "PO-STATE",
+        "PO-TENANCY",
+        "PO-FAILURE"
+      ],
+      "value": "MEDIUM",
+      "golden": []
+    }
+  ],
+  "negatives": [
+    {
+      "flow": "FLOW-CAP01-TICKET-001",
+      "case": "cross_tenant_thread"
+    },
+    {
+      "flow": "FLOW-CAP01-STATUS-001",
+      "case": "cross_tenant_status"
+    },
+    {
+      "flow": "FLOW-CAP01-CONTACT-001",
+      "case": "cross_tenant_contact"
+    },
+    {
+      "flow": "FLOW-CAP01-SNOOZE-001",
+      "case": "past_snooze"
+    },
+    {
+      "flow": "FLOW-CROSS-STORE-HELPDESK-001",
+      "case": "store_writes_helpdesk_table"
+    }
+  ],
+  "this_packet_is_not_source": true,
+  "packet_hash": "435854b4ca829f57b3ef781b56cb49b1c44f0f9f36f752b4cd2dc2faee57ece9",
+  "markdown": "# CAP01 Helpdesk — acceptance packet\n\nGENERATED. Source of truth is Contract IR (chronica.benchmark.contract.v1). Do not hand-edit.\n\n- BENCHMARK_RELEASE: `BR-2026.08.21.1`\n- BENCHMARK_SHA: `2f0a95472e72842e7ec70cdac6eeef8297df2b55`\n- SOURCE_HASH: `bea492307c825d9bd8fc9b677e0b6028b79cbee119bfb216d7c25d976d82c8f1`\n- PACKET_HASH: `435854b4ca829f57b3ef781b56cb49b1c44f0f9f36f752b4cd2dc2faee57ece9`\n- STANDARDS: {\"BLACKBOX\":\"1.0.0\"}\n\n## Owns\n- helpdesk threads\n- contacts\n- inbox routing\n- support SLA\n\n## Does not own\n- CRM kernel\n- Vault lifecycle\n- Store platform\n- employment contracts\n- black-box maturity\n\n## Hard gates\n- SECRET_IN_AGENT_CONTEXT\n\n## Owned flows\n- `FLOW-CAP01-TICKET-001` RUNTIME_CONNECTED missing=PO-STATE,PO-PERSISTENCE,PO-EVIDENCE\n- `FLOW-CAP01-STATUS-001` RUNTIME_CONNECTED missing=PO-TENANCY,PO-PERSISTENCE\n- `FLOW-CAP01-CONTACT-001` RUNTIME_CONNECTED missing=PO-PERSISTENCE,PO-DISCLOSURE,PO-IDENTITY\n- `FLOW-CAP01-SNOOZE-001` SPEC_ONLY missing=PO-STATE,PO-TENANCY,PO-FAILURE\n- `FLOW-CAP01-NOTIFY-001` SPEC_ONLY missing=PO-CONSUMER,PO-DISCLOSURE\n- `FLOW-CROSS-STORE-HELPDESK-001` SPEC_ONLY missing=PO-CONSUMER,PO-TENANCY,PO-IDEMPOTENCY\n\n## Next actionable\n- `FLOW-CROSS-STORE-HELPDESK-001` (SPEC_ONLY)\n- `FLOW-CAP01-NOTIFY-001` (SPEC_ONLY)\n- `FLOW-CAP01-CONTACT-001` (RUNTIME_CONNECTED)\n- `FLOW-CAP01-TICKET-001` (RUNTIME_CONNECTED)\n- `FLOW-CAP01-STATUS-001` (RUNTIME_CONNECTED)\n- `FLOW-CAP01-SNOOZE-001` (SPEC_ONLY)\n\nIf the standard appears wrong: emit BENCHMARK_CHANGE_REQUEST. Do not weaken fixtures.\n"
+}

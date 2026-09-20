@@ -1,0 +1,26 @@
+{
+  "schema": "chronica.employment.evaluation.v1",
+  "case_id": "capability-registry-orthogonal",
+  "calibration_case": "C",
+  "fixture_kind": "CURRENT_RUNTIME_CALIBRATION",
+  "worker_class": "runtime_worker",
+  "claimed_employment_maturity": "E0",
+  "canonical_status": "implemented_unverified",
+  "runtime_status": "LIVE",
+  "product_status": "SKILL_REGISTRY",
+  "runtime_worker_only": true,
+  "code_refs": ["crates/chronica-ai-workforce/src/capability_registry.rs"],
+  "identity": { "stable_worker_id": true },
+  "organization": { "company_bound": false },
+  "contract": {},
+  "assignment": {},
+  "authority": { "no_ai_enforcement": true, "skill_as_authority": false },
+  "lifecycle": {},
+  "evidence": { "production_evidenced": false },
+  "facets": {
+    "IDENTITY": "DURABLE",
+    "GRANTS": "ABSENT",
+    "LEARNING": "DURABLE"
+  },
+  "notes": "BENCHMARK/CALIBRATION ONLY. CapabilityRegistry is a legitimate skill/availability/history registry (EMA updates, env-var names never keys). CAPABILITY REGISTRY != EMPLOYMENT AUTHORITY REGISTRY. Employment maturity remains E0; skill verification is orthogonal."
+}

@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "chronica.system-atlas.fleet-advance.v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema","generated_at","consumed_results_total","blockers","refresh_required","next_plan"],
+  "properties": {
+    "schema": { "const": "chronica.system-atlas.fleet-advance.v1" },
+    "generated_at": { "type": "string" },
+    "consumed_results_total": { "type": "number", "minimum": 0 },
+    "blockers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["task_id","target_repo","status","evidence"],
+        "properties": {
+          "task_id": { "type": "string" },
+          "target_repo": { "type": "string" },
+          "status": { "enum": ["BLOCKED","FAILED"] },
+          "evidence": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    },
+    "refresh_required": { "type": "array", "uniqueItems": true, "items": { "type": "string" } },
+    "next_plan": { "$ref": "chronica.system-atlas.fleet-work-plan.v1" }
+  }
+}

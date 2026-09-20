@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "chronica.system-atlas.responsibility-summary.v2",
+  "title": "System Atlas v2 responsibility rollup: components grouped by their assigned responsibility",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["counts", "components_by_responsibility"],
+  "properties": {
+    "counts": {
+      "type": "object",
+      "additionalProperties": { "type": "number", "minimum": 0 }
+    },
+    "components_by_responsibility": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "array",
+        "items": { "type": "string" }
+      }
+    }
+  }
+}

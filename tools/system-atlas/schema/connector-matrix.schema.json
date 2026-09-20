@@ -1,0 +1,247 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "chronica.system-atlas.connector-matrix.v1",
+  "title": "System Atlas universal physical/digital connector matrix",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "generated_at",
+    "source_sha",
+    "source_of_truth",
+    "summary",
+    "protocols",
+    "runtime_readiness",
+    "violations"
+  ],
+  "properties": {
+    "schema": {
+      "const": "chronica.system-atlas.connector-matrix.v1"
+    },
+    "generated_at": {
+      "type": "string"
+    },
+    "source_sha": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "source_of_truth": {
+      "type": "string",
+      "minLength": 1
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "protocol_total",
+        "discovered_total",
+        "source_present_total",
+        "proof_only_total",
+        "production_total",
+        "physical_protocol_total",
+        "physical_production_total",
+        "runtime_present_total",
+        "runtime_partial_total",
+        "runtime_contract_only_total",
+        "runtime_proof_only_total",
+        "runtime_simulated_only_total",
+        "runtime_gap_total",
+        "hard_violations_total",
+        "review_required_total"
+      ],
+      "properties": {
+        "protocol_total": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "discovered_total": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "source_present_total": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "proof_only_total": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "production_total": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "physical_protocol_total": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "physical_production_total": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "runtime_present_total": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "runtime_partial_total": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "runtime_contract_only_total": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "runtime_proof_only_total": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "runtime_simulated_only_total": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "runtime_gap_total": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "hard_violations_total": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "review_required_total": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "protocols": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "category",
+          "status",
+          "donor_ids",
+          "source_present_donor_ids",
+          "proof_evidence_paths",
+          "production_evidence_paths"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "category": {
+            "type": "string",
+            "minLength": 1
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "DISCOVERED",
+              "SOURCE_PRESENT",
+              "PROOF_ONLY",
+              "PRODUCTION"
+            ]
+          },
+          "donor_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "source_present_donor_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "proof_evidence_paths": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "production_evidence_paths": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "runtime_readiness": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "state",
+          "evidence"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "PRESENT",
+              "PARTIAL_RUNTIME",
+              "CONTRACT_ONLY",
+              "PROOF_ONLY",
+              "SIMULATED_ONLY",
+              "GAP"
+            ]
+          },
+          "evidence": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "violations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "type",
+          "severity",
+          "path",
+          "detail"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "severity": {
+            "type": "string",
+            "enum": [
+              "HARD",
+              "REVIEW_REQUIRED"
+            ]
+          },
+          "path": {
+            "type": "string"
+          },
+          "detail": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

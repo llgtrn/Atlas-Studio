@@ -1,0 +1,61 @@
+{
+  "issue": 713,
+  "note": "Durable seed for reconcile-w9-target-keys.mjs. caps.db is gitignored, so this committed JSON is the record of how the five Wave 9 target names from issue #713 reconcile against canonical_capability. Re-applied by reconcile-w9-target-keys.mjs (wired into rebuild-pipeline.mjs). No entry here may set status='verified' — the script enforces this at write time regardless of what this file says.",
+  "targets": [
+    {
+      "issue_key": "commerce.product_catalog_persistence",
+      "action": "insert_unverified",
+      "canonical_name": "Commerce product catalog persistence",
+      "target_crate": "chronica-api",
+      "target_module": "routes::companies::commerce_product_catalog_store",
+      "moves_money": 0,
+      "requires_approval": 0,
+      "acceptance_criteria": "POST/GET .../commerce/products persist a validated ProductCatalogEntry into commerce_product_catalog_entries (migration 0166), tenant-scoped, bound to a chronica-erp Item master row via inventory_item_store (resolve-or-create), and survive a fresh AppState/router instance against the same Postgres (the process-restart durability proxy). GET routes read only from the table, never the prior in-memory Mutex.",
+      "evidence_ref": "docs/_machine/reconcile-reports/cloud/commerce-cloud-w9-002-product-catalog-persistence.json; merge commit e91446e0 (PR #706); crates/chronica-api/src/routes/companies/commerce_product_catalog_store.rs; crates/chronica-api/tests/commerce_product_catalog_store.rs; crates/chronica-core/migrations/0166_commerce_product_catalog.sql",
+      "notes": "Exact key match between issue #713 and the landed source report; no alternate key name observed."
+    },
+    {
+      "issue_key": "decision-feed.actionability",
+      "action": "map_existing",
+      "maps_to": ["policy.access_approval_workflow", "policy.secret_approval_workflow"],
+      "evidence_ref": "docs/_machine/reconcile-reports/cloud/w9-source-692-decision-ledger-actionability.json; merge commit 91a81bf5 (PR #707); crates/chronica-approvals/src/decision_ledger.rs; crates/chronica-api/src/routes/holding.rs; crates/chronica-core/migrations/0167_decision_ledger_expiry_next_action.sql",
+      "notes": "The landed source report's own local_aggregate.caps_db.targets names the pre-existing canonical keys 'Access approval policies & requests (JIT access)' (policy.access_approval_workflow) and 'Secret approval policies & requests' (policy.secret_approval_workflow) as the capabilities the decision_ledger expiry/next-best-action columns and the expired-only GET /api/holding/feed filter fall under. No dedicated 'decision-feed.actionability' capability key is minted by the source work or by this reconciliation; the existing rows' status is left untouched (this is a narrow feature addition to a broader existing capability, not proof the whole capability is now implemented)."
+    },
+    {
+      "issue_key": "business-event.dead_letter_redrive",
+      "action": "insert_unverified",
+      "canonical_name": "Business event dead-letter redrive",
+      "target_crate": "chronica-crm",
+      "target_module": "store::business_event_dispatch_store",
+      "moves_money": 0,
+      "requires_approval": 0,
+      "acceptance_criteria": "A dead_lettered business_event_dispatch row has a programmatic, tenant-scoped, fail-closed redrive path back to pending (dispatch_redrive_route.rs: cross-tenant/cross-account/malformed/already-delivered/already-pending negative cases all pass), with a negative/money test (dispatch_relay_imports_no_money_primitive) confirming no money primitive is imported.",
+      "evidence_ref": "docs/_machine/reconcile-reports/cloud/w9-source-624-business-event-dead-letter-redrive.json; merge commit 5fd70fc1 (PR #708); crates/chronica-crm/src/store/business_event_dispatch_store.rs; crates/chronica-api/tests/dispatch_redrive_route.rs",
+      "notes": "The landed source report itself proposes the key name 'analytics.business_event_dispatch_redrive' (crate_sub_cap_db capability_keys is empty; local_aggregate.caps_db.targets names 'analytics.business_event_dispatch_redrive'), not issue #713's literal 'business-event.dead_letter_redrive'. This reconciliation imports issue #713's literal key name as the canonical row (deterministic per the issue text) and records the alternate name here for local audit disambiguation; local audit may choose to alias/rename after independent review."
+    },
+    {
+      "issue_key": "business-map.store",
+      "action": "insert_unverified",
+      "canonical_name": "Business map store",
+      "target_crate": "chronica-company",
+      "target_module": "store::business_map_store",
+      "moves_money": 0,
+      "requires_approval": 0,
+      "acceptance_criteria": "chronica-company's in-memory BusinessNode/BusinessEdge/BusinessMap/detect_conflicts (Slices 153-154) gains a tenant-scoped Postgres persistence adapter (business_map_nodes/business_map_edges, migration 0169) with idempotent UPSERT, keyset-paginated reads, and a real HTTP caller (GET .../business-map/conflicts loading a persisted map into detect_conflicts). Live-DB tests cover cross-company no-oracle, duplicate/idempotency for both nodes and edges, and fail-closed rejection of a malformed persisted kind tag written outside the store API.",
+      "evidence_ref": "docs/_machine/reconcile-reports/cloud/w9-source-business-map-store.json; merge commit dcc38223 (PR #710); crates/chronica-company/src/store/business_map_store.rs; crates/chronica-api/src/routes/business_map.rs; crates/chronica-core/migrations/0169_business_map_store.sql",
+      "notes": "The landed source report itself proposes the key name 'chronica-company.business_map_store' (local_aggregate.caps_db.targets), not issue #713's literal 'business-map.store'. This reconciliation imports issue #713's literal key name as the canonical row (deterministic per the issue text) and records the alternate name here for local audit disambiguation; local audit may choose to alias/rename after independent review. No created_by actor attribution/audit event exists yet for business-map writes (explicit residual from the source report, not claimed solved here)."
+    },
+    {
+      "issue_key": "helpdesk.sla_escalation_sweep",
+      "action": "insert_unverified",
+      "canonical_name": "Helpdesk SLA escalation sweep",
+      "target_crate": "chronica-helpdesk",
+      "target_module": "support_sla_escalation",
+      "moves_money": 0,
+      "requires_approval": 0,
+      "acceptance_criteria": "A periodic background sweep escalates breaching support SLA threads into support_sla_escalations rows (migration 0170) plus a notification, tenant-isolated, with business-hours parity and cascade-delete semantics on contact purge. support_sla_escalation_live.rs is 10/10 across 5 consecutive default-parallel runs plus one CI-shaped run; sla_escalation_sweep_imports_no_money_or_policy_primitive is a negative/money test confirming no money or policy primitive is imported.",
+      "evidence_ref": "docs/_machine/reconcile-reports/cloud/w9-helpdesk-sla-escalation-sweep.json; merge commit 522df27c (PR #709); crates/chronica-helpdesk/src/support_sla_escalation.rs; crates/chronica-helpdesk/tests/support_sla_escalation_live.rs; crates/chronica-core/migrations/0170_helpdesk_sla_escalations.sql",
+      "notes": "The crate-local sub-cap shard and the source report itself use the dotted variant 'helpdesk.sla.escalation_sweep' for this capability, not issue #713's literal underscored 'helpdesk.sla_escalation_sweep'. This reconciliation imports issue #713's literal key name as the canonical row (deterministic per the issue text) and records the alternate spelling here for local audit disambiguation."
+    }
+  ]
+}

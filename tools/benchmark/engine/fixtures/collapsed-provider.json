@@ -1,0 +1,9 @@
+{
+  "surfaces": [
+    {
+      "domain": "external-provider-execution",
+      "name": "stripe approved refund plus claude call",
+      "no_ai_class": "REQUIRED_INFERENCE"
+    }
+  ]
+}

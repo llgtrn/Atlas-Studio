@@ -1,0 +1,1 @@
+{"schema":"chronica.benchmark.contract.v1","type":"evidence","id":"EV-BAD-FIXTURE","kind":"benchmark_fixture","path":"tools/benchmark/contracts/fixtures/fail-fixture-as-runtime.jsonl","runtime_kind":"PRODUCT_RUNTIME","proves":[{"flow":"FLOW-CAP01-TICKET-001","obligation":"PO-EVIDENCE"}]}

@@ -1,0 +1,24 @@
+{
+  "schema": "chronica.blackbox.evaluation.v1",
+  "fixture_kind": "BENCHMARK_FIXTURE_ONLY",
+  "web2app": {
+    "independent": true
+  },
+  "employment": {
+    "independent": true
+  },
+  "case_id": "reversible-opaque-ref",
+  "claimed_blackbox_maturity": "B2",
+  "at_rest": {
+    "sealed": true
+  },
+  "opaque": {
+    "boundary_ref": true,
+    "reversible": true,
+    "base64_raw_id": true
+  },
+  "secrets": {
+    "handle": true
+  },
+  "notes": "base64(raw_id) is not an opaque reference."
+}

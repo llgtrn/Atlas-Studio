@@ -1,0 +1,27 @@
+{
+  "schema": "chronica.blackbox.evaluation.v1",
+  "fixture_kind": "BENCHMARK_FIXTURE_ONLY",
+  "web2app": {
+    "independent": true
+  },
+  "employment": {
+    "independent": true
+  },
+  "case_id": "encrypted-db-plaintext-vector-index",
+  "claimed_blackbox_maturity": "B5",
+  "at_rest": {
+    "sealed": true
+  },
+  "opaque": {
+    "boundary_ref": true
+  },
+  "secrets": {
+    "handle": true,
+    "envelope": true
+  },
+  "vector": {
+    "plaintext": true,
+    "embedding_public": true
+  },
+  "notes": "Source sealed + embedding plaintext ≠ encrypted data plane."
+}

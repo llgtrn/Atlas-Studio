@@ -1,0 +1,239 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "chronica.system-atlas.fleet-worker-result.v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "task_id",
+    "provider",
+    "status",
+    "target_repo",
+    "base_sha",
+    "candidate_sha",
+    "thread_id",
+    "tests",
+    "evidence",
+    "discovered_slices",
+    "chronica_candidates",
+    "target_cell_id",
+    "target_package_id",
+    "extinction",
+    "reset_evidence"
+  ],
+  "properties": {
+    "schema": {
+      "const": "chronica.system-atlas.fleet-worker-result.v1"
+    },
+    "task_id": {
+      "type": "string"
+    },
+    "provider": {
+      "enum": [
+        "CLAUDE",
+        "CODEX",
+        "OTHER"
+      ]
+    },
+    "status": {
+      "enum": [
+        "COMPLETE",
+        "BLOCKED",
+        "FAILED"
+      ]
+    },
+    "target_repo": {
+      "type": "string"
+    },
+    "base_sha": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "candidate_sha": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "thread_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "tests": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "evidence": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "discovered_slices": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "behavior",
+          "target_responsibility",
+          "owned_scope",
+          "proof_expectation",
+          "deletion_scope"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "behavior": {
+            "type": "string"
+          },
+          "target_responsibility": {
+            "enum": [
+              "CORE",
+              "RUNTIME",
+              "ADAPTER",
+              "ORGANISM",
+              "APP",
+              "PRODUCT_LOCAL"
+            ]
+          },
+          "owned_scope": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "minItems": 1
+          },
+          "proof_expectation": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "minItems": 1
+          },
+          "deletion_scope": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "minItems": 1
+          }
+        }
+      },
+      "minItems": 0,
+      "maxItems": 3
+    },
+    "chronica_candidates": {
+      "type": "array",
+      "items": {
+        "$ref": "chronica.system-atlas.chronica-candidate.v1"
+      }
+    },
+    "target_cell_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "target_package_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "extinction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "applicable",
+        "files_removed",
+        "remaining_scoped_files",
+        "state",
+        "blocker",
+        "deleted_paths"
+      ],
+      "properties": {
+        "applicable": {
+          "type": "boolean"
+        },
+        "files_removed": {
+          "type": "number",
+          "minimum": 0
+        },
+        "remaining_scoped_files": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "state": {
+          "enum": [
+            "NOT_APPLICABLE",
+            "PROGRESSED",
+            "SOURCE_EXTINCT",
+            "CLASSIFIED_AND_REMOVED",
+            "BLOCKED"
+          ]
+        },
+        "blocker": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "deleted_paths": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "reset_evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "applicable",
+        "generation",
+        "pre_reset_head_sha",
+        "preservation_ref"
+      ],
+      "properties": {
+        "applicable": {
+          "type": "boolean"
+        },
+        "generation": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 1
+        },
+        "pre_reset_head_sha": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "preservation_ref": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    }
+  }
+}

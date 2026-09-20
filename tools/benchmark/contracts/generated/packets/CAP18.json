@@ -1,0 +1,333 @@
+{
+  "schema": "chronica.benchmark.contract.v1",
+  "generated": true,
+  "source_of_truth": "tools/benchmark/contracts/source",
+  "cap": "CAP18",
+  "name": "Confidential black-box data plane",
+  "benchmark_release": "BR-2026.08.21.1",
+  "benchmark_sha": "2f0a95472e72842e7ec70cdac6eeef8297df2b55",
+  "contract_schema_version": "1.0.0",
+  "source_hash": "bea492307c825d9bd8fc9b677e0b6028b79cbee119bfb216d7c25d976d82c8f1",
+  "ownership": [
+    "cross-system confidentiality semantics",
+    "minimum disclosure",
+    "opaque boundary identity",
+    "semantic views",
+    "use-without-disclose",
+    "output disclosure control",
+    "black-box maturity"
+  ],
+  "non_ownership": [
+    "crypto primitive implementation",
+    "Vault lifecycle",
+    "authentication",
+    "RBAC/policy engine",
+    "employment contracts",
+    "CRM/Helpdesk kernels",
+    "Store platform",
+    "WEB2APP",
+    "backup/retention execution",
+    "money authority"
+  ],
+  "standards": {
+    "BLACKBOX": "1.0.0",
+    "EMPLOYMENT": "1.0.0"
+  },
+  "catalog_versions": {
+    "WEB2APP": "1.1.0",
+    "EMPLOYMENT": "1.0.0",
+    "STORE": "1.0.0",
+    "BLACKBOX": "1.0.0",
+    "FIC": "55",
+    "FIVE_PLANE": "PROVISIONAL_BASELINE"
+  },
+  "families": [
+    "FAM-BLACKBOX-DISCLOSURE"
+  ],
+  "owned_flow_ids": [
+    "FLOW-CAP18-HELPDESK-001",
+    "FLOW-CAP18-VIEW-001",
+    "FLOW-CAP18-HANDLE-001",
+    "FLOW-CAP18-TENANT-001",
+    "FLOW-CAP18-RAG-001",
+    "FLOW-CAP18-RAG-002",
+    "FLOW-CAP18-DLP-001",
+    "FLOW-CAP18-LOG-001",
+    "FLOW-CAP18-VECTOR-001",
+    "FLOW-CAP18-CACHE-001",
+    "FLOW-CAP18-SECRET-USE-001",
+    "FLOW-CAP18-PROVIDER-001",
+    "FLOW-CROSS-EMPLOY-DISCLOSE-001"
+  ],
+  "participating_flow_ids": [
+    "FLOW-CAP17-SECRET-001",
+    "FLOW-CAP16-ASSIGN-001",
+    "FLOW-CAP16-SECRET-001",
+    "FLOW-CAP01-CONTACT-001",
+    "FLOW-CAP05-LEAD-001",
+    "FLOW-CAP12-VERIFY-001",
+    "FLOW-CAP03-BACKUP-001",
+    "FLOW-CAP10-EXPORT-001",
+    "FLOW-CAP04-CANARY-001"
+  ],
+  "hard_gates": [
+    "SECRET_IN_AGENT_CONTEXT",
+    "SECRET_IN_STORE_MANIFEST",
+    "SECRET_IN_LOG",
+    "RAW_INTERNAL_ID_TO_PROVIDER",
+    "GLOBAL_RETRIEVE_THEN_FILTER",
+    "REVERSIBLE_OPAQUE_REFERENCE",
+    "ZERO_KNOWLEDGE_CLAIM_WITH_SERVER_PLAINTEXT"
+  ],
+  "anti_patterns": [
+    "ENCRYPTION_AT_REST_AS_BLACKBOX",
+    "VAULT_EXISTS_AS_BLACKBOX"
+  ],
+  "forbidden_architecture": [
+    "VaultV2",
+    "PolicyV2",
+    "IdentityV2"
+  ],
+  "flow_status": {
+    "FLOW-CAP18-HELPDESK-001": "SPEC_ONLY",
+    "FLOW-CAP18-VIEW-001": "SPEC_ONLY",
+    "FLOW-CAP18-HANDLE-001": "SPEC_ONLY",
+    "FLOW-CAP18-TENANT-001": "RUNTIME_CONNECTED",
+    "FLOW-CAP18-RAG-001": "SPEC_ONLY",
+    "FLOW-CAP18-RAG-002": "SPEC_ONLY",
+    "FLOW-CAP18-DLP-001": "SPEC_ONLY",
+    "FLOW-CAP18-LOG-001": "SPEC_ONLY",
+    "FLOW-CAP18-VECTOR-001": "SPEC_ONLY",
+    "FLOW-CAP18-CACHE-001": "SPEC_ONLY",
+    "FLOW-CAP18-SECRET-USE-001": "SPEC_ONLY",
+    "FLOW-CAP18-PROVIDER-001": "SPEC_ONLY",
+    "FLOW-CROSS-EMPLOY-DISCLOSE-001": "SPEC_ONLY"
+  },
+  "missing_witnesses": [
+    "FLOW-CAP18-HELPDESK-001:PO-TENANCY",
+    "FLOW-CAP18-HELPDESK-001:PO-AUTHORITY",
+    "FLOW-CAP18-HELPDESK-001:PO-DISCLOSURE",
+    "FLOW-CAP18-HELPDESK-001:PO-RECEIPT",
+    "FLOW-CAP18-HELPDESK-001:PO-NO_AI",
+    "FLOW-CAP18-HELPDESK-001:PO-EVIDENCE",
+    "FLOW-CAP18-HELPDESK-001:PO-LOGGING",
+    "FLOW-CAP18-VIEW-001:PO-DISCLOSURE",
+    "FLOW-CAP18-VIEW-001:PO-AUTHORITY",
+    "FLOW-CAP18-VIEW-001:PO-TENANCY",
+    "FLOW-CAP18-HANDLE-001:PO-AUTHORITY",
+    "FLOW-CAP18-HANDLE-001:PO-REVOCATION",
+    "FLOW-CAP18-HANDLE-001:PO-TENANCY",
+    "FLOW-CAP18-TENANT-001:PO-TENANCY",
+    "FLOW-CAP18-TENANT-001:PO-FAILURE",
+    "FLOW-CAP18-RAG-001:PO-DISCLOSURE",
+    "FLOW-CAP18-RAG-001:PO-AUTHORITY",
+    "FLOW-CAP18-RAG-002:PO-DISCLOSURE",
+    "FLOW-CAP18-DLP-001:PO-DISCLOSURE",
+    "FLOW-CAP18-DLP-001:PO-EVIDENCE",
+    "FLOW-CAP18-LOG-001:PO-LOGGING",
+    "FLOW-CAP18-LOG-001:PO-DISCLOSURE",
+    "FLOW-CAP18-VECTOR-001:PO-DISCLOSURE",
+    "FLOW-CAP18-CACHE-001:PO-DISCLOSURE",
+    "FLOW-CAP18-CACHE-001:PO-AUTHORITY",
+    "FLOW-CAP18-CACHE-001:PO-REVOCATION",
+    "FLOW-CAP18-SECRET-USE-001:PO-DISCLOSURE",
+    "FLOW-CAP18-SECRET-USE-001:PO-NO_AI",
+    "FLOW-CAP18-PROVIDER-001:PO-DISCLOSURE",
+    "FLOW-CAP18-PROVIDER-001:PO-RECEIPT",
+    "FLOW-CROSS-EMPLOY-DISCLOSE-001:PO-AUTHORITY",
+    "FLOW-CROSS-EMPLOY-DISCLOSE-001:PO-DISCLOSURE"
+  ],
+  "required_proof_obligations": [
+    "PO-TENANCY",
+    "PO-AUTHORITY",
+    "PO-DISCLOSURE",
+    "PO-RECEIPT",
+    "PO-NO_AI",
+    "PO-EVIDENCE",
+    "PO-LOGGING",
+    "PO-REVOCATION",
+    "PO-FAILURE"
+  ],
+  "blocked_flows": [],
+  "next_actionable": [
+    {
+      "id": "FLOW-CAP18-HELPDESK-001",
+      "status": "SPEC_ONLY",
+      "missing": [
+        "PO-TENANCY",
+        "PO-AUTHORITY",
+        "PO-DISCLOSURE",
+        "PO-RECEIPT",
+        "PO-NO_AI",
+        "PO-EVIDENCE",
+        "PO-LOGGING"
+      ],
+      "value": "HIGH",
+      "golden": [
+        "GBF-001",
+        "GBF-013"
+      ]
+    },
+    {
+      "id": "FLOW-CAP18-VIEW-001",
+      "status": "SPEC_ONLY",
+      "missing": [
+        "PO-DISCLOSURE",
+        "PO-AUTHORITY",
+        "PO-TENANCY"
+      ],
+      "value": "HIGH",
+      "golden": [
+        "GBF-013"
+      ]
+    },
+    {
+      "id": "FLOW-CAP18-LOG-001",
+      "status": "SPEC_ONLY",
+      "missing": [
+        "PO-LOGGING",
+        "PO-DISCLOSURE"
+      ],
+      "value": "HIGH",
+      "golden": [
+        "GBF-020"
+      ]
+    },
+    {
+      "id": "FLOW-CAP18-RAG-001",
+      "status": "SPEC_ONLY",
+      "missing": [
+        "PO-DISCLOSURE",
+        "PO-AUTHORITY"
+      ],
+      "value": "HIGH",
+      "golden": [
+        "GBF-013"
+      ]
+    },
+    {
+      "id": "FLOW-CAP18-SECRET-USE-001",
+      "status": "SPEC_ONLY",
+      "missing": [
+        "PO-DISCLOSURE",
+        "PO-NO_AI"
+      ],
+      "value": "HIGH",
+      "golden": [
+        "GBF-015"
+      ]
+    },
+    {
+      "id": "FLOW-CROSS-EMPLOY-DISCLOSE-001",
+      "status": "SPEC_ONLY",
+      "missing": [
+        "PO-AUTHORITY",
+        "PO-DISCLOSURE"
+      ],
+      "value": "HIGH",
+      "golden": [
+        "GBF-006",
+        "GBF-013"
+      ]
+    },
+    {
+      "id": "FLOW-CAP18-CACHE-001",
+      "status": "SPEC_ONLY",
+      "missing": [
+        "PO-DISCLOSURE",
+        "PO-AUTHORITY",
+        "PO-REVOCATION"
+      ],
+      "value": "HIGH",
+      "golden": []
+    },
+    {
+      "id": "FLOW-CAP18-HANDLE-001",
+      "status": "SPEC_ONLY",
+      "missing": [
+        "PO-AUTHORITY",
+        "PO-REVOCATION",
+        "PO-TENANCY"
+      ],
+      "value": "HIGH",
+      "golden": []
+    }
+  ],
+  "negatives": [
+    {
+      "flow": "FLOW-CAP18-HELPDESK-001",
+      "case": "cross_tenant_customer"
+    },
+    {
+      "flow": "FLOW-CAP18-HELPDESK-001",
+      "case": "expired_handle"
+    },
+    {
+      "flow": "FLOW-CAP18-HELPDESK-001",
+      "case": "raw_email_request"
+    },
+    {
+      "flow": "FLOW-CAP18-HELPDESK-001",
+      "case": "forbidden_customer"
+    },
+    {
+      "flow": "FLOW-CAP18-VIEW-001",
+      "case": "raw_customer_object"
+    },
+    {
+      "flow": "FLOW-CAP18-HANDLE-001",
+      "case": "wrong_purpose"
+    },
+    {
+      "flow": "FLOW-CAP18-HANDLE-001",
+      "case": "expired"
+    },
+    {
+      "flow": "FLOW-CAP18-HANDLE-001",
+      "case": "guessed"
+    },
+    {
+      "flow": "FLOW-CAP18-HANDLE-001",
+      "case": "cross_tenant"
+    },
+    {
+      "flow": "FLOW-CAP18-TENANT-001",
+      "case": "tenant_b_context"
+    },
+    {
+      "flow": "FLOW-CAP18-RAG-001",
+      "case": "project_b_secret_in_ranking"
+    },
+    {
+      "flow": "FLOW-CAP18-RAG-002",
+      "case": "global_then_filter"
+    },
+    {
+      "flow": "FLOW-CAP18-DLP-001",
+      "case": "regex_only_claimed_complete"
+    },
+    {
+      "flow": "FLOW-CAP18-LOG-001",
+      "case": "pii_canary_in_log"
+    },
+    {
+      "flow": "FLOW-CAP18-VECTOR-001",
+      "case": "embedding_plaintext"
+    },
+    {
+      "flow": "FLOW-CAP18-CACHE-001",
+      "case": "wrong_actor_cache_hit"
+    },
+    {
+      "flow": "FLOW-CAP18-SECRET-USE-001",
+      "case": "raw_secret_read"
+    },
+    {
+      "flow": "FLOW-CAP18-PROVIDER-001",
+      "case": "raw_internal_id"
+    }
+  ],
+  "this_packet_is_not_source": true,
+  "packet_hash": "ecbe12e97847e6fd37010fe765d86ec6d58fe5f99a42882e8b674e2fd53715d7",
+  "markdown": "# CAP18 Confidential black-box data plane — acceptance packet\n\nGENERATED. Source of truth is Contract IR (chronica.benchmark.contract.v1). Do not hand-edit.\n\n- BENCHMARK_RELEASE: `BR-2026.08.21.1`\n- BENCHMARK_SHA: `2f0a95472e72842e7ec70cdac6eeef8297df2b55`\n- SOURCE_HASH: `bea492307c825d9bd8fc9b677e0b6028b79cbee119bfb216d7c25d976d82c8f1`\n- PACKET_HASH: `ecbe12e97847e6fd37010fe765d86ec6d58fe5f99a42882e8b674e2fd53715d7`\n- STANDARDS: {\"BLACKBOX\":\"1.0.0\",\"EMPLOYMENT\":\"1.0.0\"}\n\n## Owns\n- cross-system confidentiality semantics\n- minimum disclosure\n- opaque boundary identity\n- semantic views\n- use-without-disclose\n- output disclosure control\n- black-box maturity\n\n## Does not own\n- crypto primitive implementation\n- Vault lifecycle\n- authentication\n- RBAC/policy engine\n- employment contracts\n- CRM/Helpdesk kernels\n- Store platform\n- WEB2APP\n- backup/retention execution\n- money authority\n\n## Hard gates\n- SECRET_IN_AGENT_CONTEXT\n- SECRET_IN_STORE_MANIFEST\n- SECRET_IN_LOG\n- RAW_INTERNAL_ID_TO_PROVIDER\n- GLOBAL_RETRIEVE_THEN_FILTER\n- REVERSIBLE_OPAQUE_REFERENCE\n- ZERO_KNOWLEDGE_CLAIM_WITH_SERVER_PLAINTEXT\n\n## Owned flows\n- `FLOW-CAP18-HELPDESK-001` SPEC_ONLY missing=PO-TENANCY,PO-AUTHORITY,PO-DISCLOSURE,PO-RECEIPT,PO-NO_AI,PO-EVIDENCE,PO-LOGGING\n- `FLOW-CAP18-VIEW-001` SPEC_ONLY missing=PO-DISCLOSURE,PO-AUTHORITY,PO-TENANCY\n- `FLOW-CAP18-HANDLE-001` SPEC_ONLY missing=PO-AUTHORITY,PO-REVOCATION,PO-TENANCY\n- `FLOW-CAP18-TENANT-001` RUNTIME_CONNECTED missing=PO-TENANCY,PO-FAILURE\n- `FLOW-CAP18-RAG-001` SPEC_ONLY missing=PO-DISCLOSURE,PO-AUTHORITY\n- `FLOW-CAP18-RAG-002` SPEC_ONLY missing=PO-DISCLOSURE\n- `FLOW-CAP18-DLP-001` SPEC_ONLY missing=PO-DISCLOSURE,PO-EVIDENCE\n- `FLOW-CAP18-LOG-001` SPEC_ONLY missing=PO-LOGGING,PO-DISCLOSURE\n- `FLOW-CAP18-VECTOR-001` SPEC_ONLY missing=PO-DISCLOSURE\n- `FLOW-CAP18-CACHE-001` SPEC_ONLY missing=PO-DISCLOSURE,PO-AUTHORITY,PO-REVOCATION\n- `FLOW-CAP18-SECRET-USE-001` SPEC_ONLY missing=PO-DISCLOSURE,PO-NO_AI\n- `FLOW-CAP18-PROVIDER-001` SPEC_ONLY missing=PO-DISCLOSURE,PO-RECEIPT\n- `FLOW-CROSS-EMPLOY-DISCLOSE-001` SPEC_ONLY missing=PO-AUTHORITY,PO-DISCLOSURE\n\n## Next actionable\n- `FLOW-CAP18-HELPDESK-001` (SPEC_ONLY)\n- `FLOW-CAP18-VIEW-001` (SPEC_ONLY)\n- `FLOW-CAP18-LOG-001` (SPEC_ONLY)\n- `FLOW-CAP18-RAG-001` (SPEC_ONLY)\n- `FLOW-CAP18-SECRET-USE-001` (SPEC_ONLY)\n- `FLOW-CROSS-EMPLOY-DISCLOSE-001` (SPEC_ONLY)\n- `FLOW-CAP18-CACHE-001` (SPEC_ONLY)\n- `FLOW-CAP18-HANDLE-001` (SPEC_ONLY)\n\nIf the standard appears wrong: emit BENCHMARK_CHANGE_REQUEST. Do not weaken fixtures.\n"
+}

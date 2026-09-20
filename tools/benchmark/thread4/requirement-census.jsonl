@@ -1,0 +1,674 @@
+{"id":"LAW-AI-PROPOSES","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:global_law","standard":"FIVE_PLANE","statement":"AI proposes. Control authorizes. Deterministic execution commits. State remembers. Evidence proves.","hard":true}
+{"id":"LAW-TOOL-NOT-AUTHORITY","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:global_law","standard":"EMPLOYMENT","statement":"TOOL AVAILABLE != AUTHORITY","hard":true}
+{"id":"LAW-PROVIDER-200-NOT-LIVE","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:global_law","standard":"STORE","statement":"PROVIDER 200 != LIVE","hard":true}
+{"id":"LAW-NO-CONTRACT-NO-PRODUCTION-WORK","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:global_law","standard":"EMPLOYMENT","statement":"NO CONTRACT != production work for digital employee","hard":true}
+{"id":"LAW-SECRET-USE-NOT-READ","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:global_law","standard":"BLACKBOX","statement":"SECRET USE != SECRET READ","hard":true}
+{"id":"LAW-ONE-FACT-ONE-OWNER","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:global_law","standard":"STORE","statement":"ONE BUSINESS FACT → ONE OWNER","hard":true}
+{"id":"LAW-TITLE-NOT-AUTHORITY","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:global_law","standard":"EMPLOYMENT","statement":"TITLE != AUTHORITY","hard":true}
+{"id":"LAW-ABILITY-NOT-AUTHORITY","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:global_law","standard":"EMPLOYMENT","statement":"ABILITY != AUTHORITY","hard":true}
+{"id":"LAW-STORE-NOT-WEBSITE","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:global_law","standard":"STORE","statement":"STORE != WEBSITE != DEPLOYMENT != DOMAIN != DATABASE != PROVIDER PROJECT","hard":true}
+{"id":"LAW-ENCRYPTION-NOT-BLACKBOX","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:global_law","standard":"BLACKBOX","statement":"Encryption at rest is not a confidential black-box data plane","hard":true}
+{"id":"LAW-CAPABILITY-NOT-FLOW","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:global_law","standard":"FIC","statement":"CAPABILITY ROW != PRODUCT FLOW","hard":true}
+{"id":"LAW-FIXTURE-NOT-RUNTIME","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:global_law","standard":"FIC","statement":"BENCHMARK FIXTURE != CHRONICA RUNTIME","hard":true}
+{"id":"LAW-PACKET-NOT-SOURCE","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:global_law","standard":"FIC","statement":"GENERATED CAP PACKET != SEMANTIC SOURCE OF TRUTH","hard":true}
+{"id":"LAW-DISCLOSURE-HIERARCHY","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:global_law","standard":"BLACKBOX","statement":"Do not give raw data when a view is enough; not a view when a handle is enough; not a handle when a result is enough.","hard":true}
+{"id":"LAW-LLM-EXTERNAL","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:global_law","standard":"BLACKBOX","statement":"LLM PROVIDER = EXTERNAL PROVIDER","hard":true}
+{"id":"LAW-NO-GLOBAL-RETRIEVE-THEN-FILTER","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:global_law","standard":"BLACKBOX","statement":"Forbidden content must not enter retrieval candidates","hard":true}
+{"id":"LAW-HARD-GATE-WINS","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:global_law","standard":"FIC","statement":"No quality score may compensate for a hard-gate failure","hard":true}
+{"id":"LAW-PINNED-RELEASE","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:global_law","standard":"FIC","statement":"LATEST BENCHMARK != PINNED BENCHMARK RELEASE","hard":true}
+{"id":"LAW-CAP15-17-18","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:global_law","standard":"WEB2APP","statement":"CAP15 understands/operates the external internet; CAP16 who may act; CAP17 projects Company OS onto the internet; CAP18 what may be seen/used/disclosed","hard":true}
+{"id":"LAW-ACT-NOT-OBSERVE","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:global_law","standard":"WEB2APP","statement":"ACT != OBSERVE","hard":true}
+{"id":"FLOW-CAP18-HELPDESK-001","class":"APPLICABLE_FLOW_REQUIREMENT","source":"compiler:flow","owner":"CAP18","derived_status":"SPEC_ONLY","golden":["GBF-001","GBF-013"],"missing":["PO-TENANCY","PO-AUTHORITY","PO-DISCLOSURE","PO-RECEIPT","PO-NO_AI","PO-EVIDENCE","PO-LOGGING"]}
+{"id":"FLOW-CAP18-HELPDESK-001:PO-TENANCY","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP18-HELPDESK-001","obligation":"PO-TENANCY","state":"MISSING"}
+{"id":"FLOW-CAP18-HELPDESK-001:PO-AUTHORITY","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP18-HELPDESK-001","obligation":"PO-AUTHORITY","state":"MISSING"}
+{"id":"FLOW-CAP18-HELPDESK-001:PO-DISCLOSURE","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP18-HELPDESK-001","obligation":"PO-DISCLOSURE","state":"MISSING"}
+{"id":"FLOW-CAP18-HELPDESK-001:PO-RECEIPT","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP18-HELPDESK-001","obligation":"PO-RECEIPT","state":"MISSING"}
+{"id":"FLOW-CAP18-HELPDESK-001:PO-NO_AI","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP18-HELPDESK-001","obligation":"PO-NO_AI","state":"MISSING"}
+{"id":"FLOW-CAP18-HELPDESK-001:PO-EVIDENCE","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP18-HELPDESK-001","obligation":"PO-EVIDENCE","state":"MISSING"}
+{"id":"FLOW-CAP18-HELPDESK-001:PO-LOGGING","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP18-HELPDESK-001","obligation":"PO-LOGGING","state":"MISSING"}
+{"id":"FLOW-CAP18-VIEW-001","class":"APPLICABLE_FLOW_REQUIREMENT","source":"compiler:flow","owner":"CAP18","derived_status":"SPEC_ONLY","golden":["GBF-013"],"missing":["PO-DISCLOSURE","PO-AUTHORITY","PO-TENANCY"]}
+{"id":"FLOW-CAP18-VIEW-001:PO-DISCLOSURE","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP18-VIEW-001","obligation":"PO-DISCLOSURE","state":"MISSING"}
+{"id":"FLOW-CAP18-VIEW-001:PO-AUTHORITY","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP18-VIEW-001","obligation":"PO-AUTHORITY","state":"MISSING"}
+{"id":"FLOW-CAP18-VIEW-001:PO-TENANCY","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP18-VIEW-001","obligation":"PO-TENANCY","state":"MISSING"}
+{"id":"FLOW-CAP18-HANDLE-001","class":"APPLICABLE_FLOW_REQUIREMENT","source":"compiler:flow","owner":"CAP18","derived_status":"SPEC_ONLY","golden":[],"missing":["PO-AUTHORITY","PO-REVOCATION","PO-TENANCY"]}
+{"id":"FLOW-CAP18-HANDLE-001:PO-AUTHORITY","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP18-HANDLE-001","obligation":"PO-AUTHORITY","state":"MISSING"}
+{"id":"FLOW-CAP18-HANDLE-001:PO-REVOCATION","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP18-HANDLE-001","obligation":"PO-REVOCATION","state":"MISSING"}
+{"id":"FLOW-CAP18-HANDLE-001:PO-TENANCY","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP18-HANDLE-001","obligation":"PO-TENANCY","state":"MISSING"}
+{"id":"FLOW-CAP18-TENANT-001","class":"APPLICABLE_FLOW_REQUIREMENT","source":"compiler:flow","owner":"CAP18","derived_status":"RUNTIME_CONNECTED","golden":[],"missing":["PO-TENANCY","PO-FAILURE"]}
+{"id":"FLOW-CAP18-TENANT-001:PO-TENANCY","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP18-TENANT-001","obligation":"PO-TENANCY","state":"MISSING"}
+{"id":"FLOW-CAP18-TENANT-001:PO-FAILURE","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP18-TENANT-001","obligation":"PO-FAILURE","state":"MISSING"}
+{"id":"FLOW-CAP18-TENANT-001:PO-NO_AI","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP18-TENANT-001","obligation":"PO-NO_AI","state":"PASS"}
+{"id":"FLOW-CAP18-RAG-001","class":"APPLICABLE_FLOW_REQUIREMENT","source":"compiler:flow","owner":"CAP18","derived_status":"SPEC_ONLY","golden":["GBF-013"],"missing":["PO-DISCLOSURE","PO-AUTHORITY"]}
+{"id":"FLOW-CAP18-RAG-001:PO-DISCLOSURE","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP18-RAG-001","obligation":"PO-DISCLOSURE","state":"MISSING"}
+{"id":"FLOW-CAP18-RAG-001:PO-AUTHORITY","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP18-RAG-001","obligation":"PO-AUTHORITY","state":"MISSING"}
+{"id":"FLOW-CAP18-RAG-002","class":"APPLICABLE_FLOW_REQUIREMENT","source":"compiler:flow","owner":"CAP18","derived_status":"SPEC_ONLY","golden":[],"missing":["PO-DISCLOSURE"]}
+{"id":"FLOW-CAP18-RAG-002:PO-DISCLOSURE","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP18-RAG-002","obligation":"PO-DISCLOSURE","state":"MISSING"}
+{"id":"FLOW-CAP18-DLP-001","class":"APPLICABLE_FLOW_REQUIREMENT","source":"compiler:flow","owner":"CAP18","derived_status":"SPEC_ONLY","golden":[],"missing":["PO-DISCLOSURE","PO-EVIDENCE"]}
+{"id":"FLOW-CAP18-DLP-001:PO-DISCLOSURE","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP18-DLP-001","obligation":"PO-DISCLOSURE","state":"MISSING"}
+{"id":"FLOW-CAP18-DLP-001:PO-EVIDENCE","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP18-DLP-001","obligation":"PO-EVIDENCE","state":"MISSING"}
+{"id":"FLOW-CAP18-LOG-001","class":"APPLICABLE_FLOW_REQUIREMENT","source":"compiler:flow","owner":"CAP18","derived_status":"SPEC_ONLY","golden":["GBF-020"],"missing":["PO-LOGGING","PO-DISCLOSURE"]}
+{"id":"FLOW-CAP18-LOG-001:PO-LOGGING","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP18-LOG-001","obligation":"PO-LOGGING","state":"MISSING"}
+{"id":"FLOW-CAP18-LOG-001:PO-DISCLOSURE","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP18-LOG-001","obligation":"PO-DISCLOSURE","state":"MISSING"}
+{"id":"FLOW-CAP18-VECTOR-001","class":"APPLICABLE_FLOW_REQUIREMENT","source":"compiler:flow","owner":"CAP18","derived_status":"SPEC_ONLY","golden":[],"missing":["PO-DISCLOSURE"]}
+{"id":"FLOW-CAP18-VECTOR-001:PO-DISCLOSURE","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP18-VECTOR-001","obligation":"PO-DISCLOSURE","state":"MISSING"}
+{"id":"FLOW-CAP18-CACHE-001","class":"APPLICABLE_FLOW_REQUIREMENT","source":"compiler:flow","owner":"CAP18","derived_status":"SPEC_ONLY","golden":[],"missing":["PO-DISCLOSURE","PO-AUTHORITY","PO-REVOCATION"]}
+{"id":"FLOW-CAP18-CACHE-001:PO-DISCLOSURE","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP18-CACHE-001","obligation":"PO-DISCLOSURE","state":"MISSING"}
+{"id":"FLOW-CAP18-CACHE-001:PO-AUTHORITY","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP18-CACHE-001","obligation":"PO-AUTHORITY","state":"MISSING"}
+{"id":"FLOW-CAP18-CACHE-001:PO-REVOCATION","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP18-CACHE-001","obligation":"PO-REVOCATION","state":"MISSING"}
+{"id":"FLOW-CAP18-SECRET-USE-001","class":"APPLICABLE_FLOW_REQUIREMENT","source":"compiler:flow","owner":"CAP18","derived_status":"SPEC_ONLY","golden":["GBF-015"],"missing":["PO-DISCLOSURE","PO-NO_AI"]}
+{"id":"FLOW-CAP18-SECRET-USE-001:PO-DISCLOSURE","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP18-SECRET-USE-001","obligation":"PO-DISCLOSURE","state":"MISSING"}
+{"id":"FLOW-CAP18-SECRET-USE-001:PO-NO_AI","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP18-SECRET-USE-001","obligation":"PO-NO_AI","state":"MISSING"}
+{"id":"FLOW-CAP18-PROVIDER-001","class":"APPLICABLE_FLOW_REQUIREMENT","source":"compiler:flow","owner":"CAP18","derived_status":"SPEC_ONLY","golden":[],"missing":["PO-DISCLOSURE","PO-RECEIPT"]}
+{"id":"FLOW-CAP18-PROVIDER-001:PO-DISCLOSURE","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP18-PROVIDER-001","obligation":"PO-DISCLOSURE","state":"MISSING"}
+{"id":"FLOW-CAP18-PROVIDER-001:PO-RECEIPT","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP18-PROVIDER-001","obligation":"PO-RECEIPT","state":"MISSING"}
+{"id":"FLOW-CAP17-PREVIEW-001","class":"APPLICABLE_FLOW_REQUIREMENT","source":"compiler:flow","owner":"CAP17","derived_status":"SPEC_ONLY","golden":["GBF-012"],"missing":["PO-ENTRYPOINT","PO-STATE","PO-EVIDENCE","PO-ROLLBACK"]}
+{"id":"FLOW-CAP17-PREVIEW-001:PO-ENTRYPOINT","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP17-PREVIEW-001","obligation":"PO-ENTRYPOINT","state":"MISSING"}
+{"id":"FLOW-CAP17-PREVIEW-001:PO-STATE","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP17-PREVIEW-001","obligation":"PO-STATE","state":"MISSING"}
+{"id":"FLOW-CAP17-PREVIEW-001:PO-EVIDENCE","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP17-PREVIEW-001","obligation":"PO-EVIDENCE","state":"MISSING"}
+{"id":"FLOW-CAP17-PREVIEW-001:PO-ROLLBACK","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP17-PREVIEW-001","obligation":"PO-ROLLBACK","state":"MISSING"}
+{"id":"FLOW-CAP17-BIND-CRM-001","class":"APPLICABLE_FLOW_REQUIREMENT","source":"compiler:flow","owner":"CAP17","derived_status":"SPEC_ONLY","golden":["GBF-007"],"missing":["PO-AUTHORITY","PO-TENANCY","PO-CONSUMER"]}
+{"id":"FLOW-CAP17-BIND-CRM-001:PO-AUTHORITY","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP17-BIND-CRM-001","obligation":"PO-AUTHORITY","state":"MISSING"}
+{"id":"FLOW-CAP17-BIND-CRM-001:PO-TENANCY","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP17-BIND-CRM-001","obligation":"PO-TENANCY","state":"MISSING"}
+{"id":"FLOW-CAP17-BIND-CRM-001:PO-CONSUMER","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP17-BIND-CRM-001","obligation":"PO-CONSUMER","state":"MISSING"}
+{"id":"FLOW-CAP17-BIND-HD-001","class":"APPLICABLE_FLOW_REQUIREMENT","source":"compiler:flow","owner":"CAP17","derived_status":"SPEC_ONLY","golden":["GBF-007"],"missing":["PO-CONSUMER","PO-TENANCY","PO-IDEMPOTENCY"]}
+{"id":"FLOW-CAP17-BIND-HD-001:PO-CONSUMER","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP17-BIND-HD-001","obligation":"PO-CONSUMER","state":"MISSING"}
+{"id":"FLOW-CAP17-BIND-HD-001:PO-TENANCY","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP17-BIND-HD-001","obligation":"PO-TENANCY","state":"MISSING"}
+{"id":"FLOW-CAP17-BIND-HD-001:PO-IDEMPOTENCY","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP17-BIND-HD-001","obligation":"PO-IDEMPOTENCY","state":"MISSING"}
+{"id":"FLOW-CAP17-SECRET-001","class":"APPLICABLE_FLOW_REQUIREMENT","source":"compiler:flow","owner":"CAP17","derived_status":"SPEC_ONLY","golden":[],"missing":["PO-DISCLOSURE","PO-FAILURE"]}
+{"id":"FLOW-CAP17-SECRET-001:PO-DISCLOSURE","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP17-SECRET-001","obligation":"PO-DISCLOSURE","state":"MISSING"}
+{"id":"FLOW-CAP17-SECRET-001:PO-FAILURE","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP17-SECRET-001","obligation":"PO-FAILURE","state":"MISSING"}
+{"id":"FLOW-CAP17-TENANT-001","class":"APPLICABLE_FLOW_REQUIREMENT","source":"compiler:flow","owner":"CAP17","derived_status":"SPEC_ONLY","golden":[],"missing":["PO-TENANCY","PO-FAILURE"]}
+{"id":"FLOW-CAP17-TENANT-001:PO-TENANCY","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP17-TENANT-001","obligation":"PO-TENANCY","state":"MISSING"}
+{"id":"FLOW-CAP17-TENANT-001:PO-FAILURE","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP17-TENANT-001","obligation":"PO-FAILURE","state":"MISSING"}
+{"id":"FLOW-CAP17-PROD-001","class":"APPLICABLE_FLOW_REQUIREMENT","source":"compiler:flow","owner":"CAP17","derived_status":"SPEC_ONLY","golden":[],"missing":["PO-APPROVAL","PO-AUTHORITY","PO-NO_AI"]}
+{"id":"FLOW-CAP17-PROD-001:PO-APPROVAL","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP17-PROD-001","obligation":"PO-APPROVAL","state":"MISSING"}
+{"id":"FLOW-CAP17-PROD-001:PO-AUTHORITY","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP17-PROD-001","obligation":"PO-AUTHORITY","state":"MISSING"}
+{"id":"FLOW-CAP17-PROD-001:PO-NO_AI","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP17-PROD-001","obligation":"PO-NO_AI","state":"MISSING"}
+{"id":"FLOW-CAP17-HEALTH-001","class":"APPLICABLE_FLOW_REQUIREMENT","source":"compiler:flow","owner":"CAP17","derived_status":"SPEC_ONLY","golden":[],"missing":["PO-RECEIPT","PO-FAILURE"]}
+{"id":"FLOW-CAP17-HEALTH-001:PO-RECEIPT","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP17-HEALTH-001","obligation":"PO-RECEIPT","state":"MISSING"}
+{"id":"FLOW-CAP17-HEALTH-001:PO-FAILURE","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP17-HEALTH-001","obligation":"PO-FAILURE","state":"MISSING"}
+{"id":"FLOW-CAP17-PREFLIGHT-001","class":"APPLICABLE_FLOW_REQUIREMENT","source":"compiler:flow","owner":"CAP17","derived_status":"RUNTIME_CONNECTED","golden":["GBF-012"],"missing":["PO-EVIDENCE"]}
+{"id":"FLOW-CAP17-PREFLIGHT-001:PO-ENTRYPOINT","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP17-PREFLIGHT-001","obligation":"PO-ENTRYPOINT","state":"PASS"}
+{"id":"FLOW-CAP17-PREFLIGHT-001:PO-EVIDENCE","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP17-PREFLIGHT-001","obligation":"PO-EVIDENCE","state":"MISSING"}
+{"id":"FLOW-CAP16-HIRE-001","class":"APPLICABLE_FLOW_REQUIREMENT","source":"compiler:flow","owner":"CAP16","derived_status":"SPEC_ONLY","golden":["GBF-006"],"missing":["PO-IDENTITY","PO-AUTHORITY","PO-PERSISTENCE","PO-EVIDENCE","PO-NO_AI"]}
+{"id":"FLOW-CAP16-HIRE-001:PO-IDENTITY","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP16-HIRE-001","obligation":"PO-IDENTITY","state":"MISSING"}
+{"id":"FLOW-CAP16-HIRE-001:PO-AUTHORITY","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP16-HIRE-001","obligation":"PO-AUTHORITY","state":"MISSING"}
+{"id":"FLOW-CAP16-HIRE-001:PO-PERSISTENCE","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP16-HIRE-001","obligation":"PO-PERSISTENCE","state":"MISSING"}
+{"id":"FLOW-CAP16-HIRE-001:PO-EVIDENCE","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP16-HIRE-001","obligation":"PO-EVIDENCE","state":"MISSING"}
+{"id":"FLOW-CAP16-HIRE-001:PO-NO_AI","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP16-HIRE-001","obligation":"PO-NO_AI","state":"MISSING"}
+{"id":"FLOW-CAP16-ASSIGN-001","class":"APPLICABLE_FLOW_REQUIREMENT","source":"compiler:flow","owner":"CAP16","derived_status":"SPEC_ONLY","golden":["GBF-006"],"missing":["PO-AUTHORITY","PO-STATE","PO-EVIDENCE","PO-NO_AI"]}
+{"id":"FLOW-CAP16-ASSIGN-001:PO-AUTHORITY","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP16-ASSIGN-001","obligation":"PO-AUTHORITY","state":"MISSING"}
+{"id":"FLOW-CAP16-ASSIGN-001:PO-STATE","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP16-ASSIGN-001","obligation":"PO-STATE","state":"MISSING"}
+{"id":"FLOW-CAP16-ASSIGN-001:PO-EVIDENCE","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP16-ASSIGN-001","obligation":"PO-EVIDENCE","state":"MISSING"}
+{"id":"FLOW-CAP16-ASSIGN-001:PO-NO_AI","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP16-ASSIGN-001","obligation":"PO-NO_AI","state":"MISSING"}
+{"id":"FLOW-CAP16-GRANT-001","class":"APPLICABLE_FLOW_REQUIREMENT","source":"compiler:flow","owner":"CAP16","derived_status":"SPEC_ONLY","golden":[],"missing":["PO-AUTHORITY","PO-FAILURE","PO-NO_AI"]}
+{"id":"FLOW-CAP16-GRANT-001:PO-AUTHORITY","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP16-GRANT-001","obligation":"PO-AUTHORITY","state":"MISSING"}
+{"id":"FLOW-CAP16-GRANT-001:PO-FAILURE","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP16-GRANT-001","obligation":"PO-FAILURE","state":"MISSING"}
+{"id":"FLOW-CAP16-GRANT-001:PO-NO_AI","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP16-GRANT-001","obligation":"PO-NO_AI","state":"MISSING"}
+{"id":"FLOW-CAP16-DENY-001","class":"APPLICABLE_FLOW_REQUIREMENT","source":"compiler:flow","owner":"CAP16","derived_status":"SPEC_ONLY","golden":[],"missing":["PO-AUTHORITY","PO-NO_AI"]}
+{"id":"FLOW-CAP16-DENY-001:PO-AUTHORITY","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP16-DENY-001","obligation":"PO-AUTHORITY","state":"MISSING"}
+{"id":"FLOW-CAP16-DENY-001:PO-NO_AI","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP16-DENY-001","obligation":"PO-NO_AI","state":"MISSING"}
+{"id":"FLOW-CAP16-DELEGATE-001","class":"APPLICABLE_FLOW_REQUIREMENT","source":"compiler:flow","owner":"CAP16","derived_status":"SPEC_ONLY","golden":[],"missing":["PO-AUTHORITY","PO-FAILURE"]}
+{"id":"FLOW-CAP16-DELEGATE-001:PO-AUTHORITY","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP16-DELEGATE-001","obligation":"PO-AUTHORITY","state":"MISSING"}
+{"id":"FLOW-CAP16-DELEGATE-001:PO-FAILURE","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP16-DELEGATE-001","obligation":"PO-FAILURE","state":"MISSING"}
+{"id":"FLOW-CAP16-AMEND-001","class":"APPLICABLE_FLOW_REQUIREMENT","source":"compiler:flow","owner":"CAP16","derived_status":"SPEC_ONLY","golden":[],"missing":["PO-AUTHORITY","PO-FAILURE","PO-NO_AI"]}
+{"id":"FLOW-CAP16-AMEND-001:PO-AUTHORITY","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP16-AMEND-001","obligation":"PO-AUTHORITY","state":"MISSING"}
+{"id":"FLOW-CAP16-AMEND-001:PO-FAILURE","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP16-AMEND-001","obligation":"PO-FAILURE","state":"MISSING"}
+{"id":"FLOW-CAP16-AMEND-001:PO-NO_AI","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP16-AMEND-001","obligation":"PO-NO_AI","state":"MISSING"}
+{"id":"FLOW-CAP16-SECRET-001","class":"APPLICABLE_FLOW_REQUIREMENT","source":"compiler:flow","owner":"CAP16","derived_status":"SPEC_ONLY","golden":[],"missing":["PO-DISCLOSURE","PO-FAILURE"]}
+{"id":"FLOW-CAP16-SECRET-001:PO-DISCLOSURE","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP16-SECRET-001","obligation":"PO-DISCLOSURE","state":"MISSING"}
+{"id":"FLOW-CAP16-SECRET-001:PO-FAILURE","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP16-SECRET-001","obligation":"PO-FAILURE","state":"MISSING"}
+{"id":"FLOW-CAP16-WEB2APP-001","class":"APPLICABLE_FLOW_REQUIREMENT","source":"compiler:flow","owner":"CAP16","derived_status":"SPEC_ONLY","golden":["GBF-008"],"missing":["PO-AUTHORITY","PO-FAILURE"]}
+{"id":"FLOW-CAP16-WEB2APP-001:PO-AUTHORITY","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP16-WEB2APP-001","obligation":"PO-AUTHORITY","state":"MISSING"}
+{"id":"FLOW-CAP16-WEB2APP-001:PO-FAILURE","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP16-WEB2APP-001","obligation":"PO-FAILURE","state":"MISSING"}
+{"id":"FLOW-CAP01-TICKET-001","class":"APPLICABLE_FLOW_REQUIREMENT","source":"compiler:flow","owner":"CAP01","derived_status":"RUNTIME_CONNECTED","golden":["GBF-001"],"missing":["PO-STATE","PO-PERSISTENCE","PO-EVIDENCE"]}
+{"id":"FLOW-CAP01-TICKET-001:PO-ENTRYPOINT","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP01-TICKET-001","obligation":"PO-ENTRYPOINT","state":"PASS"}
+{"id":"FLOW-CAP01-TICKET-001:PO-STATE","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP01-TICKET-001","obligation":"PO-STATE","state":"MISSING"}
+{"id":"FLOW-CAP01-TICKET-001:PO-PERSISTENCE","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP01-TICKET-001","obligation":"PO-PERSISTENCE","state":"MISSING"}
+{"id":"FLOW-CAP01-TICKET-001:PO-TENANCY","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP01-TICKET-001","obligation":"PO-TENANCY","state":"PASS"}
+{"id":"FLOW-CAP01-TICKET-001:PO-EVIDENCE","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP01-TICKET-001","obligation":"PO-EVIDENCE","state":"MISSING"}
+{"id":"FLOW-CAP01-STATUS-001","class":"APPLICABLE_FLOW_REQUIREMENT","source":"compiler:flow","owner":"CAP01","derived_status":"RUNTIME_CONNECTED","golden":["GBF-001"],"missing":["PO-TENANCY","PO-PERSISTENCE"]}
+{"id":"FLOW-CAP01-STATUS-001:PO-STATE","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP01-STATUS-001","obligation":"PO-STATE","state":"PASS"}
+{"id":"FLOW-CAP01-STATUS-001:PO-TENANCY","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP01-STATUS-001","obligation":"PO-TENANCY","state":"MISSING"}
+{"id":"FLOW-CAP01-STATUS-001:PO-PERSISTENCE","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP01-STATUS-001","obligation":"PO-PERSISTENCE","state":"MISSING"}
+{"id":"FLOW-CAP01-CONTACT-001","class":"APPLICABLE_FLOW_REQUIREMENT","source":"compiler:flow","owner":"CAP01","derived_status":"RUNTIME_CONNECTED","golden":["GBF-001","GBF-014"],"missing":["PO-PERSISTENCE","PO-DISCLOSURE","PO-IDENTITY"]}
+{"id":"FLOW-CAP01-CONTACT-001:PO-TENANCY","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP01-CONTACT-001","obligation":"PO-TENANCY","state":"PASS"}
+{"id":"FLOW-CAP01-CONTACT-001:PO-PERSISTENCE","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP01-CONTACT-001","obligation":"PO-PERSISTENCE","state":"MISSING"}
+{"id":"FLOW-CAP01-CONTACT-001:PO-DISCLOSURE","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP01-CONTACT-001","obligation":"PO-DISCLOSURE","state":"MISSING"}
+{"id":"FLOW-CAP01-CONTACT-001:PO-IDENTITY","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP01-CONTACT-001","obligation":"PO-IDENTITY","state":"MISSING"}
+{"id":"FLOW-CAP01-SNOOZE-001","class":"APPLICABLE_FLOW_REQUIREMENT","source":"compiler:flow","owner":"CAP01","derived_status":"SPEC_ONLY","golden":[],"missing":["PO-STATE","PO-TENANCY","PO-FAILURE"]}
+{"id":"FLOW-CAP01-SNOOZE-001:PO-STATE","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP01-SNOOZE-001","obligation":"PO-STATE","state":"MISSING"}
+{"id":"FLOW-CAP01-SNOOZE-001:PO-TENANCY","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP01-SNOOZE-001","obligation":"PO-TENANCY","state":"MISSING"}
+{"id":"FLOW-CAP01-SNOOZE-001:PO-FAILURE","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP01-SNOOZE-001","obligation":"PO-FAILURE","state":"MISSING"}
+{"id":"FLOW-CAP01-NOTIFY-001","class":"APPLICABLE_FLOW_REQUIREMENT","source":"compiler:flow","owner":"CAP01","derived_status":"SPEC_ONLY","golden":["GBF-001"],"missing":["PO-CONSUMER","PO-DISCLOSURE"]}
+{"id":"FLOW-CAP01-NOTIFY-001:PO-CONSUMER","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP01-NOTIFY-001","obligation":"PO-CONSUMER","state":"MISSING"}
+{"id":"FLOW-CAP01-NOTIFY-001:PO-DISCLOSURE","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP01-NOTIFY-001","obligation":"PO-DISCLOSURE","state":"MISSING"}
+{"id":"FLOW-CAP05-LEAD-001","class":"APPLICABLE_FLOW_REQUIREMENT","source":"compiler:flow","owner":"CAP05","derived_status":"SPEC_ONLY","golden":["GBF-002"],"missing":["PO-STATE","PO-TENANCY","PO-PERSISTENCE"]}
+{"id":"FLOW-CAP05-LEAD-001:PO-STATE","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP05-LEAD-001","obligation":"PO-STATE","state":"MISSING"}
+{"id":"FLOW-CAP05-LEAD-001:PO-TENANCY","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP05-LEAD-001","obligation":"PO-TENANCY","state":"MISSING"}
+{"id":"FLOW-CAP05-LEAD-001:PO-PERSISTENCE","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP05-LEAD-001","obligation":"PO-PERSISTENCE","state":"MISSING"}
+{"id":"FLOW-CAP05-CUSTOMER-001","class":"APPLICABLE_FLOW_REQUIREMENT","source":"compiler:flow","owner":"CAP05","derived_status":"SPEC_ONLY","golden":["GBF-007"],"missing":["PO-TENANCY","PO-CONSUMER"]}
+{"id":"FLOW-CAP05-CUSTOMER-001:PO-TENANCY","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP05-CUSTOMER-001","obligation":"PO-TENANCY","state":"MISSING"}
+{"id":"FLOW-CAP05-CUSTOMER-001:PO-CONSUMER","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP05-CUSTOMER-001","obligation":"PO-CONSUMER","state":"MISSING"}
+{"id":"FLOW-CAP15-NEWS-001","class":"APPLICABLE_FLOW_REQUIREMENT","source":"compiler:flow","owner":"CAP15","derived_status":"SPEC_ONLY","golden":["GBF-008"],"missing":["PO-AUTHORITY","PO-DISCLOSURE","PO-ENTRYPOINT"]}
+{"id":"FLOW-CAP15-NEWS-001:PO-AUTHORITY","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP15-NEWS-001","obligation":"PO-AUTHORITY","state":"MISSING"}
+{"id":"FLOW-CAP15-NEWS-001:PO-DISCLOSURE","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP15-NEWS-001","obligation":"PO-DISCLOSURE","state":"MISSING"}
+{"id":"FLOW-CAP15-NEWS-001:PO-ENTRYPOINT","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP15-NEWS-001","obligation":"PO-ENTRYPOINT","state":"MISSING"}
+{"id":"FLOW-CAP15-TYPED-001","class":"APPLICABLE_FLOW_REQUIREMENT","source":"compiler:flow","owner":"CAP15","derived_status":"SPEC_ONLY","golden":[],"missing":["PO-AUTHORITY","PO-NO_AI"]}
+{"id":"FLOW-CAP15-TYPED-001:PO-AUTHORITY","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP15-TYPED-001","obligation":"PO-AUTHORITY","state":"MISSING"}
+{"id":"FLOW-CAP15-TYPED-001:PO-NO_AI","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP15-TYPED-001","obligation":"PO-NO_AI","state":"MISSING"}
+{"id":"FLOW-CAP13-INGEST-001","class":"APPLICABLE_FLOW_REQUIREMENT","source":"compiler:flow","owner":"CAP13","derived_status":"RUNTIME_CONNECTED","golden":["GBF-004"],"missing":["PO-IDEMPOTENCY","PO-FAILURE","PO-EVIDENCE"]}
+{"id":"FLOW-CAP13-INGEST-001:PO-ENTRYPOINT","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP13-INGEST-001","obligation":"PO-ENTRYPOINT","state":"PASS"}
+{"id":"FLOW-CAP13-INGEST-001:PO-IDEMPOTENCY","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP13-INGEST-001","obligation":"PO-IDEMPOTENCY","state":"MISSING"}
+{"id":"FLOW-CAP13-INGEST-001:PO-FAILURE","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP13-INGEST-001","obligation":"PO-FAILURE","state":"MISSING"}
+{"id":"FLOW-CAP13-INGEST-001:PO-EVIDENCE","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP13-INGEST-001","obligation":"PO-EVIDENCE","state":"MISSING"}
+{"id":"FLOW-CAP12-VERIFY-001","class":"APPLICABLE_FLOW_REQUIREMENT","source":"compiler:flow","owner":"CAP12","derived_status":"RUNTIME_CONNECTED","golden":["GBF-015"],"missing":["PO-TENANCY","PO-NO_AI"]}
+{"id":"FLOW-CAP12-VERIFY-001:PO-ENTRYPOINT","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP12-VERIFY-001","obligation":"PO-ENTRYPOINT","state":"PASS"}
+{"id":"FLOW-CAP12-VERIFY-001:PO-DISCLOSURE","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP12-VERIFY-001","obligation":"PO-DISCLOSURE","state":"PASS"}
+{"id":"FLOW-CAP12-VERIFY-001:PO-TENANCY","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP12-VERIFY-001","obligation":"PO-TENANCY","state":"MISSING"}
+{"id":"FLOW-CAP12-VERIFY-001:PO-NO_AI","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP12-VERIFY-001","obligation":"PO-NO_AI","state":"MISSING"}
+{"id":"FLOW-CAP12-SESSION-001","class":"APPLICABLE_FLOW_REQUIREMENT","source":"compiler:flow","owner":"CAP12","derived_status":"SPEC_ONLY","golden":["GBF-018"],"missing":["PO-REVOCATION","PO-AUTHORITY"]}
+{"id":"FLOW-CAP12-SESSION-001:PO-REVOCATION","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP12-SESSION-001","obligation":"PO-REVOCATION","state":"MISSING"}
+{"id":"FLOW-CAP12-SESSION-001:PO-AUTHORITY","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP12-SESSION-001","obligation":"PO-AUTHORITY","state":"MISSING"}
+{"id":"FLOW-CAP03-BACKUP-001","class":"APPLICABLE_FLOW_REQUIREMENT","source":"compiler:flow","owner":"CAP03","derived_status":"SPEC_ONLY","golden":["GBF-009"],"missing":["PO-DURABILITY","PO-ROLLBACK","PO-DISCLOSURE"]}
+{"id":"FLOW-CAP03-BACKUP-001:PO-DURABILITY","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP03-BACKUP-001","obligation":"PO-DURABILITY","state":"MISSING"}
+{"id":"FLOW-CAP03-BACKUP-001:PO-ROLLBACK","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP03-BACKUP-001","obligation":"PO-ROLLBACK","state":"MISSING"}
+{"id":"FLOW-CAP03-BACKUP-001:PO-DISCLOSURE","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP03-BACKUP-001","obligation":"PO-DISCLOSURE","state":"MISSING"}
+{"id":"FLOW-CAP06-SCHEDULE-001","class":"APPLICABLE_FLOW_REQUIREMENT","source":"compiler:flow","owner":"CAP06","derived_status":"SPEC_ONLY","golden":["GBF-003"],"missing":["PO-ENTRYPOINT","PO-DURABILITY","PO-NO_AI"]}
+{"id":"FLOW-CAP06-SCHEDULE-001:PO-ENTRYPOINT","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP06-SCHEDULE-001","obligation":"PO-ENTRYPOINT","state":"MISSING"}
+{"id":"FLOW-CAP06-SCHEDULE-001:PO-DURABILITY","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP06-SCHEDULE-001","obligation":"PO-DURABILITY","state":"MISSING"}
+{"id":"FLOW-CAP06-SCHEDULE-001:PO-NO_AI","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP06-SCHEDULE-001","obligation":"PO-NO_AI","state":"MISSING"}
+{"id":"FLOW-CAP02-NOTE-001","class":"APPLICABLE_FLOW_REQUIREMENT","source":"compiler:flow","owner":"CAP02","derived_status":"SPEC_ONLY","golden":["GBF-011"],"missing":["PO-STATE","PO-TENANCY","PO-CONSUMER"]}
+{"id":"FLOW-CAP02-NOTE-001:PO-STATE","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP02-NOTE-001","obligation":"PO-STATE","state":"MISSING"}
+{"id":"FLOW-CAP02-NOTE-001:PO-TENANCY","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP02-NOTE-001","obligation":"PO-TENANCY","state":"MISSING"}
+{"id":"FLOW-CAP02-NOTE-001:PO-CONSUMER","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP02-NOTE-001","obligation":"PO-CONSUMER","state":"MISSING"}
+{"id":"FLOW-CAP08-ARTIFACT-001","class":"APPLICABLE_FLOW_REQUIREMENT","source":"compiler:flow","owner":"CAP08","derived_status":"SPEC_ONLY","golden":["GBF-005"],"missing":["PO-PERSISTENCE","PO-EVIDENCE","PO-APPROVAL"]}
+{"id":"FLOW-CAP08-ARTIFACT-001:PO-PERSISTENCE","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP08-ARTIFACT-001","obligation":"PO-PERSISTENCE","state":"MISSING"}
+{"id":"FLOW-CAP08-ARTIFACT-001:PO-EVIDENCE","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP08-ARTIFACT-001","obligation":"PO-EVIDENCE","state":"MISSING"}
+{"id":"FLOW-CAP08-ARTIFACT-001:PO-APPROVAL","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP08-ARTIFACT-001","obligation":"PO-APPROVAL","state":"MISSING"}
+{"id":"FLOW-CAP09-MEMBER-001","class":"APPLICABLE_FLOW_REQUIREMENT","source":"compiler:flow","owner":"CAP09","derived_status":"SPEC_ONLY","golden":["GBF-010"],"missing":["PO-REVOCATION","PO-IDENTITY","PO-AUTHORITY"]}
+{"id":"FLOW-CAP09-MEMBER-001:PO-REVOCATION","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP09-MEMBER-001","obligation":"PO-REVOCATION","state":"MISSING"}
+{"id":"FLOW-CAP09-MEMBER-001:PO-IDENTITY","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP09-MEMBER-001","obligation":"PO-IDENTITY","state":"MISSING"}
+{"id":"FLOW-CAP09-MEMBER-001:PO-AUTHORITY","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP09-MEMBER-001","obligation":"PO-AUTHORITY","state":"MISSING"}
+{"id":"FLOW-CAP10-EXPORT-001","class":"APPLICABLE_FLOW_REQUIREMENT","source":"compiler:flow","owner":"CAP10","derived_status":"SPEC_ONLY","golden":["GBF-019"],"missing":["PO-DISCLOSURE","PO-EVIDENCE"]}
+{"id":"FLOW-CAP10-EXPORT-001:PO-DISCLOSURE","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP10-EXPORT-001","obligation":"PO-DISCLOSURE","state":"MISSING"}
+{"id":"FLOW-CAP10-EXPORT-001:PO-EVIDENCE","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP10-EXPORT-001","obligation":"PO-EVIDENCE","state":"MISSING"}
+{"id":"FLOW-CAP11-COMMENT-001","class":"APPLICABLE_FLOW_REQUIREMENT","source":"compiler:flow","owner":"CAP11","derived_status":"SPEC_ONLY","golden":["GBF-017"],"missing":["PO-TENANCY","PO-PERSISTENCE"]}
+{"id":"FLOW-CAP11-COMMENT-001:PO-TENANCY","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP11-COMMENT-001","obligation":"PO-TENANCY","state":"MISSING"}
+{"id":"FLOW-CAP11-COMMENT-001:PO-PERSISTENCE","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP11-COMMENT-001","obligation":"PO-PERSISTENCE","state":"MISSING"}
+{"id":"FLOW-CAP14-PAGE-001","class":"APPLICABLE_FLOW_REQUIREMENT","source":"compiler:flow","owner":"CAP14","derived_status":"SPEC_ONLY","golden":["GBF-016"],"missing":["PO-AUTHORITY","PO-STATE"]}
+{"id":"FLOW-CAP14-PAGE-001:PO-AUTHORITY","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP14-PAGE-001","obligation":"PO-AUTHORITY","state":"MISSING"}
+{"id":"FLOW-CAP14-PAGE-001:PO-STATE","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP14-PAGE-001","obligation":"PO-STATE","state":"MISSING"}
+{"id":"FLOW-CAP04-CANARY-001","class":"APPLICABLE_FLOW_REQUIREMENT","source":"compiler:flow","owner":"CAP04","derived_status":"SPEC_ONLY","golden":["GBF-020"],"missing":["PO-LOGGING","PO-DISCLOSURE"]}
+{"id":"FLOW-CAP04-CANARY-001:PO-LOGGING","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP04-CANARY-001","obligation":"PO-LOGGING","state":"MISSING"}
+{"id":"FLOW-CAP04-CANARY-001:PO-DISCLOSURE","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP04-CANARY-001","obligation":"PO-DISCLOSURE","state":"MISSING"}
+{"id":"FLOW-CAP07-DELIVER-001","class":"APPLICABLE_FLOW_REQUIREMENT","source":"compiler:flow","owner":"CAP07","derived_status":"SPEC_ONLY","golden":["GBF-004"],"missing":["PO-CONSUMER","PO-DISCLOSURE"]}
+{"id":"FLOW-CAP07-DELIVER-001:PO-CONSUMER","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP07-DELIVER-001","obligation":"PO-CONSUMER","state":"MISSING"}
+{"id":"FLOW-CAP07-DELIVER-001:PO-DISCLOSURE","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CAP07-DELIVER-001","obligation":"PO-DISCLOSURE","state":"MISSING"}
+{"id":"FLOW-CROSS-STORE-HELPDESK-001","class":"APPLICABLE_FLOW_REQUIREMENT","source":"compiler:flow","owner":"CAP01","derived_status":"SPEC_ONLY","golden":["GBF-007"],"missing":["PO-CONSUMER","PO-TENANCY","PO-IDEMPOTENCY"]}
+{"id":"FLOW-CROSS-STORE-HELPDESK-001:PO-CONSUMER","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CROSS-STORE-HELPDESK-001","obligation":"PO-CONSUMER","state":"MISSING"}
+{"id":"FLOW-CROSS-STORE-HELPDESK-001:PO-TENANCY","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CROSS-STORE-HELPDESK-001","obligation":"PO-TENANCY","state":"MISSING"}
+{"id":"FLOW-CROSS-STORE-HELPDESK-001:PO-IDEMPOTENCY","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CROSS-STORE-HELPDESK-001","obligation":"PO-IDEMPOTENCY","state":"MISSING"}
+{"id":"FLOW-CROSS-EMPLOY-DISCLOSE-001","class":"APPLICABLE_FLOW_REQUIREMENT","source":"compiler:flow","owner":"CAP18","derived_status":"SPEC_ONLY","golden":["GBF-006","GBF-013"],"missing":["PO-AUTHORITY","PO-DISCLOSURE"]}
+{"id":"FLOW-CROSS-EMPLOY-DISCLOSE-001:PO-AUTHORITY","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CROSS-EMPLOY-DISCLOSE-001","obligation":"PO-AUTHORITY","state":"MISSING"}
+{"id":"FLOW-CROSS-EMPLOY-DISCLOSE-001:PO-DISCLOSURE","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CROSS-EMPLOY-DISCLOSE-001","obligation":"PO-DISCLOSURE","state":"MISSING"}
+{"id":"FLOW-CROSS-WEB2APP-EMPLOY-001","class":"APPLICABLE_FLOW_REQUIREMENT","source":"compiler:flow","owner":"CAP16","derived_status":"SPEC_ONLY","golden":["GBF-008"],"missing":["PO-AUTHORITY"]}
+{"id":"FLOW-CROSS-WEB2APP-EMPLOY-001:PO-AUTHORITY","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CROSS-WEB2APP-EMPLOY-001","obligation":"PO-AUTHORITY","state":"MISSING"}
+{"id":"FLOW-CROSS-INBOUND-NOTIFY-001","class":"APPLICABLE_FLOW_REQUIREMENT","source":"compiler:flow","owner":"CAP13","derived_status":"SPEC_ONLY","golden":["GBF-004"],"missing":["PO-CONSUMER","PO-IDEMPOTENCY"]}
+{"id":"FLOW-CROSS-INBOUND-NOTIFY-001:PO-CONSUMER","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CROSS-INBOUND-NOTIFY-001","obligation":"PO-CONSUMER","state":"MISSING"}
+{"id":"FLOW-CROSS-INBOUND-NOTIFY-001:PO-IDEMPOTENCY","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CROSS-INBOUND-NOTIFY-001","obligation":"PO-IDEMPOTENCY","state":"MISSING"}
+{"id":"FLOW-CROSS-STORE-CRM-001","class":"APPLICABLE_FLOW_REQUIREMENT","source":"compiler:flow","owner":"CAP05","derived_status":"SPEC_ONLY","golden":["GBF-007"],"missing":["PO-CONSUMER","PO-TENANCY"]}
+{"id":"FLOW-CROSS-STORE-CRM-001:PO-CONSUMER","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CROSS-STORE-CRM-001","obligation":"PO-CONSUMER","state":"MISSING"}
+{"id":"FLOW-CROSS-STORE-CRM-001:PO-TENANCY","class":"APPLICABLE_PROOF_OBLIGATION","source":"compiler:obligation","flow":"FLOW-CROSS-STORE-CRM-001","obligation":"PO-TENANCY","state":"MISSING"}
+{"id":"GBF-001","class":"APPLICABLE_FLOW_REQUIREMENT","source":"compiler:golden","title":"Customer support lifecycle","flows":["FLOW-CAP01-TICKET-001","FLOW-CAP01-STATUS-001","FLOW-CAP01-CONTACT-001","FLOW-CAP01-NOTIFY-001","FLOW-CAP18-HELPDESK-001"],"verdict":"PARTIAL"}
+{"id":"GBF-002","class":"APPLICABLE_FLOW_REQUIREMENT","source":"compiler:golden","title":"CRM lead to opportunity","flows":["FLOW-CAP05-LEAD-001"],"verdict":"PARTIAL"}
+{"id":"GBF-003","class":"APPLICABLE_FLOW_REQUIREMENT","source":"compiler:golden","title":"Routine schedule to deterministic execution","flows":["FLOW-CAP06-SCHEDULE-001"],"verdict":"PARTIAL"}
+{"id":"GBF-004","class":"APPLICABLE_FLOW_REQUIREMENT","source":"compiler:golden","title":"Inbound webhook to notification","flows":["FLOW-CAP13-INGEST-001","FLOW-CAP07-DELIVER-001","FLOW-CROSS-INBOUND-NOTIFY-001"],"verdict":"PARTIAL"}
+{"id":"GBF-005","class":"APPLICABLE_FLOW_REQUIREMENT","source":"compiler:golden","title":"Document draft to durable artifact","flows":["FLOW-CAP08-ARTIFACT-001"],"verdict":"PARTIAL"}
+{"id":"GBF-006","class":"APPLICABLE_FLOW_REQUIREMENT","source":"compiler:golden","title":"Worker hire to WorkOrder result","flows":["FLOW-CAP16-HIRE-001","FLOW-CAP16-ASSIGN-001","FLOW-CROSS-EMPLOY-DISCLOSE-001"],"verdict":"PARTIAL"}
+{"id":"GBF-007","class":"APPLICABLE_FLOW_REQUIREMENT","source":"compiler:golden","title":"Customer Portal Store","flows":["FLOW-CAP17-BIND-CRM-001","FLOW-CAP17-BIND-HD-001","FLOW-CROSS-STORE-HELPDESK-001","FLOW-CROSS-STORE-CRM-001","FLOW-CAP05-CUSTOMER-001"],"verdict":"PARTIAL"}
+{"id":"GBF-008","class":"APPLICABLE_FLOW_REQUIREMENT","source":"compiler:golden","title":"Credentialed read-only WEB2APP","flows":["FLOW-CAP15-NEWS-001","FLOW-CAP16-WEB2APP-001","FLOW-CROSS-WEB2APP-EMPLOY-001"],"verdict":"PARTIAL"}
+{"id":"GBF-009","class":"APPLICABLE_FLOW_REQUIREMENT","source":"compiler:golden","title":"Backup restore","flows":["FLOW-CAP03-BACKUP-001"],"verdict":"PARTIAL"}
+{"id":"GBF-010","class":"APPLICABLE_FLOW_REQUIREMENT","source":"compiler:golden","title":"Company membership offboarding","flows":["FLOW-CAP09-MEMBER-001"],"verdict":"PARTIAL"}
+{"id":"GBF-011","class":"APPLICABLE_FLOW_REQUIREMENT","source":"compiler:golden","title":"Social note to feed to notification","flows":["FLOW-CAP02-NOTE-001"],"verdict":"PARTIAL"}
+{"id":"GBF-012","class":"APPLICABLE_FLOW_REQUIREMENT","source":"compiler:golden","title":"Store deployment preview","flows":["FLOW-CAP17-PREVIEW-001","FLOW-CAP17-PREFLIGHT-001"],"verdict":"PARTIAL"}
+{"id":"GBF-013","class":"APPLICABLE_FLOW_REQUIREMENT","source":"compiler:golden","title":"BlackBox support reply use-without-disclose","flows":["FLOW-CAP18-HELPDESK-001","FLOW-CAP18-VIEW-001","FLOW-CAP18-RAG-001"],"verdict":"PARTIAL"}
+{"id":"GBF-014","class":"APPLICABLE_FLOW_REQUIREMENT","source":"compiler:golden","title":"Helpdesk contact PII handling","flows":["FLOW-CAP01-CONTACT-001"],"verdict":"PARTIAL"}
+{"id":"GBF-015","class":"APPLICABLE_FLOW_REQUIREMENT","source":"compiler:golden","title":"Vault secret use without disclose","flows":["FLOW-CAP12-VERIFY-001","FLOW-CAP18-SECRET-USE-001"],"verdict":"PARTIAL"}
+{"id":"GBF-016","class":"APPLICABLE_FLOW_REQUIREMENT","source":"compiler:golden","title":"Company page publish","flows":["FLOW-CAP14-PAGE-001"],"verdict":"PARTIAL"}
+{"id":"GBF-017","class":"APPLICABLE_FLOW_REQUIREMENT","source":"compiler:golden","title":"Comment on artifact","flows":["FLOW-CAP11-COMMENT-001"],"verdict":"PARTIAL"}
+{"id":"GBF-018","class":"APPLICABLE_FLOW_REQUIREMENT","source":"compiler:golden","title":"Identity session revoke","flows":["FLOW-CAP12-SESSION-001"],"verdict":"PARTIAL"}
+{"id":"GBF-019","class":"APPLICABLE_FLOW_REQUIREMENT","source":"compiler:golden","title":"Export retention","flows":["FLOW-CAP10-EXPORT-001"],"verdict":"PARTIAL"}
+{"id":"GBF-020","class":"APPLICABLE_FLOW_REQUIREMENT","source":"compiler:golden","title":"Observability canary","flows":["FLOW-CAP04-CANARY-001","FLOW-CAP18-LOG-001"],"verdict":"PARTIAL"}
+{"id":"XCAP-STORE-HELPDESK","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:cross_cap","statement":"XCAP-STORE-HELPDESK"}
+{"id":"XCAP-STORE-CRM","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:cross_cap","statement":"XCAP-STORE-CRM"}
+{"id":"XCAP-EMPLOY-DISCLOSE","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:cross_cap","statement":"XCAP-EMPLOY-DISCLOSE"}
+{"id":"XCAP-WEB2APP-EMPLOY","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:cross_cap","statement":"XCAP-WEB2APP-EMPLOY"}
+{"id":"XCAP-INBOUND-NOTIFY","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:cross_cap","statement":"XCAP-INBOUND-NOTIFY"}
+{"id":"XCAP-VAULT-BLACKBOX","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:cross_cap","statement":"XCAP-VAULT-BLACKBOX"}
+{"id":"XCAP-HD-BLACKBOX","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:cross_cap","statement":"XCAP-HD-BLACKBOX"}
+{"id":"ADAPTER_AS_APP","class":"APPLICABLE_MANUAL_REVIEW","source":"compiler:anti_pattern","statement":"ADAPTER_AS_APP","hard":false}
+{"id":"AGENT_AS_DEPLOY_AUTHORITY","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:anti_pattern","statement":"AGENT_AS_DEPLOY_AUTHORITY","hard":true}
+{"id":"AGENT_AS_KERNEL","class":"APPLICABLE_MANUAL_REVIEW","source":"compiler:anti_pattern","statement":"AGENT_AS_KERNEL","hard":false}
+{"id":"AGENT_CONFIG_AS_CONTRACT","class":"APPLICABLE_MANUAL_REVIEW","source":"compiler:anti_pattern","statement":"AGENT_CONFIG_AS_CONTRACT","hard":false}
+{"id":"AGENT_SELF_AUTHORIZES_DISCLOSURE","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:anti_pattern","statement":"AGENT_SELF_AUTHORIZES_DISCLOSURE","hard":true}
+{"id":"AI_DECIDES_AUTHORITY","class":"APPLICABLE_MANUAL_REVIEW","source":"compiler:anti_pattern","statement":"AI_DECIDES_AUTHORITY","hard":false}
+{"id":"AI_IN_HOT_PATH","class":"APPLICABLE_MANUAL_REVIEW","source":"compiler:anti_pattern","statement":"AI_IN_HOT_PATH","hard":false}
+{"id":"ALL_IN_ONE_MONOLITH","class":"APPLICABLE_MANUAL_REVIEW","source":"compiler:anti_pattern","statement":"ALL_IN_ONE_MONOLITH","hard":false}
+{"id":"ASSISTANT_WITHOUT_STATE_CHANGE","class":"APPLICABLE_MANUAL_REVIEW","source":"compiler:anti_pattern","statement":"ASSISTANT_WITHOUT_STATE_CHANGE","hard":false}
+{"id":"AUDIT_AS_RAW_DUMP","class":"APPLICABLE_MANUAL_REVIEW","source":"compiler:anti_pattern","statement":"AUDIT_AS_RAW_DUMP","hard":false}
+{"id":"BENCHMARK_AS_PRODUCT_AUTHORITY","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:anti_pattern","statement":"BENCHMARK_AS_PRODUCT_AUTHORITY","hard":true}
+{"id":"BINDING_WITHOUT_SCOPE","class":"APPLICABLE_MANUAL_REVIEW","source":"compiler:anti_pattern","statement":"BINDING_WITHOUT_SCOPE","hard":false}
+{"id":"CALLER_FARMING","class":"APPLICABLE_MANUAL_REVIEW","source":"compiler:anti_pattern","statement":"CALLER_FARMING","hard":false}
+{"id":"CAP_WEAKENS_OWN_STANDARD","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:anti_pattern","statement":"CAP_WEAKENS_OWN_STANDARD","hard":true}
+{"id":"CAPABILITY_AS_FLOW","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:anti_pattern","statement":"CAPABILITY_AS_FLOW","hard":true}
+{"id":"CLASSIFICATION_LABEL_WITHOUT_ENFORCEMENT","class":"APPLICABLE_MANUAL_REVIEW","source":"compiler:anti_pattern","statement":"CLASSIFICATION_LABEL_WITHOUT_ENFORCEMENT","hard":false}
+{"id":"COMPOSITION_ROOT_AS_DOMAIN_OWNER","class":"APPLICABLE_MANUAL_REVIEW","source":"compiler:anti_pattern","statement":"COMPOSITION_ROOT_AS_DOMAIN_OWNER","hard":false}
+{"id":"CONFIDENTIAL_COMPUTE_CLAIM_WITHOUT_ATTESTATION","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:anti_pattern","statement":"CONFIDENTIAL_COMPUTE_CLAIM_WITHOUT_ATTESTATION","hard":true}
+{"id":"CONFIG_WITHOUT_RECONCILIATION","class":"APPLICABLE_MANUAL_REVIEW","source":"compiler:anti_pattern","statement":"CONFIG_WITHOUT_RECONCILIATION","hard":false}
+{"id":"CONTEXT_PACK_WITHOUT_EXPIRY","class":"APPLICABLE_MANUAL_REVIEW","source":"compiler:anti_pattern","statement":"CONTEXT_PACK_WITHOUT_EXPIRY","hard":false}
+{"id":"CONTEXT_PACK_WITHOUT_SCOPE","class":"APPLICABLE_MANUAL_REVIEW","source":"compiler:anti_pattern","statement":"CONTEXT_PACK_WITHOUT_SCOPE","hard":false}
+{"id":"CONTRACT_HISTORY_MUTATED_IN_PLACE","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:anti_pattern","statement":"CONTRACT_HISTORY_MUTATED_IN_PLACE","hard":true}
+{"id":"CONTRACT_STATUS_WITHOUT_ENFORCEMENT","class":"APPLICABLE_MANUAL_REVIEW","source":"compiler:anti_pattern","statement":"CONTRACT_STATUS_WITHOUT_ENFORCEMENT","hard":false}
+{"id":"COST_BUDGET_AS_TRANSACTION_AUTHORITY","class":"APPLICABLE_MANUAL_REVIEW","source":"compiler:anti_pattern","statement":"COST_BUDGET_AS_TRANSACTION_AUTHORITY","hard":false}
+{"id":"CREDENTIAL_EXISTENCE_AS_AUTHORITY","class":"APPLICABLE_MANUAL_REVIEW","source":"compiler:anti_pattern","statement":"CREDENTIAL_EXISTENCE_AS_AUTHORITY","hard":false}
+{"id":"CREDENTIAL_IN_AGENT_CONTEXT","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:anti_pattern","statement":"CREDENTIAL_IN_AGENT_CONTEXT","hard":true}
+{"id":"CREDENTIAL_IN_APP_DEFINITION","class":"APPLICABLE_MANUAL_REVIEW","source":"compiler:anti_pattern","statement":"CREDENTIAL_IN_APP_DEFINITION","hard":false}
+{"id":"CROSS_CAP_CONTRACT_FAIL","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:anti_pattern","statement":"CROSS_CAP_CONTRACT_FAIL","hard":true}
+{"id":"CROSS_TENANT_WORKER_ASSIGNMENT","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:anti_pattern","statement":"CROSS_TENANT_WORKER_ASSIGNMENT","hard":true}
+{"id":"CRYPTO_HELPER_WITHOUT_PRODUCT_BOUNDARY","class":"APPLICABLE_MANUAL_REVIEW","source":"compiler:anti_pattern","statement":"CRYPTO_HELPER_WITHOUT_PRODUCT_BOUNDARY","hard":false}
+{"id":"DATA_WITHOUT_OPERATIONS","class":"APPLICABLE_MANUAL_REVIEW","source":"compiler:anti_pattern","statement":"DATA_WITHOUT_OPERATIONS","hard":false}
+{"id":"DATA_WITHOUT_SOURCE_OF_TRUTH","class":"APPLICABLE_MANUAL_REVIEW","source":"compiler:anti_pattern","statement":"DATA_WITHOUT_SOURCE_OF_TRUTH","hard":false}
+{"id":"DATABASE_BYPASSES_BUSINESS_KERNEL","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:anti_pattern","statement":"DATABASE_BYPASSES_BUSINESS_KERNEL","hard":true}
+{"id":"DATABASE_DUPLICATES_BUSINESS_KERNEL","class":"APPLICABLE_MANUAL_REVIEW","source":"compiler:anti_pattern","statement":"DATABASE_DUPLICATES_BUSINESS_KERNEL","hard":false}
+{"id":"DATABASE_PROVIDER_AS_STORE","class":"APPLICABLE_MANUAL_REVIEW","source":"compiler:anti_pattern","statement":"DATABASE_PROVIDER_AS_STORE","hard":false}
+{"id":"DELEGATION_ESCALATES_AUTHORITY","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:anti_pattern","statement":"DELEGATION_ESCALATES_AUTHORITY","hard":true}
+{"id":"DENOMINATOR_SHRINKING","class":"APPLICABLE_MANUAL_REVIEW","source":"compiler:anti_pattern","statement":"DENOMINATOR_SHRINKING","hard":false}
+{"id":"DEPLOY_WITHOUT_RECEIPT","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:anti_pattern","statement":"DEPLOY_WITHOUT_RECEIPT","hard":true}
+{"id":"DERIVED_DATA_AS_PUBLIC","class":"APPLICABLE_MANUAL_REVIEW","source":"compiler:anti_pattern","statement":"DERIVED_DATA_AS_PUBLIC","hard":false}
+{"id":"DNS_WITHOUT_RIGHTS","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:anti_pattern","statement":"DNS_WITHOUT_RIGHTS","hard":true}
+{"id":"DOC_SNIPPET_AS_RUNTIME","class":"APPLICABLE_MANUAL_REVIEW","source":"compiler:anti_pattern","statement":"DOC_SNIPPET_AS_RUNTIME","hard":false}
+{"id":"DOM_AS_KERNEL","class":"APPLICABLE_MANUAL_REVIEW","source":"compiler:anti_pattern","statement":"DOM_AS_KERNEL","hard":false}
+{"id":"DONOR_NAME_WITHOUT_DONOR_SEMANTICS","class":"APPLICABLE_MANUAL_REVIEW","source":"compiler:anti_pattern","statement":"DONOR_NAME_WITHOUT_DONOR_SEMANTICS","hard":false}
+{"id":"DONOR_REFERENCE_AS_FLOW","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:anti_pattern","statement":"DONOR_REFERENCE_AS_FLOW","hard":true}
+{"id":"DRIFT_AS_AUTO_MUTATION","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:anti_pattern","statement":"DRIFT_AS_AUTO_MUTATION","hard":true}
+{"id":"ENCRYPTION_AT_REST_AS_BLACKBOX","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:anti_pattern","statement":"ENCRYPTION_AT_REST_AS_BLACKBOX","hard":true}
+{"id":"ENTITLEMENT_WITHOUT_TENANT_SCOPE","class":"APPLICABLE_MANUAL_REVIEW","source":"compiler:anti_pattern","statement":"ENTITLEMENT_WITHOUT_TENANT_SCOPE","hard":false}
+{"id":"EVENT_AS_COMMAND","class":"APPLICABLE_MANUAL_REVIEW","source":"compiler:anti_pattern","statement":"EVENT_AS_COMMAND","hard":false}
+{"id":"EVENT_AS_EMPLOYMENT_GRANT","class":"APPLICABLE_MANUAL_REVIEW","source":"compiler:anti_pattern","statement":"EVENT_AS_EMPLOYMENT_GRANT","hard":false}
+{"id":"EVENT_WITHOUT_NORMALIZATION","class":"APPLICABLE_MANUAL_REVIEW","source":"compiler:anti_pattern","statement":"EVENT_WITHOUT_NORMALIZATION","hard":false}
+{"id":"EXECUTION_WITHOUT_RECEIPT","class":"APPLICABLE_MANUAL_REVIEW","source":"compiler:anti_pattern","statement":"EXECUTION_WITHOUT_RECEIPT","hard":false}
+{"id":"EXPIRED_CONTRACT_EXECUTES_NEW_WORK","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:anti_pattern","statement":"EXPIRED_CONTRACT_EXECUTES_NEW_WORK","hard":true}
+{"id":"FIXTURE_AS_RUNTIME","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:anti_pattern","statement":"FIXTURE_AS_RUNTIME","hard":true}
+{"id":"FLOW_RUNTIME_WITNESS_BROKEN","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:anti_pattern","statement":"FLOW_RUNTIME_WITNESS_BROKEN","hard":true}
+{"id":"FRONTEND_EVENT_AS_BUSINESS_FACT","class":"APPLICABLE_MANUAL_REVIEW","source":"compiler:anti_pattern","statement":"FRONTEND_EVENT_AS_BUSINESS_FACT","hard":false}
+{"id":"FULL_CONTEXT_TO_LLM","class":"APPLICABLE_MANUAL_REVIEW","source":"compiler:anti_pattern","statement":"FULL_CONTEXT_TO_LLM","hard":false}
+{"id":"FULL_CONTEXT_TO_PROVIDER","class":"APPLICABLE_MANUAL_REVIEW","source":"compiler:anti_pattern","statement":"FULL_CONTEXT_TO_PROVIDER","hard":false}
+{"id":"FULL_RECOMPILE_ON_EVERY_POLL","class":"APPLICABLE_MANUAL_REVIEW","source":"compiler:anti_pattern","statement":"FULL_RECOMPILE_ON_EVERY_POLL","hard":false}
+{"id":"GENERATED_PACKET_DRIFT","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:anti_pattern","statement":"GENERATED_PACKET_DRIFT","hard":true}
+{"id":"GLOBAL_RETRIEVE_THEN_FILTER","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:anti_pattern","statement":"GLOBAL_RETRIEVE_THEN_FILTER","hard":true}
+{"id":"GOALPOST_MUTATION","class":"APPLICABLE_MANUAL_REVIEW","source":"compiler:anti_pattern","statement":"GOALPOST_MUTATION","hard":false}
+{"id":"HARNESS_WITHOUT_ENGINE","class":"APPLICABLE_MANUAL_REVIEW","source":"compiler:anti_pattern","statement":"HARNESS_WITHOUT_ENGINE","hard":false}
+{"id":"HASH_AS_ENCRYPTION","class":"APPLICABLE_MANUAL_REVIEW","source":"compiler:anti_pattern","statement":"HASH_AS_ENCRYPTION","hard":false}
+{"id":"HASH_AS_VERSION_HISTORY","class":"APPLICABLE_MANUAL_REVIEW","source":"compiler:anti_pattern","statement":"HASH_AS_VERSION_HISTORY","hard":false}
+{"id":"HOSTING_PREFLIGHT_AS_DEPLOYMENT","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:anti_pattern","statement":"HOSTING_PREFLIGHT_AS_DEPLOYMENT","hard":true}
+{"id":"JURISDICTION_COLLAPSE","class":"APPLICABLE_MANUAL_REVIEW","source":"compiler:anti_pattern","statement":"JURISDICTION_COLLAPSE","hard":false}
+{"id":"KPI_EXPANDS_AUTHORITY","class":"APPLICABLE_MANUAL_REVIEW","source":"compiler:anti_pattern","statement":"KPI_EXPANDS_AUTHORITY","hard":false}
+{"id":"LABEL_AS_ENFORCEMENT","class":"APPLICABLE_MANUAL_REVIEW","source":"compiler:anti_pattern","statement":"LABEL_AS_ENFORCEMENT","hard":false}
+{"id":"LATEST_BENCHMARK_UNPINNED","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:anti_pattern","statement":"LATEST_BENCHMARK_UNPINNED","hard":true}
+{"id":"LEARNING_EXPANDS_AUTHORITY","class":"APPLICABLE_MANUAL_REVIEW","source":"compiler:anti_pattern","statement":"LEARNING_EXPANDS_AUTHORITY","hard":false}
+{"id":"LIFECYCLE_LABEL_WITHOUT_ENFORCEMENT","class":"APPLICABLE_MANUAL_REVIEW","source":"compiler:anti_pattern","statement":"LIFECYCLE_LABEL_WITHOUT_ENFORCEMENT","hard":false}
+{"id":"LLM_SELF_AUTHORIZATION","class":"APPLICABLE_MANUAL_REVIEW","source":"compiler:anti_pattern","statement":"LLM_SELF_AUTHORIZATION","hard":false}
+{"id":"LOG_AS_DATA_EXFILTRATION","class":"APPLICABLE_MANUAL_REVIEW","source":"compiler:anti_pattern","statement":"LOG_AS_DATA_EXFILTRATION","hard":false}
+{"id":"MANIFEST_AS_AUTHORITY","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:anti_pattern","statement":"MANIFEST_AS_AUTHORITY","hard":true}
+{"id":"MOCK_AS_PRODUCTION","class":"APPLICABLE_MANUAL_REVIEW","source":"compiler:anti_pattern","statement":"MOCK_AS_PRODUCTION","hard":false}
+{"id":"MONEY_AUTHORITY_BYPASS","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:anti_pattern","statement":"MONEY_AUTHORITY_BYPASS","hard":true}
+{"id":"MUTABLE_HISTORY_CONTRACT","class":"APPLICABLE_MANUAL_REVIEW","source":"compiler:anti_pattern","statement":"MUTABLE_HISTORY_CONTRACT","hard":false}
+{"id":"OPAQUE_REF_AS_AUTHORITY","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:anti_pattern","statement":"OPAQUE_REF_AS_AUTHORITY","hard":true}
+{"id":"OWNERSHIP_LAUNDERING","class":"APPLICABLE_MANUAL_REVIEW","source":"compiler:anti_pattern","statement":"OWNERSHIP_LAUNDERING","hard":false}
+{"id":"PERSISTENCE_ADAPTER_AS_STORE","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:anti_pattern","statement":"PERSISTENCE_ADAPTER_AS_STORE","hard":true}
+{"id":"PLAINTEXT_BACKUP_BYPASS","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:anti_pattern","statement":"PLAINTEXT_BACKUP_BYPASS","hard":true}
+{"id":"PLAINTEXT_CACHE_BYPASS","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:anti_pattern","statement":"PLAINTEXT_CACHE_BYPASS","hard":true}
+{"id":"PLAINTEXT_EVENT_BYPASS","class":"APPLICABLE_MANUAL_REVIEW","source":"compiler:anti_pattern","statement":"PLAINTEXT_EVENT_BYPASS","hard":false}
+{"id":"PLAINTEXT_QUEUE_BYPASS","class":"APPLICABLE_MANUAL_REVIEW","source":"compiler:anti_pattern","statement":"PLAINTEXT_QUEUE_BYPASS","hard":false}
+{"id":"PLAINTEXT_SEARCH_INDEX_BYPASS","class":"APPLICABLE_MANUAL_REVIEW","source":"compiler:anti_pattern","statement":"PLAINTEXT_SEARCH_INDEX_BYPASS","hard":false}
+{"id":"PLAINTEXT_VECTOR_INDEX_BYPASS","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:anti_pattern","statement":"PLAINTEXT_VECTOR_INDEX_BYPASS","hard":true}
+{"id":"POLL_WITHOUT_CHECKPOINT","class":"APPLICABLE_MANUAL_REVIEW","source":"compiler:anti_pattern","statement":"POLL_WITHOUT_CHECKPOINT","hard":false}
+{"id":"PREVIEW_AS_PRODUCT","class":"APPLICABLE_MANUAL_REVIEW","source":"compiler:anti_pattern","statement":"PREVIEW_AS_PRODUCT","hard":false}
+{"id":"PROCESS_ID_AS_WORKER_IDENTITY","class":"APPLICABLE_MANUAL_REVIEW","source":"compiler:anti_pattern","statement":"PROCESS_ID_AS_WORKER_IDENTITY","hard":false}
+{"id":"PROMPT_AS_EMPLOYMENT_CONTRACT","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:anti_pattern","statement":"PROMPT_AS_EMPLOYMENT_CONTRACT","hard":true}
+{"id":"PROMPT_AS_SOURCE_OF_TRUTH","class":"APPLICABLE_MANUAL_REVIEW","source":"compiler:anti_pattern","statement":"PROMPT_AS_SOURCE_OF_TRUTH","hard":false}
+{"id":"PROSE_AS_AUTHORITY","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:anti_pattern","statement":"PROSE_AS_AUTHORITY","hard":true}
+{"id":"PROVIDER_200_AS_LIVE","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:anti_pattern","statement":"PROVIDER_200_AS_LIVE","hard":true}
+{"id":"PROVIDER_AS_EMPLOYEE","class":"APPLICABLE_MANUAL_REVIEW","source":"compiler:anti_pattern","statement":"PROVIDER_AS_EMPLOYEE","hard":false}
+{"id":"PROVIDER_FACADE_LEAKS_INTERNAL_TOPOLOGY","class":"APPLICABLE_MANUAL_REVIEW","source":"compiler:anti_pattern","statement":"PROVIDER_FACADE_LEAKS_INTERNAL_TOPOLOGY","hard":false}
+{"id":"PROVIDER_LOCK_IN_AS_STORE_IDENTITY","class":"APPLICABLE_MANUAL_REVIEW","source":"compiler:anti_pattern","statement":"PROVIDER_LOCK_IN_AS_STORE_IDENTITY","hard":false}
+{"id":"PROVIDER_PROJECT_AS_STORE","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:anti_pattern","statement":"PROVIDER_PROJECT_AS_STORE","hard":true}
+{"id":"PROVIDER_RESOURCE_AS_STORE","class":"APPLICABLE_MANUAL_REVIEW","source":"compiler:anti_pattern","statement":"PROVIDER_RESOURCE_AS_STORE","hard":false}
+{"id":"PSEUDONYM_AS_ANONYMITY","class":"APPLICABLE_MANUAL_REVIEW","source":"compiler:anti_pattern","statement":"PSEUDONYM_AS_ANONYMITY","hard":false}
+{"id":"PULL_ONLY_AS_REALTIME","class":"APPLICABLE_MANUAL_REVIEW","source":"compiler:anti_pattern","statement":"PULL_ONLY_AS_REALTIME","hard":false}
+{"id":"PUSH_WITHOUT_RECONCILIATION","class":"APPLICABLE_MANUAL_REVIEW","source":"compiler:anti_pattern","statement":"PUSH_WITHOUT_RECONCILIATION","hard":false}
+{"id":"RAW_INTERNAL_ID_TO_ANALYTICS","class":"APPLICABLE_MANUAL_REVIEW","source":"compiler:anti_pattern","statement":"RAW_INTERNAL_ID_TO_ANALYTICS","hard":false}
+{"id":"RAW_INTERNAL_ID_TO_PROVIDER","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:anti_pattern","statement":"RAW_INTERNAL_ID_TO_PROVIDER","hard":true}
+{"id":"RAW_OBJECT_TO_AGENT","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:anti_pattern","statement":"RAW_OBJECT_TO_AGENT","hard":true}
+{"id":"RAW_PROVIDER_PAYLOAD_AS_WORLD_MODEL","class":"APPLICABLE_MANUAL_REVIEW","source":"compiler:anti_pattern","statement":"RAW_PROVIDER_PAYLOAD_AS_WORLD_MODEL","hard":false}
+{"id":"REDACT_AFTER_PROVIDER","class":"APPLICABLE_MANUAL_REVIEW","source":"compiler:anti_pattern","statement":"REDACT_AFTER_PROVIDER","hard":false}
+{"id":"REGEX_ONLY_AS_DLP","class":"APPLICABLE_MANUAL_REVIEW","source":"compiler:anti_pattern","statement":"REGEX_ONLY_AS_DLP","hard":false}
+{"id":"RESOURCE_WITHOUT_OWNER","class":"APPLICABLE_MANUAL_REVIEW","source":"compiler:anti_pattern","statement":"RESOURCE_WITHOUT_OWNER","hard":false}
+{"id":"REVERSIBLE_OPAQUE_REFERENCE","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:anti_pattern","statement":"REVERSIBLE_OPAQUE_REFERENCE","hard":true}
+{"id":"REVOKED_CONTRACT_EXECUTES_NEW_WORK","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:anti_pattern","statement":"REVOKED_CONTRACT_EXECUTES_NEW_WORK","hard":true}
+{"id":"ROLE_AS_WORKER","class":"APPLICABLE_MANUAL_REVIEW","source":"compiler:anti_pattern","statement":"ROLE_AS_WORKER","hard":false}
+{"id":"ROLLBACK_AS_MESSAGE","class":"APPLICABLE_MANUAL_REVIEW","source":"compiler:anti_pattern","statement":"ROLLBACK_AS_MESSAGE","hard":false}
+{"id":"ROUTE_WITHOUT_PRODUCT","class":"APPLICABLE_MANUAL_REVIEW","source":"compiler:anti_pattern","statement":"ROUTE_WITHOUT_PRODUCT","hard":false}
+{"id":"RUNTIME_REPLACEMENT_RESETS_EMPLOYMENT_HISTORY","class":"APPLICABLE_MANUAL_REVIEW","source":"compiler:anti_pattern","statement":"RUNTIME_REPLACEMENT_RESETS_EMPLOYMENT_HISTORY","hard":false}
+{"id":"SCHEMA_CENSUS_AS_SQL_AUTHORITY","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:anti_pattern","statement":"SCHEMA_CENSUS_AS_SQL_AUTHORITY","hard":true}
+{"id":"SCORE_OVERRIDES_HARD_GATE","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:anti_pattern","statement":"SCORE_OVERRIDES_HARD_GATE","hard":true}
+{"id":"SECRET_IN_AGENT_CONTEXT","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:anti_pattern","statement":"SECRET_IN_AGENT_CONTEXT","hard":true}
+{"id":"SECRET_IN_AUDIT","class":"APPLICABLE_MANUAL_REVIEW","source":"compiler:anti_pattern","statement":"SECRET_IN_AUDIT","hard":false}
+{"id":"SECRET_IN_EMPLOYMENT_CONTRACT","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:anti_pattern","statement":"SECRET_IN_EMPLOYMENT_CONTRACT","hard":true}
+{"id":"SECRET_IN_ERROR","class":"APPLICABLE_MANUAL_REVIEW","source":"compiler:anti_pattern","statement":"SECRET_IN_ERROR","hard":false}
+{"id":"SECRET_IN_LOG","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:anti_pattern","statement":"SECRET_IN_LOG","hard":true}
+{"id":"SECRET_IN_STORE_MANIFEST","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:anti_pattern","statement":"SECRET_IN_STORE_MANIFEST","hard":true}
+{"id":"SECRET_LEAK_IN_LOG","class":"APPLICABLE_MANUAL_REVIEW","source":"compiler:anti_pattern","statement":"SECRET_LEAK_IN_LOG","hard":false}
+{"id":"SECRET_READ_WHEN_USE_SUFFICES","class":"APPLICABLE_MANUAL_REVIEW","source":"compiler:anti_pattern","statement":"SECRET_READ_WHEN_USE_SUFFICES","hard":false}
+{"id":"SHADOW_COMPANY_OS","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:anti_pattern","statement":"SHADOW_COMPANY_OS","hard":true}
+{"id":"SKILL_AS_AUTHORITY","class":"APPLICABLE_MANUAL_REVIEW","source":"compiler:anti_pattern","statement":"SKILL_AS_AUTHORITY","hard":false}
+{"id":"SKILL_OVERRIDES_AUTHORITY","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:anti_pattern","statement":"SKILL_OVERRIDES_AUTHORITY","hard":true}
+{"id":"STALE_BENCHMARK","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:anti_pattern","statement":"STALE_BENCHMARK","hard":true}
+{"id":"STALE_CODE_EVIDENCE","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:anti_pattern","statement":"STALE_CODE_EVIDENCE","hard":true}
+{"id":"STALE_STATE_AS_CURRENT","class":"APPLICABLE_MANUAL_REVIEW","source":"compiler:anti_pattern","statement":"STALE_STATE_AS_CURRENT","hard":false}
+{"id":"STATIC_ARTIFACT_AS_LIVE_STORE","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:anti_pattern","statement":"STATIC_ARTIFACT_AS_LIVE_STORE","hard":true}
+{"id":"STORE_AS_COMMERCE","class":"APPLICABLE_MANUAL_REVIEW","source":"compiler:anti_pattern","statement":"STORE_AS_COMMERCE","hard":false}
+{"id":"STORE_AS_CRM","class":"APPLICABLE_MANUAL_REVIEW","source":"compiler:anti_pattern","statement":"STORE_AS_CRM","hard":false}
+{"id":"STORE_AS_HELPDESK","class":"APPLICABLE_MANUAL_REVIEW","source":"compiler:anti_pattern","statement":"STORE_AS_HELPDESK","hard":false}
+{"id":"STORE_BINDING_EXPOSES_DATABASE_SECRET","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:anti_pattern","statement":"STORE_BINDING_EXPOSES_DATABASE_SECRET","hard":true}
+{"id":"STORE_HAS_ALL_COMPANY_PERMISSIONS","class":"APPLICABLE_MANUAL_REVIEW","source":"compiler:anti_pattern","statement":"STORE_HAS_ALL_COMPANY_PERMISSIONS","hard":false}
+{"id":"STORE_KIND_AS_AUTHORITY","class":"APPLICABLE_MANUAL_REVIEW","source":"compiler:anti_pattern","statement":"STORE_KIND_AS_AUTHORITY","hard":false}
+{"id":"TEST_AS_RUNTIME","class":"APPLICABLE_MANUAL_REVIEW","source":"compiler:anti_pattern","statement":"TEST_AS_RUNTIME","hard":false}
+{"id":"TEST_ONLY_EMPLOYMENT_RUNTIME","class":"APPLICABLE_MANUAL_REVIEW","source":"compiler:anti_pattern","statement":"TEST_ONLY_EMPLOYMENT_RUNTIME","hard":false}
+{"id":"TITLE_AS_AUTHORITY","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:anti_pattern","statement":"TITLE_AS_AUTHORITY","hard":true}
+{"id":"TOOL_AVAILABILITY_AS_AUTHORITY","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:anti_pattern","statement":"TOOL_AVAILABILITY_AS_AUTHORITY","hard":true}
+{"id":"TRACKING_AS_PRODUCT","class":"APPLICABLE_MANUAL_REVIEW","source":"compiler:anti_pattern","statement":"TRACKING_AS_PRODUCT","hard":false}
+{"id":"TRANSPORT_LEAKAGE","class":"APPLICABLE_MANUAL_REVIEW","source":"compiler:anti_pattern","statement":"TRANSPORT_LEAKAGE","hard":false}
+{"id":"UI_WITHOUT_RUNTIME","class":"APPLICABLE_MANUAL_REVIEW","source":"compiler:anti_pattern","statement":"UI_WITHOUT_RUNTIME","hard":false}
+{"id":"UI_WITHOUT_STORE_RUNTIME","class":"APPLICABLE_MANUAL_REVIEW","source":"compiler:anti_pattern","statement":"UI_WITHOUT_STORE_RUNTIME","hard":false}
+{"id":"UNPINNED_ASSIGNMENT_AUTHORITY","class":"APPLICABLE_MANUAL_REVIEW","source":"compiler:anti_pattern","statement":"UNPINNED_ASSIGNMENT_AUTHORITY","hard":false}
+{"id":"UNTYPED_DO_WHATEVER","class":"APPLICABLE_MANUAL_REVIEW","source":"compiler:anti_pattern","statement":"UNTYPED_DO_WHATEVER","hard":false}
+{"id":"VAULT_EXISTS_AS_BLACKBOX","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:anti_pattern","statement":"VAULT_EXISTS_AS_BLACKBOX","hard":true}
+{"id":"VIEW_CACHE_SCOPE_CONFUSION","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:anti_pattern","statement":"VIEW_CACHE_SCOPE_CONFUSION","hard":true}
+{"id":"WEBHOOK_WITHOUT_AUTH","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:anti_pattern","statement":"WEBHOOK_WITHOUT_AUTH","hard":true}
+{"id":"WEBHOOK_WITHOUT_DEDUPE","class":"APPLICABLE_MANUAL_REVIEW","source":"compiler:anti_pattern","statement":"WEBHOOK_WITHOUT_DEDUPE","hard":false}
+{"id":"WORK_WITHOUT_DURABILITY","class":"APPLICABLE_MANUAL_REVIEW","source":"compiler:anti_pattern","statement":"WORK_WITHOUT_DURABILITY","hard":false}
+{"id":"WORKER_AS_EMPLOYEE","class":"APPLICABLE_MANUAL_REVIEW","source":"compiler:anti_pattern","statement":"WORKER_AS_EMPLOYEE","hard":false}
+{"id":"WORKER_COMPLETION_AS_EVIDENCE","class":"APPLICABLE_MANUAL_REVIEW","source":"compiler:anti_pattern","statement":"WORKER_COMPLETION_AS_EVIDENCE","hard":false}
+{"id":"WORKER_ERASES_EVIDENCE","class":"APPLICABLE_MANUAL_REVIEW","source":"compiler:anti_pattern","statement":"WORKER_ERASES_EVIDENCE","hard":false}
+{"id":"WORKER_SELF_AMENDMENT","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:anti_pattern","statement":"WORKER_SELF_AMENDMENT","hard":true}
+{"id":"WORKORDER_BROADENS_CONTRACT","class":"APPLICABLE_MANUAL_REVIEW","source":"compiler:anti_pattern","statement":"WORKORDER_BROADENS_CONTRACT","hard":false}
+{"id":"ZERO_KNOWLEDGE_CLAIM_WITH_SERVER_PLAINTEXT","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:anti_pattern","statement":"ZERO_KNOWLEDGE_CLAIM_WITH_SERVER_PLAINTEXT","hard":true}
+{"id":"PROSE-205-HA-01","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"WEB2APP","statement":"Missing substrate changes status, not meaning","ref":"205§1"}
+{"id":"PROSE-205-HA-02","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"WEB2APP","statement":"ACTIONABLE=0 does not prove a wrong-denominator fixed point","ref":"205§1"}
+{"id":"PROSE-205-HA-03","class":"APPLICABLE_FLOW_REQUIREMENT","source":"compiler:prose","standard":"WEB2APP","statement":"Preview/CLI/validator is product only when intrinsic to the frozen contract","ref":"205§1"}
+{"id":"PROSE-205-HA-04","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"WEB2APP","statement":"Canonical verified is not WEB2APP-complete","ref":"205§1"}
+{"id":"PROSE-205-HA-05","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"WEB2APP","statement":"FIC coverage is not WEB2APP maturity; FIC denominator stays 55","ref":"205§1"}
+{"id":"PROSE-205-HA-06","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"WEB2APP","statement":"WEB2APP does not rewrite the five-plane freeze","ref":"205§1"}
+{"id":"PROSE-205-HA-07","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"WEB2APP","statement":"Agents may not receive do_whatever against the Internet","ref":"205§1"}
+{"id":"PROSE-205-HA-08","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"WEB2APP","statement":"ACT != OBSERVE; WEB2APP_LEVEL independent of OBSERVATION_MATURITY","ref":"205§1"}
+{"id":"PROSE-205-HA-09","class":"APPLICABLE_FLOW_REQUIREMENT","source":"compiler:prose","standard":"WEB2APP","statement":"CAP13 owns inbound; CAP15 operations/observations; CAP12 credentials","ref":"205§1"}
+{"id":"PROSE-205-HA-10","class":"APPLICABLE_FLOW_REQUIREMENT","source":"compiler:prose","standard":"WEB2APP","statement":"A webhook is not automatically final business state","ref":"205§1"}
+{"id":"PROSE-205-HA-11","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"WEB2APP","statement":"Agents may not receive credential plaintext or keep an LLM watching a page","ref":"205§1"}
+{"id":"PROSE-206-HA-01","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"EMPLOYMENT","statement":"CompanyAgentRole is not an employment contract","ref":"206§1"}
+{"id":"PROSE-206-HA-02","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"EMPLOYMENT","statement":"chronica-ai-workforce Worker is not a Digital Employee","ref":"206§1"}
+{"id":"PROSE-206-HA-03","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"EMPLOYMENT","statement":"Skill does not imply authority","ref":"206§1"}
+{"id":"PROSE-206-HA-04","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"EMPLOYMENT","statement":"Installed tool does not imply authority","ref":"206§1"}
+{"id":"PROSE-206-HA-05","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"EMPLOYMENT","statement":"Credential existence does not imply eligibility","ref":"206§1"}
+{"id":"PROSE-206-HA-06","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"EMPLOYMENT","statement":"Title does not imply authority","ref":"206§1"}
+{"id":"PROSE-206-HA-07","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"EMPLOYMENT","statement":"Natural-language job description does not imply grants","ref":"206§1"}
+{"id":"PROSE-206-HA-08","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"EMPLOYMENT","statement":"Worker may not amend its own contract","ref":"206§1"}
+{"id":"PROSE-206-HA-09","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"EMPLOYMENT","statement":"Expired/revoked contract may not admit new work","ref":"206§1"}
+{"id":"PROSE-206-HA-10","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"EMPLOYMENT","statement":"WorkOrder may not broaden the employment contract","ref":"206§1"}
+{"id":"PROSE-206-HA-11","class":"APPLICABLE_FLOW_REQUIREMENT","source":"compiler:prose","standard":"EMPLOYMENT","statement":"Contract versions must remain historically reproducible","ref":"206§1"}
+{"id":"PROSE-206-HA-12","class":"APPLICABLE_FLOW_REQUIREMENT","source":"compiler:prose","standard":"EMPLOYMENT","statement":"Persistent digital employees work under effective contracts","ref":"206§1"}
+{"id":"PROSE-206-HA-13","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"EMPLOYMENT","statement":"Utilities/stateless algorithms do not require employment contracts","ref":"206§1"}
+{"id":"PROSE-206-HA-14","class":"EXPLANATORY_ONLY","source":"compiler:prose","standard":"EMPLOYMENT","statement":"This standard is not CAP16 implementation evidence","ref":"206§1"}
+{"id":"PROSE-207-HA-01","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"STORE","statement":"A static artifact is not a Store","ref":"207§3"}
+{"id":"PROSE-207-HA-02","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"STORE","statement":"A provider project is not automatically a Store","ref":"207§3"}
+{"id":"PROSE-207-HA-03","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"STORE","statement":"Hosting preflight is not deployment","ref":"207§3"}
+{"id":"PROSE-207-HA-04","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"STORE","statement":"Provider success is not sufficient for Live","ref":"207§3"}
+{"id":"PROSE-207-HA-05","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"STORE","statement":"Store may not duplicate CRM/Helpdesk/Commerce as shadow systems by default","ref":"207§3"}
+{"id":"PROSE-207-HA-06","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"STORE","statement":"Business source-of-truth ownership must be explicit","ref":"207§3"}
+{"id":"PROSE-207-HA-07","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"STORE","statement":"Database census does not imply arbitrary SQL authority","ref":"207§3"}
+{"id":"PROSE-207-HA-08","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"STORE","statement":"StoreManifest cannot authorize production","ref":"207§3"}
+{"id":"PROSE-207-HA-09","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"STORE","statement":"Secrets must not be embedded in StoreManifest","ref":"207§3"}
+{"id":"PROSE-207-HA-10","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"STORE","statement":"An AI agent cannot self-promote production","ref":"207§3"}
+{"id":"PROSE-207-HA-11","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"STORE","statement":"Store cannot change DNS without rights/authority evidence","ref":"207§3"}
+{"id":"PROSE-207-HA-12","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"STORE","statement":"ALL-IN-ONE does not mean one giant crate","ref":"207§3"}
+{"id":"PROSE-207-HA-13","class":"APPLICABLE_FLOW_REQUIREMENT","source":"compiler:prose","standard":"STORE","statement":"A Store may use federated data without copying it","ref":"207§3"}
+{"id":"PROSE-207-HA-14","class":"APPLICABLE_FLOW_REQUIREMENT","source":"compiler:prose","standard":"STORE","statement":"Store-local state may exist","ref":"207§3"}
+{"id":"PROSE-207-HA-15","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"STORE","statement":"Provider identity is not Store identity","ref":"207§3"}
+{"id":"PROSE-207-HA-16","class":"APPLICABLE_FLOW_REQUIREMENT","source":"compiler:prose","standard":"STORE","statement":"A mature Store distinguishes desired from actual state","ref":"207§3"}
+{"id":"PROSE-208-HA-01","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"BLACKBOX","statement":"Encryption at rest alone does not prove Black-Box","ref":"208§3"}
+{"id":"PROSE-208-HA-02","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"BLACKBOX","statement":"Vault alone does not prove Black-Box","ref":"208§3"}
+{"id":"PROSE-208-HA-03","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"BLACKBOX","statement":"OpaqueTenantRef alone does not prove Black-Box","ref":"208§3"}
+{"id":"PROSE-208-HA-04","class":"APPLICABLE_FLOW_REQUIREMENT","source":"compiler:prose","standard":"BLACKBOX","statement":"An Agent can be useful without raw business data","ref":"208§3"}
+{"id":"PROSE-208-HA-05","class":"APPLICABLE_FLOW_REQUIREMENT","source":"compiler:prose","standard":"BLACKBOX","statement":"A secret can be used without being readable","ref":"208§3"}
+{"id":"PROSE-208-HA-06","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"BLACKBOX","statement":"An opaque reference does not imply permission","ref":"208§3"}
+{"id":"PROSE-208-HA-07","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"BLACKBOX","statement":"Forbidden data must not be retrieved globally then filtered","ref":"208§3"}
+{"id":"PROSE-208-HA-08","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"BLACKBOX","statement":"Embeddings can remain sensitive","ref":"208§3"}
+{"id":"PROSE-208-HA-09","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"BLACKBOX","statement":"Summaries can remain sensitive","ref":"208§3"}
+{"id":"PROSE-208-HA-10","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"BLACKBOX","statement":"Logs/backups/plaintext search can defeat encrypted storage","ref":"208§3"}
+{"id":"PROSE-208-HA-11","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"BLACKBOX","statement":"A provider is not trusted internal memory","ref":"208§3"}
+{"id":"PROSE-208-HA-12","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"BLACKBOX","statement":"A Store must not receive entire company DB credentials by default","ref":"208§3"}
+{"id":"PROSE-208-HA-13","class":"APPLICABLE_FLOW_REQUIREMENT","source":"compiler:prose","standard":"BLACKBOX","statement":"A WorkOrder can narrow data visibility","ref":"208§3"}
+{"id":"PROSE-208-HA-14","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"BLACKBOX","statement":"Agent capability does not imply data visibility","ref":"208§3"}
+{"id":"PROSE-208-HA-15","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"BLACKBOX","statement":"Admin is not unlimited raw plaintext","ref":"208§3"}
+{"id":"PROSE-208-HA-16","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"BLACKBOX","statement":"B5 does not require a zero-knowledge server","ref":"208§3"}
+{"id":"PROSE-208-HA-17","class":"APPLICABLE_FLOW_REQUIREMENT","source":"compiler:prose","standard":"BLACKBOX","statement":"B6 requires real confidential-compute / ZK evidence","ref":"208§3"}
+{"id":"PROSE-208-HA-18","class":"EXPLANATORY_ONLY","source":"compiler:prose","standard":"BLACKBOX","statement":"This standard is not CAP18 implementation evidence","ref":"208§3"}
+{"id":"PROSE-AP-HARNESS_WITHOUT_ENGINE","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"WEB2APP","statement":"HARNESS_WITHOUT_ENGINE","ref":"HARNESS_WITHOUT_ENGINE"}
+{"id":"PROSE-AP-WORK_WITHOUT_DURABILITY","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"WEB2APP","statement":"WORK_WITHOUT_DURABILITY","ref":"WORK_WITHOUT_DURABILITY"}
+{"id":"PROSE-AP-EXECUTION_WITHOUT_RECEIPT","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"WEB2APP","statement":"EXECUTION_WITHOUT_RECEIPT","ref":"EXECUTION_WITHOUT_RECEIPT"}
+{"id":"PROSE-AP-PREVIEW_AS_PRODUCT","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"WEB2APP","statement":"PREVIEW_AS_PRODUCT","ref":"PREVIEW_AS_PRODUCT"}
+{"id":"PROSE-AP-CALLER_FARMING","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"WEB2APP","statement":"CALLER_FARMING","ref":"CALLER_FARMING"}
+{"id":"PROSE-AP-LABEL_AS_ENFORCEMENT","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"WEB2APP","statement":"LABEL_AS_ENFORCEMENT","ref":"LABEL_AS_ENFORCEMENT"}
+{"id":"PROSE-AP-UI_WITHOUT_RUNTIME","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"WEB2APP","statement":"UI_WITHOUT_RUNTIME","ref":"UI_WITHOUT_RUNTIME"}
+{"id":"PROSE-AP-ROUTE_WITHOUT_PRODUCT","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"WEB2APP","statement":"ROUTE_WITHOUT_PRODUCT","ref":"ROUTE_WITHOUT_PRODUCT"}
+{"id":"PROSE-AP-TRACKING_AS_PRODUCT","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"WEB2APP","statement":"TRACKING_AS_PRODUCT","ref":"TRACKING_AS_PRODUCT"}
+{"id":"PROSE-AP-DONOR_NAME_WITHOUT_DONOR_SEMANTICS","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"WEB2APP","statement":"DONOR_NAME_WITHOUT_DONOR_SEMANTICS","ref":"DONOR_NAME_WITHOUT_DONOR_SEMANTICS"}
+{"id":"PROSE-AP-GOALPOST_MUTATION","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"WEB2APP","statement":"GOALPOST_MUTATION","ref":"GOALPOST_MUTATION"}
+{"id":"PROSE-AP-DENOMINATOR_SHRINKING","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"WEB2APP","statement":"DENOMINATOR_SHRINKING","ref":"DENOMINATOR_SHRINKING"}
+{"id":"PROSE-AP-OWNERSHIP_LAUNDERING","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"WEB2APP","statement":"OWNERSHIP_LAUNDERING","ref":"OWNERSHIP_LAUNDERING"}
+{"id":"PROSE-AP-TEST_AS_RUNTIME","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"WEB2APP","statement":"TEST_AS_RUNTIME","ref":"TEST_AS_RUNTIME"}
+{"id":"PROSE-AP-MOCK_AS_PRODUCTION","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"WEB2APP","statement":"MOCK_AS_PRODUCTION","ref":"MOCK_AS_PRODUCTION"}
+{"id":"PROSE-AP-AI_IN_HOT_PATH","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"WEB2APP","statement":"AI_IN_HOT_PATH","ref":"AI_IN_HOT_PATH"}
+{"id":"PROSE-AP-AGENT_AS_KERNEL","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"WEB2APP","statement":"AGENT_AS_KERNEL","ref":"AGENT_AS_KERNEL"}
+{"id":"PROSE-AP-PROMPT_AS_SOURCE_OF_TRUTH","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"WEB2APP","statement":"PROMPT_AS_SOURCE_OF_TRUTH","ref":"PROMPT_AS_SOURCE_OF_TRUTH"}
+{"id":"PROSE-AP-LLM_SELF_AUTHORIZATION","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"WEB2APP","statement":"LLM_SELF_AUTHORIZATION","ref":"LLM_SELF_AUTHORIZATION"}
+{"id":"PROSE-AP-DATA_WITHOUT_OPERATIONS","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"WEB2APP","statement":"DATA_WITHOUT_OPERATIONS","ref":"DATA_WITHOUT_OPERATIONS"}
+{"id":"PROSE-AP-ADAPTER_AS_APP","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"WEB2APP","statement":"ADAPTER_AS_APP","ref":"ADAPTER_AS_APP"}
+{"id":"PROSE-AP-DOM_AS_KERNEL","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"WEB2APP","statement":"DOM_AS_KERNEL","ref":"DOM_AS_KERNEL"}
+{"id":"PROSE-AP-UNTYPED_DO_WHATEVER","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"WEB2APP","statement":"UNTYPED_DO_WHATEVER","ref":"UNTYPED_DO_WHATEVER"}
+{"id":"PROSE-AP-JURISDICTION_COLLAPSE","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"WEB2APP","statement":"JURISDICTION_COLLAPSE","ref":"JURISDICTION_COLLAPSE"}
+{"id":"PROSE-AP-TRANSPORT_LEAKAGE","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"WEB2APP","statement":"TRANSPORT_LEAKAGE","ref":"TRANSPORT_LEAKAGE"}
+{"id":"PROSE-AP-ASSISTANT_WITHOUT_STATE_CHANGE","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"WEB2APP","statement":"ASSISTANT_WITHOUT_STATE_CHANGE","ref":"ASSISTANT_WITHOUT_STATE_CHANGE"}
+{"id":"PROSE-AP-PULL_ONLY_AS_REALTIME","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"WEB2APP","statement":"PULL_ONLY_AS_REALTIME","ref":"PULL_ONLY_AS_REALTIME"}
+{"id":"PROSE-AP-WEBHOOK_WITHOUT_AUTH","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"WEB2APP","statement":"WEBHOOK_WITHOUT_AUTH","ref":"WEBHOOK_WITHOUT_AUTH"}
+{"id":"PROSE-AP-WEBHOOK_WITHOUT_DEDUPE","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"WEB2APP","statement":"WEBHOOK_WITHOUT_DEDUPE","ref":"WEBHOOK_WITHOUT_DEDUPE"}
+{"id":"PROSE-AP-POLL_WITHOUT_CHECKPOINT","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"WEB2APP","statement":"POLL_WITHOUT_CHECKPOINT","ref":"POLL_WITHOUT_CHECKPOINT"}
+{"id":"PROSE-AP-EVENT_WITHOUT_NORMALIZATION","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"WEB2APP","statement":"EVENT_WITHOUT_NORMALIZATION","ref":"EVENT_WITHOUT_NORMALIZATION"}
+{"id":"PROSE-AP-EVENT_AS_COMMAND","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"WEB2APP","statement":"EVENT_AS_COMMAND","ref":"EVENT_AS_COMMAND"}
+{"id":"PROSE-AP-PUSH_WITHOUT_RECONCILIATION","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"WEB2APP","statement":"PUSH_WITHOUT_RECONCILIATION","ref":"PUSH_WITHOUT_RECONCILIATION"}
+{"id":"PROSE-AP-STALE_STATE_AS_CURRENT","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"WEB2APP","statement":"STALE_STATE_AS_CURRENT","ref":"STALE_STATE_AS_CURRENT"}
+{"id":"PROSE-AP-CREDENTIAL_IN_APP_DEFINITION","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"WEB2APP","statement":"CREDENTIAL_IN_APP_DEFINITION","ref":"CREDENTIAL_IN_APP_DEFINITION"}
+{"id":"PROSE-AP-CREDENTIAL_IN_AGENT_CONTEXT","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"WEB2APP","statement":"CREDENTIAL_IN_AGENT_CONTEXT","ref":"CREDENTIAL_IN_AGENT_CONTEXT"}
+{"id":"PROSE-AP-ENTITLEMENT_WITHOUT_TENANT_SCOPE","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"WEB2APP","statement":"ENTITLEMENT_WITHOUT_TENANT_SCOPE","ref":"ENTITLEMENT_WITHOUT_TENANT_SCOPE"}
+{"id":"PROSE-AP-FULL_RECOMPILE_ON_EVERY_POLL","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"WEB2APP","statement":"FULL_RECOMPILE_ON_EVERY_POLL","ref":"FULL_RECOMPILE_ON_EVERY_POLL"}
+{"id":"PROSE-AP-RAW_PROVIDER_PAYLOAD_AS_WORLD_MODEL","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"WEB2APP","statement":"RAW_PROVIDER_PAYLOAD_AS_WORLD_MODEL","ref":"RAW_PROVIDER_PAYLOAD_AS_WORLD_MODEL"}
+{"id":"PROSE-AP-ROLE_AS_WORKER","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"EMPLOYMENT","statement":"ROLE_AS_WORKER","ref":"ROLE_AS_WORKER"}
+{"id":"PROSE-AP-WORKER_AS_EMPLOYEE","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"EMPLOYMENT","statement":"WORKER_AS_EMPLOYEE","ref":"WORKER_AS_EMPLOYEE"}
+{"id":"PROSE-AP-PROVIDER_AS_EMPLOYEE","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"EMPLOYMENT","statement":"PROVIDER_AS_EMPLOYEE","ref":"PROVIDER_AS_EMPLOYEE"}
+{"id":"PROSE-AP-AGENT_CONFIG_AS_CONTRACT","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"EMPLOYMENT","statement":"AGENT_CONFIG_AS_CONTRACT","ref":"AGENT_CONFIG_AS_CONTRACT"}
+{"id":"PROSE-AP-PROMPT_AS_EMPLOYMENT_CONTRACT","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"EMPLOYMENT","statement":"PROMPT_AS_EMPLOYMENT_CONTRACT","ref":"PROMPT_AS_EMPLOYMENT_CONTRACT"}
+{"id":"PROSE-AP-PROSE_AS_AUTHORITY","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"EMPLOYMENT","statement":"PROSE_AS_AUTHORITY","ref":"PROSE_AS_AUTHORITY"}
+{"id":"PROSE-AP-TITLE_AS_AUTHORITY","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"EMPLOYMENT","statement":"TITLE_AS_AUTHORITY","ref":"TITLE_AS_AUTHORITY"}
+{"id":"PROSE-AP-SKILL_AS_AUTHORITY","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"EMPLOYMENT","statement":"SKILL_AS_AUTHORITY","ref":"SKILL_AS_AUTHORITY"}
+{"id":"PROSE-AP-SKILL_OVERRIDES_AUTHORITY","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"EMPLOYMENT","statement":"SKILL_OVERRIDES_AUTHORITY","ref":"SKILL_OVERRIDES_AUTHORITY"}
+{"id":"PROSE-AP-TOOL_AVAILABILITY_AS_AUTHORITY","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"EMPLOYMENT","statement":"TOOL_AVAILABILITY_AS_AUTHORITY","ref":"TOOL_AVAILABILITY_AS_AUTHORITY"}
+{"id":"PROSE-AP-CREDENTIAL_EXISTENCE_AS_AUTHORITY","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"EMPLOYMENT","statement":"CREDENTIAL_EXISTENCE_AS_AUTHORITY","ref":"CREDENTIAL_EXISTENCE_AS_AUTHORITY"}
+{"id":"PROSE-AP-SECRET_IN_EMPLOYMENT_CONTRACT","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"EMPLOYMENT","statement":"SECRET_IN_EMPLOYMENT_CONTRACT","ref":"SECRET_IN_EMPLOYMENT_CONTRACT"}
+{"id":"PROSE-AP-MUTABLE_HISTORY_CONTRACT","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"EMPLOYMENT","statement":"MUTABLE_HISTORY_CONTRACT","ref":"MUTABLE_HISTORY_CONTRACT"}
+{"id":"PROSE-AP-UNPINNED_ASSIGNMENT_AUTHORITY","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"EMPLOYMENT","statement":"UNPINNED_ASSIGNMENT_AUTHORITY","ref":"UNPINNED_ASSIGNMENT_AUTHORITY"}
+{"id":"PROSE-AP-CONTRACT_STATUS_WITHOUT_ENFORCEMENT","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"EMPLOYMENT","statement":"CONTRACT_STATUS_WITHOUT_ENFORCEMENT","ref":"CONTRACT_STATUS_WITHOUT_ENFORCEMENT"}
+{"id":"PROSE-AP-LIFECYCLE_LABEL_WITHOUT_ENFORCEMENT","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"EMPLOYMENT","statement":"LIFECYCLE_LABEL_WITHOUT_ENFORCEMENT","ref":"LIFECYCLE_LABEL_WITHOUT_ENFORCEMENT"}
+{"id":"PROSE-AP-WORKER_SELF_AMENDMENT","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"EMPLOYMENT","statement":"WORKER_SELF_AMENDMENT","ref":"WORKER_SELF_AMENDMENT"}
+{"id":"PROSE-AP-LEARNING_EXPANDS_AUTHORITY","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"EMPLOYMENT","statement":"LEARNING_EXPANDS_AUTHORITY","ref":"LEARNING_EXPANDS_AUTHORITY"}
+{"id":"PROSE-AP-KPI_EXPANDS_AUTHORITY","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"EMPLOYMENT","statement":"KPI_EXPANDS_AUTHORITY","ref":"KPI_EXPANDS_AUTHORITY"}
+{"id":"PROSE-AP-DELEGATION_ESCALATES_AUTHORITY","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"EMPLOYMENT","statement":"DELEGATION_ESCALATES_AUTHORITY","ref":"DELEGATION_ESCALATES_AUTHORITY"}
+{"id":"PROSE-AP-COST_BUDGET_AS_TRANSACTION_AUTHORITY","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"EMPLOYMENT","statement":"COST_BUDGET_AS_TRANSACTION_AUTHORITY","ref":"COST_BUDGET_AS_TRANSACTION_AUTHORITY"}
+{"id":"PROSE-AP-WORKORDER_BROADENS_CONTRACT","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"EMPLOYMENT","statement":"WORKORDER_BROADENS_CONTRACT","ref":"WORKORDER_BROADENS_CONTRACT"}
+{"id":"PROSE-AP-WORKER_COMPLETION_AS_EVIDENCE","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"EMPLOYMENT","statement":"WORKER_COMPLETION_AS_EVIDENCE","ref":"WORKER_COMPLETION_AS_EVIDENCE"}
+{"id":"PROSE-AP-WORKER_ERASES_EVIDENCE","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"EMPLOYMENT","statement":"WORKER_ERASES_EVIDENCE","ref":"WORKER_ERASES_EVIDENCE"}
+{"id":"PROSE-AP-RUNTIME_REPLACEMENT_RESETS_EMPLOYMENT_HISTORY","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"EMPLOYMENT","statement":"RUNTIME_REPLACEMENT_RESETS_EMPLOYMENT_HISTORY","ref":"RUNTIME_REPLACEMENT_RESETS_EMPLOYMENT_HISTORY"}
+{"id":"PROSE-AP-TEST_ONLY_EMPLOYMENT_RUNTIME","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"EMPLOYMENT","statement":"TEST_ONLY_EMPLOYMENT_RUNTIME","ref":"TEST_ONLY_EMPLOYMENT_RUNTIME"}
+{"id":"PROSE-AP-DOC_SNIPPET_AS_RUNTIME","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"EMPLOYMENT","statement":"DOC_SNIPPET_AS_RUNTIME","ref":"DOC_SNIPPET_AS_RUNTIME"}
+{"id":"PROSE-AP-PROCESS_ID_AS_WORKER_IDENTITY","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"EMPLOYMENT","statement":"PROCESS_ID_AS_WORKER_IDENTITY","ref":"PROCESS_ID_AS_WORKER_IDENTITY"}
+{"id":"PROSE-AP-HASH_AS_VERSION_HISTORY","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"EMPLOYMENT","statement":"HASH_AS_VERSION_HISTORY","ref":"HASH_AS_VERSION_HISTORY"}
+{"id":"PROSE-AP-EXPIRED_CONTRACT_EXECUTES_NEW_WORK","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"EMPLOYMENT","statement":"EXPIRED_CONTRACT_EXECUTES_NEW_WORK","ref":"EXPIRED_CONTRACT_EXECUTES_NEW_WORK"}
+{"id":"PROSE-AP-REVOKED_CONTRACT_EXECUTES_NEW_WORK","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"EMPLOYMENT","statement":"REVOKED_CONTRACT_EXECUTES_NEW_WORK","ref":"REVOKED_CONTRACT_EXECUTES_NEW_WORK"}
+{"id":"PROSE-AP-CROSS_TENANT_WORKER_ASSIGNMENT","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"EMPLOYMENT","statement":"CROSS_TENANT_WORKER_ASSIGNMENT","ref":"CROSS_TENANT_WORKER_ASSIGNMENT"}
+{"id":"PROSE-AP-MONEY_AUTHORITY_BYPASS","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"EMPLOYMENT","statement":"MONEY_AUTHORITY_BYPASS","ref":"MONEY_AUTHORITY_BYPASS"}
+{"id":"PROSE-AP-CONTRACT_HISTORY_MUTATED_IN_PLACE","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"EMPLOYMENT","statement":"CONTRACT_HISTORY_MUTATED_IN_PLACE","ref":"CONTRACT_HISTORY_MUTATED_IN_PLACE"}
+{"id":"PROSE-AP-AI_DECIDES_AUTHORITY","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"EMPLOYMENT","statement":"AI_DECIDES_AUTHORITY","ref":"AI_DECIDES_AUTHORITY"}
+{"id":"PROSE-AP-EVENT_AS_EMPLOYMENT_GRANT","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"EMPLOYMENT","statement":"EVENT_AS_EMPLOYMENT_GRANT","ref":"EVENT_AS_EMPLOYMENT_GRANT"}
+{"id":"PROSE-AP-HOSTING_PREFLIGHT_AS_DEPLOYMENT","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"STORE","statement":"HOSTING_PREFLIGHT_AS_DEPLOYMENT","ref":"HOSTING_PREFLIGHT_AS_DEPLOYMENT"}
+{"id":"PROSE-AP-STATIC_ARTIFACT_AS_LIVE_STORE","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"STORE","statement":"STATIC_ARTIFACT_AS_LIVE_STORE","ref":"STATIC_ARTIFACT_AS_LIVE_STORE"}
+{"id":"PROSE-AP-PROVIDER_RESOURCE_AS_STORE","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"STORE","statement":"PROVIDER_RESOURCE_AS_STORE","ref":"PROVIDER_RESOURCE_AS_STORE"}
+{"id":"PROSE-AP-PROVIDER_PROJECT_AS_STORE","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"STORE","statement":"PROVIDER_PROJECT_AS_STORE","ref":"PROVIDER_PROJECT_AS_STORE"}
+{"id":"PROSE-AP-DATABASE_PROVIDER_AS_STORE","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"STORE","statement":"DATABASE_PROVIDER_AS_STORE","ref":"DATABASE_PROVIDER_AS_STORE"}
+{"id":"PROSE-AP-SHADOW_COMPANY_OS","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"STORE","statement":"SHADOW_COMPANY_OS","ref":"SHADOW_COMPANY_OS"}
+{"id":"PROSE-AP-COMPOSITION_ROOT_AS_DOMAIN_OWNER","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"STORE","statement":"COMPOSITION_ROOT_AS_DOMAIN_OWNER","ref":"COMPOSITION_ROOT_AS_DOMAIN_OWNER"}
+{"id":"PROSE-AP-DATABASE_BYPASSES_BUSINESS_KERNEL","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"STORE","statement":"DATABASE_BYPASSES_BUSINESS_KERNEL","ref":"DATABASE_BYPASSES_BUSINESS_KERNEL"}
+{"id":"PROSE-AP-DATABASE_DUPLICATES_BUSINESS_KERNEL","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"STORE","statement":"DATABASE_DUPLICATES_BUSINESS_KERNEL","ref":"DATABASE_DUPLICATES_BUSINESS_KERNEL"}
+{"id":"PROSE-AP-DATA_WITHOUT_SOURCE_OF_TRUTH","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"STORE","statement":"DATA_WITHOUT_SOURCE_OF_TRUTH","ref":"DATA_WITHOUT_SOURCE_OF_TRUTH"}
+{"id":"PROSE-AP-RESOURCE_WITHOUT_OWNER","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"STORE","statement":"RESOURCE_WITHOUT_OWNER","ref":"RESOURCE_WITHOUT_OWNER"}
+{"id":"PROSE-AP-BINDING_WITHOUT_SCOPE","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"STORE","statement":"BINDING_WITHOUT_SCOPE","ref":"BINDING_WITHOUT_SCOPE"}
+{"id":"PROSE-AP-STORE_HAS_ALL_COMPANY_PERMISSIONS","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"STORE","statement":"STORE_HAS_ALL_COMPANY_PERMISSIONS","ref":"STORE_HAS_ALL_COMPANY_PERMISSIONS"}
+{"id":"PROSE-AP-SCHEMA_CENSUS_AS_SQL_AUTHORITY","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"STORE","statement":"SCHEMA_CENSUS_AS_SQL_AUTHORITY","ref":"SCHEMA_CENSUS_AS_SQL_AUTHORITY"}
+{"id":"PROSE-AP-MANIFEST_AS_AUTHORITY","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"STORE","statement":"MANIFEST_AS_AUTHORITY","ref":"MANIFEST_AS_AUTHORITY"}
+{"id":"PROSE-AP-CONFIG_WITHOUT_RECONCILIATION","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"STORE","statement":"CONFIG_WITHOUT_RECONCILIATION","ref":"CONFIG_WITHOUT_RECONCILIATION"}
+{"id":"PROSE-AP-DRIFT_AS_AUTO_MUTATION","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"STORE","statement":"DRIFT_AS_AUTO_MUTATION","ref":"DRIFT_AS_AUTO_MUTATION"}
+{"id":"PROSE-AP-PROVIDER_200_AS_LIVE","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"STORE","statement":"PROVIDER_200_AS_LIVE","ref":"PROVIDER_200_AS_LIVE"}
+{"id":"PROSE-AP-DEPLOY_WITHOUT_RECEIPT","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"STORE","statement":"DEPLOY_WITHOUT_RECEIPT","ref":"DEPLOY_WITHOUT_RECEIPT"}
+{"id":"PROSE-AP-ROLLBACK_AS_MESSAGE","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"STORE","statement":"ROLLBACK_AS_MESSAGE","ref":"ROLLBACK_AS_MESSAGE"}
+{"id":"PROSE-AP-DNS_WITHOUT_RIGHTS","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"STORE","statement":"DNS_WITHOUT_RIGHTS","ref":"DNS_WITHOUT_RIGHTS"}
+{"id":"PROSE-AP-SECRET_IN_STORE_MANIFEST","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"STORE","statement":"SECRET_IN_STORE_MANIFEST","ref":"SECRET_IN_STORE_MANIFEST"}
+{"id":"PROSE-AP-SECRET_LEAK_IN_LOG","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"STORE","statement":"SECRET_LEAK_IN_LOG","ref":"SECRET_LEAK_IN_LOG"}
+{"id":"PROSE-AP-AGENT_AS_DEPLOY_AUTHORITY","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"STORE","statement":"AGENT_AS_DEPLOY_AUTHORITY","ref":"AGENT_AS_DEPLOY_AUTHORITY"}
+{"id":"PROSE-AP-UI_WITHOUT_STORE_RUNTIME","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"STORE","statement":"UI_WITHOUT_STORE_RUNTIME","ref":"UI_WITHOUT_STORE_RUNTIME"}
+{"id":"PROSE-AP-STORE_KIND_AS_AUTHORITY","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"STORE","statement":"STORE_KIND_AS_AUTHORITY","ref":"STORE_KIND_AS_AUTHORITY"}
+{"id":"PROSE-AP-ALL_IN_ONE_MONOLITH","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"STORE","statement":"ALL_IN_ONE_MONOLITH","ref":"ALL_IN_ONE_MONOLITH"}
+{"id":"PROSE-AP-STORE_AS_CRM","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"STORE","statement":"STORE_AS_CRM","ref":"STORE_AS_CRM"}
+{"id":"PROSE-AP-STORE_AS_HELPDESK","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"STORE","statement":"STORE_AS_HELPDESK","ref":"STORE_AS_HELPDESK"}
+{"id":"PROSE-AP-STORE_AS_COMMERCE","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"STORE","statement":"STORE_AS_COMMERCE","ref":"STORE_AS_COMMERCE"}
+{"id":"PROSE-AP-PROVIDER_LOCK_IN_AS_STORE_IDENTITY","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"STORE","statement":"PROVIDER_LOCK_IN_AS_STORE_IDENTITY","ref":"PROVIDER_LOCK_IN_AS_STORE_IDENTITY"}
+{"id":"PROSE-AP-FRONTEND_EVENT_AS_BUSINESS_FACT","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"STORE","statement":"FRONTEND_EVENT_AS_BUSINESS_FACT","ref":"FRONTEND_EVENT_AS_BUSINESS_FACT"}
+{"id":"PROSE-AP-PERSISTENCE_ADAPTER_AS_STORE","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"STORE","statement":"PERSISTENCE_ADAPTER_AS_STORE","ref":"PERSISTENCE_ADAPTER_AS_STORE"}
+{"id":"PROSE-AP-ENCRYPTION_AT_REST_AS_BLACKBOX","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"BLACKBOX","statement":"ENCRYPTION_AT_REST_AS_BLACKBOX","ref":"ENCRYPTION_AT_REST_AS_BLACKBOX"}
+{"id":"PROSE-AP-VAULT_EXISTS_AS_BLACKBOX","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"BLACKBOX","statement":"VAULT_EXISTS_AS_BLACKBOX","ref":"VAULT_EXISTS_AS_BLACKBOX"}
+{"id":"PROSE-AP-OPAQUE_REF_AS_AUTHORITY","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"BLACKBOX","statement":"OPAQUE_REF_AS_AUTHORITY","ref":"OPAQUE_REF_AS_AUTHORITY"}
+{"id":"PROSE-AP-REVERSIBLE_OPAQUE_REFERENCE","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"BLACKBOX","statement":"REVERSIBLE_OPAQUE_REFERENCE","ref":"REVERSIBLE_OPAQUE_REFERENCE"}
+{"id":"PROSE-AP-RAW_OBJECT_TO_AGENT","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"BLACKBOX","statement":"RAW_OBJECT_TO_AGENT","ref":"RAW_OBJECT_TO_AGENT"}
+{"id":"PROSE-AP-FULL_CONTEXT_TO_LLM","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"BLACKBOX","statement":"FULL_CONTEXT_TO_LLM","ref":"FULL_CONTEXT_TO_LLM"}
+{"id":"PROSE-AP-FULL_CONTEXT_TO_PROVIDER","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"BLACKBOX","statement":"FULL_CONTEXT_TO_PROVIDER","ref":"FULL_CONTEXT_TO_PROVIDER"}
+{"id":"PROSE-AP-REDACT_AFTER_PROVIDER","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"BLACKBOX","statement":"REDACT_AFTER_PROVIDER","ref":"REDACT_AFTER_PROVIDER"}
+{"id":"PROSE-AP-GLOBAL_RETRIEVE_THEN_FILTER","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"BLACKBOX","statement":"GLOBAL_RETRIEVE_THEN_FILTER","ref":"GLOBAL_RETRIEVE_THEN_FILTER"}
+{"id":"PROSE-AP-SECRET_READ_WHEN_USE_SUFFICES","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"BLACKBOX","statement":"SECRET_READ_WHEN_USE_SUFFICES","ref":"SECRET_READ_WHEN_USE_SUFFICES"}
+{"id":"PROSE-AP-SECRET_IN_AGENT_CONTEXT","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"BLACKBOX","statement":"SECRET_IN_AGENT_CONTEXT","ref":"SECRET_IN_AGENT_CONTEXT"}
+{"id":"PROSE-AP-SECRET_IN_LOG","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"BLACKBOX","statement":"SECRET_IN_LOG","ref":"SECRET_IN_LOG"}
+{"id":"PROSE-AP-SECRET_IN_ERROR","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"BLACKBOX","statement":"SECRET_IN_ERROR","ref":"SECRET_IN_ERROR"}
+{"id":"PROSE-AP-SECRET_IN_AUDIT","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"BLACKBOX","statement":"SECRET_IN_AUDIT","ref":"SECRET_IN_AUDIT"}
+{"id":"PROSE-AP-RAW_INTERNAL_ID_TO_PROVIDER","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"BLACKBOX","statement":"RAW_INTERNAL_ID_TO_PROVIDER","ref":"RAW_INTERNAL_ID_TO_PROVIDER"}
+{"id":"PROSE-AP-RAW_INTERNAL_ID_TO_ANALYTICS","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"BLACKBOX","statement":"RAW_INTERNAL_ID_TO_ANALYTICS","ref":"RAW_INTERNAL_ID_TO_ANALYTICS"}
+{"id":"PROSE-AP-PLAINTEXT_CACHE_BYPASS","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"BLACKBOX","statement":"PLAINTEXT_CACHE_BYPASS","ref":"PLAINTEXT_CACHE_BYPASS"}
+{"id":"PROSE-AP-PLAINTEXT_SEARCH_INDEX_BYPASS","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"BLACKBOX","statement":"PLAINTEXT_SEARCH_INDEX_BYPASS","ref":"PLAINTEXT_SEARCH_INDEX_BYPASS"}
+{"id":"PROSE-AP-PLAINTEXT_VECTOR_INDEX_BYPASS","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"BLACKBOX","statement":"PLAINTEXT_VECTOR_INDEX_BYPASS","ref":"PLAINTEXT_VECTOR_INDEX_BYPASS"}
+{"id":"PROSE-AP-PLAINTEXT_BACKUP_BYPASS","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"BLACKBOX","statement":"PLAINTEXT_BACKUP_BYPASS","ref":"PLAINTEXT_BACKUP_BYPASS"}
+{"id":"PROSE-AP-PLAINTEXT_QUEUE_BYPASS","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"BLACKBOX","statement":"PLAINTEXT_QUEUE_BYPASS","ref":"PLAINTEXT_QUEUE_BYPASS"}
+{"id":"PROSE-AP-PLAINTEXT_EVENT_BYPASS","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"BLACKBOX","statement":"PLAINTEXT_EVENT_BYPASS","ref":"PLAINTEXT_EVENT_BYPASS"}
+{"id":"PROSE-AP-LOG_AS_DATA_EXFILTRATION","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"BLACKBOX","statement":"LOG_AS_DATA_EXFILTRATION","ref":"LOG_AS_DATA_EXFILTRATION"}
+{"id":"PROSE-AP-AUDIT_AS_RAW_DUMP","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"BLACKBOX","statement":"AUDIT_AS_RAW_DUMP","ref":"AUDIT_AS_RAW_DUMP"}
+{"id":"PROSE-AP-HASH_AS_ENCRYPTION","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"BLACKBOX","statement":"HASH_AS_ENCRYPTION","ref":"HASH_AS_ENCRYPTION"}
+{"id":"PROSE-AP-PSEUDONYM_AS_ANONYMITY","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"BLACKBOX","statement":"PSEUDONYM_AS_ANONYMITY","ref":"PSEUDONYM_AS_ANONYMITY"}
+{"id":"PROSE-AP-DERIVED_DATA_AS_PUBLIC","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"BLACKBOX","statement":"DERIVED_DATA_AS_PUBLIC","ref":"DERIVED_DATA_AS_PUBLIC"}
+{"id":"PROSE-AP-REGEX_ONLY_AS_DLP","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"BLACKBOX","statement":"REGEX_ONLY_AS_DLP","ref":"REGEX_ONLY_AS_DLP"}
+{"id":"PROSE-AP-AGENT_SELF_AUTHORIZES_DISCLOSURE","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"BLACKBOX","statement":"AGENT_SELF_AUTHORIZES_DISCLOSURE","ref":"AGENT_SELF_AUTHORIZES_DISCLOSURE"}
+{"id":"PROSE-AP-CLASSIFICATION_LABEL_WITHOUT_ENFORCEMENT","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"BLACKBOX","statement":"CLASSIFICATION_LABEL_WITHOUT_ENFORCEMENT","ref":"CLASSIFICATION_LABEL_WITHOUT_ENFORCEMENT"}
+{"id":"PROSE-AP-CONTEXT_PACK_WITHOUT_SCOPE","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"BLACKBOX","statement":"CONTEXT_PACK_WITHOUT_SCOPE","ref":"CONTEXT_PACK_WITHOUT_SCOPE"}
+{"id":"PROSE-AP-CONTEXT_PACK_WITHOUT_EXPIRY","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"BLACKBOX","statement":"CONTEXT_PACK_WITHOUT_EXPIRY","ref":"CONTEXT_PACK_WITHOUT_EXPIRY"}
+{"id":"PROSE-AP-VIEW_CACHE_SCOPE_CONFUSION","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"BLACKBOX","statement":"VIEW_CACHE_SCOPE_CONFUSION","ref":"VIEW_CACHE_SCOPE_CONFUSION"}
+{"id":"PROSE-AP-STORE_BINDING_EXPOSES_DATABASE_SECRET","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"BLACKBOX","statement":"STORE_BINDING_EXPOSES_DATABASE_SECRET","ref":"STORE_BINDING_EXPOSES_DATABASE_SECRET"}
+{"id":"PROSE-AP-PROVIDER_FACADE_LEAKS_INTERNAL_TOPOLOGY","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"BLACKBOX","statement":"PROVIDER_FACADE_LEAKS_INTERNAL_TOPOLOGY","ref":"PROVIDER_FACADE_LEAKS_INTERNAL_TOPOLOGY"}
+{"id":"PROSE-AP-CRYPTO_HELPER_WITHOUT_PRODUCT_BOUNDARY","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"BLACKBOX","statement":"CRYPTO_HELPER_WITHOUT_PRODUCT_BOUNDARY","ref":"CRYPTO_HELPER_WITHOUT_PRODUCT_BOUNDARY"}
+{"id":"PROSE-AP-CONFIDENTIAL_COMPUTE_CLAIM_WITHOUT_ATTESTATION","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"BLACKBOX","statement":"CONFIDENTIAL_COMPUTE_CLAIM_WITHOUT_ATTESTATION","ref":"CONFIDENTIAL_COMPUTE_CLAIM_WITHOUT_ATTESTATION"}
+{"id":"PROSE-AP-ZERO_KNOWLEDGE_CLAIM_WITH_SERVER_PLAINTEXT","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"BLACKBOX","statement":"ZERO_KNOWLEDGE_CLAIM_WITH_SERVER_PLAINTEXT","ref":"ZERO_KNOWLEDGE_CLAIM_WITH_SERVER_PLAINTEXT"}
+{"id":"PROSE-AP-CROSS_CAP_CONTRACT_FAIL","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"FIC","statement":"CROSS_CAP_CONTRACT_FAIL","ref":"CROSS_CAP_CONTRACT_FAIL"}
+{"id":"PROSE-AP-FLOW_RUNTIME_WITNESS_BROKEN","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"FIC","statement":"FLOW_RUNTIME_WITNESS_BROKEN","ref":"FLOW_RUNTIME_WITNESS_BROKEN"}
+{"id":"PROSE-AP-STALE_BENCHMARK","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"FIC","statement":"STALE_BENCHMARK","ref":"STALE_BENCHMARK"}
+{"id":"PROSE-AP-STALE_CODE_EVIDENCE","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"FIC","statement":"STALE_CODE_EVIDENCE","ref":"STALE_CODE_EVIDENCE"}
+{"id":"PROSE-AP-GENERATED_PACKET_DRIFT","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"FIC","statement":"GENERATED_PACKET_DRIFT","ref":"GENERATED_PACKET_DRIFT"}
+{"id":"PROSE-AP-CAPABILITY_AS_FLOW","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"FIC","statement":"CAPABILITY_AS_FLOW","ref":"CAPABILITY_AS_FLOW"}
+{"id":"PROSE-AP-FIXTURE_AS_RUNTIME","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"FIC","statement":"FIXTURE_AS_RUNTIME","ref":"FIXTURE_AS_RUNTIME"}
+{"id":"PROSE-AP-SCORE_OVERRIDES_HARD_GATE","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"FIC","statement":"SCORE_OVERRIDES_HARD_GATE","ref":"SCORE_OVERRIDES_HARD_GATE"}
+{"id":"PROSE-AP-LATEST_BENCHMARK_UNPINNED","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"FIC","statement":"LATEST_BENCHMARK_UNPINNED","ref":"LATEST_BENCHMARK_UNPINNED"}
+{"id":"PROSE-AP-DONOR_REFERENCE_AS_FLOW","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"FIC","statement":"DONOR_REFERENCE_AS_FLOW","ref":"DONOR_REFERENCE_AS_FLOW"}
+{"id":"PROSE-AP-BENCHMARK_AS_PRODUCT_AUTHORITY","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"FIC","statement":"BENCHMARK_AS_PRODUCT_AUTHORITY","ref":"BENCHMARK_AS_PRODUCT_AUTHORITY"}
+{"id":"PROSE-AP-CAP_WEAKENS_OWN_STANDARD","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"FIC","statement":"CAP_WEAKENS_OWN_STANDARD","ref":"CAP_WEAKENS_OWN_STANDARD"}
+{"id":"PROSE-SEC-01","class":"EXPLANATORY_ONLY","source":"compiler:prose","standard":"WEB2APP","statement":"One-line WEB2APP truth","ref":"205§0"}
+{"id":"PROSE-SEC-02","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"WEB2APP","statement":"Core WEB2APP law / Internet ABI","ref":"205§2"}
+{"id":"PROSE-SEC-03","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"WEB2APP","statement":"WEB2APP anti-pattern taxonomy","ref":"205§19"}
+{"id":"PROSE-SEC-04","class":"DONOR_REFERENCE_ONLY","source":"compiler:prose","standard":"WEB2APP","statement":"Donor divergence notes","ref":"205§20"}
+{"id":"PROSE-SEC-05","class":"APPLICABLE_HARD_REQUIREMENT","source":"compiler:prose","standard":"WEB2APP","statement":"Score does not hide hard gates","ref":"205§21"}
+{"id":"PROSE-SEC-06","class":"EXPLANATORY_ONLY","source":"compiler:prose","standard":"WEB2APP","statement":"Calibration cases; not product evidence","ref":"205§23"}
+{"id":"PROSE-SEC-07","class":"APPLICABLE_FLOW_REQUIREMENT","source":"compiler:prose","standard":"WEB2APP","statement":"Reactive WebApp observation plane","ref":"205§27"}
+{"id":"PROSE-SEC-08","class":"APPLICABLE_FLOW_REQUIREMENT","source":"compiler:prose","standard":"WEB2APP","statement":"CAP12/CAP13/CAP15 triangle","ref":"205§28"}
+{"id":"PROSE-SEC-09","class":"APPLICABLE_MANUAL_REVIEW","source":"compiler:prose","standard":"EMPLOYMENT","statement":"Legal terminology / personhood not asserted","ref":"206§7"}
+{"id":"PROSE-SEC-10","class":"APPLICABLE_FLOW_REQUIREMENT","source":"compiler:prose","standard":"EMPLOYMENT","statement":"E0–E6 maturity meanings","ref":"206§14"}
+{"id":"PROSE-SEC-11","class":"EXPLANATORY_ONLY","source":"compiler:prose","standard":"EMPLOYMENT","statement":"Current runtime calibration","ref":"206§21"}
+{"id":"PROSE-SEC-12","class":"APPLICABLE_FLOW_REQUIREMENT","source":"compiler:prose","standard":"STORE","statement":"S0–S6 maturity meanings","ref":"207§11"}
+{"id":"PROSE-SEC-13","class":"EXPLANATORY_ONLY","source":"compiler:prose","standard":"STORE","statement":"Current Chronica Store calibration","ref":"207§14"}
+{"id":"PROSE-SEC-14","class":"DONOR_REFERENCE_ONLY","source":"compiler:prose","standard":"STORE","statement":"Store donor census","ref":"207§15"}
+{"id":"PROSE-SEC-15","class":"APPLICABLE_FLOW_REQUIREMENT","source":"compiler:prose","standard":"BLACKBOX","statement":"Trust zones and disclosure depth","ref":"208§4"}
+{"id":"PROSE-SEC-16","class":"APPLICABLE_FLOW_REQUIREMENT","source":"compiler:prose","standard":"BLACKBOX","statement":"B0–B6 maturity meanings","ref":"208§9"}
+{"id":"PROSE-SEC-17","class":"EXPLANATORY_ONLY","source":"compiler:prose","standard":"BLACKBOX","statement":"Current Chronica Black-Box calibration","ref":"208§13"}
+{"id":"PROSE-SEC-18","class":"DONOR_REFERENCE_ONLY","source":"compiler:prose","standard":"BLACKBOX","statement":"Black-Box donor census","ref":"208§14"}
+{"id":"PROSE-SEC-19","class":"APPLICABLE_MANUAL_REVIEW","source":"compiler:prose","standard":"BLACKBOX","statement":"Privacy/legal-purpose classification remains reviewable","ref":"208§5"}
+{"id":"DOC-BENCHMARKS-106-benchmark-local-company-portfolio.md","class":"EXPLANATORY_ONLY","source":"docs/benchmarks","path":"docs/benchmarks/106-benchmark-local-company-portfolio.md"}
+{"id":"DOC-BENCHMARKS-116-operating-world-class-benchmark-gates.md","class":"APPLICABLE_HARD_REQUIREMENT","source":"docs/benchmarks","path":"docs/benchmarks/116-operating-world-class-benchmark-gates.md"}
+{"id":"DOC-BENCHMARKS-120-benchmark-fintech-internet-banking-gcie-portfolio.md","class":"EXPLANATORY_ONLY","source":"docs/benchmarks","path":"docs/benchmarks/120-benchmark-fintech-internet-banking-gcie-portfolio.md"}
+{"id":"DOC-BENCHMARKS-124-benchmark-legal-jurisdiction-compliance-portfolio.md","class":"EXPLANATORY_ONLY","source":"docs/benchmarks","path":"docs/benchmarks/124-benchmark-legal-jurisdiction-compliance-portfolio.md"}
+{"id":"DOC-BENCHMARKS-127-operating-roadmap-invariant-truth-gate.md","class":"EXPLANATORY_ONLY","source":"docs/benchmarks","path":"docs/benchmarks/127-operating-roadmap-invariant-truth-gate.md"}
+{"id":"DOC-BENCHMARKS-144-benchmark-media-provider-donor-portfolio.md","class":"DONOR_REFERENCE_ONLY","source":"docs/benchmarks","path":"docs/benchmarks/144-benchmark-media-provider-donor-portfolio.md"}
+{"id":"DOC-BENCHMARKS-184-benchmark-world-class-oss-reference-portfolio.md","class":"DONOR_REFERENCE_ONLY","source":"docs/benchmarks","path":"docs/benchmarks/184-benchmark-world-class-oss-reference-portfolio.md"}
+{"id":"DOC-BENCHMARKS-188-benchmark-financial-interoperability-oss-license-portfolio.md","class":"DONOR_REFERENCE_ONLY","source":"docs/benchmarks","path":"docs/benchmarks/188-benchmark-financial-interoperability-oss-license-portfolio.md"}
+{"id":"DOC-BENCHMARKS-194-benchmark-adaptive-operations-knowledge-extraction-oss.md","class":"DONOR_REFERENCE_ONLY","source":"docs/benchmarks","path":"docs/benchmarks/194-benchmark-adaptive-operations-knowledge-extraction-oss.md"}
+{"id":"DOC-BENCHMARKS-198-benchmark-procurement-automation-market-oss.md","class":"DONOR_REFERENCE_ONLY","source":"docs/benchmarks","path":"docs/benchmarks/198-benchmark-procurement-automation-market-oss.md"}
+{"id":"DOC-BENCHMARKS-202-benchmark-competitive-business-viability.md","class":"APPLICABLE_MANUAL_REVIEW","source":"docs/benchmarks","path":"docs/benchmarks/202-benchmark-competitive-business-viability.md"}
+{"id":"DOC-BENCHMARKS-2026-07-09-external-architecture-benchmark-map.md","class":"APPLICABLE_MANUAL_REVIEW","source":"docs/benchmarks","path":"docs/benchmarks/2026-07-09-external-architecture-benchmark-map.md"}
+{"id":"DOC-BENCHMARKS-2026-07-12-benchmark-remediation-loop.md","class":"APPLICABLE_MANUAL_REVIEW","source":"docs/benchmarks","path":"docs/benchmarks/2026-07-12-benchmark-remediation-loop.md"}
+{"id":"DOC-BENCHMARKS-2026-07-12-crm-growth-analytics-benchmark-intent.md","class":"EXPLANATORY_ONLY","source":"docs/benchmarks","path":"docs/benchmarks/2026-07-12-crm-growth-analytics-benchmark-intent.md"}
+{"id":"DOC-BENCHMARKS-2026-07-12-cross-holding-collaboration-benchmark-intent.md","class":"DONOR_REFERENCE_ONLY","source":"docs/benchmarks","path":"docs/benchmarks/2026-07-12-cross-holding-collaboration-benchmark-intent.md"}
+{"id":"DOC-BENCHMARKS-2026-07-12-local-company-benchmark-portfolio.md","class":"EXPLANATORY_ONLY","source":"docs/benchmarks","path":"docs/benchmarks/2026-07-12-local-company-benchmark-portfolio.md"}
+{"id":"DOC-BENCHMARKS-2026-07-12-slack-work-room-benchmark-intent.md","class":"EXPLANATORY_ONLY","source":"docs/benchmarks","path":"docs/benchmarks/2026-07-12-slack-work-room-benchmark-intent.md"}
+{"id":"DOC-BENCHMARKS-2026-07-13-business-event-outbox-dispatch-benchmark.md","class":"APPLICABLE_MANUAL_REVIEW","source":"docs/benchmarks","path":"docs/benchmarks/2026-07-13-business-event-outbox-dispatch-benchmark.md"}
+{"id":"DOC-BENCHMARKS-2026-07-13-esign-governed-signing-benchmark.md","class":"APPLICABLE_MANUAL_REVIEW","source":"docs/benchmarks","path":"docs/benchmarks/2026-07-13-esign-governed-signing-benchmark.md"}
+{"id":"DOC-BENCHMARKS-2026-07-13-meta-plane-dependency-gate-benchmark.md","class":"APPLICABLE_MANUAL_REVIEW","source":"docs/benchmarks","path":"docs/benchmarks/2026-07-13-meta-plane-dependency-gate-benchmark.md"}
+{"id":"DOC-BENCHMARKS-2026-07-20-ai-workforce-provider-fabric-benchmark.md","class":"APPLICABLE_MANUAL_REVIEW","source":"docs/benchmarks","path":"docs/benchmarks/2026-07-20-ai-workforce-provider-fabric-benchmark.md"}
+{"id":"DOC-BENCHMARKS-2026-07-28-5d-ratio-benchmark-coverage-status.md","class":"APPLICABLE_MANUAL_REVIEW","source":"docs/benchmarks","path":"docs/benchmarks/2026-07-28-5d-ratio-benchmark-coverage-status.md"}
+{"id":"DOC-BENCHMARKS-2026-08-20-fic-controller-wave1.md","class":"APPLICABLE_HARD_REQUIREMENT","source":"docs/benchmarks","path":"docs/benchmarks/2026-08-20-fic-controller-wave1.md"}
+{"id":"DOC-BENCHMARKS-2026-08-20-five-plane-audit.md","class":"APPLICABLE_HARD_REQUIREMENT","source":"docs/benchmarks","path":"docs/benchmarks/2026-08-20-five-plane-audit.md"}
+{"id":"DOC-BENCHMARKS-205-web2app-standard.md","class":"APPLICABLE_HARD_REQUIREMENT","source":"docs/benchmarks","path":"docs/benchmarks/205-web2app-standard.md"}
+{"id":"DOC-BENCHMARKS-206-agent-employment-contract-standard.md","class":"APPLICABLE_HARD_REQUIREMENT","source":"docs/benchmarks","path":"docs/benchmarks/206-agent-employment-contract-standard.md"}
+{"id":"DOC-BENCHMARKS-207-chronica-store-platform-standard.md","class":"APPLICABLE_HARD_REQUIREMENT","source":"docs/benchmarks","path":"docs/benchmarks/207-chronica-store-platform-standard.md"}
+{"id":"DOC-BENCHMARKS-208-chronica-confidential-blackbox-data-plane-standard.md","class":"APPLICABLE_HARD_REQUIREMENT","source":"docs/benchmarks","path":"docs/benchmarks/208-chronica-confidential-blackbox-data-plane-standard.md"}
+{"id":"DOC-BENCHMARKS-209-benchmark-contract-compiler.md","class":"APPLICABLE_HARD_REQUIREMENT","source":"docs/benchmarks","path":"docs/benchmarks/209-benchmark-contract-compiler.md"}
+{"id":"DOC-BENCHMARKS-README.md","class":"APPLICABLE_MANUAL_REVIEW","source":"docs/benchmarks","path":"docs/benchmarks/README.md"}
+{"id":"DOC-BENCHMARKS-facebook-meta-parity-study.md","class":"DONOR_REFERENCE_ONLY","source":"docs/benchmarks","path":"docs/benchmarks/facebook-meta-parity-study.md"}

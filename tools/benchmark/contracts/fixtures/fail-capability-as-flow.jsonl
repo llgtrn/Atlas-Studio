@@ -1,0 +1,1 @@
+{"schema":"chronica.benchmark.contract.v1","type":"flow","id":"helpdesk.ticket.create","family":"FAM-HELPDESK-TICKET","owner":"CAP01","objective":"capability row used as flow","obligations":["PO-STATE"]}

@@ -1,0 +1,25 @@
+{
+  "_doc": "The Outcome Graph — results, not builds. A capability shipping is not the point; the measurable result is. status: predicted (a target) -> measuring -> measured (real number observed in reality). HONEST: 0 are measured today — nothing has run in production. actual stays null until reality produces a number.",
+  "outcomes": [
+    { "id": "oc-event-backbone-decoupling", "subject_kind": "opportunity", "subject_id": "architecture-event-backbone-missing",
+      "metric": "write-path / read-path coupling", "baseline": "feed + OLAP + agent-memory read directly off the write path",
+      "target": "0 direct write-path reads; >=5 read-model consumers fed by projections", "actual": null, "unit": "consumers",
+      "status": "predicted", "notes": "the claimed 7-unlock leverage only counts if real consumers actually switch to projections." },
+    { "id": "oc-durable-runtime-crashsafety", "subject_kind": "opportunity", "subject_id": "automation-durable-workflow-runtime",
+      "metric": "long-running loop resume-after-crash", "baseline": "in-memory orchestration, lost on restart",
+      "target": "100% of in-flight workflows resume correctly after a forced restart", "actual": null, "unit": "%",
+      "status": "predicted", "notes": "durable execution claim is unproven until a real crash/restart is survived." },
+    { "id": "oc-trust-tier-tightening", "subject_kind": "opportunity", "subject_id": "capability-agent-autonomy-governor-trust-tiers",
+      "metric": "authority tightened on a missed forecast", "baseline": "no live calibration feedback",
+      "target": "a live agent's authority ceiling drops within 1 cycle of a missed forecast", "actual": null, "unit": "cycles",
+      "status": "predicted", "notes": "the trust-tier model is theoretical until it actually demotes a real agent." },
+    { "id": "oc-ci-ignored-tests-run", "subject_kind": "opportunity", "subject_id": "testing-ci-db-gated-include-ignored",
+      "metric": "db-gated tests executed in CI", "baseline": "~0 of ~37 (all #[ignore]d)",
+      "target": "37 of 37 db-gated tests run green in a CI lane", "actual": null, "unit": "tests",
+      "status": "predicted", "notes": "cheapest path to lifting much of the codebase from L1/L2 toward L3." },
+    { "id": "oc-billing-first-real-invoice", "subject_kind": "opportunity", "subject_id": "revenue-erp-billing-subscription-suite",
+      "metric": "real subscription invoice through the gate", "baseline": "0 real invoices",
+      "target": ">=1 real customer subscription invoice posts through the one money gate", "actual": null, "unit": "invoices",
+      "status": "predicted", "notes": "the first true L4 money event — real customer, real money, real audit row." }
+  ]
+}

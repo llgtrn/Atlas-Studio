@@ -1,0 +1,132 @@
+schema_version: 2
+canonical_repo: llgtrn/Chronica
+canonical_vocabulary:
+  repository_unit: DEVELOPMENT_CELL
+  output_unit: CHRONICA_PACKAGE
+  legacy_repo_suffix: Ops
+
+development_cells:
+  - { cell_id: guest-communication, repo: llgtrn/StayChatbotOps, legacy_name: StayChatbotOps, role: guest_communication, package_id: guest-communication, package_kind: DOMAIN_PACKAGE, active: true, refoundation_generation: 1, default_ref: main }
+  - { cell_id: hospitality-pms-legacy, repo: llgtrn/Host-Ops-PMS, legacy_name: Host-Ops-PMS, role: hospitality_pms_legacy, package_id: hospitality-pms-legacy, package_kind: DOMAIN_PACKAGE, active: false, refoundation_generation: 1, default_ref: main }
+  - { cell_id: hospitality, repo: llgtrn/bnbOps, legacy_name: bnbOps, role: hospitality, package_id: hospitality, package_kind: DOMAIN_PACKAGE, active: true, refoundation_generation: 1, default_ref: main }
+  - { cell_id: estate, repo: llgtrn/EstateOps, legacy_name: EstateOps, role: estate, package_id: estate, package_kind: DOMAIN_PACKAGE, active: true, refoundation_generation: 1, default_ref: main }
+  - { cell_id: trade-logistics, repo: llgtrn/TradeOps, legacy_name: TradeOps, role: trade_logistics, package_id: trade-logistics, package_kind: DOMAIN_PACKAGE, active: true, refoundation_generation: 1, default_ref: main }
+  - { cell_id: commerce, repo: llgtrn/ECOps, legacy_name: ECOps, role: commerce, package_id: commerce, package_kind: DOMAIN_PACKAGE, active: true, refoundation_generation: 1, default_ref: main }
+  - { cell_id: finance, repo: llgtrn/FinOps, legacy_name: FinOps, role: finance, package_id: finance, package_kind: DOMAIN_PACKAGE, active: true, refoundation_generation: 1, default_ref: main }
+  - { cell_id: osint, repo: llgtrn/OSINTOps, legacy_name: OSINTOps, role: osint, package_id: osint, package_kind: CAPABILITY_PACKAGE, active: true, refoundation_generation: 1, default_ref: main }
+  - { cell_id: helpdesk, repo: llgtrn/HelpdeskOps, legacy_name: HelpdeskOps, role: helpdesk, package_id: helpdesk, package_kind: DOMAIN_PACKAGE, active: true, refoundation_generation: 1, default_ref: main }
+  - { cell_id: customer, repo: llgtrn/CustomerOps, legacy_name: CustomerOps, role: customer_crm, package_id: customer, package_kind: DOMAIN_PACKAGE, active: true, refoundation_generation: 1, default_ref: main }
+  - { cell_id: legal, repo: llgtrn/LegalOps, legacy_name: LegalOps, role: legal, package_id: legal, package_kind: DOMAIN_PACKAGE, active: true, refoundation_generation: 1, default_ref: main }
+  - { cell_id: platform, repo: llgtrn/PlatformOps, legacy_name: PlatformOps, role: platform_cloud, package_id: platform, package_kind: CAPABILITY_PACKAGE, active: true, refoundation_generation: 1, default_ref: claude/chronica-convergence-directive-v3glni }
+  - { cell_id: edge, repo: llgtrn/EdgeOps, legacy_name: EdgeOps, role: edge_network, package_id: edge, package_kind: CAPABILITY_PACKAGE, active: true, refoundation_generation: 1, default_ref: main }
+  - { cell_id: digital-twin, repo: llgtrn/TwinOps, legacy_name: TwinOps, role: digital_twin_building, package_id: digital-twin, package_kind: DOMAIN_PACKAGE, active: true, refoundation_generation: 1, default_ref: main }
+  - { cell_id: robotics, repo: llgtrn/RoboticsOps, legacy_name: RoboticsOps, role: robotics, package_id: robotics, package_kind: DOMAIN_PACKAGE, active: true, refoundation_generation: 1, default_ref: main }
+  - { cell_id: simulation, repo: llgtrn/SimulationOps, legacy_name: SimulationOps, role: simulation, package_id: simulation, package_kind: CAPABILITY_PACKAGE, active: true, refoundation_generation: 1, default_ref: main }
+  - { cell_id: mobility-fleet, repo: llgtrn/FleetOps, legacy_name: FleetOps, role: fleet_mobility, package_id: mobility-fleet, package_kind: DOMAIN_PACKAGE, active: true, refoundation_generation: 1, default_ref: main }
+  - { cell_id: industrial, repo: llgtrn/IndustrialOps, legacy_name: IndustrialOps, role: industrial_ot, package_id: industrial, package_kind: DOMAIN_PACKAGE, active: true, refoundation_generation: 1, default_ref: main }
+  - { cell_id: banking, repo: llgtrn/BankingOps, legacy_name: BankingOps, role: banking, package_id: banking, package_kind: DOMAIN_PACKAGE, active: true, refoundation_generation: 1, default_ref: main }
+  - { cell_id: trading, repo: llgtrn/TradingOps, legacy_name: TradingOps, role: trading_markets, package_id: trading, package_kind: DOMAIN_PACKAGE, active: true, refoundation_generation: 1, default_ref: main }
+  - { cell_id: web2app, repo: llgtrn/W2AOps, legacy_name: W2AOps, role: web2app, package_id: web2app, package_kind: ADAPTER_PACKAGE, active: true, refoundation_generation: 1, default_ref: main }
+
+donor_overrides:
+  # Explicit kernel admission: broad technical families do NOT imply Chronica ownership.
+  apache/age: llgtrn/Chronica
+  authzed/spicedb: llgtrn/Chronica
+  getzep/graphiti: llgtrn/Chronica
+  keycloak/keycloak: llgtrn/Chronica
+  open-policy-agent/opa: llgtrn/Chronica
+  openbao/openbao: llgtrn/Chronica
+  postgres/postgres: llgtrn/Chronica
+  restatedev/restate: llgtrn/Chronica
+  facebookresearch/vjepa2: llgtrn/Chronica
+  danijar/dreamerv3: llgtrn/Chronica
+
+  # Chronica-owned comparison references only; corpus status must remain REFERENCE_ONLY.
+  hashicorp/vault: llgtrn/Chronica
+  Infisical/infisical: llgtrn/Chronica
+  openfga/openfga: llgtrn/Chronica
+  temporalio/temporal: llgtrn/Chronica
+
+  # Domain/capability owners.
+  falcosecurity/falco: llgtrn/EdgeOps
+  unclecode/crawl4ai: llgtrn/W2AOps
+  chatwoot/chatwoot: llgtrn/HelpdeskOps
+  twentyhq/twenty: llgtrn/CustomerOps
+  coollabsio/coolify: llgtrn/PlatformOps
+  frappe/erpnext: llgtrn/ECOps
+  frappe/frappe: llgtrn/ECOps
+
+domain_prefix_rules:
+  customerops_: llgtrn/CustomerOps
+  osintops_: llgtrn/OSINTOps
+  platformops_: llgtrn/PlatformOps
+  finops_: llgtrn/FinOps
+  tradeops_: llgtrn/TradeOps
+  tradingops: llgtrn/TradingOps
+  bnbops_: llgtrn/bnbOps
+  bnbops: llgtrn/bnbOps
+  guest_engagement: llgtrn/StayChatbotOps
+  legalops_: llgtrn/LegalOps
+  legalops: llgtrn/LegalOps
+  edgeops: llgtrn/EdgeOps
+  roboticsops_: llgtrn/RoboticsOps
+  industrialops: llgtrn/IndustrialOps
+  simulationops: llgtrn/SimulationOps
+  fleetops: llgtrn/FleetOps
+  bankingops: llgtrn/BankingOps
+  estateops_: llgtrn/EstateOps
+  ecops_: llgtrn/ECOps
+  web2app_: llgtrn/W2AOps
+  building_home: llgtrn/TwinOps
+  geo_routing: llgtrn/FleetOps
+  data_analytics: llgtrn/PlatformOps
+  observability2: llgtrn/PlatformOps
+  ai_model_serving: llgtrn/PlatformOps
+  ai_workforce_agent: llgtrn/PlatformOps
+  ai_memory_rag: llgtrn/PlatformOps
+  streaming: llgtrn/PlatformOps
+  sandbox_wasm: llgtrn/EdgeOps
+  network_gateway: llgtrn/EdgeOps
+  identity_supplychain: llgtrn/TradeOps
+  metering_billing: llgtrn/FinOps
+  document_ocr: llgtrn/OSINTOps
+  embedded: llgtrn/EdgeOps
+  security_runtime: llgtrn/EdgeOps
+
+family_rules:
+  AI_RUNTIME: llgtrn/PlatformOps
+  OSINT: llgtrn/OSINTOps
+  PLATFORM_ENGINEERING: llgtrn/PlatformOps
+  DURABLE_STATE: llgtrn/PlatformOps
+  OBSERVABILITY: llgtrn/PlatformOps
+  COMMERCE: llgtrn/ECOps
+  ROBOTICS: llgtrn/RoboticsOps
+  CUSTOMER: llgtrn/CustomerOps
+  SERVERLESS: llgtrn/PlatformOps
+  WEB2APP: llgtrn/W2AOps
+  HOSPITALITY: llgtrn/bnbOps
+  CLOUD: llgtrn/PlatformOps
+  LOGISTICS: llgtrn/TradeOps
+  AUTHORITY: llgtrn/PlatformOps
+  MODEL_SERVING: llgtrn/PlatformOps
+  EDGE: llgtrn/EdgeOps
+  TRADING: llgtrn/TradingOps
+  FINANCE: llgtrn/FinOps
+  INDUSTRIAL: llgtrn/IndustrialOps
+  LEGAL: llgtrn/LegalOps
+  TRADE: llgtrn/TradeOps
+  CONTAINER: llgtrn/PlatformOps
+  EXECUTION: llgtrn/PlatformOps
+  BUILDING: llgtrn/TwinOps
+  NETWORK: llgtrn/EdgeOps
+  DOCUMENT: llgtrn/OSINTOps
+  ESTATE: llgtrn/EstateOps
+  EVENTING: llgtrn/Chronica
+  IDENTITY: llgtrn/Chronica
+  MEMORY: llgtrn/Chronica
+  OTHER: llgtrn/PlatformOps
+  SIMULATION: llgtrn/SimulationOps
+  BANKING: llgtrn/BankingOps
+  SECURITY: llgtrn/PlatformOps
+  FLEET: llgtrn/FleetOps
+  DEVELOPER_TOOLING: llgtrn/PlatformOps

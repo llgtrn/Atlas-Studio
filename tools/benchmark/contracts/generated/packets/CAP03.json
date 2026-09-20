@@ -1,0 +1,77 @@
+{
+  "schema": "chronica.benchmark.contract.v1",
+  "generated": true,
+  "source_of_truth": "tools/benchmark/contracts/source",
+  "cap": "CAP03",
+  "name": "Backup/restore",
+  "benchmark_release": "BR-2026.08.21.1",
+  "benchmark_sha": "2f0a95472e72842e7ec70cdac6eeef8297df2b55",
+  "contract_schema_version": "1.0.0",
+  "source_hash": "bea492307c825d9bd8fc9b677e0b6028b79cbee119bfb216d7c25d976d82c8f1",
+  "ownership": [
+    "backup execution",
+    "restore orchestration"
+  ],
+  "non_ownership": [
+    "backup confidentiality policy (CAP18)",
+    "Vault keys"
+  ],
+  "standards": {
+    "BLACKBOX": "1.0.0"
+  },
+  "catalog_versions": {
+    "WEB2APP": "1.1.0",
+    "EMPLOYMENT": "1.0.0",
+    "STORE": "1.0.0",
+    "BLACKBOX": "1.0.0",
+    "FIC": "55",
+    "FIVE_PLANE": "PROVISIONAL_BASELINE"
+  },
+  "families": [
+    "FAM-BACKUP-RECOVERY"
+  ],
+  "owned_flow_ids": [
+    "FLOW-CAP03-BACKUP-001"
+  ],
+  "participating_flow_ids": [],
+  "hard_gates": [
+    "PLAINTEXT_BACKUP_BYPASS"
+  ],
+  "anti_patterns": [
+    "PLAINTEXT_BACKUP_BYPASS"
+  ],
+  "forbidden_architecture": [],
+  "flow_status": {
+    "FLOW-CAP03-BACKUP-001": "SPEC_ONLY"
+  },
+  "missing_witnesses": [
+    "FLOW-CAP03-BACKUP-001:PO-DURABILITY",
+    "FLOW-CAP03-BACKUP-001:PO-ROLLBACK",
+    "FLOW-CAP03-BACKUP-001:PO-DISCLOSURE"
+  ],
+  "required_proof_obligations": [
+    "PO-DURABILITY",
+    "PO-ROLLBACK",
+    "PO-DISCLOSURE"
+  ],
+  "blocked_flows": [],
+  "next_actionable": [
+    {
+      "id": "FLOW-CAP03-BACKUP-001",
+      "status": "SPEC_ONLY",
+      "missing": [
+        "PO-DURABILITY",
+        "PO-ROLLBACK",
+        "PO-DISCLOSURE"
+      ],
+      "value": "MEDIUM",
+      "golden": [
+        "GBF-009"
+      ]
+    }
+  ],
+  "negatives": [],
+  "this_packet_is_not_source": true,
+  "packet_hash": "5232800c55d9ec718aedf889ddaea285c2eb072a17cea93f7bdc2ad122147da4",
+  "markdown": "# CAP03 Backup/restore — acceptance packet\n\nGENERATED. Source of truth is Contract IR (chronica.benchmark.contract.v1). Do not hand-edit.\n\n- BENCHMARK_RELEASE: `BR-2026.08.21.1`\n- BENCHMARK_SHA: `2f0a95472e72842e7ec70cdac6eeef8297df2b55`\n- SOURCE_HASH: `bea492307c825d9bd8fc9b677e0b6028b79cbee119bfb216d7c25d976d82c8f1`\n- PACKET_HASH: `5232800c55d9ec718aedf889ddaea285c2eb072a17cea93f7bdc2ad122147da4`\n- STANDARDS: {\"BLACKBOX\":\"1.0.0\"}\n\n## Owns\n- backup execution\n- restore orchestration\n\n## Does not own\n- backup confidentiality policy (CAP18)\n- Vault keys\n\n## Hard gates\n- PLAINTEXT_BACKUP_BYPASS\n\n## Owned flows\n- `FLOW-CAP03-BACKUP-001` SPEC_ONLY missing=PO-DURABILITY,PO-ROLLBACK,PO-DISCLOSURE\n\n## Next actionable\n- `FLOW-CAP03-BACKUP-001` (SPEC_ONLY)\n\nIf the standard appears wrong: emit BENCHMARK_CHANGE_REQUEST. Do not weaken fixtures.\n"
+}

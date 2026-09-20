@@ -1,0 +1,48 @@
+{
+  "schema": "chronica.blackbox.evaluation.v1",
+  "fixture_kind": "BENCHMARK_FIXTURE_ONLY",
+  "web2app": {
+    "independent": true
+  },
+  "employment": {
+    "independent": true
+  },
+  "case_id": "confidential-compute-fake-claim",
+  "claimed_blackbox_maturity": "B6",
+  "at_rest": {
+    "sealed": true
+  },
+  "opaque": {
+    "boundary_ref": true
+  },
+  "secrets": {
+    "handle": true,
+    "envelope": true,
+    "use_without_disclose": true
+  },
+  "agent": {
+    "semantic_view": true,
+    "send_by_handle": true
+  },
+  "provider": {
+    "minimized": true
+  },
+  "output_dlp": {
+    "enforced": true
+  },
+  "context": {
+    "scope_before_retrieve": true
+  },
+  "cross_tenant": {
+    "negative": true
+  },
+  "confidential_compute": {
+    "claimed": true,
+    "attestation": false
+  },
+  "zero_knowledge": {
+    "claimed": true,
+    "server_plaintext": true
+  },
+  "notes": "Process isolation / docs are not B6. Server plaintext contradicts ZK claim."
+}

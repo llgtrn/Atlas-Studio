@@ -1,0 +1,70 @@
+{
+  "platform": "HelpdeskPlatform",
+  "claim": "NativeSlice",
+  "purpose": "Ground the platform.replicate_helpdesk_platform row in the real, landed chronica-helpdesk ticket/SLA/knowledge-base slices, honestly reporting CustomerPortal as the one required primitive with no implementation anywhere in the workspace, and PolicyApprovalGate as local-audit-required since no explicit human-approval workflow gates these mutations today.",
+  "build_paths": [
+    "DonorExtraction",
+    "NativeRustKernel"
+  ],
+  "evidence": [
+    {
+      "kind": "DonorExtraction",
+      "state": "Connected",
+      "evidence": "docs/benchmarks/2026-07-09-external-architecture-benchmark-map.md section 10 (\"Zendesk / helpdesk benchmark map\", lines 486-525); 10.2 explicitly allows only \"Chronica has a real helpdesk substrate\", not a Zendesk-class claim.",
+      "reason": null
+    },
+    {
+      "kind": "NativeRustCode",
+      "state": "Connected",
+      "evidence": "crates/chronica-helpdesk/src/store/conversation_store.rs (set_status, assign, create_thread, post_reply -- ticket lifecycle); crates/chronica-helpdesk/src/support_sla.rs (classify_sla) + support_sla_escalation.rs (select_new_breaches -- SLA routing/escalation); crates/chronica-helpdesk/src/support_kb/{article.rs,category.rs,mod.rs} (knowledge base). Wired to real production HTTP routes: crates/chronica-api/src/routes/{helpdesk.rs,helpdesk_sla.rs,helpdesk_kb.rs}, merged into the live router at crates/chronica-api/src/router/social_and_helpdesk_routes.rs (confirmed by direct grep of the merge call). Not test-only, not ISLAND -- these have real HTTP entry points.",
+      "reason": null
+    },
+    {
+      "kind": "BehaviorTests",
+      "state": "Connected",
+      "evidence": "cargo test -p chronica-helpdesk --lib: 91 passed, 0 failed (independently re-run in this session, includes domain::sla, domain::message, domain::inbox, domain::team, domain::custom_filter, email_layout, event coverage). Additional --features db live-integration tests are on record via this repo's already-verified crm-support.support_tickets/issue_sla/help_center capability rows (conversation_store_live: 18 passed; support_sla_escalation_live: 11 passed; support_kb_article_search_live: 1 passed) but require Postgres, which is unavailable in this sandbox (pg_isready: no response) -- those counts were not independently re-executed in this session.",
+      "reason": null
+    },
+    {
+      "kind": "FailurePathTests",
+      "state": "Connected",
+      "evidence": "Independently re-run, non-DB validation/rejection tests in the same --lib 91-test run: domain::inbox::tests::validates_source_id, domain::team::tests::validates_member_id, domain::custom_filter::tests::query_at_exact_byte_cap_is_ok_one_byte_over_is_field_too_long, domain::sla boundary-inclusive tests. Cross-tenant-isolation and missing-thread-404 failure paths exist per crm-support.support_tickets' cited test_refs but are --features db-gated and were not independently re-run here (see BehaviorTests note).",
+      "reason": null
+    },
+    {
+      "kind": "DoctrineOrSpec",
+      "state": "Connected",
+      "evidence": "docs/doctrines/008-doctrine-platform-replication-plane.md sections 5-7; docs/benchmarks/2026-07-09-external-architecture-benchmark-map.md section 10.",
+      "reason": null
+    },
+    {
+      "kind": "CapabilityTracking",
+      "state": "Connected",
+      "evidence": "docs/capabilities-canonical/domains/crm-support.jsonl: crm-support.support_tickets, crm-support.issue_sla, crm-support.help_center all status=verified with matching code_refs (confirmed by direct read of the JSONL rows in this session).",
+      "reason": null
+    },
+    {
+      "kind": "ArchitectureTracking",
+      "state": "Connected",
+      "evidence": "Same crm-support.jsonl rows above carry this crate's real architecture_refs linkage; chronica-helpdesk has its own .chronica/sub-cap-arch.jsonl.",
+      "reason": null
+    },
+    {
+      "kind": "PolicyApprovalGate",
+      "state": "LocalAuditRequired",
+      "evidence": "",
+      "reason": "All chronica-helpdesk HTTP routes require VerifiedPrincipal (agent/staff) auth, but no explicit human-approval workflow (distinct from authentication) gates ticket/SLA/KB mutations; platform.replicate_helpdesk_platform's own requires_approval field is false, consistent with money-free status, but this build path/evidence kind is generic across all NativeSlice claims and a human should confirm no approval gate is actually needed here."
+    }
+  ],
+  "platform_primitives": [
+    {
+      "Benchmark": "TicketLifecycle"
+    },
+    {
+      "Benchmark": "SlaRouting"
+    },
+    {
+      "Benchmark": "KnowledgeBase"
+    }
+  ]
+}

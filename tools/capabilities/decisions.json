@@ -1,0 +1,448 @@
+{
+  "decisions": [
+    {
+      "id": "D001",
+      "title": "Rust-only backend, TS/React UI only",
+      "decision": "Chronica backend is Rust exclusively (18 chronica-* crates). TypeScript/React is UI only. Python is NOT a production runtime — all donors are ported to Rust. No polyglot runtime, no Python workers, no iframe donor apps.",
+      "status": "accepted",
+      "context": "Chronica is a money-related system (ERP, orders, payments, ad spend) requiring strong correctness guarantees. Early exploration considered preserving legacy TS packages and Python donor code. User decision (2026-05-29) locked the architecture to Rust-only backend for financial safety and type soundness.",
+      "rationale": "Rust provides memory safety, financial-accuracy determinism, and monolithic consolidation. Type safety is critical for money-handling systems. Single language backend (Rust) reduces code-path confusion and audit complexity. TS/React UI is adequate for presentation.",
+      "alternatives": [
+        {
+          "option": "Polyglot Python + Rust + TS backend",
+          "rejected_because": "Multiple runtimes increase financial-audit complexity; Python workers can hide states; type confusion between layers risks money bugs."
+        },
+        {
+          "option": "Preserve legacy TS packages as-is",
+          "rejected_because": "Legacy TS encourages forking (parallel implementations), prevents unified money gate, breaks type safety promise."
+        },
+        {
+          "option": "Keep donor apps as external integrations only",
+          "rejected_because": "Violates the absorption mandate — Chronica must consolidate capability, not rely on external runtimes."
+        }
+      ],
+      "consequences": "Large upfront porting cost (74 donors → native Rust); but delivers single, auditable money path, zero polyglot gaps. Financial-control tests become deterministic. No runtime state confusion between layers.",
+      "related_opportunities": "Full binary deployment without runtime deps, Deterministic financial audit, Type-level money-safety proofs",
+      "related_assumptions": "Rust type system prevents financial-data confusion, Monolithic consolidation is achievable in the project timeline, TS/React is sufficient for a complex ERP UI",
+      "related_capabilities": "chronica-core (Rust financial primitives), chronica-api (Axum strangler), chronica-policy (money gate)",
+      "supersedes": null,
+      "decided_at": "2026-05-29",
+      "source": "discovery-wf+memory"
+    },
+    {
+      "id": "D002",
+      "title": "Single money gate enforced in code",
+      "decision": "ONE money-decision function (`evaluate_gate` in chronica-policy + `commit_money_action` in chronica-core). All money proposals route through this gate. Board-principal approval is required for money commits (Separation of Duties). No silent autonomy, no auto-commit above ~$5.",
+      "status": "accepted",
+      "context": "Earlier code had three call-sites to approve/commit money with inconsistent guards (self-approval not checked, budget not consulted in some paths). Audit 2026-06-15 (docs/design/audit-2026-06.md) found F1 (sequential replay), F2 (self-approval), F1.b (concurrency). These were FIXED by 2026-06-15.",
+      "rationale": "Single gate ensures every money action passes ONE checkpoint. Enforcing SoD in code (not documentation) prevents human error. Board-only commit prevents agent autonomy from touching money. Idempotency + single-use approval binding closes concurrency exploits.",
+      "alternatives": [
+        {
+          "option": "Multiple gates per domain (approvals.rs, money_ledger.rs, commerce.rs)",
+          "rejected_because": "Divergent guards (some check self-approval, some don't) create exploit vectors. Audit found F1/F2 exactly this way."
+        },
+        {
+          "option": "Auto-allow below $100 without board approval",
+          "rejected_because": "No auto-commit — even small amounts must clear the gate. Board approves or policy rejects."
+        },
+        {
+          "option": "Let agents propose and execute, audit after",
+          "rejected_because": "Game-theory dominant strategy: agents hide bad outcomes. Pre-approval is required for control."
+        }
+      ],
+      "consequences": "Every money action is auditable; no silent autonomous spend. Board becomes the bottleneck (scalability trade-off). Requires board-approval routing + idempotency infrastructure.",
+      "related_opportunities": "Deterministic financial audit, Separation-of-duties enforcement, Scalable approval workflows",
+      "related_assumptions": "Board approval can scale to high-frequency decisions, Idempotency key formula is correct, SoD is checked consistently across all entry points",
+      "related_capabilities": "chronica-policy::gate::evaluate_gate, chronica-core::money_ledger::commit_money_action, chronica-approvals::ApprovalRequest::decide",
+      "supersedes": null,
+      "decided_at": "2026-06-15",
+      "source": "discovery-wf+memory"
+    },
+    {
+      "id": "D003",
+      "title": "Merkle-chained append-only audit log",
+      "decision": "One canonical audit chain using SHA-256 Merkle hashing (chronica-core/src/audit.rs). Every money action, approval, and governance decision is hashed and pinned. Chain is tamper-evident and immutable. UI/redaction have no way to alter the audit.",
+      "status": "accepted",
+      "context": "TS predecessor had an audit chain; Rust port (commit 9fbd07cc) ported the byte-identical algorithm to ensure cross-layer audit compatibility. Audit 2026-06-15 confirmed the Merkle chain is the trust kernel.",
+      "rationale": "Hash-chained audit is unforgeable at scale. Each entry commits to all prior entries; rewriting any past entry invalidates all subsequent hashes. Byte-identical TS→Rust port means existing audit data remains valid. Single chain (never forked) prevents parallel truths.",
+      "alternatives": [
+        {
+          "option": "Timestamp-based ordering without hashing",
+          "rejected_because": "Clock skew and reordering attacks become possible. No cryptographic guarantee."
+        },
+        {
+          "option": "Separate audit chains per domain (money, approval, ERP)",
+          "rejected_because": "Separate chains can diverge; no single source of truth."
+        },
+        {
+          "option": "Audit events as soft deletes",
+          "rejected_because": "Soft deletes can be hidden by modifying the delete marker. Hash chain forces visibility."
+        }
+      ],
+      "consequences": "Audit size grows linearly; storage cost is manageable (append-only, no rewrites). Debugging requires hash-chain traversal. Cross-system audit reconciliation is possible (same algo in TS and Rust).",
+      "related_opportunities": "Cross-system audit verification, Tamper-detection at any point in history, Time-travel debugging",
+      "related_assumptions": "SHA-256 collision is not a practical concern, Byte-identical serialization is maintained, Every decision is hashed before write",
+      "related_capabilities": "chronica-core::audit::AuditEvent, chronica-core::audit::append_audit, tools/build/audit-chain-fixtures.mjs (TS baseline)",
+      "supersedes": null,
+      "decided_at": "2026-06-15",
+      "source": "discovery-wf+memory"
+    },
+    {
+      "id": "D004",
+      "title": "Deny-by-default ScopePath tenancy via DB account_id",
+      "decision": "Every company record has an account_id column (migrated 2026-06-08, commit 9fbd07cc). API middleware (require_company_scope) derives the caller's account_id from a trusted header and DB-checks every company access. Company A cannot read Company B if they have different account_ids. Cross-account access is 403.",
+      "status": "accepted",
+      "context": "Initial API design trusted the gateway-set header 'x-chronica-accessible-companies' without DB verification. Scope-enforcement audit (2026-06-08, memory: scope-enforcement-program-2026-06-08.md) found the header-only model was insufficiently hardened. User chose option 3: add DB account_id column + API-layer verification.",
+      "rationale": "DB-enforced tenancy is stronger than header-only: API cannot be fooled by a mis-set header. Every /api/companies/:id/* route re-derives ownership from the DB. ScopePath::contains logic is reused (never forked). Anonymous callers (no account_id header) get 403 on company routes.",
+      "alternatives": [
+        {
+          "option": "Trust gateway header only",
+          "rejected_because": "Gateway bug or misconfiguration leaks cross-tenant access. No secondary check."
+        },
+        {
+          "option": "Add account_id but don't check at API boundary",
+          "rejected_because": "False security; bugs in individual route handlers leak data."
+        },
+        {
+          "option": "Use workspace_id as tenancy key",
+          "rejected_because": "Multiple workspaces per account; need account_id as the root."
+        }
+      ],
+      "consequences": "API queries are more expensive (require account_id filter in WHERE); query caching becomes account-scoped. Admin routes (list_all_system) are now harder to implement. Migration 0010 was non-breaking (added DEFAULT).",
+      "related_opportunities": "Multi-account support (holding groups), Audit of who accessed what company, Regulatory compliance (GDPR data isolation)",
+      "related_assumptions": "account_id header is set correctly by the gateway, DB access is faster than API permission lists, ScopePath::contains is the right isolation model",
+      "related_capabilities": "chronica-api::scope_authz::AccessScope, chronica-api::require_company_scope middleware, chronica-company::repo::list_for_account",
+      "supersedes": null,
+      "decided_at": "2026-06-08",
+      "source": "discovery-wf+memory"
+    },
+    {
+      "id": "D005",
+      "title": "Chronica ABSORBS donors natively (not connectors)",
+      "decision": "Chronica consolidates all Temporary/ donor capabilities into one monolith (Rust backend + Paperclip UI). It does NOT primarily connect to external systems as a broker. Internal operating truth (ERP, finance, CRM, support, analytics, workflows) are ported natively. External arenas (storefronts, marketplaces) are connected via provider-agnostic connectors, not reimplemented.",
+      "status": "accepted",
+      "context": "Early design treated donors as external integration targets. User correction (2026-05-30, memory: chronica-absorbs-donors-not-connectors.md) + refinement (2026-06-04, connector-execution-provider-architecture.md) redefined the scope: 70 native_absorption, 2 native_ui_absorption, 2 discard. Scoped by a later clarification (2026-06-04): INTERNAL systems absorb, EXTERNAL selling surfaces connect.",
+      "rationale": "One consolidated monolith reduces code duplication, enables unified money gate, simplifies audit. Internal operating truth (balance sheet, inventory, support tickets) must be native — external systems (Shopify, Amazon) are arenas Chronica observes and executes in, not owns. This boundary prevents building a parallel Shopify clone.",
+      "alternatives": [
+        {
+          "option": "Connector-hub model (Chronica as a lightweight router)",
+          "rejected_because": "Breaks single money gate; audit trails fork; no unified ERP."
+        },
+        {
+          "option": "Reimplement all storefronts in Chronica natively",
+          "rejected_because": "Massive scope creep; Shopify/Amazon already solve this problem well."
+        },
+        {
+          "option": "Let donors run as separate services",
+          "rejected_because": "Violates the absorption mandate; money path can't be unified."
+        }
+      ],
+      "consequences": "Large porting effort (~100k lines from 74 donors). Chronica becomes a large system (18 crates, 3M+ Rust LOC target). Adoption is simplified (single binary, no external dependencies). External arenas require connector development (4-layer: Rust-native / py-JS bridge / Playwright / contractor).",
+      "related_opportunities": "Full financial audit across all operations, Unified product templates (combining ERP + workflows), Regulatory parity (one audit trail for all systems)",
+      "related_assumptions": "Porting 74 donors is achievable in project timeline, One monolith is more secure than distributed systems, Donors' capabilities map cleanly to Rust modules",
+      "related_capabilities": "chronica-integrations (universal connector registry), chronica-commerce (commerce connector control plane), chronica-helpdesk, chronica-erp, etc. (native domains)",
+      "supersedes": null,
+      "decided_at": "2026-05-30",
+      "source": "discovery-wf+memory"
+    },
+    {
+      "id": "D006",
+      "title": "Board-only money approval (never agent auto-commit)",
+      "decision": "Agents can propose money actions; only a board principal can approve and commit money. Separation of Duties is enforced in code: `decided_by != requested_by` (chronica-approvals/src/request.rs:114). No agent has unilateral money authority. Even pre-approved actions are single-use and action-bound.",
+      "status": "accepted",
+      "context": "Audit F1 (2026-06-15) found pre-approval could replay for unrelated actions. Audit F2 found a board member could approve their own request. Both were FIXED (commits 05927dad, 299b1247, f4d67f34). Board-only commitment is a core invariant.",
+      "rationale": "Game theory: agents are strategic actors (overstate completion, hide losses). Pre-commitment by a non-requester (SoD) prevents the requester from self-approving. No agent bypasses the board. Even auto-allow verdicts only apply below ~$5; everything else routes to board.",
+      "alternatives": [
+        {
+          "option": "Agent with money authority ≤ $1000",
+          "rejected_because": "Game-theory worst case: agent hides loss and spends budget. SoD principle requires human-principal approval."
+        },
+        {
+          "option": "Auto-approve if the policy verdict is 'AutoAllow'",
+          "rejected_because": "Policy tightening is advisory; money commit is not. AutoAllow is a gate property, not a money committer."
+        },
+        {
+          "option": "Council vote with majority quorum (no single approval)",
+          "rejected_because": "Complexity is high; single-approver (board principal) is simpler and sufficient."
+        }
+      ],
+      "consequences": "Every money action requires board routing (latency + centralization). Board becomes a bottleneck. Requires well-designed approval UI/workflow. Escalation to human is expected and built-in.",
+      "related_opportunities": "Audit trail of who approved what, Appeal/escalation workflows, Approval SLA enforcement",
+      "related_assumptions": "Board principal is trustworthy and authorized, SoD check is consistent across all approval routes, Idempotency prevents double-spend on retry",
+      "related_capabilities": "chronica-approvals::ApprovalRequest::decide (enforces SoD), chronica-api::approvals routes (board-only resolution), chronica-policy::gate (routes to ApprovalRequest)",
+      "supersedes": null,
+      "decided_at": "2026-06-15",
+      "source": "discovery-wf+memory"
+    },
+    {
+      "id": "D007",
+      "title": "Feed-first UI (not control-room dashboard)",
+      "decision": "The primary UI is a Twitter/X-like operational feed (posts, approvals, agent runs, comments) — not a separate control-room pane or dashboard. Approvals, evidence, and comments appear inline on the feed. Redesigned UI reuses X's visual language (PostCard, XNavRail, left-sidebar navigation).",
+      "status": "accepted",
+      "context": "Initial UI design (control-room dashboard) was rejected by user 3 times. User directive (2026-06-15, memory: control-room-ui.md + ui-feed-first-redesign.md) pivoted to feed-first. Slices 0+1+2 landed by 2026-06-17 with full-bleed X-style posts, inline approvals, and agent-activity rail.",
+      "rationale": "Feed metaphor is natural for async, multi-actor operations (approvals, agent runs, comments). Users already understand X/Twitter UX. Inline design reduces pane-switching. Shows agent activity in real-time (not a separate dashboard). Aligns with the SNS-for-agents vision.",
+      "alternatives": [
+        {
+          "option": "Control-room dashboard (right-panel + matrix table)",
+          "rejected_because": "User explicitly rejected 3 times; doesn't scale for 50+ concurrent agents; forces separate panes for approval/evidence."
+        },
+        {
+          "option": "Linear (Jira-like) list interface",
+          "rejected_because": "Misses the async, real-time, social aspect of agent operations."
+        },
+        {
+          "option": "Mastodon-style thread-based",
+          "rejected_because": "Less focus on the operational flow; more emphasis on debate/threading (which is secondary)."
+        }
+      ],
+      "consequences": "UI development is front-loaded (PostCard, XNavRail, comment store landed). Backend decision-briefs API is required. Approval UX is more complex (inline vs modal). Resize / responsiveness challenges on narrower screens.",
+      "related_opportunities": "Real-time agent activity stream, Integrated debate/evidence threads, Social-like notifications (likes, mentions, replies)",
+      "related_assumptions": "Feed metaphor scales to 50+ concurrent agents, X visual language is accessible to business users, Inline approvals don't lose critical context",
+      "related_capabilities": "ui/src/feed/PostCard, ui/src/feed/XNavRail, ui/src/feed/strategy.ts (strategy_assessment posts), chronica-api::decision_briefs route",
+      "supersedes": null,
+      "decided_at": "2026-06-15",
+      "source": "discovery-wf+memory"
+    },
+    {
+      "id": "D008",
+      "title": "Auth bridge: dev-session signer (interim) + OIDC (prod)",
+      "decision": "Two-phase auth: (1) dev env uses dev-session signer (chronica-core::dev_auth, localhost-only, expires fast, self-test at boot), (2) production uses OIDC (IdP-based, human-gated claims). Dev key is disjoint from prod JWKS. /api/dev/login is mounted only when CHRONICA_DEV_AUTH=1. Boot-aborts if dev_auth && CHRONICA_ENV=production.",
+      "status": "accepted",
+      "context": "Needed a way to run the authed UI during development without deploying a full IdP. User decision (2026-06-16, wf_3defec57 judge panel) chose option 1 (dev signer) + option 3 (OIDC prod). Both paths implemented by 2026-06-16 (commits c9a4214d, 9b5b5f64).",
+      "rationale": "Dev signer is fast and doesn't require IdP setup. Disjoint key prevents accidental production use. Boot self-test ensures the verifier works. Route is opt-in (feature flag + boot-abort). OIDC is human-gated (human approves every IdP claim), reducing AI-autonomous-auth risk.",
+      "alternatives": [
+        {
+          "option": "Skip dev auth; always require OIDC setup locally",
+          "rejected_because": "Development velocity is blocked; local OIDC setup is complex."
+        },
+        {
+          "option": "Use OIDC in both dev and prod",
+          "rejected_because": "Requires running a local IdP; adds complexity to dev setup."
+        },
+        {
+          "option": "Hardcode a dev bearer token",
+          "rejected_because": "Not rotatable; no cryptographic validation; easier to leak."
+        }
+      ],
+      "consequences": "Dev binary has inert auth code (dev path is safe but not exercised in prod). OIDC setup is a pre-production dependency. Claim mapping (IdP → Principal) must be correct. Boot-abort reduces risk of misconfiguration.",
+      "related_opportunities": "Ephemeral dev tokens, Production IdP integration, Claim-based scoping (account_id from IdP claim)",
+      "related_assumptions": "OIDC IdP is available in production, Claim format is well-defined (not user-input), Boot self-test is sufficient to detect broken verifier",
+      "related_capabilities": "chronica-core::dev_auth (dev_auth.rs, 7 tests), chronica-api::serve (boot-wires dev_auth from CHRONICA_DEV_AUTH env), tests/dev_auth_route.rs (4 live tests)",
+      "supersedes": null,
+      "decided_at": "2026-06-16",
+      "source": "discovery-wf+memory"
+    },
+    {
+      "id": "D009",
+      "title": "Profit-OS Strategic Mechanism Engine (Phase 1 built)",
+      "decision": "Chronica includes a game-aware CFO brain that screens capital proposals before the money gate. Layers: L1 data-quality precondition → L2 EV valuation (ROIC/WACC/FCF) → L3 evidence contracts (anti-self-report) → L4 game-state diagnosis → L5 portfolio verdict (Reinvest/Hold/Harvest/Turnaround/Exit) → L6 policy tightening → THE ONE GATE. Screening is tighten-only (never loosens the gate).",
+      "status": "accepted",
+      "context": "Strategic Mechanism Engine is the Profit-OS layer (profit-os-architecture.md). Phase 1 is BUILT (commits 2cfad935, 6e762723, 4dd58148, 8aee8263, 1e83eeaa). Phase 2/3 cognition/calibration landed (5d8672a9, 9cfe3617). Backend-only; no UI.",
+      "rationale": "Money-optimal decisions require more than budget thresholds. The mechanism turns accounting data into strategic control by modeling actors as strategic (agents overstate, hide, game locally). Confidence-weighted EV and evidence contracts defend against this. Calibration earns autonomy (cold-start is lowest trust).",
+      "alternatives": [
+        {
+          "option": "Audit-based (measure outcome vs forecast post-hoc)",
+          "rejected_because": "Reactive; doesn't prevent bad capital allocation now."
+        },
+        {
+          "option": "Dashboard (inform humans, not enforce)",
+          "rejected_because": "Humans are not in the loop on most actions; enforcement is needed."
+        },
+        {
+          "option": "Simple threshold-based gate (ROIC > WACC → approve)",
+          "rejected_because": "Single-metric gaming; ROIC > WACC is necessary, not sufficient (confidence, evidence quality matter)."
+        }
+      ],
+      "consequences": "Complex business logic in production (valuation, screening, calibration). Thresholds must be auditable (board-governed config). Calibration cold-start is conservative (lowest trust initially). Large crate size (chronica-strategy is 5000+ LOC).",
+      "related_opportunities": "Autonomous agent autonomy (earned via calibration), Stop-loss / take-profit engines, Outcome learning loop (S39/S40)",
+      "related_assumptions": "ROIC/WACC/FCF are computable from ERP data, Evidence quality can be measured, Calibration history is reliable",
+      "related_capabilities": "chronica-analytics::data_quality (DQ precondition), chronica-strategy::valuation (ROIC/WACC/FCF), chronica-strategy::screening (ProfitScreeningVerdict), chronica-strategy::orchestrator (go→route→gate→commit)",
+      "supersedes": null,
+      "decided_at": null,
+      "source": "discovery-wf+memory"
+    },
+    {
+      "id": "D010",
+      "title": "ERP is the central operating core",
+      "decision": "Every serious business action links to ERP/finance state OR declares no_erp_impact + reason. ERP is the system of record (not connectors). Commerce/integrations record their effects back to ERP (orders → sales outcomes, ad spend → cost centers, inventory → stock). No parallel accounting truth.",
+      "status": "accepted",
+      "context": "Chronica is money-related (orders, payments, ad spend). Without ERP as the source of truth, capital allocation becomes disconnected from actual finance. User directive (holding-os-architecture.md, §5) makes ERP centrality explicit: binding objects + 10 verify rules.",
+      "rationale": "Single source of truth prevents accounting fraud (parallel shadow books). Every decision is traceable to ERP state. Capital allocation is based on real balance-sheet health, not hopes. Connectors record outcomes (not parallel truths).",
+      "alternatives": [
+        {
+          "option": "Trust self-reports from agents",
+          "rejected_because": "Game-theory worst case: agent hides loss, reports false success, drains capital."
+        },
+        {
+          "option": "Parallel accounting per department",
+          "rejected_because": "Departments optimize locally, miss group-level truth; audit becomes impossible."
+        },
+        {
+          "option": "Optional ERP linking (flexibility)",
+          "rejected_because": "Non-linked actions can hide debt; governance becomes optional."
+        }
+      ],
+      "consequences": "All integrations must map back to ERP (CostRecord, revenue, inventory). ERP schema must be comprehensive. Financial reporting is accurate (auditors trust ERP). Inventory/cash reconciliation is required before strategy changes.",
+      "related_opportunities": "Regulatory audit (single accounting source), AI-driven financial reporting, Real-time cash forecasting",
+      "related_assumptions": "ERP schema captures all business events, Integration mapping is deterministic, Reconciliation can be automated",
+      "related_capabilities": "chronica-erp (native ERP core), chronica-core::CostRecord (finance ledger), chronica-analytics (data quality from ERP)",
+      "supersedes": null,
+      "decided_at": null,
+      "source": "discovery-wf+memory"
+    },
+    {
+      "id": "D011",
+      "title": "Surviving side-tables, gitignored capabilities.db + architecture.db",
+      "decision": "capabilities.db and architecture.db are generated (pnpm caps:rebuild) and gitignored. MEMORY.md and topic files are the source of truth (human-editable, reconcile-meta.mjs syncs meta headlines). Documentation in docs/ is canonical (spec-driven via spec-kit). Surviving side-tables (JSON seeds in tools/capabilities/) are the bootstrap data.",
+      "status": "accepted",
+      "context": "Canonical-truth-reset (commit 6463f8ff, 2026-06-08) made docs/ the ONE canonical doc system. Caps.db was growing stale (20 inconsistent headlines → 1, commit 5c63e87d). Architecture.db needed live binding to code. User rule (2026-06-08): docs IS the canonical system; side-tables survive as bootstrap, never as parallel truth.",
+      "rationale": "Human-edited docs stay synchronized (specs, decisions, memory). Databases are generated (no hand-merging). Reconcile-meta.mjs keeps meta-headers (counts, status) fresh. Builders (build-registry.mjs, pnpm parity:*) use the JSON seeds as bootstrap, then validate against code.",
+      "alternatives": [
+        {
+          "option": "gitignore nothing; commit caps.db directly",
+          "rejected_because": "Merge conflicts; stale count headlines require manual resolution."
+        },
+        {
+          "option": "docs + side-tables as equal truth sources",
+          "rejected_because": "Reconciliation is expensive; priority is unclear."
+        },
+        {
+          "option": "Drop side-tables entirely; generate from code only",
+          "rejected_because": "Existing verification (parity-check.mjs) depends on JSON seeds; huge refactor."
+        }
+      ],
+      "consequences": "Databases must be regenerated each build (pnpm caps:rebuild takes ~10s). CI runs pnpm docs:verify + pnpm caps:verify-impl (0 drift required). Editing docs requires running reconcile-meta.mjs. No-op for 90% of workflows.",
+      "related_opportunities": "Automated gap detection (caps in code not in docs), Single source of truth enforcement, Reproducible builds (no hand-edited DBs)",
+      "related_assumptions": "pnpm caps:rebuild is fast enough, reconcile-meta.mjs is correct, Side tables (JSON) are stable enough",
+      "related_capabilities": "tools/capabilities/reconcile-meta.mjs, tools/capabilities/build-registry.mjs, pnpm caps:rebuild, pnpm docs:verify",
+      "supersedes": null,
+      "decided_at": "2026-06-08",
+      "source": "discovery-wf+memory"
+    },
+    {
+      "id": "D012",
+      "title": "No God files — split modules by ~500-line cohesion",
+      "decision": "No module exceeds ~400-500 lines without splitting. Cohesion is the primary splitting criterion (not file size). Re-exports are used to keep symbol paths + impl_evidence valid. Example: chronica-runtime/src/invoke.rs (1264 lines) was split into invoke/{mod,gateway,types,tests} (commit b201ff63).",
+      "status": "accepted",
+      "context": "Large monolithic files resist review and testing. Memory note (no-god-files-split-small.md) codifies this rule. Chronica is a large system (~3M Rust LOC target), so the rule is binding.",
+      "rationale": "Smaller modules are easier to reason about, test in isolation, and review. Cohesion prevents mixed concerns (policy + execution logic). Re-exports hide internal structure from symbol-path validation (impl_evidence links stay valid).",
+      "alternatives": [
+        {
+          "option": "Keep large files; organize with comment markers",
+          "rejected_because": "Comments don't prevent tight coupling; refactoring is harder."
+        },
+        {
+          "option": "Split by file size (1000 lines = split)",
+          "rejected_because": "File size is not the goal; cohesion is."
+        }
+      ],
+      "consequences": "More files (higher cognitive load on file count). Re-export chains hide some structure (harder to trace). Splitting must be done carefully (no dangling types). CI checks (clippy, doc_lazy_continuation on `+`/`-` lines).",
+      "related_opportunities": "Parallel compilation (more modules = more parallelism), Clearer ownership boundaries, Easier code review",
+      "related_assumptions": "Cohesion is measurable, Re-exports don't hide bugs, Module splitting is not premature optimization",
+      "related_capabilities": "chronica-runtime::invoke (split into submodules), tools/build/scaffold-crates.mjs (enforces 500-line soft limit)",
+      "supersedes": null,
+      "decided_at": null,
+      "source": "discovery-wf+memory"
+    },
+    {
+      "id": "D013",
+      "title": "Two-surface tracking system: docs + capabilities.db",
+      "decision": "Docs/ (specs, memory, design) and capabilities.db (computed) are the TWO synchronized surfaces. docs:gen/sync/verify round-trip validates sync. pnpm caps:rebuild order enforces consistency. No hand-edited databases; generated only.",
+      "status": "accepted",
+      "context": "Docs audit 2026-06-08 (docs-audit-verdict-and-remediation.md) found docs and caps.db were diverging. User rule: treat both as authoritative via sync validation. Build order ensures generated databases are rebuilt before CI runs.",
+      "rationale": "Two surfaces with automated sync is better than one weak source. Human edits docs (natural language); generation edits databases (reproducible). Sync validation catches drift. Round-trip verification (spec → code → database → spec) confirms no silent gaps.",
+      "alternatives": [
+        {
+          "option": "Single source (docs or database)",
+          "rejected_because": "Docs need human narrative; databases need machine-checkable structure."
+        },
+        {
+          "option": "Manual sync (humans reconcile)",
+          "rejected_because": "Error-prone; developers forget; CI can't enforce."
+        }
+      ],
+      "consequences": "Two sync operations per CI run (docs:gen, caps:rebuild). Validation adds time. Failing sync blocks CI (catch divergence early). Humans must edit docs/design/*.md + docs/0*.md, not databases.",
+      "related_opportunities": "Automated capability discovery, Gap detection (unimplemented capabilities), Live spec auditing (CI gates)",
+      "related_assumptions": "docs:gen is deterministic, caps:rebuild is deterministic, Sync validation is comprehensive",
+      "related_capabilities": "pnpm docs:gen (generates from docs/design/*), pnpm caps:rebuild (generates capabilities.db), pnpm docs:verify (validates round-trip)",
+      "supersedes": null,
+      "decided_at": "2026-06-08",
+      "source": "discovery-wf+memory"
+    },
+    {
+      "id": "D014",
+      "title": "Capability-build workflow: multi-agent orchestration",
+      "decision": "User mandate: build caps via multi-agent Workflow (planner→parallel readers→synthesizer→ONE serial implementer→verifier→adversarial auditor). Never verify from subagent output. No parallel DB/registry writes (serialization enforced in code).",
+      "status": "accepted",
+      "context": "Early autonomous loops (late 2025) had agents running in parallel, writing conflicts to shared JSON/DB, creating inconsistencies. User directive (capability-build-workflow.md) locks the order: plan → read → synthesize → implement → verify → audit. Codex only implements; Claude verifies.",
+      "rationale": "Sequential implementation prevents race conditions on shared state. Verification step is human-in-the-loop (not auto-trusted from agent output). Adversarial audit (4-lens panel) catches business-logic bugs that tests miss.",
+      "alternatives": [
+        {
+          "option": "Agents write to DB in parallel",
+          "rejected_because": "Merge conflicts; inconsistent state; audit complexity."
+        },
+        {
+          "option": "Skip verification step",
+          "rejected_because": "Audit found agent-output bugs (logic errors, not compile errors)."
+        }
+      ],
+      "consequences": "Workflow is slower (serial); but more reliable. Auditor must be skilled (4-lens panel, not single reviewer). Implementer must trust the verifier. Requires explicit workflow orchestration (not ad-hoc agent spawning).",
+      "related_opportunities": "Automated capability verification, Cross-agent consistency checks, Audit trail of who built what",
+      "related_assumptions": "Multi-agent planning converges, Serial implementation is acceptable latency, Adversarial audit can find business-logic bugs",
+      "related_capabilities": "tools/capabilities/track.mjs (orchestrator CLI), agent-note coordination channel (Claude↔Codex communication)",
+      "supersedes": null,
+      "decided_at": null,
+      "source": "discovery-wf+memory"
+    },
+    {
+      "id": "D015",
+      "title": "Build order: foundation before S37 (money executor DB-wired + packages retired)",
+      "decision": "Binding rule: money executor must be DB-wired + stub crates filled + packages (legacy TS) retired, THEN start S37 (later-phase slices). Packages are deleted as Rust crates reach route-parity (strangler-fig pattern). Gate enforced in code (parity:check raises MONEY-GATE-NOT-READY if early-starts are attempted).",
+      "status": "accepted",
+      "context": "Early design allowed parallel TS/Rust development, risking divergent money paths. User rule (build-order-foundation-before-s37.md) locks the order. Runtime package was deleted (commit 61ba2dd9, 2026-06-10). Phase 1 kernel → packages retirement → Phase 2+ slices.",
+      "rationale": "Money executor must reach parity in Rust before other slices depend on it (prevent silos). Deleting packages as Rust reaches parity prevents duplicate code paths. Binding rule in code (not documentation) enforces it.",
+      "alternatives": [
+        {
+          "option": "Allow TS/Rust to run in parallel indefinitely",
+          "rejected_because": "Creates two money paths; audit becomes impossible."
+        },
+        {
+          "option": "Delete all packages immediately",
+          "rejected_because": "Breaks existing routes that haven't migrated yet."
+        }
+      ],
+      "consequences": "Early phases (1–4) are longer; later phases (5+) are faster (no TS to proxy). Strangler pattern requires careful route migration (test both old and new). Gate enforcement is strict (no exceptions).",
+      "related_opportunities": "Unified deployment (single binary), Clear phase transitions, Audit confidence (no TS money path)",
+      "related_assumptions": "Rust crates can reach route-parity, Strangler-fig migration is safe, No critical TS-only routes are left",
+      "related_capabilities": "chronica-api (Axum strangler proxy), pnpm parity:check (gates S37 readiness), tools/packages/retire-package.mjs (orchestrates deletion)",
+      "supersedes": null,
+      "decided_at": "2026-06-10",
+      "source": "discovery-wf+memory"
+    },
+    {
+      "id": "D016",
+      "title": "Adversarial audit before every money-path change",
+      "decision": "Before committing money-path changes: run a 4-lens adversarial refuter panel (security, game-theory, finance, compliance). Each lens tries to break the change. Verdict must be SHIP or UPHELD-WITH-CAVEATS (no REJECT). Caveats become follow-up tasks. Zero changes land without panel review.",
+      "status": "accepted",
+      "context": "Audit 2026-06-15 (docs/design/audit-2026-06.md) found F1, F2, F1.b via adversarial refutation (agent panelists trying to break each claim). All fixes (commits 05927dad, 299b1247, f4d67f34, be8b2cd0) were reviewed by the panel before landing.",
+      "rationale": "Money bugs are existential (not recoverable via rollback). Adversarial review is the strongest pre-deployment defense. 4 lenses cover orthogonal concerns (no single reviewer can see all angles). Panel verdict is recorded + cited in commits.",
+      "alternatives": [
+        {
+          "option": "Rely on tests + clippy",
+          "rejected_because": "Audit found bugs that tests passed (F1, F2 were latent logic bugs, not compile errors)."
+        },
+        {
+          "option": "Single human code review",
+          "rejected_because": "Single reviewer has blind spots (game-theory vs finance expertise differ)."
+        }
+      ],
+      "consequences": "Review latency increases (4 lenses = slower). Caveats are recorded (acknowledge imperfection). Panel must be multi-skilled (hard to staff). Changes must be small enough for thorough review.",
+      "related_opportunities": "Regulatory-grade audit trail, Confidence in money-path correctness, Documented risk acknowledgment",
+      "related_assumptions": "4 lenses cover the main attack surface, Panelists are actually adversarial (not rubber-stamping), Caveats are tracked + resolved",
+      "related_capabilities": "tools/audit/refute-panel.mjs (orchestrator), docs/design/audit-2026-06.md (methodology)",
+      "supersedes": null,
+      "decided_at": "2026-06-15",
+      "source": "discovery-wf+memory"
+    }
+  ]
+}

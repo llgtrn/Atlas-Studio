@@ -1,0 +1,33 @@
+{
+  "schema": "chronica.employment.evaluation.v1",
+  "case_id": "doc-only-employment-contract",
+  "calibration_case": "D",
+  "fixture_kind": "CURRENT_RUNTIME_CALIBRATION",
+  "worker_class": "digital_employee",
+  "claimed_employment_maturity": "E0",
+  "employment_semantic_target": "STRONG",
+  "canonical_status": "unimplemented",
+  "runtime_status": "DOC_ONLY",
+  "product_status": "DOC_ONLY",
+  "doc_only": true,
+  "code_refs": [
+    "docs/doctrines/173-arch-digital-salaryman-workforce-employment-contracts.md"
+  ],
+  "identity": { "stable_worker_id": true },
+  "organization": { "company_bound": true, "department_bound": true, "position_bound": true },
+  "contract": {
+    "durable": true,
+    "versioned": true,
+    "prompt_as_contract": false
+  },
+  "assignment": {},
+  "authority": { "no_ai_enforcement": true },
+  "lifecycle": {},
+  "evidence": { "production_evidenced": false },
+  "facets": {
+    "IDENTITY": "ABSENT",
+    "GRANTS": "ABSENT",
+    "TERM": "ABSENT"
+  },
+  "notes": "BENCHMARK/CALIBRATION ONLY. Doctrine 173 is semantically rich DOC_ONLY. RUST STRUCT IN DOC != RUNTIME. EMPLOYMENT_SEMANTIC_TARGET=STRONG, EMPLOYMENT_RUNTIME=NOT PROVEN. Honest claimed maturity is E0."
+}

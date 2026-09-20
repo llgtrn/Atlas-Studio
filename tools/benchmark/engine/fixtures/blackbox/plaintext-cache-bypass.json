@@ -1,0 +1,26 @@
+{
+  "schema": "chronica.blackbox.evaluation.v1",
+  "fixture_kind": "BENCHMARK_FIXTURE_ONLY",
+  "web2app": {
+    "independent": true
+  },
+  "employment": {
+    "independent": true
+  },
+  "case_id": "plaintext-cache-bypass",
+  "claimed_blackbox_maturity": "B5",
+  "at_rest": {
+    "sealed": true
+  },
+  "opaque": {
+    "boundary_ref": true
+  },
+  "secrets": {
+    "handle": true,
+    "envelope": true
+  },
+  "cache": {
+    "plaintext": true
+  },
+  "notes": "Encrypted primary + global plaintext cache = plaintext exposure."
+}

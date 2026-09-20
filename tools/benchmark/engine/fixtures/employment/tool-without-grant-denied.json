@@ -1,0 +1,29 @@
+{
+  "schema": "chronica.employment.evaluation.v1",
+  "case_id": "tool-without-grant-denied",
+  "fixture_kind": "BENCHMARK_FIXTURE",
+  "worker_class": "digital_employee",
+  "claimed_employment_maturity": "E4",
+  "runtime_status": "TEST_ONLY",
+  "product_status": "NOT_BUILT",
+  "identity": { "stable_worker_id": true },
+  "organization": { "company_bound": true },
+  "contract": { "durable": true, "versioned": true, "immutable_history": true },
+  "assignment": {
+    "work_order_present": true,
+    "production_path": true,
+    "contract_version_pinned": true,
+    "denied": true
+  },
+  "authority": {
+    "enforced": true,
+    "witness_present": true,
+    "no_ai_enforcement": true,
+    "tool_availability_as_authority": false,
+    "grant_covers_capability": false
+  },
+  "lifecycle": {},
+  "evidence": { "production_evidenced": false },
+  "effective_authority_trace": "BankApp.transfer available / contract prohibits money.transfer → DENIED",
+  "notes": "BENCHMARK FIXTURE ONLY. Tool availability is not authority."
+}

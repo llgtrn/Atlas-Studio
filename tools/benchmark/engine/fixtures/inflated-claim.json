@@ -1,0 +1,11 @@
+{
+  "name": "orders.external_write_create",
+  "verified": true,
+  "caller_kind": "CLI",
+  "required_runtime": "PRODUCT_RUNTIME",
+  "runtime_kind": "VALIDATE_ONLY",
+  "behavior": "VALIDATE_ONLY",
+  "external_effect": false,
+  "durable_job": true,
+  "queue": "IN_MEMORY"
+}

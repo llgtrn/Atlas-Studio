@@ -1,0 +1,26 @@
+{
+  "schema": "chronica.blackbox.evaluation.v1",
+  "fixture_kind": "BENCHMARK_FIXTURE_ONLY",
+  "web2app": {
+    "independent": true
+  },
+  "employment": {
+    "independent": true
+  },
+  "case_id": "agent-support-semantic-view",
+  "claimed_blackbox_maturity": "B3",
+  "at_rest": {
+    "sealed": true
+  },
+  "opaque": {
+    "boundary_ref": true
+  },
+  "secrets": {
+    "handle": true,
+    "envelope": true
+  },
+  "agent": {
+    "semantic_view": true
+  },
+  "notes": "Helpdesk good-shape fixture: SupportCustomerView. Not a product witness."
+}

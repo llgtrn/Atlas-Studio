@@ -1,0 +1,49 @@
+{
+  "schema": "chronica.employment.evaluation.v1",
+  "case_id": "suspended-worker-denied",
+  "fixture_kind": "BENCHMARK_FIXTURE",
+  "worker_class": "digital_employee",
+  "claimed_employment_maturity": "E4",
+  "runtime_status": "TEST_ONLY",
+  "product_status": "NOT_BUILT",
+  "identity": { "stable_worker_id": true },
+  "organization": { "company_bound": true, "department_bound": true, "position_bound": true },
+  "contract": {
+    "durable": true,
+    "versioned": true,
+    "immutable_history": true,
+    "expiry_enforced": true,
+    "revocation_enforced": true
+  },
+  "assignment": {
+    "work_order_present": true,
+    "production_path": true,
+    "contract_version_pinned": true,
+    "denied": true
+  },
+  "authority": {
+    "enforced": true,
+    "witness_present": true,
+    "no_ai_enforcement": true,
+    "grant_covers_capability": true
+  },
+  "lifecycle": {
+    "enforced": false,
+    "label_only": false,
+    "suspended_blocks_new_work": true,
+    "terminated_blocks_new_work": true
+  },
+  "evidence": { "production_evidenced": false },
+  "actual_witnesses": [
+    "stable_worker_identity",
+    "company_scope",
+    "active_contract",
+    "immutable_contract_version",
+    "work_order",
+    "contract_version_pinned",
+    "lifecycle_admission",
+    "suspension_or_revocation_negative"
+  ],
+  "effective_authority_trace": "Worker DW-001 / Contract AEC-9 v3 / SUSPENDED → DENIED new assignment",
+  "notes": "BENCHMARK FIXTURE ONLY. Suspended worker correctly denied new production assignment. Tests the engine, not Chronica runtime."
+}

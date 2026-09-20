@@ -1,0 +1,22 @@
+{
+  "schema": "chronica.employment.evaluation.v1",
+  "case_id": "assignment-unpinned-contract",
+  "fixture_kind": "BENCHMARK_FIXTURE",
+  "worker_class": "digital_employee",
+  "claimed_employment_maturity": "E3",
+  "runtime_status": "FAKE_COUPLING",
+  "product_status": "NOT_BUILT",
+  "identity": { "stable_worker_id": true },
+  "organization": { "company_bound": true, "department_bound": true },
+  "contract": { "durable": true, "versioned": true, "immutable_history": true },
+  "assignment": {
+    "work_order_present": true,
+    "production_path": true,
+    "contract_version_pinned": false,
+    "unpinned": true
+  },
+  "authority": { "no_ai_enforcement": true },
+  "lifecycle": {},
+  "evidence": { "production_evidenced": false },
+  "notes": "BENCHMARK FIXTURE ONLY. Assignment stores worker only and later evaluates current contract. UNPINNED_ASSIGNMENT_AUTHORITY. Max E2."
+}

@@ -1,0 +1,112 @@
+{
+  "schema": "chronica.web2app.evaluation.v1",
+  "capability_key": "fixture.news.reactive_push_reconcile",
+  "canonical_status": "unimplemented",
+  "runtime_status": "TEST_ONLY",
+  "claimed_web2app_level": "W3",
+  "claimed_observation_maturity": "O4",
+  "product_chain_shape": "BACKEND_COMPLETE",
+  "calibration_case": "REACTIVE_NEWS_PUSH_RECONCILE",
+  "notes": "Push is a signal, not final business state. CAP13 verifies and durably dedupes; CAP15 targeted refresh; domain normalizes NewsEvent. Restart/replay proven in the engine fixture only. Not O5: no real provider.",
+  "semantic_contract": {
+    "schema": "chronica.web2app.semantic-contract.v1",
+    "capability_key": "fixture.news.reactive_push_reconcile",
+    "canonical_name": "Reactive News Observation (push+reconcile fixture)",
+    "product_kind": "INGEST",
+    "actor": "provider webhook + company",
+    "user_intent": "Detect external news changes and reconcile canonical NewsEvent state.",
+    "preconditions": "Signed inbound source bound to tenant integration; credential_handle for targeted refresh.",
+    "input": "webhook signal + since-checkpoint refresh",
+    "product_action": "authenticate → durable dedupe → NewsApp.refresh → normalize",
+    "typed_operations": [
+      { "name": "news.refresh", "kind": "READ", "authority": "tenant entitlement", "receipt": "checkpoint advance" },
+      { "name": "inbound.event.accept", "kind": "EXTERNAL", "authority": "signed source", "receipt": "deduped inbound event" }
+    ],
+    "state_transition": "external A → signed signal → reconciled canonical B",
+    "output": "NewsEvent; duplicate webhook does not duplicate logical state",
+    "persistence_requirement": "durable inbound dedupe, checkpoint, canonical events",
+    "authority_requirement": "CAP13 signature before dispatch; CAP12 handle for refresh",
+    "tenant_requirement": "trusted tenant/integration binding",
+    "visibility_access_semantics": "tenant entitlement",
+    "failure_semantics": "unsigned webhook rejected; duplicate ignored",
+    "idempotency_semantics": "same provider event twice → one NewsEvent",
+    "concurrency_semantics": "out-of-order must not regress",
+    "external_effect_requirement": "none",
+    "money_impact": "none",
+    "user_observable_outcome": "agent query sees canonical B",
+    "no_ai_behavior": "ingest is not an LLM loop",
+    "donor_semantics": "generic webhook+refresh news observation",
+    "chronica_allowed_divergences": "fixture webhook, not a vendor stream",
+    "known_unimplemented_facets": "real provider evidence",
+    "requires_persistence": true,
+    "requires_ui": false,
+    "requires_external_effect": false,
+    "moves_money": false,
+    "requires_ai": false,
+    "jurisdiction_model": "NOT_APPLICABLE",
+    "transport_independence": true
+  },
+  "entrypoints": [
+    "tools/benchmark/engine/web2app-reactive-fixture.mjs#ingestWebhook",
+    "crates/chronica-integrations/src/caps_slice8/integrations/webhook_ingest.rs#verify_signed_webhook",
+    "crates/chronica-integrations/src/caps_slice8/integrations/webhook_ingest.rs#build_event_dedup_key"
+  ],
+  "actual_witnesses": [
+    "real_actor",
+    "real_product_entrypoint",
+    "tenant_boundary",
+    "auth_boundary",
+    "deterministic_kernel",
+    "persistence",
+    "negative_failure_paths",
+    "real_readback",
+    "no_ai_path",
+    "typed_operations"
+  ],
+  "observation": {
+    "observation_sources": ["fixture.news.reactive"],
+    "poll_supported": true,
+    "push_supported": true,
+    "on_demand_refresh": true,
+    "persistent_poll": true,
+    "checkpoint_durable": true,
+    "dedupe_durable": true,
+    "process_local_dedupe_only": false,
+    "reconciliation": true,
+    "freshness_class": "NEAR_REALTIME",
+    "credential_required": true,
+    "credential_handle_only": true,
+    "subscription_entitlement": "tenant-scoped",
+    "source_health": "CONNECTED",
+    "staleness_visible": true,
+    "webhook_authenticated": true,
+    "webhook_signature_verified": true,
+    "restart_replay_proven": true,
+    "real_provider_evidence": false,
+    "webhook_treated_as_business_truth": false
+  },
+  "facets": [
+    {
+      "name": "push_reconcile",
+      "semantic_state": "LIVE",
+      "evidence": ["ingestWebhook → targetedRefresh"]
+    },
+    {
+      "name": "real_provider",
+      "semantic_state": "ABSENT",
+      "evidence": ["synthetic fixture; max O4"]
+    }
+  ],
+  "anti_patterns": [],
+  "semantic_mutations": [],
+  "cap_triangle": {
+    "cap12_credential_session": "FIXTURE_HANDLE_ONLY",
+    "cap13_inbound": "REUSED_VERIFY_AND_DEDUP_CONTRACT",
+    "cap15_webapp": "TARGETED_REFRESH",
+    "existing_substrate": [
+      "chronica-integrations webhook_ingest verify_signed_webhook",
+      "chronica-integrations webhook_ingest process_changes cursor",
+      "Do not build inbound-ingestion V2 inside CAP15"
+    ]
+  }
+}

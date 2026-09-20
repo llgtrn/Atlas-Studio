@@ -1,0 +1,99 @@
+{
+  "schema": "chronica.web2app.evaluation.v1",
+  "capability_key": "trading-markets.yfinance_adapter",
+  "canonical_status": "implemented_unverified",
+  "runtime_status": "ISLAND",
+  "claimed_web2app_level": "W1",
+  "claimed_observation_maturity": "O1",
+  "product_chain_shape": "KERNEL_ONLY",
+  "semantic_owner": "market-data",
+  "calibration_case": "REACTIVE_MARKET_KERNEL",
+  "notes": "Product-kernel money-free observation vertical from repository substrate: public Yahoo chart parse → typed PriceBar. Honest O1 ON_DEMAND. Not a watch/poll/push bus. Distinct from the NewsApp evaluator fixture, which proves O2/O4 semantics without a live provider. Does not move money.",
+  "semantic_contract": {
+    "schema": "chronica.web2app.semantic-contract.v1",
+    "capability_key": "trading-markets.yfinance_adapter",
+    "canonical_name": "yfinance Market Data Adapter",
+    "product_kind": "INTEGRATION",
+    "actor": "strategy/research worker",
+    "user_intent": "On demand, fetch public OHLCV and normalize into typed price bars with provider timestamps.",
+    "preconditions": "Outbound HTTP allowed; no API key; no account.",
+    "input": "symbol, range, interval",
+    "product_action": "refresh market bars",
+    "typed_operations": [
+      { "name": "market.price.refresh", "kind": "READ", "authority": "company scope", "receipt": "none" },
+      { "name": "market.price.parse", "kind": "READ", "authority": "local", "receipt": "none" }
+    ],
+    "state_transition": "provider JSON → typed PriceBar list (request-local unless a later store exists)",
+    "output": "PriceBar { as_of_unix, open, high, low, close, adj_close, volume }",
+    "persistence_requirement": "request-local parse; no durable watch store",
+    "authority_requirement": "public feed parse is unauthenticated; a later store must be company-scoped",
+    "tenant_requirement": "public parse kernel is not tenant-gated; a later store must be company-scoped",
+    "visibility_access_semantics": "public market data; not a paid entitlement corpus",
+    "failure_semantics": "provider error, empty result, mismatched OHLCV lengths fail closed",
+    "idempotency_semantics": "parse is a pure function of the response body",
+    "concurrency_semantics": "not applicable to a pure parse",
+    "external_effect_requirement": "none",
+    "money_impact": "none",
+    "user_observable_outcome": "typed bars available to callers; no order, position, or spend",
+    "no_ai_behavior": "deterministic JSON parse; AI not required",
+    "donor_semantics": "ranaroussi/yfinance PriceHistory chart parse",
+    "chronica_allowed_divergences": "Chronica adapter is parse/normalize only; no watch bus, no broker execution",
+    "known_unimplemented_facets": "durable observation subscription, shipped MarketDataApp caller, O2+ poll/push",
+    "requires_persistence": false,
+    "requires_ui": false,
+    "requires_external_effect": false,
+    "moves_money": false,
+    "requires_ai": false,
+    "jurisdiction_model": "NOT_APPLICABLE",
+    "transport_independence": true
+  },
+  "entrypoints": [],
+  "actual_witnesses": [
+    "real_actor",
+    "deterministic_kernel",
+    "negative_failure_paths",
+    "no_ai_path",
+    "typed_operations"
+  ],
+  "observation": {
+    "observation_sources": ["yahoo.finance.chart"],
+    "push_supported": false,
+    "poll_supported": false,
+    "on_demand_refresh": true,
+    "checkpoint_durable": false,
+    "dedupe_durable": false,
+    "process_local_dedupe_only": false,
+    "reconciliation": false,
+    "freshness_class": "ON_DEMAND",
+    "freshness_target": "ON_DEMAND",
+    "credential_required": false,
+    "credential_handle_only": true,
+    "subscription_entitlement": false,
+    "source_health": "CONNECTED",
+    "staleness_visible": true,
+    "webhook_authenticated": false,
+    "restart_replay_proven": false,
+    "real_provider_evidence": false
+  },
+  "facets": [
+    {
+      "name": "on_demand_parse",
+      "semantic_state": "LIVE",
+      "evidence": ["crates/chronica-strategy/src/market_data/adapters/yfinance.rs parse_chart_response"]
+    },
+    {
+      "name": "reactive_watch_bus",
+      "semantic_state": "ABSENT",
+      "evidence": ["no WebAppSubscription; no poll/push"]
+    }
+  ],
+  "anti_patterns": [],
+  "semantic_mutations": [],
+  "cap_triangle": {
+    "cap12_credential_session": "NOT_REQUIRED_PUBLIC_FEED",
+    "cap13_inbound": "NOT_USED_ON_DEMAND",
+    "cap15_webapp": "DECLARED_READ_METHODS_ONLY",
+    "cap6_when_to_poll": "NOT_USED",
+    "cap7_notification": "NOT_SOURCE_OF_TRUTH"
+  }
+}

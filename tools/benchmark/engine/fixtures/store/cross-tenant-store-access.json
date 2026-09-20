@@ -1,0 +1,42 @@
+{
+  "schema": "chronica.store.evaluation.v1",
+  "case_id": "cross-tenant-store-access",
+  "fixture_kind": "BENCHMARK_FIXTURE",
+  "claimed_store_maturity": "S2",
+  "identity": {
+    "stable_store_id": true
+  },
+  "tenant": {
+    "company_bound": true,
+    "isolated": false,
+    "cross_tenant": true,
+    "cross_tenant_negative": false
+  },
+  "manifest": {
+    "present": true
+  },
+  "desired": {
+    "present": true
+  },
+  "resource_graph": {
+    "declared": true,
+    "durable": true,
+    "queryable": true
+  },
+  "secrets": {
+    "handle_only": true
+  },
+  "web2app": {
+    "independent": true
+  },
+  "employment": {
+    "independent": true
+  },
+  "preview": {
+    "live": true
+  },
+  "actual": {
+    "observed": true
+  },
+  "notes": "Company A Store must not access Company B Store resources."
+}

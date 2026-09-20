@@ -1,0 +1,774 @@
+{
+  "competitors": [
+    {
+      "id": "ramp",
+      "name": "Ramp",
+      "market": "company_os",
+      "notes": "Spend-management + corporate cards with 2026 autonomous AI agents (Policy Agent reviews 100% of expenses, auto-approves compliant items, flags exceptions; vendor-level card restrictions; deep ERP integrations). Closest real-world analog to Chronica's money-gate + approval thesis, but Ramp governs card/expense spend, not arbitrary agent tool-calls. Source: ramp.com/blog, callsphere.ai/blog 2026."
+    },
+    {
+      "id": "brex",
+      "name": "Brex",
+      "market": "company_os",
+      "notes": "Corporate cards + real-time budgets + approval workflows; 2026 AI agents for receipts/approvals/vendor mgmt. Controls spend via real-time budgets rather than negotiation. Same governance-of-money space; narrower scope (financial ops, not a full Company-OS + agent runtime). Source: ramp.com/versus/brex, airwallex 2026 comparison."
+    },
+    {
+      "id": "odoo",
+      "name": "Odoo",
+      "market": "erp",
+      "notes": "Open-source full-suite ERP (accounting, inventory, CRM, helpdesk). 2026 roadmap: LLM automation rules in plain language inside ERP workflows (e.g. auto-approve invoices under $5,000). Direct overlap with Chronica's ERP/finance core + automation, but no game-theoretic strategy brain and no single audited capital gate over autonomous agents. Source: braincuber.com Odoo roadmap 2026, theintechgroup.com."
+    },
+    {
+      "id": "netsuite",
+      "name": "Oracle NetSuite",
+      "market": "erp",
+      "notes": "Cloud ERP with SuiteFlow agentic workflows and MCP support for AI agents; triggers AI analysis at process points and resumes on recommendation. Strong multi-subsidiary consolidation (a Chronica parity area). AI is advisory-in-workflow, not a structural reasoning/authorization separation. Source: netsuite.com agentic-workflows, truto.one 2026 guide."
+    },
+    {
+      "id": "sap",
+      "name": "SAP (Joule)",
+      "market": "erp",
+      "notes": "Enterprise ERP + Joule AI copilot/agents. Deep dimensional accounting + approval workflows. Heavyweight, middleware-bound (synchronous OData, CSRF pre-flight); AI agents bolted onto a legacy core rather than a native agent runtime with one money gate. Source: businessplusai.com, withampersand.com 2026."
+    },
+    {
+      "id": "langgraph",
+      "name": "LangGraph (LangChain)",
+      "market": "agent_platform",
+      "notes": "Agent orchestration framework: explicit decision points, human-in-the-loop approval gates, checkpointing that survives restarts/multi-day pauses. The reference for governed agent workflows. But checkpointing is a low-level primitive (not production-grade durability), and it has no ERP truth, no money gate, no tenancy model — it is a library, not a Company-OS. Source: diagrid.io, redwerk.com, fast.io 2026."
+    },
+    {
+      "id": "crewai",
+      "name": "CrewAI",
+      "market": "agent_platform",
+      "notes": "Role-based multi-agent framework; easy to start, teams routinely migrate to LangGraph once they need durable execution or human-in-the-loop. No durable runtime, no financial-control gate, no audit chain. Represents the 'multi-agent collaboration' axis Chronica's agent system targets. Source: fast.io, uvik.net 2026."
+    },
+    {
+      "id": "openai-assistants",
+      "name": "OpenAI Assistants / Agents SDK",
+      "market": "agent_platform",
+      "notes": "Hosted tool-calling agents with function-calling, retrieval, code-interpreter. Tool execution is permissioned at the app layer, not gated by a single audited capital boundary with board approval + Merkle audit. General-purpose; no ERP/finance grounding. Source: uvik.net agentic frameworks 2026."
+    },
+    {
+      "id": "devin",
+      "name": "Devin (Cognition)",
+      "market": "ai_ide",
+      "notes": "Cloud autonomous SWE agent: plans, writes, tests, completes tasks without continuous direction; run many Devins in parallel. ~14% SWE-bench end-to-end (30-50% on well-defined tasks). Demonstrates fully-autonomous task completion — the autonomy Chronica deliberately constrains with approval gates for money. Coding-domain, no business/finance governance. Source: marktechpost.com, precisionpulse.co 2026."
+    },
+    {
+      "id": "cursor",
+      "name": "Cursor",
+      "market": "ai_ide",
+      "notes": "IDE-native agentic coding with synchronous feedback loop — asks before running commands (a human-in-the-loop pattern parallel to Chronica's approval gate, but for code edits not capital). Feb 2026: shipped multi-agent parallel coding (frontend/backend/test agents concurrently). Source: marktechpost.com, toolchase.com 2026."
+    },
+    {
+      "id": "claude-code",
+      "name": "Claude Code",
+      "market": "ai_ide",
+      "notes": "Terminal/IDE coding agent with permissioned tool execution, hooks, and approval prompts before side-effecting actions. The permission/approval-before-side-effect model is conceptually similar to Chronica's gate, but scoped to a dev workstation, not a multi-tenant Company-OS with a financial ledger. Source: precisionpulse.co AI coding agents 2026."
+    },
+    {
+      "id": "comet",
+      "name": "Perplexity Comet",
+      "market": "browser",
+      "notes": "Agentic browser (raised ~$200M, ~$20B val 2026): autonomous form-fills, purchases, email, travel booking — 'agent finishes the purchase for you.' Full AI autonomy $200/mo; enterprise Comet Assistant March 2026. This is exactly the un-governed agentic-commerce capability Chronica's governed-browser-computer design intends to constrain (but Chronica's internet-hand is still un-wired, audit F3). Source: techtimes.com, envive.ai, nohacks.co 2026."
+    },
+    {
+      "id": "chatgpt-atlas",
+      "name": "ChatGPT Atlas",
+      "market": "browser",
+      "notes": "OpenAI agentic browser performing autonomous multi-step in-page tasks. Same agentic-commerce frontier as Comet; no spend governance, audit chain, or tenant isolation around the actions it takes. Source: humansecurity.com agentic-browsers 2026."
+    },
+    {
+      "id": "intercom-fin",
+      "name": "Intercom (Fin AI)",
+      "market": "agent_platform",
+      "notes": "Support AI agent priced per successful resolution ($0.99/resolution, 50/mo min). Best-in-class autonomous support resolution. Overlaps Chronica's helpdesk/CRM pillar (Chatwoot-parity shared inbox, 81/167 caps). Chronica has the inbox + SLA + automation primitives but no shipped autonomous-resolution AI agent. Source: minami.ai, myaskai.com 2026."
+    },
+    {
+      "id": "chatwoot",
+      "name": "Chatwoot",
+      "market": "agent_platform",
+      "notes": "Open-source shared inbox (live chat/email/social), the explicit parity target for Chronica's helpdesk. v4.14 (May 2026) shipped Captain AI agent as first-class. Chronica natively ported Chatwoot helpdesk capabilities (migrations 0037+, chronica-helpdesk crate) but consolidation is unfinished and Captain-style AI resolution is absent. Source: dev.to Chatwoot teardown 2026, MEMORY helpdesk-program."
+    },
+    {
+      "id": "salesforce",
+      "name": "Salesforce",
+      "market": "crm",
+      "notes": "The category-defining enterprise CRM platform: canonical Account/Contact/Opportunity model with layered sharing/permissions, a metadata compiler (Flow, custom objects with generated APIs/UI), forecast hierarchy with quotas/rollups, quote/CPQ-to-order chain, Service Cloud (omnichannel/entitlements/knowledge), Agentforce AI, and a mature sandbox/package/AppExchange ecosystem. Assessed via a dedicated 12-agent, source-grounded gap audit against live Chronica code (docs/doctrines/specs/backlog/crm-beyond-salesforce/design/2026-07-21-salesforce-vs-chronica-deep-gap-audit.md, evidence date 2026-07-21, base SHA b6ad2022): Chronica has real, honest CRM/helpdesk/metadata/analytics/event substrates in most of the 29 audited dimensions, but is critically thin in 15 of them (canonical party identity, opportunity/forecast/quote lifecycle, fine-grained CRM authorization, unified automation, customer-360, admin/DevOps/mobile, production operations). Sources: architect.salesforce.com platform-multitenant/sharing architecture docs, developer.salesforce.com sales data model, salesforce.com/{sales,service}/pricing, salesforce.com/platform/agentforce-platform (all consulted 2026-07-21)."
+    },
+    {
+      "id": "twenty",
+      "name": "Twenty CRM",
+      "market": "crm",
+      "notes": "Open-source (AGPL) CRM (twenty.com, github.com/twentyhq/twenty) built as a metadata-driven platform: workspaces define custom objects/fields at runtime with no code or deploy, a full view engine (saved table/kanban/calendar views with nested AND/OR filter/sort trees), four-layer RBAC (setting/tool flags, object-level, field-level, row-level predicates with $current_user bindings), cross-object full-text search (tsvector+GIN, ranked, cursor-paginated), a DAG-based workflow/trigger engine (DATABASE_EVENT/MANUAL/CRON/WEBHOOK triggers, 15+ composable action types incl. AI agents), and a polymorphic activity timeline. Chronica ran a deep source-level donor-scout of Twenty's metadata-modules, permissions, view, search, workflow and timeline subsystems (docs/backend-truth-audit/donor-scout-twenty-metadata.json + donor-census-twenty.json, dated 2026-06-25) and has since ported and partially materialized Twenty's architecture natively: chronica-erp::crm::{metadata,metadata_view,permissions,timeline} are pure ported domain logic that explicitly cite Twenty as donor, and chronica-crm::store::{metadata_registry_store,metadata_record_store,view_metadata_store} materialize the object/field/view registry to real tenant-scoped Postgres tables. Sources: twenty.com and github.com/twentyhq/twenty (open source); direct reads of crates/chronica-erp/src/crm/ and crates/chronica-crm/src/store/ (2026-08-07)."
+    },
+    {
+      "id": "hubspot",
+      "name": "HubSpot",
+      "market": "crm",
+      "notes": "Product-led CRM platform split into Marketing/Sales/Service/Content/Operations Hub, unified on a 'Smart CRM' contact/company/deal record. Free tier scales per-seat through Starter/Professional/Enterprise, with Breeze AI shipping 4 'Core Agents' (Content, Social Media, Prospecting, Customer) in 2026. Source: hubspot.com/products/crm/starter, blog.hubspot.com pricing guides, streamcreative.com/hubspot-ai-agents, eesel.ai/blog/hubspot-breeze-ai-capabilities 2026."
+    },
+    {
+      "id": "zoho",
+      "name": "Zoho CRM",
+      "market": "crm",
+      "notes": "Zoho CRM is the CRM app inside Zoho One, a 50+-app suite under one login/price. Automation is a 4-tier stack: Workflow Rules -> Blueprint (enforced process state machine) -> CommandCenter (cross-module journey orchestration) -> Zia AI agents (lead scoring, Ask-Zia analytics, forecasting). Source: zoho.com/one, zoho.com/crm, theravenlabs.com/zoho-crm-zia-ai-features-2026 2026."
+    },
+    {
+      "id": "pipedrive",
+      "name": "Pipedrive",
+      "market": "crm",
+      "notes": "Sales-pipeline-first CRM for SMBs built around a visual, drag-and-drop deal-stage kanban and 'activity-based selling'. 2026 stack layers Pipedrive AI (win-probability, AI email generator), LeadBooster (chatbot, Prospector database, web forms), Smart Contact Data enrichment, native email sync/tracking, and a 500+-app Marketplace. Source: pipedrive.com/en/features, pipedrive.com/en/features/leadbooster, pipedrive.com/en/features/ai-sales-assistant 2026."
+    }
+  ],
+  "features": [
+    {
+      "id": "f-ramp-policy-agent",
+      "competitor_id": "ramp",
+      "feature": "Policy Agent auto-reviews 100% of expenses, auto-approves compliant, flags exceptions to humans",
+      "our_capability_ref": "agent.invoke_tool_call",
+      "relation": "parity",
+      "notes": "Chronica's deterministic money verdict (chronica-policy::evaluate_gate) auto-allows cheap/reversible in-budget actions and escalates the rest to board approval — the same auto-approve-the-safe, escalate-the-risky pattern. The runtime invoke_tool path enforces it for agent tool calls; other production callers own their own enforcement wiring. Doc: 010-invariant-one-money-gate.md."
+    },
+    {
+      "id": "f-ramp-vendor-restrict",
+      "competitor_id": "ramp",
+      "feature": "Vendor-level card restrictions (card limited to specific vendors, finer than MCC)",
+      "our_capability_ref": null,
+      "relation": "gap",
+      "notes": "Chronica gates by provider+operation+cost ceiling + reversibility, not by per-vendor card allow-lists. No issued-card or vendor-restriction primitive exists; Chronica is not a card issuer. Honest gap vs Ramp's spend-control granularity."
+    },
+    {
+      "id": "f-ramp-erp-sync",
+      "competitor_id": "ramp",
+      "feature": "Deep two-way ERP integrations (real-time transaction coding/sync to NetSuite/QuickBooks)",
+      "our_capability_ref": "erp.journal.post_entry",
+      "relation": "gap",
+      "notes": "Chronica HAS a native double-entry ledger (erp.journal.post_entry verified) but it is the system of record, not a connector that syncs to external ERPs. Ramp's value is integrating WITH incumbent ERPs; Chronica replaces them. Different model — gap on out-of-the-box external-ERP sync."
+    },
+    {
+      "id": "f-brex-realtime-budget",
+      "competitor_id": "brex",
+      "feature": "Real-time budgets with hard enforcement + approval workflows at point of spend",
+      "our_capability_ref": "agent.invoke_tool_call",
+      "relation": "parity",
+      "notes": "Chronica's BudgetPolicy hard-stop (budget.rs, hard_stop_wins_over_auto_allow test) auto-pauses a scope when projected spend hits the ceiling — even approval cannot override. Scope-aware (company/project/run/group). Parity on real-time budget enforcement, with a stricter fail-closed model."
+    },
+    {
+      "id": "f-odoo-llm-autoapprove",
+      "competitor_id": "odoo",
+      "feature": "Plain-language LLM automation rules inside ERP workflows (e.g. auto-approve invoices < $5,000)",
+      "our_capability_ref": "agent.invoke_tool_call",
+      "relation": "parity",
+      "notes": "Chronica's threshold bands (DollarThresholds: auto-allow <$5, specialist+board $5-500, board >$500) encode exactly this 'auto-approve under threshold' logic — but deterministic/test-pinned and tamper-evident, not LLM-evaluated. Chronica differentiates by making the rule a pure auditable function, not an LLM judgment."
+    },
+    {
+      "id": "f-odoo-fullsuite",
+      "competitor_id": "odoo",
+      "feature": "Mature full-suite ERP modules (accounting, inventory, manufacturing, CRM, e-commerce) in production for years",
+      "our_capability_ref": null,
+      "relation": "gap",
+      "notes": "Honest gap: Chronica ERP/finance is 80% by its own count (232/290 caps) and infra/company-instantiation only 23% (61/260). Odoo ships battle-tested breadth; Chronica's modules are natively ported but far less mature and not deployed at scale. Source: 024-end-state.md."
+    },
+    {
+      "id": "f-netsuite-consolidation",
+      "competitor_id": "netsuite",
+      "feature": "Multi-subsidiary financial consolidation + intercompany eliminations",
+      "our_capability_ref": "erp.journal.post_entry",
+      "relation": "parity",
+      "notes": "Chronica targets multi-entity consolidation (slice.129 consolidated_kpi_group_budget_ceiling verified, money-gated; inter-company billing slice.135). The holding-company-of-many-companies model is core to Chronica's thesis. Parity in intent; NetSuite is vastly more mature and audited in production."
+    },
+    {
+      "id": "f-netsuite-mcp-agents",
+      "competitor_id": "netsuite",
+      "feature": "Native MCP support so external AI agents can read/act on ERP data",
+      "our_capability_ref": "cognition.assess_opportunity",
+      "relation": "differentiation",
+      "notes": "NetSuite exposes ERP to external agents via MCP; Chronica inverts this — agents are INTERNAL governed actors whose money-capable runtime tool calls are bound to an ERP-grounded verdict and approval path. Other direct callers remain caller-enforced. Chronica's differentiation is agent-decisions-bound-to-ERP-truth (ERP-is-central-operating-core rule), not ERP-as-an-API."
+    },
+    {
+      "id": "f-sap-joule",
+      "competitor_id": "sap",
+      "feature": "Joule embedded AI copilot/agents across finance, procurement, HR",
+      "our_capability_ref": null,
+      "relation": "gap",
+      "notes": "SAP Joule spans an enormous certified enterprise footprint (procurement, HR, supply chain). Chronica covers a fraction natively and has zero enterprise certification/deployment. The breadth + compliance gap is real and large. Source: businessplusai.com 2026."
+    },
+    {
+      "id": "f-sap-approval-dimensional",
+      "competitor_id": "sap",
+      "feature": "Dimensional accounting + configurable multi-level approval workflows",
+      "our_capability_ref": "agent.invoke_tool_call",
+      "relation": "parity",
+      "notes": "Chronica has multi-level governance (6-layer GovernanceLayerKind: Agent->...->GroupPresident, escalate-to-lowest-competent) + board approval. Architecturally comparable to SAP's approval hierarchies; Chronica's is code-fixed/test-pinned vs SAP's heavily configurable. Doc: 12-invariant-scope-isolation.md."
+    },
+    {
+      "id": "f-langgraph-hitl",
+      "competitor_id": "langgraph",
+      "feature": "Human-in-the-loop approval gates at arbitrary decision points; runtime pauses, saves state, waits for input",
+      "our_capability_ref": "agent.invoke_tool_call",
+      "relation": "parity",
+      "notes": "Chronica's RequiresApproval verdict pauses a money/external action pending a board ApprovalDecision — same HITL pause-and-resume. Chronica differentiates by making approval mandatory & structural for money (one gate, single-use approval bound to provider+op+cost ceiling), not an optional developer-wired interrupt."
+    },
+    {
+      "id": "f-langgraph-checkpoint",
+      "competitor_id": "langgraph",
+      "feature": "Durable checkpointing — workflows survive process restart, server crash, multi-day human pauses",
+      "our_capability_ref": "workflow-runtime.execute_workflow",
+      "relation": "gap",
+      "notes": "Honest gap: Chronica has workflow execution (verified) + a transactional outbox + crash-safe projector for helpdesk, but a general Temporal-style durable/replayable runtime is an OPEN opportunity (automation-durable-workflow-runtime, status discovered), not shipped. LangGraph's checkpointing is ahead here for agent workflows. Source: opportunities.json, diagrid.io."
+    },
+    {
+      "id": "f-langgraph-notruth",
+      "competitor_id": "langgraph",
+      "feature": "No financial system-of-record / no capital boundary (it is an orchestration library)",
+      "our_capability_ref": "agent.invoke_tool_call",
+      "relation": "differentiation",
+      "notes": "Chronica's distinctive layer over any agent framework: one deterministic money-verdict function plus fail-closed approval and a canonical DB commit path, with hash-chained audit + ERP ledger. Production enforcement has multiple direct evaluate_gate callers; arch:verify's possible_bypass_files=0 is literal-smoke evidence, not callgraph or single-chokepoint proof. LangGraph leaves money safety entirely to the app developer."
+    },
+    {
+      "id": "f-crewai-multiagent",
+      "competitor_id": "crewai",
+      "feature": "Role-based multi-agent collaboration (crews of specialized agents)",
+      "our_capability_ref": null,
+      "relation": "gap",
+      "notes": "Honest gap: Chronica's Agent System pillar is only 37% (118/317 caps); multi-agent orchestration is partially built (orchestrator routing exists) but not a polished crews-style collaboration surface. CrewAI is more mature at agent-team ergonomics. Source: 024-end-state.md agent-system 37%."
+    },
+    {
+      "id": "f-openai-toolcall",
+      "competitor_id": "openai-assistants",
+      "feature": "Function/tool calling with hosted execution + retrieval",
+      "our_capability_ref": "agent.invoke_tool_call",
+      "relation": "parity",
+      "notes": "Chronica's invoke_tool door (gateway.rs, verified) is the analog — but every invocation is classified, risk-gated, scope-attributed, and audited. Parity on the tool-call primitive; Chronica adds the governance envelope the hosted SDK lacks."
+    },
+    {
+      "id": "f-openai-noaudit",
+      "competitor_id": "openai-assistants",
+      "feature": "No tamper-evident audit chain over agent actions",
+      "our_capability_ref": "agent.invoke_tool_call",
+      "relation": "differentiation",
+      "notes": "Chronica's runtime invoke_tool path records gate outcomes and its canonical DB money commit writes an audit-linked ledger transaction. Direct evaluate_gate callers must provide their own audit wiring; this is not a workspace-wide every-outcome claim. Doc: 010-invariant §21."
+    },
+    {
+      "id": "f-devin-autonomy",
+      "competitor_id": "devin",
+      "feature": "Fully autonomous task completion without continuous human direction; parallel agents",
+      "our_capability_ref": null,
+      "relation": "gap",
+      "notes": "Devin runs unsupervised to completion. Chronica DELIBERATELY forecloses this for money: cognition predicates return literal false (authorizes_money/places_order), nothing acts on a confident signal without a fresh proposal crossing the gate (11-invariant). So it is a 'gap' in raw autonomy by design — a safety choice, not a missing feature."
+    },
+    {
+      "id": "f-devin-coding",
+      "competitor_id": "devin",
+      "feature": "End-to-end software engineering (writes, runs, tests, ships code)",
+      "our_capability_ref": null,
+      "relation": "gap",
+      "notes": "Chronica is not a coding agent and has no SWE-task capability. Pure gap — different product category, noted for completeness."
+    },
+    {
+      "id": "f-cursor-sync-loop",
+      "competitor_id": "cursor",
+      "feature": "Synchronous feedback loop — agent asks before running side-effecting commands",
+      "our_capability_ref": "agent.invoke_tool_call",
+      "relation": "parity",
+      "notes": "Conceptual parity: Cursor's ask-before-execute mirrors Chronica's RequiresApproval-before-side-effect. Chronica's is server-enforced and money-scoped (board approval, SoD: requester != approver), Cursor's is a UX confirmation in the IDE."
+    },
+    {
+      "id": "f-cursor-parallel",
+      "competitor_id": "cursor",
+      "feature": "Multi-agent parallel coding (frontend/backend/test agents concurrently, Feb 2026)",
+      "our_capability_ref": null,
+      "relation": "gap",
+      "notes": "Chronica's UI shows agent-run activity in the feed (run_update posts) but does not orchestrate parallel specialized coding agents. Gap vs Cursor's 2026 parallel-agent shipping; agent-system pillar still 37%."
+    },
+    {
+      "id": "f-claudecode-permission",
+      "competitor_id": "claude-code",
+      "feature": "Permission/approval prompt before side-effecting tool execution; hooks for automated gates",
+      "our_capability_ref": "agent.invoke_tool_call",
+      "relation": "parity",
+      "notes": "Direct conceptual parity with Chronica's policy gate. Chronica's enforcement is multi-tenant, ERP-grounded, and tamper-audited rather than a per-workstation permission file — the same idea elevated to a Company-OS boundary."
+    },
+    {
+      "id": "f-comet-autopurchase",
+      "competitor_id": "comet",
+      "feature": "Autonomous in-browser purchases / agentic commerce (agent finishes the buy)",
+      "our_capability_ref": "agent.invoke_tool_call",
+      "relation": "differentiation",
+      "notes": "Chronica's governed-browser-computer DESIGN treats exactly this as the thing to gate: a browser purchase-click would mint a CostRecord routed through evaluate_gate -> board approval -> Merkle audit, executing live only when 'armed'. BUT honest caveat: chronica-internet-hand is built yet UN-WIRED (audit F3) — the safe governance exists in design + a standalone kernel, not a live path. Comet ships ungoverned autonomy now; Chronica ships the governance model but not the wired execution. Docs: governed-browser-computer.md, opportunities architecture-gate-internet-hand-commerce."
+    },
+    {
+      "id": "f-comet-enterprise-tasks",
+      "competitor_id": "comet",
+      "feature": "Enterprise multi-step web tasks (booking, email, form-fill) with credit metering",
+      "our_capability_ref": null,
+      "relation": "gap",
+      "notes": "Chronica has no shipped live agentic-browser task surface for end users. The browser/external-arena pillar is 35% (112/319) and the commerce kernel is inert. Real gap on usable autonomous web execution. Source: 024-end-state.md external-arena 35%."
+    },
+    {
+      "id": "f-atlas-multistep",
+      "competitor_id": "chatgpt-atlas",
+      "feature": "Autonomous multi-step in-page web actions inside a consumer browser",
+      "our_capability_ref": null,
+      "relation": "gap",
+      "notes": "Same category gap as Comet — Chronica governs-by-design but has no live browser-action product. Noted to avoid over-claiming the browser arena."
+    },
+    {
+      "id": "f-atlas-noscope",
+      "competitor_id": "chatgpt-atlas",
+      "feature": "No tenant/scope isolation of browser actions across companies",
+      "our_capability_ref": "agent-knowledge.retrieve_knowledge",
+      "relation": "differentiation",
+      "notes": "Chronica attributes every action to a 5-segment ScopePath and isolates private state per tenant (scoped_retrieval_blocks_peer_company_private_segments_before_ranking test, verified). Consumer agentic browsers have no multi-company isolation model — a structural differentiation for governed business use."
+    },
+    {
+      "id": "f-intercom-resolution",
+      "competitor_id": "intercom-fin",
+      "feature": "Autonomous support resolution AI agent (Fin, priced per successful resolution)",
+      "our_capability_ref": null,
+      "relation": "gap",
+      "notes": "Honest gap: Chronica's helpdesk has the inbox, SLA, automations, macros, CSAT primitives (crm-support 49%, 81/167) but NO shipped autonomous-resolution AI agent. Intercom Fin and Chatwoot Captain both ship one. Source: 024-end-state.md, helpdesk-program memory; minami.ai 2026."
+    },
+    {
+      "id": "f-chatwoot-sharedinbox",
+      "competitor_id": "chatwoot",
+      "feature": "Omnichannel shared inbox (chat/email/social), SLA, labels, macros, teams, CSAT",
+      "our_capability_ref": null,
+      "relation": "parity",
+      "notes": "Chronica natively ported Chatwoot to a chronica-helpdesk crate (migrations 0037+, conversation FSM, outbox, contacts, teams, SLA classifier, CSAT, automations — recent commits). Genuine parity on the shared-inbox feature set; consolidation from chronica-approvals into chronica-helpdesk is unfinished (dedup opportunity). Source: MEMORY helpdesk-program, git log helpdesk P1-P4."
+    },
+    {
+      "id": "f-chatwoot-captain",
+      "competitor_id": "chatwoot",
+      "feature": "Captain AI agent as a first-class feature (v4.14, May 2026)",
+      "our_capability_ref": null,
+      "relation": "gap",
+      "notes": "Even the open-source parity target now ships an AI agent; Chronica's helpdesk does not. Reinforces the autonomous-support-resolution gap. Source: dev.to Chatwoot teardown 2026."
+    },
+    {
+      "id": "f-strategy-gametheory",
+      "competitor_id": "ramp",
+      "feature": "(No competitor analog) — game-theoretic strategy brain / CFO mechanism engine",
+      "our_capability_ref": "cognition.assess_opportunity",
+      "relation": "differentiation",
+      "notes": "Chronica's Strategy Brain pillar is 100% (37/37 verified): game-class classification, EV/DCF/ROIC valuation, screening, player-calibration, oversight-posture recommendation — all advisory (authorizes_money=false). No spend-mgmt or ERP competitor has a game-theoretic Strategic Mechanism Engine driving capital decisions. Uniquely Chronica's thesis. Docs: 02-doctrine, 158-cap-strategy.md."
+    },
+    {
+      "id": "f-trust-tiered-authority",
+      "competitor_id": "langgraph",
+      "feature": "(No analog) — trust-score -> authority-ceiling: an agent's measured track record can only TIGHTEN its money/automation authority",
+      "our_capability_ref": "strategy.recommend_oversight_posture",
+      "relation": "differentiation",
+      "notes": "Chronica's oversight posture (strategy.recommend_oversight_posture verified, flag-gated, tightening-only/adversarial-reviewed) ties calibration to authority — a governance loop no agent framework or ERP has. Honest caveat: the observability->trust loop (langfuse evals -> calibration) is an open opportunity, not fully wired. Source: opportunities observability-langfuse-evals-to-trust; MEMORY backend-slices."
+    },
+    {
+      "id": "f-sod-singleuse-approval",
+      "competitor_id": "brex",
+      "feature": "Separation-of-duties + single-use approval bound to provider+operation+cost-ceiling",
+      "our_capability_ref": "agent.invoke_tool_call",
+      "relation": "differentiation",
+      "notes": "Chronica enforces requester != approver (SoD, F2/F4) and binds each board approval to a specific provider+operation+reversibility+maxCostCents, single-use via a partial UNIQUE index (F1/F1.b, 640 concurrent attempts -> exactly 1 commit). This adversarially-hardened anti-replay money safety exceeds typical spend-tool approval flows. Source: MEMORY audit-2026-06 F1/F1.b/F2/F4 FIXED."
+    },
+    {
+      "id": "f-billing-revenue-gap",
+      "competitor_id": "ramp",
+      "feature": "(Self-identified) — subscription billing / usage metering / Stripe webhook revenue suite",
+      "our_capability_ref": null,
+      "relation": "gap",
+      "notes": "Honest internal gap: ~29 money caps (erp.billing.create_subscription, meter_usage_and_bill, process_stripe_billing_webhook, cancel/change_subscription) are status=unimplemented in caps.db. Chronica is cost-only until built; spend-mgmt/ERP competitors all monetize. Source: query.mjs erp.billing.* = unimplemented; opportunities revenue-erp-billing-subscription-suite."
+    },
+    {
+      "id": "f-observability-dashboards-gap",
+      "competitor_id": "netsuite",
+      "feature": "Production analytics dashboards + materialized-view live KPIs",
+      "our_capability_ref": null,
+      "relation": "gap",
+      "notes": "Honest gap: observability-analytics is 46% (201/440) and most obs.dashboard.* caps are status=unimplemented; the live Postgres->BusinessEvent->OLAP->governance loop (slice.176) is an open integration opportunity, not wired end-to-end. KPI-driven decisions are still partly self-report. Source: query.mjs obs.dashboard.* unimplemented; opportunities integration-4store-olap-decision-loop."
+    },
+    {
+      "id": "f-prod-auth-gap",
+      "competitor_id": "sap",
+      "feature": "Production OIDC SSO / IdP claim-mapping / deploy attestation",
+      "our_capability_ref": null,
+      "relation": "gap",
+      "notes": "Honest gap: only the DEV-session signer auth bridge is done (local UI runs authed vs the real verifier, prod boot-abort proven). Production OIDC/IdP integration + claim->principal mapping + deploy attestation are still ESCALATED — the platform cannot yet run authenticated in real production. Source: MEMORY auth-bridge; opportunities security-auth-bridge-prod-oidc."
+    },
+    {
+      "id": "f-erp-grounded-feed",
+      "competitor_id": "comet",
+      "feature": "(No analog) — X/Twitter-like operational feed where posts ARE approvals/decisions/runs/ERP-events, with inline board approve/reject",
+      "our_capability_ref": null,
+      "relation": "differentiation",
+      "notes": "Chronica's product surface is a social feed over ERP truth: approval posts with inline armed/confirm-gated Approve-Reject (board-only, SoD server-side, commits no money), run_update posts, ERP-event posts, strategy_assessment posts. No competitor frames company operation as a governed social feed. Honest caveat: feed pillar ~35% (manual est.); strategy-live/agent-profile/command-palette pending. Source: ui-feed-first-redesign.md; MEMORY control-room-ui."
+    },
+    {
+      "id": "f-salesforce-party-model",
+      "competitor_id": "salesforce",
+      "feature": "Canonical Party/Account model — Account, Contact, account-contact relations, teams, partners, roles and hierarchy, one identity across the whole platform",
+      "our_capability_ref": "chronica-party::store::party_store",
+      "relation": "gap",
+      "notes": "Chronica's Party Graph (crates/chronica-party, ADR-1, merged PR #2477) provides a real Postgres-backed PartyRow/PartySourceLinkRow with a live chronica-crm consumer — genuine progress since the 2026-07-21 audit, which found Chronica had 'separate CRM contact, Helpdesk contact, ERP party/customer' with no unification. But per this session's own verification (docs/doctrines/specs/backlog/crm-beyond-salesforce/design/part-01, updated 2026-08-07): the Party Graph is M1 scope only — person/organization identity, no role subtypes (no Account-equivalent enterprise aggregate, no team/partner/role/hierarchy semantics), no identity-resolution/merge. Salesforce's Account is a first-class aggregate with ownership, hierarchy, teams and planning views; Chronica's Party is a flatter identity record. Real gap, though narrower than the original audit found."
+    },
+    {
+      "id": "f-salesforce-opportunity-lifecycle",
+      "competitor_id": "salesforce",
+      "feature": "Opportunity lifecycle — teams, contact roles, products, stages, forecast categories, splits, competitor tracking, full history",
+      "our_capability_ref": "crm-support.lead_opportunity",
+      "relation": "gap",
+      "notes": "chronica-crm::store::crm_opportunity_store.rs is real, tenant-scoped code with a guarded lost-reason transition (declare_lost) and a drag-and-drop board UI (ui/src/pages/crm/OpportunityBoardPage.tsx) — genuinely more than the audit credited at the time. But it remains a single fixed 6-status lifecycle (Open/Quotation/Replied/Converted/Closed/Lost) with no forecast categories, no product-line association, no contact-role/team assignment, no competitor tracking, and no opportunity-history audit trail — all real Salesforce dimensions this doc's own gap matrix (section 4) rates Critical severity."
+    },
+    {
+      "id": "f-salesforce-forecasting",
+      "competitor_id": "salesforce",
+      "feature": "Forecasting — forecast hierarchy, categories, rollups, quotas, adjustments, predictive insight",
+      "our_capability_ref": null,
+      "relation": "gap",
+      "notes": "Verified: no forecast module exists anywhere in crates/chronica-crm (grep for 'forecast' returns nothing in src/). The UI's OPPORTUNITY_STAGE_WEIGHTS (ui/src/api/crmOpportunities.ts) is a hardcoded client-side heuristic for a single weighted-pipeline total, not a forecast ledger, hierarchy, or quota system. Clean, unambiguous gap — directional scorecard in the audit rates this Salesforce=5, Chronica=2 (basic pipeline sums and weighted amount only)."
+    },
+    {
+      "id": "f-salesforce-quote-cpq",
+      "competitor_id": "salesforce",
+      "feature": "Quote/CPQ — quote aggregate, immutable versions, approval policy, product configuration, order conversion",
+      "our_capability_ref": null,
+      "relation": "gap",
+      "notes": "The audit found: 'contract and opportunity routes exist; quote lifecycle absent.' No quote/CPQ module found in crates/chronica-crm as of this session's own verification pass. Real, Critical-severity gap per the audit's own matrix."
+    },
+    {
+      "id": "f-salesforce-flow-automation",
+      "competitor_id": "salesforce",
+      "feature": "Flow — a unified, versioned, debuggable low-code automation/orchestration platform spanning the whole CRM (approvals, record-triggered flows, scheduled flows, async processing)",
+      "our_capability_ref": "chronica_workflows::entity_triggers",
+      "relation": "gap",
+      "notes": "Chronica has a real workflow engine (chronica-workflows: entity_triggers.rs deterministic EntityChange matching, a durable execution subsystem, and a genuinely Chronica-only money-gate chain in commit.rs that Flow has no equivalent for) plus fragmented Helpdesk-specific rules/macros — but no single, versioned, debuggable automation graph unifying CRM-wide triggers the way Flow does, and entity_triggers is not yet wired to live CRM-mutation events per this session's own donor-scout follow-up. Audit rates this Critical severity, Salesforce=5 / Chronica=2."
+    },
+    {
+      "id": "f-salesforce-crm-sharing",
+      "competitor_id": "salesforce",
+      "feature": "Object/field/record-level sharing and permission architecture (role hierarchy, sharing rules, field-level security) applied uniformly across API/UI/search/analytics",
+      "our_capability_ref": null,
+      "relation": "gap",
+      "notes": "Chronica's company-level tenancy (ScopePath, deny-by-default) is real and strong at the TENANT boundary, but fine-grained CRM object/field/record sharing (who on MY team can see THIS opportunity) is not unified — matches this session's own independent finding on chronica-erp::crm::permissions.rs (a real ported RBAC model with no store/persistence adapter wired to any route). Audit rates this Critical, Salesforce=5 / Chronica=2."
+    },
+    {
+      "id": "f-salesforce-service-cloud",
+      "competitor_id": "salesforce",
+      "feature": "Service Cloud — case management, omnichannel routing, entitlements/milestones, knowledge base, supervisor console",
+      "our_capability_ref": "crates/chronica-helpdesk",
+      "relation": "parity",
+      "notes": "This is the audit's own strongest Chronica CRM-adjacent area (directional scorecard: Salesforce=5, Chronica=3, the highest Chronica score in the whole matrix). chronica-helpdesk + routed chronica-api endpoints (automations, macros, KB, CSAT, custom attributes/filters, business hours) are real, tenant-scoped, and substantial. Honest caveat per the audit: 'channels/delivery/entitlements/supervisor incomplete' — omnichannel live delivery and entitlement/milestone tracking remain gaps even where the case/ticket core has real parity."
+    },
+    {
+      "id": "f-salesforce-customer-360",
+      "competitor_id": "salesforce",
+      "feature": "Customer 360 / Data 360 — identity resolution, harmonized customer profiles, calculated insights, activation across channels",
+      "our_capability_ref": null,
+      "relation": "gap",
+      "notes": "The audit's own words: 'doctrine target; not built as an authoritative projection.' No Customer360 projection exists in chronica-crm as of this session's verification. Critical-severity gap, Salesforce=5 / Chronica=1.5 per the directional scorecard."
+    },
+    {
+      "id": "f-salesforce-money-evidence-chain",
+      "competitor_id": "salesforce",
+      "feature": "(No true analog) — an unbroken, provably-governed customer-intent-to-financial-evidence chain: opportunity -> quote -> approval -> contract -> order -> fulfillment -> invoice -> payment/settlement -> ledger, every step evidenced",
+      "our_capability_ref": "chronica-policy::gate::evaluate_gate",
+      "relation": "differentiation",
+      "notes": "This is the audit's own identified structural advantage (section 7.2), not a claim of matching Salesforce feature-for-feature. Chronica has one deterministic verdict implementation and an always-on source guard requiring the sole production commit_money_action caller to remain the gated runtime executor. That is stronger evidence for the canonical DB commit sink than a configurable workflow, but it is not proof of one workspace-wide enforcement door. Honest caveat per the audit: the individual opportunity/quote/contract/order/fulfillment links mostly exist as separate, not-yet-chained domains today."
+    },
+    {
+      "id": "f-salesforce-source-inspectability",
+      "competitor_id": "salesforce",
+      "feature": "(No true analog) — Salesforce is a closed, proprietary multitenant platform; source and internal logic are not independently auditable",
+      "our_capability_ref": null,
+      "relation": "advantage",
+      "notes": "The audit's own directional scorecard rates this the single dimension where Chronica scores HIGHER than Salesforce (Salesforce=2.5, Chronica=5): 'Source control and inspectability... advantage only if maintenance quality follows.' Chronica's Rust-workspace-with-git-history is fully inspectable by design; Salesforce's Apex/Flow customizations run inside a closed managed platform. Genuine structural advantage, honestly caveated by the audit as conditional on Chronica actually maintaining that inspectable code well."
+    },
+    {
+      "id": "f-salesforce-admin-devops-mobile",
+      "competitor_id": "salesforce",
+      "feature": "Admin/DevOps — sandboxes, source tracking, packages, promotion pipelines, rollback — plus mature mobile/offline clients",
+      "our_capability_ref": null,
+      "relation": "gap",
+      "notes": "The audit found 'conventional repo/CI plus architecture/capability tooling; local truth gaps' for admin/DevOps and 'no comparable CRM mobile/offline program proven' for mobile. Both remain unaddressed as of this session's verification — no mobile client or sandbox/promotion tooling exists in this repo beyond the standard Rust/CI toolchain. Critical severity per the audit, Salesforce=5 / Chronica=1.5 (admin/DevOps/mobile combined row)."
+    },
+    {
+      "id": "f-twenty-metadata-registry",
+      "competitor_id": "twenty",
+      "feature": "Dynamic object/field metadata engine — workspaces define custom objects and typed fields as data (ObjectMetadata/FieldMetadata rows), no code or deploy required",
+      "our_capability_ref": "chronica-crm::store::metadata_registry_store",
+      "relation": "parity",
+      "notes": "chronica-erp::crm::metadata::{object,field,index}.rs is a direct ported model and chronica-crm::store::metadata_registry_store.rs persists it company-scoped over real Postgres tables. Honest caveat: Twenty materializes true per-tenant Postgres DDL; Chronica's slice backs custom objects with a single EAV JSONB record table instead of dynamic DDL — parity on the metadata/validation layer, not on schema materialization fidelity."
+    },
+    {
+      "id": "f-twenty-view-engine",
+      "competitor_id": "twenty",
+      "feature": "Saved views (table/kanban/calendar) with composable nested AND/OR filter/sort/group trees, decoupled from the underlying record data",
+      "our_capability_ref": "chronica-erp::crm::metadata_view::ViewRegistry",
+      "relation": "gap",
+      "notes": "view_metadata_store.rs persists a view's shape (real, live code) but filters/sorts are opaque jsonb, not compiled into the query the record-list route actually runs; no kanban/calendar UI. Persistence has parity; end-to-end usability does not."
+    },
+    {
+      "id": "f-twenty-rbac",
+      "competitor_id": "twenty",
+      "feature": "Four-layer RBAC: setting/tool flags, object-level, field-level, row-level predicate groups with dynamic $current_user bindings",
+      "our_capability_ref": null,
+      "relation": "gap",
+      "notes": "chronica-erp::crm::permissions.rs is a real, unit-tested port ('Native port of the Twenty CRM permission model') but has no corresponding store/persistence adapter — not wired to Postgres or any route. Chronica's only live access control on CRM data is coarse company-level tenancy."
+    },
+    {
+      "id": "f-twenty-fulltext-search",
+      "competitor_id": "twenty",
+      "feature": "Cross-object full-text search — tsvector+GIN per searchable object, ranked, cursor-paginated across all object types in one query",
+      "our_capability_ref": null,
+      "relation": "gap",
+      "notes": "No live tsvector column, GIN index, or ranked cross-object search route/store found. Chronica CRM has zero global search today; each entity is queried by its own explicit route."
+    },
+    {
+      "id": "f-twenty-workflow-triggers",
+      "competitor_id": "twenty",
+      "feature": "DAG-based workflow engine with polymorphic triggers (DATABASE_EVENT, MANUAL, CRON, WEBHOOK) and 15+ composable action types incl. AI agent steps",
+      "our_capability_ref": "workflow-runtime.execute_workflow",
+      "relation": "parity",
+      "notes": "chronica-workflows (entity_triggers.rs, a durable execution subsystem) matches Twenty's trigger-polymorphism + composable-action shape. Honest caveat: entity_triggers is a generic matcher not yet fed by live CRM-mutation events — parity on the engine, not yet on CRM automation coverage."
+    },
+    {
+      "id": "f-workflow-money-gate",
+      "competitor_id": "twenty",
+      "feature": "(No analog) — Twenty's workflow actions (HTTP calls, AI agent steps, record CRUD) execute with no capital/spend governance layer",
+      "our_capability_ref": "workflow-runtime.execute_workflow",
+      "relation": "differentiation",
+      "notes": "chronica-workflows::commit.rs is a real, tested money-safety chain a workflow money-node must cross (evaluate_gate -> board approval -> CostRecord + audit entry), with a blocked node producing zero effect. Twenty has no equivalent capital boundary on any action type."
+    },
+    {
+      "id": "f-twenty-timeline",
+      "competitor_id": "twenty",
+      "feature": "Polymorphic unified activity timeline — every record mutation auto-captured into one chronological per-record feed across any object type",
+      "our_capability_ref": "chronica-erp::crm::timeline::TimelineLog",
+      "relation": "parity",
+      "notes": "TimelineLog is ported and crm_timeline_store.rs persists it, append-only, company-scoped. Honest caveat: no event-emitter wiring auto-captures every field-change diff from every CRM mutation — parity on storage/domain shape, not confirmed on automatic coverage."
+    },
+    {
+      "id": "f-twenty-standard-objects",
+      "competitor_id": "twenty",
+      "feature": "Breadth of standard CRM objects (Person, Company, Opportunity, Note, Task) wired end-to-end with relations, in production for years",
+      "our_capability_ref": null,
+      "relation": "gap",
+      "notes": "chronica-crm/src/store/ has real adapters (crm_contact_store, crm_opportunity_store, crm_contract_store, crm_email_campaign_store, crm_survey_store, crm_rating_store) but docs/041-cap-crm-support.md's own capability roadmap still marks several as status=spec despite the store code existing. Breadth/maturity (years of production hardening, full relation graph, UI) is a real gap."
+    },
+    {
+      "id": "f-twenty-noaccode-fields",
+      "competitor_id": "twenty",
+      "feature": "Self-serve, no-code UI for end-users to create custom objects/fields/relations at runtime",
+      "our_capability_ref": null,
+      "relation": "gap",
+      "notes": "Even where the metadata registry is materialized, no frontend surface or admin UI exists for creating an object/field — backend API only. Twenty ships a full settings UI as its flagship feature."
+    },
+    {
+      "id": "f-hubspot-breeze-agents",
+      "competitor_id": "hubspot",
+      "feature": "Breeze AI Core Agents (Content, Social Media, Prospecting, Customer) — reasoning-driven autonomous workers with Jan-2026 Audit Cards logging property changes",
+      "our_capability_ref": null,
+      "relation": "gap",
+      "notes": "Chronica has no marketing-content-generation, social-posting, or autonomous-prospecting agent. Chronica's own agent system (chronica-workflows::agent_loop + chronica-runtime::invoke_tool) is governance-first: every tool-call is money-classified and gated, the opposite design goal from Breeze's outreach automation."
+    },
+    {
+      "id": "f-hubspot-workflow-engine",
+      "competitor_id": "hubspot",
+      "feature": "Visual, branching workflow-automation builder (if/then, delay, contact-property-triggered enrollment) spanning Marketing/Sales/Service Hub",
+      "our_capability_ref": "chronica_workflows::entity_triggers",
+      "relation": "gap",
+      "notes": "entity_triggers.rs deterministically matches an EntityChange against registered Triggers, but there is no CRM-facing, no-code visual builder wired to contact/deal property changes with marketing-enrollment semantics. The primitive exists; the product does not."
+    },
+    {
+      "id": "f-hubspot-smart-crm",
+      "competitor_id": "hubspot",
+      "feature": "Smart CRM: one unified contact/company/deal record with custom properties and a shared activity timeline across every Hub",
+      "our_capability_ref": "crm-support.manage_contact",
+      "relation": "gap",
+      "notes": "Chronica has real, verified contact CRUD plus donor-ported company/opportunity primitives, but these are disconnected building blocks, not one unified object model with cross-entity custom properties and a shared timeline."
+    },
+    {
+      "id": "f-hubspot-plg-free-tier",
+      "competitor_id": "hubspot",
+      "feature": "Product-led-growth pricing: free tier scaling per-seat through Starter/Professional/Enterprise across 5 Hubs",
+      "our_capability_ref": null,
+      "relation": "gap",
+      "notes": "Chronica has no subscription/billing product — erp.billing.create_subscription, meter_usage_and_bill are unimplemented in caps.db. Cannot compete on tiered self-serve pricing without a shipped billing suite."
+    },
+    {
+      "id": "f-hubspot-marketing-suite",
+      "competitor_id": "hubspot",
+      "feature": "Marketing Hub: email marketing, landing pages, forms, ad management, SEO/content tools, campaign reporting",
+      "our_capability_ref": "crm-support.campaign_appointment",
+      "relation": "gap",
+      "notes": "Chronica has real email-campaign scheduling logic (ERPNext-derived) but no landing pages, ad-platform integration, forms builder, or SEO tooling, and live email sending is not wired."
+    },
+    {
+      "id": "f-hubspot-service-hub",
+      "competitor_id": "hubspot",
+      "feature": "Service Hub: ticketing, shared inbox, knowledge base, customer portal, playbooks, SLA/CSAT reporting",
+      "our_capability_ref": "crates/chronica-helpdesk",
+      "relation": "parity",
+      "notes": "Chronica natively ported a Chatwoot-parity helpdesk — genuine parity vs HubSpot's Free/Starter Service Hub tier. Caveat: no AI-driven autonomous resolution and Enterprise-tier customer-portal/playbooks exceed Chronica's maturity."
+    },
+    {
+      "id": "f-hubspot-lead-scoring",
+      "competitor_id": "hubspot",
+      "feature": "Predictive lead scoring (fit + engagement signals) surfaced directly on the contact/deal record",
+      "our_capability_ref": null,
+      "relation": "gap",
+      "notes": "No scoring/ranking model exists over Chronica's contact or lead records. cognition.assess_opportunity evaluates capital/investment opportunities, a different domain."
+    },
+    {
+      "id": "f-hubspot-developer-platform",
+      "competitor_id": "hubspot",
+      "feature": "Public developer platform: REST/GraphQL APIs, custom objects, App Marketplace, webhooks",
+      "our_capability_ref": "chronica-api",
+      "relation": "gap",
+      "notes": "chronica-api is real but serves Chronica's own product surface, not a public third-party developer platform with a partner app marketplace."
+    },
+    {
+      "id": "f-zoho-zia-predictions",
+      "competitor_id": "zoho",
+      "feature": "Zia AI conversion-probability scoring on every new lead, sortable/filterable directly on the lead record",
+      "our_capability_ref": null,
+      "relation": "gap",
+      "notes": "No lead-scoring model exists in Chronica; the closest code (cognition.assess_opportunity) scores capital/investment opportunities, not inbound leads."
+    },
+    {
+      "id": "f-zoho-ask-zia-forecasting",
+      "competitor_id": "zoho",
+      "feature": "Ask Zia: natural-language-to-chart analytics; Zia Forecasting: pipeline forecasts by rep/team/territory",
+      "our_capability_ref": "chronica_crm::store::analytics_funnel_store",
+      "relation": "gap",
+      "notes": "Chronica has real event-driven analytics infra (funnel/cohort/dashboard stores) but this is PostHog-style product analytics, not sales-pipeline forecasting, and there is no natural-language query layer or forecasting model."
+    },
+    {
+      "id": "f-zoho-blueprint",
+      "competitor_id": "zoho",
+      "feature": "Blueprint: admin-authored enforced sales-process state machine with per-field gating and before/during/after-transition hooks",
+      "our_capability_ref": "crm-support.lead_opportunity",
+      "relation": "gap",
+      "notes": "Chronica has a real, tested lead/opportunity status state machine but it is code-fixed, not an admin-configurable process builder with per-field gating and transition hooks."
+    },
+    {
+      "id": "f-zoho-commandcenter",
+      "competitor_id": "zoho",
+      "feature": "CommandCenter: cross-module customer-journey orchestration triggered by signals, with per-transition deadline enforcement",
+      "our_capability_ref": "chronica_workflows::deadline",
+      "relation": "gap",
+      "notes": "Chronica has a real deadline-arithmetic primitive usable as a building block, but no cross-module customer-journey-orchestration product wired to CRM entity signals."
+    },
+    {
+      "id": "f-zoho-one-suite",
+      "competitor_id": "zoho",
+      "feature": "Zoho One: 50+ integrated business apps under one login, one price",
+      "our_capability_ref": "chronica-erp",
+      "relation": "differentiation",
+      "notes": "Zoho One federates many separately-built apps behind SSO. Chronica's architecture is the inverse: one Rust kernel sharing a ScopePath tenancy model, a canonical audit primitive, and one deterministic money-verdict contract — natively built together, though enforcement has multiple callers. Architectural differentiation only, not a claim of matching Zoho One's 50+ app breadth."
+    },
+    {
+      "id": "f-zoho-multichannel-crm",
+      "competitor_id": "zoho",
+      "feature": "Native multichannel messaging bundled into the CRM record (email, live chat, social, telephony)",
+      "our_capability_ref": "chronica_crm::caps_slice1::channels::discord",
+      "relation": "gap",
+      "notes": "Chronica has real message-target-parsing/routing logic for many channels, but each adapter explicitly states 'no network I/O in this crate' — live send/receive wiring is a deferred edge, not shipped."
+    },
+    {
+      "id": "f-zoho-workflow-rules",
+      "competitor_id": "zoho",
+      "feature": "Workflow Rules: trigger-based field update/email alert/task creation on record create-or-edit",
+      "our_capability_ref": "chronica_workflows::entity_triggers",
+      "relation": "gap",
+      "notes": "entity_triggers.rs is the same shape of primitive as a Zoho Workflow Rule, but per the module's own doc comment the live enqueue onto a queue is a deferred edge — primitive parity, product gap."
+    },
+    {
+      "id": "f-zoho-developer-platform",
+      "competitor_id": "zoho",
+      "feature": "Zoho CRM developer platform: REST/GraphQL COQL APIs, Deluge custom-function scripting, widgets, Marketplace extensions",
+      "our_capability_ref": "chronica-api",
+      "relation": "gap",
+      "notes": "chronica-api is a real internal REST API but has no public scripting layer, no widget SDK, and no third-party extension marketplace."
+    },
+    {
+      "id": "f-pipedrive-visual-pipeline",
+      "competitor_id": "pipedrive",
+      "feature": "Visual, drag-and-drop sales pipeline organized into deal stages (the product's core UI)",
+      "our_capability_ref": "crm-support.lead_opportunity",
+      "relation": "parity",
+      "notes": "ui/src/pages/crm/OpportunityBoardPage.tsx is a genuine @dnd-kit drag-and-drop kanban backed by real routes over crm_opportunity_store.rs. Caveat: Pipedrive supports multiple pipelines with arbitrary, admin-renameable stages; Chronica's board is a fixed 6-value OpportunityStatus enum — a lifecycle state machine, not a configurable named-stage pipeline."
+    },
+    {
+      "id": "f-pipedrive-multi-pipeline-custom-stages",
+      "competitor_id": "pipedrive",
+      "feature": "Multiple pipelines with custom, admin-defined, reorderable stage names per team/process",
+      "our_capability_ref": null,
+      "relation": "gap",
+      "notes": "Chronica's opportunity board has one hardcoded status set with no per-company pipeline/stage configuration table found."
+    },
+    {
+      "id": "f-pipedrive-lost-reason-enforced",
+      "competitor_id": "pipedrive",
+      "feature": "Capturing a reason when a deal is marked Lost (freeform or predefined reasons)",
+      "our_capability_ref": "crm-support.lead_opportunity",
+      "relation": "differentiation",
+      "notes": "Pipedrive defaults to freeform text, predefined reasons opt-in. Chronica's declare_lost HARD-REJECTS the transition with zero reasons (OpportunityError::NoLostReason, route -> 422) — stricter/audit-grade, a real differentiation rather than plain parity."
+    },
+    {
+      "id": "f-pipedrive-activity-based-selling",
+      "competitor_id": "pipedrive",
+      "feature": "Activity-based selling: mandatory next-activity scheduling that blocks/nudges reps who leave a deal without a next step",
+      "our_capability_ref": null,
+      "relation": "gap",
+      "notes": "Chronica has activity scheduling (crm_activity_store.rs, ported from Odoo mail.activity) but it is optional — no guard blocks a stage-move or requires an open activity."
+    },
+    {
+      "id": "f-pipedrive-rotting-deals",
+      "competitor_id": "pipedrive",
+      "feature": "'Rotting' deals: per-stage configurable inactivity threshold that visually flags stalled deals",
+      "our_capability_ref": null,
+      "relation": "gap",
+      "notes": "No matching concept found anywhere in chronica-crm or the CRM UI."
+    },
+    {
+      "id": "f-pipedrive-ai-sales-assistant",
+      "competitor_id": "pipedrive",
+      "feature": "AI Sales Assistant: per-deal win-probability prediction, stalled-deal flags, next-best-action recommendations, AI email drafting",
+      "our_capability_ref": null,
+      "relation": "gap",
+      "notes": "Chronica's only related number is a hardcoded client-side stage-weight heuristic, explicitly commented as not a per-deal prediction. No AI/ML win-probability engine found."
+    },
+    {
+      "id": "f-pipedrive-smart-contact-data",
+      "competitor_id": "pipedrive",
+      "feature": "Smart Contact Data: automatic contact/company enrichment from public web and social data",
+      "our_capability_ref": null,
+      "relation": "gap",
+      "notes": "No enrichment integration found in chronica-crm or chronica-integrations."
+    },
+    {
+      "id": "f-pipedrive-leadbooster",
+      "competitor_id": "pipedrive",
+      "feature": "LeadBooster add-on: website chatbot + live-chat handoff + Prospector (400M-profile database) + embeddable web forms",
+      "our_capability_ref": null,
+      "relation": "gap",
+      "notes": "Chronica has many chat channel adapters but none is a website-embeddable lead-qualifying chatbot, and there is no prospect-database/lead-sourcing tool."
+    },
+    {
+      "id": "f-pipedrive-email-sync-tracking",
+      "competitor_id": "pipedrive",
+      "feature": "Two-way email sync (IMAP/SMTP) plus open/click tracking surfaced inside the deal timeline",
+      "our_capability_ref": null,
+      "relation": "gap",
+      "notes": "chronica-crm's communication.rs models linkage/timeline but its own doc comment states email dispatch is a separate, deferred capability — no IMAP/SMTP sync or open/click tracking found."
+    },
+    {
+      "id": "f-pipedrive-marketplace-api",
+      "competitor_id": "pipedrive",
+      "feature": "500+ app Marketplace plus an open public REST API and webhooks",
+      "our_capability_ref": "crm-support.crm_nodes",
+      "relation": "gap",
+      "notes": "Chronica has a real internal REST API but no public third-party developer app marketplace. crm-support.crm_nodes and crm-support.crm_sync are both still status=spec in capabilities.db — already tracked in Chronica's own backlog."
+    }
+  ]
+}

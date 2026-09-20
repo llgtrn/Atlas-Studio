@@ -1,0 +1,152 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "chronica.system-atlas.intelligence-boundary.v1",
+  "title": "System Atlas sovereign intelligence boundary projection",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "generated_at",
+    "source_sha",
+    "source_of_truth",
+    "summary",
+    "readiness",
+    "holding_id_reference_paths",
+    "violations"
+  ],
+  "properties": {
+    "schema": {
+      "const": "chronica.system-atlas.intelligence-boundary.v1"
+    },
+    "generated_at": {
+      "type": "string"
+    },
+    "source_sha": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "source_of_truth": {
+      "type": "string",
+      "minLength": 1
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "readiness_present_total",
+        "readiness_proof_only_total",
+        "readiness_gap_total",
+        "hard_violations_total",
+        "review_required_total",
+        "holding_id_reference_files_total",
+        "core_dependencies_total"
+      ],
+      "properties": {
+        "readiness_present_total": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "readiness_proof_only_total": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "readiness_gap_total": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "hard_violations_total": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "review_required_total": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "holding_id_reference_files_total": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "core_dependencies_total": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "readiness": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "state",
+          "evidence"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "PRESENT",
+              "PROOF_ONLY",
+              "GAP"
+            ]
+          },
+          "evidence": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "holding_id_reference_paths": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "violations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "type",
+          "severity",
+          "path",
+          "detail"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "severity": {
+            "type": "string",
+            "enum": [
+              "HARD",
+              "REVIEW_REQUIRED"
+            ]
+          },
+          "path": {
+            "type": "string"
+          },
+          "detail": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

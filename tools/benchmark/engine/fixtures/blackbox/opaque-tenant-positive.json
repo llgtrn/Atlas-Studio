@@ -1,0 +1,33 @@
+{
+  "schema": "chronica.blackbox.evaluation.v1",
+  "fixture_kind": "CURRENT_RUNTIME_CALIBRATION",
+  "web2app": {
+    "independent": true
+  },
+  "employment": {
+    "independent": true
+  },
+  "case_id": "opaque-tenant-positive",
+  "claimed_blackbox_maturity": "B2",
+  "surface": "vault-secrets",
+  "canonical_status": "verified",
+  "runtime_status": "LIVE",
+  "product_status": "PRIMITIVE",
+  "code_refs": [
+    "crates/chronica-security/src/tenant_key_wrap.rs"
+  ],
+  "at_rest": {
+    "sealed": true
+  },
+  "opaque": {
+    "boundary_ref": true
+  },
+  "secrets": {
+    "handle": true,
+    "envelope": true
+  },
+  "cross_tenant": {
+    "negative": true
+  },
+  "notes": "OpaqueTenantRef HMAC-SHA256 AAD binding is a positive B2 primitive. Global Chronica remains B1."
+}

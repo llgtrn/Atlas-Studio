@@ -1,0 +1,22 @@
+{
+  "schema": "chronica.employment.evaluation.v1",
+  "case_id": "worker-model-upgrade-same-identity",
+  "fixture_kind": "BENCHMARK_FIXTURE",
+  "worker_class": "digital_employee",
+  "claimed_employment_maturity": "E2",
+  "runtime_status": "TEST_ONLY",
+  "product_status": "NOT_BUILT",
+  "identity": {
+    "stable_worker_id": true,
+    "model_upgrade_preserves_identity": true,
+    "runtime_change_resets_history": false,
+    "clone_creates_new_identity": true
+  },
+  "organization": { "company_bound": true, "department_bound": true },
+  "contract": { "durable": true, "versioned": true, "immutable_history": true },
+  "assignment": { "production_path": false },
+  "authority": { "no_ai_enforcement": true },
+  "lifecycle": {},
+  "evidence": { "production_evidenced": false },
+  "notes": "BENCHMARK FIXTURE ONLY. MODEL VERSION CHANGE != NEW EMPLOYEE. Same worker identity, history, contract lineage after runtime/model upgrade."
+}

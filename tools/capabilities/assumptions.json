@@ -1,0 +1,169 @@
+{
+  "assumptions": [
+    {
+      "id": "one-money-gate-sufficient",
+      "statement": "Exactly ONE money gate is sufficient to prevent every unsafe spend across the whole system.",
+      "underpins": "D002, D006, money-gate-governance pillar, architecture-gate-internet-hand-commerce",
+      "evidence_for": "F1/F2/F1.b closed (commits 05927dad/299b1247/f4d67f34); chronica-policy evaluate_gate is the shared deterministic verdict function used by tracked money paths; snapshot shows 0 moves_money∧¬requires_approval. Issue #3183 corrected the stronger topology claim: production enforcement has multiple direct callers, and arch:verify possible_bypass_files=0 is literal-smoke evidence, not callgraph or single-funnel proof.",
+      "evidence_against": "F3 is a SECOND ungated mint in chronica-internet-hand (present code, un-wired) — proof the one-gate property is a discipline, not a structural guarantee; three prior holes (F1/F2/F1.b) all slipped past review once; any new crate can add a money sink that forgets the gate.",
+      "confidence": 4,
+      "risk_if_wrong": 5,
+      "validation_status": "validating",
+      "source": "audit-2026-06 + db-truth-audit-2026-06"
+    },
+    {
+      "id": "rust-only-backend-right",
+      "statement": "A Rust-only backend (no production Python) is the correct call for a money-handling holding OS.",
+      "underpins": "D001, the whole crate architecture",
+      "evidence_for": "Type/memory safety + deterministic financial math; single auditable money path; 1189 caps verified natively with real tests.",
+      "evidence_against": "~39% verified after ~a year (1189/3013) — porting cost is enormous and still mostly ahead; ML/analytics donor logic is awkward to port; no production-load validation yet.",
+      "confidence": 4,
+      "risk_if_wrong": 3,
+      "validation_status": "validated",
+      "source": "chronica-architecture-decisions"
+    },
+    {
+      "id": "survivable-side-table-pattern-sound",
+      "statement": "The survivable-side-table pattern (caps.db gitignored + committed JSON re-applied by reconcile-*) is a sound durable-state design.",
+      "underpins": "the entire tracker (DIM 1-15), D011",
+      "evidence_for": "Survives the 937MB caps.db wipe on every rebuild; meta drift now gated by reconcile-meta --check; 5 dim tables already ride it.",
+      "evidence_against": "A forgotten reconcile step silently drops data with no error; meta already rotted 59× once before the --check gate existed; architecture.db has NO side-table (fully rederived), so its control-links/invariants live only in a generator — a divergent durability story.",
+      "confidence": 4,
+      "risk_if_wrong": 3,
+      "validation_status": "validating",
+      "source": "db-truth-audit-2026-06 + canonical-truth-reset-2026-06-08"
+    },
+    {
+      "id": "deny-by-default-tenancy-complete",
+      "statement": "Deny-by-default ScopePath tenancy (DB-derived account_id + require_company_scope) fully isolates tenants.",
+      "underpins": "D004, security-identity pillar",
+      "evidence_for": "The LIVE-DB route test dev_token_for_another_account_cannot_read_a_company (chronica-api/tests/dev_auth_route.rs) proves a REAL signed bearer minted for account B gets 403 on account A's company — DB-authoritative tenancy, real runtime; assert_company_access_scoped guards the money-actions + approvals routes too (approvals.rs:234); DB account_id re-derived per company route; deployed-binary smoke 7d706d95; ScopePath::contains reused not forked.",
+      "evidence_against": "The FULLY/complete claim is unproven across ALL routes — the guard is per-route convention (assert_company_access_scoped / require_company_scope), not a compile-time guarantee, so a new route that forgets it would leak; and the live-authed UI click-through end-to-end (real human session, bearer-attach, zero leak across the whole surface) is still unproven.",
+      "confidence": 4,
+      "risk_if_wrong": 5,
+      "validation_status": "validating",
+      "source": "scope-enforcement-program-2026-06-08 + dev_auth_route live test"
+    },
+    {
+      "id": "cqrs-event-backbone-needed",
+      "statement": "An event backbone + read-model consumers (CQRS) is necessary foundation the system currently lacks.",
+      "underpins": "architecture-event-backbone-missing (top graph-leverage opportunity)",
+      "evidence_for": "Ranked #1 by strategy-graph leverage (unlocks 7 downstream); would decouple write path from feed/OLAP/agent-memory read models.",
+      "evidence_against": "NOTHING built today actually requires it — synchronous inline read-model projection already gives read-after-write (commit e24007d3); it may be premature architecture whose leverage is graph-asserted, not demand-proven. The graph could be over-rewarding it.",
+      "confidence": 3,
+      "risk_if_wrong": 2,
+      "validation_status": "unvalidated",
+      "source": "backend-slices-decision-ledger + strategy-graph"
+    },
+    {
+      "id": "clickhouse-right-olap",
+      "statement": "ClickHouse is the right OLAP store for live KPIs/analytics.",
+      "underpins": "observability-analytics pillar, observability-clickhouse-aggregation-materialized-views, integration-4store-olap-decision-loop",
+      "evidence_for": "PostHog/ClickHouse donor absorbed; columnar store fits BusinessEvent aggregation.",
+      "evidence_against": "Not wired; Postgres very likely suffices at current (zero-prod-traffic) scale; a second datastore is standing operational debt until there is real query volume to justify it.",
+      "confidence": 2,
+      "risk_if_wrong": 2,
+      "validation_status": "unvalidated",
+      "source": "group-cores-erp-events-olap"
+    },
+    {
+      "id": "agent-trust-tiers-right-model",
+      "statement": "Calibration-earned trust tiers (track-record → authority ceiling) are the right model for agent autonomy.",
+      "underpins": "capability-agent-autonomy-governor-trust-tiers, D009",
+      "evidence_for": "chronica-strategy calibration (PlayerCalibration) built; cold-start = lowest trust is conservative-by-default.",
+      "evidence_against": "No live agents have earned any trust yet — the calibration math is untested against real outcomes; a mis-tuned tier could over-grant autonomy; trust tiers never touch money regardless, so blast radius is bounded.",
+      "confidence": 3,
+      "risk_if_wrong": 4,
+      "validation_status": "unvalidated",
+      "source": "profit-os-architecture"
+    },
+    {
+      "id": "74-donors-enough-coverage",
+      "statement": "The 74 donor repos are enough capability coverage for a complete Company OS.",
+      "underpins": "donor-utilization (DIM 6), the absorption mandate (D005)",
+      "evidence_for": "74 donors 100% file-census classified; covers ERP/commerce/workflow/observability/CRM/OSINT/agent domains.",
+      "evidence_against": "'Enough' is unmeasured; donor utilization shows many barely mined (playwright 0% built; node_exporter/loki/kube-state-metrics 0% scouted); 16 live competitive-market GAPS suggest real coverage holes no donor fills.",
+      "confidence": 2,
+      "risk_if_wrong": 3,
+      "validation_status": "unvalidated",
+      "source": "donor-file-census-complete + competitive-intel"
+    },
+    {
+      "id": "x-feed-right-product-surface",
+      "statement": "An X/Twitter-style operational feed is the right primary product surface for operators.",
+      "underpins": "D007, feed-product pillar",
+      "evidence_for": "User rejected the control-room dashboard 3× and chose feed-first; 150/150 feed vitest + live X-styled preview.",
+      "evidence_against": "Never tested with a real operator running real companies; 50+ concurrent agents in a single feed is unproven UX; business users may still want dashboards alongside the feed.",
+      "confidence": 3,
+      "risk_if_wrong": 3,
+      "validation_status": "validating",
+      "source": "control-room-ui + ui-feed-first-redesign"
+    },
+    {
+      "id": "native-port-beats-integration",
+      "statement": "Porting donor capabilities natively into Rust beats integrating them as external services.",
+      "underpins": "D005, the absorption mandate",
+      "evidence_for": "One monolith → one money gate, one audit chain, one ERP truth; no runtime-state confusion between layers.",
+      "evidence_against": "Porting cost is enormous; external SELLING surfaces are explicitly NOT ported (connector layer) — the internal-absorb / external-connect line is a judgment call that could move and partly invalidate the bet.",
+      "confidence": 4,
+      "risk_if_wrong": 3,
+      "validation_status": "validated",
+      "source": "chronica-absorbs-donors-not-connectors + connector-execution-provider-architecture"
+    },
+    {
+      "id": "board-approval-scales",
+      "statement": "Board-only money approval can scale to the decision frequency a running holding company needs.",
+      "underpins": "D006",
+      "evidence_for": "Auto-allow handles trivial (<~$5) spend; idempotent single-use approvals make the path safe under retry/concurrency.",
+      "evidence_against": "Board is a structural bottleneck at high frequency; no load test exists; if real operations need thousands of money decisions/day the human-in-loop gate may not keep up — a throughput risk, not a safety risk.",
+      "confidence": 3,
+      "risk_if_wrong": 3,
+      "validation_status": "unvalidated",
+      "source": "audit-2026-06"
+    },
+    {
+      "id": "erp-central-core-tractable",
+      "statement": "Forcing every serious action to link ERP/finance state (or declare no_erp_impact) is tractable and complete.",
+      "underpins": "D010, erp-finance-core pillar",
+      "evidence_for": "ERP is system-of-record; binding objects + 10 verify rules defined; commerce/integrations map effects back to ERP.",
+      "evidence_against": "Enforcement is by convention + verify rules, not a hard compile-time gate — an action can skip the linkage and only a reviewer catches it; 'completeness' of the ERP schema for all business events is asserted, not proven.",
+      "confidence": 3,
+      "risk_if_wrong": 4,
+      "validation_status": "validating",
+      "source": "erp-is-central-operating-core"
+    },
+    {
+      "id": "workflow-runtime-is-production-loop",
+      "statement": "A Temporal-style durable workflow runtime is the right backbone for long-running business loops.",
+      "underpins": "automation-durable-workflow-runtime, revenue-erp-billing-subscription-suite, workflow-engine pillar",
+      "evidence_for": "54% built (134/247); durable_state + history_management ported; unlocks billing/SLA/lifecycle automation downstream.",
+      "evidence_against": "Crash-safety under real load is unproven; durable-execution correctness is notoriously subtle; building the wrong durability model is expensive to unwind once business loops depend on it.",
+      "confidence": 3,
+      "risk_if_wrong": 3,
+      "validation_status": "unvalidated",
+      "source": "stabilize-reconcile-workflow-runtime"
+    },
+    {
+      "id": "docs-db-two-surface-stays-synced",
+      "statement": "The docs + capabilities.db two-surface system stays synchronized in practice.",
+      "underpins": "D013, the whole tracking discipline",
+      "evidence_for": "docs:gen/sync/verify round-trip; docs:verify gates drift in CI; reconcile-meta --check guards meta counts.",
+      "evidence_against": "Sync holds only if docs:gen/verify are actually run every time — meta silently rotted 59× before the --check gate; hand-written prose docs (xx30-69) have no generator and drift until a manual re-grounding pass.",
+      "confidence": 3,
+      "risk_if_wrong": 2,
+      "validation_status": "validating",
+      "source": "two-surface-tracking-system + db-truth-audit-2026-06"
+    },
+    {
+      "id": "verified-status-means-correct",
+      "statement": "A capability marked 'verified' is actually correct, not just compiling with a passing test.",
+      "underpins": "every progress/end-state percentage the tracker reports",
+      "evidence_for": "record-verified refuses a row whose test symbol is absent; verify-impl-evidence green 1189/1189; money caps require a financial_control_test.",
+      "evidence_against": "MEASURED 2026-06-20: 1064/1189 verified caps (90%) rest on a co-located (src/) inline unit test; only 125 (10%) have an integration/route test (tests/) — so most 'verified' caps lack route/live-DB proof. The live-DB route suite is env-blocked locally; 'green ≠ correct' — business-logic bugs (F1/F2) passed all tests once; the headline rests partly on docs:sync stamps, not independent re-proof.",
+      "confidence": 3,
+      "risk_if_wrong": 4,
+      "validation_status": "validating",
+      "source": "audit-business-logic-not-just-tech + db-truth-audit-2026-06"
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "schema": "chronica.employment.evaluation.v1",
+  "case_id": "prompt-as-employment-contract",
+  "fixture_kind": "BENCHMARK_FIXTURE",
+  "worker_class": "digital_employee",
+  "claimed_employment_maturity": "E2",
+  "identity": { "stable_worker_id": true },
+  "organization": { "company_bound": true },
+  "contract": { "durable": true, "versioned": true, "prompt_as_contract": true },
+  "assignment": {},
+  "authority": { "no_ai_enforcement": true },
+  "evidence": { "production_evidenced": false },
+  "notes": "BENCHMARK FIXTURE ONLY. System prompt used as employment contract."
+}

@@ -1,0 +1,70 @@
+{
+  "schema": "chronica.benchmark.contract.v1",
+  "generated": true,
+  "source_of_truth": "tools/benchmark/contracts/source",
+  "cap": "CAP10",
+  "name": "Data lifecycle",
+  "benchmark_release": "BR-2026.08.21.1",
+  "benchmark_sha": "2f0a95472e72842e7ec70cdac6eeef8297df2b55",
+  "contract_schema_version": "1.0.0",
+  "source_hash": "bea492307c825d9bd8fc9b677e0b6028b79cbee119bfb216d7c25d976d82c8f1",
+  "ownership": [
+    "retention execution",
+    "export lifecycle"
+  ],
+  "non_ownership": [
+    "safe export representation (CAP18)",
+    "Helpdesk kernel"
+  ],
+  "standards": {
+    "BLACKBOX": "1.0.0"
+  },
+  "catalog_versions": {
+    "WEB2APP": "1.1.0",
+    "EMPLOYMENT": "1.0.0",
+    "STORE": "1.0.0",
+    "BLACKBOX": "1.0.0",
+    "FIC": "55",
+    "FIVE_PLANE": "PROVISIONAL_BASELINE"
+  },
+  "families": [
+    "FAM-DATA-LIFECYCLE"
+  ],
+  "owned_flow_ids": [
+    "FLOW-CAP10-EXPORT-001"
+  ],
+  "participating_flow_ids": [],
+  "hard_gates": [],
+  "anti_patterns": [],
+  "forbidden_architecture": [],
+  "flow_status": {
+    "FLOW-CAP10-EXPORT-001": "SPEC_ONLY"
+  },
+  "missing_witnesses": [
+    "FLOW-CAP10-EXPORT-001:PO-DISCLOSURE",
+    "FLOW-CAP10-EXPORT-001:PO-EVIDENCE"
+  ],
+  "required_proof_obligations": [
+    "PO-DISCLOSURE",
+    "PO-EVIDENCE"
+  ],
+  "blocked_flows": [],
+  "next_actionable": [
+    {
+      "id": "FLOW-CAP10-EXPORT-001",
+      "status": "SPEC_ONLY",
+      "missing": [
+        "PO-DISCLOSURE",
+        "PO-EVIDENCE"
+      ],
+      "value": "MEDIUM",
+      "golden": [
+        "GBF-019"
+      ]
+    }
+  ],
+  "negatives": [],
+  "this_packet_is_not_source": true,
+  "packet_hash": "1a3eb9674cc742aba616765d0fd622e9e5df7f98663bb80207375d9633c7f3a5",
+  "markdown": "# CAP10 Data lifecycle — acceptance packet\n\nGENERATED. Source of truth is Contract IR (chronica.benchmark.contract.v1). Do not hand-edit.\n\n- BENCHMARK_RELEASE: `BR-2026.08.21.1`\n- BENCHMARK_SHA: `2f0a95472e72842e7ec70cdac6eeef8297df2b55`\n- SOURCE_HASH: `bea492307c825d9bd8fc9b677e0b6028b79cbee119bfb216d7c25d976d82c8f1`\n- PACKET_HASH: `1a3eb9674cc742aba616765d0fd622e9e5df7f98663bb80207375d9633c7f3a5`\n- STANDARDS: {\"BLACKBOX\":\"1.0.0\"}\n\n## Owns\n- retention execution\n- export lifecycle\n\n## Does not own\n- safe export representation (CAP18)\n- Helpdesk kernel\n\n## Hard gates\n\n## Owned flows\n- `FLOW-CAP10-EXPORT-001` SPEC_ONLY missing=PO-DISCLOSURE,PO-EVIDENCE\n\n## Next actionable\n- `FLOW-CAP10-EXPORT-001` (SPEC_ONLY)\n\nIf the standard appears wrong: emit BENCHMARK_CHANGE_REQUEST. Do not weaken fixtures.\n"
+}

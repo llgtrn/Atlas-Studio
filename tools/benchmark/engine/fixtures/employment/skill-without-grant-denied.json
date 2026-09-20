@@ -1,0 +1,31 @@
+{
+  "schema": "chronica.employment.evaluation.v1",
+  "case_id": "skill-without-grant-denied",
+  "calibration_case": "E",
+  "fixture_kind": "BENCHMARK_FIXTURE",
+  "worker_class": "digital_employee",
+  "claimed_employment_maturity": "E4",
+  "runtime_status": "TEST_ONLY",
+  "product_status": "NOT_BUILT",
+  "identity": { "stable_worker_id": true },
+  "organization": { "company_bound": true, "department_bound": true },
+  "contract": { "durable": true, "versioned": true, "immutable_history": true },
+  "assignment": {
+    "work_order_present": true,
+    "production_path": true,
+    "contract_version_pinned": true,
+    "denied": true
+  },
+  "authority": {
+    "enforced": true,
+    "witness_present": true,
+    "no_ai_enforcement": true,
+    "skill_as_authority": false,
+    "skill_overrides_authority": false,
+    "grant_covers_capability": false
+  },
+  "lifecycle": { "suspended_blocks_new_work": true, "terminated_blocks_new_work": true },
+  "evidence": { "production_evidenced": false },
+  "effective_authority_trace": "skill(legal)=0.98 / contract lacks legal_confidential.read → DENIED",
+  "notes": "BENCHMARK FIXTURE ONLY. Skill score is not a grant. Hypothetical Procurement/legal path."
+}

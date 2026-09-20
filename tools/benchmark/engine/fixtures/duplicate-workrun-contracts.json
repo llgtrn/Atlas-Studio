@@ -1,0 +1,27 @@
+{
+  "relationships": [
+    {
+      "from": "CORE-EXECUTION-SPINE-001",
+      "to": "AI-JOBS-CLONE-001",
+      "relation": "INDEPENDENT"
+    }
+  ],
+  "contracts": [
+    {
+      "intent_id": "CORE-EXECUTION-SPINE-001",
+      "required_state": "Postgres WorkRequest/WorkRun/Attempt",
+      "goal": "actor-neutral WorkRun",
+      "gap": "missing WorkRun",
+      "expected_runtime_entry": "insert WorkRequest",
+      "required_invariants": ["lease fence"]
+    },
+    {
+      "intent_id": "AI-JOBS-CLONE-001",
+      "required_state": "separate AI WorkRequest/WorkRun v2 table",
+      "goal": "second WorkRun schema",
+      "gap": "AI-specific jobs table",
+      "expected_runtime_entry": "AI job table",
+      "required_invariants": ["agent only"]
+    }
+  ]
+}

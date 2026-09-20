@@ -1,0 +1,29 @@
+{
+  "schema": "chronica.blackbox.evaluation.v1",
+  "fixture_kind": "BENCHMARK_FIXTURE_ONLY",
+  "web2app": {
+    "independent": true
+  },
+  "employment": {
+    "independent": true
+  },
+  "case_id": "view-cache-scope-confusion",
+  "claimed_blackbox_maturity": "B3",
+  "at_rest": {
+    "sealed": true
+  },
+  "opaque": {
+    "boundary_ref": true
+  },
+  "secrets": {
+    "handle": true,
+    "envelope": true
+  },
+  "agent": {
+    "semantic_view": true
+  },
+  "cache": {
+    "wrong_actor": true
+  },
+  "notes": "Cached SupportCustomerView served to a different actor/purpose/WorkOrder. Cache keys must include tenant, actor, purpose, WorkOrder/scope, policy version, and view version."
+}

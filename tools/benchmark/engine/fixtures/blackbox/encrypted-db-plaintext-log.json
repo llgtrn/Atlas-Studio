@@ -1,0 +1,27 @@
+{
+  "schema": "chronica.blackbox.evaluation.v1",
+  "fixture_kind": "BENCHMARK_FIXTURE_ONLY",
+  "web2app": {
+    "independent": true
+  },
+  "employment": {
+    "independent": true
+  },
+  "case_id": "encrypted-db-plaintext-log",
+  "claimed_blackbox_maturity": "B5",
+  "at_rest": {
+    "sealed": true
+  },
+  "opaque": {
+    "boundary_ref": true
+  },
+  "secrets": {
+    "handle": true,
+    "envelope": true
+  },
+  "logging": {
+    "secret_plaintext": true,
+    "pii_canary": true
+  },
+  "notes": "Encrypted storage plus plaintext logs is a side channel. Canary CAP18_PII_CANARY_EMAIL@example.test."
+}

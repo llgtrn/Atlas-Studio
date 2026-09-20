@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "chronica.system-atlas.dispatch-journal.v0",
+  "title": "Chronica System Atlas Dispatch Journal",
+  "description": "Write-ahead journal record for one dispatch transaction, written by scripts/system-atlas/dispatch-journal.mjs's prepareTransaction(). As of dispatch_contract_version 2 (B.2.1), each record lives at its OWN immutable path -- dispatch-journal/txn-<transaction_id>.json -- never a single shared well-known file; this is what makes journal identity generation-safe (a stale in-memory copy of one transaction can never be confused with, delete, or overwrite a different transaction's file; see the module's own header comment for the ABA race this closes). A record's existence on disk IS the PREPARED state of its transaction; applyTransaction() deletes it as the commit signal, or leaves it in place with a RECOVERY_CONFLICT outcome if any target file's current content matches neither before_hash nor after_hash (state diverged since prepare -- never overwritten). This is a RUNTIME artifact -- no file under the journal directory must ever be present in a committed tree (see scripts/system-atlas/validate.mjs's leftover-runtime-artifact check): a lingering journal file means a transaction crashed mid-flight and was never recovered, or hit a RECOVERY_CONFLICT requiring human inspection.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "transaction_id", "operation", "source_base_sha", "started_at", "intended_file_updates"],
+  "properties": {
+    "schema": { "const": "chronica.system-atlas.dispatch-journal.v0" },
+    "transaction_id": { "type": "string" },
+    "operation": { "type": "string", "enum": ["claim", "begin", "complete", "release", "expire-stale", "resolve-recovery"] },
+    "source_base_sha": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+    "canonical_ref_sha": { "type": ["string", "null"], "pattern": "^[0-9a-f]{40}$" },
+    "started_at": { "type": "string" },
+    "intended_file_updates": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "before_hash", "after_hash", "content"],
+        "properties": {
+          "path": { "type": "string" },
+          "before_hash": { "type": ["string", "null"] },
+          "after_hash": { "type": "string" },
+          "content": { "type": "string" }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "schema": "chronica.employment.evaluation.v1",
+  "case_id": "utility-no-contract",
+  "fixture_kind": "BENCHMARK_FIXTURE",
+  "worker_class": "utility",
+  "claimed_employment_maturity": "E0",
+  "identity": {},
+  "organization": {},
+  "contract": {},
+  "assignment": {},
+  "authority": { "no_ai_enforcement": true },
+  "evidence": { "production_evidenced": false },
+  "notes": "BENCHMARK FIXTURE ONLY. normalize_invoice()-class utility does not require an employment contract."
+}

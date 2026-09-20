@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "chronica.system-atlas.lease.v0",
+  "title": "Chronica System Atlas Lease",
+  "description": "A real claim by a real worker on a real task. Wave planning must never fabricate one of these -- see docs/_machine/system-atlas/v0/leases.json (empty until a genuine worker claims a task via scripts/system-atlas/leases.mjs).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["lease_id", "task_id", "worker_id", "account_id", "claimed_at", "expires_at", "source_base_sha", "owned_paths", "status"],
+  "properties": {
+    "lease_id": { "type": "string" },
+    "task_id": { "type": "string", "pattern": "^(REPAIR|BUILD|RETIRE|VERIFY)-[0-9]{4}$" },
+    "worker_id": { "type": "string" },
+    "account_id": { "type": "string" },
+    "claimed_at": { "type": "string" },
+    "expires_at": { "type": "string" },
+    "source_base_sha": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+    "owned_paths": { "type": "array", "items": { "type": "string" } },
+    "status": { "type": "string", "enum": ["ACTIVE", "EXPIRED", "RELEASED", "COMPLETED"] }
+  }
+}

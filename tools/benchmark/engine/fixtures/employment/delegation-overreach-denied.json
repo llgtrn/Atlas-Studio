@@ -1,0 +1,28 @@
+{
+  "schema": "chronica.employment.evaluation.v1",
+  "case_id": "delegation-overreach-denied",
+  "fixture_kind": "BENCHMARK_FIXTURE",
+  "worker_class": "digital_employee",
+  "claimed_employment_maturity": "E4",
+  "runtime_status": "TEST_ONLY",
+  "product_status": "NOT_BUILT",
+  "identity": { "stable_worker_id": true },
+  "organization": { "company_bound": true },
+  "contract": { "durable": true, "versioned": true, "immutable_history": true },
+  "assignment": {
+    "work_order_present": true,
+    "production_path": true,
+    "contract_version_pinned": true,
+    "denied": true
+  },
+  "authority": {
+    "enforced": true,
+    "witness_present": true,
+    "no_ai_enforcement": true,
+    "delegation_escalates": false
+  },
+  "lifecycle": {},
+  "evidence": { "production_evidenced": false },
+  "effective_authority_trace": "delegated authority would exceed delegator → DENIED",
+  "notes": "BENCHMARK FIXTURE ONLY. DELEGATED AUTHORITY <= DELEGATOR AUTHORITY. Overreach denied."
+}

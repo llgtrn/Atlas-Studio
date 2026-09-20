@@ -1,0 +1,30 @@
+STOP CONDITION (the single machine check that ends the loop):
+  `pnpm parity:check` exits 0 and prints "✓ PASS".
+  → While it exits non-zero ("✗ FAIL"), the build is NOT done — keep looping (do the next wave).
+  → It only passes at verified=100% / 0 blockers, with every money capability holding a financial-control test.
+  Re-run `pnpm parity:check` after EACH wave; stop the loop the first time it ✓ PASSes. Do not stop on a percentage you eyeballed — only on this exit code.
+
+Chronica is FINISHED when ALL of these are true (parity:check enforces the first three mechanically):
+- `pnpm parity:check` prints ✓ PASS at verified=100% / 0 blockers   ← THE stop signal
+- `pnpm parity:progress` shows 100% on SLICES + DOCS SPEC (148/148) + MONEY
+- every money/side-effect capability has a financialControlTestId
+- `cargo build --workspace` + `cargo test --workspace` + `cargo clippy --workspace -- -D warnings` pass
+- `pnpm -r typecheck` + `pnpm test` + e2e pass
+- a full money flow (e.g. supplier order) blocks→approves→executes→writes CostRecord→audit-chains→reconciles in an integration test
+- the UI route audit shows no donor-branded / iframe routes (Phase 9 UI done per docs/ui/14-ux-evolution-plan.md)
+
+HOW TO GET THERE — follow the playbook in tools/build/FINALIZE-GOAL-PROMPT.md under the constitution .specify/memory/constitution.md. This is a months-long, wave-by-wave build across many sessions; pause and ask on real decisions (SQL layer, provisioning ClickHouse/Coolify, money sign-offs); never fake a `verified`.
+
+EACH WAVE:
+1. `pnpm parity:next`  → it prints where you are (the %s) + the next ready wave + the exact commands.
+2. If kernel != ready: build the Phase-1 Rust kernel skeleton SERIALLY (chronica-core + chronica-api strangler over the TS server + Rust SQL layer on the shared Postgres schema + kernel↔browser-capability transport), gate `cargo build --workspace` green + one endpoint via Rust, then `pnpm parity:set prereq kernel ready`. Do NOT fan out on Phase 1.
+3. Otherwise fan out ONE implementer per ready crate in its own git worktree. Per slice, run the 4-layer loop:
+   - `pnpm speckit:slice N`  (spec-kit: materialize specs/<NNN-slice>/ as a thin pointer to the slice's docs/ specs + pin)
+   - `/speckit.plan` (plan AGAINST the docs/ specs + constitution) → `/speckit.tasks` → `/speckit.analyze`
+   - superpowers methodology (USE THE SKILLS, don't hand-roll): subagent-driven-development + test-driven-development (RED→GREEN→REFACTOR, failing test tagged with the capabilityId first); on ANY failure → systematic-debugging (root-cause before fixes, no symptom patches — this is the flexible/decisive recovery); before done → verification-before-completion + requesting-code-review.
+   - money rows: also write+run the financial-control test (gate→approve→execute→CostRecord→audit→reconcile).
+   - record: `pnpm parity:set slice N verified --test <id> [--fin <id>]` and `pnpm parity:set spec <area/file> verified --test <id>`.
+4. Per crate: independent VERIFIER (re-run verify + `pnpm parity:check --slice N`) then adversarial AUDITOR (refute "truly verified": real assertions, no production Python, neutral naming, money chain real, §11 approval enforced in code). Money rows get a 2nd financial-control auditor. Any refutation → revert to red, fix.
+5. After the wave: `pnpm parity:progress` — report the climbing %s; resolve any MISS / MONEY-GAP / SPEC-NOT-MET / ORDER-VIOLATION the gate names. Then repeat from step 1 (next wave / next session).
+
+LOCKED INVARIANTS: Rust-only backend/kernel (chronica-*); TS/React UI only; the one non-Rust non-UI execution is the TS/Playwright browser capability behind a Rust boundary; NO production Python; ClickHouse/Coolify external. Capability parity (not repo parity). Money safety on every spend/commit. Neutral naming. Dependency order (Phase 1 kernel first; gate raises ORDER-VIOLATION otherwise).

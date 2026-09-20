@@ -1,0 +1,26 @@
+{
+  "schema": "chronica.blackbox.evaluation.v1",
+  "fixture_kind": "BENCHMARK_FIXTURE_ONLY",
+  "web2app": {
+    "independent": true
+  },
+  "employment": {
+    "independent": true
+  },
+  "case_id": "provider-raw-internal-id-leak",
+  "claimed_blackbox_maturity": "B2",
+  "at_rest": {
+    "sealed": true
+  },
+  "opaque": {
+    "boundary_ref": true
+  },
+  "secrets": {
+    "handle": true,
+    "envelope": true
+  },
+  "provider": {
+    "raw_internal_id": true
+  },
+  "notes": "Provider received raw tenant/company/CRM PK. Canary CAP18_INTERNAL_ID_CANARY."
+}

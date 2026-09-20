@@ -1,0 +1,53 @@
+{
+  "schema": "chronica.store.evaluation.v1",
+  "case_id": "multi-store-shared-crm",
+  "fixture_kind": "BENCHMARK_FIXTURE",
+  "claimed_store_maturity": "S3",
+  "identity": {
+    "stable_store_id": true
+  },
+  "tenant": {
+    "company_bound": true,
+    "isolated": true,
+    "cross_tenant_negative": true
+  },
+  "manifest": {
+    "present": true
+  },
+  "desired": {
+    "present": true
+  },
+  "resource_graph": {
+    "declared": true,
+    "durable": true,
+    "queryable": true
+  },
+  "secrets": {
+    "handle_only": true
+  },
+  "web2app": {
+    "independent": true
+  },
+  "employment": {
+    "independent": true
+  },
+  "preview": {
+    "live": true
+  },
+  "actual": {
+    "observed": true
+  },
+  "deployment": {
+    "executed": true,
+    "receipt": true
+  },
+  "business_bindings": {
+    "present": true
+  },
+  "data": {
+    "bound": true,
+    "source_of_truth_map": true,
+    "authoritative_owner": "crm.customer"
+  },
+  "notes": "Store JP and Store US share canonical CRM via explicit binding; local sessions remain isolated."
+}

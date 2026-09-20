@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "chronica.system-atlas.edge.v0",
+  "title": "Chronica System Atlas Edge",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["from", "to", "type", "source_class"],
+  "properties": {
+    "from": { "type": "string" },
+    "to": { "type": "string" },
+    "type": {
+      "type": "string",
+      "enum": [
+        "DEPENDS_ON", "CALLS", "MOUNTS", "READS_STATE", "WRITES_STATE",
+        "EMITS", "CONSUMES", "AUTHORIZES", "IMPLEMENTS_PORT",
+        "PROVIDES_CAPABILITY", "BELONGS_TO_SYSTEM", "BELONGS_TO_CELL_CANDIDATE",
+        "REPLACES", "DUPLICATES", "BLOCKS", "TARGET_DEPENDS_ON"
+      ]
+    },
+    "forbidden": { "type": "boolean", "description": "true if this edge violates the core->cap->adapter layer direction" },
+    "source_class": {
+      "type": "string",
+      "enum": ["CODE", "TEST", "RUNTIME_CONFIG", "BUILD_METADATA", "DATABASE_SCHEMA", "CI_CONFIG", "DOCUMENTATION", "INFERRED", "TARGET_PROPOSAL"]
+    },
+    "evidence": { "type": "array", "items": { "type": "string" } },
+    "notes": { "type": "string" }
+  }
+}

@@ -1,0 +1,106 @@
+{
+  "schema": "chronica.benchmark.contract.v1",
+  "generated": true,
+  "source_of_truth": "tools/benchmark/contracts/source",
+  "cap": "CAP15",
+  "name": "WEB2APP",
+  "benchmark_release": "BR-2026.08.21.1",
+  "benchmark_sha": "2f0a95472e72842e7ec70cdac6eeef8297df2b55",
+  "contract_schema_version": "1.0.0",
+  "source_hash": "bea492307c825d9bd8fc9b677e0b6028b79cbee119bfb216d7c25d976d82c8f1",
+  "ownership": [
+    "typed external app operations",
+    "observation methods",
+    "WEB2APP compiler contract"
+  ],
+  "non_ownership": [
+    "inbound ingestion V2",
+    "credential storage",
+    "employment",
+    "Store estate"
+  ],
+  "standards": {
+    "WEB2APP": "1.1.0"
+  },
+  "catalog_versions": {
+    "WEB2APP": "1.1.0",
+    "EMPLOYMENT": "1.0.0",
+    "STORE": "1.0.0",
+    "BLACKBOX": "1.0.0",
+    "FIC": "55",
+    "FIVE_PLANE": "PROVISIONAL_BASELINE"
+  },
+  "families": [
+    "FAM-WEB2APP-OPERATION"
+  ],
+  "owned_flow_ids": [
+    "FLOW-CAP15-NEWS-001",
+    "FLOW-CAP15-TYPED-001"
+  ],
+  "participating_flow_ids": [
+    "FLOW-CAP18-PROVIDER-001",
+    "FLOW-CAP16-GRANT-001",
+    "FLOW-CAP16-WEB2APP-001",
+    "FLOW-CROSS-WEB2APP-EMPLOY-001"
+  ],
+  "hard_gates": [
+    "UNTYPED_DO_WHATEVER",
+    "CREDENTIAL_IN_AGENT_CONTEXT"
+  ],
+  "anti_patterns": [
+    "ADAPTER_AS_APP"
+  ],
+  "forbidden_architecture": [],
+  "flow_status": {
+    "FLOW-CAP15-NEWS-001": "SPEC_ONLY",
+    "FLOW-CAP15-TYPED-001": "SPEC_ONLY"
+  },
+  "missing_witnesses": [
+    "FLOW-CAP15-NEWS-001:PO-AUTHORITY",
+    "FLOW-CAP15-NEWS-001:PO-DISCLOSURE",
+    "FLOW-CAP15-NEWS-001:PO-ENTRYPOINT",
+    "FLOW-CAP15-TYPED-001:PO-AUTHORITY",
+    "FLOW-CAP15-TYPED-001:PO-NO_AI"
+  ],
+  "required_proof_obligations": [
+    "PO-AUTHORITY",
+    "PO-DISCLOSURE",
+    "PO-ENTRYPOINT",
+    "PO-NO_AI"
+  ],
+  "blocked_flows": [],
+  "next_actionable": [
+    {
+      "id": "FLOW-CAP15-NEWS-001",
+      "status": "SPEC_ONLY",
+      "missing": [
+        "PO-AUTHORITY",
+        "PO-DISCLOSURE",
+        "PO-ENTRYPOINT"
+      ],
+      "value": "HIGH",
+      "golden": [
+        "GBF-008"
+      ]
+    },
+    {
+      "id": "FLOW-CAP15-TYPED-001",
+      "status": "SPEC_ONLY",
+      "missing": [
+        "PO-AUTHORITY",
+        "PO-NO_AI"
+      ],
+      "value": "HIGH",
+      "golden": []
+    }
+  ],
+  "negatives": [
+    {
+      "flow": "FLOW-CAP15-NEWS-001",
+      "case": "raw_cookie"
+    }
+  ],
+  "this_packet_is_not_source": true,
+  "packet_hash": "80285647f00f5472d64599bd9f42292d00fb0517f509f667ca9d497783e9034d",
+  "markdown": "# CAP15 WEB2APP — acceptance packet\n\nGENERATED. Source of truth is Contract IR (chronica.benchmark.contract.v1). Do not hand-edit.\n\n- BENCHMARK_RELEASE: `BR-2026.08.21.1`\n- BENCHMARK_SHA: `2f0a95472e72842e7ec70cdac6eeef8297df2b55`\n- SOURCE_HASH: `bea492307c825d9bd8fc9b677e0b6028b79cbee119bfb216d7c25d976d82c8f1`\n- PACKET_HASH: `80285647f00f5472d64599bd9f42292d00fb0517f509f667ca9d497783e9034d`\n- STANDARDS: {\"WEB2APP\":\"1.1.0\"}\n\n## Owns\n- typed external app operations\n- observation methods\n- WEB2APP compiler contract\n\n## Does not own\n- inbound ingestion V2\n- credential storage\n- employment\n- Store estate\n\n## Hard gates\n- UNTYPED_DO_WHATEVER\n- CREDENTIAL_IN_AGENT_CONTEXT\n\n## Owned flows\n- `FLOW-CAP15-NEWS-001` SPEC_ONLY missing=PO-AUTHORITY,PO-DISCLOSURE,PO-ENTRYPOINT\n- `FLOW-CAP15-TYPED-001` SPEC_ONLY missing=PO-AUTHORITY,PO-NO_AI\n\n## Next actionable\n- `FLOW-CAP15-NEWS-001` (SPEC_ONLY)\n- `FLOW-CAP15-TYPED-001` (SPEC_ONLY)\n\nIf the standard appears wrong: emit BENCHMARK_CHANGE_REQUEST. Do not weaken fixtures.\n"
+}

@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "chronica.system-atlas.dispatch-lock.v0",
+  "title": "Chronica System Atlas Dispatch Lock",
+  "description": "Single-writer exclusive lock record for dispatch.lock, written by scripts/system-atlas/dispatch-lock.mjs's tryAcquireOnce() via atomic exclusive-publish (write a scratch file, then fs.linkSync it into place -- fails EEXIST if the target already exists). This is a RUNTIME artifact -- it must never be present in a committed tree (a real worker always deletes it via releaseLock() before its process exits cleanly; see scripts/system-atlas/validate.mjs's leftover-runtime-artifact check for what enforces that on the Atlas side). lock_contract_version 2 (B.2.2): added host_id/process_start_identity so an expired lock's PREVIOUS OWNER can be machine-verified dead before another worker reclaims it -- a TTL expiry alone is never sufficient authorization to reclaim (see dispatch-lock.mjs's classifyOwnerLiveness()).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["lock_id", "worker_id", "pid", "host_id", "created_at", "expires_at", "source_base_sha"],
+  "properties": {
+    "lock_id": { "type": "string" },
+    "worker_id": { "type": "string" },
+    "pid": { "type": "integer" },
+    "host_id": {
+      "type": "string",
+      "description": "os.hostname() of the machine that acquired this lock. Required (B.2.2) -- a lock with a host_id that does not match the current host's hostname can never be machine-verified as owned by a dead process (this repo-local design has no way to inspect a foreign host's process table), so it fails closed to EXPIRED_OWNER_UNKNOWN once expired rather than being guessed at."
+    },
+    "process_start_identity": {
+      "type": ["string", "null"],
+      "description": "Best-effort defense against PID reuse: on Linux, /proc/<pid>/stat's starttime field for the acquiring process at acquire time. null if unavailable (non-Linux, or /proc unreadable) -- null is never treated as 'matches' by classifyOwnerLiveness(), only as 'cannot verify', so a lock lacking this field (or a pre-B.2.2 lock) still fails closed rather than assuming the owner is alive or dead."
+    },
+    "created_at": { "type": "string" },
+    "expires_at": { "type": "string" },
+    "source_base_sha": { "type": "string", "pattern": "^[0-9a-f]{40}$" }
+  }
+}

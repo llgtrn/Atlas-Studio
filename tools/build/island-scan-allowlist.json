@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "grace_period_days_default": 14,
+  "grace_period_days_max": 60,
+  "_comment": "Schema-validated by tools/build/island-lib.mjs::validateAllowlistDoc, enforced fail-closed by tools/build/island-scan.mjs. Every entry MUST be an exact crate identity (no wildcards), reference a real, currently-existing workspace crate, carry evidence + evidence_fingerprint + owner + reason + created/expires (ISO 8601, expires - created <= grace_period_days_max), and link a real tracking issue in this repo. A malformed entry invalidates the whole file (fail-closed, no partial trust). `evidence` is human-readable documentation ONLY, never authoritative on its own. `evidence_fingerprint` is the actual machine-checked authority: a SHA-256 digest (tools/build/island-lib.mjs::computeIslandEvidenceFingerprint) over the crate's current structured classification evidence (identity, version, target kinds, sorted production/dev/build edges with source crate/features/target, policy version). Compute it with `node tools/build/island-scan.mjs --print-fingerprint <crate>`. applyAllowlistPolicy recomputes and compares this fingerprint on every run: any drift (new/removed/renamed caller, feature/target change, or the crate becoming LIVE/ENTRYPOINT) makes the entry stale and fails the gate closed until it is regranted with a fresh fingerprint or removed — it never passes silently. Do not add an entry without opening/linking the tracking issue first. -- 2026-09-16 HARD REFOUNDATION note: all 11 prior exceptions (the entire chronica-digital-twin-* family, PR #5276/DT.REVISION-1 Wave C, issue #5286) were removed here, not because their underlying reachability concern was resolved, but because the backend reset deleted the crates/ tree those crates lived in entirely -- island-scan.mjs's own schema validation confirmed all 11 as referencing crates that are no longer workspace members. See docs/decisions/0016-legacy-backend-retired-to-git-history.md. Removed: chronica-digital-twin-model, chronica-digital-twin-time, chronica-digital-twin-shadow, chronica-digital-twin-store, chronica-digital-twin-estimation, chronica-digital-twin-simulation, chronica-digital-twin-scenario, chronica-digital-twin-divergence, chronica-digital-twin-evidence, chronica-digital-twin-fmi, chronica-digital-twin-testkit.",
+  "exceptions": [
+    {
+      "crate": "core",
+      "reason": "2026-09-16 hard refoundation bootstrap: core is the new minimal workspace root re-implementation and has no shipped binary entry point yet, so it cannot be reachable from one by construction. Not a reachability regression -- the pre-reset crates/core tree is retired, see docs/decisions/0016-legacy-backend-retired-to-git-history.md and tools/refoundation/legacy-crates-inventory-2026-09-16.txt.",
+      "evidence": "node tools/build/island-scan.mjs reports core as ISLAND/BLOCKED with reason 'has 3 production reverse dependent(s) but none is transitively reachable from a shipped entry point (none)'.",
+      "evidence_fingerprint": "c40d8a04819f02ace1cea69c57d132a97fb34e45190158760f223f8370bdda49",
+      "owner": "tr.ng.hlongg@gmail.com",
+      "created": "2026-09-16",
+      "expires": "2026-11-15",
+      "issue": "https://github.com/llgtrn/Chronica/issues/5324"
+    },
+    {
+      "crate": "runtime",
+      "reason": "2026-09-16 hard refoundation bootstrap: runtime is the new minimal workspace root re-implementation and has no shipped binary entry point yet, so it cannot be reachable from one by construction. Not a reachability regression -- the pre-reset crates/runtime tree is retired, see docs/decisions/0016-legacy-backend-retired-to-git-history.md and tools/refoundation/legacy-crates-inventory-2026-09-16.txt.",
+      "evidence": "node tools/build/island-scan.mjs reports runtime as ISLAND/BLOCKED for lack of a shipped entry point in the bootstrap workspace.",
+      "evidence_fingerprint": "d62eaba5938758d3feb8cabda0cafdf57ed4d67623b616d70df445543ded99e4",
+      "owner": "tr.ng.hlongg@gmail.com",
+      "created": "2026-09-16",
+      "expires": "2026-11-15",
+      "issue": "https://github.com/llgtrn/Chronica/issues/5324"
+    },
+    {
+      "crate": "adapter",
+      "reason": "2026-09-16 hard refoundation bootstrap: adapter is the new minimal workspace root re-implementation and has no shipped binary entry point yet, so it cannot be reachable from one by construction. Not a reachability regression -- the pre-reset crates/adapter tree is retired, see docs/decisions/0016-legacy-backend-retired-to-git-history.md and tools/refoundation/legacy-crates-inventory-2026-09-16.txt.",
+      "evidence": "node tools/build/island-scan.mjs reports adapter as ISLAND/BLOCKED with reason 'zero reverse Cargo dependents of any kind ... not reachable from any workspace binary entry point'.",
+      "evidence_fingerprint": "befca091cc3829a9068027bc742fb04c4d7ee2fbe133a412f0b5c7578b55bff5",
+      "owner": "tr.ng.hlongg@gmail.com",
+      "created": "2026-09-16",
+      "expires": "2026-11-15",
+      "issue": "https://github.com/llgtrn/Chronica/issues/5324"
+    },
+    {
+      "crate": "organism",
+      "reason": "2026-09-16 hard refoundation bootstrap: organism is the new digital-organism boundary crate (core+runtime only, never adapter) and has no shipped binary entry point yet, so it cannot be reachable from one by construction. It is a from-scratch crate, not a relocation of prior code. Fingerprint renewed 2026-09-17: adapter now depends on organism (2026-09-17 dependency-inversion correction -- adapter implements organism-owned analytical ports such as organism::world_model::WorldModel), which changes organism's reverse-dependent edges but not this underlying fact -- neither adapter nor organism has a shipped binary entry point yet, so organism remains unreachable from one by construction.",
+      "evidence": "node tools/build/island-scan.mjs reports organism as ISLAND/BLOCKED for lack of a shipped entry point in the bootstrap workspace, now with adapter as a reverse dependent.",
+      "evidence_fingerprint": "c49244730c288e57f8359b24659f5ab2793f9771a08b264abca215d8a4282d6b",
+      "owner": "tr.ng.hlongg@gmail.com",
+      "created": "2026-09-16",
+      "expires": "2026-11-15",
+      "issue": "https://github.com/llgtrn/Chronica/issues/5324"
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "schema": "chronica.employment.evaluation.v1",
+  "case_id": "worker-self-amendment",
+  "fixture_kind": "BENCHMARK_FIXTURE",
+  "worker_class": "digital_employee",
+  "claimed_employment_maturity": "E5",
+  "identity": { "stable_worker_id": true },
+  "organization": { "company_bound": true },
+  "contract": {
+    "durable": true,
+    "versioned": true,
+    "immutable_history": true,
+    "self_amendment_possible": true
+  },
+  "assignment": {
+    "work_order_present": true,
+    "production_path": true,
+    "contract_version_pinned": true
+  },
+  "authority": {
+    "enforced": true,
+    "witness_present": true,
+    "no_ai_enforcement": true
+  },
+  "lifecycle": {
+    "enforced": true,
+    "suspended_blocks_new_work": true,
+    "terminated_blocks_new_work": true
+  },
+  "evidence": { "production_evidenced": false },
+  "notes": "BENCHMARK FIXTURE ONLY. Worker modifying own grants/limits without external governance."
+}

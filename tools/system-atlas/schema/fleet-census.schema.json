@@ -1,0 +1,174 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "chronica.system-atlas.fleet-census.v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "generated_at",
+    "canonical_repo",
+    "readiness",
+    "donor_corpus_total",
+    "donor_allocations_total",
+    "donor_skipped_total",
+    "donor_unallocated_total",
+    "donor_coverage_complete",
+    "ops_expected_total",
+    "ops_reported_total",
+    "ops_missing_reports",
+    "ops_unknown_reports",
+    "donor_unknown_in_reports",
+    "duplicate_primary_absorbers",
+    "primary_donor_census_missing",
+    "primary_donor_mismatches",
+    "violations",
+    "development_cells_expected_total",
+    "development_cells_reported_total",
+    "development_cells_missing_reports",
+    "development_cells_unknown_reports",
+    "package_identity_mismatches",
+    "cell_reset_mismatches"
+  ],
+  "properties": {
+    "schema": {
+      "const": "chronica.system-atlas.fleet-census.v1"
+    },
+    "generated_at": {
+      "type": "string"
+    },
+    "canonical_repo": {
+      "type": "string"
+    },
+    "readiness": {
+      "enum": [
+        "READY",
+        "REVIEW_REQUIRED",
+        "BLOCKED"
+      ]
+    },
+    "donor_corpus_total": {
+      "type": "number",
+      "minimum": 0
+    },
+    "donor_allocations_total": {
+      "type": "number",
+      "minimum": 0
+    },
+    "donor_skipped_total": {
+      "type": "number",
+      "minimum": 0
+    },
+    "donor_unallocated_total": {
+      "type": "number",
+      "minimum": 0
+    },
+    "donor_coverage_complete": {
+      "type": "boolean"
+    },
+    "ops_expected_total": {
+      "type": "number",
+      "minimum": 0
+    },
+    "ops_reported_total": {
+      "type": "number",
+      "minimum": 0
+    },
+    "ops_missing_reports": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "ops_unknown_reports": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "donor_unknown_in_reports": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "duplicate_primary_absorbers": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "primary_donor_census_missing": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "primary_donor_mismatches": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "violations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "type",
+          "severity",
+          "evidence"
+        ],
+        "properties": {
+          "type": {
+            "type": "string"
+          },
+          "severity": {
+            "enum": [
+              "HARD",
+              "REVIEW_REQUIRED"
+            ]
+          },
+          "evidence": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "development_cells_expected_total": {
+      "type": "number",
+      "minimum": 0
+    },
+    "development_cells_reported_total": {
+      "type": "number",
+      "minimum": 0
+    },
+    "development_cells_missing_reports": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "development_cells_unknown_reports": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "package_identity_mismatches": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "cell_reset_mismatches": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "_doc": "The L4 Dependency Graph + Reality Leverage objective. milestones = the ordered critical path to the FIRST real-world L4 event (a real customer money action through the gate). The question is no longer 'what unlocks the workflow engine?' but 'what unlocks the first L4?'. opportunity_l4 = the honest expected NEW L4 evidence each existing opportunity would create (default 0 — most of the roadmap builds capability and creates ZERO L4). Reality Leverage = expected_new_L4 / effort re-ranks everything: the minimal path to reality beats the biggest internal build.",
+  "milestones": [
+    { "id": "real-authed-login", "ordinal": 1, "label": "A real human logs in against the live verifier",
+      "description": "A real person (not a test bearer) authenticates a real session against the booted server's real verifier. The dev-auth signer + live route tests already exist; what is missing is a human-present run with a seeded company.",
+      "status": "in_progress", "effort": 2, "produces_l4": 1, "delivered_by": "security-auth-bridge-prod-oidc",
+      "blocked_by": "HUMAN login (artifacts ready: tools/first-l4/ — dev-auth fast path needs NO prod IdP; agent prep complete)",
+      "would_create_event": "L4: real user authenticated a live session against the real verifier (user_real=1)" },
+    { "id": "live-authed-tenant-session", "ordinal": 2, "label": "Real user loads a company with zero cross-tenant leak",
+      "description": "That real user opens a real company in a live multi-company session; ScopePath tenancy shows zero cross-tenant data. Smoke-proven at the API (L3); this proves it at the real-user/UI layer.",
+      "status": "todo", "effort": 2, "produces_l4": 1, "delivered_by": "existing (require_company_scope)",
+      "blocked_by": "real-authed-login",
+      "would_create_event": "L4: live-authed multi-company session, zero cross-tenant leak (user_real=1, data_real=1)" },
+    { "id": "real-erp-read", "ordinal": 3, "label": "Real ERP/finance state renders through the full stack",
+      "description": "The user sees real (seeded-but-real-shaped) ERP/finance data rendered end-to-end through the live feed. A real read; supports the money path but is not itself a money L4.",
+      "status": "todo", "effort": 2, "produces_l4": 0, "delivered_by": "existing (chronica-erp + feed)",
+      "blocked_by": "live-authed-tenant-session",
+      "would_create_event": "real ERP data rendered through the live stack (supporting evidence)" },
+    { "id": "real-money-action-proposed", "ordinal": 4, "label": "A real money action (even $1) is proposed through the live gate",
+      "description": "A minimal real money action — a $1 invoice — is proposed through the live money gate with real data. Does not need the whole billing suite, just the minimal real-money slice.",
+      "status": "todo", "effort": 3, "produces_l4": 0, "delivered_by": "revenue-erp-billing-subscription-suite (minimal slice)",
+      "blocked_by": "real-erp-read",
+      "would_create_event": "real money action proposed through the live gate (pre-commit)" },
+    { "id": "live-board-approval", "ordinal": 5, "label": "A real board principal approves it (SoD, live)",
+      "description": "A real board principal (non-requester) approves the money action over a live session — separation-of-duties exercised by real people, not a test.",
+      "status": "todo", "effort": 2, "produces_l4": 0, "delivered_by": "existing (chronica-approvals)",
+      "blocked_by": "real-money-action-proposed",
+      "would_create_event": "real SoD board approval over a live session" },
+    { "id": "execution-and-audit-l4", "ordinal": 6, "label": "It executes and writes a real audit row — THE first money L4",
+      "description": "The approved money action executes and appends a real entry to the Merkle audit chain. This is the keystone: request -> gate -> approval -> execution -> audit, with a real user and real data. The first true L4.",
+      "status": "todo", "effort": 2, "produces_l4": 1, "delivered_by": "existing (money gate + audit)",
+      "blocked_by": "live-board-approval",
+      "would_create_event": "L4: first real money action end-to-end (real request->gate->approval->execution->audit, user_real=1, data_real=1)" }
+  ],
+  "opportunity_l4": {
+    "security-auth-bridge-prod-oidc": 1,
+    "revenue-erp-billing-subscription-suite": 1,
+    "integration-browser-automation-governance-wiring": 1
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "chronica.system-atlas.node.v0",
+  "title": "Chronica System Atlas Node",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "kind", "label", "existence", "source_class"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Stable semantic id, e.g. crate:chronica-cap-social-routes, system:identity, target:shard-manager. Never an array index.",
+      "pattern": "^[a-z_]+:[a-zA-Z0-9._\\-]+$"
+    },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "CHRONICA", "PLANE", "SYSTEM", "DOMAIN", "CELL_CANDIDATE",
+        "CAPABILITY", "CORE_COMPONENT", "ADAPTER", "RUNTIME", "ENTRYPOINT",
+        "STATE_OWNER", "DATABASE", "EVENT_STREAM", "PROJECTION", "QUEUE",
+        "EXTERNAL_PROVIDER", "DEPLOYMENT_COMPONENT",
+        "POLICY_AUTHORITY_COMPONENT", "PLANNED_SYSTEM"
+      ]
+    },
+    "label": { "type": "string" },
+    "layer": {
+      "type": "string",
+      "enum": ["core", "cap", "adapter", "runtime", "not_applicable"]
+    },
+    "existence": { "type": "string", "enum": ["PRESENT", "PARTIAL", "ABSENT", "UNKNOWN"] },
+    "correctness": { "type": "string", "enum": ["GREEN", "RED", "PARTIAL", "UNPROVEN", "UNKNOWN"] },
+    "reachability": { "type": "string", "enum": ["LIVE", "WIRED_UNVERIFIED", "ISLAND", "DEAD", "NOT_APPLICABLE", "UNKNOWN"] },
+    "maturity": { "type": "string", "enum": ["PRODUCTION", "IMPLEMENTED", "PROTOTYPE", "SCAFFOLD", "PLANNED", "UNKNOWN"] },
+    "action": { "type": "string", "enum": ["KEEP", "REPAIR", "BUILD", "MOVE", "SPLIT", "MERGE", "RETIRE", "VERIFY", "INVESTIGATE"] },
+    "risk": { "type": "string", "enum": ["T0", "T1", "T2", "T3", "UNKNOWN"] },
+    "confidence": { "type": "string", "enum": ["HIGH", "MEDIUM", "LOW"] },
+    "source_class": {
+      "type": "string",
+      "enum": ["CODE", "TEST", "RUNTIME_CONFIG", "BUILD_METADATA", "DATABASE_SCHEMA", "CI_CONFIG", "DOCUMENTATION", "INFERRED", "TARGET_PROPOSAL"]
+    },
+    "evidence": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "File paths / commands / descriptor fields backing this node's claims."
+    },
+    "fanin": { "type": "integer", "minimum": 0 },
+    "fanout": { "type": "integer", "minimum": 0 },
+    "scc_id": { "type": ["string", "null"] },
+    "plane": { "type": "string", "enum": ["CONTROL", "EXECUTION", "STATE", "EVENT", "EDGE", "OBSERVABILITY_SECURITY", "NOT_ASSIGNED"] },
+    "system_id": { "type": ["string", "null"] },
+    "notes": { "type": "string" }
+  }
+}

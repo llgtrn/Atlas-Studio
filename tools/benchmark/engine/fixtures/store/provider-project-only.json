@@ -1,0 +1,12 @@
+{
+  "schema": "chronica.store.evaluation.v1",
+  "case_id": "provider-project-only",
+  "fixture_kind": "BENCHMARK_FIXTURE",
+  "claimed_store_maturity": "S3",
+  "provider_project_only": true,
+  "identity": {
+    "provider_id_as_store_id": true,
+    "stable_store_id": true
+  },
+  "notes": "Vercel/Cloudflare/Supabase project is a provider resource, not a Chronica Store."
+}

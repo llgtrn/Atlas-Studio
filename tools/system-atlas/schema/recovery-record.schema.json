@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "chronica.system-atlas.recovery-record.v0",
+  "title": "Chronica System Atlas Recovery Record",
+  "description": "One entry in recovery-log.json -- the durable audit trail of every RECOVERY_REQUIRED task resolved via scripts/system-atlas/recovery.mjs's resolveRecovery(). Append-only; a resolved task_id may appear more than once across its lifetime (claim -> recover -> claim -> recover again is legal). Evidence is coordinator/operator-authored free text about control-plane state only (which lease/worker, what was observed, what cleanup happened) -- it must never carry secrets, credentials, or raw product-repo content.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["recovery_id", "task_id", "reason", "resolution", "evidence", "resolved_at", "resolved_by"],
+  "properties": {
+    "recovery_id": { "type": "string" },
+    "task_id": { "type": "string", "pattern": "^(REPAIR|BUILD|RETIRE|VERIFY)-[0-9]{4}$" },
+    "previous_worker": { "type": ["string", "null"] },
+    "previous_lease_id": { "type": ["string", "null"] },
+    "reason": { "type": "string" },
+    "resolution": { "type": "string", "enum": ["RESUME_SAME_WORK", "REQUEUE_AFTER_CLEANUP", "READY_TO_VERIFY", "FAILED"] },
+    "evidence": { "type": "string", "minLength": 1 },
+    "resolved_at": { "type": "string" },
+    "resolved_by": { "type": "string", "minLength": 1 }
+  }
+}

@@ -1,0 +1,67 @@
+{
+  "platform": "TimelineNetwork",
+  "claim": "NativeSlice",
+  "purpose": "Ground the platform.replicate_timeline_network row in the real, landed chronica-social moderation-appeal and notification-delivery slices, honestly excluding FeedFanout from the claimed primitive set because the repo's own benchmark map still lists production feed fanout/delivery as an open gap even though a narrower, real fanout-on-read mechanism (home_feed) exists, and honestly reporting PolicyApprovalGate as local-audit-required.",
+  "build_paths": [
+    "DonorExtraction",
+    "NativeRustKernel"
+  ],
+  "evidence": [
+    {
+      "kind": "DonorExtraction",
+      "state": "Connected",
+      "evidence": "docs/benchmarks/2026-07-09-external-architecture-benchmark-map.md section 5 (Facebook TAO / X-Twitter social-graph-and-feed benchmark map, lines 238-300); line 291 explicitly lists \"No production feed fanout/delivery service\" as an open Gap -- the reason FeedFanout is deliberately left out of platform_primitives below despite home_feed existing. moderation_appeal_store.rs and notification_store.rs also carry their own inline donor citations (Mastodon app/models/appeal.rb, account_warning.rb).",
+      "reason": null
+    },
+    {
+      "kind": "NativeRustCode",
+      "state": "Connected",
+      "evidence": "crates/chronica-social/src/store/moderation_appeal_store.rs (create_appeal, approve_appeal, reject_appeal, list_appeals_for_appellant, list_pending_appeals) + moderation_store.rs (is_suspended, list_moderation_actions_for_target) -- wired to real production HTTP routes at crates/chronica-api/src/routes/social_moderation_appeals.rs. crates/chronica-social/src/notification_store.rs (create_notification) -- real, non-test production callers confirmed at crates/chronica-social/src/{store/follow_store/ops.rs,note_store/create.rs,achievement_store.rs,timeline_marker_store.rs}. FeedFanout's real code (domain/feed.rs::home_feed, wired at chronica-api/src/routes/social_feed.rs) is deliberately NOT cited toward this primitive: its own doc comment says it is \"a project_timeline pass over the note stream, not a Redis push-fanout\", which the benchmark map's own gap language (above) says does not yet meet the family's fanout/delivery bar.",
+      "reason": null
+    },
+    {
+      "kind": "BehaviorTests",
+      "state": "Connected",
+      "evidence": "cargo test -p chronica-social --lib notification: 7 passed, 0 failed (independently re-run in this session: fe_notifications::tests::*). ModerationAppeal's tests are recorded via this repo's already-verified other.moderation_strikes_appeals capability row (--features db, requires Postgres, unavailable in this sandbox -- pg_isready: no response -- not independently re-executed here).",
+      "reason": null
+    },
+    {
+      "kind": "FailurePathTests",
+      "state": "Connected",
+      "evidence": "Independently re-run: fe_notifications::tests::{blank_notification_id_is_rejected, blank_comment_body_is_rejected, duplicate_notification_id_is_rejected, reply_to_an_unknown_parent_is_rejected, marking_an_unknown_notification_read_is_rejected} -- 5 real rejection-path tests, all passing. ModerationAppeal's own failure tests (create_appeal_rejects_someone_elses_strike_and_a_non_actionable_action_and_expired_window, create_appeal_rejects_empty_appellant_and_empty_or_over_long_text) are on record via other.moderation_strikes_appeals but are --features db-gated and were not independently re-run in this sandbox.",
+      "reason": null
+    },
+    {
+      "kind": "DoctrineOrSpec",
+      "state": "Connected",
+      "evidence": "docs/doctrines/008-doctrine-platform-replication-plane.md sections 5-7; docs/benchmarks/2026-07-09-external-architecture-benchmark-map.md section 5.",
+      "reason": null
+    },
+    {
+      "kind": "CapabilityTracking",
+      "state": "Connected",
+      "evidence": "docs/capabilities-canonical/domains/other.jsonl: other.moderation_strikes_appeals, status=verified, code_refs matching moderation_appeal_store.rs/moderation_store.rs/social_moderation_appeals.rs above (confirmed by direct read of the JSONL row in this session).",
+      "reason": null
+    },
+    {
+      "kind": "ArchitectureTracking",
+      "state": "Connected",
+      "evidence": "Same other.moderation_strikes_appeals row; chronica-social has its own .chronica/sub-cap-arch.jsonl.",
+      "reason": null
+    },
+    {
+      "kind": "PolicyApprovalGate",
+      "state": "LocalAuditRequired",
+      "evidence": "",
+      "reason": "Moderation-appeal and notification mutations are gated by VerifiedPrincipal auth (appeal actions further gated by staff/board role) but no distinct human-approval workflow was found; platform.replicate_timeline_network's own requires_approval field is false, consistent with money-free status, but a human should confirm no approval gate is actually needed for this generic NativeSlice evidence kind."
+    }
+  ],
+  "platform_primitives": [
+    {
+      "Benchmark": "ModerationAppeal"
+    },
+    {
+      "Benchmark": "NotificationDelivery"
+    }
+  ]
+}

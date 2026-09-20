@@ -1,0 +1,10 @@
+{
+  "schema": "chronica.store.evaluation.v1",
+  "case_id": "hosting-preflight-claimed-as-deploy",
+  "fixture_kind": "BENCHMARK_FIXTURE",
+  "claimed_store_maturity": "S3",
+  "preflight_only": true,
+  "hosting_preflight": true,
+  "claimed_as_deploy": true,
+  "notes": "ClearForHumanReview is not deployment executed."
+}

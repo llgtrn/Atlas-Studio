@@ -1,0 +1,31 @@
+{
+  "generated_at": "2026-07-10T04:55:57.935Z",
+  "source_path": "%USERPROFILE%\\.claude\\projects\\c--Users-trngh-Documents-GitHub-Chronica",
+  "include_subagents": false,
+  "max_records": 3000,
+  "max_chars": 6000,
+  "files_seen": 652,
+  "bytes_seen": 675531403,
+  "manifest_entries": 652,
+  "records_written": 3000,
+  "records_skipped_after_limit": 153344,
+  "parse_errors": 0,
+  "secret_flags": {
+    "openai_key": 0,
+    "anthropic_key": 0,
+    "github_token": 0,
+    "github_pat": 0,
+    "aws_access_key": 0,
+    "telegram_bot_token": 0,
+    "jwt": 1,
+    "generic_assignment_secret": 7
+  },
+  "extension_counts": {
+    ".jsonl": 15,
+    ".txt": 145,
+    ".json": 266,
+    ".js": 225,
+    ".pdf": 1
+  },
+  "bytes_seen_mb": 644.24
+}

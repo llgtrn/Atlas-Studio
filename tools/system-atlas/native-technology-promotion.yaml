@@ -1,0 +1,173 @@
+schema_version: 2
+kind: CHRONICA_NATIVE_TECHNOLOGY_PROMOTION_POLICY
+canonical_owner: docs/architecture/constitution/NATIVE-TECHNOLOGY-STRATEGY.md
+composition_blueprint: docs/blueprints/native-technology-evolution.md
+decision: docs/decisions/0022-strategic-technology-conservation-and-native-promotion.md
+
+terminal_doctrine:
+  promoted_core_end_state: FULLY_NATIVE
+  census_is_completion: false
+  rust_port_is_completion: false
+  wrapper_is_native: false
+  provider_interface_is_native: false
+  donor_source_may_be_runtime_dependency: false
+  donor_library_may_be_required_at_fully_native: false
+  donor_server_may_be_required_at_fully_native: false
+  donor_database_engine_may_be_required_at_fully_native: false
+  donor_workflow_engine_may_be_required_at_fully_native: false
+  donor_policy_engine_may_be_required_at_fully_native: false
+  donor_identity_engine_may_be_required_at_fully_native: false
+
+strategic_classes:
+  - REFERENCE
+  - USEFUL
+  - STRATEGIC
+  - FOUNDATIONAL
+
+technology_value_standard:
+  scale:
+    min: 0
+    max: 5
+  dimensions:
+    - { id: NS, name: NORTH_STAR_LEVERAGE }
+    - { id: DV, name: DIFFERENTIATION_VALUE }
+    - { id: SV, name: SOVEREIGNTY_VALUE }
+    - { id: UV, name: UNIVERSALITY }
+    - { id: CR, name: CORRECTNESS_RESILIENCE_LEVERAGE }
+    - { id: PC, name: PERFORMANCE_CEILING }
+    - { id: EV, name: EVOLUTION_LEVERAGE }
+    - { id: PF, name: PROOF_FEASIBILITY }
+  total_max: 40
+  guidance:
+    REFERENCE: [0, 15]
+    USEFUL: [16, 23]
+    STRATEGIC_CANDIDATE: [24, 31]
+    FOUNDATIONAL_CANDIDATE: [32, 40]
+  score_is_authority: false
+  evidence_required_per_dimension: true
+
+lifecycle_states:
+  - DONOR_TECHNOLOGY
+  - CENSUSED
+  - PRESERVED_LINEAGE
+  - NATIVE_CANDIDATE
+  - NATIVE_PROTOTYPE
+  - NATIVE_PARITY
+  - NATIVE_PRIMARY
+  - FULLY_NATIVE
+  - DONOR_EXTINCT
+  - DEFERRED_BY_SEQUENCE
+  - REJECTED_FOR_NATIVE_PROMOTION
+
+necessary_conditions_for_strategic_promotion:
+  - { id: N1, name: NORTH_STAR_FIT }
+  - { id: N2, name: NATIVE_SEMANTIC_REASON }
+  - { id: N3, name: SINGLE_CANONICAL_OWNER }
+  - { id: N4, name: FULL_NATIVE_END_STATE }
+  - { id: N5, name: COMPLETE_ENOUGH_TECHNOLOGY_CENSUS }
+  - { id: N6, name: DEPENDENCY_AND_SEQUENCE_GRAPH }
+  - { id: N7, name: SOURCE_LICENSE_TEST_PROVENANCE }
+  - { id: N8, name: PROOFABILITY }
+
+sufficient_conditions_for_native_candidate:
+  - { id: S1, name: STABLE_NATIVE_IDENTITY }
+  - { id: S2, name: EXPLICIT_REPLACEMENT_BOUNDARY }
+  - { id: S3, name: NATIVE_ARCHITECTURE_AND_INVARIANTS }
+  - { id: S4, name: FALSIFIABLE_DIFFERENTIATION_THESIS }
+  - { id: S5, name: NATIVE_IMPLEMENTATION_LADDER }
+  - { id: S6, name: VERIFICATION_LADDER }
+  - { id: S7, name: EXECUTABLE_NEXT_SLICE_OR_DEFERRED_BY_SEQUENCE }
+
+proof_ladder:
+  - P0_CENSUS_PROOF
+  - P1_NATIVE_INVARIANT_PROOF
+  - P2_BEHAVIORAL_PARITY
+  - P3_RESILIENCE_PARITY
+  - P4_PRODUCTION_PRIMARY
+  - P5_DIFFERENTIATION_PROVEN
+  - P6_FULL_INDEPENDENCE
+
+fully_native_required:
+  - CHRONICA_OWNED_SEMANTICS
+  - CHRONICA_OWNED_PRODUCTION_IMPLEMENTATION
+  - CHRONICA_OWNED_DURABILITY_RECOVERY_WHERE_APPLICABLE
+  - CHRONICA_OWNED_CONCURRENCY_WHERE_APPLICABLE
+  - CHRONICA_OWNED_OPERATIONAL_LIFECYCLE
+  - CHRONICA_OWNED_VERIFICATION
+  - PRODUCTION_CALLERS_MIGRATED
+  - ZERO_REQUIRED_DONOR_RUNTIME_DEPENDENCY
+  - ZERO_REQUIRED_DONOR_LIBRARY_DEPENDENCY
+  - ZERO_DONOR_CANONICAL_AUTHORITY
+  - CLAIMED_ADVANTAGE_PROVEN
+
+extinction_gate:
+  common_required:
+    - TECHNOLOGY_CENSUS_SUFFICIENT
+    - REQUIRED_LINEAGE_PRESERVED
+    - REPLACEMENT_ARCHITECTURE_COMPLETE
+    - NATIVE_RECONSTRUCTION_DOES_NOT_REQUIRE_REDISCOVERY
+    - PROVENANCE_AND_LICENSE_PRESERVED
+    - ZERO_PRODUCTION_DEPENDENCY_ON_DONOR_SOURCE
+  promoted_strategic_or_foundational_required_any:
+    - FULLY_NATIVE
+    - REJECTED_FOR_NATIVE_PROMOTION
+  foundational_default_terminal_path:
+    - FULLY_NATIVE
+    - DONOR_EXTINCT
+
+blueprint_reconciliation:
+  required_after:
+    - MATERIAL_CENSUS_DISCOVERY
+    - NATIVE_PROTOTYPE
+    - PARITY_MILESTONE
+    - DISCOVERED_INVARIANT_CHANGE
+    - DEPENDENCY_GRAPH_CHANGE
+    - END_STATE_CHANGE
+    - PROOF_REQUIREMENT_CHANGE
+  must_update:
+    - CANONICAL_OWNER_IF_MEANING_CHANGED
+    - COMPOSITION_BLUEPRINT_IF_SEQUENCE_OR_COMPOSITION_CHANGED
+    - SYSTEM_ATLAS_PROJECTION
+  progress_log_is_not_substitute: true
+
+atlas_fields_required_per_promoted_technology:
+  - TECHNOLOGY_ID
+  - DONOR_LINEAGE
+  - STRATEGIC_CLASS
+  - TECHNOLOGY_VALUE_SCORE
+  - SCORE_EVIDENCE
+  - NATIVE_OWNER
+  - REPLACEMENT_SCOPE
+  - DEPENDENCY_GRAPH
+  - LIFECYCLE_STATE
+  - NEXT_NATIVE_SLICE
+  - REMAINING_DONOR_RUNTIME_DEPENDENCIES
+  - PROOF_STATUS
+  - BLUEPRINT_RELATION
+  - EXTINCTION_ELIGIBILITY
+
+atlas_edge_vocabulary:
+  - INSPIRES
+  - DESCENDS_TO
+  - REPLACES
+  - REQUIRES
+  - MATERIALIZES_AS
+  - PROVEN_BY
+  - MIGRATES_CALLERS_FROM
+  - RETIRES
+  - DEFERRED_UNTIL
+  - REJECTED_FOR_NATIVE_PROMOTION
+
+hard_rules:
+  - CENSUS_IS_NECESSARY_BUT_NOT_COMPLETION
+  - RUST_REWRITE_IS_NOT_NATIVE_TECHNOLOGY
+  - WRAPPER_IS_NOT_NATIVE_TECHNOLOGY
+  - FORK_IS_NOT_NATIVE_TECHNOLOGY
+  - PROVIDER_INDEPENDENT_INTERFACE_IS_NOT_FULL_NATIVE
+  - CURRENT_SLICE_COMPLETE_IS_NOT_EXTINCTION_AUTHORITY
+  - FOUNDATIONAL_PROMOTION_TARGETS_FULL_NATIVE_REPLACEMENT
+  - FULLY_NATIVE_REQUIRES_ZERO_DONOR_RUNTIME_DEPENDENCY
+  - EXTINCTION_CANNOT_DESTROY_REQUIRED_TECHNOLOGICAL_STRENGTH
+  - STRATEGIC_IMPORTANCE_DOES_NOT_BYPASS_SEQUENCING
+  - BLUEPRINT_MUST_RECONCILE_WITH_MATERIAL_IMPLEMENTATION_EVIDENCE
+  - ATLAS_IS_PROJECTION_NOT_CANONICAL_TRUTH

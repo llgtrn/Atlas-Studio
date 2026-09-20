@@ -1,0 +1,25 @@
+# Proof Obligation Coverage
+
+{
+  "PO-ENTRYPOINT": 7,
+  "PO-STATE": 8,
+  "PO-PERSISTENCE": 7,
+  "PO-TENANCY": 18,
+  "PO-IDENTITY": 3,
+  "PO-AUTHORITY": 21,
+  "PO-APPROVAL": 2,
+  "PO-DURABILITY": 2,
+  "PO-IDEMPOTENCY": 4,
+  "PO-CONCURRENCY": 0,
+  "PO-FAILURE": 11,
+  "PO-RETRY": 0,
+  "PO-EVIDENCE": 10,
+  "PO-RECEIPT": 3,
+  "PO-CONSUMER": 9,
+  "PO-NO_AI": 12,
+  "PO-DISCLOSURE": 21,
+  "PO-REVOCATION": 4,
+  "PO-ROLLBACK": 2,
+  "PO-PRODUCTION": 0,
+  "PO-LOGGING": 3
+}

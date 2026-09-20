@@ -1,0 +1,209 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "chronica.system-atlas.ops-mirror-contract.v1",
+  "title": "Stable cross-repository Mirror contract for a Development Cell incubating a Chronica package. Ops naming is legacy compatibility.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "mode",
+    "chronica_repo",
+    "chronica_reference_sha",
+    "chronica_access",
+    "target_access",
+    "chronica_write_policy",
+    "upward_candidate_policy",
+    "donor_extinction_policy",
+    "backend_roots",
+    "frontend_roots",
+    "semantic_mappings",
+    "donors"
+  ],
+  "properties": {
+    "schema": {
+      "const": "chronica.system-atlas.ops-mirror-contract.v1"
+    },
+    "mode": {
+      "enum": [
+        "CELL_MIRROR",
+        "OPS_MIRROR"
+      ]
+    },
+    "ops_repo": {
+      "type": "string",
+      "pattern": "^[^/]+/[^/]+$"
+    },
+    "chronica_repo": {
+      "type": "string",
+      "pattern": "^[^/]+/[^/]+$"
+    },
+    "chronica_reference_sha": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "chronica_access": {
+      "const": "READ_ONLY_REFERENCE"
+    },
+    "target_access": {
+      "const": "MUTABLE"
+    },
+    "chronica_write_policy": {
+      "enum": [
+        "NO_DIRECT_WRITE_FROM_CELL_WORKER",
+        "NO_DIRECT_WRITE_FROM_OPS_WORKER"
+      ]
+    },
+    "upward_candidate_policy": {
+      "const": "EXPLICIT_CHRONICA_CANDIDATE_ONLY"
+    },
+    "donor_extinction_policy": {
+      "enum": [
+        "REPLACE_DELETE_RATCHET",
+        "SAFE_DEPENDENCY_CLOSURE"
+      ]
+    },
+    "backend_roots": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "frontend_roots": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "semantic_mappings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "local_semantic",
+          "local_path",
+          "chronica_owner",
+          "disposition",
+          "evidence"
+        ],
+        "properties": {
+          "local_semantic": {
+            "type": "string",
+            "minLength": 1
+          },
+          "local_path": {
+            "type": "string",
+            "minLength": 1
+          },
+          "chronica_owner": {
+            "type": "string",
+            "minLength": 1
+          },
+          "disposition": {
+            "type": "string",
+            "enum": [
+              "REUSE_CHRONICA_SEMANTIC",
+              "ALIAS_AT_BOUNDARY",
+              "MAP_TO_CHRONICA_SEMANTIC",
+              "EXTEND_CHRONICA_SEMANTIC",
+              "KEEP_PRODUCT_LOCAL",
+              "KEEP_PROVIDER_MECHANIC",
+              "TEMPORARY_COMPATIBILITY_ALIAS",
+              "RETIRE_DUPLICATE_SEMANTIC",
+              "DEFER_UNRESOLVED_WITH_EVIDENCE"
+            ]
+          },
+          "evidence": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        }
+      }
+    },
+    "donors": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "repo",
+          "revision",
+          "root",
+          "mode",
+          "provenance",
+          "ops_baseline_commit",
+          "allocation_role"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "repo": {
+            "type": "string",
+            "pattern": "^[^/]+/[^/]+$"
+          },
+          "revision": {
+            "type": "string",
+            "minLength": 1
+          },
+          "root": {
+            "type": "string",
+            "minLength": 1
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "DEEP_ABSORB",
+              "REFERENCE_ONLY"
+            ]
+          },
+          "provenance": {
+            "type": "string",
+            "minLength": 1
+          },
+          "ops_baseline_commit": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^[0-9a-f]{40}$"
+          },
+          "allocation_role": {
+            "enum": [
+              "PRIMARY_ABSORBER",
+              "REFERENCE_CONSUMER"
+            ]
+          },
+          "census_complete": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "development_cell_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "cell_repo": {
+      "type": "string",
+      "pattern": "^[^/]+/[^/]+$"
+    },
+    "package_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "package_contract_path": {
+      "type": "string",
+      "minLength": 1
+    }
+  }
+}

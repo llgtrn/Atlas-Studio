@@ -1,0 +1,28 @@
+{
+  "schema": "chronica.employment.evaluation.v1",
+  "case_id": "contract-v1-assignment-preserved-after-v2",
+  "fixture_kind": "BENCHMARK_FIXTURE",
+  "worker_class": "digital_employee",
+  "claimed_employment_maturity": "E3",
+  "runtime_status": "TEST_ONLY",
+  "product_status": "NOT_BUILT",
+  "identity": { "stable_worker_id": true },
+  "organization": { "company_bound": true },
+  "contract": {
+    "durable": true,
+    "versioned": true,
+    "immutable_history": true,
+    "successor_lineage": true,
+    "mutated_in_place": false
+  },
+  "assignment": {
+    "work_order_present": true,
+    "production_path": true,
+    "contract_version_pinned": true,
+    "historical_version_preserved": true
+  },
+  "authority": { "enforced": false, "no_ai_enforcement": true },
+  "lifecycle": {},
+  "evidence": { "production_evidenced": false },
+  "notes": "BENCHMARK FIXTURE ONLY. Assignment pinned to contract v1 remains historically reproducible after successor v2. Max E3 without authority enforcement."
+}

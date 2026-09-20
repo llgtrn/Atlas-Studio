@@ -1,0 +1,70 @@
+{
+  "schema": "chronica.benchmark.contract.v1",
+  "generated": true,
+  "source_of_truth": "tools/benchmark/contracts/source",
+  "cap": "CAP11",
+  "name": "Comments/collaboration",
+  "benchmark_release": "BR-2026.08.21.1",
+  "benchmark_sha": "2f0a95472e72842e7ec70cdac6eeef8297df2b55",
+  "contract_schema_version": "1.0.0",
+  "source_hash": "bea492307c825d9bd8fc9b677e0b6028b79cbee119bfb216d7c25d976d82c8f1",
+  "ownership": [
+    "comments",
+    "collaboration notes"
+  ],
+  "non_ownership": [
+    "Helpdesk kernel",
+    "social feed kernel"
+  ],
+  "standards": {
+    "WEB2APP": "1.1.0"
+  },
+  "catalog_versions": {
+    "WEB2APP": "1.1.0",
+    "EMPLOYMENT": "1.0.0",
+    "STORE": "1.0.0",
+    "BLACKBOX": "1.0.0",
+    "FIC": "55",
+    "FIVE_PLANE": "PROVISIONAL_BASELINE"
+  },
+  "families": [
+    "FAM-COMMENTS"
+  ],
+  "owned_flow_ids": [
+    "FLOW-CAP11-COMMENT-001"
+  ],
+  "participating_flow_ids": [],
+  "hard_gates": [],
+  "anti_patterns": [],
+  "forbidden_architecture": [],
+  "flow_status": {
+    "FLOW-CAP11-COMMENT-001": "SPEC_ONLY"
+  },
+  "missing_witnesses": [
+    "FLOW-CAP11-COMMENT-001:PO-TENANCY",
+    "FLOW-CAP11-COMMENT-001:PO-PERSISTENCE"
+  ],
+  "required_proof_obligations": [
+    "PO-TENANCY",
+    "PO-PERSISTENCE"
+  ],
+  "blocked_flows": [],
+  "next_actionable": [
+    {
+      "id": "FLOW-CAP11-COMMENT-001",
+      "status": "SPEC_ONLY",
+      "missing": [
+        "PO-TENANCY",
+        "PO-PERSISTENCE"
+      ],
+      "value": "LOW",
+      "golden": [
+        "GBF-017"
+      ]
+    }
+  ],
+  "negatives": [],
+  "this_packet_is_not_source": true,
+  "packet_hash": "e0ea3984b8c80379fb24d963094c4b6b175714788af8abd6e7b62e9f39f0cd73",
+  "markdown": "# CAP11 Comments/collaboration — acceptance packet\n\nGENERATED. Source of truth is Contract IR (chronica.benchmark.contract.v1). Do not hand-edit.\n\n- BENCHMARK_RELEASE: `BR-2026.08.21.1`\n- BENCHMARK_SHA: `2f0a95472e72842e7ec70cdac6eeef8297df2b55`\n- SOURCE_HASH: `bea492307c825d9bd8fc9b677e0b6028b79cbee119bfb216d7c25d976d82c8f1`\n- PACKET_HASH: `e0ea3984b8c80379fb24d963094c4b6b175714788af8abd6e7b62e9f39f0cd73`\n- STANDARDS: {\"WEB2APP\":\"1.1.0\"}\n\n## Owns\n- comments\n- collaboration notes\n\n## Does not own\n- Helpdesk kernel\n- social feed kernel\n\n## Hard gates\n\n## Owned flows\n- `FLOW-CAP11-COMMENT-001` SPEC_ONLY missing=PO-TENANCY,PO-PERSISTENCE\n\n## Next actionable\n- `FLOW-CAP11-COMMENT-001` (SPEC_ONLY)\n\nIf the standard appears wrong: emit BENCHMARK_CHANGE_REQUEST. Do not weaken fixtures.\n"
+}

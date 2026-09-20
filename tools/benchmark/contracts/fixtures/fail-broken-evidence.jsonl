@@ -1,0 +1,1 @@
+{"schema":"chronica.benchmark.contract.v1","type":"evidence","id":"EV-MISSING-PATH","kind":"test","path":"crates/does-not-exist/missing.rs","runtime_kind":"PRODUCT_RUNTIME","proves":[{"flow":"FLOW-CAP01-TICKET-001","obligation":"PO-TENANCY"}]}

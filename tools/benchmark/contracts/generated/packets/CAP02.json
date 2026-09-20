@@ -1,0 +1,76 @@
+{
+  "schema": "chronica.benchmark.contract.v1",
+  "generated": true,
+  "source_of_truth": "tools/benchmark/contracts/source",
+  "cap": "CAP02",
+  "name": "Social/feed",
+  "benchmark_release": "BR-2026.08.21.1",
+  "benchmark_sha": "2f0a95472e72842e7ec70cdac6eeef8297df2b55",
+  "contract_schema_version": "1.0.0",
+  "source_hash": "bea492307c825d9bd8fc9b677e0b6028b79cbee119bfb216d7c25d976d82c8f1",
+  "ownership": [
+    "social notes",
+    "feed fanout",
+    "mutes"
+  ],
+  "non_ownership": [
+    "Helpdesk",
+    "CRM kernel",
+    "Store",
+    "employment"
+  ],
+  "standards": {
+    "WEB2APP": "1.1.0"
+  },
+  "catalog_versions": {
+    "WEB2APP": "1.1.0",
+    "EMPLOYMENT": "1.0.0",
+    "STORE": "1.0.0",
+    "BLACKBOX": "1.0.0",
+    "FIC": "55",
+    "FIVE_PLANE": "PROVISIONAL_BASELINE"
+  },
+  "families": [
+    "FAM-SOCIAL-FEED"
+  ],
+  "owned_flow_ids": [
+    "FLOW-CAP02-NOTE-001"
+  ],
+  "participating_flow_ids": [],
+  "hard_gates": [],
+  "anti_patterns": [],
+  "forbidden_architecture": [],
+  "flow_status": {
+    "FLOW-CAP02-NOTE-001": "SPEC_ONLY"
+  },
+  "missing_witnesses": [
+    "FLOW-CAP02-NOTE-001:PO-STATE",
+    "FLOW-CAP02-NOTE-001:PO-TENANCY",
+    "FLOW-CAP02-NOTE-001:PO-CONSUMER"
+  ],
+  "required_proof_obligations": [
+    "PO-STATE",
+    "PO-TENANCY",
+    "PO-CONSUMER"
+  ],
+  "blocked_flows": [],
+  "next_actionable": [
+    {
+      "id": "FLOW-CAP02-NOTE-001",
+      "status": "SPEC_ONLY",
+      "missing": [
+        "PO-STATE",
+        "PO-TENANCY",
+        "PO-CONSUMER"
+      ],
+      "value": "MEDIUM",
+      "golden": [
+        "GBF-011"
+      ]
+    }
+  ],
+  "negatives": [],
+  "this_packet_is_not_source": true,
+  "packet_hash": "a3c43a371e687b6e6ef23cc02beecc65fdd263c37ccace45c828d84ca9a146e4",
+  "markdown": "# CAP02 Social/feed — acceptance packet\n\nGENERATED. Source of truth is Contract IR (chronica.benchmark.contract.v1). Do not hand-edit.\n\n- BENCHMARK_RELEASE: `BR-2026.08.21.1`\n- BENCHMARK_SHA: `2f0a95472e72842e7ec70cdac6eeef8297df2b55`\n- SOURCE_HASH: `bea492307c825d9bd8fc9b677e0b6028b79cbee119bfb216d7c25d976d82c8f1`\n- PACKET_HASH: `a3c43a371e687b6e6ef23cc02beecc65fdd263c37ccace45c828d84ca9a146e4`\n- STANDARDS: {\"WEB2APP\":\"1.1.0\"}\n\n## Owns\n- social notes\n- feed fanout\n- mutes\n\n## Does not own\n- Helpdesk\n- CRM kernel\n- Store\n- employment\n\n## Hard gates\n\n## Owned flows\n- `FLOW-CAP02-NOTE-001` SPEC_ONLY missing=PO-STATE,PO-TENANCY,PO-CONSUMER\n\n## Next actionable\n- `FLOW-CAP02-NOTE-001` (SPEC_ONLY)\n\nIf the standard appears wrong: emit BENCHMARK_CHANGE_REQUEST. Do not weaken fixtures.\n"
+}

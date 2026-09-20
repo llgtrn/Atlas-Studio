@@ -1,0 +1,17 @@
+{
+  "schema": "chronica.store.evaluation.v1",
+  "case_id": "hosting-preflight-only",
+  "calibration_case": "chronica-site-hosting",
+  "fixture_kind": "CURRENT_RUNTIME_CALIBRATION",
+  "claimed_store_maturity": "S0",
+  "canonical_status": "implemented_unverified",
+  "runtime_status": "LIVE",
+  "product_status": "PREFLIGHT_ONLY",
+  "code_refs": [
+    "crates/chronica-site-hosting/src/lib.rs",
+    "crates/chronica-api/src/routes/hosting_preflight.rs"
+  ],
+  "preflight_only": true,
+  "hosting_preflight": true,
+  "notes": "chronica-site-hosting evaluate_hosting_preflight returns Block|ClearForHumanReview. Not deploy. Max S0."
+}

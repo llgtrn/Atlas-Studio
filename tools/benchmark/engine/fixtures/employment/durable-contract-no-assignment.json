@@ -1,0 +1,29 @@
+{
+  "schema": "chronica.employment.evaluation.v1",
+  "case_id": "durable-contract-no-assignment",
+  "fixture_kind": "BENCHMARK_FIXTURE",
+  "worker_class": "digital_employee",
+  "claimed_employment_maturity": "E2",
+  "runtime_status": "ISLAND",
+  "product_status": "NOT_BUILT",
+  "identity": { "stable_worker_id": true, "model_upgrade_preserves_identity": true },
+  "organization": { "company_bound": true, "department_bound": true, "position_bound": true },
+  "contract": {
+    "durable": true,
+    "versioned": true,
+    "immutable_history": true,
+    "effective_term": true
+  },
+  "assignment": { "work_order_present": false, "production_path": false },
+  "authority": { "enforced": false, "no_ai_enforcement": true },
+  "lifecycle": {},
+  "evidence": { "production_evidenced": false },
+  "facets": {
+    "IDENTITY": "DURABLE",
+    "ORGANIZATION": "DURABLE",
+    "GRANTS": "DURABLE",
+    "PROHIBITIONS": "DURABLE",
+    "TERM": "DURABLE"
+  },
+  "notes": "BENCHMARK FIXTURE ONLY — not Chronica runtime. Durable identity+contract without a WorkOrder caller is max E2."
+}

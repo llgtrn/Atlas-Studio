@@ -1,0 +1,23 @@
+{
+  "schema": "chronica.blackbox.evaluation.v1",
+  "fixture_kind": "CURRENT_RUNTIME_CALIBRATION",
+  "web2app": {
+    "independent": true
+  },
+  "employment": {
+    "independent": true
+  },
+  "case_id": "current-global-b1",
+  "claimed_blackbox_maturity": "B1",
+  "surface": "global",
+  "runtime_status": "LIVE",
+  "product_status": "PARTIAL_PRIMITIVES",
+  "vault_only": false,
+  "at_rest": {
+    "sealed": true
+  },
+  "secrets": {
+    "envelope": true
+  },
+  "notes": "Global Chronica Black-Box calibration: secrets/transit protected; business records, agents, indexes, logs not a B5 plane. Assigned B1."
+}

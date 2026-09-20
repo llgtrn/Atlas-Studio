@@ -1,0 +1,102 @@
+{
+  "schema": "chronica.web2app.evaluation.v1",
+  "capability_key": "other.pages_cms",
+  "canonical_status": "verified",
+  "runtime_status": "LIVE",
+  "claimed_web2app_level": "W4",
+  "product_chain_shape": "FULL_WEB2APP",
+  "semantic_owner": "social-pages",
+  "calibration_case": "A",
+  "notes": "CAP14 calibration. Company-scoped durable CMS with real UI is W4. holding/unlisted tokens are LABEL_ONLY. Canonical verified is not demoted in this wave.",
+  "semantic_contract": {
+    "schema": "chronica.web2app.semantic-contract.v1",
+    "capability_key": "other.pages_cms",
+    "canonical_name": "Page (CMS) Service",
+    "product_kind": "APP",
+    "actor": "company operator",
+    "user_intent": "Create, persist, edit, and read company pages as a durable CMS.",
+    "preconditions": "Authenticated principal with company scope.",
+    "input": "title, slug, summary, blocks, visibility",
+    "product_action": "CRUD pages",
+    "typed_operations": [
+      { "name": "page.create", "kind": "WRITE", "authority": "company scope", "receipt": "persisted social_pages row" },
+      { "name": "page.get", "kind": "READ", "authority": "company scope", "receipt": "none" },
+      { "name": "page.list", "kind": "READ", "authority": "visibility semantics", "receipt": "none" },
+      { "name": "page.update", "kind": "WRITE", "authority": "company scope", "receipt": "updated row" },
+      { "name": "page.delete", "kind": "WRITE", "authority": "company scope", "receipt": "deleted row" }
+    ],
+    "state_transition": "absent → persisted page → updated / deleted",
+    "output": "Page record visible to authorized readers",
+    "persistence_requirement": "durable Postgres social_pages",
+    "authority_requirement": "verified principal; company scope",
+    "tenant_requirement": "company-scoped; holding-wide when visibility=holding",
+    "visibility_access_semantics": "company = company members; holding = visible across holding; unlisted = direct link only",
+    "failure_semantics": "invalid slug/blocks 422; duplicate slug 409; cross-company 404/403",
+    "idempotency_semantics": "duplicate slug fails closed",
+    "concurrency_semantics": "company+slug unique",
+    "external_effect_requirement": "none",
+    "money_impact": "none",
+    "user_observable_outcome": "page listed and editable in CompanyPages UI",
+    "no_ai_behavior": "deterministic CRUD; AI not required",
+    "donor_semantics": "Misskey PageService CMS with visibility",
+    "chronica_allowed_divergences": "no executable script blocks",
+    "known_unimplemented_facets": "holding-wide authorization; unlisted-only access",
+    "requires_persistence": true,
+    "requires_ui": true,
+    "requires_external_effect": false,
+    "requires_authority": true,
+    "moves_money": false,
+    "requires_ai": false,
+    "jurisdiction_model": "NOT_APPLICABLE",
+    "transport_independence": true
+  },
+  "entrypoints": [
+    "crates/chronica-api/src/routes/social_pages.rs",
+    "ui/src/pages/CompanyPages.tsx",
+    "ui/src/App.tsx path=pages"
+  ],
+  "actual_witnesses": [
+    "real_actor",
+    "real_product_entrypoint",
+    "tenant_boundary",
+    "auth_boundary",
+    "deterministic_kernel",
+    "persistence",
+    "idempotency",
+    "concurrency",
+    "negative_failure_paths",
+    "real_readback",
+    "real_ui_consumer",
+    "no_ai_path",
+    "typed_operations"
+  ],
+  "facets": [
+    {
+      "name": "visibility.company",
+      "semantic_state": "LIVE",
+      "evidence": ["page_store.rs list_pages WHERE company_id", "social_pages_route.rs page_crud"]
+    },
+    {
+      "name": "visibility.holding",
+      "semantic_state": "LABEL_ONLY",
+      "evidence": ["PageVisibility::Holding stored via visibility_token; list/get remain company-scoped"]
+    },
+    {
+      "name": "visibility.unlisted",
+      "semantic_state": "LABEL_ONLY",
+      "evidence": ["unlisted token stored; no direct-link-only read filter"]
+    }
+  ],
+  "anti_patterns": [
+    {
+      "tag": "LABEL_AS_ENFORCEMENT",
+      "evidence": {
+        "token_stored": true,
+        "behavior_enforced": false,
+        "note": "holding/unlisted stored, not authorized",
+        "evidence_paths": ["crates/chronica-social/src/store/page_store.rs"]
+      }
+    }
+  ],
+  "semantic_mutations": []
+}

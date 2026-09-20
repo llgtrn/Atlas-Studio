@@ -1,0 +1,205 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "chronica.system-atlas.package-contract.v1",
+  "title": "Stable contract for a Chronica package incubated by a distributed Development Cell.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "cell_id",
+    "repo",
+    "package_id",
+    "package_kind",
+    "development_mode",
+    "production_mode",
+    "canonical_runtime",
+    "standalone_sovereignty",
+    "projection_may_deploy_separately",
+    "canonical_ownership",
+    "allowed_ownership",
+    "package_roots"
+  ],
+  "properties": {
+    "schema": {
+      "const": "chronica.system-atlas.package-contract.v1"
+    },
+    "cell_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "repo": {
+      "type": "string",
+      "pattern": "^[^/]+/[^/]+$"
+    },
+    "package_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "package_kind": {
+      "enum": [
+        "DOMAIN_PACKAGE",
+        "CAPABILITY_PACKAGE",
+        "ADAPTER_PACKAGE",
+        "PROJECTION_PACKAGE",
+        "COMPOSITE_PACKAGE"
+      ]
+    },
+    "development_mode": {
+      "const": "INDEPENDENTLY_DEVELOPABLE"
+    },
+    "production_mode": {
+      "const": "CHRONICA_COMPOSED"
+    },
+    "canonical_runtime": {
+      "const": "CHRONICA_REQUIRED"
+    },
+    "standalone_sovereignty": {
+      "const": false
+    },
+    "projection_may_deploy_separately": {
+      "type": "boolean"
+    },
+    "canonical_ownership": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "world",
+        "identity",
+        "authority",
+        "execution",
+        "evidence",
+        "memory",
+        "canonical_history",
+        "shared_truth"
+      ],
+      "properties": {
+        "world": {
+          "const": "CHRONICA_ONLY"
+        },
+        "identity": {
+          "const": "CHRONICA_ONLY"
+        },
+        "authority": {
+          "const": "CHRONICA_ONLY"
+        },
+        "execution": {
+          "const": "CHRONICA_ONLY"
+        },
+        "evidence": {
+          "const": "CHRONICA_ONLY"
+        },
+        "memory": {
+          "const": "CHRONICA_ONLY"
+        },
+        "canonical_history": {
+          "const": "CHRONICA_ONLY"
+        },
+        "shared_truth": {
+          "const": "CHRONICA_ONLY"
+        }
+      }
+    },
+    "allowed_ownership": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "DOMAIN_SEMANTICS",
+          "CAPABILITY_DECLARATIONS",
+          "ADAPTERS",
+          "PROJECTIONS",
+          "PACKAGE_UI",
+          "PACKAGE_API",
+          "PROVIDER_STATE",
+          "LOCAL_CACHE",
+          "TEST_HARNESS",
+          "SIMULATION_FIXTURES"
+        ]
+      }
+    },
+    "package_roots": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "refoundation_generation": {
+      "type": "number",
+      "minimum": 1
+    },
+    "reset_mode": {
+      "const": "CLEAN_PACKAGE_BASELINE"
+    },
+    "pre_reset_head_sha": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "preservation_ref": {
+      "type": "string",
+      "minLength": 1
+    },
+    "repository_layout": {
+      "const": "CHRONICA_MIRROR_V1"
+    },
+    "production_roots": {
+      "type": "array",
+      "uniqueItems": true,
+      "minItems": 7,
+      "maxItems": 7,
+      "items": {
+        "enum": [
+          "core",
+          "runtime",
+          "adapter",
+          "organism",
+          "graph",
+          "bindings",
+          "apps"
+        ]
+      }
+    },
+    "backend_roots": {
+      "type": "array",
+      "uniqueItems": true,
+      "minItems": 4,
+      "maxItems": 4,
+      "items": {
+        "enum": [
+          "core",
+          "runtime",
+          "adapter",
+          "organism"
+        ]
+      }
+    },
+    "frontend_root": {
+      "const": "apps/ui"
+    },
+    "donor_root": {
+      "const": "temporary/donors"
+    },
+    "provenance_root": {
+      "const": "provenance/donors"
+    },
+    "license_root": {
+      "const": "license/donors"
+    },
+    "backend_language": {
+      "const": "RUST"
+    },
+    "frontend_language": {
+      "const": "TYPESCRIPT"
+    },
+    "feature_source_policy": {
+      "const": "DONOR_INTAKE_REQUIRED"
+    },
+    "production_donor_dependency": {
+      "const": false
+    },
+    "ui_policy": {
+      "const": "CHRONICA_UI_PROJECTION"
+    }
+  }
+}

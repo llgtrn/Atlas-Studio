@@ -1,0 +1,23 @@
+{
+  "platform": "HelpdeskPlatform",
+  "claim": "NativeSlice",
+  "ready": false,
+  "missing_build_paths": [
+    "PaperclipUiSurface",
+    "PolicyApprovalGate"
+  ],
+  "missing_evidence": [],
+  "blocked_evidence": [],
+  "local_audit_required": [
+    "PolicyApprovalGate"
+  ],
+  "missing_platform_primitives": [
+    {
+      "Benchmark": "CustomerPortal"
+    }
+  ],
+  "non_claims": [
+    "missing build paths block platform-family replication claims",
+    "missing platform primitives block external-class replication claims"
+  ]
+}

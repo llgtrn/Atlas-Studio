@@ -1,0 +1,250 @@
+{
+  "schema": "chronica.benchmark.contract.v1",
+  "generated": true,
+  "source_of_truth": "tools/benchmark/contracts/source",
+  "cap": "CAP17",
+  "name": "Store platform",
+  "benchmark_release": "BR-2026.08.21.1",
+  "benchmark_sha": "2f0a95472e72842e7ec70cdac6eeef8297df2b55",
+  "contract_schema_version": "1.0.0",
+  "source_hash": "bea492307c825d9bd8fc9b677e0b6028b79cbee119bfb216d7c25d976d82c8f1",
+  "ownership": [
+    "Store estate composition",
+    "resource graph",
+    "business bindings",
+    "desired vs actual store state"
+  ],
+  "non_ownership": [
+    "CRM",
+    "Helpdesk",
+    "Vault",
+    "employment",
+    "deploy provider execution until chronica-site-deploy exists",
+    "black-box views"
+  ],
+  "standards": {
+    "STORE": "1.0.0",
+    "WEB2APP": "1.1.0",
+    "BLACKBOX": "1.0.0"
+  },
+  "catalog_versions": {
+    "WEB2APP": "1.1.0",
+    "EMPLOYMENT": "1.0.0",
+    "STORE": "1.0.0",
+    "BLACKBOX": "1.0.0",
+    "FIC": "55",
+    "FIVE_PLANE": "PROVISIONAL_BASELINE"
+  },
+  "families": [
+    "FAM-STORE-DEPLOYMENT"
+  ],
+  "owned_flow_ids": [
+    "FLOW-CAP17-PREVIEW-001",
+    "FLOW-CAP17-BIND-CRM-001",
+    "FLOW-CAP17-BIND-HD-001",
+    "FLOW-CAP17-SECRET-001",
+    "FLOW-CAP17-TENANT-001",
+    "FLOW-CAP17-PROD-001",
+    "FLOW-CAP17-HEALTH-001",
+    "FLOW-CAP17-PREFLIGHT-001"
+  ],
+  "participating_flow_ids": [
+    "FLOW-CAP05-CUSTOMER-001",
+    "FLOW-CROSS-STORE-HELPDESK-001",
+    "FLOW-CROSS-STORE-CRM-001"
+  ],
+  "hard_gates": [
+    "SECRET_IN_STORE_MANIFEST",
+    "HOSTING_PREFLIGHT_AS_DEPLOYMENT",
+    "PROVIDER_200_AS_LIVE",
+    "AGENT_AS_DEPLOY_AUTHORITY",
+    "SHADOW_COMPANY_OS"
+  ],
+  "anti_patterns": [
+    "STATIC_ARTIFACT_AS_LIVE_STORE"
+  ],
+  "forbidden_architecture": [],
+  "flow_status": {
+    "FLOW-CAP17-PREVIEW-001": "SPEC_ONLY",
+    "FLOW-CAP17-BIND-CRM-001": "SPEC_ONLY",
+    "FLOW-CAP17-BIND-HD-001": "SPEC_ONLY",
+    "FLOW-CAP17-SECRET-001": "SPEC_ONLY",
+    "FLOW-CAP17-TENANT-001": "SPEC_ONLY",
+    "FLOW-CAP17-PROD-001": "SPEC_ONLY",
+    "FLOW-CAP17-HEALTH-001": "SPEC_ONLY",
+    "FLOW-CAP17-PREFLIGHT-001": "RUNTIME_CONNECTED"
+  },
+  "missing_witnesses": [
+    "FLOW-CAP17-PREVIEW-001:PO-ENTRYPOINT",
+    "FLOW-CAP17-PREVIEW-001:PO-STATE",
+    "FLOW-CAP17-PREVIEW-001:PO-EVIDENCE",
+    "FLOW-CAP17-PREVIEW-001:PO-ROLLBACK",
+    "FLOW-CAP17-BIND-CRM-001:PO-AUTHORITY",
+    "FLOW-CAP17-BIND-CRM-001:PO-TENANCY",
+    "FLOW-CAP17-BIND-CRM-001:PO-CONSUMER",
+    "FLOW-CAP17-BIND-HD-001:PO-CONSUMER",
+    "FLOW-CAP17-BIND-HD-001:PO-TENANCY",
+    "FLOW-CAP17-BIND-HD-001:PO-IDEMPOTENCY",
+    "FLOW-CAP17-SECRET-001:PO-DISCLOSURE",
+    "FLOW-CAP17-SECRET-001:PO-FAILURE",
+    "FLOW-CAP17-TENANT-001:PO-TENANCY",
+    "FLOW-CAP17-TENANT-001:PO-FAILURE",
+    "FLOW-CAP17-PROD-001:PO-APPROVAL",
+    "FLOW-CAP17-PROD-001:PO-AUTHORITY",
+    "FLOW-CAP17-PROD-001:PO-NO_AI",
+    "FLOW-CAP17-HEALTH-001:PO-RECEIPT",
+    "FLOW-CAP17-HEALTH-001:PO-FAILURE",
+    "FLOW-CAP17-PREFLIGHT-001:PO-EVIDENCE"
+  ],
+  "required_proof_obligations": [
+    "PO-ENTRYPOINT",
+    "PO-STATE",
+    "PO-EVIDENCE",
+    "PO-ROLLBACK",
+    "PO-AUTHORITY",
+    "PO-TENANCY",
+    "PO-CONSUMER",
+    "PO-IDEMPOTENCY",
+    "PO-DISCLOSURE",
+    "PO-FAILURE",
+    "PO-APPROVAL",
+    "PO-NO_AI",
+    "PO-RECEIPT"
+  ],
+  "blocked_flows": [],
+  "next_actionable": [
+    {
+      "id": "FLOW-CAP17-PREVIEW-001",
+      "status": "SPEC_ONLY",
+      "missing": [
+        "PO-ENTRYPOINT",
+        "PO-STATE",
+        "PO-EVIDENCE",
+        "PO-ROLLBACK"
+      ],
+      "value": "HIGH",
+      "golden": [
+        "GBF-012"
+      ]
+    },
+    {
+      "id": "FLOW-CAP17-BIND-CRM-001",
+      "status": "SPEC_ONLY",
+      "missing": [
+        "PO-AUTHORITY",
+        "PO-TENANCY",
+        "PO-CONSUMER"
+      ],
+      "value": "HIGH",
+      "golden": [
+        "GBF-007"
+      ]
+    },
+    {
+      "id": "FLOW-CAP17-BIND-HD-001",
+      "status": "SPEC_ONLY",
+      "missing": [
+        "PO-CONSUMER",
+        "PO-TENANCY",
+        "PO-IDEMPOTENCY"
+      ],
+      "value": "HIGH",
+      "golden": [
+        "GBF-007"
+      ]
+    },
+    {
+      "id": "FLOW-CAP17-PREFLIGHT-001",
+      "status": "RUNTIME_CONNECTED",
+      "missing": [
+        "PO-EVIDENCE"
+      ],
+      "value": "MEDIUM",
+      "golden": [
+        "GBF-012"
+      ]
+    },
+    {
+      "id": "FLOW-CAP17-PROD-001",
+      "status": "SPEC_ONLY",
+      "missing": [
+        "PO-APPROVAL",
+        "PO-AUTHORITY",
+        "PO-NO_AI"
+      ],
+      "value": "HIGH",
+      "golden": []
+    },
+    {
+      "id": "FLOW-CAP17-HEALTH-001",
+      "status": "SPEC_ONLY",
+      "missing": [
+        "PO-RECEIPT",
+        "PO-FAILURE"
+      ],
+      "value": "HIGH",
+      "golden": []
+    },
+    {
+      "id": "FLOW-CAP17-SECRET-001",
+      "status": "SPEC_ONLY",
+      "missing": [
+        "PO-DISCLOSURE",
+        "PO-FAILURE"
+      ],
+      "value": "HIGH",
+      "golden": []
+    },
+    {
+      "id": "FLOW-CAP17-TENANT-001",
+      "status": "SPEC_ONLY",
+      "missing": [
+        "PO-TENANCY",
+        "PO-FAILURE"
+      ],
+      "value": "HIGH",
+      "golden": []
+    }
+  ],
+  "negatives": [
+    {
+      "flow": "FLOW-CAP17-PREVIEW-001",
+      "case": "preflight_as_deploy"
+    },
+    {
+      "flow": "FLOW-CAP17-PREVIEW-001",
+      "case": "provider_200_as_live"
+    },
+    {
+      "flow": "FLOW-CAP17-BIND-CRM-001",
+      "case": "shadow_crm"
+    },
+    {
+      "flow": "FLOW-CAP17-BIND-HD-001",
+      "case": "store_writes_helpdesk_table"
+    },
+    {
+      "flow": "FLOW-CAP17-SECRET-001",
+      "case": "secret_in_manifest"
+    },
+    {
+      "flow": "FLOW-CAP17-TENANT-001",
+      "case": "cross_tenant"
+    },
+    {
+      "flow": "FLOW-CAP17-PROD-001",
+      "case": "agent_self_promote"
+    },
+    {
+      "flow": "FLOW-CAP17-HEALTH-001",
+      "case": "provider_200_health_fail"
+    },
+    {
+      "flow": "FLOW-CAP17-PREFLIGHT-001",
+      "case": "claim_preflight_is_deploy"
+    }
+  ],
+  "this_packet_is_not_source": true,
+  "packet_hash": "91f07e619c7cdc8b33505165812f57bbd3e1fe6e87b404b7b3572cc0c5a5e11a",
+  "markdown": "# CAP17 Store platform — acceptance packet\n\nGENERATED. Source of truth is Contract IR (chronica.benchmark.contract.v1). Do not hand-edit.\n\n- BENCHMARK_RELEASE: `BR-2026.08.21.1`\n- BENCHMARK_SHA: `2f0a95472e72842e7ec70cdac6eeef8297df2b55`\n- SOURCE_HASH: `bea492307c825d9bd8fc9b677e0b6028b79cbee119bfb216d7c25d976d82c8f1`\n- PACKET_HASH: `91f07e619c7cdc8b33505165812f57bbd3e1fe6e87b404b7b3572cc0c5a5e11a`\n- STANDARDS: {\"STORE\":\"1.0.0\",\"WEB2APP\":\"1.1.0\",\"BLACKBOX\":\"1.0.0\"}\n\n## Owns\n- Store estate composition\n- resource graph\n- business bindings\n- desired vs actual store state\n\n## Does not own\n- CRM\n- Helpdesk\n- Vault\n- employment\n- deploy provider execution until chronica-site-deploy exists\n- black-box views\n\n## Hard gates\n- SECRET_IN_STORE_MANIFEST\n- HOSTING_PREFLIGHT_AS_DEPLOYMENT\n- PROVIDER_200_AS_LIVE\n- AGENT_AS_DEPLOY_AUTHORITY\n- SHADOW_COMPANY_OS\n\n## Owned flows\n- `FLOW-CAP17-PREVIEW-001` SPEC_ONLY missing=PO-ENTRYPOINT,PO-STATE,PO-EVIDENCE,PO-ROLLBACK\n- `FLOW-CAP17-BIND-CRM-001` SPEC_ONLY missing=PO-AUTHORITY,PO-TENANCY,PO-CONSUMER\n- `FLOW-CAP17-BIND-HD-001` SPEC_ONLY missing=PO-CONSUMER,PO-TENANCY,PO-IDEMPOTENCY\n- `FLOW-CAP17-SECRET-001` SPEC_ONLY missing=PO-DISCLOSURE,PO-FAILURE\n- `FLOW-CAP17-TENANT-001` SPEC_ONLY missing=PO-TENANCY,PO-FAILURE\n- `FLOW-CAP17-PROD-001` SPEC_ONLY missing=PO-APPROVAL,PO-AUTHORITY,PO-NO_AI\n- `FLOW-CAP17-HEALTH-001` SPEC_ONLY missing=PO-RECEIPT,PO-FAILURE\n- `FLOW-CAP17-PREFLIGHT-001` RUNTIME_CONNECTED missing=PO-EVIDENCE\n\n## Next actionable\n- `FLOW-CAP17-PREVIEW-001` (SPEC_ONLY)\n- `FLOW-CAP17-BIND-CRM-001` (SPEC_ONLY)\n- `FLOW-CAP17-BIND-HD-001` (SPEC_ONLY)\n- `FLOW-CAP17-PREFLIGHT-001` (RUNTIME_CONNECTED)\n- `FLOW-CAP17-PROD-001` (SPEC_ONLY)\n- `FLOW-CAP17-HEALTH-001` (SPEC_ONLY)\n- `FLOW-CAP17-SECRET-001` (SPEC_ONLY)\n- `FLOW-CAP17-TENANT-001` (SPEC_ONLY)\n\nIf the standard appears wrong: emit BENCHMARK_CHANGE_REQUEST. Do not weaken fixtures.\n"
+}

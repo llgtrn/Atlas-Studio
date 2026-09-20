@@ -1,0 +1,80 @@
+{
+  "_doc": "REVIEWED manifest: maps each roadmap slice (capability.slice) to the canonical_capability domain(s) it delivers, with optional key-prefix allow/deny globs to split a shared domain across several slices. This is the ONE hand-curated artifact of the no-miss linker (link-slices.mjs Pass A). Linking is STATUS-ORTHOGONAL — a wrong edge can mis-attribute a cap to a slice but can NEVER flip its build status. Domains not claimed by any slice fall through to the per-domain backlog (visible in the cap-roadmap doc). Crate names here are the ROADMAP names; the canonical rows use census-era crate names, so we join on DOMAIN, not crate.",
+  "_domains": ["erp-finance","commerce","trading-markets","workflow-runtime","observability-analytics","agent-knowledge","osint","browser-internet-hand","policy-approval-audit","infra-execution","media-generation","crm-support","other","unclustered","cognition","erp-stock","strategy"],
+
+  "crate_aliases": {
+    "chronica-accounting": "chronica-erp",
+    "chronica-orm": "chronica-erp",
+    "chronica-supply-chain": "chronica-procurement",
+    "chronica-inbox": "chronica-crm",
+    "chronica-communications": "chronica-crm",
+    "chronica-social": "chronica-crm",
+    "chronica-temporal-execution": "chronica-workflows",
+    "chronica-temporal-persistence": "chronica-workflows",
+    "chronica-automation": "chronica-workflows",
+    "chronica-execution": "chronica-runtime",
+    "chronica-sandbox": "chronica-runtime",
+    "chronica-graphs": "chronica-memory",
+    "chronica-agent-memory": "chronica-memory",
+    "chronica-agents": "chronica-memory",
+    "chronica-browser-control": "chronica-internet-hand",
+    "chronica-social-simulation": "chronica-simulation",
+    "chronica-vault": "chronica-security",
+    "chronica-database": "chronica-core",
+    "chronica-organization": "chronica-company",
+    "chronica-governance": "chronica-company",
+    "chronica-kubernetes": "chronica-runtime",
+    "chronica-infrastructure": "chronica-runtime",
+    "chronica-development": "chronica-tools",
+    "chronica-platform": "chronica-core"
+  },
+
+  "slices": {
+    "4":  { "domains": ["policy-approval-audit"], "keyPrefix": ["policy"], "note": "Approval/policy/audit core" },
+    "11": { "domains": ["osint"], "keyPrefix": ["osint"], "note": "OSINT investigation core — owns the osint.* bulk" },
+    "12": { "domains": ["osint"], "keyPrefixDeny": ["osint"], "note": "Research evidence/confidence — non-collector osint caps" },
+    "15": { "domains": ["observability-analytics"], "keyPrefix": ["obs"], "note": "Observability trace timeline — owns obs.* bulk" },
+    "18": { "domains": ["commerce"], "keyPrefix": ["commerce"], "note": "Native Commerce/Storefront" },
+    "19": { "domains": ["erp-finance"], "keyPrefix": ["erp"], "note": "Native ERP Core — owns erp.* (NOT the mis-clustered noise.* rows)" },
+    "20": { "domains": ["observability-analytics"], "keyPrefixDeny": ["obs"], "note": "Product analytics — analytics caps not under obs.*" },
+    "13": { "domains": ["workflow-runtime"], "keyPrefix": ["workflow-runtime"], "note": "Workflow builder — owns workflow-runtime.* bulk" },
+    "16": { "domains": ["agent-knowledge"], "keyPrefix": ["agent-knowledge"], "note": "Knowledge base / dataset — owns agent-knowledge.* bulk" },
+    "10": { "domains": ["browser-internet-hand"], "keyPrefix": ["browser","proxy","crawl","fetch"], "note": "Internet Hand / Playwright — owns browser-internet-hand.* bulk" },
+    "22": { "domains": ["media-generation"], "keyPrefix": ["media"], "note": "Media artifact pipeline — owns media.* bulk" },
+    "21": { "domains": ["crm-support"], "keyPrefix": ["crm-support"], "note": "Native Support Inbox — owns crm-support.* bulk" },
+    "6":  { "domains": ["infra-execution"], "keyPrefix": ["infra"], "note": "Runtime capability/task/run — owns infra.* bulk" },
+
+    "_multi_owner_note": "Trading-markets and the long-tail simulation/debate/security slices share their domains; the keyPrefix splits above keep the dense domains (osint/obs/erp/workflow) from fan-out. trading-markets has no dedicated single slice prefix, so slices 111-114/120 share it by domain (medium confidence).",
+    "112": { "domains": ["trading-markets"], "note": "Portfolio and Risk Analytics — trading-markets domain (shared)" },
+    "114": { "domains": ["trading-markets"], "note": "Broker Order Routing / Trade Execution — money-dense trading caps" },
+
+    "_other_backlog_note": "The 'other', 'unclustered', 'cognition', 'erp-stock', and 'strategy' domains are intentionally NOT claimed by any slice yet — they are true-scope backlog, surfaced in their generated cap-roadmap docs. A future reconciliation re-domains the mis-clustered noise.* rows out of erp-finance; until then they appear in 030's backlog section, never silently."
+  },
+
+  "_keyOverrides_note": "REVIEWED per-key routing (confidence=high, reviewed=1). Resolves the trading-markets S112-vs-S114 split that domain-only matching left low-confidence: execution/money caps -> S114 (Broker Order Routing & Trade Execution); analytics/read caps -> S112 (Portfolio & Risk Analytics); genuinely mis-domained noise -> left to backlog (no slice). Each entry is hand-confirmed.",
+  "keyOverrides": {
+    "trading-markets.execute_crypto_trade": 114,
+    "trading-markets.execute_paper_trade": 114,
+    "trading-markets.execute_wallet_transaction": 114,
+    "trading-markets.stake_tokens": 114,
+    "trading-markets.connect_crypto_wallet": 114,
+    "noise.finance.multi_account_broker": 114,
+    "trading-markets.access_prediction_markets": 112,
+    "trading-markets.backtest_trading_strategy": 112,
+    "trading-markets.execute_equity_research": 112,
+    "trading-markets.fetch_market_history": 112,
+    "trading-markets.get_market_sentiment_index": 112,
+    "trading-markets.list_market_implications": 112,
+    "trading-markets.list_market_quotes": 112,
+    "trading-markets.manage_portfolio_holdings": 112,
+    "trading-markets.manage_watchlist": 112,
+    "trading-markets.stream_market_prices": 112,
+    "noise.finance.analyze_stock_prices": 112
+  },
+  "_keyBacklog_note": "These trading-domain caps are genuinely NOT trading-execution/analytics — they were clustered into trading-markets by accident and belong in backlog (no slice link).",
+  "keyBacklog": [
+    "trading-markets.compose_locators",
+    "trading-markets.manage_timeline_markers",
+    "trading-markets.extract_cryptocurrency_addresses"
+  ]
+}

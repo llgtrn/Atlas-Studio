@@ -1,0 +1,15 @@
+{
+  "schema": "chronica.first_vertical_gap_graph.v1",
+  "doctrine": "docs/doctrines/183-roadmap-world-class-infrastructure-90-coverage.md",
+  "edges": [
+    {
+      "id": "E-CONTRACT-ONLY",
+      "from": "Contract",
+      "to": "Runtime",
+      "status": "LIVE",
+      "promoted_because": "contract",
+      "fic_domains": ["durable-job-queue"],
+      "evidence": "docs/_machine/intent-contracts/HD-CRM-LINK-005.json"
+    }
+  ]
+}

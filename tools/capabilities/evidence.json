@@ -1,0 +1,36 @@
+{
+  "_doc": "The Truth Layer. evidence_level ladder: L0 opinion · L1 inferred (read code/git/web, not verified) · L2 code-verified · L3 runtime-verified · L4 production-verified. The cardinal rule: EVIDENCE CAPS CONFIDENCE — intrinsic_confidence = min(stated, ceiling(level)). So an L0 opinion can never be >0.40. Defaults are honest-by-construction (self-authored = L0/L1); overrides pin the high-stakes nodes against real evidence refs.",
+  "ceiling": { "L0": 0.40, "L1": 0.60, "L2": 0.80, "L3": 0.95, "L4": 1.00 },
+  "defaults": {
+    "assumption":         { "level": "L1", "provenance": "claude-authored" },
+    "decision":           { "level": "L1", "provenance": "discovery-workflow" },
+    "opportunity":        { "level": "L1", "provenance": "discovery-workflow" },
+    "arch_debt":          { "level": "L1", "provenance": "claude-authored" },
+    "competitor_feature": { "level": "L1", "provenance": "web-scan" },
+    "pillar":             { "level": "L2", "provenance": "code-derived" }
+  },
+  "overrides": [
+    { "node_kind": "assumption", "node_id": "one-money-gate-sufficient", "level": "L2", "provenance": "code+tracking-audit", "evidence_ref": "issue #3183; docs/doctrines/010-invariant-one-money-gate.md; moves_money∧¬requires_approval snapshot", "rationale": "evaluate_gate is a shared deterministic verdict function and the known F1/F2/F1.b defects were fixed, but issue #3183 proved production enforcement has multiple direct callers and arch:verify possible_bypass_files=0 is only literal-smoke evidence, not callgraph or single-funnel proof. The sufficiency claim is therefore code-evidenced but not runtime/topology-proven." },
+    { "node_kind": "assumption", "node_id": "deny-by-default-tenancy-complete", "level": "L3", "provenance": "live-test+smoke", "evidence_ref": "live-DB test dev_token_for_another_account_cannot_read_a_company (dev_auth_route.rs) + deployed smoke 7d706d95", "rationale": "route-level cross-account isolation is RUNTIME-proven by a live-DB test with a real signed bearer (L3 synthetic); the FULLY/complete (all-routes) + live-authed-UI-end-to-end claim remains the residual, so not L4." },
+    { "node_kind": "assumption", "node_id": "rust-only-backend-right", "level": "L2", "provenance": "code-derived", "rationale": "1189 caps verified natively with real tests — the approach is code-evidenced; load-validation is absent." },
+    { "node_kind": "assumption", "node_id": "survivable-side-table-pattern-sound", "level": "L2", "provenance": "code-derived", "evidence_ref": "reconcile-meta --check drift gate", "rationale": "pattern demonstrably works across rebuilds; the --check gate is real code." },
+    { "node_kind": "assumption", "node_id": "74-donors-enough-coverage", "level": "L0", "provenance": "claude-authored", "rationale": "pure opinion — 'enough' is unmeasured and donor-utilization shows clear holes." },
+    { "node_kind": "assumption", "node_id": "cqrs-event-backbone-needed", "level": "L0", "provenance": "claude-authored", "rationale": "graph-asserted leverage, demand-unproven — explicitly a bet, not evidence." },
+    { "node_kind": "assumption", "node_id": "clickhouse-right-olap", "level": "L0", "provenance": "claude-authored", "rationale": "unwired; Postgres likely suffices at current scale — opinion." },
+    { "node_kind": "assumption", "node_id": "agent-trust-tiers-right-model", "level": "L1", "provenance": "code+inference", "evidence_ref": "chronica-strategy calibration built", "rationale": "calibration code exists (inference) but no live agents have earned trust — the model is unvalidated." },
+    { "node_kind": "assumption", "node_id": "x-feed-right-product-surface", "level": "L1", "provenance": "user-stated+inference", "rationale": "user chose feed-first 3× (a real datapoint), but there is no operator-at-scale validation." },
+    { "node_kind": "assumption", "node_id": "verified-status-means-correct", "level": "L1", "provenance": "claude-authored", "rationale": "verify-impl-evidence is real, but 'correct beyond the tests that exist' is inference — green != correct." },
+    { "node_kind": "assumption", "node_id": "native-port-beats-integration", "level": "L1", "provenance": "user-stated", "rationale": "a user mandate (real) but the cost/benefit tradeoff is not empirically validated." },
+    { "node_kind": "assumption", "node_id": "board-approval-scales", "level": "L1", "provenance": "claude-authored", "rationale": "no load test; a throughput inference." },
+    { "node_kind": "assumption", "node_id": "erp-central-core-tractable", "level": "L1", "provenance": "code+inference", "rationale": "ERP code is real, but completeness/enforcement-by-convention is inference." },
+    { "node_kind": "assumption", "node_id": "workflow-runtime-is-production-loop", "level": "L1", "provenance": "code+inference", "rationale": "54% built; crash-safety under load unproven." },
+    { "node_kind": "assumption", "node_id": "docs-db-two-surface-stays-synced", "level": "L2", "provenance": "code-derived", "evidence_ref": "docs:verify gate", "rationale": "the round-trip + --check gates are real code; 'in practice' depends on running them." },
+
+    { "node_kind": "decision", "node_id": "D002", "level": "L2", "provenance": "code+tracking-audit", "evidence_ref": "commit be8b2cd0 + issue #3183 topology correction", "rationale": "Chronica has a shared money-verdict function and fixed the known F1/F2/F1.b defects, but current production code uses multiple direct evaluate_gate callers. The single-funnel/single-chokepoint topology is not proven by current tooling." },
+    { "node_kind": "decision", "node_id": "D006", "level": "L3", "provenance": "code+runtime-smoke", "evidence_ref": "request.rs:114 SoD + live board tests", "rationale": "board-only/SoD proven in tests + a live run." },
+    { "node_kind": "decision", "node_id": "D003", "level": "L2", "provenance": "test-derived", "evidence_ref": "chronica-core audit_chain tests", "rationale": "merkle chain has passing tests; no production." },
+    { "node_kind": "decision", "node_id": "D004", "level": "L2", "provenance": "code+smoke", "evidence_ref": "deployed smoke 7d706d95", "rationale": "tenancy code + a deployed smoke; UI end-to-end unproven." },
+    { "node_kind": "decision", "node_id": "D001", "level": "L2", "provenance": "code-derived", "rationale": "Rust-only is realized in 18 crates — code-evidenced architectural fact." },
+    { "node_kind": "decision", "node_id": "D011", "level": "L2", "provenance": "code-derived", "rationale": "survivable side-tables + reconcile-meta are working code." }
+  ]
+}

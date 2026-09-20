@@ -1,0 +1,33 @@
+{
+  "schema": "chronica.employment.evaluation.v1",
+  "case_id": "company-agent-role-only",
+  "calibration_case": "A",
+  "fixture_kind": "CURRENT_RUNTIME_CALIBRATION",
+  "worker_class": "position",
+  "claimed_employment_maturity": "E1",
+  "canonical_status": "implemented_unverified",
+  "runtime_status": "LIVE",
+  "product_status": "POSITION_TEMPLATE",
+  "code_refs": ["crates/chronica-company/src/org.rs"],
+  "test_refs": ["crates/chronica-company/src/org.rs hire_role tests"],
+  "identity": { "stable_worker_id": false },
+  "organization": {
+    "role_only": true,
+    "company_bound": true,
+    "department_bound": true,
+    "position_bound": true
+  },
+  "contract": {},
+  "assignment": {},
+  "authority": { "no_ai_enforcement": true },
+  "lifecycle": {},
+  "evidence": { "production_evidenced": false },
+  "facets": {
+    "IDENTITY": "ABSENT",
+    "ORGANIZATION": "METADATA_ONLY",
+    "POSITION": "METADATA_ONLY",
+    "GRANTS": "ABSENT",
+    "SUPERVISOR": "ABSENT"
+  },
+  "notes": "BENCHMARK/CALIBRATION ONLY. CompanyAgentRole is a position template with board hiring guard and zero default spend. Not DigitalWorkerIdentity, not a durable employment contract, not a contract-bound WorkOrder."
+}

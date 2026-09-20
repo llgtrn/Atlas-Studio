@@ -1,0 +1,10 @@
+{
+  "schema": "chronica.store.evaluation.v1",
+  "case_id": "static-artifact-only",
+  "fixture_kind": "BENCHMARK_FIXTURE",
+  "claimed_store_maturity": "S0",
+  "runtime_status": "TEST_ONLY",
+  "static_artifact_only": true,
+  "artifact_only": true,
+  "notes": "Compiled HTML/storefront artifact is a Store input, not a Store."
+}

@@ -1,0 +1,100 @@
+{
+  "schema": "chronica.benchmark.contract.v1",
+  "generated": true,
+  "source_of_truth": "tools/benchmark/contracts/source",
+  "cap": "CAP13",
+  "name": "Inbound webhooks",
+  "benchmark_release": "BR-2026.08.21.1",
+  "benchmark_sha": "2f0a95472e72842e7ec70cdac6eeef8297df2b55",
+  "contract_schema_version": "1.0.0",
+  "source_hash": "bea492307c825d9bd8fc9b677e0b6028b79cbee119bfb216d7c25d976d82c8f1",
+  "ownership": [
+    "inbound authenticate",
+    "dedupe",
+    "canonical inbound event"
+  ],
+  "non_ownership": [
+    "WEB2APP method catalog",
+    "generic scheduler"
+  ],
+  "standards": {
+    "WEB2APP": "1.1.0"
+  },
+  "catalog_versions": {
+    "WEB2APP": "1.1.0",
+    "EMPLOYMENT": "1.0.0",
+    "STORE": "1.0.0",
+    "BLACKBOX": "1.0.0",
+    "FIC": "55",
+    "FIVE_PLANE": "PROVISIONAL_BASELINE"
+  },
+  "families": [
+    "FAM-INBOUND-EVENT"
+  ],
+  "owned_flow_ids": [
+    "FLOW-CAP13-INGEST-001",
+    "FLOW-CROSS-INBOUND-NOTIFY-001"
+  ],
+  "participating_flow_ids": [
+    "FLOW-CAP07-DELIVER-001"
+  ],
+  "hard_gates": [
+    "WEBHOOK_WITHOUT_AUTH"
+  ],
+  "anti_patterns": [
+    "RAW_PROVIDER_PAYLOAD_AS_WORLD_MODEL"
+  ],
+  "forbidden_architecture": [
+    "InboundIngestionV2-in-CAP15"
+  ],
+  "flow_status": {
+    "FLOW-CAP13-INGEST-001": "RUNTIME_CONNECTED",
+    "FLOW-CROSS-INBOUND-NOTIFY-001": "SPEC_ONLY"
+  },
+  "missing_witnesses": [
+    "FLOW-CAP13-INGEST-001:PO-IDEMPOTENCY",
+    "FLOW-CAP13-INGEST-001:PO-FAILURE",
+    "FLOW-CAP13-INGEST-001:PO-EVIDENCE",
+    "FLOW-CROSS-INBOUND-NOTIFY-001:PO-CONSUMER",
+    "FLOW-CROSS-INBOUND-NOTIFY-001:PO-IDEMPOTENCY"
+  ],
+  "required_proof_obligations": [
+    "PO-ENTRYPOINT",
+    "PO-IDEMPOTENCY",
+    "PO-FAILURE",
+    "PO-EVIDENCE",
+    "PO-CONSUMER"
+  ],
+  "blocked_flows": [],
+  "next_actionable": [
+    {
+      "id": "FLOW-CROSS-INBOUND-NOTIFY-001",
+      "status": "SPEC_ONLY",
+      "missing": [
+        "PO-CONSUMER",
+        "PO-IDEMPOTENCY"
+      ],
+      "value": "HIGH",
+      "golden": [
+        "GBF-004"
+      ]
+    },
+    {
+      "id": "FLOW-CAP13-INGEST-001",
+      "status": "RUNTIME_CONNECTED",
+      "missing": [
+        "PO-IDEMPOTENCY",
+        "PO-FAILURE",
+        "PO-EVIDENCE"
+      ],
+      "value": "HIGH",
+      "golden": [
+        "GBF-004"
+      ]
+    }
+  ],
+  "negatives": [],
+  "this_packet_is_not_source": true,
+  "packet_hash": "975b944ad8ebd311b8e370771306b6bb2171a38948aeb06e209362c8e1f6a722",
+  "markdown": "# CAP13 Inbound webhooks — acceptance packet\n\nGENERATED. Source of truth is Contract IR (chronica.benchmark.contract.v1). Do not hand-edit.\n\n- BENCHMARK_RELEASE: `BR-2026.08.21.1`\n- BENCHMARK_SHA: `2f0a95472e72842e7ec70cdac6eeef8297df2b55`\n- SOURCE_HASH: `bea492307c825d9bd8fc9b677e0b6028b79cbee119bfb216d7c25d976d82c8f1`\n- PACKET_HASH: `975b944ad8ebd311b8e370771306b6bb2171a38948aeb06e209362c8e1f6a722`\n- STANDARDS: {\"WEB2APP\":\"1.1.0\"}\n\n## Owns\n- inbound authenticate\n- dedupe\n- canonical inbound event\n\n## Does not own\n- WEB2APP method catalog\n- generic scheduler\n\n## Hard gates\n- WEBHOOK_WITHOUT_AUTH\n\n## Owned flows\n- `FLOW-CAP13-INGEST-001` RUNTIME_CONNECTED missing=PO-IDEMPOTENCY,PO-FAILURE,PO-EVIDENCE\n- `FLOW-CROSS-INBOUND-NOTIFY-001` SPEC_ONLY missing=PO-CONSUMER,PO-IDEMPOTENCY\n\n## Next actionable\n- `FLOW-CROSS-INBOUND-NOTIFY-001` (SPEC_ONLY)\n- `FLOW-CAP13-INGEST-001` (RUNTIME_CONNECTED)\n\nIf the standard appears wrong: emit BENCHMARK_CHANGE_REQUEST. Do not weaken fixtures.\n"
+}

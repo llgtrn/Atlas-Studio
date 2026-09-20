@@ -1,0 +1,23 @@
+{
+  "generated_at": "2026-08-21T18:19:33.564Z",
+  "benchmark_release": "BR-2026.08.21.1",
+  "source_hash": "bea492307c825d9bd8fc9b677e0b6028b79cbee119bfb216d7c25d976d82c8f1",
+  "census_rows": 674,
+  "unclassified": 0,
+  "counts": {
+    "APPLICABLE_HARD_REQUIREMENT": 299,
+    "APPLICABLE_FLOW_REQUIREMENT": 93,
+    "APPLICABLE_PROOF_OBLIGATION": 147,
+    "APPLICABLE_MANUAL_REVIEW": 111,
+    "EXPLANATORY_ONLY": 14,
+    "DONOR_REFERENCE_ONLY": 10
+  },
+  "flow_total": 55,
+  "flow_by_status": {
+    "SPEC_ONLY": 48,
+    "RUNTIME_CONNECTED": 7
+  },
+  "golden_total": 20,
+  "overlay_evidence": 50,
+  "docs_benchmarks": 31
+}

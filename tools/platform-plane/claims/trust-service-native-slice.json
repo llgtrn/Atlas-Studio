@@ -1,0 +1,67 @@
+{
+  "platform": "TrustService",
+  "claim": "NativeSlice",
+  "purpose": "Ground the platform.replicate_trust_service row in the real, landed chronica-pki issuance/verification/revocation slice, honestly reporting that its mtls_identity/connect_cert consumer path is ISLAND (no shipped caller), that Timestamping/HsmKms are missing, and that this plan does not claim readiness.",
+  "build_paths": [
+    "DonorExtraction",
+    "NativeRustKernel"
+  ],
+  "evidence": [
+    {
+      "kind": "DonorExtraction",
+      "state": "Connected",
+      "evidence": "docs/benchmarks/2026-07-09-external-architecture-benchmark-map.md section 11 (GlobalSign/PKI/Documenso/DSS/JAdES benchmark map, lines 533-582)",
+      "reason": null
+    },
+    {
+      "kind": "NativeRustCode",
+      "state": "Connected",
+      "evidence": "crates/chronica-pki/src/{authority.rs,crl.rs,types.rs,build.rs} -- real, non-test, non-donor-wrapper Rust implementing certificate issuance/verification/revocation",
+      "reason": null
+    },
+    {
+      "kind": "BehaviorTests",
+      "state": "Connected",
+      "evidence": "cargo test -p chronica-pki -> 28 passed, 0 failed. NOTE (corrected per issue #666 / docs/_machine/reconcile-reports/cloud/chronica-pki-island-reclassification-5d.json): chronica_vault::openbao::{mtls_identity,connect_cert} are ISLAND, not a production consumer -- mtls_identity has zero call sites workspace-wide (including its own crate's tests) and connect_cert is called only inside its own crate's #[cfg(test)] module. chronica-vault's real production caller (vault_secret_verify, esign.rs) always uses connect_token, never connect_cert. No route/CLI/worker/scheduler anywhere in the workspace reaches chronica-pki's issuance/verification/revocation code.",
+      "reason": null
+    },
+    {
+      "kind": "FailurePathTests",
+      "state": "Connected",
+      "evidence": "crates/chronica-pki/src/tests.rs::{security_revoked_cert_fails_verification, security_expired_issuer_cannot_issue, security_malformed_cert_rejected}",
+      "reason": null
+    },
+    {
+      "kind": "DoctrineOrSpec",
+      "state": "Connected",
+      "evidence": "docs/doctrines/008-doctrine-platform-replication-plane.md line 112 (\"does not by itself constitute the full 'Trust service' row... that remains the 'possible future' scope\"); docs/crates/378-crate-chronica-pki.md; docs/design/2026-07-12-runtime-reachability-doctrine.md (ISLAND definition)",
+      "reason": null
+    },
+    {
+      "kind": "CapabilityTracking",
+      "state": "Connected",
+      "evidence": "crates/chronica-pki/.chronica/sub-cap-arch.jsonl",
+      "reason": null
+    },
+    {
+      "kind": "ArchitectureTracking",
+      "state": "Connected",
+      "evidence": "crates/chronica-pki/.chronica/sub-cap-arch.jsonl",
+      "reason": null
+    },
+    {
+      "kind": "PolicyApprovalGate",
+      "state": "LocalAuditRequired",
+      "evidence": "",
+      "reason": "PKI issuance is RBAC-gated in-process; no external human-approval workflow exists yet"
+    }
+  ],
+  "platform_primitives": [
+    {
+      "Benchmark": "CertificateLifecycle"
+    },
+    {
+      "Benchmark": "Revocation"
+    }
+  ]
+}

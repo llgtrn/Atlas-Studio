@@ -1,0 +1,72 @@
+{
+  "schema": "chronica.web2app.evaluation.v1",
+  "capability_key": "infra.backup_restore",
+  "canonical_status": "implemented_unverified",
+  "runtime_status": "ISLAND",
+  "claimed_web2app_level": "W1",
+  "product_chain_shape": "KERNEL_ONLY",
+  "semantic_owner": "ops-backup",
+  "calibration_case": "E",
+  "notes": "Operational backup/restore. A recovery CLI would be a legitimate W2/W3 product surface. A Pages/CRM CLI invented only to escape IU would be CALLER_FARMING.",
+  "semantic_contract": {
+    "schema": "chronica.web2app.semantic-contract.v1",
+    "capability_key": "infra.backup_restore",
+    "canonical_name": "Backup & Restore Engine",
+    "product_kind": "CLI_OPERATOR",
+    "actor": "operator",
+    "user_intent": "Export a checksummed backup and restore it without silent data loss.",
+    "preconditions": "Operator credentials; target company/dataset in scope.",
+    "input": "backup request / backup blob",
+    "product_action": "backup / restore",
+    "typed_operations": [
+      { "name": "backup.export", "kind": "READ", "authority": "operator", "receipt": "checksummed snapshot" },
+      { "name": "backup.restore", "kind": "WRITE", "authority": "operator", "receipt": "restore stage + restored rows" }
+    ],
+    "state_transition": "live dataset → snapshot → restored dataset",
+    "output": "byte-identical restored tables or fail-closed",
+    "persistence_requirement": "snapshot artifact plus restored durable state",
+    "authority_requirement": "operator; no anonymous restore",
+    "tenant_requirement": "company/dataset scoped; no cross-tenant restore",
+    "visibility_access_semantics": "operator-only",
+    "failure_semantics": "tampered backup writes nothing",
+    "idempotency_semantics": "restore must not clobber unexpectedly; additive vs replace declared",
+    "concurrency_semantics": "restore exclusive or fail-closed",
+    "external_effect_requirement": "none unless object-storage offload is in contract",
+    "money_impact": "none",
+    "user_observable_outcome": "operator can restore and verify data",
+    "no_ai_behavior": "deterministic checksum/restore; AI not required",
+    "donor_semantics": "ClickHouse-style backup/restore engine",
+    "chronica_allowed_divergences": "CLI is a valid primary surface for this operator capability",
+    "known_unimplemented_facets": "shipped caller (island)",
+    "requires_persistence": true,
+    "requires_ui": false,
+    "requires_external_effect": false,
+    "requires_authority": true,
+    "moves_money": false,
+    "requires_ai": false,
+    "jurisdiction_model": "NOT_APPLICABLE",
+    "transport_independence": true
+  },
+  "entrypoints": [],
+  "actual_witnesses": [
+    "real_actor",
+    "deterministic_kernel",
+    "negative_failure_paths",
+    "no_ai_path",
+    "typed_operations"
+  ],
+  "facets": [
+    {
+      "name": "kernel_round_trip",
+      "semantic_state": "LIVE",
+      "evidence": ["backed_up_table_restores_with_identical_data"]
+    },
+    {
+      "name": "shipped_operator_caller",
+      "semantic_state": "ABSENT",
+      "evidence": ["implemented_unverified island; RestorerFromBackup has no shipped caller"]
+    }
+  ],
+  "anti_patterns": [],
+  "semantic_mutations": []
+}

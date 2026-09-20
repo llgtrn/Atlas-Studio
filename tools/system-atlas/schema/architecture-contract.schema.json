@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "chronica.system-atlas.architecture-contract.v2",
+  "title": "Measured declaration extracted from a chronica-contract block. Presence is architecture-contract coverage, never runtime implementation proof.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "owner", "kind", "severity", "doc_path", "runtime_owner", "verification"],
+  "properties": {
+    "id": { "type": "string", "minLength": 1 },
+    "owner": { "type": "string", "minLength": 1 },
+    "kind": { "type": "string", "minLength": 1 },
+    "severity": { "type": "string", "minLength": 1 },
+    "doc_path": { "type": "string", "pattern": "^docs/architecture/.+\\.md$" },
+    "runtime_owner": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+    "verification": { "type": "array", "items": { "type": "string", "minLength": 1 } }
+  }
+}

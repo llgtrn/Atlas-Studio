@@ -1,0 +1,102 @@
+# Chronica donor reference repos — re-fetch manifest for cloud sessions.
+#
+# WHY THIS EXISTS: Temporary/ (the 81 donor reference repos) is gitignored and multi-GB, and GitHub
+# rejects files >100MB — so the donors are NOT in the repo. Pushing them from a laptop is slow (the
+# wait we are avoiding). Instead, a cloud session runs tools/repo/clone-donors.sh which clones each donor
+# from its public source at CLOUD bandwidth (minutes). The donors are public OSS reference material.
+#
+# FORMAT:  <Temporary-dir-name>  <git-url-or-UNRESOLVED>   [# note]
+# RESOLVED rows clone automatically. UNRESOLVED rows are skipped — fill the URL (or drop the donor).
+# The 18 marked (git) were read from the donor's own origin remote = exact source.
+
+9router-main                     https://github.com/decolua/9router.git                    # (git)
+chatwoot-main                    https://github.com/chatwoot/chatwoot.git                   # (git)
+crawl4ai-main                    https://github.com/unclecode/crawl4ai.git                  # (git)
+dify                             https://github.com/langgenius/dify.git                     # (git)
+erpnext-main                     https://github.com/frappe/erpnext.git                      # (git)
+frappe-main                      https://github.com/frappe/frappe.git                       # (git)
+GEOFlow-main                     https://github.com/yaojingang/GEOFlow.git                  # (git)
+grafana-main                     https://github.com/grafana/grafana.git                     # (git)
+graphiti-main                    https://github.com/getzep/graphiti.git                     # (git)
+loki-main                        https://github.com/grafana/loki.git                        # (git)
+metabase-main                    https://github.com/metabase/metabase.git                   # (git)
+odoo-main                        https://github.com/odoo/odoo.git                           # (git)
+podman-desktop-main              https://github.com/containers/podman-desktop.git           # (git)
+prometheus-main                  https://github.com/prometheus/prometheus.git               # (git)
+SurfSense-main                   https://github.com/MODSetter/SurfSense.git                 # (git)
+tempo-main                       https://github.com/grafana/tempo.git                       # (git)
+tooljet-main                     https://github.com/ToolJet/ToolJet.git                     # (git)
+zed-main                         https://github.com/zed-industries/zed.git                  # (git)
+
+ComfyUI-master                   https://github.com/comfyanonymous/ComfyUI.git
+GHunt-master                     https://github.com/mxrch/GHunt.git
+Scrapling-main                   https://github.com/D4Vinci/Scrapling.git
+TradingAgents-main               https://github.com/TauricResearch/TradingAgents.git
+alertmanager-main                https://github.com/prometheus/alertmanager.git
+blackbox_exporter-master         https://github.com/prometheus/blackbox_exporter.git
+cadvisor-master                  https://github.com/google/cadvisor.git
+clickhouse                       https://github.com/ClickHouse/ClickHouse.git
+coolify-4.x                      https://github.com/coollabsio/coolify.git
+daytona-main                     https://github.com/daytonaio/daytona.git
+deer-flow-main                   https://github.com/bytedance/deer-flow.git
+hackingtool-master               https://github.com/Z4nzu/hackingtool.git
+holehe-master                    https://github.com/megadose/holehe.git
+kilocode-main                    https://github.com/Kilo-Org/kilocode.git
+kube-state-metrics-main          https://github.com/kubernetes/kube-state-metrics.git
+ladybird-master                  https://github.com/LadybirdBrowser/ladybird.git
+langfuse-main                    https://github.com/langfuse/langfuse.git
+langgraph-main                   https://github.com/langchain-ai/langgraph.git
+maigret-main                     https://github.com/soxoj/maigret.git
+mastodon-main                    https://github.com/mastodon/mastodon.git
+n8n-master                       https://github.com/n8n-io/n8n.git
+node_exporter-master             https://github.com/prometheus/node_exporter.git
+opentelemetry-collector-main     https://github.com/open-telemetry/opentelemetry-collector.git
+phoneinfoga-master               https://github.com/sundowndev/PhoneInfoga.git
+playwright-main                  https://github.com/microsoft/playwright.git
+posthog-master                   https://github.com/PostHog/posthog.git
+pushgateway-master               https://github.com/prometheus/pushgateway.git
+refly-main                       https://github.com/refly-ai/refly.git
+remotion-main                    https://github.com/remotion-dev/remotion.git
+sherlock-master                  https://github.com/sherlock-project/sherlock.git
+social-analyzer-main             https://github.com/qeeqbox/social-analyzer.git
+spiderfoot-master                https://github.com/smicallef/spiderfoot.git
+supabase-master                  https://github.com/supabase/supabase.git
+temporal-main                    https://github.com/temporalio/temporal.git
+theHarvester-master              https://github.com/laramies/theHarvester.git
+timesfm-master                   https://github.com/google-research/timesfm.git
+trivy-main                       https://github.com/aquasecurity/trivy.git
+twenty-main                      https://github.com/twentyhq/twenty.git
+vault-main                       https://github.com/hashicorp/vault.git
+openclaw-main                    https://github.com/openclaw/openclaw.git
+
+# UNRESOLVED — owner not derivable from the local folder name (zip-extract, no .git). Fill the URL
+# in the cloud (one `gh search repos <name>` each) or drop the line. Skipped by the clone script.
+BettaFish-main                   UNRESOLVED
+CloakBrowser-main                UNRESOLVED
+FinceptTerminal-main             https://github.com/Fincept-Corporation/FinceptTerminal.git  # (git) resolved 2026-06-23 (cloud web-search + verified clone @0b5aa113, has fincept-qt)
+GhostTrack-main                  UNRESOLVED
+MiroFish-main                    UNRESOLVED
+OpenHarness-main                 UNRESOLVED
+OpenMontage-main                 UNRESOLVED
+Pixelle-Video-main               https://github.com/AIDC-AI/Pixelle-Video.git  # (git) resolved 2026-08-19 (web search + verified shallow clone, Apache-2.0, real repo behind the prior UNRESOLVED name)
+agent-native-main                UNRESOLVED
+everything-claude-code-main      UNRESOLVED
+flue-main                        UNRESOLVED
+graphify-6                       UNRESOLVED
+headroom-main                    UNRESOLVED
+oasis-main                       UNRESOLVED
+opencode-dev                     UNRESOLVED
+openfang-main                    UNRESOLVED
+pinchtab-main                    UNRESOLVED
+recon-ng-master                  UNRESOLVED
+redamon-master                   UNRESOLVED
+strix-main                       UNRESOLVED
+worldmonitor-main                UNRESOLVED
+xyops-main                       UNRESOLVED
+zeroclaw-master                  UNRESOLVED
+openbao-main	https://github.com/openbao/openbao
+dss-main                         https://github.com/esig/dss.git                            # (git) EU DSS — ETSI AdES reference (JAdES conformance oracle, fork F3)
+documenso-main                   https://github.com/documenso/documenso.git                 # (git) Documenso — open e-signature platform (esign/contract reference, chronica-esign/legal)
+opensign-main                    https://github.com/OpenSignLabs/OpenSign.git               # (git) OpenSign — open DocuSign alternative (esign/envelope/field reference)
+infisical-main                   https://github.com/Infisical/infisical.git                 # (git) Infisical — secrets management (vault reference, chronica-vault)
+medusa-main                      https://github.com/medusajs/medusa.git                     # (git) Medusa — headless e-commerce (cart/order/pricing/inventory/fulfillment reference, chronica-commerce/marketplaces)

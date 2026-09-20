@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "chronica.system-atlas.snapshot.v0",
+  "title": "Chronica System Atlas Snapshot",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "source_base_sha", "atlas_generation_sha", "generated_at", "shards"],
+  "properties": {
+    "schema": { "const": "chronica.system-atlas.snapshot.v0" },
+    "source_base_sha": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+    "atlas_generation_sha": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+    "canonical_ref_sha": {
+      "type": ["string", "null"],
+      "pattern": "^[0-9a-f]{40}$",
+      "description": "Optional: resolved SHA of origin/main at generation time. Distinct from source_base_sha, which is the last commit that actually changed product-relevant paths -- a merge commit (canonical_ref_sha) can be tree-identical to an earlier commit (source_base_sha) for those paths. null if the ref could not be resolved locally."
+    },
+    "generated_at": { "type": "string" },
+    "status": { "type": "string", "enum": ["SYSTEM_ATLAS_V0_BOOTSTRAPPED", "SYSTEM_ATLAS_V0_PARTIAL"] },
+    "shards": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "missing_shards": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "duplicate_node_ids": {
+      "type": "array",
+      "items": { "type": "object" }
+    },
+    "counts": {
+      "type": "object",
+      "additionalProperties": { "type": "number" }
+    }
+  }
+}

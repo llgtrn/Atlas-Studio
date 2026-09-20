@@ -1,0 +1,476 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "chronica.system-atlas.ops-mirror-report.v1",
+  "title": "Rebuildable measurement of one Development Cell and its Chronica package against a pinned Chronica reference. Ops fields are compatibility aliases only.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "generated_at",
+    "configuration_state",
+    "readiness",
+    "ops_repo",
+    "ops_sha",
+    "working_tree_clean",
+    "chronica_repo",
+    "chronica_reference_sha",
+    "chronica_observed_head_sha",
+    "chronica_reference_state",
+    "atlas_controller",
+    "mirror_contract_path",
+    "local_atlas_present",
+    "tracked_files_total",
+    "backend_language_evaluated",
+    "frontend_language_evaluated",
+    "backend_non_rust_source_files",
+    "frontend_non_typescript_source_files",
+    "docs_kernel_required_total",
+    "docs_kernel_present_total",
+    "docs_kernel_missing",
+    "donors_declared_total",
+    "donor_census",
+    "donor_roots_detected",
+    "donor_files_total",
+    "production_donor_references",
+    "semantic_mappings_total",
+    "unresolved_semantic_mappings_total",
+    "violations",
+    "development_cell_id",
+    "package_id",
+    "package_kind",
+    "package_contract_path",
+    "package_contract_present",
+    "canonical_runtime_mode",
+    "standalone_sovereignty",
+    "sovereignty_signals",
+    "local_persistence_signals",
+    "cell_repo",
+    "cell_sha",
+    "refoundation_generation",
+    "reset_mode",
+    "pre_reset_head_sha",
+    "preservation_ref",
+    "repository_layout_state",
+    "missing_mirror_roots",
+    "unexpected_top_level_directories",
+    "donor_root_policy_violations",
+    "feature_code_without_donor_evidence",
+    "donor_intake_evidence_missing",
+    "donor_provenance_evidence_missing",
+    "donor_license_evidence_missing",
+    "censused_primary_donor_total"
+  ],
+  "properties": {
+    "schema": {
+      "const": "chronica.system-atlas.ops-mirror-report.v1"
+    },
+    "generated_at": {
+      "type": "string"
+    },
+    "configuration_state": {
+      "enum": [
+        "CONFIGURED",
+        "UNCONFIGURED"
+      ]
+    },
+    "readiness": {
+      "enum": [
+        "READY",
+        "REVIEW_REQUIRED",
+        "BLOCKED"
+      ]
+    },
+    "ops_repo": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "ops_sha": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "working_tree_clean": {
+      "type": "boolean"
+    },
+    "chronica_repo": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "chronica_reference_sha": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "chronica_reference_state": {
+      "enum": [
+        "UNPINNED",
+        "PINNED_UNVERIFIED",
+        "MATCHES_LOCAL_HEAD",
+        "STALE_AGAINST_LOCAL_HEAD",
+        "PIN_UNAVAILABLE_LOCAL"
+      ]
+    },
+    "atlas_controller": {
+      "const": "chronica-system-atlas"
+    },
+    "mirror_contract_path": {
+      "type": "string"
+    },
+    "local_atlas_present": {
+      "type": "boolean"
+    },
+    "tracked_files_total": {
+      "type": "number",
+      "minimum": 0
+    },
+    "backend_language_evaluated": {
+      "type": "boolean"
+    },
+    "frontend_language_evaluated": {
+      "type": "boolean"
+    },
+    "backend_non_rust_source_files": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "frontend_non_typescript_source_files": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "docs_kernel_required_total": {
+      "type": "number",
+      "minimum": 0
+    },
+    "docs_kernel_present_total": {
+      "type": "number",
+      "minimum": 0
+    },
+    "docs_kernel_missing": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "donor_roots_detected": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "donor_files_total": {
+      "type": "number",
+      "minimum": 0
+    },
+    "production_donor_references": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "semantic_mappings_total": {
+      "type": "number",
+      "minimum": 0
+    },
+    "unresolved_semantic_mappings_total": {
+      "type": "number",
+      "minimum": 0
+    },
+    "violations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "type",
+          "severity",
+          "evidence"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "minLength": 1
+          },
+          "severity": {
+            "enum": [
+              "HARD",
+              "REVIEW_REQUIRED"
+            ]
+          },
+          "evidence": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "chronica_observed_head_sha": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "donors_declared_total": {
+      "type": "number",
+      "minimum": 0
+    },
+    "donor_census": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "repo",
+          "revision",
+          "root",
+          "mode",
+          "provenance",
+          "present",
+          "tracked_files_total",
+          "ops_baseline_commit",
+          "baseline_files_total",
+          "remaining_baseline_files",
+          "drained_baseline_files",
+          "state",
+          "allocation_role",
+          "census_complete"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "repo": {
+            "type": "string"
+          },
+          "revision": {
+            "type": "string"
+          },
+          "root": {
+            "type": "string"
+          },
+          "mode": {
+            "enum": [
+              "DEEP_ABSORB",
+              "REFERENCE_ONLY"
+            ]
+          },
+          "provenance": {
+            "type": "string"
+          },
+          "present": {
+            "type": "boolean"
+          },
+          "tracked_files_total": {
+            "type": "number",
+            "minimum": 0
+          },
+          "ops_baseline_commit": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^[0-9a-f]{40}$"
+          },
+          "baseline_files_total": {
+            "type": "number",
+            "minimum": 0
+          },
+          "remaining_baseline_files": {
+            "type": "number",
+            "minimum": 0
+          },
+          "drained_baseline_files": {
+            "type": "number",
+            "minimum": 0
+          },
+          "state": {
+            "enum": [
+              "REFERENCE_ONLY",
+              "NOT_BASELINED",
+              "INGESTED_NOT_STARTED",
+              "ACTIVE_ABSORPTION",
+              "FULLY_DRAINED"
+            ]
+          },
+          "allocation_role": {
+            "enum": [
+              "PRIMARY_ABSORBER",
+              "REFERENCE_CONSUMER"
+            ]
+          },
+          "census_complete": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "development_cell_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "package_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "package_kind": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "enum": [
+        "DOMAIN_PACKAGE",
+        "CAPABILITY_PACKAGE",
+        "ADAPTER_PACKAGE",
+        "PROJECTION_PACKAGE",
+        "COMPOSITE_PACKAGE",
+        null
+      ]
+    },
+    "package_contract_path": {
+      "type": "string"
+    },
+    "package_contract_present": {
+      "type": "boolean"
+    },
+    "canonical_runtime_mode": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "enum": [
+        "CHRONICA_REQUIRED",
+        null
+      ]
+    },
+    "standalone_sovereignty": {
+      "type": [
+        "boolean",
+        "null"
+      ]
+    },
+    "sovereignty_signals": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "local_persistence_signals": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "cell_repo": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "cell_sha": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "refoundation_generation": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 1
+    },
+    "reset_mode": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "enum": [
+        "CLEAN_PACKAGE_BASELINE",
+        null
+      ]
+    },
+    "pre_reset_head_sha": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "preservation_ref": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "repository_layout_state": {
+      "enum": [
+        "MATCHES_CHRONICA",
+        "DRIFT",
+        "UNCONFIGURED"
+      ]
+    },
+    "missing_mirror_roots": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "unexpected_top_level_directories": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "donor_root_policy_violations": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "feature_code_without_donor_evidence": {
+      "type": "boolean"
+    },
+    "donor_intake_evidence_missing": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "donor_provenance_evidence_missing": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "donor_license_evidence_missing": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "censused_primary_donor_total": {
+      "type": "number",
+      "minimum": 0
+    }
+  }
+}

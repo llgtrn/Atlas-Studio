@@ -1,0 +1,27 @@
+{
+  "schema": "chronica.employment.evaluation.v1",
+  "case_id": "expired-contract-incorrectly-executes",
+  "fixture_kind": "BENCHMARK_FIXTURE",
+  "worker_class": "digital_employee",
+  "claimed_employment_maturity": "E4",
+  "runtime_status": "SECURITY_BLOCKED",
+  "product_status": "NOT_BUILT",
+  "identity": { "stable_worker_id": true },
+  "organization": { "company_bound": true },
+  "contract": {
+    "durable": true,
+    "versioned": true,
+    "effective_term": true,
+    "expired_but_admits_new_work": true
+  },
+  "assignment": {
+    "work_order_present": true,
+    "production_path": true,
+    "contract_version_pinned": true,
+    "executes_new_work": true
+  },
+  "authority": { "enforced": false, "no_ai_enforcement": true },
+  "lifecycle": {},
+  "evidence": { "production_evidenced": false },
+  "notes": "BENCHMARK FIXTURE ONLY. Expired contract admitting new production work is a hard failure."
+}

@@ -1,0 +1,83 @@
+{
+  "schema": "chronica.web2app.evaluation.v1",
+  "capability_key": "workflow-runtime.schedule_triggers",
+  "canonical_status": "verified",
+  "runtime_status": "LIVE_BUT_UNVERIFIED",
+  "claimed_web2app_level": "W3",
+  "product_chain_shape": "BACKEND_COMPLETE",
+  "semantic_owner": "scheduler",
+  "calibration_case": "D",
+  "notes": "Backend scheduler runtime. UI is outside the contract. run_due advances next_run_at but tests prove it does not execute the action. Dispatch/execute remains ABSENT, not a reason to drop dispatch from the frozen contract.",
+  "semantic_contract": {
+    "schema": "chronica.web2app.semantic-contract.v1",
+    "capability_key": "workflow-runtime.schedule_triggers",
+    "canonical_name": "Cron Schedule & Trigger Service",
+    "product_kind": "SCHEDULER",
+    "actor": "system scheduler / operator API",
+    "user_intent": "When a schedule is due, deterministically dispatch a durable run and advance recurrence.",
+    "preconditions": "Enabled schedule with a computable next_run_at; company scope.",
+    "input": "cron/every spec, timezone, action kind, due watermark",
+    "product_action": "run_due",
+    "typed_operations": [
+      { "name": "schedule.create", "kind": "WRITE", "authority": "InternalWrite / company", "receipt": "runtime_schedules row" },
+      { "name": "schedule.run_due", "kind": "WRITE", "authority": "system/operator", "receipt": "durable run + advanced next_run_at" },
+      { "name": "schedule.list", "kind": "READ", "authority": "company scope", "receipt": "none" }
+    ],
+    "state_transition": "scheduled → due → dispatched run → next_run advanced",
+    "output": "durable run record and new next_run_at",
+    "persistence_requirement": "durable runtime_schedules",
+    "authority_requirement": "company access; agent run_due approval-blocked",
+    "tenant_requirement": "company-scoped schedules",
+    "visibility_access_semantics": "company operator / runtime; not end-user CMS",
+    "failure_semantics": "invalid cron fail-closed; agent approval-blocked; missing db 503",
+    "idempotency_semantics": "fire-at-most-once / CAS should_fire",
+    "concurrency_semantics": "concurrency cap on overlapping fires",
+    "external_effect_requirement": "dispatch of the scheduled action (workflow/runtime effect)",
+    "money_impact": "none unless the scheduled action is money; this capability itself is not money",
+    "user_observable_outcome": "next_run_at advances; a durable run exists",
+    "no_ai_behavior": "deterministic cron/due math; AI not required",
+    "donor_semantics": "Chronica legacy routine-cron: cadence floor, catch-up, fire-at-most-once",
+    "chronica_allowed_divergences": "action execution may be a separate worker; due-advance is still required",
+    "known_unimplemented_facets": "outbound action execution (run_due_advances_but_does_not_execute)",
+    "requires_persistence": true,
+    "requires_ui": false,
+    "requires_external_effect": true,
+    "requires_authority": true,
+    "moves_money": false,
+    "requires_ai": false,
+    "jurisdiction_model": "NOT_APPLICABLE",
+    "transport_independence": true
+  },
+  "entrypoints": [
+    "POST /api/companies/:id/runtime/schedules",
+    "run_due_safe in chronica-runtime schedule repo"
+  ],
+  "actual_witnesses": [
+    "real_actor",
+    "real_product_entrypoint",
+    "tenant_boundary",
+    "auth_boundary",
+    "deterministic_kernel",
+    "persistence",
+    "idempotency",
+    "concurrency",
+    "negative_failure_paths",
+    "real_readback",
+    "no_ai_path",
+    "typed_operations"
+  ],
+  "facets": [
+    {
+      "name": "due_advance",
+      "semantic_state": "LIVE",
+      "evidence": ["runtime_schedules_cron_next_run_route.rs create_cron_seeds_next_run_at_and_run_due_recomputes_it"]
+    },
+    {
+      "name": "action_dispatch",
+      "semantic_state": "ABSENT",
+      "evidence": ["run_due_advances_but_does_not_execute"]
+    }
+  ],
+  "anti_patterns": [],
+  "semantic_mutations": []
+}

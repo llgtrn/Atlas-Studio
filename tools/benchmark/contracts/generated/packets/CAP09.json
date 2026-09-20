@@ -1,0 +1,81 @@
+{
+  "schema": "chronica.benchmark.contract.v1",
+  "generated": true,
+  "source_of_truth": "tools/benchmark/contracts/source",
+  "cap": "CAP09",
+  "name": "Company/organization",
+  "benchmark_release": "BR-2026.08.21.1",
+  "benchmark_sha": "2f0a95472e72842e7ec70cdac6eeef8297df2b55",
+  "contract_schema_version": "1.0.0",
+  "source_hash": "bea492307c825d9bd8fc9b677e0b6028b79cbee119bfb216d7c25d976d82c8f1",
+  "ownership": [
+    "company/org membership",
+    "positions"
+  ],
+  "non_ownership": [
+    "employment grants (CAP16)",
+    "credential storage (CAP12)"
+  ],
+  "standards": {
+    "EMPLOYMENT": "1.0.0"
+  },
+  "catalog_versions": {
+    "WEB2APP": "1.1.0",
+    "EMPLOYMENT": "1.0.0",
+    "STORE": "1.0.0",
+    "BLACKBOX": "1.0.0",
+    "FIC": "55",
+    "FIVE_PLANE": "PROVISIONAL_BASELINE"
+  },
+  "families": [
+    "FAM-COMPANY-MEMBERSHIP"
+  ],
+  "owned_flow_ids": [
+    "FLOW-CAP09-MEMBER-001"
+  ],
+  "participating_flow_ids": [
+    "FLOW-CAP16-HIRE-001",
+    "FLOW-CAP12-SESSION-001",
+    "FLOW-CAP14-PAGE-001"
+  ],
+  "hard_gates": [
+    "CROSS_TENANT_WORKER_ASSIGNMENT"
+  ],
+  "anti_patterns": [
+    "ROLE_AS_WORKER"
+  ],
+  "forbidden_architecture": [],
+  "flow_status": {
+    "FLOW-CAP09-MEMBER-001": "SPEC_ONLY"
+  },
+  "missing_witnesses": [
+    "FLOW-CAP09-MEMBER-001:PO-REVOCATION",
+    "FLOW-CAP09-MEMBER-001:PO-IDENTITY",
+    "FLOW-CAP09-MEMBER-001:PO-AUTHORITY"
+  ],
+  "required_proof_obligations": [
+    "PO-REVOCATION",
+    "PO-IDENTITY",
+    "PO-AUTHORITY"
+  ],
+  "blocked_flows": [],
+  "next_actionable": [
+    {
+      "id": "FLOW-CAP09-MEMBER-001",
+      "status": "SPEC_ONLY",
+      "missing": [
+        "PO-REVOCATION",
+        "PO-IDENTITY",
+        "PO-AUTHORITY"
+      ],
+      "value": "HIGH",
+      "golden": [
+        "GBF-010"
+      ]
+    }
+  ],
+  "negatives": [],
+  "this_packet_is_not_source": true,
+  "packet_hash": "1c4f89cbdc50cef2dd4e13fa89d9b6ef430ffb103a2192100aaba68dfcdd56ee",
+  "markdown": "# CAP09 Company/organization — acceptance packet\n\nGENERATED. Source of truth is Contract IR (chronica.benchmark.contract.v1). Do not hand-edit.\n\n- BENCHMARK_RELEASE: `BR-2026.08.21.1`\n- BENCHMARK_SHA: `2f0a95472e72842e7ec70cdac6eeef8297df2b55`\n- SOURCE_HASH: `bea492307c825d9bd8fc9b677e0b6028b79cbee119bfb216d7c25d976d82c8f1`\n- PACKET_HASH: `1c4f89cbdc50cef2dd4e13fa89d9b6ef430ffb103a2192100aaba68dfcdd56ee`\n- STANDARDS: {\"EMPLOYMENT\":\"1.0.0\"}\n\n## Owns\n- company/org membership\n- positions\n\n## Does not own\n- employment grants (CAP16)\n- credential storage (CAP12)\n\n## Hard gates\n- CROSS_TENANT_WORKER_ASSIGNMENT\n\n## Owned flows\n- `FLOW-CAP09-MEMBER-001` SPEC_ONLY missing=PO-REVOCATION,PO-IDENTITY,PO-AUTHORITY\n\n## Next actionable\n- `FLOW-CAP09-MEMBER-001` (SPEC_ONLY)\n\nIf the standard appears wrong: emit BENCHMARK_CHANGE_REQUEST. Do not weaken fixtures.\n"
+}

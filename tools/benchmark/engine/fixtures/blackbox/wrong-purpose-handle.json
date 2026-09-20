@@ -1,0 +1,27 @@
+{
+  "schema": "chronica.blackbox.evaluation.v1",
+  "fixture_kind": "BENCHMARK_FIXTURE_ONLY",
+  "web2app": {
+    "independent": true
+  },
+  "employment": {
+    "independent": true
+  },
+  "case_id": "wrong-purpose-handle",
+  "claimed_blackbox_maturity": "B2",
+  "at_rest": {
+    "sealed": true
+  },
+  "opaque": {
+    "boundary_ref": true,
+    "wrong_purpose_succeeds": true
+  },
+  "secrets": {
+    "handle": true,
+    "envelope": true
+  },
+  "handle": {
+    "wrong_purpose_succeeds": true
+  },
+  "notes": "Handle valid for support used for marketing export."
+}

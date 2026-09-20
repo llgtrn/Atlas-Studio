@@ -1,0 +1,8 @@
+{
+  "schema": "chronica.store.evaluation.v1",
+  "case_id": "persistence-adapter-as-store",
+  "fixture_kind": "BENCHMARK_FIXTURE",
+  "claimed_store_maturity": "S1",
+  "persistence_adapter_named_store": true,
+  "notes": "NotificationStore/ArtifactStore/SessionStore are persistence adapters, not CAP17."
+}

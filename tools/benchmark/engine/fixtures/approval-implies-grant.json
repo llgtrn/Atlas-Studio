@@ -1,0 +1,7 @@
+{
+  "authority_model": "EXISTING_MODEL_SUFFICIENT",
+  "execution_grant_bridge": "PROVEN",
+  "justification": "approval_system_exists",
+  "approval_implies_grant": true,
+  "board_authority_invented": false
+}
