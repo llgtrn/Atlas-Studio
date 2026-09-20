@@ -6,15 +6,19 @@ canonical: true
 ---
 # Artifacts
 
-Durable compiled engineering artifacts belong here when implemented.
+Durable compiled artifact identities/manifests belong here when implemented.
 
-Expected classes include:
+Expected classes:
 
-- `atlas-genome.atlas` — compiled hard-requirement Genome artifact;
-- `<system>.atlas` — dense binary engineering/design artifact;
-- manifests, root hashes and signatures for those artifacts;
-- optionally packaged ATLASX distributions or target compiler artifacts where retention is useful.
+- `atlas-genome.atlas` — compiled hard-requirement Genome;
+- `<system>.atlas` or logical-root manifest — dense engineering/design artifact identity;
+- immutable content-addressed Atlas shards;
+- shard/root integrity manifests and signatures;
+- product lineage manifests linking Atlas root, AtlasX root, Genome, compiler, target profiles and final artifact hashes;
+- benchmark/profile attestations deliberately retained as durable evidence.
 
-`<system>.atlasx/` is normally an expanded executable workspace/materialization and may be rebuildable from its parent `*.atlas` plus pinned Genome/compiler inputs. Temporary build products and rebuildable reports belong in `.atlas/.cache/`.
+`<system>.atlasx/` is generally an expanded executable materialization and may be rebuilt from pinned Atlas root + selection + Genome + compiler inputs.
 
-Human-readable exports are inspection projections and do not replace binary artifact semantics.
+Large rebuildable scans, graph dumps, compiler temporaries and inspection exports belong in `.atlas/.cache/`.
+
+Human-readable exports never replace logical root/shard or product integrity semantics.
