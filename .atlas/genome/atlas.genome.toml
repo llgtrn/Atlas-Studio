@@ -254,6 +254,24 @@ derived_genome_requires_parent_lineage = true
 derived_genome_requires_new_identity = true
 unbounded_autonomous_replication_forbidden = true
 
+
+[compiler_maturity]
+rust_reference_backend_retained = true
+native_backend_alone_is_not_parity = true
+rust_parity_requires_memory_ownership_soundness = true
+rust_parity_requires_borrow_checker_maturity = true
+rust_parity_requires_diagnostic_parity = true
+rust_parity_requires_codegen_correctness = true
+rust_parity_requires_llvm_external_backend_quality = true
+rust_parity_requires_abi_platform_debug_support = true
+rust_parity_requires_fuzz_regression_production_evidence = true
+rust_surpass_requires_rust_parity_first = true
+rust_surpass_claim_must_be_target_profile_scoped = true
+rust_surpass_may_not_relax_semantics_or_safety = true
+rust_surpass_requires_reproducible_benchmark_evidence = true
+sustained_maturity_measured_by_evidence_not_calendar_age = true
+self_hosting_not_required_before_correctness_maturity = true
+
 [federation]
 analysis_may_span_many_repositories = true
 mutation_target_per_workrun = 1
