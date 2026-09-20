@@ -6,33 +6,27 @@ canonical: true
 ---
 # Atlas Studio Knowledge Root
 
-`.atlas/` is the sole repository knowledge/control root for Atlas Studio. Do not confuse this directory with the `*.atlas` binary artifact format.
+`.atlas/` is the sole repository knowledge/control root for Atlas Studio. It is distinct from the `*.atlas` binary artifact format.
 
-Canonical architecture:
+Canonical lifecycle:
 
 ```text
-admitted source / OSS / DeepWiki / papers / specs / evidence
-                            ↓
-                    adaptive census
-                            ↓
-                 engineering synthesis
-                            ↓
-                     <repo>.atlas
-                dense binary design world
-                            ↓
-                  materialize / compile
-                            ↓
-                    <repo>.atlasx/
-             expanded executable repo image
-                            ↓
-                      compiler phases
-                            ↓
-                         binary
-                            ↓
-              verification + recensus
-                            ↺
+admitted reality
+→ strict census + completeness proof
+→ research/invention/selection
+→ SEALED logical *.atlas
+→ optional content-addressed shards
+→ deterministic *.atlasx/
+→ world/semantic optimization
+→ HIR/MIR/LIR/Machine IR
+→ codegen/LTO/link/post-link
+→ product
+→ runtime profile/PGO/auto-tuning
+→ evidence + recensus
 ```
 
-Durable contracts, architecture, genome source, provenance, licenses and verified evidence belong under `.atlas/`. Rebuildable scans and temporary compiler products belong in `.atlas/.cache/`. Donor checkouts belong in `.atlas/temporary/`.
+Durable architecture, contracts, Genome source, provenance, licenses and deliberately admitted evidence belong under `.atlas/`. Rebuildable scans and reports belong in `.atlas/.cache/`. Donor checkouts belong in `.atlas/temporary/` only until absorption/extinction gates are met.
 
-The Atlas Genome is authored at `.atlas/genome/atlas.genome.toml`. The future compiled genome artifact is a binary `atlas-genome.atlas` and every census, plan, `*.atlas`, `*.atlasx/` and generated repository must pin its genome identity/hash.
+Read `INDEX.md` for the mandatory route. The Genome source is `.atlas/genome/atlas.genome.toml`; the intended compiled form is `.atlas/artifacts/atlas-genome.atlas`.
+
+Human-readable graph/artifact exports are projections. They do not replace the binary logical Atlas or its root/shard integrity model.
