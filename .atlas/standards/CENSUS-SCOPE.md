@@ -6,7 +6,7 @@ canonical: true
 ---
 # Census Scope Standard
 
-Atlas census is multi-resolution and adaptive.
+Atlas census is exhaustive in accounting and adaptive in semantic depth.
 
 ## Scope lattice
 
@@ -24,38 +24,28 @@ S9  Statement / expression
 S10 Semantic atom
 ```
 
-A semantic atom is the smallest engineering fact Atlas needs to reason about, for example: a state write, authority/effect check, ownership transfer, call, binding, serialization boundary, lock/atomic operation, event emission, persistent write or invariant guard.
+Every admitted artifact and every discovered S7 function/method is accounted for. Adaptive zoom decides how far below S7 to lower, except critical scopes where Genome may force S10 closure.
 
-## Adaptive zoom
+## Semantic atom examples
 
-Atlas MUST NOT fully explode every repository to S10 by default. It deepens census when triggers include:
+CALL, LOAD, STORE, READ_STATE, WRITE_STATE, TRANSITION, EMIT_EVENT, AUTH_CHECK, BORROW, MOVE, COPY, ALLOC, FREE, LOCK, UNLOCK, ATOMIC, PERSIST, NETWORK_SEND, FFI_CALL, BRANCH, PANIC and RETURN.
 
-- architectural importance;
-- state mutation;
-- persistence/durability;
-- concurrency/atomicity;
-- authority/security/safety;
-- performance hot path;
-- external effect;
-- ambiguity/conflicting evidence;
-- complex dependency/binding;
-- compiler-sensitive ownership/layout;
-- target plan touches the scope.
+## Mandatory lenses
 
-## Planning completeness
+At each applicable scope Atlas evaluates identity, structure, type/schema, dependency, control flow, data flow, state, event, temporal, effect, authority/security, concurrency, persistence/recovery, performance, interface/capability, binding, evidence, provenance, testing, external interaction, ownership, invariants, unknowns and invention opportunities.
 
-Every material change must reconcile:
+## Adaptive triggers
 
-```text
-global repository/federation impact
-+
-local module/function implementation
-+
-atomic semantic behavior
-```
+Deepen on architecture importance, state mutation, durability, concurrency, authority/security/safety, performance hot path, external effect, evidence conflict, complex/dynamic binding, compiler-sensitive ownership/layout or planned change.
 
-Plans must be able to zoom down and then propagate consequences back up.
+## Multi-direction reconciliation
 
-## Evidence at every scope
+Bottom-up facts aggregate to enclosing scopes. Top-down claims must resolve downward to concrete implementations/evidence. Mismatches are blockers/conflicts, not silently tolerated.
 
-A conclusion at a high scope must be traceable to lower-scope evidence or explicit synthesis. A low-level fact must remain attributable to its repository revision/source span/test/paper/spec or other admitted evidence.
+## Dynamic behavior
+
+Reflection, dynamic loading, macros/proc-macros, generated code, FFI, SQL/shell strings, feature flags, environment/config-driven behavior and plugin discovery require explicit resolved/dynamic/unknown binding records.
+
+## Completion
+
+High-level completeness is not a percentage alone. A scope closes only when its Genome-defined obligation set is fully accounted as verified, explicit none, explicit unknown, explicit conflict or explicit unsupported, and any policy-forbidden unresolved state is zero.
