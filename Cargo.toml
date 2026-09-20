@@ -3,8 +3,15 @@ resolver = "2"
 members = [
   "crates/atlas-model",
   "crates/atlas-source",
+  "crates/atlas-fact",
   "crates/atlas-graph",
+  "crates/atlas-technology",
+  "crates/atlas-design",
   "crates/atlas-docs",
+  "crates/atlas-build",
+  "crates/atlas-refactor",
+  "crates/atlas-fleet",
+  "crates/atlas-proof",
   "crates/atlas-core",
   "crates/atlas-cli",
 ]
