@@ -21,7 +21,7 @@ fn visit(root: &Path, dir: &Path, out: &mut Vec<FileFact>) -> io::Result<()> {
         let Some(lang) = language(&path) else { continue };
         let bytes = entry.metadata()?.len();
         if bytes > 4 * 1024 * 1024 { continue; }
-        let relative = path.strip_prefix(root).unwrap_or(&path).to_string_lossy().replace('\', "/");
+        let relative = path.strip_prefix(root).unwrap_or(&path).to_string_lossy().replace('\\', "/");
         out.push(FileFact { path: relative, language: lang.into(), bytes });
     }
     Ok(())
