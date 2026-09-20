@@ -1,45 +1,34 @@
-schema_version: 3
+schema_version: 4
 docs_standard: atlas.docs.v1
 cli_api: atlas.systemizer.cli.v1
-
-canonical_targets:
-  - { repo: llgtrn/Chronica, ref: main, role: PRODUCT_TARGET }
-  - { repo: llgtrn/Atlas-Systemizer, ref: main, role: ENGINEERING_FORGE }
 
 connection:
   auto_connect_registered_repositories: true
   mode: READ_ONLY_OBSERVATION
   resolve_exact_head_sha: true
-  target_repo_requires_atlas_knowledge_root: true
+  target_repo_requires_atlas_metadata: false
+  canonical_docs_root: docs
 
 coding:
-  canonical_target_per_session: 1
+  mode: ONE_REPOSITORY_AT_A_TIME
   docs_gate_required: true
   graph_before_code_required: true
   exact_base_sha_required: true
-  mirror_workers_optional: true
-  mirror_topology: ONE_TO_ONE_TARGET
   shared_mutable_checkout_forbidden: true
   atlas_merge_authority: false
 
-optional_specialized_repositories:
-  - { repo: llgtrn/PlatformDev, ref: main, role: OPTIONAL_SPECIALIZED_WORKSPACE }
-  - { repo: llgtrn/EdgeDev, ref: main, role: OPTIONAL_SPECIALIZED_WORKSPACE }
-  - { repo: llgtrn/Web2AppDev, ref: main, role: OPTIONAL_SPECIALIZED_WORKSPACE }
-  - { repo: llgtrn/PhysicalDev, ref: main, role: OPTIONAL_SPECIALIZED_WORKSPACE }
-  - { repo: llgtrn/SimulationDev, ref: main, role: OPTIONAL_SPECIALIZED_WORKSPACE }
-  - { repo: llgtrn/CommerceDev, ref: main, role: OPTIONAL_SPECIALIZED_WORKSPACE }
-  - { repo: llgtrn/FinanceDev, ref: main, role: OPTIONAL_SPECIALIZED_WORKSPACE }
-  - { repo: llgtrn/CustomerDev, ref: main, role: OPTIONAL_SPECIALIZED_WORKSPACE }
-  - { repo: llgtrn/HospitalityDev, ref: main, role: OPTIONAL_SPECIALIZED_WORKSPACE }
-  - { repo: llgtrn/EstateDev, ref: main, role: OPTIONAL_SPECIALIZED_WORKSPACE }
-  - { repo: llgtrn/LegalDev, ref: main, role: OPTIONAL_SPECIALIZED_WORKSPACE }
-  - { repo: llgtrn/OSINTDev, ref: main, role: OPTIONAL_SPECIALIZED_WORKSPACE }
-
-mirror_policy:
-  create_on_demand: true
-  exact_target_sha_required: true
-  initial_tree_must_match_target: true
-  atlas_knowledge_is_repository_local: true
-  atlas_knowledge_stays_in_repository: true
-  reconverge_then_archive_or_delete: true
+managed_repositories:
+  - { repo: llgtrn/Chronica, ref: main, role: CANONICAL_PRODUCT }
+  - { repo: llgtrn/Atlas-Systemizer, ref: main, role: ENGINEERING_SUBSYSTEM }
+  - { repo: llgtrn/PlatformDev, ref: main, role: DEVELOPMENT_CELL }
+  - { repo: llgtrn/EdgeDev, ref: main, role: DEVELOPMENT_CELL }
+  - { repo: llgtrn/Web2AppDev, ref: main, role: DEVELOPMENT_CELL }
+  - { repo: llgtrn/PhysicalDev, ref: main, role: DEVELOPMENT_CELL }
+  - { repo: llgtrn/SimulationDev, ref: main, role: DEVELOPMENT_CELL }
+  - { repo: llgtrn/CommerceDev, ref: main, role: DEVELOPMENT_CELL }
+  - { repo: llgtrn/FinanceDev, ref: main, role: DEVELOPMENT_CELL }
+  - { repo: llgtrn/CustomerDev, ref: main, role: DEVELOPMENT_CELL }
+  - { repo: llgtrn/HospitalityDev, ref: main, role: DEVELOPMENT_CELL }
+  - { repo: llgtrn/EstateDev, ref: main, role: DEVELOPMENT_CELL }
+  - { repo: llgtrn/LegalDev, ref: main, role: DEVELOPMENT_CELL }
+  - { repo: llgtrn/OSINTDev, ref: main, role: DEVELOPMENT_CELL }
