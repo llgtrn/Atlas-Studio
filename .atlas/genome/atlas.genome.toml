@@ -121,3 +121,15 @@ federated_graph_is_rebuildable_projection = true
 untrusted_input_default_deny = true
 ingestion_is_not_execution = true
 secret_persistence_requires_explicit_policy = true
+
+
+[donor_absorption]
+bulk_staging_preferred_for_approved_bounded_set = true
+temporary_root_is_workbench_not_vendor_directory = true
+coarse_census_all_before_deep_lane = true
+deep_census_follows_dependency_graph = true
+mechanical_translation_forbidden = true
+incremental_extinction_required = true
+delete_checkout_after_absorption_gate = true
+durable_knowledge_survives_checkout_deletion = true
+permanent_donor_runtime_dependency_forbidden = true
