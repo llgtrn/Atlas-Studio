@@ -1,14 +1,28 @@
-# Atlas Systemizer
+# Atlas Studio
 
-Atlas Systemizer is an independent **software engineering compiler / systemization engine**.
+Atlas Studio is an independent engineering-world compiler and system invention environment.
 
-It reads repositories, documentation, donor technology and engineering evidence; compiles them into facts, nodes, edges and bindings; and emits bounded analysis, work plans, graph queries and proof requirements.
+It reads repositories, documentation, donor technology and engineering evidence; compiles observed and declared knowledge into typed engineering semantics; and is being refounded toward the pipeline:
 
-It is not owned by any product runtime. It can be pointed at unrelated repositories and must preserve the target project as the sovereign mutation boundary.
+```text
+sources / donors / evidence / ADL
+        ↓
+secure ingestion
+        ↓
+corpus.atlas
+        ↓
+semantic compilation
+        ↓
+world.atlasx/
+        ↓
+query / synthesize / materialize / verify
+```
 
-## Stable boundary
+Atlas Studio is not owned by any target product runtime. Target repositories remain sovereign mutation boundaries.
 
-The binary is `atlas-systemizer` and the compatibility API is `atlas.systemizer.cli.v1`.
+## Current compatibility boundary
+
+The current compatibility binary remains `atlas-systemizer` and the compatibility API remains `atlas.systemizer.cli.v1` while the canonical product identity migrates to Atlas Studio.
 
 ```text
 atlas-systemizer contract --format json
@@ -17,11 +31,12 @@ atlas-systemizer docs audit --root <docs-root>
 atlas-systemizer code analyze --root <source-root>
 ```
 
-External projects integrate through the CLI or future adapter contracts. Atlas internals are not the canonical truth of the repositories it studies.
-
 ## Implementation policy
 
-- Engineering/backend implementation: Rust.
-- UI implementation, when materialized: TypeScript/TSX.
-- Reference OSS is technology donor material, not a permanent runtime substrate.
-- Atlas output is analysis, evidence and bounded change proposals unless a WorkRun explicitly verifies and records a mutation.
+- Backend/compiler/runtime: Rust.
+- Frontend: TypeScript/TSX.
+- `.atlas/` is the sole repository knowledge/control root.
+- Donor OSS is evidence and technology reference, not a permanent runtime owner.
+- Canonical implementation responsibilities are `core/`, `runtime/`, `adapter/`, plus thin application projections under `apps/`.
+- New engine behavior must not be added to legacy JavaScript tooling.
+- Generated or inferred state is not canonical truth without verification and evidence.
