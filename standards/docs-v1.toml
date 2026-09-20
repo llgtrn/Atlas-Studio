@@ -1,0 +1,20 @@
+schema = "atlas.docs.v1"
+version = 1
+
+required_frontmatter = ["id", "type", "status", "canonical"]
+document_types = ["decision", "blueprint", "architecture", "contract", "runbook", "reference", "generated-evidence"]
+
+[canonicality]
+generated_evidence_may_be_canonical = false
+meaning_changes_require_review = true
+duplicate_canonical_ids_forbidden = true
+broken_internal_refs_forbidden = true
+superseded_docs_must_link_successor = true
+
+[layout]
+index_required = true
+decisions_root = "docs/decisions"
+architecture_root = "docs/architecture"
+blueprints_root = "docs/blueprints"
+standards_root = "docs/standards"
+references_root = "docs/references"

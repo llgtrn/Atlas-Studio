@@ -1,0 +1,30 @@
+schema_version: 1
+repo_standard: atlas.repository-standard.v1
+docs_standard: atlas.docs.v1
+cli_api: atlas.systemizer.cli.v1
+canonical_product_repo: llgtrn/Chronica
+systemizer_repo: llgtrn/Atlas-Systemizer
+
+execution:
+  exact_base_sha_required: true
+  parallel_across_repos: true
+  serial_within_repo: true
+  shared_mutable_checkout_forbidden: true
+  atlas_merge_authority: false
+  default_delivery: branch_pr
+
+repositories:
+  - { repo: llgtrn/Chronica, archetype: CANONICAL_PRODUCT, ref: main, mutation_policy: REVIEWED_PRODUCT }
+  - { repo: llgtrn/Atlas-Systemizer, archetype: ENGINEERING_SUBSYSTEM, ref: main, mutation_policy: ATLAS_INTERNAL }
+  - { repo: llgtrn/PlatformDev, archetype: DEVELOPMENT_CELL, ref: main, mutation_policy: EVIDENCE_ONLY }
+  - { repo: llgtrn/EdgeDev, archetype: DEVELOPMENT_CELL, ref: main, mutation_policy: EVIDENCE_ONLY }
+  - { repo: llgtrn/Web2AppDev, archetype: DEVELOPMENT_CELL, ref: main, mutation_policy: EVIDENCE_ONLY }
+  - { repo: llgtrn/PhysicalDev, archetype: DEVELOPMENT_CELL, ref: main, mutation_policy: EVIDENCE_ONLY }
+  - { repo: llgtrn/SimulationDev, archetype: DEVELOPMENT_CELL, ref: main, mutation_policy: EVIDENCE_ONLY }
+  - { repo: llgtrn/CommerceDev, archetype: DEVELOPMENT_CELL, ref: main, mutation_policy: EVIDENCE_ONLY }
+  - { repo: llgtrn/FinanceDev, archetype: DEVELOPMENT_CELL, ref: main, mutation_policy: EVIDENCE_ONLY }
+  - { repo: llgtrn/CustomerDev, archetype: DEVELOPMENT_CELL, ref: main, mutation_policy: EVIDENCE_ONLY }
+  - { repo: llgtrn/HospitalityDev, archetype: DEVELOPMENT_CELL, ref: main, mutation_policy: EVIDENCE_ONLY }
+  - { repo: llgtrn/EstateDev, archetype: DEVELOPMENT_CELL, ref: main, mutation_policy: EVIDENCE_ONLY }
+  - { repo: llgtrn/LegalDev, archetype: DEVELOPMENT_CELL, ref: main, mutation_policy: EVIDENCE_ONLY }
+  - { repo: llgtrn/OSINTDev, archetype: DEVELOPMENT_CELL, ref: main, mutation_policy: EVIDENCE_ONLY }

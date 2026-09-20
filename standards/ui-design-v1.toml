@@ -1,0 +1,18 @@
+schema = "atlas.ui.v1"
+version = 1
+implementation_language = "TypeScript/TSX"
+
+[principles]
+semantic_tokens_first = true
+accessible_primitives = true
+keyboard_navigation_required = true
+graph_is_primary_canvas = true
+inspector_over_modal_sprawl = true
+evidence_visible_by_default = true
+design_donor_is_not_runtime_authority = true
+
+[surfaces]
+shell = ["sidebar", "command_palette", "workspace_tabs", "status_bar"]
+graph = ["canvas", "minimap", "node_inspector", "edge_inspector", "diff_overlay"]
+engineering = ["repo_matrix", "work_queue", "ci_evidence", "donor_lineage", "design_diff"]
+docs = ["doc_graph", "canonicality_badge", "supersession_view", "broken_ref_panel"]

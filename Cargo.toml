@@ -3,6 +3,7 @@ resolver = "2"
 members = [
   "crates/atlas-model",
   "crates/atlas-source",
+  "crates/atlas-repo",
   "crates/atlas-fact",
   "crates/atlas-graph",
   "crates/atlas-technology",

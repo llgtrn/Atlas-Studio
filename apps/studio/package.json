@@ -1,0 +1,7 @@
+{
+  "name": "@atlas-systemizer/studio",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "TypeScript/TSX Graph Studio for Atlas Systemizer"
+}

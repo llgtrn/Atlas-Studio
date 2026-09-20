@@ -1,0 +1,31 @@
+schema = "atlas.repository-standard.v1"
+version = 1
+
+[principles]
+semantic_roots_over_hardcoded_layout = true
+repo_manifest_required = true
+generated_state_rebuildable = true
+one_repo_one_primary_archetype = true
+parallel_across_repos_serial_within_repo = true
+exact_base_sha_required_for_mutation_plan = true
+merge_authority_outside_atlas = true
+
+[archetypes.CANONICAL_PRODUCT]
+required_roots = [".atlas", "core", "runtime", "adapter", "organism", "apps", "docs"]
+forbidden_roots = []
+production_code_allowed = true
+
+[archetypes.DEVELOPMENT_CELL]
+required_roots = [".atlas", "docs", "temporary", "provenance", "license", "evidence", "work"]
+forbidden_roots = ["core", "runtime", "adapter", "organism", "apps", "src", "backend", "frontend", "services", "packages"]
+production_code_allowed = false
+
+[archetypes.ENGINEERING_SUBSYSTEM]
+required_roots = [".atlas", "crates", "contracts", "docs", "references", "fleet"]
+forbidden_roots = []
+production_code_allowed = true
+
+[archetypes.DOMAIN_SUBSYSTEM]
+required_roots = [".atlas", "crates", "apps", "docs", "contracts"]
+forbidden_roots = []
+production_code_allowed = true
