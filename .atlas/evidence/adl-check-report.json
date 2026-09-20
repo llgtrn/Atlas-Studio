@@ -1,0 +1,424 @@
+{
+  "schema": "atlas.adl.compile-report.v1",
+  "sources_total": 1,
+  "declared_nodes_total": 8,
+  "declared_edges_total": 10,
+  "materializations_total": 4,
+  "diagnostics": [],
+  "constraint_results": [
+    {
+      "name": "BackendIsRust",
+      "passed": true,
+      "diagnostics": []
+    },
+    {
+      "name": "CoreIsMaterialized",
+      "passed": true,
+      "diagnostics": []
+    },
+    {
+      "name": "AdapterIsMaterialized",
+      "passed": true,
+      "diagnostics": []
+    },
+    {
+      "name": "RuntimeIsMaterialized",
+      "passed": true,
+      "diagnostics": []
+    }
+  ],
+  "deltas": [],
+  "ir": {
+    "schema": "atlas.ir.v1",
+    "version": 1,
+    "system": "AtlasSystemizer",
+    "declared": {
+      "nodes": [
+        {
+          "id": "declared-node:0d10ebee5d32268d",
+          "name": "AtlasSystemizer",
+          "node_kind": "Repository",
+          "attributes": {
+            "authority": "canonical"
+          },
+          "origin": "declared",
+          "span": {
+            "path": ".atlas/declared/system.atlas",
+            "line": 5,
+            "column": 1
+          }
+        },
+        {
+          "id": "declared-node:367ffc9d1aef367e",
+          "name": "Core",
+          "node_kind": "Runtime",
+          "attributes": {
+            "kind": "backend",
+            "language": "rust",
+            "responsibility": "graph_semantics"
+          },
+          "origin": "declared",
+          "span": {
+            "path": ".atlas/declared/system.atlas",
+            "line": 9,
+            "column": 1
+          }
+        },
+        {
+          "id": "declared-node:2b13beed7acf3db4",
+          "name": "Adapter",
+          "node_kind": "Runtime",
+          "attributes": {
+            "kind": "backend",
+            "language": "rust",
+            "responsibility": "repository_observation"
+          },
+          "origin": "declared",
+          "span": {
+            "path": ".atlas/declared/system.atlas",
+            "line": 15,
+            "column": 1
+          }
+        },
+        {
+          "id": "declared-node:9acdd54854c741cb",
+          "name": "Runtime",
+          "node_kind": "Runtime",
+          "attributes": {
+            "kind": "backend",
+            "language": "rust",
+            "responsibility": "orchestration"
+          },
+          "origin": "declared",
+          "span": {
+            "path": ".atlas/declared/system.atlas",
+            "line": 21,
+            "column": 1
+          }
+        },
+        {
+          "id": "declared-node:249741947a15f6ff",
+          "name": "WebUI",
+          "node_kind": "Runtime",
+          "attributes": {
+            "kind": "frontend",
+            "language": "typescript",
+            "responsibility": "graph_visualization"
+          },
+          "origin": "declared",
+          "span": {
+            "path": ".atlas/declared/system.atlas",
+            "line": 27,
+            "column": 1
+          }
+        },
+        {
+          "id": "declared-node:1fd6bc0f9bca8d3b",
+          "name": "ParseAtlas",
+          "node_kind": "Capability",
+          "attributes": {
+            "input": "Source",
+            "output": "AST"
+          },
+          "origin": "declared",
+          "span": {
+            "path": ".atlas/declared/system.atlas",
+            "line": 33,
+            "column": 1
+          }
+        },
+        {
+          "id": "declared-node:e612e2a48bf22e86",
+          "name": "CompileGraph",
+          "node_kind": "Capability",
+          "attributes": {
+            "input": "AST",
+            "output": "SystemGraph"
+          },
+          "origin": "declared",
+          "span": {
+            "path": ".atlas/declared/system.atlas",
+            "line": 38,
+            "column": 1
+          }
+        },
+        {
+          "id": "declared-node:6ed3a12d773d4e83",
+          "name": "ObserveRepository",
+          "node_kind": "Capability",
+          "attributes": {
+            "input": "Repository",
+            "output": "ObservedGraph"
+          },
+          "origin": "declared",
+          "span": {
+            "path": ".atlas/declared/system.atlas",
+            "line": 43,
+            "column": 1
+          }
+        }
+      ],
+      "edges": [
+        {
+          "id": "declared-edge:2681bb49b6badd69",
+          "from": "AtlasSystemizer",
+          "relation": "contains",
+          "to": "Core",
+          "origin": "declared",
+          "span": {
+            "path": ".atlas/declared/system.atlas",
+            "line": 48,
+            "column": 1
+          }
+        },
+        {
+          "id": "declared-edge:0692383f70a4d6d5",
+          "from": "AtlasSystemizer",
+          "relation": "contains",
+          "to": "Adapter",
+          "origin": "declared",
+          "span": {
+            "path": ".atlas/declared/system.atlas",
+            "line": 49,
+            "column": 1
+          }
+        },
+        {
+          "id": "declared-edge:33e71fb17e66799e",
+          "from": "AtlasSystemizer",
+          "relation": "contains",
+          "to": "Runtime",
+          "origin": "declared",
+          "span": {
+            "path": ".atlas/declared/system.atlas",
+            "line": 50,
+            "column": 1
+          }
+        },
+        {
+          "id": "declared-edge:e6982b869b70a0f2",
+          "from": "AtlasSystemizer",
+          "relation": "contains",
+          "to": "WebUI",
+          "origin": "declared",
+          "span": {
+            "path": ".atlas/declared/system.atlas",
+            "line": 51,
+            "column": 1
+          }
+        },
+        {
+          "id": "declared-edge:90a0948aea19b75a",
+          "from": "Core",
+          "relation": "provides",
+          "to": "ParseAtlas",
+          "origin": "declared",
+          "span": {
+            "path": ".atlas/declared/system.atlas",
+            "line": 53,
+            "column": 1
+          }
+        },
+        {
+          "id": "declared-edge:a7bd8a075ba35783",
+          "from": "Core",
+          "relation": "provides",
+          "to": "CompileGraph",
+          "origin": "declared",
+          "span": {
+            "path": ".atlas/declared/system.atlas",
+            "line": 54,
+            "column": 1
+          }
+        },
+        {
+          "id": "declared-edge:e1539677f8477e56",
+          "from": "Adapter",
+          "relation": "provides",
+          "to": "ObserveRepository",
+          "origin": "declared",
+          "span": {
+            "path": ".atlas/declared/system.atlas",
+            "line": 55,
+            "column": 1
+          }
+        },
+        {
+          "id": "declared-edge:f66957c836ca1917",
+          "from": "Runtime",
+          "relation": "depends_on",
+          "to": "Core",
+          "origin": "declared",
+          "span": {
+            "path": ".atlas/declared/system.atlas",
+            "line": 56,
+            "column": 1
+          }
+        },
+        {
+          "id": "declared-edge:3d3056f94598b92f",
+          "from": "Runtime",
+          "relation": "depends_on",
+          "to": "Adapter",
+          "origin": "declared",
+          "span": {
+            "path": ".atlas/declared/system.atlas",
+            "line": 57,
+            "column": 1
+          }
+        },
+        {
+          "id": "declared-edge:ff66f4f00fe2bf00",
+          "from": "WebUI",
+          "relation": "depends_on",
+          "to": "Runtime",
+          "origin": "declared",
+          "span": {
+            "path": ".atlas/declared/system.atlas",
+            "line": 58,
+            "column": 1
+          }
+        }
+      ],
+      "bindings": [
+        {
+          "name": "RuntimeCompiler",
+          "consumer": "Runtime",
+          "provider": "Core",
+          "capability": "CompileGraph",
+          "span": {
+            "path": ".atlas/declared/system.atlas",
+            "line": 60,
+            "column": 1
+          }
+        },
+        {
+          "name": "RuntimeObservation",
+          "consumer": "Runtime",
+          "provider": "Adapter",
+          "capability": "ObserveRepository",
+          "span": {
+            "path": ".atlas/declared/system.atlas",
+            "line": 66,
+            "column": 1
+          }
+        }
+      ],
+      "constraints": [
+        {
+          "name": "BackendIsRust",
+          "checks": [
+            {
+              "kind": "AttributeEquals",
+              "entity_kind": "Runtime",
+              "where_attr": "kind",
+              "where_value": "backend",
+              "require_attr": "language",
+              "require_value": "rust"
+            }
+          ],
+          "span": {
+            "path": ".atlas/declared/system.atlas",
+            "line": 94,
+            "column": 1
+          }
+        },
+        {
+          "name": "CoreIsMaterialized",
+          "checks": [
+            {
+              "kind": "MaterializationExists",
+              "target": "Core"
+            }
+          ],
+          "span": {
+            "path": ".atlas/declared/system.atlas",
+            "line": 101,
+            "column": 1
+          }
+        },
+        {
+          "name": "AdapterIsMaterialized",
+          "checks": [
+            {
+              "kind": "MaterializationExists",
+              "target": "Adapter"
+            }
+          ],
+          "span": {
+            "path": ".atlas/declared/system.atlas",
+            "line": 105,
+            "column": 1
+          }
+        },
+        {
+          "name": "RuntimeIsMaterialized",
+          "checks": [
+            {
+              "kind": "MaterializationExists",
+              "target": "Runtime"
+            }
+          ],
+          "span": {
+            "path": ".atlas/declared/system.atlas",
+            "line": 109,
+            "column": 1
+          }
+        }
+      ],
+      "invariants": [],
+      "transforms": [],
+      "materializations": [
+        {
+          "target": "Core",
+          "path": "core",
+          "source_language": "rust",
+          "source_glob": "src/**/*.rs",
+          "test_glob": null,
+          "span": {
+            "path": ".atlas/declared/system.atlas",
+            "line": 72,
+            "column": 1
+          }
+        },
+        {
+          "target": "Adapter",
+          "path": "adapter",
+          "source_language": "rust",
+          "source_glob": "src/**/*.rs",
+          "test_glob": null,
+          "span": {
+            "path": ".atlas/declared/system.atlas",
+            "line": 78,
+            "column": 1
+          }
+        },
+        {
+          "target": "Runtime",
+          "path": "runtime",
+          "source_language": "rust",
+          "source_glob": "src/**/*.rs",
+          "test_glob": null,
+          "span": {
+            "path": ".atlas/declared/system.atlas",
+            "line": 84,
+            "column": 1
+          }
+        },
+        {
+          "target": "WebUI",
+          "path": "apps/ui",
+          "source_language": null,
+          "source_glob": null,
+          "test_glob": null,
+          "span": {
+            "path": ".atlas/declared/system.atlas",
+            "line": 90,
+            "column": 1
+          }
+        }
+      ]
+    },
+    "diagnostics": []
+  }
+}

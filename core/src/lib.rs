@@ -32,6 +32,8 @@ impl Default for Contract {
                 "docs audit".into(),
                 "code analyze".into(),
                 "work prepare".into(),
+                "check".into(),
+                "parse".into(),
             ],
         }
     }
@@ -170,6 +172,195 @@ pub struct SourceReport {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct AdlSource {
+    pub path: String,
+    pub text: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct SourceSpan {
+    pub path: String,
+    pub line: usize,
+    pub column: usize,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct AdlDiagnostic {
+    pub code: String,
+    pub severity: String,
+    pub message: String,
+    pub span: SourceSpan,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct AdlToken {
+    pub kind: String,
+    pub lexeme: String,
+    pub span: SourceSpan,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct AdlProgram {
+    pub schema: String,
+    pub version: u32,
+    pub system: Option<String>,
+    pub declarations: Vec<AdlDeclaration>,
+    pub diagnostics: Vec<AdlDiagnostic>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(tag = "kind", content = "data")]
+pub enum AdlDeclaration {
+    Entity(EntityDecl),
+    Relation(RelationDecl),
+    Capability(CapabilityDecl),
+    Binding(BindingDecl),
+    Constraint(ConstraintDecl),
+    Invariant(ConstraintDecl),
+    Transform(TransformDecl),
+    Materialization(MaterializationDecl),
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct EntityDecl {
+    pub entity_kind: String,
+    pub name: String,
+    pub attributes: BTreeMap<String, String>,
+    pub span: SourceSpan,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct RelationDecl {
+    pub from: String,
+    pub relation: String,
+    pub to: String,
+    pub span: SourceSpan,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct CapabilityDecl {
+    pub name: String,
+    pub input: Option<String>,
+    pub output: Option<String>,
+    pub attributes: BTreeMap<String, String>,
+    pub span: SourceSpan,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct BindingDecl {
+    pub name: String,
+    pub consumer: String,
+    pub provider: String,
+    pub capability: String,
+    pub span: SourceSpan,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct ConstraintDecl {
+    pub name: String,
+    pub checks: Vec<ConstraintCheck>,
+    pub span: SourceSpan,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(tag = "kind")]
+pub enum ConstraintCheck {
+    AttributeEquals {
+        entity_kind: String,
+        where_attr: Option<String>,
+        where_value: Option<String>,
+        require_attr: String,
+        require_value: String,
+    },
+    MaterializationExists {
+        target: String,
+    },
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct TransformDecl {
+    pub name: String,
+    pub span: SourceSpan,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct MaterializationDecl {
+    pub target: String,
+    pub path: String,
+    pub source_language: Option<String>,
+    pub source_glob: Option<String>,
+    pub test_glob: Option<String>,
+    pub span: SourceSpan,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct AtlasIr {
+    pub schema: String,
+    pub version: u32,
+    pub system: Option<String>,
+    pub declared: DeclaredGraph,
+    pub diagnostics: Vec<AdlDiagnostic>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct DeclaredGraph {
+    pub nodes: Vec<DeclaredNode>,
+    pub edges: Vec<DeclaredEdge>,
+    pub bindings: Vec<BindingDecl>,
+    pub constraints: Vec<ConstraintDecl>,
+    pub invariants: Vec<ConstraintDecl>,
+    pub transforms: Vec<TransformDecl>,
+    pub materializations: Vec<MaterializationDecl>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct DeclaredNode {
+    pub id: String,
+    pub name: String,
+    pub node_kind: String,
+    pub attributes: BTreeMap<String, String>,
+    pub origin: String,
+    pub span: SourceSpan,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct DeclaredEdge {
+    pub id: String,
+    pub from: String,
+    pub relation: String,
+    pub to: String,
+    pub origin: String,
+    pub span: SourceSpan,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct ConstraintResult {
+    pub name: String,
+    pub passed: bool,
+    pub diagnostics: Vec<AdlDiagnostic>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct DeclaredObservedDelta {
+    pub code: String,
+    pub message: String,
+    pub subject: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct AdlCompileReport {
+    pub schema: String,
+    pub sources_total: usize,
+    pub declared_nodes_total: usize,
+    pub declared_edges_total: usize,
+    pub materializations_total: usize,
+    pub diagnostics: Vec<AdlDiagnostic>,
+    pub constraint_results: Vec<ConstraintResult>,
+    pub deltas: Vec<DeclaredObservedDelta>,
+    pub ir: AtlasIr,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct DocsReport {
     pub schema: String,
     pub standard: String,
@@ -260,6 +451,7 @@ pub struct SystemizeReport {
     pub snapshot: RepositorySnapshot,
     pub repository: RepoAudit,
     pub docs: DocsReport,
+    pub adl: AdlCompileReport,
     pub coding_admission: CodingAdmission,
     pub source: SourceReport,
     pub graph: GraphSummary,
@@ -283,6 +475,689 @@ pub fn provenance(path: impl Into<String>, extractor: impl Into<String>) -> Prov
         content_hash: None,
         span: None,
     }
+}
+
+fn adl_diag(
+    code: &str,
+    message: impl Into<String>,
+    path: &str,
+    line: usize,
+    column: usize,
+) -> AdlDiagnostic {
+    AdlDiagnostic {
+        code: code.into(),
+        severity: "error".into(),
+        message: message.into(),
+        span: SourceSpan {
+            path: path.into(),
+            line,
+            column,
+        },
+    }
+}
+
+pub fn lex_adl(path: &str, text: &str) -> Vec<AdlToken> {
+    let mut tokens = Vec::new();
+    for (line_idx, raw_line) in text.lines().enumerate() {
+        let line_no = line_idx + 1;
+        let mut col = 1;
+        let mut chars = raw_line.chars().peekable();
+        while let Some(ch) = chars.peek().copied() {
+            if ch == '#' {
+                break;
+            }
+            if ch.is_whitespace() {
+                chars.next();
+                col += 1;
+                continue;
+            }
+            let start_col = col;
+            if ch == '"' {
+                chars.next();
+                col += 1;
+                let mut value = String::new();
+                for next in chars.by_ref() {
+                    col += 1;
+                    if next == '"' {
+                        break;
+                    }
+                    value.push(next);
+                }
+                tokens.push(AdlToken {
+                    kind: "string".into(),
+                    lexeme: value,
+                    span: SourceSpan {
+                        path: path.into(),
+                        line: line_no,
+                        column: start_col,
+                    },
+                });
+                continue;
+            }
+            if matches!(ch, '{' | '}' | '=' | ':' | '.') {
+                chars.next();
+                col += 1;
+                tokens.push(AdlToken {
+                    kind: ch.to_string(),
+                    lexeme: ch.to_string(),
+                    span: SourceSpan {
+                        path: path.into(),
+                        line: line_no,
+                        column: start_col,
+                    },
+                });
+                continue;
+            }
+            if ch == '-' {
+                let mut value = String::new();
+                while let Some(next) = chars.peek().copied() {
+                    if next.is_whitespace() {
+                        break;
+                    }
+                    value.push(next);
+                    chars.next();
+                    col += 1;
+                }
+                tokens.push(AdlToken {
+                    kind: "arrow".into(),
+                    lexeme: value,
+                    span: SourceSpan {
+                        path: path.into(),
+                        line: line_no,
+                        column: start_col,
+                    },
+                });
+                continue;
+            }
+            let mut value = String::new();
+            while let Some(next) = chars.peek().copied() {
+                if next.is_whitespace() || matches!(next, '{' | '}' | '=' | ':' | '.') {
+                    break;
+                }
+                value.push(next);
+                chars.next();
+                col += 1;
+            }
+            tokens.push(AdlToken {
+                kind: "ident".into(),
+                lexeme: value,
+                span: SourceSpan {
+                    path: path.into(),
+                    line: line_no,
+                    column: start_col,
+                },
+            });
+        }
+    }
+    tokens
+}
+
+fn strip_comment(line: &str) -> &str {
+    line.split('#').next().unwrap_or_default().trim()
+}
+
+fn unquote(value: &str) -> String {
+    value.trim().trim_matches('"').to_owned()
+}
+
+fn parse_assignments(lines: &[(usize, String)]) -> BTreeMap<String, String> {
+    let mut attrs = BTreeMap::new();
+    for (_, line) in lines {
+        let clean = strip_comment(line);
+        if clean.is_empty() || clean.ends_with('{') || clean == "}" {
+            continue;
+        }
+        if let Some((key, value)) = clean.split_once('=') {
+            attrs.insert(key.trim().into(), unquote(value));
+        }
+    }
+    attrs
+}
+
+fn collect_block(lines: &[(usize, String)], start: usize) -> (Vec<(usize, String)>, usize) {
+    let mut body = Vec::new();
+    let mut depth = 0_i32;
+    let mut index = start;
+    while index < lines.len() {
+        let clean = strip_comment(&lines[index].1);
+        depth += clean.matches('{').count() as i32;
+        depth -= clean.matches('}').count() as i32;
+        if index > start {
+            body.push(lines[index].clone());
+        }
+        index += 1;
+        if depth <= 0 {
+            break;
+        }
+    }
+    (body, index)
+}
+
+fn parse_relation(line: &str, path: &str, line_no: usize) -> Result<RelationDecl, AdlDiagnostic> {
+    let Some((from, rest)) = line.split_once("->") else {
+        return Err(adl_diag(
+            "ATLAS-E030",
+            "invalid relation syntax",
+            path,
+            line_no,
+            1,
+        ));
+    };
+    let Some((relation, to)) = rest.split_once("->") else {
+        return Err(adl_diag(
+            "ATLAS-E030",
+            "invalid relation syntax",
+            path,
+            line_no,
+            1,
+        ));
+    };
+    Ok(RelationDecl {
+        from: from.trim().into(),
+        relation: relation.trim().into(),
+        to: to.trim().into(),
+        span: SourceSpan {
+            path: path.into(),
+            line: line_no,
+            column: 1,
+        },
+    })
+}
+
+fn parse_constraint_check(lines: &[(usize, String)]) -> Vec<ConstraintCheck> {
+    let joined = lines
+        .iter()
+        .map(|(_, line)| strip_comment(line).trim_matches('}').trim())
+        .filter(|line| !line.is_empty())
+        .collect::<Vec<_>>()
+        .join(" ");
+    if let Some(target) = joined
+        .split("require materialized")
+        .nth(1)
+        .and_then(|tail| tail.split_whitespace().next())
+    {
+        return vec![ConstraintCheck::MaterializationExists {
+            target: target.trim().into(),
+        }];
+    }
+    let words = joined.split_whitespace().collect::<Vec<_>>();
+    let entity_kind = words
+        .windows(3)
+        .find(|window| window[0] == "forall" && window[1].ends_with(':'))
+        .map(|window| window[2].to_owned());
+    let where_pair = joined.split("where").nth(1).and_then(|tail| {
+        let before_require = tail.split("require").next()?.trim();
+        let (left, right) = before_require.split_once("==")?;
+        let attr = left.split('.').nth(1)?.trim().to_owned();
+        Some((attr, unquote(right)))
+    });
+    let require_pair = joined.split("require").nth(1).and_then(|tail| {
+        let (left, right) = tail.split_once("==")?;
+        let attr = left.split('.').nth(1)?.trim().to_owned();
+        Some((attr, unquote(right)))
+    });
+    match (entity_kind, require_pair) {
+        (Some(entity_kind), Some((require_attr, require_value))) => {
+            vec![ConstraintCheck::AttributeEquals {
+                entity_kind,
+                where_attr: where_pair.as_ref().map(|pair| pair.0.clone()),
+                where_value: where_pair.map(|pair| pair.1),
+                require_attr,
+                require_value,
+            }]
+        }
+        _ => Vec::new(),
+    }
+}
+
+pub fn parse_adl_source(source: &AdlSource) -> AdlProgram {
+    let _tokens = lex_adl(&source.path, &source.text);
+    let mut diagnostics = Vec::new();
+    let mut version = 0;
+    let mut system = None;
+    let mut declarations = Vec::new();
+    let lines = source
+        .text
+        .lines()
+        .enumerate()
+        .map(|(idx, line)| (idx + 1, line.to_owned()))
+        .collect::<Vec<_>>();
+    let mut index = 0;
+    while index < lines.len() {
+        let (line_no, raw) = &lines[index];
+        let clean = strip_comment(raw);
+        if clean.is_empty() {
+            index += 1;
+            continue;
+        }
+        let parts = clean.split_whitespace().collect::<Vec<_>>();
+        match parts.as_slice() {
+            ["atlas", value] => {
+                version = value.parse::<u32>().unwrap_or(0);
+                if version != 1 {
+                    diagnostics.push(adl_diag(
+                        "ATLAS-E001",
+                        "only ADL version 1 is supported",
+                        &source.path,
+                        *line_no,
+                        1,
+                    ));
+                }
+                index += 1;
+            }
+            ["system", name] => {
+                system = Some((*name).into());
+                index += 1;
+            }
+            ["entity", entity_kind, name, ..] => {
+                let (body, next) = collect_block(&lines, index);
+                declarations.push(AdlDeclaration::Entity(EntityDecl {
+                    entity_kind: (*entity_kind).into(),
+                    name: (*name).into(),
+                    attributes: parse_assignments(&body),
+                    span: SourceSpan {
+                        path: source.path.clone(),
+                        line: *line_no,
+                        column: 1,
+                    },
+                }));
+                index = next;
+            }
+            ["capability", name, ..] => {
+                let (body, next) = collect_block(&lines, index);
+                let attrs = parse_assignments(&body);
+                declarations.push(AdlDeclaration::Capability(CapabilityDecl {
+                    name: (*name).into(),
+                    input: attrs.get("input").cloned(),
+                    output: attrs.get("output").cloned(),
+                    attributes: attrs,
+                    span: SourceSpan {
+                        path: source.path.clone(),
+                        line: *line_no,
+                        column: 1,
+                    },
+                }));
+                index = next;
+            }
+            ["binding", name, ..] => {
+                let (body, next) = collect_block(&lines, index);
+                let attrs = parse_assignments(&body);
+                declarations.push(AdlDeclaration::Binding(BindingDecl {
+                    name: (*name).into(),
+                    consumer: attrs.get("consumer").cloned().unwrap_or_default(),
+                    provider: attrs.get("provider").cloned().unwrap_or_default(),
+                    capability: attrs.get("capability").cloned().unwrap_or_default(),
+                    span: SourceSpan {
+                        path: source.path.clone(),
+                        line: *line_no,
+                        column: 1,
+                    },
+                }));
+                index = next;
+            }
+            ["constraint", name, ..] | ["invariant", name, ..] => {
+                let is_invariant = parts[0] == "invariant";
+                let (body, next) = collect_block(&lines, index);
+                let decl = ConstraintDecl {
+                    name: (*name).into(),
+                    checks: parse_constraint_check(&body),
+                    span: SourceSpan {
+                        path: source.path.clone(),
+                        line: *line_no,
+                        column: 1,
+                    },
+                };
+                if is_invariant {
+                    declarations.push(AdlDeclaration::Invariant(decl));
+                } else {
+                    declarations.push(AdlDeclaration::Constraint(decl));
+                }
+                index = next;
+            }
+            ["transform", name, ..] => {
+                let (_, next) = collect_block(&lines, index);
+                declarations.push(AdlDeclaration::Transform(TransformDecl {
+                    name: name.split('<').next().unwrap_or(name).into(),
+                    span: SourceSpan {
+                        path: source.path.clone(),
+                        line: *line_no,
+                        column: 1,
+                    },
+                }));
+                index = next;
+            }
+            ["materialize", target, ..] => {
+                let (body, next) = collect_block(&lines, index);
+                let attrs = parse_assignments(&body);
+                declarations.push(AdlDeclaration::Materialization(MaterializationDecl {
+                    target: (*target).into(),
+                    path: attrs.get("path").cloned().unwrap_or_default(),
+                    source_language: attrs.get("language").cloned(),
+                    source_glob: attrs.get("glob").cloned(),
+                    test_glob: attrs.get("tests.glob").cloned(),
+                    span: SourceSpan {
+                        path: source.path.clone(),
+                        line: *line_no,
+                        column: 1,
+                    },
+                }));
+                index = next;
+            }
+            _ if clean.contains("->") => match parse_relation(clean, &source.path, *line_no) {
+                Ok(relation) => {
+                    declarations.push(AdlDeclaration::Relation(relation));
+                    index += 1;
+                }
+                Err(error) => {
+                    diagnostics.push(error);
+                    index += 1;
+                }
+            },
+            _ => {
+                diagnostics.push(adl_diag(
+                    "ATLAS-E010",
+                    format!("unrecognized ADL declaration `{clean}`"),
+                    &source.path,
+                    *line_no,
+                    1,
+                ));
+                index += 1;
+            }
+        }
+    }
+    if version == 0 {
+        diagnostics.push(adl_diag(
+            "ATLAS-E000",
+            "missing `atlas 1` language version",
+            &source.path,
+            1,
+            1,
+        ));
+    }
+    AdlProgram {
+        schema: "atlas.adl.program.v1".into(),
+        version,
+        system,
+        declarations,
+        diagnostics,
+    }
+}
+
+pub fn compile_adl(sources: &[AdlSource], observed: &SourceReport) -> AdlCompileReport {
+    let mut diagnostics = Vec::new();
+    let mut nodes = Vec::new();
+    let mut edges = Vec::new();
+    let mut bindings = Vec::new();
+    let mut constraints = Vec::new();
+    let mut invariants = Vec::new();
+    let mut transforms = Vec::new();
+    let mut materializations = Vec::new();
+    let mut names: BTreeMap<String, SourceSpan> = BTreeMap::new();
+    let mut system = None;
+    let mut version = 1;
+
+    for source in sources {
+        let program = parse_adl_source(source);
+        version = program.version;
+        if system.is_none() {
+            system = program.system.clone();
+        }
+        diagnostics.extend(program.diagnostics);
+        for decl in program.declarations {
+            match decl {
+                AdlDeclaration::Entity(entity) => {
+                    if let Some(first) = names.get(&entity.name) {
+                        diagnostics.push(AdlDiagnostic {
+                            code: "ATLAS-E020".into(),
+                            severity: "error".into(),
+                            message: format!(
+                                "duplicate entity `{}` first declared at {}:{}",
+                                entity.name, first.path, first.line
+                            ),
+                            span: entity.span.clone(),
+                        });
+                    }
+                    names.insert(entity.name.clone(), entity.span.clone());
+                    nodes.push(DeclaredNode {
+                        id: stable_id("declared-node", &entity.name),
+                        name: entity.name,
+                        node_kind: entity.entity_kind,
+                        attributes: entity.attributes,
+                        origin: "declared".into(),
+                        span: entity.span,
+                    });
+                }
+                AdlDeclaration::Capability(capability) => {
+                    names.insert(capability.name.clone(), capability.span.clone());
+                    let mut attributes = capability.attributes;
+                    if let Some(input) = capability.input {
+                        attributes.insert("input".into(), input);
+                    }
+                    if let Some(output) = capability.output {
+                        attributes.insert("output".into(), output);
+                    }
+                    nodes.push(DeclaredNode {
+                        id: stable_id("declared-node", &capability.name),
+                        name: capability.name,
+                        node_kind: "Capability".into(),
+                        attributes,
+                        origin: "declared".into(),
+                        span: capability.span,
+                    });
+                }
+                AdlDeclaration::Relation(relation) => edges.push(DeclaredEdge {
+                    id: stable_id(
+                        "declared-edge",
+                        &format!("{}:{}:{}", relation.from, relation.relation, relation.to),
+                    ),
+                    from: relation.from,
+                    relation: relation.relation,
+                    to: relation.to,
+                    origin: "declared".into(),
+                    span: relation.span,
+                }),
+                AdlDeclaration::Binding(binding) => bindings.push(binding),
+                AdlDeclaration::Constraint(constraint) => constraints.push(constraint),
+                AdlDeclaration::Invariant(invariant) => invariants.push(invariant),
+                AdlDeclaration::Transform(transform) => transforms.push(transform),
+                AdlDeclaration::Materialization(materialization) => {
+                    materializations.push(materialization)
+                }
+            }
+        }
+    }
+
+    for edge in &edges {
+        if !names.contains_key(&edge.from) {
+            diagnostics.push(adl_diag(
+                "ATLAS-E021",
+                format!("unknown relation source `{}`", edge.from),
+                &edge.span.path,
+                edge.span.line,
+                edge.span.column,
+            ));
+        }
+        if !names.contains_key(&edge.to) {
+            diagnostics.push(adl_diag(
+                "ATLAS-E022",
+                format!("unknown relation target `{}`", edge.to),
+                &edge.span.path,
+                edge.span.line,
+                edge.span.column,
+            ));
+        }
+    }
+    for binding in &bindings {
+        for (role, name) in [
+            ("consumer", &binding.consumer),
+            ("provider", &binding.provider),
+            ("capability", &binding.capability),
+        ] {
+            if !names.contains_key(name) {
+                diagnostics.push(adl_diag(
+                    "ATLAS-E023",
+                    format!("unknown binding {role} `{name}`"),
+                    &binding.span.path,
+                    binding.span.line,
+                    binding.span.column,
+                ));
+            }
+        }
+    }
+
+    let declared = DeclaredGraph {
+        nodes,
+        edges,
+        bindings,
+        constraints,
+        invariants,
+        transforms,
+        materializations,
+    };
+    let mut constraint_results = evaluate_constraints(&declared);
+    let deltas = compare_declared_observed(&declared, observed);
+    for delta in &deltas {
+        if delta.code == "MISSING_MATERIALIZATION" {
+            constraint_results.push(ConstraintResult {
+                name: format!("ObservedMaterialization:{}", delta.subject),
+                passed: false,
+                diagnostics: vec![adl_diag(
+                    "ATLAS-E040",
+                    &delta.message,
+                    ".atlas/declared",
+                    1,
+                    1,
+                )],
+            });
+        }
+    }
+    let ir = AtlasIr {
+        schema: "atlas.ir.v1".into(),
+        version,
+        system,
+        declared,
+        diagnostics,
+    };
+    AdlCompileReport {
+        schema: "atlas.adl.compile-report.v1".into(),
+        sources_total: sources.len(),
+        declared_nodes_total: ir.declared.nodes.len(),
+        declared_edges_total: ir.declared.edges.len(),
+        materializations_total: ir.declared.materializations.len(),
+        diagnostics: ir.diagnostics.clone(),
+        constraint_results,
+        deltas,
+        ir,
+    }
+}
+
+fn evaluate_constraints(declared: &DeclaredGraph) -> Vec<ConstraintResult> {
+    declared
+        .constraints
+        .iter()
+        .map(|constraint| {
+            let mut diagnostics = Vec::new();
+            for check in &constraint.checks {
+                match check {
+                    ConstraintCheck::AttributeEquals {
+                        entity_kind,
+                        where_attr,
+                        where_value,
+                        require_attr,
+                        require_value,
+                    } => {
+                        for node in declared
+                            .nodes
+                            .iter()
+                            .filter(|node| &node.node_kind == entity_kind)
+                        {
+                            if let (Some(attr), Some(value)) = (where_attr, where_value)
+                                && node.attributes.get(attr) != Some(value)
+                            {
+                                continue;
+                            }
+                            if node.attributes.get(require_attr) != Some(require_value) {
+                                diagnostics.push(adl_diag(
+                                    "ATLAS-E050",
+                                    format!(
+                                        "constraint `{}` expected {}.{} == {}",
+                                        constraint.name, node.name, require_attr, require_value
+                                    ),
+                                    &node.span.path,
+                                    node.span.line,
+                                    node.span.column,
+                                ));
+                            }
+                        }
+                    }
+                    ConstraintCheck::MaterializationExists { target } => {
+                        if !declared
+                            .materializations
+                            .iter()
+                            .any(|materialization| &materialization.target == target)
+                        {
+                            diagnostics.push(adl_diag(
+                                "ATLAS-E051",
+                                format!("`{target}` has no materialization"),
+                                &constraint.span.path,
+                                constraint.span.line,
+                                constraint.span.column,
+                            ));
+                        }
+                    }
+                }
+            }
+            ConstraintResult {
+                name: constraint.name.clone(),
+                passed: diagnostics.is_empty(),
+                diagnostics,
+            }
+        })
+        .collect()
+}
+
+fn compare_declared_observed(
+    declared: &DeclaredGraph,
+    observed: &SourceReport,
+) -> Vec<DeclaredObservedDelta> {
+    let mut deltas = Vec::new();
+    for materialization in &declared.materializations {
+        let prefix = materialization.path.trim_end_matches('/');
+        let exists = observed.files.iter().any(|file| {
+            file.path == prefix
+                || file
+                    .path
+                    .strip_prefix(prefix)
+                    .is_some_and(|tail| tail.starts_with('/'))
+        });
+        if !exists {
+            deltas.push(DeclaredObservedDelta {
+                code: "MISSING_MATERIALIZATION".into(),
+                message: format!(
+                    "declared materialization `{}` points at missing observed path `{}`",
+                    materialization.target, materialization.path
+                ),
+                subject: materialization.target.clone(),
+            });
+        }
+        if let Some(language) = &materialization.source_language {
+            let has_language = observed
+                .files
+                .iter()
+                .any(|file| file.path.starts_with(prefix) && &file.language == language);
+            if !has_language {
+                deltas.push(DeclaredObservedDelta {
+                    code: "MATERIALIZATION_LANGUAGE_NOT_OBSERVED".into(),
+                    message: format!(
+                        "declared materialization `{}` expected language `{}` under `{}`",
+                        materialization.target, language, materialization.path
+                    ),
+                    subject: materialization.target.clone(),
+                });
+            }
+        }
+    }
+    deltas
 }
 
 pub fn validate_manifest(manifest: &RepoManifest) -> Vec<String> {
@@ -553,5 +1428,113 @@ mod tests {
         assert!(graph.edges.iter().any(|edge| edge.kind == "CONTAINS"));
         assert!(graph.edges.iter().any(|edge| edge.kind == "USES"));
         assert_eq!(graph.facts.len(), 1);
+    }
+
+    #[test]
+    fn adl_parser_accepts_vertical_slice() {
+        let source = AdlSource {
+            path: ".atlas/declared/system.atlas".into(),
+            text: r#"atlas 1
+system Example
+
+entity Runtime Compiler {
+    kind = backend
+    language = rust
+}
+
+capability CompileGraph {
+    input = AST
+    output = SystemGraph
+}
+
+Compiler ->provides-> CompileGraph
+
+binding CompilerBinding {
+    consumer = Compiler
+    provider = Compiler
+    capability = CompileGraph
+}
+
+materialize Compiler {
+    path = "core"
+    language = rust
+}
+
+constraint BackendIsRust {
+    forall x: Runtime
+        where x.kind == backend
+
+    require x.language == rust
+}
+"#
+            .into(),
+        };
+        let program = parse_adl_source(&source);
+        assert!(program.diagnostics.is_empty());
+        assert_eq!(program.version, 1);
+        assert_eq!(program.system.as_deref(), Some("Example"));
+        assert_eq!(program.declarations.len(), 6);
+    }
+
+    #[test]
+    fn adl_semantics_reports_unknown_relation_target() {
+        let source = AdlSource {
+            path: ".atlas/declared/broken.atlas".into(),
+            text: "atlas 1\nsystem Broken\nentity Runtime Compiler {}\nCompiler ->depends_on-> Missing\n"
+                .into(),
+        };
+        let observed = SourceReport {
+            schema: "test".into(),
+            root: "/repo".into(),
+            files_total: 0,
+            languages: BTreeMap::new(),
+            files: Vec::new(),
+        };
+        let report = compile_adl(&[source], &observed);
+        assert!(
+            report
+                .diagnostics
+                .iter()
+                .any(|diagnostic| diagnostic.code == "ATLAS-E022")
+        );
+    }
+
+    #[test]
+    fn adl_constraint_and_materialization_use_observed_graph() {
+        let source = AdlSource {
+            path: ".atlas/declared/system.atlas".into(),
+            text: r#"atlas 1
+system Example
+entity Runtime Compiler {
+    kind = backend
+    language = rust
+}
+materialize Compiler {
+    path = "core"
+    language = rust
+}
+constraint BackendIsRust {
+    forall x: Runtime
+        where x.kind == backend
+    require x.language == rust
+}
+"#
+            .into(),
+        };
+        let observed = SourceReport {
+            schema: "test".into(),
+            root: "/repo".into(),
+            files_total: 1,
+            languages: BTreeMap::from([("rust".into(), 1)]),
+            files: vec![FileFact {
+                path: "core/src/lib.rs".into(),
+                language: "rust".into(),
+                bytes: 10,
+            }],
+        };
+        let report = compile_adl(&[source], &observed);
+        assert!(report.diagnostics.is_empty());
+        assert!(report.deltas.is_empty());
+        assert!(report.constraint_results.iter().all(|result| result.passed));
     }
 }

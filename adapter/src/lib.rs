@@ -1,8 +1,8 @@
 //! Atlas adapters for external repository mechanics.
 
 use atlas_core::{
-    DocsReport, DocumentFact, FileFact, RepoAudit, RepoManifest, RepositorySnapshot, SourceReport,
-    validate_manifest,
+    AdlSource, DocsReport, DocumentFact, FileFact, RepoAudit, RepoManifest, RepositorySnapshot,
+    SourceReport, validate_manifest,
 };
 use std::{
     collections::BTreeMap,
@@ -145,6 +145,42 @@ pub fn scan_declared_source(
         }
     }
     finish_source_report(root, files)
+}
+
+pub fn read_adl_sources(root: impl AsRef<Path>) -> io::Result<Vec<AdlSource>> {
+    let root = root.as_ref().canonicalize()?;
+    let declared = root.join(".atlas").join("declared");
+    let mut sources = Vec::new();
+    if declared.is_dir() {
+        visit_adl_sources(&root, &declared, &mut sources)?;
+    }
+    sources.sort_by(|a, b| a.path.cmp(&b.path));
+    Ok(sources)
+}
+
+fn visit_adl_sources(root: &Path, dir: &Path, out: &mut Vec<AdlSource>) -> io::Result<()> {
+    let mut entries: Vec<_> = fs::read_dir(dir)?.collect::<Result<_, _>>()?;
+    entries.sort_by_key(|entry| entry.file_name());
+    for entry in entries {
+        let path = entry.path();
+        if entry.file_type()?.is_dir() {
+            visit_adl_sources(root, &path, out)?;
+            continue;
+        }
+        if path.extension().and_then(|value| value.to_str()) != Some("atlas") {
+            continue;
+        }
+        let relative = path
+            .strip_prefix(root)
+            .unwrap_or(&path)
+            .to_string_lossy()
+            .replace('\\', "/");
+        out.push(AdlSource {
+            path: relative,
+            text: fs::read_to_string(path)?,
+        });
+    }
+    Ok(())
 }
 
 fn finish_source_report(root: PathBuf, mut files: Vec<FileFact>) -> io::Result<SourceReport> {

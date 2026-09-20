@@ -1,0 +1,111 @@
+atlas 1
+
+system AtlasSystemizer
+
+entity Repository AtlasSystemizer {
+    authority = canonical
+}
+
+entity Runtime Core {
+    kind = backend
+    language = rust
+    responsibility = graph_semantics
+}
+
+entity Runtime Adapter {
+    kind = backend
+    language = rust
+    responsibility = repository_observation
+}
+
+entity Runtime Runtime {
+    kind = backend
+    language = rust
+    responsibility = orchestration
+}
+
+entity Runtime WebUI {
+    kind = frontend
+    language = typescript
+    responsibility = graph_visualization
+}
+
+capability ParseAtlas {
+    input = Source
+    output = AST
+}
+
+capability CompileGraph {
+    input = AST
+    output = SystemGraph
+}
+
+capability ObserveRepository {
+    input = Repository
+    output = ObservedGraph
+}
+
+AtlasSystemizer ->contains-> Core
+AtlasSystemizer ->contains-> Adapter
+AtlasSystemizer ->contains-> Runtime
+AtlasSystemizer ->contains-> WebUI
+
+Core ->provides-> ParseAtlas
+Core ->provides-> CompileGraph
+Adapter ->provides-> ObserveRepository
+Runtime ->depends_on-> Core
+Runtime ->depends_on-> Adapter
+WebUI ->depends_on-> Runtime
+
+binding RuntimeCompiler {
+    consumer = Runtime
+    provider = Core
+    capability = CompileGraph
+}
+
+binding RuntimeObservation {
+    consumer = Runtime
+    provider = Adapter
+    capability = ObserveRepository
+}
+
+materialize Core {
+    path = "core"
+    language = rust
+    glob = "src/**/*.rs"
+}
+
+materialize Adapter {
+    path = "adapter"
+    language = rust
+    glob = "src/**/*.rs"
+}
+
+materialize Runtime {
+    path = "runtime"
+    language = rust
+    glob = "src/**/*.rs"
+}
+
+materialize WebUI {
+    path = "apps/ui"
+}
+
+constraint BackendIsRust {
+    forall x: Runtime
+        where x.kind == backend
+
+    require x.language == rust
+}
+
+constraint CoreIsMaterialized {
+    require materialized Core
+}
+
+constraint AdapterIsMaterialized {
+    require materialized Adapter
+}
+
+constraint RuntimeIsMaterialized {
+    require materialized Runtime
+}

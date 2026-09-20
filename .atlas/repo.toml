@@ -31,6 +31,10 @@ format = "cargo fmt --all"
 [atlas]
 human_readable = true
 durable_roots = [
+  ".atlas/declared",
+  ".atlas/observed",
+  ".atlas/derived",
+  ".atlas/generated",
   ".atlas/architecture",
   ".atlas/blueprints",
   ".atlas/contracts",

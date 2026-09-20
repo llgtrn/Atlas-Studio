@@ -1,8 +1,8 @@
 //! Atlas runtime orchestration.
 
 use atlas_core::{
-    CLI_API, CodingAdmission, Evidence, RevisionRef, SystemizeReport, WorkPrepareReport,
-    WorkRequest, summarize_repository_graph,
+    AdlCompileReport, CLI_API, CodingAdmission, Evidence, RevisionRef, SystemizeReport,
+    WorkPrepareReport, WorkRequest, compile_adl, summarize_repository_graph,
 };
 use std::{io, path::Path};
 
@@ -15,6 +15,8 @@ pub fn systemize(root: impl AsRef<Path>) -> io::Result<SystemizeReport> {
         None => adapter::scan_source(root)?,
     };
     let docs = adapter::audit_docs(root.join(".atlas"))?;
+    let adl_sources = adapter::read_adl_sources(root)?;
+    let adl = compile_adl(&adl_sources, &source);
     let graph = summarize_repository_graph(&source, &docs);
 
     let mut blockers = Vec::new();
@@ -24,14 +26,18 @@ pub fn systemize(root: impl AsRef<Path>) -> io::Result<SystemizeReport> {
     if !docs.gate_ready {
         blockers.push("DOCS_GATE_NOT_READY".to_owned());
     }
+    if !adl.diagnostics.is_empty() {
+        blockers.push("ADL_DIAGNOSTICS_PRESENT".to_owned());
+    }
 
     Ok(SystemizeReport {
-        schema: "atlas.systemizer.systemize-report.v6".into(),
+        schema: "atlas.systemizer.systemize-report.v7".into(),
         cli_api: CLI_API.into(),
         root: root.canonicalize()?.to_string_lossy().into_owned(),
         snapshot,
         repository,
         docs: docs.clone(),
+        adl,
         coding_admission: CodingAdmission {
             schema: "atlas.systemizer.coding-admission.v1".into(),
             allowed: blockers.is_empty(),
@@ -52,6 +58,17 @@ pub fn systemize(root: impl AsRef<Path>) -> io::Result<SystemizeReport> {
     })
 }
 
+pub fn check(root: impl AsRef<Path>) -> io::Result<AdlCompileReport> {
+    let root = root.as_ref();
+    let repository = adapter::audit_repository(root)?;
+    let source = match repository.manifest.as_ref() {
+        Some(manifest) => adapter::scan_declared_source(root, manifest)?,
+        None => adapter::scan_source(root)?,
+    };
+    let adl_sources = adapter::read_adl_sources(root)?;
+    Ok(compile_adl(&adl_sources, &source))
+}
+
 pub fn prepare_work(
     root: impl AsRef<Path>,
     goal: impl Into<String>,
@@ -65,13 +82,13 @@ pub fn prepare_work(
     };
     let mut blockers = system.coding_admission.blockers.clone();
 
-    if let Some(expected) = expected_base_sha {
-        if expected != system.snapshot.head_sha {
-            blockers.push(format!(
-                "BASE_SHA_DRIFT expected {expected} but checkout is {}",
-                system.snapshot.head_sha
-            ));
-        }
+    if let Some(expected) = expected_base_sha
+        && expected != system.snapshot.head_sha
+    {
+        blockers.push(format!(
+            "BASE_SHA_DRIFT expected {expected} but checkout is {}",
+            system.snapshot.head_sha
+        ));
     }
     if system.snapshot.dirty {
         blockers.push("WORKTREE_HAS_UNCOMMITTED_CHANGES".into());

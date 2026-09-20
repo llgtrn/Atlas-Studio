@@ -48,6 +48,43 @@ fn run(args: &[String]) -> Result<(), String> {
                 }))?
             );
         }
+        [cmd, rest @ ..] if cmd == "parse" => {
+            let root = value(rest, "--root").ok_or("parse requires --root")?;
+            let sources = adapter::read_adl_sources(&root).map_err(|e| e.to_string())?;
+            let programs = sources
+                .iter()
+                .map(atlas_core::parse_adl_source)
+                .collect::<Vec<_>>();
+            println!(
+                "{}",
+                json(&serde_json::json!({
+                    "schema": "atlas.adl.parse-report.v1",
+                    "sources_total": sources.len(),
+                    "programs": programs
+                }))?
+            );
+        }
+        [cmd, rest @ ..] if cmd == "check" => {
+            let root = value(rest, "--root").ok_or("check requires --root")?;
+            let report = runtime::check(&root).map_err(|e| e.to_string())?;
+            let text = json(&report)? + "\n";
+            if let Some(out) = value(rest, "--out") {
+                let out = PathBuf::from(out);
+                if let Some(parent) = out.parent() {
+                    fs::create_dir_all(parent).map_err(|e| e.to_string())?;
+                }
+                fs::write(&out, &text).map_err(|e| e.to_string())?;
+            }
+            print!("{text}");
+            if !report.diagnostics.is_empty()
+                || report
+                    .constraint_results
+                    .iter()
+                    .any(|result| !result.passed)
+            {
+                return Err("ADL_CHECK_NOT_READY".into());
+            }
+        }
         [cmd, rest @ ..] if cmd == "systemize" => {
             let root = value(rest, "--root").ok_or("systemize requires --root")?;
             let out = value(rest, "--out").ok_or("systemize requires --out")?;
@@ -81,7 +118,7 @@ fn run(args: &[String]) -> Result<(), String> {
         }
         _ => {
             return Err(
-                "usage: atlas-systemizer <contract|systemize|docs audit|code analyze|work prepare> ...".into(),
+                "usage: atlas-systemizer <contract|systemize|docs audit|code analyze|parse|check|work prepare> ...".into(),
             );
         }
     }

@@ -8,11 +8,11 @@ canonical: true
 
 ## System Model
 
-Atlas manages an engineering graph over repositories, docs, source, donors, technology primitives, work plans, verification and proof evidence. A target repository need not contain Atlas-specific metadata; Atlas can compile its understanding from the checkout plus Atlas-owned knowledge.
+Atlas manages an engineering graph over repositories, declared ADL source, docs, observed source, donors, technology primitives, work plans, verification and proof evidence. A target repository need not contain Atlas-specific metadata; Atlas can compile its understanding from the checkout plus Atlas-owned knowledge.
 
 ## Responsibilities
 
-Core owns product-neutral facts, nodes, edges, bindings, evidence, manifests and graph construction. Adapter owns filesystem, repository manifest, documentation and source observation mechanics. Runtime owns repository compilation, CLI orchestration, coding admission and evidence emission. UI code under `apps/ui` may visualize graph state, but Rust remains authoritative for backend semantics.
+Core owns product-neutral facts, nodes, edges, bindings, evidence, manifests, ADL syntax/AST/IR, declared-vs-observed comparison and graph construction. Adapter owns filesystem, repository manifest, ADL source discovery, documentation and source observation mechanics. Runtime owns repository compilation, CLI orchestration, coding admission, ADL checks and evidence emission. UI code under `apps/ui` may visualize graph state, but Rust remains authoritative for backend semantics.
 
 ## Boundaries
 
@@ -24,11 +24,12 @@ The stable external surface is the atlas-systemizer CLI/API. Atlas implementatio
 
 ## Data and Effect Flow
 
-Target repo -> manifest -> docs gate -> source observation -> facts -> canonical engineering graph -> documentation graph -> technology graph -> work plan -> coding -> verification -> evidence -> updated repository state -> refreshed graph.
+Target repo -> manifest -> declared ADL -> repository observation -> facts -> declared graph + observed graph -> documentation graph -> constraint evaluation -> deltas/problems -> work plan -> coding -> verification -> evidence -> updated repository state -> refreshed graph.
 
 ## Source References
 
 - `core/src/lib.rs`
+- `.atlas/declared/system.atlas`
 - `adapter/src/lib.rs`
 - `runtime/src/lib.rs`
 - `runtime/src/main.rs`
