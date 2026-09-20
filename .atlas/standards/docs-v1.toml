@@ -16,8 +16,16 @@ required_control_docs = [
   "architecture/README.md",
   "architecture/constitution/NORTH-STAR.md",
   "architecture/SYSTEM.md",
+  "architecture/INVENTION-PIPELINE.md",
   "blueprints/SYSTEM-BLUEPRINT.md",
+  "blueprints/COMPILER-ROADMAP.md",
   "contracts/SYSTEM-CONTRACT.md",
+  "contracts/ATLAS-GENOME.md",
+  "contracts/UNIVERSAL-GRAPH-CONTRACT.md",
+  "contracts/ATLAS-FORMAT.md",
+  "contracts/ATLASX-FORMAT.md",
+  "standards/CENSUS-SCOPE.md",
+  "genome/README.md",
   "decisions/README.md",
   "guides/DEVELOPMENT.md",
   "references/README.md",
@@ -34,6 +42,7 @@ duplicate_canonical_ids_forbidden = true
 broken_internal_refs_forbidden = true
 superseded_docs_must_link_successor = true
 legacy_docs_duplicate_forbidden = true
+binary_artifact_exports_are_not_docs_truth = true
 
 [coding_admission]
 repo_gate_required = true
@@ -42,6 +51,8 @@ north_star_required = true
 architecture_required = true
 blueprint_required = true
 contracts_required = true
+genome_required = true
+universal_graph_contract_required = true
 development_guide_required = true
 code_before_docs_forbidden = true
 exact_base_sha_required = true
