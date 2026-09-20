@@ -1,0 +1,8 @@
+{
+  "schema": "atlas.legacy-provenance.v1",
+  "removed_from_active_tree_at_base": "9b121e1c1302765f0e5ddc2bd0cbcb33fbb49d27",
+  "role": "historical_pre-refoundation_crate_snapshot",
+  "source_snapshot_retained": false,
+  "legacy_crates": ["atlas-build","atlas-ci","atlas-cli","atlas-core","atlas-design","atlas-docs","atlas-fact","atlas-fleet","atlas-graph","atlas-invent","atlas-mirror","atlas-model","atlas-oss","atlas-proof","atlas-refactor","atlas-repo","atlas-source","atlas-technology","atlas-translate"],
+  "recovery": "Git history preserves the removed source snapshot."
+}

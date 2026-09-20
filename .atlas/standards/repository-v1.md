@@ -6,20 +6,6 @@ canonical: true
 ---
 # Repository Standard v1
 
-Every active repository carries .atlas/repo.toml and declares one primary repository archetype.
+Every Atlas-managed repository uses .atlas/ as its canonical knowledge/control root and declares implementation responsibility roots in .atlas/repo.toml.
 
-Supported implementation archetypes are CANONICAL_PRODUCT, DEVELOPMENT_CELL, ENGINEERING_SUBSYSTEM and DOMAIN_SUBSYSTEM.
-
-Implementation roots may differ because responsibilities differ. Atlas validates those declared semantic roots and never infers sovereignty/implementation permission from the repository name.
-
-Documentation is different: **all Atlas-managed repositories use exactly the same atlas.docs.v1 control structure and admission gate with no archetype-specific exception.**
-
-Therefore:
-
-~~~text
-implementation roots = responsibility-specific and manifest-declared
-documentation roots  = universal and mandatory
-coding admission      = RepoGate AND DocsGate AND exact SHA AND one selected repo
-~~~
-
-A repository may move physical implementation internals while preserving semantic root mappings, but it may not omit/rename mandatory documentation control paths or bypass DocsGate.
+Physical implementation shape follows responsibility, but canonical knowledge paths and admission rules do not split into competing documentation universes. Generated caches are rebuildable. Mutation planning requires an exact base SHA and one canonical repository target per WorkRun.

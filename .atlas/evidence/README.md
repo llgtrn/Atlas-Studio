@@ -6,4 +6,6 @@ canonical: false
 ---
 # Evidence
 
-Repository, documentation, build, test, graph and implementation evidence admitted by Atlas is indexed here.
+This directory is for durable proof deliberately admitted to Git: verification summaries, attestations, benchmark conclusions and integrity records.
+
+Rebuildable repository graphs, systemize reports, temporary work plans and large scan outputs belong in .atlas/.cache/.

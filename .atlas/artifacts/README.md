@@ -6,4 +6,4 @@ canonical: false
 ---
 # Artifacts
 
-Atlas-generated systemization reports, design outputs and engineering artifacts intended for human review live here. Transient caches do not.
+Durable compiled engineering artifacts belong here when implemented, including versioned corpus.atlas identities/manifests and world.atlasx semantic workspaces. Temporary build products and rebuildable analysis reports belong in .atlas/.cache/.

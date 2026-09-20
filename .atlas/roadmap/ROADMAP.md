@@ -4,16 +4,12 @@ type: blueprint
 status: active
 canonical: true
 ---
-# Atlas Systemizer Roadmap
+# Atlas Studio Roadmap
 
-## Current Horizon
+Now: security admission and source identity; finish security-lane and Zed deep census.
 
-Stabilize the .atlas knowledge root, fleet connection, graph-before-code admission, repo bootstrap, and Graph Studio fleet view.
+Next: real ATLAS binary writer/reader, integrity model, transactional corpus builder and incremental source ingestion. Build a real multi-repository corpus.atlas.
 
-## Next Horizon
+Then: ATLASX semantic shards, linker/query engine, census ontology, cross-repository technology comparison, synthesis and materialization IR.
 
-Materialize native fact/technology/design graphs, durable plans/artifacts, and bounded code generation driven by complete repository knowledge.
-
-## Long Horizon
-
-Atlas becomes a native engineering forge that can bootstrap a blank repository, understand its intended system, invent/graph technology, and implement one selected repository safely.
+Later: materialize Rust/TypeScript systems from ATLASX and build the Engineering World / World Canvas with semantic LOD, map layers, history, source/design views and bounded agent interaction.

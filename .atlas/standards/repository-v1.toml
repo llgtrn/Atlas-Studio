@@ -2,12 +2,11 @@ schema = "atlas.repository-standard.v1"
 version = 1
 
 [principles]
-target_repo_requires_atlas_metadata = false
-canonical_docs_root = "docs"
-atlas_root_is_noncanonical_metadata = true
+canonical_knowledge_root = ".atlas"
+legacy_docs_root_forbidden = true
 generated_state_rebuildable = true
-one_canonical_target_per_session = true
-exact_base_sha_required_for_mutation_plan = true
+one_canonical_target_per_workrun = true
+exact_base_sha_required_for_mutation = true
 merge_authority_outside_atlas = true
 docs_standard_required = true
 graph_before_code_required = true
@@ -15,16 +14,10 @@ graph_before_code_required = true
 [target]
 docs_contract = "atlas.docs.v1"
 atlas_runtime_dependency_allowed = false
-atlas_metadata_optional = true
+atlas_knowledge_root_required_for_managed_repositories = true
 
-[mirror_worker]
-optional = true
-initial_topology = "ONE_TO_ONE_TARGET"
-exact_target_sha_required = true
-independent_canonical_status = false
-reconvergence_required = true
-
-[specialized_workspace]
-optional = true
-may_have_domain_specific_implementation_structure = true
-docs_contract = "atlas.docs.v1"
+[implementation]
+backend_language = "rust"
+frontend_language = "typescript"
+responsibility_roots_are_manifest_declared = true
+extra_top_level_owners_require_architecture_decision = true

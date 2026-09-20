@@ -6,14 +6,6 @@ canonical: true
 ---
 # Atlas References
 
-## Reference Rules
+External OSS, protocols, specifications and research are untrusted evidence/reference inputs. Presence in the corpus never grants runtime or semantic authority.
 
-External OSS, protocols and research are evidence/reference inputs. They do not become Atlas or Chronica canonical authority merely by being present.
-
-## Provenance
-
-Record repository, exact revision, license and intended technology role for material donor/reference sources.
-
-## Freshness
-
-Changing external references require explicit freshness expectations. Pinned source revision remains stable evidence even when upstream later changes.
+The canonical donor registry is donor-corpus.toml. Per-donor provenance records exact source identity/revision and license material; duplicate donor registries are forbidden.

@@ -1,0 +1,8 @@
+{
+  "schema": "atlas.origin-provenance.v1",
+  "source_repository": "llgtrn/Chronica",
+  "source_main_sha": "bea475df7fc04e04836055171a23daf94f095069",
+  "role": "historical_origin_of_early_atlas_material",
+  "source_snapshot_retained": false,
+  "recovery": "Git history and the pinned source repository revision preserve the original material."
+}

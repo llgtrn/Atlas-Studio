@@ -5,12 +5,10 @@
   "description": "Atlas Studio workspace. Rust engineering semantics live under core/runtime/adapter; TypeScript UI lives under apps/ui; .atlas is the sole repository knowledge root.",
   "scripts": {
     "atlas:contract": "cargo run -p runtime --bin atlas-systemizer -- contract --format json",
-    "atlas:systemize": "cargo run -p runtime --bin atlas-systemizer -- systemize --root . --out .atlas/evidence/systemize-report.json",
+    "atlas:systemize": "cargo run -p runtime --bin atlas-systemizer -- systemize --root . --out .atlas/.cache/systemize-report.json",
     "atlas:docs:audit": "cargo run -p runtime --bin atlas-systemizer -- docs audit --root .atlas",
     "atlas:code:analyze": "cargo run -p runtime --bin atlas-systemizer -- code analyze --root ."
   },
-  "engines": {
-    "node": ">=20"
-  },
+  "engines": {"node": ">=20"},
   "packageManager": "pnpm@9.15.4"
 }

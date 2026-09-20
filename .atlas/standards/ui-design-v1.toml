@@ -1,22 +1,23 @@
-schema = "atlas.ui.v2"
-version = 2
+schema = "atlas.ui.v3"
+version = 3
 implementation_language = "TypeScript/TSX"
 
 [principles]
-semantic_tokens_first = true
-accessible_primitives = true
-keyboard_navigation_required = true
-graph_is_primary_canvas = true
-inspector_over_modal_sprawl = true
-evidence_visible_by_default = true
-atlas_knowledge_is_human_readable = true
-fleet_and_selected_repo_are_visible_together = true
+world_canvas_is_primary = true
+semantic_lod_required = true
+viewport_is_query = true
+frontend_is_not_semantic_authority = true
+evidence_visible = true
+accessibility_required = true
 design_donor_is_not_runtime_authority = true
+three_d_requires_semantic_mapping = true
+
+[lod]
+levels = ["world", "territory", "system", "architecture", "component", "module", "symbol", "source"]
+
+[layers]
+supported = ["architecture", "code", "capability", "dependency", "security", "performance", "execution", "evidence", "provenance", "design", "innovation", "history"]
 
 [surfaces]
-shell = ["fleet_navigator", "command_palette", "workspace_tabs", "status_bar"]
-fleet = ["primary_repo", "related_repositories", "head_sha", "knowledge_gate", "ci_state", "selected_repo"]
-knowledge = ["north_star", "architecture", "blueprints", "contracts", "roadmap", "plans", "artifacts", "evidence", "graph"]
-graph = ["canvas", "minimap", "node_inspector", "edge_inspector", "diff_overlay"]
-engineering = ["repo_matrix", "work_queue", "ci_evidence", "donor_lineage", "design_diff"]
-code = ["selected_repo_tree", "symbol_graph", "dependency_closure", "change_plan"]
+primary = ["world_canvas", "search", "layers", "timeline", "inspector"]
+secondary = ["source", "design", "diff", "terminal", "agents"]

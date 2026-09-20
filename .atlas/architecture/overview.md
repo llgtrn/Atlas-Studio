@@ -4,26 +4,8 @@ type: architecture
 status: active
 canonical: true
 ---
-# Architecture
+# Architecture Overview
 
-```text
-Repository / Docs / Donors
-          ↓
-     Source Engine
-          ↓
-       Fact Graph
-          ↓
- Semantic / Technology Graph
-          ↓
-      Design Graph
-          ↓
-   Engineering Graph
-          ↓
-Build / CI / Proof / Refactor Plan
-          ↓
-   atlas-systemizer CLI
-          ↓
-       Chronica
-```
+ADL, repositories, donors and evidence -> security admission -> source observations -> corpus.atlas -> semantic compilation -> world.atlasx -> query/compare/synthesize/invent -> materialization IR -> Rust/TypeScript -> tests and evidence.
 
-Atlas reads engineering reality and emits analysis/evidence. Chronica remains the product/runtime authority.
+Atlas Studio compiles engineering knowledge; target repositories remain sovereign over their own canonical source and integration decisions.

@@ -4,25 +4,12 @@ type: architecture
 status: active
 canonical: true
 ---
-# Atlas Systemizer responsibilities
+# Atlas Studio Responsibilities
 
-The subsystem is organized by semantic engineering responsibility rather than product silo.
+core owns pure typed engineering meaning: identities, epistemic classes, provenance/evidence contracts, ADL, ATLAS format semantics and ATLASX semantic contracts.
 
-```text
-atlas-source       repository/source observations
-atlas-fact         source facts and cross references
-atlas-graph        shared derived graph primitives
-atlas-technology   Technology Genome / primitive graph
-atlas-design       target Design Graph and graph diff
-atlas-docs         documentation standardization/audit
-atlas-build        build / dependency / affected-CI graph
-atlas-refactor     bounded rewrite/migration planning
-atlas-fleet        cross-repository engineering network
-atlas-proof        development proof/evidence orchestration
-atlas-core         subsystem orchestration
-atlas-cli          stable atlas.systemizer.cli.v1 boundary
-```
+runtime owns execution algorithms: admission orchestration, ingest, corpus construction, incremental invalidation, semantic compile/link/query, technology comparison, synthesis, materialization and verification.
 
-All crates are engineering-plane code. Chronica product/runtime code consumes only the CLI contract.
+adapter owns external mechanics: repository/Git/filesystem observation, parsers, source-index exchange, package ecosystems, storage I/O, sandbox/provider/protocol boundaries.
 
-New internal technology must fit an existing responsibility or introduce an explicit architecture decision before creating another crate.
+apps/ui owns the TypeScript/TSX World Canvas and source/design/agent projections over bounded Rust-engine queries. tools is repository engineering only.

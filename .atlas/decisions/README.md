@@ -6,14 +6,6 @@ canonical: true
 ---
 # Atlas Decisions
 
-## Decision Rules
+Only durable architecture choices belong here. Temporary implementation history, migration notes and progress reports stay in Git history or non-canonical evidence.
 
-Decisions preserve durable architecture choices and their consequences. Progress updates and temporary implementation notes do not become permanent decisions.
-
-## Active Decisions
-
-Active decisions include external subsystem separation and subsequent accepted standards that constrain Atlas engineering.
-
-## Supersession
-
-A superseded decision must explicitly identify its successor. Git history preserves prior text; maintained docs describe current governing decisions.
+A superseded decision must identify its successor. No historical fleet/mirror decision is currently canonical.

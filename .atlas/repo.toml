@@ -18,35 +18,31 @@ license_root = ".atlas/licenses"
 legacy_docs_root_forbidden = true
 
 [code]
-source_roots = ["core", "runtime", "adapter", "graph", "bindings"]
+source_roots = ["core", "runtime", "adapter"]
 backend_roots = ["core", "runtime", "adapter"]
 frontend_roots = ["apps/ui"]
 test_roots = ["core/tests", "runtime/tests", "adapter/tests", "apps/ui/src"]
 
 [commands]
-compile = "cargo run -p runtime --bin atlas-systemizer -- systemize --root . --out .atlas/evidence/systemize-report.json"
+compile = "cargo run -p runtime --bin atlas-systemizer -- systemize --root . --out .atlas/.cache/systemize-report.json"
 test = "cargo test --workspace"
 format = "cargo fmt --all"
 
 [atlas]
 human_readable = true
 durable_roots = [
-  ".atlas/declared",
-  ".atlas/observed",
-  ".atlas/derived",
-  ".atlas/generated",
   ".atlas/architecture",
   ".atlas/blueprints",
   ".atlas/contracts",
   ".atlas/decisions",
   ".atlas/guides",
-  ".atlas/references",
+  ".atlas/standards",
+  ".atlas/declared",
+  ".atlas/census",
   ".atlas/provenance",
   ".atlas/licenses",
-  ".atlas/census",
+  ".atlas/references",
   ".atlas/evidence",
-  ".atlas/reports",
-  ".atlas/migrations",
-  ".atlas/graph"
+  ".atlas/artifacts"
 ]
 transient_roots = [".atlas/.cache", ".atlas/tmp", ".atlas/temporary"]

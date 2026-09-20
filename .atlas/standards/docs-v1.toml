@@ -1,6 +1,6 @@
 schema = "atlas.docs.v1"
 version = 1
-source_standard = "llgtrn/Chronica"
+source_standard = "Atlas Studio"
 exceptions_allowed = false
 canonical_knowledge_root = ".atlas"
 legacy_docs_root_forbidden = true
