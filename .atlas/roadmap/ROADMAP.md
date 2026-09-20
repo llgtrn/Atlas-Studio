@@ -8,6 +8,11 @@ canonical: true
 
 ## Now — Genome + Phase 0 foundation
 
+### Bulk donor staging
+
+Clone the approved compiler/binary donor batch into `.atlas/temporary/` up front, pin SHA/license/provenance, and run coarse census across all of it. Deep census/deepfork then follows dependency order. Remove each donor checkout immediately after its absorbed scopes pass the extinction gate; do not retain a permanent vendor forest.
+
+
 - land Atlas Genome hard requirements and graph contract;
 - implement global stable IDs, node/edge/binding/temporal/evidence primitives in Rust runtime types;
 - finish secure admission and provenance/license handling;
