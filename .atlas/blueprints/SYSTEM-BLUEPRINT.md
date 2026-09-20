@@ -8,7 +8,7 @@ canonical: true
 
 ## Objective
 
-Build a reusable engineering-world compiler that can account for an admitted engineering corpus without silent omission, preserve every discovered function and required semantic atom, synthesize improved designs, publish them as a dense sharded logical `*.atlas`, deterministically expand a selected executable world as `*.atlasx/`, and compile it into verified hardware/workload-specialized products.
+Build an independent engineering-world compiler capable of strict corpus accounting, invention, dense Atlas publication, deterministic AtlasX expansion and verified product compilation. Digital Organism is a first-class target kind: Atlas can compile a complete organism substrate around external, self-hosted, hybrid or absent neural models rather than treating weights as the product.
 
 ## Construction sequence
 
@@ -16,57 +16,58 @@ Build a reusable engineering-world compiler that can account for an admitted eng
 2. Universal graph, global identity, binding, evidence and temporal primitives.
 3. Secure corpus admission and complete inventory accounting.
 4. Multi-engine Rust Census Engine with S0→S10 scope lattice.
-5. Function-level semantic accounting, CFG/dataflow/state/effect extraction and explicit unknown/dynamic records.
-6. Cross-scope reconciliation, adversarial gap queries, fixed-point convergence and CensusCertificate.
-7. Dense binary ATLAS writer/reader with semantic dedup, chunking, compression, integrity, random access and transactional publication.
-8. Logical Atlas root manifests, content-addressed shards, lazy fetch and partial materialization.
-9. Research correlation, gap graph, invention candidates, validation and selected-design graph.
-10. Deterministic ATLASX expanded executable representation.
-11. Phase 1 delegated Rust/TypeScript/bounded-C compiler.
-12. Phase 2 Atlas HIR/MIR plus semantic/memory/concurrency optimizer.
-13. Phase 3 LIR plus LLVM/Cranelift/WASM/accelerator backends.
-14. Phase 4 Machine IR plus Atlas-native instruction selection/register allocation/scheduling/object emission.
-15. Whole-program/LTO/link/post-link optimization.
-16. Deployment/hardware/workload specialization, PGO and empirical auto-tuning.
-17. Product lineage/evidence, runtime profiling and recensus feedback.
-18. World Canvas only as projection over the same engine and graph.
-19. Compiler self-hosting after semantic/runtime maturity.
+5. Function-level semantic accounting and explicit unknown/dynamic records.
+6. Reconciliation, adversarial gap queries, fixed point and CensusCertificate.
+7. Dense binary ATLAS writer/reader and logical shard federation.
+8. Research correlation, gap graph, invention candidates and selected-design graph.
+9. Deterministic general ATLASX executable representation.
+10. Organism Genome v1 and Digital Organism target profile: Genome → Organ → Circuit → Trait → Model → Weight → Memory → Body → Lifecycle.
+11. Organism persistent identity and lifecycle substrate.
+12. Model/provider binding plus candidate weight/model admission.
+13. Memory/learning/adaptation substrate.
+14. Homeostasis and metabolism substrate.
+15. Body/environment capability adapters and authority boundaries.
+16. Phase 1 delegated Rust/TypeScript/bounded-C compiler.
+17. Phase 2 HIR/MIR semantic/memory/concurrency optimizer.
+18. Phase 3 LLVM/Cranelift/WASM/accelerator backends.
+19. Phase 4 Machine IR plus Atlas-native codegen.
+20. Whole-program/LTO/link/post-link optimization.
+21. Deployment/hardware/workload specialization, PGO and empirical auto-tuning.
+22. Organism birth/instantiate/observe/learn/evaluate/admit/evolve lifecycle.
+23. Product/organism lineage evidence and recensus.
+24. World Canvas as projection only.
+25. Compiler self-hosting after semantic/runtime maturity.
 
-## Repository generation invariant
+## Product target kinds
 
-Every generated repository preserves:
+Atlas may compile ordinary software artifacts, libraries, WASM/UI products and Digital Organisms. A target kind specializes semantics without changing the universal graph substrate.
 
-```text
-Identity
-Scope
-Node / Edge / Binding
-State / Event / Temporal
-Evidence / Provenance / Claim
-Constraint / Invariant
-Interface / Capability / Effect
-Materialization
-```
+## Digital Organism invariant
 
-Domain extensions may extend but never replace this spine.
-
-## Census invariant
-
-Adaptive depth never means silent omission. Every discovered function exists in Atlas. Critical functions may require S10 semantic-atom closure and UNKNOWN = 0 before sealing.
-
-## Format invariant
+A generated Digital Organism repository/product must account for:
 
 ```text
-Sources/Reality
-  → SEALED Logical *.atlas
-  → selected deterministic *.atlasx/
-  → compiler IRs
-  → physical product
+persistent identity
+organism genome
+body
+brain/model bindings
+world model
+memory
+learning/adaptation
+homeostasis
+metabolism
+capabilities
+authority constraints
+lifecycle
+evidence/model/memory lineage
 ```
 
-A logical Atlas may be physically sharded without becoming multiple truth systems.
+Weights are optional organs. External API cognition is valid. Self-hosted cognition is valid. Hybrid cognition is valid.
+
+## Independence invariant
+
+No Organism Genome may require Chronica unless that specific target explicitly selects a Chronica adapter/environment. Chronica is one possible external environment, not Atlas's host or organism identity substrate.
 
 ## Performance invariant
 
-Optimization begins at graph/world level before machine IR. The compiler should ask whether an abstraction, serialization, dynamic binding, copy, allocation, service boundary or state placement is necessary before micro-optimizing its instructions.
-
-Faster output that breaks graph, authority, temporal, evidence, safety, transaction or recovery semantics is invalid.
+Optimization begins at graph/world/organ level before machine IR. Faster output that breaks graph, authority, temporal, evidence, lifecycle, model admission, safety, transaction or recovery semantics is invalid.
