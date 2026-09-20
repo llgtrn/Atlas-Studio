@@ -1,7 +1,20 @@
-# Atlas Graph Studio
+# Atlas Studio UI
 
-TypeScript/TSX frontend for Atlas Systemizer.
+TypeScript/TSX frontend projection for Atlas Studio.
 
-The Studio displays the registered fleet and the selected coding repository simultaneously. Each repository exposes its human-readable .atlas knowledge tree (North Star, architecture, blueprint, contracts, roadmap, plans, artifacts, evidence and graph) alongside source/code state.
+The frontend is not a second source of engineering truth. It will consume bounded projections from the Rust Atlas engine and evolve toward an Engineering World / World Canvas interface over ATLASX.
 
-Atlas may observe all registered repositories read-only, while a coding session mutates exactly one selected repository.
+The intended interaction hierarchy is semantic-first:
+
+```text
+engineering world
+→ technology territory
+→ system
+→ architecture
+→ component
+→ module
+→ symbol
+→ source
+```
+
+Traditional source editing, diff, terminal, design and agent surfaces are projections of the same Atlas semantic world rather than separate applications.
