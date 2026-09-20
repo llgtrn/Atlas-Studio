@@ -23,6 +23,18 @@ fn quoted_value(text: &str, key: &str) -> Option<String> {
     })
 }
 
+fn bool_value(text: &str, key: &str) -> Option<bool> {
+    text.lines().find_map(|line| {
+        let line = line.trim();
+        let prefix = format!("{key} = ");
+        match line.strip_prefix(&prefix).map(str::trim) {
+            Some("true") => Some(true),
+            Some("false") => Some(false),
+            _ => None,
+        }
+    })
+}
+
 pub fn audit(root: impl AsRef<Path>) -> io::Result<RepoAudit> {
     let root = root.as_ref();
     let metadata = fs::metadata(root)?;
@@ -53,7 +65,7 @@ pub fn audit(root: impl AsRef<Path>) -> io::Result<RepoAudit> {
         if quoted_value(&text, "knowledge_root").as_deref() != Some(".atlas") {
             missing_required_roles.push("knowledge_root=.atlas".into());
         }
-        if quoted_value(&text, "legacy_docs_root_forbidden").as_deref() != Some("true") {
+        if bool_value(&text, "legacy_docs_root_forbidden") != Some(true) {
             missing_required_roles.push("legacy_docs_root_forbidden=true".into());
         }
         archetype = quoted_value(&text, "kind").unwrap_or_else(|| "UNKNOWN".into());
@@ -98,7 +110,7 @@ mod tests {
 repo = "org/repo"
 kind = "DEVELOPMENT_CELL"
 knowledge_root = ".atlas"
-legacy_docs_root_forbidden = "true"
+legacy_docs_root_forbidden = true
 "#).unwrap();
         let report = audit(&root).unwrap();
         assert!(report.ready, "{report:?}");
