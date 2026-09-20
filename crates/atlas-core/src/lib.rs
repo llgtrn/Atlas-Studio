@@ -4,7 +4,7 @@ use std::{io, path::Path};
 pub fn systemize(root: impl AsRef<Path>) -> io::Result<SystemizeReport> {
     let repository = atlas_repo::audit(&root)?;
     let source = atlas_source::analyze(&root)?;
-    let docs = atlas_docs::audit(root.as_ref().join("docs"))?;
+    let docs = atlas_docs::audit(root.as_ref().join(".atlas"))?;
     let graph = atlas_graph::summarize(&source);
 
     let mut blockers = Vec::new();

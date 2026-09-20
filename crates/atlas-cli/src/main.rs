@@ -29,7 +29,7 @@ fn run(args: &[String]) -> Result<(),String> {
             println!("{}", json(&serde_json::json!({"schema":"atlas.systemizer.code-analysis.v1","source":source,"graph":graph,"source_of_truth":"derived development analysis; never canonical Chronica runtime truth"}))?);
         }
         [cmd, sub, rest @ ..] if cmd == "fleet" && sub == "connect" => {
-            let manifest=value(rest,"--manifest").unwrap_or_else(|| "fleet/repos.yaml".into());
+            let manifest=value(rest,"--manifest").unwrap_or_else(|| ".atlas/fleet/repos.yaml".into());
             let report=atlas_fleet::connect(&manifest).map_err(|e| e.to_string())?;
             println!("{}", json(&report)?);
         }

@@ -29,7 +29,7 @@ transient_roots = [".atlas/.cache", ".atlas/tmp"]
 
 [stable_cli]
 contract = ["contract", "--format", "json"]
-fleet_connect = ["fleet", "connect", "--manifest", "fleet/repos.yaml", "--format", "json"]
+fleet_connect = ["fleet", "connect", "--manifest", ".atlas/fleet/repos.yaml", "--format", "json"]
 repo_bootstrap = ["repo", "bootstrap", "--root", "<workspace>", "--repo", "<owner/name>"]
 systemize = ["systemize", "--root", "<workspace>", "--out", ".atlas/artifacts/systemize.json"]
 docs_audit = ["docs", "audit", "--root", ".atlas", "--format", "json"]
