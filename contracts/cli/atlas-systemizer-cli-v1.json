@@ -12,8 +12,8 @@
     "runtime_dependency_allowed": { "const": false },
     "commands": {
       "type": "array",
-      "items": { "enum": ["contract", "systemize", "docs audit", "code analyze"] },
-      "minItems": 4,
+      "items": { "enum": ["contract", "systemize", "docs audit", "code analyze", "fleet connect", "work prepare"] },
+      "minItems": 6,
       "uniqueItems": true
     }
   }

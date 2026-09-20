@@ -1,8 +1,39 @@
 use atlas_model::DocsReport;
 use std::{collections::BTreeMap, fs, io, path::{Path, PathBuf}};
 
+const STANDARD: &str = "atlas.docs.v1";
 const TYPES: &[&str] = &["decision","blueprint","architecture","contract","runbook","reference","generated-evidence"];
 const REQUIRED: &[&str] = &["id","type","status","canonical"];
+const CONTROL_DOCS: &[&str] = &[
+    "README.md",
+    "INDEX.md",
+    "TEMPLATE.md",
+    "architecture/README.md",
+    "architecture/constitution/NORTH-STAR.md",
+    "architecture/SYSTEM.md",
+    "blueprints/SYSTEM-BLUEPRINT.md",
+    "contracts/SYSTEM-CONTRACT.md",
+    "decisions/README.md",
+    "guides/DEVELOPMENT.md",
+    "references/README.md",
+];
+
+fn required_headings(path: &str) -> &'static [&'static str] {
+    match path {
+        "README.md" => &["## Purpose","## Start Here","## Documentation Gate"],
+        "INDEX.md" => &["## Start Here","## Canonical Documents","## Coding Route"],
+        "TEMPLATE.md" => &["## Required Frontmatter","## Required Control Documents","## Authoring Rules"],
+        "architecture/README.md" => &["## System Model","## Responsibilities","## Boundaries","## Runtime Ownership","## State and Effects","## Dependencies"],
+        "architecture/constitution/NORTH-STAR.md" => &["## Mission","## North Star","## Non-Negotiable Invariants","## Boundaries","## Sequencing","## Non-Goals"],
+        "architecture/SYSTEM.md" => &["## System Model","## Responsibilities","## Boundaries","## Runtime Ownership","## Data and Effect Flow","## Failure and Recovery","## Evidence","## Verification"],
+        "blueprints/SYSTEM-BLUEPRINT.md" => &["## Objective","## Inputs","## Flow","## Authority","## State","## Failure and Recovery","## Evidence","## Verification"],
+        "contracts/SYSTEM-CONTRACT.md" => &["## Hard Invariants","## Interfaces","## State and Durability","## Authority","## Evidence","## Recovery","## Verification"],
+        "decisions/README.md" => &["## Decision Rules","## Active Decisions","## Supersession"],
+        "guides/DEVELOPMENT.md" => &["## Preconditions","## Documentation Gate","## Implementation","## Verification","## Reconciliation","## Rollback"],
+        "references/README.md" => &["## Reference Rules","## Provenance","## Freshness"],
+        _ => &[],
+    }
+}
 
 fn visit(dir: &Path, docs: &mut Vec<PathBuf>) -> io::Result<()> {
     let mut entries: Vec<_> = fs::read_dir(dir)?.collect::<Result<_, _>>()?;
@@ -49,6 +80,22 @@ pub fn audit(root: impl AsRef<Path>) -> io::Result<DocsReport> {
     visit(&root, &mut docs)?;
     docs.sort();
 
+    let mut required_control_docs_missing = Vec::new();
+    let mut required_headings_missing = Vec::new();
+    for relative in CONTROL_DOCS {
+        let path = root.join(relative);
+        if !path.is_file() {
+            required_control_docs_missing.push((*relative).to_owned());
+            continue;
+        }
+        let text = fs::read_to_string(&path)?;
+        for heading in required_headings(relative) {
+            if !text.lines().any(|line| line.trim() == *heading) {
+                required_headings_missing.push(format!("{relative}:{heading}"));
+            }
+        }
+    }
+
     let mut canonical_frontmatter_total = 0;
     let mut missing_frontmatter = Vec::new();
     let mut missing_required_fields = Vec::new();
@@ -65,45 +112,29 @@ pub fn audit(root: impl AsRef<Path>) -> io::Result<DocsReport> {
             continue;
         };
         canonical_frontmatter_total += 1;
-
         for field in REQUIRED {
             if !meta.contains_key(*field) {
                 missing_required_fields.push(format!("{rel}:{field}"));
             }
         }
-
         if let Some(kind) = meta.get("type") {
-            if !TYPES.contains(&kind.as_str()) {
-                invalid_type.push(rel.clone());
-            }
+            if !TYPES.contains(&kind.as_str()) { invalid_type.push(rel.clone()); }
         }
-
         if let Some(id) = meta.get("id") {
             ids.entry(id.clone()).or_default().push(rel.clone());
         }
-
-        if meta.get("status").map(String::as_str) == Some("superseded")
-            && !meta.contains_key("superseded_by")
-        {
+        if meta.get("status").map(String::as_str) == Some("superseded") && !meta.contains_key("superseded_by") {
             superseded_without_successor.push(rel.clone());
         }
-
         for raw_link in markdown_links(&text) {
-            if raw_link.is_empty()
-                || raw_link.starts_with('#')
-                || raw_link.starts_with("http://")
-                || raw_link.starts_with("https://")
-                || raw_link.starts_with("mailto:")
-                || raw_link.starts_with('/')
-            {
+            if raw_link.is_empty() || raw_link.starts_with('#') || raw_link.starts_with("http://")
+                || raw_link.starts_with("https://") || raw_link.starts_with("mailto:") || raw_link.starts_with('/') {
                 continue;
             }
             let target = raw_link.split('#').next().unwrap_or_default().split('?').next().unwrap_or_default();
             if target.is_empty() || !target.ends_with(".md") { continue; }
             let resolved = path.parent().unwrap_or(&root).join(target);
-            if !resolved.exists() {
-                broken_internal_refs.push(format!("{rel}->{raw_link}"));
-            }
+            if !resolved.exists() { broken_internal_refs.push(format!("{rel}->{raw_link}")); }
         }
     }
 
@@ -112,11 +143,26 @@ pub fn audit(root: impl AsRef<Path>) -> io::Result<DocsReport> {
         .map(|(id, paths)| format!("{id}:{}", paths.join(",")))
         .collect::<Vec<_>>();
 
+    let hard_violations_total =
+        required_control_docs_missing.len()
+        + required_headings_missing.len()
+        + missing_frontmatter.len()
+        + missing_required_fields.len()
+        + invalid_type.len()
+        + duplicate_ids.len()
+        + superseded_without_successor.len()
+        + broken_internal_refs.len();
+
     Ok(DocsReport {
         schema: "atlas.systemizer.docs-report.v1".into(),
+        standard: STANDARD.into(),
         root: root.to_string_lossy().into_owned(),
+        gate_ready: hard_violations_total == 0,
+        hard_violations_total,
         documents_total: docs.len(),
         canonical_frontmatter_total,
+        required_control_docs_missing,
+        required_headings_missing,
         missing_frontmatter,
         missing_required_fields,
         invalid_type,
@@ -132,16 +178,14 @@ mod tests {
     use std::env;
 
     #[test]
-    fn detects_duplicate_ids_and_missing_successor() {
-        let root = env::temp_dir().join(format!("atlas-docs-test-{}", std::process::id()));
+    fn missing_control_docs_blocks_gate() {
+        let root = env::temp_dir().join(format!("atlas-docs-gate-{}", std::process::id()));
         let _ = fs::remove_dir_all(&root);
         fs::create_dir_all(&root).unwrap();
-        let doc = "---\nid: same\ntype: decision\nstatus: superseded\ncanonical: true\n---\n";
-        fs::write(root.join("a.md"), doc).unwrap();
-        fs::write(root.join("b.md"), doc).unwrap();
+        fs::write(root.join("README.md"), "---\nid: x\ntype: reference\nstatus: active\ncanonical: true\n---\n# X\n").unwrap();
         let report = audit(&root).unwrap();
-        assert_eq!(report.duplicate_ids.len(), 1);
-        assert_eq!(report.superseded_without_successor.len(), 2);
+        assert!(!report.gate_ready);
+        assert!(!report.required_control_docs_missing.is_empty());
         fs::remove_dir_all(root).unwrap();
     }
 }

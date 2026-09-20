@@ -19,7 +19,14 @@ impl Default for Contract {
             binary: BINARY.to_owned(),
             subsystem_kind: "DEVELOPMENT_ENGINEERING_TOOL".to_owned(),
             runtime_dependency_allowed: false,
-            commands: vec!["contract".into(), "systemize".into(), "docs audit".into(), "code analyze".into()],
+            commands: vec![
+                "contract".into(),
+                "systemize".into(),
+                "docs audit".into(),
+                "code analyze".into(),
+                "fleet connect".into(),
+                "work prepare".into(),
+            ],
         }
     }
 }
@@ -39,9 +46,14 @@ pub struct SourceReport {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct DocsReport {
     pub schema: String,
+    pub standard: String,
     pub root: String,
+    pub gate_ready: bool,
+    pub hard_violations_total: usize,
     pub documents_total: usize,
     pub canonical_frontmatter_total: usize,
+    pub required_control_docs_missing: Vec<String>,
+    pub required_headings_missing: Vec<String>,
     pub missing_frontmatter: Vec<String>,
     pub missing_required_fields: Vec<String>,
     pub invalid_type: Vec<String>,
@@ -70,12 +82,21 @@ pub struct RepoAuditSummary {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct CodingAdmission {
+    pub schema: String,
+    pub allowed: bool,
+    pub docs_standard: String,
+    pub blockers: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct SystemizeReport {
     pub schema: String,
     pub cli_api: String,
     pub root: String,
     pub repository: RepoAuditSummary,
     pub docs: DocsReport,
+    pub coding_admission: CodingAdmission,
     pub source: SourceReport,
     pub graph: GraphSummary,
     pub invariants: Vec<String>,

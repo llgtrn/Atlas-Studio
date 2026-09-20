@@ -12,8 +12,10 @@ path = "src/main.rs"
 [dependencies]
 atlas-model = { path = "../atlas-model" }
 atlas-source = { path = "../atlas-source" }
+atlas-repo = { path = "../atlas-repo" }
 atlas-docs = { path = "../atlas-docs" }
 atlas-graph = { path = "../atlas-graph" }
+atlas-fleet = { path = "../atlas-fleet" }
 atlas-core = { path = "../atlas-core" }
 serde.workspace = true
 serde_json.workspace = true

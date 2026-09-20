@@ -1,14 +1,20 @@
-schema_version: 1
+schema_version: 2
 repo_standard: atlas.repository-standard.v1
 docs_standard: atlas.docs.v1
 cli_api: atlas.systemizer.cli.v1
 canonical_product_repo: llgtrn/Chronica
 systemizer_repo: llgtrn/Atlas-Systemizer
 
-execution:
+connection:
+  auto_connect_registered_repositories: true
+  mode: READ_ONLY_OBSERVATION
+  resolve_exact_head_sha: true
+
+coding:
+  mode: ONE_REPOSITORY_AT_A_TIME
+  docs_gate_required: true
+  repo_gate_required: true
   exact_base_sha_required: true
-  parallel_across_repos: true
-  serial_within_repo: true
   shared_mutable_checkout_forbidden: true
   atlas_merge_authority: false
   default_delivery: branch_pr

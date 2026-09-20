@@ -1,4 +1,4 @@
-use atlas_model::{RepoAuditSummary, SystemizeReport, CLI_API};
+use atlas_model::{CodingAdmission, RepoAuditSummary, SystemizeReport, CLI_API};
 use std::{fs, io, path::Path};
 
 pub fn validate_client_config(path: impl AsRef<Path>) -> io::Result<()> {
@@ -16,24 +16,19 @@ pub fn systemize(root: impl AsRef<Path>, config: impl AsRef<Path>) -> io::Result
     validate_client_config(config)?;
     let repository = atlas_repo::audit(&root)?;
     let source = atlas_source::analyze(&root)?;
-    let docs_root = root.as_ref().join("docs");
-    let docs = if docs_root.exists() {
-        atlas_docs::audit(&docs_root)?
-    } else {
-        atlas_model::DocsReport {
-            schema:"atlas.systemizer.docs-report.v1".into(),
-            root:docs_root.to_string_lossy().into_owned(),
-            documents_total:0,
-            canonical_frontmatter_total:0,
-            missing_frontmatter:vec![],
-            missing_required_fields:vec![],
-            invalid_type:vec![],
-            duplicate_ids:vec![],
-            superseded_without_successor:vec![],
-            broken_internal_refs:vec![]
-        }
-    };
+    let docs = atlas_docs::audit(root.as_ref().join("docs"))?;
     let graph = atlas_graph::summarize(&source);
+
+    let mut blockers = Vec::new();
+    if !repository.ready { blockers.push("REPO_GATE_NOT_READY".to_owned()); }
+    if !docs.gate_ready { blockers.push("DOCS_GATE_NOT_READY".to_owned()); }
+    let coding_admission = CodingAdmission {
+        schema: "atlas.systemizer.coding-admission.v1".into(),
+        allowed: blockers.is_empty(),
+        docs_standard: docs.standard.clone(),
+        blockers,
+    };
+
     Ok(SystemizeReport {
         schema: "atlas.systemizer.systemize-report.v1".into(),
         cli_api: CLI_API.into(),
@@ -47,6 +42,7 @@ pub fn systemize(root: impl AsRef<Path>, config: impl AsRef<Path>) -> io::Result
             forbidden_roots_present: repository.forbidden_roots_present,
         },
         docs,
+        coding_admission,
         source,
         graph,
         invariants: vec![
@@ -54,7 +50,8 @@ pub fn systemize(root: impl AsRef<Path>, config: impl AsRef<Path>) -> io::Result
             "NO_CHRONICA_RUNTIME_DEPENDENCY".into(),
             "ANALYZE_NEVER_GRANTS_AUTHORITY".into(),
             "GENERATED_GRAPHS_ARE_REBUILDABLE".into(),
-            "REPOSITORY_ARCHETYPE_IS_EXPLICIT".into(),
+            "NO_COMPLETE_DOCS_NO_CODING_ADMISSION".into(),
+            "ONE_REPOSITORY_PER_CODING_SESSION".into(),
         ],
     })
 }

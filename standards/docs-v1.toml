@@ -1,8 +1,25 @@
 schema = "atlas.docs.v1"
 version = 1
-
+source_standard = "llgtrn/Chronica"
+exceptions_allowed = false
+coding_requires_docs_gate = true
+all_markdown_requires_frontmatter = true
 required_frontmatter = ["id", "type", "status", "canonical"]
 document_types = ["decision", "blueprint", "architecture", "contract", "runbook", "reference", "generated-evidence"]
+
+required_control_docs = [
+  "docs/README.md",
+  "docs/INDEX.md",
+  "docs/TEMPLATE.md",
+  "docs/architecture/README.md",
+  "docs/architecture/constitution/NORTH-STAR.md",
+  "docs/architecture/SYSTEM.md",
+  "docs/blueprints/SYSTEM-BLUEPRINT.md",
+  "docs/contracts/SYSTEM-CONTRACT.md",
+  "docs/decisions/README.md",
+  "docs/guides/DEVELOPMENT.md",
+  "docs/references/README.md",
+]
 
 [canonicality]
 generated_evidence_may_be_canonical = false
@@ -11,10 +28,12 @@ duplicate_canonical_ids_forbidden = true
 broken_internal_refs_forbidden = true
 superseded_docs_must_link_successor = true
 
-[layout]
-index_required = true
-decisions_root = "docs/decisions"
-architecture_root = "docs/architecture"
-blueprints_root = "docs/blueprints"
-standards_root = "docs/standards"
-references_root = "docs/references"
+[coding_admission]
+repo_gate_required = true
+docs_gate_required = true
+north_star_required = true
+architecture_required = true
+blueprint_required = true
+contracts_required = true
+development_guide_required = true
+code_before_docs_forbidden = true
