@@ -5,10 +5,16 @@
   "snapshot": {
     "schema": "atlas.repository-snapshot.v1",
     "root": "\\\\?\\C:\\Users\\trngh\\Documents\\Atlas-Systemizer",
-    "head_sha": "df08ed53c7916d0230164e7c61ca35951a8309ba",
+    "head_sha": "97d280a9785e8b3ab8ee22453ad4794f995e501c",
     "branch": "main",
-    "dirty": false,
-    "status_entries": []
+    "dirty": true,
+    "status_entries": [
+      "M .atlas/architecture/SYSTEM.md",
+      " M core/src/lib.rs",
+      " M runtime/src/lib.rs",
+      " M runtime/src/main.rs",
+      "?? .atlas/evidence/repository-graph.json"
+    ]
   },
   "repository": {
     "schema": "atlas.systemizer.repo-audit.v6",
@@ -157,6 +163,7 @@
           "Runtime Ownership",
           "Data and Effect Flow",
           "Source References",
+          "Graph Output",
           "Failure and Recovery",
           "Evidence",
           "Verification"
@@ -2268,7 +2275,7 @@
       {
         "path": "core/src/lib.rs",
         "language": "rust",
-        "bytes": 50494
+        "bytes": 63209
       },
       {
         "path": "runtime/Cargo.toml",
@@ -2278,22 +2285,22 @@
       {
         "path": "runtime/src/lib.rs",
         "language": "rust",
-        "bytes": 5123
+        "bytes": 5715
       },
       {
         "path": "runtime/src/main.rs",
         "language": "rust",
-        "bytes": 5706
+        "bytes": 6669
       }
     ]
   },
   "graph": {
     "schema": "atlas.systemizer.engineering-graph-summary.v1",
-    "semantic_grade": "SOURCE_FACT_GRAPH",
-    "nodes_total": 844,
-    "edges_total": 764,
-    "bindings_total": 4,
-    "facts_total": 10,
+    "semantic_grade": "ADL_DECLARED_OBSERVED_GRAPH",
+    "nodes_total": 865,
+    "edges_total": 791,
+    "bindings_total": 16,
+    "facts_total": 18,
     "language_nodes": [
       "json",
       "markdown",

@@ -37,12 +37,17 @@ fn run(args: &[String]) -> Result<(), String> {
                 }
                 None => adapter::scan_source(&root).map_err(|e| e.to_string())?,
             };
-            let graph = atlas_core::summarize_graph(&source);
+            let docs = adapter::audit_docs(PathBuf::from(&root).join(".atlas"))
+                .map_err(|e| e.to_string())?;
+            let adl_sources = adapter::read_adl_sources(&root).map_err(|e| e.to_string())?;
+            let adl = atlas_core::compile_adl(&adl_sources, &source);
+            let graph = atlas_core::summarize_system_graph(&source, &docs, &adl);
             println!(
                 "{}",
                 json(&serde_json::json!({
                     "schema": "atlas.systemizer.code-analysis.v1",
                     "source": source,
+                    "adl": adl,
                     "graph": graph,
                     "source_of_truth": "derived engineering analysis; target repositories remain sovereign"
                 }))?
@@ -85,6 +90,19 @@ fn run(args: &[String]) -> Result<(), String> {
                 return Err("ADL_CHECK_NOT_READY".into());
             }
         }
+        [cmd, rest @ ..] if cmd == "graph" => {
+            let root = value(rest, "--root").ok_or("graph requires --root")?;
+            let report = runtime::graph(&root).map_err(|e| e.to_string())?;
+            let text = json(&report)? + "\n";
+            if let Some(out) = value(rest, "--out") {
+                let out = PathBuf::from(out);
+                if let Some(parent) = out.parent() {
+                    fs::create_dir_all(parent).map_err(|e| e.to_string())?;
+                }
+                fs::write(&out, &text).map_err(|e| e.to_string())?;
+            }
+            print!("{text}");
+        }
         [cmd, rest @ ..] if cmd == "systemize" => {
             let root = value(rest, "--root").ok_or("systemize requires --root")?;
             let out = value(rest, "--out").ok_or("systemize requires --out")?;
@@ -118,7 +136,7 @@ fn run(args: &[String]) -> Result<(), String> {
         }
         _ => {
             return Err(
-                "usage: atlas-systemizer <contract|systemize|docs audit|code analyze|parse|check|work prepare> ...".into(),
+                "usage: atlas-systemizer <contract|systemize|docs audit|code analyze|parse|check|graph|work prepare> ...".into(),
             );
         }
     }

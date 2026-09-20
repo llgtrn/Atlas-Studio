@@ -1,8 +1,9 @@
 //! Atlas runtime orchestration.
 
 use atlas_core::{
-    AdlCompileReport, CLI_API, CodingAdmission, Evidence, RevisionRef, SystemizeReport,
-    WorkPrepareReport, WorkRequest, compile_adl, summarize_repository_graph,
+    AdlCompileReport, CLI_API, CodingAdmission, EngineeringGraph, Evidence, RevisionRef,
+    SystemizeReport, WorkPrepareReport, WorkRequest, build_system_graph, compile_adl,
+    summarize_system_graph,
 };
 use std::{io, path::Path};
 
@@ -17,7 +18,7 @@ pub fn systemize(root: impl AsRef<Path>) -> io::Result<SystemizeReport> {
     let docs = adapter::audit_docs(root.join(".atlas"))?;
     let adl_sources = adapter::read_adl_sources(root)?;
     let adl = compile_adl(&adl_sources, &source);
-    let graph = summarize_repository_graph(&source, &docs);
+    let graph = summarize_system_graph(&source, &docs, &adl);
 
     let mut blockers = Vec::new();
     if !repository.ready {
@@ -67,6 +68,19 @@ pub fn check(root: impl AsRef<Path>) -> io::Result<AdlCompileReport> {
     };
     let adl_sources = adapter::read_adl_sources(root)?;
     Ok(compile_adl(&adl_sources, &source))
+}
+
+pub fn graph(root: impl AsRef<Path>) -> io::Result<EngineeringGraph> {
+    let root = root.as_ref();
+    let repository = adapter::audit_repository(root)?;
+    let source = match repository.manifest.as_ref() {
+        Some(manifest) => adapter::scan_declared_source(root, manifest)?,
+        None => adapter::scan_source(root)?,
+    };
+    let docs = adapter::audit_docs(root.join(".atlas"))?;
+    let adl_sources = adapter::read_adl_sources(root)?;
+    let adl = compile_adl(&adl_sources, &source);
+    Ok(build_system_graph(&source, &docs, &adl))
 }
 
 pub fn prepare_work(

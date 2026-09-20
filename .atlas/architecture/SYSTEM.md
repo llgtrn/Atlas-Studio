@@ -12,7 +12,7 @@ Atlas manages an engineering graph over repositories, declared ADL source, docs,
 
 ## Responsibilities
 
-Core owns product-neutral facts, nodes, edges, bindings, evidence, manifests, ADL syntax/AST/IR, declared-vs-observed comparison and graph construction. Adapter owns filesystem, repository manifest, ADL source discovery, documentation and source observation mechanics. Runtime owns repository compilation, CLI orchestration, coding admission, ADL checks and evidence emission. UI code under `apps/ui` may visualize graph state, but Rust remains authoritative for backend semantics.
+Core owns product-neutral facts, nodes, edges, bindings, evidence, manifests, ADL syntax/AST/IR, declared-vs-observed comparison and graph construction. Adapter owns filesystem, repository manifest, ADL source discovery, documentation and source observation mechanics. Runtime owns repository compilation, unified graph emission, CLI orchestration, coding admission, ADL checks and evidence emission. UI code under `apps/ui` may visualize graph state, but Rust remains authoritative for backend semantics.
 
 ## Boundaries
 
@@ -24,7 +24,7 @@ The stable external surface is the atlas-systemizer CLI/API. Atlas implementatio
 
 ## Data and Effect Flow
 
-Target repo -> manifest -> declared ADL -> repository observation -> facts -> declared graph + observed graph -> documentation graph -> constraint evaluation -> deltas/problems -> work plan -> coding -> verification -> evidence -> updated repository state -> refreshed graph.
+Target repo -> manifest -> declared ADL -> repository observation -> facts -> one engineering graph containing declared, observed and derived nodes -> documentation graph -> constraint evaluation -> deltas/problems -> work plan -> coding -> verification -> evidence -> updated repository state -> refreshed graph.
 
 ## Source References
 
@@ -33,6 +33,10 @@ Target repo -> manifest -> declared ADL -> repository observation -> facts -> de
 - `adapter/src/lib.rs`
 - `runtime/src/lib.rs`
 - `runtime/src/main.rs`
+
+## Graph Output
+
+`atlas-systemizer graph --root <repo>` emits the unified engineering graph. ADL entities, relations, capability bindings, materializations, observed files, documentation nodes, constraint results and deltas are compiled into one graph substrate rather than separate source/doc/ADL truth systems.
 
 ## Failure and Recovery
 
