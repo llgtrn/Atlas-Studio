@@ -15,7 +15,13 @@ canonical: true
 
 ## Census State
 
-Status: SKELETON. Source is cloned and pinned; implementation inspection still needs to classify modules, algorithms, storage, execution, query, incremental behavior, tests, benchmarks, assumptions, accepted ideas, rejected ideas, and Atlas-native replacement gaps.
+Status: DEEP_CENSUSED.
+
+Deep census evidence: `.atlas/census/donors/source-intelligence-lane-2026-09-20.md`.
+
+Observed mechanisms: VFS file identity, source-root partitioning, change packs, salsa-backed source database, crate graph ingestion, Rust HIR/semantic API and diagnostics over `RootDatabase`.
+
+Decision: TARGET_MAPPED. rust-analyzer principles feed `adapter/source/rust`, `core/identity`, `runtime/ingest` and future incremental source analysis. Runtime dependency remains `REFERENCE_ONLY`; Atlas must not import rust-analyzer as its backend.
 
 ## Native Replacement
 

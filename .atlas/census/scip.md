@@ -15,7 +15,13 @@ canonical: true
 
 ## Census State
 
-Status: SKELETON. Source is cloned and pinned; implementation inspection still needs to classify modules, algorithms, storage, execution, query, incremental behavior, tests, benchmarks, assumptions, accepted ideas, rejected ideas, and Atlas-native replacement gaps.
+Status: DEEP_CENSUSED.
+
+Deep census evidence: `.atlas/census/donors/source-intelligence-lane-2026-09-20.md`.
+
+Observed mechanisms: streaming `Index`, workspace metadata, canonical document paths, position encoding, symbol grammar, occurrence role bitset, symbol information and symbol relationships.
+
+Decision: TARGET_MAPPED. SCIP principles feed `adapter/exchange/source_index`, `core/identity` symbol identity, and `core/model` symbol occurrence records. Runtime dependency remains `REFERENCE_ONLY`; SCIP protobuf is an exchange adapter, not Atlas canonical storage.
 
 ## Native Replacement
 

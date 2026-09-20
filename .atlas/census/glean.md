@@ -15,7 +15,13 @@ canonical: true
 
 ## Census State
 
-Status: SKELETON. Source is cloned and pinned; implementation inspection still needs to classify modules, algorithms, storage, execution, query, incremental behavior, tests, benchmarks, assumptions, accepted ideas, rejected ideas, and Atlas-native replacement gaps.
+Status: DEEP_CENSUSED.
+
+Deep census evidence: `.atlas/census/donors/source-intelligence-lane-2026-09-20.md`.
+
+Observed mechanisms: Angle typed schema, source spans, source queries/statements/patterns, typechecked query IR, fact generators, storage/write queues and benchmark suites.
+
+Decision: TARGET_MAPPED. Glean principles feed `core/model` typed facts and future `runtime/query` typed query IR. Runtime dependency remains `REFERENCE_ONLY`; Atlas will not adopt Glean's Haskell storage service or Angle as ADL.
 
 ## Native Replacement
 

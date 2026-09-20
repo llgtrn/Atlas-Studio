@@ -15,7 +15,13 @@ canonical: true
 
 ## Census State
 
-Status: SKELETON. Source is cloned and pinned; implementation inspection still needs to classify modules, algorithms, storage, execution, query, incremental behavior, tests, benchmarks, assumptions, accepted ideas, rejected ideas, and Atlas-native replacement gaps.
+Status: DEEP_CENSUSED.
+
+Deep census evidence: `.atlas/census/donors/source-intelligence-lane-2026-09-20.md`.
+
+Observed mechanisms: VName identity axes, graph `Entry` facts/edges, rewrite rules, graph serving, xref decorations, cross-reference queries and paged edge lookup.
+
+Decision: TARGET_MAPPED. Kythe principles feed `core/identity`, `core/model`, `runtime/link` and future ATLASX graph/xref projections. Runtime dependency remains `REFERENCE_ONLY`; Kythe tickets are not Atlas canonical user-facing IDs.
 
 ## Native Replacement
 

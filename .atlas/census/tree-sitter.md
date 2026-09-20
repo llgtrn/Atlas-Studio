@@ -15,7 +15,13 @@ canonical: true
 
 ## Census State
 
-Status: SKELETON. Source is cloned and pinned; implementation inspection still needs to classify modules, algorithms, storage, execution, query, incremental behavior, tests, benchmarks, assumptions, accepted ideas, rejected ideas, and Atlas-native replacement gaps.
+Status: DEEP_CENSUSED.
+
+Deep census evidence: `.atlas/census/donors/source-intelligence-lane-2026-09-20.md`.
+
+Observed mechanisms: incremental concrete syntax tree, changed ranges, included ranges, query/capture projection, grammar/runtime language metadata, highlight/tag projections.
+
+Decision: TARGET_MAPPED. Tree-sitter principles feed `adapter/source` syntax extraction and `runtime/ingest` changed-range ingestion. Runtime dependency remains `REFERENCE_ONLY`; Atlas must not make Tree-sitter query captures the canonical semantic graph.
 
 ## Native Replacement
 

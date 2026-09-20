@@ -144,8 +144,18 @@
       "LICENSE"
     ],
     "ingestion_status": "CLONED",
-    "census_status": "SKELETON",
-    "runtime_dependency_status": "REFERENCE_ONLY"
+    "census_status": "DEEP_CENSUSED",
+    "runtime_dependency_status": "REFERENCE_ONLY",
+    "principles_status": "PRINCIPLES_EXTRACTED",
+    "target_mapping_status": "TARGET_MAPPED",
+    "technology_lanes": [
+      "SOURCE_INTELLIGENCE"
+    ],
+    "target_owners": [
+      "core/model",
+      "runtime/query"
+    ],
+    "implementation_status": "PENDING_ATLAS_NATIVE"
   },
   {
     "schema": "atlas.donor-provenance.v1",
@@ -160,8 +170,18 @@
       "LICENSE"
     ],
     "ingestion_status": "CLONED",
-    "census_status": "SKELETON",
-    "runtime_dependency_status": "REFERENCE_ONLY"
+    "census_status": "DEEP_CENSUSED",
+    "runtime_dependency_status": "REFERENCE_ONLY",
+    "principles_status": "PRINCIPLES_EXTRACTED",
+    "target_mapping_status": "TARGET_MAPPED",
+    "technology_lanes": [
+      "SOURCE_INTELLIGENCE"
+    ],
+    "target_owners": [
+      "runtime/link",
+      "runtime/query"
+    ],
+    "implementation_status": "PENDING_ATLAS_NATIVE"
   },
   {
     "schema": "atlas.donor-provenance.v1",
@@ -193,8 +213,19 @@
       "LICENSE"
     ],
     "ingestion_status": "CLONED",
-    "census_status": "SKELETON",
-    "runtime_dependency_status": "REFERENCE_ONLY"
+    "census_status": "DEEP_CENSUSED",
+    "runtime_dependency_status": "REFERENCE_ONLY",
+    "principles_status": "PRINCIPLES_EXTRACTED",
+    "target_mapping_status": "TARGET_MAPPED",
+    "technology_lanes": [
+      "SOURCE_INTELLIGENCE"
+    ],
+    "target_owners": [
+      "core/identity",
+      "core/model",
+      "runtime/link"
+    ],
+    "implementation_status": "PENDING_ATLAS_NATIVE"
   },
   {
     "schema": "atlas.donor-provenance.v1",
@@ -259,8 +290,19 @@
       "LICENSE-MIT"
     ],
     "ingestion_status": "CLONED",
-    "census_status": "SKELETON",
-    "runtime_dependency_status": "REFERENCE_ONLY"
+    "census_status": "DEEP_CENSUSED",
+    "runtime_dependency_status": "REFERENCE_ONLY",
+    "principles_status": "PRINCIPLES_EXTRACTED",
+    "target_mapping_status": "TARGET_MAPPED",
+    "technology_lanes": [
+      "SOURCE_INTELLIGENCE"
+    ],
+    "target_owners": [
+      "adapter/source/rust",
+      "core/identity",
+      "runtime/ingest"
+    ],
+    "implementation_status": "PENDING_ATLAS_NATIVE"
   },
   {
     "schema": "atlas.donor-provenance.v1",
@@ -292,8 +334,19 @@
       "LICENSE"
     ],
     "ingestion_status": "CLONED",
-    "census_status": "SKELETON",
-    "runtime_dependency_status": "REFERENCE_ONLY"
+    "census_status": "DEEP_CENSUSED",
+    "runtime_dependency_status": "REFERENCE_ONLY",
+    "principles_status": "PRINCIPLES_EXTRACTED",
+    "target_mapping_status": "TARGET_MAPPED",
+    "technology_lanes": [
+      "SOURCE_INTELLIGENCE"
+    ],
+    "target_owners": [
+      "adapter/exchange/source_index",
+      "core/identity",
+      "core/model"
+    ],
+    "implementation_status": "PENDING_ATLAS_NATIVE"
   },
   {
     "schema": "atlas.donor-provenance.v1",
@@ -356,8 +409,18 @@
       "LICENSE"
     ],
     "ingestion_status": "CLONED",
-    "census_status": "SKELETON",
-    "runtime_dependency_status": "REFERENCE_ONLY"
+    "census_status": "DEEP_CENSUSED",
+    "runtime_dependency_status": "REFERENCE_ONLY",
+    "principles_status": "PRINCIPLES_EXTRACTED",
+    "target_mapping_status": "TARGET_MAPPED",
+    "technology_lanes": [
+      "SOURCE_INTELLIGENCE"
+    ],
+    "target_owners": [
+      "adapter/source",
+      "runtime/ingest"
+    ],
+    "implementation_status": "PENDING_ATLAS_NATIVE"
   },
   {
     "schema": "atlas.donor-provenance.v1",
@@ -536,4 +599,3 @@
     "runtime_dependency_status": "REFERENCE_ONLY"
   }
 ]
-

@@ -11,7 +11,21 @@
     "LICENSE"
   ],
   "ingestion_status": "CLONED",
-  "census_status": "SKELETON",
-  "runtime_dependency_status": "REFERENCE_ONLY"
+  "census_status": "DEEP_CENSUSED",
+  "principles_status": "PRINCIPLES_EXTRACTED",
+  "target_mapping_status": "TARGET_MAPPED",
+  "technology_lanes": [
+    "SOURCE_INTELLIGENCE"
+  ],
+  "target_owners": [
+    "core/model",
+    "runtime/query"
+  ],
+  "runtime_dependency_status": "REFERENCE_ONLY",
+  "implementation_status": "PENDING_ATLAS_NATIVE",
+  "evidence": [
+    ".atlas/census/glean.md",
+    ".atlas/census/donors/source-intelligence-lane-2026-09-20.md"
+  ]
 }
 

@@ -15,7 +15,13 @@ canonical: true
 
 ## Census State
 
-Status: SKELETON. Source is cloned and pinned; implementation inspection still needs to classify modules, algorithms, storage, execution, query, incremental behavior, tests, benchmarks, assumptions, accepted ideas, rejected ideas, and Atlas-native replacement gaps.
+Status: DEEP_CENSUSED.
+
+Deep census evidence: `.atlas/census/donors/source-intelligence-lane-2026-09-20.md`.
+
+Observed mechanisms: CPG generator wrappers, semantic CPG traversal layer, data-flow engine, query packs, language frontend smoke tests and flatgraph columnar performance migration.
+
+Decision: TARGET_MAPPED. Joern principles feed future `runtime/link` and `runtime/query` code-graph projections. Runtime dependency remains `REFERENCE_ONLY`; Atlas must not execute Joern frontend commands during ingestion.
 
 ## Native Replacement
 

@@ -148,11 +148,14 @@ retrieved_at = "2026-09-20T12:08:55.4960343Z"
 license = [".atlas/licenses/glean/LICENSE"]
 technology_domains = ["source_facts", "cross_reference", "fact_database"]
 ingestion_status = "CLONED"
-census_status = "SKELETON"
-decision_status = "PENDING"
+census_status = "DEEP_CENSUSED"
+decision_status = "TARGET_MAPPED"
 native_replacement = "core facts and durable fact store"
 runtime_dependency_status = "REFERENCE_ONLY"
-evidence = [".atlas/provenance/donors/glean.json", ".atlas/census/glean.md"]
+principles_status = "PRINCIPLES_EXTRACTED"
+implementation_status = "PENDING_ATLAS_NATIVE"
+target_owners = ["core/model", "runtime/query"]
+evidence = [".atlas/provenance/donors/glean.json", ".atlas/census/glean.md", ".atlas/census/donors/source-intelligence-lane-2026-09-20.md"]
 
 [[donor]]
 id = "joern"
@@ -165,11 +168,14 @@ retrieved_at = "2026-09-20T12:08:55.4960343Z"
 license = [".atlas/licenses/joern/LICENSE"]
 technology_domains = ["code_property_graph", "data_flow", "call_graph"]
 ingestion_status = "CLONED"
-census_status = "SKELETON"
-decision_status = "PENDING"
+census_status = "DEEP_CENSUSED"
+decision_status = "TARGET_MAPPED"
 native_replacement = "core graph projections"
 runtime_dependency_status = "REFERENCE_ONLY"
-evidence = [".atlas/provenance/donors/joern.json", ".atlas/census/joern.md"]
+principles_status = "PRINCIPLES_EXTRACTED"
+implementation_status = "PENDING_ATLAS_NATIVE"
+target_owners = ["runtime/link", "runtime/query"]
+evidence = [".atlas/provenance/donors/joern.json", ".atlas/census/joern.md", ".atlas/census/donors/source-intelligence-lane-2026-09-20.md"]
 
 [[donor]]
 id = "kani"
@@ -199,11 +205,14 @@ retrieved_at = "2026-09-20T12:08:55.4960343Z"
 license = [".atlas/licenses/kythe/LICENSE"]
 technology_domains = ["semantic_cross_reference", "schema_indexing"]
 ingestion_status = "CLONED"
-census_status = "SKELETON"
-decision_status = "PENDING"
+census_status = "DEEP_CENSUSED"
+decision_status = "TARGET_MAPPED"
 native_replacement = "source graph symbol identity"
 runtime_dependency_status = "REFERENCE_ONLY"
-evidence = [".atlas/provenance/donors/kythe.json", ".atlas/census/kythe.md"]
+principles_status = "PRINCIPLES_EXTRACTED"
+implementation_status = "PENDING_ATLAS_NATIVE"
+target_owners = ["core/identity", "core/model", "runtime/link"]
+evidence = [".atlas/provenance/donors/kythe.json", ".atlas/census/kythe.md", ".atlas/census/donors/source-intelligence-lane-2026-09-20.md"]
 
 [[donor]]
 id = "miri"
@@ -267,11 +276,14 @@ retrieved_at = "2026-09-20T12:08:55.4960343Z"
 license = [".atlas/licenses/rust-analyzer/LICENSE-APACHE", ".atlas/licenses/rust-analyzer/LICENSE-MIT"]
 technology_domains = ["rust_semantics", "incremental_analysis", "refactoring"]
 ingestion_status = "CLONED"
-census_status = "SKELETON"
-decision_status = "PENDING"
+census_status = "DEEP_CENSUSED"
+decision_status = "TARGET_MAPPED"
 native_replacement = "adapter/parser rust semantic boundary"
 runtime_dependency_status = "REFERENCE_ONLY"
-evidence = [".atlas/provenance/donors/rust-analyzer.json", ".atlas/census/rust-analyzer.md"]
+principles_status = "PRINCIPLES_EXTRACTED"
+implementation_status = "PENDING_ATLAS_NATIVE"
+target_owners = ["adapter/source/rust", "core/identity", "runtime/ingest"]
+evidence = [".atlas/provenance/donors/rust-analyzer.json", ".atlas/census/rust-analyzer.md", ".atlas/census/donors/source-intelligence-lane-2026-09-20.md"]
 
 [[donor]]
 id = "salsa"
@@ -301,11 +313,14 @@ retrieved_at = "2026-09-20T12:08:55.4960343Z"
 license = [".atlas/licenses/scip/LICENSE"]
 technology_domains = ["semantic_index_exchange", "symbol_identity"]
 ingestion_status = "CLONED"
-census_status = "SKELETON"
-decision_status = "PENDING"
+census_status = "DEEP_CENSUSED"
+decision_status = "TARGET_MAPPED"
 native_replacement = "adapter/source-index exchange boundary"
 runtime_dependency_status = "REFERENCE_ONLY"
-evidence = [".atlas/provenance/donors/scip.json", ".atlas/census/scip.md"]
+principles_status = "PRINCIPLES_EXTRACTED"
+implementation_status = "PENDING_ATLAS_NATIVE"
+target_owners = ["adapter/exchange/source_index", "core/identity", "core/model"]
+evidence = [".atlas/provenance/donors/scip.json", ".atlas/census/scip.md", ".atlas/census/donors/source-intelligence-lane-2026-09-20.md"]
 
 [[donor]]
 id = "semgrep"
@@ -369,11 +384,14 @@ retrieved_at = "2026-09-20T12:08:55.4960343Z"
 license = [".atlas/licenses/tree-sitter/LICENSE"]
 technology_domains = ["incremental_parsing", "syntax_trees", "query_languages"]
 ingestion_status = "CLONED"
-census_status = "SKELETON"
-decision_status = "PENDING"
+census_status = "DEEP_CENSUSED"
+decision_status = "TARGET_MAPPED"
 native_replacement = "adapter/parser SourceParser boundary"
 runtime_dependency_status = "REFERENCE_ONLY"
-evidence = [".atlas/provenance/donors/tree-sitter.json", ".atlas/census/tree-sitter.md"]
+principles_status = "PRINCIPLES_EXTRACTED"
+implementation_status = "PENDING_ATLAS_NATIVE"
+target_owners = ["adapter/source", "runtime/ingest"]
+evidence = [".atlas/provenance/donors/tree-sitter.json", ".atlas/census/tree-sitter.md", ".atlas/census/donors/source-intelligence-lane-2026-09-20.md"]
 
 [[donor]]
 id = "verus"
