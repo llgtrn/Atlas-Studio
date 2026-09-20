@@ -1,3 +1,9 @@
+---
+id: ops-production-contracts-integration-versioning
+type: reference
+status: active
+canonical: true
+---
 # Ops Integration Versioning Contract
 
 Ops releases, Chronica releases, MCP contracts, UI host contracts, and event schemas evolve independently. Do not bind compatibility to one monolithic version number.

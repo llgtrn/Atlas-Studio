@@ -1,3 +1,9 @@
+---
+id: ops-production-contracts-naming-standard
+type: reference
+status: active
+canonical: true
+---
 # Ops Naming and Repository Identity Standard
 
 Status: **ACTIVE OPS PRODUCTION CONTRACT — v1**

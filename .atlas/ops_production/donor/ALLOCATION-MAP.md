@@ -1,3 +1,9 @@
+---
+id: ops-production-donor-allocation-map
+type: reference
+status: active
+canonical: true
+---
 # Donor Allocation Map
 
 > Generated governance snapshot for the 2026-09-19 refoundation wave. Source of truth remains `tools/refoundation/donor-corpus.yaml` plus `tools/system-atlas/fleet/ops-registry.yaml`. Do not hand-edit individual assignments here without changing those sources.

@@ -1,3 +1,9 @@
+---
+id: ops-production-contracts-absorption-contract
+type: reference
+status: active
+canonical: true
+---
 # Ops Absorption Contract
 
 This contract defines the terminal lifecycle of a mature acquired/donor-derived Ops repository.

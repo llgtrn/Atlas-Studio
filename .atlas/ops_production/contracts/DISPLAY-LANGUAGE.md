@@ -1,3 +1,9 @@
+---
+id: ops-production-contracts-display-language
+type: reference
+status: active
+canonical: true
+---
 # Ops Product Display Language Contract
 
 Status: **ACTIVE OPS PRODUCTION CONTRACT — v1**

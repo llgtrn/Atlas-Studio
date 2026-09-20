@@ -1,3 +1,9 @@
+---
+id: ops-production-architecture-lego-composability
+type: reference
+status: active
+canonical: true
+---
 # Lego Composability
 
 Ops repositories are production blocks, not temporary staging repos.

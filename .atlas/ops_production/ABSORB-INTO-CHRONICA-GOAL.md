@@ -1,3 +1,9 @@
+---
+id: ops-production-absorb-into-chronica-goal
+type: reference
+status: active
+canonical: true
+---
 # Converge Development Cell / Package Into Chronica Goal
 
 This compatibility path is the terminal convergence prompt for a mature donor-derived Development Cell/package.

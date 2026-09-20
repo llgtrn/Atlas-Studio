@@ -1,3 +1,9 @@
+---
+id: ops-production-architecture-ui-integration-contract
+type: reference
+status: active
+canonical: true
+---
 # UI Integration Contract
 
 Each Ops UI must support both standalone product use and integration into the Chronica human projection layer.

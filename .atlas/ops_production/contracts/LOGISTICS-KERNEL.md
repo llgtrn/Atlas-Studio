@@ -1,3 +1,9 @@
+---
+id: ops-production-contracts-logistics-kernel
+type: reference
+status: active
+canonical: true
+---
 # Ops Logistics Kernel
 
 Status: **ACTIVE OPS PRODUCTION CONTRACT**

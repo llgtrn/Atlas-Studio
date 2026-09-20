@@ -1,3 +1,9 @@
+---
+id: ops-production-contracts-ops-manifest
+type: reference
+status: active
+canonical: true
+---
 # Development Cell / Package Manifest Compatibility Contract
 
 Status: **ACTIVE COMPATIBILITY CONTRACT — v7**

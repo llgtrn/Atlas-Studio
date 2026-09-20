@@ -6,7 +6,10 @@ use std::{io, path::Path};
 pub fn systemize(root: impl AsRef<Path>) -> io::Result<SystemizeReport> {
     let root = root.as_ref();
     let repository = adapter::audit_repository(root)?;
-    let source = adapter::scan_source(root)?;
+    let source = match repository.manifest.as_ref() {
+        Some(manifest) => adapter::scan_declared_source(root, manifest)?,
+        None => adapter::scan_source(root)?,
+    };
     let docs = adapter::audit_docs(root.join(".atlas"))?;
     let graph = summarize_graph(&source);
 

@@ -1,3 +1,9 @@
+---
+id: ops-production-engineering-testing-acceptance
+type: reference
+status: active
+canonical: true
+---
 # Ops Testing and Acceptance
 
 Production readiness must prove both standalone usefulness and Chronica-connected convergence.

@@ -1,3 +1,9 @@
+---
+id: ops-production-engineering-repo-structure
+type: reference
+status: active
+canonical: true
+---
 # Ops Repository and Documentation Structure
 
 This document defines the **incubation repository structure** for an acquired/donor-derived Ops proving ground. It is not the terminal Chronica source layout.

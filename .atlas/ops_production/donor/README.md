@@ -1,3 +1,9 @@
+---
+id: ops-production-donor-readme
+type: reference
+status: active
+canonical: true
+---
 # Ops Donor Intake Router
 
 This directory applies to external sources whose source-admission disposition is:

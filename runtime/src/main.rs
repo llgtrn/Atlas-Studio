@@ -30,7 +30,13 @@ fn run(args: &[String]) -> Result<(), String> {
         }
         [cmd, sub, rest @ ..] if cmd == "code" && sub == "analyze" => {
             let root = value(rest, "--root").ok_or("code analyze requires --root")?;
-            let source = adapter::scan_source(&root).map_err(|e| e.to_string())?;
+            let repository = adapter::audit_repository(&root).map_err(|e| e.to_string())?;
+            let source = match repository.manifest.as_ref() {
+                Some(manifest) => {
+                    adapter::scan_declared_source(&root, manifest).map_err(|e| e.to_string())?
+                }
+                None => adapter::scan_source(&root).map_err(|e| e.to_string())?,
+            };
             let graph = atlas_core::summarize_graph(&source);
             println!(
                 "{}",

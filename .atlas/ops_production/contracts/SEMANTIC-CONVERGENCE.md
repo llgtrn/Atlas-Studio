@@ -1,3 +1,9 @@
+---
+id: ops-production-contracts-semantic-convergence
+type: reference
+status: active
+canonical: true
+---
 # Development Cell / Package Semantic Convergence Contract
 
 Status: **ACTIVE DEVELOPMENT CELL / PACKAGE CONTRACT**

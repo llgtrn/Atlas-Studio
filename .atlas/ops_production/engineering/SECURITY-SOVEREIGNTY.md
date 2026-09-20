@@ -1,3 +1,9 @@
+---
+id: ops-production-engineering-security-sovereignty
+type: reference
+status: active
+canonical: true
+---
 # Ops Security and Sovereignty
 
 Standalone composability must not weaken security. Connected composability must not widen the Chronica/Holding trust boundary.

@@ -1,3 +1,9 @@
+---
+id: ops-production-architecture-mcp-server-contract
+type: reference
+status: active
+canonical: true
+---
 # MCP Server Contract
 
 Every Ops may expose an MCP server as an independent operational surface. This MCP server is **not dependent on Chronica** and can be used by Claude Code or another MCP client to operate the Ops locally.

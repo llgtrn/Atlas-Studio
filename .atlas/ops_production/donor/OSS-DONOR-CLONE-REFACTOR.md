@@ -1,3 +1,9 @@
+---
+id: ops-production-donor-oss-donor-clone-refactor
+type: reference
+status: active
+canonical: true
+---
 # Donor Full-Repository Acquisition and Refactor Contract
 
 Production Ops are donor-first and **full-repository-intake first**. The default path is not to recreate a product from memory, cherry-pick a few donor files, wrap a remote API forever, or keep donor architecture alive beside a new Chronica-shaped layer.

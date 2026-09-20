@@ -1,3 +1,9 @@
+---
+id: ops-production-architecture-standalone-connected-modes
+type: reference
+status: active
+canonical: true
+---
 # Standalone and Connected Modes
 
 Every Ops must support two deliberate modes without forking the product codebase.

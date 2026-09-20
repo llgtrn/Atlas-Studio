@@ -1,3 +1,9 @@
+---
+id: ops-production-contracts-port-contract
+type: reference
+status: active
+canonical: true
+---
 # Ops Port Contract
 
 All external surfaces MUST converge on one application command/query layer. UI, API, CLI, MCP, workers, and Chronica integration are ports around the same Ops Core; they are not parallel implementations.

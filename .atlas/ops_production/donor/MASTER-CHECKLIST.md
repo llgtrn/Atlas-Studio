@@ -1,3 +1,9 @@
+---
+id: ops-production-donor-master-checklist
+type: reference
+status: active
+canonical: true
+---
 # Donor Corpus Master Checklist (generated)
 
 > **Generated from `tools/refoundation/donor-corpus.yaml` by `node tools/refoundation/donor-corpus.mjs --report`. Do not hand-edit this file — edit the YAML checklist and regenerate.**

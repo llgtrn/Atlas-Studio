@@ -81,6 +81,30 @@ pub fn scan_source(root: impl AsRef<Path>) -> io::Result<SourceReport> {
     let root: PathBuf = root.as_ref().canonicalize()?;
     let mut files = Vec::new();
     visit_source(&root, &root, &mut files)?;
+    finish_source_report(root, files)
+}
+
+pub fn scan_declared_source(
+    root: impl AsRef<Path>,
+    manifest: &RepoManifest,
+) -> io::Result<SourceReport> {
+    let root: PathBuf = root.as_ref().canonicalize()?;
+    let mut files = Vec::new();
+    let mut roots = manifest.source_roots.clone();
+    roots.extend(manifest.frontend_roots.clone());
+    roots.extend(manifest.test_roots.clone());
+    roots.sort();
+    roots.dedup();
+    for declared in roots {
+        let path = root.join(&declared);
+        if path.exists() {
+            visit_source(&root, &path, &mut files)?;
+        }
+    }
+    finish_source_report(root, files)
+}
+
+fn finish_source_report(root: PathBuf, mut files: Vec<FileFact>) -> io::Result<SourceReport> {
     files.sort_by(|a, b| a.path.cmp(&b.path));
     let mut languages = BTreeMap::new();
     for file in &files {
@@ -305,6 +329,10 @@ pub fn audit_docs(root: impl AsRef<Path>) -> io::Result<DocsReport> {
     })
 }
 
+fn has_frontmatter(text: &str) -> bool {
+    text.starts_with("---\n") || text.starts_with("---\r\n")
+}
+
 fn visit_docs(
     root: &Path,
     dir: &Path,
@@ -335,7 +363,7 @@ fn visit_docs(
         }
         *documents_total += 1;
         let text = fs::read_to_string(&path)?;
-        if text.starts_with("---\n") {
+        if has_frontmatter(&text) {
             *canonical_frontmatter_total += 1;
         } else {
             missing_frontmatter.push(

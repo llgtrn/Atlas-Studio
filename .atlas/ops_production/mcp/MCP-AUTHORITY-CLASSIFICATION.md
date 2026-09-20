@@ -1,3 +1,9 @@
+---
+id: ops-production-mcp-mcp-authority-classification
+type: reference
+status: active
+canonical: true
+---
 # MCP Authority Classification
 
 An Ops MCP server is a first-class standalone product surface for Claude Code and other MCP clients. It may run with Chronica completely absent during incubation, and it may remain independently runnable **after source absorption** as a thin distribution built from the Chronica monorepo.

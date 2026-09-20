@@ -1,3 +1,9 @@
+---
+id: ops-production-roadmap-vertical-refactor-proofs
+type: reference
+status: active
+canonical: true
+---
 # Vertical Refactor and Absorption Proofs
 
 Do not refactor an Ops in one giant rewrite. Prove one real production vertical at a time from donor behavior to standalone Ops to Chronica-connected execution, then absorb the mature source into canonical Chronica ownership.

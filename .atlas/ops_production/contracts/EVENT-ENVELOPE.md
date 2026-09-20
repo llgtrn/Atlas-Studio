@@ -1,3 +1,9 @@
+---
+id: ops-production-contracts-event-envelope
+type: reference
+status: active
+canonical: true
+---
 # Ops Event Envelope Contract
 
 Ops events must be durable, identifiable, replayable, correlatable, versioned, and safe to reconcile across standalone and Chronica-connected operation.

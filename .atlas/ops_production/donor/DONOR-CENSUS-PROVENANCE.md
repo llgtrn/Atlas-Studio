@@ -1,3 +1,9 @@
+---
+id: ops-production-donor-donor-census-provenance
+type: reference
+status: active
+canonical: true
+---
 # Donor Census, Acquisition Evidence and Provenance
 
 Every production Ops refactor starts with evidence about the donor that actually exists. For an acquired/deep-forked product, the census covers **the complete tracked donor repository, the rights relied upon for modification/white-labeling, the donor brand surface, and the documentation surface**.

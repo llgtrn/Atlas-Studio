@@ -1,3 +1,9 @@
+---
+id: ops-production-production-north-star
+type: reference
+status: active
+canonical: true
+---
 # Development Cell / Package Production North Star
 
 This path retains the historical "Ops" name for compatibility. The semantic unit is now a **Development Cell** that incubates a **Chronica Package** from real donor/acquired source and domain-focused engineering.

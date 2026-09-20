@@ -1,3 +1,9 @@
+---
+id: ops-production-100-percent-integration-checklist
+type: reference
+status: active
+canonical: true
+---
 # 100% Integration, Refoundation, Absorption, and Production Release Gate
 
 An Ops is not ready for Chronica merely because it has one webhook, one bridge, one MCP tool, a renamed logo, or a new architecture beside untouched donor code. Production maturity is evidence-based across **real donor Git baseline, complete donor intake, Chronica conflict audit, semantic convergence, monotonic legacy burn-down, IP/provenance, Chronica-branded product refoundation, docs governance, standalone operation, semantic/Fabric compatibility, authority, evidence, recovery and terminal absorption**.

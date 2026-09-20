@@ -1,3 +1,9 @@
+---
+id: ops-production-donor-absorption-resume-board
+type: reference
+status: active
+canonical: true
+---
 # Absorption Resume Board
 
 Generated from `tools/refoundation/donor-corpus.yaml` and repository source state at 2026-09-19T12:12:31.210Z.

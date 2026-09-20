@@ -1,3 +1,9 @@
+---
+id: ops-production-contracts-source-admission
+type: reference
+status: active
+canonical: true
+---
 # Ops External Source Admission Contract
 
 Status: **ACTIVE OPS PRODUCTION CONTRACT — v1**

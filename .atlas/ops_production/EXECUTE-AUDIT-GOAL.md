@@ -1,3 +1,9 @@
+---
+id: ops-production-execute-audit-goal
+type: reference
+status: active
+canonical: true
+---
 # Development Cell / Package Execute + Audit Goal
 
 This compatibility path is the execution prompt for coding agents operating an acquired/donor-derived legacy `*Ops` repository as a **Development Cell** under the Chronica Package model.

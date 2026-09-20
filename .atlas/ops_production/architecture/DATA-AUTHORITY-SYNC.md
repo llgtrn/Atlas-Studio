@@ -1,3 +1,9 @@
+---
+id: ops-production-architecture-data-authority-sync
+type: reference
+status: active
+canonical: true
+---
 # Data, Authority, and Sync
 
 This document defines how an Ops owns data in standalone mode and converges with Chronica in connected mode.

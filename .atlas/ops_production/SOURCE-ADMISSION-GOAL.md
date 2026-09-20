@@ -1,3 +1,9 @@
+---
+id: ops-production-source-admission-goal
+type: reference
+status: active
+canonical: true
+---
 # Ops External Source Admission Goal
 
 This is the **single execution prompt for agents deciding whether and how external code may enter an Ops/Chronica trust boundary**.

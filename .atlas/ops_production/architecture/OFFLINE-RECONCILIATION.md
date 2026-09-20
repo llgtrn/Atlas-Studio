@@ -1,3 +1,9 @@
+---
+id: ops-production-architecture-offline-reconciliation
+type: reference
+status: active
+canonical: true
+---
 # Offline, Reconnect, and Reconciliation
 
 Standalone capability and Chronica connectivity must survive network failure, process restarts, duplicate provider delivery, and partial execution. Steady-state connectivity is not enough for production.

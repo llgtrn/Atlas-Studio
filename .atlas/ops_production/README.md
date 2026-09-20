@@ -1,3 +1,9 @@
+---
+id: ops-production-readme
+type: reference
+status: active
+canonical: true
+---
 # Development Cell / Package Production Compatibility Guide
 
 The `docs/ops_production/` path is retained for compatibility with existing links and repository history. Its semantic unit is no longer an independent "Ops system".

@@ -1,3 +1,9 @@
+---
+id: ops-production-engineering-deployment-local-cloud
+type: reference
+status: active
+canonical: true
+---
 # Ops Deployment: Local and Cloud
 
 An Ops must have an independent deployment story and an optional connected deployment story.

@@ -1,3 +1,9 @@
+---
+id: ops-production-architecture-chronica-integration-contract
+type: reference
+status: active
+canonical: true
+---
 # Chronica Integration Contract
 
 Status: **ACTIVE OPS INTEGRATION CONTRACT**
