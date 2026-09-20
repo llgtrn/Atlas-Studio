@@ -1,4 +1,4 @@
-schema = "atlas.systemizer.subsystem.v2"
+schema = "atlas.systemizer.subsystem.v3"
 name = "Atlas Systemizer"
 repository = "llgtrn/Atlas-Systemizer"
 binary = "atlas-systemizer"
@@ -7,7 +7,7 @@ subsystem_kind = "SYSTEM_INVENTION_FORGE"
 
 [boundary]
 runtime_dependency_allowed_in_targets = false
-target_repositories_require_atlas_files = false
+target_repositories_require_atlas_knowledge_root = true
 atlas_may_read_registered_repositories = true
 atlas_may_emit_analysis_and_plans = true
 atlas_has_merge_authority = false
@@ -18,18 +18,20 @@ backend_language = "Rust"
 frontend_language = "TypeScript"
 donor_engines_are_runtime_dependencies = false
 
-[documentation]
+[knowledge]
+root = ".atlas"
 standard = "atlas.docs.v1"
-source_repository = "llgtrn/Atlas-Systemizer"
-lineage_origin_repository = "llgtrn/Chronica"
-lineage_origin_revision = "bea475df7fc04e04836055171a23daf94f095069"
+source_repository = "llgtrn/Chronica"
 exceptions_allowed = false
 coding_requires_docs_gate = true
+durable_generated_roots = [".atlas/plans", ".atlas/roadmap", ".atlas/artifacts", ".atlas/evidence", ".atlas/graph"]
+transient_roots = [".atlas/.cache", ".atlas/tmp"]
 
 [stable_cli]
 contract = ["contract", "--format", "json"]
 fleet_connect = ["fleet", "connect", "--manifest", "fleet/repos.yaml", "--format", "json"]
-systemize = ["systemize", "--root", "<workspace>", "--out", "<report>"]
-docs_audit = ["docs", "audit", "--root", "<docs-root>", "--format", "json"]
+repo_bootstrap = ["repo", "bootstrap", "--root", "<workspace>", "--repo", "<owner/name>"]
+systemize = ["systemize", "--root", "<workspace>", "--out", ".atlas/artifacts/systemize.json"]
+docs_audit = ["docs", "audit", "--root", ".atlas", "--format", "json"]
 code_analyze = ["code", "analyze", "--root", "<source-root>", "--format", "json"]
 work_prepare = ["work", "prepare", "--repo", "<registered-repo>", "--root", "<checkout>", "--base-sha", "<exact-sha>", "--scope", "<scope>"]

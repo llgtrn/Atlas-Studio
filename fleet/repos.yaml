@@ -10,7 +10,7 @@ connection:
   auto_connect_registered_repositories: true
   mode: READ_ONLY_OBSERVATION
   resolve_exact_head_sha: true
-  target_repo_requires_atlas_metadata: false
+  target_repo_requires_atlas_knowledge_root: true
 
 coding:
   canonical_target_per_session: 1
@@ -40,6 +40,6 @@ mirror_policy:
   create_on_demand: true
   exact_target_sha_required: true
   initial_tree_must_match_target: true
-  docs_are_copied_from_target: true
-  atlas_metadata_stays_external: true
+  atlas_knowledge_is_repository_local: true
+  atlas_knowledge_stays_in_repository: true
   reconverge_then_archive_or_delete: true

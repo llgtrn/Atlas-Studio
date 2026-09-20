@@ -1,27 +1,36 @@
 schema = "atlas.docs.v1"
 version = 1
-source_standard = "llgtrn/Atlas-Systemizer"
-lineage_origin_repository = "llgtrn/Chronica"
-lineage_origin_revision = "bea475df7fc04e04836055171a23daf94f095069"
+source_standard = "llgtrn/Chronica"
 exceptions_allowed = false
+knowledge_root = ".atlas"
+legacy_docs_root_forbidden = true
 coding_requires_docs_gate = true
 all_markdown_requires_frontmatter = true
 required_frontmatter = ["id", "type", "status", "canonical"]
 document_types = ["decision", "blueprint", "architecture", "contract", "runbook", "reference", "generated-evidence"]
 
 required_control_docs = [
-  "docs/README.md",
-  "docs/INDEX.md",
-  "docs/TEMPLATE.md",
-  "docs/architecture/README.md",
-  "docs/architecture/constitution/NORTH-STAR.md",
-  "docs/architecture/SYSTEM.md",
-  "docs/blueprints/SYSTEM-BLUEPRINT.md",
-  "docs/contracts/SYSTEM-CONTRACT.md",
-  "docs/decisions/README.md",
-  "docs/guides/DEVELOPMENT.md",
-  "docs/references/README.md",
+  ".atlas/README.md",
+  ".atlas/INDEX.md",
+  ".atlas/TEMPLATE.md",
+  ".atlas/architecture/README.md",
+  ".atlas/architecture/constitution/NORTH-STAR.md",
+  ".atlas/architecture/SYSTEM.md",
+  ".atlas/blueprints/SYSTEM-BLUEPRINT.md",
+  ".atlas/contracts/SYSTEM-CONTRACT.md",
+  ".atlas/decisions/README.md",
+  ".atlas/guides/DEVELOPMENT.md",
+  ".atlas/references/README.md",
+  ".atlas/roadmap/ROADMAP.md",
+  ".atlas/plans/README.md",
+  ".atlas/artifacts/README.md",
+  ".atlas/evidence/README.md",
+  ".atlas/graph/README.md",
 ]
+
+[semantic_sufficiency]
+placeholder_tokens_forbidden = ["TODO", "TBD", "PLACEHOLDER", "FILL_ME"]
+required_section_min_characters = 40
 
 [canonicality]
 generated_evidence_may_be_canonical = false
@@ -37,9 +46,10 @@ north_star_required = true
 architecture_required = true
 blueprint_required = true
 contracts_required = true
+roadmap_required = true
 development_guide_required = true
 code_before_docs_forbidden = true
 
 [target_repository]
-atlas_metadata_required = false
+atlas_knowledge_root_required = true
 atlas_runtime_dependency_allowed = false

@@ -40,7 +40,7 @@ fn run(args: &[String]) -> Result<(),String> {
             let scope=values(rest,"--scope");
             if scope.is_empty() { return Err("work prepare requires at least one --scope".into()); }
             let repository=atlas_repo::audit(&root).map_err(|e| e.to_string())?;
-            let docs=atlas_docs::audit(PathBuf::from(&root).join("docs")).map_err(|e| e.to_string())?;
+            let docs=atlas_docs::audit(PathBuf::from(&root).join(".atlas")).map_err(|e| e.to_string())?;
             let request=atlas_fleet::WorkRequest {
                 id: format!("work:{}", repo.replace('/','-')),
                 repo,

@@ -1,3 +1,4 @@
 /target/
-/.atlas/
+.atlas/.cache/
+.atlas/tmp/
 .DS_Store

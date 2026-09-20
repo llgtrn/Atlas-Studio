@@ -1,0 +1,14 @@
+schema = "atlas.repo.v2"
+repo = "llgtrn/Atlas-Systemizer"
+kind = "ENGINEERING_FORGE"
+knowledge_root = ".atlas"
+legacy_docs_root_forbidden = true
+
+[code]
+backend_roots = ["crates"]
+frontend_roots = ["apps/studio"]
+
+[atlas]
+human_readable = true
+durable_roots = [".atlas/architecture", ".atlas/blueprints", ".atlas/contracts", ".atlas/decisions", ".atlas/guides", ".atlas/references", ".atlas/roadmap", ".atlas/plans", ".atlas/artifacts", ".atlas/evidence", ".atlas/graph"]
+transient_roots = [".atlas/.cache", ".atlas/tmp"]

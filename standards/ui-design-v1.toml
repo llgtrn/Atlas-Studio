@@ -1,5 +1,5 @@
-schema = "atlas.ui.v1"
-version = 1
+schema = "atlas.ui.v2"
+version = 2
 implementation_language = "TypeScript/TSX"
 
 [principles]
@@ -9,10 +9,14 @@ keyboard_navigation_required = true
 graph_is_primary_canvas = true
 inspector_over_modal_sprawl = true
 evidence_visible_by_default = true
+atlas_knowledge_is_human_readable = true
+fleet_and_selected_repo_are_visible_together = true
 design_donor_is_not_runtime_authority = true
 
 [surfaces]
-shell = ["sidebar", "command_palette", "workspace_tabs", "status_bar"]
+shell = ["fleet_navigator", "command_palette", "workspace_tabs", "status_bar"]
+fleet = ["primary_repo", "related_repositories", "head_sha", "knowledge_gate", "ci_state", "selected_repo"]
+knowledge = ["north_star", "architecture", "blueprints", "contracts", "roadmap", "plans", "artifacts", "evidence", "graph"]
 graph = ["canvas", "minimap", "node_inspector", "edge_inspector", "diff_overlay"]
 engineering = ["repo_matrix", "work_queue", "ci_evidence", "donor_lineage", "design_diff"]
-docs = ["doc_graph", "canonicality_badge", "supersession_view", "broken_ref_panel"]
+code = ["selected_repo_tree", "symbol_graph", "dependency_closure", "change_plan"]
