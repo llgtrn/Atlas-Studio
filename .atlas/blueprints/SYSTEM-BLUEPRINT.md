@@ -8,56 +8,65 @@ canonical: true
 
 ## Objective
 
-Build a reusable engineering-world compiler that can ingest very large software/research corpora, understand them from repo scale down to semantic atoms, synthesize improved native designs, encode the design world as a dense `*.atlas` artifact, expand the selected implementation as `*.atlasx/`, and compile it into verified target software.
+Build a reusable engineering-world compiler that can account for an admitted engineering corpus without silent omission, preserve every discovered function and required semantic atom, synthesize improved designs, publish them as a dense sharded logical `*.atlas`, deterministically expand a selected executable world as `*.atlasx/`, and compile it into verified hardware/workload-specialized products.
 
 ## Construction sequence
 
-1. Atlas Genome source and lock semantics.
-2. Universal graph primitives and global identity.
-3. Evidence/provenance/epistemic model.
-4. Secure source/research admission.
-5. Adaptive census scope engine.
-6. ATLAS dense binary format, chunk/index/integrity model and transactional writer/reader.
-7. Design synthesis and technology comparison over the same graph.
-8. ATLASX deterministic expanded executable repository format.
-9. Phase 1 delegated compiler through Rust/TypeScript/C boundaries.
-10. Phase 2 typed HIR/MIR and semantic optimizer.
-11. Phase 3 LLVM/Cranelift/WASM/external native backends.
-12. Phase 4 Atlas-native machine backend.
-13. World Canvas with semantic level-of-detail over the same graph.
-14. Continuous recensus, evidence and compiler self-hosting.
+1. Atlas Genome source, versioning and lock/hash semantics.
+2. Universal graph, global identity, binding, evidence and temporal primitives.
+3. Secure corpus admission and complete inventory accounting.
+4. Multi-engine Rust Census Engine with S0→S10 scope lattice.
+5. Function-level semantic accounting, CFG/dataflow/state/effect extraction and explicit unknown/dynamic records.
+6. Cross-scope reconciliation, adversarial gap queries, fixed-point convergence and CensusCertificate.
+7. Dense binary ATLAS writer/reader with semantic dedup, chunking, compression, integrity, random access and transactional publication.
+8. Logical Atlas root manifests, content-addressed shards, lazy fetch and partial materialization.
+9. Research correlation, gap graph, invention candidates, validation and selected-design graph.
+10. Deterministic ATLASX expanded executable representation.
+11. Phase 1 delegated Rust/TypeScript/bounded-C compiler.
+12. Phase 2 Atlas HIR/MIR plus semantic/memory/concurrency optimizer.
+13. Phase 3 LIR plus LLVM/Cranelift/WASM/accelerator backends.
+14. Phase 4 Machine IR plus Atlas-native instruction selection/register allocation/scheduling/object emission.
+15. Whole-program/LTO/link/post-link optimization.
+16. Deployment/hardware/workload specialization, PGO and empirical auto-tuning.
+17. Product lineage/evidence, runtime profiling and recensus feedback.
+18. World Canvas only as projection over the same engine and graph.
+19. Compiler self-hosting after semantic/runtime maturity.
 
 ## Repository generation invariant
 
-Every generated repo must have the same universal semantic spine even when its domain and physical folder layout differ:
+Every generated repository preserves:
 
 ```text
-identity
-scope
-node
-edge
-binding
-state
-event
-temporal
-evidence
-provenance
-constraint/invariant
-interface/capability
-effect
-materialization
+Identity
+Scope
+Node / Edge / Binding
+State / Event / Temporal
+Evidence / Provenance / Claim
+Constraint / Invariant
+Interface / Capability / Effect
+Materialization
 ```
 
-A repo may define domain-specific node/edge kinds but may not replace the universal spine with a private graph universe.
+Domain extensions may extend but never replace this spine.
 
-## Bootstrap materialization policy
+## Census invariant
 
-Until the native compiler matures:
+Adaptive depth never means silent omission. Every discovered function exists in Atlas. Critical functions may require S10 semantic-atom closure and UNKNOWN = 0 before sealing.
 
-- backend/runtime materializes to Rust;
-- frontend materializes to TypeScript/TSX;
-- C appears only at explicit FFI/device/OS/vendor boundaries;
-- generated code is recensused and compared with the intended Atlas graph;
-- donor code is not copied as the native architecture.
+## Format invariant
 
-Generated source remains a materialization of Atlas meaning. Mutation requires explicit bounded work and exact repository lineage.
+```text
+Sources/Reality
+  → SEALED Logical *.atlas
+  → selected deterministic *.atlasx/
+  → compiler IRs
+  → physical product
+```
+
+A logical Atlas may be physically sharded without becoming multiple truth systems.
+
+## Performance invariant
+
+Optimization begins at graph/world level before machine IR. The compiler should ask whether an abstraction, serialization, dynamic binding, copy, allocation, service boundary or state placement is necessary before micro-optimizing its instructions.
+
+Faster output that breaks graph, authority, temporal, evidence, safety, transaction or recovery semantics is invalid.
