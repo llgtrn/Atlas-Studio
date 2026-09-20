@@ -1,6 +1,8 @@
 //! Atlas adapters for external repository mechanics.
 
-use atlas_core::{DocsReport, FileFact, RepoAudit, RepoManifest, SourceReport, validate_manifest};
+use atlas_core::{
+    DocsReport, DocumentFact, FileFact, RepoAudit, RepoManifest, SourceReport, validate_manifest,
+};
 use std::{
     collections::BTreeMap,
     fs, io,
@@ -308,12 +310,14 @@ pub fn audit_docs(root: impl AsRef<Path>) -> io::Result<DocsReport> {
     let mut documents_total = 0;
     let mut canonical_frontmatter_total = 0;
     let mut missing_frontmatter = Vec::new();
+    let mut documents = Vec::new();
     visit_docs(
         &root,
         &root,
         &mut documents_total,
         &mut canonical_frontmatter_total,
         &mut missing_frontmatter,
+        &mut documents,
     )?;
     let hard_violations_total = required_control_docs_missing.len() + missing_frontmatter.len();
     Ok(DocsReport {
@@ -326,11 +330,80 @@ pub fn audit_docs(root: impl AsRef<Path>) -> io::Result<DocsReport> {
         canonical_frontmatter_total,
         required_control_docs_missing,
         missing_frontmatter,
+        documents,
     })
 }
 
 fn has_frontmatter(text: &str) -> bool {
     text.starts_with("---\n") || text.starts_with("---\r\n")
+}
+
+fn frontmatter(text: &str) -> BTreeMap<String, String> {
+    if !has_frontmatter(text) {
+        return BTreeMap::new();
+    }
+    let body = if let Some(rest) = text.strip_prefix("---\r\n") {
+        rest
+    } else {
+        text.strip_prefix("---\n").unwrap_or(text)
+    };
+    let Some(end) = body.find("\n---") else {
+        return BTreeMap::new();
+    };
+    let mut fields = BTreeMap::new();
+    for line in body[..end].lines() {
+        if let Some((key, value)) = line.split_once(':') {
+            fields.insert(
+                key.trim().to_owned(),
+                value.trim().trim_matches('"').to_owned(),
+            );
+        }
+    }
+    fields
+}
+
+fn markdown_title(text: &str) -> Option<String> {
+    text.lines()
+        .find_map(|line| line.strip_prefix("# ").map(|title| title.trim().to_owned()))
+}
+
+fn markdown_headings(text: &str) -> Vec<String> {
+    text.lines()
+        .filter_map(|line| {
+            let trimmed = line.trim_start();
+            if !trimmed.starts_with('#') {
+                return None;
+            }
+            let heading = trimmed.trim_start_matches('#').trim();
+            if heading.is_empty() {
+                None
+            } else {
+                Some(heading.to_owned())
+            }
+        })
+        .collect()
+}
+
+fn path_references(text: &str) -> Vec<String> {
+    let mut references = Vec::new();
+    for root in ["core/", "runtime/", "adapter/", "apps/ui/"] {
+        let mut cursor = 0;
+        while let Some(offset) = text[cursor..].find(root) {
+            let start = cursor + offset;
+            let tail = &text[start..];
+            let end = tail
+                .find(|ch: char| {
+                    !(ch.is_ascii_alphanumeric() || matches!(ch, '/' | '\\' | '.' | '_' | '-'))
+                })
+                .unwrap_or(tail.len());
+            let candidate = tail[..end].replace('\\', "/");
+            if candidate.contains('.') && !references.contains(&candidate) {
+                references.push(candidate);
+            }
+            cursor = start + end.max(root.len());
+        }
+    }
+    references
 }
 
 fn visit_docs(
@@ -339,6 +412,7 @@ fn visit_docs(
     documents_total: &mut usize,
     canonical_frontmatter_total: &mut usize,
     missing_frontmatter: &mut Vec<String>,
+    documents: &mut Vec<DocumentFact>,
 ) -> io::Result<()> {
     let mut entries: Vec<_> = fs::read_dir(dir)?.collect::<Result<_, _>>()?;
     entries.sort_by_key(|e| e.file_name());
@@ -355,6 +429,7 @@ fn visit_docs(
                 documents_total,
                 canonical_frontmatter_total,
                 missing_frontmatter,
+                documents,
             )?;
             continue;
         }
@@ -363,16 +438,27 @@ fn visit_docs(
         }
         *documents_total += 1;
         let text = fs::read_to_string(&path)?;
+        let relative = path
+            .strip_prefix(root)
+            .unwrap_or(&path)
+            .to_string_lossy()
+            .replace('\\', "/");
+        let meta = frontmatter(&text);
         if has_frontmatter(&text) {
             *canonical_frontmatter_total += 1;
         } else {
-            missing_frontmatter.push(
-                path.strip_prefix(root)
-                    .unwrap_or(&path)
-                    .to_string_lossy()
-                    .replace('\\', "/"),
-            );
+            missing_frontmatter.push(relative.clone());
         }
+        documents.push(DocumentFact {
+            path: format!(".atlas/{relative}"),
+            id: meta.get("id").cloned(),
+            kind: meta.get("type").cloned(),
+            status: meta.get("status").cloned(),
+            canonical: meta.get("canonical").map(String::as_str) == Some("true"),
+            title: markdown_title(&text),
+            headings: markdown_headings(&text),
+            references: path_references(&text),
+        });
     }
     Ok(())
 }

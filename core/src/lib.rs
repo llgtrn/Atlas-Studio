@@ -161,6 +161,19 @@ pub struct DocsReport {
     pub canonical_frontmatter_total: usize,
     pub required_control_docs_missing: Vec<String>,
     pub missing_frontmatter: Vec<String>,
+    pub documents: Vec<DocumentFact>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct DocumentFact {
+    pub path: String,
+    pub id: Option<String>,
+    pub kind: Option<String>,
+    pub status: Option<String>,
+    pub canonical: bool,
+    pub title: Option<String>,
+    pub headings: Vec<String>,
+    pub references: Vec<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
@@ -361,8 +374,104 @@ pub fn build_source_graph(source: &SourceReport) -> EngineeringGraph {
     }
 }
 
+pub fn build_repository_graph(source: &SourceReport, docs: &DocsReport) -> EngineeringGraph {
+    let mut graph = build_source_graph(source);
+    let mut node_ids_by_identity = BTreeMap::new();
+    for node in &graph.nodes {
+        node_ids_by_identity.insert(node.identity.clone(), node.id.clone());
+    }
+
+    for document in &docs.documents {
+        let document_id = stable_id("node", &format!("document:{}", document.path));
+        let mut attributes = BTreeMap::new();
+        if let Some(id) = &document.id {
+            attributes.insert("document_id".into(), id.clone());
+        }
+        if let Some(kind) = &document.kind {
+            attributes.insert("document_type".into(), kind.clone());
+        }
+        if let Some(status) = &document.status {
+            attributes.insert("status".into(), status.clone());
+        }
+        if let Some(title) = &document.title {
+            attributes.insert("title".into(), title.clone());
+        }
+        attributes.insert("canonical".into(), document.canonical.to_string());
+        graph.nodes.push(Node {
+            id: document_id.clone(),
+            kind: "Document".into(),
+            identity: document.path.clone(),
+            attributes,
+            provenance: provenance(&document.path, "atlas-core.document-graph"),
+            revision: None,
+        });
+
+        for heading in &document.headings {
+            let section_id = stable_id(
+                "node",
+                &format!("document-section:{}:{heading}", document.path),
+            );
+            graph.nodes.push(Node {
+                id: section_id.clone(),
+                kind: "DocumentSection".into(),
+                identity: format!("{}#{heading}", document.path),
+                attributes: BTreeMap::from([("heading".into(), heading.clone())]),
+                provenance: provenance(&document.path, "atlas-core.document-graph"),
+                revision: None,
+            });
+            graph.edges.push(Edge {
+                id: stable_id("edge", &format!("{document_id}:CONTAINS:{section_id}")),
+                kind: "CONTAINS".into(),
+                from: document_id.clone(),
+                to: section_id,
+                attributes: BTreeMap::new(),
+                provenance: provenance(&document.path, "atlas-core.document-graph"),
+                revision: None,
+            });
+        }
+
+        for reference in &document.references {
+            if let Some(target_id) = node_ids_by_identity.get(reference) {
+                let edge_id = stable_id("edge", &format!("{document_id}:DOCUMENTS:{target_id}"));
+                graph.edges.push(Edge {
+                    id: edge_id,
+                    kind: "DOCUMENTS".into(),
+                    from: document_id.clone(),
+                    to: target_id.clone(),
+                    attributes: BTreeMap::from([("reference".into(), reference.clone())]),
+                    provenance: provenance(&document.path, "atlas-core.document-graph"),
+                    revision: None,
+                });
+                graph.bindings.push(Binding {
+                    id: stable_id(
+                        "binding",
+                        &format!("{document_id}:DocumentationBinding:{target_id}"),
+                    ),
+                    source: document_id.clone(),
+                    target: target_id.clone(),
+                    binding_kind: "DocumentationBinding".into(),
+                    confidence: 0.85,
+                    evidence: vec![document.path.clone(), reference.clone()],
+                    revision: None,
+                });
+            }
+        }
+    }
+
+    graph
+}
+
 pub fn summarize_graph(source: &SourceReport) -> GraphSummary {
     let graph = build_source_graph(source);
+    summarize_engineering_graph(&graph, source)
+}
+
+pub fn summarize_repository_graph(source: &SourceReport, docs: &DocsReport) -> GraphSummary {
+    let graph = build_repository_graph(source, docs);
+    summarize_engineering_graph(&graph, source)
+}
+
+fn summarize_engineering_graph(graph: &EngineeringGraph, source: &SourceReport) -> GraphSummary {
     let mut language_nodes: Vec<_> = source.languages.keys().cloned().collect();
     language_nodes.sort();
     GraphSummary {

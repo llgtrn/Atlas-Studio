@@ -1,6 +1,6 @@
 //! Atlas runtime orchestration.
 
-use atlas_core::{CLI_API, CodingAdmission, SystemizeReport, summarize_graph};
+use atlas_core::{CLI_API, CodingAdmission, SystemizeReport, summarize_repository_graph};
 use std::{io, path::Path};
 
 pub fn systemize(root: impl AsRef<Path>) -> io::Result<SystemizeReport> {
@@ -11,7 +11,7 @@ pub fn systemize(root: impl AsRef<Path>) -> io::Result<SystemizeReport> {
         None => adapter::scan_source(root)?,
     };
     let docs = adapter::audit_docs(root.join(".atlas"))?;
-    let graph = summarize_graph(&source);
+    let graph = summarize_repository_graph(&source, &docs);
 
     let mut blockers = Vec::new();
     if !repository.ready {

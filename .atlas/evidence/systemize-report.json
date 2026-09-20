@@ -52,7 +52,1739 @@
     "documents_total": 89,
     "canonical_frontmatter_total": 89,
     "required_control_docs_missing": [],
-    "missing_frontmatter": []
+    "missing_frontmatter": [],
+    "documents": [
+      {
+        "path": ".atlas/INDEX.md",
+        "id": "atlas.docs.index",
+        "kind": "reference",
+        "status": "active",
+        "canonical": true,
+        "title": "Atlas Documentation Index",
+        "headings": [
+          "Atlas Documentation Index",
+          "Start Here",
+          "Canonical Documents",
+          "Coding Route"
+        ],
+        "references": []
+      },
+      {
+        "path": ".atlas/README.md",
+        "id": "atlas.docs.readme",
+        "kind": "reference",
+        "status": "active",
+        "canonical": true,
+        "title": "Atlas Systemizer Documentation",
+        "headings": [
+          "Atlas Systemizer Documentation",
+          "Purpose",
+          "Start Here",
+          "Documentation Gate"
+        ],
+        "references": []
+      },
+      {
+        "path": ".atlas/TEMPLATE.md",
+        "id": "atlas.docs.template",
+        "kind": "contract",
+        "status": "active",
+        "canonical": true,
+        "title": "Atlas Documentation Template",
+        "headings": [
+          "Atlas Documentation Template",
+          "Required Frontmatter",
+          "Required Control Documents",
+          "Authoring Rules"
+        ],
+        "references": []
+      },
+      {
+        "path": ".atlas/architecture/INVENTION-PIPELINE.md",
+        "id": "atlas.architecture.invention-pipeline",
+        "kind": "architecture",
+        "status": "active",
+        "canonical": true,
+        "title": "Invention Pipeline",
+        "headings": [
+          "Invention Pipeline",
+          "Purpose",
+          "Pipeline",
+          "Blank Repository Mode",
+          "Existing Repository Mode",
+          "Creativity"
+        ],
+        "references": []
+      },
+      {
+        "path": ".atlas/architecture/README.md",
+        "id": "atlas.architecture.router",
+        "kind": "architecture",
+        "status": "canonical",
+        "canonical": true,
+        "title": "Atlas Architecture Router",
+        "headings": [
+          "Atlas Architecture Router",
+          "System Model",
+          "Responsibilities",
+          "Boundaries",
+          "Runtime Ownership",
+          "State and Effects",
+          "Dependencies"
+        ],
+        "references": []
+      },
+      {
+        "path": ".atlas/architecture/SYSTEM.md",
+        "id": "atlas.architecture.system",
+        "kind": "architecture",
+        "status": "canonical",
+        "canonical": true,
+        "title": "Atlas System Architecture",
+        "headings": [
+          "Atlas System Architecture",
+          "System Model",
+          "Responsibilities",
+          "Boundaries",
+          "Runtime Ownership",
+          "Data and Effect Flow",
+          "Source References",
+          "Failure and Recovery",
+          "Evidence",
+          "Verification"
+        ],
+        "references": [
+          "core/src/lib.rs",
+          "runtime/src/lib.rs",
+          "runtime/src/main.rs",
+          "adapter/src/lib.rs"
+        ]
+      },
+      {
+        "path": ".atlas/architecture/constitution/NORTH-STAR.md",
+        "id": "atlas.constitution.north-star",
+        "kind": "architecture",
+        "status": "canonical",
+        "canonical": true,
+        "title": "Atlas Systemizer North Star",
+        "headings": [
+          "Atlas Systemizer North Star",
+          "Mission",
+          "North Star",
+          "Non-Negotiable Invariants",
+          "Boundaries",
+          "Sequencing",
+          "Non-Goals"
+        ],
+        "references": []
+      },
+      {
+        "path": ".atlas/architecture/multi-repo-systemization.md",
+        "id": "atlas.architecture.multi-repo-systemization",
+        "kind": "architecture",
+        "status": "active",
+        "canonical": true,
+        "title": "Multi-repo Systemization",
+        "headings": [
+          "Multi-repo Systemization",
+          "System Model",
+          "Responsibilities",
+          "Boundaries",
+          "Runtime Ownership",
+          "State and Effects",
+          "Dependencies"
+        ],
+        "references": []
+      },
+      {
+        "path": ".atlas/architecture/overview.md",
+        "id": "atlas.architecture.overview",
+        "kind": "architecture",
+        "status": "active",
+        "canonical": true,
+        "title": "Architecture",
+        "headings": [
+          "Architecture"
+        ],
+        "references": []
+      },
+      {
+        "path": ".atlas/architecture/responsibilities.md",
+        "id": "atlas.architecture.responsibilities",
+        "kind": "architecture",
+        "status": "active",
+        "canonical": true,
+        "title": "Atlas Systemizer responsibilities",
+        "headings": [
+          "Atlas Systemizer responsibilities"
+        ],
+        "references": []
+      },
+      {
+        "path": ".atlas/artifacts/README.md",
+        "id": "atlas.artifacts.index",
+        "kind": "generated-evidence",
+        "status": "active",
+        "canonical": false,
+        "title": "Artifacts",
+        "headings": [
+          "Artifacts"
+        ],
+        "references": []
+      },
+      {
+        "path": ".atlas/blueprints/DESIGN-LANGUAGE-RECONSTRUCTION.md",
+        "id": "atlas.blueprint.design-language-reconstruction",
+        "kind": "blueprint",
+        "status": "active",
+        "canonical": true,
+        "title": "Design Language Reconstruction",
+        "headings": [
+          "Design Language Reconstruction",
+          "Objective",
+          "Inputs",
+          "Flow",
+          "Authority",
+          "State",
+          "Failure and Recovery",
+          "Evidence",
+          "Verification"
+        ],
+        "references": []
+      },
+      {
+        "path": ".atlas/blueprints/MIRROR-REPO-PARALLELISM.md",
+        "id": "atlas.blueprint.mirror-parallelism",
+        "kind": "blueprint",
+        "status": "active",
+        "canonical": true,
+        "title": "Mirror Repository Parallelism",
+        "headings": [
+          "Mirror Repository Parallelism",
+          "Objective",
+          "Inputs",
+          "Flow",
+          "Authority",
+          "State",
+          "Failure and Recovery",
+          "Evidence",
+          "Verification"
+        ],
+        "references": []
+      },
+      {
+        "path": ".atlas/blueprints/SYSTEM-BLUEPRINT.md",
+        "id": "atlas.blueprint.system",
+        "kind": "blueprint",
+        "status": "active",
+        "canonical": true,
+        "title": "Atlas System Blueprint",
+        "headings": [
+          "Atlas System Blueprint",
+          "Objective",
+          "Inputs",
+          "Flow",
+          "Authority",
+          "State",
+          "Failure and Recovery",
+          "Evidence",
+          "Verification"
+        ],
+        "references": []
+      },
+      {
+        "path": ".atlas/blueprints/TECHNOLOGY-GENESIS.md",
+        "id": "atlas.blueprint.technology-genesis",
+        "kind": "blueprint",
+        "status": "active",
+        "canonical": true,
+        "title": "Technology Genesis",
+        "headings": [
+          "Technology Genesis",
+          "Objective",
+          "Inputs",
+          "Flow",
+          "Authority",
+          "State",
+          "Failure and Recovery",
+          "Evidence",
+          "Verification"
+        ],
+        "references": []
+      },
+      {
+        "path": ".atlas/census/ast-grep.md",
+        "id": "donor-census-ast-grep",
+        "kind": "reference",
+        "status": "active",
+        "canonical": true,
+        "title": "Donor Census: ast-grep",
+        "headings": [
+          "Donor Census: ast-grep",
+          "Source",
+          "Census State",
+          "Native Replacement"
+        ],
+        "references": []
+      },
+      {
+        "path": ".atlas/census/buck2.md",
+        "id": "donor-census-buck2",
+        "kind": "reference",
+        "status": "active",
+        "canonical": true,
+        "title": "Donor Census: Buck2",
+        "headings": [
+          "Donor Census: Buck2",
+          "Source",
+          "Census State",
+          "Native Replacement"
+        ],
+        "references": []
+      },
+      {
+        "path": ".atlas/census/c2rust.md",
+        "id": "donor-census-c2rust",
+        "kind": "reference",
+        "status": "active",
+        "canonical": true,
+        "title": "Donor Census: C2Rust",
+        "headings": [
+          "Donor Census: C2Rust",
+          "Source",
+          "Census State",
+          "Native Replacement"
+        ],
+        "references": []
+      },
+      {
+        "path": ".atlas/census/crubit.md",
+        "id": "donor-census-crubit",
+        "kind": "reference",
+        "status": "active",
+        "canonical": true,
+        "title": "Donor Census: Crubit",
+        "headings": [
+          "Donor Census: Crubit",
+          "Source",
+          "Census State",
+          "Native Replacement"
+        ],
+        "references": []
+      },
+      {
+        "path": ".atlas/census/cytoscape-js.md",
+        "id": "donor-census-cytoscape-js",
+        "kind": "reference",
+        "status": "active",
+        "canonical": true,
+        "title": "Donor Census: Cytoscape.js",
+        "headings": [
+          "Donor Census: Cytoscape.js",
+          "Source",
+          "Census State",
+          "Native Replacement"
+        ],
+        "references": []
+      },
+      {
+        "path": ".atlas/census/datafrog.md",
+        "id": "donor-census-datafrog",
+        "kind": "reference",
+        "status": "active",
+        "canonical": true,
+        "title": "Donor Census: Datafrog",
+        "headings": [
+          "Donor Census: Datafrog",
+          "Source",
+          "Census State",
+          "Native Replacement"
+        ],
+        "references": []
+      },
+      {
+        "path": ".atlas/census/differential-dataflow.md",
+        "id": "donor-census-differential-dataflow",
+        "kind": "reference",
+        "status": "active",
+        "canonical": true,
+        "title": "Donor Census: Differential Dataflow",
+        "headings": [
+          "Donor Census: Differential Dataflow",
+          "Source",
+          "Census State",
+          "Native Replacement"
+        ],
+        "references": []
+      },
+      {
+        "path": ".atlas/census/elkjs.md",
+        "id": "donor-census-elkjs",
+        "kind": "reference",
+        "status": "active",
+        "canonical": true,
+        "title": "Donor Census: ELK.js",
+        "headings": [
+          "Donor Census: ELK.js",
+          "Source",
+          "Census State",
+          "Native Replacement"
+        ],
+        "references": []
+      },
+      {
+        "path": ".atlas/census/glean.md",
+        "id": "donor-census-glean",
+        "kind": "reference",
+        "status": "active",
+        "canonical": true,
+        "title": "Donor Census: Glean",
+        "headings": [
+          "Donor Census: Glean",
+          "Source",
+          "Census State",
+          "Native Replacement"
+        ],
+        "references": []
+      },
+      {
+        "path": ".atlas/census/joern.md",
+        "id": "donor-census-joern",
+        "kind": "reference",
+        "status": "active",
+        "canonical": true,
+        "title": "Donor Census: Joern",
+        "headings": [
+          "Donor Census: Joern",
+          "Source",
+          "Census State",
+          "Native Replacement"
+        ],
+        "references": []
+      },
+      {
+        "path": ".atlas/census/kani.md",
+        "id": "donor-census-kani",
+        "kind": "reference",
+        "status": "active",
+        "canonical": true,
+        "title": "Donor Census: Kani",
+        "headings": [
+          "Donor Census: Kani",
+          "Source",
+          "Census State",
+          "Native Replacement"
+        ],
+        "references": []
+      },
+      {
+        "path": ".atlas/census/kythe.md",
+        "id": "donor-census-kythe",
+        "kind": "reference",
+        "status": "active",
+        "canonical": true,
+        "title": "Donor Census: Kythe",
+        "headings": [
+          "Donor Census: Kythe",
+          "Source",
+          "Census State",
+          "Native Replacement"
+        ],
+        "references": []
+      },
+      {
+        "path": ".atlas/census/miri.md",
+        "id": "donor-census-miri",
+        "kind": "reference",
+        "status": "active",
+        "canonical": true,
+        "title": "Donor Census: Miri",
+        "headings": [
+          "Donor Census: Miri",
+          "Source",
+          "Census State",
+          "Native Replacement"
+        ],
+        "references": []
+      },
+      {
+        "path": ".atlas/census/openrewrite.md",
+        "id": "donor-census-openrewrite",
+        "kind": "reference",
+        "status": "active",
+        "canonical": true,
+        "title": "Donor Census: OpenRewrite",
+        "headings": [
+          "Donor Census: OpenRewrite",
+          "Source",
+          "Census State",
+          "Native Replacement"
+        ],
+        "references": []
+      },
+      {
+        "path": ".atlas/census/py2many.md",
+        "id": "donor-census-py2many",
+        "kind": "reference",
+        "status": "active",
+        "canonical": true,
+        "title": "Donor Census: py2many",
+        "headings": [
+          "Donor Census: py2many",
+          "Source",
+          "Census State",
+          "Native Replacement"
+        ],
+        "references": []
+      },
+      {
+        "path": ".atlas/census/rust-analyzer.md",
+        "id": "donor-census-rust-analyzer",
+        "kind": "reference",
+        "status": "active",
+        "canonical": true,
+        "title": "Donor Census: rust-analyzer",
+        "headings": [
+          "Donor Census: rust-analyzer",
+          "Source",
+          "Census State",
+          "Native Replacement"
+        ],
+        "references": []
+      },
+      {
+        "path": ".atlas/census/salsa.md",
+        "id": "donor-census-salsa",
+        "kind": "reference",
+        "status": "active",
+        "canonical": true,
+        "title": "Donor Census: Salsa",
+        "headings": [
+          "Donor Census: Salsa",
+          "Source",
+          "Census State",
+          "Native Replacement"
+        ],
+        "references": []
+      },
+      {
+        "path": ".atlas/census/scip.md",
+        "id": "donor-census-scip",
+        "kind": "reference",
+        "status": "active",
+        "canonical": true,
+        "title": "Donor Census: SCIP",
+        "headings": [
+          "Donor Census: SCIP",
+          "Source",
+          "Census State",
+          "Native Replacement"
+        ],
+        "references": []
+      },
+      {
+        "path": ".atlas/census/semgrep.md",
+        "id": "donor-census-semgrep",
+        "kind": "reference",
+        "status": "active",
+        "canonical": true,
+        "title": "Donor Census: Semgrep",
+        "headings": [
+          "Donor Census: Semgrep",
+          "Source",
+          "Census State",
+          "Native Replacement"
+        ],
+        "references": []
+      },
+      {
+        "path": ".atlas/census/souffle.md",
+        "id": "donor-census-souffle",
+        "kind": "reference",
+        "status": "active",
+        "canonical": true,
+        "title": "Donor Census: Souffle",
+        "headings": [
+          "Donor Census: Souffle",
+          "Source",
+          "Census State",
+          "Native Replacement"
+        ],
+        "references": []
+      },
+      {
+        "path": ".atlas/census/sourcetrail.md",
+        "id": "donor-census-sourcetrail",
+        "kind": "reference",
+        "status": "active",
+        "canonical": true,
+        "title": "Donor Census: Sourcetrail",
+        "headings": [
+          "Donor Census: Sourcetrail",
+          "Source",
+          "Census State",
+          "Native Replacement"
+        ],
+        "references": []
+      },
+      {
+        "path": ".atlas/census/tree-sitter.md",
+        "id": "donor-census-tree-sitter",
+        "kind": "reference",
+        "status": "active",
+        "canonical": true,
+        "title": "Donor Census: Tree-sitter",
+        "headings": [
+          "Donor Census: Tree-sitter",
+          "Source",
+          "Census State",
+          "Native Replacement"
+        ],
+        "references": []
+      },
+      {
+        "path": ".atlas/census/verus.md",
+        "id": "donor-census-verus",
+        "kind": "reference",
+        "status": "active",
+        "canonical": true,
+        "title": "Donor Census: Verus",
+        "headings": [
+          "Donor Census: Verus",
+          "Source",
+          "Census State",
+          "Native Replacement"
+        ],
+        "references": []
+      },
+      {
+        "path": ".atlas/census/xyflow.md",
+        "id": "donor-census-xyflow",
+        "kind": "reference",
+        "status": "active",
+        "canonical": true,
+        "title": "Donor Census: xyflow",
+        "headings": [
+          "Donor Census: xyflow",
+          "Source",
+          "Census State",
+          "Native Replacement"
+        ],
+        "references": []
+      },
+      {
+        "path": ".atlas/contracts/MIRROR-WORKER.md",
+        "id": "atlas.contract.mirror-worker",
+        "kind": "contract",
+        "status": "active",
+        "canonical": true,
+        "title": "Mirror Worker Contract",
+        "headings": [
+          "Mirror Worker Contract",
+          "Hard Invariants",
+          "Interfaces",
+          "State and Durability",
+          "Authority",
+          "Evidence",
+          "Recovery",
+          "Verification"
+        ],
+        "references": []
+      },
+      {
+        "path": ".atlas/contracts/SYSTEM-CONTRACT.md",
+        "id": "atlas.contract.system",
+        "kind": "contract",
+        "status": "active",
+        "canonical": true,
+        "title": "Atlas System Contract",
+        "headings": [
+          "Atlas System Contract",
+          "Hard Invariants",
+          "Interfaces",
+          "State and Durability",
+          "Authority",
+          "Evidence",
+          "Recovery",
+          "Verification"
+        ],
+        "references": []
+      },
+      {
+        "path": ".atlas/contracts/ZERO-RUNTIME-DEPENDENCY.md",
+        "id": "atlas.contract.zero-runtime-dependency",
+        "kind": "contract",
+        "status": "active",
+        "canonical": true,
+        "title": "Zero Runtime Dependency Contract",
+        "headings": [
+          "Zero Runtime Dependency Contract",
+          "Hard Invariants",
+          "Interfaces",
+          "State and Durability",
+          "Authority",
+          "Evidence",
+          "Recovery",
+          "Verification"
+        ],
+        "references": []
+      },
+      {
+        "path": ".atlas/decisions/0001-external-dev-subsystem.md",
+        "id": "atlas.adr.0001",
+        "kind": "decision",
+        "status": "accepted",
+        "canonical": true,
+        "title": "Atlas Systemizer is a development subsystem",
+        "headings": [
+          "Atlas Systemizer is a development subsystem"
+        ],
+        "references": []
+      },
+      {
+        "path": ".atlas/decisions/README.md",
+        "id": "atlas.decisions.index",
+        "kind": "reference",
+        "status": "active",
+        "canonical": true,
+        "title": "Atlas Decisions",
+        "headings": [
+          "Atlas Decisions",
+          "Decision Rules",
+          "Active Decisions",
+          "Supersession"
+        ],
+        "references": []
+      },
+      {
+        "path": ".atlas/evidence/README.md",
+        "id": "atlas.evidence.index",
+        "kind": "generated-evidence",
+        "status": "active",
+        "canonical": false,
+        "title": "Evidence",
+        "headings": [
+          "Evidence"
+        ],
+        "references": []
+      },
+      {
+        "path": ".atlas/graph/README.md",
+        "id": "atlas.graph.index",
+        "kind": "generated-evidence",
+        "status": "active",
+        "canonical": false,
+        "title": "Graph",
+        "headings": [
+          "Graph"
+        ],
+        "references": []
+      },
+      {
+        "path": ".atlas/guides/DEVELOPMENT.md",
+        "id": "atlas.guide.development",
+        "kind": "runbook",
+        "status": "active",
+        "canonical": true,
+        "title": "Atlas Development Guide",
+        "headings": [
+          "Atlas Development Guide",
+          "Preconditions",
+          "Documentation Gate",
+          "Implementation",
+          "Verification",
+          "Reconciliation",
+          "Rollback"
+        ],
+        "references": []
+      },
+      {
+        "path": ".atlas/ops_production/100-PERCENT-INTEGRATION-CHECKLIST.md",
+        "id": "ops-production-100-percent-integration-checklist",
+        "kind": "reference",
+        "status": "active",
+        "canonical": true,
+        "title": "100% Integration, Refoundation, Absorption, and Production Release Gate",
+        "headings": [
+          "100% Integration, Refoundation, Absorption, and Production Release Gate",
+          "Incubation proof states",
+          "Terminal absorption proof states",
+          "Gate 1 — real donor Git baseline",
+          "Gate 2 — complete donor reality",
+          "Gate 3 — Chronica semantic convergence + conflict audit",
+          "Gate 4 — legacy + semantic-duplicate burn-down",
+          "Gate 5 — acquisition / license / IP provenance",
+          "Gate 6 — white-label / product identity",
+          "Gate 7 — Ops documentation kernel",
+          "Gate 8 — manifest/discovery",
+          "Gate 9 — one-core port convergence",
+          "Gate 10 — standalone reality",
+          "Gate 11 — MCP contract",
+          "Gate 12 — connected semantic coverage",
+          "Gate 13 — Fabric / reconciliation compatibility",
+          "Gate 14 — version compatibility",
+          "Gate 15 — absorption readiness",
+          "Gate 16 — absorption map / Chronica-native ownership",
+          "Gate 17 — post-absorption Chronica-branded standalone parity",
+          "Gate 18 — full public-surface differential parity",
+          "Gate 19 — source + semantic-universe extinction",
+          "Definitions"
+        ],
+        "references": []
+      },
+      {
+        "path": ".atlas/ops_production/ABSORB-INTO-CHRONICA-GOAL.md",
+        "id": "ops-production-absorb-into-chronica-goal",
+        "kind": "reference",
+        "status": "active",
+        "canonical": true,
+        "title": "Converge Development Cell / Package Into Chronica Goal",
+        "headings": [
+          "Converge Development Cell / Package Into Chronica Goal",
+          "GOAL",
+          "1. LOAD THE CONTRACT YOURSELF",
+          "2. FREEZE SOURCE AND TARGET REALITY",
+          "2A. PACKAGE CONTRACT AT SOURCE HEAD",
+          "3. COMPLETE SOURCE INTAKE — DO NOT SAMPLE",
+          "4. VERIFY RIGHTS / OBLIGATIONS USED BY THE TARGET STATE",
+          "5. BUILD THE ABSORPTION MAP",
+          "6. BUILD THE WHITE-LABEL MAP",
+          "7. BUILD THE DOCUMENTATION ABSORPTION MAP",
+          "8. CONFLICT AUDIT BEFORE MOVEMENT",
+          "9. ABSORB VERTICAL BY VERTICAL",
+          "10. PRESERVE CHRONICA-BRANDED STANDALONE PRODUCTS",
+          "11. 100% COMPATIBILITY GATE",
+          "12. RETIRE SOURCE UNIVERSE ONLY AFTER PROOF",
+          "13. REQUIRED FINAL EVIDENCE STATES",
+          "14. FINAL REPORT",
+          "FINAL RULE"
+        ],
+        "references": []
+      },
+      {
+        "path": ".atlas/ops_production/EXECUTE-AUDIT-GOAL.md",
+        "id": "ops-production-execute-audit-goal",
+        "kind": "reference",
+        "status": "active",
+        "canonical": true,
+        "title": "Development Cell / Package Execute + Audit Goal",
+        "headings": [
+          "Development Cell / Package Execute + Audit Goal",
+          "GOAL",
+          "1. RESOLVE THE CHRONICA CONTRACT YOURSELF",
+          "2. PROVE REAL DEVELOPMENT CELL REPOSITORY STATE",
+          "2A. FLEET ALLOCATION GATE — FAIL CLOSED",
+          "2B. PACKAGE NON-SOVEREIGNTY GATE — FAIL CLOSED",
+          "3. REAL DONOR BASELINE GATE — FAIL CLOSED",
+          "4. CHRONICA SEMANTIC CONVERGENCE + CONFLICT AUDIT — REQUIRED",
+          "5. WHITE-LABEL / IP GATE",
+          "6. DOCS KERNEL GATE",
+          "7. BUILD THE LEGACY BURN-DOWN BASELINE",
+          "8. AUDIT REAL PRODUCT + FABRIC PATH",
+          "9. CHOOSE ONE HIGH-VALUE VERTICAL",
+          "10. REFACTOR, CONVERGE, MIGRATE, DELETE",
+          "11. UPDATE MANIFEST WITH REAL EVIDENCE",
+          "12. TEST THE REAL PATH",
+          "13. SELF-AUDIT THE DIFF",
+          "14. COMMIT DISCIPLINE",
+          "15. REPEAT UNTIL LEGACY + DUPLICATE SEMANTIC EXTINCTION",
+          "16. FINAL REPORT — EVIDENCE ONLY",
+          "FINAL RULE"
+        ],
+        "references": []
+      },
+      {
+        "path": ".atlas/ops_production/PRODUCTION-NORTH-STAR.md",
+        "id": "ops-production-production-north-star",
+        "kind": "reference",
+        "status": "active",
+        "canonical": true,
+        "title": "Development Cell / Package Production North Star",
+        "headings": [
+          "Development Cell / Package Production North Star",
+          "1. Full-repository reality comes first",
+          "2. The baseline is preserved; legacy implementation is not",
+          "2A. Development Cell/package is a mirror target, not a peer canonical system",
+          "2B. Package non-sovereignty gate",
+          "3. Chronica conflict audit is continuous, not only an absorption-time check",
+          "4. Legal/IP evidence controls what white-labeling may do",
+          "5. What survives and what does not",
+          "6. Incubation properties",
+          "7. One-world semantic law",
+          "8. One core during incubation",
+          "9. Chronica-style documentation kernel is mandatory",
+          "10. White-label refoundation is architectural, not cosmetic",
+          "11. Standalone and connected proof",
+          "12. Absorption target",
+          "13. Terminal donor-refactor gate",
+          "Final invariant"
+        ],
+        "references": []
+      },
+      {
+        "path": ".atlas/ops_production/README.md",
+        "id": "ops-production-readme",
+        "kind": "reference",
+        "status": "active",
+        "canonical": true,
+        "title": "Development Cell / Package Production Compatibility Guide",
+        "headings": [
+          "Development Cell / Package Production Compatibility Guide",
+          "Documentation",
+          "Primary entrypoints",
+          "Non-negotiable rules",
+          "Source admission law",
+          "Real donor baseline law",
+          "Legacy + semantic burn-down law",
+          "Continuous semantic + conflict audit",
+          "Semantic convergence law",
+          "Executable logistics law",
+          "Deployment / runtime evidence law",
+          "Legal/IP and white-label discipline",
+          "Mandatory Ops documentation kernel",
+          "One-world distinctions",
+          "Lifecycle distinction",
+          "Terminal placement",
+          "Final principle"
+        ],
+        "references": []
+      },
+      {
+        "path": ".atlas/ops_production/SOURCE-ADMISSION-GOAL.md",
+        "id": "ops-production-source-admission-goal",
+        "kind": "reference",
+        "status": "active",
+        "canonical": true,
+        "title": "Ops External Source Admission Goal",
+        "headings": [
+          "Ops External Source Admission Goal",
+          "Execution loop",
+          "1. Inspect real state",
+          "2. Classify the source mode first",
+          "3. Pin exact source identity",
+          "4. Verify integrity and provenance",
+          "5. Verify rights/license compatibility for the chosen mode",
+          "6. Quarantine security before execution",
+          "7. Scan secret/data contamination",
+          "8. Supply-chain / SBOM audit",
+          "9. Bounded baseline build/test",
+          "10. Classify upstream lifecycle",
+          "11. Select admission disposition",
+          "12. Record evidence truthfully",
+          "13. Route by mode",
+          "14. Semantic convergence still applies after admission",
+          "15. End-of-run report",
+          "Final rule"
+        ],
+        "references": [
+          "adapter/binding."
+        ]
+      },
+      {
+        "path": ".atlas/ops_production/architecture/CHRONICA-INTEGRATION-CONTRACT.md",
+        "id": "ops-production-architecture-chronica-integration-contract",
+        "kind": "reference",
+        "status": "active",
+        "canonical": true,
+        "title": "Chronica Integration Contract",
+        "headings": [
+          "Chronica Integration Contract",
+          "One-world semantic law",
+          "Fabric attachment contract",
+          "Required semantic mapping",
+          "Shared execution path",
+          "Resource identity",
+          "Action mapping",
+          "Event and truth mapping",
+          "Evidence",
+          "Context, memory and disclosure",
+          "MCP and transport",
+          "Offline and reconciliation",
+          "Compatibility",
+          "Complete integration"
+        ],
+        "references": []
+      },
+      {
+        "path": ".atlas/ops_production/architecture/DATA-AUTHORITY-SYNC.md",
+        "id": "ops-production-architecture-data-authority-sync",
+        "kind": "reference",
+        "status": "active",
+        "canonical": true,
+        "title": "Data, Authority, and Sync",
+        "headings": [
+          "Data, Authority, and Sync",
+          "Classify every durable data class",
+          "Standalone ownership",
+          "Connected ownership",
+          "Existence, effectiveness, validity, authority, execution",
+          "No dual-write fantasy",
+          "Correlation",
+          "Authority and normativity",
+          "Inbound state",
+          "Conflict policy",
+          "Offline behavior",
+          "Reconciliation",
+          "Deletion and retention",
+          "Rule"
+        ],
+        "references": []
+      },
+      {
+        "path": ".atlas/ops_production/architecture/LEGO-COMPOSABILITY.md",
+        "id": "ops-production-architecture-lego-composability",
+        "kind": "reference",
+        "status": "active",
+        "canonical": true,
+        "title": "Lego Composability",
+        "headings": [
+          "Lego Composability",
+          "A Lego block has five properties",
+          "Internal architecture",
+          "Port rules",
+          "Stable semantic contract",
+          "Composition between Ops",
+          "Replaceability",
+          "Versioning",
+          "Rule"
+        ],
+        "references": []
+      },
+      {
+        "path": ".atlas/ops_production/architecture/MCP-SERVER-CONTRACT.md",
+        "id": "ops-production-architecture-mcp-server-contract",
+        "kind": "reference",
+        "status": "active",
+        "canonical": true,
+        "title": "MCP Server Contract",
+        "headings": [
+          "MCP Server Contract",
+          "Core rule",
+          "Local use",
+          "Standalone independence",
+          "Connected behavior",
+          "Tool design",
+          "Resources",
+          "Effect safety",
+          "Secrets",
+          "MCP does not become the core API",
+          "Acceptance"
+        ],
+        "references": []
+      },
+      {
+        "path": ".atlas/ops_production/architecture/OFFLINE-RECONCILIATION.md",
+        "id": "ops-production-architecture-offline-reconciliation",
+        "kind": "reference",
+        "status": "active",
+        "canonical": true,
+        "title": "Offline, Reconnect, and Reconciliation",
+        "headings": [
+          "Offline, Reconnect, and Reconciliation",
+          "Connection states",
+          "Durable pattern",
+          "Required metadata",
+          "Disconnected behavior",
+          "Local-safe standalone action",
+          "Chronica-governed connected action",
+          "Provider events during outage",
+          "Reconciliation algorithm",
+          "Conflict classes",
+          "Unknown outcome",
+          "Proof"
+        ],
+        "references": []
+      },
+      {
+        "path": ".atlas/ops_production/architecture/STANDALONE-CONNECTED-MODES.md",
+        "id": "ops-production-architecture-standalone-connected-modes",
+        "kind": "reference",
+        "status": "active",
+        "canonical": true,
+        "title": "Standalone and Connected Modes",
+        "headings": [
+          "Standalone and Connected Modes",
+          "Standalone mode",
+          "Connected mode",
+          "Canonicality",
+          "Connection must not delete independence",
+          "Offline/disconnected behavior",
+          "Reconnect",
+          "Mode switch test",
+          "Rule"
+        ],
+        "references": []
+      },
+      {
+        "path": ".atlas/ops_production/architecture/UI-INTEGRATION-CONTRACT.md",
+        "id": "ops-production-architecture-ui-integration-contract",
+        "kind": "reference",
+        "status": "active",
+        "canonical": true,
+        "title": "UI Integration Contract",
+        "headings": [
+          "UI Integration Contract",
+          "One UI product, two hosts",
+          "Standalone UI",
+          "Chronica-hosted UI",
+          "Projection rule",
+          "Effectful UI",
+          "Host interface",
+          "Design-system integration",
+          "Independent packaging",
+          "Security",
+          "Acceptance"
+        ],
+        "references": []
+      },
+      {
+        "path": ".atlas/ops_production/contracts/ABSORPTION-CONTRACT.md",
+        "id": "ops-production-contracts-absorption-contract",
+        "kind": "reference",
+        "status": "active",
+        "canonical": true,
+        "title": "Ops Absorption Contract",
+        "headings": [
+          "Ops Absorption Contract",
+          "Critical distinctions",
+          "Rights and provenance gate",
+          "Canonical terminal architecture",
+          "Fleet allocation gate",
+          "Mirror-to-absorption handoff",
+          "Complete intake before decomposition",
+          "Documentation parity is part of absorption",
+          "Semantic fidelity law",
+          "White-label parity law",
+          "Native placement law",
+          "Strategic/foundational technology conservation gate",
+          "Source absorption is not a blind copy",
+          "Standalone distribution after absorption",
+          "MCP after absorption",
+          "100% compatibility definition",
+          "Conflict prevention",
+          "Provenance",
+          "Retirement gate",
+          "Evidence states",
+          "Final invariant"
+        ],
+        "references": []
+      },
+      {
+        "path": ".atlas/ops_production/contracts/DISPLAY-LANGUAGE.md",
+        "id": "ops-production-contracts-display-language",
+        "kind": "reference",
+        "status": "active",
+        "canonical": true,
+        "title": "Ops Product Display Language Contract",
+        "headings": [
+          "Ops Product Display Language Contract",
+          "1. One interaction grammar across Ops",
+          "2. ActivityProjection is the integration seam",
+          "3. Post-like representation is projection only",
+          "4. Minimalist white visual baseline",
+          "5. Multilingual contract",
+          "6. Stable keys, not donor/component keys",
+          "7. Provider vocabulary stays at the boundary",
+          "8. RECORD / ANALYZE / ACT display classification",
+          "9. Action controls are intents only",
+          "10. Shared artifact grammar",
+          "11. Donor UI intake",
+          "12. Ops manifest expectations",
+          "13. TradingOps example",
+          "14. Composition-ready gate",
+          "Final rule"
+        ],
+        "references": []
+      },
+      {
+        "path": ".atlas/ops_production/contracts/EVENT-ENVELOPE.md",
+        "id": "ops-production-contracts-event-envelope",
+        "kind": "reference",
+        "status": "active",
+        "canonical": true,
+        "title": "Ops Event Envelope Contract",
+        "headings": [
+          "Ops Event Envelope Contract",
+          "Minimum envelope",
+          "Semantics",
+          "Ordering",
+          "Evidence",
+          "Security",
+          "Authority",
+          "Reconciliation"
+        ],
+        "references": []
+      },
+      {
+        "path": ".atlas/ops_production/contracts/INTEGRATION-VERSIONING.md",
+        "id": "ops-production-contracts-integration-versioning",
+        "kind": "reference",
+        "status": "active",
+        "canonical": true,
+        "title": "Ops Integration Versioning Contract",
+        "headings": [
+          "Ops Integration Versioning Contract",
+          "Required version dimensions",
+          "Why independent versions matter",
+          "Compatibility rule",
+          "Version policy",
+          "Compatibility matrix",
+          "Migration",
+          "Chronica integration"
+        ],
+        "references": []
+      },
+      {
+        "path": ".atlas/ops_production/contracts/LOGISTICS-KERNEL.md",
+        "id": "ops-production-contracts-logistics-kernel",
+        "kind": "reference",
+        "status": "active",
+        "canonical": true,
+        "title": "Ops Logistics Kernel",
+        "headings": [
+          "Ops Logistics Kernel",
+          "Core law",
+          "Required executable mechanisms",
+          "0. Fleet relationship",
+          "1. Ops Reality Mirror",
+          "2. Semantic Convergence Checker",
+          "3. Absorption Planner",
+          "4. Docs Sync Proposal",
+          "5. CI gate",
+          "6. Deployment / runtime evidence",
+          "Manifest v5 integration",
+          "Machine scorecard",
+          "Security and sovereignty",
+          "Completion condition",
+          "Final rule"
+        ],
+        "references": []
+      },
+      {
+        "path": ".atlas/ops_production/contracts/NAMING-STANDARD.md",
+        "id": "ops-production-contracts-naming-standard",
+        "kind": "reference",
+        "status": "active",
+        "canonical": true,
+        "title": "Ops Naming and Repository Identity Standard",
+        "headings": [
+          "Ops Naming and Repository Identity Standard",
+          "1. Ops and Chronica are related, not the same source identity",
+          "2. Shared structural grammar across Chronica and Ops",
+          "3. Filesystem paths do not repeat the repository brand",
+          "4. Package and artifact naming grammar",
+          "Ops-owned artifacts",
+          "Canonical Chronica artifacts",
+          "5. Do not preserve historical donor crate boundaries by default",
+          "6. Source-file naming is local, not globally branded",
+          "7. Documentation naming",
+          "8. Semantic identifiers do not carry repository branding",
+          "9. Provider and donor vocabulary stays at the boundary",
+          "10. Donor baseline is immutable evidence; naming applies after intake",
+          "11. Transitional naming debt",
+          "12. New-code freeze rule",
+          "13. Absorption naming rule",
+          "14. Examples",
+          "TradingOps",
+          "HelpdeskOps",
+          "15. Review gate",
+          "Final rule"
+        ],
+        "references": [
+          "adapter/binance/orders.rs"
+        ]
+      },
+      {
+        "path": ".atlas/ops_production/contracts/OPS-MANIFEST.md",
+        "id": "ops-production-contracts-ops-manifest",
+        "kind": "reference",
+        "status": "active",
+        "canonical": true,
+        "title": "Development Cell / Package Manifest Compatibility Contract",
+        "headings": [
+          "Development Cell / Package Manifest Compatibility Contract",
+          "Package contract precedence",
+          "Required location",
+          "Minimum v7 shape",
+          "v7 source-admission + fleet rule",
+          "v6 logistics rule",
+          "Real donor Git baseline rule",
+          "Legacy burn-down rule",
+          "Exact Chronica evidence rule",
+          "Semantic convergence rule",
+          "Documentation rule",
+          "Deployment/runtime evidence rule",
+          "Rights / white-label rule",
+          "Release rule",
+          "Tooling",
+          "Final rule"
+        ],
+        "references": []
+      },
+      {
+        "path": ".atlas/ops_production/contracts/PORT-CONTRACT.md",
+        "id": "ops-production-contracts-port-contract",
+        "kind": "reference",
+        "status": "active",
+        "canonical": true,
+        "title": "Ops Port Contract",
+        "headings": [
+          "Ops Port Contract",
+          "Required shape",
+          "Hard invariant",
+          "Query contract",
+          "Command contract",
+          "Surface responsibilities",
+          "UI",
+          "API/CLI",
+          "MCP",
+          "Workers",
+          "Chronica Bridge",
+          "Provider access",
+          "Acceptance"
+        ],
+        "references": []
+      },
+      {
+        "path": ".atlas/ops_production/contracts/SEMANTIC-CONVERGENCE.md",
+        "id": "ops-production-contracts-semantic-convergence",
+        "kind": "reference",
+        "status": "active",
+        "canonical": true,
+        "title": "Development Cell / Package Semantic Convergence Contract",
+        "headings": [
+          "Development Cell / Package Semantic Convergence Contract",
+          "0. Fleet ownership before semantic convergence",
+          "0A. Three-way Mirror comparison",
+          "1. Core invariant",
+          "2. Semantic fingerprint",
+          "3. Search Chronica by meaning and code",
+          "4. Required disposition",
+          "REUSE_CHRONICA_SEMANTIC",
+          "ALIAS_AT_BOUNDARY",
+          "MAP_TO_CHRONICA_SEMANTIC",
+          "EXTEND_CHRONICA_SEMANTIC",
+          "KEEP_PRODUCT_LOCAL",
+          "KEEP_PROVIDER_MECHANIC",
+          "5. Naming convergence gate",
+          "6. Semantic parity record",
+          "7. Ops can improve Chronica",
+          "8. Refactor algorithm",
+          "9. Semantic parity tests",
+          "10. Anti-patterns",
+          "11. Freshness",
+          "12. Completion condition",
+          "Final rule"
+        ],
+        "references": []
+      },
+      {
+        "path": ".atlas/ops_production/contracts/SOURCE-ADMISSION.md",
+        "id": "ops-production-contracts-source-admission",
+        "kind": "reference",
+        "status": "active",
+        "canonical": true,
+        "title": "Ops External Source Admission Contract",
+        "headings": [
+          "Ops External Source Admission Contract",
+          "1. Acquisition mode is mandatory",
+          "DEEP_FORK",
+          "VENDORED_SOURCE",
+          "PACKAGE_DEPENDENCY",
+          "SUBMODULE",
+          "EXTERNAL_PROVIDER",
+          "REFERENCE_IMPLEMENTATION",
+          "SPEC_ONLY",
+          "REJECTED_SOURCE",
+          "2. Fail-closed source identity and provenance",
+          "3. Integrity verification",
+          "4. Rights and license compatibility gate",
+          "5. Security quarantine before trust",
+          "6. Secrets, PII and data-contamination gate",
+          "7. Supply-chain inventory / SBOM gate",
+          "8. Baseline build/test is bounded execution evidence",
+          "9. Upstream lifecycle classification",
+          "PIN_AND_DIVERGE",
+          "TRACK_UPSTREAM",
+          "SECURITY_PATCH_ONLY",
+          "PROVIDER_MANAGED",
+          "ABSORB_AND_RETIRE",
+          "REFERENCE_ONLY",
+          "10. Admission decision",
+          "11. Mode-specific next step",
+          "12. Semantic admission is separate from source admission",
+          "13. Machine-readable evidence",
+          "14. Release / refactor blocker states",
+          "15. Anti-patterns",
+          "16. Self-audit",
+          "Final rule"
+        ],
+        "references": [
+          "adapter/binding."
+        ]
+      },
+      {
+        "path": ".atlas/ops_production/donor/ABSORPTION-RESUME-BOARD.md",
+        "id": "ops-production-donor-absorption-resume-board",
+        "kind": "reference",
+        "status": "active",
+        "canonical": true,
+        "title": "Absorption Resume Board",
+        "headings": [
+          "Absorption Resume Board"
+        ],
+        "references": []
+      },
+      {
+        "path": ".atlas/ops_production/donor/ALLOCATION-MAP.md",
+        "id": "ops-production-donor-allocation-map",
+        "kind": "reference",
+        "status": "active",
+        "canonical": true,
+        "title": "Donor Allocation Map",
+        "headings": [
+          "Donor Allocation Map",
+          "Allocation totals",
+          "Chronica-owned donors",
+          "Full closed-world allocation (323)",
+          "Invariants"
+        ],
+        "references": []
+      },
+      {
+        "path": ".atlas/ops_production/donor/DONOR-CENSUS-PROVENANCE.md",
+        "id": "ops-production-donor-donor-census-provenance",
+        "kind": "reference",
+        "status": "active",
+        "canonical": true,
+        "title": "Donor Census, Acquisition Evidence and Provenance",
+        "headings": [
+          "Donor Census, Acquisition Evidence and Provenance",
+          "Required donor identity record",
+          "Acquisition / IP evidence record",
+          "Required complete technical census",
+          "Required product census",
+          "Required brand / white-label census",
+          "Required documentation census",
+          "Why this matters",
+          "Baseline proof",
+          "Provenance after assimilation",
+          "No permanent census museum",
+          "Gates"
+        ],
+        "references": []
+      },
+      {
+        "path": ".atlas/ops_production/donor/MASTER-CHECKLIST.md",
+        "id": "ops-production-donor-master-checklist",
+        "kind": "reference",
+        "status": "active",
+        "canonical": true,
+        "title": "Donor Corpus Master Checklist (generated)",
+        "headings": [
+          "Donor Corpus Master Checklist (generated)",
+          "Source evidence",
+          "Totals",
+          "By status",
+          "By family",
+          "Absorption burn-down (live, computed from Git/filesystem at generation time)",
+          "Full donor list"
+        ],
+        "references": []
+      },
+      {
+        "path": ".atlas/ops_production/donor/OSS-DONOR-CLONE-REFACTOR.md",
+        "id": "ops-production-donor-oss-donor-clone-refactor",
+        "kind": "reference",
+        "status": "active",
+        "canonical": true,
+        "title": "Donor Full-Repository Acquisition and Refactor Contract",
+        "headings": [
+          "Donor Full-Repository Acquisition and Refactor Contract",
+          "1. Mandatory first step: clone the whole real repository into the Ops repo",
+          "2. Acquisition / license / patent / trademark gate",
+          "3. Real Git baseline is immutable migration evidence",
+          "4. Legacy burn-down is the default refactor strategy",
+          "5. Chronica conflict audit is mandatory during coding",
+          "6. Full-tree refactor, not permanent wrapping",
+          "7. Mandatory white-label / brand refoundation",
+          "8. Preserve behavior deliberately",
+          "9. Donor UI",
+          "10. Donor database",
+          "11. External integrations",
+          "12. Documentation must be refounded too",
+          "13. License and provenance",
+          "14. Agent prohibitions",
+          "15. Completion signal"
+        ],
+        "references": []
+      },
+      {
+        "path": ".atlas/ops_production/donor/README.md",
+        "id": "ops-production-donor-readme",
+        "kind": "reference",
+        "status": "active",
+        "canonical": true,
+        "title": "Ops Donor Intake Router",
+        "headings": [
+          "Ops Donor Intake Router"
+        ],
+        "references": []
+      },
+      {
+        "path": ".atlas/ops_production/engineering/DEPLOYMENT-LOCAL-CLOUD.md",
+        "id": "ops-production-engineering-deployment-local-cloud",
+        "kind": "reference",
+        "status": "active",
+        "canonical": true,
+        "title": "Ops Deployment: Local and Cloud",
+        "headings": [
+          "Ops Deployment: Local and Cloud",
+          "Deployment profiles",
+          "Local operator profile",
+          "Standalone server profile",
+          "Connected profile",
+          "Config separation",
+          "Version pinning",
+          "Health",
+          "Rollback",
+          "Network MCP",
+          "Secrets",
+          "Deployment independence test"
+        ],
+        "references": []
+      },
+      {
+        "path": ".atlas/ops_production/engineering/REPO-STRUCTURE.md",
+        "id": "ops-production-engineering-repo-structure",
+        "kind": "reference",
+        "status": "active",
+        "canonical": true,
+        "title": "Ops Repository and Documentation Structure",
+        "headings": [
+          "Ops Repository and Documentation Structure",
+          "1. Baseline-first repository law",
+          "2. Canonical Ops incubation topology",
+          "3. Path naming versus artifact naming",
+          "4. Complete donor intake before restructuring",
+          "5. Chronica conflict audit belongs inside repo evolution",
+          "6. Legacy burn-down topology",
+          "7. Mandatory Chronica-style docs kernel",
+          "8. Dependency direction during incubation",
+          "9. One core, many surfaces",
+          "10. Chronica bridge during incubation",
+          "11. UI / MCP / database refactor",
+          "12. Source-file naming",
+          "13. Semantic identifiers",
+          "14. Naming normalization during refoundation",
+          "15. Terminal absorption into Chronica",
+          "16. Standalone products after absorption",
+          "17. New-code freeze",
+          "Final rule"
+        ],
+        "references": []
+      },
+      {
+        "path": ".atlas/ops_production/engineering/SECURITY-SOVEREIGNTY.md",
+        "id": "ops-production-engineering-security-sovereignty",
+        "kind": "reference",
+        "status": "active",
+        "canonical": true,
+        "title": "Ops Security and Sovereignty",
+        "headings": [
+          "Ops Security and Sovereignty",
+          "Standalone security",
+          "Connected sovereignty",
+          "Context disclosure",
+          "MCP security",
+          "Chronica authority",
+          "Holding isolation",
+          "Provider isolation",
+          "Local independence and sovereignty",
+          "Audit",
+          "Rule"
+        ],
+        "references": []
+      },
+      {
+        "path": ".atlas/ops_production/engineering/TESTING-ACCEPTANCE.md",
+        "id": "ops-production-engineering-testing-acceptance",
+        "kind": "reference",
+        "status": "active",
+        "canonical": true,
+        "title": "Ops Testing and Acceptance",
+        "headings": [
+          "Ops Testing and Acceptance",
+          "Test layers",
+          "Standalone suite",
+          "Connected suite",
+          "Architecture contract inheritance",
+          "Surface parity",
+          "Donor regression",
+          "Integration contract tests",
+          "Performance acceptance",
+          "Negative-path tests",
+          "MCP acceptance",
+          "UI acceptance",
+          "CI acceptance order",
+          "Maturity labels"
+        ],
+        "references": []
+      },
+      {
+        "path": ".atlas/ops_production/mcp/MCP-AUTHORITY-CLASSIFICATION.md",
+        "id": "ops-production-mcp-mcp-authority-classification",
+        "kind": "reference",
+        "status": "active",
+        "canonical": true,
+        "title": "MCP Authority Classification",
+        "headings": [
+          "MCP Authority Classification",
+          "Tool classes",
+          "READ",
+          "ANALYZE",
+          "EFFECTFUL",
+          "HIGH_RISK_EFFECTFUL",
+          "Standalone mode during incubation",
+          "Connected mode during incubation",
+          "After source absorption into Chronica",
+          "Post-absorption compatibility gate",
+          "Tool declaration",
+          "Local transport",
+          "Failure semantics",
+          "Invariants"
+        ],
+        "references": []
+      },
+      {
+        "path": ".atlas/ops_production/roadmap/VERTICAL-REFACTOR-PROOFS.md",
+        "id": "ops-production-roadmap-vertical-refactor-proofs",
+        "kind": "reference",
+        "status": "active",
+        "canonical": true,
+        "title": "Vertical Refactor and Absorption Proofs",
+        "headings": [
+          "Vertical Refactor and Absorption Proofs",
+          "P0 — donor reality",
+          "P1 — one native Ops read vertical",
+          "P2 — one native Ops effect vertical",
+          "P3 — local MCP vertical",
+          "P4 — Chronica resource mapping",
+          "P5 — Chronica authority/execution/evidence",
+          "P6 — UI dual host",
+          "P7 — outage/reconnect",
+          "P8 — donor path retirement inside Ops",
+          "P9 — expand public parity",
+          "P10 — incubation production hardening",
+          "P11 — freeze absorption baseline",
+          "P12 — complete source intake and map",
+          "P13 — native Chronica absorption",
+          "P14 — standalone artifact parity from Chronica",
+          "P15 — standalone MCP parity",
+          "P16 — connected parity",
+          "P17 — duplicate extinction",
+          "P18 — retire independent Ops source universe",
+          "Rule"
+        ],
+        "references": []
+      },
+      {
+        "path": ".atlas/plans/README.md",
+        "id": "atlas.plans.index",
+        "kind": "generated-evidence",
+        "status": "active",
+        "canonical": false,
+        "title": "Plans",
+        "headings": [
+          "Plans"
+        ],
+        "references": []
+      },
+      {
+        "path": ".atlas/references/README.md",
+        "id": "atlas.references.index",
+        "kind": "reference",
+        "status": "active",
+        "canonical": true,
+        "title": "Atlas References",
+        "headings": [
+          "Atlas References",
+          "Reference Rules",
+          "Provenance",
+          "Freshness"
+        ],
+        "references": []
+      },
+      {
+        "path": ".atlas/reports/native-technology-status.md",
+        "id": "native-technology-status",
+        "kind": "generated-evidence",
+        "status": "active",
+        "canonical": true,
+        "title": "Native Technology Status",
+        "headings": [
+          "Native Technology Status",
+          "Donor Corpus",
+          "Native Implementation",
+          "Status"
+        ],
+        "references": []
+      },
+      {
+        "path": ".atlas/roadmap/ROADMAP.md",
+        "id": "atlas.roadmap",
+        "kind": "blueprint",
+        "status": "active",
+        "canonical": true,
+        "title": "Atlas Systemizer Roadmap",
+        "headings": [
+          "Atlas Systemizer Roadmap",
+          "Current Horizon",
+          "Next Horizon",
+          "Long Horizon"
+        ],
+        "references": []
+      },
+      {
+        "path": ".atlas/standards/docs-v1.md",
+        "id": "atlas.standard.docs.v1",
+        "kind": "contract",
+        "status": "active",
+        "canonical": true,
+        "title": "Documentation Standard v1",
+        "headings": [
+          "Documentation Standard v1",
+          "Required Frontmatter",
+          "Required Control Documents",
+          "Authoring Rules"
+        ],
+        "references": []
+      },
+      {
+        "path": ".atlas/standards/repository-v1.md",
+        "id": "atlas.standard.repository.v1",
+        "kind": "contract",
+        "status": "active",
+        "canonical": true,
+        "title": "Repository Standard v1",
+        "headings": [
+          "Repository Standard v1"
+        ],
+        "references": []
+      },
+      {
+        "path": ".atlas/standards/ui-design-v1.md",
+        "id": "atlas.standard.ui.v1",
+        "kind": "contract",
+        "status": "active",
+        "canonical": true,
+        "title": "Atlas UI Design Standard v1",
+        "headings": [
+          "Atlas UI Design Standard v1"
+        ],
+        "references": []
+      }
+    ]
   },
   "coding_admission": {
     "schema": "atlas.systemizer.coding-admission.v1",
@@ -79,7 +1811,7 @@
       {
         "path": "adapter/src/lib.rs",
         "language": "rust",
-        "bytes": 12849
+        "bytes": 15603
       },
       {
         "path": "apps/ui/README.md",
@@ -104,7 +1836,7 @@
       {
         "path": "core/src/lib.rs",
         "language": "rust",
-        "bytes": 12443
+        "bytes": 16787
       },
       {
         "path": "runtime/Cargo.toml",
@@ -114,7 +1846,7 @@
       {
         "path": "runtime/src/lib.rs",
         "language": "rust",
-        "bytes": 1747
+        "bytes": 1776
       },
       {
         "path": "runtime/src/main.rs",
@@ -126,9 +1858,9 @@
   "graph": {
     "schema": "atlas.systemizer.engineering-graph-summary.v1",
     "semantic_grade": "SOURCE_FACT_GRAPH",
-    "nodes_total": 15,
-    "edges_total": 20,
-    "bindings_total": 0,
+    "nodes_total": 844,
+    "edges_total": 764,
+    "bindings_total": 4,
     "facts_total": 10,
     "language_nodes": [
       "json",

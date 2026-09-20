@@ -8,11 +8,11 @@ canonical: true
 
 ## System Model
 
-Atlas manages an external engineering graph over ideas, repositories, docs, source, donors, technology primitives, target designs, mirror workers, CI shards and proof evidence. A target repository need not contain Atlas-specific metadata; Atlas can keep fleet and orchestration state centrally.
+Atlas manages an engineering graph over repositories, docs, source, donors, technology primitives, work plans, verification and proof evidence. A target repository need not contain Atlas-specific metadata; Atlas can compile its understanding from the checkout plus Atlas-owned knowledge.
 
 ## Responsibilities
 
-atlas-docs owns hard documentation admission and docs-plan generation. atlas-source/fact/graph own source observation. atlas-oss discovers and allocates donor/reference technology. atlas-technology extracts Technology Genomes. atlas-design builds target Design Graphs and reconstructs design languages. atlas-translate produces candidate code/design translations. atlas-invent composes invention stages. atlas-mirror creates optional one-to-one mirror plans. atlas-ci distributes verification. atlas-fleet observes configured repositories. atlas-proof governs evidence requirements.
+Core owns product-neutral facts, nodes, edges, bindings, evidence, manifests and graph construction. Adapter owns filesystem, repository manifest, documentation and source observation mechanics. Runtime owns repository compilation, CLI orchestration, coding admission and evidence emission. UI code under `apps/ui` may visualize graph state, but Rust remains authoritative for backend semantics.
 
 ## Boundaries
 
@@ -20,11 +20,18 @@ Atlas may observe many repositories simultaneously. Each invention session has o
 
 ## Runtime Ownership
 
-The stable external surface is the atlas-systemizer CLI/API. Atlas implementation and Graph Studio live only in Atlas-Systemizer. Systems built by Atlas continue to run when Atlas is absent.
+The stable external surface is the atlas-systemizer CLI/API. Atlas implementation lives in Atlas-Systemizer under `core/`, `runtime/` and `adapter/`; UI code lives under `apps/ui/`. Systems built or inspected by Atlas continue to run when Atlas is absent.
 
 ## Data and Effect Flow
 
-Idea or target repo -> docs plan/gate -> source/fact graph -> OSS discovery -> Technology Graph -> Target Design Graph -> implementation/mirror plan -> coding -> distributed CI/proof -> reconvergence -> target repository -> refresh graphs.
+Target repo -> manifest -> docs gate -> source observation -> facts -> canonical engineering graph -> documentation graph -> technology graph -> work plan -> coding -> verification -> evidence -> updated repository state -> refreshed graph.
+
+## Source References
+
+- `core/src/lib.rs`
+- `adapter/src/lib.rs`
+- `runtime/src/lib.rs`
+- `runtime/src/main.rs`
 
 ## Failure and Recovery
 
