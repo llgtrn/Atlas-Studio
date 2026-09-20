@@ -22,3 +22,8 @@ references:
   - { repo: cytoscape/cytoscape.js, sha: 7ba634095d8954089ee5dc09ada0030f2dca134c, role: graph_visualization_reference }
   - { repo: xyflow/xyflow, sha: 0a1f9575b25679f2880175de8d3eae21aedde921, role: graph_studio_node_editor_reference }
   - { repo: kieler/elkjs, sha: 722f1a3f63016e64f534a8b445283d4d31a88d0e, role: graph_layout_reference }
+  - { repo: shadcn-ui/ui, sha: a87a63b2ca25143d26c8bd0903e4e9bc77b3f824, role: ui_component_composition_reference }
+  - { repo: radix-ui/primitives, sha: f7ecd5ab16f5e1e820eb5786a1419a98a2d594ae, role: accessible_ui_primitive_reference }
+  - { repo: lucide-icons/lucide, sha: 951813ce76a859d4d8b145366972cbb237147a4e, role: icon_grammar_reference }
+  - { repo: tailwindlabs/tailwindcss, sha: 41d9cae8e53378d16087fcf359eb785c2fd42ce4, role: design_token_utility_reference }
+

@@ -56,10 +56,20 @@ pub struct GraphSummary {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct RepoAuditSummary {
+    pub schema: String,
+    pub archetype: String,
+    pub ready: bool,
+    pub missing_required_roots: Vec<String>,
+    pub forbidden_roots_present: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct SystemizeReport {
     pub schema: String,
     pub cli_api: String,
     pub root: String,
+    pub repository: RepoAuditSummary,
     pub docs: DocsReport,
     pub source: SourceReport,
     pub graph: GraphSummary,
