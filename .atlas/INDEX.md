@@ -29,9 +29,10 @@ Read in this order:
 19. `architecture/INVENTION-PIPELINE.md`
 20. `blueprints/SYSTEM-BLUEPRINT.md`
 21. `blueprints/COMPILER-ROADMAP.md`
-22. `blueprints/BULK-DONOR-ABSORPTION.md`
-23. `contracts/SYSTEM-CONTRACT.md`
-24. `guides/DEVELOPMENT.md`
+22. `blueprints/RUST-PARITY-AND-SURPASS-ROADMAP.md`
+23. `blueprints/BULK-DONOR-ABSORPTION.md`
+24. `contracts/SYSTEM-CONTRACT.md`
+25. `guides/DEVELOPMENT.md`
 
 Canonical chain:
 
