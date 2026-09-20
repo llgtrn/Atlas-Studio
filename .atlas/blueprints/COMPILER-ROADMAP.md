@@ -6,114 +6,123 @@ canonical: true
 ---
 # Atlas Compiler Roadmap
 
-The compiler roadmap is cumulative. A later phase may replace a physical backend but may not weaken Genome, graph, temporal, evidence or provenance invariants.
+The roadmap is cumulative. Later phases may replace physical backends but may not weaken Genome, census completeness, graph, temporal, evidence or provenance invariants.
 
-## Phase 0 — Genome, Census and ATLAS Foundation
+## Phase 0 — Genome, Strict Census and Logical ATLAS
 
 Deliver:
 
-- `atlas.genome.toml` hard-requirement source plus deterministic genome identity/hash;
-- global graph IDs and cross-repository binding grammar;
-- adaptive census from federation/repository scope to semantic atom;
-- code/test/spec/paper/DeepWiki evidence correlation;
-- typed fact/inference/hypothesis/conflict/unknown states;
-- real `*.atlas` binary reader/writer with versioning, bounds checks, chunking, dictionaries, deduplication, content addressing, compression, random access and transactional publication;
-- design synthesis stored in the same graph as observed reality;
-- deterministic selection boundary for ATLASX materialization.
+- deterministic Genome identity/hash and machine enforcement path;
+- universal graph/binding/evidence/temporal primitives;
+- exhaustive artifact inventory;
+- S0→S10 scope lattice with every function accounted;
+- CFG/call/data/state/effect/binding semantics and explicit UNKNOWN/UNSUPPORTED records;
+- multi-engine reconciliation and adversarial gap queries;
+- fixed-point closure and CensusCertificate;
+- real `*.atlas` binary reader/writer with typed records, dictionaries, semantic dedup, compression, chunk hashes, bounded random access and transactional publication;
+- logical Atlas root/shard manifests, content addressing, lazy fetch and partial materialization;
+- research/gap/candidate/selected-design layers.
 
-Exit gate: Atlas can explain what exists, where it exists, how state/effects/bindings flow, what evidence supports each important claim, and how a repo connects to other repos.
+Exit gate: no silent omissions in the admitted corpus; required scopes reach closure; a SEALED logical Atlas root can be independently verified.
 
 ## Phase 1 — Deterministic ATLASX + Delegated Compiler
 
 ```text
-*.atlas
-  ↓ materialize
+SEALED *.atlas
+  ↓ materialize selected design
 *.atlasx/
   ↓ typed lowering
 Rust / TypeScript / bounded C ABI
   ↓ rustc / TS toolchain / clang
-physical artifact
+physical product
 ```
 
-Deliver:
+Deliver deterministic AtlasX semantic hashes, high-quality static Rust lowering, browser/UI TypeScript projection, bounded C ABI/device boundaries, compile/test/benchmark/recensus and differential semantic verification.
 
-- deterministic repo-shaped `*.atlasx/`;
-- typed static lowering without stringly dynamic dispatch as the default;
-- ownership/lifetime/effect/concurrency semantics sufficient to generate high-quality Rust;
-- TypeScript browser/UI lowering and Rust/WASM escape hatch for heavy compute;
-- C only for low-level ABI or explicitly selected device targets;
-- compile/test/benchmark/recensus loop;
-- differential equivalence tests between Atlas meaning and generated targets.
+Exit gate: substantial AtlasX systems produce verified products while Rust/TS remain trusted physical backends.
 
-Exit gate: substantial systems can be generated and maintained from Atlas while Rust/TS remain the trusted physical backend.
-
-## Phase 2 — Typed Atlas HIR/MIR + Semantic Optimizer
+## Phase 2 — Atlas HIR/MIR + Whole-Semantic Optimizer
 
 Deliver:
 
 - HIR preserving Resource/State/Capability/Binding/Transaction/Effect/Temporal semantics;
-- MIR with control flow, SSA-like values, loads/stores, calls, ownership/moves/borrows and effect barriers;
-- constant folding, dead-code elimination, inlining, specialization, monomorphization, escape/alias analysis, allocation elimination, loop/dataflow optimization;
-- semantic optimizer rules that forbid unsafe reordering across authority/effect/state/evidence boundaries;
-- optimized Rust/TS/C emission retained for bootstrap and reference.
+- MIR with CFG, SSA-like values, calls, loads/stores, ownership/moves/borrows and semantic barriers;
+- graph/binding specialization and devirtualization;
+- policy partial evaluation;
+- state placement;
+- ownership/lifetime/region selection;
+- escape/alias analysis and allocation elimination;
+- data-layout/locality optimization;
+- concurrency/conflict analysis;
+- inlining, constant folding, DCE, CSE, specialization, monomorphization and loop/dataflow optimization.
 
-Exit gate: optimized IR semantics are proven equivalent to AtlasX semantics and generated target behavior.
+Exit gate: optimized IR is semantically equivalent to AtlasX and measurably improves selected workloads without breaking required invariants.
 
 ## Phase 3 — External Native Backends
 
 ```text
 *.atlasx/
-   ↓
+  ↓
 HIR → MIR → LIR
-   ├─ LLVM
-   ├─ Cranelift
-   ├─ WASM
-   └─ GPU/accelerator IR where justified
+  ├─ LLVM
+  ├─ Cranelift
+  ├─ WASM
+  └─ GPU/accelerator IR
 ```
+
+Deliver stable Atlas ABI/object-layout contracts, AOT/JIT/sandbox paths, WASM/browser path, target vectorization/SIMD and differential testing against the Rust reference path.
+
+Exit gate: selected production systems no longer require Rust source as an intermediate representation.
+
+## Phase 4 — Atlas Native Machine Backend
 
 Deliver:
 
-- stable Atlas ABI/calling/object layout contracts;
-- native code generation through established backends;
-- JIT/sandbox path where useful;
-- WASM/browser path plus thin TypeScript bindings;
-- Rust backend retained as reference/debug/bootstrap implementation;
-- differential testing between rustc path and native-backend path.
-
-Exit gate: selected production subsystems no longer require Rust as an intermediate representation while preserving behavior, memory-safety contracts and graph invariants.
-
-## Phase 4 — Atlas Native Compiler Backend
-
-Deliver in order:
-
-1. portable Atlas Machine IR;
+1. portable Machine IR;
 2. target descriptions;
 3. instruction selection;
 4. register allocation/spilling;
-5. stack frame and calling convention lowering;
+5. stack/calling convention lowering;
 6. instruction scheduling;
 7. object emission;
-8. system-linker integration, followed later by native linking where justified;
-9. x86-64 production backend;
-10. ARM64 production backend;
-11. RISC-V/embedded targets as evidence requires;
-12. SIMD/vector, atomics and hardware-aware specialization;
+8. system linker integration;
+9. x86-64 backend;
+10. ARM64 backend;
+11. RISC-V/embedded as justified;
+12. SIMD/vector/atomics/hardware-aware specialization;
 13. whole-program graph-guided optimization.
 
-Phase 4 does not mean deleting Phase 1–3. `atlas emit rust`, `atlas emit typescript` and external backends remain valuable for debugging, audit, bootstrap and differential proof.
+## Production Optimization Lane
 
-## Terminal direction
+All mature backends support:
 
 ```text
-engineering reality
+AtlasX
+ + DeploymentProfile
+ + HardwareProfile
+ + WorkloadProfile
       ↓
-*.atlas
+world/graph specialization
       ↓
-*.atlasx/
+IR optimization
       ↓
-Atlas HIR/MIR/Machine IR
+target codegen
       ↓
-hardware-specialized physical artifact
+LTO / whole-program optimization
+      ↓
+link
+      ↓
+post-link code/data layout
+      ↓
+product
+      ↓
+representative workload
+      ↓
+PGO + auto-tuning
+      ↺
+Atlas evidence
 ```
 
-One semantic design can specialize differently for server, browser, robot, embedded gateway or accelerator without becoming separate semantic universes.
+The compiler may specialize separately for server, browser, robot, embedded, realtime or accelerator targets without creating new semantic universes.
+
+Rust/TypeScript emitters and external backends remain permanently useful for bootstrap, audit, debugging and differential proof even after native codegen exists.
