@@ -1,0 +1,20 @@
+schema = "atlas.systemizer.subsystem.v1"
+name = "Atlas Systemizer"
+repository = "llgtrn/Atlas-Systemizer"
+binary = "atlas-systemizer"
+cli_api = "atlas.systemizer.cli.v1"
+subsystem_kind = "DEVELOPMENT_ENGINEERING_TOOL"
+
+[boundary]
+canonical_product_repo = "llgtrn/Chronica"
+runtime_dependency_allowed = false
+chronica_imports_atlas_crates = false
+atlas_may_read_chronica_source = true
+atlas_may_emit_analysis = true
+atlas_has_merge_authority = false
+generated_state_is_canonical = false
+
+[implementation]
+backend_language = "Rust"
+frontend_language = "TypeScript"
+donor_engines_are_runtime_dependencies = false
