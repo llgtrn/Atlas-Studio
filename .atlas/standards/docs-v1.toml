@@ -36,6 +36,7 @@ required_control_docs = [
   "contracts/COMPILER-PRODUCT.md",
   "standards/CENSUS-SCOPE.md",
   "standards/COMPILER-OPTIMIZATION.md",
+  "standards/ORGANISM-SPECIES.md",
   "genome/README.md",
   "decisions/README.md",
   "guides/DEVELOPMENT.md",
@@ -71,6 +72,7 @@ organism_genome_contract_required = true
 organism_lifecycle_contract_required = true
 organism_model_admission_contract_required = true
 organism_homeostasis_metabolism_contract_required = true
+organism_species_standard_required = true
 compiler_optimization_standard_required = true
 development_guide_required = true
 code_before_docs_forbidden = true
