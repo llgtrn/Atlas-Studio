@@ -1,36 +1,45 @@
-schema_version: 2
-repo_standard: atlas.repository-standard.v1
+schema_version: 3
 docs_standard: atlas.docs.v1
 cli_api: atlas.systemizer.cli.v1
-canonical_product_repo: llgtrn/Chronica
-systemizer_repo: llgtrn/Atlas-Systemizer
+
+canonical_targets:
+  - { repo: llgtrn/Chronica, ref: main, role: PRODUCT_TARGET }
+  - { repo: llgtrn/Atlas-Systemizer, ref: main, role: ENGINEERING_FORGE }
 
 connection:
   auto_connect_registered_repositories: true
   mode: READ_ONLY_OBSERVATION
   resolve_exact_head_sha: true
+  target_repo_requires_atlas_metadata: false
 
 coding:
-  mode: ONE_REPOSITORY_AT_A_TIME
+  canonical_target_per_session: 1
   docs_gate_required: true
-  repo_gate_required: true
+  graph_before_code_required: true
   exact_base_sha_required: true
+  mirror_workers_optional: true
+  mirror_topology: ONE_TO_ONE_TARGET
   shared_mutable_checkout_forbidden: true
   atlas_merge_authority: false
-  default_delivery: branch_pr
 
-repositories:
-  - { repo: llgtrn/Chronica, archetype: CANONICAL_PRODUCT, ref: main, mutation_policy: REVIEWED_PRODUCT }
-  - { repo: llgtrn/Atlas-Systemizer, archetype: ENGINEERING_SUBSYSTEM, ref: main, mutation_policy: ATLAS_INTERNAL }
-  - { repo: llgtrn/PlatformDev, archetype: DEVELOPMENT_CELL, ref: main, mutation_policy: EVIDENCE_ONLY }
-  - { repo: llgtrn/EdgeDev, archetype: DEVELOPMENT_CELL, ref: main, mutation_policy: EVIDENCE_ONLY }
-  - { repo: llgtrn/Web2AppDev, archetype: DEVELOPMENT_CELL, ref: main, mutation_policy: EVIDENCE_ONLY }
-  - { repo: llgtrn/PhysicalDev, archetype: DEVELOPMENT_CELL, ref: main, mutation_policy: EVIDENCE_ONLY }
-  - { repo: llgtrn/SimulationDev, archetype: DEVELOPMENT_CELL, ref: main, mutation_policy: EVIDENCE_ONLY }
-  - { repo: llgtrn/CommerceDev, archetype: DEVELOPMENT_CELL, ref: main, mutation_policy: EVIDENCE_ONLY }
-  - { repo: llgtrn/FinanceDev, archetype: DEVELOPMENT_CELL, ref: main, mutation_policy: EVIDENCE_ONLY }
-  - { repo: llgtrn/CustomerDev, archetype: DEVELOPMENT_CELL, ref: main, mutation_policy: EVIDENCE_ONLY }
-  - { repo: llgtrn/HospitalityDev, archetype: DEVELOPMENT_CELL, ref: main, mutation_policy: EVIDENCE_ONLY }
-  - { repo: llgtrn/EstateDev, archetype: DEVELOPMENT_CELL, ref: main, mutation_policy: EVIDENCE_ONLY }
-  - { repo: llgtrn/LegalDev, archetype: DEVELOPMENT_CELL, ref: main, mutation_policy: EVIDENCE_ONLY }
-  - { repo: llgtrn/OSINTDev, archetype: DEVELOPMENT_CELL, ref: main, mutation_policy: EVIDENCE_ONLY }
+optional_specialized_repositories:
+  - { repo: llgtrn/PlatformDev, ref: main, role: OPTIONAL_SPECIALIZED_WORKSPACE }
+  - { repo: llgtrn/EdgeDev, ref: main, role: OPTIONAL_SPECIALIZED_WORKSPACE }
+  - { repo: llgtrn/Web2AppDev, ref: main, role: OPTIONAL_SPECIALIZED_WORKSPACE }
+  - { repo: llgtrn/PhysicalDev, ref: main, role: OPTIONAL_SPECIALIZED_WORKSPACE }
+  - { repo: llgtrn/SimulationDev, ref: main, role: OPTIONAL_SPECIALIZED_WORKSPACE }
+  - { repo: llgtrn/CommerceDev, ref: main, role: OPTIONAL_SPECIALIZED_WORKSPACE }
+  - { repo: llgtrn/FinanceDev, ref: main, role: OPTIONAL_SPECIALIZED_WORKSPACE }
+  - { repo: llgtrn/CustomerDev, ref: main, role: OPTIONAL_SPECIALIZED_WORKSPACE }
+  - { repo: llgtrn/HospitalityDev, ref: main, role: OPTIONAL_SPECIALIZED_WORKSPACE }
+  - { repo: llgtrn/EstateDev, ref: main, role: OPTIONAL_SPECIALIZED_WORKSPACE }
+  - { repo: llgtrn/LegalDev, ref: main, role: OPTIONAL_SPECIALIZED_WORKSPACE }
+  - { repo: llgtrn/OSINTDev, ref: main, role: OPTIONAL_SPECIALIZED_WORKSPACE }
+
+mirror_policy:
+  create_on_demand: true
+  exact_target_sha_required: true
+  initial_tree_must_match_target: true
+  docs_are_copied_from_target: true
+  atlas_metadata_stays_external: true
+  reconverge_then_archive_or_delete: true

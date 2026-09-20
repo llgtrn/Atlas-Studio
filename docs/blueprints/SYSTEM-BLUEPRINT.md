@@ -8,32 +8,32 @@ canonical: true
 
 ## Objective
 
-Turn a predefined multi-repository fleet into a disciplined, documentation-driven engineering environment while keeping coding bounded to one repository per session.
+Turn a creator's system idea or an existing repository into a disciplined invention program that can discover technology, design a better graph before coding, parallelize safely when useful, and converge to native low/zero-dependency technology.
 
 ## Inputs
 
-Fleet manifest, exact repository heads, .atlas/repo.toml, complete atlas.docs.v1 documentation, source trees, donor/reference provenance, tests and existing evidence.
+Idea/objective, target repository or blank-repo intent, mandatory docs, exact target SHA when code exists, source facts, OSS/search results, design references, constraints, tests and desired native runtime boundary.
 
 ## Flow
 
-Connect all registered repositories read-only, resolve heads, audit docs and repo structure, build engineering graphs, select one repository, verify coding admission, emit one bounded work plan, run implementation and proof externally, reconcile docs, then refresh fleet state.
+Create/repair North Star -> create docs plan -> create architecture/blueprint/contracts -> discover OSS/research -> graphinize source and donor technology -> compare alternatives -> synthesize target Design Graph -> decide single-repo vs mirror workers -> implement bounded graph slices -> translate code/design candidates where useful -> run distributed CI/differential proof -> reconverge -> extinguish runtime dependencies -> reconcile docs.
 
 ## Authority
 
-Atlas may observe and analyze. Coding is allowed only after hard gates pass. Repository mutation is external ACT. Merge authority stays with normal Git/review governance.
+Atlas proposes structures, repositories, mirrors, translations and work plans. Creation/mutation/merge are explicit engineering ACT operations subject to repository policy. Atlas never treats analysis as authority.
 
 ## State
 
-Canonical source and docs live in owning repositories. Atlas indexes, graphs, reports and plans are derived state.
+Target Git repositories are durable source truth for their own code/docs. Atlas fleet metadata, graphs, donor allocation, mirror lineage and work plans are derived engineering state stored in Atlas-Systemizer.
 
 ## Failure and Recovery
 
-Missing docs, stale SHA, broken references, invalid repository structure, connection failure or proof failure blocks coding or integration. Derived outputs are rebuildable and failed branches are recoverable through Git.
+If docs are incomplete, coding is refused. If graph evidence is incomplete, implementation remains unadmitted. If a mirror is stale, regenerate from exact target SHA. If dependency extinction fails, technology remains transitional rather than falsely native.
 
 ## Evidence
 
-Every work plan cites selected repo, exact base SHA, docs standard, docs gate, repo gate, scope and verification requirements.
+Every invention carries docs-gate evidence, source/technology/design graph versions, donor exact SHAs/licenses, mirror lineage, code/design translation provenance, CI/proof evidence and final target integration SHA.
 
 ## Verification
 
-Tests must prove docs rejection, cross-repo mutation rejection, exact-SHA enforcement, repo standard checks, CLI compatibility and subsystem runtime isolation.
+Prove graph coverage, behavior preservation, dependency closure, runtime isolation, exact mirror topology, CI aggregation and docs reconciliation.

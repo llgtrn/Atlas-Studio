@@ -8,28 +8,28 @@ canonical: true
 
 ## Hard Invariants
 
-NO_COMPLETE_DOCS_NO_CODING. ONE_REPOSITORY_PER_CODING_SESSION. EXACT_BASE_SHA_REQUIRED. ATLAS_HAS_NO_MERGE_AUTHORITY. GENERATED_STATE_IS_REBUILDABLE. CHRONICA_RUNTIME_MUST_NOT_IMPORT_ATLAS.
+NO_COMPLETE_DOCS_NO_CODING. GRAPH_BEFORE_CODE. ONE_CANONICAL_TARGET_PER_SESSION. MIRRORS_ARE_NON_CANONICAL. MIRROR_STARTS_AT_EXACT_TARGET_SHA. OSS_RUNTIME_DEPENDENCY_FORBIDDEN_FOR_NATIVE_TECHNOLOGY. TRANSLATION_IS_CANDIDATE_ONLY. ATLAS_HAS_NO_MERGE_AUTHORITY. GENERATED_GRAPHS_ARE_REBUILDABLE.
 
 ## Interfaces
 
-Stable interface is atlas.systemizer.cli.v1. Additive commands may extend v1 without breaking existing commands; incompatible semantics require a new explicit CLI version.
+atlas.systemizer.cli.v1 remains the stable external boundary. Target repositories need no Atlas runtime dependency. Fleet membership, optional worker pools and mirror lineage are centrally managed by Atlas.
 
 ## State and Durability
 
-Owning Git repositories hold durable source/docs/evidence. Atlas indexes and graph projections are derived and must be reconstructible from repository inputs.
+Owning repositories store durable source/docs. Atlas stores derived engineering metadata, graphs, mirror/work allocations and proof indexes. Native technology claims require source/tests/evidence independent from donor runtime availability.
 
 ## Authority
 
-Atlas may produce analysis and bounded plans. It cannot approve its own documentation gap, bypass coding admission, mutate multiple repositories in one coding session, or merge canonical branches.
+Atlas may propose repository creation, mirror creation, OSS allocation, translations and bounded work. It cannot silently create canonical truth, bypass docs/graph gates, or merge target branches.
 
 ## Evidence
 
-Coding admission evidence includes repo gate, docs gate, docs standard, exact selected repo SHA, scope and verification plan.
+Required evidence includes documentation admission, exact target SHA, donor provenance, technology/design graph, bounded scope, mirror lineage when used, translation provenance, tests/CI and integration SHA.
 
 ## Recovery
 
-On failed analysis rebuild derived state. On failed implementation preserve/discard branch without altering canonical main. On stale base SHA refresh fleet and regenerate the work plan.
+Discard/rebuild derived state. Regenerate stale mirrors from target SHA. Re-run translation from source evidence. Reopen technology as transitional if zero-dependency proof fails.
 
 ## Verification
 
-Machine tests must cover documentation hard gate, exact SHA, registered fleet connection, one-repository planning, repository manifests, runtime isolation and CLI contract compatibility.
+Tests cover docs gate, graph-before-code, mirror exactness, single canonical target, OSS allocation uniqueness, candidate-only translation, distributed CI and zero-dependency admission.

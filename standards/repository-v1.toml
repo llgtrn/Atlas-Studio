@@ -2,30 +2,27 @@ schema = "atlas.repository-standard.v1"
 version = 1
 
 [principles]
-semantic_roots_over_hardcoded_layout = true
-repo_manifest_required = true
+target_repo_requires_atlas_metadata = false
 generated_state_rebuildable = true
-one_repo_one_primary_archetype = true
-parallel_across_repos_serial_within_repo = true
+one_canonical_target_per_session = true
 exact_base_sha_required_for_mutation_plan = true
 merge_authority_outside_atlas = true
+docs_standard_required = true
+graph_before_code_required = true
 
-[archetypes.CANONICAL_PRODUCT]
-required_roots = [".atlas", "core", "runtime", "adapter", "organism", "apps", "docs"]
-forbidden_roots = []
-production_code_allowed = true
+[target]
+docs_contract = "atlas.docs.v1"
+atlas_runtime_dependency_allowed = false
 
-[archetypes.DEVELOPMENT_CELL]
-required_roots = [".atlas", "docs", "temporary", "provenance", "license", "evidence", "work"]
-forbidden_roots = ["core", "runtime", "adapter", "organism", "apps", "src", "backend", "frontend", "services", "packages"]
-production_code_allowed = false
+[mirror_worker]
+optional = true
+initial_topology = "ONE_TO_ONE_TARGET"
+exact_target_sha_required = true
+atlas_metadata_in_mirror_forbidden = true
+independent_canonical_status = false
+reconvergence_required = true
 
-[archetypes.ENGINEERING_SUBSYSTEM]
-required_roots = [".atlas", "crates", "contracts", "docs", "references", "fleet"]
-forbidden_roots = []
-production_code_allowed = true
-
-[archetypes.DOMAIN_SUBSYSTEM]
-required_roots = [".atlas", "crates", "apps", "docs", "contracts"]
-forbidden_roots = []
-production_code_allowed = true
+[specialized_workspace]
+optional = true
+may_have_domain_specific_structure = true
+docs_contract = "atlas.docs.v1"

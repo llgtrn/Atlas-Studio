@@ -8,32 +8,34 @@ canonical: true
 
 ## Mission
 
-Create a disciplined engineering subsystem that can understand, standardize, graphinize, and safely guide development across Chronica and its registered repository fleet.
+Give creators a disciplined engineering forge for inventing complete systems: define the North Star, generate the documentation architecture, discover reference technology, graph the technology before coding, distribute bounded implementation, prove the result, and converge it into a cleaner native system.
 
 ## North Star
 
-Atlas becomes a native, Rust-first engineering system where repository reality is converted into Source, Fact, Technology, Design, Docs, Fleet, Build, Refactor, and Proof graphs; coding is admitted only from complete documentation and bounded to one repository at a time.
+Atlas becomes a Rust-first system invention environment where ideas, source code, OSS technology, UI/design languages, repository fleets and CI are transformed into evidence-linked graphs. Those graphs are used to design new technology before implementation, translate code and design languages, create optional one-to-one mirror repositories for parallel work, and drive canonical targets toward zero runtime dependencies.
 
 ## Non-Negotiable Invariants
 
-- Atlas is a development tool, not runtime truth.
-- Every managed repository obeys the same documentation contract.
-- Missing required docs blocks coding admission.
-- Atlas may observe the full configured fleet but one coding session targets exactly one repository.
-- Exact base SHA is required before coding work is prepared.
-- Atlas has no merge authority.
-- Generated graph state is rebuildable.
-- Reference OSS is technology input, not permanent sovereignty or runtime authority.
-- Backend engineering code is Rust; Graph Studio frontend is TypeScript/TSX.
+- Docs before coding: incomplete required docs block coding admission.
+- Graph before code: technology/design structure is explicit before implementation.
+- One canonical target per invention session; optional mirror workers are non-canonical.
+- Mirror workers begin from the exact target SHA and mirror target topology one-to-one.
+- OSS is reference/donor technology, not permanent runtime substrate.
+- Translation output is a candidate, never automatic truth or merge authority.
+- Zero runtime dependency is the terminal target for technology declared native.
+- Atlas may connect to and analyze many repositories, allocate OSS across them, and distribute CI.
+- Atlas has no merge authority and no product/runtime sovereignty.
+- Atlas-specific implementation, UI, standards and engineering state live only in Atlas-Systemizer.
+- Backend engineering implementation is Rust; Graph Studio frontend is TypeScript/TSX.
 
 ## Boundaries
 
-Chronica owns canonical product/runtime semantics. Development Cells own donor/evidence preparation. Atlas owns engineering standards, analysis and planning. Git/repository review owns integration.
+Target repositories own their source and repository-specific docs. Atlas owns invention standards, reusable documentation grammar, graph engines, OSS discovery/allocation, mirror orchestration, translation, distributed CI planning and engineering proof. Chronica is one canonical target, not Atlas's host.
 
 ## Sequencing
 
-First establish documentation discipline and repo identity; then fleet connection; then source/fact graph; then technology/design graph; then bounded work plan; then implementation/proof; then reconciliation and refresh.
+Idea -> North Star -> docs plan -> architecture/blueprint/contracts -> OSS discovery -> Source/Fact/Technology Graph -> Target Design Graph -> optional mirror plan -> bounded implementation -> distributed CI/proof -> reconvergence -> dependency extinction -> documentation reconciliation.
 
 ## Non-Goals
 
-Atlas is not an ERP, agent runtime, canonical database, autonomous merge bot, replacement for Chronica authority, or a wrapper permanently dependent on donor OSS engines.
+Atlas is not a canonical business database, runtime dependency of the systems it creates, permanent wrapper around OSS, autonomous merge authority, mandatory multi-repo topology, or fixed set of Development Cell repositories.
