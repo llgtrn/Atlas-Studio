@@ -6,21 +6,20 @@ canonical: true
 ---
 # Repository Standard v1
 
-Every active repository carries:
+Every active repository carries .atlas/repo.toml and declares one primary repository archetype.
 
-```text
-.atlas/repo.toml
-```
+Supported implementation archetypes are CANONICAL_PRODUCT, DEVELOPMENT_CELL, ENGINEERING_SUBSYSTEM and DOMAIN_SUBSYSTEM.
 
-The manifest declares a primary archetype and maps semantic roots.
+Implementation roots may differ because responsibilities differ. Atlas validates those declared semantic roots and never infers sovereignty/implementation permission from the repository name.
 
-Supported initial archetypes:
+Documentation is different: **all Atlas-managed repositories use exactly the same atlas.docs.v1 control structure and admission gate with no archetype-specific exception.**
 
-- CANONICAL_PRODUCT
-- DEVELOPMENT_CELL
-- ENGINEERING_SUBSYSTEM
-- DOMAIN_SUBSYSTEM
+Therefore:
 
-Atlas validates the archetype contract. It does not infer sovereignty or implementation permission from a repository name.
+~~~text
+implementation roots = responsibility-specific and manifest-declared
+documentation roots  = universal and mandatory
+coding admission      = RepoGate AND DocsGate AND exact SHA AND one selected repo
+~~~
 
-A semantic-root manifest is deliberately more stable than hardcoded folder assumptions: a future repository may move internals while keeping the same root roles and compatibility contract.
+A repository may move physical implementation internals while preserving semantic root mappings, but it may not omit/rename mandatory documentation control paths or bypass DocsGate.
