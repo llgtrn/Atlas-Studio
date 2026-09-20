@@ -6,10 +6,12 @@ canonical: true
 ---
 # Atlas Studio Responsibilities
 
-core owns pure typed engineering meaning: identities, epistemic classes, provenance/evidence contracts, ADL, ATLAS format semantics and ATLASX semantic contracts.
+`core` owns product-neutral typed meaning: identity, node/edge/binding, scope, state/event/temporal semantics, evidence/provenance, claim status, constraints/invariants, interface/capability/effect semantics, Atlas Genome contracts, ATLAS/ATLASX schemas and compiler IR types.
 
-runtime owns execution algorithms: admission orchestration, ingest, corpus construction, incremental invalidation, semantic compile/link/query, technology comparison, synthesis, materialization and verification.
+`runtime` owns algorithms: security admission, adaptive census, graph construction, incremental invalidation, research correlation, comparison, synthesis, design selection, ATLAS publication, ATLASX materialization, compiler passes, verification and recensus.
 
-adapter owns external mechanics: repository/Git/filesystem observation, parsers, source-index exchange, package ecosystems, storage I/O, sandbox/provider/protocol boundaries.
+`adapter` owns external mechanics: repository/Git/filesystem access, language parsers, package ecosystems, DeepWiki/research/provider access, storage, sandbox/subprocess/toolchain interfaces and target platform mechanics.
 
-apps/ui owns the TypeScript/TSX World Canvas and source/design/agent projections over bounded Rust-engine queries. tools is repository engineering only.
+`apps/ui` owns the TypeScript/TSX World Canvas and source/design/compiler/evidence projections. UI views are projections of bounded engine queries, never a second truth store.
+
+Generated target systems remain sovereign repositories. Atlas may connect them through stable graph identities and bindings but may not silently merge ownership or authority boundaries.
