@@ -3,6 +3,8 @@ version = 1
 
 [principles]
 target_repo_requires_atlas_metadata = false
+canonical_docs_root = "docs"
+atlas_root_is_noncanonical_metadata = true
 generated_state_rebuildable = true
 one_canonical_target_per_session = true
 exact_base_sha_required_for_mutation_plan = true
@@ -13,16 +15,16 @@ graph_before_code_required = true
 [target]
 docs_contract = "atlas.docs.v1"
 atlas_runtime_dependency_allowed = false
+atlas_metadata_optional = true
 
 [mirror_worker]
 optional = true
 initial_topology = "ONE_TO_ONE_TARGET"
 exact_target_sha_required = true
-atlas_metadata_in_mirror_forbidden = true
 independent_canonical_status = false
 reconvergence_required = true
 
 [specialized_workspace]
 optional = true
-may_have_domain_specific_structure = true
+may_have_domain_specific_implementation_structure = true
 docs_contract = "atlas.docs.v1"
