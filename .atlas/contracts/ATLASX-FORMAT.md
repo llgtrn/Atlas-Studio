@@ -6,13 +6,11 @@ canonical: true
 ---
 # ATLASX Expanded Executable Representation Contract
 
-`<system>.atlasx/` is the deterministic expanded executable repository representation materialized from a selected `<system>.atlas` design.
+`<system>.atlasx/` is the deterministic expanded executable representation of a selected design from one pinned logical Atlas root.
 
-"ATLASX" means expanded executable representation, not expanded prose. It is not Markdown, JSON documentation or an LLM summary.
+ATLASX is executable engineering representation, not expanded prose.
 
-## Shape
-
-ATLASX MUST expose a stable repository-shaped tree so humans, tools and compiler passes can address bounded scopes. A default conceptual shape is:
+## Default shape
 
 ```text
 <system>.atlasx/
@@ -22,6 +20,7 @@ ATLASX MUST expose a stable repository-shaped tree so humans, tools and compiler
 │  ├─ nodes.atlasx
 │  ├─ edges.atlasx
 │  ├─ bindings.atlasx
+│  ├─ state.atlasx
 │  ├─ temporal.atlasx
 │  └─ evidence.atlasx
 ├─ modules/
@@ -29,28 +28,38 @@ ATLASX MUST expose a stable repository-shaped tree so humans, tools and compiler
 ├─ runtime/
 ├─ ui/
 ├─ tests/
+├─ profiles/
+│  ├─ deployment.atlasx
+│  ├─ hardware.atlasx
+│  └─ workload.atlasx
 └─ targets/
 ```
 
-Exact physical sharding may evolve, but folder/module scope MUST be stable and derivable from Atlas meaning. Individual `*.atlasx` units may use compact binary encoding; human-readable views are generated projections.
+Physical sharding may evolve, but scope/module addressing and semantic hashes are deterministic for pinned inputs.
 
 ## Semantic requirements
 
-ATLASX carries the selected executable design, including enough information for:
+ATLASX carries enough selected meaning for:
 
-- static type checking;
-- ownership/lifetime/resource reasoning where relevant;
-- effects/state transitions;
-- concurrency/transaction semantics;
+- static types and layouts;
+- function bodies/CFG and executable semantics;
+- ownership/lifetime/resource reasoning;
+- state transitions/effects;
+- concurrency/transactions/recovery;
 - temporal semantics;
-- bindings and cross-repository references;
+- bindings/cross-repository references;
 - constraints/invariants;
-- target placement;
 - verification obligations;
-- source/evidence lineage back to the parent `*.atlas`.
+- placement and deployment intent;
+- evidence lineage to parent Atlas;
+- compiler optimization barriers and freedoms.
 
-## Determinism
+## Partial materialization
 
-ATLASX is not required to contain every rejected donor/design alternative from ATLAS. It is a selected materialization. However, the same pinned `*.atlas` selection, Genome and compiler version MUST produce the same semantic ATLASX hashes.
+Atlas may materialize bounded scopes from a sharded logical Atlas without expanding the whole corpus, provided dependencies/bindings and proof obligations are resolved.
 
-ATLASX is the input to the compiler pipeline. In early phases it lowers through Rust/TypeScript/C boundaries; in later phases it lowers through Atlas HIR/MIR/LIR and finally machine IR.
+## Compiler input
+
+In Phase 1 AtlasX lowers through Rust/TypeScript/C boundaries. Later it lowers through Atlas HIR/MIR/LIR/Machine IR.
+
+The same AtlasX semantics may produce multiple target-specialized physical products under different explicit DeploymentProfile, HardwareProfile and WorkloadProfile inputs. Physical specialization does not change the semantic identity of the selected design.
