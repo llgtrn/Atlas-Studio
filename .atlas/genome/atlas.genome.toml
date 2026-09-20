@@ -35,34 +35,45 @@ required_primitives = [
 ]
 
 [census]
+exhaustive_accounting_required = true
+every_admitted_artifact_accounted = true
+every_discovered_function_accounted = true
 adaptive_depth_required = true
+adaptive_depth_may_not_hide_function = true
+silent_skip_forbidden = true
+unknown_must_be_explicit = true
+unsupported_must_be_explicit = true
+dynamic_behavior_must_be_explicit = true
+negative_evidence_requires_closure = true
+multi_engine_reconciliation_required = true
+cross_scope_reconciliation_required = true
+adversarial_gap_queries_required = true
+fixed_point_required_for_seal = true
+census_certificate_required_for_seal = true
+critical_scope_unknown_zero_when_policy_requires = true
 global_local_atomic_plan_required = true
 scope_lattice = [
-  "federation",
-  "repository",
-  "system_domain",
-  "package_crate_app",
-  "module",
-  "file",
-  "type_trait_interface_component",
-  "function_method",
-  "control_flow_block",
-  "statement_expression",
-  "semantic_atom"
+  "federation", "repository", "system_domain", "package_crate_app", "module",
+  "file", "type_trait_interface_component", "function_method",
+  "control_flow_block", "statement_expression", "semantic_atom"
 ]
 deep_triggers = [
-  "architecture_importance",
-  "state_mutation",
-  "persistence",
-  "concurrency",
-  "authority_security_safety",
-  "performance_hot_path",
-  "external_effect",
-  "evidence_conflict",
-  "complex_binding",
-  "compiler_sensitive_layout",
-  "planned_change"
+  "architecture_importance", "state_mutation", "persistence", "concurrency",
+  "authority_security_safety", "performance_hot_path", "external_effect",
+  "evidence_conflict", "complex_binding", "dynamic_binding",
+  "compiler_sensitive_layout", "planned_change"
 ]
+
+[function_semantics]
+cfg_required_when_executable = true
+calls_accounted = true
+reads_writes_accounted = true
+state_effects_accounted = true
+failure_paths_accounted = true
+bindings_accounted = true
+evidence_required = true
+temporal_revision_required = true
+semantic_atoms_required_for_critical_scopes = true
 
 [evidence]
 provenance_required = true
@@ -75,16 +86,39 @@ deepwiki_docs_are_explanatory_evidence = true
 model_output_is_candidate_until_verified = true
 silent_conflict_collapse_forbidden = true
 
+[invention]
+observed_world_must_not_be_overwritten_by_candidate = true
+gap_graph_required = true
+candidate_status_required = true
+validation_evidence_required_before_selected_design = true
+no_material_opportunity_is_valid_result = true
+
 [atlas_format]
 extension = ".atlas"
 binary_required = true
 dense_canonical_engineering_artifact = true
+completeness_outranks_compression_ratio = true
+function_semantics_retained = true
+semantic_interning_required = true
+content_addressed_records_required = true
 chunked_random_access_required = true
 integrity_hashes_required = true
 format_version_required = true
 genome_hash_required = true
 transactional_publication_required = true
 markdown_json_as_canonical_payload_forbidden = true
+
+[atlas_sharding]
+logical_atlas_may_be_sharded = true
+root_manifest_required = true
+content_addressed_shards_required = true
+shard_location_is_not_semantic_identity = true
+global_identity_survives_relocation = true
+cross_shard_bindings_required = true
+lazy_fetch_supported = true
+partial_materialization_supported = true
+unchanged_shard_reuse_supported = true
+single_logical_truth_required = true
 
 [atlasx_format]
 suffix = ".atlasx"
@@ -93,6 +127,8 @@ deterministic_for_pinned_inputs = true
 human_readable_projection_is_noncanonical = true
 selected_design_only = true
 parent_atlas_lineage_required = true
+partial_scope_materialization_supported = true
+compiler_profiles_supported = true
 
 [materialization]
 backend_bootstrap = "rust"
@@ -105,10 +141,35 @@ verify_and_recensus_required = true
 [compiler]
 current_phase = 0
 phase_1 = "atlasx_to_rust_typescript_c_boundary"
-phase_2 = "typed_hir_mir_semantic_optimizer"
-phase_3 = "llvm_cranelift_wasm_external_native_backends"
-phase_4 = "atlas_native_machine_backend"
+phase_2 = "typed_hir_mir_semantic_world_optimizer"
+phase_3 = "lir_llvm_cranelift_wasm_external_native_backends"
+phase_4 = "atlas_machine_ir_native_backend"
+semantic_optimization_precedes_machine_optimization = true
 optimization_must_preserve_graph_temporal_evidence_effect_invariants = true
+deployment_profile_required_for_production = true
+hardware_profile_required_for_production = true
+workload_profile_required_when_performance_specialized = true
+whole_program_optimization_supported = true
+lto_supported = true
+post_link_optimization_supported = true
+pgo_profiles_are_evidence = true
+auto_tuning_requires_benchmark_evidence = true
+product_lineage_required = true
+
+[performance]
+explicit_objective_required_for_tuning = true
+allowed_objectives = [
+  "throughput", "latency_p50", "latency_p95", "latency_p99", "deadline",
+  "jitter", "memory", "startup", "binary_size", "energy", "gpu_utilization"
+]
+graph_binding_specialization_allowed = true
+state_placement_optimization_allowed = true
+memory_region_optimization_allowed = true
+data_layout_optimization_allowed = true
+concurrency_scheduling_optimization_allowed = true
+simd_vectorization_allowed = true
+accelerator_specialization_allowed = true
+semantic_barriers_must_be_preserved = true
 
 [federation]
 analysis_may_span_many_repositories = true
