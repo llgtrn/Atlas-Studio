@@ -20,6 +20,7 @@ required_control_docs = [
   "architecture/DIGITAL-ORGANISM.md",
   "blueprints/SYSTEM-BLUEPRINT.md",
   "blueprints/COMPILER-ROADMAP.md",
+  "blueprints/RUST-PARITY-AND-SURPASS-ROADMAP.md",
   "blueprints/BULK-DONOR-ABSORPTION.md",
   "blueprints/ORGANISM-COMPILATION.md",
   "contracts/SYSTEM-CONTRACT.md",
@@ -74,6 +75,7 @@ organism_model_admission_contract_required = true
 organism_homeostasis_metabolism_contract_required = true
 organism_species_standard_required = true
 compiler_optimization_standard_required = true
+rust_parity_surpass_roadmap_required = true
 development_guide_required = true
 code_before_docs_forbidden = true
 exact_base_sha_required = true
