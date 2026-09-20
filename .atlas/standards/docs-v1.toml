@@ -19,16 +19,21 @@ required_control_docs = [
   "architecture/INVENTION-PIPELINE.md",
   "blueprints/SYSTEM-BLUEPRINT.md",
   "blueprints/COMPILER-ROADMAP.md",
+  "blueprints/BULK-DONOR-ABSORPTION.md",
   "contracts/SYSTEM-CONTRACT.md",
   "contracts/ATLAS-GENOME.md",
   "contracts/UNIVERSAL-GRAPH-CONTRACT.md",
+  "contracts/CENSUS-COMPLETENESS.md",
   "contracts/ATLAS-FORMAT.md",
+  "contracts/ATLAS-SHARDING.md",
   "contracts/ATLASX-FORMAT.md",
+  "contracts/COMPILER-PRODUCT.md",
   "standards/CENSUS-SCOPE.md",
+  "standards/COMPILER-OPTIMIZATION.md",
   "genome/README.md",
   "decisions/README.md",
   "guides/DEVELOPMENT.md",
-  "references/README.md",
+  "references/README.md"
 ]
 
 [semantic_sufficiency]
@@ -52,7 +57,11 @@ architecture_required = true
 blueprint_required = true
 contracts_required = true
 genome_required = true
+census_completeness_contract_required = true
 universal_graph_contract_required = true
+atlas_sharding_contract_required = true
+compiler_product_contract_required = true
+compiler_optimization_standard_required = true
 development_guide_required = true
 code_before_docs_forbidden = true
 exact_base_sha_required = true
