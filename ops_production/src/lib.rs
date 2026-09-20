@@ -1,7 +1,7 @@
 //! Production support semantics for building and operating Atlas itself.
 //!
 //! This crate is intentionally product-neutral. It models operational support lanes that help
-//! Atlas create, verify and maintain its own system without importing Chronica-specific organism
+//! Atlas create, verify and maintain its own system without importing product-specific intelligence
 //! concepts.
 
 use serde::{Deserialize, Serialize};
@@ -64,15 +64,15 @@ pub fn atlas_ops_production_plan() -> OpsProductionPlan {
 }
 
 pub fn validates_atlas_support_shape(plan: &OpsProductionPlan) -> bool {
-    !plan
-        .lanes
-        .iter()
-        .any(|lane| plan.forbidden_lanes.iter().any(|forbidden| forbidden == &lane.id))
-        && plan.lanes.iter().all(|lane| {
-            !lane.id.trim().is_empty()
-                && !lane.purpose.trim().is_empty()
-                && !lane.evidence_required.is_empty()
-        })
+    !plan.lanes.iter().any(|lane| {
+        plan.forbidden_lanes
+            .iter()
+            .any(|forbidden| forbidden == &lane.id)
+    }) && plan.lanes.iter().all(|lane| {
+        !lane.id.trim().is_empty()
+            && !lane.purpose.trim().is_empty()
+            && !lane.evidence_required.is_empty()
+    })
 }
 
 #[cfg(test)]

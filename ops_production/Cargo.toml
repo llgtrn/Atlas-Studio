@@ -6,8 +6,8 @@ rust-version.workspace = true
 license.workspace = true
 publish = false
 
-# Atlas production support kernels. This is not a Chronica organism layer; it supports operating,
-# verifying and evolving the Atlas system itself.
+# Atlas production support kernels. This is not a product-specific intelligence layer; it supports
+# operating, verifying and evolving the Atlas system itself.
 
 [dependencies]
 serde.workspace = true
