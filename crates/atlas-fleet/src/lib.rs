@@ -104,6 +104,18 @@ fn parse_repo_line(line: &str) -> Option<(String,String)> {
     repo.map(|repo| (repo, reference.unwrap_or_else(|| "main".into())))
 }
 
+pub fn registered_repositories(manifest: impl AsRef<Path>) -> std::io::Result<Vec<String>> {
+    let text = fs::read_to_string(manifest)?;
+    let mut repos = text
+        .lines()
+        .filter_map(parse_repo_line)
+        .map(|(repo, _)| repo)
+        .collect::<Vec<_>>();
+    repos.sort();
+    repos.dedup();
+    Ok(repos)
+}
+
 pub fn connect(manifest: impl AsRef<Path>) -> std::io::Result<FleetConnectionReport> {
     let manifest = manifest.as_ref();
     let text = fs::read_to_string(manifest)?;
