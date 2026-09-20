@@ -17,6 +17,8 @@ Read the architecture in this order:
 - `../contracts/ATLAS-FORMAT.md` and `../contracts/ATLAS-SHARDING.md` — dense logical Atlas and physical sharding.
 - `../contracts/ATLASX-FORMAT.md` — selected expanded executable representation.
 - `SYSTEM.md` — implementation ownership and end-to-end dataflow.
+- `DIGITAL-ORGANISM.md` — first-class organism substrate, provider independence and phenotype model.
+- `../contracts/ORGANISM-GENOME-v1.md`, `ORGANISM-LIFECYCLE.md`, `ORGANISM-MODEL-ADMISSION.md` and `ORGANISM-HOMEOSTASIS-METABOLISM.md` — organism hard semantics.
 - `INVENTION-PIPELINE.md` — donor/research learning and candidate invention.
 - `../blueprints/SYSTEM-BLUEPRINT.md` and `../blueprints/COMPILER-ROADMAP.md` — construction phases.
 - `../contracts/COMPILER-PRODUCT.md` and `../standards/COMPILER-OPTIMIZATION.md` — optimized product compilation and feedback.
