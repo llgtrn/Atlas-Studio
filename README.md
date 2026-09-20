@@ -2,55 +2,45 @@
 
 Atlas Studio is a product-neutral engineering-world compiler and system invention environment.
 
-It ingests repositories, donor OSS, specifications, DeepWiki-style repository explanations, scientific papers, tests, benchmarks and other admitted evidence; performs adaptive multi-scope census; synthesizes a typed engineering world; and materializes verified native systems.
-
-The canonical engineering pipeline is:
+It performs strict, evidence-linked census from multi-repository scope down to every discovered function and required semantic atom; reconciles gaps/conflicts to a fixed point; synthesizes and validates target-native designs; publishes them as a dense logical `*.atlas`; materializes selected executable worlds as `*.atlasx/`; and compiles them into verified target products.
 
 ```text
-source reality / donors / research / declared intent
-                    ↓
-             secure admission
-                    ↓
-         adaptive semantic census
-                    ↓
-          design + synthesis loop
-                    ↓
-        <system>.atlas
- dense canonical engineering artifact
-                    ↓
-          Atlas materializer/compiler
-                    ↓
-        <system>.atlasx/
- expanded executable repo representation
-                    ↓
-             compiler backend
-                    ↓
-       executable / library / UI bundle
-                    ↓
-          test / benchmark / recensus
-                    ↺
+Reality / repositories / donors / research
+        ↓
+strict census + CensusCertificate
+        ↓
+observed/research/invention graph
+        ↓
+SEALED logical *.atlas
+        ↓
+content-addressed shards when needed
+        ↓
+deterministic *.atlasx/
+        ↓
+world/semantic optimization
+        ↓
+HIR → MIR → LIR → Machine IR
+        ↓
+codegen → LTO → link → post-link
+        ↓
+binary / library / WASM / UI product
+        ↓
+runtime profiling / PGO / auto-tuning
+        ↺
+evidence + recensus
 ```
 
-Important naming distinction:
+## Core invariants
 
-- `.atlas/` is the repository knowledge/control directory.
-- `*.atlas` is Atlas Studio's dense binary engineering artifact.
-- `*.atlasx/` is the deterministic expanded executable representation produced from a selected `*.atlas` design.
+- `.atlas/` is the repository control root; `*.atlas` is a dense binary engineering artifact.
+- Every admitted artifact and discovered function is accounted for. UNKNOWN is permitted only explicitly; silent omission is forbidden.
+- Universal graph primitives include identity, scope, node, edge, binding, state, event, temporal, evidence, provenance, constraint/invariant, interface/capability, effect and materialization.
+- Independently generated repositories remain sovereign but cross-repository composable through stable identities/bindings.
+- Logical Atlas may be physically sharded across locations without becoming multiple truth systems.
+- Completeness outranks file size; semantic interning/dedup/deltas/compression reduce duplication rather than delete meaning.
+- AtlasX is selected executable representation, not prose.
+- Compiler optimization begins at world/graph level and continues through machine code, LTO, post-link, PGO and evidence-backed auto-tuning.
+- Backend/compiler/runtime bootstrap is Rust. Frontend bootstrap is TypeScript/TSX. C is an explicit low-level boundary by default.
+- Donor OSS is evidence/reference and is removed from the temporary workbench after native absorption proof.
 
-Atlas does not census OSS to translate it line-for-line. Donors are evidence. Atlas extracts mechanisms, algorithms, invariants, trade-offs and technology primitives, synthesizes a target-native design, and then materializes that design.
-
-Every Atlas-generated repository MUST implement the same universal engineering graph contract: globally stable identities, nodes, edges, bindings, scopes, state/event semantics, temporal revisions, evidence/provenance, constraints/invariants, interfaces/capabilities, effects and materializations. This allows independently generated repositories to federate into one engineering world without becoming one mutable monorepo or competing truth systems.
-
-## Current compatibility boundary
-
-The current compatibility binary remains `atlas-systemizer` and the compatibility API remains `atlas.systemizer.cli.v1` while implementation migrates toward the Atlas compiler architecture.
-
-## Implementation policy
-
-- Backend/compiler/runtime: Rust.
-- Frontend: TypeScript/TSX.
-- C is permitted only at explicit low-level/foreign ABI boundaries unless a later compiler phase proves a native target requirement.
-- `.atlas/` is the sole repository knowledge/control root.
-- Donor OSS is evidence and technology reference, not permanent runtime substrate.
-- Generated or inferred claims are not admitted as verified fact without evidence.
-- Current donor absorption continues to materialize Rust backend and TypeScript frontend until later compiler phases replace that lowering path.
+The current compatibility binary remains `atlas-systemizer` and API `atlas.systemizer.cli.v1` while the native Atlas compiler/runtime is built.
