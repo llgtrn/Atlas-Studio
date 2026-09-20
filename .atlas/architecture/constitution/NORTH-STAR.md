@@ -6,58 +6,71 @@ canonical: true
 ---
 # Atlas Studio North Star
 
-Atlas Studio is a product-neutral engineering-world compiler and system invention environment. Its destination is not prompt-to-code generation and not repository translation. It must understand engineering reality at multiple resolutions, compress that understanding into a dense binary design artifact, expand selected designs into a deterministic executable repository representation, and compile them into verified software.
+Atlas Studio is a product-neutral engineering-world compiler and system invention environment.
+
+Its destination is not prompt-to-code generation, repository translation or a graph viewer. Atlas must account for engineering reality without silent omission, preserve that reality and its evidence in a dense universal graph, invent and validate better target designs, materialize one selected executable world, and compile it into verified physical products specialized for their deployment and hardware.
 
 ## Canonical chain
 
 ```text
-intent + admitted repositories + OSS + specs + DeepWiki + papers + evidence
+intent + repositories + OSS + builds/tests + specs + papers + evidence
                                   ↓
                            secure admission
                                   ↓
-                  adaptive multi-resolution census
+                         full inventory
                                   ↓
-             mechanism / principle / invariant extraction
+                 strict multi-resolution census
                                   ↓
-                    compare / synthesize / invent
+              function + required semantic atoms
                                   ↓
-                         <system>.atlas
-               dense canonical engineering artifact
+             reconcile / adversarial gaps / fixed point
                                   ↓
-                       Atlas materializer
+                         CensusCertificate
                                   ↓
-                       <system>.atlasx/
-              expanded executable repo representation
+              observed + research + invention graphs
                                   ↓
-                         compiler backend
+                       selected target design
                                   ↓
-                      physical executable
+                     SEALED Logical *.atlas
                                   ↓
-                    tests / benchmark / proof
+                 content-addressed shards if needed
                                   ↓
-                             recensus
+                       deterministic *.atlasx/
+                                  ↓
+                   world / semantic optimization
+                                  ↓
+                    HIR → MIR → LIR → Machine IR
+                                  ↓
+                 codegen / LTO / link / post-link
+                                  ↓
+                           physical product
+                                  ↓
+                  workload profile / PGO / tuning
+                                  ↓
+                         evidence + recensus
                                   ↺
 ```
 
 ## Non-negotiable invariants
 
-- `.atlas/` is the repository control root; `*.atlas` is the dense binary artifact. They are distinct concepts.
-- Atlas Genome hard requirements govern census, planning, synthesis, materialization, verification and generated repository shape.
-- Every artifact pins genome version/hash and source/evidence lineage.
-- Census spans global repository impact down to semantic atoms and uses adaptive depth rather than blindly exploding every line.
-- Source code is authority for what an implementation currently does; tests/runtime evidence verify behavior; papers/specs explain algorithms and normative principles; DeepWiki/docs are explanatory evidence; model output is candidate/inference.
-- Facts, inference, hypothesis, conflict and unknown remain distinct.
-- Donors are evidence, never runtime authority.
-- Native technology cannot require donor runtime availability after absorption is complete.
-- Backend/compiler/runtime remains Rust during the bootstrap path. Frontend remains TypeScript/TSX. C is a bounded ABI/device/legacy boundary unless explicitly justified.
-- `*.atlasx/` is executable representation, not Markdown documentation and not an LLM summary.
-- Generated source is a projection/materialization of Atlas meaning, never a competing canonical universe.
-- Every Atlas-generated repository uses the universal graph grammar and can federate with other Atlas-generated repositories through stable bindings without surrendering repository sovereignty.
-- Node, edge, binding, scope, state, event, temporal, evidence, provenance, constraint/invariant, interface/capability, effect and materialization semantics must survive all compiler phases.
-- Optimization may change physical implementation but may not erase authority, state, temporal or evidence semantics required by the source graph.
+- `.atlas/` is the repository knowledge/control directory; `*.atlas` is the dense binary artifact.
+- Atlas Genome governs admission, census, invention, materialization, optimization and verification.
+- Every admitted artifact and discovered function is accounted for; adaptive census changes depth, never permits silent omission.
+- UNKNOWN, UNSUPPORTED, DYNAMIC and CONFLICT are explicit states.
+- Important facts retain evidence/provenance/temporal scope.
+- A production Atlas root requires Genome-defined closure and CensusCertificate.
+- Completeness outranks compression ratio; a logical Atlas may be very large.
+- One logical Atlas may span many immutable content-addressed physical shards without becoming multiple truth systems.
+- `*.atlasx/` is deterministic selected executable meaning, not documentation.
+- Universal Identity/Scope/Node/Edge/Binding/State/Event/Temporal/Evidence/Provenance/Constraint/Invariant/Interface/Capability/Effect/Materialization semantics survive all stages.
+- Generated repositories remain sovereign graph partitions yet are cross-repository composable through stable identities/bindings.
+- Optimization may aggressively change physical representation but may not weaken required authority, safety, tenant, temporal, evidence, transaction, recovery or external-interface semantics.
+- Donors are evidence, not permanent runtime authority.
+- Backend/compiler/runtime bootstrap is Rust; frontend bootstrap is TypeScript/TSX; C is bounded to explicit low-level boundaries by default.
+- Runtime profiles and benchmark results are evidence tied to target/workload/hardware, never timeless universal facts.
 
 ## Sequencing
 
-Genome and graph contract -> secure source intelligence -> census scope engine -> ATLAS binary writer/reader -> synthesis/design representation -> ATLASX materializer -> Phase 1 delegated compiler -> Phase 2 typed IR/optimizer -> Phase 3 external native backends -> Phase 4 Atlas native backend -> hardware-aware whole-system compilation.
+Genome → universal graph → strict Rust Census Engine → census closure/sealing → real ATLAS binary/sharding → invention/selection → AtlasX materializer → delegated compiler → typed HIR/MIR → external native backends → Machine IR/native backend → production optimization/profile loop → UI/World Canvas as projection.
 
-Compiler ambition must not outrun semantic correctness. A native register allocator is irrelevant if Atlas cannot first identify a state mutation, binding, provenance chain or cross-repository identity correctly.
+Compiler ambition must not outrun semantic correctness. Native code generation is not mature if Atlas can still silently miss a function, binding, state mutation, temporal constraint or evidence obligation.
