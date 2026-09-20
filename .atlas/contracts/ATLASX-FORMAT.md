@@ -10,19 +10,12 @@ canonical: true
 
 ATLASX is executable engineering representation, not expanded prose.
 
-## Default shape
+## General shape
 
 ```text
 <system>.atlasx/
 ├─ manifest.atlasx
 ├─ graph/
-│  ├─ identity.atlasx
-│  ├─ nodes.atlasx
-│  ├─ edges.atlasx
-│  ├─ bindings.atlasx
-│  ├─ state.atlasx
-│  ├─ temporal.atlasx
-│  └─ evidence.atlasx
 ├─ modules/
 ├─ interfaces/
 ├─ runtime/
@@ -35,31 +28,59 @@ ATLASX is executable engineering representation, not expanded prose.
 └─ targets/
 ```
 
-Physical sharding may evolve, but scope/module addressing and semantic hashes are deterministic for pinned inputs.
+## Digital Organism profile
+
+When `target_kind = digital_organism`, AtlasX extends the general executable representation with:
+
+```text
+organism/
+├─ genome/
+├─ identity/
+├─ species_traits/
+├─ organs/
+├─ circuits/
+├─ body/
+├─ brain/
+│  ├─ model_definitions/
+│  ├─ provider_bindings/
+│  ├─ training/
+│  ├─ inference/
+│  └─ checkpoint_manifests/
+├─ world/
+├─ memory/
+├─ learning/
+├─ homeostasis/
+├─ metabolism/
+├─ capabilities/
+├─ authority/
+├─ lifecycle/
+├─ adapters/
+└─ evidence/
+```
+
+This is the executable Organism Genome/phenotype source representation. It is not equivalent to a weights directory.
 
 ## Semantic requirements
 
-ATLASX carries enough selected meaning for:
+General AtlasX carries types, function bodies/CFG, ownership/resource semantics, state/effects, concurrency/transactions/recovery, temporal semantics, bindings, constraints, placement and evidence lineage.
 
-- static types and layouts;
-- function bodies/CFG and executable semantics;
-- ownership/lifetime/resource reasoning;
-- state transitions/effects;
-- concurrency/transactions/recovery;
-- temporal semantics;
-- bindings/cross-repository references;
-- constraints/invariants;
-- verification obligations;
-- placement and deployment intent;
-- evidence lineage to parent Atlas;
-- compiler optimization barriers and freedoms.
+Digital Organism AtlasX additionally carries:
 
-## Partial materialization
+- OrganismId/Genome/Species/Generation identity rules;
+- organ/circuit topology;
+- body/environment capability bindings;
+- model/provider/checkpoint bindings;
+- durable memory and learning lineage;
+- model/weight admission rules;
+- homeostatic variables/responses;
+- metabolic resources/objectives;
+- lifecycle transitions;
+- authority and self-modification constraints.
 
-Atlas may materialize bounded scopes from a sharded logical Atlas without expanding the whole corpus, provided dependencies/bindings and proof obligations are resolved.
+## Provider independence
+
+An organism may bind cognition to external APIs, self-hosted weights, local embedded models, deterministic algorithms or hybrids. Provider-specific sessions are adapters, not organism identity or canonical memory.
 
 ## Compiler input
 
-In Phase 1 AtlasX lowers through Rust/TypeScript/C boundaries. Later it lowers through Atlas HIR/MIR/LIR/Machine IR.
-
-The same AtlasX semantics may produce multiple target-specialized physical products under different explicit DeploymentProfile, HardwareProfile and WorkloadProfile inputs. Physical specialization does not change the semantic identity of the selected design.
+The same AtlasX semantics may produce multiple physical phenotypes under different DeploymentProfile, HardwareProfile, WorkloadProfile and admitted model/provider bindings. Physical specialization does not change durable organism identity rules or Genome semantics.
