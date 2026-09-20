@@ -16,15 +16,21 @@ Read in this order:
 6. `contracts/ATLAS-FORMAT.md`
 7. `contracts/ATLAS-SHARDING.md`
 8. `contracts/ATLASX-FORMAT.md`
-9. `contracts/COMPILER-PRODUCT.md`
-10. `standards/COMPILER-OPTIMIZATION.md`
-11. `architecture/SYSTEM.md`
-12. `architecture/INVENTION-PIPELINE.md`
-13. `blueprints/SYSTEM-BLUEPRINT.md`
-14. `blueprints/COMPILER-ROADMAP.md`
-15. `blueprints/BULK-DONOR-ABSORPTION.md`
-16. `contracts/SYSTEM-CONTRACT.md`
-17. `guides/DEVELOPMENT.md`
+9. `architecture/DIGITAL-ORGANISM.md`
+10. `contracts/ORGANISM-GENOME-v1.md`
+11. `contracts/ORGANISM-LIFECYCLE.md`
+12. `contracts/ORGANISM-MODEL-ADMISSION.md`
+13. `contracts/ORGANISM-HOMEOSTASIS-METABOLISM.md`
+14. `blueprints/ORGANISM-COMPILATION.md`
+15. `contracts/COMPILER-PRODUCT.md`
+16. `standards/COMPILER-OPTIMIZATION.md`
+17. `architecture/SYSTEM.md`
+18. `architecture/INVENTION-PIPELINE.md`
+19. `blueprints/SYSTEM-BLUEPRINT.md`
+20. `blueprints/COMPILER-ROADMAP.md`
+21. `blueprints/BULK-DONOR-ABSORPTION.md`
+22. `contracts/SYSTEM-CONTRACT.md`
+23. `guides/DEVELOPMENT.md`
 
 Canonical chain:
 
