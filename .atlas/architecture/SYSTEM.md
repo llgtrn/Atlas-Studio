@@ -8,68 +8,93 @@ canonical: true
 
 ## Responsibilities
 
-- `core/` owns pure typed engineering semantics: global identities, graph primitives, scope, state/event/temporal models, bindings, evidence/provenance, claim status, constraints/invariants, Atlas Genome semantics, ATLAS/ATLASX contracts and compiler IR types.
-- `runtime/` owns admission, census orchestration, corpus/design construction, synthesis, materialization, compiler passes, query, verification, recensus and incremental invalidation.
-- `adapter/` owns Git/filesystem/parsers/storage/provider/DeepWiki/research/benchmark/OS/toolchain mechanics. Adapters never become semantic authority.
-- `apps/ui/` owns TypeScript/TSX visualization and editing projections over bounded engine APIs. UI state is not engineering truth.
-- `.atlas/` owns authored architecture/control knowledge, genome source, evidence/provenance references and durable contracts.
-- `.atlas/artifacts/` owns durable compiled artifacts once the binary formats are implemented.
+- `core/` owns global identity, scope, universal graph primitives, state/event/temporal semantics, bindings, evidence/provenance, claim status, constraints/invariants, Genome semantics, ATLAS/ATLASX contracts and compiler IR types.
+- `runtime/` owns secure admission, exhaustive census accounting, reconciliation/fixed-point closure, corpus/design construction, invention, ATLAS publication, AtlasX materialization, compiler passes, optimization, verification, profiling, recensus and incremental invalidation.
+- `adapter/` owns Git/filesystem/parsers/compiler metadata/storage/provider/research/benchmark/OS/toolchain/hardware mechanics. Adapters never become semantic authority.
+- `apps/ui/` owns TypeScript/TSX projections only. UI state is not engineering truth.
+- `.atlas/` owns authored control knowledge, Genome source, architecture, provenance/license references and contracts.
+- `.atlas/artifacts/` owns durable compiled Genome/Atlas/product manifests as implemented.
 
-## Canonical dataflow
+## End-to-end dataflow
 
 ```text
-untrusted/admitted evidence
-       ↓
-source observations
-       ↓
-multi-resolution census
-       ↓
-universal engineering graph
-       ↓
-technology/design synthesis
-       ↓
-*.atlas
-       ↓
-deterministic materialization
-       ↓
-*.atlasx/
-       ↓
-compiler
-       ↓
-physical target
-       ↓
-verification / recensus / evidence
+admitted repositories / OSS / tests / builds / specs / papers / DeepWiki
+                              ↓
+                        secure admission
+                              ↓
+                     exhaustive inventory
+                              ↓
+                    multi-engine census
+                              ↓
+             S0→S10 semantic accounting
+                              ↓
+          reconcile / adversarial gaps / fixed point
+                              ↓
+                    CensusCertificate
+                              ↓
+                    observed world graph
+                              ↓
+              research + invention + selection
+                              ↓
+                    SEALED logical *.atlas
+                              ↓
+         one or many content-addressed physical shards
+                              ↓
+              deterministic *.atlasx/ projection
+                              ↓
+                  world/graph optimization
+                              ↓
+           HIR → MIR → LIR → Machine IR
+                              ↓
+       codegen → LTO → link → post-link optimization
+                              ↓
+          binary / library / WASM / UI product
+                              ↓
+               workload profile / benchmark
+                              ↓
+                     evidence + recensus
+                              ↺
 ```
 
 ## Universal graph substrate
 
-Every repo, donor, paper claim, target design, compiler unit and generated system is represented on the same graph grammar. Repositories are sovereign graph partitions, not isolated semantic universes.
-
-A repository boundary must expose:
+Every repo, donor, paper claim, source function, semantic atom, design candidate, compiler unit and generated product is represented by the same semantic spine:
 
 ```text
-RepositoryIdentity
-Revision/TemporalHead
-ExportedNodes
-ImportedNodeReferences
-Bindings
-Interfaces/Capabilities
-Constraints/Invariants
-EvidenceRoot
-ProvenanceRoot
-MaterializationRoot
+Identity / Scope / Node / Edge / Binding
+State / Event / Temporal
+Evidence / Provenance / Claim
+Constraint / Invariant
+Interface / Capability / Effect
+Materialization
 ```
 
-Cross-repository linkage references stable identities rather than copying foreign canonical state. Federation is a derived graph over repo-owned partitions.
+Repositories remain sovereign graph partitions. Cross-repository linkage references stable global identities instead of copying foreign canonical state.
 
-## Format boundaries
+## Census architecture
 
-`*.atlas` is the dense binary engineering/design artifact produced by census plus synthesis. It may retain donor alternatives, rejected designs, research claims, source observations, target decisions and evidence.
+Every admitted artifact is accounted for. Every discovered function/method is represented. Adaptive census controls semantic depth, not whether a function exists in Atlas.
 
-`*.atlasx/` is the selected, deterministic, expanded executable repository representation derived from `*.atlas`. It contains typed executable units and graph metadata organized in a stable repo-shaped tree. Human-readable exports are projections only.
+Independent extractors may contribute syntax, symbols, compiler facts, build graphs, runtime traces and tests. Conflict is preserved and triggers deeper census. High-level claims must decompose to evidence; low-level facts must aggregate upward.
 
-## Current compiler bootstrap
+Only Genome-eligible CLOSED/SEALED census roots may feed production materialization.
 
-Until Phase 3/4 mature, AtlasX lowers primarily to Rust backend and TypeScript frontend, with C only for explicit ABI/device boundaries. Rust/TypeScript source remains a generated/reference backend, not the final semantic authority.
+## ATLAS architecture
 
-Core performs no filesystem, network, subprocess, provider or UI work. Ingestion is never execution. Mutation and integration remain explicit authorized repository operations.
+A logical `*.atlas` is dense binary engineering/design knowledge. It may be physically one file or many immutable content-addressed shards across storage locations/repositories. The logical root manifest commits to all required shard hashes.
+
+Size is not a semantic constraint. Atlas may be larger than source because it preserves function semantics, graph relations, evidence, history, donor knowledge, research, alternatives, conflicts and selected design.
+
+## ATLASX architecture
+
+`*.atlasx/` is the deterministic selected executable representation derived from one pinned Atlas root, Genome and compiler version. It is repo-shaped for bounded addressing but is not documentation.
+
+## Compiler architecture
+
+Compilation optimizes the whole selected semantic world before machine-local code generation. It may resolve bindings, devirtualize, specialize policies, choose state placement, memory regions, data layout and concurrency topology, provided graph/authority/temporal/evidence invariants remain valid.
+
+Bootstrap uses Rust/TypeScript/C boundaries. Later phases lower through Atlas HIR/MIR/LIR/Machine IR to external and native backends.
+
+Production compilation includes explicit DeploymentProfile, HardwareProfile and WorkloadProfile, plus LTO/whole-program optimization, link/post-link optimization, profile-guided recompilation and evidence-backed auto-tuning where justified.
+
+Core performs no filesystem, network, subprocess, provider or UI work. Ingestion is not execution. Mutation and integration remain explicit authorized repository operations.
