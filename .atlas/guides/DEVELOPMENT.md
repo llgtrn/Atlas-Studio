@@ -49,3 +49,21 @@ Analysis may span the federated graph. A work run mutates one canonical reposito
 ## Generated state
 
 Human-readable Atlas/AtlasX exports and graph dumps are projections. Binary/sharded artifacts plus their manifests/hashes carry the compiled semantic state.
+
+
+## Digital Organism target work
+
+When `target_kind = digital_organism`:
+
+1. define/pin Organism Genome and Species/trait lineage;
+2. define persistent identity/lifecycle semantics before provider/model integration;
+3. define organs/circuits/body/environment capability bindings;
+4. define memory/world/learning/homeostasis/metabolism semantics;
+5. bind cognition to external API, self-hosted checkpoint, deterministic code or hybrid provider set;
+6. compile the phenotype substrate;
+7. instantiate/birth with durable OrganismId;
+8. treat experience/learning outputs as candidates;
+9. evaluate/simulate/regression-test candidate models/rules;
+10. admit/activate explicitly with rollback lineage.
+
+Do not make provider session history, hidden model state or a weights file the organism's identity, memory or authority.
