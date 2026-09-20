@@ -10,14 +10,25 @@ exact_base_sha_required_for_mutation = true
 merge_authority_outside_atlas = true
 docs_standard_required = true
 graph_before_code_required = true
+universal_graph_spine_required = true
+cross_repo_bindings_required_when_external_relations_exist = true
+sovereign_repo_partition_required = true
 
 [target]
 docs_contract = "atlas.docs.v1"
+graph_contract = "atlas.contract.universal-graph"
+genome_contract = "atlas.contract.genome"
 atlas_runtime_dependency_allowed = false
 atlas_knowledge_root_required_for_managed_repositories = true
+
+[artifacts]
+dense_binary_extension = ".atlas"
+expanded_executable_suffix = ".atlasx"
+human_readable_exports_are_projections = true
 
 [implementation]
 backend_language = "rust"
 frontend_language = "typescript"
+c_default_role = "ffi_device_os_vendor_boundary"
 responsibility_roots_are_manifest_declared = true
 extra_top_level_owners_require_architecture_decision = true
