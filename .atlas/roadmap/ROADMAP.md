@@ -90,3 +90,10 @@ No learning artifact activates directly.
 ## UI
 
 World Canvas remains a projection over the same graph. It may visualize organism organs/circuits/memory/model lineage but does not own organism truth.
+
+
+## Rust parity/surpass maturity lane
+
+The compiler destination is not merely native codegen. Follow `../blueprints/RUST-PARITY-AND-SURPASS-ROADMAP.md` through ownership/borrow safety, diagnostics, codegen correctness, LLVM integration, ABI/platform support, debug info, native backend parity, whole-world optimization, PGO/auto-tuning and sustained compiler maturity.
+
+Atlas may only claim a scoped Rust-surpass result after parity gates are green and the same semantic workload is demonstrably faster/more efficient under locked safety, hardware and workload constraints.
