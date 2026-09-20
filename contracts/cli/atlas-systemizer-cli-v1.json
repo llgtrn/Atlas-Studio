@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "atlas.systemizer.cli.v1",
+  "title": "Atlas Systemizer stable CLI v1 contract",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "binary", "subsystem_kind", "runtime_dependency_allowed", "commands"],
+  "properties": {
+    "schema": { "const": "atlas.systemizer.cli.v1" },
+    "binary": { "const": "atlas-systemizer" },
+    "subsystem_kind": { "const": "DEVELOPMENT_ENGINEERING_TOOL" },
+    "runtime_dependency_allowed": { "const": false },
+    "commands": {
+      "type": "array",
+      "items": { "enum": ["contract", "systemize", "docs audit", "code analyze"] },
+      "minItems": 4,
+      "uniqueItems": true
+    }
+  }
+}
