@@ -6,75 +6,74 @@ canonical: true
 ---
 # Compiler Product Contract
 
-Atlas compilation transforms a selected AtlasX executable world into a verified physical product while preserving required graph, temporal, evidence, authority and effect semantics.
+Atlas compilation transforms selected AtlasX meaning into a verified physical product while preserving graph, temporal, evidence, authority and target-specific invariants.
 
-## Canonical product pipeline
+## General product pipeline
 
 ```text
 *.atlasx/
-  + DeploymentProfile
-  + HardwareProfile
-  + WorkloadProfile
-        ↓
+ + DeploymentProfile
+ + HardwareProfile
+ + WorkloadProfile
+       ↓
 World/Graph Optimizer
-        ↓
-HIR
-        ↓
-Semantic Optimizer
-        ↓
-MIR
-        ↓
-Ownership/Alias/Escape/Memory/Concurrency Optimization
-        ↓
-LIR
-        ↓
-Target Specialization
-        ↓
-Machine IR
-        ↓
-Instruction Selection
-        ↓
-Register Allocation
-        ↓
-Instruction Scheduling
-        ↓
-Object Code
-        ↓
-LTO / whole-program optimization
-        ↓
-Link
-        ↓
-Post-link optimization
-        ↓
-Product binary / library / WASM / UI bundle
-        ↓
-Representative workload + runtime profile
-        ↓
-PGO / auto-tuning evidence
-        ↺
-*.atlas
+       ↓
+HIR → MIR → LIR → Machine IR
+       ↓
+codegen → LTO → link → post-link
+       ↓
+physical product
+       ↓
+runtime profile / PGO / auto-tuning
+       ↺
+Atlas evidence
 ```
 
-## Semantic optimization precedes machine optimization
+## Digital Organism product pipeline
 
-Atlas may use the universal graph to resolve bindings, devirtualize calls, remove unnecessary abstraction/serialization boundaries, specialize policies, fuse capabilities, place state, choose data layouts, choose memory regions, partition concurrency and specialize deployment topology before lowering to machine code.
+```text
+Digital-Organism AtlasX
+ + Organism Genome
+ + Environment Profile
+ + admitted Model/Provider bindings
+       ↓
+organ/circuit/world optimization
+       ↓
+runtime + body + memory + learning substrate
+       ↓
+brain/model integration
+       ↓
+compiled phenotype repository/artifacts
+       ↓
+birth / instantiate
+       ↓
+observe / remember / act
+       ↓
+candidate learning/adaptation
+       ↓
+evaluation / simulation / regression
+       ↓
+authority/policy admission
+       ↓
+activation / rollback evidence
+```
 
-## Safety barriers
+Compilation may emit Rust runtime, TypeScript UI, GPU kernels, model graphs/training code, weights/checkpoint manifests, storage layout and environment adapters.
 
-Optimization may not weaken required authority, tenant, safety, temporal, evidence, transaction, recovery or externally observable binding semantics. Such semantics create compiler barriers unless the Genome proves a semantics-preserving transformation.
+Training weights is not required for compilation completion: external model APIs, preexisting admitted checkpoints, deterministic cognition and hybrid systems are valid phenotype bindings.
 
-## Deployment specialization
+## Semantic optimization
 
-One AtlasX may compile differently for server, browser, robot, embedded gateway or accelerator. Semantic identity remains stable while physical representation changes.
+Atlas may resolve bindings, devirtualize calls, remove unnecessary abstraction/serialization boundaries, specialize policies, fuse capabilities/organs, place state/memory/models, choose data layouts/regions, partition concurrency and specialize deployment topology.
 
-## Profile-guided loop
+For organism targets it may also optimize model placement, batching/context budgets, local-vs-provider routing, memory consolidation paths and metabolic resource use.
 
-Runtime profiles are Evidence with revision, hardware, workload and temporal scope. Profiles may drive inlining, code layout, branch ordering, allocation, data placement, scheduling and specialization. A profile from one target/workload may not be silently generalized to another.
+## Safety and authority barriers
 
-## Auto-tuning
+Optimization may not weaken required authority, safety, temporal, evidence, transaction, recovery, lifecycle, model-admission or externally observable binding semantics.
 
-Atlas may compile and benchmark multiple candidate algorithms/layouts/chunk sizes/thresholds and select a Genome-approved objective or Pareto set. Candidate generation is ANALYZE; selected production materialization must retain benchmark evidence.
+An organism cannot gain authority merely because a model proposes an action or learning produces new weights.
 
 ## Product evidence
 
-A production artifact MUST retain lineage to Atlas root, AtlasX root, Genome hash, compiler version, deployment/hardware/workload profiles, optimization configuration, tests, benchmarks and artifact hash.
+A production artifact records lineage to Atlas root, AtlasX root, Atlas Genome, Organism Genome where applicable, compiler version, target profiles, model/provider/checkpoint bindings, optimization configuration, tests, benchmarks and artifact hashes.
