@@ -18,3 +18,18 @@ generated_state_is_canonical = false
 backend_language = "Rust"
 frontend_language = "TypeScript"
 donor_engines_are_runtime_dependencies = false
+
+[documentation]
+standard = "atlas.docs.v1"
+source_repository = "llgtrn/Chronica"
+source_revision = "23de9af295a74b14fdeddc0fe7e02006dcb6fe2a"
+exceptions_allowed = false
+coding_requires_docs_gate = true
+
+[stable_cli]
+contract = ["contract", "--format", "json"]
+fleet_connect = ["fleet", "connect", "--manifest", "fleet/repos.yaml", "--format", "json"]
+systemize = ["systemize", "--root", "<workspace>", "--config", "<config>", "--out", "<report>"]
+docs_audit = ["docs", "audit", "--root", "<docs-root>", "--format", "json"]
+code_analyze = ["code", "analyze", "--root", "<source-root>", "--format", "json"]
+work_prepare = ["work", "prepare", "--repo", "<registered-repo>", "--root", "<checkout>", "--base-sha", "<exact-sha>", "--scope", "<scope>"]
