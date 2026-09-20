@@ -6,53 +6,66 @@ canonical: true
 ---
 # ATLAS Dense Binary Artifact Contract
 
-A `*.atlas` file is the dense canonical engineering/design artifact produced by admitted census, research correlation and design synthesis.
+A `*.atlas` is the dense canonical engineering/design artifact produced by admitted census, reconciliation, research correlation, invention and design selection.
 
-It is conceptually similar to a large weights/model artifact in packaging and density, but unlike opaque neural weights it is typed, deterministic, evidence-linked and auditable.
+Atlas aims for lossless engineering meaning, not small summaries. A logical Atlas may be much larger than source even after compression.
 
-## Required content classes
+## Required knowledge layers
 
-A `*.atlas` artifact may contain:
+A logical Atlas may contain:
 
-- repository/global identities and revisions;
-- scope hierarchy;
-- symbols/types;
-- nodes, edges and bindings;
-- control/data/state/effect flows;
-- temporal facts and events;
+- corpus/repository/global identities and revisions;
+- complete scope hierarchy;
+- every discovered type/function/method and required blocks/semantic atoms;
+- symbols/types/CFG/call/data/state/effect flows;
+- nodes/edges/bindings/interfaces/capabilities;
+- temporal facts/events;
 - constraints/invariants;
-- interfaces/capabilities;
-- source observations;
-- donor technology primitives;
-- research claims and evidence anchors;
-- conflicts/unknowns/hypotheses;
+- ownership/memory/concurrency semantics;
+- source observations and runtime/test evidence;
+- donor technology/research claims;
+- conflicts/unknowns/hypotheses/gaps;
 - candidate/rejected/selected designs;
-- compiler/materialization hints;
+- deployment/compiler/materialization hints;
 - provenance/license/evidence roots;
 - cross-repository references;
-- target selection state.
+- CensusCertificate and completeness ledger.
 
-It MUST NOT merely be a zip of Markdown/JSON summaries.
+It MUST NOT merely be a zip of prose/Markdown/JSON summaries.
 
-## Physical requirements
+## Function-level requirement
+
+Every discovered function is represented. Repetition is compressed semantically using stable IDs, interning, content-addressed records and shared graph structure rather than by deleting meaning.
+
+## Physical encoding
 
 The format SHALL support:
 
-- binary typed records;
-- section/chunk directory;
-- dictionary/string interning;
-- stable IDs and content addressing;
+- typed binary records;
+- section/chunk directories;
+- dictionary/string/type/symbol interning;
+- stable global IDs and content addressing;
 - deduplicated DAG structures;
-- delta/varint/bit packing where suitable;
+- compact graph adjacency encoding;
+- delta/varint/bit packing where useful;
+- semantic revision deltas;
 - strong compression;
-- per-chunk and root integrity hashes;
-- format, schema, Genome and compiler version pins;
-- bounded/random access without full decompression;
+- per-chunk/shard/root integrity hashes;
+- Genome/schema/compiler/version pins;
+- bounded/random access;
 - transactional publication;
-- forward-compatible version negotiation or explicit rejection.
+- explicit compatibility negotiation or rejection.
+
+## Logical versus physical Atlas
+
+One logical Atlas MAY be represented by one file or multiple immutable content-addressed shards. A root manifest commits to the required shard identities/hashes. Shards may live across repositories/artifact stores/object stores without changing semantic identities.
+
+Cross-shard references use global IDs. Unchanged shards may be reused across revisions and, when ownership/policy permits, across logical Atlases.
+
+## Portable modes
+
+THIN Atlas stores semantics plus authenticated source/evidence references. FAT Atlas may additionally embed compressed admitted source/evidence blobs. Either may be sharded.
 
 ## Canonical role
 
-`*.atlas` is the durable compressed design world. It can retain more knowledge than any single generated implementation: donor alternatives, research, rejected designs and historical evidence may remain inside while `*.atlasx/` materializes only the selected executable design.
-
-The mapping to ATLASX must preserve all semantics required for the selected design and its proof obligations.
+ATLAS retains more knowledge than a single materialization. ATLASX selects one executable design projection. Artifact size is never justification for silent semantic omission.
