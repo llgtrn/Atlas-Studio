@@ -1,8 +1,8 @@
 atlas 1
 
-system AtlasSystemizer
+system AtlasStudio
 
-entity Repository AtlasSystemizer {
+entity Repository AtlasStudio {
     authority = canonical
 }
 
@@ -30,12 +30,6 @@ entity Runtime WebUI {
     responsibility = graph_visualization
 }
 
-entity Runtime OpsProduction {
-    kind = backend
-    language = rust
-    responsibility = atlas_system_production_support
-}
-
 capability ParseAtlas {
     input = Source
     output = AST
@@ -51,11 +45,10 @@ capability ObserveRepository {
     output = ObservedGraph
 }
 
-AtlasSystemizer ->contains-> Core
-AtlasSystemizer ->contains-> Adapter
-AtlasSystemizer ->contains-> Runtime
-AtlasSystemizer ->contains-> WebUI
-AtlasSystemizer ->contains-> OpsProduction
+AtlasStudio ->contains-> Core
+AtlasStudio ->contains-> Adapter
+AtlasStudio ->contains-> Runtime
+AtlasStudio ->contains-> WebUI
 
 Core ->provides-> ParseAtlas
 Core ->provides-> CompileGraph
@@ -63,7 +56,6 @@ Adapter ->provides-> ObserveRepository
 Runtime ->depends_on-> Core
 Runtime ->depends_on-> Adapter
 WebUI ->depends_on-> Runtime
-OpsProduction ->depends_on-> Core
 
 binding RuntimeCompiler {
     consumer = Runtime
@@ -99,12 +91,6 @@ materialize WebUI {
     path = "apps/ui"
 }
 
-materialize OpsProduction {
-    path = "ops_production"
-    language = rust
-    glob = "src/**/*.rs"
-}
-
 constraint BackendIsRust {
     forall x: Runtime
         where x.kind == backend
@@ -122,8 +108,4 @@ constraint AdapterIsMaterialized {
 
 constraint RuntimeIsMaterialized {
     require materialized Runtime
-}
-
-constraint OpsProductionIsMaterialized {
-    require materialized OpsProduction
 }
