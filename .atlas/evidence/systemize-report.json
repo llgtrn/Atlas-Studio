@@ -5,16 +5,10 @@
   "snapshot": {
     "schema": "atlas.repository-snapshot.v1",
     "root": "\\\\?\\C:\\Users\\trngh\\Documents\\Atlas-Systemizer",
-    "head_sha": "97d280a9785e8b3ab8ee22453ad4794f995e501c",
+    "head_sha": "ad09f0e4ec184aedd4f363ec91c2883d09dccfbf",
     "branch": "main",
-    "dirty": true,
-    "status_entries": [
-      "M .atlas/architecture/SYSTEM.md",
-      " M core/src/lib.rs",
-      " M runtime/src/lib.rs",
-      " M runtime/src/main.rs",
-      "?? .atlas/evidence/repository-graph.json"
-    ]
+    "dirty": false,
+    "status_entries": []
   },
   "repository": {
     "schema": "atlas.systemizer.repo-audit.v6",
