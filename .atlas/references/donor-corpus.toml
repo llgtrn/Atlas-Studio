@@ -409,3 +409,139 @@ native_replacement = "apps/ui graph interaction"
 runtime_dependency_status = "REFERENCE_ONLY"
 evidence = [".atlas/provenance/donors/xyflow.json", ".atlas/census/xyflow.md"]
 
+[[donor]]
+id = "opendesign"
+name = "OpenDesign"
+repository = "vustudio/opendesign"
+resolved_url = "https://github.com/vustudio/opendesign.git"
+commit_sha = "b4e69ac61b50576298f9f564603e5a4beb27417f"
+default_branch = "main"
+retrieved_at = "2026-09-20T13:57:44.7350501Z"
+license = [".atlas/licenses/donors/opendesign/LICENSE"]
+technology_domains = ["design_authoring", "visual_system", "design_systems", "prototype_generation", "studio_workspace"]
+ingestion_status = "CLONED"
+census_status = "DEEP_CENSUSED"
+decision_status = "APPROVED_DONOR_GAP"
+native_replacement = "apps/ui design workspace and core/rule design semantics after deep census"
+runtime_dependency_status = "DEEP_FORK_TRANSITION_ALLOWED"
+evidence = [".atlas/provenance/donors/opendesign.json", ".atlas/census/donors/opendesign.md"]
+
+[[donor]]
+id = "containers-image"
+name = "containers/image"
+repository = "containers/image"
+resolved_url = "https://github.com/containers/image.git"
+commit_sha = "df7e80d2d19872b61f352a8a182ec934dc0c2346"
+default_branch = "main"
+retrieved_at = "2026-09-20T13:57:44.7350501Z"
+license = [".atlas/licenses/donors/containers-image/LICENSE"]
+technology_domains = ["security", "trust", "supply_chain", "admission_policy"]
+ingestion_status = "CLONED"
+census_status = "PENDING_DEEP_CENSUS"
+decision_status = "APPROVED_SECURITY_LANE"
+native_replacement = "core/security policy and runtime/security admission"
+runtime_dependency_status = "REFERENCE_ONLY"
+evidence = [".atlas/provenance/donors/containers-image.json"]
+
+[[donor]]
+id = "podman"
+name = "Podman"
+repository = "containers/podman"
+resolved_url = "https://github.com/containers/podman.git"
+commit_sha = "0d12a23e7bc94460f7986c01c79636b63ab6cd36"
+default_branch = "main"
+retrieved_at = "2026-09-20T13:57:44.7350501Z"
+license = [".atlas/licenses/donors/podman/LICENSE"]
+technology_domains = ["security", "trust", "sandboxing", "rootless_isolation"]
+ingestion_status = "CLONED"
+census_status = "PENDING_DEEP_CENSUS"
+decision_status = "APPROVED_SECURITY_LANE"
+native_replacement = "adapter/security sandbox and runtime/security isolation policy"
+runtime_dependency_status = "REFERENCE_ONLY"
+evidence = [".atlas/provenance/donors/podman.json"]
+
+[[donor]]
+id = "selinux"
+name = "SELinux"
+repository = "SELinuxProject/selinux"
+resolved_url = "https://github.com/SELinuxProject/selinux.git"
+commit_sha = "3361233fa3cb0c27f68f682f195accefb69d06c0"
+default_branch = "main"
+retrieved_at = "2026-09-20T13:57:44.7350501Z"
+license = [".atlas/licenses/donors/selinux/LICENSE"]
+technology_domains = ["security", "trust", "access_control", "least_privilege"]
+ingestion_status = "CLONED"
+census_status = "PENDING_DEEP_CENSUS"
+decision_status = "APPROVED_SECURITY_LANE"
+native_replacement = "core/security policy and adapter/security sandbox boundaries"
+runtime_dependency_status = "REFERENCE_ONLY"
+evidence = [".atlas/provenance/donors/selinux.json"]
+
+[[donor]]
+id = "openscap"
+name = "OpenSCAP"
+repository = "OpenSCAP/openscap"
+resolved_url = "https://github.com/OpenSCAP/openscap.git"
+commit_sha = "6942b59fc861ad77ebcea93e70f32832d88e20f9"
+default_branch = "main"
+retrieved_at = "2026-09-20T13:57:44.7350501Z"
+license = [".atlas/licenses/donors/openscap/COPYING"]
+technology_domains = ["security", "trust", "compliance", "policy"]
+ingestion_status = "CLONED"
+census_status = "PENDING_DEEP_CENSUS"
+decision_status = "APPROVED_SECURITY_LANE"
+native_replacement = "core/security compliance profiles and runtime/security evaluation"
+runtime_dependency_status = "REFERENCE_ONLY"
+evidence = [".atlas/provenance/donors/openscap.json"]
+
+[[donor]]
+id = "keycloak"
+name = "Keycloak"
+repository = "keycloak/keycloak"
+resolved_url = "https://github.com/keycloak/keycloak.git"
+commit_sha = "dd4ae31d1b67c91a7f85f7c60df5c9718b111f0a"
+default_branch = "main"
+retrieved_at = "2026-09-20T13:57:44.7350501Z"
+license = [".atlas/licenses/donors/keycloak/LICENSE.txt"]
+technology_domains = ["security", "identity", "authorization", "policy"]
+ingestion_status = "CLONED"
+census_status = "PENDING_DEEP_CENSUS"
+decision_status = "APPROVED_SECURITY_LANE"
+native_replacement = "core/security principal/role/scope/policy semantics"
+runtime_dependency_status = "REFERENCE_ONLY"
+evidence = [".atlas/provenance/donors/keycloak.json"]
+
+[[donor]]
+id = "keylime"
+name = "Keylime"
+repository = "keylime/keylime"
+resolved_url = "https://github.com/keylime/keylime.git"
+commit_sha = "3476366881d7931407154597d88577895f2f818e"
+default_branch = "master"
+retrieved_at = "2026-09-20T13:57:44.7350501Z"
+license = [".atlas/licenses/donors/keylime/LICENSE"]
+technology_domains = ["security", "trust", "attestation", "integrity"]
+ingestion_status = "CLONED"
+census_status = "PENDING_DEEP_CENSUS"
+decision_status = "APPROVED_SECURITY_LANE"
+native_replacement = "runtime/security attestation and core/security integrity evidence"
+runtime_dependency_status = "REFERENCE_ONLY"
+evidence = [".atlas/provenance/donors/keylime.json"]
+
+[[donor]]
+id = "clair"
+name = "Clair"
+repository = "quay/clair"
+resolved_url = "https://github.com/quay/clair.git"
+commit_sha = "c9ac9a0aa5651670a690854fc2c12adfc951243f"
+default_branch = "main"
+retrieved_at = "2026-09-20T13:57:44.7350501Z"
+license = [".atlas/licenses/donors/clair/LICENSE", ".atlas/licenses/donors/clair/NOTICE"]
+technology_domains = ["security", "supply_chain", "vulnerability_intelligence"]
+ingestion_status = "CLONED"
+census_status = "PENDING_DEEP_CENSUS"
+decision_status = "APPROVED_SECURITY_LANE"
+native_replacement = "adapter/security vulnerability feeds and runtime/security finding model"
+runtime_dependency_status = "REFERENCE_ONLY"
+evidence = [".atlas/provenance/donors/clair.json"]
+

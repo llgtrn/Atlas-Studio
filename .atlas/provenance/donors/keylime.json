@@ -1,0 +1,25 @@
+{
+  "schema": "atlas.donor-provenance.v1",
+  "id": "keylime",
+  "name": "Keylime",
+  "remote": "https://github.com/keylime/keylime.git",
+  "commit_sha": "3476366881d7931407154597d88577895f2f818e",
+  "default_branch": "master",
+  "retrieved_at": "2026-09-20T13:57:44.7350501Z",
+  "clone_path": ".atlas/temporary/donors/security/keylime",
+  "tree_hash": "13efa0c0d0f8eef83118111139fcf219ae2b141b",
+  "license_files": [
+    ".atlas/licenses/donors/keylime/LICENSE"
+  ],
+  "security_donor_role": "attestation, measured integrity and trusted build evidence concepts",
+  "technology_lanes": [
+    "security",
+    "trust",
+    "attestation",
+    "integrity"
+  ],
+  "ingestion_status": "CLONED",
+  "census_status": "PENDING_DEEP_CENSUS",
+  "security_review_status": "PENDING",
+  "runtime_dependency_status": "REFERENCE_ONLY"
+}

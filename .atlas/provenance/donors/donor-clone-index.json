@@ -390,6 +390,150 @@
     "ingestion_status": "CLONED",
     "census_status": "SKELETON",
     "runtime_dependency_status": "REFERENCE_ONLY"
+  },
+  {
+    "schema": "atlas.donor-provenance.v1",
+    "id": "opendesign",
+    "name": "OpenDesign",
+    "remote": "https://github.com/vustudio/opendesign.git",
+    "commit_sha": "b4e69ac61b50576298f9f564603e5a4beb27417f",
+    "default_branch": "main",
+    "retrieved_at": "2026-09-20T13:57:44.7350501Z",
+    "clone_path": ".atlas/temporary/donors/opendesign",
+    "tree_hash": "9e93376bfd915ddb2df03ed6ac1d043e6141c3ae",
+    "license_files": [
+      ".atlas/licenses/donors/opendesign/LICENSE"
+    ],
+    "ingestion_status": "CLONED",
+    "census_status": "DEEP_CENSUSED",
+    "runtime_dependency_status": "DEEP_FORK_TRANSITION_ALLOWED"
+  },
+  {
+    "schema": "atlas.donor-provenance.v1",
+    "id": "containers-image",
+    "name": "containers/image",
+    "remote": "https://github.com/containers/image.git",
+    "commit_sha": "df7e80d2d19872b61f352a8a182ec934dc0c2346",
+    "default_branch": "main",
+    "retrieved_at": "2026-09-20T13:57:44.7350501Z",
+    "clone_path": ".atlas/temporary/donors/security/containers-image",
+    "tree_hash": "a64f45afb94ccd84c954c73819f3d5f0d4162429",
+    "license_files": [
+      ".atlas/licenses/donors/containers-image/LICENSE"
+    ],
+    "ingestion_status": "CLONED",
+    "census_status": "PENDING_DEEP_CENSUS",
+    "security_review_status": "PENDING",
+    "runtime_dependency_status": "REFERENCE_ONLY"
+  },
+  {
+    "schema": "atlas.donor-provenance.v1",
+    "id": "podman",
+    "name": "Podman",
+    "remote": "https://github.com/containers/podman.git",
+    "commit_sha": "0d12a23e7bc94460f7986c01c79636b63ab6cd36",
+    "default_branch": "main",
+    "retrieved_at": "2026-09-20T13:57:44.7350501Z",
+    "clone_path": ".atlas/temporary/donors/security/podman",
+    "tree_hash": "cf105b1467f82ba5f91de7a8ae93a132472e8d66",
+    "license_files": [
+      ".atlas/licenses/donors/podman/LICENSE"
+    ],
+    "ingestion_status": "CLONED",
+    "census_status": "PENDING_DEEP_CENSUS",
+    "security_review_status": "PENDING",
+    "runtime_dependency_status": "REFERENCE_ONLY"
+  },
+  {
+    "schema": "atlas.donor-provenance.v1",
+    "id": "selinux",
+    "name": "SELinux",
+    "remote": "https://github.com/SELinuxProject/selinux.git",
+    "commit_sha": "3361233fa3cb0c27f68f682f195accefb69d06c0",
+    "default_branch": "main",
+    "retrieved_at": "2026-09-20T13:57:44.7350501Z",
+    "clone_path": ".atlas/temporary/donors/security/selinux",
+    "tree_hash": "4956356e63224b7d9bdfa373312ff06ed6f14094",
+    "license_files": [
+      ".atlas/licenses/donors/selinux/LICENSE"
+    ],
+    "ingestion_status": "CLONED",
+    "census_status": "PENDING_DEEP_CENSUS",
+    "security_review_status": "PENDING",
+    "runtime_dependency_status": "REFERENCE_ONLY"
+  },
+  {
+    "schema": "atlas.donor-provenance.v1",
+    "id": "openscap",
+    "name": "OpenSCAP",
+    "remote": "https://github.com/OpenSCAP/openscap.git",
+    "commit_sha": "6942b59fc861ad77ebcea93e70f32832d88e20f9",
+    "default_branch": "main",
+    "retrieved_at": "2026-09-20T13:57:44.7350501Z",
+    "clone_path": ".atlas/temporary/donors/security/openscap",
+    "tree_hash": "5eb0b3b74b55ee913824d90f630ca70ef672869a",
+    "license_files": [
+      ".atlas/licenses/donors/openscap/COPYING"
+    ],
+    "ingestion_status": "CLONED",
+    "census_status": "PENDING_DEEP_CENSUS",
+    "security_review_status": "PENDING",
+    "runtime_dependency_status": "REFERENCE_ONLY"
+  },
+  {
+    "schema": "atlas.donor-provenance.v1",
+    "id": "keycloak",
+    "name": "Keycloak",
+    "remote": "https://github.com/keycloak/keycloak.git",
+    "commit_sha": "dd4ae31d1b67c91a7f85f7c60df5c9718b111f0a",
+    "default_branch": "main",
+    "retrieved_at": "2026-09-20T13:57:44.7350501Z",
+    "clone_path": ".atlas/temporary/donors/security/keycloak",
+    "tree_hash": "6e60572de3133ad0507ceab54f6a0361a1ffd0ec",
+    "license_files": [
+      ".atlas/licenses/donors/keycloak/LICENSE.txt"
+    ],
+    "ingestion_status": "CLONED",
+    "census_status": "PENDING_DEEP_CENSUS",
+    "security_review_status": "PENDING",
+    "runtime_dependency_status": "REFERENCE_ONLY"
+  },
+  {
+    "schema": "atlas.donor-provenance.v1",
+    "id": "keylime",
+    "name": "Keylime",
+    "remote": "https://github.com/keylime/keylime.git",
+    "commit_sha": "3476366881d7931407154597d88577895f2f818e",
+    "default_branch": "master",
+    "retrieved_at": "2026-09-20T13:57:44.7350501Z",
+    "clone_path": ".atlas/temporary/donors/security/keylime",
+    "tree_hash": "13efa0c0d0f8eef83118111139fcf219ae2b141b",
+    "license_files": [
+      ".atlas/licenses/donors/keylime/LICENSE"
+    ],
+    "ingestion_status": "CLONED",
+    "census_status": "PENDING_DEEP_CENSUS",
+    "security_review_status": "PENDING",
+    "runtime_dependency_status": "REFERENCE_ONLY"
+  },
+  {
+    "schema": "atlas.donor-provenance.v1",
+    "id": "clair",
+    "name": "Clair",
+    "remote": "https://github.com/quay/clair.git",
+    "commit_sha": "c9ac9a0aa5651670a690854fc2c12adfc951243f",
+    "default_branch": "main",
+    "retrieved_at": "2026-09-20T13:57:44.7350501Z",
+    "clone_path": ".atlas/temporary/donors/security/clair",
+    "tree_hash": "944ab8e839025e23f6f13ad86a3c4143b4174d54",
+    "license_files": [
+      ".atlas/licenses/donors/clair/LICENSE",
+      ".atlas/licenses/donors/clair/NOTICE"
+    ],
+    "ingestion_status": "CLONED",
+    "census_status": "PENDING_DEEP_CENSUS",
+    "security_review_status": "PENDING",
+    "runtime_dependency_status": "REFERENCE_ONLY"
   }
 ]
 

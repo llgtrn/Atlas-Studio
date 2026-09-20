@@ -1,0 +1,25 @@
+{
+  "schema": "atlas.donor-provenance.v1",
+  "id": "clair",
+  "name": "Clair",
+  "remote": "https://github.com/quay/clair.git",
+  "commit_sha": "c9ac9a0aa5651670a690854fc2c12adfc951243f",
+  "default_branch": "main",
+  "retrieved_at": "2026-09-20T13:57:44.7350501Z",
+  "clone_path": ".atlas/temporary/donors/security/clair",
+  "tree_hash": "944ab8e839025e23f6f13ad86a3c4143b4174d54",
+  "license_files": [
+    ".atlas/licenses/donors/clair/LICENSE",
+    ".atlas/licenses/donors/clair/NOTICE"
+  ],
+  "security_donor_role": "vulnerability intelligence, component analysis and supply-chain finding concepts",
+  "technology_lanes": [
+    "security",
+    "supply_chain",
+    "vulnerability_intelligence"
+  ],
+  "ingestion_status": "CLONED",
+  "census_status": "PENDING_DEEP_CENSUS",
+  "security_review_status": "PENDING",
+  "runtime_dependency_status": "REFERENCE_ONLY"
+}

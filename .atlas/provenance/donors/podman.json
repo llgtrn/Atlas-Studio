@@ -1,0 +1,25 @@
+{
+  "schema": "atlas.donor-provenance.v1",
+  "id": "podman",
+  "name": "Podman",
+  "remote": "https://github.com/containers/podman.git",
+  "commit_sha": "0d12a23e7bc94460f7986c01c79636b63ab6cd36",
+  "default_branch": "main",
+  "retrieved_at": "2026-09-20T13:57:44.7350501Z",
+  "clone_path": ".atlas/temporary/donors/security/podman",
+  "tree_hash": "cf105b1467f82ba5f91de7a8ae93a132472e8d66",
+  "license_files": [
+    ".atlas/licenses/donors/podman/LICENSE"
+  ],
+  "security_donor_role": "rootless isolation, namespace boundaries and low-privilege ingestion concepts",
+  "technology_lanes": [
+    "security",
+    "trust",
+    "sandboxing",
+    "rootless_isolation"
+  ],
+  "ingestion_status": "CLONED",
+  "census_status": "PENDING_DEEP_CENSUS",
+  "security_review_status": "PENDING",
+  "runtime_dependency_status": "REFERENCE_ONLY"
+}

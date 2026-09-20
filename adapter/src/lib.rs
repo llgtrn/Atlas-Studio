@@ -167,7 +167,7 @@ fn visit_adl_sources(root: &Path, dir: &Path, out: &mut Vec<AdlSource>) -> io::R
             visit_adl_sources(root, &path, out)?;
             continue;
         }
-        if path.extension().and_then(|value| value.to_str()) != Some("atlas") {
+        if path.extension().and_then(|value| value.to_str()) != Some("adl") {
             continue;
         }
         let relative = path
@@ -565,7 +565,7 @@ license_root = ".atlas/licenses"
 source_roots = ["core"]
 backend_roots = ["core"]
 frontend_roots = ["apps/ui"]
-test_roots = ["tests"]
+test_roots = ["core/tests", "runtime/tests", "adapter/tests", "apps/ui/src"]
 "#,
         )
         .unwrap();

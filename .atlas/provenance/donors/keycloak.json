@@ -1,0 +1,25 @@
+{
+  "schema": "atlas.donor-provenance.v1",
+  "id": "keycloak",
+  "name": "Keycloak",
+  "remote": "https://github.com/keycloak/keycloak.git",
+  "commit_sha": "dd4ae31d1b67c91a7f85f7c60df5c9718b111f0a",
+  "default_branch": "main",
+  "retrieved_at": "2026-09-20T13:57:44.7350501Z",
+  "clone_path": ".atlas/temporary/donors/security/keycloak",
+  "tree_hash": "6e60572de3133ad0507ceab54f6a0361a1ffd0ec",
+  "license_files": [
+    ".atlas/licenses/donors/keycloak/LICENSE.txt"
+  ],
+  "security_donor_role": "principal identity, authentication, authorization and role/scope/policy concepts",
+  "technology_lanes": [
+    "security",
+    "identity",
+    "authorization",
+    "policy"
+  ],
+  "ingestion_status": "CLONED",
+  "census_status": "PENDING_DEEP_CENSUS",
+  "security_review_status": "PENDING",
+  "runtime_dependency_status": "REFERENCE_ONLY"
+}

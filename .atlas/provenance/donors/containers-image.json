@@ -1,0 +1,25 @@
+{
+  "schema": "atlas.donor-provenance.v1",
+  "id": "containers-image",
+  "name": "containers/image",
+  "remote": "https://github.com/containers/image.git",
+  "commit_sha": "df7e80d2d19872b61f352a8a182ec934dc0c2346",
+  "default_branch": "main",
+  "retrieved_at": "2026-09-20T13:57:44.7350501Z",
+  "clone_path": ".atlas/temporary/donors/security/containers-image",
+  "tree_hash": "a64f45afb94ccd84c954c73819f3d5f0d4162429",
+  "license_files": [
+    ".atlas/licenses/donors/containers-image/LICENSE"
+  ],
+  "security_donor_role": "artifact identity, digest/signature policy and reject-by-default admission concepts",
+  "technology_lanes": [
+    "security",
+    "trust",
+    "supply_chain",
+    "admission_policy"
+  ],
+  "ingestion_status": "CLONED",
+  "census_status": "PENDING_DEEP_CENSUS",
+  "security_review_status": "PENDING",
+  "runtime_dependency_status": "REFERENCE_ONLY"
+}

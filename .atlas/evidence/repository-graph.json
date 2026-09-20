@@ -101,7 +101,7 @@
       "kind": "File",
       "identity": "adapter/src/lib.rs",
       "attributes": {
-        "bytes": "18115",
+        "bytes": "18167",
         "language": "rust"
       },
       "provenance": {
@@ -182,15 +182,100 @@
       "revision": null
     },
     {
+      "id": "node:6ecb4985a03f08cc",
+      "kind": "File",
+      "identity": "core/src/identity/mod.rs",
+      "attributes": {
+        "bytes": "1700",
+        "language": "rust"
+      },
+      "provenance": {
+        "source_path": "core/src/identity/mod.rs",
+        "source_revision": null,
+        "extractor": "atlas-core.graph-bootstrap",
+        "content_hash": null,
+        "span": null
+      },
+      "revision": null
+    },
+    {
+      "id": "node:af0a331722e51468",
+      "kind": "File",
+      "identity": "core/src/language/adl/mod.rs",
+      "attributes": {
+        "bytes": "32682",
+        "language": "rust"
+      },
+      "provenance": {
+        "source_path": "core/src/language/adl/mod.rs",
+        "source_revision": null,
+        "extractor": "atlas-core.graph-bootstrap",
+        "content_hash": null,
+        "span": null
+      },
+      "revision": null
+    },
+    {
+      "id": "node:a0a3acc47fa04374",
+      "kind": "File",
+      "identity": "core/src/language/mod.rs",
+      "attributes": {
+        "bytes": "13",
+        "language": "rust"
+      },
+      "provenance": {
+        "source_path": "core/src/language/mod.rs",
+        "source_revision": null,
+        "extractor": "atlas-core.graph-bootstrap",
+        "content_hash": null,
+        "span": null
+      },
+      "revision": null
+    },
+    {
       "id": "node:329a19827a8662a2",
       "kind": "File",
       "identity": "core/src/lib.rs",
       "attributes": {
-        "bytes": "63209",
+        "bytes": "2346",
         "language": "rust"
       },
       "provenance": {
         "source_path": "core/src/lib.rs",
+        "source_revision": null,
+        "extractor": "atlas-core.graph-bootstrap",
+        "content_hash": null,
+        "span": null
+      },
+      "revision": null
+    },
+    {
+      "id": "node:96efbe8cdbb3ff99",
+      "kind": "File",
+      "identity": "core/src/model/engineering_graph.rs",
+      "attributes": {
+        "bytes": "21398",
+        "language": "rust"
+      },
+      "provenance": {
+        "source_path": "core/src/model/engineering_graph.rs",
+        "source_revision": null,
+        "extractor": "atlas-core.graph-bootstrap",
+        "content_hash": null,
+        "span": null
+      },
+      "revision": null
+    },
+    {
+      "id": "node:f1af891d0300f3bd",
+      "kind": "File",
+      "identity": "core/src/model/mod.rs",
+      "attributes": {
+        "bytes": "8499",
+        "language": "rust"
+      },
+      "provenance": {
+        "source_path": "core/src/model/mod.rs",
         "source_revision": null,
         "extractor": "atlas-core.graph-bootstrap",
         "content_hash": null,
@@ -2554,6 +2639,234 @@
       },
       "provenance": {
         "source_path": ".atlas/census/differential-dataflow.md",
+        "source_revision": null,
+        "extractor": "atlas-core.document-graph",
+        "content_hash": null,
+        "span": null
+      },
+      "revision": null
+    },
+    {
+      "id": "node:390d231c43b0162f",
+      "kind": "Document",
+      "identity": ".atlas/census/donors/opendesign.md",
+      "attributes": {
+        "canonical": "true",
+        "document_id": "atlas.census.donors.opendesign",
+        "document_type": "donor-census",
+        "status": "active",
+        "title": "OpenDesign Donor Census"
+      },
+      "provenance": {
+        "source_path": ".atlas/census/donors/opendesign.md",
+        "source_revision": null,
+        "extractor": "atlas-core.document-graph",
+        "content_hash": null,
+        "span": null
+      },
+      "revision": null
+    },
+    {
+      "id": "node:4e6199a62e18e362",
+      "kind": "DocumentSection",
+      "identity": ".atlas/census/donors/opendesign.md#OpenDesign Donor Census",
+      "attributes": {
+        "heading": "OpenDesign Donor Census"
+      },
+      "provenance": {
+        "source_path": ".atlas/census/donors/opendesign.md",
+        "source_revision": null,
+        "extractor": "atlas-core.document-graph",
+        "content_hash": null,
+        "span": null
+      },
+      "revision": null
+    },
+    {
+      "id": "node:c1fc753343d7ecb4",
+      "kind": "DocumentSection",
+      "identity": ".atlas/census/donors/opendesign.md#Source",
+      "attributes": {
+        "heading": "Source"
+      },
+      "provenance": {
+        "source_path": ".atlas/census/donors/opendesign.md",
+        "source_revision": null,
+        "extractor": "atlas-core.document-graph",
+        "content_hash": null,
+        "span": null
+      },
+      "revision": null
+    },
+    {
+      "id": "node:8ebb871278396833",
+      "kind": "DocumentSection",
+      "identity": ".atlas/census/donors/opendesign.md#Census State",
+      "attributes": {
+        "heading": "Census State"
+      },
+      "provenance": {
+        "source_path": ".atlas/census/donors/opendesign.md",
+        "source_revision": null,
+        "extractor": "atlas-core.document-graph",
+        "content_hash": null,
+        "span": null
+      },
+      "revision": null
+    },
+    {
+      "id": "node:79ee1c4056023daa",
+      "kind": "DocumentSection",
+      "identity": ".atlas/census/donors/opendesign.md#Repository Topology",
+      "attributes": {
+        "heading": "Repository Topology"
+      },
+      "provenance": {
+        "source_path": ".atlas/census/donors/opendesign.md",
+        "source_revision": null,
+        "extractor": "atlas-core.document-graph",
+        "content_hash": null,
+        "span": null
+      },
+      "revision": null
+    },
+    {
+      "id": "node:948ee1493718e0ec",
+      "kind": "DocumentSection",
+      "identity": ".atlas/census/donors/opendesign.md#Central Mechanisms Observed",
+      "attributes": {
+        "heading": "Central Mechanisms Observed"
+      },
+      "provenance": {
+        "source_path": ".atlas/census/donors/opendesign.md",
+        "source_revision": null,
+        "extractor": "atlas-core.document-graph",
+        "content_hash": null,
+        "span": null
+      },
+      "revision": null
+    },
+    {
+      "id": "node:b407fa8e7226c80c",
+      "kind": "DocumentSection",
+      "identity": ".atlas/census/donors/opendesign.md#KEEP",
+      "attributes": {
+        "heading": "KEEP"
+      },
+      "provenance": {
+        "source_path": ".atlas/census/donors/opendesign.md",
+        "source_revision": null,
+        "extractor": "atlas-core.document-graph",
+        "content_hash": null,
+        "span": null
+      },
+      "revision": null
+    },
+    {
+      "id": "node:fe6f6947ac553c9b",
+      "kind": "DocumentSection",
+      "identity": ".atlas/census/donors/opendesign.md#ADAPT",
+      "attributes": {
+        "heading": "ADAPT"
+      },
+      "provenance": {
+        "source_path": ".atlas/census/donors/opendesign.md",
+        "source_revision": null,
+        "extractor": "atlas-core.document-graph",
+        "content_hash": null,
+        "span": null
+      },
+      "revision": null
+    },
+    {
+      "id": "node:b4e2b291927be27b",
+      "kind": "DocumentSection",
+      "identity": ".atlas/census/donors/opendesign.md#REWRITE",
+      "attributes": {
+        "heading": "REWRITE"
+      },
+      "provenance": {
+        "source_path": ".atlas/census/donors/opendesign.md",
+        "source_revision": null,
+        "extractor": "atlas-core.document-graph",
+        "content_hash": null,
+        "span": null
+      },
+      "revision": null
+    },
+    {
+      "id": "node:3e0b812c6d768be2",
+      "kind": "DocumentSection",
+      "identity": ".atlas/census/donors/opendesign.md#REJECT",
+      "attributes": {
+        "heading": "REJECT"
+      },
+      "provenance": {
+        "source_path": ".atlas/census/donors/opendesign.md",
+        "source_revision": null,
+        "extractor": "atlas-core.document-graph",
+        "content_hash": null,
+        "span": null
+      },
+      "revision": null
+    },
+    {
+      "id": "node:1ca4a77ee1fcdd47",
+      "kind": "DocumentSection",
+      "identity": ".atlas/census/donors/opendesign.md#Atlas Target Mapping",
+      "attributes": {
+        "heading": "Atlas Target Mapping"
+      },
+      "provenance": {
+        "source_path": ".atlas/census/donors/opendesign.md",
+        "source_revision": null,
+        "extractor": "atlas-core.document-graph",
+        "content_hash": null,
+        "span": null
+      },
+      "revision": null
+    },
+    {
+      "id": "node:07bdccc3d86ecc70",
+      "kind": "DocumentSection",
+      "identity": ".atlas/census/donors/opendesign.md#Atlas Design Primitives Informed",
+      "attributes": {
+        "heading": "Atlas Design Primitives Informed"
+      },
+      "provenance": {
+        "source_path": ".atlas/census/donors/opendesign.md",
+        "source_revision": null,
+        "extractor": "atlas-core.document-graph",
+        "content_hash": null,
+        "span": null
+      },
+      "revision": null
+    },
+    {
+      "id": "node:1678ca39d31205da",
+      "kind": "DocumentSection",
+      "identity": ".atlas/census/donors/opendesign.md#Security Notes",
+      "attributes": {
+        "heading": "Security Notes"
+      },
+      "provenance": {
+        "source_path": ".atlas/census/donors/opendesign.md",
+        "source_revision": null,
+        "extractor": "atlas-core.document-graph",
+        "content_hash": null,
+        "span": null
+      },
+      "revision": null
+    },
+    {
+      "id": "node:09394197c59a5567",
+      "kind": "DocumentSection",
+      "identity": ".atlas/census/donors/opendesign.md#Decision",
+      "attributes": {
+        "heading": "Decision"
+      },
+      "provenance": {
+        "source_path": ".atlas/census/donors/opendesign.md",
         "source_revision": null,
         "extractor": "atlas-core.document-graph",
         "content_hash": null,
@@ -13562,6 +13875,206 @@
       "revision": null
     },
     {
+      "id": "node:3fc8b52fd5100003",
+      "kind": "Document",
+      "identity": ".atlas/reports/current-repo-census-2026-09-20.md",
+      "attributes": {
+        "canonical": "true",
+        "document_id": "atlas.reports.current-repo-census-2026-09-20",
+        "document_type": "report",
+        "status": "active",
+        "title": "Current Repository Census"
+      },
+      "provenance": {
+        "source_path": ".atlas/reports/current-repo-census-2026-09-20.md",
+        "source_revision": null,
+        "extractor": "atlas-core.document-graph",
+        "content_hash": null,
+        "span": null
+      },
+      "revision": null
+    },
+    {
+      "id": "node:eeba33dfeed73aed",
+      "kind": "DocumentSection",
+      "identity": ".atlas/reports/current-repo-census-2026-09-20.md#Current Repository Census",
+      "attributes": {
+        "heading": "Current Repository Census"
+      },
+      "provenance": {
+        "source_path": ".atlas/reports/current-repo-census-2026-09-20.md",
+        "source_revision": null,
+        "extractor": "atlas-core.document-graph",
+        "content_hash": null,
+        "span": null
+      },
+      "revision": null
+    },
+    {
+      "id": "node:16a94f42067d500d",
+      "kind": "DocumentSection",
+      "identity": ".atlas/reports/current-repo-census-2026-09-20.md#Exact Base",
+      "attributes": {
+        "heading": "Exact Base"
+      },
+      "provenance": {
+        "source_path": ".atlas/reports/current-repo-census-2026-09-20.md",
+        "source_revision": null,
+        "extractor": "atlas-core.document-graph",
+        "content_hash": null,
+        "span": null
+      },
+      "revision": null
+    },
+    {
+      "id": "node:050731747828cd63",
+      "kind": "DocumentSection",
+      "identity": ".atlas/reports/current-repo-census-2026-09-20.md#Atlas Control Root",
+      "attributes": {
+        "heading": "Atlas Control Root"
+      },
+      "provenance": {
+        "source_path": ".atlas/reports/current-repo-census-2026-09-20.md",
+        "source_revision": null,
+        "extractor": "atlas-core.document-graph",
+        "content_hash": null,
+        "span": null
+      },
+      "revision": null
+    },
+    {
+      "id": "node:7f304a0f9cacb913",
+      "kind": "DocumentSection",
+      "identity": ".atlas/reports/current-repo-census-2026-09-20.md#Chronica Layout Comparison",
+      "attributes": {
+        "heading": "Chronica Layout Comparison"
+      },
+      "provenance": {
+        "source_path": ".atlas/reports/current-repo-census-2026-09-20.md",
+        "source_revision": null,
+        "extractor": "atlas-core.document-graph",
+        "content_hash": null,
+        "span": null
+      },
+      "revision": null
+    },
+    {
+      "id": "node:eb63bb44bea7b844",
+      "kind": "DocumentSection",
+      "identity": ".atlas/reports/current-repo-census-2026-09-20.md#Current Atlas Roots",
+      "attributes": {
+        "heading": "Current Atlas Roots"
+      },
+      "provenance": {
+        "source_path": ".atlas/reports/current-repo-census-2026-09-20.md",
+        "source_revision": null,
+        "extractor": "atlas-core.document-graph",
+        "content_hash": null,
+        "span": null
+      },
+      "revision": null
+    },
+    {
+      "id": "node:171b295f84b6ebc2",
+      "kind": "DocumentSection",
+      "identity": ".atlas/reports/current-repo-census-2026-09-20.md#Current Migration Mismatches",
+      "attributes": {
+        "heading": "Current Migration Mismatches"
+      },
+      "provenance": {
+        "source_path": ".atlas/reports/current-repo-census-2026-09-20.md",
+        "source_revision": null,
+        "extractor": "atlas-core.document-graph",
+        "content_hash": null,
+        "span": null
+      },
+      "revision": null
+    },
+    {
+      "id": "node:e730788805c85a04",
+      "kind": "DocumentSection",
+      "identity": ".atlas/reports/current-repo-census-2026-09-20.md#Immediate Refoundation Slice",
+      "attributes": {
+        "heading": "Immediate Refoundation Slice"
+      },
+      "provenance": {
+        "source_path": ".atlas/reports/current-repo-census-2026-09-20.md",
+        "source_revision": null,
+        "extractor": "atlas-core.document-graph",
+        "content_hash": null,
+        "span": null
+      },
+      "revision": null
+    },
+    {
+      "id": "node:d202ca0b1a538951",
+      "kind": "Document",
+      "identity": ".atlas/reports/donor-pin-verification-2026-09-20.md",
+      "attributes": {
+        "canonical": "true",
+        "document_id": "atlas.reports.donor-pin-verification-2026-09-20",
+        "document_type": "report",
+        "status": "active",
+        "title": "Donor Pin Verification"
+      },
+      "provenance": {
+        "source_path": ".atlas/reports/donor-pin-verification-2026-09-20.md",
+        "source_revision": null,
+        "extractor": "atlas-core.document-graph",
+        "content_hash": null,
+        "span": null
+      },
+      "revision": null
+    },
+    {
+      "id": "node:1638e621c0668a79",
+      "kind": "DocumentSection",
+      "identity": ".atlas/reports/donor-pin-verification-2026-09-20.md#Donor Pin Verification",
+      "attributes": {
+        "heading": "Donor Pin Verification"
+      },
+      "provenance": {
+        "source_path": ".atlas/reports/donor-pin-verification-2026-09-20.md",
+        "source_revision": null,
+        "extractor": "atlas-core.document-graph",
+        "content_hash": null,
+        "span": null
+      },
+      "revision": null
+    },
+    {
+      "id": "node:2299b3d422999f3d",
+      "kind": "DocumentSection",
+      "identity": ".atlas/reports/donor-pin-verification-2026-09-20.md#Existing 24 Donors",
+      "attributes": {
+        "heading": "Existing 24 Donors"
+      },
+      "provenance": {
+        "source_path": ".atlas/reports/donor-pin-verification-2026-09-20.md",
+        "source_revision": null,
+        "extractor": "atlas-core.document-graph",
+        "content_hash": null,
+        "span": null
+      },
+      "revision": null
+    },
+    {
+      "id": "node:f4849329662662a3",
+      "kind": "DocumentSection",
+      "identity": ".atlas/reports/donor-pin-verification-2026-09-20.md#Newly Cloned Approved Donors",
+      "attributes": {
+        "heading": "Newly Cloned Approved Donors"
+      },
+      "provenance": {
+        "source_path": ".atlas/reports/donor-pin-verification-2026-09-20.md",
+        "source_revision": null,
+        "extractor": "atlas-core.document-graph",
+        "content_hash": null,
+        "span": null
+      },
+      "revision": null
+    },
+    {
       "id": "node:bb684eeb052b0064",
       "kind": "Document",
       "identity": ".atlas/reports/native-technology-status.md",
@@ -13638,6 +14151,42 @@
       },
       "provenance": {
         "source_path": ".atlas/reports/native-technology-status.md",
+        "source_revision": null,
+        "extractor": "atlas-core.document-graph",
+        "content_hash": null,
+        "span": null
+      },
+      "revision": null
+    },
+    {
+      "id": "node:859e4938e9efb6a6",
+      "kind": "Document",
+      "identity": ".atlas/reports/tools-census-2026-09-20.md",
+      "attributes": {
+        "canonical": "true",
+        "document_id": "atlas.reports.tools-census-2026-09-20",
+        "document_type": "report",
+        "status": "active",
+        "title": "Tools Census"
+      },
+      "provenance": {
+        "source_path": ".atlas/reports/tools-census-2026-09-20.md",
+        "source_revision": null,
+        "extractor": "atlas-core.document-graph",
+        "content_hash": null,
+        "span": null
+      },
+      "revision": null
+    },
+    {
+      "id": "node:343f65ef382ae688",
+      "kind": "DocumentSection",
+      "identity": ".atlas/reports/tools-census-2026-09-20.md#Tools Census",
+      "attributes": {
+        "heading": "Tools Census"
+      },
+      "provenance": {
+        "source_path": ".atlas/reports/tools-census-2026-09-20.md",
         "source_revision": null,
         "extractor": "atlas-core.document-graph",
         "content_hash": null,
@@ -13895,10 +14444,10 @@
         "origin": "declared",
         "source_column": "1",
         "source_line": "5",
-        "source_path": ".atlas/declared/system.atlas"
+        "source_path": ".atlas/declared/system.adl"
       },
       "provenance": {
-        "source_path": ".atlas/declared/system.atlas",
+        "source_path": ".atlas/declared/system.adl",
         "source_revision": null,
         "extractor": "atlas-core.adl-graph",
         "content_hash": null,
@@ -13918,10 +14467,10 @@
         "responsibility": "graph_semantics",
         "source_column": "1",
         "source_line": "9",
-        "source_path": ".atlas/declared/system.atlas"
+        "source_path": ".atlas/declared/system.adl"
       },
       "provenance": {
-        "source_path": ".atlas/declared/system.atlas",
+        "source_path": ".atlas/declared/system.adl",
         "source_revision": null,
         "extractor": "atlas-core.adl-graph",
         "content_hash": null,
@@ -13941,10 +14490,10 @@
         "responsibility": "repository_observation",
         "source_column": "1",
         "source_line": "15",
-        "source_path": ".atlas/declared/system.atlas"
+        "source_path": ".atlas/declared/system.adl"
       },
       "provenance": {
-        "source_path": ".atlas/declared/system.atlas",
+        "source_path": ".atlas/declared/system.adl",
         "source_revision": null,
         "extractor": "atlas-core.adl-graph",
         "content_hash": null,
@@ -13964,10 +14513,10 @@
         "responsibility": "orchestration",
         "source_column": "1",
         "source_line": "21",
-        "source_path": ".atlas/declared/system.atlas"
+        "source_path": ".atlas/declared/system.adl"
       },
       "provenance": {
-        "source_path": ".atlas/declared/system.atlas",
+        "source_path": ".atlas/declared/system.adl",
         "source_revision": null,
         "extractor": "atlas-core.adl-graph",
         "content_hash": null,
@@ -13987,10 +14536,10 @@
         "responsibility": "graph_visualization",
         "source_column": "1",
         "source_line": "27",
-        "source_path": ".atlas/declared/system.atlas"
+        "source_path": ".atlas/declared/system.adl"
       },
       "provenance": {
-        "source_path": ".atlas/declared/system.atlas",
+        "source_path": ".atlas/declared/system.adl",
         "source_revision": null,
         "extractor": "atlas-core.adl-graph",
         "content_hash": null,
@@ -14009,10 +14558,10 @@
         "output": "AST",
         "source_column": "1",
         "source_line": "33",
-        "source_path": ".atlas/declared/system.atlas"
+        "source_path": ".atlas/declared/system.adl"
       },
       "provenance": {
-        "source_path": ".atlas/declared/system.atlas",
+        "source_path": ".atlas/declared/system.adl",
         "source_revision": null,
         "extractor": "atlas-core.adl-graph",
         "content_hash": null,
@@ -14031,10 +14580,10 @@
         "output": "SystemGraph",
         "source_column": "1",
         "source_line": "38",
-        "source_path": ".atlas/declared/system.atlas"
+        "source_path": ".atlas/declared/system.adl"
       },
       "provenance": {
-        "source_path": ".atlas/declared/system.atlas",
+        "source_path": ".atlas/declared/system.adl",
         "source_revision": null,
         "extractor": "atlas-core.adl-graph",
         "content_hash": null,
@@ -14053,10 +14602,10 @@
         "output": "ObservedGraph",
         "source_column": "1",
         "source_line": "43",
-        "source_path": ".atlas/declared/system.atlas"
+        "source_path": ".atlas/declared/system.adl"
       },
       "provenance": {
-        "source_path": ".atlas/declared/system.atlas",
+        "source_path": ".atlas/declared/system.adl",
         "source_revision": null,
         "extractor": "atlas-core.adl-graph",
         "content_hash": null,
@@ -14075,11 +14624,11 @@
         "source_glob": "src/**/*.rs",
         "source_language": "rust",
         "source_line": "72",
-        "source_path": ".atlas/declared/system.atlas",
+        "source_path": ".atlas/declared/system.adl",
         "target": "Core"
       },
       "provenance": {
-        "source_path": ".atlas/declared/system.atlas",
+        "source_path": ".atlas/declared/system.adl",
         "source_revision": null,
         "extractor": "atlas-core.adl-graph",
         "content_hash": null,
@@ -14098,11 +14647,11 @@
         "source_glob": "src/**/*.rs",
         "source_language": "rust",
         "source_line": "78",
-        "source_path": ".atlas/declared/system.atlas",
+        "source_path": ".atlas/declared/system.adl",
         "target": "Adapter"
       },
       "provenance": {
-        "source_path": ".atlas/declared/system.atlas",
+        "source_path": ".atlas/declared/system.adl",
         "source_revision": null,
         "extractor": "atlas-core.adl-graph",
         "content_hash": null,
@@ -14121,11 +14670,11 @@
         "source_glob": "src/**/*.rs",
         "source_language": "rust",
         "source_line": "84",
-        "source_path": ".atlas/declared/system.atlas",
+        "source_path": ".atlas/declared/system.adl",
         "target": "Runtime"
       },
       "provenance": {
-        "source_path": ".atlas/declared/system.atlas",
+        "source_path": ".atlas/declared/system.adl",
         "source_revision": null,
         "extractor": "atlas-core.adl-graph",
         "content_hash": null,
@@ -14142,11 +14691,11 @@
         "path": "apps/ui",
         "source_column": "1",
         "source_line": "90",
-        "source_path": ".atlas/declared/system.atlas",
+        "source_path": ".atlas/declared/system.adl",
         "target": "WebUI"
       },
       "provenance": {
-        "source_path": ".atlas/declared/system.atlas",
+        "source_path": ".atlas/declared/system.adl",
         "source_revision": null,
         "extractor": "atlas-core.adl-graph",
         "content_hash": null,
@@ -14161,10 +14710,10 @@
       "attributes": {
         "source_column": "1",
         "source_line": "94",
-        "source_path": ".atlas/declared/system.atlas"
+        "source_path": ".atlas/declared/system.adl"
       },
       "provenance": {
-        "source_path": ".atlas/declared/system.atlas",
+        "source_path": ".atlas/declared/system.adl",
         "source_revision": null,
         "extractor": "atlas-core.adl-graph",
         "content_hash": null,
@@ -14179,10 +14728,10 @@
       "attributes": {
         "source_column": "1",
         "source_line": "101",
-        "source_path": ".atlas/declared/system.atlas"
+        "source_path": ".atlas/declared/system.adl"
       },
       "provenance": {
-        "source_path": ".atlas/declared/system.atlas",
+        "source_path": ".atlas/declared/system.adl",
         "source_revision": null,
         "extractor": "atlas-core.adl-graph",
         "content_hash": null,
@@ -14197,10 +14746,10 @@
       "attributes": {
         "source_column": "1",
         "source_line": "105",
-        "source_path": ".atlas/declared/system.atlas"
+        "source_path": ".atlas/declared/system.adl"
       },
       "provenance": {
-        "source_path": ".atlas/declared/system.atlas",
+        "source_path": ".atlas/declared/system.adl",
         "source_revision": null,
         "extractor": "atlas-core.adl-graph",
         "content_hash": null,
@@ -14215,10 +14764,10 @@
       "attributes": {
         "source_column": "1",
         "source_line": "109",
-        "source_path": ".atlas/declared/system.atlas"
+        "source_path": ".atlas/declared/system.adl"
       },
       "provenance": {
-        "source_path": ".atlas/declared/system.atlas",
+        "source_path": ".atlas/declared/system.adl",
         "source_revision": null,
         "extractor": "atlas-core.adl-graph",
         "content_hash": null,
@@ -14481,6 +15030,96 @@
       "revision": null
     },
     {
+      "id": "edge:c02415a5e2be9c27",
+      "kind": "CONTAINS",
+      "from": "node:a1da864ac41500a9",
+      "to": "node:6ecb4985a03f08cc",
+      "attributes": {},
+      "provenance": {
+        "source_path": "core/src/identity/mod.rs",
+        "source_revision": null,
+        "extractor": "atlas-core.graph-bootstrap",
+        "content_hash": null,
+        "span": null
+      },
+      "revision": null
+    },
+    {
+      "id": "edge:9bec02b90520583a",
+      "kind": "USES",
+      "from": "node:6ecb4985a03f08cc",
+      "to": "node:5993cd3ab61d1f51",
+      "attributes": {},
+      "provenance": {
+        "source_path": "core/src/identity/mod.rs",
+        "source_revision": null,
+        "extractor": "atlas-core.graph-bootstrap",
+        "content_hash": null,
+        "span": null
+      },
+      "revision": null
+    },
+    {
+      "id": "edge:75b4e346a592d0da",
+      "kind": "CONTAINS",
+      "from": "node:a1da864ac41500a9",
+      "to": "node:af0a331722e51468",
+      "attributes": {},
+      "provenance": {
+        "source_path": "core/src/language/adl/mod.rs",
+        "source_revision": null,
+        "extractor": "atlas-core.graph-bootstrap",
+        "content_hash": null,
+        "span": null
+      },
+      "revision": null
+    },
+    {
+      "id": "edge:0214e6151101d3c1",
+      "kind": "USES",
+      "from": "node:af0a331722e51468",
+      "to": "node:5993cd3ab61d1f51",
+      "attributes": {},
+      "provenance": {
+        "source_path": "core/src/language/adl/mod.rs",
+        "source_revision": null,
+        "extractor": "atlas-core.graph-bootstrap",
+        "content_hash": null,
+        "span": null
+      },
+      "revision": null
+    },
+    {
+      "id": "edge:fd477d88a333389d",
+      "kind": "CONTAINS",
+      "from": "node:a1da864ac41500a9",
+      "to": "node:a0a3acc47fa04374",
+      "attributes": {},
+      "provenance": {
+        "source_path": "core/src/language/mod.rs",
+        "source_revision": null,
+        "extractor": "atlas-core.graph-bootstrap",
+        "content_hash": null,
+        "span": null
+      },
+      "revision": null
+    },
+    {
+      "id": "edge:bc3852201cc68780",
+      "kind": "USES",
+      "from": "node:a0a3acc47fa04374",
+      "to": "node:5993cd3ab61d1f51",
+      "attributes": {},
+      "provenance": {
+        "source_path": "core/src/language/mod.rs",
+        "source_revision": null,
+        "extractor": "atlas-core.graph-bootstrap",
+        "content_hash": null,
+        "span": null
+      },
+      "revision": null
+    },
+    {
       "id": "edge:97e90d1e4ff020eb",
       "kind": "CONTAINS",
       "from": "node:a1da864ac41500a9",
@@ -14503,6 +15142,66 @@
       "attributes": {},
       "provenance": {
         "source_path": "core/src/lib.rs",
+        "source_revision": null,
+        "extractor": "atlas-core.graph-bootstrap",
+        "content_hash": null,
+        "span": null
+      },
+      "revision": null
+    },
+    {
+      "id": "edge:3569dcccd0f09fbe",
+      "kind": "CONTAINS",
+      "from": "node:a1da864ac41500a9",
+      "to": "node:96efbe8cdbb3ff99",
+      "attributes": {},
+      "provenance": {
+        "source_path": "core/src/model/engineering_graph.rs",
+        "source_revision": null,
+        "extractor": "atlas-core.graph-bootstrap",
+        "content_hash": null,
+        "span": null
+      },
+      "revision": null
+    },
+    {
+      "id": "edge:6682ae032256ee6d",
+      "kind": "USES",
+      "from": "node:96efbe8cdbb3ff99",
+      "to": "node:5993cd3ab61d1f51",
+      "attributes": {},
+      "provenance": {
+        "source_path": "core/src/model/engineering_graph.rs",
+        "source_revision": null,
+        "extractor": "atlas-core.graph-bootstrap",
+        "content_hash": null,
+        "span": null
+      },
+      "revision": null
+    },
+    {
+      "id": "edge:2bf27874e82becad",
+      "kind": "CONTAINS",
+      "from": "node:a1da864ac41500a9",
+      "to": "node:f1af891d0300f3bd",
+      "attributes": {},
+      "provenance": {
+        "source_path": "core/src/model/mod.rs",
+        "source_revision": null,
+        "extractor": "atlas-core.graph-bootstrap",
+        "content_hash": null,
+        "span": null
+      },
+      "revision": null
+    },
+    {
+      "id": "edge:db2fc6008d2e4070",
+      "kind": "USES",
+      "from": "node:f1af891d0300f3bd",
+      "to": "node:5993cd3ab61d1f51",
+      "attributes": {},
+      "provenance": {
+        "source_path": "core/src/model/mod.rs",
         "source_revision": null,
         "extractor": "atlas-core.graph-bootstrap",
         "content_hash": null,
@@ -16416,6 +17115,201 @@
       "attributes": {},
       "provenance": {
         "source_path": ".atlas/census/differential-dataflow.md",
+        "source_revision": null,
+        "extractor": "atlas-core.document-graph",
+        "content_hash": null,
+        "span": null
+      },
+      "revision": null
+    },
+    {
+      "id": "edge:55dcfa201e9441de",
+      "kind": "CONTAINS",
+      "from": "node:390d231c43b0162f",
+      "to": "node:4e6199a62e18e362",
+      "attributes": {},
+      "provenance": {
+        "source_path": ".atlas/census/donors/opendesign.md",
+        "source_revision": null,
+        "extractor": "atlas-core.document-graph",
+        "content_hash": null,
+        "span": null
+      },
+      "revision": null
+    },
+    {
+      "id": "edge:c1e20f1a1137ab3a",
+      "kind": "CONTAINS",
+      "from": "node:390d231c43b0162f",
+      "to": "node:c1fc753343d7ecb4",
+      "attributes": {},
+      "provenance": {
+        "source_path": ".atlas/census/donors/opendesign.md",
+        "source_revision": null,
+        "extractor": "atlas-core.document-graph",
+        "content_hash": null,
+        "span": null
+      },
+      "revision": null
+    },
+    {
+      "id": "edge:8aec4769edb8d60b",
+      "kind": "CONTAINS",
+      "from": "node:390d231c43b0162f",
+      "to": "node:8ebb871278396833",
+      "attributes": {},
+      "provenance": {
+        "source_path": ".atlas/census/donors/opendesign.md",
+        "source_revision": null,
+        "extractor": "atlas-core.document-graph",
+        "content_hash": null,
+        "span": null
+      },
+      "revision": null
+    },
+    {
+      "id": "edge:4196b44886f3d513",
+      "kind": "CONTAINS",
+      "from": "node:390d231c43b0162f",
+      "to": "node:79ee1c4056023daa",
+      "attributes": {},
+      "provenance": {
+        "source_path": ".atlas/census/donors/opendesign.md",
+        "source_revision": null,
+        "extractor": "atlas-core.document-graph",
+        "content_hash": null,
+        "span": null
+      },
+      "revision": null
+    },
+    {
+      "id": "edge:a0a8a323bdca7ef8",
+      "kind": "CONTAINS",
+      "from": "node:390d231c43b0162f",
+      "to": "node:948ee1493718e0ec",
+      "attributes": {},
+      "provenance": {
+        "source_path": ".atlas/census/donors/opendesign.md",
+        "source_revision": null,
+        "extractor": "atlas-core.document-graph",
+        "content_hash": null,
+        "span": null
+      },
+      "revision": null
+    },
+    {
+      "id": "edge:506a10200e9fef07",
+      "kind": "CONTAINS",
+      "from": "node:390d231c43b0162f",
+      "to": "node:b407fa8e7226c80c",
+      "attributes": {},
+      "provenance": {
+        "source_path": ".atlas/census/donors/opendesign.md",
+        "source_revision": null,
+        "extractor": "atlas-core.document-graph",
+        "content_hash": null,
+        "span": null
+      },
+      "revision": null
+    },
+    {
+      "id": "edge:ebedcdb02beda3e7",
+      "kind": "CONTAINS",
+      "from": "node:390d231c43b0162f",
+      "to": "node:fe6f6947ac553c9b",
+      "attributes": {},
+      "provenance": {
+        "source_path": ".atlas/census/donors/opendesign.md",
+        "source_revision": null,
+        "extractor": "atlas-core.document-graph",
+        "content_hash": null,
+        "span": null
+      },
+      "revision": null
+    },
+    {
+      "id": "edge:1bbd5333500d11ee",
+      "kind": "CONTAINS",
+      "from": "node:390d231c43b0162f",
+      "to": "node:b4e2b291927be27b",
+      "attributes": {},
+      "provenance": {
+        "source_path": ".atlas/census/donors/opendesign.md",
+        "source_revision": null,
+        "extractor": "atlas-core.document-graph",
+        "content_hash": null,
+        "span": null
+      },
+      "revision": null
+    },
+    {
+      "id": "edge:d5a493f027866fe5",
+      "kind": "CONTAINS",
+      "from": "node:390d231c43b0162f",
+      "to": "node:3e0b812c6d768be2",
+      "attributes": {},
+      "provenance": {
+        "source_path": ".atlas/census/donors/opendesign.md",
+        "source_revision": null,
+        "extractor": "atlas-core.document-graph",
+        "content_hash": null,
+        "span": null
+      },
+      "revision": null
+    },
+    {
+      "id": "edge:aec63efb00c605e0",
+      "kind": "CONTAINS",
+      "from": "node:390d231c43b0162f",
+      "to": "node:1ca4a77ee1fcdd47",
+      "attributes": {},
+      "provenance": {
+        "source_path": ".atlas/census/donors/opendesign.md",
+        "source_revision": null,
+        "extractor": "atlas-core.document-graph",
+        "content_hash": null,
+        "span": null
+      },
+      "revision": null
+    },
+    {
+      "id": "edge:c36a302e3cafb58a",
+      "kind": "CONTAINS",
+      "from": "node:390d231c43b0162f",
+      "to": "node:07bdccc3d86ecc70",
+      "attributes": {},
+      "provenance": {
+        "source_path": ".atlas/census/donors/opendesign.md",
+        "source_revision": null,
+        "extractor": "atlas-core.document-graph",
+        "content_hash": null,
+        "span": null
+      },
+      "revision": null
+    },
+    {
+      "id": "edge:a6bb4806398f61f7",
+      "kind": "CONTAINS",
+      "from": "node:390d231c43b0162f",
+      "to": "node:1678ca39d31205da",
+      "attributes": {},
+      "provenance": {
+        "source_path": ".atlas/census/donors/opendesign.md",
+        "source_revision": null,
+        "extractor": "atlas-core.document-graph",
+        "content_hash": null,
+        "span": null
+      },
+      "revision": null
+    },
+    {
+      "id": "edge:e03b4db3c225a082",
+      "kind": "CONTAINS",
+      "from": "node:390d231c43b0162f",
+      "to": "node:09394197c59a5567",
+      "attributes": {},
+      "provenance": {
+        "source_path": ".atlas/census/donors/opendesign.md",
         "source_revision": null,
         "extractor": "atlas-core.document-graph",
         "content_hash": null,
@@ -25574,6 +26468,190 @@
       "revision": null
     },
     {
+      "id": "edge:0bd24b7c645a465d",
+      "kind": "CONTAINS",
+      "from": "node:3fc8b52fd5100003",
+      "to": "node:eeba33dfeed73aed",
+      "attributes": {},
+      "provenance": {
+        "source_path": ".atlas/reports/current-repo-census-2026-09-20.md",
+        "source_revision": null,
+        "extractor": "atlas-core.document-graph",
+        "content_hash": null,
+        "span": null
+      },
+      "revision": null
+    },
+    {
+      "id": "edge:2ae13028a8fb7a5d",
+      "kind": "CONTAINS",
+      "from": "node:3fc8b52fd5100003",
+      "to": "node:16a94f42067d500d",
+      "attributes": {},
+      "provenance": {
+        "source_path": ".atlas/reports/current-repo-census-2026-09-20.md",
+        "source_revision": null,
+        "extractor": "atlas-core.document-graph",
+        "content_hash": null,
+        "span": null
+      },
+      "revision": null
+    },
+    {
+      "id": "edge:2665702297f05298",
+      "kind": "CONTAINS",
+      "from": "node:3fc8b52fd5100003",
+      "to": "node:050731747828cd63",
+      "attributes": {},
+      "provenance": {
+        "source_path": ".atlas/reports/current-repo-census-2026-09-20.md",
+        "source_revision": null,
+        "extractor": "atlas-core.document-graph",
+        "content_hash": null,
+        "span": null
+      },
+      "revision": null
+    },
+    {
+      "id": "edge:e3dc06d6b3392d32",
+      "kind": "CONTAINS",
+      "from": "node:3fc8b52fd5100003",
+      "to": "node:7f304a0f9cacb913",
+      "attributes": {},
+      "provenance": {
+        "source_path": ".atlas/reports/current-repo-census-2026-09-20.md",
+        "source_revision": null,
+        "extractor": "atlas-core.document-graph",
+        "content_hash": null,
+        "span": null
+      },
+      "revision": null
+    },
+    {
+      "id": "edge:b126eda7a239ec4f",
+      "kind": "CONTAINS",
+      "from": "node:3fc8b52fd5100003",
+      "to": "node:eb63bb44bea7b844",
+      "attributes": {},
+      "provenance": {
+        "source_path": ".atlas/reports/current-repo-census-2026-09-20.md",
+        "source_revision": null,
+        "extractor": "atlas-core.document-graph",
+        "content_hash": null,
+        "span": null
+      },
+      "revision": null
+    },
+    {
+      "id": "edge:3f712eee3efc6a27",
+      "kind": "CONTAINS",
+      "from": "node:3fc8b52fd5100003",
+      "to": "node:171b295f84b6ebc2",
+      "attributes": {},
+      "provenance": {
+        "source_path": ".atlas/reports/current-repo-census-2026-09-20.md",
+        "source_revision": null,
+        "extractor": "atlas-core.document-graph",
+        "content_hash": null,
+        "span": null
+      },
+      "revision": null
+    },
+    {
+      "id": "edge:8e89b14a7ecf6d52",
+      "kind": "CONTAINS",
+      "from": "node:3fc8b52fd5100003",
+      "to": "node:e730788805c85a04",
+      "attributes": {},
+      "provenance": {
+        "source_path": ".atlas/reports/current-repo-census-2026-09-20.md",
+        "source_revision": null,
+        "extractor": "atlas-core.document-graph",
+        "content_hash": null,
+        "span": null
+      },
+      "revision": null
+    },
+    {
+      "id": "edge:8fab409b28cd529f",
+      "kind": "DOCUMENTS",
+      "from": "node:3fc8b52fd5100003",
+      "to": "node:329a19827a8662a2",
+      "attributes": {
+        "reference": "core/src/lib.rs"
+      },
+      "provenance": {
+        "source_path": ".atlas/reports/current-repo-census-2026-09-20.md",
+        "source_revision": null,
+        "extractor": "atlas-core.document-graph",
+        "content_hash": null,
+        "span": null
+      },
+      "revision": null
+    },
+    {
+      "id": "edge:c299420d055a484e",
+      "kind": "DOCUMENTS",
+      "from": "node:3fc8b52fd5100003",
+      "to": "node:4f4018f0a96179ed",
+      "attributes": {
+        "reference": "runtime/src/main.rs"
+      },
+      "provenance": {
+        "source_path": ".atlas/reports/current-repo-census-2026-09-20.md",
+        "source_revision": null,
+        "extractor": "atlas-core.document-graph",
+        "content_hash": null,
+        "span": null
+      },
+      "revision": null
+    },
+    {
+      "id": "edge:ef9a438c64d76b2d",
+      "kind": "CONTAINS",
+      "from": "node:d202ca0b1a538951",
+      "to": "node:1638e621c0668a79",
+      "attributes": {},
+      "provenance": {
+        "source_path": ".atlas/reports/donor-pin-verification-2026-09-20.md",
+        "source_revision": null,
+        "extractor": "atlas-core.document-graph",
+        "content_hash": null,
+        "span": null
+      },
+      "revision": null
+    },
+    {
+      "id": "edge:6469c3d06fa87248",
+      "kind": "CONTAINS",
+      "from": "node:d202ca0b1a538951",
+      "to": "node:2299b3d422999f3d",
+      "attributes": {},
+      "provenance": {
+        "source_path": ".atlas/reports/donor-pin-verification-2026-09-20.md",
+        "source_revision": null,
+        "extractor": "atlas-core.document-graph",
+        "content_hash": null,
+        "span": null
+      },
+      "revision": null
+    },
+    {
+      "id": "edge:96856cdc5478e664",
+      "kind": "CONTAINS",
+      "from": "node:d202ca0b1a538951",
+      "to": "node:f4849329662662a3",
+      "attributes": {},
+      "provenance": {
+        "source_path": ".atlas/reports/donor-pin-verification-2026-09-20.md",
+        "source_revision": null,
+        "extractor": "atlas-core.document-graph",
+        "content_hash": null,
+        "span": null
+      },
+      "revision": null
+    },
+    {
       "id": "edge:ce4f370efdb48a88",
       "kind": "CONTAINS",
       "from": "node:bb684eeb052b0064",
@@ -25626,6 +26704,21 @@
       "attributes": {},
       "provenance": {
         "source_path": ".atlas/reports/native-technology-status.md",
+        "source_revision": null,
+        "extractor": "atlas-core.document-graph",
+        "content_hash": null,
+        "span": null
+      },
+      "revision": null
+    },
+    {
+      "id": "edge:a33d67d74d84fa68",
+      "kind": "CONTAINS",
+      "from": "node:859e4938e9efb6a6",
+      "to": "node:343f65ef382ae688",
+      "attributes": {},
+      "provenance": {
+        "source_path": ".atlas/reports/tools-census-2026-09-20.md",
         "source_revision": null,
         "extractor": "atlas-core.document-graph",
         "content_hash": null,
@@ -25793,7 +26886,7 @@
         "origin": "declared"
       },
       "provenance": {
-        "source_path": ".atlas/declared/system.atlas",
+        "source_path": ".atlas/declared/system.adl",
         "source_revision": null,
         "extractor": "atlas-core.adl-graph",
         "content_hash": null,
@@ -25811,7 +26904,7 @@
         "origin": "declared"
       },
       "provenance": {
-        "source_path": ".atlas/declared/system.atlas",
+        "source_path": ".atlas/declared/system.adl",
         "source_revision": null,
         "extractor": "atlas-core.adl-graph",
         "content_hash": null,
@@ -25829,7 +26922,7 @@
         "origin": "declared"
       },
       "provenance": {
-        "source_path": ".atlas/declared/system.atlas",
+        "source_path": ".atlas/declared/system.adl",
         "source_revision": null,
         "extractor": "atlas-core.adl-graph",
         "content_hash": null,
@@ -25847,7 +26940,7 @@
         "origin": "declared"
       },
       "provenance": {
-        "source_path": ".atlas/declared/system.atlas",
+        "source_path": ".atlas/declared/system.adl",
         "source_revision": null,
         "extractor": "atlas-core.adl-graph",
         "content_hash": null,
@@ -25865,7 +26958,7 @@
         "origin": "declared"
       },
       "provenance": {
-        "source_path": ".atlas/declared/system.atlas",
+        "source_path": ".atlas/declared/system.adl",
         "source_revision": null,
         "extractor": "atlas-core.adl-graph",
         "content_hash": null,
@@ -25883,7 +26976,7 @@
         "origin": "declared"
       },
       "provenance": {
-        "source_path": ".atlas/declared/system.atlas",
+        "source_path": ".atlas/declared/system.adl",
         "source_revision": null,
         "extractor": "atlas-core.adl-graph",
         "content_hash": null,
@@ -25901,7 +26994,7 @@
         "origin": "declared"
       },
       "provenance": {
-        "source_path": ".atlas/declared/system.atlas",
+        "source_path": ".atlas/declared/system.adl",
         "source_revision": null,
         "extractor": "atlas-core.adl-graph",
         "content_hash": null,
@@ -25919,7 +27012,7 @@
         "origin": "declared"
       },
       "provenance": {
-        "source_path": ".atlas/declared/system.atlas",
+        "source_path": ".atlas/declared/system.adl",
         "source_revision": null,
         "extractor": "atlas-core.adl-graph",
         "content_hash": null,
@@ -25937,7 +27030,7 @@
         "origin": "declared"
       },
       "provenance": {
-        "source_path": ".atlas/declared/system.atlas",
+        "source_path": ".atlas/declared/system.adl",
         "source_revision": null,
         "extractor": "atlas-core.adl-graph",
         "content_hash": null,
@@ -25955,7 +27048,7 @@
         "origin": "declared"
       },
       "provenance": {
-        "source_path": ".atlas/declared/system.atlas",
+        "source_path": ".atlas/declared/system.adl",
         "source_revision": null,
         "extractor": "atlas-core.adl-graph",
         "content_hash": null,
@@ -25974,7 +27067,7 @@
         "origin": "declared"
       },
       "provenance": {
-        "source_path": ".atlas/declared/system.atlas",
+        "source_path": ".atlas/declared/system.adl",
         "source_revision": null,
         "extractor": "atlas-core.adl-graph",
         "content_hash": null,
@@ -25993,7 +27086,7 @@
         "origin": "declared"
       },
       "provenance": {
-        "source_path": ".atlas/declared/system.atlas",
+        "source_path": ".atlas/declared/system.adl",
         "source_revision": null,
         "extractor": "atlas-core.adl-graph",
         "content_hash": null,
@@ -26010,7 +27103,7 @@
         "origin": "declared"
       },
       "provenance": {
-        "source_path": ".atlas/declared/system.atlas",
+        "source_path": ".atlas/declared/system.adl",
         "source_revision": null,
         "extractor": "atlas-core.adl-graph",
         "content_hash": null,
@@ -26027,7 +27120,58 @@
         "path": "core/Cargo.toml"
       },
       "provenance": {
-        "source_path": ".atlas/declared/system.atlas",
+        "source_path": ".atlas/declared/system.adl",
+        "source_revision": null,
+        "extractor": "atlas-core.adl-graph",
+        "content_hash": null,
+        "span": null
+      },
+      "revision": null
+    },
+    {
+      "id": "edge:4063a576d6eb1853",
+      "kind": "MATERIALIZES_AS",
+      "from": "node:f32d3cfd4136fea2",
+      "to": "node:6ecb4985a03f08cc",
+      "attributes": {
+        "path": "core/src/identity/mod.rs"
+      },
+      "provenance": {
+        "source_path": ".atlas/declared/system.adl",
+        "source_revision": null,
+        "extractor": "atlas-core.adl-graph",
+        "content_hash": null,
+        "span": null
+      },
+      "revision": null
+    },
+    {
+      "id": "edge:6f7903821fb8225e",
+      "kind": "MATERIALIZES_AS",
+      "from": "node:f32d3cfd4136fea2",
+      "to": "node:af0a331722e51468",
+      "attributes": {
+        "path": "core/src/language/adl/mod.rs"
+      },
+      "provenance": {
+        "source_path": ".atlas/declared/system.adl",
+        "source_revision": null,
+        "extractor": "atlas-core.adl-graph",
+        "content_hash": null,
+        "span": null
+      },
+      "revision": null
+    },
+    {
+      "id": "edge:fd96c7bf65fff3f1",
+      "kind": "MATERIALIZES_AS",
+      "from": "node:f32d3cfd4136fea2",
+      "to": "node:a0a3acc47fa04374",
+      "attributes": {
+        "path": "core/src/language/mod.rs"
+      },
+      "provenance": {
+        "source_path": ".atlas/declared/system.adl",
         "source_revision": null,
         "extractor": "atlas-core.adl-graph",
         "content_hash": null,
@@ -26044,7 +27188,41 @@
         "path": "core/src/lib.rs"
       },
       "provenance": {
-        "source_path": ".atlas/declared/system.atlas",
+        "source_path": ".atlas/declared/system.adl",
+        "source_revision": null,
+        "extractor": "atlas-core.adl-graph",
+        "content_hash": null,
+        "span": null
+      },
+      "revision": null
+    },
+    {
+      "id": "edge:c6f8e6c9a9d70cca",
+      "kind": "MATERIALIZES_AS",
+      "from": "node:f32d3cfd4136fea2",
+      "to": "node:96efbe8cdbb3ff99",
+      "attributes": {
+        "path": "core/src/model/engineering_graph.rs"
+      },
+      "provenance": {
+        "source_path": ".atlas/declared/system.adl",
+        "source_revision": null,
+        "extractor": "atlas-core.adl-graph",
+        "content_hash": null,
+        "span": null
+      },
+      "revision": null
+    },
+    {
+      "id": "edge:857d50b0f93214f9",
+      "kind": "MATERIALIZES_AS",
+      "from": "node:f32d3cfd4136fea2",
+      "to": "node:f1af891d0300f3bd",
+      "attributes": {
+        "path": "core/src/model/mod.rs"
+      },
+      "provenance": {
+        "source_path": ".atlas/declared/system.adl",
         "source_revision": null,
         "extractor": "atlas-core.adl-graph",
         "content_hash": null,
@@ -26061,7 +27239,7 @@
         "origin": "declared"
       },
       "provenance": {
-        "source_path": ".atlas/declared/system.atlas",
+        "source_path": ".atlas/declared/system.adl",
         "source_revision": null,
         "extractor": "atlas-core.adl-graph",
         "content_hash": null,
@@ -26078,7 +27256,7 @@
         "path": "adapter/Cargo.toml"
       },
       "provenance": {
-        "source_path": ".atlas/declared/system.atlas",
+        "source_path": ".atlas/declared/system.adl",
         "source_revision": null,
         "extractor": "atlas-core.adl-graph",
         "content_hash": null,
@@ -26095,7 +27273,7 @@
         "path": "adapter/src/lib.rs"
       },
       "provenance": {
-        "source_path": ".atlas/declared/system.atlas",
+        "source_path": ".atlas/declared/system.adl",
         "source_revision": null,
         "extractor": "atlas-core.adl-graph",
         "content_hash": null,
@@ -26112,7 +27290,7 @@
         "origin": "declared"
       },
       "provenance": {
-        "source_path": ".atlas/declared/system.atlas",
+        "source_path": ".atlas/declared/system.adl",
         "source_revision": null,
         "extractor": "atlas-core.adl-graph",
         "content_hash": null,
@@ -26129,7 +27307,7 @@
         "path": "runtime/Cargo.toml"
       },
       "provenance": {
-        "source_path": ".atlas/declared/system.atlas",
+        "source_path": ".atlas/declared/system.adl",
         "source_revision": null,
         "extractor": "atlas-core.adl-graph",
         "content_hash": null,
@@ -26146,7 +27324,7 @@
         "path": "runtime/src/lib.rs"
       },
       "provenance": {
-        "source_path": ".atlas/declared/system.atlas",
+        "source_path": ".atlas/declared/system.adl",
         "source_revision": null,
         "extractor": "atlas-core.adl-graph",
         "content_hash": null,
@@ -26163,7 +27341,7 @@
         "path": "runtime/src/main.rs"
       },
       "provenance": {
-        "source_path": ".atlas/declared/system.atlas",
+        "source_path": ".atlas/declared/system.adl",
         "source_revision": null,
         "extractor": "atlas-core.adl-graph",
         "content_hash": null,
@@ -26180,7 +27358,7 @@
         "origin": "declared"
       },
       "provenance": {
-        "source_path": ".atlas/declared/system.atlas",
+        "source_path": ".atlas/declared/system.adl",
         "source_revision": null,
         "extractor": "atlas-core.adl-graph",
         "content_hash": null,
@@ -26197,7 +27375,7 @@
         "path": "apps/ui/README.md"
       },
       "provenance": {
-        "source_path": ".atlas/declared/system.atlas",
+        "source_path": ".atlas/declared/system.adl",
         "source_revision": null,
         "extractor": "atlas-core.adl-graph",
         "content_hash": null,
@@ -26214,7 +27392,7 @@
         "path": "apps/ui/design/tokens.json"
       },
       "provenance": {
-        "source_path": ".atlas/declared/system.atlas",
+        "source_path": ".atlas/declared/system.adl",
         "source_revision": null,
         "extractor": "atlas-core.adl-graph",
         "content_hash": null,
@@ -26231,7 +27409,7 @@
         "path": "apps/ui/package.json"
       },
       "provenance": {
-        "source_path": ".atlas/declared/system.atlas",
+        "source_path": ".atlas/declared/system.adl",
         "source_revision": null,
         "extractor": "atlas-core.adl-graph",
         "content_hash": null,
@@ -26290,13 +27468,37 @@
       "revision": null
     },
     {
+      "id": "binding:43b081a3c38e1418",
+      "source": "node:3fc8b52fd5100003",
+      "target": "node:329a19827a8662a2",
+      "binding_kind": "DocumentationBinding",
+      "confidence": 0.85,
+      "evidence": [
+        ".atlas/reports/current-repo-census-2026-09-20.md",
+        "core/src/lib.rs"
+      ],
+      "revision": null
+    },
+    {
+      "id": "binding:671d51c3edf34f89",
+      "source": "node:3fc8b52fd5100003",
+      "target": "node:4f4018f0a96179ed",
+      "binding_kind": "DocumentationBinding",
+      "confidence": 0.85,
+      "evidence": [
+        ".atlas/reports/current-repo-census-2026-09-20.md",
+        "runtime/src/main.rs"
+      ],
+      "revision": null
+    },
+    {
       "id": "binding:cae967b379d30093",
       "source": "node:024c003dc29b620d",
       "target": "node:90aa4ee8c92b1940",
       "binding_kind": "DeclaredCapabilityBinding",
       "confidence": 1.0,
       "evidence": [
-        ".atlas/declared/system.atlas",
+        ".atlas/declared/system.adl",
         "Runtime",
         "Core",
         "CompileGraph"
@@ -26310,7 +27512,7 @@
       "binding_kind": "DeclaredCapabilityBinding",
       "confidence": 1.0,
       "evidence": [
-        ".atlas/declared/system.atlas",
+        ".atlas/declared/system.adl",
         "Runtime",
         "Adapter",
         "ObserveRepository"
@@ -26324,8 +27526,44 @@
       "binding_kind": "MaterializationBinding",
       "confidence": 1.0,
       "evidence": [
-        ".atlas/declared/system.atlas",
+        ".atlas/declared/system.adl",
         "core/Cargo.toml"
+      ],
+      "revision": null
+    },
+    {
+      "id": "binding:8038323c9a4d0014",
+      "source": "node:f32d3cfd4136fea2",
+      "target": "node:6ecb4985a03f08cc",
+      "binding_kind": "MaterializationBinding",
+      "confidence": 1.0,
+      "evidence": [
+        ".atlas/declared/system.adl",
+        "core/src/identity/mod.rs"
+      ],
+      "revision": null
+    },
+    {
+      "id": "binding:1d5d92f60b934ebd",
+      "source": "node:f32d3cfd4136fea2",
+      "target": "node:af0a331722e51468",
+      "binding_kind": "MaterializationBinding",
+      "confidence": 1.0,
+      "evidence": [
+        ".atlas/declared/system.adl",
+        "core/src/language/adl/mod.rs"
+      ],
+      "revision": null
+    },
+    {
+      "id": "binding:cfadb0514143e612",
+      "source": "node:f32d3cfd4136fea2",
+      "target": "node:a0a3acc47fa04374",
+      "binding_kind": "MaterializationBinding",
+      "confidence": 1.0,
+      "evidence": [
+        ".atlas/declared/system.adl",
+        "core/src/language/mod.rs"
       ],
       "revision": null
     },
@@ -26336,8 +27574,32 @@
       "binding_kind": "MaterializationBinding",
       "confidence": 1.0,
       "evidence": [
-        ".atlas/declared/system.atlas",
+        ".atlas/declared/system.adl",
         "core/src/lib.rs"
+      ],
+      "revision": null
+    },
+    {
+      "id": "binding:cfde95fb8f6fa5b1",
+      "source": "node:f32d3cfd4136fea2",
+      "target": "node:96efbe8cdbb3ff99",
+      "binding_kind": "MaterializationBinding",
+      "confidence": 1.0,
+      "evidence": [
+        ".atlas/declared/system.adl",
+        "core/src/model/engineering_graph.rs"
+      ],
+      "revision": null
+    },
+    {
+      "id": "binding:c7647c1e36241b16",
+      "source": "node:f32d3cfd4136fea2",
+      "target": "node:f1af891d0300f3bd",
+      "binding_kind": "MaterializationBinding",
+      "confidence": 1.0,
+      "evidence": [
+        ".atlas/declared/system.adl",
+        "core/src/model/mod.rs"
       ],
       "revision": null
     },
@@ -26348,7 +27610,7 @@
       "binding_kind": "MaterializationBinding",
       "confidence": 1.0,
       "evidence": [
-        ".atlas/declared/system.atlas",
+        ".atlas/declared/system.adl",
         "adapter/Cargo.toml"
       ],
       "revision": null
@@ -26360,7 +27622,7 @@
       "binding_kind": "MaterializationBinding",
       "confidence": 1.0,
       "evidence": [
-        ".atlas/declared/system.atlas",
+        ".atlas/declared/system.adl",
         "adapter/src/lib.rs"
       ],
       "revision": null
@@ -26372,7 +27634,7 @@
       "binding_kind": "MaterializationBinding",
       "confidence": 1.0,
       "evidence": [
-        ".atlas/declared/system.atlas",
+        ".atlas/declared/system.adl",
         "runtime/Cargo.toml"
       ],
       "revision": null
@@ -26384,7 +27646,7 @@
       "binding_kind": "MaterializationBinding",
       "confidence": 1.0,
       "evidence": [
-        ".atlas/declared/system.atlas",
+        ".atlas/declared/system.adl",
         "runtime/src/lib.rs"
       ],
       "revision": null
@@ -26396,7 +27658,7 @@
       "binding_kind": "MaterializationBinding",
       "confidence": 1.0,
       "evidence": [
-        ".atlas/declared/system.atlas",
+        ".atlas/declared/system.adl",
         "runtime/src/main.rs"
       ],
       "revision": null
@@ -26408,7 +27670,7 @@
       "binding_kind": "MaterializationBinding",
       "confidence": 1.0,
       "evidence": [
-        ".atlas/declared/system.atlas",
+        ".atlas/declared/system.adl",
         "apps/ui/README.md"
       ],
       "revision": null
@@ -26420,7 +27682,7 @@
       "binding_kind": "MaterializationBinding",
       "confidence": 1.0,
       "evidence": [
-        ".atlas/declared/system.atlas",
+        ".atlas/declared/system.adl",
         "apps/ui/design/tokens.json"
       ],
       "revision": null
@@ -26432,7 +27694,7 @@
       "binding_kind": "MaterializationBinding",
       "confidence": 1.0,
       "evidence": [
-        ".atlas/declared/system.atlas",
+        ".atlas/declared/system.adl",
         "apps/ui/package.json"
       ],
       "revision": null
@@ -26524,12 +27786,82 @@
       "confidence": 1.0
     },
     {
+      "id": "fact:18d7e457d3465672",
+      "subject": "node:6ecb4985a03f08cc",
+      "predicate": "language",
+      "object": "rust",
+      "provenance": {
+        "source_path": "core/src/identity/mod.rs",
+        "source_revision": null,
+        "extractor": "atlas-core.graph-bootstrap",
+        "content_hash": null,
+        "span": null
+      },
+      "confidence": 1.0
+    },
+    {
+      "id": "fact:8dd1e624117cd692",
+      "subject": "node:af0a331722e51468",
+      "predicate": "language",
+      "object": "rust",
+      "provenance": {
+        "source_path": "core/src/language/adl/mod.rs",
+        "source_revision": null,
+        "extractor": "atlas-core.graph-bootstrap",
+        "content_hash": null,
+        "span": null
+      },
+      "confidence": 1.0
+    },
+    {
+      "id": "fact:3dd124c8362ed98a",
+      "subject": "node:a0a3acc47fa04374",
+      "predicate": "language",
+      "object": "rust",
+      "provenance": {
+        "source_path": "core/src/language/mod.rs",
+        "source_revision": null,
+        "extractor": "atlas-core.graph-bootstrap",
+        "content_hash": null,
+        "span": null
+      },
+      "confidence": 1.0
+    },
+    {
       "id": "fact:b4651f0323b21c80",
       "subject": "node:329a19827a8662a2",
       "predicate": "language",
       "object": "rust",
       "provenance": {
         "source_path": "core/src/lib.rs",
+        "source_revision": null,
+        "extractor": "atlas-core.graph-bootstrap",
+        "content_hash": null,
+        "span": null
+      },
+      "confidence": 1.0
+    },
+    {
+      "id": "fact:f196a38aed8e8d8b",
+      "subject": "node:96efbe8cdbb3ff99",
+      "predicate": "language",
+      "object": "rust",
+      "provenance": {
+        "source_path": "core/src/model/engineering_graph.rs",
+        "source_revision": null,
+        "extractor": "atlas-core.graph-bootstrap",
+        "content_hash": null,
+        "span": null
+      },
+      "confidence": 1.0
+    },
+    {
+      "id": "fact:3799713cc99e235f",
+      "subject": "node:f1af891d0300f3bd",
+      "predicate": "language",
+      "object": "rust",
+      "provenance": {
+        "source_path": "core/src/model/mod.rs",
         "source_revision": null,
         "extractor": "atlas-core.graph-bootstrap",
         "content_hash": null,
@@ -26585,7 +27917,7 @@
       "predicate": "origin",
       "object": "declared",
       "provenance": {
-        "source_path": ".atlas/declared/system.atlas",
+        "source_path": ".atlas/declared/system.adl",
         "source_revision": null,
         "extractor": "atlas-core.adl-graph",
         "content_hash": null,
@@ -26599,7 +27931,7 @@
       "predicate": "origin",
       "object": "declared",
       "provenance": {
-        "source_path": ".atlas/declared/system.atlas",
+        "source_path": ".atlas/declared/system.adl",
         "source_revision": null,
         "extractor": "atlas-core.adl-graph",
         "content_hash": null,
@@ -26613,7 +27945,7 @@
       "predicate": "origin",
       "object": "declared",
       "provenance": {
-        "source_path": ".atlas/declared/system.atlas",
+        "source_path": ".atlas/declared/system.adl",
         "source_revision": null,
         "extractor": "atlas-core.adl-graph",
         "content_hash": null,
@@ -26627,7 +27959,7 @@
       "predicate": "origin",
       "object": "declared",
       "provenance": {
-        "source_path": ".atlas/declared/system.atlas",
+        "source_path": ".atlas/declared/system.adl",
         "source_revision": null,
         "extractor": "atlas-core.adl-graph",
         "content_hash": null,

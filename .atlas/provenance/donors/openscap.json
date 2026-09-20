@@ -1,0 +1,25 @@
+{
+  "schema": "atlas.donor-provenance.v1",
+  "id": "openscap",
+  "name": "OpenSCAP",
+  "remote": "https://github.com/OpenSCAP/openscap.git",
+  "commit_sha": "6942b59fc861ad77ebcea93e70f32832d88e20f9",
+  "default_branch": "main",
+  "retrieved_at": "2026-09-20T13:57:44.7350501Z",
+  "clone_path": ".atlas/temporary/donors/security/openscap",
+  "tree_hash": "5eb0b3b74b55ee913824d90f630ca70ef672869a",
+  "license_files": [
+    ".atlas/licenses/donors/openscap/COPYING"
+  ],
+  "security_donor_role": "machine-readable security baseline, compliance profile and evaluation evidence concepts",
+  "technology_lanes": [
+    "security",
+    "trust",
+    "compliance",
+    "policy"
+  ],
+  "ingestion_status": "CLONED",
+  "census_status": "PENDING_DEEP_CENSUS",
+  "security_review_status": "PENDING",
+  "runtime_dependency_status": "REFERENCE_ONLY"
+}

@@ -29,7 +29,7 @@ Target repo -> manifest -> declared ADL -> repository observation -> facts -> on
 ## Source References
 
 - `core/src/lib.rs`
-- `.atlas/declared/system.atlas`
+- `.atlas/declared/system.adl`
 - `adapter/src/lib.rs`
 - `runtime/src/lib.rs`
 - `runtime/src/main.rs`

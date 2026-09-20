@@ -1,0 +1,25 @@
+{
+  "schema": "atlas.donor-provenance.v1",
+  "id": "selinux",
+  "name": "SELinux",
+  "remote": "https://github.com/SELinuxProject/selinux.git",
+  "commit_sha": "3361233fa3cb0c27f68f682f195accefb69d06c0",
+  "default_branch": "main",
+  "retrieved_at": "2026-09-20T13:57:44.7350501Z",
+  "clone_path": ".atlas/temporary/donors/security/selinux",
+  "tree_hash": "4956356e63224b7d9bdfa373312ff06ed6f14094",
+  "license_files": [
+    ".atlas/licenses/donors/selinux/LICENSE"
+  ],
+  "security_donor_role": "mandatory access control, least privilege and information-flow boundary concepts",
+  "technology_lanes": [
+    "security",
+    "trust",
+    "access_control",
+    "least_privilege"
+  ],
+  "ingestion_status": "CLONED",
+  "census_status": "PENDING_DEEP_CENSUS",
+  "security_review_status": "PENDING",
+  "runtime_dependency_status": "REFERENCE_ONLY"
+}

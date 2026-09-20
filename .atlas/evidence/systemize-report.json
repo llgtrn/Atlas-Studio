@@ -5,10 +5,38 @@
   "snapshot": {
     "schema": "atlas.repository-snapshot.v1",
     "root": "\\\\?\\C:\\Users\\trngh\\Documents\\Atlas-Systemizer",
-    "head_sha": "ad09f0e4ec184aedd4f363ec91c2883d09dccfbf",
+    "head_sha": "c0613afb4c4b069c9eed53599f5e31eacd3882da",
     "branch": "main",
-    "dirty": false,
-    "status_entries": []
+    "dirty": true,
+    "status_entries": [
+      "M .atlas/architecture/SYSTEM.md",
+      " D .atlas/declared/system.atlas",
+      " M .atlas/evidence/adl-check-report.json",
+      " M .atlas/evidence/repository-graph.json",
+      " M .atlas/evidence/systemize-report.json",
+      " M .atlas/provenance/donors/donor-clone-index.json",
+      " M .atlas/references/donor-corpus.toml",
+      " M .atlas/repo.toml",
+      " M adapter/src/lib.rs",
+      " M core/src/lib.rs",
+      "?? .atlas/census/donors/",
+      "?? .atlas/declared/system.adl",
+      "?? .atlas/licenses/donors/",
+      "?? .atlas/provenance/donors/clair.json",
+      "?? .atlas/provenance/donors/containers-image.json",
+      "?? .atlas/provenance/donors/keycloak.json",
+      "?? .atlas/provenance/donors/keylime.json",
+      "?? .atlas/provenance/donors/opendesign.json",
+      "?? .atlas/provenance/donors/openscap.json",
+      "?? .atlas/provenance/donors/podman.json",
+      "?? .atlas/provenance/donors/selinux.json",
+      "?? .atlas/reports/current-repo-census-2026-09-20.md",
+      "?? .atlas/reports/donor-pin-verification-2026-09-20.md",
+      "?? .atlas/reports/tools-census-2026-09-20.md",
+      "?? core/src/identity/",
+      "?? core/src/language/",
+      "?? core/src/model/"
+    ]
   },
   "repository": {
     "schema": "atlas.systemizer.repo-audit.v6",
@@ -41,7 +69,10 @@
         "apps/ui"
       ],
       "test_roots": [
-        "tests"
+        "core/tests",
+        "runtime/tests",
+        "adapter/tests",
+        "apps/ui/src"
       ]
     },
     "manifest_ready": true,
@@ -57,8 +88,8 @@
     "root": "\\\\?\\C:\\Users\\trngh\\Documents\\Atlas-Systemizer\\.atlas",
     "gate_ready": true,
     "hard_violations_total": 0,
-    "documents_total": 89,
-    "canonical_frontmatter_total": 89,
+    "documents_total": 93,
+    "canonical_frontmatter_total": 93,
     "required_control_docs_missing": [],
     "missing_frontmatter": [],
     "documents": [
@@ -423,6 +454,30 @@
           "Source",
           "Census State",
           "Native Replacement"
+        ],
+        "references": []
+      },
+      {
+        "path": ".atlas/census/donors/opendesign.md",
+        "id": "atlas.census.donors.opendesign",
+        "kind": "donor-census",
+        "status": "active",
+        "canonical": true,
+        "title": "OpenDesign Donor Census",
+        "headings": [
+          "OpenDesign Donor Census",
+          "Source",
+          "Census State",
+          "Repository Topology",
+          "Central Mechanisms Observed",
+          "KEEP",
+          "ADAPT",
+          "REWRITE",
+          "REJECT",
+          "Atlas Target Mapping",
+          "Atlas Design Primitives Informed",
+          "Security Notes",
+          "Decision"
         ],
         "references": []
       },
@@ -1725,6 +1780,42 @@
         "references": []
       },
       {
+        "path": ".atlas/reports/current-repo-census-2026-09-20.md",
+        "id": "atlas.reports.current-repo-census-2026-09-20",
+        "kind": "report",
+        "status": "active",
+        "canonical": true,
+        "title": "Current Repository Census",
+        "headings": [
+          "Current Repository Census",
+          "Exact Base",
+          "Atlas Control Root",
+          "Chronica Layout Comparison",
+          "Current Atlas Roots",
+          "Migration Mismatches Observed At Start",
+          "Immediate Refoundation Slice",
+          "Slice Results"
+        ],
+        "references": [
+          "core/src/lib.rs",
+          "runtime/src/main.rs"
+        ]
+      },
+      {
+        "path": ".atlas/reports/donor-pin-verification-2026-09-20.md",
+        "id": "atlas.reports.donor-pin-verification-2026-09-20",
+        "kind": "report",
+        "status": "active",
+        "canonical": true,
+        "title": "Donor Pin Verification",
+        "headings": [
+          "Donor Pin Verification",
+          "Existing 24 Donors",
+          "Newly Cloned Approved Donors"
+        ],
+        "references": []
+      },
+      {
         "path": ".atlas/reports/native-technology-status.md",
         "id": "native-technology-status",
         "kind": "generated-evidence",
@@ -1736,6 +1827,18 @@
           "Donor Corpus",
           "Native Implementation",
           "Status"
+        ],
+        "references": []
+      },
+      {
+        "path": ".atlas/reports/tools-census-2026-09-20.md",
+        "id": "atlas.reports.tools-census-2026-09-20",
+        "kind": "report",
+        "status": "active",
+        "canonical": true,
+        "title": "Tools Census",
+        "headings": [
+          "Tools Census"
         ],
         "references": []
       },
@@ -1840,7 +1943,7 @@
             },
             "origin": "declared",
             "span": {
-              "path": ".atlas/declared/system.atlas",
+              "path": ".atlas/declared/system.adl",
               "line": 5,
               "column": 1
             }
@@ -1856,7 +1959,7 @@
             },
             "origin": "declared",
             "span": {
-              "path": ".atlas/declared/system.atlas",
+              "path": ".atlas/declared/system.adl",
               "line": 9,
               "column": 1
             }
@@ -1872,7 +1975,7 @@
             },
             "origin": "declared",
             "span": {
-              "path": ".atlas/declared/system.atlas",
+              "path": ".atlas/declared/system.adl",
               "line": 15,
               "column": 1
             }
@@ -1888,7 +1991,7 @@
             },
             "origin": "declared",
             "span": {
-              "path": ".atlas/declared/system.atlas",
+              "path": ".atlas/declared/system.adl",
               "line": 21,
               "column": 1
             }
@@ -1904,7 +2007,7 @@
             },
             "origin": "declared",
             "span": {
-              "path": ".atlas/declared/system.atlas",
+              "path": ".atlas/declared/system.adl",
               "line": 27,
               "column": 1
             }
@@ -1919,7 +2022,7 @@
             },
             "origin": "declared",
             "span": {
-              "path": ".atlas/declared/system.atlas",
+              "path": ".atlas/declared/system.adl",
               "line": 33,
               "column": 1
             }
@@ -1934,7 +2037,7 @@
             },
             "origin": "declared",
             "span": {
-              "path": ".atlas/declared/system.atlas",
+              "path": ".atlas/declared/system.adl",
               "line": 38,
               "column": 1
             }
@@ -1949,7 +2052,7 @@
             },
             "origin": "declared",
             "span": {
-              "path": ".atlas/declared/system.atlas",
+              "path": ".atlas/declared/system.adl",
               "line": 43,
               "column": 1
             }
@@ -1963,7 +2066,7 @@
             "to": "Core",
             "origin": "declared",
             "span": {
-              "path": ".atlas/declared/system.atlas",
+              "path": ".atlas/declared/system.adl",
               "line": 48,
               "column": 1
             }
@@ -1975,7 +2078,7 @@
             "to": "Adapter",
             "origin": "declared",
             "span": {
-              "path": ".atlas/declared/system.atlas",
+              "path": ".atlas/declared/system.adl",
               "line": 49,
               "column": 1
             }
@@ -1987,7 +2090,7 @@
             "to": "Runtime",
             "origin": "declared",
             "span": {
-              "path": ".atlas/declared/system.atlas",
+              "path": ".atlas/declared/system.adl",
               "line": 50,
               "column": 1
             }
@@ -1999,7 +2102,7 @@
             "to": "WebUI",
             "origin": "declared",
             "span": {
-              "path": ".atlas/declared/system.atlas",
+              "path": ".atlas/declared/system.adl",
               "line": 51,
               "column": 1
             }
@@ -2011,7 +2114,7 @@
             "to": "ParseAtlas",
             "origin": "declared",
             "span": {
-              "path": ".atlas/declared/system.atlas",
+              "path": ".atlas/declared/system.adl",
               "line": 53,
               "column": 1
             }
@@ -2023,7 +2126,7 @@
             "to": "CompileGraph",
             "origin": "declared",
             "span": {
-              "path": ".atlas/declared/system.atlas",
+              "path": ".atlas/declared/system.adl",
               "line": 54,
               "column": 1
             }
@@ -2035,7 +2138,7 @@
             "to": "ObserveRepository",
             "origin": "declared",
             "span": {
-              "path": ".atlas/declared/system.atlas",
+              "path": ".atlas/declared/system.adl",
               "line": 55,
               "column": 1
             }
@@ -2047,7 +2150,7 @@
             "to": "Core",
             "origin": "declared",
             "span": {
-              "path": ".atlas/declared/system.atlas",
+              "path": ".atlas/declared/system.adl",
               "line": 56,
               "column": 1
             }
@@ -2059,7 +2162,7 @@
             "to": "Adapter",
             "origin": "declared",
             "span": {
-              "path": ".atlas/declared/system.atlas",
+              "path": ".atlas/declared/system.adl",
               "line": 57,
               "column": 1
             }
@@ -2071,7 +2174,7 @@
             "to": "Runtime",
             "origin": "declared",
             "span": {
-              "path": ".atlas/declared/system.atlas",
+              "path": ".atlas/declared/system.adl",
               "line": 58,
               "column": 1
             }
@@ -2084,7 +2187,7 @@
             "provider": "Core",
             "capability": "CompileGraph",
             "span": {
-              "path": ".atlas/declared/system.atlas",
+              "path": ".atlas/declared/system.adl",
               "line": 60,
               "column": 1
             }
@@ -2095,7 +2198,7 @@
             "provider": "Adapter",
             "capability": "ObserveRepository",
             "span": {
-              "path": ".atlas/declared/system.atlas",
+              "path": ".atlas/declared/system.adl",
               "line": 66,
               "column": 1
             }
@@ -2115,7 +2218,7 @@
               }
             ],
             "span": {
-              "path": ".atlas/declared/system.atlas",
+              "path": ".atlas/declared/system.adl",
               "line": 94,
               "column": 1
             }
@@ -2129,7 +2232,7 @@
               }
             ],
             "span": {
-              "path": ".atlas/declared/system.atlas",
+              "path": ".atlas/declared/system.adl",
               "line": 101,
               "column": 1
             }
@@ -2143,7 +2246,7 @@
               }
             ],
             "span": {
-              "path": ".atlas/declared/system.atlas",
+              "path": ".atlas/declared/system.adl",
               "line": 105,
               "column": 1
             }
@@ -2157,7 +2260,7 @@
               }
             ],
             "span": {
-              "path": ".atlas/declared/system.atlas",
+              "path": ".atlas/declared/system.adl",
               "line": 109,
               "column": 1
             }
@@ -2173,7 +2276,7 @@
             "source_glob": "src/**/*.rs",
             "test_glob": null,
             "span": {
-              "path": ".atlas/declared/system.atlas",
+              "path": ".atlas/declared/system.adl",
               "line": 72,
               "column": 1
             }
@@ -2185,7 +2288,7 @@
             "source_glob": "src/**/*.rs",
             "test_glob": null,
             "span": {
-              "path": ".atlas/declared/system.atlas",
+              "path": ".atlas/declared/system.adl",
               "line": 78,
               "column": 1
             }
@@ -2197,7 +2300,7 @@
             "source_glob": "src/**/*.rs",
             "test_glob": null,
             "span": {
-              "path": ".atlas/declared/system.atlas",
+              "path": ".atlas/declared/system.adl",
               "line": 84,
               "column": 1
             }
@@ -2209,7 +2312,7 @@
             "source_glob": null,
             "test_glob": null,
             "span": {
-              "path": ".atlas/declared/system.atlas",
+              "path": ".atlas/declared/system.adl",
               "line": 90,
               "column": 1
             }
@@ -2228,11 +2331,11 @@
   "source": {
     "schema": "atlas.systemizer.source-report.v1",
     "root": "\\\\?\\C:\\Users\\trngh\\Documents\\Atlas-Systemizer",
-    "files_total": 10,
+    "files_total": 15,
     "languages": {
       "json": 2,
       "markdown": 1,
-      "rust": 4,
+      "rust": 9,
       "toml": 3
     },
     "files": [
@@ -2244,7 +2347,7 @@
       {
         "path": "adapter/src/lib.rs",
         "language": "rust",
-        "bytes": 18115
+        "bytes": 18167
       },
       {
         "path": "apps/ui/README.md",
@@ -2267,9 +2370,34 @@
         "bytes": 368
       },
       {
+        "path": "core/src/identity/mod.rs",
+        "language": "rust",
+        "bytes": 1700
+      },
+      {
+        "path": "core/src/language/adl/mod.rs",
+        "language": "rust",
+        "bytes": 32682
+      },
+      {
+        "path": "core/src/language/mod.rs",
+        "language": "rust",
+        "bytes": 13
+      },
+      {
         "path": "core/src/lib.rs",
         "language": "rust",
-        "bytes": 63209
+        "bytes": 2346
+      },
+      {
+        "path": "core/src/model/engineering_graph.rs",
+        "language": "rust",
+        "bytes": 21398
+      },
+      {
+        "path": "core/src/model/mod.rs",
+        "language": "rust",
+        "bytes": 8499
       },
       {
         "path": "runtime/Cargo.toml",
@@ -2291,10 +2419,10 @@
   "graph": {
     "schema": "atlas.systemizer.engineering-graph-summary.v1",
     "semantic_grade": "ADL_DECLARED_OBSERVED_GRAPH",
-    "nodes_total": 865,
-    "edges_total": 791,
-    "bindings_total": 16,
-    "facts_total": 18,
+    "nodes_total": 899,
+    "edges_total": 833,
+    "bindings_total": 23,
+    "facts_total": 23,
     "language_nodes": [
       "json",
       "markdown",

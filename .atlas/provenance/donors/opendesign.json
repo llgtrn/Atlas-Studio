@@ -1,0 +1,26 @@
+{
+  "schema": "atlas.donor-provenance.v1",
+  "id": "opendesign",
+  "name": "OpenDesign",
+  "remote": "https://github.com/vustudio/opendesign.git",
+  "commit_sha": "b4e69ac61b50576298f9f564603e5a4beb27417f",
+  "default_branch": "main",
+  "retrieved_at": "2026-09-20T13:57:44.7350501Z",
+  "clone_path": ".atlas/temporary/donors/opendesign",
+  "tree_hash": "9e93376bfd915ddb2df03ed6ac1d043e6141c3ae",
+  "license": "Apache-2.0",
+  "license_files": [
+    ".atlas/licenses/donors/opendesign/LICENSE"
+  ],
+  "purpose": "DONOR_GAP=ATLAS_NATIVE_DESIGN_AUTHORING_SUBSTRATE",
+  "technology_lanes": [
+    "design_authoring",
+    "visual_system",
+    "design_systems",
+    "prototype_generation",
+    "studio_workspace"
+  ],
+  "ingestion_status": "CLONED",
+  "census_status": "DEEP_CENSUSED",
+  "runtime_dependency_status": "DEEP_FORK_TRANSITION_ALLOWED"
+}
