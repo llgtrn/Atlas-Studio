@@ -1,0 +1,134 @@
+name: Network Atlas
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 */6 * * *"
+  push:
+    branches: [main]
+    paths:
+      - "tools/system-atlas/**"
+      - "tools/refoundation/donor-corpus.yaml"
+      - "docs/decisions/**"
+      - "docs/blueprints/fleet-refoundation.md"
+      - ".github/workflows/network-atlas.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: network-atlas
+  cancel-in-progress: true
+
+jobs:
+  prepare:
+    name: Build canonical network matrix
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.matrix.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          fetch-depth: 0
+      - name: Require cross-repository read credential
+        env:
+          CHRONICA_ATLAS_TOKEN: ${{ secrets.CHRONICA_ATLAS_TOKEN }}
+        run: |
+          if [ -z "$CHRONICA_ATLAS_TOKEN" ]; then
+            echo "CHRONICA_ATLAS_TOKEN is required to audit private Generation-2 Dev repositories." >&2
+            echo "### Network Atlas blocked: missing CHRONICA_ATLAS_TOKEN" >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+      - uses: ./.github/actions/setup-node-pnpm
+      - name: Validate master donor universe and allocation
+        run: |
+          node tools/refoundation/donor-corpus.mjs --validate
+          node tools/system-atlas/fleet/donor-allocator.mjs > /tmp/donor-allocation.json
+          jq '{donor_corpus_total, allocations_total, unallocated_total, skipped_total, coverage_complete, development_cells_total}' /tmp/donor-allocation.json
+      - name: Derive active Development Cells from the registry
+        id: matrix
+        run: |
+          MATRIX="$(node tools/system-atlas/network-matrix.mjs)"
+          echo "$MATRIX" | jq .
+          echo "matrix=$MATRIX" >> "$GITHUB_OUTPUT"
+
+  cell-audit:
+    name: Audit ${{ matrix.repo }}
+    needs: [prepare]
+    strategy:
+      fail-fast: false
+      max-parallel: 8
+      matrix: ${{ fromJSON(needs.prepare.outputs.matrix) }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout canonical Chronica
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          path: chronica
+          fetch-depth: 0
+
+      - name: Checkout Development Cell
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          repository: ${{ matrix.repo }}
+          ref: ${{ matrix.ref }}
+          path: cell
+          fetch-depth: 0
+          token: ${{ secrets.CHRONICA_ATLAS_TOKEN }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4.3.0
+        with:
+          version: 9.15.4
+          run_install: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: chronica/pnpm-lock.yaml
+
+      - name: Install Atlas dependencies
+        run: pnpm --dir chronica install --frozen-lockfile
+
+      - name: Audit Cell against canonical Chronica + master donor corpus
+        id: audit
+        run: |
+          node chronica/tools/system-atlas/network-cell-audit.mjs             --cell-root cell             --chronica-root chronica             --out /tmp/network-cell-audit.json
+
+      - name: Publish audit summary
+        if: always()
+        run: |
+          if [ -f /tmp/network-cell-audit.json ]; then
+            {
+              echo "### ${{ matrix.repo }}"
+              echo
+              jq -r '"- readiness: **" + .readiness + "**\n- mirror: " + .mirror_readiness + "\n- donor corpus: " + (.donor_corpus_total|tostring) + "\n- required donors assigned: " + (.assigned_required_donors_total|tostring) + "\n- missing declarations: " + (.missing_required_donors|length|tostring) + "\n- source gaps: " + (.required_source_gaps|length|tostring) + "\n- census gaps: " + (.required_census_gaps|length|tostring) + "\n- semantic evidence gaps: " + (.required_semantic_evidence_gaps|length|tostring) + "\n- hard violations: " + (.hard_violations_total|tostring)' /tmp/network-cell-audit.json
+            } >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "### ${{ matrix.repo }} — audit did not produce a report" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload Cell audit evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: network-atlas-${{ matrix.cell_id }}
+          path: /tmp/network-cell-audit.json
+          if-no-files-found: warn
+          retention-days: 14
+
+  network-gate:
+    name: network-atlas
+    if: always()
+    needs: [prepare, cell-audit]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require canonical inventory and every remote audit to execute without hard violations
+        env:
+          PREPARE: ${{ needs.prepare.result }}
+          CELLS: ${{ needs.cell-audit.result }}
+        run: |
+          test "$PREPARE" = "success"
+          test "$CELLS" = "success"
