@@ -4,17 +4,16 @@ type: contract
 status: active
 canonical: true
 ---
-# Documentation standard v1
+# Documentation Standard v1
 
-Canonical document roles:
-- decision
-- blueprint
-- architecture
-- contract
-- runbook
-- reference
-- generated-evidence
+## Required Frontmatter
 
-Canonical documents should carry frontmatter with at least `id`, `type`, `status`, and `canonical`.
+Every maintained Markdown file under docs carries id, type, status and canonical. Missing frontmatter is a hard violation.
 
-Atlas may normalize mechanics and generate plans, but semantic changes remain reviewable ACT in the owning repository.
+## Required Control Documents
+
+Every managed repository contains the same eleven control paths: README, INDEX, TEMPLATE, architecture router, NORTH-STAR, SYSTEM architecture, SYSTEM-BLUEPRINT, SYSTEM-CONTRACT, decisions index, DEVELOPMENT guide and references index.
+
+## Authoring Rules
+
+There are no repository-specific documentation exceptions. Extra domain docs are allowed but obey the same metadata, links, canonicality and supersession rules. Analysis may explain a documentation gap, but work preparation refuses coding until DocsGate is READY.
