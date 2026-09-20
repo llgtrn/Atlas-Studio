@@ -171,6 +171,89 @@ simd_vectorization_allowed = true
 accelerator_specialization_allowed = true
 semantic_barriers_must_be_preserved = true
 
+
+[organism]
+digital_organism_is_first_class_target = true
+atlas_runtime_dependency_required = false
+chronica_dependency_required = false
+weights_are_optional_organs = true
+external_model_api_supported = true
+self_hosted_model_supported = true
+hybrid_model_supported = true
+deterministic_cognition_supported = true
+provider_session_is_not_identity = true
+provider_context_is_not_durable_memory = true
+
+[organism_identity]
+persistent_identity_required = true
+runtime_instance_distinct_from_organism = true
+genome_identity_required = true
+species_identity_supported = true
+generation_lineage_required = true
+memory_lineage_required = true
+model_lineage_required = true
+capability_lineage_required = true
+learning_lineage_required = true
+
+[organism_structure]
+organ_genome_required = true
+organs_first_class = true
+circuits_first_class = true
+traits_first_class = true
+body_first_class = true
+brain_first_class = true
+world_model_first_class = true
+memory_first_class = true
+learning_first_class = true
+homeostasis_first_class = true
+metabolism_first_class = true
+lifecycle_first_class = true
+
+[organism_learning]
+learning_output_is_candidate_until_admitted = true
+training_completion_does_not_activate_model = true
+evaluation_required = true
+simulation_or_sandbox_required_when_policy_requires = true
+regression_gate_required = true
+genome_compatibility_required = true
+activation_is_explicit_event = true
+rollback_lineage_required = true
+self_modification_requires_validation = true
+
+[organism_authority]
+organism_cannot_self_grant_authority = true
+model_output_cannot_grant_authority = true
+body_action_requires_capability_binding = true
+body_action_requires_authority_policy_when_applicable = true
+homeostasis_cannot_bypass_authority_or_safety = true
+
+[organism_homeostasis]
+typed_state_required = true
+safe_ranges_required = true
+responses_policy_bounded = true
+resource_pressure_may_change_admitted_model_binding = true
+drift_may_trigger_rollback = true
+
+[organism_metabolism]
+resource_inputs_accounted = true
+capability_outputs_accounted = true
+cost_and_compute_objectives_supported = true
+compiler_may_optimize_metabolic_efficiency = true
+
+[organism_lifecycle]
+birth_is_durable_event = true
+restart_preserves_organism_identity = true
+runtime_instance_identity_required = true
+suspend_resume_supported = true
+retirement_revokes_active_execution_bindings = true
+lineage_retained_by_policy = true
+
+[organism_derivation]
+species_templates_supported = true
+derived_genome_requires_parent_lineage = true
+derived_genome_requires_new_identity = true
+unbounded_autonomous_replication_forbidden = true
+
 [federation]
 analysis_may_span_many_repositories = true
 mutation_target_per_workrun = 1
