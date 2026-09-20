@@ -153,3 +153,23 @@ Atlas evidence
 The compiler may specialize separately for server, browser, robot, embedded, realtime or accelerator targets without creating new semantic universes.
 
 Rust/TypeScript emitters and external backends remain permanently useful for bootstrap, audit, debugging and differential proof even after native codegen exists.
+
+
+## Rust Parity and Surpass Destination
+
+The detailed maturity roadmap is `RUST-PARITY-AND-SURPASS-ROADMAP.md`.
+
+Native code generation alone is not parity. Atlas must close:
+
+```text
+borrow/ownership soundness
+diagnostics
+codegen correctness
+LLVM/external backend quality
+ABI/platform edge cases
+debug/profiling information
+fuzz/regression maturity
+production evidence
+```
+
+Only after those gates are green may Atlas use whole-world graph optimization, PGO and auto-tuning to establish a scoped Rust-surpass claim on a locked target/workload profile.
