@@ -1,0 +1,123 @@
+schema = "atlas.genome.v1"
+version = 1
+status = "bootstrap-hard-requirements"
+
+[identity]
+global_stable_identity_required = true
+repository_identity_required = true
+revision_identity_required = true
+content_addressing_required_for_durable_artifacts = true
+
+[graph]
+universal_spine_required = true
+node_edge_binding_are_distinct = true
+domain_extensions_may_extend_not_replace = true
+cross_repository_bindings_supported = true
+sovereign_repository_partitions_required = true
+required_primitives = [
+  "identity",
+  "scope",
+  "node",
+  "edge",
+  "binding",
+  "state",
+  "event",
+  "temporal",
+  "evidence",
+  "provenance",
+  "claim",
+  "constraint",
+  "invariant",
+  "interface",
+  "capability",
+  "effect",
+  "materialization"
+]
+
+[census]
+adaptive_depth_required = true
+global_local_atomic_plan_required = true
+scope_lattice = [
+  "federation",
+  "repository",
+  "system_domain",
+  "package_crate_app",
+  "module",
+  "file",
+  "type_trait_interface_component",
+  "function_method",
+  "control_flow_block",
+  "statement_expression",
+  "semantic_atom"
+]
+deep_triggers = [
+  "architecture_importance",
+  "state_mutation",
+  "persistence",
+  "concurrency",
+  "authority_security_safety",
+  "performance_hot_path",
+  "external_effect",
+  "evidence_conflict",
+  "complex_binding",
+  "compiler_sensitive_layout",
+  "planned_change"
+]
+
+[evidence]
+provenance_required = true
+epistemic_status_required = true
+allowed_status = ["fact", "verified_observation", "inference", "hypothesis", "conflict", "unknown"]
+source_code_proves_current_implementation = true
+tests_and_runtime_prove_observed_behavior = true
+papers_specs_provide_theory_or_normative_evidence = true
+deepwiki_docs_are_explanatory_evidence = true
+model_output_is_candidate_until_verified = true
+silent_conflict_collapse_forbidden = true
+
+[atlas_format]
+extension = ".atlas"
+binary_required = true
+dense_canonical_engineering_artifact = true
+chunked_random_access_required = true
+integrity_hashes_required = true
+format_version_required = true
+genome_hash_required = true
+transactional_publication_required = true
+markdown_json_as_canonical_payload_forbidden = true
+
+[atlasx_format]
+suffix = ".atlasx"
+expanded_executable_repository_representation = true
+deterministic_for_pinned_inputs = true
+human_readable_projection_is_noncanonical = true
+selected_design_only = true
+parent_atlas_lineage_required = true
+
+[materialization]
+backend_bootstrap = "rust"
+frontend_bootstrap = "typescript"
+c_default_role = "ffi_device_os_vendor_boundary"
+mechanical_donor_translation_forbidden = true
+donor_runtime_dependency_for_native_technology_forbidden = true
+verify_and_recensus_required = true
+
+[compiler]
+current_phase = 0
+phase_1 = "atlasx_to_rust_typescript_c_boundary"
+phase_2 = "typed_hir_mir_semantic_optimizer"
+phase_3 = "llvm_cranelift_wasm_external_native_backends"
+phase_4 = "atlas_native_machine_backend"
+optimization_must_preserve_graph_temporal_evidence_effect_invariants = true
+
+[federation]
+analysis_may_span_many_repositories = true
+mutation_target_per_workrun = 1
+foreign_canonical_node_copy_forbidden = true
+cross_repo_reference_by_stable_identity_required = true
+federated_graph_is_rebuildable_projection = true
+
+[security]
+untrusted_input_default_deny = true
+ingestion_is_not_execution = true
+secret_persistence_requires_explicit_policy = true
