@@ -6,16 +6,19 @@ canonical: true
 ---
 # Atlas Architecture Router
 
-Atlas Studio is one engineering system with four implementation responsibilities: `core`, `runtime`, `adapter` and `apps/ui`, governed by the Atlas Genome.
+Atlas Studio is one engineering system with four implementation responsibilities: `core`, `runtime`, `adapter` and `apps/ui`, governed by Atlas Genome.
 
-Read:
+Read the architecture in this order:
 
-- `constitution/NORTH-STAR.md` for destination and sequencing.
-- `SYSTEM.md` for implementation ownership and universal graph boundaries.
-- `INVENTION-PIPELINE.md` for donor/research learning and synthesis.
-- `../contracts/ATLAS-GENOME.md` for hard requirements.
-- `../contracts/UNIVERSAL-GRAPH-CONTRACT.md` for cross-repository composability.
-- `../contracts/ATLAS-FORMAT.md` and `ATLASX-FORMAT.md` for binary/expanded artifact semantics.
-- `../blueprints/COMPILER-ROADMAP.md` for Phase 0 through Phase 4.
+- `constitution/NORTH-STAR.md` — destination and sequencing.
+- `../contracts/ATLAS-GENOME.md` — hard requirements.
+- `../contracts/UNIVERSAL-GRAPH-CONTRACT.md` — universal cross-repository semantic spine.
+- `../contracts/CENSUS-COMPLETENESS.md` and `../standards/CENSUS-SCOPE.md` — exhaustive accounting, function semantics, closure and seal gate.
+- `../contracts/ATLAS-FORMAT.md` and `../contracts/ATLAS-SHARDING.md` — dense logical Atlas and physical sharding.
+- `../contracts/ATLASX-FORMAT.md` — selected expanded executable representation.
+- `SYSTEM.md` — implementation ownership and end-to-end dataflow.
+- `INVENTION-PIPELINE.md` — donor/research learning and candidate invention.
+- `../blueprints/SYSTEM-BLUEPRINT.md` and `../blueprints/COMPILER-ROADMAP.md` — construction phases.
+- `../contracts/COMPILER-PRODUCT.md` and `../standards/COMPILER-OPTIMIZATION.md` — optimized product compilation and feedback.
 
-Atlas is intentionally product-neutral. Chronica is a motivating consumer and compatibility target, not Atlas's semantic owner.
+Chronica and other generated systems are consumers/targets, not Atlas semantic owners.
