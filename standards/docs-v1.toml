@@ -2,30 +2,26 @@ schema = "atlas.docs.v1"
 version = 1
 source_standard = "llgtrn/Chronica"
 exceptions_allowed = false
-knowledge_root = ".atlas"
-legacy_docs_root_forbidden = true
+canonical_docs_root = "docs"
+atlas_metadata_root = ".atlas"
+atlas_metadata_may_contain_canonical_docs = false
 coding_requires_docs_gate = true
 all_markdown_requires_frontmatter = true
 required_frontmatter = ["id", "type", "status", "canonical"]
 document_types = ["decision", "blueprint", "architecture", "contract", "runbook", "reference", "generated-evidence"]
 
 required_control_docs = [
-  ".atlas/README.md",
-  ".atlas/INDEX.md",
-  ".atlas/TEMPLATE.md",
-  ".atlas/architecture/README.md",
-  ".atlas/architecture/constitution/NORTH-STAR.md",
-  ".atlas/architecture/SYSTEM.md",
-  ".atlas/blueprints/SYSTEM-BLUEPRINT.md",
-  ".atlas/contracts/SYSTEM-CONTRACT.md",
-  ".atlas/decisions/README.md",
-  ".atlas/guides/DEVELOPMENT.md",
-  ".atlas/references/README.md",
-  ".atlas/roadmap/ROADMAP.md",
-  ".atlas/plans/README.md",
-  ".atlas/artifacts/README.md",
-  ".atlas/evidence/README.md",
-  ".atlas/graph/README.md",
+  "docs/README.md",
+  "docs/INDEX.md",
+  "docs/TEMPLATE.md",
+  "docs/architecture/README.md",
+  "docs/architecture/constitution/NORTH-STAR.md",
+  "docs/architecture/SYSTEM.md",
+  "docs/blueprints/SYSTEM-BLUEPRINT.md",
+  "docs/contracts/SYSTEM-CONTRACT.md",
+  "docs/decisions/README.md",
+  "docs/guides/DEVELOPMENT.md",
+  "docs/references/README.md",
 ]
 
 [semantic_sufficiency]
@@ -38,18 +34,15 @@ meaning_changes_require_review = true
 duplicate_canonical_ids_forbidden = true
 broken_internal_refs_forbidden = true
 superseded_docs_must_link_successor = true
+duplicate_atlas_docs_forbidden = true
 
 [coding_admission]
-repo_gate_required = true
 docs_gate_required = true
 north_star_required = true
 architecture_required = true
 blueprint_required = true
 contracts_required = true
-roadmap_required = true
 development_guide_required = true
 code_before_docs_forbidden = true
-
-[target_repository]
-atlas_knowledge_root_required = true
-atlas_runtime_dependency_allowed = false
+exact_base_sha_required = true
+single_repository_target_required = true
