@@ -11,28 +11,40 @@ Read in this order:
 1. `architecture/constitution/NORTH-STAR.md`
 2. `contracts/ATLAS-GENOME.md`
 3. `contracts/UNIVERSAL-GRAPH-CONTRACT.md`
-4. `contracts/ATLAS-FORMAT.md`
-5. `contracts/ATLASX-FORMAT.md`
-6. `standards/CENSUS-SCOPE.md`
-7. `architecture/SYSTEM.md`
-8. `architecture/INVENTION-PIPELINE.md`
-9. `blueprints/SYSTEM-BLUEPRINT.md`
-10. `blueprints/COMPILER-ROADMAP.md`
-11. `contracts/SYSTEM-CONTRACT.md`
-12. `guides/DEVELOPMENT.md`
+4. `contracts/CENSUS-COMPLETENESS.md`
+5. `standards/CENSUS-SCOPE.md`
+6. `contracts/ATLAS-FORMAT.md`
+7. `contracts/ATLAS-SHARDING.md`
+8. `contracts/ATLASX-FORMAT.md`
+9. `contracts/COMPILER-PRODUCT.md`
+10. `standards/COMPILER-OPTIMIZATION.md`
+11. `architecture/SYSTEM.md`
+12. `architecture/INVENTION-PIPELINE.md`
+13. `blueprints/SYSTEM-BLUEPRINT.md`
+14. `blueprints/COMPILER-ROADMAP.md`
+15. `blueprints/BULK-DONOR-ABSORPTION.md`
+16. `contracts/SYSTEM-CONTRACT.md`
+17. `guides/DEVELOPMENT.md`
 
-Canonical destination:
+Canonical chain:
 
 ```text
-Reality
-  ↓ census + research + synthesis
-*.atlas
-  ↓ deterministic materialization
-*.atlasx/
-  ↓ compiler
-native executable / library / UI bundle
-  ↓ verification
-recensus → *.atlas
+Reality / Corpus
+  ↓ exhaustive inventory
+Strict Census S0→S10
+  ↓ reconcile / adversarial gaps / fixed point
+CensusCertificate
+  ↓ research / invention / selection
+SEALED Logical *.atlas
+  ↓ content-addressed shards as needed
+Deterministic *.atlasx/
+  ↓ world/semantic optimization
+HIR → MIR → LIR → Machine IR
+  ↓ target codegen / LTO / link / post-link
+Product
+  ↓ workload profiles / PGO / auto-tuning
+Evidence + recensus
+  ↺
 ```
 
-The graph grammar remains invariant through every stage and across every generated repository so separately generated systems can be connected by stable cross-repository bindings.
+The universal graph/binding/evidence/temporal grammar remains invariant across census, storage, materialization, optimization and generated repositories/products.
