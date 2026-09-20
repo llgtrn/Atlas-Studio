@@ -4,80 +4,69 @@ type: reference
 status: active
 canonical: true
 ---
-# Development Cell / Package Production Compatibility Guide
+# Atlas Ops Production
 
-The `docs/ops_production/` path is retained for compatibility with existing links and repository history. Its semantic unit is no longer an independent "Ops system".
+`ops_production` supports building, validating and operating Atlas-Systemizer itself.
 
-Legacy `*Ops` repositories are **Development Cells** that incubate **Chronica Packages** under a pinned Chronica reference. They may be independently developed/tested and may deploy a projection separately, but they are not independently canonical.
-
-For substantial Ops work always establish:
+It is not a product domain, not an organism layer, and not a second architecture universe. Its job is to make Atlas production work auditable:
 
 ```text
-EXECUTION_MODE = CELL_MIRROR
-CHRONICA_REFERENCE_SHA = exact commit
-CELL_SHA = exact commit
-DEVELOPMENT_CELL_ID = stable registry identity
-PACKAGE_ID = stable package identity
-DONOR_SHA = exact commit when donor-derived
+Atlas source
+-> repository systemization
+-> donor provenance and license checks
+-> production-readiness evidence
+-> bounded work preparation
+-> verification reports
 ```
 
-Use the System Atlas Cell Mirror scanner to measure the local Development Cell/package and the Package Fleet Control Plane to compare and dispatch across multiple generated reports. Existing `ops-mirror` file/tool names are compatibility identifiers. These reports are rebuildable projections, never a manual progress database.
-
-Before deep donor intake, verify Fleet allocation:
+Canonical runtime ownership remains:
 
 ```text
-donor exists in master corpus
-this Development Cell/package is PRIMARY_ABSORBER
-no other Cell/package is primary for the same donor
+core/             product-neutral semantics
+runtime/          orchestration and work preparation
+adapter/          external mechanics translated into Atlas facts
+ops_production/   Atlas support/readiness kernels
+apps/ui/          TypeScript UI projection
+graph/            declarative graph definitions
+bindings/         declarative binding definitions
 ```
 
-A REFERENCE_CONSUMER does not import another deep donor source tree. It consumes the converged semantic/provider surface instead.
+The legacy `organism` lane is intentionally not part of Atlas-Systemizer. AI-assisted analysis belongs behind explicit provider/adaptation boundaries and remains proposal/inference until runtime validation converts it into evidence.
 
-## Documentation
+## OSS Donors
 
-`docs/ops_production/` governs how external code and real donor/acquired products enter an Ops trust boundary, become **Chronica-branded proving products** where appropriate, converge semantically with Chronica, burn donor legacy down, prove package/MCP/Chronica-connected behavior, and are ultimately absorbed into canonical Chronica source ownership when that lifecycle applies.
-
-A Development Cell repo is an incubation/refoundation surface, not a permanent peer semantic universe. Its package declares `canonical_runtime=CHRONICA_REQUIRED` and `standalone_sovereignty=false`.
-
-The active Cell tree mirrors Chronica responsibility roots. Backend production implementation under `core/runtime/adapter/organism` is Rust; UI is TypeScript/TSX under `apps/ui`; `graph/` and `bindings/` remain declarative. Do not create root `src/`, `backend/`, `frontend/`, `services/` or `packages/`.
-
-Feature work is not allowed until the assigned OSS is deterministically intaken at `temporary/donors/<DONOR_ID>/source/`, pinned to an exact revision, and censused. Donor source is feedstock only and may not become a production dependency.
-
-Before any external code is treated as trusted production source, apply:
+Donor source belongs only under:
 
 ```text
-docs/ops_production/contracts/SOURCE-ADMISSION.md
+.atlas/temporary/donors/
 ```
 
-Core admission invariant:
+License copies belong under:
 
 ```text
-ExternalCode != TrustedCode != CanonicalSemantics
+.atlas/licenses/
 ```
 
-The universal source path is:
+Provenance belongs under:
 
 ```text
-DISCOVER EXTERNAL SOURCE
--> CLASSIFY ACQUISITION MODE
--> PIN EXACT SOURCE / VERSION
--> VERIFY INTEGRITY + PROVENANCE
--> VERIFY RIGHTS / LICENSE COMPATIBILITY
--> QUARANTINE SECURITY + SECRETS / DATA SCAN
--> INVENTORY SUPPLY CHAIN / BUILD EXECUTION SURFACES
--> CLASSIFY UPSTREAM LIFECYCLE
--> ADMIT / ADAPT / ABSORB / REJECT
+.atlas/provenance/
 ```
 
-For `DEEP_FORK` / acquired donor admission, continue:
+Donor code is reference material and evidence. It is not a permanent runtime owner. Native promotion requires census, license review, target mapping, Atlas-owned implementation, tests and evidence.
+
+## Evidence
+
+Ops production work should emit or update:
 
 ```text
-REAL DONOR / ACQUIRED PRODUCT
--> COMPLETE REPOSITORY CLONE @ EXACT SHA
--> PUSH REAL DONOR BASELINE INTO DEVELOPMENT CELL GIT
--> LICENSE / ACQUISITION / IP / PROVENANCE CENSUS
--> COMPLETE CODE + DATA + UI + DOCS + BRAND CENSUS
--> READ CHRONICA @ EXACT SHA
+.atlas/evidence/
+.atlas/reports/
+.atlas/provenance/
+.atlas/references/donor-corpus.toml
+```
+
+Claims without evidence stay pending. Legacy files with no remaining study value should be extincted rather than kept as working-tree noise.
 -> EXTRACT DONOR SEMANTIC FINGERPRINT
 -> SEARCH CHRONICA BY MEANING + CODE + TESTS
 -> SEMANTIC CONVERGENCE + CONFLICT AUDIT

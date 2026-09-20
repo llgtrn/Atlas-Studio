@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["core", "runtime", "adapter"]
+members = ["core", "runtime", "adapter", "ops_production"]
 
 [workspace.package]
 version = "0.1.0"

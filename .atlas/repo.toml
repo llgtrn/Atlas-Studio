@@ -18,10 +18,10 @@ license_root = ".atlas/licenses"
 legacy_docs_root_forbidden = true
 
 [code]
-source_roots = ["core", "runtime", "adapter"]
-backend_roots = ["core", "runtime", "adapter"]
+source_roots = ["core", "runtime", "adapter", "ops_production", "graph", "bindings"]
+backend_roots = ["core", "runtime", "adapter", "ops_production"]
 frontend_roots = ["apps/ui"]
-test_roots = ["core/tests", "runtime/tests", "adapter/tests", "apps/ui/src"]
+test_roots = ["core/tests", "runtime/tests", "adapter/tests", "ops_production/tests", "apps/ui/src"]
 
 [commands]
 compile = "cargo run -p runtime --bin atlas-systemizer -- systemize --root . --out .atlas/evidence/systemize-report.json"

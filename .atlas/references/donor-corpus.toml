@@ -563,3 +563,33 @@ native_replacement = "adapter/security vulnerability feeds and runtime/security 
 runtime_dependency_status = "REFERENCE_ONLY"
 evidence = [".atlas/provenance/donors/clair.json"]
 
+[[donor]]
+id = "zed"
+name = "Zed"
+repository = "zed-industries/zed"
+resolved_url = "https://github.com/zed-industries/zed"
+commit_sha = "0eda7703f6c88aa08a25c1d2105ff1ca46f775d4"
+default_branch = "main"
+retrieved_at = "2026-09-20T14:29:16.9765313Z"
+license = [
+  ".atlas/licenses/donors/zed/LICENSE-APACHE",
+  ".atlas/licenses/donors/zed/LICENSE-GPL",
+  ".atlas/licenses/donors/zed/ASSET-ICON-LICENSES",
+  ".atlas/licenses/donors/zed/ASSET-THEME-LICENSES"
+]
+technology_domains = ["ide", "editor", "workspace", "agent_interaction", "ui_runtime"]
+ingestion_status = "CLONED"
+census_status = "INITIAL_COMPONENT_LICENSE_MAPPED"
+decision_status = "APPROVED_IDE_DONOR_REFERENCE"
+native_replacement = "Atlas Studio/world canvas/editor surfaces and runtime/work interaction model"
+runtime_dependency_status = "REFERENCE_ONLY"
+principles_status = "PENDING_DEEP_CENSUS"
+implementation_status = "PENDING_ATLAS_NATIVE"
+target_owners = ["apps/ui", "runtime/work", "adapter/provider", "core/binding"]
+evidence = [
+  ".atlas/provenance/donors/zed.json",
+  ".atlas/provenance/donors/zed/zed.json",
+  ".atlas/provenance/donors/zed/license-map.json",
+  ".atlas/census/donors/zed.md"
+]
+

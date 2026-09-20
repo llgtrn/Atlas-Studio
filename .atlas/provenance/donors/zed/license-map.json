@@ -1,0 +1,1725 @@
+{
+  "schema": "atlas.donor-license-map.v1",
+  "donor": "zed",
+  "source": ".atlas/temporary/donors/ide/zed",
+  "commit_sha": "0eda7703f6c88aa08a25c1d2105ff1ca46f775d4",
+  "tree_hash": "29b1e214fd75837a66a07137eec7a41ca05ecf4c",
+  "policy": "Zed is an IDE/editor/workspace/agent interaction donor. GPL application code is reference/principle extraction only; Apache components may be reused only with preserved notices and explicit Atlas review.",
+  "entries": [
+    {
+      "path": "crates/acp_thread",
+      "component": "ide_editor_workspace_agent",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/acp_thread/LICENSE-GPL"
+    },
+    {
+      "path": "crates/acp_tools",
+      "component": "ide_editor_workspace_agent",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/acp_tools/LICENSE-GPL"
+    },
+    {
+      "path": "crates/action_log",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/action_log/LICENSE-GPL"
+    },
+    {
+      "path": "crates/activity_indicator",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/activity_indicator/LICENSE-GPL"
+    },
+    {
+      "path": "crates/agent",
+      "component": "ide_editor_workspace_agent",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/agent/LICENSE-GPL"
+    },
+    {
+      "path": "crates/agent_servers",
+      "component": "ide_editor_workspace_agent",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/agent_servers/LICENSE-GPL"
+    },
+    {
+      "path": "crates/agent_settings",
+      "component": "ide_editor_workspace_agent",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/agent_settings/LICENSE-GPL"
+    },
+    {
+      "path": "crates/agent_skills",
+      "component": "ide_editor_workspace_agent",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/agent_skills/LICENSE-GPL"
+    },
+    {
+      "path": "crates/agent_ui",
+      "component": "ide_editor_workspace_agent",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/agent_ui/LICENSE-GPL"
+    },
+    {
+      "path": "crates/ai_onboarding",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/ai_onboarding/LICENSE-GPL"
+    },
+    {
+      "path": "crates/anthropic",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/anthropic/LICENSE-GPL"
+    },
+    {
+      "path": "crates/askpass",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/askpass/LICENSE-GPL"
+    },
+    {
+      "path": "crates/assets",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/assets/LICENSE-GPL"
+    },
+    {
+      "path": "crates/audio",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/audio/LICENSE-GPL"
+    },
+    {
+      "path": "crates/auto_update",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/auto_update/LICENSE-GPL"
+    },
+    {
+      "path": "crates/auto_update_helper",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/auto_update_helper/LICENSE-GPL"
+    },
+    {
+      "path": "crates/auto_update_ui",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/auto_update_ui/LICENSE-GPL"
+    },
+    {
+      "path": "crates/aws_http_client",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/aws_http_client/LICENSE-GPL"
+    },
+    {
+      "path": "crates/bedrock",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/bedrock/LICENSE-GPL"
+    },
+    {
+      "path": "crates/benchmarks",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/benchmarks/LICENSE-GPL"
+    },
+    {
+      "path": "crates/breadcrumbs",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/breadcrumbs/LICENSE-GPL"
+    },
+    {
+      "path": "crates/buffer_diff",
+      "component": "ide_editor_workspace_agent",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/buffer_diff/LICENSE-GPL"
+    },
+    {
+      "path": "crates/call",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/call/LICENSE-GPL"
+    },
+    {
+      "path": "crates/call_hierarchy",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/call_hierarchy/LICENSE-GPL"
+    },
+    {
+      "path": "crates/channel",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/channel/LICENSE-GPL"
+    },
+    {
+      "path": "crates/cli",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/cli/LICENSE-GPL"
+    },
+    {
+      "path": "crates/client",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/client/LICENSE-GPL"
+    },
+    {
+      "path": "crates/clock",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/clock/LICENSE-GPL"
+    },
+    {
+      "path": "crates/cloud_api_client",
+      "component": "support_library",
+      "license": "Apache-2.0",
+      "reuse_classification": "DIRECT_REUSE_ALLOWED_WITH_NOTICE",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/cloud_api_client/LICENSE-APACHE"
+    },
+    {
+      "path": "crates/cloud_api_types",
+      "component": "support_library",
+      "license": "Apache-2.0",
+      "reuse_classification": "DIRECT_REUSE_ALLOWED_WITH_NOTICE",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/cloud_api_types/LICENSE-APACHE"
+    },
+    {
+      "path": "crates/cloud_llm_client",
+      "component": "support_library",
+      "license": "Apache-2.0",
+      "reuse_classification": "DIRECT_REUSE_ALLOWED_WITH_NOTICE",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/cloud_llm_client/LICENSE-APACHE"
+    },
+    {
+      "path": "crates/codestral",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/codestral/LICENSE-GPL"
+    },
+    {
+      "path": "crates/collab",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/collab/LICENSE-GPL"
+    },
+    {
+      "path": "crates/collab_ui",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/collab_ui/LICENSE-GPL"
+    },
+    {
+      "path": "crates/collections",
+      "component": "support_library",
+      "license": "Apache-2.0",
+      "reuse_classification": "DIRECT_REUSE_ALLOWED_WITH_NOTICE",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/collections/LICENSE-APACHE"
+    },
+    {
+      "path": "crates/command_palette",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/command_palette/LICENSE-GPL"
+    },
+    {
+      "path": "crates/command_palette_hooks",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/command_palette_hooks/LICENSE-GPL"
+    },
+    {
+      "path": "crates/component",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/component/LICENSE-GPL"
+    },
+    {
+      "path": "crates/component_preview",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/component_preview/LICENSE-GPL"
+    },
+    {
+      "path": "crates/context_server",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/context_server/LICENSE-GPL"
+    },
+    {
+      "path": "crates/copilot",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/copilot/LICENSE-GPL"
+    },
+    {
+      "path": "crates/copilot_chat",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/copilot_chat/LICENSE-GPL"
+    },
+    {
+      "path": "crates/copilot_ui",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/copilot_ui/LICENSE-GPL"
+    },
+    {
+      "path": "crates/crashes",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/crashes/LICENSE-GPL"
+    },
+    {
+      "path": "crates/credentials_provider",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/credentials_provider/LICENSE-GPL"
+    },
+    {
+      "path": "crates/dap",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/dap/LICENSE-GPL"
+    },
+    {
+      "path": "crates/dap_adapters",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/dap_adapters/LICENSE-GPL"
+    },
+    {
+      "path": "crates/db",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/db/LICENSE-GPL"
+    },
+    {
+      "path": "crates/debug_adapter_extension",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/debug_adapter_extension/LICENSE-GPL"
+    },
+    {
+      "path": "crates/debugger_tools",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/debugger_tools/LICENSE-GPL"
+    },
+    {
+      "path": "crates/debugger_ui",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/debugger_ui/LICENSE-GPL"
+    },
+    {
+      "path": "crates/deepseek",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/deepseek/LICENSE-GPL"
+    },
+    {
+      "path": "crates/dev_container",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/dev_container/LICENSE-GPL"
+    },
+    {
+      "path": "crates/diagnostics",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/diagnostics/LICENSE-GPL"
+    },
+    {
+      "path": "crates/docs_preprocessor",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/docs_preprocessor/LICENSE-GPL"
+    },
+    {
+      "path": "crates/edit_prediction",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/edit_prediction/LICENSE-GPL"
+    },
+    {
+      "path": "crates/edit_prediction_cli",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/edit_prediction_cli/LICENSE-GPL"
+    },
+    {
+      "path": "crates/edit_prediction_context",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/edit_prediction_context/LICENSE-GPL"
+    },
+    {
+      "path": "crates/edit_prediction_metrics",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/edit_prediction_metrics/LICENSE-GPL"
+    },
+    {
+      "path": "crates/edit_prediction_types",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/edit_prediction_types/LICENSE-GPL"
+    },
+    {
+      "path": "crates/edit_prediction_ui",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/edit_prediction_ui/LICENSE-GPL"
+    },
+    {
+      "path": "crates/editor",
+      "component": "ide_editor_workspace_agent",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/editor/LICENSE-GPL"
+    },
+    {
+      "path": "crates/editor_benchmarks",
+      "component": "ide_editor_workspace_agent",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/editor_benchmarks/LICENSE-GPL"
+    },
+    {
+      "path": "crates/encoding_selector",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/encoding_selector/LICENSE-GPL"
+    },
+    {
+      "path": "crates/env_var",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/env_var/LICENSE-GPL"
+    },
+    {
+      "path": "crates/etw_tracing",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/etw_tracing/LICENSE-GPL"
+    },
+    {
+      "path": "crates/eval_cli",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/eval_cli/LICENSE-GPL"
+    },
+    {
+      "path": "crates/eval_utils",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/eval_utils/LICENSE-GPL"
+    },
+    {
+      "path": "crates/explorer_command_injector",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/explorer_command_injector/LICENSE-GPL"
+    },
+    {
+      "path": "crates/extension",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/extension/LICENSE-GPL"
+    },
+    {
+      "path": "crates/extension_api",
+      "component": "support_library",
+      "license": "Apache-2.0",
+      "reuse_classification": "DIRECT_REUSE_ALLOWED_WITH_NOTICE",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/extension_api/LICENSE-APACHE"
+    },
+    {
+      "path": "crates/extension_cli",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/extension_cli/LICENSE-GPL"
+    },
+    {
+      "path": "crates/extension_host",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/extension_host/LICENSE-GPL"
+    },
+    {
+      "path": "crates/extensions_ui",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/extensions_ui/LICENSE-GPL"
+    },
+    {
+      "path": "crates/feature_flags",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/feature_flags/LICENSE-GPL"
+    },
+    {
+      "path": "crates/feature_flags_macros",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/feature_flags_macros/LICENSE-GPL"
+    },
+    {
+      "path": "crates/feedback",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/feedback/LICENSE-GPL"
+    },
+    {
+      "path": "crates/file_finder",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/file_finder/LICENSE-GPL"
+    },
+    {
+      "path": "crates/file_icons",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/file_icons/LICENSE-GPL"
+    },
+    {
+      "path": "crates/fs",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/fs/LICENSE-GPL"
+    },
+    {
+      "path": "crates/fs_benchmarks",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/fs_benchmarks/LICENSE-GPL"
+    },
+    {
+      "path": "crates/fuzzy",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/fuzzy/LICENSE-GPL"
+    },
+    {
+      "path": "crates/fuzzy_nucleo",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/fuzzy_nucleo/LICENSE-GPL"
+    },
+    {
+      "path": "crates/git",
+      "component": "ide_editor_workspace_agent",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/git/LICENSE-GPL"
+    },
+    {
+      "path": "crates/git_hosting_providers",
+      "component": "ide_editor_workspace_agent",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/git_hosting_providers/LICENSE-GPL"
+    },
+    {
+      "path": "crates/git_ui",
+      "component": "ide_editor_workspace_agent",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/git_ui/LICENSE-GPL"
+    },
+    {
+      "path": "crates/git_ui_core",
+      "component": "ide_editor_workspace_agent",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/git_ui_core/LICENSE-GPL"
+    },
+    {
+      "path": "crates/go_to_line",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/go_to_line/LICENSE-GPL"
+    },
+    {
+      "path": "crates/google_ai",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/google_ai/LICENSE-GPL"
+    },
+    {
+      "path": "crates/gpui",
+      "component": "gpui_ui_runtime",
+      "license": "Apache-2.0",
+      "reuse_classification": "DIRECT_REUSE_ALLOWED_WITH_NOTICE",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/gpui/LICENSE-APACHE"
+    },
+    {
+      "path": "crates/gpui_apple",
+      "component": "gpui_ui_runtime",
+      "license": "Apache-2.0",
+      "reuse_classification": "DIRECT_REUSE_ALLOWED_WITH_NOTICE",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/gpui_apple/LICENSE-APACHE"
+    },
+    {
+      "path": "crates/gpui_linux",
+      "component": "gpui_ui_runtime",
+      "license": "Apache-2.0",
+      "reuse_classification": "DIRECT_REUSE_ALLOWED_WITH_NOTICE",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/gpui_linux/LICENSE-APACHE"
+    },
+    {
+      "path": "crates/gpui_macos",
+      "component": "gpui_ui_runtime",
+      "license": "Apache-2.0",
+      "reuse_classification": "DIRECT_REUSE_ALLOWED_WITH_NOTICE",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/gpui_macos/LICENSE-APACHE"
+    },
+    {
+      "path": "crates/gpui_macros",
+      "component": "gpui_ui_runtime",
+      "license": "Apache-2.0",
+      "reuse_classification": "DIRECT_REUSE_ALLOWED_WITH_NOTICE",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/gpui_macros/LICENSE-APACHE"
+    },
+    {
+      "path": "crates/gpui_platform",
+      "component": "gpui_ui_runtime",
+      "license": "Apache-2.0",
+      "reuse_classification": "DIRECT_REUSE_ALLOWED_WITH_NOTICE",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/gpui_platform/LICENSE-APACHE"
+    },
+    {
+      "path": "crates/gpui_shared_string",
+      "component": "gpui_ui_runtime",
+      "license": "Apache-2.0",
+      "reuse_classification": "DIRECT_REUSE_ALLOWED_WITH_NOTICE",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/gpui_shared_string/LICENSE-APACHE"
+    },
+    {
+      "path": "crates/gpui_tokio",
+      "component": "gpui_ui_runtime",
+      "license": "Apache-2.0",
+      "reuse_classification": "DIRECT_REUSE_ALLOWED_WITH_NOTICE",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/gpui_tokio/LICENSE-APACHE"
+    },
+    {
+      "path": "crates/gpui_util",
+      "component": "gpui_ui_runtime",
+      "license": "Apache-2.0",
+      "reuse_classification": "DIRECT_REUSE_ALLOWED_WITH_NOTICE",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/gpui_util/LICENSE-APACHE"
+    },
+    {
+      "path": "crates/gpui_web",
+      "component": "gpui_ui_runtime",
+      "license": "Apache-2.0",
+      "reuse_classification": "DIRECT_REUSE_ALLOWED_WITH_NOTICE",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/gpui_web/LICENSE-APACHE"
+    },
+    {
+      "path": "crates/gpui_wgpu",
+      "component": "gpui_ui_runtime",
+      "license": "Apache-2.0",
+      "reuse_classification": "DIRECT_REUSE_ALLOWED_WITH_NOTICE",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/gpui_wgpu/LICENSE-APACHE"
+    },
+    {
+      "path": "crates/gpui_windows",
+      "component": "gpui_ui_runtime",
+      "license": "Apache-2.0",
+      "reuse_classification": "DIRECT_REUSE_ALLOWED_WITH_NOTICE",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/gpui_windows/LICENSE-APACHE"
+    },
+    {
+      "path": "crates/grammars",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/grammars/LICENSE-GPL"
+    },
+    {
+      "path": "crates/html_to_markdown",
+      "component": "support_library",
+      "license": "Apache-2.0",
+      "reuse_classification": "DIRECT_REUSE_ALLOWED_WITH_NOTICE",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/html_to_markdown/LICENSE-APACHE"
+    },
+    {
+      "path": "crates/http_client",
+      "component": "support_library",
+      "license": "Apache-2.0",
+      "reuse_classification": "DIRECT_REUSE_ALLOWED_WITH_NOTICE",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/http_client/LICENSE-APACHE"
+    },
+    {
+      "path": "crates/http_client_tls",
+      "component": "support_library",
+      "license": "Apache-2.0",
+      "reuse_classification": "DIRECT_REUSE_ALLOWED_WITH_NOTICE",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/http_client_tls/LICENSE-APACHE"
+    },
+    {
+      "path": "crates/http_proxy",
+      "component": "support_library",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/http_proxy/LICENSE-GPL"
+    },
+    {
+      "path": "crates/icons",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/icons/LICENSE-GPL"
+    },
+    {
+      "path": "crates/image_viewer",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/image_viewer/LICENSE-GPL"
+    },
+    {
+      "path": "crates/input_latency_ui",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/input_latency_ui/LICENSE-GPL"
+    },
+    {
+      "path": "crates/inspector_ui",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/inspector_ui/LICENSE-GPL"
+    },
+    {
+      "path": "crates/install_cli",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/install_cli/LICENSE-GPL"
+    },
+    {
+      "path": "crates/journal",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/journal/LICENSE-GPL"
+    },
+    {
+      "path": "crates/json_schema_store",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/json_schema_store/LICENSE-GPL"
+    },
+    {
+      "path": "crates/keymap_editor",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/keymap_editor/LICENSE-GPL"
+    },
+    {
+      "path": "crates/language",
+      "component": "ide_editor_workspace_agent",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/language/LICENSE-GPL"
+    },
+    {
+      "path": "crates/language_core",
+      "component": "ide_editor_workspace_agent",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/language_core/LICENSE-GPL"
+    },
+    {
+      "path": "crates/language_detection",
+      "component": "ide_editor_workspace_agent",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/language_detection/LICENSE-GPL"
+    },
+    {
+      "path": "crates/language_extension",
+      "component": "ide_editor_workspace_agent",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/language_extension/LICENSE-GPL"
+    },
+    {
+      "path": "crates/language_model",
+      "component": "ide_editor_workspace_agent",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/language_model/LICENSE-GPL"
+    },
+    {
+      "path": "crates/language_model_core",
+      "component": "ide_editor_workspace_agent",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/language_model_core/LICENSE-GPL"
+    },
+    {
+      "path": "crates/language_models",
+      "component": "ide_editor_workspace_agent",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/language_models/LICENSE-GPL"
+    },
+    {
+      "path": "crates/language_models_cloud",
+      "component": "ide_editor_workspace_agent",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/language_models_cloud/LICENSE-GPL"
+    },
+    {
+      "path": "crates/language_onboarding",
+      "component": "ide_editor_workspace_agent",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/language_onboarding/LICENSE-GPL"
+    },
+    {
+      "path": "crates/language_selector",
+      "component": "ide_editor_workspace_agent",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/language_selector/LICENSE-GPL"
+    },
+    {
+      "path": "crates/language_tools",
+      "component": "ide_editor_workspace_agent",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/language_tools/LICENSE-GPL"
+    },
+    {
+      "path": "crates/languages",
+      "component": "ide_editor_workspace_agent",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/languages/LICENSE-GPL"
+    },
+    {
+      "path": "crates/line_ending_selector",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/line_ending_selector/LICENSE-GPL"
+    },
+    {
+      "path": "crates/livekit_api",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/livekit_api/LICENSE-GPL"
+    },
+    {
+      "path": "crates/livekit_client",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/livekit_client/LICENSE-GPL"
+    },
+    {
+      "path": "crates/llama_cpp",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/llama_cpp/LICENSE-GPL"
+    },
+    {
+      "path": "crates/lmstudio",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/lmstudio/LICENSE-GPL"
+    },
+    {
+      "path": "crates/lsp",
+      "component": "ide_editor_workspace_agent",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/lsp/LICENSE-GPL"
+    },
+    {
+      "path": "crates/lsp_command_selector",
+      "component": "ide_editor_workspace_agent",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/lsp_command_selector/LICENSE-GPL"
+    },
+    {
+      "path": "crates/lsp_locations",
+      "component": "ide_editor_workspace_agent",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/lsp_locations/LICENSE-GPL"
+    },
+    {
+      "path": "crates/markdown",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/markdown/LICENSE-GPL"
+    },
+    {
+      "path": "crates/markdown_preview",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/markdown_preview/LICENSE-GPL"
+    },
+    {
+      "path": "crates/menu",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/menu/LICENSE-GPL"
+    },
+    {
+      "path": "crates/mermaid_render",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/mermaid_render/LICENSE-GPL"
+    },
+    {
+      "path": "crates/migrator",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/migrator/LICENSE-GPL"
+    },
+    {
+      "path": "crates/miniprofiler_ui",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/miniprofiler_ui/LICENSE-GPL"
+    },
+    {
+      "path": "crates/mistral",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/mistral/LICENSE-GPL"
+    },
+    {
+      "path": "crates/multi_buffer",
+      "component": "ide_editor_workspace_agent",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/multi_buffer/LICENSE-GPL"
+    },
+    {
+      "path": "crates/net",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/net/LICENSE-GPL"
+    },
+    {
+      "path": "crates/node_runtime",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/node_runtime/LICENSE-GPL"
+    },
+    {
+      "path": "crates/notifications",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/notifications/LICENSE-GPL"
+    },
+    {
+      "path": "crates/oauth_callback_server",
+      "component": "support_library",
+      "license": "Apache-2.0",
+      "reuse_classification": "DIRECT_REUSE_ALLOWED_WITH_NOTICE",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/oauth_callback_server/LICENSE-APACHE"
+    },
+    {
+      "path": "crates/ollama",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/ollama/LICENSE-GPL"
+    },
+    {
+      "path": "crates/onboarding",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/onboarding/LICENSE-GPL"
+    },
+    {
+      "path": "crates/open_ai",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/open_ai/LICENSE-GPL"
+    },
+    {
+      "path": "crates/open_path_prompt",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/open_path_prompt/LICENSE-GPL"
+    },
+    {
+      "path": "crates/open_router",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/open_router/LICENSE-GPL"
+    },
+    {
+      "path": "crates/openai_subscribed",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/openai_subscribed/LICENSE-GPL"
+    },
+    {
+      "path": "crates/opencode",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/opencode/LICENSE-GPL"
+    },
+    {
+      "path": "crates/outline",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/outline/LICENSE-GPL"
+    },
+    {
+      "path": "crates/outline_panel",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/outline_panel/LICENSE-GPL"
+    },
+    {
+      "path": "crates/path",
+      "component": "support_library",
+      "license": "Apache-2.0",
+      "reuse_classification": "DIRECT_REUSE_ALLOWED_WITH_NOTICE",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/path/LICENSE-APACHE"
+    },
+    {
+      "path": "crates/paths",
+      "component": "support_library",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/paths/LICENSE-GPL"
+    },
+    {
+      "path": "crates/picker",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/picker/LICENSE-GPL"
+    },
+    {
+      "path": "crates/picker_preview",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/picker_preview/LICENSE-GPL"
+    },
+    {
+      "path": "crates/platform_title_bar",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/platform_title_bar/LICENSE-GPL"
+    },
+    {
+      "path": "crates/prettier",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/prettier/LICENSE-GPL"
+    },
+    {
+      "path": "crates/project",
+      "component": "ide_editor_workspace_agent",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/project/LICENSE-GPL"
+    },
+    {
+      "path": "crates/project_benchmarks",
+      "component": "ide_editor_workspace_agent",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/project_benchmarks/LICENSE-GPL"
+    },
+    {
+      "path": "crates/project_panel",
+      "component": "ide_editor_workspace_agent",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/project_panel/LICENSE-GPL"
+    },
+    {
+      "path": "crates/project_symbols",
+      "component": "ide_editor_workspace_agent",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/project_symbols/LICENSE-GPL"
+    },
+    {
+      "path": "crates/prompt_store",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/prompt_store/LICENSE-GPL"
+    },
+    {
+      "path": "crates/proto",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/proto/LICENSE-GPL"
+    },
+    {
+      "path": "crates/proxy_handshake",
+      "component": "support_library",
+      "license": "Apache-2.0",
+      "reuse_classification": "DIRECT_REUSE_ALLOWED_WITH_NOTICE",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/proxy_handshake/LICENSE-APACHE"
+    },
+    {
+      "path": "crates/recent_projects",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/recent_projects/LICENSE-GPL"
+    },
+    {
+      "path": "crates/refineable",
+      "component": "support_library",
+      "license": "Apache-2.0",
+      "reuse_classification": "DIRECT_REUSE_ALLOWED_WITH_NOTICE",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/refineable/LICENSE-APACHE"
+    },
+    {
+      "path": "crates/release_channel",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/release_channel/LICENSE-GPL"
+    },
+    {
+      "path": "crates/remote",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/remote/LICENSE-GPL"
+    },
+    {
+      "path": "crates/remote_connection",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/remote_connection/LICENSE-GPL"
+    },
+    {
+      "path": "crates/remote_server",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/remote_server/LICENSE-GPL"
+    },
+    {
+      "path": "crates/repl",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/repl/LICENSE-GPL"
+    },
+    {
+      "path": "crates/reqwest_client",
+      "component": "support_library",
+      "license": "Apache-2.0",
+      "reuse_classification": "DIRECT_REUSE_ALLOWED_WITH_NOTICE",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/reqwest_client/LICENSE-APACHE"
+    },
+    {
+      "path": "crates/rope",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/rope/LICENSE-GPL"
+    },
+    {
+      "path": "crates/rpc",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/rpc/LICENSE-GPL"
+    },
+    {
+      "path": "crates/sandbox",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/sandbox/LICENSE-GPL"
+    },
+    {
+      "path": "crates/scheduler",
+      "component": "support_library",
+      "license": "Apache-2.0",
+      "reuse_classification": "DIRECT_REUSE_ALLOWED_WITH_NOTICE",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/scheduler/LICENSE-APACHE"
+    },
+    {
+      "path": "crates/schema_generator",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/schema_generator/LICENSE-GPL"
+    },
+    {
+      "path": "crates/search",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/search/LICENSE-GPL"
+    },
+    {
+      "path": "crates/session",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/session/LICENSE-GPL"
+    },
+    {
+      "path": "crates/settings",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/settings/LICENSE-GPL"
+    },
+    {
+      "path": "crates/settings_content",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/settings_content/LICENSE-GPL"
+    },
+    {
+      "path": "crates/settings_json",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/settings_json/LICENSE-GPL"
+    },
+    {
+      "path": "crates/settings_macros",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/settings_macros/LICENSE-GPL"
+    },
+    {
+      "path": "crates/settings_profile_selector",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/settings_profile_selector/LICENSE-GPL"
+    },
+    {
+      "path": "crates/settings_ui",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/settings_ui/LICENSE-GPL"
+    },
+    {
+      "path": "crates/shell_command_parser",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/shell_command_parser/LICENSE-GPL"
+    },
+    {
+      "path": "crates/sidebar",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/sidebar/LICENSE-GPL"
+    },
+    {
+      "path": "crates/snippet",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/snippet/LICENSE-GPL"
+    },
+    {
+      "path": "crates/snippet_provider",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/snippet_provider/LICENSE-GPL"
+    },
+    {
+      "path": "crates/snippets_ui",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/snippets_ui/LICENSE-GPL"
+    },
+    {
+      "path": "crates/sqlez",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/sqlez/LICENSE-GPL"
+    },
+    {
+      "path": "crates/sqlez_macros",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/sqlez_macros/LICENSE-GPL"
+    },
+    {
+      "path": "crates/streaming_diff",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/streaming_diff/LICENSE-GPL"
+    },
+    {
+      "path": "crates/sum_tree",
+      "component": "support_library",
+      "license": "Apache-2.0",
+      "reuse_classification": "DIRECT_REUSE_ALLOWED_WITH_NOTICE",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/sum_tree/LICENSE-APACHE"
+    },
+    {
+      "path": "crates/svg_preview",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/svg_preview/LICENSE-GPL"
+    },
+    {
+      "path": "crates/syntax_theme",
+      "component": "zed_application_crate",
+      "license": "Apache-2.0 AND GPL-3.0-or-later component review required",
+      "reuse_classification": "COMPONENT_REVIEW_REQUIRED",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/syntax_theme/LICENSE-APACHE, crates/syntax_theme/LICENSE-GPL"
+    },
+    {
+      "path": "crates/system_specs",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/system_specs/LICENSE-GPL"
+    },
+    {
+      "path": "crates/tab_switcher",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/tab_switcher/LICENSE-GPL"
+    },
+    {
+      "path": "crates/tabular_data_preview",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/tabular_data_preview/LICENSE-GPL"
+    },
+    {
+      "path": "crates/task",
+      "component": "ide_editor_workspace_agent",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/task/LICENSE-GPL"
+    },
+    {
+      "path": "crates/tasks_ui",
+      "component": "ide_editor_workspace_agent",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/tasks_ui/LICENSE-GPL"
+    },
+    {
+      "path": "crates/telemetry",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/telemetry/LICENSE-GPL"
+    },
+    {
+      "path": "crates/telemetry_events",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/telemetry_events/LICENSE-GPL"
+    },
+    {
+      "path": "crates/terminal",
+      "component": "ide_editor_workspace_agent",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/terminal/LICENSE-GPL"
+    },
+    {
+      "path": "crates/terminal_view",
+      "component": "ide_editor_workspace_agent",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/terminal_view/LICENSE-GPL"
+    },
+    {
+      "path": "crates/text",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/text/LICENSE-GPL"
+    },
+    {
+      "path": "crates/theme",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/theme/LICENSE-GPL"
+    },
+    {
+      "path": "crates/theme_extension",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/theme_extension/LICENSE-GPL"
+    },
+    {
+      "path": "crates/theme_importer",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/theme_importer/LICENSE-GPL"
+    },
+    {
+      "path": "crates/theme_selector",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/theme_selector/LICENSE-GPL"
+    },
+    {
+      "path": "crates/theme_settings",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/theme_settings/LICENSE-GPL"
+    },
+    {
+      "path": "crates/time_format",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/time_format/LICENSE-GPL"
+    },
+    {
+      "path": "crates/title_bar",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/title_bar/LICENSE-GPL"
+    },
+    {
+      "path": "crates/toolchain_selector",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/toolchain_selector/LICENSE-GPL"
+    },
+    {
+      "path": "crates/ui",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/ui/LICENSE-GPL"
+    },
+    {
+      "path": "crates/ui_input",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/ui_input/LICENSE-GPL"
+    },
+    {
+      "path": "crates/ui_macros",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/ui_macros/LICENSE-GPL"
+    },
+    {
+      "path": "crates/ui_prompt",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/ui_prompt/LICENSE-GPL"
+    },
+    {
+      "path": "crates/util",
+      "component": "support_library",
+      "license": "Apache-2.0",
+      "reuse_classification": "DIRECT_REUSE_ALLOWED_WITH_NOTICE",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/util/LICENSE-APACHE"
+    },
+    {
+      "path": "crates/util_macros",
+      "component": "support_library",
+      "license": "Apache-2.0",
+      "reuse_classification": "DIRECT_REUSE_ALLOWED_WITH_NOTICE",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/util_macros/LICENSE-APACHE"
+    },
+    {
+      "path": "crates/vim",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/vim/LICENSE-GPL"
+    },
+    {
+      "path": "crates/vim_mode_setting",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/vim_mode_setting/LICENSE-GPL"
+    },
+    {
+      "path": "crates/watch",
+      "component": "support_library",
+      "license": "Apache-2.0",
+      "reuse_classification": "DIRECT_REUSE_ALLOWED_WITH_NOTICE",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/watch/LICENSE-APACHE"
+    },
+    {
+      "path": "crates/web_search",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/web_search/LICENSE-GPL"
+    },
+    {
+      "path": "crates/web_search_providers",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/web_search_providers/LICENSE-GPL"
+    },
+    {
+      "path": "crates/which_key",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/which_key/LICENSE-GPL"
+    },
+    {
+      "path": "crates/windows_resources",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/windows_resources/LICENSE-GPL"
+    },
+    {
+      "path": "crates/workspace",
+      "component": "ide_editor_workspace_agent",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/workspace/LICENSE-GPL"
+    },
+    {
+      "path": "crates/worktree",
+      "component": "ide_editor_workspace_agent",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/worktree/LICENSE-GPL"
+    },
+    {
+      "path": "crates/worktree_benchmarks",
+      "component": "ide_editor_workspace_agent",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/worktree_benchmarks/LICENSE-GPL"
+    },
+    {
+      "path": "crates/x_ai",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/x_ai/LICENSE-GPL"
+    },
+    {
+      "path": "crates/x_ai_subscribed",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/x_ai_subscribed/LICENSE-GPL"
+    },
+    {
+      "path": "crates/zed",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/zed/LICENSE-GPL"
+    },
+    {
+      "path": "crates/zed_actions",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/zed_actions/LICENSE-GPL"
+    },
+    {
+      "path": "crates/zed_credentials_provider",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/zed_credentials_provider/LICENSE-GPL"
+    },
+    {
+      "path": "crates/zed_env_vars",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/zed_env_vars/LICENSE-GPL"
+    },
+    {
+      "path": "crates/zeta_prompt",
+      "component": "zed_application_crate",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/zeta_prompt/LICENSE-GPL"
+    },
+    {
+      "path": "crates/zlog",
+      "component": "support_library",
+      "license": "Apache-2.0",
+      "reuse_classification": "DIRECT_REUSE_ALLOWED_WITH_NOTICE",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/zlog/LICENSE-APACHE"
+    },
+    {
+      "path": "crates/zlog_settings",
+      "component": "support_library",
+      "license": "GPL-3.0-or-later",
+      "reuse_classification": "PRINCIPLE_EXTRACTION_ONLY",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/zlog_settings/LICENSE-GPL"
+    },
+    {
+      "path": "crates/ztracing",
+      "component": "support_library",
+      "license": "Apache-2.0",
+      "reuse_classification": "DIRECT_REUSE_ALLOWED_WITH_NOTICE",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/ztracing/LICENSE-APACHE"
+    },
+    {
+      "path": "crates/ztracing_macro",
+      "component": "support_library",
+      "license": "Apache-2.0",
+      "reuse_classification": "DIRECT_REUSE_ALLOWED_WITH_NOTICE",
+      "provenance": "Zed donor clone .atlas/temporary/donors/ide/zed@0eda7703f6c88aa08a25c1d2105ff1ca46f775d4; component license file(s): crates/ztracing_macro/LICENSE-APACHE"
+    }
+  ]
+}
