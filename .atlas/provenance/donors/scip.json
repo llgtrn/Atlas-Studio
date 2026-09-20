@@ -1,0 +1,17 @@
+{
+  "schema": "atlas.donor-provenance.v1",
+  "id": "scip",
+  "name": "SCIP",
+  "remote": "https://github.com/sourcegraph/scip.git",
+  "commit_sha": "4f50fbbd0ed945405cd8a4196af6477ea2a9f8b5",
+  "default_branch": "main",
+  "retrieved_at": "2026-09-20T12:08:55.4960343Z",
+  "clone_path": ".atlas/temporary/donors/scip",
+  "license_files": [
+    "LICENSE"
+  ],
+  "ingestion_status": "CLONED",
+  "census_status": "SKELETON",
+  "runtime_dependency_status": "REFERENCE_ONLY"
+}
+

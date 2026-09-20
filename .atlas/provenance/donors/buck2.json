@@ -1,0 +1,19 @@
+{
+  "schema": "atlas.donor-provenance.v1",
+  "id": "buck2",
+  "name": "Buck2",
+  "remote": "https://github.com/facebook/buck2.git",
+  "commit_sha": "78ec517305d8214d6160f6c99b1d0a3554879878",
+  "default_branch": "main",
+  "retrieved_at": "2026-09-20T12:08:55.4960343Z",
+  "clone_path": ".atlas/temporary/donors/buck2",
+  "license_files": [
+    "LICENSE-APACHE",
+    "LICENSE-MIT",
+    "NOTICE"
+  ],
+  "ingestion_status": "CLONED",
+  "census_status": "SKELETON",
+  "runtime_dependency_status": "REFERENCE_ONLY"
+}
+

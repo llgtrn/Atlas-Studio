@@ -1,0 +1,13 @@
+[package]
+name = "core"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish = false
+
+# Pure Atlas vocabulary and invariants only: IDs, facts, graph primitives, bindings, evidence,
+# policies and manifest contracts. No filesystem, Git, provider, donor or UI mechanics.
+
+[dependencies]
+serde.workspace = true

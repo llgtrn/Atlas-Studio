@@ -1,0 +1,17 @@
+{
+  "schema": "atlas.donor-provenance.v1",
+  "id": "c2rust",
+  "name": "C2Rust",
+  "remote": "https://github.com/immunant/c2rust.git",
+  "commit_sha": "1d37ebbf4d505c947f20947edc264f47e33ed14b",
+  "default_branch": "master",
+  "retrieved_at": "2026-09-20T12:08:55.4960343Z",
+  "clone_path": ".atlas/temporary/donors/c2rust",
+  "license_files": [
+    "LICENSE"
+  ],
+  "ingestion_status": "CLONED",
+  "census_status": "SKELETON",
+  "runtime_dependency_status": "REFERENCE_ONLY"
+}
+

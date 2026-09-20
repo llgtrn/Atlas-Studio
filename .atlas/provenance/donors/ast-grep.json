@@ -1,0 +1,17 @@
+{
+  "schema": "atlas.donor-provenance.v1",
+  "id": "ast-grep",
+  "name": "ast-grep",
+  "remote": "https://github.com/ast-grep/ast-grep.git",
+  "commit_sha": "6175e07b668b388a1a326d8fc543c4856eb5f54b",
+  "default_branch": "main",
+  "retrieved_at": "2026-09-20T12:08:55.4960343Z",
+  "clone_path": ".atlas/temporary/donors/ast-grep",
+  "license_files": [
+    "LICENSE"
+  ],
+  "ingestion_status": "CLONED",
+  "census_status": "SKELETON",
+  "runtime_dependency_status": "REFERENCE_ONLY"
+}
+

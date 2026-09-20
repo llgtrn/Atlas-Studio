@@ -1,0 +1,17 @@
+{
+  "schema": "atlas.donor-provenance.v1",
+  "id": "kythe",
+  "name": "Kythe",
+  "remote": "https://github.com/kythe/kythe.git",
+  "commit_sha": "69141f022689a611e8a4a1d9b08a3783a2e8a9ed",
+  "default_branch": "master",
+  "retrieved_at": "2026-09-20T12:08:55.4960343Z",
+  "clone_path": ".atlas/temporary/donors/kythe",
+  "license_files": [
+    "LICENSE"
+  ],
+  "ingestion_status": "CLONED",
+  "census_status": "SKELETON",
+  "runtime_dependency_status": "REFERENCE_ONLY"
+}
+

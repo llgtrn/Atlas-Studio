@@ -1,0 +1,17 @@
+{
+  "schema": "atlas.donor-provenance.v1",
+  "id": "py2many",
+  "name": "py2many",
+  "remote": "https://github.com/py2many/py2many.git",
+  "commit_sha": "a3c39224e71430bf99057f473c4b4542971daa9d",
+  "default_branch": "main",
+  "retrieved_at": "2026-09-20T12:08:55.4960343Z",
+  "clone_path": ".atlas/temporary/donors/py2many",
+  "license_files": [
+    "LICENSE"
+  ],
+  "ingestion_status": "CLONED",
+  "census_status": "SKELETON",
+  "runtime_dependency_status": "REFERENCE_ONLY"
+}
+

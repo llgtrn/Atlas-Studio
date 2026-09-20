@@ -1,0 +1,20 @@
+[package]
+name = "runtime"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish = false
+
+# Runtime turns core semantics into repository compilation, work preparation, verification and
+# evidence flows. It depends on adapter mechanics through typed outputs, not raw shell contracts.
+
+[dependencies]
+atlas_core = { package = "core", path = "../core" }
+adapter = { path = "../adapter" }
+serde.workspace = true
+serde_json.workspace = true
+
+[[bin]]
+name = "atlas-systemizer"
+path = "src/main.rs"

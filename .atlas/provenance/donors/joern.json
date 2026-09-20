@@ -1,0 +1,17 @@
+{
+  "schema": "atlas.donor-provenance.v1",
+  "id": "joern",
+  "name": "Joern",
+  "remote": "https://github.com/joernio/joern.git",
+  "commit_sha": "b381922638ae436fcb6862a90241c8f7ce508894",
+  "default_branch": "master",
+  "retrieved_at": "2026-09-20T12:08:55.4960343Z",
+  "clone_path": ".atlas/temporary/donors/joern",
+  "license_files": [
+    "LICENSE"
+  ],
+  "ingestion_status": "CLONED",
+  "census_status": "SKELETON",
+  "runtime_dependency_status": "REFERENCE_ONLY"
+}
+

@@ -1,0 +1,13 @@
+[package]
+name = "adapter"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish = false
+
+# External mechanics live here: filesystem, Git, parsers, build tools and provider boundaries.
+# Adapter output becomes typed Atlas facts; adapter mechanics never define the canonical model.
+
+[dependencies]
+atlas_core = { package = "core", path = "../core" }

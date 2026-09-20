@@ -1,0 +1,17 @@
+{
+  "schema": "atlas.donor-provenance.v1",
+  "id": "crubit",
+  "name": "Crubit",
+  "remote": "https://github.com/google/crubit.git",
+  "commit_sha": "34c96fb368e1a734c06425172f810ca1371eb705",
+  "default_branch": "main",
+  "retrieved_at": "2026-09-20T12:08:55.4960343Z",
+  "clone_path": ".atlas/temporary/donors/crubit",
+  "license_files": [
+    "LICENSE"
+  ],
+  "ingestion_status": "CLONED",
+  "census_status": "SKELETON",
+  "runtime_dependency_status": "REFERENCE_ONLY"
+}
+

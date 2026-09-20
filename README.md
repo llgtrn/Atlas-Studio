@@ -1,10 +1,10 @@
 # Atlas Systemizer
 
-Atlas Systemizer is Chronica's external **development engineering subsystem**.
+Atlas Systemizer is an independent **software engineering compiler / systemization engine**.
 
-It reads repositories, documentation, donor technology and engineering evidence; graphinizes them into derived Source / Fact / Technology / Design / Engineering graphs; standardizes documentation; and emits bounded analysis, work plans and proof requirements.
+It reads repositories, documentation, donor technology and engineering evidence; compiles them into facts, nodes, edges and bindings; and emits bounded analysis, work plans, graph queries and proof requirements.
 
-It is **not** part of the Chronica runtime and has no merge or execution authority.
+It is not owned by any product runtime. It can be pointed at unrelated repositories and must preserve the target project as the sovereign mutation boundary.
 
 ## Stable boundary
 
@@ -12,16 +12,16 @@ The binary is `atlas-systemizer` and the compatibility API is `atlas.systemizer.
 
 ```text
 atlas-systemizer contract --format json
-atlas-systemizer systemize --root <workspace> --config <config> --out <report>
-atlas-systemizer docs audit --root <docs-root> --config <config> --format json
-atlas-systemizer code analyze --root <source-root> --config <config> --format json
+atlas-systemizer systemize --root <workspace> --out <report>
+atlas-systemizer docs audit --root <docs-root>
+atlas-systemizer code analyze --root <source-root>
 ```
 
-Chronica product crates must never import Atlas crates. Developer and CI workflows call the CLI only.
+External projects integrate through the CLI or future adapter contracts. Atlas internals are not the canonical truth of the repositories it studies.
 
 ## Implementation policy
 
 - Engineering/backend implementation: Rust.
-- Graph Studio frontend, when materialized: TypeScript/TSX.
+- UI implementation, when materialized: TypeScript/TSX.
 - Reference OSS is technology donor material, not a permanent runtime substrate.
-- Atlas output is ANALYZE/evidence, never canonical Chronica truth.
+- Atlas output is analysis, evidence and bounded change proposals unless a WorkRun explicitly verifies and records a mutation.

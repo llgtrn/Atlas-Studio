@@ -1,0 +1,18 @@
+{
+  "schema": "atlas.donor-provenance.v1",
+  "id": "miri",
+  "name": "Miri",
+  "remote": "https://github.com/rust-lang/miri.git",
+  "commit_sha": "c63eee41f54d6a4b414af7b22ab717063da0c50a",
+  "default_branch": "master",
+  "retrieved_at": "2026-09-20T12:08:55.4960343Z",
+  "clone_path": ".atlas/temporary/donors/miri",
+  "license_files": [
+    "LICENSE-APACHE",
+    "LICENSE-MIT"
+  ],
+  "ingestion_status": "CLONED",
+  "census_status": "SKELETON",
+  "runtime_dependency_status": "REFERENCE_ONLY"
+}
+

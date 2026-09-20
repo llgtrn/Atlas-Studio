@@ -1,0 +1,17 @@
+{
+  "schema": "atlas.donor-provenance.v1",
+  "id": "elkjs",
+  "name": "ELK.js",
+  "remote": "https://github.com/kieler/elkjs.git",
+  "commit_sha": "722f1a3f63016e64f534a8b445283d4d31a88d0e",
+  "default_branch": "master",
+  "retrieved_at": "2026-09-20T12:08:55.4960343Z",
+  "clone_path": ".atlas/temporary/donors/elkjs",
+  "license_files": [
+    "LICENSE.md"
+  ],
+  "ingestion_status": "CLONED",
+  "census_status": "SKELETON",
+  "runtime_dependency_status": "REFERENCE_ONLY"
+}
+

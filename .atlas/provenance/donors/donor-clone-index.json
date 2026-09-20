@@ -1,0 +1,395 @@
+[
+  {
+    "schema": "atlas.donor-provenance.v1",
+    "id": "ast-grep",
+    "name": "ast-grep",
+    "remote": "https://github.com/ast-grep/ast-grep.git",
+    "commit_sha": "6175e07b668b388a1a326d8fc543c4856eb5f54b",
+    "default_branch": "main",
+    "retrieved_at": "2026-09-20T12:08:55.4960343Z",
+    "clone_path": ".atlas/temporary/donors/ast-grep",
+    "license_files": [
+      "LICENSE"
+    ],
+    "ingestion_status": "CLONED",
+    "census_status": "SKELETON",
+    "runtime_dependency_status": "REFERENCE_ONLY"
+  },
+  {
+    "schema": "atlas.donor-provenance.v1",
+    "id": "buck2",
+    "name": "Buck2",
+    "remote": "https://github.com/facebook/buck2.git",
+    "commit_sha": "78ec517305d8214d6160f6c99b1d0a3554879878",
+    "default_branch": "main",
+    "retrieved_at": "2026-09-20T12:08:55.4960343Z",
+    "clone_path": ".atlas/temporary/donors/buck2",
+    "license_files": [
+      "LICENSE-APACHE",
+      "LICENSE-MIT",
+      "NOTICE"
+    ],
+    "ingestion_status": "CLONED",
+    "census_status": "SKELETON",
+    "runtime_dependency_status": "REFERENCE_ONLY"
+  },
+  {
+    "schema": "atlas.donor-provenance.v1",
+    "id": "c2rust",
+    "name": "C2Rust",
+    "remote": "https://github.com/immunant/c2rust.git",
+    "commit_sha": "1d37ebbf4d505c947f20947edc264f47e33ed14b",
+    "default_branch": "master",
+    "retrieved_at": "2026-09-20T12:08:55.4960343Z",
+    "clone_path": ".atlas/temporary/donors/c2rust",
+    "license_files": [
+      "LICENSE"
+    ],
+    "ingestion_status": "CLONED",
+    "census_status": "SKELETON",
+    "runtime_dependency_status": "REFERENCE_ONLY"
+  },
+  {
+    "schema": "atlas.donor-provenance.v1",
+    "id": "crubit",
+    "name": "Crubit",
+    "remote": "https://github.com/google/crubit.git",
+    "commit_sha": "34c96fb368e1a734c06425172f810ca1371eb705",
+    "default_branch": "main",
+    "retrieved_at": "2026-09-20T12:08:55.4960343Z",
+    "clone_path": ".atlas/temporary/donors/crubit",
+    "license_files": [
+      "LICENSE"
+    ],
+    "ingestion_status": "CLONED",
+    "census_status": "SKELETON",
+    "runtime_dependency_status": "REFERENCE_ONLY"
+  },
+  {
+    "schema": "atlas.donor-provenance.v1",
+    "id": "cytoscape-js",
+    "name": "Cytoscape.js",
+    "remote": "https://github.com/cytoscape/cytoscape.js.git",
+    "commit_sha": "7ba634095d8954089ee5dc09ada0030f2dca134c",
+    "default_branch": "unstable",
+    "retrieved_at": "2026-09-20T12:08:55.4960343Z",
+    "clone_path": ".atlas/temporary/donors/cytoscape-js",
+    "license_files": [
+      "LICENSE",
+      "license-update.mjs"
+    ],
+    "ingestion_status": "CLONED",
+    "census_status": "SKELETON",
+    "runtime_dependency_status": "REFERENCE_ONLY"
+  },
+  {
+    "schema": "atlas.donor-provenance.v1",
+    "id": "datafrog",
+    "name": "Datafrog",
+    "remote": "https://github.com/rust-lang/datafrog.git",
+    "commit_sha": "edd7cfc0f5ad3b93ce5bbe6a17848db9376b13c0",
+    "default_branch": "master",
+    "retrieved_at": "2026-09-20T12:08:55.4960343Z",
+    "clone_path": ".atlas/temporary/donors/datafrog",
+    "license_files": [
+      "LICENSE-APACHE",
+      "LICENSE-MIT"
+    ],
+    "ingestion_status": "CLONED",
+    "census_status": "SKELETON",
+    "runtime_dependency_status": "REFERENCE_ONLY"
+  },
+  {
+    "schema": "atlas.donor-provenance.v1",
+    "id": "differential-dataflow",
+    "name": "Differential Dataflow",
+    "remote": "https://github.com/TimelyDataflow/differential-dataflow.git",
+    "commit_sha": "aa8745f93ea8abe131104fc7885ba4fd47e63902",
+    "default_branch": "master",
+    "retrieved_at": "2026-09-20T12:08:55.4960343Z",
+    "clone_path": ".atlas/temporary/donors/differential-dataflow",
+    "license_files": [
+      "LICENSE"
+    ],
+    "ingestion_status": "CLONED",
+    "census_status": "SKELETON",
+    "runtime_dependency_status": "REFERENCE_ONLY"
+  },
+  {
+    "schema": "atlas.donor-provenance.v1",
+    "id": "elkjs",
+    "name": "ELK.js",
+    "remote": "https://github.com/kieler/elkjs.git",
+    "commit_sha": "722f1a3f63016e64f534a8b445283d4d31a88d0e",
+    "default_branch": "master",
+    "retrieved_at": "2026-09-20T12:08:55.4960343Z",
+    "clone_path": ".atlas/temporary/donors/elkjs",
+    "license_files": [
+      "LICENSE.md"
+    ],
+    "ingestion_status": "CLONED",
+    "census_status": "SKELETON",
+    "runtime_dependency_status": "REFERENCE_ONLY"
+  },
+  {
+    "schema": "atlas.donor-provenance.v1",
+    "id": "glean",
+    "name": "Glean",
+    "remote": "https://github.com/facebookincubator/Glean.git",
+    "commit_sha": "2a48dea4cddb316d3b8bd65b54965cb9a7855c52",
+    "default_branch": "main",
+    "retrieved_at": "2026-09-20T12:08:55.4960343Z",
+    "clone_path": ".atlas/temporary/donors/glean",
+    "license_files": [
+      "LICENSE"
+    ],
+    "ingestion_status": "CLONED",
+    "census_status": "SKELETON",
+    "runtime_dependency_status": "REFERENCE_ONLY"
+  },
+  {
+    "schema": "atlas.donor-provenance.v1",
+    "id": "joern",
+    "name": "Joern",
+    "remote": "https://github.com/joernio/joern.git",
+    "commit_sha": "b381922638ae436fcb6862a90241c8f7ce508894",
+    "default_branch": "master",
+    "retrieved_at": "2026-09-20T12:08:55.4960343Z",
+    "clone_path": ".atlas/temporary/donors/joern",
+    "license_files": [
+      "LICENSE"
+    ],
+    "ingestion_status": "CLONED",
+    "census_status": "SKELETON",
+    "runtime_dependency_status": "REFERENCE_ONLY"
+  },
+  {
+    "schema": "atlas.donor-provenance.v1",
+    "id": "kani",
+    "name": "Kani",
+    "remote": "https://github.com/model-checking/kani.git",
+    "commit_sha": "80f3cc98af976a54b9dd0614e877e4d2f1f5a58d",
+    "default_branch": "main",
+    "retrieved_at": "2026-09-20T12:08:55.4960343Z",
+    "clone_path": ".atlas/temporary/donors/kani",
+    "license_files": [
+      "LICENSE-APACHE",
+      "LICENSE-MIT"
+    ],
+    "ingestion_status": "CLONED",
+    "census_status": "SKELETON",
+    "runtime_dependency_status": "REFERENCE_ONLY"
+  },
+  {
+    "schema": "atlas.donor-provenance.v1",
+    "id": "kythe",
+    "name": "Kythe",
+    "remote": "https://github.com/kythe/kythe.git",
+    "commit_sha": "69141f022689a611e8a4a1d9b08a3783a2e8a9ed",
+    "default_branch": "master",
+    "retrieved_at": "2026-09-20T12:08:55.4960343Z",
+    "clone_path": ".atlas/temporary/donors/kythe",
+    "license_files": [
+      "LICENSE"
+    ],
+    "ingestion_status": "CLONED",
+    "census_status": "SKELETON",
+    "runtime_dependency_status": "REFERENCE_ONLY"
+  },
+  {
+    "schema": "atlas.donor-provenance.v1",
+    "id": "miri",
+    "name": "Miri",
+    "remote": "https://github.com/rust-lang/miri.git",
+    "commit_sha": "c63eee41f54d6a4b414af7b22ab717063da0c50a",
+    "default_branch": "master",
+    "retrieved_at": "2026-09-20T12:08:55.4960343Z",
+    "clone_path": ".atlas/temporary/donors/miri",
+    "license_files": [
+      "LICENSE-APACHE",
+      "LICENSE-MIT"
+    ],
+    "ingestion_status": "CLONED",
+    "census_status": "SKELETON",
+    "runtime_dependency_status": "REFERENCE_ONLY"
+  },
+  {
+    "schema": "atlas.donor-provenance.v1",
+    "id": "openrewrite",
+    "name": "OpenRewrite",
+    "remote": "https://github.com/openrewrite/rewrite.git",
+    "commit_sha": "f7372139f62f62a66e5b78d70bbad50aaea7d8ee",
+    "default_branch": "main",
+    "retrieved_at": "2026-09-20T12:08:55.4960343Z",
+    "clone_path": ".atlas/temporary/donors/openrewrite",
+    "license_files": [
+      "LICENSE"
+    ],
+    "ingestion_status": "CLONED",
+    "census_status": "SKELETON",
+    "runtime_dependency_status": "REFERENCE_ONLY"
+  },
+  {
+    "schema": "atlas.donor-provenance.v1",
+    "id": "py2many",
+    "name": "py2many",
+    "remote": "https://github.com/py2many/py2many.git",
+    "commit_sha": "a3c39224e71430bf99057f473c4b4542971daa9d",
+    "default_branch": "main",
+    "retrieved_at": "2026-09-20T12:08:55.4960343Z",
+    "clone_path": ".atlas/temporary/donors/py2many",
+    "license_files": [
+      "LICENSE"
+    ],
+    "ingestion_status": "CLONED",
+    "census_status": "SKELETON",
+    "runtime_dependency_status": "REFERENCE_ONLY"
+  },
+  {
+    "schema": "atlas.donor-provenance.v1",
+    "id": "rust-analyzer",
+    "name": "rust-analyzer",
+    "remote": "https://github.com/rust-lang/rust-analyzer.git",
+    "commit_sha": "aaddfb73fd95f2c0bf001b474dca91ae28bcce3a",
+    "default_branch": "master",
+    "retrieved_at": "2026-09-20T12:08:55.4960343Z",
+    "clone_path": ".atlas/temporary/donors/rust-analyzer",
+    "license_files": [
+      "LICENSE-APACHE",
+      "LICENSE-MIT"
+    ],
+    "ingestion_status": "CLONED",
+    "census_status": "SKELETON",
+    "runtime_dependency_status": "REFERENCE_ONLY"
+  },
+  {
+    "schema": "atlas.donor-provenance.v1",
+    "id": "salsa",
+    "name": "Salsa",
+    "remote": "https://github.com/salsa-rs/salsa.git",
+    "commit_sha": "5d8eaf1fa372a73d44f9b717407de41f19ef59d7",
+    "default_branch": "master",
+    "retrieved_at": "2026-09-20T12:08:55.4960343Z",
+    "clone_path": ".atlas/temporary/donors/salsa",
+    "license_files": [
+      "LICENSE-APACHE",
+      "LICENSE-MIT"
+    ],
+    "ingestion_status": "CLONED",
+    "census_status": "SKELETON",
+    "runtime_dependency_status": "REFERENCE_ONLY"
+  },
+  {
+    "schema": "atlas.donor-provenance.v1",
+    "id": "scip",
+    "name": "SCIP",
+    "remote": "https://github.com/sourcegraph/scip.git",
+    "commit_sha": "4f50fbbd0ed945405cd8a4196af6477ea2a9f8b5",
+    "default_branch": "main",
+    "retrieved_at": "2026-09-20T12:08:55.4960343Z",
+    "clone_path": ".atlas/temporary/donors/scip",
+    "license_files": [
+      "LICENSE"
+    ],
+    "ingestion_status": "CLONED",
+    "census_status": "SKELETON",
+    "runtime_dependency_status": "REFERENCE_ONLY"
+  },
+  {
+    "schema": "atlas.donor-provenance.v1",
+    "id": "semgrep",
+    "name": "Semgrep",
+    "remote": "https://github.com/semgrep/semgrep.git",
+    "commit_sha": "0516c0f23a3dceac5c8f5ff3fecd402af4450182",
+    "default_branch": "develop",
+    "retrieved_at": "2026-09-20T12:08:55.4960343Z",
+    "clone_path": ".atlas/temporary/donors/semgrep",
+    "license_files": [
+      "LICENSE"
+    ],
+    "ingestion_status": "CLONED",
+    "census_status": "SKELETON",
+    "runtime_dependency_status": "REFERENCE_ONLY"
+  },
+  {
+    "schema": "atlas.donor-provenance.v1",
+    "id": "souffle",
+    "name": "Souffle",
+    "remote": "https://github.com/souffle-lang/souffle.git",
+    "commit_sha": "a1303be3c0166400dee3d1f36f0d96abe03e6901",
+    "default_branch": "master",
+    "retrieved_at": "2026-09-20T12:08:55.4960343Z",
+    "clone_path": ".atlas/temporary/donors/souffle",
+    "license_files": [
+      "LICENSE"
+    ],
+    "ingestion_status": "CLONED",
+    "census_status": "SKELETON",
+    "runtime_dependency_status": "REFERENCE_ONLY"
+  },
+  {
+    "schema": "atlas.donor-provenance.v1",
+    "id": "sourcetrail",
+    "name": "Sourcetrail",
+    "remote": "https://github.com/CoatiSoftware/Sourcetrail.git",
+    "commit_sha": "4b1b0e4fd19c4af235fef12b0564c05348f5f6d3",
+    "default_branch": "master",
+    "retrieved_at": "2026-09-20T12:08:55.4960343Z",
+    "clone_path": ".atlas/temporary/donors/sourcetrail",
+    "license_files": [
+      "LICENSE.txt"
+    ],
+    "ingestion_status": "CLONED",
+    "census_status": "SKELETON",
+    "runtime_dependency_status": "REFERENCE_ONLY"
+  },
+  {
+    "schema": "atlas.donor-provenance.v1",
+    "id": "tree-sitter",
+    "name": "Tree-sitter",
+    "remote": "https://github.com/tree-sitter/tree-sitter.git",
+    "commit_sha": "5b951eff4f8b1431e933ed0fe45e48fcd4036a38",
+    "default_branch": "master",
+    "retrieved_at": "2026-09-20T12:08:55.4960343Z",
+    "clone_path": ".atlas/temporary/donors/tree-sitter",
+    "license_files": [
+      "LICENSE"
+    ],
+    "ingestion_status": "CLONED",
+    "census_status": "SKELETON",
+    "runtime_dependency_status": "REFERENCE_ONLY"
+  },
+  {
+    "schema": "atlas.donor-provenance.v1",
+    "id": "verus",
+    "name": "Verus",
+    "remote": "https://github.com/verus-lang/verus.git",
+    "commit_sha": "5f0930a0b820425aa857269070362ddcf7c29672",
+    "default_branch": "main",
+    "retrieved_at": "2026-09-20T12:08:55.4960343Z",
+    "clone_path": ".atlas/temporary/donors/verus",
+    "license_files": [
+      "LICENSE"
+    ],
+    "ingestion_status": "CLONED",
+    "census_status": "SKELETON",
+    "runtime_dependency_status": "REFERENCE_ONLY"
+  },
+  {
+    "schema": "atlas.donor-provenance.v1",
+    "id": "xyflow",
+    "name": "xyflow",
+    "remote": "https://github.com/xyflow/xyflow.git",
+    "commit_sha": "0a1f9575b25679f2880175de8d3eae21aedde921",
+    "default_branch": "main",
+    "retrieved_at": "2026-09-20T12:08:55.4960343Z",
+    "clone_path": ".atlas/temporary/donors/xyflow",
+    "license_files": [
+      "LICENSE"
+    ],
+    "ingestion_status": "CLONED",
+    "census_status": "SKELETON",
+    "runtime_dependency_status": "REFERENCE_ONLY"
+  }
+]
+

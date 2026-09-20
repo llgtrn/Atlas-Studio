@@ -1,0 +1,18 @@
+{
+  "schema": "atlas.donor-provenance.v1",
+  "id": "rust-analyzer",
+  "name": "rust-analyzer",
+  "remote": "https://github.com/rust-lang/rust-analyzer.git",
+  "commit_sha": "aaddfb73fd95f2c0bf001b474dca91ae28bcce3a",
+  "default_branch": "master",
+  "retrieved_at": "2026-09-20T12:08:55.4960343Z",
+  "clone_path": ".atlas/temporary/donors/rust-analyzer",
+  "license_files": [
+    "LICENSE-APACHE",
+    "LICENSE-MIT"
+  ],
+  "ingestion_status": "CLONED",
+  "census_status": "SKELETON",
+  "runtime_dependency_status": "REFERENCE_ONLY"
+}
+

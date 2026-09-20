@@ -1,0 +1,411 @@
+schema = "atlas.donor-corpus.v1"
+runtime_dependency_policy = "REFERENCE_AND_ABSORB_NOT_PERMANENT_RUNTIME_DEPENDENCY"
+
+[[donor]]
+id = "ast-grep"
+name = "ast-grep"
+repository = "ast-grep/ast-grep"
+resolved_url = "https://github.com/ast-grep/ast-grep.git"
+commit_sha = "6175e07b668b388a1a326d8fc543c4856eb5f54b"
+default_branch = "main"
+retrieved_at = "2026-09-20T12:08:55.4960343Z"
+license = [".atlas/licenses/ast-grep/LICENSE"]
+technology_domains = ["structural_search", "structural_rewrite"]
+ingestion_status = "CLONED"
+census_status = "SKELETON"
+decision_status = "PENDING"
+native_replacement = "runtime/refactor structural rewrite primitives"
+runtime_dependency_status = "REFERENCE_ONLY"
+evidence = [".atlas/provenance/donors/ast-grep.json", ".atlas/census/ast-grep.md"]
+
+[[donor]]
+id = "buck2"
+name = "Buck2"
+repository = "facebook/buck2"
+resolved_url = "https://github.com/facebook/buck2.git"
+commit_sha = "78ec517305d8214d6160f6c99b1d0a3554879878"
+default_branch = "main"
+retrieved_at = "2026-09-20T12:08:55.4960343Z"
+license = [".atlas/licenses/buck2/LICENSE-APACHE", ".atlas/licenses/buck2/LICENSE-MIT", ".atlas/licenses/buck2/NOTICE"]
+technology_domains = ["build_graph", "target_identity", "dependency_scheduling"]
+ingestion_status = "CLONED"
+census_status = "SKELETON"
+decision_status = "PENDING"
+native_replacement = "adapter/build and runtime build graph"
+runtime_dependency_status = "REFERENCE_ONLY"
+evidence = [".atlas/provenance/donors/buck2.json", ".atlas/census/buck2.md"]
+
+[[donor]]
+id = "c2rust"
+name = "C2Rust"
+repository = "immunant/c2rust"
+resolved_url = "https://github.com/immunant/c2rust.git"
+commit_sha = "1d37ebbf4d505c947f20947edc264f47e33ed14b"
+default_branch = "master"
+retrieved_at = "2026-09-20T12:08:55.4960343Z"
+license = [".atlas/licenses/c2rust/LICENSE"]
+technology_domains = ["source_translation", "migration_ir"]
+ingestion_status = "CLONED"
+census_status = "SKELETON"
+decision_status = "PENDING"
+native_replacement = "runtime migration planning and semantic preservation"
+runtime_dependency_status = "REFERENCE_ONLY"
+evidence = [".atlas/provenance/donors/c2rust.json", ".atlas/census/c2rust.md"]
+
+[[donor]]
+id = "crubit"
+name = "Crubit"
+repository = "google/crubit"
+resolved_url = "https://github.com/google/crubit.git"
+commit_sha = "34c96fb368e1a734c06425172f810ca1371eb705"
+default_branch = "main"
+retrieved_at = "2026-09-20T12:08:55.4960343Z"
+license = [".atlas/licenses/crubit/LICENSE"]
+technology_domains = ["cxx_rust_interop", "source_translation"]
+ingestion_status = "CLONED"
+census_status = "SKELETON"
+decision_status = "PENDING"
+native_replacement = "adapter/language-interop migration boundary"
+runtime_dependency_status = "REFERENCE_ONLY"
+evidence = [".atlas/provenance/donors/crubit.json", ".atlas/census/crubit.md"]
+
+[[donor]]
+id = "cytoscape-js"
+name = "Cytoscape.js"
+repository = "cytoscape/cytoscape.js"
+resolved_url = "https://github.com/cytoscape/cytoscape.js.git"
+commit_sha = "7ba634095d8954089ee5dc09ada0030f2dca134c"
+default_branch = "unstable"
+retrieved_at = "2026-09-20T12:08:55.4960343Z"
+license = [".atlas/licenses/cytoscape-js/LICENSE", ".atlas/licenses/cytoscape-js/license-update.mjs"]
+technology_domains = ["graph_rendering", "large_graph_interaction"]
+ingestion_status = "CLONED"
+census_status = "SKELETON"
+decision_status = "PENDING"
+native_replacement = "apps/ui graph visualization"
+runtime_dependency_status = "REFERENCE_ONLY"
+evidence = [".atlas/provenance/donors/cytoscape-js.json", ".atlas/census/cytoscape-js.md"]
+
+[[donor]]
+id = "datafrog"
+name = "Datafrog"
+repository = "rust-lang/datafrog"
+resolved_url = "https://github.com/rust-lang/datafrog.git"
+commit_sha = "edd7cfc0f5ad3b93ce5bbe6a17848db9376b13c0"
+default_branch = "master"
+retrieved_at = "2026-09-20T12:08:55.4960343Z"
+license = [".atlas/licenses/datafrog/LICENSE-APACHE", ".atlas/licenses/datafrog/LICENSE-MIT"]
+technology_domains = ["relational_inference", "fixed_point"]
+ingestion_status = "CLONED"
+census_status = "SKELETON"
+decision_status = "PENDING"
+native_replacement = "runtime inference engine"
+runtime_dependency_status = "REFERENCE_ONLY"
+evidence = [".atlas/provenance/donors/datafrog.json", ".atlas/census/datafrog.md"]
+
+[[donor]]
+id = "differential-dataflow"
+name = "Differential Dataflow"
+repository = "TimelyDataflow/differential-dataflow"
+resolved_url = "https://github.com/TimelyDataflow/differential-dataflow.git"
+commit_sha = "aa8745f93ea8abe131104fc7885ba4fd47e63902"
+default_branch = "master"
+retrieved_at = "2026-09-20T12:08:55.4960343Z"
+license = [".atlas/licenses/differential-dataflow/LICENSE"]
+technology_domains = ["differential_computation", "incremental_graph_derivation"]
+ingestion_status = "CLONED"
+census_status = "SKELETON"
+decision_status = "PENDING"
+native_replacement = "runtime incremental graph maintenance"
+runtime_dependency_status = "REFERENCE_ONLY"
+evidence = [".atlas/provenance/donors/differential-dataflow.json", ".atlas/census/differential-dataflow.md"]
+
+[[donor]]
+id = "elkjs"
+name = "ELK.js"
+repository = "kieler/elkjs"
+resolved_url = "https://github.com/kieler/elkjs.git"
+commit_sha = "722f1a3f63016e64f534a8b445283d4d31a88d0e"
+default_branch = "master"
+retrieved_at = "2026-09-20T12:08:55.4960343Z"
+license = [".atlas/licenses/elkjs/LICENSE.md"]
+technology_domains = ["graph_layout", "automatic_layout"]
+ingestion_status = "CLONED"
+census_status = "SKELETON"
+decision_status = "PENDING"
+native_replacement = "apps/ui layout adapter"
+runtime_dependency_status = "REFERENCE_ONLY"
+evidence = [".atlas/provenance/donors/elkjs.json", ".atlas/census/elkjs.md"]
+
+[[donor]]
+id = "glean"
+name = "Glean"
+repository = "facebookincubator/Glean"
+resolved_url = "https://github.com/facebookincubator/Glean.git"
+commit_sha = "2a48dea4cddb316d3b8bd65b54965cb9a7855c52"
+default_branch = "main"
+retrieved_at = "2026-09-20T12:08:55.4960343Z"
+license = [".atlas/licenses/glean/LICENSE"]
+technology_domains = ["source_facts", "cross_reference", "fact_database"]
+ingestion_status = "CLONED"
+census_status = "SKELETON"
+decision_status = "PENDING"
+native_replacement = "core facts and durable fact store"
+runtime_dependency_status = "REFERENCE_ONLY"
+evidence = [".atlas/provenance/donors/glean.json", ".atlas/census/glean.md"]
+
+[[donor]]
+id = "joern"
+name = "Joern"
+repository = "joernio/joern"
+resolved_url = "https://github.com/joernio/joern.git"
+commit_sha = "b381922638ae436fcb6862a90241c8f7ce508894"
+default_branch = "master"
+retrieved_at = "2026-09-20T12:08:55.4960343Z"
+license = [".atlas/licenses/joern/LICENSE"]
+technology_domains = ["code_property_graph", "data_flow", "call_graph"]
+ingestion_status = "CLONED"
+census_status = "SKELETON"
+decision_status = "PENDING"
+native_replacement = "core graph projections"
+runtime_dependency_status = "REFERENCE_ONLY"
+evidence = [".atlas/provenance/donors/joern.json", ".atlas/census/joern.md"]
+
+[[donor]]
+id = "kani"
+name = "Kani"
+repository = "model-checking/kani"
+resolved_url = "https://github.com/model-checking/kani.git"
+commit_sha = "80f3cc98af976a54b9dd0614e877e4d2f1f5a58d"
+default_branch = "main"
+retrieved_at = "2026-09-20T12:08:55.4960343Z"
+license = [".atlas/licenses/kani/LICENSE-APACHE", ".atlas/licenses/kani/LICENSE-MIT"]
+technology_domains = ["model_checking", "proof_constraints"]
+ingestion_status = "CLONED"
+census_status = "SKELETON"
+decision_status = "PENDING"
+native_replacement = "runtime verification/proof engine"
+runtime_dependency_status = "REFERENCE_ONLY"
+evidence = [".atlas/provenance/donors/kani.json", ".atlas/census/kani.md"]
+
+[[donor]]
+id = "kythe"
+name = "Kythe"
+repository = "kythe/kythe"
+resolved_url = "https://github.com/kythe/kythe.git"
+commit_sha = "69141f022689a611e8a4a1d9b08a3783a2e8a9ed"
+default_branch = "master"
+retrieved_at = "2026-09-20T12:08:55.4960343Z"
+license = [".atlas/licenses/kythe/LICENSE"]
+technology_domains = ["semantic_cross_reference", "schema_indexing"]
+ingestion_status = "CLONED"
+census_status = "SKELETON"
+decision_status = "PENDING"
+native_replacement = "source graph symbol identity"
+runtime_dependency_status = "REFERENCE_ONLY"
+evidence = [".atlas/provenance/donors/kythe.json", ".atlas/census/kythe.md"]
+
+[[donor]]
+id = "miri"
+name = "Miri"
+repository = "rust-lang/miri"
+resolved_url = "https://github.com/rust-lang/miri.git"
+commit_sha = "c63eee41f54d6a4b414af7b22ab717063da0c50a"
+default_branch = "master"
+retrieved_at = "2026-09-20T12:08:55.4960343Z"
+license = [".atlas/licenses/miri/LICENSE-APACHE", ".atlas/licenses/miri/LICENSE-MIT"]
+technology_domains = ["undefined_behavior_detection", "rust_execution_semantics"]
+ingestion_status = "CLONED"
+census_status = "SKELETON"
+decision_status = "PENDING"
+native_replacement = "runtime verification evidence adapters"
+runtime_dependency_status = "REFERENCE_ONLY"
+evidence = [".atlas/provenance/donors/miri.json", ".atlas/census/miri.md"]
+
+[[donor]]
+id = "openrewrite"
+name = "OpenRewrite"
+repository = "openrewrite/rewrite"
+resolved_url = "https://github.com/openrewrite/rewrite.git"
+commit_sha = "f7372139f62f62a66e5b78d70bbad50aaea7d8ee"
+default_branch = "main"
+retrieved_at = "2026-09-20T12:08:55.4960343Z"
+license = [".atlas/licenses/openrewrite/LICENSE"]
+technology_domains = ["semantic_recipes", "large_scale_migration", "repeatable_transforms"]
+ingestion_status = "CLONED"
+census_status = "SKELETON"
+decision_status = "PENDING"
+native_replacement = "runtime/refactor recipe and ChangeSet model"
+runtime_dependency_status = "REFERENCE_ONLY"
+evidence = [".atlas/provenance/donors/openrewrite.json", ".atlas/census/openrewrite.md"]
+
+[[donor]]
+id = "py2many"
+name = "py2many"
+repository = "py2many/py2many"
+resolved_url = "https://github.com/py2many/py2many.git"
+commit_sha = "a3c39224e71430bf99057f473c4b4542971daa9d"
+default_branch = "main"
+retrieved_at = "2026-09-20T12:08:55.4960343Z"
+license = [".atlas/licenses/py2many/LICENSE"]
+technology_domains = ["source_translation", "language_conversion"]
+ingestion_status = "CLONED"
+census_status = "SKELETON"
+decision_status = "PENDING"
+native_replacement = "runtime migration planning and semantic preservation"
+runtime_dependency_status = "REFERENCE_ONLY"
+evidence = [".atlas/provenance/donors/py2many.json", ".atlas/census/py2many.md"]
+
+[[donor]]
+id = "rust-analyzer"
+name = "rust-analyzer"
+repository = "rust-lang/rust-analyzer"
+resolved_url = "https://github.com/rust-lang/rust-analyzer.git"
+commit_sha = "aaddfb73fd95f2c0bf001b474dca91ae28bcce3a"
+default_branch = "master"
+retrieved_at = "2026-09-20T12:08:55.4960343Z"
+license = [".atlas/licenses/rust-analyzer/LICENSE-APACHE", ".atlas/licenses/rust-analyzer/LICENSE-MIT"]
+technology_domains = ["rust_semantics", "incremental_analysis", "refactoring"]
+ingestion_status = "CLONED"
+census_status = "SKELETON"
+decision_status = "PENDING"
+native_replacement = "adapter/parser rust semantic boundary"
+runtime_dependency_status = "REFERENCE_ONLY"
+evidence = [".atlas/provenance/donors/rust-analyzer.json", ".atlas/census/rust-analyzer.md"]
+
+[[donor]]
+id = "salsa"
+name = "Salsa"
+repository = "salsa-rs/salsa"
+resolved_url = "https://github.com/salsa-rs/salsa.git"
+commit_sha = "5d8eaf1fa372a73d44f9b717407de41f19ef59d7"
+default_branch = "master"
+retrieved_at = "2026-09-20T12:08:55.4960343Z"
+license = [".atlas/licenses/salsa/LICENSE-APACHE", ".atlas/licenses/salsa/LICENSE-MIT"]
+technology_domains = ["incremental_queries", "dependency_invalidation"]
+ingestion_status = "CLONED"
+census_status = "SKELETON"
+decision_status = "PENDING"
+native_replacement = "runtime incremental query cache"
+runtime_dependency_status = "REFERENCE_ONLY"
+evidence = [".atlas/provenance/donors/salsa.json", ".atlas/census/salsa.md"]
+
+[[donor]]
+id = "scip"
+name = "SCIP"
+repository = "sourcegraph/scip"
+resolved_url = "https://github.com/sourcegraph/scip.git"
+commit_sha = "4f50fbbd0ed945405cd8a4196af6477ea2a9f8b5"
+default_branch = "main"
+retrieved_at = "2026-09-20T12:08:55.4960343Z"
+license = [".atlas/licenses/scip/LICENSE"]
+technology_domains = ["semantic_index_exchange", "symbol_identity"]
+ingestion_status = "CLONED"
+census_status = "SKELETON"
+decision_status = "PENDING"
+native_replacement = "adapter/source-index exchange boundary"
+runtime_dependency_status = "REFERENCE_ONLY"
+evidence = [".atlas/provenance/donors/scip.json", ".atlas/census/scip.md"]
+
+[[donor]]
+id = "semgrep"
+name = "Semgrep"
+repository = "semgrep/semgrep"
+resolved_url = "https://github.com/semgrep/semgrep.git"
+commit_sha = "0516c0f23a3dceac5c8f5ff3fecd402af4450182"
+default_branch = "develop"
+retrieved_at = "2026-09-20T12:08:55.4960343Z"
+license = [".atlas/licenses/semgrep/LICENSE"]
+technology_domains = ["semantic_search", "pattern_matching", "static_analysis"]
+ingestion_status = "CLONED"
+census_status = "SKELETON"
+decision_status = "PENDING"
+native_replacement = "runtime/query semantic pattern projection"
+runtime_dependency_status = "REFERENCE_ONLY"
+evidence = [".atlas/provenance/donors/semgrep.json", ".atlas/census/semgrep.md"]
+
+[[donor]]
+id = "souffle"
+name = "Souffle"
+repository = "souffle-lang/souffle"
+resolved_url = "https://github.com/souffle-lang/souffle.git"
+commit_sha = "a1303be3c0166400dee3d1f36f0d96abe03e6901"
+default_branch = "master"
+retrieved_at = "2026-09-20T12:08:55.4960343Z"
+license = [".atlas/licenses/souffle/LICENSE"]
+technology_domains = ["datalog", "static_analysis", "fixed_point"]
+ingestion_status = "CLONED"
+census_status = "SKELETON"
+decision_status = "PENDING"
+native_replacement = "runtime rule/inference substrate"
+runtime_dependency_status = "REFERENCE_ONLY"
+evidence = [".atlas/provenance/donors/souffle.json", ".atlas/census/souffle.md"]
+
+[[donor]]
+id = "sourcetrail"
+name = "Sourcetrail"
+repository = "CoatiSoftware/Sourcetrail"
+resolved_url = "https://github.com/CoatiSoftware/Sourcetrail.git"
+commit_sha = "4b1b0e4fd19c4af235fef12b0564c05348f5f6d3"
+default_branch = "master"
+retrieved_at = "2026-09-20T12:08:55.4960343Z"
+license = [".atlas/licenses/sourcetrail/LICENSE.txt"]
+technology_domains = ["source_graph_visualization", "symbol_navigation"]
+ingestion_status = "CLONED"
+census_status = "SKELETON"
+decision_status = "PENDING"
+native_replacement = "apps/ui graph and source navigation"
+runtime_dependency_status = "REFERENCE_ONLY"
+evidence = [".atlas/provenance/donors/sourcetrail.json", ".atlas/census/sourcetrail.md"]
+
+[[donor]]
+id = "tree-sitter"
+name = "Tree-sitter"
+repository = "tree-sitter/tree-sitter"
+resolved_url = "https://github.com/tree-sitter/tree-sitter.git"
+commit_sha = "5b951eff4f8b1431e933ed0fe45e48fcd4036a38"
+default_branch = "master"
+retrieved_at = "2026-09-20T12:08:55.4960343Z"
+license = [".atlas/licenses/tree-sitter/LICENSE"]
+technology_domains = ["incremental_parsing", "syntax_trees", "query_languages"]
+ingestion_status = "CLONED"
+census_status = "SKELETON"
+decision_status = "PENDING"
+native_replacement = "adapter/parser SourceParser boundary"
+runtime_dependency_status = "REFERENCE_ONLY"
+evidence = [".atlas/provenance/donors/tree-sitter.json", ".atlas/census/tree-sitter.md"]
+
+[[donor]]
+id = "verus"
+name = "Verus"
+repository = "verus-lang/verus"
+resolved_url = "https://github.com/verus-lang/verus.git"
+commit_sha = "5f0930a0b820425aa857269070362ddcf7c29672"
+default_branch = "main"
+retrieved_at = "2026-09-20T12:08:55.4960343Z"
+license = [".atlas/licenses/verus/LICENSE"]
+technology_domains = ["formal_verification", "proof_oriented_constraints"]
+ingestion_status = "CLONED"
+census_status = "SKELETON"
+decision_status = "PENDING"
+native_replacement = "core constraint/proof model"
+runtime_dependency_status = "REFERENCE_ONLY"
+evidence = [".atlas/provenance/donors/verus.json", ".atlas/census/verus.md"]
+
+[[donor]]
+id = "xyflow"
+name = "xyflow"
+repository = "xyflow/xyflow"
+resolved_url = "https://github.com/xyflow/xyflow.git"
+commit_sha = "0a1f9575b25679f2880175de8d3eae21aedde921"
+default_branch = "main"
+retrieved_at = "2026-09-20T12:08:55.4960343Z"
+license = [".atlas/licenses/xyflow/LICENSE"]
+technology_domains = ["node_editor", "graph_interaction"]
+ingestion_status = "CLONED"
+census_status = "SKELETON"
+decision_status = "PENDING"
+native_replacement = "apps/ui graph interaction"
+runtime_dependency_status = "REFERENCE_ONLY"
+evidence = [".atlas/provenance/donors/xyflow.json", ".atlas/census/xyflow.md"]
+

@@ -1,0 +1,18 @@
+{
+  "schema": "atlas.donor-provenance.v1",
+  "id": "datafrog",
+  "name": "Datafrog",
+  "remote": "https://github.com/rust-lang/datafrog.git",
+  "commit_sha": "edd7cfc0f5ad3b93ce5bbe6a17848db9376b13c0",
+  "default_branch": "master",
+  "retrieved_at": "2026-09-20T12:08:55.4960343Z",
+  "clone_path": ".atlas/temporary/donors/datafrog",
+  "license_files": [
+    "LICENSE-APACHE",
+    "LICENSE-MIT"
+  ],
+  "ingestion_status": "CLONED",
+  "census_status": "SKELETON",
+  "runtime_dependency_status": "REFERENCE_ONLY"
+}
+

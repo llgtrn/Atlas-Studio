@@ -1,26 +1,6 @@
 [workspace]
 resolver = "2"
-members = [
-  "crates/atlas-model",
-  "crates/atlas-source",
-  "crates/atlas-repo",
-  "crates/atlas-fact",
-  "crates/atlas-graph",
-  "crates/atlas-technology",
-  "crates/atlas-design",
-  "crates/atlas-invent",
-  "crates/atlas-oss",
-  "crates/atlas-translate",
-  "crates/atlas-mirror",
-  "crates/atlas-ci",
-  "crates/atlas-docs",
-  "crates/atlas-build",
-  "crates/atlas-refactor",
-  "crates/atlas-fleet",
-  "crates/atlas-proof",
-  "crates/atlas-core",
-  "crates/atlas-cli",
-]
+members = ["core", "runtime", "adapter"]
 
 [workspace.package]
 version = "0.1.0"
