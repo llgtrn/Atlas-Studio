@@ -26,7 +26,11 @@ pub fn systemize(root: impl AsRef<Path>, config: impl AsRef<Path>) -> io::Result
             documents_total:0,
             canonical_frontmatter_total:0,
             missing_frontmatter:vec![],
-            invalid_type:vec![]
+            missing_required_fields:vec![],
+            invalid_type:vec![],
+            duplicate_ids:vec![],
+            superseded_without_successor:vec![],
+            broken_internal_refs:vec![]
         }
     };
     let graph = atlas_graph::summarize(&source);
@@ -38,7 +42,8 @@ pub fn systemize(root: impl AsRef<Path>, config: impl AsRef<Path>) -> io::Result
             schema: repository.schema,
             archetype: repository.archetype,
             ready: repository.ready,
-            missing_required_roots: repository.missing_required_roots,
+            missing_required_roles: repository.missing_required_roles,
+            missing_mapped_paths: repository.missing_mapped_paths,
             forbidden_roots_present: repository.forbidden_roots_present,
         },
         docs,

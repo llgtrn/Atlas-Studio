@@ -43,7 +43,11 @@ pub struct DocsReport {
     pub documents_total: usize,
     pub canonical_frontmatter_total: usize,
     pub missing_frontmatter: Vec<String>,
+    pub missing_required_fields: Vec<String>,
     pub invalid_type: Vec<String>,
+    pub duplicate_ids: Vec<String>,
+    pub superseded_without_successor: Vec<String>,
+    pub broken_internal_refs: Vec<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
@@ -60,7 +64,8 @@ pub struct RepoAuditSummary {
     pub schema: String,
     pub archetype: String,
     pub ready: bool,
-    pub missing_required_roots: Vec<String>,
+    pub missing_required_roles: Vec<String>,
+    pub missing_mapped_paths: Vec<String>,
     pub forbidden_roots_present: Vec<String>,
 }
 
