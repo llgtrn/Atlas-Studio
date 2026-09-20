@@ -6,52 +6,79 @@ canonical: true
 ---
 # Atlas Studio Roadmap
 
-## Now — Genome + Phase 0 foundation
+## Now — Phase 0: strict census + logical ATLAS
 
-### Bulk donor staging
+- keep approved donor batch bulk-staged in `.atlas/temporary/`;
+- implement Genome loader/validator/hash in Rust;
+- implement universal identity/node/edge/binding/state/event/temporal/evidence primitives;
+- implement exhaustive repository inventory;
+- implement Rust self-census first;
+- guarantee every discovered function is represented;
+- implement CFG/call/data/state/effect extraction and explicit dynamic/unknown records;
+- implement multi-engine reconciliation, adversarial gap queries and fixed-point closure;
+- emit CensusCertificate and seal states;
+- implement real typed binary `*.atlas`;
+- implement semantic interning/dedup, function/content hashes, revision deltas and compression;
+- implement logical root manifests, content-addressed shards, lazy fetch and partial materialization;
+- implement federated cross-repo references without competing truth.
 
-Clone the approved compiler/binary donor batch into `.atlas/temporary/` up front, pin SHA/license/provenance, and run coarse census across all of it. Deep census/deepfork then follows dependency order. Remove each donor checkout immediately after its absorbed scopes pass the extinction gate; do not retain a permanent vendor forest.
+## Phase 1 — deterministic AtlasX + delegated product compiler
 
+- `*.atlas → *.atlasx/` selected-design materializer;
+- stable executable repo-shaped AtlasX;
+- Rust backend / TypeScript frontend / bounded C boundary lowering;
+- product lineage, compile/test/benchmark/recensus.
 
-- land Atlas Genome hard requirements and graph contract;
-- implement global stable IDs, node/edge/binding/temporal/evidence primitives in Rust runtime types;
-- finish secure admission and provenance/license handling;
-- implement adaptive census scope engine;
-- deepen source intelligence with code itself plus tests, DeepWiki/docs and scientific/spec evidence;
-- implement real `*.atlas` binary schema, reader/writer, chunk index, integrity and transactional publication;
-- make multi-repository federation a graph projection over sovereign repo partitions.
+## Phase 2 — HIR/MIR semantic optimizer
 
-## Next — Phase 1
+- graph/binding specialization;
+- devirtualization and policy partial evaluation;
+- ownership/lifetime/region/escape/alias analysis;
+- data layout/locality;
+- concurrency/conflict scheduling;
+- classic scalar/control/loop optimization;
+- semantics-preserving barriers for authority/state/evidence/temporal/safety.
 
-- deterministic `*.atlas → *.atlasx/` materializer;
-- stable ATLASX repo tree and typed units;
-- Rust backend, TypeScript frontend and bounded C-ABI lowering;
-- compile/test/benchmark/recensus loop;
-- differential graph-to-code verification.
+## Phase 3 — external native backends
 
-## Then — Phase 2
+- LIR;
+- LLVM/Cranelift/WASM and accelerator paths;
+- stable Atlas ABI/object layout;
+- vectorization/SIMD and target specialization;
+- Rust reference path retained.
 
-- typed Atlas HIR/MIR;
-- ownership/effect/temporal/concurrency analysis;
-- semantic optimizer;
-- optimized Rust/TS/C reference emission.
+## Phase 4 — Atlas native backend
 
-## Then — Phase 3
+- Machine IR;
+- instruction selection;
+- register allocation/spilling;
+- stack/calling convention;
+- scheduling;
+- object emission;
+- x86-64, ARM64, then justified targets;
+- native linker/object tooling only when sequencing supports it.
 
-- Atlas LIR;
-- LLVM/Cranelift/WASM backends;
-- stable Atlas ABI;
-- native execution without Rust source as mandatory intermediate;
-- Rust path retained for audit/reference/differential proof.
+## Production optimization lane
 
-## Then — Phase 4
+Across mature phases:
 
-- Atlas Machine IR;
-- x86-64 backend;
-- register allocation, instruction selection/scheduling and object emission;
-- ARM64, then other targets as justified;
-- hardware-aware whole-system specialization.
+```text
+AtlasX
++ DeploymentProfile
++ HardwareProfile
++ WorkloadProfile
+→ world/graph optimize
+→ IR optimize
+→ target codegen
+→ LTO
+→ link
+→ post-link optimize
+→ product
+→ runtime profile
+→ PGO / auto-tuning
+→ evidence back into Atlas
+```
 
-## Throughout
+## UI
 
-World Canvas evolves as a semantic map over the same graph with level-of-detail from federation/repository down to semantic atom. No compiler phase, UI, donor or generated repo may create a competing graph universe.
+World Canvas remains later than semantic/compiler foundations. It is a projection over the same graph and supports zoom from federation to semantic atom without owning truth.
