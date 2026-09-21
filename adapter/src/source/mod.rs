@@ -4,9 +4,14 @@ use atlas_core::{
 };
 
 pub mod frontend;
+pub mod semantic;
 
 pub use frontend::{
     SourceFrontend, SourceFrontendMatch, resolve_source_frontend, source_frontends,
+};
+pub use semantic::{
+    SemanticExtractionBatch, SemanticExtractionError, SemanticExtractor, SemanticObligationCoverage,
+    SemanticSourceUnit,
 };
 use std::{
     collections::BTreeMap,
