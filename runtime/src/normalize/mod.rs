@@ -162,7 +162,7 @@ pub fn normalize(census: &CensusReport) -> NormalizationReport {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use atlas_core::{Provenance, SemanticFactKind};
+    use atlas_core::{Provenance, RevisionRef, SemanticFactKind};
 
     fn fact(id: &str, object: &str, extractor: &str) -> SemanticFact {
         SemanticFact {
@@ -224,6 +224,33 @@ mod tests {
         assert_eq!(report.facts[0].id, report.facts[1].id);
         assert_eq!(report.equivalence_classes_total, 1);
         assert_eq!(report.duplicate_observations_total, 1);
+    }
+
+    #[test]
+    fn identical_propositions_from_different_revisions_do_not_share_identity() {
+        let mut first = fact("raw:one", "Compile", "extractor:one");
+        first.provenance.source_revision = Some(RevisionRef {
+            kind: "git".into(),
+            value: "revision-a".into(),
+        });
+        let mut second = fact("raw:two", "Compile", "extractor:two");
+        second.provenance.source_revision = Some(RevisionRef {
+            kind: "git".into(),
+            value: "revision-b".into(),
+        });
+        let census = CensusReport {
+            schema: "test".into(),
+            artifacts_total: 0,
+            artifacts_accounted_total: 0,
+            facts_total: 2,
+            coverage: BTreeMap::new(),
+            facts: vec![first, second],
+        };
+
+        let report = normalize(&census);
+        assert!(report.is_closed());
+        assert_ne!(report.facts[0].id, report.facts[1].id);
+        assert_eq!(report.equivalence_classes_total, 2);
     }
 
     #[test]
