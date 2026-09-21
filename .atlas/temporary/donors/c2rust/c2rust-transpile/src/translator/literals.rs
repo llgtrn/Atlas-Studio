@@ -1,0 +1,413 @@
+#![deny(missing_docs)]
+//! This code is used to generate literal expressions of various kinds.
+//! These include integer, floating, array, struct, union, enum literals.
+
+use super::*;
+use failure::format_err;
+use std::iter;
+use syn::{Path, TypePath};
+
+impl<'c> Translation<'c> {
+    /// Generate an integer literal corresponding to the given type, value, and base.
+    pub fn mk_int_lit(
+        &self,
+        ctx: ExprContext,
+        ty: CQualTypeId,
+        val: u64,
+        base: IntBase,
+        negative: bool,
+    ) -> TranslationResult<Box<Expr>> {
+        let target_ty = self.convert_type(ty.ctype)?;
+        let suffix = numeric_literal_suffix(&target_ty);
+        let is_suffix = suffix.is_some();
+
+        let mut lit_str = match base {
+            IntBase::Dec => format!("{val}"),
+            IntBase::Hex => format!("0x{val:x}"),
+            IntBase::Oct => format!("0o{val:o}"),
+        };
+
+        if let Some(suffix) = suffix {
+            lit_str.push_str(&suffix);
+        }
+
+        let mut expr = mk().lit_expr(mk().float_unsuffixed_lit(&lit_str));
+
+        if negative {
+            expr = neg_expr(expr);
+        }
+
+        Ok(if is_suffix || ctx.is_pattern {
+            expr
+        } else {
+            mk().cast_expr(expr, target_ty)
+        })
+    }
+
+    /// Return whether the literal can be directly translated as this type.
+    pub fn literal_matches_ty(&self, lit: &CLiteral, ty: CQualTypeId, is_negated: bool) -> bool {
+        let ty_kind = &self.ast_context.resolve_type(ty.ctype).kind;
+        match *lit {
+            CLiteral::Integer(value, _) | CLiteral::Character(value)
+                if ty_kind.is_integral_type() && !ty_kind.is_bool() =>
+            {
+                ty_kind.guaranteed_integer_in_range(value)
+                    && (!is_negated || ty_kind.is_signed_integral_type())
+            }
+            CLiteral::Floating(value, _) if ty_kind.is_floating_type() => {
+                ty_kind.guaranteed_float_in_range(value)
+            }
+            _ => false,
+        }
+    }
+
+    /// Convert a C literal expression to a Rust expression
+    pub fn convert_literal(
+        &self,
+        ctx: ExprContext,
+        ty: CQualTypeId,
+        lit: &CLiteral,
+    ) -> TranslationResult<WithStmts<Box<Expr>>> {
+        match *lit {
+            CLiteral::Integer(val, base) => Ok(WithStmts::new_val(
+                self.mk_int_lit(ctx, ty, val, base, false)?,
+            )),
+
+            CLiteral::Character(val) => {
+                let val = val as u32;
+                let mut expr = match char::from_u32(val).filter(|_| {
+                    // Always convert character literals as integers in patterns.
+                    // Character literals have problems with typing that need to be resolved. See
+                    // https://github.com/immunant/c2rust/issues/648
+                    !ctx.is_pattern
+                }) {
+                    Some(c) => mk().lit_expr(c),
+                    None => {
+                        // Fallback for characters outside of the valid Unicode range
+                        if (val as i32) < 0 {
+                            neg_expr(mk().lit_expr(
+                                mk().int_unsuffixed_lit((val as i32).unsigned_abs() as u128),
+                            ))
+                        } else {
+                            mk().lit_expr(mk().int_unsuffixed_lit(val as u128))
+                        }
+                    }
+                };
+
+                if !ctx.is_pattern {
+                    let type_rs = self.convert_type(ty.ctype)?;
+                    expr = mk().cast_expr(expr, type_rs);
+                }
+
+                Ok(WithStmts::new_val(expr))
+            }
+
+            CLiteral::Floating(val, ref c_str) => {
+                let str = if c_str.is_empty() {
+                    let mut buffer = dtoa::Buffer::new();
+                    buffer.format(val).to_string()
+                } else {
+                    c_str.to_owned()
+                };
+                let val = match self.ast_context.resolve_type(ty.ctype).kind {
+                    CTypeKind::LongDouble | CTypeKind::Float128 => {
+                        if ctx.is_const {
+                            return Err(format_translation_err!(
+                                None,
+                                "f128 cannot be used in constants because `f128::f128::new` is not `const`",
+                            ));
+                        }
+
+                        self.use_crate(ExternCrate::F128);
+
+                        let fn_path = mk().abs_path_expr(vec!["f128", "f128", "new"]);
+                        let args = vec![mk().lit_expr(mk().float_unsuffixed_lit(&str))];
+
+                        mk().call_expr(fn_path, args)
+                    }
+                    CTypeKind::Double => mk().lit_expr(mk().float_lit(&str, "f64")),
+                    CTypeKind::Float => mk().lit_expr(mk().float_lit(&str, "f32")),
+                    ref k => panic!("Unsupported floating point literal type {:?}", k),
+                };
+                Ok(WithStmts::new_val(val))
+            }
+
+            CLiteral::String(ref bytes, element_size) => {
+                if ctx.is_pattern {
+                    return Err(TranslationError::generic(
+                        "CLiteral::String is not supported in patterns",
+                    ));
+                }
+
+                let bytes_padded = self.string_literal_bytes(ty.ctype, bytes, element_size);
+                let len = bytes_padded.len();
+                let val = mk().lit_expr(bytes_padded);
+
+                if ctx.needs_address && element_size == 1 {
+                    // Unlike in C, Rust string literals are already references by default.
+                    // So if the address needs to be taken, just make a bare literal and let
+                    // `convert_address_of_common` cast it to the appropriate type.
+                    // Strings with element_size > 1 cannot be cast from a byte literal for
+                    // alignment reasons, and need a transmute.
+                    Ok(WithStmts::new_val(val))
+                } else {
+                    // std::mem::transmute::<[u8; size], ctype>(*b"xxxx")
+                    let array_ty = mk().array_ty(mk().ident_ty("u8"), mk().lit_expr(len as u128));
+                    let val = transmute_expr(
+                        array_ty,
+                        self.convert_type(ty.ctype)?,
+                        mk().unary_expr(UnOp::Deref(Default::default()), val),
+                    );
+
+                    // A transmute creates a temporary, which cannot have its address taken without
+                    // creating dangling pointers. Wrap it inside an inline `const` block, so that
+                    // it will be const-promoted to 'static.
+                    if ctx.needs_address {
+                        self.use_feature("inline_const");
+                        // An inline `const` block is its own safety context and does not inherit
+                        // the surrounding `unsafe`, so the transmute needs an explicit `unsafe`
+                        // block inside the const block rather than relying on `set_unsafe`.
+                        let unsafe_transmute = mk().unsafe_block_expr(vec![mk().expr_stmt(val)]);
+                        let stmts = vec![mk().expr_stmt(unsafe_transmute)];
+                        let val = mk().const_block_expr(mk().const_block(stmts));
+                        Ok(WithStmts::new_val(val))
+                    } else {
+                        Ok(WithStmts::new_val(val).set_unsafe())
+                    }
+                }
+            }
+        }
+    }
+
+    /// Returns the bytes of a string literal, including any additional zero bytes to pad the
+    /// literal to the expected size.
+    pub fn string_literal_bytes(&self, ctype: CTypeId, bytes: &[u8], element_size: u8) -> Vec<u8> {
+        let size = self.ast_context.array_len(ctype) * element_size as usize;
+        let mut bytes_padded = Vec::with_capacity(size);
+        bytes_padded.extend(bytes);
+        bytes_padded.resize(size, 0);
+        bytes_padded
+    }
+
+    /// Convert a C compound literal expression to a Rust expression.
+    pub fn convert_compound_literal(
+        &self,
+        ctx: ExprContext,
+        qty: CQualTypeId,
+        val: CExprId,
+        override_ty: Option<CQualTypeId>,
+    ) -> TranslationResult<WithStmts<Box<Expr>>> {
+        // C compound literals are lvalues, but equivalent Rust expressions generally are not.
+        // So if an address is needed, store it in an intermediate variable first.
+        if !ctx.needs_address || ctx.expanding_macro.is_some() {
+            return self.convert_expr(ctx, val, override_ty);
+        }
+
+        let fresh_name = self
+            .renamer
+            .borrow_mut()
+            .pick_name("c2rust_lvalue", Namespaces::values());
+        let fresh_ty = self.convert_type(override_ty.unwrap_or(qty).ctype)?;
+
+        // Translate the expression to be assigned to the fresh variable.
+        // It will be assigned by value, so we don't need its address anymore.
+        let val = self.convert_expr(ctx.not_needs_address(), val, override_ty)?;
+
+        // If we are translating a static variable,
+        // then the fresh variable should also be static.
+        if ctx.is_static {
+            Ok(val.wrap_unsafe().and_then(|val| {
+                let item = mk().mutbl().static_item(&fresh_name, fresh_ty, val);
+                let fresh_stmt = mk().item_stmt(item);
+
+                WithStmts::new(vec![fresh_stmt], mk().ident_expr(fresh_name))
+                    // Accessing a static variable is unsafe.
+                    // In the current nightly, this applies also to taking a raw pointer,
+                    // but this requirement was removed in later versions of the
+                    // `raw_ref_op` feature.
+                    .merge_unsafe(self.tcfg.edition < Edition2024)
+            }))
+        } else {
+            Ok(val.and_then(|val| {
+                let local = mk().local(
+                    mk().set_mutbl(qty.mutability()).ident_pat(&fresh_name),
+                    Some(fresh_ty),
+                    Some(val),
+                );
+                let fresh_stmt = mk().local_stmt(Box::new(local));
+                WithStmts::new(vec![fresh_stmt], mk().ident_expr(fresh_name))
+            }))
+        }
+    }
+
+    /// Convert an initialization list into an expression. These initialization lists can be
+    /// used as array literals, struct literals, and union literals in code.
+    pub fn convert_init_list(
+        &self,
+        ctx: ExprContext,
+        expected_type_id: Option<CQualTypeId>,
+        result_type_id: CQualTypeId,
+        ids: &[CExprId],
+        opt_union_field_id: Option<CFieldId>,
+    ) -> TranslationResult<WithStmts<Box<Expr>>> {
+        let result_type_id = expected_type_id.unwrap_or(result_type_id);
+
+        match self.ast_context.resolve_type(result_type_id.ctype).kind {
+            CTypeKind::ConstantArray(element_type_id, n) => {
+                // Convert all of the provided initializer values
+
+                let to_array_element = |id: CExprId| -> TranslationResult<_> {
+                    let val =
+                        self.convert_expr(ctx.used(), id, Some(CQualTypeId::new(element_type_id)))?;
+                    val.try_map(|x| {
+                        // Array literals require all of their elements to be
+                        // the correct type; they will not use implicit casts to
+                        // change mut to const. This becomes a problem when an
+                        // array literal is used in a position where there is no
+                        // type information available to force its type to the
+                        // correct const or mut variation. To avoid this issue
+                        // we manually insert the otherwise elided casts in this
+                        // particular context.
+                        if let CExprKind::ImplicitCast(ty, _, CastKind::ConstCast, _, _) =
+                            self.ast_context.index_unwrap_parens(id).kind
+                        {
+                            let t = self.convert_type(ty.ctype)?;
+                            Ok(mk().cast_expr(x, t))
+                        } else {
+                            Ok(x)
+                        }
+                    })
+                };
+
+                // We need to handle the 4 cases in `str_init.c` with identical initializers:
+                // * `ptr_extra_braces`
+                // * `array_extra_braces`
+                // * `array_of_ptrs`
+                // * `array_of_arrays`
+                // All 4 have different types, but the same initializer,
+                // which is possible because C allows extra braces around any initializer element.
+                // For non-string literal elements, the clang AST already fixes this up,
+                // but doesn't for string literals, so we need to handle them specially.
+                // The existing logic below this special case handles all except `array_extra_braces`.
+                // `array_extra_braces` is uniquely identified by:
+                // * there being only one element in the initializer list
+                // * the element type of the array being `CTypeKind::Char` (w/o this, `array_of_arrays` is included)
+                // * the expr kind being a string literal (`CExprKind::Literal` of a `CLiteral::String`).
+                let is_string_literal = |id: CExprId| {
+                    let ty_kind = &self.ast_context.resolve_type(element_type_id).kind;
+                    let id = self.ast_context.unwrap_constant_expr(id);
+                    let expr_kind = &self.ast_context.index_unwrap_parens(id).kind;
+                    let is_char_array = matches!(*ty_kind, CTypeKind::Char);
+                    let is_str_literal =
+                        matches!(*expr_kind, CExprKind::Literal(_, CLiteral::String { .. }));
+                    is_char_array && is_str_literal
+                };
+
+                let is_zero_literal = |id: CExprId| {
+                    let id = self.ast_context.unwrap_constant_expr(id);
+                    matches!(
+                        self.ast_context.index_unwrap_parens(id).kind,
+                        CExprKind::Literal(_, CLiteral::Integer(0, _base))
+                    )
+                };
+
+                match ids {
+                    [] => {
+                        // This was likely a C array of the form `int x[16] = {}`.
+                        // We'll emit that as [0; 16].
+                        let len = mk().lit_expr(mk().int_unsuffixed_lit(n as u128));
+                        let zeroed = self.implicit_default_expr(ctx, element_type_id)?;
+                        Ok(zeroed.map(|default_value| mk().repeat_expr(default_value, len)))
+                    }
+                    &[single] if is_string_literal(single) => {
+                        // See comment on `is_string_literal`.
+                        // This detects these cases from `str_init.c`:
+                        // * `ptr_extra_braces`
+                        // * `array_of_ptrs`
+                        // * `array_of_arrays`
+                        self.convert_expr(ctx.used(), single, expected_type_id)
+                    }
+                    &[single] if is_zero_literal(single) && n > 1 => {
+                        // This was likely a C array of the form `int x[16] = { 0 }`.
+                        // We'll emit that as [0; 16].
+                        let len = mk().lit_expr(mk().int_unsuffixed_lit(n as u128));
+                        Ok(to_array_element(single)?
+                            .map(|default_value| mk().repeat_expr(default_value, len)))
+                    }
+                    [..] => {
+                        Ok(ids
+                            .iter()
+                            .copied()
+                            .map(to_array_element)
+                            .chain(
+                                // Pad out the array literal with default values to the desired size
+                                iter::repeat(self.implicit_default_expr(ctx, element_type_id))
+                                    .take(n - ids.len()),
+                            )
+                            .collect::<TranslationResult<WithStmts<_>>>()?
+                            .map(|vals| mk().array_expr(vals)))
+                    }
+                }
+            }
+            CTypeKind::Struct(struct_id) => {
+                self.convert_struct_literal(ctx, struct_id, ids.as_ref())
+            }
+            CTypeKind::Union(union_id) => self.convert_union_literal(
+                ctx,
+                union_id,
+                ids.as_ref(),
+                result_type_id,
+                opt_union_field_id,
+            ),
+            CTypeKind::Vector(CQualTypeId { ctype, .. }, len) => {
+                self.vector_list_initializer(ctx, ids, ctype, len)
+            }
+            ref kind if kind.is_scalar() => {
+                if let Some(&first) = ids.first() {
+                    self.convert_expr(ctx.used(), first, expected_type_id)
+                } else {
+                    self.implicit_default_expr(ctx.used(), result_type_id.ctype)
+                }
+            }
+            ref t => Err(format_err!("Init list not implemented for {:?}", t).into()),
+        }
+    }
+}
+
+fn numeric_literal_suffix(ty: &Type) -> Option<String> {
+    let Type::Path(TypePath {
+        path: Path { segments, .. },
+        ..
+    }) = ty
+    else {
+        return None
+    };
+
+    if segments.len() != 1 {
+        return None;
+    }
+
+    let segment = &segments[0];
+
+    if !segment.arguments.is_none() {
+        return None;
+    }
+
+    let name = segment.ident.to_string();
+
+    matches!(
+        name.as_str(),
+        "i8" | "i16"
+            | "i32"
+            | "i64"
+            | "i128"
+            | "isize"
+            | "u8"
+            | "u16"
+            | "u32"
+            | "u64"
+            | "u128"
+            | "usize"
+    )
+    .then_some(name)
+}

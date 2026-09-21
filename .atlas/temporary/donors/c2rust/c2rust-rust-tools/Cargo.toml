@@ -1,0 +1,18 @@
+[package]
+name = "c2rust-rust-tools"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+description = "Utilities for running Rust tooling on c2rust output"
+readme.workspace = true
+homepage.workspace = true
+repository.workspace = true
+license.workspace = true
+keywords.workspace = true
+categories.workspace = true
+
+[dependencies]
+fs-err = "3.3.0"
+itertools = "0.14.0"
+log = "=0.4.28" # "0.4.29" requires Rust 1.68

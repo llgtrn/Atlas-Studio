@@ -1,0 +1,180 @@
+---
+source: c2rust-transpile/tests/snapshots.rs
+expression: cat tests/snapshots/arrays.2024.clang15.rs
+---
+#![allow(
+    clippy::missing_safety_doc,
+    dead_code,
+    non_camel_case_types,
+    non_snake_case,
+    non_upper_case_globals,
+    unsafe_op_in_unsafe_fn,
+    unused_assignments,
+    unused_mut
+)]
+unsafe extern "C" {
+    static mut my_array: [::core::ffi::c_int; 1];
+    static mut my_indexes: [::core::ffi::c_int; 1];
+    unsafe fn my_index() -> ::core::ffi::c_ulong;
+    static mut funcs: [Option<unsafe extern "C" fn() -> ()>; 1];
+}
+pub type ptrdiff_t = isize;
+pub type size_t = usize;
+pub type int_t = ::core::ffi::c_int;
+#[derive(Copy, Clone)]
+#[repr(C)]
+pub struct C2Rust_Unnamed {
+    pub y: ::core::ffi::c_int,
+}
+#[derive(Copy, Clone)]
+#[repr(C)]
+pub struct C2Rust_Unnamed_0 {
+    pub x: *mut ::core::ffi::c_char,
+    pub y: ::core::ffi::c_int,
+}
+#[derive(Copy, Clone)]
+#[repr(C)]
+pub struct C2Rust_Unnamed_1 {
+    pub x: ::core::ffi::c_short,
+    pub y: ::core::ffi::c_int,
+}
+#[derive(Copy, Clone)]
+#[repr(C)]
+pub struct C2Rust_Unnamed_2 {
+    pub x: ::core::ffi::c_short,
+    pub y: ::core::ffi::c_int,
+}
+#[unsafe(no_mangle)]
+pub static mut static_char_array: [::core::ffi::c_char; 9] =
+    unsafe { ::core::mem::transmute::<[u8; 9], [::core::ffi::c_char; 9]>(*b"mystring\0") };
+#[unsafe(no_mangle)]
+pub static mut static_char_ptr: *mut ::core::ffi::c_char =
+    b"mystring\0".as_ptr() as *const ::core::ffi::c_char as *mut ::core::ffi::c_char;
+#[unsafe(no_mangle)]
+pub static mut static_void_ptr: *mut ::core::ffi::c_void =
+    &raw const static_char_array as *mut ::core::ffi::c_char as *mut ::core::ffi::c_void;
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn entry() {
+    let mut int_2d: [[::core::ffi::c_int; 1]; 1] = [[1 as ::core::ffi::c_int]];
+    int_2d[0usize][0usize] += 9 as ::core::ffi::c_int;
+    let mut int_empty_init: [::core::ffi::c_int; 16] = [0; 16];
+    int_empty_init[15usize] += 9 as ::core::ffi::c_int;
+    let mut int_too_long: [::core::ffi::c_int; 2] =
+        [1 as ::core::ffi::c_int, 2 as ::core::ffi::c_int];
+    let mut int_zero: [::core::ffi::c_int; 0] = [0; 0];
+    let mut int_too_short: [::core::ffi::c_int; 16] = [0 as ::core::ffi::c_int; 16];
+    int_too_short[15usize] += 9 as ::core::ffi::c_int;
+    let mut expected_type: [int_t; 1] = [1 as int_t];
+    let mut expected_type_neg: [int_t; 1] = [-1 as int_t];
+    let mut struct_init_too_short: [C2Rust_Unnamed_0; 1] = [C2Rust_Unnamed_0 {
+        x: ::core::ptr::null_mut::<::core::ffi::c_char>(),
+        y: 0,
+    }; 1];
+    struct_init_too_short[0usize].y += 9 as ::core::ffi::c_int;
+    let mut struct_init_too_long: [C2Rust_Unnamed; 1] = [C2Rust_Unnamed {
+        y: 1 as ::core::ffi::c_int,
+    }];
+    struct_init_too_long[0usize].y += 9 as ::core::ffi::c_int;
+    let mut char_with_string: [::core::ffi::c_char; 4] =
+        ::core::mem::transmute::<[u8; 4], [::core::ffi::c_char; 4]>(*b"abc\0");
+    let mut char_with_chars: [::core::ffi::c_char; 3] = [
+        'd' as ::core::ffi::c_char,
+        'e' as ::core::ffi::c_char,
+        'f' as ::core::ffi::c_char,
+    ];
+    let mut char_with_ints: [::core::ffi::c_char; 2] = [1 as ::core::ffi::c_char, 0];
+    let mut char_with_init: [::core::ffi::c_char; 5] =
+        ::core::mem::transmute::<[u8; 5], [::core::ffi::c_char; 5]>(*b"abcd\0");
+    let mut char_too_long: [::core::ffi::c_char; 3] =
+        ::core::mem::transmute::<[u8; 3], [::core::ffi::c_char; 3]>(*b"abc");
+    let mut char_too_short: [::core::ffi::c_char; 20] =
+        ::core::mem::transmute::<[u8; 20], [::core::ffi::c_char; 20]>(
+            *b"abc\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0",
+        );
+    let mut int_var_ptr: *mut ::core::ffi::c_int =
+        &raw mut int_empty_init as *mut ::core::ffi::c_int;
+    let mut int_var_array_ptr: *mut [::core::ffi::c_int; 16] = &raw mut int_empty_init;
+    let mut char_var_ptr: *mut ::core::ffi::c_char =
+        &raw mut char_with_string as *mut ::core::ffi::c_char;
+    let mut char_var_array_ptr: *mut [::core::ffi::c_char; 4] = &raw mut char_with_string;
+    let mut const_char_lit_ptr: *const ::core::ffi::c_char =
+        b"abc\0".as_ptr() as *const ::core::ffi::c_char;
+    let mut const_char_lit_array_ptr: *const [::core::ffi::c_char; 4] =
+        b"abc\0" as *const [u8; 4] as *const [::core::ffi::c_char; 4];
+    let mut char_lit_ptr: *mut ::core::ffi::c_char =
+        b"abc\0".as_ptr() as *const ::core::ffi::c_char as *mut ::core::ffi::c_char;
+    let mut char_lit_array_ptr: *mut [::core::ffi::c_char; 4] = b"abc\0" as *const [u8; 4]
+        as *const [::core::ffi::c_char; 4]
+        as *mut [::core::ffi::c_char; 4];
+    let mut past_end: *mut ::core::ffi::c_char = (&raw mut static_char_array
+        as *mut ::core::ffi::c_char)
+        .offset(::core::mem::size_of::<[::core::ffi::c_char; 9]>() as isize);
+    past_end = static_char_ptr.offset(8isize);
+}
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn short_initializer() {
+    let mut empty_brackets: [::core::ffi::c_int; 16] = [0; 16];
+    let mut brackets_with_zero: [::core::ffi::c_int; 16] = [0 as ::core::ffi::c_int; 16];
+    let mut brackets_with_one: [::core::ffi::c_int; 4] = [1 as ::core::ffi::c_int, 0, 0, 0];
+    let mut excess_elements_1: [::core::ffi::c_int; 2] =
+        [1 as ::core::ffi::c_int, 2 as ::core::ffi::c_int];
+    let mut excess_elements_2: [::core::ffi::c_int; 0] = [0; 0];
+    let mut single_struct: [C2Rust_Unnamed_2; 1] = [C2Rust_Unnamed_2 {
+        x: 1 as ::core::ffi::c_short,
+        y: 2 as ::core::ffi::c_int,
+    }];
+    let mut many_struct: [C2Rust_Unnamed_1; 3] = [
+        C2Rust_Unnamed_1 {
+            x: 1 as ::core::ffi::c_short,
+            y: 2 as ::core::ffi::c_int,
+        },
+        C2Rust_Unnamed_1 { x: 0, y: 0 },
+        C2Rust_Unnamed_1 { x: 0, y: 0 },
+    ];
+}
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn variable_length() {
+    let mut length: size_t = 5 as size_t;
+    let vla = length as usize;
+    let mut arr: Vec<::core::ffi::c_int> = ::std::vec::from_elem(0, vla);
+    let mut size: size_t = vla * ::core::mem::size_of::<::core::ffi::c_int>();
+    let mut i: size_t = 0 as size_t;
+    while i < length {
+        *arr.as_mut_ptr().offset(i as isize) = i as ::core::ffi::c_int;
+        i = i.wrapping_add(1);
+    }
+    let vla_0 = 2 as ::core::ffi::c_int as usize;
+    let vla_1 = length as usize;
+    let mut nested: Vec<::core::ffi::c_int> = ::std::vec::from_elem(0, vla_0 * vla_1);
+    let mut nested_size: size_t = vla_0 * vla_1 * ::core::mem::size_of::<::core::ffi::c_int>();
+    let mut i_0: size_t = 0 as size_t;
+    while i_0 < length {
+        *nested
+            .as_mut_ptr()
+            .offset(0isize * vla_1 as isize)
+            .offset(i_0 as isize) = i_0 as ::core::ffi::c_int;
+        *nested
+            .as_mut_ptr()
+            .offset(1isize * vla_1 as isize)
+            .offset(i_0 as isize) = i_0 as ::core::ffi::c_int;
+        i_0 = i_0.wrapping_add(1);
+    }
+    let vla_2 = length as usize;
+    let mut first: *mut ::core::ffi::c_int =
+        nested.as_mut_ptr().offset(1isize * vla_1 as isize) as *mut ::core::ffi::c_int;
+    let vla_3 = length as usize;
+    let mut second: *mut ::core::ffi::c_int =
+        first.offset(1 as ::core::ffi::c_int as isize * vla_2 as isize) as *mut ::core::ffi::c_int;
+    let mut diff: ptrdiff_t = second.offset_from(first) / vla_2 as isize;
+}
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn addr_of_subscript() {
+    let mut array: *mut ::core::ffi::c_int =
+        (&raw mut my_array as *mut ::core::ffi::c_int).offset(my_indexes[0usize] as isize);
+    let mut call: *mut ::core::ffi::c_int =
+        (&raw mut my_array as *mut ::core::ffi::c_int).offset(my_index() as isize);
+}
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn func_ptr_array() {
+    Some(funcs[0usize].expect("non-null function pointer")).expect("non-null function pointer")();
+}

@@ -1,0 +1,34 @@
+requirements:
+  ubuntu:
+    apt:
+      packages:
+        - libbrotli-dev
+        - libidn2-dev
+        - libldap2-dev
+        - libnghttp2-dev
+        - libpsl-dev
+        - librtmp-dev
+        - libzstd-dev
+
+transpile:
+  autogen: true
+  tflags: --reorganize-definitions --disable-refactoring
+  binary: tool_main
+
+cargo.transpile:
+  autogen: true
+
+refactor:
+  autogen: true
+  transforms:
+    - rename_unnamed
+    - reorganize_definitions
+    - shorten_imported_paths
+    - remove_unused_labels
+    - remove_redundant_casts
+    - remove_literal_suffixes
+    - convert_cast_as_ptr
+    - remove_unnecessary_refs
+
+cargo.refactor:
+  autogen: true

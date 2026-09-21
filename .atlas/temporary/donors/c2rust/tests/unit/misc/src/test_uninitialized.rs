@@ -1,0 +1,41 @@
+//! feature_raw_ref_op
+
+use crate::uninitialized::{e, rust_entry2, s, /*myint, myintp,*/ u};
+use std::ffi::{c_int, c_uint};
+
+unsafe extern "C" {
+    fn entry2(_: c_uint, _: *mut c_int);
+}
+
+const BUFFER_SIZE: usize = 1;
+
+#[test]
+pub fn test_buffer() {
+    let mut buffer = [0; BUFFER_SIZE];
+    let mut rust_buffer = [0; BUFFER_SIZE];
+    let expected_buffer = [1];
+
+    unsafe {
+        entry2(BUFFER_SIZE as u32, buffer.as_mut_ptr());
+        rust_entry2(BUFFER_SIZE as u32, rust_buffer.as_mut_ptr());
+    }
+
+    assert_eq!(buffer, rust_buffer);
+    assert_eq!(buffer, expected_buffer);
+}
+
+#[test]
+pub fn test_types() {
+    assert_eq!(e::foo.0 as u32, 1);
+    assert_eq!(e::bar.0 as u32, 2);
+    assert_eq!(e::baz.0 as u32, 3);
+
+    // FIXME: union fields are private
+    // let my_union = u { x: 32 };
+
+    // let my_struct = s {
+    //     a_u: my_union,
+    //     a_c: 1,
+    //     a_e: e::foo,
+    // };
+}
