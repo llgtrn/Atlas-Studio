@@ -4,29 +4,44 @@
 //! filesystem, Git, provider, donor or UI work; those responsibilities live in `adapter`,
 //! `runtime`, or application crates.
 
+pub mod capability;
 pub mod census;
+pub mod constraint;
+pub mod evidence;
+pub mod graph;
 pub mod identity;
 pub mod language;
-pub mod model;
+pub mod provenance;
+pub mod schema;
+pub mod state;
+pub mod temporal;
 
+pub use capability::{WorkPrepareReport, WorkRequest};
+pub use census::{ArtifactDisposition, ArtifactKind, ArtifactRecord, InventoryReport};
+pub use constraint::{CodingAdmission, validate_manifest};
+pub use evidence::Evidence;
+pub use graph::{
+    Binding, Edge, EngineeringGraph, Fact, Node, build_repository_graph, build_source_graph,
+    build_system_graph, summarize_graph, summarize_repository_graph, summarize_system_graph,
+};
 pub use identity::{
     ArtifactId, CapabilityId, ContentFingerprint, EdgeId, EvidenceId, IntegrityDigest, NodeId,
     RepositoryId, RevisionId, SymbolId, TechnologyId, stable_id,
 };
-pub use census::{ArtifactDisposition, ArtifactKind, ArtifactRecord, InventoryReport};
 pub use language::adl::{
     AdlCompileReport, AdlDeclaration, AdlDiagnostic, AdlProgram, AdlSource, AdlToken, AtlasIr,
     BindingDecl, CapabilityDecl, ConstraintCheck, ConstraintDecl, ConstraintResult, DeclaredEdge,
     DeclaredGraph, DeclaredNode, DeclaredObservedDelta, EntityDecl, MaterializationDecl,
     RelationDecl, SourceSpan, TransformDecl, compile_adl, lex_adl, parse_adl_source,
 };
-pub use model::{
-    Binding, CodingAdmission, DocsReport, DocumentFact, Edge, EngineeringGraph, Evidence, Fact,
-    FileFact, GraphSummary, Node, Provenance, RepoAudit, RepoManifest, RepositorySnapshot,
-    RevisionRef, SourceReport, SystemizeReport, WorkPrepareReport, WorkRequest,
-    build_repository_graph, build_source_graph, build_system_graph, provenance, summarize_graph,
-    summarize_repository_graph, summarize_system_graph, validate_manifest,
+pub use provenance::{Provenance, provenance};
+pub use schema::{
+    DocsReport, DocumentFact, FileFact, GraphSummary, RepoAudit, RepoManifest, SourceReport,
+    SystemizeReport,
 };
+pub use state::RepositorySnapshot;
+pub use temporal::RevisionRef;
+
 use serde::{Deserialize, Serialize};
 
 pub const CLI_API: &str = "atlas.systemizer.cli.v1";

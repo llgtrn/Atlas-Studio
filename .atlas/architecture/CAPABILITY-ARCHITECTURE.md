@@ -106,7 +106,7 @@ core/src/
 
 `core` performs no filesystem, Git, subprocess, provider, network or UI work.
 
-Foundational semantics converge away from open-ended string maps. Bootstrap compatibility structures may remain temporarily, but stable primitives require typed identities, relations, schemas, epistemic status and revision scope.
+The former `core/model` bootstrap bucket is extinct; its running types are owned by the native modules above. Foundational semantics continue to converge away from open-ended string maps. Stable primitives require typed identities, relations, schemas, epistemic status and revision scope, and new folders are materialized only with real semantic ownership rather than as placeholders.
 
 ### runtime
 

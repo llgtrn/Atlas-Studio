@@ -79,6 +79,10 @@ Production architecture converges on four owners:
 
 See `CAPABILITY-ARCHITECTURE.md` and `../blueprints/PHYSICAL-REFOUNDATION.md`.
 
+## Typed semantic kernel
+
+The bootstrap `core/model` bucket is extinct. Current native ownership is split across `graph`, `schema`, `state`, `temporal`, `evidence`, `provenance`, `constraint` and `capability`, with crate-root re-exports preserving stable callers. This is an ownership refoundation, not a claim that every universal state/event/capability primitive is mature.
+
 ## Universal graph substrate
 
 Every repo, donor, research claim, source function, semantic atom, design candidate, organism organ/circuit/model/memory lineage, compiler unit and generated product uses the same semantic spine:

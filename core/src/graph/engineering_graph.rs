@@ -1,9 +1,9 @@
-use super::{
-    Binding, DocsReport, Edge, EngineeringGraph, Fact, GraphSummary, Node, SourceReport, provenance,
-};
+use super::{Binding, Edge, EngineeringGraph, Fact, Node};
 use crate::{
     identity::stable_id,
     language::adl::{AdlCompileReport, SourceSpan},
+    provenance::provenance,
+    schema::{DocsReport, GraphSummary, SourceReport},
 };
 use std::collections::BTreeMap;
 
@@ -465,7 +465,7 @@ mod tests {
             root: "/repo".into(),
             files_total: 1,
             languages: BTreeMap::from([("rust".into(), 1)]),
-            files: vec![crate::model::FileFact {
+            files: vec![crate::schema::FileFact {
                 path: "core/src/lib.rs".into(),
                 language: "rust".into(),
                 bytes: 10,
@@ -486,7 +486,7 @@ mod tests {
             root: "/repo".into(),
             files_total: 1,
             languages: BTreeMap::from([("rust".into(), 1)]),
-            files: vec![crate::model::FileFact {
+            files: vec![crate::schema::FileFact {
                 path: "core/src/lib.rs".into(),
                 language: "rust".into(),
                 bytes: 10,

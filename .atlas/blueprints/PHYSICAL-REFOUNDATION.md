@@ -16,10 +16,17 @@ Refoundation closes that gap without a big-bang rewrite and without creating a s
 
 ```text
 core/src/
+  capability/
   census/
+  constraint/
+  evidence/
+  graph/
   identity/
   language/
-  model/
+  provenance/
+  schema/
+  state/
+  temporal/
   lib.rs
 
 runtime/src/
@@ -67,7 +74,9 @@ No extension, size, parser failure or file type may silently remove an artifact 
 
 ### R2 — Typed semantic kernel
 
-Split `core/model` toward identity/scope/graph/schema/state/temporal/evidence/constraint/capability. New foundational semantics must not expand the generic string-map model.
+**Status: native ownership split materialized; semantic hardening continues.** The generic `core/model` bucket has been removed. Existing production types now live under graph/schema/state/temporal/evidence/provenance/constraint/capability owners, while the crate-root compatibility surface keeps runtime and adapters stable.
+
+New foundational semantics must not expand the generic string-map model. Later R2 work must harden typed identity/relation/state/event/capability semantics only when they gain real runtime callers, durable evidence and verification.
 
 ### R3 — Structural source boundary
 
