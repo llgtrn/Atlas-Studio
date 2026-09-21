@@ -1,0 +1,219 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:atlas:schema:census-certificate:v1",
+  "title": "Atlas CensusCertificate v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "certificate_id",
+    "state",
+    "corpus",
+    "genome",
+    "inventory",
+    "semantic",
+    "normalization",
+    "reconciliation",
+    "fixed_point",
+    "independent_passes",
+    "evidence",
+    "blockers"
+  ],
+  "properties": {
+    "schema": {
+      "const": "atlas.census-certificate.v1"
+    },
+    "certificate_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "state": {
+      "enum": ["DRAFT", "CENSUSED", "RECONCILED", "CLOSED", "SEALED"]
+    },
+    "corpus": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["corpus_id", "root_hash", "revisions"],
+      "properties": {
+        "corpus_id": {"type": "string", "minLength": 1},
+        "root_hash": {"type": "string", "minLength": 1},
+        "revisions": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "genome": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema", "hash"],
+      "properties": {
+        "schema": {"type": "string", "minLength": 1},
+        "hash": {"type": "string", "minLength": 1}
+      }
+    },
+    "inventory": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["artifacts_total", "artifacts_accounted_total", "closed", "dispositions"],
+      "properties": {
+        "artifacts_total": {"type": "integer", "minimum": 0},
+        "artifacts_accounted_total": {"type": "integer", "minimum": 0},
+        "closed": {"type": "boolean"},
+        "dispositions": {
+          "type": "object",
+          "additionalProperties": {"type": "integer", "minimum": 0}
+        }
+      }
+    },
+    "semantic": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "facts_total",
+        "obligations_total",
+        "obligations_accounted_total",
+        "coverage",
+        "unknown_total",
+        "unsupported_total",
+        "ignored_total",
+        "conflict_total",
+        "dynamic_edges_total",
+        "binding_gaps_total"
+      ],
+      "properties": {
+        "facts_total": {"type": "integer", "minimum": 0},
+        "obligations_total": {"type": "integer", "minimum": 0},
+        "obligations_accounted_total": {"type": "integer", "minimum": 0},
+        "coverage": {
+          "type": "object",
+          "additionalProperties": {
+            "enum": [
+              "OBSERVED",
+              "DECLARED",
+              "DERIVED",
+              "INFERRED",
+              "HYPOTHESIS",
+              "CONFLICT",
+              "UNKNOWN",
+              "UNSUPPORTED",
+              "IGNORED"
+            ]
+          }
+        },
+        "unknown_total": {"type": "integer", "minimum": 0},
+        "unsupported_total": {"type": "integer", "minimum": 0},
+        "ignored_total": {"type": "integer", "minimum": 0},
+        "conflict_total": {"type": "integer", "minimum": 0},
+        "dynamic_edges_total": {"type": "integer", "minimum": 0},
+        "binding_gaps_total": {"type": "integer", "minimum": 0}
+      }
+    },
+    "normalization": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "input_records_total",
+        "normalized_records_total",
+        "exact_duplicates_merged",
+        "equivalence_classes_total",
+        "conflict_candidates_total",
+        "provenance_complete"
+      ],
+      "properties": {
+        "input_records_total": {"type": "integer", "minimum": 0},
+        "normalized_records_total": {"type": "integer", "minimum": 0},
+        "exact_duplicates_merged": {"type": "integer", "minimum": 0},
+        "equivalence_classes_total": {"type": "integer", "minimum": 0},
+        "conflict_candidates_total": {"type": "integer", "minimum": 0},
+        "provenance_complete": {"type": "boolean"},
+        "root_hash": {"type": ["string", "null"]}
+      }
+    },
+    "reconciliation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["complete", "unresolved_conflicts_total"],
+      "properties": {
+        "complete": {"type": "boolean"},
+        "unresolved_conflicts_total": {"type": "integer", "minimum": 0}
+      }
+    },
+    "fixed_point": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["iterations", "converged", "delta_at_exit"],
+      "properties": {
+        "iterations": {"type": "integer", "minimum": 0},
+        "converged": {"type": "boolean"},
+        "delta_at_exit": {"type": "integer", "minimum": 0}
+      }
+    },
+    "independent_passes": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["passes_total", "agreement", "conflicts_total"],
+      "properties": {
+        "passes_total": {"type": "integer", "minimum": 0},
+        "agreement": {"enum": ["EXACT", "PARTIAL", "CONFLICT", "NOT_APPLICABLE"]},
+        "conflicts_total": {"type": "integer", "minimum": 0}
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["root_hash", "provenance_complete"],
+      "properties": {
+        "root_hash": {"type": "string", "minLength": 1},
+        "provenance_complete": {"type": "boolean"}
+      }
+    },
+    "atlas": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "root_hash": {"type": ["string", "null"]}
+      }
+    },
+    "blockers": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1},
+      "uniqueItems": true
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {"state": {"const": "SEALED"}},
+        "required": ["state"]
+      },
+      "then": {
+        "required": ["atlas"],
+        "properties": {
+          "inventory": {
+            "properties": {"closed": {"const": true}}
+          },
+          "normalization": {
+            "properties": {"provenance_complete": {"const": true}}
+          },
+          "reconciliation": {
+            "properties": {"complete": {"const": true}}
+          },
+          "fixed_point": {
+            "properties": {
+              "converged": {"const": true},
+              "delta_at_exit": {"const": 0}
+            }
+          },
+          "evidence": {
+            "properties": {"provenance_complete": {"const": true}}
+          },
+          "blockers": {
+            "maxItems": 0
+          }
+        }
+      }
+    }
+  ]
+}
