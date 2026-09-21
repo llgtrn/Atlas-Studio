@@ -94,7 +94,7 @@ pub enum EpistemicStatus {
 }
 
 impl EpistemicStatus {
-    pub const fn as_str(self) -> &'static str {
+    pub const fn as_str(&self) -> &'static str {
         match self {
             Self::Observed => "OBSERVED",
             Self::Declared => "DECLARED",
@@ -109,11 +109,11 @@ impl EpistemicStatus {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 /// Bootstrap R4 interchange envelope.
 ///
 /// Deep R4 semantics converge on typed records defined by the semantic-facts contract; this
 /// subject/predicate/object carrier must not become Atlas's permanent universal semantic model.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct SemanticFact {
     pub id: String,
     pub kind: SemanticFactKind,
