@@ -325,7 +325,10 @@ mod tests {
 
         assert!(report.is_closed());
         assert_eq!(report.artifacts_accounted_total, 2);
-        assert_eq!(report.coverage.get("SYMBOL"), Some(&EpistemicStatus::Unsupported));
+        assert_eq!(
+            report.coverage.get("SYMBOL"),
+            Some(&EpistemicStatus::Unsupported)
+        );
         assert!(report.facts.iter().any(|fact| fact.status == EpistemicStatus::Unknown));
     }
 }
