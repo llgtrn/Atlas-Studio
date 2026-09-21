@@ -86,7 +86,9 @@ The bootstrap frontends currently establish structural recognition and language 
 
 ### R4 — Semantic normalization
 
-**Status: normalization spine materialized; deep semantic extractors remain.** `runtime/census` now turns inventory plus declared ADL into provenance-linked typed semantic facts, and `runtime/normalize` deterministically normalizes those facts without changing epistemic status or dropping records. `SystemizeReport v9` carries both stages and coding admission fails if either stage loses accounting closure.
+**Status: normalization spine materialized and semantic contracts locked; deep semantic extractors remain.**
+
+R4 is governed by `../contracts/SEMANTIC-FACTS.md`, `../contracts/SEMANTIC-EXTRACTION.md`, `../contracts/NORMALIZATION.md`, durable decisions 0001/0002, and the R4 acceptance matrix in the extraction contract. `runtime/census` now turns inventory plus declared ADL into provenance-linked typed semantic facts, and `runtime/normalize` deterministically normalizes those facts without changing epistemic status or dropping records. `SystemizeReport v9` carries both stages and coding admission fails if either stage loses accounting closure.
 
 The engineering graph now consumes normalized semantic facts rather than independently reinterpreting ADL, so census/normalization and graph projection form one semantic path instead of parallel truths. Unknown or unsupported inventory artifacts also remain visible to the graph as explicit artifact nodes/facts.
 
