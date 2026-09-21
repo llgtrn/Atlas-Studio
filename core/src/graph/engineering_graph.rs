@@ -185,7 +185,12 @@ fn confidence(status: &EpistemicStatus) -> Option<f32> {
     match status {
         EpistemicStatus::Observed | EpistemicStatus::Declared => Some(1.0),
         EpistemicStatus::Derived => Some(0.9),
-        EpistemicStatus::Unsupported | EpistemicStatus::Unknown | EpistemicStatus::Ignored => None,
+        EpistemicStatus::Inferred => Some(0.6),
+        EpistemicStatus::Hypothesis => Some(0.3),
+        EpistemicStatus::Conflict
+        | EpistemicStatus::Unsupported
+        | EpistemicStatus::Unknown
+        | EpistemicStatus::Ignored => None,
     }
 }
 
@@ -431,7 +436,20 @@ pub fn build_system_graph(
                     }
                 }
             }
-            SemanticFactKind::Binding => {}
+            SemanticFactKind::Symbol
+            | SemanticFactKind::Type
+            | SemanticFactKind::FunctionIdentity
+            | SemanticFactKind::FunctionSignature
+            | SemanticFactKind::Call
+            | SemanticFactKind::ControlFlow
+            | SemanticFactKind::DataFlow
+            | SemanticFactKind::StateAccess
+            | SemanticFactKind::Effect
+            | SemanticFactKind::Ownership
+            | SemanticFactKind::Concurrency
+            | SemanticFactKind::Persistence
+            | SemanticFactKind::EvidenceLink
+            | SemanticFactKind::Binding => {}
         }
     }
 
@@ -602,6 +620,10 @@ mod tests {
             schema: "test".into(),
             input_facts_total: facts.len(),
             normalized_facts_total: facts.len(),
+            equivalence_classes_total: facts.len(),
+            duplicate_observations_total: 0,
+            conflict_candidates_total: 0,
+            conflict_candidates: Vec::new(),
             kinds: BTreeMap::new(),
             facts,
         };
