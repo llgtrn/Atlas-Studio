@@ -1,0 +1,35 @@
+{
+  "schema": "atlas.donor-provenance.v1",
+  "id": "object",
+  "name": "object",
+  "remote": "https://github.com/gimli-rs/object.git",
+  "repository": "gimli-rs/object",
+  "commit_sha": "7770b8c580b07999a67226c4f9ae638e483e0314",
+  "git_tree_sha": "bbdb9df7598d287d321de6f6db69056331834a65",
+  "default_branch": "main",
+  "retrieved_at": "2026-09-21T03:00:34.9575636Z",
+  "clone_path": ".atlas/temporary/object",
+  "staging_mode": "FULL_SOURCE_TREE",
+  "license_files": [
+    ".atlas/licenses/donors/object/LICENSE-APACHE",
+    ".atlas/licenses/donors/object/LICENSE-MIT"
+  ],
+  "source_file_count": 316,
+  "observed_source_bytes": 4871464.0,
+  "ingestion_status": "CLONED",
+  "census_status": "COARSE_CENSUSED",
+  "decision_status": "APPROVED_COMPILER_BINARY_LANE",
+  "runtime_dependency_status": "REFERENCE_ONLY",
+  "technology_lanes": [
+    "object_files",
+    "elf",
+    "macho",
+    "coff",
+    "debug"
+  ],
+  "target_owners": [
+    "compiler",
+    "runtime/binary",
+    "core/atlas-format"
+  ]
+}

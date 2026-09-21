@@ -1,0 +1,693 @@
+{
+  "schema": "atlas.donor-workbench-inventory.v1",
+  "generated_at": "2026-09-21T04:40:27.8246192Z",
+  "required_total": 44,
+  "registered_donor_count": 44,
+  "physical_donor_count": 44,
+  "missing_donor_count": 0,
+  "duplicate_donor_count": 0,
+  "donors": [
+    {
+      "Donor": "tree-sitter",
+      "URL": "https://github.com/tree-sitter/tree-sitter.git",
+      "PhysicalPath": ".atlas/temporary/donors/tree-sitter",
+      "CommitSHA": "5b951eff4f8b1431e933ed0fe45e48fcd4036a38",
+      "DefaultBranch": "master",
+      "Present": true,
+      "DuplicatePaths": [],
+      "LicenseFiles": [
+        ".atlas/temporary/donors/tree-sitter/LICENSE"
+      ],
+      "SizeBytes": 4366875,
+      "FileCount": 618,
+      "HasGitMetadata": true
+    },
+    {
+      "Donor": "rust-analyzer",
+      "URL": "https://github.com/rust-lang/rust-analyzer.git",
+      "PhysicalPath": ".atlas/temporary/donors/rust-analyzer",
+      "CommitSHA": "aaddfb73fd95f2c0bf001b474dca91ae28bcce3a",
+      "DefaultBranch": "master",
+      "Present": true,
+      "DuplicatePaths": [],
+      "LicenseFiles": [
+        ".atlas/temporary/donors/rust-analyzer/LICENSE-APACHE",
+        ".atlas/temporary/donors/rust-analyzer/LICENSE-MIT"
+      ],
+      "SizeBytes": 21921167,
+      "FileCount": 2345,
+      "HasGitMetadata": true
+    },
+    {
+      "Donor": "glean",
+      "URL": "https://github.com/facebookincubator/Glean.git",
+      "PhysicalPath": ".atlas/temporary/donors/glean",
+      "CommitSHA": "2a48dea4cddb316d3b8bd65b54965cb9a7855c52",
+      "DefaultBranch": "main",
+      "Present": true,
+      "DuplicatePaths": [],
+      "LicenseFiles": [
+        ".atlas/temporary/donors/glean/LICENSE"
+      ],
+      "SizeBytes": 104463614,
+      "FileCount": 15359,
+      "HasGitMetadata": true
+    },
+    {
+      "Donor": "joern",
+      "URL": "https://github.com/joernio/joern.git",
+      "PhysicalPath": ".atlas/temporary/donors/joern",
+      "CommitSHA": "b381922638ae436fcb6862a90241c8f7ce508894",
+      "DefaultBranch": "master",
+      "Present": true,
+      "DuplicatePaths": [],
+      "LicenseFiles": [
+        ".atlas/temporary/donors/joern/LICENSE"
+      ],
+      "SizeBytes": 76295917,
+      "FileCount": 2201,
+      "HasGitMetadata": true
+    },
+    {
+      "Donor": "kythe",
+      "URL": "https://github.com/kythe/kythe.git",
+      "PhysicalPath": ".atlas/temporary/donors/kythe",
+      "CommitSHA": "69141f022689a611e8a4a1d9b08a3783a2e8a9ed",
+      "DefaultBranch": "master",
+      "Present": true,
+      "DuplicatePaths": [],
+      "LicenseFiles": [
+        ".atlas/temporary/donors/kythe/LICENSE"
+      ],
+      "SizeBytes": 13901060,
+      "FileCount": 2406,
+      "HasGitMetadata": true
+    },
+    {
+      "Donor": "scip",
+      "URL": "https://github.com/sourcegraph/scip.git",
+      "PhysicalPath": ".atlas/temporary/donors/scip",
+      "CommitSHA": "4f50fbbd0ed945405cd8a4196af6477ea2a9f8b5",
+      "DefaultBranch": "main",
+      "Present": true,
+      "DuplicatePaths": [],
+      "LicenseFiles": [
+        ".atlas/temporary/donors/scip/LICENSE"
+      ],
+      "SizeBytes": 2932219,
+      "FileCount": 226,
+      "HasGitMetadata": true
+    },
+    {
+      "Donor": "semgrep",
+      "URL": "https://github.com/semgrep/semgrep.git",
+      "PhysicalPath": ".atlas/temporary/donors/semgrep",
+      "CommitSHA": "0516c0f23a3dceac5c8f5ff3fecd402af4450182",
+      "DefaultBranch": "develop",
+      "Present": true,
+      "DuplicatePaths": [],
+      "LicenseFiles": [
+        ".atlas/temporary/donors/semgrep/COPYRIGHT",
+        ".atlas/temporary/donors/semgrep/LICENSE"
+      ],
+      "SizeBytes": 586076685,
+      "FileCount": 10804,
+      "HasGitMetadata": true
+    },
+    {
+      "Donor": "ast-grep",
+      "URL": "https://github.com/ast-grep/ast-grep.git",
+      "PhysicalPath": ".atlas/temporary/donors/ast-grep",
+      "CommitSHA": "6175e07b668b388a1a326d8fc543c4856eb5f54b",
+      "DefaultBranch": "main",
+      "Present": true,
+      "DuplicatePaths": [],
+      "LicenseFiles": [
+        ".atlas/temporary/donors/ast-grep/LICENSE"
+      ],
+      "SizeBytes": 3047473,
+      "FileCount": 320,
+      "HasGitMetadata": true
+    },
+    {
+      "Donor": "sourcetrail",
+      "URL": "https://github.com/CoatiSoftware/Sourcetrail.git",
+      "PhysicalPath": ".atlas/temporary/donors/sourcetrail",
+      "CommitSHA": "4b1b0e4fd19c4af235fef12b0564c05348f5f6d3",
+      "DefaultBranch": "master",
+      "Present": true,
+      "DuplicatePaths": [],
+      "LicenseFiles": [
+        ".atlas/temporary/donors/sourcetrail/LICENSE.txt"
+      ],
+      "SizeBytes": 70302140,
+      "FileCount": 2409,
+      "HasGitMetadata": true
+    },
+    {
+      "Donor": "salsa",
+      "URL": "https://github.com/salsa-rs/salsa.git",
+      "PhysicalPath": ".atlas/temporary/donors/salsa",
+      "CommitSHA": "5d8eaf1fa372a73d44f9b717407de41f19ef59d7",
+      "DefaultBranch": "master",
+      "Present": true,
+      "DuplicatePaths": [],
+      "LicenseFiles": [
+        ".atlas/temporary/donors/salsa/LICENSE-APACHE",
+        ".atlas/temporary/donors/salsa/LICENSE-MIT"
+      ],
+      "SizeBytes": 3242300,
+      "FileCount": 425,
+      "HasGitMetadata": true
+    },
+    {
+      "Donor": "datafrog",
+      "URL": "https://github.com/rust-lang/datafrog.git",
+      "PhysicalPath": ".atlas/temporary/donors/datafrog",
+      "CommitSHA": "edd7cfc0f5ad3b93ce5bbe6a17848db9376b13c0",
+      "DefaultBranch": "master",
+      "Present": true,
+      "DuplicatePaths": [],
+      "LicenseFiles": [
+        ".atlas/temporary/donors/datafrog/LICENSE-APACHE",
+        ".atlas/temporary/donors/datafrog/LICENSE-MIT"
+      ],
+      "SizeBytes": 100780,
+      "FileCount": 20,
+      "HasGitMetadata": true
+    },
+    {
+      "Donor": "differential-dataflow",
+      "URL": "https://github.com/TimelyDataflow/differential-dataflow.git",
+      "PhysicalPath": ".atlas/temporary/donors/differential-dataflow",
+      "CommitSHA": "aa8745f93ea8abe131104fc7885ba4fd47e63902",
+      "DefaultBranch": "master",
+      "Present": true,
+      "DuplicatePaths": [],
+      "LicenseFiles": [
+        ".atlas/temporary/donors/differential-dataflow/COPYRIGHT",
+        ".atlas/temporary/donors/differential-dataflow/LICENSE"
+      ],
+      "SizeBytes": 7769837,
+      "FileCount": 360,
+      "HasGitMetadata": true
+    },
+    {
+      "Donor": "souffle",
+      "URL": "https://github.com/souffle-lang/souffle.git",
+      "PhysicalPath": ".atlas/temporary/donors/souffle",
+      "CommitSHA": "a1303be3c0166400dee3d1f36f0d96abe03e6901",
+      "DefaultBranch": "master",
+      "Present": true,
+      "DuplicatePaths": [],
+      "LicenseFiles": [
+        ".atlas/temporary/donors/souffle/LICENSE"
+      ],
+      "SizeBytes": 56278267,
+      "FileCount": 4080,
+      "HasGitMetadata": true
+    },
+    {
+      "Donor": "buck2",
+      "URL": "https://github.com/facebook/buck2.git",
+      "PhysicalPath": ".atlas/temporary/donors/buck2",
+      "CommitSHA": "78ec517305d8214d6160f6c99b1d0a3554879878",
+      "DefaultBranch": "main",
+      "Present": true,
+      "DuplicatePaths": [],
+      "LicenseFiles": [
+        ".atlas/temporary/donors/buck2/LICENSE-APACHE",
+        ".atlas/temporary/donors/buck2/LICENSE-MIT",
+        ".atlas/temporary/donors/buck2/NOTICE"
+      ],
+      "SizeBytes": 64588560,
+      "FileCount": 10218,
+      "HasGitMetadata": true
+    },
+    {
+      "Donor": "kani",
+      "URL": "https://github.com/model-checking/kani.git",
+      "PhysicalPath": ".atlas/temporary/donors/kani",
+      "CommitSHA": "80f3cc98af976a54b9dd0614e877e4d2f1f5a58d",
+      "DefaultBranch": "main",
+      "Present": true,
+      "DuplicatePaths": [],
+      "LicenseFiles": [
+        ".atlas/temporary/donors/kani/LICENSE-APACHE",
+        ".atlas/temporary/donors/kani/LICENSE-MIT"
+      ],
+      "SizeBytes": 6334162,
+      "FileCount": 3405,
+      "HasGitMetadata": true
+    },
+    {
+      "Donor": "verus",
+      "URL": "https://github.com/verus-lang/verus.git",
+      "PhysicalPath": ".atlas/temporary/donors/verus",
+      "CommitSHA": "5f0930a0b820425aa857269070362ddcf7c29672",
+      "DefaultBranch": "main",
+      "Present": true,
+      "DuplicatePaths": [],
+      "LicenseFiles": [
+        ".atlas/temporary/donors/verus/LICENSE"
+      ],
+      "SizeBytes": 29940261,
+      "FileCount": 1456,
+      "HasGitMetadata": true
+    },
+    {
+      "Donor": "miri",
+      "URL": "https://github.com/rust-lang/miri.git",
+      "PhysicalPath": ".atlas/temporary/donors/miri",
+      "CommitSHA": "c63eee41f54d6a4b414af7b22ab717063da0c50a",
+      "DefaultBranch": "master",
+      "Present": true,
+      "DuplicatePaths": [],
+      "LicenseFiles": [
+        ".atlas/temporary/donors/miri/LICENSE-APACHE",
+        ".atlas/temporary/donors/miri/LICENSE-MIT"
+      ],
+      "SizeBytes": 7691581,
+      "FileCount": 2593,
+      "HasGitMetadata": true
+    },
+    {
+      "Donor": "c2rust",
+      "URL": "https://github.com/immunant/c2rust.git",
+      "PhysicalPath": ".atlas/temporary/donors/c2rust",
+      "CommitSHA": "1d37ebbf4d505c947f20947edc264f47e33ed14b",
+      "DefaultBranch": "master",
+      "Present": true,
+      "DuplicatePaths": [],
+      "LicenseFiles": [
+        ".atlas/temporary/donors/c2rust/LICENSE"
+      ],
+      "SizeBytes": 12333437,
+      "FileCount": 1767,
+      "HasGitMetadata": true
+    },
+    {
+      "Donor": "crubit",
+      "URL": "https://github.com/google/crubit.git",
+      "PhysicalPath": ".atlas/temporary/donors/crubit",
+      "CommitSHA": "34c96fb368e1a734c06425172f810ca1371eb705",
+      "DefaultBranch": "main",
+      "Present": true,
+      "DuplicatePaths": [],
+      "LicenseFiles": [
+        ".atlas/temporary/donors/crubit/LICENSE"
+      ],
+      "SizeBytes": 19100917,
+      "FileCount": 2788,
+      "HasGitMetadata": true
+    },
+    {
+      "Donor": "py2many",
+      "URL": "https://github.com/py2many/py2many.git",
+      "PhysicalPath": ".atlas/temporary/donors/py2many",
+      "CommitSHA": "a3c39224e71430bf99057f473c4b4542971daa9d",
+      "DefaultBranch": "main",
+      "Present": true,
+      "DuplicatePaths": [],
+      "LicenseFiles": [
+        ".atlas/temporary/donors/py2many/LICENSE"
+      ],
+      "SizeBytes": 1799894,
+      "FileCount": 790,
+      "HasGitMetadata": true
+    },
+    {
+      "Donor": "openrewrite",
+      "URL": "https://github.com/openrewrite/rewrite.git",
+      "PhysicalPath": ".atlas/temporary/donors/openrewrite",
+      "CommitSHA": "f7372139f62f62a66e5b78d70bbad50aaea7d8ee",
+      "DefaultBranch": "main",
+      "Present": true,
+      "DuplicatePaths": [],
+      "LicenseFiles": [
+        ".atlas/temporary/donors/openrewrite/LICENSE"
+      ],
+      "SizeBytes": 80383047,
+      "FileCount": 5785,
+      "HasGitMetadata": true
+    },
+    {
+      "Donor": "cytoscape-js",
+      "URL": "https://github.com/cytoscape/cytoscape.js.git",
+      "PhysicalPath": ".atlas/temporary/donors/cytoscape-js",
+      "CommitSHA": "7ba634095d8954089ee5dc09ada0030f2dca134c",
+      "DefaultBranch": "unstable",
+      "Present": true,
+      "DuplicatePaths": [],
+      "LicenseFiles": [
+        ".atlas/temporary/donors/cytoscape-js/LICENSE",
+        ".atlas/temporary/donors/cytoscape-js/license-update.mjs"
+      ],
+      "SizeBytes": 98998814,
+      "FileCount": 808,
+      "HasGitMetadata": true
+    },
+    {
+      "Donor": "elkjs",
+      "URL": "https://github.com/kieler/elkjs.git",
+      "PhysicalPath": ".atlas/temporary/donors/elkjs",
+      "CommitSHA": "722f1a3f63016e64f534a8b445283d4d31a88d0e",
+      "DefaultBranch": "master",
+      "Present": true,
+      "DuplicatePaths": [],
+      "LicenseFiles": [
+        ".atlas/temporary/donors/elkjs/LICENSE.md"
+      ],
+      "SizeBytes": 577316,
+      "FileCount": 55,
+      "HasGitMetadata": true
+    },
+    {
+      "Donor": "xyflow",
+      "URL": "https://github.com/xyflow/xyflow.git",
+      "PhysicalPath": ".atlas/temporary/donors/xyflow",
+      "CommitSHA": "0a1f9575b25679f2880175de8d3eae21aedde921",
+      "DefaultBranch": "main",
+      "Present": true,
+      "DuplicatePaths": [],
+      "LicenseFiles": [
+        ".atlas/temporary/donors/xyflow/LICENSE"
+      ],
+      "SizeBytes": 2370334,
+      "FileCount": 697,
+      "HasGitMetadata": true
+    },
+    {
+      "Donor": "opendesign",
+      "URL": "https://github.com/vustudio/opendesign.git",
+      "PhysicalPath": ".atlas/temporary/donors/opendesign",
+      "CommitSHA": "b4e69ac61b50576298f9f564603e5a4beb27417f",
+      "DefaultBranch": "main",
+      "Present": true,
+      "DuplicatePaths": [],
+      "LicenseFiles": [
+        ".atlas/temporary/donors/opendesign/LICENSE"
+      ],
+      "SizeBytes": 107119581,
+      "FileCount": 1210,
+      "HasGitMetadata": true
+    },
+    {
+      "Donor": "zed",
+      "URL": "https://github.com/zed-industries/zed",
+      "PhysicalPath": ".atlas/temporary/donors/ide/zed",
+      "CommitSHA": "0eda7703f6c88aa08a25c1d2105ff1ca46f775d4",
+      "DefaultBranch": "main",
+      "Present": true,
+      "DuplicatePaths": [],
+      "LicenseFiles": [
+        ".atlas/temporary/donors/ide/zed/LICENSE-APACHE",
+        ".atlas/temporary/donors/ide/zed/LICENSE-GPL"
+      ],
+      "SizeBytes": 87650331,
+      "FileCount": 4314,
+      "HasGitMetadata": true
+    },
+    {
+      "Donor": "containers-image",
+      "URL": "https://github.com/containers/image.git",
+      "PhysicalPath": ".atlas/temporary/donors/security/containers-image",
+      "CommitSHA": "df7e80d2d19872b61f352a8a182ec934dc0c2346",
+      "DefaultBranch": "main",
+      "Present": true,
+      "DuplicatePaths": [],
+      "LicenseFiles": [
+        ".atlas/temporary/donors/security/containers-image/LICENSE"
+      ],
+      "SizeBytes": 3298542,
+      "FileCount": 726,
+      "HasGitMetadata": true
+    },
+    {
+      "Donor": "podman",
+      "URL": "https://github.com/containers/podman.git",
+      "PhysicalPath": ".atlas/temporary/donors/security/podman",
+      "CommitSHA": "0d12a23e7bc94460f7986c01c79636b63ab6cd36",
+      "DefaultBranch": "main",
+      "Present": true,
+      "DuplicatePaths": [],
+      "LicenseFiles": [
+        ".atlas/temporary/donors/security/podman/LICENSE"
+      ],
+      "SizeBytes": 95955079,
+      "FileCount": 10238,
+      "HasGitMetadata": true
+    },
+    {
+      "Donor": "selinux",
+      "URL": "https://github.com/SELinuxProject/selinux.git",
+      "PhysicalPath": ".atlas/temporary/donors/security/selinux",
+      "CommitSHA": "3361233fa3cb0c27f68f682f195accefb69d06c0",
+      "DefaultBranch": "main",
+      "Present": true,
+      "DuplicatePaths": [],
+      "LicenseFiles": [
+        ".atlas/temporary/donors/security/selinux/LICENSE"
+      ],
+      "SizeBytes": 32038111,
+      "FileCount": 1859,
+      "HasGitMetadata": true
+    },
+    {
+      "Donor": "openscap",
+      "URL": "https://github.com/OpenSCAP/openscap.git",
+      "PhysicalPath": ".atlas/temporary/donors/security/openscap",
+      "CommitSHA": "6942b59fc861ad77ebcea93e70f32832d88e20f9",
+      "DefaultBranch": "main",
+      "Present": true,
+      "DuplicatePaths": [],
+      "LicenseFiles": [
+        ".atlas/temporary/donors/security/openscap/COPYING"
+      ],
+      "SizeBytes": 123806431,
+      "FileCount": 2316,
+      "HasGitMetadata": true
+    },
+    {
+      "Donor": "keycloak",
+      "URL": "https://github.com/keycloak/keycloak.git",
+      "PhysicalPath": ".atlas/temporary/donors/security/keycloak",
+      "CommitSHA": "dd4ae31d1b67c91a7f85f7c60df5c9718b111f0a",
+      "DefaultBranch": "main",
+      "Present": true,
+      "DuplicatePaths": [],
+      "LicenseFiles": [
+        ".atlas/temporary/donors/security/keycloak/LICENSE.txt"
+      ],
+      "SizeBytes": 122402492,
+      "FileCount": 13367,
+      "HasGitMetadata": true
+    },
+    {
+      "Donor": "keylime",
+      "URL": "https://github.com/keylime/keylime.git",
+      "PhysicalPath": ".atlas/temporary/donors/security/keylime",
+      "CommitSHA": "3476366881d7931407154597d88577895f2f818e",
+      "DefaultBranch": "master",
+      "Present": true,
+      "DuplicatePaths": [],
+      "LicenseFiles": [
+        ".atlas/temporary/donors/security/keylime/LICENSE"
+      ],
+      "SizeBytes": 16946314,
+      "FileCount": 702,
+      "HasGitMetadata": true
+    },
+    {
+      "Donor": "clair",
+      "URL": "https://github.com/quay/clair.git",
+      "PhysicalPath": ".atlas/temporary/donors/security/clair",
+      "CommitSHA": "c9ac9a0aa5651670a690854fc2c12adfc951243f",
+      "DefaultBranch": "main",
+      "Present": true,
+      "DuplicatePaths": [],
+      "LicenseFiles": [
+        ".atlas/temporary/donors/security/clair/LICENSE",
+        ".atlas/temporary/donors/security/clair/NOTICE"
+      ],
+      "SizeBytes": 1577693,
+      "FileCount": 353,
+      "HasGitMetadata": true
+    },
+    {
+      "Donor": "rust",
+      "URL": "https://github.com/rust-lang/rust.git",
+      "PhysicalPath": ".atlas/temporary/rust",
+      "CommitSHA": "d287eb7a292caa8abbe12051dce2ee707fe03200",
+      "DefaultBranch": "main",
+      "Present": true,
+      "DuplicatePaths": [],
+      "LicenseFiles": [
+        ".atlas/temporary/rust/COPYRIGHT",
+        ".atlas/temporary/rust/LICENSE-APACHE",
+        ".atlas/temporary/rust/license-metadata.json",
+        ".atlas/temporary/rust/LICENSE-MIT"
+      ],
+      "SizeBytes": 226270581,
+      "FileCount": 62938,
+      "HasGitMetadata": false
+    },
+    {
+      "Donor": "llvm-project",
+      "URL": "https://github.com/llvm/llvm-project.git",
+      "PhysicalPath": ".atlas/temporary/donors/llvm-project",
+      "CommitSHA": "0bd330675f9eb08126e467505a0800f167084473",
+      "DefaultBranch": "DETACHED",
+      "Present": true,
+      "DuplicatePaths": [],
+      "LicenseFiles": [
+        ".atlas/temporary/donors/llvm-project/LICENSE.TXT"
+      ],
+      "SizeBytes": 2410758439,
+      "FileCount": 184821,
+      "HasGitMetadata": true
+    },
+    {
+      "Donor": "wasmtime",
+      "URL": "https://github.com/bytecodealliance/wasmtime.git",
+      "PhysicalPath": ".atlas/temporary/wasmtime",
+      "CommitSHA": "7ad2e732ab9ca8665d3cdd91f9c395315eeafc81",
+      "DefaultBranch": "main",
+      "Present": true,
+      "DuplicatePaths": [],
+      "LicenseFiles": [
+        ".atlas/temporary/wasmtime/LICENSE"
+      ],
+      "SizeBytes": 77190754,
+      "FileCount": 7426,
+      "HasGitMetadata": false
+    },
+    {
+      "Donor": "wasm-tools",
+      "URL": "https://github.com/bytecodealliance/wasm-tools.git",
+      "PhysicalPath": ".atlas/temporary/wasm-tools",
+      "CommitSHA": "5b9827a7eabc4e365c6e15ed2ab5059a3db8b215",
+      "DefaultBranch": "main",
+      "Present": true,
+      "DuplicatePaths": [],
+      "LicenseFiles": [
+        ".atlas/temporary/wasm-tools/LICENSE-APACHE",
+        ".atlas/temporary/wasm-tools/LICENSE-Apache-2.0_WITH_LLVM-exception",
+        ".atlas/temporary/wasm-tools/LICENSE-MIT"
+      ],
+      "SizeBytes": 62455513,
+      "FileCount": 10168,
+      "HasGitMetadata": false
+    },
+    {
+      "Donor": "regalloc2",
+      "URL": "https://github.com/bytecodealliance/regalloc2.git",
+      "PhysicalPath": ".atlas/temporary/regalloc2",
+      "CommitSHA": "2fe490bc9dda433f70c54f90f7633ed929f693d9",
+      "DefaultBranch": "main",
+      "Present": true,
+      "DuplicatePaths": [],
+      "LicenseFiles": [
+        ".atlas/temporary/regalloc2/LICENSE"
+      ],
+      "SizeBytes": 640805,
+      "FileCount": 50,
+      "HasGitMetadata": false
+    },
+    {
+      "Donor": "object",
+      "URL": "https://github.com/gimli-rs/object.git",
+      "PhysicalPath": ".atlas/temporary/object",
+      "CommitSHA": "7770b8c580b07999a67226c4f9ae638e483e0314",
+      "DefaultBranch": "main",
+      "Present": true,
+      "DuplicatePaths": [],
+      "LicenseFiles": [
+        ".atlas/temporary/object/LICENSE-APACHE",
+        ".atlas/temporary/object/LICENSE-MIT"
+      ],
+      "SizeBytes": 4871464,
+      "FileCount": 316,
+      "HasGitMetadata": false
+    },
+    {
+      "Donor": "mold",
+      "URL": "https://github.com/rui314/mold.git",
+      "PhysicalPath": ".atlas/temporary/mold",
+      "CommitSHA": "89a9b334e8a7ddda367adf05591342b2766eb1e7",
+      "DefaultBranch": "main",
+      "Present": true,
+      "DuplicatePaths": [],
+      "LicenseFiles": [
+        ".atlas/temporary/mold/LICENSE"
+      ],
+      "SizeBytes": 2433593,
+      "FileCount": 741,
+      "HasGitMetadata": false
+    },
+    {
+      "Donor": "flatbuffers",
+      "URL": "https://github.com/google/flatbuffers.git",
+      "PhysicalPath": ".atlas/temporary/flatbuffers",
+      "CommitSHA": "b8431fbcd7a5c71817f314e18b332c0648554efa",
+      "DefaultBranch": "master",
+      "Present": true,
+      "DuplicatePaths": [],
+      "LicenseFiles": [
+        ".atlas/temporary/flatbuffers/LICENSE"
+      ],
+      "SizeBytes": 13950171,
+      "FileCount": 1947,
+      "HasGitMetadata": false
+    },
+    {
+      "Donor": "zstd",
+      "URL": "https://github.com/facebook/zstd.git",
+      "PhysicalPath": ".atlas/temporary/zstd",
+      "CommitSHA": "01b7154f1172432f8abe9b3bb9909e14a1176b7d",
+      "DefaultBranch": "dev",
+      "Present": true,
+      "DuplicatePaths": [],
+      "LicenseFiles": [
+        ".atlas/temporary/zstd/COPYING",
+        ".atlas/temporary/zstd/LICENSE"
+      ],
+      "SizeBytes": 8520156,
+      "FileCount": 660,
+      "HasGitMetadata": false
+    },
+    {
+      "Donor": "blake3",
+      "URL": "https://github.com/BLAKE3-team/BLAKE3.git",
+      "PhysicalPath": ".atlas/temporary/blake3",
+      "CommitSHA": "6aab490a26124663329dfd3961b8469f8fdb158b",
+      "DefaultBranch": "master",
+      "Present": true,
+      "DuplicatePaths": [],
+      "LicenseFiles": [
+        ".atlas/temporary/blake3/LICENSE_A2",
+        ".atlas/temporary/blake3/LICENSE_A2LLVM",
+        ".atlas/temporary/blake3/LICENSE_CC0"
+      ],
+      "SizeBytes": 1882379,
+      "FileCount": 108,
+      "HasGitMetadata": false
+    },
+    {
+      "Donor": "arrow",
+      "URL": "https://github.com/apache/arrow.git",
+      "PhysicalPath": ".atlas/temporary/arrow",
+      "CommitSHA": "70f5c269ae8d154f57f7a7ec6babe6e0685ed6ec",
+      "DefaultBranch": "main",
+      "Present": true,
+      "DuplicatePaths": [],
+      "LicenseFiles": [
+        ".atlas/temporary/arrow/LICENSE.txt",
+        ".atlas/temporary/arrow/NOTICE.txt"
+      ],
+      "SizeBytes": 67295797,
+      "FileCount": 5328,
+      "HasGitMetadata": false
+    }
+  ]
+}

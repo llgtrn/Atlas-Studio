@@ -1,0 +1,49 @@
+[package]
+name = "object-rewrite"
+version = "0.1.1"
+edition = "2024"
+license = "Apache-2.0 OR MIT"
+repository = "https://github.com/gimli-rs/object/tree/main/crates/rewrite"
+description = "Rewrite object files with modifications"
+include = [
+  "/Cargo.lock",
+  "/Cargo.toml",
+  "/src",
+  "/LICENSE-APACHE",
+  "/LICENSE-MIT",
+]
+
+[package.metadata.docs.rs]
+features = ['doc']
+
+[dependencies]
+object = { version = "0.40.0", default-features = false, features = ["build", "elf"], path = "../.." }
+
+# Dependencies for the cli
+anyhow = { version = "1.0.79", optional = true }
+clap = { version = "4.3.24", features = ["cargo"], optional = true }
+env_logger = { version = "0.11.2", default-features = false, optional = true }
+log = { version = "0.4.20", optional = true }
+memmap2 = { version = "0.9.4", optional = true }
+
+[dev-dependencies]
+object-examples = { path = "../examples", features = ["read", "names"] }
+
+[features]
+logging = ["dep:log"]
+cli = ["logging", "dep:anyhow", "dep:clap", "dep:env_logger", "dep:memmap2"]
+
+default = []
+all = ["cli", "logging"]
+doc = []
+
+# Internal feature; matches workspace feature for development purposes.
+unstable-all = ["all"]
+
+[[bin]]
+name = "object-rewrite"
+path = "src/main.rs"
+required-features = ["cli"]
+
+[lints.clippy]
+uninlined_format_args = "allow"

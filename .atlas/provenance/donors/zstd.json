@@ -1,0 +1,33 @@
+{
+  "schema": "atlas.donor-provenance.v1",
+  "id": "zstd",
+  "name": "Zstandard",
+  "remote": "https://github.com/facebook/zstd.git",
+  "repository": "facebook/zstd",
+  "commit_sha": "01b7154f1172432f8abe9b3bb9909e14a1176b7d",
+  "git_tree_sha": "7973821daa75236c9247c12881c39053a3a7cd47",
+  "default_branch": "dev",
+  "retrieved_at": "2026-09-21T03:00:34.9575636Z",
+  "clone_path": ".atlas/temporary/zstd",
+  "staging_mode": "FULL_SOURCE_TREE",
+  "license_files": [
+    ".atlas/licenses/donors/zstd/COPYING",
+    ".atlas/licenses/donors/zstd/LICENSE"
+  ],
+  "source_file_count": 660,
+  "observed_source_bytes": 8520156.0,
+  "ingestion_status": "CLONED",
+  "census_status": "COARSE_CENSUSED",
+  "decision_status": "APPROVED_COMPILER_BINARY_LANE",
+  "runtime_dependency_status": "REFERENCE_ONLY",
+  "technology_lanes": [
+    "compression",
+    "binary_payloads",
+    "compiler_artifact_compression"
+  ],
+  "target_owners": [
+    "compiler",
+    "runtime/binary",
+    "core/atlas-format"
+  ]
+}

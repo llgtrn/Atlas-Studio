@@ -1,0 +1,32 @@
+{
+  "schema": "atlas.donor-provenance.v1",
+  "id": "regalloc2",
+  "name": "regalloc2",
+  "remote": "https://github.com/bytecodealliance/regalloc2.git",
+  "repository": "bytecodealliance/regalloc2",
+  "commit_sha": "2fe490bc9dda433f70c54f90f7633ed929f693d9",
+  "git_tree_sha": "1c6edf753513b879f27b61515db153c46ac23844",
+  "default_branch": "main",
+  "retrieved_at": "2026-09-21T03:00:34.9575636Z",
+  "clone_path": ".atlas/temporary/regalloc2",
+  "staging_mode": "FULL_SOURCE_TREE",
+  "license_files": [
+    ".atlas/licenses/donors/regalloc2/LICENSE"
+  ],
+  "source_file_count": 50,
+  "observed_source_bytes": 640805.0,
+  "ingestion_status": "CLONED",
+  "census_status": "COARSE_CENSUSED",
+  "decision_status": "APPROVED_COMPILER_BINARY_LANE",
+  "runtime_dependency_status": "REFERENCE_ONLY",
+  "technology_lanes": [
+    "register_allocation",
+    "compiler_backend",
+    "machine_ir"
+  ],
+  "target_owners": [
+    "compiler",
+    "runtime/binary",
+    "core/atlas-format"
+  ]
+}

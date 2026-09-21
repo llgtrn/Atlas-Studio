@@ -1,0 +1,491 @@
+Format: Mach-O 64-bit
+MachHeader {
+    Magic: 0xCFFAEDFE
+    CpuType: CPU_TYPE_ARM64 (0x100000C)
+    CpuSubtype: CPU_SUBTYPE_ARM64_ALL (0x0)
+    FileType: MH_EXECUTE (0x2)
+    NumberOfCmds: 17
+    SizeOfCmds: 0x420
+    Flags: 0x200085
+        MH_NOUNDEFS (0x1)
+        MH_DYLDLINK (0x4)
+        MH_TWOLEVEL (0x80)
+        MH_PIE (0x200000)
+}
+SegmentCommand {
+    Cmd: LC_SEGMENT_64 (0x19)
+    CmdSize: 0x48
+    SegmentName: "__PAGEZERO"
+    VmAddress: 0x0
+    VmSize: 0x100000000
+    FileOffset: 0x0
+    FileSize: 0x0
+    MaxProt: 0x0
+    InitProt: 0x0
+    NumberOfSections: 0
+    Flags: 0x0
+}
+SegmentCommand {
+    Cmd: LC_SEGMENT_64 (0x19)
+    CmdSize: 0x188
+    SegmentName: "__TEXT"
+    VmAddress: 0x100000000
+    VmSize: 0x4000
+    FileOffset: 0x0
+    FileSize: 0x4000
+    MaxProt: 0x5
+        VM_PROT_READ (0x1)
+        VM_PROT_EXECUTE (0x4)
+    InitProt: 0x5
+        VM_PROT_READ (0x1)
+        VM_PROT_EXECUTE (0x4)
+    NumberOfSections: 4
+    Flags: 0x0
+    Section {
+        Index: 1
+        SectionName: "__text"
+        SegmentName: "__TEXT"
+        Address: 0x100003F68
+        Size: 0x34
+        Offset: 0x3F68
+        Align: 0x2
+        RelocationOffset: 0x0
+        NumberOfRelocations: 0x0
+        Flags: 0x80000400
+            S_REGULAR (0x0)
+            S_ATTR_PURE_INSTRUCTIONS (0x80000000)
+            S_ATTR_SOME_INSTRUCTIONS (0x400)
+        Reserved1: 0x0
+        Reserved2: 0x0
+    }
+    Section {
+        Index: 2
+        SectionName: "__stubs"
+        SegmentName: "__TEXT"
+        Address: 0x100003F9C
+        Size: 0xC
+        Offset: 0x3F9C
+        Align: 0x2
+        RelocationOffset: 0x0
+        NumberOfRelocations: 0x0
+        Flags: 0x80000408
+            S_SYMBOL_STUBS (0x8)
+            S_ATTR_PURE_INSTRUCTIONS (0x80000000)
+            S_ATTR_SOME_INSTRUCTIONS (0x400)
+        Reserved1: 0x0
+        Reserved2: 0xC
+        IndirectSymbol {
+            Index: 0
+            Symbol: "_printf" (0x2)
+        }
+    }
+    Section {
+        Index: 3
+        SectionName: "__cstring"
+        SegmentName: "__TEXT"
+        Address: 0x100003FA8
+        Size: 0xD
+        Offset: 0x3FA8
+        Align: 0x0
+        RelocationOffset: 0x0
+        NumberOfRelocations: 0x0
+        Flags: S_CSTRING_LITERALS (0x2)
+        Reserved1: 0x0
+        Reserved2: 0x0
+    }
+    Section {
+        Index: 4
+        SectionName: "__unwind_info"
+        SegmentName: "__TEXT"
+        Address: 0x100003FB8
+        Size: 0x48
+        Offset: 0x3FB8
+        Align: 0x2
+        RelocationOffset: 0x0
+        NumberOfRelocations: 0x0
+        Flags: S_REGULAR (0x0)
+        Reserved1: 0x0
+        Reserved2: 0x0
+    }
+}
+SegmentCommand {
+    Cmd: LC_SEGMENT_64 (0x19)
+    CmdSize: 0x98
+    SegmentName: "__DATA_CONST"
+    VmAddress: 0x100004000
+    VmSize: 0x4000
+    FileOffset: 0x4000
+    FileSize: 0x4000
+    MaxProt: 0x3
+        VM_PROT_READ (0x1)
+        VM_PROT_WRITE (0x2)
+    InitProt: 0x3
+        VM_PROT_READ (0x1)
+        VM_PROT_WRITE (0x2)
+    NumberOfSections: 1
+    Flags: SG_READ_ONLY (0x10)
+    Section {
+        Index: 5
+        SectionName: "__got"
+        SegmentName: "__DATA_CONST"
+        Address: 0x100004000
+        Size: 0x8
+        Offset: 0x4000
+        Align: 0x3
+        RelocationOffset: 0x0
+        NumberOfRelocations: 0x0
+        Flags: S_NON_LAZY_SYMBOL_POINTERS (0x6)
+        Reserved1: 0x1
+        Reserved2: 0x0
+        IndirectSymbol {
+            Index: 0
+            Symbol: "_printf" (0x2)
+        }
+    }
+}
+SegmentCommand {
+    Cmd: LC_SEGMENT_64 (0x19)
+    CmdSize: 0x48
+    SegmentName: "__LINKEDIT"
+    VmAddress: 0x100008000
+    VmSize: 0x4000
+    FileOffset: 0x8000
+    FileSize: 0x1D00
+    MaxProt: VM_PROT_READ (0x1)
+    InitProt: VM_PROT_READ (0x1)
+    NumberOfSections: 0
+    Flags: 0x0
+}
+LinkeditDataCommand {
+    Cmd: LC_DYLD_CHAINED_FIXUPS (0x80000034)
+    CmdSize: 0x10
+    DataOffset: 0x8000
+    DataSize: 0x60
+    DyldChainedFixups {
+        FixupsVersion: 0
+        StartsOffset: 0x20
+        ImportsOffset: 0x50
+        SymbolsOffset: 0x54
+        ImportsCount: 1
+        ImportsFormat: DYLD_CHAINED_IMPORT (0x1)
+        SymbolsFormat: 0
+        Import {
+            LibraryOrdinal: 1
+            WeakImport: false
+            Addend: 0
+            Name: "_printf"
+        }
+        Segment {
+            SegmentIndex: 2
+            Size: 0x18
+            PageSize: 0x4000
+            PointerFormat: DYLD_CHAINED_PTR_64_OFFSET (0x6)
+            SegmentOffset: 0x4000
+            MaxValidPointer: 0x0
+            PageCount: 1
+            Bind {
+                Offset: 0x0
+                Ordinal: "_printf" (0x0)
+            }
+        }
+    }
+}
+LinkeditDataCommand {
+    Cmd: LC_DYLD_EXPORTS_TRIE (0x80000033)
+    CmdSize: 0x10
+    DataOffset: 0x8060
+    DataSize: 0x30
+    ExportSymbol {
+        Name: "__mh_execute_header"
+        Flags: EXPORT_SYMBOL_FLAGS_KIND_REGULAR (0x0)
+        Address: 0x0
+    }
+    ExportSymbol {
+        Name: "_main"
+        Flags: EXPORT_SYMBOL_FLAGS_KIND_REGULAR (0x0)
+        Address: 0x3F68
+    }
+}
+SymtabCommand {
+    Cmd: LC_SYMTAB (0x2)
+    CmdSize: 0x18
+    SymbolOffset: 0x8098
+    NumberOfSymbols: 0x3
+    StringOffset: 0x80D0
+    StringSize: 0x28
+    Nlist {
+        Index: 0
+        String: "__mh_execute_header" (0x2)
+        Type: 0xF
+            N_SECT (0xE)
+            N_EXT (0x1)
+        Section: "__TEXT,__text" (0x1)
+        Desc: REFERENCED_DYNAMICALLY (0x10)
+        Value: 0x100000000
+    }
+    Nlist {
+        Index: 1
+        String: "_main" (0x16)
+        Type: 0xF
+            N_SECT (0xE)
+            N_EXT (0x1)
+        Section: "__TEXT,__text" (0x1)
+        Desc: 0x0
+        Value: 0x100003F68
+    }
+    Nlist {
+        Index: 2
+        String: "_printf" (0x1C)
+        Type: 0x1
+            N_UNDF (0x0)
+            N_EXT (0x1)
+        Section: "" (0x0)
+        Desc: 0x100
+            REFERENCE_FLAG_UNDEFINED_NON_LAZY (0x0)
+        DylibOrdinal: 0x1
+        Value: 0x0
+    }
+}
+DysymtabCommand {
+    Cmd: LC_DYSYMTAB (0xB)
+    CmdSize: 0x50
+    IndexOfLocalSymbols: 0
+    NumberOfLocalSymbols: 0
+    IndexOfExternallyDefinedSymbols: 0
+    NumberOfExternallyDefinedSymbols: 2
+    IndexOfUndefinedSymbols: 2
+    NumberOfUndefinedSymbols: 1
+    TocOffset: 0x0
+    NumberOfTocEntries: 0
+    ModuleTableOffset: 0x0
+    NumberOfModuleTableEntries: 0
+    ExternalRefSymbolOffset: 0x0
+    NumberOfExternalRefSymbols: 0
+    IndirectSymbolOffset: 0x80C8
+    NumberOfIndirectSymbols: 2
+    ExternalRelocationOffset: 0x0
+    NumberOfExternalRelocations: 0
+    LocalRelocationOffset: 0x0
+    NumberOfLocalRelocations: 0
+}
+DylinkerCommand {
+    Cmd: LC_LOAD_DYLINKER (0xE)
+    CmdSize: 0x20
+    Name: "/usr/lib/dyld" (0xC)
+}
+UuidCommand {
+    Cmd: LC_UUID (0x1B)
+    CmdSize: 0x18
+    Uuid: [46, DD, C8, B7, F0, 47, 38, 6B, B2, 75, 9A, EC, A4, DC, DE, 6F]
+}
+BuildVersionCommand {
+    Cmd: LC_BUILD_VERSION (0x32)
+    CmdSize: 0x20
+    Platform: PLATFORM_MACOS (0x1)
+    MinOs: 13.0.0
+    Sdk: 13.3.0
+    NumberOfTools: 0x1
+    BuildToolVersion {
+        Tool: TOOL_LD (0x3)
+        Version: 857.1.0
+    }
+}
+SourceVersionCommand {
+    Cmd: LC_SOURCE_VERSION (0x2A)
+    CmdSize: 0x10
+    Version: 0x0
+}
+EntryPointCommand {
+    Cmd: LC_MAIN (0x80000028)
+    CmdSize: 0x18
+    EntryOffset: 0x3F68
+    StackSize: 0x0
+}
+DylibCommand {
+    Cmd: LC_LOAD_DYLIB (0xC)
+    CmdSize: 0x38
+    Dylib {
+        Name: "/usr/lib/libSystem.B.dylib" (0x18)
+        Timestamp: 2
+        CurrentVersion: 1319.100.3
+        CompatibilityVersion: 1.0.0
+    }
+}
+LinkeditDataCommand {
+    Cmd: LC_FUNCTION_STARTS (0x26)
+    CmdSize: 0x10
+    DataOffset: 0x8090
+    DataSize: 0x8
+    FunctionStarts {
+        Address: 0x100003F68
+    }
+}
+LinkeditDataCommand {
+    Cmd: LC_DATA_IN_CODE (0x29)
+    CmdSize: 0x10
+    DataOffset: 0x8098
+    DataSize: 0x0
+}
+LinkeditDataCommand {
+    Cmd: LC_CODE_SIGNATURE (0x1D)
+    CmdSize: 0x10
+    DataOffset: 0x8100
+    DataSize: 0x1C00
+    CodeSignature {
+        Magic: 0xFADE0CC0
+        Length: 0x565
+        Count: 6
+        Blob {
+            Slot: CSSLOT_CODEDIRECTORY (0x0)
+            Offset: 0x3C
+            Magic: 0xFADE0C02
+            Length: 0x265
+            CodeDirectory {
+                Version: CS_SUPPORTSEXECSEG (0x20400)
+                Flags: CS_ADHOC (0x2)
+                HashOffset: 0x145
+                IdentOffset: "base-aarch64" (0x58)
+                NSpecialSlots: 7
+                NCodeSlots: 9
+                CodeLimit: 0x8100
+                HashSize: 32
+                HashType: CS_HASHTYPE_SHA256 (0x2)
+                Platform: 0
+                PageSize: 12
+                ScatterOffset: 0x0
+                TeamOffset: 0x0
+                CodeLimit64: 0x0
+                ExecSegBase: 0x0
+                ExecSegLimit: 0x4000
+                ExecSegFlags: 0x11
+                    CS_EXECSEG_MAIN_BINARY (0x1)
+                    CS_EXECSEG_ALLOW_UNSIGNED (0x10)
+                SpecialSlot {
+                    Slot: CSSLOT_INFOSLOT (0x1)
+                    Hash: 636f23667618d41b4a522863da30452f21301c7b0ee00e2429a76a38a572aad1
+                }
+                SpecialSlot {
+                    Slot: CSSLOT_REQUIREMENTS (0x2)
+                    Hash: 987920904eab650e75788c054aa0b0524e6a80bfc71aa32df8d237a61743f986
+                }
+                SpecialSlot {
+                    Slot: CSSLOT_RESOURCEDIR (0x3)
+                    Hash: 0000000000000000000000000000000000000000000000000000000000000000
+                }
+                SpecialSlot {
+                    Slot: CSSLOT_APPLICATION (0x4)
+                    Hash: 0000000000000000000000000000000000000000000000000000000000000000
+                }
+                SpecialSlot {
+                    Slot: CSSLOT_ENTITLEMENTS (0x5)
+                    Hash: adea2675562421d85cc35e2c909ae27f33846eeb3b2b7c68017abd1b4b02f624
+                }
+                SpecialSlot {
+                    Slot: 0x6
+                    Hash: 0000000000000000000000000000000000000000000000000000000000000000
+                }
+                SpecialSlot {
+                    Slot: CSSLOT_DER_ENTITLEMENTS (0x7)
+                    Hash: 4d9925d24f1357a00429379f31f567cedfaa8101d58442e7864f923bfb708794
+                }
+                CodeHash: e88b98c19bad8b22c72739bb791a50c2d8e0964d199cca3557df4f8c6b11226c
+                CodeHash: ad7facb2586fc6e966c004d7d1d16b024f5805ff7cb47c7a85dabd8b48892ca7
+                CodeHash: ad7facb2586fc6e966c004d7d1d16b024f5805ff7cb47c7a85dabd8b48892ca7
+                CodeHash: 60417fa9c2dedd7c20d9708af469b59e251790446f528ab4d1734761adaab748
+                CodeHash: dfd5eb86f1956603a12c0636f4631f66f10d0bb8d4eea3d25b82e0e59202b4ed
+                CodeHash: ad7facb2586fc6e966c004d7d1d16b024f5805ff7cb47c7a85dabd8b48892ca7
+                CodeHash: ad7facb2586fc6e966c004d7d1d16b024f5805ff7cb47c7a85dabd8b48892ca7
+                CodeHash: ad7facb2586fc6e966c004d7d1d16b024f5805ff7cb47c7a85dabd8b48892ca7
+                CodeHash: 6a8d40e904cd3f5a21f12d8607b915a153486985c99ce0a508a8888a99c48b5a
+            }
+        }
+        Blob {
+            Slot: CSSLOT_REQUIREMENTS (0x2)
+            Offset: 0x2A1
+            Magic: 0xFADE0C01
+            Length: 0xC
+        }
+        Blob {
+            Slot: CSSLOT_ENTITLEMENTS (0x5)
+            Offset: 0x2AD
+            Magic: 0xFADE7171
+            Length: 0xE7
+        }
+        Blob {
+            Slot: CSSLOT_DER_ENTITLEMENTS (0x7)
+            Offset: 0x394
+            Magic: 0xFADE7172
+            Length: 0x24
+        }
+        Blob {
+            Slot: CSSLOT_ALTERNATE_CODEDIRECTORIES + 0 (0x1000)
+            Offset: 0x3B8
+            Magic: 0xFADE0C02
+            Length: 0x1A5
+            CodeDirectory {
+                Version: CS_SUPPORTSEXECSEG (0x20400)
+                Flags: CS_ADHOC (0x2)
+                HashOffset: 0xF1
+                IdentOffset: "base-aarch64" (0x58)
+                NSpecialSlots: 7
+                NCodeSlots: 9
+                CodeLimit: 0x8100
+                HashSize: 20
+                HashType: CS_HASHTYPE_SHA1 (0x1)
+                Platform: 0
+                PageSize: 12
+                ScatterOffset: 0x0
+                TeamOffset: 0x0
+                CodeLimit64: 0x0
+                ExecSegBase: 0x0
+                ExecSegLimit: 0x4000
+                ExecSegFlags: 0x11
+                    CS_EXECSEG_MAIN_BINARY (0x1)
+                    CS_EXECSEG_ALLOW_UNSIGNED (0x10)
+                SpecialSlot {
+                    Slot: CSSLOT_INFOSLOT (0x1)
+                    Hash: 202148b375ae64a5bcab3edf8dbb9c543f6af5b2
+                }
+                SpecialSlot {
+                    Slot: CSSLOT_REQUIREMENTS (0x2)
+                    Hash: 3a75f6db058529148e14dd7ea1b4729cc09ec973
+                }
+                SpecialSlot {
+                    Slot: CSSLOT_RESOURCEDIR (0x3)
+                    Hash: 0000000000000000000000000000000000000000
+                }
+                SpecialSlot {
+                    Slot: CSSLOT_APPLICATION (0x4)
+                    Hash: 0000000000000000000000000000000000000000
+                }
+                SpecialSlot {
+                    Slot: CSSLOT_ENTITLEMENTS (0x5)
+                    Hash: 609a70a1468d84bef2be0146d1f0a5ea1c839948
+                }
+                SpecialSlot {
+                    Slot: 0x6
+                    Hash: 0000000000000000000000000000000000000000
+                }
+                SpecialSlot {
+                    Slot: CSSLOT_DER_ENTITLEMENTS (0x7)
+                    Hash: 1018e52606e45993b16da1c621ceec945b9d5226
+                }
+                CodeHash: 1142a4a92f075b51c90c7dbb835abf90f0306256
+                CodeHash: 1ceaf73df40e531df3bfb26b4fb7cd95fb7bff1d
+                CodeHash: 1ceaf73df40e531df3bfb26b4fb7cd95fb7bff1d
+                CodeHash: 036bb3643ce5120de6f085638ed3dbd04c3090a0
+                CodeHash: ef9fd7224de276b4dbd358c75ed34b053dde230b
+                CodeHash: 1ceaf73df40e531df3bfb26b4fb7cd95fb7bff1d
+                CodeHash: 1ceaf73df40e531df3bfb26b4fb7cd95fb7bff1d
+                CodeHash: 1ceaf73df40e531df3bfb26b4fb7cd95fb7bff1d
+                CodeHash: f404641b92e31788ad9cfbc59bade84d239e004f
+            }
+        }
+        Blob {
+            Slot: CSSLOT_SIGNATURESLOT (0x10000)
+            Offset: 0x55D
+            Magic: 0xFADE0B01
+            Length: 0x8
+        }
+    }
+}

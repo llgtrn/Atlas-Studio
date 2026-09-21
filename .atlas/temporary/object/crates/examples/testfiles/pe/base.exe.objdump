@@ -1,0 +1,89 @@
+Format: Pe Little-endian 32-bit
+Kind: Executable
+Architecture: I386
+Flags: Coff { characteristics: IMAGE_FILE_EXECUTABLE_IMAGE | IMAGE_FILE_32BIT_MACHINE }
+Relative Address Base: 400000
+Entry Address: 4012e1
+Segment { name: ".text", address: 401000, size: 104d3, permissions: R-X }
+Segment { name: ".rdata", address: 412000, size: 6808, permissions: R-- }
+Segment { name: ".data", address: 419000, size: 12f4, permissions: RW- }
+Segment { name: ".reloc", address: 41b000, size: ec8, permissions: R-- }
+1: Section { name: ".text", address: 401000, size: 104d3, align: 1000, kind: Text, flags: Coff { characteristics: IMAGE_SCN_CNT_CODE | IMAGE_SCN_MEM_EXECUTE | IMAGE_SCN_MEM_READ } }
+2: Section { name: ".rdata", address: 412000, size: 6808, align: 1000, kind: ReadOnlyData, flags: Coff { characteristics: IMAGE_SCN_CNT_INITIALIZED_DATA | IMAGE_SCN_MEM_READ } }
+3: Section { name: ".data", address: 419000, size: 12f4, align: 1000, kind: Data, flags: Coff { characteristics: IMAGE_SCN_CNT_INITIALIZED_DATA | IMAGE_SCN_MEM_READ | IMAGE_SCN_MEM_WRITE } }
+4: Section { name: ".reloc", address: 41b000, size: ec8, align: 1000, kind: Other, flags: Coff { characteristics: IMAGE_SCN_CNT_INITIALIZED_DATA | IMAGE_SCN_MEM_DISCARDABLE | IMAGE_SCN_MEM_READ } }
+
+Symbols
+
+Dynamic symbols
+
+ImportLibrary { name: "KERNEL32.dll", flags: Pe }
+
+Import { library: "KERNEL32.dll", name: "QueryPerformanceCounter", flags: Pe }
+Import { library: "KERNEL32.dll", name: "GetCurrentProcessId", flags: Pe }
+Import { library: "KERNEL32.dll", name: "GetCurrentThreadId", flags: Pe }
+Import { library: "KERNEL32.dll", name: "GetSystemTimeAsFileTime", flags: Pe }
+Import { library: "KERNEL32.dll", name: "InitializeSListHead", flags: Pe }
+Import { library: "KERNEL32.dll", name: "IsDebuggerPresent", flags: Pe }
+Import { library: "KERNEL32.dll", name: "UnhandledExceptionFilter", flags: Pe }
+Import { library: "KERNEL32.dll", name: "SetUnhandledExceptionFilter", flags: Pe }
+Import { library: "KERNEL32.dll", name: "GetStartupInfoW", flags: Pe }
+Import { library: "KERNEL32.dll", name: "IsProcessorFeaturePresent", flags: Pe }
+Import { library: "KERNEL32.dll", name: "GetModuleHandleW", flags: Pe }
+Import { library: "KERNEL32.dll", name: "GetCurrentProcess", flags: Pe }
+Import { library: "KERNEL32.dll", name: "TerminateProcess", flags: Pe }
+Import { library: "KERNEL32.dll", name: "WriteConsoleW", flags: Pe }
+Import { library: "KERNEL32.dll", name: "RtlUnwind", flags: Pe }
+Import { library: "KERNEL32.dll", name: "GetLastError", flags: Pe }
+Import { library: "KERNEL32.dll", name: "SetLastError", flags: Pe }
+Import { library: "KERNEL32.dll", name: "EnterCriticalSection", flags: Pe }
+Import { library: "KERNEL32.dll", name: "LeaveCriticalSection", flags: Pe }
+Import { library: "KERNEL32.dll", name: "DeleteCriticalSection", flags: Pe }
+Import { library: "KERNEL32.dll", name: "InitializeCriticalSectionAndSpinCount", flags: Pe }
+Import { library: "KERNEL32.dll", name: "TlsAlloc", flags: Pe }
+Import { library: "KERNEL32.dll", name: "TlsGetValue", flags: Pe }
+Import { library: "KERNEL32.dll", name: "TlsSetValue", flags: Pe }
+Import { library: "KERNEL32.dll", name: "TlsFree", flags: Pe }
+Import { library: "KERNEL32.dll", name: "FreeLibrary", flags: Pe }
+Import { library: "KERNEL32.dll", name: "GetProcAddress", flags: Pe }
+Import { library: "KERNEL32.dll", name: "LoadLibraryExW", flags: Pe }
+Import { library: "KERNEL32.dll", name: "RaiseException", flags: Pe }
+Import { library: "KERNEL32.dll", name: "GetStdHandle", flags: Pe }
+Import { library: "KERNEL32.dll", name: "WriteFile", flags: Pe }
+Import { library: "KERNEL32.dll", name: "GetModuleFileNameW", flags: Pe }
+Import { library: "KERNEL32.dll", name: "ExitProcess", flags: Pe }
+Import { library: "KERNEL32.dll", name: "GetModuleHandleExW", flags: Pe }
+Import { library: "KERNEL32.dll", name: "GetCommandLineA", flags: Pe }
+Import { library: "KERNEL32.dll", name: "GetCommandLineW", flags: Pe }
+Import { library: "KERNEL32.dll", name: "HeapAlloc", flags: Pe }
+Import { library: "KERNEL32.dll", name: "HeapFree", flags: Pe }
+Import { library: "KERNEL32.dll", name: "CompareStringW", flags: Pe }
+Import { library: "KERNEL32.dll", name: "LCMapStringW", flags: Pe }
+Import { library: "KERNEL32.dll", name: "GetFileType", flags: Pe }
+Import { library: "KERNEL32.dll", name: "FindClose", flags: Pe }
+Import { library: "KERNEL32.dll", name: "FindFirstFileExW", flags: Pe }
+Import { library: "KERNEL32.dll", name: "FindNextFileW", flags: Pe }
+Import { library: "KERNEL32.dll", name: "IsValidCodePage", flags: Pe }
+Import { library: "KERNEL32.dll", name: "GetACP", flags: Pe }
+Import { library: "KERNEL32.dll", name: "GetOEMCP", flags: Pe }
+Import { library: "KERNEL32.dll", name: "GetCPInfo", flags: Pe }
+Import { library: "KERNEL32.dll", name: "MultiByteToWideChar", flags: Pe }
+Import { library: "KERNEL32.dll", name: "WideCharToMultiByte", flags: Pe }
+Import { library: "KERNEL32.dll", name: "GetEnvironmentStringsW", flags: Pe }
+Import { library: "KERNEL32.dll", name: "FreeEnvironmentStringsW", flags: Pe }
+Import { library: "KERNEL32.dll", name: "SetEnvironmentVariableW", flags: Pe }
+Import { library: "KERNEL32.dll", name: "SetStdHandle", flags: Pe }
+Import { library: "KERNEL32.dll", name: "GetStringTypeW", flags: Pe }
+Import { library: "KERNEL32.dll", name: "GetProcessHeap", flags: Pe }
+Import { library: "KERNEL32.dll", name: "FlushFileBuffers", flags: Pe }
+Import { library: "KERNEL32.dll", name: "GetConsoleOutputCP", flags: Pe }
+Import { library: "KERNEL32.dll", name: "GetConsoleMode", flags: Pe }
+Import { library: "KERNEL32.dll", name: "GetFileSizeEx", flags: Pe }
+Import { library: "KERNEL32.dll", name: "SetFilePointerEx", flags: Pe }
+Import { library: "KERNEL32.dll", name: "HeapSize", flags: Pe }
+Import { library: "KERNEL32.dll", name: "HeapReAlloc", flags: Pe }
+Import { library: "KERNEL32.dll", name: "CloseHandle", flags: Pe }
+Import { library: "KERNEL32.dll", name: "CreateFileW", flags: Pe }
+Import { library: "KERNEL32.dll", name: "DecodePointer", flags: Pe }
+
+Symbol map

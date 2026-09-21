@@ -593,3 +593,212 @@ evidence = [
   ".atlas/census/donors/zed.md"
 ]
 
+
+[[donor]]
+id = "zstd"
+name = "Zstandard"
+repository = "facebook/zstd"
+resolved_url = "https://github.com/facebook/zstd.git"
+commit_sha = "01b7154f1172432f8abe9b3bb9909e14a1176b7d"
+git_tree_sha = "7973821daa75236c9247c12881c39053a3a7cd47"
+default_branch = "dev"
+retrieved_at = "2026-09-21T03:00:34.9575636Z"
+staging_mode = "FULL_SOURCE_TREE"
+license = [".atlas/licenses/donors/zstd/COPYING", ".atlas/licenses/donors/zstd/LICENSE"]
+technology_domains = ["compression", "binary_payloads", "compiler_artifact_compression"]
+ingestion_status = "CLONED"
+census_status = "COARSE_CENSUSED"
+decision_status = "APPROVED_COMPILER_BINARY_LANE"
+native_replacement = "runtime/storage compression and atlas shard compression primitives"
+runtime_dependency_status = "REFERENCE_ONLY"
+evidence = [".atlas/provenance/donors/zstd.json", ".atlas/census/donors/zstd.md"]
+
+[[donor]]
+id = "blake3"
+name = "BLAKE3"
+repository = "BLAKE3-team/BLAKE3"
+resolved_url = "https://github.com/BLAKE3-team/BLAKE3.git"
+commit_sha = "6aab490a26124663329dfd3961b8469f8fdb158b"
+git_tree_sha = "9f05f8d64c9c2d64965f60d4f72a40852de4e072"
+default_branch = "master"
+retrieved_at = "2026-09-21T03:00:34.9575636Z"
+staging_mode = "FULL_SOURCE_TREE"
+license = [".atlas/licenses/donors/blake3/LICENSE_A2", ".atlas/licenses/donors/blake3/LICENSE_A2LLVM", ".atlas/licenses/donors/blake3/LICENSE_CC0"]
+technology_domains = ["hashing", "content_addressing", "integrity"]
+ingestion_status = "CLONED"
+census_status = "COARSE_CENSUSED"
+decision_status = "APPROVED_COMPILER_BINARY_LANE"
+native_replacement = "core identity/content-addressed hash strategy and shard integrity evidence"
+runtime_dependency_status = "REFERENCE_ONLY"
+evidence = [".atlas/provenance/donors/blake3.json", ".atlas/census/donors/blake3.md"]
+
+[[donor]]
+id = "rust"
+name = "Rust"
+repository = "rust-lang/rust"
+resolved_url = "https://github.com/rust-lang/rust.git"
+commit_sha = "d287eb7a292caa8abbe12051dce2ee707fe03200"
+git_tree_sha = "42480d7fe225a464090d5f55839c4b49bdd4963c"
+default_branch = "main"
+retrieved_at = "2026-09-21T03:00:34.9575636Z"
+staging_mode = "FULL_SOURCE_TREE"
+license = [".atlas/licenses/donors/rust/COPYRIGHT", ".atlas/licenses/donors/rust/LICENSE-APACHE", ".atlas/licenses/donors/rust/license-metadata.json", ".atlas/licenses/donors/rust/LICENSE-MIT"]
+technology_domains = ["compiler", "borrow_checker", "codegen", "standard_toolchain"]
+ingestion_status = "CLONED"
+census_status = "COARSE_CENSUSED"
+decision_status = "APPROVED_COMPILER_BINARY_LANE"
+native_replacement = "compiler roadmap rust parity oracle and AtlasX bootstrap reference"
+runtime_dependency_status = "REFERENCE_ONLY"
+evidence = [".atlas/provenance/donors/rust.json", ".atlas/census/donors/rust.md"]
+
+[[donor]]
+id = "flatbuffers"
+name = "FlatBuffers"
+repository = "google/flatbuffers"
+resolved_url = "https://github.com/google/flatbuffers.git"
+commit_sha = "b8431fbcd7a5c71817f314e18b332c0648554efa"
+git_tree_sha = "0b3c731daf52a90658ab86e4912075ea4b7da735"
+default_branch = "master"
+retrieved_at = "2026-09-21T03:00:34.9575636Z"
+staging_mode = "FULL_SOURCE_TREE"
+license = [".atlas/licenses/donors/flatbuffers/LICENSE"]
+technology_domains = ["schema", "serialization", "zero_copy_binary_format"]
+ingestion_status = "CLONED"
+census_status = "COARSE_CENSUSED"
+decision_status = "APPROVED_COMPILER_BINARY_LANE"
+native_replacement = "atlas binary schema/layout lessons and deterministic interchange boundaries"
+runtime_dependency_status = "REFERENCE_ONLY"
+evidence = [".atlas/provenance/donors/flatbuffers.json", ".atlas/census/donors/flatbuffers.md"]
+
+[[donor]]
+id = "llvm-project"
+name = "LLVM Project"
+repository = "llvm/llvm-project"
+resolved_url = "https://github.com/llvm/llvm-project.git"
+commit_sha = "0bd330675f9eb08126e467505a0800f167084473"
+git_tree_sha = "7989848d07457d796890b09d4c7b0f34219e7dba"
+default_branch = "main"
+retrieved_at = "2026-09-21T03:00:34.9575636Z"
+staging_mode = "FULL_SOURCE_TREE"
+license = [".atlas/licenses/donors/llvm-project/LICENSE.TXT"]
+technology_domains = ["compiler_backend", "ir", "optimizer", "codegen", "debug_info"]
+ingestion_status = "CLONED"
+census_status = "COARSE_CENSUSED"
+decision_status = "APPROVED_COMPILER_BINARY_LANE"
+native_replacement = "external native backend roadmap and differential codegen oracle"
+runtime_dependency_status = "REFERENCE_ONLY"
+evidence = [".atlas/provenance/donors/llvm-project.json", ".atlas/census/donors/llvm-project.md"]
+
+[[donor]]
+id = "wasmtime"
+name = "Wasmtime"
+repository = "bytecodealliance/wasmtime"
+resolved_url = "https://github.com/bytecodealliance/wasmtime.git"
+commit_sha = "7ad2e732ab9ca8665d3cdd91f9c395315eeafc81"
+git_tree_sha = "81feb43a4f161837256cd4b23f4c05b9b7ff2608"
+default_branch = "main"
+retrieved_at = "2026-09-21T03:00:34.9575636Z"
+staging_mode = "FULL_SOURCE_TREE"
+license = [".atlas/licenses/donors/wasmtime/LICENSE"]
+technology_domains = ["wasm_runtime", "sandboxing", "cranelift", "component_model"]
+ingestion_status = "CLONED"
+census_status = "COARSE_CENSUSED"
+decision_status = "APPROVED_COMPILER_BINARY_LANE"
+native_replacement = "runtime wasm backend/sandbox and Cranelift integration reference"
+runtime_dependency_status = "REFERENCE_ONLY"
+evidence = [".atlas/provenance/donors/wasmtime.json", ".atlas/census/donors/wasmtime.md"]
+
+[[donor]]
+id = "wasm-tools"
+name = "Wasm Tools"
+repository = "bytecodealliance/wasm-tools"
+resolved_url = "https://github.com/bytecodealliance/wasm-tools.git"
+commit_sha = "5b9827a7eabc4e365c6e15ed2ab5059a3db8b215"
+git_tree_sha = "0f5620ec63d2dbe9de8d67714509867f7201af99"
+default_branch = "main"
+retrieved_at = "2026-09-21T03:00:34.9575636Z"
+staging_mode = "FULL_SOURCE_TREE"
+license = [".atlas/licenses/donors/wasm-tools/LICENSE-APACHE", ".atlas/licenses/donors/wasm-tools/LICENSE-Apache-2.0_WITH_LLVM-exception", ".atlas/licenses/donors/wasm-tools/LICENSE-MIT"]
+technology_domains = ["wasm", "component_model", "binary_tools", "validation"]
+ingestion_status = "CLONED"
+census_status = "COARSE_CENSUSED"
+decision_status = "APPROVED_COMPILER_BINARY_LANE"
+native_replacement = "adapter/exchange wasm encoding validation and component-model tooling"
+runtime_dependency_status = "REFERENCE_ONLY"
+evidence = [".atlas/provenance/donors/wasm-tools.json", ".atlas/census/donors/wasm-tools.md"]
+
+[[donor]]
+id = "object"
+name = "object"
+repository = "gimli-rs/object"
+resolved_url = "https://github.com/gimli-rs/object.git"
+commit_sha = "7770b8c580b07999a67226c4f9ae638e483e0314"
+git_tree_sha = "bbdb9df7598d287d321de6f6db69056331834a65"
+default_branch = "main"
+retrieved_at = "2026-09-21T03:00:34.9575636Z"
+staging_mode = "FULL_SOURCE_TREE"
+license = [".atlas/licenses/donors/object/LICENSE-APACHE", ".atlas/licenses/donors/object/LICENSE-MIT"]
+technology_domains = ["object_files", "elf", "macho", "coff", "debug"]
+ingestion_status = "CLONED"
+census_status = "COARSE_CENSUSED"
+decision_status = "APPROVED_COMPILER_BINARY_LANE"
+native_replacement = "compiler object emission and binary inspection primitives"
+runtime_dependency_status = "REFERENCE_ONLY"
+evidence = [".atlas/provenance/donors/object.json", ".atlas/census/donors/object.md"]
+
+[[donor]]
+id = "regalloc2"
+name = "regalloc2"
+repository = "bytecodealliance/regalloc2"
+resolved_url = "https://github.com/bytecodealliance/regalloc2.git"
+commit_sha = "2fe490bc9dda433f70c54f90f7633ed929f693d9"
+git_tree_sha = "1c6edf753513b879f27b61515db153c46ac23844"
+default_branch = "main"
+retrieved_at = "2026-09-21T03:00:34.9575636Z"
+staging_mode = "FULL_SOURCE_TREE"
+license = [".atlas/licenses/donors/regalloc2/LICENSE"]
+technology_domains = ["register_allocation", "compiler_backend", "machine_ir"]
+ingestion_status = "CLONED"
+census_status = "COARSE_CENSUSED"
+decision_status = "APPROVED_COMPILER_BINARY_LANE"
+native_replacement = "native backend register allocation and spill strategy reference"
+runtime_dependency_status = "REFERENCE_ONLY"
+evidence = [".atlas/provenance/donors/regalloc2.json", ".atlas/census/donors/regalloc2.md"]
+
+[[donor]]
+id = "mold"
+name = "mold"
+repository = "rui314/mold"
+resolved_url = "https://github.com/rui314/mold.git"
+commit_sha = "89a9b334e8a7ddda367adf05591342b2766eb1e7"
+git_tree_sha = "f2f8a0e22a34573c503540577b759831f0b6de96"
+default_branch = "main"
+retrieved_at = "2026-09-21T03:00:34.9575636Z"
+staging_mode = "FULL_SOURCE_TREE"
+license = [".atlas/licenses/donors/mold/LICENSE"]
+technology_domains = ["linker", "elf", "parallel_linking", "binary_layout"]
+ingestion_status = "CLONED"
+census_status = "COARSE_CENSUSED"
+decision_status = "APPROVED_COMPILER_BINARY_LANE"
+native_replacement = "compiler linker integration and post-link layout reference"
+runtime_dependency_status = "REFERENCE_ONLY"
+evidence = [".atlas/provenance/donors/mold.json", ".atlas/census/donors/mold.md"]
+
+[[donor]]
+id = "arrow"
+name = "Apache Arrow"
+repository = "apache/arrow"
+resolved_url = "https://github.com/apache/arrow.git"
+commit_sha = "70f5c269ae8d154f57f7a7ec6babe6e0685ed6ec"
+git_tree_sha = "8dcd79b2f5b2f745642541fdbe8177beeb1daf0b"
+default_branch = "main"
+retrieved_at = "2026-09-21T03:00:34.9575636Z"
+staging_mode = "FULL_SOURCE_TREE"
+license = [".atlas/licenses/donors/arrow/LICENSE.txt", ".atlas/licenses/donors/arrow/NOTICE.txt"]
+technology_domains = ["columnar_memory", "ipc", "binary_layout", "analytics"]
+ingestion_status = "CLONED"
+census_status = "COARSE_CENSUSED"
+decision_status = "APPROVED_COMPILER_BINARY_LANE"
+native_replacement = "atlas columnar evidence storage and high-performance data layout reference"
+runtime_dependency_status = "REFERENCE_ONLY"
+evidence = [".atlas/provenance/donors/arrow.json", ".atlas/census/donors/arrow.md"]
