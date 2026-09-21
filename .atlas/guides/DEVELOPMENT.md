@@ -36,6 +36,19 @@ Before coding, read North Star, Genome, Census Completeness, Universal Graph, AT
 24. Recensus materialized/generated implementation/product evidence against intended design.
 25. Record evidence and extinguish donor checkout/scope only after the absorption gate.
 
+## Research evidence boundary
+
+For DeepWiki, papers, RFCs, external docs or model-assisted research:
+
+1. create a ResearchClaim with source URL/revision/date when available;
+2. keep it outside the observed-world census;
+3. for donor implementation claims, resolve the exact pinned SHA from `references/donor-corpus.toml`;
+4. verify against pinned source/build/test/runtime evidence;
+5. preserve disagreement as CONFLICT or UNKNOWN;
+6. only then use verified observation for mechanism extraction or design selection.
+
+Research may trigger deeper census. It cannot bypass census.
+
 ## Bootstrap language policy
 
 Backend/compiler/runtime is Rust. Frontend is TypeScript/TSX. C is bounded to explicit FFI/device/OS/vendor boundaries unless a target contract justifies otherwise.

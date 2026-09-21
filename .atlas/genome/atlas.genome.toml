@@ -86,6 +86,26 @@ deepwiki_docs_are_explanatory_evidence = true
 model_output_is_candidate_until_verified = true
 silent_conflict_collapse_forbidden = true
 
+[research]
+research_claim_separate_from_observed_evidence = true
+deepwiki_direct_observation_forbidden = true
+deepwiki_is_navigation_and_explanatory_input = true
+donor_implementation_claim_requires_exact_pinned_revision = true
+research_claim_may_trigger_deeper_census = true
+research_claim_promotion_requires_corroborating_evidence = true
+
+[architecture]
+native_production_owners = ["core", "runtime", "adapter", "apps"]
+donor_named_native_runtime_owner_forbidden = true
+tools_are_bootstrap_or_migration_only = true
+mature_tool_logic_must_migrate_to_native_owner = true
+parallel_semantic_truth_system_forbidden = true
+inventory_accounting_precedes_semantic_depth = true
+unknown_extension_must_be_explicitly_accounted = true
+oversize_artifact_must_be_explicitly_accounted = true
+foundational_semantics_should_be_typed = true
+generic_string_map_is_bootstrap_compatibility_only = true
+
 [invention]
 observed_world_must_not_be_overwritten_by_candidate = true
 gap_graph_required = true

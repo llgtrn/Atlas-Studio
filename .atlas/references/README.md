@@ -20,3 +20,7 @@ Evidence roles remain distinct:
 - AI analysis is inference/candidate until independently verified.
 
 Atlas preserves conflicts instead of silently merging incompatible claims.
+
+## DeepWiki research synthesis
+
+`deepwiki/DONOR-ARCHITECTURE-SYNTHESIS.md` records cross-donor architecture hypotheses and is deliberately `canonical: false`. DeepWiki may identify mechanisms and source locations, but donor implementation claims must be verified against the exact SHA in `donor-corpus.toml` and provenance before becoming ObservedEvidence.

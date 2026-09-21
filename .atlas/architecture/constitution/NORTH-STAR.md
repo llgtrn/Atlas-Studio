@@ -100,9 +100,13 @@ An organism may use external LLM/model APIs, local/self-hosted models, determini
 - Donors are evidence, not permanent runtime authority.
 - Backend/compiler/runtime bootstrap is Rust; frontend bootstrap is TypeScript/TSX; C is bounded to explicit low-level boundaries by default.
 - Runtime profiles and benchmark results are evidence tied to target/workload/hardware, never timeless universal facts.
+- DeepWiki, papers, external docs and model analysis enter as ResearchClaim/reference evidence, never direct ObservedEvidence.
+- Donor implementation claims require corroboration against the exact pinned donor revision.
+- Native production ownership converges on core/runtime/adapter/apps; donor-shaped native subsystems and parallel tools truth systems are forbidden.
+- Inventory accounting precedes semantic depth: extension, size or unsupported parser may reduce depth but may not silently erase an admitted artifact.
 
 ## Sequencing
 
-Genome → universal graph → strict Rust Census Engine → census closure/sealing → real ATLAS binary/sharding → invention/selection → AtlasX materializer → Organism Genome/target profiles where applicable → delegated compiler → typed HIR/MIR → external native backends → Machine IR/native backend → production optimization/profile loop → UI/World Canvas as projection.
+Genome → universal graph → capability-owner physical refoundation → exhaustive inventory ledger → strict Rust Census Engine → incremental query/fixed-point reconciliation → census closure/sealing → research-claim correlation → real ATLAS binary/sharding → invention/selection → AtlasX materializer → Organism Genome/target profiles where applicable → delegated compiler → typed HIR/MIR → external native backends → Machine IR/native backend → production optimization/profile loop → UI/World Canvas as projection.
 
 Compiler ambition and organism ambition must not outrun semantic correctness. A Digital Organism is not mature if identity, memory lineage, capability authority, learning admission or lifecycle are still implicit provider/session state.

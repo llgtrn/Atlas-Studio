@@ -17,55 +17,67 @@ canonical: true
 
 ## End-to-end dataflow
 
+Atlas has separate observation and research ingress paths.
+
 ```text
-admitted repositories / OSS / tests / builds / specs / papers / DeepWiki
-                              ↓
-                        secure admission
-                              ↓
-                     exhaustive inventory
-                              ↓
-                    multi-engine census
-                              ↓
-             S0→S10 semantic accounting
-                              ↓
-          reconcile / adversarial gaps / fixed point
-                              ↓
-                    CensusCertificate
-                              ↓
-                    observed world graph
-                              ↓
-              research + invention + selection
-                              ↓
-                    SEALED logical *.atlas
-                              ↓
-         one or many content-addressed physical shards
-                              ↓
-              deterministic *.atlasx/ projection
-                              ↓
-                   target-kind expansion
-                      ├─ general software
-                      └─ digital organism
-                          ├─ Genome
-                          ├─ organs/circuits
-                          ├─ body/brain
-                          ├─ memory/world
-                          ├─ learning
-                          ├─ homeostasis/metabolism
-                          └─ lifecycle/capabilities
-                              ↓
-                  world/graph optimization
-                              ↓
-           HIR → MIR → LIR → Machine IR
-                              ↓
-       codegen → LTO → link → post-link optimization
-                              ↓
-                     physical product
-                              ↓
-      runtime evidence / learning candidates / profiles
-                              ↓
-          evaluation/admission/recensus
-                              ↺
+OBSERVATION PATH
+pinned repositories @ exact revisions
+build metadata / tests / runtime traces / binary metadata
+        ↓
+secure admission
+        ↓
+inventory ledger
+        ↓
+multi-engine census
+        ↓
+typed semantic facts
+        ↓
+reconcile / adversarial gaps / fixed point
+        ↓
+CensusCertificate
+        ↓
+Observed World ────────────────┐
+                               │
+RESEARCH PATH                  │
+DeepWiki / papers / RFCs / docs│
+        ↓                      │
+ResearchClaim                  │
+        ↓ corroboration ───────┘
+                 ↓
+comparison / gap graph
+        ↓
+invention + validation
+        ↓
+selected design
+        ↓
+SEALED logical *.atlas
+        ↓
+content-addressed shards
+        ↓
+deterministic *.atlasx/
+        ↓
+HIR → MIR → LIR → Machine IR
+        ↓
+codegen / verify / link / product
+        ↓
+profile evidence + recensus
+        ↺
 ```
+
+A DeepWiki page, paper or model analysis may create a `ResearchClaim`; it never directly creates `ObservedEvidence`. Donor implementation claims require corroboration against the exact pinned donor revision.
+
+## Native capability ownership
+
+Production architecture converges on four owners:
+
+- `core/`: typed semantic primitives and contracts;
+- `runtime/`: inventory, census, query, closure, reconciliation, research correlation, invention, sealing, materialization, compilation, verification and recensus;
+- `adapter/`: filesystem/VCS/source/build/binary/storage/security/research/provider/toolchain mechanics;
+- `apps/`: Studio, CLI and MCP projections/invocation surfaces.
+
+`tools/` is bootstrap/migration-only. Mature behavior migrates into its native owner and the superseded path is retired. Donor names may describe provenance/research lanes, not permanent runtime ownership.
+
+See `CAPABILITY-ARCHITECTURE.md` and `../blueprints/PHYSICAL-REFOUNDATION.md`.
 
 ## Universal graph substrate
 
