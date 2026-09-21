@@ -42,12 +42,19 @@ pub struct SemanticExtractionBatch {
 
 impl SemanticExtractionBatch {
     pub fn is_accounted(&self) -> bool {
-        self.coverage.iter().all(|coverage| {
-            !matches!(
-                coverage.status,
-                EpistemicStatus::Hypothesis | EpistemicStatus::Conflict
-            )
-        })
+        self.coverage.iter().all(|coverage| match coverage.status {
+            EpistemicStatus::Unknown
+            | EpistemicStatus::Unsupported
+            | EpistemicStatus::Ignored => true,
+            EpistemicStatus::Hypothesis | EpistemicStatus::Conflict => false,
+            EpistemicStatus::Observed
+            | EpistemicStatus::Declared
+            | EpistemicStatus::Derived
+            | EpistemicStatus::Inferred => coverage.closure_proven,
+        }) && self
+            .facts
+            .iter()
+            .all(TypedSemanticFact::is_epistemically_valid)
     }
 }
 
