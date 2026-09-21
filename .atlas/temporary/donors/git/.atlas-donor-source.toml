@@ -1,0 +1,4 @@
+﻿donor = "git"
+remote = "https://github.com/git/git.git"
+commit = "d38352cd43ab9745686d697872408bc3249a153f"
+branch = "master"
