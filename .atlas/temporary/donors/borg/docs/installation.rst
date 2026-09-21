@@ -1,0 +1,532 @@
+.. include:: global.rst.inc
+.. highlight:: bash
+.. _installation:
+
+Installation
+============
+
+There are different ways to install Borg:
+
+- :ref:`distribution-package` - easy and fast if a package is
+  available from your distribution.
+- :ref:`pyinstaller-binary` - easy and fast, we provide a ready-to-use binary file
+  that comes bundled with all dependencies.
+- :ref:`source-install`, either:
+
+  - :ref:`windows-binary` - builds a binary file for Windows using MSYS2.
+  - :ref:`pip-installation` - installing a source package with pip needs
+    more installation steps and requires all dependencies with
+    development headers and a compiler.
+  - :ref:`git-installation`  - for developers and power users who want to
+    have the latest code or use revision control (each release is
+    tagged).
+
+.. _distribution-package:
+
+Distribution Package
+--------------------
+
+Some distributions might offer a ready-to-use ``borgbackup``
+package which can be installed with the package manager.
+
+.. important:: Those packages may not be up to date with the latest
+               Borg releases. Before submitting a bug
+               report, check the package version and compare that to
+               our latest release then review :doc:`changes` to see if
+               the bug has been fixed. Report bugs to the package
+               maintainer rather than directly to Borg if the
+               package is out of date in the distribution.
+
+.. keep this list in alphabetical order
+
+============ ============================================= =======
+Distribution Source                                        Command
+============ ============================================= =======
+Alpine Linux `Alpine repository`_                          ``apk add borgbackup``
+Arch Linux   `[extra]`_                                    ``pacman -S borg``
+Debian       `Debian packages`_                            ``apt install borgbackup``
+Gentoo       `ebuild`_                                     ``emerge borgbackup``
+GNU Guix     `GNU Guix`_                                   ``guix package --install borg``
+Fedora/RHEL  `Fedora official repository`_                 ``dnf install borgbackup``
+FreeBSD      `FreeBSD ports`_                              ``cd /usr/ports/archivers/py-borgbackup && make install clean``
+macOS        `Homebrew`_                                   | ``brew install borgbackup`` (official formula, **no** FUSE support)
+                                                           | **or**
+                                                           | ``brew install --cask macfuse`` (`private Tap`_, FUSE support)
+                                                           | ``brew install borgbackup/tap/borgbackup-fuse``
+Mageia       `cauldron`_                                   ``urpmi borgbackup``
+NetBSD       `pkgsrc`_                                     ``pkg_add py-borgbackup``
+NixOS        `.nix file`_                                  ``nix-env -i borgbackup``
+OpenBSD      `OpenBSD ports`_                              ``pkg_add borgbackup``
+OpenIndiana  `OpenIndiana hipster repository`_             ``pkg install borg``
+openSUSE     `openSUSE official repository`_               ``zypper in borgbackup``
+Raspbian     `Raspbian testing`_                           ``apt install borgbackup``
+Ubuntu       `Ubuntu packages`_, `Ubuntu PPA`_             ``apt install borgbackup``
+============ ============================================= =======
+
+.. _Alpine repository: https://pkgs.alpinelinux.org/packages?name=borgbackup
+.. _[extra]: https://archlinux.org/packages/?name=borg
+.. _Debian packages: https://packages.debian.org/search?keywords=borgbackup&searchon=names&exact=1&suite=all&section=all
+.. _Fedora official repository: https://packages.fedoraproject.org/pkgs/borgbackup/borgbackup/
+.. _FreeBSD ports: https://www.freshports.org/archivers/py-borgbackup/
+.. _ebuild: https://packages.gentoo.org/packages/app-backup/borgbackup
+.. _GNU Guix: https://packages.guix.gnu.org/search/?query=borg
+.. _pkgsrc: https://pkgsrc.se/sysutils/py-borgbackup
+.. _cauldron: https://madb.mageia.org/package/show/application/0/release/cauldron/name/borgbackup
+.. _.nix file: https://github.com/NixOS/nixpkgs/blob/master/pkgs/by-name/bo/borgbackup/package.nix
+.. _OpenBSD ports: https://github.com/openbsd/ports/tree/master/sysutils/borgbackup
+.. _OpenIndiana hipster repository: https://pkg.openindiana.org/hipster/en/search.shtml?token=borg&action=Search
+.. _openSUSE official repository: https://software.opensuse.org/package/borgbackup
+.. _Homebrew: https://formulae.brew.sh/formula/borgbackup
+.. _private Tap: https://github.com/borgbackup/homebrew-tap
+.. _Raspbian testing: https://archive.raspbian.org/raspbian/pool/main/b/borgbackup/
+.. _Ubuntu packages: https://launchpad.net/ubuntu/+source/borgbackup
+.. _Ubuntu PPA: https://launchpad.net/~costamagnagianfranco/+archive/ubuntu/borgbackup
+
+Please ask package maintainers to build a package or, if you can package/
+submit it yourself, please help us with that! See :issue:`105` on
+GitHub to follow up on packaging efforts.
+
+**Current status of package in the repositories**
+
+.. start-badges
+
+|Packaging status|
+
+.. |Packaging status| image:: https://repology.org/badge/vertical-allrepos/borgbackup.svg
+        :alt: Packaging status
+        :target: https://repology.org/project/borgbackup/versions
+
+.. end-badges
+
+.. _pyinstaller-binary:
+
+Standalone Binary
+-----------------
+
+.. note:: Releases are signed with an OpenPGP key, see
+          :ref:`security-contact` for more instructions.
+
+Prebuilt binaries (generated with `pyinstaller`_) are available on the
+releases_ page for Linux and macOS (x86-64 and arm64) and for FreeBSD
+(x86-64). For each platform there is a single-file binary and, as a
+``.tgz``, the same thing as a single-directory bundle, which starts up
+faster.
+
+See the ``00_README.txt`` file provided alongside the binaries on the
+releases_ page for the exact list of binaries, their platform
+requirements, and how to verify them.
+
+On macOS, if Gatekeeper blocks the downloaded binary, remove its
+quarantine attribute (``xattr -dr com.apple.quarantine``) before running
+it.
+
+.. note:: ``borg mount`` only works if the binary was built with FUSE support
+          (third-party binaries might lack it) and your OS has FUSE installed
+          (e.g. the ``fuse3`` package on Linux, macFUSE on macOS, WinFsp on Windows).
+          If ``borg mount`` fails, the error message will tell for each FUSE
+          implementation why it could not be loaded.
+
+To install such a binary, just drop it into a directory in your ``PATH``,
+make borg readable and executable for its users and then you can run ``borg``::
+
+    sudo cp borg-linux64 /usr/local/bin/borg
+    sudo chown root:root /usr/local/bin/borg
+    sudo chmod 755 /usr/local/bin/borg
+
+Optionally you can create a symlink to have ``borgfs`` available, which is an
+alias for ``borg mount``::
+
+    ln -s /usr/local/bin/borg /usr/local/bin/borgfs
+
+Note that the binary uses /tmp to unpack Borg with all dependencies. It will
+fail if /tmp has not enough free space or is mounted with the ``noexec``
+option. You can change the temporary directory by setting the ``TEMP``
+environment variable before running Borg.
+
+If a new version is released, you will have to download it manually and replace
+the old version using the same steps as shown above.
+
+.. _pyinstaller: https://www.pyinstaller.org
+.. _releases: https://github.com/borgbackup/borg/releases
+
+.. _source-install:
+
+From Source
+-----------
+
+.. note::
+
+  Some older Linux systems (like RHEL/CentOS 5) and Python interpreter binaries
+  compiled to be able to run on such systems (like Python installed via Anaconda)
+  might miss functions required by Borg.
+
+  This issue will be detected early and Borg will abort with a fatal error.
+
+Dependencies
+~~~~~~~~~~~~
+
+To install Borg from a source package (including pip), you have to install the
+following dependencies first. For the libraries you will also need their
+development header files (sometimes in a separate `-dev` or `-devel` package).
+
+* `Python 3`_ >= 3.11.0
+* OpenSSL_ >= 3.2.0 (LibreSSL will not work)
+* libacl_ (which depends on libattr_)
+* liblz4_ >= 1.7.0 (r129)
+* pkg-config (cli tool) - Borg uses this to discover header and library
+  locations automatically. Alternatively, you can also point to them via some
+  environment variables, see setup.py.
+* Some other Python dependencies, pip will automatically install them for you.
+* A Rust toolchain, but only if pip has to build the Rust-based ``blake3``
+  Python package from source, because there is no binary wheel for your platform.
+* Optionally, if you wish to mount an archive as a FUSE filesystem, you need
+  a FUSE implementation for Python:
+
+  - mfusepy_ >= 3.1.0 (for fuse 2 and fuse 3, use `pip install borgbackup[mfusepy]`), or
+  - pyfuse3_ >= 3.1.1 (for fuse 3, use `pip install borgbackup[pyfuse3]`), or
+  - llfuse_ >= 1.3.8 (for fuse 2, use `pip install borgbackup[llfuse]`).
+  - Additionally, your OS will need to have FUSE support installed
+    (e.g. a package `fuse` for fuse 2 or a package `fuse3` for fuse 3 support).
+* Optionally, if you wish to use S3/B2 Backend:
+  - borgstore[rest,blake3,s3] ~= 0.6.1 (use `pip install borgbackup[s3]`)
+* Optionally, if you wish to use SFTP Backend:
+  - borgstore[rest,blake3,sftp] ~= 0.6.1 (use `pip install borgbackup[sftp]`)
+* Optionally, if you wish to use rclone Backend:
+  - borgstore[rest,blake3,rclone] ~= 0.6.1 (use `pip install borgbackup[rclone]`)
+* Optionally, if you wish to use the TUI (``borg --cockpit``):
+  - textual >= 6.8.0 (use `pip install borgbackup[cockpit]`)
+
+If you have troubles finding the right package names, have a look at the
+distribution specific sections below or the Vagrantfile in the git repository,
+which contains installation scripts for a number of operating systems.
+
+In the following, the steps needed to install the dependencies are listed for a
+selection of platforms. If your distribution is not covered by these
+instructions, try to use your package manager to install the dependencies.
+
+After you have installed the dependencies, you can proceed with steps outlined
+under :ref:`pip-installation`.
+
+Arch Linux
+++++++++++
+
+Install the runtime and build dependencies::
+
+    pacman -S python python-pip python-virtualenv openssl acl lz4 base-devel
+    pacman -S fuse2     # needed for llfuse
+    pacman -S fuse3     # needed for pyfuse3
+
+Note that Arch Linux specifically doesn't support
+`partial upgrades <https://wiki.archlinux.org/title/Partial_upgrade>`__,
+so in case some packages cannot be retrieved from the repo, run with ``pacman -Syu``.
+
+Debian / Ubuntu
++++++++++++++++
+
+Install the dependencies with development headers::
+
+    sudo apt-get install python3 python3-dev python3-pip python3-virtualenv \
+    libacl1-dev \
+    libssl-dev \
+    liblz4-dev \
+    libffi-dev \
+    build-essential pkg-config
+    sudo apt-get install libfuse-dev fuse    # needed for llfuse
+    sudo apt-get install libfuse3-dev fuse3  # needed for pyfuse3
+
+In case you get complaints about permission denied on ``/etc/fuse.conf``: on
+Ubuntu this means your user is not in the ``fuse`` group. Add yourself to that
+group, log out and log in again.
+
+Fedora
+++++++
+
+Install the dependencies with development headers::
+
+    sudo dnf install python3 python3-devel python3-pip python3-virtualenv \
+    libacl-devel \
+    openssl-devel \
+    lz4-devel \
+    libffi-devel \
+    pkgconf
+    sudo dnf install gcc gcc-c++ redhat-rpm-config
+    sudo dnf install fuse-devel fuse         # needed for llfuse
+    sudo dnf install fuse3-devel fuse3       # needed for pyfuse3
+
+openSUSE Tumbleweed / Leap
+++++++++++++++++++++++++++
+
+Install the dependencies automatically using zypper::
+
+    sudo zypper source-install --build-deps-only borgbackup
+
+Alternatively, you can enumerate all build dependencies in the command line::
+
+    sudo zypper install python3 python3-devel \
+    libacl-devel openssl-devel liblz4-devel \
+    libffi-devel \
+    python3-Cython python3-Sphinx python3-msgpack-python python3-pkgconfig pkgconf \
+    python3-pytest python3-setuptools python3-setuptools_scm \
+    python3-sphinx_rtd_theme gcc gcc-c++
+    sudo zypper install python3-llfuse  # llfuse
+
+macOS
++++++
+
+When installing borgbackup via Homebrew_, the basic dependencies are installed automatically.
+
+For FUSE support to mount the backup archives, you need macFUSE, which is available
+via `github <https://github.com/macfuse/macfuse/releases/latest>`__, or Homebrew::
+
+    brew install --cask macfuse
+
+When installing Borg via ``pip``, use the ``mfusepy`` extra (mfusepy supports the
+FUSE 2 and FUSE 3 APIs and is the first implementation tried by the default
+``BORG_FUSE_IMPL=mfusepy,pyfuse3,llfuse``); the ``llfuse`` extra also works.
+Also, since Homebrew won't link the installed ``openssl`` formula, point
+pkg-config to the correct path::
+
+    PKG_CONFIG_PATH="$(brew --prefix openssl@3)/lib/pkgconfig" pip install borgbackup[mfusepy]
+
+``brew --prefix openssl@3`` expands to ``/opt/homebrew/opt/openssl@3`` on Apple
+Silicon and to ``/usr/local/opt/openssl@3`` on Intel Macs.
+
+When working from a borg git repo workdir, you can install dependencies using the
+Brewfile::
+
+    brew install python@3.11  # can be any supported python3 version
+    brew bundle install  # install requirements from borg repo's ./Brewfile
+    pip3 install virtualenv
+
+Be aware that for all recent macOS releases you must authorize full disk access.
+It is no longer sufficient to run borg backups as root. If you have not yet
+granted full disk access, and you run Borg backup from cron, you will see
+messages such as::
+
+    /Users/you/Pictures/Photos Library.photoslibrary: scandir: [Errno 1] Operation not permitted:
+
+To fix this problem, you should grant full disk access to cron, and to your
+Terminal application. More information `can be found here
+<https://osxdaily.com/2020/04/27/fix-cron-permissions-macos-full-disk-access/>`__.
+
+FreeBSD
+++++++++
+
+Listed below are packages you will need to install Borg, its dependencies,
+and commands to make FUSE work for using the mount command.
+
+::
+
+     pkg install -y python3 pkgconf
+     pkg install openssl
+     pkg install liblz4
+     pkg install fusefs-libs  # needed for llfuse
+     pkg install -y git
+     python3 -m ensurepip # to install pip for Python3
+     To use the mount command:
+     echo 'fuse_load="YES"' >> /boot/loader.conf
+     echo 'vfs.usermount=1' >> /etc/sysctl.conf
+     kldload fuse
+     sysctl vfs.usermount=1
+
+.. _windows_deps:
+
+Windows
++++++++
+
+.. note::
+    Running under Windows is experimental.
+
+.. warning::
+    This script needs to be run in the UCRT64 environment in MSYS2.
+
+Install the dependencies with the provided script::
+
+    ./scripts/msys2-install-deps
+
+For FUSE support to mount the backup archives, you need `WinFsp <https://winfsp.dev/>`_
+(e.g. ``winget install WinFsp.WinFsp``) and, when installing Borg via ``pip``, the
+``mfusepy`` extra (``pip install borgbackup[mfusepy]``).
+
+.. _msys2_path_translation:
+
+MSYS2 Path Translation
+++++++++++++++++++++++
+
+When running Borg within an MSYS2 environment, the shell
+automatically translates POSIX-style paths (like ``/tmp`` or ``/C/Users``) to
+Windows paths (like ``C:\msys64\tmp`` or ``C:\Users``) before they reach the
+Borg process.
+
+This behavior can result in absolute Windows paths being stored in your backups,
+which may not be what you intended if you use POSIX paths for portability.
+
+To disable this automatic translation for Borg, you can use environment variables
+to exclude everything from conversion. Similarly, MSYS2 also translates
+environment variables that look like paths. To disable this generally for Borg,
+set both variables::
+
+    export MSYS2_ARG_CONV_EXCL="*"
+    export MSYS2_ENV_CONV_EXCL="*"
+
+For more details, see the `MSYS2 documentation on filesystem paths <https://www.msys2.org/docs/filesystem-paths/>`__.
+
+Windows 10's Linux Subsystem
+++++++++++++++++++++++++++++
+
+.. note::
+    Running under Windows 10's Linux Subsystem is experimental and has not been tested much yet.
+
+Just follow the Ubuntu Linux installation steps. You can omit the FUSE stuff, it won't work anyway.
+
+
+Cygwin
+++++++
+
+.. note::
+    Running under Cygwin is experimental and has not been tested much yet.
+
+Use the Cygwin installer to install the dependencies::
+
+    python311 python311-devel
+    python311-setuptools python311-pip python311-wheel python311-virtualenv
+    libssl-devel liblz4-devel
+    binutils gcc-g++ git make openssh
+
+Borg requires Python >= 3.11, so use the ``python311`` package set or a newer
+``python3XX`` one, if Cygwin offers it.
+
+Make sure to use a virtual environment to avoid confusions with any Python installed on Windows.
+
+.. _windows-binary:
+
+Building a binary on Windows
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. note::
+    This is experimental.
+
+.. warning::
+    This needs to be run in the UCRT64 environment in MSYS2.
+
+Ensure to install the dependencies as described within :ref:`Dependencies: Windows <windows_deps>`.
+
+::
+
+    # Needed for setuptools < 70.2.0 to work - https://www.msys2.org/docs/python/#known-issues
+    # export SETUPTOOLS_USE_DISTUTILS=stdlib
+    pip install -e .
+    pyinstaller -y scripts/borg.exe.spec
+
+A standalone executable will be created in ``dist/borg.exe``.
+
+.. _pip-installation:
+
+Using pip
+~~~~~~~~~
+
+Virtualenv_ can be used to build and install Borg without affecting
+the system Python or requiring root access.  Using a virtual environment is
+optional, but recommended except for the most simple use cases.
+
+Ensure to install the dependencies as described within :ref:`source-install`.
+
+.. note::
+    If you install into a virtual environment, you need to **activate** it
+    first (``source borg-env/bin/activate``), before running ``borg``.
+    Alternatively, symlink ``borg-env/bin/borg`` into some directory that is in
+    your ``PATH`` so you can run ``borg``.
+
+This will use ``pip`` to install the latest release from PyPi::
+
+    virtualenv --python=python3 borg-env
+    source borg-env/bin/activate
+
+    # might be required if your tools are outdated
+    pip install -U pip setuptools wheel
+
+    # install Borg + Python dependencies into virtualenv
+    pip install borgbackup
+    # or alternatively (if you want FUSE support):
+    pip install borgbackup[mfusepy]  # to use mfusepy
+    pip install borgbackup[pyfuse3]  # to use pyfuse3
+    pip install borgbackup[llfuse]  # to use llfuse
+
+To upgrade Borg to a new version later, run the following after
+activating your virtual environment::
+
+    pip install -U borgbackup  # or ... borgbackup[mfusepy/pyfuse3/llfuse]
+
+When doing manual pip installation, man pages are not automatically
+installed.  You can run these commands to install the man pages
+locally::
+
+    # get borg from github
+    git clone https://github.com/borgbackup/borg.git borg
+
+    # Install the files with proper permissions
+    mkdir -p $HOME/.local/share/man/man1
+    install -m 0644 borg/docs/man/borg*.1* $HOME/.local/share/man/man1/
+
+    # Update the man page cache
+    mandb
+
+.. _git-installation:
+
+Using git
+~~~~~~~~~
+
+This uses latest, unreleased development code from git.
+While we try not to break master, there are no guarantees on anything.
+
+Ensure to install the dependencies as described within :ref:`source-install`.
+
+Version metadata is obtained dynamically at install time using ``setuptools-scm``.
+Please ensure that your git repo either has correct tags, or provide the version
+manually using the ``SETUPTOOLS_SCM_PRETEND_VERSION`` environment variable.
+
+::
+
+    # get borg from github
+    git clone https://github.com/borgbackup/borg.git
+
+    # create a virtual environment
+    virtualenv --python=$(which python3) borg-env
+    source borg-env/bin/activate   # always before using!
+
+    # install borg dependencies into virtualenv
+    cd borg
+    pip install -r requirements.d/development.lock.txt
+    pip install -r requirements.d/docs.txt  # optional, to build the docs
+
+    # set a borg version if setuptools-scm fails to do so automatically
+    export SETUPTOOLS_SCM_PRETEND_VERSION=
+
+    # install borg into virtualenv
+    pip install -e .           # in-place editable mode
+    or
+    pip install -e .[mfusepy]  # in-place editable mode, use mfusepy
+    or
+    pip install -e .[pyfuse3]  # in-place editable mode, use pyfuse3
+    or
+    pip install -e .[llfuse]   # in-place editable mode, use llfuse
+
+    # optional: run all the tests, on all installed Python versions
+    # requires fakeroot, available through your package manager
+    fakeroot -u tox --skip-missing-interpreters
+
+By default the system installation of python will be used.
+If you need to use a different version of Python you can install this using ``pyenv``:
+
+::
+
+    ...
+    # create a virtual environment
+    pyenv install 3.11.0  # minimum, preferably use something more recent!
+    pyenv global 3.11.0
+    pyenv local 3.11.0
+    virtualenv --python=$(pyenv which python) borg-env
+    source borg-env/bin/activate   # always before using!
+    ...
+
+.. note:: As a developer or power user, you should always use a virtual environment.

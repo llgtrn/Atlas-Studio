@@ -1,0 +1,1382 @@
+# badge: https://github.com/borgbackup/borg/workflows/CI/badge.svg?branch=master
+
+name: CI
+
+on:
+  push:
+    branches: [ master ]
+    tags:
+    - '2.*'
+  pull_request:
+    branches: [ master ]
+    paths:
+    - '**.py'
+    - '**.pyx'
+    - '**.c'
+    - '**.h'
+    - '**.yml'
+    - '**.toml'
+    - '**.cfg'
+    - '**.ini'
+    - 'requirements.d/*'
+    - '!docs/**'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+env:
+  # Force colored tox and pytest output even without a tty - the GitHub
+  # Actions log viewer renders ANSI colors. tox passes both vars through
+  # to pytest (pass_env = ["*"]).
+  PY_COLORS: "1"       # pytest
+  TOX_COLORED: "yes"   # tox's own output
+
+jobs:
+  lint:
+
+    runs-on: ubuntu-26.04
+    timeout-minutes: 5
+
+    steps:
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+      with:
+        persist-credentials: false
+    - uses: astral-sh/ruff-action@278981a28ce3188b1e39527901f38254bf3aac89  # v4.1.0
+
+  security:
+
+    runs-on: ubuntu-26.04
+    timeout-minutes: 5
+
+    steps:
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+      with:
+        persist-credentials: false
+    - name: Set up Python
+      uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
+      with:
+        python-version: '3.11'
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install bandit[toml]
+    - name: Run Bandit
+      run: |
+        bandit -r src/borg -c pyproject.toml
+
+  asan_ubsan:
+
+    runs-on: ubuntu-26.04
+    timeout-minutes: 25
+    needs: [lint]
+
+    steps:
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+      with:
+        # Just fetching one commit is not enough for setuptools-scm, so we fetch all.
+        fetch-depth: 0
+        fetch-tags: true
+        persist-credentials: false
+
+    - name: Set up Python
+      uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
+      with:
+        python-version: '3.12'
+
+    - name: Install system packages
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y pkg-config build-essential
+        sudo apt-get install -y libssl-dev libacl1-dev liblz4-dev
+
+    - name: Install Python dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.d/development.lock.txt
+
+    - name: Build Borg with ASan/UBSan
+      # Build the C/Cython extensions with AddressSanitizer and UndefinedBehaviorSanitizer enabled.
+      # How this works:
+      # - The -fsanitize=address,undefined flags inject runtime checks into our native code. If a bug is hit
+      #   (e.g., buffer overflow, use-after-free, out-of-bounds, or undefined behavior), the sanitizer prints
+      #   a detailed error report to stderr, including a stack trace, and forces the process to exit with
+      #   non-zero status. In CI, this will fail the step/job so you will notice.
+      # - ASAN_OPTIONS/UBSAN_OPTIONS configure the sanitizers' runtime behavior (see below for meanings).
+      env:
+        CFLAGS: "-O1 -g -fno-omit-frame-pointer -fsanitize=address,undefined"
+        CXXFLAGS: "-O1 -g -fno-omit-frame-pointer -fsanitize=address,undefined"
+        LDFLAGS: "-fsanitize=address,undefined"
+        # ASAN_OPTIONS controls AddressSanitizer runtime tweaks:
+        # - detect_leaks=0: Disable LeakSanitizer to avoid false positives with CPython/pymalloc in short-lived tests.
+        # - strict_string_checks=1: Make invalid string operations (e.g., over-reads) more likely to be detected.
+        # - check_initialization_order=1: Catch uses that depend on static initialization order (C++).
+        # - detect_stack_use_after_return=1: Detect stack-use-after-return via stack poisoning (may increase overhead).
+        ASAN_OPTIONS: "detect_leaks=0:strict_string_checks=1:check_initialization_order=1:detect_stack_use_after_return=1"
+        # UBSAN_OPTIONS controls UndefinedBehaviorSanitizer runtime:
+        # - print_stacktrace=1: Include a stack trace for UB reports to ease debugging.
+        #   Note: UBSan is recoverable by default (process may continue after reporting). If you want CI to
+        #   abort immediately and fail on the first UB, add `halt_on_error=1` (e.g., UBSAN_OPTIONS="print_stacktrace=1:halt_on_error=1").
+        UBSAN_OPTIONS: "print_stacktrace=1"
+        # PYTHONDEVMODE enables additional Python runtime checks and warnings.
+        PYTHONDEVMODE: "1"
+      run: pip install -e .
+
+    - name: Run tests under sanitizers
+      env:
+        ASAN_OPTIONS: "detect_leaks=0:strict_string_checks=1:check_initialization_order=1:detect_stack_use_after_return=1"
+        UBSAN_OPTIONS: "print_stacktrace=1"
+        PYTHONDEVMODE: "1"
+      # Ensure the ASan runtime is loaded first to avoid "ASan runtime does not come first" warnings.
+      # We discover libasan/libubsan paths via gcc and preload them for the Python test process.
+      # the remote tests are slow and likely won't find anything useful
+      run: |
+        set -euo pipefail
+        export LD_PRELOAD="$(gcc -print-file-name=libasan.so):$(gcc -print-file-name=libubsan.so)"
+        echo "Using LD_PRELOAD=$LD_PRELOAD"
+        # the sanitizer runtimes write their reports to stderr, so they still show up per worker
+        pytest -v -n auto --benchmark-skip -k "not remote"
+
+  native_tests:
+
+    needs: [lint]
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+    strategy:
+      # entries with "allow-failure": true (e.g. prerelease pythons) do not fail
+      # the matrix, see continue-on-error below.
+      fail-fast: true
+      # noinspection YAMLSchemaValidation
+      # "coverage": "1" collects coverage in that entry - we only do that for the
+      # oldest and the newest supported python, measuring is not free, see #9470.
+      matrix: >-
+        ${{ fromJSON(
+          github.event_name == 'pull_request' && '{
+            "include": [
+              {"os": "ubuntu-26.04", "python-version": "3.11", "toxenv": "mypy"},
+              {"os": "ubuntu-26.04", "python-version": "3.11", "toxenv": "py311-llfuse", "coverage": "1"},
+              {"os": "ubuntu-26.04", "python-version": "3.12", "toxenv": "py312-pyfuse3", "store_cache": "1"},
+              {"os": "ubuntu-26.04", "python-version": "3.14", "toxenv": "py314-mfusepy", "coverage": "1"},
+              {"os": "ubuntu-26.04", "python-version": "3.15-dev", "toxenv": "py315-mfusepy", "allow-failure": true}
+            ]
+          }' || '{
+            "include": [
+              {"os": "ubuntu-26.04", "python-version": "3.11", "toxenv": "py311-llfuse", "coverage": "1"},
+              {"os": "ubuntu-26.04", "python-version": "3.12", "toxenv": "py312-pyfuse3"},
+              {"os": "ubuntu-26.04", "python-version": "3.13", "toxenv": "py313-mfusepy", "store_cache": "1"},
+              {"os": "ubuntu-26.04", "python-version": "3.14", "toxenv": "py314-pyfuse3", "coverage": "1", "binary": "borg-linux-glibc243-x86_64-gh"},
+              {"os": "ubuntu-26.04-arm", "python-version": "3.14", "toxenv": "py314-pyfuse3", "coverage": "1", "binary": "borg-linux-glibc243-arm64-gh"},
+              {"os": "macos-15", "python-version": "3.14", "toxenv": "py314-none", "coverage": "1", "binary": "borg-macos-15-arm64-gh"},
+              {"os": "macos-15-intel", "python-version": "3.14", "toxenv": "py314-none", "coverage": "1", "binary": "borg-macos-15-x86_64-gh"},
+              {"os": "ubuntu-26.04", "python-version": "3.15-dev", "toxenv": "py315-mfusepy", "allow-failure": true}
+            ]
+          }'
+        ) }}
+    env:
+      TOXENV: ${{ matrix.toxenv }}
+
+    runs-on: ${{ matrix.os }}
+    # Python 3.15 is not released yet, so do not fail the whole matrix if it (or a
+    # dependency not having wheels / not compiling for it yet) breaks.
+    # Remove the "allow-failure" matrix entries once 3.15 is final.
+    continue-on-error: ${{ matrix.allow-failure || false }}
+    # macOS machines can be slow, if overloaded.
+    timeout-minutes: 360
+
+    steps:
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+      with:
+        # Just fetching one commit is not enough for setuptools-scm, so we fetch all.
+        fetch-depth: 0
+        fetch-tags: true
+        persist-credentials: false
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Cache pip
+      # Not on tags: that is when the release binaries are built and attested,
+      # and they should not be able to pick up a poisoned cache entry.
+      if: ${{ !startsWith(github.ref, 'refs/tags/') }}
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9  # v6.1.0
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-${{ runner.arch }}-pip-${{ hashFiles('requirements.d/development.lock.txt') }}
+        restore-keys: |
+            ${{ runner.os }}-${{ runner.arch }}-pip-
+
+    - name: Cache tox environments
+      # Not on tags: that is when the release binaries are built and attested,
+      # and they should not be able to pick up a poisoned cache entry.
+      if: ${{ !startsWith(github.ref, 'refs/tags/') }}
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9  # v6.1.0
+      with:
+        path: .tox
+        key: ${{ runner.os }}-${{ runner.arch }}-tox-${{ matrix.toxenv }}-${{ hashFiles('requirements.d/development.lock.txt', 'pyproject.toml') }}
+        restore-keys: |
+          ${{ runner.os }}-${{ runner.arch }}-tox-${{ matrix.toxenv }}-
+          ${{ runner.os }}-${{ runner.arch }}-tox-
+
+    - name: Install Linux packages
+      if: ${{ runner.os == 'Linux' }}
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y pkg-config build-essential
+        sudo apt-get install -y libssl-dev libacl1-dev liblz4-dev
+        sudo apt-get install -y bash zsh fish  # for shell completion tests
+        sudo apt-get install -y rclone openssh-server curl
+        if [[ "$TOXENV" == *"llfuse"* ]]; then
+          sudo apt-get install -y libfuse-dev fuse  # Required for Python llfuse module
+        elif [[ "$TOXENV" == *"pyfuse3"* || "$TOXENV" == *"mfusepy"* ]]; then
+          sudo apt-get install -y libfuse3-dev fuse3  # Required for Python pyfuse3 module
+        fi
+
+    - name: Install macOS packages
+      if: ${{ runner.os == 'macOS' }}
+      run: |
+        brew unlink pkg-config@0.29.2 || true
+        brew bundle install
+        # the runner's unresolvable .local hostname takes macOS ~35s to give up on,
+        # which borg paid per spawned process (import-time fqdn) - hours of test time,
+        # see #9470. .local is mDNS territory, an /etc/hosts entry alone does not help.
+        sudo scutil --set HostName borg-ci-mac
+        echo "127.0.0.1 borg-ci-mac" | sudo tee -a /etc/hosts
+
+    - name: Configure OpenSSH SFTP server (test only)
+      if: ${{ runner.os == 'Linux' && !contains(matrix.toxenv, 'mypy') }}
+      run: |
+        sudo mkdir -p /run/sshd
+        sudo useradd -m -s /bin/bash sftpuser || true
+        # Create SSH key for the CI user and authorize it for sftpuser
+        mkdir -p ~/.ssh
+        chmod 700 ~/.ssh
+        test -f ~/.ssh/id_ed25519 || ssh-keygen -t ed25519 -N '' -f ~/.ssh/id_ed25519
+        sudo mkdir -p /home/sftpuser/.ssh
+        sudo chmod 700 /home/sftpuser/.ssh
+        sudo cp ~/.ssh/id_ed25519.pub /home/sftpuser/.ssh/authorized_keys
+        sudo chown -R sftpuser:sftpuser /home/sftpuser/.ssh
+        sudo chmod 600 /home/sftpuser/.ssh/authorized_keys
+        # Allow publickey auth and enable Subsystem sftp
+        sudo sed -i 's/^#\?PasswordAuthentication .*/PasswordAuthentication no/' /etc/ssh/sshd_config
+        sudo sed -i 's/^#\?PubkeyAuthentication .*/PubkeyAuthentication yes/' /etc/ssh/sshd_config
+        if ! grep -q '^Subsystem sftp' /etc/ssh/sshd_config; then echo 'Subsystem sftp /usr/lib/openssh/sftp-server' | sudo tee -a /etc/ssh/sshd_config; fi
+        # Ensure host keys exist to avoid slow generation on first sshd start
+        sudo ssh-keygen -A
+        # Start sshd (listen on default 22 inside runner)
+        sudo /usr/sbin/sshd -D &
+        # Add host key to known_hosts so paramiko trusts it
+        ssh-keyscan -H localhost 127.0.0.1 | tee -a ~/.ssh/known_hosts
+        # Start ssh-agent and add our key so paramiko can use the agent
+        eval "$(ssh-agent -s)"
+        ssh-add ~/.ssh/id_ed25519
+        # The rest test starts "borg serve --rest" over ssh as sftpuser, which runs the borg
+        # under test from the tox venv under $HOME. Allow sftpuser to traverse into the runner
+        # home so it can reach that borg (the venv dirs/files are created world-r/x by tox/pip).
+        sudo chmod o+x "$HOME"
+        # Export SFTP test URL for tox via GITHUB_ENV
+        echo "BORG_TEST_SFTP_REPO=sftp://sftpuser@localhost:22/borg/sftp-repo" >> $GITHUB_ENV
+        echo "BORG_TEST_REST_REPO=rest://sftpuser@localhost:22/borg/rest-repo" >> $GITHUB_ENV
+
+    - name: Install and start moto S3 server (test only)
+      # The S3 tests run against moto in server mode: it comes from PyPI (pinned in
+      # requirements.d/s3-test-server.txt), so there is no server binary to download.
+      # It keeps the objects in memory and accepts any credentials.
+      if: ${{ runner.os == 'Linux' && !contains(matrix.toxenv, 'mypy') }}
+      run: |
+        set -e
+        pip install -r requirements.d/s3-test-server.txt
+        nohup moto_server -H 127.0.0.1 -p 9000 > "$GITHUB_WORKSPACE/.moto.log" 2>&1 &
+        # Wait for the moto port to be ready
+        for i in $(seq 1 60); do (echo > /dev/tcp/127.0.0.1/9000) >/dev/null 2>&1 && break; sleep 1; done
+        # Create the bucket (boto3 is a moto dependency)
+        python -c 'import boto3; boto3.client("s3", endpoint_url="http://127.0.0.1:9000", aws_access_key_id="test", aws_secret_access_key="test").create_bucket(Bucket="borg")'
+        # Export S3 test URL for tox via GITHUB_ENV
+        echo "BORG_TEST_S3_REPO=s3:test:test@http://127.0.0.1:9000/borg/s3-repo" >> $GITHUB_ENV
+
+    - name: Enable store cache (test only)
+      if: ${{ matrix.store_cache == '1' }}
+      run: echo "BORG_STORE_CACHE=1" >> $GITHUB_ENV
+
+    - name: Install Python requirements
+      run: |
+        python -m pip install --upgrade pip setuptools wheel
+        pip install -r requirements.d/development.lock.txt
+
+    - name: Build cryptography against the system OpenSSL (${{ matrix.binary }})
+      # For the Linux binaries: cryptography (a paramiko dependency, sftp
+      # extra) comes as a manylinux wheel that statically links its own copy of
+      # OpenSSL - a second OpenSSL in the binary, next to the system's libcrypto
+      # that borg's crypto extension uses and that PyInstaller bundles, see
+      # #10345. Build it from source against the system OpenSSL instead
+      # (libssl-dev is installed and pkg-config finds it, the runner image has
+      # the Rust toolchain) - like the oldglibc_binary job does, just without a
+      # custom OpenSSL prefix. Only the "binary" matrix entries do this, so it
+      # runs on master pushes and tags, not in the reduced pull request matrix.
+      if: ${{ matrix.binary && runner.os == 'Linux' }}
+      run: |
+        set -euxo pipefail
+        rustc --version
+        pip install --no-binary cryptography cryptography
+        # check that the extension links the system OpenSSL dynamically and
+        # loads the same version as the system's openssl program
+        rust_ext=$(python -c 'import cryptography.hazmat.bindings._rust as m; print(m.__file__)')
+        ldd "$rust_ext"
+        ldd "$rust_ext" | grep 'libcrypto.so.3 => /'
+        loaded=$(python -c 'from cryptography.hazmat.backends.openssl.backend import backend; print(backend.openssl_version_text())')
+        echo "$loaded"
+        test "$(echo "$loaded" | cut -d' ' -f1,2)" = "$(openssl version | cut -d' ' -f1,2)"
+
+    - name: Install borgbackup
+      run: |
+        if [[ "$TOXENV" == *"llfuse"* ]]; then
+          pip install -ve ".[llfuse,cockpit,s3,sftp,rclone]"
+        elif [[ "$TOXENV" == *"pyfuse3"* ]]; then
+          pip install -ve ".[pyfuse3,cockpit,s3,sftp,rclone]"
+        elif [[ "$TOXENV" == *"mfusepy"* ]]; then
+          pip install -ve ".[mfusepy,cockpit,s3,sftp,rclone]"
+        else
+          pip install -ve ".[cockpit,s3,sftp,rclone]"
+        fi
+
+    - name: Build Borg fat binaries (${{ matrix.binary }})
+      if: ${{ matrix.binary && startsWith(github.ref, 'refs/tags/') }}
+      run: |
+        pip install -r requirements.d/pyinstaller.txt
+        ./scripts/build-borg-using-pyinstaller.sh
+
+    - name: Smoke-test the built binary (${{ matrix.binary }})
+      if: ${{ matrix.binary && startsWith(github.ref, 'refs/tags/') }}
+      run: |
+        pushd dist/binary
+        echo "single-file binary"
+        chmod +x borg.exe
+        ./borg.exe -V
+        echo "single-directory binary"
+        chmod +x borg-dir/borg.exe
+        ./borg-dir/borg.exe -V
+        tar czf borg.tgz borg-dir
+        popd
+        # Ensure locally built binary in ./dist/binary/borg-dir is found during tests
+        export PATH="$GITHUB_WORKSPACE/dist/binary/borg-dir:$PATH"
+        echo "borg.exe binary in PATH"
+        borg.exe -V
+        if [[ "$RUNNER_OS" == "Linux" ]]; then
+          # cryptography links the bundled libcrypto, it does not bring its own
+          # OpenSSL (see the step that builds it)
+          readelf -d "$(find dist/binary/borg-dir -name '_rust.abi3.so')" | grep 'NEEDED.*libcrypto.so.3'
+        fi
+        du -sh dist/binary/borg-dir
+        ls -l dist/binary/borg.exe dist/binary/borg.tgz
+
+    - name: Prepare binaries (${{ matrix.binary }})
+      if: ${{ matrix.binary && startsWith(github.ref, 'refs/tags/') }}
+      env:
+        BINARY: ${{ matrix.binary }}
+      run: |
+        mkdir -p artifacts
+        if [ -f dist/binary/borg.exe ]; then
+          cp dist/binary/borg.exe "artifacts/$BINARY"
+        fi
+        if [ -f dist/binary/borg.tgz ]; then
+          cp dist/binary/borg.tgz "artifacts/$BINARY.tgz"
+        fi
+        echo "binary files"
+        ls -l artifacts/
+
+    - name: Attest binaries provenance (${{ matrix.binary }})
+      id: attest-binaries
+      if: ${{ matrix.binary && startsWith(github.ref, 'refs/tags/') }}
+      uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8  # v4.2.2
+      with:
+        subject-path: 'artifacts/*'
+
+    - name: Name the sigstore bundle after the binaries (${{ matrix.binary }})
+      # The attestation is also stored in the GitHub attestations API, but
+      # fetching it from there needs a recent gh and a GitHub token (see
+      # #10187) - so the sigstore bundle rides along with the binaries and the
+      # release job attaches it to the release as <asset>.sigstore.jsonl, just
+      # like it does for the sdist, see .github/workflows/release.yml.
+      #
+      # One attestation covers both the single-file binary and the .tgz, so the
+      # same bundle is stored under both names - one for each asset.
+      if: ${{ matrix.binary && startsWith(github.ref, 'refs/tags/') }}
+      env:
+        BUNDLE_PATH: ${{ steps.attest-binaries.outputs.bundle-path }}
+      run: |
+        set -euxo pipefail
+        # the glob is expanded before the loop body creates any file:
+        for asset in artifacts/*; do
+          cp "$BUNDLE_PATH" "$asset.sigstore.jsonl"
+        done
+        ls -l artifacts/
+
+    - name: Upload binaries (${{ matrix.binary }})
+      if: ${{ matrix.binary && startsWith(github.ref, 'refs/tags/') }}
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
+      with:
+        name: ${{ matrix.binary }}
+        path: artifacts/*
+        if-no-files-found: error
+
+    - name: run tox env
+      env:
+        # tox passes this through to pytest (pass_env = ["*"])
+        PYTEST_ADDOPTS: ${{ !matrix.coverage && '--no-cov' || '' }}
+      run: |
+        # do not use fakeroot, but run as root. avoids the dreaded EISDIR sporadic failures. see #2482.
+        #sudo -E bash -c "tox -e py"
+        # Ensure locally built binary in ./dist/binary/borg-dir is found during tests
+        export PATH="$GITHUB_WORKSPACE/dist/binary/borg-dir:$PATH"
+        tox --skip-missing-interpreters
+
+    - name: Upload test results to Codecov
+      if: ${{ !cancelled() && !contains(matrix.toxenv, 'mypy') }}
+      uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f  # v7.0.0
+      env:
+        OS: ${{ runner.os }}
+        python: ${{ matrix.python-version }}
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        report_type: test_results
+        env_vars: OS,python
+        files: test-results.xml
+
+    - name: Upload coverage to Codecov
+      if: ${{ !cancelled() && matrix.coverage }}
+      uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f  # v7.0.0
+      env:
+        OS: ${{ runner.os }}
+        python: ${{ matrix.python-version }}
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        report_type: coverage
+        env_vars: OS,python
+        files: coverage.xml
+
+  oldglibc_binary:
+    # Linux binaries for older systems: the ones native_tests builds come from
+    # ubuntu-26.04 runners and thus need glibc 2.43, and the x86_64 one does not
+    # run on CPUs below x86-64-v3 (#10342). These are built on ubuntu-24.04
+    # (glibc 2.39), the oldest GitHub-hosted Ubuntu image, with its baseline
+    # x86-64 toolchain and packages.
+    #
+    # Ubuntu 24.04 ships OpenSSL 3.0 and Python 3.12, and the python that
+    # actions/setup-python provides for it links against that OpenSSL 3.0. So
+    # this job builds the current OpenSSL 3.5 (LTS) and Python 3.14 from source,
+    # links Python and borg's crypto extension against that OpenSSL, and
+    # PyInstaller then bundles those libraries instead of the system's.
+    #
+    # Unlike native_tests, this job builds the binary on every run and runs the
+    # test suite against it, so that a broken toolchain build or a broken binary
+    # shows up before a release, not while releasing. Only the provenance
+    # attestation is limited to tags.
+    #
+    # The sources are pinned by version and sha256 - bump both together. The
+    # checksums were verified against the .sha256 file published with the
+    # OpenSSL release and against the python.org sigstore bundle of the Python
+    # tarball (signed by the release manager).
+    needs: [lint]
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-24.04
+            binary: borg-linux-glibc239-x86_64-gh
+          - os: ubuntu-24.04-arm
+            binary: borg-linux-glibc239-arm64-gh
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 180
+    env:
+      OPENSSL_VERSION: "3.5.8"
+      OPENSSL_SHA256: "a8f84a39918ec6415ce765d9b429d313ba97b8143169c172e734b9514464f5b2"
+      PYTHON_VERSION: "3.14.7"
+      PYTHON_SHA256: "3b48dac8fb59f62eaa67ac83c1eb12bda1b7a08406dd286e252c11a66be27f81"
+      # The glibc of the runners above. The binary names promise this version,
+      # the "Check what the binary bundles" step verifies it.
+      GLIBC_VERSION: "2.39"
+      BINARY: ${{ matrix.binary }}
+      # The FUSE implementation borg gets built, bundled and tested with - the
+      # same one as for the native_tests Linux binaries, see the extras in the
+      # "Install borgbackup" step.
+      BORG_FUSE_IMPL: pyfuse3
+
+    steps:
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+      with:
+        # Just fetching one commit is not enough for setuptools-scm, so we fetch all.
+        fetch-depth: 0
+        fetch-tags: true
+        persist-credentials: false
+
+    - name: Set the install prefix for OpenSSL and Python
+      # Outside of the checkout. Set here and not in the job's env, where the
+      # runner context (runner.temp) is not available.
+      run: echo "DEPS_PREFIX=$RUNNER_TEMP/borg-deps" >> "$GITHUB_ENV"
+
+    - name: Install Linux packages
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y pkg-config build-essential
+        # for borg - but no libssl-dev, OpenSSL is built from source below
+        sudo apt-get install -y libacl1-dev liblz4-dev
+        sudo apt-get install -y libfuse3-dev fuse3  # for pyfuse3
+        # for building python: the stdlib modules borg and its dependencies
+        # need (zlib, bz2, lzma, sqlite3 for coverage, ctypes) and the usual
+        # readline/curses/uuid ones, so the build is close to a normal python.
+        sudo apt-get install -y zlib1g-dev libbz2-dev liblzma-dev libsqlite3-dev libffi-dev libreadline-dev libncurses-dev uuid-dev
+        sudo apt-get install -y bash zsh fish  # for shell completion tests
+        sudo apt-get install -y rclone  # for the rclone remote repo test
+
+    - name: Build OpenSSL ${{ env.OPENSSL_VERSION }}
+      run: |
+        set -euxo pipefail
+        mkdir -p "$RUNNER_TEMP/openssl-src"
+        cd "$RUNNER_TEMP/openssl-src"
+        curl -fsSL -o openssl.tar.gz "https://github.com/openssl/openssl/releases/download/openssl-$OPENSSL_VERSION/openssl-$OPENSSL_VERSION.tar.gz"
+        echo "$OPENSSL_SHA256  openssl.tar.gz" | sha256sum -c -
+        tar xzf openssl.tar.gz
+        cd "openssl-$OPENSSL_VERSION"
+        # --openssldir: where libcrypto looks for openssl.cnf and the CA certs
+        #   at runtime. The bundled libcrypto runs on the user's system, so this
+        #   has to be the system's directory (/etc/ssl on Debian/Ubuntu and most
+        #   others), not something below the prefix. Where it does not exist,
+        #   OpenSSL just uses its built-in defaults.
+        # --libdir=lib: x86_64 would default to lib64, aarch64 to lib.
+        # -Wl,-rpath: the system has a libcrypto.so.3 / libssl.so.3 with the
+        #   same SONAMEs, but OpenSSL 3.0 - the rpath makes libssl and the
+        #   openssl program load the libraries from the prefix instead.
+        # no-tests: the test suite takes much longer than the build itself and
+        #   is never run here.
+        # no-docs: nothing needs the man pages, and building them is slow, too.
+        ./Configure --prefix="$DEPS_PREFIX" --openssldir=/etc/ssl --libdir=lib -Wl,-rpath,"$DEPS_PREFIX/lib" \
+          shared no-tests no-docs
+        make -j"$(nproc)"
+        make install_sw
+        "$DEPS_PREFIX/bin/openssl" version
+
+    - name: Build Python ${{ env.PYTHON_VERSION }}
+      run: |
+        set -euxo pipefail
+        mkdir -p "$RUNNER_TEMP/python-src"
+        cd "$RUNNER_TEMP/python-src"
+        curl -fsSL -o python.tar.xz "https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSION.tar.xz"
+        echo "$PYTHON_SHA256  python.tar.xz" | sha256sum -c -
+        tar xJf python.tar.xz
+        cd "Python-$PYTHON_VERSION"
+        # --enable-shared: PyInstaller needs libpython. The rpath makes the
+        #   python binary and the extension modules find libpython and the
+        #   OpenSSL libs in the prefix without LD_LIBRARY_PATH - the system has
+        #   a libcrypto.so.3 / libssl.so.3 with the same SONAME, but OpenSSL 3.0.
+        # --enable-optimizations: PGO, like the python from actions/setup-python
+        #   that the other Linux binaries are built with.
+        # --with-openssl: build the ssl and hashlib modules against the OpenSSL
+        #   built above.
+        # PROFILE_TASK: the PGO training run is a subset of python's test suite
+        #   (see Lib/test/libregrtest/pgo.py); run it in parallel worker
+        #   processes, gcc merges their profile data under a file lock.
+        ./configure --prefix="$DEPS_PREFIX" --enable-shared --enable-optimizations \
+          --with-openssl="$DEPS_PREFIX" --with-openssl-rpath=auto \
+          LDFLAGS="-Wl,-rpath,$DEPS_PREFIX/lib" \
+          PROFILE_TASK="-m test --pgo -j$(nproc) --timeout=1200"
+        make -j"$(nproc)"
+        make install
+
+    - name: Check that Python uses the OpenSSL we built
+      run: |
+        "$DEPS_PREFIX/bin/python3" - <<'EOF'
+        import os, ssl, sys
+        print(sys.version)
+        print(ssl.OPENSSL_VERSION)  # the library the ssl module loaded at runtime
+        want = "OpenSSL " + os.environ["OPENSSL_VERSION"] + " "
+        if not ssl.OPENSSL_VERSION.startswith(want):
+            raise SystemExit(f"the ssl module uses {ssl.OPENSSL_VERSION!r}, not {want.strip()!r}")
+        EOF
+
+    - name: Create the virtualenv
+      run: |
+        set -euxo pipefail
+        "$DEPS_PREFIX/bin/python3" -m venv "$RUNNER_TEMP/venv"
+        # python, pip, pytest, pyinstaller and borg come from this venv from now on
+        echo "$RUNNER_TEMP/venv/bin" >> "$GITHUB_PATH"
+
+    - name: Install Python requirements
+      run: |
+        python -m pip install --upgrade pip setuptools wheel
+        pip install -r requirements.d/development.lock.txt
+        pip install -r requirements.d/pyinstaller.txt
+
+    - name: Build cryptography against the OpenSSL we built
+      # cryptography (a paramiko dependency, sftp extra) comes as a manylinux
+      # wheel that statically links its own copy of OpenSSL, which would be a
+      # second OpenSSL in the binary, see #10345. Build it from source against
+      # the OpenSSL built above instead - the runner image has the Rust
+      # toolchain this needs.
+      env:
+        # where openssl-sys (the Rust OpenSSL bindings) finds the OpenSSL
+        # headers and libraries; the link is dynamic unless OPENSSL_STATIC is set.
+        OPENSSL_DIR: ${{ env.DEPS_PREFIX }}
+        # make the extension load that OpenSSL at runtime, see the python build above
+        RUSTFLAGS: -C link-arg=-Wl,-rpath,${{ env.DEPS_PREFIX }}/lib
+      run: |
+        set -euxo pipefail
+        rustc --version
+        pip install --no-binary cryptography cryptography
+        # check that the extension is linked against (and loads) that OpenSSL
+        rust_ext=$(python -c 'import cryptography.hazmat.bindings._rust as m; print(m.__file__)')
+        ldd "$rust_ext"
+        ldd "$rust_ext" | grep "libcrypto.so.3 => $DEPS_PREFIX/lib/"
+        python -c 'from cryptography.hazmat.backends.openssl.backend import backend; print(backend.openssl_version_text())' \
+          | grep "^OpenSSL $OPENSSL_VERSION "
+
+    - name: Install borgbackup
+      env:
+        # Link borg's crypto extension against the OpenSSL built above - with
+        # libssl-dev installed, pkg-config would find the system's OpenSSL 3.0...
+        BORG_OPENSSL_PREFIX: ${{ env.DEPS_PREFIX }}
+        # ... and make it load that one at runtime, see the python build above.
+        LDFLAGS: -Wl,-rpath,${{ env.DEPS_PREFIX }}/lib
+      run: |
+        set -euxo pipefail
+        pip install -ve ".[pyfuse3,cockpit,s3,sftp,rclone]"
+        # check that the crypto extension really uses that OpenSSL
+        low_level=$(python -c 'import borg.crypto.low_level as m; print(m.__file__)')
+        ldd "$low_level"
+        ldd "$low_level" | grep "libcrypto.so.3 => $DEPS_PREFIX/lib/"
+
+    - name: Build Borg fat binaries (${{ matrix.binary }})
+      run: ./scripts/build-borg-using-pyinstaller.sh
+
+    - name: Smoke-test the built binary (${{ matrix.binary }})
+      run: |
+        set -euxo pipefail
+        pushd dist/binary
+        echo "single-file binary"
+        chmod +x borg.exe
+        ./borg.exe -V
+        echo "single-directory binary"
+        chmod +x borg-dir/borg.exe
+        ./borg-dir/borg.exe -V
+        tar czf borg.tgz borg-dir
+        popd
+        # Ensure locally built binary in ./dist/binary/borg-dir is found during tests
+        export PATH="$GITHUB_WORKSPACE/dist/binary/borg-dir:$PATH"
+        echo "borg.exe binary in PATH"
+        borg.exe -V
+
+    - name: Check what the binary bundles (${{ matrix.binary }})
+      # The point of this job: the binary has to contain the Python and the
+      # OpenSSL built above, not the system's ones, and it must not need a
+      # newer glibc than its name promises.
+      run: |
+        set -euxo pipefail
+        # borg-dir has everything as plain files: the bundled libraries must be
+        # the ones from the prefix. PyInstaller strips them (see the spec), so
+        # compare the GNU build IDs, which identify the link output and survive
+        # stripping, instead of the files.
+        build_id() { readelf -n "$1" | grep -o 'Build ID: [0-9a-f]*' || true; }
+        for lib in libcrypto.so.3 libssl.so.3 "libpython${PYTHON_VERSION%.*}.so.1.0"; do
+          ours=$(build_id "$DEPS_PREFIX/lib/$lib")
+          bundled=$(build_id "$(find dist/binary/borg-dir -name "$lib")")
+          echo "$lib: prefix [$ours] bundled [$bundled]"
+          if [ -z "$ours" ] || [ "$ours" != "$bundled" ]; then
+            echo "::error::the bundled $lib is not the one built in this job"
+            exit 1
+          fi
+        done
+        # the bundled python is the one built above
+        dist/binary/borg-dir/borg.exe debug info
+        dist/binary/borg-dir/borg.exe debug info | grep "Python: CPython $PYTHON_VERSION "
+        # no bundled ELF file needs a newer glibc than the one in the binary's name
+        find dist/binary/borg-dir -type f \( -name '*.so' -o -name '*.so.*' -o -name 'borg.exe' \) -print0 \
+          | xargs -0 python scripts/glibc_check.py "$GLIBC_VERSION"
+        # cryptography uses the bundled OpenSSL, it does not bring its own (see
+        # the step that builds it)
+        readelf -d "$(find dist/binary/borg-dir -name '_rust.abi3.so')" | grep 'NEEDED.*libcrypto.so.3'
+        # the shared libraries are stripped (see strip_binaries in the spec):
+        # none of them may still carry debug info
+        if find dist/binary/borg-dir -type f \( -name '*.so' -o -name '*.so.*' \) -exec file {} + | grep 'with debug_info'; then
+          echo "::error::bundled shared libraries still carry debug info"
+          exit 1
+        fi
+        # only the botocore models borg needs are bundled (see the spec)
+        ls dist/binary/borg-dir/_internal/botocore/data
+        test -d dist/binary/borg-dir/_internal/botocore/data/s3
+        test ! -e dist/binary/borg-dir/_internal/botocore/data/ec2
+        du -sh dist/binary/borg-dir
+        ls -l dist/binary/borg.exe dist/binary/borg.tgz
+
+    - name: Smoke-test the binary against an S3 server (${{ matrix.binary }})
+      # The spec bundles only the botocore models borg needs: exercise the s3
+      # model and the endpoint files of the frozen binary against an S3 server
+      # (moto in server mode, like the test suite's S3 tests - which run borg
+      # from the venv, not the binary). moto gets installed into the venv only
+      # now, after the binary was built from it.
+      run: |
+        set -euxo pipefail
+        pip install -r requirements.d/s3-test-server.txt
+        # moto accepts any credentials
+        nohup moto_server -H 127.0.0.1 -p 9000 > "$RUNNER_TEMP/moto.log" 2>&1 &
+        for i in $(seq 1 60); do (echo > /dev/tcp/127.0.0.1/9000) >/dev/null 2>&1 && break; sleep 1; done
+        # the bucket has to exist - the venv has boto3 (s3 extra)
+        python -c 'import boto3; boto3.client("s3", endpoint_url="http://127.0.0.1:9000", aws_access_key_id="test", aws_secret_access_key="test").create_bucket(Bucket="borg")'
+        export BORG_REPO="s3:test:test@http://127.0.0.1:9000/borg/binary-repo"
+        export BORG_PASSPHRASE=test
+        borg=dist/binary/borg-dir/borg.exe
+        $borg repo-create -e aes256-ocb
+        $borg create --stats archive1 src/borg/testsuite
+        $borg list archive1 | wc -l
+        $borg check
+        $borg extract --dry-run archive1
+        $borg repo-delete --force
+
+    - name: Run tests
+      # No SFTP, S3 or rest-over-ssh test servers here (see native_tests): those
+      # tests exercise the transports, not the toolchain, and skip without them.
+      run: |
+        set -euo pipefail
+        # Ensure locally built binary in ./dist/binary/borg-dir is found during tests
+        export PATH="$GITHUB_WORKSPACE/dist/binary/borg-dir:$PATH"
+        borg.exe -V
+        python -m pytest -v -n auto -rs --benchmark-skip --junitxml=test-results.xml --pyargs borg.testsuite
+
+    - name: Upload test results to Codecov
+      if: ${{ !cancelled() }}
+      uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f  # v7.0.0
+      env:
+        OS: ${{ runner.os }}
+        python: ${{ env.PYTHON_VERSION }}
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        report_type: test_results
+        env_vars: OS,python
+        files: test-results.xml
+
+    - name: Prepare binaries (${{ matrix.binary }})
+      run: |
+        set -euxo pipefail
+        mkdir -p artifacts
+        cp dist/binary/borg.exe "artifacts/$BINARY"
+        cp dist/binary/borg.tgz "artifacts/$BINARY.tgz"
+        echo "binary files"
+        ls -l artifacts/
+
+    - name: Attest binaries provenance (${{ matrix.binary }})
+      id: attest-binaries
+      if: ${{ startsWith(github.ref, 'refs/tags/') }}
+      uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8  # v4.2.2
+      with:
+        subject-path: 'artifacts/*'
+
+    - name: Name the sigstore bundle after the binaries (${{ matrix.binary }})
+      # The sigstore bundle rides along with the binaries and the release job
+      # attaches it to the release as <asset>.sigstore.jsonl - see the same step
+      # in native_tests for the details. One attestation covers both the
+      # single-file binary and the .tgz, so the same bundle is stored under both
+      # names - one for each asset.
+      if: ${{ startsWith(github.ref, 'refs/tags/') }}
+      env:
+        BUNDLE_PATH: ${{ steps.attest-binaries.outputs.bundle-path }}
+      run: |
+        set -euxo pipefail
+        # the glob is expanded before the loop body creates any file:
+        for asset in artifacts/*; do
+          cp "$BUNDLE_PATH" "$asset.sigstore.jsonl"
+        done
+        ls -l artifacts/
+
+    - name: Upload binaries (${{ matrix.binary }})
+      # Also for non-tag runs (without the attestation), so that the binary of
+      # a PR or master build can be tried out on an older system.
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
+      with:
+        name: ${{ matrix.binary }}
+        path: artifacts/*
+        if-no-files-found: error
+
+  vm_tests:
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+    runs-on: ubuntu-26.04
+    timeout-minutes: 180
+    needs: [lint]
+    continue-on-error: true
+
+    strategy:
+      fail-fast: false
+      matrix:
+        # pyver: python the test step installs; part of the pip cache key.
+        # 3.14+ gets coverage's near-zero-overhead sysmon core, see #9470.
+        include:
+          - os: freebsd
+            version: '15.1'
+            display_name: FreeBSD
+            pyver: '3.14'
+            # Controls binary build and provenance attestation on tags
+            do_binaries: true
+            artifact_prefix: borg-freebsd-15-x86_64-gh
+
+          - os: netbsd
+            version: '11.0'
+            display_name: NetBSD
+            pyver: '3.14'
+            do_binaries: false
+
+          - os: openbsd
+            version: '7.9'
+            display_name: OpenBSD
+            pyver: '3.13'
+            do_binaries: false
+            # extra RAM for the mfs-backed TMPDIR, see the openbsd test step
+            memory: 12G
+
+          - os: omnios
+            version: 'r151056'
+            display_name: OmniOS
+            pyver: '3.13'
+            do_binaries: false
+
+          - os: haiku
+            version: 'r1beta6'
+            display_name: Haiku
+            pyver: '3.14'
+            do_binaries: false
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+          persist-credentials: false
+
+      # .pip-cache lives inside the workspace, which cross-platform-actions
+      # rsyncs into the VM and back, so wheels built from sdists in one run
+      # (most of the VM setup time) are reused by the next one.
+      - name: Cache pip-built wheels
+        # Not on tags: that is when the release binaries are built and attested,
+        # and they should not be able to pick up a poisoned cache entry.
+        if: ${{ !startsWith(github.ref, 'refs/tags/') }}
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9  # v6.1.0
+        with:
+          path: .pip-cache
+          key: ${{ matrix.os }}-${{ matrix.version }}-py${{ matrix.pyver }}-pip-${{ hashFiles('requirements.d/development.lock.txt') }}
+          restore-keys: |
+            ${{ matrix.os }}-${{ matrix.version }}-py${{ matrix.pyver }}-pip-
+
+      - name: Start VM for ${{ matrix.display_name }}
+        id: cross_os
+        # a normal boot takes < 1 minute; since 1.4.0 the action bounds
+        # waiting for boot itself, this is just an additional safety net.
+        timeout-minutes: 15
+        uses: cross-platform-actions/action@e0b9770014ba65d5e0815f15b74031c3a635f641  # v1.6.0
+        with:
+          operating_system: ${{ matrix.os }}
+          version: ${{ matrix.version }}
+          shell: bash
+          # the default VM size (2 cpus) leaves half of the runner's 4 vcpus idle
+          cpu_count: 4
+          memory: ${{ matrix.memory || '8G' }}
+
+      - name: Test on ${{ matrix.display_name }}
+        shell: cpa.sh {0}
+        env:
+          DO_BINARIES: ${{ matrix.do_binaries }}
+        run: |
+          set -euxo pipefail
+
+          # a hung test must fail instead of stalling the suite until the
+          # job timeout (tox passes all env vars through to pytest).
+          export PYTEST_TIMEOUT=300
+
+          # colored tox/pytest output - the workflow-level env vars do not
+          # reach into the VM, so export them here again.
+          export PY_COLORS=1
+          export TOX_COLORED=yes
+
+          # see the "Cache pip-built wheels" step
+          export PIP_CACHE_DIR="$PWD/.pip-cache"
+
+          case "${{ matrix.os }}" in
+            freebsd)
+              export IGNORE_OSVERSION=yes
+              sudo -E pkg update -f
+              sudo -E pkg install -y liblz4 pkgconf
+              sudo -E pkg install -y fusefs-libs
+              sudo -E kldload fusefs
+              sudo -E sysctl vfs.usermount=1
+              sudo -E chmod 666 /dev/fuse
+
+              # enable POSIX.1e ACLs on the UFS root fs (covers /tmp), so the ACL tests do not skip (#9144)
+              sudo mount -u -o acls /
+              mount | grep ' / ' | grep -w acls
+              sudo -E pkg install -y rust
+              sudo -E pkg install -y gmake
+              sudo -E pkg install -y git
+              sudo -E pkg install -y python314 py314-sqlite3
+              sudo ln -sf /usr/local/bin/python3.14 /usr/local/bin/python3
+              sudo ln -sf /usr/local/bin/python3.14 /usr/local/bin/python
+              sudo ln -sf /usr/local/bin/pip3.14 /usr/local/bin/pip3
+              sudo ln -sf /usr/local/bin/pip3.14 /usr/local/bin/pip
+
+              # required for libsodium/pynacl build
+              export MAKE=gmake
+
+              python -m venv .venv
+              . .venv/bin/activate
+              python -V
+              pip -V
+              python -m pip install --upgrade pip wheel
+              pip install -r requirements.d/development.lock.txt
+              pip install -e ".[mfusepy,cockpit,s3,sftp,rclone]"
+              if [[ "${{ matrix.do_binaries }}" == "true" && "${{ startsWith(github.ref, 'refs/tags/') }}" == "true" ]]; then
+                python -m pip install -r requirements.d/pyinstaller.txt
+                ./scripts/build-borg-using-pyinstaller.sh
+                pushd dist/binary
+                echo "single-file binary"
+                chmod +x borg.exe
+                ./borg.exe -V
+                echo "single-directory binary"
+                chmod +x borg-dir/borg.exe
+                ./borg-dir/borg.exe -V
+                tar czf borg.tgz borg-dir
+                popd
+                mkdir -p artifacts
+                if [ -f dist/binary/borg.exe ]; then
+                  cp -v dist/binary/borg.exe artifacts/${{ matrix.artifact_prefix }}
+                fi
+                if [ -f dist/binary/borg.tgz ]; then
+                  cp -v dist/binary/borg.tgz artifacts/${{ matrix.artifact_prefix }}.tgz
+                fi
+              fi
+              export PATH="$(pwd)/dist/binary:$PATH"
+              tox -e py314-mfusepy
+              ;;
+
+            netbsd)
+              arch="$(uname -m)"
+              sudo -E mkdir -p /usr/pkg/etc/pkgin
+              echo "https://ftp.NetBSD.org/pub/pkgsrc/packages/NetBSD/${arch}/11.0/All" | sudo tee /usr/pkg/etc/pkgin/repositories.conf > /dev/null
+              sudo -E pkgin update
+              sudo -E pkgin -y upgrade
+              sudo -E pkgin -y install lz4 git
+              sudo -E pkgin -y install rust
+              sudo -E pkgin -y install pkg-config
+              # python 3.14 for coverage's fast sysmon core, see #9470
+              sudo -E pkgin -y install py314-pip py314-virtualenv py314-tox
+              sudo -E ln -sf /usr/pkg/bin/python3.14 /usr/pkg/bin/python3
+              sudo -E ln -sf /usr/pkg/bin/pip3.14 /usr/pkg/bin/pip3
+              sudo -E ln -sf /usr/pkg/bin/virtualenv-3.14 /usr/pkg/bin/virtualenv3
+              sudo -E ln -sf /usr/pkg/bin/tox-3.14 /usr/pkg/bin/tox3
+
+              # Ensure base system admin tools are on PATH for the non-root shell
+              export PATH="/sbin:/usr/sbin:$PATH"
+
+              # On the netbsd 11 VM, / is a fs with extended attributes.
+              export TMPDIR="/tmp_eafs"
+              sudo -E mkdir -p ${TMPDIR}
+              sudo -E chmod 1777 ${TMPDIR}
+
+              touch ${TMPDIR}/testfile
+              lsextattr user ${TMPDIR}/testfile && echo "[xattr] *** xattrs SUPPORTED on ${TMPDIR}! ***"
+
+              tox3 -e py314-none
+              ;;
+
+            openbsd)
+              # Put the temp tree (pip/cc build temps, pytest tmp dirs and the
+              # borg test repos in them) on a memory-backed filesystem instead
+              # of the slow FFS disk. Sized generously (the pytest tmp tree is
+              # only cleaned up after the run); the VM gets 12G RAM for this.
+              sudo mkdir -p /mfs
+              # -O2: FFS2 format - mfs defaults to FFS1, whose 32 bit
+              # timestamps silently wrap (breaks test_extract_y2261).
+              sudo mount_mfs -O2 -s 6g swap /mfs
+              sudo chmod 1777 /mfs
+              export TMPDIR=/mfs
+
+              # 7.9 has no python 3.14 pkg yet - move to 3.14 + update pyver when it ships (#9470)
+              sudo -E pkg_add lz4 git rust openssl%3.5 py3-pip py3-virtualenv py3-tox
+
+              export BORG_OPENSSL_NAME=eopenssl35
+              tox -e py313-none
+              ;;
+
+            omnios)
+              # r151056 has no python-314 pkg yet - move to 3.14 + update pyver when it ships (#9470)
+              sudo pkg install gcc14 git pkg-config python-313 gnu-make gnu-coreutils rust
+              sudo ln -sf /usr/bin/python3.13 /usr/bin/python3
+              sudo ln -sf /usr/bin/python3.13-config /usr/bin/python3-config
+              sudo python3 -m ensurepip
+              sudo python3 -m pip install virtualenv
+
+              # On omniOS /tmp is swap-backed tmpfs (small, RAM-bound), so the pip/cargo
+              # build temps and the pytest temp tree quickly exhaust it ("no space left on
+              # device"). /var/tmp is disk-backed (ZFS), so redirect TMPDIR there.
+              export TMPDIR=/var/tmp/borg-ci
+              mkdir -p "$TMPDIR"
+
+              # show whether xattrs work on the ZFS-backed TMPDIR (they are files in a
+              # hidden per-file attribute directory there, listed via runat(1))
+              touch "$TMPDIR/testfile"
+              /usr/bin/runat "$TMPDIR/testfile" ls -a && echo "*** xattrs supported on $TMPDIR ***"
+              rm "$TMPDIR/testfile"
+
+              python3 -m venv .venv
+              . .venv/bin/activate
+              python -V
+              pip -V
+              python -m pip install --upgrade pip wheel
+              pip install -r requirements.d/development.lock.txt
+              # no fuse support on omnios in our tests usually
+              pip install -e .
+
+              tox -e py313-none
+              ;;
+
+            haiku)
+              pkgman refresh
+              # already installed:
+              # pkgman install -y git pkgconfig lz4 openssl3
+              pkgman install -y lz4_devel openssl3_devel
+              pkgman install -y rust_bin
+
+              python3 -m ensurepip --upgrade
+              python3 -m pip install --upgrade pip wheel
+              python3 -m venv .venv
+              . .venv/bin/activate
+
+              export PKG_CONFIG_PATH="/system/develop/lib/pkgconfig:/system/lib/pkgconfig:${PKG_CONFIG_PATH:-}"
+              export BORG_LIBLZ4_PREFIX=/system/develop
+              export BORG_OPENSSL_PREFIX=/system/develop
+
+              # this VM corrupts data every now and then: rustc crashed on crate metadata it
+              # had written itself ("assertion failed: bytes[len] == STR_SENTINEL") and pip
+              # found sha256 mismatches reading big wheels back from its own cache. Build
+              # outside /boot/system/cache/tmp (haiku's /tmp) and run one rustc at a time,
+              # in case that corruption comes from disk or memory pressure.
+              export TMPDIR=/boot/home/borg-tmp
+              mkdir -p "$TMPDIR"
+              export CARGO_TARGET_DIR="$TMPDIR/cargo-target"
+              export CARGO_BUILD_JOBS=1
+
+              # retry a pip install that hit a corrupted file, dropping the cached (possibly
+              # corrupted) files first, so one of them does not fail the whole job - and does
+              # not end up in the actions cache, failing every following run, too.
+              pip_install() {
+                for attempt in 1 2 3; do
+                  pip install "$@" && return 0
+                  echo "*** pip install failed (attempt $attempt), purging the pip cache and retrying ***"
+                  pip cache purge || true
+                done
+                return 1
+              }
+
+              pip_install -r requirements.d/development.lock.txt
+              pip_install -e .
+
+              # troubles with either tox or pytest xdist, so we run pytest manually:
+              pytest -v -n auto -rs --cov=borg --cov-config=pyproject.toml --cov-report=xml --junitxml=test-results.xml --benchmark-skip -k "not remote and not socket"
+              ;;
+          esac
+
+      - name: Attest provenance
+        id: attest-binaries
+        if: startsWith(github.ref, 'refs/tags/') && matrix.do_binaries
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8  # v4.2.2
+        with:
+          subject-path: 'artifacts/*'
+
+      - name: Name the sigstore bundle after the binaries
+        # The attestation is also stored in the GitHub attestations API, but
+        # fetching it from there needs a recent gh and a GitHub token (see
+        # #10187) - so the sigstore bundle rides along with the binaries and the
+        # release job attaches it to the release as <asset>.sigstore.jsonl, just
+        # like it does for the sdist, see .github/workflows/release.yml.
+        #
+        # One attestation covers both the single-file binary and the .tgz, so
+        # the same bundle is stored under both names - one for each asset.
+        # This is also why the attestation is made before the artifact is
+        # uploaded and not after it.
+        if: startsWith(github.ref, 'refs/tags/') && matrix.do_binaries
+        env:
+          BUNDLE_PATH: ${{ steps.attest-binaries.outputs.bundle-path }}
+        run: |
+          set -euxo pipefail
+          # the glob is expanded before the loop body creates any file:
+          for asset in artifacts/*; do
+            cp "$BUNDLE_PATH" "$asset.sigstore.jsonl"
+          done
+          ls -l artifacts/
+
+      - name: Upload artifacts
+        if: startsWith(github.ref, 'refs/tags/') && matrix.do_binaries
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
+        with:
+          name: ${{ matrix.artifact_prefix }}
+          path: artifacts/*
+          if-no-files-found: ignore
+
+      - name: Upload test results to Codecov
+        if: ${{ !cancelled() }}
+        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f  # v7.0.0
+        env:
+          OS: ${{ matrix.os }}
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          report_type: test_results
+          env_vars: OS
+          files: test-results.xml
+
+      - name: Upload coverage to Codecov
+        if: ${{ !cancelled() }}
+        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f  # v7.0.0
+        env:
+          OS: ${{ matrix.os }}
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          report_type: coverage
+          env_vars: OS
+          files: coverage.xml
+
+  windows_tests:
+
+    if: true  # can be used to temporarily disable the build
+    runs-on: windows-latest
+    timeout-minutes: 90
+    needs: [lint]
+
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+
+    env:
+      MSYS2_ARG_CONV_EXCL: "*"
+      MSYS2_ENV_CONV_EXCL: "*"
+      # see the "Cache pip-built wheels" step. MSYS2_ENV_CONV_EXCL above keeps
+      # this a Windows path when it enters the msys2 shell.
+      PIP_CACHE_DIR: ${{ github.workspace }}\.pip-cache
+
+    defaults:
+      run:
+        shell: msys2 {0}
+
+    steps:
+      # actions/checkout runs Git for Windows, whose system config sets
+      # core.autocrlf=true, while the msys2 git the build steps below use does
+      # not: it would see every text file as modified, so setuptools-scm called
+      # the checkout dirty and gave the binaries a guessed-next .devN version
+      # instead of the tag version, see #10199.  .gitattributes takes care of
+      # this as well, this is here so that it also works for older tags.
+      - name: Do not convert line endings on checkout
+        shell: pwsh
+        run: git config --global core.autocrlf false
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      # MSYS2's mingw Python cannot use PyPI's win_amd64 wheels, so pip builds
+      # all compiled deps from source - incl. building maturin via cargo, just
+      # to build the blake3 wheel. Persist the wheels pip builds.
+      - name: Cache pip-built wheels
+        # Not on tags: that is when the release binaries are built and attested,
+        # and they should not be able to pick up a poisoned cache entry.
+        if: ${{ !startsWith(github.ref, 'refs/tags/') }}
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9  # v6.1.0
+        with:
+          path: .pip-cache
+          key: windows-msys2-pip-${{ hashFiles('pyproject.toml', 'requirements.d/pyinstaller.txt') }}
+          restore-keys: |
+            windows-msys2-pip-
+
+      - uses: msys2/setup-msys2@66cd2cce69caa17b53920067426061ca1de3a884  # v2.32.0
+        with:
+          msystem: UCRT64
+          update: true
+
+      - name: Install system packages
+        run: ./scripts/msys2-install-deps development
+
+      # needed by borg mount (via mfusepy)
+      - name: Install WinFsp
+        shell: pwsh
+        run: choco install winfsp -y --no-progress
+
+      - name: Build python venv
+        run: |
+          # building native extensions in the venv fails, so we try to use the system packages
+          python -m venv --system-site-packages env
+          . env/bin/activate
+          # python -m pip install --upgrade pip
+          # pip install --upgrade setuptools build wheel
+          pip install -r requirements.d/pyinstaller.txt
+
+      - name: Build
+        run: |
+          # build borg.exe
+          . env/bin/activate
+          pip install -e ".[mfusepy,cockpit,s3,sftp,rclone]"
+          ./scripts/build-borg-using-pyinstaller.sh
+          # build sdist and wheel in dist/...
+          python -m build
+
+      # Same layout and naming as the binaries of the other platforms, so that
+      # the release job picks this up as a release asset, too. The single-file
+      # binary keeps its .exe extension - Windows needs it to run the file.
+      - name: Prepare binaries (borg-windows-x86_64-gh)
+        run: |
+          pushd dist/binary
+          echo "single-file binary"
+          ./borg.exe -V
+          echo "single-directory binary"
+          ./borg-dir/borg.exe -V
+          tar czf borg.tgz borg-dir
+          popd
+          mkdir -p artifacts
+          cp dist/binary/borg.exe artifacts/borg-windows-x86_64-gh.exe
+          cp dist/binary/borg.tgz artifacts/borg-windows-x86_64-gh.tgz
+          echo "binary files"
+          ls -l artifacts/
+
+      - name: Attest binaries provenance (borg-windows-x86_64-gh)
+        id: attest-binaries
+        if: ${{ startsWith(github.ref, 'refs/tags/') }}
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8  # v4.2.2
+        with:
+          subject-path: 'artifacts/*'
+
+      - name: Name the sigstore bundle after the binaries (borg-windows-x86_64-gh)
+        # The attestation is also stored in the GitHub attestations API, but
+        # fetching it from there needs a recent gh and a GitHub token (see
+        # #10187) - so the sigstore bundle rides along with the binaries and the
+        # release job attaches it to the release as <asset>.sigstore.jsonl, just
+        # like it does for the sdist, see .github/workflows/release.yml.
+        #
+        # One attestation covers both the .exe and the .tgz, so the same bundle
+        # is stored under both names - one for each asset.
+        #
+        # pwsh, not the msys2 shell this job otherwise uses: bundle-path is a
+        # native Windows path and MSYS2_ARG_CONV_EXCL above keeps msys2 from
+        # converting it.
+        if: ${{ startsWith(github.ref, 'refs/tags/') }}
+        shell: pwsh
+        env:
+          BUNDLE_PATH: ${{ steps.attest-binaries.outputs.bundle-path }}
+        run: |
+          Get-ChildItem artifacts -File | ForEach-Object {
+            Copy-Item -Path $env:BUNDLE_PATH -Destination "$($_.FullName).sigstore.jsonl"
+          }
+          Get-ChildItem artifacts
+
+      - name: Upload binaries (borg-windows-x86_64-gh)
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
+        with:
+          name: borg-windows-x86_64-gh
+          path: artifacts/*
+          if-no-files-found: error
+
+      - name: Run tests
+        run: |
+          # Ensure locally built binary in ./dist/binary/borg-dir is found during tests
+          export PATH="$GITHUB_WORKSPACE/dist/binary/borg-dir:$PATH"
+          borg.exe -V
+          . env/bin/activate
+          python -m pytest -n4 --benchmark-skip -vv -rs -k "not remote" --cov=borg --cov-config=pyproject.toml --cov-report=xml --junitxml=test-results.xml
+
+      - name: Upload test results to Codecov
+        if: ${{ !cancelled() }}
+        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f  # v7.0.0
+        env:
+          OS: ${{ runner.os }}
+          python: '3.11'
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          report_type: test_results
+          env_vars: OS,python
+          files: test-results.xml
+
+      - name: Upload coverage to Codecov
+        if: ${{ !cancelled() }}
+        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f  # v7.0.0
+        env:
+          OS: ${{ runner.os }}
+          python: '3.11'
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          report_type: coverage
+          env_vars: OS,python
+          files: coverage.xml
+
+  release:
+    # Build the sdist and draft the GitHub release with the binaries the jobs
+    # above built for this tag, see .github/workflows/release.yml.
+    #
+    # vm_tests is continue-on-error (a flaky BSD VM must not stop a release), so
+    # this waits for it, but only requires native_tests and oldglibc_binary to
+    # have succeeded. A binary that did not get built is warned about while
+    # drafting the release.
+    if: ${{ !cancelled() && startsWith(github.ref, 'refs/tags/') && needs.native_tests.result == 'success' && needs.oldglibc_binary.result == 'success' }}
+    needs: [native_tests, oldglibc_binary, vm_tests]
+
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
+
+    uses: ./.github/workflows/release.yml
+
+  pypi:
+    # Upload the sdist the release job built to PyPI.
+    #
+    # This job can not live in release.yml with the rest of the release code:
+    # PyPI trusted publishing does not work from a reusable workflow, see
+    # https://docs.pypi.org/trusted-publishers/troubleshooting/
+    #
+    # One-time setup, so that no API token has to be stored anywhere:
+    #  - on pypi.org, add a trusted publisher to the "borgbackup" project:
+    #    owner "borgbackup", repository "borg", workflow "ci.yml",
+    #    environment "pypi".
+    #  - create the "pypi" environment in the repository settings. Configuring
+    #    required reviewers for it makes this (irreversible) upload wait for an
+    #    approval, which is the last chance to stop a release.
+    if: ${{ startsWith(github.ref, 'refs/tags/') && needs.release.result == 'success' }}
+    needs: [release]
+
+    runs-on: ubuntu-26.04
+    timeout-minutes: 30
+
+    environment:
+      name: pypi
+      url: https://pypi.org/project/borgbackup/${{ github.ref_name }}
+
+    permissions:
+      contents: read
+      id-token: write  # trusted publishing
+
+    steps:
+    - name: Get the sdist built by the release job
+      uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # v8.0.1
+      with:
+        name: sdist
+        path: dist
+
+    - name: What we are about to upload
+      run: ls -l dist/
+
+    - name: Upload to PyPI
+      uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33  # v1.14.2

@@ -1,0 +1,254 @@
+.\" Man page generated from reStructuredText
+.\" by the Docutils 0.22.4 manpage writer.
+.
+.
+.nr rst2man-indent-level 0
+.
+.de1 rstReportMargin
+\\$1 \\n[an-margin]
+level \\n[rst2man-indent-level]
+level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
+-
+\\n[rst2man-indent0]
+\\n[rst2man-indent1]
+\\n[rst2man-indent2]
+..
+.de1 INDENT
+.\" .rstReportMargin pre:
+. RS \\$1
+. nr rst2man-indent\\n[rst2man-indent-level] \\n[an-margin]
+. nr rst2man-indent-level +1
+.\" .rstReportMargin post:
+..
+.de UNINDENT
+. RE
+.\" indent \\n[an-margin]
+.\" old: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.nr rst2man-indent-level -1
+.\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.in \\n[rst2man-indent\\n[rst2man-indent-level]]u
+..
+.TH "borg-check" "1" "2026-09-02" "" "borg backup tool"
+.SH Name
+borg-check \- Checks repository consistency.
+.SH SYNOPSIS
+.sp
+borg [common options] check [options]
+.SH DESCRIPTION
+.sp
+The check command verifies the consistency of a repository and its archives.
+It consists of two major steps:
+.INDENT 0.0
+.IP 1. 3
+Checking the consistency of the repository itself. The objects in the \fBindex/\fP
+and \fBpacks/\fP namespaces are named by the sha256 hash of their content, so such
+an object is intact if and only if the hash of its content still equals its name.
+The check verifies the (small) index objects first and, only if they are intact,
+all packs. It also cross\-checks the chunk index against the packs present in the
+repository to detect referenced but missing packs. Bit rot and other types of
+accidental damage can be detected this way, but as sha256 content\-addressing is
+not a MAC, this step does not detect tampering. Running the repository check can
+be split into multiple partial checks using \fB\-\-max\-duration\fP\&.
+For rest:// repositories, the server computes the hashes, so the pack contents do
+not have to travel over the network. For other remote backends, borg usually has
+to read (download) the objects to hash them.
+.IP 2. 3
+Checking consistency and correctness of the archive metadata and optionally
+archive data (requires \fB\-\-verify\-data\fP). This includes ensuring that the
+repository manifest exists, the archive metadata chunk is present, and that
+all chunks referencing files (items) in the archive exist. This requires
+reading archive and file metadata, but not data. To scan for archives whose
+entries were lost from the archive directory, pass \fB\-\-find\-lost\-archives\fP\&.
+It has to look at the metadata of every object in the repository (only for the
+archive metadata objects it finds that way, it also reads the object data), so
+it is very time\-consuming for big repositories.
+To additionally cryptographically verify the file (content) data integrity,
+pass \fB\-\-verify\-data\fP, which is even more time\-consuming.
+.sp
+When checking archives of a remote repository, archive checks run on the client
+machine because they require decrypting data and therefore the encryption key.
+.UNINDENT
+.sp
+Both steps can also be run independently. Pass \fB\-\-repository\-only\fP to run the
+repository checks only, or pass \fB\-\-archives\-only\fP to run the archive checks
+only.
+.sp
+The \fB\-\-max\-age\fP option makes the check reuse the results of previous
+repository checks: packs whose intact result is younger than the given
+timespan (e.g. \fB\-\-max\-age=4w\fP or \fB\-\-max\-age=12m\fP) are skipped, spreading
+the verification cost over repeated checks. The timespan uses the same markers
+as \fB\-\-older\fP/\fB\-\-newer\fP: \fBd\fP, \fBw\fP, \fBH\fP, \fBM\fP, \fBS\fP are exact spans,
+while \fBm\fP and \fBy\fP are calendar units counted from now (so \fB12m\fP equals
+\fB1y\fP). Check results are recorded in any case; \fB\-\-max\-age\fP only controls
+their reuse. Packs recorded corrupt are always re\-verified. \fB\-\-max\-age\fP
+affects only the repository check and cannot be combined with
+\fB\-\-archives\-only\fP or \fB\-\-repair\fP\&.
+.sp
+The \fB\-\-max\-duration\fP option splits a long\-running repository check into
+several partial checks. After the given number of seconds, the check is
+interrupted. A partial check verifies the least\-recently\-checked packs first,
+so repeated runs cover the whole repository. Add \fB\-\-max\-age\fP to also skip
+packs whose result is still younger than the given age: once every pack has a
+recent result, further runs re\-check each pack at most once per \fB\-\-max\-age\fP,
+and no faster than the per\-run budget allows.
+Assuming a complete check would take 7 hours, running a daily check with
+\fB\-\-max\-duration=3600 \-\-max\-age=1w\fP (1 hour) results in one full repository
+verification per week. Partial repository checks run neither archive checks
+nor repair mode, so \fB\-\-max\-duration\fP requires \fB\-\-repository\-only\fP and
+cannot be combined with \fB\-\-archives\-only\fP or \fB\-\-repair\fP\&.
+.sp
+\fBNote:\fP A partial repository check verifies the repository files in exactly the
+same way as a full repository check does \- the difference is only how many of them
+one run gets to. What a partial run does not do are the archive checks: because
+\fB\-\-max\-duration\fP requires \fB\-\-repository\-only\fP, neither the archive metadata
+checks nor the cryptographic data verification of \fB\-\-verify\-data\fP run. Partial
+checks are therefore mostly useful for very large repositories where a full check
+would take too long.
+.sp
+The \fB\-\-verify\-data\fP option will perform a full integrity verification of data,
+which means reading the data from the repository, decrypting and decompressing it.
+It is a complete cryptographic verification and hence very time\-consuming, but
+will detect any accidental and malicious corruption. Tamper\-resistance is only
+guaranteed for encrypted repositories against attackers without access to the keys.
+You cannot use \fB\-\-verify\-data\fP with \fB\-\-repository\-only\fP\&.
+.sp
+\fB\-\-verify\-data\fP also always verifies that each chunk\(aqs content matches its chunk id,
+which normal reads do not do by default (see \fBBORG_ASSERT_ID\fP). Running it periodically
+is therefore recommended.
+.sp
+The \fB\-\-find\-lost\-archives\fP option will also scan the whole repository, but
+tells Borg to search for lost archive metadata. If Borg encounters any archive
+metadata that does not match an archive directory entry (including
+soft\-deleted archives), it means that an entry was lost.
+Unless \fBborg compact\fP is called, these archives can be fully restored with
+\fB\-\-repair\fP\&. Please note that \fB\-\-find\-lost\-archives\fP must look at every
+object in the repository and is thus very time\-consuming. You cannot use
+\fB\-\-find\-lost\-archives\fP with \fB\-\-repository\-only\fP\&.
+.sp
+You can influence how the archive part of the \fBAnalyzing archive ...\fP output is
+formatted by giving a custom format using \fB\-\-format\fP (see the \fBborg repo\-list\fP
+description for more details about the format string).
+.sp
+If the \fBborg check\fP process receives a SIGINT signal (Ctrl\-C), it stops at the
+next safe boundary, leaving the repository and its chunk index in a consistent state.
+The repository check stops after the current pack; \fB\-\-verify\-data\fP and
+\fB\-\-find\-lost\-archives\fP stop after the current chunk; a \fB\-\-repair\fP archive check
+stops between whole archives. Results recorded before the interrupt are kept, so a later
+check does not re\-verify those packs until they are due again. With \fB\-\-repair\fP, an
+interrupted archive check may leave some archives already repaired and others not yet
+processed, so run \fBborg check \-\-repair\fP again to finish.
+.sp
+During a \fB\-\-repair\fP run, the archive check first rebuilds the chunk index from the
+packs, and, if the key must be recovered, scans chunks for it. These phases do not yet
+respond to SIGINT, so on a large repository a Ctrl\-C during them may appear to have no
+effect until they finish.
+.SS About repair mode
+.sp
+The check command is a read\-only task by default. If any corruption is found,
+Borg will report the issue and proceed with checking. To actually repair the
+issues found, pass \fB\-\-repair\fP\&.
+.sp
+\fBNote:\fP
+.INDENT 0.0
+.INDENT 3.5
+\fB\-\-repair\fP is a \fBPOTENTIALLY DANGEROUS FEATURE\fP and might lead to data
+loss! This does not just include data that was previously lost anyway, but
+might include more data for kinds of corruption it is not capable of
+dealing with. \fBBE VERY CAREFUL!\fP
+.UNINDENT
+.UNINDENT
+.sp
+Pursuant to the previous warning it is also highly recommended to test the
+reliability of the hardware running Borg with stress testing software. This
+especially includes storage and memory testers. Unreliable hardware might lead
+to additional data loss.
+.sp
+It is highly recommended to create a backup of your repository before running
+in repair mode (i.e. running it with \fB\-\-repair\fP).
+.sp
+Repair mode will attempt to fix any corruptions found. Fixing corruptions does
+not mean recovering lost data: Borg cannot magically restore data lost due to
+e.g. a hardware failure. Repairing a repository means sacrificing some data
+for the sake of the repository as a whole and the remaining data. Hence it is,
+by definition, a potentially lossy task.
+.sp
+In practice, repair mode hooks into both the repository and archive checks:
+.INDENT 0.0
+.IP 1. 3
+When checking the repository\(aqs consistency, repair mode rebuilds the repository
+index from the packs if the index is corrupt, provided every pack is intact. If
+any pack is corrupt, the repository check leaves the index and the packs untouched
+and reports the corruption; salvaging a corrupt pack\(aqs still\-intact objects is not
+implemented yet (refs #8572).
+.IP 2. 3
+When checking the consistency and correctness of archives, repair mode might
+remove whole archives from the manifest if their archive metadata chunk is
+corrupt or lost. Borg will also report files that reference missing chunks.
+.UNINDENT
+.sp
+If \fB\-\-repair \-\-find\-lost\-archives\fP is given, previously lost entries will
+be recreated in the archive directory. This is only possible before
+\fBborg compact\fP would remove the archives\(aq data completely.
+.SH OPTIONS
+.sp
+See \fIborg\-common(1)\fP for common options of Borg commands.
+.SS options
+.INDENT 0.0
+.TP
+.B  \-\-repository\-only
+only perform repository checks
+.TP
+.B  \-\-archives\-only
+only perform archive checks
+.TP
+.B  \-\-verify\-data
+perform cryptographic archive data integrity verification (conflicts with \fB\-\-repository\-only\fP)
+.TP
+.B  \-\-repair
+attempt to repair any inconsistencies found
+.TP
+.B  \-\-find\-lost\-archives
+attempt to find lost archives
+.TP
+.BI \-\-max\-age \ TIMESPAN
+reuse intact\-pack check results younger than TIMESPAN, e.g. 4w or 12m
+.TP
+.BI \-\-max\-duration \ SECONDS
+perform only a partial repository check for at most SECONDS seconds (default: unlimited)
+.TP
+.BI \-\-format \ FORMAT
+specify format for the archive part (default: \(dq{archive} {time} {id}\(dq)
+.UNINDENT
+.SS Archive filters
+.INDENT 0.0
+.TP
+.BI \-a \ PATTERN\fR,\fB \ \-\-match\-archives \ PATTERN
+only consider archives matching all patterns. See \(dqborg help match\-archives\(dq.
+.TP
+.BI \-\-sort\-by \ KEYS
+Comma\-separated list of sorting keys; valid keys are: timestamp, archive, name, id, tags, host, user; default is: timestamp
+.TP
+.BI \-\-first \ N
+consider the first N archives after other filters are applied
+.TP
+.BI \-\-last \ N
+consider the last N archives after other filters are applied
+.TP
+.BI \-\-oldest \ TIMESPAN
+consider archives between the oldest archive\(aqs timestamp and (oldest + TIMESPAN), e.g., 7d or 12m.
+.TP
+.BI \-\-newest \ TIMESPAN
+consider archives between the newest archive\(aqs timestamp and (newest \- TIMESPAN), e.g., 7d or 12m.
+.TP
+.BI \-\-older \ TIMESPAN
+consider archives older than (now \- TIMESPAN), e.g., 7d or 12m.
+.TP
+.BI \-\-newer \ TIMESPAN
+consider archives newer than (now \- TIMESPAN), e.g., 7d or 12m.
+.UNINDENT
+.SH SEE ALSO
+.sp
+\fIborg\-common(1)\fP
+.SH Author
+The Borg Collective
+.\" End of generated man page.

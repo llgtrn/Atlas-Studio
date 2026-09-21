@@ -1,0 +1,35 @@
+# https://black.readthedocs.io/en/stable/integrations/github_actions.html#usage
+# See also what we use locally in requirements.d/codestyle.txt — this should be the same version here.
+
+name: Lint
+
+on:
+  push:
+    paths:
+      - '**.py'
+      - 'pyproject.toml'
+      - '.github/workflows/black.yaml'
+  pull_request:
+    paths:
+      - '**.py'
+      - 'pyproject.toml'
+      - '.github/workflows/black.yaml'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    runs-on: ubuntu-26.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: psf/black@87928e6d6761a4a6d22250e1fee5601b3998086e  # 26.5.1
+        with:
+            version: "~= 24.0"

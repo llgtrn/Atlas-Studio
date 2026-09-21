@@ -1,0 +1,170 @@
+.\" Man page generated from reStructuredText
+.\" by the Docutils 0.22.4 manpage writer.
+.
+.
+.nr rst2man-indent-level 0
+.
+.de1 rstReportMargin
+\\$1 \\n[an-margin]
+level \\n[rst2man-indent-level]
+level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
+-
+\\n[rst2man-indent0]
+\\n[rst2man-indent1]
+\\n[rst2man-indent2]
+..
+.de1 INDENT
+.\" .rstReportMargin pre:
+. RS \\$1
+. nr rst2man-indent\\n[rst2man-indent-level] \\n[an-margin]
+. nr rst2man-indent-level +1
+.\" .rstReportMargin post:
+..
+.de UNINDENT
+. RE
+.\" indent \\n[an-margin]
+.\" old: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.nr rst2man-indent-level -1
+.\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.in \\n[rst2man-indent\\n[rst2man-indent-level]]u
+..
+.TH "borg-analyze" "1" "2026-09-02" "" "borg backup tool"
+.SH Name
+borg-analyze \- Analyzes archives.
+.SH SYNOPSIS
+.sp
+borg [common options] analyze [options]
+.SH DESCRIPTION
+.sp
+Analyze the archives matching the usual archive selection options (e.g. \fB\-a series_name\fP),
+or decompose the whole repository into groups of archives, see \fB\-\-group\-by\fP\&.
+.sp
+\fBDeduplicated size of a set of archives\fP
+.sp
+For the considered (matching) set of archives, \fBborg analyze\fP reports the \fIsource\fP
+(uncompressed source data) and \fIstored\fP (compressed, as stored in the repository) size,
+plus the \fIcompression\fP factor relating the two (stored / source):
+.INDENT 0.0
+.IP \(bu 2
+the \fIdeduplicated size of the set\fP: the summed size of the union of chunks the
+considered archives reference (chunks shared \fIwithin\fP the set are counted once);
+.IP \(bu 2
+the \fIexclusive size of the set\fP: the summed size of chunks referenced \fIonly\fP by the
+considered set and by no other archive \- i.e. the space that deleting the whole set
+would free (assuming the other archives stay).
+.UNINDENT
+.sp
+Additionally, the \fIunreferenced chunks\fP are reported: chunks in the repository that no
+non\-deleted archive references, i.e. what \fBborg compact\fP could free in the current
+state of the repository. Only their stored size is known \- a chunk\(aqs source size is
+only recorded in the archives that reference it. Note that chunks belonging to
+soft\-deleted archives count as unreferenced here, although \fBborg compact\fP keeps them
+when the repository is damaged (so \fBborg undelete\fP stays possible).
+.sp
+If no archive filter is given, all archives are considered \- every referenced chunk is
+then trivially exclusive to them, so only the repository\-wide deduplicated size is shown.
+.sp
+The stored sizes come from the repository\(aqs chunk index; the chunk membership and the
+source sizes come from the per\-archive references cache that \fBborg compact\fP
+maintains, so unchanged archives usually do not need to be opened.
+.sp
+\fBDecomposition by group of archives (\-\-group\-by)\fP
+.sp
+With \fB\-\-group\-by\fP, the whole repository is decomposed into groups of archives instead.
+The groups are formed by the given comma\-separated archive attributes \fBname\fP, \fBhost\fP,
+\fBuser\fP and \fBtags\fP \- the same grouping \fBborg prune \-\-group\-by\fP uses, so the numbers
+below relate to the same units that prune applies its retention rules to.
+.sp
+Archives sharing a name form a series, so \fB\-\-group\-by name\fP usually groups all backups
+of one source. In a repository shared by multiple machines or users that is not specific
+enough, because they may use the same series name for their own, unrelated data \- use
+\fB\-\-group\-by name,host\fP there.
+.sp
+Every chunk is counted in exactly one row, so the rows add up to the repository\(aqs
+deduplicated size:
+.INDENT 0.0
+.IP \(bu 2
+one row per group, showing what is \fIexclusive\fP to it: no archive of another group
+references these chunks, so deleting all archives of that group would free them;
+.IP \(bu 2
+one row for the chunks shared by two or more groups;
+.IP \(bu 2
+one row for the unreferenced chunks (see above).
+.UNINDENT
+.sp
+This answers \(dqwhich group costs how much, and what would I get back by dropping it\(dq for
+all groups at once, in a single pass over the archives. As the shared and unreferenced
+rows can only be determined by looking at every archive, \fB\-\-group\-by\fP always covers the
+whole repository and cannot be combined with archive filters.
+.sp
+Grouping by more attributes moves chunks from the group rows into the shared row: if two
+hosts back up identical content, \fB\-\-group\-by name\fP reports it as exclusive to that
+name, while \fB\-\-group\-by name,host\fP correctly shows that deleting either host\(aqs
+archives alone would not free it.
+.sp
+\fBHot spots\fP
+.sp
+If at least two archives match, \fBborg analyze\fP additionally iterates over all matching
+archives, over all contained files, and collects information about chunks stored in all
+directories it encounters. It considers chunk IDs and their plaintext sizes and adds up
+the sizes of added and removed chunks per direct parent directory, and outputs a list of
+\(dqdirectory: size\(dq.
+.sp
+You can use that list to find directories with a lot of \(dqactivity\(dq — maybe some of these
+are temporary or cache directories you forgot to exclude. To avoid including these unwanted
+directories in your backups, you can carefully exclude them in \fBborg create\fP (for future
+backups) or use \fBborg recreate\fP to recreate existing archives without them.
+.sp
+\fBJSON output\fP
+.sp
+With \fB\-\-json\fP, the same numbers are emitted as a single JSON object instead of the text
+report, with raw byte values rather than formatted sizes. The default mode fills the
+\fIdedup_size\fP and \fIhotspots\fP keys, \fB\-\-group\-by\fP fills the \fIby_group\fP key. The
+compression factor is not included: it is \fBstored_size / source_size\fP\&.
+.sp
+See \fIjson_output\fP for the object\(aqs structure.
+.SH OPTIONS
+.sp
+See \fIborg\-common(1)\fP for common options of Borg commands.
+.SS options
+.INDENT 0.0
+.TP
+.BI \-\-group\-by \ KEYS
+decompose the whole repository by groups of archives, grouped by the given comma\-separated archive attributes (not combinable with archive filters); valid keys are: name, host, user, tags
+.TP
+.B  \-\-json
+format output as JSON
+.UNINDENT
+.SS Archive filters
+.INDENT 0.0
+.TP
+.BI \-a \ PATTERN\fR,\fB \ \-\-match\-archives \ PATTERN
+only consider archives matching all patterns. See \(dqborg help match\-archives\(dq.
+.TP
+.BI \-\-sort\-by \ KEYS
+Comma\-separated list of sorting keys; valid keys are: timestamp, archive, name, id, tags, host, user; default is: timestamp
+.TP
+.BI \-\-first \ N
+consider the first N archives after other filters are applied
+.TP
+.BI \-\-last \ N
+consider the last N archives after other filters are applied
+.TP
+.BI \-\-oldest \ TIMESPAN
+consider archives between the oldest archive\(aqs timestamp and (oldest + TIMESPAN), e.g., 7d or 12m.
+.TP
+.BI \-\-newest \ TIMESPAN
+consider archives between the newest archive\(aqs timestamp and (newest \- TIMESPAN), e.g., 7d or 12m.
+.TP
+.BI \-\-older \ TIMESPAN
+consider archives older than (now \- TIMESPAN), e.g., 7d or 12m.
+.TP
+.BI \-\-newer \ TIMESPAN
+consider archives newer than (now \- TIMESPAN), e.g., 7d or 12m.
+.UNINDENT
+.SH SEE ALSO
+.sp
+\fIborg\-common(1)\fP
+.SH Author
+The Borg Collective
+.\" End of generated man page.

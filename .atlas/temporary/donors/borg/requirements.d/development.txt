@@ -1,0 +1,13 @@
+pip !=24.2
+virtualenv
+build
+tox
+pytest
+pytest-xdist
+coverage[toml]
+pytest-cov
+pytest-benchmark
+pytest-timeout
+pre-commit
+bandit[toml]
+types-PyYAML

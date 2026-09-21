@@ -1,0 +1,124 @@
+.\" Man page generated from reStructuredText
+.\" by the Docutils 0.22.4 manpage writer.
+.
+.
+.nr rst2man-indent-level 0
+.
+.de1 rstReportMargin
+\\$1 \\n[an-margin]
+level \\n[rst2man-indent-level]
+level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
+-
+\\n[rst2man-indent0]
+\\n[rst2man-indent1]
+\\n[rst2man-indent2]
+..
+.de1 INDENT
+.\" .rstReportMargin pre:
+. RS \\$1
+. nr rst2man-indent\\n[rst2man-indent-level] \\n[an-margin]
+. nr rst2man-indent-level +1
+.\" .rstReportMargin post:
+..
+.de UNINDENT
+. RE
+.\" indent \\n[an-margin]
+.\" old: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.nr rst2man-indent-level -1
+.\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.in \\n[rst2man-indent\\n[rst2man-indent-level]]u
+..
+.TH "borg-key-change-passphrase" "1" "2026-09-02" "" "borg backup tool"
+.SH Name
+borg-key-change-passphrase \- Changes the repository key file passphrase.
+.SH SYNOPSIS
+.sp
+borg [common options] key change\-passphrase [options]
+.SH DESCRIPTION
+.sp
+The key files used for repository encryption are optionally passphrase
+protected. This command can be used to change this passphrase.
+.sp
+Please note that this command only changes the passphrase, but not any
+secret protected by it (like e.g. encryption/MAC keys or chunker seed).
+Thus, changing the passphrase after passphrase and borg key got compromised
+does not protect future (nor past) backups to the same repository.
+.SH OPTIONS
+.sp
+See \fIborg\-common(1)\fP for common options of Borg commands.
+.SH EXAMPLES
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.EX
+# Create a key file protected repository
+$ borg repo\-create \-\-encryption=aes256\-ocb \-\-key\-location=keyfile \-v
+Initializing repository at \(dq/path/to/repo\(dq
+Enter new passphrase:
+Enter same passphrase again:
+Do you want your passphrase to be displayed for verification? [yN]: n
+Remember your passphrase. Your data will be inaccessible without it.
+Key in \(dq/root/.config/borg/keys/f23b5f0703c06dc7d9d889b5867496d8cb8ef5b42a5005221d3c7373ec6d6353\(dq created.
+Keep this key safe. Your data will be inaccessible without it.
+\&...
+
+# Change key file passphrase
+$ borg key change\-passphrase \-v
+Enter passphrase for key /root/.config/borg/keys/f23b5f0703c06dc7d9d889b5867496d8cb8ef5b42a5005221d3c7373ec6d6353:
+Enter new passphrase:
+Enter same passphrase again:
+Do you want your passphrase to be displayed for verification? [yN]: n
+Remember your passphrase. Your data will be inaccessible without it.
+Key updated
+Key location: /root/.config/borg/keys/4881c2f73d9f173bd4c4d30a9f397a596bc742bfa1f652fac3f83cee3f26cb00
+.EE
+.UNINDENT
+.UNINDENT
+.sp
+\fBNote:\fP
+.INDENT 0.0
+.INDENT 3.5
+Automatically placed key files are named after the SHA\-256 hash of their own
+contents, not after the repository directory name. Because changing the
+passphrase re\-encrypts the key, the key file is rewritten under a new name and
+the previous one is removed — that is why the two paths above differ. Use
+\fBBORG_KEY_FILE\fP if you want to choose the key file name yourself.
+.sp
+The key file paths shown above are the defaults for Linux (\fB~/.config/borg/keys/\fP).
+On macOS, key files are stored in \fB~/Library/Application Support/borg/keys/\fP\&.
+On Windows, they are stored in \fBC:\eUsers\e<user>\eAppData\eRoaming\eborg\ekeys\e\fP\&.
+See \fIenv_vars\fP for details.
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.EX
+# Import a previously\-exported key into a key file, using BORG_KEY_FILE to
+# choose the output key file (creating or overwriting it).
+# \-\-key\-location=keyfile is required: \(dqborg key import\(dq defaults to
+# \-\-key\-location=repokey, which stores the key in the repository and
+# ignores BORG_KEY_FILE.
+$ BORG_KEY_FILE=/path/to/output\-key borg key import \-\-key\-location=keyfile /path/to/exported
+.EE
+.UNINDENT
+.UNINDENT
+.sp
+Fully automated using environment variables:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.EX
+$ BORG_NEW_PASSPHRASE=old borg repo\-create \-\-encryption=aes256\-ocb
+# now \(dqold\(dq is the current passphrase.
+$ BORG_PASSPHRASE=old BORG_NEW_PASSPHRASE=new borg key change\-passphrase
+# now \(dqnew\(dq is the current passphrase.
+.EE
+.UNINDENT
+.UNINDENT
+.SH SEE ALSO
+.sp
+\fIborg\-common(1)\fP
+.SH Author
+The Borg Collective
+.\" End of generated man page.

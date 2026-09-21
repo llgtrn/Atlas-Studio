@@ -1,0 +1,234 @@
+import contextlib
+import getpass
+import os
+import shutil
+import tempfile
+
+import pytest
+
+if hasattr(pytest, "register_assert_rewrite"):
+    pytest.register_assert_rewrite("borg.testsuite")
+
+# Ensure that the loggers exist for all tests
+from borg.logger import setup_logging  # noqa: E402
+
+setup_logging()
+
+from borg.archiver import Archiver  # noqa: E402
+from borg.platform import set_flags  # noqa: E402
+from borg.testsuite import has_lchflags, has_llfuse, has_pyfuse3, has_mfusepy  # noqa: E402
+from borg.testsuite import are_symlinks_supported, are_hardlinks_supported, is_utime_fully_supported  # noqa: E402
+from borg.testsuite.archiver import BORG_EXES
+from borg.testsuite.platform.platform_test import fakeroot_detected  # noqa: E402
+from borg.helpers import umount  # noqa: E402
+
+
+def _pytest_tmp_root():
+    # Mirror the parent of pytest's basetemp: <temproot>/pytest-of-<user>.
+    # Old (already-removed-from-retention) run dirs live here too, which is where
+    # FUSE mounts orphaned by aborted runs hide.
+    try:
+        user = getpass.getuser()
+    except Exception:
+        user = "unknown"
+    return os.path.join(tempfile.gettempdir(), f"pytest-of-{user}")
+
+
+def _looks_mounted(path):
+    # A live FUSE mount reports as a mount point; a dead/stale one makes the
+    # directory inaccessible (os.path.ismount swallows that and returns False).
+    if os.path.ismount(path):
+        return True
+    try:
+        os.listdir(path)
+    except OSError:
+        return True
+    return False
+
+
+def _sweep_stale_fuse_mounts():
+    # The fuse test helper always mounts at a directory named "mountpoint" under the
+    # pytest temp tree and unmounts it in a finally block.  If a run is aborted, that
+    # cleanup is skipped and the mount lingers, so the next run's temp-dir GC (rm_rf)
+    # trips over it ("Resource busy" etc.).  Walk the temp tree, find such leftover
+    # mountpoints and unmount them with borg's own (cross-platform) umount helper.
+    root = _pytest_tmp_root()
+    for dirpath, dirnames, filenames in os.walk(root, onerror=lambda err: None):
+        if "mountpoint" not in dirnames:
+            continue
+        dirnames.remove("mountpoint")  # never descend into a (possibly stale) mount
+        mountpoint = os.path.join(dirpath, "mountpoint")
+        if _looks_mounted(mountpoint):
+            try:
+                umount(mountpoint)
+            except Exception:  # nosec B110
+                pass  # best-effort: never let cleanup break the test session
+
+
+def pytest_sessionstart(session):
+    # Run once in the main process (not in each xdist worker), before any temp-dir
+    # GC, to clear mounts left behind by a previous, aborted session.
+    if not hasattr(session.config, "workerinput"):
+        _sweep_stale_fuse_mounts()
+
+
+def pytest_sessionfinish(session, exitstatus):
+    # Safety net for anything stranded by this session (e.g. a hard interrupt).
+    if not hasattr(session.config, "workerinput"):
+        _sweep_stale_fuse_mounts()
+
+
+@pytest.fixture(autouse=True)
+def clean_env(tmpdir_factory, monkeypatch):
+    # also avoid to use anything from the outside environment:
+    keys = [key for key in os.environ if key.startswith("BORG_") and key not in ("BORG_FUSE_IMPL",)]
+    for key in keys:
+        monkeypatch.delenv(key, raising=False)
+    # a "borg serve" started by a test must not mistake the ssh forced command of the session
+    # the tests happen to run in (e.g. a CI runner driven over ssh) for the command line of a
+    # borg client - it would fail to parse it and exit before serving anything.
+    monkeypatch.delenv("SSH_ORIGINAL_COMMAND", raising=False)
+    # avoid that we access / modify the user's normal .config / .cache directory:
+    base_dir = tmpdir_factory.mktemp("borg-base-dir")
+    monkeypatch.setenv("BORG_BASE_DIR", str(base_dir))
+    # Speed up tests
+    monkeypatch.setenv("BORG_TESTONLY_WEAKEN_KDF", "1")
+    monkeypatch.setenv("BORG_STORE_DATA_LEVELS", "0")  # flat storage for few objects
+    # tiny packs, so small test data still produces multiple multi-object packs
+    monkeypatch.setenv("BORG_PACK_MAX_COUNT", "3")
+    yield
+    shutil.rmtree(str(base_dir), ignore_errors=True)  # clean up
+
+
+def pytest_report_header(config, start_path):
+    tests = {
+        "BSD flags": has_lchflags,
+        "llfuse": has_llfuse,
+        "pyfuse3": has_pyfuse3,
+        "mfusepy": has_mfusepy,
+        "root": not fakeroot_detected(),
+        "symlinks": are_symlinks_supported(),
+        "hardlinks": are_hardlinks_supported(),
+        "atime/mtime": is_utime_fully_supported(),
+        "modes": "BORG_TESTS_IGNORE_MODES" not in os.environ,
+    }
+    enabled = []
+    disabled = []
+    for test in tests:
+        if tests[test]:
+            enabled.append(test)
+        else:
+            disabled.append(test)
+    output = "Tests enabled: " + ", ".join(enabled) + "\n"
+    output += "Tests disabled: " + ", ".join(disabled)
+    return output
+
+
+@pytest.fixture()
+def set_env_variables():
+    os.environ["BORG_CHECK_I_KNOW_WHAT_I_AM_DOING"] = "YES"
+    os.environ["BORG_DELETE_I_KNOW_WHAT_I_AM_DOING"] = "YES"
+    os.environ["BORG_PASSPHRASE"] = "waytooeasyonlyfortests"  # nosec B105
+    os.environ["BORG_SELFTEST"] = "disabled"
+
+
+@pytest.fixture(scope="session")
+def backup_files(tmp_path_factory):
+    # create a relatively simple / minimal set of test files
+    path = tmp_path_factory.mktemp("backup")
+    (path / "empty").write_bytes(b"")
+    (path / "dir1").mkdir()
+    (path / "dir1" / "text.txt").write_text("text content")
+    (path / "dir2").mkdir()
+    (path / "dir2" / "binary.bin").write_bytes(b"\x00\x01\x02\x03")
+    return str(path)
+
+
+class ArchiverSetup:
+    EXE: str = None  # python source based
+    FORK_DEFAULT = False
+    BORG_EXES: list[str] = []
+
+    def __init__(self):
+        self.archiver = None
+        self.tmpdir: str | None = None
+        self.repository_path: str | None = None
+        self.repository_location: str | None = None
+        self.input_path: str | None = None
+        self.output_path: str | None = None
+        self.keys_path: str | None = None
+        self.cache_path: str | None = None
+        self.exclude_file_path: str | None = None
+        self.patterns_file_path: str | None = None
+
+    def get_kind(self) -> str:
+        if self.repository_location.startswith("rest://"):
+            return "remote"
+        elif self.EXE == "borg.exe":
+            return "binary"
+        else:
+            return "local"
+
+
+@pytest.fixture()
+def archiver(tmp_path, set_env_variables):
+    archiver = ArchiverSetup()
+    archiver.archiver = not archiver.FORK_DEFAULT and Archiver() or None
+    archiver.tmpdir = tmp_path
+    archiver.repository_path = os.fspath(tmp_path / "repository")
+    archiver.repository_location = archiver.repository_path
+    archiver.input_path = os.fspath(tmp_path / "input")
+    archiver.output_path = os.fspath(tmp_path / "output")
+    archiver.keys_path = os.fspath(tmp_path / "keys")
+    archiver.cache_path = os.fspath(tmp_path / "cache")
+    archiver.exclude_file_path = os.fspath(tmp_path / "excludes")
+    archiver.patterns_file_path = os.fspath(tmp_path / "patterns")
+    os.environ["BORG_KEYS_DIR"] = archiver.keys_path
+    os.environ["BORG_CACHE_DIR"] = archiver.cache_path
+    os.mkdir(archiver.input_path)
+    # avoid troubles with fakeroot / FUSE:
+    os.chmod(archiver.input_path, 0o777)  # nosec B103
+    os.mkdir(archiver.output_path)
+    os.mkdir(archiver.keys_path)
+    os.mkdir(archiver.cache_path)
+    with open(archiver.exclude_file_path, "wb") as fd:
+        fd.write(b"input/file2\n# A comment line, then a blank line\n\n")
+    with open(archiver.patterns_file_path, "wb") as fd:
+        fd.write(b"+input/file_important\n- input/file*\n# A comment line, then a blank line\n\n")
+    with contextlib.chdir(archiver.tmpdir):
+        yield archiver
+
+    def maybe_clear_flags_and_retry(func, path, _exc_info):
+        if has_lchflags:
+            # Clear any BSD flags (e.g. UF_APPEND) that may have prevented removal, then retry once.
+            # Note: use borg's cross-platform set_flags, not os.lchflags - the latter does not exist
+            # on Linux even though has_lchflags is True there (Linux clears flags via ioctl).
+            try:
+                set_flags(path, 0)
+                func(path)
+            except OSError:
+                pass
+        else:
+            # Do nothing (equivalent to `ignore_errors=True`) if flags aren't supported on this platform.
+            pass
+
+    # Clean up archiver temp files
+    shutil.rmtree(archiver.tmpdir, onerror=maybe_clear_flags_and_retry)
+
+
+@pytest.fixture()
+def remote_archiver(archiver, monkeypatch):
+    archiver.repository_location = "rest://" + "/" + str(archiver.repository_path)
+    # don't measure coverage in the "borg serve --rest" children, see #9470
+    monkeypatch.delenv("COVERAGE_PROCESS_CONFIG", raising=False)
+    monkeypatch.delenv("COVERAGE_PROCESS_START", raising=False)
+    yield archiver
+
+
+@pytest.fixture()
+def binary_archiver(archiver):
+    if "binary" not in BORG_EXES:
+        pytest.skip("No borg.exe binary available")
+    archiver.EXE = "borg.exe"
+    archiver.FORK_DEFAULT = True
+    yield archiver

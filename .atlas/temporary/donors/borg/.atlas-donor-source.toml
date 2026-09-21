@@ -1,0 +1,4 @@
+﻿donor = "borg"
+remote = "https://github.com/borgbackup/borg.git"
+commit = "177d09c9152dcf983f3f3c918bc5ec630cfc7426"
+branch = "master"

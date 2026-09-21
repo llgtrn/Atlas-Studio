@@ -1,0 +1,429 @@
+import errno
+import functools
+import io
+import os
+import socket
+import stat
+import unicodedata
+import uuid
+from pathlib import Path
+
+from ..helpers import safe_unlink
+from ..platformflags import is_win32
+
+"""
+platform base module
+====================
+
+Contains platform API implementations based on what Python itself provides. More specific
+APIs are stubs in this module.
+
+When functions in this module use platform APIs themselves, they access the public
+platform API; in this way, platform APIs provided by the platform-specific support module
+are correctly composed into the base functionality.
+"""
+
+
+fdatasync = getattr(os, "fdatasync", os.fsync)
+has_posix_fadvise = hasattr(os, "posix_fadvise")
+
+try:
+    ENOATTR = errno.ENOATTR  # type: ignore[attr-defined]
+except AttributeError:
+    # on some platforms, ENOATTR is missing, use ENODATA there
+    ENOATTR = errno.ENODATA  # type: ignore[attr-defined]
+
+
+def listxattr(path, *, follow_symlinks=False):
+    """
+    Return xattr names of a file (list of bytes objects).
+
+    *path* can either be a path (bytes) or an open file descriptor (int).
+    *follow_symlinks* indicates whether symlinks should be followed
+    and only applies when *path* is not an open file descriptor.
+    """
+    return []
+
+
+def getxattr(path, name, *, follow_symlinks=False):
+    """
+    Read xattr and return its value (as bytes).
+
+    *path* can either be a path (bytes) or an open file descriptor (int).
+    *name* is the name of the xattr to read (bytes).
+    *follow_symlinks* indicates whether symlinks should be followed
+    and only applies when *path* is not an open file descriptor.
+    """
+    # As this base dummy implementation returns [] from listxattr,
+    # it must raise here for any given name:
+    raise OSError(ENOATTR, os.strerror(ENOATTR), path)
+
+
+def setxattr(path, name, value, *, follow_symlinks=False):
+    """
+    Write an xattr on *path*.
+
+    *path* can either be a path (bytes) or an open file descriptor (int).
+    *name* is the name of the xattr to write (bytes).
+    *value* is the value to write (bytes).
+    *follow_symlinks* indicates whether symlinks should be followed
+    and only applies when *path* is not an open file descriptor.
+    """
+
+
+def acl_get(path, item, st, numeric_ids=False, fd=None):
+    """
+    Save ACL entries.
+
+    If `numeric_ids` is True, the user/group field is not preserved; only uid/gid are stored.
+    """
+
+
+def acl_set(path, item, numeric_ids=False, fd=None):
+    """
+    Restore ACL entries.
+
+    If `numeric_ids` is True, the stored uid/gid is used instead of the user/group names.
+    """
+
+
+def acl_text_to_xattr(acl, numeric_ids=False):
+    """
+    Convert an ACL from the borg item text representation to the binary representation
+    the platform's kernel uses for the ACL extended attributes (used by the FUSE mount).
+
+    Not supported on this platform.
+    """
+    raise NotImplementedError
+
+
+# BSD-style file flags: only influence flags that are known to be settable from userspace
+# and preserve everything else (including unknown or future flags), see #9039.
+# The masks are built from flag names so that a constant missing on some platform or
+# Python version simply contributes 0. They are also used by the freebsd/darwin modules.
+OWNER_SETTABLE_FLAG_NAMES = ("UF_NODUMP", "UF_IMMUTABLE", "UF_APPEND", "UF_OPAQUE", "UF_NOUNLINK", "UF_HIDDEN")
+SUPERUSER_SETTABLE_FLAG_NAMES = ("SF_ARCHIVED", "SF_IMMUTABLE", "SF_APPEND", "SF_NOUNLINK")
+
+OWNER_SETTABLE_FLAGS_MASK = 0
+for _name in OWNER_SETTABLE_FLAG_NAMES:
+    OWNER_SETTABLE_FLAGS_MASK |= getattr(stat, _name, 0)
+
+SETTABLE_FLAGS_MASK = OWNER_SETTABLE_FLAGS_MASK
+for _name in SUPERUSER_SETTABLE_FLAG_NAMES:
+    SETTABLE_FLAGS_MASK |= getattr(stat, _name, 0)
+
+
+def set_flags(path, bsd_flags, fd=None):
+    """Set BSD-style file flags, preserving flags that are not settable from userspace."""
+    # Look up lchflags dynamically: it does not exist on all platforms (then this is a no-op).
+    lchflags = getattr(os, "lchflags", None)
+    if lchflags is None:
+        return
+    # Determine current flags.
+    try:
+        st = os.fstat(fd) if fd is not None else os.lstat(path)
+        current = st.st_flags
+    except (OSError, AttributeError):
+        # We can't determine the current flags, so better give up than corrupting anything.
+        return
+    # Python has no os.fchflags: an fd can only be used for fstat, the flags must be written via the path.
+    # The freebsd/darwin modules override this function to use fchflags(2) for that case.
+    mask = SETTABLE_FLAGS_MASK
+    while True:
+        try:
+            # Replace only the bits we want to influence, keep all others.
+            lchflags(path, (current & ~mask) | (bsd_flags & mask))
+            return
+        except OSError as e:
+            if e.errno == errno.EOPNOTSUPP:
+                return  # some filesystems do not support flags
+            if e.errno == errno.EPERM and mask != OWNER_SETTABLE_FLAGS_MASK:
+                # Not permitted to change super-user-only flags (e.g. not running as root):
+                # retry, influencing only the owner-settable flags.
+                mask = OWNER_SETTABLE_FLAGS_MASK
+                continue
+            raise
+
+
+def get_flags(path, st, fd=None):
+    """Return BSD-style file flags for path or stat without following symlinks."""
+    return getattr(st, "st_flags", 0)
+
+
+def set_times(path, *, atime_ns, mtime_ns, birthtime_ns=None, fd=None, follow_symlinks=True):
+    """
+    Set the timestamps of *path* (or of the open file descriptor *fd*, if given).
+
+    *birthtime_ns* is only honoured on platforms that can set the birthtime (creation time),
+    it is silently ignored on the other ones.
+
+    Raises OSError if the timestamps could not be set.
+    """
+    if birthtime_ns is not None:
+        try:
+            # This should work on FreeBSD, NetBSD, and Darwin and be harmless on other platforms.
+            # See utimes(2) on either of the BSDs for details.
+            if fd is not None:
+                os.utime(fd, None, ns=(atime_ns, birthtime_ns))
+            else:
+                os.utime(path, None, ns=(atime_ns, birthtime_ns), follow_symlinks=follow_symlinks)
+        except OSError:
+            # some systems don't support calling utime on a symlink
+            pass
+    if fd is not None:
+        os.utime(fd, None, ns=(atime_ns, mtime_ns))
+    else:
+        os.utime(path, None, ns=(atime_ns, mtime_ns), follow_symlinks=follow_symlinks)
+
+
+def sync_dir(path):
+    if is_win32:
+        # Opening directories is not supported on Windows.
+        # TODO: Do we need to handle this in some other way?
+        return
+    fd = os.open(str(path), os.O_RDONLY)
+    try:
+        os.fsync(fd)
+    except OSError as os_error:
+        # Some network filesystems don't support this and fail with EINVAL.
+        # Other error codes (e.g. EIO) shouldn't be silenced.
+        if os_error.errno != errno.EINVAL:
+            raise
+    finally:
+        os.close(fd)
+
+
+def safe_fadvise(fd, offset, len, advice):
+    if has_posix_fadvise:
+        advice = getattr(os, "POSIX_FADV_" + advice)
+        try:
+            # UNIX only; and, in the case of block sizes that are not a multiple of the system's page size,
+            # this is better used with a bug-fixed Linux kernel > 4.6.0; see Borg issue #907.
+            os.posix_fadvise(fd, offset, len, advice)
+        except OSError:
+            # Usually, posix_fadvise does not fail for us, but there seem to be failures
+            # when running Borg under Docker on ARM, likely due to a bug outside of Borg.
+            # Also, there is a Python wrapper bug always giving errno = 0.
+            # https://github.com/borgbackup/borg/issues/2095
+            # As this call is not critical for correct function (it just helps optimize cache usage),
+            # we ignore these errors.
+            pass
+
+
+class SyncFile:
+    """
+    A file class that is supposed to enable write ordering (one way or another) and data durability after close().
+
+    The degree to which either is possible varies with operating system, filesystem, and hardware.
+
+    This fallback implements a naive and slow way of doing this. On some operating systems it can't actually
+    guarantee any of the above, since fsync() doesn't guarantee it. Furthermore it may not be possible at all
+    to satisfy the above guarantees on some hardware or operating systems. In these cases we hope that the thorough
+    checksumming implemented catches any corrupted data due to misordered, delayed or partial writes.
+
+    Note that POSIX doesn't specify anything about power failures (or similar failures). A system that
+    routinely loses files or corrupts files on power loss is POSIX-compliant.
+
+    Calling SyncFile(path) for an existing path will raise FileExistsError. See the comment in __init__.
+
+    See platform/windows.pyx for the Windows implementation using CreateFile with FILE_FLAG_WRITE_THROUGH.
+    """
+
+    def __init__(self, path, *, fd=None, binary=False):
+        """
+        Open a SyncFile.
+
+        :param path: full path/filename
+        :param fd: additionally to path, it is possible to give an already open OS-level fd
+               that corresponds to path (like from os.open(path, ...) or os.mkstemp(...))
+        :param binary: whether to open in binary mode, default is False.
+        """
+        mode = "x+b" if binary else "x+"  # x -> raise FileExists exception in open() if file exists already
+        self.path = path
+        if fd is None:
+            self.f = open(str(path), mode=mode)  # Python file object
+        else:
+            self.f = os.fdopen(fd, mode=mode)
+        self.fd = self.f.fileno()  # OS-level fd
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
+
+    def write(self, data):
+        self.f.write(data)
+
+    def read(self, *args, **kwargs):
+        return self.f.read(*args, **kwargs)
+
+    def seek(self, offset, whence=io.SEEK_SET):
+        return self.f.seek(offset, whence)
+
+    def tell(self):
+        return self.f.tell()
+
+    def sync(self):
+        """
+        Synchronize file contents. Everything written prior to sync() must become durable before anything written
+        after sync().
+        """
+        from .. import platform
+
+        self.f.flush()
+        platform.fdatasync(self.fd)
+        # tell the OS that it does not need to cache what we just wrote,
+        # avoids spoiling the cache for the OS and other processes.
+        safe_fadvise(self.fd, 0, 0, "DONTNEED")
+
+    def close(self):
+        """sync() and close."""
+        if self.f.closed:
+            return
+        from .. import platform
+
+        dirname = None
+        try:
+            dirname = Path(self.path).parent
+            self.sync()
+        finally:
+            self.f.close()
+            if dirname:
+                platform.sync_dir(dirname)
+
+
+class SaveFile:
+    """
+    Update file contents atomically.
+
+    Must be used as a context manager (defining the scope of the transaction).
+
+    On a journaling filesystem the file contents are always updated
+    atomically and won't become corrupted, even on power failures or
+    crashes (for caveats see SyncFile).
+
+    SaveFile can safely be used in parallel (e.g., by multiple processes) to write
+    to the same target path. Whatever writer finishes last (executes the os.replace
+    last) "wins" and has successfully written its content to the target path.
+    Internally used temporary files are created in the target directory and are
+    named <BASENAME>-<RANDOMCHARS>.tmp and cleaned up in normal and error conditions.
+    """
+
+    def __init__(self, path, binary=False):
+        self.binary = binary
+        self.path = path
+        path_obj = Path(path)
+        self.dir = str(path_obj.parent)
+        self.tmp_prefix = path_obj.name + "-"
+        self.tmp_fd = None  # OS-level fd
+        self.tmp_fname = None  # full path/filename corresponding to self.tmp_fd
+        self.f = None  # Python file-like SyncFile
+
+    def __enter__(self):
+        from .. import platform
+        from ..helpers.fs import mkstemp_mode
+
+        self.tmp_fd, self.tmp_fname = mkstemp_mode(prefix=self.tmp_prefix, suffix=".tmp", dir=self.dir, mode=0o666)
+        self.f = platform.SyncFile(self.tmp_fname, fd=self.tmp_fd, binary=self.binary)
+        return self.f
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        from .. import platform
+
+        self.f.close()  # this indirectly also closes self.tmp_fd
+        self.tmp_fd = None
+        if exc_type is not None:
+            safe_unlink(self.tmp_fname)  # with-body has failed, clean up tmp file
+            return  # continue processing the exception normally
+
+        try:
+            os.replace(self.tmp_fname, self.path)  # POSIX: atomic rename
+        except OSError:
+            safe_unlink(self.tmp_fname)  # rename has failed, clean up tmp file
+            raise
+        finally:
+            platform.sync_dir(self.dir)
+
+
+def swidth(s):
+    """terminal output width of string <s>
+
+    For western scripts, this is just len(s), but for cjk glyphs, 2 cells are used.
+    """
+    width = 0
+    for char in s:
+        # Get the East Asian Width property
+        ea_width = unicodedata.east_asian_width(char)
+
+        # Wide (W) and Fullwidth (F) characters take 2 cells
+        if ea_width in ("W", "F"):
+            width += 2
+        # Not a zero-width characters (combining marks, format characters)
+        elif unicodedata.category(char) not in ("Mn", "Me", "Cf"):
+            # Normal characters take 1 cell
+            width += 1
+
+    return width
+
+
+# patched socket.getfqdn() - see https://bugs.python.org/issue5004
+def getfqdn(name=""):
+    """Get fully qualified domain name from name.
+
+    An empty argument is interpreted as meaning the local host.
+    """
+    name = name.strip()
+    if not name or name == "0.0.0.0":  # nosec B104:hardcoded_bind_all_interfaces
+        name = socket.gethostname()
+    try:
+        addrs = socket.getaddrinfo(name, None, 0, socket.SOCK_DGRAM, 0, socket.AI_CANONNAME)
+    except OSError:
+        pass
+    else:
+        for addr in addrs:
+            if addr[3]:
+                name = addr[3]
+                break
+    return name
+
+
+@functools.cache
+def _gethostname():
+    """socket.gethostname(), cached so all derived values are consistent for the process lifetime."""
+    return socket.gethostname()
+
+
+def get_hostname():
+    """Return the (short) hostname of this machine."""
+    # some people put the fqdn into /etc/hostname (which is wrong, should be the short hostname)
+    # fix this (do the same as "hostname --short" cli command does internally):
+    return _gethostname().split(".")[0]
+
+
+@functools.cache
+def get_fqdn():
+    """Return the fully qualified domain name of this machine."""
+    # cached: this issues a DNS query, which can take very long on hosts whose own
+    # hostname does not resolve (e.g. ~35s per query on github's macOS CI runners, see #9470).
+    return getfqdn(_gethostname())
+
+
+def get_hostid():
+    """Return an identifier that is unique for this machine (host)."""
+    # uuid.getnode() is problematic in some environments (e.g. OpenVZ, see #3968) where the virtual MAC address
+    # is all-zero. uuid.getnode falls back to returning a random value in that case, which is not what we want.
+    # thus, we offer BORG_HOST_ID where a user can set an own, unique id for each of his hosts.
+    return os.environ.get("BORG_HOST_ID") or f"{get_fqdn()}@{uuid.getnode()}"
+
+
+def get_process_id():
+    """
+    Return identification tuple (hostname, pid, thread_id) for 'us'.
+    This always returns the current pid, which might be different from before, e.g. if daemonize() was used.
+
+    Note: Currently thread_id is *always* zero.
+    """
+    thread_id = 0
+    pid = os.getpid()
+    return get_hostid(), pid, thread_id

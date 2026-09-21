@@ -1,0 +1,84 @@
+.\" Man page generated from reStructuredText
+.\" by the Docutils 0.22.4 manpage writer.
+.
+.
+.nr rst2man-indent-level 0
+.
+.de1 rstReportMargin
+\\$1 \\n[an-margin]
+level \\n[rst2man-indent-level]
+level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
+-
+\\n[rst2man-indent0]
+\\n[rst2man-indent1]
+\\n[rst2man-indent2]
+..
+.de1 INDENT
+.\" .rstReportMargin pre:
+. RS \\$1
+. nr rst2man-indent\\n[rst2man-indent-level] \\n[an-margin]
+. nr rst2man-indent-level +1
+.\" .rstReportMargin post:
+..
+.de UNINDENT
+. RE
+.\" indent \\n[an-margin]
+.\" old: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.nr rst2man-indent-level -1
+.\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.in \\n[rst2man-indent\\n[rst2man-indent-level]]u
+..
+.TH "borg-key-import" "1" "2026-09-02" "" "borg backup tool"
+.SH Name
+borg-key-import \- Imports the repository key from backup.
+.SH SYNOPSIS
+.sp
+borg [common options] key import [options] [PATH]
+.SH DESCRIPTION
+.sp
+This command restores a key previously backed up with the export command.
+.sp
+If the \fB\-\-paper\fP option is given, the import will be an interactive
+process in which each line is checked for plausibility before
+proceeding to the next line. For this format PATH must not be given.
+.sp
+Where the imported key is stored is decided by \fB\-\-key\-location\fP:
+.INDENT 0.0
+.IP \(bu 2
+\fBrepokey\fP (the default): the key is stored \fBin the repository\fP, no local
+key file is written.
+.IP \(bu 2
+\fBkeyfile\fP: the key is stored in a local key file.
+.UNINDENT
+.sp
+The key file that \fB\-\-key\-location=keyfile\fP writes to depends on several
+factors. If the \fBBORG_KEY_FILE\fP environment variable is set and non\-empty,
+\fBborg key import\fP creates or overwrites the file named by \fB$BORG_KEY_FILE\fP\&.
+Otherwise, \fBborg key import\fP searches the \fB$BORG_KEYS_DIR\fP directory for a
+key file associated with the repository. If one is found there, \fBborg key
+import\fP overwrites it; otherwise it creates a new key file in
+\fB$BORG_KEYS_DIR\fP\&.
+.SH OPTIONS
+.sp
+See \fIborg\-common(1)\fP for common options of Borg commands.
+.SS arguments
+.INDENT 0.0
+.TP
+.B PATH
+path to the backup (\(aq\-\(aq to read from stdin)
+.UNINDENT
+.SS options
+.INDENT 0.0
+.TP
+.B  \-\-paper
+interactively import from a backup done with \fB\-\-paper\fP
+.TP
+.BI \-\-key\-location \ LOCATION
+where to store the imported key: \(aqrepokey\(aq (in the repository, default) or \(aqkeyfile\(aq (in the local keys directory)
+.UNINDENT
+.SH SEE ALSO
+.sp
+\fIborg\-common(1)\fP, \fIborg\-key\-export(1)\fP
+.SH Author
+The Borg Collective
+.\" End of generated man page.

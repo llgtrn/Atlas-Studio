@@ -1,0 +1,241 @@
+import hashlib
+import io
+
+import pytest
+
+from ...crypto.file_integrity import DetachedIntegrityCheckedFile, FileIntegrityError, IntegrityCheckedFile
+from ...crypto.file_integrity import SHA256FileHashingWrapper, XXH64FileHashingWrapper, SUPPORTED_ALGORITHMS
+from ...crypto.low_level import XXH64
+from ...platform import SyncFile
+
+
+class TestReadIntegrityFile:
+    def test_no_integrity(self, tmpdir):
+        protected_file = tmpdir.join("file")
+        protected_file.write("1234")
+        assert DetachedIntegrityCheckedFile.read_integrity_file(str(protected_file)) is None
+
+    def test_truncated_integrity(self, tmpdir):
+        protected_file = tmpdir.join("file")
+        protected_file.write("1234")
+        tmpdir.join("file.integrity").write("")
+        with pytest.raises(FileIntegrityError):
+            DetachedIntegrityCheckedFile.read_integrity_file(str(protected_file))
+
+    def test_unknown_algorithm(self, tmpdir):
+        protected_file = tmpdir.join("file")
+        protected_file.write("1234")
+        tmpdir.join("file.integrity").write('{"algorithm": "HMAC_SERIOUSHASH", "digests": "1234"}')
+        assert DetachedIntegrityCheckedFile.read_integrity_file(str(protected_file)) is None
+
+    @pytest.mark.parametrize(
+        "json", ('{"ALGORITHM": "HMAC_SERIOUSHASH", "digests": "1234"}', "[]", "1234.5", '"A string"', "Invalid JSON")
+    )
+    def test_malformed(self, tmpdir, json):
+        protected_file = tmpdir.join("file")
+        protected_file.write("1234")
+        tmpdir.join("file.integrity").write(json)
+        with pytest.raises(FileIntegrityError):
+            DetachedIntegrityCheckedFile.read_integrity_file(str(protected_file))
+
+
+class TestDetachedIntegrityCheckedFile:
+    @pytest.fixture
+    def integrity_protected_file(self, tmpdir):
+        path = str(tmpdir.join("file"))
+        with DetachedIntegrityCheckedFile(path, write=True) as fd:
+            fd.write(b"foo and bar")
+        return path
+
+    def test_simple(self, tmpdir, integrity_protected_file):
+        assert tmpdir.join("file").check(file=True)
+        assert tmpdir.join("file.integrity").check(file=True)
+        with DetachedIntegrityCheckedFile(integrity_protected_file, write=False) as fd:
+            assert fd.read() == b"foo and bar"
+
+    def test_corrupted_file(self, integrity_protected_file):
+        with open(integrity_protected_file, "ab") as fd:
+            fd.write(b" extra data")
+        with pytest.raises(FileIntegrityError):
+            with DetachedIntegrityCheckedFile(integrity_protected_file, write=False) as fd:
+                assert fd.read() == b"foo and bar extra data"
+
+    def test_corrupted_file_partial_read(self, integrity_protected_file):
+        with open(integrity_protected_file, "ab") as fd:
+            fd.write(b" extra data")
+        with pytest.raises(FileIntegrityError):
+            with DetachedIntegrityCheckedFile(integrity_protected_file, write=False) as fd:
+                data = b"foo and bar"
+                assert fd.read(len(data)) == data
+
+    @pytest.mark.parametrize("new_name", ("different_file", "different_file.different_ext"))
+    def test_renamed_file(self, tmpdir, integrity_protected_file, new_name):
+        new_path = tmpdir.join(new_name)
+        tmpdir.join("file").move(new_path)
+        tmpdir.join("file.integrity").move(new_path + ".integrity")
+        with pytest.raises(FileIntegrityError):
+            with DetachedIntegrityCheckedFile(str(new_path), write=False) as fd:
+                assert fd.read() == b"foo and bar"
+
+    def test_moved_file(self, tmpdir, integrity_protected_file):
+        new_dir = tmpdir.mkdir("another_directory")
+        tmpdir.join("file").move(new_dir.join("file"))
+        tmpdir.join("file.integrity").move(new_dir.join("file.integrity"))
+        new_path = str(new_dir.join("file"))
+        with DetachedIntegrityCheckedFile(new_path, write=False) as fd:
+            assert fd.read() == b"foo and bar"
+
+    def test_no_integrity(self, tmpdir, integrity_protected_file):
+        tmpdir.join("file.integrity").remove()
+        with DetachedIntegrityCheckedFile(integrity_protected_file, write=False) as fd:
+            assert fd.read() == b"foo and bar"
+
+
+class TestDetachedIntegrityCheckedFileParts:
+    @pytest.fixture
+    def integrity_protected_file(self, tmpdir):
+        path = str(tmpdir.join("file"))
+        with DetachedIntegrityCheckedFile(path, write=True) as fd:
+            fd.write(b"foo and bar")
+            fd.hash_part("foopart")
+            fd.write(b" other data")
+        return path
+
+    def test_simple(self, integrity_protected_file):
+        with DetachedIntegrityCheckedFile(integrity_protected_file, write=False) as fd:
+            data1 = b"foo and bar"
+            assert fd.read(len(data1)) == data1
+            fd.hash_part("foopart")
+            assert fd.read() == b" other data"
+
+    def test_wrong_part_name(self, integrity_protected_file):
+        with pytest.raises(FileIntegrityError):
+            # Because some hash_part failed, the final digest will fail as well - again - even if we catch
+            # the failing hash_part. This is intentional: (1) it makes the code simpler (2) it's a good fail-safe
+            # against overly broad exception handling.
+            with DetachedIntegrityCheckedFile(integrity_protected_file, write=False) as fd:
+                data1 = b"foo and bar"
+                assert fd.read(len(data1)) == data1
+                with pytest.raises(FileIntegrityError):
+                    # This specific bit raises it directly
+                    fd.hash_part("barpart")
+                # Still explodes in the end.
+
+    @pytest.mark.parametrize("partial_read", (False, True))
+    def test_part_independence(self, integrity_protected_file, partial_read):
+        with open(integrity_protected_file, "ab") as fd:
+            fd.write(b"some extra stuff that does not belong")
+        with pytest.raises(FileIntegrityError):
+            with DetachedIntegrityCheckedFile(integrity_protected_file, write=False) as fd:
+                data1 = b"foo and bar"
+                try:
+                    assert fd.read(len(data1)) == data1
+                    fd.hash_part("foopart")
+                except FileIntegrityError:
+                    assert False, "This part must not raise, since this part is still valid."
+                if not partial_read:
+                    fd.read()
+                # But overall it explodes with the final digest. Neat, eh?
+
+
+class TestIntegrityCheckedFileWithSyncFile:
+    def test_write_and_verify_with_syncfile(self, tmp_path):
+        """IntegrityCheckedFile works correctly with SyncFile as override_fd."""
+        path = str(tmp_path / "testfile")
+        with SyncFile(path, binary=True) as sf:
+            with IntegrityCheckedFile(path=path, write=True, override_fd=sf) as fd:
+                fd.write(b"test data for integrity check")
+            integrity_data = fd.integrity_data
+
+        assert integrity_data is not None
+
+        # verify the written data can be read back with integrity check
+        with IntegrityCheckedFile(path=path, write=False, integrity_data=integrity_data) as fd:
+            assert fd.read() == b"test data for integrity check"
+
+
+class TestSHA256FileHashingWrapper:
+    def test_pure_hash_write(self):
+        bio = io.BytesIO()
+        data = b"hello world"
+        with SHA256FileHashingWrapper(bio, write=True, pure_hash=True) as wrapper:
+            wrapper.write(data)
+            assert bio.getvalue() == data
+        assert wrapper.hexdigest() == hashlib.sha256(data).hexdigest()
+
+    def test_pure_hash_read(self):
+        data = b"hello world"
+        bio = io.BytesIO(data)
+        with SHA256FileHashingWrapper(bio, write=False, pure_hash=True) as wrapper:
+            assert wrapper.read() == data
+        assert wrapper.hexdigest() == hashlib.sha256(data).hexdigest()
+
+    def test_impure_hash_write(self):
+        bio = io.BytesIO()
+        data = b"hello world"
+        with SHA256FileHashingWrapper(bio, write=True, pure_hash=False) as wrapper:
+            wrapper.write(data)
+        # pure_hash=False appends the file length ("11" in this case) at exit
+        expected_hash = hashlib.sha256(data + b"11").hexdigest()
+        assert wrapper.hexdigest() == expected_hash
+
+
+class TestXXH64FileHashingWrapper:
+    # XXH64 support only exists to read borg 1.x repos during `borg transfer`, see #9935.
+    def test_registered(self):
+        assert SUPPORTED_ALGORITHMS["XXH64"] is XXH64FileHashingWrapper
+        assert XXH64FileHashingWrapper.ALGORITHM == "XXH64"
+
+    def test_pure_hash_write(self):
+        bio = io.BytesIO()
+        data = b"hello world"
+        with XXH64FileHashingWrapper(bio, write=True, pure_hash=True) as wrapper:
+            wrapper.write(data)
+            assert bio.getvalue() == data
+        assert wrapper.hexdigest() == XXH64(data).hexdigest()
+
+    def test_pure_hash_read(self):
+        data = b"hello world"
+        bio = io.BytesIO(data)
+        with XXH64FileHashingWrapper(bio, write=False, pure_hash=True) as wrapper:
+            assert wrapper.read() == data
+        assert wrapper.hexdigest() == XXH64(data).hexdigest()
+
+    def test_impure_hash_write(self):
+        bio = io.BytesIO()
+        data = b"hello world"
+        with XXH64FileHashingWrapper(bio, write=True, pure_hash=False) as wrapper:
+            wrapper.write(data)
+        # pure_hash=False appends the file length ("11" in this case) at exit
+        assert wrapper.hexdigest() == XXH64(data + b"11").hexdigest()
+
+
+class TestReadLegacyXXH64Integrity:
+    # simulate reading a borg 1.x file whose integrity data uses the XXH64 algorithm, #9935.
+    # borg 2.x writes SHA256, so to produce an XXH64 integrity file we make the writer use the
+    # XXH64 wrapper (as borg 1.x did), then read it back through the normal (SHA256-defaulting)
+    # reader, which must pick XXH64 from SUPPORTED_ALGORITHMS based on the stored algorithm.
+    def _write_xxh64_protected(self, tmpdir, payload, monkeypatch):
+        import borg.crypto.file_integrity as fi
+
+        monkeypatch.setattr(fi, "SHA256FileHashingWrapper", XXH64FileHashingWrapper)
+        path = str(tmpdir.join("file"))
+        with IntegrityCheckedFile(path, write=True) as fd:
+            fd.write(payload)
+        integrity_data = fd.integrity_data
+        monkeypatch.undo()
+        assert '"algorithm": "XXH64"' in integrity_data
+        return path, integrity_data
+
+    def test_verify_ok(self, tmpdir, monkeypatch):
+        path, integrity_data = self._write_xxh64_protected(tmpdir, b"borg 1.x payload", monkeypatch)
+        with IntegrityCheckedFile(path, write=False, integrity_data=integrity_data) as fd:
+            assert fd.read() == b"borg 1.x payload"
+
+    def test_verify_detects_corruption(self, tmpdir, monkeypatch):
+        path, integrity_data = self._write_xxh64_protected(tmpdir, b"borg 1.x payload", monkeypatch)
+        with open(path, "ab") as fd:
+            fd.write(b" tampered")
+        with pytest.raises(FileIntegrityError):
+            with IntegrityCheckedFile(path, write=False, integrity_data=integrity_data) as fd:
+                fd.read()

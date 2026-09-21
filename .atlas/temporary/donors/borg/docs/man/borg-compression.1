@@ -1,0 +1,187 @@
+.\" Man page generated from reStructuredText
+.\" by the Docutils 0.22.4 manpage writer.
+.
+.
+.nr rst2man-indent-level 0
+.
+.de1 rstReportMargin
+\\$1 \\n[an-margin]
+level \\n[rst2man-indent-level]
+level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
+-
+\\n[rst2man-indent0]
+\\n[rst2man-indent1]
+\\n[rst2man-indent2]
+..
+.de1 INDENT
+.\" .rstReportMargin pre:
+. RS \\$1
+. nr rst2man-indent\\n[rst2man-indent-level] \\n[an-margin]
+. nr rst2man-indent-level +1
+.\" .rstReportMargin post:
+..
+.de UNINDENT
+. RE
+.\" indent \\n[an-margin]
+.\" old: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.nr rst2man-indent-level -1
+.\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.in \\n[rst2man-indent\\n[rst2man-indent-level]]u
+..
+.TH "borg-compression" "1" "2026-09-02" "" "borg backup tool"
+.SH Name
+borg-compression \- Details regarding compression
+.SH DESCRIPTION
+.sp
+It is no problem to mix different compression methods in one repository,
+deduplication is done on the source data chunks (not on the compressed
+or encrypted data).
+.sp
+If some specific chunk was once compressed and stored into the repository, creating
+another backup that also uses this chunk will not change the stored chunk.
+So if you use different compression specs for the backups, whichever stores a
+chunk first determines its compression. See also \fBborg recreate\fP\&.
+.sp
+Compression is lz4 by default. If you want something else, you have to specify what you want.
+.sp
+Valid compression specifiers are:
+.INDENT 0.0
+.TP
+.B none
+Do not compress.
+.TP
+.B lz4
+Use lz4 compression. Very high speed, very low compression. (default)
+.TP
+.B zstd[,L]
+Use zstd (\(dqzstandard\(dq) compression, a modern wide\-range algorithm.
+If you do not explicitly give the compression level L (ranging from \-128
+to 22), it will use level 3.
+Negative levels are zstd\(aqs \(dqfast\(dq levels (level \-N is what the zstd command
+line tool calls \-\-fast=N): they give up compression ratio for speed.
+\-1 to \-10 is the useful range for general data; going lower only pays off for
+data with long repeats (disk/VM images, database files), where it stays fast
+while still finding the big matches.
+Level 0 selects zstd\(aqs default level (3) \- for zstd it does not mean
+\(dqno compression\(dq (use \(dqnone\(dq for that), unlike for zlib below.
+.TP
+.B zlib[,L]
+Use zlib (\(dqgz\(dq) compression. Medium speed, medium compression.
+If you do not explicitly give the compression level L (ranging from 0
+to 9), it will use level 6.
+Giving level 0 (means \(dqno compression\(dq, but still has zlib protocol
+overhead) is usually pointless, you better use \(dqnone\(dq compression.
+.TP
+.B lzma[,L]
+Use lzma (\(dqxz\(dq) compression. Low speed, high compression.
+If you do not explicitly give the compression level L (ranging from 0
+to 9), it will use level 6.
+Giving levels above 6 is pointless and counterproductive because it does
+not compress better due to the buffer size used by borg \- but it wastes
+lots of CPU cycles and RAM.
+.TP
+.B auto,C[,L]
+Use a built\-in heuristic to decide per chunk whether to compress or not.
+The heuristic tries with lz4 whether the data is compressible.
+For incompressible data, it will not use compression (uses \(dqnone\(dq).
+For compressible data, it uses the given C[,L] compression \- with C[,L]
+being any valid compression specifier. This can be helpful for media files
+which often cannot be compressed much more.
+.TP
+.B obfuscate,SPEC,C[,L]
+Use compressed\-size obfuscation to make fingerprinting attacks based on
+the observable stored chunk size more difficult. Note:
+.INDENT 7.0
+.IP \(bu 2
+You must combine this with encryption, or it won\(aqt make any sense.
+.IP \(bu 2
+Your repo size will be bigger, of course.
+.IP \(bu 2
+A chunk is limited by the constant \fBMAX_DATA_SIZE\fP (cur. ~20MiB).
+.UNINDENT
+.sp
+The SPEC value determines how the size obfuscation works:
+.sp
+\fIRelative random reciprocal size variation\fP (multiplicative)
+.sp
+Size will increase by a factor, relative to the compressed data size.
+Smaller factors are used often, larger factors rarely.
+.sp
+Available factors:
+.INDENT 7.0
+.INDENT 3.5
+.sp
+.EX
+1:     0.01 ..        100
+2:     0.1  ..      1,000
+3:     1    ..     10,000
+4:    10    ..    100,000
+5:   100    ..  1,000,000
+6: 1,000    .. 10,000,000
+.EE
+.UNINDENT
+.UNINDENT
+.sp
+Example probabilities for SPEC \fB1\fP:
+.INDENT 7.0
+.INDENT 3.5
+.sp
+.EX
+90   %  0.01 ..   0.1
+ 9   %  0.1  ..   1
+ 0.9 %  1    ..  10
+ 0.09% 10    .. 100
+.EE
+.UNINDENT
+.UNINDENT
+.sp
+\fIRandomly sized padding up to the given size\fP (additive)
+.INDENT 7.0
+.INDENT 3.5
+.sp
+.EX
+110: 1kiB (2 ^ (SPEC \- 100))
+\&...
+120: 1MiB
+\&...
+123: 8MiB (max.)
+.EE
+.UNINDENT
+.UNINDENT
+.sp
+\fIPadmé padding\fP (deterministic)
+.INDENT 7.0
+.INDENT 3.5
+.sp
+.EX
+250: pads to sums of powers of 2, max 12% overhead
+.EE
+.UNINDENT
+.UNINDENT
+.sp
+Uses the Padmé algorithm to deterministically pad the compressed size to a sum of
+powers of 2, limiting overhead to 12%. See \%<https://\:lbarman\:.ch/\:blog/\:padme/> for details.
+.UNINDENT
+.sp
+Examples:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.EX
+borg create \-\-compression lz4 \-\-repo REPO ARCHIVE data
+borg create \-\-compression zstd \-\-repo REPO ARCHIVE data
+borg create \-\-compression zstd,10 \-\-repo REPO ARCHIVE data
+borg create \-\-compression zlib \-\-repo REPO ARCHIVE data
+borg create \-\-compression zlib,1 \-\-repo REPO ARCHIVE data
+borg create \-\-compression auto,lzma,6 \-\-repo REPO ARCHIVE data
+borg create \-\-compression auto,lzma ...
+borg create \-\-compression obfuscate,110,none ...
+borg create \-\-compression obfuscate,3,auto,zstd,10 ...
+borg create \-\-compression obfuscate,2,zstd,6 ...
+borg create \-\-compression obfuscate,250,zstd,3 ...
+.EE
+.UNINDENT
+.UNINDENT
+.SH Author
+The Borg Collective
+.\" End of generated man page.

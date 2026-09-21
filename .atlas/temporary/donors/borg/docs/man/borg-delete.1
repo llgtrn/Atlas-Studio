@@ -1,0 +1,130 @@
+.\" Man page generated from reStructuredText
+.\" by the Docutils 0.22.4 manpage writer.
+.
+.
+.nr rst2man-indent-level 0
+.
+.de1 rstReportMargin
+\\$1 \\n[an-margin]
+level \\n[rst2man-indent-level]
+level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
+-
+\\n[rst2man-indent0]
+\\n[rst2man-indent1]
+\\n[rst2man-indent2]
+..
+.de1 INDENT
+.\" .rstReportMargin pre:
+. RS \\$1
+. nr rst2man-indent\\n[rst2man-indent-level] \\n[an-margin]
+. nr rst2man-indent-level +1
+.\" .rstReportMargin post:
+..
+.de UNINDENT
+. RE
+.\" indent \\n[an-margin]
+.\" old: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.nr rst2man-indent-level -1
+.\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.in \\n[rst2man-indent\\n[rst2man-indent-level]]u
+..
+.TH "borg-delete" "1" "2026-09-02" "" "borg backup tool"
+.SH Name
+borg-delete \- Deletes archives.
+.SH SYNOPSIS
+.sp
+borg [common options] delete [options] [NAME]
+.SH DESCRIPTION
+.sp
+This command soft\-deletes archives from the repository.
+.sp
+Important:
+.INDENT 0.0
+.IP \(bu 2
+The delete command will only mark archives for deletion (\(dqsoft\-deletion\(dq),
+repository disk space is \fBnot\fP freed until you run \fBborg compact\fP\&.
+.IP \(bu 2
+You can use \fBborg undelete\fP to undelete archives, but only until
+you run \fBborg compact\fP\&.
+.UNINDENT
+.sp
+When in doubt, use \fB\-\-dry\-run \-\-list\fP to see what would be deleted.
+.sp
+You can delete multiple archives by specifying a match pattern using
+the \fB\-\-match\-archives PATTERN\fP option (for more information on these
+patterns, see \(dqborg help match\-archives\(dq).
+.SH OPTIONS
+.sp
+See \fIborg\-common(1)\fP for common options of Borg commands.
+.SS arguments
+.INDENT 0.0
+.TP
+.B NAME
+specify the archive name
+.UNINDENT
+.SS options
+.INDENT 0.0
+.TP
+.B  \-n\fP,\fB  \-\-dry\-run
+do not change the repository
+.TP
+.B  \-\-list
+output a verbose list of archives
+.UNINDENT
+.SS Archive filters
+.INDENT 0.0
+.TP
+.BI \-a \ PATTERN\fR,\fB \ \-\-match\-archives \ PATTERN
+only consider archives matching all patterns. See \(dqborg help match\-archives\(dq.
+.TP
+.BI \-\-sort\-by \ KEYS
+Comma\-separated list of sorting keys; valid keys are: timestamp, archive, name, id, tags, host, user; default is: timestamp
+.TP
+.BI \-\-first \ N
+consider the first N archives after other filters are applied
+.TP
+.BI \-\-last \ N
+consider the last N archives after other filters are applied
+.TP
+.BI \-\-oldest \ TIMESPAN
+consider archives between the oldest archive\(aqs timestamp and (oldest + TIMESPAN), e.g., 7d or 12m.
+.TP
+.BI \-\-newest \ TIMESPAN
+consider archives between the newest archive\(aqs timestamp and (newest \- TIMESPAN), e.g., 7d or 12m.
+.TP
+.BI \-\-older \ TIMESPAN
+consider archives older than (now \- TIMESPAN), e.g., 7d or 12m.
+.TP
+.BI \-\-newer \ TIMESPAN
+consider archives newer than (now \- TIMESPAN), e.g., 7d or 12m.
+.UNINDENT
+.SH EXAMPLES
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.EX
+# Delete all backup archives named \(dqkenny\-files\(dq:
+$ borg delete \-a kenny\-files
+# Actually free disk space:
+$ borg compact
+
+# Delete a specific backup archive using its unique archive ID prefix
+$ borg delete aid:d34db33f
+
+# Delete all archives whose names begin with the machine\(aqs hostname followed by \(dq\-\(dq
+$ borg delete \-a \(aqsh:{hostname}\-*\(aq
+
+# Delete all archives whose names contain \(dq\-2012\-\(dq
+$ borg delete \-a \(aqsh:*\-2012\-*\(aq
+
+# See what would be deleted if delete was run without \-\-dry\-run
+$ borg delete \-\-list \-\-dry\-run \-a \(aqsh:*\-May\-*\(aq
+.EE
+.UNINDENT
+.UNINDENT
+.SH SEE ALSO
+.sp
+\fIborg\-common(1)\fP, \fIborg\-compact(1)\fP, \fIborg\-repo\-delete(1)\fP
+.SH Author
+The Borg Collective
+.\" End of generated man page.

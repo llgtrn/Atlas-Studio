@@ -1,0 +1,257 @@
+import os
+import sys
+import logging
+import stat
+
+from ._common import with_repository, with_archive
+from ._common import build_filter, build_matcher
+from ..archive import Archive, BackupError, format_store_stats
+from ..constants import *  # NOQA
+from ..helpers import Error
+from ..helpers import archivename_validator, PathSpec
+from ..helpers import remove_surrogates
+from ..helpers import HardLinkManager
+from ..helpers import log_multi
+from ..helpers import ProgressIndicatorPercent
+from ..helpers import BackupWarning, IncludePatternNeverMatchedWarning
+from ..helpers.argparsing import ArgumentParser
+
+from ..logger import create_logger
+
+logger = create_logger()
+
+
+class ExtractMixIn:
+    @with_repository()
+    @with_archive
+    def do_extract(self, args, repository, manifest, archive):
+        """Extracts archive contents."""
+        # be restrictive when restoring files, restore permissions later
+        if sys.getfilesystemencoding() == "ascii":
+            logger.warning('Warning: Filesystem encoding is "ascii"; extracting non-ASCII filenames is not supported.')
+            if sys.platform.startswith(("linux", "freebsd", "netbsd", "openbsd", "darwin")):
+                logger.warning(
+                    "Hint: You likely need to fix your locale setup. "
+                    "For example, install locales and use: LANG=en_US.UTF-8"
+                )
+
+        # omitting args.pattern_roots here, restricting to paths only by cli args.paths:
+        matcher = build_matcher(args.patterns, args.paths)
+
+        progress = args.progress
+        output_list = args.output_list
+        dry_run = args.dry_run
+        stdout = args.stdout
+        sparse = args.sparse
+        strip_components = args.strip_components
+        continue_extraction = args.continue_extraction
+        if not (dry_run or stdout or continue_extraction):
+            # Extracting into a non-empty directory (like a home directory that is in use) replaces existing
+            # files and results in a mix of existing and extracted files, so it must be asked for explicitly,
+            # see #10057.
+            try:
+                is_empty = not os.listdir(archive.cwd)
+            except OSError as e:
+                raise Error(f"Cannot check whether the extraction directory {archive.cwd} is empty: {e}") from None
+            if not is_empty:
+                raise Archive.ExtractionDirNotEmpty(archive.cwd)
+        dirs = []
+        hlm = HardLinkManager(id_type=bytes, info_type=str)  # hlid -> path
+
+        filter = build_filter(matcher, strip_components)
+        if progress:
+            pi = ProgressIndicatorPercent(msg="%5.1f%% Extracting: %s", step=0.1, msgid="extract")
+            pi.output(
+                "Calculating total archive size for the progress indicator (might take a long time for large archives)"
+            )
+            extracted_size = sum(item.get_size() for item in archive.iter_items(filter))
+            pi.total = extracted_size
+        else:
+            pi = None
+
+        for item in archive.iter_items():
+            orig_path = item.path
+            if strip_components:
+                stripped_path = "/".join(orig_path.split("/")[strip_components:])
+                if not stripped_path:
+                    continue
+                item.path = stripped_path
+
+            is_matched = matcher.match(orig_path)
+
+            if output_list:
+                log_prefix = "+" if is_matched else "-"
+                logging.getLogger("borg.output.list").info(f"{log_prefix} {remove_surrogates(item.path)}")
+
+            if is_matched:
+                if not dry_run:
+                    while dirs and not item.path.startswith(dirs[-1].path):
+                        dir_item = dirs.pop(-1)
+                        try:
+                            archive.extract_item(dir_item, stdout=stdout)
+                        except BackupError as e:
+                            self.print_warning_instance(BackupWarning(remove_surrogates(dir_item.path), e))
+
+                try:
+                    if dry_run:
+                        archive.extract_item(item, dry_run=True, hlm=hlm, pi=pi)
+                    else:
+                        if stat.S_ISDIR(item.mode):
+                            dirs.append(item)
+                            archive.extract_item(item, stdout=stdout, restore_attrs=False)
+                        else:
+                            archive.extract_item(
+                                item,
+                                stdout=stdout,
+                                sparse=sparse,
+                                hlm=hlm,
+                                pi=pi,
+                                continue_extraction=continue_extraction,
+                            )
+                except BackupError as e:
+                    self.print_warning_instance(BackupWarning(remove_surrogates(orig_path), e))
+
+        if pi:
+            pi.finish()
+
+        if not args.dry_run:
+            pi = ProgressIndicatorPercent(
+                total=len(dirs), msg="Setting directory permissions %3.0f%%", msgid="extract.permissions"
+            )
+            while dirs:
+                pi.show()
+                dir_item = dirs.pop(-1)
+                try:
+                    archive.extract_item(dir_item, stdout=stdout)
+                except BackupError as e:
+                    self.print_warning_instance(BackupWarning(remove_surrogates(dir_item.path), e))
+        for pattern in matcher.get_unmatched_include_patterns():
+            self.print_warning_instance(IncludePatternNeverMatchedWarning(pattern))
+        if pi:
+            # clear progress output
+            pi.finish()
+
+        if args.stats:
+            log_multi(format_store_stats(repository.store.stats), logger=logging.getLogger("borg.output.stats"))
+
+    def build_parser_extract(self, subparsers, common_parser, mid_common_parser):
+        from ._common import process_epilog
+        from ._common import define_exclusion_group
+
+        extract_epilog = process_epilog(
+            """
+        This command extracts the contents of an archive.
+
+        By default, the entire archive is extracted, but a subset of files and directories
+        can be selected by passing a list of ``PATH`` arguments. The default interpretation
+        for the paths to extract is `pp:` which is a literal path-prefix match. If you want
+        to use e.g. a wildcard, you must select a different pattern style such as `sh:` or
+        `fm:`. See :ref:`borg_patterns` for more information.
+
+        The file selection can be further restricted by using the ``--exclude`` option.
+        For more help on include/exclude patterns, see the :ref:`borg_patterns` command output.
+
+        By using ``--dry-run``, you can do all extraction steps except actually writing the
+        output data: reading metadata and data chunks from the repository, checking the hash/HMAC,
+        decrypting, and decompressing.
+
+        ``--progress`` can be slower than no progress display, since it makes one additional
+        pass over the archive metadata.
+
+        Extracting into a non-empty directory replaces existing files that are in the way and
+        leaves all other existing files as they are. The result is a mix of the files that were
+        there before and the extracted files, which might not be what you want - especially not
+        by accident in a directory that is in use (e.g. your home directory). Thus, borg refuses
+        to extract into a non-empty directory unless ``--continue`` is given (``--dry-run`` and
+        ``--stdout`` do not write into the directory, so they always work). The usual way to
+        restore is to extract into a new, empty directory: after that, the directory has exactly
+        the contents of the extracted archive (or of the selected part of it).
+
+        ``--continue`` extracts into a non-empty directory. It is made for continuing a previously
+        interrupted extraction of the same archive into the same directory: an existing regular
+        file that has the same type, permissions (mode), size and modification time as the
+        archived file is considered to be fully extracted already and is skipped. Everything else
+        is extracted, replacing existing files. Files that are in the directory, but not in the
+        archive, are left as they are. ``--continue`` is thus also needed to restore files into an
+        existing directory tree. Note that a file that was damaged without a change of its size
+        and modification time (e.g. by bit rot) is skipped, not replaced: remove it before
+        extracting it.
+
+        If a file's content chunks are missing from the repository or are corrupted (they fail
+        authentication, decryption or decompression), the extraction does not abort: each such
+        chunk is written as all-zero data of the correct size, an error naming the chunk is logged,
+        the file is reported with a warning and the exit code is a warning. The extracted file thus
+        has the correct size and metadata, but wrong (all-zero) content where the damaged chunks
+        were. Run ``borg check`` to find out which chunks and archives are affected. This also
+        applies to ``--dry-run`` (which thus can be used to find unreadable files) and ``--stdout``.
+
+        When using ``--stats``, borg reports the store statistics (lines prefixed with
+        "Store") for the extraction: per-operation call counts and timings, the load/store
+        data volumes and throughput, and cache hits/misses. This includes ``--dry-run``
+        extractions.
+
+        .. note::
+
+            Currently, extract always writes into the current working directory ("."),
+            so make sure you ``cd`` to the right place before calling ``borg extract``.
+
+            When parent directories are not extracted (because of using file/directory selection
+            or any other reason), Borg cannot restore parent directories' metadata, e.g., owner,
+            group, permissions, etc.
+
+        .. note::
+
+            Restoring some file metadata requires root privileges (or equivalent
+            capabilities). This includes the owner and group of files, device nodes,
+            privileged file flags (like immutable or append-only) and privileged
+            extended attributes (like Linux capabilities or ``trusted.*`` xattrs).
+
+            When running as a normal user, borg still extracts the file contents, but
+            the extracted files are owned by the invoking user (the failure to restore
+            ownership is silently ignored: no warning, exit code unaffected), privileged
+            flags are skipped while the other flags are still set, and privileged xattrs
+            and device nodes are skipped with a warning. ``--numeric-ids`` does not
+            change this, it only selects whether the archived numeric IDs or the archived
+            user/group names are used. To restore all metadata, run ``borg extract`` as root.
+        """
+        )
+        subparser = ArgumentParser(parents=[common_parser], description=self.do_extract.__doc__, epilog=extract_epilog)
+        subparsers.add_subcommand("extract", subparser, help="extract archive contents")
+        subparser.add_argument(
+            "--list", dest="output_list", action="store_true", help="output a verbose list of items (files, dirs, ...)"
+        )
+        subparser.add_argument(
+            "-s", "--stats", dest="stats", action="store_true", help="print store statistics for the extraction"
+        )
+        subparser.add_argument(
+            "-n", "--dry-run", dest="dry_run", action="store_true", help="do not actually change any files"
+        )
+        subparser.add_argument(
+            "--numeric-ids", dest="numeric_ids", action="store_true", help="only use numeric user and group identifiers"
+        )
+        subparser.add_argument(
+            "--noflags", dest="noflags", action="store_true", help="do not extract/set flags (e.g. NODUMP, IMMUTABLE)"
+        )
+        subparser.add_argument("--noacls", dest="noacls", action="store_true", help="do not extract/set ACLs")
+        subparser.add_argument("--noxattrs", dest="noxattrs", action="store_true", help="do not extract/set xattrs")
+        subparser.add_argument(
+            "--stdout", dest="stdout", action="store_true", help="write all extracted data to stdout"
+        )
+        subparser.add_argument(
+            "--sparse",
+            dest="sparse",
+            action="store_true",
+            help="create holes in the output sparse file from all-zero chunks",
+        )
+        subparser.add_argument(
+            "--continue",
+            dest="continue_extraction",
+            action="store_true",
+            help="extract into a non-empty directory, e.g. to continue a previously interrupted extraction of "
+            "the same archive: skip files that are fully extracted already, replace other existing files",
+        )
+        subparser.add_argument("name", metavar="NAME", type=archivename_validator, help="specify the archive name")
+        subparser.add_argument(
+            "paths", metavar="PATH", nargs="*", type=PathSpec, help="paths to extract; patterns are supported"
+        )
+        define_exclusion_group(subparser, strip_components=True)

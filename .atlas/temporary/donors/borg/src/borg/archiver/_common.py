@@ -1,0 +1,599 @@
+import functools
+import os
+import textwrap
+
+import borg
+from ..archive import Archive
+from ..constants import *  # NOQA
+from ..cache import Cache, assert_secure
+from ..helpers import CommandError, Error
+from ..helpers import SortBySpec, location_validator, Location, relative_time_marker_validator
+from ..helpers import FilesystemPathSpec
+from ..helpers import Highlander, octal_int
+from ..helpers.argparsing import SUPPRESS, PositiveInt
+from ..helpers.nanorst import rst_to_terminal
+from ..manifest import Manifest, AI_HUMAN_SORT_KEYS
+from ..patterns import PatternMatcher
+from ..repository import Repository
+from ..repoobj import RepoObj
+from ..patterns import (
+    ArgparsePatternAction,
+    ArgparseExcludeFileAction,
+    ArgparsePatternFileAction,
+    parse_exclude_pattern,
+)
+
+
+from ..logger import create_logger
+
+logger = create_logger(__name__)
+
+
+def get_repository(location, *, create, exclusive, lock_wait, lock, args, v1_legacy, allow_incomplete=False):
+    # create_config=False: when creating, the command (repo-create) writes the repository config itself,
+    # once the key exists, see Repository.create(). For an existing repository, the flag is irrelevant.
+    if location.proto == "ssh":
+        if v1_legacy:
+            from ..legacy.remote import LegacyRemoteRepository
+
+            repository = LegacyRemoteRepository(
+                location, create=create, exclusive=exclusive, lock_wait=lock_wait, lock=lock, args=args
+            )
+        else:
+            raise Error(
+                "ssh:// is no longer supported for current repositories; use rest:// instead "
+                "(it can tunnel over ssh). ssh:// remains available only for legacy v1 repositories "
+                "via --from-borg1."
+            )
+
+    elif (
+        location.proto in ("rest", "sftp", "file", "http", "https", "rclone", "s3", "b2") and not v1_legacy
+    ):  # stuff directly supported by borgstore
+        repository = Repository(
+            location,
+            create=create,
+            create_config=False,
+            allow_incomplete=allow_incomplete,
+            exclusive=exclusive,
+            lock_wait=lock_wait,
+            lock=lock,
+        )
+
+    else:
+        if v1_legacy:
+            from ..legacy.repository import LegacyRepository
+
+            repository = LegacyRepository(
+                location.path, create=create, exclusive=exclusive, lock_wait=lock_wait, lock=lock
+            )
+        else:
+            repository = Repository(
+                location.path,
+                create=create,
+                create_config=False,
+                allow_incomplete=allow_incomplete,
+                exclusive=exclusive,
+                lock_wait=lock_wait,
+                lock=lock,
+            )
+    return repository
+
+
+def with_repository(
+    create=False,
+    lock=True,
+    exclusive=False,
+    manifest=True,
+    cache=False,
+    secure=True,
+    allow_v1=False,
+    allow_incomplete=False,
+):
+    """
+    Method decorator for subcommand-handling methods: do_XYZ(self, args, repository, …)
+
+    If a parameter (where allowed) is a str the attribute named of args is used instead.
+    :param create: create repository
+    :param lock: lock repository
+    :param exclusive: (bool) lock repository exclusively (for writing)
+    :param manifest: load manifest and repo_objs (key), pass them as keyword arguments
+    :param cache: open cache, pass it as keyword argument (implies manifest)
+    :param secure: do assert_secure after loading manifest
+    :param allow_v1: (bool) allow legacy Borg 1.x repositories
+    :param allow_incomplete: (bool) also open a store without repository config (repository.incomplete is
+           True then, nothing else is usable), see Repository.create() - for "borg repo-delete --force".
+    """
+    # We may need to modify `lock` inside `wrapper`. Therefore we cannot use the
+    # `nonlocal` statement to access `lock` as modifications would also
+    # affect the scope outside of `wrapper`. Subsequent calls would
+    # only see the overwritten value of `lock`, not the original one.
+    # The solution is to define a place holder variable `_lock` to
+    # propagate the value into `wrapper`.
+    _lock = lock
+
+    def decorator(method):
+        @functools.wraps(method)
+        def wrapper(self, args, **kwargs):
+            location = getattr(args, "location")
+            if not location.valid:  # location always must be given
+                raise Error("missing repository, please use --repo or BORG_REPO env var!")
+            assert isinstance(exclusive, bool)
+            lock = getattr(args, "lock", _lock)
+
+            v1_legacy = getattr(args, "v1_legacy", False) if allow_v1 else False
+
+            repository = get_repository(
+                location,
+                create=create,
+                exclusive=exclusive,
+                lock_wait=self.lock_wait,
+                lock=lock,
+                args=args,
+                v1_legacy=v1_legacy,
+                allow_incomplete=allow_incomplete,
+            )
+
+            with repository:
+                acceptable_versions = (1,) if v1_legacy else (5,)
+                if not getattr(repository, "incomplete", False) and repository.version not in acceptable_versions:
+                    raise Error(
+                        f"This borg version only accepts version {' or '.join(str(v) for v in acceptable_versions)} "
+                        f"repos for -r/--repo, but not version {repository.version}. "
+                        f"You can use 'borg transfer' to copy archives from old to new repos."
+                    )
+                if manifest or cache:
+                    if repository.version > 1:
+                        ro_cls = RepoObj
+                    else:
+                        from ..legacy.repoobj import RepoObj1
+
+                        ro_cls = RepoObj1
+                    manifest_ = Manifest.load(repository, other=False, ro_cls=ro_cls)
+                    kwargs["manifest"] = manifest_
+                    if "compression" in args:
+                        manifest_.repo_objs.compressor = args.compression.compressor
+                    if secure:
+                        assert_secure(repository, manifest_)
+                if cache:
+                    with Cache(
+                        repository,
+                        manifest_,
+                        progress=getattr(args, "progress", False),
+                        cache_mode=getattr(args, "files_cache_mode", FILES_CACHE_MODE_DISABLED),
+                        start_backup=getattr(self, "start_backup", None),
+                    ) as cache_:
+                        return method(self, args, repository=repository, cache=cache_, **kwargs)
+                else:
+                    return method(self, args, repository=repository, **kwargs)
+
+        return wrapper
+
+    return decorator
+
+
+def with_other_repository(manifest=False, cache=False, required=False):
+    """
+    this is a simplified version of "with_repository", just for the "other location".
+
+    the repository at the "other location" is intended to get used as a **source** (== read operations).
+
+    :param required: the command can not work without the other repository, refuse to run if it is not given.
+    """
+
+    def decorator(method):
+        @functools.wraps(method)
+        def wrapper(self, args, **kwargs):
+            location = getattr(args, "other_location")
+            if not location.valid:
+                if required:
+                    raise CommandError("missing other repository, please use --other-repo or BORG_OTHER_REPO env var!")
+                return method(self, args, **kwargs)  # nothing to do
+
+            v1_legacy = getattr(args, "v1_legacy", False)
+
+            repository = get_repository(
+                location,
+                create=False,
+                exclusive=True,
+                lock_wait=self.lock_wait,
+                lock=True,
+                args=args,
+                v1_legacy=v1_legacy,
+            )
+
+            with repository:
+                acceptable_versions = (1,) if v1_legacy else (5,)
+                if repository.version not in acceptable_versions:
+                    raise Error(
+                        f"This borg version only accepts version {' or '.join(str(v) for v in acceptable_versions)} "
+                        f"repos for --other-repo."
+                    )
+                kwargs["other_repository"] = repository
+                if manifest or cache:
+                    if repository.version > 1:
+                        ro_cls = RepoObj
+                    else:
+                        from ..legacy.repoobj import RepoObj1
+
+                        ro_cls = RepoObj1
+                    manifest_ = Manifest.load(repository, other=True, ro_cls=ro_cls)
+                    assert_secure(repository, manifest_)
+                    if manifest:
+                        kwargs["other_manifest"] = manifest_
+                if cache:
+                    with Cache(
+                        repository,
+                        manifest_,
+                        progress=False,
+                        cache_mode=getattr(args, "files_cache_mode", FILES_CACHE_MODE_DISABLED),
+                    ) as cache_:
+                        kwargs["other_cache"] = cache_
+                        return method(self, args, **kwargs)
+                else:
+                    return method(self, args, **kwargs)
+
+        return wrapper
+
+    return decorator
+
+
+def with_archive(method):
+    @functools.wraps(method)
+    def wrapper(self, args, repository, manifest, **kwargs):
+        archive_name = getattr(args, "name", None)
+        assert archive_name is not None
+        archive_info = manifest.archives.get_one([archive_name])
+        archive = Archive(
+            manifest,
+            archive_info.id,
+            numeric_ids=getattr(args, "numeric_ids", False),
+            noflags=getattr(args, "noflags", False),
+            noacls=getattr(args, "noacls", False),
+            noxattrs=getattr(args, "noxattrs", False),
+            cache=kwargs.get("cache"),
+            log_json=args.log_json,
+        )
+        return method(self, args, repository=repository, manifest=manifest, archive=archive, **kwargs)
+
+    return wrapper
+
+
+# You can use :ref:`xyz` in the following usage pages. However, for plain-text view,
+# e.g. through "borg ... --help", define a substitution for the reference here.
+# It will replace the entire :ref:`foo` verbatim.
+rst_plain_text_references = {
+    "a_status_oddity": '"I am seeing ‘A’ (added) status for an unchanged file!?"',
+    "separate_compaction": '"Separate compaction"',
+    "list_item_flags": '"Item flags"',
+    "borg_patterns": '"borg help patterns"',
+    "borg_placeholders": '"borg help placeholders"',
+    "key_files": "Internals -> Data structures and file formats -> Key files",
+    "borg_key_export": "borg key export --help",
+    "internals_hashindex": "Internals -> Data structures and file formats -> HashIndex",
+    "borg_serve": "borg serve --help",
+    "debugging": '"Debugging Facilities"',
+    "cache_security": 'FAQ -> "Do I need to take security precautions regarding the cache?"',
+    "home_config_borg": 'FAQ -> "How important is the borg config directory?"',
+    "home_data_borg": 'FAQ -> "How important is the borg data directory?"',
+    "json_output": "Internals -> All about JSON: How to develop frontends",
+}
+
+
+def process_epilog(epilog):
+    epilog = textwrap.dedent(epilog).splitlines()
+    try:
+        mode = borg.doc_mode
+    except AttributeError:
+        mode = "command-line"
+    if mode in ("command-line", "build_usage"):
+        epilog = [line for line in epilog if not line.startswith(".. man")]
+    epilog = "\n".join(epilog)
+    if mode == "command-line":
+        epilog = rst_to_terminal(epilog, rst_plain_text_references)
+    return epilog
+
+
+def define_exclude_and_patterns(add_option, *, tag_files=False, strip_components=False):
+    add_option("--pattern-roots-internal", dest="pattern_roots", action="append", default=[], help=SUPPRESS)
+    add_option("--patterns-internal", dest="patterns", action="append", default=[], help=SUPPRESS)
+    add_option(
+        "-e",
+        "--exclude",
+        metavar="PATTERN",
+        dest="patterns",
+        type=parse_exclude_pattern,
+        action="append",
+        default=[],
+        help="exclude paths matching PATTERN",
+    )
+    add_option(
+        "--exclude-from",
+        metavar="EXCLUDEFILE",
+        type=FilesystemPathSpec,
+        action=ArgparseExcludeFileAction,
+        help="read exclude patterns from EXCLUDEFILE, one per line",
+    )
+    add_option(
+        "--pattern", metavar="PATTERN", action=ArgparsePatternAction, help="include/exclude paths matching PATTERN"
+    )
+    add_option(
+        "--patterns-from",
+        metavar="PATTERNFILE",
+        type=FilesystemPathSpec,
+        action=ArgparsePatternFileAction,
+        help="read include/exclude patterns from PATTERNFILE, one per line",
+    )
+
+    if tag_files:
+        add_option(
+            "--exclude-caches",
+            dest="exclude_caches",
+            action="store_true",
+            help="exclude directories that contain a CACHEDIR.TAG file " "(https://www.bford.info/cachedir/spec.html)",
+        )
+        add_option(
+            "--exclude-if-present",
+            metavar="NAME",
+            dest="exclude_if_present",
+            action="append",
+            type=str,
+            help="exclude directories that are tagged by containing a filesystem object with the given NAME",
+        )
+        add_option(
+            "--keep-exclude-tags",
+            dest="keep_exclude_tags",
+            action="store_true",
+            help="if tag objects are specified with ``--exclude-if-present``, "
+            "do not omit the tag objects themselves from the backup archive",
+        )
+
+    if strip_components:
+        define_strip_components(add_option)
+
+
+def define_strip_components(add_option):
+    add_option(
+        "--strip-components",
+        metavar="NUMBER",
+        dest="strip_components",
+        type=int,
+        default=0,
+        action=Highlander,
+        help="Remove the specified number of leading path elements. "
+        "Paths with fewer elements will be silently skipped.",
+    )
+
+
+def define_exclusion_group(subparser, **kwargs):
+    exclude_group = subparser.add_argument_group("Include/Exclude options")
+    define_exclude_and_patterns(exclude_group.add_argument, **kwargs)
+    return exclude_group
+
+
+def archive_match_patterns(args):
+    """
+    Build the list of match patterns selecting archives from the NAME positional and -a / --match-archives.
+
+    A NAME given as positional argument is just another way of saying ``-a NAME``, so it is combined with
+    the patterns given via -a / --match-archives. As all patterns must match (they are ANDed), giving both
+    narrows down the selection rather than one of them overriding the other.
+
+    NAME is used as-is, so it supports the same selector prefixes as -a does, e.g. ``borg info aid:1234abcd``
+    (that is also what the shell completion offers for the NAME positional).
+    """
+    patterns = list(args.match_archives or [])
+    name = getattr(args, "name", None)
+    if name:
+        patterns.insert(0, name)
+    return patterns
+
+
+def define_archive_filters_group(
+    subparser, *, sort_by=True, first_last=True, oldest_newest=True, older_newer=True, deleted=False
+):
+    filters_group = subparser.add_argument_group(
+        "Archive filters", "Archive filters can be applied to repository targets."
+    )
+    group = filters_group.add_mutually_exclusive_group()
+    group.add_argument(
+        "-a",
+        "--match-archives",
+        metavar="PATTERN",
+        dest="match_archives",
+        action="append",
+        help='only consider archives matching all patterns. See "borg help match-archives".',
+    )
+
+    if sort_by:
+        sort_by_default = "timestamp"
+        filters_group.add_argument(
+            "--sort-by",
+            metavar="KEYS",
+            dest="sort_by",
+            type=SortBySpec,
+            default=sort_by_default,
+            action=Highlander,
+            help="Comma-separated list of sorting keys; valid keys are: {}; default is: {}".format(
+                ", ".join(AI_HUMAN_SORT_KEYS), sort_by_default
+            ),
+        )
+
+    if first_last:
+        group = filters_group.add_mutually_exclusive_group()
+        group.add_argument(
+            "--first",
+            metavar="N",
+            dest="first",
+            type=PositiveInt,
+            action=Highlander,
+            help="consider the first N archives after other filters are applied",
+        )
+        group.add_argument(
+            "--last",
+            metavar="N",
+            dest="last",
+            type=PositiveInt,
+            action=Highlander,
+            help="consider the last N archives after other filters are applied",
+        )
+
+    if oldest_newest:
+        group = filters_group.add_mutually_exclusive_group()
+        group.add_argument(
+            "--oldest",
+            metavar="TIMESPAN",
+            dest="oldest",
+            type=relative_time_marker_validator,
+            action=Highlander,
+            help="consider archives between the oldest archive's timestamp and (oldest + TIMESPAN), e.g., 7d or 12m.",
+        )
+        group.add_argument(
+            "--newest",
+            metavar="TIMESPAN",
+            dest="newest",
+            type=relative_time_marker_validator,
+            action=Highlander,
+            help="consider archives between the newest archive's timestamp and (newest - TIMESPAN), e.g., 7d or 12m.",
+        )
+
+    if older_newer:
+        group = filters_group.add_mutually_exclusive_group()
+        group.add_argument(
+            "--older",
+            metavar="TIMESPAN",
+            dest="older",
+            type=relative_time_marker_validator,
+            action=Highlander,
+            help="consider archives older than (now - TIMESPAN), e.g., 7d or 12m.",
+        )
+        group.add_argument(
+            "--newer",
+            metavar="TIMESPAN",
+            dest="newer",
+            type=relative_time_marker_validator,
+            action=Highlander,
+            help="consider archives newer than (now - TIMESPAN), e.g., 7d or 12m.",
+        )
+
+    if deleted:
+        filters_group.add_argument(
+            "--deleted", dest="deleted", action="store_true", help="consider only soft-deleted archives."
+        )
+
+    return filters_group
+
+
+def define_common_options(add_common_option):
+    add_common_option("-h", "--help", action="help", help="show this help message and exit")
+    add_common_option(
+        "--critical",
+        dest="log_level",
+        action="store_const",
+        const="critical",
+        default="warning",
+        help="work on log level CRITICAL",
+    )
+    add_common_option(
+        "--error",
+        dest="log_level",
+        action="store_const",
+        const="error",
+        default="warning",
+        help="work on log level ERROR",
+    )
+    add_common_option(
+        "--warning",
+        dest="log_level",
+        action="store_const",
+        const="warning",
+        default="warning",
+        help="work on log level WARNING (default)",
+    )
+    add_common_option(
+        "--info",
+        "-v",
+        "--verbose",
+        dest="log_level",
+        action="store_const",
+        const="info",
+        default="warning",
+        help="work on log level INFO",
+    )
+    add_common_option(
+        "--debug",
+        dest="log_level",
+        action="store_const",
+        const="debug",
+        default="warning",
+        help="enable debug output, work on log level DEBUG",
+    )
+    add_common_option(
+        "--debug-topic",
+        metavar="TOPIC",
+        dest="debug_topics",
+        action="append",
+        default=[],
+        help="enable TOPIC debugging (can be specified multiple times). "
+        "The logger path is borg.debug.<TOPIC> if TOPIC is not fully qualified.",
+    )
+    add_common_option("-p", "--progress", dest="progress", action="store_true", help="show progress information")
+    add_common_option(
+        "--log-json",
+        dest="log_json",
+        action="store_true",
+        help="Output one JSON object per log line instead of formatted text.",
+    )
+    add_common_option(
+        "--lock-wait",
+        metavar="SECONDS",
+        dest="lock_wait",
+        type=int,
+        default=int(os.environ.get("BORG_LOCK_WAIT", 10)),
+        action=Highlander,
+        help="wait at most SECONDS for acquiring a repository/cache lock (default: %(default)d).",
+    )
+    add_common_option("--show-version", dest="show_version", action="store_true", help="show/log the borg version")
+    add_common_option("--show-rc", dest="show_rc", action="store_true", help="show/log the return code (rc)")
+    add_common_option(
+        "--umask",
+        metavar="M",
+        dest="umask",
+        type=octal_int,
+        default=UMASK_DEFAULT,
+        action=Highlander,
+        help="set umask to M (local only, default: %(default)04o)",
+    )
+    add_common_option(
+        "-r",
+        "--repo",
+        metavar="REPO",
+        dest="location",
+        type=location_validator(other=False),
+        default=Location(other=False),
+        action=Highlander,
+        help="repository to use",
+    )
+
+
+def build_matcher(inclexcl_patterns, include_paths, pattern_roots=()):
+    matcher = PatternMatcher()
+    matcher.add_inclexcl(inclexcl_patterns)
+    paths = list(pattern_roots) + list(include_paths)
+    matcher.add_includepaths(paths)
+    return matcher
+
+
+def build_filter(matcher, strip_components):
+    if strip_components:
+
+        def item_filter(item):
+            matched = matcher.match(item.path) and len(item.path.split(os.sep)) > strip_components
+            return matched
+
+    else:
+
+        def item_filter(item):
+            matched = matcher.match(item.path)
+            return matched
+
+    return item_filter

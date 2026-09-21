@@ -1,0 +1,47 @@
+.. include:: list.rst.inc
+
+Examples
+~~~~~~~~
+::
+
+    $ borg list root-2016-02-15
+    drwxr-xr-x root   root          0 Mon, 2016-02-15 17:44:27 +0100 .
+    drwxrwxr-x root   root          0 Mon, 2016-02-15 19:04:49 +0100 bin
+    -rwxr-xr-x root   root    1029624 Thu, 2014-11-13 00:08:51 +0100 bin/bash
+    lrwxrwxrwx root   root          6 Fri, 2015-03-27 20:24:26 +0100 bin/bzcmp -> bzdiff
+    -rwxr-xr-x root   root       2140 Fri, 2015-03-27 20:24:22 +0100 bin/bzdiff
+    ...
+
+    $ borg list root-2016-02-15 --pattern "- bin/ba*"
+    drwxr-xr-x root   root          0 Mon, 2016-02-15 17:44:27 +0100 .
+    drwxrwxr-x root   root          0 Mon, 2016-02-15 19:04:49 +0100 bin
+    lrwxrwxrwx root   root          6 Fri, 2015-03-27 20:24:26 +0100 bin/bzcmp -> bzdiff
+    -rwxr-xr-x root   root       2140 Fri, 2015-03-27 20:24:22 +0100 bin/bzdiff
+    ...
+
+    $ borg list archiveA --format="{mode} {user:6} {group:6} {size:8d} {isomtime} {path}{extra}{NEWLINE}"
+    drwxrwxr-x user   user          0 2015-02-01T11:00:00.000000+01:00 .
+    drwxrwxr-x user   user          0 2015-02-01T11:00:00.000000+01:00 code
+    drwxrwxr-x user   user          0 2015-02-01T11:00:00.000000+01:00 code/myproject
+    -rw-rw-r-- user   user    1416192 2015-02-01T11:00:00.000000+01:00 code/myproject/file.ext
+    -rw-rw-r-- user   user    1416192 2015-02-01T11:00:00.000000+01:00 code/myproject/file.text
+    ...
+
+    $ borg list archiveA --pattern '+ re:\.ext$' --pattern '- re:^.*$'
+    -rw-rw-r-- user   user    1416192 Sun, 2015-02-01 11:00:00 +0100 code/myproject/file.ext
+    ...
+
+    $ borg list archiveA --pattern '+ re:.ext$' --pattern '- re:^.*$'
+    -rw-rw-r-- user   user    1416192 Sun, 2015-02-01 11:00:00 +0100 code/myproject/file.ext
+    -rw-rw-r-- user   user    1416192 Sun, 2015-02-01 11:00:00 +0100 code/myproject/file.text
+    ...
+
+    # Use --sort-by with a comma-separated list; sorts apply stably from last to first.
+    # Here: primary by size descending, tie-breaker by path ascending.
+    # Note the quoting - ">" would otherwise be a shell redirection.
+    $ borg list archiveA --sort-by='>size,path' --format='{size:8d} {path}{NL}'
+     1416192 code/myproject/file.ext
+     1416192 code/myproject/file.text
+           0 .
+    ...
+

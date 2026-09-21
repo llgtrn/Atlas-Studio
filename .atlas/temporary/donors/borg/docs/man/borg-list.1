@@ -1,0 +1,290 @@
+.\" Man page generated from reStructuredText
+.\" by the Docutils 0.22.4 manpage writer.
+.
+.
+.nr rst2man-indent-level 0
+.
+.de1 rstReportMargin
+\\$1 \\n[an-margin]
+level \\n[rst2man-indent-level]
+level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
+-
+\\n[rst2man-indent0]
+\\n[rst2man-indent1]
+\\n[rst2man-indent2]
+..
+.de1 INDENT
+.\" .rstReportMargin pre:
+. RS \\$1
+. nr rst2man-indent\\n[rst2man-indent-level] \\n[an-margin]
+. nr rst2man-indent-level +1
+.\" .rstReportMargin post:
+..
+.de UNINDENT
+. RE
+.\" indent \\n[an-margin]
+.\" old: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.nr rst2man-indent-level -1
+.\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.in \\n[rst2man-indent\\n[rst2man-indent-level]]u
+..
+.TH "borg-list" "1" "2026-09-02" "" "borg backup tool"
+.SH Name
+borg-list \- List archive contents.
+.SH SYNOPSIS
+.sp
+borg [common options] list [options] NAME [PATH...]
+.SH DESCRIPTION
+.sp
+This command lists the contents of an archive.
+.sp
+For more help on include/exclude patterns, see the output of \fIborg_patterns\fP\&.
+.SH OPTIONS
+.sp
+See \fIborg\-common(1)\fP for common options of Borg commands.
+.SS arguments
+.INDENT 0.0
+.TP
+.B NAME
+specify the archive name
+.TP
+.B PATH
+paths to list; patterns are supported
+.UNINDENT
+.SS options
+.INDENT 0.0
+.TP
+.B  \-\-short
+only print file/directory names, nothing else
+.TP
+.BI \-\-format \ FORMAT
+specify format for file listing (default: \(dq{mode} {user:6} {group:6} {size:8} {mtime} {path}{extra}{NL}\(dq)
+.TP
+.B  \-\-json\-lines
+Format output as JSON Lines. The form of \fB\-\-format\fP is ignored, but keys used in it are added to the JSON output. Some keys are always present. Note: JSON can only represent text.
+.TP
+.BI \-\-depth \ N
+only list files up to the specified directory depth
+.TP
+.BI \-\-sort\-by \ SPEC
+sort output by comma\-separated fields (e.g. \(aq>size,path\(aq), see Sorting below
+.UNINDENT
+.SS Include/Exclude options
+.INDENT 0.0
+.TP
+.BI \-e \ PATTERN\fR,\fB \ \-\-exclude \ PATTERN
+exclude paths matching PATTERN
+.TP
+.BI \-\-exclude\-from \ EXCLUDEFILE
+read exclude patterns from EXCLUDEFILE, one per line
+.TP
+.BI \-\-pattern \ PATTERN
+include/exclude paths matching PATTERN
+.TP
+.BI \-\-patterns\-from \ PATTERNFILE
+read include/exclude patterns from PATTERNFILE, one per line
+.UNINDENT
+.SH EXAMPLES
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.EX
+$ borg list root\-2016\-02\-15
+drwxr\-xr\-x root   root          0 Mon, 2016\-02\-15 17:44:27 +0100 .
+drwxrwxr\-x root   root          0 Mon, 2016\-02\-15 19:04:49 +0100 bin
+\-rwxr\-xr\-x root   root    1029624 Thu, 2014\-11\-13 00:08:51 +0100 bin/bash
+lrwxrwxrwx root   root          6 Fri, 2015\-03\-27 20:24:26 +0100 bin/bzcmp \-> bzdiff
+\-rwxr\-xr\-x root   root       2140 Fri, 2015\-03\-27 20:24:22 +0100 bin/bzdiff
+\&...
+
+$ borg list root\-2016\-02\-15 \-\-pattern \(dq\- bin/ba*\(dq
+drwxr\-xr\-x root   root          0 Mon, 2016\-02\-15 17:44:27 +0100 .
+drwxrwxr\-x root   root          0 Mon, 2016\-02\-15 19:04:49 +0100 bin
+lrwxrwxrwx root   root          6 Fri, 2015\-03\-27 20:24:26 +0100 bin/bzcmp \-> bzdiff
+\-rwxr\-xr\-x root   root       2140 Fri, 2015\-03\-27 20:24:22 +0100 bin/bzdiff
+\&...
+
+$ borg list archiveA \-\-format=\(dq{mode} {user:6} {group:6} {size:8d} {isomtime} {path}{extra}{NEWLINE}\(dq
+drwxrwxr\-x user   user          0 2015\-02\-01T11:00:00.000000+01:00 .
+drwxrwxr\-x user   user          0 2015\-02\-01T11:00:00.000000+01:00 code
+drwxrwxr\-x user   user          0 2015\-02\-01T11:00:00.000000+01:00 code/myproject
+\-rw\-rw\-r\-\- user   user    1416192 2015\-02\-01T11:00:00.000000+01:00 code/myproject/file.ext
+\-rw\-rw\-r\-\- user   user    1416192 2015\-02\-01T11:00:00.000000+01:00 code/myproject/file.text
+\&...
+
+$ borg list archiveA \-\-pattern \(aq+ re:\e.ext$\(aq \-\-pattern \(aq\- re:^.*$\(aq
+\-rw\-rw\-r\-\- user   user    1416192 Sun, 2015\-02\-01 11:00:00 +0100 code/myproject/file.ext
+\&...
+
+$ borg list archiveA \-\-pattern \(aq+ re:.ext$\(aq \-\-pattern \(aq\- re:^.*$\(aq
+\-rw\-rw\-r\-\- user   user    1416192 Sun, 2015\-02\-01 11:00:00 +0100 code/myproject/file.ext
+\-rw\-rw\-r\-\- user   user    1416192 Sun, 2015\-02\-01 11:00:00 +0100 code/myproject/file.text
+\&...
+
+# Use \-\-sort\-by with a comma\-separated list; sorts apply stably from last to first.
+# Here: primary by size descending, tie\-breaker by path ascending.
+# Note the quoting \- \(dq>\(dq would otherwise be a shell redirection.
+$ borg list archiveA \-\-sort\-by=\(aq>size,path\(aq \-\-format=\(aq{size:8d} {path}{NL}\(aq
+ 1416192 code/myproject/file.ext
+ 1416192 code/myproject/file.text
+       0 .
+\&...
+.EE
+.UNINDENT
+.UNINDENT
+.SH NOTES
+.SS The FORMAT specifier syntax
+.sp
+The \fB\-\-format\fP option uses Python\(aqs format string syntax \%<https://\:docs\:.python\:.org/\:3\:.11/\:library/\:string\:.html#\:formatstrings>\&.
+.sp
+Examples:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.EX
+$ borg list \-\-format \(aq{mode} {user:6} {group:6} {size:8} {mtime} {path}{extra}{NL}\(aq ArchiveFoo
+\-rw\-rw\-r\-\- user   user       1024 Thu, 2021\-12\-09 10:22:17 file\-foo
+\&...
+
+# {VAR:<NUMBER} \- pad to NUMBER columns left\-aligned.
+# {VAR:>NUMBER} \- pad to NUMBER columns right\-aligned.
+$ borg list \-\-format \(aq{mode} {user:>6} {group:>6} {size:<8} {mtime} {path}{extra}{NL}\(aq ArchiveFoo
+\-rw\-rw\-r\-\-   user   user 1024     Thu, 2021\-12\-09 10:22:17 file\-foo
+\&...
+.EE
+.UNINDENT
+.UNINDENT
+.sp
+The following keys are always available:
+.INDENT 0.0
+.IP \(bu 2
+NEWLINE: OS dependent line separator
+.IP \(bu 2
+NL: alias of NEWLINE
+.IP \(bu 2
+NUL: NUL character for creating print0 / xargs \-0 like output
+.IP \(bu 2
+SPACE: space character
+.IP \(bu 2
+TAB: tab character
+.IP \(bu 2
+CR: carriage return character
+.IP \(bu 2
+LF: line feed character
+.UNINDENT
+.sp
+Keys available only when listing files in an archive:
+.INDENT 0.0
+.IP \(bu 2
+type: file type (file, dir, symlink, ...)
+.IP \(bu 2
+mode: file mode (as in stat)
+.IP \(bu 2
+uid: user id of file owner
+.IP \(bu 2
+gid: group id of file owner
+.IP \(bu 2
+user: user name of file owner
+.IP \(bu 2
+group: group name of file owner
+.IP \(bu 2
+path: file path
+.IP \(bu 2
+target: link target for symlinks
+.IP \(bu 2
+hlid: hard link identity (same if hardlinking same fs object)
+.IP \(bu 2
+inode: inode number
+.IP \(bu 2
+flags: file flags
+.IP \(bu 2
+size: file size
+.IP \(bu 2
+num_chunks: number of chunks in this file
+.IP \(bu 2
+mtime: file modification time
+.IP \(bu 2
+ctime: file change time
+.IP \(bu 2
+atime: file access time
+.IP \(bu 2
+isomtime: file modification time (ISO 8601 format)
+.IP \(bu 2
+isoctime: file change time (ISO 8601 format)
+.IP \(bu 2
+isoatime: file access time (ISO 8601 format)
+.IP \(bu 2
+fingerprint: Fingerprint of the file content (may have false negatives), format: H(conditions)\-H(chunk_ids)
+.IP \(bu 2
+blake2b
+.IP \(bu 2
+blake2s
+.IP \(bu 2
+blake3
+.IP \(bu 2
+md5
+.IP \(bu 2
+sha1
+.IP \(bu 2
+sha224
+.IP \(bu 2
+sha256
+.IP \(bu 2
+sha384
+.IP \(bu 2
+sha3_224
+.IP \(bu 2
+sha3_256
+.IP \(bu 2
+sha3_384
+.IP \(bu 2
+sha3_512
+.IP \(bu 2
+sha512
+.IP \(bu 2
+archiveid: internal ID of the archive
+.IP \(bu 2
+archivename: name of the archive
+.IP \(bu 2
+extra: prepends {target} with \(dq \-> \(dq for soft links and \(dq link to \(dq for hard links
+.UNINDENT
+.SS Sorting
+.sp
+Use \fB\-\-sort\-by SPEC\fP where SPEC is a comma\-separated list of fields.
+Sorts are applied stably from last to first in the given list, thus the first
+field is the primary sort criterion. Prepend \(dq>\(dq for descending, \(dq<\(dq (or no
+prefix) for ascending order, e.g. \fB\-\-sort\-by=\(aq>size,path\(aq\fP (quote it, \(dq>\(dq is
+a shell redirection).
+.sp
+Supported fields, sorting by the same value that \fB\-\-format\fP would print:
+.INDENT 0.0
+.IP \(bu 2
+path: the item path
+.IP \(bu 2
+type, mode: the file type character resp. the full file mode string
+.IP \(bu 2
+user, group: the owner/group name, or the numeric id if the name is not known
+.IP \(bu 2
+uid, gid: the numeric owner/group id
+.IP \(bu 2
+size: the file size (same as {size}, 0 for items without content)
+.IP \(bu 2
+mtime, ctime, atime: the timestamps (atime/ctime fall back to mtime if not stored)
+.UNINDENT
+.sp
+There is no \fBbirthtime\fP field, as there is no {birthtime} format key either.
+.sp
+The sort fields are independent of \fB\-\-format\fP, you may sort by a field you do
+not print.
+.sp
+Note: \fB\-\-sort\-by\fP needs to read all (matching) items into memory before it can
+print anything, so listing a huge archive this way needs a lot of memory and
+delays the first output line. Without \fB\-\-sort\-by\fP, items are streamed and their
+order is undefined. If memory usage is a problem, consider
+\fBborg list \-\-format ... | sort\fP instead.
+.SH SEE ALSO
+.sp
+\fIborg\-common(1)\fP, \fIborg\-info(1)\fP, \fIborg\-diff(1)\fP, \fIborg\-prune(1)\fP, \fIborg\-patterns(1)\fP, \fIborg\-repo\-list(1)\fP
+.SH Author
+The Borg Collective
+.\" End of generated man page.

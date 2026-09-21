@@ -1,0 +1,442 @@
+from ._common import with_repository, with_other_repository, Highlander
+from ..archive import Archive, cached_hash, DownloadPipeline
+from ..chunkers import get_chunker, release_chunk_data
+from ..constants import *  # NOQA
+from ..crypto.key import uses_same_id_hash, uses_same_chunker_secret
+from ..helpers import Error
+from ..helpers import location_validator, Location, archivename_validator, comment_validator
+from ..helpers import format_file_size, bin_to_hex
+from ..helpers import ChunkerParams, ChunkIteratorFileWrapper, CompressionSpec
+from ..helpers.argparsing import ArgumentParser, ArgumentTypeError
+from ..item import ChunkListEntry
+from ..repository import Repository
+
+from ..logger import create_logger
+
+logger = create_logger()
+
+
+def transfer_chunks(
+    upgrader,
+    other_repository,
+    other_manifest,
+    other_chunks,
+    archive,
+    cache,
+    manifest,
+    recompress,
+    dry_run,
+    chunker_params=None,
+):
+    """
+    Transfer chunks from another repository to the current repository.
+
+    If chunker_params is provided, the chunks will be re-chunked using the specified parameters.
+    """
+    from ..legacy.repository import LegacyRepository
+
+    transfer = 0
+    present = 0
+    chunks = []
+
+    # Determine if re-chunking is needed
+    rechunkify = chunker_params is not None
+
+    if rechunkify:
+        # Similar to ArchiveRecreater.iter_chunks
+        pipeline = DownloadPipeline(other_manifest.repository, other_manifest.repo_objs)
+        chunk_iterator = pipeline.fetch_many(other_chunks, ro_type=ROBJ_FILE_STREAM)
+        file = ChunkIteratorFileWrapper(chunk_iterator)
+
+        # Create a chunker with the specified parameters
+        chunker = get_chunker(*chunker_params, key=manifest.key, sparse=False)
+        for chunk in chunker.chunkify(file):
+            if not dry_run:
+                chunk_id, data = cached_hash(chunk, archive.key.id_hash)
+                size = len(data)
+                try:
+                    # Check if the chunk is already in the repository
+                    chunk_present = cache.seen_chunk(chunk_id, size)
+                    if chunk_present:
+                        chunk_entry = cache.reuse_chunk(chunk_id, size, archive.stats)
+                        present += size
+                    else:
+                        # Add the new chunk to the repository
+                        chunk_entry = cache.add_chunk(chunk_id, {}, data, stats=archive.stats, ro_type=ROBJ_FILE_STREAM)
+                        transfer += size
+                finally:
+                    release_chunk_data(data)
+                chunks.append(chunk_entry)
+            else:
+                # In dry-run mode, just estimate the size
+                size = len(chunk.data) if chunk.data is not None else chunk.meta["size"]
+                release_chunk_data(chunk.data)
+                transfer += size
+    else:
+        # Original implementation without re-chunking
+        for chunk_id, size in other_chunks:
+            chunk_present = cache.seen_chunk(chunk_id, size)
+            if not chunk_present:  # target repo does not yet have this chunk
+                if not dry_run:
+                    try:
+                        cdata = other_repository.get(chunk_id)
+                    except (Repository.ObjectNotFound, LegacyRepository.ObjectNotFound):
+                        # A missing correct chunk in other_repository (source) will result in
+                        # a missing chunk in repository (destination).
+                        # We do NOT want to transfer all-zero replacement chunks from Borg 1 repositories.
+                        # But we want to have a correct chunks list entry. That will be useful in case the
+                        # chunk reappears, and also we could dynamically generate an all-zero replacement
+                        # of the correct size for reading / extracting, if desired.
+                        chunk_entry = ChunkListEntry(chunk_id, size)
+                    else:
+                        if recompress == "never":
+                            # Keep the compressed payload the same; verify via assert_id (that will
+                            # decompress, but avoids needing to compress it again):
+                            meta, data = other_manifest.repo_objs.parse(
+                                chunk_id, cdata, decompress=True, want_compressed=True, ro_type=ROBJ_FILE_STREAM
+                            )
+                            meta, data = upgrader.upgrade_compressed_chunk(meta, data)
+                            chunk_entry = cache.add_chunk(
+                                chunk_id,
+                                meta,
+                                data,
+                                stats=archive.stats,
+                                compress=False,
+                                size=size,
+                                ctype=meta["ctype"],
+                                clevel=meta["clevel"],
+                                ro_type=ROBJ_FILE_STREAM,
+                            )
+                        elif recompress == "always":
+                            # always decompress and re-compress file data chunks
+                            meta, data = other_manifest.repo_objs.parse(chunk_id, cdata, ro_type=ROBJ_FILE_STREAM)
+                            chunk_entry = cache.add_chunk(
+                                chunk_id, meta, data, stats=archive.stats, ro_type=ROBJ_FILE_STREAM
+                            )
+                        else:
+                            raise ValueError(f"unsupported recompress mode: {recompress}")
+                    chunks.append(chunk_entry)
+                transfer += size
+            else:
+                if not dry_run:
+                    chunk_entry = cache.reuse_chunk(chunk_id, size, archive.stats)
+                    chunks.append(chunk_entry)
+                present += size
+
+    return chunks, transfer, present
+
+
+class TransferMixIn:
+    @with_other_repository(manifest=True, required=True)
+    @with_repository(manifest=True, cache=True)
+    def do_transfer(self, args, *, repository, manifest, cache, other_repository=None, other_manifest=None):
+        """archives transfer from other repository, optionally upgrade data format"""
+        key = manifest.key
+        other_key = other_manifest.key
+        using_same_id_hash = uses_same_id_hash(other_key, key)
+        rechunking = args.chunker_params is not None
+        if not using_same_id_hash and not rechunking:
+            raise Error("You must either keep the same ID hash or use --chunker-params.")
+        if not rechunking and not uses_same_chunker_secret(other_key, key):
+            raise Error(
+                "You must use the same chunker secret or deduplication will break. " "Use a related repository!"
+            )
+
+        # Transferring re-anchors the content in another repository, so this is the trust boundary where the
+        # chunkid == id_hash(content) invariant should be re-certified (the "transfer" place is verifying by
+        # default, see BORG_ASSERT_ID). This covers everything we read from the source repo: file content
+        # chunks, item metadata streams and the reads feeding --chunker-params re-chunking (there, content
+        # ends up in new chunks under freshly computed ids, so a violation could not be noticed later).
+        other_manifest.repo_objs.set_assert_id_place("transfer")
+
+        dry_run = args.dry_run
+        archive_infos = other_manifest.archives.list_considering(args)
+        count = len(archive_infos)
+        if count == 0:
+            return
+
+        an_errors = []
+        for archive_info in archive_infos:
+            try:
+                archivename_validator(archive_info.name)
+            except ArgumentTypeError as err:
+                an_errors.append(str(err))
+        if an_errors:
+            an_errors.insert(0, "Invalid archive names detected, please rename them before transfer:")
+            raise Error("\n".join(an_errors))
+
+        ac_errors = []
+        for archive_info in archive_infos:
+            archive = Archive(other_manifest, archive_info.id)
+            try:
+                comment_validator(archive.metadata.get("comment", ""))
+            except ArgumentTypeError as err:
+                ac_errors.append(f"{archive_info.name}: {err}")
+        if ac_errors:
+            ac_errors.insert(0, "Invalid archive comments detected, please fix them before transfer:")
+            raise Error("\n".join(ac_errors))
+
+        from .. import upgrade as upgrade_mod
+        from ..legacy import upgrade as legacy_upgrade_mod
+
+        v1_legacy = getattr(args, "v1_legacy", False)
+        upgrader = args.upgrader
+        if upgrader == "NoOp" and v1_legacy:
+            upgrader = "From12To20"
+
+        try:
+            UpgraderCls = getattr(upgrade_mod, f"Upgrader{upgrader}", None) or getattr(
+                legacy_upgrade_mod, f"Upgrader{upgrader}"
+            )
+        except AttributeError:
+            raise Error(f"No such upgrader: {upgrader}")
+
+        if UpgraderCls is not legacy_upgrade_mod.UpgraderFrom12To20 and other_manifest.repository.version == 1:
+            raise Error("To transfer from a borg 1.x repo, you need to use: --upgrader=From12To20")
+
+        upgrader = UpgraderCls(cache=cache, args=args)
+
+        for archive_info in archive_infos:
+            name, id, ts = archive_info.name, archive_info.id, archive_info.ts
+            id_hex, ts_str = bin_to_hex(id), ts.isoformat()
+            transfer_size = 0
+            present_size = 0
+            # At least for Borg 1.x -> Borg 2 transfers, we cannot use the ID to check for
+            # already transferred archives (due to upgrade of the metadata stream, the ID will be
+            # different anyway). So we use the archive name and timestamp.
+            # The name alone might be sufficient for Borg 1.x -> 2 transfers, but it isn't
+            # for 2 -> 2 transfers, because Borg 2 allows duplicate names ("series" feature).
+            # So, the best is to check for both name/ts and name/id.
+            if not dry_run and manifest.archives.exists_name_and_ts(name, archive_info.ts):
+                # Useful for Borg 1.x -> 2 transfers; we have unique names in Borg 1.x.
+                # Also useful for Borg 2 -> 2 transfers with metadata changes (ID changes).
+                print(f"{name} {ts_str}: archive is already present in destination repo, skipping.")
+            elif not dry_run and manifest.archives.exists_name_and_id(name, id):
+                # Useful for Borg 2 -> 2 transfers without changes (ID stays the same)
+                print(f"{name} {id_hex}: archive is already present in destination repo, skipping.")
+            else:
+                if not dry_run:
+                    print(f"{name} {ts_str} {id_hex}: copying archive to destination repo...")
+                other_archive = Archive(other_manifest, id)
+                archive = (
+                    Archive(manifest, name, cache=cache, create=True, progress=args.progress) if not dry_run else None
+                )
+                upgrader.new_archive(archive=archive)
+                for item in other_archive.iter_items():
+                    is_part = bool(item.get("part", False))
+                    if is_part:
+                        # Borg 1.x created part files while checkpointing (in addition to the full
+                        # file in the final archive), like <filename>.borg_part_<part> with item.part >= 1.
+                        # Borg 2 archives do not have such special part items anymore.
+                        # So let's remove them from old archives also, considering there is no
+                        # code anymore that deals with them in special ways (e.g., to get stats right).
+                        continue
+                    if "chunks_healthy" in item:  # legacy
+                        other_chunks = item.chunks_healthy  # chunks_healthy has the CORRECT chunks list, if present.
+                    elif "chunks" in item:
+                        other_chunks = item.chunks
+                    else:
+                        other_chunks = None
+                    if other_chunks is not None:
+                        chunks, transfer, present = transfer_chunks(
+                            upgrader,
+                            other_repository,
+                            other_manifest,
+                            other_chunks,
+                            archive,
+                            cache,
+                            manifest,
+                            args.recompress,
+                            dry_run,
+                            args.chunker_params,
+                        )
+                        if not dry_run:
+                            item.chunks = chunks
+                            archive.stats.nfiles += 1
+                        transfer_size += transfer
+                        present_size += present
+                    if not dry_run:
+                        item = upgrader.upgrade_item(item=item)
+                        archive.add_item(item, show_progress=args.progress)
+                if not dry_run:
+                    if args.progress:
+                        archive.stats.show_progress(final=True)
+                    additional_metadata = upgrader.upgrade_archive_metadata(metadata=other_archive.metadata)
+                    archive.save(additional_metadata=additional_metadata)
+                    print(
+                        f"{name} {ts_str} {id_hex}: finished. "
+                        f"transfer_size: {format_file_size(transfer_size)} "
+                        f"present_size: {format_file_size(present_size)}"
+                    )
+                else:
+                    print(
+                        f"{name} {ts_str} {id_hex}: completed"
+                        if transfer_size == 0
+                        else f"{name} {ts_str} {id_hex}: incomplete, "
+                        f"transfer_size: {format_file_size(transfer_size)} "
+                        f"present_size: {format_file_size(present_size)}"
+                    )
+
+    def build_parser_transfer(self, subparsers, common_parser, mid_common_parser):
+        from ._common import process_epilog
+        from ._common import define_archive_filters_group
+
+        transfer_epilog = process_epilog(
+            """
+        This command transfers archives from one repository to another repository.
+        Optionally, it can also upgrade the transferred data.
+        Optionally, it can also recompress the transferred data.
+        Optionally, it can also re-chunk the transferred data using different chunker parameters.
+
+        It is easiest (and fastest) to give ``--compression=COMPRESSION --recompress=never`` using
+        the same COMPRESSION mode as in the SRC_REPO - borg will use that COMPRESSION for metadata (in
+        any case) and keep data compressed "as is" (saves time as no data compression is needed).
+
+        If you want to globally change compression while transferring archives to the DST_REPO,
+        give ``--compression=WANTED_COMPRESSION --recompress=always``.
+
+        The default is to transfer all archives.
+
+        You could use the misc. archive filter options to limit which archives it will
+        transfer, e.g. using the ``-a`` option. This is recommended for big
+        repositories with multiple data sets to keep the runtime per invocation lower.
+
+        Incremental transfer
+        ++++++++++++++++++++
+
+        Transfer only copies what is missing in the DST_REPO, so you can run the same command
+        repeatedly (e.g. from a cron job) to keep DST_REPO up to date - each run will only
+        transfer what was added to SRC_REPO since the previous run.
+
+        This works on two levels:
+
+        - archive level: if the DST_REPO already has an archive with the same name and timestamp
+          (or the same name and archive ID), that archive is skipped and borg prints
+          "archive is already present in destination repo, skipping.".
+        - chunk level: for archives that are copied, only the chunks not yet present in the
+          DST_REPO are read from the SRC_REPO and stored - deduplication works against
+          everything transferred before.
+
+        The archive filter options can be used as usual, so multiple invocations with different
+        filters are fine, e.g.::
+
+            borg --repo=DST_REPO transfer --other-repo=SRC_REPO -a 'sh:daily-*'
+            borg --repo=DST_REPO transfer --other-repo=SRC_REPO -a 'sh:myserver-*'
+
+        Some things to keep in mind:
+
+        - Interrupting a transfer is safe: an archive only becomes visible in the DST_REPO after
+          it was copied completely, so an interrupted archive is simply transferred again by the
+          next run. The chunks stored by the interrupted run are reused, so the retry is cheap -
+          unless you run ``borg compact`` on the DST_REPO in between, which would remove the
+          chunks that are not (yet) referenced by an archive.
+        - Transfer only adds archives, it never deletes any. If you want old archives to expire
+          in the DST_REPO, run ``borg prune`` (and ``borg compact``) against the DST_REPO
+          separately.
+
+        General purpose archive transfer
+        ++++++++++++++++++++++++++++++++
+
+        Transfer borg2 archives into a related other borg2 repository::
+
+            # create a related DST_REPO (reusing key material from SRC_REPO), so that
+            # chunking and chunk id generation will work in the same way as before.
+            borg --repo=DST_REPO repo-create --encryption=DST_ENC --other-repo=SRC_REPO
+
+            # transfer archives from SRC_REPO to DST_REPO
+            borg --repo=DST_REPO transfer --other-repo=SRC_REPO --dry-run  # check what it would do
+            borg --repo=DST_REPO transfer --other-repo=SRC_REPO            # do it!
+            borg --repo=DST_REPO transfer --other-repo=SRC_REPO --dry-run  # check! anything left?
+
+        Data migration / upgrade from Borg 1.x
+        ++++++++++++++++++++++++++++++++++++++
+
+        To migrate your Borg 1.x archives into a related, new Borg 2 repository, usage is quite similar
+        to the above, but you need the ``--from-borg1`` option::
+
+            borg --repo=DST_REPO repo-create --encryption=DST_ENC --other-repo=SRC_REPO --from-borg1
+
+            # to continue using lz4 compression as you did in SRC_REPO:
+            borg --repo=DST_REPO transfer --other-repo=SRC_REPO --from-borg1 \\
+                 --compression=lz4 --recompress=never
+
+            # alternatively, to recompress everything to zstd,3:
+            borg --repo=DST_REPO transfer --other-repo=SRC_REPO --from-borg1 \\
+                 --compression=zstd,3 --recompress=always
+
+            # to re-chunk using different chunker parameters:
+            borg --repo=DST_REPO transfer --other-repo=SRC_REPO \\
+                 --chunker-params=buzhash,19,23,21,4095
+
+        """
+        )
+        subparser = ArgumentParser(
+            parents=[common_parser], description=self.do_transfer.__doc__, epilog=transfer_epilog
+        )
+        subparsers.add_subcommand("transfer", subparser, help="Transfer of archives from another repository")
+        subparser.add_argument(
+            "-n", "--dry-run", dest="dry_run", action="store_true", help="do not change repository, just check"
+        )
+        subparser.add_argument(
+            "--other-repo",
+            metavar="SRC_REPOSITORY",
+            dest="other_location",
+            type=location_validator(other=True),
+            default=Location(other=True),
+            action=Highlander,
+            help="transfer archives from the other repository",
+        )
+        subparser.add_argument(
+            "--from-borg1", dest="v1_legacy", action="store_true", help="other repository is borg 1.x"
+        )
+        subparser.add_argument(
+            "--upgrader",
+            metavar="UPGRADER",
+            dest="upgrader",
+            type=str,
+            choices=("NoOp", "From12To20"),
+            default="NoOp",
+            action=Highlander,
+            help="use the upgrader to convert transferred data (default: no conversion)",
+        )
+        subparser.add_argument(
+            "-C",
+            "--compression",
+            metavar="COMPRESSION",
+            dest="compression",
+            type=CompressionSpec,
+            default=CompressionSpec("lz4"),
+            action=Highlander,
+            help="select compression algorithm, see the output of the " '"borg help compression" command for details.',
+        )
+        subparser.add_argument(
+            "--recompress",
+            metavar="MODE",
+            dest="recompress",
+            nargs="?",
+            default="never",
+            const="always",
+            choices=("never", "always"),
+            action=Highlander,
+            help="recompress data chunks according to `MODE` and ``--compression``. "
+            "Possible modes are "
+            "`always`: recompress unconditionally; and "
+            "`never`: do not recompress (faster: re-uses compressed data chunks w/o change)."
+            "If no MODE is given, `always` will be used. "
+            'Not passing --recompress is equivalent to "--recompress never".',
+        )
+        subparser.add_argument(
+            "--chunker-params",
+            metavar="PARAMS",
+            dest="chunker_params",
+            type=ChunkerParams,
+            default=None,
+            action=Highlander,
+            help="rechunk using given chunker parameters: "
+            "buzhash,CHUNK_MIN_EXP,CHUNK_MAX_EXP,HASH_MASK_BITS,WINDOW_SIZE or "
+            "buzhash64,CHUNK_MIN_EXP,CHUNK_MAX_EXP,HASH_MASK_BITS,WINDOW_SIZE,NC_LEVEL or "
+            "fastcdc,CHUNK_MIN_EXP,CHUNK_MAX_EXP,HASH_MASK_BITS,NC_LEVEL or "
+            "`default` to use the chunker defaults. default: do not rechunk",
+        )
+
+        define_archive_filters_group(subparser)

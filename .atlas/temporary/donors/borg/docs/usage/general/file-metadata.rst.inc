@@ -1,0 +1,60 @@
+Support for file metadata
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Besides regular file and directory structures, Borg can preserve
+
+* symlinks (stored as a symlink; the symlink is not followed)
+* special files:
+
+  * character and block device files (restored via mknod(2))
+  * FIFOs ("named pipes")
+  * special file *contents* can be backed up in ``--read-special`` mode.
+    By default, the metadata to create them with mknod(2), mkfifo(2), etc. is stored.
+* hard-linked regular files, devices, symlinks, FIFOs (considering all items in the same archive)
+* timestamps with nanosecond precision: mtime, atime, ctime
+* other timestamps: birthtime (on platforms supporting it)
+* permissions:
+
+  * IDs of owning user and owning group
+  * names of owning user and owning group (if the IDs can be resolved)
+  * Unix Mode/Permissions (u/g/o permissions, suid, sgid, sticky)
+
+On some platforms additional features are supported:
+
+.. Yes/No's are grouped by reason/mechanism/reference.
+
++-------------------------+----------+-----------+------------+
+| Platform                | ACLs     | xattr     | Flags      |
+|                         | [#acls]_ | [#xattr]_ | [#flags]_  |
++=========================+==========+===========+============+
+| Linux                   | Yes      | Yes       | Yes [1]_   |
++-------------------------+----------+-----------+------------+
+| macOS                   | Yes      | Yes       | Yes (all)  |
++-------------------------+----------+-----------+------------+
+| FreeBSD                 | Yes      | Yes       | Yes (all)  |
++-------------------------+----------+-----------+------------+
+| OpenBSD                 | n/a      | n/a       | Yes (all)  |
++-------------------------+----------+-----------+------------+
+| NetBSD                  | n/a      | Yes       | Yes (all)  |
++-------------------------+----------+-----------+------------+
+| Solaris and derivatives | No [2]_  | Yes       | n/a        |
++-------------------------+----------+-----------+------------+
+| Windows (cygwin)        | No [3]_  | No        | No         |
++-------------------------+----------+-----------+------------+
+
+Other Unix-like operating systems may work as well, but have not been tested yet.
+
+Note that most platform-dependent features also depend on the filesystem.
+For example, ntfs-3g on Linux is not able to convey NTFS ACLs.
+
+.. [1] Only "nodump", "immutable", "compressed" and "append" are supported.
+    Feature request :issue:`618` for more flags.
+.. [2] Feature request :issue:`1337`
+.. [3] Cygwin tries to map NTFS ACLs to permissions with varying degrees of success.
+
+.. [#acls] The native access control list mechanism of the OS. This normally limits access to
+    non-native ACLs. For example, NTFS ACLs are not completely accessible on Linux with ntfs-3g.
+.. [#xattr] Extended attributes; key-value pairs attached to a file, mainly used by the OS.
+    This includes resource forks on macOS.
+.. [#flags] Also known as *BSD flags*. The Linux set of flags [1]_ is portable across platforms.
+    The BSDs define additional flags.

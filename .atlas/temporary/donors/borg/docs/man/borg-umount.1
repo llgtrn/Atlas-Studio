@@ -1,0 +1,120 @@
+.\" Man page generated from reStructuredText
+.\" by the Docutils 0.22.4 manpage writer.
+.
+.
+.nr rst2man-indent-level 0
+.
+.de1 rstReportMargin
+\\$1 \\n[an-margin]
+level \\n[rst2man-indent-level]
+level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
+-
+\\n[rst2man-indent0]
+\\n[rst2man-indent1]
+\\n[rst2man-indent2]
+..
+.de1 INDENT
+.\" .rstReportMargin pre:
+. RS \\$1
+. nr rst2man-indent\\n[rst2man-indent-level] \\n[an-margin]
+. nr rst2man-indent-level +1
+.\" .rstReportMargin post:
+..
+.de UNINDENT
+. RE
+.\" indent \\n[an-margin]
+.\" old: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.nr rst2man-indent-level -1
+.\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.in \\n[rst2man-indent\\n[rst2man-indent-level]]u
+..
+.TH "borg-umount" "1" "2026-09-02" "" "borg backup tool"
+.SH Name
+borg-umount \- Unmounts the FUSE filesystem.
+.SH SYNOPSIS
+.sp
+borg [common options] umount [options] MOUNTPOINT
+.SH DESCRIPTION
+.sp
+This command unmounts a FUSE filesystem that was mounted with \fBborg mount\fP\&.
+.sp
+This is a convenience wrapper that just calls the platform\-specific shell
+command \- usually this is either umount or fusermount \-u.
+.SH OPTIONS
+.sp
+See \fIborg\-common(1)\fP for common options of Borg commands.
+.SS arguments
+.INDENT 0.0
+.TP
+.B MOUNTPOINT
+mountpoint of the filesystem to unmount
+.UNINDENT
+.SH EXAMPLES
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.EX
+# Mounting the repository shows all archives (here: two archives of the series
+# \(dqroot\(dq, the short archive id is appended to make the directory names unique).
+# Archives are loaded lazily, expect some delay when navigating to an archive
+# for the first time.
+$ borg mount /tmp/mymountpoint
+$ ls /tmp/mymountpoint
+root\-1f7b3c2a  root\-9e4d0b58
+$ borg umount /tmp/mymountpoint
+
+# BORG_MOUNT_ARCHIVE_DIR_FORMAT names the archive directories differently,
+# using the placeholders of \(dqborg repo\-list \-\-format\(dq:
+$ BORG_MOUNT_ARCHIVE_DIR_FORMAT=\(aq{name}\-{time:%Y\-%m\-%d}\(aq borg mount /tmp/mymountpoint
+$ ls /tmp/mymountpoint
+root\-2016\-02\-14  root\-2016\-02\-15
+$ borg umount /tmp/mymountpoint
+
+# The \(dqversions view\(dq merges all archives in the repository
+# and provides a versioned view on files.
+$ borg mount \-o versions /tmp/mymountpoint
+$ ls \-l /tmp/mymountpoint/home/user/doc.txt/
+total 47
+\-rw\-r\-\-r\-\- 1 user group 12167 Aug 28 23:14 doc.00001.txt
+\-rw\-r\-\-r\-\- 1 user group 11444 Aug 28 23:15 doc.00002.txt
+$ borg umount /tmp/mymountpoint
+
+# Archive filters are supported.
+# These are especially handy for the \(dqversions view\(dq,
+# which does not support lazy processing of archives.
+$ borg mount \-o versions \-\-match\-archives \(aqsh:*\-my\-home\(aq \-\-last 10 /tmp/mymountpoint
+
+# Exclusion options are supported.
+# These can speed up mounting and lower memory needs significantly.
+$ borg mount \-r /path/to/repo /tmp/mymountpoint only/that/path
+$ borg mount \-\-exclude \(aq...\(aq /tmp/mymountpoint
+.EE
+.UNINDENT
+.UNINDENT
+.SS borgfs
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.EX
+$ echo \(aq/mnt/backup /tmp/myrepo fuse.borgfs defaults,noauto 0 0\(aq >> /etc/fstab
+$ mount /tmp/myrepo
+$ ls /tmp/myrepo
+root\-2016\-02\-01 root\-2016\-02\-15
+.EE
+.UNINDENT
+.UNINDENT
+.sp
+\fBNote:\fP
+.INDENT 0.0
+.INDENT 3.5
+\fBborgfs\fP will be automatically provided if you used a distribution
+package or \fBpip\fP to install Borg. Users of the standalone binary will have
+to manually create a symlink (see \fIpyinstaller\-binary\fP).
+.UNINDENT
+.UNINDENT
+.SH SEE ALSO
+.sp
+\fIborg\-common(1)\fP, \fIborg\-mount(1)\fP
+.SH Author
+The Borg Collective
+.\" End of generated man page.

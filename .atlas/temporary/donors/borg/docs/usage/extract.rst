@@ -1,0 +1,30 @@
+.. include:: extract.rst.inc
+
+Examples
+~~~~~~~~
+::
+
+    # Extract entire archive (into the current directory, which must be empty)
+    $ borg extract my-files
+
+    # Continue an interrupted extraction (or extract into a non-empty directory)
+    $ borg extract --continue my-files
+
+    # Extract entire archive and list files while processing
+    $ borg extract --list my-files
+
+    # Verify whether an archive could be successfully extracted, but do not write files to disk
+    $ borg extract --dry-run my-files
+
+    # Extract the "src" directory
+    $ borg extract my-files home/USERNAME/src
+
+    # Extract the "src" directory but exclude object files
+    $ borg extract my-files home/USERNAME/src --exclude '*.o'
+
+    # Extract only the C files
+    $ borg extract my-files 'sh:home/USERNAME/src/*.c'
+
+    # Restore a raw device (must not be active/in use/mounted at that time)
+    $ borg extract --stdout my-sdx | dd of=/dev/sdx bs=10M
+

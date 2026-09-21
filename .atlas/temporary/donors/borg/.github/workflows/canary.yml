@@ -1,0 +1,182 @@
+name: Canary (Unlocked Requirements)
+
+on:
+  schedule:
+    - cron: '0 7 * * *'  # Run at 07:00 UTC
+  workflow_dispatch:      # Allow manual trigger
+
+permissions:
+  contents: read
+
+env:
+  # Force colored tox and pytest output even without a tty - the GitHub
+  # Actions log viewer renders ANSI colors. tox passes both vars through
+  # to pytest (pass_env = ["*"]).
+  PY_COLORS: "1"       # pytest
+  TOX_COLORED: "yes"   # tox's own output
+
+jobs:
+  canary_tests:
+    name: Canary (${{ matrix.os }}, ${{ matrix.python-version }}, ${{ matrix.toxenv }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 360
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # A representative subset of environments
+          - os: ubuntu-26.04
+            python-version: '3.11'
+            toxenv: py311-llfuse
+          - os: ubuntu-26.04
+            python-version: '3.12'
+            toxenv: py312-pyfuse3
+          - os: ubuntu-26.04
+            python-version: '3.14'
+            toxenv: py314-mfusepy
+          - os: ubuntu-26.04
+            # 3.15 is not released yet - fail-fast is off, so a broken prerelease
+            # python (or a dependency without 3.15 wheels) only reddens this entry.
+            python-version: '3.15-dev'
+            toxenv: py315-mfusepy
+          - os: macos-15
+            python-version: '3.14'
+            toxenv: py314-none
+
+    steps:
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+      with:
+        fetch-depth: 0
+        fetch-tags: true
+        persist-credentials: false
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Install Linux packages
+      if: ${{ runner.os == 'Linux' }}
+      shell: bash
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y pkg-config build-essential
+        sudo apt-get install -y libssl-dev libacl1-dev liblz4-dev
+        if [[ "${{ matrix.toxenv }}" == *"llfuse"* ]]; then
+          sudo apt-get install -y libfuse-dev fuse
+        elif [[ "${{ matrix.toxenv }}" == *"pyfuse3"* || "${{ matrix.toxenv }}" == *"mfusepy"* ]]; then
+          sudo apt-get install -y libfuse3-dev fuse3
+        fi
+
+    - name: Install macOS packages
+      if: ${{ runner.os == 'macOS' }}
+      shell: bash
+      run: |
+        brew bundle install || true
+        # unresolvable .local runner hostname = ~35s resolver timeout per borg process, see #9470
+        sudo scutil --set HostName borg-ci-mac
+        echo "127.0.0.1 borg-ci-mac" | sudo tee -a /etc/hosts
+
+    - name: Install Python requirements (UNLOCKED)
+      shell: bash
+      run: |
+        python -m pip install --upgrade pip setuptools wheel
+        # Use UNLOCKED requirements to catch upstream breakages
+        pip install -r requirements.d/development.txt
+
+    - name: Install borgbackup
+      shell: bash
+      run: |
+        if [[ "${{ matrix.toxenv }}" == *"llfuse"* ]]; then
+          pip install -e ".[llfuse,cockpit]"
+        elif [[ "${{ matrix.toxenv }}" == *"pyfuse3"* ]]; then
+          pip install -e ".[pyfuse3,cockpit]"
+        elif [[ "${{ matrix.toxenv }}" == *"mfusepy"* ]]; then
+          pip install -e ".[mfusepy,cockpit]"
+        else
+          pip install -e ".[cockpit]"
+        fi
+
+    - name: Run tests (Canary)
+      shell: bash
+      run: |
+        if [[ "${{ matrix.toxenv }}" == *"-windows" ]]; then
+          python -m pytest -n4 --benchmark-skip -vv -rs -k "not remote" --cov=borg --cov-config=pyproject.toml --cov-report=xml --junitxml=test-results.xml
+        else
+          # Force tox to use the unlocked requirements in its environment creation
+          # by overriding the deps if possible, or just trusting it uses development.txt
+          # which we already installed in the root. Actually tox creates its own venv.
+          # We need to tell tox to use the unlocked file.
+          tox -e ${{ matrix.toxenv }} --override "env_run_base.deps=[-rrequirements.d/development.txt]"
+        fi
+
+  windows_canary:
+
+    if: true  # can be used to temporarily disable the build
+    name: Canary (Windows)
+    runs-on: windows-latest
+    timeout-minutes: 180
+
+    env:
+      MSYS2_ARG_CONV_EXCL: "*"
+      MSYS2_ENV_CONV_EXCL: "*"
+      # see the "Cache pip-built wheels" step. MSYS2_ENV_CONV_EXCL above keeps
+      # this a Windows path when it enters the msys2 shell.
+      PIP_CACHE_DIR: ${{ github.workspace }}\.pip-cache
+
+    defaults:
+      run:
+        shell: msys2 {0}
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      # Same as the "Cache pip-built wheels" step in ci.yml (MSYS2's mingw
+      # Python cannot use PyPI's win_amd64 wheels). Own key, because the
+      # unlocked requirements may resolve to different versions; falls back
+      # to (and gets picked up by) the ci.yml cache via the shared prefix.
+      - name: Cache pip-built wheels
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9  # v6.1.0
+        with:
+          path: .pip-cache
+          key: windows-msys2-pip-canary-${{ hashFiles('pyproject.toml', 'requirements.d/pyinstaller.txt') }}
+          restore-keys: |
+            windows-msys2-pip-
+
+      - uses: msys2/setup-msys2@66cd2cce69caa17b53920067426061ca1de3a884  # v2.32.0
+        with:
+          msystem: UCRT64
+          update: true
+
+      - name: Install system packages
+        run: ./scripts/msys2-install-deps development
+
+      - name: Build python venv
+        run: |
+          # building some packages in the venv fails, so we try to use the system packages
+          python -m venv --system-site-packages env
+          . env/bin/activate
+          # python -m pip install --upgrade pip
+          # pip install --upgrade setuptools build wheel
+          pip install -r requirements.d/pyinstaller.txt
+
+      - name: Build
+        run: |
+          # build borg.exe
+          . env/bin/activate
+          pip install -e ".[cockpit,s3,sftp,rclone]"
+          mkdir -p dist/binary
+          pyinstaller -y --clean --distpath=dist/binary scripts/borg.exe.spec
+          # build sdist and wheel in dist/...
+          python -m build
+
+      - name: Run tests
+        run: |
+          # Ensure locally built binary in ./dist/binary/borg-dir is found during tests
+          export PATH="$GITHUB_WORKSPACE/dist/binary/borg-dir:$PATH"
+          borg.exe -V
+          . env/bin/activate
+          python -m pytest -n4 --benchmark-skip -vv -rs -k "not remote" --cov=borg --cov-config=pyproject.toml --cov-report=xml --junitxml=test-results.xml

@@ -1,0 +1,115 @@
+.. include:: transfer.rst.inc
+
+Examples
+~~~~~~~~
+
+To keep the following examples short and readable, we export the repository
+locations and passphrases first:
+
+::
+
+    # The destination is a Borg 2 repository: use a rest:// (or local) location,
+    # ssh:// is only supported for the legacy Borg 1.x source repository.
+    export BORG_REPO=rest://borg2@borgbackup/tests/b20
+    export BORG_PASSPHRASE='your-borg2-repo-passphrase'
+    export BORG_OTHER_REPO=ssh://borg2@borgbackup/./tests/b1x
+    export BORG_OTHER_PASSPHRASE='your-borg1-repo-passphrase'
+
+::
+
+    # Borg 1.x repository -> Borg 2.0 repository (hmac-sha256 -> hmac-sha256, keeping the same chunk ID algorithm)
+
+    # 0. Have Borg 2.0 installed on the client AND server; have a Borg 1.x repository copy for testing.
+
+    # 1. Create a new "related" repository:
+    # Here, the existing Borg 1.x repository used repokey (and AES-CTR mode),
+    # thus we use aes256-ocb for the new Borg 2.0 repository.
+    # Staying with the same chunk ID algorithm (hmac-sha256) and with the same
+    # key material (via BORG_OTHER_REPO) will make deduplication work
+    # between old archives (copied with borg transfer) and future ones.
+    # The AEAD cipher does not matter (everything must be re-encrypted and
+    # re-authenticated anyway); you could also choose chacha20-poly1305.
+    # --from-borg1 is required so the other repository is opened as a Borg 1.x repository.
+    $ borg repo-create --from-borg1 -e aes256-ocb
+
+    # 2. Check what and how much it would transfer:
+    $ borg transfer --from-borg1 --dry-run
+
+    # 3. Transfer (copy) archives from the old repository into the new repository (takes time and space!):
+    $ borg transfer --from-borg1
+
+    # 4. Check whether we have everything (same as step 2):
+    $ borg transfer --from-borg1 --dry-run
+
+::
+
+    # Borg 1.x repository -> Borg 2.0 repository (blake2 -> blake3, changing the chunk ID algorithm)
+
+    # 0. Have Borg 2.0 installed on the client AND server; have a Borg 1.x repository copy for testing.
+
+    # 1. Create a new "related" repository:
+    # Here, the existing Borg 1.x repository used repokey-blake2 (and AES-CTR mode),
+    # thus we use aes256-ocb with --id-hash blake3 for the new Borg 2.0 repository.
+    # We need to change from blake2 to blake3, because blake2 is not supported
+    # for borg2 repos (blake3 is much faster). Because we change how chunk IDs are
+    # computed, we need to re-chunk everything while doing the transfer.
+    # The chunker parameters you provide here should be the same as you will
+    # use for all future Borg 2.0 archives.
+    # The AEAD cipher does not matter (everything must be re-encrypted and
+    # re-authenticated anyway); you could also choose -e chacha20-poly1305 -i blake3.
+    # --from-borg1 is required so the other repository is opened as a Borg 1.x repository.
+    $ borg repo-create --from-borg1 -e aes256-ocb -i blake3
+    $ export CHUNKER_PARAMS="fastcdc,19,23,21,2"
+
+    # 2. Check what and how much it would transfer:
+    $ borg transfer --from-borg1 --chunker-params=$CHUNKER_PARAMS --dry-run
+
+    # 3. Transfer (copy) archives from the old repository into the new repository (takes time and space!):
+    $ borg transfer --from-borg1 --chunker-params=$CHUNKER_PARAMS
+
+    # 4. Check whether we have everything (same as step 2):
+    $ borg transfer --from-borg1 --chunker-params=$CHUNKER_PARAMS --dry-run
+
+A Borg 1.x repository in ``none`` mode (not encrypted, unkeyed sha256 chunk IDs) is transferred
+like in the second example, re-chunking with ``--chunker-params``: all Borg 2 modes use keyed
+chunk IDs. Such a repository has no key material to copy, so create the new repository without
+giving the Borg 1.x repository as ``--other-repo``.
+
+Keyfile considerations when upgrading from Borg 1.x
+++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+If you are using a ``keyfile`` encryption mode (not ``repokey``), Borg 2
+may not automatically find your Borg 1.x key file, because the default
+key file directory has changed on some platforms due to the switch to
+the `platformdirs <https://pypi.org/project/platformdirs/>`_ library.
+
+On **Linux**, there is typically no change -- both Borg 1.x and Borg 2
+use ``~/.config/borg/keys/``.
+
+On **macOS**, Borg 1.x stored key files in ``~/.config/borg/keys/``,
+but Borg 2 defaults to ``~/Library/Application Support/borg/keys/``.
+
+On **Windows**, Borg 1.x used XDG-style paths (e.g. ``~/.config/borg/keys/``),
+while Borg 2 defaults to ``C:\Users\<user>\AppData\Roaming\borg\keys\``.
+
+If Borg 2 cannot find your key file, you have several options:
+
+1. **Copy the key file** from the old location to the new one.
+2. **Set BORG_KEYS_DIR** to point to the old key file directory::
+
+       export BORG_KEYS_DIR=~/.config/borg/keys
+
+3. **Set BORG_KEY_FILE** to point directly to the specific key file::
+
+       export BORG_KEY_FILE=~/.config/borg/keys/your_key_file
+
+4. **Set BORG_BASE_DIR** to force Borg 2 to use the same base directory
+   as Borg 1.x::
+
+       export BORG_BASE_DIR=$HOME
+
+   This makes Borg 2 use ``$HOME/.config/borg``, ``$HOME/.cache/borg``,
+   etc., matching Borg 1.x behavior on all platforms.
+
+See :ref:`env_vars` for more details on directory environment variables.
+

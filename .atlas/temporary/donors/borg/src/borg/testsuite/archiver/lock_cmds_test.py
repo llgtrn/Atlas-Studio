@@ -1,0 +1,69 @@
+import os
+import subprocess
+import sys
+from pathlib import Path
+
+import pytest
+
+from ...constants import *  # NOQA
+from . import cmd, generate_archiver_tests, RK_ENCRYPTION
+from ...helpers import CommandError
+from ...platformflags import is_haiku, is_win32
+
+pytest_generate_tests = lambda metafunc: generate_archiver_tests(metafunc, kinds="local,binary")  # NOQA
+
+
+def test_break_lock(archivers, request):
+    archiver = request.getfixturevalue(archivers)
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    cmd(archiver, "break-lock")
+
+
+@pytest.mark.skipif(is_haiku or is_win32, reason="does not find borg python module on Haiku OS and Windows")
+def test_with_lock(tmp_path):
+    repo_path = tmp_path / "repo"
+    env = os.environ.copy()
+    env["BORG_REPO"] = Path(repo_path).as_uri()
+    env["BORG_PASSPHRASE"] = "waytooeasyonlyfortests"  # nosec B105
+    # test debug output:
+    print("sys.path: %r" % sys.path)
+    print("PYTHONPATH: %s" % env.get("PYTHONPATH", ""))
+    print("PATH: %s" % env.get("PATH", ""))
+    python = sys.executable or "python3"
+    command0 = python, "-m", "borg", "repo-create", "--encryption=authenticated-sha256"
+    # Timings must be adjusted so that command1 keeps running while command2 tries to get the lock,
+    # so that lock acquisition for command2 fails as the test expects it.
+    lock_wait = 2
+    command1 = (python, "-c", 'import sys; print("first command - acquires the lock", flush=True); sys.stdin.read()')
+    command2 = python, "-c", 'print("second command - should never get executed")'
+    borgwl = python, "-m", "borg", "with-lock", f"--lock-wait={lock_wait}"
+    popen_options = dict(stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, env=env)
+    subprocess.run(command0, env=env, check=True, text=True, capture_output=True)
+    assert repo_path.exists()
+
+    p1_options = popen_options.copy()
+    p1_options["stdin"] = subprocess.PIPE
+    with subprocess.Popen([*borgwl, *command1], **p1_options) as p1:
+        assert "first command" in p1.stdout.readline()  # Wait until p1 is running and has acquired the lock
+        # Now try to acquire another lock on the same repository:
+        with subprocess.Popen([*borgwl, *command2], **popen_options) as p2:
+            out, err_out = p2.communicate()
+            assert "second command" not in out  # command2 is "locked out"
+            assert "Failed to create/acquire the lock" in err_out
+            assert p2.returncode == 73  # LockTimeout: could not acquire the lock, p1 already has it
+        out, err_out = p1.communicate(input="")  # Unblock command1 and read output
+        # ignore warnings that are unrelated to the lock handling: the pure-python msgpack
+        # warning borg emits on pypy and cython's collection_type warning (cython >= 3.3.0
+        # emits it at import time on pypy unless borg is built with CYTHON_USE_TYPE_SPECS=1,
+        # which costs a lot of performance)
+        noise = ("pure-python msgpack", "cython.collection_type")
+        assert not [line for line in err_out.splitlines() if not any(n in line for n in noise)]
+        assert p1.returncode == 0
+
+
+def test_with_lock_non_existent_command(archivers, request):
+    archiver = request.getfixturevalue(archivers)
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    command = ["non_existent_command"]
+    expected_ec = CommandError().exit_code
+    cmd(archiver, "with-lock", *command, fork=True, exit_code=expected_ec)

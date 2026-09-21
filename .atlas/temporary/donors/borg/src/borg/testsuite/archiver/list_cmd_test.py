@@ -1,0 +1,417 @@
+import json
+import os
+import pytest
+
+from ...constants import *  # NOQA
+from ...helpers import CommandError
+from .. import granularity_sleep
+from . import cmd, create_regular_file, generate_archiver_tests, RK_ENCRYPTION, requires_hardlinks
+
+pytest_generate_tests = lambda metafunc: generate_archiver_tests(metafunc, kinds="local,binary")  # NOQA
+
+
+def test_list_format(archivers, request, backup_files):
+    archiver = request.getfixturevalue(archivers)
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    cmd(archiver, "create", "test", backup_files)
+    output_1 = cmd(archiver, "list", "test")
+    output_2 = cmd(
+        archiver, "list", "test", "--format", "{mode} {user:6} {group:6} {size:8d} {mtime} {path}{extra}{NEWLINE}"
+    )
+    output_3 = cmd(archiver, "list", "test", "--format", "{mtime:%s} {path}{NL}")
+    assert output_1 == output_2
+    assert output_1 != output_3
+
+
+def test_list_hash(archivers, request):
+    archiver = request.getfixturevalue(archivers)
+    create_regular_file(archiver.input_path, "empty_file", size=0)
+    create_regular_file(archiver.input_path, "amb", contents=b"a" * 1000000)
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    cmd(archiver, "create", "test", "input")
+    output = cmd(archiver, "list", "test", "--format", "{sha256} {path}{NL}")
+    assert "cdc76e5c9914fb9281a1c7e284d73e67f1809a48a497200e046d39ccc7112cd0 input/amb" in output
+    assert "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855 input/empty_file" in output
+
+
+def test_list_format_invalid_key(archivers, request):
+    archiver = request.getfixturevalue(archivers)
+    create_regular_file(archiver.input_path, "file1", size=1024)
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    cmd(archiver, "create", "test", "input")
+    if archiver.FORK_DEFAULT:
+        expected_ec = CommandError().exit_code
+        output = cmd(archiver, "list", "test", "--format", "{nosuchkey}", exit_code=expected_ec)
+        assert "Invalid format keys: nosuchkey" in output
+    else:
+        with pytest.raises(CommandError, match="Invalid format keys: nosuchkey"):
+            cmd(archiver, "list", "test", "--format", "{nosuchkey}")
+
+
+def test_list_format_invalid_format_string(archivers, request):
+    archiver = request.getfixturevalue(archivers)
+    create_regular_file(archiver.input_path, "file1", size=1024)
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    cmd(archiver, "create", "test", "input")
+    if archiver.FORK_DEFAULT:
+        expected_ec = CommandError().exit_code
+        output = cmd(archiver, "list", "test", "--format", "{path", exit_code=expected_ec)
+        assert "Invalid format string" in output
+    else:
+        with pytest.raises(CommandError, match="Invalid format string"):
+            cmd(archiver, "list", "test", "--format", "{path")
+
+
+def test_list_hash_blake3(archivers, request):
+    archiver = request.getfixturevalue(archivers)
+    create_regular_file(archiver.input_path, "empty_file", size=0)
+    create_regular_file(archiver.input_path, "amb", contents=b"a" * 1000000)
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    cmd(archiver, "create", "test", "input")
+    output = cmd(archiver, "list", "test", "--format", "{blake3} {path}{NL}")
+    assert "616f575a1b58d4c9797d4217b9730ae5e6eb319d76edef6549b46f4efe31ff8b input/amb" in output
+    assert "af1349b9f5f9a1a6a0404dea36dcc9499bcb25c9adc112b7cc9a93cae41f3262 input/empty_file" in output
+
+
+def test_list_chunk_counts(archivers, request):
+    archiver = request.getfixturevalue(archivers)
+    create_regular_file(archiver.input_path, "empty_file", size=0)
+    create_regular_file(archiver.input_path, "two_chunks")
+    filename = os.path.join(archiver.input_path, "two_chunks")
+    with open(filename, "wb") as fd:
+        fd.write(b"abba" * 2000000)
+        fd.write(b"baab" * 2000000)
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    cmd(archiver, "create", "test", "input")
+    os.unlink(filename)  # save space on TMPDIR
+    output = cmd(archiver, "list", "test", "--format", "{num_chunks} {path}{NL}")
+    assert "0 input/empty_file" in output
+    assert "2 input/two_chunks" in output
+
+
+def test_list_size(archivers, request):
+    archiver = request.getfixturevalue(archivers)
+    create_regular_file(archiver.input_path, "compressible_file", size=10000)
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    cmd(archiver, "create", "-C", "lz4", "test", "input")
+    output = cmd(archiver, "list", "test", "--format", "{size} {path}{NL}")
+    size, path = output.split("\n")[1].split(" ")
+    assert int(size) == 10000
+
+
+def test_list_json(archivers, request):
+    archiver = request.getfixturevalue(archivers)
+    create_regular_file(archiver.input_path, "file1", size=1024 * 80)
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    cmd(archiver, "create", "test", "input")
+
+    list_archive = cmd(archiver, "list", "test", "--json-lines")
+    items = [json.loads(s) for s in list_archive.splitlines()]
+    assert len(items) == 2
+    file1 = items[1]
+    assert file1["path"] == "input/file1"
+    assert file1["size"] == 81920
+
+    list_archive = cmd(archiver, "list", "test", "--json-lines", "--format={sha256}")
+    items = [json.loads(s) for s in list_archive.splitlines()]
+    assert len(items) == 2
+    file1 = items[1]
+    assert file1["path"] == "input/file1"
+    assert file1["sha256"] == "b2915eb69f260d8d3c25249195f2c8f4f716ea82ec760ae929732c0262442b2b"
+
+
+def test_list_json_lines_includes_archive_keys_in_format(archivers, request):
+    # Issue #9095 / PR #9096: archivename/archiveid should be available in JSON lines when
+    # requested via --format.
+    archiver = request.getfixturevalue(archivers)
+    create_regular_file(archiver.input_path, "file1", size=1024)
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    cmd(archiver, "create", "test", "input")
+
+    # Query archive info to obtain expected name and id
+    info_archive = json.loads(cmd(archiver, "info", "--json", "-a", "test"))
+    assert len(info_archive["archives"]) == 1
+    archive_info = info_archive["archives"][0]
+    expected_name = archive_info["name"]
+    expected_id = archive_info["id"]
+
+    out = cmd(archiver, "list", "test", "--json-lines", "--format={archivename} {archiveid}")
+    rows = [json.loads(s) for s in out.splitlines() if s]
+    assert len(rows) >= 2  # directory + file
+    row = rows[-1]
+    assert row["archivename"] == expected_name
+    assert row["archiveid"] == expected_id
+
+
+def test_list_depth(archivers, request):
+    """Test the --depth option for the list command."""
+    archiver = request.getfixturevalue(archivers)
+
+    # Create repository
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+
+    # Create files at different directory depths
+    create_regular_file(archiver.input_path, "file_at_depth_1.txt", size=1)
+    create_regular_file(archiver.input_path, "dir1/file_at_depth_2.txt", size=1)
+    create_regular_file(archiver.input_path, "dir1/dir2/file_at_depth_3.txt", size=1)
+
+    # Create archive
+    cmd(archiver, "create", "test", "input")
+
+    # Test with depth=0 (only the root directory)
+    output_depth_0 = cmd(archiver, "list", "test", "--depth=0")
+    assert "input" in output_depth_0
+    assert "input/file_at_depth_1.txt" not in output_depth_0
+    assert "input/dir1" not in output_depth_0
+    assert "input/dir1/file_at_depth_2.txt" not in output_depth_0
+    assert "input/dir1/dir2" not in output_depth_0
+    assert "input/dir1/dir2/file_at_depth_3.txt" not in output_depth_0
+
+    # Test with depth=1 (only input directory and files directly in it)
+    output_depth_1 = cmd(archiver, "list", "test", "--depth=1")
+    assert "input" in output_depth_1
+    assert "input/file_at_depth_1.txt" in output_depth_1
+    assert "input/dir1" in output_depth_1
+    assert "input/dir1/file_at_depth_2.txt" not in output_depth_1
+    assert "input/dir1/dir2" not in output_depth_1
+    assert "input/dir1/dir2/file_at_depth_3.txt" not in output_depth_1
+
+    # Test with depth=2 (files up to one level inside input)
+    output_depth_2 = cmd(archiver, "list", "test", "--depth=2")
+    assert "input" in output_depth_2
+    assert "input/file_at_depth_1.txt" in output_depth_2
+    assert "input/dir1" in output_depth_2
+    assert "input/dir1/file_at_depth_2.txt" in output_depth_2
+    assert "input/dir1/dir2" in output_depth_2
+    assert "input/dir1/dir2/file_at_depth_3.txt" not in output_depth_2
+
+    # Test with depth=3 (files up to two levels inside input)
+    output_depth_3 = cmd(archiver, "list", "test", "--depth=3")
+    assert "input" in output_depth_3
+    assert "input/file_at_depth_1.txt" in output_depth_3
+    assert "input/dir1" in output_depth_3
+    assert "input/dir1/file_at_depth_2.txt" in output_depth_3
+    assert "input/dir1/dir2" in output_depth_3
+    assert "input/dir1/dir2/file_at_depth_3.txt" in output_depth_3
+
+    # Test without depth parameter (should show all files)
+    output_no_depth = cmd(archiver, "list", "test")
+    assert "input" in output_no_depth
+    assert "input/file_at_depth_1.txt" in output_no_depth
+    assert "input/dir1" in output_no_depth
+    assert "input/dir1/file_at_depth_2.txt" in output_no_depth
+    assert "input/dir1/dir2" in output_no_depth
+    assert "input/dir1/dir2/file_at_depth_3.txt" in output_no_depth
+
+
+@requires_hardlinks
+def test_list_inode_hardlinks(archivers, request):
+    archiver = request.getfixturevalue(archivers)
+
+    # Prepare repository and input files: two hardlinks to same file and one separate file
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    create_regular_file(archiver.input_path, "fileA", contents=b"DATA")
+    os.link(os.path.join(archiver.input_path, "fileA"), os.path.join(archiver.input_path, "fileB"))
+    create_regular_file(archiver.input_path, "fileC", contents=b"DATA")
+
+    # Create archive
+    cmd(archiver, "create", "test", "input")
+
+    # Use ItemFormatter via list --format to output {inode}
+    output = cmd(archiver, "list", "test", "--format", "{path} {inode}{NL}")
+
+    # Parse output lines and collect inode numbers for our files
+    inodes = {}
+    for line in output.splitlines():
+        try:
+            path, inode_str = line.rsplit(" ", 1)
+        except ValueError:
+            continue
+        if path in {"input/fileA", "input/fileB", "input/fileC"}:
+            # inode may be missing (None) on some platforms; convert to int if possible
+            inode = None if inode_str in ("", "None") else int(inode_str)
+            inodes[path] = inode
+
+    # Ensure we captured all three files
+    assert set(inodes) == {"input/fileA", "input/fileB", "input/fileC"}
+
+    # On platforms where inode is available, verify hardlinks share same inode
+    # If inode is None, the formatter still worked, but platform didn't provide an inode; skip in that case.
+    if inodes["input/fileA"] is not None and inodes["input/fileB"] is not None and inodes["input/fileC"] is not None:
+        assert inodes["input/fileA"] == inodes["input/fileB"]
+        assert inodes["input/fileA"] != inodes["input/fileC"]
+    else:
+        pytest.skip("Platform does not provide inode numbers for items")
+
+
+def test_fingerprint(archivers, request):
+    archiver = request.getfixturevalue(archivers)
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    create_regular_file(archiver.input_path, "file1", contents=b"content")
+    create_regular_file(archiver.input_path, "file2", contents=b"other")
+    cmd(archiver, "create", "test1", "input")
+
+    output = cmd(archiver, "list", "test1", "--format={fingerprint} {path}{NL}")
+    fingerprints1 = {}
+    for line in output.splitlines():
+        fp, path = line.split(" ", 1)
+        fingerprints1[path] = fp
+
+    # Same content, same chunker params -> same fingerprint
+    cmd(archiver, "create", "test2", "input")
+    output = cmd(archiver, "list", "test2", "--format={fingerprint} {path}{NL}")
+    fingerprints2 = {}
+    for line in output.splitlines():
+        fp, path = line.split(" ", 1)
+        fingerprints2[path] = fp
+    assert fingerprints1 == fingerprints2
+
+    # Modified content -> different fingerprint
+    create_regular_file(archiver.input_path, "file1", contents=b"modification")
+    cmd(archiver, "create", "test3", "input")
+    output = cmd(archiver, "list", "test3", "--format={fingerprint} {path}{NL}")
+    fingerprints3 = {}
+    for line in output.splitlines():
+        fp, path = line.split(" ", 1)
+        fingerprints3[path] = fp
+    assert fingerprints1["input/file1"] != fingerprints3["input/file1"]
+    # Unmodified file should still match
+    assert fingerprints1["input/file2"] == fingerprints3["input/file2"]
+
+    # Different chunker params -> different fingerprint
+    # We can use the same repo but specify different chunker params for a new archive
+    cmd(archiver, "create", "--chunker-params=fixed,4096", "test4", "input")
+    output = cmd(archiver, "list", "test4", "--format={fingerprint} {path}{NL}")
+    fingerprints4 = {}
+    for line in output.splitlines():
+        fp, path = line.split(" ", 1)
+        fingerprints4[path] = fp
+
+    # Even unmodified files should have different fingerprints because conditions_hash changed
+    assert fingerprints1["input/file2"] != fingerprints4["input/file2"]
+
+    # Also try with buzhash64
+    cmd(archiver, "create", "--chunker-params=buzhash64,10,23,16,4095,2", "test5", "input")
+    output = cmd(archiver, "list", "test5", "--format={fingerprint} {path}{NL}")
+    fingerprints5 = {}
+    for line in output.splitlines():
+        fp, path = line.split(" ", 1)
+        fingerprints5[path] = fp
+
+    # Even unmodified files should have different fingerprints because conditions_hash changed
+    assert fingerprints1["input/file2"] != fingerprints5["input/file2"]
+
+
+def test_list_sort_by_path(archivers, request):
+    archiver = request.getfixturevalue(archivers)
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    create_regular_file(archiver.input_path, "c_file", size=1)
+    create_regular_file(archiver.input_path, "a_file", size=1)
+    create_regular_file(archiver.input_path, "b_file", size=1)
+    cmd(archiver, "create", "test", "input")
+
+    expected = ["input", "input/a_file", "input/b_file", "input/c_file"]
+    assert cmd(archiver, "list", "test", "--short", "--sort-by=path").splitlines() == expected
+    assert cmd(archiver, "list", "test", "--short", "--sort-by=>path").splitlines() == list(reversed(expected))
+
+
+def test_list_sort_by_size_then_path(archivers, request):
+    archiver = request.getfixturevalue(archivers)
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    create_regular_file(archiver.input_path, "a_file", size=30)
+    create_regular_file(archiver.input_path, "b_file", size=10)
+    create_regular_file(archiver.input_path, "c_file", size=20)
+    cmd(archiver, "create", "test", "input")
+
+    output = cmd(archiver, "list", "test", "--sort-by=>size,path", "--format={size} {path}{NL}")
+    assert output.splitlines() == ["30 input/a_file", "20 input/c_file", "10 input/b_file", "0 input"]
+
+
+def test_list_sort_by_type(archivers, request):
+    archiver = request.getfixturevalue(archivers)
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    create_regular_file(archiver.input_path, "dir/file", size=1)
+    cmd(archiver, "create", "test", "input")
+
+    output = cmd(archiver, "list", "test", "--sort-by=type,path", "--format={type} {path}{NL}")
+    # regular files ("-") sort before directories ("d")
+    assert output.splitlines() == ["- input/dir/file", "d input", "d input/dir"]
+
+
+def test_list_sort_by_is_stable(archivers, request):
+    archiver = request.getfixturevalue(archivers)
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    create_regular_file(archiver.input_path, "a_file", size=10)
+    create_regular_file(archiver.input_path, "b_file", size=10)
+    cmd(archiver, "create", "test", "input")
+
+    # equal sizes, so the last sort field decides the order of these 2 items
+    output = cmd(archiver, "list", "test", "--short", "--sort-by=size,>path")
+    assert output.splitlines() == ["input", "input/b_file", "input/a_file"]
+
+
+@pytest.mark.parametrize("sort_spec", ["not_a_field", "path,not_a_field", "", ",", ">", "birthtime"])
+def test_list_sort_by_invalid_spec_is_rejected(archivers, request, sort_spec):
+    archiver = request.getfixturevalue(archivers)
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    create_regular_file(archiver.input_path, "file", size=1)
+    cmd(archiver, "create", "test", "input")
+
+    cmd(archiver, "list", "test", f"--sort-by={sort_spec}", exit_code=EXIT_ERROR)
+
+
+def test_list_sort_by_twice_is_rejected(archivers, request):
+    archiver = request.getfixturevalue(archivers)
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    create_regular_file(archiver.input_path, "file", size=1)
+    cmd(archiver, "create", "test", "input")
+
+    cmd(archiver, "list", "test", "--sort-by=path", "--sort-by=size", exit_code=EXIT_ERROR)
+
+
+@pytest.mark.parametrize(
+    "sort_key", ["path", "type", "mode", "user", "uid", "group", "gid", "size", "mtime", "ctime", "atime"]
+)
+def test_list_sort_by_all_keys_with_directions(archivers, request, sort_key):
+    archiver = request.getfixturevalue(archivers)
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    create_regular_file(archiver.input_path, "a_file", size=11)
+    create_regular_file(archiver.input_path, "b_file", size=22)
+    granularity_sleep()  # the files created below shall have newer timestamps
+    create_regular_file(archiver.input_path, "c_file", size=33)
+    create_regular_file(archiver.input_path, "dir/d_file", size=44)
+    cmd(archiver, "create", "test", "input")
+
+    expected_paths = {"input", "input/a_file", "input/b_file", "input/c_file", "input/dir", "input/dir/d_file"}
+    # We do not check the order here, this is mostly for coverage of all the sort keys.
+    for direction in ("<", ">"):
+        output = cmd(archiver, "list", "test", "--short", f"--sort-by={direction}{sort_key},path")
+        assert set(output.splitlines()) == expected_paths
+
+
+def test_list_sort_by_json_lines(archivers, request):
+    archiver = request.getfixturevalue(archivers)
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    create_regular_file(archiver.input_path, "a_file", size=1)
+    create_regular_file(archiver.input_path, "b_file", size=1)
+    cmd(archiver, "create", "test", "input")
+
+    output = cmd(archiver, "list", "test", "--json-lines", "--sort-by=>path")
+    paths = [json.loads(line)["path"] for line in output.splitlines()]
+    assert paths == ["input/b_file", "input/a_file", "input"]
+
+
+def test_list_sort_by_with_depth_and_pattern(archivers, request):
+    archiver = request.getfixturevalue(archivers)
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    create_regular_file(archiver.input_path, "b_file", size=1)
+    create_regular_file(archiver.input_path, "a_file", size=1)
+    create_regular_file(archiver.input_path, "dir/c_file", size=1)
+    cmd(archiver, "create", "test", "input")
+
+    # filtering happens before sorting
+    output = cmd(archiver, "list", "test", "--short", "--depth=1", "--sort-by=path")
+    assert output.splitlines() == ["input", "input/a_file", "input/b_file", "input/dir"]
+
+    output = cmd(archiver, "list", "test", "--short", "--sort-by=>path", "--pattern=+ re:_file$", "--pattern=- re:^.*$")
+    assert output.splitlines() == ["input/dir/c_file", "input/b_file", "input/a_file"]

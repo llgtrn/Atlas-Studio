@@ -1,0 +1,35 @@
+from ._common import with_repository, with_archive
+from ..constants import *  # NOQA
+from ..helpers import archivename_validator
+from ..helpers.argparsing import ArgumentParser
+
+from ..logger import create_logger
+
+logger = create_logger()
+
+
+class RenameMixIn:
+    @with_repository(cache=True)
+    @with_archive
+    def do_rename(self, args, repository, manifest, cache, archive):
+        """Rename an existing archive."""
+        archive.rename(args.newname)
+
+    def build_parser_rename(self, subparsers, common_parser, mid_common_parser):
+        from ._common import process_epilog
+
+        rename_epilog = process_epilog(
+            """
+        This command renames an archive in the repository.
+
+        This results in a different archive ID.
+        """
+        )
+        subparser = ArgumentParser(parents=[common_parser], description=self.do_rename.__doc__, epilog=rename_epilog)
+        subparsers.add_subcommand("rename", subparser, help="rename an archive")
+        subparser.add_argument(
+            "name", metavar="OLDNAME", type=archivename_validator, help="specify the current archive name"
+        )
+        subparser.add_argument(
+            "newname", metavar="NEWNAME", type=archivename_validator, help="specify the new archive name"
+        )

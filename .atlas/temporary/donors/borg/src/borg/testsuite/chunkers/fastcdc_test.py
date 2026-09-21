@@ -1,0 +1,304 @@
+from hashlib import sha256
+from io import BytesIO
+import os
+import platform
+import random
+import sys
+
+import pytest
+
+from . import cf, cf_expand
+from .pytest_helpers import chunker_with_kernel
+from ...chunkers import ChunkerFastCDC, get_chunker
+from ...chunkers.fastcdc import fastcdc_get_gear_table
+from ...constants import *  # NOQA
+from ...helpers import ChunkerParams, hex_to_bin
+
+
+# from os.urandom(32)
+key0 = hex_to_bin("ad9f89095817f0566337dc9ee292fcd59b70f054a8200151f1df5f21704824da")
+key1 = hex_to_bin("f1088c7e9e6ae83557ad1558ff36c44a369ea719d1081c29684f52ffccb72cb8")
+
+
+def H(data):
+    return sha256(data).digest()
+
+
+def test_chunkpoints_fastcdc_unchanged():
+    def twist(size):
+        x = 1
+        a = bytearray(size)
+        for i in range(size):
+            x = (x * 1103515245 + 12345) & 0x7FFFFFFF
+            a[i] = x & 0xFF
+        return a
+
+    data = twist(100000)
+
+    runs = []
+    for nc_level in (0, 2, 3):
+        for minexp in (4, 6, 7, 11, 12):
+            for maxexp in (15, 17):
+                if minexp >= maxexp:
+                    continue
+                for maskbits in (4, 7, 10, 12):
+                    if maskbits - nc_level < 1:  # nc_level needs room below the base mask bits
+                        continue
+                    for key in (key0, key1):
+                        fh = BytesIO(data)
+                        chunker = ChunkerFastCDC(key, minexp, maxexp, maskbits, nc_level)
+                        chunks = [H(c) for c in cf(chunker.chunkify(fh, -1))]
+                        runs.append(H(b"".join(chunks)))
+
+    # The "correct" hash below matches the existing chunker behavior.
+    # Future chunker optimizations must not change this, or existing repos will bloat.
+    overall_hash = H(b"".join(runs))
+    print(overall_hash.hex())
+    assert overall_hash == hex_to_bin("50d39b6f30214d78f665ff97a4800142cddcb6a7c5995e5d162f9c6dceb20cfe")
+
+
+def test_fastcdc_chunksize_distribution():
+    data = os.urandom(1048576)
+    min_exp, max_exp, mask, nc_level = 10, 16, 14, 2  # chunk size target 16 KiB, clip at 1 KiB and 64 KiB
+    chunker = ChunkerFastCDC(key0, min_exp, max_exp, mask, nc_level)
+    f = BytesIO(data)
+    chunks = cf(chunker.chunkify(f))
+    del chunks[-1]  # get rid of the last chunk, it can be smaller than 2**min_exp
+    chunk_sizes = [len(chunk) for chunk in chunks]
+    chunks_count = len(chunks)
+    min_chunksize_observed = min(chunk_sizes)
+    max_chunksize_observed = max(chunk_sizes)
+    min_count = sum(int(size == 2**min_exp) for size in chunk_sizes)
+    max_count = sum(int(size == 2**max_exp) for size in chunk_sizes)
+    print(
+        f"count: {chunks_count} min: {min_chunksize_observed} max: {max_chunksize_observed} "
+        f"min count: {min_count} max count: {max_count}"
+    )
+    # usually there will about 64 chunks
+    assert 32 < chunks_count < 128
+    # chunks always must be between min and max (clipping must work):
+    assert min_chunksize_observed >= 2**min_exp
+    assert max_chunksize_observed <= 2**max_exp
+    # most chunks should be cut due to the gear hash triggering, not due to clipping at min/max size:
+    assert min_count < 10
+    assert max_count < 10
+
+
+def test_fastcdc_gear_table():
+    # Test that the function returns a list of 256 integers
+    table0 = fastcdc_get_gear_table(key0)
+    assert len(table0) == 256
+    for value in table0:
+        assert isinstance(value, int)
+        assert 0 <= value < 2**64
+
+    # deterministic (same key produces same table)
+    assert table0 == fastcdc_get_gear_table(key0)
+
+    # different keys produce different tables
+    table1 = fastcdc_get_gear_table(key1)
+    assert table0 != table1
+
+
+def test_fastcdc_get_chunker():
+    # without a key, get_chunker uses an all-zero key; chunking must still work and be deterministic
+    data = os.urandom(2 * 1024 * 1024)
+    a = cf_expand(get_chunker(*FASTCDC_PARAMS, key=None).chunkify(BytesIO(data)))
+    b = cf_expand(get_chunker(*FASTCDC_PARAMS, key=None).chunkify(BytesIO(data)))
+    assert a == b
+    assert b"".join(a) == data
+
+
+def test_fastcdc_is_the_default_chunker():
+    # both the file content data chunker and the item metadata stream chunker default to fastcdc
+    assert CHUNKER_PARAMS == FASTCDC_PARAMS
+    assert CHUNKER_PARAMS[0] == CH_FASTCDC
+    assert ITEMS_CHUNKER_PARAMS[0] == CH_FASTCDC
+    # the defaults must be valid chunker params and must give working chunkers
+    for params in (CHUNKER_PARAMS, ITEMS_CHUNKER_PARAMS):
+        assert ChunkerParams(",".join(str(p) for p in params)) == params
+        data = os.urandom(1024 * 1024)
+        chunks = cf_expand(get_chunker(*params, key=None).chunkify(BytesIO(data)))
+        assert b"".join(chunks) == data
+
+
+def test_fastcdc_params_parsing():
+    from argparse import ArgumentTypeError
+
+    # fastcdc, chunk_min, chunk_max, chunk_mask, nc_level (no window field)
+    assert ChunkerParams("fastcdc,19,23,21,2") == (CH_FASTCDC, 19, 23, 21, 2)
+    assert ChunkerParams("fastcdc,10,23,16,0") == (CH_FASTCDC, 10, 23, 16, 0)
+    # a 6-field (buzhash64-style, with window) fastcdc must be rejected
+    with pytest.raises(ArgumentTypeError):
+        ChunkerParams("fastcdc,19,23,21,4095,2")
+    # a 4-field fastcdc (missing nc_level) must be rejected, not fall into old-style compat mode
+    with pytest.raises(ArgumentTypeError):
+        ChunkerParams("fastcdc,19,23,21")
+    # nc_level out of range (chunk_mask - nc_level < 1)
+    with pytest.raises(ArgumentTypeError):
+        ChunkerParams("fastcdc,19,23,21,21")
+    # chunk_min <= chunk_mask <= chunk_max violated
+    with pytest.raises(ArgumentTypeError):
+        ChunkerParams("fastcdc,19,23,24,2")
+    # chunk_min == chunk_max: the chunker needs min_size + 1 <= max_size
+    with pytest.raises(ArgumentTypeError):
+        ChunkerParams("fastcdc,20,20,20,2")
+
+
+ALL_FASTCDC_KERNELS = ("neon", "avx512", "avx2", "blockwise", "scalar")
+
+
+@pytest.mark.skipif("BORG_TESTS_SLOW" not in os.environ, reason="slow tests not enabled, use BORG_TESTS_SLOW=1")
+@pytest.mark.parametrize("kernel", ALL_FASTCDC_KERNELS)
+@pytest.mark.parametrize("worker", range(os.cpu_count() or 1))
+def test_fuzz_fastcdc(worker, kernel, monkeypatch):
+    # Fuzz fastcdc with random and uniform data of misc. sizes and misc keys.
+    # Every kernel gets fuzzed: the sizes here are not multiples of a block, so
+    # this is what covers the vector kernels' tails and their sub-block inputs,
+    # which the fixed-size buffer in test_fastcdc_kernels_identical never reaches.
+    def rnd_key():
+        return os.urandom(32)
+
+    # decompose FASTCDC_PARAMS = (algo, min_exp, max_exp, mask_bits, nc_level)
+    algo, min_exp, max_exp, mask_bits, nc_level = FASTCDC_PARAMS
+    assert algo == CH_FASTCDC
+
+    keys = [b"\0" * 32] + [rnd_key() for _ in range(10)]
+    sizes = [random.randint(1, 4 * 1024 * 1024) for _ in range(50)]
+
+    for key in keys:
+        chunker = chunker_with_kernel(
+            monkeypatch,
+            "BORG_FASTCDC_KERNEL",
+            kernel,
+            lambda: ChunkerFastCDC(key, min_exp, max_exp, mask_bits, nc_level),
+        )
+        for size in sizes:
+            # Random data
+            data = os.urandom(size)
+            with BytesIO(data) as bio:
+                parts = cf_expand(chunker.chunkify(bio))
+            assert b"".join(parts) == data
+
+            # All-same data (non-zero)
+            data = b"\x42" * size
+            with BytesIO(data) as bio:
+                parts = cf_expand(chunker.chunkify(bio))
+            assert b"".join(parts) == data
+
+            # All-zero data
+            data = b"\x00" * size
+            with BytesIO(data) as bio:
+                parts = cf_expand(chunker.chunkify(bio))
+            assert b"".join(parts) == data
+
+
+@pytest.mark.parametrize("kernel", ALL_FASTCDC_KERNELS)
+def test_fastcdc_kernels_identical(kernel, monkeypatch):
+    # Every scan kernel this platform accepts must produce identical cut points.
+    # Kernels this build/CPU cannot run are skipped, so the same test covers
+    # whatever tier the machine happens to have - including kernels that exist
+    # but are not the default here, which nothing else would exercise.
+    data = os.urandom(4 * 1024 * 1024)
+
+    def sizes(chunker):
+        return [c.meta["size"] for c in chunker.chunkify(BytesIO(data))]
+
+    monkeypatch.delenv("BORG_FASTCDC_KERNEL", raising=False)
+    reference = sizes(ChunkerFastCDC(key0, 10, 16, 14, 2))
+
+    chunker = chunker_with_kernel(
+        monkeypatch, "BORG_FASTCDC_KERNEL", kernel, lambda: ChunkerFastCDC(key0, 10, 16, 14, 2)
+    )
+    assert sizes(chunker) == reference, f"kernel {kernel} disagrees with the default one"
+
+
+@pytest.mark.parametrize("kernel", ["blockwise", "scalar"])
+def test_fastcdc_portable_kernel_available(kernel, monkeypatch):
+    # scalar and blockwise are portable C and exist in every build on every CPU.
+    # If one of them cannot be selected, kernel selection is broken rather than
+    # the platform being limited - so this must not skip the way the test above does.
+    monkeypatch.setenv("BORG_FASTCDC_KERNEL", kernel)
+    assert ChunkerFastCDC(key0, 10, 16, 14, 2).kernel == kernel
+
+
+# What an unset BORG_*_KERNEL must resolve to, per architecture, most preferred
+# first: the first entry this build and CPU can actually run is the default.
+# Mirrors fc_kernel_default() / bz64_kernel_default() (fastcdc_impl.c,
+# buzhash64_impl.c) and phte_kernel_default() (phte_core.h).
+FASTCDC_DEFAULTS = {"x86_64": ["scalar"], "aarch64": ["neon", "blockwise"]}
+BUZHASH64_DEFAULTS = {"x86_64": ["scalar"], "aarch64": ["blockwise"]}
+AES_DEFAULTS = {"x86_64": ["vaes", "aes-ni", "evp"], "aarch64": ["aes-arm64", "evp"]}
+
+
+def default_kernel_arch():
+    """Which key of those tables applies here.
+
+    uname spells the same architecture differently per OS - x86-64 is "amd64"
+    on the BSDs and "i86pc" on illumos - while the C side just asks the
+    compiler for __x86_64__ / __aarch64__.
+    """
+    machine = platform.machine().lower()
+    if machine in ("x86_64", "amd64") or (machine == "i86pc" and sys.maxsize > 2**32):
+        return "x86_64"
+    if machine in ("aarch64", "arm64"):
+        return "aarch64"
+    return machine
+
+
+def expected_default_kernel(envvar, make, key, monkeypatch):
+    """The kernel <envvar> unset must give here: the first of this architecture's
+    preference order that this build and CPU can run.
+
+    Determined by asking for each candidate explicitly, so this checks the
+    fallback chain rather than just repeating whatever the default resolved to.
+    """
+    machine = default_kernel_arch()
+    if envvar == "BORG_AES_CHUNKER_KERNEL":
+        preference = AES_DEFAULTS.get(machine, ["evp"])
+    elif envvar == "BORG_BUZHASH64_KERNEL":
+        preference = BUZHASH64_DEFAULTS.get(machine, ["blockwise"])
+    else:
+        preference = FASTCDC_DEFAULTS.get(machine, ["blockwise"])
+    for kernel in preference:
+        monkeypatch.setenv(envvar, kernel)
+        try:
+            make(key)
+        except ValueError:
+            continue  # not in this build, or this CPU can not run it
+        return kernel
+    raise AssertionError(f"none of {preference} is usable for {envvar} on {machine}")
+
+
+@pytest.mark.parametrize("envvar", ["BORG_FASTCDC_KERNEL", "BORG_BUZHASH64_KERNEL", "BORG_AES_CHUNKER_KERNEL"])
+def test_kernel_env_rejects_unusable(envvar, monkeypatch):
+    # A kernel that cannot run here must fail loudly instead of silently
+    # falling back - a silent fallback would turn a benchmark, or a CI job that
+    # means to pin one kernel, into a measurement of a different one.
+    from ...chunkers import ChunkerBuzHash64, ChunkerToeplitzAES
+
+    make = {
+        "BORG_FASTCDC_KERNEL": lambda k: ChunkerFastCDC(k, 10, 16, 14, 2),
+        "BORG_BUZHASH64_KERNEL": lambda k: ChunkerBuzHash64(k, 10, 16, 14, 4095, 2),
+        "BORG_AES_CHUNKER_KERNEL": lambda k: ChunkerToeplitzAES(k, 10, 16, 14, 2),
+    }[envvar]
+    key0 = hex_to_bin("ad9f89095817f0566337dc9ee292fcd59b70f054a8200151f1df5f21704824da")
+
+    monkeypatch.setenv(envvar, "no-such-kernel")
+    with pytest.raises(ValueError, match="no-such-kernel"):
+        make(key0)
+
+    # the default is picked without naming it, so "auto" is not a kernel name either
+    monkeypatch.setenv(envvar, "auto")
+    with pytest.raises(ValueError, match="auto"):
+        make(key0)
+
+    # unset means the kernel measured fastest on this architecture, falling back
+    # where this build or this CPU does not have it
+    default = expected_default_kernel(envvar, make, key0, monkeypatch)
+    monkeypatch.delenv(envvar)
+    assert make(key0).kernel == default
+
+    # and asking for it explicitly gives the same thing
+    monkeypatch.setenv(envvar, default)
+    assert make(key0).kernel == default

@@ -1,0 +1,346 @@
+.\" Man page generated from reStructuredText
+.\" by the Docutils 0.22.4 manpage writer.
+.
+.
+.nr rst2man-indent-level 0
+.
+.de1 rstReportMargin
+\\$1 \\n[an-margin]
+level \\n[rst2man-indent-level]
+level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
+-
+\\n[rst2man-indent0]
+\\n[rst2man-indent1]
+\\n[rst2man-indent2]
+..
+.de1 INDENT
+.\" .rstReportMargin pre:
+. RS \\$1
+. nr rst2man-indent\\n[rst2man-indent-level] \\n[an-margin]
+. nr rst2man-indent-level +1
+.\" .rstReportMargin post:
+..
+.de UNINDENT
+. RE
+.\" indent \\n[an-margin]
+.\" old: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.nr rst2man-indent-level -1
+.\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.in \\n[rst2man-indent\\n[rst2man-indent-level]]u
+..
+.TH "borg-prune" "1" "2026-09-02" "" "borg backup tool"
+.SH Name
+borg-prune \- Prune archives according to specified rules.
+.SH SYNOPSIS
+.sp
+borg [common options] prune [options] [NAME]
+.SH DESCRIPTION
+.sp
+The prune command prunes a repository by soft\-deleting all archives not
+matching any of the specified retention options.
+.sp
+Important:
+.INDENT 0.0
+.IP \(bu 2
+The prune command will only mark archives for deletion (\(dqsoft\-deletion\(dq),
+repository disk space is \fBnot\fP freed until you run \fBborg compact\fP\&.
+.IP \(bu 2
+You can use \fBborg undelete\fP to undelete archives, but only until
+you run \fBborg compact\fP\&.
+.UNINDENT
+.sp
+This command is normally used by automated backup scripts wanting to keep a
+certain number of historic backups. This retention policy is commonly referred to as
+GFS \%<https://\:en\:.wikipedia\:.org/\:wiki/\:Backup_rotation_scheme#\:Grandfather-father-son>
+(Grandfather\-father\-son) backup rotation scheme.
+.sp
+Two separate mechanisms decide what prune does: the archive \fIselection\fP determines
+which archives are considered at all, and \fB\-\-group\-by\fP determines how the retention
+rules subdivide the selected archives.
+.sp
+Without NAME and without \-\-match\-archives (\-a), \fIall\fP archives in the repository are
+selected. Give the archive series name via the NAME argument (assuming you have the
+same name for all archives in a series) or use \-\-match\-archives (\-a) to only consider
+a subset. NAME is just another way of saying \fB\-a NAME\fP, so it can be combined with
+\-\-match\-archives (\-a). All given patterns must match (they are ANDed), thus giving
+both narrows down the selection.
+.sp
+The retention rules are applied to each group of selected archives separately, so
+that unrelated backup sets do not compete for the same retention slots. By default,
+archives are grouped by their series name and the host they were made on
+(\fB\-\-group\-by name,host\fP): \fB\-\-keep\-daily 7\fP keeps 7 daily archives \fIper series and
+host\fP\&. Archive series names are not unique in a repository shared by multiple machines
+or users \- different machines may well use the same series name for their own,
+unrelated data \- so grouping by the name alone would let one machine\(aqs archives push
+another machine\(aqs archives out of the retention slots.
+.sp
+\fB\-\-group\-by\fP accepts a comma\-separated list of the archive attributes \fBname\fP,
+\fBhost\fP, \fBuser\fP and \fBtags\fP\&. Archives without \fBhost\fP / \fBuser\fP metadata (e.g.
+archives transferred from a borg 1.x repository) form their own group. Borg\(aqs internal
+tags (starting with \fB@\fP) do not affect grouping. Give \fB\-\-group\-by \(dq\(dq\fP to not group
+at all and apply the rules to all selected archives at once.
+.sp
+Use \fB\-\-group\-by name\fP if several machines back up the same data to the same archive
+series on purpose and you want one retention policy for all of them. Add \fBuser\fP if
+one machine backs up the same series as different users and each of them should get
+their own retention.
+.sp
+So, to prune every series of every host in one call, the default is all you need:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.EX
+borg prune \-\-keep\-daily 7 \-\-keep\-weekly 4
+.EE
+.UNINDENT
+.UNINDENT
+.sp
+To only consider your own archives, select them \- the grouping then applies to the
+selection only:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.EX
+borg prune \-a host:myhost \-\-keep\-daily 7 \-\-keep\-weekly 4
+.EE
+.UNINDENT
+.UNINDENT
+.sp
+Note: the \fBhost:\fP / \fBuser:\fP metadata is what the client wrote into the
+archive; it is not a permission mechanism. Any client with delete permission
+for the repository can prune any archive in it.
+.sp
+Beware of grouping by an attribute that is not stable over time: if e.g. the hostname
+changes for every backup run (as it might for containers), each archive ends up in a
+group of its own and the retention rules will keep all of them. Set \fBBORG_HOSTNAME\fP
+to a stable value in that case, or use \fB\-\-group\-by name\fP\&. Running prune with
+\fB\-\-info\fP shows one summary line per group, which makes such a situation visible.
+.sp
+The \fB\-\-keep\fP option is the simplest way to specify a basic retention
+policy. It accepts a count or a time interval for retention (e.g.
+\fB10\fP or \fB7d\fP, \fB4w\fP). With a count it keeps at most that many
+recent archives; with an interval it keeps all archives created within
+that time window. When \fB\-\-from\fP is given together with an interval
+retention, the interval is measured backwards from that timestamp
+instead of from the current time. See \fBDate and Time\fP docs for exact
+INTERVAL format.
+.sp
+The \fB\-\-keep\-secondly\fP, \fB\-\-keep\-minutely\fP, \fB\-\-keep\-hourly\fP,
+\fB\-\-keep\-daily\fP, \fB\-\-keep\-weekly\fP, \fB\-\-keep\-monthly\fP,
+\fB\-\-keep\-13weekly\fP, \fB\-\-keep\-3monthly\fP, and \fB\-\-keep\-yearly\fP options
+specify time period retention policies. They accept either a count N for
+retention or a time interval INTERVAL for retention, same as for \fB\-\-keep\fP\&.
+With a retention count, they keep at most that many archives (one per
+period, e.g. one per day or one per month until the retention count is
+met). With a retention interval, they keep one archive per period
+within that time span (e.g. at most one per day in a span of seven
+days, even if some days had none) \-\- measured from \fB\-\-from\fP if given,
+otherwise from the current time. Specifying a count of \fB\-1\fP (or the
+word \fBall\fP) means no limit. A zero count or zero\-length interval
+keeps nothing.
+.sp
+The \fB\-\-from\fP option restricts pruning to archives older than the given
+TIMESTAMP. Archives made at or after this timestamp are kept unconditionally
+as a pre\-filter. When \fB\-\-from\fP is used together with interval\-based
+\fB\-\-keep\-*\fP options (e.g. \fB\-\-keep\-daily 7d\fP), the interval is measured
+backwards from the given timestamp rather than from the current time.
+Count\-based retention does not count the unconditionally kept archives.
+.sp
+The \fB\-\-keep\-13weekly\fP and \fB\-\-keep\-3monthly\fP rules are two different
+strategies for keeping archives every quarter year.
+.sp
+The oldest archive is kept as long as the coarsest retention rule covers it \-\-
+\fB\-\-keep\-yearly=3\fP will keep the oldest archive if it couldn\(aqt otherwise find
+three candidates, \fB\-\-keep\-yearly=5y\fP will keep the oldest archive as long as
+it is at or within the 5y interval. This is useful for rolling tiered backup
+schemes, where the earliest backup in a retention window should survive until
+the next tier\(aqs interval naturally replaces it.
+.sp
+When using interval\-based pruning with multiple \fB\-\-keep\-*\fP options,
+the intervals must be specified in increasing length matching the
+periods chosen. For example, \fB\-\-keep\-daily 7d \-\-keep\-weekly 4w\fP is
+valid, but \fB\-\-keep\-daily 30d \-\-keep\-weekly 7d\fP is not, because the
+weekly interval is already covered by the daily one and so the weekly
+interval is effectively useless. An error is emitted upon running
+\fBborg prune\fP if such a combination of flags is given. The order of
+flags on the command line is not significant.
+.sp
+A practical approach for recurring backups is to use rules
+with increasing coarseness so that most of recent history is kept and
+older history gradually thins out with time. For example,
+\fB\-\-keep\-daily 7d \-\-keep\-weekly 4w \-\-keep\-monthly 6\fP keeps an
+archive per day for the past week, per week for the past month, and
+one per month for six months after that. Combine this with \fB\-\-from\fP
+to align time windows to calendar boundaries rather than the exact
+moment you run prune for more predictable behavior of coarser rules:
+\fB\-\-keep\-daily 7d \-\-keep\-weekly 4w \-\-from $(date +%F)\fP\&.
+.sp
+Count\-based retention keeps archives less bound to time. For instance,
+\fB\-\-keep\-yearly 3\fP retains 3 yearly archives however far back they
+span and \fB\-\-keep\-daily 20\fP keeps 20 archives no matter if you missed
+a week in between. This can be useful for less regular archive
+creation, or if your use case does not map well to specific time
+intervals, or if you simply prefer to think of archive retention in
+numbers rather than intervals.
+.sp
+For count\-based retention, backups selected by more granular rules do
+not count towards those of coarser rules. \fB\-\-keep 3 \-\-keep\-monthly 2\fP
+will first keep the 3 latest archives and then keep 2 monthly archives,
+skipping ones that were already kept by \fB\-\-keep 3\fP\&.
+.sp
+The time that each archive creation started is used to match archives
+to pruning periods. Dates and times are interpreted in the local
+timezone of your system. Weeks go from Monday to Sunday.
+.sp
+You can influence how the \fB\-\-list\fP output is formatted by using the \fB\-\-short\fP
+option (less wide output) or by giving a custom format using \fB\-\-format\fP (see
+the \fBborg repo\-list\fP description for more details about the format string).
+.SH OPTIONS
+.sp
+See \fIborg\-common(1)\fP for common options of Borg commands.
+.SS arguments
+.INDENT 0.0
+.TP
+.B NAME
+specify the archive name
+.UNINDENT
+.SS options
+.INDENT 0.0
+.TP
+.B  \-n\fP,\fB  \-\-dry\-run
+do not change the repository
+.TP
+.B  \-\-list
+output a verbose list of archives it keeps/prunes
+.TP
+.B  \-\-short
+use a less wide archive part format
+.TP
+.B  \-\-list\-pruned
+output verbose list of archives it prunes
+.TP
+.B  \-\-list\-kept
+output verbose list of archives it keeps
+.TP
+.BI \-\-format \ FORMAT
+specify format for the archive part (default: \(dq{archive:<36} {time} [{id}]\(dq)
+.TP
+.B  \-\-json
+Format output as JSON. The form of \fB\-\-format\fP is ignored, but keys used in it are added to the JSON output. Some keys are always present. Note: JSON can only represent text.
+.TP
+.BI \-\-from \ TIMESTAMP
+only consider archives older than this for pruning
+.TP
+.BI \-\-group\-by \ KEYS
+comma\-separated list of archive attributes to group the archives by before applying the retention rules to each group separately; valid keys are: name, host, user, tags; default is: name,host; use \(dq\(dq (or \(dqnone\(dq) to not group at all
+.TP
+.B  \-\-keep
+number or time interval of archives to keep
+.TP
+.B  \-\-keep\-secondly
+number or time interval of secondly archives to keep
+.TP
+.B  \-\-keep\-minutely
+number or time interval of minutely archives to keep
+.TP
+.B  \-H\fP,\fB  \-\-keep\-hourly
+number or time interval of hourly archives to keep
+.TP
+.B  \-d\fP,\fB  \-\-keep\-daily
+number or time interval of daily archives to keep
+.TP
+.B  \-w\fP,\fB  \-\-keep\-weekly
+number or time interval of weekly archives to keep
+.TP
+.B  \-m\fP,\fB  \-\-keep\-monthly
+number or time interval of monthly archives to keep
+.TP
+.B  \-\-keep\-13weekly
+number or time interval of quarterly archives to keep (13 week strategy)
+.TP
+.B  \-\-keep\-3monthly
+number or time interval of quarterly archives to keep (3 month strategy)
+.TP
+.B  \-y\fP,\fB  \-\-keep\-yearly
+number or time interval of yearly archives to keep
+.UNINDENT
+.SS Archive filters
+.INDENT 0.0
+.TP
+.BI \-a \ PATTERN\fR,\fB \ \-\-match\-archives \ PATTERN
+only consider archives matching all patterns. See \(dqborg help match\-archives\(dq.
+.UNINDENT
+.SH EXAMPLES
+.sp
+Be careful: prune is a potentially dangerous command that removes backup
+archives.
+.sp
+By default, prune applies to \fBall archives in the repository\fP unless you
+restrict its operation to a subset of the archives.
+.sp
+The recommended way to name archives (with \fBborg create\fP) is to use the
+identical archive name within a series of archives. Then you can simply give
+that name to prune as well, so it operates only on that series of archives.
+.sp
+Alternatively, you can use \fB\-a\fP/\fB\-\-match\-archives\fP to match archive names
+and select a subset of them.
+When using \fB\-a\fP, be careful to choose a good pattern — for example, do not use a
+prefix \(dqfoo\(dq if you do not also want to match \(dqfoobar\(dq.
+.sp
+It is strongly recommended to always run \fBprune \-v \-\-list \-\-dry\-run ...\fP
+first, so you will see what it would do without it actually doing anything.
+.sp
+Do not forget to run \fBborg compact \-v\fP after prune to actually free disk space.
+.sp
+The \fB\-\-keep\-*\fP options accept either a \fBcount\fP (e.g. \fB\-\-keep\-daily 7\fP) or
+a \fBtime interval\fP (e.g. \fB\-\-keep\-daily 7d\fP). A count keeps up to \fIN\fP archives
+per period (e.g. the last 7 daily archives), while an interval keeps one
+archive per period within that time span (e.g. one daily archive per day in the
+last 7\-day window). When using intervals, you may also specify \fB\-\-from\fP to
+set the reference timestamp for interval calculation.
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.EX
+# Keep 7 end of day and 4 additional end of week archives.
+# Do a dry\-run without actually deleting anything.
+$ borg prune \-v \-\-list \-\-dry\-run \-\-keep\-daily=7 \-\-keep\-weekly=4
+
+# Similar to the above, but only apply to the archive series named \(aq{hostname}\(aq:
+$ borg prune \-v \-\-list \-\-keep\-daily=7 \-\-keep\-weekly=4 \(aq{hostname}\(aq
+
+# Similar to the above, but apply to archive names starting with the hostname
+# of the machine followed by a \(aq\-\(aq character:
+$ borg prune \-v \-\-list \-\-keep\-daily=7 \-\-keep\-weekly=4 \-a \(aqsh:{hostname}\-*\(aq
+
+# Keep 7 end of day, 4 additional end of week archives,
+# and an end of month archive for every month:
+$ borg prune \-v \-\-list \-\-keep\-daily=7 \-\-keep\-weekly=4 \-\-keep\-monthly=\-1
+
+# Keep all backups in the last 10 days, 4 additional end of week archives,
+# and an end of month archive for every month:
+$ borg prune \-v \-\-list \-\-keep=10d \-\-keep\-weekly=4 \-\-keep\-monthly=\-1
+
+# Keep daily archives from the last 7 days:
+$ borg prune \-v \-\-list \-\-dry\-run \-\-keep\-daily=7d
+
+# Same as above, but with a fixed reference timestamp:
+$ borg prune \-v \-\-list \-\-dry\-run \-\-from 2025\-12\-01T00:00:00+02:00 \-\-keep\-daily=7d
+
+# Keep the last 14 archives using \(ga\-\-keep\(ga:
+$ borg prune \-v \-\-list \-\-dry\-run \-\-keep 14
+
+# Keep all archives from the last 30 days using \(ga\-\-keep\(ga:
+$ borg prune \-v \-\-list \-\-dry\-run \-\-keep 30d
+.EE
+.UNINDENT
+.UNINDENT
+.sp
+There are also visualized prune examples in \fBdocs/misc/prune\-example.txt\fP and
+\fBdocs/misc/prune\-example\-interval.txt\fP:
+.SH SEE ALSO
+.sp
+\fIborg\-common(1)\fP, \fIborg\-compact(1)\fP
+.SH Author
+The Borg Collective
+.\" End of generated man page.

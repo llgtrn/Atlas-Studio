@@ -1,0 +1,116 @@
+.\" Man page generated from reStructuredText
+.\" by the Docutils 0.22.4 manpage writer.
+.
+.
+.nr rst2man-indent-level 0
+.
+.de1 rstReportMargin
+\\$1 \\n[an-margin]
+level \\n[rst2man-indent-level]
+level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
+-
+\\n[rst2man-indent0]
+\\n[rst2man-indent1]
+\\n[rst2man-indent2]
+..
+.de1 INDENT
+.\" .rstReportMargin pre:
+. RS \\$1
+. nr rst2man-indent\\n[rst2man-indent-level] \\n[an-margin]
+. nr rst2man-indent-level +1
+.\" .rstReportMargin post:
+..
+.de UNINDENT
+. RE
+.\" indent \\n[an-margin]
+.\" old: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.nr rst2man-indent-level -1
+.\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.in \\n[rst2man-indent\\n[rst2man-indent-level]]u
+..
+.TH "borg-key-export" "1" "2026-09-02" "" "borg backup tool"
+.SH Name
+borg-key-export \- Exports a borg key of the repository for backup.
+.SH SYNOPSIS
+.sp
+borg [common options] key export [options] [PATH]
+.SH DESCRIPTION
+.sp
+This command backs up the borg key.
+.sp
+If repository encryption is used, the repository is inaccessible
+without the borg key (and the passphrase that protects the borg key).
+If a repository is not encrypted, but authenticated, the borg key is
+still needed to access the repository normally.
+.sp
+For repositories using \fBkeyfile\fP encryption the key is kept locally
+on the system that is capable of doing backups. To guard against loss
+or corruption of this key, the key needs to be backed up independently
+of the main data backup.
+.sp
+For repositories using \fBrepokey\fP encryption or \fBauthenticated\fP mode
+the key is kept in the repository. A backup is thus not strictly needed,
+but guards against the repository becoming inaccessible if the key is
+corrupted or lost.
+.sp
+Note that the backup produced does not include the passphrase itself
+(i.e. the exported key stays encrypted). In order to regain access to a
+repository, one needs both the exported key and the original passphrase.
+Keep the exported key and the passphrase at safe places.
+.sp
+A repository may have more than one borg key (each protected by its own
+passphrase, see \fBborg key add\fP). Select which borg key to export with
+\fB\-\-label\fP or \fB\-\-key\fP (its key id or a unique prefix, see
+\fBborg key list\fP). If the repository has only a single borg key, no
+selector is required.
+.sp
+There are three backup formats. The normal backup format is suitable for
+digital storage as a file. The \fB\-\-paper\fP backup format is optimized
+for printing and typing in while importing, with per line checks to
+reduce problems with manual input. The \fB\-\-qr\-html\fP creates a printable
+HTML template with a QR code and a copy of the \fB\-\-paper\fP\-formatted key.
+.SH OPTIONS
+.sp
+See \fIborg\-common(1)\fP for common options of Borg commands.
+.SS arguments
+.INDENT 0.0
+.TP
+.B PATH
+where to store the backup
+.UNINDENT
+.SS options
+.INDENT 0.0
+.TP
+.BI \-\-label \ LABEL
+export the borg key with this label
+.TP
+.BI \-\-key \ ID
+export the borg key with this id (or unique id prefix)
+.TP
+.B  \-\-paper
+Create an export suitable for printing and later type\-in
+.TP
+.B  \-\-qr\-html
+Create an HTML file suitable for printing and later type\-in or QR scan
+.UNINDENT
+.SH EXAMPLES
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.EX
+borg key export > encrypted\-key\-backup
+borg key export \-\-paper > encrypted\-key\-backup.txt
+borg key export \-\-qr\-html > encrypted\-key\-backup.html
+# Or pass the output file as an argument instead of redirecting stdout:
+borg key export encrypted\-key\-backup
+borg key export \-\-paper encrypted\-key\-backup.txt
+borg key export \-\-qr\-html encrypted\-key\-backup.html
+.EE
+.UNINDENT
+.UNINDENT
+.SH SEE ALSO
+.sp
+\fIborg\-common(1)\fP, \fIborg\-key\-import(1)\fP
+.SH Author
+The Borg Collective
+.\" End of generated man page.

@@ -1,0 +1,288 @@
+import hashlib
+
+# this set must be kept complete, otherwise the RobustUnpacker might malfunction:
+# fmt: off
+ITEM_KEYS = frozenset(['path', 'source', 'target', 'rdev', 'chunks', 'chunks_healthy', 'hardlink_master', 'hlid',
+                       'mode', 'user', 'group', 'uid', 'gid', 'mtime', 'atime', 'ctime', 'birthtime', 'size', 'inode',
+                       'xattrs', 'bsdflags', 'acl_nfs4', 'acl_access', 'acl_default', 'acl_extended',
+                       'digests',
+                       'part'])
+# fmt: on
+
+# this is the set of keys that are always present in items:
+REQUIRED_ITEM_KEYS = frozenset(["path", "mtime"])
+
+# hash algorithms borg can compute over the content of a file: the ones from python's stdlib
+# (except shake_*, which use an incompatible .digest() to support variable length) and blake3.
+# used for "borg create --digests" (item.digests) and for the "borg list" format keys.
+HASH_ALGORITHMS = frozenset(hashlib.algorithms_guaranteed - {"shake_128", "shake_256"}) | {"blake3"}
+
+# what "borg create --digests" computes if the user does not give that option:
+# nothing - digests are opt-in, computing them costs time (esp. for many small files).
+DIGEST_ALGOS_DEFAULT = ()
+
+# this set must be kept complete, otherwise rebuild_manifest might malfunction:
+# fmt: off
+ARCHIVE_KEYS = frozenset(['version', 'name', 'hostname', 'username',
+                          'time',  # v2+ archives AND borg 1.x archives
+                          'time_end',  # only legacy borg 1.x
+                          'start', 'end',  # v2+ archives
+                          'tags',  # v2+ archives
+                          'items',  # legacy v1 archives
+                          'item_ptrs',  # v2+ archives
+                          'comment', 'chunker_params',
+                          'command_line', 'recreate_command_line',  # v2+ archives
+                          'cmdline', 'recreate_cmdline',  # legacy
+                          'recreate_source_id', 'recreate_args', 'recreate_partial_chunks',  # used in 1.1.0b1 .. b2
+                          'size', 'nfiles',
+                          'size_parts', 'nfiles_parts',  # legacy v1 archives
+                          'cwd',
+                          ])
+# fmt: on
+
+# this is the set of keys that are always present in archives:
+REQUIRED_ARCHIVE_KEYS = frozenset(["version", "name", "item_ptrs", "command_line", "time"])
+
+# default umask, overridden by --umask, defaults to read/write only for owner
+UMASK_DEFAULT = 0o077
+
+# default file mode to store stdin data, defaults to read/write for owner and group
+# forcing to 0o100XXX later
+STDIN_MODE_DEFAULT = 0o660
+
+# default for --read-special-timeout [s]: how long reading a fifo / char device may wait
+# for data to arrive (incl. waiting for a fifo's writer to connect) before the file is
+# skipped with an error. 0 means "wait forever".
+READ_SPECIAL_TIMEOUT_DEFAULT = 1800.0
+
+# RepoObj types
+ROBJ_ARCHIVE_META = "A"  # main archive metadata object
+ROBJ_ARCHIVE_CHUNKIDS = "C"  # objects with a list of archive metadata stream chunkids
+ROBJ_ARCHIVE_STREAM = "S"  # archive metadata stream chunk (containing items)
+ROBJ_FILE_STREAM = "F"  # file content stream chunk (containing user data)
+ROBJ_DONTCARE = "*"  # used to parse without type assertion (= accept any type)
+
+# in borg < 1.3, this has been defined like this:
+# 20 MiB minus 41 bytes for a PUT header (because the "size" field in the Repository includes
+# the header, and the total size was set to precisely 20 MiB for borg < 1.3).
+MAX_DATA_SIZE = 20971479
+
+# Placeholder for pack location fields (obj_offset, obj_size) when the value is not yet known.
+# Grep for UNKNOWN_INT32 to find every site that still needs updating.
+UNKNOWN_INT32 = 0xFFFFFFFF
+
+# Filler for the pack_id (32-byte field) while the real value is unknown. Never interpreted;
+# an unresolved pack location is tracked by the ChunkIndex.F_PENDING flag.
+UNKNOWN_BYTES32 = b"\xff" * 32
+
+# default pack size limit [bytes], see PackWriter in the repository module
+DEFAULT_PACK_MAX_SIZE = 50 * 1000 * 1000
+
+# borg compact merges packs smaller than MIN_PACK_SIZE bytes ("tiny") once their combined size
+# reaches the repository's max pack size, so every merge produces at least one full-size pack that
+# is never tiny again (avoids repeatedly re-merging a growing-but-still-tiny pack). compact caps the
+# tiny limit at half the configured max pack size (see compact_packs).
+MIN_PACK_SIZE = DEFAULT_PACK_MAX_SIZE // 50  # 1 MB
+
+# MAX_OBJECT_SIZE = MAX_DATA_SIZE + len(PUT header)
+MAX_OBJECT_SIZE = MAX_DATA_SIZE + 41  # see assertion at end of repository module
+
+# Clock skew is the difference between the clocks of the machines writing to a repository (seconds).
+# A check result timestamp up to this far in the future still counts as recent; further ahead than
+# this, the pack is re-verified.
+MAX_CLOCK_SKEW = 7200  # [s]
+
+# Maximum tolerated clock skew between the clocks of borg clients concurrently using the same
+# repository before a warning is emitted (see storelocking). Must be well below the lock stale
+# timeout (30 min) / refresh interval (15 min) so users get warned long before skew could
+# interfere with lock staleness judgment or manifest timestamps.
+MAX_MUTUAL_CLOCK_SKEW = 300  # [s]
+
+# How many segment files Borg puts into a single directory by default.
+DEFAULT_SEGMENTS_PER_DIR = 1000
+
+# A large, but not unreasonably large segment size. Always less than 2 GiB (for legacy filesystems). We choose
+# 500 MiB, which means that no indirection from the inode is needed for typical Linux filesystems.
+# Note that this is a soft limit and can be exceeded (worst case) by a full maximum chunk size and some metadata
+# bytes. That's why it's 500 MiB instead of 512 MiB.
+DEFAULT_MAX_SEGMENT_SIZE = 500 * 1024 * 1024
+
+# repo config max_segment_size value must be below this limit to stay within uint32 offsets:
+MAX_SEGMENT_SIZE_LIMIT = 2**32 - MAX_OBJECT_SIZE
+
+# How many metadata stream chunk IDs do we store in a "pointer chunk" of the ArchiveItem.item_ptrs list?
+IDS_PER_CHUNK = MAX_DATA_SIZE // 40
+
+# have one all-zero bytes object
+# we use it in all places where we need to detect or create all-zero buffers
+zeros = bytes(MAX_DATA_SIZE)
+
+# borg serve (borg.legacy.remote) read() buffer size
+BUFSIZE = 10 * 1024 * 1024
+
+# repo.list() result count limit used by the Borg client
+LIST_SCAN_LIMIT = 100000
+
+# The chunks index is stored in the repo as immutable, content-addressed index/<store hash> fragments.
+# We keep each fragment's entry count within [MIN, MAX] where possible: MAX bounds a fragment's size,
+# MIN keeps the fragment count down. Small (< MIN) fragments are merged (repacked); fragments already
+# in range are left untouched (stable/immutable). SMALL_FRAGMENT_CAP bounds how many sub-MIN fragments
+# may accumulate before we force a merge even if their entries still sum to less than MIN.
+CHUNKINDEX_FRAGMENT_ENTRIES_MIN = 100000  # ~8MB
+CHUNKINDEX_FRAGMENT_ENTRIES_MAX = 400000  # ~32MB
+CHUNKINDEX_SMALL_FRAGMENT_CAP = 15
+# (the approximate on-disk bytes per serialized entry used to classify fragments by their byte size
+# is derived from the actual entry layout, see cache.chunkindex_fragment_entry_size())
+# How often to restart merging the fragments into a chunk index when a listed fragment vanishes
+# mid-merge (a concurrent repack replaced it). After that, fall back to the slow rebuild from packs.
+CHUNKINDEX_MERGE_ATTEMPTS = 3
+# Marker object in the cache/ namespace: the chunk index is invalid. While it is present, the index/ fragments
+# may be missing entries or point at deleted packs, so the chunk index is rebuilt from the packs on next load
+# and the leftover fragments are deleted.
+# Removing the marker while index/ fragments remain makes those fragments look like a complete index, so
+# only delete_chunkindex_invalid() removes it, and clearing cache/ requires clearing index/ too.
+CHUNKINDEX_INVALID_SENTINEL = "chunkindex-invalid"
+
+FD_MAX_AGE = 4 * 60  # 4 minutes
+
+# Some bounds on segment / segment_dir indexes
+MIN_SEGMENT_INDEX = 0
+MAX_SEGMENT_INDEX = 2**32 - 1
+MIN_SEGMENT_DIR_INDEX = 0
+MAX_SEGMENT_DIR_INDEX = 2**32 - 1
+
+# chunker algorithms
+CH_BUZHASH = "buzhash"
+CH_BUZHASH64 = "buzhash64"
+CH_FASTCDC = "fastcdc"
+CH_RABIN_AES = "rabin-aes"
+CH_GOLDILOCKS_AES = "goldilocks-aes"
+CH_TOEPLITZ_AES = "toeplitz-aes"
+CH_FIXED = "fixed"
+CH_FAIL = "fail"
+
+# chunker params
+CHUNK_MIN_EXP = 19  # 2**19 == 512 KiB
+CHUNK_MAX_EXP = 23  # 2**23 == 8 MiB
+HASH_WINDOW_SIZE = 0xFFF  # 4095 B (buzhash / buzhash64 only, fastcdc is window-less)
+HASH_MASK_BITS = 21  # results in ~2 MiB chunks statistically
+
+# not supported by buzhash (32bit): it must stay bit-compatible to borg 1.x, so it has no nc_level param.
+NC_LEVEL = 2  # FastCDC-style normalized chunking: tightens chunk-size distribution (much lower variance)
+
+# defaults, use --chunker-params to override
+# fastcdc uses a window-less Gear hash, so it has no window_size parameter.
+FASTCDC_PARAMS = (CH_FASTCDC, CHUNK_MIN_EXP, CHUNK_MAX_EXP, HASH_MASK_BITS, NC_LEVEL)
+BUZHASH_PARAMS = (CH_BUZHASH, CHUNK_MIN_EXP, CHUNK_MAX_EXP, HASH_MASK_BITS, HASH_WINDOW_SIZE)
+BUZHASH64_PARAMS = (CH_BUZHASH64, CHUNK_MIN_EXP, CHUNK_MAX_EXP, HASH_MASK_BITS, HASH_WINDOW_SIZE, NC_LEVEL)
+# rabin-aes has a fixed 64-byte window, so it has no window_size parameter either.
+RABIN_AES_PARAMS = (CH_RABIN_AES, CHUNK_MIN_EXP, CHUNK_MAX_EXP, HASH_MASK_BITS, NC_LEVEL)
+# goldilocks-aes: same param shape as rabin-aes (fixed 64-byte window).
+GOLDILOCKS_AES_PARAMS = (CH_GOLDILOCKS_AES, CHUNK_MIN_EXP, CHUNK_MAX_EXP, HASH_MASK_BITS, NC_LEVEL)
+# toeplitz-aes: same param shape as rabin-aes (fixed 64-byte window).
+TOEPLITZ_AES_PARAMS = (CH_TOEPLITZ_AES, CHUNK_MIN_EXP, CHUNK_MAX_EXP, HASH_MASK_BITS, NC_LEVEL)
+CHUNKER_PARAMS = FASTCDC_PARAMS  # the default chunker for file content data
+
+# chunker params for the items metadata stream, finer granularity
+ITEMS_CHUNKER_PARAMS = (CH_FASTCDC, 15, 19, 17, NC_LEVEL)
+
+# normal on-disk data, allocated (but not written, all zeros), not allocated hole (all zeros)
+CH_DATA, CH_ALLOC, CH_HOLE = 0, 1, 2
+
+# operating mode of the files cache (for fast skipping of unchanged files).
+# note: on Windows, os.stat_result.st_ctime[_ns] is the file *creation* time, not the
+# "metadata change time" it is on POSIX systems. A ctime based mode would not detect
+# content changes of a file that keeps its size and inode number there. See #7193.
+FILES_CACHE_MODE_UI_DEFAULT_POSIX = "ctime,size,inode"  # default for "borg create" command (CLI UI)
+FILES_CACHE_MODE_UI_DEFAULT_WIN32 = "mtime,size,inode"  # same, but on Windows
+FILES_CACHE_MODE_DISABLED = "d"  # most borg commands do not use the files cache at all (disable)
+
+# account for clocks being slightly out-of-sync, timestamps granularity.
+# we can't go much higher here (like e.g. to 2s) without causing issues.
+TIME_DIFFERS1_NS = 20000000
+
+# similar to above, but for bigger granularity / clock differences
+TIME_DIFFERS2_NS = 3000000000
+
+# tar related
+SCHILY_XATTR = "SCHILY.xattr."  # xattr key prefix in tar PAX headers
+SCHILY_ACL_ACCESS = "SCHILY.acl.access"  # POSIX access ACL in tar PAX headers
+SCHILY_ACL_DEFAULT = "SCHILY.acl.default"  # POSIX default ACL in tar PAX headers
+
+# special tags
+# @PROT protects archives against accidental deletion or modification by delete, prune, or recreate.
+SPECIAL_TAGS = frozenset(["@PROT"])
+
+# return codes returned by Borg command
+EXIT_SUCCESS = 0  # everything done, no problems
+EXIT_WARNING = 1  # reached normal end of operation, but there were issues (generic warning)
+EXIT_ERROR = 2  # terminated abruptly, did not reach end of operation (generic error)
+EXIT_ERROR_BASE = 3  # specific error codes are 3..99 (enabled by BORG_EXIT_CODES=modern)
+EXIT_WARNING_BASE = 100  # specific warning codes are 100..127 (enabled by BORG_EXIT_CODES=modern)
+EXIT_SIGNAL_BASE = 128  # terminated due to signal, rc = 128 + sig_no
+
+ISO_FORMAT_NO_USECS = "%Y-%m-%dT%H:%M:%S"
+ISO_FORMAT = ISO_FORMAT_NO_USECS + ".%f"
+
+DASHES = "-" * 78
+
+PBKDF2_ITERATIONS = 100000
+
+# https://www.rfc-editor.org/rfc/rfc9106.html#section-4-6.2
+ARGON2_ARGS = {"time_cost": 3, "memory_cost": 2**16, "parallelism": 4, "type": "id"}
+ARGON2_SALT_BYTES = 16
+
+# Maps the CLI argument to our internal identifier for the format
+KEY_ALGORITHMS = {
+    # encrypt-and-MAC, kdf: PBKDF2(HMAC−SHA256), encryption: AES256-CTR, authentication: HMAC-SHA256
+    "pbkdf2": "sha256",
+    # encrypt-then-MAC, kdf: argon2, encryption: chacha20, authentication: poly1305
+    "argon2": "argon2 chacha20-poly1305",
+}
+
+
+class KeyBlobStorage:
+    NO_STORAGE = "no_storage"
+    KEYFILE = "keyfile"
+    REPO = "repository"
+
+
+class KeyType:
+    # legacy crypto
+    # upper 4 bits are ciphersuite, 0 == legacy AES-CTR
+    KEYFILE = 0x00
+    # repos with PASSPHRASE mode could not be created any more since borg 1.0, see #97.
+    # in borg 2. all of its code and also the "borg key migrate-to-repokey" command was removed.
+    # if you still need to, you can use "borg key migrate-to-repokey" with borg 1.0, 1.1 and 1.2.
+    # Nowadays, we just dispatch this to the legacy AES-CTR key and assume the passphrase was migrated.
+    PASSPHRASE = 0x01  # legacy, borg < 1.0
+    PLAINTEXT = 0x02
+    REPO = 0x03
+    BLAKE2KEYFILE = 0x04
+    BLAKE2REPO = 0x05
+    BLAKE2AUTHENTICATED = 0x06
+    AUTHENTICATED = 0x07
+    # new crypto
+    # upper 4 bits are ciphersuite, lower 4 bits are reserved (0).
+    # the type byte only identifies the crypto suite; where the key is stored (keyfile vs
+    # repokey) is not encoded here any more, so there is only one type byte per suite.
+    AESOCB = 0x10
+    CHPO = 0x20
+    BLAKE3AESOCB = 0x30
+    BLAKE3CHPO = 0x40
+    # the "authenticated-*" modes: not encrypted, but every repo object slot carries a tag (a MAC),
+    # see MACKeyBase.
+    SHA256AUTHENTICATED = 0x50
+    BLAKE3AUTHENTICATED = 0x60
+
+
+CACHE_TAG_NAME = "CACHEDIR.TAG"
+CACHE_TAG_CONTENTS = b"Signature: 8a477f597d28d172789f06886806bc55"
+
+REPOSITORY_README = """This is a Borg Backup repository.
+See https://borgbackup.readthedocs.io/
+"""
+
+CACHE_README = """This is a Borg Backup cache.
+See https://borgbackup.readthedocs.io/
+"""

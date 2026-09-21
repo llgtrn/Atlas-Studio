@@ -1,0 +1,75 @@
+.\" Man page generated from reStructuredText
+.\" by the Docutils 0.22.4 manpage writer.
+.
+.
+.nr rst2man-indent-level 0
+.
+.de1 rstReportMargin
+\\$1 \\n[an-margin]
+level \\n[rst2man-indent-level]
+level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
+-
+\\n[rst2man-indent0]
+\\n[rst2man-indent1]
+\\n[rst2man-indent2]
+..
+.de1 INDENT
+.\" .rstReportMargin pre:
+. RS \\$1
+. nr rst2man-indent\\n[rst2man-indent-level] \\n[an-margin]
+. nr rst2man-indent-level +1
+.\" .rstReportMargin post:
+..
+.de UNINDENT
+. RE
+.\" indent \\n[an-margin]
+.\" old: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.nr rst2man-indent-level -1
+.\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.in \\n[rst2man-indent\\n[rst2man-indent-level]]u
+..
+.TH "borg-rename" "1" "2026-09-02" "" "borg backup tool"
+.SH Name
+borg-rename \- Rename an existing archive.
+.SH SYNOPSIS
+.sp
+borg [common options] rename [options] OLDNAME NEWNAME
+.SH DESCRIPTION
+.sp
+This command renames an archive in the repository.
+.sp
+This results in a different archive ID.
+.SH OPTIONS
+.sp
+See \fIborg\-common(1)\fP for common options of Borg commands.
+.SS arguments
+.INDENT 0.0
+.TP
+.B OLDNAME
+specify the current archive name
+.TP
+.B NEWNAME
+specify the new archive name
+.UNINDENT
+.SH EXAMPLES
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.EX
+$ borg create archivename ~
+$ borg repo\-list
+516c2a16  Sat, 2026\-08\-29 14:39:58 +0200  archivename                  tw          MacBook\-Pro
+
+# renaming rewrites the archive metadata, so the archive ID changes:
+$ borg rename archivename newname
+$ borg repo\-list
+3aaef11e  Sat, 2026\-08\-29 14:39:58 +0200  newname                      tw          MacBook\-Pro
+.EE
+.UNINDENT
+.UNINDENT
+.SH SEE ALSO
+.sp
+\fIborg\-common(1)\fP
+.SH Author
+The Borg Collective
+.\" End of generated man page.

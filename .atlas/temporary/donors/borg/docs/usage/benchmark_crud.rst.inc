@@ -1,0 +1,92 @@
+.. IMPORTANT: this file is auto-generated from borg's built-in help, do not edit!
+
+.. _borg_benchmark_crud:
+
+borg benchmark crud
+-------------------
+.. code-block:: none
+
+    borg [common options] benchmark crud [options] PATH
+
+.. only:: html
+
+    .. class:: borg-options-table
+
+    +-------------------------------------------------------+------------------+-------------------------------------------+
+    | **positional arguments**                                                                                             |
+    +-------------------------------------------------------+------------------+-------------------------------------------+
+    |                                                       | ``PATH``         | path where to create benchmark input data |
+    +-------------------------------------------------------+------------------+-------------------------------------------+
+    | **options**                                                                                                          |
+    +-------------------------------------------------------+------------------+-------------------------------------------+
+    |                                                       | ``--json-lines`` | Format output as JSON Lines.              |
+    +-------------------------------------------------------+------------------+-------------------------------------------+
+    | .. class:: borg-common-opt-ref                                                                                       |
+    |                                                                                                                      |
+    | :ref:`common_options`                                                                                                |
+    +-------------------------------------------------------+------------------+-------------------------------------------+
+
+    .. raw:: html
+
+        <script type='text/javascript'>
+        $(document).ready(function () {
+            $('.borg-options-table colgroup').remove();
+        })
+        </script>
+
+.. only:: latex
+
+    PATH
+        path where to create benchmark input data
+
+
+    options
+        --json-lines     Format output as JSON Lines.
+
+
+    :ref:`common_options`
+        |
+
+Description
+~~~~~~~~~~~
+
+This command benchmarks borg CRUD (create, read, update, delete) operations.
+
+It creates input data below the given PATH and backs up this data into the repository
+given via -r/--repo (or the BORG_REPO environment variable).
+The repository must already exist (it could be a fresh empty repo or an existing repo, the
+command will create / read / update / delete some archives named borg-benchmark-crud\* there.
+
+Make sure you have free space there; you will need about 1 GB each (+ overhead).
+
+If your repository is encrypted and borg needs a passphrase to unlock the key, use::
+
+    BORG_PASSPHRASE=mysecret borg -r REPO benchmark crud PATH
+
+Measurements are done with different input file sizes and counts.
+The file contents are very artificial (either all zero or all random),
+thus the measurement results do not necessarily reflect performance with real data.
+Also, due to the kind of content used, no compression is used in these benchmarks.
+
+C- == borg create (1st archive creation, no compression, do not use files cache)
+      C-Z- == all-zero files. full dedup, this is primarily measuring reader/chunker/hasher.
+      C-R- == random files. no dedup, measuring throughput through all processing stages.
+
+R- == borg extract (extract archive, dry-run, do everything, but do not write files to disk)
+      R-Z- == all zero files. Measuring heavily duplicated files.
+      R-R- == random files. No duplication here, measuring throughput through all processing
+      stages, except writing to disk.
+
+U- == borg create (2nd archive creation of unchanged input files, measure files cache speed)
+      The throughput value is kind of virtual here, it does not actually read the file.
+      U-Z- == needs to check the 2 all-zero chunks' existence in the repo.
+      U-R- == needs to check existence of a lot of different chunks in the repo.
+
+D- == borg delete archive (soft-delete the last remaining archive, measure deletion)
+      Deletion only removes the archive from the archives list, it does not free any
+      repository space - that is what borg compact does (not measured here).
+      D-Z- == all-zero files archive.
+      D-R- == random files archive.
+
+Please note that there might be quite some variance in these measurements.
+Try multiple measurements and having a otherwise idle machine (and network, if you use it).

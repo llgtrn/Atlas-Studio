@@ -1,0 +1,84 @@
+.\" Man page generated from reStructuredText
+.\" by the Docutils 0.22.4 manpage writer.
+.
+.
+.nr rst2man-indent-level 0
+.
+.de1 rstReportMargin
+\\$1 \\n[an-margin]
+level \\n[rst2man-indent-level]
+level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
+-
+\\n[rst2man-indent0]
+\\n[rst2man-indent1]
+\\n[rst2man-indent2]
+..
+.de1 INDENT
+.\" .rstReportMargin pre:
+. RS \\$1
+. nr rst2man-indent\\n[rst2man-indent-level] \\n[an-margin]
+. nr rst2man-indent-level +1
+.\" .rstReportMargin post:
+..
+.de UNINDENT
+. RE
+.\" indent \\n[an-margin]
+.\" old: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.nr rst2man-indent-level -1
+.\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.in \\n[rst2man-indent\\n[rst2man-indent-level]]u
+..
+.TH "borg-version" "1" "2026-09-02" "" "borg backup tool"
+.SH Name
+borg-version \- Displays the Borg client and server versions.
+.SH SYNOPSIS
+.sp
+borg [common options] version [options]
+.SH DESCRIPTION
+.sp
+This command displays the Borg client and server versions.
+.sp
+For current repositories the client code directly accesses the repository (also for
+rest:// repositories), so the client version is shown as the server version, too.
+.sp
+If a legacy (borg 1.x / v1) repository is given via ssh: together with \-\-from\-borg1,
+the remote Borg is queried, and its version is displayed as the server version.
+.sp
+Examples:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.EX
+# local repository
+$ borg \-r /mnt/backup version
+2.0.0 / 2.0.0
+
+# legacy remote repository (client uses 2.0.0, server uses 1.4.5 release)
+$ borg \-r ssh://borg@borgbackup/repo version \-\-from\-borg1
+2.0.0 / 1.4.5
+.EE
+.UNINDENT
+.UNINDENT
+.sp
+Due to the version tuple format used in Borg client/server negotiation, only
+a simplified version is displayed (as provided by borg.version.format_version).
+.sp
+You can also use \fBborg \-\-version\fP to display a potentially more precise client version.
+.SH OPTIONS
+.sp
+See \fIborg\-common(1)\fP for common options of Borg commands.
+.SS options
+.INDENT 0.0
+.TP
+.B  \-\-json
+format output as JSON
+.TP
+.B  \-\-from\-borg1
+repository is Borg 1.x
+.UNINDENT
+.SH SEE ALSO
+.sp
+\fIborg\-common(1)\fP
+.SH Author
+The Borg Collective
+.\" End of generated man page.

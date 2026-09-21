@@ -1,0 +1,939 @@
+import hashlib
+import io
+import json
+import os
+import random
+import shutil
+import subprocess
+import sys
+import tarfile
+
+import pytest
+from blake3 import blake3
+
+from ... import xattr
+from ...archiver.tar_cmds import chunks_to_sparse_info, gnu_sparse_10_map, SparseTarInfo
+from ...constants import *  # NOQA
+from ...helpers import Error
+from ...item import ChunkListEntry
+from .. import changedir
+from . import assert_dirs_equal, _extract_hardlinks_setup, cmd, open_archive, requires_hardlinks, RK_ENCRYPTION
+from . import create_test_files, create_regular_file
+from . import generate_archiver_tests
+from ...platform import acl_get, acl_set
+from ..platform.platform_test import skipif_not_linux, skipif_acls_not_working
+
+pytest_generate_tests = lambda metafunc: generate_archiver_tests(metafunc, kinds="local,binary")  # NOQA
+
+
+def have_gnutar():
+    if not shutil.which("tar"):
+        return False
+    popen = subprocess.Popen(["tar", "--version"], stdout=subprocess.PIPE)
+    stdout, stderr = popen.communicate()
+    return b"GNU tar" in stdout
+
+
+requires_gnutar = pytest.mark.skipif(not have_gnutar(), reason="GNU tar must be installed for this test.")
+requires_gzip = pytest.mark.skipif(not shutil.which("gzip"), reason="gzip must be installed for this test.")
+requires_zstd = pytest.mark.skipif(not shutil.which("zstd"), reason="zstd must be installed for this test.")
+
+ZSTD_MAGIC = b"\x28\xb5\x2f\xfd"
+
+
+@requires_gnutar
+def test_export_tar(archivers, request):
+    archiver = request.getfixturevalue(archivers)
+    create_test_files(archiver.input_path)
+    os.unlink("input/flagfile")
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    cmd(archiver, "create", "test", "input")
+    cmd(archiver, "export-tar", "test", "simple.tar", "--progress", "--tar-format=GNU")
+    with changedir("output"):
+        # This probably assumes GNU tar. Note: use the -p switch to extract permissions regardless of umask.
+        subprocess.check_call(["tar", "xpf", "../simple.tar", "--warning=no-timestamp"])
+    assert_dirs_equal("input", "output/input", ignore_flags=True, ignore_xattrs=True, ignore_ns=True)
+
+
+@requires_gnutar
+@requires_gzip
+def test_export_tar_gz(archivers, request):
+    archiver = request.getfixturevalue(archivers)
+    create_test_files(archiver.input_path)
+    os.unlink("input/flagfile")
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    cmd(archiver, "create", "test", "input")
+    test_list = cmd(archiver, "export-tar", "test", "simple.tar.gz", "--list", "--tar-format=GNU")
+    assert "input/file1\n" in test_list
+    assert "input/dir2\n" in test_list
+    with changedir("output"):
+        subprocess.check_call(["tar", "xpf", "../simple.tar.gz", "--warning=no-timestamp"])
+    assert_dirs_equal("input", "output/input", ignore_flags=True, ignore_xattrs=True, ignore_ns=True)
+
+
+@requires_gnutar
+@requires_gzip
+def test_export_tar_strip_components(archivers, request):
+    archiver = request.getfixturevalue(archivers)
+    create_test_files(archiver.input_path)
+    os.unlink("input/flagfile")
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    cmd(archiver, "create", "test", "input")
+    test_list = cmd(archiver, "export-tar", "test", "simple.tar", "--strip-components=1", "--list", "--tar-format=GNU")
+    # --list's paths are those before processing with --strip-components
+    assert "input/file1\n" in test_list
+    assert "input/dir2\n" in test_list
+    with changedir("output"):
+        subprocess.check_call(["tar", "xpf", "../simple.tar", "--warning=no-timestamp"])
+    assert_dirs_equal("input", "output/", ignore_flags=True, ignore_xattrs=True, ignore_ns=True)
+
+
+@requires_hardlinks
+@requires_gnutar
+def test_export_tar_strip_components_links(archivers, request):
+    archiver = request.getfixturevalue(archivers)
+    _extract_hardlinks_setup(archiver)
+    cmd(archiver, "export-tar", "test", "output.tar", "--strip-components=2", "--tar-format=GNU")
+    with changedir("output"):
+        subprocess.check_call(["tar", "xpf", "../output.tar", "--warning=no-timestamp"])
+        assert os.stat("hardlink").st_nlink == 2
+        assert os.stat("subdir/hardlink").st_nlink == 2
+        assert os.stat("aaaa").st_nlink == 2
+        assert os.stat("source2").st_nlink == 2
+
+
+@requires_hardlinks
+@requires_gnutar
+def test_extract_hardlinks_tar(archivers, request):
+    archiver = request.getfixturevalue(archivers)
+    _extract_hardlinks_setup(archiver)
+    cmd(archiver, "export-tar", "test", "output.tar", "input/dir1", "--tar-format=GNU")
+    with changedir("output"):
+        subprocess.check_call(["tar", "xpf", "../output.tar", "--warning=no-timestamp"])
+        assert os.stat("input/dir1/hardlink").st_nlink == 2
+        assert os.stat("input/dir1/subdir/hardlink").st_nlink == 2
+        assert os.stat("input/dir1/aaaa").st_nlink == 2
+        assert os.stat("input/dir1/source2").st_nlink == 2
+
+
+def test_import_tar(archivers, request, tar_format="PAX"):
+    archiver = request.getfixturevalue(archivers)
+    create_test_files(archiver.input_path, create_hardlinks=False)  # hard links become separate files
+    os.unlink("input/flagfile")
+    cmd(archiver, "repo-create", "--encryption=authenticated-sha256")
+    cmd(archiver, "create", "src", "input")
+    cmd(archiver, "export-tar", "src", "simple.tar", f"--tar-format={tar_format}")
+    cmd(archiver, "import-tar", "dst", "simple.tar")
+    with changedir(archiver.output_path):
+        cmd(archiver, "extract", "dst")
+    assert_dirs_equal("input", "output/input", ignore_ns=True, ignore_xattrs=True)
+
+
+@requires_hardlinks
+@pytest.mark.parametrize("tar_format", ["BORG", "PAX"])
+def test_import_tar_hardlinks(archivers, request, tar_format):
+    # export-tar emits the 2nd and following members of a hard link group as tar LNKTYPE entries
+    # for every tar format, so import-tar always finds the content (it reuses the chunks).
+    # Whether the hard link *grouping* survives the round trip depends on the tar format:
+    # the BORG format transfers the item's hlid inside the BORG.item.meta pax header, so the
+    # imported items are hard links again. The other formats have no place for the hlid, so
+    # import-tar creates separate (but content-deduplicated) regular file items,
+    # see HardLinkManager.__doc__, case D.
+    hardlinked = tar_format == "BORG"
+    archiver = request.getfixturevalue(archivers)
+    _extract_hardlinks_setup(archiver)  # creates archive "test"
+    cmd(archiver, "export-tar", "test", "output.tar", f"--tar-format={tar_format}")
+    cmd(archiver, "import-tar", "dst", "output.tar")
+    with changedir(archiver.output_path):
+        cmd(archiver, "extract", "dst")
+        groups = [  # (content, paths of the hard link group), as created by _extract_hardlinks_setup
+            (b"123456", ["input/source", "input/abba", "input/dir1/hardlink", "input/dir1/subdir/hardlink"]),
+            (b"", ["input/dir1/source2", "input/dir1/aaaa"]),
+        ]
+        for content, group in groups:
+            for path in group:
+                assert os.stat(path).st_nlink == (len(group) if hardlinked else 1)
+                with open(path, "rb") as fd:  # either way, the content is there
+                    assert fd.read() == content
+            inodes = {os.stat(path).st_ino for path in group}
+            assert len(inodes) == (1 if hardlinked else len(group))
+    if hardlinked:
+        # full fidelity: same content, metadata and hard link structure as the input
+        assert_dirs_equal("input", "output/input", ignore_ns=True, ignore_xattrs=True)
+
+
+def test_import_tar_nfiles(archivers, request):
+    archiver = request.getfixturevalue(archivers)
+    # Build a tar with 2 regular files, 1 hardlink, 1 directory and 1 symlink.
+    with tarfile.open("input.tar", "w") as tar:
+        for name in ("dir/file1", "dir/file2"):
+            data = name.encode()
+            tarinfo = tarfile.TarInfo(name)
+            tarinfo.size = len(data)
+            tar.addfile(tarinfo, io.BytesIO(data))
+        tarinfo = tarfile.TarInfo("dir/hardlink1")
+        tarinfo.type = tarfile.LNKTYPE
+        tarinfo.linkname = "dir/file1"
+        tar.addfile(tarinfo)
+        tarinfo = tarfile.TarInfo("dir/subdir")
+        tarinfo.type = tarfile.DIRTYPE
+        tar.addfile(tarinfo)
+        tarinfo = tarfile.TarInfo("dir/symlink1")
+        tarinfo.type = tarfile.SYMTYPE
+        tarinfo.linkname = "file1"
+        tar.addfile(tarinfo)
+    cmd(archiver, "repo-create", "--encryption=authenticated-sha256")
+    cmd(archiver, "import-tar", "dst", "input.tar")
+    info = json.loads(cmd(archiver, "info", "--json", "dst"))
+    # as with borg create, each regular file and each hardlink counts, directories/symlinks do not
+    assert info["archives"][0]["stats"]["nfiles"] == 3
+
+
+def test_import_tar_json(archivers, request):
+    """import-tar --json reports the stats of the new archive like create --json does, see #10335."""
+    archiver = request.getfixturevalue(archivers)
+    data = os.urandom(1024 * 80)
+    with tarfile.open("input.tar", "w") as tar:
+        tarinfo = tarfile.TarInfo("dir/file1")
+        tarinfo.size = len(data)
+        tar.addfile(tarinfo, io.BytesIO(data))
+    cmd(archiver, "repo-create", "--encryption=authenticated-sha256")
+    stats = json.loads(cmd(archiver, "import-tar", "--json", "dst", "input.tar"))["archive"]["stats"]
+    assert stats["nfiles"] == 1
+    # fresh repository: all of the file content was new to the repository.
+    assert len(data) <= stats["deduplicated_size"] <= stats["original_size"]
+
+
+def tar_item_digests(archiver, archive):
+    """{path: item.digests} as STORED in the items of an archive, see create_cmd_test.item_digests"""
+    archive_obj, repository = open_archive(archiver.repository_path, archive)
+    with repository:
+        return {item.path: item.get("digests") for item in archive_obj.iter_items()}
+
+
+def test_import_tar_digests(archivers, request):
+    # import-tar computes item.digests like borg create does, see #4699
+    archiver = request.getfixturevalue(archivers)
+    contents = {"dir/file1": os.urandom(512 * 1024), "dir/file2": b"small"}
+    with tarfile.open("input.tar", "w") as tar:
+        for name, data in contents.items():
+            tarinfo = tarfile.TarInfo(name)
+            tarinfo.size = len(data)
+            tar.addfile(tarinfo, io.BytesIO(data))
+        tarinfo = tarfile.TarInfo("dir/hardlink1")  # no content of its own, links to dir/file1
+        tarinfo.type = tarfile.LNKTYPE
+        tarinfo.linkname = "dir/file1"
+        tar.addfile(tarinfo)
+        tarinfo = tarfile.TarInfo("dir/subdir")
+        tarinfo.type = tarfile.DIRTYPE
+        tar.addfile(tarinfo)
+    cmd(archiver, "repo-create", "--encryption=authenticated-sha256")
+    cmd(archiver, "import-tar", "--digests=blake3", "--chunker-params=fixed,131072", "dst", "input.tar")
+    digests = tar_item_digests(archiver, "dst")
+    for name, data in contents.items():
+        assert digests[name] == {"blake3": blake3(data).digest()}
+    # the hard link has no content in the tar, it gets the digests of the file it links to
+    assert digests["dir/hardlink1"] == {"blake3": blake3(contents["dir/file1"]).digest()}
+    assert digests["dir/subdir"] is None  # a directory has no content and thus no digests
+
+    cmd(archiver, "import-tar", "--digests", "sha256", "dst-sha256", "input.tar")
+    digests = tar_item_digests(archiver, "dst-sha256")
+    assert digests["dir/file1"] == {"sha256": hashlib.sha256(contents["dir/file1"]).digest()}
+
+    cmd(archiver, "import-tar", "--digests=none", "dst-none", "input.tar")
+    assert tar_item_digests(archiver, "dst-none")["dir/file1"] is None
+
+    cmd(archiver, "import-tar", "dst-default", "input.tar")  # digests are opt-in
+    assert tar_item_digests(archiver, "dst-default")["dir/file1"] is None
+
+
+def test_import_tar_strip_components(archivers, request):
+    archiver = request.getfixturevalue(archivers)
+    # use "./"-prefixed member names, as e.g. GNU tar creates them for ./-relative archives.
+    with tarfile.open("input.tar", "w") as tar:
+        for name in ("./toplevel", "./toplevel/dir"):
+            tarinfo = tarfile.TarInfo(name)
+            tarinfo.type = tarfile.DIRTYPE
+            tar.addfile(tarinfo)
+        for name in ("./toplevel/dir/file", "./toplevel/file2"):
+            data = name.encode()
+            tarinfo = tarfile.TarInfo(name)
+            tarinfo.size = len(data)
+            tar.addfile(tarinfo, io.BytesIO(data))
+    cmd(archiver, "repo-create", "--encryption=authenticated-sha256")
+    cmd(archiver, "import-tar", "--strip-components=1", "dst", "input.tar")
+    files = cmd(archiver, "list", "dst", "--format", "{path}{NL}").splitlines()
+    # the toplevel directory member itself has too few path elements and is skipped
+    assert set(files) == {"dir", "dir/file", "file2"}
+    # stripping more components than any member has imports an empty archive
+    cmd(archiver, "import-tar", "--strip-components=10", "empty", "input.tar")
+    files = cmd(archiver, "list", "empty", "--format", "{path}{NL}").splitlines()
+    assert files == []
+
+
+def test_import_tar_strip_components_links(archivers, request):
+    archiver = request.getfixturevalue(archivers)
+    data = b"file content"
+    with tarfile.open("input.tar", "w") as tar:
+        tarinfo = tarfile.TarInfo("toplevel/file1")
+        tarinfo.size = len(data)
+        tar.addfile(tarinfo, io.BytesIO(data))
+        tarinfo = tarfile.TarInfo("toplevel/hardlink1")
+        tarinfo.type = tarfile.LNKTYPE
+        tarinfo.linkname = "toplevel/file1"
+        tar.addfile(tarinfo)
+        tarinfo = tarfile.TarInfo("toplevel/symlink1")
+        tarinfo.type = tarfile.SYMTYPE
+        tarinfo.linkname = "file1"
+        tar.addfile(tarinfo)
+        # file0 has too few path elements, so it is skipped - and so is the hard link pointing to it.
+        tarinfo = tarfile.TarInfo("file0")
+        tarinfo.size = len(data)
+        tar.addfile(tarinfo, io.BytesIO(data))
+        tarinfo = tarfile.TarInfo("toplevel/hardlink0")
+        tarinfo.type = tarfile.LNKTYPE
+        tarinfo.linkname = "file0"
+        tar.addfile(tarinfo)
+    cmd(archiver, "repo-create", "--encryption=authenticated-sha256")
+    cmd(archiver, "import-tar", "--strip-components=1", "dst", "input.tar")
+    files = cmd(archiver, "list", "dst", "--format", "{path}{NL}").splitlines()
+    assert set(files) == {"file1", "hardlink1", "symlink1"}
+    with changedir(archiver.output_path):
+        cmd(archiver, "extract", "dst")
+    with open("output/file1", "rb") as f:
+        assert f.read() == data
+    # the hard link references the stripped path of file1, so it reuses file1's content chunks
+    with open("output/hardlink1", "rb") as f:
+        assert f.read() == data
+    # symbolic link targets are not stripped
+    assert os.readlink("output/symlink1") == "file1"
+
+
+def test_import_tar_strip_components_list(archivers, request):
+    # the file status output shows the stripped paths, for all member types.
+    archiver = request.getfixturevalue(archivers)
+    with tarfile.open("input.tar", "w") as tar:
+        tarinfo = tarfile.TarInfo("toplevel/dir")
+        tarinfo.type = tarfile.DIRTYPE
+        tar.addfile(tarinfo)
+        tarinfo = tarfile.TarInfo("toplevel/dir/file1")
+        tar.addfile(tarinfo, io.BytesIO(b""))
+        tarinfo = tarfile.TarInfo("toplevel/dir/hardlink1")
+        tarinfo.type = tarfile.LNKTYPE
+        tarinfo.linkname = "toplevel/dir/file1"
+        tar.addfile(tarinfo)
+        tarinfo = tarfile.TarInfo("toplevel/dir/symlink1")
+        tarinfo.type = tarfile.SYMTYPE
+        tarinfo.linkname = "file1"
+        tar.addfile(tarinfo)
+    cmd(archiver, "repo-create", "--encryption=authenticated-sha256")
+    output = cmd(archiver, "import-tar", "--list", "--strip-components=1", "dst", "input.tar")
+    assert "d dir" in output.splitlines()
+    assert "A dir/file1" in output.splitlines()
+    assert "h dir/hardlink1" in output.splitlines()
+    assert "s dir/symlink1" in output.splitlines()
+    assert "toplevel" not in output
+
+
+def test_import_tar_list_normalized_paths(archivers, request):
+    # the file status output shows the paths as they are stored in the archive, for all member types.
+    archiver = request.getfixturevalue(archivers)
+    with tarfile.open("input.tar", "w") as tar:
+        tarinfo = tarfile.TarInfo("./dir")
+        tarinfo.type = tarfile.DIRTYPE
+        tar.addfile(tarinfo)
+        tarinfo = tarfile.TarInfo("./dir/file1")
+        tar.addfile(tarinfo, io.BytesIO(b""))
+        tarinfo = tarfile.TarInfo("./dir/hardlink1")
+        tarinfo.type = tarfile.LNKTYPE
+        tarinfo.linkname = "./dir/file1"
+        tar.addfile(tarinfo)
+        tarinfo = tarfile.TarInfo("./dir/symlink1")
+        tarinfo.type = tarfile.SYMTYPE
+        tarinfo.linkname = "file1"
+        tar.addfile(tarinfo)
+    cmd(archiver, "repo-create", "--encryption=authenticated-sha256")
+    output = cmd(archiver, "import-tar", "--list", "dst", "input.tar")
+    assert "d dir" in output.splitlines()
+    assert "A dir/file1" in output.splitlines()
+    assert "h dir/hardlink1" in output.splitlines()
+    assert "s dir/symlink1" in output.splitlines()
+    assert "./" not in output
+
+
+def test_import_tar_strip_components_borg_format(archivers, request):
+    # the BORG tar format restores the items from pax headers, stripping must work for that path, too.
+    # that includes hard links: the BORG format transfers the hlid, so they are hard links again after the import.
+    archiver = request.getfixturevalue(archivers)
+    create_test_files(archiver.input_path)
+    os.unlink("input/flagfile")
+    cmd(archiver, "repo-create", "--encryption=authenticated-sha256")
+    cmd(archiver, "create", "src", "input")
+    cmd(archiver, "export-tar", "src", "simple.tar", "--tar-format=BORG")
+    cmd(archiver, "import-tar", "--strip-components=1", "dst", "simple.tar")
+    with changedir(archiver.output_path):
+        cmd(archiver, "extract", "dst")
+    assert_dirs_equal("input", "output", ignore_ns=True, ignore_xattrs=True)
+
+
+def test_import_unusual_tar(archivers, request):
+    archiver = request.getfixturevalue(archivers)
+
+    # Contains these, unusual entries:
+    # /foobar
+    # ./bar
+    # ./foo2/
+    # ./foo//bar
+    # ./
+    tar_archive = os.path.join(os.path.dirname(__file__), "unusual_paths.tar")
+    cmd(archiver, "repo-create", "--encryption=authenticated-sha256")
+    cmd(archiver, "import-tar", "dst", tar_archive)
+    files = cmd(archiver, "list", "dst", "--format", "{path}{NL}").splitlines()
+    assert set(files) == {"foobar", "bar", "foo2", "foo/bar", "."}
+
+
+def test_import_tar_with_dotdot(archivers, request):
+    archiver = request.getfixturevalue(archivers)
+    if archiver.EXE:  # the test checks for a raised exception. that can't work if the code runs in a separate process.
+        pytest.skip("does not work with binaries")
+
+    # Contains this file:
+    # ../../../../etc/shadow
+    tar_archive = os.path.join(os.path.dirname(__file__), "dotdot_path.tar")
+    cmd(archiver, "repo-create", "--encryption=authenticated-sha256")
+    with pytest.raises(ValueError, match="unexpected '..' element in path '../../../../etc/shadow'"):
+        cmd(archiver, "import-tar", "dst", tar_archive, exit_code=2)
+
+
+@requires_gzip
+def test_import_tar_gz(archivers, request, tar_format="GNU"):
+    archiver = request.getfixturevalue(archivers)
+    create_test_files(archiver.input_path, create_hardlinks=False)  # hard links become separate files
+    os.unlink("input/flagfile")
+    cmd(archiver, "repo-create", "--encryption=authenticated-sha256")
+    cmd(archiver, "create", "src", "input")
+    cmd(archiver, "export-tar", "src", "simple.tgz", f"--tar-format={tar_format}")
+    cmd(archiver, "import-tar", "dst", "simple.tgz")
+    with changedir(archiver.output_path):
+        cmd(archiver, "extract", "dst")
+    assert_dirs_equal("input", "output/input", ignore_ns=True, ignore_xattrs=True)
+
+
+@pytest.mark.parametrize("suffix", ["tar.zst", "tar.zstd", "tzst"])
+def test_export_import_tar_zst(archivers, request, suffix):
+    # zstd tarballs are (de)compressed in-process, no external zstd binary is needed.
+    archiver = request.getfixturevalue(archivers)
+    create_test_files(archiver.input_path, create_hardlinks=False)  # hard links become separate files
+    os.unlink("input/flagfile")
+    cmd(archiver, "repo-create", "--encryption=authenticated-sha256")
+    cmd(archiver, "create", "src", "input")
+    cmd(archiver, "export-tar", "src", f"simple.{suffix}")
+    with open(f"simple.{suffix}", "rb") as fd:
+        assert fd.read(4) == ZSTD_MAGIC
+    cmd(archiver, "import-tar", "dst", f"simple.{suffix}")
+    with changedir(archiver.output_path):
+        cmd(archiver, "extract", "dst")
+    assert_dirs_equal("input", "output/input", ignore_ns=True, ignore_xattrs=True)
+
+
+def test_export_import_tar_zst_mt(archivers, request, monkeypatch):
+    # exercise the multi-threaded compression path (nb_workers) of the in-process zstd filter.
+    archiver = request.getfixturevalue(archivers)
+    monkeypatch.setenv("BORG_ZSTD_MT_WORKERS", "2")
+    monkeypatch.setattr("borg.compress._zstd_mt_workers", None)  # drop the cache
+    create_test_files(archiver.input_path, create_hardlinks=False)  # hard links become separate files
+    os.unlink("input/flagfile")
+    cmd(archiver, "repo-create", "--encryption=authenticated-sha256")
+    cmd(archiver, "create", "src", "input")
+    cmd(archiver, "export-tar", "src", "simple.tar.zst")
+    cmd(archiver, "import-tar", "dst", "simple.tar.zst")
+    with changedir(archiver.output_path):
+        cmd(archiver, "extract", "dst")
+    assert_dirs_equal("input", "output/input", ignore_ns=True, ignore_xattrs=True)
+
+
+@requires_gnutar
+@requires_zstd
+def test_export_tar_zst_interop(archivers, request):
+    # in-process zstd output must be readable by the standard zstd tool.
+    archiver = request.getfixturevalue(archivers)
+    create_test_files(archiver.input_path)
+    os.unlink("input/flagfile")
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    cmd(archiver, "create", "test", "input")
+    cmd(archiver, "export-tar", "test", "simple.tar.zst", "--tar-format=GNU")
+    subprocess.check_call(["zstd", "-d", "simple.tar.zst", "-o", "simple.tar"])
+    with changedir("output"):
+        subprocess.check_call(["tar", "xpf", "../simple.tar", "--warning=no-timestamp"])
+    assert_dirs_equal("input", "output/input", ignore_flags=True, ignore_xattrs=True, ignore_ns=True)
+
+
+@requires_zstd
+def test_tar_filter_zstd_external(archivers, request):
+    # an explicit --tar-filter always runs the external filter program, also for zstd.
+    archiver = request.getfixturevalue(archivers)
+    create_test_files(archiver.input_path, create_hardlinks=False)  # hard links become separate files
+    os.unlink("input/flagfile")
+    cmd(archiver, "repo-create", "--encryption=authenticated-sha256")
+    cmd(archiver, "create", "src", "input")
+    cmd(archiver, "export-tar", "src", "simple.tar.zst", "--tar-filter=zstd")
+    with open("simple.tar.zst", "rb") as fd:
+        assert fd.read(4) == ZSTD_MAGIC
+    cmd(archiver, "import-tar", "dst", "simple.tar.zst", "--tar-filter=zstd -d")
+    with changedir(archiver.output_path):
+        cmd(archiver, "extract", "dst")
+    assert_dirs_equal("input", "output/input", ignore_ns=True, ignore_xattrs=True)
+
+
+@requires_gnutar
+def test_import_concatenated_tar_with_ignore_zeros(archivers, request):
+    archiver = request.getfixturevalue(archivers)
+    create_test_files(archiver.input_path, create_hardlinks=False)  # hard links become separate files
+    os.unlink("input/flagfile")
+    with changedir("input"):
+        subprocess.check_call(["tar", "cf", "file1.tar", "file1"])
+        subprocess.check_call(["tar", "cf", "the_rest.tar", "--exclude", "file1*", "."])
+        with open("concatenated.tar", "wb") as concatenated:
+            with open("file1.tar", "rb") as file1:
+                concatenated.write(file1.read())
+            # Clean up for assert_dirs_equal.
+            os.unlink("file1.tar")
+
+            with open("the_rest.tar", "rb") as the_rest:
+                concatenated.write(the_rest.read())
+            # Clean up for assert_dirs_equal.
+            os.unlink("the_rest.tar")
+
+    cmd(archiver, "repo-create", "--encryption=authenticated-sha256")
+    cmd(archiver, "import-tar", "--ignore-zeros", "dst", "input/concatenated.tar")
+    # Clean up for assert_dirs_equal.
+    os.unlink("input/concatenated.tar")
+
+    with changedir(archiver.output_path):
+        cmd(archiver, "extract", "dst")
+    assert_dirs_equal("input", "output", ignore_ns=True, ignore_xattrs=True)
+
+
+@requires_gnutar
+def test_import_concatenated_tar_without_ignore_zeros(archivers, request):
+    archiver = request.getfixturevalue(archivers)
+    create_test_files(archiver.input_path, create_hardlinks=False)  # hard links become separate files
+    os.unlink("input/flagfile")
+
+    with changedir("input"):
+        subprocess.check_call(["tar", "cf", "file1.tar", "file1"])
+        subprocess.check_call(["tar", "cf", "the_rest.tar", "--exclude", "file1*", "."])
+        with open("concatenated.tar", "wb") as concatenated:
+            with open("file1.tar", "rb") as file1:
+                concatenated.write(file1.read())
+            with open("the_rest.tar", "rb") as the_rest:
+                concatenated.write(the_rest.read())
+            os.unlink("the_rest.tar")
+    cmd(archiver, "repo-create", "--encryption=authenticated-sha256")
+    cmd(archiver, "import-tar", "dst", "input/concatenated.tar")
+
+    with changedir(archiver.output_path):
+        cmd(archiver, "extract", "dst")
+    # Negative test -- assert that only file1 has been extracted, and the_rest has been ignored
+    # due to zero-filled block marker.
+    assert os.listdir("output") == ["file1"]
+
+
+@requires_gnutar
+def test_import_tar_with_dotslash_paths(archivers, request):
+    """Test that paths starting with './' are normalized during import-tar."""
+    archiver = request.getfixturevalue(archivers)
+    # Create a simple directory structure
+    create_regular_file(archiver.input_path, "dir/file")
+
+    # Create a tar file with paths starting with './'
+    with changedir("input"):
+        # Directly use a path that starts with './'
+        subprocess.check_call(["tar", "cf", "dotslash.tar", "./dir"])
+
+        # Verify the tar file contains paths with './' prefix
+        tar_content = subprocess.check_output(["tar", "tf", "dotslash.tar"]).decode()
+        assert "./dir" in tar_content
+        assert "./dir/file" in tar_content
+
+    # Import the tar file into a Borg repository
+    cmd(archiver, "repo-create", "--encryption=authenticated-sha256")
+    cmd(archiver, "import-tar", "dotslash", "input/dotslash.tar")
+
+    # List the archive contents and verify no paths start with './'
+    output = cmd(archiver, "list", "--format={path}{NL}", "dotslash")
+    assert "./dir" not in output
+    assert "dir" in output
+    assert "dir/file" in output
+
+
+def test_roundtrip_pax_borg(archivers, request):
+    archiver = request.getfixturevalue(archivers)
+    create_test_files(archiver.input_path)
+    os.remove("input/flagfile")  # this would be automagically excluded due to NODUMP
+    cmd(archiver, "repo-create", "--encryption=authenticated-sha256")
+    cmd(archiver, "create", "src", "input")
+    cmd(archiver, "export-tar", "src", "simple.tar", "--tar-format=BORG")
+    cmd(archiver, "import-tar", "dst", "simple.tar")
+    with changedir(archiver.output_path):
+        cmd(archiver, "extract", "dst")
+    assert_dirs_equal("input", "output/input")
+
+
+def test_roundtrip_pax_xattrs(archivers, request):
+    archiver = request.getfixturevalue(archivers)
+    if not xattr.is_enabled(archiver.input_path):
+        pytest.skip("xattrs not supported")
+    create_regular_file(archiver.input_path, "file")
+    original_path = os.path.join(archiver.input_path, "file")
+    xa_key, xa_value = b"user.xattrtest", b"not valid utf-8: \xff"
+    xattr.setxattr(original_path.encode(), xa_key, xa_value)
+    cmd(archiver, "repo-create", "--encryption=authenticated-sha256")
+    cmd(archiver, "create", "src", "input")
+    cmd(archiver, "export-tar", "src", "xattrs.tar", "--tar-format=PAX")
+    cmd(archiver, "import-tar", "dst", "xattrs.tar")
+    with changedir(archiver.output_path):
+        cmd(archiver, "extract", "dst")
+        extracted_path = os.path.abspath("input/file")
+        xa_value_extracted = xattr.getxattr(extracted_path.encode(), xa_key)
+    assert xa_value_extracted == xa_value
+
+
+def _sparse_entries(sizes):
+    return [ChunkListEntry(id=bytes([i]) * 32, size=size) for i, size in enumerate(sizes)]
+
+
+def test_chunks_to_sparse_info():
+    # no chunks / no holes: not sparse
+    assert chunks_to_sparse_info([], []) is None
+    assert chunks_to_sparse_info(_sparse_entries([512, 1024]), [False, False]) is None
+    # a zero run shorter than a tar block cannot make a (block-aligned) hole
+    assert chunks_to_sparse_info(_sparse_entries([512, 511, 512]), [False, True, False]) is None
+    # leading hole; adjacent zero chunks coalesce into one hole
+    chunks = _sparse_entries([1024, 512, 1536])
+    map_entries, stream_plan, realsize = chunks_to_sparse_info(chunks, [True, True, False])
+    assert map_entries == [(1536, 1536)]
+    assert stream_plan == [chunks[2]]
+    assert realsize == 3072
+    # middle hole
+    chunks = _sparse_entries([512, 1024, 1024, 512])
+    map_entries, stream_plan, realsize = chunks_to_sparse_info(chunks, [False, True, True, False])
+    assert map_entries == [(0, 512), (2560, 512)]
+    assert stream_plan == [chunks[0], chunks[3]]
+    assert realsize == 3072
+    # trailing hole: terminating (realsize, 0) entry, like GNU tar creates it
+    chunks = _sparse_entries([512, 1024])
+    map_entries, stream_plan, realsize = chunks_to_sparse_info(chunks, [False, True])
+    assert map_entries == [(0, 512), (1536, 0)]
+    assert stream_plan == [chunks[0]]
+    assert realsize == 1536
+    # all-hole file (its trailing hole may end unaligned)
+    chunks = _sparse_entries([512, 100])
+    map_entries, stream_plan, realsize = chunks_to_sparse_info(chunks, [True, True])
+    assert map_entries == [(612, 0)]
+    assert stream_plan == []
+    assert realsize == 612
+    # holes shrink to whole 512-byte tar blocks (GNU tar's sparse reader needs block-aligned
+    # data segments); the shaved-off zero bytes at the hole edges are emitted literally.
+    chunks = _sparse_entries([10000, 40000, 10000])
+    map_entries, stream_plan, realsize = chunks_to_sparse_info(chunks, [False, True, False])
+    assert map_entries == [(0, 10240), (49664, 10336)]
+    assert stream_plan == [chunks[0], 240, 336, chunks[2]]
+    assert realsize == 60000
+    # the stream plan produces exactly the data segments' bytes
+    emitted = sum(entry if isinstance(entry, int) else entry.size for entry in stream_plan)
+    assert emitted == sum(length for _, length in map_entries)
+
+
+def test_gnu_sparse_10_map():
+    # exactly the numbers/layout GNU tar writes, NUL-padded to a multiple of 512.
+    map_bytes = gnu_sparse_10_map([(0, 1048576), (5242880, 1048576), (10485760, 0)])
+    assert map_bytes == b"3\n0\n1048576\n5242880\n1048576\n10485760\n0\n" + b"\0" * (512 - 39)
+    assert len(gnu_sparse_10_map([(1000, 0)])) == 512
+    # a large map spills into multiple 512 byte blocks
+    map_bytes = gnu_sparse_10_map([(i * 10000, 5000) for i in range(100)])
+    assert len(map_bytes) % 512 == 0 and len(map_bytes) > 512
+    numbers = [int(n) for n in map_bytes.rstrip(b"\0").split()]
+    assert numbers[0] == 100 and numbers[1:3] == [0, 5000]
+
+
+# chunkers used by the sparse tests: a fixed chunker (all-zero chunks exactly aligned with
+# the zero runs) and a small-target fastcdc chunker (content-defined chunk boundaries, so the
+# zero runs yield multiple repeated pure all-zero chunks of max. chunk size (64 KiB), possibly
+# surrounded by mixed data/zeros chunks at the edges - like real sparse files chunked by the
+# default chunker, just scaled down to small test files).
+SPARSE_CHUNKER_FIXED = "--chunker-params=fixed,65536"
+SPARSE_CHUNKER_CDC = "--chunker-params=fastcdc,12,16,14,2"  # 4 KiB min, 16 KiB target, 64 KiB max
+
+
+def _create_sparse_test_input(input_path):
+    """Create files containing runs of all-zero chunks (the files need not be sparse on disk)."""
+    B = 65536  # the max. chunk size of the chunkers used by the sparse tests
+    rnd = random.Random(42)  # pseudorandom data, so the cdc chunker cuts realistic chunks
+    contents = {
+        "sparse_img": rnd.randbytes(B) + b"\0" * (4 * B) + rnd.randbytes(B) + b"\0" * (4 * B),
+        "allzero": b"\0" * (3 * B),
+        "unaligned": b"\0" * (2 * B) + b"tail",  # leading hole, small unaligned trailing data chunk
+        "dense": rnd.randbytes(B + 42),
+        "empty": b"",
+    }
+    for name, data in contents.items():
+        create_regular_file(input_path, name, contents=data)
+    return contents
+
+
+@pytest.mark.parametrize("chunker_params", [SPARSE_CHUNKER_FIXED, SPARSE_CHUNKER_CDC])
+def test_export_tar_sparse(archivers, request, chunker_params):
+    archiver = request.getfixturevalue(archivers)
+    contents = _create_sparse_test_input(archiver.input_path)
+    cmd(archiver, "repo-create", "--encryption=authenticated-sha256")
+    cmd(archiver, "create", chunker_params, "test", "input")
+    cmd(archiver, "export-tar", "test", "dense.tar")
+    cmd(archiver, "export-tar", "--sparse", "test", "sparse.tar", "--progress")
+    # storing the holes as sparse members must save space (~832 KiB of holes here)
+    assert os.path.getsize("sparse.tar") < os.path.getsize("dense.tar") - 500000
+    expected_sparse = {"input/sparse_img", "input/allzero", "input/unaligned"}
+    seen = set()
+    with tarfile.open("sparse.tar") as tar:
+        for tarinfo in tar.getmembers():
+            if not tarinfo.isreg():
+                continue
+            seen.add(tarinfo.name)
+            # the tarinfo has the real (unmangled) name and the logical size,
+            # and the member expands to the original content.
+            name = tarinfo.name.rsplit("/", 1)[-1]
+            assert tarinfo.size == len(contents[name])
+            assert tar.extractfile(tarinfo).read() == contents[name]
+            assert tarinfo.issparse() == (tarinfo.name in expected_sparse)
+    assert seen == {"input/" + name for name in contents}
+
+
+@pytest.mark.parametrize("chunker_params", [SPARSE_CHUNKER_FIXED, SPARSE_CHUNKER_CDC])
+@pytest.mark.parametrize("tar_format", ["PAX", "BORG"])
+def test_export_tar_sparse_roundtrip(archivers, request, tar_format, chunker_params):
+    archiver = request.getfixturevalue(archivers)
+    _create_sparse_test_input(archiver.input_path)
+    cmd(archiver, "repo-create", "--encryption=authenticated-sha256")
+    cmd(archiver, "create", chunker_params, "src", "input")
+    cmd(archiver, "export-tar", "--sparse", f"--tar-format={tar_format}", "src", "sparse.tar")
+    cmd(archiver, "import-tar", "dst", "sparse.tar")
+    with changedir(archiver.output_path):
+        cmd(archiver, "extract", "dst")
+    assert_dirs_equal("input", "output/input", ignore_ns=True, ignore_xattrs=True)
+
+
+def test_export_tar_sparse_not_worthwhile(archivers, request):
+    # when the sparse map would cost more space than the holes save, store a dense member.
+    archiver = request.getfixturevalue(archivers)
+    contents = b"X" * 448 + b"\0" * 64
+    create_regular_file(archiver.input_path, "tinyhole", contents=contents)
+    cmd(archiver, "repo-create", "--encryption=authenticated-sha256")
+    cmd(archiver, "create", "--chunker-params=fixed,64", "test", "input")
+    cmd(archiver, "export-tar", "--sparse", "test", "sparse.tar")
+    with tarfile.open("sparse.tar") as tar:
+        tarinfo = tar.getmember("input/tinyhole")
+        assert not tarinfo.issparse()
+        assert tar.extractfile(tarinfo).read() == contents
+
+
+@requires_gnutar
+def test_export_tar_sparse_gnutar(archivers, request):
+    archiver = request.getfixturevalue(archivers)
+    _create_sparse_test_input(archiver.input_path)
+    cmd(archiver, "repo-create", "--encryption=authenticated-sha256")
+    cmd(archiver, "create", SPARSE_CHUNKER_CDC, "test", "input")
+    cmd(archiver, "export-tar", "--sparse", "test", "sparse.tar")
+    with changedir("output"):
+        subprocess.check_call(["tar", "xpf", "../sparse.tar", "--warning=no-timestamp"])
+    assert_dirs_equal("input", "output/input", ignore_flags=True, ignore_xattrs=True, ignore_ns=True)
+    if sys.platform == "linux":
+        # GNU tar recreates the holes when extracting sparse members.
+        st = os.stat("output/input/sparse_img")
+        assert st.st_blocks * 512 < st.st_size
+
+
+@requires_hardlinks
+def test_export_tar_sparse_hardlinks(archivers, request):
+    archiver = request.getfixturevalue(archivers)
+    contents = b"\0" * 2 * 65536 + b"data"
+    create_regular_file(archiver.input_path, "sparse1", contents=contents)
+    os.link(os.path.join(archiver.input_path, "sparse1"), os.path.join(archiver.input_path, "sparse2"))
+    cmd(archiver, "repo-create", "--encryption=authenticated-sha256")
+    cmd(archiver, "create", SPARSE_CHUNKER_CDC, "src", "input")
+    cmd(archiver, "export-tar", "--sparse", "src", "sparse.tar")
+    with tarfile.open("sparse.tar") as tar:
+        members = [ti for ti in tar.getmembers() if ti.name.startswith("input/sparse")]
+        regs = [ti for ti in members if ti.isreg()]
+        lnks = [ti for ti in members if ti.islnk()]
+        assert len(regs) == 1 and len(lnks) == 1
+        # the first occurrence carries the sparse content, the second one is a tar hard link
+        # referencing the first one's real (unmangled) name.
+        assert regs[0].issparse()
+        assert tar.extractfile(regs[0]).read() == contents
+        assert lnks[0].linkname == regs[0].name
+    # roundtrip: as usual for import-tar, tar hard links become separate files (sharing chunks).
+    cmd(archiver, "import-tar", "dst", "sparse.tar")
+    with changedir(archiver.output_path):
+        cmd(archiver, "extract", "dst")
+        for name in "input/sparse1", "input/sparse2":
+            with open(name, "rb") as f:
+                assert f.read() == contents
+
+
+def test_export_tar_sparse_strip_components(archivers, request):
+    # the mangled member name and GNU.sparse.name must be based on the stripped path.
+    archiver = request.getfixturevalue(archivers)
+    contents = b"\0" * 2 * 65536 + b"end"
+    create_regular_file(archiver.input_path, "dir/sparsefile", contents=contents)
+    cmd(archiver, "repo-create", "--encryption=authenticated-sha256")
+    cmd(archiver, "create", SPARSE_CHUNKER_CDC, "test", "input")
+    cmd(archiver, "export-tar", "--sparse", "--strip-components=1", "test", "sparse.tar")
+    with tarfile.open("sparse.tar") as tar:
+        tarinfo = tar.getmember("dir/sparsefile")
+        assert tarinfo.issparse()
+        assert tar.extractfile(tarinfo).read() == contents
+
+
+def test_sparse_tarinfo_base256_size():
+    # a stored size beyond the 12-digit octal ustar field limit is base-256 encoded in the
+    # ustar size field (with a correct checksum), and no pax "size" record is emitted
+    # (sparse readers desync on such a record).
+    tarinfo = SparseTarInfo(name="GNUSparseFile.0/big")
+    tarinfo.size = 3 * 8**11  # 24 GiB of stored data, does not fit the octal field
+    tarinfo.pax_headers = {"GNU.sparse.realsize": str(100 * 8**11)}
+    buf = tarinfo.tobuf(tarfile.PAX_FORMAT, tarfile.ENCODING, "surrogateescape")
+    assert b" size=" not in buf  # no pax "size" record (" realsize=" does not match)
+    # frombuf validates the checksum and decodes the base-256 size field:
+    parsed = tarfile.TarInfo.frombuf(buf[-tarfile.BLOCKSIZE :], tarfile.ENCODING, "surrogateescape")
+    assert parsed.size == 3 * 8**11
+    # small stored sizes keep the plain octal encoding:
+    tarinfo.size = 4711
+    buf = tarinfo.tobuf(tarfile.PAX_FORMAT, tarfile.ENCODING, "surrogateescape")
+    assert buf[-tarfile.BLOCKSIZE :][124:136] == b"00000011147\x00"
+
+
+def test_export_tar_sparse_base256_size(archivers, request, monkeypatch):
+    # end-to-end wire-format test of the base-256 stored size: the encoding does not depend
+    # on the value, so force it for small members instead of storing 8 GiB of data.
+    archiver = request.getfixturevalue(archivers)
+    if archiver.EXE:
+        pytest.skip("monkeypatching does not reach a borg binary")
+    monkeypatch.setattr(SparseTarInfo, "octal_size_limit", 1)
+    contents = _create_sparse_test_input(archiver.input_path)
+    cmd(archiver, "repo-create", "--encryption=authenticated-sha256")
+    cmd(archiver, "create", SPARSE_CHUNKER_CDC, "src", "input")
+    cmd(archiver, "export-tar", "--sparse", "src", "sparse.tar")
+    with tarfile.open("sparse.tar") as tar:
+        for tarinfo in tar.getmembers():
+            if tarinfo.isreg():
+                name = tarinfo.name.rsplit("/", 1)[-1]
+                assert tar.extractfile(tarinfo).read() == contents[name]
+    if have_gnutar():
+        with changedir("output"):
+            subprocess.check_call(["tar", "xpf", "../sparse.tar", "--warning=no-timestamp"])
+        assert_dirs_equal("input", "output/input", ignore_flags=True, ignore_xattrs=True, ignore_ns=True)
+        shutil.rmtree("output/input")
+    cmd(archiver, "import-tar", "dst", "sparse.tar")
+    with changedir(archiver.output_path):
+        cmd(archiver, "extract", "dst")
+    assert_dirs_equal("input", "output/input", ignore_ns=True, ignore_xattrs=True)
+
+
+def test_export_tar_sparse_gnu_format_error(archivers, request):
+    # --sparse requires a PAX-based tar format, the GNU format cannot store the sparse headers.
+    archiver = request.getfixturevalue(archivers)
+    create_regular_file(archiver.input_path, "file", contents=b"x")
+    cmd(archiver, "repo-create", "--encryption=authenticated-sha256")
+    cmd(archiver, "create", "test", "input")
+    if archiver.FORK_DEFAULT:
+        output = cmd(archiver, "export-tar", "--sparse", "--tar-format=GNU", "test", "out.tar", exit_code=2)
+        assert "--sparse requires --tar-format" in output
+    else:
+        with pytest.raises(Error, match="--sparse requires --tar-format"):
+            cmd(archiver, "export-tar", "--sparse", "--tar-format=GNU", "test", "out.tar")
+
+
+@skipif_not_linux
+@skipif_acls_not_working
+def test_acl_roundtrip(archivers, request):
+    """Test the complete workflow for POSIX ACLs with export-tar and import-tar.
+
+    This test follows the workflow:
+    1. set filesystem ACLs
+    2. create a Borg archive
+    3. export-tar this archive
+    4. import-tar the resulting tar file
+    5. extract the imported archive
+    6. check the expected ACLs in the filesystem
+    """
+    archiver = request.getfixturevalue(archivers)
+
+    # Define helper functions for working with ACLs
+    def get_acl(path):
+        item = {}
+        acl_get(path, item, os.stat(path))
+        return item
+
+    def set_acl(path, access=None, default=None):
+        item = {"acl_access": access, "acl_default": default}
+        acl_set(path, item)
+
+    # Define example ACLs
+    ACCESS_ACL = b"user::rw-\nuser:root:rw-:0\ngroup::r--\ngroup:root:r--:0\nmask::rw-\nother::r--"
+    DEFAULT_ACL = b"user::rw-\nuser:root:r--:0\ngroup::r--\ngroup:root:r--:0\nmask::rw-\nother::r--"
+
+    # 1. Set filesystem ACLs
+    # Create test files with ACLs
+    create_regular_file(archiver.input_path, "file")
+    os.mkdir(os.path.join(archiver.input_path, "dir"))
+
+    file_path = os.path.join(archiver.input_path, "file")
+    dir_path = os.path.join(archiver.input_path, "dir")
+
+    # Set ACLs on the test files
+    try:
+        set_acl(file_path, access=ACCESS_ACL)
+        set_acl(dir_path, access=ACCESS_ACL, default=DEFAULT_ACL)
+    except OSError as e:
+        pytest.skip(f"Failed to set ACLs: {e}")
+
+    file_acl = get_acl(file_path)
+    dir_acl = get_acl(dir_path)
+
+    if not file_acl.get("acl_access") or not dir_acl.get("acl_access") or not dir_acl.get("acl_default"):
+        pytest.skip("ACLs not supported or not working correctly")
+
+    # 2. Create a Borg archive
+    cmd(archiver, "repo-create", "--encryption=authenticated-sha256")
+    cmd(archiver, "create", "original", "input")
+
+    # 3. export-tar this archive to a tar file
+    cmd(archiver, "export-tar", "original", "acls.tar", "--tar-format=PAX")
+
+    # 4. import-tar the resulting tar file
+    cmd(archiver, "import-tar", "imported", "acls.tar")
+
+    # 5. Extract the imported archive
+    with changedir(archiver.output_path):
+        cmd(archiver, "extract", "imported")
+
+        # 6. Check the expected ACLs in the filesystem
+        extracted_file_path = os.path.abspath("input/file")
+        extracted_dir_path = os.path.abspath("input/dir")
+
+        extracted_file_acl = get_acl(extracted_file_path)
+        extracted_dir_acl = get_acl(extracted_dir_path)
+
+        # Check that access ACLs were preserved
+        assert "acl_access" in extracted_file_acl
+        assert extracted_file_acl["acl_access"] == file_acl["acl_access"]
+        assert b"user:root:rw-" in file_acl["acl_access"]
+
+        assert "acl_access" in extracted_dir_acl
+        assert extracted_dir_acl["acl_access"] == dir_acl["acl_access"]
+        assert b"user:root:rw-" in dir_acl["acl_access"]
+
+        # Check that default ACLs were preserved for directories
+        assert "acl_default" in extracted_dir_acl
+        assert extracted_dir_acl["acl_default"] == dir_acl["acl_default"]
+        assert b"user:root:r--" in dir_acl["acl_default"]

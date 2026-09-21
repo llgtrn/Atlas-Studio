@@ -1,0 +1,117 @@
+.\" Man page generated from reStructuredText
+.\" by the Docutils 0.22.4 manpage writer.
+.
+.
+.nr rst2man-indent-level 0
+.
+.de1 rstReportMargin
+\\$1 \\n[an-margin]
+level \\n[rst2man-indent-level]
+level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
+-
+\\n[rst2man-indent0]
+\\n[rst2man-indent1]
+\\n[rst2man-indent2]
+..
+.de1 INDENT
+.\" .rstReportMargin pre:
+. RS \\$1
+. nr rst2man-indent\\n[rst2man-indent-level] \\n[an-margin]
+. nr rst2man-indent-level +1
+.\" .rstReportMargin post:
+..
+.de UNINDENT
+. RE
+.\" indent \\n[an-margin]
+.\" old: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.nr rst2man-indent-level -1
+.\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.in \\n[rst2man-indent\\n[rst2man-indent-level]]u
+..
+.TH "borg-info" "1" "2026-09-02" "" "borg backup tool"
+.SH Name
+borg-info \- Show archive details such as disk space used
+.SH SYNOPSIS
+.sp
+borg [common options] info [options] [NAME]
+.SH DESCRIPTION
+.sp
+This command displays detailed information about the specified archive.
+.sp
+The original size shown here is the total size of the archive\(aqs source data
+(uncompressed, counting duplicate content per occurrence).
+.sp
+Deduplicated sizes are not shown here (computing them per archive is expensive).
+For the deduplicated size of a set of archives, use \fBborg analyze\fP; for the
+repository\-wide deduplicated size, use \fBborg compact \-\-stats\fP\&.
+.SH OPTIONS
+.sp
+See \fIborg\-common(1)\fP for common options of Borg commands.
+.SS arguments
+.INDENT 0.0
+.TP
+.B NAME
+specify the archive name
+.UNINDENT
+.SS options
+.INDENT 0.0
+.TP
+.B  \-\-json
+format output as JSON
+.UNINDENT
+.SS Archive filters
+.INDENT 0.0
+.TP
+.BI \-a \ PATTERN\fR,\fB \ \-\-match\-archives \ PATTERN
+only consider archives matching all patterns. See \(dqborg help match\-archives\(dq.
+.TP
+.BI \-\-sort\-by \ KEYS
+Comma\-separated list of sorting keys; valid keys are: timestamp, archive, name, id, tags, host, user; default is: timestamp
+.TP
+.BI \-\-first \ N
+consider the first N archives after other filters are applied
+.TP
+.BI \-\-last \ N
+consider the last N archives after other filters are applied
+.TP
+.BI \-\-oldest \ TIMESPAN
+consider archives between the oldest archive\(aqs timestamp and (oldest + TIMESPAN), e.g., 7d or 12m.
+.TP
+.BI \-\-newest \ TIMESPAN
+consider archives between the newest archive\(aqs timestamp and (newest \- TIMESPAN), e.g., 7d or 12m.
+.TP
+.BI \-\-older \ TIMESPAN
+consider archives older than (now \- TIMESPAN), e.g., 7d or 12m.
+.TP
+.BI \-\-newer \ TIMESPAN
+consider archives newer than (now \- TIMESPAN), e.g., 7d or 12m.
+.UNINDENT
+.SH EXAMPLES
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.EX
+$ borg info aid:059743db
+Archive name: source\-backup
+Archive fingerprint: 059743db538840c04ee323673ac579d0b5433f2741c41f9643975df6370474f0
+Comment:
+Hostname: host
+Username: user
+Tags:
+Time (nominal): Fri, 2026\-08\-28 12:25:52 +0200
+Time (start): Fri, 2026\-08\-28 12:25:52 +0200
+Time (end): Fri, 2026\-08\-28 12:25:52 +0200
+Duration: 0.006 seconds
+Command line: /usr/bin/borg \-r /path/to/repo create source\-backup src
+Working Directory: /home/user
+Number of files: 3
+Original size: 3.00 MB
+.EE
+.UNINDENT
+.UNINDENT
+.SH SEE ALSO
+.sp
+\fIborg\-common(1)\fP, \fIborg\-list(1)\fP, \fIborg\-diff(1)\fP, \fIborg\-repo\-info(1)\fP
+.SH Author
+The Borg Collective
+.\" End of generated man page.

@@ -1,0 +1,176 @@
+.. IMPORTANT: this file is auto-generated from borg's built-in help, do not edit!
+
+.. _borg_recreate:
+
+borg recreate
+-------------
+.. code-block:: none
+
+    borg [common options] recreate [options] [PATH...]
+
+.. only:: html
+
+    .. class:: borg-options-table
+
+    +-----------------------------------------------------------------------------+---------------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+    | **positional arguments**                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+    +-----------------------------------------------------------------------------+---------------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+    |                                                                             | ``PATH``                                          | paths to recreate; patterns are supported                                                                                                                                                                                                                                                                               |
+    +-----------------------------------------------------------------------------+---------------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+    | **options**                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+    +-----------------------------------------------------------------------------+---------------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+    |                                                                             | ``--list``                                        | output verbose list of items (files, dirs, ...)                                                                                                                                                                                                                                                                         |
+    +-----------------------------------------------------------------------------+---------------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+    |                                                                             | ``--filter STATUSCHARS``                          | only display items with the given status characters (listed in borg create --help)                                                                                                                                                                                                                                      |
+    +-----------------------------------------------------------------------------+---------------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+    |                                                                             | ``-n``, ``--dry-run``                             | do not change anything                                                                                                                                                                                                                                                                                                  |
+    +-----------------------------------------------------------------------------+---------------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+    |                                                                             | ``-s``, ``--stats``                               | print statistics at end                                                                                                                                                                                                                                                                                                 |
+    +-----------------------------------------------------------------------------+---------------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+    | .. class:: borg-common-opt-ref                                                                                                                                                                                                                                                                                                                                                                                                                            |
+    |                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+    | :ref:`common_options`                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+    +-----------------------------------------------------------------------------+---------------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+    | **Include/Exclude options**                                                                                                                                                                                                                                                                                                                                                                                                                               |
+    +-----------------------------------------------------------------------------+---------------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+    |                                                                             | ``-e PATTERN``, ``--exclude PATTERN``             | exclude paths matching PATTERN                                                                                                                                                                                                                                                                                          |
+    +-----------------------------------------------------------------------------+---------------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+    |                                                                             | ``--exclude-from EXCLUDEFILE``                    | read exclude patterns from EXCLUDEFILE, one per line                                                                                                                                                                                                                                                                    |
+    +-----------------------------------------------------------------------------+---------------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+    |                                                                             | ``--pattern PATTERN``                             | include/exclude paths matching PATTERN                                                                                                                                                                                                                                                                                  |
+    +-----------------------------------------------------------------------------+---------------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+    |                                                                             | ``--patterns-from PATTERNFILE``                   | read include/exclude patterns from PATTERNFILE, one per line                                                                                                                                                                                                                                                            |
+    +-----------------------------------------------------------------------------+---------------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+    |                                                                             | ``--exclude-caches``                              | exclude directories that contain a CACHEDIR.TAG file (https://www.bford.info/cachedir/spec.html)                                                                                                                                                                                                                        |
+    +-----------------------------------------------------------------------------+---------------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+    |                                                                             | ``--exclude-if-present NAME``                     | exclude directories that are tagged by containing a filesystem object with the given NAME                                                                                                                                                                                                                               |
+    +-----------------------------------------------------------------------------+---------------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+    |                                                                             | ``--keep-exclude-tags``                           | if tag objects are specified with ``--exclude-if-present``, do not omit the tag objects themselves from the backup archive                                                                                                                                                                                              |
+    +-----------------------------------------------------------------------------+---------------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+    | **Archive filters** — Archive filters can be applied to repository targets.                                                                                                                                                                                                                                                                                                                                                                               |
+    +-----------------------------------------------------------------------------+---------------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+    |                                                                             | ``-a PATTERN``, ``--match-archives PATTERN``      | only consider archives matching all patterns. See "borg help match-archives".                                                                                                                                                                                                                                           |
+    +-----------------------------------------------------------------------------+---------------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+    |                                                                             | ``--sort-by KEYS``                                | Comma-separated list of sorting keys; valid keys are: timestamp, archive, name, id, tags, host, user; default is: timestamp                                                                                                                                                                                             |
+    +-----------------------------------------------------------------------------+---------------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+    |                                                                             | ``--first N``                                     | consider the first N archives after other filters are applied                                                                                                                                                                                                                                                           |
+    +-----------------------------------------------------------------------------+---------------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+    |                                                                             | ``--last N``                                      | consider the last N archives after other filters are applied                                                                                                                                                                                                                                                            |
+    +-----------------------------------------------------------------------------+---------------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+    |                                                                             | ``--oldest TIMESPAN``                             | consider archives between the oldest archive's timestamp and (oldest + TIMESPAN), e.g., 7d or 12m.                                                                                                                                                                                                                      |
+    +-----------------------------------------------------------------------------+---------------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+    |                                                                             | ``--newest TIMESPAN``                             | consider archives between the newest archive's timestamp and (newest - TIMESPAN), e.g., 7d or 12m.                                                                                                                                                                                                                      |
+    +-----------------------------------------------------------------------------+---------------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+    |                                                                             | ``--older TIMESPAN``                              | consider archives older than (now - TIMESPAN), e.g., 7d or 12m.                                                                                                                                                                                                                                                         |
+    +-----------------------------------------------------------------------------+---------------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+    |                                                                             | ``--newer TIMESPAN``                              | consider archives newer than (now - TIMESPAN), e.g., 7d or 12m.                                                                                                                                                                                                                                                         |
+    +-----------------------------------------------------------------------------+---------------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+    |                                                                             | ``--target TARGET``                               | create a new archive with the name TARGET, do not replace existing archive                                                                                                                                                                                                                                              |
+    +-----------------------------------------------------------------------------+---------------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+    |                                                                             | ``--comment COMMENT``                             | add a comment text to the archive                                                                                                                                                                                                                                                                                       |
+    +-----------------------------------------------------------------------------+---------------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+    |                                                                             | ``--timestamp TIMESTAMP``                         | manually specify the archive creation date/time (yyyy-mm-ddThh:mm:ss[(+|-)HH:MM] format, (+|-)HH:MM is the UTC offset, default: local time zone). Alternatively, give a reference file/directory.                                                                                                                       |
+    +-----------------------------------------------------------------------------+---------------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+    |                                                                             | ``-C COMPRESSION``, ``--compression COMPRESSION`` | select compression algorithm, see the output of the "borg help compression" command for details. Only applies to newly written data, e.g. when re-chunking with --chunker-params (and to the new archive metadata); data chunks reused from the existing archive are not recompressed, use borg repo-compress for that. |
+    +-----------------------------------------------------------------------------+---------------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+    |                                                                             | ``--chunker-params PARAMS``                       | rechunk using given chunker parameters: buzhash,CHUNK_MIN_EXP,CHUNK_MAX_EXP,HASH_MASK_BITS,WINDOW_SIZE or buzhash64,CHUNK_MIN_EXP,CHUNK_MAX_EXP,HASH_MASK_BITS,WINDOW_SIZE,NC_LEVEL or fastcdc,CHUNK_MIN_EXP,CHUNK_MAX_EXP,HASH_MASK_BITS,NC_LEVEL or `default` to use the chunker defaults. default: do not rechunk    |
+    +-----------------------------------------------------------------------------+---------------------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+
+    .. raw:: html
+
+        <script type='text/javascript'>
+        $(document).ready(function () {
+            $('.borg-options-table colgroup').remove();
+        })
+        </script>
+
+.. only:: latex
+
+    PATH
+        paths to recreate; patterns are supported
+
+
+    options
+        --list          output verbose list of items (files, dirs, ...)
+        --filter STATUSCHARS    only display items with the given status characters (listed in borg create --help)
+        -n, --dry-run    do not change anything
+        -s, --stats     print statistics at end
+
+
+    :ref:`common_options`
+        |
+
+    Include/Exclude options
+        -e PATTERN, --exclude PATTERN     exclude paths matching PATTERN
+        --exclude-from EXCLUDEFILE        read exclude patterns from EXCLUDEFILE, one per line
+        --pattern PATTERN                 include/exclude paths matching PATTERN
+        --patterns-from PATTERNFILE       read include/exclude patterns from PATTERNFILE, one per line
+        --exclude-caches                  exclude directories that contain a CACHEDIR.TAG file (https://www.bford.info/cachedir/spec.html)
+        --exclude-if-present NAME         exclude directories that are tagged by containing a filesystem object with the given NAME
+        --keep-exclude-tags               if tag objects are specified with ``--exclude-if-present``, do not omit the tag objects themselves from the backup archive
+
+
+    Archive filters
+        -a PATTERN, --match-archives PATTERN     only consider archives matching all patterns. See "borg help match-archives".
+        --sort-by KEYS                           Comma-separated list of sorting keys; valid keys are: timestamp, archive, name, id, tags, host, user; default is: timestamp
+        --first N                                consider the first N archives after other filters are applied
+        --last N                                 consider the last N archives after other filters are applied
+        --oldest TIMESPAN                        consider archives between the oldest archive's timestamp and (oldest + TIMESPAN), e.g., 7d or 12m.
+        --newest TIMESPAN                        consider archives between the newest archive's timestamp and (newest - TIMESPAN), e.g., 7d or 12m.
+        --older TIMESPAN                         consider archives older than (now - TIMESPAN), e.g., 7d or 12m.
+        --newer TIMESPAN                         consider archives newer than (now - TIMESPAN), e.g., 7d or 12m.
+        --target TARGET                          create a new archive with the name TARGET, do not replace existing archive
+        --comment COMMENT                        add a comment text to the archive
+        --timestamp TIMESTAMP                    manually specify the archive creation date/time (yyyy-mm-ddThh:mm:ss[(+|-)HH:MM] format, (+|-)HH:MM is the UTC offset, default: local time zone). Alternatively, give a reference file/directory.
+        -C COMPRESSION, --compression COMPRESSION    select compression algorithm, see the output of the "borg help compression" command for details. Only applies to newly written data, e.g. when re-chunking with --chunker-params (and to the new archive metadata); data chunks reused from the existing archive are not recompressed, use borg repo-compress for that.
+        --chunker-params PARAMS                  rechunk using given chunker parameters: buzhash,CHUNK_MIN_EXP,CHUNK_MAX_EXP,HASH_MASK_BITS,WINDOW_SIZE or buzhash64,CHUNK_MIN_EXP,CHUNK_MAX_EXP,HASH_MASK_BITS,WINDOW_SIZE,NC_LEVEL or fastcdc,CHUNK_MIN_EXP,CHUNK_MAX_EXP,HASH_MASK_BITS,NC_LEVEL or `default` to use the chunker defaults. default: do not rechunk
+
+
+Description
+~~~~~~~~~~~
+
+Recreate the contents of existing archives.
+
+Recreate is a potentially dangerous function and might lead to data loss
+(if used wrongly). BE VERY CAREFUL!
+
+Important: Repository disk space is **not** freed until you run ``borg compact``.
+
+``--exclude``, ``--exclude-from``, ``--exclude-if-present``, ``--keep-exclude-tags``
+and PATH have the exact same semantics as in "borg create", but they only check
+files in the archives and not in the local filesystem. If paths are specified,
+the resulting archives will contain only files from those paths.
+
+Note that all paths in an archive are relative, therefore absolute patterns/paths
+will *not* match (``--exclude``, ``--exclude-from``, PATHs).
+
+``--chunker-params`` will re-chunk all files in the archive. This can be used to
+switch existing archives to different chunker parameters (or a different chunker
+algorithm), so they deduplicate with archives created using these parameters.
+
+``--compression`` only applies to data recreate newly writes, e.g. when re-chunking
+with ``--chunker-params`` (and to the new archive metadata). Data chunks reused
+as-is from the existing archive keep their current compression - to recompress
+existing repository objects, use ``borg repo-compress``.
+
+**USE WITH CAUTION.**
+Depending on the paths and patterns given, recreate can be used to
+delete files from archives permanently.
+When in doubt, use ``--dry-run --verbose --list`` to see how patterns/paths are
+interpreted. See :ref:`list_item_flags` in ``borg create`` for details.
+
+The archive being recreated is only removed after the new archive has been saved
+completely. The new archive is created under the same name as the original one, so
+while the operation runs, both exist side by side; they are told apart by their
+archive IDs, as the new archive gets a different archive ID.
+
+With ``--target`` the original archive is not replaced, instead a new archive is created.
+
+When rechunking, space usage can be substantial - expect
+at least the entire deduplicated size of the archives using the previous
+chunker params.
+
+If your most recent borg check found missing chunks, please first run another
+backup for the same data, before doing any rechunking. If you are lucky, that
+will recreate the missing chunks. Optionally, do another borg check to see
+if the chunks are still missing.

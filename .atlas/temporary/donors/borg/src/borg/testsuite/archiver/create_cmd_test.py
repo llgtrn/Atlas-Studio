@@ -1,0 +1,2122 @@
+import errno
+import hashlib
+import json
+import os
+import tempfile
+import shutil
+import socket
+import stat
+import subprocess
+from pathlib import Path
+
+import pytest
+from blake3 import blake3
+
+from ... import platform
+from ...constants import *  # NOQA
+from ...constants import zeros
+from ...manifest import Manifest
+from ...platform import is_win32, is_cygwin
+from ...platformflags import is_msystem
+from ...repository import Repository
+from ...helpers import CommandError, BackupPermissionError, BackupTimeoutError, BackupBrokenSymlinkError
+from ...helpers import BackupWarning, Error
+from .. import has_lchflags, has_mknod
+from .. import changedir
+from .. import (
+    are_symlinks_supported,
+    are_hardlinks_supported,
+    are_fifos_supported,
+    is_utime_fully_supported,
+    is_birthtime_fully_supported,
+    same_ts_ns,
+    can_revoke_read_access,
+    granularity_sleep,
+)
+from . import (
+    cmd,
+    open_archive,
+    generate_archiver_tests,
+    create_test_files,
+    assert_dirs_equal,
+    create_regular_file,
+    requires_hardlinks,
+    _create_test_caches,
+    _create_test_tagged,
+    _create_test_keep_tagged,
+    _assert_test_caches,
+    _assert_test_tagged,
+    _assert_test_keep_tagged,
+    RK_ENCRYPTION,
+)
+
+pytest_generate_tests = lambda metafunc: generate_archiver_tests(metafunc, kinds="local,remote,binary")  # NOQA
+
+
+def test_basic_functionality(archivers, request):
+    archiver = request.getfixturevalue(archivers)
+    if archiver.EXE:
+        pytest.skip("test_basic_functionality seems incompatible with fakeroot and/or the binary.")
+    have_root = create_test_files(archiver.input_path)
+    # Fork required to test --show-rc output.
+    output = cmd(archiver, "repo-create", RK_ENCRYPTION, "--show-version", "--show-rc", fork=True)
+    assert "borgbackup version" in output
+    assert "terminating with success status, rc 0" in output
+
+    cmd(archiver, "create", "test", "input")
+    output = cmd(archiver, "create", "--stats", "test.2", "input")
+    assert "Archive name: test.2" in output
+
+    with changedir("output"):
+        cmd(archiver, "extract", "test")
+
+    list_output = cmd(archiver, "repo-list")
+    assert "test" in list_output
+    assert "test.2" in list_output
+
+    expected = [
+        "input",
+        "input/bdev",
+        "input/cdev",
+        "input/dir2",
+        "input/dir2/file2",  # 1
+        "input/empty",  # 2
+        "input/file1",  # 3
+        "input/flagfile",  # 4
+        "input/fusexattr",  # 5
+    ]
+    item_count = 5  # we only count regular files
+    if are_fifos_supported():
+        expected.append("input/fifo1")
+    if are_symlinks_supported():
+        expected.append("input/link1")
+    if are_hardlinks_supported():
+        expected.append("input/hardlink")
+        item_count += 1
+    if not have_root or not has_mknod:
+        # We could not create these device files without (fake)root.
+        expected.remove("input/bdev")
+        expected.remove("input/cdev")
+    if has_lchflags:
+        # remove the file we did not back up, so input and output become equal
+        expected.remove("input/flagfile")  # this file is UF_NODUMP
+        os.remove(os.path.join("input", "flagfile"))
+        item_count -= 1
+    list_output = cmd(archiver, "list", "test", "--short")
+    for name in expected:
+        assert name in list_output
+    assert_dirs_equal("input", "output/input")
+
+    info_output = cmd(archiver, "info", "-a", "test")
+    print("archive contents:\n%s" % list_output)
+    assert "Number of files: %d" % item_count in info_output
+    shutil.rmtree(archiver.cache_path)
+    info_output2 = cmd(archiver, "info", "-a", "test")
+
+    def filter(output):
+        # Filter for interesting 'info' output; ignore cache-rebuilding related messages.
+        prefixes = ["Name:", "Fingerprint:", "Number of files:", "This archive:", "All archives:", "Chunk index:"]
+        result = []
+        for line in output.splitlines():
+            for prefix in prefixes:
+                if line.startswith(prefix):
+                    result.append(line)
+        return "\n".join(result)
+
+    # The interesting parts of info_output2 and info_output should be the same.
+    assert filter(info_output) == filter(info_output2)
+
+
+def test_archived_paths(archivers, request):
+    # As Borg comes from the POSIX (Linux/UNIX) world, much assumes path separators
+    # to be slashes "/", e.g., in archived items or for pattern matching.
+    # To make our lives easier and to support cross-platform extraction, we always use slashes.
+    # Similarly, archived paths are expected to be full but relative (have no leading slash).
+    archiver = request.getfixturevalue(archivers)
+    full_path = os.path.abspath(os.path.join(archiver.input_path, "test"))
+    # remove windows drive letter, if any:
+    posix_path = full_path[2:] if full_path[1] == ":" else full_path
+    # only needed on Windows in case there are backslashes:
+    posix_path = posix_path.replace("\\", "/")
+    # no leading slash in borg archives:
+    archived_path = posix_path.lstrip("/")
+    create_regular_file(archiver.input_path, "test")
+    cmd(archiver, "repo-create", "--encryption=authenticated-sha256")
+    cmd(archiver, "create", "test", "input", posix_path)
+    # "input" directory is recursed into, "input/test" is discovered and joined by borg's recursion.
+    # posix_path was directly given as a cli argument and should end up as archive_path in the borg archive.
+    expected_paths = sorted(["input", "input/test", archived_path])
+
+    # check path in archived items:
+    archive_list = cmd(archiver, "list", "test", "--short")
+    assert expected_paths == sorted([path for path in archive_list.splitlines() if path])
+
+    # check path in archived items (json):
+    archive_list = cmd(archiver, "list", "test", "--json-lines")
+    assert expected_paths == sorted([json.loads(line)["path"] for line in archive_list.splitlines() if line])
+
+
+@pytest.mark.skipif(not is_msystem, reason="only for msystem")
+def test_create_msys2_path_translation_warning(archivers, request, monkeypatch):
+    archiver = request.getfixturevalue(archivers)
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    create_regular_file(archiver.input_path, "test")
+
+    # When MSYS2 path translation is active (variables NOT set), a warning should be emitted.
+    monkeypatch.delenv("MSYS2_ARG_CONV_EXCL", raising=False)
+    monkeypatch.delenv("MSYS2_ENV_CONV_EXCL", raising=False)
+    output = cmd(archiver, "create", "test1", "input", fork=True)
+    assert "MSYS2 path translation is active." in output
+
+    # When the variables ARE set, the warning should not be emitted,
+    # and /tmp should be archived properly without being translated to msys64/tmp.
+    monkeypatch.setenv("MSYS2_ARG_CONV_EXCL", "*")
+    monkeypatch.setenv("MSYS2_ENV_CONV_EXCL", "*")
+
+    # We must create a real /tmp directory to avoid file not found errors,
+    # since we will pass '/tmp' directly to Borg
+    tmp_path = os.path.abspath("/tmp")
+    os.makedirs(tmp_path, exist_ok=True)
+    test_filepath = os.path.join(tmp_path, "borg_msys2_test_file")
+    with open(test_filepath, "w") as f:
+        f.write("test")
+
+    try:
+        output2 = cmd(archiver, "create", "test2", "/tmp", fork=True)
+        assert "MSYS2 path translation is active." not in output2
+
+        archive_list = cmd(archiver, "list", "test2", "--json-lines")
+        paths = [json.loads(line)["path"] for line in archive_list.splitlines() if line]
+
+        # Verify that msys64 is not present and paths start with tmp/
+        assert not any("msys64" in p for p in paths)
+        assert any(p.startswith("tmp/borg_msys2_test_file") for p in paths)
+    finally:
+        os.unlink(test_filepath)
+
+
+@requires_hardlinks
+def test_create_duplicate_root(archivers, request):
+    archiver = request.getfixturevalue(archivers)
+    # setup for #5603
+    path_a = os.path.join(archiver.input_path, "a")
+    path_b = os.path.join(archiver.input_path, "b")
+    os.mkdir(path_a)
+    os.mkdir(path_b)
+    hl_a = os.path.join(path_a, "hardlink")
+    hl_b = os.path.join(path_b, "hardlink")
+    create_regular_file(archiver.input_path, hl_a, contents=b"123456")
+    os.link(hl_a, hl_b)
+    cmd(archiver, "repo-create", "--encryption=authenticated-sha256")
+    cmd(archiver, "create", "test", "input", "input")  # give input twice!
+    # test if created archive has 'input' contents twice:
+    archive_list = cmd(archiver, "list", "test", "--json-lines")
+    paths = [json.loads(line)["path"] for line in archive_list.split("\n") if line]
+    # we have all fs items exactly once!
+    assert sorted(paths) == ["input", "input/a", "input/a/hardlink", "input/b", "input/b/hardlink"]
+
+
+def test_create_unreadable_parent(archiver):
+    parent_dir = os.path.join(archiver.input_path, "parent")
+    root_dir = os.path.join(archiver.input_path, "parent", "root")
+    os.mkdir(parent_dir)
+    os.mkdir(root_dir)
+    os.chmod(parent_dir, 0o111)  # --x--x--x == parent dir traversable, but not readable
+    try:
+        cmd(archiver, "repo-create", "--encryption=authenticated-sha256")
+        # issue #7746: we *can* read root_dir and we *can* traverse parent_dir, so this should work:
+        cmd(archiver, "create", "test", root_dir)
+    finally:
+        os.chmod(parent_dir, 0o771)  # otherwise cleanup after this test fails
+
+
+@pytest.mark.skipif(is_win32, reason="unix sockets not available on windows")
+def test_unix_socket(archivers, request, monkeypatch):
+    archiver = request.getfixturevalue(archivers)
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    try:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+            sock.bind(os.path.join(temp_dir, "unix-socket"))
+    except PermissionError as err:
+        if err.errno == errno.EPERM:
+            pytest.skip("unix sockets disabled or not supported")
+        elif err.errno == errno.EACCES:
+            pytest.skip("permission denied to create unix sockets")
+    cmd(archiver, "create", "test", "input")
+    sock.close()
+    with changedir("output"):
+        cmd(archiver, "extract", "test")
+        print(f"{temp_dir}/unix-socket")
+        assert not os.path.exists(f"{temp_dir}/unix-socket")
+
+
+@pytest.mark.skipif(not is_utime_fully_supported(), reason="cannot setup and execute test without utime")
+@pytest.mark.skipif(not is_birthtime_fully_supported(), reason="cannot setup and execute test without birth time")
+def test_nobirthtime(archivers, request):
+    archiver = request.getfixturevalue(archivers)
+    create_test_files(archiver.input_path)
+    birthtime_ns, mtime_ns, atime_ns = 946598400 * 10**9, 946684800 * 10**9, 946771200 * 10**9
+    platform.set_times("input/file1", atime_ns=atime_ns, mtime_ns=mtime_ns, birthtime_ns=birthtime_ns)
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    cmd(archiver, "create", "test", "input", "--nobirthtime")
+    with changedir("output"):
+        cmd(archiver, "extract", "test")
+    sti = os.stat("input/file1")
+    sto = os.stat("output/input/file1")
+    assert same_ts_ns(platform.get_birthtime_ns(sti, "input/file1"), birthtime_ns)
+    birthtime_out = platform.get_birthtime_ns(sto, "output/input/file1")
+    if is_win32:
+        # win32 keeps the creation time the extracted file got when it was created.
+        assert not same_ts_ns(birthtime_out, birthtime_ns)
+    else:
+        # posix: setting an mtime older than the birthtime pulls the birthtime back to it.
+        assert same_ts_ns(birthtime_out, mtime_ns)
+    assert same_ts_ns(sti.st_mtime_ns, sto.st_mtime_ns)
+    assert same_ts_ns(sto.st_mtime_ns, mtime_ns)
+
+
+def test_create_stdin(archivers, request):
+    archiver = request.getfixturevalue(archivers)
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    input_data = b"\x00foo\n\nbar\n   \n"
+    cmd(archiver, "create", "test", "-", input=input_data)
+    item = json.loads(cmd(archiver, "list", "test", "--json-lines"))
+    assert item["size"] == len(input_data)
+    assert item["path"] == "stdin"
+    extracted_data = cmd(archiver, "extract", "test", "--stdout", binary_output=True)
+    assert extracted_data == input_data
+
+
+def test_create_erroneous_file(archivers, request):
+    archiver = request.getfixturevalue(archivers)
+    chunk_size = 1000  # fixed chunker with this size
+    create_regular_file(archiver.input_path, os.path.join(archiver.input_path, "file1"), size=chunk_size * 2)
+    create_regular_file(archiver.input_path, os.path.join(archiver.input_path, "file2"), size=chunk_size * 2)
+    create_regular_file(archiver.input_path, os.path.join(archiver.input_path, "file3"), size=chunk_size * 2)
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    flist = "".join(f"input/file{n}\n" for n in range(1, 4))
+    out = cmd(
+        archiver,
+        "create",
+        f"--chunker-params=fail,{chunk_size},rrrEEErrrr",
+        "--paths-from-stdin",
+        "--list",
+        "test",
+        input=flist.encode(),
+        exit_code=0,
+    )
+    assert "retry: 3 of " in out
+    assert "E input/file2" not in out  # we managed to read it in the 3rd retry (after 3 failed reads)
+    # repo looking good overall? checks for rc == 0.
+    cmd(archiver, "check", "--debug")
+    # check files in created archive
+    out = cmd(archiver, "list", "test")
+    assert "input/file1" in out
+    assert "input/file2" in out
+    assert "input/file3" in out
+
+
+@pytest.mark.skipif(not can_revoke_read_access(), reason="can not revoke our own read permissions")
+def test_create_no_permission_file(archivers, request):
+    archiver = request.getfixturevalue(archivers)
+    file_path = os.path.join(archiver.input_path, "file")
+    create_regular_file(archiver.input_path, file_path + "1", size=1000)
+    create_regular_file(archiver.input_path, file_path + "2", size=1000)
+    create_regular_file(archiver.input_path, file_path + "3", size=1000)
+    # revoke read permissions on file2 for everybody, including us:
+    if is_win32:
+        # "*S-1-1-0" is the well-known SID of the "Everyone" group. Using the SID instead of the
+        # group name keeps this working on non-English Windows installations.
+        subprocess.run(["icacls.exe", file_path + "2", "/deny", "*S-1-1-0:(R)"])
+    else:
+        # note: this will NOT take away read permissions for root
+        os.chmod(file_path + "2", 0o000)
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    flist = "".join(f"input/file{n}\n" for n in range(1, 4))
+    exc = BackupPermissionError("open", OSError(13, "permission denied"))
+    expected_ec = BackupWarning("input/file2", exc).exit_code
+    out = cmd(
+        archiver,
+        "create",
+        "--paths-from-stdin",
+        "--list",
+        "test",
+        input=flist.encode(),
+        exit_code=expected_ec,  # WARNING status: could not back up file2.
+    )
+    assert "retry: 1 of " not in out  # retries were NOT attempted!
+    assert "E input/file2" in out  # no permissions!
+    # repo looking good overall? checks for rc == 0.
+    cmd(archiver, "check", "--debug")
+    # check files in created archive
+    out = cmd(archiver, "list", "test")
+    assert "input/file1" in out
+    assert "input/file2" not in out  # it skipped file2
+    assert "input/file3" in out
+
+
+def test_sanitized_stdin_name(archivers, request):
+    archiver = request.getfixturevalue(archivers)
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    cmd(archiver, "create", "--stdin-name", "./a//path", "test", "-", input=b"")
+    item = json.loads(cmd(archiver, "list", "test", "--json-lines"))
+    assert item["path"] == "a/path"
+
+
+def test_dotdot_stdin_name(archivers, request):
+    archiver = request.getfixturevalue(archivers)
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    output = cmd(archiver, "create", "--stdin-name", "foo/../bar", "test", "-", input=b"", exit_code=2)
+    assert output.endswith("'..' element in path 'foo/../bar'" + os.linesep)
+
+
+def test_dot_stdin_name(archivers, request):
+    archiver = request.getfixturevalue(archivers)
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    output = cmd(archiver, "create", "--stdin-name", "./", "test", "-", input=b"", exit_code=2)
+    assert output.endswith("'./' is not a valid file name" + os.linesep)
+
+
+def test_create_content_from_command(archivers, request):
+    archiver = request.getfixturevalue(archivers)
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    input_data = "some test content"
+    name = "a/b/c"
+    cmd(archiver, "create", "--stdin-name", name, "--content-from-command", "test", "--", "echo", input_data)
+    item = json.loads(cmd(archiver, "list", "test", "--json-lines"))
+    assert item["size"] == len(input_data) + 1  # `echo` adds newline
+    assert item["path"] == name
+    extracted_data = cmd(archiver, "extract", "test", "--stdout")
+    assert extracted_data == input_data + "\n"
+
+
+def test_create_content_from_command_with_failed_command(archivers, request):
+    archiver = request.getfixturevalue(archivers)
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    if archiver.FORK_DEFAULT:
+        expected_ec = CommandError().exit_code
+        output = cmd(
+            archiver, "create", "--content-from-command", "test", "--", "sh", "-c", "exit 73;", exit_code=expected_ec
+        )
+        assert output.endswith("Command 'sh' exited with status 73" + os.linesep)
+    else:
+        with pytest.raises(CommandError):
+            cmd(archiver, "create", "--content-from-command", "test", "--", "sh", "-c", "exit 73;")
+    archive_list = json.loads(cmd(archiver, "repo-list", "--json"))
+    assert archive_list["archives"] == []
+
+
+def test_create_content_from_command_missing_command(archivers, request):
+    archiver = request.getfixturevalue(archivers)
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    output = cmd(archiver, "create", "test", "--content-from-command", exit_code=2)
+    assert output.endswith("No command given." + os.linesep)
+
+
+def test_create_paths_from_stdin(archivers, request):
+    archiver = request.getfixturevalue(archivers)
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    create_regular_file(archiver.input_path, "file1", size=1024 * 80)
+    create_regular_file(archiver.input_path, "dir1/file2", size=1024 * 80)
+    create_regular_file(archiver.input_path, "dir1/file3", size=1024 * 80)
+    create_regular_file(archiver.input_path, "file4", size=1024 * 80)
+    input_data = b"input/file1\0input/dir1\0input/file4"
+    cmd(archiver, "create", "test", "--paths-from-stdin", "--paths-delimiter", "\\0", input=input_data)
+    archive_list = cmd(archiver, "list", "test", "--json-lines")
+    paths = [json.loads(line)["path"] for line in archive_list.split("\n") if line]
+    assert paths == ["input/file1", "input/dir1", "input/file4"]
+
+
+def test_create_paths_from_command(archivers, request):
+    archiver = request.getfixturevalue(archivers)
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    create_regular_file(archiver.input_path, "file1", size=1024 * 80)
+    create_regular_file(archiver.input_path, "file2", size=1024 * 80)
+    create_regular_file(archiver.input_path, "file3", size=1024 * 80)
+    create_regular_file(archiver.input_path, "file4", size=1024 * 80)
+    input_data = "input/file1\ninput/file2\ninput/file3"
+    if is_win32:
+        with open("filenames.cmd", "w") as script:
+            for filename in input_data.splitlines():
+                script.write(f"@echo {filename}\n")
+    cmd(archiver, "create", "--paths-from-command", "test", "--", "filenames.cmd" if is_win32 else "echo", input_data)
+    archive_list = cmd(archiver, "list", "test", "--json-lines")
+    paths = [json.loads(line)["path"] for line in archive_list.split("\n") if line]
+    assert paths == ["input/file1", "input/file2", "input/file3"]
+
+
+def test_create_paths_from_command_with_failed_command(archivers, request):
+    archiver = request.getfixturevalue(archivers)
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    if archiver.FORK_DEFAULT:
+        expected_ec = CommandError().exit_code
+        output = cmd(
+            archiver, "create", "--paths-from-command", "test", "--", "sh", "-c", "exit 73;", exit_code=expected_ec
+        )
+        assert output.endswith("Command 'sh' exited with status 73" + os.linesep)
+    else:
+        with pytest.raises(CommandError):
+            cmd(archiver, "create", "--paths-from-command", "test", "--", "sh", "-c", "exit 73;")
+    archive_list = json.loads(cmd(archiver, "repo-list", "--json"))
+    assert archive_list["archives"] == []
+
+
+def test_create_paths_from_command_missing_command(archivers, request):
+    archiver = request.getfixturevalue(archivers)
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    output = cmd(archiver, "create", "test", "--paths-from-command", exit_code=2)
+    assert output.endswith("No command given." + os.linesep)
+
+
+@pytest.mark.skipif(is_win32, reason="shell patterns not supported on Windows")
+def test_create_paths_from_shell_command(archivers, request):
+    archiver = request.getfixturevalue(archivers)
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    create_regular_file(archiver.input_path, "file1", size=1024 * 80)
+    create_regular_file(archiver.input_path, "file2", size=1024 * 80)
+    create_regular_file(archiver.input_path, "file3", size=1024 * 80)
+    input_data = "input/file1\ninput/file2\ninput/file3"
+    # Use a shell pipe to test that shell=True works correctly.
+    cmd(archiver, "create", "--paths-from-shell-command", "test", "--", f"echo '{input_data}' | head -n 2")
+    archive_list = cmd(archiver, "list", "test", "--json-lines")
+    paths = [json.loads(line)["path"] for line in archive_list.split("\n") if line]
+    assert paths == ["input/file1", "input/file2"]
+
+
+def test_create_without_root(archivers, request):
+    """test create without a root"""
+    archiver = request.getfixturevalue(archivers)
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    cmd(archiver, "create", "test", exit_code=2)
+
+
+def test_create_pattern_root(archivers, request):
+    """test create with only a root pattern"""
+    archiver = request.getfixturevalue(archivers)
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    create_regular_file(archiver.input_path, "file1", size=1024 * 80)
+    create_regular_file(archiver.input_path, "file2", size=1024 * 80)
+    output = cmd(archiver, "create", "test", "-v", "--list", "--pattern=R input")
+    assert "A input/file1" in output
+    assert "A input/file2" in output
+
+
+def test_create_pattern(archivers, request):
+    """test file patterns during create"""
+    archiver = request.getfixturevalue(archivers)
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    create_regular_file(archiver.input_path, "file1", size=1024 * 80)
+    create_regular_file(archiver.input_path, "file2", size=1024 * 80)
+    create_regular_file(archiver.input_path, "file_important", size=1024 * 80)
+    output = cmd(
+        archiver, "create", "-v", "--list", "--pattern=+input/file_important", "--pattern=-input/file*", "test", "input"
+    )
+    assert "A input/file_important" in output
+    assert "- input/file1" in output
+    assert "- input/file2" in output
+
+
+def test_create_pattern_file(archivers, request):
+    """test file patterns during create"""
+    archiver = request.getfixturevalue(archivers)
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    create_regular_file(archiver.input_path, "file1", size=1024 * 80)
+    create_regular_file(archiver.input_path, "file2", size=1024 * 80)
+    create_regular_file(archiver.input_path, "otherfile", size=1024 * 80)
+    create_regular_file(archiver.input_path, "file_important", size=1024 * 80)
+    output = cmd(
+        archiver,
+        "create",
+        "-v",
+        "--list",
+        "--pattern=-input/otherfile",
+        "--patterns-from=" + archiver.patterns_file_path,
+        "test",
+        "input",
+    )
+    assert "A input/file_important" in output
+    assert "- input/file1" in output
+    assert "- input/file2" in output
+    assert "- input/otherfile" in output
+
+
+def test_create_pattern_exclude_folder_but_recurse(archivers, request):
+    """test when patterns exclude a parent folder, but include a child"""
+    archiver = request.getfixturevalue(archivers)
+    patterns_file_path2 = os.path.join(archiver.tmpdir, "patterns2")
+    with open(patterns_file_path2, "wb") as fd:
+        fd.write(b"+ input/x/b\n- input/x*\n")
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    create_regular_file(archiver.input_path, "x/a/foo_a", size=1024 * 80)
+    create_regular_file(archiver.input_path, "x/b/foo_b", size=1024 * 80)
+    create_regular_file(archiver.input_path, "y/foo_y", size=1024 * 80)
+    output = cmd(archiver, "create", "-v", "--list", "--patterns-from=" + patterns_file_path2, "test", "input")
+    assert "- input/x/a/foo_a" in output
+    assert "A input/x/b/foo_b" in output
+    assert "A input/y/foo_y" in output
+
+
+def test_create_pattern_exclude_folder_no_recurse(archivers, request):
+    """test when patterns exclude a parent folder, but include a child"""
+    archiver = request.getfixturevalue(archivers)
+    patterns_file_path2 = os.path.join(archiver.tmpdir, "patterns2")
+    with open(patterns_file_path2, "wb") as fd:
+        fd.write(b"+ input/x/b\n! input/x*\n")
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    create_regular_file(archiver.input_path, "x/a/foo_a", size=1024 * 80)
+    create_regular_file(archiver.input_path, "x/b/foo_b", size=1024 * 80)
+    create_regular_file(archiver.input_path, "y/foo_y", size=1024 * 80)
+    output = cmd(archiver, "create", "-v", "--list", "--patterns-from=" + patterns_file_path2, "test", "input")
+    assert "input/x/a/foo_a" not in output
+    assert "input/x/a" not in output
+    assert "A input/y/foo_y" in output
+
+
+def test_create_pattern_intermediate_folders_first(archivers, request):
+    """test that intermediate folders appear first when patterns exclude a parent folder but include a child"""
+    archiver = request.getfixturevalue(archivers)
+    patterns_file_path2 = os.path.join(archiver.tmpdir, "patterns2")
+    with open(patterns_file_path2, "wb") as fd:
+        fd.write(b"+ input/x/a\n+ input/x/b\n- input/x*\n")
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    create_regular_file(archiver.input_path, "x/a/foo_a", size=1024 * 80)
+    create_regular_file(archiver.input_path, "x/b/foo_b", size=1024 * 80)
+    with changedir("input"):
+        cmd(archiver, "create", "--patterns-from=" + patterns_file_path2, "test", ".")
+    # list the archive and verify that the "intermediate" folders appear before
+    # their contents
+    out = cmd(archiver, "list", "test", "--format", "{type} {path}{NL}")
+    out_list = out.splitlines()
+    assert "d x/a" in out_list
+    assert "d x/b" in out_list
+    assert out_list.index("d x/a") < out_list.index("- x/a/foo_a")
+    assert out_list.index("d x/b") < out_list.index("- x/b/foo_b")
+
+
+def test_create_archivename_with_placeholder(archivers, request):
+    archiver = request.getfixturevalue(archivers)
+    create_test_files(archiver.input_path)
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    ts = "1999-12-31T23:59:59"
+    name_given = "test-{now}"  # placeholder in archive name gets replaced by borg
+    name_expected = f"test-{ts}"  # placeholder in f-string gets replaced by python
+    cmd(archiver, "create", f"--timestamp={ts}", name_given, "input")
+    list_output = cmd(archiver, "repo-list")
+    assert name_expected in list_output
+
+
+def test_exclude_caches(archivers, request):
+    archiver = request.getfixturevalue(archivers)
+    _create_test_caches(archiver)
+    cmd(archiver, "create", "test", "input", "--exclude-caches")
+    _assert_test_caches(archiver)
+
+
+def test_exclude_tagged(archivers, request):
+    archiver = request.getfixturevalue(archivers)
+    _create_test_tagged(archiver)
+    cmd(archiver, "create", "test", "input", "--exclude-if-present", ".NOBACKUP", "--exclude-if-present", "00-NOBACKUP")
+    _assert_test_tagged(archiver)
+
+
+def test_exclude_keep_tagged(archivers, request):
+    archiver = request.getfixturevalue(archivers)
+    _create_test_keep_tagged(archiver)
+    cmd(
+        archiver,
+        "create",
+        "test",
+        "input",
+        "--exclude-if-present",
+        ".NOBACKUP1",
+        "--exclude-if-present",
+        ".NOBACKUP2",
+        "--exclude-caches",
+        "--keep-exclude-tags",
+    )
+    _assert_test_keep_tagged(archiver)
+
+
+def test_path_sanitation(archivers, request):
+    archiver = request.getfixturevalue(archivers)
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    create_regular_file(archiver.input_path, "dir1/dir2/file", size=1024 * 80)
+    with changedir("input/dir1/dir2"):
+        cmd(archiver, "create", "test", "../../../input/dir1/../dir1/dir2/..")
+    output = cmd(archiver, "list", "test")
+    assert ".." not in output
+    assert " input/dir1/dir2/file" in output
+
+
+def test_exclude_sanitation(archivers, request):
+    archiver = request.getfixturevalue(archivers)
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    create_regular_file(archiver.input_path, "file1", size=1024 * 80)
+    create_regular_file(archiver.input_path, "file2", size=1024 * 80)
+    with changedir("input"):
+        cmd(archiver, "create", "test1", ".", "--exclude=file1")
+    with changedir("output"):
+        cmd(archiver, "extract", "test1")
+    assert sorted(os.listdir("output")) == ["file2"]
+    with changedir("input"):
+        cmd(archiver, "create", "test2", ".", "--exclude=./file1")
+    with changedir("output"):
+        cmd(archiver, "extract", "test2", "--continue")
+    assert sorted(os.listdir("output")) == ["file2"]
+    cmd(archiver, "create", "test3", "input", "--exclude=input/./file1")
+    with changedir("output"):
+        cmd(archiver, "extract", "test3", "--continue")
+    assert sorted(os.listdir("output/input")) == ["file2"]
+
+
+def test_repeated_files(archivers, request):
+    archiver = request.getfixturevalue(archivers)
+    create_regular_file(archiver.input_path, "file1", size=1024 * 80)
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    cmd(archiver, "create", "test", "input", "input")
+
+
+@pytest.mark.skipif("BORG_TESTS_IGNORE_MODES" in os.environ, reason="modes unreliable")
+@pytest.mark.skipif(is_win32, reason="modes unavailable on Windows")
+def test_umask(archivers, request):
+    archiver = request.getfixturevalue(archivers)
+    create_regular_file(archiver.input_path, "file1", size=1024 * 80)
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    cmd(archiver, "create", "test", "input")
+    mode = os.stat(archiver.repository_path).st_mode
+    assert stat.S_IMODE(mode) == 0o700
+
+
+def test_create_dry_run(archivers, request):
+    archiver = request.getfixturevalue(archivers)
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    cmd(archiver, "create", "--dry-run", "test", "input")
+    # Make sure no archive has been created
+    with Repository(archiver.repository_path) as repository:
+        manifest = Manifest.load(repository)
+        assert manifest.archives.count() == 0
+
+
+def test_create_dry_run_stats(archivers, request):
+    archiver = request.getfixturevalue(archivers)
+    create_regular_file(archiver.input_path, "file1", size=1024 * 80)
+    create_regular_file(archiver.input_path, "file2", size=1024 * 20)
+    expected_nfiles = 2
+    if are_hardlinks_supported():
+        os.link(os.path.join(archiver.input_path, "file1"), os.path.join(archiver.input_path, "hardlink1"))
+        expected_nfiles = 3  # as in a real create, each hardlink counts as a file
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    output = cmd(archiver, "create", "--dry-run", "--stats", "test", "input")
+    assert f"Number of files: {expected_nfiles}" in output
+    assert "Original size:" in output
+    assert "Deduplicated size:" not in output
+    # Make sure no archive has been created
+    with Repository(archiver.repository_path) as repository:
+        manifest = Manifest.load(repository)
+        assert manifest.archives.count() == 0
+
+
+def test_create_dry_run_json(archivers, request):
+    archiver = request.getfixturevalue(archivers)
+    create_regular_file(archiver.input_path, "file1", size=1024 * 80)
+    create_regular_file(archiver.input_path, "file2", size=1024 * 20)
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    output = cmd(archiver, "create", "--dry-run", "--json", "test", "input")
+    result = json.loads(output)
+    assert result["dry_run"] is True
+    assert result["stats"]["nfiles"] == 2
+    assert result["stats"]["original_size"] == 1024 * 100
+    assert "archive" not in result
+    assert "repository" in result
+
+
+def test_progress_on(archivers, request):
+    archiver = request.getfixturevalue(archivers)
+    create_regular_file(archiver.input_path, "file1", size=1024 * 80)
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    output = cmd(archiver, "create", "test4", "input", "--progress")
+    assert "0 B O 0 B U 0 N" in output
+
+
+def test_progress_off(archivers, request):
+    archiver = request.getfixturevalue(archivers)
+    create_regular_file(archiver.input_path, "file1", size=1024 * 80)
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    output = cmd(archiver, "create", "test5", "input")
+    assert "0 B O 0 B U 0 N" not in output
+
+
+def test_file_status(archivers, request):
+    """test that various file status show expected results
+    clearly incomplete: only tests for the weird "unchanged" status for now"""
+    archiver = request.getfixturevalue(archivers)
+    create_regular_file(archiver.input_path, "file1", size=1024 * 80)
+    granularity_sleep()  # file2 must have newer timestamps than file1
+    create_regular_file(archiver.input_path, "file2", size=1024 * 80)
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    output = cmd(archiver, "create", "--list", "test", "input")
+    assert "A input/file1" in output
+    assert "A input/file2" in output
+    # should find first file as unmodified
+    output = cmd(archiver, "create", "--list", "test", "input")
+    assert "U input/file1" in output
+    # although surprising, this is expected. For why, see:
+    # https://borgbackup.readthedocs.org/en/latest/faq.html#i-am-seeing-a-added-status-for-a-unchanged-file
+    assert "A input/file2" in output
+
+
+def test_create_tags(archivers, request):
+    archiver = request.getfixturevalue(archivers)
+    create_test_files(archiver.input_path)
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    cmd(archiver, "create", "--tags", "foo", "bar", "baz", "--", "test", "input")
+    info = cmd(archiver, "info", "--json", "test")
+    info = json.loads(info)
+    assert sorted(info["archives"][0]["tags"]) == ["bar", "baz", "foo"]
+
+
+def test_create_invalid_tags(archivers, request):
+    archiver = request.getfixturevalue(archivers)
+    create_test_files(archiver.input_path)
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    output = cmd(archiver, "create", "--tags", "@INVALID", "--", "test", "input", exit_code=EXIT_ERROR)
+    assert "Unknown special tags given" in output
+
+
+@pytest.mark.skipif(
+    is_win32, reason="ctime is file creation time on Windows, ctime cache modes fall back to mtime there, see #7193"
+)  # see https://docs.python.org/3/library/os.html#os.stat_result.st_ctime
+def test_file_status_cs_cache_mode(archivers, request):
+    archiver = request.getfixturevalue(archivers)
+    """test that a changed file with faked "previous" mtime still gets backed up in ctime,size cache_mode"""
+    create_regular_file(archiver.input_path, "file1", contents=b"123")
+    granularity_sleep()  # file2 must have newer timestamps than file1
+    create_regular_file(archiver.input_path, "file2", size=10)
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    cmd(archiver, "create", "test", "input", "--list", "--files-cache=ctime,size")
+    # modify file1, but cheat with the mtime (and atime) and also keep same size:
+    st = os.stat("input/file1")
+    create_regular_file(archiver.input_path, "file1", contents=b"321")
+    os.utime("input/file1", ns=(st.st_atime_ns, st.st_mtime_ns))
+    # this mode uses ctime for change detection, so it should find file1 as modified
+    output = cmd(archiver, "create", "test", "input", "--list", "--files-cache=ctime,size")
+    assert "M input/file1" in output
+
+
+@pytest.mark.skipif(not is_win32, reason="Windows-only: ctime is file creation time there, see #7193")
+def test_files_cache_ctime_fallback_win32(archivers, request):
+    """test that a ctime based --files-cache mode warns and falls back to the mtime based mode on Windows"""
+    archiver = request.getfixturevalue(archivers)
+    create_regular_file(archiver.input_path, "file1", contents=b"123")
+    granularity_sleep()  # file2 must have newer timestamps than file1
+    create_regular_file(archiver.input_path, "file2", size=10)
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    # note: cmd() asserts rc == 0, so this also covers that the warning does not change the exit code.
+    output = cmd(archiver, "create", "test", "input", "--list", "--files-cache=ctime,size")
+    assert "ctime is file creation time" in output
+    granularity_sleep()  # the rewrite below must get a newer mtime
+    # rewrite in place: same size, same inode, same creation time (== st_ctime on Windows),
+    # only the mtime changes. Without the fallback, this file would be considered unchanged.
+    create_regular_file(archiver.input_path, "file1", contents=b"321")
+    output = cmd(archiver, "create", "test", "input", "--list", "--files-cache=ctime,size")
+    assert "M input/file1" in output
+
+
+def test_files_changed_modes(archivers, request):
+    """test that all --files-changed modes are accepted and work"""
+    archiver = request.getfixturevalue(archivers)
+    create_regular_file(archiver.input_path, "file1", size=10)
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    # test mtime mode (works on all platforms including Windows)
+    cmd(archiver, "create", "test_mtime", "input", "--files-changed=mtime")
+    # test disabled mode
+    cmd(archiver, "create", "test_disabled", "input", "--files-changed=disabled")
+    if not is_win32:
+        # test ctime mode (only meaningful on POSIX, where ctime = inode change time)
+        cmd(archiver, "create", "test_ctime", "input", "--files-changed=ctime")
+
+
+def test_file_status_ms_cache_mode(archivers, request):
+    """test that a chmod'ed file with no content changes does not get chunked again in mtime,size cache_mode"""
+    archiver = request.getfixturevalue(archivers)
+    create_regular_file(archiver.input_path, "file1", size=10)
+    granularity_sleep()  # file2 must have newer timestamps than file1
+    create_regular_file(archiver.input_path, "file2", size=10)
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    cmd(archiver, "create", "--list", "--files-cache=mtime,size", "test", "input")
+    # change mode of file1, no content change:
+    st = os.stat("input/file1")
+    os.chmod("input/file1", st.st_mode ^ stat.S_IRWXO)  # this triggers a ctime change, but mtime is unchanged
+    # this mode uses mtime for change detection, so it should find file1 as unmodified
+    output = cmd(archiver, "create", "--list", "--files-cache=mtime,size", "test", "input")
+    assert "U input/file1" in output
+
+
+def test_file_status_rc_cache_mode(archivers, request):
+    """test that files get rechunked unconditionally in rechunk,ctime cache mode"""
+    archiver = request.getfixturevalue(archivers)
+    create_regular_file(archiver.input_path, "file1", size=10)
+    granularity_sleep()  # file2 must have newer timestamps than file1
+    create_regular_file(archiver.input_path, "file2", size=10)
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    cmd(archiver, "create", "--list", "--files-cache=rechunk,ctime", "test", "input")
+    # no changes here, but this mode rechunks unconditionally
+    output = cmd(archiver, "create", "--list", "--files-cache=rechunk,ctime", "test", "input")
+    assert "A input/file1" in output
+
+
+def test_file_status_excluded(archivers, request):
+    """test that excluded paths are listed"""
+    archiver = request.getfixturevalue(archivers)
+    create_regular_file(archiver.input_path, "file1", size=1024 * 80)
+    granularity_sleep()  # file2 must have newer timestamps than file1
+    create_regular_file(archiver.input_path, "file2", size=1024 * 80)
+    if has_lchflags:
+        create_regular_file(archiver.input_path, "file3", size=1024 * 80)
+        platform.set_flags(os.path.join(archiver.input_path, "file3"), stat.UF_NODUMP)
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    output = cmd(archiver, "create", "--list", "test", "input")
+    assert "A input/file1" in output
+    assert "A input/file2" in output
+    if has_lchflags:
+        assert "- input/file3" in output
+    # should find second file as excluded
+    output = cmd(archiver, "create", "test", "input", "--list", "--exclude", "*/file2")
+    assert "U input/file1" in output
+    assert "- input/file2" in output
+    if has_lchflags:
+        assert "- input/file3" in output
+
+
+def test_file_status_counters(archivers, request):
+    """Test file status counters in the stats of `borg create --stats`"""
+    archiver = request.getfixturevalue(archivers)
+
+    def to_dict(borg_create_output):
+        borg_create_output = borg_create_output.strip().splitlines()
+        borg_create_output = [line.split(":", 1) for line in borg_create_output]
+        borg_create_output = {
+            key: int(value)
+            for key, value in borg_create_output
+            if key in ("Added files", "Unchanged files", "Modified files")
+        }
+        return borg_create_output
+
+    # Test case set up: create a repository
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    # Archive an empty dir
+    result = cmd(archiver, "create", "--stats", "test_archive", archiver.input_path)
+    result = to_dict(result)
+    assert result["Added files"] == 0
+    assert result["Unchanged files"] == 0
+    assert result["Modified files"] == 0
+    # Archive a dir with two added files
+    create_regular_file(archiver.input_path, "testfile1", contents=b"test1")
+    granularity_sleep()  # testfile2 must have newer timestamps than testfile1
+    create_regular_file(archiver.input_path, "testfile2", contents=b"test2")
+    result = cmd(archiver, "create", "--stats", "test_archive", archiver.input_path)
+    result = to_dict(result)
+    assert result["Added files"] == 2
+    assert result["Unchanged files"] == 0
+    assert result["Modified files"] == 0
+    # Archive a dir with 1 unmodified file and 1 modified
+    create_regular_file(archiver.input_path, "testfile1", contents=b"new data")
+    result = cmd(archiver, "create", "--stats", "test_archive", archiver.input_path)
+    result = to_dict(result)
+    # Should process testfile2 as added because of
+    # https://borgbackup.readthedocs.io/en/stable/faq.html#i-am-seeing-a-added-status-for-an-unchanged-file
+    assert result["Added files"] == 1
+    assert result["Unchanged files"] == 0
+    assert result["Modified files"] == 1
+
+
+def test_create_stats_store(archivers, request):
+    """`borg create --stats` shows the full store stats, populated from the store."""
+    archiver = request.getfixturevalue(archivers)
+
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    create_regular_file(archiver.input_path, "testfile", contents=b"some data to back up")
+    output = cmd(archiver, "create", "--stats", "test_archive", archiver.input_path)
+    # the store stats block is present, formatted like the other stats lines
+    assert "Store backend store volume:" in output
+    assert "Store backend load volume:" in output
+    assert "Store cache hit ratio:" in output
+    # the json output carries the same numbers as a structured dict
+    create_info = json.loads(cmd(archiver, "create", "--json", "--stats", "test_archive2", archiver.input_path))
+    store_stats = create_info["archive"]["stats"]["store_stats"]
+    assert store_stats["backend_store_volume"] > 0
+    assert store_stats["backend_load_volume"] >= 0
+
+
+def test_create_logs_archive_name(archivers, request):
+    """`borg create --info` announces the archive name, not just the repository."""
+    archiver = request.getfixturevalue(archivers)
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    create_regular_file(archiver.input_path, "testfile", contents=b"data")
+    output = cmd(archiver, "create", "--info", "my_archive", archiver.input_path)
+    assert 'Creating archive "my_archive"' in output
+
+
+def test_create_json(archivers, request):
+    archiver = request.getfixturevalue(archivers)
+    create_regular_file(archiver.input_path, "file1", size=1024 * 80)
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    create_info = json.loads(cmd(archiver, "create", "--json", "test", "input"))
+    # The usual keys
+    assert "encryption" in create_info
+    assert "repository" in create_info
+    assert "cache" in create_info
+
+    archive = create_info["archive"]
+    assert archive["name"] == "test"
+    assert isinstance(archive["command_line"], str)
+    assert isinstance(archive["duration"], float)
+    assert len(archive["id"]) == 64
+    assert "stats" in archive
+
+
+def test_create_json_deduplicated_size(archivers, request):
+    """create --json reports the deduplicated size of the new archive, see #10335."""
+    archiver = request.getfixturevalue(archivers)
+    create_regular_file(archiver.input_path, "file1", contents=os.urandom(1024 * 80))
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    stats = json.loads(cmd(archiver, "create", "--json", "test", "input"))["archive"]["stats"]
+    # fresh repository: all of the file content was new to the repository.
+    assert 1024 * 80 <= stats["deduplicated_size"] <= stats["original_size"]
+    # same, unchanged input again: the file content gets deduplicated against the first archive,
+    # only the new archive's metadata gets added to the repository.
+    stats = json.loads(cmd(archiver, "create", "--json", "test", "input"))["archive"]["stats"]
+    assert 1024 * 80 <= stats["original_size"]
+    assert 0 < stats["deduplicated_size"] < 1024 * 80
+
+
+def test_hostname_and_username_override(archivers, request, monkeypatch):
+    archiver = request.getfixturevalue(archivers)
+    create_regular_file(archiver.input_path, "file1", size=1024 * 80)
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    monkeypatch.setenv("BORG_HOSTNAME", "foo_host")
+    monkeypatch.setenv("BORG_USERNAME", "bar_user")
+    # the override is also used to fill the {hostname}/{user} placeholders in the archive name:
+    cmd(archiver, "create", "{hostname}-{user}", "input")
+    info = json.loads(cmd(archiver, "info", "--json", "foo_host-bar_user"))
+    archive = info["archives"][0]
+    assert archive["name"] == "foo_host-bar_user"
+    assert archive["hostname"] == "foo_host"
+    assert archive["username"] == "bar_user"
+
+
+def test_create_topical(archivers, request):
+    archiver = request.getfixturevalue(archivers)
+    create_regular_file(archiver.input_path, "file1", size=1024 * 80)
+    granularity_sleep()  # file2 must have newer timestamps than file1
+    create_regular_file(archiver.input_path, "file2", size=1024 * 80)
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    # no listing by default
+    output = cmd(archiver, "create", "test", "input")
+    assert "file1" not in output
+    # shouldn't be listed even if unchanged
+    output = cmd(archiver, "create", "test", "input")
+    assert "file1" not in output
+    # should list the file as unchanged
+    output = cmd(archiver, "create", "test", "input", "--list", "--filter=U")
+    assert "file1" in output
+    # should *not* list the file as changed
+    output = cmd(archiver, "create", "test", "input", "--list", "--filter=AM")
+    assert "file1" not in output
+    # change the file
+    create_regular_file(archiver.input_path, "file1", size=1024 * 100)
+    # should list the file as changed
+    output = cmd(archiver, "create", "test", "input", "--list", "--filter=AM")
+    assert "file1" in output
+
+
+def _drain_fifo_and_join(fifo_fn, thread, size=65536):
+    """In case `borg create` failed to open/read the FIFO, unblock the feeder thread."""
+    fd = os.open(fifo_fn, os.O_RDONLY | os.O_NONBLOCK)
+    try:
+        while os.read(fd, size):
+            pass
+    except OSError:
+        pass
+    finally:
+        os.close(fd)
+    thread.join()
+
+
+@pytest.mark.skipif(not are_fifos_supported() or is_cygwin, reason="FIFOs not supported, hangs on cygwin")
+@pytest.mark.parametrize("timeout_args", ([], ["--read-special-timeout=0"]), ids=["default-timeout", "no-timeout"])
+def test_create_read_special_big_fifo(archivers, request, timeout_args):
+    # os.read() on a fifo returns at most the pipe buffer's content (often just 64 KiB),
+    # usually much less than the chunker requests per read - especially with a writer
+    # that pauses between bursts. borg must keep reading and not treat a short read as
+    # EOF, else the archived fifo content gets truncated.
+    # Parametrization covers both read paths: the SpecialFileReader wrapper (default
+    # timeout) and the plain blocking reads (--read-special-timeout=0 == wait forever).
+    archiver = request.getfixturevalue(archivers)
+    import time
+    from threading import Thread
+
+    data = b"".join(length.to_bytes(4, "big") * 1024 for length in range(512))  # 2 MiB, way > pipe buffer
+
+    def fifo_feeder(fifo_fn, data):
+        fd = os.open(fifo_fn, os.O_WRONLY)
+        try:
+            burst_size = len(data) // 4
+            for start in range(0, len(data), burst_size):
+                burst = data[start : start + burst_size]
+                pos = 0
+                while pos < len(burst):
+                    pos += os.write(fd, burst[pos:])
+                time.sleep(0.1)  # writer pause: reads on the other side come up short
+        except BrokenPipeError:
+            pass  # borg closed the fifo prematurely (that is the bug this test is about)
+        finally:
+            os.close(fd)
+
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    fifo_fn = os.path.join(archiver.input_path, "fifo")
+    os.mkfifo(fifo_fn)
+    t = Thread(target=fifo_feeder, args=(fifo_fn, data))
+    t.start()
+    try:
+        cmd(archiver, "create", "--read-special", *timeout_args, "test", "input/fifo")
+    finally:
+        _drain_fifo_and_join(fifo_fn, t)
+    with changedir("output"):
+        cmd(archiver, "extract", "test")
+        with open("input/fifo", "rb") as f:
+            extracted_data = f.read()
+    assert len(extracted_data) == len(data)
+    assert extracted_data == data
+
+
+@pytest.mark.skipif(not are_fifos_supported() or is_cygwin, reason="FIFOs not supported, hangs on cygwin")
+def test_create_read_special_timeout_expired(archivers, request):
+    # a fifo nobody ever opens for writing: borg must give up after --read-special-timeout,
+    # skip the fifo with an error and still back up the other files.
+    archiver = request.getfixturevalue(archivers)
+    import time
+
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    create_regular_file(archiver.input_path, "file1", size=1024)
+    os.mkfifo(os.path.join(archiver.input_path, "fifo"))
+    exc = BackupTimeoutError("read", OSError(errno.ETIMEDOUT, "timeout"))
+    expected_ec = BackupWarning("input/fifo", exc).exit_code
+    started = time.monotonic()
+    out = cmd(
+        archiver,
+        "create",
+        "--read-special",
+        "--read-special-timeout=1",
+        "test",
+        "input",
+        exit_code=expected_ec,  # WARNING status: could not back up the fifo.
+    )
+    # Generous bound for heavily loaded CI runners: proves borg gave up soon after the requested
+    # 1s timeout (and did not e.g. wait for the 30 minutes default timeout).
+    assert time.monotonic() - started < 300
+    assert "retry: 1 of " not in out  # timeouts are NOT retried
+    listing = cmd(archiver, "list", "test", "--format={path}{NL}")
+    assert "input/file1" in listing
+    assert "fifo" not in listing
+
+
+def test_create_read_special_timeout_requires_read_special(archivers, request):
+    archiver = request.getfixturevalue(archivers)
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    if archiver.FORK_DEFAULT:
+        expected_ec = CommandError().exit_code
+        output = cmd(archiver, "create", "--read-special-timeout=5", "test", "input", exit_code=expected_ec)
+        assert "--read-special-timeout requires --read-special." in output
+    else:
+        with pytest.raises(CommandError):
+            cmd(archiver, "create", "--read-special-timeout=5", "test", "input")
+
+
+@pytest.mark.skipif(not are_fifos_supported() or is_cygwin, reason="FIFOs not supported, hangs on cygwin")
+def test_create_read_special_timeout_slow_writer(archivers, request):
+    # a writer that connects late and pauses between bursts must not trigger the timeout,
+    # as long as the pauses stay below --read-special-timeout.
+    archiver = request.getfixturevalue(archivers)
+    import time
+    from threading import Thread
+
+    data = b"".join(length.to_bytes(4, "big") * 256 for length in range(64))  # 64 KiB
+    burst_size = len(data) // 4
+
+    def fifo_feeder(fifo_fn, data):
+        time.sleep(0.3)  # writer connects late
+        fd = os.open(fifo_fn, os.O_WRONLY)
+        try:
+            for start in range(0, len(data), burst_size):
+                burst = data[start : start + burst_size]
+                pos = 0
+                while pos < len(burst):
+                    pos += os.write(fd, burst[pos:])
+                time.sleep(0.2)  # data flows with gaps < timeout
+        except BrokenPipeError:
+            pass  # borg gave up early - the asserts below will complain
+        finally:
+            os.close(fd)
+
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    fifo_fn = os.path.join(archiver.input_path, "fifo")
+    os.mkfifo(fifo_fn)
+    t = Thread(target=fifo_feeder, args=(fifo_fn, data))
+    t.start()
+    try:
+        cmd(archiver, "create", "--read-special", "--read-special-timeout=30", "test", "input/fifo")
+    finally:
+        _drain_fifo_and_join(fifo_fn, t)
+    with changedir("output"):
+        cmd(archiver, "extract", "test")
+        with open("input/fifo", "rb") as f:
+            extracted_data = f.read()
+    assert extracted_data == data
+
+
+@pytest.mark.skipif(not are_fifos_supported() or is_cygwin, reason="FIFOs not supported, hangs on cygwin")
+def test_create_read_special_symlink(archivers, request):
+    archiver = request.getfixturevalue(archivers)
+    from threading import Thread
+
+    def fifo_feeder(fifo_fn, data):
+        fd = os.open(fifo_fn, os.O_WRONLY)
+        try:
+            os.write(fd, data)
+        finally:
+            os.close(fd)
+
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    data = b"foobar" * 1000
+
+    fifo_fn = os.path.join(archiver.input_path, "fifo")
+    link_fn = os.path.join(archiver.input_path, "link_fifo")
+    os.mkfifo(fifo_fn)
+    os.symlink(fifo_fn, link_fn)
+
+    t = Thread(target=fifo_feeder, args=(fifo_fn, data))
+    t.start()
+    try:
+        cmd(archiver, "create", "--read-special", "test", "input/link_fifo")
+    finally:
+        # In case `borg create` failed to open FIFO, read all data to avoid join() hanging.
+        fd = os.open(fifo_fn, os.O_RDONLY | os.O_NONBLOCK)
+        try:
+            os.read(fd, len(data))
+        except OSError:
+            # fails on FreeBSD 13 with BlockingIOError
+            pass
+        finally:
+            os.close(fd)
+        t.join()
+    with changedir("output"):
+        cmd(archiver, "extract", "test")
+        fifo_fn = "input/link_fifo"
+        with open(fifo_fn, "rb") as f:
+            extracted_data = f.read()
+    assert extracted_data == data
+
+
+@pytest.mark.skipif(not are_symlinks_supported(), reason="symlinks not supported")
+def test_create_read_special_broken_symlink(archivers, request):
+    archiver = request.getfixturevalue(archivers)
+    os.symlink("somewhere does not exist", os.path.join(archiver.input_path, "link"))
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    cmd(archiver, "create", "--read-special", "test", "input")
+    output = cmd(archiver, "list", "test")
+    assert "input/link -> somewhere does not exist" in output
+
+
+@pytest.mark.skipif(not are_symlinks_supported(), reason="symlinks not supported")
+def test_create_symlink_root_dir(archivers, request):
+    # a recursion root that is a symlink to a directory is followed, see #4737
+    archiver = request.getfixturevalue(archivers)
+    create_regular_file(archiver.input_path, "target/file", contents=b"content")
+    os.symlink("target", os.path.join(archiver.input_path, "link"))
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    cmd(archiver, "create", "test", "input/link")
+    output = cmd(archiver, "list", "test")
+    assert "input/link -> target" not in output  # not archived as a symlink, but as a directory
+    assert "input/link/file" in output  # we recursed into the symlink target
+    assert "input/target" not in output  # the target path is not in the archive
+    with changedir("output"):
+        cmd(archiver, "extract", "test")
+        assert not os.path.islink("input/link")
+        assert os.path.isdir("input/link")
+        with open("input/link/file", "rb") as f:
+            assert f.read() == b"content"
+
+
+@pytest.mark.skipif(not are_symlinks_supported(), reason="symlinks not supported")
+def test_create_symlink_root_file(archivers, request):
+    # a recursion root that is a symlink to a regular file is followed, see #4737
+    archiver = request.getfixturevalue(archivers)
+    create_regular_file(archiver.input_path, "target", contents=b"content")
+    os.symlink("target", os.path.join(archiver.input_path, "link"))
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    cmd(archiver, "create", "test", "input/link")
+    output = cmd(archiver, "list", "test")
+    assert "input/link -> target" not in output  # not archived as a symlink, but as a regular file
+    assert "input/link" in output
+    with changedir("output"):
+        cmd(archiver, "extract", "test")
+        assert not os.path.islink("input/link")
+        with open("input/link", "rb") as f:
+            assert f.read() == b"content"
+
+
+@pytest.mark.skipif(not are_symlinks_supported(), reason="symlinks not supported")
+def test_create_symlink_below_root_not_followed(archivers, request):
+    # only recursion roots are followed, symlinks found while recursing are not, see #4737
+    archiver = request.getfixturevalue(archivers)
+    create_regular_file(archiver.input_path, "target/file", contents=b"content")
+    os.symlink("target", os.path.join(archiver.input_path, "link"))
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    cmd(archiver, "create", "test", "input")
+    output = cmd(archiver, "list", "test")
+    assert "input/link -> target" in output
+    assert "input/link/file" not in output
+    assert "input/target/file" in output
+
+
+@pytest.mark.skipif(not are_symlinks_supported(), reason="symlinks not supported")
+def test_create_symlink_root_and_target(archivers, request):
+    # a followed symlink root and its target are the same fs objects, so they are archived
+    # only once, under the path given first (like any other recursion root given twice).
+    archiver = request.getfixturevalue(archivers)
+    create_regular_file(archiver.input_path, "target/file", contents=b"content")
+    os.symlink("target", os.path.join(archiver.input_path, "link"))
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    cmd(archiver, "create", "test", "input/link", "input/target")
+    output = cmd(archiver, "list", "test")
+    assert "input/link/file" in output
+    assert "input/target/file" not in output
+
+
+@pytest.mark.skipif(not are_symlinks_supported(), reason="symlinks not supported")
+def test_create_symlink_root_broken(archivers, request):
+    # a recursion root that is a symlink with a non-existing target is skipped with a warning
+    archiver = request.getfixturevalue(archivers)
+    create_regular_file(archiver.input_path, "file", contents=b"content")
+    os.symlink("somewhere does not exist", os.path.join(archiver.input_path, "link"))
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    exc = BackupBrokenSymlinkError("stat", "broken symlink, skipping it")
+    expected_ec = BackupWarning("input/link", exc).exit_code
+    out = cmd(archiver, "create", "test", "input/link", "input/file", exit_code=expected_ec)
+    assert "input/link: stat: broken symlink, skipping it" in out
+    output = cmd(archiver, "list", "test")
+    assert "input/link" not in output
+    assert "input/file" in output  # the other recursion root was archived
+
+
+@pytest.mark.skipif(not are_symlinks_supported(), reason="symlinks not supported")
+def test_create_symlink_paths_from_stdin_not_followed(archivers, request):
+    # only recursion roots are followed, paths fed in via --paths-from-* are not, see #4737
+    archiver = request.getfixturevalue(archivers)
+    create_regular_file(archiver.input_path, "target", contents=b"content")
+    os.symlink("target", os.path.join(archiver.input_path, "link"))
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    cmd(archiver, "create", "--paths-from-stdin", "test", input=b"input/link")
+    output = cmd(archiver, "list", "test")
+    assert "input/link -> target" in output
+
+
+@pytest.mark.skipif(not are_symlinks_supported(), reason="symlinks not supported")
+def test_create_symlink_root_dotslash_hack(archivers, request):
+    # the slashdot hack also works for a recursion root that is a symlink, see #4737
+    archiver = request.getfixturevalue(archivers)
+    create_regular_file(archiver.input_path, "target/file", contents=b"content")
+    os.symlink("target", os.path.join(archiver.input_path, "link"))
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    cmd(archiver, "create", "test", "input/link/./")  # hack!
+    output = cmd(archiver, "list", "test")
+    assert "input" not in output  # the prefix left of the slashdot was stripped
+    assert "file" in output
+
+
+def test_create_dotslash_hack(archivers, request):
+    archiver = request.getfixturevalue(archivers)
+    os.makedirs(os.path.join(archiver.input_path, "first", "secondA", "thirdA"))
+    os.makedirs(os.path.join(archiver.input_path, "first", "secondB", "thirdB"))
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    cmd(archiver, "create", "test", "input/first/./")  # hack!
+    output = cmd(archiver, "list", "test")
+    # dir levels left of slashdot (= input, first) not in archive:
+    assert "input" not in output
+    assert "input/first" not in output
+    assert "input/first/secondA" not in output
+    assert "input/first/secondA/thirdA" not in output
+    assert "input/first/secondB" not in output
+    assert "input/first/secondB/thirdB" not in output
+    assert "first" not in output
+    assert "first/secondA" not in output
+    assert "first/secondA/thirdA" not in output
+    assert "first/secondB" not in output
+    assert "first/secondB/thirdB" not in output
+    # dir levels right of slashdot are in archive:
+    assert "secondA" in output
+    assert "secondA/thirdA" in output
+    assert "secondB" in output
+    assert "secondB/thirdB" in output
+
+
+def test_create_dotslash_hack_root_metadata(archivers, request):
+    """Test that the slashdot hack archives the source directory metadata as the archive root."""
+    archiver = request.getfixturevalue(archivers)
+    os.makedirs(os.path.join(archiver.input_path, "first", "subdir"))
+    create_regular_file(archiver.input_path, "first/file1", contents=b"hello")
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    cmd(archiver, "create", "test", "input/first/./")  # slashdot hack
+    output = cmd(archiver, "list", "test")
+    # the root directory "." must be in the archive (this was the bug in #9534).
+    lines = output.splitlines()
+    assert lines[0].endswith(" .")
+    # children of the slashdot target must be archived.
+    assert "subdir" in output
+    assert "file1" in output
+    # parent directories must NOT be in the archive.
+    assert "input" not in output
+    assert "first" not in output
+
+
+def test_log_json(archivers, request):
+    archiver = request.getfixturevalue(archivers)
+    create_test_files(archiver.input_path)
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    log = cmd(archiver, "create", "test", "input", "--log-json", "--list", "--debug")
+    messages = {}  # type -> message, one of each kind
+    for line in log.splitlines():
+        msg = json.loads(line)
+        messages[msg["type"]] = msg
+
+    file_status = messages["file_status"]
+    assert "status" in file_status
+    assert file_status["path"].startswith("input")
+
+    log_message = messages["log_message"]
+    assert isinstance(log_message["time"], float)
+    assert log_message["levelname"] == "DEBUG"  # there should only be DEBUG messages
+    assert isinstance(log_message["message"], str)
+
+
+def test_common_options(archivers, request):
+    archiver = request.getfixturevalue(archivers)
+    create_test_files(archiver.input_path)
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    log = cmd(archiver, "--debug", "create", "test", "input")
+    assert "security: read previous location" in log
+
+
+def test_create_big_zeros_files(archivers, request):
+    """Test creating an archive from 10 files with 10MB zeros each."""
+    archiver = request.getfixturevalue(archivers)
+    # Create 10 files with 10,000,000 bytes of zeros each
+    count, size = 10, 10 * 1000 * 1000
+    assert size <= len(zeros)
+    for i in range(count):
+        create_regular_file(archiver.input_path, f"zeros_{i}", contents=memoryview(zeros)[:size])
+    # Create repository and archive
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    cmd(archiver, "create", "test", "input")
+
+    # Extract the archive to verify contents
+    with tempfile.TemporaryDirectory() as extract_path:
+        with changedir(extract_path):
+            cmd(archiver, "extract", "test")
+
+            # Verify that the extracted files have the correct contents
+            for i in range(count):
+                extracted_file_path = os.path.join(extract_path, "input", f"zeros_{i}")
+                with open(extracted_file_path, "rb") as f:
+                    extracted_data = f.read()
+                    # Verify the file contains only zeros and has the correct size
+                    assert extracted_data == bytes(size)
+                    assert len(extracted_data) == size
+
+            # Also verify the directory structure matches
+            assert_dirs_equal(archiver.input_path, os.path.join(extract_path, "input"))
+
+
+def test_create_big_random_files(archivers, request):
+    """Test creating an archive with some big files with random data."""
+    archiver = request.getfixturevalue(archivers)
+    count, size = 5, 5 * 1000 * 1000
+    random_data = {}
+    for i in range(count):
+        data = os.urandom(size)
+        random_data[i] = data
+        create_regular_file(archiver.input_path, f"random_{i}", contents=data)
+    # Create repository and archive
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    cmd(archiver, "create", "test", "input")
+
+    # Extract the archive to verify contents
+    with tempfile.TemporaryDirectory() as extract_path:
+        with changedir(extract_path):
+            cmd(archiver, "extract", "test")
+
+            # Verify that the extracted files have the correct contents
+            for i in range(count):
+                extracted_file_path = os.path.join(extract_path, "input", f"random_{i}")
+                with open(extracted_file_path, "rb") as f:
+                    extracted_data = f.read()
+                    # Verify the file contains the original random data and has the correct size
+                    assert extracted_data == random_data[i]
+                    assert len(extracted_data) == size
+
+            # Also verify the directory structure matches
+            assert_dirs_equal(archiver.input_path, os.path.join(extract_path, "input"))
+
+
+def test_create_with_compression_algorithms(archivers, request):
+    """Test creating archives with different compression algorithms."""
+    archiver = request.getfixturevalue(archivers)
+
+    # Create test files: 5 files with zeros (highly compressible) and 5 with random data (incompressible)
+    count, size = 5, 1 * 1000 * 1000  # 1MB per file
+    random_data = {}
+
+    # Create zeros files
+    for i in range(count):
+        create_regular_file(archiver.input_path, f"zeros_{i}", contents=memoryview(zeros)[:size])
+
+    # Create random files
+    for i in range(count):
+        data = os.urandom(size)
+        random_data[i] = data
+        create_regular_file(archiver.input_path, f"random_{i}", contents=data)
+
+    # Create repository
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+
+    # Test different compression algorithms
+    algorithms = [
+        "none",  # No compression
+        "lz4",  # Fast compression
+        "zlib,6",  # Medium compression
+        "zstd,3",  # Good compression/speed balance
+        "lzma,6",  # High compression
+    ]
+
+    for algo in algorithms:
+        # Create archive with specific compression algorithm
+        archive_name = f"test_{algo.replace(',', '_')}"
+        cmd(archiver, "create", "--compression", algo, archive_name, "input")
+
+        # Extract the archive to verify contents
+        with tempfile.TemporaryDirectory() as extract_path:
+            with changedir(extract_path):
+                cmd(archiver, "extract", archive_name)
+
+                # Verify zeros files
+                for i in range(count):
+                    extracted_file_path = os.path.join(extract_path, "input", f"zeros_{i}")
+                    with open(extracted_file_path, "rb") as f:
+                        extracted_data = f.read()
+                        # Verify the file contains only zeros and has the correct size
+                        assert extracted_data == bytes(size)
+                        assert len(extracted_data) == size
+
+                # Verify random files
+                for i in range(count):
+                    extracted_file_path = os.path.join(extract_path, "input", f"random_{i}")
+                    with open(extracted_file_path, "rb") as f:
+                        extracted_data = f.read()
+                        # Verify the file contains the original random data and has the correct size
+                        assert extracted_data == random_data[i]
+                        assert len(extracted_data) == size
+
+                # Also verify the directory structure matches
+                assert_dirs_equal(archiver.input_path, os.path.join(extract_path, "input"))
+
+
+def test_create_exclude_dataless(archivers, request, monkeypatch):
+    """Files flagged SF_DATALESS are excluded with --exclude-dataless."""
+    from ...archive import SF_DATALESS
+    import borg.archiver.create_cmd as create_cmd_module
+
+    archiver = request.getfixturevalue(archivers)
+    if archiver.EXE:
+        pytest.skip("Skipping binary test due to patch objects")
+    create_regular_file(archiver.input_path, "file1", size=1024 * 80)
+    create_regular_file(archiver.input_path, "cloudfile", size=1024 * 80)
+
+    # SF_DATALESS cannot be set from userspace, so fake the flags lookup.
+    def fake_get_flags(path, st, fd=None):
+        return SF_DATALESS if path.endswith("cloudfile") else 0
+
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+
+    monkeypatch.setattr(create_cmd_module, "get_flags", fake_get_flags)
+    output = cmd(archiver, "create", "--list", "--exclude-dataless", "test", "input")
+    assert "A input/file1" in output
+    assert "x input/cloudfile" in output
+
+    # without --exclude-dataless, the file is backed up
+    output = cmd(archiver, "create", "--list", "test2", "input")
+    assert "A input/cloudfile" in output
+
+
+def test_exclude_nodump_dir_with_file(archivers, request):
+    """A directory flagged NODUMP and its contents must not be archived."""
+    archiver = request.getfixturevalue(archivers)
+    if not has_lchflags:
+        pytest.skip("platform does not support setting UF_NODUMP")
+
+    # Prepare input tree: input/nd directory (NODUMP) containing a file.
+    create_regular_file(archiver.input_path, "nd/file_in_ndir", contents=b"hello")
+    platform.set_flags(os.path.join(archiver.input_path, "nd"), stat.UF_NODUMP)
+
+    # Create repo and archive
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    cmd(archiver, "create", "test", "input")
+
+    # Verify: neither the directory nor its contained file are present in the archive
+    list_output = cmd(archiver, "list", "test", "--short")
+    assert "input/nd\n" not in list_output
+    assert "input/nd/file_in_ndir\n" not in list_output
+
+
+def test_create_map(archivers, request):
+    archiver = request.getfixturevalue(archivers)
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    block_size = 4096
+    data_a, data_b, data_c = os.urandom(block_size), os.urandom(block_size), os.urandom(block_size)
+    # data_b is real data, but the map claims that range reads as zero:
+    # borg must not read "zero" ranges, so the archive must contain zeros there.
+    create_regular_file(archiver.input_path, "file", contents=data_a + data_b + data_c + b"\0" * block_size)
+    map_path = os.fspath(archiver.tmpdir / "input.map")
+    with open(map_path, "w") as f:
+        f.write("# test input map\n")
+        f.write(f"0 {block_size} data\n")
+        f.write(f"0x1000 {block_size} zero\n")
+        f.write(f"{2 * block_size} {block_size} data\n")
+        f.write(f"{3 * block_size} {block_size} zero\n")
+    expected = data_a + b"\0" * block_size + data_c + b"\0" * block_size
+    for name, chunker_args in [("test-fixed", ("--chunker-params", "fixed,4096")), ("test-default", ())]:
+        cmd(archiver, "create", *chunker_args, "--map", map_path, name, "input/file")
+        with changedir("output"):
+            cmd(archiver, "extract", name)
+        with open(os.path.join("output", "input", "file"), "rb") as f:
+            assert f.read() == expected
+        shutil.rmtree("output")
+        os.mkdir("output")
+
+
+def test_create_map_errors(archivers, request):
+    archiver = request.getfixturevalue(archivers)
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    create_regular_file(archiver.input_path, "file", size=2 * 4096)
+    create_regular_file(archiver.input_path, "file2", size=100)
+    map_path = os.fspath(archiver.tmpdir / "input.map")
+    with open(map_path, "w") as f:
+        f.write("0 4096 data\n")
+
+    def expect_error(exc_class, *args):
+        if archiver.FORK_DEFAULT:
+            cmd(archiver, *args, exit_code=exc_class().exit_code)
+        else:
+            with pytest.raises(exc_class):
+                cmd(archiver, *args)
+
+    # --map requires exactly one input path
+    expect_error(CommandError, "create", "--map", map_path, "test", "input/file", "input/file2")
+    # --map input must not be a directory
+    expect_error(CommandError, "create", "--map", map_path, "test", "input")
+    # --map cannot be used with stdin input
+    expect_error(CommandError, "create", "--map", map_path, "test", "-")
+    # the map covers 4096 bytes, but the input file has 8192 bytes
+    expect_error(Error, "create", "--map", map_path, "test", "input/file")
+
+
+def test_create_map_reuse_from_fixed(archivers, request):
+    archiver = request.getfixturevalue(archivers)
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    block_size = 4096
+    blocks = [os.urandom(block_size) for _ in range(4)]
+    fname = os.path.join(archiver.input_path, "file")
+    create_regular_file(archiver.input_path, "file", contents=b"".join(blocks))
+    map_path = os.fspath(archiver.tmpdir / "input.map")
+    with open(map_path, "w") as f:
+        f.write(f"0 {4 * block_size} data\n")
+    cmd(archiver, "create", "--chunker-params", "fixed,4096", "--map", map_path, "ref", "input/file")
+    # modify block 1 (declared "data" below) and block 2 (declared "same"!): the new archive
+    # must contain the new block 1, but the OLD block 2 - proving that borg reused the
+    # reference archive's chunks instead of reading the "same" ranges.
+    new_block1, sneaky_block2 = os.urandom(block_size), os.urandom(block_size)
+    with open(fname, "r+b") as f:
+        f.seek(block_size)
+        f.write(new_block1)
+        f.write(sneaky_block2)
+    with open(map_path, "w") as f:
+        f.write(f"0 {block_size} same\n")
+        f.write(f"{block_size} {block_size} data\n")
+        f.write(f"{2 * block_size} {block_size} same\n")
+        f.write(f"{3 * block_size} {block_size} zero\n")
+    cmd(
+        archiver,
+        "create",
+        "--chunker-params",
+        "fixed,4096",
+        "--map",
+        map_path,
+        "--reuse-from",
+        "ref",
+        "test",
+        "input/file",
+    )
+    with changedir("output"):
+        cmd(archiver, "extract", "test")
+    with open(os.path.join("output", "input", "file"), "rb") as f:
+        assert f.read() == blocks[0] + new_block1 + blocks[2] + b"\0" * block_size
+
+
+def test_create_map_reuse_from_cdc(archivers, request):
+    # the reuse plan re-reads reference chunks that only partially overlap changed ranges,
+    # so it must also be correct with content-defined chunking (default chunker).
+    archiver = request.getfixturevalue(archivers)
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    size = 1 << 20
+    content = bytearray(os.urandom(size))
+    fname = os.path.join(archiver.input_path, "file")
+    create_regular_file(archiver.input_path, "file", contents=bytes(content))
+    map_path = os.fspath(archiver.tmpdir / "input.map")
+    with open(map_path, "w") as f:
+        f.write(f"0 {size} data\n")
+    cmd(archiver, "create", "ref", "input/file")
+    # change an unaligned range in the middle, keep everything else really unchanged.
+    start, length = 400000, 5000
+    content[start : start + length] = os.urandom(length)
+    with open(fname, "wb") as f:
+        f.write(content)
+    with open(map_path, "w") as f:
+        f.write(f"0 {start} same\n")
+        f.write(f"{start} {length} data\n")
+        f.write(f"{start + length} {size - start - length} same\n")
+    cmd(archiver, "create", "--map", map_path, "--reuse-from", "ref", "test", "input/file")
+    with changedir("output"):
+        cmd(archiver, "extract", "test")
+    with open(os.path.join("output", "input", "file"), "rb") as f:
+        assert f.read() == bytes(content)
+
+
+def test_create_map_reuse_from_resize(archivers, request):
+    archiver = request.getfixturevalue(archivers)
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    block_size = 4096
+    blocks = [os.urandom(block_size) for _ in range(3)]
+    fname = os.path.join(archiver.input_path, "file")
+    create_regular_file(archiver.input_path, "file", contents=blocks[0] + blocks[1])
+    map_path = os.fspath(archiver.tmpdir / "input.map")
+    with open(map_path, "w") as f:
+        f.write(f"0 {2 * block_size} data\n")
+    cmd(archiver, "create", "--chunker-params", "fixed,4096", "ref", "input/file")
+    # input grew: the tail beyond the reference chunks must be read.
+    with open(fname, "ab") as f:
+        f.write(blocks[2])
+    with open(map_path, "w") as f:
+        f.write(f"0 {2 * block_size} same\n")
+        f.write(f"{2 * block_size} {block_size} data\n")
+    cmd(
+        archiver,
+        "create",
+        "--chunker-params",
+        "fixed,4096",
+        "--map",
+        map_path,
+        "--reuse-from",
+        "ref",
+        "grown",
+        "input/file",
+    )
+    # input shrank: reference chunks beyond the new size must be dropped.
+    with open(fname, "r+b") as f:
+        f.truncate(block_size)
+    with open(map_path, "w") as f:
+        f.write(f"0 {block_size} same\n")
+    cmd(
+        archiver,
+        "create",
+        "--chunker-params",
+        "fixed,4096",
+        "--map",
+        map_path,
+        "--reuse-from",
+        "ref",
+        "shrunk",
+        "input/file",
+    )
+    with changedir("output"):
+        cmd(archiver, "extract", "grown")
+    with open(os.path.join("output", "input", "file"), "rb") as f:
+        assert f.read() == blocks[0] + blocks[1] + blocks[2]
+    shutil.rmtree("output")
+    os.mkdir("output")
+    with changedir("output"):
+        cmd(archiver, "extract", "shrunk")
+    with open(os.path.join("output", "input", "file"), "rb") as f:
+        assert f.read() == blocks[0]
+
+
+def test_create_map_reuse_from_missing_chunk(archivers, request, monkeypatch):
+    # when a reference chunk is not in the repo (any more), borg must fall back to reading.
+    archiver = request.getfixturevalue(archivers)
+    if archiver.FORK_DEFAULT:
+        pytest.skip("needs in-process monkeypatching")
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    block_size = 4096
+    content = os.urandom(2 * block_size)
+    create_regular_file(archiver.input_path, "file", contents=content)
+    map_path = os.fspath(archiver.tmpdir / "input.map")
+    with open(map_path, "w") as f:
+        f.write(f"0 {2 * block_size} data\n")
+    cmd(archiver, "create", "--chunker-params", "fixed,4096", "ref", "input/file")
+    with open(map_path, "w") as f:
+        f.write(f"0 {2 * block_size} same\n")
+    from ...cache import AdHocWithFilesCache
+
+    monkeypatch.setattr(AdHocWithFilesCache, "seen_chunk", lambda self, id, size=None: False)
+    cmd(
+        archiver,
+        "create",
+        "--chunker-params",
+        "fixed,4096",
+        "--map",
+        map_path,
+        "--reuse-from",
+        "ref",
+        "test",
+        "input/file",
+    )
+    with changedir("output"):
+        cmd(archiver, "extract", "test")
+    with open(os.path.join("output", "input", "file"), "rb") as f:
+        assert f.read() == content
+
+
+def test_create_map_reuse_from_errors(archivers, request):
+    archiver = request.getfixturevalue(archivers)
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    create_regular_file(archiver.input_path, "file", size=4096)
+    create_regular_file(archiver.input_path, "file2", size=4096)
+    map_path = os.fspath(archiver.tmpdir / "input.map")
+    with open(map_path, "w") as f:
+        f.write("0 4096 same\n")
+
+    def expect_error(exc_class, *args):
+        if archiver.FORK_DEFAULT:
+            cmd(archiver, *args, exit_code=exc_class().exit_code)
+        else:
+            with pytest.raises(exc_class):
+                cmd(archiver, *args)
+
+    cmd(archiver, "create", "ref2", "input")  # two file items
+    # --reuse-from requires --map
+    expect_error(CommandError, "create", "--reuse-from", "ref2", "test", "input/file")
+    # --reuse-path requires --reuse-from
+    expect_error(CommandError, "create", "--map", map_path, "--reuse-path", "input/file", "test", "input/file")
+    # "same" state requires --reuse-from
+    expect_error(Error, "create", "--map", map_path, "test", "input/file")
+    # ambiguous reference archive (two file items, no --reuse-path)
+    expect_error(CommandError, "create", "--map", map_path, "--reuse-from", "ref2", "test", "input/file")
+    # --reuse-path selecting a non-existing item
+    expect_error(
+        CommandError,
+        "create",
+        "--map",
+        map_path,
+        "--reuse-from",
+        "ref2",
+        "--reuse-path",
+        "nosuch",
+        "test",
+        "input/file",
+    )
+    # disambiguated via --reuse-path: works
+    cmd(
+        archiver,
+        "create",
+        "--map",
+        map_path,
+        "--reuse-from",
+        "ref2",
+        "--reuse-path",
+        "input/file",
+        "test",
+        "input/file",
+    )
+
+
+def item_digests(archiver, archive="test"):
+    """{path: item.digests} as STORED in the items of the newest archive of a series.
+
+    Note: "borg list --format {blake3}" can not be used for this - it falls back to
+    reading and hashing the file content if the item does not have digests.
+    """
+    archives = cmd(archiver, "repo-list", "--format", "{name} {id}{NL}").splitlines()
+    archive_id = [line.split()[1] for line in archives if line.split()[0] == archive][-1]
+    archive_obj, repository = open_archive(archiver.repository_path, f"aid:{archive_id}")
+    with repository:
+        return {item.path: item.get("digests") for item in archive_obj.iter_items()}
+
+
+def blake3_digests(data):
+    """what item.digests must look like for content <data>"""
+    return {"blake3": blake3(data).digest()}
+
+
+def test_create_digests(archivers, request):
+    # borg create computes a digest over the full content of each file, see #4699
+    archiver = request.getfixturevalue(archivers)
+    contents = {
+        "empty": b"",
+        "small": b"small file contents",  # single chunk, hashed by the main thread
+        "big": os.urandom(512 * 1024),  # multiple big chunks, hashed by a background thread
+    }
+    for name, data in contents.items():
+        create_regular_file(archiver.input_path, name, contents=data)
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    cmd(archiver, "create", "--digests=blake3", "--chunker-params=fixed,131072", "test", "input")
+    digests = item_digests(archiver)
+    for name, data in contents.items():
+        assert digests[f"input/{name}"] == blake3_digests(data)
+    assert digests["input"] is None  # a directory has no content and thus no digests
+
+
+def test_create_digests_from_files_cache(archivers, request):
+    # an unchanged file is not read again, so its digests must come from the files cache
+    archiver = request.getfixturevalue(archivers)
+    contents = b"some file contents"
+    create_regular_file(archiver.input_path, "file1", contents=contents)
+    granularity_sleep()  # file2 must have newer timestamps than file1, see test_file_status
+    create_regular_file(archiver.input_path, "file2", contents=b"newer file")
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    cmd(archiver, "create", "--digests=blake3", "test", "input")
+    output = cmd(archiver, "create", "--digests=blake3", "--list", "--filter=U", "test", "input")
+    assert "U input/file1" in output  # not read again
+    assert item_digests(archiver)["input/file1"] == blake3_digests(contents)
+
+
+@requires_hardlinks
+def test_create_digests_hardlink(archivers, request):
+    # the 2nd hard link is not read again, its digests come from the first one
+    archiver = request.getfixturevalue(archivers)
+    contents = b"some file contents"
+    create_regular_file(archiver.input_path, "file1", contents=contents)
+    os.link(os.path.join(archiver.input_path, "file1"), os.path.join(archiver.input_path, "file2"))
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    cmd(archiver, "create", "--digests=blake3", "test", "input")
+    digests = item_digests(archiver)
+    assert digests["input/file1"] == digests["input/file2"] == blake3_digests(contents)
+
+
+def test_create_digests_holes(archivers, request):
+    # a hole is not read, but it is part of the file content, so it must be digested as zeros
+    archiver = request.getfixturevalue(archivers)
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    block_size = 4096
+    data = os.urandom(block_size)
+    contents = data + b"\0" * block_size
+    create_regular_file(archiver.input_path, "file", contents=contents)
+    map_path = os.fspath(archiver.tmpdir / "input.map")
+    with open(map_path, "w") as f:
+        f.write(f"0 {block_size} data\n")
+        f.write(f"{block_size} {block_size} zero\n")  # a hole, borg does not read it
+    cmd(
+        archiver,
+        "create",
+        "--digests=blake3",
+        "--chunker-params",
+        "fixed,4096",
+        "--map",
+        map_path,
+        "test",
+        "input/file",
+    )
+    assert item_digests(archiver)["input/file"] == blake3_digests(contents)
+
+
+def test_create_digests_reuse_from(archivers, request):
+    # --reuse-from reuses chunks without reading them, so we can not digest the full content
+    archiver = request.getfixturevalue(archivers)
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    block_size = 4096
+    blocks = [os.urandom(block_size) for _ in range(2)]
+    create_regular_file(archiver.input_path, "file", contents=blocks[0] + blocks[1])
+    map_path = os.fspath(archiver.tmpdir / "input.map")
+    with open(map_path, "w") as f:
+        f.write(f"0 {2 * block_size} data\n")
+    cmd(
+        archiver, "create", "--digests=blake3", "--chunker-params", "fixed,4096", "--map", map_path, "ref", "input/file"
+    )
+    assert item_digests(archiver, "ref")["input/file"] == blake3_digests(blocks[0] + blocks[1])
+    new_block = os.urandom(block_size)
+    create_regular_file(archiver.input_path, "file", contents=blocks[0] + new_block)
+    with open(map_path, "w") as f:
+        f.write(f"0 {block_size} same\n")
+        f.write(f"{block_size} {block_size} data\n")
+    cmd(
+        archiver,
+        "create",
+        "--digests=blake3",
+        "--chunker-params",
+        "fixed,4096",
+        "--map",
+        map_path,
+        "--reuse-from",
+        "ref",
+        "test",
+        "input/file",
+    )
+    assert item_digests(archiver, "test")["input/file"] is None
+
+
+def test_create_digests_stdin(archivers, request):
+    archiver = request.getfixturevalue(archivers)
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    input_data = b"some data from a pipe"
+    cmd(archiver, "create", "--digests=blake3", "test", "-", input=input_data)
+    assert item_digests(archiver)["stdin"] == blake3_digests(input_data)
+
+
+def test_create_digests_algos(archivers, request):
+    # --digests selects the hash algorithms to compute
+    archiver = request.getfixturevalue(archivers)
+    contents = b"some file contents"
+    create_regular_file(archiver.input_path, "file1", contents=contents)
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    cmd(archiver, "create", "--digests", "blake3,sha256", "test", "input")
+    assert item_digests(archiver)["input/file1"] == {
+        "blake3": blake3(contents).digest(),
+        "sha256": hashlib.sha256(contents).digest(),
+    }
+
+
+def test_create_digests_default_is_none(archivers, request):
+    # digests are opt-in: without --digests, borg computes and stores none
+    archiver = request.getfixturevalue(archivers)
+    create_regular_file(archiver.input_path, "file1", contents=b"some file contents")
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    cmd(archiver, "create", "test", "input")
+    assert item_digests(archiver)["input/file1"] is None
+
+
+def test_create_digests_none(archivers, request):
+    # --digests=none does not compute digests and does not store known ones either
+    archiver = request.getfixturevalue(archivers)
+    contents = b"some file contents"
+    create_regular_file(archiver.input_path, "file1", contents=contents)
+    granularity_sleep()  # file2 must have newer timestamps than file1, see test_file_status
+    create_regular_file(archiver.input_path, "file2", contents=b"newer file")
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    cmd(archiver, "create", "--digests=blake3", "test", "input")  # this one has digests
+    output = cmd(archiver, "create", "--digests=none", "--list", "--filter=U", "test", "input")
+    assert "U input/file1" in output
+    # neither computed nor taken from the files cache (which has them from the first run):
+    assert item_digests(archiver)["input/file1"] is None
+
+
+def test_create_digests_invalid_algo(archivers, request):
+    archiver = request.getfixturevalue(archivers)
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    output = cmd(archiver, "create", "--digests=nosuchhash", "test", "input", exit_code=2)
+    assert "digests must be" in output and "blake3" in output  # the error lists the valid algorithms
+
+
+def test_chunkindex_covers_committed_archive(archiver, monkeypatch):
+    """The index fragments covering a session's chunks are written before the archive pointer (#10239).
+
+    Simulate borg dying right after the commit point (the archives/* pointer write): the close-time
+    index write does not happen then. As reads are routed through the chunk index, the committed
+    archive is only readable if index fragments covering all of its chunks were written before the
+    pointer.
+    """
+    from ...cache import ChunksMixin
+
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    create_regular_file(archiver.input_path, "file1", size=1024 * 80)
+    orig_maybe_write = ChunksMixin._maybe_write_chunks_index
+
+    def no_close_time_write(self, now, force=False, clear=False):
+        if clear:
+            return  # skip the cache-close index write, like a crash right after committing
+        orig_maybe_write(self, now, force=force, clear=clear)
+
+    with monkeypatch.context() as m:
+        m.setattr(ChunksMixin, "_maybe_write_chunks_index", no_close_time_write)
+        cmd(archiver, "create", "test", "input")
+    with changedir("output"):
+        cmd(archiver, "extract", "test")
+    assert_dirs_equal("input", "output/input")
+
+
+def _remove_files_cache(archiver, archive_name):
+    """Remove the local files cache of an archive series, forcing a rebuild from the repository."""
+    from ...cache import files_cache_name
+    from ...helpers import get_cache_dir
+
+    repo_id = json.loads(cmd(archiver, "repo-info", "--json"))["repository"]["id"]
+    cache_file = Path(get_cache_dir(repo_id, create=False)) / files_cache_name(archive_name)
+    cache_file.unlink()
+
+
+def test_files_cache_rebuild_ignores_other_hosts(archivers, request, monkeypatch):
+    """The files cache must be rebuilt from an archive of the same host, not from a foreign one."""
+    archiver = request.getfixturevalue(archivers)
+    create_regular_file(archiver.input_path, "file1", size=1024 * 80)
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+
+    # host1 backs up its "home" series ...
+    monkeypatch.setenv("BORG_HOSTNAME", "host1")
+    cmd(archiver, "create", "home", "input")
+    host1_id = cmd(archiver, "repo-list", "--format={id}{NL}").strip()
+
+    # ... and afterwards host2 backs up its own, unrelated "home" series into the same repository,
+    # so the newest archive named "home" is not host1's any more.
+    monkeypatch.setenv("BORG_HOSTNAME", "host2")
+    cmd(archiver, "create", "home", "input")
+
+    # host1 lost its local files cache and has to rebuild it from the repository.
+    monkeypatch.setenv("BORG_HOSTNAME", "host1")
+    _remove_files_cache(archiver, "home")
+    output = cmd(archiver, "create", "--debug", "home", "input")
+    assert "Building files cache from" in output
+    assert host1_id in output  # host2's archive would be useless here
+
+
+def test_files_cache_rebuild_group_by_name_only(archivers, request, monkeypatch):
+    """--group-by name restores the previous behaviour of matching the series name only."""
+    archiver = request.getfixturevalue(archivers)
+    create_regular_file(archiver.input_path, "file1", size=1024 * 80)
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+
+    monkeypatch.setenv("BORG_HOSTNAME", "host1")
+    cmd(archiver, "create", "home", "input")
+    monkeypatch.setenv("BORG_HOSTNAME", "host2")
+    cmd(archiver, "create", "home", "input")
+    host2_id = cmd(archiver, "repo-list", "--format={id}{NL}", "--last", "1").strip()
+
+    monkeypatch.setenv("BORG_HOSTNAME", "host1")
+    _remove_files_cache(archiver, "home")
+    output = cmd(archiver, "create", "--debug", "--group-by", "name", "home", "input")
+    assert host2_id in output  # the newest archive of the series, whatever host made it
+
+
+def test_files_cache_rebuild_without_ctime(archivers, request):
+    """Rebuilding from an archive that has no ctime must work - --noctime, and always on Windows."""
+    archiver = request.getfixturevalue(archivers)
+    create_regular_file(archiver.input_path, "file1", size=1024 * 80)
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    cmd(archiver, "create", "--noctime", "home", "input")
+    _remove_files_cache(archiver, "home")
+    output = cmd(archiver, "create", "--noctime", "--debug", "home", "input")
+    assert "Building files cache from" in output
+
+
+def test_files_cache_rebuild_group_by_invalid(archivers, request):
+    archiver = request.getfixturevalue(archivers)
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    output = cmd(archiver, "create", "--group-by", "", "home", "input", exit_code=2)
+    assert "At least one group-by key is required" in output

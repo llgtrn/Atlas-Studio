@@ -1,0 +1,91 @@
+.\" Man page generated from reStructuredText
+.\" by the Docutils 0.22.4 manpage writer.
+.
+.
+.nr rst2man-indent-level 0
+.
+.de1 rstReportMargin
+\\$1 \\n[an-margin]
+level \\n[rst2man-indent-level]
+level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
+-
+\\n[rst2man-indent0]
+\\n[rst2man-indent1]
+\\n[rst2man-indent2]
+..
+.de1 INDENT
+.\" .rstReportMargin pre:
+. RS \\$1
+. nr rst2man-indent\\n[rst2man-indent-level] \\n[an-margin]
+. nr rst2man-indent-level +1
+.\" .rstReportMargin post:
+..
+.de UNINDENT
+. RE
+.\" indent \\n[an-margin]
+.\" old: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.nr rst2man-indent-level -1
+.\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.in \\n[rst2man-indent\\n[rst2man-indent-level]]u
+..
+.TH "borg-repo-space" "1" "2026-09-02" "" "borg backup tool"
+.SH Name
+borg-repo-space \- Manages reserved space in the repository.
+.SH SYNOPSIS
+.sp
+borg [common options] repo\-space [options]
+.SH DESCRIPTION
+.sp
+This command manages reserved space in a repository.
+.sp
+Borg cannot work in disk\-full conditions (it cannot lock a repository and thus cannot
+run prune/delete or compact operations to free disk space).
+.sp
+To avoid running into such dead\-end situations, you can put some objects into a
+repository that take up disk space. If you ever run into a disk\-full situation, you
+can free that space, and then Borg will be able to run normally so you can free more
+disk space by using \fBborg prune\fP/\fBborg delete\fP/\fBborg compact\fP\&. After that, do
+not forget to reserve space again, in case you run into that situation again later.
+.sp
+Examples:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.EX
+# Create a new repository:
+$ borg repo\-create ...
+# Reserve approx. 1 GiB of space for emergencies:
+$ borg repo\-space \-\-reserve 1G
+
+# Check the amount of reserved space in the repository:
+$ borg repo\-space
+
+# EMERGENCY! Free all reserved space to get things back to normal:
+$ borg repo\-space \-\-free
+$ borg prune ...
+$ borg delete ...
+$ borg compact \-v  # only this actually frees space of deleted archives
+$ borg repo\-space \-\-reserve 1G  # reserve space again for next time
+.EE
+.UNINDENT
+.UNINDENT
+.sp
+Reserved space is always rounded up to full reservation blocks of 64 MiB.
+.SH OPTIONS
+.sp
+See \fIborg\-common(1)\fP for common options of Borg commands.
+.SS options
+.INDENT 0.0
+.TP
+.BI \-\-reserve \ SPACE
+Amount of space to reserve (e.g. 100M, 1G). Default: 0.
+.TP
+.B  \-\-free
+Free all reserved space. Do not forget to reserve space again later.
+.UNINDENT
+.SH SEE ALSO
+.sp
+\fIborg\-common(1)\fP
+.SH Author
+The Borg Collective
+.\" End of generated man page.

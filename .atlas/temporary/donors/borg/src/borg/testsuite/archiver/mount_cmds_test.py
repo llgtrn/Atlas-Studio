@@ -1,0 +1,680 @@
+# This file tests the mount/umount commands.
+# The FUSE implementation used depends on the BORG_FUSE_IMPL environment variable:
+# - BORG_FUSE_IMPL=pyfuse3,llfuse: Tests run with llfuse/pyfuse3 (skipped if not available)
+# - BORG_FUSE_IMPL=mfusepy: Tests run with mfusepy (skipped if not available)
+# The tox configuration (pyproject.toml) runs these tests with different BORG_FUSE_IMPL settings.
+
+import errno
+import os
+import stat
+import sys
+import time
+
+import pytest
+
+from ... import xattr, platform
+from ...constants import *  # NOQA
+from ...storelocking import Lock
+from ...helpers import flags_noatime, flags_normal, Location, RTError
+from ...platformflags import is_win32
+from .. import has_lchflags, has_any_fuse, ENOATTR
+from .. import changedir, filter_xattrs, same_ts_ns
+from .. import are_symlinks_supported, are_hardlinks_supported, are_fifos_supported
+from ..platform.platform_test import fakeroot_detected, skipif_not_linux, skipif_fakeroot_detected
+from ..platform.platform_test import skipif_acls_not_working
+from ..repository_test import corrupt_chunk_on_disk
+from . import RK_ENCRYPTION, cmd, assert_dirs_equal, create_regular_file, create_src_archive, open_archive, src_file
+from . import requires_hardlinks, _extract_hardlinks_setup, fuse_mount, create_test_files, generate_archiver_tests
+from . import Archiver
+
+pytest_generate_tests = lambda metafunc: generate_archiver_tests(metafunc, kinds="local,binary")  # NOQA
+
+
+def assert_nlink(path, nlink):
+    # WinFsp does not support hard link counts, they are always 1 there.
+    assert os.stat(path).st_nlink == (1 if is_win32 else nlink)
+
+
+def fuse_symlinks_supported():
+    """Does a mount show symlinks as symlinks?"""
+    if is_win32:
+        # WinFsp has getdir before readlink in its struct fuse_operations. If mfusepy has them the other way
+        # round (like libfuse has them), WinFsp does not find our readlink and shows symlinks as regular files.
+        import mfusepy
+
+        names = [field[0] for field in mfusepy.fuse_operations._fields_]
+        return names.index("getdir") < names.index("readlink")
+    return True
+
+
+def is_readonly_mount(mountpoint):
+    if is_win32:  # there is no os.statvfs
+        import ctypes
+        from ctypes import wintypes
+
+        FILE_READ_ONLY_VOLUME = 0x00080000
+        flags = wintypes.DWORD()
+        root = mountpoint.replace("/", "\\") + "\\"
+        assert ctypes.windll.kernel32.GetVolumeInformationW(root, None, 0, None, None, ctypes.byref(flags), None, 0)
+        return bool(flags.value & FILE_READ_ONLY_VOLUME)
+    return bool(os.statvfs(mountpoint).f_flag & os.ST_RDONLY)
+
+
+@requires_hardlinks
+@pytest.mark.skipif(not has_any_fuse, reason="FUSE not available")
+def test_fuse_mount_hardlinks(archivers, request):
+    archiver = request.getfixturevalue(archivers)
+    _extract_hardlinks_setup(archiver)
+    mountpoint = os.path.join(archiver.tmpdir, "mountpoint")
+    # we need to get rid of permissions checking because fakeroot causes issues with it.
+    # On all platforms, borg defaults to "default_permissions" and we need to get rid of it via "ignore_permissions".
+    # On macOS (darwin), we additionally need "defer_permissions" to switch off the checks in osxfuse.
+    if sys.platform == "darwin":
+        ignore_perms = ["-o", "ignore_permissions,defer_permissions"]
+    else:
+        ignore_perms = ["-o", "ignore_permissions"]
+    with (
+        fuse_mount(archiver, mountpoint, "-a", "test", "--strip-components=2", *ignore_perms),
+        changedir(os.path.join(mountpoint, "test")),
+    ):
+        assert_nlink("hardlink", 2)
+        assert_nlink("subdir/hardlink", 2)
+        assert open("subdir/hardlink", "rb").read() == b"123456"
+        assert_nlink("aaaa", 2)
+        assert_nlink("source2", 2)
+    with (
+        fuse_mount(archiver, mountpoint, "input/dir1", "-a", "test", *ignore_perms),
+        changedir(os.path.join(mountpoint, "test")),
+    ):
+        assert_nlink("input/dir1/hardlink", 2)
+        assert_nlink("input/dir1/subdir/hardlink", 2)
+        assert open("input/dir1/subdir/hardlink", "rb").read() == b"123456"
+        assert_nlink("input/dir1/aaaa", 2)
+        assert_nlink("input/dir1/source2", 2)
+    with fuse_mount(archiver, mountpoint, "-a", "test", *ignore_perms), changedir(os.path.join(mountpoint, "test")):
+        assert_nlink("input/source", 4)
+        assert_nlink("input/abba", 4)
+        assert_nlink("input/dir1/hardlink", 4)
+        assert_nlink("input/dir1/subdir/hardlink", 4)
+        assert open("input/dir1/subdir/hardlink", "rb").read() == b"123456"
+
+
+@pytest.mark.skipif(not has_any_fuse, reason="FUSE not available")
+def test_fuse(archivers, request):
+    archiver = request.getfixturevalue(archivers)
+    if archiver.EXE and fakeroot_detected():
+        pytest.skip("test_fuse with the binary is not compatible with fakeroot")
+
+    def has_noatime(some_file):
+        atime_before = os.stat(some_file).st_atime_ns
+        try:
+            os.close(os.open(some_file, flags_noatime))
+        except PermissionError:
+            return False
+        else:
+            atime_after = os.stat(some_file).st_atime_ns
+            noatime_used = flags_noatime != flags_normal
+            return noatime_used and atime_before == atime_after
+
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    create_test_files(archiver.input_path)
+    if are_symlinks_supported() and not fuse_symlinks_supported():
+        os.remove("input/link1")  # the mount would not be equal to the input
+    have_noatime = has_noatime("input/file1")
+    cmd(archiver, "create", "--atime", "archive", "input")
+    cmd(archiver, "create", "--atime", "archive2", "input")
+    if has_lchflags:
+        # remove the file that we did not back up, so input and output become equal
+        os.remove(os.path.join("input", "flagfile"))
+    mountpoint = os.path.join(archiver.tmpdir, "mountpoint")
+    # mount the whole repository, archive contents shall show up in archivename subdirectories of mountpoint:
+    with fuse_mount(archiver, mountpoint):
+        # flags are not supported by the FUSE mount
+        # we also ignore xattrs here, they are tested separately
+        assert_dirs_equal(
+            archiver.input_path, os.path.join(mountpoint, "archive", "input"), ignore_flags=True, ignore_xattrs=True
+        )
+        assert_dirs_equal(
+            archiver.input_path, os.path.join(mountpoint, "archive2", "input"), ignore_flags=True, ignore_xattrs=True
+        )
+    with fuse_mount(archiver, mountpoint, "-a", "archive"):
+        assert_dirs_equal(
+            archiver.input_path, os.path.join(mountpoint, "archive", "input"), ignore_flags=True, ignore_xattrs=True
+        )
+        # regular file
+        in_fn = "input/file1"
+        out_fn = os.path.join(mountpoint, "archive", "input", "file1")
+        # stat
+        sti1 = os.stat(in_fn)
+        sto1 = os.stat(out_fn)
+        assert sti1.st_mode == sto1.st_mode
+        assert sti1.st_uid == sto1.st_uid
+        assert sti1.st_gid == sto1.st_gid
+        assert sti1.st_size == sto1.st_size
+        if have_noatime:
+            assert same_ts_ns(sti1.st_atime * 1e9, sto1.st_atime * 1e9)
+        assert same_ts_ns(sti1.st_ctime * 1e9, sto1.st_ctime * 1e9)
+        assert same_ts_ns(sti1.st_mtime * 1e9, sto1.st_mtime * 1e9)
+        if are_hardlinks_supported():
+            # note: there is another hard link to this, see below
+            assert sti1.st_nlink == 2
+            assert_nlink(out_fn, 2)
+        # read
+        with open(in_fn, "rb") as in_f, open(out_fn, "rb") as out_f:
+            assert in_f.read() == out_f.read()
+        # hard link (to 'input/file1')
+        if are_hardlinks_supported():
+            in_fn = "input/hardlink"
+            out_fn = os.path.join(mountpoint, "archive", "input", "hardlink")
+            sti2 = os.stat(in_fn)
+            sto2 = os.stat(out_fn)
+            assert sti2.st_nlink == 2
+            assert_nlink(out_fn, 2)
+            assert sto1.st_ino == sto2.st_ino
+        # symlink
+        if are_symlinks_supported() and fuse_symlinks_supported():
+            in_fn = "input/link1"
+            out_fn = os.path.join(mountpoint, "archive", "input", "link1")
+            sti = os.stat(in_fn, follow_symlinks=False)
+            sto = os.stat(out_fn, follow_symlinks=False)
+            if not is_win32:  # NTFS: st_size of a symlink is 0.
+                assert sti.st_size == len("somewhere")
+            assert sto.st_size == len("somewhere")
+            assert stat.S_ISLNK(sti.st_mode)
+            assert stat.S_ISLNK(sto.st_mode)
+            assert os.readlink(in_fn) == os.readlink(out_fn)
+        # FIFO
+        if are_fifos_supported():
+            out_fn = os.path.join(mountpoint, "archive", "input", "fifo1")
+            sto = os.stat(out_fn)
+            assert stat.S_ISFIFO(sto.st_mode)
+        # list/read xattrs
+        try:
+            in_fn = "input/fusexattr"
+            out_fn = os.fsencode(os.path.join(mountpoint, "archive", "input", "fusexattr"))
+            if not xattr.XATTR_FAKEROOT and xattr.is_enabled(archiver.input_path):
+                assert sorted(filter_xattrs(xattr.listxattr(out_fn))) == [b"user.empty", b"user.foo"]
+                assert xattr.getxattr(out_fn, b"user.foo") == b"bar"
+                assert xattr.getxattr(out_fn, b"user.empty") == b""
+            else:
+                assert filter_xattrs(xattr.listxattr(out_fn)) == []
+                try:
+                    xattr.getxattr(out_fn, b"user.foo")
+                except OSError as e:
+                    assert e.errno == ENOATTR
+                else:
+                    assert False, "expected OSError(ENOATTR), but no error was raised"
+        except OSError as err:
+            if sys.platform.startswith(("nothing_here_now",)) and err.errno == errno.ENOTSUP:
+                # some systems have no xattr support on FUSE
+                pass
+            else:
+                raise
+
+
+@pytest.mark.skipif(not has_any_fuse, reason="FUSE not available")
+@skipif_not_linux
+@skipif_fakeroot_detected
+@skipif_acls_not_working
+def test_fuse_acls(archivers, request):
+    # on Linux, the FUSE mount exposes archived POSIX ACLs via the system.posix_acl_* xattrs.
+    archiver = request.getfixturevalue(archivers)
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    create_regular_file(archiver.input_path, "file1", size=1024)
+    file_path = os.path.join(archiver.input_path, "file1")
+    access_acl = b"user::rw-\ngroup::r--\nmask::rw-\nother::---\nuser:root:rw-:9999\ngroup:root:rw-:9999\n"
+    default_acl = b"user::rw-\ngroup::r--\nmask::rw-\nother::---\nuser:root:r--:9999\ngroup:root:r--:9999\n"
+    platform.acl_set(file_path, {"acl_access": access_acl})
+    dir_path = os.path.join(archiver.input_path, "dir1")
+    os.mkdir(dir_path)
+    platform.acl_set(dir_path, {"acl_access": access_acl, "acl_default": default_acl})
+    cmd(archiver, "create", "archive", "input")
+    mountpoint = os.path.join(archiver.tmpdir, "mountpoint")
+    with fuse_mount(archiver, mountpoint, "-a", "archive"):
+        mounted_file = os.path.join(mountpoint, "archive", "input", "file1")
+        mounted_dir = os.path.join(mountpoint, "archive", "input", "dir1")
+        # the ACL xattrs must be listed:
+        assert "system.posix_acl_access" in os.listxattr(mounted_file)
+        assert "system.posix_acl_default" not in os.listxattr(mounted_file)
+        assert "system.posix_acl_access" in os.listxattr(mounted_dir)
+        assert "system.posix_acl_default" in os.listxattr(mounted_dir)
+        # the binary xattr values must be identical to what the kernel provides for the source fs objects:
+        try:
+            mounted_file_acl = os.getxattr(mounted_file, "system.posix_acl_access")
+        except OSError as e:
+            if e.errno == errno.ENOTSUP:
+                # the kernel refuses POSIX ACL xattr passthrough for FUSE mounts inside user
+                # namespaces (e.g. rootless containers) unless FUSE_POSIX_ACL is negotiated,
+                # which our FUSE implementations do not support.
+                pytest.skip("kernel refuses ACL xattrs on FUSE mounts inside user namespaces")
+            raise
+        assert mounted_file_acl == os.getxattr(file_path, "system.posix_acl_access")
+        for name in ("system.posix_acl_access", "system.posix_acl_default"):
+            assert os.getxattr(mounted_dir, name) == os.getxattr(dir_path, name)
+        # borg's own ACL code (going through libacl, like getfacl or tools copying
+        # from the mount would) must see the same ACLs through the mount:
+        item_src, item_mnt = {}, {}
+        platform.acl_get(file_path, item_src, os.stat(file_path))
+        platform.acl_get(mounted_file, item_mnt, os.stat(mounted_file))
+        assert item_src["acl_access"] == item_mnt["acl_access"]
+        item_src, item_mnt = {}, {}
+        platform.acl_get(dir_path, item_src, os.stat(dir_path))
+        platform.acl_get(mounted_dir, item_mnt, os.stat(mounted_dir))
+        assert item_src["acl_access"] == item_mnt["acl_access"]
+        assert item_src["acl_default"] == item_mnt["acl_default"]
+    # also check with --numeric-ids:
+    with fuse_mount(archiver, mountpoint, "-a", "archive", "--numeric-ids"):
+        mounted_file = os.path.join(mountpoint, "archive", "input", "file1")
+        assert os.getxattr(mounted_file, "system.posix_acl_access") == os.getxattr(file_path, "system.posix_acl_access")
+
+
+@pytest.mark.skipif(not has_any_fuse, reason="FUSE not available")
+def test_fuse_versions_view(archivers, request):
+    archiver = request.getfixturevalue(archivers)
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    create_regular_file(archiver.input_path, "test", contents=b"first")
+    if are_hardlinks_supported():
+        create_regular_file(archiver.input_path, "hardlink1", contents=b"123456")
+        os.link("input/hardlink1", "input/hardlink2")
+        os.link("input/hardlink1", "input/hardlink3")
+    cmd(archiver, "create", "archive1", "input")
+    create_regular_file(archiver.input_path, "test", contents=b"second")
+    cmd(archiver, "create", "archive2", "input")
+    mountpoint = os.path.join(archiver.tmpdir, "mountpoint")
+    # mount the whole repository, archive contents shall show up in versioned view:
+    with fuse_mount(archiver, mountpoint, "-o", "versions"):
+        path = os.path.join(mountpoint, "input", "test")  # filename shows up as directory ...
+        files = os.listdir(path)
+        assert all(f.startswith("test.") for f in files)  # ... with files test.xxxxx in there
+        assert {b"first", b"second"} == {open(os.path.join(path, f), "rb").read() for f in files}
+        if are_hardlinks_supported():
+            hl1 = os.path.join(mountpoint, "input", "hardlink1", "hardlink1.00001")
+            hl2 = os.path.join(mountpoint, "input", "hardlink2", "hardlink2.00001")
+            hl3 = os.path.join(mountpoint, "input", "hardlink3", "hardlink3.00001")
+            assert os.stat(hl1).st_ino == os.stat(hl2).st_ino == os.stat(hl3).st_ino
+            assert open(hl3, "rb").read() == b"123456"
+    # similar again, but exclude the 1st hard link:
+    with fuse_mount(archiver, mountpoint, "-o", "versions", "-e", "input/hardlink1"):
+        if are_hardlinks_supported():
+            hl2 = os.path.join(mountpoint, "input", "hardlink2", "hardlink2.00001")
+            hl3 = os.path.join(mountpoint, "input", "hardlink3", "hardlink3.00001")
+            assert os.stat(hl2).st_ino == os.stat(hl3).st_ino
+            assert open(hl3, "rb").read() == b"123456"
+
+
+@pytest.mark.skipif(not has_any_fuse, reason="FUSE not available")
+def test_fuse_duplicate_name(archivers, request):
+    archiver = request.getfixturevalue(archivers)
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    cmd(archiver, "create", "duplicate", "input")
+    cmd(archiver, "create", "duplicate", "input")
+    cmd(archiver, "create", "unique1", "input")
+    cmd(archiver, "create", "unique2", "input")
+    mountpoint = os.path.join(archiver.tmpdir, "mountpoint")
+    # mount the whole repository, archives show up as toplevel directories:
+    with fuse_mount(archiver, mountpoint):
+        path = os.path.join(mountpoint)
+        dirs = os.listdir(path)
+        assert len(set(dirs)) == 4  # there must be 4 unique dir names for 4 archives
+        assert "unique1" in dirs  # if an archive has a unique name, do not append the archive id
+        assert "unique2" in dirs
+
+
+@pytest.mark.skipif(not has_any_fuse, reason="FUSE not available")
+def test_fuse_archive_dir_format(archivers, request, monkeypatch):
+    archiver = request.getfixturevalue(archivers)
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    cmd(archiver, "create", "duplicate", "input")
+    cmd(archiver, "create", "duplicate", "input")
+    cmd(archiver, "create", "unique", "input")
+    output = cmd(archiver, "repo-list", "--format={name} {hostname} {id}{NL}")
+    archives = [line.split() for line in output.splitlines()]
+    mountpoint = os.path.join(archiver.tmpdir, "mountpoint")
+    # BORG_MOUNT_ARCHIVE_DIR_FORMAT names the archive directories, using the repo-list placeholders:
+    monkeypatch.setenv("BORG_MOUNT_ARCHIVE_DIR_FORMAT", "{name}-{id}")
+    with fuse_mount(archiver, mountpoint):
+        assert set(os.listdir(mountpoint)) == {f"{name}-{id}" for name, hostname, id in archives}
+    # names that are not unique get the short archive id appended (here: all of them):
+    monkeypatch.setenv("BORG_MOUNT_ARCHIVE_DIR_FORMAT", "{hostname}")
+    with fuse_mount(archiver, mountpoint):
+        assert set(os.listdir(mountpoint)) == {f"{hostname}-{id[:8]}" for name, hostname, id in archives}
+
+
+@pytest.mark.skipif(not has_any_fuse, reason="FUSE not available")
+@pytest.mark.parametrize("damage", ["missing", "corrupted"])
+def test_fuse_allow_damaged_files(archivers, request, damage):
+    archiver = request.getfixturevalue(archivers)
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    create_src_archive(archiver, "archive")
+    # damage the last chunk of a file: delete it or corrupt it in its pack (it does not authenticate then)
+    archive, repository = open_archive(archiver.repository_path, "archive")
+    with repository:
+        for item in archive.iter_items():
+            if item.path.endswith(src_file):
+                if damage == "missing":
+                    repository.delete(item.chunks[-1].id, validate=None)
+                else:
+                    corrupt_chunk_on_disk(repository, item.chunks[-1].id)
+                path = item.path  # store full path for later
+                break
+        else:
+            assert False  # missed the file
+
+    mountpoint = os.path.join(archiver.tmpdir, "mountpoint")
+    with fuse_mount(archiver, mountpoint, "-a", "archive"):
+        with open(os.path.join(mountpoint, "archive", path), "rb") as f:
+            with pytest.raises(OSError) as excinfo:
+                f.read()
+            # Windows: the C runtime does not map the I/O error that Windows makes of our EIO back to EIO.
+            assert excinfo.value.errno == (errno.EINVAL if is_win32 else errno.EIO)
+
+    with fuse_mount(archiver, mountpoint, "-a", "archive", "-o", "allow_damaged_files"):
+        with open(os.path.join(mountpoint, "archive", path), "rb") as f:
+            # no exception raised, the damaged part will be all-zero
+            data = f.read()
+        assert data.endswith(b"\0\0")
+
+
+@pytest.mark.skipif(not has_any_fuse, reason="FUSE not available")
+def test_fuse_read_to_eof_after_attr_timeout(archivers, request):
+    """Reading up to EOF after the attribute timeout must work, and the mount must be read-only.
+
+    When a read reaches EOF after the (default 1 s) attribute timeout, the kernel asks for the
+    attributes of the *open* file first (fgetattr, with the file handle). This used to fail with
+    EINVAL on the mfusepy backend, and that backend also used to drop all libfuse mount options
+    (the mount was not even read-only), see the mfusepy FUSE() call in hlfuse.py.
+    """
+    archiver = request.getfixturevalue(archivers)
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    create_regular_file(archiver.input_path, "file", size=64 * 1024)
+    cmd(archiver, "create", "archive", "input")
+    mountpoint = os.path.join(archiver.tmpdir, "mountpoint")
+    with fuse_mount(archiver, mountpoint, "-a", "archive"):
+        assert is_readonly_mount(mountpoint), "libfuse options (ro) not applied"
+        with open(os.path.join(mountpoint, "archive", "input", "file"), "rb", buffering=0) as f:
+            assert len(f.read(4096)) == 4096
+            time.sleep(1.5)  # longer than the default attr_timeout of 1 s
+            # a read reaching EOF makes the kernel revalidate the size of the *open* file (fgetattr).
+            # use a raw read: an fstat (as f.read() does) would refresh the attributes without a handle.
+            assert len(os.read(f.fileno(), 64 * 1024)) == 64 * 1024 - 4096
+
+
+@pytest.mark.skipif(not is_win32, reason="Windows-only test")
+@pytest.mark.skipif(not has_any_fuse, reason="FUSE not available")
+def test_mount_umount_errors_win32(archivers, request):
+    """WinFsp wants an unused drive or a not existing directory (in an existing one) - and there is no borg umount."""
+    archiver = request.getfixturevalue(archivers)
+    existing_dir = os.path.join(archiver.tmpdir, "existing")
+    os.mkdir(existing_dir)
+    system_drive = os.path.splitdrive(existing_dir)[0]  # like C: - surely in use
+    for args, expected_msg in (
+        (("mount", existing_dir), "not existing"),
+        (("mount", os.path.join(archiver.tmpdir, "missing", "mountpoint")), "existing directory"),
+        (("mount", system_drive), "unused"),
+        (("mount", system_drive + "\\"), "unused"),
+        (("umount", existing_dir), "not supported"),
+    ):
+        if archiver.FORK_DEFAULT:
+            output = cmd(archiver, *args, exit_code=EXIT_ERROR)
+            assert expected_msg in output
+        else:
+            with pytest.raises(RTError) as excinfo:
+                cmd(archiver, *args)
+            assert expected_msg in str(excinfo.value)
+
+
+@pytest.mark.skipif(not has_any_fuse, reason="FUSE not available")
+def test_fuse_mount_options(archivers, request):
+    archiver = request.getfixturevalue(archivers)
+    cmd(archiver, "repo-create", RK_ENCRYPTION)
+    create_src_archive(archiver, "arch11")
+    create_src_archive(archiver, "arch12")
+    create_src_archive(archiver, "arch21")
+    create_src_archive(archiver, "arch22")
+    mountpoint = os.path.join(archiver.tmpdir, "mountpoint")
+    with fuse_mount(archiver, mountpoint, "--first=2", "--sort=name"):
+        assert sorted(os.listdir(os.path.join(mountpoint))) == ["arch11", "arch12"]
+    with fuse_mount(archiver, mountpoint, "--last=2", "--sort=name"):
+        assert sorted(os.listdir(os.path.join(mountpoint))) == ["arch21", "arch22"]
+    with fuse_mount(archiver, mountpoint, "--match-archives=sh:arch1*"):
+        assert sorted(os.listdir(os.path.join(mountpoint))) == ["arch11", "arch12"]
+    with fuse_mount(archiver, mountpoint, "--match-archives=sh:arch2*"):
+        assert sorted(os.listdir(os.path.join(mountpoint))) == ["arch21", "arch22"]
+    with fuse_mount(archiver, mountpoint, "--match-archives=sh:arch*"):
+        assert sorted(os.listdir(os.path.join(mountpoint))) == ["arch11", "arch12", "arch21", "arch22"]
+    with fuse_mount(archiver, mountpoint, "--match-archives=nope"):
+        assert sorted(os.listdir(os.path.join(mountpoint))) == []
+
+
+@pytest.mark.skipif(not has_any_fuse, reason="FUSE not available")
+@pytest.mark.skipif(is_win32, reason="borg mount does not daemonize on Windows")
+def test_migrate_lock_alive(archivers, request):
+    """Both old_id and new_id must not be stale during lock migration / daemonization."""
+    archiver = request.getfixturevalue(archivers)
+    if archiver.get_kind() == "remote":
+        pytest.skip("only works locally")
+    from functools import wraps
+    import pickle
+    import traceback
+
+    # Check results are communicated from the borg mount background process
+    # to the pytest process by means of a serialized dict object stored in this file.
+    assert_data_file = os.path.join(archiver.tmpdir, "migrate_lock_assert_data.pickle")
+
+    # Decorates Lock.migrate_lock() with process_alive() checks before and after.
+    # (We don't want to mix testing code into runtime.)
+    def write_assert_data(migrate_lock):
+        @wraps(migrate_lock)
+        def wrapper(self, old_id, new_id):
+            wrapper.num_calls += 1
+            assert_data = {
+                "num_calls": wrapper.num_calls,
+                "old_id": old_id,
+                "new_id": new_id,
+                "before": {
+                    "old_id_alive": platform.process_alive(*old_id),
+                    "new_id_alive": platform.process_alive(*new_id),
+                },
+                "exception": None,
+                "exception.extr_tb": None,
+                "after": {"old_id_alive": None, "new_id_alive": None},
+            }
+            try:
+                with open(assert_data_file, "wb") as _out:
+                    pickle.dump(assert_data, _out)
+            except:  # noqa
+                pass
+            try:
+                return migrate_lock(self, old_id, new_id)
+            except BaseException as e:
+                assert_data["exception"] = e
+                assert_data["exception.extr_tb"] = traceback.extract_tb(e.__traceback__)
+            finally:
+                assert_data["after"].update(
+                    {"old_id_alive": platform.process_alive(*old_id), "new_id_alive": platform.process_alive(*new_id)}
+                )
+                try:
+                    with open(assert_data_file, "wb") as _out:
+                        pickle.dump(assert_data, _out)
+                except:  # noqa
+                    pass
+
+        wrapper.num_calls = 0
+        return wrapper
+
+    # Decorate
+    Lock.migrate_lock = write_assert_data(Lock.migrate_lock)
+    try:
+        cmd(archiver, "repo-create", "--encryption=authenticated-sha256")
+        create_src_archive(archiver, "arch")
+        mountpoint = os.path.join(archiver.tmpdir, "mountpoint")
+        # In order that the decoration is kept for the borg mount process, we must not spawn, but actually fork;
+        # not to be confused with the forking in borg.helpers.daemonize() which is done as well.
+        with fuse_mount(archiver, mountpoint, os_fork=True):
+            pass
+        with open(assert_data_file, "rb") as _in:
+            assert_data = pickle.load(_in)
+        print(f"\nLock.migrate_lock(): assert_data = {assert_data!r}.", file=sys.stderr, flush=True)
+        exception = assert_data["exception"]
+        if exception is not None:
+            extracted_tb = assert_data["exception.extr_tb"]
+            print(
+                "Lock.migrate_lock() raised an exception:\n",
+                "Traceback (most recent call last):\n",
+                *traceback.format_list(extracted_tb),
+                *traceback.format_exception(exception.__class__, exception, None),
+                sep="",
+                end="",
+                file=sys.stderr,
+                flush=True,
+            )
+
+        assert assert_data["num_calls"] == 1, "Lock.migrate_lock() must be called exactly once."
+        assert exception is None, "Lock.migrate_lock() may not raise an exception."
+
+        assert_data_before = assert_data["before"]
+        assert assert_data_before[
+            "old_id_alive"
+        ], "old_id must be alive (=must not be stale) when calling Lock.migrate_lock()."
+        assert assert_data_before[
+            "new_id_alive"
+        ], "new_id must be alive (=must not be stale) when calling Lock.migrate_lock()."
+
+        assert_data_after = assert_data["after"]
+        assert assert_data_after[
+            "old_id_alive"
+        ], "old_id must be alive (=must not be stale) when Lock.migrate_lock() has returned."
+        assert assert_data_after[
+            "new_id_alive"
+        ], "new_id must be alive (=must not be stale) when Lock.migrate_lock() has returned."
+    finally:
+        # Undecorate
+        Lock.migrate_lock = Lock.migrate_lock.__wrapped__
+
+
+def test_fuse_lock_refresh_calls_repository_info():
+    # regression test for #9872: an idle mount must keep its repository lock alive via a
+    # background refresh. LockRefresher periodically calls repository.info() while holding
+    # the serialization lock (the FUSE handlers use the same lock), so repo access from the
+    # refresh thread and the FUSE handlers never runs concurrently.
+    import threading
+
+    from ...storelocking import LockRefresher
+
+    # a plain Lock is enough here and, unlike RLock, has .locked() on all Python versions.
+    # in the FUSE code the lock is an RLock (it needs to be reentrant), but LockRefresher
+    # only ever acquires/releases it, so a plain Lock exercises the same code path.
+    lock = threading.Lock()
+    called = threading.Event()
+    held_while_calling = []
+
+    class FakeRepository:
+        def info(self):
+            held_while_calling.append(lock.locked())  # the lock must be held while we run
+            called.set()
+            return dict(id=b"\x00" * 32, version=3)
+
+    refresher = LockRefresher(FakeRepository().info, sleep_interval=60, lock=lock)
+    refresher.start()
+    try:
+        assert called.wait(timeout=10), "LockRefresher did not call repository.info()"
+    finally:
+        refresher.terminate()
+
+    assert held_while_calling and all(held_while_calling), "repository.info() must run while holding the lock"
+    assert not lock.locked(), "lock must be released again after refreshing"
+
+
+# The borgfs tests below only exercise argument parsing and dispatch, so they do not need FUSE.
+# borgfs is the "borg mount" wrapper for /etc/fstab: mount(8) / mount.fuse(8) invoke it as
+# "borgfs <spec> <mountpoint> -o <options>". Its parser is a top-level parser without subcommands,
+# see MountMixIn.build_parser_borgfs and Archiver.get_func.
+
+
+def test_borgfs_mounts_repository_positional():
+    archiver = Archiver(prog="borgfs")
+    args = archiver.parse_args(["/path/to/repo", "/mnt/point", "some/path"])
+    assert args.func == archiver.do_mount
+    # the REPOSITORY positional must end up where -r/--repo would have put it
+    # (compare against Location's canonicalization, e.g. Windows prepends the current drive)
+    assert args.location.path == Location("/path/to/repo").path
+    assert args.mountpoint == "/mnt/point"
+    assert args.paths == ["some/path"]
+
+
+def test_borgfs_repository_positional_is_optional():
+    # without REPOSITORY, the repository comes from -r/--repo (or BORG_REPO), like for borg mount
+    archiver = Archiver(prog="borgfs")
+    args = archiver.parse_args(["--repo", "/path/to/repo", "/mnt/point"])
+    assert args.func == archiver.do_mount
+    assert args.location.path == Location("/path/to/repo").path
+    assert args.mountpoint == "/mnt/point"
+    assert args.paths == []
+
+
+def write_default_config(monkeypatch, tmp_path, content):
+    """Point BORG_CONFIG_DIR at a fresh config dir containing a default.yaml with *content*."""
+    config_dir = tmp_path / "config"
+    config_dir.mkdir()
+    (config_dir / "default.yaml").write_text(content)
+    monkeypatch.setenv("BORG_CONFIG_DIR", str(config_dir))
+
+
+def test_borgfs_ignores_subcommand_sections_in_default_config(monkeypatch, tmp_path):
+    # borgfs is a top-level parser, thus it reads the same default config file as borg does.
+    # That file usually has per-subcommand sections, which borgfs has to ignore rather than reject.
+    write_default_config(monkeypatch, tmp_path, "log_level: info\ncreate:\n  output_filter: AME\n")
+    archiver = Archiver(prog="borgfs")
+    args = archiver.parse_args(["/path/to/repo", "/mnt/point"])
+    assert args.func == archiver.do_mount
+    assert args.location.path == Location("/path/to/repo").path
+    assert args.log_level == "info"  # top-level keys of the config file still apply
+
+
+def test_borgfs_adopts_mount_section_of_default_config(monkeypatch, tmp_path):
+    # borgfs *is* the mount command, so the "mount:" section applies to it, while the sections of
+    # the other subcommands are still ignored.
+    content = "log_level: info\nmount:\n  numeric_ids: true\ncreate:\n  output_filter: AME\n"
+    write_default_config(monkeypatch, tmp_path, content)
+    archiver = Archiver(prog="borgfs")
+    args = archiver.parse_args(["/path/to/repo", "/mnt/point"])
+    assert args.func == archiver.do_mount
+    assert args.numeric_ids is True
+    assert args.log_level == "info"
+
+
+def test_borgfs_mount_section_wins_over_top_level(monkeypatch, tmp_path):
+    # the more specific "mount:" key overrides the same key given at the top level
+    write_default_config(monkeypatch, tmp_path, "numeric_ids: false\nmount:\n  numeric_ids: true\n")
+    args = Archiver(prog="borgfs").parse_args(["/path/to/repo", "/mnt/point"])
+    assert args.numeric_ids is True
+
+
+def test_borg_applies_mount_section_to_mount_subcommand_only(monkeypatch, tmp_path):
+    # borg has subcommands, so nothing is adopted there: the "mount:" section applies to borg mount
+    # (as any subcommand section does) and to no other subcommand.
+    write_default_config(monkeypatch, tmp_path, "mount:\n  numeric_ids: true\n")
+    archiver = Archiver(prog="borg")
+    assert archiver.parse_args(["mount", "/mnt/point"]).numeric_ids is True
+    assert getattr(archiver.parse_args(["repo-list"]), "numeric_ids", None) is None
+
+
+def test_borg_rejects_unknown_config_keys(monkeypatch, tmp_path):
+    # only borgfs tolerates config keys it does not know - borg must still reject them
+    write_default_config(monkeypatch, tmp_path, "log_level: info\nnosuchoption: 1\n")
+    with pytest.raises(SystemExit):
+        Archiver(prog="borg").parse_args(["repo-list"])
+    archiver = Archiver(prog="borgfs")
+    args = archiver.parse_args(["/path/to/repo", "/mnt/point"])
+    assert args.func == archiver.do_mount
+    assert args.log_level == "info"
+
+
+def test_borg_mount_has_no_repository_positional():
+    # borg mount is unchanged: MOUNTPOINT [PATH...], the repository only comes from -r/--repo.
+    archiver = Archiver(prog="borg")
+    args = archiver.parse_args(["mount", "/mnt/point", "some/path"])
+    assert args.func == archiver.do_mount
+    assert args.mountpoint == "/mnt/point"
+    assert args.paths == ["some/path"]
+    assert not args.location.valid

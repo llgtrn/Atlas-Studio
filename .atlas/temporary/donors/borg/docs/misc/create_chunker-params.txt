@@ -1,0 +1,126 @@
+About borg create --chunker-params
+==================================
+
+NOTE: This document predates borg 2. It describes the buzhash chunker and its
+parameters, and all commands use borg 1.x syntax (e.g. "repo::archive" instead
+of "-r repo archive", "borg info" output with an "All archives" section).
+Borg 2 defaults to the fastcdc chunker, which takes different parameters, and
+its repository layout (pack files, a separate index namespace) differs from the
+borg 1.x segment files, so the repository/index size numbers below do not
+transfer to borg 2 either.
+The measurements are kept for their qualitative results: how the chunk size
+affects chunk count, index size, compression ratio and deduplication.
+
+--chunker-params CHUNK_MIN_EXP,CHUNK_MAX_EXP,HASH_MASK_BITS,HASH_WINDOW_SIZE
+
+CHUNK_MIN_EXP and CHUNK_MAX_EXP provide the exponent N for the 2^N minimum and
+maximum chunk sizes. Required: CHUNK_MIN_EXP < CHUNK_MAX_EXP.
+
+Defaults: 19 (2^19 == 512KiB) minimum, 23 (2^23 == 8MiB) maximum.
+Currently, specifying a maximum greater than 23 is not supported.
+
+HASH_MASK_BITS is the number of least-significant bits of the rolling hash
+that need to be zero to trigger a chunk cut.
+Recommended: CHUNK_MIN_EXP + X <= HASH_MASK_BITS <= CHUNK_MAX_EXP - X, X >= 2
+(this allows the rolling hash some freedom to make its cut at a place
+determined by the window's contents rather than the minimum/maximum chunk size).
+
+Default: 21 (statistically, chunks will be about 2^21 == 2MiB in size).
+
+HASH_WINDOW_SIZE: the size of the window used for the rolling hash computation.
+Must be an odd number. Default: 4095B.
+
+
+Trying it out
+=============
+
+I backed up a VM directory to demonstrate how different chunker parameters
+affect repository size, index size/chunk count, compression, and deduplication.
+
+repo-sm: ~64 KiB chunks (16 bits chunk mask), min chunk size 1 KiB (2^10B)
+         (these are Attic/Borg 0.23 internal defaults)
+
+repo-lg: ~1MiB chunks (20 bits chunk mask), min chunk size 64 KiB (2^16B)
+
+repo-xl: 8MiB chunks (2^23B max chunk size), min chunk size 64 KiB (2^16B).
+         The chunk mask bits were set to 31, so it (almost) never triggers.
+         This degrades the rolling hash based dedup to a fixed-offset dedup
+         as the cutting point is now (almost) always the end of the buffer
+         (at 2^23B == 8MiB).
+
+The repo index size is an indicator for the RAM needs of Borg.
+In this special case, the total RAM needs are about 2.1x the repo index size.
+You see the index size of repo-sm is 16x larger than that of repo-lg, which corresponds
+to the ratio of the different target chunk sizes.
+
+Note: RAM needs were not a problem in this specific case (37GB data size).
+      But imagine you have 37TB of such data and much less than 42GB RAM,
+      then you should use the "lg" chunker parameters so you need only
+      2.6GB RAM. Or even larger chunks than shown for "lg" (see "xl").
+
+You also see compression works better for larger chunks, as expected.
+Deduplication works worse for larger chunks, also as expected.
+
+small chunks
+============
+
+$ borg info /extra/repo-sm::1
+
+Command line: /home/tw/w/borg-env/bin/borg create --chunker-params 10,23,16,4095 /extra/repo-sm::1 /home/tw/win
+Number of files: 3
+
+                       Original size      Compressed size    Deduplicated size
+This archive:               37.12 GB             14.81 GB             12.18 GB
+All archives:               37.12 GB             14.81 GB             12.18 GB
+
+                       Unique chunks         Total chunks
+Chunk index:                  378374               487316
+
+$ ls -l /extra/repo-sm/index*
+
+-rw-rw-r-- 1 tw tw 20971538 Jun 20 23:39 index.2308
+
+$ du -sk /extra/repo-sm
+11930840    /extra/repo-sm
+
+large chunks
+============
+
+$ borg info /extra/repo-lg::1
+
+Command line: /home/tw/w/borg-env/bin/borg create --chunker-params 16,23,20,4095 /extra/repo-lg::1 /home/tw/win
+Number of files: 3
+
+                       Original size      Compressed size    Deduplicated size
+This archive:               37.10 GB             14.60 GB             13.38 GB
+All archives:               37.10 GB             14.60 GB             13.38 GB
+
+                       Unique chunks         Total chunks
+Chunk index:                   25889                29349
+
+$ ls -l /extra/repo-lg/index*
+
+-rw-rw-r-- 1 tw tw 1310738 Jun 20 23:10 index.2264
+
+$ du -sk /extra/repo-lg
+13073928    /extra/repo-lg
+
+xl chunks
+=========
+
+(borg-env)tw@tux:~/w/borg$ borg info /extra/repo-xl::1
+Command line: /home/tw/w/borg-env/bin/borg create --chunker-params 16,23,31,4095 /extra/repo-xl::1 /home/tw/win
+Number of files: 3
+
+                       Original size      Compressed size    Deduplicated size
+This archive:               37.10 GB             14.59 GB             14.59 GB
+All archives:               37.10 GB             14.59 GB             14.59 GB
+
+                       Unique chunks         Total chunks
+Chunk index:                    4319                 4434
+
+$ ls -l /extra/repo-xl/index*
+-rw-rw-r-- 1 tw tw 327698 Jun 21 00:52 index.2011
+
+$ du -sk /extra/repo-xl/
+14253464    /extra/repo-xl/

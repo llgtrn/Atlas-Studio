@@ -1,0 +1,238 @@
+.\" Man page generated from reStructuredText
+.\" by the Docutils 0.22.4 manpage writer.
+.
+.
+.nr rst2man-indent-level 0
+.
+.de1 rstReportMargin
+\\$1 \\n[an-margin]
+level \\n[rst2man-indent-level]
+level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
+-
+\\n[rst2man-indent0]
+\\n[rst2man-indent1]
+\\n[rst2man-indent2]
+..
+.de1 INDENT
+.\" .rstReportMargin pre:
+. RS \\$1
+. nr rst2man-indent\\n[rst2man-indent-level] \\n[an-margin]
+. nr rst2man-indent-level +1
+.\" .rstReportMargin post:
+..
+.de UNINDENT
+. RE
+.\" indent \\n[an-margin]
+.\" old: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.nr rst2man-indent-level -1
+.\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.in \\n[rst2man-indent\\n[rst2man-indent-level]]u
+..
+.TH "borg-mount" "1" "2026-09-02" "" "borg backup tool"
+.SH Name
+borg-mount \- Mounts an archive or an entire repository as a FUSE filesystem.
+.SH SYNOPSIS
+.sp
+borg [common options] mount [options] MOUNTPOINT [PATH...]
+.SH DESCRIPTION
+.sp
+This command mounts a repository or an archive as a FUSE filesystem.
+This can be useful for browsing or restoring individual files.
+.sp
+When restoring, take into account that the current FUSE implementation does
+not support special fs flags. On Linux, POSIX ACLs of the archived fs objects
+are exposed (read\-only) via the \fBsystem.posix_acl_access\fP and
+\fBsystem.posix_acl_default\fP extended attributes, so tools like \fBgetfacl\fP or
+\fBrsync \-A\fP can read them from the mounted archive. Note that the mount does
+not enforce the ACLs for permission checks. On other platforms, ACLs are not
+supported.
+.sp
+When mounting a repository, there is one top directory per archive and the
+directory structure below these will be loaded on\-demand from the repository
+when entering these directories, so expect some delay.
+.sp
+By default, these top directories are named like the archives; as the archives
+of a series all have the same name, \fB\-{id:.8}\fP (the first 8 hex digits of the
+archive id) is appended whenever a name is not unique. To name them differently,
+set the \fBBORG_MOUNT_ARCHIVE_DIR_FORMAT\fP environment variable to a format string
+using the placeholders of \fBborg repo\-list \-\-format\fP, e.g.
+\fB{name}\-{time:%Y\-%m\-%dT%H:%M:%S}\fP or \fB{hostname}\-{name}\fP; names that are
+still not unique get \fB\-{id:.8}\fP appended.
+.sp
+\fBNote:\fP
+.INDENT 0.0
+.INDENT 3.5
+Borg stores symbolic links as\-is. Consequently, when an archive or
+repository is mounted, symbolic links may resolve to locations outside of
+the mountpoint, either because they are absolute or because relative links
+traverse outside of the mounted tree.
+.sp
+Normal UNIX pathname resolution applies: most tools follow symbolic links
+by default and may therefore access files or directories that are not part
+of the mounted archive. Consequently, operations intended to inspect
+archived data may instead access \(dqlive\(dq data from the host filesystem.
+.sp
+On Linux, this can be prevented by remounting the mountpoint with the
+\fBnosymfollow\fP VFS mount option, for example:
+.INDENT 0.0
+.INDENT 3.5
+borg \-r <repo path> mount <mountpoint>
+mount \-o remount,nosymfollow <mountpoint>
+.UNINDENT
+.UNINDENT
+.sp
+Alternatively, access the mounted archive from an appropriately isolated
+environment (for example, a container or \fBchroot\fP).
+.UNINDENT
+.UNINDENT
+.sp
+Unless the \fB\-\-foreground\fP option is given, the command will run in the
+background until the filesystem is \fBunmounted\fP\&.
+.sp
+Performance tips:
+.INDENT 0.0
+.IP \(bu 2
+When doing a \(dqwhole repository\(dq mount:
+do not enter archive directories if not needed; this avoids on\-demand loading.
+.IP \(bu 2
+Only mount a specific archive, not the whole repository.
+.IP \(bu 2
+Only mount specific paths in a specific archive, not the complete archive.
+.UNINDENT
+.sp
+The command \fBborgfs\fP provides a wrapper for \fBborg mount\fP\&. It is invoked as
+\fBborgfs [REPOSITORY] MOUNTPOINT [PATH...]\fP, taking the repository as its first
+positional argument (if it is not given, \fB\-r\fP / \fBBORG_REPO\fP is used). This can
+also be used in fstab entries:
+\fB/path/to/repo /mnt/point fuse.borgfs defaults,noauto 0 0\fP
+.sp
+To allow a regular user to use fstab entries, add the \fBuser\fP option:
+\fB/path/to/repo /mnt/point fuse.borgfs defaults,noauto,user 0 0\fP
+.sp
+For FUSE configuration and mount options, see the mount.fuse(8) manual page.
+.sp
+Borg\(aqs default behavior is to use the archived user and group names of each
+file and map them to the system\(aqs respective user and group IDs.
+Alternatively, using \fBnumeric\-ids\fP will instead use the archived user and
+group IDs without any mapping.
+.sp
+The \fBuid\fP and \fBgid\fP mount options (implemented by Borg) can be used to
+override the user and group IDs of all files (i.e., \fBborg mount \-o
+uid=1000,gid=1000\fP).
+.sp
+The man page references \fBuser_id\fP and \fBgroup_id\fP mount options
+(implemented by FUSE) which specify the user and group ID of the mount owner
+(also known as the user who does the mounting). It is set automatically by libfuse (or
+the filesystem if libfuse is not used). However, you should not specify these
+manually. Unlike the \fBuid\fP and \fBgid\fP mount options, which affect all files,
+\fBuser_id\fP and \fBgroup_id\fP affect the user and group ID of the mounted
+(base) directory.
+.sp
+Additional mount options supported by Borg:
+.INDENT 0.0
+.IP \(bu 2
+\fBversions\fP: when used with a repository mount, this gives a merged, versioned
+view of the files in the archives. EXPERIMENTAL; layout may change in the future.
+.IP \(bu 2
+\fBallow_damaged_files\fP: by default, damaged files (where chunks are missing)
+will return EIO (I/O error) when trying to read the related parts of the file.
+Set this option to replace the missing parts with all\-zero bytes.
+.IP \(bu 2
+\fBignore_permissions\fP: for security reasons the \fBdefault_permissions\fP mount
+option is internally enforced by Borg. \fBignore_permissions\fP can be given to
+not enforce \fBdefault_permissions\fP\&.
+.UNINDENT
+.sp
+The BORG_MOUNT_DATA_CACHE_ENTRIES environment variable is intended for advanced users
+to tweak performance. It sets the number of cached data chunks; additional
+memory usage can be up to ~8 MiB times this number. The default is the number
+of CPU cores.
+.sp
+When the daemonized process receives a signal or crashes, it does not unmount.
+Unmounting in these cases could cause an active rsync or similar process
+to delete data unintentionally.
+.sp
+When running in the foreground, ^C/SIGINT cleanly unmounts the filesystem,
+but other signals or crashes do not.
+.sp
+Debugging:
+.sp
+\fBborg mount\fP usually daemonizes and the daemon process sends stdout/stderr
+to /dev/null. Thus, you need to either use \fB\-f / \-\-foreground\fP to make it stay
+in the foreground and not daemonize, or use \fBBORG_LOGGING_CONF\fP to reconfigure
+the logger to output to a file.
+.SH OPTIONS
+.sp
+See \fIborg\-common(1)\fP for common options of Borg commands.
+.SS arguments
+.INDENT 0.0
+.TP
+.B MOUNTPOINT
+where to mount the filesystem
+.TP
+.B PATH
+paths to extract; patterns are supported
+.UNINDENT
+.SS options
+.INDENT 0.0
+.TP
+.B  \-f\fP,\fB  \-\-foreground
+stay in foreground, do not daemonize
+.TP
+.B  \-o
+extra mount options
+.TP
+.B  \-\-numeric\-ids
+use numeric user and group identifiers from archives
+.UNINDENT
+.SS Archive filters
+.INDENT 0.0
+.TP
+.BI \-a \ PATTERN\fR,\fB \ \-\-match\-archives \ PATTERN
+only consider archives matching all patterns. See \(dqborg help match\-archives\(dq.
+.TP
+.BI \-\-sort\-by \ KEYS
+Comma\-separated list of sorting keys; valid keys are: timestamp, archive, name, id, tags, host, user; default is: timestamp
+.TP
+.BI \-\-first \ N
+consider the first N archives after other filters are applied
+.TP
+.BI \-\-last \ N
+consider the last N archives after other filters are applied
+.TP
+.BI \-\-oldest \ TIMESPAN
+consider archives between the oldest archive\(aqs timestamp and (oldest + TIMESPAN), e.g., 7d or 12m.
+.TP
+.BI \-\-newest \ TIMESPAN
+consider archives between the newest archive\(aqs timestamp and (newest \- TIMESPAN), e.g., 7d or 12m.
+.TP
+.BI \-\-older \ TIMESPAN
+consider archives older than (now \- TIMESPAN), e.g., 7d or 12m.
+.TP
+.BI \-\-newer \ TIMESPAN
+consider archives newer than (now \- TIMESPAN), e.g., 7d or 12m.
+.UNINDENT
+.SS Include/Exclude options
+.INDENT 0.0
+.TP
+.BI \-e \ PATTERN\fR,\fB \ \-\-exclude \ PATTERN
+exclude paths matching PATTERN
+.TP
+.BI \-\-exclude\-from \ EXCLUDEFILE
+read exclude patterns from EXCLUDEFILE, one per line
+.TP
+.BI \-\-pattern \ PATTERN
+include/exclude paths matching PATTERN
+.TP
+.BI \-\-patterns\-from \ PATTERNFILE
+read include/exclude patterns from PATTERNFILE, one per line
+.TP
+.BI \-\-strip\-components \ NUMBER
+Remove the specified number of leading path elements. Paths with fewer elements will be silently skipped.
+.UNINDENT
+.SH SEE ALSO
+.sp
+\fIborg\-common(1)\fP, \fIborg\-umount(1)\fP, \fIborg\-extract(1)\fP
+.SH Author
+The Borg Collective
+.\" End of generated man page.

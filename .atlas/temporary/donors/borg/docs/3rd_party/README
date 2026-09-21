@@ -1,0 +1,5 @@
+Here we store third-party documentation, licenses, etc.
+
+Please note that all files inside the "borg" package directory (except those
+excluded in setup.py) will be installed, so do not keep docs or licenses
+there.

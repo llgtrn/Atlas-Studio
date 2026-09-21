@@ -1,0 +1,10 @@
+brew 'pkgconf'
+brew 'lz4'
+brew 'openssl@3'
+
+# osxfuse (aka macFUSE) is only required for "borg mount",
+# but won't work on GitHub Actions' workers.
+# It requires installing a kernel extension, so some users
+# may want it and some won't.
+
+#cask 'osxfuse'
