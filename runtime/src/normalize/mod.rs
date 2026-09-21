@@ -3,9 +3,7 @@
 //! Normalization gives observed/declared facts a deterministic vocabulary without upgrading their
 //! epistemic status or dropping provenance. It is intentionally lossless at this stage.
 
-use atlas_core::{
-    CensusReport, NormalizationReport, SemanticFact, SemanticFactKind, stable_id,
-};
+use atlas_core::{CensusReport, NormalizationReport, SemanticFact, stable_id};
 use std::collections::BTreeMap;
 
 fn canonical_predicate(value: &str) -> String {
@@ -74,7 +72,7 @@ pub fn normalize(census: &CensusReport) -> NormalizationReport {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use atlas_core::{EpistemicStatus, Provenance, SemanticFact};
+    use atlas_core::{EpistemicStatus, Provenance, SemanticFact, SemanticFactKind};
 
     #[test]
     fn normalization_is_lossless_and_preserves_provenance() {
