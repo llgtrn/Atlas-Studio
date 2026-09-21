@@ -333,11 +333,21 @@ mod tests {
             }],
         };
         let adl = compile_adl(&[], &source);
-        let report = build_census(&inventory, &source, &adl, None);
+        let revision = RevisionRef {
+            kind: "git".into(),
+            value: "abc123".into(),
+        };
+        let report = build_census(&inventory, &source, &adl, Some(&revision));
 
         assert!(report.is_closed());
         assert_eq!(report.artifacts_accounted_total, 2);
         assert_eq!(report.coverage.get("SYMBOL").map(String::as_str), Some("UNSUPPORTED"));
         assert!(report.facts.iter().any(|fact| fact.status == EpistemicStatus::Unknown));
+        assert!(
+            report
+                .facts
+                .iter()
+                .all(|fact| fact.provenance.source_revision.as_ref() == Some(&revision))
+        );
     }
 }
