@@ -50,6 +50,42 @@ pub enum SemanticObligation {
     EvidenceLink,
 }
 
+impl SemanticObligation {
+    pub const ALL: [Self; 13] = [
+        Self::Symbol,
+        Self::Type,
+        Self::FunctionIdentity,
+        Self::FunctionSignature,
+        Self::Call,
+        Self::ControlFlow,
+        Self::DataFlow,
+        Self::StateAccess,
+        Self::Effect,
+        Self::Ownership,
+        Self::Concurrency,
+        Self::Persistence,
+        Self::EvidenceLink,
+    ];
+
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            Self::Symbol => "SYMBOL",
+            Self::Type => "TYPE",
+            Self::FunctionIdentity => "FUNCTION_IDENTITY",
+            Self::FunctionSignature => "FUNCTION_SIGNATURE",
+            Self::Call => "CALL",
+            Self::ControlFlow => "CONTROL_FLOW",
+            Self::DataFlow => "DATA_FLOW",
+            Self::StateAccess => "STATE_ACCESS",
+            Self::Effect => "EFFECT",
+            Self::Ownership => "OWNERSHIP",
+            Self::Concurrency => "CONCURRENCY",
+            Self::Persistence => "PERSISTENCE",
+            Self::EvidenceLink => "EVIDENCE_LINK",
+        }
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct FunctionIdentity {
     pub symbol: SymbolId,
