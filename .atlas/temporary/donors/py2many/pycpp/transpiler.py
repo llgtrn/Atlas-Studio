@@ -1,0 +1,777 @@
+import ast
+import textwrap
+from pathlib import Path
+from typing import List, Tuple
+
+from py2many.analysis import add_imports, get_id, is_global, is_void_function
+from py2many.ast_helpers import create_ast_block
+from py2many.clike import _AUTO_INVOKED, class_for_typename
+from py2many.context import add_list_calls, add_variable_context
+from py2many.declaration_extractor import DeclarationExtractor
+from py2many.exceptions import AstNotImplementedError
+from py2many.inference import InferMeta
+from py2many.rewriters import PythonMainRewriter
+from py2many.scope import add_scope_context
+from py2many.tracer import (
+    defined_before,
+    is_class_or_module,
+    is_enum,
+    is_list,
+    is_self_arg,
+)
+
+from .clike import CLikeTranspiler
+from .cpp_ast import (
+    CppAssignment,
+    CppAugAssignment,
+    CppCall,
+    CppDeclaration,
+    CppExprStatement,
+    CppFunction,
+    CppNode,
+    CppRenderer,
+    CppReturn,
+    CppSourceFile,
+)
+from .plugins import (
+    ATTR_DISPATCH_TABLE,
+    CLASS_DISPATCH_TABLE,
+    DISPATCH_MAP,
+    FUNC_DISPATCH_TABLE,
+    MODULE_DISPATCH_TABLE,
+    SMALL_DISPATCH_MAP,
+    SMALL_USINGS_MAP,
+)
+from .tracer import decltype
+
+_AUTO = "auto()"
+
+
+# TODO: merge this into py2many.cli.transpiler and fixup the tests
+def transpile(source, headers=False, testing=False):
+    """
+    Transpile a single python translation unit (a python script) into
+    C++ 14 code.
+    """
+    tree = ast.parse(source)
+    rewriter = PythonMainRewriter("cpp")
+    tree = rewriter.visit(tree)
+    add_variable_context(tree, (tree,))
+    add_scope_context(tree)
+    add_list_calls(tree)
+    add_imports(tree)
+
+    transpiler = CppTranspiler()
+
+    buf = []
+    if testing:
+        buf += ["#include <catch2/catch_test_macros.hpp>"]
+        transpiler.use_catch_test_cases = True
+
+    if headers:
+        buf += transpiler._headers
+        buf += transpiler._usings
+
+    if testing or headers:
+        buf.append("")  # Force empty line
+
+    cpp = transpiler.visit(tree)
+    return "\n".join(buf) + cpp
+
+
+def generate_catch_test_case(node, body):
+    funcdef = f'TEST_CASE("{node.name}")'
+    return funcdef + " {\n" + body + "\n}"
+
+
+def generate_lambda_fun(node, body):
+    params = [f"auto {param.id}" for param in node.args.args]
+    funcdef = "auto {} = []({})".format(node.name, ", ".join(params))
+    return funcdef + " {\n" + body + "\n};"
+
+
+class CppListComparisonRewriter(ast.NodeTransformer):
+    def __init__(self):
+        super().__init__()
+        self._temp = 0
+
+    def _get_temp(self):
+        self._temp += 1
+        return f"__tmp{self._temp}"
+
+    def visit_Compare(self, node):
+        left = self.visit(node.left)
+        ops = [self.visit(op) for op in node.ops]
+        comparators = [self.visit(cmp) for cmp in node.comparators]
+        right = comparators[0]
+        if isinstance(right, ast.List):
+            tmp = ast.Name(id=self._get_temp(), lineno=node.lineno)
+            comparators[0] = tmp
+            return create_ast_block(
+                body=[
+                    ast.Assign(targets=[tmp], value=right, lineno=node.lineno),
+                    ast.Compare(left, ops, comparators, lineno=node.lineno),
+                ],
+                at_node=node,
+            )
+
+        return node
+
+
+class CppTranspiler(CLikeTranspiler):
+    NAME = "cpp"
+
+    def __getattribute__(self, name):
+        attr = super().__getattribute__(name)
+        if not callable(attr):
+            return attr
+        if not (name.startswith("visit_") or name.startswith("_visit_")):
+            return attr
+
+        def cpp_node_visitor(*args, **kwargs):
+            result = attr(*args, **kwargs)
+            if isinstance(result, str):
+                return CppNode(result)
+            return result
+
+        return cpp_node_visitor
+
+    def __init__(self, extension: bool = False, no_prologue: bool = False):
+        super().__init__()
+        self._headers = []
+        self._usings = {"<cstdint>"}
+        self.use_catch_test_cases = False
+        self._extension = extension
+        self._no_prologue = no_prologue
+        self._dispatch_map = DISPATCH_MAP
+        self._small_dispatch_map = SMALL_DISPATCH_MAP
+        self._small_usings_map = SMALL_USINGS_MAP
+        self._func_dispatch_table = FUNC_DISPATCH_TABLE
+        self._attr_dispatch_table = ATTR_DISPATCH_TABLE
+        self._main_signature_arg_names = ["argc", "argv"]
+
+    def _reset(self):
+        use_catch_test_cases = self.use_catch_test_cases
+        super()._reset()
+        self.use_catch_test_cases = use_catch_test_cases
+
+    def _get_nolint_suffix(self, nolint="build/include_order"):
+        return f"  // NOLINT({nolint})" if not self._no_prologue else ""
+
+    def visit(self, node) -> CppNode:
+        result = super().visit(node)
+        if isinstance(result, str):
+            return CppNode(result)
+        return result
+
+    def visit_Module(self, node) -> CppNode:
+        cpp_ast = self.visit_Module_ast(node)
+        return CppNode(CppRenderer().render(cpp_ast))
+
+    def visit_Module_ast(self, node) -> CppSourceFile:
+        docstring = getattr(node, "docstring_comment", None)
+        items = [self.comment(docstring.value)] if docstring is not None else []
+        filename = getattr(node, "__file__", None)
+        self._reset()
+        if filename is not None:
+            self._module = Path(filename).stem
+
+        body_items = {}
+        for b in node.body:
+            if not isinstance(b, ast.FunctionDef):
+                body_items[b] = self.visit(b)
+        # Second pass to handle functiondefs whose body may refer to other
+        # members of node.body.
+        for b in node.body:
+            if isinstance(b, ast.FunctionDef):
+                body_items[b] = self.visit(b)
+
+        items += [body_items[b] for b in node.body]
+        return CppSourceFile.from_items(items)
+
+    def usings(self):
+        usings = sorted(list(set(self._usings)))
+        lint_exception = self._get_nolint_suffix()
+        uses = "\n".join(f"#include {mod}{lint_exception}" for mod in usings)
+        return uses
+
+    def headers(self, meta: InferMeta):
+        lint_exception = self._get_nolint_suffix()
+        if self.use_catch_test_cases:
+            self._headers.append("#include <catch2/catch_test_macros.hpp>")
+        if meta.has_fixed_width_ints:
+            self._headers.append("#include <stdint.h>")
+        return "\n".join([f"{line}{lint_exception}" for line in self._headers])
+
+    def visit_FunctionDef(self, node) -> CppNode:
+        body = "\n".join([self.visit(n) for n in node.body])
+        # If rewriter inserted a block, we need to terminate it with a semicolon
+        if len(node.body):
+            last = node.body[-1]
+            if getattr(last, "make_block", False):
+                body += ";"
+
+        if (
+            self.use_catch_test_cases
+            and is_void_function(node)
+            and node.name.startswith("test")
+        ):
+            return CppNode(generate_catch_test_case(node, body))
+
+        is_python_main = getattr(node, "python_main", False)
+        typenames, args = self.visit(node.args)
+
+        args_list = []
+        if len(args) and hasattr(node, "self_type"):
+            # implicit this
+            del typenames[0]
+            del args[0]
+
+        typedecls = []
+        index = 0
+        for i in range(len(args)):
+            typename = typenames[i]
+            arg = args[i]
+            if typename == "T":
+                typename = f"T{index}"
+                typedecls.append(typename)
+                index += 1
+            if is_python_main and arg in ["argv"]:
+                typename = "char **"
+            args_list.append(f"{typename} {arg}")
+
+        template = "inline "
+        if len(typedecls) > 0:
+            typedecls_str = ", ".join([f"typename {t}" for t in typedecls])
+            template = f"template <{typedecls_str}>"
+
+        if is_python_main:
+            template = ""
+
+        if not is_void_function(node):
+            if node.returns:
+                typename = self._typename_from_annotation(node, attr="returns")
+                return_type = f"{typename}"
+            else:
+                return_type = "auto"
+        else:
+            return_type = "void"
+
+        args = ", ".join(args_list)
+        funcdef = f"{template}{return_type} {node.name}({args})"
+
+        return CppFunction(funcdef, [body])
+
+    def visit_Global(self, node) -> str:
+        return ""
+
+    def visit_Attribute(self, node) -> str:
+        attr = node.attr
+        value_id = self.visit(node.value)
+
+        if is_list(node.value):
+            if node.attr == "append":
+                attr = "push_back"
+
+        if value_id in {"string"}:
+            return f"std::{value_id}::{attr}"
+
+        if is_enum(value_id, node.scopes):
+            return f"{value_id}::{attr}"
+
+        if is_class_or_module(value_id, node.scopes):
+            return f"{value_id}.{attr}"
+
+        if is_self_arg(value_id, node.scopes):
+            return f"this->{attr}"
+
+        ret = f"{value_id}.{attr}"
+        if ret in self._attr_dispatch_table:
+            ret = self._attr_dispatch_table[ret]
+            return ret(self, node, value_id, attr)
+
+        return ret
+
+    def visit_ClassDef(self, node) -> str:
+        extractor = DeclarationExtractor(CppTranspiler())
+        extractor.visit(node)
+        declarations = node.declarations = extractor.get_declarations()
+        node.class_assignments = extractor.class_assignments
+
+        ret = super().visit_ClassDef(node)
+        if ret is not None:
+            return ret
+
+        decorators = [get_id(d) for d in node.decorator_list]
+        decorators = [
+            class_for_typename(t, None, self._imported_names) for t in decorators
+        ]
+        for d in decorators:
+            if d in CLASS_DISPATCH_TABLE:
+                ret = CLASS_DISPATCH_TABLE[d](self, node)
+                if ret is not None:
+                    return ret
+
+        buf = [f"class {node.name} {{"]
+        buf += ["public:"]
+        fields = []
+        index = 0
+        for declaration, typename in declarations.items():
+            if typename is None:
+                typename = f"ST{index}"
+                index += 1
+            fields.append(f"{typename} {declaration}")
+
+        for b in node.body:
+            if isinstance(b, ast.FunctionDef):
+                b.self_type = node.name
+
+        buf += [";\n".join(fields + [""])]
+        body = [self.visit(b) for b in node.body]
+        if node.is_dataclass:
+            field_names = [arg for arg in declarations.keys()]
+            args = ", ".join(fields)
+            assignments = "; ".join(
+                [f"this->{field} = {field}" for field in field_names]
+            )
+            constructor = f"{node.name}({args}) {{{assignments};}}"
+            body = [constructor] + body
+        buf += body
+        buf += ["};"]
+        return "\n".join(buf) + "\n"
+
+    def _visit_enum(self, node, typename: str, fields: List[Tuple]) -> str:
+        fields_list = []
+
+        for field, value in fields:
+            fields_list += [f"{field} = {value},"]
+        fields_str = "".join(fields_list)
+        return f"enum {node.name} : {typename} {{\n{fields_str}}};\n"
+
+    def visit_IntEnum(self, node) -> str:
+        fields = []
+        for i, (member, var) in enumerate(node.class_assignments.items()):
+            var = self.visit(var)
+            if var == _AUTO_INVOKED:
+                var = i
+            fields.append((member, var))
+        return self._visit_enum(node, "int", fields)
+
+    def visit_IntFlag(self, node) -> str:
+        fields = []
+        for i, (member, var) in enumerate(node.class_assignments.items()):
+            var = self.visit(var)
+            if var == _AUTO_INVOKED:
+                var = i
+            fields.append((member, var))
+        return self._visit_enum(node, "int", fields)
+
+    def visit_StrEnum(self, node) -> str:
+        fields = []
+        definitions = []
+        for i, (member, node_var) in enumerate(node.class_assignments.items()):
+            var = self.visit(node_var)
+            raw_string = node_var.raw_string
+            if var == _AUTO_INVOKED:
+                var = f'"{member}"'
+            fields.append(f"static const {node.name} {member};")
+            definitions.append(
+                f"const {node.name} {node.name}::{member}= {raw_string};"
+            )
+        fields = "\n".join([f for f in fields])
+        definitions = "\n".join([d for d in definitions])
+        lint_exception = self._get_nolint_suffix("runtime/explicit")
+        self._usings.add("<string>")
+        return textwrap.dedent(
+            f"""\
+            class {node.name} : public std::string {{
+            public:
+              {node.name}(const char* s) : std::string(s) {{}}{lint_exception}
+              {fields}
+            }};
+
+            {definitions}
+
+            """
+        )
+
+    def visit_Call(self, node) -> CppNode:
+        fname = self.visit(node.func)
+        vargs = []
+
+        if node.args:
+            vargs += [self.visit(a) for a in node.args]
+        if node.keywords:
+            vargs += [self.visit(kw.value) for kw in node.keywords]
+
+        ret = self._dispatch(node, fname, vargs)
+        if ret is not None:
+            return CppNode(ret)
+
+        if any(i is None for i in vargs):
+            raise AstNotImplementedError(f"Call {fname} ({vargs}) not supported", node)
+
+        return CppCall(fname, vargs)
+
+    def visit_For(self, node) -> str:
+        target = self.visit(node.target)
+        it = self.visit(node.iter)
+        buf = []
+        buf.append(f"for(auto {target} : {it}) {{")
+        buf.extend([self.visit(c) for c in node.body])
+        buf.append("}")
+        return "\n".join(buf)
+
+    def visit_arg(self, node):
+        node_id = get_id(node)
+        if node_id == "self":
+            return (None, "self")
+        node_id, _ = self._check_keyword(node_id)
+        typename = "T"
+        if node.annotation:
+            typename = self._typename_from_annotation(node)
+            # TODO: Should we make this if not primitive instead of checking
+            # for container types? That way we cover user defined structs too.
+            if hasattr(node, "container_type"):
+                # Python passes by reference by default.
+                typename = f"{typename}&"
+            # TODO: Generalize this to other types
+            if "std::map" in typename:
+                self._headers.append("#include <map>")
+        return (typename, node_id)
+
+    def visit_Lambda(self, node) -> str:
+        _, args = self.visit(node.args)
+        args_string = ", ".join([f"auto {a}" for a in args])
+        body = self.visit(node.body)
+        return f"[]({args_string}) {{ return {body}; }}"
+
+    def visit_Str(self, node) -> str:
+        """Use a C++ 14 string literal instead of raw string"""
+        node.raw_string = super().visit_Str(node)
+        self._usings.add("<string>")
+        return f"std::string{{{node.raw_string}}}"
+
+    def visit_Bytes(self, node) -> str:
+        byte_literal = super().visit_Bytes(node)
+        bytes_str = self._get_bytes(node)
+        n = len(bytes_str)
+        # libstdc++ >= 14 no longer pulls <array> in transitively via
+        # <cassert>/<cstdint>/<iostream>/<string>.
+        self._headers.append("#include <array>")
+        return f"((std::array<unsigned char, {n}>){byte_literal})"
+
+    def visit_Name(self, node) -> str:
+        if node.id == "None":
+            return "nullptr"
+        else:
+            return super().visit_Name(node)
+
+    def visit_Constant(self, node) -> str:
+        if node.value is True:
+            return "true"
+        elif node.value is False:
+            return "false"
+        elif isinstance(node.value, str):
+            return self.visit_Str(node)
+        else:
+            return super().visit_Constant(node)
+
+    @staticmethod
+    def _is_none_constant(node):
+        return isinstance(node, ast.Constant) and node.value is None
+
+    @staticmethod
+    def _is_non_none_constant(node):
+        return isinstance(node, ast.Constant) and node.value is not None
+
+    def visit_Compare(self, node) -> CppNode:
+        if len(node.ops) == 1 and len(node.comparators) == 1:
+            left = node.left
+            right = node.comparators[0]
+            none_compared_to_value = (
+                self._is_none_constant(left) and self._is_non_none_constant(right)
+            ) or (self._is_non_none_constant(left) and self._is_none_constant(right))
+            if none_compared_to_value:
+                if isinstance(node.ops[0], (ast.NotEq, ast.IsNot)):
+                    return CppNode("true")
+                if isinstance(node.ops[0], (ast.Eq, ast.Is)):
+                    return CppNode("false")
+        return CppNode(super().visit_Compare(node))
+
+    def visit_Expr(self, node) -> CppNode:
+        s = super().visit_Expr(node)
+        if getattr(node, "unused", False):
+            s = "(void) " + s
+        if isinstance(node.value, ast.Constant) and node.value.value is Ellipsis:
+            return CppNode(s)
+        if not s:
+            return CppNode("")
+        return CppExprStatement(s)
+
+    def visit_Return(self, node) -> CppNode:
+        if node.value:
+            return CppReturn(self.visit(node.value))
+        return CppReturn()
+
+    def _make_block(self, node):
+        buf = []
+        buf.append("({")
+        buf.extend([self.visit(child) for child in node.body])
+        if not buf[-1].endswith(";"):
+            buf.append(";")
+        buf.append("})")
+        node.make_block = True
+        return "\n".join(buf)
+
+    def visit_If(self, node) -> str:
+        body_vars = {get_id(v) for v in node.scopes[-1].body_vars}
+        orelse_vars = {get_id(v) for v in node.scopes[-1].orelse_vars}
+        node.common_vars = body_vars.intersection(orelse_vars)
+
+        var_definitions = []
+        for cv in node.common_vars:
+            definition = node.scopes.find(cv)
+            var_type = self._typename_from_annotation(definition)
+            if var_type == self._default_type:
+                var_type = decltype(definition)
+            var_definitions.append(f"{var_type} {cv};\n")
+
+        return "".join(var_definitions) + super().visit_If(node)
+
+    def visit_UnaryOp(self, node) -> str:
+        if isinstance(node.op, ast.USub):
+            if isinstance(node.operand, ast.Call) or self._is_number(node.operand):
+                # Shortcut if parenthesis are not needed
+                return f"-{self.visit(node.operand)}"
+            else:
+                return f"-({self.visit(node.operand)})"
+        else:
+            return super().visit_UnaryOp(node)
+
+    def visit_BinOp(self, node) -> str:
+        if (
+            isinstance(node.left, ast.List)
+            and isinstance(node.op, ast.Mult)
+            and (
+                isinstance(node.right, ast.Constant)
+                and isinstance(node.right.value, int)
+            )
+        ):
+            self._usings.add("<vector>")
+            return "std::vector ({},{})".format(
+                self.visit(node.right), self.visit(node.left.elts[0])
+            )
+        else:
+            return super().visit_BinOp(node)
+
+    def _import(self, name: str) -> str:
+        name = MODULE_DISPATCH_TABLE[name] if name in MODULE_DISPATCH_TABLE else name
+        if "<" in name:
+            return f"#include {name}"
+        return f'#include "{name}.h"'
+
+    def _import_from(self, module_name: str, names: List[str], level: int = 0) -> str:
+        if len(names) == 1:
+            # TODO: make this more generic so it works for len(names) > 1
+            name = names[0]
+            lookup = f"{module_name}.{name}"
+            if lookup in MODULE_DISPATCH_TABLE:
+                cpp_module_name, _ = MODULE_DISPATCH_TABLE[lookup]
+                cpp_module_name = cpp_module_name.replace(".", "::")
+                return f'#include "{cpp_module_name}.h"'
+        module_name = module_name.replace(".", "::")
+        return f'#include "{module_name}.h"'
+
+    def _get_element_type(self, node):
+        _ = self._typename_from_annotation(node)
+        if hasattr(node, "container_type"):
+            _, element_type = node.container_type
+            return element_type
+        else:
+            return self._default_type
+
+    def visit_List(self, node) -> str:
+        self._usings.add("<vector>")
+        elements = [self.visit(e) for e in node.elts]
+        elements_str = ", ".join(elements)
+        element_type = self._get_element_type(node)
+        if element_type == self._default_type:
+            typename = decltype(node)
+            # Workaround for cases where we couldn't figure out type
+            if "auto" in typename:
+                return f"{{{elements_str}}}"
+            return f"{typename}{{{elements_str}}}"
+        return f"{{{elements_str}}}"
+
+    def visit_Set(self, node) -> str:
+        self._usings.add("<set>")
+        elements = [self.visit(e) for e in node.elts]
+        elements_str = ", ".join(elements)
+        element_type = self._get_element_type(node)
+        if element_type == self._default_type:
+            typename = decltype(node)
+            return f"{typename}{{{elements_str}}}"
+        return f"std::set<{element_type}>{{{elements_str}}}"
+
+    def visit_Dict(self, node) -> str:
+        self._usings.add("<map>")
+        keys = [self.visit(k) for k in node.keys]
+        values = [self.visit(k) for k in node.values]
+        kv_pairs = ", ".join([f"{{ {k}, {v} }}" for k, v in zip(keys, values)])
+        _ = self._typename_from_annotation(node)
+        if hasattr(node, "container_type"):
+            container_type, element_type = node.container_type
+            key_typename, value_typename = element_type
+            if key_typename == self._default_type:
+                key_typename = "int"
+        else:
+            typename = decltype(node)
+            return f"{typename}{{{kv_pairs}}}"
+        return f"std::map<{key_typename}, {value_typename}>{{{kv_pairs}}}"
+
+    def visit_Subscript(self, node) -> str:
+        value = self.visit(node.value)
+        if isinstance(node.slice, ast.Constant) and isinstance(
+            node.slice.value, type(...)
+        ):
+            raise AstNotImplementedError("Ellipsis not supported", node)
+
+        slice_value = self._slice_value(node)
+        index = self.visit(slice_value)
+        if hasattr(node, "is_annotation"):
+            if value in self.CONTAINER_TYPES:
+                value = self.CONTAINER_TYPES[value]
+            return f"{value}<{index}>"
+        return f"{value}[{index}]"
+
+    def visit_Delete(self, node) -> str:
+        ret = []
+        for target in node.targets:
+            if isinstance(target, ast.Subscript):
+                # integer index => sequence (vector) element removal
+                # anything else => associative container (map) key removal
+                if (
+                    isinstance(target.slice, ast.Constant)
+                    and isinstance(target.slice.value, int)
+                    and not isinstance(target.slice.value, bool)
+                ):
+                    value = self.visit(target.value)
+                    index = self.visit(target.slice)
+                    ret.append(f"{value}.erase({value}.begin() + {index});")
+                else:
+                    value = self.visit(target.value)
+                    key = self.visit(target.slice)
+                    ret.append(f"{value}.erase({key});")
+            else:
+                ret.append(self.visit_unsupported(node, "del"))
+        return "\n".join(ret)
+
+    def visit_Tuple(self, node) -> str:
+        self._usings.add("<tuple>")
+        elts = [self.visit(e) for e in node.elts]
+        return "std::make_tuple({})".format(", ".join(elts))
+
+    def visit_Try(self, node, finallybody=None) -> str:
+        self._usings.add("<iostream>")
+        buf = ["try {"]
+        buf += [self.visit(n) for n in node.body]
+        buf.append("} catch (const std::exception& e) {")
+
+        buf += [self.visit(h) for h in node.handlers]
+
+        if finallybody:
+            buf.append("try { // finally")
+            buf += [self.visit(b) for b in finallybody]
+            buf.append("} throw e;")
+
+        buf.append("}")
+        buf.append(
+            "catch (const std::overflow_error& e) "
+            '{ std::cout << "OVERFLOW ERROR" << std::endl; }'
+        )
+        buf.append(
+            "catch (const std::runtime_error& e) "
+            '{ std::cout << "RUNTIME ERROR" << std::endl; }'
+        )
+        buf.append("catch (...) " '{ std::cout << "UNKNOWN ERROR" << std::endl; 0}')
+
+        return "\n".join(buf)
+
+    def visit_Assert(self, node) -> str:
+        if not self.use_catch_test_cases:
+            self._usings.add("<cassert>")
+            return f"assert({self.visit(node.test)});"
+        return f"REQUIRE({self.visit(node.test)});"
+
+    def visit_Assign(self, node) -> CppNode:
+        return CppNode(
+            "\n".join([self._visit_AssignOne(node, target) for target in node.targets])
+        )
+
+    def visit_AugAssign(self, node) -> CppNode:
+        target = self.visit(node.target)
+        op = self.visit(node.op)
+        val = self.visit(node.value)
+        return CppAugAssignment(target, op, val)
+
+    def _visit_AssignOne(self, node, target) -> CppNode:
+        if isinstance(target, ast.Tuple):
+            elts = [self.visit(e) for e in target.elts]
+            value = self.visit(node.value)
+            return CppNode("std::tie({}) = {};".format(", ".join(elts), value))
+
+        if isinstance(node.scopes[-1], ast.If) and isinstance(target, ast.Name):
+            outer_if = node.scopes[-1]
+            if target.id in outer_if.common_vars:
+                value = self.visit(node.value)
+                return CppAssignment(target.id, value)
+
+        if isinstance(target, ast.Subscript):
+            target = self.visit(target)
+            value = self.visit(node.value)
+            return CppAssignment(target, value)
+
+        definition = node.scopes.parent_scopes.find(get_id(target))
+        if definition is None:
+            definition = node.scopes.find(get_id(target))
+        if isinstance(target, ast.Name) and defined_before(definition, node):
+            target = self.visit(target)
+            value = self.visit(node.value)
+            return CppAssignment(target, value)
+
+        if isinstance(node.value, ast.List):
+            element_type = self._get_element_type(node.value)
+            if element_type == self._default_type:
+                typename = decltype(node)
+            else:
+                self._usings.add("<vector>")
+                typename = f"std::vector<{element_type}>"
+        else:
+            typename = self._typename_from_annotation(target)
+        target = self.visit(target)
+        value = self.visit(node.value)
+        lint_exception = self._get_nolint_suffix("runtime/string")
+        if typename == "std::string" and is_global(node):
+            self._usings.add("<string>")
+            return CppDeclaration(typename, target, value, suffix=lint_exception)
+
+        return CppDeclaration(typename, target, value)
+
+    def visit_AnnAssign(self, node) -> CppNode:
+        target, type_str, val = super().visit_AnnAssign(node)
+        return CppDeclaration(type_str, target, val)
+
+    def visit_Print(self, node) -> str:
+        buf = []
+        for n in node.values:
+            value = self.visit(n)
+            if isinstance(n, ast.List) or isinstance(n, ast.Tuple):
+                buf.append(
+                    "std::cout << {} << std::endl;".format(
+                        " << ".join([self.visit(el) for el in n.elts])
+                    )
+                )
+            else:
+                buf.append(f"std::cout << {value} << std::endl;")
+        return "\n".join(buf)

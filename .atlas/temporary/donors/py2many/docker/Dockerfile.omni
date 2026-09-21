@@ -1,0 +1,175 @@
+# syntax=docker/dockerfile:1
+#
+# Omni CI image with all backend runtimes, formatters, and test helpers.
+# This image uses a glibc base because the official Julia binaries are not
+# supported on Alpine/musl.
+FROM debian:stable-slim
+
+ARG V_VERSION=0.5.1
+ARG RUST_TOOLCHAIN=stable
+ARG DART_VERSION=3.4.4
+ARG FLUTTER_VERSION=3.22.3
+ARG GO_VERSION=1.26.0
+ARG JULIA_VERSION=1.10.5
+ARG KOTLIN_VERSION=1.7.20
+ARG LEAN_VERSION=4.30.0
+ARG NIM_VERSION=2.0.8
+ARG ZIG_VERSION=0.14.0
+
+ENV HOME=/root \
+    PATH="/root/.venv/bin:/root/.juliaup/bin:/root/go/bin:/usr/local/go/bin:/root/.cargo/bin:/root/.pub-cache/bin:/opt/v:/opt/flutter/bin:/opt/dart-sdk/bin:/opt/julia/bin:/opt/kotlinc/bin:/opt/lean/bin:/opt/zig:${PATH}" \
+    CXX=clang++ \
+    CXXFLAGS="-fuse-ld=lld" \
+    CLANG_FORMAT_STYLE=Google \
+    CARGO_HOME=/root/.cargo \
+    KOTLIN_HOME=/opt/kotlinc \
+    PUB_CACHE=/root/.pub-cache \
+    RUSTUP_HOME=/root/.rustup \
+    VFLAGS="-cc gcc -gc none"
+
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
+RUN apt-get update \
+    && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \
+      astyle \
+      bash \
+      build-essential \
+      ca-certificates \
+      catch2 \
+      clang \
+      clang-format \
+      clang-tidy \
+      cmake \
+      curl \
+      dub \
+      git \
+      libc++-dev \
+      libc++abi-dev \
+      libgc-dev \
+      lld \
+      ldc \
+      make \
+      default-jdk \
+      maven \
+      patchelf \
+      python3 \
+      python3-pip \
+      python3-venv \
+      sudo \
+      tar \
+      unzip \
+      xz-utils \
+      z3 \
+      libz3-dev \
+      zip \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN arch="$(dpkg --print-architecture)" \
+    && case "${arch}" in \
+      amd64) go_arch="amd64"; zig_arch="x86_64"; julia_path_arch="x64"; julia_tar_arch="x86_64"; nim_arch="x64"; lean_archive="lean-${LEAN_VERSION}-linux" ;; \
+      arm64) go_arch="arm64"; zig_arch="aarch64"; julia_path_arch="aarch64"; julia_tar_arch="aarch64"; nim_arch="arm64"; lean_archive="lean-${LEAN_VERSION}-linux_aarch64" ;; \
+      *) echo "Unsupported release target: ${arch}" >&2; exit 1 ;; \
+    esac \
+    && curl -fsSL -o /tmp/go.tar.gz "https://go.dev/dl/go${GO_VERSION}.linux-${go_arch}.tar.gz" \
+    && rm -rf /usr/local/go \
+    && tar -C /usr/local -xzf /tmp/go.tar.gz \
+    && rm /tmp/go.tar.gz \
+    && go version \
+    && curl -fsSL -o /tmp/zig.tar.xz "https://ziglang.org/download/${ZIG_VERSION}/zig-linux-${zig_arch}-${ZIG_VERSION}.tar.xz" \
+    && mkdir -p /opt/zig \
+    && tar -xJf /tmp/zig.tar.xz -C /opt/zig --strip-components=1 \
+    && rm /tmp/zig.tar.xz \
+    && zig version \
+    && curl -fsSL -o /tmp/julia.tar.gz \
+      "https://julialang-s3.julialang.org/bin/linux/${julia_path_arch}/${JULIA_VERSION%.*}/julia-${JULIA_VERSION}-linux-${julia_tar_arch}.tar.gz" \
+    && mkdir -p /opt/julia \
+    && tar -xzf /tmp/julia.tar.gz -C /opt/julia --strip-components=1 \
+    && rm /tmp/julia.tar.gz \
+    && patchelf --clear-execstack /opt/julia/lib/julia/libopenlibm.so \
+    && julia --version \
+    && curl -fsSL -o /tmp/nim.tar.xz "https://nim-lang.org/download/nim-${NIM_VERSION}-linux_${nim_arch}.tar.xz" \
+    && mkdir -p /opt/nim \
+    && tar -xJf /tmp/nim.tar.xz -C /opt/nim --strip-components=1 \
+    && rm /tmp/nim.tar.xz \
+    && ln -sf /opt/nim/bin/nim /usr/local/bin/nim \
+    && ln -sf /opt/nim/bin/nimpretty /usr/local/bin/nimpretty \
+    && nim --version \
+    && curl -fsSL -o /tmp/lean.zip \
+      "https://github.com/leanprover/lean4/releases/download/v${LEAN_VERSION}/${lean_archive}.zip" \
+    && unzip -q /tmp/lean.zip -d /opt \
+    && mv "/opt/${lean_archive}" /opt/lean \
+    && rm /tmp/lean.zip \
+    && lean --version \
+    && lake --version
+
+RUN python3 -m venv "${HOME}/.venv" \
+    && source "${HOME}/.venv/bin/activate" \
+    && pip install --upgrade pip \
+    && pip install uv \
+    && uv python install 3.12 \
+    && ln -sf "$(uv python find 3.12)" /usr/local/bin/python3.12 \
+    && python3.12 --version \
+    && pip install \
+      black==24.10.0 \
+      conan \
+      cpplint \
+      flake8 \
+      isort==5.13.2 \
+      "jgo<2" \
+      setuptools \
+      tox
+
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
+      | sh -s -- -y --default-toolchain "${RUST_TOOLCHAIN}" --component clippy,rustfmt
+
+RUN curl -fsSL -o /tmp/v.zip "https://github.com/vlang/v/releases/download/${V_VERSION}/v_linux.zip" \
+    && unzip -q /tmp/v.zip -d /opt \
+    && rm /tmp/v.zip \
+    && ln -sf /opt/v/v /usr/local/bin/v \
+    && v version
+
+RUN curl -fsSL -o /tmp/kotlin.zip \
+      "https://github.com/JetBrains/kotlin/releases/download/v${KOTLIN_VERSION}/kotlin-compiler-${KOTLIN_VERSION}.zip" \
+    && unzip -q /tmp/kotlin.zip -d /opt \
+    && rm /tmp/kotlin.zip \
+    && kotlin -version
+
+RUN curl -fsSL -o /tmp/dart.zip \
+      "https://storage.googleapis.com/dart-archive/channels/stable/release/${DART_VERSION}/sdk/dartsdk-linux-x64-release.zip" \
+    && unzip -q /tmp/dart.zip -d /opt \
+    && rm /tmp/dart.zip \
+    && curl -fsSL -o /tmp/flutter.tar.xz \
+      "https://storage.googleapis.com/flutter_infra_release/releases/stable/linux/flutter_linux_${FLUTTER_VERSION}-stable.tar.xz" \
+    && tar -xJf /tmp/flutter.tar.xz -C /opt \
+    && rm /tmp/flutter.tar.xz \
+    && git config --system --add safe.directory /opt/flutter \
+    && flutter config --no-analytics \
+    && flutter --version
+
+ENV MODULAR_HOME=${HOME}/life/.pixi/envs/default/share/max
+COPY docker/mojo/pixi.toml docker/mojo/pixi.lock ${HOME}/life/
+RUN curl -fsSL https://pixi.sh/install.sh | bash \
+    && ln -sf "${HOME}/.pixi/bin/pixi" /usr/local/bin/pixi \
+    && cd "${HOME}/life" \
+    && CONDA_OVERRIDE_GLIBC=2.17 pixi install --frozen \
+    && ln -sf "${HOME}/life/.pixi/envs/default/bin/mojo" /usr/local/bin/mojo \
+    && ln -sf "${HOME}/life/.pixi/envs/default/bin/mblack" /usr/local/bin/mblack \
+    && mojo --version
+
+COPY scripts /scripts
+
+RUN /scripts/julia-setup.sh
+
+RUN source "${HOME}/.venv/bin/activate" \
+    && mkdir -p /work/tests \
+    && cd /work \
+    && /scripts/cpp-setup.sh \
+    && /scripts/dart-setup.sh \
+    && /scripts/dlang-setup.sh \
+    && /scripts/go-setup.sh \
+    && /scripts/vlang-setup.sh \
+    && /scripts/zig-setup.sh
+
+COPY docker/entrypoint.sh /entrypoint.sh
+
+ENTRYPOINT ["/entrypoint.sh"]

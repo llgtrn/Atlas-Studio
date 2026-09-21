@@ -1,0 +1,151 @@
+# Changelog
+
+## [Unreleased]
+
+### Added
+
+- New target: Lean transpiler (proof of concept). Transpiles a small subset of
+  Python to [Lean 4](https://lean-lang.org); `hello_world`, `math_func`, `loop`,
+  and `sys_exit` cases transpile, run, and match their Python output.
+
+## [0.8] - 2025-02-19
+
+### Added
+
+- V language transpiler improvements:
+  - V-idiomatic handling for Python's dunder methods and context managers
+  - Proper range syntax and int(bool) conversion
+  - math.pow() for exponentiation instead of XOR
+  - Improved async and generator function handling
+  - Additional test cases and expected outputs
+- Python 3.14 compatibility fixes
+- Zig 0.15 build API compatibility
+
+### Improved
+
+- CLI: more ergonomic to type `py2many --rust test.py`
+- Julia: fixed nested method call rewriting in JuliaMethodCallRewriter
+- Go: fixed class method receiver syntax
+- Documentation: added AGENTS.md and split documentation into doc/agent/
+- Dependencies: updated GitHub Actions and development tools
+
+### Fixed
+
+- Various lint errors and formatting issues
+- V language test expectations aligned with `v fmt`
+- Code refactoring to reduce verbosity
+- Star operator bug fix
+- tox relative paths problem
+
+## [0.7] - 2025-07-20
+
+### Added
+
+- New target: Zig Programming Language support
+- LLM integration with llm-ollama plugin for AI-assisted transpilation
+- Support for lambda expressions in type inference scopes
+- CPP linting with cpplint integration
+- Pre-commit hooks for code quality
+
+### Improved
+
+- Mojo backend updated for version 25.5.0.dev2025061405
+- SMT transpiler enhancements:
+  - Support for float/real types
+  - Fixed equations.smt test case
+  - Improved test inputs validation
+- Rust improvements:
+  - Enhanced development experience (devx)
+  - Fixed --no-prologue support
+  - Efficiency improvements flagged by recent stable toolchain
+  - Better hello-wuffs.py example
+- Type inference improvements:
+  - Fixed type inference for list slices
+  - Better lambda scope handling
+- Dependency management migrated to uv
+- Python backend now honors --no-prologue flag
+- CI/CD enhancements:
+  - PR annotations with test results
+  - Test result archiving
+  - Updated setup actions for Mojo and Zig
+
+### Fixed
+
+- Various test failures and regressions
+- Namespace conflicts resolved through renaming
+- Package version syntax corrections
+- AST deprecation warnings
+- CPP lint issues across multiple files
+
+## [0.6] - 2025-01-01
+
+- Mojo backend
+- Much improved type inference
+- Python 3.13 supported
+- Streamlined dependencies
+
+## [0.5.1] - 2024-08-10
+
+- Minor release eng related cleanups
+
+## [0.5] - 2024-08-10
+
+- Python 3.12 support
+- Support GCC 13
+- Fixed typpete support on Python 3.8
+- Replace cargo-eval with cargo -Zscript.  This requires `nightly-2024-01-01`.
+- Added clippy as Rust linter.
+- Add Julia rewriter for boolean operations.
+- Coverage increased from 89% to 92%,
+  removing code in transpilers that emitted invalid code.
+- Support D Programming Language
+- Ubuntu 24.04 added to the test matrix
+- Docker images usable now for testing several major languages
+
+## [0.4.0] - 2023-12-31
+
+### Added
+
+- Added [typpete](https://github.com/adsharma/Typpete) as a type inference engine.
+  Use --typpete=1 to activate.
+- Transpilers are now located under py2many to avoid conflicts with other PyPI packages.
+- Kotlin formatting now depends on [jgo](https://pypi.org/project/jgo/) using branch
+  `git+https://github.com/jayvdb/jgo@sort-jars`.
+  If jgo is not installed, no formatting will occur.
+- New target: SMT transpiler of semi-Python syntax.  See `tests/cases/demorgan.py` as an example.
+- Added support for finding c++ headers `range.hpp` and `catch_test_macros.hpp` using conan.
+- Improved support for floats for all transpilers.
+- pyv: Initial exception and class support.
+
+### Improved
+
+- Many improvements for C++, Julia, and Vlang.
+- Go: Replace custom dependency `github.com/adsharma/py2many/pygo/runtime` with
+  `github.com/electrious/refutil`.
+- Improved Rust float support using crate `float-ord`.
+- Find `format.jl` at runtime.
+
+## [0.3.0] - 2021-07-14
+
+### Added
+
+- Internal: Migrate API translation code to plugin infra
+- New target: python. Transpiles untyped python to typed python.
+- New target: v. Transpiles python to [vlang](https://vlang.io)
+- [Directory mode](https://github.com/adsharma/py2many/tree/main/tests/dir_cases). Cross module type inference.
+- Support for sys.argv, sys.exit, target specific main() signature
+- bitops, byte literals, min/max
+- type inference: key and value types for dicts
+
+### Improved
+
+- Test coverage: up to 90%
+
+### Rust
+
+- Experimental: pyO3 extension for rust via --rust=1 --extension
+- ADTs/Enums supported via python sealed classes implemented on top of [adt](https://github.com/jspahrsummers/adt) library
+- Safe integer arithmetic only for widening ops. Details in [#123](https://github.com/adsharma/py2many/issues/123)
+- [argparse](https://github.com/adsharma/py2many/blob/main/tests/expected/fib_with_argparse.rs) transpiled to structopt
+- [stdio](https://github.com/adsharma/py2many/blob/main/tests/expected/with_open.rs): `with_open`, file read/write, text/binary, tmpfile
+- Lifetimes: auto compute lifetimes for static strings

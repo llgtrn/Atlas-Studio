@@ -1,0 +1,122 @@
+name: Fast
+
+# Controls when the action will run.
+on:
+  # Triggers the workflow on push or pull request events but only for the main branch
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# Cancel previous jobs for the same branch
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # Can be blank, or one of: cpp, dart, dlang, go, julia, kotlin, lean, mojo, nim, rust, smt, vlang, zig
+  FOCUS: 'rust'
+jobs:
+  build:
+
+    strategy:
+      matrix:
+        python-version:
+          - '3.12'
+        os:
+          - ubuntu-24.04
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v7
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: cache virtualenv
+        uses: actions/cache@v6
+        id: cache-venv
+        with:
+          path: ./.venv/
+          key: ${{ runner.os }}-${{ steps.setup_python.outputs.python-version }}-venv-${{ hashFiles('setup.py') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ steps.setup_python.outputs.python-version }}-venv-
+
+      - name: Install dependencies
+        shell: bash
+        run: |
+          python -m venv ./.venv
+          source ./.venv/bin/activate
+          pip3 install .
+        if: steps.cache-venv.outputs.cache-hit != 'true'
+
+      - name: Install tox
+        run: |
+          pip3 --version
+          pip3 install setuptools tox
+
+
+      - name: Install rust stable toolchain
+        if: ${{ !env.FOCUS || env.FOCUS == 'rust' }}
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
+          components: clippy,rustfmt
+
+      - name: Run tox
+        shell: bash
+        run: |
+          set -ex
+          if [ "$RUNNER_OS" == "Windows" ]; then
+            export PATH="$PATH:/C/Program Files/LLVM/bin:/tmp/v"
+          fi
+          PYTHON_VERSION="${{ matrix.python-version }}"
+          export TOXENV="py${PYTHON_VERSION//.}"
+          if [ "$FOCUS" ]; then
+            tox -e py-"$FOCUS" -- -k "$FOCUS"
+          else
+            tox -e py-full
+          fi
+
+      - name: Publish Test Results
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        if: always()
+        with:
+          files: "tests/current-results.xml"
+
+      - name: Archive test results
+        uses: actions/upload-artifact@v7
+        with:
+          name: junit-xml-results
+          path: tests/current-results.xml
+
+
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install linters
+        run: pip install black==24.10.0 cpplint isort==5.13.2 flake8
+
+      - name: Run isort
+        run: isort --check --diff */ *.py
+
+      - name: Run black
+        run: black --check */ *.py
+
+      - name: Run flake8
+        run: flake8 .
+
+      - name: Check LANGUAGES.md is up to date
+        shell: bash
+        run: |
+          python scripts/lang_table.py > LANGUAGES.md
+          git diff --exit-code LANGUAGES.md \
+            || { echo "LANGUAGES.md is stale; run 'python scripts/lang_table.py > LANGUAGES.md' and commit."; exit 1; }

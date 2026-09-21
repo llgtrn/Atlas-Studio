@@ -1,0 +1,1185 @@
+import ast
+import textwrap
+from pathlib import Path
+from typing import List, Optional, Tuple, Union
+
+from py2many.analysis import (
+    FunctionTransformer,
+    get_id,
+    is_global,
+    is_mutable,
+    is_void_function,
+)
+from py2many.clike import class_for_typename
+from py2many.declaration_extractor import DeclarationExtractor
+from py2many.exceptions import AstClassUsedBeforeDeclaration
+from py2many.inference import is_reference
+from py2many.rewriters import camel_case
+from py2many.tracer import defined_before, is_class_or_module, is_list
+
+from .clike import CLikeTranspiler
+from .inference import get_inferred_rust_type, is_rust_reference, map_type
+from .plugins import (
+    ATTR_DISPATCH_TABLE,
+    CLASS_DISPATCH_TABLE,
+    DISPATCH_MAP,
+    FUNC_DISPATCH_TABLE,
+    FUNC_USINGS_MAP,
+    MODULE_DISPATCH_TABLE,
+    SMALL_DISPATCH_MAP,
+    SMALL_USINGS_MAP,
+)
+from .rust_ast import (
+    RustAssignment,
+    RustAugAssignment,
+    RustAwait,
+    RustCall,
+    RustExprStatement,
+    RustForLoop,
+    RustFunction,
+    RustIf,
+    RustLet,
+    RustLoop,
+    RustMacroCall,
+    RustNode,
+    RustRenderer,
+    RustReturn,
+    RustSourceFile,
+    RustWhileLoop,
+    RustYield,
+)
+
+# Python str methods -> Rust. A value is the Rust method to append to the
+# receiver (`s.to_lowercase()`); None marks a method whose translation needs
+# extra logic, handled explicitly in _visit_str_method.
+_STR_METHODS = {
+    "lower": "to_lowercase()",
+    "upper": "to_uppercase()",
+    "strip": "trim()",
+    "lstrip": "trim_start()",
+    "rstrip": "trim_end()",
+    "split": None,
+    "replace": None,
+    "find": None,
+    "startswith": None,
+    "endswith": None,
+    "capitalize": None,
+}
+
+# Python str.is*() predicates -> the per-char Rust check.
+_CHAR_PREDICATE = {
+    "isdigit": "is_ascii_digit()",
+    "isalpha": "is_alphabetic()",
+    "isalnum": "is_alphanumeric()",
+    "isspace": "is_whitespace()",
+    "isupper": "is_uppercase()",
+    "islower": "is_lowercase()",
+}
+
+
+class RustLoopIndexRewriter(ast.NodeTransformer):
+    def visit_For(self, node):
+        if hasattr(node.iter, "id"):
+            definition = node.scopes.find(node.iter.id)
+            if is_reference(definition):
+                node.target.needs_dereference = True
+        return node
+
+
+class RustNoneCompareRewriter(ast.NodeTransformer):
+    def visit_Compare(self, node):
+        right = self.visit(node.comparators[0])
+        if isinstance(right, ast.Constant) and right.value is None:
+            node.left = ast.Call(
+                func=ast.Name(id="Some", ctx=ast.Load()),
+                args=[node.left],
+                lineno=node.left.lineno,
+                keywords=[],
+            )
+        return node
+
+
+class RustStringJoinRewriter(ast.NodeTransformer):
+    def visit_Call(self, node):
+        self.generic_visit(node)
+        if isinstance(node.func, ast.Attribute) and node.func.attr == "join":
+            if hasattr(node.func.value, "value") and isinstance(
+                node.func.value.value, str
+            ):
+                new_call = ast.Call(
+                    ast.Attribute(value=node.args[0], attr=node.func.attr, ctx="Load"),
+                    args=[node.func.value],
+                    keywords=[],
+                )
+                new_call.lineno = node.lineno
+                new_call.col_offset = node.col_offset
+                new_call.scopes = node.scopes
+                new_call.func.scopes = node.scopes
+                ast.fix_missing_locations(new_call)
+                return new_call
+        return node
+
+
+def _mutates_self(node) -> bool:
+    """True when the method body assigns to a ``self`` field (``self.x = ...``)."""
+    for n in ast.walk(node):
+        if isinstance(n, (ast.Assign, ast.AugAssign)):
+            target = n.targets[0] if isinstance(n, ast.Assign) else n.target
+            if (
+                isinstance(target, ast.Attribute)
+                and isinstance(target.value, ast.Name)
+                and target.value.id == "self"
+            ):
+                return True
+    return False
+
+
+def _returns_self(node) -> bool:
+    """True when the method body returns ``self``."""
+    for n in ast.walk(node):
+        if (
+            isinstance(n, ast.Return)
+            and isinstance(n.value, ast.Name)
+            and n.value.id == "self"
+        ):
+            return True
+    return False
+
+
+class RustTranspiler(CLikeTranspiler):
+    NAME = "rust"
+
+    def __getattribute__(self, name):
+        attr = super().__getattribute__(name)
+        if not callable(attr):
+            return attr
+        if not (name.startswith("visit_") or name.startswith("_visit_")):
+            return attr
+
+        def rust_node_visitor(*args, **kwargs):
+            result = attr(*args, **kwargs)
+            if isinstance(result, str):
+                return RustNode(result)
+            return result
+
+        return rust_node_visitor
+
+    def __init__(self, extension: bool = False, no_prologue: bool = False):
+        super().__init__()
+        CLikeTranspiler._default_type = "_"
+        self._extension = extension
+        self._rust_ignored_module_set = {"argparse_dataclass"}
+        self._no_prologue = no_prologue
+        self._dispatch_map = DISPATCH_MAP
+        self._small_dispatch_map = SMALL_DISPATCH_MAP
+        self._small_usings_map = SMALL_USINGS_MAP
+        self._func_dispatch_table = FUNC_DISPATCH_TABLE
+        self._func_usings_map = FUNC_USINGS_MAP
+        self._attr_dispatch_table = ATTR_DISPATCH_TABLE
+        self._allows = set()
+        self._rust_mods = set()
+
+    def visit(self, node) -> RustNode:
+        result = super().visit(node)
+        if isinstance(result, str):
+            return RustNode(result)
+        return result
+
+    def visit_Module(self, node) -> RustNode:
+        rust_ast = self.visit_Module_ast(node)
+        return RustNode(RustRenderer().render(rust_ast))
+
+    def visit_Module_ast(self, node) -> RustSourceFile:
+        docstring = getattr(node, "docstring_comment", None)
+        items = [self.comment(docstring.value)] if docstring is not None else []
+        filename = getattr(node, "__file__", None)
+        self._reset()
+        if filename is not None:
+            self._module = Path(filename).stem
+
+        body_items = {}
+        for b in node.body:
+            if not isinstance(b, ast.FunctionDef):
+                body_items[b] = self.visit(b)
+        # Second pass to handle functiondefs whose body may refer to other
+        # members of node.body.
+        for b in node.body:
+            if isinstance(b, ast.FunctionDef):
+                body_items[b] = self.visit(b)
+
+        items += [body_items[b] for b in node.body]
+        return RustSourceFile.from_items(items)
+
+    def usings(self):
+        if self._extension:
+            self._usings.add("pyo3::prelude::*")
+            self._usings.add("pyo3::wrap_pyfunction")
+        usings = sorted(list(set(self._usings)))
+        deps = sorted(
+            {mod.split("::")[0] for mod in usings if not mod.startswith("std:")}
+        )
+        crates = [dep.replace("-", "_") for dep in deps]
+        externs = [f"extern crate {dep};" for dep in crates]
+        externs += [f"mod {dep};" for dep in self._rust_mods]
+        deps_str = "\n//! ".join([f'{dep} = "*"' for dep in deps])
+        externs = "\n".join(externs)
+        uses = [
+            mod.replace("-", "_")
+            for mod in usings
+            if mod not in ("strum", "lazy_static", "float-ord") and mod not in deps
+        ]
+        uses = "\n".join(f"use {mod};" for mod in uses)
+        # This should not contain lints which mask possibly erroneous semantics, e.g. float_cmp
+        # Those, and lints triggered by explicitly bad test logic, belong in
+        # .github/workflows/clippy.yml
+        lint_ignores = (
+            textwrap.dedent(
+                """
+        #![allow(clippy::assertions_on_constants)]
+        #![allow(clippy::bool_comparison)]
+        #![allow(clippy::collapsible_else_if)]
+        #![allow(clippy::comparison_to_empty)]
+        #![allow(clippy::double_parens)] // https://github.com/adsharma/py2many/issues/17
+        #![allow(clippy::eq_op)]
+        #![allow(clippy::let_with_type_underscore)]
+        #![allow(clippy::map_identity)]
+        #![allow(clippy::needless_return)]
+        #![allow(clippy::nonminimal_bool)]
+        #![allow(clippy::partialeq_to_none)]
+        #![allow(clippy::print_literal)]
+        #![allow(clippy::ptr_arg)]
+        #![allow(clippy::redundant_static_lifetimes)] // https://github.com/adsharma/py2many/issues/266
+        #![allow(clippy::unnecessary_cast)]
+        #![allow(clippy::upper_case_acronyms)]
+        #![allow(clippy::useless_vec)]
+        #![allow(non_camel_case_types)]
+        #![allow(non_snake_case)]
+        #![allow(non_upper_case_globals)]
+        #![allow(unused_imports)]
+        #![allow(unused_mut)]
+        #![allow(unused_parens)]
+        """
+            )
+            if not self._no_prologue
+            else ""
+        )
+        lint_ignores += "\n".join(f"#![allow({allow})]" for allow in self._allows)
+        cargo_toml = f"""\
+        //! ```cargo
+        //! [package]
+        //! edition = "2021"
+        //! [dependencies]
+        //! {deps_str}
+        //! ```
+        """
+        return f"{cargo_toml}\n{lint_ignores}\n\n{externs}\n{uses}\n"
+
+    def features(self):
+        if self._features:
+            features = ", ".join(sorted(list(set(self._features))))
+            return f"#![feature({features})]"
+
+    def extension_module(self, tree) -> str:
+        if self._extension:
+            funcs = []
+            tx = FunctionTransformer()
+            tx.visit(tree)
+            for f in tree.defined_functions:
+                fname = f.name
+                if fname.startswith("_"):
+                    continue
+                funcs.append(f"m.add_function(wrap_pyfunction!({fname}, m)?)?;")
+            funcs_str = "\n".join(funcs)
+            module_name = Path(tree.__file__).stem
+            return textwrap.dedent(
+                f"""\
+            #[pymodule]
+            fn {module_name}(_py: Python, m: &PyModule) -> PyResult<()> {{
+                {funcs_str}
+
+                Ok(())
+            }}
+            """
+            )
+        return ""
+
+    def visit_Expr(self, node) -> RustNode:
+        if hasattr(node, "unused"):
+            self._allows.add("clippy::no_effect")
+        expression = self.visit(node.value)
+        if isinstance(node.value, ast.Constant) and node.value.value is Ellipsis:
+            return expression
+        if not expression:
+            return RustNode("")
+        return RustExprStatement(expression)
+
+    def visit_FunctionDef(self, node, async_prefix="") -> RustNode:
+        body = "\n".join([self.visit(n) for n in node.body])
+        typenames, args = self.visit(node.args)
+
+        args_list = []
+        if args and args[0] == "self":
+            del typenames[0]
+            del args[0]
+            # Methods that mutate ``self`` fields or return ``self`` take a
+            # mutable receiver so the mutation is reflected in the returned
+            # reference, matching Python's object semantics.
+            if _mutates_self(node) or _returns_self(node):
+                args_list.append("&mut self")
+            else:
+                args_list.append("&self")
+
+        is_python_main = getattr(node, "python_main", False)
+        if is_python_main:
+            self._usings.add("anyhow::Result")
+
+        typedecls = []
+        index = 0
+        for i in range(len(args)):
+            typename = typenames[i]
+            arg = args[i]
+
+            if typename == "T":
+                typename = f"T{index}"
+                typedecls.append(typename)
+                index += 1
+            args_list.append(f"{arg}: {typename}")
+
+        return_type = "" if not is_python_main else "-> Result<()>"
+        if node.returns:
+            typename = self._typename_from_annotation(node, attr="returns")
+            if _returns_self(node):
+                # ``return self`` yields the mutable receiver itself.
+                typename = f"&mut {typename}"
+            elif getattr(node.returns, "rust_needs_reference", False):
+                typename = f"&{typename}"
+            if getattr(node, "rust_pyresult_type", False):
+                if node.no_return:
+                    typename = None
+                else:
+                    typename = CLikeTranspiler._generic_typename_from_type_node(
+                        node.returns
+                    )
+                typename = map_type(typename, extension=True, return_type=True)
+            if typename != "_":
+                return_type = f"-> {typename}"
+        else:
+            if not is_void_function(node):
+                return_type = "-> RT"
+                typedecls.append("RT")
+
+        template = ""
+        if len(typedecls) > 0:
+            template = "<{}>".format(", ".join(typedecls))
+
+        args_list = ", ".join(args_list)
+        signature = (
+            f"pub {async_prefix}fn {node.name}{template}({args_list}) {return_type}"
+        )
+        return_success = (
+            "Ok(())" if is_python_main else ""
+        )  # TODO: generalize this to functions that return Result<T, E>
+        extension = "#[pyfunction]\n" if self.extension else ""
+        return RustFunction(
+            signature, [body], return_success=return_success, prefix=extension
+        )
+
+    def visit_arg(self, node):
+        id = get_id(node)
+        if id == "self":
+            return (None, "self")
+        typename = "T"
+        if node.annotation:
+            if not self._extension:
+                typename = self._typename_from_annotation(node)
+                typename = map_type(typename)
+            else:
+                typename = self._generic_typename_from_annotation(node)
+                typename = map_type(typename, extension=True)
+            mut = "mut " if is_mutable(node.scopes, id) else ""
+            # TODO: Should we make this if not primitive instead of checking
+            # for container types? That way we cover user defined structs too.
+            if hasattr(node, "container_type"):
+                # Python passes by reference by default. Rust needs explicit borrowing
+                typename = f"&{mut}{typename}"
+        return (typename, id)
+
+    def visit_Return(self, node) -> RustNode:
+        fndef = None
+        for scope in node.scopes:
+            if isinstance(scope, ast.FunctionDef):
+                fndef = scope
+                break
+        if node.value:
+            if isinstance(node.value, ast.Name) and node.value.id == "self":
+                # ``self`` already has the right reference type (``&mut T``).
+                return RustReturn("self")
+            ret = self.visit(node.value)
+            if fndef:
+                if getattr(fndef, "rust_pyresult_type", False):
+                    # TODO: Design a more robust solution for this
+                    # For now, PyResult and references don't mix
+                    if ret.startswith("&"):
+                        ret = ret[1:]
+                    ret = f"Ok({ret})"
+                return_type = self._typename_from_annotation(fndef, attr="returns")
+                value_type = get_inferred_rust_type(node.value)
+                if is_rust_reference(node.value) and not getattr(
+                    fndef.returns, "rust_needs_reference", True
+                ):
+                    # TODO: Handle other container types
+                    ret = f"{ret}.to_vec()"
+                if return_type != value_type and value_type is not None:
+                    return RustReturn(f"{ret} as {return_type}")
+            return RustReturn(ret)
+        if fndef:
+            if getattr(fndef, "rust_pyresult_type", False):
+                return RustReturn("Ok(())")
+        return RustReturn()
+
+    def visit_Lambda(self, node) -> RustNode:
+        _, args = self.visit(node.args)
+        args_string = ", ".join(args)
+        body = self.visit(node.body)
+        return f"|{args_string}| {body}"
+
+    def visit_Attribute(self, node) -> RustNode:
+        attr = node.attr
+        if attr in self._keywords:
+            attr = attr + "_"
+
+        value_id = self.visit(node.value)
+
+        if value_id == "sys":
+            if attr == "argv":
+                self._usings.add("std::env")
+                return "env::args().map(|s| &*Box::leak(s.into_boxed_str())).collect()"
+
+        if is_list(node.value):
+            if node.attr == "append":
+                attr = "push"
+        if not value_id:
+            value_id = ""
+
+        if is_class_or_module(value_id, node.scopes):
+            return f"{value_id}::{attr}"
+
+        ret = f"{value_id}.{attr}"
+        if ret in self._attr_dispatch_table:
+            ret = self._attr_dispatch_table[ret]
+            return ret(self, node, value_id, attr)
+        return ret
+
+    def _func_for_lookup(self, fname) -> Union[str, object]:
+        fname_for_lookup = fname.replace("::", ".")
+        return super()._func_for_lookup(fname_for_lookup)
+
+    def _func_name_split(self, fname: str) -> Tuple[str, str]:
+        # string based fallback
+        splits = fname.rsplit("::", maxsplit=1)
+        if len(splits) == 2:
+            return tuple(splits)
+        else:
+            return ("", splits[0])
+
+    def _visit_struct_literal(self, node, fname: str, fndef: ast.ClassDef) -> RustNode:
+        vargs = []  # visited args
+        if not hasattr(fndef, "declarations"):
+            raise AstClassUsedBeforeDeclaration(fndef, node)
+        if node.args:
+            for arg, decl in zip(node.args, fndef.declarations.keys()):
+                arg = self.visit(arg)
+                if decl in self._keywords:
+                    decl += "_"
+                vargs += [f"{decl}: {arg}"]
+        if node.keywords:
+            for kw in node.keywords:
+                value = self.visit(kw.value)
+                if kw.arg in self._keywords:
+                    kw.arg += "_"
+                vargs += [f"{kw.arg}: {value}"]
+        args = ", ".join(vargs)
+        return f"{fname}{{{args}}}"
+
+    def _visit_str_method(self, node) -> Optional[str]:
+        """Map Python str methods onto Rust &str/String equivalents."""
+        attr = node.func.attr
+        obj = self.visit(node.func.value)
+        args = [self.visit(a) for a in node.args]
+
+        # Simple one-to-one method replacements (no args).
+        easy = _STR_METHODS.get(attr)
+        if easy is not None:
+            return f"{obj}.{easy}"
+
+        if attr == "split":
+            inner = f"split({args[0]})" if args else "split_whitespace()"
+            return f"{obj}.{inner}.collect::<Vec<&str>>()"
+        if attr == "replace" and len(args) == 2:
+            return f"{obj}.replace({args[0]}, {args[1]})"
+        if attr == "find" and len(args) == 1:
+            return f"{obj}.find({args[0]}).map(|i| i as i32).unwrap_or(-1)"
+        if attr == "startswith" and args:
+            return f"{obj}.starts_with({args[0]})"
+        if attr == "endswith" and args:
+            return f"{obj}.ends_with({args[0]})"
+        if attr == "capitalize":
+            return (
+                f"{{ let mut __c = {obj}.chars(); match __c.next() {{ "
+                "Some(__f) => __f.to_uppercase().collect::<String>() "
+                "+ &__c.as_str().to_lowercase(), None => String::new() } }"
+            )
+
+        char_pred = _CHAR_PREDICATE.get(attr)
+        if char_pred:
+            # is_empty on a string literal is a clippy const_is_empty lint, but
+            # the guard is needed for runtime correctness ("" -> False).
+            self._allows.add("clippy::const_is_empty")
+            return f"(!{obj}.is_empty() && {obj}.chars().all(|c| c.{char_pred}))"
+        return None
+
+    def visit_Call(self, node) -> RustNode:
+        # Python str methods -> Rust (lists/dicts don't share these names; still
+        # skip when the receiver is a known list to be safe).
+        if (
+            isinstance(node.func, ast.Attribute)
+            and (node.func.attr in _STR_METHODS or node.func.attr in _CHAR_PREDICATE)
+            and not is_list(node.func.value)
+        ):
+            ret = self._visit_str_method(node)
+            if ret is not None:
+                return ret
+
+        fname = self.visit(node.func)
+        fndef = node.scopes.find(fname)
+
+        if isinstance(fndef, ast.ClassDef):
+            return self._visit_struct_literal(node, fname, fndef)
+
+        vargs = []  # visited args
+        if node.args:
+            vargs += [self.visit(a) for a in node.args]
+        if node.keywords:
+            vargs += [self.visit(kw.value) for kw in node.keywords]
+
+        ret = self._dispatch(node, fname, vargs)
+        node_result_type = getattr(node, "result_type", False)
+        node_func_result_type = getattr(node.func, "result_type", False)
+        if ret is not None:
+            if ret.startswith("std::process::exit("):
+                node_result_type = False
+            unwrap = "?" if node_result_type or node_func_result_type else ""
+            return f"{ret}{unwrap}"
+
+        # Check if some args need to be passed by reference
+        ref_args = []
+        if fndef and hasattr(fndef, "args"):
+            for varg, fnarg, node_arg in zip(vargs, fndef.args.args, node.args):
+                if is_reference(fnarg) and not is_rust_reference(node_arg):
+                    ref_args.append(f"&{varg}")
+                else:
+                    ref_args.append(varg)
+        else:
+            ref_args = vargs
+
+        unwrap = "?" if node_result_type or node_func_result_type else ""
+        return RustCall(fname, ref_args, suffix=unwrap)
+
+    def visit_For(self, node) -> RustNode:
+        target = self.visit(node.target)
+        it = self.visit(node.iter)
+        return RustForLoop(target, it, [self.visit(c) for c in node.body])
+
+    def visit_Str(self, node) -> RustNode:
+        return "" + super().visit_Str(node) + ""
+
+    def visit_Bytes(self, node) -> RustNode:
+        bytes_str = self._get_bytes(node)
+        escaped = []
+        for byte in bytes_str:
+            if byte == 0x22:  # "
+                escaped.append('\\"')
+            elif byte == 0x5C:  # backslash
+                escaped.append("\\\\")
+            elif 0x20 <= byte <= 0x7E:
+                escaped.append(chr(byte))
+            else:
+                escaped.append(f"\\x{byte:02x}")
+        return f'b"{"".join(escaped)}"'
+
+    def visit_Compare(self, node) -> RustNode:
+        left = self.visit(node.left)
+        right = self.visit(node.comparators[0])
+
+        if hasattr(node.comparators[0], "annotation"):
+            self._generic_typename_from_annotation(node.comparators[0])
+            value_type = getattr(
+                node.comparators[0].annotation, "generic_container_type", None
+            )
+            if value_type and value_type[0] == "Dict":
+                right += ".keys()"
+
+        cmpop = "contains"
+        left = f"&{left}"
+        if right.endswith(".keys()"):
+            right = right[:-7]  # remove the .keys()
+            cmpop = "contains_key"
+        elif right.endswith(".values()"):
+            if isinstance(node.ops[0], ast.In):
+                return f"{right}.any(|x| x == {left})"
+            elif isinstance(node.ops[0], ast.NotIn):
+                return f"{right}.all(|x| x != {left})"
+
+        if isinstance(node.ops[0], ast.In):
+            return f"{right}.{cmpop}({left})"
+        elif isinstance(node.ops[0], ast.NotIn):
+            return f"!{right}.{cmpop}({left})"
+
+        return super().visit_Compare(node)
+
+    def visit_Name(self, node) -> RustNode:
+        if node.id == "None":
+            return "None"
+        else:
+            ret = super().visit_Name(node)
+            definition = node.scopes.find(node.id)
+            if (
+                definition
+                and definition != node
+                and getattr(definition, "needs_dereference", False)
+            ):
+                return f"*{ret}"
+            return ret
+
+    def visit_NameConstant(self, node) -> RustNode:
+        if node.value is True:
+            return "true"
+        elif node.value is False:
+            return "false"
+        elif node.value is None:
+            return "None"
+        else:
+            return super().visit_NameConstant(node)
+
+    def visit_If(self, node) -> RustNode:
+        body_vars = {get_id(v) for v in node.scopes[-1].body_vars}
+        orelse_vars = {get_id(v) for v in node.scopes[-1].orelse_vars}
+        node.common_vars = body_vars.intersection(orelse_vars)
+
+        if self.is_block(node):
+            return f"{self._make_block(node)};"
+
+        # TODO find out if this can be useful
+        var_definitions = []
+        # for cv in node.common_vars:
+        #     definition = node.scopes.find(cv)
+        #     var_type = decltype(definition)
+        #     var_definitions.append("{0} {1};\n".format(var_type, cv))
+        ret = "".join(var_definitions) + RustIf(
+            self.visit(node.test),
+            [self.visit(child) for child in node.body],
+            [self.visit(child) for child in node.orelse],
+        )
+        # Sometimes if True: ... gets compiled into an expression, needing a semicolon
+        make_block = (
+            isinstance(node.test, ast.Constant)
+            and node.test.value
+            and node.orelse == []
+        )
+        if make_block:
+            return f"{ret};"
+        return ret
+
+    def visit_While(self, node) -> RustNode:
+        test = self.visit(node.test)
+        if test == "true":
+            return RustLoop([self.visit(n) for n in node.body])
+        return RustWhileLoop(test, [self.visit(n) for n in node.body])
+
+    def visit_UnaryOp(self, node) -> RustNode:
+        if isinstance(node.op, ast.USub):
+            if isinstance(node.operand, ast.Call) or self._is_number(node.operand):
+                # Shortcut if parenthesis are not needed
+                return f"-{self.visit(node.operand)}"
+            else:
+                return f"-({self.visit(node.operand)})"
+        else:
+            return super().visit_UnaryOp(node)
+
+    def visit_BinOp(self, node) -> RustNode:
+        if (
+            isinstance(node.left, ast.List)
+            and isinstance(node.op, ast.Mult)
+            and (
+                isinstance(node.right, ast.Constant)
+                and isinstance(node.right.value, int)
+            )
+        ):
+            elt, n = self.visit(node.left.elts[0]), self.visit(node.right)
+            return f"vec![{elt};{n}]"
+        else:
+            return super().visit_BinOp(node)
+
+    def visit_sealed_class(self, node) -> RustNode:
+        variants = []
+        accessors = []
+        tag_checkers = []
+        camel_node_name = camel_case(node.name)
+        for member, var in node.class_assignments.items():
+            member_id = get_id(member)
+            camel_member_id = camel_case(member_id)
+            lower_member_id = member_id.lower()
+            typename = node.declarations_with_defaults.get(member_id, None)
+            if typename is None:
+                variants.append(f"{member_id},")
+            else:
+                typename, _ = typename
+                variants.append(f"{member_id}({typename}),")
+            tag_check = textwrap.dedent(
+                f"""
+                    fn is_{lower_member_id}(&self) -> bool {{
+                        matches!(*self, {camel_node_name}::{camel_member_id}(_))
+                    }}"""
+            )
+            tag_checkers.append(tag_check)
+            accessor = textwrap.dedent(
+                f"""
+                    fn {lower_member_id}(&self) -> Option<&{typename}>{{
+                        if let {camel_node_name}::{camel_member_id}(val) = self {{
+                            Some(val)
+                        }} else {{
+                            None
+                        }}
+                    }}"""
+            )
+            accessors.append(accessor)
+        body_str = "\n".join(variants)
+        impl_str = "\n".join(accessors) + "\n" + "\n".join(tag_checkers)
+        return f"enum {camel_node_name} {{ {body_str} }}\n\n impl {camel_node_name} {{ {impl_str} }}\n\n"
+
+    def visit_ClassDef(self, node) -> RustNode:
+        extractor = DeclarationExtractor(RustTranspiler())
+        extractor.visit(node)
+        node.declarations = declarations = extractor.get_declarations()
+        node.declarations_with_defaults = extractor.get_declarations_with_defaults()
+        node.class_assignments = extractor.class_assignments
+        ret = super().visit_ClassDef(node)
+        if ret is not None:
+            return ret
+
+        decorators = [get_id(d) for d in node.decorator_list]
+        if "sealed" in decorators:
+            # TODO: handle cases where sealed is stacked with other decorators
+            return self.visit_sealed_class(node)
+
+        decorators = [
+            class_for_typename(t, None, self._imported_names) for t in decorators
+        ]
+        for d in decorators:
+            if d in CLASS_DISPATCH_TABLE:
+                ret = CLASS_DISPATCH_TABLE[d](self, node)
+                if ret is not None:
+                    return ret
+
+        fields = []
+        index = 0
+        for declaration, typename in declarations.items():
+            if typename is None:
+                typename = f"ST{index}"
+                index += 1
+            fields.append(f"pub {declaration}: {typename},")
+
+        for b in node.body:
+            if isinstance(b, ast.FunctionDef):
+                b.self_type = node.name
+
+        extension = "#[pyclass]\n" if self.extension else ""
+        struct_def = "pub struct {0} {{\n{1}\n}}\n\n".format(
+            node.name, "\n".join(fields)
+        )
+        impl_extension = "#[pymethods]\n" if self.extension else ""
+        impl_def = f"{impl_extension}impl {node.name} {{\n"
+        buf = [self.visit(b) for b in node.body]
+        buf_str = "\n".join(buf)
+        return f"{extension}{struct_def}{impl_def}{buf_str} \n}}"
+
+    def visit_IntEnum(self, node) -> RustNode:
+        fields = []
+        for member, var in node.class_assignments.items():
+            var = self.visit(var)
+            if var == "auto()":
+                fields.append(f"{member},")
+            else:
+                fields.append(f"{member} = {var},")
+        fields = "\n".join(fields)
+        return f"#[derive(Clone, Eq, Hash, PartialEq)]\npub enum {node.name} {{\n{fields}\n}}\n\n"
+
+    def visit_StrEnum(self, node) -> RustNode:
+        self._usings.add("strum")
+        self._usings.add("strum_macros::{Display, EnumString, VariantNames}")
+
+        fields = []
+        for member, var in node.class_assignments.items():
+            var = self.visit(var)
+            if var == "auto()":
+                fields.append(f"{member},")
+            else:
+                fields.append(f"#[strum(serialize = {var})]{member},")
+        fields = "\n".join(fields)
+
+        return f"#[derive(Clone, Debug, Display, EnumString, VariantNames, Eq, Hash, PartialEq)]\npub enum {node.name} {{\n{fields}\n}}\n\n"
+
+    def visit_IntFlag(self, node) -> RustNode:
+        self._usings.add("flagset::flags")
+        self._usings.add("std::os::raw::c_int")
+        fields = []
+        for member, var in node.class_assignments.items():
+            var = self.visit(var)
+            if var == "auto()":
+                fields.append(f"{member},")
+            else:
+                fields.append(f"{member} = {var},")
+        fields = "\n".join(["    " * 2 + f for f in fields])
+        return (
+            f"flags! {{\n    pub enum {node.name}: c_int {{\n{fields}\n    }}\n}}\n\n"
+        )
+
+    def _import(self, name: str) -> str:
+        if name not in self._rust_ignored_module_set:
+            self._usings.add(name)
+        return ""
+
+    def _import_from(self, module_name: str, names: List[str], level: int = 0) -> str:
+        if module_name in self._rust_ignored_module_set:
+            return ""
+        if level > 0:
+            self._rust_mods.add(module_name)
+        else:
+            self._usings.add(module_name)
+        if len(names) == 1:
+            # TODO: make this more generic so it works for len(names) > 1
+            name = names[0]
+            lookup = f"{module_name}.{name}"
+            if lookup in MODULE_DISPATCH_TABLE:
+                rust_use = MODULE_DISPATCH_TABLE[lookup]
+                return f"use {rust_use};"
+        module_name = module_name.replace(".", "::")
+        names = ", ".join(names)
+        return f"use {module_name}::{{{names}}};"
+
+    def visit_List(self, node) -> RustNode:
+        self._usings.add("std::collections")
+        if len(node.elts) > 0:
+            elements = [self.visit(e) for e in node.elts]
+            return "vec![{}]".format(", ".join(elements))
+
+        else:
+            return "vec![]"
+
+    def visit_Dict(self, node) -> RustNode:
+        self._usings.add("std::collections::HashMap")
+        if len(node.keys) > 0:
+            self._usings.add("std::collections::HashMap")
+            kv_string = []
+            for i in range(len(node.keys)):
+                # we hit this case when using d1 = {..., **d2}
+                # The generated code isn't quite right, but it fixes a test error
+                key = self.visit(node.keys[i]) if node.keys[i] else "_"
+                value = self.visit(node.values[i])
+                kv_string.append(f"({key}, {value})")
+            initialization = "[{0}].iter().cloned().collect::<HashMap<_,_>>()"
+            return initialization.format(", ".join(kv_string))
+        else:
+            return "HashMap::new()"
+
+    def _cast(self, name: str, to) -> str:
+        return f"{name} as {to}"
+
+    def visit_Subscript(self, node) -> RustNode:
+        value = self.visit(node.value)
+        index = self.visit(node.slice)
+        if hasattr(node, "is_annotation"):
+            if value in self._container_type_map:
+                self._usings.add("std::collections")
+                value = self._container_type_map[value]
+            if value == "Tuple":
+                return f"({index})"
+            return f"{value}<{index}>"
+        # TODO: optimize this. We need to compute value_type once per definition
+        self._generic_typename_from_annotation(node.value)
+        if hasattr(node.value, "annotation"):
+            value_type = getattr(node.value.annotation, "generic_container_type", None)
+            is_list = value_type is not None and value_type[0] == "List"
+            if is_list:
+                index_typename = get_inferred_rust_type(self._slice_value(node))
+                if index_typename != "u64" or index_typename != "usize":
+                    index = self._cast(index, "usize")
+            is_dict = value_type is not None and value_type[0] == "Dict"
+            if is_dict:
+                value_type = getattr(node.value.annotation, "container_type", None)
+                index_typename = get_inferred_rust_type(self._slice_value(node))
+                if index_typename == value_type[1][0]:
+                    index = "&" + index
+        return f"{value}[{index}]"
+
+    def visit_Index(self, node) -> RustNode:
+        return self.visit(node.value)
+
+    def visit_Slice(self, node) -> RustNode:
+        lower = ""
+        if node.lower:
+            lower = self.visit(node.lower)
+        upper = ""
+        if node.upper:
+            upper = self.visit(node.upper)
+
+        return f"{lower}..{upper}"
+
+    def visit_Tuple(self, node) -> RustNode:
+        elts = [self.visit(e) for e in node.elts]
+        elts = ", ".join(elts)
+        if hasattr(node, "is_annotation"):
+            return elts
+        return f"({elts})"
+
+    def visit_Assert(self, node) -> RustNode:
+        return RustMacroCall("assert", [self.visit(node.test)])
+
+    def _compute_kw(self, node, target) -> str:
+        kw = "let"
+        mut = is_mutable(node.scopes, get_id(target))
+        if is_global(node) or getattr(node, "class_assignment", False):
+            # Note that static are not really supported, as modifying them requires adding
+            # "unsafe" blocks, which pyrs does not do.
+            kw = "pub static" if mut else "pub const"
+        elif mut:
+            kw = "let mut"
+        return kw
+
+    def visit_AnnAssign(self, node) -> RustNode:
+        target, type_str, val = super().visit_AnnAssign(node)
+        kw = self._compute_kw(node, node.target)
+        return RustLet(target, val, keyword=kw, typename=type_str)
+
+    def _needs_cast(self, left, right) -> bool:
+        if not hasattr(left, "annotation") or not hasattr(right, "annotation"):
+            return False
+        left_type = self._typename_from_annotation(left)
+        # populate right.rust_annotation
+        get_inferred_rust_type(right)
+        right_type = self._typename_from_annotation(right)
+        return left_type != right_type and left_type != self._default_type
+
+    def _assign_cast(
+        self, value_str: str, cast_to: str, python_annotation, rust_annotation
+    ) -> str:
+        # python/rust annotations provided to customize the cast if necessary
+        return f"{value_str} as {cast_to}"
+
+    def visit_AugAssign(self, node) -> RustNode:
+        target = node.target
+        target_str = self.visit(node.target)
+        op = self.visit(node.op)
+        value = self.visit(node.value)
+
+        needs_cast = self._needs_cast(target, node.value)
+        if needs_cast:
+            target_type = self._typename_from_annotation(target)
+            value = self._assign_cast(
+                value, target_type, target.annotation, node.value.rust_annotation
+            )
+        return RustAugAssignment(target_str, op, value)
+
+    def _visit_AssignOne(self, node, target) -> RustNode:
+        kw = self._compute_kw(node, target)
+
+        if isinstance(node.scopes[-1], ast.If):
+            outer_if = node.scopes[-1]
+            target_id = self.visit(target)
+            if target_id in outer_if.common_vars:
+                value = self.visit(node.value)
+                return RustAssignment(target_id, value)
+
+        if isinstance(target, ast.Subscript) or isinstance(target, ast.Attribute):
+            target = self.visit(target)
+            value = self.visit(node.value)
+            if value is None:
+                value = "None"
+            return RustAssignment(target, value)
+
+        definition = node.scopes.parent_scopes.find(get_id(target))
+        if definition is None:
+            definition = node.scopes.find(get_id(target))
+        if isinstance(target, ast.Name) and defined_before(definition, node):
+            needs_cast = self._needs_cast(target, node.value)
+            target_str = self.visit(target)
+            value = self.visit(node.value)
+            if needs_cast:
+                target_type = self._typename_from_annotation(target)
+                value = self._assign_cast(
+                    value, target_type, target.annotation, node.value.rust_annotation
+                )
+            return RustAssignment(target_str, value)
+        elif isinstance(node.value, ast.List) and kw.startswith("pub "):
+            count = len(node.value.elts)
+            target = self.visit(target)
+            value = self.visit(node.value)
+            # populate node.value.container_type
+            self._typename_from_annotation(node.value)
+            # Use arrays instead of Vec as globals must have fixed size
+            if value.startswith("vec!"):
+                value = value.replace("vec!", "&")
+            element_type = self._default_type
+            if hasattr(node.value, "container_type"):
+                container_type, element_type = node.value.container_type
+            return f"{kw} {target}: &[{element_type}; {count}] = {value};"
+        elif isinstance(node.value, ast.Set) and kw.startswith("pub "):
+            target = self.visit(target)
+            value = self.visit(node.value)
+            typename = self._typename_from_annotation(node.value)
+
+            self._usings.add("lazy_static::lazy_static")
+            if "str" in typename:
+                typename = typename.replace("str", "'static str")
+            return f"lazy_static! {{ pub static ref {target}: {typename} = {value}; }}"
+        elif isinstance(node.value, ast.Dict) and kw.startswith("pub "):
+            target = self.visit(target)
+            value = self.visit(node.value)
+            typename = self._typename_from_annotation(node.value)
+
+            self._usings.add("lazy_static::lazy_static")
+            if hasattr(node.value, "container_type"):
+                container_type, element_type = node.value.container_type
+                key_typename, value_typename = element_type
+                if key_typename == "&str":
+                    key_typename = "&'static str"
+                if value_typename == "&str":
+                    value_typename = "&'static str"
+                typename = f"{key_typename}, {value_typename}"
+
+            return f"lazy_static! {{ pub static ref {target}: HashMap<{typename}> = {value}; }}"
+        else:
+            typename = self._typename_from_annotation(target)
+            needs_cast = self._needs_cast(target, node.value)
+            target_str = self.visit(target)
+            value = self.visit(node.value)
+            if needs_cast:
+                value = self._assign_cast(
+                    value, typename, target.annotation, node.value.annotation
+                )
+            if hasattr(node.value, "container_type"):
+                mut = "mut " if is_mutable(node.scopes, target_str) else ""
+                typename = f"&{mut}{typename}"
+                value = f"&{mut}{value}"
+            optional_typename = typename if typename != self._default_type else None
+            return RustLet(target_str, value, keyword=kw, typename=optional_typename)
+
+    def visit_Delete(self, node) -> RustNode:
+        target = node.targets[0]
+        target_str = self.visit(target)
+        return RustCall("drop", [target_str], suffix=";")
+
+    def visit_Raise(self, node) -> RustNode:
+        if node.exc is not None:
+            return f"raise!({self.visit(node.exc)}); //unsupported"
+        # This handles the case where `raise` is used without
+        # specifying the exception.
+        return "raise!(); //unsupported"
+
+    def visit_Await(self, node) -> RustNode:
+        value = self.visit(node.value)
+        return RustAwait(value)
+
+    def visit_AsyncFunctionDef(self, node) -> RustNode:
+        return self.visit_FunctionDef(node, async_prefix="async ")
+
+    def visit_Yield(self, node) -> RustNode:
+        self._features.add("generators")
+        self._features.add("generator_trait")
+        self._usings.add("std::ops::Generator")
+        self._usings.add("std::ops::GeneratorState")
+        if node.value is not None:
+            value = self.visit(node.value)
+            return RustYield(value)
+        else:
+            return RustYield("None")
+
+    def visit_Print(self, node) -> RustNode:
+        buf = []
+        for n in node.values:
+            value = self.visit(n)
+            buf.append(RustMacroCall("println", ['"{:?}"', value], separator=","))
+        return "\n".join(buf)
+
+    def visit_GeneratorExp(self, node) -> RustNode:
+        elt = self.visit(node.elt)
+        generator = node.generators[0]
+        target = self.visit(generator.target)
+        iter = self.visit(generator.iter)
+
+        is_range = (
+            ("range" in get_id(generator.iter.func))
+            if isinstance(generator.iter, ast.Call) and get_id(generator.iter.func)
+            else False
+        )
+        # HACK for dictionary iterators to work
+        if not (iter.endswith("keys()") or iter.endswith("values()")) and not is_range:
+            iter += ".iter()"
+
+        map_str = f".map(|{target}| {elt})"
+        filter_str = ""
+        if generator.ifs:
+            filter_str = ".cloned().filter(|&{}| {})".format(
+                target, self.visit(generator.ifs[0])
+            )
+
+        return f"{iter}{filter_str}{map_str}.collect::<Vec<_>>()"
+
+    def visit_ListComp(self, node) -> RustNode:
+        return self.visit_GeneratorExp(node)  # right now they are the same
+
+    def visit_Global(self, node) -> RustNode:
+        return "//global {}".format(", ".join(node.names))
+
+    def visit_Starred(self, node) -> RustNode:
+        return f"starred!({self.visit(node.value)})/*unsupported*/"
+
+    def visit_Set(self, node) -> RustNode:
+        self._usings.add("std::collections::HashSet")
+        elts = []
+        for i in range(len(node.elts)):
+            elt = self.visit(node.elts[i])
+            elts.append(elt)
+
+        if elts:
+            initialization = "[{0}].iter().cloned().collect::<HashSet<_>>()"
+            return initialization.format(", ".join(elts))
+        else:
+            return "HashSet::new()"
+
+    def visit_IfExp(self, node) -> RustNode:
+        body = self.visit(node.body)
+        orelse = self.visit(node.orelse)
+        test = self.visit(node.test)
+        return f"if {test} {{ {body} }} else {{ {orelse} }}"
+
+    def visit_Try(self, node, finallybody=None) -> RustNode:
+        super().visit_Try(node, finallybody)
+        # if we got here, parent didn't throw. This can only
+        # be because of --no-strict
+        self._features.add("try_blocks")
+        buf = ["let result: Result<_, std::error::Error> = try { "]
+        body = "\n".join([self.visit(n) for n in node.body])
+        buf.append(body)
+        buf.append("};")
+
+        for handler in node.handlers:
+            buf.append(f"//{self.visit(handler)}")
+
+        if finallybody:
+            buf.append(f"//{self.visit(finallybody)}")
+
+        return "\n".join(buf)
+
+    def visit_ExceptHandler(self, node) -> RustNode:
+        return "unsupported exception handler"

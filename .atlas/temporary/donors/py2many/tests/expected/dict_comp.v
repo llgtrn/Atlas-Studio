@@ -1,0 +1,32 @@
+@[translated]
+module main
+
+type AnyFn = fn (Any) Any
+
+type Any = bool | int | i64 | f64 | string | []u8 | voidptr
+type List = []Any
+
+fn show() {
+	squares := (fn () map[int]Any {
+		mut result := map[int]Any{}
+		for x in 0 .. 5 {
+			result[x] = (x * x)
+		}
+		return result
+	}())
+	println((squares.len).str())
+	evens := (fn () map[int]Any {
+		mut result := map[int]Any{}
+		for x in 0 .. 10 {
+			if ((x as int) % 2) == 0 {
+				result[x] = ((x as int) * 2)
+			}
+		}
+		return result
+	}())
+	println((evens.len).str())
+}
+
+fn main() {
+	show()
+}
