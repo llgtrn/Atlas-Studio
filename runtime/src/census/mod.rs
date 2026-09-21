@@ -5,7 +5,7 @@
 
 use atlas_core::{
     AdlCompileReport, ArtifactDisposition, CensusReport, EpistemicStatus, InventoryReport,
-    Provenance, SemanticFact, SemanticFactKind, SourceReport, stable_id,
+    Provenance, RevisionRef, SemanticFact, SemanticFactKind, SourceReport, stable_id,
 };
 use std::{collections::BTreeMap, path::Path};
 
@@ -13,23 +13,28 @@ fn fact_id(seed: &str) -> String {
     stable_id("semantic-fact", seed)
 }
 
-fn source_provenance(path: &str) -> Provenance {
+fn source_provenance(path: &str, revision: Option<&RevisionRef>) -> Provenance {
     let extractor = adapter::resolve_source_frontend(Path::new(path))
         .map(|matched| matched.frontend_id.to_owned())
         .unwrap_or_else(|| "atlas.inventory.v1".to_owned());
     Provenance {
         source_path: path.to_owned(),
-        source_revision: None,
+        source_revision: revision.cloned(),
         extractor,
         content_hash: None,
         span: None,
     }
 }
 
-fn adl_provenance(path: &str, line: usize, column: usize) -> Provenance {
+fn adl_provenance(
+    path: &str,
+    line: usize,
+    column: usize,
+    revision: Option<&RevisionRef>,
+) -> Provenance {
     Provenance {
         source_path: path.to_owned(),
-        source_revision: None,
+        source_revision: revision.cloned(),
         extractor: "atlas.adl.compiler.v1".into(),
         content_hash: None,
         span: Some(format!("{line}:{column}")),
@@ -52,6 +57,7 @@ pub fn build_census(
     inventory: &InventoryReport,
     source: &SourceReport,
     adl: &AdlCompileReport,
+    revision: Option<&RevisionRef>,
 ) -> CensusReport {
     let mut facts = Vec::new();
 
@@ -64,7 +70,7 @@ pub fn build_census(
             subject: subject.clone(),
             predicate: "disposition".into(),
             object: artifact.disposition.as_str().into(),
-            provenance: source_provenance(&artifact.path),
+            provenance: source_provenance(&artifact.path, revision),
         });
 
         if let Some(language) = &artifact.language {
@@ -75,7 +81,7 @@ pub fn build_census(
                 subject,
                 predicate: "language".into(),
                 object: language.clone(),
-                provenance: source_provenance(&artifact.path),
+                provenance: source_provenance(&artifact.path, revision),
             });
         }
     }
@@ -88,7 +94,7 @@ pub fn build_census(
             subject: node.name.clone(),
             predicate: "node_kind".into(),
             object: node.node_kind.clone(),
-            provenance: adl_provenance(&node.span.path, node.span.line, node.span.column),
+            provenance: adl_provenance(&node.span.path, node.span.line, node.span.column, revision),
         });
     }
 
@@ -103,7 +109,7 @@ pub fn build_census(
             subject: edge.from.clone(),
             predicate: edge.relation.clone(),
             object: edge.to.clone(),
-            provenance: adl_provenance(&edge.span.path, edge.span.line, edge.span.column),
+            provenance: adl_provenance(&edge.span.path, edge.span.line, edge.span.column, revision),
         });
     }
 
@@ -122,6 +128,7 @@ pub fn build_census(
                 &binding.span.path,
                 binding.span.line,
                 binding.span.column,
+                revision,
             ),
         });
         facts.push(SemanticFact {
@@ -135,6 +142,7 @@ pub fn build_census(
                 &binding.span.path,
                 binding.span.line,
                 binding.span.column,
+                revision,
             ),
         });
     }
@@ -151,6 +159,7 @@ pub fn build_census(
                 &constraint.span.path,
                 constraint.span.line,
                 constraint.span.column,
+                revision,
             ),
         });
     }
@@ -167,6 +176,7 @@ pub fn build_census(
                 &invariant.span.path,
                 invariant.span.line,
                 invariant.span.column,
+                revision,
             ),
         });
     }
@@ -181,7 +191,7 @@ pub fn build_census(
             object: result.passed.to_string(),
             provenance: Provenance {
                 source_path: ".atlas/declared".into(),
-                source_revision: None,
+                source_revision: revision.cloned(),
                 extractor: "atlas.adl.constraint-evaluator.v1".into(),
                 content_hash: None,
                 span: None,
@@ -199,7 +209,7 @@ pub fn build_census(
             object: delta.message.clone(),
             provenance: Provenance {
                 source_path: ".atlas/declared".into(),
-                source_revision: None,
+                source_revision: revision.cloned(),
                 extractor: "atlas.adl.delta.v1".into(),
                 content_hash: None,
                 span: None,
@@ -219,6 +229,7 @@ pub fn build_census(
                 &transform.span.path,
                 transform.span.line,
                 transform.span.column,
+                revision,
             ),
         });
     }
@@ -238,6 +249,7 @@ pub fn build_census(
                 &materialization.span.path,
                 materialization.span.line,
                 materialization.span.column,
+                revision,
             ),
         });
     }
@@ -321,7 +333,7 @@ mod tests {
             }],
         };
         let adl = compile_adl(&[], &source);
-        let report = build_census(&inventory, &source, &adl);
+        let report = build_census(&inventory, &source, &adl, None);
 
         assert!(report.is_closed());
         assert_eq!(report.artifacts_accounted_total, 2);
