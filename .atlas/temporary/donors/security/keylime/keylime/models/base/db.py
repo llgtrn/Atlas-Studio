@@ -1,0 +1,208 @@
+import os
+from configparser import NoOptionError
+from contextlib import contextmanager
+from sqlite3 import Connection as SQLite3Connection
+from typing import Any, Dict, Iterator, Optional, cast
+
+from sqlalchemy import create_engine, event
+from sqlalchemy.engine import Engine
+from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.orm import Session, registry, scoped_session, sessionmaker  # type: ignore[attr-defined]
+
+from keylime import config, keylime_logging
+from keylime.models.base.errors import BackendMissing
+
+logger = keylime_logging.init_logging("keylime_db")
+
+
+# make sure referential integrity is working for SQLite
+@event.listens_for(Engine, "connect")  # type: ignore
+def _set_sqlite_pragma(dbapi_connection: SQLite3Connection, _: Any) -> None:
+    if isinstance(dbapi_connection, SQLite3Connection):
+        cursor = dbapi_connection.cursor()
+        cursor.execute("PRAGMA foreign_keys=ON")
+        cursor.close()
+
+
+class DBManager:
+    def __init__(self) -> None:
+        self._service: Optional[str] = None
+        self._engine: Optional[Engine] = None
+        self._registry = None
+        self._scoped_session = None
+
+    def make_engine(self, service: str) -> Engine:
+        # Keep DB related stuff as it is, but read configuration from new
+        # configs
+        if service == "cloud_verifier":
+            config_service = "verifier"
+        else:
+            config_service = service
+
+        self._service = service
+
+        engine_args: Dict[str, Any] = {}
+
+        url = config.get(config_service, "database_url")
+        if url:
+            logger.info("database_url is set, using it to establish database connection")
+
+            # If the keyword sqlite is provided as the database url, use the
+            # cv_data.sqlite for the verifier or the file reg_data.sqlite for
+            # the registrar, located at the config.WORK_DIR directory
+            if url == "sqlite":
+                logger.info(
+                    "database_url is set as 'sqlite' keyword, using default values to establish database connection"
+                )
+                if service == "cloud_verifier":
+                    database = "cv_data.sqlite"
+                elif service == "registrar":
+                    database = "reg_data.sqlite"
+                else:
+                    logger.error("Tried to setup database access for unknown service '%s'", service)
+                    raise Exception(f"Unknown service '{service}' for database setup")
+
+                database_file = os.path.abspath(os.path.join(config.WORK_DIR, database))
+                url = f"sqlite:///{database_file}"
+
+                kl_dir = os.path.dirname(os.path.abspath(database_file))
+                if not os.path.exists(kl_dir):
+                    os.makedirs(kl_dir, 0o700)
+
+                engine_args["connect_args"] = {"check_same_thread": False}
+
+            if not url.count("sqlite:"):
+                # sqlite does not support setting pool size and max overflow, only
+                # read from the config when it is going to be used
+                try:
+                    p_sz_m_ovfl = config.get(config_service, "database_pool_sz_ovfl")
+                    p_sz, m_ovfl = p_sz_m_ovfl.split(",")
+                    logger.info("database_pool_sz_ovfl is set, pool size = %s, max overflow = %s", p_sz, m_ovfl)
+                except NoOptionError:
+                    p_sz = "5"
+                    m_ovfl = "10"
+                    logger.info(
+                        "database_pool_sz_ovfl is not set, using default pool size = %s, max overflow = %s",
+                        p_sz,
+                        m_ovfl,
+                    )
+
+                engine_args["pool_size"] = int(p_sz)
+                engine_args["max_overflow"] = int(m_ovfl)
+                engine_args["pool_pre_ping"] = True
+
+        # Enable DB debugging
+        if config.DEBUG_DB and config.INSECURE_DEBUG:
+            engine_args["echo"] = True
+
+        self._engine = create_engine(url, **engine_args)  # type: ignore
+        self._registry = registry()
+        return self._engine  # type: ignore
+
+    @property
+    def service(self) -> Optional[str]:
+        return self._service
+
+    @property
+    def engine(self) -> Engine:
+        if not self._engine:
+            raise BackendMissing("cannot access the engine for a DBManager before a call to db_manager.make_engine()")
+
+        return self._engine
+
+    @property
+    def registry(self) -> registry:
+        if not self._registry:
+            raise BackendMissing("cannot access the registry for a DBManager before a call to db_manager.make_engine()")
+
+        return self._registry
+
+    def session(self) -> Session:
+        """
+        To use: session = self.session()
+        """
+        if not self._registry:
+            raise BackendMissing("cannot access the session for a DBManager before a call to db_manager.make_engine()")
+
+        if not self._scoped_session:
+            self._scoped_session = scoped_session(sessionmaker())
+
+            try:
+                self._scoped_session.configure(bind=self.engine)
+                self._scoped_session.configure(expire_on_commit=False)
+            except SQLAlchemyError as err:
+                logger.error("Error creating SQL session manager %s", err)
+
+        return cast(Session, self._scoped_session())
+
+    def dispose(self) -> None:
+        """Dispose the engine and clear all state.
+
+        Must be called after fork to avoid sharing the parent's connection pool
+        across child processes. The next call to make_engine() will create fresh
+        connections for the child process.
+        """
+        if self._scoped_session:
+            self._scoped_session.remove()
+        if self._engine:
+            # Use close=False so the child discards the inherited pool
+            # without closing the parent's underlying connections. Per
+            # SQLAlchemy docs, this is the recommended approach after fork.
+            self._engine.dispose(close=False)  # type: ignore[call-arg]
+        self._engine = None
+        self._scoped_session = None
+        self._registry = None
+        self._service = None
+
+    def remove_session(self) -> None:
+        """Remove the current scoped session, releasing its connection back to the pool and clearing the identity map.
+
+        Should be called at the end of each request to prevent stale objects from accumulating in the session across
+        request boundaries.
+        """
+        if self._scoped_session:
+            self._scoped_session.remove()
+
+    @contextmanager
+    def session_context(self, session: Session | None = None) -> Iterator[Session]:
+        if session:
+            yield session
+            return
+
+        session = self.session()
+
+        try:
+            yield session
+            session.commit()
+        except:
+            session.rollback()
+            raise
+
+    @contextmanager
+    def session_context_for(self, *record_and_record_sets: Any) -> Iterator[Session]:
+        session = self.session()
+        records = []
+
+        for item in record_and_record_sets:
+            try:
+                iter(item)
+            except TypeError:
+                records.append(item)
+                continue
+
+            for record in item:
+                records.append(record)
+
+        try:
+            yield session
+            session.commit()
+
+            for record in records:
+                record.commit_changes(persist=False)
+        except:
+            session.rollback()
+            raise
+
+
+# Create a global DBManager which can be referenced from any module
+db_manager = DBManager()

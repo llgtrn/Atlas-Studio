@@ -1,0 +1,472 @@
+---
+apiVersion: v1
+kind: Template
+metadata:
+  name: clair
+  labels:
+    app: clair
+objects:
+  #
+  # indexer deployment
+  #
+  - apiVersion: apps/v1
+    kind: StatefulSet
+    metadata:
+      annotations:
+        ${{CLAIR_DISABLE_MIN_REPLICAS_CHECK}}: ${{CLAIR_DISABLE_MIN_REPLICAS_REASON}}
+        ${{CLAIR_DISABLE_ANTI_AFFINITY_CHECK}}: ${{CLAIR_DISABLE_ANTI_AFFINITY_REASON}}
+      name: clair-indexer
+      labels:
+        service: indexer
+        app: clair
+    spec:
+      podManagementPolicy: Parallel
+      replicas: ${{INDEXER_DEPLOYMENT_REPLICAS}}
+      selector:
+        matchLabels:
+          service: indexer
+          app: clair
+      volumeClaimTemplates:
+        - metadata:
+            name: indexer-layer-storage
+          spec:
+            accessModes: [ "ReadWriteOnce" ]
+            storageClassName: ${{STORAGE_CLASS_NAME}}
+            resources:
+              requests:
+                storage: ${{INDEXER_STORAGE_REQS}}
+      template:
+        metadata:
+          name: clair-indexer
+          labels:
+            service: indexer
+            app: clair
+            ${{INDEXER_COMPONENT_LABEL_KEY}}: ${{INDEXER_COMPONENT_LABEL_VALUE}}
+        spec:
+          serviceAccountName: ${SERVICE_ACCOUNT}
+          affinity:
+            podAntiAffinity:
+              preferredDuringSchedulingIgnoredDuringExecution:
+                - weight: 1
+                  podAffinityTerm:
+                    labelSelector:
+                      matchExpressions:
+                        - key: ${{INDEXER_COMPONENT_LABEL_KEY}}
+                          operator: In
+                          values:
+                            - ${{INDEXER_COMPONENT_LABEL_VALUE}}
+                    topologyKey: kubernetes.io/hostname
+          volumes:
+            - name: clair-config
+              secret:
+                secretName: config
+          containers:
+            - name: clair-indexer
+              resources:
+                limits:
+                  cpu: ${{INDEXER_CPU_LIMITS}}
+                  memory: ${{INDEXER_MEM_LIMITS}}
+                requests:
+                  cpu: ${{INDEXER_CPU_REQS}}
+                  memory: ${{INDEXER_MEM_REQS}}
+              command: [clair]
+              env:
+                - name: CLAIR_CONF
+                  value: '/etc/clair/config.yaml'
+                - name: CLAIR_MODE
+                  value: indexer
+              image: ${CLAIR_IMAGE}:${IMAGE_TAG}
+              ports:
+                - containerPort: ${{HTTP_TRANSPORT_PORT}}
+                  name: http-transport
+                - containerPort: ${{INTROSPECTION_PORT}}
+                  name: introspection
+              livenessProbe:
+                httpGet:
+                  path: ${{HEALTH_PATH}}
+                  port: ${{HEALTH_PORT}}
+              readinessProbe:
+                httpGet:
+                  path: ${{READY_PATH}}
+                  port: ${{HEALTH_PORT}}
+              startupProbe:
+                httpGet:
+                  path: ${{READY_PATH}}
+                  port: ${{HEALTH_PORT}}
+                failureThreshold: 400
+                periodSeconds: 10
+              volumeMounts:
+                - name: clair-config
+                  mountPath: /etc/clair
+                - name: indexer-layer-storage
+                  mountPath: /var/tmp
+
+  #
+  # matcher deployment
+  #
+  - apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: clair-matcher
+      labels:
+        service: matcher
+        app: clair
+      annotations:
+        ${{CLAIR_DISABLE_MIN_REPLICAS_CHECK}}: ${{CLAIR_DISABLE_MIN_REPLICAS_REASON}}
+        ${{CLAIR_DISABLE_ANTI_AFFINITY_CHECK}}: ${{CLAIR_DISABLE_ANTI_AFFINITY_REASON}}
+    spec:
+      replicas: ${{MATCHER_DEPLOYMENT_REPLICAS}}
+      selector:
+        matchLabels:
+          service: matcher
+          app: clair
+      template:
+        metadata:
+          name: clair-matcher
+          labels:
+            service: matcher
+            app: clair
+            ${{MATCHER_COMPONENT_LABEL_KEY}}: ${{MATCHER_COMPONENT_LABEL_VALUE}}
+        spec:
+          serviceAccountName: ${SERVICE_ACCOUNT}
+          affinity:
+            podAntiAffinity:
+              preferredDuringSchedulingIgnoredDuringExecution:
+                - weight: 1
+                  podAffinityTerm:
+                    labelSelector:
+                      matchExpressions:
+                        - key: ${{MATCHER_COMPONENT_LABEL_KEY}}
+                          operator: In
+                          values:
+                            - ${{MATCHER_COMPONENT_LABEL_VALUE}}
+                    topologyKey: kubernetes.io/hostname
+          volumes:
+            - name: clair-config
+              secret:
+                secretName: config
+          containers:
+            - name: clair-matcher
+              resources:
+                limits:
+                  cpu: ${{MATCHER_CPU_LIMITS}}
+                  memory: ${{MATCHER_MEM_LIMITS}}
+                requests:
+                  cpu: ${{MATCHER_CPU_REQS}}
+                  memory: ${{MATCHER_MEM_REQS}}
+              command: [clair]
+              env:
+                - name: CLAIR_CONF
+                  value: '/etc/clair/config.yaml'
+                - name: CLAIR_MODE
+                  value: matcher
+              image: ${CLAIR_IMAGE}:${IMAGE_TAG}
+              ports:
+                - containerPort: ${{HTTP_TRANSPORT_PORT}}
+                  name: http-transport
+                - containerPort: ${{INTROSPECTION_PORT}}
+                  name: introspection
+              livenessProbe:
+                httpGet:
+                  path: ${{HEALTH_PATH}}
+                  port: ${{HEALTH_PORT}}
+              readinessProbe:
+                httpGet:
+                  path: ${{READY_PATH}}
+                  port: ${{HEALTH_PORT}}
+              startupProbe:
+                httpGet:
+                  path: ${{READY_PATH}}
+                  port: ${{HEALTH_PORT}}
+                failureThreshold: 400
+                periodSeconds: 10
+              volumeMounts:
+                - name: clair-config
+                  mountPath: /etc/clair
+  #
+  # notifier deployment
+  #
+  - apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: clair-notifier
+      annotations:
+        ${{CLAIR_DISABLE_MIN_REPLICAS_CHECK}}: ${{CLAIR_DISABLE_MIN_REPLICAS_REASON}}
+        ${{CLAIR_DISABLE_ANTI_AFFINITY_CHECK}}: ${{CLAIR_DISABLE_ANTI_AFFINITY_REASON}}
+      labels:
+        service: notifier
+        app: clair
+    spec:
+      replicas: ${{NOTIFIER_DEPLOYMENT_REPLICAS}}
+      selector:
+        matchLabels:
+          service: notifier
+          app: clair
+      template:
+        metadata:
+          name: clair-notifier
+          labels:
+            service: notifier
+            app: clair
+            ${{NOTIFIER_COMPONENT_LABEL_KEY}}: ${{NOTIFIER_COMPONENT_LABEL_VALUE}}
+        spec:
+          serviceAccountName: ${SERVICE_ACCOUNT}
+          affinity:
+            podAntiAffinity:
+              preferredDuringSchedulingIgnoredDuringExecution:
+                - weight: 1
+                  podAffinityTerm:
+                    labelSelector:
+                      matchExpressions:
+                        - key: ${{NOTIFIER_COMPONENT_LABEL_KEY}}
+                          operator: In
+                          values:
+                            - ${{NOTIFIER_COMPONENT_LABEL_VALUE}}
+                    topologyKey: kubernetes.io/hostname
+          volumes:
+            - name: clair-config
+              secret:
+                secretName: config
+          containers:
+            - name: clair-notifier
+              resources:
+                limits:
+                  cpu: ${{NOTIFIER_CPU_LIMITS}}
+                  memory: ${{NOTIFIER_MEM_LIMITS}}
+                requests:
+                  cpu: ${{NOTIFIER_CPU_REQS}}
+                  memory: ${{NOTIFIER_MEM_REQS}}
+              command: [clair]
+              env:
+                - name: CLAIR_CONF
+                  value: '/etc/clair/config.yaml'
+                - name: CLAIR_MODE
+                  value: notifier
+              image: ${CLAIR_IMAGE}:${IMAGE_TAG}
+              ports:
+                - containerPort: ${{HTTP_TRANSPORT_PORT}}
+                  name: http-transport
+                - containerPort: ${{INTROSPECTION_PORT}}
+                  name: introspection
+              livenessProbe:
+                httpGet:
+                  path: ${{HEALTH_PATH}}
+                  port: ${{HEALTH_PORT}}
+              readinessProbe:
+                httpGet:
+                  path: ${{READY_PATH}}
+                  port: ${{HEALTH_PORT}}
+              startupProbe:
+                httpGet:
+                  path: ${{READY_PATH}}
+                  port: ${{HEALTH_PORT}}
+                failureThreshold: 400
+                periodSeconds: 10
+              volumeMounts:
+                - name: clair-config
+                  mountPath: /etc/clair
+  #
+  # indexer service
+  #
+  - apiVersion: v1
+    kind: Service
+    metadata:
+      name: clair-indexer
+      labels:
+        service: indexer
+        app: clair
+      annotations:
+        prometheus.io/scrape: 'true'
+    spec:
+      ports:
+        - name: http-transport
+          protocol: TCP
+          port: 80
+          targetPort: ${{HTTP_TRANSPORT_PORT}}
+        - name: introspection
+          protocol: TCP
+          port: 8089
+          targetPort: ${{INTROSPECTION_PORT}}
+      selector:
+        service: indexer
+        app: clair
+  #
+  # matcher service
+  #
+  - apiVersion: v1
+    kind: Service
+    metadata:
+      name: clair-matcher
+      labels:
+        service: matcher
+        app: clair
+      annotations:
+        prometheus.io/scrape: 'true'
+    spec:
+      ports:
+        - name: http-transport
+          protocol: TCP
+          port: 80
+          targetPort: ${{HTTP_TRANSPORT_PORT}}
+        - name: introspection
+          protocol: TCP
+          port: 8089
+          targetPort: ${{INTROSPECTION_PORT}}
+      selector:
+        service: matcher
+        app: clair
+  #
+  # notifier service
+  #
+  - apiVersion: v1
+    kind: Service
+    metadata:
+      name: clair-notifier
+      labels:
+        service: notifier
+        app: clair
+      annotations:
+        prometheus.io/scrape: 'true'
+    spec:
+      ports:
+        - name: http-transport
+          protocol: TCP
+          port: 80
+          targetPort: ${{HTTP_TRANSPORT_PORT}}
+        - name: introspection
+          protocol: TCP
+          port: 8089
+          targetPort: ${{INTROSPECTION_PORT}}
+      selector:
+        service: notifier
+        app: clair
+  #
+  # service account
+  #
+  - apiVersion: v1
+    kind: ServiceAccount
+    metadata:
+      name: ${SERVICE_ACCOUNT}
+    imagePullSecrets:
+      - name: quay.io
+
+parameters:
+  #
+  # indexer params
+  #
+  - name: INDEXER_DEPLOYMENT_REPLICAS
+    value: "40"
+    displayName: the number of indexers deployed
+  - name: INDEXER_CPU_LIMITS
+    value: "4"
+    displayName: the indexer's cpu limits in vCPUs
+  - name: INDEXER_CPU_REQS
+    value: "2"
+    displayName: the indexer's cpu requests in vCPUs
+  - name: INDEXER_MEM_LIMITS
+    value: "8192Mi"
+    displayName: the indexer's memory limits
+  - name: INDEXER_MEM_REQS
+    value: "4096Mi"
+    displayName: the indexer's memory requests
+  - name: INDEXER_STORAGE_REQS
+    value: "200Gi"
+    displayName: the indexer's VPC volume size
+  - name: INDEXER_COMPONENT_LABEL_KEY
+    value: "clair-indexer-component"
+    displayName: the label key used for indexer pod anti-affinity
+  - name: INDEXER_COMPONENT_LABEL_VALUE
+    value: "indexer"
+    displayName: the label value used for indexer pod anti-affinity
+  #
+  # matcher params
+  #
+  - name: MATCHER_DEPLOYMENT_REPLICAS
+    value: "10"
+    displayName: the number of matchers deployed
+  - name: MATCHER_CPU_LIMITS
+    value: "4"
+    displayName: the matcher's cpu limits in vCPUs
+  - name: MATCHER_CPU_REQS
+    value: "2"
+    displayName: the matcher's cpu requests in vCPUs
+  - name: MATCHER_MEM_LIMITS
+    value: "8192Mi"
+    displayName: the matcher's memory limits in vCPUs
+  - name: MATCHER_MEM_REQS
+    value: "4096Mi"
+    displayName: the matcher's memory requests in vCPUs
+  - name: MATCHER_COMPONENT_LABEL_KEY
+    value: "clair-matcher-component"
+    displayName: the label key used for matcher pod anti-affinity
+  - name: MATCHER_COMPONENT_LABEL_VALUE
+    value: "matcher"
+    displayName: the label value used for matcher pod anti-affinity
+  #
+  # notifier params
+  #
+  - name: NOTIFIER_DEPLOYMENT_REPLICAS
+    value: "10"
+    displayName: the number of matchers deployed
+  - name: NOTIFIER_CPU_LIMITS
+    value: "4"
+    displayName: the matcher's cpu limits in vCPUs
+  - name: NOTIFIER_CPU_REQS
+    value: "2"
+    displayName: the matcher's cpu requests in vCPUs
+  - name: NOTIFIER_MEM_LIMITS
+    value: "8192Mi"
+    displayName: the matcher's memory limits in vCPUs
+  - name: NOTIFIER_MEM_REQS
+    value: "4096Mi"
+    displayName: the matcher's memory requests in vCPUs
+  - name: NOTIFIER_COMPONENT_LABEL_KEY
+    value: "clair-notifier-component"
+    displayName: the label key used for notifier pod anti-affinity
+  - name: NOTIFIER_COMPONENT_LABEL_VALUE
+    value: "notifier"
+    displayName: the label value used for notifier pod anti-affinity
+  #
+  # shared params
+  #
+  - name: CLAIR_IMAGE
+    value: "quay.io/app-sre/clair"
+    displayName: the image of clair v4 to deploy
+  - name: IMAGE_TAG
+    value: "latest"
+    displayName: the image tag of clair v4 to deploy
+  - name: HTTP_TRANSPORT_PORT
+    value: "8080"
+    displayName: http port where clair's main functionality is provided
+  - name: INTROSPECTION_PORT
+    value: "8089"
+    displayName: http port where clair's health/metrics endpoints are provided
+  - name: HEALTH_PATH
+    value: "/healthz"
+    displayName: the http path to clair's health check endpoint
+  - name: READY_PATH
+    value: "/readyz"
+    displayName: the http path to clair's ready endpoint
+  - name: HEALTH_PORT
+    value: "8089"
+    displayName: the port to clair's health check endpoint
+  - name: STORAGE_CLASS_NAME
+    value: "gp2"
+    displayName: the storage class to use when creating VPCs
+  - name: SERVICE_ACCOUNT
+    value: "clair"
+    displayName: clair service account
+    description: name of the service account to use for API interaction
+  # DVO
+  - name: CLAIR_DISABLE_MIN_REPLICAS_CHECK
+    displayName: Disable Minimum Replicas Check
+    value: "min-replicas-check-not-disabled"
+  - name: CLAIR_DISABLE_MIN_REPLICAS_REASON
+    displayName: Reason for Disabling Minimum Replicas Check
+    value: ""
+  - name: CLAIR_DISABLE_ANTI_AFFINITY_CHECK
+    value: "anti-affinity-check-not-disabled"
+    displayName: disable DVO check for anti-affinity
+  - name: CLAIR_DISABLE_ANTI_AFFINITY_REASON
+    value: ""
+    displayName: reason for disabling anti-affinity check

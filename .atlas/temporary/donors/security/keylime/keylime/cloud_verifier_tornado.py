@@ -1,0 +1,3124 @@
+import asyncio
+import base64
+import functools
+import multiprocessing
+import os
+import signal
+import sys
+import threading
+import time
+import traceback
+from concurrent.futures import ThreadPoolExecutor
+from contextlib import contextmanager
+from typing import Any, Dict, Iterator, List, Optional, Tuple, Union, cast
+
+import tornado.httpserver
+import tornado.ioloop
+import tornado.netutil
+import tornado.process
+import tornado.web
+from sqlalchemy.engine import Engine
+from sqlalchemy.exc import InvalidRequestError, SQLAlchemyError
+from sqlalchemy.orm import Session, joinedload
+from sqlalchemy.orm.exc import NoResultFound  # pyright: ignore
+
+from keylime import (
+    agent_util,
+)
+from keylime import api_version as keylime_api_version
+from keylime import (
+    cloud_verifier_common,
+    config,
+    json,
+    keylime_logging,
+    push_agent_monitor,
+    revocation_notifier,
+    shutdown,
+    signing,
+    tornado_requests,
+    web_util,
+)
+from keylime.agentstates import AgentAttestState, AgentAttestStates
+from keylime.common import retry, states, validators
+from keylime.common.version import str_to_version
+from keylime.config import DEFAULT_TIMEOUT
+from keylime.da import record
+from keylime.db.keylime_db import SessionManager, make_engine
+from keylime.db.verifier_db import VerfierMain, VerifierAllowlist, VerifierAttestations, VerifierMbpolicy
+from keylime.failure import MAX_SEVERITY_LABEL, Component, Event, Failure, set_severity_config
+from keylime.ima import ima
+from keylime.mba import mba
+from keylime.models.verifier import Attestation, EvidenceItem
+from keylime.shared_data import (
+    cache_policy,
+    cleanup_agent_policy_cache,
+    clear_agent_policy_cache,
+    get_cached_policy,
+    initialize_agent_policy_cache,
+)
+from keylime.tee import snp
+
+try:
+    multiprocessing.set_start_method("fork")
+except RuntimeError:
+    # This can happen if set_start_method is called multiple times
+    pass
+
+logger = keylime_logging.init_logging("verifier")
+
+
+# Module-level globals that are initialized lazily to avoid loading
+# verifier configuration when this module is imported by other components
+engine: Optional[Engine] = None
+rmc: Optional[Any] = None
+_session_manager: Optional[SessionManager] = None
+_verifier_config_initialized = False
+_init_lock = threading.Lock()
+
+
+def _initialize_verifier_config() -> None:
+    """
+    Initialize verifier-specific configuration.
+    This is called lazily to avoid loading verifier config when this module
+    is imported by other components (e.g., registrar).
+
+    Thread-safe initialization using double-checked locking pattern.
+    """
+    global engine, rmc, _session_manager, _verifier_config_initialized
+
+    # Fast path: already initialized (no lock needed)
+    if _verifier_config_initialized:
+        return
+
+    # Acquire lock for initialization
+    with _init_lock:
+        # Double-check after acquiring lock
+        if _verifier_config_initialized:
+            return
+
+        set_severity_config(
+            config.getlist("verifier", "severity_labels"), config.getlist("verifier", "severity_policy")
+        )
+
+        try:
+            engine = make_engine("cloud_verifier")
+        except SQLAlchemyError as err:
+            logger.error("Error creating SQL engine or session: %s", err)
+            sys.exit(1)
+
+        try:
+            rmc = record.get_record_mgt_class(config.get("verifier", "durable_attestation_import", fallback=""))
+            if rmc:
+                rmc = rmc("verifier")
+        except record.RecordManagementException as rme:
+            logger.error("Error initializing Durable Attestation: %s", rme)
+            sys.exit(1)
+
+        # Initialize singleton session manager for this worker process
+        _session_manager = SessionManager()
+
+        _verifier_config_initialized = True
+
+
+def reset_verifier_config() -> None:
+    """
+    Reset verifier configuration state after fork.
+
+    This should be called by worker processes after forking to clear
+    inherited global state and force re-initialization with fresh
+    database connections.
+    """
+    global engine, rmc, _session_manager, _verifier_config_initialized
+
+    if engine:
+        engine.dispose()
+
+    engine = None
+    rmc = None
+    _session_manager = None
+    _verifier_config_initialized = False
+
+
+@contextmanager
+def session_context() -> Iterator[Session]:
+    """
+    Context manager for database sessions that ensures proper cleanup.
+    To use:
+        with session_context() as session:
+            # use session
+    """
+    _initialize_verifier_config()
+    assert _session_manager is not None, "Session manager not initialized"
+    with _session_manager.session_context(engine) as session:  # type: ignore
+        yield session
+
+
+def get_AgentAttestStates() -> AgentAttestStates:
+    return AgentAttestStates.get_instance()
+
+
+# The "exclude_db" dict values are removed from the response before adding the dict to the DB
+# This is because we want these values to remain ephemeral and not stored in the database.
+exclude_db: Dict[str, Any] = {
+    "registrar_data": "",
+    "nonce": "",
+    "b64_encrypted_V": "",
+    "provide_V": True,
+    "num_retries": 0,
+    "pending_event": None,
+    "request_timeout": DEFAULT_TIMEOUT,
+    # the following 3 items are updated to VerifierDB only when the AgentState is stored
+    "boottime": "",
+    "ima_pcrs": [],
+    "pcr10": "",
+    "next_ima_ml_entry": 0,
+    "learned_ima_keyrings": {},
+    "ssl_context": None,
+}
+
+# Registry of agent_id -> IOLoop timeout handle for all scheduled pending
+# events (quote polls, retries).  Used to cancel them all on shutdown.
+_pending_events: Dict[str, object] = {}
+
+# Counter of currently executing process_agent() coroutines.  The shutdown
+# handler waits for this to reach zero before stopping the IOLoop so that
+# in-flight DB writes can finish.
+_active_operations = 0
+# Event signalled when _active_operations drops to zero during shutdown.
+_operations_drained = asyncio.Event()
+_operations_drained.set()  # initially no operations are active
+
+
+def _enter_operation() -> None:
+    """Increment the active operations counter."""
+    global _active_operations
+    _active_operations += 1
+    _operations_drained.clear()
+
+
+def _exit_operation() -> None:
+    """Decrement the active operations counter; signal if drained."""
+    global _active_operations
+    _active_operations -= 1
+    if _active_operations <= 0:
+        _operations_drained.set()
+
+
+def _register_pending_event(agent: Dict[str, Any], handle: object) -> None:
+    """Track a pending IOLoop timeout in both the agent dict and the global registry.
+
+    The agent dict field ``pending_event`` is the per-agent reference used during
+    normal operation (e.g. cancelling on state change).  The module-level
+    ``_pending_events`` dict mirrors it so that *all* handles can be
+    bulk-cancelled on shutdown without iterating over every agent.
+    """
+    agent["pending_event"] = handle
+    _pending_events[agent["agent_id"]] = handle
+
+
+def _cancel_pending_event(agent: Dict[str, Any]) -> None:
+    """Cancel and unregister the pending IOLoop timeout for *agent*, if any."""
+    handle = agent.get("pending_event")
+    if handle is None:
+        return
+    agent["pending_event"] = None
+    _pending_events.pop(agent["agent_id"], None)
+    try:
+        tornado.ioloop.IOLoop.current().remove_timeout(handle)
+    except Exception as e:
+        logger.debug("Could not remove pending event for agent %s: %s", agent["agent_id"], e)
+
+
+def get_active_operations() -> int:
+    """Return the number of currently executing process_agent() coroutines."""
+    return _active_operations
+
+
+async def wait_for_drain(timeout: float) -> bool:
+    """Wait up to *timeout* seconds for all active operations to finish.
+
+    Returns True if all operations drained, False if the timeout expired.
+    """
+    try:
+        await asyncio.wait_for(_operations_drained.wait(), timeout=timeout)
+        return True
+    except asyncio.TimeoutError:
+        return False
+
+
+def cancel_all_pending_events() -> None:
+    """Cancel every tracked pending IOLoop timeout.  Called on shutdown."""
+    if not _pending_events:
+        return
+    io_loop = tornado.ioloop.IOLoop.current()
+    for agent_id, handle in _pending_events.items():
+        try:
+            io_loop.remove_timeout(handle)
+        except Exception as e:
+            logger.debug("Could not remove pending event for agent %s: %s", agent_id, e)
+    count = len(_pending_events)
+    _pending_events.clear()
+    logger.info("Cancelled %d pending attestation event(s) for shutdown", count)
+
+
+def _from_db_obj(agent_db_obj: VerfierMain) -> Dict[str, Any]:
+    fields = [
+        "agent_id",
+        "v",
+        "ip",
+        "port",
+        "operational_state",
+        "public_key",
+        "tpm_policy",
+        "meta_data",
+        "ima_sign_verification_keys",
+        "revocation_key",
+        "accept_tpm_hash_algs",
+        "accept_tpm_encryption_algs",
+        "accept_tpm_signing_algs",
+        "hash_alg",
+        "enc_alg",
+        "sign_alg",
+        "boottime",
+        "ima_pcrs",
+        "pcr10",
+        "next_ima_ml_entry",
+        "learned_ima_keyrings",
+        "supported_version",
+        "mtls_cert",
+        "ak_tpm",
+        "attestation_count",
+        "last_received_quote",
+        "last_successful_attestation",
+        "tpm_clockinfo",
+        "accept_attestations",
+    ]
+    agent_dict = {}
+    for field in fields:
+        agent_dict[field] = getattr(agent_db_obj, field, None)
+
+    # add default fields that are ephemeral
+    for key, val in exclude_db.items():
+        agent_dict[key] = val
+
+    return agent_dict
+
+
+def verifier_read_policy_from_cache(stored_agent: VerfierMain) -> str:
+    checksum = ""
+    name = "empty"
+    agent_id = str(stored_agent.agent_id)
+
+    # Initialize agent policy cache if it doesn't exist
+    initialize_agent_policy_cache(agent_id)
+
+    if stored_agent.ima_policy:
+        checksum = str(stored_agent.ima_policy.checksum)
+        name = stored_agent.ima_policy.name
+
+    # Check if policy is already cached
+    cached_policy = get_cached_policy(agent_id, checksum)
+    if cached_policy is not None:
+        return cached_policy
+
+    # Policy not cached, need to clean up and load from database
+    cleanup_agent_policy_cache(agent_id, checksum)
+
+    logger.debug(
+        "IMA policy named %s, with checksum %s, used by agent %s is not present on policy cache on this verifier, performing SQLAlchemy load",
+        name,
+        checksum,
+        agent_id,
+    )
+
+    # Actually contacts the database and load the (large) ima_policy column for "allowlists" table
+    ima_policy = stored_agent.ima_policy.ima_policy
+    assert isinstance(ima_policy, str)
+
+    # Cache the policy for future use
+    cache_policy(agent_id, checksum, ima_policy)
+
+    return ima_policy
+
+
+def verifier_db_delete_agent(session: Session, agent_id: str) -> None:
+    # Cancel any pending timeout for PUSH mode agents
+    push_agent_monitor.cancel_agent_timeout(agent_id)
+
+    get_AgentAttestStates().delete_by_agent_id(agent_id)
+    # Delete in FK dependency order:
+    # Push-mode tables:
+    #   1. evidence_items (FK to attestations)
+    #   2. attestations (FK to agent)
+    # Legacy/shared tables:
+    #   3. VerifierAttestations (legacy attestations table, FK to agent)
+    # Agent and policies:
+    #   4. agent
+    #   5. allowlists/mbpolicies (by name, not FK)
+    # NOTE: Authentication sessions are NOT deleted when an agent is removed.
+    # This allows agents to maintain their authentication tokens through policy
+    # updates (DELETE + POST) and re-enrollment without needing to re-authenticate.
+    # Sessions will expire naturally based on their token_expires_at timestamp.
+    EvidenceItem.delete_all(agent_id=agent_id, session_=session)
+    Attestation.delete_all(agent_id=agent_id, session_=session)
+    session.query(VerifierAttestations).filter_by(agent_id=agent_id).delete()
+    session.query(VerfierMain).filter_by(agent_id=agent_id).delete()
+    session.query(VerifierAllowlist).filter_by(name=agent_id).delete()
+    session.query(VerifierMbpolicy).filter_by(name=agent_id).delete()
+    session.commit()
+
+
+def _complete_deletion_if_terminated(agent_id: str) -> None:
+    """Re-read the agent after a guarded update matched zero rows.
+
+    If the agent still exists and is TERMINATED, complete the deletion
+    now — there will be no future process_agent() cycle to do it.
+    If the agent is TENANT_FAILED, leave it for the DELETE handler.
+    If the agent is already gone, just log and return.
+    """
+    try:
+        with session_context() as session:
+            agent = session.query(VerfierMain).filter_by(agent_id=agent_id).first()
+            if agent is None:
+                logger.info("Agent %s was deleted during attestation, stopping poll cycle", agent_id)
+            elif agent.operational_state == states.TERMINATED:  # pyright: ignore
+                logger.info("Agent %s was terminated during attestation, completing deletion", agent_id)
+                verifier_db_delete_agent(session, agent_id)
+            elif agent.operational_state == states.TENANT_FAILED:  # pyright: ignore
+                logger.info("Agent %s tenant quote check failed, stopping poll cycle", agent_id)
+            else:
+                logger.warning(
+                    "Agent %s update matched 0 rows, but agent exists in state %s. Stopping poll cycle.",
+                    agent_id,
+                    agent.operational_state,
+                )
+    except SQLAlchemyError:
+        logger.exception("SQLAlchemy Error completing deletion for agent %s", agent_id)
+
+
+def store_attestation_state(agentAttestState: AgentAttestState) -> None:
+    # Only store if IMA log was evaluated
+    if agentAttestState.get_ima_pcrs():
+        agent_id = agentAttestState.agent_id
+        try:
+            with session_context() as session:
+                update_agent = session.get(VerfierMain, agentAttestState.get_agent_id())  # type: ignore[attr-defined]
+                if update_agent is None:
+                    logger.warning(
+                        "Agent %s no longer in database, skipping attestation state storage",
+                        agent_id,
+                    )
+                    return
+                update_agent.boottime = agentAttestState.get_boottime()  # pyright: ignore
+                update_agent.next_ima_ml_entry = agentAttestState.get_next_ima_ml_entry()  # pyright: ignore
+                ima_pcrs_dict = agentAttestState.get_ima_pcrs()
+                update_agent.ima_pcrs = list(ima_pcrs_dict.keys())  # pyright: ignore
+                for pcr_num, value in ima_pcrs_dict.items():
+                    setattr(update_agent, f"pcr{pcr_num}", value)
+                update_agent.learned_ima_keyrings = agentAttestState.get_ima_keyrings().to_json()  # pyright: ignore
+                session.add(update_agent)
+                # session.commit() is automatically called by context manager
+        except SQLAlchemyError as e:
+            logger.error("SQLAlchemy Error on storing attestation state for agent %s: %s", agent_id, e)
+
+
+class BaseHandler(tornado.web.RequestHandler):
+    def __init__(self, *args, **kwargs):  # type: ignore[no-untyped-def]
+        self._req_handler_override = kwargs.get("override")
+        del kwargs["override"]
+        super().__init__(*args, **kwargs)
+
+    @property
+    def req_handler(self):  # type: ignore[no-untyped-def]
+        if self._req_handler_override:
+            return self._req_handler_override
+        return self
+
+    def prepare(self) -> None:  # pylint: disable=W0235
+        super().prepare()
+
+    def write_error(self, status_code: int, **kwargs: Any) -> None:
+        self.req_handler.set_header("Content-Type", "text/json")
+        if self.req_handler.settings.get("serve_traceback") and "exc_info" in kwargs:
+            # in debug mode, try to send a traceback
+            lines = []
+            for line in traceback.format_exception(*kwargs["exc_info"]):
+                lines.append(line)
+            self.req_handler.finish(
+                json.dumps(
+                    {
+                        "code": status_code,
+                        "status": self.req_handler._reason,  # pylint: disable=protected-access
+                        "traceback": lines,
+                        "results": {},
+                    }
+                )
+            )
+        else:
+            self.req_handler.finish(
+                json.dumps(
+                    {
+                        "code": status_code,
+                        "status": self.req_handler._reason,  # pylint: disable=protected-access
+                        "results": {},
+                    }
+                )
+            )
+
+    def data_received(self, chunk: Any) -> None:
+        raise NotImplementedError()
+
+
+class MainHandler(tornado.web.RequestHandler):
+    def head(self) -> None:
+        web_util.echo_json_response(self, 405, "Not Implemented: Use /agents/ interface instead")
+
+    def get(self) -> None:
+        web_util.echo_json_response(self, 405, "Not Implemented: Use /agents/ interface instead")
+
+    def delete(self) -> None:
+        web_util.echo_json_response(self, 405, "Not Implemented: Use /agents/ interface instead")
+
+    def post(self) -> None:
+        web_util.echo_json_response(self, 405, "Not Implemented: Use /agents/ interface instead")
+
+    def put(self) -> None:
+        web_util.echo_json_response(self, 405, "Not Implemented: Use /agents/ interface instead")
+
+    def data_received(self, chunk: Any) -> None:
+        raise NotImplementedError()
+
+
+class VersionHandler(BaseHandler):
+    def head(self) -> None:
+        web_util.echo_json_response(self.req_handler, 405, "Not Implemented: Use GET interface instead")
+
+    def get(self) -> None:
+        if self.request.uri is None:
+            web_util.echo_json_response(self.req_handler, 400, "URI not specified")
+            return
+
+        rest_params = web_util.get_restful_params(self.request.uri)
+        if rest_params is None:
+            web_util.echo_json_response(self.req_handler, 405, "Not Implemented")
+            return
+
+        if "versions" not in rest_params and "version" not in rest_params:
+            web_util.echo_json_response(self.req_handler, 400, "URI not supported")
+            logger.warning("GET returning 400 response. URI not supported: %s", self.request.path)
+            return
+
+        version_info = {
+            "current_version": keylime_api_version.current_version(),
+            "supported_versions": keylime_api_version.all_versions(),
+        }
+
+        web_util.echo_json_response(self.req_handler, 200, "Success", version_info)
+
+    def delete(self) -> None:
+        web_util.echo_json_response(self.req_handler, 405, "Not Implemented: Use GET interface instead")
+
+    def post(self) -> None:
+        web_util.echo_json_response(self.req_handler, 405, "Not Implemented: Use GET interface instead")
+
+    def put(self) -> None:
+        web_util.echo_json_response(self.req_handler, 405, "Not Implemented: Use GET interface instead")
+
+    def data_received(self, chunk: Any) -> None:
+        raise NotImplementedError()
+
+
+class AgentsHandler(BaseHandler):
+    def __validate_input(self, method: str) -> Tuple[Optional[Dict[str, Union[str, None]]], Optional[str]]:
+        if self.request.uri is None:
+            web_util.echo_json_response(self.req_handler, 400, "URI not specified")
+            return None, None
+
+        rest_params = web_util.get_restful_params(self.request.uri)
+        if rest_params is None:
+            web_util.echo_json_response(self.req_handler, 405, "Not Implemented: Use /agents/ interface")
+            return None, None
+
+        if not web_util.validate_api_version(self, cast(str, rest_params["api_version"]), logger):
+            return None, None
+
+        if "agents" not in rest_params:
+            web_util.echo_json_response(self.req_handler, 400, "uri not supported")
+            if method != "DELETE":
+                logger.warning("%s returning 400 response. uri not supported: %s", method, self.request.path)
+            return None, None
+
+        agent_id = rest_params["agents"]
+
+        validate_agent_id = False
+        if method == "GET":
+            validate_agent_id = (agent_id is not None) and (agent_id != "")
+        elif method in ["PUT", "DELETE"]:
+            if agent_id is None:
+                web_util.echo_json_response(self.req_handler, 400, "uri not supported")
+                logger.warning("%s returning 400 response. uri not supported", method)
+                if method == "DELETE":
+                    return None, None
+
+            validate_agent_id = True
+        else:
+            validate_agent_id = agent_id is not None
+
+        # If the agent ID is not valid (wrong set of characters), just do nothing.
+        if validate_agent_id and not validators.valid_agent_id(agent_id):
+            web_util.echo_json_response(self.req_handler, 400, "agent_id not not valid")
+            logger.error("%s received an invalid agent ID: %s", method, agent_id)
+            return None, None
+
+        return rest_params, agent_id
+
+    def head(self) -> None:
+        """HEAD not supported"""
+        web_util.echo_json_response(self.req_handler, 405, "HEAD not supported")
+
+    def get(self) -> None:
+        """This method handles the GET requests to retrieve status on agents from the Cloud Verifier.
+
+        Currently, only agents resources are available for GETing, i.e. /agents. All other GET uri's
+        will return errors. Agents requests require a single agent_id parameter which identifies the
+        agent to be returned. If the agent_id is not found, a 404 response is returned.  If the agent_id
+        was not found, it either completed successfully, or failed.  If found, the agent_id is still polling
+        to contact the Cloud Agent.
+        """
+        rest_params, agent_id = self.__validate_input("GET")
+        if not rest_params:
+            return
+
+        with session_context() as session:
+            if (agent_id is not None) and (agent_id != ""):
+                # If the agent ID is not valid (wrong set of characters),
+                # just do nothing.
+                agent = None
+                try:
+                    agent = (
+                        session.query(VerfierMain)
+                        .options(  # type: ignore
+                            joinedload(VerfierMain.ima_policy).load_only(
+                                VerifierAllowlist.checksum, VerifierAllowlist.generator  # pyright: ignore
+                            )
+                        )
+                        .options(  # type: ignore
+                            joinedload(VerfierMain.mb_policy).load_only(VerifierMbpolicy.mb_policy)  # pyright: ignore
+                        )
+                        .filter_by(agent_id=agent_id)
+                        .one_or_none()
+                    )
+                except SQLAlchemyError as e:
+                    logger.error("SQLAlchemy Error for agent ID %s: %s", agent_id, e)
+
+                if agent is not None:
+                    # Refresh agent from database to ensure we have the latest consecutive_attestation_failures
+                    # This is critical for PUSH mode status detection when failures occur
+                    try:
+                        session.refresh(agent, attribute_names=["consecutive_attestation_failures"])
+                    except InvalidRequestError:
+                        # The attestation loop concurrently deleted the agent (TERMINATED → deleted)
+                        # between the initial query and the refresh. Return 404 to the caller.
+                        web_util.echo_json_response(self.req_handler, 404, "agent id not found")
+                        logger.info(
+                            "GET returning 404 response. agent %s was deleted during request processing.",
+                            agent_id,
+                        )
+                        return
+                    response = cloud_verifier_common.process_get_status(agent)
+                    web_util.echo_json_response(self.req_handler, 200, "Success", response)
+                else:
+                    web_util.echo_json_response(self.req_handler, 404, "agent id not found")
+            else:
+                json_response = None
+                if "bulk" in rest_params:
+                    agent_list = None
+
+                    if ("verifier" in rest_params) and (rest_params["verifier"] != ""):
+                        agent_list = (
+                            session.query(VerfierMain)
+                            .options(  # type: ignore
+                                joinedload(VerfierMain.ima_policy).load_only(
+                                    VerifierAllowlist.checksum, VerifierAllowlist.generator  # pyright: ignore
+                                )
+                            )
+                            .options(  # type: ignore
+                                joinedload(VerfierMain.mb_policy).load_only(
+                                    VerifierMbpolicy.mb_policy  # type: ignore[arg-type]
+                                )
+                            )
+                            .filter_by(verifier_id=rest_params["verifier"])
+                            .all()
+                        )
+                    else:
+                        agent_list = (
+                            session.query(VerfierMain)
+                            .options(  # type: ignore
+                                joinedload(VerfierMain.ima_policy).load_only(
+                                    VerifierAllowlist.checksum, VerifierAllowlist.generator  # pyright: ignore
+                                )
+                            )
+                            .options(  # type: ignore
+                                joinedload(VerfierMain.mb_policy).load_only(
+                                    VerifierMbpolicy.mb_policy  # type: ignore[arg-type]
+                                )
+                            )
+                            .all()
+                        )
+
+                    json_response = {}
+                    for agent in agent_list:
+                        aid = agent.agent_id
+                        # Refresh agent from database to ensure fresh consecutive_attestation_failures
+                        try:
+                            session.refresh(agent, attribute_names=["consecutive_attestation_failures"])
+                        except InvalidRequestError:
+                            # Agent was concurrently deleted during iteration; skip it.
+                            logger.debug(
+                                "Agent %s was deleted during bulk GET request processing, skipping.",
+                                aid,
+                            )
+                            continue
+                        json_response[aid] = cloud_verifier_common.process_get_status(agent)
+
+                    web_util.echo_json_response(self.req_handler, 200, "Success", json_response)
+                else:
+                    if ("verifier" in rest_params) and (rest_params["verifier"] != ""):
+                        json_response_list = (
+                            session.query(VerfierMain.agent_id).filter_by(verifier_id=rest_params["verifier"]).all()
+                        )
+                    else:
+                        json_response_list = session.query(VerfierMain.agent_id).all()
+
+                    web_util.echo_json_response(self.req_handler, 200, "Success", {"uuids": json_response_list})
+
+                logger.info("GET returning 200 response for agent_id list")
+
+    def delete(self) -> None:
+        """This method handles the DELETE requests to remove agents from the Cloud Verifier.
+
+        Currently, only agents resources are available for DELETEing, i.e. /agents. All other DELETE uri's will return errors.
+        agents requests require a single agent_id parameter which identifies the agent to be deleted.
+        """
+        rest_params, agent_id = self.__validate_input("DELETE")
+        if not rest_params or not agent_id:
+            return
+
+        with session_context() as session:
+            agent = None
+            try:
+                agent = session.query(VerfierMain).filter_by(agent_id=agent_id).first()
+            except SQLAlchemyError as e:
+                logger.error("SQLAlchemy Error for agent ID %s: %s", agent_id, e)
+
+            if agent is None:
+                web_util.echo_json_response(self.req_handler, 404, "agent id not found")
+                logger.info("DELETE returning 404 response. agent id: %s not found.", agent_id)
+                return
+
+            verifier_id = config.get("verifier", "uuid", fallback=cloud_verifier_common.DEFAULT_VERIFIER_ID)
+            if verifier_id != agent.verifier_id:
+                web_util.echo_json_response(self.req_handler, 404, "agent id associated to this verifier")
+                logger.info("DELETE returning 404 response. agent id: %s not associated to this verifer.", agent_id)
+                return
+
+            # Cleanup the cache when the agent is deleted. Do it early.
+            clear_agent_policy_cache(agent_id)
+            logger.debug(
+                "Cleaned up policy cache from all entries used by agent %s",
+                agent_id,
+            )
+
+            # Check verifier mode - push mode doesn't use operational_state state machine
+            mode = config.get("verifier", "mode", fallback="pull")
+            # Handle empty string as pull mode (regression from config template changes)
+            if not mode:
+                mode = "pull"
+
+            # In push mode, directly delete the agent since operational_state is not used
+            # In pull mode, check operational_state to determine deletion vs termination
+            if mode == "push":
+                # Push mode: Always delete immediately (synchronous deletion)
+                try:
+                    verifier_db_delete_agent(session, agent_id)
+                    web_util.echo_json_response(self.req_handler, 200, "Success")
+                    logger.info("DELETE (push mode) returning 200 response for agent id: %s", agent_id)
+                except SQLAlchemyError as e:
+                    logger.error("SQLAlchemy Error deleting agent in push mode: %s", e)
+                    web_util.echo_json_response(self.req_handler, 500, "Internal Server Error")
+                return
+
+            # Pull mode: Use operational_state to determine deletion behavior.
+            #
+            # Terminal states with no in-flight work can be deleted
+            # immediately (200).  Note that TERMINATED is intentionally
+            # excluded: it means a previous DELETE was accepted but the
+            # attestation cycle has not yet finished.  Deleting immediately
+            # while in-flight work exists causes store_attestation_state()
+            # to fail when it tries to persist results for the now-gone
+            # agent.
+            op_state = agent.operational_state
+            if op_state in (
+                states.SAVED,
+                states.FAILED,
+                states.TENANT_FAILED,
+                states.INVALID_QUOTE,
+            ):
+                # Agent is in a terminal state with no in-flight work — delete immediately.
+                # Cancel any local pending poll timer first (same-worker
+                # defensive cleanup).  This matters when a cross-worker
+                # PUT /stop sets TENANT_FAILED in the DB but cannot cancel
+                # the timer in this worker's _pending_events.
+                pending_handle = _pending_events.pop(agent_id, None)
+                if pending_handle is not None:
+                    tornado.ioloop.IOLoop.current().remove_timeout(pending_handle)
+                try:
+                    verifier_db_delete_agent(session, agent_id)
+                    web_util.echo_json_response(self.req_handler, 200, "Success")
+                    logger.info("DELETE (pull mode) returning 200 response for agent id: %s", agent_id)
+                except SQLAlchemyError as e:
+                    logger.error("SQLAlchemy Error deleting agent in pull mode: %s", e)
+                    web_util.echo_json_response(self.req_handler, 500, "Internal Server Error")
+                return
+
+            # Agent is in an active state or already TERMINATED from a
+            # previous DELETE.
+            #
+            # Multi-worker note: _pending_events is process-local.  Each
+            # agent's attestation cycle runs in the worker process it was
+            # assigned to at startup (round-robin), but this DELETE
+            # request may arrive at any worker.
+            #
+            # - Same worker: pending_handle is accurate — if found, the
+            #   agent was idle (timer pending) and we can delete
+            #   immediately since no coroutine is in-flight.
+            # - Different worker: pending_handle is always None, so we
+            #   fall through to the 202/TERMINATED path.  The managing
+            #   worker's timer fires normally, process_agent() detects
+            #   TERMINATED, and completes the deletion.
+            #
+            # Important: when the agent is already TERMINATED, do NOT
+            # cancel the pending poll timer — it is the only mechanism
+            # that will trigger process_agent() to detect TERMINATED and
+            # complete the deletion.
+            if op_state == states.TERMINATED:  # pyright: ignore
+                # Agent is already TERMINATED from a previous DELETE.
+                # Leave the pending poll timer alone so process_agent()
+                # can detect TERMINATED and complete the deletion.
+                web_util.echo_json_response(self.req_handler, 202, "Accepted")
+                logger.info(
+                    "DELETE (pull mode) returning 202 response for agent id: %s "
+                    "(already TERMINATED, waiting for deletion to complete)",
+                    agent_id,
+                )
+                return
+
+            # First DELETE for this agent.  Try to cancel the pending
+            # poll timer (same-worker optimization).
+            #
+            # Pop the handle first but do NOT cancel the timer yet —
+            # if the DB operation fails we restore the handle so the
+            # attestation cycle can continue.
+            pending_handle = _pending_events.pop(agent_id, None)
+            try:
+                if pending_handle is not None:
+                    # Same-worker optimization: the agent was idle
+                    # (waiting for the next poll timer) — no in-flight
+                    # coroutine will come along to detect TERMINATED and
+                    # complete the deletion, so delete immediately.
+                    verifier_db_delete_agent(session, agent_id)
+                    # DB succeeded — now safe to cancel the timer.
+                    tornado.ioloop.IOLoop.current().remove_timeout(pending_handle)
+                    web_util.echo_json_response(self.req_handler, 200, "Success")
+                    logger.info("DELETE (pull mode) returning 200 response for agent id: %s", agent_id)
+                else:
+                    # Either an invoke_get_quote() / invoke_provide_v()
+                    # coroutine is in-flight (no pending_handle — the
+                    # timer already fired), or this DELETE arrived at a
+                    # different worker process.  Mark as TERMINATED and
+                    # let process_agent() perform the actual deletion
+                    # when the in-flight work finishes (or the timer
+                    # fires in the managing worker).
+                    update_agent = session.get(VerfierMain, agent_id)  # type: ignore[attr-defined]
+                    if update_agent is None:
+                        web_util.echo_json_response(self.req_handler, 404, "agent id not found")
+                        return
+                    update_agent.operational_state = states.TERMINATED  # pyright: ignore
+                    session.add(update_agent)
+                    web_util.echo_json_response(self.req_handler, 202, "Accepted")
+                    logger.info("DELETE (pull mode) returning 202 response for agent id: %s", agent_id)
+            except SQLAlchemyError as e:
+                logger.error("SQLAlchemy Error for agent ID %s: %s", agent_id, e)
+                if pending_handle is not None:
+                    # Restore the timer so the attestation cycle can
+                    # continue — the DB operation failed so the agent
+                    # is still there.
+                    _pending_events[agent_id] = pending_handle
+                web_util.echo_json_response(self.req_handler, 500, "Internal server error")
+
+    def post(self) -> None:
+        """This method handles the POST requests to add agents to the Cloud Verifier.
+
+        Currently, only agents resources are available for POSTing, i.e. /agents. All other POST uri's will return errors.
+        agents requests require a json block sent in the body
+        """
+        mode = config.get("verifier", "mode", fallback="pull")
+        # Handle empty string as pull mode (regression from config template changes)
+        if not mode:
+            mode = "pull"
+
+        # TODO: exception handling needs fixing
+        # Maybe handle exceptions with if/else if/else blocks ... simple and avoids nesting
+        try:  # pylint: disable=too-many-nested-blocks
+            rest_params, agent_id = self.__validate_input("POST")
+            if not rest_params:
+                return
+
+            if agent_id is not None:
+                content_length = len(self.request.body)
+                if content_length == 0:
+                    web_util.echo_json_response(self.req_handler, 400, "Expected non zero content length")
+                    logger.warning("POST returning 400 response. Expected non zero content length.")
+                else:
+                    json_body = json.loads(self.request.body)
+
+                    # For push-mode agents, ip/port should be None (agent pushes to verifier)
+                    # For pull-mode agents, ip/port are required (verifier pulls from agent)
+                    # The verifier's mode config determines this, not the tenant
+                    if mode == "push":
+                        # Push-mode: ignore any ip/port sent by tenant, always use None
+                        agent_ip = None
+                        agent_port = None
+                    else:
+                        # Pull-mode: use ip/port from tenant request
+                        agent_ip = json_body.get("cloudagent_ip")
+                        agent_port = json_body.get("cloudagent_port")
+                        if agent_port is not None:
+                            agent_port = int(agent_port)
+
+                    # Validate supported_version from tenant
+                    supported_version = json_body.get("supported_version")
+                    if supported_version:
+                        # Check if verifier supports this version
+                        if not keylime_api_version.is_supported_version(supported_version):
+                            logger.warning(
+                                "Agent %s requested API version %s which is not supported by verifier. "
+                                "Verifier supports: %s. Will attempt version negotiation on first contact.",
+                                agent_id,
+                                supported_version,
+                                keylime_api_version.all_versions(),
+                            )
+                            # Use verifier's current version as fallback
+                            supported_version = keylime_api_version.current_version()
+                    else:
+                        # No version provided, default to current
+                        supported_version = keylime_api_version.current_version()
+
+                    agent_data = {
+                        "v": json_body.get("v", None),
+                        "ip": agent_ip,
+                        "port": agent_port,
+                        "operational_state": states.GET_QUOTE if mode == "push" else states.START,
+                        "public_key": "",
+                        "tpm_policy": json_body["tpm_policy"],
+                        "meta_data": json_body["metadata"],
+                        "ima_sign_verification_keys": json_body["ima_sign_verification_keys"],
+                        "revocation_key": json_body["revocation_key"],
+                        "accept_tpm_hash_algs": json_body["accept_tpm_hash_algs"],
+                        "accept_tpm_encryption_algs": json_body["accept_tpm_encryption_algs"],
+                        "accept_tpm_signing_algs": json_body["accept_tpm_signing_algs"],
+                        "supported_version": supported_version,
+                        "ak_tpm": json_body["ak_tpm"],
+                        "mtls_cert": json_body.get("mtls_cert", None),
+                        "hash_alg": "",
+                        "enc_alg": "",
+                        "sign_alg": "",
+                        "agent_id": agent_id,
+                        "boottime": 0,
+                        "ima_pcrs": [],
+                        "pcr10": None,
+                        "next_ima_ml_entry": 0,
+                        "learned_ima_keyrings": {},
+                        "verifier_id": config.get(
+                            "verifier", "uuid", fallback=cloud_verifier_common.DEFAULT_VERIFIER_ID
+                        ),
+                        "attestation_count": 0,
+                        "last_received_quote": 0,
+                        "last_successful_attestation": 0,
+                        "accept_attestations": True,
+                    }
+
+                    if "verifier_ip" in json_body:
+                        agent_data["verifier_ip"] = json_body["verifier_ip"]
+                    else:
+                        agent_data["verifier_ip"] = config.get("verifier", "ip")
+
+                    if "verifier_port" in json_body:
+                        agent_data["verifier_port"] = json_body["verifier_port"]
+                    else:
+                        agent_data["verifier_port"] = config.get("verifier", "port")
+
+                    agent_mtls_cert_enabled = config.getboolean("verifier", "enable_agent_mtls", fallback=False)
+
+                    # TODO: Always error for v1.0 version after initial upgrade
+                    if all(
+                        [
+                            agent_data["supported_version"] != "1.0",
+                            agent_mtls_cert_enabled,
+                            (agent_data["mtls_cert"] is None or agent_data["mtls_cert"] == "disabled"),
+                            mode == "pull",
+                        ]
+                    ):
+                        web_util.echo_json_response(self.req_handler, 400, "mTLS certificate for agent is required!")
+                        return
+
+                    # Handle runtime policies
+
+                    # How each pair of inputs should be handled:
+                    # - No name, no policy: use default empty policy using agent UUID as name
+                    # - Name, no policy: fetch existing policy from DB
+                    # - No name, policy: store policy using agent UUID as name
+                    # - Name, policy: store policy using name
+
+                    runtime_policy_name = json_body.get("runtime_policy_name")
+                    runtime_policy = base64.b64decode(json_body.get("runtime_policy")).decode()
+                    runtime_policy_stored = None
+
+                    with session_context() as session:
+                        if runtime_policy_name:
+                            try:
+                                runtime_policy_stored = (
+                                    session.query(VerifierAllowlist).filter_by(name=runtime_policy_name).one_or_none()
+                                )
+                            except SQLAlchemyError as e:
+                                logger.error("SQLAlchemy Error for agent ID %s: %s", agent_id, e)
+                                raise
+
+                            # Prevent overwriting existing IMA policies with name provided in request
+                            if runtime_policy and runtime_policy_stored:
+                                web_util.echo_json_response(
+                                    self.req_handler,
+                                    409,
+                                    f"IMA policy with name {runtime_policy_name} already exists. Please use a different name or delete the allowlist from the verifier.",
+                                )
+                                logger.warning("IMA policy with name %s already exists", runtime_policy_name)
+                                return
+
+                            # Return an error code if the named allowlist does not exist in the database
+                            if not runtime_policy and not runtime_policy_stored:
+                                web_util.echo_json_response(
+                                    self.req_handler, 404, f"Could not find IMA policy with name {runtime_policy_name}!"
+                                )
+                                logger.warning("Could not find IMA policy with name %s", runtime_policy_name)
+                                return
+
+                        # Prevent overwriting existing agents with UUID provided in request
+                        try:
+                            new_agent_count = session.query(VerfierMain).filter_by(agent_id=agent_id).count()
+                        except SQLAlchemyError as e:
+                            logger.error("SQLAlchemy Error for agent ID %s: %s", agent_id, e)
+                            raise e
+
+                        if new_agent_count > 0:
+                            web_util.echo_json_response(
+                                self.req_handler,
+                                409,
+                                f"Agent of uuid {agent_id} already exists. Please use delete or update.",
+                            )
+                            logger.warning("Agent of uuid %s already exists", agent_id)
+                            return
+
+                        # Write IMA policy to database if needed
+                        if not runtime_policy_name and not runtime_policy:
+                            logger.info("IMA policy data not provided with request! Using default empty IMA policy.")
+                            runtime_policy = json.dumps(cast(Dict[str, Any], ima.EMPTY_RUNTIME_POLICY))
+
+                        if runtime_policy:
+                            runtime_policy_key_bytes = signing.get_runtime_policy_keys(
+                                runtime_policy.encode(),
+                                json_body.get("runtime_policy_key"),
+                            )
+
+                            try:
+                                ima.verify_runtime_policy(
+                                    runtime_policy.encode(),
+                                    runtime_policy_key_bytes,
+                                    verify_sig=config.getboolean(
+                                        "verifier", "require_allow_list_signatures", fallback=False
+                                    ),
+                                )
+                            except ima.ImaValidationError as e:
+                                web_util.echo_json_response(self.req_handler, e.code, e.message)
+                                logger.warning(e.message)
+                                return
+
+                            if not runtime_policy_name:
+                                runtime_policy_name = agent_id
+
+                            try:
+                                runtime_policy_db_format = ima.runtime_policy_db_contents(
+                                    runtime_policy_name, runtime_policy
+                                )
+                            except ima.ImaValidationError as e:
+                                message = f"Runtime policy is malformatted: {e.message}"
+                                web_util.echo_json_response(self.req_handler, e.code, message)
+                                logger.warning(message)
+                                return
+
+                            try:
+                                runtime_policy_stored = (
+                                    session.query(VerifierAllowlist).filter_by(name=runtime_policy_name).one_or_none()
+                                )
+                            except SQLAlchemyError as e:
+                                logger.error(
+                                    "SQLAlchemy Error while retrieving stored ima policy for agent ID %s: %s",
+                                    agent_id,
+                                    e,
+                                )
+                                raise
+                            try:
+                                if runtime_policy_stored is None:
+                                    runtime_policy_stored = VerifierAllowlist(**runtime_policy_db_format)
+                                    session.add(runtime_policy_stored)
+                                    session.commit()
+                            except SQLAlchemyError as e:
+                                logger.error(
+                                    "SQLAlchemy Error while updating ima policy for agent ID %s: %s", agent_id, e
+                                )
+                                raise
+
+                        # Handle measured boot policy
+                        # - No name, mb_policy   : store mb_policy using agent UUID as name
+                        # - Name, no mb_policy   : fetch existing mb_policy from DB
+                        # - Name, mb_policy      : store mb_policy using name
+
+                        mb_policy_name = json_body["mb_policy_name"]
+                        mb_policy = json_body["mb_policy"]
+                        mb_policy_stored = None
+
+                        if mb_policy_name:
+                            try:
+                                mb_policy_stored = (
+                                    session.query(VerifierMbpolicy).filter_by(name=mb_policy_name).one_or_none()
+                                )
+                            except SQLAlchemyError as e:
+                                logger.error("SQLAlchemy Error for agent ID %s: %s", agent_id, e)
+                                raise
+
+                            # Prevent overwriting existing mb_policy with name provided in request
+                            if mb_policy and mb_policy_stored:
+                                web_util.echo_json_response(
+                                    self.req_handler,
+                                    409,
+                                    f"mb_policy with name {mb_policy_name} already exists. Please use a different name or delete the mb_policy from the verifier.",
+                                )
+                                logger.warning("mb_policy with name %s already exists", mb_policy_name)
+                                return
+
+                            # Return error if the mb_policy is neither provided nor stored.
+                            if not mb_policy and not mb_policy_stored:
+                                web_util.echo_json_response(
+                                    self.req_handler, 404, f"Could not find mb_policy with name {mb_policy_name}!"
+                                )
+                                logger.warning("Could not find mb_policy with name %s", mb_policy_name)
+                                return
+
+                        else:
+                            # Use the UUID of the agent
+                            mb_policy_name = agent_id
+                            try:
+                                mb_policy_stored = (
+                                    session.query(VerifierMbpolicy).filter_by(name=mb_policy_name).one_or_none()
+                                )
+                            except SQLAlchemyError as e:
+                                logger.error("SQLAlchemy Error for agent ID %s: %s", agent_id, e)
+                                raise
+
+                            # Prevent overwriting existing mb_policy
+                            if mb_policy and mb_policy_stored:
+                                web_util.echo_json_response(
+                                    self.req_handler,
+                                    409,
+                                    f"mb_policy with name {mb_policy_name} already exists. You can delete the mb_policy from the verifier.",
+                                )
+                                logger.warning("mb_policy with name %s already exists", mb_policy_name)
+                                return
+
+                        # Store the policy into database if not stored
+                        if mb_policy_stored is None:
+                            try:
+                                mb_policy_db_format = mba.mb_policy_db_contents(mb_policy_name, mb_policy)
+                                mb_policy_stored = VerifierMbpolicy(**mb_policy_db_format)
+                                session.add(mb_policy_stored)
+                                session.commit()
+                            except SQLAlchemyError as e:
+                                logger.error(
+                                    "SQLAlchemy Error while updating mb_policy for agent ID %s: %s", agent_id, e
+                                )
+                                raise
+
+                        # Write the agent to the database, attaching associated stored ima_policy and mb_policy
+                        try:
+                            assert runtime_policy_stored
+                            assert mb_policy_stored
+                            session.add(
+                                VerfierMain(**agent_data, ima_policy=runtime_policy_stored, mb_policy=mb_policy_stored)
+                            )
+                            session.commit()
+                        except SQLAlchemyError as e:
+                            logger.error("SQLAlchemy Error for agent ID %s: %s", agent_id, e)
+                            raise e
+
+                        # add default fields that are ephemeral
+                        for key, val in exclude_db.items():
+                            agent_data[key] = val
+
+                        # Start event loop to periodically obtain quote from agent when operating in pull mode
+                        if mode == "pull":
+                            # Prepare SSLContext for mTLS connections
+                            agent_data["ssl_context"] = None
+                            mtls_cert = agent_data["mtls_cert"]
+                            if agent_mtls_cert_enabled and isinstance(mtls_cert, str) and mtls_cert != "disabled":
+                                agent_data["ssl_context"] = web_util.generate_agent_tls_context(
+                                    "verifier", mtls_cert, logger=logger
+                                )
+
+                            if agent_data["ssl_context"] is None:
+                                logger.warning("Connecting to agent without mTLS: %s", agent_id)
+
+                            asyncio.ensure_future(process_agent(agent_data, states.GET_QUOTE))
+
+                        web_util.echo_json_response(self.req_handler, 200, "Success")
+                        logger.info("POST returning 200 response for adding agent id: %s", agent_id)
+            else:
+                web_util.echo_json_response(self.req_handler, 400, "uri not supported")
+                logger.warning("POST returning 400 response. uri not supported")
+        except Exception as e:
+            web_util.echo_json_response(self.req_handler, 400, f"Exception error: {str(e)}")
+            logger.exception("POST returning 400 response.")
+
+    def put(self) -> None:
+        """This method handles the PUT requests to add agents to the Cloud Verifier.
+
+        Currently, only agents resources are available for PUTing, i.e. /agents. All other PUT uri's will return errors.
+        agents requests require a json block sent in the body
+        """
+        try:
+            rest_params, agent_id = self.__validate_input("PUT")
+            if not rest_params:
+                return
+
+            with session_context() as session:
+                try:
+                    verifier_id = config.get("verifier", "uuid", fallback=cloud_verifier_common.DEFAULT_VERIFIER_ID)
+                    db_agent = session.query(VerfierMain).filter_by(agent_id=agent_id, verifier_id=verifier_id).one()
+                except SQLAlchemyError as e:
+                    logger.error("SQLAlchemy Error for agent ID %s: %s", agent_id, e)
+                    raise e
+
+                if db_agent is None:
+                    web_util.echo_json_response(self.req_handler, 404, "agent id not found")
+                    logger.info("PUT returning 404 response. agent id: %s not found.", agent_id)
+                    return
+
+                if "reactivate" in rest_params:
+                    # Check if this is a push-mode agent (no ip/port) or pull-mode agent
+                    is_push_mode = db_agent.ip is None and db_agent.port is None
+
+                    if is_push_mode:
+                        # For push-mode agents: just re-enable attestations
+                        # Don't start polling thread - agent will push attestations
+                        try:
+                            session.query(VerfierMain).filter(
+                                VerfierMain.agent_id == agent_id
+                            ).update(  # pyright: ignore
+                                {"accept_attestations": True}
+                            )
+                            # session.commit() is automatically called by context manager
+                            web_util.echo_json_response(self.req_handler, 200, "Success")
+                            logger.info(
+                                "PUT returning 200 response for push-mode agent id: %s (accept_attestations re-enabled)",
+                                agent_id,
+                            )
+                        except SQLAlchemyError as e:
+                            logger.error("SQLAlchemy Error during push-mode reactivate: %s", e)
+                            web_util.echo_json_response(self.req_handler, 500, "Internal server error")
+                    else:
+                        # For pull-mode agents: start polling thread
+                        agent = _from_db_obj(db_agent)
+
+                        if agent["mtls_cert"] and agent["mtls_cert"] != "disabled":
+                            agent["ssl_context"] = web_util.generate_agent_tls_context(
+                                "verifier", agent["mtls_cert"], logger=logger
+                            )
+                        if agent["ssl_context"] is None:
+                            logger.warning("Connecting to agent without mTLS: %s", agent_id)
+
+                        agent["operational_state"] = states.START
+                        asyncio.ensure_future(process_agent(agent, states.GET_QUOTE))
+                        web_util.echo_json_response(self.req_handler, 200, "Success")
+                        logger.info("PUT returning 200 response for pull-mode agent id: %s", agent_id)
+                elif "stop" in rest_params:
+                    # do stuff for terminate
+                    logger.debug("Stopping polling on %s", agent_id)
+                    try:
+                        session.query(VerfierMain).filter(VerfierMain.agent_id == agent_id).update(  # pyright: ignore
+                            {"operational_state": states.TENANT_FAILED}
+                        )
+                        # session.commit() is automatically called by context manager
+                    except SQLAlchemyError as e:
+                        logger.error("SQLAlchemy Error: %s", e)
+                        web_util.echo_json_response(self.req_handler, 500, "Internal server error")
+                        return
+
+                    # DB succeeded — now safe to cancel the pending poll
+                    # timer to prevent new attestation cycles.
+                    if agent_id is not None:
+                        pending_handle = _pending_events.pop(agent_id, None)
+                        if pending_handle is not None:
+                            tornado.ioloop.IOLoop.current().remove_timeout(pending_handle)
+
+                    web_util.echo_json_response(self.req_handler, 200, "Success")
+                    logger.info("PUT returning 200 response for agent id: %s", agent_id)
+                else:
+                    web_util.echo_json_response(self.req_handler, 400, "uri not supported")
+                    logger.warning("PUT returning 400 response. uri not supported")
+
+        except Exception as e:
+            web_util.echo_json_response(self.req_handler, 400, f"Exception error: {str(e)}")
+            logger.exception("PUT returning 400 response.")
+
+    def data_received(self, chunk: Any) -> None:
+        raise NotImplementedError()
+
+
+class AllowlistHandler(BaseHandler):
+    def head(self) -> None:
+        web_util.echo_json_response(self.req_handler, 400, "Allowlist handler: HEAD Not Implemented")
+
+    def __validate_input(self, method: str) -> Tuple[bool, Optional[str]]:
+        """Validate the input"""
+        if self.request.uri is None:
+            web_util.echo_json_response(self.req_handler, 400, "Invalid URL")
+            return False, None
+        rest_params = web_util.get_restful_params(self.request.uri)
+        if rest_params is None or "allowlists" not in rest_params:
+            web_util.echo_json_response(self.req_handler, 400, "Invalid URL")
+            return False, None
+
+        if not web_util.validate_api_version(self, cast(str, rest_params["api_version"]), logger):
+            return False, None
+
+        runtime_policy_name = rest_params["allowlists"]
+        if runtime_policy_name is None and method != "GET":
+            web_util.echo_json_response(self.req_handler, 400, "Invalid URL")
+            logger.warning("%s returning 400 response: %s", method, self.request.path)
+            return False, None
+
+        return True, runtime_policy_name
+
+    def get(self) -> None:
+        """Get an allowlist or names of allowlists
+
+        GET /allowlists/[name]
+        name is required to get an allowlist but not for getting the names of the allowlists.
+        """
+        params_valid, allowlist_name = self.__validate_input("GET")
+        if not params_valid:
+            return
+
+        with session_context() as session:
+            if allowlist_name is None:
+                try:
+                    names_allowlists = session.query(VerifierAllowlist.name).all()
+                except SQLAlchemyError as e:
+                    logger.error("SQLAlchemy Error: %s", e)
+                    web_util.echo_json_response(self.req_handler, 500, "Failed to get names of allowlists")
+                    raise
+
+                names_response = []
+                for name in names_allowlists:
+                    names_response.append(name[0])
+                web_util.echo_json_response(self.req_handler, 200, "Success", {"runtimepolicy names": names_response})
+
+            else:
+                try:
+                    allowlist = session.query(VerifierAllowlist).filter_by(name=allowlist_name).one()
+                except NoResultFound:
+                    web_util.echo_json_response(self.req_handler, 404, f"Runtime policy {allowlist_name} not found")
+                    return
+                except SQLAlchemyError as e:
+                    logger.error("SQLAlchemy Error: %s", e)
+                    web_util.echo_json_response(self.req_handler, 500, "Failed to get allowlist")
+                    raise
+
+                response = {}
+                for field in ("name", "tmp_policy"):
+                    response[field] = getattr(allowlist, field, None)
+                response["runtime_policy"] = getattr(allowlist, "ima_policy", None)
+                web_util.echo_json_response(self.req_handler, 200, "Success", response)
+
+    def delete(self) -> None:
+        """Delete an allowlist
+
+        DELETE /allowlists/{name}
+        """
+
+        params_valid, allowlist_name = self.__validate_input("DELETE")
+        if not params_valid or allowlist_name is None:
+            return
+
+        with session_context() as session:
+            try:
+                runtime_policy = session.query(VerifierAllowlist).filter_by(name=allowlist_name).one()
+            except NoResultFound:
+                web_util.echo_json_response(self.req_handler, 404, f"Runtime policy {allowlist_name} not found")
+                return
+            except SQLAlchemyError as e:
+                logger.error("SQLAlchemy Error: %s", e)
+                web_util.echo_json_response(self.req_handler, 500, "Failed to get allowlist")
+                raise
+
+            try:
+                agent = session.query(VerfierMain).filter_by(ima_policy_id=runtime_policy.id).one_or_none()
+            except SQLAlchemyError as e:
+                logger.error("SQLAlchemy Error: %s", e)
+                raise
+            if agent is not None:
+                web_util.echo_json_response(
+                    self.req_handler,
+                    409,
+                    f"Can't delete allowlist as it's currently in use by agent {agent.agent_id}",
+                )
+                return
+
+            try:
+                session.query(VerifierAllowlist).filter_by(name=allowlist_name).delete()
+                # session.commit() is automatically called by context manager
+            except SQLAlchemyError as e:
+                logger.error("SQLAlchemy Error: %s", e)
+                web_util.echo_json_response(self.req_handler, 500, f"Database error: {e}")
+                raise
+
+            # NOTE(kaifeng) 204 Can not have response body, but current helper
+            # doesn't support this case.
+            self.req_handler.set_status(204)
+            self.req_handler.set_header("Content-Type", "application/json")
+            self.req_handler.finish()
+            logger.info("DELETE returning 204 response for allowlist: %s", allowlist_name)
+
+    def __get_runtime_policy_db_format(self, runtime_policy_name: str) -> Dict[str, Any]:
+        """Get the IMA policy from the request and return it in Db format"""
+        content_length = len(self.request.body)
+        if content_length == 0:
+            web_util.echo_json_response(self.req_handler, 400, "Expected non zero content length")
+            logger.warning("POST returning 400 response. Expected non zero content length.")
+            return {}
+
+        json_body = json.loads(self.request.body)
+
+        runtime_policy = base64.b64decode(json_body.get("runtime_policy")).decode()
+        runtime_policy_key_bytes = signing.get_runtime_policy_keys(
+            runtime_policy.encode(),
+            json_body.get("runtime_policy_key"),
+        )
+
+        try:
+            ima.verify_runtime_policy(
+                runtime_policy.encode(),
+                runtime_policy_key_bytes,
+                verify_sig=config.getboolean("verifier", "require_allow_list_signatures", fallback=False),
+            )
+        except ima.ImaValidationError as e:
+            web_util.echo_json_response(self.req_handler, e.code, e.message)
+            logger.warning(e.message)
+            return {}
+
+        tpm_policy = json_body.get("tpm_policy")
+
+        try:
+            runtime_policy_db_format = ima.runtime_policy_db_contents(runtime_policy_name, runtime_policy, tpm_policy)
+        except ima.ImaValidationError as e:
+            message = f"Runtime policy is malformatted: {e.message}"
+            web_util.echo_json_response(self.req_handler, e.code, message)
+            logger.warning(message)
+            return {}
+
+        return runtime_policy_db_format
+
+    def post(self) -> None:
+        """Create an allowlist
+
+        POST /allowlists/{name}
+        body: {"tpm_policy": {..} ...
+        """
+
+        params_valid, runtime_policy_name = self.__validate_input("POST")
+        print("AllowlistHandler.post")
+        print(runtime_policy_name)
+        print(params_valid)
+        if not params_valid or runtime_policy_name is None:
+            return
+
+        runtime_policy_db_format = self.__get_runtime_policy_db_format(runtime_policy_name)
+        print(runtime_policy_db_format)
+        if not runtime_policy_db_format:
+            return
+
+        with session_context() as session:
+            # don't allow overwritting
+            try:
+                runtime_policy_count = session.query(VerifierAllowlist).filter_by(name=runtime_policy_name).count()
+                if runtime_policy_count > 0:
+                    web_util.echo_json_response(
+                        self.req_handler, 409, f"Runtime policy with name {runtime_policy_name} already exists"
+                    )
+                    logger.warning("Runtime policy with name %s already exists", runtime_policy_name)
+                    return
+            except SQLAlchemyError as e:
+                logger.error("SQLAlchemy Error: %s", e)
+                raise
+
+            try:
+                # Add the agent and data
+                session.add(VerifierAllowlist(**runtime_policy_db_format))
+                # session.commit() is automatically called by context manager
+            except SQLAlchemyError as e:
+                logger.error("SQLAlchemy Error: %s", e)
+                raise
+
+        web_util.echo_json_response(self.req_handler, 201)
+        logger.info("POST returning 201")
+
+    def put(self) -> None:
+        """Update an allowlist
+
+        PUT /allowlists/{name}
+        body: {"tpm_policy": {..} ...
+        """
+
+        params_valid, runtime_policy_name = self.__validate_input("PUT")
+        if not params_valid or runtime_policy_name is None:
+            return
+
+        runtime_policy_db_format = self.__get_runtime_policy_db_format(runtime_policy_name)
+        if not runtime_policy_db_format:
+            return
+
+        with session_context() as session:
+            # don't allow creating a new policy
+            try:
+                runtime_policy_count = session.query(VerifierAllowlist).filter_by(name=runtime_policy_name).count()
+                if runtime_policy_count != 1:
+                    web_util.echo_json_response(
+                        self.req_handler,
+                        404,
+                        f"Runtime policy with name {runtime_policy_name} does not already exist, use POST to create",
+                    )
+                    logger.warning("Runtime policy with name %s does not already exist", runtime_policy_name)
+                    return
+            except SQLAlchemyError as e:
+                logger.error("SQLAlchemy Error: %s", e)
+                raise
+
+            try:
+                # Update the named runtime policy
+                session.query(VerifierAllowlist).filter_by(name=runtime_policy_name).update(
+                    runtime_policy_db_format  # pyright: ignore
+                )
+                # session.commit() is automatically called by context manager
+            except SQLAlchemyError as e:
+                logger.error("SQLAlchemy Error: %s", e)
+                raise
+
+        web_util.echo_json_response(self.req_handler, 201)
+        logger.info("PUT returning 201")
+
+    def data_received(self, chunk: Any) -> None:
+        raise NotImplementedError()
+
+
+class VerifyIdentityHandler(BaseHandler):
+    def head(self) -> None:
+        """HEAD not supported"""
+        web_util.echo_json_response(self.req_handler, 405, "HEAD not supported")
+
+    def delete(self) -> None:
+        """DELETE not supported"""
+        web_util.echo_json_response(self.req_handler, 405, "DELETE not supported")
+
+    def post(self) -> None:
+        """POST not supported"""
+        web_util.echo_json_response(self.req_handler, 405, "POST not supported")
+
+    def put(self) -> None:
+        """PUT not supported"""
+        web_util.echo_json_response(self.req_handler, 405, "PUT not supported")
+
+    def get(self) -> None:
+        """This method handles the GET requests to verify an identity quote from an agent.
+
+        This is useful for 3rd party tools and integrations to independently verify the state of an agent.
+        """
+        # validate the parameters of our request
+        if self.request.uri is None:
+            web_util.echo_json_response(self.req_handler, 400, "URI not specified")
+            return
+
+        rest_params = web_util.get_restful_params(self.request.uri)
+        if rest_params is None:
+            web_util.echo_json_response(self.req_handler, 405, "Not Implemented: Use /verify/identity interface")
+            return
+
+        if not web_util.validate_api_version(self, cast(str, rest_params["api_version"]), logger):
+            return
+
+        if "verify" not in rest_params and rest_params["verify"] != "identity":
+            web_util.echo_json_response(self.req_handler, 400, "uri not supported")
+            logger.warning("GET returning 400 response. uri not supported: %s", self.request.path)
+            return
+
+        # make sure we have all of the necessary parameters: agent_uuid, quote and nonce
+        agent_id = rest_params.get("agent_uuid")
+        if agent_id is None or agent_id == "":
+            web_util.echo_json_response(self.req_handler, 400, "missing query parameter 'agent_uuid'")
+            logger.warning("GET returning 400 response. missing query parameter 'agent_uuid'")
+            return
+
+        quote = rest_params.get("quote")
+        if quote is None or quote == "":
+            web_util.echo_json_response(self.req_handler, 400, "missing query parameter 'quote'")
+            logger.warning("GET returning 400 response. missing query parameter 'quote'")
+            return
+
+        nonce = rest_params.get("nonce")
+        if nonce is None or nonce == "":
+            web_util.echo_json_response(self.req_handler, 400, "missing query parameter 'nonce'")
+            logger.warning("GET returning 400 response. missing query parameter 'nonce'")
+            return
+
+        hash_alg = rest_params.get("hash_alg")
+        if hash_alg is None or hash_alg == "":
+            web_util.echo_json_response(self.req_handler, 400, "missing query parameter 'hash_alg'")
+            logger.warning("GET returning 400 response. missing query parameter 'hash_alg'")
+            return
+
+        # get the agent information from the DB
+        with session_context() as session:
+            agent = None
+            try:
+                agent = (
+                    session.query(VerfierMain)
+                    .options(  # type: ignore
+                        joinedload(VerfierMain.ima_policy).load_only(
+                            VerifierAllowlist.checksum, VerifierAllowlist.generator  # pyright: ignore
+                        )
+                    )
+                    .filter_by(agent_id=agent_id)
+                    .one_or_none()
+                )
+            except SQLAlchemyError as e:
+                logger.error("SQLAlchemy Error for agent ID %s: %s", agent_id, e)
+
+        if agent is not None:
+            agentAttestState = get_AgentAttestStates().get_by_agent_id(agent_id)
+            failure = cloud_verifier_common.process_verify_identity_quote(
+                agent, quote, nonce, hash_alg, agentAttestState
+            )
+            if failure:
+                failure_contexts = "; ".join(x.context for x in failure.events)
+                web_util.echo_json_response(self.req_handler, 200, "Success", {"valid": 0, "reason": failure_contexts})
+                logger.info("GET returning 200, but validation failed")
+            else:
+                web_util.echo_json_response(self.req_handler, 200, "Success", {"valid": 1})
+                logger.info("GET returning 200, validation successful")
+        else:
+            web_util.echo_json_response(self.req_handler, 404, "agent id not found")
+            logger.info("GET returning 404, agaent not found")
+
+    def data_received(self, chunk: Any) -> None:
+        raise NotImplementedError()
+
+
+class MbpolicyHandler(BaseHandler):
+    def head(self) -> None:
+        web_util.echo_json_response(self.req_handler, 400, "Mbpolicy handler: HEAD Not Implemented")
+
+    def __validate_input(self, method: str) -> Tuple[bool, Optional[str]]:
+        """Validate the input"""
+
+        if self.request.uri is None:
+            web_util.echo_json_response(self.req_handler, 400, "Invalid URL")
+            return False, None
+        rest_params = web_util.get_restful_params(self.request.uri)
+        if rest_params is None or "mbpolicies" not in rest_params:
+            web_util.echo_json_response(self.req_handler, 400, "Invalid URL")
+            return False, None
+
+        if not web_util.validate_api_version(self, cast(str, rest_params["api_version"]), logger):
+            return False, None
+
+        mb_policy_name = rest_params["mbpolicies"]
+        if mb_policy_name is None and method != "GET":
+            web_util.echo_json_response(self.req_handler, 400, "Invalid URL")
+            logger.warning("%s returning 400 response: %s", method, self.request.path)
+            return False, None
+
+        return True, mb_policy_name
+
+    def get(self) -> None:
+        """Get a mb_policy or list of names of mbpolicies
+
+        GET /mbpolicies/[name]
+        name is required to get a mb_policy but not for getting the names of the mbpolicies.
+        """
+
+        params_valid, mb_policy_name = self.__validate_input("GET")
+        if not params_valid:
+            return
+
+        with session_context() as session:
+            if mb_policy_name is None:
+                try:
+                    names_mbpolicies = session.query(VerifierMbpolicy.name).all()
+                except SQLAlchemyError as e:
+                    logger.error("SQLAlchemy Error: %s", e)
+                    web_util.echo_json_response(self.req_handler, 500, "Failed to get names of mbpolicies")
+                    raise
+
+                names_response = []
+                for name in names_mbpolicies:
+                    names_response.append(name[0])
+                web_util.echo_json_response(self.req_handler, 200, "Success", {"mbpolicy names": names_response})
+
+            else:
+                try:
+                    mbpolicy = session.query(VerifierMbpolicy).filter_by(name=mb_policy_name).one()
+                except NoResultFound:
+                    web_util.echo_json_response(
+                        self.req_handler, 404, f"Measured boot policy {mb_policy_name} not found"
+                    )
+                    return
+                except SQLAlchemyError as e:
+                    logger.error("SQLAlchemy Error: %s", e)
+                    web_util.echo_json_response(self.req_handler, 500, "Failed to get mb_policy")
+                    raise
+
+                response = {}
+                response["name"] = getattr(mbpolicy, "name", None)
+                response["mb_policy"] = getattr(mbpolicy, "mb_policy", None)
+                web_util.echo_json_response(self.req_handler, 200, "Success", response)
+
+    def delete(self) -> None:
+        """Delete a mb_policy
+
+        DELETE /mbpolicies/{name}
+        """
+
+        params_valid, mb_policy_name = self.__validate_input("DELETE")
+        if not params_valid or mb_policy_name is None:
+            return
+
+        with session_context() as session:
+            try:
+                mbpolicy = session.query(VerifierMbpolicy).filter_by(name=mb_policy_name).one()
+            except NoResultFound:
+                web_util.echo_json_response(self.req_handler, 404, f"Measured boot policy {mb_policy_name} not found")
+                return
+            except SQLAlchemyError as e:
+                logger.error("SQLAlchemy Error: %s", e)
+                web_util.echo_json_response(self.req_handler, 500, "Failed to get mb_policy")
+                raise
+
+            try:
+                agent = session.query(VerfierMain).filter_by(mb_policy_id=mbpolicy.id).one_or_none()
+            except SQLAlchemyError as e:
+                logger.error("SQLAlchemy Error: %s", e)
+                raise
+            if agent is not None:
+                web_util.echo_json_response(
+                    self.req_handler,
+                    409,
+                    f"Can't delete mb_policy as it's currently in use by agent {agent.agent_id}",
+                )
+                return
+
+            try:
+                session.query(VerifierMbpolicy).filter_by(name=mb_policy_name).delete()
+                # session.commit() is automatically called by context manager
+            except SQLAlchemyError as e:
+                logger.error("SQLAlchemy Error: %s", e)
+                web_util.echo_json_response(self.req_handler, 500, f"Database error: {e}")
+                raise
+
+            # NOTE(kaifeng) 204 Can not have response body, but current helper
+            # doesn't support this case.
+            self.req_handler.set_status(204)
+            self.req_handler.set_header("Content-Type", "application/json")
+            self.req_handler.finish()
+            logger.info("DELETE returning 204 response for mb_policy: %s", mb_policy_name)
+
+    def __get_mb_policy_db_format(self, mb_policy_name: str) -> Dict[str, Any]:
+        """Get the measured boot policy from the request and return it in Db format"""
+
+        content_length = len(self.request.body)
+        if content_length == 0:
+            web_util.echo_json_response(self.req_handler, 400, "Expected non zero content length")
+            logger.warning("POST returning 400 response. Expected non zero content length.")
+            return {}
+
+        json_body = json.loads(self.request.body)
+        mb_policy = json_body.get("mb_policy")
+        mb_policy_db_format = mba.mb_policy_db_contents(mb_policy_name, mb_policy)
+
+        return mb_policy_db_format
+
+    def post(self) -> None:
+        """Create a mb_policy
+
+        POST /mbpolicies/{name}
+        body: ...
+        """
+
+        params_valid, mb_policy_name = self.__validate_input("POST")
+        if not params_valid or mb_policy_name is None:
+            return
+
+        mb_policy_db_format = self.__get_mb_policy_db_format(mb_policy_name)
+        if not mb_policy_db_format:
+            return
+
+        with session_context() as session:
+            # don't allow overwritting
+            try:
+                mbpolicy_count = session.query(VerifierMbpolicy).filter_by(name=mb_policy_name).count()
+                if mbpolicy_count > 0:
+                    web_util.echo_json_response(
+                        self.req_handler, 409, f"Measured boot policy with name {mb_policy_name} already exists"
+                    )
+                    logger.warning("Measured boot policy with name %s already exists", mb_policy_name)
+                    return
+            except SQLAlchemyError as e:
+                logger.error("SQLAlchemy Error: %s", e)
+                raise
+
+            try:
+                # Add the data
+                session.add(VerifierMbpolicy(**mb_policy_db_format))
+                # session.commit() is automatically called by context manager
+            except SQLAlchemyError as e:
+                logger.error("SQLAlchemy Error: %s", e)
+                raise
+
+        web_util.echo_json_response(self.req_handler, 201)
+        logger.info("POST returning 201")
+
+    def put(self) -> None:
+        """Update an mb_policy
+
+        PUT /mbpolicies/{name}
+        body: ...
+        """
+
+        params_valid, mb_policy_name = self.__validate_input("PUT")
+        if not params_valid or mb_policy_name is None:
+            return
+
+        mb_policy_db_format = self.__get_mb_policy_db_format(mb_policy_name)
+        if not mb_policy_db_format:
+            return
+
+        with session_context() as session:
+            # don't allow creating a new policy
+            try:
+                mbpolicy_count = session.query(VerifierMbpolicy).filter_by(name=mb_policy_name).count()
+                if mbpolicy_count != 1:
+                    web_util.echo_json_response(
+                        self.req_handler, 409, f"Measured boot policy with name {mb_policy_name} does not already exist"
+                    )
+                    logger.warning("Measured boot policy with name %s does not already exist", mb_policy_name)
+                    return
+            except SQLAlchemyError as e:
+                logger.error("SQLAlchemy Error: %s", e)
+                raise
+
+            try:
+                # Update the named mb_policy
+                session.query(VerifierMbpolicy).filter_by(name=mb_policy_name).update(
+                    mb_policy_db_format  # pyright: ignore
+                )
+                # session.commit() is automatically called by context manager
+            except SQLAlchemyError as e:
+                logger.error("SQLAlchemy Error: %s", e)
+                raise
+
+        web_util.echo_json_response(self.req_handler, 201)
+        logger.info("PUT returning 201")
+
+    def data_received(self, chunk: Any) -> None:
+        raise NotImplementedError()
+
+
+class VerifyEvidenceHandler(BaseHandler):
+    def head(self) -> None:
+        web_util.echo_json_response(self.req_handler, 405, "Not Implemented: Use POST interface instead")
+
+    def get(self) -> None:
+        web_util.echo_json_response(self.req_handler, 405, "Not Implemented: Use POST interface instead")
+
+    def delete(self) -> None:
+        web_util.echo_json_response(self.req_handler, 405, "Not Implemented: Use POST interface instead")
+
+    def put(self) -> None:
+        web_util.echo_json_response(self.req_handler, 405, "Not Implemented: Use POST interface instead")
+
+    def data_received(self, chunk: Any) -> None:
+        raise NotImplementedError()
+
+    def post(self) -> None:
+        if self.request.uri is None:
+            web_util.echo_json_response(self.req_handler, 400, "URI not specified")
+            return
+
+        rest_params = web_util.get_restful_params(self.request.uri)
+        if rest_params is None:
+            web_util.echo_json_response(self.req_handler, 405, "Not Implemented")
+            return
+
+        if "verify" not in rest_params and rest_params["verify"] != "evidence":
+            web_util.echo_json_response(self.req_handler, 400, "uri not supported")
+            logger.warning("GET returning 400 response. uri not supported: %s", self.request.path)
+            return
+
+        json_body = {}
+        try:
+            json_body = json.loads(self.request.body)
+        except Exception as e:
+            logger.warning("Failed to parse JSON body POST data: %s", e)
+            return
+
+        evidence_type = None
+        data = None
+
+        if "type" in json_body and json_body["type"] != "":
+            evidence_type = json_body["type"]
+        else:
+            web_util.echo_json_response(self.req_handler, 400, "missing parameter 'type'")
+            logger.warning("POST returning 400 response. missing query parameter 'type'")
+            return
+
+        if "data" in json_body and json_body["data"] != "":
+            data = json_body["data"]
+        else:
+            web_util.echo_json_response(self.req_handler, 400, "missing parameter 'data'")
+            logger.warning("POST returning 400 response. missing query parameter 'data'")
+            return
+
+        attestation_response: Dict[str, Any] = {}
+
+        attestation_response["valid"] = False
+        attestation_response["claims"] = {}
+        attestation_response["failures"] = []
+
+        try:
+            if evidence_type == "tpm":
+                (claims, attestation_failure) = self._tpm_verify(data)
+                attestation_response["claims"] = claims
+            elif evidence_type == "tee":
+                (claims, attestation_failure) = self._tee_verify(data)
+                attestation_response["claims"] = claims
+            else:
+                web_util.echo_json_response(self.req_handler, 400, "invalid evidence type")
+                logger.warning("POST returning 400 response. invalid evidence type")
+                return
+
+            if attestation_failure:
+                failures = []
+                is_input_error = False
+                for event in attestation_failure.events:
+                    failures.append(
+                        {
+                            "type": event.event_id,
+                            "context": json.loads(event.context),
+                        }
+                    )
+                    # Check if this is an input validation error
+                    if event.event_id.endswith(".missing_param") or event.event_id.endswith(".missing_policy"):
+                        is_input_error = True
+                attestation_response["failures"] = failures
+
+                # Return 400 for input validation errors, 200 for attestation failures
+                if is_input_error:
+                    web_util.echo_json_response(self.req_handler, 400, "Bad Request", attestation_response)
+                else:
+                    web_util.echo_json_response(self.req_handler, 200, "Success", attestation_response)
+            else:
+                attestation_response["valid"] = True
+                web_util.echo_json_response(self.req_handler, 200, "Success", attestation_response)
+        except Exception:
+            web_util.echo_json_response(
+                self.req_handler, 500, "Internal Server Error: Failed to process attestation data"
+            )
+
+    def _tpm_verify(self, data: dict[str, Any]) -> Tuple[dict[str, Any], Failure]:
+        quote = None
+        nonce = None
+        hash_alg = None
+        tpm_ek = None
+        tpm_ak = None
+        tpm_policy = ""
+        runtime_policy = ""
+        mb_policy = ""
+        ima_measurement_list = ""
+        mb_log = ""
+
+        failure = Failure(Component.DEFAULT)
+
+        if "quote" in data and data["quote"] != "":
+            quote = data["quote"]
+        else:
+            failure.add_event("missing_param", {"message": 'missing parameter "quote"'}, False)
+            logger.warning("POST returning 400 response. missing query parameter 'quote'")
+            return ({}, failure)
+
+        if "nonce" in data and data["nonce"] != "":
+            nonce = data["nonce"]
+        else:
+            failure.add_event("missing_param", {"message": 'missing parameter "nonce"'}, False)
+            logger.warning("POST returning 400 response. missing query parameter 'nonce'")
+            return ({}, failure)
+
+        if "hash_alg" in data and data["hash_alg"] != "":
+            hash_alg = data["hash_alg"]
+        else:
+            failure.add_event("missing_param", {"message": 'missing parameter "hash_alg"'}, False)
+            logger.warning("POST returning 400 response. missing query parameter 'hash_alg'")
+            return ({}, failure)
+
+        if "tpm_ek" in data and data["tpm_ek"] != "":
+            tpm_ek = data["tpm_ek"]
+        else:
+            failure.add_event("missing_param", {"message": 'missing parameter "tpm_ek"'}, False)
+            logger.warning("POST returning 400 response. missing query parameter 'tpm_ek'")
+            return ({}, failure)
+
+        if "tpm_ak" in data and data["tpm_ak"] != "":
+            tpm_ak = data["tpm_ak"]
+        else:
+            failure.add_event("missing_param", {"message": 'missing parameter "tpm_ak"'}, False)
+            logger.warning("POST returning 400 response. missing query parameter 'tpm_ak'")
+            return ({}, failure)
+
+        if "tpm_policy" in data and data["tpm_policy"] != "":
+            tpm_policy = data["tpm_policy"]
+
+        if "runtime_policy" in data and data["runtime_policy"] != "":
+            runtime_policy = data["runtime_policy"]
+
+        if "mb_policy" in data and data["mb_policy"] != "":
+            mb_policy = data["mb_policy"]
+
+        # At least one policy must be provided for TPM verification to be meaningful
+        if not tpm_policy and not runtime_policy and not mb_policy:
+            failure.add_event(
+                "missing_policy",
+                {"message": "at least one policy (tpm_policy, runtime_policy, or mb_policy) must be provided"},
+                False,
+            )
+            logger.warning("POST returning 400 response. no policy provided for verification")
+            return ({}, failure)
+
+        if "ima_measurement_list" in data and data["ima_measurement_list"] != "":
+            ima_measurement_list = data["ima_measurement_list"]
+
+        if "mb_log" in data and data["mb_log"] != "":
+            mb_log = data["mb_log"]
+
+        # process the request for attestation check
+        try:
+            # TODO - provide better error handling around bad runtime policy
+            policy_obj = ima.deserialize_runtime_policy(runtime_policy)
+            failure = cloud_verifier_common.process_verify_attestation(
+                tpm_ek,
+                tpm_ak,
+                quote,
+                nonce,
+                hash_alg,
+                tpm_policy,
+                policy_obj,
+                mb_policy,
+                ima_measurement_list,
+                mb_log,
+                mb_policy_name=config.get("verifier", "measured_boot_policy_name", fallback="accept-all"),
+            )
+
+            if len(failure.events) > 0:
+                return ({}, failure)
+
+            return (data, failure)
+        except Exception as e:
+            logger.warning("Failed to process /verify/evidence data in TPM verifier: %s", e)
+            raise
+
+    def _tee_verify(self, data: dict[str, Any]) -> Tuple[dict[str, Any], Failure]:
+        tee_evidence = None
+        nonce = None
+        x = None
+        y = None
+
+        claims: dict[str, Any] = {}
+        failure = Failure(Component.TEE)
+
+        if "tee-evidence" in data and data["tee-evidence"] != "":
+            tee_evidence = data["tee-evidence"]
+        else:
+            failure.add_event("missing_param", {"message": 'missing parameter "tee-evidence"'}, False)
+            logger.warning("POST returning 400 response. missing query parameter 'tee-evidence'")
+            return (claims, failure)
+
+        if "nonce" in data and data["nonce"] != "":
+            string = data["nonce"]
+            byte = string.encode("ascii")
+            nonce = base64.b64decode(byte)
+        else:
+            failure.add_event("missing_param", {"message": 'missing parameter "nonce"'}, False)
+            logger.warning("POST returning 400 response. missing query parameter 'nonce'")
+            return (claims, failure)
+
+        if "tee-pubkey-x-b64" in data and data["tee-pubkey-x-b64"] != "":
+            string = data["tee-pubkey-x-b64"]
+            byte = string.encode("ascii")
+            x = web_util.urlsafe_nopad_b64decode(byte)
+        else:
+            failure.add_event("missing_param", {"message": 'missing parameter "tee-pubkey-x-b64"'}, False)
+            logger.warning("POST returning 400 response. missing query parameter 'tee-pubkey-x-b64'")
+            return (claims, failure)
+
+        if "tee-pubkey-y-b64" in data and data["tee-pubkey-y-b64"] != "":
+            string = data["tee-pubkey-y-b64"]
+            byte = string.encode("ascii")
+            y = web_util.urlsafe_nopad_b64decode(byte)
+        else:
+            failure.add_event("missing_param", {"message": 'missing parameter "tee-pubkey-y-b64"'}, False)
+            logger.warning("POST returning 400 response. missing query parameter 'tee-pubkey-y-b64'")
+            return (claims, failure)
+
+        if "tee" in tee_evidence and tee_evidence["tee"] != "":
+            tee = tee_evidence["tee"]
+        else:
+            failure.add_event("missing_param", {"message": 'missing parameter "tee"'}, False)
+            logger.warning("POST returning 400 response. missing query parameter 'tee'")
+            return (claims, failure)
+
+        if "evidence" in tee_evidence and tee_evidence["evidence"] != "":
+            evidence = tee_evidence["evidence"]
+        else:
+            failure.add_event("missing_param", {"message": 'missing parameter "evidence"'}, False)
+            logger.warning("POST returning 400 response. missing query parameter 'evidence'")
+            return (claims, failure)
+
+        if tee == "snp":
+            return self._sev_snp_verify(evidence, nonce, x, y)
+
+        failure.add_event("invalid.tee", {"message": "invalid tee argument"}, False)
+        logger.warning("POST returning 400 response. invalid tee argument")
+
+        return (claims, failure)
+
+    def _sev_snp_verify(
+        self, data: dict[str, Any], nonce: bytes, x_b64: bytes, y_b64: bytes
+    ) -> Tuple[dict[str, Any], Failure]:
+        report = None
+
+        claims: dict[str, Any] = {}
+        failure = Failure(Component.TEE)
+
+        if "snp-report" in data and data["snp-report"] != "":
+            string = data["snp-report"]
+            byte = string.encode("ascii")
+            report = base64.b64decode(byte)
+        else:
+            failure.add_event("missing_param", {"message": 'missing parameter "snp-report"'}, False)
+            logger.warning("POST returning 400 response. missing query parameter 'snp-report'")
+            return (claims, failure)
+
+        try:
+            (claims, failure) = snp.verify_attestation(report, nonce, x_b64, y_b64)
+
+            return (claims, failure)
+        except Exception as e:
+            logger.warning("Failed to process /verify/evidence evidence in SEV-SNP verifier: %s", e)
+            raise
+
+
+async def update_agent_api_version(
+    agent: Dict[str, Any], timeout: float = DEFAULT_TIMEOUT
+) -> Union[Dict[str, Any], None]:
+    """
+    Query agent's /version endpoint and negotiate compatible API version.
+    """
+    agent_id = agent["agent_id"]
+    old_version = agent.get("supported_version")
+
+    logger.info("Agent %s API version bump detected, trying to update stored API version", agent_id)
+    kwargs = {}
+    if agent["ssl_context"]:
+        kwargs["context"] = agent["ssl_context"]
+
+    res = tornado_requests.request(
+        "GET",
+        f"http://{agent['ip']}:{agent['port']}/version",
+        **kwargs,
+        timeout=timeout,
+    )
+    response = await res
+
+    if response.status_code != 200:
+        logger.warning(
+            "Could not get agent %s supported API version, Error: %s",
+            agent["agent_id"],
+            response.status_code,
+        )
+        return None
+
+    try:
+        json_response = json.loads(response.body)
+
+        # Try new format first (list of versions)
+        agent_versions = json_response["results"].get("supported_versions")
+
+        # Fall back to old format (single version)
+        if agent_versions is None:
+            agent_versions = json_response["results"].get("supported_version")
+
+        if agent_versions:
+            # Negotiate compatible version
+            negotiated = keylime_api_version.negotiate_version(agent_versions)
+
+            if negotiated is None:
+                # No compatible version
+                logger.error(
+                    "No compatible API version between verifier and agent %s. "
+                    "Agent supports: %s, Verifier supports: %s",
+                    agent_id,
+                    agent_versions,
+                    keylime_api_version.all_versions(),
+                )
+                return None
+
+            # Check if version actually changed
+            if negotiated == old_version:
+                logger.debug("Agent %s already using negotiated version %s", agent_id, negotiated)
+                return agent  # No change needed
+
+            # Validate negotiated version
+            if not keylime_api_version.validate_version(negotiated):
+                logger.error("Negotiated version %s for agent %s is invalid", negotiated, agent_id)
+                return None
+
+            # Check that the negotiated version is greater than current version (prevent downgrade)
+            negotiated_tuple = str_to_version(negotiated)
+            if not negotiated_tuple:
+                logger.error("Agent %s negotiated version %s is invalid", agent_id, negotiated)
+                return None
+
+            # Only check for downgrade if there was a previous version and successful attestation.
+            # If attestation_count == 0, the stored version might be a fallback guess from the tenant,
+            # not a version the agent actually supported, so we allow the "downgrade".
+            attestation_count = agent.get("attestation_count", 0)
+            if old_version is not None and attestation_count > 0:
+                old_version_tuple = str_to_version(old_version)
+                if not old_version_tuple:
+                    logger.error("Agent %s stored version %s is invalid", agent_id, old_version)
+                    return None
+
+                if negotiated_tuple <= old_version_tuple:
+                    logger.warning(
+                        "Agent %s API version %s is lower or equal to previous version %s",
+                        agent_id,
+                        negotiated,
+                        old_version,
+                    )
+                    return None
+
+            logger.info("Agent %s new API version %s is supported", agent_id, negotiated)
+
+            with session_context() as session:
+                agent["supported_version"] = negotiated
+
+                # Remove keys that should not go to the DB
+                agent_db = dict(agent)
+                for key in exclude_db:
+                    if key in agent_db:
+                        del agent_db[key]
+
+                rows = (
+                    session.query(VerfierMain)
+                    .filter_by(agent_id=agent_id)
+                    .filter(VerfierMain.operational_state != states.TERMINATED)  # pyright: ignore
+                    .filter(VerfierMain.operational_state != states.TENANT_FAILED)  # pyright: ignore
+                    .update(agent_db)  # pyright: ignore
+                )
+                # session.commit() is automatically called by context manager
+
+            if rows == 0:
+                logger.info("Agent %s was terminated or stopped during version negotiation, stopping", agent_id)
+                _complete_deletion_if_terminated(agent_id)
+                return None
+
+        else:
+            logger.warning("Agent %s did not provide version information", agent_id)
+            return None
+
+    except SQLAlchemyError as e:
+        logger.error("SQLAlchemy Error updating API version for agent %s: %s", agent_id, e)
+        return None
+    except Exception as e:
+        logger.exception(e)
+        return None
+
+    logger.info("Agent %s API version updated to %s", agent["agent_id"], agent["supported_version"])
+    return agent
+
+
+async def invoke_get_quote(
+    agent: Dict[str, Any],
+    mb_policy: Optional[str],
+    runtime_policy: str,
+    need_pubkey: bool,
+    timeout: float = DEFAULT_TIMEOUT,
+) -> None:
+    # Clear tracking only — the timeout already fired (this *is* the callback),
+    # so there is no handle to cancel via remove_timeout().  Done before the
+    # shutdown check so tracking state is cleaned up even on early return.
+    if agent.get("pending_event") is not None:
+        agent["pending_event"] = None
+        _pending_events.pop(agent["agent_id"], None)
+
+    if shutdown.is_shutting_down():
+        logger.debug("Skipping get_quote for agent %s — shutting down", agent["agent_id"])
+        return
+
+    failure = Failure(Component.INTERNAL, ["verifier"])
+
+    params = cloud_verifier_common.prepare_get_quote(agent)
+
+    partial_req = "1"
+    if need_pubkey:
+        partial_req = "0"
+
+    # TODO: remove special handling after initial upgrade
+    kwargs = {}
+    if agent["ssl_context"]:
+        kwargs["context"] = agent["ssl_context"]
+
+    res = tornado_requests.request(
+        "GET",
+        f"http://{agent['ip']}:{agent['port']}/v{agent['supported_version']}/quotes/integrity"
+        f"?nonce={params['nonce']}&mask={params['mask']}"
+        f"&partial={partial_req}&ima_ml_entry={params['ima_ml_entry']}",
+        **kwargs,
+        timeout=timeout,
+    )
+    response = await res
+
+    if response.status_code != 200:
+        # this is a connection error, retry get quote
+        if response.status_code in [408, 500, 599]:
+            asyncio.ensure_future(process_agent(agent, states.GET_QUOTE_RETRY))
+            return
+
+        if response.status_code == 400:
+            try:
+                json_response = json.loads(response.body)
+                if "API version not supported" in json_response["status"]:
+                    update = update_agent_api_version(agent, timeout=timeout)
+                    updated = await update
+
+                    if updated:
+                        asyncio.ensure_future(process_agent(updated, states.GET_QUOTE_RETRY))
+                    else:
+                        logger.warning("Could not update stored agent %s API version", agent["agent_id"])
+                        failure.add_event(
+                            "version_not_supported",
+                            {"context": "Agent API version not supported", "data": json_response},
+                            False,
+                        )
+                        asyncio.ensure_future(process_agent(agent, states.FAILED, failure))
+                    return
+
+            except Exception as e:
+                logger.exception(e)
+                failure.add_event(
+                    "exception", {"context": "Agent caused the verifier to throw an exception", "data": str(e)}, False
+                )
+                asyncio.ensure_future(process_agent(agent, states.FAILED, failure))
+                return
+
+        # catastrophic error, do not continue
+        logger.critical(
+            "Unexpected Get Quote response error for cloud agent %s, Error: %s",
+            agent["agent_id"],
+            response.status_code,
+        )
+        failure.add_event("no_quote", "Unexpected Get Quote reponse from agent", False)
+        asyncio.ensure_future(process_agent(agent, states.FAILED, failure))
+    else:
+        try:
+            json_response = json.loads(response.body)
+
+            # validate the cloud agent response
+            if "provide_V" not in agent:
+                agent["provide_V"] = True
+            agentAttestState = get_AgentAttestStates().get_by_agent_id(agent["agent_id"])
+
+            if rmc:
+                rmc.record_create(agent, json_response, mb_policy, runtime_policy)
+
+            failure = cloud_verifier_common.process_quote_response(
+                agent,
+                mb_policy,
+                ima.deserialize_runtime_policy(runtime_policy),
+                json_response["results"],
+                agentAttestState,
+                mb_policy_name=config.get("verifier", "measured_boot_policy_name", fallback="accept-all"),
+            )
+            if not failure:
+                if agent["provide_V"]:
+                    asyncio.ensure_future(process_agent(agent, states.PROVIDE_V))
+                else:
+                    asyncio.ensure_future(process_agent(agent, states.GET_QUOTE))
+            else:
+                asyncio.ensure_future(process_agent(agent, states.INVALID_QUOTE, failure))
+
+            # store the attestation state
+            store_attestation_state(agentAttestState)
+
+        except Exception as e:
+            logger.exception(e)
+            failure.add_event(
+                "exception", {"context": "Agent caused the verifier to throw an exception", "data": str(e)}, False
+            )
+            asyncio.ensure_future(process_agent(agent, states.FAILED, failure))
+
+
+async def invoke_provide_v(agent: Dict[str, Any], timeout: float = DEFAULT_TIMEOUT) -> None:
+    # Clear tracking only — the timeout already fired (this *is* the callback),
+    # so there is no handle to cancel via remove_timeout().  Done before the
+    # shutdown check so tracking state is cleaned up even on early return.
+    if agent.get("pending_event") is not None:
+        agent["pending_event"] = None
+        _pending_events.pop(agent["agent_id"], None)
+
+    if shutdown.is_shutting_down():
+        logger.debug("Skipping provide_v for agent %s — shutting down", agent["agent_id"])
+        return
+    failure = Failure(Component.INTERNAL, ["verifier"])
+
+    v_json_message = cloud_verifier_common.prepare_v(agent)
+
+    # TODO: remove special handling after initial upgrade
+    kwargs = {}
+    if agent["ssl_context"]:
+        kwargs["context"] = agent["ssl_context"]
+
+    res = tornado_requests.request(
+        "POST",
+        f"http://{agent['ip']}:{agent['port']}/v{agent['supported_version']}/keys/vkey",
+        data=v_json_message,
+        **kwargs,
+        timeout=timeout,
+    )
+
+    response = await res
+
+    if response.status_code != 200:
+        if response.status_code in [408, 500, 599]:
+            asyncio.ensure_future(process_agent(agent, states.PROVIDE_V_RETRY))
+            return
+
+        if response.status_code == 400:
+            try:
+                json_response = json.loads(response.body)
+                if "API version not supported" in json_response["status"]:
+                    update = update_agent_api_version(agent, timeout=timeout)
+                    updated = await update
+
+                    if updated:
+                        asyncio.ensure_future(process_agent(updated, states.PROVIDE_V_RETRY))
+                    else:
+                        logger.warning("Could not update stored agent %s API version", agent["agent_id"])
+                        failure.add_event(
+                            "version_not_supported",
+                            {"context": "Agent API version not supported", "data": json_response},
+                            False,
+                        )
+                        asyncio.ensure_future(process_agent(agent, states.FAILED, failure))
+                    return
+
+            except Exception as e:
+                logger.exception(e)
+                failure.add_event(
+                    "exception", {"context": "Agent caused the verifier to throw an exception", "data": str(e)}, False
+                )
+                asyncio.ensure_future(process_agent(agent, states.FAILED, failure))
+                return
+
+        # catastrophic error, do not continue
+        logger.critical(
+            "Unexpected Provide V response error for cloud agent %s, Error: %s",
+            agent["agent_id"],
+            response.status_code,
+        )
+        failure.add_event("no_v", {"message": "Unexpected provide V response", "data": response.status_code}, False)
+        asyncio.ensure_future(process_agent(agent, states.FAILED, failure))
+    else:
+        asyncio.ensure_future(process_agent(agent, states.GET_QUOTE))
+
+
+async def invoke_notify_error(agent: Dict[str, Any], tosend: Dict[str, Any], timeout: float = DEFAULT_TIMEOUT) -> None:
+    kwargs = {
+        "data": tosend,
+    }
+    if agent["ssl_context"]:
+        kwargs["context"] = agent["ssl_context"]
+
+    res = tornado_requests.request(
+        "POST",
+        f"http://{agent['ip']}:{agent['port']}/v{agent['supported_version']}/notifications/revocation",
+        **kwargs,  # type: ignore
+        timeout=timeout,
+    )
+    response = await res
+
+    if response is None:
+        logger.warning(
+            "Empty Notify Revocation response from cloud agent %s",
+            agent["agent_id"],
+        )
+    elif response.status_code != 200:
+        if response.status_code == 400:
+            try:
+                json_response = json.loads(response.body)
+                if "API version not supported" in json_response["status"]:
+                    update = update_agent_api_version(agent, timeout=timeout)
+                    updated = await update
+
+                    if updated:
+                        asyncio.ensure_future(invoke_notify_error(updated, tosend))
+                    else:
+                        logger.warning("Could not update stored agent %s API version", agent["agent_id"])
+
+                    return
+
+            except Exception as e:
+                logger.exception(e)
+                return
+
+        logger.warning(
+            "Unexpected Notify Revocation response error for cloud agent %s, Error: %s",
+            agent["agent_id"],
+            response.status_code,
+        )
+
+
+async def notify_error(
+    agent: Dict[str, Any],
+    msgtype: str = "revocation",
+    event: Optional[Event] = None,
+    timeout: float = DEFAULT_TIMEOUT,
+) -> None:
+    notifiers = revocation_notifier.get_notifiers()
+    if len(notifiers) == 0:
+        return
+
+    tosend = cloud_verifier_common.prepare_error(agent, msgtype, event)
+    if "webhook" in notifiers:
+        revocation_notifier.notify_webhook(tosend)
+    if "zeromq" in notifiers:
+        revocation_notifier.notify(tosend)
+    if "agent" in notifiers:
+        verifier_id = config.get("verifier", "uuid", fallback=cloud_verifier_common.DEFAULT_VERIFIER_ID)
+        with session_context() as session:
+            try:
+                agents = session.query(VerfierMain).filter_by(verifier_id=verifier_id).all()
+            except Exception as e:
+                logger.error("An issue happened querying the verifier for the list of agents to notify: %s", e)
+                return
+
+            futures = []
+            loop = asyncio.get_event_loop()
+            # Notify all agents asynchronously through a thread pool
+            with ThreadPoolExecutor() as pool:
+                for agent_db_obj in agents:
+                    if agent_db_obj.agent_id != agent["agent_id"]:
+                        agent = _from_db_obj(agent_db_obj)
+                        if agent["mtls_cert"] and agent["mtls_cert"] != "disabled":
+                            agent["ssl_context"] = web_util.generate_agent_tls_context(
+                                "verifier", agent["mtls_cert"], logger=logger
+                            )
+                    func = functools.partial(invoke_notify_error, agent, tosend, timeout=timeout)
+                    futures.append(await loop.run_in_executor(pool, func))
+                # Wait for all tasks complete in 60 seconds
+                try:
+                    for f in asyncio.as_completed(futures, timeout=60):
+                        await f
+                except asyncio.TimeoutError as e:
+                    logger.error("Timeout during notifying error to agents: %s", e)
+
+
+async def process_agent(
+    agent: Dict[str, Any], new_operational_state: int, failure: Failure = Failure(Component.INTERNAL, ["verifier"])
+) -> None:
+    # During shutdown, allow terminal-state transitions (FAILED, INVALID_QUOTE)
+    # through so that final DB writes and revocation notifications complete.
+    # Only skip non-terminal transitions that would schedule new polls/retries.
+    if shutdown.is_shutting_down() and new_operational_state not in (states.FAILED, states.INVALID_QUOTE):
+        logger.debug("Skipping process_agent for agent %s — shutting down", agent["agent_id"])
+        return
+
+    _enter_operation()
+    try:  # pylint: disable=R1702
+        main_agent_operational_state = agent["operational_state"]
+        stored_agent = None
+
+        # First database operation - read agent data and extract all needed data within session context
+        mb_policy_data = None
+        with session_context() as session:
+            try:
+                stored_agent = (
+                    session.query(VerfierMain)
+                    .options(  # type: ignore
+                        joinedload(VerfierMain.ima_policy)  # Load full IMA policy object including content
+                    )
+                    .options(  # type: ignore
+                        joinedload(VerfierMain.mb_policy).load_only(VerifierMbpolicy.mb_policy)  # pyright: ignore
+                    )
+                    .filter_by(agent_id=str(agent["agent_id"]))
+                    .first()
+                )
+
+                # Extract MB policy data within session context
+                if stored_agent and stored_agent.mb_policy:
+                    mb_policy_data = stored_agent.mb_policy.mb_policy
+
+            except SQLAlchemyError as e:
+                logger.error("SQLAlchemy Error for agent ID %s: %s", agent["agent_id"], e)
+
+        # if the stored agent could not be recovered from the database, stop polling
+        if not stored_agent:
+            logger.warning("Unable to retrieve agent %s from database. Stopping polling", agent["agent_id"])
+            _cancel_pending_event(agent)
+            return
+
+        # if the user did terminated this agent
+        if stored_agent.operational_state == states.TERMINATED:  # pyright: ignore
+            logger.warning("Agent %s terminated by user.", agent["agent_id"])
+            _cancel_pending_event(agent)
+
+            # Second database operation - delete agent
+            with session_context() as session:
+                verifier_db_delete_agent(session, agent["agent_id"])
+            return
+
+        # if the user tells us to stop polling because the tenant quote check failed
+        if stored_agent.operational_state == states.TENANT_FAILED:  # pyright: ignore
+            logger.warning("Agent %s has failed tenant quote. Stopping polling", agent["agent_id"])
+            _cancel_pending_event(agent)
+            return
+
+        # Use the request timeout stored in the agent dict (read from the
+        # verifier config)
+        # This value is set through the exclude_db dict and is removed before
+        # storing the agent data in the DB
+        timeout = agent.get("request_timeout", DEFAULT_TIMEOUT)
+
+        # If failed during processing, log regardless and drop it on the floor
+        # The administration application (tenant) can GET the status and act accordingly (delete/retry/etc).
+        if new_operational_state in (states.FAILED, states.INVALID_QUOTE):
+            assert failure, "States FAILED and INVALID QUOTE should only be reached with a failure message"
+            assert failure.highest_severity
+
+            if agent.get("severity_level") is None or agent["severity_level"] < failure.highest_severity.severity:
+                assert failure.highest_severity_event
+                agent["severity_level"] = failure.highest_severity.severity
+                agent["last_event_id"] = failure.highest_severity_event.event_id
+                agent["operational_state"] = new_operational_state
+
+                # issue notification for invalid quotes
+                if new_operational_state == states.INVALID_QUOTE:
+                    await notify_error(agent, event=failure.highest_severity_event, timeout=timeout)
+
+                # When the failure is irrecoverable we stop polling the agent
+                if not failure.recoverable or failure.highest_severity == MAX_SEVERITY_LABEL:
+                    _cancel_pending_event(agent)
+
+                    # Third database operation - update agent with failure state
+                    with session_context() as session:
+                        for key in exclude_db:
+                            if key in agent:
+                                del agent[key]
+                        rows = (
+                            session.query(VerfierMain)
+                            .filter_by(agent_id=agent["agent_id"])
+                            .filter(VerfierMain.operational_state != states.TERMINATED)  # pyright: ignore
+                            .filter(VerfierMain.operational_state != states.TENANT_FAILED)  # pyright: ignore
+                            .update(agent)  # type: ignore[arg-type]
+                        )
+                        # session.commit() is automatically called by context manager
+
+                    if rows == 0:
+                        _complete_deletion_if_terminated(agent["agent_id"])
+                        return
+
+        # propagate all state, but remove none DB keys first (using exclude_db)
+        try:
+            agent_db = dict(agent)
+            for key in exclude_db:
+                if key in agent_db:
+                    del agent_db[key]
+
+            # Fourth database operation - update agent state.
+            # The TERMINATED/TENANT_FAILED filters prevent a TOCTOU race:
+            # if a DELETE or PUT /stop handler set one of these states
+            # between our initial read and this write, the update matches
+            # zero rows and we stop polling instead of reverting the agent
+            # back to an active state.
+            with session_context() as session:
+                rows = (
+                    session.query(VerfierMain)
+                    .filter_by(agent_id=agent_db["agent_id"])
+                    .filter(VerfierMain.operational_state != states.TERMINATED)  # pyright: ignore
+                    .filter(VerfierMain.operational_state != states.TENANT_FAILED)  # pyright: ignore
+                    .update(agent_db)  # pyright: ignore
+                )
+                # session.commit() is automatically called by context manager
+
+            if rows == 0:
+                _complete_deletion_if_terminated(agent["agent_id"])
+                return
+        except SQLAlchemyError as e:
+            logger.error("SQLAlchemy Error for agent ID %s: %s", agent["agent_id"], e)
+
+        # Load agent's IMA policy
+        if stored_agent:
+            runtime_policy = verifier_read_policy_from_cache(stored_agent)
+        else:
+            runtime_policy = ""
+
+        # Get agent's measured boot policy
+        mb_policy = mb_policy_data
+
+        # If agent was in a failed state we check if we either stop polling
+        # or just add it again to the event loop
+        if new_operational_state in [states.FAILED, states.INVALID_QUOTE]:
+            if not failure.recoverable or failure.highest_severity == MAX_SEVERITY_LABEL:
+                logger.warning("Agent %s failed, stopping polling", agent["agent_id"])
+                return
+
+            await invoke_get_quote(agent, mb_policy, runtime_policy, False, timeout=timeout)
+            return
+
+        # if new, get a quote
+        if main_agent_operational_state == states.START and new_operational_state == states.GET_QUOTE:
+            agent["num_retries"] = 0
+            agent["operational_state"] = states.GET_QUOTE
+            await invoke_get_quote(agent, mb_policy, runtime_policy, True, timeout=timeout)
+            return
+
+        if main_agent_operational_state == states.GET_QUOTE and new_operational_state == states.PROVIDE_V:
+            agent["num_retries"] = 0
+            agent["operational_state"] = states.PROVIDE_V
+            # Only deploy V key if actually set
+            if agent.get("v"):
+                await invoke_provide_v(agent, timeout=timeout)
+            else:
+                await process_agent(agent, states.GET_QUOTE)
+            return
+
+        if (
+            main_agent_operational_state in (states.PROVIDE_V, states.GET_QUOTE)
+            and new_operational_state == states.GET_QUOTE
+        ):
+            agent["num_retries"] = 0
+            interval = config.getfloat("verifier", "quote_interval")
+            agent["operational_state"] = states.GET_QUOTE
+            if interval == 0:
+                await invoke_get_quote(agent, mb_policy, runtime_policy, False, timeout=timeout)
+            else:
+                logger.debug(
+                    "Setting up callback to check agent ID %s again in %f seconds", agent["agent_id"], interval
+                )
+
+                if shutdown.is_shutting_down():
+                    logger.debug("Not scheduling next poll for agent %s — shutting down", agent["agent_id"])
+                    return
+
+                pending = tornado.ioloop.IOLoop.current().call_later(
+                    # type: ignore  # due to python <3.9
+                    interval,
+                    invoke_get_quote,
+                    agent,
+                    mb_policy,
+                    runtime_policy,
+                    False,
+                    timeout=timeout,
+                )
+                _register_pending_event(agent, pending)
+            return
+
+        maxr = config.getint("verifier", "max_retries")
+        interval = config.getfloat("verifier", "retry_interval")
+        exponential_backoff = config.getboolean("verifier", "exponential_backoff")
+
+        if main_agent_operational_state == states.GET_QUOTE and new_operational_state == states.GET_QUOTE_RETRY:
+            if agent["num_retries"] >= maxr:
+                logger.warning(
+                    "Agent %s was not reachable for quote in %d tries, setting state to FAILED", agent["agent_id"], maxr
+                )
+                failure.add_event("not_reachable", "agent was not reachable from verifier", False)
+                if agent["attestation_count"] > 0:  # only notify on previously good agents
+                    await notify_error(
+                        agent, msgtype="comm_error", event=failure.highest_severity_event, timeout=timeout
+                    )
+                else:
+                    logger.debug("Communication error for new agent. No notification will be sent")
+                await process_agent(agent, states.FAILED, failure)
+            else:
+                agent["operational_state"] = states.GET_QUOTE
+
+                agent["num_retries"] += 1
+                next_retry = retry.retry_time(exponential_backoff, interval, agent["num_retries"], logger)
+                logger.info(
+                    "Connection to %s refused after %d/%d tries, trying again in %f seconds",
+                    agent["ip"],
+                    agent["num_retries"],
+                    maxr,
+                    next_retry,
+                )
+                if shutdown.is_shutting_down():
+                    logger.debug("Not scheduling retry for agent %s — shutting down", agent["agent_id"])
+                    return
+
+                pending = tornado.ioloop.IOLoop.current().call_later(
+                    # type: ignore  # due to python <3.9
+                    next_retry,
+                    invoke_get_quote,
+                    agent,
+                    mb_policy,
+                    runtime_policy,
+                    True,
+                    timeout=timeout,
+                )
+                _register_pending_event(agent, pending)
+            return
+
+        if main_agent_operational_state == states.PROVIDE_V and new_operational_state == states.PROVIDE_V_RETRY:
+            if agent["num_retries"] >= maxr:
+                logger.warning(
+                    "Agent %s was not reachable to provide v in %d tries, setting state to FAILED",
+                    agent["agent_id"],
+                    maxr,
+                )
+                failure.add_event("not_reachable_v", "agent was not reachable to provide V", False)
+                await notify_error(agent, msgtype="comm_error", event=failure.highest_severity_event, timeout=timeout)
+                await process_agent(agent, states.FAILED, failure)
+            else:
+                agent["operational_state"] = states.PROVIDE_V
+
+                agent["num_retries"] += 1
+                next_retry = retry.retry_time(exponential_backoff, interval, agent["num_retries"], logger)
+                logger.info(
+                    "Connection to %s refused after %d/%d tries, trying again in %f seconds",
+                    agent["ip"],
+                    agent["num_retries"],
+                    maxr,
+                    next_retry,
+                )
+                if shutdown.is_shutting_down():
+                    logger.debug("Not scheduling retry for agent %s — shutting down", agent["agent_id"])
+                    return
+
+                pending = tornado.ioloop.IOLoop.current().call_later(
+                    next_retry,  # type: ignore  # due to python <3.9
+                    invoke_provide_v,
+                    agent,
+                    timeout,
+                )
+                _register_pending_event(agent, pending)
+            return
+        raise Exception("nothing should ever fall out of this!")
+
+    except Exception as e:
+        logger.exception("Polling thread error for agent ID %s", agent["agent_id"])
+        failure.add_event(
+            "exception", {"context": "Agent caused the verifier to throw an exception", "data": str(e)}, False
+        )
+        await process_agent(agent, states.FAILED, failure)
+    finally:
+        _exit_operation()
+
+
+def check_push_agent_timeout_on_startup(agent: VerfierMain, current_time: int, timeout_seconds: float) -> bool:
+    """Check if a PUSH mode agent timed out during verifier downtime.
+
+    Returns True if the agent was marked as timed out.
+    """
+    if not agent_util.is_push_mode_agent(agent):
+        return False
+
+    logger.debug(
+        "PUSH mode agent %s: last_received_quote=%s, accept_attestations=%s (type=%s)",
+        agent.agent_id,
+        agent.last_received_quote,
+        agent.accept_attestations,
+        type(agent.accept_attestations).__name__,
+    )
+    if (
+        agent.last_received_quote is not None and agent.last_received_quote > 0 and bool(agent.accept_attestations)
+    ):  # pyright: ignore[reportGeneralTypeIssues]
+        last_quote = int(agent.last_received_quote)  # pyright: ignore[reportArgumentType]
+        time_since_last = current_time - last_quote
+        if time_since_last > timeout_seconds:
+            logger.warning(
+                "PUSH mode agent %s timed out during verifier downtime "
+                "(%.1f seconds since last attestation, threshold: %.1f seconds). "
+                "Setting accept_attestations to False.",
+                agent.agent_id,
+                time_since_last,
+                timeout_seconds,
+            )
+            agent.accept_attestations = False  # pyright: ignore[reportAttributeAccessIssue]
+            return True
+    return False
+
+
+async def activate_agents(agents: List[VerfierMain], verifier_ip: str, verifier_port: int) -> None:
+    aas = get_AgentAttestStates()
+    for agent in agents:
+        agent.verifier_ip = verifier_ip  # pyright: ignore
+        agent.verifier_port = verifier_port  # pyright: ignore
+
+        if agent_util.is_push_mode_agent(agent):
+            logger.debug("Skipping PULL activation for PUSH mode agent %s", agent.agent_id)
+            continue
+
+        agent_run = _from_db_obj(agent)
+        if agent_run["mtls_cert"] and agent_run["mtls_cert"] != "disabled":
+            agent_run["ssl_context"] = web_util.generate_agent_tls_context(
+                "verifier", agent_run["mtls_cert"], logger=logger
+            )
+
+        if agent.operational_state == states.START:  # pyright: ignore
+            asyncio.ensure_future(process_agent(agent_run, states.GET_QUOTE))
+        if agent.boottime:  # pyright: ignore
+            ima_pcrs_dict = {}
+            assert isinstance(agent.ima_pcrs, list)
+            for pcr_num in agent.ima_pcrs:
+                ima_pcrs_dict[pcr_num] = getattr(agent, f"pcr{pcr_num}")
+            aas.add(
+                str(agent.agent_id),
+                int(agent.boottime),  # pyright: ignore
+                ima_pcrs_dict,
+                int(agent.next_ima_ml_entry),  # type: ignore
+                dict(agent.learned_ima_keyrings),  # type: ignore
+            )
+
+
+def get_agents_by_verifier_id(verifier_id: str) -> List[VerfierMain]:
+    try:
+        with session_context() as session:
+            return session.query(VerfierMain).filter_by(verifier_id=verifier_id).all()
+    except SQLAlchemyError as e:
+        logger.error("SQLAlchemy Error: %s", e)
+    return []
+
+
+def main() -> None:
+    """Main method of the Cloud Verifier Server.  This method is encapsulated in a function for packaging to allow it to be
+    called as a function by an external program."""
+
+    _initialize_verifier_config()
+
+    config.check_version("verifier", logger=logger)
+
+    # Set verifier timeout configuration in exclude_db
+    exclude_db["request_timeout"] = config.getfloat("verifier", "request_timeout", fallback=DEFAULT_TIMEOUT)
+
+    verifier_port = config.get("verifier", "port")
+    verifier_host = config.get("verifier", "ip")
+    verifier_id = config.get("verifier", "uuid", fallback=cloud_verifier_common.DEFAULT_VERIFIER_ID)
+
+    # allow tornado's max upload size to be configurable
+    max_upload_size = None
+    if config.has_option("verifier", "max_upload_size"):
+        max_upload_size = int(config.get("verifier", "max_upload_size"))
+
+    # set a conservative general umask
+    os.umask(0o077)
+
+    VerfierMain.metadata.create_all(engine, checkfirst=True)  # pyright: ignore
+    with session_context() as session:
+        try:
+            quote_interval = config.getfloat("verifier", "quote_interval", fallback=2.0)
+            timeout_seconds = push_agent_monitor.get_maximum_attestation_interval(quote_interval)
+            current_time = int(time.time())
+
+            query_all = session.query(VerfierMain).all()
+            for row in query_all:
+                if row.operational_state in states.APPROVED_REACTIVATE_STATES:
+                    row.operational_state = states.START  # pyright: ignore
+
+                check_push_agent_timeout_on_startup(row, current_time, timeout_seconds)
+            # session.commit() is automatically called by context manager
+        except SQLAlchemyError as e:
+            logger.error("SQLAlchemy Error: %s", e)
+
+        num = session.query(VerfierMain.agent_id).count()
+        if num > 0:
+            agent_ids = session.query(VerfierMain.agent_id).all()
+            logger.info("Agent ids in db loaded from file: %s", agent_ids)
+
+    logger.info("Starting Cloud Verifier (tornado) on port %s, use <Ctrl-C> to stop", verifier_port)
+
+    # print out API versions we support
+    keylime_api_version.log_api_versions(logger)
+
+    # Get the server TLS context
+    ssl_ctx = web_util.init_mtls("verifier", logger=logger)
+
+    app = tornado.web.Application(
+        [
+            (r"/v?[0-9]+(?:\.[0-9]+)?/verify/identity", VerifyIdentityHandler),
+            (r"/v?[0-9]+(?:\.[0-9]+)?/agents/.*", AgentsHandler),
+            (r"/v?[0-9]+(?:\.[0-9]+)?/allowlists/.*", AllowlistHandler),
+            (r"/v?[0-9]+(?:\.[0-9]+)?/mbpolicies/.*", MbpolicyHandler),
+            (r"/v?[0-9]+(?:\.[0-9]+)?/verify/evidence", VerifyEvidenceHandler),
+            (r"/versions?", VersionHandler),
+            (r".*", MainHandler),
+        ]
+    )
+
+    sockets = tornado.netutil.bind_sockets(int(verifier_port), address=verifier_host)
+
+    def server_process(task_id: int, agents: List[VerfierMain]) -> None:
+        logger.info("Starting server of process %s", task_id)
+        assert isinstance(engine, Engine)
+        engine.dispose()
+        server = tornado.httpserver.HTTPServer(app, ssl_options=ssl_ctx, max_buffer_size=max_upload_size)
+        server.add_sockets(sockets)
+
+        # Hold strong references to async tasks to prevent GC from collecting them mid-run
+        _background_tasks: List[asyncio.Task[None]] = []
+
+        def server_sig_handler(signame: str = "signal") -> None:
+            if shutdown.is_shutting_down():
+                logger.warning("Shutdown already in progress, ignoring %s (server %s)", signame, task_id)
+                return
+            logger.info("Received %s, shutting down server %s..", signame, task_id)
+
+            # Signal all attestation loops to stop scheduling new work
+            shutdown.request_shutdown()
+
+            # Stop server to not accept new incoming connections
+            server.stop()
+
+            # Cancel all pending attestation timeouts (retries, polls)
+            cancel_all_pending_events()
+            push_agent_monitor.cancel_all_timeouts()
+            push_timeout_periodic.stop()
+
+            # Wait for in-flight operations, then close connections and stop
+            async def stop() -> None:
+                try:
+                    # Give in-flight process_agent() coroutines time to finish
+                    # DB writes and revocation notifications before tearing
+                    # down webhook workers.
+                    drain_timeout = config.getfloat("verifier", "shutdown_drain_timeout", fallback=10.0)
+                    drained = await wait_for_drain(drain_timeout)
+                    if not drained:
+                        logger.warning(
+                            "Shutting down with %d operation(s) still active after %.1fs",
+                            get_active_operations(),
+                            drain_timeout,
+                        )
+
+                    # Shutdown webhook workers after draining so revocation
+                    # notifications from in-flight attestations are delivered.
+                    if "webhook" in revocation_notifier.get_notifiers():
+                        revocation_notifier.shutdown_webhook_workers()
+
+                    await server.close_all_connections()
+                except Exception:
+                    logger.exception("Error during shutdown cleanup")
+                finally:
+                    tornado.ioloop.IOLoop.current().stop()
+
+            _background_tasks.append(asyncio.ensure_future(stop()))
+
+        # Attach signal handler to ioloop.
+        # Do not use signal.signal(..) for that because it does not work!
+        loop = asyncio.get_event_loop()
+        loop.add_signal_handler(signal.SIGINT, lambda: server_sig_handler("SIGINT"))
+        loop.add_signal_handler(signal.SIGTERM, lambda: server_sig_handler("SIGTERM"))
+
+        server.start()
+        # Reactivate agents
+        _background_tasks.append(asyncio.ensure_future(activate_agents(agents, verifier_host, int(verifier_port))))
+
+        # Check PUSH mode agents that may have timed out while the verifier was down
+        tornado.ioloop.IOLoop.current().add_callback(push_agent_monitor.check_push_agent_timeouts)
+
+        # Schedule periodic PUSH agent timeout checks as a safety net
+        quote_interval = config.getfloat("verifier", "quote_interval", fallback=2.0)
+        push_timeout_interval_ms = push_agent_monitor.get_maximum_attestation_interval(quote_interval) * 1000
+        push_timeout_periodic = tornado.ioloop.PeriodicCallback(
+            push_agent_monitor.check_push_agent_timeouts, push_timeout_interval_ms
+        )
+        push_timeout_periodic.start()
+
+        tornado.ioloop.IOLoop.current().start()
+        logger.debug("Server %s stopped.", task_id)
+        sys.exit(0)
+
+    processes: List[multiprocessing.Process] = []
+
+    run_revocation_notifier = "zeromq" in revocation_notifier.get_notifiers()
+
+    def sig_handler(*_: Any) -> None:
+        if run_revocation_notifier:
+            revocation_notifier.stop_broker()
+        # Gracefully shutdown webhook workers to prevent connection errors
+        if "webhook" in revocation_notifier.get_notifiers():
+            revocation_notifier.shutdown_webhook_workers()
+        for p in processes:
+            p.join()
+        # Do not call sys.exit(0) here as it interferes with multiprocessing cleanup
+
+    signal.signal(signal.SIGINT, sig_handler)
+    signal.signal(signal.SIGTERM, sig_handler)
+    if run_revocation_notifier:
+        logger.info(
+            "Starting service for revocation notifications on port %s",
+            config.getint("verifier", "zmq_port", section="revocations"),
+        )
+        revocation_notifier.start_broker()
+
+    num_workers = config.getint("verifier", "num_workers")
+    if num_workers <= 0:
+        num_workers = tornado.process.cpu_count()
+
+    agents = get_agents_by_verifier_id(verifier_id)
+    for task_id in range(0, num_workers):
+        active_agents = [agents[i] for i in range(task_id, len(agents), num_workers)]
+        process = multiprocessing.Process(target=server_process, args=(task_id, active_agents))
+        process.start()
+        processes.append(process)
+
+    # Wait for all worker processes to complete
+    try:
+        for p in processes:
+            p.join()
+    except KeyboardInterrupt:
+        # Signal handler will take care of cleanup
+        pass

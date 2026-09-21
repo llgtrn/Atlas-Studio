@@ -1,0 +1,16 @@
+[package]
+name = "bump_crate_versions"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+chrono = { workspace = true }
+clap = { workspace = true }
+crates_io_api = { workspace = true }
+# petgraph 0.6.0 is a transient dependency of smt-scope, which has outdated dependencies
+petgraph = "0.8.0"
+tempfile = { workspace = true }
+toml_edit = { workspace = true }
+
+[lints]
+workspace = true

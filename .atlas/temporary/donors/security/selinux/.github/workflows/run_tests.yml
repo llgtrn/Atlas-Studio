@@ -1,0 +1,130 @@
+name: Run tests
+
+on: [push, pull_request]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        compiler: [gcc, clang]
+        python-ruby-version:
+          - {python: '3.13', ruby: '3.3'}
+          - {python: '3.13', ruby: '3.3', other: 'test-flags-override'}
+          - {python: '3.13', ruby: '3.3', other: 'test-debug'}
+          - {python: '3.13', ruby: '3.3', other: 'linker-bfd'}
+          - {python: '3.13', ruby: '3.3', other: 'linker-gold'}
+          # Test several Python versions with the latest Ruby version
+          - {python: '3.12', ruby: '3.3'}
+          - {python: '3.11', ruby: '3.3'}
+          - {python: '3.10', ruby: '3.3'}
+          - {python: '3.9', ruby: '3.3'}
+          - {python: '3.8', ruby: '3.3'}
+          - {python: 'pypy3.7', ruby: '3.3'}
+          # Test several Ruby versions with the latest Python version
+          - {python: '3.13', ruby: '3.2'}
+          - {python: '3.13', ruby: '3.1'}
+          - {python: '3.13', ruby: '3.0'}
+          - {python: '3.13', ruby: '2.7'}
+          - {python: '3.13', ruby: '2.6'}
+          - {python: '3.13', ruby: '2.5'}
+        exclude:
+          - compiler: clang
+            python-ruby-version: {python: '3.13', ruby: '3.3', other: 'linker-bfd'}
+          - compiler: clang
+            python-ruby-version: {python: '3.13', ruby: '3.3', other: 'linker-gold'}
+        include:
+          - compiler: gcc
+            python-ruby-version: {python: '3.13', ruby: '3.3', other: 'sanitizers'}
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Build userspace
+      uses: ./.github/actions/build-userspace
+      with:
+        python-version: ${{ matrix.python-ruby-version.python }}
+        ruby-version: ${{ matrix.python-ruby-version.ruby }}
+        compiler: ${{ matrix.compiler }}
+        other: ${{ matrix.python-ruby-version.other }}
+
+    - name: Download and install refpolicy headers for sepolgen tests
+      run: |
+        curl --location --retry 10 -o refpolicy.tar.bz2 https://github.com/SELinuxProject/refpolicy/releases/download/RELEASE_2_20260616/refpolicy-2.20260616.tar.bz2
+        tar -xvjf refpolicy.tar.bz2
+        sed -e "s,^PREFIX :=.*,PREFIX := $DESTDIR/usr," -i refpolicy/support/Makefile.devel
+        sudo make -C refpolicy install-headers bare
+        sudo mkdir -p /etc/selinux
+        echo 'SELINUXTYPE=refpolicy' | sudo tee /etc/selinux/config
+        echo 'SELINUX_DEVEL_PATH = /usr/share/selinux/refpolicy' | sudo tee /etc/selinux/sepolgen.conf
+        sed -e "s,\"\(/usr/bin/[cs]\),\"$DESTDIR\1," -i python/sepolgen/src/sepolgen/module.py
+        rm -r refpolicy refpolicy.tar.bz2
+
+    - name: Run tests
+      run: |
+        # Now that everything is installed, run "make all" to build everything which may have not been built
+        echo "::group::make all"
+        eval make -j$(nproc) all $EXPLICIT_MAKE_VARS -k
+        echo "::endgroup::"
+
+        # Set up environment variables for the tests and show variables (to help debugging issues)
+        echo "::group::Environment variables"
+        . ./scripts/env_use_destdir
+        echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH"
+        echo "PATH=$PATH"
+        echo "PYTHONPATH=$PYTHONPATH"
+        echo "RUBYLIB=$RUBYLIB"
+        echo "::endgroup::"
+
+        # Run tests
+        echo "::group::make test"
+        eval make test $EXPLICIT_MAKE_VARS
+        echo "::endgroup::"
+
+        # semodule_package bad-data: unreadable -m/-f inputs need non-root (root reads mode 000).
+        if [ "${{ matrix.python-ruby-version.other }}" != "sanitizers" ] ; then
+          echo "::group::semodule-utils bad-data (non-root)"
+          sudo useradd -m -s /usr/sbin/nologin bad-data-test 2>/dev/null || true
+          # World-readable checkout; run via relative path (inherited CWD). Do not
+          # cd to $PWD — bad-data-test cannot traverse /home/runner/work/... .
+          chmod -R a+rX .
+          sudo runuser -u bad-data-test -- env PATH="$PATH" LD_LIBRARY_PATH="$LD_LIBRARY_PATH" \
+            ./semodule-utils/tests/bad-data/run.sh
+          sudo userdel -r bad-data-test 2>/dev/null || true
+          echo "::endgroup::"
+        fi
+
+        # checkmodule bad-data: unreadable .te needs non-root (root reads mode 000).
+        if [ "${{ matrix.python-ruby-version.other }}" != "sanitizers" ] ; then
+          echo "::group::checkpolicy bad-data (non-root)"
+          sudo useradd -m -s /usr/sbin/nologin bad-data-test 2>/dev/null || true
+          chmod -R a+rX .
+          sudo runuser -u bad-data-test -- env PATH="$PATH" LD_LIBRARY_PATH="$LD_LIBRARY_PATH" \
+            ./checkpolicy/tests/test_checkmodule_negative.sh
+          sudo userdel -r bad-data-test 2>/dev/null || true
+          echo "::endgroup::"
+        fi
+
+        if [ "${{ matrix.python-ruby-version.other }}" != "sanitizers" ] ; then
+            # Test Python and Ruby wrappers
+            echo "::group::Test Python and Ruby wrappers"
+            $PYTHON -c 'import selinux;import selinux.audit2why;import semanage;print(selinux.is_selinux_enabled())'
+            $RUBY -e 'require "selinux";require "semanage";puts Selinux::is_selinux_enabled()'
+            echo "::endgroup::"
+
+            # Run Python linter, but not on the downloaded refpolicy
+            echo "::group::scripts/run-flake8"
+            ./scripts/run-flake8
+            echo "::endgroup::"
+        fi
+
+        echo "::group::Test .gitignore and make clean distclean"
+        # Remove every installed files
+        rm -rf "$DESTDIR"
+        # Test that "git status" looks clean, or print a clear error message
+        git status --short | sed -n 's/^??/error: missing .gitignore entry for/p' | (! grep '^')
+        # Clean up everything and show which file needs to be added to "make clean"
+        eval make clean distclean $EXPLICIT_MAKE_VARS
+        git ls-files --ignored --others --exclude-standard | sed 's/^/error: "make clean distclean" did not remove /' | (! grep '^')
+        echo "::endgroup::"

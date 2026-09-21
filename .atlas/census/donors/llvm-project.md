@@ -25,7 +25,7 @@ canonical: true
 - Top-level directories: .ci, .github, bolt, clang, clang-tools-extra, cmake, compiler-rt, cross-project-tests, flang, flang-rt, libc, libclc, libcxx, libcxxabi, libsycl, libunwind, lld, lldb, llvm, llvm-libgcc, mlir, offload, openmp, orc-rt, polly, runtimes, third-party, utils
 - Top-level files: .clang-format, .clang-format-ignore, .clang-tidy, .git-blame-ignore-revs, .gitattributes, .gitignore, .mailmap, CODE_OF_CONDUCT.md, CONTRIBUTING.md, LICENSE.TXT, pyproject.toml, README.md, SECURITY.md
 
-Full source checkout is physically available in the donor workbench and pinned to the recorded commit. The donor `.git` metadata is retained locally for this audit wave because `.atlas/temporary/donors/` is ignored and not staged into the Atlas commit.
+Full source checkout is physically available under the Atlas donor tree and pinned to the recorded commit. Nested donor `.git` metadata has been stripped so the source tree can be staged directly into the Atlas repository.
 
 ## Build Systems Detected
 

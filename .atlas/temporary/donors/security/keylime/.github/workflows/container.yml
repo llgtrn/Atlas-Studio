@@ -1,0 +1,102 @@
+name: keylime-container-images
+
+on:
+  push:
+    branches:
+      - master
+    tags:
+      - "v*"
+  workflow_dispatch:
+    branches:
+      - master
+
+env:
+  REGISTRY: quay.io
+  IMAGE_BASE: quay.io/keylime
+
+jobs:
+  build-images:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ secrets.QUAY_USER }}
+          password: ${{ secrets.QUAY_TOKEN }}
+
+      - name: Generate docker metadata for keylime_verifier
+        id: meta_verifier
+        uses: docker/metadata-action@369eb591f429131d6889c46b94e711f089e6ca96 # v4
+        with:
+          images: |
+            ${{ env.IMAGE_BASE }}/keylime_verifier
+          tags: |
+            type=ref,enable=true,priority=600,prefix=,suffix=,event=branch
+            type=ref,enable=true,priority=600,prefix=,suffix=,event=tag
+            type=sha,prefix=sha-
+
+      - name: Generate docker metadata for keylime_registrar
+        id: meta_registrar
+        uses: docker/metadata-action@369eb591f429131d6889c46b94e711f089e6ca96 # v4
+        with:
+          images: |
+            ${{ env.IMAGE_BASE }}/keylime_registrar
+          tags: |
+            type=ref,enable=true,priority=600,prefix=,suffix=,event=branch
+            type=ref,enable=true,priority=600,prefix=,suffix=,event=tag
+            type=sha,prefix=sha-
+
+      - name: Generate docker metadata for keylime_tenant
+        id: meta_tenant
+        uses: docker/metadata-action@369eb591f429131d6889c46b94e711f089e6ca96 # v4
+        with:
+          images: |
+            ${{ env.IMAGE_BASE }}/keylime_tenant
+          tags: |
+            type=ref,enable=true,priority=600,prefix=,suffix=,event=branch
+            type=ref,enable=true,priority=600,prefix=,suffix=,event=tag
+            type=sha,prefix=sha-
+
+      - name: Install skopeo and jq
+        run: sudo apt-get install -y skopeo jq
+
+      - name: Get digest of the latest version of the base image
+        run: echo "BASE_DIGEST=$(skopeo inspect docker://${{ env.IMAGE_BASE }}/keylime_base:master | jq '.Digest')" >> "$GITHUB_ENV"
+
+      - name: Prepare dockerfiles
+        run: |
+          cd docker/release && ./generate-files.sh "${{ steps.meta_base.outputs.version }}" "${{ env.IMAGE_BASE }}/" "${{ env.BASE_DIGEST }}"
+
+      - name: Build and push registrar
+        id: build_registrar
+        uses: docker/build-push-action@48aba3b46d1b1fec4febb7c5d0c644b249a11355 # v4
+        with:
+          context: .
+          file: docker/release/registrar/Dockerfile
+          push: true
+          tags: ${{ steps.meta_registrar.outputs.tags }}
+          labels: ${{ steps.meta_registrar.outputs.labels }}
+
+      - name: Build and push verifier
+        id: build_verifier
+        uses: docker/build-push-action@48aba3b46d1b1fec4febb7c5d0c644b249a11355 # v4
+        with:
+          context: .
+          file: docker/release/verifier/Dockerfile
+          push: true
+          tags: ${{ steps.meta_verifier.outputs.tags }}
+          labels: ${{ steps.meta_verifier.outputs.labels }}
+
+      - name: Build and push tenant
+        id: build_tenant
+        uses: docker/build-push-action@48aba3b46d1b1fec4febb7c5d0c644b249a11355 # v4
+        with:
+          context: .
+          file: docker/release/tenant/Dockerfile
+          push: true
+          tags: ${{ steps.meta_tenant.outputs.tags }}
+          labels: ${{ steps.meta_tenant.outputs.labels }}

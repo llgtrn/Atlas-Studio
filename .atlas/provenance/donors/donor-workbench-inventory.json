@@ -1,6 +1,6 @@
 {
   "schema": "atlas.donor-workbench-inventory.v1",
-  "generated_at": "2026-09-21T04:40:27.8246192Z",
+  "generated_at": "2026-09-21T05:06:19.7153948Z",
   "required_total": 44,
   "registered_donor_count": 44,
   "physical_donor_count": 44,
@@ -20,7 +20,7 @@
       ],
       "SizeBytes": 4366875,
       "FileCount": 618,
-      "HasGitMetadata": true
+      "HasGitMetadata": false
     },
     {
       "Donor": "rust-analyzer",
@@ -36,7 +36,7 @@
       ],
       "SizeBytes": 21921167,
       "FileCount": 2345,
-      "HasGitMetadata": true
+      "HasGitMetadata": false
     },
     {
       "Donor": "glean",
@@ -51,7 +51,7 @@
       ],
       "SizeBytes": 104463614,
       "FileCount": 15359,
-      "HasGitMetadata": true
+      "HasGitMetadata": false
     },
     {
       "Donor": "joern",
@@ -66,7 +66,7 @@
       ],
       "SizeBytes": 76295917,
       "FileCount": 2201,
-      "HasGitMetadata": true
+      "HasGitMetadata": false
     },
     {
       "Donor": "kythe",
@@ -81,7 +81,7 @@
       ],
       "SizeBytes": 13901060,
       "FileCount": 2406,
-      "HasGitMetadata": true
+      "HasGitMetadata": false
     },
     {
       "Donor": "scip",
@@ -96,7 +96,7 @@
       ],
       "SizeBytes": 2932219,
       "FileCount": 226,
-      "HasGitMetadata": true
+      "HasGitMetadata": false
     },
     {
       "Donor": "semgrep",
@@ -112,7 +112,7 @@
       ],
       "SizeBytes": 586076685,
       "FileCount": 10804,
-      "HasGitMetadata": true
+      "HasGitMetadata": false
     },
     {
       "Donor": "ast-grep",
@@ -127,7 +127,7 @@
       ],
       "SizeBytes": 3047473,
       "FileCount": 320,
-      "HasGitMetadata": true
+      "HasGitMetadata": false
     },
     {
       "Donor": "sourcetrail",
@@ -142,7 +142,7 @@
       ],
       "SizeBytes": 70302140,
       "FileCount": 2409,
-      "HasGitMetadata": true
+      "HasGitMetadata": false
     },
     {
       "Donor": "salsa",
@@ -158,7 +158,7 @@
       ],
       "SizeBytes": 3242300,
       "FileCount": 425,
-      "HasGitMetadata": true
+      "HasGitMetadata": false
     },
     {
       "Donor": "datafrog",
@@ -174,7 +174,7 @@
       ],
       "SizeBytes": 100780,
       "FileCount": 20,
-      "HasGitMetadata": true
+      "HasGitMetadata": false
     },
     {
       "Donor": "differential-dataflow",
@@ -190,7 +190,7 @@
       ],
       "SizeBytes": 7769837,
       "FileCount": 360,
-      "HasGitMetadata": true
+      "HasGitMetadata": false
     },
     {
       "Donor": "souffle",
@@ -205,7 +205,7 @@
       ],
       "SizeBytes": 56278267,
       "FileCount": 4080,
-      "HasGitMetadata": true
+      "HasGitMetadata": false
     },
     {
       "Donor": "buck2",
@@ -222,7 +222,7 @@
       ],
       "SizeBytes": 64588560,
       "FileCount": 10218,
-      "HasGitMetadata": true
+      "HasGitMetadata": false
     },
     {
       "Donor": "kani",
@@ -238,7 +238,7 @@
       ],
       "SizeBytes": 6334162,
       "FileCount": 3405,
-      "HasGitMetadata": true
+      "HasGitMetadata": false
     },
     {
       "Donor": "verus",
@@ -253,7 +253,7 @@
       ],
       "SizeBytes": 29940261,
       "FileCount": 1456,
-      "HasGitMetadata": true
+      "HasGitMetadata": false
     },
     {
       "Donor": "miri",
@@ -269,7 +269,7 @@
       ],
       "SizeBytes": 7691581,
       "FileCount": 2593,
-      "HasGitMetadata": true
+      "HasGitMetadata": false
     },
     {
       "Donor": "c2rust",
@@ -284,7 +284,7 @@
       ],
       "SizeBytes": 12333437,
       "FileCount": 1767,
-      "HasGitMetadata": true
+      "HasGitMetadata": false
     },
     {
       "Donor": "crubit",
@@ -299,7 +299,7 @@
       ],
       "SizeBytes": 19100917,
       "FileCount": 2788,
-      "HasGitMetadata": true
+      "HasGitMetadata": false
     },
     {
       "Donor": "py2many",
@@ -314,7 +314,7 @@
       ],
       "SizeBytes": 1799894,
       "FileCount": 790,
-      "HasGitMetadata": true
+      "HasGitMetadata": false
     },
     {
       "Donor": "openrewrite",
@@ -329,7 +329,7 @@
       ],
       "SizeBytes": 80383047,
       "FileCount": 5785,
-      "HasGitMetadata": true
+      "HasGitMetadata": false
     },
     {
       "Donor": "cytoscape-js",
@@ -345,7 +345,7 @@
       ],
       "SizeBytes": 98998814,
       "FileCount": 808,
-      "HasGitMetadata": true
+      "HasGitMetadata": false
     },
     {
       "Donor": "elkjs",
@@ -360,7 +360,7 @@
       ],
       "SizeBytes": 577316,
       "FileCount": 55,
-      "HasGitMetadata": true
+      "HasGitMetadata": false
     },
     {
       "Donor": "xyflow",
@@ -375,7 +375,7 @@
       ],
       "SizeBytes": 2370334,
       "FileCount": 697,
-      "HasGitMetadata": true
+      "HasGitMetadata": false
     },
     {
       "Donor": "opendesign",
@@ -390,7 +390,7 @@
       ],
       "SizeBytes": 107119581,
       "FileCount": 1210,
-      "HasGitMetadata": true
+      "HasGitMetadata": false
     },
     {
       "Donor": "zed",
@@ -406,7 +406,7 @@
       ],
       "SizeBytes": 87650331,
       "FileCount": 4314,
-      "HasGitMetadata": true
+      "HasGitMetadata": false
     },
     {
       "Donor": "containers-image",
@@ -421,7 +421,7 @@
       ],
       "SizeBytes": 3298542,
       "FileCount": 726,
-      "HasGitMetadata": true
+      "HasGitMetadata": false
     },
     {
       "Donor": "podman",
@@ -436,7 +436,7 @@
       ],
       "SizeBytes": 95955079,
       "FileCount": 10238,
-      "HasGitMetadata": true
+      "HasGitMetadata": false
     },
     {
       "Donor": "selinux",
@@ -451,7 +451,7 @@
       ],
       "SizeBytes": 32038111,
       "FileCount": 1859,
-      "HasGitMetadata": true
+      "HasGitMetadata": false
     },
     {
       "Donor": "openscap",
@@ -466,7 +466,7 @@
       ],
       "SizeBytes": 123806431,
       "FileCount": 2316,
-      "HasGitMetadata": true
+      "HasGitMetadata": false
     },
     {
       "Donor": "keycloak",
@@ -481,7 +481,7 @@
       ],
       "SizeBytes": 122402492,
       "FileCount": 13367,
-      "HasGitMetadata": true
+      "HasGitMetadata": false
     },
     {
       "Donor": "keylime",
@@ -496,7 +496,7 @@
       ],
       "SizeBytes": 16946314,
       "FileCount": 702,
-      "HasGitMetadata": true
+      "HasGitMetadata": false
     },
     {
       "Donor": "clair",
@@ -512,7 +512,7 @@
       ],
       "SizeBytes": 1577693,
       "FileCount": 353,
-      "HasGitMetadata": true
+      "HasGitMetadata": false
     },
     {
       "Donor": "rust",
@@ -545,7 +545,7 @@
       ],
       "SizeBytes": 2410758439,
       "FileCount": 184821,
-      "HasGitMetadata": true
+      "HasGitMetadata": false
     },
     {
       "Donor": "wasmtime",

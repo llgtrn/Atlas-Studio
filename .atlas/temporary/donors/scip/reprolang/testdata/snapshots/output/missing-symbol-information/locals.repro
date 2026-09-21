@@ -1,0 +1,5 @@
+ definition local NoSymbolInformation
+#           ^^^^^^^^^^^^^^^^^^^^^^^^^ definition local NoSymbolInformation
+ reference local NoSymbolInformation
+#          ^^^^^^^^^^^^^^^^^^^^^^^^^ reference local NoSymbolInformation
+ 

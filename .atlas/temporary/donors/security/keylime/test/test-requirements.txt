@@ -1,0 +1,9 @@
+# Python dependencies only required for running the tests.
+
+coverage==4.5.2
+green==4.0.2  # Python 3.12+ requires this.
+pytest-asyncio==0.10.0
+# Runtime dependencies are needed at test discovery time because
+# importing keylime modules triggers deep import chains that load
+# packages like pyasn1 and jsonschema at module level.
+-r ../requirements.txt

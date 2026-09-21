@@ -1,0 +1,42 @@
+package main
+
+import (
+	"fmt"
+	"io"
+	"os"
+	"strings"
+
+	"github.com/scip-code/scip/bindings/go/scip"
+	"google.golang.org/protobuf/proto"
+)
+
+// readFromOptions reads the fromPath parameter into a SCIP Index message.
+// If fromPath has the value "-" then the SCIP Index is read from os.Stdin.
+// Otherwise, fromPath is interpreted as a file path and the bytes are read from disk.
+func readFromOption(fromPath string) (*scip.Index, error) {
+	var scipReader io.Reader
+	if fromPath == "-" {
+		scipReader = os.Stdin
+	} else if !strings.HasSuffix(fromPath, ".scip") {
+		return nil, fmt.Errorf("expected file with .scip extension but found %s", fromPath)
+	} else {
+		scipFile, err := os.Open(fromPath)
+		defer scipFile.Close()
+		if err != nil {
+			return nil, err
+		}
+		scipReader = scipFile
+	}
+
+	scipBytes, err := io.ReadAll(scipReader)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read SCIP index at path %s: %w", fromPath, err)
+	}
+
+	scipIndex := scip.Index{}
+	err = proto.Unmarshal(scipBytes, &scipIndex)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse SCIP index at path %s: %w", fromPath, err)
+	}
+	return &scipIndex, nil
+}

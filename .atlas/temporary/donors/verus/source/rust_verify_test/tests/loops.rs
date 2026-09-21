@@ -1,0 +1,1957 @@
+#![feature(rustc_private)]
+#[macro_use]
+mod common;
+use common::*;
+
+test_verify_one_file! {
+    #[test] basic_while verus_code! {
+        fn test1() {
+            let mut i = 0;
+            while i < 10
+                invariant i <= 10
+                decreases 10 - i
+            {
+                i = i + 1;
+            }
+            assert(i == 10);
+        }
+    } => Ok(())
+}
+
+test_verify_one_file! {
+    #[test] while_let_loop verus_code! {
+        enum MaybeU64 {
+            Some(u64),
+            None,
+        }
+
+        fn test1() {
+            let mut i: u64 = 0;
+            while let MaybeU64::Some(x) = if i < 1 { MaybeU64::Some(i) } else { MaybeU64::None }
+                invariant i <= 1
+                decreases 1 - i
+            {
+                assert(x == i);
+                i = i + 1;
+            }
+            assert(i <= 1);
+        }
+    } => Ok(())
+}
+
+test_verify_one_file! {
+    #[test] basic_while_fail1 verus_code! {
+        fn test1() {
+            let mut i = 0;
+            while i < 10
+                decreases 10 - i
+            {
+                i = i + 1;
+            }
+            assert(i == 10); // FAILS
+        }
+    } => Err(err) => assert_one_fails(err)
+}
+
+test_verify_one_file! {
+    #[test] basic_while_fail2 verus_code! {
+        fn test1() {
+            let mut i = 0;
+            let mut j = 0;
+            while i < 10
+                decreases 10 - i
+            {
+                i = i + 1;
+                while j < 5
+                    decreases 5 - j
+                {
+                    j = j + 1;
+                }
+            }
+            assert(j == 0); // FAILS
+        }
+    } => Err(err) => assert_one_fails(err)
+}
+
+test_verify_one_file_with_options! {
+    #[test] complex_while ["exec_allows_no_decreases_clause"] => verus_code! {
+        fn test1() {
+            let mut i = 0;
+            let mut x = 0;
+            while {x = x + 1; i < 10}
+                invariant
+                    i <= 10,
+                    x == i,
+            {
+                i = i + 1;
+            }
+            assert(i == 10);
+            assert(x == 11);
+        }
+    } => Ok(())
+}
+
+test_verify_one_file_with_options! {
+    #[test] complex_while_fail1 ["exec_allows_no_decreases_clause"] => verus_code! {
+        fn test1() {
+            let mut i = 0;
+            let mut x = 0;
+            while {x = x + 1; i < 10}
+                invariant
+                    i <= 10,
+                    x == i,
+            {
+                i = i + 1;
+            }
+            assert(i == 10);
+            assert(x != 11); // FAILS
+        }
+    } => Err(err) => assert_one_fails(err)
+}
+
+test_verify_one_file! {
+    #[test] complex_while2 verus_code! {
+        proof fn check(a: u64)
+            requires 1 <= a
+        {
+        }
+
+        fn test1() {
+            let mut i = 0;
+            let mut x = 0;
+            while {
+                x = x + 1;
+                proof { check(x); }
+                i < 10
+            }
+                invariant
+                    i <= 10,
+                    x == i,
+                decreases 10 - i
+            {
+                i = i + 1;
+            }
+            assert(i == 10);
+            assert(x == 11);
+        }
+    } => Ok(())
+}
+
+test_verify_one_file! {
+    #[test] complex_while2_fail verus_code! {
+        proof fn check(a: u64)
+            requires 2 <= a
+        {
+        }
+
+        fn test1() {
+            let mut i = 0;
+            let mut x = 0;
+            while {
+                x = x + 1;
+                proof { check(x); } // FAILS
+                i < 10
+            }
+                invariant
+                    i <= 10,
+                    x == i,
+                decreases 10 - i
+            {
+                i = i + 1;
+            }
+            assert(i == 10);
+            assert(x == 11);
+        }
+    } => Err(err) => assert_fails(err, 1)
+}
+
+test_verify_one_file! {
+    #[test] test_variables_havoc_basic verus_code! {
+        fn test(a: u64)
+            requires a < 10
+        {
+            let mut i = a;
+            while i < 20
+                decreases 20 - i
+            {
+                i = i + 1;
+            }
+            assert(i == a); // FAILS
+        }
+    } => Err(e) => assert_one_fails(e)
+}
+
+test_verify_one_file! {
+    #[test] test_variables_not_havoc_basic verus_code! {
+        fn test(a: u64)
+            requires a < 10
+        {
+            let mut i = a;
+            let mut j = a;
+            j = j + 2;
+            while i < 20
+                decreases 20 - i
+            {
+                i = i + 1;
+            }
+            j = j + 2;
+            assert(j == a + 4);
+        }
+    } => Ok(())
+}
+
+test_verify_one_file! {
+    #[test] test_variables_no_effect_basic verus_code! {
+        fn test(a: u64)
+            requires a < 10
+        {
+            let mut i = a;
+            let mut k = 12;
+            while i < 20
+                decreases 20 - i
+            {
+                let mut k = i;
+                i = i + 1;
+                k = k + 1;
+                assert(k == i);
+            }
+            k = k + 1;
+            assert(k == 13);
+        }
+    } => Ok(())
+}
+
+test_verify_one_file! {
+    #[test] test_variables_havoc_nested verus_code! {
+        fn test(a: u64)
+            requires a < 10
+        {
+            let mut i = a;
+            while i < 20
+                decreases 20 - i
+            {
+                i = i + 1;
+                let mut j = a;
+                while j < 10
+                    decreases 10 - j
+                {
+                    j = j + 1;
+                }
+                assert(j == a); // FAILS
+            }
+        }
+    } => Err(e) => assert_one_fails(e)
+}
+
+test_verify_one_file! {
+    #[test] test_variables_not_havoc_nested verus_code! {
+        fn test(a: u64)
+            requires a < 10
+        {
+            let mut i = a;
+            let mut j = a;
+            j = j + 2;
+            while i < 20
+                decreases 20 - i
+            {
+                i = i + 1;
+                let mut j = a;
+                while j < 20
+                    decreases 20 - j
+                {
+                    j = j + 1;
+                }
+            }
+            j = j + 2;
+            assert(j == a + 4);
+        }
+    } => Ok(())
+}
+
+test_verify_one_file! {
+    #[test] test_variables_no_effect_nested verus_code! {
+        fn test(a: u64)
+            requires a < 10
+        {
+            let mut i = a;
+            let mut k = 12;
+            while i < 20
+                decreases 20 - i
+            {
+                let mut k = i;
+                i = i + 1;
+                while k < 20
+                    decreases 20 - k
+                {
+                    k = k + 1;
+                }
+            }
+            k = k + 1;
+            assert(k == 13);
+        }
+    } => Ok(())
+}
+
+test_verify_one_file_with_options! {
+    #[test] basic_loop ["exec_allows_no_decreases_clause"] => verus_code! {
+        use vstd::modes::*;
+        fn test() {
+            let ghost mut a: int = 5;
+            loop
+                invariant a > 0
+            {
+                proof {
+                    a = a + 1;
+                }
+            }
+        }
+    } => Ok(())
+}
+
+test_verify_one_file_with_options! {
+    #[test] basic_loop_fail ["exec_allows_no_decreases_clause"] => verus_code! {
+        fn test() {
+            let mut a: u32 = 5;
+            loop
+                invariant a > 0 // FAILS
+            {
+                a = a - 1;
+            }
+        }
+    } => Err(err) => assert_one_fails(err)
+}
+
+test_verify_one_file_with_options! {
+    #[test] basic_loop_new_vars ["exec_allows_no_decreases_clause"] => verus_code! {
+        fn test() {
+            let mut a: u32 = 5;
+            while a < 100
+                invariant
+                    ({let b: int = 0; a > b}),
+                    ({let b: int = 0; a > b}),
+            {
+                a = a + 1;
+            }
+        }
+    } => Ok(())
+}
+
+test_verify_one_file_with_options! {
+    #[ignore] #[test] regression_11_incorrect_loop_header ["exec_allows_no_decreases_clause"] => verus_code! {
+        fn test() {
+            let mut a: u64 = 0;
+            while a < 100
+                invariant a <= 100
+            {
+                requires(a <= 100);
+                a = a + 1;
+            }
+        }
+    } => Err(e) => assert_vir_error_msg(e, "TODO: ignored test")
+}
+
+const MUT_REF_COMMON: &str = verus_code_str! {
+    fn update_x(x: &mut bool) {
+        *x = false;
+    }
+};
+
+test_verify_one_file! {
+    #[test] mut_ref_havoc_loop_1_regression_231 MUT_REF_COMMON.to_string() + verus_code_str! {
+        fn foo(x: &mut bool)
+            requires *old(x) == true
+        {
+            assert(*x == true);
+
+            let mut i = 0;
+            while i < 5
+                decreases 5 - i
+            {
+                i = i + 1;
+
+                update_x(x);
+            }
+
+            assert(*x == true); // FAILS
+        }
+    } => Err(e) => assert_one_fails(e)
+}
+
+test_verify_one_file! {
+    #[test] mut_ref_havoc_loop_2_regression_231 MUT_REF_COMMON.to_string() + verus_code_str! {
+        fn foo2() {
+            let mut x = true;
+
+            let mut i = 0;
+            while i < 5
+                decreases 5 - i
+            {
+                i = i + 1;
+
+                update_x(&mut x);
+            }
+
+            assert(x == true); // FAILS
+        }
+    } => Err(e) => assert_one_fails(e)
+}
+
+test_verify_one_file! {
+    #[test] loop_termination_supported verus_code! {
+        fn test() {
+            let mut a: u64 = 0;
+            while a < 100
+                invariant a <= 100
+                decreases 100 - a
+            {
+                a = a + 1;
+            }
+        }
+    } => Ok(())
+}
+
+test_verify_one_file! {
+    #[test] example_loop_break verus_code! {
+        fn test() {
+            let mut i: i8 = 0;
+            loop
+                invariant_except_break i <= 9
+                invariant 0 <= i <= 10
+                ensures 1 <= i
+                decreases 10 - i
+            {
+                assert(i <= 9);
+                i = i + 1;
+                if i == 10 {
+                    break;
+                }
+            }
+            assert(1 <= i <= 10);
+        }
+    } => Ok(())
+}
+
+test_verify_one_file! {
+    #[test] example_loop_break_fail1 verus_code! {
+        fn test() {
+            let mut i: i8 = 10;
+            loop
+                invariant_except_break i <= 9 // FAILS
+                invariant 0 <= i <= 10
+                ensures 1 <= i
+                decreases 10 - i
+            {
+                assert(i <= 9);
+                i = i + 1;
+                if i == 10 {
+                    break;
+                }
+            }
+            assert(1 <= i <= 10);
+        }
+    } => Err(e) => assert_one_fails(e)
+}
+
+test_verify_one_file! {
+    #[test] example_loop_break_fail2 verus_code! {
+        fn test() {
+            let mut i: i8 = 0;
+            loop
+                invariant_except_break i <= 8 // FAILS
+                invariant 0 <= i <= 10
+                ensures 1 <= i
+                decreases 10 - i
+            {
+                assert(i <= 9);
+                i = i + 1;
+                if i == 10 {
+                    break;
+                }
+            }
+            assert(1 <= i <= 10);
+        }
+    } => Err(e) => assert_one_fails(e)
+}
+
+test_verify_one_file! {
+    #[test] example_loop_break_fail3 verus_code! {
+        fn test() {
+            let mut i: i8 = 0;
+            loop
+                invariant_except_break i <= 9
+                invariant 0 <= i <= 10
+                ensures 1 <= i
+                decreases 10 - i
+            {
+                break; // FAILS
+            }
+            assert(1 <= i <= 10);
+        }
+    } => Err(e) => assert_one_fails(e)
+}
+
+test_verify_one_file! {
+    #[test] example_loop_break_fail4 verus_code! {
+        fn test() {
+            let mut i: i8 = 0;
+            loop
+                invariant_except_break i <= 9
+                invariant 0 <= i <= 10
+                ensures 1 <= i
+                decreases 10 - i
+            {
+                assert(i <= 9);
+                i = i + 1;
+                if i == 10 {
+                    break;
+                }
+            }
+            assert(i <= 9); // FAILS
+        }
+    } => Err(e) => assert_one_fails(e)
+}
+
+test_verify_one_file! {
+    #[test] example_loop_continue verus_code! {
+        fn test() {
+            let mut i: i8 = 0;
+            loop
+                invariant_except_break i <= 9
+                invariant 0 <= i <= 10
+                ensures 1 <= i
+                decreases 10 - i
+            {
+                assert(i <= 9);
+                i = i + 1;
+                if i == 5 {
+                    continue;
+                }
+                if i == 10 {
+                    break;
+                }
+            }
+            assert(1 <= i <= 10);
+        }
+    } => Ok(())
+}
+
+test_verify_one_file! {
+    #[test] example_loop_continue_fail verus_code! {
+        fn test() {
+            let mut i: i8 = 0;
+            loop
+                invariant_except_break i <= 9
+                invariant 0 <= i <= 10
+                ensures 1 <= i
+                decreases 10 - i
+            {
+                assert(i <= 9);
+                i = i + 1;
+                if i == 10 {
+                    continue; // FAILS
+                }
+                if i == 10 {
+                    break;
+                }
+            }
+            assert(1 <= i <= 10);
+        }
+    } => Err(e) => assert_one_fails(e)
+}
+
+test_verify_one_file_with_options! {
+    #[test] infinite_loop ["exec_allows_no_decreases_clause"] => verus_code! {
+        fn test() {
+            loop {
+            }
+            assert(false);
+        }
+    } => Ok(_err) => { /* allow unreachable warnings */ }
+}
+
+test_verify_one_file_with_options! {
+    #[test] loop_break_false ["exec_allows_no_decreases_clause"] => verus_code! {
+        fn test() {
+            loop {
+                break;
+            }
+            assert(false); // FAILS
+        }
+    } => Err(e) => assert_one_fails(e)
+}
+
+test_verify_one_file_with_options! {
+    #[test] loop_break_false_y ["exec_allows_no_decreases_clause"] => verus_code! {
+        fn test() {
+            'y: loop {
+                break;
+            }
+            assert(false); // FAILS
+        }
+    } => Err(e) => assert_one_fails(e)
+}
+
+test_verify_one_file_with_options! {
+    #[test] while_b ["exec_allows_no_decreases_clause"] => verus_code! {
+        fn test(b: bool) {
+            while b {
+            }
+            assert(!b);
+        }
+    } => Ok(())
+}
+
+test_verify_one_file_with_options! {
+    #[test] while_b_ok ["exec_allows_no_decreases_clause"] => verus_code! {
+        fn test(b: bool) {
+            while b
+                ensures !b
+            {
+            }
+            assert(!b);
+        }
+    } => Ok(())
+}
+
+test_verify_one_file_with_options! {
+    #[test] while_b_fail ["exec_allows_no_decreases_clause"] => verus_code! {
+        fn test(b: bool) {
+            while b
+                ensures !b
+            {
+                break; // FAILS
+            }
+            assert(!b);
+        }
+    } => Err(e) => assert_one_fails(e)
+}
+
+test_verify_one_file_with_options! {
+    #[test] while_b2 ["exec_allows_no_decreases_clause"] => verus_code! {
+        fn test(b: bool) {
+            while b {
+                while b {
+                    break;
+                }
+            }
+            assert(!b);
+        }
+    } => Ok(())
+}
+
+test_verify_one_file_with_options! {
+    #[test] while_b2_x ["exec_allows_no_decreases_clause"] => verus_code! {
+        fn test(b: bool) {
+            'x: while b {
+                'y: while b {
+                    break 'x;
+                }
+            }
+            assert(!b); // FAILS
+        }
+    } => Err(e) => assert_one_fails(e)
+}
+
+test_verify_one_file_with_options! {
+    #[test] while_b2_y ["exec_allows_no_decreases_clause"] => verus_code! {
+        fn test(b: bool) {
+            'x: while b {
+                'y: while b {
+                    break 'y;
+                }
+            }
+            assert(!b);
+        }
+    } => Ok(_err) => { /* TODO fix warnings? */ }
+}
+
+test_verify_one_file_with_options! {
+    #[test] while_to_loop_ensures ["exec_allows_no_decreases_clause"] => verus_code! {
+        fn test(b: bool) {
+            while b
+                ensures true
+            {
+            }
+            assert(!b); // FAILS (while converted to loop due to ensures)
+        }
+    } => Err(e) => assert_one_fails(e)
+}
+
+test_verify_one_file_with_options! {
+    #[test] while_to_loop_break ["exec_allows_no_decreases_clause"] => verus_code! {
+        fn test(b: bool) {
+            while b {
+                break;
+            }
+            assert(!b); // FAILS (while converted to loop due to break)
+        }
+    } => Err(e) => assert_one_fails(e)
+}
+
+test_verify_one_file_with_options! {
+    #[test] loop_infinite2 ["exec_allows_no_decreases_clause"] => verus_code! {
+        fn test() {
+            'x: loop {
+                'y: loop {
+                    break;
+                }
+            }
+            assert(false);
+        }
+    } => Ok(_err) => { /* allow unreachable warnings */ }
+}
+
+test_verify_one_file_with_options! {
+    #[test] loop_infinite2y ["exec_allows_no_decreases_clause"] => verus_code! {
+        fn test() {
+            'x: loop {
+                'y: loop {
+                    break 'y;
+                }
+            }
+            assert(false);
+        }
+    } => Ok(_err) => { /* allow unreachable warnings */ }
+}
+
+test_verify_one_file_with_options! {
+    #[test] loop_infinite2x ["exec_allows_no_decreases_clause"] => verus_code! {
+        fn test() {
+            'x: loop {
+                'y: loop {
+                    break 'x;
+                }
+            }
+            assert(false); // FAILS
+        }
+    } => Err(e) => assert_one_fails(e)
+}
+
+test_verify_one_file_with_options! {
+    #[test] loop2_ok ["exec_allows_no_decreases_clause"] => verus_code! {
+        fn test(b: bool) {
+            let mut i: i8 = 0;
+            'x: loop
+                invariant i == 0
+            {
+                i = i + 1;
+                'y: loop
+                    invariant i == 1
+                {
+                    break;
+                }
+                i = i - 1;
+                if b {
+                    break;
+                }
+            }
+            assert(i == 0);
+        }
+    } => Ok(_err) => { /* TODO fix warnings? */ }
+}
+
+test_verify_one_file_with_options! {
+    #[test] loop2_ok_y ["exec_allows_no_decreases_clause"] => verus_code! {
+        fn test(b: bool) {
+            let mut i: i8 = 0;
+            'x: loop
+                invariant i == 0
+            {
+                i = i + 1;
+                'y: loop
+                    invariant i == 1
+                {
+                    break 'y;
+                }
+                i = i - 1;
+                if b {
+                    break;
+                }
+            }
+            assert(i == 0);
+        }
+    } => Ok(_err) => { /* TODO fix warnings? */ }
+}
+
+test_verify_one_file_with_options! {
+    #[test] loop2_fail1 ["exec_allows_no_decreases_clause"] => verus_code! {
+        fn test(b: bool) {
+            let mut i: i8 = 0;
+            'x: loop
+                invariant i == 0
+            {
+                i = i + 1;
+                'y: loop
+                    invariant i == 1
+                {
+                    break 'x; // FAILS
+                }
+                i = i - 1;
+                if b {
+                    break;
+                }
+            }
+            assert(i == 0);
+        }
+    } => Err(e) => assert_one_fails(e)
+}
+
+test_verify_one_file_with_options! {
+    #[test] loop2_fail2 ["exec_allows_no_decreases_clause"] => verus_code! {
+        fn test(b: bool) {
+            let mut i: i8 = 0;
+            'x: loop
+                invariant i == 0
+            {
+                i = i + 1;
+                'y: loop
+                    invariant i == 1
+                {
+                    break;
+                }
+                if b {
+                    break; // FAILS
+                }
+                i = i - 1;
+            }
+            assert(i == 0);
+        }
+    } => Err(e) => assert_one_fails(e)
+}
+
+test_verify_one_file_with_options! {
+    #[test] loop_decreases1 ["exec_allows_no_decreases_clause"] => verus_code! {
+        fn test1() {
+            let mut i: u8 = 100;
+            loop
+                decreases i
+            {
+                if i == 0 {
+                    break;
+                }
+                if i == 20 {
+                    continue; // FAILS
+                }
+                i = i - 1;
+            }
+        }
+
+        fn test2() {
+            let mut i: u8 = 100;
+            loop  // FAILS
+                decreases i
+            {
+                if i == 0 {
+                    break;
+                }
+                if i == 20 {
+                    i = i - 1;
+                    continue;
+                }
+            }
+        }
+    } => Err(e) => assert_fails(e, 2)
+}
+
+test_verify_one_file_with_options! {
+    #[test] loop_decreases2 ["exec_allows_no_decreases_clause"] => verus_code! {
+        fn test1() {
+            let mut i: u8 = 100;
+            let mut j: u8 = 100;
+            while i > 0
+                decreases i
+            {
+                while j > 0
+                    decreases j
+                {
+                    j = j - 1;
+                }
+                i = i - 1;
+            }
+        }
+
+        fn test2() {
+            let mut i: u8 = 100;
+            let mut j: u8 = 100;
+            while i > 0
+                decreases i
+            {
+                while j > 0 // FAILS
+                    decreases j
+                {
+                }
+                i = i - 1;
+            }
+        }
+
+        fn test3() {
+            let mut i: u8 = 100;
+            let mut j: u8 = 100;
+            while i > 0 // FAILS
+                decreases i
+            {
+                while j > 0
+                    decreases j
+                {
+                    j = j - 1;
+                }
+            }
+        }
+    } => Err(e) => assert_fails(e, 2)
+}
+
+test_verify_one_file_with_options! {
+    #[test] loop_decreases3 ["exec_allows_no_decreases_clause"] => verus_code! {
+        fn test_c() {
+            'a: loop
+                decreases 3u8
+            {
+                loop
+                {
+                    continue 'a;
+                }
+            }
+        }
+    } => Err(e) => assert_vir_error_msg(e, "decrease checking for labeled continue not supported")
+}
+
+test_verify_one_file_with_options! {
+    #[test] loop_references_old_version_of_mut_var ["exec_allows_no_decreases_clause"] => verus_code! {
+        fn foo(a: &mut u64)
+            requires *old(a) == 17
+        {
+            *a = 19;
+            loop
+                invariant
+                    *old(a) == 17,
+                    *a == 19,
+            {
+                assert(false); // FAILS
+            }
+        }
+
+        fn foo2(a: &mut u64) {
+            loop
+                invariant *old(a) == *a,
+            {
+            }
+        }
+
+
+        fn foo3(a: &mut u64)
+            requires *old(a) == 1234,
+        {
+            loop
+                invariant *old(a) == 1234,
+            {
+            }
+        }
+
+        fn foo4(a: &mut u64)
+            requires *old(a) == 1234,
+        {
+            loop
+                invariant *old(a) == 1234,
+            {
+                *a = 8932759;
+            }
+        }
+
+        fn foo5(a: &mut u64)
+            requires *old(a) == 1234,
+        {
+            *a = 12;
+            loop
+                invariant *a == 12,
+            {
+                assert(*a == 12);
+            }
+        }
+
+        fn test_old_in_ensures(a: &mut u64)
+            requires *old(a) < 2000,
+            ensures *final(a) as int == *old(a) + 25,
+        {
+            let mut i: u64 = 0;
+            loop
+                invariant *old(a) < 2000,
+                    0 <= i < 25,
+                    *a as int == *old(a) + i,
+            {
+                *a = *a + 1;
+                i = i + 1;
+                if i == 25 {
+                    return;
+                }
+            }
+        }
+
+        fn test_old_in_ensures_fail(a: &mut u64)
+            requires *old(a) < 2000,
+            ensures *final(a) as int == *old(a) + 26,
+        {
+            let mut i: u64 = 0;
+            loop
+                invariant *old(a) < 2000,
+                    0 <= i < 25,
+                    *a as int == *old(a) + i,
+            {
+                *a = *a + 1;
+                i = i + 1;
+                if i == 25 {
+                    return; // FAILS
+                }
+            }
+        }
+    } => Err(e) => assert_fails(e, 2)
+}
+
+test_verify_one_file_with_options! {
+    #[test] boxed_args_are_havoced_regression_340 ["exec_allows_no_decreases_clause"] => verus_code! {
+        use vstd::prelude::*;
+
+        mod Mod {
+            pub struct X<T> {
+                t: T, // private
+            }
+
+            impl<T> X<T> {
+                pub closed spec fn view(&self) -> T { self.t }
+
+                pub fn new(t: T) -> (s: Self)
+                  ensures s.view() == t
+                {
+                    X { t: t }
+                }
+
+                pub fn some_mutator(&mut self) {
+                }
+            }
+
+            pub fn some_mutator<T>(x: &mut X<T>) {
+            }
+        }
+
+        fn test1() {
+            let mut x = Mod::X::<u64>::new(5);
+            assert(x.view() == 5);
+
+            let mut i = 0;
+
+            while i < 5 {
+                x.some_mutator();
+                i = i + 1;
+            }
+
+            assert(x.view() == 5); // FAILS
+        }
+
+        fn test2() {
+            let mut x = Mod::X::<u64>::new(5);
+            assert(x.view() == 5);
+
+            let mut i = 0;
+
+            while i < 5 {
+                Mod::some_mutator(&mut x);
+                i = i + 1;
+            }
+
+            assert(x.view() == 5); // FAILS
+        }
+
+        fn test3() {
+            let mut v = Vec::<u64>::new();
+
+            let mut i = 0;
+            while i < 5
+                invariant
+                    v.view().len() == i as int
+            {
+                v.push(7);
+                i = i + 1;
+            }
+
+            assert(v.view().len() == 0); // FAILS
+        }
+    } => Err(e) => assert_fails(e, 3)
+}
+
+test_verify_one_file_with_options! {
+    #[ignore] #[test] while_continue_panic_regression_421 ["exec_allows_no_decreases_clause"] => verus_code! {
+        fn test() {
+            let i = 7;
+            while i < 5 {
+                continue;
+            }
+        }
+    } => Ok(())
+}
+
+test_verify_one_file_with_options! {
+    #[test] iter_loop ["exec_allows_no_decreases_clause"] => verus_code! {
+        use vstd::prelude::*;
+        fn test_loop() {
+            let mut n: u64 = 0;
+            let mut iter = (0..10).into_iter();
+            loop
+                invariant
+                    iter.start <= 10,
+                    iter.end == 10,
+                    n == iter.start * 3,
+                ensures
+                    iter.start == 10,
+            {
+                if let Some(x) = iter.next() {
+                    assert(x < 10);
+                    assert(x == iter.start - 1);
+                    n += 3;
+                } else {
+                    break;
+                }
+            }
+            assert(iter.start == 10);
+            assert(n == 30);
+        }
+
+        fn test_loop_fail() {
+            let mut n: u64 = 0;
+            let mut iter = (0..10).into_iter();
+            loop
+                invariant
+                    iter.start <= 10,
+                    iter.end == 10,
+                    n == iter.start * 3,
+                ensures
+                    iter.start == 10,
+            {
+                if let Some(x) = iter.next() {
+                    assert(x < 9); // FAILS
+                    assert(x == iter.start - 1);
+                    n += 3;
+                } else {
+                    break;
+                }
+            }
+            assert(iter.start == 10);
+            assert(n == 30);
+        }
+    } => Err(e) => assert_one_fails(e)
+}
+
+test_verify_one_file! {
+    #[test] for_loop_history verus_code! {
+        use vstd::prelude::*;
+        fn test_basic() {
+            let v: Vec<u8> = vec![1, 2, 3, 4, 5, 6];
+            let mut w: Vec<u8> = Vec::new();
+
+            for x in y: v
+                invariant
+                    w@ == y.history(),
+            {
+                w.push(x);
+            }
+            assert(w.len() == v.len());
+            assert(w@ == v@);
+        }
+    } => Ok(())
+}
+
+test_verify_one_file! {
+    #[test] for_loop_slice verus_code! {
+        use vstd::prelude::*;
+        fn all_positive(v: &Vec<u8>) -> (b: bool)
+            ensures
+                b <==> (forall|i: int| 0 <= i < v.len() ==> v[i] > 0),
+        {
+            let mut b: bool = true;
+
+            for x in iter: v
+                invariant
+                    b <==> (forall|i: int| 0 <= i < iter.index() ==> v[i] > 0),
+            {
+                b = b && *x > 0;
+            }
+            b
+        }
+    } => Ok(())
+}
+
+test_verify_one_file_with_options! {
+    #[test] for_loop1 ["exec_allows_no_decreases_clause"] => verus_code! {
+        use vstd::prelude::*;
+        fn test_loop() {
+            let mut n: u64 = 0;
+            for x in iter: 0..10
+                invariant n == x * 3,
+            {
+                assert(x < 10);
+                assert(x == iter.index());
+                n += 3;
+            }
+            assert(n == 30);
+        }
+
+        fn test_loop_peek() {
+            let mut n: u64 = 0;
+            for x in 0..10
+                invariant n == x * 3,
+            {
+                assert(x < 10);
+                n += 3;
+            }
+            assert(n == 30);
+        }
+
+        fn test_loop_fail() {
+            let mut n: u64 = 0;
+            for x in iter: 0..10
+                invariant n == x * 3,
+            {
+                assert(x < 9); // FAILS
+                assert(x == iter.index());
+                n += 3;
+            }
+            assert(n == 30);
+        }
+    } => Err(e) => assert_one_fails(e)
+}
+
+test_verify_one_file_with_options! {
+    #[test] for_loop2 ["exec_allows_no_decreases_clause"] => verus_code! {
+        use vstd::prelude::*;
+        fn test_loop() {
+            let mut n: u64 = 0;
+            let mut end = 10;
+            for x in iter: 0..end
+                invariant
+                    n == x * 3,
+                    end == 10,
+            {
+                assert(x < 10);
+                assert(x == iter.index());
+                n += 3;
+            }
+            assert(n == 30);
+        }
+
+        // With the modification of end, we lose all info about the initial state of iter
+        fn test_loop_fail() {
+            let mut n: u64 = 0;
+            let mut end = 10;
+            for x in iter: 0..end
+                invariant
+                    n == x * 3,
+                    end == 10,
+            {
+                assert(x < 10); // FAILS
+                n += 3;
+                end = end + 0; // causes end to be non-constant, so loop needs more invariants
+            }
+        }
+
+        fn non_spec() {}
+
+        // With the modification of end, we lose all info about the initial state of iter
+        fn test_loop_modes_transient_state() {
+            let mut n: u64 = 0;
+            let mut end = 10;
+            // test Typing::snapshot_transient_state
+            for x in iter: 0..({let z = end; non_spec(); z})
+                invariant
+                    n == x * 3,
+                    end == 10,
+            {
+                n += 3;
+                end = end + 0; // causes end to be non-constant
+            }
+        }
+    } => Err(e) => assert_fails(e, 1)
+}
+
+test_verify_one_file_with_options! {
+    #[test] for_loop3 ["exec_allows_no_decreases_clause"] => verus_code! {
+        use vstd::prelude::*;
+        fn test_loop(n: u32) -> (v: Vec<u32>)
+            ensures
+                v.len() == n,
+                forall|i: int| 0 <= i < n ==> v[i] == i,
+        {
+            let mut v: Vec<u32> = Vec::new();
+            for i in iter: 0..n
+                invariant
+                    v.len() == iter.index(),
+                    forall |i| 0 <= i < v.len() ==> v[i] == iter.seq()[i],
+            {
+                v.push(i);
+            }
+            v
+        }
+
+        fn test_loop_fail(n: u32) -> (v: Vec<u32>)
+            ensures
+                v.len() == n,
+                forall|i: int| 0 <= i < n ==> v[i] == i,
+        {
+            let mut v: Vec<u32> = Vec::new();
+            for i in iter: 0..n
+                invariant
+                    v.len() == iter.index(),
+                    forall |i| 0 <= i < v.len() ==> v[i] == iter.seq()[i],  // FAILS
+            {
+                v.push(0);
+            }
+            v
+        }
+    } => Err(e) => assert_one_fails(e)
+}
+
+test_verify_one_file_with_options! {
+    #[test] loop_invariant_except_break_nonlinear ["exec_allows_no_decreases_clause"] => verus_code! {
+        fn integer_square_root(n: u32) -> (result: u32)
+            requires
+                n >= 1,
+            ensures
+                1 <= result <= n,
+                1 <= result * result <= n,
+                n < (result + 1) * (result + 1),
+        {
+            let mut result: u32 = 1;
+            loop
+                invariant_except_break
+                    1 <= result <= n,
+                    1 <= result * result <= n,
+                    n != 1 ==> (1 <= result < n),
+                ensures
+                    1 <= result - 1 <= n,
+                    1 <= (result - 1) * (result - 1) <= n,
+                    n < result * result,
+
+            {
+                if result == 1 {
+                } else {
+                    assert(1 <= result < (result * result) <= u32::MAX) by (nonlinear_arith)
+                        requires
+                            1 < result <= n <= u32::MAX,
+                            1 <= result * result <= n,
+                    { }
+                }
+                result += 1;
+                if result >= 3 {
+                    assert(1 <= result < (result * result) <= u64::MAX) by (nonlinear_arith)
+                        requires
+                            3 <= result <= n,
+                    { }
+                } else {
+                    assert(1 <= result <= (result * result) <= u64::MAX) by (nonlinear_arith)
+                        requires 1 <= result < 3,
+                    { }
+                }
+                if result as u64 * result as u64 > n as u64 {
+                    break;
+                }
+                assert(n != 1 ==> 1 <= result < n) by (nonlinear_arith)
+                    requires
+                        1 <= result,
+                        result as u64 * result as u64 <= n as u64,
+                        1 <= n,
+                { }
+            }
+            result - 1
+        }
+    } => Ok(())
+}
+
+test_verify_one_file_with_options! {
+    #[test] loop_continue_no_break ["exec_allows_no_decreases_clause"] => verus_code! {
+        fn test() {
+            let mut i = 0;
+            while i < 5
+                invariant i <= 5
+            {
+                continue;
+            }
+            assert(i == 5);
+        }
+
+        fn test_fail_beginning() {
+            let mut x = 0;
+            let mut i = 7;
+            while i < 5
+                invariant x == 1 // FAILS
+            {
+                x = 1;
+                continue;
+            }
+        }
+
+        fn test_fail_at_continue() {
+            let mut x = 2;
+            let mut i = 7;
+            while i < 5
+                invariant x == 2
+            {
+                x = 1;
+                continue; // FAILS
+            }
+        }
+
+        fn test_fail_at_end_after_continue(b: bool) {
+            let mut x = 2;
+            let mut i = 7;
+            while i < 5
+                invariant x == 2 // FAILS
+            {
+                if b {
+                    continue;
+                }
+                x = 1;
+            }
+        }
+
+        fn test_fail_at_end_after_continue_except_break(b: bool) {
+            let mut x = 2;
+            let mut i = 7;
+            loop
+                invariant_except_break x == 2 // FAILS
+            {
+                if b {
+                    continue;
+                }
+                x = 1;
+            }
+        }
+    } => Err(err) => assert_fails(err, 4)
+}
+
+test_verify_one_file! {
+    #[test] recursive_call_in_loop_spec_fn_decrease verus_code! {
+        spec fn f(x: u32) -> u32 { x }
+
+        fn test(x: u32)
+            decreases f(x)
+        {
+            let mut y = x;
+            while x > 0 && y > 0
+                decreases y,
+            {
+                test(x - 1);
+                y = y - 1;
+            }
+        }
+    } => Ok(())
+}
+
+test_verify_one_file! {
+    #[test] recursive_call_in_loop1 verus_code! {
+        use vstd::prelude::*;
+
+        fn test1(x: usize)
+            decreases x,
+        {
+            if x == 0 {
+                return;
+            }
+            for i in 0..1
+                invariant x >= 1,
+            {
+                test1(x - 1);
+            }
+        }
+    } => Ok(())
+}
+
+test_verify_one_file! {
+    #[test] recursive_call_in_loop2 verus_code! {
+        fn test1 (x:usize)
+            decreases x,
+        {
+            if x == 0 {
+                return;
+            }
+            let mut i: usize = 0;
+            while i < 10
+                invariant x >= 1,
+                decreases 10 - i,
+            {
+                test1(x - 1);
+                let mut j: usize = 0;
+                while j * 2 < 5
+                    invariant x >= 1, j <= 4,
+                    decreases 4 - j,
+                {
+                    test1(x - 1);
+                    j = j + 1;
+                }
+                i = i + 1;
+            }
+
+        }
+    } => Ok(())
+}
+
+test_verify_one_file! {
+    #[test] recursive_call_in_loop_mut_ref verus_code! {
+        fn test1(x: &mut usize)
+            ensures *final(x) <= *old(x),
+            decreases *old(x),
+        {
+            if *x == 0 {
+                return;
+            }
+            let mut i: usize = 0;
+            *x -= 1;
+            while i <10
+                invariant
+                    *x < *old(x),
+                decreases 10 - i
+            {
+                test1(x);
+                i += 1;
+            }
+        }
+    } => Ok(())
+}
+
+test_verify_one_file! {
+    #[test] loop_via_subrange verus_code! {
+        use vstd::prelude::*;
+        fn test_subrange(src: &Vec<u32>, dst: &mut Vec<u32>, lo: usize, hi: usize)
+            requires
+                lo <= hi,
+                hi <= src.len(),
+                hi <= old(dst).len(),
+            ensures
+                src@[lo..hi] == final(dst)@[lo..hi],
+        {
+            for n in lo..hi
+                invariant
+                    lo <= hi,
+                    hi <= src.len(),
+                    hi <= dst.len(),
+                    src@[lo..n] =~= dst@[lo..n],
+            {
+                dst[n] = src[n];
+            }
+        }
+    } => Ok(())
+}
+
+test_verify_one_file! {
+    #[test] loop_isolation_false_requires_allow_complex_invariants verus_code! {
+        #[verifier::loop_isolation(false)]
+        fn test1() {
+            let mut i = 0;
+            while i < 10
+                invariant_except_break i <= 9
+                invariant 0 <= i <= 10
+                decreases 10 - i
+            {
+                i = i + 1;
+            }
+        }
+    } => Err(err) => assert_vir_error_msg(err, "loop invariants with 'loop_isolation(false)' cannot be invariant_except_break or ensures, unless #[verifier::allow_complex_invariants] is used")
+}
+
+test_verify_one_file! {
+    #[test] for_loop_after_pushes verus_code! {
+        use vstd::prelude::*;
+        fn test() {
+            let mut v1: Vec<u32> = Vec::new();
+            let mut v2: Vec<u32> = Vec::new();
+            v1.push(3);
+            v1.push(4);
+            assert(v1@ == seq![3u32, 4u32]);
+
+            v2.push(5);
+            assert(v2.len() == 1);
+            v2.push(7);
+            assert(v2@.len() == 2);
+            v2.insert(1, 6);
+            assert(v2@ == seq![5u32, 6u32, 7u32]);
+
+            v1.append(&mut v2);
+            assert(v2@.len() == 0);
+            assert(v1@.len() == 5);
+            assert(v1@ == seq![3u32, 4u32, 5u32, 6u32, 7u32]);
+            v1.remove(2);
+            assert(v1@ == seq![3u32, 4u32, 6u32, 7u32]);
+
+            v1.push(8u32);
+            v1.push(9u32);
+            assert(v1@ == seq![3u32, 4u32, 6u32, 7u32, 8u32, 9u32]);
+
+            v1.swap_remove(5);
+            assert(v1@ == seq![3u32, 4u32, 6u32, 7u32, 8u32]);
+
+            let mut i: usize = 0;
+            for x in it: v1
+                invariant
+                    i == it.index(),
+                    it.seq() == seq![3u32, 4u32, 6u32, 7u32, 8u32],
+            {
+                assert(x > 2);
+                assert(x < 10);
+                i = i + 1;
+            }
+        }
+    } => Ok(())
+}
+
+test_verify_one_file! {
+    #[test] for_loop_with_break verus_code! {
+        use vstd::prelude::*;
+        spec fn sum_u8(s: Seq<u8>) -> nat
+            decreases s.len(),
+        {
+            if s.len() == 0 {
+                0
+            } else {
+                (sum_u8(s.drop_last()) + s.last()) as nat
+            }
+        }
+
+        proof fn sum_u8_monotonic(s: Seq<u8>, i: int, j: int)
+            requires
+                0 <= i <= j < s.len(),
+            ensures
+                sum_u8(s[..i]) <= sum_u8(s[..j]),
+            decreases j - i,
+        {
+            if i == j {
+            } else {
+                sum_u8_monotonic(s, i, j - 1);
+                assert(sum_u8(s[..i]) <= sum_u8(s[..j - 1]));
+                assert(sum_u8(s[..j - 1]) <= sum_u8(s[..j])) by {
+                    assert(s[..j].drop_last() == s[..j - 1]); // OBSERVE
+                }
+            }
+        }
+
+        proof fn sum_u8_monotonic_forall()
+            ensures
+                forall|s: Seq<u8>, i: int, j: int|
+                    0 <= i <= j < s.len() ==>
+                    sum_u8(#[trigger] s[..i]) <= sum_u8(#[trigger] s[..j]),
+        {
+            assert forall|s: Seq<u8>, i: int, j: int| 0 <= i <= j < s.len() implies
+                sum_u8(#[trigger] s[..i]) <= sum_u8(#[trigger] s[..j]) by {
+                sum_u8_monotonic(s, i, j);
+            }
+        }
+
+        // Test user-supplied break
+        fn for_loop_test_skip(v: Vec<u8>) {
+            let mut sum: u8 = 0;
+
+            for x in y: v
+              invariant_except_break
+                 sum == sum_u8(v@[..y.index()])
+              ensures
+                  (y.index() == y.seq().len() && sum == sum_u8(y.seq()[..y.index()])) ||
+                      (sum == u8::MAX && sum_u8(v@[..y.index()]) > u8::MAX),
+            {
+                assert(v@[..y.index() + 1].drop_last() == v@[..y.index()]); // OBSERVE
+                if x <= u8::MAX - sum {
+                    sum += x;
+                } else {
+                    sum = u8::MAX;
+                    break;
+                }
+            }
+
+            // Prove that we accomplished our goal
+            assert(v@[..v@.len()] == v@); // OBSERVE
+            proof {
+                // PAPER CUT: Can't call a lemma on the prophetic sequence
+                sum_u8_monotonic_forall();
+            }
+            assert(sum == sum_u8(v@) || (sum == u8::MAX && sum_u8(v@) > u8::MAX));
+        }
+    } => Ok(())
+}
+
+test_verify_one_file! {
+    #[test] rev_iter verus_code! {
+        use vstd::prelude::*;
+        fn test() {
+            let v: Vec<u8> = vec![1, 2, 3, 4, 5, 6];
+            let mut w: Vec<u8> = vec![];
+
+            for x in iter: v.iter().rev()
+                invariant
+                    w.len() == iter.index(),
+                    forall |i| 0 <= i < w.len() ==> w[i] == iter.seq()[i],
+            {
+                w.push(*x);
+            }
+
+            assert(w@ == v@.reverse());
+        }
+    } => Ok(())
+}
+
+test_verify_one_file! {
+    #[test] map_iter verus_code! {
+        use vstd::prelude::*;
+
+        #[verifier::loop_isolation(false)]
+        fn test() {
+            let v = vec![0u8, 2u8, 4u8];
+
+            let f = |i: &u8| -> (out: u8)
+                requires i < 255,
+                ensures out == i + 1,
+            {
+                *i + 1
+            };
+
+            let mut w = vec![];
+
+            for x in it: v.iter().map(f)
+                invariant
+                    w.len() == it.index(),
+                    forall |i| 0 <= i < w.len() ==> #[trigger] w[i] == v[i] + 1,
+            {
+                w.push(x);
+            }
+
+            assert(w@ == seq![1u8, 3u8, 5u8]);
+        }
+    } => Ok(())
+}
+
+test_verify_one_file! {
+    #[test] test_vecdeque_for_loop verus_code! {
+        use vstd::prelude::*;
+        use vstd::std_specs::vecdeque::*;
+        use std::collections::VecDeque;
+        spec fn sum(s: Seq<u32>) -> nat
+            decreases s.len(),
+        {
+            if s.len() == 0 {
+                0
+            } else {
+                sum(s.drop_last()) + s.last() as nat
+            }
+        }
+
+        broadcast proof fn sum_monotonic(s: Seq<u32>, i: nat, j: nat)
+            requires
+                i <= j,
+                j <= s.len(),
+            ensures
+                #[trigger] sum(s[..i]) <= #[trigger] sum(s[..j]),
+            decreases j,
+        {
+            if j == 0 {
+            } else if i == j {
+            } else {
+                sum_monotonic(s, i, (j - 1) as nat);
+                assert(s[..j].drop_last() == s[..j - 1]);
+            }
+        }
+
+        fn test() {
+            let mut vd = VecDeque::<u32>::new();
+            vd.push_back(10);
+            vd.push_back(20);
+            vd.push_back(30);
+
+            let mut s: u32 = 0;
+            for x in it: vd.iter()
+                invariant
+                    vd@ == seq![10u32, 20u32, 30u32],
+                    s as nat == sum(vd@[..it.index()]),
+            {
+                // Prove that we don't overflow
+                broadcast use sum_monotonic;
+                assert(sum(vd@[..it.index() + 1]) <= sum(vd@[..vd@.len()]));
+                assert(sum(vd@[..vd@.len()]) == sum(vd@)) by {
+                    assert(vd@[..vd@.len()] == vd@);
+                };
+                assert(sum(seq![10u32, 20u32, 30u32]) < u32::MAX) by (compute);
+                s = s + *x;
+                // Prove the invariant
+                assert(s as nat == sum(vd@[..it.index() + 1])) by {
+                    assert(vd@[..it.index() + 1].drop_last() == vd@[..it.index()]); // OBSERVE
+                };
+            }
+            assert(sum(seq![10u32, 20u32, 30u32]) == 60) by (compute);
+            assert(vd@[..vd@.len()] == vd@);  // OBSERVE
+            assert(s == 60);
+        }
+    } => Ok(())
+}
+
+test_verify_one_file! {
+    #[test] test_vecdeque_rev_for_loop verus_code! {
+        use vstd::prelude::*;
+        use vstd::std_specs::vecdeque::*;
+        use std::collections::VecDeque;
+
+        fn test() {
+            let mut vd = VecDeque::<u32>::new();
+            vd.push_back(1);
+            vd.push_back(2);
+            vd.push_back(3);
+
+            let mut w: Vec<u32> = Vec::new();
+            for x in it: vd.iter().rev()
+                invariant
+                    w.len() == it.index(),
+                    forall |i| 0 <= i < w.len() ==> w[i] == *it.seq()[i],
+            {
+                w.push(*x);
+            }
+            assert(w@ == vd@.reverse());
+        }
+    } => Ok(())
+}
+
+test_verify_one_file! {
+    #[test] test_nested_for_loops verus_code! {
+        use vstd::prelude::*;
+
+        fn test() {
+            let mut count: u64 = 0;
+            #[verifier::loop_isolation(false)]
+            for i in 0u64..3u64
+                invariant count == i * 4,
+            {
+                for j in 0u64..4u64
+                    invariant
+                        count == i * 4 + j,
+                        i < 3
+                {
+                    count += 1;
+                }
+            }
+            assert(count == 12);
+        }
+    } => Ok(())
+}
+
+test_verify_one_file! {
+    #[test] test_for_loop_search verus_code! {
+        use vstd::prelude::*;
+        fn find_value(v: &Vec<u32>, target: u32) -> (result: Option<usize>)
+            ensures
+                match result {
+                    Some(idx) => idx < v.len() && v[idx as int] == target,
+                    None => forall |i: int| 0 <= i < v.len() ==> v[i] != target,
+                },
+        {
+            let mut result: Option<usize> = None;
+            let mut index: usize = 0;
+            for x in it: v
+                invariant_except_break
+                    index as int == it.index(),
+                    result is None,
+                invariant
+                    index <= v.len(),
+                    result is None ==> forall |i: int| 0 <= i < it.index() ==> v[i] != target,
+                    result matches Some(idx) ==> idx < v.len() && v[idx as int] == target,
+                ensures
+                    result is None ==> forall |i: int| 0 <= i < v.len() ==> v[i] != target,
+                    result matches Some(idx) ==> idx < v.len() && v[idx as int] == target,
+            {
+                if *x == target {
+                    result = Some(index);
+                    break;
+                }
+                index += 1;
+            }
+            result
+        }
+    } => Ok(())
+}
+
+test_verify_one_file! {
+    #[test] test_for_loop_with_pattern_binding_issue2495 verus_code! {
+        use vstd::prelude::*;
+        fn foo(v: &Vec<(u32, u32)>) {
+            for (a, b) in iter: v
+                invariant iter.index() >= 0,
+            {
+                assert(iter.seq()[iter.index()].0 == a);
+                assert(iter.seq()[iter.index()].1 == b);
+            }
+        }
+    } => Ok(())
+}
+
+test_verify_one_file! {
+    #[test] shadowed_label verus_code! {
+        fn cond() -> bool { true }
+
+        #[verifier::exec_allows_no_decreases_clause]
+        #[allow(unused_labels)]
+        fn test() {
+            let mut i = 0;
+            'a: while i < 10 {
+                'a: loop {
+                    break 'a;
+                }
+
+                i += 1;
+            }
+
+            // There is no 'break' statement for the outer loop, so the condition
+            // should always be false at this point.
+            assert(i >= 10);
+        }
+    } => Ok(err) => {
+        assert!(err.errors.len() == 0);
+        assert!(err.warnings.len() == 4);
+        assert!(err.warnings[0].message.contains("label name `'a` shadows a label name that is already in scope"));
+        assert!(err.warnings[1].message.contains("1 warning emitted"));
+        assert!(err.warnings[2].message.contains("label name `'a` shadows a label name that is already in scope"));
+        assert!(err.warnings[3].message.contains("1 warning emitted"));
+    }
+}
+
+test_verify_one_file! {
+    #[test] break_in_condition_issue2713 verus_code! {
+        fn cond() -> bool { true }
+
+        #[verifier::exec_allows_no_decreases_clause]
+        fn test() {
+            let mut i = 0;
+            'a: while ({ if cond() { break 'a; } i < 10 }) {
+                i += 1;
+            }
+            assert(i >= 10); // FAILS
+        }
+    } => Err(err) => assert_fails(err, 1)
+}
+
+test_verify_one_file! {
+    #[test] break_in_condition_nested_issue2714 verus_code! {
+        #[verifier::exec_allows_no_decreases_clause]
+        fn test() {
+            let mut i = 0;
+            'a: while i < 10
+            {
+                #[verifier::loop_isolation(false)]
+                while ({ break 'a; }) {
+                }
+            }
+            assert(i >= 10); // FAILS
+        }
+    } => Err(err) => assert_fails(err, 1)
+}
+
+test_verify_one_file! {
+    // A `for` loop produced by a `macro_rules!` expansion is not rewritten by the
+    // `verus!` macro, so it reaches rustc's native for-loop desugaring.
+    #[test] macro_rules_for_loop_no_ice_issue2751 verus_code! {
+        fn f() {
+            macro_rules! m {
+                () => { for _ in 0..1 {} };
+            }
+            m!();
+        }
+    } => Err(err) => assert_vir_error_msg(err, "`for` loops produced by a macro expansion")
+}

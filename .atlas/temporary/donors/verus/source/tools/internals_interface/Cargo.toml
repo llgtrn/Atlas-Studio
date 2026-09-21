@@ -1,0 +1,11 @@
+[package]
+name = "internals_interface"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+serde = { workspace = true }
+bincode-next = { workspace = true }
+
+[lints]
+workspace = true

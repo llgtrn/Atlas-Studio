@@ -1,0 +1,56 @@
+name: Guidelines
+on:
+  pull_request:
+    types: [opened, synchronize]
+  workflow_dispatch:
+  push:
+    branches:
+      - 'master'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/master' }}
+
+jobs:
+  # Check code formatting and upload a patch when necessary.
+  #
+  # Only checks the files changed in the current commit.
+  Code-Style:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: checkout
+      uses: actions/checkout@v7
+      with:
+        fetch-depth: 2
+
+    - name: clang-format
+      id: clang-format
+      run: sh/run_test_format.sh
+
+    - name: format patch
+      if: ${{ failure() }}
+      run: git diff > reformat.patch
+
+    - name: upload-full-clang-format-config
+      if: ${{ failure() }}
+      uses: actions/upload-artifact@v7
+      with:
+        name: reformat.patch
+        path: reformat.patch
+
+  # Check that souffle builds with clang and ninja.
+  Clang-Ninja-Build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: checkout
+      uses: actions/checkout@v7
+      with:
+        fetch-depth: 2
+    - name: Install dependencies
+      run: sudo sh/setup/install_ubuntu_deps.sh
+    - name: generate with Ninja
+      run: cmake -S . -B build -DCMAKE_CXX_COMPILER=clang++ -G Ninja -DCMAKE_BUILD_TYPE=Debug
+    - name: build
+      run: cmake --build build

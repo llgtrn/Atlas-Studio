@@ -1,5 +1,4 @@
 /target/
 .atlas/.cache/
 .atlas/tmp/
-.atlas/temporary/donors/
 .DS_Store

@@ -1,0 +1,18 @@
+{
+    "version": "2.6",
+    "type": "update",
+    "components": {
+        "verifier": {
+            "add": {
+                "shutdown_drain_timeout": "10",
+                "max_workers": "16",
+                "auto_recover_attestation_failures": "False"
+            }
+        },
+        "registrar": {
+            "add": {
+                "max_workers": "16"
+            }
+        }
+    }
+}

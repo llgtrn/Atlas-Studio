@@ -1,0 +1,26 @@
+---
+global:
+  sendAnonymousUsage: false
+api:
+  insecure: false
+  dashboard: true
+entryPoints:
+  traefik:
+    address: ':8080'
+  quay:
+    address: ':8443'
+  clair:
+    address: ':6060'
+  postgresql:
+    address: ':5432'
+providers:
+  file:
+    directory: /etc/traefik/config
+metrics:
+  prometheus:
+    addServicesLabels: true
+tracing:
+  otlp:
+    http:
+      endpoint: http://clair-jaeger:4318/v1/traces
+accessLog: {}

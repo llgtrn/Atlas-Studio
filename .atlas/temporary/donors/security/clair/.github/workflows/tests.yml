@@ -1,0 +1,193 @@
+---
+name: Tests
+
+on:
+  workflow_call:
+    inputs:
+      package_expr:
+        required: true
+        type: string
+        description: 'Package expression(s) passed to `go test`'
+      qemu:
+        required: false
+        type: boolean
+        default: false
+        description: 'Run tests for additional architectures under qemu-static'
+      cd:
+        required: false
+        type: string
+        default: ""
+        description: 'Change to this directory before running tests'
+
+jobs:
+  setup:
+    name: Setup
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        go: ['oldstable', 'stable']
+    outputs:
+      go-cache: ${{ steps.check.outputs.cache-hit == 'true' || steps.setup-go.outputs.cache-hit == 'true' || steps.warm.conclusion == 'success' }}
+      runner-arch: ${{ steps.arch.outputs.result }}
+    steps:
+      - name: Map Arch
+        id: arch
+        uses: actions/github-script@v9
+        with:
+          result-encoding: string
+          script: |
+            switch (process.env.RUNNER_ARCH) {
+            case "X64":
+              return "amd64";
+            case "ARM64":
+              return "arm64";
+            default:
+              core.setFailed(`unknown/unsupported architecture: ${process.env.RUNNER_ARCH}`);
+            }
+            return ""
+      - name: Checkout
+        if: ${{ inputs.cd == '' }}
+        id: checkout
+        uses: actions/checkout@v7
+      - name: Check Go Version
+        if: ${{ inputs.cd == '' && steps.checkout.conclusion == 'success' }}
+        id: checkversion
+        uses: actions/setup-go@v7
+        with:
+          go-version: ${{ matrix.go }}
+          cache: false
+      - name: Get ImageOS
+        # There's no way around this, because "ImageOS" is only available to
+        # processes, but the setup-go action uses it in its key.
+        if: ${{ inputs.cd == '' && steps.checkout.conclusion == 'success' }}
+        id: imageos
+        uses: actions/github-script@v9
+        with:
+          result-encoding: string
+          script: |
+            return process.env.ImageOS
+      - name: Check Cache
+        if: ${{ inputs.cd == '' && steps.checkout.conclusion == 'success' }}
+        id: check
+        uses: actions/cache/restore@v6
+        with:
+          key: >-
+            setup-go-${{ runner.os }}-${{ steps.imageos.outputs.result }}-go-${{ steps.checkversion.outputs.go-version }}-${{ hashFiles('go.sum') }}
+          lookup-only: true
+          path: |
+            ~/go/pkg/mod
+            ~/.cache/go-build
+      - name: Setup Go
+        if: ${{ inputs.cd == '' && steps.check.outputs.cache-hit != 'true' }}
+        id: setup-go
+        uses: actions/setup-go@v7
+        with:
+          go-version: ${{ matrix.go }}
+      - name: Warm Cache on Miss
+        id: warm
+        if: ${{ inputs.cd == '' && steps.check.outputs.cache-hit != 'true' && steps.setup-go.outputs.cache-hit != 'true' }}
+        run: |
+          # Warm module+build cache
+          for GOARCH in amd64 arm64 ppc64le s390x; do
+            export GOARCH
+            for mod in '' github.com/quay/clair/config github.com/quay/claircore github.com/quay/claircore/toolkit; do
+              echo Downloading modules for "${mod-main}/$GOARCH"
+              go mod download $mod
+            done
+            echo Building '"std"' for "$GOARCH"
+            go build std
+          done
+
+  tests:
+    name: Tests
+    runs-on: ubuntu-latest
+    needs: ['setup']
+    strategy:
+      matrix:
+        go: ['oldstable', 'stable']
+        platform: ${{ inputs.qemu && fromJSON('["amd64","arm64","ppc64le","s390x"]') || fromJSON('["amd64"]')}}
+      fail-fast: false
+    services:
+      postgres:
+        image: docker.io/library/postgres:15
+        env:
+          POSTGRES_DB: "clair"
+          POSTGRES_INITDB_ARGS: "--no-sync"
+          POSTGRES_PASSWORD: password
+          POSTGRES_USER: "clair"
+        options: >-
+          --health-cmd "pg_isready -U clair"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432
+      rabbitmq:
+        image: docker.io/library/rabbitmq:3
+        env:
+          RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS: '-rabbit vm_memory_high_watermark 0.85'
+        ports:
+          - 5672
+          - 61613
+
+    steps:
+      - name: Configure RabbitMQ
+        run: |
+          docker exec ${{ job.services.rabbitmq.id }} rabbitmqctl await_startup
+          docker exec ${{ job.services.rabbitmq.id }} rabbitmq-plugins enable rabbitmq_stomp
+          docker exec ${{ job.services.rabbitmq.id }} rabbitmq-plugins disable rabbitmq_management_agent rabbitmq_prometheus rabbitmq_web_dispatch
+          docker exec ${{ job.services.rabbitmq.id }} rabbitmqctl add_vhost localhost
+          docker exec ${{ job.services.rabbitmq.id }} rabbitmqctl set_permissions -p localhost guest '.*' '.*' '.*'
+          docker exec ${{ job.services.rabbitmq.id }} rabbitmqctl add_user clair password
+          docker exec ${{ job.services.rabbitmq.id }} rabbitmqctl set_permissions -p '/' clair '.*' '.*' '.*'
+          docker exec ${{ job.services.rabbitmq.id }} rabbitmqctl set_permissions -p localhost clair '.*' '.*' '.*'
+
+      - name: Checkout
+        uses: actions/checkout@v7
+      - name: Setup Go
+        id: setup-go
+        uses: actions/setup-go@v7
+        with:
+          go-version: ${{ matrix.go }}
+          cache: ${{ needs.setup.outputs.go-cache }}
+      - name: Assets Cache
+        id: assets
+        uses: actions/cache/restore@v6
+        with:
+          key: integration-assets-${{ hashFiles('go.sum') }}
+          restore-keys: |
+            integration-assets-
+          path: |
+            ~/.cache/clair-testing
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v4
+        if: ${{ matrix.platform != needs.setup.outputs.runner-arch }}
+        with:
+          platforms: linux/${{ matrix.platform }}
+
+      - name: Tests
+        # NB If Clair gains any C dependencies, this will need additional setup:
+        #  - `-extldflags=-static`
+        #  - CGO_ENABLED=1
+        #  - relevant architecture's libc, linker, etc.
+        env:
+          POSTGRES_CONNECTION_STRING: >-
+            host=localhost
+            port=${{ job.services.postgres.ports[5432] }}
+            user=clair
+            dbname=clair
+            password=password
+            sslmode=disable
+          RABBITMQ_CONNECTION_STRING: "amqp://clair:password@localhost:${{ job.services.rabbitmq.ports[5672] }}/"
+          STOMP_CONNECTION_STRING: "stomp://clair:password@localhost:${{ job.services.rabbitmq.ports[61613] }}/"
+          GOARCH: ${{ matrix.platform }}
+          CGO_ENABLED: '0'
+          GOFLAGS: '-mod=mod'
+        working-directory: ./${{ inputs.cd }}
+        run: |
+          # Go Tests
+          for expr in ${{ inputs.package_expr }}; do
+            printf '::group::go test %s\n' "$expr"
+            go test -tags integration "$expr"
+            printf '::endgroup::\n'
+          done

@@ -1,0 +1,6 @@
+grammar/grammar.json linguist-generated=true
+grammar/node-types.json linguist-generated=true
+grammar/parser.c linguist-generated=true
+grammar/tree_sitter/alloc.h linguist-generated=true
+grammar/tree_sitter/array.h linguist-generated=true
+grammar/tree_sitter/parser.h linguist-generated=true

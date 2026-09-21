@@ -1,0 +1,19 @@
+# Files
+DCO
+.dockerignore
+LICENSE
+*.md
+NOTICE
+*.oci
+*.tar*
+/clairctl-*
+!testdata/**
+# Directories
+/book
+/contrib
+!/contrib/cmd
+/Documenatation
+/etc
+/local-dev
+/.github
+# Allow `.git` to get sent for build vcs stamping.

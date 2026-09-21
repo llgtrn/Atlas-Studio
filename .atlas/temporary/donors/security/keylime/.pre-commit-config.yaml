@@ -1,0 +1,12 @@
+exclude: 'test/data/template-invalid-adjust/2.0/adjust.py'
+repos:
+  - repo: https://github.com/pycqa/isort
+    rev: 8.0.1
+    hooks:
+      - id: isort
+        name: isort (python)
+  - repo: https://github.com/psf/black
+    rev: 23.10.0
+    hooks:
+      - id: black
+        args: ["--target-version", "py310"]
