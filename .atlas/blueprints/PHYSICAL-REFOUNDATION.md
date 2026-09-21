@@ -80,7 +80,9 @@ New foundational semantics must not expand the generic string-map model. Later R
 
 ### R3 — Structural source boundary
 
-Create `adapter/source` and a typed SourceFrontend contract. Incremental syntax is an implementation mechanism behind that contract.
+**Status: typed boundary materialized.** `adapter/source/frontend.rs` now owns the `SourceFrontend` contract, stable frontend identities and the built-in source registry. Inventory recognition routes through that contract instead of a private extension switch.
+
+The bootstrap frontends currently establish structural recognition and language ownership only. Incremental syntax, compiler metadata and independent semantic extractors remain implementation mechanisms behind the contract and will deepen in R4 without becoming canonical truth.
 
 ### R4 — Semantic normalization
 

@@ -2,6 +2,12 @@ use atlas_core::{
     stable_id, ArtifactDisposition, ArtifactId, ArtifactKind, ArtifactRecord, FileFact,
     InventoryReport, RepoManifest, SourceReport,
 };
+
+pub mod frontend;
+
+pub use frontend::{
+    SourceFrontend, SourceFrontendMatch, resolve_source_frontend, source_frontends,
+};
 use std::{
     collections::BTreeMap,
     fs::{self, File},
@@ -11,25 +17,6 @@ use std::{
 
 const MAX_SEMANTIC_BYTES: u64 = 4 * 1024 * 1024;
 const BINARY_SAMPLE_BYTES: usize = 8 * 1024;
-
-fn language(path: &Path) -> Option<&'static str> {
-    match path
-        .extension()
-        .and_then(|x| x.to_str())
-        .unwrap_or_default()
-        .to_ascii_lowercase()
-        .as_str()
-    {
-        "rs" => Some("rust"),
-        "ts" | "tsx" => Some("typescript"),
-        "js" | "jsx" | "mjs" | "cjs" => Some("javascript"),
-        "md" => Some("markdown"),
-        "toml" => Some("toml"),
-        "json" => Some("json"),
-        "yaml" | "yml" => Some("yaml"),
-        _ => None,
-    }
-}
 
 fn ignored_directory(name: &str) -> bool {
     matches!(
@@ -80,7 +67,8 @@ fn policy_boundary(root: &Path, path: &Path) -> ArtifactRecord {
 fn classify_file(root: &Path, path: &Path) -> io::Result<ArtifactRecord> {
     let relative_path = relative(root, path);
     let bytes = fs::metadata(path)?.len();
-    let language = language(path).map(ToOwned::to_owned);
+    let frontend = resolve_source_frontend(path);
+    let language = frontend.map(|matched| matched.language.to_owned());
     let binary = looks_binary(path)?;
 
     let (disposition, reason) = if binary {

@@ -7,7 +7,8 @@ pub mod source;
 pub mod vcs;
 
 pub use source::{
-    inventory_declared_source, inventory_source, scan_declared_source, scan_source,
+    SourceFrontend, SourceFrontendMatch, inventory_declared_source, inventory_source,
+    resolve_source_frontend, scan_declared_source, scan_source, source_frontends,
     source_report_from_inventory,
 };
 pub use vcs::snapshot_git;
