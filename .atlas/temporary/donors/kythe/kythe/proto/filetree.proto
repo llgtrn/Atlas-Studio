@@ -1,0 +1,95 @@
+/*
+ * Copyright 2015 The Kythe Authors. All rights reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+syntax = "proto3";
+
+package kythe.proto;
+
+option go_package = "kythe.io/kythe/proto/filetree_go_proto";
+option java_package = "com.google.devtools.kythe.proto";
+
+// FileTreeService provides an interface to explore a tree of files.
+service FileTreeService {
+  // CorpusRoots returns all known corpus/root pairs for stored files.
+  rpc CorpusRoots(CorpusRootsRequest) returns (CorpusRootsReply) {}
+
+  // Directory returns the file/sub-directory contents of the given directory.
+  rpc Directory(DirectoryRequest) returns (DirectoryReply) {}
+}
+
+message CorpusRootsRequest {}
+
+message CorpusRootsReply {
+  message Corpus {
+    // Name of the corpus.
+    string name = 1;
+
+    // Each known root within the corpus.
+    repeated string root = 2;
+
+    // Each known build configuration within the corpus.
+    repeated string build_config = 3;
+  }
+  repeated Corpus corpus = 1;
+}
+
+message DirectoryRequest {
+  string corpus = 1;
+  string root = 2;
+  string path = 3;
+
+  // Whether to return files that are missing text.
+  bool include_files_missing_text = 4;
+}
+
+message DirectoryReply {
+  // The corpus of the requested directory.
+  string corpus = 3;
+  // The root of the requested directory.
+  string root = 4;
+  // The path of the requested directory.
+  string path = 5;
+
+  // Each known entry in the requested directory.  Each entry shares the above
+  // corpus, root, and path prefix.
+  repeated Entry entry = 6;
+
+  message Entry {
+    // The kind of entry.
+    Kind kind = 1;
+
+    // The basename of the entry within the directory.
+    string name = 2;
+
+    // Set of known build configurations of this FILE or all files recursively
+    // contained in/below this DIRECTORY.
+    repeated string build_config = 3;
+
+    // True if the entry is generated.
+    bool generated = 4;
+
+    // Whether the FILE entry is missing text or the DIRECTORY entry contains
+    // only entries with missing_text.
+    bool missing_text = 5;
+  }
+  enum Kind {
+    UNKNOWN = 0;
+    FILE = 1;
+    DIRECTORY = 2;
+  }
+
+  reserved 1, 2;
+}

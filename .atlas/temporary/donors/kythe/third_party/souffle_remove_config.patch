@@ -1,0 +1,11 @@
+--- src/main.cpp
++++ src/main.cpp
+@@ -64,7 +64,7 @@
+ #include "ast2ram/seminaive/TranslationStrategy.h"
+ #include "ast2ram/seminaive/UnitTranslator.h"
+ #include "ast2ram/utility/TranslatorContext.h"
+-#include "config.h"
++namespace souffle { constexpr char const* PACKAGE_VERSION = "2.3"; }
+ #include "interpreter/Engine.h"
+ #include "interpreter/ProgInterface.h"
+ #include "parser/ParserDriver.h"

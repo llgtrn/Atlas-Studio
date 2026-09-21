@@ -1,0 +1,9 @@
+= Kythe Website
+
+== Getting Started
+
+[source,shell]
+----
+# Build static website and serve it locally on port 4000
+bazel run :serve
+----

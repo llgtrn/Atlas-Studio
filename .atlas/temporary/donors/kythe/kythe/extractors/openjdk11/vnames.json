@@ -1,0 +1,25 @@
+[
+ {
+  "pattern": "(build/(?:[^/]*/)?support/gensrc)/(.*)",
+  "vname": {
+   "corpus": "openjdk11",
+   "path": "@2@",
+   "root": "@1@"
+  }
+ },
+ {
+  "pattern": "(?:srcs/)?src/(.*)",
+  "vname": {
+   "corpus": "openjdk11",
+   "path": "@1@"
+  }
+ },
+ {
+  "pattern": "/?(modules)/(.*[.]class)$",
+  "vname": {
+   "corpus": "openjdk11",
+   "root": "@1@",
+   "path": "@2@"
+  }
+ }
+]

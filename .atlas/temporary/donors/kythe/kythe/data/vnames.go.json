@@ -1,0 +1,53 @@
+[
+  {
+    "pattern": "external/go_sdk/pkg/[^/]+/vendor/golang.org/x/(\\w+)/(.*)\\.[xa]$",
+    "vname": {
+      "corpus": "org_golang_x_@1@",
+      "path": "@2@"
+    }
+  },
+  {
+    "pattern": "external/go_sdk/pkg/[^/]+/(.*)\\.[xa]$",
+    "vname": {
+      "corpus": "golang.org",
+      "path": "@1@"
+    }
+  },
+  {
+    "pattern": "external/([^/]+)/(.*\\.go)$",
+    "vname": {
+      "corpus": "@1@",
+      "path": "@2@"
+    }
+  },
+  {
+    "pattern": "bazel-out/[^/]+/([^/]+)/external/([^/]+)/(.*\\.go)$",
+    "vname": {
+      "corpus": "@2@",
+      "root": "bazel-out/@1@",
+      "path": "@3@"
+    }
+  },
+  {
+    "pattern": "bazel-out/[^/]+/([^/]+)/external/([^/]+)/(.*)\\.[xa]$",
+    "vname": {
+      "corpus": "@2@",
+      "root": "bazel-out/@1@",
+      "path": "@3@"
+    }
+  },
+  {
+    "pattern": "bazel-out/[^/]+/([^/]+)/(.*\\.go)$",
+    "vname": {
+      "root": "bazel-out/@1@",
+      "path": "@2@"
+    }
+  },
+  {
+    "pattern": "bazel-out/[^/]+/([^/]+)/(.*)\\.[xa]$",
+    "vname": {
+      "root": "bazel-out/@1@",
+      "path": "@2@"
+    }
+  }
+]

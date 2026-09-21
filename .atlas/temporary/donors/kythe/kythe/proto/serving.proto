@@ -1,0 +1,482 @@
+/*
+ * Copyright 2014 The Kythe Authors. All rights reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+syntax = "proto3";
+
+package kythe.proto.serving;
+
+option go_package = "kythe.io/kythe/proto/serving_go_proto";
+option java_package = "com.google.devtools.kythe.proto";
+
+import "kythe/proto/common.proto";
+
+// A derivative of xref.NodeInfo for serving.
+message Node {
+  string ticket = 1;
+  repeated kythe.proto.common.Fact fact = 2;
+
+  // This node's definition location (anchor).
+  ExpandedAnchor definition_location = 3;
+
+  double rank = 4;
+}
+
+// Full representation of a Kythe edge; useful during post-processing.
+message Edge {
+  Node source = 1;
+  string kind = 2;
+  int32 ordinal = 5;
+  Node target = 3;
+
+  repeated kythe.proto.common.Fact fact = 4;
+}
+
+// An EdgeGroup represents a set of edges with the same kind and source.
+//
+// Note: this is a derivative of xref.EdgeSet_Group
+message EdgeGroup {
+  message Edge {
+    Node target = 1;
+    int32 ordinal = 2;
+  }
+  string kind = 1;
+  repeated Edge edge = 2;
+}
+
+// PagedEdgeSets are used for efficiently storing EdgeSets, all originating from
+// the same source ticket, in order to handle pagination requests.
+message PagedEdgeSet {
+  // The source node for all the edges in the edge set.
+  Node source = 1;
+
+  // Each group is a collection of outbound edges from source node sharing a
+  // given kind.
+  repeated EdgeGroup group = 2;
+
+  // Total number of edges in all of the EdgePages, including this one.
+  int32 total_edges = 3 [deprecated = true];
+
+  // Page indices for other EdgePages, sorted by edge kind.
+  repeated PageIndex page_index = 4;
+}
+
+// PageIndex is a pointer to an EdgePage.  In order to keep the PagedEdgeSet
+// small, we don't store edges here.  We just store a key for looking up an
+// EdgePage and the type of edge.
+message PageIndex {
+  // The kind of all edges on the referred EdgePage.
+  string edge_kind = 1;
+
+  // Total number of edges on the referred EdgePage.
+  int32 edge_count = 2;
+
+  // Key that can be used to lookup the referred EdgePage.
+  string page_key = 3;
+}
+
+// EdgePages are a group of edges for a particular edge kind and source ticket.
+message EdgePage {
+  // Corresponding PageIndex key that can be used to lookup this page.
+  string page_key = 1;
+  string source_ticket = 2;
+  EdgeGroup edges_group = 3;
+}
+
+// FileDirectory describes a virtual directory of file nodes.
+message FileDirectory {
+  // Each known entry in the directory.
+  repeated Entry entry = 3;
+
+  message Entry {
+    // The kind of entry.
+    Kind kind = 1;
+
+    // The basename of the entry within the directory.
+    string name = 2;
+
+    // Set of known build configurations of this FILE or all files recursively
+    // contained in/below this DIRECTORY.
+    repeated string build_config = 3;
+
+    // True if this entry is generated.
+    bool generated = 4;
+
+    // Whether the FILE Entry did not have an associated text fact.
+    bool missing_text = 5;
+  }
+  enum Kind {
+    UNKNOWN = 0;
+    FILE = 1;
+    DIRECTORY = 2;
+  }
+
+  // Set of URIs for each contained sub-directory's corpus, root, and full path.
+  repeated string subdirectory = 1 [deprecated = true];
+  // Set of file node tickets contained within this directory.
+  repeated string file_ticket = 2 [deprecated = true];
+}
+
+// CorpusRoots describes all of the known corpus/root pairs that contain file
+// nodes.
+message CorpusRoots {
+  message Corpus {
+    string corpus = 1;
+    repeated string root = 2;
+    repeated string build_config = 3;
+  }
+  repeated Corpus corpus = 1;
+}
+
+// A File is a specialized Node structure for file nodes.
+message File {
+  string ticket = 1;
+  optional bytes text = 2;
+  string encoding = 3;
+
+  FileInfo info = 4;
+}
+
+// A RawAnchor is a specialized Node structure for anchor nodes.
+message RawAnchor {
+  string ticket = 1;
+  int32 start_offset = 2;
+  int32 end_offset = 3;
+
+  int32 snippet_start = 4;
+  int32 snippet_end = 5;
+
+  string build_configuration = 6;
+}
+
+// ExpandedAnchors are constructed from an RawAnchor and its associated File.
+// They contain normalized Spans based on their parent file's text as well as
+// the UTF8-encoded text for both the anchor's span and its snippet span.
+message ExpandedAnchor {
+  string ticket = 1;
+  string kind = 2;
+  reserved 3;
+
+  string text = 4;
+  kythe.proto.common.Span span = 5;
+
+  string snippet = 6;
+  kythe.proto.common.Span snippet_span = 7;
+
+  string build_configuration = 8;
+
+  double rank = 9;
+
+  // Info for parent file
+  FileInfo file_info = 10;
+}
+
+message FileInfo {
+  // Structured path of the file
+  kythe.proto.common.CorpusPath corpus_path = 1;
+
+  string revision = 2;
+
+  // Hash of the file contents; the algorithm of the hash may differ between
+  // corpora based on the repository from which they were extracted.
+  kythe.proto.common.Hash hash = 3;
+
+  // Signifies whether there are restrictions for viewing this file in some
+  // context.
+  bool view_restricted = 4;
+}
+
+// FileDecorations stores a file's contents and all contained anchor edges.
+message FileDecorations {
+  File file = 1;
+
+  // Represents an edge from an anchor contained within the file to some target.
+  message Decoration {
+    RawAnchor anchor = 1;
+    string kind = 2;
+    string target = 5;
+
+    string target_definition = 4;
+    string semantic_scope = 6;
+  }
+
+  // The decorations located in the file, sorted by starting offset.
+  repeated Decoration decoration = 2;
+
+  // Set of nodes associated with each Decoration.target and
+  // target_override.overridden.
+  repeated Node target = 4;
+
+  // Set of definition locations for each Decoration.target and
+  // target_override.overridden.
+  repeated ExpandedAnchor target_definitions = 3;
+
+  // An overrides/extends for a defining Decoration's target.
+  //
+  // Example:
+  //   overriding:  "kythe:#java.lang.String"
+  //   kind:        EXTENDS
+  //   overridden:  "kythe:#java.lang.Object"
+  message Override {
+    // What kind of override this is.
+    enum Kind {
+      OVERRIDES = 0;
+      EXTENDS = 1;
+    }
+
+    // Ticket of overriding node (i.e. a Decoration target for a definition)
+    string overriding = 1;
+    // Ticket of node that is being overridden/extended.
+    string overridden = 2;
+    string overridden_definition = 5;
+
+    Kind kind = 3;
+
+    // MarkedSource for the node being overridden/extended (i.e. node whose
+    // ticket is overridden).
+    kythe.proto.common.MarkedSource marked_source = 4;
+  }
+
+  // List of overrides for target semantic nodes.
+  repeated Override target_override = 5;
+
+  // List of file diagnostics.
+  repeated kythe.proto.common.Diagnostic diagnostic = 6;
+
+  // List of tickets for files that generate this file.
+  repeated string generated_by = 7;
+
+  // List of files referenced in the decorations
+  repeated FileInfo file_info = 8;
+}
+
+// PagedCrossReferences are used for efficiently storing pre-cached data for
+// CrossReferencesReply.{definition,reference,caller} anchors and related
+// nodes.
+message PagedCrossReferences {
+  reserved 10;
+
+  // Nodes with cross-references that should be merged into this node's set of
+  // cross-references.  These are highly related nodes that share a definition.
+  repeated string merge_with = 7;
+
+  // Node which is related to the source_ticket node.  The relation kind is
+  // stored in each Group.  See: kythe.proto.CrossReferencesReply.RelatedNode.
+  message RelatedNode {
+    Node node = 1;
+    int32 ordinal = 2;
+  }
+
+  // References to the source node with an associated semantic scope.
+  message ScopedReference {
+    // The definition anchor covering the semantic scope.
+    ExpandedAnchor scope = 1;
+    // The semantic ticket for the scope.
+    string semantic_scope = 2;
+
+    // MarkedSource for the scope.
+    kythe.proto.common.MarkedSource marked_source = 3;
+
+    // Specific locations within the scope that reference the source node.
+    repeated ExpandedAnchor reference = 4;
+  }
+
+  // Caller of the source node with all associated callsites within the caller.
+  message Caller {
+    // The anchor covering the caller.
+    ExpandedAnchor caller = 1;
+
+    // The relevant semantic ticket for the caller.
+    string semantic_caller = 2;
+    // MarkedSource for the caller.
+    kythe.proto.common.MarkedSource marked_source = 3;
+
+    // Specific locations within the caller that caused the relationship to
+    // exist.
+    repeated ExpandedAnchor callsite = 4;
+  }
+
+  message Group {
+    string kind = 1;
+
+    // Build configuration for all anchors contained within the group.
+    string build_config = 5;
+
+    // A group is composed entirely of anchors, related nodes, or callers.
+    repeated ExpandedAnchor anchor = 2;
+    repeated RelatedNode related_node = 3;
+    repeated Caller caller = 4;
+    repeated ScopedReference scoped_reference = 7;
+
+    // List of files referenced in the group
+    repeated FileInfo file_info = 6;
+  }
+
+  message Page {
+    string page_key = 1;
+    string source_ticket = 2;
+    Group group = 3;
+  }
+
+  // A PageIndex is a reference to a Page.
+  message PageIndex {
+    string kind = 1;
+    int32 count = 2;
+    string page_key = 3;
+    string build_config = 4;
+  }
+
+  string source_ticket = 1;
+  Node source_node = 8;
+  repeated Group group = 2;
+  repeated PageIndex page_index = 3;
+  int32 total_references = 4 [deprecated = true];
+
+  // Whether the source node is incomplete.  This changes whether
+  // /kythe/edge/defines edges are considered declarations or definitions.
+  // /kythe/edge/completedby edges are always grouped as definitions.
+  bool incomplete = 5;
+
+  // The source node's MarkedSource.
+  kythe.proto.common.MarkedSource marked_source = 6;
+
+  message PageSearchIndex {
+    message Pages {
+      // Set of page indices.
+      //
+      // These indices are sorted and then encoded as the difference between
+      // consecutive elements.
+      //
+      // Example:
+      //   [2, 5, 6] would be encoded here as [2, 3, 1]
+      repeated uint32 page_index = 1 [packed = true];
+    }
+    message Postings {
+      // trigram -> set of pages containing trigram
+      map<uint32, Pages> index = 1;
+    }
+
+    Postings by_corpus = 1;
+    Postings by_root = 2;
+    Postings by_path = 3;
+    Postings by_resolved_path = 4;
+  }
+
+  // Trigram search index for this set's xref Pages.
+  PageSearchIndex page_search_index = 11;
+}
+
+// A single node's documentation for the xrefs Documentation API.
+message Document {
+  string ticket = 1;
+
+  // The node's MarkedSource.
+  kythe.proto.common.MarkedSource marked_source = 2;
+
+  // Raw text that can be displayed to the user (but may also contain markup
+  // that can be interpreted, like Doxygen comments). Links are marked using [].
+  // \ is an escape character (where possible escape sequences are \[, \], and
+  // \\).
+  string raw_text = 3;
+
+  // Annotations for spans in raw_text. The ith Link corresponds to the span
+  // starting at the ith [.
+  repeated kythe.proto.common.Link link = 4;
+
+  // Tickets for this document node's immediate children.
+  repeated string child_ticket = 5;
+
+  // Nodes referenced by documentation Links.
+  repeated Node node = 6;
+
+  // If non-empty, this is the ticket of a node whose documentation should
+  // subsume this node's documentation.
+  string documented_by = 7;
+}
+
+// A single identifier's information for the Identifier API
+message IdentifierMatch {
+  message Node {
+    // Kythe ticket for the matched node.
+    string ticket = 1;
+
+    // Ticket for the canonical node, if there is one. For example, if there is
+    // a definition node and a declaration node only one will be the canonical
+    // node.
+    string canonical_node_ticket = 4;
+
+    // Kind of the node being referenced.
+    string node_kind = 2;
+
+    // Subkind of the node being referenced.
+    string node_subkind = 3;
+  }
+
+  // The fully qualified identifier for the node.
+  string qualified_name = 1;
+
+  // The local identifier for the node.
+  string base_name = 2;
+  repeated Node node = 3;
+}
+
+// Relatives stores the nodes connected to a reference node via childOf edges:
+// "parents" (nodes that the reference node is a childOf)
+// or "children" (nodes that are each a childOf of the reference node).
+// Used by ExploreService for the Parents and Children APIs.
+message Relatives {
+  enum Type {
+    UNKNOWN = 0;   // never a valid value
+    PARENTS = 1;   // the reference node is a childOf each element of 'tickets'
+    CHILDREN = 2;  // each element of 'tickets' is a childOf the reference node
+  }
+
+  // Nodes connected to a reference node via childOf edges.
+  repeated string tickets = 1;
+
+  Type type = 2;
+}
+
+// Callgraph stores the tickets for semantic nodes of functions that call, or
+// are called by, a reference function semantic node.
+// Used by ExploreService for the Caller and Callee APIs.
+message Callgraph {
+  enum Type {
+    UNKNOWN = 0;  // never a valid value
+    CALLER = 1;   // each element of 'tickets' is a caller of the reference node
+    CALLEE = 2;   // each element of 'tickets' is called by the reference node
+  }
+
+  // Nodes connected to a reference node via the call relationship.
+  repeated string tickets = 1;
+
+  Type type = 2;
+}
+
+// A Diff is a lossy, offset-only representation of a diff between two texts.
+message Diff {
+  enum Type {
+    EQUAL = 0;
+    INSERT = 1;
+    DELETE = 2;
+  }
+
+  // Parallel array of diff spans so the values are packed.
+  repeated int32 span_length = 1 [packed = true];
+  repeated Type span_type = 2 [packed = true];
+  repeated int32 span_newlines = 3 [packed = true];
+  repeated int32 span_first_newline = 4 [packed = true];
+  repeated int32 span_last_newline = 5 [packed = true];
+}

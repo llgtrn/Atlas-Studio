@@ -1,0 +1,167 @@
+/*
+ * Copyright 2016 The Kythe Authors. All rights reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+syntax = "proto3";
+
+package kythe.proto.internal;
+
+option go_package = "kythe.io/kythe/proto/internal_go_proto";
+option java_package = "com.google.devtools.kythe.proto";
+
+import "kythe/proto/serving.proto";
+
+// Source is a collection of facts and edges with a common source.
+message Source {
+  message Edge {
+    // Target ticket of the edge
+    string ticket = 1;
+    // Ordinal of the edge
+    int32 ordinal = 2;
+  }
+
+  message EdgeGroup {
+    // Set of Edges sharing the same kind and source
+    repeated Edge edges = 1;
+  }
+
+  // Ticket of the source node
+  string ticket = 1;
+
+  // Fact name -> fact value
+  map<string, bytes> facts = 2;
+
+  // Edge kind -> EdgeGroup
+  map<string, EdgeGroup> edge_groups = 3;
+}
+
+// Internal encoding for an EdgesReply/CrossReferencesReply page_token
+message PageToken {
+  // Index into the primary reply sequence.
+  int32 index = 1;
+  // Secondary page tokens for reply sub-queries.
+  repeated string secondary_token = 2;
+
+  // Map of named page tokens for sub-queries.
+  map<string, string> sub_tokens = 3;
+  // Map of named indices into a paged sequence.
+  map<string, int32> indices = 4;
+}
+
+// A CrossReference represents a path between two anchors, crossing between a
+// single common node.  Abstractly this a
+// (file, anchor, kind, node, kind', anchor', file') tuple where the two
+// (file, anchor, kind) sub-components have been named Decorations.
+//
+// This structure can be used to represent the intermediary* structures needed
+// to build pre-cached responses to the Decorations and CrossReferences service
+// methods.
+//
+// * where only a subset of this structure is known at that moment in time
+message CrossReference {
+  // A Decoration is specialized partial edge with an anchor on one end, stored
+  // along side its parent file node.  The partial edge's other end is stored in
+  // the referent field of the parent CrossReference.
+  message Decoration {
+    kythe.proto.serving.File file = 1;
+    kythe.proto.serving.RawAnchor anchor = 2;
+    string kind = 3;
+  }
+
+  Decoration source_decoration = 1;
+  kythe.proto.serving.Node referent = 2;
+  Decoration target_decoration = 3;
+
+  kythe.proto.serving.ExpandedAnchor source_anchor = 4;
+  kythe.proto.serving.ExpandedAnchor target_anchor = 5;
+}
+
+message SortedKeyValue {
+  string key = 1;
+  string sort_key = 2;
+  bytes value = 3;
+}
+
+// A Path represents a chain of Kythe edges starting from a particular node
+// known as the Path's pivot node.
+//
+// Example Path representing a FileDecorations_Decoration:
+//    pivot: <
+//      file: <
+//        ticket:
+//        "kythe://kythe?path=kythe/java/com/google/devtools/kythe/analyzers/base/EntrySet.java"
+//        text: "..."
+//        encoding: "UTF-8"
+//      >
+//      ticket:
+//      "kythe://kythe?path=kythe/java/com/google/devtools/kythe/analyzers/base/EntrySet.java"
+//      node_kind: "file"
+//    >
+//    edges: <
+//      kind: "%/kythe/edge/childof"
+//      target: <
+//        expanded_anchor: <
+//          ticket:
+//          "kythe://kythe?lang=java?path=kythe/java/com/google/devtools/kythe/analyzers/base/EntrySet.java#b2b44a5e5d4b7f521b192a99ab6172ad24bf055db0c3e6353775a31f83e4e8b9"
+//          kind: "%/kythe/edge/childof"
+//          parent:
+//          "kythe://kythe?path=kythe/java/com/google/devtools/kythe/analyzers/base/EntrySet.java"
+//          text: "edgeOrdinal"
+//          span: <...>
+//          snippet: "this.edgeOrdinal = -1"
+//          snippet_span: <...>
+//        >
+//        ticket:
+//        "kythe://kythe?lang=java?path=kythe/java/com/google/devtools/kythe/analyzers/base/EntrySet.java#b2b44a5e5d4b7f521b192a99ab6172ad24bf055db0c3e6353775a31f83e4e8b9"
+//        node_kind: "anchor"
+//      >
+//    >
+//    edges: <
+//      kind: "/kythe/edge/ref"
+//      target: <
+//        ticket:
+//        "kythe://kythe?lang=java?path=kythe/java/com/google/devtools/kythe/analyzers/base/EntrySet.java#3397da0c78948141fc85aa634e6d42e4461968ad33409c104e3a5e566306b8c5"
+//        node_kind: "variable"
+//        original: <...>
+//      >
+//    >
+message Path {
+  // A serving node with a possible specialization that unwraps/parses the
+  // original node's facts.
+  message Node {
+    oneof specialization {
+      kythe.proto.serving.RawAnchor raw_anchor = 10;
+      kythe.proto.serving.ExpandedAnchor expanded_anchor = 11;
+      kythe.proto.serving.File file = 12;
+    }
+
+    string ticket = 1;
+    string node_kind = 2;
+
+    kythe.proto.serving.Node original = 3;
+  }
+
+  message Edge {
+    string kind = 1;
+    int32 ordinal = 2;
+    Node target = 3;
+  }
+
+  // The central node of this Path.
+  Node pivot = 1;
+
+  // A sequence of edges leading from the pivot node.
+  repeated Edge edges = 2;
+}

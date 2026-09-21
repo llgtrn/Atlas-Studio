@@ -1,0 +1,162 @@
+# Remote Build Execution requires a strong hash function, such as SHA256.
+startup --host_jvm_args=-Dbazel.DigestFunction=SHA256
+# Bazel commands in the GCB (google-cloud-build) configuration as remote
+common:gcb --config=remote
+# An no-op "remote" configuration for GCB-run commands which otherwise lack the config.
+common:remote --color=auto
+
+# Disable persistent workers for Typescript (#3816)
+common --strategy=TsProject=remote,sandboxed,local
+
+# Compatibility flags to avoid regressions.
+common --incompatible_disallow_empty_glob
+# TODO: https://github.com/aspect-build/rules_js/issues/1256 - reenable when fixed
+#build --incompatible_config_setting_private_default_visibility  --incompatible_enforce_config_setting_visibility
+
+# We can't support bzlmod until (at least) protobuf does
+# https://github.com/kythe/kythe/issues/5893
+common --noenable_bzlmod
+common --enable_workspace
+
+common --workspace_status_command tools/buildstamp/get_workspace_status
+
+# Ensure clang is used, by default, over any other C++ installation (e.g. gcc).
+common --client_env=CC=clang
+# We require C++17, but bazel defaults to C++0x (pre-C++11).
+common --cxxopt=-std=c++17 --host_cxxopt=-std=c++17 --client_env=BAZEL_CXXOPTS=-std=c++17
+# Enable -Wmissing-prototypes for Kythe code, but not external repositories.
+common --per_file_copt=//...@-Wmissing-prototypes
+# Disable diagnostics when compiling protobufs.
+common --per_file_copt=.*\.pb\.cc@-w
+# Disable diagnostics on external repositories as we don't control them.
+common --per_file_copt=external/.*@-w
+# Disable diagnostics in host mode. There is no host_per_file_copt and
+# everything we build in the host configuration we either also build in the
+# target configuration or is external, so we can't control it.
+# If/when Bazel supports --host_per_file_copt, we could use that instead:
+# https://github.com/bazelbuild/bazel/issues/12406.
+common --host_copt=-w
+
+# Ensure environment variables are static across machines; allows for cross-user caching.
+common --experimental_strict_action_env
+
+# aspect_rules_js configuration
+build --@aspect_rules_ts//ts:skipLibCheck=honor_tsconfig
+fetch --@aspect_rules_ts//ts:skipLibCheck=honor_tsconfig
+query --@aspect_rules_ts//ts:skipLibCheck=honor_tsconfig
+build --@aspect_rules_ts//ts:default_to_tsc_transpiler
+fetch --@aspect_rules_ts//ts:default_to_tsc_transpiler
+query --@aspect_rules_ts//ts:default_to_tsc_transpiler
+
+# Older versions of HotSpot get really crabby when they can't write
+# to /tmp/hsperfdata_{user}/{pid} and sandboxing+persistent workers
+# means all tasks share a PID. This failure is then logged this to stdout,
+# which breaks verifier tests that expect stdout to contain only entry data.
+# See: https://github.com/bazelbuild/bazel/issues/3236
+common --incompatible_sandbox_hermetic_tmp
+
+# By default, compile for Java 11, run on Java 11
+common --java_language_version=11
+common --tool_java_language_version=11
+common --java_runtime_version=remotejdk_11
+common --tool_java_runtime_version=remotejdk_11
+
+build:java11 --java_language_version=11
+build:java11 --tool_java_language_version=11
+build:java11 --java_runtime_version=remotejdk_11
+build:java11 --tool_java_runtime_version=remotejdk_11
+
+build:java17 --java_language_version=17
+build:java17 --tool_java_language_version=17
+build:java17 --java_runtime_version=remotejdk_17
+build:java17 --tool_java_runtime_version=remotejdk_17
+
+build:java19 --java_language_version=19
+build:java19 --tool_java_language_version=19
+build:java19 --java_runtime_version=remotejdk_19
+build:java19 --tool_java_runtime_version=remotejdk_19
+
+build:java20 --java_language_version=20
+build:java20 --tool_java_language_version=20
+build:java20 --java_runtime_version=remotejdk_20
+build:java20 --tool_java_runtime_version=remotejdk_20
+
+build:java21 --java_language_version=21
+build:java21 --tool_java_language_version=21
+build:java21 --java_runtime_version=remotejdk_21
+build:java21 --tool_java_runtime_version=remotejdk_21
+
+# Import default javacopts
+import %workspace%/tools/javacopts.bazelrc
+
+# For release, stamp binaries, use optimized mode w/ minimum line table debugging.
+build:release --stamp -c opt --copt=-gmlt
+
+# Use the RBE instance in the kythe-repo project
+build:remote --remote_instance_name=projects/kythe-repo/instances/default_instance --bes_instance_name=kythe-repo
+
+build:remote --google_default_credentials=true
+build:remote --jobs=50
+build:remote --remote_timeout=3600
+build:remote --remote_cache=grpcs://remotebuildexecution.googleapis.com
+build:remote --remote_executor=grpcs://remotebuildexecution.googleapis.com
+# Avoid fetching unnecessary intermediate files locally.
+build:remote --remote_download_toplevel
+
+# TODO(schroederc): add buildeventservice
+# build:remote --bes_backend="buildeventservice.googleapis.com"
+# build:remote --bes_timeout=60s
+# build:remote --bes_results_url="https://source.cloud.google.com/results/invocations/"
+
+# Starting with Bazel 0.27.0 strategies do not need to be explicitly
+# # defined. See https://github.com/bazelbuild/bazel/issues/7480
+build:remote --define=EXECUTOR=remote
+
+build:remote --java_runtime_version=rbe_jdk
+build:remote --tool_java_runtime_version=rbe_jdk
+build:remote --extra_toolchains=//tools/platforms/configs/rbe_default/java:all
+
+build:remote --repo_env=BAZEL_DO_NOT_DETECT_CPP_TOOLCHAIN=1
+build:remote --crosstool_top=//tools/platforms/configs/rbe_default/cc:toolchain
+build:remote --extra_toolchains=//tools/platforms/configs/rbe_default/config:cc-toolchain
+
+build:remote --extra_execution_platforms=//tools/platforms:rbe
+build:remote --host_platform=//tools/platforms:rbe
+build:remote --platforms=//tools/platforms:rbe
+
+build:remote --repo_env=KYTHE_DO_NOT_DETECT_BAZEL_TOOLCHAINS=1
+build:remote --extra_toolchains=//tools/build_rules/lexyacc:lexyacc_remote_toolchain
+build:remote --extra_toolchains=//tools/build_rules/external_tools:external_tools_remote_toolchain
+
+build:remote --action_env=LEIN_JAVA_CMD=
+
+build:prepush --verbose_failures --noshow_loading_progress --noshow_progress
+test:prepush --test_summary=terse --test_output=errors
+test:prepush --test_tag_filters=-manual,-broken,-arc-ignore,-docker
+
+# Include additional flags for use in compile_commands.json
+build:compile-commands --features=-layering_check --features=-use_header_modules
+build:compile-commands --copt=-Wno-everything --copt=-Wno-error
+build:compile-commands --copt=-Wdeprecated-declarations --copt=-D_LIBCPP_DISABLE_DEPRECATION_WARNINGS
+build:compile-commands --copt=-Wdeprecated-register --copt=-Wexpansion-to-defined
+build:compile-commands --copt=-Wignored-attributes --copt=-Wnon-pod-varargs --copt=-Wshadow-field
+build:compile-commands --copt=-Wshift-sign-overflow --copt=-Wtautological-undefined-compare
+build:compile-commands --copt=-Wthread-safety-analysis --copt=-Wthread-safety-beta --copt=-Wthread-safety-reference
+build:compile-commands --copt=-Wundefined-bool-conversion --copt=-Wunreachable-code --copt=-Wunused-const-variable
+build:compile-commands --copt=-Wunused-function --copt=-Wunused-lambda-capture --copt=-Wunused-local-typedef
+build:compile-commands --copt=-Wunused-private-field --copt=-Wuser-defined-warnings
+
+# Applies clang-tidy to targets without building them.
+build:clang-tidy --config=compile-commands
+build:clang-tidy --output_groups=report
+build:clang-tidy --aspects=@bazel_clang_tidy//clang_tidy:clang_tidy.bzl%clang_tidy_aspect
+build:clang-tidy --@bazel_clang_tidy//:clang_tidy_config=//:clang_tidy_config
+
+# Compiles and runs the in-tree clang-tidy over targets.
+build:clang-tidy-from-source --config=clang-tidy
+build:clang-tidy-from-source --noincompatible_disallow_empty_glob
+build:clang-tidy-from-source --@bazel_clang_tidy//:clang_tidy_executable=@//tools/cpp:clang_tidy
+build:clang-tidy-from-source --@bazel_clang_tidy//:clang_tidy_additional_deps=@//tools/cpp:clang_tidy_deps
+
+# Support user-provided user.bazelrc
+try-import %workspace%/user.bazelrc

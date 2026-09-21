@@ -1,0 +1,48 @@
+[
+  {
+    "pattern": "bazel-out/[^/]+/bin/.*/_virtual_imports/[^/]+/(.*)",
+    "vname": {
+      "corpus": "CORPUS",
+      "root": "bazel-out/bin",
+      "path": "@1@"
+    }
+  },
+  {
+    "pattern": "bazel-out/[^/]+/bin/external/([^/]+)/(.+)",
+    "vname": {
+      "corpus": "@1@",
+      "path": "@2@"
+    }
+  },
+  {
+    "pattern": "bazel-out/[^/]+/([^/]+)/external/([^/]+)/(.+)",
+    "vname": {
+      "corpus": "@2@",
+      "root": "bazel-out/@1@",
+      "path": "@3@"
+    }
+  },
+  {
+    "pattern": "bazel-out/[^/]+/(\\w+)/(.*)",
+    "vname": {
+      "corpus": "CORPUS",
+      "path": "@2@",
+      "root": "bazel-out/@1@"
+    }
+  },
+  {
+    "pattern": "(.+).gen.proto",
+    "vname": {
+      "corpus": "CORPUS",
+      "root": "bazel-out/bin",
+      "path": "@1@.gen.proto"
+    }
+  },
+  {
+    "pattern": "(.*)",
+    "vname": {
+      "corpus": "CORPUS",
+      "path": "@1@"
+    }
+  }
+]

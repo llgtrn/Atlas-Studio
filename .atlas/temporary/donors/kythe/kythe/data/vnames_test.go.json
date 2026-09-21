@@ -1,0 +1,31 @@
+[
+  {
+    "input": "blah",
+    "match": false,
+    "want": null
+  },
+  {
+    "input": "bazel-out/foo/genfiles/kythe/proto/analysis.pb.go",
+    "match": true,
+    "want": {
+      "root": "bazel-out/genfiles",
+      "path": "kythe/proto/analysis.pb.go"
+    }
+  },
+  {
+    "input": "external/go_sdk/pkg/linux_amd64/io/ioutil.a",
+    "match": true,
+    "want": {
+      "corpus": "golang.org",
+      "path": "io/ioutil"
+    }
+  },
+  {
+    "input": "external/go_sdk/pkg/linux_amd64/io/ioutil.x",
+    "match": true,
+    "want": {
+      "corpus": "golang.org",
+      "path": "io/ioutil"
+    }
+  }
+]

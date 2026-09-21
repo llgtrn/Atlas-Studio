@@ -1,0 +1,43 @@
+# Kythe artifacts
+*.ldb
+*.log
+CURRENT
+LOCK
+LOG
+MANIFEST-*
+
+# Editor files
+*~
+.#*
+\#*#
+.DS_Store
+.vscode
+.clangd
+.cache
+.idea
+
+# Binary files
+*.class
+*.deb
+
+# Build artifacts
+/bazel-*
+/doxygen-out
+/node_modules
+
+# Symlinks
+third_party/libmemcached
+third_party/openssl
+third_party/ossp-uuid
+tools/node
+
+# User bazelrc overrides
+/user.bazelrc
+
+### Added by Hedron's Bazel Compile Commands Extractor: https://github.com/hedronvision/bazel-compile-commands-extractor
+# The external link: Differs on Windows vs macOS/Linux, so we can't check it in. The pattern needs to not have a trailing / because it's a symlink on macOS/Linux.
+/external
+# Compiled output -> don't check in
+/compile_commands.json
+# Directory where clangd puts its indexing work
+/.cache/

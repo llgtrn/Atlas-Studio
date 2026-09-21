@@ -1,0 +1,72 @@
+#!/bin/bash -e
+#
+# Copyright 2016 The Kythe Authors. All rights reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+set -euo pipefail
+export RUNFILES_DIR="${RUNFILES_DIR:-${TEST_SRCDIR:-${0}.runfiles}}"
+export WORKSPACE_NAME="${TEST_WORKSPACE:-@WORKSPACE_NAME@}"
+cd "${RUNFILES_DIR}/${WORKSPACE_NAME}"
+
+ENTRIES=(@ENTRIES@)
+ENTRIES_GZ=(@ENTRIES_GZ@)
+
+# Dir that will contain output files useful for debugging: logs, JSON entries.
+# It will use TEST_UNDECLARED_OUTPUTS_DIR if defined or TEST_TMPDIR otherwise.
+TEST_OUT_DIR="${TEST_UNDECLARED_OUTPUTS_DIR:-$TEST_TMPDIR}"
+
+# Copy logs passed in providers from other targets. INDEXER_LOGS is a list of
+# 'log:outputname' strings.
+for log in @INDEXER_LOGS@; do
+  parts=(${log//:/ })
+  echo Copying file "${parts[0]}" to "${parts[1]}" >&2
+  cat "${parts[0]}" > "${TEST_OUT_DIR}/${parts[1]}"
+done
+
+# Convert entries to JSON and store later for debugging.
+# ENTRIES_TO_LOG is a list of 'entryfile:outputname' strings.
+for entry in @ENTRIES_TO_LOG@; do
+  parts=(${entry//:/ })
+  @ENTRYSTREAM@ --write_format=json < "${parts[0]}" >> "${TEST_OUT_DIR}/${parts[1]}"
+done
+
+# Run indexer shell commands, if any. For each indexer we store its logs to
+# a separate file in TEST_OUT_DIR.
+ENTRIES_FROM_INLINE_INDEXERS=()
+for indexer in @INDEXERS@; do
+  parts=(${indexer//:/ })
+  log="${TEST_OUT_DIR}/${parts[1]}.log"
+  # Save entries to in tmp dir and not to TEST_OUT_DIR. Some indexers, e.g.
+  # C++ that runs inline, produce 800MB+ of entries. We don't want to log them
+  # in undeclared outputs which might be stored for a long time.
+  entries="${TEST_TMPDIR}/${parts[1]}.entries"
+  echo "Running indexer: ${parts[0]}. Log file ${parts[1]}.log" >&2
+  ${parts[0]} > "$entries" 2> "$log"
+  ENTRIES_FROM_INLINE_INDEXERS+=("$entries")
+done
+
+echo "Running verifier" >&2
+(
+  if (( ${#ENTRIES_FROM_INLINE_INDEXERS[@]} )); then cat "${ENTRIES_FROM_INLINE_INDEXERS[@]}"; fi
+  if (( ${#ENTRIES[@]} )); then cat "${ENTRIES[@]}"; fi
+  if (( ${#ENTRIES_GZ[@]} )); then gunzip -c "${ENTRIES_GZ[@]}"; fi
+) | (
+  if [[ -z "@REWRITE@" ]]; then
+    @MARKEDSOURCE@ --rewrite
+  else
+    cat
+  fi
+) | (
+  if @INVERT@ @VERIFIER@ @ARGS@ "$@"; then exit 0; else exit 1; fi
+)
