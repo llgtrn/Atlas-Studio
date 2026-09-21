@@ -1,0 +1,4 @@
+﻿donor = "restic"
+remote = "https://github.com/restic/restic.git"
+commit = "6adedec6b48ae9ff0ffbc37bd675ccebd02c728f"
+branch = "master"
