@@ -13,6 +13,7 @@ pub mod identity;
 pub mod language;
 pub mod provenance;
 pub mod schema;
+pub mod semantic;
 pub mod state;
 pub mod temporal;
 
@@ -36,9 +37,16 @@ pub use language::adl::{
 };
 pub use provenance::{Provenance, provenance};
 pub use schema::{
-    CensusReport, DocsReport, DocumentFact, EpistemicStatus, FileFact, GraphSummary,
-    NormalizationReport, RepoAudit, RepoManifest, SemanticFact, SemanticFactKind, SourceReport,
+    CensusCertificate, CensusCertificateState, CensusReport, DocsReport, DocumentFact,
+    EpistemicStatus, FileFact, GraphSummary, NormalizationConflict, NormalizationReport, RepoAudit,
+    RepoManifest, SemanticCoverageSummary, SemanticFact, SemanticFactKind, SourceReport,
     SystemizeReport,
+};
+pub use semantic::{
+    CallDispatch, CallFact, ConcurrencyFact, ControlFlowFact, DataFlowFact, Disposition,
+    EffectFact, EvidenceKind, EvidenceLink, FactKind, FunctionIdentity, FunctionParameter,
+    FunctionSignature, OwnershipFact, PersistenceFact, SemanticObligation, SemanticRecord,
+    StateAccessFact, StateAccessMode, SymbolFact, TypeFact, TypedSemanticFact,
 };
 pub use state::RepositorySnapshot;
 pub use temporal::RevisionRef;
