@@ -15,20 +15,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
-      - name: Enforce Atlas documentation control paths
+      - name: Enforce Atlas knowledge control paths
         shell: bash
         run: |
-          test -f docs/README.md
-          test -f docs/INDEX.md
-          test -f docs/TEMPLATE.md
-          test -f docs/architecture/README.md
-          test -f docs/architecture/constitution/NORTH-STAR.md
-          test -f docs/architecture/SYSTEM.md
-          test -f docs/blueprints/SYSTEM-BLUEPRINT.md
-          test -f docs/contracts/SYSTEM-CONTRACT.md
-          test -f docs/decisions/README.md
-          test -f docs/guides/DEVELOPMENT.md
-          test -f docs/references/README.md
+          test -f .atlas/README.md
+          test -f .atlas/INDEX.md
+          test -f .atlas/TEMPLATE.md
+          test -f .atlas/architecture/README.md
+          test -f .atlas/architecture/constitution/NORTH-STAR.md
+          test -f .atlas/architecture/SYSTEM.md
+          test -f .atlas/blueprints/SYSTEM-BLUEPRINT.md
+          test -f .atlas/contracts/SYSTEM-CONTRACT.md
+          test -f .atlas/decisions/README.md
+          test -f .atlas/guides/DEVELOPMENT.md
+          test -f .atlas/references/README.md
       - run: rustup toolchain install 1.90.0 --profile minimal --component rustfmt --component clippy
       - run: cargo fmt --all --check
       - run: cargo clippy --workspace --all-targets -- -D warnings
