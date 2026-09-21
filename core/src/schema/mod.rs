@@ -51,6 +51,19 @@ pub struct SourceReport {
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum SemanticFactKind {
     SourceArtifact,
+    Symbol,
+    Type,
+    FunctionIdentity,
+    FunctionSignature,
+    Call,
+    ControlFlow,
+    DataFlow,
+    StateAccess,
+    Effect,
+    Ownership,
+    Concurrency,
+    Persistence,
+    EvidenceLink,
     DeclaredNode,
     DeclaredEdge,
     Binding,
@@ -66,6 +79,19 @@ impl SemanticFactKind {
     pub const fn as_str(&self) -> &'static str {
         match self {
             Self::SourceArtifact => "SOURCE_ARTIFACT",
+            Self::Symbol => "SYMBOL",
+            Self::Type => "TYPE",
+            Self::FunctionIdentity => "FUNCTION_IDENTITY",
+            Self::FunctionSignature => "FUNCTION_SIGNATURE",
+            Self::Call => "CALL",
+            Self::ControlFlow => "CONTROL_FLOW",
+            Self::DataFlow => "DATA_FLOW",
+            Self::StateAccess => "STATE_ACCESS",
+            Self::Effect => "EFFECT",
+            Self::Ownership => "OWNERSHIP",
+            Self::Concurrency => "CONCURRENCY",
+            Self::Persistence => "PERSISTENCE",
+            Self::EvidenceLink => "EVIDENCE_LINK",
             Self::DeclaredNode => "DECLARED_NODE",
             Self::DeclaredEdge => "DECLARED_EDGE",
             Self::Binding => "BINDING",
@@ -85,9 +111,28 @@ pub enum EpistemicStatus {
     Observed,
     Declared,
     Derived,
+    Inferred,
+    Hypothesis,
+    Conflict,
     Unsupported,
     Unknown,
     Ignored,
+}
+
+impl EpistemicStatus {
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            Self::Observed => "OBSERVED",
+            Self::Declared => "DECLARED",
+            Self::Derived => "DERIVED",
+            Self::Inferred => "INFERRED",
+            Self::Hypothesis => "HYPOTHESIS",
+            Self::Conflict => "CONFLICT",
+            Self::Unsupported => "UNSUPPORTED",
+            Self::Unknown => "UNKNOWN",
+            Self::Ignored => "IGNORED",
+        }
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
@@ -119,10 +164,22 @@ impl CensusReport {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct NormalizationConflict {
+    pub id: String,
+    pub slot: String,
+    pub fact_ids: Vec<String>,
+    pub objects: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct NormalizationReport {
     pub schema: String,
     pub input_facts_total: usize,
     pub normalized_facts_total: usize,
+    pub equivalence_classes_total: usize,
+    pub duplicate_observations_total: usize,
+    pub conflict_candidates_total: usize,
+    pub conflict_candidates: Vec<NormalizationConflict>,
     pub kinds: BTreeMap<String, usize>,
     pub facts: Vec<SemanticFact>,
 }
@@ -131,6 +188,64 @@ impl NormalizationReport {
     pub fn is_closed(&self) -> bool {
         self.input_facts_total == self.normalized_facts_total
             && self.normalized_facts_total == self.facts.len()
+            && self.equivalence_classes_total <= self.normalized_facts_total
+            && self.duplicate_observations_total
+                == self.normalized_facts_total.saturating_sub(self.equivalence_classes_total)
+            && self.conflict_candidates_total == self.conflict_candidates.len()
+    }
+}
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+pub enum CensusCertificateState {
+    Draft,
+    Censused,
+    Reconciled,
+    Closed,
+    Sealed,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Default)]
+pub struct SemanticCoverageSummary {
+    pub required: bool,
+    pub total: usize,
+    pub observed: usize,
+    pub declared: usize,
+    pub derived: usize,
+    pub inferred: usize,
+    pub unknown: usize,
+    pub unsupported: usize,
+    pub conflict: usize,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct CensusCertificate {
+    pub schema: String,
+    pub state: CensusCertificateState,
+    pub corpus_id: String,
+    pub revisions: Vec<String>,
+    pub genome_hash: String,
+    pub policy_id: Option<String>,
+    pub inventory_total: usize,
+    pub accounted_total: usize,
+    pub semantic_coverage: BTreeMap<String, SemanticCoverageSummary>,
+    pub unresolved_artifacts: usize,
+    pub unsupported_artifacts: usize,
+    pub dynamic_edges: usize,
+    pub binding_gaps: usize,
+    pub conflicts: usize,
+    pub fixed_point_iterations: usize,
+    pub independent_pass_agreement: Vec<String>,
+    pub atlas_root_hash: Option<String>,
+}
+
+impl CensusCertificate {
+    pub fn accounting_closed(&self) -> bool {
+        self.inventory_total == self.accounted_total
+    }
+
+    pub fn has_fixed_point_evidence(&self) -> bool {
+        self.fixed_point_iterations > 0
     }
 }
 
