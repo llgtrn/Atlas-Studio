@@ -1,8 +1,8 @@
-# Atlas Studio UI
+# Atlas Studio
 
-TypeScript/TSX frontend projection for Atlas Studio.
+TypeScript/TSX product projection for Atlas Studio.
 
-The frontend is not a second source of engineering truth. It will consume bounded projections from the Rust Atlas engine and evolve toward an Engineering World / World Canvas interface over ATLASX.
+This surface is not a second source of engineering truth. It consumes bounded projections from the Rust Atlas engine and evolves toward an Engineering World / World Canvas interface over ATLASX.
 
 The intended interaction hierarchy is semantic-first:
 

@@ -4,14 +4,16 @@
 //! filesystem, Git, provider, donor or UI work; those responsibilities live in `adapter`,
 //! `runtime`, or application crates.
 
+pub mod census;
 pub mod identity;
 pub mod language;
 pub mod model;
 
 pub use identity::{
-    CapabilityId, ContentFingerprint, EdgeId, EvidenceId, IntegrityDigest, NodeId, RepositoryId,
-    RevisionId, SymbolId, TechnologyId, stable_id,
+    ArtifactId, CapabilityId, ContentFingerprint, EdgeId, EvidenceId, IntegrityDigest, NodeId,
+    RepositoryId, RevisionId, SymbolId, TechnologyId, stable_id,
 };
+pub use census::{ArtifactDisposition, ArtifactKind, ArtifactRecord, InventoryReport};
 pub use language::adl::{
     AdlCompileReport, AdlDeclaration, AdlDiagnostic, AdlProgram, AdlSource, AdlToken, AtlasIr,
     BindingDecl, CapabilityDecl, ConstraintCheck, ConstraintDecl, ConstraintResult, DeclaredEdge,

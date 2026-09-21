@@ -1,9 +1,11 @@
 //! Atlas runtime orchestration.
 
+pub mod inventory;
+
 use atlas_core::{
-    AdlCompileReport, CLI_API, CodingAdmission, EngineeringGraph, Evidence, RevisionRef,
-    SystemizeReport, WorkPrepareReport, WorkRequest, build_system_graph, compile_adl,
-    summarize_system_graph,
+    AdlCompileReport, AdlProgram, CLI_API, CodingAdmission, Contract, DocsReport, EngineeringGraph,
+    Evidence, RevisionRef, SystemizeReport, WorkPrepareReport, WorkRequest, build_system_graph,
+    compile_adl, parse_adl_source, summarize_system_graph,
 };
 use std::{io, path::Path};
 
@@ -11,10 +13,8 @@ pub fn systemize(root: impl AsRef<Path>) -> io::Result<SystemizeReport> {
     let root = root.as_ref();
     let snapshot = adapter::snapshot_git(root)?;
     let repository = adapter::audit_repository(root)?;
-    let source = match repository.manifest.as_ref() {
-        Some(manifest) => adapter::scan_declared_source(root, manifest)?,
-        None => adapter::scan_source(root)?,
-    };
+    let inventory = inventory::build_inventory(root, repository.manifest.as_ref())?;
+    let source = adapter::source_report_from_inventory(&inventory);
     let docs = adapter::audit_docs(root.join(".atlas"))?;
     let adl_sources = adapter::read_adl_sources(root)?;
     let adl = compile_adl(&adl_sources, &source);
@@ -30,9 +30,12 @@ pub fn systemize(root: impl AsRef<Path>) -> io::Result<SystemizeReport> {
     if !adl.diagnostics.is_empty() {
         blockers.push("ADL_DIAGNOSTICS_PRESENT".to_owned());
     }
+    if !inventory.is_closed() {
+        blockers.push("INVENTORY_ACCOUNTING_NOT_CLOSED".to_owned());
+    }
 
     Ok(SystemizeReport {
-        schema: "atlas.systemizer.systemize-report.v7".into(),
+        schema: "atlas.systemizer.systemize-report.v8".into(),
         cli_api: CLI_API.into(),
         root: root.canonicalize()?.to_string_lossy().into_owned(),
         snapshot,
@@ -45,6 +48,7 @@ pub fn systemize(root: impl AsRef<Path>) -> io::Result<SystemizeReport> {
             docs_standard: docs.standard,
             blockers,
         },
+        inventory,
         source,
         graph,
         invariants: vec![
@@ -54,6 +58,8 @@ pub fn systemize(root: impl AsRef<Path>) -> io::Result<SystemizeReport> {
             "EXACT_BASE_SHA_REQUIRED".into(),
             "ONE_CANONICAL_TARGET_PER_WORKRUN".into(),
             "DONORS_ARE_REFERENCE_AND_EVIDENCE_NOT_RUNTIME_OWNERS".into(),
+            "INVENTORY_PRECEDES_SEMANTIC_DEPTH".into(),
+            "UNKNOWN_OR_OVERSIZED_ARTIFACTS_CANNOT_DISAPPEAR".into(),
             "AI_OUTPUT_IS_PROPOSAL_NOT_CANONICAL_TRUTH".into(),
         ],
     })
@@ -81,6 +87,39 @@ pub fn graph(root: impl AsRef<Path>) -> io::Result<EngineeringGraph> {
     let adl_sources = adapter::read_adl_sources(root)?;
     let adl = compile_adl(&adl_sources, &source);
     Ok(build_system_graph(&source, &docs, &adl))
+}
+
+pub fn contract() -> Contract {
+    Contract::default()
+}
+
+pub fn docs_audit(root: impl AsRef<Path>) -> io::Result<DocsReport> {
+    adapter::audit_docs(root)
+}
+
+pub fn code_analyze(root: impl AsRef<Path>) -> io::Result<serde_json::Value> {
+    let root = root.as_ref();
+    let repository = adapter::audit_repository(root)?;
+    let inventory = inventory::build_inventory(root, repository.manifest.as_ref())?;
+    let source = adapter::source_report_from_inventory(&inventory);
+    let docs = adapter::audit_docs(root.join(".atlas"))?;
+    let adl_sources = adapter::read_adl_sources(root)?;
+    let adl = compile_adl(&adl_sources, &source);
+    let graph = summarize_system_graph(&source, &docs, &adl);
+
+    Ok(serde_json::json!({
+        "schema": "atlas.systemizer.code-analysis.v2",
+        "inventory": inventory,
+        "source": source,
+        "adl": adl,
+        "graph": graph,
+        "source_of_truth": "derived engineering analysis; target repositories remain sovereign"
+    }))
+}
+
+pub fn parse(root: impl AsRef<Path>) -> io::Result<Vec<AdlProgram>> {
+    let sources = adapter::read_adl_sources(root)?;
+    Ok(sources.iter().map(parse_adl_source).collect())
 }
 
 pub fn prepare_work(

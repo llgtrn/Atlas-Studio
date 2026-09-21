@@ -1,6 +1,6 @@
 pub mod engineering_graph;
 
-use crate::language::adl::AdlCompileReport;
+use crate::{census::InventoryReport, language::adl::AdlCompileReport};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
@@ -234,6 +234,7 @@ pub struct SystemizeReport {
     pub docs: DocsReport,
     pub adl: AdlCompileReport,
     pub coding_admission: CodingAdmission,
+    pub inventory: InventoryReport,
     pub source: SourceReport,
     pub graph: GraphSummary,
     pub invariants: Vec<String>,

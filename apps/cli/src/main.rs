@@ -1,4 +1,3 @@
-use atlas_core::Contract;
 use std::{env, fs, path::PathBuf, process::ExitCode};
 
 fn value(args: &[String], name: &str) -> Option<String> {
@@ -18,11 +17,11 @@ fn run(args: &[String]) -> Result<(), String> {
             if value(rest, "--format").as_deref() != Some("json") {
                 return Err("contract requires --format json".into());
             }
-            println!("{}", json(&Contract::default())?);
+            println!("{}", json(&runtime::contract())?);
         }
         [cmd, sub, rest @ ..] if cmd == "docs" && sub == "audit" => {
             let root = value(rest, "--root").ok_or("docs audit requires --root")?;
-            let report = adapter::audit_docs(root).map_err(|e| e.to_string())?;
+            let report = runtime::docs_audit(root).map_err(|e| e.to_string())?;
             println!("{}", json(&report)?);
             if !report.gate_ready {
                 return Err("DOCS_GATE_NOT_READY".into());
@@ -30,41 +29,17 @@ fn run(args: &[String]) -> Result<(), String> {
         }
         [cmd, sub, rest @ ..] if cmd == "code" && sub == "analyze" => {
             let root = value(rest, "--root").ok_or("code analyze requires --root")?;
-            let repository = adapter::audit_repository(&root).map_err(|e| e.to_string())?;
-            let source = match repository.manifest.as_ref() {
-                Some(manifest) => {
-                    adapter::scan_declared_source(&root, manifest).map_err(|e| e.to_string())?
-                }
-                None => adapter::scan_source(&root).map_err(|e| e.to_string())?,
-            };
-            let docs = adapter::audit_docs(PathBuf::from(&root).join(".atlas"))
-                .map_err(|e| e.to_string())?;
-            let adl_sources = adapter::read_adl_sources(&root).map_err(|e| e.to_string())?;
-            let adl = atlas_core::compile_adl(&adl_sources, &source);
-            let graph = atlas_core::summarize_system_graph(&source, &docs, &adl);
-            println!(
-                "{}",
-                json(&serde_json::json!({
-                    "schema": "atlas.systemizer.code-analysis.v1",
-                    "source": source,
-                    "adl": adl,
-                    "graph": graph,
-                    "source_of_truth": "derived engineering analysis; target repositories remain sovereign"
-                }))?
-            );
+            let report = runtime::code_analyze(root).map_err(|e| e.to_string())?;
+            println!("{}", json(&report)?);
         }
         [cmd, rest @ ..] if cmd == "parse" => {
             let root = value(rest, "--root").ok_or("parse requires --root")?;
-            let sources = adapter::read_adl_sources(&root).map_err(|e| e.to_string())?;
-            let programs = sources
-                .iter()
-                .map(atlas_core::parse_adl_source)
-                .collect::<Vec<_>>();
+            let programs = runtime::parse(root).map_err(|e| e.to_string())?;
             println!(
                 "{}",
                 json(&serde_json::json!({
                     "schema": "atlas.adl.parse-report.v1",
-                    "sources_total": sources.len(),
+                    "sources_total": programs.len(),
                     "programs": programs
                 }))?
             );
@@ -136,7 +111,8 @@ fn run(args: &[String]) -> Result<(), String> {
         }
         _ => {
             return Err(
-                "usage: atlas-systemizer <contract|systemize|docs audit|code analyze|parse|check|graph|work prepare> ...".into(),
+                "usage: atlas-systemizer <contract|systemize|docs audit|code analyze|parse|check|graph|work prepare> ..."
+                    .into(),
             );
         }
     }

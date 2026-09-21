@@ -1,7 +1,0 @@
-{
-  "name": "@atlas-studio/ui",
-  "private": true,
-  "version": "0.1.0",
-  "type": "module",
-  "description": "TypeScript/TSX frontend projection for Atlas Studio"
-}

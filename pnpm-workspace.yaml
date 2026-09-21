@@ -1,5 +1,5 @@
 # Permanent TypeScript workspace: the Atlas UI and UI-local packages only.
 # Backend/runtime ownership remains Rust under core/runtime/adapter.
 packages:
-  - apps/ui
-  - apps/ui/packages/*
+  - apps/studio
+  - apps/studio/packages/*

@@ -1,0 +1,7 @@
+{
+  "name": "@atlas-studio/studio",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "TypeScript/TSX Studio projection for Atlas"
+}

@@ -1,151 +1,16 @@
 //! Atlas adapters for external repository mechanics.
 
-use atlas_core::{
-    AdlSource, DocsReport, DocumentFact, FileFact, RepoAudit, RepoManifest, RepositorySnapshot,
-    SourceReport, validate_manifest,
+use atlas_core::{AdlSource, DocsReport, DocumentFact, RepoAudit, RepoManifest, validate_manifest};
+use std::{collections::BTreeMap, fs, io, path::Path};
+
+pub mod source;
+pub mod vcs;
+
+pub use source::{
+    inventory_declared_source, inventory_source, scan_declared_source, scan_source,
+    source_report_from_inventory,
 };
-use std::{
-    collections::BTreeMap,
-    fs, io,
-    path::{Path, PathBuf},
-    process::Command,
-};
-
-fn git(root: &Path, args: &[&str]) -> io::Result<String> {
-    let output = Command::new("git")
-        .arg("-C")
-        .arg(root)
-        .args(args)
-        .output()?;
-    if !output.status.success() {
-        let stderr = String::from_utf8_lossy(&output.stderr);
-        return Err(io::Error::other(format!(
-            "git {} failed: {}",
-            args.join(" "),
-            stderr.trim()
-        )));
-    }
-    Ok(String::from_utf8_lossy(&output.stdout).trim().to_owned())
-}
-
-pub fn snapshot_git(root: impl AsRef<Path>) -> io::Result<RepositorySnapshot> {
-    let root = root.as_ref().canonicalize()?;
-    let head_sha = git(&root, &["rev-parse", "HEAD"])?;
-    let branch = git(&root, &["branch", "--show-current"])
-        .ok()
-        .filter(|value| !value.is_empty());
-    let status_text = git(&root, &["status", "--porcelain=v1"])?;
-    let status_entries = status_text
-        .lines()
-        .map(|line| line.trim_end().to_owned())
-        .filter(|line| !line.is_empty())
-        .collect::<Vec<_>>();
-    Ok(RepositorySnapshot {
-        schema: "atlas.repository-snapshot.v1".into(),
-        root: root.to_string_lossy().into_owned(),
-        head_sha,
-        branch,
-        dirty: !status_entries.is_empty(),
-        status_entries,
-    })
-}
-
-fn language(path: &Path) -> Option<&'static str> {
-    match path
-        .extension()
-        .and_then(|x| x.to_str())
-        .unwrap_or_default()
-        .to_ascii_lowercase()
-        .as_str()
-    {
-        "rs" => Some("rust"),
-        "ts" | "tsx" => Some("typescript"),
-        "js" | "jsx" | "mjs" | "cjs" => Some("javascript"),
-        "md" => Some("markdown"),
-        "toml" => Some("toml"),
-        "json" => Some("json"),
-        "yaml" | "yml" => Some("yaml"),
-        _ => None,
-    }
-}
-
-fn ignored(name: &str) -> bool {
-    matches!(
-        name,
-        ".atlas"
-            | ".git"
-            | ".pnpm-store"
-            | "target"
-            | "node_modules"
-            | "dist"
-            | "build"
-            | ".next"
-            | "coverage"
-    )
-}
-
-fn visit_source(root: &Path, dir: &Path, out: &mut Vec<FileFact>) -> io::Result<()> {
-    let mut entries: Vec<_> = fs::read_dir(dir)?.collect::<Result<_, _>>()?;
-    entries.sort_by_key(|e| e.file_name());
-    for entry in entries {
-        let path = entry.path();
-        let name = entry.file_name().to_string_lossy().into_owned();
-        if entry.file_type()?.is_dir() {
-            if !ignored(&name) {
-                visit_source(root, &path, out)?;
-            }
-            continue;
-        }
-        if !entry.file_type()?.is_file() {
-            continue;
-        }
-        let Some(lang) = language(&path) else {
-            continue;
-        };
-        let bytes = entry.metadata()?.len();
-        if bytes > 4 * 1024 * 1024 {
-            continue;
-        }
-        let relative = path
-            .strip_prefix(root)
-            .unwrap_or(&path)
-            .to_string_lossy()
-            .replace('\\', "/");
-        out.push(FileFact {
-            path: relative,
-            language: lang.into(),
-            bytes,
-        });
-    }
-    Ok(())
-}
-
-pub fn scan_source(root: impl AsRef<Path>) -> io::Result<SourceReport> {
-    let root: PathBuf = root.as_ref().canonicalize()?;
-    let mut files = Vec::new();
-    visit_source(&root, &root, &mut files)?;
-    finish_source_report(root, files)
-}
-
-pub fn scan_declared_source(
-    root: impl AsRef<Path>,
-    manifest: &RepoManifest,
-) -> io::Result<SourceReport> {
-    let root: PathBuf = root.as_ref().canonicalize()?;
-    let mut files = Vec::new();
-    let mut roots = manifest.source_roots.clone();
-    roots.extend(manifest.frontend_roots.clone());
-    roots.extend(manifest.test_roots.clone());
-    roots.sort();
-    roots.dedup();
-    for declared in roots {
-        let path = root.join(&declared);
-        if path.exists() {
-            visit_source(&root, &path, &mut files)?;
-        }
-    }
-    finish_source_report(root, files)
-}
+pub use vcs::snapshot_git;
 
 pub fn read_adl_sources(root: impl AsRef<Path>) -> io::Result<Vec<AdlSource>> {
     let root = root.as_ref().canonicalize()?;
@@ -181,21 +46,6 @@ fn visit_adl_sources(root: &Path, dir: &Path, out: &mut Vec<AdlSource>) -> io::R
         });
     }
     Ok(())
-}
-
-fn finish_source_report(root: PathBuf, mut files: Vec<FileFact>) -> io::Result<SourceReport> {
-    files.sort_by(|a, b| a.path.cmp(&b.path));
-    let mut languages = BTreeMap::new();
-    for file in &files {
-        *languages.entry(file.language.clone()).or_insert(0) += 1;
-    }
-    Ok(SourceReport {
-        schema: "atlas.systemizer.source-report.v1".into(),
-        root: root.to_string_lossy().into_owned(),
-        files_total: files.len(),
-        languages,
-        files,
-    })
 }
 
 fn value(text: &str, key: &str) -> Option<String> {
@@ -463,7 +313,7 @@ fn markdown_headings(text: &str) -> Vec<String> {
 
 fn path_references(text: &str) -> Vec<String> {
     let mut references = Vec::new();
-    for root in ["core/", "runtime/", "adapter/", "apps/ui/"] {
+    for root in ["core/", "runtime/", "adapter/", "apps/studio/"] {
         let mut cursor = 0;
         while let Some(offset) = text[cursor..].find(root) {
             let start = cursor + offset;
@@ -564,8 +414,8 @@ license_root = ".atlas/licenses"
 [code]
 source_roots = ["core"]
 backend_roots = ["core"]
-frontend_roots = ["apps/ui"]
-test_roots = ["core/tests", "runtime/tests", "adapter/tests", "apps/ui/src"]
+frontend_roots = ["apps/studio"]
+test_roots = ["core/tests", "runtime/tests", "adapter/tests", "apps/studio/src"]
 "#,
         )
         .unwrap();

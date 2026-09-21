@@ -10,6 +10,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "atlas-cli"
+version = "0.1.0"
+dependencies = [
+ "runtime",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "core"
 version = "0.1.0"
 dependencies = [
@@ -52,7 +61,6 @@ version = "0.1.0"
 dependencies = [
  "adapter",
  "core",
- "serde",
  "serde_json",
 ]
 

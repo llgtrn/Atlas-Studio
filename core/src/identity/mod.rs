@@ -57,6 +57,7 @@ typed_id!(SymbolId);
 typed_id!(CapabilityId);
 typed_id!(TechnologyId);
 typed_id!(EvidenceId);
+typed_id!(ArtifactId);
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct ContentFingerprint(pub String);

@@ -11,7 +11,7 @@ canonical: true
 - `core/` owns global identity, scope, universal graph primitives, state/event/temporal semantics, bindings, evidence/provenance, claim status, constraints/invariants, Atlas Genome semantics, Organism Genome semantics, ATLAS/ATLASX contracts and compiler IR types.
 - `runtime/` owns secure admission, exhaustive census accounting, reconciliation/fixed-point closure, corpus/design construction, invention, organism-genome synthesis, ATLAS publication, AtlasX materialization, compiler passes, optimization, verification, profiling, recensus and incremental invalidation.
 - `adapter/` owns Git/filesystem/parsers/compiler metadata/storage/provider/model API/self-hosted inference/research/benchmark/OS/toolchain/hardware/environment mechanics. Adapters never become semantic authority.
-- `apps/ui/` owns TypeScript/TSX projections only. UI state is not engineering truth.
+- `apps/studio/` owns TypeScript/TSX projections only. UI state is not engineering truth.
 - `.atlas/` owns authored control knowledge, Genome sources/contracts, architecture, provenance/license references and durable evidence.
 - `.atlas/artifacts/` owns durable compiled Genome/Atlas/product manifests as implemented.
 

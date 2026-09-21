@@ -16,26 +16,30 @@ Refoundation closes that gap without a big-bang rewrite and without creating a s
 
 ```text
 core/src/
+  census/
   identity/
   language/
   model/
   lib.rs
 
 runtime/src/
+  inventory/
   lib.rs
-  main.rs
 
 adapter/src/
+  source/
+  vcs/
   lib.rs
 
 apps/
-  ui/
+  cli/
+  studio/
 
 tools/
   historical/bootstrap subsystems
 ```
 
-The current scanner recognizes a bounded extension set and silently skips unknown extensions and files larger than 4 MiB. That is bootstrap legacy, not acceptable Census Completeness behavior.
+R1 now materializes an inventory ledger before the semantic source projection. Unknown extensions, oversized text, binary content, symlinks and explicit policy boundaries receive typed dispositions instead of disappearing. Deeper semantic frontends remain later waves.
 
 ## Refoundation waves
 
@@ -45,7 +49,7 @@ Each work run starts from exact `main`, adds one real primitive, proves invarian
 
 ### R1 — Inventory ledger
 
-Introduce typed artifact identity and disposition before deeper parsing.
+**Status: materialized on the native path.** Typed artifact identity and disposition now precede deeper parsing.
 
 ```text
 admitted total
