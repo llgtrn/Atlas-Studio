@@ -1,0 +1,4 @@
+﻿donor = "cdc-file-transfer"
+remote = "https://github.com/google/cdc-file-transfer.git"
+commit = "370023a944d8c81f60463b6659d0de4de99637a7"
+branch = "main"

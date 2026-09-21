@@ -1,0 +1,15 @@
+.vs
+.vscode
+*.log
+bin
+dependencies
+*.cflags
+*.config
+*.creator*
+*.cxxflags
+*.files
+*.includes
+.qtc_clangd
+bazel-*
+user.bazelrc
+*.pyc
