@@ -86,7 +86,9 @@ The bootstrap frontends currently establish structural recognition and language 
 
 ### R4 — Semantic normalization
 
-Create `runtime/census` and `runtime/normalize`. Normalize symbols, types, calls, CFG/dataflow, build and state/effect facts from independent frontends.
+**Status: normalization spine materialized; deep semantic extractors remain.** `runtime/census` now turns inventory plus declared ADL into provenance-linked typed semantic facts, and `runtime/normalize` deterministically normalizes those facts without changing epistemic status or dropping records. `SystemizeReport v9` carries both stages and coding admission fails if either stage loses accounting closure.
+
+Current source frontends prove artifact/language recognition only. Symbol, type, call, CFG/dataflow, build, state and effect extraction remain explicitly `UNSUPPORTED` in census coverage until independent extractors produce evidence; R4 is not complete until those dimensions become real observed facts rather than inferred placeholders.
 
 ### R5 — Incremental query and closure
 

@@ -4,7 +4,7 @@
 
 use crate::{
     census::InventoryReport, constraint::CodingAdmission, language::adl::AdlCompileReport,
-    state::RepositorySnapshot,
+    provenance::Provenance, state::RepositorySnapshot,
 };
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
@@ -44,6 +44,90 @@ pub struct SourceReport {
     pub files_total: usize,
     pub languages: BTreeMap<String, usize>,
     pub files: Vec<FileFact>,
+}
+
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+pub enum SemanticFactKind {
+    SourceArtifact,
+    DeclaredNode,
+    DeclaredEdge,
+    Binding,
+    Constraint,
+    Invariant,
+    Transform,
+    Materialization,
+}
+
+impl SemanticFactKind {
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            Self::SourceArtifact => "SOURCE_ARTIFACT",
+            Self::DeclaredNode => "DECLARED_NODE",
+            Self::DeclaredEdge => "DECLARED_EDGE",
+            Self::Binding => "BINDING",
+            Self::Constraint => "CONSTRAINT",
+            Self::Invariant => "INVARIANT",
+            Self::Transform => "TRANSFORM",
+            Self::Materialization => "MATERIALIZATION",
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+pub enum EpistemicStatus {
+    Observed,
+    Declared,
+    Derived,
+    Unsupported,
+    Unknown,
+    Ignored,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct SemanticFact {
+    pub id: String,
+    pub kind: SemanticFactKind,
+    pub status: EpistemicStatus,
+    pub subject: String,
+    pub predicate: String,
+    pub object: String,
+    pub provenance: Provenance,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct CensusReport {
+    pub schema: String,
+    pub artifacts_total: usize,
+    pub artifacts_accounted_total: usize,
+    pub facts_total: usize,
+    pub coverage: BTreeMap<String, String>,
+    pub facts: Vec<SemanticFact>,
+}
+
+impl CensusReport {
+    pub fn is_closed(&self) -> bool {
+        self.artifacts_total == self.artifacts_accounted_total
+            && self.facts_total == self.facts.len()
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct NormalizationReport {
+    pub schema: String,
+    pub input_facts_total: usize,
+    pub normalized_facts_total: usize,
+    pub kinds: BTreeMap<String, usize>,
+    pub facts: Vec<SemanticFact>,
+}
+
+impl NormalizationReport {
+    pub fn is_closed(&self) -> bool {
+        self.input_facts_total == self.normalized_facts_total
+            && self.normalized_facts_total == self.facts.len()
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
@@ -108,6 +192,8 @@ pub struct SystemizeReport {
     pub coding_admission: CodingAdmission,
     pub inventory: InventoryReport,
     pub source: SourceReport,
+    pub census: CensusReport,
+    pub normalization: NormalizationReport,
     pub graph: GraphSummary,
     pub invariants: Vec<String>,
 }

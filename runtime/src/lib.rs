@@ -1,6 +1,8 @@
 //! Atlas runtime orchestration.
 
+pub mod census;
 pub mod inventory;
+pub mod normalize;
 
 use atlas_core::{
     AdlCompileReport, AdlProgram, CLI_API, CodingAdmission, Contract, DocsReport, EngineeringGraph,
@@ -18,6 +20,8 @@ pub fn systemize(root: impl AsRef<Path>) -> io::Result<SystemizeReport> {
     let docs = adapter::audit_docs(root.join(".atlas"))?;
     let adl_sources = adapter::read_adl_sources(root)?;
     let adl = compile_adl(&adl_sources, &source);
+    let census = census::build_census(&inventory, &source, &adl);
+    let normalization = normalize::normalize(&census);
     let graph = summarize_system_graph(&source, &docs, &adl);
 
     let mut blockers = Vec::new();
@@ -33,9 +37,15 @@ pub fn systemize(root: impl AsRef<Path>) -> io::Result<SystemizeReport> {
     if !inventory.is_closed() {
         blockers.push("INVENTORY_ACCOUNTING_NOT_CLOSED".to_owned());
     }
+    if !census.is_closed() {
+        blockers.push("CENSUS_ACCOUNTING_NOT_CLOSED".to_owned());
+    }
+    if !normalization.is_closed() {
+        blockers.push("NORMALIZATION_ACCOUNTING_NOT_CLOSED".to_owned());
+    }
 
     Ok(SystemizeReport {
-        schema: "atlas.systemizer.systemize-report.v8".into(),
+        schema: "atlas.systemizer.systemize-report.v9".into(),
         cli_api: CLI_API.into(),
         root: root.canonicalize()?.to_string_lossy().into_owned(),
         snapshot,
@@ -50,6 +60,8 @@ pub fn systemize(root: impl AsRef<Path>) -> io::Result<SystemizeReport> {
         },
         inventory,
         source,
+        census,
+        normalization,
         graph,
         invariants: vec![
             "CANONICAL_REPOSITORY_KNOWLEDGE_IS_IN_ATLAS_ROOT".into(),
@@ -60,6 +72,10 @@ pub fn systemize(root: impl AsRef<Path>) -> io::Result<SystemizeReport> {
             "DONORS_ARE_REFERENCE_AND_EVIDENCE_NOT_RUNTIME_OWNERS".into(),
             "INVENTORY_PRECEDES_SEMANTIC_DEPTH".into(),
             "UNKNOWN_OR_OVERSIZED_ARTIFACTS_CANNOT_DISAPPEAR".into(),
+            "CENSUS_PRECEDES_NORMALIZATION".into(),
+            "NORMALIZATION_PRESERVES_PROVENANCE".into(),
+            "NORMALIZATION_MUST_NOT_DROP_CENSUS_FACTS".into(),
+            "UNSUPPORTED_SEMANTIC_DIMENSIONS_ARE_EXPLICIT".into(),
             "AI_OUTPUT_IS_PROPOSAL_NOT_CANONICAL_TRUTH".into(),
         ],
     })
@@ -105,13 +121,17 @@ pub fn code_analyze(root: impl AsRef<Path>) -> io::Result<serde_json::Value> {
     let docs = adapter::audit_docs(root.join(".atlas"))?;
     let adl_sources = adapter::read_adl_sources(root)?;
     let adl = compile_adl(&adl_sources, &source);
+    let census = census::build_census(&inventory, &source, &adl);
+    let normalization = normalize::normalize(&census);
     let graph = summarize_system_graph(&source, &docs, &adl);
 
     Ok(serde_json::json!({
-        "schema": "atlas.systemizer.code-analysis.v2",
+        "schema": "atlas.systemizer.code-analysis.v3",
         "inventory": inventory,
         "source": source,
         "adl": adl,
+        "census": census,
+        "normalization": normalization,
         "graph": graph,
         "source_of_truth": "derived engineering analysis; target repositories remain sovereign"
     }))

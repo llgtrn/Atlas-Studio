@@ -36,7 +36,8 @@ pub use language::adl::{
 };
 pub use provenance::{Provenance, provenance};
 pub use schema::{
-    DocsReport, DocumentFact, FileFact, GraphSummary, RepoAudit, RepoManifest, SourceReport,
+    CensusReport, DocsReport, DocumentFact, EpistemicStatus, FileFact, GraphSummary,
+    NormalizationReport, RepoAudit, RepoManifest, SemanticFact, SemanticFactKind, SourceReport,
     SystemizeReport,
 };
 pub use state::RepositorySnapshot;
