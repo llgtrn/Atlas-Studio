@@ -1,0 +1,4 @@
+﻿donor = "fastcdc-rs"
+remote = "https://github.com/nlfiedler/fastcdc-rs.git"
+commit = "b025a70229a13d9482c943d27e494c40e84e0892"
+branch = "master"
