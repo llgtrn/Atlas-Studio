@@ -1,0 +1,158 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://atlas.local/schema/census-certificate.v1.schema.json",
+  "title": "Atlas CensusCertificate v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "state",
+    "corpus_id",
+    "revisions",
+    "genome_hash",
+    "inventory_total",
+    "accounted_total",
+    "semantic_coverage",
+    "unresolved_artifacts",
+    "unsupported_artifacts",
+    "dynamic_edges",
+    "binding_gaps",
+    "conflicts",
+    "fixed_point_iterations",
+    "independent_pass_agreement"
+  ],
+  "properties": {
+    "schema": {
+      "const": "atlas.census-certificate.v1"
+    },
+    "state": {
+      "enum": [
+        "DRAFT",
+        "CENSUSED",
+        "RECONCILED",
+        "CLOSED",
+        "SEALED"
+      ]
+    },
+    "corpus_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "revisions": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "genome_hash": {
+      "type": "string",
+      "minLength": 1
+    },
+    "policy_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "inventory_total": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "accounted_total": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "semantic_coverage": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "required",
+          "total",
+          "observed",
+          "declared",
+          "derived",
+          "inferred",
+          "unknown",
+          "unsupported",
+          "conflict"
+        ],
+        "properties": {
+          "required": {
+            "type": "boolean"
+          },
+          "total": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "observed": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "declared": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "derived": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "inferred": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "unknown": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "unsupported": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "conflict": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      }
+    },
+    "unresolved_artifacts": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "unsupported_artifacts": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "dynamic_edges": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "binding_gaps": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "conflicts": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "fixed_point_iterations": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "independent_pass_agreement": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "atlas_root_hash": {
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  }
+}
