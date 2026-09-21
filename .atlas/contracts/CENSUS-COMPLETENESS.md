@@ -19,11 +19,15 @@ artifact classification
   ↓
 syntax / build / dependency passes
   ↓
-type / symbol / control / data / state / effect passes
+semantic extractors → raw typed observations
+  ↓
+census obligation accounting
+  ↓
+deterministic normalization
   ↓
 binding / temporal / evidence passes
   ↓
-cross-scope reconciliation
+multi-engine + cross-scope reconciliation
   ↓
 adversarial gap queries
   ↓
@@ -43,6 +47,8 @@ UNKNOWN is explicit. Silent skip is forbidden.
 ## Function and semantic accounting
 
 Every discovered function/method is represented in Atlas. Adaptive census controls depth, not existence.
+
+The canonical typed record vocabulary is defined by SEMANTIC-FACTS.md. Extractor obligations are defined by SEMANTIC-EXTRACTION.md. Generic SemanticFact triples are bootstrap transport only and do not satisfy typed function-semantic closure.
 
 Each function MUST account for, when applicable:
 
@@ -103,6 +109,8 @@ Inventory
 Critical scopes may require UNKNOWN = 0.
 
 ## CensusCertificate
+
+The normative certificate contract is CENSUS-CERTIFICATE.md and its machine schema is contracts/schema/census-certificate.v1.schema.json.
 
 Every sealed root records at least corpus identity, revision set, Genome hash, inventory totals, accounted totals, semantic coverage, unresolved/unsupported artifacts, dynamic edges, binding gaps, conflicts, fixed-point iteration count, independent-pass agreement and Atlas root hash.
 
