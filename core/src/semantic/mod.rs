@@ -215,6 +215,7 @@ impl SemanticRecord {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct TypedSemanticFact {
     pub id: String,
+    pub evidence_kind: EvidenceKind,
     pub status: EpistemicStatus,
     pub record: SemanticRecord,
     pub provenance: Provenance,
@@ -223,6 +224,13 @@ pub struct TypedSemanticFact {
 impl TypedSemanticFact {
     pub const fn kind(&self) -> SemanticFactKind {
         self.record.kind()
+    }
+
+    pub const fn is_epistemically_valid(&self) -> bool {
+        !matches!(
+            (self.evidence_kind, self.status),
+            (EvidenceKind::ModelOutput, EpistemicStatus::Observed)
+        )
     }
 }
 
@@ -234,6 +242,7 @@ mod tests {
     fn typed_record_reports_fact_kind_without_triple_encoding() {
         let fact = TypedSemanticFact {
             id: "fact:function".into(),
+            evidence_kind: EvidenceKind::SourceCode,
             status: EpistemicStatus::Observed,
             record: SemanticRecord::FunctionIdentity(FunctionIdentity {
                 symbol: SymbolId::new("symbol:f"),
@@ -252,5 +261,29 @@ mod tests {
         };
 
         assert_eq!(fact.kind(), SemanticFactKind::FunctionIdentity);
+        assert!(fact.is_epistemically_valid());
+    }
+
+    #[test]
+    fn model_output_cannot_claim_observed_status() {
+        let fact = TypedSemanticFact {
+            id: "fact:model".into(),
+            evidence_kind: EvidenceKind::ModelOutput,
+            status: EpistemicStatus::Observed,
+            record: SemanticRecord::Effect(EffectFact {
+                function: SymbolId::new("symbol:f"),
+                effect_kind: "candidate".into(),
+                target: None,
+            }),
+            provenance: Provenance {
+                source_path: "model://candidate".into(),
+                source_revision: None,
+                extractor: "model:test".into(),
+                content_hash: None,
+                span: None,
+            },
+        };
+
+        assert!(!fact.is_epistemically_valid());
     }
 }
