@@ -75,3 +75,38 @@ pub trait SemanticExtractor: Sync {
         unit: &SemanticSourceUnit,
     ) -> Result<SemanticExtractionBatch, SemanticExtractionError>;
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn batch(status: EpistemicStatus, closure_proven: bool) -> SemanticExtractionBatch {
+        SemanticExtractionBatch {
+            schema: "test".into(),
+            extractor_id: "test.extractor".into(),
+            extractor_version: "1".into(),
+            source_artifact_id: ArtifactId::new("artifact:test"),
+            source_path: "src/lib.rs".into(),
+            coverage: vec![SemanticObligationCoverage {
+                obligation: SemanticObligation::Symbol,
+                status,
+                facts_total: 0,
+                closure_proven,
+                reason: None,
+            }],
+            facts: Vec::new(),
+            diagnostics: Vec::new(),
+        }
+    }
+
+    #[test]
+    fn explicit_unsupported_obligation_is_accounted() {
+        assert!(batch(EpistemicStatus::Unsupported, false).is_accounted());
+    }
+
+    #[test]
+    fn positive_obligation_requires_closure_proof() {
+        assert!(!batch(EpistemicStatus::Observed, false).is_accounted());
+        assert!(batch(EpistemicStatus::Observed, true).is_accounted());
+    }
+}
