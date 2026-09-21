@@ -20,7 +20,11 @@ pub fn systemize(root: impl AsRef<Path>) -> io::Result<SystemizeReport> {
     let docs = adapter::audit_docs(root.join(".atlas"))?;
     let adl_sources = adapter::read_adl_sources(root)?;
     let adl = compile_adl(&adl_sources, &source);
-    let census = census::build_census(&inventory, &source, &adl);
+    let census_revision = RevisionRef {
+        kind: "git".into(),
+        value: snapshot.head_sha.clone(),
+    };
+    let census = census::build_census(&inventory, &source, &adl, Some(&census_revision));
     let normalization = normalize::normalize(&census);
     let graph = summarize_system_graph(&source, &docs, &normalization);
 
@@ -98,13 +102,18 @@ pub fn check(root: impl AsRef<Path>) -> io::Result<AdlCompileReport> {
 
 pub fn graph(root: impl AsRef<Path>) -> io::Result<EngineeringGraph> {
     let root = root.as_ref();
+    let snapshot = adapter::snapshot_git(root)?;
     let repository = adapter::audit_repository(root)?;
     let inventory = inventory::build_inventory(root, repository.manifest.as_ref())?;
     let source = adapter::source_report_from_inventory(&inventory);
     let docs = adapter::audit_docs(root.join(".atlas"))?;
     let adl_sources = adapter::read_adl_sources(root)?;
     let adl = compile_adl(&adl_sources, &source);
-    let census = census::build_census(&inventory, &source, &adl);
+    let census_revision = RevisionRef {
+        kind: "git".into(),
+        value: snapshot.head_sha,
+    };
+    let census = census::build_census(&inventory, &source, &adl, Some(&census_revision));
     let normalization = normalize::normalize(&census);
     Ok(build_system_graph(&source, &docs, &normalization))
 }
@@ -119,13 +128,18 @@ pub fn docs_audit(root: impl AsRef<Path>) -> io::Result<DocsReport> {
 
 pub fn code_analyze(root: impl AsRef<Path>) -> io::Result<serde_json::Value> {
     let root = root.as_ref();
+    let snapshot = adapter::snapshot_git(root)?;
     let repository = adapter::audit_repository(root)?;
     let inventory = inventory::build_inventory(root, repository.manifest.as_ref())?;
     let source = adapter::source_report_from_inventory(&inventory);
     let docs = adapter::audit_docs(root.join(".atlas"))?;
     let adl_sources = adapter::read_adl_sources(root)?;
     let adl = compile_adl(&adl_sources, &source);
-    let census = census::build_census(&inventory, &source, &adl);
+    let census_revision = RevisionRef {
+        kind: "git".into(),
+        value: snapshot.head_sha,
+    };
+    let census = census::build_census(&inventory, &source, &adl, Some(&census_revision));
     let normalization = normalize::normalize(&census);
     let graph = summarize_system_graph(&source, &docs, &normalization);
 
