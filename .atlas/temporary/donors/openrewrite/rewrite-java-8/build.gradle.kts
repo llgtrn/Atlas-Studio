@@ -1,0 +1,116 @@
+plugins {
+    id("org.openrewrite.build.language-library")
+    id("jvm-test-suite")
+}
+
+val compiler = javaToolchains.compilerFor {
+    languageVersion.set(JavaLanguageVersion.of(8))
+}
+
+val tools = compiler.get().metadata.installationPath.file("lib/tools.jar")
+
+val javaTck = configurations.create("javaTck") {
+    isTransitive = false
+    isCanBeConsumed = false
+    isCanBeResolved = true
+}
+
+val javaTckClasses = javaTck.incoming.artifactView {
+    attributes {
+        attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements.CLASSES))
+    }
+}.files
+
+dependencies {
+    compileOnly(files(tools))
+    compileOnly("org.slf4j:slf4j-api:1.7.+")
+
+    implementation(project(":rewrite-java"))
+    implementation(project(":rewrite-java-lombok"))
+    implementation("org.ow2.asm:asm:latest.release")
+
+    implementation("io.micrometer:micrometer-core:1.9.+")
+
+    testImplementation(project(":rewrite-test"))
+    "javaTck"(project(":rewrite-java-tck"))
+}
+
+configurations.all {
+    resolutionStrategy {
+        eachDependency {
+            if (requested.group == "org.assertj" && requested.name == "assertj-core") {
+                useVersion("3.+") // Pin to latest 3.+ version as AssertJ 4 requires Java 17
+            }
+        }
+    }
+}
+
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(8))
+    }
+}
+
+tasks.withType<JavaCompile>().configureEach {
+    options.isFork = true
+    options.release.set(null as? Int?) // remove `--release 8` set in `org.openrewrite.java-base`
+}
+
+tasks.withType<Test>().configureEach {
+    jvmArgs = listOf("-XX:+UnlockDiagnosticVMOptions", "-XX:+ShowHiddenFrames")
+    javaLauncher.set(javaToolchains.launcherFor {
+        languageVersion.set(JavaLanguageVersion.of(8))
+    })
+}
+
+tasks.withType<Javadoc>().configureEach {
+    executable = javaToolchains.javadocToolFor {
+        languageVersion.set(JavaLanguageVersion.of(8))
+    }.get().executablePath.toString()
+}
+
+testing {
+    suites {
+        val test by getting(JvmTestSuite::class)
+
+        register("compatibilityTest", JvmTestSuite::class) {
+            dependencies {
+                implementation(project())
+                implementation(project(":rewrite-test"))
+                implementation(project(":rewrite-java-tck"))
+                implementation(project(":rewrite-java-test"))
+                implementation("org.assertj:assertj-core:latest.release")
+            }
+
+            targets {
+                all {
+                    testTask.configure {
+                        useJUnitPlatform()
+                        testClassesDirs += javaTckClasses
+                        jvmArgs = listOf("-XX:+UnlockDiagnosticVMOptions", "-XX:+ShowHiddenFrames")
+                        shouldRunAfter(test)
+                    }
+                }
+            }
+        }
+    }
+}
+
+// Keep the Test tasks' @Classpath fingerprint stable across CI runs. In this module the
+// only consumers of runtimeClasspath are :test and :compatibilityTest (compileJava uses
+// compileClasspath / ABI-only normalization and is unaffected). The convention plugin's
+// info-broker writes build-varying entries (Build-Date, Change, Build-Number, ...) into
+// MANIFEST.MF and META-INF/<project>.properties of every consumed JAR; none of META-INF
+// is a real input for the TCK's parser tests, so drop the whole directory from the
+// fingerprint and let the build cache hit when only those metadata bytes have changed.
+normalization {
+    runtimeClasspath {
+        metaInf {
+            ignoreCompletely()
+        }
+    }
+}
+
+tasks.named("check") {
+    dependsOn(testing.suites.named("compatibilityTest"))
+}

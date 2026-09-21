@@ -1,0 +1,329 @@
+/*
+ * Copyright 2024 the original author or authors.
+ * <p>
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * <p>
+ * https://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.openrewrite.properties;
+
+import org.junit.jupiter.api.Test;
+import org.openrewrite.DocumentExample;
+import org.openrewrite.test.RewriteTest;
+
+import static org.openrewrite.properties.Assertions.properties;
+
+class AddPropertyCommentTest implements RewriteTest {
+
+    @DocumentExample
+    @Test
+    void shouldAddCommentToFirstProperty() {
+        rewriteRun(
+          spec -> spec.recipe(new AddPropertyComment(
+            "management.metrics.enable.process.files",
+            "myComment",
+            false
+          )),
+          properties(
+            """
+              management.metrics.enable.process.files=true
+              yyy=true
+              """,
+            """
+              # myComment
+              management.metrics.enable.process.files=true
+              yyy=true
+              """
+          )
+        );
+    }
+
+    @Test
+    void shouldAddCommentToMiddleProperty() {
+        rewriteRun(
+          spec -> spec.recipe(new AddPropertyComment(
+            "management.metrics.enable.process.files",
+            "myComment",
+            false
+          )),
+          properties(
+            """
+              xxx=true
+              management.metrics.enable.process.files=true
+              yyy=true
+              """,
+            """
+              xxx=true
+              # myComment
+              management.metrics.enable.process.files=true
+              yyy=true
+              """
+          )
+        );
+    }
+
+    @Test
+    void shouldAcceptExistingComment() {
+        rewriteRun(
+          spec -> spec.recipe(new AddPropertyComment(
+            "management.metrics.enable.process.files",
+            "myComment",
+            false
+          )),
+          properties(
+            """
+              # myComment
+              management.metrics.enable.process.files=true
+              """
+          )
+        );
+    }
+
+    @Test
+    void shouldSkipNotExistingProperty() {
+        rewriteRun(
+          spec -> spec.recipe(new AddPropertyComment(
+            "xxx",
+            "myComment",
+            false
+          )),
+          properties(
+            """
+              yyy=true
+              """
+          )
+        );
+    }
+
+    @Test
+    void shouldCommentOutFirstProperty() {
+        rewriteRun(
+          spec -> spec.recipe(new AddPropertyComment(
+            "management.metrics.enable.process.files",
+            "myComment",
+            true
+          )),
+          properties(
+            """
+              management.metrics.enable.process.files=true
+              yyy=true
+              """,
+            """
+              # myComment
+              # management.metrics.enable.process.files=true
+              yyy=true
+              """
+          )
+        );
+    }
+
+    @Test
+    void shouldCommentOutMiddleProperty() {
+        rewriteRun(
+          spec -> spec.recipe(new AddPropertyComment(
+            "management.metrics.enable.process.files",
+            "myComment",
+            true
+          )),
+          properties(
+            """
+              xxx=true
+              management.metrics.enable.process.files=true
+              yyy=true
+              """,
+            """
+              xxx=true
+              # myComment
+              # management.metrics.enable.process.files=true
+              yyy=true
+              """
+          )
+        );
+    }
+
+    @Test
+    void shouldAcceptExistingCommentAndCommentOutProperty() {
+        rewriteRun(
+          spec -> spec.recipe(new AddPropertyComment(
+            "management.metrics.enable.process.files",
+            "myComment",
+            true
+          )),
+          properties(
+            """
+              # myComment
+              management.metrics.enable.process.files=true
+              """,
+            """
+              # myComment
+              # management.metrics.enable.process.files=true
+              """
+          )
+        );
+    }
+
+    @Test
+    void shouldAddIdenticalCommentToConsecutiveCommentedOutProperties() {
+        rewriteRun(
+          spec -> spec.recipes(
+            new AddPropertyComment("zookeeper.connection.timeout.ms", "Removed", true),
+            new AddPropertyComment("zookeeper.session.timeout.ms", "Removed", true),
+            new AddPropertyComment("zookeeper.sync.time.ms", "Removed", true)
+          ),
+          properties(
+            """
+              broker.id=0
+              zookeeper.connection.timeout.ms=18000
+              zookeeper.session.timeout.ms=6000
+              zookeeper.sync.time.ms=2000
+              """,
+            """
+              broker.id=0
+              # Removed
+              # zookeeper.connection.timeout.ms=18000
+              # Removed
+              # zookeeper.session.timeout.ms=6000
+              # Removed
+              # zookeeper.sync.time.ms=2000
+              """
+          )
+        );
+    }
+
+    @Test
+    void shouldAddCommentBeforeFirstPropertyOfCrlfFile() {
+        rewriteRun(
+          spec -> spec.recipe(new AddPropertyComment(
+            "cucumber.publish.quiet",
+            "myComment",
+            false
+          )),
+          properties(
+            "cucumber.publish.quiet=true\r\n" +
+            "cucumber.options=--format pretty",
+            "# myComment\r\n" +
+            "cucumber.publish.quiet=true\r\n" +
+            "cucumber.options=--format pretty"
+          )
+        );
+    }
+
+    @Test
+    void shouldAddCommentBeforeLaterPropertyOfCrlfFile() {
+        rewriteRun(
+          spec -> spec.recipe(new AddPropertyComment(
+            "cucumber.options",
+            "myComment",
+            false
+          )),
+          properties(
+            "cucumber.publish.quiet=true\r\n" +
+            "cucumber.options=--format pretty\r\n",
+            "cucumber.publish.quiet=true\r\n" +
+            "# myComment\r\n" +
+            "cucumber.options=--format pretty\r\n"
+          )
+        );
+    }
+
+    @Test
+    void shouldAddCommentAfterExistingCommentOfCrlfFile() {
+        rewriteRun(
+          spec -> spec.recipe(new AddPropertyComment(
+            "cucumber.options",
+            "myComment",
+            false
+          )),
+          properties(
+            "# existing\r\n" +
+            "cucumber.options=--format pretty",
+            "# existing\r\n" +
+            "# myComment\r\n" +
+            "cucumber.options=--format pretty"
+          )
+        );
+    }
+
+    @Test
+    void shouldUseCrlfWhenAddingToMixedEndingsFile() {
+        rewriteRun(
+          spec -> spec.recipe(new AddPropertyComment(
+            "yyy",
+            "myComment",
+            false
+          )),
+          properties(
+            "xxx=true\r\n" +
+            "yyy=true\n" +
+            "zzz=true\r\n",
+            "xxx=true\r\n" +
+            "# myComment\r\n" +
+            "yyy=true\n" +
+            "zzz=true\r\n"
+          )
+        );
+    }
+
+    @Test
+    void shouldKeepBlankLineAboveComment() {
+        rewriteRun(
+          spec -> spec.recipe(new AddPropertyComment(
+            "yyy",
+            "myComment",
+            false
+          )),
+          properties(
+            "xxx=true\n" +
+            "\n" +
+            "yyy=true\n",
+            "xxx=true\n" +
+            "\n" +
+            "# myComment\n" +
+            "yyy=true\n"
+          )
+        );
+    }
+
+    @Test
+    void shouldKeepIndentationOfCommentedProperty() {
+        rewriteRun(
+          spec -> spec.recipe(new AddPropertyComment(
+            "yyy",
+            "myComment",
+            false
+          )),
+          properties(
+            "xxx=true\n" +
+            "  yyy=true\n",
+            "xxx=true\n" +
+            "  # myComment\n" +
+            "  yyy=true\n"
+          )
+        );
+    }
+
+    @Test
+    void shouldASkipCommentOutProperty() {
+        rewriteRun(
+          spec -> spec.recipe(new AddPropertyComment(
+            "management.metrics.enable.process.files",
+            "myComment",
+            true
+          )),
+          properties(
+            """
+              # myComment
+              # management.metrics.enable.process.files=true
+              """
+          )
+        );
+    }
+}

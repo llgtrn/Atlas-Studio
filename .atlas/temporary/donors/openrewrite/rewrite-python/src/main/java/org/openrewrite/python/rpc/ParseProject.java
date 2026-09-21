@@ -1,0 +1,71 @@
+/*
+ * Copyright 2025 the original author or authors.
+ * <p>
+ * Licensed under the Moderne Source Available License (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * <p>
+ * https://docs.moderne.io/licensing/moderne-source-available-license
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.openrewrite.python.rpc;
+
+import lombok.Value;
+import org.jspecify.annotations.Nullable;
+import org.openrewrite.rpc.request.RpcRequest;
+
+import java.nio.file.Path;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * RPC request to parse an entire Python project.
+ * Discovers and parses all relevant source files.
+ */
+@Value
+class ParseProject implements RpcRequest {
+    /**
+     * Path to the project directory to parse.
+     */
+    Path projectPath;
+
+    /**
+     * Optional glob patterns matched against directory names, not paths.
+     * These extend the parser's built-in exclusions (__pycache__, .venv, etc.)
+     * rather than replacing them.
+     */
+    @Nullable
+    List<String> exclusions;
+
+    /**
+     * Optional path to make source file paths relative to.
+     * If not specified, paths are relative to projectPath.
+     * Use this when parsing a subdirectory but wanting paths relative to the repository root.
+     */
+    @Nullable
+    Path relativeTo;
+
+    /**
+     * Optional path to a virtual environment with the project's dependencies installed.
+     * <p>
+     * The caller (e.g. a CLI build step) provisions this environment and forwards its
+     * path so the parser can point ty-types at it, allowing supertypes that reach into
+     * third-party packages to resolve (e.g. a first-party class extending
+     * {@code pydantic.BaseModel}). The parser never provisions dependencies itself.
+     * When {@code null}, parsing proceeds without dependency-backed type resolution.
+     */
+    @Nullable
+    Path dependencyPath;
+
+    /**
+     * Parser options the server interprets by key, ignoring the ones it does not
+     * recognize. A peer that sends none gets the server's own defaults.
+     */
+    @Nullable
+    Map<String, String> options;
+}

@@ -1,0 +1,257 @@
+/*
+ * Copyright 2022 the original author or authors.
+ * <p>
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * <p>
+ * https://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.openrewrite.xml.format;
+
+import org.junit.jupiter.api.Test;
+import org.openrewrite.DocumentExample;
+import org.openrewrite.Issue;
+import org.openrewrite.test.RecipeSpec;
+import org.openrewrite.test.RewriteTest;
+
+import static org.openrewrite.xml.Assertions.xml;
+
+class AutoFormatTest implements RewriteTest {
+    @Override
+    public void defaults(RecipeSpec spec) {
+        spec.recipe(new AutoFormat());
+    }
+
+    @DocumentExample
+    @Test
+    void autoFormatTag() {
+        rewriteRun(
+          xml(
+            """
+              <project>
+                <dependencies>
+                  <dependency>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-test</artifactId>
+                    <scope>test</scope>
+                    <exclusions>
+                      <exclusion>
+                <groupId>org.junit.vintage</groupId>
+                <artifactId>junit-vintage-engine</artifactId>
+              </exclusion>
+                    </exclusions>
+                  </dependency>
+                </dependencies>
+              </project>
+              """,
+            """
+              <project>
+                <dependencies>
+                  <dependency>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-test</artifactId>
+                    <scope>test</scope>
+                    <exclusions>
+                      <exclusion>
+                        <groupId>org.junit.vintage</groupId>
+                        <artifactId>junit-vintage-engine</artifactId>
+                      </exclusion>
+                    </exclusions>
+                  </dependency>
+                </dependencies>
+              </project>
+              """
+          )
+        );
+    }
+
+    @Issue("https://github.com/openrewrite/rewrite/issues/707")
+    @Test
+    void autoFormatAttributes() {
+        rewriteRun(
+          xml(
+            """
+              <databaseChangeLog
+                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog">
+              </databaseChangeLog>
+              """
+          )
+        );
+    }
+
+    @Issue("https://github.com/openrewrite/rewrite/issues/3648")
+    @Test
+    void preserveAttributeContinuationIndent() {
+        rewriteRun(
+          xml(
+            """
+              <a b="c"
+                 d="e"/>
+              """
+          )
+        );
+    }
+
+    @Issue("https://github.com/openrewrite/rewrite/issues/3648")
+    @Test
+    void preserveNestedAttributeContinuationIndent() {
+        rewriteRun(
+          xml(
+            """
+              <root>
+                <parent>
+                  <child first="1"
+                         second="2"/>
+                  <other first="1"
+                         second="2"/>
+                </parent>
+              </root>
+              """
+          )
+        );
+    }
+
+    @Issue("https://github.com/openrewrite/rewrite/issues/1503")
+    @Test
+    void autoFormatXmlDecl() {
+        rewriteRun(
+          xml(
+            """
+              <?xml version="1.0" encoding="UTF-8"?>
+              <tag>required tag</tag>
+              """
+          )
+        );
+    }
+
+    @Issue("https://github.com/openrewrite/rewrite/issues/1189")
+    @Test
+    void tagContentIndentation() {
+        rewriteRun(
+          xml(
+            """
+              <foo>
+                bar
+              </foo>
+              """
+          )
+        );
+    }
+
+    @Test
+    void trailingCommentStaysOnSameLine() {
+        rewriteRun(
+          xml(
+            """
+              <?xml version="1.0" encoding="UTF-8"?>
+              <project>
+                <excludes>
+                  <exclude>com.example.profit.ProfitFactory.processProfit.1</exclude> <!--tmp logic, tested elsewhere-->
+                  <exclude>com.example.profit.io.ProfitUtils</exclude><!--tmp logic, tested elsewhere-->
+                </excludes>
+              </project>
+              """
+          )
+        );
+    }
+
+    @Test
+    void trailingCommentAfterTagContentStaysOnSameLine() {
+        rewriteRun(
+          xml(
+            """
+              <?xml version="1.0" encoding="UTF-8"?>
+              <project>
+                <excludes>
+                  <exclude>a</exclude> <!--why a-->
+                </excludes> <!--why excludes-->
+              </project>
+              """
+          )
+        );
+    }
+
+    @Test
+    void misindentedTrailingCommentIsStillIndented() {
+        rewriteRun(
+          xml(
+            """
+              <?xml version="1.0" encoding="UTF-8"?>
+              <project>
+                <excludes>
+                  <exclude>a</exclude>
+              <!--why a-->
+                </excludes>
+              </project>
+              """,
+            """
+              <?xml version="1.0" encoding="UTF-8"?>
+              <project>
+                <excludes>
+                  <exclude>a</exclude>
+                  <!--why a-->
+                </excludes>
+              </project>
+              """
+          )
+        );
+    }
+
+    @Test
+    void commentAfterRootElementIsRetained() {
+        rewriteRun(
+          xml(
+            """
+              <?xml version="1.0" encoding="UTF-8"?>
+              <project>
+                <excludes/>
+              </project>
+              <!--why project-->
+              """
+          )
+        );
+    }
+
+    @Test
+    void commentTrailingRootElementIsRetained() {
+        rewriteRun(
+          xml(
+            """
+              <?xml version="1.0" encoding="UTF-8"?>
+              <project>
+                <excludes/>
+              </project> <!--why project-->
+              """
+          )
+        );
+    }
+
+    @Test
+    void trailingWhitespaceAfterRootElementIsRemoved() {
+        rewriteRun(
+          xml(
+            """
+              <?xml version="1.0" encoding="UTF-8"?>
+              <project>
+                <excludes/>
+              </project>   \s
+              """,
+            """
+              <?xml version="1.0" encoding="UTF-8"?>
+              <project>
+                <excludes/>
+              </project>
+              """
+          )
+        );
+    }
+}

@@ -1,0 +1,20 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "rootDir": ".",
+    "outDir": "../dist-fixtures",
+    "paths": {
+      "@openrewrite/rewrite": ["../src/index.ts"],
+      "@openrewrite/rewrite/*": ["../src/*/index.ts"]
+    }
+  },
+  "include": [
+    "./**/*.ts"
+  ],
+  "exclude": [],
+  "references": [
+    {
+      "path": "../tsconfig.build.json"
+    }
+  ]
+}

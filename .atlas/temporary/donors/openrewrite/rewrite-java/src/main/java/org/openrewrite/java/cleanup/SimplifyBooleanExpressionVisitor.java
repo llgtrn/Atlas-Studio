@@ -1,0 +1,544 @@
+/*
+ * Copyright 2020 the original author or authors.
+ * <p>
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * <p>
+ * https://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.openrewrite.java.cleanup;
+
+import org.jspecify.annotations.Nullable;
+import org.openrewrite.ExecutionContext;
+import org.openrewrite.SourceFile;
+import org.openrewrite.Tree;
+import org.openrewrite.java.JavaVisitor;
+import org.openrewrite.java.MethodMatcher;
+import org.openrewrite.java.ParenthesizeVisitor;
+import org.openrewrite.java.search.SemanticallyEqual;
+import org.openrewrite.java.tree.*;
+import org.openrewrite.marker.Markers;
+
+import static java.util.Collections.emptyList;
+
+public class SimplifyBooleanExpressionVisitor extends JavaVisitor<ExecutionContext> {
+    @Override
+    public J visitBinary(J.Binary binary, ExecutionContext ctx) {
+        J j = super.visitBinary(binary, ctx);
+        J.Binary asBinary = (J.Binary) j;
+
+        if (asBinary.getOperator() == J.Binary.Type.And) {
+            if (isLiteralFalse(asBinary.getLeft())) {
+                j = asBinary.getLeft();
+            } else if (isLiteralFalse(asBinary.getRight()) && shouldSimplifyShortCircuitOn(asBinary.getLeft())) {
+                j = asBinary.getRight().withPrefix(asBinary.getRight().getPrefix().withWhitespace(""));
+            } else if (isLiteralTrue(asBinary.getLeft())) {
+                j = asBinary.getRight();
+            } else if (isLiteralTrue(asBinary.getRight()) && shouldSimplifyShortCircuitOn(asBinary.getLeft())) {
+                j = asBinary.getLeft().withPrefix(asBinary.getLeft().getPrefix().withWhitespace(""));
+            } else if (!(asBinary.getLeft() instanceof MethodCall) &&
+                       SemanticallyEqual.areEqual(asBinary.getLeft(), asBinary.getRight())) {
+                j = asBinary.getLeft();
+            }
+        } else if (asBinary.getOperator() == J.Binary.Type.Or) {
+            if (isLiteralTrue(asBinary.getLeft())) {
+                j = asBinary.getLeft();
+            } else if (isLiteralTrue(asBinary.getRight()) && shouldSimplifyShortCircuitOn(asBinary.getLeft())) {
+                j = asBinary.getRight().withPrefix(asBinary.getRight().getPrefix().withWhitespace(""));
+            } else if (isLiteralFalse(asBinary.getLeft())) {
+                j = asBinary.getRight();
+            } else if (isLiteralFalse(asBinary.getRight()) && shouldSimplifyShortCircuitOn(asBinary.getLeft())) {
+                j = asBinary.getLeft().withPrefix(asBinary.getLeft().getPrefix().withWhitespace(""));
+            } else if (!(asBinary.getLeft() instanceof MethodCall) &&
+                       SemanticallyEqual.areEqual(asBinary.getLeft(), asBinary.getRight())) {
+                j = asBinary.getLeft();
+            }
+        } else if (asBinary.getOperator() == J.Binary.Type.Equal) {
+            if (isLiteralTrue(asBinary.getLeft())) {
+                if (shouldSimplifyEqualsOn(asBinary.getRight())) {
+                    j = asBinary.getRight().withPrefix(asBinary.getRight().getPrefix().withWhitespace(""));
+                }
+            } else if (isLiteralTrue(asBinary.getRight())) {
+                if (shouldSimplifyEqualsOn(asBinary.getLeft())) {
+                    j = asBinary.getLeft().withPrefix(asBinary.getLeft().getPrefix().withWhitespace(" "));
+                }
+            } else if (isLiteralFalse(asBinary.getLeft())) {
+                if (shouldSimplifyEqualsOn(asBinary.getRight())) {
+                    j = not(asBinary.getRight());
+                }
+            } else if (isLiteralFalse(asBinary.getRight())) {
+                if (shouldSimplifyEqualsOn(asBinary.getLeft())) {
+                    j = not(asBinary.getLeft());
+                }
+            } else {
+                j = maybeReplaceCompareWithNull(asBinary, true);
+                if (j == asBinary) {
+                    // If null comparison didn't apply, try numeric comparison
+                    Boolean result = compareNumericLiterals(asBinary);
+                    if (result != null) {
+                        j = booleanLiteral(asBinary, result);
+                    }
+                }
+            }
+        } else if (asBinary.getOperator() == J.Binary.Type.NotEqual) {
+            if (isLiteralFalse(asBinary.getLeft())) {
+                if (shouldSimplifyEqualsOn(asBinary.getRight())) {
+                    j = asBinary.getRight().withPrefix(asBinary.getRight().getPrefix().withWhitespace(""));
+                }
+            } else if (isLiteralFalse(asBinary.getRight())) {
+                if (shouldSimplifyEqualsOn(asBinary.getLeft())) {
+                    j = asBinary.getLeft().withPrefix(asBinary.getLeft().getPrefix().withWhitespace(" "));
+                }
+            } else if (isLiteralTrue(asBinary.getLeft())) {
+                if (shouldSimplifyEqualsOn(asBinary.getRight())) {
+                    j = not(asBinary.getRight());
+                }
+            } else if (isLiteralTrue(asBinary.getRight())) {
+                if (shouldSimplifyEqualsOn(asBinary.getLeft())) {
+                    j = not(asBinary.getLeft());
+                }
+            } else {
+                j = maybeReplaceCompareWithNull(asBinary, false);
+                if (j == asBinary) {
+                    // If null comparison didn't apply, try numeric comparison
+                    Boolean result = compareNumericLiterals(asBinary);
+                    if (result != null) {
+                        j = booleanLiteral(asBinary, result);
+                    }
+                }
+            }
+        } else if (asBinary.getOperator() == J.Binary.Type.LessThan ||
+                   asBinary.getOperator() == J.Binary.Type.GreaterThan ||
+                   asBinary.getOperator() == J.Binary.Type.LessThanOrEqual ||
+                   asBinary.getOperator() == J.Binary.Type.GreaterThanOrEqual) {
+            // Simplify numeric literal comparisons
+            Boolean result = compareNumericLiterals(asBinary);
+            if (result != null) {
+                j = booleanLiteral(asBinary, result);
+            }
+        }
+        if (asBinary != j) {
+            j = j.withPrefix(asBinary.getPrefix());
+        }
+        return j;
+    }
+
+    @Override
+    public <T extends J> J visitParentheses(J.Parentheses<T> parens, ExecutionContext ctx) {
+        J j = super.visitParentheses(parens, ctx);
+        if (j != parens && j instanceof J.Parentheses) {
+            j = new UnnecessaryParenthesesVisitor<>().visit(j, ctx, getCursor().getParentOrThrow());
+        }
+        return j;
+    }
+
+    @Override
+    public J visitUnary(J.Unary unary, ExecutionContext ctx) {
+        J j = super.visitUnary(unary, ctx);
+        if (j instanceof J.Unary) {
+            J.Unary asUnary = (J.Unary) j;
+
+            if (asUnary.getOperator() == J.Unary.Type.Not) {
+                j = unpackExpression(asUnary.getExpression(), asUnary);
+                if (j instanceof J.Ternary) {
+                    j = ParenthesizeVisitor.maybeParenthesize((Expression) j, getCursor());
+                }
+            }
+            if (asUnary != j) {
+                j = j.withPrefix(asUnary.getPrefix());
+            }
+        }
+        return j;
+    }
+
+    @Override
+    public J visitTernary(J.Ternary ternary, ExecutionContext executionContext) {
+        J j = super.visitTernary(ternary, executionContext);
+        if (j instanceof J.Ternary) {
+            J.Ternary asTernary = (J.Ternary) j;
+            if (asTernary.getCondition() instanceof J.Unary &&
+                ((J.Unary) asTernary.getCondition()).getOperator() == J.Unary.Type.Not) {
+                Expression negated = maybeNegate(asTernary.getCondition());
+                if (negated != asTernary.getCondition()) {
+                    j = asTernary
+                            .withCondition(negated)
+                            .withTruePart(asTernary.getFalsePart())
+                            .withFalsePart(asTernary.getTruePart());
+                }
+            } else if (asTernary.getCondition() instanceof J.Literal) {
+                if (isLiteralTrue(asTernary.getCondition())) {
+                    j = asTernary.getTruePart();
+                } else if (isLiteralFalse(asTernary.getCondition())) {
+                    j = asTernary.getFalsePart();
+                }
+            } else if (asTernary.getCondition() instanceof J.Parentheses) {
+                J.Parentheses<Expression> parenthesized = (J.Parentheses<Expression>) asTernary.getCondition();
+                if (parenthesized.getTree() instanceof J.Literal) {
+                    if (isLiteralTrue(parenthesized.getTree())) {
+                        j = asTernary.getTruePart();
+                    } else if (isLiteralFalse(parenthesized.getTree())) {
+                        j = asTernary.getFalsePart();
+                    }
+                }
+            }
+        }
+        return j;
+    }
+
+    private Expression unpackExpression(Expression expr, Expression j) {
+        if (isLiteralTrue(expr)) {
+            j = ((J.Literal) expr).withValue(false).withValueSource("false");
+        } else if (isLiteralFalse(expr)) {
+            j = ((J.Literal) expr).withValue(true).withValueSource("true");
+        } else if (expr instanceof J.Unary && ((J.Unary) expr).getOperator() == J.Unary.Type.Not) {
+            if (canSimplifyDoubleNegation(((J.Unary) expr).getExpression())) {
+                j = ((J.Unary) expr).getExpression();
+            }
+        } else if (expr instanceof J.Parentheses) {
+            J parenthesized = ((J.Parentheses<?>) expr).getTree();
+            if (parenthesized instanceof J.Binary) {
+                J.Binary binary = (J.Binary) parenthesized;
+                if (isComparison(binary.getLeft()) || isComparison(binary.getRight())) {
+                    return j;
+                }
+                J.Binary.Type negated = maybeNegate(binary.getOperator());
+                if (negated != binary.getOperator()) {
+                    j = binary.withOperator(negated).withPrefix(j.getPrefix());
+                }
+            } else if (parenthesized instanceof J.Unary) {
+                J.Unary unary1 = (J.Unary) parenthesized;
+                J.Unary.Type operator = unary1.getOperator();
+                if (operator == J.Unary.Type.Not && canSimplifyDoubleNegation(unary1.getExpression())) {
+                    j = unary1.getExpression().withPrefix(j.getPrefix());
+                }
+            } else if (parenthesized instanceof J.Ternary) {
+                J.Ternary ternary = (J.Ternary) parenthesized;
+                j = ternary
+                        .withTruePart(maybeNegate(ternary.getTruePart()))
+                        .withFalsePart(maybeNegate(ternary.getFalsePart()))
+                        .withPrefix(j.getPrefix());
+            } else if (parenthesized instanceof Expression) {
+                j = unpackExpression((Expression) parenthesized, j);
+            }
+        }
+        return j;
+    }
+
+    private Expression maybeNegate(Expression expr) {
+        if (expr instanceof J.Binary) {
+            J.Binary binary = (J.Binary) expr;
+            if (!isComparison(binary.getLeft()) && !isComparison(binary.getRight())) {
+                J.Binary.Type negated = maybeNegate(binary.getOperator());
+                if (negated != binary.getOperator()) {
+                    return binary.withOperator(negated).withPrefix(expr.getPrefix());
+                }
+            }
+        } else if (expr instanceof J.Unary && ((J.Unary) expr).getOperator() == J.Unary.Type.Not) {
+            return ((J.Unary) expr).getExpression().withPrefix(expr.getPrefix());
+        } else if (expr instanceof J.Ternary) {
+            // The negation of `c ? t : f` is `c ? !t : !f`. Flipping the condition and swapping the
+            // branches instead would preserve the ternary's value rather than negate it.
+            J.Ternary ternary = (J.Ternary) expr;
+            return ternary
+                    .withTruePart(maybeNegate(ternary.getTruePart()))
+                    .withFalsePart(maybeNegate(ternary.getFalsePart()))
+                    .withPrefix(expr.getPrefix());
+        } else if (isLiteralTrue(expr)) {
+            return ((J.Literal) expr).withValue(false).withValueSource("false");
+        } else if (isLiteralFalse(expr)) {
+            return ((J.Literal) expr).withValue(true).withValueSource("true");
+        }
+        return not(expr).withPrefix(expr.getPrefix());
+    }
+
+    private J.Binary.Type maybeNegate(J.Binary.Type operator) {
+        switch (operator) {
+            case LessThan:
+                return J.Binary.Type.GreaterThanOrEqual;
+            case GreaterThan:
+                return J.Binary.Type.LessThanOrEqual;
+            case LessThanOrEqual:
+                return J.Binary.Type.GreaterThan;
+            case GreaterThanOrEqual:
+                return J.Binary.Type.LessThan;
+            case Equal:
+                return J.Binary.Type.NotEqual;
+            case NotEqual:
+                return J.Binary.Type.Equal;
+            default:
+                return operator;
+        }
+    }
+
+    private boolean isComparison(Expression expr) {
+        if (expr instanceof J.Binary) {
+            switch (((J.Binary) expr).getOperator()) {
+                case LessThan:
+                case GreaterThan:
+                case LessThanOrEqual:
+                case GreaterThanOrEqual:
+                case Equal:
+                case NotEqual:
+                    return true;
+            }
+        }
+        return false;
+    }
+
+    private final MethodMatcher isEmpty = new MethodMatcher("java.lang.String isEmpty()");
+    private final MethodMatcher equals = new MethodMatcher("java.lang.String equals(java.lang.Object)");
+
+    @Override
+    public J visitMethodInvocation(J.MethodInvocation method, ExecutionContext executionContext) {
+        J j = super.visitMethodInvocation(method, executionContext);
+        J.MethodInvocation asMethod = (J.MethodInvocation) j;
+        Expression select = asMethod.getSelect();
+        if (isEmpty.matches(asMethod) &&
+            select instanceof J.Literal &&
+            select.getType() == JavaType.Primitive.String) {
+            return booleanLiteral(method, J.Literal.isLiteralValue(select, ""));
+        } else if (equals.matches(asMethod)) {
+            Expression arg = asMethod.getArguments().get(0);
+            if (arg instanceof J.Literal && select instanceof J.Literal) {
+                return booleanLiteral(method, ((J.Literal) select).getValue().equals(((J.Literal) arg).getValue()));
+            } else if (SemanticallyEqual.areEqual(select, arg)) {
+                return booleanLiteral(method, true);
+            }
+        }
+        return j;
+    }
+
+    private boolean isLiteralTrue(@Nullable Expression expression) {
+        return expression instanceof J.Literal && ((J.Literal) expression).getValue() == Boolean.valueOf(true);
+    }
+
+    private boolean isLiteralFalse(@Nullable Expression expression) {
+        return expression instanceof J.Literal && ((J.Literal) expression).getValue() == Boolean.valueOf(false);
+    }
+
+    private boolean isNullLiteral(Expression expression) {
+        return expression instanceof J.Literal && ((J.Literal) expression).getType() == JavaType.Primitive.Null;
+    }
+
+    private boolean isNonNullLiteral(Expression expression) {
+        return expression instanceof J.Literal && ((J.Literal) expression).getType() != JavaType.Primitive.Null;
+    }
+
+    private static boolean isNumericLiteral(Expression expression) {
+        return expression instanceof J.Literal &&
+                expression.getType() instanceof JavaType.Primitive &&
+                ((JavaType.Primitive) expression.getType()).isNumeric();
+    }
+
+    private static boolean isIntegralType(Expression expression) {
+        if (!(expression instanceof J.Literal)) {
+            return false;
+        }
+        JavaType type = expression.getType();
+        return type == JavaType.Primitive.Byte ||
+               type == JavaType.Primitive.Short ||
+               type == JavaType.Primitive.Int ||
+               type == JavaType.Primitive.Long;
+    }
+
+    private @Nullable Boolean compareNumericLiterals(J.Binary binary) {
+        if (!isNumericLiteral(binary.getLeft()) || !isNumericLiteral(binary.getRight())) {
+            return null;
+        }
+
+        Object leftValue = ((J.Literal) binary.getLeft()).getValue();
+        Object rightValue = ((J.Literal) binary.getRight()).getValue();
+
+        if (!(leftValue instanceof Number) || !(rightValue instanceof Number)) {
+            return null;
+        }
+
+        // If both operands are integral types, compare as long to avoid precision loss
+        if (isIntegralType(binary.getLeft()) && isIntegralType(binary.getRight())) {
+            long left = ((Number) leftValue).longValue();
+            long right = ((Number) rightValue).longValue();
+
+            switch (binary.getOperator()) {
+                case LessThan:
+                    return left < right;
+                case GreaterThan:
+                    return left > right;
+                case LessThanOrEqual:
+                    return left <= right;
+                case GreaterThanOrEqual:
+                    return left >= right;
+                case Equal:
+                    return left == right;
+                case NotEqual:
+                    return left != right;
+                default:
+                    return null;
+            }
+        } else {
+            // If either operand is floating-point, compare as double
+            double left = ((Number) leftValue).doubleValue();
+            double right = ((Number) rightValue).doubleValue();
+
+            switch (binary.getOperator()) {
+                case LessThan:
+                    return left < right;
+                case GreaterThan:
+                    return left > right;
+                case LessThanOrEqual:
+                    return left <= right;
+                case GreaterThanOrEqual:
+                    return left >= right;
+                case Equal:
+                    return Double.compare(left, right) == 0;
+                case NotEqual:
+                    return Double.compare(left, right) != 0;
+                default:
+                    return null;
+            }
+        }
+    }
+
+    private J maybeReplaceCompareWithNull(J.Binary asBinary, boolean valueIfEqual) {
+        Expression left = asBinary.getLeft();
+        Expression right = asBinary.getRight();
+
+        boolean leftIsNull = isNullLiteral(left);
+        boolean rightIsNull = isNullLiteral(right);
+        if (leftIsNull && rightIsNull) {
+            return booleanLiteral(asBinary, valueIfEqual);
+        }
+        boolean leftIsNonNullLiteral = isNonNullLiteral(left);
+        boolean rightIsNonNullLiteral = isNonNullLiteral(right);
+        if ((leftIsNull && rightIsNonNullLiteral) || (rightIsNull && leftIsNonNullLiteral)) {
+            return booleanLiteral(asBinary, !valueIfEqual);
+        }
+
+        return asBinary;
+    }
+
+    private static J.Literal booleanLiteral(J j, boolean value) {
+        return new J.Literal(Tree.randomId(),
+                j.getPrefix(),
+                j.getMarkers(),
+                value,
+                String.valueOf(value),
+                emptyList(),
+                JavaType.Primitive.Boolean);
+    }
+
+    private static J.Unary not(Expression sideRetained) {
+        if (!(sideRetained instanceof J.FieldAccess) &&
+            !(sideRetained instanceof J.Identifier) &&
+            !(sideRetained instanceof J.Literal) &&
+            !(sideRetained instanceof J.MethodInvocation) &&
+            !(sideRetained instanceof J.Parentheses) &&
+            !(sideRetained instanceof J.Unary)) {
+            sideRetained = new J.Parentheses<>(Tree.randomId(),
+                    sideRetained.getPrefix(),
+                    Markers.EMPTY,
+                    JRightPadded.build(sideRetained.withPrefix(Space.EMPTY)));
+        }
+        return new J.Unary(Tree.randomId(),
+                sideRetained.getPrefix(),
+                sideRetained.getMarkers(),
+                JLeftPadded.build(J.Unary.Type.Not),
+                sideRetained
+                        .withPrefix(Space.EMPTY)
+                        .withMarkers(Markers.EMPTY),
+                JavaType.Primitive.Boolean);
+    }
+
+    /**
+     * In Java, {@code !} only applies to boolean expressions, so {@code !!x} is always
+     * equivalent to {@code x}. In other languages like JavaScript/TypeScript and Groovy,
+     * {@code !!x} is an idiomatic boolean coercion that converts any truthy/falsy value
+     * to a strict boolean. In those cases, simplifying {@code !!x} to {@code x} changes
+     * semantics when {@code x} is not boolean-typed.
+     */
+    private boolean canSimplifyDoubleNegation(Expression innerExpression) {
+        if (getCursor().firstEnclosing(SourceFile.class) instanceof J.CompilationUnit) {
+            return true;
+        }
+        return isBooleanValued(innerExpression);
+    }
+
+    /**
+     * Determines whether an equals comparison with a boolean literal can be simplified.
+     * <p>
+     * In Java, {@code x == true} can always be simplified to {@code x}.
+     * In Kotlin and other languages, nullable types like {@code Boolean?} compared
+     * with {@code == true} have different semantics than using the value directly,
+     * e.g. {@code nullableBoolean == true} evaluates to {@code false} when null,
+     * whereas using {@code nullableBoolean} directly would be a type error.
+     * <p>
+     * For non-Java languages, simplification is only allowed when the expression
+     * type is primitive boolean (non-nullable).
+     *
+     * @param j the expression to simplify
+     * @return true if the equals comparison can be safely simplified
+     */
+    protected boolean shouldSimplifyEqualsOn(J j) {
+        if (getCursor().firstEnclosing(SourceFile.class) instanceof J.CompilationUnit) {
+            return true;
+        }
+        return j instanceof Expression && ((Expression) j).getType() == JavaType.Primitive.Boolean;
+    }
+
+    /**
+     * Determines whether a short-circuit expression with a boolean literal operand can be simplified,
+     * e.g. {@code x && true}, {@code x && false}, {@code x || true}, or {@code x || false}.
+     * <p>
+     * In Java, {@code &&} and {@code ||} are boolean-only, so these always simplify to {@code x} or the
+     * literal. In languages like JavaScript/TypeScript and Groovy, {@code &&}/{@code ||} return one of
+     * their operands unchanged based on truthiness, so {@code x || false} yields {@code false} when
+     * {@code x} is falsy (e.g. {@code undefined}) rather than the original value. Simplifying then
+     * changes semantics unless {@code x} is boolean-typed.
+     *
+     * @param nonLiteralOperand the operand that is not the boolean literal
+     * @return true if the short-circuit expression can be safely simplified
+     */
+    protected boolean shouldSimplifyShortCircuitOn(J nonLiteralOperand) {
+        if (getCursor().firstEnclosing(SourceFile.class) instanceof J.CompilationUnit) {
+            return true;
+        }
+        return nonLiteralOperand instanceof Expression && isBooleanValued((Expression) nonLiteralOperand);
+    }
+
+    private boolean isBooleanValued(Expression expression) {
+        if (expression instanceof J.Binary) {
+            J.Binary binary = (J.Binary) expression;
+            switch (binary.getOperator()) {
+                case LessThan:
+                case GreaterThan:
+                case LessThanOrEqual:
+                case GreaterThanOrEqual:
+                case Equal:
+                case NotEqual:
+                    return true;
+                case And:
+                case Or:
+                    return isBooleanValued(binary.getLeft()) && isBooleanValued(binary.getRight());
+                default:
+                    return false;
+            }
+        }
+        if (expression instanceof J.Parentheses) {
+            J tree = ((J.Parentheses<?>) expression).getTree();
+            return tree instanceof Expression && isBooleanValued((Expression) tree);
+        }
+        if (expression instanceof J.Unary) {
+            return ((J.Unary) expression).getOperator() == J.Unary.Type.Not;
+        }
+        if (expression instanceof J.Literal) {
+            return ((J.Literal) expression).getValue() instanceof Boolean;
+        }
+        return expression.getType() == JavaType.Primitive.Boolean;
+    }
+}

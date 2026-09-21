@@ -1,0 +1,201 @@
+/*
+ * Copyright 2021 the original author or authors.
+ * <p>
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * <p>
+ * https://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.openrewrite.semver;
+
+import org.junit.jupiter.api.Test;
+import org.openrewrite.Validated;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.openrewrite.semver.Semver.Ecosystem.MAVEN;
+import static org.openrewrite.semver.Semver.Ecosystem.NODE;
+
+class SemverTest {
+    @Test
+    void cachesValidationResultByVersionAndMetadataPattern() {
+        Validated<VersionComparator> first = Semver.validate("1.5.1", null);
+        assertThat(first.isValid()).isTrue();
+        assertThat(Semver.validate("1.5.1", null)).isSameAs(first);
+    }
+
+    @Test
+    void cachesInvalidValidationResults() {
+        Validated<VersionComparator> first = Semver.validate("1 - 2.x", null);
+        assertThat(first.isValid()).isFalse();
+        assertThat(Semver.validate("1 - 2.x", null)).isSameAs(first);
+    }
+
+    @Test
+    void distinguishesNullAndNonNullMetadataPattern() {
+        Validated<VersionComparator> withoutPattern = Semver.validate("latest.patch", null);
+        Validated<VersionComparator> withPattern = Semver.validate("latest.patch", "+backpatch*");
+        assertThat(withPattern).isNotSameAs(withoutPattern);
+        assertThat(Semver.validate("latest.patch", null)).isSameAs(withoutPattern);
+        assertThat(Semver.validate("latest.patch", "+backpatch*")).isSameAs(withPattern);
+    }
+
+    @Test
+    void concurrentValidationReturnsConsistentResults() throws Exception {
+        String[] selectors = {"latest.release", "1.x", "1.5 - 2", "^1.5", "1.5.1"};
+        Class<?>[] expectedTypes = {LatestRelease.class, XRange.class, HyphenRange.class, CaretRange.class, ExactVersion.class};
+
+        int threads = 16;
+        ExecutorService executor = Executors.newFixedThreadPool(threads);
+        try {
+            List<Callable<Void>> tasks = new ArrayList<>();
+            for (int t = 0; t < threads; t++) {
+                tasks.add(() -> {
+                    for (int iteration = 0; iteration < 1_000; iteration++) {
+                        for (int i = 0; i < selectors.length; i++) {
+                            Validated<VersionComparator> validated = Semver.validate(selectors[i], null);
+                            assertThat(validated.isValid()).isTrue();
+                            assertThat(validated.getValue()).isInstanceOf(expectedTypes[i]);
+                        }
+                    }
+                    return null;
+                });
+            }
+            for (Future<Void> future : executor.invokeAll(tasks)) {
+                future.get();
+            }
+        } finally {
+            executor.shutdownNow();
+        }
+    }
+
+    @Test
+    void validToVersion() {
+        assertThat(Semver.validate("latest.release", null).getValue())
+          .isInstanceOf(LatestRelease.class);
+        assertThat(Semver.validate("latest.integration", null).getValue())
+          .isInstanceOf(LatestIntegration.class);
+        assertThat(Semver.validate("latest.snapshot", null).getValue())
+          .isInstanceOf(LatestIntegration.class);
+        assertThat(Semver.validate("1.5 - 2", null).getValue())
+          .isInstanceOf(HyphenRange.class);
+        assertThat(Semver.validate("1.x", null).getValue())
+          .isInstanceOf(XRange.class);
+        assertThat(Semver.validate("~1.5", null).getValue())
+          .isInstanceOf(TildeRange.class);
+        assertThat(Semver.validate("^1.5", null).getValue())
+          .isInstanceOf(CaretRange.class);
+        assertThat(Semver.validate("[1.5,2)", null).getValue())
+          .isInstanceOf(SetRange.class);
+        assertThat(Semver.validate("1.5.1", null).getValue())
+          .isInstanceOf(ExactVersion.class);
+        assertThat(Semver.validate("=1.5.1", null).getValue())
+          .isInstanceOf(ExactVersion.class);
+        assertThat(Semver.validate("=1.5-1", null).getValue())
+          .isInstanceOf(ExactVersion.class);
+    }
+
+    @Test
+    void validToVersionNode() {
+        assertThat(Semver.validate("latest.release", null, NODE).getValue())
+          .isInstanceOf(LatestRelease.class);
+        assertThat(Semver.validate("latest.integration", null, NODE).getValue())
+          .isInstanceOf(LatestIntegration.class);
+        assertThat(Semver.validate("1.2.3 - 2", null, NODE).getValue())
+          .isInstanceOf(HyphenRange.class);
+        assertThat(Semver.validate("1.x", null, NODE).getValue())
+          .isInstanceOf(XRange.class);
+        assertThat(Semver.validate(">=1.2", null, NODE).getValue())
+          .isInstanceOf(XRange.class);
+        assertThat(Semver.validate("~1.2.3", null, NODE).getValue())
+          .isInstanceOf(TildeRange.class);
+        assertThat(Semver.validate("^1.2.3", null, NODE).getValue())
+          .isInstanceOf(CaretRange.class);
+        assertThat(Semver.validate("^16.8.0 || ^17.0.0", null, NODE).getValue())
+          .isInstanceOf(UnionRange.class);
+        assertThat(Semver.validate(">=1.2.9 <2.0.0", null, NODE).getValue())
+          .isInstanceOf(UnionRange.class);
+        assertThat(Semver.validate("1.5.1", null, NODE).getValue())
+          .isInstanceOf(UnionRange.class);
+    }
+
+    @Test
+    void sameSelectorMeansDifferentThingsPerEcosystem() {
+        // Valid Maven shapes that are not npm ranges.
+        assertThat(Semver.validate("~1.2.3.4", null, MAVEN).isValid()).isTrue();
+        assertThat(Semver.validate("~1.2.3.4", null, NODE).isValid()).isFalse();
+        assertThat(Semver.validate("[1.5,2)", null, MAVEN).isValid()).isTrue();
+        assertThat(Semver.validate("[1.5,2)", null, NODE).isValid()).isFalse();
+        assertThat(Semver.validate("2.+", null, MAVEN).isValid()).isTrue();
+        assertThat(Semver.validate("2.+", null, NODE).isValid()).isFalse();
+        // The Maven catch-all admits opaque "exact versions" that npm rejects.
+        assertThat(Semver.validate("beta", null, MAVEN).isValid()).isTrue();
+        assertThat(Semver.validate("beta", null, NODE).isValid()).isFalse();
+        // Valid npm shapes the Maven chain rejects.
+        assertThat(Semver.validate("^16.8.0 || ^17.0.0", null, MAVEN).isValid()).isFalse();
+        assertThat(Semver.validate("^16.8.0 || ^17.0.0", null, NODE).isValid()).isTrue();
+        assertThat(Semver.validate("1 - 2.x", null, MAVEN).isValid()).isFalse();
+        assertThat(Semver.validate("1 - 2.x", null, NODE).isValid()).isTrue();
+    }
+
+    @Test
+    void cachesValidationResultsPerEcosystem() {
+        Validated<VersionComparator> maven = Semver.validate("^1.5", null);
+        assertThat(Semver.validate("^1.5", null, MAVEN)).isSameAs(maven);
+        Validated<VersionComparator> node = Semver.validate("^1.5", null, NODE);
+        assertThat(node).isNotSameAs(maven);
+        assertThat(Semver.validate("^1.5", null, NODE)).isSameAs(node);
+    }
+
+    @Test
+    void majorVersion() {
+        assertThat(Semver.majorVersion("")).isEqualTo("");
+        assertThat(Semver.majorVersion("1")).isEqualTo("1");
+        assertThat(Semver.majorVersion("1.2")).isEqualTo("1");
+        assertThat(Semver.majorVersion("1.2.3")).isEqualTo("1");
+    }
+
+    @Test
+    void minorVersion() {
+        assertThat(Semver.minorVersion("")).isEqualTo("");
+        assertThat(Semver.minorVersion("1")).isEqualTo("1"); // takes the major also as minor
+        assertThat(Semver.minorVersion("1.2")).isEqualTo("2");
+        assertThat(Semver.minorVersion("1.2.3")).isEqualTo("2");
+    }
+
+    @Test
+    void maxVersion() {
+        assertThat(Semver.max(null, null)).isNull();
+        assertThat(Semver.max(null, "")).isNull();
+        assertThat(Semver.max("",  null)).isNull();
+        assertThat(Semver.max("3.3.3", null)).isEqualTo("3.3.3");
+        assertThat(Semver.max("3.3.3", "")).isEqualTo("3.3.3");
+        assertThat(Semver.max(null, "3.3.3")).isEqualTo("3.3.3");
+        assertThat(Semver.max("", "3.3.3")).isEqualTo("3.3.3");
+        assertThat(Semver.max("4.3.30", "4.3.30.RELEASE")).isEqualTo("4.3.30"); // No label over label
+        assertThat(Semver.max("1.0.1RC", "1.0.1-release")).isEqualTo("1.0.1-release");
+        assertThat(Semver.max("4.3.30.RELEASE", "4.3.30.RELEASE-2")).isEqualTo("4.3.30.RELEASE"); // Multiple labels with same version takes first label
+        assertThat(Semver.max("4.3.30.RELEASE", "4.3.31.RELEASE")).isEqualTo("4.3.31.RELEASE");
+        assertThat(Semver.max("INVALID-2023.1.0.1", "1.0.2")).isEqualTo("1.0.2");
+        assertThat(Semver.max("INVALID-2023.1.0.3", "1.0.2")).isEqualTo("1.0.2");
+        assertThat(Semver.max("1.0.2", "INVALID-2023.1.0.3")).isEqualTo("1.0.2");
+        assertThat(Semver.max("123456-fix-something-SNAPSHOT", "123456-fix-something-SNAPSHOT")).isEqualTo("123456-fix-something-SNAPSHOT");
+
+        // Version segments exceeding Integer.MAX_VALUE should not throw
+        assertThat(Semver.max("1.202302104298", "1.202302104299")).isEqualTo("1.202302104299");
+        assertThat(Semver.max("202302104298.0.0", "202302104299.0.0")).isEqualTo("202302104299.0.0");
+    }
+}

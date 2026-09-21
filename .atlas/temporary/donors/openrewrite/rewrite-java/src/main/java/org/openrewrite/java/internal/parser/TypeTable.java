@@ -1,0 +1,1512 @@
+/*
+ * Copyright 2025 the original author or authors.
+ * <p>
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * <p>
+ * https://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.openrewrite.java.internal.parser;
+
+import lombok.*;
+import lombok.experimental.NonFinal;
+import org.jspecify.annotations.Nullable;
+import org.objectweb.asm.*;
+import org.objectweb.asm.util.CheckClassAdapter;
+import org.openrewrite.ExecutionContext;
+import org.openrewrite.Incubating;
+import org.openrewrite.java.JavaParserExecutionContextView;
+
+import java.io.*;
+import java.net.URL;
+import java.nio.file.AccessDeniedException;
+import java.nio.file.FileAlreadyExistsException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
+import java.util.jar.JarOutputStream;
+import java.util.regex.Pattern;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
+import java.util.zip.InflaterInputStream;
+import java.util.zip.ZipException;
+
+import static java.util.Collections.emptyList;
+import static java.util.Collections.sort;
+import static java.util.Objects.requireNonNull;
+import static java.util.stream.Collectors.toSet;
+import static org.objectweb.asm.ClassWriter.COMPUTE_MAXS;
+import static org.objectweb.asm.Opcodes.V1_8;
+import static org.openrewrite.java.internal.parser.AnnotationSerializer.convertAnnotationValueToString;
+import static org.openrewrite.java.internal.parser.AnnotationSerializer.serializeArray;
+import static org.openrewrite.java.internal.parser.JavaParserCaller.findCaller;
+
+/**
+ * Type tables are written as a TSV file with the following columns:
+ * <ul>
+ *     <li>groupId</li>
+ *     <li>artifactId</li>
+ *     <li>version</li>
+ *     <li>classAccess</li>
+ *     <li>className</li>
+ *     <li>classSignature</li>
+ *     <li>classSuperclassSignature</li>
+ *     <li>classSuperinterfaceSignatures[]</li>
+ *     <li>access</li>
+ *     <li>memberName</li>
+ *     <li>descriptor</li>
+ *     <li>signature</li>
+ *     <li>parameterNames</li>
+ *     <li>exceptions[]</li>
+ *     <li>elementAnnotations</li>
+ *     <li>parameterAnnotations[]</li>
+ *     <li>typeAnnotations[]</li>
+ *     <li>constantValue</li>
+ * </ul>
+ * <p>
+ * Descriptor and signature are in <a href="https://docs.oracle.com/javase/specs/jvms/se8/html/jvms-4.html#jvms-4.3">JVMS 4.3</a> format.
+ * Because these type tables could get fairly large, the format is optimized for fast record access. TSV was chosen over CSV for its
+ * simplicity and for the reasons cited <a href="https://github.com/eBay/tsv-utils/blob/master/docs/comparing-tsv-and-csv.md">here</a>.
+ * <p>
+ * There is of course a lot of duplication in the class and GAV columns, but compression cuts down on
+ * the disk impact of that and the value is an overall single table representation.
+ * <p>
+ * To read a compressed type table file (which is compressed with gzip), the following command can be used:
+ * <code>gzcat types.tsv.gz</code>.
+ */
+@Incubating(since = "8.44.0")
+@Value
+public class TypeTable implements JavaParserClasspathLoader {
+    /**
+     * Verifies that the bytecodes written out for the types represented in a type table
+     * will not be invalid and therefore rejected by the JVM verifier when used in a compilation
+     * step.
+     */
+    public static final String VERIFY_CLASS_WRITING = "org.openrewrite.java.TypeTableClassWritingVerification";
+
+    public static final String DEFAULT_RESOURCE_PATH = "META-INF/rewrite/classpath.tsv.gz";
+
+    private static final Map<GroupArtifactVersion, CompletableFuture<Path>> jarByArtifact = new ConcurrentHashMap<>();
+
+    public static @Nullable TypeTable fromClasspath(ExecutionContext ctx, Collection<String> artifactNames) {
+        try {
+            ClassLoader callerClassLoader = findCaller().getClassLoader();
+            ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
+
+            Set<URL> seen = new LinkedHashSet<>();
+            collectResources(callerClassLoader, DEFAULT_RESOURCE_PATH, seen);
+            if (contextClassLoader != null && contextClassLoader != callerClassLoader) {
+                collectResources(contextClassLoader, DEFAULT_RESOURCE_PATH, seen);
+            }
+
+            if (!seen.isEmpty()) {
+                return new TypeTable(ctx, new Vector<>(seen).elements(), artifactNames);
+            }
+            return null;
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    private static void collectResources(ClassLoader classLoader, String resourcePath, Set<URL> target) throws IOException {
+        for (Enumeration<URL> e = classLoader.getResources(resourcePath); e.hasMoreElements(); ) {
+            target.add(e.nextElement());
+        }
+    }
+
+    TypeTable(ExecutionContext ctx, URL url, Collection<String> artifactNames) {
+        read(url, artifactNames, ctx);
+    }
+
+    TypeTable(ExecutionContext ctx, Enumeration<URL> resources, Collection<String> artifactNames) {
+        while (resources.hasMoreElements()) {
+            read(resources.nextElement(), artifactNames, ctx);
+        }
+    }
+
+    private static void read(URL url, Collection<String> artifactNames, ExecutionContext ctx) {
+        Collection<String> missingArtifacts = artifactsNotYetWritten(artifactNames);
+        if (missingArtifacts.isEmpty()) {
+            // all artifacts have already been extracted
+            return;
+        }
+
+        Reader.Options options = Reader.Options.builder().artifactPrefixes(artifactNames).build();
+        try (InputStream is = url.openStream(); InputStream inflate = new GZIPInputStream(is)) {
+            new Reader(ctx).read(inflate, options);
+        } catch (ZipException e) {
+            // Fallback to `InflaterInputStream` for older files created as raw zlib data using DeflaterOutputStream
+            try (InputStream is = url.openStream(); InputStream inflate = new InflaterInputStream(is)) {
+                new Reader(ctx).read(inflate, options);
+            } catch (IOException e1) {
+                throw new UncheckedIOException(e1);
+            }
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    private static Collection<String> artifactsNotYetWritten(Collection<String> artifactNames) {
+        Collection<String> notWritten = new ArrayList<>(artifactNames);
+        for (String artifactName : artifactNames) {
+            Pattern artifactPattern = Pattern.compile(artifactName + ".*");
+            for (GroupArtifactVersion groupArtifactVersion : jarByArtifact.keySet()) {
+                if (artifactPattern
+                        .matcher(groupArtifactVersion.getArtifactId() + "-" + groupArtifactVersion.getVersion())
+                        .matches()) {
+                    notWritten.remove(artifactName);
+                }
+            }
+        }
+        return notWritten;
+    }
+
+    /**
+     * Reads a type table from the classpath, and writes per-artifact JARs to disk for matching artifact names.
+     * <p>
+     * JARs are preferred over classes-directories on the parser classpath because javac uses an in-memory
+     * archive index ({@code ArchiveContainer}) for jars, whereas a classes-directory triggers an
+     * {@code openat} per {@code list()} call from {@code DirectoryContainer} during template parsing.
+     */
+    @RequiredArgsConstructor
+    public static class Reader {
+
+        /**
+         * Options for controlling how type tables are read.
+         * This allows for flexible filtering and processing of type table entries.
+         * <p>
+         * Uses a builder pattern for future extensibility without breaking changes.
+         */
+        @lombok.Builder(builderClassName = "Builder")
+        @lombok.AllArgsConstructor(access = lombok.AccessLevel.PRIVATE)
+        public static class Options {
+            @lombok.Builder.Default
+            @Getter(AccessLevel.PACKAGE)
+            private final Predicate<String> artifactMatcher = gav -> true;
+
+            /**
+             * Creates options that match all artifacts.
+             */
+            public static Options matchAll() {
+                return builder().build();
+            }
+
+            /**
+             * Enhanced builder with convenience methods.
+             */
+            public static class Builder {
+
+                /**
+                 * Matches artifacts whose names start with any of the given prefixes.
+                 * @param artifactPrefixes Collection of artifact name prefixes to match
+                 */
+                public Builder artifactPrefixes(Collection<String> artifactPrefixes) {
+                    Set<Pattern> patterns = artifactPrefixes.stream()
+                            .map(prefix -> Pattern.compile(prefix + ".*"))
+                            .collect(toSet());
+                    this.artifactMatcher(artifactVersion -> patterns.stream()
+                            .anyMatch(pattern -> pattern.matcher(artifactVersion).matches()));
+                    return this;
+                }
+            }
+        }
+
+        private static final int NESTED_TYPE_ACCESS_MASK = Opcodes.ACC_PUBLIC | Opcodes.ACC_PRIVATE | Opcodes.ACC_PROTECTED |
+                Opcodes.ACC_STATIC | Opcodes.ACC_FINAL | Opcodes.ACC_INTERFACE |
+                Opcodes.ACC_ABSTRACT | Opcodes.ACC_SYNTHETIC | Opcodes.ACC_ANNOTATION |
+                Opcodes.ACC_ENUM;
+
+        private final ExecutionContext ctx;
+
+        public void read(InputStream is, Options options) throws IOException {
+            parseTsvAndProcess(is, options, this::writeJar);
+        }
+
+        /**
+         * Read a type table and process classes with custom ClassVisitors instead of writing to disk.
+         *
+         * @param is The input stream containing the TSV data
+         * @param options Options controlling how the type table is read
+         * @param visitorSupplier Supplier to create a ClassVisitor for each class
+         */
+        public void read(InputStream is, Options options, Supplier<ClassVisitor> visitorSupplier) throws IOException {
+            read(is, options, visitorSupplier, (path, content) -> {});
+        }
+
+        /**
+         * Read a type table and process classes with custom ClassVisitors, and route non-class
+         * resources (e.g., {@code .kotlin_module} files) to the given consumer.
+         */
+        public void read(InputStream is, Options options, Supplier<ClassVisitor> visitorSupplier,
+                         ResourceConsumer resourceConsumer) throws IOException {
+            parseTsvAndProcess(is, options,
+                    (gav, classes, nestedTypes, resources) -> {
+                        for (ClassDefinition classDef : classes.values()) {
+                            processClass(classDef, nestedTypes.getOrDefault(classDef.getName(), emptyList()), visitorSupplier.get());
+                        }
+                        for (Map.Entry<String, byte[]> e : resources.entrySet()) {
+                            resourceConsumer.accept(e.getKey(), e.getValue());
+                        }
+                    });
+        }
+
+        /**
+         * Common TSV parsing logic used by both read() methods.
+         * Parses the TSV and calls the processor for each GAV's classes.
+         */
+        public void parseTsvAndProcess(InputStream is, Options options,
+                                        ClassesProcessor processor) throws IOException {
+            GroupArtifactVersion matchedGav = null;
+            Map<String, ClassDefinition> classesByName = new HashMap<>();
+            // nested types appear first in type tables and therefore not stored in a `ClassDefinition` field
+            Map<String, List<ClassDefinition>> nestedTypesByOwner = new HashMap<>();
+            Map<String, byte[]> resourcesByPath = new LinkedHashMap<>();
+
+            try (BufferedReader in = new BufferedReader(new InputStreamReader(is))) {
+                GroupArtifactVersion lastGav = null;
+                in.readLine(); // skip the header row
+                String line;
+                while ((line = in.readLine()) != null) {
+                    TsvRow row = TsvRow.parse(line);
+                    GroupArtifactVersion rowGav = new GroupArtifactVersion(row.getGroupId(), row.getArtifactId(), row.getVersion());
+
+                    if (!Objects.equals(rowGav, lastGav)) {
+                        if (matchedGav != null) {
+                            processor.accept(matchedGav, classesByName, nestedTypesByOwner, resourcesByPath);
+                        }
+                        matchedGav = null;
+                        classesByName.clear();
+                        nestedTypesByOwner.clear();
+                        resourcesByPath.clear();
+
+                        String artifactVersion = row.getArtifactId() + "-" + row.getVersion();
+
+                        // Check if this artifact matches our predicate
+                        if (options.getArtifactMatcher().test(artifactVersion)) {
+                            matchedGav = rowGav;
+                        }
+                    }
+                    lastGav = rowGav;
+
+                    if (matchedGav != null) {
+                        switch (row.kind()) {
+                            case RESOURCE: {
+                                resourcesByPath.put(row.getClassName(),
+                                        Base64.getDecoder().decode(row.getConstantValue()));
+                                break;
+                            }
+                            case CLASS: {
+                                getOrCreateClassDefinition(row, classesByName, nestedTypesByOwner);
+                                break;
+                            }
+                            case MEMBER: {
+                                ClassDefinition classDefinition = getOrCreateClassDefinition(row, classesByName, nestedTypesByOwner);
+                                classDefinition.addMember(new Member(
+                                        classDefinition,
+                                        row.getMemberAccess(),
+                                        row.getMemberName(),
+                                        row.getDescriptor(),
+                                        row.getSignature().isEmpty() ? null : row.getSignature(),
+                                        row.getParameterNames().isEmpty() ? null : row.getParameterNames().split("\\|"),
+                                        row.getExceptions().isEmpty() ? null : row.getExceptions().split("\\|"),
+                                        row.getElementAnnotations().isEmpty() ? null : row.getElementAnnotations(),
+                                        row.getParameterAnnotations().isEmpty() ? null : row.getParameterAnnotations(),
+                                        row.getTypeAnnotations().isEmpty() ? null : TsvEscapeUtils.splitAnnotationList(row.getTypeAnnotations(), '|'),
+                                        row.getConstantValue().isEmpty() ? null : row.getConstantValue()
+                                ));
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Process final GAV if any
+            if (matchedGav != null) {
+                processor.accept(matchedGav, classesByName, nestedTypesByOwner, resourcesByPath);
+            }
+        }
+
+        private static ClassDefinition getOrCreateClassDefinition(TsvRow row,
+                                                                  Map<String, ClassDefinition> classesByName,
+                                                                  Map<String, List<ClassDefinition>> nestedTypesByOwner) {
+            String className = row.getClassName();
+            ClassDefinition classDefinition = classesByName.computeIfAbsent(className, name ->
+                    new ClassDefinition(
+                            row.getClassAccess(),
+                            name,
+                            row.getClassSignature().isEmpty() ? null : row.getClassSignature(),
+                            row.getClassSuperclassName() == null || row.getClassSuperclassName().isEmpty() ? null : row.getClassSuperclassName(),
+                            row.getClassSuperinterfaceSignatures().isEmpty() ? null : row.getClassSuperinterfaceSignatures().split("\\|"),
+                            row.getElementAnnotations().isEmpty() ? null : row.getElementAnnotations(),
+                            row.getConstantValue().isEmpty() ? null : row.getConstantValue(),
+                            row.getInnerClasses().isEmpty() ? null : TsvEscapeUtils.splitAnnotationList(row.getInnerClasses(), '|')
+                    ));
+            int lastIndexOf$ = className.lastIndexOf('$');
+            if (lastIndexOf$ != -1) {
+                String ownerName = className.substring(0, lastIndexOf$);
+                nestedTypesByOwner.computeIfAbsent(ownerName, k -> new ArrayList<>(4))
+                        .add(classDefinition);
+            }
+            return classDefinition;
+        }
+
+        @FunctionalInterface
+        interface ClassesProcessor {
+            void accept(@Nullable GroupArtifactVersion gav, Map<String, ClassDefinition> classes,
+                        Map<String, List<ClassDefinition>> nestedTypes,
+                        Map<String, byte[]> resources);
+        }
+
+        @FunctionalInterface
+        public interface ResourceConsumer {
+            void accept(String resourcePath, byte[] content);
+        }
+
+        private void writeJar(@Nullable GroupArtifactVersion gav, Map<String, ClassDefinition> classes,
+                              Map<String, List<ClassDefinition>> nestedTypesByOwner,
+                              Map<String, byte[]> resources) {
+            if (gav == null) {
+                return;
+            }
+
+            CompletableFuture<@Nullable Path> future = new CompletableFuture<>();
+            if (jarByArtifact.putIfAbsent(gav, future) != null) {
+                // is already being written (by concurrent thread)
+                return;
+            }
+
+            Path jarPath = getJarPath(ctx, gav);
+            try {
+                // Sorting class and resource names produces deterministic jar layout — useful
+                // for cache stability across runs.
+                List<String> classNames = new ArrayList<>(classes.keySet());
+                sort(classNames);
+                List<String> resourcePaths = new ArrayList<>(resources.keySet());
+                sort(resourcePaths);
+
+                Path tmpJar = Files.createTempFile(jarPath.getParent(),
+                        jarPath.getFileName().toString() + ".", ".tmp");
+                try (JarOutputStream jos = new JarOutputStream(
+                        new BufferedOutputStream(Files.newOutputStream(tmpJar)))) {
+                    for (String name : classNames) {
+                        ClassDefinition classDef = classes.get(name);
+                        ClassWriter cw = new ClassWriter(COMPUTE_MAXS);
+                        ClassVisitor classWriter = ctx.getMessage(VERIFY_CLASS_WRITING, false) ?
+                                new CheckClassAdapter(cw) : cw;
+                        processClass(classDef,
+                                nestedTypesByOwner.getOrDefault(name, emptyList()), classWriter);
+                        JarEntry entry = new JarEntry(name + ".class");
+                        // Fixed entry timestamp keeps the jar bit-stable across rebuilds.
+                        entry.setTime(0L);
+                        jos.putNextEntry(entry);
+                        jos.write(cw.toByteArray());
+                        jos.closeEntry();
+                    }
+                    for (String resourcePath : resourcePaths) {
+                        JarEntry entry = new JarEntry(resourcePath);
+                        entry.setTime(0L);
+                        jos.putNextEntry(entry);
+                        jos.write(resources.get(resourcePath));
+                        jos.closeEntry();
+                    }
+                }
+                // Atomic publish: callers blocked on `future` see either no jar or the
+                // fully-written one — never a half-written file. If another JVM
+                // produced the same jar concurrently on a shared cache directory,
+                // keep its version and discard our temp file. Windows raises
+                // AccessDeniedException when the target is held open in another JVM,
+                // which we treat the same as FileAlreadyExistsException.
+                try {
+                    Files.move(tmpJar, jarPath, StandardCopyOption.ATOMIC_MOVE);
+                } catch (FileAlreadyExistsException | AccessDeniedException e) {
+                    Files.deleteIfExists(tmpJar);
+                    if (!Files.exists(jarPath)) {
+                        throw e;
+                    }
+                }
+                future.complete(jarPath);
+            } catch (Exception e) {
+                future.completeExceptionally(e);
+            }
+        }
+
+        /**
+         * Process a single class definition by feeding it to a ClassVisitor.
+         * This contains the core logic for converting TypeTable data to ASM visitor calls.
+         */
+        private void processClass(ClassDefinition classDef, List<ClassDefinition> nestedTypes, ClassVisitor classVisitor) {
+            classVisitor.visit(
+                    V1_8,
+                    classDef.getAccess(),
+                    classDef.getName(),
+                    classDef.getSignature(),
+                    classDef.getSuperclassSignature(),
+                    classDef.getSuperinterfaceSignatures()
+            );
+
+            // Apply annotations to the class
+            if (classDef.getAnnotations() != null) {
+                AnnotationApplier.applyAnnotations(classDef.getAnnotations(), classVisitor::visitAnnotation);
+            }
+
+            if (classDef.getInnerClasses() != null) {
+                for (String entry : classDef.getInnerClasses()) {
+                    InnerClassRef ref = InnerClassRef.parse(entry);
+                    if (ref != null) {
+                        classVisitor.visitInnerClass(
+                                ref.getName(),
+                                ref.getOuterName(),
+                                ref.getInnerName(),
+                                ref.getAccess());
+                    }
+                }
+            } else {
+                // Backward compatibility: replay inner classes derived from name suffixes
+                // for TSV files written before the innerClasses column was added.
+                for (ClassDefinition innerClassDef : nestedTypes) {
+                    classVisitor.visitInnerClass(
+                            innerClassDef.getName(),
+                            classDef.getName(),
+                            innerClassDef.getName().substring(classDef.getName().length() + 1),
+                            innerClassDef.getAccess() & NESTED_TYPE_ACCESS_MASK
+                    );
+                }
+            }
+
+            for (Member member : classDef.getMembers()) {
+                if (member.getDescriptor().startsWith("(")) {
+                    MethodVisitor mv = classVisitor
+                            .visitMethod(
+                                    member.getAccess(),
+                                    member.getName(),
+                                    member.getDescriptor(),
+                                    member.getSignature(),
+                                    member.getExceptions()
+                            );
+
+                    if (mv != null) {
+                        // Apply element annotations to the method
+                        if (member.getAnnotations() != null) {
+                            AnnotationApplier.applyAnnotations(member.getAnnotations(), mv::visitAnnotation);
+                        }
+
+                        // Apply parameter annotations
+                        if (member.getParameterAnnotations() != null && !member.getParameterAnnotations().isEmpty()) {
+                            // Parse dense format: "[annotations]||[annotations]|" where each position represents a parameter
+                            // Empty positions mean no annotations for that parameter
+                            String[] paramAnnotations = TsvEscapeUtils.splitAnnotationList(member.getParameterAnnotations(), '|');
+                            for (int i = 0; i < paramAnnotations.length; i++) {
+                                final int paramIndex = i;
+                                String annotationsPart = paramAnnotations[i];
+                                if (!annotationsPart.isEmpty()) {
+                                    // Parse and apply the annotation sequence (no delimiters needed within)
+                                    AnnotationApplier.applyAnnotations(annotationsPart,
+                                            (descriptor, visible) -> mv.visitParameterAnnotation(paramIndex, descriptor, visible));
+                                }
+                            }
+                        }
+
+                        // Apply type annotations
+                        if (member.getTypeAnnotations() != null) {
+                            for (String typeAnnotation : member.getTypeAnnotations()) {
+                                TypeAnnotationSupport.TypeAnnotationInfo info =
+                                        TypeAnnotationSupport.TypeAnnotationInfo.parse(typeAnnotation);
+                                AnnotationApplier.applyAnnotation(info.annotation,
+                                        (descriptor, visible) -> mv.visitTypeAnnotation(info.typeRef, info.typePath, descriptor, visible));
+                            }
+                        }
+
+                        String[] parameterNames = member.getParameterNames();
+                        if (parameterNames != null) {
+                            for (String parameterName : parameterNames) {
+                                mv.visitParameter(parameterName, 0);
+                            }
+                        }
+
+                        if (member.getConstantValue() != null) {
+                            AnnotationVisitor annotationDefaultVisitor = mv.visitAnnotationDefault();
+                            if (annotationDefaultVisitor != null) {
+                                AnnotationSerializer.processAnnotationDefaultValue(
+                                        annotationDefaultVisitor,
+                                        AnnotationDeserializer.parseValue(member.getConstantValue())
+                                );
+                                annotationDefaultVisitor.visitEnd();
+                            }
+                        }
+
+                        writeMethodBody(member, mv);
+                        mv.visitEnd();
+                    }
+                } else {
+                    // Determine the constant value for static final fields
+                    // Only set constantValue for bytecode if it's a valid ConstantValue attribute type
+                    Object constantValue = null;
+                    if ((member.getAccess() & (Opcodes.ACC_STATIC | Opcodes.ACC_FINAL)) == (Opcodes.ACC_STATIC | Opcodes.ACC_FINAL) &&
+                            member.getConstantValue() != null) {
+                        Object parsedValue = AnnotationDeserializer.parseValue(member.getConstantValue());
+                        // Only primitive types and strings can be ConstantValue attributes
+                        if (isValidConstantValueType(parsedValue)) {
+                            constantValue = parsedValue;
+                        }
+                    }
+
+                    FieldVisitor fv = classVisitor
+                            .visitField(
+                                    member.getAccess(),
+                                    member.getName(),
+                                    member.getDescriptor(),
+                                    member.getSignature(),
+                                    constantValue
+                            );
+
+                    if (fv != null) {
+                        // Apply element annotations to the field
+                        if (member.getAnnotations() != null) {
+                            AnnotationApplier.applyAnnotations(member.getAnnotations(), fv::visitAnnotation);
+                        }
+
+                        // Apply type annotations for fields
+                        if (member.getTypeAnnotations() != null) {
+                            for (String typeAnnotation : member.getTypeAnnotations()) {
+                                TypeAnnotationSupport.TypeAnnotationInfo info =
+                                        TypeAnnotationSupport.TypeAnnotationInfo.parse(typeAnnotation);
+                                AnnotationApplier.applyAnnotation(info.annotation,
+                                        (descriptor, visible) -> fv.visitTypeAnnotation(info.typeRef, info.typePath, descriptor, visible));
+                            }
+                        }
+
+                        fv.visitEnd();
+                    }
+                }
+            }
+
+            classVisitor.visitEnd();
+        }
+
+        private void writeMethodBody(Member member, MethodVisitor mv) {
+            if ((member.getAccess() & Opcodes.ACC_ABSTRACT) == 0) {
+                mv.visitCode();
+
+                if ("<init>".equals(member.getName())) {
+                    // constructors: the called super constructor doesn't need to exist; we only need to pass JVM class verification
+                    mv.visitVarInsn(Opcodes.ALOAD, 0);
+                    mv.visitMethodInsn(Opcodes.INVOKESPECIAL, member.getClassDefinition().getSuperclassSignature(), "<init>", "()V", false);
+                }
+
+                Type returnType = Type.getReturnType(member.getDescriptor());
+
+                switch (returnType.getSort()) {
+                    case Type.VOID:
+                        mv.visitInsn(Opcodes.RETURN);
+                        break;
+
+                    case Type.BOOLEAN:
+                    case Type.BYTE:
+                    case Type.CHAR:
+                    case Type.SHORT:
+                    case Type.INT:
+                        mv.visitInsn(Opcodes.ICONST_0); // Push default value (0)
+                        mv.visitInsn(Opcodes.IRETURN);  // Return integer-compatible value
+                        break;
+
+                    case Type.LONG:
+                        mv.visitInsn(Opcodes.LCONST_0); // Push default value (0L)
+                        mv.visitInsn(Opcodes.LRETURN);
+                        break;
+
+                    case Type.FLOAT:
+                        mv.visitInsn(Opcodes.FCONST_0); // Push default value (0.0f)
+                        mv.visitInsn(Opcodes.FRETURN);
+                        break;
+
+                    case Type.DOUBLE:
+                        mv.visitInsn(Opcodes.DCONST_0); // Push default value (0.0d)
+                        mv.visitInsn(Opcodes.DRETURN);
+                        break;
+
+                    case Type.OBJECT:
+                    case Type.ARRAY:
+                        mv.visitInsn(Opcodes.ACONST_NULL); // Push default value (null)
+                        mv.visitInsn(Opcodes.ARETURN);
+                        break;
+
+                    default:
+                        throw new IllegalArgumentException("Unknown return type: " + returnType);
+                }
+                mv.visitMaxs(0, 0);
+            }
+        }
+    }
+
+    private static boolean isValidConstantValueType(@Nullable Object value) {
+        if (value == null) {
+            return false; // null values cannot be ConstantValue attributes
+        }
+        return value instanceof String ||
+                value instanceof Integer || value instanceof Long ||
+                value instanceof Float || value instanceof Double ||
+                value instanceof Boolean || value instanceof Character ||
+                value instanceof Byte || value instanceof Short;
+    }
+
+
+    private static Path getJarPath(ExecutionContext ctx, GroupArtifactVersion gav) {
+        Path jarsFolder = JavaParserExecutionContextView.view(ctx)
+                .getParserClasspathDownloadTarget().toPath().resolve(".tt");
+        if (!jarsFolder.toFile().mkdirs() && !Files.exists(jarsFolder)) {
+            throw new UncheckedIOException(new IOException("Failed to create directory " + jarsFolder));
+        }
+
+        Path artifactDir = jarsFolder;
+        for (String g : gav.getGroupId().split("\\.")) {
+            artifactDir = artifactDir.resolve(g);
+        }
+        artifactDir = artifactDir.resolve(gav.getArtifactId()).resolve(gav.getVersion());
+
+        if (!artifactDir.toFile().mkdirs() && !Files.exists(artifactDir)) {
+            throw new UncheckedIOException(new IOException("Failed to create directory " + artifactDir));
+        }
+
+        return artifactDir.resolve(gav.getArtifactId() + "-" + gav.getVersion() + ".jar");
+    }
+
+    public static Writer newWriter(OutputStream out) {
+        try {
+            return new Writer(out);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    @Override
+    public @Nullable Path load(String artifactName) {
+        for (Map.Entry<GroupArtifactVersion, CompletableFuture<Path>> gavAndJar : jarByArtifact.entrySet()) {
+            GroupArtifactVersion gav = gavAndJar.getKey();
+            if (Pattern.compile(artifactName + ".*")
+                    .matcher(gav.getArtifactId() + "-" + gav.getVersion())
+                    .matches()) {
+                return gavAndJar.getValue().join();
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public Collection<String> availableArtifacts() {
+        List<String> available = new ArrayList<>(jarByArtifact.size());
+        for (GroupArtifactVersion gav : jarByArtifact.keySet()) {
+            available.add(gav.getArtifactId() + "-" + gav.getVersion());
+        }
+        sort(available);
+        return available;
+    }
+
+    public static class Writer implements AutoCloseable {
+        private final @Nullable PrintStream out;
+        private final @Nullable GZIPOutputStream deflater;
+        private final @Nullable TypeTableSink sink;
+
+        public Writer(OutputStream out) throws IOException {
+            this.deflater = new GZIPOutputStream(out);
+            this.out = new PrintStream(deflater);
+            this.out.println(TsvRow.HEADER);
+            this.sink = null;
+        }
+
+        /**
+         * Create a writer that sends type metadata to a custom sink
+         * instead of writing TSV.
+         */
+        public Writer(TypeTableSink sink) {
+            this.out = null;
+            this.deflater = null;
+            this.sink = sink;
+        }
+
+        public Jar jar(String groupId, String artifactId, String version) {
+            return new Jar(groupId, artifactId, version);
+        }
+
+        @Override
+        public void close() throws IOException {
+            if (deflater != null) {
+                deflater.flush();
+            }
+            if (out != null) {
+                out.close();
+            }
+        }
+
+        @Value
+        public class Jar {
+            String groupId;
+            String artifactId;
+            String version;
+
+            public void write(Path jar) {
+                try (JarFile jarFile = new JarFile(jar.toFile())) {
+                    Enumeration<JarEntry> entries = jarFile.entries();
+                    while (entries.hasMoreElements()) {
+                        JarEntry entry = entries.nextElement();
+                        if (entry.getName().endsWith(".class")) {
+                            try (InputStream inputStream = jarFile.getInputStream(entry)) {
+                                writeClass(inputStream);
+                            }
+                        } else if (entry.getName().endsWith(".kotlin_module")) {
+                            try (InputStream inputStream = jarFile.getInputStream(entry)) {
+                                writeResource(entry.getName(), readAllBytes(inputStream));
+                            }
+                        }
+                    }
+                } catch (IOException e) {
+                    throw new UncheckedIOException(e);
+                }
+            }
+
+            private byte[] readAllBytes(InputStream in) throws IOException {
+                ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+                byte[] chunk = new byte[8192];
+                int n;
+                while ((n = in.read(chunk)) != -1) {
+                    buffer.write(chunk, 0, n);
+                }
+                return buffer.toByteArray();
+            }
+
+            /**
+             * Write a non-class resource file (e.g., a Kotlin .kotlin_module file) so that the
+             * synthesized classpath has parity with the source jar for tooling that reads these
+             * files (like the Kotlin compiler, which needs .kotlin_module to resolve top-level
+             * functions in a package).
+             */
+            public void writeResource(String resourcePath, byte[] content) {
+                // No sink equivalent yet; resources are TSV-only.
+                if (out != null) {
+                    out.println(TsvRow.resourceRow(groupId, artifactId, version,
+                            resourcePath, Base64.getEncoder().encodeToString(content)));
+                }
+            }
+
+            /**
+             * Write a single class from an InputStream containing bytecode.
+             * This can be used for processing individual class files.
+             *
+             * @param classInputStream InputStream containing the class bytecode
+             * @throws IOException if reading the class fails
+             */
+            public void writeClass(InputStream classInputStream) throws IOException {
+                new ClassReader(classInputStream).accept(new ClassVisitor(Opcodes.ASM9) {
+                    @Nullable
+                    ClassDefinition classDefinition;
+
+                    @Override
+                    public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
+                        int lastIndexOf$ = name.lastIndexOf('$');
+                        if (lastIndexOf$ != -1 && lastIndexOf$ < name.length() - 1 && !Character.isJavaIdentifierStart(name.charAt(lastIndexOf$ + 1))) {
+                            // skip anonymous subclasses
+                            classDefinition = null;
+                        } else {
+                            classDefinition = new ClassDefinition(
+                                    Jar.this,
+                                    access,
+                                    name,
+                                    signature,
+                                    superName,
+                                    interfaces
+                            );
+                            super.visit(version, access, name, signature, superName, interfaces);
+                        }
+                    }
+
+                    @Override
+                    public @Nullable AnnotationVisitor visitAnnotation(String descriptor, boolean visible) {
+                        if (classDefinition != null) {
+                            if (sink != null) {
+                                return AnnotationCollectorHelper.createStructuredCollector(descriptor, classDefinition.structuredClassAnnotations);
+                            }
+                            return AnnotationCollectorHelper.createCollector(descriptor, requireNonNull(classDefinition).classAnnotations);
+                        }
+                        return null;
+                    }
+
+                    @Override
+                    public @Nullable AnnotationVisitor visitTypeAnnotation(int typeRef, TypePath typePath, String descriptor, boolean visible) {
+                        if (classDefinition != null) {
+                            List<String> tempCollector = new ArrayList<>();
+                            AnnotationVisitor collector = AnnotationCollectorHelper.createCollector(descriptor, tempCollector);
+                            return new AnnotationVisitor(Opcodes.ASM9, collector) {
+                                @Override
+                                public void visitEnd() {
+                                    super.visitEnd();
+                                    if (!tempCollector.isEmpty()) {
+                                        String annotation = tempCollector.get(0);
+                                        String formatted = TypeAnnotationSupport.formatTypeAnnotation(typeRef, typePath, annotation);
+                                        classDefinition.classTypeAnnotations.add(formatted);
+                                    }
+                                }
+                            };
+                        }
+                        return null;
+                    }
+
+                    @Override
+                    public @Nullable FieldVisitor visitField(int access, String name, String descriptor, String signature, Object value) {
+                        if (classDefinition != null) {
+                            Writer.Member member = new Writer.Member(access, name, descriptor, signature, null, null);
+
+                            // Only store constant values that can be ConstantValue attributes in bytecode
+                            if ((access & (Opcodes.ACC_STATIC | Opcodes.ACC_FINAL)) == (Opcodes.ACC_STATIC | Opcodes.ACC_FINAL) &&
+                                    isValidConstantValueType(value)) {
+                                member.constantValue = AnnotationSerializer.convertConstantValueWithType(value, descriptor);
+                            }
+
+                            return new FieldVisitor(Opcodes.ASM9) {
+                                @Override
+                                public AnnotationVisitor visitAnnotation(String descriptor, boolean visible) {
+                                    if (sink != null) {
+                                        return AnnotationCollectorHelper.createStructuredCollector(descriptor, member.structuredAnnotations);
+                                    }
+                                    return AnnotationCollectorHelper.createCollector(descriptor, member.elementAnnotations);
+                                }
+
+                                @Override
+                                public AnnotationVisitor visitTypeAnnotation(int typeRef, TypePath typePath, String descriptor, boolean visible) {
+                                    List<String> tempCollector = new ArrayList<>();
+                                    AnnotationVisitor collector = AnnotationCollectorHelper.createCollector(descriptor, tempCollector);
+                                    return new AnnotationVisitor(Opcodes.ASM9, collector) {
+                                        @Override
+                                        public void visitEnd() {
+                                            super.visitEnd();
+                                            if (!tempCollector.isEmpty()) {
+                                                String annotation = tempCollector.get(0);
+                                                String formatted = TypeAnnotationSupport.formatTypeAnnotation(typeRef, typePath, annotation);
+                                                member.typeAnnotations.add(formatted);
+                                            }
+                                        }
+                                    };
+                                }
+
+                                @Override
+                                public void visitEnd() {
+                                    classDefinition.addField(member);
+                                }
+                            };
+                        }
+
+                        return null;
+                    }
+
+                    @Override
+                    public @Nullable MethodVisitor visitMethod(int access, @Nullable String name, String descriptor,
+                                                               @Nullable String signature, String @Nullable [] exceptions) {
+                        // For TSV: exclude only private; synthetic methods (Kotlin extension
+                        // functions, $default overloads, Java bridge methods) are part of the
+                        // user-visible API. For sink: exclude synthetic + bridge (match compiler).
+                        int excludeFlags = sink != null
+                                ? (Opcodes.ACC_SYNTHETIC | Opcodes.ACC_BRIDGE)
+                                : Opcodes.ACC_PRIVATE;
+                        if (classDefinition != null && (excludeFlags & access) == 0 &&
+                                name != null && !"<clinit>".equals(name)) {
+                            Writer.Member member = new Writer.Member(access, name, descriptor, signature, exceptions, null);
+                            return new MethodVisitor(Opcodes.ASM9) {
+                                @Override
+                                public void visitParameter(@Nullable String name, int access) {
+                                    if (name != null) {
+                                        member.parameterNames.add(name);
+                                    }
+                                }
+
+                                @Override
+                                public AnnotationVisitor visitAnnotation(String descriptor, boolean visible) {
+                                    if (sink != null) {
+                                        return AnnotationCollectorHelper.createStructuredCollector(descriptor, member.structuredAnnotations);
+                                    }
+                                    return AnnotationCollectorHelper.createCollector(descriptor, member.elementAnnotations);
+                                }
+
+                                @Override
+                                public AnnotationVisitor visitParameterAnnotation(int parameter, String descriptor, boolean visible) {
+                                    List<String> tempCollector = new ArrayList<>();
+                                    AnnotationVisitor collector = AnnotationCollectorHelper.createCollector(descriptor, tempCollector);
+                                    // After collection, add to parameter annotations with parameter index
+                                    return new AnnotationVisitor(Opcodes.ASM9, collector) {
+                                        @Override
+                                        public void visitEnd() {
+                                            super.visitEnd();
+                                            if (!tempCollector.isEmpty()) {
+                                                // Format: "paramIndex:annotation"
+                                                member.parameterAnnotations.add(parameter + ":" + tempCollector.get(0));
+                                            }
+                                        }
+                                    };
+                                }
+
+                                @Override
+                                public AnnotationVisitor visitTypeAnnotation(int typeRef, TypePath typePath, String descriptor, boolean visible) {
+                                    List<String> tempCollector = new ArrayList<>();
+                                    AnnotationVisitor collector = AnnotationCollectorHelper.createCollector(descriptor, tempCollector);
+                                    return new AnnotationVisitor(Opcodes.ASM9, collector) {
+                                        @Override
+                                        public void visitEnd() {
+                                            super.visitEnd();
+                                            if (!tempCollector.isEmpty()) {
+                                                String annotation = tempCollector.get(0);
+                                                String formatted = TypeAnnotationSupport.formatTypeAnnotation(typeRef, typePath, annotation);
+                                                member.typeAnnotations.add(formatted);
+                                            }
+                                        }
+                                    };
+                                }
+
+                                @Override
+                                public AnnotationVisitor visitAnnotationDefault() {
+                                    List<String> nested = new ArrayList<>();
+                                    // Collect default values for annotation methods
+                                    return new AnnotationVisitor(Opcodes.ASM9) {
+                                        @Override
+                                        public void visit(String name, Object value) {
+                                            member.constantValue = convertAnnotationValueToString(value);
+                                        }
+
+                                        @Override
+                                        public AnnotationVisitor visitArray(String name) {
+                                            return new AnnotationVisitor(Opcodes.ASM9) {
+                                                final List<String> arrayValues = new ArrayList<>();
+
+                                                @Override
+                                                public void visit(String name, Object value) {
+                                                    arrayValues.add(convertAnnotationValueToString(value));
+                                                }
+
+                                                @Override
+                                                public void visitEnd() {
+                                                    member.constantValue = "[" + String.join(",", arrayValues) + "]";
+                                                }
+                                            };
+                                        }
+
+                                        @Override
+                                        public void visitEnum(String name, String descriptor, String value) {
+                                            member.constantValue = "e" + descriptor + "." + value;
+                                        }
+
+                                        @Override
+                                        public AnnotationVisitor visitAnnotation(String name, String descriptor) {
+                                            return AnnotationCollectorHelper.createCollector(descriptor, nested);
+                                        }
+
+                                        @Override
+                                        public void visitEnd() {
+                                            if (!nested.isEmpty()) {
+                                                member.constantValue = serializeArray(nested.toArray(new String[0]));
+                                            }
+                                        }
+                                    };
+                                }
+
+                                @Override
+                                public void visitEnd() {
+                                    classDefinition.addMethod(member);
+                                }
+                            };
+                        }
+                        return null;
+                    }
+
+                    @Override
+                    public void visitInnerClass(String name, @Nullable String outerName, @Nullable String innerName, int access) {
+                        if (classDefinition != null) {
+                            classDefinition.innerClasses.add(
+                                    new InnerClassRef(name, outerName, innerName, access).toString());
+                        }
+                    }
+
+                    @Override
+                    public void visitEnd() {
+                        if (classDefinition != null && !"module-info".equals(classDefinition.className)) {
+                            // No fields or methods, which can happen for marker annotations for example
+                            classDefinition.writeClass();
+                        }
+                    }
+                }, ClassReader.SKIP_CODE | ClassReader.SKIP_FRAMES);
+            }
+        }
+
+        @Value
+        class ClassDefinition {
+            Jar jar;
+            int classAccess;
+            String className;
+
+            @Nullable
+            String classSignature;
+
+            @Nullable
+            String classSuperclassName;
+
+            String @Nullable [] classSuperinterfaceSignatures;
+
+            List<String> classAnnotations = new ArrayList<>(4);
+            List<AnnotationDeserializer.AnnotationInfo> structuredClassAnnotations = new ArrayList<>(4);
+            List<String> classTypeAnnotations = new ArrayList<>(4);
+            List<String> innerClasses = new ArrayList<>(4);
+            List<Writer.Member> members = new ArrayList<>();
+
+            public void writeClass() {
+                // Sink gets all classes except synthetic; TSV excludes private too.
+                int excludeFlags = sink != null ? Opcodes.ACC_SYNTHETIC : (Opcodes.ACC_PRIVATE | Opcodes.ACC_SYNTHETIC);
+                if ((excludeFlags & classAccess) == 0) {
+                    if (sink != null) {
+                        sink.visitClass(jar.groupId, jar.artifactId, jar.version,
+                                classAccess, className, classSignature,
+                                classSuperclassName, classSuperinterfaceSignatures,
+                                structuredClassAnnotations);
+                        for (Writer.Member member : members) {
+                            member.writeMemberToSink(sink);
+                        }
+                        sink.visitEndClass();
+                    } else {
+                        out.println(TsvRow.classRow(
+                                jar.groupId, jar.artifactId, jar.version,
+                                classAccess, className,
+                                classSignature, classSuperclassName, classSuperinterfaceSignatures,
+                                classAnnotations, classTypeAnnotations, innerClasses));
+
+                        for (Writer.Member member : members) {
+                            member.writeMember(jar, this);
+                        }
+                    }
+                }
+            }
+
+            void addMethod(Writer.Member member) {
+                members.add(member);
+            }
+
+            void addField(Writer.Member member) {
+                members.add(member);
+            }
+        }
+
+        @Value
+        private class Member {
+            int access;
+            String name;
+            String descriptor;
+
+            @Nullable
+            String signature;
+
+            String @Nullable [] exceptions;
+            List<String> parameterNames = new ArrayList<>(4);
+            List<String> elementAnnotations = new ArrayList<>(4);
+            List<AnnotationDeserializer.AnnotationInfo> structuredAnnotations = new ArrayList<>(4);
+            List<String> parameterAnnotations = new ArrayList<>(4);
+            List<String> typeAnnotations = new ArrayList<>(4);
+
+            @Nullable
+            @NonFinal
+            String constantValue;
+
+            private void writeMemberToSink(TypeTableSink sink) {
+                // Sink gets all members except synthetic (match compiler behavior)
+                if ((Opcodes.ACC_SYNTHETIC & access) == 0) {
+                    if (descriptor.startsWith("(")) {
+                        sink.visitMethod(access, name, descriptor, signature,
+                                parameterNames, exceptions,
+                                structuredAnnotations, constantValue);
+                    } else {
+                        sink.visitField(access, name, descriptor, signature,
+                                structuredAnnotations, constantValue);
+                    }
+                }
+            }
+
+            private void writeMember(Jar jar, ClassDefinition classDefinition) {
+                if ((Opcodes.ACC_PRIVATE & access) == 0) {
+                    out.println(TsvRow.memberRow(
+                            jar.groupId, jar.artifactId, jar.version,
+                            classDefinition.classAccess, classDefinition.className,
+                            classDefinition.classSignature,
+                            classDefinition.classSuperclassName,
+                            classDefinition.classSuperinterfaceSignatures,
+                            access, name, descriptor, signature,
+                            parameterNames, exceptions,
+                            elementAnnotations,
+                            serializeParameterAnnotations(parameterAnnotations, descriptor),
+                            typeAnnotations, constantValue));
+                }
+            }
+        }
+    }
+
+    @Value
+    static class GroupArtifactVersion {
+        String groupId;
+        String artifactId;
+        String version;
+    }
+
+    @Value
+    @RequiredArgsConstructor
+    static class ClassDefinition {
+        int access;
+        String name;
+
+        @Nullable
+        String signature;
+
+        @Nullable
+        String superclassSignature;
+
+        String @Nullable [] superinterfaceSignatures;
+
+        @Nullable
+        String annotations;
+
+        @Nullable
+        String constantValue;
+
+        String @Nullable [] innerClasses;
+
+        @NonFinal
+        @Nullable
+        @ToString.Exclude
+        List<Member> members;
+
+        public List<Member> getMembers() {
+            return members != null ? members : emptyList();
+        }
+
+        public void addMember(Member member) {
+            if (members == null) {
+                members = new ArrayList<>();
+            }
+            members.add(member);
+        }
+    }
+
+    @Value
+    static class Member {
+        ClassDefinition classDefinition;
+        int access;
+        String name;
+        String descriptor;
+
+        @Nullable
+        String signature;
+
+        String @Nullable [] parameterNames;
+        String @Nullable [] exceptions;
+
+        @Nullable
+        String annotations;
+
+        @Nullable
+        String parameterAnnotations;
+
+        String @Nullable [] typeAnnotations;
+
+        @Nullable
+        String constantValue;
+    }
+
+    /**
+     * Serializes parameter annotations from a list of "paramIndex:annotation" strings
+     * into a dense TSV format where each parameter position is represented.
+     * For a method with 4 parameters where only parameters 0 and 2 have annotations,
+     * the format would be: "[annotations]||[annotations]|"
+     * Returns empty string if no parameters have annotations.
+     */
+    private static String serializeParameterAnnotations(List<String> parameterAnnotations, String descriptor) {
+        if (parameterAnnotations.isEmpty()) {
+            return "";
+        }
+
+        // Parse the method descriptor to get parameter count
+        Type methodType = Type.getMethodType(descriptor);
+        int paramCount = methodType.getArgumentTypes().length;
+
+        // Group annotations by parameter index
+        Map<Integer, List<String>> annotationsByParam = new TreeMap<>();
+        for (String paramAnnotation : parameterAnnotations) {
+            int colonIdx = paramAnnotation.indexOf(':');
+            if (colonIdx > 0) {
+                int paramIndex = Integer.parseInt(paramAnnotation.substring(0, colonIdx));
+                String annotation = paramAnnotation.substring(colonIdx + 1);
+                annotationsByParam.computeIfAbsent(paramIndex, k -> new ArrayList<>()).add(annotation);
+            }
+        }
+
+        // If no parameters have annotations, return empty string
+        if (annotationsByParam.isEmpty()) {
+            return "";
+        }
+
+        // Build the dense representation
+        StringBuilder result = new StringBuilder();
+        for (int i = 0; i < paramCount; i++) {
+            if (i > 0) {
+                result.append('|');
+            }
+            List<String> annotations = annotationsByParam.get(i);
+            if (annotations != null && !annotations.isEmpty()) {
+                // Escape pipes in annotation values since we use pipes to separate parameters
+                for (String annotation : annotations) {
+                    result.append(PipeDelimitedJoiner.escapePipes(annotation));
+                }
+            }
+        }
+        return result.toString();
+    }
+
+    /**
+     * One row of the TSV type table. Owns the column order and the encoding of each
+     * row variety in one place — see {@link Kind}. Used by both reader and writer
+     * so the layout (and the legacy-tolerance for older TSVs missing trailing columns)
+     * is defined exactly once.
+     */
+    @Value
+    @Builder
+    static class TsvRow {
+
+        /**
+         * Discriminates the three row varieties. Real ASM access flags are {@code >= 0},
+         * so negative ints in an access column are reserved as sentinels.
+         */
+        @RequiredArgsConstructor
+        enum Kind {
+            /** {@code -1} in the {@code memberAccess} column → row carries class-level data only. */
+            CLASS(-1),
+            /** No sentinel; both access columns hold real ASM access flags. */
+            MEMBER(0),
+            /** {@code -2} in the {@code classAccess} column → row is a non-class resource. */
+            RESOURCE(-2);
+
+            @Getter
+            private final int sentinel;
+        }
+
+        static final String HEADER = String.join("\t",
+                "groupId", "artifactId", "version",
+                "classAccess", "className", "classSignature",
+                "classSuperclassSignature", "classSuperinterfaceSignatures",
+                "access", "name", "descriptor", "signature",
+                "parameterNames", "exceptions",
+                "elementAnnotations", "parameterAnnotations", "typeAnnotations",
+                "constantValue", "innerClasses");
+
+        String groupId;
+        String artifactId;
+        String version;
+
+        @Builder.Default int classAccess = Kind.CLASS.getSentinel();
+        @Builder.Default String className = "";
+        @Builder.Default String classSignature = "";
+        // Nullable so RESOURCE rows can default to "" while CLASS/MEMBER rows can carry
+        // null through and serialize as the literal "null" — matching the prior printf
+        // behavior on the rare case (e.g. java.lang.Object) where the JVM superName is null.
+        @Nullable
+        @Builder.Default
+        String classSuperclassName = "";
+        @Builder.Default String classSuperinterfaceSignatures = "";
+
+        @Builder.Default int memberAccess = Kind.CLASS.getSentinel();
+        @Builder.Default String memberName = "";
+        @Builder.Default String descriptor = "";
+        @Builder.Default String signature = "";
+        @Builder.Default String parameterNames = "";
+        @Builder.Default String exceptions = "";
+
+        @Builder.Default String elementAnnotations = "";
+        @Builder.Default String parameterAnnotations = "";
+        @Builder.Default String typeAnnotations = "";
+        @Builder.Default String constantValue = "";
+        @Builder.Default String innerClasses = "";
+
+        Kind kind() {
+            if (classAccess == Kind.RESOURCE.getSentinel()) {
+                return Kind.RESOURCE;
+            }
+            if (memberAccess == Kind.CLASS.getSentinel()) {
+                return Kind.CLASS;
+            }
+            return Kind.MEMBER;
+        }
+
+        static TsvRow parse(String line) {
+            String[] f = line.split("\t", -1);
+            TsvRowBuilder b = TsvRow.builder()
+                    .groupId(f[0]).artifactId(f[1]).version(f[2])
+                    .classAccess(Integer.parseInt(f[3])).className(f[4])
+                    .classSignature(f[5]).classSuperclassName(f[6])
+                    .classSuperinterfaceSignatures(f[7])
+                    .memberAccess(Integer.parseInt(f[8]))
+                    .memberName(f[9]).descriptor(f[10]).signature(f[11])
+                    .parameterNames(f[12]).exceptions(f[13]);
+            // Tolerate older TSVs missing trailing columns
+            if (f.length > 14) {
+                b.elementAnnotations(f[14]);
+            }
+            if (f.length > 15) {
+                b.parameterAnnotations(f[15]);
+            }
+            if (f.length > 16) {
+                b.typeAnnotations(f[16]);
+            }
+            if (f.length > 17) {
+                b.constantValue(f[17]);
+            }
+            if (f.length > 18) {
+                b.innerClasses(f[18]);
+            }
+            return b.build();
+        }
+
+        @Override
+        public String toString() {
+            return String.join("\t",
+                    groupId, artifactId, version,
+                    Integer.toString(classAccess), className, classSignature,
+                    classSuperclassName, classSuperinterfaceSignatures,
+                    Integer.toString(memberAccess), memberName, descriptor, signature,
+                    parameterNames, exceptions,
+                    elementAnnotations, parameterAnnotations, typeAnnotations,
+                    constantValue, innerClasses);
+        }
+
+        static TsvRow resourceRow(String groupId, String artifactId, String version,
+                                  String path, String base64) {
+            return TsvRow.builder()
+                    .groupId(groupId).artifactId(artifactId).version(version)
+                    .classAccess(Kind.RESOURCE.getSentinel())
+                    .className(path)
+                    .constantValue(base64)
+                    .build();
+        }
+
+        static TsvRow classRow(String groupId, String artifactId, String version,
+                               int classAccess, String className,
+                               @Nullable String classSignature,
+                               @Nullable String classSuperclassName,
+                               String @Nullable [] classSuperinterfaceSignatures,
+                               List<String> classAnnotations,
+                               List<String> classTypeAnnotations,
+                               List<String> innerClasses) {
+            return TsvRow.builder()
+                    .groupId(groupId).artifactId(artifactId).version(version)
+                    .classAccess(classAccess).className(className)
+                    .classSignature(classSignature == null ? "" : classSignature)
+                    .classSuperclassName(classSuperclassName)
+                    .classSuperinterfaceSignatures(classSuperinterfaceSignatures == null ? "" :
+                            String.join("|", classSuperinterfaceSignatures))
+                    .elementAnnotations(classAnnotations.isEmpty() ? "" : String.join("", classAnnotations))
+                    .typeAnnotations(classTypeAnnotations.isEmpty() ? "" :
+                            PipeDelimitedJoiner.joinWithPipes(classTypeAnnotations))
+                    .innerClasses(innerClasses.isEmpty() ? "" :
+                            PipeDelimitedJoiner.joinWithPipes(innerClasses))
+                    .build();
+        }
+
+        static TsvRow memberRow(String groupId, String artifactId, String version,
+                                int classAccess, String className,
+                                @Nullable String classSignature,
+                                @Nullable String classSuperclassName,
+                                String @Nullable [] classSuperinterfaceSignatures,
+                                int memberAccess, String memberName, String descriptor,
+                                @Nullable String signature,
+                                List<String> parameterNames,
+                                String @Nullable [] exceptions,
+                                List<String> elementAnnotations,
+                                String parameterAnnotations,
+                                List<String> typeAnnotations,
+                                @Nullable String constantValue) {
+            return TsvRow.builder()
+                    .groupId(groupId).artifactId(artifactId).version(version)
+                    .classAccess(classAccess).className(className)
+                    .classSignature(classSignature == null ? "" : classSignature)
+                    .classSuperclassName(classSuperclassName)
+                    .classSuperinterfaceSignatures(classSuperinterfaceSignatures == null ? "" :
+                            String.join("|", classSuperinterfaceSignatures))
+                    .memberAccess(memberAccess).memberName(memberName).descriptor(descriptor)
+                    .signature(signature == null ? "" : signature)
+                    .parameterNames(parameterNames.isEmpty() ? "" : String.join("|", parameterNames))
+                    .exceptions(exceptions == null ? "" : String.join("|", exceptions))
+                    .elementAnnotations(elementAnnotations.isEmpty() ? "" : String.join("", elementAnnotations))
+                    .parameterAnnotations(parameterAnnotations)
+                    .typeAnnotations(typeAnnotations.isEmpty() ? "" :
+                            PipeDelimitedJoiner.joinWithPipes(typeAnnotations))
+                    .constantValue(constantValue == null ? "" : constantValue)
+                    .build();
+        }
+    }
+
+    @Value
+    static class InnerClassRef {
+        String name;
+        @Nullable String outerName;
+        @Nullable String innerName;
+        int access;
+
+        @Override
+        public String toString() {
+            return name + "," +
+                    (outerName == null ? "" : outerName) + "," +
+                    (innerName == null ? "" : innerName) + "," +
+                    access;
+        }
+
+        static @Nullable InnerClassRef parse(String entry) {
+            String[] parts = entry.split(",", 4);
+            if (parts.length != 4) {
+                return null;
+            }
+            return new InnerClassRef(
+                    parts[0],
+                    parts[1].isEmpty() ? null : parts[1],
+                    parts[2].isEmpty() ? null : parts[2],
+                    Integer.parseInt(parts[3]));
+        }
+    }
+
+    private static class PipeDelimitedJoiner {
+        static String joinWithPipes(List<String> items) {
+            if (items.isEmpty()) {
+                return "";
+            }
+            StringBuilder result = new StringBuilder();
+            boolean first = true;
+            for (String item : items) {
+                if (!first) {
+                    result.append('|');
+                }
+                first = false;
+                // Escape any pipes in the item
+                result.append(escapePipes(item));
+            }
+            return result.toString();
+        }
+
+        private static String escapePipes(String str) {
+            if (!str.contains("|")) {
+                return str;
+            }
+            return str.replace("|", "\\|");
+        }
+    }
+}
