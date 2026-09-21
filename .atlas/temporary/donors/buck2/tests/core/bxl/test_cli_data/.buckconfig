@@ -1,0 +1,16 @@
+[buildfile]
+name=TARGETS.fixture
+
+[repositories]
+root = .
+prelude = prelude
+
+[cell_aliases]
+fbsource = root
+fbcode = root
+ovr_config = prelude
+toolchains = prelude
+config = prelude
+
+[external_cells]
+prelude = bundled

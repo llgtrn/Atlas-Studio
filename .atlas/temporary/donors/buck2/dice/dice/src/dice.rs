@@ -1,0 +1,439 @@
+/*
+ * Copyright (c) Meta Platforms, Inc. and affiliates.
+ *
+ * This source code is dual-licensed under either the MIT license found in the
+ * LICENSE-MIT file in the root directory of this source tree or the Apache
+ * License, Version 2.0 found in the LICENSE-APACHE file in the root directory
+ * of this source tree. You may select, at your option, one of the
+ * above-listed licenses.
+ */
+
+use std::fmt::Debug;
+use std::future::Future;
+use std::sync::Arc as StdArc;
+
+use allocative::Allocative;
+use dupe::Dupe;
+use pagable::StorageContext;
+use pagable::storage::handle::PagableStorageHandle;
+
+use crate::DiceTransactionUpdater;
+use crate::HashMap;
+use crate::api::cycles::DetectCycles;
+use crate::api::data::DiceData;
+use crate::api::user_data::UserComputationData;
+use crate::arc::Arc;
+use crate::core::state::CoreStateHandle;
+use crate::core::state::init_state;
+use crate::introspection::graph::GraphIntrospectable;
+use crate::key_index::DiceKeyIndex;
+use crate::metrics::Metrics;
+use crate::metrics::PageInKeyTypeMetrics;
+use crate::metrics::PagingMemorySnapshot;
+use crate::storage::DiceStorage;
+use crate::updater::TransactionUpdater;
+
+/// Cancellation check for [`Dice::page_out_cancellable`]: returns `true` when the
+/// in-progress page-out should stop promptly. Polled per key, so it must be cheap
+/// and lock-free. A capture-free `fn`, so it needs no allocation and is `Copy`ed
+/// into each page-out worker.
+pub type PageOutCancel = fn() -> bool;
+
+/// An incremental computation engine that executes arbitrary computations that
+/// maps `Key`s to values.
+#[derive(Allocative)]
+pub struct Dice {
+    pub(crate) key_index: DiceKeyIndex,
+    pub(crate) state_handle: CoreStateHandle,
+    pub(crate) global_data: DiceData,
+    pub(crate) pagable_storage: Option<DiceStorage>,
+}
+
+impl Debug for Dice {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Dice").finish_non_exhaustive()
+    }
+}
+
+pub struct DiceDataBuilder {
+    data: DiceData,
+    pagable_storage: Option<DiceStorage>,
+}
+
+impl DiceDataBuilder {
+    pub(crate) fn new() -> Self {
+        Self {
+            data: DiceData::new(),
+            pagable_storage: None,
+        }
+    }
+
+    pub fn set<K: Send + Sync + 'static>(&mut self, val: K) {
+        self.data.set(val);
+    }
+
+    /// Configures pagable storage for this DICE instance, enabling
+    /// [`Dice::page_out`].
+    pub fn set_pagable_storage(&mut self, storage: DiceStorage) {
+        self.pagable_storage = Some(storage);
+    }
+
+    pub fn build(self, _detect_cycles: DetectCycles) -> StdArc<Dice> {
+        Dice::new(self.data, self.pagable_storage)
+    }
+}
+
+impl Dice {
+    pub(crate) fn new(global_data: DiceData, pagable_storage: Option<DiceStorage>) -> StdArc<Self> {
+        let state_handle = init_state(
+            pagable_storage
+                .as_ref()
+                .map(|storage| storage.paging_memory_metrics()),
+        );
+
+        StdArc::new(Dice {
+            key_index: Default::default(),
+            state_handle,
+            global_data,
+            pagable_storage,
+        })
+    }
+
+    pub fn builder() -> DiceDataBuilder {
+        DiceDataBuilder::new()
+    }
+
+    pub fn updater(self: &StdArc<Self>) -> DiceTransactionUpdater {
+        self.updater_with_data(UserComputationData::new())
+    }
+
+    pub fn updater_with_data(
+        self: &StdArc<Self>,
+        extra: UserComputationData,
+    ) -> DiceTransactionUpdater {
+        DiceTransactionUpdater(TransactionUpdater::new(self.dupe(), Arc::new(extra)))
+    }
+
+    pub fn metrics(&self) -> Metrics {
+        self.state_handle.metrics()
+    }
+
+    /// Cumulative per-key-type page-in counters. Kept separate from
+    /// [`Dice::metrics`] as it is heavier; collect only at command boundaries,
+    /// not on the per-snapshot path.
+    pub fn page_in_metrics(&self) -> HashMap<&'static str, PageInKeyTypeMetrics> {
+        self.pagable_storage
+            .as_ref()
+            .map(|storage| storage.page_in_metrics_snapshot())
+            .unwrap_or_default()
+    }
+
+    /// Cumulative DataKey page-out / page-in totals since daemon start, or `None` if
+    /// pagable storage is not configured — these get logged, so "paging is off" must
+    /// not look like "paging moved nothing".
+    pub fn storage_io_metrics(&self) -> Option<StorageIoSnapshot> {
+        self.pagable_storage
+            .as_ref()
+            .map(|storage| storage.storage_io_snapshot())
+    }
+
+    /// Cumulative memory paging has moved since daemon start, measured from the
+    /// allocator rather than inferred from serialized sizes.
+    ///
+    /// `None` if pagable storage is not configured, or if the allocator counters
+    /// cannot be read — without them the totals would sit at zero, which reads as
+    /// "paging moved nothing" rather than "nothing was measured".
+    pub fn paging_memory_metrics(&self) -> Option<PagingMemorySnapshot> {
+        self.pagable_storage
+            .as_ref()
+            .and_then(|storage| storage.paging_memory_snapshot())
+    }
+
+    /// Cumulative graph nodes evicted by page-out since daemon start, or `None`
+    /// if pagable storage is not configured.
+    pub fn paged_out_node_total(&self) -> Option<u64> {
+        self.pagable_storage
+            .as_ref()
+            .map(|storage| storage.paged_out_node_total())
+    }
+
+    /// Last measured on-disk size in bytes of the pagable store, or `None` if
+    /// pagable storage is not configured. `Some(Err)` if the measurement walk failed.
+    /// Cached at page-out (the store is append-only), so this is cheap.
+    pub fn paging_db_size_bytes(&self) -> Option<Result<u64, StdArc<std::io::Error>>> {
+        self.pagable_storage
+            .as_ref()
+            .and_then(|storage| storage.on_disk_size_bytes())
+    }
+
+    /// Storage-owned context used by serializer-specific paging telemetry.
+    #[doc(hidden)]
+    pub fn pagable_storage_context(&self) -> Option<&StorageContext> {
+        self.pagable_storage
+            .as_ref()
+            .map(DiceStorage::storage_context)
+    }
+
+    /// Pagable storage handle used by serializer-specific debug telemetry.
+    #[doc(hidden)]
+    pub fn pagable_storage_handle(&self) -> Option<PagableStorageHandle> {
+        self.pagable_storage
+            .as_ref()
+            .map(DiceStorage::storage_handle)
+    }
+
+    /// Current depth of the request queue feeding the dice core-state thread.
+    /// Sampled synchronously without enqueueing a request, so this can be
+    /// called even when the queue is fully backed up.
+    pub fn core_state_queue_depth(&self) -> usize {
+        self.state_handle.queue_depth()
+    }
+
+    /// Total number of requests the dice core-state thread has processed since
+    /// this DICE instance was created. Monotonic; sampling it at intervals
+    /// yields the core-state throughput. Like `core_state_queue_depth`, does
+    /// not itself enqueue a request.
+    pub fn core_state_processed_requests(&self) -> usize {
+        self.state_handle.processed_requests()
+    }
+
+    pub fn to_introspectable(&self) -> GraphIntrospectable {
+        let (graph_introspectable, version_introspectable) = self.state_handle.introspection();
+        // a bit subtle, but make sure we introspect the key_index after we get the graphs as
+        // there may still be new keys added and running. A snapshot of `key_index` prior to
+        // snapshotting the graphs will result in missing keys
+        let key_index = self.key_index.introspect();
+
+        GraphIntrospectable {
+            graph: graph_introspectable,
+            version_data: version_introspectable,
+            key_map: key_index,
+        }
+    }
+
+    /// Note: modern dice does not support cycle detection yet
+    pub fn detect_cycles(&self) -> &DetectCycles {
+        // TODO(bobyf) actually have cycles for dice modern
+        const CYCLES: DetectCycles = DetectCycles::Disabled;
+        &CYCLES
+    }
+
+    /// Wait until all active versions have exited.
+    pub fn wait_for_idle(&self) -> impl Future<Output = ()> + 'static + use<> {
+        let rx = self.state_handle.get_tasks_pending_cancellation();
+        async move {
+            let tasks = rx.await;
+            dice_futures::join::join_all(tasks.iter().map(|t| t.as_ref().await_termination()))
+                .await;
+        }
+    }
+
+    /// true when there are no tasks pending cancellation
+    pub async fn is_idle(&self) -> bool {
+        let tasks = self.state_handle.get_tasks_pending_cancellation().await;
+
+        tasks.iter().all(|task| !task.is_pending())
+    }
+
+    /// Page out every resident computed value to the configured `DiceStorage`.
+    ///
+    /// **Caller must ensure DICE is idle** before calling this — typically by awaiting
+    /// `wait_for_idle()` first.
+    ///
+    /// No-op if `DiceStorage` was not configured on the builder.
+    pub async fn page_out(self: &StdArc<Self>) -> anyhow::Result<()> {
+        // Never cancelled.
+        self.page_out_cancellable(|| false).await
+    }
+
+    /// Like [`Dice::page_out`], but stops promptly once `cancelled` returns true
+    /// (checked per key), leaving a partially paged-out graph (a valid state —
+    /// paged-out values hydrate back on demand). Used by automatic idle page-out
+    /// so it can yield promptly when a new command starts.
+    ///
+    /// Returns no count. Evictions are applied asynchronously on the state
+    /// thread and are not all done when this returns, so read
+    /// [`Dice::paged_out_node_total`] once the queue has drained instead.
+    pub async fn page_out_cancellable(
+        self: &StdArc<Self>,
+        cancelled: PageOutCancel,
+    ) -> anyhow::Result<()> {
+        if !self.is_idle().await {
+            // A command can race in and make DICE non-idle even after the caller
+            // waited for idle — `wait_for_idle` is not a lasting guarantee. On the
+            // idle page-out path that same command also cancels us, so a set
+            // `cancelled` flag means this is that benign race: bail quietly. If we
+            // aren't cancelled, something called this on a non-idle graph, which
+            // risks paging out a value that's being recomputed — surface it.
+            if cancelled() {
+                return Ok(());
+            }
+            return Err(anyhow::anyhow!(
+                "Dice::page_out called while DICE is not idle"
+            ));
+        }
+        let Some(storage) = self.pagable_storage.as_ref() else {
+            return Ok(());
+        };
+        let keys = self.state_handle.keys_to_page_out().await;
+        storage
+            .page_out(keys, &self.key_index, &self.state_handle, cancelled)
+            .await
+    }
+
+    /// Page in (rehydrate) all paged-out values from the
+    /// configured `DiceStorage`, used for debugging.
+    ///
+    /// **Caller must ensure DICE is idle** before calling this.
+    pub async fn page_in(self: &StdArc<Self>) -> anyhow::Result<()> {
+        if !self.is_idle().await {
+            return Err(anyhow::anyhow!(
+                "Dice::page_in called while DICE is not idle; call `wait_for_idle()` first"
+            ));
+        }
+        let Some(storage) = self.pagable_storage.as_ref() else {
+            return Err(anyhow::anyhow!("No storage available for page-in"));
+        };
+        let keys = self.state_handle.paged_out_keys().await?;
+        storage
+            .page_in(keys, &self.key_index, &self.state_handle)
+            .await?;
+        Ok(())
+    }
+
+    /// Summarize pagable status: counts of resident vs paged-out node values
+    /// with a per-key-type breakdown.
+    ///
+    /// Read-only and does not require DICE to be idle — it reports a consistent
+    /// snapshot taken on the core-state thread.
+    pub async fn pagable_status(&self) -> PagableStatus {
+        let raw = self.state_handle.pagable_status().await;
+
+        // `key_index.get` can't panic here: keys are interned before their node
+        // enters the graph, and we snapshot the graph before resolving keys (the
+        // dual of `to_introspectable`'s ordering). Don't reorder those two steps.
+        let mut counts: HashMap<&'static str, (usize, usize)> = HashMap::default();
+        for key in &raw.resident {
+            counts
+                .entry(self.key_index.get(*key).key_type_name())
+                .or_default()
+                .0 += 1;
+        }
+        for key in &raw.paged_out {
+            counts
+                .entry(self.key_index.get(*key).key_type_name())
+                .or_default()
+                .1 += 1;
+        }
+        let mut by_type: Vec<PagableTypeStat> = counts
+            .into_iter()
+            .map(|(key_type, (resident, paged_out))| PagableTypeStat {
+                key_type,
+                resident,
+                paged_out,
+            })
+            .collect();
+        // Biggest contributors first, with a name tie-break so output is stable
+        // across runs (the underlying HashMap iteration order is not).
+        by_type.sort_by(|a, b| {
+            (b.resident + b.paged_out)
+                .cmp(&(a.resident + a.paged_out))
+                .then_with(|| a.key_type.cmp(b.key_type))
+        });
+
+        PagableStatus {
+            total_nodes: raw.total_nodes,
+            resident_count: raw.counts.resident,
+            paged_out_count: raw.counts.paged_out,
+            candidate_count: raw.counts.candidates,
+            by_type,
+        }
+    }
+
+    /// Resident, paged-out, and page-out-candidate DICE node counts, read O(1) from
+    /// incrementally-maintained core-state tallies (no graph scan). Counts every
+    /// occupied node regardless of whether pagable storage is configured.
+    pub async fn pagable_node_counts(&self) -> PagableNodeCounts {
+        self.state_handle.pagable_node_counts().await
+    }
+}
+
+/// Cumulative DataKey page-out / page-in totals. `bytes_*` sum each DataKey's
+/// serialized value payload, a proxy for allocated in-memory bytes moved (not RSS),
+/// so `bytes_out - bytes_in` approximates the bytes currently offloaded.
+///
+/// This is I/O volume, not freed memory: an arc shared with a still-resident value
+/// is serialized without being dropped, so `bytes_out` over-counts under partial
+/// page-out.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct StorageIoSnapshot {
+    pub data_keys_out: u64,
+    pub bytes_out: u64,
+    pub data_keys_in: u64,
+    pub bytes_in: u64,
+}
+
+impl StorageIoSnapshot {
+    /// The I/O between `earlier` and this snapshot. Saturating: counters only grow
+    /// within one `DiceStorage`, so a regression means mismatched snapshots.
+    pub fn since(self, earlier: StorageIoSnapshot) -> StorageIoSnapshot {
+        StorageIoSnapshot {
+            data_keys_out: self.data_keys_out.saturating_sub(earlier.data_keys_out),
+            bytes_out: self.bytes_out.saturating_sub(earlier.bytes_out),
+            data_keys_in: self.data_keys_in.saturating_sub(earlier.data_keys_in),
+            bytes_in: self.bytes_in.saturating_sub(earlier.bytes_in),
+        }
+    }
+}
+
+/// Resident, paged-out, and page-out-candidate DICE node counts. `candidates` is the
+/// subset of `resident` never paged out.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct PagableNodeCounts {
+    pub resident: usize,
+    pub paged_out: usize,
+    pub candidates: usize,
+}
+
+/// Summary of how many DICE node values are resident in memory vs paged out to
+/// storage, returned by [`Dice::pagable_status`].
+pub struct PagableStatus {
+    /// All graph nodes, including vacant / in-progress ones. Hence
+    /// `total_nodes >= resident_count + paged_out_count`.
+    pub total_nodes: usize,
+    pub resident_count: usize,
+    pub paged_out_count: usize,
+    /// Resident nodes eligible for page-out (never paged out); a subset of
+    /// `resident_count`.
+    pub candidate_count: usize,
+    /// Per-key-type counts, sorted by total (resident + paged-out) descending.
+    pub by_type: Vec<PagableTypeStat>,
+}
+
+/// Resident vs paged-out node counts for a single key type. Part of
+/// [`PagableStatus`].
+pub struct PagableTypeStat {
+    pub key_type: &'static str,
+    pub resident: usize,
+    pub paged_out: usize,
+}
+
+#[cfg(test)]
+pub(crate) mod testing {
+    use dupe::Dupe;
+
+    use crate::dice::Dice;
+    use crate::epoch::evaluator::VersionEpochState;
+    use crate::updater::ActiveTransactionGuard;
+    use crate::versions::VersionNumber;
+
+    impl Dice {
+        pub(crate) async fn testing_shared_ctx(
+            &self,
+            v: VersionNumber,
+        ) -> (VersionEpochState, ActiveTransactionGuard) {
+            let guard = ActiveTransactionGuard::new(v, self.state_handle.dupe());
+            self.state_handle.ctx_at_version(v, guard).await
+        }
+    }
+}
