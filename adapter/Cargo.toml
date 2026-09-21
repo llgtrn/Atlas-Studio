@@ -11,3 +11,4 @@ publish = false
 
 [dependencies]
 atlas_core = { package = "core", path = "../core" }
+serde.workspace = true
