@@ -74,6 +74,8 @@ bindings_accounted = true
 evidence_required = true
 temporal_revision_required = true
 semantic_atoms_required_for_critical_scopes = true
+typed_function_semantic_records_required = true
+semantic_extractor_obligation_accounting_required = true
 
 [evidence]
 provenance_required = true
@@ -108,6 +110,11 @@ unknown_extension_must_be_explicitly_accounted = true
 oversize_artifact_must_be_explicitly_accounted = true
 foundational_semantics_should_be_typed = true
 generic_string_map_is_bootstrap_compatibility_only = true
+generic_semantic_triple_is_bootstrap_compatibility_only = true
+one_normalized_semantic_path_required = true
+normalization_may_not_change_epistemic_status = true
+normalization_may_not_silently_drop_provenance = true
+census_certificate_machine_schema_required = true
 
 [invention]
 observed_world_must_not_be_overwritten_by_candidate = true
