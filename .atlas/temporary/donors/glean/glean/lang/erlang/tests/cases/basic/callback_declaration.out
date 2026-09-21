@@ -1,0 +1,11 @@
+[
+  "@generated",
+  {
+    "key": {
+      "name": "on_event",
+      "arity": 1,
+      "module": "example_behaviour",
+      "app": "basic"
+    }
+  }
+]

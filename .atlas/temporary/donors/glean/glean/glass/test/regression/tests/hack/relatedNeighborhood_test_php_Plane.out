@@ -1,0 +1,368 @@
+[
+    "@generated",
+    {
+        "childrenContained": [
+            "test/php/Plane/takeOff"
+        ],
+        "childrenExtended": [
+            "test/php/AirBus"
+        ],
+        "containsParents": [],
+        "inheritedSymbols": [
+            {
+                "base": "test/php/Fliers",
+                "provides": [
+                    "test/php/Fliers/fly"
+                ]
+            },
+            {
+                "base": "test/php/Machine",
+                "provides": [
+                    "test/php/Machine/closeDoors",
+                    "test/php/Machine/openDoors"
+                ]
+            }
+        ],
+        "parentsExtended": [],
+        "requireClass": [
+            "test/php/AirBus"
+        ],
+        "requireExtends": [
+            "test/php/Machine"
+        ],
+        "requireImplements": [
+            "test/php/CoolStuff",
+            "test/php/Fliers"
+        ],
+        "symbolBasicDetails": {
+            "test/php/AirBus": {
+                "kind": 7,
+                "language": 3,
+                "name": {
+                    "container": "",
+                    "localName": "AirBus"
+                },
+                "signature": "class AirBus",
+                "sym": "test/php/AirBus"
+            },
+            "test/php/CoolStuff": {
+                "kind": 13,
+                "language": 3,
+                "name": {
+                    "container": "",
+                    "localName": "CoolStuff"
+                },
+                "signature": "interface CoolStuff",
+                "sym": "test/php/CoolStuff"
+            },
+            "test/php/Fliers": {
+                "kind": 13,
+                "language": 3,
+                "name": {
+                    "container": "",
+                    "localName": "Fliers"
+                },
+                "signature": "interface Fliers",
+                "sym": "test/php/Fliers"
+            },
+            "test/php/Machine": {
+                "kind": 7,
+                "language": 3,
+                "name": {
+                    "container": "",
+                    "localName": "Machine"
+                },
+                "signature": "abstract class Machine",
+                "sym": "test/php/Machine"
+            }
+        },
+        "symbolDetails": {
+            "test/php/Fliers/fly": {
+                "annotations": [],
+                "contains_relation": {
+                    "firstChild": "nondeterministic",
+                    "firstParent": "nondeterministic",
+                    "hasMoreChildren": false,
+                    "hasMoreParents": false
+                },
+                "extends_relation": {
+                    "firstChild": "nondeterministic",
+                    "firstParent": "nondeterministic",
+                    "hasMoreChildren": false,
+                    "hasMoreParents": false
+                },
+                "kind": 8,
+                "language": 3,
+                "location": {
+                    "filepath": "www/Require.php",
+                    "range": {
+                        "columnBegin": 3,
+                        "columnEnd": 31,
+                        "lineBegin": 33,
+                        "lineEnd": 33
+                    },
+                    "repository": "test"
+                },
+                "modifiers": [
+                    1
+                ],
+                "name": {
+                    "container": "Fliers",
+                    "localName": "fly"
+                },
+                "pretty_comments": [],
+                "repo_hash": "testhash",
+                "signature": "public function fly(): bool",
+                "sym": "test/php/Fliers/fly",
+                "sym_location": {
+                    "filepath": "www/Require.php",
+                    "range": {
+                        "columnBegin": 3,
+                        "columnEnd": 31,
+                        "lineBegin": 33,
+                        "lineEnd": 33
+                    },
+                    "repository": "test"
+                },
+                "sym_other_locations": [],
+                "type_xrefs": [
+                    {
+                        "span": {
+                            "length": 3,
+                            "start": 16
+                        },
+                        "type": "test/php/Fliers/fly"
+                    }
+                ],
+                "visibility": 20
+            },
+            "test/php/Machine/closeDoors": {
+                "annotations": [],
+                "contains_relation": {
+                    "firstChild": "nondeterministic",
+                    "firstParent": "nondeterministic",
+                    "hasMoreChildren": false,
+                    "hasMoreParents": false
+                },
+                "extends_relation": {
+                    "firstChild": "nondeterministic",
+                    "firstParent": "nondeterministic",
+                    "hasMoreChildren": false,
+                    "hasMoreParents": false
+                },
+                "kind": 8,
+                "language": 3,
+                "location": {
+                    "filepath": "www/Require.php",
+                    "range": {
+                        "columnBegin": 3,
+                        "columnEnd": 4,
+                        "lineBegin": 18,
+                        "lineEnd": 20
+                    },
+                    "repository": "test"
+                },
+                "modifiers": [],
+                "name": {
+                    "container": "Machine",
+                    "localName": "closeDoors"
+                },
+                "pretty_comments": [],
+                "repo_hash": "testhash",
+                "signature": "public function closeDoors(): void",
+                "sym": "test/php/Machine/closeDoors",
+                "sym_location": {
+                    "filepath": "www/Require.php",
+                    "range": {
+                        "columnBegin": 3,
+                        "columnEnd": 4,
+                        "lineBegin": 18,
+                        "lineEnd": 20
+                    },
+                    "repository": "test"
+                },
+                "sym_other_locations": [],
+                "type_xrefs": [
+                    {
+                        "span": {
+                            "length": 10,
+                            "start": 16
+                        },
+                        "type": "test/php/Machine/closeDoors"
+                    }
+                ],
+                "visibility": 20
+            },
+            "test/php/Machine/openDoors": {
+                "annotations": [],
+                "contains_relation": {
+                    "firstChild": "nondeterministic",
+                    "firstParent": "nondeterministic",
+                    "hasMoreChildren": false,
+                    "hasMoreParents": false
+                },
+                "extends_relation": {
+                    "firstChild": "nondeterministic",
+                    "firstParent": "nondeterministic",
+                    "hasMoreChildren": false,
+                    "hasMoreParents": false
+                },
+                "kind": 8,
+                "language": 3,
+                "location": {
+                    "filepath": "www/Require.php",
+                    "range": {
+                        "columnBegin": 3,
+                        "columnEnd": 4,
+                        "lineBegin": 15,
+                        "lineEnd": 17
+                    },
+                    "repository": "test"
+                },
+                "modifiers": [],
+                "name": {
+                    "container": "Machine",
+                    "localName": "openDoors"
+                },
+                "pretty_comments": [],
+                "repo_hash": "testhash",
+                "signature": "public function openDoors(): void",
+                "sym": "test/php/Machine/openDoors",
+                "sym_location": {
+                    "filepath": "www/Require.php",
+                    "range": {
+                        "columnBegin": 3,
+                        "columnEnd": 4,
+                        "lineBegin": 15,
+                        "lineEnd": 17
+                    },
+                    "repository": "test"
+                },
+                "sym_other_locations": [],
+                "type_xrefs": [
+                    {
+                        "span": {
+                            "length": 9,
+                            "start": 16
+                        },
+                        "type": "test/php/Machine/openDoors"
+                    }
+                ],
+                "visibility": 20
+            },
+            "test/php/Plane": {
+                "annotations": [],
+                "contains_relation": {
+                    "firstChild": "nondeterministic",
+                    "firstParent": "nondeterministic",
+                    "hasMoreChildren": false,
+                    "hasMoreParents": false
+                },
+                "extends_relation": {
+                    "firstChild": "nondeterministic",
+                    "firstParent": "nondeterministic",
+                    "hasMoreChildren": false,
+                    "hasMoreParents": false
+                },
+                "kind": 31,
+                "language": 3,
+                "location": {
+                    "filepath": "www/Require.php",
+                    "range": {
+                        "columnBegin": 1,
+                        "columnEnd": 2,
+                        "lineBegin": 36,
+                        "lineEnd": 47
+                    },
+                    "repository": "test"
+                },
+                "modifiers": [],
+                "name": {
+                    "container": "",
+                    "localName": "Plane"
+                },
+                "pretty_comments": [],
+                "repo_hash": "testhash",
+                "signature": "trait Plane",
+                "sym": "test/php/Plane",
+                "sym_location": {
+                    "filepath": "www/Require.php",
+                    "range": {
+                        "columnBegin": 1,
+                        "columnEnd": 2,
+                        "lineBegin": 36,
+                        "lineEnd": 47
+                    },
+                    "repository": "test"
+                },
+                "sym_other_locations": [],
+                "type_xrefs": [
+                    {
+                        "span": {
+                            "length": 5,
+                            "start": 6
+                        },
+                        "type": "test/php/Plane"
+                    }
+                ]
+            },
+            "test/php/Plane/takeOff": {
+                "annotations": [],
+                "contains_relation": {
+                    "firstChild": "nondeterministic",
+                    "firstParent": "nondeterministic",
+                    "hasMoreChildren": false,
+                    "hasMoreParents": false
+                },
+                "extends_relation": {
+                    "firstChild": "nondeterministic",
+                    "firstParent": "nondeterministic",
+                    "hasMoreChildren": false,
+                    "hasMoreParents": false
+                },
+                "kind": 8,
+                "language": 3,
+                "location": {
+                    "filepath": "www/Require.php",
+                    "range": {
+                        "columnBegin": 3,
+                        "columnEnd": 4,
+                        "lineBegin": 42,
+                        "lineEnd": 46
+                    },
+                    "repository": "test"
+                },
+                "modifiers": [],
+                "name": {
+                    "container": "Plane",
+                    "localName": "takeOff"
+                },
+                "pretty_comments": [],
+                "repo_hash": "testhash",
+                "signature": "public function takeOff(): bool",
+                "sym": "test/php/Plane/takeOff",
+                "sym_location": {
+                    "filepath": "www/Require.php",
+                    "range": {
+                        "columnBegin": 3,
+                        "columnEnd": 4,
+                        "lineBegin": 42,
+                        "lineEnd": 46
+                    },
+                    "repository": "test"
+                },
+                "sym_other_locations": [],
+                "type_xrefs": [
+                    {
+                        "span": {
+                            "length": 7,
+                            "start": 16
+                        },
+                        "type": "test/php/Plane/takeOff"
+                    }
+                ],
+                "visibility": 20
+            }
+        }
+    }
+]

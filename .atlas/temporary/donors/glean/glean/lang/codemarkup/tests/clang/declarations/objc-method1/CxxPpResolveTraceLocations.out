@@ -1,0 +1,650 @@
+[
+  "@generated",
+  {
+    "key": {
+      "tuplefield0": {
+        "name": "I",
+        "file": { "key": "test.m" },
+        "location": {
+          "range": {
+            "file": { "key": "test.m" },
+            "lineBegin": 9,
+            "columnBegin": 1,
+            "lineEnd": 16,
+            "columnEnd": 4
+          }
+        },
+        "destination": {
+          "file": { "key": "test.m" },
+          "span": { "start": 232, "length": 1 }
+        }
+      },
+      "tuplefield1": {
+        "cxx": {
+          "defn": {
+            "objcContainer": {
+              "key": {
+                "declaration": {
+                  "key": {
+                    "id": { "interface_": { "key": "I" } },
+                    "source": {
+                      "file": { "key": "test.m" },
+                      "lineBegin": 9,
+                      "columnBegin": 1,
+                      "lineEnd": 16,
+                      "columnEnd": 4
+                    }
+                  }
+                },
+                "protocols": [ ],
+                "members": {
+                  "key": [
+                    {
+                      "objcMethod": {
+                        "key": {
+                          "selector": { "key": [ "f1" ] },
+                          "locations": [
+                            {
+                              "file": { "key": "test.m" },
+                              "span": { "start": 242, "length": 2 }
+                            }
+                          ],
+                          "container": { "interface_": { "key": "I" } },
+                          "signature": {
+                            "key": {
+                              "returns": { "key": "int" },
+                              "parameters": [ ]
+                            }
+                          },
+                          "isInstance": true,
+                          "isOptional": false,
+                          "isAccessor": false,
+                          "source": {
+                            "file": { "key": "test.m" },
+                            "lineBegin": 11,
+                            "columnBegin": 1,
+                            "lineEnd": 11,
+                            "columnEnd": 10
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "objcMethod": {
+                        "key": {
+                          "selector": { "key": [ "f2" ] },
+                          "locations": [
+                            {
+                              "file": { "key": "test.m" },
+                              "span": { "start": 252, "length": 2 }
+                            }
+                          ],
+                          "container": { "interface_": { "key": "I" } },
+                          "signature": {
+                            "key": {
+                              "returns": { "key": "id" },
+                              "parameters": [
+                                {
+                                  "name": { "key": "x" },
+                                  "type": { "key": "int" }
+                                }
+                              ]
+                            }
+                          },
+                          "isInstance": true,
+                          "isOptional": false,
+                          "isAccessor": false,
+                          "source": {
+                            "file": { "key": "test.m" },
+                            "lineBegin": 12,
+                            "columnBegin": 1,
+                            "lineEnd": 12,
+                            "columnEnd": 18
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "objcMethod": {
+                        "key": {
+                          "selector": { "key": [ "f3a", "f3b" ] },
+                          "locations": [
+                            {
+                              "file": { "key": "test.m" },
+                              "span": { "start": 271, "length": 3 }
+                            },
+                            {
+                              "file": { "key": "test.m" },
+                              "span": { "start": 284, "length": 3 }
+                            }
+                          ],
+                          "container": { "interface_": { "key": "I" } },
+                          "signature": {
+                            "key": {
+                              "returns": { "key": "id" },
+                              "parameters": [
+                                {
+                                  "name": { "key": "x" },
+                                  "type": { "key": "int" }
+                                },
+                                {
+                                  "name": { "key": "y" },
+                                  "type": { "key": "int" }
+                                }
+                              ]
+                            }
+                          },
+                          "isInstance": true,
+                          "isOptional": false,
+                          "isAccessor": false,
+                          "source": {
+                            "file": { "key": "test.m" },
+                            "lineBegin": 13,
+                            "columnBegin": 1,
+                            "lineEnd": 13,
+                            "columnEnd": 32
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "objcMethod": {
+                        "key": {
+                          "selector": { "key": [ "f4a", "" ] },
+                          "locations": [
+                            {
+                              "file": { "key": "test.m" },
+                              "span": { "start": 304, "length": 3 }
+                            },
+                            {
+                              "file": { "key": "test.m" },
+                              "span": { "start": 317, "length": 1 }
+                            }
+                          ],
+                          "container": { "interface_": { "key": "I" } },
+                          "signature": {
+                            "key": {
+                              "returns": { "key": "id" },
+                              "parameters": [
+                                {
+                                  "name": { "key": "x" },
+                                  "type": { "key": "int" }
+                                },
+                                {
+                                  "name": { "key": "y" },
+                                  "type": { "key": "int" }
+                                }
+                              ]
+                            }
+                          },
+                          "isInstance": true,
+                          "isOptional": false,
+                          "isAccessor": false,
+                          "source": {
+                            "file": { "key": "test.m" },
+                            "lineBegin": 14,
+                            "columnBegin": 1,
+                            "lineEnd": 14,
+                            "columnEnd": 29
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "tuplefield0": {
+        "name": "f1",
+        "file": { "key": "test.m" },
+        "location": {
+          "range": {
+            "file": { "key": "test.m" },
+            "lineBegin": 11,
+            "columnBegin": 1,
+            "lineEnd": 11,
+            "columnEnd": 10
+          }
+        },
+        "destination": {
+          "file": { "key": "test.m" },
+          "span": { "start": 242, "length": 2 }
+        }
+      },
+      "tuplefield1": {
+        "cxx": {
+          "decl": {
+            "objcMethod": {
+              "key": {
+                "selector": { "key": [ "f1" ] },
+                "locations": [
+                  {
+                    "file": { "key": "test.m" },
+                    "span": { "start": 242, "length": 2 }
+                  }
+                ],
+                "container": { "interface_": { "key": "I" } },
+                "signature": {
+                  "key": { "returns": { "key": "int" }, "parameters": [ ] }
+                },
+                "isInstance": true,
+                "isOptional": false,
+                "isAccessor": false,
+                "source": {
+                  "file": { "key": "test.m" },
+                  "lineBegin": 11,
+                  "columnBegin": 1,
+                  "lineEnd": 11,
+                  "columnEnd": 10
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "tuplefield0": {
+        "name": "f2:",
+        "file": { "key": "test.m" },
+        "location": {
+          "range": {
+            "file": { "key": "test.m" },
+            "lineBegin": 12,
+            "columnBegin": 1,
+            "lineEnd": 12,
+            "columnEnd": 18
+          }
+        },
+        "destination": {
+          "file": { "key": "test.m" },
+          "span": { "start": 252, "length": 2 }
+        }
+      },
+      "tuplefield1": {
+        "cxx": {
+          "decl": {
+            "objcMethod": {
+              "key": {
+                "selector": { "key": [ "f2" ] },
+                "locations": [
+                  {
+                    "file": { "key": "test.m" },
+                    "span": { "start": 252, "length": 2 }
+                  }
+                ],
+                "container": { "interface_": { "key": "I" } },
+                "signature": {
+                  "key": {
+                    "returns": { "key": "id" },
+                    "parameters": [
+                      { "name": { "key": "x" }, "type": { "key": "int" } }
+                    ]
+                  }
+                },
+                "isInstance": true,
+                "isOptional": false,
+                "isAccessor": false,
+                "source": {
+                  "file": { "key": "test.m" },
+                  "lineBegin": 12,
+                  "columnBegin": 1,
+                  "lineEnd": 12,
+                  "columnEnd": 18
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "tuplefield0": {
+        "name": "f3a:f3b:",
+        "file": { "key": "test.m" },
+        "location": {
+          "range": {
+            "file": { "key": "test.m" },
+            "lineBegin": 13,
+            "columnBegin": 1,
+            "lineEnd": 13,
+            "columnEnd": 32
+          }
+        },
+        "destination": {
+          "file": { "key": "test.m" },
+          "span": { "start": 271, "length": 3 }
+        }
+      },
+      "tuplefield1": {
+        "cxx": {
+          "decl": {
+            "objcMethod": {
+              "key": {
+                "selector": { "key": [ "f3a", "f3b" ] },
+                "locations": [
+                  {
+                    "file": { "key": "test.m" },
+                    "span": { "start": 271, "length": 3 }
+                  },
+                  {
+                    "file": { "key": "test.m" },
+                    "span": { "start": 284, "length": 3 }
+                  }
+                ],
+                "container": { "interface_": { "key": "I" } },
+                "signature": {
+                  "key": {
+                    "returns": { "key": "id" },
+                    "parameters": [
+                      { "name": { "key": "x" }, "type": { "key": "int" } },
+                      { "name": { "key": "y" }, "type": { "key": "int" } }
+                    ]
+                  }
+                },
+                "isInstance": true,
+                "isOptional": false,
+                "isAccessor": false,
+                "source": {
+                  "file": { "key": "test.m" },
+                  "lineBegin": 13,
+                  "columnBegin": 1,
+                  "lineEnd": 13,
+                  "columnEnd": 32
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "tuplefield0": {
+        "name": "f4a::",
+        "file": { "key": "test.m" },
+        "location": {
+          "range": {
+            "file": { "key": "test.m" },
+            "lineBegin": 14,
+            "columnBegin": 1,
+            "lineEnd": 14,
+            "columnEnd": 29
+          }
+        },
+        "destination": {
+          "file": { "key": "test.m" },
+          "span": { "start": 304, "length": 3 }
+        }
+      },
+      "tuplefield1": {
+        "cxx": {
+          "decl": {
+            "objcMethod": {
+              "key": {
+                "selector": { "key": [ "f4a", "" ] },
+                "locations": [
+                  {
+                    "file": { "key": "test.m" },
+                    "span": { "start": 304, "length": 3 }
+                  },
+                  {
+                    "file": { "key": "test.m" },
+                    "span": { "start": 317, "length": 1 }
+                  }
+                ],
+                "container": { "interface_": { "key": "I" } },
+                "signature": {
+                  "key": {
+                    "returns": { "key": "id" },
+                    "parameters": [
+                      { "name": { "key": "x" }, "type": { "key": "int" } },
+                      { "name": { "key": "y" }, "type": { "key": "int" } }
+                    ]
+                  }
+                },
+                "isInstance": true,
+                "isOptional": false,
+                "isAccessor": false,
+                "source": {
+                  "file": { "key": "test.m" },
+                  "lineBegin": 14,
+                  "columnBegin": 1,
+                  "lineEnd": 14,
+                  "columnEnd": 29
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "tuplefield0": {
+        "name": "x",
+        "file": { "key": "test.m" },
+        "location": {
+          "range": {
+            "file": { "key": "test.m" },
+            "lineBegin": 12,
+            "columnBegin": 12,
+            "lineEnd": 12,
+            "columnEnd": 17
+          }
+        },
+        "destination": {
+          "file": { "key": "test.m" },
+          "span": { "start": 262, "length": 1 }
+        }
+      },
+      "tuplefield1": {
+        "cxx": {
+          "decl": {
+            "variable": {
+              "key": {
+                "name": {
+                  "key": { "name": { "key": "x" }, "scope": { "global_": { } } }
+                },
+                "type": { "key": "int" },
+                "kind": { "local": { "kind": 2, "attribute": 0 } },
+                "source": {
+                  "file": { "key": "test.m" },
+                  "lineBegin": 12,
+                  "columnBegin": 12,
+                  "lineEnd": 12,
+                  "columnEnd": 17
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "tuplefield0": {
+        "name": "x",
+        "file": { "key": "test.m" },
+        "location": {
+          "range": {
+            "file": { "key": "test.m" },
+            "lineBegin": 13,
+            "columnBegin": 13,
+            "lineEnd": 13,
+            "columnEnd": 18
+          }
+        },
+        "destination": {
+          "file": { "key": "test.m" },
+          "span": { "start": 282, "length": 1 }
+        }
+      },
+      "tuplefield1": {
+        "cxx": {
+          "decl": {
+            "variable": {
+              "key": {
+                "name": {
+                  "key": { "name": { "key": "x" }, "scope": { "global_": { } } }
+                },
+                "type": { "key": "int" },
+                "kind": { "local": { "kind": 2, "attribute": 0 } },
+                "source": {
+                  "file": { "key": "test.m" },
+                  "lineBegin": 13,
+                  "columnBegin": 13,
+                  "lineEnd": 13,
+                  "columnEnd": 18
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "tuplefield0": {
+        "name": "x",
+        "file": { "key": "test.m" },
+        "location": {
+          "range": {
+            "file": { "key": "test.m" },
+            "lineBegin": 14,
+            "columnBegin": 13,
+            "lineEnd": 14,
+            "columnEnd": 18
+          }
+        },
+        "destination": {
+          "file": { "key": "test.m" },
+          "span": { "start": 315, "length": 1 }
+        }
+      },
+      "tuplefield1": {
+        "cxx": {
+          "decl": {
+            "variable": {
+              "key": {
+                "name": {
+                  "key": { "name": { "key": "x" }, "scope": { "global_": { } } }
+                },
+                "type": { "key": "int" },
+                "kind": { "local": { "kind": 2, "attribute": 0 } },
+                "source": {
+                  "file": { "key": "test.m" },
+                  "lineBegin": 14,
+                  "columnBegin": 13,
+                  "lineEnd": 14,
+                  "columnEnd": 18
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "tuplefield0": {
+        "name": "y",
+        "file": { "key": "test.m" },
+        "location": {
+          "range": {
+            "file": { "key": "test.m" },
+            "lineBegin": 13,
+            "columnBegin": 26,
+            "lineEnd": 13,
+            "columnEnd": 31
+          }
+        },
+        "destination": {
+          "file": { "key": "test.m" },
+          "span": { "start": 295, "length": 1 }
+        }
+      },
+      "tuplefield1": {
+        "cxx": {
+          "decl": {
+            "variable": {
+              "key": {
+                "name": {
+                  "key": { "name": { "key": "y" }, "scope": { "global_": { } } }
+                },
+                "type": { "key": "int" },
+                "kind": { "local": { "kind": 2, "attribute": 0 } },
+                "source": {
+                  "file": { "key": "test.m" },
+                  "lineBegin": 13,
+                  "columnBegin": 26,
+                  "lineEnd": 13,
+                  "columnEnd": 31
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "tuplefield0": {
+        "name": "y",
+        "file": { "key": "test.m" },
+        "location": {
+          "range": {
+            "file": { "key": "test.m" },
+            "lineBegin": 14,
+            "columnBegin": 23,
+            "lineEnd": 14,
+            "columnEnd": 28
+          }
+        },
+        "destination": {
+          "file": { "key": "test.m" },
+          "span": { "start": 325, "length": 1 }
+        }
+      },
+      "tuplefield1": {
+        "cxx": {
+          "decl": {
+            "variable": {
+              "key": {
+                "name": {
+                  "key": { "name": { "key": "y" }, "scope": { "global_": { } } }
+                },
+                "type": { "key": "int" },
+                "kind": { "local": { "kind": 2, "attribute": 0 } },
+                "source": {
+                  "file": { "key": "test.m" },
+                  "lineBegin": 14,
+                  "columnBegin": 23,
+                  "lineEnd": 14,
+                  "columnEnd": 28
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+]

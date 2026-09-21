@@ -1,0 +1,413 @@
+# Copyright (c) Meta, Inc. and affiliates.
+
+schema scip.1 {
+
+import src
+import lsif.types.1
+
+# scip.proto:ProtocolVersion
+type ProtocolVersion = enum {
+  UnspecifiedProtocolVersion
+}
+
+# Text encoding of the source files on disk that are referenced from
+# `Document.relative_path`.
+type TextEncoding = enum { UnspecifiedTextEncoding | UTF8 | UTF16 }
+
+# scip.proto:Metadata
+predicate Metadata:
+  {
+    version: ProtocolVersion,
+    toolInfo: maybe lsif.types.ToolInfo,
+    projectRoot: string,
+    textEncoding: TextEncoding,
+  }
+
+# Track SCIP file language
+predicate FileLanguage:
+  {
+    file: src.File,
+    language: lsif.types.LanguageId
+  }
+
+# Occurences in files
+predicate FileRange:
+  {
+    file: src.File,
+    range: lsif.types.RangeSpan,
+  }
+
+# Symbols in SCIP. Globally unique identifiers.
+#
+# Local symbols (e.g., "local 0") are made globally unique by prefixing a
+# document path (e.g., "fbcode/foo/bar/baz.rs/local 0").
+#
+# These are similar in intent to qualified names in Python, or
+# symbol ids in Glass.
+#
+predicate Symbol: string
+
+predicate DisplayName: string
+
+predicate DisplayNameSymbol:
+  {
+    displayName: DisplayName,
+    symbol: Symbol
+  }
+
+predicate SymbolDisplayName:
+  {
+    symbol: Symbol,
+    displayName: DisplayName
+  } stored { Symbol, DisplayName } where
+    scip.DisplayNameSymbol { DisplayName, Symbol }
+
+predicate LowerCaseDisplayNameSymbol: {
+  displayName: string,
+  symbol: Symbol
+}
+stored { prim.toLower N, S } where
+scip.DisplayNameSymbol { scip.DisplayName N, S }
+
+# These correspond to SCIP occurrences with symbol_role = `Definition`
+predicate Definition:
+  {
+    symbol: Symbol,
+    location: FileRange
+  }
+
+# derive index from locations to definitions
+predicate DefinitionLocation:
+  {
+    file : src.File,
+    range : lsif.types.RangeSpan,
+    defn : Definition
+  } stored { File, Range, Defn } where
+    Defn = scip.Definition { location = FileRange };
+    scip.FileRange { File, Range } = FileRange;
+
+# Uses (xref occurences)
+predicate Reference:
+  {
+    symbol: Symbol,
+    location: FileRange
+  }
+
+predicate EnclosingRange:
+  {
+    range: scip.FileRange,
+    enclosingRange: scip.FileRange,
+  }
+
+# For example, the symbol for a class enclosed the symbol for a method of that class
+predicate EnclosingSymbol:
+  {
+    symbol: scip.Symbol,
+    enclosing: scip.Symbol,
+  }
+
+predicate EnclosedSymbol:
+  {
+    symbol: scip.Symbol,
+    enclosed: scip.Symbol,
+  } stored { Enclosing, Enclosed } where
+    scip.EnclosingSymbol { Enclosing, Enclosed }
+
+predicate ReferenceLocation:
+  {
+    file : src.File,
+    range : lsif.types.RangeSpan,
+    xref : Reference,
+  } stored { File, Range, Use } where
+    Use = scip.Reference { location = FileRange };
+    scip.FileRange { File, Range } = FileRange;
+
+# where we know the definition target of a free xref
+# don't think we even need to store these?
+predicate ReferenceTarget:
+  {
+    xref: Reference,
+    target: Definition
+  } { XRef, Defn } where
+    { symbol = Symbol } = XRef;
+    Defn = scip.Definition { symbol = Symbol }
+
+# find-refs table: inverse of ReferenceTarget
+# don't think we even need to store these?
+predicate DefinitionUses:
+  {
+    target: Definition,
+    xref: Reference
+  } { Defn, XRef} where
+    { symbol = Symbol } = Defn;
+    XRef = scip.Reference { symbol = Symbol }
+
+# Documentation facts (including type signatures)
+predicate Documentation: string
+
+################################################################
+# `SymbolInformation`
+#
+# The following predicates corresponds to fields of SCIP's `SymbolInformation`
+################################################################
+
+predicate SymbolDocumentation:
+  {
+    symbol: Symbol,
+    docs: Documentation
+  }
+
+predicate DefinitionDocumentation:
+  {
+    defn: Definition,
+    docs: Documentation
+  }
+  { Defn, Docs } where
+    { symbol = Symbol } = Defn; # be careful not to inline to the head
+    scip.SymbolDocumentation { Symbol, Docs }
+
+# Symbol kinds from the `Symbol` semantic encoding
+predicate SymbolKind:
+  {
+    symbol: Symbol,
+    kind: lsif.types.SymbolKind
+  }
+
+# Parse the "scip.Symbol" to get a local name
+predicate LocalName: string
+
+predicate SymbolName:
+  {
+    symbol: Symbol,
+    name: LocalName
+  }
+
+# Symbol relationships
+
+predicate IsImplementation:
+  {
+    symbol: Symbol,
+    implemented: Symbol,
+  }
+
+predicate IsImplemented:
+  {
+    implemented: Symbol,
+    symbol: Symbol,
+  } stored { Implemented, Symbol } where
+    scip.IsImplementation { Symbol, Implemented }
+
+# TODO is_reference, is_definition, is_type_definition relationships
+
+################################################################
+# All the derived predicates
+################################################################
+
+predicate DefinitionName:
+  {
+    defn: Definition,
+    docs: LocalName
+  }
+  { Defn, Name } where
+    { symbol = Symbol } = Defn; # be careful not to inline in to the head
+    scip.SymbolName { Symbol, Name }
+
+# codemarkup compatibility. Same shape as code.scip.Entity
+type Entity =
+  {
+    rust: SomeEntity |
+    go: SomeEntity |
+    typescript: SomeEntity |
+    java: SomeEntity |
+    kotlin: SomeEntity |
+    swift: SomeEntity |
+    python: SomeEntity |
+    typescriptReact: SomeEntity |
+    javascript: SomeEntity |
+    javascriptReact: SomeEntity |
+    c: SomeEntity |
+    cpp: SomeEntity |
+    ruby: SomeEntity |
+    csharp: SomeEntity |
+    visualBasic: SomeEntity |
+    dart: SomeEntity |
+    php: SomeEntity |
+  }
+
+# entities are scip.Definitions
+type SomeEntity =
+  {
+    defn: scip.Definition
+  }
+
+# introduce or eliminate the language tag on the generic scip definition
+predicate TagDefinition:
+  {
+    language: lsif.types.LanguageId,
+    defn: scip.Definition,
+    entity: scip.Entity,
+  }
+  { Language, Defn, Entity } where
+    SomeEntity = scip.SomeEntity { defn = Defn };
+    ( Rust = Language; { rust = SomeEntity }) |
+    ( Go = Language; { go = SomeEntity }) |
+    ( TypeScript = Language; { typescript = SomeEntity }) |
+    ( TypeScriptReact = Language; { typescriptReact = SomeEntity }) |
+    ( JavaScript = Language; { javascript = SomeEntity }) |
+    ( JavaScriptReact = Language; { javascriptReact = SomeEntity }) |
+    ( Swift = Language; { swift = SomeEntity }) |
+    ( Java = Language; { java = SomeEntity }) |
+    ( Python = Language; { python = SomeEntity }) |
+    ( C = Language; { c = SomeEntity }) |
+    ( Cpp = Language; { cpp = SomeEntity }) |
+    ( Kotlin = Language; { kotlin = SomeEntity }) |
+    ( Ruby = Language; { ruby = SomeEntity }) |
+    ( CSharp = Language; { csharp = SomeEntity }) |
+    ( VisualBasic = Language; { visualBasic = SomeEntity }) |
+    ( Dart = Language; { dart = SomeEntity }) |
+    ( PHP = Language; { php = SomeEntity }) = Entity
+
+# eliminate entity language tags. inverse of TagDefinition
+predicate EntityDefinition:
+  {
+    entity : scip.Entity,
+    defn : scip.Definition
+  }
+  { Entity, Defn } where
+    ({ rust = SomeEntity }) |
+    ({ go = SomeEntity }) |
+    ({ typescript = SomeEntity }) |
+    ({ java = SomeEntity }) |
+    ({ kotlin = SomeEntity }) |
+    ({ swift = SomeEntity }) |
+    ({ python = SomeEntity }) |
+    ({ typescriptReact = SomeEntity }) |
+    ({ javascript = SomeEntity }) |
+    ({ javascriptReact = SomeEntity }) |
+    ({ c = SomeEntity }) |
+    ({ cpp = SomeEntity }) |
+    ({ ruby = SomeEntity }) |
+    ({ csharp = SomeEntity }) |
+    ({ visualBasic = SomeEntity }) |
+    ({ dart = SomeEntity }) |
+    ({ php = SomeEntity }) = Entity;
+    { defn = Defn } = SomeEntity
+
+# Symbol locations type. Analog of codemarkup:Location
+type Location =
+  {
+    file : src.File,
+    location : src.Range,
+    name : string,
+}
+
+# analog of codemarkup.ResolveLocation, flattens locations and converts spans
+predicate ResolveLocation:
+  {
+    location: scip.Location,
+    entity: scip.Entity,
+  }
+  { Location, Entity } where
+    { File, SrcRange, Name } = Location;
+    scip.FileLanguage { File, Language };
+    lsif.types.FromSrcRange { SrcRange, File, RangeSpan };
+    scip.DefinitionLocation { File, RangeSpan, Defn };
+    scip.TagDefinition { Language, Defn, Entity };
+    scip.DefinitionName { Defn, LocalName };
+    scip.LocalName Name = LocalName
+
+# unwrap language tag and lookup the decl/defn directly
+predicate EntityLocation:
+  {
+    entity: scip.Entity,
+    location: scip.Location,
+  }
+  { Entity, { File, SrcRange, Name } } where
+    scip.EntityDefinition { Entity, Defn };
+    { location = { File, RangeSpan } } = Defn;
+    lsif.types.ToSrcRange { File, RangeSpan, SrcRange };
+    scip.DefinitionName { Defn, LocalName };
+    scip.LocalName Name = LocalName
+
+# xref occurences in a file
+predicate FileEntityXRefLocation:
+  {
+    file: src.File,
+    source: src.Range,
+    target: scip.Location,
+    entity: scip.Entity,
+  }
+  { File, SrcRange, { TargetFile, TargetRange, Name }, Entity } where
+    scip.ReferenceLocation { File, RangeSpan, XRef };
+    lsif.types.ToSrcRange { File, RangeSpan, SrcRange };
+    scip.ReferenceTarget { XRef, Defn }; # only those with valid Defns
+    { location = { TargetFile, TargetRangeSpan } } = Defn;
+    scip.FileLanguage { TargetFile, Language };
+    lsif.types.ToSrcRange { TargetFile, TargetRangeSpan, TargetRange };
+    scip.DefinitionName { Defn, LocalName };
+    scip.LocalName Name = LocalName;
+    scip.TagDefinition { Language, Defn, Entity };
+
+# find-refs
+predicate EntityUses:
+  {
+    target: scip.Entity,
+    file: src.File,
+    range: src.Range,
+  }
+  { Entity, File, SrcRange } where
+    scip.EntityDefinition { Entity, Defn };
+    scip.DefinitionUses { Defn, XRef };
+    { location = { File, RangeSpan } } = XRef;
+    lsif.types.ToSrcRange { File, RangeSpan, SrcRange };
+
+# and for codemarkup.EntityKind
+# we use the kind information from the scip.Symbol tag
+# it would be better if kinds were structured in scip.proto
+predicate EntityKind:
+  {
+    entity: scip.Entity,
+    kind: lsif.types.SymbolKind,
+  }
+  { Entity, Kind } where
+    scip.EntityDefinition { Entity, Defn };
+    { symbol = Symbol } = Defn;
+    scip.SymbolKind { Symbol, Kind }
+
+# symbol lookup. O(1) via symbol definition key
+predicate SearchBySymbol:
+  {
+    symbol : scip.Symbol,
+    language: lsif.types.LanguageId,
+    entity : scip.Entity,
+  }
+  { Symbol, Language, Entity } where
+    Defn = scip.Definition { symbol = Symbol };
+    { location = { file = File } } = Defn;
+    scip.FileLanguage { File, Language };
+    scip.TagDefinition { Language, Defn, Entity }
+
+predicate SearchByNameKindLanguage:
+  {
+    name : string,
+    kind : maybe lsif.types.SymbolKind,
+    language: lsif.types.LanguageId,
+    entity : scip.Entity,
+  }
+  { Name, Kind, Language, Entity } where
+    scip.DisplayNameSymbol { DisplayName Name, Symbol };
+    Kind = ( if (scip.SymbolKind { Symbol, K }) then { just = K } else nothing );
+    scip.SearchBySymbol { Symbol, Language, Entity }
+
+predicate SearchByLowerCaseNameKindLanguage:
+  {
+    name : string,
+    kind : maybe lsif.types.SymbolKind,
+    language: lsif.types.LanguageId,
+    entity : scip.Entity,
+  }
+  { Name, Kind, Language, Entity } where
+    scip.LowerCaseDisplayNameSymbol { Name, Symbol };
+    Kind = ( if (scip.SymbolKind { Symbol, K }) then { just = K } else nothing );
+    scip.SearchBySymbol { Symbol, Language, Entity }
+}

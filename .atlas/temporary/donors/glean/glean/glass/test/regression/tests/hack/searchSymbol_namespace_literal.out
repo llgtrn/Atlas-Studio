@@ -1,0 +1,54 @@
+[
+    "@generated",
+    {
+        "symbolDetails": [],
+        "symbols": [
+            {
+                "kind": 6,
+                "language": 3,
+                "location": {
+                    "filepath": "www/Namespace.php",
+                    "range": {
+                        "columnBegin": 11,
+                        "columnEnd": 13,
+                        "lineBegin": 10,
+                        "lineEnd": 10
+                    },
+                    "repository": "test"
+                },
+                "name": "NS",
+                "qname": {
+                    "container": "",
+                    "localName": "NS"
+                },
+                "score": {
+                    "exactness": 0
+                },
+                "symbol": "test/php/ns/NS"
+            },
+            {
+                "kind": 6,
+                "language": 3,
+                "location": {
+                    "filepath": "www/Namespace2.php",
+                    "range": {
+                        "columnBegin": 11,
+                        "columnEnd": 13,
+                        "lineBegin": 11,
+                        "lineEnd": 11
+                    },
+                    "repository": "test"
+                },
+                "name": "NS",
+                "qname": {
+                    "container": "",
+                    "localName": "NS"
+                },
+                "score": {
+                    "exactness": 0
+                },
+                "symbol": "test/php/ns/NS"
+            }
+        ]
+    }
+]

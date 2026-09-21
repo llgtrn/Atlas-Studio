@@ -1,0 +1,1231 @@
+{-
+  Copyright (c) Meta Platforms, Inc. and affiliates.
+  All rights reserved.
+
+  This source code is licensed under the BSD-style license found in the
+  LICENSE file in the root directory of this source tree.
+-}
+
+{-# LANGUAGE ApplicativeDo #-}
+{-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE CPP #-}
+{-# OPTIONS_GHC -Wno-orphans #-}
+
+module Glean.Glass.Handler.Documents
+  (
+  -- * listing symbols by file
+    documentSymbolListX
+  , documentSymbolListXSnapshot
+  , documentSymbolIndex
+  ) where
+
+import Control.Monad
+import Control.Exception ( SomeException )
+import Control.Monad.Catch ( try )
+import Data.Hashable
+import Data.List as List ( find )
+import Data.List.NonEmpty (NonEmpty(..))
+import qualified Data.List.NonEmpty as NonEmpty
+import Data.Maybe
+import Data.Text ( Text, isPrefixOf )
+import qualified Control.Concurrent.Async as Async
+import qualified Data.Map.Strict as Map
+import qualified Data.Text as Text
+
+import qualified Haxl.Core as Haxl
+import Glean.Util.ToAngle
+import Util.Text ( textShow )
+
+import Thrift.Protocol ( fromThriftEnum )
+
+import qualified Glean
+import Glean.Haxl as Glean ( keyOf, haxlRepo )
+import Glean.Haxl.Repos as Glean
+import Glean.Util.Some as Glean ( Some )
+import qualified Haxl.DataSource.Glean as Glean (HasRepo)
+import qualified Glean.Util.Range as Range
+
+import qualified Glean.Schema.CodemarkupTypes.Types as Code
+import qualified Glean.Schema.Code.Types as Code
+import qualified Glean.Schema.Src.Types as Src
+
+import qualified Glean.Glass.Attributes as Attributes
+import Glean.Glass.Base
+import Glean.Glass.Digest
+import Glean.Glass.Handler.Utils
+import Glean.Glass.Logging
+import Glean.Glass.Repos
+import Glean.Glass.Path ( toGleanPath, fromGleanPath )
+import Glean.Glass.Range
+import Glean.Glass.SymbolId
+import Glean.Glass.SymbolSig ( toSymbolSignatureText )
+import Glean.Glass.Pretty.Cxx as Cxx (Qualified(..))
+import Glean.Glass.Types
+import Glean.Glass.RepoMapping (
+   mirrorConfig, Mirror(Mirror)
+  )
+import qualified Glean.Glass.Env as Glass
+import Glean.Glass.XRefs
+  ( GenXRef(..), XRef, resolveEntitiesRange, XlangXRef )
+import Glean.Glass.SymbolMap ( toSymbolIndex )
+
+import Glean.Glass.SnapshotBackend
+  ( SnapshotBackend(getSnapshot),
+    SnapshotStatus() )
+import qualified Glean.Glass.SnapshotBackend as Snapshot
+import Glean.Glass.Env (
+  Env' (tracer, sourceControl, useSnapshotsForSymbolsList))
+import Glean.Glass.SourceControl (SourceControl(..), NilSourceControl(..))
+import Glean.Glass.Tracing (traceSpan)
+import qualified Glean.Glass.Utils as Utils
+import Glean.Glass.Utils ( fst4 )
+import Logger.GleanGlass (GleanGlassLogger)
+import qualified Glean.Schema.Scip.Types as Scip
+import Data.Either (partitionEithers, fromLeft)
+import qualified Data.Text.Lazy as TL
+import Data.Aeson.Text (encodeToLazyText)
+import Glean.Glass.Handler.Cxx (hashUSR)
+import ServiceData.GlobalStats as Stats
+import ServiceData.Types as Stats
+import Util.Time (elapsedTime, toDiffMillis)
+import Glean.Glass.Attributes.PerfUtils (parseGitDiff, applyLineMappingToDefs, applyLineMappingToRefs)
+import qualified Glean.Glass.Query as Query
+
+-- | Runner for methods that are keyed by a file path.
+-- Select the right Glean DBs and pass them to the function (via a GleanBackend)
+runRepoFile
+  :: (LogResult t)
+  => Text
+  -> (GleanDBInfo
+    -> DocumentSymbolsRequest
+    -> RequestOptions
+    -> GleanBackend (Glean.Some Glean.Backend)
+    -> Glean.Some SnapshotBackend
+    -> Maybe Language
+    -> IO (t, Maybe ErrorLogger))
+  -> Glass.Env
+  -> DocumentSymbolsRequest
+  -> RequestOptions
+  -> IO t
+runRepoFile sym fn env@Glass.Env{..} req opts =
+  withRepoFile sym env opts req repo file $ \gleanDBs dbInfo mlang ->
+      fn dbInfo req opts
+         GleanBackend{gleanBackend, gleanDBs, tracer}
+         snapshotBackend
+         mlang
+  where
+    repo = documentSymbolsRequest_repository req
+    file = documentSymbolsRequest_filepath req
+
+-- | Discover navigable symbols in this file, resolving all bytespans and
+-- adding any attributes
+documentSymbolListX
+  :: Glass.Env
+  -> DocumentSymbolsRequest
+  -> RequestOptions
+  -> IO DocumentSymbolListXResult
+documentSymbolListX env r opts = do
+  useSnapshots <- useSnapshotsForSymbolsList env
+  fst4 <$>
+    runRepoFile
+      "documentSymbolListX"
+      (if useSnapshots
+        then fetchSymbolsAndAttributes env
+        else (\dbInfo req opts be _ mlang -> do
+                ((res, log, attrLog), err) <- fetchSymbolsAndAttributesGlean
+                  env dbInfo req opts be Nothing mlang
+                return ((res, Snapshot.Unrequested, log, attrLog), err)
+              )
+      )
+      env r opts
+
+-- | Variation of documentSymbolListX
+-- Always use Glean (and not XDB snapshot backend).
+-- Possibly use a different backend o resolve xlang
+-- entities to their location.
+--
+-- Use case: constructing document symbols lists
+-- snapshots from local dbs, and resolving xlang
+-- entities location from global dbs not locally indexed.
+documentSymbolListXSnapshot
+  :: Glass.Env
+  -> DocumentSymbolsRequest
+  -> RequestOptions
+  -> Maybe (Some Glean.Backend, GleanDBInfo)
+  -> IO DocumentSymbolListXResult
+documentSymbolListXSnapshot env r opts mGleanBe = do
+  fst4 <$>
+    runRepoFile
+      "documentSymbolListXSnapshot"
+      (\dbInfo req opts be _ mlang -> do
+          ((res, log, attrLog), err) <- fetchSymbolsAndAttributesGlean
+            env dbInfo req opts be mGleanBe mlang
+          return ((res, Snapshot.Unrequested, log, attrLog), err)
+          )
+      env r opts
+
+-- | Same as documentSymbolList() but construct a line-indexed map for easy
+-- cursor/position lookup, and add extra metadata
+documentSymbolIndex
+  :: Glass.Env
+  -> DocumentSymbolsRequest
+  -> RequestOptions
+  -> IO DocumentSymbolIndex
+documentSymbolIndex env r opts =
+  fst4 <$>
+    runRepoFile
+      "documentSymbolIndex"
+      (fetchDocumentSymbolIndex env)
+      env r opts
+
+-- | Normalized (to Glean) paths
+data FileReference =
+  FileReference {
+    _repoName :: !RepoName,
+    theGleanPath :: !GleanPath
+  }
+
+toFileReference :: RepoName -> Path -> FileReference
+toFileReference repo path =
+  FileReference repo (toGleanPath $ SymbolRepoPath repo path)
+
+repoPathToMirror :: RepoName -> Path -> Maybe Mirror
+repoPathToMirror repository (Path filepath) =
+  let isReqInMirror (Mirror mirrorRepo prefix _) =
+        repository == mirrorRepo && isPrefixOf prefix filepath in
+  find isReqInMirror mirrorConfig
+
+translateMirroredRepoListXResult
+  :: DocumentSymbolsRequest
+  -> DocumentSymbolListXResult
+  -> DocumentSymbolListXResult
+translateMirroredRepoListXResult
+  (DocumentSymbolsRequest repository path _ _ _ _) res =
+  case repoPathToMirror repository path of
+    Just (Mirror mirror prefix origin) ->
+      Utils.translateDocumentSymbolListXResult origin mirror prefix Nothing res
+    _ -> res
+
+fetchSymbolsAndAttributesGlean
+  :: Glean.Backend b
+  => Glass.Env
+  -> GleanDBInfo
+  -> DocumentSymbolsRequest
+  -> RequestOptions
+  -> GleanBackend b
+  -> Maybe (Some Glean.Backend, GleanDBInfo)
+  -> Maybe Language
+  -> IO (
+       (DocumentSymbolListXResult, QueryEachRepoLog, GleanGlassLogger),
+       Maybe ErrorLogger
+     )
+fetchSymbolsAndAttributesGlean
+  env@Glass.Env{tracer, gleanBackend, sourceControl}
+  dbInfo req opts be mOtherBackend mlang = do
+  (res1, gLogs, elogs) <- traceSpan tracer "fetchDocumentSymbols" $
+    fetchDocumentSymbols env file path mlimit
+      (requestOptions_revision opts)
+      (requestOptions_exact_revision opts)
+      withContentHash
+      fetchContent
+      ExtraSymbolOpts{..} be mlang dbInfo (requestOptions_attribute_opts opts)
+
+  res1 <- if oAmendLinesOnRevisionMismatch
+          then amendRefLinesIfMismatch res1
+          else return res1
+
+  (res2, attributesLog) <- do
+    (t, result) <- elapsedTime $ traceSpan tracer "addDynamicAttributes" $
+      addDynamicAttributes env dbInfo repo opts
+        file mlimit be res1
+    let metricName = if attributeOptions_fetch_default_view (requestOptions_attribute_opts opts)
+                     then "glass.dynamic_attributes.default_view.latency_ms"
+                     else "glass.dynamic_attributes.perf_view.latency_ms"
+    Stats.addStatValueType metricName (toDiffMillis t) Stats.Avg
+    return result
+
+  let be = fromMaybe (gleanBackend, dbInfo) mOtherBackend
+  res3 <- resolveXlangXrefs env path res2 repo be mlang
+
+  let res4 = toDocumentSymbolResult res3
+  let res5 = translateMirroredRepoListXResult req res4
+  return ((res5, gLogs, attributesLog), elogs)
+  where
+    repo = documentSymbolsRequest_repository req
+    path = documentSymbolsRequest_filepath req
+    file = toFileReference repo path
+    oIncludeRefs = documentSymbolsRequest_include_refs req
+    oLineRange = documentSymbolsRequest_range req
+    withContentHash = shouldFetchContentHash opts
+    fetchContent = documentSymbolsRequest_include_content req
+    oIncludeXlangRefs = documentSymbolsRequest_include_xlang_refs req
+    oAmendLinesOnRevisionMismatch = maybe False
+      featureFlags_amend_lines_on_revision_mismatch (requestOptions_feature_flags opts)
+
+    mlimit = Just (fromIntegral (fromMaybe mAXIMUM_SYMBOLS_QUERY_LIMIT
+      (requestOptions_limit opts)))
+
+    amendRefLinesIfMismatch res = do
+      case requestOptions_revision opts of
+        Nothing -> return res -- no requested revision, no need to amend
+        Just revision1 -> do
+          let revision2 = revision res
+          match <- fromMaybe False <$> contentMatch revision1 revision2
+          if match
+            then return res -- revision match, no need to amend
+            else
+              let op = do
+                  -- obtain line mapping from source diff
+                  diffResult <- backendRunHaxl be env $
+                    withRepo (snd (NonEmpty.head (gleanDBs be))) $ do
+                      getFileLineDiff sourceControl repo path revision1 revision2
+                  let mapping = parseGitDiff diffResult
+                      -- apply line mapping to references and definitions
+                  return res {
+                    refs  = applyLineMappingToRefs mapping (refs res),
+                    defs = applyLineMappingToDefs mapping (defs res)
+                  }
+              in do
+                (t, result) <- elapsedTime op
+                let metricName = "glass.amend_lines.latency_ms"
+                Stats.addStatValueType metricName (toDiffMillis t) Stats.Avg
+                return result
+
+    contentMatch myrev wantedrev
+      | myrev == wantedrev = return (Just True)
+      | otherwise = let
+          op = backendRunHaxl be env $
+            withRepo (snd (NonEmpty.head (gleanDBs be))) $ do
+              wanted <- getFileContentHash sourceControl repo path wantedrev
+              mine <- getFileContentHash sourceControl repo path myrev
+              return $ (==) <$> wanted <*> mine
+        in do (t, result) <- elapsedTime op
+              let metricName = "glass.content_match.latency_ms"
+              Stats.addStatValueType metricName (toDiffMillis t) Stats.Avg
+              return result
+
+
+shouldFetchContentHash :: RequestOptions -> Bool
+shouldFetchContentHash opts =
+  not (requestOptions_exact_revision opts) &&
+  (requestOptions_content_check opts ||
+    requestOptions_matching_revision opts)
+
+type FetchDocumentSymbols =
+  ((DocumentSymbolListXResult, SnapshotStatus,
+    QueryEachRepoLog, GleanGlassLogger), Maybe ErrorLogger)
+
+-- | When an explicit revision is requested, we attempt to fetch both
+-- Glean results and a snapshot. This function chooses which result to
+-- use based on the requested revision, the revision of the result and
+-- RequestOptions.
+chooseGleanOrSnapshot
+  :: Glean.Backend b
+  => Glass.Env
+  -> GleanDBInfo
+  -> RepoName
+  -> RequestOptions
+  -> FileReference
+  -> Maybe Int
+  -> GleanBackend b
+  -> Revision
+  -> (
+       (DocumentSymbolListXResult, QueryEachRepoLog, GleanGlassLogger),
+       Maybe ErrorLogger
+     )
+     -- ^ Glean result
+  -> Either
+       SnapshotStatus
+       (Revision, DocumentSymbolListXResult, Maybe Bool)
+     -- ^ Snapshot result (with deferred fetch)
+  -> IO FetchDocumentSymbols
+chooseGleanOrSnapshot env dbInfo repo RequestOptions{..} repofile mlimit be
+    revision glean esnapshot =
+  if isRevisionHit revision glean
+    then returnGlean
+    else case esnapshot of
+      Right (rev, res, _) | rev == revision ->
+        returnSnapshotConditionally env dbInfo repo (RequestOptions{..})
+          repofile mlimit be res Snapshot.ExactMatch
+      _ | requestOptions_matching_revision &&
+          not requestOptions_exact_revision ->
+        doMatching
+      _ ->
+        returnGlean
+  where
+    returnGlean = return $
+      addStatus (fromLeft Snapshot.Ignored esnapshot) glean
+
+    doMatching = do
+      let gleanContentMatch = resultContentMatch glean
+      case gleanContentMatch of
+        Just True -> returnGlean
+        _ -> case esnapshot of
+          Right (_, res, match) ->
+            if match == Just True
+              then returnSnapshotConditionally env dbInfo repo (RequestOptions{..})
+                     repofile mlimit be res Snapshot.CompatibleMatch
+              else return $ empty Snapshot.Ignored
+          Left s -> return $ empty s
+      where
+      empty status =
+        ((toDocumentSymbolResult(emptyDocumentSymbols revision)
+          , status
+          , FoundNone, mempty)
+        , Just $ logError $
+            GlassExceptionReason_matchingRevisionNotAvailable $
+              unRevision revision
+        )
+
+    addStatus st ((res, gleanLog, attributesLog), mlogger) =
+      ((res, st, gleanLog, attributesLog), mlogger)
+
+    getResultRevision ((x, _ ,_), _) = documentSymbolListXResult_revision x
+    isRevisionHit rev = (== rev) . getResultRevision
+
+    resultContentMatch ((r, _, _), _) =
+      documentSymbolListXResult_content_match r
+
+-- | Set content_match field based on snapshot status
+setContentMatchForSnapshot
+  :: SnapshotStatus
+  -> DocumentSymbolListXResult
+  -> DocumentSymbolListXResult
+setContentMatchForSnapshot match res = case match of
+  Snapshot.ExactMatch -> matchYes
+  Snapshot.CompatibleMatch -> matchYes
+  _ -> res
+  where
+    matchYes = res { documentSymbolListXResult_content_match = Just True }
+
+returnSnapshot
+  :: DocumentSymbolListXResult
+  -> SnapshotStatus
+  -> FetchDocumentSymbols
+returnSnapshot queryResult match =
+  ((setContentMatchForSnapshot match queryResult, match,
+    QueryEachRepoUnrequested, mempty), Nothing)
+
+-- | Helper function to conditionally return snapshot with or without attributes
+-- based on RequestOptions attribute settings
+returnSnapshotConditionally
+  :: Glean.Backend b
+  => Glass.Env
+  -> GleanDBInfo
+  -> RepoName
+  -> RequestOptions
+  -> FileReference
+  -> Maybe Int
+  -> GleanBackend b
+  -> DocumentSymbolListXResult
+  -> SnapshotStatus
+  -> IO FetchDocumentSymbols
+returnSnapshotConditionally env dbInfo repo opts repofile mlimit be res match =
+  if attributeOptions_fetch_per_line_data (requestOptions_attribute_opts opts) ||
+     attributeOptions_fetch_default_view (requestOptions_attribute_opts opts)
+  then returnSnapshotWithAttributes env dbInfo repo opts repofile mlimit be res match
+  else return $ returnSnapshot res match
+
+-- | Process snapshot result through addDynamicAttributes pipeline
+returnSnapshotWithAttributes
+  :: Glean.Backend b
+  => Glass.Env
+  -> GleanDBInfo
+  -> RepoName
+  -> RequestOptions
+  -> FileReference
+  -> Maybe Int
+  -> GleanBackend b
+  -> DocumentSymbolListXResult
+  -> SnapshotStatus
+  -> IO FetchDocumentSymbols
+returnSnapshotWithAttributes env dbInfo repo opts repofile mlimit be
+    queryResult match = do
+  -- Convert DocumentSymbolListXResult back to DocumentSymbols for processing
+  let docSymbols = fromDocumentSymbolResult queryResult
+
+  (res2, attributesLog) <- addDynamicAttributes env dbInfo repo opts
+    repofile mlimit be docSymbols
+  let finalResult = toDocumentSymbolResult res2
+
+  return ((setContentMatchForSnapshot match finalResult, match, QueryEachRepoUnrequested,
+    attributesLog), Nothing)
+
+-- | Convert DocumentSymbolListXResult back to DocumentSymbols for
+-- attribute processing.
+-- Note: This creates dummy Code.Entity values since snapshot results
+-- don't have full entity data
+fromDocumentSymbolResult :: DocumentSymbolListXResult -> DocumentSymbols
+fromDocumentSymbolResult DocumentSymbolListXResult{..} = DocumentSymbols
+  { refs = map createDummyRefEntity documentSymbolListXResult_references
+  , defs = map createDummyDefEntity documentSymbolListXResult_definitions
+  , revision = documentSymbolListXResult_revision
+  , contentMatch = documentSymbolListXResult_content_match
+  , truncated = documentSymbolListXResult_truncated
+  , digest = documentSymbolListXResult_digest
+  , xref_digests = documentSymbolListXResult_referenced_file_digests
+  , unresolvedXrefsXlang = []
+  , srcFile = Nothing
+  , offsets = Nothing
+  , attributes = documentSymbolListXResult_attributes
+  , content = documentSymbolListXResult_content
+  }
+  where
+    createDummyRefEntity :: ReferenceRangeSymbolX ->
+      (Code.Entity, ReferenceRangeSymbolX)
+    createDummyRefEntity ref = (createDummyEntity, ref)
+
+    createDummyDefEntity :: DefinitionSymbolX ->
+      (Code.Entity, DefinitionSymbolX)
+    createDummyDefEntity def = (createDummyEntity, def)
+
+    createDummyEntity :: Code.Entity
+    createDummyEntity = Code.Entity_EMPTY
+
+-- | Fall back to the best snapshot available for new files (not yet in repo)
+fallbackForNewFiles
+  :: SnapshotBackend snapshotBackend
+  => Glass.Env
+  -> RequestOptions
+  -> snapshotBackend
+  -> RepoName
+  -> Path
+  -> FetchDocumentSymbols
+  -> IO FetchDocumentSymbols
+fallbackForNewFiles Glass.Env{..} RequestOptions{..} snapshotbe repo file res
+  | ((_,_,_,_), Just ErrorLogger {errorTy}) <- res, all isNoSrcFileFact errorTy,
+    -- assume it's a new file if no src.File fact
+    Just revision <- requestOptions_revision,
+    not requestOptions_exact_revision = do
+      gen <- getGeneration sourceControl repo revision
+      bestSnapshot <- getSnapshot tracer snapshotbe repo file Nothing gen
+      case bestSnapshot of
+        Right (_, fetch) ->
+          maybe res (`returnSnapshot` Snapshot.Latest) <$> fetch
+        Left _ ->
+          return res
+  | otherwise =
+    return res
+  where
+    isNoSrcFileFact GlassExceptionReason_noSrcFileFact{} = True
+    isNoSrcFileFact _ = False
+
+-- Find all symbols and refs in file and add all attributes
+fetchSymbolsAndAttributes
+  :: (Glean.Backend b, SnapshotBackend snapshotBackend)
+  => Glass.Env
+  -> GleanDBInfo
+  -> DocumentSymbolsRequest
+  -> RequestOptions
+  -> GleanBackend b
+  -> snapshotBackend
+  -> Maybe Language
+  -> IO (
+      (DocumentSymbolListXResult, SnapshotStatus, QueryEachRepoLog,
+         GleanGlassLogger),
+      Maybe ErrorLogger
+    )
+fetchSymbolsAndAttributes env@Glass.Env{..} dbInfo req
+  opts@RequestOptions{..} be snapshotbe mlang = do
+  res <- case requestOptions_revision of
+    Nothing ->
+      addStatus Snapshot.Unrequested <$> getFromGlean
+    Just revision -> do
+      (esnapshot, glean) <- Async.concurrently
+        (traceSpan tracer "getSnapshot" $ getFromSnapshot revision)
+        (traceSpan tracer "getFromGlean" getFromGlean)
+      chooseGleanOrSnapshot env dbInfo repo opts (toFileReference repo file)
+        Nothing be revision glean esnapshot
+
+  fallbackForNewFiles env opts snapshotbe repo file res
+  where
+    file = documentSymbolsRequest_filepath req
+    repo = documentSymbolsRequest_repository req
+
+    addStatus st ((res, gleanLog, attributeLog), mlogger) =
+      ((res, st, gleanLog, attributeLog), mlogger)
+
+    getFromSnapshot revision = do
+      let matching = requestOptions_matching_revision &&
+            not requestOptions_exact_revision
+      gen <-
+        if matching
+          then getGeneration sourceControl repo revision
+          else return Nothing
+      res <- getSnapshot tracer snapshotbe repo file (Just revision) gen
+      case res of
+        Left s -> return (Left s)
+        Right (snapshotRev, fetch) -> do
+          let result Nothing _ = Left Snapshot.InternalError
+              result (Just res) match = Right (snapshotRev, res, match)
+          if matching
+            then do
+              (content, match) <- Async.concurrently
+                fetch
+                (contentMatch snapshotRev revision)
+              return $ result content match
+            else do
+              content <- fetch
+              return $ result content Nothing
+
+    contentMatch myrev wantedrev
+      | myrev == wantedrev = return (Just True)
+      | otherwise =
+        backendRunHaxl be env $
+          withRepo (snd (NonEmpty.head (gleanDBs be))) $ do
+            wanted <- getFileContentHash sourceControl repo file wantedrev
+            mine <- getFileContentHash sourceControl repo file myrev
+            return $ (==) <$> wanted <*> mine
+              -- Nothing if either getContentHash failed
+
+    getFromGlean =
+      Glass.withAllocationLimit env $
+        fetchSymbolsAndAttributesGlean env dbInfo req opts be Nothing mlang
+
+xRefDataToRefEntitySymbol :: XRefData -> (Code.Entity, ReferenceRangeSymbolX)
+xRefDataToRefEntitySymbol XRefData{..} = (xrefEntity, xrefSymbol)
+
+-- Find all references and definitions in a file that might be in a set of repos
+fetchDocumentSymbols
+  :: Glean.Backend b
+  => Glass.Env
+  -> FileReference
+  -> Path  -- ^ original path in the repo
+  -> Maybe Int
+  -> Maybe Revision
+  -> Bool  -- ^ exact revision only?
+  -> Bool  -- ^ fetch file content hash?
+  -> Bool  -- ^ fetch file content
+  -> ExtraSymbolOpts
+  -> GleanBackend b
+  -> Maybe Language
+  -> GleanDBInfo
+  -> AttributeOptions
+  -> IO (DocumentSymbols, QueryEachRepoLog, Maybe ErrorLogger)
+fetchDocumentSymbols env@Glass.Env{..} (FileReference scsrepo path)
+    repoPath mlimit wantedRevision exactRevision fetchContentHash fetchContent
+    extraOpts b mlang dbInfo attrOpts = do
+  backendRunHaxl b env $ do
+    --
+    -- we pick the first db in the list that has the full FileInfo{..}
+    -- and in exact_revision mode the rev also has to match precisely
+    --
+    efile <- firstOrErrors $ do
+      repo <- Glean.haxlRepo
+      if not (revisionAcceptable repo)
+        then return $ Left $ GlassExceptionReason_exactRevisionNotAvailable $
+          revisionSpecifierError wantedRevision
+        else do
+          res <- getFileInfo repo path
+          return $ case res of
+            Left _ -> res
+            Right fi@FileInfo{..}
+              | not isIndexed -> Left $ GlassExceptionReason_notIndexedFile $
+                case indexFailure of
+                  Nothing -> "Not indexed: " <> gleanPath path
+                  Just Src.IndexFailure_key{..} -> Text.pack $
+                      show indexFailure_key_reason
+                      <> ": " <>
+                      show indexFailure_key_details
+              | otherwise -> Right fi
+
+    case efile of
+      Left err -> do
+        let logs = logError err <> logError (gleanDBs b)
+        return (emptyDocumentSymbols (revision b), FoundNone, Just logs)
+        where
+          -- Use first db's revision
+          revision GleanBackend {gleanDBs = ((_, repo) :| _)} =
+            getDBRevision (scmRevisions dbInfo) repo scsrepo
+
+      Right (FileInfo{..}, gleanDataLog) -> do
+
+        -- from Glean, fetch xrefs and defs in two batches
+        (xrefs, defns, truncated) <- withRepo fileRepo $
+          documentSymbolsForLanguage
+            mlimit mlang extraOpts
+            fileId
+        -- todo this could be done in Glean in a single pass
+        (kinds, _, merr) <- withRepo fileRepo $
+          documentSymbolKinds mlimit mlang fileId attrOpts
+
+        content <-
+          if fetchContent then
+            withRepo fileRepo $ Utils.fetchData $ Query.fileContent fileId
+          else
+            return Nothing
+
+        let revision = getDBRevision (scmRevisions dbInfo) fileRepo scsrepo
+        contentMatch <- case wantedRevision of
+          Nothing -> return Nothing
+          Just wanted
+            | wanted == revision -> return (Just True)
+            | fetchContentHash -> withRepo fileRepo $ do
+              let getHash = getFileContentHash sourceControl scsrepo repoPath
+              contentHash <- getHash revision
+              wantedHash <- getHash wanted
+              return $ (==) <$> contentHash <*> wantedHash
+                -- Nothing if either getContentHash failed
+            | otherwise ->
+              return Nothing
+
+        let xrefsPlain = [ (refloc, ent) | PlainXRef (refloc, ent) <- xrefs ]
+
+        refsPlain <- withRepo fileRepo $
+          mapM (toReferenceSymbolPlain scsrepo srcFile offsets) xrefsPlain
+
+        -- mark up symbols into normal format with static attributes
+
+        defs1 <- withRepo fileRepo $
+          mapM (toDefinitionSymbol scsrepo srcFile offsets) defns
+
+        xref_digests <- withRepo fileRepo $ do
+          let fileMap = xrefFileMap refsPlain
+          results <- fetchFileDigests (Map.size fileMap) (Map.keys fileMap)
+          toDigestMap fileMap results
+
+        let digest = toDigest <$> fileDigest
+
+        -- only handle XlangEntities with known entity
+        let unresolvedXrefsXlang = [ ref | XlangXRef ref <- xrefs ]
+
+        let (refs, defs, _) = Attributes.augmentSymbols
+              Attributes.SymbolKindAttr
+              kinds
+              (xRefDataToRefEntitySymbol <$> refsPlain)
+              defs1
+              attrOpts
+
+        return (DocumentSymbols {
+                 srcFile = Just srcFile,
+                 attributes = Nothing,
+                 ..
+                },
+                gleanDataLog, merr)
+
+  where
+    revisionAcceptable :: Glean.Repo -> Bool
+    revisionAcceptable = case wantedRevision of
+      Just rev | exactRevision -> \repo ->
+        getDBRevision (scmRevisions dbInfo) repo scsrepo == rev
+      _otherwise -> const True
+
+    -- We will lookup digests by file id, but return to the user a map by
+    -- glass path and scm repo
+    xrefFileMap :: [XRefData] -> Map.Map (Glean.IdOf Src.File) (RepoName, Path)
+    xrefFileMap xrefs = Map.fromList $ map (\XRefData{..} ->
+        (xrefFile,
+          let LocationRange{..} = referenceRangeSymbolX_target xrefSymbol
+          in (locationRange_repository, locationRange_filepath)
+      )) xrefs
+
+-- | Xlang xrefs needs db determination and range resolution
+--   possibly using a separate backend than the one computed
+--   from the origin query.
+--   Always choose latest db, as exactRevision can't usually be
+--   enforced for xlang refs
+resolveXlangXrefs
+  :: Glean.Backend b
+  => Glass.Env
+  -> Path
+  -> DocumentSymbols
+  -> RepoName
+  -> (b, GleanDBInfo)
+  -> Maybe Language
+  -> IO DocumentSymbols
+resolveXlangXrefs
+    env@Glass.Env{tracer, sourceControl, repoMapping}
+    path
+    docSyms@DocumentSymbols{..}
+    scsrepo
+    (gleanBackend, dbInfo)
+    sourceLang = do
+  case (unresolvedXrefsXlang, srcFile) of
+    ((_, xref) : _, Just srcFile) -> do
+       -- we assume all xlang xrefs belong to the same db
+       -- we pick the xlang dbs based on target lang and
+       -- repo. Corner case: the document is in a mirror repo,
+       -- use to origin repo to determine xlang db
+      let targetLang = targetLanguage xref sourceLang
+          targetRepo = case repoPathToMirror scsrepo path of
+              Just (Mirror _mirror _prefix origin) -> origin
+              Nothing -> scsrepo
+      gleanDBs <- getGleanRepos tracer sourceControl repoMapping dbInfo
+        targetRepo (Just targetLang) Nothing ChooseLatest Nothing
+      let gleanBe = GleanBackend {gleanDBs, tracer, gleanBackend}
+      let (ents, symbols) =
+            partitionEithers $ mapMaybe (mangle targetLang) unresolvedXrefsXlang
+      xlangRefs <- backendRunHaxl gleanBe env $ do
+        xrefsXlang <- join <$>
+          mapM (\gleanDB -> withRepo (snd gleanDB) $ do
+            xrefs <- resolveEntitiesRange targetRepo symbols ents
+            mapM
+              (toReferenceSymbolXlang targetRepo srcFile offsets targetLang)
+              xrefs)
+          (NonEmpty.toList gleanDBs)
+        return $ xRefDataToRefEntitySymbol <$> xrefsXlang
+      return $ docSyms  { refs = refs ++ xlangRefs, unresolvedXrefsXlang = [] }
+    _ -> return docSyms
+  where
+    targetLanguage xref mlang =
+      case xref of
+        Left (Code.IdlEntity _ _ ent _)  ->
+          maybe (Language__UNKNOWN 0) entityLanguage ent
+        Right _ ->
+          case mlang of
+            Just Language_Swift -> Language_Cpp
+            _ -> Language__UNKNOWN 0
+
+    mangle :: Language -> XlangXRef
+      -> Maybe (Either
+        (Code.Entity, Code.RangeSpan) (Code.SymbolId, Code.RangeSpan))
+    mangle targetLang (range, ref) = case ref of
+      Left (Code.IdlEntity _ _ mEnt _) ->
+        Left . (,range) <$> mEnt
+      Right symbol ->
+        Just $ Right $ (,range) $ translateSymbol sourceLang targetLang symbol
+
+    translateSymbol ::
+      Maybe Language -> Language -> Code.SymbolId -> Code.SymbolId
+    translateSymbol
+        (Just Language_Swift)
+        Language_Cpp
+        (Code.SymbolId_swift (Scip.Symbol _ (Just usr))) =
+      Code.SymbolId_cxx $ hashUSR usr
+    translateSymbol _ _ symId = symId
+
+-- | Wrapper for tracking symbol/entity pairs through processing
+data DocumentSymbols = DocumentSymbols
+  { refs :: [(Code.Entity, ReferenceRangeSymbolX)]
+  , defs :: [(Code.Entity, DefinitionSymbolX)]
+  , revision :: !Revision
+  , contentMatch :: Maybe Bool
+  , truncated :: !Bool
+  , digest :: Maybe FileDigest
+  , xref_digests :: Map.Map Text FileDigestMap
+  , unresolvedXrefsXlang :: [XlangXRef]
+  , srcFile :: Maybe Src.File
+  , offsets :: Maybe Range.LineOffsets
+  , attributes :: Maybe AttributeList
+  , content :: Maybe Text
+  }
+
+emptyDocumentSymbols :: Revision -> DocumentSymbols
+emptyDocumentSymbols revision =
+  DocumentSymbols [] [] revision Nothing False Nothing mempty mempty Nothing
+    Nothing Nothing Nothing
+
+-- | Drop any remnant entities after we are done with them
+toDocumentSymbolResult :: DocumentSymbols -> DocumentSymbolListXResult
+toDocumentSymbolResult DocumentSymbols{..} = DocumentSymbolListXResult{..}
+  where
+    documentSymbolListXResult_references = map snd refs
+    documentSymbolListXResult_definitions = map snd defs
+    documentSymbolListXResult_revision = revision
+    documentSymbolListXResult_truncated = truncated
+    documentSymbolListXResult_digest = digest
+    documentSymbolListXResult_referenced_file_digests = xref_digests
+    documentSymbolListXResult_content_match = contentMatch
+    documentSymbolListXResult_attributes = attributes
+    documentSymbolListXResult_content = content
+    documentSymbolListXResult_auth_status = Nothing
+    documentSymbolListXResult_auth_message = Nothing
+
+
+
+-- And build a line-indexed map of symbols, resolved to spans
+-- With extra attributes loaded from any associated attr db
+fetchDocumentSymbolIndex
+  :: (Glean.Backend b, SnapshotBackend snapshotBackend)
+  => Glass.Env
+  -> GleanDBInfo
+  -> DocumentSymbolsRequest
+  -> RequestOptions
+  -> GleanBackend b
+  -> snapshotBackend
+  -> Maybe Language
+  -> IO ((
+    DocumentSymbolIndex, SnapshotStatus,
+    QueryEachRepoLog, GleanGlassLogger),
+    Maybe ErrorLogger)
+fetchDocumentSymbolIndex env latest req opts be
+    snapshotbe mlang = do
+  ((DocumentSymbolListXResult{..}, status, gleanDataLog, attrLog), merr1) <-
+    fetchSymbolsAndAttributes env latest req opts be snapshotbe mlang
+
+  --  refs defs revision truncated digest = result
+  let lineIndex = toSymbolIndex documentSymbolListXResult_references
+        documentSymbolListXResult_definitions
+      totalSymCount = length documentSymbolListXResult_references +
+        length documentSymbolListXResult_definitions
+
+  let idxResult = DocumentSymbolIndex {
+        documentSymbolIndex_symbols = lineIndex,
+        documentSymbolIndex_revision = documentSymbolListXResult_revision,
+        documentSymbolIndex_size = fromIntegral totalSymCount,
+        documentSymbolIndex_truncated = documentSymbolListXResult_truncated,
+        documentSymbolIndex_digest = documentSymbolListXResult_digest,
+        documentSymbolIndex_referenced_file_digests =
+          documentSymbolListXResult_referenced_file_digests,
+        documentSymbolIndex_content_match =
+          documentSymbolListXResult_content_match,
+        documentSymbolIndex_attributes = documentSymbolListXResult_attributes,
+        documentSymbolIndex_auth_status = Nothing,
+        documentSymbolIndex_auth_message = Nothing,
+        documentSymbolIndex_content = documentSymbolListXResult_content
+      }
+  return ((idxResult, status, gleanDataLog, attrLog), merr1)
+
+-- | Same repo generic attributes
+documentSymbolKinds
+  :: Maybe Int
+  -> Maybe Language
+  -> Glean.IdOf Src.File
+  -> AttributeOptions
+  -> Glean.RepoHaxl u w
+     ([Attributes.AttrRep Attributes.SymbolKindAttr],
+     [Attributes.FileAttrRep Attributes.SymbolKindAttr],
+     Maybe ErrorLogger)
+
+-- It's not sound to key for all entities in file in C++ , due to traces
+-- So we can't use the generic a attribute technique
+documentSymbolKinds _mlimit (Just Language_Cpp) _fileId _ =
+  return mempty
+
+-- Anything else, just load from Glean
+documentSymbolKinds mlimit _ fileId attrOpts =
+  searchFileAttributes Attributes.SymbolKindAttr mlimit fileId attrOpts
+    NilSourceControl (RepoName "") (Path "") (Revision "")
+
+searchFileAttributes
+  :: (Attributes.ToAttributes key, SourceControl scm, Glean.HasRepo u)
+  => key
+  -> Maybe Int
+  -> Glean.IdOf Src.File
+  -> AttributeOptions
+  -> scm
+  -> RepoName
+  -> Path
+  -> Revision
+  -> Glean.RepoHaxl u w
+    ([Attributes.AttrRep key], [Attributes.FileAttrRep key], Maybe ErrorLogger)
+searchFileAttributes key mlimit fileId attrOpts sourceControl scsrepo repoPath revision = do
+  eraw_file <- (
+    if attributeOptions_fetch_per_line_data attrOpts then
+        searchFileAttributesMetadata key mlimit fileId attrOpts revision
+    else
+        mempty)
+
+  eraw <- try $ Attributes.queryForFile key mlimit fileId attrOpts
+    sourceControl scsrepo repoPath revision eraw_file
+  repo <- Glean.haxlRepo
+  case eraw of
+    Left (err::SomeException) -- logic errors or transient errors
+      -> return
+        (mempty, mempty,
+        Just (logError (GlassExceptionReason_attributesError $ textShow err)
+              <> logError repo))
+    Right raw
+      -> return (raw,eraw_file, Nothing)
+
+searchFileAttributesMetadata
+  :: Attributes.ToAttributes key
+  => key
+  -> Maybe Int
+  -> Glean.IdOf Src.File
+  -> AttributeOptions
+  -> Revision
+  -> Glean.RepoHaxl u w [Attributes.FileAttrRep key]
+searchFileAttributesMetadata key mlimit fileId attrOpts rev = do
+  eraw_file <-
+    try $ Attributes.queryMetadataForFile key mlimit fileId attrOpts rev
+  case eraw_file of
+    Left (_::SomeException) -> return mempty
+    Right raw -> return raw
+
+data XRefData = XRefData
+  { xrefEntity :: !Code.Entity
+  , xrefSymbol :: !ReferenceRangeSymbolX
+  , xrefFile :: {-# UNPACK #-}!(Glean.IdOf Src.File)
+  }
+
+-- | Convert an Xlang/Plain xref to a normal format
+--   (includes attribute, source/target spans, symbol id)
+toReferenceSymbolGen
+  :: RepoName
+  -> Src.File
+  -> Maybe Range.LineOffsets
+  -> Code.RangeSpan
+  -> Src.File
+  -> Code.Entity
+  -> LocationRange
+  -> Maybe Src.FileLocation
+  -> Maybe Language
+  -> Glean.RepoHaxl u w XRefData
+toReferenceSymbolGen repoName file srcOffsets rangeSpanSrc xrefFile xrefEntity
+  xrefRange mDestination mLang = do
+  path <- GleanPath <$> Glean.keyOf file
+  sym <- toSymbolId (fromGleanPath repoName path) xrefEntity
+  attributes <- getStaticAttributes xrefEntity repoName sym mLang
+  (target, xrefFile) <- case mDestination of
+    -- if we have a best identifier location
+    Just (Src.FileLocation fileLocation_file fileLocation_span) -> do
+      let rangeSpan = Code.RangeSpan_span fileLocation_span
+      t <- rangeSpanToLocationRange repoName fileLocation_file rangeSpan
+      return (t, Glean.getId fileLocation_file)
+    _ -> do
+      return (xrefRange, Glean.getId xrefFile)
+  -- resolved the local span to a location
+  let range = rangeSpanToRange srcOffsets rangeSpanSrc
+      xrefSymbol = ReferenceRangeSymbolX sym range target attributes
+  return $ XRefData xrefEntity xrefSymbol xrefFile
+
+-- | Convert plain entity to normal format
+--   adapter to toReferenceSymbolGen
+toReferenceSymbolPlain
+  :: RepoName
+  -> Src.File
+  -> Maybe Range.LineOffsets
+  -> XRef
+  -> Glean.RepoHaxl u w XRefData
+toReferenceSymbolPlain
+  repoName file srcOffsets (Code.XRefLocation{..}, xrefEntity) = do
+    -- reference target is a Declaration and an Entity
+    let Code.Location{..} = xRefLocation_target
+    xrefRange <- rangeSpanToLocationRange repoName location_file
+      location_location
+    toReferenceSymbolGen repoName file srcOffsets xRefLocation_source
+      location_file xrefEntity xrefRange location_destination Nothing
+
+-- | Convert xlang entity to normal format
+--   adapter to toReferenceSymbolGen
+toReferenceSymbolXlang
+  :: RepoName
+  -> Src.File
+  -> Maybe Range.LineOffsets
+  -> Language
+  -> ((Code.Entity, Code.RangeSpan), (Src.File, LocationRange))
+  -> Glean.RepoHaxl u w XRefData
+toReferenceSymbolXlang
+  repoName file srcOffsets lang
+  ((xrefEntity, rangeSpanSrc), (xlangFile, xrefRange)) = do
+    toReferenceSymbolGen repoName file srcOffsets rangeSpanSrc xlangFile
+      xrefEntity xrefRange Nothing (Just lang)
+
+-- | Building a resolved definition symbol is just taking a direct xref to it,
+-- and converting the bytespan, adding any static attributes
+toDefinitionSymbol
+  :: RepoName
+  -> Src.File
+  -> Maybe Range.LineOffsets
+  -> (Code.Location, Code.Entity)
+  -> Glean.RepoHaxl u w (Code.Entity, DefinitionSymbolX)
+toDefinitionSymbol repoName file offsets (Code.Location {..}, entity) = do
+  path <- GleanPath <$> Glean.keyOf file
+  let symbolRepoPath@(SymbolRepoPath symbolRepo symbolPath) =
+        fromGleanPath repoName path
+  sym <- toSymbolId symbolRepoPath entity
+  attributes <- getStaticAttributes entity repoName sym Nothing
+  destination <- forM location_destination $ \Src.FileLocation{..} ->
+    let rangeSpan = Code.RangeSpan_span fileLocation_span in
+    rangeSpanToLocationRange repoName fileLocation_file rangeSpan
+
+  -- full entity range (i.e. body of the method + signature)
+  let range = rangeSpanToRange offsets location_location
+  -- entity name/identifying location range (the name token for go-to-def)
+  let nameRange = case destination of
+        Just LocationRange{..} | symbolRepo == locationRange_repository &&
+                                 symbolPath == locationRange_filepath
+          -> Just locationRange_range
+        _ -> Nothing
+
+  return $ (entity,) $ DefinitionSymbolX sym range nameRange attributes
+
+-- | Decorate an entity with 'static' attributes.
+-- These are static in that they are derivable from the entity and
+-- schema information alone, without additional repos.
+-- They're expected to be cheap, as we call these once per entity in a file
+getStaticAttributes
+  :: Code.Entity
+  -> RepoName
+  -> SymbolId
+  -> Maybe Language  -- Xlang language
+  -> Glean.RepoHaxl u w AttributeList
+getStaticAttributes e repo sym mLang = memo $ do
+  mLocalName <- toSymbolLocalName e
+  mParent <- toSymbolQualifiedContainer e -- the "parent" of the symbol
+  (mSignature, _xrefs) <- toSymbolSignatureText e repo sym Cxx.Unqualified
+  mKind <- entityKind e -- optional glass-side symbol kind labels
+  return $ AttributeList $ map (\(a,b) -> KeyedAttribute a b) $ catMaybes
+    [ asLocalName <$> mLocalName
+    , asParentAttr <$> mParent
+    , asSignature  <$> mSignature
+    , asKind <$> mKind
+    , Just $ asLanguage (entityLanguage e)
+    , asDefinitionType <$> entityDefinitionType e
+    , asLang =<< mLang
+    ]
+  where
+    asLocalName (Name local) = ("symbolName", Attribute_aString local)
+    asParentAttr (Name x) = ("symbolParent", Attribute_aString x)
+    asSignature sig = ("symbolSignature", Attribute_aString sig)
+    asKind kind = ("symbolKind",
+      Attribute_aInteger (fromIntegral $ fromThriftEnum kind))
+    asLanguage lang = ("symbolLanguage",
+      Attribute_aInteger (fromIntegral $ fromThriftEnum lang))
+    asDefinitionType kind = ("symbolDefinitionType",
+      Attribute_aInteger (fromIntegral $ fromThriftEnum kind))
+    asLang Language_Thrift = Just ("crossLanguage",
+      Attribute_aString "thrift")
+    asLang Language_Python = Just ("crossLanguage",
+      Attribute_aString "python")
+    asLang _ = Nothing
+
+    -- memoizing getStaticAttributes can save a lot of work because a
+    -- symbol reference often occurs multiple times in a file.
+    memo act
+      | memoizable e = do
+        gleanRepo <- Glean.haxlRepo
+        Haxl.memo (GetStaticAttributes (gleanRepo, prune e, mLang)) act
+      | otherwise = act
+
+    -- languages that support Prune
+    memoizable Code.Entity_cxx{} = True
+    memoizable Code.Entity_hack{} = True
+    memoizable Code.Entity_python{} = True
+    memoizable _ = False
+
+newtype GetStaticAttributes =
+  GetStaticAttributes (Glean.Repo, Code.Entity, Maybe Language)
+  deriving (Eq, Hashable)
+
+-- -----------------------------------------------------------------------------
+-- Attributes
+
+
+--
+-- | Check if this db / lang pair has additional dynamic attributes
+-- and add them if so
+--
+addDynamicAttributes
+  :: Glean.Backend b
+  => Glass.Env
+  -> GleanDBInfo
+  -> RepoName
+  -> RequestOptions
+  -> FileReference
+  -> Maybe Int
+  -> GleanBackend b
+  -> DocumentSymbols
+  -> IO (DocumentSymbols, GleanGlassLogger)
+addDynamicAttributes env dbInfo repo opts repofile mlimit be syms = do
+  -- combine additional dynamic attributes
+  (mattrs, fattrs) <-
+   getSymbolAttributes env dbInfo repo opts repofile mlimit be (revision syms)
+  return $ extend mattrs [] [] syms fattrs
+  where
+    extend [] log dblog syms _ = (syms, logResult log <> logResult dblog)
+    extend (augment : xs) log dblog syms [] =
+     extend xs newLog newDBLog
+       (syms { refs = refs' , defs = defs', attributes =  Nothing }) []
+      where
+      (refs',defs',log', dblog') = augment (refs syms) (defs syms)
+      newLog = log' : log
+      newDBLog = dblog' : dblog
+    extend (augment : xs) log dblog syms f =
+      extend xs newLog newDBLog
+       (syms { refs = refs' , defs = defs', attributes = flattenAttrs }) f
+      where
+      (refs',defs',log', dblog') = augment (refs syms) (defs syms)
+
+      flattenAttrs :: Maybe AttributeList
+      flattenAttrs = mconcat f
+      newLog = log' : log
+      newDBLog = dblog' : dblog
+
+type Augment =
+   [Attributes.RefEntitySymbol] ->
+   [Attributes.DefEntitySymbol] ->
+   ([Attributes.RefEntitySymbol],
+    [Attributes.DefEntitySymbol],
+    AttrStatsLog, AttrDBsLog)
+
+-- Work out if we have extra attribute dbs and then run the queries
+getSymbolAttributes
+  :: Glean.Backend b
+  => Glass.Env
+  -> GleanDBInfo
+  -> RepoName
+  -> RequestOptions
+  -> FileReference
+  -> Maybe Int
+  -> GleanBackend b
+  -> Revision
+  -> IO ([Augment], [Maybe AttributeList])
+getSymbolAttributes env dbInfo repo opts repofile mlimit
+    be@GleanBackend{..} revision = do
+  let mlanguage = fileLanguage $
+        symbolPath $ fromGleanPath repo (theGleanPath repofile)
+  mAttrDBs <-
+    getLatestAttrDBs tracer (sourceControl env) (Glass.repoMapping env)
+      dbInfo repo mlanguage
+  backendRunHaxl be env $ do
+    -- An individual attr DB may be missing from Glean (e.g. dropped after a
+    -- broken pipeline left it stale; see S660964). Catch per-DB so a single
+    -- failure doesn't take down the whole symbol-list response. Glean fetches
+    -- go through `dataFetch`, which propagates IO exceptions into the Haxl
+    -- monad so `Haxl.try` can catch them.
+    attrsTuples <- fmap catMaybes $ forM mAttrDBs $
+      \(attrDB, GleanDBAttrName _ attrKey{- existential key -}) -> do
+        result <- Haxl.try $ withRepo attrDB $ do
+          (attrs,fileAttrs,_merr2) <- genericFetchFileAttributes
+            attrKey
+            (theGleanPath repofile)
+            mlimit
+            (requestOptions_attribute_opts opts)
+            (sourceControl env)
+            (_repoName repofile)
+            (symbolPath (fromGleanPath (_repoName repofile) (theGleanPath repofile)))
+            (fromMaybe revision (requestOptions_revision opts))
+
+          let augment refs defs = case Attributes.augmentSymbols
+                attrKey attrs refs defs (requestOptions_attribute_opts opts) of
+                 (refs, defs, log) ->
+                  (refs, defs, AttrStatsLog $ TL.toStrict $ encodeToLazyText $ Attributes.toLogText log, AttrDBsLog attrDB)
+
+          let fileAttributes = case fileAttrs of
+               [] -> Nothing
+               f -> Attributes.fileAttrsToAttributeList attrKey f
+
+          return (augment, fileAttributes)
+        case result of
+          Right ok -> return (Just ok)
+          Left (_ :: SomeException) -> return Nothing
+
+    let (augments, fileAttrs) = unzip attrsTuples
+    return (augments, fileAttrs)
+
+
+-- | External (non-local db) Attributes of symbols. Just Hack only for now
+genericFetchFileAttributes
+  :: (Attributes.ToAttributes key, SourceControl scm, Glean.HasRepo u)
+  => key
+  -> GleanPath
+  -> Maybe Int
+  -> AttributeOptions
+  -> scm
+  -> RepoName
+  -> Path
+  -> Revision
+  -> RepoHaxl u w (
+     [Attributes.AttrRep key],
+     [Attributes.FileAttrRep key],
+     Maybe ErrorLogger)
+genericFetchFileAttributes key path mlimit attrOpts sourceControl scsrepo repoPath revision = do
+  efile <- getFile path
+  repo <- Glean.haxlRepo
+  case efile of
+    Left err ->
+      return (mempty, mempty, Just (logError err <> logError repo))
+    Right fileId -> do searchFileAttributes
+                        key mlimit (Glean.getId fileId) attrOpts sourceControl scsrepo repoPath revision

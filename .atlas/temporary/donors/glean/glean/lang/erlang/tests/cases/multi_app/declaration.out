@@ -1,0 +1,123 @@
+[
+  "@generated",
+  {
+    "key": {
+      "fqn": { "module": "client", "name": "batch_send", "arity": 1 },
+      "app": "app_b"
+    }
+  },
+  {
+    "key": {
+      "fqn": { "module": "client", "name": "send_request", "arity": 1 },
+      "app": "app_b"
+    }
+  },
+  {
+    "key": {
+      "fqn": { "module": "erlang", "name": "integer_to_list", "arity": 1 },
+      "app": "erts"
+    }
+  },
+  {
+    "key": {
+      "fqn": { "module": "erlang", "name": "unique_integer", "arity": 0 },
+      "app": "erts"
+    }
+  },
+  {
+    "key": {
+      "fqn": { "module": "gen_server", "name": "start", "arity": 3 },
+      "app": "stdlib"
+    }
+  },
+  {
+    "key": {
+      "fqn": { "module": "internal", "name": "run", "arity": 0 },
+      "app": "app_b"
+    }
+  },
+  {
+    "key": {
+      "fqn": { "module": "io_lib", "name": "format", "arity": 2 },
+      "app": "stdlib"
+    }
+  },
+  {
+    "key": {
+      "fqn": { "module": "lists", "name": "filter", "arity": 2 },
+      "app": "stdlib"
+    }
+  },
+  {
+    "key": {
+      "fqn": { "module": "lists", "name": "flatten", "arity": 1 },
+      "app": "stdlib"
+    }
+  },
+  {
+    "key": {
+      "fqn": { "module": "lists", "name": "map", "arity": 2 },
+      "app": "stdlib"
+    }
+  },
+  {
+    "key": {
+      "fqn": { "module": "server", "name": "handle_call", "arity": 3 },
+      "app": "app_a"
+    }
+  },
+  {
+    "key": {
+      "fqn": { "module": "server", "name": "handle_cast", "arity": 2 },
+      "app": "app_a"
+    }
+  },
+  {
+    "key": {
+      "fqn": { "module": "server", "name": "handle_request", "arity": 1 },
+      "app": "app_a"
+    }
+  },
+  {
+    "key": {
+      "fqn": { "module": "server", "name": "init", "arity": 1 },
+      "app": "app_a"
+    }
+  },
+  {
+    "key": {
+      "fqn": { "module": "server", "name": "old_api", "arity": 1 },
+      "app": "app_a"
+    }
+  },
+  {
+    "key": {
+      "fqn": { "module": "server", "name": "process_request", "arity": 1 },
+      "app": "app_a"
+    }
+  },
+  {
+    "key": {
+      "fqn": { "module": "server", "name": "start", "arity": 0 },
+      "app": "app_a"
+    }
+  },
+  {
+    "key": {
+      "fqn": { "module": "utils", "name": "format_id", "arity": 1 },
+      "app": "app_a"
+    }
+  },
+  {
+    "key": {
+      "fqn": { "module": "utils", "name": "retry_delay", "arity": 1 },
+      "app": "app_a"
+    }
+  },
+  {
+    "key": {
+      "fqn": { "module": "utils", "name": "validate", "arity": 1 },
+      "app": "app_a"
+    }
+  }
+]

@@ -1,0 +1,10 @@
+{
+  "@generated": null,
+  "facts_searched": { },
+  "full_scans": [
+    "cxx1.FunctionDeclarationByNameScope.5",
+    "cxx1.FunctionLowerCase.5",
+    "cxx1.TypeAliasDeclarationByName.5",
+    "cxx1.TypeAliasLowerCase.5"
+  ]
+}

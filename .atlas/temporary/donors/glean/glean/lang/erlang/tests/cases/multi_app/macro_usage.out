@@ -1,0 +1,24 @@
+[
+  "@generated",
+  {
+    "key": {
+      "name": "MAX_RETRIES",
+      "module": "shared.hrl",
+      "app": "app_a",
+      "expansion": "```erlang\u000a3\u000a```",
+      "links": [ ],
+      "content_hash": "5558081704974656472"
+    }
+  },
+  {
+    "key": {
+      "name": "TRANSFORM",
+      "module": "shared.hrl",
+      "arity": 1,
+      "app": "app_a",
+      "expansion": "```erlang\u000a{\u000a    ok,\u000a    {\u000a        Id,\u000a        Payload\u000a    }\u000a}\u000a```",
+      "links": [ ],
+      "content_hash": "7323829409885166836"
+    }
+  }
+]

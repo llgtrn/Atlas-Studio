@@ -1,0 +1,2062 @@
+[
+    "@generated",
+    {
+        "definitions": [
+            {
+                "attributes": [
+                    {
+                        "attribute": {
+                            "aInteger": 7
+                        },
+                        "key": "symbolKind"
+                    },
+                    {
+                        "attribute": {
+                            "aString": "c:@M@SwiftObjc@objc(cs)SwiftCaller"
+                        },
+                        "key": "symbolName"
+                    },
+                    {
+                        "attribute": {
+                            "aString": ""
+                        },
+                        "key": "symbolParent"
+                    },
+                    {
+                        "attribute": {
+                            "aInteger": 20
+                        },
+                        "key": "symbolLanguage"
+                    }
+                ],
+                "range": {
+                    "columnBegin": 14,
+                    "columnEnd": 25,
+                    "lineBegin": 15,
+                    "lineEnd": 15
+                },
+                "sym": "test-xlang/swift/c:%40M%40SwiftObjc%40objc%28cs%29SwiftCaller"
+            },
+            {
+                "attributes": [
+                    {
+                        "attribute": {
+                            "aInteger": 11
+                        },
+                        "key": "symbolKind"
+                    },
+                    {
+                        "attribute": {
+                            "aString": "c:@M@SwiftObjc@objc(cs)SwiftCaller(im)init"
+                        },
+                        "key": "symbolName"
+                    },
+                    {
+                        "attribute": {
+                            "aString": ""
+                        },
+                        "key": "symbolParent"
+                    },
+                    {
+                        "attribute": {
+                            "aInteger": 20
+                        },
+                        "key": "symbolLanguage"
+                    }
+                ],
+                "range": {
+                    "columnBegin": 19,
+                    "columnEnd": 23,
+                    "lineBegin": 23,
+                    "lineEnd": 23
+                },
+                "sym": "test-xlang/swift/c:%40M%40SwiftObjc%40objc%28cs%29SwiftCaller%28im%29init"
+            },
+            {
+                "attributes": [
+                    {
+                        "attribute": {
+                            "aInteger": 8
+                        },
+                        "key": "symbolKind"
+                    },
+                    {
+                        "attribute": {
+                            "aString": "s:9SwiftObjc0A6CallerC13useCFunctionsyyF"
+                        },
+                        "key": "symbolName"
+                    },
+                    {
+                        "attribute": {
+                            "aString": ""
+                        },
+                        "key": "symbolParent"
+                    },
+                    {
+                        "attribute": {
+                            "aInteger": 20
+                        },
+                        "key": "symbolLanguage"
+                    }
+                ],
+                "range": {
+                    "columnBegin": 15,
+                    "columnEnd": 28,
+                    "lineBegin": 126,
+                    "lineEnd": 126
+                },
+                "sym": "test-xlang/swift/s:9SwiftObjc0A6CallerC13useCFunctionsyyF"
+            },
+            {
+                "attributes": [
+                    {
+                        "attribute": {
+                            "aInteger": 8
+                        },
+                        "key": "symbolKind"
+                    },
+                    {
+                        "attribute": {
+                            "aString": "s:9SwiftObjc0A6CallerC14accessPropertyyyF"
+                        },
+                        "key": "symbolName"
+                    },
+                    {
+                        "attribute": {
+                            "aString": ""
+                        },
+                        "key": "symbolParent"
+                    },
+                    {
+                        "attribute": {
+                            "aInteger": 20
+                        },
+                        "key": "symbolLanguage"
+                    }
+                ],
+                "range": {
+                    "columnBegin": 15,
+                    "columnEnd": 29,
+                    "lineBegin": 57,
+                    "lineEnd": 57
+                },
+                "sym": "test-xlang/swift/s:9SwiftObjc0A6CallerC14accessPropertyyyF"
+            },
+            {
+                "attributes": [
+                    {
+                        "attribute": {
+                            "aInteger": 8
+                        },
+                        "key": "symbolKind"
+                    },
+                    {
+                        "attribute": {
+                            "aString": "s:9SwiftObjc0A6CallerC14useClassMethodyyF"
+                        },
+                        "key": "symbolName"
+                    },
+                    {
+                        "attribute": {
+                            "aString": ""
+                        },
+                        "key": "symbolParent"
+                    },
+                    {
+                        "attribute": {
+                            "aInteger": 20
+                        },
+                        "key": "symbolLanguage"
+                    }
+                ],
+                "range": {
+                    "columnBegin": 15,
+                    "columnEnd": 29,
+                    "lineBegin": 86,
+                    "lineEnd": 86
+                },
+                "sym": "test-xlang/swift/s:9SwiftObjc0A6CallerC14useClassMethodyyF"
+            },
+            {
+                "attributes": [
+                    {
+                        "attribute": {
+                            "aInteger": 8
+                        },
+                        "key": "symbolKind"
+                    },
+                    {
+                        "attribute": {
+                            "aString": "s:9SwiftObjc0A6CallerC16callSimpleMethodyyF"
+                        },
+                        "key": "symbolName"
+                    },
+                    {
+                        "attribute": {
+                            "aString": ""
+                        },
+                        "key": "symbolParent"
+                    },
+                    {
+                        "attribute": {
+                            "aInteger": 20
+                        },
+                        "key": "symbolLanguage"
+                    }
+                ],
+                "range": {
+                    "columnBegin": 15,
+                    "columnEnd": 31,
+                    "lineBegin": 48,
+                    "lineEnd": 48
+                },
+                "sym": "test-xlang/swift/s:9SwiftObjc0A6CallerC16callSimpleMethodyyF"
+            },
+            {
+                "attributes": [
+                    {
+                        "attribute": {
+                            "aInteger": 8
+                        },
+                        "key": "symbolKind"
+                    },
+                    {
+                        "attribute": {
+                            "aString": "s:9SwiftObjc0A6CallerC18useStructsAndEnumsyyF"
+                        },
+                        "key": "symbolName"
+                    },
+                    {
+                        "attribute": {
+                            "aString": ""
+                        },
+                        "key": "symbolParent"
+                    },
+                    {
+                        "attribute": {
+                            "aInteger": 20
+                        },
+                        "key": "symbolLanguage"
+                    }
+                ],
+                "range": {
+                    "columnBegin": 15,
+                    "columnEnd": 33,
+                    "lineBegin": 95,
+                    "lineEnd": 95
+                },
+                "sym": "test-xlang/swift/s:9SwiftObjc0A6CallerC18useStructsAndEnumsyyF"
+            },
+            {
+                "attributes": [
+                    {
+                        "attribute": {
+                            "aInteger": 8
+                        },
+                        "key": "symbolKind"
+                    },
+                    {
+                        "attribute": {
+                            "aString": "s:9SwiftObjc0A6CallerC23processStringWithBridgeyyF"
+                        },
+                        "key": "symbolName"
+                    },
+                    {
+                        "attribute": {
+                            "aString": ""
+                        },
+                        "key": "symbolParent"
+                    },
+                    {
+                        "attribute": {
+                            "aInteger": 20
+                        },
+                        "key": "symbolLanguage"
+                    }
+                ],
+                "range": {
+                    "columnBegin": 15,
+                    "columnEnd": 38,
+                    "lineBegin": 70,
+                    "lineEnd": 70
+                },
+                "sym": "test-xlang/swift/s:9SwiftObjc0A6CallerC23processStringWithBridgeyyF"
+            },
+            {
+                "attributes": [
+                    {
+                        "attribute": {
+                            "aInteger": 8
+                        },
+                        "key": "symbolKind"
+                    },
+                    {
+                        "attribute": {
+                            "aString": "s:9SwiftObjc0A6CallerC6bridge33_EC0358B8BDBDC9E141C34E05E63BE117LLSo0aB6BridgeCvg"
+                        },
+                        "key": "symbolName"
+                    },
+                    {
+                        "attribute": {
+                            "aString": ""
+                        },
+                        "key": "symbolParent"
+                    },
+                    {
+                        "attribute": {
+                            "aInteger": 20
+                        },
+                        "key": "symbolLanguage"
+                    }
+                ],
+                "range": {
+                    "columnBegin": 15,
+                    "columnEnd": 21,
+                    "lineBegin": 18,
+                    "lineEnd": 18
+                },
+                "sym": "test-xlang/swift/s:9SwiftObjc0A6CallerC6bridge33_EC0358B8BDBDC9E141C34E05E63BE117LLSo0aB6BridgeCvg"
+            },
+            {
+                "attributes": [
+                    {
+                        "attribute": {
+                            "aString": "s:9SwiftObjc0A6CallerC6bridge33_EC0358B8BDBDC9E141C34E05E63BE117LLSo0aB6BridgeCvp"
+                        },
+                        "key": "symbolName"
+                    },
+                    {
+                        "attribute": {
+                            "aString": ""
+                        },
+                        "key": "symbolParent"
+                    },
+                    {
+                        "attribute": {
+                            "aInteger": 20
+                        },
+                        "key": "symbolLanguage"
+                    }
+                ],
+                "range": {
+                    "columnBegin": 15,
+                    "columnEnd": 21,
+                    "lineBegin": 18,
+                    "lineEnd": 18
+                },
+                "sym": "test-xlang/swift/s:9SwiftObjc0A6CallerC6bridge33_EC0358B8BDBDC9E141C34E05E63BE117LLSo0aB6BridgeCvp"
+            },
+            {
+                "attributes": [
+                    {
+                        "attribute": {
+                            "aInteger": 8
+                        },
+                        "key": "symbolKind"
+                    },
+                    {
+                        "attribute": {
+                            "aString": "s:9SwiftObjc0A6CallerC6bridge33_EC0358B8BDBDC9E141C34E05E63BE117LLSo0aB6BridgeCvs"
+                        },
+                        "key": "symbolName"
+                    },
+                    {
+                        "attribute": {
+                            "aString": ""
+                        },
+                        "key": "symbolParent"
+                    },
+                    {
+                        "attribute": {
+                            "aInteger": 20
+                        },
+                        "key": "symbolLanguage"
+                    }
+                ],
+                "range": {
+                    "columnBegin": 15,
+                    "columnEnd": 21,
+                    "lineBegin": 18,
+                    "lineEnd": 18
+                },
+                "sym": "test-xlang/swift/s:9SwiftObjc0A6CallerC6bridge33_EC0358B8BDBDC9E141C34E05E63BE117LLSo0aB6BridgeCvs"
+            }
+        ],
+        "referenced_file_digests": {},
+        "references": [
+            {
+                "attributes": [
+                    {
+                        "attribute": {
+                            "aString": "NSObject"
+                        },
+                        "key": "symbolName"
+                    },
+                    {
+                        "attribute": {
+                            "aString": ""
+                        },
+                        "key": "symbolParent"
+                    },
+                    {
+                        "attribute": {
+                            "aInteger": 1
+                        },
+                        "key": "symbolLanguage"
+                    },
+                    {
+                        "attribute": {
+                            "aInteger": 2
+                        },
+                        "key": "symbolDefinitionType"
+                    }
+                ],
+                "range": {
+                    "columnBegin": 27,
+                    "columnEnd": 35,
+                    "lineBegin": 15,
+                    "lineEnd": 15
+                },
+                "sym": "test-xlang/cpp/fbobjc/NSObject/.decl",
+                "target": {
+                    "filepath": "buck-out/glean-indexer/art/fbsource/digest_50f85c75e5d76949b8623e93c88886ad0e941e94/toolchains/apple/__xcode_26.2.0_17c52-iphonesimulator-sdk_genrule-actual__/e5e3cbbf737d97c8/iPhoneSimulator26.2.sdk/usr/include/objc/NSObject.h",
+                    "range": {
+                        "columnBegin": 1,
+                        "columnEnd": 5,
+                        "lineBegin": 53,
+                        "lineEnd": 111
+                    },
+                    "repository": "test-xlang"
+                }
+            },
+            {
+                "attributes": [
+                    {
+                        "attribute": {
+                            "aString": "ProcessingStatus"
+                        },
+                        "key": "symbolName"
+                    },
+                    {
+                        "attribute": {
+                            "aString": ""
+                        },
+                        "key": "symbolParent"
+                    },
+                    {
+                        "attribute": {
+                            "aString": "enum ProcessingStatus : NSInteger"
+                        },
+                        "key": "symbolSignature"
+                    },
+                    {
+                        "attribute": {
+                            "aInteger": 12
+                        },
+                        "key": "symbolKind"
+                    },
+                    {
+                        "attribute": {
+                            "aInteger": 1
+                        },
+                        "key": "symbolLanguage"
+                    },
+                    {
+                        "attribute": {
+                            "aInteger": 2
+                        },
+                        "key": "symbolDefinitionType"
+                    }
+                ],
+                "range": {
+                    "columnBegin": 17,
+                    "columnEnd": 33,
+                    "lineBegin": 97,
+                    "lineEnd": 97
+                },
+                "sym": "test-xlang/cpp/fbobjc/ProcessingStatus/.decl",
+                "target": {
+                    "filepath": "fbobjc/Extra/GleanTests/SwiftObjc/Objc/ObjcInterface.h",
+                    "range": {
+                        "columnBegin": 9,
+                        "columnEnd": 2,
+                        "lineBegin": 15,
+                        "lineEnd": 20
+                    },
+                    "repository": "test-xlang"
+                }
+            },
+            {
+                "attributes": [
+                    {
+                        "attribute": {
+                            "aString": "ProcessingStatus"
+                        },
+                        "key": "symbolName"
+                    },
+                    {
+                        "attribute": {
+                            "aString": ""
+                        },
+                        "key": "symbolParent"
+                    },
+                    {
+                        "attribute": {
+                            "aString": "enum ProcessingStatus : NSInteger"
+                        },
+                        "key": "symbolSignature"
+                    },
+                    {
+                        "attribute": {
+                            "aInteger": 12
+                        },
+                        "key": "symbolKind"
+                    },
+                    {
+                        "attribute": {
+                            "aInteger": 1
+                        },
+                        "key": "symbolLanguage"
+                    },
+                    {
+                        "attribute": {
+                            "aInteger": 2
+                        },
+                        "key": "symbolDefinitionType"
+                    }
+                ],
+                "range": {
+                    "columnBegin": 24,
+                    "columnEnd": 40,
+                    "lineBegin": 105,
+                    "lineEnd": 105
+                },
+                "sym": "test-xlang/cpp/fbobjc/ProcessingStatus/.decl",
+                "target": {
+                    "filepath": "fbobjc/Extra/GleanTests/SwiftObjc/Objc/ObjcInterface.h",
+                    "range": {
+                        "columnBegin": 9,
+                        "columnEnd": 2,
+                        "lineBegin": 15,
+                        "lineEnd": 20
+                    },
+                    "repository": "test-xlang"
+                }
+            },
+            {
+                "attributes": [
+                    {
+                        "attribute": {
+                            "aString": "ProcessingStatus"
+                        },
+                        "key": "symbolName"
+                    },
+                    {
+                        "attribute": {
+                            "aString": ""
+                        },
+                        "key": "symbolParent"
+                    },
+                    {
+                        "attribute": {
+                            "aString": "enum ProcessingStatus : NSInteger"
+                        },
+                        "key": "symbolSignature"
+                    },
+                    {
+                        "attribute": {
+                            "aInteger": 12
+                        },
+                        "key": "symbolKind"
+                    },
+                    {
+                        "attribute": {
+                            "aInteger": 1
+                        },
+                        "key": "symbolLanguage"
+                    },
+                    {
+                        "attribute": {
+                            "aInteger": 2
+                        },
+                        "key": "symbolDefinitionType"
+                    }
+                ],
+                "range": {
+                    "columnBegin": 23,
+                    "columnEnd": 39,
+                    "lineBegin": 140,
+                    "lineEnd": 140
+                },
+                "sym": "test-xlang/cpp/fbobjc/ProcessingStatus/.decl",
+                "target": {
+                    "filepath": "fbobjc/Extra/GleanTests/SwiftObjc/Objc/ObjcInterface.h",
+                    "range": {
+                        "columnBegin": 9,
+                        "columnEnd": 2,
+                        "lineBegin": 15,
+                        "lineEnd": 20
+                    },
+                    "repository": "test-xlang"
+                }
+            },
+            {
+                "attributes": [
+                    {
+                        "attribute": {
+                            "aString": "SwiftObjcBridge"
+                        },
+                        "key": "symbolName"
+                    },
+                    {
+                        "attribute": {
+                            "aString": ""
+                        },
+                        "key": "symbolParent"
+                    },
+                    {
+                        "attribute": {
+                            "aInteger": 1
+                        },
+                        "key": "symbolLanguage"
+                    },
+                    {
+                        "attribute": {
+                            "aInteger": 2
+                        },
+                        "key": "symbolDefinitionType"
+                    }
+                ],
+                "range": {
+                    "columnBegin": 24,
+                    "columnEnd": 39,
+                    "lineBegin": 18,
+                    "lineEnd": 18
+                },
+                "sym": "test-xlang/cpp/fbobjc/SwiftObjcBridge/.decl",
+                "target": {
+                    "filepath": "fbobjc/Extra/GleanTests/SwiftObjc/Objc/ObjcInterface.h",
+                    "range": {
+                        "columnBegin": 1,
+                        "columnEnd": 5,
+                        "lineBegin": 57,
+                        "lineEnd": 79
+                    },
+                    "repository": "test-xlang"
+                }
+            },
+            {
+                "attributes": [
+                    {
+                        "attribute": {
+                            "aString": "SwiftObjcBridge"
+                        },
+                        "key": "symbolName"
+                    },
+                    {
+                        "attribute": {
+                            "aString": ""
+                        },
+                        "key": "symbolParent"
+                    },
+                    {
+                        "attribute": {
+                            "aInteger": 1
+                        },
+                        "key": "symbolLanguage"
+                    },
+                    {
+                        "attribute": {
+                            "aInteger": 2
+                        },
+                        "key": "symbolDefinitionType"
+                    }
+                ],
+                "range": {
+                    "columnBegin": 18,
+                    "columnEnd": 33,
+                    "lineBegin": 88,
+                    "lineEnd": 88
+                },
+                "sym": "test-xlang/cpp/fbobjc/SwiftObjcBridge/.decl",
+                "target": {
+                    "filepath": "fbobjc/Extra/GleanTests/SwiftObjc/Objc/ObjcInterface.h",
+                    "range": {
+                        "columnBegin": 1,
+                        "columnEnd": 5,
+                        "lineBegin": 57,
+                        "lineEnd": 79
+                    },
+                    "repository": "test-xlang"
+                }
+            },
+            {
+                "attributes": [
+                    {
+                        "attribute": {
+                            "aString": "andB"
+                        },
+                        "key": "symbolName"
+                    },
+                    {
+                        "attribute": {
+                            "aString": "SwiftObjcBridge::computeValueWithA"
+                        },
+                        "key": "symbolParent"
+                    },
+                    {
+                        "attribute": {
+                            "aInteger": 8
+                        },
+                        "key": "symbolKind"
+                    },
+                    {
+                        "attribute": {
+                            "aInteger": 1
+                        },
+                        "key": "symbolLanguage"
+                    },
+                    {
+                        "attribute": {
+                            "aInteger": 2
+                        },
+                        "key": "symbolDefinitionType"
+                    }
+                ],
+                "range": {
+                    "columnBegin": 34,
+                    "columnEnd": 46,
+                    "lineBegin": 88,
+                    "lineEnd": 88
+                },
+                "sym": "test-xlang/cpp/fbobjc/SwiftObjcBridge/computeValueWithA/andB/.decl",
+                "target": {
+                    "filepath": "fbobjc/Extra/GleanTests/SwiftObjc/Objc/ObjcInterface.m",
+                    "range": {
+                        "columnBegin": 1,
+                        "columnEnd": 2,
+                        "lineBegin": 61,
+                        "lineEnd": 64
+                    },
+                    "repository": "test-xlang"
+                }
+            },
+            {
+                "attributes": [
+                    {
+                        "attribute": {
+                            "aString": "withFlag"
+                        },
+                        "key": "symbolName"
+                    },
+                    {
+                        "attribute": {
+                            "aString": "SwiftObjcBridge::processString"
+                        },
+                        "key": "symbolParent"
+                    },
+                    {
+                        "attribute": {
+                            "aInteger": 8
+                        },
+                        "key": "symbolKind"
+                    },
+                    {
+                        "attribute": {
+                            "aInteger": 1
+                        },
+                        "key": "symbolLanguage"
+                    },
+                    {
+                        "attribute": {
+                            "aInteger": 2
+                        },
+                        "key": "symbolDefinitionType"
+                    }
+                ],
+                "range": {
+                    "columnBegin": 30,
+                    "columnEnd": 43,
+                    "lineBegin": 75,
+                    "lineEnd": 75
+                },
+                "sym": "test-xlang/cpp/fbobjc/SwiftObjcBridge/processString/withFlag/.decl",
+                "target": {
+                    "filepath": "fbobjc/Extra/GleanTests/SwiftObjc/Objc/ObjcInterface.m",
+                    "range": {
+                        "columnBegin": 1,
+                        "columnEnd": 2,
+                        "lineBegin": 52,
+                        "lineEnd": 59
+                    },
+                    "repository": "test-xlang"
+                }
+            },
+            {
+                "attributes": [
+                    {
+                        "attribute": {
+                            "aString": "withFlag"
+                        },
+                        "key": "symbolName"
+                    },
+                    {
+                        "attribute": {
+                            "aString": "SwiftObjcBridge::processString"
+                        },
+                        "key": "symbolParent"
+                    },
+                    {
+                        "attribute": {
+                            "aInteger": 8
+                        },
+                        "key": "symbolKind"
+                    },
+                    {
+                        "attribute": {
+                            "aInteger": 1
+                        },
+                        "key": "symbolLanguage"
+                    },
+                    {
+                        "attribute": {
+                            "aInteger": 2
+                        },
+                        "key": "symbolDefinitionType"
+                    }
+                ],
+                "range": {
+                    "columnBegin": 30,
+                    "columnEnd": 43,
+                    "lineBegin": 79,
+                    "lineEnd": 79
+                },
+                "sym": "test-xlang/cpp/fbobjc/SwiftObjcBridge/processString/withFlag/.decl",
+                "target": {
+                    "filepath": "fbobjc/Extra/GleanTests/SwiftObjc/Objc/ObjcInterface.m",
+                    "range": {
+                        "columnBegin": 1,
+                        "columnEnd": 2,
+                        "lineBegin": 52,
+                        "lineEnd": 59
+                    },
+                    "repository": "test-xlang"
+                }
+            },
+            {
+                "attributes": [
+                    {
+                        "attribute": {
+                            "aString": "simpleMethod"
+                        },
+                        "key": "symbolName"
+                    },
+                    {
+                        "attribute": {
+                            "aString": "SwiftObjcBridge"
+                        },
+                        "key": "symbolParent"
+                    },
+                    {
+                        "attribute": {
+                            "aInteger": 8
+                        },
+                        "key": "symbolKind"
+                    },
+                    {
+                        "attribute": {
+                            "aInteger": 1
+                        },
+                        "key": "symbolLanguage"
+                    },
+                    {
+                        "attribute": {
+                            "aInteger": 2
+                        },
+                        "key": "symbolDefinitionType"
+                    }
+                ],
+                "range": {
+                    "columnBegin": 12,
+                    "columnEnd": 24,
+                    "lineBegin": 50,
+                    "lineEnd": 50
+                },
+                "sym": "test-xlang/cpp/fbobjc/SwiftObjcBridge/simpleMethod/.decl",
+                "target": {
+                    "filepath": "fbobjc/Extra/GleanTests/SwiftObjc/Objc/ObjcInterface.m",
+                    "range": {
+                        "columnBegin": 1,
+                        "columnEnd": 2,
+                        "lineBegin": 47,
+                        "lineEnd": 50
+                    },
+                    "repository": "test-xlang"
+                }
+            },
+            {
+                "attributes": [
+                    {
+                        "attribute": {
+                            "aString": "calculateDistance(Point2D, Point2D)"
+                        },
+                        "key": "symbolName"
+                    },
+                    {
+                        "attribute": {
+                            "aString": ""
+                        },
+                        "key": "symbolParent"
+                    },
+                    {
+                        "attribute": {
+                            "aString": "CGFloat calculateDistance(Point2D point1, Point2D point2)"
+                        },
+                        "key": "symbolSignature"
+                    },
+                    {
+                        "attribute": {
+                            "aInteger": 14
+                        },
+                        "key": "symbolKind"
+                    },
+                    {
+                        "attribute": {
+                            "aInteger": 1
+                        },
+                        "key": "symbolLanguage"
+                    },
+                    {
+                        "attribute": {
+                            "aInteger": 2
+                        },
+                        "key": "symbolDefinitionType"
+                    }
+                ],
+                "range": {
+                    "columnBegin": 20,
+                    "columnEnd": 37,
+                    "lineBegin": 132,
+                    "lineEnd": 132
+                },
+                "sym": "test-xlang/cpp/fbobjc/calculateDistance/.f/Point2D,Point2D/.decl",
+                "target": {
+                    "filepath": "fbobjc/Extra/GleanTests/SwiftObjc/Objc/ObjcInterface.m",
+                    "range": {
+                        "columnBegin": 1,
+                        "columnEnd": 2,
+                        "lineBegin": 14,
+                        "lineEnd": 19
+                    },
+                    "repository": "test-xlang"
+                }
+            },
+            {
+                "attributes": [
+                    {
+                        "attribute": {
+                            "aString": "createDefaultConfig(NSInteger)"
+                        },
+                        "key": "symbolName"
+                    },
+                    {
+                        "attribute": {
+                            "aString": ""
+                        },
+                        "key": "symbolParent"
+                    },
+                    {
+                        "attribute": {
+                            "aString": "ConfigData createDefaultConfig(NSInteger identifier)"
+                        },
+                        "key": "symbolSignature"
+                    },
+                    {
+                        "attribute": {
+                            "aInteger": 14
+                        },
+                        "key": "symbolKind"
+                    },
+                    {
+                        "attribute": {
+                            "aInteger": 1
+                        },
+                        "key": "symbolLanguage"
+                    },
+                    {
+                        "attribute": {
+                            "aInteger": 2
+                        },
+                        "key": "symbolDefinitionType"
+                    }
+                ],
+                "range": {
+                    "columnBegin": 18,
+                    "columnEnd": 37,
+                    "lineBegin": 117,
+                    "lineEnd": 117
+                },
+                "sym": "test-xlang/cpp/fbobjc/createDefaultConfig/.f/NSInteger/.decl",
+                "target": {
+                    "filepath": "fbobjc/Extra/GleanTests/SwiftObjc/Objc/ObjcInterface.m",
+                    "range": {
+                        "columnBegin": 1,
+                        "columnEnd": 2,
+                        "lineBegin": 21,
+                        "lineEnd": 29
+                    },
+                    "repository": "test-xlang"
+                }
+            },
+            {
+                "attributes": [
+                    {
+                        "attribute": {
+                            "aString": "createDefaultConfig(NSInteger)"
+                        },
+                        "key": "symbolName"
+                    },
+                    {
+                        "attribute": {
+                            "aString": ""
+                        },
+                        "key": "symbolParent"
+                    },
+                    {
+                        "attribute": {
+                            "aString": "ConfigData createDefaultConfig(NSInteger identifier)"
+                        },
+                        "key": "symbolSignature"
+                    },
+                    {
+                        "attribute": {
+                            "aInteger": 14
+                        },
+                        "key": "symbolKind"
+                    },
+                    {
+                        "attribute": {
+                            "aInteger": 1
+                        },
+                        "key": "symbolLanguage"
+                    },
+                    {
+                        "attribute": {
+                            "aInteger": 2
+                        },
+                        "key": "symbolDefinitionType"
+                    }
+                ],
+                "range": {
+                    "columnBegin": 18,
+                    "columnEnd": 37,
+                    "lineBegin": 136,
+                    "lineEnd": 136
+                },
+                "sym": "test-xlang/cpp/fbobjc/createDefaultConfig/.f/NSInteger/.decl",
+                "target": {
+                    "filepath": "fbobjc/Extra/GleanTests/SwiftObjc/Objc/ObjcInterface.m",
+                    "range": {
+                        "columnBegin": 1,
+                        "columnEnd": 2,
+                        "lineBegin": 21,
+                        "lineEnd": 29
+                    },
+                    "repository": "test-xlang"
+                }
+            },
+            {
+                "attributes": [
+                    {
+                        "attribute": {
+                            "aString": "isValidStatus(ProcessingStatus)"
+                        },
+                        "key": "symbolName"
+                    },
+                    {
+                        "attribute": {
+                            "aString": ""
+                        },
+                        "key": "symbolParent"
+                    },
+                    {
+                        "attribute": {
+                            "aString": "BOOL isValidStatus(ProcessingStatus status)"
+                        },
+                        "key": "symbolSignature"
+                    },
+                    {
+                        "attribute": {
+                            "aInteger": 14
+                        },
+                        "key": "symbolKind"
+                    },
+                    {
+                        "attribute": {
+                            "aInteger": 1
+                        },
+                        "key": "symbolLanguage"
+                    },
+                    {
+                        "attribute": {
+                            "aInteger": 2
+                        },
+                        "key": "symbolDefinitionType"
+                    }
+                ],
+                "range": {
+                    "columnBegin": 19,
+                    "columnEnd": 32,
+                    "lineBegin": 101,
+                    "lineEnd": 101
+                },
+                "sym": "test-xlang/cpp/fbobjc/isValidStatus/.f/ProcessingStatus/.decl",
+                "target": {
+                    "filepath": "fbobjc/Extra/GleanTests/SwiftObjc/Objc/ObjcInterface.m",
+                    "range": {
+                        "columnBegin": 1,
+                        "columnEnd": 2,
+                        "lineBegin": 31,
+                        "lineEnd": 34
+                    },
+                    "repository": "test-xlang"
+                }
+            },
+            {
+                "attributes": [
+                    {
+                        "attribute": {
+                            "aString": "isValidStatus(ProcessingStatus)"
+                        },
+                        "key": "symbolName"
+                    },
+                    {
+                        "attribute": {
+                            "aString": ""
+                        },
+                        "key": "symbolParent"
+                    },
+                    {
+                        "attribute": {
+                            "aString": "BOOL isValidStatus(ProcessingStatus status)"
+                        },
+                        "key": "symbolSignature"
+                    },
+                    {
+                        "attribute": {
+                            "aInteger": 14
+                        },
+                        "key": "symbolKind"
+                    },
+                    {
+                        "attribute": {
+                            "aInteger": 1
+                        },
+                        "key": "symbolLanguage"
+                    },
+                    {
+                        "attribute": {
+                            "aInteger": 2
+                        },
+                        "key": "symbolDefinitionType"
+                    }
+                ],
+                "range": {
+                    "columnBegin": 19,
+                    "columnEnd": 32,
+                    "lineBegin": 106,
+                    "lineEnd": 106
+                },
+                "sym": "test-xlang/cpp/fbobjc/isValidStatus/.f/ProcessingStatus/.decl",
+                "target": {
+                    "filepath": "fbobjc/Extra/GleanTests/SwiftObjc/Objc/ObjcInterface.m",
+                    "range": {
+                        "columnBegin": 1,
+                        "columnEnd": 2,
+                        "lineBegin": 31,
+                        "lineEnd": 34
+                    },
+                    "repository": "test-xlang"
+                }
+            },
+            {
+                "attributes": [
+                    {
+                        "attribute": {
+                            "aString": "isValidStatus(ProcessingStatus)"
+                        },
+                        "key": "symbolName"
+                    },
+                    {
+                        "attribute": {
+                            "aString": ""
+                        },
+                        "key": "symbolParent"
+                    },
+                    {
+                        "attribute": {
+                            "aString": "BOOL isValidStatus(ProcessingStatus status)"
+                        },
+                        "key": "symbolSignature"
+                    },
+                    {
+                        "attribute": {
+                            "aInteger": 14
+                        },
+                        "key": "symbolKind"
+                    },
+                    {
+                        "attribute": {
+                            "aInteger": 1
+                        },
+                        "key": "symbolLanguage"
+                    },
+                    {
+                        "attribute": {
+                            "aInteger": 2
+                        },
+                        "key": "symbolDefinitionType"
+                    }
+                ],
+                "range": {
+                    "columnBegin": 19,
+                    "columnEnd": 32,
+                    "lineBegin": 141,
+                    "lineEnd": 141
+                },
+                "sym": "test-xlang/cpp/fbobjc/isValidStatus/.f/ProcessingStatus/.decl",
+                "target": {
+                    "filepath": "fbobjc/Extra/GleanTests/SwiftObjc/Objc/ObjcInterface.m",
+                    "range": {
+                        "columnBegin": 1,
+                        "columnEnd": 2,
+                        "lineBegin": 31,
+                        "lineEnd": 34
+                    },
+                    "repository": "test-xlang"
+                }
+            },
+            {
+                "attributes": [
+                    {
+                        "attribute": {
+                            "aInteger": 8
+                        },
+                        "key": "symbolKind"
+                    },
+                    {
+                        "attribute": {
+                            "aString": "s:9SwiftObjc0A6CallerC13useCFunctionsyyF"
+                        },
+                        "key": "symbolName"
+                    },
+                    {
+                        "attribute": {
+                            "aString": ""
+                        },
+                        "key": "symbolParent"
+                    },
+                    {
+                        "attribute": {
+                            "aInteger": 20
+                        },
+                        "key": "symbolLanguage"
+                    }
+                ],
+                "range": {
+                    "columnBegin": 5,
+                    "columnEnd": 18,
+                    "lineBegin": 42,
+                    "lineEnd": 42
+                },
+                "sym": "test-xlang/swift/s:9SwiftObjc0A6CallerC13useCFunctionsyyF",
+                "target": {
+                    "filepath": "fbobjc/Extra/GleanTests/SwiftObjc/SwiftObjc/SwiftCaller.swift",
+                    "range": {
+                        "columnBegin": 15,
+                        "columnEnd": 28,
+                        "lineBegin": 126,
+                        "lineEnd": 126
+                    },
+                    "repository": "test-xlang"
+                }
+            },
+            {
+                "attributes": [
+                    {
+                        "attribute": {
+                            "aInteger": 8
+                        },
+                        "key": "symbolKind"
+                    },
+                    {
+                        "attribute": {
+                            "aString": "s:9SwiftObjc0A6CallerC14accessPropertyyyF"
+                        },
+                        "key": "symbolName"
+                    },
+                    {
+                        "attribute": {
+                            "aString": ""
+                        },
+                        "key": "symbolParent"
+                    },
+                    {
+                        "attribute": {
+                            "aInteger": 20
+                        },
+                        "key": "symbolLanguage"
+                    }
+                ],
+                "range": {
+                    "columnBegin": 5,
+                    "columnEnd": 19,
+                    "lineBegin": 30,
+                    "lineEnd": 30
+                },
+                "sym": "test-xlang/swift/s:9SwiftObjc0A6CallerC14accessPropertyyyF",
+                "target": {
+                    "filepath": "fbobjc/Extra/GleanTests/SwiftObjc/SwiftObjc/SwiftCaller.swift",
+                    "range": {
+                        "columnBegin": 15,
+                        "columnEnd": 29,
+                        "lineBegin": 57,
+                        "lineEnd": 57
+                    },
+                    "repository": "test-xlang"
+                }
+            },
+            {
+                "attributes": [
+                    {
+                        "attribute": {
+                            "aInteger": 8
+                        },
+                        "key": "symbolKind"
+                    },
+                    {
+                        "attribute": {
+                            "aString": "s:9SwiftObjc0A6CallerC14useClassMethodyyF"
+                        },
+                        "key": "symbolName"
+                    },
+                    {
+                        "attribute": {
+                            "aString": ""
+                        },
+                        "key": "symbolParent"
+                    },
+                    {
+                        "attribute": {
+                            "aInteger": 20
+                        },
+                        "key": "symbolLanguage"
+                    }
+                ],
+                "range": {
+                    "columnBegin": 5,
+                    "columnEnd": 19,
+                    "lineBegin": 36,
+                    "lineEnd": 36
+                },
+                "sym": "test-xlang/swift/s:9SwiftObjc0A6CallerC14useClassMethodyyF",
+                "target": {
+                    "filepath": "fbobjc/Extra/GleanTests/SwiftObjc/SwiftObjc/SwiftCaller.swift",
+                    "range": {
+                        "columnBegin": 15,
+                        "columnEnd": 29,
+                        "lineBegin": 86,
+                        "lineEnd": 86
+                    },
+                    "repository": "test-xlang"
+                }
+            },
+            {
+                "attributes": [
+                    {
+                        "attribute": {
+                            "aInteger": 8
+                        },
+                        "key": "symbolKind"
+                    },
+                    {
+                        "attribute": {
+                            "aString": "s:9SwiftObjc0A6CallerC16callSimpleMethodyyF"
+                        },
+                        "key": "symbolName"
+                    },
+                    {
+                        "attribute": {
+                            "aString": ""
+                        },
+                        "key": "symbolParent"
+                    },
+                    {
+                        "attribute": {
+                            "aInteger": 20
+                        },
+                        "key": "symbolLanguage"
+                    }
+                ],
+                "range": {
+                    "columnBegin": 5,
+                    "columnEnd": 21,
+                    "lineBegin": 27,
+                    "lineEnd": 27
+                },
+                "sym": "test-xlang/swift/s:9SwiftObjc0A6CallerC16callSimpleMethodyyF",
+                "target": {
+                    "filepath": "fbobjc/Extra/GleanTests/SwiftObjc/SwiftObjc/SwiftCaller.swift",
+                    "range": {
+                        "columnBegin": 15,
+                        "columnEnd": 31,
+                        "lineBegin": 48,
+                        "lineEnd": 48
+                    },
+                    "repository": "test-xlang"
+                }
+            },
+            {
+                "attributes": [
+                    {
+                        "attribute": {
+                            "aInteger": 8
+                        },
+                        "key": "symbolKind"
+                    },
+                    {
+                        "attribute": {
+                            "aString": "s:9SwiftObjc0A6CallerC18useStructsAndEnumsyyF"
+                        },
+                        "key": "symbolName"
+                    },
+                    {
+                        "attribute": {
+                            "aString": ""
+                        },
+                        "key": "symbolParent"
+                    },
+                    {
+                        "attribute": {
+                            "aInteger": 20
+                        },
+                        "key": "symbolLanguage"
+                    }
+                ],
+                "range": {
+                    "columnBegin": 5,
+                    "columnEnd": 23,
+                    "lineBegin": 39,
+                    "lineEnd": 39
+                },
+                "sym": "test-xlang/swift/s:9SwiftObjc0A6CallerC18useStructsAndEnumsyyF",
+                "target": {
+                    "filepath": "fbobjc/Extra/GleanTests/SwiftObjc/SwiftObjc/SwiftCaller.swift",
+                    "range": {
+                        "columnBegin": 15,
+                        "columnEnd": 33,
+                        "lineBegin": 95,
+                        "lineEnd": 95
+                    },
+                    "repository": "test-xlang"
+                }
+            },
+            {
+                "attributes": [
+                    {
+                        "attribute": {
+                            "aInteger": 8
+                        },
+                        "key": "symbolKind"
+                    },
+                    {
+                        "attribute": {
+                            "aString": "s:9SwiftObjc0A6CallerC23processStringWithBridgeyyF"
+                        },
+                        "key": "symbolName"
+                    },
+                    {
+                        "attribute": {
+                            "aString": ""
+                        },
+                        "key": "symbolParent"
+                    },
+                    {
+                        "attribute": {
+                            "aInteger": 20
+                        },
+                        "key": "symbolLanguage"
+                    }
+                ],
+                "range": {
+                    "columnBegin": 5,
+                    "columnEnd": 28,
+                    "lineBegin": 33,
+                    "lineEnd": 33
+                },
+                "sym": "test-xlang/swift/s:9SwiftObjc0A6CallerC23processStringWithBridgeyyF",
+                "target": {
+                    "filepath": "fbobjc/Extra/GleanTests/SwiftObjc/SwiftObjc/SwiftCaller.swift",
+                    "range": {
+                        "columnBegin": 15,
+                        "columnEnd": 38,
+                        "lineBegin": 70,
+                        "lineEnd": 70
+                    },
+                    "repository": "test-xlang"
+                }
+            },
+            {
+                "attributes": [
+                    {
+                        "attribute": {
+                            "aInteger": 8
+                        },
+                        "key": "symbolKind"
+                    },
+                    {
+                        "attribute": {
+                            "aString": "s:9SwiftObjc0A6CallerC6bridge33_EC0358B8BDBDC9E141C34E05E63BE117LLSo0aB6BridgeCvg"
+                        },
+                        "key": "symbolName"
+                    },
+                    {
+                        "attribute": {
+                            "aString": ""
+                        },
+                        "key": "symbolParent"
+                    },
+                    {
+                        "attribute": {
+                            "aInteger": 20
+                        },
+                        "key": "symbolLanguage"
+                    }
+                ],
+                "range": {
+                    "columnBegin": 5,
+                    "columnEnd": 11,
+                    "lineBegin": 50,
+                    "lineEnd": 50
+                },
+                "sym": "test-xlang/swift/s:9SwiftObjc0A6CallerC6bridge33_EC0358B8BDBDC9E141C34E05E63BE117LLSo0aB6BridgeCvg",
+                "target": {
+                    "filepath": "fbobjc/Extra/GleanTests/SwiftObjc/SwiftObjc/SwiftCaller.swift",
+                    "range": {
+                        "columnBegin": 15,
+                        "columnEnd": 21,
+                        "lineBegin": 18,
+                        "lineEnd": 18
+                    },
+                    "repository": "test-xlang"
+                }
+            },
+            {
+                "attributes": [
+                    {
+                        "attribute": {
+                            "aInteger": 8
+                        },
+                        "key": "symbolKind"
+                    },
+                    {
+                        "attribute": {
+                            "aString": "s:9SwiftObjc0A6CallerC6bridge33_EC0358B8BDBDC9E141C34E05E63BE117LLSo0aB6BridgeCvg"
+                        },
+                        "key": "symbolName"
+                    },
+                    {
+                        "attribute": {
+                            "aString": ""
+                        },
+                        "key": "symbolParent"
+                    },
+                    {
+                        "attribute": {
+                            "aInteger": 20
+                        },
+                        "key": "symbolLanguage"
+                    }
+                ],
+                "range": {
+                    "columnBegin": 25,
+                    "columnEnd": 31,
+                    "lineBegin": 59,
+                    "lineEnd": 59
+                },
+                "sym": "test-xlang/swift/s:9SwiftObjc0A6CallerC6bridge33_EC0358B8BDBDC9E141C34E05E63BE117LLSo0aB6BridgeCvg",
+                "target": {
+                    "filepath": "fbobjc/Extra/GleanTests/SwiftObjc/SwiftObjc/SwiftCaller.swift",
+                    "range": {
+                        "columnBegin": 15,
+                        "columnEnd": 21,
+                        "lineBegin": 18,
+                        "lineEnd": 18
+                    },
+                    "repository": "test-xlang"
+                }
+            },
+            {
+                "attributes": [
+                    {
+                        "attribute": {
+                            "aInteger": 8
+                        },
+                        "key": "symbolKind"
+                    },
+                    {
+                        "attribute": {
+                            "aString": "s:9SwiftObjc0A6CallerC6bridge33_EC0358B8BDBDC9E141C34E05E63BE117LLSo0aB6BridgeCvg"
+                        },
+                        "key": "symbolName"
+                    },
+                    {
+                        "attribute": {
+                            "aString": ""
+                        },
+                        "key": "symbolParent"
+                    },
+                    {
+                        "attribute": {
+                            "aInteger": 20
+                        },
+                        "key": "symbolLanguage"
+                    }
+                ],
+                "range": {
+                    "columnBegin": 5,
+                    "columnEnd": 11,
+                    "lineBegin": 63,
+                    "lineEnd": 63
+                },
+                "sym": "test-xlang/swift/s:9SwiftObjc0A6CallerC6bridge33_EC0358B8BDBDC9E141C34E05E63BE117LLSo0aB6BridgeCvg",
+                "target": {
+                    "filepath": "fbobjc/Extra/GleanTests/SwiftObjc/SwiftObjc/SwiftCaller.swift",
+                    "range": {
+                        "columnBegin": 15,
+                        "columnEnd": 21,
+                        "lineBegin": 18,
+                        "lineEnd": 18
+                    },
+                    "repository": "test-xlang"
+                }
+            },
+            {
+                "attributes": [
+                    {
+                        "attribute": {
+                            "aInteger": 8
+                        },
+                        "key": "symbolKind"
+                    },
+                    {
+                        "attribute": {
+                            "aString": "s:9SwiftObjc0A6CallerC6bridge33_EC0358B8BDBDC9E141C34E05E63BE117LLSo0aB6BridgeCvg"
+                        },
+                        "key": "symbolName"
+                    },
+                    {
+                        "attribute": {
+                            "aString": ""
+                        },
+                        "key": "symbolParent"
+                    },
+                    {
+                        "attribute": {
+                            "aInteger": 20
+                        },
+                        "key": "symbolLanguage"
+                    }
+                ],
+                "range": {
+                    "columnBegin": 39,
+                    "columnEnd": 45,
+                    "lineBegin": 64,
+                    "lineEnd": 64
+                },
+                "sym": "test-xlang/swift/s:9SwiftObjc0A6CallerC6bridge33_EC0358B8BDBDC9E141C34E05E63BE117LLSo0aB6BridgeCvg",
+                "target": {
+                    "filepath": "fbobjc/Extra/GleanTests/SwiftObjc/SwiftObjc/SwiftCaller.swift",
+                    "range": {
+                        "columnBegin": 15,
+                        "columnEnd": 21,
+                        "lineBegin": 18,
+                        "lineEnd": 18
+                    },
+                    "repository": "test-xlang"
+                }
+            },
+            {
+                "attributes": [
+                    {
+                        "attribute": {
+                            "aInteger": 8
+                        },
+                        "key": "symbolKind"
+                    },
+                    {
+                        "attribute": {
+                            "aString": "s:9SwiftObjc0A6CallerC6bridge33_EC0358B8BDBDC9E141C34E05E63BE117LLSo0aB6BridgeCvg"
+                        },
+                        "key": "symbolName"
+                    },
+                    {
+                        "attribute": {
+                            "aString": ""
+                        },
+                        "key": "symbolParent"
+                    },
+                    {
+                        "attribute": {
+                            "aInteger": 20
+                        },
+                        "key": "symbolLanguage"
+                    }
+                ],
+                "range": {
+                    "columnBegin": 23,
+                    "columnEnd": 29,
+                    "lineBegin": 75,
+                    "lineEnd": 75
+                },
+                "sym": "test-xlang/swift/s:9SwiftObjc0A6CallerC6bridge33_EC0358B8BDBDC9E141C34E05E63BE117LLSo0aB6BridgeCvg",
+                "target": {
+                    "filepath": "fbobjc/Extra/GleanTests/SwiftObjc/SwiftObjc/SwiftCaller.swift",
+                    "range": {
+                        "columnBegin": 15,
+                        "columnEnd": 21,
+                        "lineBegin": 18,
+                        "lineEnd": 18
+                    },
+                    "repository": "test-xlang"
+                }
+            },
+            {
+                "attributes": [
+                    {
+                        "attribute": {
+                            "aInteger": 8
+                        },
+                        "key": "symbolKind"
+                    },
+                    {
+                        "attribute": {
+                            "aString": "s:9SwiftObjc0A6CallerC6bridge33_EC0358B8BDBDC9E141C34E05E63BE117LLSo0aB6BridgeCvg"
+                        },
+                        "key": "symbolName"
+                    },
+                    {
+                        "attribute": {
+                            "aString": ""
+                        },
+                        "key": "symbolParent"
+                    },
+                    {
+                        "attribute": {
+                            "aInteger": 20
+                        },
+                        "key": "symbolLanguage"
+                    }
+                ],
+                "range": {
+                    "columnBegin": 23,
+                    "columnEnd": 29,
+                    "lineBegin": 79,
+                    "lineEnd": 79
+                },
+                "sym": "test-xlang/swift/s:9SwiftObjc0A6CallerC6bridge33_EC0358B8BDBDC9E141C34E05E63BE117LLSo0aB6BridgeCvg",
+                "target": {
+                    "filepath": "fbobjc/Extra/GleanTests/SwiftObjc/SwiftObjc/SwiftCaller.swift",
+                    "range": {
+                        "columnBegin": 15,
+                        "columnEnd": 21,
+                        "lineBegin": 18,
+                        "lineEnd": 18
+                    },
+                    "repository": "test-xlang"
+                }
+            },
+            {
+                "attributes": [
+                    {
+                        "attribute": {
+                            "aString": "s:9SwiftObjc0A6CallerC6bridge33_EC0358B8BDBDC9E141C34E05E63BE117LLSo0aB6BridgeCvp"
+                        },
+                        "key": "symbolName"
+                    },
+                    {
+                        "attribute": {
+                            "aString": ""
+                        },
+                        "key": "symbolParent"
+                    },
+                    {
+                        "attribute": {
+                            "aInteger": 20
+                        },
+                        "key": "symbolLanguage"
+                    }
+                ],
+                "range": {
+                    "columnBegin": 5,
+                    "columnEnd": 11,
+                    "lineBegin": 50,
+                    "lineEnd": 50
+                },
+                "sym": "test-xlang/swift/s:9SwiftObjc0A6CallerC6bridge33_EC0358B8BDBDC9E141C34E05E63BE117LLSo0aB6BridgeCvp",
+                "target": {
+                    "filepath": "fbobjc/Extra/GleanTests/SwiftObjc/SwiftObjc/SwiftCaller.swift",
+                    "range": {
+                        "columnBegin": 15,
+                        "columnEnd": 21,
+                        "lineBegin": 18,
+                        "lineEnd": 18
+                    },
+                    "repository": "test-xlang"
+                }
+            },
+            {
+                "attributes": [
+                    {
+                        "attribute": {
+                            "aString": "s:9SwiftObjc0A6CallerC6bridge33_EC0358B8BDBDC9E141C34E05E63BE117LLSo0aB6BridgeCvp"
+                        },
+                        "key": "symbolName"
+                    },
+                    {
+                        "attribute": {
+                            "aString": ""
+                        },
+                        "key": "symbolParent"
+                    },
+                    {
+                        "attribute": {
+                            "aInteger": 20
+                        },
+                        "key": "symbolLanguage"
+                    }
+                ],
+                "range": {
+                    "columnBegin": 25,
+                    "columnEnd": 31,
+                    "lineBegin": 59,
+                    "lineEnd": 59
+                },
+                "sym": "test-xlang/swift/s:9SwiftObjc0A6CallerC6bridge33_EC0358B8BDBDC9E141C34E05E63BE117LLSo0aB6BridgeCvp",
+                "target": {
+                    "filepath": "fbobjc/Extra/GleanTests/SwiftObjc/SwiftObjc/SwiftCaller.swift",
+                    "range": {
+                        "columnBegin": 15,
+                        "columnEnd": 21,
+                        "lineBegin": 18,
+                        "lineEnd": 18
+                    },
+                    "repository": "test-xlang"
+                }
+            },
+            {
+                "attributes": [
+                    {
+                        "attribute": {
+                            "aString": "s:9SwiftObjc0A6CallerC6bridge33_EC0358B8BDBDC9E141C34E05E63BE117LLSo0aB6BridgeCvp"
+                        },
+                        "key": "symbolName"
+                    },
+                    {
+                        "attribute": {
+                            "aString": ""
+                        },
+                        "key": "symbolParent"
+                    },
+                    {
+                        "attribute": {
+                            "aInteger": 20
+                        },
+                        "key": "symbolLanguage"
+                    }
+                ],
+                "range": {
+                    "columnBegin": 5,
+                    "columnEnd": 11,
+                    "lineBegin": 63,
+                    "lineEnd": 63
+                },
+                "sym": "test-xlang/swift/s:9SwiftObjc0A6CallerC6bridge33_EC0358B8BDBDC9E141C34E05E63BE117LLSo0aB6BridgeCvp",
+                "target": {
+                    "filepath": "fbobjc/Extra/GleanTests/SwiftObjc/SwiftObjc/SwiftCaller.swift",
+                    "range": {
+                        "columnBegin": 15,
+                        "columnEnd": 21,
+                        "lineBegin": 18,
+                        "lineEnd": 18
+                    },
+                    "repository": "test-xlang"
+                }
+            },
+            {
+                "attributes": [
+                    {
+                        "attribute": {
+                            "aString": "s:9SwiftObjc0A6CallerC6bridge33_EC0358B8BDBDC9E141C34E05E63BE117LLSo0aB6BridgeCvp"
+                        },
+                        "key": "symbolName"
+                    },
+                    {
+                        "attribute": {
+                            "aString": ""
+                        },
+                        "key": "symbolParent"
+                    },
+                    {
+                        "attribute": {
+                            "aInteger": 20
+                        },
+                        "key": "symbolLanguage"
+                    }
+                ],
+                "range": {
+                    "columnBegin": 39,
+                    "columnEnd": 45,
+                    "lineBegin": 64,
+                    "lineEnd": 64
+                },
+                "sym": "test-xlang/swift/s:9SwiftObjc0A6CallerC6bridge33_EC0358B8BDBDC9E141C34E05E63BE117LLSo0aB6BridgeCvp",
+                "target": {
+                    "filepath": "fbobjc/Extra/GleanTests/SwiftObjc/SwiftObjc/SwiftCaller.swift",
+                    "range": {
+                        "columnBegin": 15,
+                        "columnEnd": 21,
+                        "lineBegin": 18,
+                        "lineEnd": 18
+                    },
+                    "repository": "test-xlang"
+                }
+            },
+            {
+                "attributes": [
+                    {
+                        "attribute": {
+                            "aString": "s:9SwiftObjc0A6CallerC6bridge33_EC0358B8BDBDC9E141C34E05E63BE117LLSo0aB6BridgeCvp"
+                        },
+                        "key": "symbolName"
+                    },
+                    {
+                        "attribute": {
+                            "aString": ""
+                        },
+                        "key": "symbolParent"
+                    },
+                    {
+                        "attribute": {
+                            "aInteger": 20
+                        },
+                        "key": "symbolLanguage"
+                    }
+                ],
+                "range": {
+                    "columnBegin": 23,
+                    "columnEnd": 29,
+                    "lineBegin": 75,
+                    "lineEnd": 75
+                },
+                "sym": "test-xlang/swift/s:9SwiftObjc0A6CallerC6bridge33_EC0358B8BDBDC9E141C34E05E63BE117LLSo0aB6BridgeCvp",
+                "target": {
+                    "filepath": "fbobjc/Extra/GleanTests/SwiftObjc/SwiftObjc/SwiftCaller.swift",
+                    "range": {
+                        "columnBegin": 15,
+                        "columnEnd": 21,
+                        "lineBegin": 18,
+                        "lineEnd": 18
+                    },
+                    "repository": "test-xlang"
+                }
+            },
+            {
+                "attributes": [
+                    {
+                        "attribute": {
+                            "aString": "s:9SwiftObjc0A6CallerC6bridge33_EC0358B8BDBDC9E141C34E05E63BE117LLSo0aB6BridgeCvp"
+                        },
+                        "key": "symbolName"
+                    },
+                    {
+                        "attribute": {
+                            "aString": ""
+                        },
+                        "key": "symbolParent"
+                    },
+                    {
+                        "attribute": {
+                            "aInteger": 20
+                        },
+                        "key": "symbolLanguage"
+                    }
+                ],
+                "range": {
+                    "columnBegin": 23,
+                    "columnEnd": 29,
+                    "lineBegin": 79,
+                    "lineEnd": 79
+                },
+                "sym": "test-xlang/swift/s:9SwiftObjc0A6CallerC6bridge33_EC0358B8BDBDC9E141C34E05E63BE117LLSo0aB6BridgeCvp",
+                "target": {
+                    "filepath": "fbobjc/Extra/GleanTests/SwiftObjc/SwiftObjc/SwiftCaller.swift",
+                    "range": {
+                        "columnBegin": 15,
+                        "columnEnd": 21,
+                        "lineBegin": 18,
+                        "lineEnd": 18
+                    },
+                    "repository": "test-xlang"
+                }
+            },
+            {
+                "attributes": [
+                    {
+                        "attribute": {
+                            "aInteger": 8
+                        },
+                        "key": "symbolKind"
+                    },
+                    {
+                        "attribute": {
+                            "aString": "s:9SwiftObjc0A6CallerC6bridge33_EC0358B8BDBDC9E141C34E05E63BE117LLSo0aB6BridgeCvs"
+                        },
+                        "key": "symbolName"
+                    },
+                    {
+                        "attribute": {
+                            "aString": ""
+                        },
+                        "key": "symbolParent"
+                    },
+                    {
+                        "attribute": {
+                            "aInteger": 20
+                        },
+                        "key": "symbolLanguage"
+                    }
+                ],
+                "range": {
+                    "columnBegin": 5,
+                    "columnEnd": 11,
+                    "lineBegin": 63,
+                    "lineEnd": 63
+                },
+                "sym": "test-xlang/swift/s:9SwiftObjc0A6CallerC6bridge33_EC0358B8BDBDC9E141C34E05E63BE117LLSo0aB6BridgeCvs",
+                "target": {
+                    "filepath": "fbobjc/Extra/GleanTests/SwiftObjc/SwiftObjc/SwiftCaller.swift",
+                    "range": {
+                        "columnBegin": 15,
+                        "columnEnd": 21,
+                        "lineBegin": 18,
+                        "lineEnd": 18
+                    },
+                    "repository": "test-xlang"
+                }
+            }
+        ],
+        "revision": "testhash",
+        "truncated": false
+    }
+]

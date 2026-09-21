@@ -1,0 +1,9 @@
+{
+  "@generated": null,
+  "facts_searched": { },
+  "full_scans": [
+    "hack.ClassConstDeclaration.6",
+    "hack.GlobalConstDeclaration.6",
+    "hack.TypeConstDeclaration.6"
+  ]
+}

@@ -1,0 +1,53 @@
+[
+  "@generated",
+  {
+    "key": {
+      "searchcase": 0,
+      "name": "foo",
+      "entity": {
+        "cxx": {
+          "decl": {
+            "variable": {
+              "key": {
+                "name": {
+                  "key": {
+                    "name": { "key": "foo" },
+                    "scope": { "global_": { } }
+                  }
+                },
+                "type": { "key": "id<Foo>" },
+                "kind": { "ivar": { "synthesize": false } },
+                "source": {
+                  "file": { "key": "test.mm" },
+                  "lineBegin": 20,
+                  "columnBegin": 3,
+                  "lineEnd": 20,
+                  "columnEnd": 13
+                }
+              }
+            }
+          }
+        }
+      },
+      "location": {
+        "name": "foo",
+        "file": { "key": "test.mm" },
+        "location": {
+          "range": {
+            "file": { "key": "test.mm" },
+            "lineBegin": 20,
+            "columnBegin": 3,
+            "lineEnd": 20,
+            "columnEnd": 13
+          }
+        },
+        "destination": {
+          "file": { "key": "test.mm" },
+          "span": { "start": 377, "length": 3 }
+        }
+      },
+      "kind": 14,
+      "language": 0
+    }
+  }
+]

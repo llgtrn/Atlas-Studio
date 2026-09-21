@@ -1,0 +1,105 @@
+# Copyright (c) Meta Platforms, Inc. and affiliates.
+
+schema codemarkup.types.1 {
+
+import src
+
+# Public types
+
+# Within a file, the type of symbol locations.
+# range is used for compatibility with cxx/thrift indexer
+# but new indexers should use the `bytespan` representation.
+# (and should also generate `src.FileLines` fact).
+type RangeSpan =
+  {
+    span : src.ByteSpan |
+    range : src.Range # cxx and lsif compat
+  }
+
+predicate RangeSpanContains :
+  {
+    rangeSpan : RangeSpan,
+    contains : RangeSpan
+  }
+  { RS1, RS2 } where
+    ({ span = S1 } = RS1;
+     { span = S2 } = RS2;
+     src.ByteSpanContains { S1, S2 }) |
+    ({ range = R1 } = RS1;
+     { range = R2 } = RS2;
+     src.RangeContains { R1, R2 })
+
+# XRefs from source to target declaration or definition
+type XRefLocation =
+  {
+    target: Location,
+    source: RangeSpan
+  }
+
+# Tags for entities, so clients can distinguish them.
+type SymbolKind =
+  enum {
+    Package | Type | Value | File | Module | Namespace | Class_ | Method | Property |
+    Field | Constructor | Enum_ | Interface | Function | Variable | Constant | String |
+    Number | Boolean | Array | Object_ | Key | Null | Enumerator | Struct | Event |
+    Operator | TypeParameter | Union | Macro | Trait | Fragment | Operation | Directive |
+  }
+
+type SymbolInfo =
+  {
+    kind: SymbolKind,
+    isAbstract: bool,  # typically applies to methods, fields, and classes
+  }
+
+# Symbol locations within a repo
+type Location =
+  {
+    name: string,
+    file: src.File,
+    location : RangeSpan,
+
+    # An optional destination of the location rather than the entire entity.
+    # This is commonly the name of a declaration, potentially in a different
+    # file in the case where the declaration is within a macro definition.
+    destination: maybe src.FileLocation,
+  }
+
+# Symbols have visibility attributes
+type Visibility = enum { Public | Protected | Private | Internal }
+
+# Set of language-generic modifiers that distinguish flavors of symbol kinds
+# While there are many modifiers, this is a common set significant enough
+# to be worth filtering on or searching by, across 1 or more languages
+#
+# e.g. public static method foo() or unsafe bar()
+#
+# For arbitrary string decorations on symbols use the Annotations type
+#
+
+# Modifiers on symbols, to partition symbol kinds with additional attributes
+# These are intended to capture well known, common modifiers rather than all
+# possible modifiers in all languages.
+type Modifier =
+  enum {
+    Abstract | Final | Async | Static | Readonly | Const | Mutable | Volatile |
+    Virtual | Inline
+  }
+
+# Bit set of which modifiers are present on a symbol
+# (n.b. we use an exhaustive set here, as its very hard at the moment to build
+# set or list facts dynamcially)
+type Modifiers =
+  {
+    isAbstract: bool,
+    isFinal: bool,
+    isAsync: bool,
+    isStatic: bool,
+    isReadonly: bool,
+    isConst: bool,
+    isMutable: bool,
+    isVolatile: bool,
+    isVirtual: bool,
+    isInline: bool,
+  }
+
+}

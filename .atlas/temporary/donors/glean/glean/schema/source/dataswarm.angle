@@ -1,0 +1,85 @@
+# Copyright (c) Meta Platforms, Inc. and affiliates.
+
+schema dataswarm.1 {
+    import builtin.1
+    import src
+
+    # records that a Dataswarm macro exists with a given globally unique name
+    predicate MacroDeclaration: {
+        # eg: di.my_pipeline.my_task
+        task_id: string,
+        # local name in the task
+        name: string
+    }
+
+    # records that a Hive table is created within a Dataswarm pipeline
+    predicate TableDeclaration: {
+        table_name: string,
+        table_namespace: string
+    }
+
+    # records that a subquery/CTE is declared within a SQL query
+    predicate SubqueryDeclaration: {
+        # eg: di.my_pipeline.my_task
+        task_id: string,
+        # local name in the SQL query
+        name: string
+    }
+
+    # records that a column is declared in the SELECT clause of a SQL subquery/CTE
+    predicate SubqueryColumnDeclaration: {
+        # eg: di.my_pipeline.my_task
+        task_id: string,
+        subquery_name: string,
+        # this is the aliased column name, eg "bar" in "SELECT foo AS bar"
+        column_name: string
+    }
+
+    # records that a column is declared in the top-level SELECT clause of a Dataswarm SQL operator
+    predicate TableColumnDeclaration: {
+        table_name: string,
+        table_namespace: string,
+        column_name: string
+    }
+
+    type Declaration = {
+        macro: MacroDeclaration |
+        table: TableDeclaration |
+        subquery: SubqueryDeclaration |
+        table_column: TableColumnDeclaration |
+        subquery_column: SubqueryColumnDeclaration |
+    }
+
+    # a symbol declaration along with its unique location in the repo
+    predicate DeclarationLocation: {
+        declaration: Declaration,
+        file: src.File,
+        span: src.ByteSpan,
+    }
+
+    # a reference to another symbol (which may be declared in another file)
+    type XRef = {
+        target: Declaration,
+        # the place where the symbol is referenced
+        source: src.ByteSpan
+    }
+
+    # Collects all reference to names in a single file.
+    # There is only one fact of this predicate per source file in the repo.
+    predicate XRefsByFile: {
+        file: src.File,
+        xrefs: [XRef],
+    }
+
+    # derive a name predicate for each declaration (used by dataswarm.codemarkup)
+    predicate DeclarationName: {
+        declaration : Declaration,
+        name : string
+    }
+    {Decl, Name} where
+    Decl = (Declaration { macro = { name = Name } }) |
+        (Declaration { table = { table_name = Name } }) |
+        (Declaration { subquery = { name = Name } }) |
+        (Declaration { table_column = { column_name = Name } }) |
+        (Declaration { subquery_column = { column_name = Name } })
+}

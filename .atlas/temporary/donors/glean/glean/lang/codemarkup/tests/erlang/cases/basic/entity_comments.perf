@@ -1,0 +1,15 @@
+{
+  "@generated": null,
+  "facts_searched": {
+    "erlang.DeclarationComment.2": 12,
+    "erlang.MacroUsage.2": 2,
+    "erlang.MacroUsageLocation.2": 2,
+    "erlang.VarDeclaration.2": 25,
+    "erlang.VarLocation.2": 25
+  },
+  "full_scans": [
+    "erlang.DeclarationComment.2",
+    "erlang.MacroUsage.2",
+    "erlang.VarDeclaration.2"
+  ]
+}

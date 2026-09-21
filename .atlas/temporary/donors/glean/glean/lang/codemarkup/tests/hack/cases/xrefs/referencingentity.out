@@ -1,0 +1,390 @@
+[
+  "@generated",
+  {
+    "key": {
+      "target": {
+        "hack": {
+          "decl": {
+            "function_": {
+              "key": { "name": { "key": { "name": { "key": "corge" } } } }
+            }
+          }
+        }
+      },
+      "referrer": {
+        "hack": {
+          "decl": {
+            "container": {
+              "class_": {
+                "key": { "name": { "key": { "name": { "key": "RefClass" } } } }
+              }
+            }
+          }
+        }
+      },
+      "reference_file": { "key": "www/RefClass.php" },
+      "reference_range": { "span": { "start": 435, "length": 5 } },
+      "referrer_location": {
+        "name": "RefClass",
+        "file": { "key": "www/RefClass.php" },
+        "location": { "span": { "start": 226, "length": 785 } },
+        "destination": {
+          "file": { "key": "www/RefClass.php" },
+          "span": { "start": 232, "length": 8 }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "target": {
+        "hack": {
+          "decl": {
+            "function_": {
+              "key": { "name": { "key": { "name": { "key": "corge" } } } }
+            }
+          }
+        }
+      },
+      "referrer": {
+        "hack": {
+          "decl": {
+            "container": {
+              "class_": {
+                "key": { "name": { "key": { "name": { "key": "RefClass" } } } }
+              }
+            }
+          }
+        }
+      },
+      "reference_file": { "key": "www/RefClass.php" },
+      "reference_range": { "span": { "start": 506, "length": 5 } },
+      "referrer_location": {
+        "name": "RefClass",
+        "file": { "key": "www/RefClass.php" },
+        "location": { "span": { "start": 226, "length": 785 } },
+        "destination": {
+          "file": { "key": "www/RefClass.php" },
+          "span": { "start": 232, "length": 8 }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "target": {
+        "hack": {
+          "decl": {
+            "function_": {
+              "key": { "name": { "key": { "name": { "key": "corge" } } } }
+            }
+          }
+        }
+      },
+      "referrer": {
+        "hack": {
+          "decl": {
+            "container": {
+              "class_": {
+                "key": { "name": { "key": { "name": { "key": "RefClass" } } } }
+              }
+            }
+          }
+        }
+      },
+      "reference_file": { "key": "www/RefClass.php" },
+      "reference_range": { "span": { "start": 717, "length": 5 } },
+      "referrer_location": {
+        "name": "RefClass",
+        "file": { "key": "www/RefClass.php" },
+        "location": { "span": { "start": 226, "length": 785 } },
+        "destination": {
+          "file": { "key": "www/RefClass.php" },
+          "span": { "start": 232, "length": 8 }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "target": {
+        "hack": {
+          "decl": {
+            "function_": {
+              "key": { "name": { "key": { "name": { "key": "corge" } } } }
+            }
+          }
+        }
+      },
+      "referrer": {
+        "hack": {
+          "decl": {
+            "container": {
+              "class_": {
+                "key": { "name": { "key": { "name": { "key": "RefClass" } } } }
+              }
+            }
+          }
+        }
+      },
+      "reference_file": { "key": "www/RefClass.php" },
+      "reference_range": { "span": { "start": 997, "length": 5 } },
+      "referrer_location": {
+        "name": "RefClass",
+        "file": { "key": "www/RefClass.php" },
+        "location": { "span": { "start": 226, "length": 785 } },
+        "destination": {
+          "file": { "key": "www/RefClass.php" },
+          "span": { "start": 232, "length": 8 }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "target": {
+        "hack": {
+          "decl": {
+            "function_": {
+              "key": { "name": { "key": { "name": { "key": "corge" } } } }
+            }
+          }
+        }
+      },
+      "referrer": {
+        "hack": {
+          "decl": {
+            "container": {
+              "class_": {
+                "key": {
+                  "name": { "key": { "name": { "key": "SourceClass" } } }
+                }
+              }
+            }
+          }
+        }
+      },
+      "reference_file": { "key": "www/SourceClass.php" },
+      "reference_range": { "span": { "start": 451, "length": 5 } },
+      "referrer_location": {
+        "name": "SourceClass",
+        "file": { "key": "www/SourceClass.php" },
+        "location": { "span": { "start": 253, "length": 451 } },
+        "destination": {
+          "file": { "key": "www/SourceClass.php" },
+          "span": { "start": 286, "length": 11 }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "target": {
+        "hack": {
+          "decl": {
+            "function_": {
+              "key": { "name": { "key": { "name": { "key": "corge" } } } }
+            }
+          }
+        }
+      },
+      "referrer": {
+        "hack": {
+          "decl": {
+            "method": {
+              "key": {
+                "name": { "key": "bar" },
+                "container": {
+                  "class_": {
+                    "key": {
+                      "name": { "key": { "name": { "key": "RefClass" } } }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "reference_file": { "key": "www/RefClass.php" },
+      "reference_range": { "span": { "start": 717, "length": 5 } },
+      "referrer_location": {
+        "name": "bar",
+        "file": { "key": "www/RefClass.php" },
+        "location": { "span": { "start": 619, "length": 390 } },
+        "destination": {
+          "file": { "key": "www/RefClass.php" },
+          "span": { "start": 635, "length": 3 }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "target": {
+        "hack": {
+          "decl": {
+            "function_": {
+              "key": { "name": { "key": { "name": { "key": "corge" } } } }
+            }
+          }
+        }
+      },
+      "referrer": {
+        "hack": {
+          "decl": {
+            "method": {
+              "key": {
+                "name": { "key": "bar" },
+                "container": {
+                  "class_": {
+                    "key": {
+                      "name": { "key": { "name": { "key": "RefClass" } } }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "reference_file": { "key": "www/RefClass.php" },
+      "reference_range": { "span": { "start": 997, "length": 5 } },
+      "referrer_location": {
+        "name": "bar",
+        "file": { "key": "www/RefClass.php" },
+        "location": { "span": { "start": 619, "length": 390 } },
+        "destination": {
+          "file": { "key": "www/RefClass.php" },
+          "span": { "start": 635, "length": 3 }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "target": {
+        "hack": {
+          "decl": {
+            "function_": {
+              "key": { "name": { "key": { "name": { "key": "corge" } } } }
+            }
+          }
+        }
+      },
+      "referrer": {
+        "hack": {
+          "decl": {
+            "method": {
+              "key": {
+                "name": { "key": "bar" },
+                "container": {
+                  "class_": {
+                    "key": {
+                      "name": { "key": { "name": { "key": "SourceClass" } } }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "reference_file": { "key": "www/SourceClass.php" },
+      "reference_range": { "span": { "start": 451, "length": 5 } },
+      "referrer_location": {
+        "name": "bar",
+        "file": { "key": "www/SourceClass.php" },
+        "location": { "span": { "start": 392, "length": 71 } },
+        "destination": {
+          "file": { "key": "www/SourceClass.php" },
+          "span": { "start": 408, "length": 3 }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "target": {
+        "hack": {
+          "decl": {
+            "function_": {
+              "key": { "name": { "key": { "name": { "key": "corge" } } } }
+            }
+          }
+        }
+      },
+      "referrer": {
+        "hack": {
+          "decl": {
+            "method": {
+              "key": {
+                "name": { "key": "bazza" },
+                "container": {
+                  "class_": {
+                    "key": {
+                      "name": { "key": { "name": { "key": "RefClass" } } }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "reference_file": { "key": "www/RefClass.php" },
+      "reference_range": { "span": { "start": 506, "length": 5 } },
+      "referrer_location": {
+        "name": "bazza",
+        "file": { "key": "www/RefClass.php" },
+        "location": { "span": { "start": 459, "length": 59 } },
+        "destination": {
+          "file": { "key": "www/RefClass.php" },
+          "span": { "start": 475, "length": 5 }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "target": {
+        "hack": {
+          "decl": {
+            "function_": {
+              "key": { "name": { "key": { "name": { "key": "corge" } } } }
+            }
+          }
+        }
+      },
+      "referrer": {
+        "hack": {
+          "decl": {
+            "method": {
+              "key": {
+                "name": { "key": "foo" },
+                "container": {
+                  "class_": {
+                    "key": {
+                      "name": { "key": { "name": { "key": "RefClass" } } }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "reference_file": { "key": "www/RefClass.php" },
+      "reference_range": { "span": { "start": 435, "length": 5 } },
+      "referrer_location": {
+        "name": "foo",
+        "file": { "key": "www/RefClass.php" },
+        "location": { "span": { "start": 388, "length": 67 } },
+        "destination": {
+          "file": { "key": "www/RefClass.php" },
+          "span": { "start": 411, "length": 3 }
+        }
+      }
+    }
+  }
+]

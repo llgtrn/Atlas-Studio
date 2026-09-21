@@ -1,0 +1,81 @@
+[
+  "@generated",
+  {
+    "key": {
+      "child": {
+        "decl": {
+          "func": {
+            "key": {
+              "app": "app_a",
+              "fqn": { "arity": 1, "module": "server", "name": "init" }
+            }
+          }
+        }
+      },
+      "parent": {
+        "decl": {
+          "callback_": {
+            "key": {
+              "app": "stdlib",
+              "arity": 1,
+              "module": "gen_server",
+              "name": "init"
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "child": {
+        "decl": {
+          "func": {
+            "key": {
+              "app": "app_a",
+              "fqn": { "arity": 2, "module": "server", "name": "handle_cast" }
+            }
+          }
+        }
+      },
+      "parent": {
+        "decl": {
+          "callback_": {
+            "key": {
+              "app": "stdlib",
+              "arity": 2,
+              "module": "gen_server",
+              "name": "handle_cast"
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "child": {
+        "decl": {
+          "func": {
+            "key": {
+              "app": "app_a",
+              "fqn": { "arity": 3, "module": "server", "name": "handle_call" }
+            }
+          }
+        }
+      },
+      "parent": {
+        "decl": {
+          "callback_": {
+            "key": {
+              "app": "stdlib",
+              "arity": 3,
+              "module": "gen_server",
+              "name": "handle_call"
+            }
+          }
+        }
+      }
+    }
+  }
+]

@@ -1,0 +1,50 @@
+[
+    "@generated",
+    {
+        "contains_relation": {
+            "firstChild": "nondeterministic",
+            "firstParent": "nondeterministic",
+            "hasMoreChildren": false,
+            "hasMoreParents": false
+        },
+        "extends_relation": {
+            "firstChild": "nondeterministic",
+            "firstParent": "nondeterministic",
+            "hasMoreChildren": false,
+            "hasMoreParents": false
+        },
+        "kind": 25,
+        "language": 9,
+        "location": {
+            "filepath": "lib.thrift",
+            "range": {
+                "columnBegin": 1,
+                "columnEnd": 2,
+                "lineBegin": 142,
+                "lineEnd": 144
+            },
+            "repository": "test"
+        },
+        "modifiers": [],
+        "name": {
+            "container": "lib",
+            "localName": "ServerException"
+        },
+        "pretty_comments": [],
+        "repo_hash": "testhash",
+        "signature": "struct lib.ServerException",
+        "sym": "test/thrift/lib.thrift/ServerException",
+        "sym_location": {
+            "filepath": "lib.thrift",
+            "range": {
+                "columnBegin": 1,
+                "columnEnd": 2,
+                "lineBegin": 142,
+                "lineEnd": 144
+            },
+            "repository": "test"
+        },
+        "sym_other_locations": [],
+        "type_xrefs": []
+    }
+]

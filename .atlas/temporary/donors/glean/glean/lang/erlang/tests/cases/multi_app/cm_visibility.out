@@ -1,0 +1,206 @@
+[
+  "@generated",
+  {
+    "key": {
+      "entity": {
+        "decl": {
+          "func": {
+            "key": {
+              "app": "app_a",
+              "fqn": { "arity": 0, "module": "server", "name": "start" }
+            }
+          }
+        }
+      },
+      "visibility": 0
+    }
+  },
+  {
+    "key": {
+      "entity": {
+        "decl": {
+          "func": {
+            "key": {
+              "app": "app_a",
+              "fqn": {
+                "arity": 1,
+                "module": "server",
+                "name": "handle_request"
+              }
+            }
+          }
+        }
+      },
+      "visibility": 0
+    }
+  },
+  {
+    "key": {
+      "entity": {
+        "decl": {
+          "func": {
+            "key": {
+              "app": "app_a",
+              "fqn": { "arity": 1, "module": "server", "name": "init" }
+            }
+          }
+        }
+      },
+      "visibility": 0
+    }
+  },
+  {
+    "key": {
+      "entity": {
+        "decl": {
+          "func": {
+            "key": {
+              "app": "app_a",
+              "fqn": { "arity": 1, "module": "server", "name": "old_api" }
+            }
+          }
+        }
+      },
+      "visibility": 2
+    }
+  },
+  {
+    "key": {
+      "entity": {
+        "decl": {
+          "func": {
+            "key": {
+              "app": "app_a",
+              "fqn": {
+                "arity": 1,
+                "module": "server",
+                "name": "process_request"
+              }
+            }
+          }
+        }
+      },
+      "visibility": 2
+    }
+  },
+  {
+    "key": {
+      "entity": {
+        "decl": {
+          "func": {
+            "key": {
+              "app": "app_a",
+              "fqn": { "arity": 1, "module": "utils", "name": "format_id" }
+            }
+          }
+        }
+      },
+      "visibility": 0
+    }
+  },
+  {
+    "key": {
+      "entity": {
+        "decl": {
+          "func": {
+            "key": {
+              "app": "app_a",
+              "fqn": { "arity": 1, "module": "utils", "name": "retry_delay" }
+            }
+          }
+        }
+      },
+      "visibility": 2
+    }
+  },
+  {
+    "key": {
+      "entity": {
+        "decl": {
+          "func": {
+            "key": {
+              "app": "app_a",
+              "fqn": { "arity": 1, "module": "utils", "name": "validate" }
+            }
+          }
+        }
+      },
+      "visibility": 0
+    }
+  },
+  {
+    "key": {
+      "entity": {
+        "decl": {
+          "func": {
+            "key": {
+              "app": "app_a",
+              "fqn": { "arity": 2, "module": "server", "name": "handle_cast" }
+            }
+          }
+        }
+      },
+      "visibility": 0
+    }
+  },
+  {
+    "key": {
+      "entity": {
+        "decl": {
+          "func": {
+            "key": {
+              "app": "app_a",
+              "fqn": { "arity": 3, "module": "server", "name": "handle_call" }
+            }
+          }
+        }
+      },
+      "visibility": 0
+    }
+  },
+  {
+    "key": {
+      "entity": {
+        "decl": {
+          "func": {
+            "key": {
+              "app": "app_b",
+              "fqn": { "arity": 0, "module": "internal", "name": "run" }
+            }
+          }
+        }
+      },
+      "visibility": 2
+    }
+  },
+  {
+    "key": {
+      "entity": {
+        "decl": {
+          "func": {
+            "key": {
+              "app": "app_b",
+              "fqn": { "arity": 1, "module": "client", "name": "batch_send" }
+            }
+          }
+        }
+      },
+      "visibility": 0
+    }
+  },
+  {
+    "key": {
+      "entity": {
+        "decl": {
+          "func": {
+            "key": {
+              "app": "app_b",
+              "fqn": { "arity": 1, "module": "client", "name": "send_request" }
+            }
+          }
+        }
+      },
+      "visibility": 0
+    }
+  }
+]

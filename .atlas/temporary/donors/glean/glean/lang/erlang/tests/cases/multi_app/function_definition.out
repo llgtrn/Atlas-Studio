@@ -1,0 +1,183 @@
+[
+  "@generated",
+  {
+    "key": {
+      "declaration": {
+        "key": {
+          "fqn": { "module": "client", "name": "batch_send", "arity": 1 },
+          "app": "app_b"
+        }
+      },
+      "exported": true,
+      "is_on_load": false,
+      "is_nif": false,
+      "spec_text": "-spec batch_send([binary()]) -> [ok | {error, term()}]."
+    }
+  },
+  {
+    "key": {
+      "declaration": {
+        "key": {
+          "fqn": { "module": "client", "name": "send_request", "arity": 1 },
+          "app": "app_b"
+        }
+      },
+      "exported": true,
+      "is_on_load": false,
+      "is_nif": false,
+      "spec_text": "-spec send_request(binary()) -> ok | {error, term()}."
+    }
+  },
+  {
+    "key": {
+      "declaration": {
+        "key": {
+          "fqn": { "module": "internal", "name": "run", "arity": 0 },
+          "app": "app_b"
+        }
+      },
+      "exported": false,
+      "is_on_load": false,
+      "is_nif": false
+    }
+  },
+  {
+    "key": {
+      "declaration": {
+        "key": {
+          "fqn": { "module": "server", "name": "handle_call", "arity": 3 },
+          "app": "app_a"
+        }
+      },
+      "exported": true,
+      "is_on_load": false,
+      "is_nif": false,
+      "spec_text": "-spec handle_call(term(), term(), state()) -> {reply, term(), state()}."
+    }
+  },
+  {
+    "key": {
+      "declaration": {
+        "key": {
+          "fqn": { "module": "server", "name": "handle_cast", "arity": 2 },
+          "app": "app_a"
+        }
+      },
+      "exported": true,
+      "is_on_load": false,
+      "is_nif": false,
+      "spec_text": "-spec handle_cast(term(), state()) -> {noreply, state()}."
+    }
+  },
+  {
+    "key": {
+      "declaration": {
+        "key": {
+          "fqn": { "module": "server", "name": "handle_request", "arity": 1 },
+          "app": "app_a"
+        }
+      },
+      "exported": true,
+      "is_on_load": false,
+      "is_nif": false,
+      "spec_text": "-spec handle_request(#request{}) -> ok | {error, term()}."
+    }
+  },
+  {
+    "key": {
+      "declaration": {
+        "key": {
+          "fqn": { "module": "server", "name": "init", "arity": 1 },
+          "app": "app_a"
+        }
+      },
+      "exported": true,
+      "is_on_load": false,
+      "is_nif": false,
+      "spec_text": "-spec init(term()) -> {ok, state()}."
+    }
+  },
+  {
+    "key": {
+      "declaration": {
+        "key": {
+          "fqn": { "module": "server", "name": "old_api", "arity": 1 },
+          "app": "app_a"
+        }
+      },
+      "exported": false,
+      "deprecated": "use handle_request/1 instead",
+      "is_on_load": false,
+      "is_nif": false,
+      "spec_text": "-spec old_api(term()) -> ok."
+    }
+  },
+  {
+    "key": {
+      "declaration": {
+        "key": {
+          "fqn": { "module": "server", "name": "process_request", "arity": 1 },
+          "app": "app_a"
+        }
+      },
+      "exported": false,
+      "is_on_load": false,
+      "is_nif": false
+    }
+  },
+  {
+    "key": {
+      "declaration": {
+        "key": {
+          "fqn": { "module": "server", "name": "start", "arity": 0 },
+          "app": "app_a"
+        }
+      },
+      "exported": true,
+      "is_on_load": false,
+      "is_nif": false,
+      "spec_text": "-spec start() -> {ok, pid()}."
+    }
+  },
+  {
+    "key": {
+      "declaration": {
+        "key": {
+          "fqn": { "module": "utils", "name": "format_id", "arity": 1 },
+          "app": "app_a"
+        }
+      },
+      "exported": true,
+      "is_on_load": false,
+      "is_nif": false,
+      "spec_text": "-spec format_id(#request{}) -> string()."
+    }
+  },
+  {
+    "key": {
+      "declaration": {
+        "key": {
+          "fqn": { "module": "utils", "name": "retry_delay", "arity": 1 },
+          "app": "app_a"
+        }
+      },
+      "exported": false,
+      "is_on_load": false,
+      "is_nif": false
+    }
+  },
+  {
+    "key": {
+      "declaration": {
+        "key": {
+          "fqn": { "module": "utils", "name": "validate", "arity": 1 },
+          "app": "app_a"
+        }
+      },
+      "exported": true,
+      "is_on_load": false,
+      "is_nif": false,
+      "spec_text": "-spec validate(#request{}) -> ok | {error, invalid}."
+    }
+  }
+]

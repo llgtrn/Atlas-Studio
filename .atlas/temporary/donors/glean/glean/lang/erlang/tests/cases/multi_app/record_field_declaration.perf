@@ -1,0 +1,5 @@
+{
+  "@generated": null,
+  "facts_searched": { "erlang.RecordFieldDeclaration.2": 3 },
+  "full_scans": [ "erlang.RecordFieldDeclaration.2" ]
+}

@@ -1,0 +1,8 @@
+{
+  "@generated": null,
+  "facts_searched": {
+    "cxx1.FunctionDeclAttribute.5": 4,
+    "cxx1.FunctionDeclaration.5": 3
+  },
+  "full_scans": [ "cxx1.FunctionDeclaration.5" ]
+}

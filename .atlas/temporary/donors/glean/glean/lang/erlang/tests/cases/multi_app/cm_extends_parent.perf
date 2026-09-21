@@ -1,0 +1,13 @@
+{
+  "@generated": null,
+  "facts_searched": {
+    "erlang.CallbackImplementation.2": 3,
+    "erlang.ModuleDeclaration.2": 4,
+    "erlang.ModuleDefinition.2": 4
+  },
+  "full_scans": [
+    "erlang.CallbackImplementation.2",
+    "erlang.ModuleDeclaration.2",
+    "erlang.ModuleDefinition.2"
+  ]
+}

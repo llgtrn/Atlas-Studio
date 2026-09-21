@@ -1,0 +1,719 @@
+[
+  "@generated",
+  {
+    "key": {
+      "decl": {
+        "localDecl": {
+          "key": {
+            "name": { "key": "BazClass" },
+            "loc": {
+              "key": {
+                "module": {
+                  "key": { "file": { "key": "es_exports.js.flow" } }
+                },
+                "span": { "start": 381, "length": 8 }
+              }
+            }
+          }
+        }
+      },
+      "signature": "class BazClass"
+    }
+  },
+  {
+    "key": {
+      "decl": {
+        "localDecl": {
+          "key": {
+            "name": { "key": "BazClass" },
+            "loc": {
+              "key": {
+                "module": { "key": { "file": { "key": "imports.js" } } },
+                "span": { "start": 295, "length": 8 }
+              }
+            }
+          }
+        }
+      },
+      "signature": "class BazClass"
+    }
+  },
+  {
+    "key": {
+      "decl": {
+        "localDecl": {
+          "key": {
+            "name": { "key": "C" },
+            "loc": {
+              "key": {
+                "module": {
+                  "key": { "file": { "key": "es_exports.js.flow" } }
+                },
+                "span": { "start": 639, "length": 1 }
+              }
+            }
+          }
+        }
+      },
+      "signature": "class C"
+    }
+  },
+  {
+    "key": {
+      "decl": {
+        "localDecl": {
+          "key": {
+            "name": { "key": "CazClass" },
+            "loc": {
+              "key": {
+                "module": { "key": { "file": { "key": "imports.js" } } },
+                "span": { "start": 749, "length": 8 }
+              }
+            }
+          }
+        }
+      },
+      "signature": "class CazClass"
+    }
+  },
+  {
+    "key": {
+      "decl": {
+        "localDecl": {
+          "key": {
+            "name": { "key": "Component" },
+            "loc": {
+              "key": {
+                "module": { "key": { "file": { "key": "imports.js" } } },
+                "span": { "start": 555, "length": 9 }
+              }
+            }
+          }
+        }
+      },
+      "signature": "string"
+    }
+  },
+  {
+    "key": {
+      "decl": {
+        "localDecl": {
+          "key": {
+            "name": { "key": "Introduction" },
+            "loc": {
+              "key": {
+                "module": {
+                  "key": { "file": { "key": "es_exports.js.flow" } }
+                },
+                "span": { "start": 558, "length": 12 }
+              }
+            }
+          }
+        }
+      },
+      "signature": "component Introduction(name: string)"
+    }
+  },
+  {
+    "key": {
+      "decl": {
+        "localDecl": {
+          "key": {
+            "name": { "key": "React" },
+            "loc": {
+              "key": {
+                "module": {
+                  "key": { "file": { "key": "es_exports.js.flow" } }
+                },
+                "span": { "start": 243, "length": 5 }
+              }
+            }
+          }
+        }
+      },
+      "signature": "module \"react\""
+    }
+  },
+  {
+    "key": {
+      "decl": {
+        "localDecl": {
+          "key": {
+            "name": { "key": "a" },
+            "loc": {
+              "key": {
+                "module": { "key": { "file": { "key": "imports.js" } } },
+                "span": { "start": 238, "length": 1 }
+              }
+            }
+          }
+        }
+      },
+      "signature": "number"
+    }
+  },
+  {
+    "key": {
+      "decl": {
+        "localDecl": {
+          "key": {
+            "name": { "key": "b" },
+            "loc": {
+              "key": {
+                "module": { "key": { "file": { "key": "imports.js" } } },
+                "span": { "start": 240, "length": 1 }
+              }
+            }
+          }
+        }
+      },
+      "signature": "boolean"
+    }
+  },
+  {
+    "key": {
+      "decl": {
+        "localDecl": {
+          "key": {
+            "name": { "key": "bar" },
+            "loc": {
+              "key": {
+                "module": { "key": { "file": { "key": "imports.js" } } },
+                "span": { "start": 290, "length": 3 }
+              }
+            }
+          }
+        }
+      },
+      "signature": "(x: number) => number"
+    }
+  },
+  {
+    "key": {
+      "decl": {
+        "localDecl": {
+          "key": {
+            "name": { "key": "bor" },
+            "loc": {
+              "key": {
+                "module": {
+                  "key": { "file": { "key": "es_exports.js.flow" } }
+                },
+                "span": { "start": 324, "length": 3 }
+              }
+            }
+          }
+        }
+      },
+      "signature": "(x: number) => number"
+    }
+  },
+  {
+    "key": {
+      "decl": {
+        "localDecl": {
+          "key": {
+            "name": { "key": "c" },
+            "loc": {
+              "key": {
+                "module": { "key": { "file": { "key": "imports.js" } } },
+                "span": { "start": 242, "length": 1 }
+              }
+            }
+          }
+        }
+      },
+      "signature": "string"
+    }
+  },
+  {
+    "key": {
+      "decl": {
+        "localDecl": {
+          "key": {
+            "name": { "key": "d" },
+            "loc": {
+              "key": {
+                "module": {
+                  "key": { "file": { "key": "es_exports.js.flow" } }
+                },
+                "span": { "start": 398, "length": 1 }
+              }
+            }
+          }
+        }
+      },
+      "signature": "string"
+    }
+  },
+  {
+    "key": {
+      "decl": {
+        "localDecl": {
+          "key": {
+            "name": { "key": "d" },
+            "loc": {
+              "key": {
+                "module": { "key": { "file": { "key": "imports.js" } } },
+                "span": { "start": 281, "length": 1 }
+              }
+            }
+          }
+        }
+      },
+      "signature": "string"
+    }
+  },
+  {
+    "key": {
+      "decl": {
+        "localDecl": {
+          "key": {
+            "name": { "key": "e" },
+            "loc": {
+              "key": {
+                "module": { "key": { "file": { "key": "imports.js" } } },
+                "span": { "start": 630, "length": 1 }
+              }
+            }
+          }
+        }
+      },
+      "signature": "string"
+    }
+  },
+  {
+    "key": {
+      "decl": {
+        "localDecl": {
+          "key": {
+            "name": { "key": "foo" },
+            "loc": {
+              "key": {
+                "module": {
+                  "key": { "file": { "key": "es_exports.js.flow" } }
+                },
+                "span": { "start": 268, "length": 3 }
+              }
+            }
+          }
+        }
+      },
+      "signature": "number"
+    }
+  },
+  {
+    "key": {
+      "decl": {
+        "localDecl": {
+          "key": {
+            "name": { "key": "foo" },
+            "loc": {
+              "key": {
+                "module": { "key": { "file": { "key": "imports.js" } } },
+                "span": { "start": 285, "length": 3 }
+              }
+            }
+          }
+        }
+      },
+      "signature": "number"
+    }
+  },
+  {
+    "key": {
+      "decl": {
+        "localDecl": {
+          "key": {
+            "name": { "key": "name" },
+            "loc": {
+              "key": {
+                "module": {
+                  "key": { "file": { "key": "es_exports.js.flow" } }
+                },
+                "span": { "start": 571, "length": 4 }
+              }
+            }
+          }
+        }
+      },
+      "signature": "string"
+    }
+  },
+  {
+    "key": {
+      "decl": {
+        "localDecl": {
+          "key": {
+            "name": { "key": "plus" },
+            "loc": {
+              "key": {
+                "module": { "key": { "file": { "key": "cjs_exports.js" } } },
+                "span": { "start": 241, "length": 4 }
+              }
+            }
+          }
+        }
+      },
+      "signature": "(x: number) => number"
+    }
+  },
+  {
+    "key": {
+      "decl": {
+        "localDecl": {
+          "key": {
+            "name": { "key": "plus" },
+            "loc": {
+              "key": {
+                "module": { "key": { "file": { "key": "imports.js" } } },
+                "span": { "start": 414, "length": 4 }
+              }
+            }
+          }
+        }
+      },
+      "signature": "(x: number) => number"
+    }
+  },
+  {
+    "key": {
+      "decl": {
+        "localDecl": {
+          "key": {
+            "name": { "key": "qux" },
+            "loc": {
+              "key": {
+                "module": { "key": { "file": { "key": "imports.js" } } },
+                "span": { "start": 338, "length": 3 }
+              }
+            }
+          }
+        }
+      },
+      "signature": "module \"./es_exports\""
+    }
+  },
+  {
+    "key": {
+      "decl": {
+        "localDecl": {
+          "key": {
+            "name": { "key": "s" },
+            "loc": {
+              "key": {
+                "module": { "key": { "file": { "key": "imports.js" } } },
+                "span": { "start": 840, "length": 1 }
+              }
+            }
+          }
+        }
+      },
+      "signature": "string"
+    }
+  },
+  {
+    "key": {
+      "decl": {
+        "localDecl": {
+          "key": {
+            "name": { "key": "times" },
+            "loc": {
+              "key": {
+                "module": { "key": { "file": { "key": "imports.js" } } },
+                "span": { "start": 370, "length": 5 }
+              }
+            }
+          }
+        }
+      },
+      "signature": "(x: number, y: number) => number"
+    }
+  },
+  {
+    "key": {
+      "decl": {
+        "localDecl": {
+          "key": {
+            "name": { "key": "times" },
+            "loc": {
+              "key": {
+                "module": {
+                  "key": { "file": { "key": "subdir/more_cjs.js" } }
+                },
+                "span": { "start": 240, "length": 5 }
+              }
+            }
+          }
+        }
+      },
+      "signature": "(x: number, y: number) => number"
+    }
+  },
+  {
+    "key": {
+      "decl": {
+        "localDecl": {
+          "key": {
+            "name": { "key": "x" },
+            "loc": {
+              "key": {
+                "module": { "key": { "file": { "key": "cjs_exports.js" } } },
+                "span": { "start": 246, "length": 1 }
+              }
+            }
+          }
+        }
+      },
+      "signature": "number"
+    }
+  },
+  {
+    "key": {
+      "decl": {
+        "localDecl": {
+          "key": {
+            "name": { "key": "x" },
+            "loc": {
+              "key": {
+                "module": {
+                  "key": { "file": { "key": "es_exports.js.flow" } }
+                },
+                "span": { "start": 328, "length": 1 }
+              }
+            }
+          }
+        }
+      },
+      "signature": "number"
+    }
+  },
+  {
+    "key": {
+      "decl": {
+        "localDecl": {
+          "key": {
+            "name": { "key": "x" },
+            "loc": {
+              "key": {
+                "module": { "key": { "file": { "key": "imports.js" } } },
+                "span": { "start": 650, "length": 1 }
+              }
+            }
+          }
+        }
+      },
+      "signature": "num"
+    }
+  },
+  {
+    "key": {
+      "decl": {
+        "localDecl": {
+          "key": {
+            "name": { "key": "x" },
+            "loc": {
+              "key": {
+                "module": {
+                  "key": { "file": { "key": "subdir/more_cjs.js" } }
+                },
+                "span": { "start": 246, "length": 1 }
+              }
+            }
+          }
+        }
+      },
+      "signature": "number"
+    }
+  },
+  {
+    "key": {
+      "decl": {
+        "localDecl": {
+          "key": {
+            "name": { "key": "y" },
+            "loc": {
+              "key": {
+                "module": { "key": { "file": { "key": "imports.js" } } },
+                "span": { "start": 671, "length": 1 }
+              }
+            }
+          }
+        }
+      },
+      "signature": "num"
+    }
+  },
+  {
+    "key": {
+      "decl": {
+        "localDecl": {
+          "key": {
+            "name": { "key": "y" },
+            "loc": {
+              "key": {
+                "module": {
+                  "key": { "file": { "key": "subdir/more_cjs.js" } }
+                },
+                "span": { "start": 257, "length": 1 }
+              }
+            }
+          }
+        }
+      },
+      "signature": "number"
+    }
+  },
+  {
+    "key": {
+      "decl": {
+        "localDecl": {
+          "key": {
+            "name": { "key": "z" },
+            "loc": {
+              "key": {
+                "module": { "key": { "file": { "key": "imports.js" } } },
+                "span": { "start": 698, "length": 1 }
+              }
+            }
+          }
+        }
+      },
+      "signature": "num"
+    }
+  },
+  {
+    "key": {
+      "decl": {
+        "localDecl": {
+          "key": {
+            "name": { "key": "z1" },
+            "loc": {
+              "key": {
+                "module": { "key": { "file": { "key": "imports.js" } } },
+                "span": { "start": 720, "length": 2 }
+              }
+            }
+          }
+        }
+      },
+      "signature": "num"
+    }
+  },
+  {
+    "key": {
+      "decl": {
+        "typeDecl": {
+          "key": {
+            "name": { "key": "BazClass" },
+            "loc": {
+              "key": {
+                "module": {
+                  "key": { "file": { "key": "es_exports.js.flow" } }
+                },
+                "span": { "start": 381, "length": 8 }
+              }
+            }
+          }
+        }
+      },
+      "signature": "class BazClass"
+    }
+  },
+  {
+    "key": {
+      "decl": {
+        "typeDecl": {
+          "key": {
+            "name": { "key": "C" },
+            "loc": {
+              "key": {
+                "module": {
+                  "key": { "file": { "key": "es_exports.js.flow" } }
+                },
+                "span": { "start": 639, "length": 1 }
+              }
+            }
+          }
+        }
+      },
+      "signature": "class C"
+    }
+  },
+  {
+    "key": {
+      "decl": {
+        "typeDecl": {
+          "key": {
+            "name": { "key": "CazClass" },
+            "loc": {
+              "key": {
+                "module": { "key": { "file": { "key": "imports.js" } } },
+                "span": { "start": 749, "length": 8 }
+              }
+            }
+          }
+        }
+      },
+      "signature": "class CazClass"
+    }
+  },
+  {
+    "key": {
+      "decl": {
+        "typeDecl": {
+          "key": {
+            "name": { "key": "D" },
+            "loc": {
+              "key": {
+                "module": { "key": { "file": { "key": "imports.js" } } },
+                "span": { "start": 829, "length": 1 }
+              }
+            }
+          }
+        }
+      },
+      "signature": "type D = typeof C"
+    }
+  },
+  {
+    "key": {
+      "decl": {
+        "typeDecl": {
+          "key": {
+            "name": { "key": "MyT" },
+            "loc": {
+              "key": {
+                "module": {
+                  "key": { "file": { "key": "es_exports.js.flow" } }
+                },
+                "span": { "start": 506, "length": 3 }
+              }
+            }
+          }
+        }
+      },
+      "signature": "type MyT = {field1: number, ...}"
+    }
+  },
+  {
+    "key": {
+      "decl": {
+        "typeDecl": {
+          "key": {
+            "name": { "key": "num" },
+            "loc": {
+              "key": {
+                "module": {
+                  "key": { "file": { "key": "es_exports.js.flow" } }
+                },
+                "span": { "start": 479, "length": 3 }
+              }
+            }
+          }
+        }
+      },
+      "signature": "type num = number"
+    }
+  }
+]

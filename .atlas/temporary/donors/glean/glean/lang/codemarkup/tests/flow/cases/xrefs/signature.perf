@@ -1,0 +1,8 @@
+{
+  "@generated": null,
+  "facts_searched": {
+    "flow.DeclarationInfo.3": 32,
+    "flow.TypeDeclarationInfo.3": 6
+  },
+  "full_scans": [ "flow.DeclarationInfo.3", "flow.TypeDeclarationInfo.3" ]
+}

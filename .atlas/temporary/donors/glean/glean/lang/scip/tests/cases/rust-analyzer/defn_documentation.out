@@ -1,0 +1,1160 @@
+[
+  "@generated",
+  {
+    "key": {
+      "defn": {
+        "key": {
+          "symbol": {
+            "key": "rust-analyzer cargo delta_log 0.0.0 init_delta_logger()."
+          },
+          "location": {
+            "key": {
+              "file": { "key": "delta_log.rs" },
+              "range": {
+                "lineBegin": 21,
+                "columnBegin": 8,
+                "lineEnd": 21,
+                "columnEnd": 24
+              }
+            }
+          }
+        }
+      },
+      "docs": {
+        "key": "Initialize a logger that shows the time since start and since the\u000aprevious log message, rather than absolute time."
+      }
+    }
+  },
+  {
+    "key": {
+      "defn": {
+        "key": {
+          "symbol": { "key": "rust-analyzer cargo measure 0.0.0 RecordName#" },
+          "location": {
+            "key": {
+              "file": { "key": "measure/measure.rs" },
+              "range": {
+                "lineBegin": 80,
+                "columnBegin": 12,
+                "lineEnd": 80,
+                "columnEnd": 21
+              }
+            }
+          }
+        }
+      },
+      "docs": {
+        "key": "A `RecordName` can be constructed from a single static string which does not\u000acontain the `(` character, or a pair of static strings where the first does\u000anot contain the `(` character. When constructed from a pair, e.g.,\u000a`RecordName::from((\"foo\", \"bar\"))`, the record name will be rendered as the\u000afirst string followed by the second, parenthesized, e.g., `\"foo (bar)\"`.\u000aThis is in order to support some existing patterns for constructing record\u000anames in our OCaml without requiring the caller to concatenate strings at\u000asample time."
+      }
+    }
+  },
+  {
+    "key": {
+      "defn": {
+        "key": {
+          "symbol": { "key": "rust-analyzer cargo measure 0.0.0 crate/" },
+          "location": {
+            "key": {
+              "file": { "key": "measure/measure.rs" },
+              "range": {
+                "lineBegin": 1,
+                "columnBegin": 1,
+                "lineEnd": 292,
+                "columnEnd": 1
+              }
+            }
+          }
+        }
+      },
+      "docs": {
+        "key": "A simple telemetry crate ported from src/utils/core/measure.ml.\u000a\u000aThe OCaml implementation will call into this one upon invocations of\u000a`Measure.push_global` and `Measure.pop_global`, unioning the Rust\u000ameasurements into the returned OCaml record.\u000a\u000aThe `measure` crate is primarily useful for debugging. It's particularly\u000auseful for gathering stats about something that happens a lot. Let's say you\u000ahave some code like this\u000a\u000a    let number_bunnies = count_bunnies();\u000a\u000aIf you want to debug how many bunnies are being counted, you could do\u000asomething like\u000a\u000a    let number_bunnies = count_bunnies();\u000a    eprintln!(\"Num bunnies: {number_bunnies}\");\u000a\u000abut what if this code is called 1000 times? Then you end up with log spew.\u000aUsing the `measure` crate helps with this. You can now do\u000a\u000a    let number_bunnies = count_bunnies();\u000a    measure::sample(\"num_bunnies\", number_bunnies);\u000a\u000aand then later you do\u000a\u000a    measure::print_stats();\u000a\u000awhich will print the number of samples, the total, the average, the\u000avariance, the max and the min.\u000a\u000aMeasurements are stored in a stateful way in a record. You can either use a\u000aglobal record or a local record.\u000a\u000aUsing a global record:\u000a\u000a    measure::sample(\"num_bunnies\", number_bunnies);\u000a    measure::print_stats();\u000a\u000aYou can push and pop the global record. This is useful if you want to reset\u000asome counters without throwing away that data.\u000a\u000a    measure::push_global();\u000a    // ...measure stuff\u000a    let record = measure::pop_global();\u000a    record.print_stats();\u000a\u000aUsing a local record:\u000a\u000a    let record = measure::Record::default();\u000a    record.sample(\"num_bunnies\", number_bunnies);\u000a    record.print_stats();\u000a\u000aA record does not store the individual measurements, just the aggregate\u000astats, which are updated online."
+      }
+    }
+  },
+  {
+    "key": {
+      "defn": {
+        "key": {
+          "symbol": {
+            "key": "rust-analyzer cargo measure 0.0.0 impl#[RecordName][ToOcamlRep]to_ocamlrep()."
+          },
+          "location": {
+            "key": {
+              "file": { "key": "measure/measure.rs" },
+              "range": {
+                "lineBegin": 268,
+                "columnBegin": 8,
+                "lineEnd": 268,
+                "columnEnd": 18
+              }
+            }
+          }
+        }
+      },
+      "docs": {
+        "key": "Allocate an OCaml representation of `self` using the given Allocator.\u000a\u000aImplementors of this method must not mutate or drop any values after\u000apassing them to `Allocator::add` (or invoking `to_ocamlrep` on them),\u000aelse `Allocator::memoized` may return incorrect results (this can\u000agenerally only be done using internal-mutability types like `RefCell`,\u000a`Mutex`, or atomics, or by using `unsafe`)."
+      }
+    }
+  },
+  {
+    "key": {
+      "defn": {
+        "key": {
+          "symbol": {
+            "key": "rust-analyzer cargo measure 0.0.0 impl#[Record][ToOcamlRep]to_ocamlrep()."
+          },
+          "location": {
+            "key": {
+              "file": { "key": "measure/measure.rs" },
+              "range": {
+                "lineBegin": 279,
+                "columnBegin": 8,
+                "lineEnd": 279,
+                "columnEnd": 18
+              }
+            }
+          }
+        }
+      },
+      "docs": {
+        "key": "Allocate an OCaml representation of `self` using the given Allocator.\u000a\u000aImplementors of this method must not mutate or drop any values after\u000apassing them to `Allocator::add` (or invoking `to_ocamlrep` on them),\u000aelse `Allocator::memoized` may return incorrect results (this can\u000agenerally only be done using internal-mutability types like `RefCell`,\u000a`Mutex`, or atomics, or by using `unsafe`)."
+      }
+    }
+  },
+  {
+    "key": {
+      "defn": {
+        "key": {
+          "symbol": {
+            "key": "rust-analyzer cargo measure 0.0.0 pop_global()."
+          },
+          "location": {
+            "key": {
+              "file": { "key": "measure/measure.rs" },
+              "range": {
+                "lineBegin": 104,
+                "columnBegin": 8,
+                "lineEnd": 104,
+                "columnEnd": 17
+              }
+            }
+          }
+        }
+      },
+      "docs": {
+        "key": "# Panics\u000a\u000aPanics if invoked when the global record stack is empty."
+      }
+    }
+  },
+  {
+    "key": {
+      "defn": {
+        "key": {
+          "symbol": { "key": "rust-analyzer cargo measure 0.0.0 sample()." },
+          "location": {
+            "key": {
+              "file": { "key": "measure/measure.rs" },
+              "range": {
+                "lineBegin": 125,
+                "columnBegin": 8,
+                "lineEnd": 125,
+                "columnEnd": 13
+              }
+            }
+          }
+        }
+      },
+      "docs": {
+        "key": "# Panics\u000a\u000aPanics if invoked when the global record stack is empty (i.e.,\u000a`measure::pop_global` was called without a corresponding\u000a`measure::push_global`)."
+      }
+    }
+  },
+  {
+    "key": {
+      "defn": {
+        "key": {
+          "symbol": {
+            "key": "rust-analyzer cargo rc_pos 0.0.0 file_pos_large/FilePosLarge#bol."
+          },
+          "location": {
+            "key": {
+              "file": { "key": "pos/file_pos_large.rs" },
+              "range": {
+                "lineBegin": 23,
+                "columnBegin": 5,
+                "lineEnd": 23,
+                "columnEnd": 7
+              }
+            }
+          }
+        }
+      },
+      "docs": {
+        "key": "character offset (from the beginning of file) of the beginning of line of this position.\u000aThe column number is therefore offset - bol\u000aStarts at 0"
+      }
+    }
+  },
+  {
+    "key": {
+      "defn": {
+        "key": {
+          "symbol": {
+            "key": "rust-analyzer cargo rc_pos 0.0.0 file_pos_large/FilePosLarge#lnum."
+          },
+          "location": {
+            "key": {
+              "file": { "key": "pos/file_pos_large.rs" },
+              "range": {
+                "lineBegin": 19,
+                "columnBegin": 5,
+                "lineEnd": 19,
+                "columnEnd": 8
+              }
+            }
+          }
+        }
+      },
+      "docs": { "key": "line number. Starts at 1." }
+    }
+  },
+  {
+    "key": {
+      "defn": {
+        "key": {
+          "symbol": {
+            "key": "rust-analyzer cargo rc_pos 0.0.0 file_pos_large/FilePosLarge#offset."
+          },
+          "location": {
+            "key": {
+              "file": { "key": "pos/file_pos_large.rs" },
+              "range": {
+                "lineBegin": 25,
+                "columnBegin": 5,
+                "lineEnd": 25,
+                "columnEnd": 10
+              }
+            }
+          }
+        }
+      },
+      "docs": {
+        "key": "character offset from the beginning of the file. Starts at 0."
+      }
+    }
+  },
+  {
+    "key": {
+      "defn": {
+        "key": {
+          "symbol": {
+            "key": "rust-analyzer cargo rc_pos 0.0.0 file_pos_large/impl#[FilePosLarge][FromOcamlRep]from_ocamlrep()."
+          },
+          "location": {
+            "key": {
+              "file": { "key": "pos/file_pos_large.rs" },
+              "range": {
+                "lineBegin": 162,
+                "columnBegin": 8,
+                "lineEnd": 162,
+                "columnEnd": 20
+              }
+            }
+          }
+        }
+      },
+      "docs": {
+        "key": "Convert the given ocamlrep Value to a value of type `Self`, if possible."
+      }
+    }
+  },
+  {
+    "key": {
+      "defn": {
+        "key": {
+          "symbol": {
+            "key": "rust-analyzer cargo rc_pos 0.0.0 file_pos_large/impl#[FilePosLarge][ToOcamlRep]to_ocamlrep()."
+          },
+          "location": {
+            "key": {
+              "file": { "key": "pos/file_pos_large.rs" },
+              "range": {
+                "lineBegin": 152,
+                "columnBegin": 8,
+                "lineEnd": 152,
+                "columnEnd": 18
+              }
+            }
+          }
+        }
+      },
+      "docs": {
+        "key": "Allocate an OCaml representation of `self` using the given Allocator.\u000a\u000aImplementors of this method must not mutate or drop any values after\u000apassing them to `Allocator::add` (or invoking `to_ocamlrep` on them),\u000aelse `Allocator::memoized` may return incorrect results (this can\u000agenerally only be done using internal-mutability types like `RefCell`,\u000a`Mutex`, or atomics, or by using `unsafe`)."
+      }
+    }
+  },
+  {
+    "key": {
+      "defn": {
+        "key": {
+          "symbol": {
+            "key": "rust-analyzer cargo rc_pos 0.0.0 file_pos_large/impl#[FilePosLarge][`FromOcamlRepIn<'a>`]from_ocamlrep_in()."
+          },
+          "location": {
+            "key": {
+              "file": { "key": "pos/file_pos_large.rs" },
+              "range": {
+                "lineBegin": 176,
+                "columnBegin": 8,
+                "lineEnd": 176,
+                "columnEnd": 23
+              }
+            }
+          }
+        }
+      },
+      "docs": {
+        "key": "Convert the given ocamlrep Value to a value of type `Self`, allocated in\u000athe given arena."
+      }
+    }
+  },
+  {
+    "key": {
+      "defn": {
+        "key": {
+          "symbol": {
+            "key": "rust-analyzer cargo rc_pos 0.0.0 file_pos_small/impl#[FilePosSmall][FromOcamlRep]from_ocamlrep()."
+          },
+          "location": {
+            "key": {
+              "file": { "key": "pos/file_pos_small.rs" },
+              "range": {
+                "lineBegin": 219,
+                "columnBegin": 8,
+                "lineEnd": 219,
+                "columnEnd": 20
+              }
+            }
+          }
+        }
+      },
+      "docs": {
+        "key": "Convert the given ocamlrep Value to a value of type `Self`, if possible."
+      }
+    }
+  },
+  {
+    "key": {
+      "defn": {
+        "key": {
+          "symbol": {
+            "key": "rust-analyzer cargo rc_pos 0.0.0 file_pos_small/impl#[FilePosSmall][ToOcamlRep]to_ocamlrep()."
+          },
+          "location": {
+            "key": {
+              "file": { "key": "pos/file_pos_small.rs" },
+              "range": {
+                "lineBegin": 213,
+                "columnBegin": 8,
+                "lineEnd": 213,
+                "columnEnd": 18
+              }
+            }
+          }
+        }
+      },
+      "docs": {
+        "key": "Allocate an OCaml representation of `self` using the given Allocator.\u000a\u000aImplementors of this method must not mutate or drop any values after\u000apassing them to `Allocator::add` (or invoking `to_ocamlrep` on them),\u000aelse `Allocator::memoized` may return incorrect results (this can\u000agenerally only be done using internal-mutability types like `RefCell`,\u000a`Mutex`, or atomics, or by using `unsafe`)."
+      }
+    }
+  },
+  {
+    "key": {
+      "defn": {
+        "key": {
+          "symbol": {
+            "key": "rust-analyzer cargo rc_pos 0.0.0 file_pos_small/impl#[FilePosSmall][`FromOcamlRepIn<'a>`]from_ocamlrep_in()."
+          },
+          "location": {
+            "key": {
+              "file": { "key": "pos/file_pos_small.rs" },
+              "range": {
+                "lineBegin": 225,
+                "columnBegin": 8,
+                "lineEnd": 225,
+                "columnEnd": 23
+              }
+            }
+          }
+        }
+      },
+      "docs": {
+        "key": "Convert the given ocamlrep Value to a value of type `Self`, allocated in\u000athe given arena."
+      }
+    }
+  },
+  {
+    "key": {
+      "defn": {
+        "key": {
+          "symbol": {
+            "key": "rust-analyzer cargo rc_pos 0.0.0 pos_impl/PosImpl#Tiny#file."
+          },
+          "location": {
+            "key": {
+              "file": { "key": "pos/pos_impl.rs" },
+              "range": {
+                "lineBegin": 41,
+                "columnBegin": 9,
+                "lineEnd": 41,
+                "columnEnd": 12
+              }
+            }
+          }
+        }
+      },
+      "docs": {
+        "key": "Representation invariant: `RelativePath::EMPTY` is always encoded as\u000a`None`. This allows us to construct `Pos` in `const` contexts."
+      }
+    }
+  },
+  {
+    "key": {
+      "defn": {
+        "key": {
+          "symbol": {
+            "key": "rust-analyzer cargo rc_pos 0.0.0 pos_impl/PosString#"
+          },
+          "location": {
+            "key": {
+              "file": { "key": "pos/pos_impl.rs" },
+              "range": {
+                "lineBegin": 593,
+                "columnBegin": 12,
+                "lineEnd": 593,
+                "columnEnd": 20
+              }
+            }
+          }
+        }
+      },
+      "docs": {
+        "key": "This struct has an impl of Display which produces the same format as\u000a`Pos.string` in OCaml."
+      }
+    }
+  },
+  {
+    "key": {
+      "defn": {
+        "key": {
+          "symbol": {
+            "key": "rust-analyzer cargo rc_pos 0.0.0 pos_impl/impl#[PosImpl][FromOcamlRep]from_ocamlrep()."
+          },
+          "location": {
+            "key": {
+              "file": { "key": "pos/pos_impl.rs" },
+              "range": {
+                "lineBegin": 535,
+                "columnBegin": 8,
+                "lineEnd": 535,
+                "columnEnd": 20
+              }
+            }
+          }
+        }
+      },
+      "docs": {
+        "key": "Convert the given ocamlrep Value to a value of type `Self`, if possible."
+      }
+    }
+  },
+  {
+    "key": {
+      "defn": {
+        "key": {
+          "symbol": {
+            "key": "rust-analyzer cargo rc_pos 0.0.0 pos_impl/impl#[PosImpl][ToOcamlRep]to_ocamlrep()."
+          },
+          "location": {
+            "key": {
+              "file": { "key": "pos/pos_impl.rs" },
+              "range": {
+                "lineBegin": 502,
+                "columnBegin": 8,
+                "lineEnd": 502,
+                "columnEnd": 18
+              }
+            }
+          }
+        }
+      },
+      "docs": {
+        "key": "Allocate an OCaml representation of `self` using the given Allocator.\u000a\u000aImplementors of this method must not mutate or drop any values after\u000apassing them to `Allocator::add` (or invoking `to_ocamlrep` on them),\u000aelse `Allocator::memoized` may return incorrect results (this can\u000agenerally only be done using internal-mutability types like `RefCell`,\u000a`Mutex`, or atomics, or by using `unsafe`)."
+      }
+    }
+  },
+  {
+    "key": {
+      "defn": {
+        "key": {
+          "symbol": {
+            "key": "rust-analyzer cargo rc_pos 0.0.0 pos_impl/impl#[Pos]from_line_cols_offset()."
+          },
+          "location": {
+            "key": {
+              "file": { "key": "pos/pos_impl.rs" },
+              "range": {
+                "lineBegin": 223,
+                "columnBegin": 12,
+                "lineEnd": 223,
+                "columnEnd": 32
+              }
+            }
+          }
+        }
+      },
+      "docs": { "key": "For single-line spans only." }
+    }
+  },
+  {
+    "key": {
+      "defn": {
+        "key": {
+          "symbol": {
+            "key": "rust-analyzer cargo rc_pos 0.0.0 pos_impl/impl#[Pos]info_pos()."
+          },
+          "location": {
+            "key": {
+              "file": { "key": "pos/pos_impl.rs" },
+              "range": {
+                "lineBegin": 144,
+                "columnBegin": 12,
+                "lineEnd": 144,
+                "columnEnd": 19
+              }
+            }
+          }
+        }
+      },
+      "docs": {
+        "key": "Returns a closed interval that's incorrect for multi-line spans."
+      }
+    }
+  },
+  {
+    "key": {
+      "defn": {
+        "key": {
+          "symbol": {
+            "key": "rust-analyzer cargo rc_pos 0.0.0 pos_impl/impl#[Pos]info_pos_extended()."
+          },
+          "location": {
+            "key": {
+              "file": { "key": "pos/pos_impl.rs" },
+              "range": {
+                "lineBegin": 171,
+                "columnBegin": 12,
+                "lineEnd": 171,
+                "columnEnd": 28
+              }
+            }
+          }
+        }
+      },
+      "docs": {
+        "key": "Returns (start_line, end_line, start_col, end_col) for multi-line spans."
+      }
+    }
+  },
+  {
+    "key": {
+      "defn": {
+        "key": {
+          "symbol": {
+            "key": "rust-analyzer cargo rc_pos 0.0.0 pos_impl/impl#[Pos]merge_without_checking_filename()."
+          },
+          "location": {
+            "key": {
+              "file": { "key": "pos/pos_impl.rs" },
+              "range": {
+                "lineBegin": 302,
+                "columnBegin": 12,
+                "lineEnd": 302,
+                "columnEnd": 42
+              }
+            }
+          }
+        }
+      },
+      "docs": {
+        "key": "Return the smallest position containing both given positions (if they\u000aare both in the same file). The returned position will have the\u000afilename of the first Pos argument.\u000a\u000aFor merging positions that may not occur within the same file, use\u000a`Pos::merge`."
+      }
+    }
+  },
+  {
+    "key": {
+      "defn": {
+        "key": {
+          "symbol": {
+            "key": "rust-analyzer cargo rc_pos 0.0.0 pos_impl/impl#[Pos]string()."
+          },
+          "location": {
+            "key": {
+              "file": { "key": "pos/pos_impl.rs" },
+              "range": {
+                "lineBegin": 582,
+                "columnBegin": 12,
+                "lineEnd": 582,
+                "columnEnd": 17
+              }
+            }
+          }
+        }
+      },
+      "docs": {
+        "key": "Returns a struct implementing Display which produces the same format as\u000a`Pos.string` in OCaml."
+      }
+    }
+  },
+  {
+    "key": {
+      "defn": {
+        "key": {
+          "symbol": {
+            "key": "rust-analyzer cargo rc_pos 0.0.0 pos_span_tiny/MASK."
+          },
+          "location": {
+            "key": {
+              "file": { "key": "pos/pos_span_tiny.rs" },
+              "range": {
+                "lineBegin": 85,
+                "columnBegin": 7,
+                "lineEnd": 85,
+                "columnEnd": 10
+              }
+            }
+          }
+        }
+      },
+      "docs": {
+        "key": "We only have 63 bits to work with, since OCaml reserves one bit for the\u000ainteger tag. On the OCaml side, the integer tag is the low bit, but when\u000aconverting ints from OCaml to Rust, we shift them right one bit, making the\u000aspare bit the high bit. Since OCaml integers are signed, when we convert a\u000aPosSpanTiny value from OCaml, the high bit is filled with a sign bit via the\u000aarithmetic shift in `ocamlrep::ocaml_int_to_isize`. Since this high bit\u000aisn't meaningful, we want to mask it off (to prevent construction of\u000aequivalent values with differing high bits)."
+      }
+    }
+  },
+  {
+    "key": {
+      "defn": {
+        "key": {
+          "symbol": {
+            "key": "rust-analyzer cargo rc_pos 0.0.0 pos_span_tiny/PosSpanTiny#"
+          },
+          "location": {
+            "key": {
+              "file": { "key": "pos/pos_span_tiny.rs" },
+              "range": {
+                "lineBegin": 29,
+                "columnBegin": 12,
+                "lineEnd": 29,
+                "columnEnd": 22
+              }
+            }
+          }
+        }
+      },
+      "docs": {
+        "key": "A compressed representation of a position span, i.e. a start and an end position."
+      }
+    }
+  },
+  {
+    "key": {
+      "defn": {
+        "key": {
+          "symbol": {
+            "key": "rust-analyzer cargo rc_pos 0.0.0 pos_span_tiny/START_BEGINNING_OF_LINE_BITS."
+          },
+          "location": {
+            "key": {
+              "file": { "key": "pos/pos_span_tiny.rs" },
+              "range": {
+                "lineBegin": 36,
+                "columnBegin": 7,
+                "lineEnd": 36,
+                "columnEnd": 34
+              }
+            }
+          }
+        }
+      },
+      "docs": {
+        "key": "These numbers were obtained by gathering statistics on the positions in\u000athe decl heap for a large code base run as of December 2020. They should\u000aallow us to encode about 99% of positions."
+      }
+    }
+  },
+  {
+    "key": {
+      "defn": {
+        "key": {
+          "symbol": {
+            "key": "rust-analyzer cargo rc_pos 0.0.0 pos_span_tiny/impl#[PosSpanTiny][FromOcamlRep]from_ocamlrep()."
+          },
+          "location": {
+            "key": {
+              "file": { "key": "pos/pos_span_tiny.rs" },
+              "range": {
+                "lineBegin": 271,
+                "columnBegin": 8,
+                "lineEnd": 271,
+                "columnEnd": 20
+              }
+            }
+          }
+        }
+      },
+      "docs": {
+        "key": "Convert the given ocamlrep Value to a value of type `Self`, if possible."
+      }
+    }
+  },
+  {
+    "key": {
+      "defn": {
+        "key": {
+          "symbol": {
+            "key": "rust-analyzer cargo rc_pos 0.0.0 pos_span_tiny/impl#[PosSpanTiny][ToOcamlRep]to_ocamlrep()."
+          },
+          "location": {
+            "key": {
+              "file": { "key": "pos/pos_span_tiny.rs" },
+              "range": {
+                "lineBegin": 265,
+                "columnBegin": 8,
+                "lineEnd": 265,
+                "columnEnd": 18
+              }
+            }
+          }
+        }
+      },
+      "docs": {
+        "key": "Allocate an OCaml representation of `self` using the given Allocator.\u000a\u000aImplementors of this method must not mutate or drop any values after\u000apassing them to `Allocator::add` (or invoking `to_ocamlrep` on them),\u000aelse `Allocator::memoized` may return incorrect results (this can\u000agenerally only be done using internal-mutability types like `RefCell`,\u000a`Mutex`, or atomics, or by using `unsafe`)."
+      }
+    }
+  },
+  {
+    "key": {
+      "defn": {
+        "key": {
+          "symbol": {
+            "key": "rust-analyzer cargo rc_pos 0.0.0 pos_span_tiny/impl#[PosSpanTiny][`FromOcamlRepIn<'a>`]from_ocamlrep_in()."
+          },
+          "location": {
+            "key": {
+              "file": { "key": "pos/pos_span_tiny.rs" },
+              "range": {
+                "lineBegin": 277,
+                "columnBegin": 8,
+                "lineEnd": 277,
+                "columnEnd": 23
+              }
+            }
+          }
+        }
+      },
+      "docs": {
+        "key": "Convert the given ocamlrep Value to a value of type `Self`, allocated in\u000athe given arena."
+      }
+    }
+  },
+  {
+    "key": {
+      "defn": {
+        "key": {
+          "symbol": {
+            "key": "rust-analyzer cargo relative_path 0.0.0 RelativePath#path."
+          },
+          "location": {
+            "key": {
+              "file": { "key": "relative_path.rs" },
+              "range": {
+                "lineBegin": 71,
+                "columnBegin": 5,
+                "lineEnd": 71,
+                "columnEnd": 8
+              }
+            }
+          }
+        }
+      },
+      "docs": {
+        "key": "Representation invariant: the empty path is always encoded as `None`.\u000aThis allows us to construct `RelativePath` in `const` contexts\u000a(because `Path::new` is not a `const fn`)."
+      }
+    }
+  },
+  {
+    "key": {
+      "defn": {
+        "key": {
+          "symbol": {
+            "key": "rust-analyzer cargo relative_path 0.0.0 impl#[RelativePath][FromOcamlRep]from_ocamlrep()."
+          },
+          "location": {
+            "key": {
+              "file": { "key": "relative_path.rs" },
+              "range": {
+                "lineBegin": 231,
+                "columnBegin": 8,
+                "lineEnd": 231,
+                "columnEnd": 20
+              }
+            }
+          }
+        }
+      },
+      "docs": {
+        "key": "Convert the given ocamlrep Value to a value of type `Self`, if possible."
+      }
+    }
+  },
+  {
+    "key": {
+      "defn": {
+        "key": {
+          "symbol": {
+            "key": "rust-analyzer cargo relative_path 0.0.0 impl#[RelativePath][Serialize]serialize()."
+          },
+          "location": {
+            "key": {
+              "file": { "key": "relative_path.rs" },
+              "range": {
+                "lineBegin": 155,
+                "columnBegin": 8,
+                "lineEnd": 155,
+                "columnEnd": 16
+              }
+            }
+          }
+        }
+      },
+      "docs": {
+        "key": "Serialize this value into the given Serde serializer.\u000a\u000aSee the [Implementing `Serialize`] section of the manual for more\u000ainformation about how to implement this method.\u000a\u000a```edition2021\u000ause serde::ser::{Serialize, SerializeStruct, Serializer};\u000a\u000astruct Person {\u000a    name: String,\u000a    age: u8,\u000a    phones: Vec<String>,\u000a}\u000a\u000a// This is what #[derive(Serialize)] would generate.\u000aimpl Serialize for Person {\u000a    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>\u000a    where\u000a        S: Serializer,\u000a    {\u000a        let mut s = serializer.serialize_struct(\"Person\", 3)?;\u000a        s.serialize_field(\"name\", &self.name)?;\u000a        s.serialize_field(\"age\", &self.age)?;\u000a        s.serialize_field(\"phones\", &self.phones)?;\u000a        s.end()\u000a    }\u000a}\u000a```\u000a\u000a[Implementing `Serialize`]: https://serde.rs/impl-serialize.html"
+      }
+    }
+  },
+  {
+    "key": {
+      "defn": {
+        "key": {
+          "symbol": {
+            "key": "rust-analyzer cargo relative_path 0.0.0 impl#[RelativePath][ToOcamlRep]to_ocamlrep()."
+          },
+          "location": {
+            "key": {
+              "file": { "key": "relative_path.rs" },
+              "range": {
+                "lineBegin": 222,
+                "columnBegin": 8,
+                "lineEnd": 222,
+                "columnEnd": 18
+              }
+            }
+          }
+        }
+      },
+      "docs": {
+        "key": "Allocate an OCaml representation of `self` using the given Allocator.\u000a\u000aImplementors of this method must not mutate or drop any values after\u000apassing them to `Allocator::add` (or invoking `to_ocamlrep` on them),\u000aelse `Allocator::memoized` may return incorrect results (this can\u000agenerally only be done using internal-mutability types like `RefCell`,\u000a`Mutex`, or atomics, or by using `unsafe`)."
+      }
+    }
+  },
+  {
+    "key": {
+      "defn": {
+        "key": {
+          "symbol": {
+            "key": "rust-analyzer cargo relative_path 0.0.0 impl#[RelativePath][`Deserialize<'de>`]deserialize()."
+          },
+          "location": {
+            "key": {
+              "file": { "key": "relative_path.rs" },
+              "range": {
+                "lineBegin": 164,
+                "columnBegin": 8,
+                "lineEnd": 164,
+                "columnEnd": 18
+              }
+            }
+          }
+        }
+      },
+      "docs": {
+        "key": "Deserialize this value from the given Serde deserializer.\u000a\u000aSee the [Implementing `Deserialize`][impl-deserialize] section of the\u000amanual for more information about how to implement this method.\u000a\u000a[impl-deserialize]: https://serde.rs/impl-deserialize.html"
+      }
+    }
+  },
+  {
+    "key": {
+      "defn": {
+        "key": {
+          "symbol": {
+            "key": "rust-analyzer cargo relative_path 0.0.0 impl#[RelativePath]path()."
+          },
+          "location": {
+            "key": {
+              "file": { "key": "relative_path.rs" },
+              "range": {
+                "lineBegin": 100,
+                "columnBegin": 12,
+                "lineEnd": 100,
+                "columnEnd": 15
+              }
+            }
+          }
+        }
+      },
+      "docs": { "key": "The relative path compared to the prefix" }
+    }
+  },
+  {
+    "key": {
+      "defn": {
+        "key": {
+          "symbol": {
+            "key": "rust-analyzer cargo relative_path 0.0.0 impl#[RelativePath]path_str()."
+          },
+          "location": {
+            "key": {
+              "file": { "key": "relative_path.rs" },
+              "range": {
+                "lineBegin": 105,
+                "columnBegin": 12,
+                "lineEnd": 105,
+                "columnEnd": 19
+              }
+            }
+          }
+        }
+      },
+      "docs": { "key": "The relative path compared to the prefix as a string" }
+    }
+  },
+  {
+    "key": {
+      "defn": {
+        "key": {
+          "symbol": {
+            "key": "rust-analyzer cargo relative_path 0.0.0 impl#[Visitor][`Visitor<'de>`]Value#"
+          },
+          "location": {
+            "key": {
+              "file": { "key": "relative_path.rs" },
+              "range": {
+                "lineBegin": 171,
+                "columnBegin": 18,
+                "lineEnd": 171,
+                "columnEnd": 22
+              }
+            }
+          }
+        }
+      },
+      "docs": { "key": "The value produced by this visitor." }
+    }
+  },
+  {
+    "key": {
+      "defn": {
+        "key": {
+          "symbol": {
+            "key": "rust-analyzer cargo relative_path 0.0.0 impl#[Visitor][`Visitor<'de>`]expecting()."
+          },
+          "location": {
+            "key": {
+              "file": { "key": "relative_path.rs" },
+              "range": {
+                "lineBegin": 173,
+                "columnBegin": 16,
+                "lineEnd": 173,
+                "columnEnd": 24
+              }
+            }
+          }
+        }
+      },
+      "docs": {
+        "key": "Format a message stating what data this Visitor expects to receive.\u000a\u000aThis is used in error messages. The message should complete the sentence\u000a\"This Visitor expects to receive ...\", for example the message could be\u000a\"an integer between 0 and 64\". The message should not be capitalized and\u000ashould not end with a period.\u000a\u000a```edition2021\u000a# use std::fmt;\u000a#\u000a# struct S {\u000a#     max: usize,\u000a# }\u000a#\u000a# impl<'de> serde::de::Visitor<'de> for S {\u000a#     type Value = ();\u000a#\u000afn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {\u000a    write!(formatter, \"an integer between 0 and {}\", self.max)\u000a}\u000a# }\u000a```"
+      }
+    }
+  },
+  {
+    "key": {
+      "defn": {
+        "key": {
+          "symbol": {
+            "key": "rust-analyzer cargo relative_path 0.0.0 impl#[Visitor][`Visitor<'de>`]visit_str()."
+          },
+          "location": {
+            "key": {
+              "file": { "key": "relative_path.rs" },
+              "range": {
+                "lineBegin": 177,
+                "columnBegin": 16,
+                "lineEnd": 177,
+                "columnEnd": 24
+              }
+            }
+          }
+        }
+      },
+      "docs": {
+        "key": "The input contains a string. The lifetime of the string is ephemeral and\u000ait may be destroyed after this method returns.\u000a\u000aThis method allows the `Deserializer` to avoid a copy by retaining\u000aownership of any buffered data. `Deserialize` implementations that do\u000anot benefit from taking ownership of `String` data should indicate that\u000ato the deserializer by using `Deserializer::deserialize_str` rather than\u000a`Deserializer::deserialize_string`.\u000a\u000aIt is never correct to implement `visit_string` without implementing\u000a`visit_str`. Implement neither, both, or just `visit_str`."
+      }
+    }
+  },
+  {
+    "key": {
+      "defn": {
+        "key": {
+          "symbol": {
+            "key": "rust-analyzer cargo signed_source 0.0.0 OLD_TOKEN."
+          },
+          "location": {
+            "key": {
+              "file": { "key": "signed_source.rs" },
+              "range": {
+                "lineBegin": 89,
+                "columnBegin": 8,
+                "lineEnd": 89,
+                "columnEnd": 16
+              }
+            }
+          }
+        }
+      },
+      "docs": {
+        "key": "This old token was historically used as the signing token. It was replaced\u000abecause it is 2 characters shorter than the final signature, and as a result,\u000asigning data with the old token forced the entire string to be rewritten\u000a(everything after the token needs to be shifted forwards 2 bytes).\u000aIn this implementation, we rewrite the entire string anyway."
+      }
+    }
+  },
+  {
+    "key": {
+      "defn": {
+        "key": {
+          "symbol": {
+            "key": "rust-analyzer cargo signed_source 0.0.0 SIGNING_TOKEN."
+          },
+          "location": {
+            "key": {
+              "file": { "key": "signed_source.rs" },
+              "range": {
+                "lineBegin": 15,
+                "columnBegin": 12,
+                "lineEnd": 15,
+                "columnEnd": 24
+              }
+            }
+          }
+        }
+      },
+      "docs": {
+        "key": "This crate is a port of hphp/hack/src/utils/signed_source.ml, which was\u000abased on a historical version of fbsource/tools/signedsource.py.\u000aThe signing token, which you must embed in the file you wish to sign.\u000aGenerally, you should put this in a header comment."
+      }
+    }
+  },
+  {
+    "key": {
+      "defn": {
+        "key": {
+          "symbol": {
+            "key": "rust-analyzer cargo signed_source 0.0.0 is_signed()."
+          },
+          "location": {
+            "key": {
+              "file": { "key": "signed_source.rs" },
+              "range": {
+                "lineBegin": 51,
+                "columnBegin": 8,
+                "lineEnd": 51,
+                "columnEnd": 16
+              }
+            }
+          }
+        }
+      },
+      "docs": {
+        "key": "Determine whether a file is signed. This does NOT verify the signature."
+      }
+    }
+  },
+  {
+    "key": {
+      "defn": {
+        "key": {
+          "symbol": {
+            "key": "rust-analyzer cargo signed_source 0.0.0 sign_file()."
+          },
+          "location": {
+            "key": {
+              "file": { "key": "signed_source.rs" },
+              "range": {
+                "lineBegin": 27,
+                "columnBegin": 8,
+                "lineEnd": 27,
+                "columnEnd": 16
+              }
+            }
+          }
+        }
+      },
+      "docs": {
+        "key": "Sign a source file into which you have previously embedded a signing token.\u000aSigning modifies only the signing token, so the semantics of the file will\u000anot change if the token is put in a comment.\u000a\u000aReturns `TokenNotFoundError` if no signing token is present."
+      }
+    }
+  },
+  {
+    "key": {
+      "defn": {
+        "key": {
+          "symbol": {
+            "key": "rust-analyzer cargo signed_source 0.0.0 sign_utf8_file()."
+          },
+          "location": {
+            "key": {
+              "file": { "key": "signed_source.rs" },
+              "range": {
+                "lineBegin": 43,
+                "columnBegin": 8,
+                "lineEnd": 43,
+                "columnEnd": 21
+              }
+            }
+          }
+        }
+      },
+      "docs": {
+        "key": "Sign a UTF-8 source file into which you have previously embedded a signing\u000atoken. Signing modifies only the signing token, so the semantics of the file\u000awill not change if the token is put in a comment.\u000a\u000aReturns `TokenNotFoundError` if no signing token is present."
+      }
+    }
+  },
+  {
+    "key": {
+      "defn": {
+        "key": {
+          "symbol": {
+            "key": "rust-analyzer cargo signed_source 0.0.0 verify_signature()."
+          },
+          "location": {
+            "key": {
+              "file": { "key": "signed_source.rs" },
+              "range": {
+                "lineBegin": 63,
+                "columnBegin": 8,
+                "lineEnd": 63,
+                "columnEnd": 23
+              }
+            }
+          }
+        }
+      },
+      "docs": { "key": "Verify a file's signature." }
+    }
+  }
+]

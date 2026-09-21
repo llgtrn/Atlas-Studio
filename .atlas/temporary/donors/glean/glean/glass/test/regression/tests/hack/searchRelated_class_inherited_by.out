@@ -1,0 +1,329 @@
+[
+    "@generated",
+    {
+        "edges": [
+            {
+                "child": "test/php/RefClass",
+                "parent": "test/php/SourceClass"
+            },
+            {
+                "child": "test/php/RefClass",
+                "parent": "test/php/SourceInterface"
+            },
+            {
+                "child": "test/php/RefClass",
+                "parent": "test/php/SourceSecretTrait"
+            },
+            {
+                "child": "test/php/RefClass",
+                "parent": "test/php/SourceTrait"
+            }
+        ],
+        "symbolDetails": {
+            "test/php/RefClass": {
+                "annotations": [],
+                "contains_relation": {
+                    "firstChild": "nondeterministic",
+                    "firstParent": "nondeterministic",
+                    "hasMoreChildren": true,
+                    "hasMoreParents": false
+                },
+                "extends_relation": {
+                    "firstChild": "nondeterministic",
+                    "firstParent": "nondeterministic",
+                    "hasMoreChildren": false,
+                    "hasMoreParents": true
+                },
+                "kind": 7,
+                "language": 3,
+                "location": {
+                    "filepath": "www/RefClass.php",
+                    "range": {
+                        "columnBegin": 1,
+                        "columnEnd": 2,
+                        "lineBegin": 10,
+                        "lineEnd": 37
+                    },
+                    "repository": "test"
+                },
+                "modifiers": [],
+                "name": {
+                    "container": "",
+                    "localName": "RefClass"
+                },
+                "pretty_comments": [],
+                "repo_hash": "testhash",
+                "signature": "class RefClass",
+                "sym": "test/php/RefClass",
+                "sym_location": {
+                    "filepath": "www/RefClass.php",
+                    "range": {
+                        "columnBegin": 1,
+                        "columnEnd": 2,
+                        "lineBegin": 10,
+                        "lineEnd": 37
+                    },
+                    "repository": "test"
+                },
+                "sym_other_locations": [],
+                "type_xrefs": [
+                    {
+                        "span": {
+                            "length": 8,
+                            "start": 6
+                        },
+                        "type": "test/php/RefClass"
+                    }
+                ]
+            },
+            "test/php/SourceClass": {
+                "annotations": [
+                    {
+                        "name": "TestAnnotation",
+                        "source": "TestAnnotation(\"Text\")",
+                        "symbol": "test/php/TestAnnotation"
+                    }
+                ],
+                "contains_relation": {
+                    "firstChild": "nondeterministic",
+                    "firstParent": "nondeterministic",
+                    "hasMoreChildren": true,
+                    "hasMoreParents": false
+                },
+                "extends_relation": {
+                    "firstChild": "nondeterministic",
+                    "firstParent": "nondeterministic",
+                    "hasMoreChildren": true,
+                    "hasMoreParents": false
+                },
+                "kind": 7,
+                "language": 3,
+                "location": {
+                    "filepath": "www/SourceClass.php",
+                    "range": {
+                        "columnBegin": 1,
+                        "columnEnd": 2,
+                        "lineBegin": 13,
+                        "lineEnd": 38
+                    },
+                    "repository": "test"
+                },
+                "modifiers": [],
+                "name": {
+                    "container": "",
+                    "localName": "SourceClass"
+                },
+                "pretty_comments": [
+                    {
+                        "location": {
+                            "filepath": "www/SourceClass.php",
+                            "range": {
+                                "columnBegin": 1,
+                                "columnEnd": 4,
+                                "lineBegin": 10,
+                                "lineEnd": 12
+                            },
+                            "repository": "test"
+                        }
+                    }
+                ],
+                "repo_hash": "testhash",
+                "signature": "class SourceClass",
+                "sym": "test/php/SourceClass",
+                "sym_location": {
+                    "filepath": "www/SourceClass.php",
+                    "range": {
+                        "columnBegin": 1,
+                        "columnEnd": 2,
+                        "lineBegin": 13,
+                        "lineEnd": 38
+                    },
+                    "repository": "test"
+                },
+                "sym_other_locations": [],
+                "type_xrefs": [
+                    {
+                        "span": {
+                            "length": 11,
+                            "start": 6
+                        },
+                        "type": "test/php/SourceClass"
+                    }
+                ]
+            },
+            "test/php/SourceInterface": {
+                "annotations": [],
+                "contains_relation": {
+                    "firstChild": "nondeterministic",
+                    "firstParent": "nondeterministic",
+                    "hasMoreChildren": true,
+                    "hasMoreParents": false
+                },
+                "extends_relation": {
+                    "firstChild": "nondeterministic",
+                    "firstParent": "nondeterministic",
+                    "hasMoreChildren": false,
+                    "hasMoreParents": false
+                },
+                "kind": 13,
+                "language": 3,
+                "location": {
+                    "filepath": "www/SourceInterface.php",
+                    "range": {
+                        "columnBegin": 1,
+                        "columnEnd": 2,
+                        "lineBegin": 10,
+                        "lineEnd": 18
+                    },
+                    "repository": "test"
+                },
+                "modifiers": [],
+                "name": {
+                    "container": "",
+                    "localName": "SourceInterface"
+                },
+                "pretty_comments": [],
+                "repo_hash": "testhash",
+                "signature": "interface SourceInterface",
+                "sym": "test/php/SourceInterface",
+                "sym_location": {
+                    "filepath": "www/SourceInterface.php",
+                    "range": {
+                        "columnBegin": 1,
+                        "columnEnd": 2,
+                        "lineBegin": 10,
+                        "lineEnd": 18
+                    },
+                    "repository": "test"
+                },
+                "sym_other_locations": [],
+                "type_xrefs": [
+                    {
+                        "span": {
+                            "length": 15,
+                            "start": 10
+                        },
+                        "type": "test/php/SourceInterface"
+                    }
+                ]
+            },
+            "test/php/SourceSecretTrait": {
+                "annotations": [
+                    {
+                        "name": "HideFromDocs",
+                        "source": "HideFromDocs"
+                    }
+                ],
+                "contains_relation": {
+                    "firstChild": "nondeterministic",
+                    "firstParent": "nondeterministic",
+                    "hasMoreChildren": false,
+                    "hasMoreParents": false
+                },
+                "extends_relation": {
+                    "firstChild": "nondeterministic",
+                    "firstParent": "nondeterministic",
+                    "hasMoreChildren": false,
+                    "hasMoreParents": false
+                },
+                "kind": 31,
+                "language": 3,
+                "location": {
+                    "filepath": "www/SourceTrait.php",
+                    "range": {
+                        "columnBegin": 1,
+                        "columnEnd": 2,
+                        "lineBegin": 20,
+                        "lineEnd": 25
+                    },
+                    "repository": "test"
+                },
+                "modifiers": [],
+                "name": {
+                    "container": "",
+                    "localName": "SourceSecretTrait"
+                },
+                "pretty_comments": [],
+                "repo_hash": "testhash",
+                "signature": "trait SourceSecretTrait",
+                "sym": "test/php/SourceSecretTrait",
+                "sym_location": {
+                    "filepath": "www/SourceTrait.php",
+                    "range": {
+                        "columnBegin": 1,
+                        "columnEnd": 2,
+                        "lineBegin": 20,
+                        "lineEnd": 25
+                    },
+                    "repository": "test"
+                },
+                "sym_other_locations": [],
+                "type_xrefs": [
+                    {
+                        "span": {
+                            "length": 17,
+                            "start": 6
+                        },
+                        "type": "test/php/SourceSecretTrait"
+                    }
+                ]
+            },
+            "test/php/SourceTrait": {
+                "annotations": [],
+                "contains_relation": {
+                    "firstChild": "nondeterministic",
+                    "firstParent": "nondeterministic",
+                    "hasMoreChildren": true,
+                    "hasMoreParents": false
+                },
+                "extends_relation": {
+                    "firstChild": "nondeterministic",
+                    "firstParent": "nondeterministic",
+                    "hasMoreChildren": false,
+                    "hasMoreParents": false
+                },
+                "kind": 31,
+                "language": 3,
+                "location": {
+                    "filepath": "www/SourceTrait.php",
+                    "range": {
+                        "columnBegin": 1,
+                        "columnEnd": 2,
+                        "lineBegin": 10,
+                        "lineEnd": 18
+                    },
+                    "repository": "test"
+                },
+                "modifiers": [],
+                "name": {
+                    "container": "",
+                    "localName": "SourceTrait"
+                },
+                "pretty_comments": [],
+                "repo_hash": "testhash",
+                "signature": "trait SourceTrait",
+                "sym": "test/php/SourceTrait",
+                "sym_location": {
+                    "filepath": "www/SourceTrait.php",
+                    "range": {
+                        "columnBegin": 1,
+                        "columnEnd": 2,
+                        "lineBegin": 10,
+                        "lineEnd": 18
+                    },
+                    "repository": "test"
+                },
+                "sym_other_locations": [],
+                "type_xrefs": [
+                    {
+                        "span": {
+                            "length": 11,
+                            "start": 6
+                        },
+                        "type": "test/php/SourceTrait"
+                    }
+                ]
+            }
+        }
+    }
+]

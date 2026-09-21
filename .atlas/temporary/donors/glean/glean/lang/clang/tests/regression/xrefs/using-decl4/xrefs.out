@@ -1,0 +1,1943 @@
+[
+  "@generated",
+  {
+    "key": {
+      "file": { "key": "test.cpp" },
+      "xrefs": [
+        {
+          "range": { "begin": 369, "end": 371 },
+          "target": {
+            "declaration": {
+              "namespace_": {
+                "key": {
+                  "name": {
+                    "key": {
+                      "name": { "key": "N3" },
+                      "parent": {
+                        "key": {
+                          "name": { "key": "N2" },
+                          "parent": { "key": { "name": { "key": "N1" } } }
+                        }
+                      }
+                    }
+                  },
+                  "source": {
+                    "file": { "key": "test.cpp" },
+                    "lineBegin": 15,
+                    "columnBegin": 1,
+                    "lineEnd": 15,
+                    "columnEnd": 31
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "range": { "begin": 373, "end": 376 },
+          "target": {
+            "declaration": {
+              "record_": {
+                "key": {
+                  "name": {
+                    "key": {
+                      "name": { "key": "YYY" },
+                      "scope": {
+                        "namespace_": {
+                          "key": {
+                            "name": { "key": "N3" },
+                            "parent": {
+                              "key": {
+                                "name": { "key": "N2" },
+                                "parent": { "key": { "name": { "key": "N1" } } }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "kind": { "struct_": { } },
+                  "source": {
+                    "file": { "key": "test.cpp" },
+                    "lineBegin": 15,
+                    "columnBegin": 16,
+                    "lineEnd": 15,
+                    "columnEnd": 28
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "range": { "begin": 423, "end": 425 },
+          "target": {
+            "declaration": {
+              "namespace_": {
+                "key": {
+                  "name": {
+                    "key": {
+                      "name": { "key": "N4" },
+                      "parent": {
+                        "key": {
+                          "name": { "key": "N2" },
+                          "parent": { "key": { "name": { "key": "N1" } } }
+                        }
+                      }
+                    }
+                  },
+                  "source": {
+                    "file": { "key": "test.cpp" },
+                    "lineBegin": 16,
+                    "columnBegin": 1,
+                    "lineEnd": 16,
+                    "columnEnd": 31
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "range": { "begin": 490, "end": 493 },
+          "target": {
+            "declaration": {
+              "record_": {
+                "key": {
+                  "name": {
+                    "key": {
+                      "name": { "key": "Bar" },
+                      "scope": {
+                        "recordWithAccess": {
+                          "record": {
+                            "key": {
+                              "name": { "key": "Foo" },
+                              "scope": {
+                                "namespace_": {
+                                  "key": {
+                                    "name": { "key": "N2" },
+                                    "parent": {
+                                      "key": { "name": { "key": "N1" } }
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          },
+                          "access": 0
+                        }
+                      }
+                    }
+                  },
+                  "kind": { "struct_": { } },
+                  "source": {
+                    "file": { "key": "test.cpp" },
+                    "lineBegin": 22,
+                    "columnBegin": 3,
+                    "lineEnd": 22,
+                    "columnEnd": 15
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "range": { "begin": 498, "end": 501 },
+          "target": {
+            "declaration": {
+              "record_": {
+                "key": {
+                  "name": {
+                    "key": {
+                      "name": { "key": "Foo" },
+                      "scope": {
+                        "namespace_": {
+                          "key": {
+                            "name": { "key": "N2" },
+                            "parent": { "key": { "name": { "key": "N1" } } }
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "kind": { "struct_": { } },
+                  "source": {
+                    "file": { "key": "test.cpp" },
+                    "lineBegin": 21,
+                    "columnBegin": 1,
+                    "lineEnd": 25,
+                    "columnEnd": 1
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "range": { "begin": 503, "end": 506 },
+          "target": {
+            "declaration": {
+              "record_": {
+                "key": {
+                  "name": {
+                    "key": {
+                      "name": { "key": "Bar" },
+                      "scope": {
+                        "recordWithAccess": {
+                          "record": {
+                            "key": {
+                              "name": { "key": "Foo" },
+                              "scope": {
+                                "namespace_": {
+                                  "key": {
+                                    "name": { "key": "N2" },
+                                    "parent": {
+                                      "key": { "name": { "key": "N1" } }
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          },
+                          "access": 0
+                        }
+                      }
+                    }
+                  },
+                  "kind": { "struct_": { } },
+                  "source": {
+                    "file": { "key": "test.cpp" },
+                    "lineBegin": 22,
+                    "columnBegin": 3,
+                    "lineEnd": 22,
+                    "columnEnd": 15
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "range": { "begin": 520, "end": 523 },
+          "target": {
+            "declaration": {
+              "record_": {
+                "key": {
+                  "name": {
+                    "key": {
+                      "name": { "key": "XXX" },
+                      "scope": {
+                        "namespace_": {
+                          "key": {
+                            "name": { "key": "N2" },
+                            "parent": { "key": { "name": { "key": "N1" } } }
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "kind": { "struct_": { } },
+                  "source": {
+                    "file": { "key": "test.cpp" },
+                    "lineBegin": 13,
+                    "columnBegin": 1,
+                    "lineEnd": 13,
+                    "columnEnd": 13
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "range": { "begin": 525, "end": 528 },
+          "target": {
+            "indirect": {
+              "key": {
+                "via": {
+                  "usingDeclaration": {
+                    "key": {
+                      "name": {
+                        "key": {
+                          "name": { "key": { "name": { "key": "YYY" } } },
+                          "scope": {
+                            "namespace_": {
+                              "key": {
+                                "name": { "key": "N3" },
+                                "parent": {
+                                  "key": {
+                                    "name": { "key": "N2" },
+                                    "parent": {
+                                      "key": { "name": { "key": "N1" } }
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      },
+                      "source": {
+                        "file": { "key": "test.cpp" },
+                        "lineBegin": 18,
+                        "columnBegin": 1,
+                        "lineEnd": 18,
+                        "columnEnd": 13
+                      }
+                    }
+                  }
+                },
+                "target": {
+                  "declaration": {
+                    "record_": {
+                      "key": {
+                        "name": {
+                          "key": {
+                            "name": { "key": "YYY" },
+                            "scope": {
+                              "namespace_": {
+                                "key": {
+                                  "name": { "key": "N3" },
+                                  "parent": {
+                                    "key": {
+                                      "name": { "key": "N2" },
+                                      "parent": {
+                                        "key": { "name": { "key": "N1" } }
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        },
+                        "kind": { "struct_": { } },
+                        "source": {
+                          "file": { "key": "test.cpp" },
+                          "lineBegin": 15,
+                          "columnBegin": 16,
+                          "lineEnd": 15,
+                          "columnEnd": 28
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "range": { "begin": 551, "end": 554 },
+          "target": {
+            "declaration": {
+              "record_": {
+                "key": {
+                  "name": {
+                    "key": {
+                      "name": { "key": "Foo" },
+                      "scope": {
+                        "namespace_": {
+                          "key": {
+                            "name": { "key": "N2" },
+                            "parent": { "key": { "name": { "key": "N1" } } }
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "kind": { "struct_": { } },
+                  "source": {
+                    "file": { "key": "test.cpp" },
+                    "lineBegin": 21,
+                    "columnBegin": 1,
+                    "lineEnd": 25,
+                    "columnEnd": 1
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "range": { "begin": 556, "end": 559 },
+          "target": {
+            "declaration": {
+              "record_": {
+                "key": {
+                  "name": {
+                    "key": {
+                      "name": { "key": "Bar" },
+                      "scope": {
+                        "recordWithAccess": {
+                          "record": {
+                            "key": {
+                              "name": { "key": "Foo" },
+                              "scope": {
+                                "namespace_": {
+                                  "key": {
+                                    "name": { "key": "N2" },
+                                    "parent": {
+                                      "key": { "name": { "key": "N1" } }
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          },
+                          "access": 0
+                        }
+                      }
+                    }
+                  },
+                  "kind": { "struct_": { } },
+                  "source": {
+                    "file": { "key": "test.cpp" },
+                    "lineBegin": 22,
+                    "columnBegin": 3,
+                    "lineEnd": 22,
+                    "columnEnd": 15
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "range": { "begin": 561, "end": 564 },
+          "target": {
+            "indirect": {
+              "key": {
+                "via": {
+                  "usingDeclaration": {
+                    "key": {
+                      "name": {
+                        "key": {
+                          "name": { "key": { "name": { "key": "YYY" } } },
+                          "scope": {
+                            "namespace_": {
+                              "key": {
+                                "name": { "key": "N3" },
+                                "parent": {
+                                  "key": {
+                                    "name": { "key": "N2" },
+                                    "parent": {
+                                      "key": { "name": { "key": "N1" } }
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      },
+                      "source": {
+                        "file": { "key": "test.cpp" },
+                        "lineBegin": 18,
+                        "columnBegin": 1,
+                        "lineEnd": 18,
+                        "columnEnd": 13
+                      }
+                    }
+                  }
+                },
+                "target": {
+                  "declaration": {
+                    "record_": {
+                      "key": {
+                        "name": {
+                          "key": {
+                            "name": { "key": "YYY" },
+                            "scope": {
+                              "namespace_": {
+                                "key": {
+                                  "name": { "key": "N3" },
+                                  "parent": {
+                                    "key": {
+                                      "name": { "key": "N2" },
+                                      "parent": {
+                                        "key": { "name": { "key": "N1" } }
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        },
+                        "kind": { "struct_": { } },
+                        "source": {
+                          "file": { "key": "test.cpp" },
+                          "lineBegin": 15,
+                          "columnBegin": 16,
+                          "lineEnd": 15,
+                          "columnEnd": 28
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "range": { "begin": 577, "end": 579 },
+          "target": {
+            "declaration": {
+              "namespace_": {
+                "key": {
+                  "name": {
+                    "key": {
+                      "name": { "key": "N2" },
+                      "parent": { "key": { "name": { "key": "N1" } } }
+                    }
+                  },
+                  "source": {
+                    "file": { "key": "test.cpp" },
+                    "lineBegin": 11,
+                    "columnBegin": 1,
+                    "lineEnd": 29,
+                    "columnEnd": 1
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "range": { "begin": 581, "end": 584 },
+          "target": {
+            "declaration": {
+              "record_": {
+                "key": {
+                  "name": {
+                    "key": {
+                      "name": { "key": "Foo" },
+                      "scope": {
+                        "namespace_": {
+                          "key": {
+                            "name": { "key": "N2" },
+                            "parent": { "key": { "name": { "key": "N1" } } }
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "kind": { "struct_": { } },
+                  "source": {
+                    "file": { "key": "test.cpp" },
+                    "lineBegin": 21,
+                    "columnBegin": 1,
+                    "lineEnd": 25,
+                    "columnEnd": 1
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "range": { "begin": 639, "end": 641 },
+          "target": {
+            "declaration": {
+              "namespace_": {
+                "key": {
+                  "name": { "key": { "name": { "key": "N1" } } },
+                  "source": {
+                    "file": { "key": "test.cpp" },
+                    "lineBegin": 9,
+                    "columnBegin": 1,
+                    "lineEnd": 33,
+                    "columnEnd": 1
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "range": { "begin": 709, "end": 711 },
+          "target": {
+            "declaration": {
+              "namespace_": {
+                "key": {
+                  "name": { "key": { "name": { "key": "M1" } } },
+                  "source": {
+                    "file": { "key": "test.cpp" },
+                    "lineBegin": 35,
+                    "columnBegin": 1,
+                    "lineEnd": 35,
+                    "columnEnd": 31
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "range": { "begin": 739, "end": 742 },
+          "target": {
+            "indirect": {
+              "key": {
+                "via": {
+                  "usingDirective": {
+                    "key": {
+                      "name": {
+                        "key": {
+                          "name": { "key": "N1" },
+                          "scope": { "global_": { } }
+                        }
+                      },
+                      "source": {
+                        "file": { "key": "test.cpp" },
+                        "lineBegin": 37,
+                        "columnBegin": 1,
+                        "lineEnd": 37,
+                        "columnEnd": 18
+                      }
+                    }
+                  }
+                },
+                "target": {
+                  "indirect": {
+                    "key": {
+                      "via": {
+                        "usingDeclaration": {
+                          "key": {
+                            "name": {
+                              "key": {
+                                "name": { "key": { "name": { "key": "Foo" } } },
+                                "scope": {
+                                  "namespace_": {
+                                    "key": {
+                                      "name": { "key": "N2" },
+                                      "parent": {
+                                        "key": { "name": { "key": "N1" } }
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                            },
+                            "source": {
+                              "file": { "key": "test.cpp" },
+                              "lineBegin": 31,
+                              "columnBegin": 1,
+                              "lineEnd": 31,
+                              "columnEnd": 13
+                            }
+                          }
+                        }
+                      },
+                      "target": {
+                        "declaration": {
+                          "record_": {
+                            "key": {
+                              "name": {
+                                "key": {
+                                  "name": { "key": "Foo" },
+                                  "scope": {
+                                    "namespace_": {
+                                      "key": {
+                                        "name": { "key": "N2" },
+                                        "parent": {
+                                          "key": { "name": { "key": "N1" } }
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                              },
+                              "kind": { "struct_": { } },
+                              "source": {
+                                "file": { "key": "test.cpp" },
+                                "lineBegin": 21,
+                                "columnBegin": 1,
+                                "lineEnd": 25,
+                                "columnEnd": 1
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "range": { "begin": 744, "end": 747 },
+          "target": {
+            "declaration": {
+              "record_": {
+                "key": {
+                  "name": {
+                    "key": {
+                      "name": { "key": "Bar" },
+                      "scope": {
+                        "recordWithAccess": {
+                          "record": {
+                            "key": {
+                              "name": { "key": "Foo" },
+                              "scope": {
+                                "namespace_": {
+                                  "key": {
+                                    "name": { "key": "N2" },
+                                    "parent": {
+                                      "key": { "name": { "key": "N1" } }
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          },
+                          "access": 0
+                        }
+                      }
+                    }
+                  },
+                  "kind": { "struct_": { } },
+                  "source": {
+                    "file": { "key": "test.cpp" },
+                    "lineBegin": 22,
+                    "columnBegin": 3,
+                    "lineEnd": 22,
+                    "columnEnd": 15
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "range": { "begin": 748, "end": 751 },
+          "target": {
+            "indirect": {
+              "key": {
+                "via": {
+                  "usingDirective": {
+                    "key": {
+                      "name": {
+                        "key": {
+                          "name": { "key": "N1" },
+                          "scope": { "global_": { } }
+                        }
+                      },
+                      "source": {
+                        "file": { "key": "test.cpp" },
+                        "lineBegin": 37,
+                        "columnBegin": 1,
+                        "lineEnd": 37,
+                        "columnEnd": 18
+                      }
+                    }
+                  }
+                },
+                "target": {
+                  "indirect": {
+                    "key": {
+                      "via": {
+                        "usingDeclaration": {
+                          "key": {
+                            "name": {
+                              "key": {
+                                "name": { "key": { "name": { "key": "Foo" } } },
+                                "scope": {
+                                  "namespace_": {
+                                    "key": {
+                                      "name": { "key": "N2" },
+                                      "parent": {
+                                        "key": { "name": { "key": "N1" } }
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                            },
+                            "source": {
+                              "file": { "key": "test.cpp" },
+                              "lineBegin": 31,
+                              "columnBegin": 1,
+                              "lineEnd": 31,
+                              "columnEnd": 13
+                            }
+                          }
+                        }
+                      },
+                      "target": {
+                        "declaration": {
+                          "record_": {
+                            "key": {
+                              "name": {
+                                "key": {
+                                  "name": { "key": "Foo" },
+                                  "scope": {
+                                    "namespace_": {
+                                      "key": {
+                                        "name": { "key": "N2" },
+                                        "parent": {
+                                          "key": { "name": { "key": "N1" } }
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                              },
+                              "kind": { "struct_": { } },
+                              "source": {
+                                "file": { "key": "test.cpp" },
+                                "lineBegin": 21,
+                                "columnBegin": 1,
+                                "lineEnd": 25,
+                                "columnEnd": 1
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "range": { "begin": 757, "end": 760 },
+          "target": {
+            "declaration": {
+              "record_": {
+                "key": {
+                  "name": {
+                    "key": {
+                      "name": { "key": "Foo" },
+                      "scope": {
+                        "namespace_": {
+                          "key": {
+                            "name": { "key": "N2" },
+                            "parent": { "key": { "name": { "key": "N1" } } }
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "kind": { "struct_": { } },
+                  "source": {
+                    "file": { "key": "test.cpp" },
+                    "lineBegin": 21,
+                    "columnBegin": 1,
+                    "lineEnd": 25,
+                    "columnEnd": 1
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "range": { "begin": 762, "end": 765 },
+          "target": {
+            "declaration": {
+              "record_": {
+                "key": {
+                  "name": {
+                    "key": {
+                      "name": { "key": "Bar" },
+                      "scope": {
+                        "recordWithAccess": {
+                          "record": {
+                            "key": {
+                              "name": { "key": "Foo" },
+                              "scope": {
+                                "namespace_": {
+                                  "key": {
+                                    "name": { "key": "N2" },
+                                    "parent": {
+                                      "key": { "name": { "key": "N1" } }
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          },
+                          "access": 0
+                        }
+                      }
+                    }
+                  },
+                  "kind": { "struct_": { } },
+                  "source": {
+                    "file": { "key": "test.cpp" },
+                    "lineBegin": 22,
+                    "columnBegin": 3,
+                    "lineEnd": 22,
+                    "columnEnd": 15
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "range": { "begin": 771, "end": 774 },
+          "target": {
+            "declaration": {
+              "record_": {
+                "key": {
+                  "name": {
+                    "key": {
+                      "name": { "key": "XXX" },
+                      "scope": {
+                        "namespace_": {
+                          "key": {
+                            "name": { "key": "N2" },
+                            "parent": { "key": { "name": { "key": "N1" } } }
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "kind": { "struct_": { } },
+                  "source": {
+                    "file": { "key": "test.cpp" },
+                    "lineBegin": 13,
+                    "columnBegin": 1,
+                    "lineEnd": 13,
+                    "columnEnd": 13
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "range": { "begin": 797, "end": 800 },
+          "target": {
+            "indirect": {
+              "key": {
+                "via": {
+                  "usingDeclaration": {
+                    "key": {
+                      "name": {
+                        "key": {
+                          "name": { "key": { "name": { "key": "YYY" } } },
+                          "scope": {
+                            "namespace_": {
+                              "key": {
+                                "name": { "key": "N3" },
+                                "parent": {
+                                  "key": {
+                                    "name": { "key": "N2" },
+                                    "parent": {
+                                      "key": { "name": { "key": "N1" } }
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      },
+                      "source": {
+                        "file": { "key": "test.cpp" },
+                        "lineBegin": 18,
+                        "columnBegin": 1,
+                        "lineEnd": 18,
+                        "columnEnd": 13
+                      }
+                    }
+                  }
+                },
+                "target": {
+                  "declaration": {
+                    "record_": {
+                      "key": {
+                        "name": {
+                          "key": {
+                            "name": { "key": "YYY" },
+                            "scope": {
+                              "namespace_": {
+                                "key": {
+                                  "name": { "key": "N3" },
+                                  "parent": {
+                                    "key": {
+                                      "name": { "key": "N2" },
+                                      "parent": {
+                                        "key": { "name": { "key": "N1" } }
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        },
+                        "kind": { "struct_": { } },
+                        "source": {
+                          "file": { "key": "test.cpp" },
+                          "lineBegin": 15,
+                          "columnBegin": 16,
+                          "lineEnd": 15,
+                          "columnEnd": 28
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "range": { "begin": 833, "end": 836 },
+          "target": {
+            "declaration": {
+              "record_": {
+                "key": {
+                  "name": {
+                    "key": {
+                      "name": { "key": "Foo" },
+                      "scope": {
+                        "namespace_": {
+                          "key": {
+                            "name": { "key": "N2" },
+                            "parent": { "key": { "name": { "key": "N1" } } }
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "kind": { "struct_": { } },
+                  "source": {
+                    "file": { "key": "test.cpp" },
+                    "lineBegin": 21,
+                    "columnBegin": 1,
+                    "lineEnd": 25,
+                    "columnEnd": 1
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "range": { "begin": 898, "end": 904 },
+          "target": {
+            "indirect": {
+              "key": {
+                "via": {
+                  "usingDirective": {
+                    "key": {
+                      "name": {
+                        "key": {
+                          "name": { "key": "N4" },
+                          "scope": {
+                            "namespace_": {
+                              "key": {
+                                "name": { "key": "N2" },
+                                "parent": { "key": { "name": { "key": "N1" } } }
+                              }
+                            }
+                          }
+                        }
+                      },
+                      "source": {
+                        "file": { "key": "test.cpp" },
+                        "lineBegin": 19,
+                        "columnBegin": 1,
+                        "lineEnd": 19,
+                        "columnEnd": 18
+                      }
+                    }
+                  }
+                },
+                "target": {
+                  "declaration": {
+                    "function_": {
+                      "key": {
+                        "name": {
+                          "key": {
+                            "name": { "key": { "name": { "key": "callme" } } },
+                            "scope": {
+                              "namespace_": {
+                                "key": {
+                                  "name": { "key": "N4" },
+                                  "parent": {
+                                    "key": {
+                                      "name": { "key": "N2" },
+                                      "parent": {
+                                        "key": { "name": { "key": "N1" } }
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        },
+                        "signature": {
+                          "key": {
+                            "returns": { "key": "void" },
+                            "parameters": [ ]
+                          }
+                        },
+                        "source": {
+                          "file": { "key": "test.cpp" },
+                          "lineBegin": 16,
+                          "columnBegin": 16,
+                          "lineEnd": 16,
+                          "columnEnd": 28
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "range": { "begin": 966, "end": 969 },
+          "target": {
+            "indirect": {
+              "key": {
+                "via": {
+                  "usingDirective": {
+                    "key": {
+                      "name": {
+                        "key": {
+                          "name": { "key": "N1" },
+                          "scope": { "global_": { } }
+                        }
+                      },
+                      "source": {
+                        "file": { "key": "test.cpp" },
+                        "lineBegin": 37,
+                        "columnBegin": 1,
+                        "lineEnd": 37,
+                        "columnEnd": 18
+                      }
+                    }
+                  }
+                },
+                "target": {
+                  "indirect": {
+                    "key": {
+                      "via": {
+                        "usingDeclaration": {
+                          "key": {
+                            "name": {
+                              "key": {
+                                "name": { "key": { "name": { "key": "Foo" } } },
+                                "scope": {
+                                  "namespace_": {
+                                    "key": {
+                                      "name": { "key": "N2" },
+                                      "parent": {
+                                        "key": { "name": { "key": "N1" } }
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                            },
+                            "source": {
+                              "file": { "key": "test.cpp" },
+                              "lineBegin": 31,
+                              "columnBegin": 1,
+                              "lineEnd": 31,
+                              "columnEnd": 13
+                            }
+                          }
+                        }
+                      },
+                      "target": {
+                        "declaration": {
+                          "record_": {
+                            "key": {
+                              "name": {
+                                "key": {
+                                  "name": { "key": "Foo" },
+                                  "scope": {
+                                    "namespace_": {
+                                      "key": {
+                                        "name": { "key": "N2" },
+                                        "parent": {
+                                          "key": { "name": { "key": "N1" } }
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                              },
+                              "kind": { "struct_": { } },
+                              "source": {
+                                "file": { "key": "test.cpp" },
+                                "lineBegin": 21,
+                                "columnBegin": 1,
+                                "lineEnd": 25,
+                                "columnEnd": 1
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "range": { "begin": 975, "end": 978 },
+          "target": {
+            "declaration": {
+              "record_": {
+                "key": {
+                  "name": {
+                    "key": {
+                      "name": { "key": "XXX" },
+                      "scope": {
+                        "namespace_": {
+                          "key": {
+                            "name": { "key": "N2" },
+                            "parent": { "key": { "name": { "key": "N1" } } }
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "kind": { "struct_": { } },
+                  "source": {
+                    "file": { "key": "test.cpp" },
+                    "lineBegin": 13,
+                    "columnBegin": 1,
+                    "lineEnd": 13,
+                    "columnEnd": 13
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "range": { "begin": 980, "end": 983 },
+          "target": {
+            "indirect": {
+              "key": {
+                "via": {
+                  "usingDeclaration": {
+                    "key": {
+                      "name": {
+                        "key": {
+                          "name": { "key": { "name": { "key": "YYY" } } },
+                          "scope": {
+                            "namespace_": {
+                              "key": {
+                                "name": { "key": "N3" },
+                                "parent": {
+                                  "key": {
+                                    "name": { "key": "N2" },
+                                    "parent": {
+                                      "key": { "name": { "key": "N1" } }
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      },
+                      "source": {
+                        "file": { "key": "test.cpp" },
+                        "lineBegin": 18,
+                        "columnBegin": 1,
+                        "lineEnd": 18,
+                        "columnEnd": 13
+                      }
+                    }
+                  }
+                },
+                "target": {
+                  "declaration": {
+                    "record_": {
+                      "key": {
+                        "name": {
+                          "key": {
+                            "name": { "key": "YYY" },
+                            "scope": {
+                              "namespace_": {
+                                "key": {
+                                  "name": { "key": "N3" },
+                                  "parent": {
+                                    "key": {
+                                      "name": { "key": "N2" },
+                                      "parent": {
+                                        "key": { "name": { "key": "N1" } }
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        },
+                        "kind": { "struct_": { } },
+                        "source": {
+                          "file": { "key": "test.cpp" },
+                          "lineBegin": 15,
+                          "columnBegin": 16,
+                          "lineEnd": 15,
+                          "columnEnd": 28
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "range": { "begin": 989, "end": 992 },
+          "target": {
+            "declaration": {
+              "record_": {
+                "key": {
+                  "name": {
+                    "key": {
+                      "name": { "key": "XXX" },
+                      "scope": {
+                        "namespace_": {
+                          "key": {
+                            "name": { "key": "N2" },
+                            "parent": { "key": { "name": { "key": "N1" } } }
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "kind": { "struct_": { } },
+                  "source": {
+                    "file": { "key": "test.cpp" },
+                    "lineBegin": 13,
+                    "columnBegin": 1,
+                    "lineEnd": 13,
+                    "columnEnd": 13
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "range": { "begin": 1015, "end": 1018 },
+          "target": {
+            "indirect": {
+              "key": {
+                "via": {
+                  "usingDeclaration": {
+                    "key": {
+                      "name": {
+                        "key": {
+                          "name": { "key": { "name": { "key": "YYY" } } },
+                          "scope": {
+                            "namespace_": {
+                              "key": {
+                                "name": { "key": "N3" },
+                                "parent": {
+                                  "key": {
+                                    "name": { "key": "N2" },
+                                    "parent": {
+                                      "key": { "name": { "key": "N1" } }
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      },
+                      "source": {
+                        "file": { "key": "test.cpp" },
+                        "lineBegin": 18,
+                        "columnBegin": 1,
+                        "lineEnd": 18,
+                        "columnEnd": 13
+                      }
+                    }
+                  }
+                },
+                "target": {
+                  "declaration": {
+                    "record_": {
+                      "key": {
+                        "name": {
+                          "key": {
+                            "name": { "key": "YYY" },
+                            "scope": {
+                              "namespace_": {
+                                "key": {
+                                  "name": { "key": "N3" },
+                                  "parent": {
+                                    "key": {
+                                      "name": { "key": "N2" },
+                                      "parent": {
+                                        "key": { "name": { "key": "N1" } }
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        },
+                        "kind": { "struct_": { } },
+                        "source": {
+                          "file": { "key": "test.cpp" },
+                          "lineBegin": 15,
+                          "columnBegin": 16,
+                          "lineEnd": 15,
+                          "columnEnd": 28
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "range": { "begin": 1051, "end": 1054 },
+          "target": {
+            "declaration": {
+              "record_": {
+                "key": {
+                  "name": {
+                    "key": {
+                      "name": { "key": "Foo" },
+                      "scope": {
+                        "namespace_": {
+                          "key": {
+                            "name": { "key": "N2" },
+                            "parent": { "key": { "name": { "key": "N1" } } }
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "kind": { "struct_": { } },
+                  "source": {
+                    "file": { "key": "test.cpp" },
+                    "lineBegin": 21,
+                    "columnBegin": 1,
+                    "lineEnd": 25,
+                    "columnEnd": 1
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "range": { "begin": 1116, "end": 1122 },
+          "target": {
+            "indirect": {
+              "key": {
+                "via": {
+                  "usingDirective": {
+                    "key": {
+                      "name": {
+                        "key": {
+                          "name": { "key": "N4" },
+                          "scope": {
+                            "namespace_": {
+                              "key": {
+                                "name": { "key": "N2" },
+                                "parent": { "key": { "name": { "key": "N1" } } }
+                              }
+                            }
+                          }
+                        }
+                      },
+                      "source": {
+                        "file": { "key": "test.cpp" },
+                        "lineBegin": 19,
+                        "columnBegin": 1,
+                        "lineEnd": 19,
+                        "columnEnd": 18
+                      }
+                    }
+                  }
+                },
+                "target": {
+                  "declaration": {
+                    "function_": {
+                      "key": {
+                        "name": {
+                          "key": {
+                            "name": { "key": { "name": { "key": "callme" } } },
+                            "scope": {
+                              "namespace_": {
+                                "key": {
+                                  "name": { "key": "N4" },
+                                  "parent": {
+                                    "key": {
+                                      "name": { "key": "N2" },
+                                      "parent": {
+                                        "key": { "name": { "key": "N1" } }
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        },
+                        "signature": {
+                          "key": {
+                            "returns": { "key": "void" },
+                            "parameters": [ ]
+                          }
+                        },
+                        "source": {
+                          "file": { "key": "test.cpp" },
+                          "lineBegin": 16,
+                          "columnBegin": 16,
+                          "lineEnd": 16,
+                          "columnEnd": 28
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "range": { "begin": 1171, "end": 1173 },
+          "target": {
+            "declaration": {
+              "namespace_": {
+                "key": {
+                  "name": { "key": { "name": { "key": "N1" } } },
+                  "source": {
+                    "file": { "key": "test.cpp" },
+                    "lineBegin": 9,
+                    "columnBegin": 1,
+                    "lineEnd": 33,
+                    "columnEnd": 1
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "range": { "begin": 1175, "end": 1177 },
+          "target": {
+            "declaration": {
+              "namespace_": {
+                "key": {
+                  "name": {
+                    "key": {
+                      "name": { "key": "N2" },
+                      "parent": { "key": { "name": { "key": "N1" } } }
+                    }
+                  },
+                  "source": {
+                    "file": { "key": "test.cpp" },
+                    "lineBegin": 11,
+                    "columnBegin": 1,
+                    "lineEnd": 29,
+                    "columnEnd": 1
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "range": { "begin": 1190, "end": 1193 },
+          "target": {
+            "declaration": {
+              "record_": {
+                "key": {
+                  "name": {
+                    "key": {
+                      "name": { "key": "Foo" },
+                      "scope": {
+                        "namespace_": {
+                          "key": {
+                            "name": { "key": "N2" },
+                            "parent": { "key": { "name": { "key": "N1" } } }
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "kind": { "struct_": { } },
+                  "source": {
+                    "file": { "key": "test.cpp" },
+                    "lineBegin": 21,
+                    "columnBegin": 1,
+                    "lineEnd": 25,
+                    "columnEnd": 1
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "range": { "begin": 1195, "end": 1198 },
+          "target": {
+            "declaration": {
+              "record_": {
+                "key": {
+                  "name": {
+                    "key": {
+                      "name": { "key": "Bar" },
+                      "scope": {
+                        "recordWithAccess": {
+                          "record": {
+                            "key": {
+                              "name": { "key": "Foo" },
+                              "scope": {
+                                "namespace_": {
+                                  "key": {
+                                    "name": { "key": "N2" },
+                                    "parent": {
+                                      "key": { "name": { "key": "N1" } }
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          },
+                          "access": 0
+                        }
+                      }
+                    }
+                  },
+                  "kind": { "struct_": { } },
+                  "source": {
+                    "file": { "key": "test.cpp" },
+                    "lineBegin": 22,
+                    "columnBegin": 3,
+                    "lineEnd": 22,
+                    "columnEnd": 15
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "range": { "begin": 1200, "end": 1203 },
+          "target": {
+            "indirect": {
+              "key": {
+                "via": {
+                  "usingDeclaration": {
+                    "key": {
+                      "name": {
+                        "key": {
+                          "name": { "key": { "name": { "key": "YYY" } } },
+                          "scope": {
+                            "namespace_": {
+                              "key": {
+                                "name": { "key": "N3" },
+                                "parent": {
+                                  "key": {
+                                    "name": { "key": "N2" },
+                                    "parent": {
+                                      "key": { "name": { "key": "N1" } }
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      },
+                      "source": {
+                        "file": { "key": "test.cpp" },
+                        "lineBegin": 18,
+                        "columnBegin": 1,
+                        "lineEnd": 18,
+                        "columnEnd": 13
+                      }
+                    }
+                  }
+                },
+                "target": {
+                  "declaration": {
+                    "record_": {
+                      "key": {
+                        "name": {
+                          "key": {
+                            "name": { "key": "YYY" },
+                            "scope": {
+                              "namespace_": {
+                                "key": {
+                                  "name": { "key": "N3" },
+                                  "parent": {
+                                    "key": {
+                                      "name": { "key": "N2" },
+                                      "parent": {
+                                        "key": { "name": { "key": "N1" } }
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        },
+                        "kind": { "struct_": { } },
+                        "source": {
+                          "file": { "key": "test.cpp" },
+                          "lineBegin": 15,
+                          "columnBegin": 16,
+                          "lineEnd": 15,
+                          "columnEnd": 28
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "range": { "begin": 1209, "end": 1212 },
+          "target": {
+            "declaration": {
+              "record_": {
+                "key": {
+                  "name": {
+                    "key": {
+                      "name": { "key": "XXX" },
+                      "scope": {
+                        "namespace_": {
+                          "key": {
+                            "name": { "key": "N2" },
+                            "parent": { "key": { "name": { "key": "N1" } } }
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "kind": { "struct_": { } },
+                  "source": {
+                    "file": { "key": "test.cpp" },
+                    "lineBegin": 13,
+                    "columnBegin": 1,
+                    "lineEnd": 13,
+                    "columnEnd": 13
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "range": { "begin": 1235, "end": 1238 },
+          "target": {
+            "indirect": {
+              "key": {
+                "via": {
+                  "usingDeclaration": {
+                    "key": {
+                      "name": {
+                        "key": {
+                          "name": { "key": { "name": { "key": "YYY" } } },
+                          "scope": {
+                            "namespace_": {
+                              "key": {
+                                "name": { "key": "N3" },
+                                "parent": {
+                                  "key": {
+                                    "name": { "key": "N2" },
+                                    "parent": {
+                                      "key": { "name": { "key": "N1" } }
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      },
+                      "source": {
+                        "file": { "key": "test.cpp" },
+                        "lineBegin": 18,
+                        "columnBegin": 1,
+                        "lineEnd": 18,
+                        "columnEnd": 13
+                      }
+                    }
+                  }
+                },
+                "target": {
+                  "declaration": {
+                    "record_": {
+                      "key": {
+                        "name": {
+                          "key": {
+                            "name": { "key": "YYY" },
+                            "scope": {
+                              "namespace_": {
+                                "key": {
+                                  "name": { "key": "N3" },
+                                  "parent": {
+                                    "key": {
+                                      "name": { "key": "N2" },
+                                      "parent": {
+                                        "key": { "name": { "key": "N1" } }
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        },
+                        "kind": { "struct_": { } },
+                        "source": {
+                          "file": { "key": "test.cpp" },
+                          "lineBegin": 15,
+                          "columnBegin": 16,
+                          "lineEnd": 15,
+                          "columnEnd": 28
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "range": { "begin": 1271, "end": 1274 },
+          "target": {
+            "declaration": {
+              "record_": {
+                "key": {
+                  "name": {
+                    "key": {
+                      "name": { "key": "Foo" },
+                      "scope": {
+                        "namespace_": {
+                          "key": {
+                            "name": { "key": "N2" },
+                            "parent": { "key": { "name": { "key": "N1" } } }
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "kind": { "struct_": { } },
+                  "source": {
+                    "file": { "key": "test.cpp" },
+                    "lineBegin": 21,
+                    "columnBegin": 1,
+                    "lineEnd": 25,
+                    "columnEnd": 1
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "range": { "begin": 1336, "end": 1342 },
+          "target": {
+            "indirect": {
+              "key": {
+                "via": {
+                  "usingDirective": {
+                    "key": {
+                      "name": {
+                        "key": {
+                          "name": { "key": "N4" },
+                          "scope": {
+                            "namespace_": {
+                              "key": {
+                                "name": { "key": "N2" },
+                                "parent": { "key": { "name": { "key": "N1" } } }
+                              }
+                            }
+                          }
+                        }
+                      },
+                      "source": {
+                        "file": { "key": "test.cpp" },
+                        "lineBegin": 19,
+                        "columnBegin": 1,
+                        "lineEnd": 19,
+                        "columnEnd": 18
+                      }
+                    }
+                  }
+                },
+                "target": {
+                  "declaration": {
+                    "function_": {
+                      "key": {
+                        "name": {
+                          "key": {
+                            "name": { "key": { "name": { "key": "callme" } } },
+                            "scope": {
+                              "namespace_": {
+                                "key": {
+                                  "name": { "key": "N4" },
+                                  "parent": {
+                                    "key": {
+                                      "name": { "key": "N2" },
+                                      "parent": {
+                                        "key": { "name": { "key": "N1" } }
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        },
+                        "signature": {
+                          "key": {
+                            "returns": { "key": "void" },
+                            "parameters": [ ]
+                          }
+                        },
+                        "source": {
+                          "file": { "key": "test.cpp" },
+                          "lineBegin": 16,
+                          "columnBegin": 16,
+                          "lineEnd": 16,
+                          "columnEnd": 28
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+]

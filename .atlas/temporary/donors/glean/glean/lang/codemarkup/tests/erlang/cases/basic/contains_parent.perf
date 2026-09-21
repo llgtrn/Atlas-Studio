@@ -1,0 +1,13 @@
+{
+  "@generated": null,
+  "facts_searched": {
+    "erlang.DeclarationLocation.2": 19,
+    "erlang.ModuleDeclaration.2": 14,
+    "erlang.RecordDeclaration.2": 2,
+    "erlang.RecordFieldDeclaration.2": 2
+  },
+  "full_scans": [
+    "erlang.DeclarationLocation.2",
+    "erlang.RecordFieldDeclaration.2"
+  ]
+}

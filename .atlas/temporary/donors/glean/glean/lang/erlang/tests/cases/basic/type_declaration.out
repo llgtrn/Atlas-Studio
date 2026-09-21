@@ -1,0 +1,17 @@
+[
+  "@generated",
+  { "key": { "name": "atom", "arity": 0, "module": "erlang", "app": "erts" } },
+  {
+    "key": { "name": "config", "arity": 0, "module": "example", "app": "basic" }
+  },
+  {
+    "key": { "name": "integer", "arity": 0, "module": "erlang", "app": "erts" }
+  },
+  {
+    "key": { "name": "number", "arity": 0, "module": "erlang", "app": "erts" }
+  },
+  {
+    "key": { "name": "string", "arity": 0, "module": "erlang", "app": "erts" }
+  },
+  { "key": { "name": "term", "arity": 0, "module": "erlang", "app": "erts" } }
+]

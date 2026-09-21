@@ -1,0 +1,115 @@
+[
+    "@generated",
+    {
+        "childrenContained": [
+            "test/cpp//baz/U/.decl"
+        ],
+        "childrenExtended": [],
+        "containsParents": [],
+        "inheritedSymbols": [],
+        "parentsExtended": [],
+        "requireClass": [],
+        "requireExtends": [],
+        "requireImplements": [],
+        "symbolBasicDetails": {},
+        "symbolDetails": {
+            "test/cpp//baz": {
+                "contains_relation": {
+                    "firstChild": "nondeterministic",
+                    "firstParent": "nondeterministic",
+                    "hasMoreChildren": false,
+                    "hasMoreParents": false
+                },
+                "extends_relation": {
+                    "firstChild": "nondeterministic",
+                    "firstParent": "nondeterministic",
+                    "hasMoreChildren": false,
+                    "hasMoreParents": false
+                },
+                "kind": 6,
+                "language": 1,
+                "location": {
+                    "filepath": "test.cpp",
+                    "range": {
+                        "columnBegin": 1,
+                        "columnEnd": 2,
+                        "lineBegin": 95,
+                        "lineEnd": 102
+                    },
+                    "repository": "test"
+                },
+                "modifiers": [],
+                "name": {
+                    "container": "",
+                    "localName": "baz"
+                },
+                "pretty_comments": [],
+                "repo_hash": "testhash",
+                "signature": "namespace baz",
+                "sym": "test/cpp//baz",
+                "sym_location": {
+                    "filepath": "test.cpp",
+                    "range": {
+                        "columnBegin": 1,
+                        "columnEnd": 2,
+                        "lineBegin": 95,
+                        "lineEnd": 102
+                    },
+                    "repository": "test"
+                },
+                "sym_other_locations": [],
+                "type_xrefs": []
+            },
+            "test/cpp//baz/U/.decl": {
+                "contains_relation": {
+                    "firstChild": "nondeterministic",
+                    "firstParent": "nondeterministic",
+                    "hasMoreChildren": true,
+                    "hasMoreParents": false
+                },
+                "extends_relation": {
+                    "firstChild": "nondeterministic",
+                    "firstParent": "nondeterministic",
+                    "hasMoreChildren": false,
+                    "hasMoreParents": false
+                },
+                "kind": 25,
+                "language": 1,
+                "location": {
+                    "filepath": "test.cpp",
+                    "range": {
+                        "columnBegin": 1,
+                        "columnEnd": 2,
+                        "lineBegin": 97,
+                        "lineEnd": 100
+                    },
+                    "repository": "test"
+                },
+                "modifiers": [],
+                "name": {
+                    "container": "baz",
+                    "localName": "U"
+                },
+                "native_sym": {
+                    "sym": "4D79BE8B1E4FA336"
+                },
+                "pretty_comments": [],
+                "repo_hash": "testhash",
+                "signature": "struct baz::U",
+                "sym": "test/cpp//baz/U/.decl",
+                "sym_location": {
+                    "filepath": "test.cpp",
+                    "range": {
+                        "columnBegin": 1,
+                        "columnEnd": 2,
+                        "lineBegin": 97,
+                        "lineEnd": 100
+                    },
+                    "repository": "test"
+                },
+                "sym_other_locations": [],
+                "type_xrefs": []
+            }
+        }
+    }
+]

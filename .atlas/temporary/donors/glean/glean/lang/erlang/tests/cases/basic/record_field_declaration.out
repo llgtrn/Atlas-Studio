@@ -1,0 +1,19 @@
+[
+  "@generated",
+  {
+    "key": {
+      "record_name": "person",
+      "field_name": "age",
+      "module": "example",
+      "app": "basic"
+    }
+  },
+  {
+    "key": {
+      "record_name": "person",
+      "field_name": "name",
+      "module": "example",
+      "app": "basic"
+    }
+  }
+]

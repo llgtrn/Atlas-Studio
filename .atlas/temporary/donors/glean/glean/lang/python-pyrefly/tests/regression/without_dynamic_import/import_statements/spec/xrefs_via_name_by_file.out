@@ -1,0 +1,94 @@
+[
+  "@generated",
+  {
+    "key": {
+      "file": {
+        "key": "glean/lang/python-pyrefly/tests/regression/without_dynamic_import/import_statements/spec/a.py"
+      },
+      "xrefs": [ ]
+    }
+  },
+  {
+    "key": {
+      "file": {
+        "key": "glean/lang/python-pyrefly/tests/regression/without_dynamic_import/import_statements/spec/current_module.py"
+      },
+      "xrefs": [
+        { "source": { "length": 1, "start": 241 }, "target": { "key": "u" } },
+        { "source": { "length": 1, "start": 243 }, "target": { "key": "u.v" } },
+        { "source": { "length": 1, "start": 270 }, "target": { "key": "x" } },
+        { "source": { "length": 1, "start": 272 }, "target": { "key": "x.y" } },
+        { "source": { "length": 1, "start": 279 }, "target": { "key": "a" } },
+        { "source": { "length": 1, "start": 288 }, "target": { "key": "a.b" } },
+        { "source": { "length": 1, "start": 291 }, "target": { "key": "a.c" } },
+        { "source": { "length": 1, "start": 299 }, "target": { "key": "a.b" } },
+        {
+          "source": { "length": 1, "start": 299 },
+          "target": { "key": "current_module.b" }
+        },
+        { "source": { "length": 1, "start": 301 }, "target": { "key": "a.c" } },
+        {
+          "source": { "length": 1, "start": 301 },
+          "target": { "key": "current_module.d" }
+        },
+        {
+          "source": { "length": 1, "start": 304 },
+          "target": { "key": "current_module.x" }
+        },
+        { "source": { "length": 1, "start": 304 }, "target": { "key": "x" } },
+        {
+          "source": { "length": 1, "start": 306 },
+          "target": { "key": "current_module.x.f" }
+        },
+        { "source": { "length": 1, "start": 306 }, "target": { "key": "x.f" } }
+      ]
+    }
+  },
+  {
+    "key": {
+      "file": {
+        "key": "glean/lang/python-pyrefly/tests/regression/without_dynamic_import/import_statements/spec/star.py"
+      },
+      "xrefs": [
+        { "source": { "length": 1, "start": 214 }, "target": { "key": "u" } },
+        {
+          "source": { "length": 1, "start": 239 },
+          "target": { "key": "star.v" }
+        },
+        { "source": { "length": 1, "start": 239 }, "target": { "key": "u.v" } }
+      ]
+    }
+  },
+  {
+    "key": {
+      "file": {
+        "key": "glean/lang/python-pyrefly/tests/regression/without_dynamic_import/import_statements/spec/u/__init__.py"
+      },
+      "xrefs": [ ]
+    }
+  },
+  {
+    "key": {
+      "file": {
+        "key": "glean/lang/python-pyrefly/tests/regression/without_dynamic_import/import_statements/spec/u/v.py"
+      },
+      "xrefs": [ ]
+    }
+  },
+  {
+    "key": {
+      "file": {
+        "key": "glean/lang/python-pyrefly/tests/regression/without_dynamic_import/import_statements/spec/x/__init__.py"
+      },
+      "xrefs": [ ]
+    }
+  },
+  {
+    "key": {
+      "file": {
+        "key": "glean/lang/python-pyrefly/tests/regression/without_dynamic_import/import_statements/spec/x/y.py"
+      },
+      "xrefs": [ ]
+    }
+  }
+]

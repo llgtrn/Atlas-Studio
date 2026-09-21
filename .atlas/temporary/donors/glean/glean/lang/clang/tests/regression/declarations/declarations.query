@@ -1,0 +1,2 @@
+query: D where cxx1.DeclarationSrcRange { D, _ }
+transform: [gensort, []]

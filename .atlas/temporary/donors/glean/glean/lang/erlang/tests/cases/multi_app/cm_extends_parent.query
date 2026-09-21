@@ -1,0 +1,3 @@
+query: codemarkup.erlang.ErlangExtendsParentEntity _
+perf: true
+transform: [normord, []]

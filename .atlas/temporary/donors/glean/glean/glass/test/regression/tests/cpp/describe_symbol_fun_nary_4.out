@@ -1,0 +1,54 @@
+[
+    "@generated",
+    {
+        "annotations": [],
+        "contains_relation": {
+            "firstChild": "nondeterministic",
+            "firstParent": "nondeterministic",
+            "hasMoreChildren": false,
+            "hasMoreParents": false
+        },
+        "extends_relation": {
+            "firstChild": "nondeterministic",
+            "firstParent": "nondeterministic",
+            "hasMoreChildren": false,
+            "hasMoreParents": false
+        },
+        "kind": 8,
+        "language": 1,
+        "location": {
+            "filepath": "test.cpp",
+            "range": {
+                "columnBegin": 5,
+                "columnEnd": 43,
+                "lineBegin": 150,
+                "lineEnd": 150
+            },
+            "repository": "test"
+        },
+        "modifiers": [
+            6
+        ],
+        "name": {
+            "container": "Q::QQ",
+            "localName": "thingo(pear<int, char>, Q::QQ &&) const"
+        },
+        "pretty_comments": [],
+        "repo_hash": "testhash",
+        "signature": "int Q::QQ::thingo(pear<int, char>, Q::QQ&&) const",
+        "sym": "test/cpp//Q/QQ/thingo/.f/pear%3Cint%20+char%3E,Q::QQ+%26%26/const/.decl",
+        "sym_location": {
+            "filepath": "test.cpp",
+            "range": {
+                "columnBegin": 5,
+                "columnEnd": 43,
+                "lineBegin": 150,
+                "lineEnd": 150
+            },
+            "repository": "test"
+        },
+        "sym_other_locations": [],
+        "type_xrefs": [],
+        "visibility": 20
+    }
+]

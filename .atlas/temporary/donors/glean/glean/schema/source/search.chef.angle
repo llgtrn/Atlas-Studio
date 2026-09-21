@@ -1,0 +1,20 @@
+# Copyright (c) Meta Platforms, Inc. and affiliates.
+
+schema search.chef.1 {
+  import code.chef
+  import chef
+
+  # Derived predicate: look up a chef.Symbol by its leaf identifier and
+  # return it wrapped in a code.chef.Entity. chef.Symbol's first key field
+  # is `identifier`, so binding it here uses Glean's prefix index and avoids
+  # a full scan.
+  predicate SearchByName:
+    {
+      name: string,
+      entity: code.chef.Entity,
+    } { Name, Entity } where
+    Ident = chef.Name Name;
+    Sym = chef.Symbol { identifier = Ident, qualifiedName = _ };
+    Entity = code.chef.Entity { symbol = Sym };
+
+}

@@ -1,0 +1,116 @@
+[
+  "@generated",
+  {
+    "key": {
+      "declaration": {
+        "key": {
+          "file": { "key": "app_a/src/server.erl" },
+          "name": "server",
+          "app": "app_a"
+        }
+      },
+      "exports": [
+        {
+          "key": {
+            "fqn": { "module": "server", "name": "handle_request", "arity": 1 },
+            "app": "app_a"
+          }
+        },
+        {
+          "key": {
+            "fqn": { "module": "server", "name": "handle_cast", "arity": 2 },
+            "app": "app_a"
+          }
+        },
+        {
+          "key": {
+            "fqn": { "module": "server", "name": "handle_call", "arity": 3 },
+            "app": "app_a"
+          }
+        },
+        {
+          "key": {
+            "fqn": { "module": "server", "name": "init", "arity": 1 },
+            "app": "app_a"
+          }
+        },
+        {
+          "key": {
+            "fqn": { "module": "server", "name": "start", "arity": 0 },
+            "app": "app_a"
+          }
+        }
+      ],
+      "behaviours": [ "gen_server" ],
+      "compile_options": [ ]
+    }
+  },
+  {
+    "key": {
+      "declaration": {
+        "key": {
+          "file": { "key": "app_a/src/utils.erl" },
+          "name": "utils",
+          "app": "app_a"
+        }
+      },
+      "exports": [
+        {
+          "key": {
+            "fqn": { "module": "utils", "name": "format_id", "arity": 1 },
+            "app": "app_a"
+          }
+        },
+        {
+          "key": {
+            "fqn": { "module": "utils", "name": "validate", "arity": 1 },
+            "app": "app_a"
+          }
+        }
+      ],
+      "behaviours": [ ],
+      "compile_options": [ ]
+    }
+  },
+  {
+    "key": {
+      "declaration": {
+        "key": {
+          "file": { "key": "app_b/src/client.erl" },
+          "name": "client",
+          "app": "app_b"
+        }
+      },
+      "exports": [
+        {
+          "key": {
+            "fqn": { "module": "client", "name": "batch_send", "arity": 1 },
+            "app": "app_b"
+          }
+        },
+        {
+          "key": {
+            "fqn": { "module": "client", "name": "send_request", "arity": 1 },
+            "app": "app_b"
+          }
+        }
+      ],
+      "behaviours": [ ],
+      "compile_options": [ ]
+    }
+  },
+  {
+    "key": {
+      "declaration": {
+        "key": {
+          "file": { "key": "app_b/src/internal.erl" },
+          "name": "internal",
+          "app": "app_b"
+        }
+      },
+      "exports": [ ],
+      "behaviours": [ ],
+      "compile_options": [ ]
+    }
+  }
+]

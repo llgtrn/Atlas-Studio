@@ -1,0 +1,63 @@
+[
+    "@generated",
+    {
+        "childrenContained": [],
+        "childrenExtended": [],
+        "containsParents": [],
+        "inheritedSymbols": [],
+        "parentsExtended": [],
+        "requireClass": [],
+        "requireExtends": [],
+        "requireImplements": [],
+        "symbolBasicDetails": {},
+        "symbolDetails": {
+            "test/cpp//maybe/Nothing/.ctor//.decl": {
+                "contains_relation": {
+                    "firstChild": "nondeterministic",
+                    "firstParent": "nondeterministic",
+                    "hasMoreChildren": false,
+                    "hasMoreParents": false
+                },
+                "extends_relation": {
+                    "firstChild": "nondeterministic",
+                    "firstParent": "nondeterministic",
+                    "hasMoreChildren": false,
+                    "hasMoreParents": false
+                },
+                "kind": 15,
+                "language": 1,
+                "location": {
+                    "filepath": "test.cpp",
+                    "range": {
+                        "columnBegin": 30,
+                        "columnEnd": 37,
+                        "lineBegin": 77,
+                        "lineEnd": 77
+                    },
+                    "repository": "test"
+                },
+                "modifiers": [],
+                "name": {
+                    "container": "maybe::Nothing::.ctor",
+                    "localName": ""
+                },
+                "pretty_comments": [],
+                "repo_hash": "testhash",
+                "signature": "maybe::Nothing::_secret",
+                "sym": "test/cpp//maybe/Nothing/.ctor//.decl",
+                "sym_location": {
+                    "filepath": "test.cpp",
+                    "range": {
+                        "columnBegin": 30,
+                        "columnEnd": 37,
+                        "lineBegin": 77,
+                        "lineEnd": 77
+                    },
+                    "repository": "test"
+                },
+                "sym_other_locations": [],
+                "type_xrefs": []
+            }
+        }
+    }
+]

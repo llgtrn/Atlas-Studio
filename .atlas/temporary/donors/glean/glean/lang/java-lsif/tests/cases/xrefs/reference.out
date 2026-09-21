@@ -1,0 +1,129 @@
+[
+  "@generated",
+  {
+    "key": {
+      "file": {
+        "key": {
+          "file": { "key": "src/main/java/com/glean/app/App.java" },
+          "language": 22
+        }
+      },
+      "range": {
+        "key": {
+          "range": {
+            "lineBegin": 19,
+            "columnBegin": 28,
+            "lineEnd": 19,
+            "columnEnd": 30
+          },
+          "text": { "key": "" }
+        }
+      },
+      "target": {
+        "key": {
+          "file": {
+            "key": {
+              "file": { "key": "src/main/java/com/glean/app/App.java" },
+              "language": 22
+            }
+          },
+          "range": {
+            "key": {
+              "range": {
+                "lineBegin": 16,
+                "columnBegin": 10,
+                "lineEnd": 16,
+                "columnEnd": 12
+              },
+              "text": { "key": "" }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "file": {
+        "key": {
+          "file": { "key": "src/main/java/com/glean/app/App.java" },
+          "language": 22
+        }
+      },
+      "range": {
+        "key": {
+          "range": {
+            "lineBegin": 19,
+            "columnBegin": 34,
+            "lineEnd": 19,
+            "columnEnd": 43
+          },
+          "text": { "key": "" }
+        }
+      },
+      "target": {
+        "key": {
+          "file": {
+            "key": {
+              "file": { "key": "src/main/java/com/glean/app/App.java" },
+              "language": 22
+            }
+          },
+          "range": {
+            "key": {
+              "range": {
+                "lineBegin": 22,
+                "columnBegin": 24,
+                "lineEnd": 22,
+                "columnEnd": 33
+              },
+              "text": { "key": "" }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "file": {
+        "key": {
+          "file": { "key": "src/main/java/com/glean/app/App.java" },
+          "language": 22
+        }
+      },
+      "range": {
+        "key": {
+          "range": {
+            "lineBegin": 23,
+            "columnBegin": 12,
+            "lineEnd": 23,
+            "columnEnd": 18
+          },
+          "text": { "key": "" }
+        }
+      },
+      "target": {
+        "key": {
+          "file": {
+            "key": {
+              "file": { "key": "src/main/java/com/glean/app/App.java" },
+              "language": 22
+            }
+          },
+          "range": {
+            "key": {
+              "range": {
+                "lineBegin": 14,
+                "columnBegin": 24,
+                "lineEnd": 14,
+                "columnEnd": 30
+              },
+              "text": { "key": "" }
+            }
+          }
+        }
+      }
+    }
+  }
+]

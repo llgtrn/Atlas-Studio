@@ -1,0 +1,281 @@
+[
+  "@generated",
+  {
+    "key": {
+      "source": {
+        "func": {
+          "key": {
+            "fqn": { "module": "example", "name": "factorial", "arity": 1 },
+            "app": "basic"
+          }
+        }
+      },
+      "target": {
+        "func": {
+          "key": {
+            "fqn": { "module": "example", "name": "factorial", "arity": 1 },
+            "app": "basic"
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "source": {
+        "func": {
+          "key": {
+            "fqn": { "module": "example", "name": "get_name", "arity": 1 },
+            "app": "basic"
+          }
+        }
+      },
+      "target": {
+        "record_": {
+          "key": { "name": "person", "module": "example", "app": "basic" }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "source": {
+        "func": {
+          "key": {
+            "fqn": { "module": "example", "name": "hello", "arity": 1 },
+            "app": "basic"
+          }
+        }
+      },
+      "target": {
+        "func": {
+          "key": {
+            "fqn": { "module": "io", "name": "format", "arity": 2 },
+            "app": "stdlib"
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "source": {
+        "func": {
+          "key": {
+            "fqn": { "module": "example", "name": "hello", "arity": 1 },
+            "app": "basic"
+          }
+        }
+      },
+      "target": {
+        "macro_": {
+          "key": { "name": "HELLO", "module": "example.hrl", "app": "basic" }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "source": {
+        "func": {
+          "key": {
+            "fqn": {
+              "module": "example",
+              "name": "internal_helper",
+              "arity": 0
+            },
+            "app": "basic"
+          }
+        }
+      },
+      "target": {
+        "macro_": {
+          "key": {
+            "name": "ADD_ONE",
+            "arity": 1,
+            "module": "example.hrl",
+            "app": "basic"
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "source": {
+        "func": {
+          "key": {
+            "fqn": { "module": "example", "name": "old_function", "arity": 1 },
+            "app": "basic"
+          }
+        }
+      },
+      "target": {
+        "func": {
+          "key": {
+            "fqn": { "module": "example", "name": "hello", "arity": 1 },
+            "app": "basic"
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "source": {
+        "func": {
+          "key": {
+            "fqn": { "module": "example", "name": "run_all", "arity": 0 },
+            "app": "basic"
+          }
+        }
+      },
+      "target": {
+        "func": {
+          "key": {
+            "fqn": { "module": "example", "name": "add", "arity": 2 },
+            "app": "basic"
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "source": {
+        "func": {
+          "key": {
+            "fqn": { "module": "example", "name": "run_all", "arity": 0 },
+            "app": "basic"
+          }
+        }
+      },
+      "target": {
+        "func": {
+          "key": {
+            "fqn": { "module": "example", "name": "factorial", "arity": 1 },
+            "app": "basic"
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "source": {
+        "func": {
+          "key": {
+            "fqn": { "module": "example", "name": "run_all", "arity": 0 },
+            "app": "basic"
+          }
+        }
+      },
+      "target": {
+        "func": {
+          "key": {
+            "fqn": { "module": "example", "name": "get_name", "arity": 1 },
+            "app": "basic"
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "source": {
+        "func": {
+          "key": {
+            "fqn": { "module": "example", "name": "run_all", "arity": 0 },
+            "app": "basic"
+          }
+        }
+      },
+      "target": {
+        "func": {
+          "key": {
+            "fqn": { "module": "example", "name": "hello", "arity": 1 },
+            "app": "basic"
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "source": {
+        "func": {
+          "key": {
+            "fqn": { "module": "example", "name": "run_all", "arity": 0 },
+            "app": "basic"
+          }
+        }
+      },
+      "target": {
+        "func": {
+          "key": {
+            "fqn": {
+              "module": "example",
+              "name": "internal_helper",
+              "arity": 0
+            },
+            "app": "basic"
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "source": {
+        "func": {
+          "key": {
+            "fqn": { "module": "example", "name": "run_all", "arity": 0 },
+            "app": "basic"
+          }
+        }
+      },
+      "target": {
+        "func": {
+          "key": {
+            "fqn": { "module": "example", "name": "set_age", "arity": 2 },
+            "app": "basic"
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "source": {
+        "func": {
+          "key": {
+            "fqn": { "module": "example", "name": "run_all", "arity": 0 },
+            "app": "basic"
+          }
+        }
+      },
+      "target": {
+        "record_": {
+          "key": { "name": "person", "module": "example", "app": "basic" }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "source": {
+        "func": {
+          "key": {
+            "fqn": { "module": "example", "name": "set_age", "arity": 2 },
+            "app": "basic"
+          }
+        }
+      },
+      "target": {
+        "record_": {
+          "key": { "name": "person", "module": "example", "app": "basic" }
+        }
+      }
+    }
+  }
+]

@@ -1,0 +1,1105 @@
+{-
+  Copyright (c) Meta Platforms, Inc. and affiliates.
+  All rights reserved.
+
+  This source code is licensed under the BSD-style license found in the
+  LICENSE file in the root directory of this source tree.
+-}
+
+module DatabaseJanitorTest
+  ( main
+  , dbConfig
+  , serverConfig
+  , makeFakeDB
+  , withTest
+  ) where
+
+import Control.Concurrent (threadDelay)
+import Util.STM
+import Control.Exception
+import Control.Monad
+import Data.Aeson
+import qualified Data.ByteString.Char8 as BS
+import qualified Data.ByteString.Lazy as LB
+import Data.Default
+import qualified Data.HashMap.Strict as HashMap
+import qualified Data.HashSet as HashSet
+import Data.Int (Int64)
+import Data.IORef
+import Data.List
+import qualified Data.Map as Map
+import Data.Maybe
+import qualified Data.Set as Set
+import Data.Text (Text)
+import qualified Data.Text as Text
+import Data.Time.Clock
+import Data.Time.Calendar (fromGregorian)
+import GHC.Stack (HasCallStack)
+import System.Directory
+import System.FilePath
+import System.IO.Temp
+import System.Time.Extra (sleep)
+import System.Timeout
+import Test.HUnit
+
+import ServiceData.GlobalStats (getCounters)
+import TestRunner
+import Util.EventBase
+import Util.TimeSec
+
+import qualified Glean.Database.Catalog as Catalog
+import Glean.Database.Config
+import Glean.Database.Data
+import Glean.Database.Delete
+import Glean.Database.Env
+import Glean.Database.Janitor
+import Glean.Database.Meta
+import Glean.Database.Repo
+import qualified Glean.Database.Storage as Storage
+import qualified Glean.Database.Storage.RocksDB as RocksDB
+import Glean.Database.Close
+import Glean.Database.List
+import Glean.Database.Open (isDatabaseClosed, withOpenDatabase)
+import Glean.Database.Types
+import Glean.Database.Schema
+import Glean.Database.Schema.Types
+import Glean.Init
+import Glean.RTS.Types (lowestFid)
+import Glean.ServerConfig.Types as ServerTypes
+import Glean.Internal.Types
+import Glean.Types as Thrift
+import Glean.Util.ConfigProvider
+import Glean.Util.ShardManager
+import Glean.Util.ThriftSource as ThriftSource
+import Util.Time (seconds)
+import Glean.Database.Backup.Backend
+import Glean.Database.Backup.Mock
+
+
+withTest
+  :: (FilePath -> DbSchema -> IO ())
+  -> (FilePath -> DbSchema -> IO ())
+  -> (EventBaseDataplane -> NullConfigProvider -> FilePath -> FilePath
+       -> IO ())
+  -> IO ()
+withTest setup setupBackup action =
+  withEventBaseDataplane $ \evb ->
+  withConfigProvider defaultConfigOptions $ \cfgAPI ->
+  withSystemTempDirectory "glean-dbtest" $ \dbdir -> do
+  withSystemTempDirectory "glean-dbtest-backup" $ \backupdir -> do
+    schema <- parseSchemaDir schemaSourceDir
+    schema <- newDbSchema Nothing schema LatestSchema readWriteContent def
+    setup dbdir schema
+    setupBackup backupdir schema
+    action evb cfgAPI dbdir backupdir
+
+broken :: UTCTime -> Completeness
+broken _ = Broken (DatabaseBroken "index" "TESTING")
+
+complete :: Int64 -> UTCTime -> Completeness
+complete size =
+  Complete . (`DatabaseComplete` Just size) . utcTimeToPosixEpochTime
+
+repo0001 :: Repo
+repo0001 = Repo "test" "0001"
+
+setupBasicDBs :: FilePath -> DbSchema -> IO ()
+setupBasicDBs dbdir schema = do
+  now <- getCurrentTime
+  let age t = addUTCTime (negate (fromIntegral (timeSpanInSeconds t))) now
+  -- populate a dir with various DBs
+  makeFakeDB schema dbdir repo0001 (age (days 0)) (complete 1)
+    (props [("bool","yes")])
+  makeFakeDB schema dbdir (Repo "test" "0002") (age (days 2)) broken id
+  makeFakeDB schema dbdir (Repo "test" "0003") (age (days 3)) (complete 3) $
+    stacked (Stacked "test" "0004" Nothing)
+  makeFakeDB schema dbdir (Repo "test" "0004") (age (days 0)) (complete 4) $
+    sourceTime (age (days 4)) .  -- source 4 days ago, created 0 days ago
+    stacked (Stacked "test" "0005" Nothing)
+  makeFakeDB schema dbdir (Repo "test" "0005") (age (days 5)) (complete 5) $
+    stacked (Stacked "test2" "0006" Nothing) . props [("bool","no")]
+  makeFakeDB schema dbdir (Repo "test2" "0006") (age (days 6)) (complete 6) id
+  makeFakeDB schema dbdir (Repo "test3" "0007") (age (days 0)) (complete 1)
+    (props [("exclude_me","true")])
+
+
+setupBasicCloudDBs :: FilePath -> DbSchema -> IO ()
+setupBasicCloudDBs backupDir schema = do
+  now <- getCurrentTime
+  let age t = addUTCTime (negate (fromIntegral (timeSpanInSeconds t))) now
+  makeFakeCloudDB schema backupDir (Repo "test" "0008")
+    (age(days 8)) (complete 8) id
+  makeFakeCloudDB schema backupDir (Repo "test2" "0009")
+    (age(days 7)) (complete 9) id
+  makeFakeCloudDB schema backupDir (Repo "test2" "0010")
+    (age(days 6)) (complete 9) id
+  makeFakeCloudDB schema backupDir (Repo "test2" "0011")
+    (age(days 5)) (complete 9) id
+  makeFakeCloudDB schema backupDir (Repo "test2" "0012")
+    (age(days 4)) (complete 9) id
+  makeFakeCloudDB schema backupDir (Repo "test2" "0013")
+    (age(days 3)) (complete 9) id
+  makeFakeCloudDB schema backupDir (Repo "test2" "0014")
+    (age(days 2)) (complete 9) id
+  makeFakeCloudDB schema backupDir (Repo "test" "0015")
+    (age(days 7)) (complete 7) (stacked (Stacked "test2" "0013" Nothing))
+
+setupBasicCloudDBsWithMissingDependencyOne :: FilePath -> DbSchema -> IO ()
+setupBasicCloudDBsWithMissingDependencyOne backupDir schema = do
+  setupBasicCloudDBs backupDir schema
+  dbtime <- getCurrentTime
+  makeFakeCloudDB schema backupDir (Repo "test" "0016") dbtime
+    (complete 8) (stacked (Stacked "missing" "0001" Nothing))
+
+withFakeDBs
+  :: (EventBaseDataplane -> NullConfigProvider -> FilePath -> FilePath
+       -> IO ())
+  -> IO ()
+withFakeDBs action = withTest setupBasicDBs (\_ _ -> pure ()) action
+
+withFakeCloudDBs
+  :: (EventBaseDataplane -> NullConfigProvider -> FilePath -> FilePath
+       -> IO ())
+  -> IO ()
+withFakeCloudDBs = withTest (\_ _ -> pure ()) setupBasicCloudDBs
+
+-- | Reference time for the per-day janitor tests. DB timestamps and the
+-- janitor's clock (via 'withPinnedClock') are both anchored to this instant
+-- so DB ages are deterministic: the janitor's 'delete_if_older' check
+-- compares against this clock, so setup and run must agree. Noon keeps each
+-- day's DBs clear of the UTC midnight boundary used for per-day grouping.
+perDayNow :: UTCTime
+perDayNow = UTCTime (fromGregorian 2024 1 3) (12 * 3600)
+
+-- | Pin the janitor's clock to 'perDayNow' so retention decisions are
+-- deterministic.
+withPinnedClock :: Env -> Env
+withPinnedClock env = env { envGetCurrentTime = pure perDayNow }
+
+-- | 9 complete DBs spread across 3 distinct UTC days.
+setupPerDayDBs :: FilePath -> DbSchema -> IO ()
+setupPerDayDBs dbdir schema = do
+  let age secsAgo =
+        addUTCTime (negate (fromIntegral (secsAgo :: Int))) perDayNow
+      mkDB name secsAgo n =
+        makeFakeDB schema dbdir (Repo "test" name) (age secsAgo) (complete n) id
+  -- Day 0 (most recent)
+  mkDB "0001" 1 1
+  mkDB "0002" 2 2
+  mkDB "0003" 3 3
+  -- Day 1
+  mkDB "0004" 86401 4
+  mkDB "0005" 86402 5
+  mkDB "0006" 86403 6
+  -- Day 2
+  mkDB "0007" 172801 7
+  mkDB "0008" 172802 8
+  mkDB "0009" 172803 9
+
+withPerDayDBs
+  :: (EventBaseDataplane -> NullConfigProvider -> FilePath -> FilePath
+       -> IO ())
+  -> IO ()
+withPerDayDBs = withTest setupPerDayDBs (\_ _ -> pure ())
+
+stacked :: Stacked -> Meta -> Meta
+stacked st meta = meta { metaDependencies = Just (Thrift.Dependencies_stacked st) }
+
+props :: [(Text, Text)] -> Meta -> Meta
+props list meta = meta { metaProperties = HashMap.fromList list }
+
+sourceTime :: UTCTime -> Meta -> Meta
+sourceTime t meta = meta { metaRepoHashTime = Just (utcTimeToPosixEpochTime t) }
+
+makeFakeDB
+  :: DbSchema
+  -> FilePath
+  -> Repo
+  -> UTCTime
+  -> (UTCTime -> Completeness)
+  -> (Meta -> Meta)
+  -> IO ()
+makeFakeDB schema root repo dbtime completeness opts = do
+  storage <- RocksDB.newStorage root def
+  let
+    meta = opts $ Meta
+      { metaVersion = Storage.currentVersion storage
+      , metaCreated = utcTimeToPosixEpochTime dbtime
+      , metaRepoHashTime = Nothing
+      , metaCompleteness = completeness dbtime
+      , metaBackup = Nothing
+      , metaProperties = HashMap.empty
+      , metaDependencies = Nothing
+      , metaCompletePredicates = mempty
+      , metaAxiomComplete = False
+      , metaStorage = rocksdbName
+      }
+  let repoPath = databasePath root repo
+  createDirectoryIfMissing True repoPath
+  bracket
+    (Storage.open
+      storage
+      repo
+      (Storage.Create lowestFid Nothing Storage.UseDefaultSchema Nothing)
+      (Storage.currentVersion storage))
+    Storage.close
+    (\hdl -> storeSchema hdl $ toStoredSchema schema)
+  LB.writeFile (repoPath </> "meta") (encode meta)
+
+makeFakeCloudDB
+  :: DbSchema
+  -> FilePath
+  -> Repo
+  -> UTCTime
+  -> (UTCTime -> Completeness)
+  -> (Meta -> Meta)
+  -> IO ()
+makeFakeCloudDB schema backupDir repo dbtime completeness opts = do
+  let repoPath = databasePath backupDir repo
+  createDirectoryIfMissing True repoPath
+  storage <- RocksDB.newStorage backupDir def
+  bracket
+    (Storage.open
+      storage
+      repo
+      (Storage.Create lowestFid Nothing Storage.UseDefaultSchema Nothing)
+      (Storage.currentVersion storage))
+    Storage.close
+    (\hdl -> do
+      storeSchema hdl $ toStoredSchema schema
+      tmpDir <- getCanonicalTemporaryDirectory
+      withTempDirectory tmpDir "scratch" $ \scratch ->
+        Storage.backup hdl def scratch $ \file _data ->
+          void $ backup (mockSite backupDir) repo (props storage) Nothing file
+    )
+  where
+    props storage = opts $ Meta
+        { metaVersion = Storage.currentVersion storage
+        , metaCreated = utcTimeToPosixEpochTime dbtime
+        , metaRepoHashTime = Nothing
+        , metaCompleteness = completeness dbtime
+        , metaBackup = Nothing
+        , metaProperties = HashMap.empty
+        , metaDependencies = Nothing
+        , metaCompletePredicates = mempty
+        , metaAxiomComplete = False
+        , metaStorage = rocksdbName
+        }
+
+dbConfig :: FilePath -> ServerTypes.Config -> Glean.Database.Config.Config
+dbConfig dbdir serverConfig = def
+  { cfgDataStore = fileDataStore dbdir
+  , cfgSchemaLocation = Just schemaLocationFiles
+  , cfgServerConfig = ThriftSource.value serverConfig
+  , cfgReadOnly = False
+      -- If we set cfgReadOnly=True, then backing up a DB will fail
+      -- because backup first opens the DB, and opening a DB tries to
+      -- load the schema from the DB.  If we use read/write mode, then
+      -- opening will commit the schema instead of failing.
+  , cfgMockWrites = False
+  , cfgListener = mempty
+  }
+
+serverConfig :: FilePath -> ServerTypes.Config
+serverConfig backupdir = def
+  { config_backup = def
+    { databaseBackupPolicy_allowed = mempty
+    , databaseBackupPolicy_location = "mock:" <> Text.pack backupdir
+    }
+  , config_restore = def
+    { databaseRestorePolicy_enabled = False
+    }
+  , config_janitor_period = Nothing -- no auto janitor, we'll run it manually
+  , config_db_rocksdb_cache_mb = 0
+  }
+
+listDBs :: Env -> IO [Thrift.Database]
+listDBs env = filter hereDBs <$> listAllDBs env
+  where
+    hereDBs Database{..} = database_status /= DatabaseStatus_Available
+
+listHereDBs :: Env -> IO [Database]
+listHereDBs = listDBs
+
+listAllDBs :: Env -> IO [Database]
+listAllDBs env = listDatabasesResult_databases <$> listDatabases env def
+
+waitDel :: Env -> IO ()
+waitDel env = atomically $ do
+  done <- HashMap.null <$> readTVar (envDeleting env)
+  when (not done) retry
+
+deleteOldDBsTest :: Test
+deleteOldDBsTest = TestCase $ withFakeDBs $ \evb cfgAPI dbdir backupdir -> do
+  let cfg = dbConfig dbdir $ (serverConfig backupdir)
+        { config_retention = def
+          { databaseRetentionPolicy_default_retention = def
+            { retention_delete_if_older =
+                Just $ fromIntegral $ timeSpanInSeconds $ days 1 }
+          }
+        }
+  withDatabases evb cfg cfgAPI $ \env -> do
+
+  dbs <- listDBs env
+  assertEqual "before"
+    [ "0001", "0002", "0003", "0004", "0005", "0006", "0007"]
+    (sort (map (repo_hash . database_repo) dbs))
+
+  runDatabaseJanitor env
+  waitDel env
+  dbs <- listDBs env
+  assertEqual "after"
+    [ "0001", "0004", "0005", "0006","0007"]
+      -- we don't delete 0004 because even though its source is old,
+      -- it was created recently. 0004 depends on 0005, and 0005
+      -- depends on 0006
+    (sort (map (repo_hash . database_repo) dbs))
+
+  dbdirs1 <- listDirectory (dbdir </> "test")
+  dbdirs2 <- listDirectory (dbdir </> "test2")
+  assertEqual "directories deleted"
+    [ "0001", "0004", "0005", "0006" ]
+    (sort (dbdirs1 ++ dbdirs2))
+
+  runDatabaseJanitor env
+  waitDel env
+  dbs <- listDBs env
+  assertEqual "after-repeat"
+    [ "0001", "0004", "0005", "0006","0007" ]
+    (sort (map (repo_hash . database_repo) dbs))
+
+deleteIncompleteDBsTest :: Test
+deleteIncompleteDBsTest = TestCase $
+  withFakeDBs $ \evb cfgAPI dbdir backupdir -> do
+  let cfg = dbConfig dbdir $ (serverConfig backupdir)
+        { config_retention = def
+          { databaseRetentionPolicy_default_retention = def
+            { retention_delete_if_older =
+                Just $ fromIntegral $ timeSpanInSeconds $ days 10
+            , retention_delete_incomplete_if_older =
+                Just $ fromIntegral $ timeSpanInSeconds $ days 1 }
+          }
+        }
+  withDatabases evb cfg cfgAPI $ \env -> do
+
+  dbs <- listDBs env
+  assertEqual "before"
+    [ "0001", "0002", "0003", "0004", "0005", "0006","0007"]
+    (sort (map (repo_hash . database_repo) dbs))
+
+  runDatabaseJanitor env
+  waitDel env
+  dbs <- listDBs env
+  print (map database_repo dbs)
+  assertEqual "after"
+    [ "0001", "0003", "0004", "0005", "0006", "0007"]
+    (sort (map (repo_hash . database_repo) dbs))
+
+  runDatabaseJanitor env
+  waitDel env
+  dbs <- listDBs env
+  assertEqual "after-repeat"
+    [ "0001", "0003", "0004", "0005", "0006","0007"]
+    (sort $ map (repo_hash . database_repo) dbs)
+
+
+retainAtMostTest :: Test
+retainAtMostTest = TestCase $ withFakeDBs $ \evb cfgAPI dbdir backupdir -> do
+  let cfg = dbConfig dbdir $ (serverConfig backupdir)
+        { config_retention = def
+          { databaseRetentionPolicy_default_retention = def
+            { retention_retain_at_most = Just 2 }
+          }
+        }
+  withDatabases evb cfg cfgAPI $ \env -> do
+
+  runDatabaseJanitor env
+  waitDel env
+  dbs <- listDBs env
+  let repos = map database_repo dbs
+  assertEqual "after"
+    [ "0001", "0002", "0006", "0007"]
+    (sort $ map repo_hash repos)
+
+  runDatabaseJanitor env
+  waitDel env
+  dbs <- listDBs env
+  assertEqual "after-repeat"
+    [ "0001", "0002", "0006", "0007"]
+    (sort $ map (repo_hash . database_repo) dbs)
+
+
+retainPerDayTest :: Test
+retainPerDayTest = TestCase $ withPerDayDBs $ \evb cfgAPI dbdir backupdir -> do
+  let cfg = dbConfig dbdir $ (serverConfig backupdir)
+        { config_retention = def
+          { databaseRetentionPolicy_default_retention = def
+            { retention_retain_per_day = Just 1 }
+          }
+        }
+  withDatabases evb cfg cfgAPI $ \env0 -> do
+  let env = withPinnedClock env0
+  runDatabaseJanitor env
+  waitDel env
+  dbs <- listDBs env
+  -- retain_per_day=1 → keep the oldest DB from each of the 3 days.
+  assertEqual "after"
+    [ "0003", "0006", "0009" ]
+    (sort $ map (repo_hash . database_repo) dbs)
+
+retainPerDayWithAtMostTest :: Test
+retainPerDayWithAtMostTest =
+  TestCase $ withPerDayDBs $ \evb cfgAPI dbdir backupdir -> do
+  let cfg = dbConfig dbdir $ (serverConfig backupdir)
+        { config_retention = def
+          { databaseRetentionPolicy_default_retention = def
+            { retention_retain_per_day = Just 2
+            , retention_retain_at_most = Just 4
+            }
+          }
+        }
+  withDatabases evb cfg cfgAPI $ \env0 -> do
+  let env = withPinnedClock env0
+  runDatabaseJanitor env
+  waitDel env
+  dbs <- listDBs env
+  -- retain_per_day=2 keeps the 2 oldest per day (6 candidates);
+  -- retain_at_most=4 caps the result to the 4 newest of those =
+  -- 2 from day 0 + 2 from day 1.
+  assertEqual "after"
+    [ "0002", "0003", "0005", "0006" ]
+    (sort $ map (repo_hash . database_repo) dbs)
+
+retainPerDayWithDeleteIfOlderTest :: Test
+retainPerDayWithDeleteIfOlderTest =
+  TestCase $ withPerDayDBs $ \evb cfgAPI dbdir backupdir -> do
+  let cfg = dbConfig dbdir $ (serverConfig backupdir)
+        { config_retention = def
+          { databaseRetentionPolicy_default_retention = def
+            { retention_retain_per_day = Just 2
+            , retention_retain_at_most = Just 4
+            , retention_delete_if_older =
+                Just $ fromIntegral $ timeSpanInSeconds $ days 1
+            }
+          }
+        }
+  withDatabases evb cfg cfgAPI $ \env0 -> do
+  let env = withPinnedClock env0
+  runDatabaseJanitor env
+  waitDel env
+  dbs <- listDBs env
+  -- per_day=2 keeps the 2 oldest per day (6 candidates across the 3 days);
+  -- delete_if_older=1 (1d) overrides the at_most=4, only the recent day's DBs are kept.
+  assertEqual "after"
+    [ "0002", "0003" ]
+    (sort $ map (repo_hash . database_repo) dbs)
+
+retainAtLeastTest :: Test
+retainAtLeastTest = TestCase $ withFakeDBs $ \evb cfgAPI dbdir backupdir -> do
+  let cfg = dbConfig dbdir $ (serverConfig backupdir)
+        { config_retention = def
+          { databaseRetentionPolicy_default_retention = def
+            { retention_delete_if_older =
+                Just $ fromIntegral $ timeSpanInSeconds $ days 1
+            , retention_retain_at_least = Just 2 }
+          }
+        }
+  withDatabases evb cfg cfgAPI $ \env -> do
+
+  runDatabaseJanitor env
+  waitDel env
+  dbs <- listDBs env
+  let repos = map database_repo dbs
+  assertEqual "after"
+    [ "0001", "0003", "0004", "0005", "0006", "0007"]
+    (sort $ map repo_hash repos)
+    -- should drop 0002, because its metaIndexing=Failed
+    -- should retain 0003 even though it is older than delete_if_older,
+    -- due to retain_at_least.
+
+  runDatabaseJanitor env
+  waitDel env
+  dbs <- listDBs env
+  let repos = map database_repo dbs
+  assertEqual "after-repeat"
+    [ "0001", "0003", "0004", "0005", "0006","0007"]
+    (sort $ map repo_hash repos)
+
+excludedPropsTest :: Test
+excludedPropsTest = TestCase $ withFakeDBs $ \evb cfgAPI dbdir backupdir -> do
+  let cfg = dbConfig dbdir $ (serverConfig backupdir)
+        { config_retention = def
+          { databaseRetentionPolicy_default_retention = def
+            { retention_excluded_properties =
+                HashMap.fromList [("exclude_me","true")]
+            }
+          }
+        }
+  withDatabases evb cfg cfgAPI $ \env -> do
+  runDatabaseJanitor env
+  dbs <- listDBs env
+  let repos = map database_repo dbs
+  assertEqual "after"
+    [ "0001", "0002", "0003", "0004", "0005", "0006"]
+    (sort $ map repo_hash repos)
+
+requiredPropsTest :: Test
+requiredPropsTest = TestCase $ withFakeDBs $ \evb cfgAPI dbdir backupdir -> do
+  let cfg = dbConfig dbdir $ (serverConfig backupdir)
+        { config_retention = def
+          { databaseRetentionPolicy_default_retention = def
+            { retention_required_properties =
+                HashMap.fromList [("bool","yes")]
+            }
+          }
+        }
+  withDatabases evb cfg cfgAPI $ \env -> do
+  runDatabaseJanitor env
+  dbs <- listDBs env
+  let repos = map database_repo dbs
+  assertEqual "after" [ "0001" ] (map repo_hash repos)
+
+multiRetentionTest :: Test
+multiRetentionTest = TestCase $ withFakeDBs $ \evb cfgAPI dbdir backupdir -> do
+  let cfg = dbConfig dbdir $ (serverConfig backupdir)
+        { config_retention = def
+          { databaseRetentionPolicy_by_repo =
+            Map.fromList
+              [ ("test",
+                [ def
+                  { retention_required_properties =
+                      HashMap.fromList [("bool","yes")]
+                  , retention_retain_at_least = Just 1
+                  }
+                , def
+                  { retention_required_properties =
+                      HashMap.fromList [("bool","no")]
+                  , retention_retain_at_least = Just 1
+                  , retention_keep_open = True
+                  }
+                ])
+              ]
+            }
+          }
+  withDatabases evb cfg cfgAPI $ \env -> do
+  runDatabaseJanitor env
+  dbs <- listDBs env
+  let repos = sort $ map (repo_hash . database_repo) dbs
+  assertEqual "after" [ "0001", "0005", "0006", "0007" ] repos
+
+  -- 0005 should be open due to keep_open=True in the retention policy
+  closed <- atomically $ isDatabaseClosed env (Repo "test" "0005")
+  assertBool "open" (not closed)
+
+-- | If we want to restore only one type of DB with a retention
+-- policy, check that we don't restore additional instances of that DB
+-- that are dependencies of other (non-restored) DBs.
+retentionRestoreDepsTest :: Test
+retentionRestoreDepsTest = TestCase $
+  withFakeCloudDBs $ \evb cfgAPI dbdir backupdir -> do
+    let cfg = dbConfig dbdir $ (serverConfig backupdir)
+          { config_retention = def
+            { databaseRetentionPolicy_default_retention = def
+              { retention_retain_at_most = Just 1
+              }
+            },
+            config_restore = def
+            { databaseRestorePolicy_enabled = False
+            , databaseRestorePolicy_override = Set.fromList ["test2"]
+            }
+          }
+    withDatabases evb cfg cfgAPI $ \env -> do
+    runDatabaseJanitor env  -- kicks off the async restore of test2/0014
+
+    -- runDatabaseJanitor only *starts* the restore (on the backuper thread);
+    -- it does not wait for it to finish. Poll until the restored DB is
+    -- available before asserting -- otherwise listDBs races the restore and
+    -- can observe [] (and the in-flight restore is cancelled at withDatabases
+    -- teardown, surfacing AsyncCancelled). We wait specifically for 0014 so
+    -- the assertion below still verifies that no extra dependency DBs are
+    -- restored. Mirrors the wait loop in backupRestoreTest.
+    let waitForRestore = do
+          dbs <- listDBs env
+          let restored =
+                [ db | db <- dbs
+                , repo_hash (database_repo db) == "0014"
+                , database_status db == Thrift.DatabaseStatus_Complete ]
+          when (null restored) $ do
+            sleep 0.1
+            waitForRestore
+    r <- timeout (60*1000000) waitForRestore
+    assertBool "timeout waiting for test2/0014 restore" (isJust r)
+
+    dbs <- listDBs env
+    let repos = map database_repo dbs
+    assertEqual "after" [ "0014" ] (map repo_hash repos)
+
+backupRestoreTest :: Test
+backupRestoreTest = TestCase $ withFakeDBs $ \evb cfgAPI dbdir backupdir -> do
+  let cfg = dbConfig dbdir $ (serverConfig backupdir)
+        { config_backup = (config_backup (serverConfig backupdir))
+          { databaseBackupPolicy_allowed =
+              HashSet.fromList ["test", "test2", "test3"] }
+        }
+  withDatabases evb cfg cfgAPI $ \env -> do
+    runDatabaseJanitor env
+    atomically $ do
+      dbs <- Catalog.getLocalDatabases $ envCatalog env
+      let should_wait Thrift.GetDatabaseResult
+              {getDatabaseResult_database = Thrift.Database{..}} =
+            database_status == DatabaseStatus_Complete
+            && isNothing database_location
+      when (any should_wait dbs) retry
+
+  backups <- listDirectory backupdir
+  let withProps filename = [filename, filename ++ ".props"]
+  let expected = concatMap withProps
+        [ "test.0001", "test.0003", "test.0004", "test.0005" , "test2.0006", "test3.0007"]
+  assertEqual "after"
+    expected
+    (sort backups)
+  -- should not backup failed db test.0002
+
+  let cfg = dbConfig dbdir $ (serverConfig backupdir)
+        { config_restore = (config_restore (serverConfig backupdir))
+          { databaseRestorePolicy_enabled = True }
+        , config_retention = def
+          { databaseRetentionPolicy_default_retention = def
+            { retention_delete_if_older =
+                Just $ fromIntegral $ timeSpanInSeconds $ days 1
+            , retention_retain_at_least = Just 2 }
+          }
+        }
+
+  -- remove all the DBs, so we have to restore them:
+  removeDirectoryRecursive dbdir
+  createDirectoryIfMissing True (dbdir </> "test")
+  createDirectoryIfMissing True (dbdir </> "test2")
+  createDirectoryIfMissing True (dbdir </> "test3")
+  withDatabases evb cfg cfgAPI $ \env -> do
+  runDatabaseJanitor env  -- this should kick off the restore
+
+  let waitForRestore = do
+        dbs <- listDBs env
+        let
+          available =
+            [ db | db <- dbs
+            , database_status db == Thrift.DatabaseStatus_Complete ]
+        when (length dbs < 2 || length available < 2) waitForRestore
+
+  r <- timeout (60*1000000) $ waitForRestore
+  assertBool "timeout" $ isJust r
+
+  -- we should have restored both 0001 and 0003, even though 0003 is
+  -- older than delete_if_older, because retain_at_least = 2
+  dbs <- listDBs env
+  let
+    repos = map database_repo dbs
+    db1 = Repo "test" "0001"
+    db3 = Repo "test" "0003"
+
+
+  assertEqual "after"
+    [ "0001", "0003", "0004", "0005", "0006", "0007" ]
+    (sort $ map repo_hash repos)
+
+  areClosed <- atomically
+    $ liftM2 (&&) (isDatabaseClosed env db1) (isDatabaseClosed env db3)
+  assertBool "dbs available but closed after restore" areClosed
+
+
+openNewestTest :: Test
+openNewestTest = TestCase $ withFakeDBs $ \evb cfgAPI dbdir backupdir -> do
+  let cfg = dbConfig dbdir $ serverConfig backupdir
+
+  withDatabases evb cfg cfgAPI $ \env -> do
+
+  let
+    newestDb = Repo "test" "0001"
+    oldestDb = Repo "test" "0005"
+
+  newestClosed <- atomically $ isDatabaseClosed env newestDb
+  oldestClosed <- atomically $ isDatabaseClosed env oldestDb
+
+  assertBool "newest closed before" newestClosed
+  assertBool "oldest closed before" oldestClosed
+
+  runDatabaseJanitor env
+
+  newestOpen <- atomically $ not <$> isDatabaseClosed env newestDb
+  oldestStillClosed <- atomically $ isDatabaseClosed env oldestDb
+
+  assertBool "newest open after" newestOpen
+  assertBool "oldest closed after" oldestStillClosed
+
+  -- delete repo001, repo002 is the newest but is broken, so we
+  -- should open repo003.
+  deleteDatabase env newestDb
+  runDatabaseJanitor env
+
+  let nextBroken = Repo "test" "0002"
+  let nextNotBroken = Repo "test" "0003"
+  dontOpenBroken <- atomically $ isDatabaseClosed env nextBroken
+  openNotBroken <- atomically $ not <$> isDatabaseClosed env nextNotBroken
+
+  assertBool "don't open broken" dontOpenBroken
+  assertBool "open not broken" openNotBroken
+
+closeIdleDBsTest :: Test
+closeIdleDBsTest = TestCase $ withFakeDBs $ \evb cfgAPI dbdir backupdir -> do
+  let cfg = dbConfig dbdir $ serverConfig backupdir
+
+  withDatabases evb cfg cfgAPI $ \env -> do
+
+  let
+    normalDb = Repo "test" "0001"
+    blackListedDb = Repo "test" "0003"
+
+  withOpenDatabase env normalDb (\_ -> return ())
+  withOpenDatabase env blackListedDb (\_ -> return ())
+
+  normalDbOpen <- atomically $ not <$> isDatabaseClosed env normalDb
+  blackListedDbOpen <- atomically $ not <$> isDatabaseClosed env blackListedDb
+
+  assertBool "regular DB open before" normalDbOpen
+  assertBool "blacklisted DB open before" blackListedDbOpen
+
+  -- Close all available DBs unless blacklisted
+  closeIdleDatabases env (seconds 0) [blackListedDb]
+
+  normalDbClosed <- atomically $ isDatabaseClosed env normalDb
+  blackListedDbStillOpen <- atomically
+    $ not <$> isDatabaseClosed env blackListedDb
+
+  assertBool "regular DB closed after" normalDbClosed
+  assertBool "blacklisted DB open after" blackListedDbStillOpen
+
+shardingTest :: Test
+shardingTest = TestCase $ withFakeDBs $ \evb cfgAPI dbdir backupdir -> do
+  myShards <- newIORef ["0001"] -- initial shard assignment
+  let cfg = (dbConfig dbdir (serverConfig backupdir))
+        {cfgShardManager = \_ _ k -> k $ SomeShardManager $
+          shardByRepoHash (Just <$> readIORef myShards)}
+  withDatabases evb cfg cfgAPI $ \env -> do
+    runDatabaseJanitor env
+    waitDel env
+    dbs <- listHereDBs env
+    assertEqual "initial shard assignment"
+      ["0001"]
+      (sort $ map (repo_hash . database_repo) dbs)
+
+    -- update the shard assignment and verify
+    writeIORef myShards ["nil"]
+    runDatabaseJanitor env
+    waitDel env
+    dbs <- listHereDBs env
+    assertEqual "shard assignment: removed 0003"
+      []
+      (sort $ map (repo_hash . database_repo) dbs)
+
+shardingStacksTest :: Test
+shardingStacksTest = TestCase $ withFakeDBs $ \evb cfgAPI dbdir backupdir -> do
+  myShards <- newIORef ["0006"] -- initial shard assignment
+  let cfg = (dbConfig dbdir (serverConfig backupdir))
+        {cfgShardManager = \_ _ k -> k $ SomeShardManager $
+          shardByBaseOfStackRepoHash (Just <$> readIORef myShards)}
+  withDatabases evb cfg cfgAPI $ \env -> do
+    runDatabaseJanitor env
+    waitDel env
+    dbs <- listHereDBs env
+    assertEqual "all dbs in the stack belong to the shard"
+      ["0003", "0004", "0005", "0006"]
+      (sort $ map (repo_hash . database_repo) dbs)
+
+shardingFallbackTest :: Test
+shardingFallbackTest = TestCase $ withFakeDBs $ \evb cfgAPI dbdir backupdir -> do
+  let cfg = (dbConfig dbdir (serverConfig backupdir))
+        {cfgShardManager = \_ _ k ->
+          k $ SomeShardManager $ shardByRepoHash (pure Nothing)}
+  withDatabases evb cfg cfgAPI $ \env -> do
+    runDatabaseJanitor env
+    waitDel env
+    dbs <- listHereDBs env
+    assertEqual "falls back to no sharding"
+      ["0001", "0002", "0003", "0004", "0005", "0006", "0007"]
+      (sort $ map (repo_hash . database_repo) dbs)
+
+shardingByRepoNameTest :: Test
+shardingByRepoNameTest = TestCase $ withFakeDBs $ \evb cfgAPI dbdir backupdir -> do
+  let cfg = (dbConfig dbdir (serverConfig backupdir))
+        {cfgShardManager = \_ _ k -> k $ SomeShardManager $
+          shardByRepo (pure $ Just ["test2"])}
+  withDatabases evb cfg cfgAPI $ \env -> do
+    runDatabaseJanitor env
+    waitDel env
+    dbs <- listHereDBs env
+    assertEqual "only test2 dbs belong to the shard"
+      ["0003", "0004", "0005", "0006"]
+      (sort $ map (repo_hash . database_repo) dbs)
+
+
+elsewhereTest :: Test
+elsewhereTest = TestCase $ withFakeDBs $ \evb cfgAPI dbdir backupdir -> do
+  let myShards = pure $ Just ["0001", "0003"]
+  let cfg = (dbConfig dbdir (serverConfig backupdir)
+        { config_retention = def
+          { databaseRetentionPolicy_default_retention = def
+            { retention_delete_if_older =
+                Just $ fromIntegral $ timeSpanInSeconds $ days 10
+            , retention_retain_at_least = Just 10 }
+          }
+        })
+        {cfgShardManager = \_ _ k -> k $ SomeShardManager $ shardByRepoHash myShards}
+  withDatabases evb cfg cfgAPI $ \env -> do
+
+    dbs <- listHereDBs env
+    assertEqual "before"
+      [ "0001", "0002", "0003", "0004", "0005", "0006", "0007"]
+      (sort (map (repo_hash . database_repo) dbs))
+
+    runDatabaseJanitor env
+    waitDel env
+    dbs <- listAllDBs env
+
+    assertEqual "after: dbs available with the retention policy"
+      [ "0001", "0002", "0003", "0004", "0005", "0006", "0007"]
+      (sort $ map (repo_hash . database_repo) dbs)
+
+makeFilterDBsWithInvariant :: ([Repo] -> IO [Repo]) -> IO ([Repo] -> IO [Repo])
+makeFilterDBsWithInvariant pred = do
+  seenAvailabeDBsRef <- newIORef mempty
+  return $ \dbs -> do
+    available <- pred dbs
+    let availableSet = HashSet.fromList available
+    beenAvailableBefore <- readIORef seenAvailabeDBsRef
+    assertEqual "called cfgFilterAvailableDBs twice on the same DB"
+      mempty (HashSet.intersection availableSet beenAvailableBefore)
+    writeIORef seenAvailabeDBsRef (availableSet <> beenAvailableBefore)
+    return available
+
+elsewhereNotYetAvailableTest :: Test
+elsewhereNotYetAvailableTest =
+  TestCase $ withFakeCloudDBs $ \evb cfgAPI dbdir backupdir -> do
+    let myShards = pure $ Just []
+    filterDBs <- makeFilterDBsWithInvariant $
+      return . filter ((`elem` ["0008","0009"]) . repo_hash)
+    let cfg = (dbConfig dbdir (serverConfig backupdir)
+          { config_retention = def
+            { databaseRetentionPolicy_default_retention = def
+              { retention_delete_if_older =
+                  Just $ fromIntegral $ timeSpanInSeconds $ days 10
+              , retention_retain_at_least = Just 2
+              , retention_retain_at_most = Just 4
+              }
+            },
+            config_restore = def {
+              databaseRestorePolicy_enabled = True
+            }
+          })
+          {cfgShardManager = \_ _ k ->
+              k $ SomeShardManager $ shardByRepoHash myShards
+          ,cfgFilterAvailableDBs = filterDBs
+          }
+    withDatabases evb cfg cfgAPI $ \env -> do
+      runDatabaseJanitor env
+      dbs <- listAllDBs env
+
+      assertEqual
+        "at least 2 dbs actually available + at most 4 more not yet available"
+        ["0008", "0009", "0011", "0012", "0013", "0014", "0015"]
+        (sort $ map (repo_hash . database_repo) dbs)
+
+shardUnexpireTest :: Test
+shardUnexpireTest = TestCase $ withFakeDBs $ \evb cfgAPI dbdir backupdir -> do
+  myShards <- newIORef ["nil"] -- initial incomplete shard assignment
+  let cfg = (dbConfig dbdir (serverConfig backupdir)
+        { config_retention = def
+          { databaseRetentionPolicy_default_retention = def
+            {retention_expire_delay = Just 30}
+          }
+        })
+        {cfgShardManager = \_ _ k -> k $ SomeShardManager $
+          shardByRepoHash (Just <$> readIORef myShards)}
+  withDatabases evb cfg cfgAPI $ \env -> do
+    runDatabaseJanitor env
+    dbs <- listDBs env
+
+    expiring <- atomically $
+      mapM (Catalog.readExpiring (envCatalog env) . database_repo) dbs
+    assertBool "All expiring" (all isJust expiring)
+
+    -- update the shard assignment and verify
+    writeIORef myShards [repo_hash repo0001]
+    runDatabaseJanitor env
+
+    expiring <- atomically $ Catalog.readExpiring (envCatalog env) repo0001
+    assertBool "0001 not expiring now" (isNothing expiring)
+
+expireTest :: Test
+expireTest = TestCase $ withFakeDBs $ \evb cfgAPI dbdir backupdir -> do
+  let emptyShardAssignment = shardByRepoHash $ pure $ Just ["nil"]
+  let cfg = (dbConfig dbdir (serverConfig backupdir)
+        { config_retention = def
+          { databaseRetentionPolicy_default_retention = def
+            {retention_expire_delay = Just 1}
+          }
+        , config_janitor_period = Nothing
+        })
+        {cfgShardManager = \_ _ k -> k $ SomeShardManager emptyShardAssignment}
+  withDatabases evb cfg cfgAPI $ \env -> do
+    runDatabaseJanitor env
+    dbs <- listDBs env
+
+    expiring <- atomically $
+      mapM (Catalog.readExpiring (envCatalog env) . database_repo) dbs
+    assertBool "All expiring" (all isJust expiring)
+
+    -- run the Janitor before the expire delay to exercise all code paths
+    runDatabaseJanitor env
+    sleep 1
+    -- run the Janitor twice after the expire delay to exercise all code paths
+    runDatabaseJanitor env
+    runDatabaseJanitor env
+    -- check that the DBs were really deleted
+    res <- timeout 10000000 -- 10s
+                   (waitDel env)
+    waitingDeletion <- readTVarIO (envDeleting env)
+    assertBool ("timeout: " <> show (HashMap.keys waitingDeletion)) (isJust res)
+    assertEqual "envDeleting" [] (HashMap.keys waitingDeletion)
+    localDBs <- listHereDBs env
+    assertEqual "All deleted" [] (map database_repo localDBs)
+
+ageCountersTestEx
+  :: HasCallStack
+  => SomeShardManager
+  -> (Env -> [BS.ByteString] -> IO ())
+  -> IO ()
+ageCountersTestEx shardManager k =
+  withTest setupBasicDBs setupBasicCloudDBs $ \evb cfgAPI dbdir backupdir -> do
+    let cfg = (dbConfig dbdir (serverConfig backupdir)
+          { config_restore = def {
+              databaseRestorePolicy_enabled = True
+            }, config_retention = def
+          }) {cfgShardManager = \_ _ k -> k shardManager}
+    withDatabases evb cfg cfgAPI $ \env -> do
+      runDatabaseJanitor env
+      waitDel env
+      sideEffects <- runDatabaseJanitorPureish env
+      let countersToPublish =
+            [ c
+            | PublishCounter c _ <- sideEffects
+            , ".age" `BS.isSuffixOf` c || ".span" `BS.isSuffixOf` c
+            ]
+      k env $ sort countersToPublish
+
+ageCountersCompleteTest :: Test
+ageCountersCompleteTest = TestCase $ ageCountersTestEx
+  (SomeShardManager $ shardByRepoHash (pure $ Just ["0001"]))
+  $ \_ -> assertEqual
+    "Should publish age counters for all newest DBs restored locally"
+    ["glean.db.test.age", "glean.db.test.span"]
+
+ageCountersOnlyNewestTest :: Test
+ageCountersOnlyNewestTest = TestCase $ ageCountersTestEx
+  (SomeShardManager $ shardByRepoHash (pure $ Just []))
+  $ \_ -> assertEqual
+      "Should not publish age for newest DBs not restored locally"
+      []
+
+ageCountersClearTest:: Test
+ageCountersClearTest = TestCase $ do
+  shardAssignmentRef <- newIORef ["0001"]
+  ageCountersTestEx
+    (SomeShardManager $ shardByRepoHash (Just <$> readIORef shardAssignmentRef))
+    $ \env _ -> do
+    writeIORef shardAssignmentRef []
+    -- Run the Janitor to pick up the new assignment and delete unassigned DBs
+    runDatabaseJanitor env
+    waitDel env
+    -- Run the Janitor again after DBs are deleted to clear the counters
+    runDatabaseJanitor env
+    counters <- getCounters
+    assertBool "glean.db.test.age cleared"
+      $ not (HashMap.member "glean.db.test.age" counters)
+
+stuckTest :: Test
+stuckTest = TestCase $ withFakeCloudDBs $ \evb cfgAPI dbdir backupdir -> do
+  let cfg = dbConfig dbdir $ (serverConfig backupdir)
+        { config_janitor_period = Just 0
+        , config_restore = def {
+              databaseRestorePolicy_enabled = True
+            }
+        , config_retention = def {
+            databaseRetentionPolicy_default_retention = def {
+            retention_retain_at_least = Just 2
+          }
+         }
+        }
+      cfg' = cfg {
+         cfgFilterAvailableDBs  = \_ -> do
+           uninterruptibleMask_ $ threadDelay maxBound
+           return []
+      }
+  withDatabases evb cfg' cfgAPI $ \env -> do
+    (_, janitorResult) <- atomically $ do
+      res <- readTVar $ envDatabaseJanitor env
+      maybe retry return res
+    assertBool (show janitorResult) $ case janitorResult of
+      JanitorStuck -> True
+      _ -> False
+
+retentionCheckMissingDepsTest :: Test
+retentionCheckMissingDepsTest = TestCase $
+  withTest (\_ _ -> pure ()) setupBasicCloudDBsWithMissingDependencyOne
+     $ \evb cfgAPI dbdir backupdir -> do
+    let cfg = dbConfig dbdir $ (serverConfig backupdir)
+          { config_retention = def
+            { databaseRetentionPolicy_default_retention = def
+              { retention_retain_at_least = Just 1,
+                retention_retain_at_most = Just 1
+              }
+            },
+            config_restore = def
+            { databaseRestorePolicy_enabled = True
+            }
+          }
+
+    withDatabases evb cfg cfgAPI $ \env -> do
+      runDatabaseJanitor env
+      dbs <- listDBs env
+      let repos = map database_repo dbs
+      --- 0014 is the newest test2 db
+      --- 0016 is the newest test db, but it's missing dependency
+      --- so restoring next available test db 0015 and it's dependency 0013
+      assertEqual "after" [ "0013", "0014","0015"] (sort (map repo_hash repos))
+
+main :: IO ()
+main = withUnitTest $ testRunner $ TestList
+  [ TestLabel "deleteOldDBs" deleteOldDBsTest
+  , TestLabel "deleteIncompleteDBs" deleteIncompleteDBsTest
+  , TestLabel "retainAtMost" retainAtMostTest
+  , TestLabel "retainAtLeast" retainAtLeastTest
+  , TestLabel "retainPerDay" retainPerDayTest
+  , TestLabel "retainPerDayWithAtMost" retainPerDayWithAtMostTest
+  , TestLabel "retainPerDayWithDeleteIfOlder" retainPerDayWithDeleteIfOlderTest
+  , TestLabel "backupRestore" backupRestoreTest
+  , TestLabel "openNewestDB" openNewestTest
+  , TestLabel "closeIdleDBs" closeIdleDBsTest
+  , TestLabel "expireDelay" expireTest
+  , TestLabel "sharding" shardingTest
+  , TestLabel "shardingStacks" shardingStacksTest
+  , TestLabel "shardingFallback" shardingFallbackTest
+  , TestLabel "shardingByRepoName" shardingByRepoNameTest
+  , TestLabel "shardingExpiring" shardUnexpireTest
+  , TestLabel "availableElsewhere" elsewhereTest
+  , TestLabel "notAvailableElsewhere" elsewhereNotYetAvailableTest
+  , TestLabel "ageCountersForAllNewestDBs" ageCountersCompleteTest
+  , TestLabel "ageCountersForOnlyNewestDBs" ageCountersOnlyNewestTest
+  , TestLabel "ageCountersClear" ageCountersClearTest
+  , TestLabel "stuck" stuckTest
+  , TestLabel "requiredPropsTest" requiredPropsTest
+  , TestLabel "retentionRestoreDepsTest" retentionRestoreDepsTest
+  , TestLabel "multiRetentionTest" multiRetentionTest
+  , TestLabel "retentionCheckMissingDepsTest" retentionCheckMissingDepsTest
+  , TestLabel "excludedPropsTest" excludedPropsTest
+  ]

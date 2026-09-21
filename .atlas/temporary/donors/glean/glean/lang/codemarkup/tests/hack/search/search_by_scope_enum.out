@@ -1,0 +1,33 @@
+[
+  "@generated",
+  {
+    "key": {
+      "entity": {
+        "hack": {
+          "decl": {
+            "enumerator": {
+              "key": {
+                "enumeration": {
+                  "key": {
+                    "name": { "key": { "name": { "key": "Position" } } }
+                  }
+                },
+                "name": { "key": "Top" }
+              }
+            }
+          }
+        }
+      },
+      "kind": 9,
+      "language": 5,
+      "location": {
+        "file": { "key": "www/TopLevel.php" },
+        "location": { "span": { "length": 3, "start": 184 } },
+        "name": "Top"
+      },
+      "name": "Top",
+      "scope": [ "Position" ],
+      "searchcase": 0
+    }
+  }
+]

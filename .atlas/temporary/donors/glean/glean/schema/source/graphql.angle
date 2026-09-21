@@ -1,0 +1,306 @@
+# Copyright (c) Meta Platforms, Inc. and affiliates.
+
+schema graphql.3 {
+import src
+
+# Core graphql predicates built from the graphql IR
+
+# https://spec.graphql.org/October2021/#sec-Language.Arguments
+predicate Argument :
+  {
+    name: Value,
+    value: Value,
+  }
+
+predicate Directive :
+  {
+    name: Value,
+    arguments: [Argument],
+  }
+
+predicate DirectiveDef :
+  {
+    name: Value,
+    argumentDefs: [InputValueDef],
+    locations: [DirectiveDefLocation],
+  }
+
+type DirectiveDefLocation =
+  enum {
+    QUERY  |
+    MUTATION |
+    SUBSCRIPTION |
+    FIELD |
+    FRAGMENT_DEFINITION |
+    FRAGMENT_SPREAD |
+    INLINE_FRAGMENT |
+    SCHEMA |
+    SCALAR |
+    OBJECT |
+    FIELD_DEFINITION |
+    ARGUMENT_DEFINITION |
+    INTERFACE |
+    UNION |
+    ENUM |
+    ENUM_VALUE |
+    INPUT_OBJECT |
+    INPUT_FIELD_DEFINITION |
+  }
+
+predicate EnumTypeDef :
+  {
+    name: Value,
+    values: [Value],
+    directives: [Directive],
+  }
+
+predicate Fragment :
+  {
+    name: Value,
+    typeCondition: Value,
+    variableDefs: [VariableDef],
+    directives: [Directive],
+    selectionSet: SelectionSet,
+    loc: src.FileLocation,
+  }
+
+predicate FragmentSpread :
+  {
+    name: Value,
+    loc: src.FileLocation,
+    arguments: [Argument],
+    directives: [Directive],
+  }
+
+# https://spec.graphql.org/October2021/#sec-Language.Fields
+predicate Field :
+  {
+    type: Value,
+    name: Value,
+    directives: [Directive],
+    selectionSet: SelectionSet,
+    arguments: [Argument],
+    alias: maybe Value,
+    loc: src.FileLocation,
+  }
+
+predicate FieldDef :
+  {
+    name: Value,
+    type: Value,
+    argumentDefs: [InputValueDef],
+    directives: [Directive],
+  }
+
+predicate InlineFragment :
+  {
+    inferredTypeCondition: Value,
+    directives: [Directive],
+    selectionSet: SelectionSet,
+    typeCondition: maybe Value,
+  }
+
+predicate InputValueDef :
+  {
+    name: Value,
+    type: Value,
+    directives: [Directive],
+    defaultValue: maybe Value,
+  }
+
+predicate InputObjectTypeDef :
+  {
+    name: Value,
+    fields: [InputValueDef],
+    directives: [Directive],
+  }
+
+predicate InterfaceTypeDef :
+  {
+    name: Value,
+    fields: [FieldDef],
+    directives: [Directive],
+  }
+
+predicate ObjectTypeDef :
+  {
+    name: Value,
+    interfaces: [Value],
+    fields: [FieldDef],
+    directives: [Directive],
+  }
+
+type OperationKind =
+  enum {
+    QUERY  |
+    MUTATION |
+    SUBSCRIPTION
+  }
+
+# https://spec.graphql.org/October2021/#sec-Language.Operations
+predicate Operation :
+  {
+    name: Value,
+    kind: OperationKind,
+    directives: [Directive],
+    variableDefs: [VariableDef],
+    selectionSet: SelectionSet,
+    loc: src.FileLocation,
+  }
+
+predicate BelongToConfig:
+{
+  file: src.File,
+  buildConfig: Value,
+  schema: maybe Value,
+}
+
+predicate ScalarTypeDef :
+  {
+    name: Value,
+    directives: [Directive],
+  }
+
+type SelectionSet =
+  {
+    fields: [Field],
+    inlineFragments: [InlineFragment],
+    fragmentSpreads: [FragmentSpread],
+  }
+
+predicate UnionTypeDef :
+  {
+    name: Value,
+    types: [Value],
+    directives: [Directive],
+  }
+
+# used in queries / fragments
+predicate VariableDef :
+  {
+    name: Value,
+    type: Value,
+    directives: [Directive],
+    defaultValue: maybe Value,
+  }
+
+# All names found in any identifiers
+predicate Value : string
+
+#
+# codemarkup-layer abstractions for navigation and search
+# see use in codemarkup.graphql.angle, code.graphql.angle
+#
+
+type Declaration =
+  {
+    operation_ : Operation |
+    fragment_ : Fragment |
+    field_ : FieldDef |
+    enum_ : EnumTypeDef |
+    directive_ : DirectiveDef
+  }
+
+predicate DeclarationLocation :
+  {
+    declaration: Declaration,
+    file: src.File,
+    span: src.ByteSpan,
+  }
+  { Decl, File, Span} where
+    ({ operation_ = Q } = Decl;
+     Q = Operation { loc = { file = File, span = Span} }
+    ) | (
+    { fragment_ = F } = Decl;
+      F = Fragment { loc = { file = File, span = Span} }
+    );
+    # TODO (calebtho): add support for declarations located in the schema
+
+# All declarations by file
+predicate FileDeclarations :
+  {
+    file : src.File,
+    span: src.ByteSpan,
+    declaration : Declaration,
+  }
+  stored {File, Span, Decl} where
+    DeclarationLocation { Decl, File, Span};
+
+# (deprecated) As it isn't sound (it isn't a functional relationship)
+predicate DeclarationName: Declaration -> Value
+  D -> Value where
+    Value =
+      (N where { operation_ = X} = D; { name = N } = X) |
+      (N where { fragment_ = X } = D; { name = N } = X);
+
+# Declarations in GraphQL are name:Value-indexed, so lookup is simple
+predicate DeclHasName:
+  {
+    decl: Declaration,
+    name: Value,
+  }
+  { Decl, Name } where
+    ({ operation_ = { name = Name }} = Decl) |
+    ({ fragment_ = { name = Name }} = Decl);
+
+# Cross-references.
+# Fragment spreads -> fragments
+
+# Type of xref occurences
+type XRef =
+  {
+    decl  : Declaration,
+    span : src.ByteSpan,
+  }
+
+# Like FileDeclarations but stored for cross-references keyed by file
+predicate FileXRefs:
+  {
+    file : src.File,
+    xref : XRef,
+  } stored
+  { SrcFile, { Decl, Span }} where
+    # case one: FragmentSpread -> Fragment
+    FragmentSpread { name = FName, loc = { file = SrcFile, span = Span } };
+    FDecl = Fragment { name = FName, loc = { file = DstFile } };
+    # Confirm the two files are in the same config
+    BelongToConfig { file = SrcFile, buildConfig = SrcConfig };
+    BelongToConfig { file = DstFile, buildConfig = DstConfig };
+    SrcConfig = DstConfig;
+    { fragment_ = FDecl } = Decl : Declaration
+
+# Inverse of FileXRefs, goes from entity to its use
+# Derived by inverting FileXRefs.
+predicate DeclarationUses:
+  {
+    target: Declaration,
+    file: src.File,
+    span: src.ByteSpan,
+  } stored
+  { Decl, File, Span } where FileXRefs { File, { Decl, Span } }
+
+# Search
+
+# Rather than use "Value" which covers all strings in the index
+# Derive an actual name table
+
+type Name = Value
+
+predicate NameLowerCase:
+  {
+    lowercase: string,
+    name: Name
+  }
+  stored { prim.toLower NameStr, Name } where Name = Value NameStr
+
+# Inverted form of DeclarationName to key by the name for search
+predicate SearchByName:
+  {
+    name: Name,
+    decl: Declaration,
+  }
+  { Name, Decl } where
+    ( O = Operation { name = Name }; { operation_ = O }) |
+    ( F = Fragment { name = Name }; { fragment_ = F }) = Decl;
+
+}

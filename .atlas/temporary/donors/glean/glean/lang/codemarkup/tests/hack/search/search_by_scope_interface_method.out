@@ -1,0 +1,37 @@
+[
+  "@generated",
+  {
+    "key": {
+      "entity": {
+        "hack": {
+          "decl": {
+            "method": {
+              "key": {
+                "container": {
+                  "interface_": {
+                    "key": {
+                      "name": {
+                        "key": { "name": { "key": "SourceInterface" } }
+                      }
+                    }
+                  }
+                },
+                "name": { "key": "foo" }
+              }
+            }
+          }
+        }
+      },
+      "kind": 7,
+      "language": 5,
+      "location": {
+        "file": { "key": "www/SourceInterface.php" },
+        "location": { "span": { "length": 34, "start": 139 } },
+        "name": "foo"
+      },
+      "name": "foo",
+      "scope": [ "SourceInterface" ],
+      "searchcase": 0
+    }
+  }
+]

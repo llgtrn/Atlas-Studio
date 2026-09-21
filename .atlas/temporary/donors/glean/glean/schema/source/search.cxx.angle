@@ -1,0 +1,358 @@
+# Copyright (c) Meta Platforms, Inc. and affiliates.
+
+schema search.cxx.5 {
+import cxx1
+import code.cxx
+
+# Find direct definition entities for various declaration types
+predicate DeclIsDefn :
+  {
+    decl : cxx1.Declaration,
+    defn : code.cxx.Definition
+  }
+  { Decl, Defn } where
+    ({ record_ = D } = Decl;
+     { record_ = cxx1.RecordDefinition { declaration = D } } = Defn ) |
+    ({ function_ = D } = Decl;
+     { function_ = cxx1.FunctionDefinition { declaration = D } } = Defn) |
+    ({ enum_ = D } = Decl;
+     { enum_ = cxx1.EnumDefinition { declaration = D } } = Defn) |
+    # variable definitions are considered "definitions" if they're global
+    ({ variable = D } = Decl;
+     cxx1.VariableDeclaration { kind = { global_ = { definition = true }}} = D;
+     { variable = D } = Defn) |
+    ({ namespace_ = D } = Decl;
+      { namespace_ = cxx1.NamespaceDefinition { declaration = D } } = Defn) |
+    ({ objcMethod = D } = Decl;
+     { objcMethod = cxx1.ObjcMethodDefinition D } = Defn ) |
+    ({ objcContainer = D } = Decl;
+     { objcContainer = cxx1.ObjcContainerDefinition { declaration = D }} = Defn)
+
+#
+# Generating scope values for queries
+#
+# We could play games with holes in the namespace query, or anonymous
+# segments
+#
+
+# Compile search query tuples into scope facts
+predicate QueryToScopeCase :
+  {
+    query : [string],
+    insensitive: bool, # if true, search insensitive throughout scope term
+    scope : cxx1.Scope
+  }
+  { Query, Case, Scope } where
+    # global fixed global_
+    ( [] = Query; true | false = Case; { global_ = _ }
+    # namespace scope
+    ) | (
+      QueryToNSQNameCase { Query, Case, NSQName };
+      { namespace_ = NSQName }
+    # struct/record scope
+    ) | (
+      QueryToQNameCase { Query, Case, QName };
+      { recordWithAccess = { record = QName, # this is tricky as its a subset of all qnames
+          access = Public | Protected | Private } } # avoid wild card bind error
+    ) = Scope;
+
+# compile to generic scoped qname _to slot into cxx1.Scope { recordWithAccess _ } only
+# the problem is cxx1.Scope is a type that just lets any cxx1.QName inhabit it, but
+# actually quite restricted. It's always namespace* . record* (once you hit a
+# namsspace scope, its can't be inside a record again)
+# terminal node is often global_{}
+predicate QueryToQNameCase:
+  {
+    query : [string],
+    insensitive: bool,
+    scope : cxx1.QName
+  }
+  { Query, Case, QName } where
+    # zero tuple
+    ( [] = Query; true | false = Case;
+      cxx1.QName { name = "", scope = { global_ = {} } } ) |
+    # one tuple
+    ( [A] = Query;
+      CxxRecordCase { Case, A, AName };
+      { name = AName } ) |
+    # two tuple. parent might be either record or namespace
+    ( [B,A] = Query;
+      CxxRecordCase { Case, A, AName };
+      ( CxxNamespaceCase { Case, B, BNameNS };
+        { name = AName, scope =
+          { namespace_ = { name = { just = BNameNS } } } }
+      ) | (
+        CxxRecordCase { Case, B, BNameR };
+        { name = AName, scope =
+          { recordWithAccess = { record = { name = BNameR } } } }
+      )
+    ) |
+    # three tuple
+    ( [C,B,A] = Query;
+      CxxRecordCase { Case, A, AName };
+      # simple case, `B` is a ns, `C` must be too
+      ( CxxNamespaceCase { Case, B, BNameNS };
+        CxxNamespaceCase { Case, C, CNameNS };
+        { name = AName,
+          scope = { namespace_ = {
+            name = { just = BNameNS },
+            parent = { just = { name = { just = CNameNS } } }
+          } } }
+      # or `B is a record, then ( C is ns or record )
+      ) | (
+        CxxRecordCase { Case, B, BNameR };
+        ( CxxNamespaceCase { Case, C, CNameNS };
+          { name = AName, scope =
+              { recordWithAccess = { record = { name = BNameR,
+                scope = { namespace_ = { name = { just = CNameNS } } } } }
+              }
+          }
+        ) | (
+          CxxRecordCase { Case, C, CNameR };
+          { name = AName, scope =
+              { recordWithAccess = { record = { name = BNameR,
+                scope = { recordWithAccess = { record = { name = CNameR } } } } }
+              }
+          }
+        )
+      )
+    ) |
+    # four tuple. e.g. 4, 3, 2 or 1 records under 0 - 3 namespaces
+    ( [D,C,B,A] = Query;
+      CxxRecordCase { Case, A, AName };
+      # simplest case, `B` is a ns, `C` and `D` must be too
+      ( CxxNamespaceCase { Case, B, BNameNS };
+        CxxNamespaceCase { Case, C, CNameNS };
+        CxxNamespaceCase { Case, D, DNameNS };
+        { name = AName,
+          scope = { namespace_ = { name = { just = BNameNS },
+            parent = { just = { name = { just = CNameNS },
+              parent = { just = { name = { just = DNameNS } } }
+          } } } }
+        }
+      # or `B` is a record
+      ) | (
+        # case 1: C (and thus D) are namespaces
+        CxxRecordCase { Case, B, BNameR };
+        ( CxxNamespaceCase { Case, C, CNameNS };
+          CxxNamespaceCase { Case, D, DNameNS };
+          { name = AName, scope =
+            { recordWithAccess = { record = { name = BNameR,
+              scope = { namespace_ = { name = { just = CNameNS },
+                parent = { just = { name = { just = DNameNS } } } }
+              } } }
+            }
+          }
+        ) | (
+        # case 2: C is a record and D is a namespaces
+          CxxRecordCase { Case, C, CNameR };
+          CxxNamespaceCase { Case, D, DNameNS };
+          { name = AName, scope =
+            { recordWithAccess = { record = { name = BNameR,
+              scope = { recordWithAccess = { record = { name = CNameR,
+                scope = { namespace_ = { name = { just = DNameNS } } }
+              } } }
+            } } }
+          }
+        ) | (
+        # case 3: C is a record and D is record
+          CxxRecordCase { Case, C, CNameR };
+          CxxRecordCase { Case, D, DNameR };
+          { name = AName, scope =
+            { recordWithAccess = { record = { name = BNameR,
+              scope = { recordWithAccess = { record = { name = CNameR,
+                scope = { recordWithAccess = { record = { name = DNameR } } }
+              } } }
+            } } }
+          }
+        )
+      )
+    ) | (
+      # five tuple. we give up on expanding this and allow the outer term `E` to be a namespace only
+      [E,D,C,B,A] = Query;
+      CxxRecordCase { Case, A, AName };
+      # simplest case, `B` is a ns, `C` and `D` must be too
+      ( CxxNamespaceCase { Case, B, BNameNS };
+        CxxNamespaceCase { Case, C, CNameNS };
+        CxxNamespaceCase { Case, D, DNameNS };
+        CxxNamespaceCase { Case, E, ENameNS };
+        { name = AName,
+          scope = { namespace_ = { name = { just = BNameNS },
+            parent = { just = { name = { just = CNameNS },
+              parent = { just = { name = { just = DNameNS },
+                parent = { just = { name = { just = ENameNS } } } } }
+          } } } }
+        }
+      # or `B` is a record
+      ) | (
+        # case 1: C (and thus D and E) are namespaces
+        CxxRecordCase { Case, B, BNameR };
+        ( CxxNamespaceCase { Case, C, CNameNS };
+          CxxNamespaceCase { Case, D, DNameNS };
+          CxxNamespaceCase { Case, E, ENameNS };
+          { name = AName, scope =
+            { recordWithAccess = { record = { name = BNameR,
+              scope = { namespace_ = { name = { just = CNameNS },
+                parent = { just = { name = { just = DNameNS },
+                  parent = { just = { name = { just = ENameNS } } }
+              } } } }
+            } }
+          } }
+        ) | (
+        # case 2: C is a record and D and E are namespaces
+          CxxRecordCase { Case, C, CNameR };
+          CxxNamespaceCase { Case, D, DNameNS };
+          CxxNamespaceCase { Case, E, ENameNS };
+          { name = AName, scope =
+            { recordWithAccess = { record = { name = BNameR,
+              scope = { recordWithAccess = { record = { name = CNameR,
+                scope = { namespace_ = { name = { just = DNameNS } } }
+              } } }
+            } } }
+          }
+        ) | (
+        # case 3: C is a record and D is record, and E is a namespace
+          CxxRecordCase { Case, C, CNameR };
+          CxxRecordCase { Case, D, DNameR };
+          CxxNamespaceCase { Case, E, ENameNS };
+          { name = AName, scope =
+            { recordWithAccess = { record = { name = BNameR,
+              scope = { recordWithAccess = { record = { name = CNameR,
+                scope = { recordWithAccess = { record = { name = DNameR,
+                  scope = { namespace_ = { name = { just = ENameNS } } } } } }
+              } } }
+            } } }
+          }
+        )
+      )
+    ) = QName;
+
+# compile to namespace qname, case aware
+predicate QueryToNSQNameCase:
+  {
+    query : [string],
+    insensitive: bool,
+    scope : cxx1.NamespaceQName
+  }
+  { Query, Case, NSQName } where
+    # zero tuple
+    if ( [] = Query )
+    then ( true | false = Case; { nothing, nothing } = NSQName )
+    # one tuple
+    else if ( [A] = Query )
+    then (
+      CxxNamespaceCase { Case, A, AName };
+      { name = { just = AName }} = NSQName) # n.b. parent wild
+    # two tuple
+    else if ( [B,A] = Query )
+    then (
+      CxxNamespaceCase { Case, A, AName };
+      CxxNamespaceCase { Case, B, BName };
+      B_Par = { name = { just = BName } };
+      { { just = AName }, { just = B_Par } } = NSQName )
+    # three tuple
+    else if ( [C,B,A] = Query )
+    then (
+      CxxNamespaceCase { Case, A, AName };
+      CxxNamespaceCase { Case, B, BName };
+      CxxNamespaceCase { Case, C, CName };
+      C_Par = { name = { just = CName } };
+      B_Par = { { just = BName }, { just = C_Par } };
+      { { just = AName }, { just = B_Par } } = NSQName )
+    # four tuple
+    else if ( [D,C,B,A] = Query )
+    then (
+      CxxNamespaceCase { Case, A, AName };
+      CxxNamespaceCase { Case, B, BName };
+      CxxNamespaceCase { Case, C, CName };
+      CxxNamespaceCase { Case, D, DName };
+      D_Par = { name = { just = DName } };
+      C_Par = { { just = CName }, { just = D_Par } };
+      B_Par = { { just = BName }, { just = C_Par } };
+      { { just = AName }, { just = B_Par } } = NSQName )
+    # five tuple
+    else if ( [E,D,C,B,A] = Query )
+    then (
+      CxxNamespaceCase { Case, A, AName };
+      CxxNamespaceCase { Case, B, BName };
+      CxxNamespaceCase { Case, C, CName };
+      CxxNamespaceCase { Case, D, DName };
+      CxxNamespaceCase { Case, E, EName };
+      E_Par = { name = { just = EName } };
+      D_Par = { { just = DName }, { just = E_Par } };
+      C_Par = { { just = CName }, { just = D_Par } };
+      B_Par = { { just = BName }, { just = C_Par } };
+      { { just = AName }, { just = B_Par } } = NSQName )
+    # six tuple
+    else if ( [F,E,D,C,B,A] = Query )
+    then (
+      CxxNamespaceCase { Case, A, AName };
+      CxxNamespaceCase { Case, B, BName };
+      CxxNamespaceCase { Case, C, CName };
+      CxxNamespaceCase { Case, D, DName };
+      CxxNamespaceCase { Case, E, EName };
+      CxxNamespaceCase { Case, F, FName };
+      F_Par = { name = { just = FName } };
+      E_Par = { { just = EName }, { just = F_Par } };
+      D_Par = { { just = DName }, { just = E_Par } };
+      C_Par = { { just = CName }, { just = D_Par } };
+      B_Par = { { just = BName }, { just = C_Par } };
+      { { just = AName }, { just = B_Par } } = NSQName )
+    # seven
+    else if ( [G,F,E,D,C,B,A] = Query )
+    then (
+      CxxNamespaceCase { Case, A, AName };
+      CxxNamespaceCase { Case, B, BName };
+      CxxNamespaceCase { Case, C, CName };
+      CxxNamespaceCase { Case, D, DName };
+      CxxNamespaceCase { Case, E, EName };
+      CxxNamespaceCase { Case, F, FName };
+      CxxNamespaceCase { Case, G, GName };
+      G_Par = { name = { just = GName } };
+      F_Par = { { just = FName }, { just = G_Par } };
+      E_Par = { { just = EName }, { just = F_Par } };
+      D_Par = { { just = DName }, { just = E_Par } };
+      C_Par = { { just = CName }, { just = D_Par } };
+      B_Par = { { just = BName }, { just = C_Par } };
+      { { just = AName }, { just = B_Par } } = NSQName )
+    else
+      ( never = NSQName )
+
+# Instead of searching cxx1.Name, use the fact we know we're building NamespaceQName
+# to directly look up each element and its parents
+
+predicate CxxNamespaceCase:
+  {
+    insensitive: bool,
+    namestr: string,
+    name: cxx1.Name,
+  }
+  { Insensitive, NameStr, Name } where
+    ( true = Insensitive;
+      cxx1.NamespaceLowerCase { NameStr, NameNormal };
+      Name = cxx1.Name NameNormal
+    ) | (
+      false = Insensitive;
+      Name = cxx1.Name NameStr
+    )
+
+# Or if its a record-scoped thing it has to be in one of the Record declaration names
+
+predicate CxxRecordCase:
+  {
+    insensitive: bool,
+    namestr: string,
+    name: cxx1.Name,
+  }
+  { Insensitive, NameStr, Name } where
+    ( true = Insensitive;
+      cxx1.RecordStructLowerCase { NameStr, NameNormal } |
+       cxx1.RecordClassLowerCase { NameStr, NameNormal } |
+        cxx1.RecordUnionLowerCase { NameStr, NameNormal };
+      Name = cxx1.Name NameNormal
+    ) | (
+      false = Insensitive;
+      Name = cxx1.Name NameStr
+    )
+
+}

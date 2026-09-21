@@ -1,0 +1,75 @@
+[
+  "@generated",
+  {
+    "key": {
+      "child": {
+        "fbthrift": {
+          "decl": {
+            "service_": {
+              "key": {
+                "name": {
+                  "key": {
+                    "file": { "key": { "key": "lib.thrift" } },
+                    "name": { "key": "BaseService" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "parent": {
+        "fbthrift": {
+          "decl": {
+            "service_": {
+              "key": {
+                "name": {
+                  "key": {
+                    "file": { "key": { "key": "lib.thrift" } },
+                    "name": { "key": "ZeroService" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "child": {
+        "fbthrift": {
+          "decl": {
+            "service_": {
+              "key": {
+                "name": {
+                  "key": {
+                    "file": { "key": { "key": "lib.thrift" } },
+                    "name": { "key": "GlassService" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "parent": {
+        "fbthrift": {
+          "decl": {
+            "service_": {
+              "key": {
+                "name": {
+                  "key": {
+                    "file": { "key": { "key": "lib.thrift" } },
+                    "name": { "key": "BaseService" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+]

@@ -1,0 +1,40 @@
+[
+  "@generated",
+  {
+    "key": {
+      "entity": {
+        "hack": {
+          "decl": {
+            "classConst": {
+              "key": {
+                "container": {
+                  "class_": {
+                    "key": {
+                      "name": {
+                        "key": {
+                          "name": { "key": "SourceClass" },
+                          "namespace_": { "key": { "name": { "key": "NS" } } }
+                        }
+                      }
+                    }
+                  }
+                },
+                "name": { "key": "BAZ" }
+              }
+            }
+          }
+        }
+      },
+      "kind": 15,
+      "language": 5,
+      "location": {
+        "file": { "key": "www/SourceClass.php" },
+        "location": { "span": { "length": 18, "start": 339 } },
+        "name": "BAZ"
+      },
+      "name": "BAZ",
+      "scope": [ "NS", "SourceClass" ],
+      "searchcase": 0
+    }
+  }
+]

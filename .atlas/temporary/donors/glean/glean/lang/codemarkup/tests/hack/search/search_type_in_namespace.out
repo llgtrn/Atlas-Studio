@@ -1,0 +1,143 @@
+[
+  "@generated",
+  {
+    "key": {
+      "decl": {
+        "container": {
+          "class_": {
+            "key": {
+              "name": {
+                "key": {
+                  "name": { "key": "Awaitable" },
+                  "namespace_": { "key": { "name": { "key": "HH" } } }
+                }
+              }
+            }
+          }
+        }
+      },
+      "name": { "key": "Awaitable" },
+      "namespace_": { "key": { "name": { "key": "HH" } } }
+    }
+  },
+  {
+    "key": {
+      "decl": {
+        "container": {
+          "class_": {
+            "key": { "name": { "key": { "name": { "key": "RefClass" } } } }
+          }
+        }
+      },
+      "name": { "key": "RefClass" }
+    }
+  },
+  {
+    "key": {
+      "decl": {
+        "container": {
+          "class_": {
+            "key": {
+              "name": {
+                "key": {
+                  "name": { "key": "SourceClass" },
+                  "namespace_": { "key": { "name": { "key": "NS" } } }
+                }
+              }
+            }
+          }
+        }
+      },
+      "name": { "key": "SourceClass" },
+      "namespace_": { "key": { "name": { "key": "NS" } } }
+    }
+  },
+  {
+    "key": {
+      "decl": {
+        "container": {
+          "class_": {
+            "key": { "name": { "key": { "name": { "key": "SuperClass" } } } }
+          }
+        }
+      },
+      "name": { "key": "SuperClass" }
+    }
+  },
+  {
+    "key": {
+      "decl": {
+        "container": {
+          "class_": {
+            "key": {
+              "name": {
+                "key": {
+                  "name": { "key": "SuperClass" },
+                  "namespace_": { "key": { "name": { "key": "NS" } } }
+                }
+              }
+            }
+          }
+        }
+      },
+      "name": { "key": "SuperClass" },
+      "namespace_": { "key": { "name": { "key": "NS" } } }
+    }
+  },
+  {
+    "key": {
+      "decl": {
+        "container": {
+          "enum_": {
+            "key": { "name": { "key": { "name": { "key": "Position" } } } }
+          }
+        }
+      },
+      "name": { "key": "Position" }
+    }
+  },
+  {
+    "key": {
+      "decl": {
+        "container": {
+          "interface_": {
+            "key": {
+              "name": { "key": { "name": { "key": "SourceInterface" } } }
+            }
+          }
+        }
+      },
+      "name": { "key": "SourceInterface" }
+    }
+  },
+  {
+    "key": {
+      "decl": {
+        "container": {
+          "trait": {
+            "key": { "name": { "key": { "name": { "key": "SourceTrait" } } } }
+          }
+        }
+      },
+      "name": { "key": "SourceTrait" }
+    }
+  },
+  {
+    "key": {
+      "decl": {
+        "typedef_": {
+          "key": {
+            "name": {
+              "key": {
+                "name": { "key": "TopTierFnType" },
+                "namespace_": { "key": { "name": { "key": "NS" } } }
+              }
+            }
+          }
+        }
+      },
+      "name": { "key": "TopTierFnType" },
+      "namespace_": { "key": { "name": { "key": "NS" } } }
+    }
+  }
+]

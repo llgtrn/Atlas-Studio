@@ -1,0 +1,805 @@
+[
+  "@generated",
+  {
+    "key": {
+      "name": "A_Class",
+      "scope": {
+        "namespace_": {
+          "key": {
+            "name": { "key": "B_NS" },
+            "parent": {
+              "key": {
+                "name": { "key": "C_NS" },
+                "parent": {
+                  "key": {
+                    "name": { "key": "D_NS" },
+                    "parent": {
+                      "key": {
+                        "name": { "key": "E_NS" },
+                        "parent": {
+                          "key": {
+                            "name": { "key": "F_NS" },
+                            "parent": { "key": { "name": { "key": "G_NS" } } }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "entity": {
+        "decl": {
+          "record_": {
+            "key": {
+              "name": {
+                "key": {
+                  "name": { "key": "A_Class" },
+                  "scope": {
+                    "namespace_": {
+                      "key": {
+                        "name": { "key": "B_NS" },
+                        "parent": {
+                          "key": {
+                            "name": { "key": "C_NS" },
+                            "parent": {
+                              "key": {
+                                "name": { "key": "D_NS" },
+                                "parent": {
+                                  "key": {
+                                    "name": { "key": "E_NS" },
+                                    "parent": {
+                                      "key": {
+                                        "name": { "key": "F_NS" },
+                                        "parent": {
+                                          "key": { "name": { "key": "G_NS" } }
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "kind": { "class_": { } },
+              "source": {
+                "file": { "key": "test.cpp" },
+                "lineBegin": 46,
+                "columnBegin": 13,
+                "lineEnd": 48,
+                "columnEnd": 13
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "name": "A_Class_1",
+      "scope": {
+        "recordWithAccess": {
+          "record": {
+            "key": {
+              "name": { "key": "B_Class_1" },
+              "scope": {
+                "namespace_": {
+                  "key": {
+                    "name": { "key": "C1_NS" },
+                    "parent": { "key": { "name": { "key": "D1_NS" } } }
+                  }
+                }
+              }
+            }
+          },
+          "access": 2
+        }
+      },
+      "entity": {
+        "decl": {
+          "record_": {
+            "key": {
+              "name": {
+                "key": {
+                  "name": { "key": "A_Class_1" },
+                  "scope": {
+                    "recordWithAccess": {
+                      "record": {
+                        "key": {
+                          "name": { "key": "B_Class_1" },
+                          "scope": {
+                            "namespace_": {
+                              "key": {
+                                "name": { "key": "C1_NS" },
+                                "parent": {
+                                  "key": { "name": { "key": "D1_NS" } }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      },
+                      "access": 2
+                    }
+                  }
+                }
+              },
+              "kind": { "class_": { } },
+              "source": {
+                "file": { "key": "test.cpp" },
+                "lineBegin": 59,
+                "columnBegin": 7,
+                "lineEnd": 61,
+                "columnEnd": 7
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "name": "B_Class_1",
+      "scope": {
+        "namespace_": {
+          "key": {
+            "name": { "key": "C1_NS" },
+            "parent": { "key": { "name": { "key": "D1_NS" } } }
+          }
+        }
+      },
+      "entity": {
+        "decl": {
+          "record_": {
+            "key": {
+              "name": {
+                "key": {
+                  "name": { "key": "B_Class_1" },
+                  "scope": {
+                    "namespace_": {
+                      "key": {
+                        "name": { "key": "C1_NS" },
+                        "parent": { "key": { "name": { "key": "D1_NS" } } }
+                      }
+                    }
+                  }
+                }
+              },
+              "kind": { "class_": { } },
+              "source": {
+                "file": { "key": "test.cpp" },
+                "lineBegin": 58,
+                "columnBegin": 5,
+                "lineEnd": 62,
+                "columnEnd": 5
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "name": "ClassB",
+      "scope": { "namespace_": { "key": { "name": { "key": "NsA" } } } },
+      "entity": {
+        "decl": {
+          "record_": {
+            "key": {
+              "name": {
+                "key": {
+                  "name": { "key": "ClassB" },
+                  "scope": {
+                    "namespace_": { "key": { "name": { "key": "NsA" } } }
+                  }
+                }
+              },
+              "kind": { "class_": { } },
+              "source": {
+                "file": { "key": "test.cpp" },
+                "lineBegin": 26,
+                "columnBegin": 3,
+                "lineEnd": 36,
+                "columnEnd": 3
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "name": "ClassC",
+      "scope": {
+        "recordWithAccess": {
+          "record": {
+            "key": {
+              "name": { "key": "ClassB" },
+              "scope": { "namespace_": { "key": { "name": { "key": "NsA" } } } }
+            }
+          },
+          "access": 2
+        }
+      },
+      "entity": {
+        "decl": {
+          "record_": {
+            "key": {
+              "name": {
+                "key": {
+                  "name": { "key": "ClassC" },
+                  "scope": {
+                    "recordWithAccess": {
+                      "record": {
+                        "key": {
+                          "name": { "key": "ClassB" },
+                          "scope": {
+                            "namespace_": {
+                              "key": { "name": { "key": "NsA" } }
+                            }
+                          }
+                        }
+                      },
+                      "access": 2
+                    }
+                  }
+                }
+              },
+              "kind": { "class_": { } },
+              "source": {
+                "file": { "key": "test.cpp" },
+                "lineBegin": 28,
+                "columnBegin": 5,
+                "lineEnd": 34,
+                "columnEnd": 5
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "name": "Class_1",
+      "scope": {
+        "recordWithAccess": {
+          "record": {
+            "key": {
+              "name": { "key": "Class_2" },
+              "scope": {
+                "namespace_": {
+                  "key": {
+                    "name": { "key": "NS_3" },
+                    "parent": {
+                      "key": {
+                        "name": { "key": "NS_4" },
+                        "parent": { "key": { "name": { "key": "NS_5" } } }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "access": 2
+        }
+      },
+      "entity": {
+        "decl": {
+          "record_": {
+            "key": {
+              "name": {
+                "key": {
+                  "name": { "key": "Class_1" },
+                  "scope": {
+                    "recordWithAccess": {
+                      "record": {
+                        "key": {
+                          "name": { "key": "Class_2" },
+                          "scope": {
+                            "namespace_": {
+                              "key": {
+                                "name": { "key": "NS_3" },
+                                "parent": {
+                                  "key": {
+                                    "name": { "key": "NS_4" },
+                                    "parent": {
+                                      "key": { "name": { "key": "NS_5" } }
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      },
+                      "access": 2
+                    }
+                  }
+                }
+              },
+              "kind": { "class_": { } },
+              "source": {
+                "file": { "key": "test.cpp" },
+                "lineBegin": 69,
+                "columnBegin": 9,
+                "lineEnd": 71,
+                "columnEnd": 9
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "name": "Class_1",
+      "scope": {
+        "recordWithAccess": {
+          "record": {
+            "key": {
+              "name": { "key": "Class_2" },
+              "scope": {
+                "recordWithAccess": {
+                  "record": {
+                    "key": {
+                      "name": { "key": "Class_3" },
+                      "scope": {
+                        "namespace_": {
+                          "key": {
+                            "name": { "key": "NS_4" },
+                            "parent": {
+                              "key": {
+                                "name": { "key": "NS_5" },
+                                "parent": {
+                                  "key": { "name": { "key": "NS_6" } }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "access": 2
+                }
+              }
+            }
+          },
+          "access": 2
+        }
+      },
+      "entity": {
+        "decl": {
+          "record_": {
+            "key": {
+              "name": {
+                "key": {
+                  "name": { "key": "Class_1" },
+                  "scope": {
+                    "recordWithAccess": {
+                      "record": {
+                        "key": {
+                          "name": { "key": "Class_2" },
+                          "scope": {
+                            "recordWithAccess": {
+                              "record": {
+                                "key": {
+                                  "name": { "key": "Class_3" },
+                                  "scope": {
+                                    "namespace_": {
+                                      "key": {
+                                        "name": { "key": "NS_4" },
+                                        "parent": {
+                                          "key": {
+                                            "name": { "key": "NS_5" },
+                                            "parent": {
+                                              "key": {
+                                                "name": { "key": "NS_6" }
+                                              }
+                                            }
+                                          }
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                              },
+                              "access": 2
+                            }
+                          }
+                        }
+                      },
+                      "access": 2
+                    }
+                  }
+                }
+              },
+              "kind": { "class_": { } },
+              "source": {
+                "file": { "key": "test.cpp" },
+                "lineBegin": 81,
+                "columnBegin": 11,
+                "lineEnd": 83,
+                "columnEnd": 11
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "name": "Class_2",
+      "scope": {
+        "namespace_": {
+          "key": {
+            "name": { "key": "NS_3" },
+            "parent": {
+              "key": {
+                "name": { "key": "NS_4" },
+                "parent": { "key": { "name": { "key": "NS_5" } } }
+              }
+            }
+          }
+        }
+      },
+      "entity": {
+        "decl": {
+          "record_": {
+            "key": {
+              "name": {
+                "key": {
+                  "name": { "key": "Class_2" },
+                  "scope": {
+                    "namespace_": {
+                      "key": {
+                        "name": { "key": "NS_3" },
+                        "parent": {
+                          "key": {
+                            "name": { "key": "NS_4" },
+                            "parent": { "key": { "name": { "key": "NS_5" } } }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "kind": { "class_": { } },
+              "source": {
+                "file": { "key": "test.cpp" },
+                "lineBegin": 68,
+                "columnBegin": 7,
+                "lineEnd": 72,
+                "columnEnd": 7
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "name": "Class_2",
+      "scope": {
+        "recordWithAccess": {
+          "record": {
+            "key": {
+              "name": { "key": "Class_3" },
+              "scope": {
+                "namespace_": {
+                  "key": {
+                    "name": { "key": "NS_4" },
+                    "parent": {
+                      "key": {
+                        "name": { "key": "NS_5" },
+                        "parent": { "key": { "name": { "key": "NS_6" } } }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "access": 2
+        }
+      },
+      "entity": {
+        "decl": {
+          "record_": {
+            "key": {
+              "name": {
+                "key": {
+                  "name": { "key": "Class_2" },
+                  "scope": {
+                    "recordWithAccess": {
+                      "record": {
+                        "key": {
+                          "name": { "key": "Class_3" },
+                          "scope": {
+                            "namespace_": {
+                              "key": {
+                                "name": { "key": "NS_4" },
+                                "parent": {
+                                  "key": {
+                                    "name": { "key": "NS_5" },
+                                    "parent": {
+                                      "key": { "name": { "key": "NS_6" } }
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      },
+                      "access": 2
+                    }
+                  }
+                }
+              },
+              "kind": { "class_": { } },
+              "source": {
+                "file": { "key": "test.cpp" },
+                "lineBegin": 80,
+                "columnBegin": 9,
+                "lineEnd": 84,
+                "columnEnd": 9
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "name": "Class_3",
+      "scope": {
+        "namespace_": {
+          "key": {
+            "name": { "key": "NS_4" },
+            "parent": {
+              "key": {
+                "name": { "key": "NS_5" },
+                "parent": { "key": { "name": { "key": "NS_6" } } }
+              }
+            }
+          }
+        }
+      },
+      "entity": {
+        "decl": {
+          "record_": {
+            "key": {
+              "name": {
+                "key": {
+                  "name": { "key": "Class_3" },
+                  "scope": {
+                    "namespace_": {
+                      "key": {
+                        "name": { "key": "NS_4" },
+                        "parent": {
+                          "key": {
+                            "name": { "key": "NS_5" },
+                            "parent": { "key": { "name": { "key": "NS_6" } } }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "kind": { "class_": { } },
+              "source": {
+                "file": { "key": "test.cpp" },
+                "lineBegin": 79,
+                "columnBegin": 7,
+                "lineEnd": 85,
+                "columnEnd": 7
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "name": "D",
+      "scope": {
+        "recordWithAccess": {
+          "record": {
+            "key": {
+              "name": { "key": "ClassC" },
+              "scope": {
+                "recordWithAccess": {
+                  "record": {
+                    "key": {
+                      "name": { "key": "ClassB" },
+                      "scope": {
+                        "namespace_": { "key": { "name": { "key": "NsA" } } }
+                      }
+                    }
+                  },
+                  "access": 2
+                }
+              }
+            }
+          },
+          "access": 2
+        }
+      },
+      "entity": {
+        "decl": {
+          "record_": {
+            "key": {
+              "name": {
+                "key": {
+                  "name": { "key": "D" },
+                  "scope": {
+                    "recordWithAccess": {
+                      "record": {
+                        "key": {
+                          "name": { "key": "ClassC" },
+                          "scope": {
+                            "recordWithAccess": {
+                              "record": {
+                                "key": {
+                                  "name": { "key": "ClassB" },
+                                  "scope": {
+                                    "namespace_": {
+                                      "key": { "name": { "key": "NsA" } }
+                                    }
+                                  }
+                                }
+                              },
+                              "access": 2
+                            }
+                          }
+                        }
+                      },
+                      "access": 2
+                    }
+                  }
+                }
+              },
+              "kind": { "class_": { } },
+              "source": {
+                "file": { "key": "test.cpp" },
+                "lineBegin": 31,
+                "columnBegin": 7,
+                "lineEnd": 33,
+                "columnEnd": 7
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "name": "classBinNSB",
+      "scope": {
+        "namespace_": {
+          "key": {
+            "name": { "key": "NsB" },
+            "parent": { "key": { "name": { "key": "NsA" } } }
+          }
+        }
+      },
+      "entity": {
+        "decl": {
+          "record_": {
+            "key": {
+              "name": {
+                "key": {
+                  "name": { "key": "classBinNSB" },
+                  "scope": {
+                    "namespace_": {
+                      "key": {
+                        "name": { "key": "NsB" },
+                        "parent": { "key": { "name": { "key": "NsA" } } }
+                      }
+                    }
+                  }
+                }
+              },
+              "kind": { "class_": { } },
+              "source": {
+                "file": { "key": "test.cpp" },
+                "lineBegin": 19,
+                "columnBegin": 5,
+                "lineEnd": 23,
+                "columnEnd": 5
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "name": "classCinNSB",
+      "scope": {
+        "recordWithAccess": {
+          "record": {
+            "key": {
+              "name": { "key": "classBinNSB" },
+              "scope": {
+                "namespace_": {
+                  "key": {
+                    "name": { "key": "NsB" },
+                    "parent": { "key": { "name": { "key": "NsA" } } }
+                  }
+                }
+              }
+            }
+          },
+          "access": 2
+        }
+      },
+      "entity": {
+        "decl": {
+          "record_": {
+            "key": {
+              "name": {
+                "key": {
+                  "name": { "key": "classCinNSB" },
+                  "scope": {
+                    "recordWithAccess": {
+                      "record": {
+                        "key": {
+                          "name": { "key": "classBinNSB" },
+                          "scope": {
+                            "namespace_": {
+                              "key": {
+                                "name": { "key": "NsB" },
+                                "parent": {
+                                  "key": { "name": { "key": "NsA" } }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      },
+                      "access": 2
+                    }
+                  }
+                }
+              },
+              "kind": { "class_": { } },
+              "source": {
+                "file": { "key": "test.cpp" },
+                "lineBegin": 20,
+                "columnBegin": 7,
+                "lineEnd": 22,
+                "columnEnd": 7
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+]

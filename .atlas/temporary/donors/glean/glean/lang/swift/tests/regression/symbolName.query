@@ -1,0 +1,3 @@
+query: scip.SymbolName { symbol = "c".. }
+perf: True
+transform: [gensort, []]

@@ -1,0 +1,65 @@
+[
+    "@generated",
+    {
+        "childrenContained": [],
+        "childrenExtended": [],
+        "containsParents": [],
+        "inheritedSymbols": [],
+        "parentsExtended": [],
+        "requireClass": [],
+        "requireExtends": [],
+        "requireImplements": [],
+        "symbolBasicDetails": {},
+        "symbolDetails": {
+            "test/cpp//maybe/nothing/.decl": {
+                "contains_relation": {
+                    "firstChild": "nondeterministic",
+                    "firstParent": "nondeterministic",
+                    "hasMoreChildren": false,
+                    "hasMoreParents": false
+                },
+                "extends_relation": {
+                    "firstChild": "nondeterministic",
+                    "firstParent": "nondeterministic",
+                    "hasMoreChildren": false,
+                    "hasMoreParents": false
+                },
+                "kind": 15,
+                "language": 1,
+                "location": {
+                    "filepath": "test.cpp",
+                    "range": {
+                        "columnBegin": 1,
+                        "columnEnd": 52,
+                        "lineBegin": 79,
+                        "lineEnd": 79
+                    },
+                    "repository": "test"
+                },
+                "modifiers": [
+                    6
+                ],
+                "name": {
+                    "container": "maybe",
+                    "localName": "nothing"
+                },
+                "pretty_comments": [],
+                "repo_hash": "testhash",
+                "signature": "const maybe::Nothing maybe::nothing",
+                "sym": "test/cpp//maybe/nothing/.decl",
+                "sym_location": {
+                    "filepath": "test.cpp",
+                    "range": {
+                        "columnBegin": 1,
+                        "columnEnd": 52,
+                        "lineBegin": 79,
+                        "lineEnd": 79
+                    },
+                    "repository": "test"
+                },
+                "sym_other_locations": [],
+                "type_xrefs": []
+            }
+        }
+    }
+]

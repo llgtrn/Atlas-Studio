@@ -1,0 +1,78 @@
+[
+  "@generated",
+  {
+    "key": {
+      "file": { "key": "test.cpp" },
+      "fixed": [
+        {
+          "target": {
+            "declaration": {
+              "namespace_": {
+                "key": {
+                  "name": {
+                    "key": {
+                      "name": { "key": "N2" },
+                      "parent": { "key": { "name": { "key": "N1" } } }
+                    }
+                  },
+                  "source": {
+                    "file": { "key": "test.cpp" },
+                    "lineBegin": 12,
+                    "columnBegin": 1,
+                    "lineEnd": 15,
+                    "columnEnd": 1
+                  }
+                }
+              }
+            }
+          },
+          "from": {
+            "spans": [ { "length": 2, "offsets": [ 428 ] } ],
+            "expansions": [ ],
+            "spellings": [ ]
+          }
+        },
+        {
+          "target": {
+            "declaration": {
+              "namespace_": {
+                "key": {
+                  "name": {
+                    "key": {
+                      "name": { "key": "N3" },
+                      "parent": {
+                        "key": {
+                          "name": { "key": "N2" },
+                          "parent": { "key": { "name": { "key": "N1" } } }
+                        }
+                      }
+                    }
+                  },
+                  "source": {
+                    "file": { "key": "test.cpp" },
+                    "lineBegin": 13,
+                    "columnBegin": 1,
+                    "lineEnd": 14,
+                    "columnEnd": 1
+                  }
+                }
+              }
+            }
+          },
+          "from": {
+            "spans": [ { "length": 2, "offsets": [ 432 ] } ],
+            "expansions": [ ],
+            "spellings": [ ]
+          }
+        }
+      ],
+      "froms": [
+        {
+          "spans": [ { "length": 2, "offsets": [ 449 ] } ],
+          "expansions": [ ],
+          "spellings": [ ]
+        }
+      ]
+    }
+  }
+]

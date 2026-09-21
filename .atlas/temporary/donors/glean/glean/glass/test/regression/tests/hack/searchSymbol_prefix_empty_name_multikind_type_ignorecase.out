@@ -1,0 +1,68 @@
+[
+    "@generated",
+    {
+        "symbolDetails": [],
+        "symbols": [
+            {
+                "context": {
+                    "qname": {
+                        "container": "",
+                        "localName": "glean.test.thing"
+                    },
+                    "symbol": "test/php/module/glean.test.thing"
+                },
+                "kind": 2,
+                "language": 3,
+                "location": {
+                    "filepath": "www/ModuleMember.php",
+                    "range": {
+                        "columnBegin": 1,
+                        "columnEnd": 26,
+                        "lineBegin": 20,
+                        "lineEnd": 20
+                    },
+                    "repository": "test"
+                },
+                "name": "IntT",
+                "qname": {
+                    "container": "",
+                    "localName": "IntT"
+                },
+                "score": {
+                    "exactness": 2
+                },
+                "symbol": "test/php/IntT"
+            },
+            {
+                "context": {
+                    "qname": {
+                        "container": "",
+                        "localName": "SourceClass"
+                    },
+                    "symbol": "test/php/SourceClass"
+                },
+                "kind": 2,
+                "language": 3,
+                "location": {
+                    "filepath": "www/SourceClass.php",
+                    "range": {
+                        "columnBegin": 3,
+                        "columnEnd": 22,
+                        "lineBegin": 18,
+                        "lineEnd": 18
+                    },
+                    "repository": "test"
+                },
+                "name": "T",
+                "qname": {
+                    "container": "SourceClass",
+                    "localName": "T"
+                },
+                "score": {
+                    "exactness": 2
+                },
+                "symbol": "test/php/SourceClass/T"
+            }
+        ]
+    }
+]

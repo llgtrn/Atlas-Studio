@@ -1,0 +1,347 @@
+[
+  "@generated",
+  {
+    "key": {
+      "name": "ADD_ONE",
+      "decl": {
+        "macro_": {
+          "key": {
+            "name": "ADD_ONE",
+            "arity": 1,
+            "module": "example.hrl",
+            "app": "basic"
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "name": "HELLO",
+      "decl": {
+        "macro_": {
+          "key": { "name": "HELLO", "module": "example.hrl", "app": "basic" }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "name": "add",
+      "decl": {
+        "func": {
+          "key": {
+            "fqn": { "module": "example", "name": "add", "arity": 2 },
+            "app": "basic"
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "name": "age",
+      "decl": {
+        "record_field": {
+          "key": {
+            "record_name": "person",
+            "field_name": "age",
+            "module": "example",
+            "app": "basic"
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "name": "atom",
+      "decl": {
+        "type_": {
+          "key": {
+            "name": "atom",
+            "arity": 0,
+            "module": "erlang",
+            "app": "erts"
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "name": "config",
+      "decl": {
+        "type_": {
+          "key": {
+            "name": "config",
+            "arity": 0,
+            "module": "example",
+            "app": "basic"
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "name": "example",
+      "decl": {
+        "module_": {
+          "key": {
+            "file": {
+              "key": "glean/lang/erlang/tests/cases/basic/src/example.erl"
+            },
+            "name": "example",
+            "app": "basic"
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "name": "example.hrl",
+      "decl": {
+        "header_": { "key": { "name": "example.hrl", "app": "basic" } }
+      }
+    }
+  },
+  {
+    "key": {
+      "name": "example_behaviour",
+      "decl": {
+        "module_": {
+          "key": {
+            "file": {
+              "key": "glean/lang/erlang/tests/cases/basic/src/example_behaviour.erl"
+            },
+            "name": "example_behaviour",
+            "app": "basic"
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "name": "factorial",
+      "decl": {
+        "func": {
+          "key": {
+            "fqn": { "module": "example", "name": "factorial", "arity": 1 },
+            "app": "basic"
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "name": "format",
+      "decl": {
+        "func": {
+          "key": {
+            "fqn": { "module": "io", "name": "format", "arity": 2 },
+            "app": "stdlib"
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "name": "get_name",
+      "decl": {
+        "func": {
+          "key": {
+            "fqn": { "module": "example", "name": "get_name", "arity": 1 },
+            "app": "basic"
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "name": "hello",
+      "decl": {
+        "func": {
+          "key": {
+            "fqn": { "module": "example", "name": "hello", "arity": 1 },
+            "app": "basic"
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "name": "integer",
+      "decl": {
+        "type_": {
+          "key": {
+            "name": "integer",
+            "arity": 0,
+            "module": "erlang",
+            "app": "erts"
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "name": "internal_helper",
+      "decl": {
+        "func": {
+          "key": {
+            "fqn": {
+              "module": "example",
+              "name": "internal_helper",
+              "arity": 0
+            },
+            "app": "basic"
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "name": "name",
+      "decl": {
+        "record_field": {
+          "key": {
+            "record_name": "person",
+            "field_name": "name",
+            "module": "example",
+            "app": "basic"
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "name": "number",
+      "decl": {
+        "type_": {
+          "key": {
+            "name": "number",
+            "arity": 0,
+            "module": "erlang",
+            "app": "erts"
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "name": "old_function",
+      "decl": {
+        "func": {
+          "key": {
+            "fqn": { "module": "example", "name": "old_function", "arity": 1 },
+            "app": "basic"
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "name": "on_event",
+      "decl": {
+        "callback_": {
+          "key": {
+            "name": "on_event",
+            "arity": 1,
+            "module": "example_behaviour",
+            "app": "basic"
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "name": "on_event",
+      "decl": {
+        "func": {
+          "key": {
+            "fqn": { "module": "example", "name": "on_event", "arity": 1 },
+            "app": "basic"
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "name": "person",
+      "decl": {
+        "record_": {
+          "key": { "name": "person", "module": "example", "app": "basic" }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "name": "run_all",
+      "decl": {
+        "func": {
+          "key": {
+            "fqn": { "module": "example", "name": "run_all", "arity": 0 },
+            "app": "basic"
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "name": "set_age",
+      "decl": {
+        "func": {
+          "key": {
+            "fqn": { "module": "example", "name": "set_age", "arity": 2 },
+            "app": "basic"
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "name": "string",
+      "decl": {
+        "type_": {
+          "key": {
+            "name": "string",
+            "arity": 0,
+            "module": "erlang",
+            "app": "erts"
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "name": "term",
+      "decl": {
+        "type_": {
+          "key": {
+            "name": "term",
+            "arity": 0,
+            "module": "erlang",
+            "app": "erts"
+          }
+        }
+      }
+    }
+  }
+]

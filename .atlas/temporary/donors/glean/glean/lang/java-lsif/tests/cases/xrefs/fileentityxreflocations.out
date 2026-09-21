@@ -1,0 +1,210 @@
+[
+  "@generated",
+  {
+    "key": {
+      "file": { "key": "src/main/java/com/glean/app/App.java" },
+      "xref": {
+        "target": {
+          "name": "",
+          "file": { "key": "src/main/java/com/glean/app/App.java" },
+          "location": {
+            "range": {
+              "file": { "key": "src/main/java/com/glean/app/App.java" },
+              "lineBegin": 14,
+              "columnBegin": 24,
+              "lineEnd": 14,
+              "columnEnd": 30
+            }
+          }
+        },
+        "source": {
+          "range": {
+            "file": { "key": "src/main/java/com/glean/app/App.java" },
+            "lineBegin": 23,
+            "columnBegin": 12,
+            "lineEnd": 23,
+            "columnEnd": 18
+          }
+        }
+      },
+      "entity": {
+        "lsif": {
+          "java": {
+            "defn": {
+              "key": {
+                "defn": {
+                  "key": {
+                    "file": {
+                      "key": {
+                        "file": {
+                          "key": "src/main/java/com/glean/app/App.java"
+                        },
+                        "language": 22
+                      }
+                    },
+                    "range": {
+                      "key": {
+                        "range": {
+                          "lineBegin": 14,
+                          "columnBegin": 24,
+                          "lineEnd": 14,
+                          "columnEnd": 30
+                        },
+                        "text": { "key": "" }
+                      }
+                    }
+                  }
+                },
+                "moniker": {
+                  "key": {
+                    "kind": 0,
+                    "scheme": { "key": "semanticdb" },
+                    "ident": { "key": "com/glean/app/App#message" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "file": { "key": "src/main/java/com/glean/app/App.java" },
+      "xref": {
+        "target": {
+          "name": "",
+          "file": { "key": "src/main/java/com/glean/app/App.java" },
+          "location": {
+            "range": {
+              "file": { "key": "src/main/java/com/glean/app/App.java" },
+              "lineBegin": 16,
+              "columnBegin": 10,
+              "lineEnd": 16,
+              "columnEnd": 12
+            }
+          }
+        },
+        "source": {
+          "range": {
+            "file": { "key": "src/main/java/com/glean/app/App.java" },
+            "lineBegin": 19,
+            "columnBegin": 28,
+            "lineEnd": 19,
+            "columnEnd": 30
+          }
+        }
+      },
+      "entity": {
+        "lsif": {
+          "java": {
+            "defn": {
+              "key": {
+                "defn": {
+                  "key": {
+                    "file": {
+                      "key": {
+                        "file": {
+                          "key": "src/main/java/com/glean/app/App.java"
+                        },
+                        "language": 22
+                      }
+                    },
+                    "range": {
+                      "key": {
+                        "range": {
+                          "lineBegin": 16,
+                          "columnBegin": 10,
+                          "lineEnd": 16,
+                          "columnEnd": 12
+                        },
+                        "text": { "key": "" }
+                      }
+                    }
+                  }
+                },
+                "moniker": {
+                  "key": {
+                    "kind": 0,
+                    "scheme": { "key": "semanticdb" },
+                    "ident": { "key": "com/glean/app/App#`<init>`()" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "file": { "key": "src/main/java/com/glean/app/App.java" },
+      "xref": {
+        "target": {
+          "name": "",
+          "file": { "key": "src/main/java/com/glean/app/App.java" },
+          "location": {
+            "range": {
+              "file": { "key": "src/main/java/com/glean/app/App.java" },
+              "lineBegin": 22,
+              "columnBegin": 24,
+              "lineEnd": 22,
+              "columnEnd": 33
+            }
+          }
+        },
+        "source": {
+          "range": {
+            "file": { "key": "src/main/java/com/glean/app/App.java" },
+            "lineBegin": 19,
+            "columnBegin": 34,
+            "lineEnd": 19,
+            "columnEnd": 43
+          }
+        }
+      },
+      "entity": {
+        "lsif": {
+          "java": {
+            "defn": {
+              "key": {
+                "defn": {
+                  "key": {
+                    "file": {
+                      "key": {
+                        "file": {
+                          "key": "src/main/java/com/glean/app/App.java"
+                        },
+                        "language": 22
+                      }
+                    },
+                    "range": {
+                      "key": {
+                        "range": {
+                          "lineBegin": 22,
+                          "columnBegin": 24,
+                          "lineEnd": 22,
+                          "columnEnd": 33
+                        },
+                        "text": { "key": "" }
+                      }
+                    }
+                  }
+                },
+                "moniker": {
+                  "key": {
+                    "kind": 0,
+                    "scheme": { "key": "semanticdb" },
+                    "ident": { "key": "com/glean/app/App#getMessage()" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+]

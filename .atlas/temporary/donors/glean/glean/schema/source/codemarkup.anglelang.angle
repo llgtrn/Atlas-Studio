@@ -1,0 +1,51 @@
+# Copyright (c) Meta Platforms, Inc. and affiliates
+
+schema codemarkup.anglelang.1 {
+    import src
+    import anglelang
+    import code.anglelang
+    import codemarkup.types
+
+predicate AngleFileEntityXRefLocations :
+  {
+    file: src.File,
+    xref: codemarkup.types.XRefLocation,
+    entity: code.anglelang.Entity,
+  }
+  {File, {{Name,TargetFile,{span = TargetSpan}, nothing},{span = RefSpan}},{decl = D}} where
+  anglelang.FileXRefs {File, XRefs};
+  anglelang.XRef {{ref = D}, RefSpans} = XRefs[..];
+  RefSpan = RefSpans[..];
+  anglelang.DeclarationLocation {D,TargetFile,TargetSpan };
+  anglelang.DeclarationToName D -> (Name : string);
+
+predicate AngleEntityLocation:
+  {
+    entity: code.anglelang.Entity,
+    location: codemarkup.types.Location,
+  }
+  { { decl = D }, { Name, File, { span = Span }, nothing } } where
+    anglelang.DeclarationToName D -> (anglelang.Name Name);
+    anglelang.DeclarationLocation { decl = D, file = File, span = Span }
+
+
+predicate AngleResolveLocation :
+  {
+    location: codemarkup.types.Location,
+    entity: code.anglelang.Entity,
+  }
+  { { Name, TargetFile, {span= TargetSpan}, nothing }, {decl = Decl} } where
+  anglelang.DeclarationLocation { Decl, TargetFile, TargetSpan };
+  anglelang.DeclarationToName Decl -> (Name : string);
+
+
+predicate AngleEntityUses :
+  {
+    target: code.anglelang.Entity,
+    file: src.File,
+    span: src.ByteSpan,
+  }
+  {{decl = Decl}, File, Span} where
+  anglelang.TargetUses {{ref = Decl},  File, Spans};
+  Span = Spans[..];
+}

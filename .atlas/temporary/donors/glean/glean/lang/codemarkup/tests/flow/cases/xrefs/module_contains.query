@@ -1,0 +1,2 @@
+query: flow.ModuleContains { module =  { string_ = _ } | { file = _ } }
+transform: [gensort, []]

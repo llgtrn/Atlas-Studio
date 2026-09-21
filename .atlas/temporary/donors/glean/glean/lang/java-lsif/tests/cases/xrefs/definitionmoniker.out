@@ -1,0 +1,195 @@
+[
+  "@generated",
+  {
+    "key": {
+      "defn": {
+        "key": {
+          "file": {
+            "key": {
+              "file": { "key": "src/main/java/com/glean/app/App.java" },
+              "language": 22
+            }
+          },
+          "range": {
+            "key": {
+              "range": {
+                "lineBegin": 12,
+                "columnBegin": 14,
+                "lineEnd": 12,
+                "columnEnd": 16
+              },
+              "text": { "key": "" }
+            }
+          }
+        }
+      },
+      "moniker": {
+        "key": {
+          "kind": 0,
+          "scheme": { "key": "semanticdb" },
+          "ident": { "key": "com/glean/app/App" }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "defn": {
+        "key": {
+          "file": {
+            "key": {
+              "file": { "key": "src/main/java/com/glean/app/App.java" },
+              "language": 22
+            }
+          },
+          "range": {
+            "key": {
+              "range": {
+                "lineBegin": 14,
+                "columnBegin": 24,
+                "lineEnd": 14,
+                "columnEnd": 30
+              },
+              "text": { "key": "" }
+            }
+          }
+        }
+      },
+      "moniker": {
+        "key": {
+          "kind": 0,
+          "scheme": { "key": "semanticdb" },
+          "ident": { "key": "com/glean/app/App#message" }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "defn": {
+        "key": {
+          "file": {
+            "key": {
+              "file": { "key": "src/main/java/com/glean/app/App.java" },
+              "language": 22
+            }
+          },
+          "range": {
+            "key": {
+              "range": {
+                "lineBegin": 16,
+                "columnBegin": 10,
+                "lineEnd": 16,
+                "columnEnd": 12
+              },
+              "text": { "key": "" }
+            }
+          }
+        }
+      },
+      "moniker": {
+        "key": {
+          "kind": 0,
+          "scheme": { "key": "semanticdb" },
+          "ident": { "key": "com/glean/app/App#`<init>`()" }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "defn": {
+        "key": {
+          "file": {
+            "key": {
+              "file": { "key": "src/main/java/com/glean/app/App.java" },
+              "language": 22
+            }
+          },
+          "range": {
+            "key": {
+              "range": {
+                "lineBegin": 18,
+                "columnBegin": 22,
+                "lineEnd": 18,
+                "columnEnd": 25
+              },
+              "text": { "key": "" }
+            }
+          }
+        }
+      },
+      "moniker": {
+        "key": {
+          "kind": 0,
+          "scheme": { "key": "semanticdb" },
+          "ident": { "key": "com/glean/app/App#main()" }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "defn": {
+        "key": {
+          "file": {
+            "key": {
+              "file": { "key": "src/main/java/com/glean/app/App.java" },
+              "language": 22
+            }
+          },
+          "range": {
+            "key": {
+              "range": {
+                "lineBegin": 18,
+                "columnBegin": 36,
+                "lineEnd": 18,
+                "columnEnd": 39
+              },
+              "text": { "key": "" }
+            }
+          }
+        }
+      },
+      "moniker": {
+        "key": {
+          "kind": 1,
+          "scheme": { "key": "semanticdb" },
+          "ident": { "key": "local0" }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "defn": {
+        "key": {
+          "file": {
+            "key": {
+              "file": { "key": "src/main/java/com/glean/app/App.java" },
+              "language": 22
+            }
+          },
+          "range": {
+            "key": {
+              "range": {
+                "lineBegin": 22,
+                "columnBegin": 24,
+                "lineEnd": 22,
+                "columnEnd": 33
+              },
+              "text": { "key": "" }
+            }
+          }
+        }
+      },
+      "moniker": {
+        "key": {
+          "kind": 0,
+          "scheme": { "key": "semanticdb" },
+          "ident": { "key": "com/glean/app/App#getMessage()" }
+        }
+      }
+    }
+  }
+]

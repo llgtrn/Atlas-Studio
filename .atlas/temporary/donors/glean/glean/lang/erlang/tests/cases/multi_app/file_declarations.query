@@ -1,0 +1,3 @@
+query: erlang.FileDeclarations _
+perf: True
+transform: [gensort, []]

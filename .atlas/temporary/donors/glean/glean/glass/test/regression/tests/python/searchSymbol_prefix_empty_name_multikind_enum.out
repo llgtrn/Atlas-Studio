@@ -1,0 +1,100 @@
+[
+    "@generated",
+    {
+        "symbolDetails": [],
+        "symbols": [
+            {
+                "kind": 7,
+                "language": 7,
+                "location": {
+                    "filepath": "all.py",
+                    "range": {
+                        "columnBegin": 1,
+                        "columnEnd": 20,
+                        "lineBegin": 24,
+                        "lineEnd": 26
+                    },
+                    "repository": "test"
+                },
+                "name": "all.LocalClass",
+                "qname": {
+                    "container": "all",
+                    "localName": "LocalClass"
+                },
+                "score": {
+                    "exactness": 2
+                },
+                "symbol": "test/py/all.py/all.LocalClass"
+            },
+            {
+                "kind": 7,
+                "language": 7,
+                "location": {
+                    "filepath": "lib.py",
+                    "range": {
+                        "columnBegin": 1,
+                        "columnEnd": 19,
+                        "lineBegin": 11,
+                        "lineEnd": 25
+                    },
+                    "repository": "test"
+                },
+                "name": "lib.HelperClass",
+                "qname": {
+                    "container": "lib",
+                    "localName": "HelperClass"
+                },
+                "score": {
+                    "exactness": 2
+                },
+                "symbol": "test/py/lib.py/lib.HelperClass"
+            },
+            {
+                "kind": 7,
+                "language": 7,
+                "location": {
+                    "filepath": "lib.py",
+                    "range": {
+                        "columnBegin": 5,
+                        "columnEnd": 13,
+                        "lineBegin": 15,
+                        "lineEnd": 16
+                    },
+                    "repository": "test"
+                },
+                "name": "lib.HelperClass.Inner",
+                "qname": {
+                    "container": "lib.HelperClass",
+                    "localName": "Inner"
+                },
+                "score": {
+                    "exactness": 2
+                },
+                "symbol": "test/py/lib.py/lib.HelperClass.Inner"
+            },
+            {
+                "kind": 7,
+                "language": 7,
+                "location": {
+                    "filepath": "shadow.py",
+                    "range": {
+                        "columnBegin": 1,
+                        "columnEnd": 26,
+                        "lineBegin": 10,
+                        "lineEnd": 13
+                    },
+                    "repository": "test"
+                },
+                "name": "shadow.ShadowClass",
+                "qname": {
+                    "container": "shadow",
+                    "localName": "ShadowClass"
+                },
+                "score": {
+                    "exactness": 2
+                },
+                "symbol": "test/py/shadow.py/shadow.ShadowClass"
+            }
+        ]
+    }
+]

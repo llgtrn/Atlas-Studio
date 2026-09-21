@@ -1,0 +1,377 @@
+[
+  "@generated",
+  {
+    "key": {
+      "file": { "key": "www/RefClass.php" },
+      "span": { "start": 435, "length": 5 },
+      "arguments": [ ],
+      "callee_xref": {
+        "hack": {
+          "decl": {
+            "function_": {
+              "key": { "name": { "key": { "name": { "key": "corge" } } } }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "file": { "key": "www/RefClass.php" },
+      "span": { "start": 506, "length": 5 },
+      "arguments": [ ],
+      "callee_xref": {
+        "hack": {
+          "decl": {
+            "function_": {
+              "key": { "name": { "key": { "name": { "key": "corge" } } } }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "file": { "key": "www/RefClass.php" },
+      "span": { "start": 687, "length": 11 },
+      "arguments": [ ],
+      "callee_xref": {
+        "hack": {
+          "decl": {
+            "container": {
+              "class_": {
+                "key": {
+                  "name": { "key": { "name": { "key": "SourceClass" } } }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "file": { "key": "www/RefClass.php" },
+      "span": { "start": 717, "length": 5 },
+      "arguments": [ ],
+      "callee_xref": {
+        "hack": {
+          "decl": {
+            "function_": {
+              "key": { "name": { "key": { "name": { "key": "corge" } } } }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "file": { "key": "www/RefClass.php" },
+      "span": { "start": 797, "length": 11 },
+      "arguments": [ { "span": { "start": 809, "length": 8 } } ],
+      "callee_xref": {
+        "hack": {
+          "decl": {
+            "method": {
+              "key": {
+                "name": { "key": "quux" },
+                "container": {
+                  "trait": {
+                    "key": {
+                      "name": { "key": { "name": { "key": "SourceTrait" } } }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "dispatch_arg": { "span": { "start": 797, "length": 5 } },
+      "receiver_type": {
+        "hack": {
+          "decl": {
+            "container": {
+              "class_": {
+                "key": { "name": { "key": { "name": { "key": "RefClass" } } } }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "file": { "key": "www/RefClass.php" },
+      "span": { "start": 839, "length": 10 },
+      "arguments": [ ],
+      "callee_xref": {
+        "hack": {
+          "decl": {
+            "method": {
+              "key": {
+                "name": { "key": "foo" },
+                "container": {
+                  "class_": {
+                    "key": {
+                      "name": { "key": { "name": { "key": "RefClass" } } }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "receiver_type": {
+        "hack": {
+          "decl": {
+            "container": {
+              "class_": {
+                "key": { "name": { "key": { "name": { "key": "RefClass" } } } }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "file": { "key": "www/RefClass.php" },
+      "span": { "start": 881, "length": 12 },
+      "arguments": [ ],
+      "callee_xref": {
+        "hack": {
+          "decl": {
+            "method": {
+              "key": {
+                "name": { "key": "bazza" },
+                "container": {
+                  "class_": {
+                    "key": {
+                      "name": { "key": { "name": { "key": "RefClass" } } }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "dispatch_arg": { "span": { "start": 881, "length": 5 } },
+      "receiver_type": {
+        "hack": {
+          "decl": {
+            "container": {
+              "class_": {
+                "key": { "name": { "key": { "name": { "key": "RefClass" } } } }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "file": { "key": "www/RefClass.php" },
+      "span": { "start": 898, "length": 21 },
+      "arguments": [
+        { "span": { "start": 920, "length": 1 } },
+        { "span": { "start": 923, "length": 6 } }
+      ],
+      "callee_xref": {
+        "hack": {
+          "decl": {
+            "method": {
+              "key": {
+                "name": { "key": "superAdd" },
+                "container": {
+                  "class_": {
+                    "key": {
+                      "name": { "key": { "name": { "key": "SuperClass" } } }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "receiver_type": {
+        "hack": {
+          "decl": {
+            "container": {
+              "class_": {
+                "key": {
+                  "name": { "key": { "name": { "key": "SourceClass" } } }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "file": { "key": "www/RefClass.php" },
+      "span": { "start": 997, "length": 5 },
+      "arguments": [ ],
+      "callee_xref": {
+        "hack": {
+          "decl": {
+            "function_": {
+              "key": { "name": { "key": { "name": { "key": "corge" } } } }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "file": { "key": "www/Require.php" },
+      "span": { "start": 686, "length": 16 },
+      "arguments": [ ],
+      "callee_xref": {
+        "hack": {
+          "decl": {
+            "method": {
+              "key": {
+                "name": { "key": "openDoors" },
+                "container": {
+                  "class_": {
+                    "key": {
+                      "name": { "key": { "name": { "key": "Machine" } } }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "dispatch_arg": { "span": { "start": 686, "length": 5 } },
+      "receiver_type": {
+        "hack": {
+          "decl": {
+            "container": {
+              "trait": {
+                "key": { "name": { "key": { "name": { "key": "Plane" } } } }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "file": { "key": "www/Require.php" },
+      "span": { "start": 710, "length": 17 },
+      "arguments": [ ],
+      "callee_xref": {
+        "hack": {
+          "decl": {
+            "method": {
+              "key": {
+                "name": { "key": "closeDoors" },
+                "container": {
+                  "class_": {
+                    "key": {
+                      "name": { "key": { "name": { "key": "Machine" } } }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "dispatch_arg": { "span": { "start": 710, "length": 5 } },
+      "receiver_type": {
+        "hack": {
+          "decl": {
+            "container": {
+              "trait": {
+                "key": { "name": { "key": { "name": { "key": "Plane" } } } }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "file": { "key": "www/Require.php" },
+      "span": { "start": 742, "length": 10 },
+      "arguments": [ ],
+      "callee_xref": {
+        "hack": {
+          "decl": {
+            "method": {
+              "key": {
+                "name": { "key": "fly" },
+                "container": {
+                  "class_": {
+                    "key": {
+                      "name": { "key": { "name": { "key": "AirBus" } } }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "dispatch_arg": { "span": { "start": 742, "length": 5 } },
+      "receiver_type": {
+        "hack": {
+          "decl": {
+            "container": {
+              "trait": {
+                "key": { "name": { "key": { "name": { "key": "Plane" } } } }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "file": { "key": "www/SourceClass.php" },
+      "span": { "start": 451, "length": 5 },
+      "arguments": [ ],
+      "callee_xref": {
+        "hack": {
+          "decl": {
+            "function_": {
+              "key": { "name": { "key": { "name": { "key": "corge" } } } }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "file": { "key": "www/SourceClass.php" },
+      "span": { "start": 1054, "length": 15 },
+      "arguments": [
+        {
+          "span": { "start": 1060, "length": 9 },
+          "argument": { "lit": "also ok" }
+        }
+      ]
+    }
+  }
+]

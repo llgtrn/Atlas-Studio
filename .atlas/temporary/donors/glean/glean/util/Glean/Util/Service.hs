@@ -1,0 +1,61 @@
+{-
+  Copyright (c) Meta Platforms, Inc. and affiliates.
+  All rights reserved.
+
+  This source code is licensed under the BSD-style license found in the
+  LICENSE file in the root directory of this source tree.
+-}
+
+{-# LANGUAGE PatternSynonyms #-}
+{-# OPTIONS_GHC -Wno-orphans #-}
+
+module Glean.Util.Service
+  ( -- * Service specification
+    Service(Tier, HostPort, Uri)
+  , serviceToString, serviceTier
+    -- ** Aliases
+  , HostName, PortNumber
+  ) where
+
+import qualified Glean.Service.Types as Service
+import Glean.Service.Types hiding (HostPort)
+
+import Data.Int
+import Data.String (IsString(..))
+import Data.Text (Text)
+import qualified Data.Text as Text
+import Network.URI (parseURI)
+
+type HostName = Text
+type PortNumber = Int
+
+-- The Thrift-generated types are a bit ugly, so let's make synonyms
+pattern Tier :: Text -> Service
+pattern Tier x = Service_tier x
+
+pattern HostPort :: Text -> Int32 -> Service
+pattern HostPort h p = Service_hostPort (Service.HostPort h p)
+
+pattern Uri :: Text -> Service
+pattern Uri x = Service_uri x
+
+-- could move this to be attached to the Thrift file to avoid the orphan
+instance IsString Service where
+  fromString s
+    | (rev_port, ':':rev_host) <- break (==':') $ reverse s
+    , [(port,"")] <- reads $ reverse rev_port =
+      HostPort (Text.pack (reverse rev_host)) port
+    | Just _uri <- parseURI s = Uri (Text.pack s)
+    | otherwise = Tier (Text.pack s)
+
+serviceToString :: Service -> String
+serviceToString (HostPort h p) = Text.unpack h ++ ":" ++ show p
+serviceToString (Tier s) = Text.unpack s
+serviceToString (Uri s) = Text.unpack s
+serviceToString _ = error "serviceToString" -- pattern synonyms :(
+
+serviceTier :: Service -> Text
+serviceTier HostPort{} = ""
+serviceTier (Tier s) = s
+serviceTier (Uri _s) = ""
+serviceTier _ = error "serviceTier" -- pattern synonyms :(

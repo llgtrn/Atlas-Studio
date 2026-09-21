@@ -1,0 +1,438 @@
+# Copyright (c) Meta Platforms, Inc. and affiliates.
+
+schema search.hack.7 {
+import hack
+
+# SearchByName can be used to search for symbols in any context (wildcard
+# context).
+#
+# This can be combined with hack.NameLowerCase for case-insensitive search.
+predicate SearchByName :
+  {
+    name : hack.Name,
+    decl : hack.Declaration
+  }
+  { Name, Decl } where
+    ( D = hack.ClassConstDeclaration { name = Name };
+      { classConst = D } = Decl ) |
+    ( D = hack.Enumerator { name = Name };
+      { enumerator = D } = Decl ) |
+    ( D = hack.MethodDeclaration { name = Name };
+      { method = D } = Decl ) |
+    ( D = hack.PropertyDeclaration { name = Name };
+      { property_ = D } = Decl ) |
+    ( D = hack.TypeConstDeclaration { name = Name };
+      { typeConst = D } = Decl ) |
+    ( D = hack.ModuleDeclaration { name = Name };
+      { module = D } = Decl
+    ) | (
+      QName = hack.QName { name = Name };
+      ( D = hack.ClassDeclaration { name = QName };
+        { container = { class_ = D } } = Decl ) |
+      ( D = hack.InterfaceDeclaration { name = QName };
+        { container = { interface_ = D } } = Decl ) |
+      ( D = hack.TraitDeclaration { name = QName };
+        { container = { trait = D } } = Decl ) |
+      ( D = hack.EnumDeclaration { name = QName };
+        { container = { enum_ = D } } = Decl ) |
+      ( D = hack.FunctionDeclaration { name = QName };
+        { function_ = D } = Decl ) |
+      ( D = hack.GlobalConstDeclaration { name = QName };
+        { globalConst = D } = Decl ) |
+      ( D = hack.TypedefDeclaration { name = QName };
+        { typedef_ = D } = Decl )
+    ) | (
+      NSQName = hack.NamespaceQName { name = Name };
+      D = hack.NamespaceDeclaration { name = NSQName };
+      { namespace_ = D } = Decl
+    )
+
+# SearchInNamespace can find containers (class_, interface_, trait_),
+# enum_, function_, globalConst, and typedef_ in a NamespaceQName
+#
+# With namespace_ of nothing, this searches for top-level declarations (global
+# items without a context)
+#
+# Also helps SearchInContext to find declarations in non-empty namespace
+# contexts.
+predicate SearchInNamespace :
+  {
+    name : hack.Name,
+    namespace_ : maybe hack.NamespaceQName,
+    decl : hack.Declaration
+  }
+  { N, NS, Decl } where
+  Decl = (
+    QN = hack.QName { name = N, namespace_ = NS };
+    hack.Declaration { container = { class_ = { name = QN }}} |
+    hack.Declaration { container = { interface_ = { name = QN }}} |
+    hack.Declaration { container = { trait = { name = QN }}} |
+    hack.Declaration { container = { enum_ = { name = QN }}} |
+    hack.Declaration { function_ = { name = QN }} |
+    hack.Declaration { globalConst = { name = QN }} |
+    hack.Declaration { typedef_ = { name = QN }}
+  ) | (
+    # modules are always at the global scope, so should be found with NS=nothing
+    nothing = NS : maybe hack.NamespaceQName;
+    hack.Declaration { module = { name = N } };
+  )
+
+# SearchXXXInNamespace are specialized versions of SearchInNamespace.
+# Used to restrict search to hack top-level namespaces
+
+predicate SearchTypeInNamespace :
+  {
+    name : hack.Name,
+    namespace_ : maybe hack.NamespaceQName,
+    decl : hack.Declaration
+  }
+  { N, NS, Decl } where
+  Decl = (
+    QN = hack.QName { name = N, namespace_ = NS };
+    hack.Declaration { container = { class_ = { name = QN }}} |
+    hack.Declaration { container = { interface_ = { name = QN }}} |
+    hack.Declaration { container = { trait = { name = QN }}} |
+    hack.Declaration { container = { enum_ = { name = QN }}} |
+    hack.Declaration { typedef_ = { name = QN }}
+  )
+
+predicate SearchFunctionInNamespace :
+  {
+    name : hack.Name,
+    namespace_ : maybe hack.NamespaceQName,
+    decl : hack.Declaration
+  }
+  { N, NS, Decl } where
+  Decl = (
+    QN = hack.QName { name = N, namespace_ = NS };
+    hack.Declaration { function_ = { name = QN }}
+  )
+
+predicate SearchGlobalConstInNamespace :
+  {
+    name : hack.Name,
+    namespace_ : maybe hack.NamespaceQName,
+    decl : hack.Declaration
+  }
+  { N, NS, Decl } where
+  Decl = (
+    QN = hack.QName { name = N, namespace_ = NS };
+    hack.Declaration { globalConst = { name = QN }}
+  )
+
+predicate SearchModule :
+{
+  name : hack.Name,
+  decl : hack.Declaration
+}
+{ Name, Decl } where
+  M = hack.ModuleDeclaration { name = Name };
+  hack.Declaration { module = M } = Decl
+
+predicate SearchNamespace :
+{
+  name : hack.Name,
+  namespace_ : maybe hack.NamespaceQName,
+  decl : hack.Declaration
+}
+{ Name, Parent, Decl } where
+  NSQ = hack.NamespaceQName { Name, Parent };
+  NS = hack.NamespaceDeclaration { name = NSQ };
+  hack.Declaration { namespace_ = NS } = Decl
+
+# Find property in a parent container (class or trait)
+#
+predicate SearchPropertyInContainer :
+  {
+    name : hack.Name,
+    containerName : hack.Name,
+    containerNamespace : maybe hack.NamespaceQName,
+    decl : hack.Declaration
+  }
+  { N, ParentName, ParentNamespace, D } where
+  ParentQName = hack.QName {name = ParentName, namespace_ = ParentNamespace};
+  hack.ClassDefinition { declaration = { name = ParentQName }, members = Mems} |
+  hack.TraitDefinition { declaration = { name = ParentQName }, members = Mems};
+  D = Mems[..];
+  D = { property_ = { name = N }} : hack.Declaration;
+
+# Find classConst, method, and typeConst in any parent container
+# (class, interface, or trait)
+predicate SearchInContainerNoProperty :
+  {
+    name : hack.Name,
+    containerName : hack.Name,
+    containerNamespace : maybe hack.NamespaceQName,
+    decl : hack.Declaration
+  }
+  { N, ParentName, ParentNamespace, D } where
+  ParentQName = hack.QName {name = ParentName, namespace_ = ParentNamespace};
+  hack.ClassDefinition { declaration = { name = ParentQName }, members = Mems} |
+  hack.InterfaceDefinition { declaration = { name = ParentQName }, members = Mems} |
+  hack.TraitDefinition { declaration = { name = ParentQName }, members = Mems};
+  D = Mems[..];
+  D = (
+    { classConst = { name = N }} |
+    { method = {name = N}} |
+    {typeConst = {name = N}}
+  ) : hack.Declaration;
+
+predicate SearchInContainerOrEnumNoProperty :
+  {
+    name : hack.Name,
+    contextName : hack.Name,
+    contextNamespace : maybe hack.NamespaceQName,
+    decl : hack.Declaration
+  }
+  { N, ParentName, ParentNamespace, Decl } where
+    Decl = (
+      hack.QName { name = ParentName, namespace_ = ParentNamespace};
+      ( SearchInContainerNoProperty { N, ParentName, ParentNamespace, D }; D) |
+      ( SearchInEnum { N, ParentName, ParentNamespace, D}; D)
+    )
+
+# Either a namespace or a decl in a namespace
+predicate SearchNamespacedDecl :
+{
+  name : hack.Name,
+  namespace_ : maybe hack.NamespaceQName,
+  decl : hack.Declaration
+}
+{ Name, Parent, Decl } where
+  SearchNamespace { Name, Parent, Decl } |
+  SearchInNamespace { Name, Parent, Decl }
+
+# Find classConst, method, property_, and typeConst in any parent container
+# (class, interface, or trait)
+#
+# Helps SearchInContainerOrEnum to find declarations in container contexts
+predicate SearchInContainer :
+  {
+    name : hack.Name,
+    containerName : hack.Name,
+    containerNamespace : maybe hack.NamespaceQName,
+    decl : hack.Declaration
+  }
+  { N, ParentName, ParentNamespace, D } where
+  ParentQName = hack.QName {name = ParentName, namespace_ = ParentNamespace};
+  hack.ClassDefinition { declaration = { name = ParentQName }, members = Mems} |
+  hack.InterfaceDefinition { declaration = { name = ParentQName }, members = Mems} |
+  hack.TraitDefinition { declaration = { name = ParentQName }, members = Mems};
+  D = Mems[..];
+  D = (
+    { classConst = { name = N }} |
+    { method = {name = N}} |
+    { property_ = { name = N }} |
+    {typeConst = {name = N}}
+  ) : hack.Declaration;
+
+# Find an Enumerator in a Enum
+#
+# Although enums are containers, this predicate is distinct from 'SearchInContainer'
+# because there the child types can belong to any of the other three container types,
+# while Enumerators can only have EnumDeclaration as parent, and Enums cannot contain
+# the other child types
+#
+# Helps SearchInContainerOrEnum to find declarations in enum contexts
+predicate SearchInEnum :
+  {
+    name : hack.Name,
+    enumName : hack.Name,
+    enumNamespace : maybe hack.NamespaceQName,
+    decl : hack.Declaration
+  }
+  { N, ParentName, ParentNamespace, E } where
+  ParentQName = hack.QName {name = ParentName, namespace_ = ParentNamespace};
+  ParentEnum = hack.EnumDeclaration { name = ParentQName };
+  E = hack.Declaration { enumerator = { name = N, enumeration = ParentEnum }};
+
+# This can be used to search for concrete syntax like
+#
+# \NamespaceFoo\ClassBar::MethodBaz
+# or
+# \NamespaceFoo\EnumBar::EnumeratorBaz
+#
+# Also helps SearchInContext to find declarations in container and enum contexts
+predicate SearchInContainerOrEnum :
+  {
+    name : hack.Name,
+    contextName : hack.Name,
+    contextNamespace : maybe hack.NamespaceQName,
+    decl : hack.Declaration
+  }
+  { N, ParentName, ParentNamespace, Decl } where
+    Decl = (
+      hack.QName { name = ParentName, namespace_ = ParentNamespace};
+      ( SearchInContainer { N, ParentName, ParentNamespace, D }; D) |
+      ( SearchInEnum { N, ParentName, ParentNamespace, D}; D)
+    )
+
+#
+# Generating qnames and namespace qnames. We don't have recursion but we'd
+# like to compile the namespace tokens into a recursive QName type so we unroll
+#
+# We use the naming "Scope" to be consistent with the cxx implementation
+#
+# We specifically only search in non-empty namespaces, relying on
+# SearchByName for the global namespace search or wild cards. So
+# these won't match global constants or un-namespaced symbols. This might be
+# too restrictive.
+#
+# This doesn't check that the names are valid QNames or NamespaceQNames,
+# that's done on the query side (e.g. SearchInContext). We don't permit
+# wild card parents. so "Dict","fb" won't match "Readonly","Dict","fb"
+#
+predicate QueryToScopeCase:
+  {
+    query : [string],
+    insensitive : bool, # if true , search insensitive
+    scopeName : hack.Name,
+    scopeNamespace : maybe hack.NamespaceQName
+  }
+  { Query, Case, Name, QName } where
+    # zero tuple, can't do much with it. We don't have empty scopes
+    ( [] = Query; never = Case; never = Name;
+      QName = nothing : maybe hack.NamespaceQName ) |
+    # one tuple, could be global alias
+    ( [A] = Query;
+      HackNameCase { Case, A, AName };
+      # three cases: either
+      # - a global alias
+      # - or its a top level class. e.g. Str
+      # - or its a class imported from an auto-imported ns (like HH)
+      if hack.GlobalNamespaceAlias { AName, { AliasName, AliasQName }}
+      then ( ( Name = AliasName; QName = AliasQName ) |
+              ( Name = AName; nothing = QName ) )
+      # else maybe its from HH
+      else if ( HackInAutoImportedNamespace { AName, AQName } )
+      then ( ( Name = AName; AQName = QName ) |
+             ( Name = AName; nothing = QName ) )
+      # global name, parent is nothing.
+      else ( Name = AName; nothing = QName ) ) |
+    # two tuple
+    ( [B,A] = Query;
+      HackNameCase { Case, A, Name };
+      HackNameCase { Case, B, BName };
+      if hack.GlobalNamespaceAlias { BName, AliasQName }
+      then ( { just = AliasQName } = QName )
+      # e.g Readonly\Shapes::idx -> HH\Readonly\Shapes::idx
+      else if ( HackInAutoImportedNamespace { BName, BQName } )
+      then ( ( { just = { name = BName, parent = BQName } } = QName ) |
+             ( { just = { name = BName, parent = nothing } } = QName ) )
+      else ( { just = { name = BName,
+                parent = nothing } } = QName ) ) |
+    # three tuple
+    ( [C,B,A] = Query;
+      HackNameCase { Case, A, Name };
+      HackNameCase { Case, B, BName };
+      HackNameCase { Case, C, CName };
+      { just = { name = BName,
+        parent = { just = { name = CName,
+        parent = nothing }} } }  = QName ) |
+    # four tuple
+    ( [D,C,B,A] = Query;
+      HackNameCase { Case, A, Name };
+      HackNameCase { Case, B, BName };
+      HackNameCase { Case, C, CName };
+      HackNameCase { Case, D, DName };
+      { just = { name = BName,
+        parent = { just = { name = CName,
+        parent = { just = { name = DName,
+        parent = nothing }} }} } }  = QName ) |
+    # five tuple, are there any? yes there are many
+    ( [E,D,C,B,A] = Query;
+      HackNameCase { Case, A, Name };
+      HackNameCase { Case, B, BName };
+      HackNameCase { Case, C, CName };
+      HackNameCase { Case, D, DName };
+      HackNameCase { Case, E, EName };
+      { just = { name = BName,
+        parent = { just = { name = CName,
+        parent = { just = { name = DName,
+        parent = { just = { name = EName,
+        parent = nothing }} }} }} } }  = QName ) |
+    # six tuple
+    ( [F,E,D,C,B,A] = Query;
+      HackNameCase { Case, A, Name };
+      HackNameCase { Case, B, BName };
+      HackNameCase { Case, C, CName };
+      HackNameCase { Case, D, DName };
+      HackNameCase { Case, E, EName };
+      HackNameCase { Case, F, FName };
+      { just = { name = BName,
+        parent = { just = { name = CName,
+        parent = { just = { name = DName,
+        parent = { just = { name = EName,
+        parent = { just = { name = FName,
+        parent = nothing }} }} }} }} } }  = QName ) |
+    # seven tuple
+    ( [G,F,E,D,C,B,A] = Query;
+      HackNameCase { Case, A, Name };
+      HackNameCase { Case, B, BName };
+      HackNameCase { Case, C, CName };
+      HackNameCase { Case, D, DName };
+      HackNameCase { Case, E, EName };
+      HackNameCase { Case, F, FName };
+      HackNameCase { Case, G, GName };
+      { just = { name = BName,
+        parent = { just = { name = CName,
+        parent = { just = { name = DName,
+        parent = { just = { name = EName,
+        parent = { just = { name = FName,
+        parent = { just = { name = GName,
+        parent = nothing }} }} }} }} }} } }  = QName ) |
+    # eight tuple
+    ( [H,G,F,E,D,C,B,A] = Query;
+      HackNameCase { Case, A, Name };
+      HackNameCase { Case, B, BName };
+      HackNameCase { Case, C, CName };
+      HackNameCase { Case, D, DName };
+      HackNameCase { Case, E, EName };
+      HackNameCase { Case, F, FName };
+      HackNameCase { Case, G, GName };
+      HackNameCase { Case, H, HName };
+      { just = { name = BName,
+        parent = { just = { name = CName,
+        parent = { just = { name = DName,
+        parent = { just = { name = EName,
+        parent = { just = { name = FName,
+        parent = { just = { name = GName,
+        parent = { just = { name = HName,
+        parent = nothing }} }} }} }} }} }} } }  = QName );
+
+# Helper to lookup hack.Name based on case sensitivity
+predicate HackNameCase:
+  {
+    insensitive: bool,
+    namestr : string,
+    name : hack.Name
+  }
+  { Insensitive, NameStr, Name } where
+    ( true = Insensitive; hack.NameLowerCase { NameStr, Name } ) |
+    ( false = Insensitive; hack.Name NameStr = Name );
+
+# Handle auto-imported namespace rules (turn things like Shapes into HH\Shapes)
+# See fbsource/fbcode/hphp/hack/src/parser/hh_autoimport.rs
+#
+# We need to check this so that things like Shapes::idx or Vector::shuffle work
+# even though the parent of Vector and Shapes is not "nothing".
+#
+# Readonly\Shapes => HH\Readonly\Shapes
+#
+# name might be either a container-scope or a namespace itself
+predicate HackInAutoImportedNamespace:
+  {
+    name: hack.Name, # name of something that might be in an auto-imported ns
+    parent: maybe hack.NamespaceQName
+  }
+  { Name, Namespace } where
+    # Exactly the "HH" namespace.
+    # This is a hack to simulate indexing the auto-import list
+    HH = hack.NamespaceQName { name = hack.Name "HH", parent = nothing };
+    # Then we have auto-imported this Name from HH
+    { just = HH } = Namespace;
+    # Check that HH\Name is true (either class or namespace)
+    hack.QName { name = Name, namespace_ = Namespace } |
+      hack.NamespaceQName { name = Name, parent = Namespace };
+
+}

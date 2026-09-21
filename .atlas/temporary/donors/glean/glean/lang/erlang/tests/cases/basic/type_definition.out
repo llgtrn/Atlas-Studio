@@ -1,0 +1,18 @@
+[
+  "@generated",
+  {
+    "key": {
+      "declaration": {
+        "key": {
+          "name": "config",
+          "arity": 0,
+          "module": "example",
+          "app": "basic"
+        }
+      },
+      "exported": false,
+      "opaque": false,
+      "definition_text": "-type config() :: #{key := atom(), value := term()}."
+    }
+  }
+]

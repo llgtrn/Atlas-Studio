@@ -1,0 +1,11 @@
+# Copyright (c) Meta Platforms, Inc. and affiliates.
+
+schema code.flow.2 {
+import flow
+
+type Entity =
+  {
+    decl : flow.SomeDeclaration |
+    module_ : flow.Module |
+  }
+}

@@ -1,0 +1,4 @@
+query: search.code.LsifSearchByLowerCaseName { name = "lines" }
+perf: True
+transform: [gensort, []]
+

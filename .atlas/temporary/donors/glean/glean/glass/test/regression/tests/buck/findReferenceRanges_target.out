@@ -1,0 +1,65 @@
+[
+    "@generated",
+    [
+        {
+            "filepath": "buck_project/TEST_TARGETS",
+            "range": {
+                "columnBegin": 9,
+                "columnEnd": 30,
+                "lineBegin": 33,
+                "lineEnd": 33
+            },
+            "repository": "test"
+        },
+        {
+            "filepath": "buck_project/TEST_TARGETS",
+            "range": {
+                "columnBegin": 9,
+                "columnEnd": 30,
+                "lineBegin": 47,
+                "lineEnd": 47
+            },
+            "repository": "test"
+        },
+        {
+            "filepath": "buck_project/b/TEST_TARGETS",
+            "range": {
+                "columnBegin": 9,
+                "columnEnd": 15,
+                "lineBegin": 7,
+                "lineEnd": 7
+            },
+            "repository": "test"
+        },
+        {
+            "filepath": "buck_project/my_defs.bzl",
+            "range": {
+                "columnBegin": 12,
+                "columnEnd": 33,
+                "lineBegin": 22,
+                "lineEnd": 22
+            },
+            "repository": "test"
+        },
+        {
+            "filepath": "buck_project/my_defs.bzl",
+            "range": {
+                "columnBegin": 32,
+                "columnEnd": 53,
+                "lineBegin": 24,
+                "lineEnd": 24
+            },
+            "repository": "test"
+        },
+        {
+            "filepath": "buck_project/my_defs.bzl",
+            "range": {
+                "columnBegin": 36,
+                "columnEnd": 57,
+                "lineBegin": 26,
+                "lineEnd": 26
+            },
+            "repository": "test"
+        }
+    ]
+]

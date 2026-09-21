@@ -1,0 +1,16 @@
+[
+    "@generated",
+    {
+        "location": {
+            "filepath": "lib.thrift",
+            "range": {
+                "columnBegin": 3,
+                "columnEnd": 17,
+                "lineBegin": 74,
+                "lineEnd": 74
+            },
+            "repository": "test"
+        },
+        "revision": "testhash"
+    }
+]

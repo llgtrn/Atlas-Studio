@@ -1,0 +1,12 @@
+[
+  "@generated",
+  {
+    "key": {
+      "name": "ADD_ONE",
+      "arity": 1,
+      "module": "example.hrl",
+      "app": "basic"
+    }
+  },
+  { "key": { "name": "HELLO", "module": "example.hrl", "app": "basic" } }
+]

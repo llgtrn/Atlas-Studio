@@ -1,0 +1,27 @@
+[
+  "@generated",
+  {
+    "key": {
+      "record_name": "request",
+      "field_name": "id",
+      "module": "shared.hrl",
+      "app": "app_a"
+    }
+  },
+  {
+    "key": {
+      "record_name": "request",
+      "field_name": "payload",
+      "module": "shared.hrl",
+      "app": "app_a"
+    }
+  },
+  {
+    "key": {
+      "record_name": "request",
+      "field_name": "retries",
+      "module": "shared.hrl",
+      "app": "app_a"
+    }
+  }
+]

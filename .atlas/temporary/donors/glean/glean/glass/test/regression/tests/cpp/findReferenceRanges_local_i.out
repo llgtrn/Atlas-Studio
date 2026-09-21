@@ -1,0 +1,25 @@
+[
+    "@generated",
+    [
+        {
+            "filepath": "test.cpp",
+            "range": {
+                "columnBegin": 7,
+                "columnEnd": 8,
+                "lineBegin": 60,
+                "lineEnd": 60
+            },
+            "repository": "test"
+        },
+        {
+            "filepath": "test.cpp",
+            "range": {
+                "columnBegin": 3,
+                "columnEnd": 4,
+                "lineBegin": 66,
+                "lineEnd": 66
+            },
+            "repository": "test"
+        }
+    ]
+]

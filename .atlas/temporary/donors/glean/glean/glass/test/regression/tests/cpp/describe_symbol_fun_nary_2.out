@@ -1,0 +1,52 @@
+[
+    "@generated",
+    {
+        "annotations": [],
+        "contains_relation": {
+            "firstChild": "nondeterministic",
+            "firstParent": "nondeterministic",
+            "hasMoreChildren": false,
+            "hasMoreParents": false
+        },
+        "extends_relation": {
+            "firstChild": "nondeterministic",
+            "firstParent": "nondeterministic",
+            "hasMoreChildren": false,
+            "hasMoreParents": false
+        },
+        "kind": 8,
+        "language": 1,
+        "location": {
+            "filepath": "test.cpp",
+            "range": {
+                "columnBegin": 5,
+                "columnEnd": 28,
+                "lineBegin": 147,
+                "lineEnd": 147
+            },
+            "repository": "test"
+        },
+        "modifiers": [],
+        "name": {
+            "container": "Q::QQ",
+            "localName": "thango(int, Q::QQ &) &"
+        },
+        "pretty_comments": [],
+        "repo_hash": "testhash",
+        "signature": "int& Q::QQ::thango(int, Q::QQ&)",
+        "sym": "test/cpp//Q/QQ/thango/.f/int,Q::QQ+%26/lvalue/.decl",
+        "sym_location": {
+            "filepath": "test.cpp",
+            "range": {
+                "columnBegin": 5,
+                "columnEnd": 28,
+                "lineBegin": 147,
+                "lineEnd": 147
+            },
+            "repository": "test"
+        },
+        "sym_other_locations": [],
+        "type_xrefs": [],
+        "visibility": 20
+    }
+]

@@ -1,0 +1,13 @@
+{
+  "@generated": null,
+  "facts_searched": {
+    "erlang.DeclarationsByFile.2": 23,
+    "erlang.MacroUsagesByFile.2": 3,
+    "erlang.VarsByFileStart.2": 12
+  },
+  "full_scans": [
+    "erlang.DeclarationsByFile.2",
+    "erlang.MacroUsagesByFile.2",
+    "erlang.VarsByFileStart.2"
+  ]
+}

@@ -1,0 +1,53 @@
+[
+    "@generated",
+    {
+        "contains_relation": {
+            "firstChild": "nondeterministic",
+            "firstParent": "nondeterministic",
+            "hasMoreChildren": false,
+            "hasMoreParents": false
+        },
+        "extends_relation": {
+            "firstChild": "nondeterministic",
+            "firstParent": "nondeterministic",
+            "hasMoreChildren": false,
+            "hasMoreParents": false
+        },
+        "kind": 14,
+        "language": 1,
+        "location": {
+            "filepath": "test.cpp",
+            "range": {
+                "columnBegin": 1,
+                "columnEnd": 2,
+                "lineBegin": 45,
+                "lineEnd": 47
+            },
+            "repository": "test"
+        },
+        "modifiers": [],
+        "name": {
+            "container": "foo",
+            "localName": "fooFn(int)"
+        },
+        "native_sym": {
+            "sym": "229289F3B2374F63"
+        },
+        "pretty_comments": [],
+        "repo_hash": "testhash",
+        "signature": "int foo::fooFn(int fooI)",
+        "sym": "test/cpp//foo/fooFn/.f/int",
+        "sym_location": {
+            "filepath": "test.cpp",
+            "range": {
+                "columnBegin": 1,
+                "columnEnd": 2,
+                "lineBegin": 45,
+                "lineEnd": 47
+            },
+            "repository": "test"
+        },
+        "sym_other_locations": [],
+        "type_xrefs": []
+    }
+]

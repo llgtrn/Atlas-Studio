@@ -1,0 +1,171 @@
+[
+    "@generated",
+    {
+        "childrenContained": [
+            "test/cpp//baz/U/InU",
+            "test/cpp//baz/U/InUClass"
+        ],
+        "childrenExtended": [],
+        "containsParents": [],
+        "inheritedSymbols": [],
+        "parentsExtended": [],
+        "requireClass": [],
+        "requireExtends": [],
+        "requireImplements": [],
+        "symbolBasicDetails": {},
+        "symbolDetails": {
+            "test/cpp//baz/U": {
+                "contains_relation": {
+                    "firstChild": "nondeterministic",
+                    "firstParent": "nondeterministic",
+                    "hasMoreChildren": true,
+                    "hasMoreParents": false
+                },
+                "extends_relation": {
+                    "firstChild": "nondeterministic",
+                    "firstParent": "nondeterministic",
+                    "hasMoreChildren": false,
+                    "hasMoreParents": false
+                },
+                "kind": 25,
+                "language": 1,
+                "location": {
+                    "filepath": "test.cpp",
+                    "range": {
+                        "columnBegin": 1,
+                        "columnEnd": 2,
+                        "lineBegin": 97,
+                        "lineEnd": 100
+                    },
+                    "repository": "test"
+                },
+                "modifiers": [],
+                "name": {
+                    "container": "baz",
+                    "localName": "U"
+                },
+                "native_sym": {
+                    "sym": "4D79BE8B1E4FA336"
+                },
+                "pretty_comments": [],
+                "repo_hash": "testhash",
+                "signature": "struct baz::U",
+                "sym": "test/cpp//baz/U",
+                "sym_location": {
+                    "filepath": "test.cpp",
+                    "range": {
+                        "columnBegin": 1,
+                        "columnEnd": 2,
+                        "lineBegin": 97,
+                        "lineEnd": 100
+                    },
+                    "repository": "test"
+                },
+                "sym_other_locations": [],
+                "type_xrefs": []
+            },
+            "test/cpp//baz/U/InU": {
+                "contains_relation": {
+                    "firstChild": "nondeterministic",
+                    "firstParent": "nondeterministic",
+                    "hasMoreChildren": true,
+                    "hasMoreParents": false
+                },
+                "extends_relation": {
+                    "firstChild": "nondeterministic",
+                    "firstParent": "nondeterministic",
+                    "hasMoreChildren": false,
+                    "hasMoreParents": false
+                },
+                "kind": 12,
+                "language": 1,
+                "location": {
+                    "filepath": "test.cpp",
+                    "range": {
+                        "columnBegin": 3,
+                        "columnEnd": 26,
+                        "lineBegin": 98,
+                        "lineEnd": 98
+                    },
+                    "repository": "test"
+                },
+                "modifiers": [],
+                "name": {
+                    "container": "baz::U",
+                    "localName": "InU"
+                },
+                "native_sym": {
+                    "sym": "A0CCE49DC9734AF4"
+                },
+                "pretty_comments": [],
+                "repo_hash": "testhash",
+                "signature": "enum baz::U::InU : int",
+                "sym": "test/cpp//baz/U/InU",
+                "sym_location": {
+                    "filepath": "test.cpp",
+                    "range": {
+                        "columnBegin": 3,
+                        "columnEnd": 26,
+                        "lineBegin": 98,
+                        "lineEnd": 98
+                    },
+                    "repository": "test"
+                },
+                "sym_other_locations": [],
+                "type_xrefs": [],
+                "visibility": 20
+            },
+            "test/cpp//baz/U/InUClass": {
+                "contains_relation": {
+                    "firstChild": "nondeterministic",
+                    "firstParent": "nondeterministic",
+                    "hasMoreChildren": true,
+                    "hasMoreParents": false
+                },
+                "extends_relation": {
+                    "firstChild": "nondeterministic",
+                    "firstParent": "nondeterministic",
+                    "hasMoreChildren": false,
+                    "hasMoreParents": false
+                },
+                "kind": 12,
+                "language": 1,
+                "location": {
+                    "filepath": "test.cpp",
+                    "range": {
+                        "columnBegin": 3,
+                        "columnEnd": 40,
+                        "lineBegin": 99,
+                        "lineEnd": 99
+                    },
+                    "repository": "test"
+                },
+                "modifiers": [],
+                "name": {
+                    "container": "baz::U",
+                    "localName": "InUClass"
+                },
+                "native_sym": {
+                    "sym": "0762166ED32F54E0"
+                },
+                "pretty_comments": [],
+                "repo_hash": "testhash",
+                "signature": "enum class baz::U::InUClass : int",
+                "sym": "test/cpp//baz/U/InUClass",
+                "sym_location": {
+                    "filepath": "test.cpp",
+                    "range": {
+                        "columnBegin": 3,
+                        "columnEnd": 40,
+                        "lineBegin": 99,
+                        "lineEnd": 99
+                    },
+                    "repository": "test"
+                },
+                "sym_other_locations": [],
+                "type_xrefs": [],
+                "visibility": 20
+            }
+        }
+    }
+]

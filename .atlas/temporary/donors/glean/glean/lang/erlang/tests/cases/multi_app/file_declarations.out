@@ -1,0 +1,185 @@
+[
+  "@generated",
+  {
+    "key": {
+      "file": { "key": "app_a/include/shared.hrl" },
+      "declarations": [
+        {
+          "macro_": {
+            "key": {
+              "name": "MAX_RETRIES",
+              "module": "shared.hrl",
+              "app": "app_a"
+            }
+          }
+        },
+        {
+          "macro_": {
+            "key": {
+              "name": "TRANSFORM",
+              "arity": 1,
+              "module": "shared.hrl",
+              "app": "app_a"
+            }
+          }
+        },
+        {
+          "record_": {
+            "key": { "name": "request", "module": "shared.hrl", "app": "app_a" }
+          }
+        },
+        { "header_": { "key": { "name": "shared.hrl", "app": "app_a" } } }
+      ]
+    }
+  },
+  {
+    "key": {
+      "file": { "key": "app_a/src/server.erl" },
+      "declarations": [
+        {
+          "func": {
+            "key": {
+              "fqn": {
+                "module": "server",
+                "name": "handle_request",
+                "arity": 1
+              },
+              "app": "app_a"
+            }
+          }
+        },
+        {
+          "func": {
+            "key": {
+              "fqn": { "module": "server", "name": "old_api", "arity": 1 },
+              "app": "app_a"
+            }
+          }
+        },
+        {
+          "func": {
+            "key": {
+              "fqn": { "module": "server", "name": "handle_cast", "arity": 2 },
+              "app": "app_a"
+            }
+          }
+        },
+        {
+          "func": {
+            "key": {
+              "fqn": {
+                "module": "server",
+                "name": "process_request",
+                "arity": 1
+              },
+              "app": "app_a"
+            }
+          }
+        },
+        {
+          "func": {
+            "key": {
+              "fqn": { "module": "server", "name": "handle_call", "arity": 3 },
+              "app": "app_a"
+            }
+          }
+        },
+        {
+          "func": {
+            "key": {
+              "fqn": { "module": "server", "name": "init", "arity": 1 },
+              "app": "app_a"
+            }
+          }
+        },
+        {
+          "func": {
+            "key": {
+              "fqn": { "module": "server", "name": "start", "arity": 0 },
+              "app": "app_a"
+            }
+          }
+        },
+        {
+          "type_": {
+            "key": {
+              "name": "state",
+              "arity": 0,
+              "module": "server",
+              "app": "app_a"
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "key": {
+      "file": { "key": "app_a/src/utils.erl" },
+      "declarations": [
+        {
+          "func": {
+            "key": {
+              "fqn": { "module": "utils", "name": "retry_delay", "arity": 1 },
+              "app": "app_a"
+            }
+          }
+        },
+        {
+          "func": {
+            "key": {
+              "fqn": { "module": "utils", "name": "format_id", "arity": 1 },
+              "app": "app_a"
+            }
+          }
+        },
+        {
+          "func": {
+            "key": {
+              "fqn": { "module": "utils", "name": "validate", "arity": 1 },
+              "app": "app_a"
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "key": {
+      "file": { "key": "app_b/src/client.erl" },
+      "declarations": [
+        {
+          "func": {
+            "key": {
+              "fqn": { "module": "client", "name": "batch_send", "arity": 1 },
+              "app": "app_b"
+            }
+          }
+        },
+        {
+          "func": {
+            "key": {
+              "fqn": { "module": "client", "name": "send_request", "arity": 1 },
+              "app": "app_b"
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "key": {
+      "file": { "key": "app_b/src/internal.erl" },
+      "declarations": [
+        {
+          "func": {
+            "key": {
+              "fqn": { "module": "internal", "name": "run", "arity": 0 },
+              "app": "app_b"
+            }
+          }
+        }
+      ]
+    }
+  }
+]

@@ -1,0 +1,14 @@
+{
+  "@generated": null,
+  "facts_searched": {
+    "cxx1.DeclarationSources.5": 1,
+    "cxx1.FunctionDefinition.5": 1,
+    "cxx1.ObjcContainerDefinition.5": 1,
+    "cxx1.VariableDeclaration.5": 1
+  },
+  "full_scans": [
+    "cxx1.FunctionDefinition.5",
+    "cxx1.ObjcContainerDefinition.5",
+    "cxx1.VariableDeclaration.5"
+  ]
+}

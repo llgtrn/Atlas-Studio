@@ -1,0 +1,1209 @@
+# Copyright (c) Meta Platforms, Inc. and affiliates.
+
+schema hack.6 {
+import src
+import fbthrift
+
+# Name (identifier)
+predicate Name : string
+
+# Qualified namespace name
+predicate NamespaceQName :
+  {
+    name : Name,
+    parent : maybe NamespaceQName,
+  }
+
+# Qualified identifier
+predicate QName :
+  {
+    name : Name,
+    namespace_ : maybe NamespaceQName,
+  }
+
+# Type and contexts are represented as strings.
+# Qualified names use "\\" as separator, don't start with a leading "\\".
+# The most common types don't start with HH https://fburl.com/code/uavv841q
+#
+# Example: fully qualified name -> representation in DB
+# \\HH\\Contexts\\throws<\\FooException> -> HH\\Contexts\\throws<FooException>
+# \\HH\\Awaitable -> Awaitable
+# \\HH\\Contexts\\defaults -> HH\\Contexts\\defaults
+# \\HH\\Traversable -> Traversable
+predicate Type : string
+
+predicate Context_ : string
+
+# Hint predicate follow closely the Hack hint AST (Aast_defs.hint)
+
+#  QName uniquely defines a container, the kind (class, trait...) isn't
+#  needed.
+type FieldClassConst = { container : QName, name : Name }
+
+type ShapeKV = {
+  key: {
+    sf_regex_group : string |
+    sf_lit_string : string |
+    sf_class_const : FieldClassConst
+  },
+  value: Hint,
+  opt: bool,
+}
+
+# follow the structure of Aast_defs.hint
+predicate Hint : {
+  apply : { class_name : QName, values : [Hint] } |
+  option : Hint |
+  like : Hint |
+  tuple : { req: [ Hint ], opt: [ Hint ], variadic : maybe Hint }  |
+  class_args : Hint |
+  shape :  { open_ : bool, map_ : [ShapeKV] } |
+  soft : Hint |
+  intersection : [ Hint ] |
+  union_ : [ Hint ] |
+  vect_or_dict : { maybe_key : maybe Hint, value_ : Hint } |
+  prim : Type |
+  var_ : string |
+  fun_context : string |
+  mixed |
+  wildcard |
+  nonnull |
+  this_ |
+  dynamic |
+  nothing |
+  other : Type | # fall back to pretty-printed type for non implemented types
+}
+
+# End Hints
+
+predicate TypeInfo : {
+  displayType : Type, # human friendly textual representation
+  xrefs : [XRef], # spans are relative to the "displayType" field content
+  hint : maybe Hint, # structured representation of the type
+}
+
+# Named parameter
+type Parameter =
+  {
+    name : Name,
+    type : maybe Type, # deprecated, replaced by TypeInfo
+    isInout : bool,
+    isVariadic : bool,
+    defaultValue : maybe string,
+    attributes : [UserAttribute],
+    typeInfo : maybe TypeInfo,
+    readonly : maybe ReadonlyKind,
+    named : maybe NamedKind,
+  }
+
+# Type signature of function or method
+predicate Signature :
+  {
+    returns : maybe Type, # deprecated, replaced by returnsTypeInfo
+    parameters : [Parameter],
+    contexts : maybe [Context_],
+    returnsTypeInfo : maybe TypeInfo,
+  }
+
+# Visibility scope of declaration
+type Visibility = enum { Private | Protected | Public | Internal | ProtectedInternal }
+
+# Variance (subtyping)
+type Variance = enum { Contravariant | Covariant | Invariant }
+
+# Reification kinds
+#
+# c.f. https://docs.hhvm.com/hack/reified-generics
+#
+# N.B. Missing __Warn T138109774
+#
+type ReifyKind = enum { Erased | Reified | SoftReified }
+
+# Contrant kinds
+type ConstraintKind = enum { As | Equal | Super }
+
+# Constraint
+type Constraint =
+  {
+    constraintKind : ConstraintKind,
+    type: Type,  # deprecated, replaced by TypeInfo
+    typeInfo: maybe TypeInfo
+  }
+
+type ReadonlyKind = enum { Readonly }
+
+type NamedKind = enum { Named }
+
+# User-defined attribute
+predicate UserAttribute :
+  {
+    name : Name,
+    parameters : [string],
+    qname : maybe QName,
+  }
+
+# Hack type parameter
+type TypeParameter =
+  {
+    name : Name,
+    variance : Variance,
+    reifyKind : ReifyKind,
+    constraints : [Constraint],
+    attributes : [UserAttribute],
+  }
+
+# Hack namespace
+predicate NamespaceDeclaration : { name : NamespaceQName }
+
+# Declaration/Definition of a Hack module
+# generated from "new module" constructs)
+predicate ModuleDeclaration : { name : Name }
+
+# Declaration of a Hack class
+predicate ClassDeclaration : { name : QName }
+
+# Declaration of a Hack interface
+predicate InterfaceDeclaration : { name : QName }
+
+# Declaration of a Hack trait
+predicate TraitDeclaration : { name : QName }
+
+# Declaration of a Hack enum
+predicate EnumDeclaration : { name : QName }
+
+# Declaration of a container, which may be a parent or child of another
+type ContainerDeclaration =
+  {
+    class_ : ClassDeclaration |
+    enum_ : EnumDeclaration |
+    interface_ : InterfaceDeclaration |
+    trait : TraitDeclaration |
+  }
+
+# Declaration of a Hack typedef (type alias)
+predicate TypedefDeclaration : { name : QName }
+
+# Declaration of a global constant (top-level)
+predicate GlobalConstDeclaration : { name : QName }
+
+# Declaration of a Hack function, which could be top-level or inline
+predicate FunctionDeclaration : { name : QName }
+
+# Enumerator declaration (constant in an enum)
+predicate Enumerator :
+  {
+    name : Name,
+    enumeration : EnumDeclaration,
+  }
+
+# Declaration of a class constant (member constant)
+predicate ClassConstDeclaration :
+  {
+    name : Name,
+    container : ContainerDeclaration,
+  }
+
+# Declaration of a type constant (container member type constant)
+predicate TypeConstDeclaration :
+  {
+    name : Name,
+    container : ContainerDeclaration,
+  }
+
+# Declaration of a Hack method (member function)
+predicate MethodDeclaration :
+  {
+    name : Name,
+    container : ContainerDeclaration,
+  }
+
+# Declaration of a Hack property (container member variable)
+predicate PropertyDeclaration :
+  {
+    name : Name,
+    container : ContainerDeclaration,
+  }
+
+# Types of declarations in Hack
+type Declaration =
+  {
+    classConst : ClassConstDeclaration |
+    container : ContainerDeclaration |
+    enumerator : Enumerator |
+    function_ : FunctionDeclaration |
+    globalConst : GlobalConstDeclaration |
+    namespace_ : NamespaceDeclaration |
+    method : MethodDeclaration |
+    property_ : PropertyDeclaration |
+    typeConst : TypeConstDeclaration |
+    typedef_ : TypedefDeclaration |
+    module : ModuleDeclaration |
+  }
+
+# The location of a declaration, spanning the name declared only
+predicate DeclarationLocation :
+  {
+    declaration : Declaration,
+    file : src.File,
+    span : src.ByteSpan,
+  }
+
+# The location of a declaration and any accompanying definition (the same source
+# location in Hack), spanning the whole declaration/definition construct.
+#
+# Known quirk: the spans in the Hack AST include leading attributes/types for
+# most constructs, but these are excluded from the span location for container
+# properties, eg: the span of class property `protected string $foo = "bar";`
+# starts at `$foo` rather than `protected`.
+#
+# For modules, the span is the whole "new module Foo {}" expression
+predicate DeclarationSpan :
+  {
+    declaration : Declaration,
+    file : src.File,
+    span : src.ByteSpan,
+  }
+
+# For efficient queries across all declarations in a given file.
+predicate FileDeclarations :
+  {
+    file : src.File,
+    declarations : [Declaration],
+  }
+
+# Documentation comment for a given declaration
+predicate DeclarationComment :
+  {
+    declaration : Declaration,
+    file : src.File,
+    span : src.ByteSpan,
+  }
+
+type ModuleMembership = { declaration: ModuleDeclaration, internal: bool}
+
+# Package information for a given file.
+predicate Package_ : string
+
+predicate FilePackage :
+  {
+    file : src.File,
+    package_ : Package_,
+    hasPackageOverride : bool,
+  }
+
+predicate FileHasPackageOverride : src.File
+stored F where FilePackage { F, _, true }
+
+#  File F has a redundant PackageOverride('prod') if
+# none of the files that refer to any of the declarations
+# in F belong to package 'prod'
+predicate FileHasRedundantPackageOverride : src.File
+F where
+  hack.FileHasPackageOverride F;
+  hack.FilePackage { file = F, package_ = "prod" };
+  !(hack.FileDeclarations { file = F, declarations = Decls };
+    Decl = Decls[..];
+    Target = hack.XRefTarget { declaration = Decl };
+    hack.TargetUses { target = Target, file = ReferralFile };
+    ReferralFile != F;
+    !hack.TargetNotUsedInProdBuild { target = Target, file = ReferralFile };
+    hack.FilePackage { file = ReferralFile, package_ = "prod" })
+
+# Infos related to a hack module
+predicate ModuleDefinition :
+  {
+    declaration : ModuleDeclaration,
+    attributes : [UserAttribute],
+  }
+
+predicate MemberCluster :
+  {
+    members : [Declaration]
+  }
+
+# All declarations in a container coming from a parent class (recursively)
+# or a trait. Doesn't include the declarations that directly defined
+# in the container. Members are grouped in clusters for storage efficiency.
+predicate InheritedMembers :
+  {
+    container : ContainerDeclaration,
+    inheritedMembers : [MemberCluster],
+  }
+
+# Definition of a Hack class
+predicate ClassDefinition :
+  {
+    declaration : ClassDeclaration,
+    isAbstract : bool,
+    isFinal : bool,
+    members : [Declaration],
+    extends_ : maybe ClassDeclaration,
+    implements_ : [InterfaceDeclaration],
+    uses : [TraitDeclaration],
+    attributes : [UserAttribute],
+    typeParams : [TypeParameter],
+    module_ : maybe ModuleMembership,
+  }
+
+# Definition of a Hack interface
+predicate InterfaceDefinition :
+  {
+    declaration : InterfaceDeclaration,
+    members : [Declaration],
+    extends_ : [InterfaceDeclaration],
+    attributes : [UserAttribute],
+    typeParams : [TypeParameter],
+    requireExtends : [ClassDeclaration],
+    module_ : maybe ModuleMembership,
+  }
+
+# Definition of a Hack trait
+predicate TraitDefinition :
+  {
+    declaration : TraitDeclaration,
+    members : [Declaration],
+    implements_ : [InterfaceDeclaration],
+    uses : [TraitDeclaration],
+    attributes : [UserAttribute],
+    typeParams : [TypeParameter],
+    requireExtends : [ClassDeclaration],
+    requireImplements : [InterfaceDeclaration],
+    module_ : maybe ModuleMembership,
+    requireClass : maybe [ClassDeclaration],
+    requireThisAs : [ClassDeclaration],
+  }
+
+# Definition of a Hack enum
+predicate EnumDefinition :
+  {
+    declaration : EnumDeclaration,
+    enumBase: Type,  # deprecated, replaced by TypeInfo
+    enumBaseTypeInfo: maybe TypeInfo,
+    # 'as' type; always nothing for enum classes
+    enumConstraint: maybe Type,
+    enumConstraintTypeInfo: maybe TypeInfo,
+    enumerators : [Enumerator],
+    attributes : [UserAttribute],
+    # uses for normal enums, and extends for enum classes
+    includes : [EnumDeclaration],
+    isEnumClass : bool,
+    module_ : maybe ModuleMembership,
+  }
+
+# Definition of a Hack typedef/alias
+predicate TypedefDefinition :
+  {
+    declaration : TypedefDeclaration,
+    isTransparent : bool,
+    attributes : [UserAttribute],
+    typeParams : [TypeParameter],
+    module_ : maybe ModuleMembership,
+  }
+
+# Definition of a Hack method (member function)
+predicate MethodDefinition :
+  {
+    declaration: MethodDeclaration,
+    signature : Signature,
+    visibility : Visibility,
+    isAbstract : bool,
+    isAsync : bool,
+    isFinal : bool,
+    isStatic : bool,
+    attributes : [UserAttribute],
+    typeParams : [TypeParameter],
+    isReadonlyThis : maybe bool,
+    readonlyRet : maybe ReadonlyKind,
+  }
+
+# Definition of a Hack property (container member variable)
+predicate PropertyDefinition :
+  {
+    declaration: PropertyDeclaration,
+    type : maybe Type,
+    visibility : Visibility,
+    isFinal : bool,
+    isAbstract : bool,
+    isStatic : bool,
+    attributes : [UserAttribute],
+    typeInfo: maybe TypeInfo
+  }
+
+# Definition of a Hack global (top-level) constant
+predicate GlobalConstDefinition :
+  {
+    declaration : GlobalConstDeclaration,
+    type : maybe Type,
+    value : string,
+    typeInfo: maybe TypeInfo,
+  }
+
+# Definition of a member constant
+predicate ClassConstDefinition :
+  {
+    declaration : ClassConstDeclaration,
+    type : maybe Type,
+    # A none/nothing value indicates an abstract const
+    value : maybe string,
+    typeInfo: maybe TypeInfo
+  }
+
+type TypeConstKind = enum { Abstract | Concrete | PartiallyAbstract }
+
+# Definition of a member type constant
+predicate TypeConstDefinition :
+  {
+    declaration: TypeConstDeclaration,
+    type : maybe Type,
+    kind : TypeConstKind,
+    attributes : [UserAttribute],
+    typeInfo: maybe TypeInfo
+  }
+
+# Definition of a Hack function
+predicate FunctionDefinition :
+  {
+    declaration : FunctionDeclaration,
+    signature : Signature,
+    isAsync : bool,
+    attributes : [UserAttribute],
+    typeParams : [TypeParameter],
+    module_ : maybe ModuleMembership,
+    readonlyRet : maybe ReadonlyKind,
+    isClosure : bool,
+  }
+
+# Types of definitions in Hack
+type Definition =
+  {
+    class_ : ClassDefinition |
+    classConst : ClassConstDefinition |
+    enum_ : EnumDefinition |
+    function_ : FunctionDefinition |
+    globalConst : GlobalConstDefinition |
+    interface_ : InterfaceDefinition |
+    trait : TraitDefinition |
+    method : MethodDefinition |
+    property_ : PropertyDefinition |
+    typeConst : TypeConstDefinition |
+    typedef_ : TypedefDefinition |
+    module : ModuleDefinition |
+  }
+
+predicate DefinitionToDeclaration :
+  {
+    definition : Definition,
+    declaration : Declaration,
+  }
+  { { class_ = { declaration = Decl }}, { container = { class_ = Decl }}} |
+  { { classConst = { declaration = Decl }}, { classConst = Decl }} |
+  { { enum_ = { declaration = Decl }}, { container = { enum_ = Decl }}} |
+  { { function_ = { declaration = Decl }}, { function_ = Decl }} |
+  { { globalConst = { declaration = Decl }}, { globalConst = Decl }} |
+  { { interface_ = { declaration = Decl }}, { container = { interface_ = Decl }}} |
+  { { trait = { declaration = Decl }}, { container = { trait = Decl }}} |
+  { { method = { declaration = Decl }}, { method = Decl }} |
+  { { property_ = { declaration = Decl }}, { property_ = Decl }} |
+  { { typeConst = { declaration = Decl }}, { typeConst = Decl }} |
+  { { typedef_ = { declaration = Decl }}, { typedef_ = Decl }} |
+  { { module = { declaration = Decl }}, { module = Decl }}
+
+# Occurrences are symbols referenced where the class definition could not
+# be found. Expect the class name to be a special name like
+# HH_FIXME\MISSING_TYPE_IN_HIERARCHY
+predicate MethodOccurrence :
+  {
+    name: Name,
+    className: maybe Name,
+  }
+
+# Where possible we will store references to MethodDefinitions. However
+# if a method is dynamically invoked then we only know the method name
+# not the container so we will store it as an occurrence
+type Occurrence =
+  {
+    method : MethodOccurrence |
+  }
+
+# String literals that occur in expression context, rather than as the
+# definition of a top-level or class constant.  These must be escaped
+# if they are not valid UTF-8.
+predicate StringLiteral : string
+
+# Code that is referenced elsewhere
+type XRefTarget =
+  {
+    declaration : Declaration |
+    occurrence : Occurrence |
+  }
+
+# References to target code
+type XRef =
+  {
+    target : XRefTarget,
+    ranges : [src.RelByteSpan],
+  }
+
+# Cross-references to a target within a file. Note that the bytespan offsets
+# are relative to each other, not the start of the file, for efficiency.
+predicate FileXRefs :
+  {
+    file : src.File,
+    xrefs : set XRef,
+  }
+
+# Context-free information about an expression argument
+type Argument =
+  {
+    lit: StringLiteral |
+    xref: XRefTarget
+  }
+
+# An argument to a particular call.
+type CallArgument =
+  {
+    span: src.RelByteSpan,
+    argument: maybe Argument,
+  }
+
+# Information for all calls, organized by file and callee_span, which
+# should match an entry in FileXRefs.
+# callee_xref points to the called method/function.
+# dispatch_arg represents the implicit argument
+predicate FileCall :
+  {
+    file: src.File,
+    callee_span: src.ByteSpan,
+    call_args: [CallArgument],
+    callee_xref: maybe XRefTarget,  # deprecated in favor of callee_xrefs
+    dispatch_arg: maybe CallArgument,
+    receiver_type: maybe Declaration,
+    callee_xrefs: set XRefTarget,
+  }
+
+# All uses of a declaration in a file. Note that the bytespan offsets are
+# relative to each other, not the start of the file.
+predicate TargetUses :
+  {
+    target : hack.XRefTarget,
+    file : src.File,
+    uses : [src.RelByteSpan],
+  }
+  stored
+  { T, File, Uses } where
+  hack.FileXRefs { file = File, xrefs = XRefs };
+  hack.XRef { target = T, ranges = Uses } = elements XRefs
+
+# A version of 'TargetUses' with the bytespans converted from relative to
+# absolute offset format for convenience.
+predicate TargetUsesAbs :
+  {
+    target : hack.XRefTarget,
+    file : src.File,
+    uses : [src.ByteSpan],
+  }
+  { T, F, prim.relToAbsByteSpans U } where
+  hack.TargetUses { target = T, file = F, uses = U }
+
+# When building the prod deployment not all references are followed
+# This relation records the files that use the target in a position
+# NOT followed when building the prod deployment.
+predicate TargetNotUsedInProdBuild :
+  {
+    target: hack.XRefTarget,
+    file: src.File,
+  }
+
+predicate DeclarationTarget :
+  {
+    source: Declaration,
+    target: Declaration,
+  }
+
+predicate DeclarationSource :
+  {
+    target: Declaration,
+    source: Declaration,
+  }
+  stored
+  {T, S} where DeclarationTarget {S, T}
+
+# Maps lower-case strings to Name, for case-insensitive search
+predicate NameLowerCase :
+  {
+    nameLowercase : string,
+    name : Name,
+  }
+  stored
+  { prim.toLower Str, N } where N = Name Str
+
+# Definitions that contain an attribute
+predicate AttributeToDefinition :
+  {
+    attribute : UserAttribute,
+    definition : Definition,
+  }
+  stored
+  { AS[..], { class_ = { attributes = AS }}} |
+  { AS[..], { enum_ = { attributes = AS }}} |
+  { AS[..], { function_ = { attributes = AS }}} |
+  { AS[..], { interface_ = { attributes = AS }}} |
+  { AS[..], { trait = { attributes = AS }}} |
+  { AS[..], { method = { attributes = AS }}} |
+  { AS[..], { property_ = { attributes = AS }}} |
+  { AS[..], { typeConst = { attributes = AS }}} |
+  { AS[..], { typedef_ = { attributes = AS }}} |
+  { AS[..], { module = { attributes = AS }}}
+
+predicate AttributeHasParameter :
+  {
+    name : Name,
+    parameter : string,
+    attribute : UserAttribute,
+  }
+  stored
+  { N, PS[..], UserAttribute { N, PS, _ }}
+
+# Declarations within a namespace
+predicate NamespaceMember :
+  {
+    namespace_ : hack.NamespaceQName,
+    decl : hack.Declaration
+  }
+  stored
+  { NS, Decl } where DeclarationNamespace { Decl, NS }
+
+predicate DeclarationNamespace :
+  {
+    decl : hack.Declaration,
+    namespace_ : hack.NamespaceQName
+  }
+  { Decl, NS } where
+    Decl : hack.Declaration;
+    (
+      Decl.container?.class_?.name.namespace_.just? = NS
+    ) | (
+      Decl.container?.enum_?.name.namespace_.just? = NS
+    ) | (
+      Decl.container?.interface_?.name.namespace_.just? = NS
+    ) | (
+      Decl.container?.trait?.name.namespace_.just? = NS
+    ) | (
+      Decl.function_?.name.namespace_.just? = NS
+    ) | (
+      Decl.globalConst?.name.namespace_.just? = NS
+    ) | (
+      Decl.namespace_?.name.parent.just? = NS
+    ) | (
+      Decl.typedef_?.name.namespace_.just? = NS
+    )
+
+# Base name for a declaration (no namespace or container prefix)
+predicate DeclarationName : Declaration -> Name
+  D -> N where
+    (
+      D.classConst?.name = N
+    ) | (
+      D.container?.class_?.name.name = N
+    ) | (
+      D.container?.enum_?.name.name = N
+    ) | (
+      D.container?.interface_?.name.name = N
+    ) | (
+      D.container?.trait?.name.name = N
+    ) | (
+      D.enumerator?.name = N
+    ) | (
+      D.function_?.name.name = N
+    ) | (
+      D.globalConst?.name.name = N
+    ) | (
+      D.namespace_?.name.name = N
+    ) | (
+      D.method?.name = N
+    ) | (
+      D.property_?.name = N
+    ) | (
+      D.typeConst?.name = N
+    ) | (
+      D.module?.name = N
+    ) | (
+      D.typedef_?.name.name = N
+    )
+
+predicate ContainerDeclarationQName : ContainerDeclaration -> QName
+  D -> QName where
+    (
+      D.class_?.name = QName
+    ) | (
+      D.enum_?.name = QName
+    ) | (
+      D.interface_?.name = QName
+    ) | (
+      D.trait?.name = QName
+    )
+
+# Container that a given container directly inherits from
+# (via extends, implements, use)
+predicate ContainerParent :
+  {
+    container : hack.ContainerDeclaration,
+    parent : hack.ContainerDeclaration,
+  }
+  stored
+  { Child, Parent } where
+    (
+      hack.ClassDefinition C;
+      C.declaration = Child.class_?;
+      (
+        C.extends_.just? = Parent.class_?;
+      ) | (
+        C.uses[..] = Parent.trait?;
+      ) | (
+        C.implements_[..] = Parent.interface_?;
+      )
+    ) | (
+      hack.TraitDefinition T;
+      T.declaration = Child.trait?;
+      (
+        T.uses[..] = Parent.trait?;
+      ) | (
+        T.implements_[..] = Parent.interface_?;
+      )
+    ) | (
+      hack.InterfaceDefinition I;
+      I.declaration = Child.interface_?;
+      I.extends_[..] = Parent.interface_?;
+    ) | (
+      hack.EnumDefinition E;
+      E.declaration = Child.enum_?;
+      E.includes[..] = Parent.enum_?;
+    )
+
+predicate ContainerChild:
+  {
+    container : hack.ContainerDeclaration,
+    child : hack.ContainerDeclaration,
+  }
+  stored { Parent, Child }
+    where hack.ContainerParent { container=Child, parent=Parent }
+
+# parent module of any declaration
+predicate ModuleParent:
+  {
+    decl: hack.Declaration,
+    module: hack.ModuleDeclaration
+  }
+  { Decl, M.just?.declaration } where
+    (
+      hack.FunctionDefinition D;
+      Decl.function_? = D.declaration;
+      M = D.module_;
+    ) | (
+      hack.TypedefDefinition D;
+      Decl.typedef_? = D.declaration;
+      M = D.module_;
+    ) | (
+      Decl.container? = Container;
+      ( Container.class_? = CDecl;
+        hack.ClassDefinition D;
+        D.declaration = CDecl;
+        D.module_ = M;
+      ) | (
+        Container.enum_? = CDecl;
+        hack.EnumDefinition D;
+        D.declaration = CDecl;
+        D.module_ = M;
+      ) | (
+        Container.interface_? = CDecl;
+        hack.InterfaceDefinition I;
+        I.declaration = CDecl;
+        I.module_ = M;
+      ) | (
+        Container.trait? = CDecl;
+        hack.TraitDefinition T;
+        T.declaration = CDecl;
+        T.module_ = M;
+      )
+    )
+
+# derive children decls that are members of a parent module
+predicate ModuleChild:
+  {
+    module: hack.ModuleDeclaration,
+    decl : hack.Declaration
+  } stored { Module, Decl } where hack.ModuleParent { Decl, Module }
+
+#  Generally, method "derived" overrides "base", if "derived" would have been inherited
+#  in case where "base" wasn't defined.
+#  Note that class methods implementing interface aren't considered as override, but
+#  trait methods can override interface methods.
+predicate MethodOverrides :
+  {
+    derived : MethodDeclaration,
+    base : MethodDeclaration,
+    annotation : maybe bool,
+  }
+
+# hack.MethodsOverrides can look up from derived to base; reverse this
+# here to look up from base to derived
+predicate MethodOverridden :
+  {
+    base : MethodDeclaration,
+    derived : MethodDeclaration,
+    annotation : maybe bool,
+  }
+  stored
+  {Base, Derived, Annotation}
+  where
+    hack.MethodOverrides{
+      derived = Derived,
+      base = Base,
+      annotation = Annotation
+    }
+
+# Maps an attribute to its defining class, and file where the class is defined
+predicate AttributeToDeclaration :
+  {
+    attribute : UserAttribute,
+    declaration : Declaration,
+    file : src.File
+  }
+  stored
+  { Attr, Decl, File } where
+    Attr.name = Decl.container?.class_?.name.name;
+    DeclarationLocation { declaration = Decl, file = File };
+
+    # TODO qname for attributes aren't filled by the indexer yet
+    # See T111862540. Also this should be a stored predicate
+    # In the meantime, we just use the name. It'll work as
+    # attribute names are never qualified in the codebase.
+    # The correct version is below
+    # { qname = { just = Q } } = A;
+    # { container = { class_ = { name = Q } } } = D
+
+# Store arrays of Md5 hashes which characterize indexer inputs.
+# This is used for incremental indexing to avoid regenerating
+# existing facts.
+#
+# Hash is specified by the indexer, roughly defined as
+# md5(filename||symbols_def). It characterizes the "external"
+# symbols within a hack file.
+#
+# The key string is the name of the batch of files used to
+# generate the array.
+#
+# This is experimental and may change in the future
+predicate IndexerInputsHash : string -> [byte]
+
+# Generated from `auto_namespace_map` in .hhconfig
+predicate GlobalNamespaceAlias : { from: Name, to: NamespaceQName }
+
+predicate HackToThrift:
+  {
+    from: hack.Declaration,
+    to: fbthrift.Declaration
+  }
+
+predicate ThriftToHack:
+  {
+    to: fbthrift.Declaration,
+    from: hack.Declaration
+  }
+  stored { To, From }
+    where hack.HackToThrift { From, To }
+
+#
+# kind-oriented search. We have one table for string to decl for each kind,
+# and one table of lowercase name to normal name for each kind. the keys to the
+# decl form are always the local namestr and parent scope.
+#
+# no more searching through all hack.Name facts.
+#
+
+predicate SearchClassConstByName:
+  {
+    name: string,
+    parent: QName, # parent container
+    decl: hack.Declaration
+  } stored { NameStr, Parent, Decl } where
+    D = hack.ClassConstDeclaration { Name NameStr, C };
+    ContainerDeclarationQName C -> Parent;
+    { classConst = D } = Decl
+
+predicate SearchClassConstByLowerCaseName:
+  {
+    name_lowercase: string,
+    name: string
+  } stored { prim.toLower NameStr, NameStr } where
+    hack.ClassConstDeclaration { name = Name NameStr }
+
+predicate SearchEnumeratorByName:
+  {
+    name: string,
+    parent: QName, # parent container
+    decl: hack.Declaration
+  } stored { NameStr, Parent, Decl } where
+    D = hack.Enumerator { Name NameStr, { name = Parent } };
+    { enumerator = D } = Decl
+
+predicate SearchEnumeratorByLowerCaseName:
+  {
+    name_lowercase: string,
+    name: string
+  } stored { prim.toLower NameStr, NameStr } where
+    hack.Enumerator { name = Name NameStr }
+
+predicate SearchMethodByName:
+  {
+    name: string,
+    parent: QName, # parent container
+    decl: hack.Declaration
+  } stored { NameStr, Parent, Decl } where
+    D = hack.MethodDeclaration { Name NameStr, C };
+    ContainerDeclarationQName C -> Parent;
+    { method = D } = Decl
+
+predicate SearchMethodByLowerCaseName:
+  {
+    name_lowercase: string,
+    name: string
+  } stored { prim.toLower NameStr, NameStr } where
+    hack.MethodDeclaration { name = Name NameStr }
+
+predicate SearchPropertyByName:
+  {
+    name: string,
+    parent: QName, # parent container
+    decl: hack.Declaration
+  } stored { NameStr, Parent, Decl } where
+    D = hack.PropertyDeclaration { Name NameStr, C };
+    ContainerDeclarationQName C -> Parent;
+    { property_ = D } = Decl
+
+predicate SearchPropertyByLowerCaseName:
+  {
+    name_lowercase: string,
+    name: string
+  } stored { prim.toLower NameStr, NameStr } where
+    hack.PropertyDeclaration { name = Name NameStr }
+
+predicate SearchTypeConstByName:
+  {
+    name: string,
+    parent: QName, # parent container
+    decl: hack.Declaration
+  } stored { NameStr, Parent, Decl } where
+    D = hack.TypeConstDeclaration { Name NameStr, C };
+    ContainerDeclarationQName C -> Parent;
+    { typeConst = D } = Decl
+
+predicate SearchTypeConstByLowerCaseName:
+  {
+    name_lowercase: string,
+    name: string
+  } stored { prim.toLower NameStr, NameStr } where
+    hack.TypeConstDeclaration { name = Name NameStr }
+
+predicate SearchModuleByName:
+  {
+    name: string,
+    decl: hack.Declaration
+  } stored { NameStr, Decl } where
+    D = hack.ModuleDeclaration { name = Name NameStr };
+    { module = D } = Decl
+
+predicate SearchModuleByLowerCaseName:
+  {
+    name_lowercase: string,
+    name: string
+  } stored { prim.toLower NameStr, NameStr } where
+    hack.ModuleDeclaration { name = Name NameStr }
+
+predicate SearchClassByName:
+  {
+    name: string,
+    parent: maybe NamespaceQName,
+    decl: hack.Declaration
+  } stored { NameStr, Parent, Decl } where
+    D = hack.ClassDeclaration { name = QName };
+    { Name NameStr, Parent } = QName;
+    { container = { class_ = D } } = Decl
+
+predicate SearchClassByLowerCaseName:
+  {
+    name_lowercase: string,
+    name: string
+  } stored { prim.toLower NameStr, NameStr } where
+    hack.ClassDeclaration { name = QName };
+    { name = Name NameStr } = QName
+
+predicate SearchInterfaceByName:
+  {
+    name: string,
+    parent: maybe NamespaceQName,
+    decl: hack.Declaration
+  } stored { NameStr, Parent, Decl } where
+    D = hack.InterfaceDeclaration { name = QName };
+    { Name NameStr, Parent } = QName;
+    { container = { interface_ = D } } = Decl
+
+predicate SearchInterfaceByLowerCaseName:
+  {
+    name_lowercase: string,
+    name: string
+  } stored { prim.toLower NameStr, NameStr } where
+    hack.InterfaceDeclaration { name = QName };
+    { name = Name NameStr } = QName
+
+predicate SearchTraitByName:
+  {
+    name: string,
+    parent: maybe NamespaceQName,
+    decl: hack.Declaration
+  } stored { NameStr, Parent, Decl } where
+    D = hack.TraitDeclaration { name = QName };
+    { Name NameStr, Parent } = QName;
+    { container = { trait = D } } = Decl
+
+predicate SearchTraitByLowerCaseName:
+  {
+    name_lowercase: string,
+    name: string
+  } stored { prim.toLower NameStr, NameStr } where
+    hack.TraitDeclaration { name = QName };
+    { name = Name NameStr } = QName
+
+predicate SearchEnumByName:
+  {
+    name: string,
+    parent: maybe NamespaceQName,
+    decl: hack.Declaration
+  } stored { NameStr, Parent, Decl } where
+    D = hack.EnumDeclaration { name = QName };
+    { Name NameStr, Parent } = QName;
+    { container = { enum_ = D } } = Decl
+
+predicate SearchEnumByLowerCaseName:
+  {
+    name_lowercase: string,
+    name: string
+  } stored { prim.toLower NameStr, NameStr } where
+    hack.EnumDeclaration { name = QName };
+    { name = Name NameStr } = QName
+
+predicate SearchFunctionByName:
+  {
+    name: string,
+    parent: maybe NamespaceQName,
+    decl: hack.Declaration
+  } stored { NameStr, Parent, Decl } where
+    D = hack.FunctionDeclaration { name = QName };
+    { Name NameStr, Parent } = QName;
+    { function_ = D } = Decl
+
+predicate SearchFunctionByLowerCaseName:
+  {
+    name_lowercase: string,
+    name: string
+  } stored { prim.toLower NameStr, NameStr } where
+    hack.FunctionDeclaration { name = QName };
+    { name = Name NameStr } = QName
+
+predicate SearchGlobalConstByName:
+  {
+    name: string,
+    parent: maybe NamespaceQName,
+    decl: hack.Declaration
+  } stored { NameStr, Parent, Decl } where
+    D = hack.GlobalConstDeclaration { name = QName };
+    { Name NameStr, Parent } = QName;
+    { globalConst = D } = Decl
+
+predicate SearchGlobalConstByLowerCaseName:
+  {
+    name_lowercase: string,
+    name: string
+  } stored { prim.toLower NameStr, NameStr } where
+    hack.GlobalConstDeclaration { name = QName };
+    { name = Name NameStr } = QName
+
+predicate SearchTypedefByName:
+  {
+    name: string,
+    parent: maybe NamespaceQName,
+    decl: hack.Declaration
+  } stored { NameStr, Parent, Decl } where
+    D = hack.TypedefDeclaration { name = QName };
+    { Name NameStr, Parent } = QName;
+    { typedef_ = D } = Decl
+
+predicate SearchTypedefByLowerCaseName:
+  {
+    name_lowercase: string,
+    name: string
+  } stored { prim.toLower NameStr, NameStr } where
+    hack.TypedefDeclaration { name = QName };
+    { name = Name NameStr } = QName
+
+predicate SearchNamespaceByName:
+  {
+    name: string,
+    parent: maybe NamespaceQName,
+    decl: hack.Declaration
+  } stored { NameStr, Parent, Decl } where
+    D = hack.NamespaceDeclaration { name = NSQName };
+    { Name NameStr, Parent } = NSQName;
+    { namespace_ = D } = Decl
+
+predicate SearchNamespaceByLowerCaseName:
+  {
+    name_lowercase: string,
+    name: string
+  } stored { prim.toLower NameStr, NameStr } where
+    hack.NamespaceDeclaration { name = NSQName };
+    { name = Name NameStr } = NSQName
+
+predicate NonClosureDeclaration : hack.Declaration
+  D where
+    (
+      D.classConst? = _
+    ) | (
+      D.container? = _
+    ) | (
+      D.enumerator? = _
+    ) | (
+      F = D.function_?;
+      hack.FunctionDefinition { declaration = F, isClosure = false }
+    ) | (
+      D.globalConst? = _
+    ) | (
+      D.namespace_? = _
+    ) | (
+      D.method? = _
+    ) | (
+      D.property_? = _
+    ) | (
+      D.typeConst? = _
+    ) | (
+      D.typedef_? = _
+    ) | (
+      D.module? = _
+    )
+
+# Like FileDeclarations but excludes closure functions.
+# Stores individual (file, declaration) pairs rather than arrays.
+predicate FileNonClosureDeclarations :
+  {
+    file : src.File,
+    declaration : Declaration,
+  }
+  stored
+  { File, D } where
+    hack.FileDeclarations { file = File, declarations = Decls };
+    D = Decls[..];
+    hack.NonClosureDeclaration D
+
+
+
+} # end hack.angle

@@ -1,0 +1,31 @@
+[
+  "@generated",
+  {
+    "key": {
+      "file": { "key": "app_a/src/server.erl" },
+      "name": "server",
+      "app": "app_a"
+    }
+  },
+  {
+    "key": {
+      "file": { "key": "app_a/src/utils.erl" },
+      "name": "utils",
+      "app": "app_a"
+    }
+  },
+  {
+    "key": {
+      "file": { "key": "app_b/src/client.erl" },
+      "name": "client",
+      "app": "app_b"
+    }
+  },
+  {
+    "key": {
+      "file": { "key": "app_b/src/internal.erl" },
+      "name": "internal",
+      "app": "app_b"
+    }
+  }
+]

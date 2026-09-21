@@ -1,0 +1,190 @@
+[
+  "@generated",
+  {
+    "key": {
+      "file": { "key": "test.cpp" },
+      "fixed": [
+        {
+          "target": {
+            "declaration": {
+              "namespace_": {
+                "key": {
+                  "name": { "key": { "name": { "key": "N1" } } },
+                  "source": {
+                    "file": { "key": "test.cpp" },
+                    "lineBegin": 9,
+                    "columnBegin": 1,
+                    "lineEnd": 13,
+                    "columnEnd": 1
+                  }
+                }
+              }
+            }
+          },
+          "from": {
+            "spans": [
+              {
+                "length": 2,
+                "offsets": [ 293, 10, 93, 23, 90, 13, 55, 13, 76, 55 ]
+              }
+            ],
+            "expansions": [ ],
+            "spellings": [ ]
+          }
+        },
+        {
+          "target": {
+            "declaration": {
+              "enum_": {
+                "key": {
+                  "name": {
+                    "key": {
+                      "name": { "key": "E" },
+                      "scope": {
+                        "namespace_": { "key": { "name": { "key": "N1" } } }
+                      }
+                    }
+                  },
+                  "isScoped": false,
+                  "source": {
+                    "file": { "key": "test.cpp" },
+                    "lineBegin": 11,
+                    "columnBegin": 1,
+                    "lineEnd": 11,
+                    "columnEnd": 18
+                  }
+                }
+              }
+            }
+          },
+          "from": {
+            "spans": [
+              { "length": 1, "offsets": [ 307, 93, 126, 55, 89, 55 ] }
+            ],
+            "expansions": [ ],
+            "spellings": [ ]
+          }
+        },
+        {
+          "target": {
+            "enumerator": {
+              "key": {
+                "name": { "key": "A" },
+                "enumeration": {
+                  "key": {
+                    "name": {
+                      "key": {
+                        "name": { "key": "E" },
+                        "scope": {
+                          "namespace_": { "key": { "name": { "key": "N1" } } }
+                        }
+                      }
+                    },
+                    "isScoped": false,
+                    "source": {
+                      "file": { "key": "test.cpp" },
+                      "lineBegin": 11,
+                      "columnBegin": 1,
+                      "lineEnd": 11,
+                      "columnEnd": 18
+                    }
+                  }
+                },
+                "source": {
+                  "file": { "key": "test.cpp" },
+                  "lineBegin": 11,
+                  "columnBegin": 10,
+                  "lineEnd": 11,
+                  "columnEnd": 10
+                }
+              }
+            }
+          },
+          "from": {
+            "spans": [ { "length": 1, "offsets": [ 513, 81 ] } ],
+            "expansions": [ ],
+            "spellings": [ ]
+          }
+        },
+        {
+          "target": {
+            "declaration": {
+              "namespace_": {
+                "key": {
+                  "name": { "key": { "name": { "key": "N21" } } },
+                  "source": {
+                    "file": { "key": "test.cpp" },
+                    "lineBegin": 15,
+                    "columnBegin": 1,
+                    "lineEnd": 24,
+                    "columnEnd": 1
+                  }
+                }
+              }
+            }
+          },
+          "from": {
+            "spans": [ { "length": 3, "offsets": [ 655 ] } ],
+            "expansions": [ ],
+            "spellings": [ ]
+          }
+        },
+        {
+          "target": {
+            "declaration": {
+              "namespace_": {
+                "key": {
+                  "name": { "key": { "name": { "key": "N22" } } },
+                  "source": {
+                    "file": { "key": "test.cpp" },
+                    "lineBegin": 26,
+                    "columnBegin": 1,
+                    "lineEnd": 35,
+                    "columnEnd": 1
+                  }
+                }
+              }
+            }
+          },
+          "from": {
+            "spans": [ { "length": 3, "offsets": [ 744 ] } ],
+            "expansions": [ ],
+            "spellings": [ ]
+          }
+        }
+      ],
+      "froms": [
+        {
+          "spans": [ { "length": 1, "offsets": [ 326 ] } ],
+          "expansions": [ ],
+          "spellings": [ ]
+        },
+        {
+          "spans": [ { "length": 1, "offsets": [ 439 ] } ],
+          "expansions": [ ],
+          "spellings": [ ]
+        },
+        {
+          "spans": [ { "length": 1, "offsets": [ 545 ] } ],
+          "expansions": [ ],
+          "spellings": [ ]
+        },
+        {
+          "spans": [ { "length": 1, "offsets": [ 613 ] } ],
+          "expansions": [ ],
+          "spellings": [ ]
+        },
+        {
+          "spans": [ { "length": 1, "offsets": [ 689 ] } ],
+          "expansions": [ ],
+          "spellings": [ ]
+        },
+        {
+          "spans": [ { "length": 1, "offsets": [ 765 ] } ],
+          "expansions": [ ],
+          "spellings": [ ]
+        }
+      ]
+    }
+  }
+]

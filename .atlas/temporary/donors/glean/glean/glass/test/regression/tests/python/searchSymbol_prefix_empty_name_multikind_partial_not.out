@@ -1,0 +1,398 @@
+[
+    "@generated",
+    {
+        "symbolDetails": [],
+        "symbols": [
+            {
+                "context": {
+                    "qname": {
+                        "container": "",
+                        "localName": "all"
+                    },
+                    "symbol": "test/py/all.py/all"
+                },
+                "kind": 14,
+                "language": 7,
+                "location": {
+                    "filepath": "all.py",
+                    "range": {
+                        "columnBegin": 1,
+                        "columnEnd": 21,
+                        "lineBegin": 19,
+                        "lineEnd": 21
+                    },
+                    "repository": "test"
+                },
+                "name": "all.fn",
+                "qname": {
+                    "container": "all",
+                    "localName": "fn"
+                },
+                "score": {
+                    "exactness": 2
+                },
+                "symbol": "test/py/all.py/all.fn"
+            },
+            {
+                "context": {
+                    "qname": {
+                        "container": "",
+                        "localName": "as"
+                    },
+                    "symbol": "test/py/as.py/as"
+                },
+                "kind": 14,
+                "language": 7,
+                "location": {
+                    "filepath": "as.py",
+                    "range": {
+                        "columnBegin": 1,
+                        "columnEnd": 21,
+                        "lineBegin": 10,
+                        "lineEnd": 16
+                    },
+                    "repository": "test"
+                },
+                "name": "as.fn",
+                "qname": {
+                    "container": "as",
+                    "localName": "fn"
+                },
+                "score": {
+                    "exactness": 2
+                },
+                "symbol": "test/py/as.py/as.fn"
+            },
+            {
+                "context": {
+                    "qname": {
+                        "container": "",
+                        "localName": "as"
+                    },
+                    "symbol": "test/py/as.py/as"
+                },
+                "kind": 14,
+                "language": 7,
+                "location": {
+                    "filepath": "as.py",
+                    "range": {
+                        "columnBegin": 1,
+                        "columnEnd": 13,
+                        "lineBegin": 20,
+                        "lineEnd": 21
+                    },
+                    "repository": "test"
+                },
+                "name": "as.func_sleep",
+                "qname": {
+                    "container": "as",
+                    "localName": "func_sleep"
+                },
+                "score": {
+                    "exactness": 2
+                },
+                "symbol": "test/py/as.py/as.func_sleep"
+            },
+            {
+                "context": {
+                    "qname": {
+                        "container": "",
+                        "localName": "as"
+                    },
+                    "symbol": "test/py/as.py/as"
+                },
+                "kind": 14,
+                "language": 7,
+                "location": {
+                    "filepath": "as.py",
+                    "range": {
+                        "columnBegin": 1,
+                        "columnEnd": 16,
+                        "lineBegin": 58,
+                        "lineEnd": 65
+                    },
+                    "repository": "test"
+                },
+                "name": "as.more_fun_things",
+                "qname": {
+                    "container": "as",
+                    "localName": "more_fun_things"
+                },
+                "score": {
+                    "exactness": 2
+                },
+                "symbol": "test/py/as.py/as.more_fun_things"
+            },
+            {
+                "context": {
+                    "qname": {
+                        "container": "",
+                        "localName": "as"
+                    },
+                    "symbol": "test/py/as.py/as"
+                },
+                "kind": 14,
+                "language": 7,
+                "location": {
+                    "filepath": "as.py",
+                    "range": {
+                        "columnBegin": 1,
+                        "columnEnd": 17,
+                        "lineBegin": 42,
+                        "lineEnd": 55
+                    },
+                    "repository": "test"
+                },
+                "name": "as.pep570_posonly_test_kwonly",
+                "qname": {
+                    "container": "as",
+                    "localName": "pep570_posonly_test_kwonly"
+                },
+                "score": {
+                    "exactness": 2
+                },
+                "symbol": "test/py/as.py/as.pep570_posonly_test_kwonly"
+            },
+            {
+                "context": {
+                    "qname": {
+                        "container": "",
+                        "localName": "as"
+                    },
+                    "symbol": "test/py/as.py/as"
+                },
+                "kind": 14,
+                "language": 7,
+                "location": {
+                    "filepath": "as.py",
+                    "range": {
+                        "columnBegin": 1,
+                        "columnEnd": 14,
+                        "lineBegin": 24,
+                        "lineEnd": 33
+                    },
+                    "repository": "test"
+                },
+                "name": "as.test_fun",
+                "qname": {
+                    "container": "as",
+                    "localName": "test_fun"
+                },
+                "score": {
+                    "exactness": 2
+                },
+                "symbol": "test/py/as.py/as.test_fun"
+            },
+            {
+                "context": {
+                    "qname": {
+                        "container": "",
+                        "localName": "as"
+                    },
+                    "symbol": "test/py/as.py/as"
+                },
+                "kind": 14,
+                "language": 7,
+                "location": {
+                    "filepath": "as.py",
+                    "range": {
+                        "columnBegin": 1,
+                        "columnEnd": 14,
+                        "lineBegin": 35,
+                        "lineEnd": 39
+                    },
+                    "repository": "test"
+                },
+                "name": "as.test_more_fun",
+                "qname": {
+                    "container": "as",
+                    "localName": "test_more_fun"
+                },
+                "score": {
+                    "exactness": 2
+                },
+                "symbol": "test/py/as.py/as.test_more_fun"
+            },
+            {
+                "context": {
+                    "qname": {
+                        "container": "",
+                        "localName": "big_lib"
+                    },
+                    "symbol": "test/py/big_lib/big_lib"
+                },
+                "kind": 14,
+                "language": 7,
+                "location": {
+                    "filepath": "big_lib/__init__.py",
+                    "range": {
+                        "columnBegin": 1,
+                        "columnEnd": 19,
+                        "lineBegin": 8,
+                        "lineEnd": 9
+                    },
+                    "repository": "test"
+                },
+                "name": "big_lib.big_func",
+                "qname": {
+                    "container": "big_lib",
+                    "localName": "big_func"
+                },
+                "score": {
+                    "exactness": 2
+                },
+                "symbol": "test/py/big_lib/big_lib.big_func"
+            },
+            {
+                "context": {
+                    "qname": {
+                        "container": "",
+                        "localName": "lib"
+                    },
+                    "symbol": "test/py/lib.py/lib"
+                },
+                "kind": 14,
+                "language": 7,
+                "location": {
+                    "filepath": "lib.py",
+                    "range": {
+                        "columnBegin": 1,
+                        "columnEnd": 25,
+                        "lineBegin": 28,
+                        "lineEnd": 29
+                    },
+                    "repository": "test"
+                },
+                "name": "lib.helper_func",
+                "qname": {
+                    "container": "lib",
+                    "localName": "helper_func"
+                },
+                "score": {
+                    "exactness": 2
+                },
+                "symbol": "test/py/lib.py/lib.helper_func"
+            },
+            {
+                "context": {
+                    "qname": {
+                        "container": "",
+                        "localName": "main"
+                    },
+                    "symbol": "test/py/main.py/main"
+                },
+                "kind": 14,
+                "language": 7,
+                "location": {
+                    "filepath": "main.py",
+                    "range": {
+                        "columnBegin": 1,
+                        "columnEnd": 13,
+                        "lineBegin": 9,
+                        "lineEnd": 15
+                    },
+                    "repository": "test"
+                },
+                "name": "main.f",
+                "qname": {
+                    "container": "main",
+                    "localName": "f"
+                },
+                "score": {
+                    "exactness": 2
+                },
+                "symbol": "test/py/main.py/main.f"
+            },
+            {
+                "context": {
+                    "qname": {
+                        "container": "",
+                        "localName": "main"
+                    },
+                    "symbol": "test/py/main.py/main"
+                },
+                "kind": 14,
+                "language": 7,
+                "location": {
+                    "filepath": "main.py",
+                    "range": {
+                        "columnBegin": 1,
+                        "columnEnd": 13,
+                        "lineBegin": 18,
+                        "lineEnd": 22
+                    },
+                    "repository": "test"
+                },
+                "name": "main.g",
+                "qname": {
+                    "container": "main",
+                    "localName": "g"
+                },
+                "score": {
+                    "exactness": 2
+                },
+                "symbol": "test/py/main.py/main.g"
+            },
+            {
+                "context": {
+                    "qname": {
+                        "container": "main",
+                        "localName": "g"
+                    },
+                    "symbol": "test/py/main.py/main.g"
+                },
+                "kind": 14,
+                "language": 7,
+                "location": {
+                    "filepath": "main.py",
+                    "range": {
+                        "columnBegin": 5,
+                        "columnEnd": 13,
+                        "lineBegin": 21,
+                        "lineEnd": 22
+                    },
+                    "repository": "test"
+                },
+                "name": "main.g.<locals>.h",
+                "qname": {
+                    "container": "main.g.<locals>",
+                    "localName": "h"
+                },
+                "score": {
+                    "exactness": 2
+                },
+                "symbol": "test/py/main.py/main.g.%3Clocals%3E.h"
+            },
+            {
+                "context": {
+                    "qname": {
+                        "container": "",
+                        "localName": "shadow"
+                    },
+                    "symbol": "test/py/shadow.py/shadow"
+                },
+                "kind": 14,
+                "language": 7,
+                "location": {
+                    "filepath": "shadow.py",
+                    "range": {
+                        "columnBegin": 1,
+                        "columnEnd": 32,
+                        "lineBegin": 16,
+                        "lineEnd": 22
+                    },
+                    "repository": "test"
+                },
+                "name": "shadow.shadow_func",
+                "qname": {
+                    "container": "shadow",
+                    "localName": "shadow_func"
+                },
+                "score": {
+                    "exactness": 2
+                },
+                "symbol": "test/py/shadow.py/shadow.shadow_func"
+            }
+        ]
+    }
+]

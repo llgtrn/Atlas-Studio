@@ -1,0 +1,449 @@
+[
+  "@generated",
+  {
+    "key": {
+      "source": {
+        "func": {
+          "key": {
+            "fqn": { "module": "client", "name": "batch_send", "arity": 1 },
+            "app": "app_b"
+          }
+        }
+      },
+      "target": {
+        "func": {
+          "key": {
+            "fqn": { "module": "client", "name": "send_request", "arity": 1 },
+            "app": "app_b"
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "source": {
+        "func": {
+          "key": {
+            "fqn": { "module": "client", "name": "batch_send", "arity": 1 },
+            "app": "app_b"
+          }
+        }
+      },
+      "target": {
+        "func": {
+          "key": {
+            "fqn": { "module": "lists", "name": "map", "arity": 2 },
+            "app": "stdlib"
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "source": {
+        "func": {
+          "key": {
+            "fqn": { "module": "client", "name": "send_request", "arity": 1 },
+            "app": "app_b"
+          }
+        }
+      },
+      "target": {
+        "func": {
+          "key": {
+            "fqn": { "module": "erlang", "name": "unique_integer", "arity": 0 },
+            "app": "erts"
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "source": {
+        "func": {
+          "key": {
+            "fqn": { "module": "client", "name": "send_request", "arity": 1 },
+            "app": "app_b"
+          }
+        }
+      },
+      "target": {
+        "func": {
+          "key": {
+            "fqn": { "module": "server", "name": "handle_request", "arity": 1 },
+            "app": "app_a"
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "source": {
+        "func": {
+          "key": {
+            "fqn": { "module": "client", "name": "send_request", "arity": 1 },
+            "app": "app_b"
+          }
+        }
+      },
+      "target": {
+        "func": {
+          "key": {
+            "fqn": { "module": "utils", "name": "validate", "arity": 1 },
+            "app": "app_a"
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "source": {
+        "func": {
+          "key": {
+            "fqn": { "module": "client", "name": "send_request", "arity": 1 },
+            "app": "app_b"
+          }
+        }
+      },
+      "target": {
+        "record_": {
+          "key": { "name": "request", "module": "shared.hrl", "app": "app_a" }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "source": {
+        "func": {
+          "key": {
+            "fqn": { "module": "internal", "name": "run", "arity": 0 },
+            "app": "app_b"
+          }
+        }
+      },
+      "target": {
+        "func": {
+          "key": {
+            "fqn": { "module": "io_lib", "name": "format", "arity": 2 },
+            "app": "stdlib"
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "source": {
+        "func": {
+          "key": {
+            "fqn": { "module": "internal", "name": "run", "arity": 0 },
+            "app": "app_b"
+          }
+        }
+      },
+      "target": {
+        "func": {
+          "key": {
+            "fqn": { "module": "lists", "name": "filter", "arity": 2 },
+            "app": "stdlib"
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "source": {
+        "func": {
+          "key": {
+            "fqn": { "module": "internal", "name": "run", "arity": 0 },
+            "app": "app_b"
+          }
+        }
+      },
+      "target": {
+        "func": {
+          "key": {
+            "fqn": { "module": "lists", "name": "flatten", "arity": 1 },
+            "app": "stdlib"
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "source": {
+        "func": {
+          "key": {
+            "fqn": { "module": "internal", "name": "run", "arity": 0 },
+            "app": "app_b"
+          }
+        }
+      },
+      "target": {
+        "func": {
+          "key": {
+            "fqn": { "module": "utils", "name": "format_id", "arity": 1 },
+            "app": "app_a"
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "source": {
+        "func": {
+          "key": {
+            "fqn": { "module": "internal", "name": "run", "arity": 0 },
+            "app": "app_b"
+          }
+        }
+      },
+      "target": {
+        "macro_": {
+          "key": {
+            "name": "MAX_RETRIES",
+            "module": "shared.hrl",
+            "app": "app_a"
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "source": {
+        "func": {
+          "key": {
+            "fqn": { "module": "internal", "name": "run", "arity": 0 },
+            "app": "app_b"
+          }
+        }
+      },
+      "target": {
+        "record_": {
+          "key": { "name": "request", "module": "shared.hrl", "app": "app_a" }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "source": {
+        "func": {
+          "key": {
+            "fqn": { "module": "server", "name": "handle_call", "arity": 3 },
+            "app": "app_a"
+          }
+        }
+      },
+      "target": {
+        "func": {
+          "key": {
+            "fqn": {
+              "module": "server",
+              "name": "process_request",
+              "arity": 1
+            },
+            "app": "app_a"
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "source": {
+        "func": {
+          "key": {
+            "fqn": { "module": "server", "name": "handle_request", "arity": 1 },
+            "app": "app_a"
+          }
+        }
+      },
+      "target": {
+        "func": {
+          "key": {
+            "fqn": {
+              "module": "server",
+              "name": "process_request",
+              "arity": 1
+            },
+            "app": "app_a"
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "source": {
+        "func": {
+          "key": {
+            "fqn": { "module": "server", "name": "handle_request", "arity": 1 },
+            "app": "app_a"
+          }
+        }
+      },
+      "target": {
+        "macro_": {
+          "key": {
+            "name": "MAX_RETRIES",
+            "module": "shared.hrl",
+            "app": "app_a"
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "source": {
+        "func": {
+          "key": {
+            "fqn": { "module": "server", "name": "handle_request", "arity": 1 },
+            "app": "app_a"
+          }
+        }
+      },
+      "target": {
+        "record_": {
+          "key": { "name": "request", "module": "shared.hrl", "app": "app_a" }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "source": {
+        "func": {
+          "key": {
+            "fqn": {
+              "module": "server",
+              "name": "process_request",
+              "arity": 1
+            },
+            "app": "app_a"
+          }
+        }
+      },
+      "target": {
+        "macro_": {
+          "key": {
+            "name": "TRANSFORM",
+            "arity": 1,
+            "module": "shared.hrl",
+            "app": "app_a"
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "source": {
+        "func": {
+          "key": {
+            "fqn": {
+              "module": "server",
+              "name": "process_request",
+              "arity": 1
+            },
+            "app": "app_a"
+          }
+        }
+      },
+      "target": {
+        "record_": {
+          "key": { "name": "request", "module": "shared.hrl", "app": "app_a" }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "source": {
+        "func": {
+          "key": {
+            "fqn": { "module": "server", "name": "start", "arity": 0 },
+            "app": "app_a"
+          }
+        }
+      },
+      "target": {
+        "func": {
+          "key": {
+            "fqn": { "module": "gen_server", "name": "start", "arity": 3 },
+            "app": "stdlib"
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "source": {
+        "func": {
+          "key": {
+            "fqn": { "module": "utils", "name": "format_id", "arity": 1 },
+            "app": "app_a"
+          }
+        }
+      },
+      "target": {
+        "func": {
+          "key": {
+            "fqn": {
+              "module": "erlang",
+              "name": "integer_to_list",
+              "arity": 1
+            },
+            "app": "erts"
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "source": {
+        "func": {
+          "key": {
+            "fqn": { "module": "utils", "name": "format_id", "arity": 1 },
+            "app": "app_a"
+          }
+        }
+      },
+      "target": {
+        "record_": {
+          "key": { "name": "request", "module": "shared.hrl", "app": "app_a" }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "source": {
+        "func": {
+          "key": {
+            "fqn": { "module": "utils", "name": "validate", "arity": 1 },
+            "app": "app_a"
+          }
+        }
+      },
+      "target": {
+        "record_": {
+          "key": { "name": "request", "module": "shared.hrl", "app": "app_a" }
+        }
+      }
+    }
+  }
+]

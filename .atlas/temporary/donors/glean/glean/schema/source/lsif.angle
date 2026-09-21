@@ -1,0 +1,404 @@
+# Copyright (c) Meta, Inc. and affiliates.
+
+schema lsif.2 {
+
+import src
+import lsif.types.1
+
+# Opaque identifiers
+predicate Name: string
+
+# Maps lower-case strings to Name, for case-insensitive search
+predicate NameLowerCase:
+  {
+    nameLowerCase: string,
+    name: lsif.Name,
+  } stored
+  { prim.toLower Str, N } where N = lsif.Name Str
+
+# Markdown hover text
+predicate HoverText: string
+
+# LSIF documents, use this to find language of a file (or entity)
+# In mixed-language repos, symbols are keyed to Document instead of src.File
+# so we can track language tags of symbols
+predicate Document:
+  {
+    file: src.File,
+    language: lsif.types.LanguageId
+  }
+
+# LSIF hover cards in markdown
+predicate HoverContent:
+  {
+    text : lsif.HoverText,
+    language : lsif.types.LanguageId
+  }
+
+predicate Metadata:
+  {
+    lsifVersion: string,
+    positionEncoding: string,
+    toolInfo: maybe lsif.types.ToolInfo,
+  }
+
+predicate PackageInformation:
+  {
+    name: string,
+    manager: string,
+    version: string
+  }
+
+predicate Project:
+  {
+    kind: lsif.types.LanguageId
+  }
+
+# which project is a file a member of
+predicate ProjectDocument:
+  {
+    file: lsif.Document,
+    project: lsif.Project,
+  }
+
+# LSIF ranges. Raw range facts. They correspond to navigation targets
+predicate Range:
+  {
+    range: lsif.types.RangeSpan,
+    fullRange: maybe lsif.types.RangeSpan,
+    text: lsif.Name,
+  }
+
+# LSIF monikers are symbol identifier components. They have a type
+# identicating what scope the moniker fragment binds
+type MonikerKind =
+  enum {
+    Export | Local | Import | Implementation |
+  }
+
+# Moniker schemes describe which type of moniker protocol is used
+predicate MonikerScheme: string
+
+# In LSIF, this is the text fragment of the Moniker.
+# In SCIP, this is the globally unique "symbol" identifier
+predicate MonikerId: string
+
+# Monikers are scoped unique symbol identifiers, similar to Glass symbol ids
+predicate Moniker:
+  {
+    kind: lsif.MonikerKind,
+    scheme: lsif.MonikerScheme,
+    ident: lsif.MonikerId
+  }
+
+predicate Definition:
+  {
+    file: lsif.Document,
+    range: lsif.Range
+  }
+
+predicate Declaration:
+  {
+    file: lsif.Document,
+    range: lsif.Range
+  }
+
+# just xrefs to defns for now
+predicate Reference:
+  {
+    file: lsif.Document,
+    range: lsif.Range,
+    target: lsif.Definition
+  }
+
+ # Associate a hover content with the anchor definition
+ predicate DefinitionHover:
+  {
+    defn: lsif.Definition,
+    hover: lsif.HoverContent
+  }
+
+# Associate a moniker with its anchor definition
+# guaranteed to be one for every definition, so suitable as an entity key
+predicate DefinitionMoniker:
+  {
+    defn: lsif.Definition,
+    moniker: maybe lsif.Moniker,
+  }
+
+# reverse index from monikers to their defn (for search)
+predicate MonikerDefinition:
+  {
+    ident: lsif.MonikerId,
+    moniker: lsif.Moniker,
+    defn: lsif.Definition,
+  } stored
+  { Ident, Moniker, Defn } where
+    lsif.DefinitionMoniker { Defn, { just = Moniker }};
+    { ident = Ident } = Moniker;
+
+# some monikers have enough structure to record symbol kinds
+predicate MonikerSymbolKind:
+  {
+    moniker : lsif.Moniker,
+    kind : lsif.types.SymbolKind
+  }
+
+# reverse index from identifer to defn (for search)
+predicate NameDefinition:
+  {
+    name: lsif.Name,
+    defn: lsif.DefinitionMoniker,
+  } stored
+  { Name, Defn } where
+    Defn = lsif.DefinitionMoniker { defn = { range = { text = Name }}};
+    lsif.Name NameStr = Name;
+    NameStr != ""
+
+# Associate symbol kinds with some definitions and declarations
+predicate DefinitionKind:
+  {
+    defn: lsif.Definition,
+    kind: lsif.types.SymbolKind
+  }
+
+# Uses of definitions and declarations (inverse of xrefs)
+predicate DefinitionUse:
+  {
+    target: lsif.Definition,
+    file: lsif.Document,
+    range: lsif.Range,
+  }
+
+#
+# Generic codemarkup.angle provider layer
+#
+
+# Symbol locations within a repo. Analog of codemarkup:Location, non-LSIF types
+type Location =
+  {
+    name : string,
+    file : src.File,
+    location : src.Range,
+    # not attempting to do full ranges yet
+    # span: maybe src.Range,
+}
+
+# Tagged entity by language. Tags should match shape of code.lsif.angle
+# We use the lsif.types.LanguageId tag associated with lsif.Document (provided
+# by the indexer) to work out the language of the entity. List is known active
+# indexers and generic lsif that people might plausibly try to load
+type Entity =
+  {
+    erlang : lsif.SomeEntity |
+    fsharp : lsif.SomeEntity |
+    go : lsif.SomeEntity |
+    haskell : lsif.SomeEntity |
+    java : lsif.SomeEntity |
+    kotlin : lsif.SomeEntity |
+    ocaml : lsif.SomeEntity |
+    python : lsif.SomeEntity |
+    rust : lsif.SomeEntity |
+    scala : lsif.SomeEntity |
+    swift : lsif.SomeEntity |
+    typescript : lsif.SomeEntity |
+  }
+
+# Base entities in LSIF are definitions and declartions
+type SomeEntity =
+  {
+    decl : lsif.Declaration |
+    defn : lsif.DefinitionMoniker |
+  }
+
+# analog of codemarkup.ResolveLocation, flattens locations and converts spans
+# Since we can return multiple language symbols in lsif, add a tag for what we
+# think the language is. This is used in codemarkup to get the lsif.code lang
+predicate ResolveLocation:
+  {
+    location: lsif.Location,
+    entity: lsif.Entity,
+  }
+  { { NameStr, File, SrcRange }, Entity } where
+    Defn = lsif.DefinitionMoniker { defn = { { File, Language }, Range }};
+    { range = RangeSpan, text = Name NameStr } = Range;
+    lsif.types.ToSrcRange { File, RangeSpan, SrcRange };
+    lsif.TagDefinition { Language, Defn, Entity };
+
+# unwrap language tag and lookup the decl/defn directly
+predicate EntityLocation:
+  {
+    entity: lsif.Entity,
+    location: lsif.Location,
+  }
+  { Entity, Location } where
+    lsif.EntityDefinition { Entity, { defn = Defn }} ;
+    lsif.DefinitionLocation { Defn, Location };
+
+# analog of codemarkup equivalent
+predicate FileEntityXRefLocation:
+  {
+    file: src.File,
+    source: src.Range,
+    target: lsif.Location,
+    entity: lsif.Entity,
+  }
+  { File, SrcRange, Location, Entity } where
+    lsif.Reference { { file = File }, { range = RangeSpan }, BaseDefn };
+    lsif.types.ToSrcRange { File, RangeSpan, SrcRange };
+    lsif.DefinitionLocation { BaseDefn, Location };
+    Defn = lsif.DefinitionMoniker { defn = BaseDefn };
+    { file = { language = Language } } = BaseDefn;
+    lsif.TagDefinition { Language, Defn, Entity };
+
+# analog of codemarkup.EntityUses
+predicate EntityUses:
+  {
+    target: lsif.Entity,
+    file: src.File,
+    range: src.Range,
+  }
+  { Entity, File, SrcRange } where
+    lsif.EntityDefinition { Entity, { defn = Defn }};
+    lsif.DefinitionUse { Defn, { file = File }, { range = Range } };
+    lsif.types.ToSrcRange { File, Range, SrcRange };
+
+# and for codemarkup.EntityKind
+# either the kind was recorded in the DefinitionKind table, or the Moniker was
+# used to construct a kind.
+predicate EntityKind:
+  {
+    entity: lsif.Entity,
+    kind: lsif.types.SymbolKind,
+  }
+  { Entity, Kind } where
+    lsif.EntityDefinition { Entity, { Defn, Moniker }};
+    if lsif.DefinitionKind { Defn, Kind }
+      then ( Kind = Kind )
+      else ( { just = M } = Moniker; lsif.MonikerSymbolKind { M, Kind });
+
+#
+# Helpers for working with language tags and entities
+#
+
+# introduce entity tags
+predicate TagDefinition:
+  {
+    language: lsif.types.LanguageId,
+    defn: lsif.DefinitionMoniker,
+    entity: lsif.Entity,
+  }
+  { Language, Defn, Entity } where
+    { defn = Defn }  = SE : lsif.SomeEntity;
+    ( Erlang = Language; { erlang = SE }) |
+    ( FSharp = Language; { fsharp = SE }) |
+    ( Go = Language; { go = SE }) |
+    ( Haskell = Language; { haskell = SE }) |
+    ( Java = Language; { java = SE }) |
+    ( Kotlin = Language; { kotlin = SE }) |
+    ( OCaml = Language; { ocaml = SE }) |
+    ( Python = Language; { python = SE }) |
+    ( Rust = Language; { rust = SE }) |
+    ( Scala = Language; { scala = SE }) |
+    ( Swift = Language; { swift = SE }) |
+    ( TypeScript = Language; { typescript = SE }) = Entity;
+
+# eliminate entity tags. inverse of TagDefinition
+predicate EntityDefinition:
+  {
+    entity : lsif.Entity,
+    defn : lsif.DefinitionMoniker,
+  }
+  { Entity, Defn } where
+    ({ erlang = SE }) |
+    ({ fsharp = SE }) |
+    ({ go = SE }) |
+    ({ haskell = SE }) |
+    ({ java = SE }) |
+    ({ kotlin = SE }) |
+    ({ ocaml = SE }) |
+    ({ python = SE }) |
+    ({ rust = SE }) |
+    ({ scala = SE }) |
+    ({ swift = SE }) |
+    ({ typescript = SE }) = Entity;
+    { defn = Defn } = SE;
+
+# Just need to elaborate lsif.types.RangeSpan with a File key
+predicate DefinitionLocation:
+  {
+    defn: lsif.Definition,
+    location: lsif.Location,
+  }
+  { Defn, Location } where
+    { { file = File }, { RangeSpan, _, Name NameStr } } = Defn;
+    lsif.types.ToSrcRange { File, RangeSpan, SrcRange };
+    { NameStr, File, SrcRange } = Location;
+
+
+
+# entity search, recovering entities from symbol ids
+
+# if we have just the file and identifier we can probably find it (non-locals
+# only). O(defn in file)
+predicate SearchNonLocalByLocation:
+  {
+    file : src.File,
+    name : lsif.Name,
+    entity : lsif.Entity,
+  }
+  { File, Name, Entity } where
+    D = lsif.Definition { { File, Language } , { text = Name } };
+    DM = lsif.DefinitionMoniker { D, { just = { kind = K } } };
+    Import|Export|Implementation = K;
+    lsif.TagDefinition { Language, DM, Entity };
+
+# if we have file, identifier and position, search for exact location of a local
+predicate SearchByExactLocationAndName:
+  {
+    file : src.File,
+    name : lsif.Name,
+    span : lsif.types.RangeSpan,
+    entity : lsif.Entity,
+  }
+  { File, Name, Range, Entity } where
+    D = lsif.Definition { { File, Language } , { text = Name, range = Range } };
+    DM = lsif.DefinitionMoniker { defn = D };
+    lsif.TagDefinition { Language, DM, Entity };
+
+# Just search by exact location
+predicate SearchByExactLocation:
+  {
+    file : src.File,
+    span : lsif.types.RangeSpan,
+    entity : lsif.Entity,
+  }
+  { File, Range, Entity } where
+    D = lsif.Definition { { File, Language } , { range = Range } };
+    DM = lsif.DefinitionMoniker { defn = D };
+    lsif.TagDefinition { Language, DM, Entity };
+
+# if we only have the moniker, we can probably still find it
+# O(1) via moniker definition table
+predicate SearchByMoniker:
+  {
+    ident : lsif.MonikerId,
+    entity : lsif.Entity,
+  }
+  { Ident, Entity } where
+    lsif.MonikerDefinition { Ident, Moniker, Defn };
+    { file = { language = Language }} = Defn;
+    lsif.TagDefinition { Language, { Defn, { just = Moniker }}, Entity };
+
+# global search by name fragments
+predicate SearchByName:
+  {
+    name: lsif.Name,
+    entity: lsif.Entity
+  }
+  { Name, Entity } where
+    lsif.NameDefinition { Name, DM };
+    { defn = { file = { language = Language } } } = DM;
+    lsif.TagDefinition { Language, DM, Entity };
+
+}

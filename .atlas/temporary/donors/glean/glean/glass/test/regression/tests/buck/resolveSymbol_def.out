@@ -1,0 +1,16 @@
+[
+    "@generated",
+    {
+        "location": {
+            "filepath": "buck_project/my_defs.bzl",
+            "range": {
+                "columnBegin": 1,
+                "columnEnd": 6,
+                "lineBegin": 10,
+                "lineEnd": 14
+            },
+            "repository": "test"
+        },
+        "revision": "testhash"
+    }
+]

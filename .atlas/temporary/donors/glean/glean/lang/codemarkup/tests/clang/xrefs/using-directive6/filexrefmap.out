@@ -1,0 +1,40 @@
+[
+  "@generated",
+  {
+    "key": {
+      "file": { "key": "test.cpp" },
+      "fixed": [
+        {
+          "target": {
+            "declaration": {
+              "namespace_": {
+                "key": {
+                  "name": { "key": { "name": { "key": "N1" } } },
+                  "source": {
+                    "file": { "key": "test.cpp" },
+                    "lineBegin": 9,
+                    "columnBegin": 1,
+                    "lineEnd": 13,
+                    "columnEnd": 1
+                  }
+                }
+              }
+            }
+          },
+          "from": {
+            "spans": [ { "length": 2, "offsets": [ 270 ] } ],
+            "expansions": [ ],
+            "spellings": [ ]
+          }
+        }
+      ],
+      "froms": [
+        {
+          "spans": [ { "length": 1, "offsets": [ 308 ] } ],
+          "expansions": [ ],
+          "spellings": [ ]
+        }
+      ]
+    }
+  }
+]

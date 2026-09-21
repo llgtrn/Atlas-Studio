@@ -1,0 +1,41 @@
+
+# Copyright (c) Meta Platforms, Inc. and affiliates.
+
+#
+# common predicates between java and kotlin used for interoperability
+#
+schema javakotlin.alpha.1 {
+
+import src
+
+predicate Name : string
+
+# Lower case normalized names (for case-insensive search)
+predicate NameLowerCase:
+  {
+    nameLowercase : string,
+    name : Name,
+  } stored { prim.toLower Str, N } where N = Name Str
+
+predicate Path : {
+  base : Name,
+  container : maybe Path,
+}
+
+predicate Type : {
+  primitive: string |
+  object: Path |
+  array: Type |
+}
+
+predicate QName : {
+  name: Name,
+  context: Path,
+}
+
+predicate MethodName : {
+  name: QName,
+  signature: [Type]
+}
+
+}

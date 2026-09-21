@@ -1,0 +1,324 @@
+{-
+  Copyright (c) Meta Platforms, Inc. and affiliates.
+  All rights reserved.
+
+  This source code is licensed under the BSD-style license found in the
+  LICENSE file in the root directory of this source tree.
+-}
+
+module Glean.Database.Storage
+  ( Mode(..)
+  , CreateSchema(..)
+  , Storage(..)
+  , Database
+  , DatabaseOps(..)
+  , DBVersion(..)
+  , AxiomOwnership
+  , WriteLock(..)
+  , RestoreSource(..)
+  , withMaterializedFile
+  , canOpenVersion
+  , currentVersion
+  ) where
+
+import Control.Exception (finally)
+import Control.Monad (unless)
+import Data.ByteString (ByteString)
+import qualified Data.ByteString as BS
+import Data.HashMap.Strict (HashMap)
+import Data.Text (Text)
+import Data.Unique (hashUnique, newUnique)
+import qualified Data.Vector.Storable as VS
+import System.Directory (removePathForcibly)
+import System.FilePath ((</>))
+import System.IO (Handle, IOMode(WriteMode), withBinaryFile)
+
+import Glean.Database.Backup.Backend
+  ( Data
+  , RestoreSource(..)
+  )
+import Glean.Internal.Types (StoredSchema)
+import Glean.RTS.Foreign.FactSet (FactSet)
+import Glean.RTS.Foreign.Inventory (Inventory)
+import Glean.RTS.Foreign.Lookup (CanLookup(..), Lookup)
+import Glean.RTS.Foreign.Ownership hiding (computeDerivedOwnership)
+import Glean.RTS.Types (Fid, Pid)
+import Glean.ServerConfig.Types (DBVersion(..))
+import qualified Glean.ServerConfig.Types as ServerConfig
+import Glean.Types (BatchDescriptor, PredicateStats, Repo, SchemaId)
+import Glean.Util.Some
+
+-- | Check whether we can open a particular database version
+canOpenVersion :: Storage s => s -> Mode -> DBVersion -> Bool
+canOpenVersion s mode version = version `elem` versions
+  where
+    versions = case mode of
+      ReadOnly -> readableVersions s
+      ReadWrite -> writableVersions s
+      Create{} -> writableVersions s
+
+-- | Default current binary representation version
+currentVersion :: Storage s => s -> DBVersion
+currentVersion = maximum . writableVersions
+
+-- | Provide a real file path for a 'RestoreSource'. A 'SourceFile' is
+-- passed through unchanged. A 'SourceStream' is first written to a
+-- unique file in the scratch directory, which is removed once the
+-- continuation returns to avoid retaining an extra copy of the DB.
+withMaterializedFile
+  :: FilePath  -- ^ scratch directory
+  -> RestoreSource
+  -> (FilePath -> IO a)
+  -> IO a
+withMaterializedFile _ (SourceFile path) action = action path
+withMaterializedFile scratch (SourceStream h) action = do
+  u <- newUnique
+  let tmpFile = scratch </> "stream-fallback-" <> show (hashUnique u)
+  (hCopyToFile h tmpFile >> action tmpFile) `finally` removePathForcibly tmpFile
+
+-- | Copy a 'Handle' to a file in fixed-size chunks.
+--
+-- We deliberately avoid lazy IO ('Data.ByteString.Lazy.hGetContents'):
+-- it reads the handle on demand via 'unsafeInterleaveIO', so the copy
+-- only happens as a side effect of forcing the result, IO exceptions
+-- surface at unpredictable points, and the handle stays implicitly alive
+-- until the lazy value is fully consumed. A strict whole-handle read is
+-- also unsuitable here because the stream carries the entire serialized
+-- database (potentially tens of GB) and would be buffered in memory all
+-- at once. Chunked copying sidesteps both: it fully and eagerly consumes
+-- the handle in bounded memory.
+hCopyToFile :: Handle -> FilePath -> IO ()
+hCopyToFile h path = withBinaryFile path WriteMode go
+  where
+    chunkSize = 1024 * 1024
+    go out = do
+      chunk <- BS.hGetSome h chunkSize
+      unless (BS.null chunk) $ do
+        BS.hPut out chunk
+        go out
+
+-- Choose which schema goes into a newly created DB
+data CreateSchema
+  = UseDefaultSchema
+  | UseSpecificSchema SchemaId
+  | UseThisSchema StoredSchema
+  deriving (Show)
+
+-- | Database opening mode
+data Mode
+  = ReadOnly
+  | ReadWrite
+  | Create
+      Fid  -- starting fact id
+      (Maybe Ownership)  -- base DB ownership
+      CreateSchema
+      (Maybe Text)  -- inherited GUID from base DB
+
+-- | Raw ownership data for axiomatic (non-derived) facts: a mapping
+-- from unit name to ranges of fact IDs.
+type AxiomOwnership = HashMap ByteString (VS.Vector Fid)
+
+-- | Token representing the write lock
+data WriteLock w = WriteLock w
+
+-- | The location of a batch descriptor
+type BatchLocation = Text
+
+data family Database s
+
+-- | An abstract storage for fact database
+class DatabaseOps (Database s) => Storage s where
+  -- | A short, user-readable description of the storage
+  describe :: s -> String
+
+  -- | List of binary representation versions we can read
+  readableVersions :: s -> [DBVersion]
+
+  -- | List of binary representation versions we can write
+  writableVersions :: s -> [DBVersion]
+
+  -- | Open a database
+  open :: s -> Repo -> Mode -> DBVersion -> IO (Database s)
+
+  -- | Delete a database if it exists
+  delete :: s -> Repo -> IO ()
+
+  -- | Unconditionally remove a database or anything that might be stored where
+  -- the database would exist. For disk-based storage, this would remove the
+  -- directory where the database would be stored.
+  safeRemoveForcibly :: s -> Repo -> IO ()
+
+  -- | Determine the total capacity of the storage medium (e.g., disk size).
+  getTotalCapacity :: s -> IO (Maybe Int)
+
+  -- | Determine the used capacity of the storage medium (e.g., how much of the
+  -- disk is in use).
+  getUsedCapacity :: s -> IO (Maybe Int)
+
+  -- | Determine the free capacity of the storage medium (e.g., how much of the
+  -- disk is free).
+  getFreeCapacity :: s -> IO Int
+
+  -- | Execute the action, passing to it a path to a scratch directory which can
+  -- be used, e.g., for downloading databases. This directory is not guaranteed
+  -- to persist beyond the call and is not guaranteed to be empty.
+  withScratchRoot :: s -> (FilePath -> IO a) -> IO a
+
+  -- | Restore a database from a 'RestoreSource' (either a file on disk
+  -- or a stream handle piped directly from the backup site). The scratch
+  -- directory which can be used for storing intermediate files is
+  -- guaranteed to be empty and will be deleted after the operation
+  -- completes. The implementation may delete the serialized database
+  -- file after it has been consumed, to reduce the number of copies of
+  -- the DB on disk during a restore.
+  restore
+    :: s   -- ^ storage
+    -> ServerConfig.Config  -- ^ server config
+    -> Repo  -- ^ repo
+    -> FilePath  -- ^ scratch directory
+    -> RestoreSource  -- ^ source of the serialised database
+    -> IO ()
+
+class CanLookup db => DatabaseOps db where
+  -- | Close a database
+  close :: db -> IO ()
+
+  -- | Obtain the 'PredicateStats' for each predicate
+  predicateStats :: db -> IO [(Pid, PredicateStats)]
+
+  -- | Store an arbitrary binary key/value pair in the database. This data is
+  -- completely separate from the facts.
+  --
+  -- NOTE: It is expected that 'store' and 'retrieve' are used sparingly and
+  -- there are no performance guarantees. A typical use case for this is
+  -- storing the serialised schema in the database.
+  store :: db -> ByteString -> ByteString -> IO ()
+
+  -- | Retrieve the value of a key previously stored with 'store'.
+  retrieve :: db -> ByteString -> IO (Maybe ByteString)
+
+  -- | Store a batch descriptor.
+  -- These descriptors should be materialised to facts
+  -- and be written to the database before `glean complete`.
+  -- When the db becomes readonly, all information is cleared.
+  addBatchDescriptor :: db -> BatchDescriptor -> IO ()
+
+  -- | Mark a batch descriptor as written.
+  markBatchDescriptorAsWritten :: db -> BatchLocation -> IO ()
+
+  -- | Check if a batch descriptor is stored.
+  isBatchDescriptorStored :: db -> BatchLocation -> IO Bool
+
+  -- | Get all unprocessed (not maked as 'written') batch descriptors.
+  getUnprocessedBatchDescriptors :: db -> IO [BatchDescriptor]
+
+  -- | Commit a set of facts to the database. The facts must have the right ids,
+  -- they are NOT renamed.
+  commit :: db -> FactSet -> IO ()
+
+  -- | Add ownership data about a set of (committed) facts.
+  addOwnership :: db -> WriteLock w -> AxiomOwnership -> IO ()
+
+  -- | Register the given ACL group names as units, allocating a 'UnitId' for
+  -- each previously-unseen name. These units own no facts; they exist only so
+  -- ACL groups can be referenced by UnitId in ownership augmentation. Returns
+  -- the smallest UnitId among the given names -- the boundary separating
+  -- earlier regular ownership units from ACL group units.
+  -- Used at DB completion time after all batches are written.
+  registerACLUnits :: db -> WriteLock w -> [ByteString] -> IO UnitId
+
+  -- | Optimise a database for reading. This is typically done before backup.
+  optimize :: db -> Bool {- compact -} -> IO ()
+
+  -- | Flush in-memory write buffers to disk without compacting. Cheap,
+  -- unlike 'optimize'. Used before backing up a still-writable (Incomplete)
+  -- database on shutdown so the backup captures a consistent, reopenable
+  -- image (including the batchDescriptors column family).
+  flush :: db -> IO ()
+
+  computeOwnership
+    :: db
+    -> Maybe Lookup
+       -- ^ Base DB lookup if this is a stacked DB, because ownership may
+       -- need to propagate ownership through facts in the base DB.
+    -> Inventory
+    -> IO ComputedOwnership
+
+  storeOwnership :: db -> WriteLock w -> ComputedOwnership -> IO ()
+
+  -- | Fetch the 'Ownership' interface for this DB. This is used to
+  -- make a 'Slice' (a view of a subset of the facts in the DB).
+  --
+  -- Can return 'Nothing' if this database backend doesn't support
+  -- ownership. (TODO: support ownership in the memory backend and
+  -- remove this 'Maybe').
+  getOwnership :: db -> IO (Maybe Ownership)
+
+  getUnitId :: db -> ByteString -> IO (Maybe UnitId)
+  getUnit :: db -> UnitId -> IO (Maybe ByteString)
+  getUnitsByPrefix
+    :: db -> ByteString -> IO [(ByteString, UnitId)]
+
+  -- | Called once per batch.
+  addDefineOwnership :: db -> WriteLock w -> DefineOwnership -> IO ()
+
+  -- | Called once per derived predicate at the end of its derivation.
+  computeDerivedOwnership
+    :: db
+    -> WriteLock w
+    -> Ownership
+    -> Maybe Lookup
+       -- ^ Base DB lookup if this is a stacked DB, because we may
+       -- derive facts that already exist in the base DB and the
+       -- ownership of those facts will need to be extended.
+    -> Pid
+    -> IO ComputedOwnership
+
+  -- | After writing has finished, cache ownership data to support
+  -- faster getOwner() operations. Takes time to cache the data and
+  -- memory to retain the cache. Only useful if this DB will be used
+  -- in an incremental stack.
+  cacheOwnership :: db -> IO ()
+
+  prepareFactOwnerCache :: db -> IO ()
+
+  -- | Backup a database. The scratch directory which can be used for storing
+  -- intermediate files is guaranteed to be empty and will be deleted after
+  -- the operation completes.
+  backup
+    :: db  -- ^ database
+    -> ServerConfig.Config  -- ^ server config
+    -> FilePath  -- ^ scratch directory
+    -> (FilePath -> Data -> IO a)
+          -- ^ function which expects the serialised database
+    -> IO a
+
+instance CanLookup (Some DatabaseOps) where
+  withLookup (Some db) = withLookup db
+  lookupName (Some db) = lookupName db
+
+instance DatabaseOps (Some DatabaseOps) where
+  close (Some db) = close db
+  predicateStats (Some db) = predicateStats db
+  store (Some db) = store db
+  retrieve (Some db) = retrieve db
+  addBatchDescriptor (Some db) = addBatchDescriptor db
+  markBatchDescriptorAsWritten (Some db) = markBatchDescriptorAsWritten db
+  isBatchDescriptorStored (Some db) = isBatchDescriptorStored db
+  getUnprocessedBatchDescriptors (Some db) = getUnprocessedBatchDescriptors db
+  commit (Some db) = commit db
+  addOwnership (Some db) = addOwnership db
+  registerACLUnits (Some db) = registerACLUnits db
+  optimize (Some db) = optimize db
+  flush (Some db) = flush db
+  computeOwnership (Some db) = computeOwnership db
+  storeOwnership (Some db) = storeOwnership db
+  getOwnership (Some db) = getOwnership db
+  getUnitId (Some db) = getUnitId db
+  getUnit (Some db) = getUnit db
+  getUnitsByPrefix (Some db) = getUnitsByPrefix db
+  addDefineOwnership (Some db) = addDefineOwnership db
+  computeDerivedOwnership (Some db) = computeDerivedOwnership db
+  cacheOwnership (Some db) = cacheOwnership db
+  prepareFactOwnerCache (Some db) = prepareFactOwnerCache db
+  backup (Some db) = backup db

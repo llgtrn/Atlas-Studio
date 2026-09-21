@@ -1,0 +1,86 @@
+[
+  "@generated",
+  {
+    "key": {
+      "file": { "key": "test.cpp" },
+      "events": [
+        {
+          "include_": {
+            "include_": {
+              "key": {
+                "file": { "key": "test.h" },
+                "source": {
+                  "file": { "key": "test.cpp" },
+                  "lineBegin": 9,
+                  "columnBegin": 1,
+                  "lineEnd": 9,
+                  "columnEnd": 17
+                },
+                "pathSpan": { "start": 230, "length": 8 }
+              }
+            }
+          }
+        },
+        {
+          "use": {
+            "key": {
+              "macro": { "key": "F" },
+              "definition": {
+                "file": { "key": "test.h" },
+                "line": 10,
+                "column": 9
+              },
+              "expand": true,
+              "source": {
+                "file": { "key": "test.cpp" },
+                "lineBegin": 10,
+                "columnBegin": 1,
+                "lineEnd": 10,
+                "columnEnd": 17
+              },
+              "nameSpan": { "start": 239, "length": 1 }
+            }
+          }
+        },
+        {
+          "include_": {
+            "include_": {
+              "key": {
+                "file": { "key": "test.h" },
+                "source": {
+                  "file": { "key": "test.cpp" },
+                  "lineBegin": 11,
+                  "columnBegin": 1,
+                  "lineEnd": 11,
+                  "columnEnd": 17
+                },
+                "pathSpan": { "start": 267, "length": 8 }
+              }
+            }
+          }
+        },
+        {
+          "use": {
+            "key": {
+              "macro": { "key": "F" },
+              "definition": {
+                "file": { "key": "test.h" },
+                "line": 10,
+                "column": 9
+              },
+              "expand": true,
+              "source": {
+                "file": { "key": "test.cpp" },
+                "lineBegin": 12,
+                "columnBegin": 1,
+                "lineEnd": 12,
+                "columnEnd": 17
+              },
+              "nameSpan": { "start": 276, "length": 1 }
+            }
+          }
+        }
+      ]
+    }
+  }
+]

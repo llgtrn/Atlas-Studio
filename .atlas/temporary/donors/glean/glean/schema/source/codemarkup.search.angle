@@ -1,0 +1,78 @@
+# Copyright (c) Meta Platforms, Inc. and affiliates.
+
+schema codemarkup.search.2 {
+
+import code
+import codemarkup
+import codemarkup.types
+import search.code
+
+# Note the Insensitive case implies you did toLower on the argument
+type SearchCase = enum { Sensitive | Insensitive }
+
+predicate SearchByName:
+  {
+    searchcase: SearchCase,
+    name: string,
+    entity: code.Entity,
+    location: codemarkup.types.Location,
+    kind: maybe codemarkup.types.SymbolKind,
+    language: code.Language
+  }
+  { SearchCase, Name, Entity, Location, Kind, Language } where
+    if (Insensitive = SearchCase)
+    then (
+      ( search.code.SearchByLowerCaseNameKindAndLanguage { Name, Language, Kind, Entity };
+        codemarkup.EntityLocation { Entity, Location }
+      ) | (
+        search.code.SearchByLowerCaseNameAndLanguage { Name, Language, Entity };
+        EntityLocationAndKind { Entity, Location, Kind }
+      )
+    ) else (
+      ( search.code.SearchByNameKindAndLanguage { Name, Language, Kind, Entity };
+        codemarkup.EntityLocation { Entity, Location }
+      ) | (
+        search.code.SearchByNameAndLanguage { Name, Language, Entity };
+        EntityLocationAndKind { Entity, Location, Kind } )
+    );
+
+predicate SearchByScope:
+  {
+    searchcase: SearchCase,
+    name: string,
+    scope: [string],
+    entity: code.Entity,
+    location: codemarkup.types.Location,
+    kind: maybe codemarkup.types.SymbolKind,
+    language: code.Language
+  }
+  { SearchCase, Name, Scope, Entity, Location, Kind, Language } where
+    if (Insensitive = SearchCase)
+    then (
+      ( search.code.SearchByLowerCaseScopeAndKind { Name, Scope, Language, Kind, Entity };
+        codemarkup.EntityLocation { Entity, Location }
+      ) | (
+        search.code.SearchByLowerCaseScope { Name, Scope, Language, Entity };
+        EntityLocationAndKind { Entity, Location, Kind }
+      )
+    ) else (
+      ( search.code.SearchByScopeAndKind { Name, Scope, Language, Kind, Entity };
+        codemarkup.EntityLocation { Entity, Location }
+      ) | (
+        search.code.SearchByScope { Name, Scope, Language, Entity };
+        EntityLocationAndKind { Entity, Location, Kind };
+      )
+    );
+
+predicate EntityLocationAndKind:
+  {
+    entity: code.Entity,
+    location: codemarkup.types.Location,
+    kind: maybe codemarkup.types.SymbolKind
+  }
+  { Entity, Location, MKind } where
+    codemarkup.EntityLocation { Entity, Location };
+    (if codemarkup.EntityKind { Entity, Kind }
+      then { just = Kind } else nothing) = MKind;
+
+}

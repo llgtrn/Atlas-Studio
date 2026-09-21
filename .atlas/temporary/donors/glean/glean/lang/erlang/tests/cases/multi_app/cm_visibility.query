@@ -1,0 +1,3 @@
+query: codemarkup.erlang.ErlangVisibility _
+perf: true
+transform: [normord, []]

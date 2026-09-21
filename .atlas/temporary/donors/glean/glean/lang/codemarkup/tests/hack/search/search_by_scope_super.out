@@ -1,0 +1,35 @@
+[
+  "@generated",
+  {
+    "key": {
+      "entity": {
+        "hack": {
+          "decl": {
+            "classConst": {
+              "key": {
+                "container": {
+                  "class_": {
+                    "key": {
+                      "name": { "key": { "name": { "key": "SuperClass" } } }
+                    }
+                  }
+                },
+                "name": { "key": "BAZ" }
+              }
+            }
+          }
+        }
+      },
+      "kind": 15,
+      "language": 5,
+      "location": {
+        "file": { "key": "www/SuperClass.php" },
+        "location": { "span": { "length": 20, "start": 102 } },
+        "name": "BAZ"
+      },
+      "name": "BAZ",
+      "scope": [ "SuperClass" ],
+      "searchcase": 0
+    }
+  }
+]

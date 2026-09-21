@@ -1,0 +1,12 @@
+[
+  "@generated",
+  { "key": { "name": "MAX_RETRIES", "module": "shared.hrl", "app": "app_a" } },
+  {
+    "key": {
+      "name": "TRANSFORM",
+      "arity": 1,
+      "module": "shared.hrl",
+      "app": "app_a"
+    }
+  }
+]

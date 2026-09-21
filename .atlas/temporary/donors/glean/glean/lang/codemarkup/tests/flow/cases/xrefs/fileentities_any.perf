@@ -1,0 +1,9 @@
+{
+  "@generated": null,
+  "facts_searched": {
+    "flow.FileDeclaration.3": 47,
+    "flow.FileOfStringModule.3": 4,
+    "flow.Module.3": 6
+  },
+  "full_scans": [ "flow.FileDeclaration.3", "flow.FileOfStringModule.3" ]
+}

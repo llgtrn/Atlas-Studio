@@ -1,0 +1,18 @@
+[
+  "@generated",
+  {
+    "key": {
+      "declaration": {
+        "key": {
+          "name": "state",
+          "arity": 0,
+          "module": "server",
+          "app": "app_a"
+        }
+      },
+      "exported": false,
+      "opaque": false,
+      "definition_text": "-type state() :: #{requests := [#request{}]}."
+    }
+  }
+]

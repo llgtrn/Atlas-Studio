@@ -1,0 +1,137 @@
+# Copyright (c) Meta Platforms, Inc. and affiliates.
+
+schema search.kind.cxx.1 {
+
+import cxx1
+import code.cxx
+
+#
+# Kind-partitioned name tables
+#
+# When kind filters are present want to lookup only the relevant kind names (as
+# opposed to finding all matches then filtering by kind).
+#
+# To do this we create a name lookup predicate per codemarkup.kind for each
+# language, and dispatch based on presence of kind flags
+#
+
+# Namespaces. Note: we don't look for using declarations as they're not super
+# interesting, even though they do have the kind: Namespace
+#
+predicate SearchNamespace :
+  {
+    name: string,
+    scope: cxx1.Scope,
+    entity: code.cxx.Entity
+  }
+  { NameStr, Scope, Entity } where
+    cxx1.NamespaceDeclarationByName { NameStr, NSScope, Decl };
+  # we want to only restrict on scope after finding the specific names
+  # scope is either a specific parent namespace
+  # or re-interpret the null case (global_ as a namespace root)
+  # to find namespaces at the top level (e.g. "folly")
+    ( { namespace_ = NS } = Scope; NSScope = { just = NS } ) |
+    ( { global_ = {} } = Scope; NSScope = nothing );
+    { decl = { namespace_ = Decl } } = Entity;
+
+# class, struct, union all share decl kind `record`
+# for search performance we might store separate predicates for these,
+# as it means annoying repeated search in case of (Class|Struct|Union)
+
+predicate SearchClass :
+  {
+    name: string,
+    scope: cxx1.Scope,
+    entity: code.cxx.Entity
+  }
+  { NameStr, Scope, Entity } where
+    cxx1.RecordDeclarationClass { NameStr, Scope, Decl };
+    { decl = { record_ = Decl }} = Entity
+
+predicate SearchStruct :
+  {
+    name: string,
+    scope: cxx1.Scope,
+    entity: code.cxx.Entity
+  }
+  { NameStr, Scope, Entity } where
+    cxx1.RecordDeclarationStruct { NameStr, Scope, Decl };
+    { decl = { record_ = Decl }} = Entity
+
+predicate SearchUnion :
+  {
+    name: string,
+    scope: cxx1.Scope,
+    entity: code.cxx.Entity
+  }
+  { NameStr, Scope, Entity } where
+    cxx1.RecordDeclarationUnion { NameStr, Scope, Decl };
+    { decl = { record_ = Decl }} = Entity
+
+# keyed by QName, so we risk redundantly enumerating all matching QNames
+predicate SearchEnum :
+  {
+    name: string,
+    scope: cxx1.Scope,
+    entity: code.cxx.Entity
+  }
+  { NameStr, Scope, Entity } where
+    cxx1.EnumDeclarationByName { NameStr, Scope, Decl };
+    { decl = { enum_ = Decl }} = Entity
+
+predicate SearchFunction :
+  {
+    name: string,
+    scope: cxx1.Scope,
+    entity: code.cxx.Entity
+  }
+  { NameStr, Scope, Entity } where
+    cxx1.FunctionDeclarationByNameScope { NameStr, Scope, Decl };
+    { decl = { function_ = Decl } } = Entity
+
+predicate SearchVariable :
+  {
+    name: string,
+    scope: cxx1.Scope,
+    entity: code.cxx.Entity
+  }
+  { NameStr, Scope, Entity } where
+    cxx1.VariableDeclarationNonLocalByName { NameStr, Scope, Decl };
+    { decl = { variable = Decl } } = Entity
+
+predicate SearchEnumerator :
+  {
+    name: string,
+    scope: cxx1.Scope,
+    entity: code.cxx.Entity
+  }
+  { NameStr, Scope, Entity } where
+    cxx1.EnumeratorByName { NameStr, Decl };
+    { enumeration = T } = Decl;
+    { name = QName, isScoped = Scoped } = T;
+    if ( false = Scoped )
+    then ( { scope = Scope } = QName)
+    else ( { recordWithAccess = { record = QName, access = Public }} = Scope);
+    { enumerator = Decl } = Entity
+
+predicate SearchTypeAlias :
+  {
+    name: string,
+    scope: cxx1.Scope,
+    entity: code.cxx.Entity
+  }
+  { NameStr, Scope, Entity } where
+    cxx1.TypeAliasDeclarationByName { NameStr, Scope, Decl };
+    { decl = { typeAlias = Decl } } = Entity
+
+# subset of ObjC containers that are interfaces
+predicate SearchObjcInterface :
+  {
+    name: string,
+    entity: code.cxx.Entity
+  }
+  { NameStr, Entity } where
+    cxx1.ObjcContainerDeclarationInterface { NameStr, Decl };
+    { decl = { objcContainer = Decl } } = Entity
+
+}

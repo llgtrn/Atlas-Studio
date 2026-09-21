@@ -1,0 +1,123 @@
+[
+    "@generated",
+    {
+        "symbolDetails": [],
+        "symbols": [
+            {
+                "kind": 12,
+                "language": 1,
+                "location": {
+                    "filepath": "test.cpp",
+                    "range": {
+                        "columnBegin": 1,
+                        "columnEnd": 27,
+                        "lineBegin": 104,
+                        "lineEnd": 104
+                    },
+                    "repository": "test"
+                },
+                "name": "Global",
+                "qname": {
+                    "container": "",
+                    "localName": "Global"
+                },
+                "score": {
+                    "exactness": 2
+                },
+                "symbol": "test/cpp//Global"
+            },
+            {
+                "kind": 12,
+                "language": 1,
+                "location": {
+                    "filepath": "test.cpp",
+                    "range": {
+                        "columnBegin": 1,
+                        "columnEnd": 41,
+                        "lineBegin": 105,
+                        "lineEnd": 105
+                    },
+                    "repository": "test"
+                },
+                "name": "GlobalClass",
+                "qname": {
+                    "container": "",
+                    "localName": "GlobalClass"
+                },
+                "score": {
+                    "exactness": 2
+                },
+                "symbol": "test/cpp//GlobalClass"
+            },
+            {
+                "kind": 12,
+                "language": 1,
+                "location": {
+                    "filepath": "test.cpp",
+                    "range": {
+                        "columnBegin": 3,
+                        "columnEnd": 26,
+                        "lineBegin": 98,
+                        "lineEnd": 98
+                    },
+                    "repository": "test"
+                },
+                "name": "InU",
+                "qname": {
+                    "container": "baz::U",
+                    "localName": "InU"
+                },
+                "score": {
+                    "exactness": 2
+                },
+                "symbol": "test/cpp//baz/U/InU"
+            },
+            {
+                "kind": 12,
+                "language": 1,
+                "location": {
+                    "filepath": "test.cpp",
+                    "range": {
+                        "columnBegin": 3,
+                        "columnEnd": 40,
+                        "lineBegin": 99,
+                        "lineEnd": 99
+                    },
+                    "repository": "test"
+                },
+                "name": "InUClass",
+                "qname": {
+                    "container": "baz::U",
+                    "localName": "InUClass"
+                },
+                "score": {
+                    "exactness": 2
+                },
+                "symbol": "test/cpp//baz/U/InUClass"
+            },
+            {
+                "kind": 12,
+                "language": 1,
+                "location": {
+                    "filepath": "test.cpp",
+                    "range": {
+                        "columnBegin": 3,
+                        "columnEnd": 32,
+                        "lineBegin": 75,
+                        "lineEnd": 75
+                    },
+                    "repository": "test"
+                },
+                "name": "_secret",
+                "qname": {
+                    "container": "maybe::Nothing",
+                    "localName": "_secret"
+                },
+                "score": {
+                    "exactness": 2
+                },
+                "symbol": "test/cpp//maybe/Nothing/_secret"
+            }
+        ]
+    }
+]

@@ -1,0 +1,373 @@
+[
+  "@generated",
+  {
+    "key": {
+      "query": 2,
+      "parent": {
+        "parent": {
+          "cxx": {
+            "decl": {
+              "namespace_": {
+                "key": {
+                  "name": { "key": { "name": { "key": "N1" } } },
+                  "source": {
+                    "file": { "key": "test.cpp" },
+                    "lineBegin": 9,
+                    "columnBegin": 1,
+                    "lineEnd": 15,
+                    "columnEnd": 1
+                  }
+                }
+              }
+            }
+          }
+        },
+        "location": {
+          "name": "N1",
+          "file": { "key": "test.cpp" },
+          "location": {
+            "range": {
+              "file": { "key": "test.cpp" },
+              "lineBegin": 9,
+              "columnBegin": 1,
+              "lineEnd": 15,
+              "columnEnd": 1
+            }
+          },
+          "destination": {
+            "file": { "key": "test.cpp" },
+            "span": { "start": 231, "length": 2 }
+          }
+        }
+      },
+      "child": {
+        "child": {
+          "cxx": {
+            "decl": {
+              "function_": {
+                "key": {
+                  "name": {
+                    "key": {
+                      "name": { "key": { "name": { "key": "f" } } },
+                      "scope": {
+                        "namespace_": { "key": { "name": { "key": "N1" } } }
+                      }
+                    }
+                  },
+                  "signature": {
+                    "key": {
+                      "returns": { "key": "void" },
+                      "parameters": [
+                        { "name": { "key": "" }, "type": { "key": "T" } }
+                      ]
+                    }
+                  },
+                  "source": {
+                    "file": { "key": "test.cpp" },
+                    "lineBegin": 11,
+                    "columnBegin": 22,
+                    "lineEnd": 11,
+                    "columnEnd": 33
+                  }
+                }
+              }
+            }
+          }
+        },
+        "location": {
+          "name": "f",
+          "file": { "key": "test.cpp" },
+          "location": {
+            "range": {
+              "file": { "key": "test.cpp" },
+              "lineBegin": 11,
+              "columnBegin": 22,
+              "lineEnd": 11,
+              "columnEnd": 33
+            }
+          },
+          "destination": {
+            "file": { "key": "test.cpp" },
+            "span": { "start": 263, "length": 1 }
+          }
+        }
+      },
+      "style": 0
+    }
+  },
+  {
+    "key": {
+      "query": 2,
+      "parent": {
+        "parent": {
+          "cxx": {
+            "decl": {
+              "namespace_": {
+                "key": {
+                  "name": { "key": { "name": { "key": "N1" } } },
+                  "source": {
+                    "file": { "key": "test.cpp" },
+                    "lineBegin": 9,
+                    "columnBegin": 1,
+                    "lineEnd": 15,
+                    "columnEnd": 1
+                  }
+                }
+              }
+            }
+          }
+        },
+        "location": {
+          "name": "N1",
+          "file": { "key": "test.cpp" },
+          "location": {
+            "range": {
+              "file": { "key": "test.cpp" },
+              "lineBegin": 9,
+              "columnBegin": 1,
+              "lineEnd": 15,
+              "columnEnd": 1
+            }
+          },
+          "destination": {
+            "file": { "key": "test.cpp" },
+            "span": { "start": 231, "length": 2 }
+          }
+        }
+      },
+      "child": {
+        "child": {
+          "cxx": {
+            "decl": {
+              "function_": {
+                "key": {
+                  "name": {
+                    "key": {
+                      "name": { "key": { "name": { "key": "f" } } },
+                      "scope": {
+                        "namespace_": { "key": { "name": { "key": "N1" } } }
+                      }
+                    }
+                  },
+                  "signature": {
+                    "key": {
+                      "returns": { "key": "void" },
+                      "parameters": [
+                        { "name": { "key": "" }, "type": { "key": "int" } }
+                      ]
+                    }
+                  },
+                  "source": {
+                    "file": { "key": "test.cpp" },
+                    "lineBegin": 12,
+                    "columnBegin": 1,
+                    "lineEnd": 12,
+                    "columnEnd": 30
+                  }
+                }
+              }
+            }
+          }
+        },
+        "location": {
+          "name": "f",
+          "file": { "key": "test.cpp" },
+          "location": {
+            "range": {
+              "file": { "key": "test.cpp" },
+              "lineBegin": 12,
+              "columnBegin": 1,
+              "lineEnd": 12,
+              "columnEnd": 30
+            }
+          },
+          "destination": {
+            "file": { "key": "test.cpp" },
+            "span": { "start": 287, "length": 1 }
+          }
+        }
+      },
+      "style": 0
+    }
+  },
+  {
+    "key": {
+      "query": 2,
+      "parent": {
+        "parent": {
+          "cxx": {
+            "decl": {
+              "namespace_": {
+                "key": {
+                  "name": { "key": { "name": { "key": "N2" } } },
+                  "source": {
+                    "file": { "key": "test.cpp" },
+                    "lineBegin": 17,
+                    "columnBegin": 1,
+                    "lineEnd": 25,
+                    "columnEnd": 1
+                  }
+                }
+              }
+            }
+          }
+        },
+        "location": {
+          "name": "N2",
+          "file": { "key": "test.cpp" },
+          "location": {
+            "range": {
+              "file": { "key": "test.cpp" },
+              "lineBegin": 17,
+              "columnBegin": 1,
+              "lineEnd": 25,
+              "columnEnd": 1
+            }
+          },
+          "destination": {
+            "file": { "key": "test.cpp" },
+            "span": { "start": 345, "length": 2 }
+          }
+        }
+      },
+      "child": {
+        "child": {
+          "cxx": {
+            "decl": {
+              "function_": {
+                "key": {
+                  "name": {
+                    "key": {
+                      "name": { "key": { "name": { "key": "g" } } },
+                      "scope": {
+                        "namespace_": { "key": { "name": { "key": "N2" } } }
+                      }
+                    }
+                  },
+                  "signature": {
+                    "key": { "returns": { "key": "void" }, "parameters": [ ] }
+                  },
+                  "source": {
+                    "file": { "key": "test.cpp" },
+                    "lineBegin": 20,
+                    "columnBegin": 1,
+                    "lineEnd": 24,
+                    "columnEnd": 1
+                  }
+                }
+              }
+            }
+          }
+        },
+        "location": {
+          "name": "g",
+          "file": { "key": "test.cpp" },
+          "location": {
+            "range": {
+              "file": { "key": "test.cpp" },
+              "lineBegin": 20,
+              "columnBegin": 1,
+              "lineEnd": 24,
+              "columnEnd": 1
+            }
+          },
+          "destination": {
+            "file": { "key": "test.cpp" },
+            "span": { "start": 376, "length": 1 }
+          }
+        }
+      },
+      "style": 0
+    }
+  },
+  {
+    "key": {
+      "query": 2,
+      "parent": {
+        "parent": {
+          "cxx": {
+            "decl": {
+              "namespace_": {
+                "key": {
+                  "name": { "key": { "name": { "key": "N3" } } },
+                  "source": {
+                    "file": { "key": "test.cpp" },
+                    "lineBegin": 27,
+                    "columnBegin": 1,
+                    "lineEnd": 36,
+                    "columnEnd": 1
+                  }
+                }
+              }
+            }
+          }
+        },
+        "location": {
+          "name": "N3",
+          "file": { "key": "test.cpp" },
+          "location": {
+            "range": {
+              "file": { "key": "test.cpp" },
+              "lineBegin": 27,
+              "columnBegin": 1,
+              "lineEnd": 36,
+              "columnEnd": 1
+            }
+          },
+          "destination": {
+            "file": { "key": "test.cpp" },
+            "span": { "start": 425, "length": 2 }
+          }
+        }
+      },
+      "child": {
+        "child": {
+          "cxx": {
+            "decl": {
+              "function_": {
+                "key": {
+                  "name": {
+                    "key": {
+                      "name": { "key": { "name": { "key": "g" } } },
+                      "scope": {
+                        "namespace_": { "key": { "name": { "key": "N3" } } }
+                      }
+                    }
+                  },
+                  "signature": {
+                    "key": { "returns": { "key": "void" }, "parameters": [ ] }
+                  },
+                  "source": {
+                    "file": { "key": "test.cpp" },
+                    "lineBegin": 31,
+                    "columnBegin": 1,
+                    "lineEnd": 35,
+                    "columnEnd": 1
+                  }
+                }
+              }
+            }
+          }
+        },
+        "location": {
+          "name": "g",
+          "file": { "key": "test.cpp" },
+          "location": {
+            "range": {
+              "file": { "key": "test.cpp" },
+              "lineBegin": 31,
+              "columnBegin": 1,
+              "lineEnd": 35,
+              "columnEnd": 1
+            }
+          },
+          "destination": {
+            "file": { "key": "test.cpp" },
+            "span": { "start": 450, "length": 1 }
+          }
+        }
+      },
+      "style": 0
+    }
+  }
+]

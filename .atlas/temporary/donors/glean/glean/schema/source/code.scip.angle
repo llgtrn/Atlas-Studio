@@ -1,0 +1,30 @@
+# Copyright (c) Meta Platforms, Inc. and affiliates.
+
+schema code.scip.1 {
+
+import scip
+
+type Entity =
+  {
+    rust : scip.SomeEntity |
+    go : scip.SomeEntity |
+    typescript : scip.SomeEntity |
+    java : scip.SomeEntity |
+    kotlin : scip.SomeEntity |
+    swift: scip.SomeEntity |
+    python: scip.SomeEntity |
+    typescriptReact : scip.SomeEntity |
+    javascript : scip.SomeEntity |
+    javascriptReact : scip.SomeEntity |
+    c: scip.SomeEntity |
+    cpp: scip.SomeEntity |
+    ruby: scip.SomeEntity |
+    csharp: scip.SomeEntity |
+    visualBasic: scip.SomeEntity |
+    dart: scip.SomeEntity |
+    php: scip.SomeEntity |
+  }
+
+type SymbolId = scip.Symbol
+
+}

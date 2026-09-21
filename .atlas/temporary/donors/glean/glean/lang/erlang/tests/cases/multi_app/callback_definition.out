@@ -1,0 +1,16 @@
+[
+  "@generated",
+  {
+    "key": {
+      "declaration": {
+        "key": {
+          "name": "on_request",
+          "arity": 1,
+          "module": "server",
+          "app": "app_a"
+        }
+      },
+      "optional_": false
+    }
+  }
+]

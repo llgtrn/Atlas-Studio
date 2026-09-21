@@ -1,0 +1,5 @@
+{
+  "@generated": null,
+  "facts_searched": { "erlang.FileDeclarations.2": 5 },
+  "full_scans": [ "erlang.FileDeclarations.2" ]
+}

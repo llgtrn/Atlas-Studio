@@ -1,0 +1,77 @@
+# Copyright (c) Meta Platforms, Inc. and affiliates.
+
+schema codemarkup.graphql.1 {
+
+import src
+import code.graphql
+import codemarkup.types
+import graphql
+
+#
+# Resolving locations to entities
+#
+
+predicate GraphQLResolveLocation:
+  {
+    location: codemarkup.types.Location,
+    entity: code.graphql.Entity,
+  }
+  { { Name, File, { span = Span }, nothing }, { decl = Decl } } where
+    graphql.FileDeclarations { File, Span, Decl };
+    graphql.DeclHasName { Decl, graphql.Value Name };
+
+#
+# Finding entities' locations
+#
+
+predicate GraphQLEntityLocation:
+  {
+    entity: code.graphql.Entity,
+    location: codemarkup.types.Location,
+  }
+  { Entity, { Name, File, { span = Span }, nothing } } where
+    { decl = Decl } = Entity;
+    graphql.DeclarationLocation { Decl, File, Span };
+    graphql.DeclHasName { Decl, graphql.Value Name };
+
+#
+# Finding references in a file
+#
+
+predicate GraphQLFileEntityXRefLocations:
+  {
+    file: src.File,
+    xref: codemarkup.types.XRefLocation,
+    entity: code.graphql.Entity,
+  }
+  { File, { Location, { span = SrcSpan } }, { decl = Decl } } where
+    graphql.FileXRefs { File, { Decl, SrcSpan } };
+    graphql.DeclarationLocation { Decl, DstFile, DstSpan };
+    graphql.DeclHasName { Decl, graphql.Value Name };
+    { Name, DstFile, { span = DstSpan }, nothing } = Location;
+
+#
+# Language entity uses
+#
+
+predicate GraphQLEntityUses:
+  {
+    target: code.graphql.Entity,
+    file: src.File,
+    span: src.ByteSpan,
+  }
+  { { decl = Decl }, File, Span } where
+    graphql.DeclarationUses { Decl, File, Span }
+
+# kinds and symbol info
+predicate GraphQLEntityKind:
+  {
+    entity: code.graphql.Entity,
+    kind: codemarkup.types.SymbolKind
+  }
+  { Entity, Kind } where
+    { decl = Decl } = Entity;
+    ({ fragment_ = _ } = Decl; Fragment = Kind ) |
+    ({ operation_ = _ } = Decl; Operation = Kind );
+
+}

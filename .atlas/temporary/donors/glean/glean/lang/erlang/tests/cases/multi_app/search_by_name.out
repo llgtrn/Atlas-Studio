@@ -1,0 +1,657 @@
+[
+  "@generated",
+  {
+    "key": {
+      "name": "MAX_RETRIES",
+      "decl": {
+        "macro_": {
+          "key": {
+            "name": "MAX_RETRIES",
+            "module": "shared.hrl",
+            "app": "app_a"
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "name": "TRANSFORM",
+      "decl": {
+        "macro_": {
+          "key": {
+            "name": "TRANSFORM",
+            "arity": 1,
+            "module": "shared.hrl",
+            "app": "app_a"
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "name": "batch_send",
+      "decl": {
+        "func": {
+          "key": {
+            "fqn": { "module": "client", "name": "batch_send", "arity": 1 },
+            "app": "app_b"
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "name": "binary",
+      "decl": {
+        "type_": {
+          "key": {
+            "name": "binary",
+            "arity": 0,
+            "module": "erlang",
+            "app": "erts"
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "name": "client",
+      "decl": {
+        "module_": {
+          "key": {
+            "file": { "key": "app_b/src/client.erl" },
+            "name": "client",
+            "app": "app_b"
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "name": "code_change",
+      "decl": {
+        "callback_": {
+          "key": {
+            "name": "code_change",
+            "arity": 3,
+            "module": "gen_server",
+            "app": "stdlib"
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "name": "filter",
+      "decl": {
+        "func": {
+          "key": {
+            "fqn": { "module": "lists", "name": "filter", "arity": 2 },
+            "app": "stdlib"
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "name": "flatten",
+      "decl": {
+        "func": {
+          "key": {
+            "fqn": { "module": "lists", "name": "flatten", "arity": 1 },
+            "app": "stdlib"
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "name": "format",
+      "decl": {
+        "func": {
+          "key": {
+            "fqn": { "module": "io_lib", "name": "format", "arity": 2 },
+            "app": "stdlib"
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "name": "format_id",
+      "decl": {
+        "func": {
+          "key": {
+            "fqn": { "module": "utils", "name": "format_id", "arity": 1 },
+            "app": "app_a"
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "name": "format_status",
+      "decl": {
+        "callback_": {
+          "key": {
+            "name": "format_status",
+            "arity": 1,
+            "module": "gen_server",
+            "app": "stdlib"
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "name": "format_status",
+      "decl": {
+        "callback_": {
+          "key": {
+            "name": "format_status",
+            "arity": 2,
+            "module": "gen_server",
+            "app": "stdlib"
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "name": "handle_call",
+      "decl": {
+        "callback_": {
+          "key": {
+            "name": "handle_call",
+            "arity": 3,
+            "module": "gen_server",
+            "app": "stdlib"
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "name": "handle_call",
+      "decl": {
+        "func": {
+          "key": {
+            "fqn": { "module": "server", "name": "handle_call", "arity": 3 },
+            "app": "app_a"
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "name": "handle_cast",
+      "decl": {
+        "callback_": {
+          "key": {
+            "name": "handle_cast",
+            "arity": 2,
+            "module": "gen_server",
+            "app": "stdlib"
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "name": "handle_cast",
+      "decl": {
+        "func": {
+          "key": {
+            "fqn": { "module": "server", "name": "handle_cast", "arity": 2 },
+            "app": "app_a"
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "name": "handle_continue",
+      "decl": {
+        "callback_": {
+          "key": {
+            "name": "handle_continue",
+            "arity": 2,
+            "module": "gen_server",
+            "app": "stdlib"
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "name": "handle_info",
+      "decl": {
+        "callback_": {
+          "key": {
+            "name": "handle_info",
+            "arity": 2,
+            "module": "gen_server",
+            "app": "stdlib"
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "name": "handle_request",
+      "decl": {
+        "func": {
+          "key": {
+            "fqn": { "module": "server", "name": "handle_request", "arity": 1 },
+            "app": "app_a"
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "name": "id",
+      "decl": {
+        "record_field": {
+          "key": {
+            "record_name": "request",
+            "field_name": "id",
+            "module": "shared.hrl",
+            "app": "app_a"
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "name": "init",
+      "decl": {
+        "callback_": {
+          "key": {
+            "name": "init",
+            "arity": 1,
+            "module": "gen_server",
+            "app": "stdlib"
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "name": "init",
+      "decl": {
+        "func": {
+          "key": {
+            "fqn": { "module": "server", "name": "init", "arity": 1 },
+            "app": "app_a"
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "name": "integer",
+      "decl": {
+        "type_": {
+          "key": {
+            "name": "integer",
+            "arity": 0,
+            "module": "erlang",
+            "app": "erts"
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "name": "integer_to_list",
+      "decl": {
+        "func": {
+          "key": {
+            "fqn": {
+              "module": "erlang",
+              "name": "integer_to_list",
+              "arity": 1
+            },
+            "app": "erts"
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "name": "internal",
+      "decl": {
+        "module_": {
+          "key": {
+            "file": { "key": "app_b/src/internal.erl" },
+            "name": "internal",
+            "app": "app_b"
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "name": "map",
+      "decl": {
+        "func": {
+          "key": {
+            "fqn": { "module": "lists", "name": "map", "arity": 2 },
+            "app": "stdlib"
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "name": "old_api",
+      "decl": {
+        "func": {
+          "key": {
+            "fqn": { "module": "server", "name": "old_api", "arity": 1 },
+            "app": "app_a"
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "name": "on_request",
+      "decl": {
+        "callback_": {
+          "key": {
+            "name": "on_request",
+            "arity": 1,
+            "module": "server",
+            "app": "app_a"
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "name": "payload",
+      "decl": {
+        "record_field": {
+          "key": {
+            "record_name": "request",
+            "field_name": "payload",
+            "module": "shared.hrl",
+            "app": "app_a"
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "name": "pid",
+      "decl": {
+        "type_": {
+          "key": {
+            "name": "pid",
+            "arity": 0,
+            "module": "erlang",
+            "app": "erts"
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "name": "process_request",
+      "decl": {
+        "func": {
+          "key": {
+            "fqn": {
+              "module": "server",
+              "name": "process_request",
+              "arity": 1
+            },
+            "app": "app_a"
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "name": "request",
+      "decl": {
+        "record_": {
+          "key": { "name": "request", "module": "shared.hrl", "app": "app_a" }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "name": "retries",
+      "decl": {
+        "record_field": {
+          "key": {
+            "record_name": "request",
+            "field_name": "retries",
+            "module": "shared.hrl",
+            "app": "app_a"
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "name": "retry_delay",
+      "decl": {
+        "func": {
+          "key": {
+            "fqn": { "module": "utils", "name": "retry_delay", "arity": 1 },
+            "app": "app_a"
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "name": "run",
+      "decl": {
+        "func": {
+          "key": {
+            "fqn": { "module": "internal", "name": "run", "arity": 0 },
+            "app": "app_b"
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "name": "send_request",
+      "decl": {
+        "func": {
+          "key": {
+            "fqn": { "module": "client", "name": "send_request", "arity": 1 },
+            "app": "app_b"
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "name": "server",
+      "decl": {
+        "module_": {
+          "key": {
+            "file": { "key": "app_a/src/server.erl" },
+            "name": "server",
+            "app": "app_a"
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "name": "shared.hrl",
+      "decl": { "header_": { "key": { "name": "shared.hrl", "app": "app_a" } } }
+    }
+  },
+  {
+    "key": {
+      "name": "start",
+      "decl": {
+        "func": {
+          "key": {
+            "fqn": { "module": "gen_server", "name": "start", "arity": 3 },
+            "app": "stdlib"
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "name": "start",
+      "decl": {
+        "func": {
+          "key": {
+            "fqn": { "module": "server", "name": "start", "arity": 0 },
+            "app": "app_a"
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "name": "state",
+      "decl": {
+        "type_": {
+          "key": {
+            "name": "state",
+            "arity": 0,
+            "module": "server",
+            "app": "app_a"
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "name": "string",
+      "decl": {
+        "type_": {
+          "key": {
+            "name": "string",
+            "arity": 0,
+            "module": "erlang",
+            "app": "erts"
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "name": "term",
+      "decl": {
+        "type_": {
+          "key": {
+            "name": "term",
+            "arity": 0,
+            "module": "erlang",
+            "app": "erts"
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "name": "terminate",
+      "decl": {
+        "callback_": {
+          "key": {
+            "name": "terminate",
+            "arity": 2,
+            "module": "gen_server",
+            "app": "stdlib"
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "name": "unique_integer",
+      "decl": {
+        "func": {
+          "key": {
+            "fqn": { "module": "erlang", "name": "unique_integer", "arity": 0 },
+            "app": "erts"
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "name": "utils",
+      "decl": {
+        "module_": {
+          "key": {
+            "file": { "key": "app_a/src/utils.erl" },
+            "name": "utils",
+            "app": "app_a"
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "name": "validate",
+      "decl": {
+        "func": {
+          "key": {
+            "fqn": { "module": "utils", "name": "validate", "arity": 1 },
+            "app": "app_a"
+          }
+        }
+      }
+    }
+  }
+]

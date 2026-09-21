@@ -1,0 +1,169 @@
+cabal-version:       3.6
+
+-- Copyright (c) Facebook, Inc. and its affiliates.
+
+name:                glean-clang
+version:             0.1.0.0
+synopsis:            C++ code indexing infrastructure for Glean
+homepage:            https://github.com/facebookincubator/Glean
+bug-reports:         https://github.com/facebookincubator/Glean/issues
+license:             BSD-3-Clause
+license-file:        LICENSE
+author:              Facebook, Inc.
+maintainer:          Glean-team@fb.com
+copyright:           (c) Facebook, All Rights Reserved
+build-type:          Custom
+
+extra-source-files:
+    action.h,
+    ast.h,
+    db.h,
+    gleandiagnosticbuffer.h,
+    hash.h,
+    index.h,
+    path.h,
+    preprocessor.h
+
+-- These bits of code live in their own package because we want the custom setup
+-- to detect LLVM/clang, but this is not compatible with glean.cabal's use of
+-- multiple (public) libraries:
+--
+--   Error:
+--       Internal libraries only supported with per-component builds.
+--       Per-component builds were disabled because build-type is Custom
+--       In the inplace package 'glean-0.1.0.0'
+
+
+-- Custom setup used to detect LLVM (and clang) and configure the appropriate
+-- include/library directories, necessary for 'glean-clang-index' C++ program
+-- which uses the clang/llvm libraries.
+custom-setup
+  setup-depends:
+    base,
+    Cabal >= 3.6,
+    containers
+
+flag opt
+     default: False
+
+common deps
+    build-depends:
+        ansi-terminal ^>= 0.11,
+        array ^>=0.5.2.0,
+        async ^>=2.2.1,
+        base >=4.11.1 && <4.19,
+        containers,
+        data-default,
+        deepseq ^>=1.4.3.0,
+        directory ^>=1.3.1.5,
+        fb-util,
+        filepath ^>=1.4.2,
+        optparse-applicative,
+        process ^>=1.6.3.0,
+        stm ^>=2.5.0.0,
+        temporary,
+        text >=1.2.3.0 && < 2.2,
+        thrift-lib,
+        unordered-containers ^>=0.2.9.0,
+        vector >=0.12.0.1 && <0.14,
+
+common exe
+  ghc-options: -threaded
+
+common fb-haskell
+    default-language: Haskell2010
+    default-extensions:
+        BangPatterns
+        BinaryLiterals
+        DataKinds
+        DeriveDataTypeable
+        DeriveGeneric
+        EmptyCase
+        ExistentialQuantification
+        FlexibleContexts
+        FlexibleInstances
+        GADTs
+        GeneralizedNewtypeDeriving
+        LambdaCase
+        MultiParamTypeClasses
+        MultiWayIf
+        NoMonomorphismRestriction
+        OverloadedStrings
+        PatternSynonyms
+        RankNTypes
+        RecordWildCards
+        ScopedTypeVariables
+        StandaloneDeriving
+        TupleSections
+        TypeFamilies
+        TypeSynonymInstances
+        NondecreasingIndentation
+    ghc-options: -Wall -Wno-orphans -Wno-name-shadowing
+    if flag(opt)
+      ghc-options: -O2
+
+common fb-cpp
+  cxx-options: -DOSS=1 -std=c++20 -Wno-nullability-completeness
+  if arch(x86_64)
+      cxx-options: -DGLEAN_X86_64 -march=haswell
+  if flag(opt)
+     cxx-options: -O3
+
+flag use-folly-clib
+     default: False
+
+common folly
+    if flag(use-folly-clib)
+        build-depends: fb-util >= 0.2, folly-clib
+    else
+        build-depends: fb-util < 0.2
+        pkgconfig-depends: libfolly
+
+executable clang-index
+    import: fb-cpp, folly
+    ghc-options: -no-hs-main
+    main-is: index.cpp
+    cxx-sources:
+        action.cpp,
+        ast.cpp,
+        db.cpp,
+        hash.cpp,
+        path.cpp,
+        preprocessor.cpp,
+    build-depends:
+        glean:rts,
+        glean:client-cpp,
+    extra-libraries:
+        clang-cpp,
+        LLVM,
+        glog,
+        pthread,
+        fmt,
+        gflags,
+        atomic,
+        re2
+    cxx-options: -fexceptions
+
+executable clang-derive
+    import: fb-haskell, fb-cpp, deps, exe
+    main-is: Derive.hs
+    hs-source-dirs: .
+    ghc-options: -main-is Derive
+    build-depends:
+        ghc-compact,
+        glean:client-hs,
+        glean:client-hs-local,
+        glean:lib,
+        glean:lib-derive,
+        glean:schema,
+        glean:util,
+        vector-algorithms
+    other-modules:
+        Derive.Common
+        Derive.CxxDeclarationSources
+        Derive.CxxSame
+        Derive.CxxTargetUses
+        Derive.Env
+        Derive.Generic
+        Derive.Lib
+        Derive.Types

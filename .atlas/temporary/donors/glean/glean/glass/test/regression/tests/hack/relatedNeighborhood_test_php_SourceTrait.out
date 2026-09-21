@@ -1,0 +1,202 @@
+[
+    "@generated",
+    {
+        "childrenContained": [
+            "test/php/SourceTrait/quux",
+            "test/php/SourceTrait/superAdd"
+        ],
+        "childrenExtended": [
+            "test/php/RefClass"
+        ],
+        "containsParents": [],
+        "inheritedSymbols": [],
+        "parentsExtended": [],
+        "requireClass": [],
+        "requireExtends": [],
+        "requireImplements": [],
+        "symbolBasicDetails": {
+            "test/php/RefClass": {
+                "kind": 7,
+                "language": 3,
+                "name": {
+                    "container": "",
+                    "localName": "RefClass"
+                },
+                "signature": "class RefClass",
+                "sym": "test/php/RefClass"
+            }
+        },
+        "symbolDetails": {
+            "test/php/SourceTrait": {
+                "annotations": [],
+                "contains_relation": {
+                    "firstChild": "nondeterministic",
+                    "firstParent": "nondeterministic",
+                    "hasMoreChildren": true,
+                    "hasMoreParents": false
+                },
+                "extends_relation": {
+                    "firstChild": "nondeterministic",
+                    "firstParent": "nondeterministic",
+                    "hasMoreChildren": false,
+                    "hasMoreParents": false
+                },
+                "kind": 31,
+                "language": 3,
+                "location": {
+                    "filepath": "www/SourceTrait.php",
+                    "range": {
+                        "columnBegin": 1,
+                        "columnEnd": 2,
+                        "lineBegin": 10,
+                        "lineEnd": 18
+                    },
+                    "repository": "test"
+                },
+                "modifiers": [],
+                "name": {
+                    "container": "",
+                    "localName": "SourceTrait"
+                },
+                "pretty_comments": [],
+                "repo_hash": "testhash",
+                "signature": "trait SourceTrait",
+                "sym": "test/php/SourceTrait",
+                "sym_location": {
+                    "filepath": "www/SourceTrait.php",
+                    "range": {
+                        "columnBegin": 1,
+                        "columnEnd": 2,
+                        "lineBegin": 10,
+                        "lineEnd": 18
+                    },
+                    "repository": "test"
+                },
+                "sym_other_locations": [],
+                "type_xrefs": [
+                    {
+                        "span": {
+                            "length": 11,
+                            "start": 6
+                        },
+                        "type": "test/php/SourceTrait"
+                    }
+                ]
+            },
+            "test/php/SourceTrait/quux": {
+                "annotations": [],
+                "contains_relation": {
+                    "firstChild": "nondeterministic",
+                    "firstParent": "nondeterministic",
+                    "hasMoreChildren": false,
+                    "hasMoreParents": false
+                },
+                "extends_relation": {
+                    "firstChild": "nondeterministic",
+                    "firstParent": "nondeterministic",
+                    "hasMoreChildren": false,
+                    "hasMoreParents": false
+                },
+                "kind": 8,
+                "language": 3,
+                "location": {
+                    "filepath": "www/SourceTrait.php",
+                    "range": {
+                        "columnBegin": 3,
+                        "columnEnd": 4,
+                        "lineBegin": 11,
+                        "lineEnd": 13
+                    },
+                    "repository": "test"
+                },
+                "modifiers": [],
+                "name": {
+                    "container": "SourceTrait",
+                    "localName": "quux"
+                },
+                "pretty_comments": [],
+                "repo_hash": "testhash",
+                "signature": "public function quux(int $i): int",
+                "sym": "test/php/SourceTrait/quux",
+                "sym_location": {
+                    "filepath": "www/SourceTrait.php",
+                    "range": {
+                        "columnBegin": 3,
+                        "columnEnd": 4,
+                        "lineBegin": 11,
+                        "lineEnd": 13
+                    },
+                    "repository": "test"
+                },
+                "sym_other_locations": [],
+                "type_xrefs": [
+                    {
+                        "span": {
+                            "length": 4,
+                            "start": 16
+                        },
+                        "type": "test/php/SourceTrait/quux"
+                    }
+                ],
+                "visibility": 20
+            },
+            "test/php/SourceTrait/superAdd": {
+                "annotations": [],
+                "contains_relation": {
+                    "firstChild": "nondeterministic",
+                    "firstParent": "nondeterministic",
+                    "hasMoreChildren": false,
+                    "hasMoreParents": false
+                },
+                "extends_relation": {
+                    "firstChild": "nondeterministic",
+                    "firstParent": "nondeterministic",
+                    "hasMoreChildren": false,
+                    "hasMoreParents": false
+                },
+                "kind": 8,
+                "language": 3,
+                "location": {
+                    "filepath": "www/SourceTrait.php",
+                    "range": {
+                        "columnBegin": 3,
+                        "columnEnd": 4,
+                        "lineBegin": 15,
+                        "lineEnd": 17
+                    },
+                    "repository": "test"
+                },
+                "modifiers": [],
+                "name": {
+                    "container": "SourceTrait",
+                    "localName": "superAdd"
+                },
+                "pretty_comments": [],
+                "repo_hash": "testhash",
+                "signature": "public function superAdd(int $i, int $i): int",
+                "sym": "test/php/SourceTrait/superAdd",
+                "sym_location": {
+                    "filepath": "www/SourceTrait.php",
+                    "range": {
+                        "columnBegin": 3,
+                        "columnEnd": 4,
+                        "lineBegin": 15,
+                        "lineEnd": 17
+                    },
+                    "repository": "test"
+                },
+                "sym_other_locations": [],
+                "type_xrefs": [
+                    {
+                        "span": {
+                            "length": 8,
+                            "start": 16
+                        },
+                        "type": "test/php/SourceTrait/superAdd"
+                    }
+                ],
+                "visibility": 20
+            }
+        }
+    }
+]

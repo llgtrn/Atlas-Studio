@@ -1,0 +1,35 @@
+[
+  "@generated",
+  {
+    "key": {
+      "entity": {
+        "hack": {
+          "decl": {
+            "method": {
+              "key": {
+                "container": {
+                  "class_": {
+                    "key": {
+                      "name": { "key": { "name": { "key": "RefClass" } } }
+                    }
+                  }
+                },
+                "name": { "key": "bar" }
+              }
+            }
+          }
+        }
+      },
+      "kind": 7,
+      "language": 5,
+      "location": {
+        "file": { "key": "www/RefClass.php" },
+        "location": { "span": { "length": 390, "start": 331 } },
+        "name": "bar"
+      },
+      "name": "bar",
+      "scope": [ "RefClass" ],
+      "searchcase": 0
+    }
+  }
+]

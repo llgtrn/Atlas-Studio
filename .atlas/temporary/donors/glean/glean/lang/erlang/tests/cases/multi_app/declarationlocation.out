@@ -1,0 +1,332 @@
+[
+  "@generated",
+  {
+    "key": {
+      "declaration": {
+        "callback_": {
+          "key": {
+            "name": "on_request",
+            "arity": 1,
+            "module": "server",
+            "app": "app_a"
+          }
+        }
+      },
+      "file": { "key": "app_a/src/server.erl" },
+      "span": { "start": 201, "length": 57 }
+    }
+  },
+  {
+    "key": {
+      "declaration": {
+        "func": {
+          "key": {
+            "fqn": { "module": "client", "name": "batch_send", "arity": 1 },
+            "app": "app_b"
+          }
+        }
+      },
+      "file": { "key": "app_b/src/client.erl" },
+      "span": { "start": 409, "length": 68 }
+    }
+  },
+  {
+    "key": {
+      "declaration": {
+        "func": {
+          "key": {
+            "fqn": { "module": "client", "name": "send_request", "arity": 1 },
+            "app": "app_b"
+          }
+        }
+      },
+      "file": { "key": "app_b/src/client.erl" },
+      "span": { "start": 156, "length": 195 }
+    }
+  },
+  {
+    "key": {
+      "declaration": {
+        "func": {
+          "key": {
+            "fqn": { "module": "internal", "name": "run", "arity": 0 },
+            "app": "app_b"
+          }
+        }
+      },
+      "file": { "key": "app_b/src/internal.erl" },
+      "span": { "start": 63, "length": 250 }
+    }
+  },
+  {
+    "key": {
+      "declaration": {
+        "func": {
+          "key": {
+            "fqn": { "module": "server", "name": "handle_call", "arity": 3 },
+            "app": "app_a"
+          }
+        }
+      },
+      "file": { "key": "app_a/src/server.erl" },
+      "span": { "start": 557, "length": 170 }
+    }
+  },
+  {
+    "key": {
+      "declaration": {
+        "func": {
+          "key": {
+            "fqn": { "module": "server", "name": "handle_cast", "arity": 2 },
+            "app": "app_a"
+          }
+        }
+      },
+      "file": { "key": "app_a/src/server.erl" },
+      "span": { "start": 787, "length": 49 }
+    }
+  },
+  {
+    "key": {
+      "declaration": {
+        "func": {
+          "key": {
+            "fqn": { "module": "server", "name": "handle_request", "arity": 1 },
+            "app": "app_a"
+          }
+        }
+      },
+      "file": { "key": "app_a/src/server.erl" },
+      "span": { "start": 896, "length": 137 }
+    }
+  },
+  {
+    "key": {
+      "declaration": {
+        "func": {
+          "key": {
+            "fqn": { "module": "server", "name": "init", "arity": 1 },
+            "app": "app_a"
+          }
+        }
+      },
+      "file": { "key": "app_a/src/server.erl" },
+      "span": { "start": 440, "length": 43 }
+    }
+  },
+  {
+    "key": {
+      "declaration": {
+        "func": {
+          "key": {
+            "fqn": { "module": "server", "name": "old_api", "arity": 1 },
+            "app": "app_a"
+          }
+        }
+      },
+      "file": { "key": "app_a/src/server.erl" },
+      "span": { "start": 1064, "length": 18 }
+    }
+  },
+  {
+    "key": {
+      "declaration": {
+        "func": {
+          "key": {
+            "fqn": {
+              "module": "server",
+              "name": "process_request",
+              "arity": 1
+            },
+            "app": "app_a"
+          }
+        }
+      },
+      "file": { "key": "app_a/src/server.erl" },
+      "span": { "start": 1084, "length": 87 }
+    }
+  },
+  {
+    "key": {
+      "declaration": {
+        "func": {
+          "key": {
+            "fqn": { "module": "server", "name": "start", "arity": 0 },
+            "app": "app_a"
+          }
+        }
+      },
+      "file": { "key": "app_a/src/server.erl" },
+      "span": { "start": 352, "length": 49 }
+    }
+  },
+  {
+    "key": {
+      "declaration": {
+        "func": {
+          "key": {
+            "fqn": { "module": "utils", "name": "format_id", "arity": 1 },
+            "app": "app_a"
+          }
+        }
+      },
+      "file": { "key": "app_a/src/utils.erl" },
+      "span": { "start": 119, "length": 56 }
+    }
+  },
+  {
+    "key": {
+      "declaration": {
+        "func": {
+          "key": {
+            "fqn": { "module": "utils", "name": "retry_delay", "arity": 1 },
+            "app": "app_a"
+          }
+        }
+      },
+      "file": { "key": "app_a/src/utils.erl" },
+      "span": { "start": 315, "length": 26 }
+    }
+  },
+  {
+    "key": {
+      "declaration": {
+        "func": {
+          "key": {
+            "fqn": { "module": "utils", "name": "validate", "arity": 1 },
+            "app": "app_a"
+          }
+        }
+      },
+      "file": { "key": "app_a/src/utils.erl" },
+      "span": { "start": 230, "length": 83 }
+    }
+  },
+  {
+    "key": {
+      "declaration": {
+        "header_": { "key": { "name": "shared.hrl", "app": "app_a" } }
+      },
+      "file": { "key": "app_a/include/shared.hrl" },
+      "span": { "start": 0, "length": 142 }
+    }
+  },
+  {
+    "key": {
+      "declaration": {
+        "macro_": {
+          "key": {
+            "name": "MAX_RETRIES",
+            "module": "shared.hrl",
+            "app": "app_a"
+          }
+        }
+      },
+      "file": { "key": "app_a/include/shared.hrl" },
+      "span": { "start": 0, "length": 24 }
+    }
+  },
+  {
+    "key": {
+      "declaration": {
+        "macro_": {
+          "key": {
+            "name": "TRANSFORM",
+            "arity": 1,
+            "module": "shared.hrl",
+            "app": "app_a"
+          }
+        }
+      },
+      "file": { "key": "app_a/include/shared.hrl" },
+      "span": { "start": 25, "length": 31 }
+    }
+  },
+  {
+    "key": {
+      "declaration": {
+        "module_": {
+          "key": {
+            "file": { "key": "app_a/src/server.erl" },
+            "name": "server",
+            "app": "app_a"
+          }
+        }
+      },
+      "file": { "key": "app_a/src/server.erl" },
+      "span": { "start": 0, "length": 16 }
+    }
+  },
+  {
+    "key": {
+      "declaration": {
+        "module_": {
+          "key": {
+            "file": { "key": "app_a/src/utils.erl" },
+            "name": "utils",
+            "app": "app_a"
+          }
+        }
+      },
+      "file": { "key": "app_a/src/utils.erl" },
+      "span": { "start": 0, "length": 15 }
+    }
+  },
+  {
+    "key": {
+      "declaration": {
+        "module_": {
+          "key": {
+            "file": { "key": "app_b/src/client.erl" },
+            "name": "client",
+            "app": "app_b"
+          }
+        }
+      },
+      "file": { "key": "app_b/src/client.erl" },
+      "span": { "start": 0, "length": 16 }
+    }
+  },
+  {
+    "key": {
+      "declaration": {
+        "module_": {
+          "key": {
+            "file": { "key": "app_b/src/internal.erl" },
+            "name": "internal",
+            "app": "app_b"
+          }
+        }
+      },
+      "file": { "key": "app_b/src/internal.erl" },
+      "span": { "start": 0, "length": 18 }
+    }
+  },
+  {
+    "key": {
+      "declaration": {
+        "record_": {
+          "key": { "name": "request", "module": "shared.hrl", "app": "app_a" }
+        }
+      },
+      "file": { "key": "app_a/include/shared.hrl" },
+      "span": { "start": 58, "length": 83 }
+    }
+  },
+  {
+    "key": {
+      "declaration": {
+        "type_": {
+          "key": {
+            "name": "state",
+            "arity": 0,
+            "module": "server",
+            "app": "app_a"
+          }
+        }
+      },
+      "file": { "key": "app_a/src/server.erl" },
+      "span": { "start": 154, "length": 45 }
+    }
+  }
+]

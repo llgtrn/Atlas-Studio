@@ -1,0 +1,9 @@
+{
+  "@generated": null,
+  "facts_searched": {
+    "hack.DeclarationSpan.6": 1,
+    "hack.SearchClassByLowerCaseName.6": 1,
+    "hack.SearchClassByName.6": 1
+  },
+  "full_scans": [ ]
+}

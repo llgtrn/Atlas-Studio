@@ -1,0 +1,3 @@
+query: erlang.CallbackDefinition _
+perf: True
+transform: [gensort, []]

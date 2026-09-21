@@ -1,0 +1,629 @@
+{-
+  Copyright (c) Meta Platforms, Inc. and affiliates.
+  All rights reserved.
+
+  This source code is licensed under the BSD-style license found in the
+  LICENSE file in the root directory of this source tree.
+-}
+
+{-# LANGUAGE OverloadedStrings #-}
+-- | Glean's first auto-generation attempt
+--
+-- Run with
+--
+-- >  ./buck-out/opt/gen/glean/hs/predicates --thrift=predicates.thrift
+--
+-- Create fbcode/glean/if/predicates.thrift
+--
+module Glean.Schema.Gen.Thrift
+  ( genSchemaThrift
+  ) where
+
+import Control.Monad
+import Data.HashMap.Strict (HashMap)
+import qualified Data.HashMap.Strict as HashMap
+import Data.Maybe
+import Data.Text (Text)
+import qualified Data.Text as Text
+import System.FilePath
+import TextShow
+
+import Glean.Schema.Gen.Utils
+import Glean.Angle.Types
+import Glean.Schema.Types
+import Glean.Types (SchemaId(..))
+
+genSchemaThrift
+  :: Maybe String
+  -> SchemaId
+  -> Version
+  -> [ResolvedPredicateDef]
+  -> [ResolvedTypeDef]
+  -> Maybe Oncall
+  -> [(FilePath, Text)]
+genSchemaThrift versionDir hash version preddefs typedefs oncall =
+  (dir </> "BUCK",
+    genTargets slashVn declsPerNamespace oncall) :
+  [ ( dir </> Text.unpack (underscored namespaces) ++ ".thrift"
+    , genNamespace slashVn namespaces version
+        hash namePolicy deps preds types)
+  | (namespaces, (deps, preds, types)) <- HashMap.toList declsPerNamespace ]
+  where
+  dir = "thrift"
+
+  slashVn = case versionDir of
+    Nothing -> ""
+    Just str -> "/" <> Text.pack str
+  namePolicy = mkNamePolicy preddefs typedefs
+  declsPerNamespace =
+    addNamespaceDependencies $ sortDeclsByNamespace preddefs typedefs
+
+
+genTargets
+  :: Text   -- "/v1" or ""
+  -> HashMap NameSpaces
+    ([NameSpaces], [ResolvedPredicateDef], [ResolvedTypeDef])
+  -> Maybe Oncall
+  -> Text
+genTargets slashVn info oncall =
+  Text.unlines
+     ([ "# \x40generated"
+     , "# to regenerate: ./glean/schema/sync"
+     , "load(\"@fbcode_macros//build_defs:custom_rule.bzl\", \"custom_rule\")"
+     , "load(\"@fbcode_macros//build_defs:thrift_library.bzl\", \"thrift_library\")"
+     , buckOncallAnnotation oncall
+     , "" ] ++
+     concatMap genTarget (HashMap.toList info))
+  where
+  genTarget (ns, (deps, nsPredicates, nsTypes)) =
+    let
+      namespace = underscored ns
+      useCppAnnotation = namespaceNeedsCpp nsPredicates nsTypes
+      typesCppSplits =
+        let cppSplits = min 20 (length nsPredicates) in
+        ["\"types_cpp_splits=" <> showt cppSplits <> "\"" | cppSplits /= 0]
+      typesRustSplits =
+        let rustSplits = min 20 (length nsPredicates) in
+        ["\"types_split_count=" <> showt rustSplits <> "\"" | rustSplits /= 0]
+      thriftDeps =
+        [ "\"//glean/if:glean\"" ] ++
+        depTargets ++
+        [ "\"//thrift/annotation:cpp\"" | useCppAnnotation ] ++
+        [ "\"//thrift/annotation:rust\""
+        , "\"//thrift/annotation:thrift\""
+        ]
+      generatePyDeprecated =
+        namespace `elem` withPyDeprecatedNamespaces
+    in
+    [ "thrift_library("
+    , "  name = \"" <> namespace <> "\","
+    , "  hs_namespace = \"" <> hsNamespace <> "\","
+    , "  py3_namespace = \"" <> py3Namespace <> "\","
+    ] ++
+    [ "  py_base_module = \"" <> pyBaseModule <> "\","
+    | generatePyDeprecated
+    ] ++
+    [ "  hs_includes = [\"" <> namespace <> "_include.hs\"]," ] ++
+    [ "  thrift_rust_options = [" <> Text.intercalate ", " (
+    ["\"serde\""
+    , "\"skip_none_serialization\""
+    , "\"deprecated_default_enum_min_i32\""]
+    ++ typesRustSplits) <> "],"
+    , "  thrift_cpp2_options = [" <> Text.intercalate ", " (
+      "\"json\"" : typesCppSplits
+      ) <> "],"
+    ] ++
+    [ "  thrift_py_options = \"utf8strings\"," | generatePyDeprecated ] ++
+    [ "  thrift_py3_options = [\"inplace_migrate\"],"
+    , "  languages = [" <>
+      Text.intercalate ", " (langs generatePyDeprecated) <> "],"
+    , "  thrift_srcs = { \"" <> namespace <> ".thrift\" : [] },"
+    , "  deps = [" <> Text.intercalate "," thriftDeps <> "],"
+    , "  hs2_deps = ["
+    , "    \"//glean/angle:angle\","
+    , "    \"//glean/typed:typed\","
+    , "    \"//glean/typed:query-angle\","
+    , "    \"//glean/if:glean-hs2\","
+    ] ++
+    [ "  ],"
+    , ")"
+    ]
+    where
+    depTargets =
+      [ "\"//" <> thriftDir slashVn <> ":" <> underscored dep <> "\""
+      | dep <- deps ]
+
+    langs :: Bool -> [Text]
+    langs generatePyDeprecated = map (\x -> "\"" <> x <> "\"") $
+        ["hs2"] ++
+        ["py-deprecated" | generatePyDeprecated] ++
+        [ "py3-deprecated"
+        , "python"
+        , "java-swift"
+        , "rust"
+        , "cpp2"
+        ]
+
+withPyDeprecatedNamespaces :: [Text]
+withPyDeprecatedNamespaces =
+  [ "anglelang"
+  , "buck"
+  , "builtin"
+  , "chef"
+  , "code"
+  , "code_anglelang"
+  , "code_buck"
+  , "code_chef"
+  , "code_csharp"
+  , "code_cxx"
+  , "code_dataswarm"
+  , "code_erlang"
+  , "code_fbthrift"
+  , "code_flow"
+  , "code_graphql"
+  , "code_hack"
+  , "code_hs"
+  , "code_java"
+  , "code_kotlin"
+  , "code_lsif"
+  , "code_pp"
+  , "code_python"
+  , "code_quality"
+  , "code_scip"
+  , "code_swift"
+  , "codemarkup_types"
+  , "csharp"
+  , "cxx1"
+  , "dataswarm"
+  , "digest"
+  , "erlang"
+  , "fbthrift"
+  , "flow"
+  , "graphql"
+  , "hack"
+  , "hs"
+  , "java_alpha"
+  , "javakotlin_alpha"
+  , "kotlin_alpha"
+  , "lsif"
+  , "lsif_types"
+  , "pp1"
+  , "python"
+  , "scip"
+  , "scm"
+  , "src"
+  , "swift"
+  , "sys"
+  ]
+
+thriftDir :: Text -> Text
+thriftDir slashVn = "glean/schema" <> slashVn <> "/thrift"
+
+package :: Text
+package = "facebook.com/glean/schema"
+
+hsNamespace :: Text
+hsNamespace = "Glean.Schema"
+
+cpp2Namespace :: Text
+cpp2Namespace = "facebook.glean.schema"
+
+phpNamespace :: Text
+phpNamespace = "glean_schema"
+
+pyBaseModule :: Text
+pyBaseModule = "glean.schema"
+
+py3Namespace :: Text
+py3Namespace = "glean.schema"
+
+javaBaseModule :: Text
+javaBaseModule = "com.facebook.glean.schema"
+
+rustBaseModule :: Text
+rustBaseModule = "glean_schema"
+
+{- -----------------------------------------------------------------------------
+Namespaces
+
+We're going to generate:
+
+   sys.thrift
+   cxx.thrift
+   buck.thrift
+   clang.thrift
+   clang_pp.thrift
+   etc.
+
+inside cxx.thrift we will have
+
+  import clang.thrift -- refer to things in here as clang.Foo
+
+  namespace hs Glean.Schema  -- module will be Glean.Schema.Cxx
+  namespace py glean.schema.cxx -- module will be glean.schema.cxx
+  namespace php glean_schema
+
+  struct RecordDeclaration {
+    1: clang.Class name;
+    ...
+  }
+-}
+
+genNamespace
+  :: Text                               -- "/v1" or ""
+  -> NameSpaces
+  -> Version
+  -> SchemaId
+  -> NamePolicy
+  -> [NameSpaces]
+  -> [ResolvedPredicateDef]
+  -> [ResolvedTypeDef]
+  -> Text
+genNamespace slashVn namespaces version
+    hash namePolicy deps preddefs typedefs
+ = Text.intercalate (newline <> newline) (header : pieces)
+ where
+  useCppAnnotation = namespaceNeedsCpp preddefs typedefs
+  someDecls = map PredicateDecl preddefs ++
+    map (\TypeDef{..} -> TypeDecl typeDefRef typeDefType) typedefs
+  ordered = orderDecls someDecls
+  (gen :: [[Text]], extra :: [Text]) = runM [] namePolicy typedefs $ do
+     ps <- mapM (genDecl namespaces) ordered
+     return (map fst ps ++ map snd ps)
+  pieces = concat gen ++ reverse extra
+
+  genDecl :: NameSpaces -> SomeDecl -> M ([Text],[Text])
+  genDecl ns (PredicateDecl p) = genPred ns p
+  genDecl ns (TypeDecl tref ty) = ([],) <$> genType ns tref ty
+
+  namespace = dotted namespaces
+
+  preddefToVersionPair :: ResolvedPredicateDef -> M Text
+  preddefToVersionPair PredicateDef{..} = do
+    (_, name) <- predicateName predicateDefRef
+    let ver = showt (predicateRef_version predicateDefRef)
+      in return $ "\"" <> name <> "\": " <> ver <> ","
+
+  predicateVersionPairs = fst $
+    runM [] namePolicy typedefs (mapM preddefToVersionPair preddefs)
+
+  predicateVersionMap =
+    [ "const map<string, i64> PREDICATE_VERSIONS = {" ] ++
+    indentLines predicateVersionPairs ++
+    [ "}" ]
+
+  header = Text.unlines $
+    [ "// To re-generate this file:"
+    , "//"
+    , "//   ./glean/schema/sync"
+    , "//"
+    , "// \x40generated"
+    , "// @" <> "nolint"
+    , ""
+    , "include \"glean/if/glean.thrift\""
+    ] ++
+    [ "include \"thrift/annotation/cpp.thrift\"" | useCppAnnotation ] ++
+    [ "include \"thrift/annotation/rust.thrift\""] ++
+    [ "include \"" <> thriftDir slashVn <> "/" <> underscored dep
+        <> ".thrift\""
+    | dep <- deps ] ++
+    [ "include \"thrift/annotation/thrift.thrift\""
+    , ""
+    , allowReservedFilenameAnnotation (underscored namespaces)
+    <> "package \"" <> package <> "/" <> underscored namespaces <> "\""
+    ] ++
+    [ ""
+    , "namespace cpp2 " <> cpp2Namespace <> "." <> dotted namespaces
+    , "namespace hs " <> hsNamespace
+    , "namespace php " <> phpNamespace <> "_" <> underscored namespaces
+    , "namespace py " <> pyBaseModule <> "." <> underscored namespaces
+    , "namespace py3 " <> py3Namespace
+    , "namespace java.swift " <> javaBaseModule <> "."
+      <> underscored namespaces
+    , "namespace rust " <> rustBaseModule <> "_" <> underscored namespaces
+    , ""
+    ] ++
+    [ "hs_include \"glean/schema" <> slashVn
+      <> "/thrift/"
+      <>  underscored namespaces <> "_include.hs\""
+    ] ++
+    predicateVersionMap ++
+    -- builtin only
+    if namespace /= "builtin" then [] else
+    [ "// Schema version"
+    , "const i64 version = " <> showt version
+    , "const glean.SchemaId schema_id = " <> Text.pack (show (unSchemaId hash))
+    ]
+
+
+
+-- -----------------------------------------------------------------------------
+
+allowReservedFilenameAnnotation :: Text -> Text
+allowReservedFilenameAnnotation = allowReservedIdentifier "Filename"
+
+allowReservedIdentifierAnnotation :: Text -> Text
+allowReservedIdentifierAnnotation = allowReservedIdentifier "Identifier"
+
+allowReservedIdentifier :: Text -> Text -> Text
+allowReservedIdentifier annotation identifier
+    | "fbthrift"
+      == Text.toLower (Text.take (Text.length "fbthrift") (Text.dropWhile (=='_') identifier))
+        = "@thrift.AllowReserved" <> annotation <> " "
+    | otherwise = ""
+
+
+addExtraDecls :: M [Text] -> M [Text]
+addExtraDecls act = do
+  most <- act
+  extra <- popDefs
+  return (extra ++ most)
+
+indentLines :: [Text] -> [Text]
+indentLines = map (\t -> if Text.null t then t else "  " <> t)
+
+-- The schema validator has assumed that we don't have any problematic
+-- identifiers, so we can just use the name directly.
+
+optionalize :: Text -> Text
+optionalize name = "optional " <> name
+
+shareTypeDef :: NameSpaces -> ResolvedType' s -> M Text
+shareTypeDef here t = do
+  (no, name) <- nameThisType t
+  case no of
+    Old -> return ()
+    New -> do
+      let tref = TypeRef name 0
+      pushDefs =<< genType here tref t
+  return name
+
+
+thriftTy :: NameSpaces -> ResolvedType' s -> M Text
+thriftTy here t = case t of
+  -- Basic types
+  ByteTy{} -> return "glean.Byte"
+  NatTy{} -> return "glean.Nat"
+  BooleanTy{} -> return "bool"
+  StringTy{} -> return "string"
+  -- Containers
+  ArrayTy ByteTy -> return "binary"
+  ArrayTy ty -> do
+    inner <- thriftTy here ty
+    return $ "list<" <> inner  <> ">"
+  RecordTy{} -> shareTypeDef here t
+  SumTy{} -> shareTypeDef here t
+  SetTy ty -> do
+    inner <- thriftTy here ty
+    return $ "list<" <> inner <> ">"
+  MaybeTy tInner -> do
+    inner <- thriftTy here tInner
+    return (optionalize inner)
+  -- References
+  PredicateTy _ pred ->
+    thriftName here <$> predicateName pred
+  NamedTy _ typeRef -> do
+    thriftName here <$> typeName typeRef
+  EnumeratedTy _ -> shareTypeDef here t
+  TyVar{} -> error "thriftTy: TyVar"
+  HasTy{} -> error "thriftTy: HasTy"
+  HasKey{} -> error "thriftTy: HasKey"
+  ElementsOf{} -> error "thriftTy: ElementsOf"
+
+mkField :: [Text] -> [Text] -> Text -> Int -> Name -> Text -> Text
+mkField structuredAnnots unstructuredAnnots structOrUnion i p t =
+  structuredAnnotText <> allowReservedIdentifierAnnotation p
+    <> showt i <> ": " <> t <> " " <> p <> unstructuredAnnotText <> ";"
+  where
+  -- Collect all DeprecatedUnvalidatedAnnotations items to merge into one
+  deprecatedItems = javaDeprecatedItem ++ py3DeprecatedItem
+
+  javaDeprecatedItem
+    | "_" `Text.isSuffixOf` p = ["\"java.swift.name\": \"" <> p <> "\""]
+    | otherwise = []
+
+  py3DeprecatedItem
+    | p == "from" = ["\"py3.name\": \"from_\""]
+    | p == "type" && structOrUnion == "union"  = ["\"py3.name\": \"type_\""]
+    | p == "name" && structOrUnion == "union" = ["\"py3.name\": \"name_\""]
+    | p == "value" && structOrUnion == "union" = ["\"py3.name\": \"value_\""]
+    | otherwise = []
+
+  deprecatedAnnot
+    | null deprecatedItems = []
+    | otherwise = ["@thrift.DeprecatedUnvalidatedAnnotations{items = {" <> Text.intercalate ", " deprecatedItems <> "}}"]
+
+  allStructuredAnnots = structuredAnnots ++ deprecatedAnnot
+
+  structuredAnnotText =
+    Text.concat $ map (\annot -> annot <> newline <> "  ") allStructuredAnnots
+
+  allUnstructuredAnnots = unstructuredAnnots
+
+  unstructuredAnnotText
+    | null allUnstructuredAnnots = ""
+    | otherwise = " (" <> Text.intercalate ", " allUnstructuredAnnots <> ")"
+
+makeField :: Text -> Int -> Name -> Text -> Text
+makeField = mkField [] []
+
+makeRefField :: Text -> Int -> Name -> Text -> Text
+makeRefField = mkField
+  [ "@rust.Box"
+  , "@cpp.Ref{type = cpp.RefType.Unique}"
+  , "@thrift.DeprecatedUnvalidatedAnnotations"
+    <> "{items = {\"swift.recursive_reference\": \"true\"}}"
+  ]
+  []
+
+genPred :: NameSpaces -> ResolvedPredicateDef -> M ([Text], [Text])
+genPred here PredicateDef{..} = do
+  let structOrUnion = "struct"
+
+  pName <- predicateName predicateDefRef
+  let name = thriftName here pName
+
+  withPredicateDefHint (snd pName) $ do
+
+  keyNeedsRef <- needsRefType predicateDefKeyType
+  valNeedsRef <- needsRefType predicateDefValueType
+
+  let
+    appendName suffix = case pName of (ns, x) -> (ns, x <> suffix)
+
+    name_id = appendName "_id"
+    name_key = appendName "_key"
+    name_value = appendName "_value"
+    has_value = predicateDefValueType /= unitT
+
+    -- key and value are optional
+    maybeOpt = optionalize
+    maybeRef needed
+      | needed = makeRefField structOrUnion
+      | otherwise = makeField structOrUnion
+
+  -- generate
+  --   typedef Foo_id = glean.Id
+  -- These aren't very useful except for documentation purposes, so that
+  -- you can refer to an Id by its typeref name in APIs.
+  (type_id, define_id) <- do
+    let target_type = NamedTy () (TypeRef "glean.Id" 0)
+    type_id <- thriftTy here target_type
+    new_alias <- thriftTy here (NamedTy () (TypeRef (joinDot name_id) 0))
+    let name = thriftName here name_id
+        d = allowReservedIdentifierAnnotation name <> "typedef "
+          <> type_id <> " " <> name
+    return (new_alias, d)
+
+  (type_key, define_key) <-
+    if shouldNameKeyType predicateDefKeyType
+      then define_kt here predicateDefKeyType name_key
+      else do
+        keyTy <- thriftTy here predicateDefKeyType
+        return (keyTy, [])
+
+  -- Define a type for the value, only if it's not Unit
+  (type_value, define_value) <-
+    if not has_value then return ("^", []) else do
+      define_kt here predicateDefValueType name_value
+  let
+    annotation = myUnlines
+      [ "@glean.PredicateAnnotation" <> "{"
+      , myUnlines . indentLines $
+        [ "name=\"" <> predicateRef_name predicateDefRef <> "\";"
+        , "version=" <> showt (predicateRef_version predicateDefRef)  <> ";"
+        ]
+      , "}"
+      , "@rust.Ord"
+      ]
+
+    -- Predicate types can be recursive so those need to be refs in C++.
+    key i = Just $ maybeRef keyNeedsRef i "key" (maybeOpt type_key)
+    val i
+      | has_value = Just $ maybeRef valNeedsRef i "value" (maybeOpt type_value)
+      | otherwise = Nothing
+    define = (:[]) $ myUnlines . concat $
+      [ [ annotation ]
+      , [ allowReservedIdentifierAnnotation name
+        <> structOrUnion <> " " <> name <> " {" ]
+      , indentLines . catMaybes . zipWith (flip ($)) [1..] $
+        [ \i -> Just $ mkField [] ["hs.strict"] structOrUnion i "id" type_id
+        , key, val ]
+      , [ "}" ]
+      ]
+  extra <- popDefs
+  return (define_id : define,  extra ++ define_key ++ define_value)
+
+needsRefType :: ResolvedType -> M Bool
+needsRefType t = do
+  realType <- repType t
+  case realType of
+    Nothing ->
+      -- type not found in this module or known imported environment,
+      -- so no recusive loop, so we do not need a ref type
+      return False
+    Just rep -> case rep of
+      RecordTy{} -> return True
+      SumTy{} -> return True
+      PredicateTy{} -> return True
+      ArrayTy t -> needsRefType t
+      MaybeTy t -> needsRefType t
+      _ -> return False
+
+namespaceNeedsCpp :: [ResolvedPredicateDef] -> [ResolvedTypeDef] -> Bool
+namespaceNeedsCpp preddefs typedefs =
+  fst $ runM [] (mkNamePolicy preddefs typedefs) typedefs $
+    or <$> mapM predicateNeedsCpp preddefs
+  where
+    predicateNeedsCpp PredicateDef{..} =
+      (||) <$> needsRefType predicateDefKeyType
+           <*> needsRefType predicateDefValueType
+
+-- Make the thriftTy type text, and the [Text] declaration block
+define_kt ::
+  NameSpaces -> ResolvedType -> (NameSpaces, Text) -> M (Text, [Text])
+define_kt here typ name_kt = do
+  let gname = joinDot name_kt
+      tref = TypeRef gname 0
+  ref <- thriftTy here (NamedTy () (TypeRef gname 0))
+  def <- genType here tref typ
+  return (ref,def)
+
+makeEnumerated :: Text -> [Name] -> M [Text]
+makeEnumerated name vals = do
+  let
+    pieces = Text.intercalate "," (zipWith mkEnumerator [0..] vals)
+    declare = allowReservedIdentifierAnnotation name
+      <> "enum " <> name <> " {" <> pieces <> "\n}"
+  return [declare]
+  where
+    mkEnumerator (i :: Int) val = "\n  "
+      <> py3AnnotText
+      <> allowReservedIdentifierAnnotation val
+      <> val <> " = " <> showt i
+      where
+        py3Annot
+          | val == "name" = ["@thrift.DeprecatedUnvalidatedAnnotations{items = {\"py3.name\": \"name_\"}}"]
+          | val == "value" = ["@thrift.DeprecatedUnvalidatedAnnotations{items = {\"py3.name\": \"value_\"}}"]
+          | otherwise = []
+        py3AnnotText = Text.concat $ map (\a -> a <> "\n  ") py3Annot
+
+genType :: NameSpaces -> TypeRef -> ResolvedType' s -> M [Text]
+genType here tref ty = addExtraDecls $ do
+  tName@(_, root) <- typeName tref
+  let name = thriftName here tName
+
+  withTypeDefHint root $ do
+
+  let
+    structLike structOrUnion fields withFieldHint extraFields = do
+      fieldTexts <- forM (zip [1..] fields) $ \(ix, FieldDef nm ty) -> do
+         tyName <- withFieldHint nm (thriftTy here ty)
+         return $ makeField structOrUnion ix nm tyName
+      let
+        define | null fields =
+          "@rust.Ord\n" <>
+          allowReservedIdentifierAnnotation name
+          <> "struct " <> name <> " {}"
+               | otherwise = myUnlines $ concat
+          [ [ "@rust.Ord\n"
+            <> allowReservedIdentifierAnnotation name
+            <> structOrUnion <> " " <> name <> " {" ]
+          , indentLines (fieldTexts ++ extraFields)
+          , [ "}" ]
+          ]
+      return [define]
+
+  case ty of
+    RecordTy fields -> structLike "struct" fields withRecordFieldHint []
+    SumTy fields -> structLike structOrUnion fields withUnionFieldHint anyField
+      where
+        structOrUnion = "union"
+        anyField = []
+
+    EnumeratedTy vals -> makeEnumerated name vals
+
+    _other_ty -> do
+      t <- thriftTy here ty
+      return [allowReservedIdentifierAnnotation name
+        <> "typedef " <> t <> " " <> name]

@@ -1,0 +1,17 @@
+{
+    "apps": [
+        {
+            "name": "app_a",
+            "dir": "app_a",
+            "src_dirs": ["src"],
+            "include_dirs": ["include"]
+        },
+        {
+            "name": "app_b",
+            "dir": "app_b",
+            "src_dirs": ["src"],
+            "include_dirs": []
+        }
+    ],
+    "deps": []
+}

@@ -1,0 +1,203 @@
+[
+  "@generated",
+  {
+    "key": {
+      "target": {
+        "flow": {
+          "decl": {
+            "localDecl": {
+              "key": {
+                "name": { "key": "plus" },
+                "loc": {
+                  "key": {
+                    "module": {
+                      "key": { "file": { "key": "cjs_exports.js" } }
+                    },
+                    "span": { "start": 241, "length": 4 }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "file": { "key": "cjs_exports.js" },
+      "span": { "start": 380, "length": 4 }
+    }
+  },
+  {
+    "key": {
+      "target": {
+        "flow": {
+          "decl": {
+            "localDecl": {
+              "key": {
+                "name": { "key": "x" },
+                "loc": {
+                  "key": {
+                    "module": {
+                      "key": { "file": { "key": "cjs_exports.js" } }
+                    },
+                    "span": { "start": 246, "length": 1 }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "file": { "key": "cjs_exports.js" },
+      "span": { "start": 274, "length": 1 }
+    }
+  },
+  {
+    "key": {
+      "target": {
+        "flow": {
+          "decl": {
+            "memberDecl": {
+              "key": {
+                "name": { "key": "a" },
+                "loc": {
+                  "key": {
+                    "module": {
+                      "key": { "file": { "key": "cjs_exports.js" } }
+                    },
+                    "span": { "start": 298, "length": 1 }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "file": { "key": "imports.js" },
+      "span": { "start": 238, "length": 1 }
+    }
+  },
+  {
+    "key": {
+      "target": {
+        "flow": {
+          "decl": {
+            "memberDecl": {
+              "key": {
+                "name": { "key": "a" },
+                "loc": {
+                  "key": {
+                    "module": {
+                      "key": { "file": { "key": "cjs_exports.js" } }
+                    },
+                    "span": { "start": 298, "length": 1 }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "file": { "key": "imports.js" },
+      "span": { "start": 663, "length": 1 }
+    }
+  },
+  {
+    "key": {
+      "target": {
+        "flow": {
+          "decl": {
+            "memberDecl": {
+              "key": {
+                "name": { "key": "b" },
+                "loc": {
+                  "key": {
+                    "module": {
+                      "key": { "file": { "key": "cjs_exports.js" } }
+                    },
+                    "span": { "start": 320, "length": 1 }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "file": { "key": "imports.js" },
+      "span": { "start": 240, "length": 1 }
+    }
+  },
+  {
+    "key": {
+      "target": {
+        "flow": {
+          "decl": {
+            "memberDecl": {
+              "key": {
+                "name": { "key": "c" },
+                "loc": {
+                  "key": {
+                    "module": {
+                      "key": { "file": { "key": "cjs_exports.js" } }
+                    },
+                    "span": { "start": 345, "length": 1 }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "file": { "key": "imports.js" },
+      "span": { "start": 242, "length": 1 }
+    }
+  },
+  {
+    "key": {
+      "target": {
+        "flow": {
+          "decl": {
+            "memberDecl": {
+              "key": {
+                "name": { "key": "plus" },
+                "loc": {
+                  "key": {
+                    "module": {
+                      "key": { "file": { "key": "cjs_exports.js" } }
+                    },
+                    "span": { "start": 373, "length": 4 }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "file": { "key": "imports.js" },
+      "span": { "start": 414, "length": 4 }
+    }
+  },
+  {
+    "key": {
+      "target": {
+        "flow": {
+          "decl": {
+            "memberDecl": {
+              "key": {
+                "name": { "key": "plus" },
+                "loc": {
+                  "key": {
+                    "module": {
+                      "key": { "file": { "key": "cjs_exports.js" } }
+                    },
+                    "span": { "start": 373, "length": 4 }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "file": { "key": "imports.js" },
+      "span": { "start": 707, "length": 4 }
+    }
+  }
+]

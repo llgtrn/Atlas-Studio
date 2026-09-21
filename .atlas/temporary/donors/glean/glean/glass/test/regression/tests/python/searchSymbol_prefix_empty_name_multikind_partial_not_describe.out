@@ -1,0 +1,1181 @@
+[
+    "@generated",
+    {
+        "symbolDetails": [
+            {
+                "annotations": [
+                    {
+                        "name": "@timeit",
+                        "source": "@timeit"
+                    },
+                    {
+                        "name": "@lru_cache",
+                        "source": "@lru_cache"
+                    }
+                ],
+                "contains_relation": {
+                    "firstChild": "nondeterministic",
+                    "firstParent": "nondeterministic",
+                    "hasMoreChildren": false,
+                    "hasMoreParents": false
+                },
+                "extends_relation": {
+                    "firstChild": "nondeterministic",
+                    "firstParent": "nondeterministic",
+                    "hasMoreChildren": false,
+                    "hasMoreParents": false
+                },
+                "kind": 14,
+                "language": 7,
+                "location": {
+                    "filepath": "all.py",
+                    "range": {
+                        "columnBegin": 1,
+                        "columnEnd": 21,
+                        "lineBegin": 19,
+                        "lineEnd": 21
+                    },
+                    "repository": "test"
+                },
+                "modifiers": [],
+                "name": {
+                    "container": "all",
+                    "localName": "fn"
+                },
+                "pretty_comments": [],
+                "repo_hash": "testhash",
+                "signature": "def fn()",
+                "sym": "test/py/all.py/all.fn",
+                "sym_location": {
+                    "filepath": "all.py",
+                    "range": {
+                        "columnBegin": 1,
+                        "columnEnd": 21,
+                        "lineBegin": 19,
+                        "lineEnd": 21
+                    },
+                    "repository": "test"
+                },
+                "sym_other_locations": [],
+                "type_xrefs": [
+                    {
+                        "span": {
+                            "length": 2,
+                            "start": 4
+                        },
+                        "type": "test/py/all.py/all.fn"
+                    }
+                ],
+                "visibility": 20
+            },
+            {
+                "contains_relation": {
+                    "firstChild": "nondeterministic",
+                    "firstParent": "nondeterministic",
+                    "hasMoreChildren": false,
+                    "hasMoreParents": false
+                },
+                "extends_relation": {
+                    "firstChild": "nondeterministic",
+                    "firstParent": "nondeterministic",
+                    "hasMoreChildren": false,
+                    "hasMoreParents": false
+                },
+                "kind": 14,
+                "language": 7,
+                "location": {
+                    "filepath": "as.py",
+                    "range": {
+                        "columnBegin": 1,
+                        "columnEnd": 21,
+                        "lineBegin": 10,
+                        "lineEnd": 16
+                    },
+                    "repository": "test"
+                },
+                "modifiers": [],
+                "name": {
+                    "container": "as",
+                    "localName": "fn"
+                },
+                "pretty_comments": [
+                    {
+                        "comment": "Test title\n\nextra comment body",
+                        "location": {
+                            "filepath": "as.py",
+                            "range": {
+                                "columnBegin": 5,
+                                "columnEnd": 8,
+                                "lineBegin": 11,
+                                "lineEnd": 14
+                            },
+                            "repository": "test"
+                        }
+                    }
+                ],
+                "repo_hash": "testhash",
+                "signature": "def fn()",
+                "sym": "test/py/as.py/as.fn",
+                "sym_location": {
+                    "filepath": "as.py",
+                    "range": {
+                        "columnBegin": 1,
+                        "columnEnd": 21,
+                        "lineBegin": 10,
+                        "lineEnd": 16
+                    },
+                    "repository": "test"
+                },
+                "sym_other_locations": [],
+                "type_xrefs": [
+                    {
+                        "span": {
+                            "length": 2,
+                            "start": 4
+                        },
+                        "type": "test/py/as.py/as.fn"
+                    }
+                ],
+                "visibility": 20
+            },
+            {
+                "annotations": [
+                    {
+                        "name": "@staticmethod",
+                        "source": "@staticmethod"
+                    }
+                ],
+                "contains_relation": {
+                    "firstChild": "nondeterministic",
+                    "firstParent": "nondeterministic",
+                    "hasMoreChildren": false,
+                    "hasMoreParents": false
+                },
+                "extends_relation": {
+                    "firstChild": "nondeterministic",
+                    "firstParent": "nondeterministic",
+                    "hasMoreChildren": false,
+                    "hasMoreParents": false
+                },
+                "kind": 14,
+                "language": 7,
+                "location": {
+                    "filepath": "as.py",
+                    "range": {
+                        "columnBegin": 1,
+                        "columnEnd": 13,
+                        "lineBegin": 20,
+                        "lineEnd": 21
+                    },
+                    "repository": "test"
+                },
+                "modifiers": [
+                    3,
+                    4
+                ],
+                "name": {
+                    "container": "as",
+                    "localName": "func_sleep"
+                },
+                "pretty_comments": [],
+                "repo_hash": "testhash",
+                "signature": "async def func_sleep()",
+                "sym": "test/py/as.py/as.func_sleep",
+                "sym_location": {
+                    "filepath": "as.py",
+                    "range": {
+                        "columnBegin": 1,
+                        "columnEnd": 13,
+                        "lineBegin": 20,
+                        "lineEnd": 21
+                    },
+                    "repository": "test"
+                },
+                "sym_other_locations": [],
+                "type_xrefs": [
+                    {
+                        "span": {
+                            "length": 10,
+                            "start": 10
+                        },
+                        "type": "test/py/as.py/as.func_sleep"
+                    }
+                ],
+                "visibility": 20
+            },
+            {
+                "contains_relation": {
+                    "firstChild": "nondeterministic",
+                    "firstParent": "nondeterministic",
+                    "hasMoreChildren": false,
+                    "hasMoreParents": false
+                },
+                "extends_relation": {
+                    "firstChild": "nondeterministic",
+                    "firstParent": "nondeterministic",
+                    "hasMoreChildren": false,
+                    "hasMoreParents": false
+                },
+                "kind": 14,
+                "language": 7,
+                "location": {
+                    "filepath": "as.py",
+                    "range": {
+                        "columnBegin": 1,
+                        "columnEnd": 16,
+                        "lineBegin": 58,
+                        "lineEnd": 65
+                    },
+                    "repository": "test"
+                },
+                "modifiers": [],
+                "name": {
+                    "container": "as",
+                    "localName": "more_fun_things"
+                },
+                "pretty_comments": [],
+                "repo_hash": "testhash",
+                "signature": "def more_fun_things(\n    a: int,\n    /,\n    *list_of_fish,\n    something = None,\n    **extra_bag_of_fun\n) -> bool",
+                "sym": "test/py/as.py/as.more_fun_things",
+                "sym_location": {
+                    "filepath": "as.py",
+                    "range": {
+                        "columnBegin": 1,
+                        "columnEnd": 16,
+                        "lineBegin": 58,
+                        "lineEnd": 65
+                    },
+                    "repository": "test"
+                },
+                "sym_other_locations": [],
+                "type_xrefs": [
+                    {
+                        "span": {
+                            "length": 15,
+                            "start": 4
+                        },
+                        "type": "test/py/as.py/as.more_fun_things"
+                    }
+                ],
+                "visibility": 20
+            },
+            {
+                "contains_relation": {
+                    "firstChild": "nondeterministic",
+                    "firstParent": "nondeterministic",
+                    "hasMoreChildren": false,
+                    "hasMoreParents": false
+                },
+                "extends_relation": {
+                    "firstChild": "nondeterministic",
+                    "firstParent": "nondeterministic",
+                    "hasMoreChildren": false,
+                    "hasMoreParents": false
+                },
+                "kind": 14,
+                "language": 7,
+                "location": {
+                    "filepath": "as.py",
+                    "range": {
+                        "columnBegin": 1,
+                        "columnEnd": 17,
+                        "lineBegin": 42,
+                        "lineEnd": 55
+                    },
+                    "repository": "test"
+                },
+                "modifiers": [],
+                "name": {
+                    "container": "as",
+                    "localName": "pep570_posonly_test_kwonly"
+                },
+                "pretty_comments": [
+                    {
+                        "comment": "'''\nHorrible test for type signature pretty printer\n'''",
+                        "location": {
+                            "filepath": "as.py",
+                            "range": {
+                                "columnBegin": 5,
+                                "columnEnd": 8,
+                                "lineBegin": 52,
+                                "lineEnd": 54
+                            },
+                            "repository": "test"
+                        }
+                    }
+                ],
+                "repo_hash": "testhash",
+                "signature": "def pep570_posonly_test_kwonly(\n    ok: Union[bytearray, str],\n    hmm: Union[bool, str] = (\n            'interesting'),\n    /,\n    what: Union[bytes, str] = (\n            'umm getting scary'),\n    *is_this_ok: Union[float, str],\n    get_me_out_of_here: Union[int, str]\n) -> bool",
+                "sym": "test/py/as.py/as.pep570_posonly_test_kwonly",
+                "sym_location": {
+                    "filepath": "as.py",
+                    "range": {
+                        "columnBegin": 1,
+                        "columnEnd": 17,
+                        "lineBegin": 42,
+                        "lineEnd": 55
+                    },
+                    "repository": "test"
+                },
+                "sym_other_locations": [],
+                "type_xrefs": [
+                    {
+                        "span": {
+                            "length": 26,
+                            "start": 4
+                        },
+                        "type": "test/py/as.py/as.pep570_posonly_test_kwonly"
+                    }
+                ],
+                "visibility": 20
+            },
+            {
+                "contains_relation": {
+                    "firstChild": "nondeterministic",
+                    "firstParent": "nondeterministic",
+                    "hasMoreChildren": false,
+                    "hasMoreParents": false
+                },
+                "extends_relation": {
+                    "firstChild": "nondeterministic",
+                    "firstParent": "nondeterministic",
+                    "hasMoreChildren": false,
+                    "hasMoreParents": false
+                },
+                "kind": 14,
+                "language": 7,
+                "location": {
+                    "filepath": "as.py",
+                    "range": {
+                        "columnBegin": 1,
+                        "columnEnd": 14,
+                        "lineBegin": 24,
+                        "lineEnd": 33
+                    },
+                    "repository": "test"
+                },
+                "modifiers": [],
+                "name": {
+                    "container": "as",
+                    "localName": "test_fun"
+                },
+                "pretty_comments": [],
+                "repo_hash": "testhash",
+                "signature": "def test_fun(\n    param0,\n    /,\n    param1: Optional[Dict[str]],\n    param2: None,\n    *,\n    param3: Optional[str] = \"value\",\n    **kwargs\n) -> Dict[str, Dict[str, bytes]]",
+                "sym": "test/py/as.py/as.test_fun",
+                "sym_location": {
+                    "filepath": "as.py",
+                    "range": {
+                        "columnBegin": 1,
+                        "columnEnd": 14,
+                        "lineBegin": 24,
+                        "lineEnd": 33
+                    },
+                    "repository": "test"
+                },
+                "sym_other_locations": [],
+                "type_xrefs": [
+                    {
+                        "span": {
+                            "length": 8,
+                            "start": 4
+                        },
+                        "type": "test/py/as.py/as.test_fun"
+                    }
+                ],
+                "visibility": 20
+            },
+            {
+                "contains_relation": {
+                    "firstChild": "nondeterministic",
+                    "firstParent": "nondeterministic",
+                    "hasMoreChildren": false,
+                    "hasMoreParents": false
+                },
+                "extends_relation": {
+                    "firstChild": "nondeterministic",
+                    "firstParent": "nondeterministic",
+                    "hasMoreChildren": false,
+                    "hasMoreParents": false
+                },
+                "kind": 14,
+                "language": 7,
+                "location": {
+                    "filepath": "as.py",
+                    "range": {
+                        "columnBegin": 1,
+                        "columnEnd": 14,
+                        "lineBegin": 35,
+                        "lineEnd": 39
+                    },
+                    "repository": "test"
+                },
+                "modifiers": [],
+                "name": {
+                    "container": "as",
+                    "localName": "test_more_fun"
+                },
+                "pretty_comments": [],
+                "repo_hash": "testhash",
+                "signature": "def test_more_fun(\n    param0: str = \"value\",\n    *extrargs: Optional[str]\n) -> Optional[bytes]",
+                "sym": "test/py/as.py/as.test_more_fun",
+                "sym_location": {
+                    "filepath": "as.py",
+                    "range": {
+                        "columnBegin": 1,
+                        "columnEnd": 14,
+                        "lineBegin": 35,
+                        "lineEnd": 39
+                    },
+                    "repository": "test"
+                },
+                "sym_other_locations": [],
+                "type_xrefs": [
+                    {
+                        "span": {
+                            "length": 13,
+                            "start": 4
+                        },
+                        "type": "test/py/as.py/as.test_more_fun"
+                    }
+                ],
+                "visibility": 20
+            },
+            {
+                "contains_relation": {
+                    "firstChild": "nondeterministic",
+                    "firstParent": "nondeterministic",
+                    "hasMoreChildren": false,
+                    "hasMoreParents": false
+                },
+                "extends_relation": {
+                    "firstChild": "nondeterministic",
+                    "firstParent": "nondeterministic",
+                    "hasMoreChildren": false,
+                    "hasMoreParents": false
+                },
+                "kind": 14,
+                "language": 7,
+                "location": {
+                    "filepath": "big_lib/__init__.py",
+                    "range": {
+                        "columnBegin": 1,
+                        "columnEnd": 19,
+                        "lineBegin": 8,
+                        "lineEnd": 9
+                    },
+                    "repository": "test"
+                },
+                "modifiers": [],
+                "name": {
+                    "container": "big_lib",
+                    "localName": "big_func"
+                },
+                "pretty_comments": [],
+                "repo_hash": "testhash",
+                "signature": "def big_func()",
+                "sym": "test/py/big_lib/big_lib.big_func",
+                "sym_location": {
+                    "filepath": "big_lib/__init__.py",
+                    "range": {
+                        "columnBegin": 1,
+                        "columnEnd": 19,
+                        "lineBegin": 8,
+                        "lineEnd": 9
+                    },
+                    "repository": "test"
+                },
+                "sym_other_locations": [],
+                "type_xrefs": [
+                    {
+                        "span": {
+                            "length": 8,
+                            "start": 4
+                        },
+                        "type": "test/py/big_lib/big_lib.big_func"
+                    }
+                ],
+                "visibility": 20
+            },
+            {
+                "contains_relation": {
+                    "firstChild": "nondeterministic",
+                    "firstParent": "nondeterministic",
+                    "hasMoreChildren": false,
+                    "hasMoreParents": false
+                },
+                "extends_relation": {
+                    "firstChild": "nondeterministic",
+                    "firstParent": "nondeterministic",
+                    "hasMoreChildren": false,
+                    "hasMoreParents": false
+                },
+                "kind": 14,
+                "language": 7,
+                "location": {
+                    "filepath": "lib.py",
+                    "range": {
+                        "columnBegin": 1,
+                        "columnEnd": 25,
+                        "lineBegin": 28,
+                        "lineEnd": 29
+                    },
+                    "repository": "test"
+                },
+                "modifiers": [],
+                "name": {
+                    "container": "lib",
+                    "localName": "helper_func"
+                },
+                "pretty_comments": [],
+                "repo_hash": "testhash",
+                "signature": "def helper_func()",
+                "sym": "test/py/lib.py/lib.helper_func",
+                "sym_location": {
+                    "filepath": "lib.py",
+                    "range": {
+                        "columnBegin": 1,
+                        "columnEnd": 25,
+                        "lineBegin": 28,
+                        "lineEnd": 29
+                    },
+                    "repository": "test"
+                },
+                "sym_other_locations": [],
+                "type_xrefs": [
+                    {
+                        "span": {
+                            "length": 11,
+                            "start": 4
+                        },
+                        "type": "test/py/lib.py/lib.helper_func"
+                    }
+                ],
+                "visibility": 20
+            },
+            {
+                "contains_relation": {
+                    "firstChild": "nondeterministic",
+                    "firstParent": "nondeterministic",
+                    "hasMoreChildren": false,
+                    "hasMoreParents": false
+                },
+                "extends_relation": {
+                    "firstChild": "nondeterministic",
+                    "firstParent": "nondeterministic",
+                    "hasMoreChildren": false,
+                    "hasMoreParents": false
+                },
+                "kind": 14,
+                "language": 7,
+                "location": {
+                    "filepath": "main.py",
+                    "range": {
+                        "columnBegin": 1,
+                        "columnEnd": 13,
+                        "lineBegin": 9,
+                        "lineEnd": 15
+                    },
+                    "repository": "test"
+                },
+                "modifiers": [],
+                "name": {
+                    "container": "main",
+                    "localName": "f"
+                },
+                "pretty_comments": [],
+                "repo_hash": "testhash",
+                "signature": "def f() -> \"None\"",
+                "sym": "test/py/main.py/main.f",
+                "sym_location": {
+                    "filepath": "main.py",
+                    "range": {
+                        "columnBegin": 1,
+                        "columnEnd": 13,
+                        "lineBegin": 9,
+                        "lineEnd": 15
+                    },
+                    "repository": "test"
+                },
+                "sym_other_locations": [],
+                "type_xrefs": [
+                    {
+                        "span": {
+                            "length": 1,
+                            "start": 4
+                        },
+                        "type": "test/py/main.py/main.f"
+                    }
+                ],
+                "visibility": 20
+            },
+            {
+                "contains_relation": {
+                    "firstChild": "nondeterministic",
+                    "firstParent": "nondeterministic",
+                    "hasMoreChildren": false,
+                    "hasMoreParents": false
+                },
+                "extends_relation": {
+                    "firstChild": "nondeterministic",
+                    "firstParent": "nondeterministic",
+                    "hasMoreChildren": false,
+                    "hasMoreParents": false
+                },
+                "kind": 14,
+                "language": 7,
+                "location": {
+                    "filepath": "main.py",
+                    "range": {
+                        "columnBegin": 1,
+                        "columnEnd": 13,
+                        "lineBegin": 18,
+                        "lineEnd": 22
+                    },
+                    "repository": "test"
+                },
+                "modifiers": [],
+                "name": {
+                    "container": "main",
+                    "localName": "g"
+                },
+                "pretty_comments": [],
+                "repo_hash": "testhash",
+                "signature": "def g() -> None",
+                "sym": "test/py/main.py/main.g",
+                "sym_location": {
+                    "filepath": "main.py",
+                    "range": {
+                        "columnBegin": 1,
+                        "columnEnd": 13,
+                        "lineBegin": 18,
+                        "lineEnd": 22
+                    },
+                    "repository": "test"
+                },
+                "sym_other_locations": [],
+                "type_xrefs": [
+                    {
+                        "span": {
+                            "length": 1,
+                            "start": 4
+                        },
+                        "type": "test/py/main.py/main.g"
+                    }
+                ],
+                "visibility": 20
+            },
+            {
+                "contains_relation": {
+                    "firstChild": "nondeterministic",
+                    "firstParent": "nondeterministic",
+                    "hasMoreChildren": false,
+                    "hasMoreParents": false
+                },
+                "extends_relation": {
+                    "firstChild": "nondeterministic",
+                    "firstParent": "nondeterministic",
+                    "hasMoreChildren": false,
+                    "hasMoreParents": false
+                },
+                "kind": 14,
+                "language": 7,
+                "location": {
+                    "filepath": "main.py",
+                    "range": {
+                        "columnBegin": 5,
+                        "columnEnd": 13,
+                        "lineBegin": 21,
+                        "lineEnd": 22
+                    },
+                    "repository": "test"
+                },
+                "modifiers": [],
+                "name": {
+                    "container": "main.g.<locals>",
+                    "localName": "h"
+                },
+                "pretty_comments": [],
+                "repo_hash": "testhash",
+                "signature": "def h(\n    _: OtherHelper\n) -> None",
+                "sym": "test/py/main.py/main.g.%3Clocals%3E.h",
+                "sym_location": {
+                    "filepath": "main.py",
+                    "range": {
+                        "columnBegin": 5,
+                        "columnEnd": 13,
+                        "lineBegin": 21,
+                        "lineEnd": 22
+                    },
+                    "repository": "test"
+                },
+                "sym_other_locations": [],
+                "type_xrefs": [
+                    {
+                        "span": {
+                            "length": 1,
+                            "start": 4
+                        },
+                        "type": "test/py/main.py/main.g.%3Clocals%3E.h"
+                    },
+                    {
+                        "span": {
+                            "length": 11,
+                            "start": 14
+                        },
+                        "type": "test/py/lib.py/lib.HelperClass"
+                    }
+                ],
+                "visibility": 20
+            },
+            {
+                "contains_relation": {
+                    "firstChild": "nondeterministic",
+                    "firstParent": "nondeterministic",
+                    "hasMoreChildren": false,
+                    "hasMoreParents": false
+                },
+                "extends_relation": {
+                    "firstChild": "nondeterministic",
+                    "firstParent": "nondeterministic",
+                    "hasMoreChildren": false,
+                    "hasMoreParents": false
+                },
+                "kind": 14,
+                "language": 7,
+                "location": {
+                    "filepath": "shadow.py",
+                    "range": {
+                        "columnBegin": 1,
+                        "columnEnd": 32,
+                        "lineBegin": 16,
+                        "lineEnd": 22
+                    },
+                    "repository": "test"
+                },
+                "modifiers": [],
+                "name": {
+                    "container": "shadow",
+                    "localName": "shadow_func"
+                },
+                "pretty_comments": [],
+                "repo_hash": "testhash",
+                "signature": "def shadow_func()",
+                "sym": "test/py/shadow.py/shadow.shadow_func",
+                "sym_location": {
+                    "filepath": "shadow.py",
+                    "range": {
+                        "columnBegin": 1,
+                        "columnEnd": 32,
+                        "lineBegin": 16,
+                        "lineEnd": 22
+                    },
+                    "repository": "test"
+                },
+                "sym_other_locations": [],
+                "type_xrefs": [
+                    {
+                        "span": {
+                            "length": 11,
+                            "start": 4
+                        },
+                        "type": "test/py/shadow.py/shadow.shadow_func"
+                    }
+                ],
+                "visibility": 20
+            }
+        ],
+        "symbols": [
+            {
+                "context": {
+                    "qname": {
+                        "container": "",
+                        "localName": "all"
+                    },
+                    "symbol": "test/py/all.py/all"
+                },
+                "kind": 14,
+                "language": 7,
+                "location": {
+                    "filepath": "all.py",
+                    "range": {
+                        "columnBegin": 1,
+                        "columnEnd": 21,
+                        "lineBegin": 19,
+                        "lineEnd": 21
+                    },
+                    "repository": "test"
+                },
+                "name": "all.fn",
+                "qname": {
+                    "container": "all",
+                    "localName": "fn"
+                },
+                "score": {
+                    "exactness": 2
+                },
+                "symbol": "test/py/all.py/all.fn"
+            },
+            {
+                "context": {
+                    "qname": {
+                        "container": "",
+                        "localName": "as"
+                    },
+                    "symbol": "test/py/as.py/as"
+                },
+                "kind": 14,
+                "language": 7,
+                "location": {
+                    "filepath": "as.py",
+                    "range": {
+                        "columnBegin": 1,
+                        "columnEnd": 21,
+                        "lineBegin": 10,
+                        "lineEnd": 16
+                    },
+                    "repository": "test"
+                },
+                "name": "as.fn",
+                "qname": {
+                    "container": "as",
+                    "localName": "fn"
+                },
+                "score": {
+                    "exactness": 2
+                },
+                "symbol": "test/py/as.py/as.fn"
+            },
+            {
+                "context": {
+                    "qname": {
+                        "container": "",
+                        "localName": "as"
+                    },
+                    "symbol": "test/py/as.py/as"
+                },
+                "kind": 14,
+                "language": 7,
+                "location": {
+                    "filepath": "as.py",
+                    "range": {
+                        "columnBegin": 1,
+                        "columnEnd": 13,
+                        "lineBegin": 20,
+                        "lineEnd": 21
+                    },
+                    "repository": "test"
+                },
+                "name": "as.func_sleep",
+                "qname": {
+                    "container": "as",
+                    "localName": "func_sleep"
+                },
+                "score": {
+                    "exactness": 2
+                },
+                "symbol": "test/py/as.py/as.func_sleep"
+            },
+            {
+                "context": {
+                    "qname": {
+                        "container": "",
+                        "localName": "as"
+                    },
+                    "symbol": "test/py/as.py/as"
+                },
+                "kind": 14,
+                "language": 7,
+                "location": {
+                    "filepath": "as.py",
+                    "range": {
+                        "columnBegin": 1,
+                        "columnEnd": 16,
+                        "lineBegin": 58,
+                        "lineEnd": 65
+                    },
+                    "repository": "test"
+                },
+                "name": "as.more_fun_things",
+                "qname": {
+                    "container": "as",
+                    "localName": "more_fun_things"
+                },
+                "score": {
+                    "exactness": 2
+                },
+                "symbol": "test/py/as.py/as.more_fun_things"
+            },
+            {
+                "context": {
+                    "qname": {
+                        "container": "",
+                        "localName": "as"
+                    },
+                    "symbol": "test/py/as.py/as"
+                },
+                "kind": 14,
+                "language": 7,
+                "location": {
+                    "filepath": "as.py",
+                    "range": {
+                        "columnBegin": 1,
+                        "columnEnd": 17,
+                        "lineBegin": 42,
+                        "lineEnd": 55
+                    },
+                    "repository": "test"
+                },
+                "name": "as.pep570_posonly_test_kwonly",
+                "qname": {
+                    "container": "as",
+                    "localName": "pep570_posonly_test_kwonly"
+                },
+                "score": {
+                    "exactness": 2
+                },
+                "symbol": "test/py/as.py/as.pep570_posonly_test_kwonly"
+            },
+            {
+                "context": {
+                    "qname": {
+                        "container": "",
+                        "localName": "as"
+                    },
+                    "symbol": "test/py/as.py/as"
+                },
+                "kind": 14,
+                "language": 7,
+                "location": {
+                    "filepath": "as.py",
+                    "range": {
+                        "columnBegin": 1,
+                        "columnEnd": 14,
+                        "lineBegin": 24,
+                        "lineEnd": 33
+                    },
+                    "repository": "test"
+                },
+                "name": "as.test_fun",
+                "qname": {
+                    "container": "as",
+                    "localName": "test_fun"
+                },
+                "score": {
+                    "exactness": 2
+                },
+                "symbol": "test/py/as.py/as.test_fun"
+            },
+            {
+                "context": {
+                    "qname": {
+                        "container": "",
+                        "localName": "as"
+                    },
+                    "symbol": "test/py/as.py/as"
+                },
+                "kind": 14,
+                "language": 7,
+                "location": {
+                    "filepath": "as.py",
+                    "range": {
+                        "columnBegin": 1,
+                        "columnEnd": 14,
+                        "lineBegin": 35,
+                        "lineEnd": 39
+                    },
+                    "repository": "test"
+                },
+                "name": "as.test_more_fun",
+                "qname": {
+                    "container": "as",
+                    "localName": "test_more_fun"
+                },
+                "score": {
+                    "exactness": 2
+                },
+                "symbol": "test/py/as.py/as.test_more_fun"
+            },
+            {
+                "context": {
+                    "qname": {
+                        "container": "",
+                        "localName": "big_lib"
+                    },
+                    "symbol": "test/py/big_lib/big_lib"
+                },
+                "kind": 14,
+                "language": 7,
+                "location": {
+                    "filepath": "big_lib/__init__.py",
+                    "range": {
+                        "columnBegin": 1,
+                        "columnEnd": 19,
+                        "lineBegin": 8,
+                        "lineEnd": 9
+                    },
+                    "repository": "test"
+                },
+                "name": "big_lib.big_func",
+                "qname": {
+                    "container": "big_lib",
+                    "localName": "big_func"
+                },
+                "score": {
+                    "exactness": 2
+                },
+                "symbol": "test/py/big_lib/big_lib.big_func"
+            },
+            {
+                "context": {
+                    "qname": {
+                        "container": "",
+                        "localName": "lib"
+                    },
+                    "symbol": "test/py/lib.py/lib"
+                },
+                "kind": 14,
+                "language": 7,
+                "location": {
+                    "filepath": "lib.py",
+                    "range": {
+                        "columnBegin": 1,
+                        "columnEnd": 25,
+                        "lineBegin": 28,
+                        "lineEnd": 29
+                    },
+                    "repository": "test"
+                },
+                "name": "lib.helper_func",
+                "qname": {
+                    "container": "lib",
+                    "localName": "helper_func"
+                },
+                "score": {
+                    "exactness": 2
+                },
+                "symbol": "test/py/lib.py/lib.helper_func"
+            },
+            {
+                "context": {
+                    "qname": {
+                        "container": "",
+                        "localName": "main"
+                    },
+                    "symbol": "test/py/main.py/main"
+                },
+                "kind": 14,
+                "language": 7,
+                "location": {
+                    "filepath": "main.py",
+                    "range": {
+                        "columnBegin": 1,
+                        "columnEnd": 13,
+                        "lineBegin": 9,
+                        "lineEnd": 15
+                    },
+                    "repository": "test"
+                },
+                "name": "main.f",
+                "qname": {
+                    "container": "main",
+                    "localName": "f"
+                },
+                "score": {
+                    "exactness": 2
+                },
+                "symbol": "test/py/main.py/main.f"
+            },
+            {
+                "context": {
+                    "qname": {
+                        "container": "",
+                        "localName": "main"
+                    },
+                    "symbol": "test/py/main.py/main"
+                },
+                "kind": 14,
+                "language": 7,
+                "location": {
+                    "filepath": "main.py",
+                    "range": {
+                        "columnBegin": 1,
+                        "columnEnd": 13,
+                        "lineBegin": 18,
+                        "lineEnd": 22
+                    },
+                    "repository": "test"
+                },
+                "name": "main.g",
+                "qname": {
+                    "container": "main",
+                    "localName": "g"
+                },
+                "score": {
+                    "exactness": 2
+                },
+                "symbol": "test/py/main.py/main.g"
+            },
+            {
+                "context": {
+                    "qname": {
+                        "container": "main",
+                        "localName": "g"
+                    },
+                    "symbol": "test/py/main.py/main.g"
+                },
+                "kind": 14,
+                "language": 7,
+                "location": {
+                    "filepath": "main.py",
+                    "range": {
+                        "columnBegin": 5,
+                        "columnEnd": 13,
+                        "lineBegin": 21,
+                        "lineEnd": 22
+                    },
+                    "repository": "test"
+                },
+                "name": "main.g.<locals>.h",
+                "qname": {
+                    "container": "main.g.<locals>",
+                    "localName": "h"
+                },
+                "score": {
+                    "exactness": 2
+                },
+                "symbol": "test/py/main.py/main.g.%3Clocals%3E.h"
+            },
+            {
+                "context": {
+                    "qname": {
+                        "container": "",
+                        "localName": "shadow"
+                    },
+                    "symbol": "test/py/shadow.py/shadow"
+                },
+                "kind": 14,
+                "language": 7,
+                "location": {
+                    "filepath": "shadow.py",
+                    "range": {
+                        "columnBegin": 1,
+                        "columnEnd": 32,
+                        "lineBegin": 16,
+                        "lineEnd": 22
+                    },
+                    "repository": "test"
+                },
+                "name": "shadow.shadow_func",
+                "qname": {
+                    "container": "shadow",
+                    "localName": "shadow_func"
+                },
+                "score": {
+                    "exactness": 2
+                },
+                "symbol": "test/py/shadow.py/shadow.shadow_func"
+            }
+        ]
+    }
+]

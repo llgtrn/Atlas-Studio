@@ -1,0 +1,17 @@
+# Copyright (c) Meta Platforms, Inc. and affiliates.
+
+schema code.hack.4 {
+import hack
+
+type Entity =
+  {
+    decl : hack.Declaration |
+  }
+
+type Annotations =
+  {
+    attributes: [hack.UserAttribute] |
+  }
+
+type CallArgument = hack.CallArgument
+}

@@ -1,0 +1,131 @@
+[
+    "@generated",
+    {
+        "childrenContained": [
+            "test/php/FancyTypes/flatten"
+        ],
+        "childrenExtended": [],
+        "containsParents": [],
+        "inheritedSymbols": [],
+        "parentsExtended": [],
+        "requireClass": [],
+        "requireExtends": [],
+        "requireImplements": [],
+        "symbolBasicDetails": {},
+        "symbolDetails": {
+            "test/php/FancyTypes": {
+                "annotations": [],
+                "contains_relation": {
+                    "firstChild": "nondeterministic",
+                    "firstParent": "nondeterministic",
+                    "hasMoreChildren": false,
+                    "hasMoreParents": false
+                },
+                "extends_relation": {
+                    "firstChild": "nondeterministic",
+                    "firstParent": "nondeterministic",
+                    "hasMoreChildren": false,
+                    "hasMoreParents": false
+                },
+                "kind": 7,
+                "language": 3,
+                "location": {
+                    "filepath": "www/SourceClass.php",
+                    "range": {
+                        "columnBegin": 1,
+                        "columnEnd": 2,
+                        "lineBegin": 57,
+                        "lineEnd": 59
+                    },
+                    "repository": "test"
+                },
+                "modifiers": [],
+                "name": {
+                    "container": "",
+                    "localName": "FancyTypes"
+                },
+                "pretty_comments": [],
+                "repo_hash": "testhash",
+                "signature": "class FancyTypes<<<__Memoize, __Deprecated(Use something else instead)>> +T>",
+                "sym": "test/php/FancyTypes",
+                "sym_location": {
+                    "filepath": "www/SourceClass.php",
+                    "range": {
+                        "columnBegin": 1,
+                        "columnEnd": 2,
+                        "lineBegin": 57,
+                        "lineEnd": 59
+                    },
+                    "repository": "test"
+                },
+                "sym_other_locations": [],
+                "type_xrefs": [
+                    {
+                        "span": {
+                            "length": 10,
+                            "start": 6
+                        },
+                        "type": "test/php/FancyTypes"
+                    }
+                ]
+            },
+            "test/php/FancyTypes/flatten": {
+                "annotations": [],
+                "contains_relation": {
+                    "firstChild": "nondeterministic",
+                    "firstParent": "nondeterministic",
+                    "hasMoreChildren": false,
+                    "hasMoreParents": false
+                },
+                "extends_relation": {
+                    "firstChild": "nondeterministic",
+                    "firstParent": "nondeterministic",
+                    "hasMoreChildren": false,
+                    "hasMoreParents": false
+                },
+                "kind": 8,
+                "language": 3,
+                "location": {
+                    "filepath": "www/SourceClass.php",
+                    "range": {
+                        "columnBegin": 5,
+                        "columnEnd": 85,
+                        "lineBegin": 58,
+                        "lineEnd": 58
+                    },
+                    "repository": "test"
+                },
+                "modifiers": [],
+                "name": {
+                    "container": "FancyTypes",
+                    "localName": "flatten"
+                },
+                "pretty_comments": [],
+                "repo_hash": "testhash",
+                "signature": "public function flatten<<<__Soft>> reify Tu>(): void",
+                "sym": "test/php/FancyTypes/flatten",
+                "sym_location": {
+                    "filepath": "www/SourceClass.php",
+                    "range": {
+                        "columnBegin": 5,
+                        "columnEnd": 85,
+                        "lineBegin": 58,
+                        "lineEnd": 58
+                    },
+                    "repository": "test"
+                },
+                "sym_other_locations": [],
+                "type_xrefs": [
+                    {
+                        "span": {
+                            "length": 7,
+                            "start": 16
+                        },
+                        "type": "test/php/FancyTypes/flatten"
+                    }
+                ],
+                "visibility": 20
+            }
+        }
+    }
+]

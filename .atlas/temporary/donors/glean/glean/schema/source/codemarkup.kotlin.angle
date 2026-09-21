@@ -1,0 +1,89 @@
+# Copyright (c) Meta Platforms, Inc. and affiliates.
+
+schema codemarkup.kotlin.1 {
+
+import src
+import code.kotlin
+import codemarkup.types
+import kotlin.alpha
+
+#
+# Resolving locations to entities
+#
+
+predicate KotlinResolveLocation:
+  {
+    location: codemarkup.types.Location,
+    entity: code.kotlin.Entity,
+  }
+  { { Name, File, { span = Span }, nothing }, { decl = Decl } } where
+    kotlin.alpha.FileDeclarations { File, Decl };
+    kotlin.alpha.DeclarationFileLocation { Decl, File, Span, Name };
+
+predicate KotlinEntityLocation:
+  {
+    entity: code.kotlin.Entity,
+    location: codemarkup.types.Location,
+  }
+  { Entity, { Name, File, { span = Span }, nothing } } where
+    { decl = Decl } = Entity;
+    kotlin.alpha.DeclarationFileLocation { Decl, File, Span, Name };
+
+# XRefs : not supported by the Kotlin schema yet
+predicate KotlinFileEntityXRefLocations:
+  {
+    file: src.File,
+    xref: codemarkup.types.XRefLocation,
+    entity: code.kotlin.Entity,
+  } # no implementation
+
+# find-refs: no implementation
+predicate KotlinEntityUses:
+  {
+    target: code.kotlin.Entity,
+    file: src.File,
+    span: src.ByteSpan,
+  } # no implementation
+
+# kinds and symbol info
+predicate KotlinEntityKind:
+  {
+    entity: code.kotlin.Entity,
+    kind: codemarkup.types.SymbolKind
+  }
+  { Entity, Kind} where
+    { decl = Decl } = Entity;
+    ( { method = _ } = Decl; Method = Kind ) |
+    ( { class_ = _ } = Decl; Class_ = Kind ) |
+    ( { variable = _ } = Decl; Variable = Kind );
+
+#
+# Relationships
+#
+
+predicate KotlinContainsParentEntity:
+  {
+    child: code.kotlin.Entity,
+    parent: code.kotlin.Entity
+  }
+  { { decl = Child }, { decl = Parent } } where
+    kotlin.alpha.ParentDeclaration { Child, Parent };
+
+predicate KotlinContainsChildEntity:
+  {
+    parent: code.kotlin.Entity,
+    child: code.kotlin.Entity
+  }
+  { { decl = Parent }, { decl = Child } } where
+    kotlin.alpha.ContainsDeclaration { Parent, Child };
+
+predicate KotlinExtendsParentEntity:
+  {
+    child: code.kotlin.Entity,
+    parent: code.kotlin.Entity
+  }
+  { { decl = Child }, { decl = Parent } } where
+    kotlin.alpha.ExtendsDeclaration { Child, Parent };
+
+
+}

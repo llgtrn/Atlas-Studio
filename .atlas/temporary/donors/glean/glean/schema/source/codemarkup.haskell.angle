@@ -1,0 +1,158 @@
+# Copyright (c) Meta Platforms, Inc. and affiliates.
+
+schema codemarkup.haskell.2 {
+
+import src
+import code.hs
+import codemarkup.types
+import hs
+
+#
+# Resolving locations to entities
+#
+
+# Resolve Haskell locations
+predicate HaskellResolveLocation:
+  {
+    location: codemarkup.types.Location,
+    entity: code.hs.Entity,
+  }
+  { { Ent.occ.name, File, { span = Span }, nothing }, { name = Ent } } where
+    hs.SourceModule { File, Mod };
+    hs.ModuleDeclarations { module = Mod, names = Names };
+    Ent = Names[..];
+    hs.DeclarationLocation { name = Ent, span = Span };
+
+#
+# Finding entities' locations
+#
+
+predicate HaskellEntityLocation:
+  {
+    entity: code.hs.Entity,
+    location: codemarkup.types.Location,
+  }
+  { { name = D }, { D.occ.name, File, { span = Span }, nothing } } where
+    hs.DeclarationLocation { D, File, Span };
+
+#
+# Finding references in a file
+#
+
+# XRefs in Haskell
+predicate HaskellFileEntityXRefLocations:
+  {
+    file: src.File,
+    xref: codemarkup.types.XRefLocation,
+    entity: code.hs.Entity,
+  }
+  { File, { Location, { span = Span } }, Entity } where
+    hs.FileXRefs { file = File, xrefs = XRefs };
+    { target = Target, refs = Spans } = XRefs[..];
+    (
+      Target = { name = Name };
+      Entity = { name = Name };
+      hs.DeclarationLocation { name = Name, file = TargetFile, span = TargetSpan };
+      Location = codemarkup.types.Location
+        {
+          name = Name.occ.name,
+          file = TargetFile,
+          location = { span = TargetSpan },
+          destination = nothing
+        };
+    ) | (
+      Target = { modName = ModuleName };
+      Module = hs.Module { name = ModuleName };
+      Entity = { mod = Module };
+      hs.ModuleSource { mod = Module, file = TargetFile };
+      Location = codemarkup.types.Location
+        {
+          name = ModuleName.*,
+          file = TargetFile,
+          location = { range = { TargetFile, 1, 1, 1, 1 }},
+          destination = nothing
+        };
+    );
+    Span = (Spans[..]).span;
+
+#
+# Language entity uses
+#
+
+predicate HaskellEntityUses:
+  {
+    target: code.hs.Entity,
+    file: src.File,
+    span: src.ByteSpan,
+  }
+  { Ent, File, (Spans[..]).span } where
+    (
+      Ent = { name = Name };
+      Target = { name = Name };
+    ) | (
+      Ent = { mod = Module };
+      Target = { modName = Module.name };
+    );
+    hs.XRef { target = Target, file = File, refs = Spans }
+
+
+#
+# Contains
+#
+
+predicate HaskellContainsParentEntity:
+  {
+    child: code.hs.Entity,
+    parent: code.hs.Entity
+  }
+  { { name = ChildName }, { name = ParentName } }
+  where
+  hs.DeclarationOfName { name = ChildName, decl = ChildDecl };
+  (
+    ChildDecl.con?.data_ = ParentName
+  ) | (
+    ChildDecl.field?.con = ParentName
+  ) | (
+    ChildDecl.method?.class_ = ParentName
+  )
+
+predicate HaskellContainsChildEntity:
+  {
+    parent: code.hs.Entity,
+    child: code.hs.Entity
+  }
+  { { name = ParentName }, { name = ChildName } }
+  where
+  hs.DeclarationOfName { name = ParentName, decl = ParentDecl };
+  (
+    (ParentDecl.class_?.methods[..]).name = ChildName
+  ) | (
+    (ParentDecl.data?.constrs[..]).name = ChildName
+  ) | (
+    (ParentDecl.con?.fields[..]).name = ChildName
+  )
+
+#
+# Entity kinds
+#
+
+predicate HaskellEntityKind:
+  {
+    entity: code.hs.Entity,
+    kind: codemarkup.types.SymbolKind,
+  }
+  { {name = Name}, Kind } where
+     hs.DeclarationOfName { name = Name, decl = Decl };
+     ( Decl = { val = _ }; Function = Kind ) |
+     ( Decl = { typeFamily = _ }; Type = Kind ) |
+     ( Decl = { type_ = _ }; Type = Kind ) |
+     ( Decl = { data = _ }; Type = Kind ) |
+     ( Decl = { con = _ }; Constant = Kind ) |
+     ( Decl = { patSyn = _ }; Constant = Kind ) |
+     ( Decl = { class_ = _ }; Class_ = Kind ) |
+     ( Decl = { method = _ }; Method = Kind ) |
+     ( Decl = { patBind = _ }; Variable = Kind ) |
+     ( Decl = { tyVarBind = _ }; TypeParameter = Kind ) |
+     ( Decl = { field = _ }; Field = Kind )
+
+}

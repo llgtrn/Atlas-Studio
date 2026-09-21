@@ -1,0 +1,25 @@
+[
+    "@generated",
+    [
+        {
+            "filepath": "test.cpp",
+            "range": {
+                "columnBegin": 3,
+                "columnEnd": 23,
+                "lineBegin": 17,
+                "lineEnd": 17
+            },
+            "repository": "test-xlang"
+        },
+        {
+            "filepath": "test.thrift",
+            "range": {
+                "columnBegin": 36,
+                "columnEnd": 56,
+                "lineBegin": 41,
+                "lineEnd": 41
+            },
+            "repository": "test-xlang"
+        }
+    ]
+]

@@ -1,0 +1,182 @@
+[
+  "@generated",
+  {
+    "key": {
+      "declaration": {
+        "func": {
+          "key": {
+            "fqn": { "module": "client", "name": "batch_send", "arity": 1 },
+            "app": "app_b"
+          }
+        }
+      },
+      "file": { "key": "app_b/src/client.erl" },
+      "span": { "start": 353, "length": 55 },
+      "text": "```erlang\u000a-spec batch_send([binary()]) -> [ok | {error, term()}].\u000a```"
+    }
+  },
+  {
+    "key": {
+      "declaration": {
+        "func": {
+          "key": {
+            "fqn": { "module": "client", "name": "send_request", "arity": 1 },
+            "app": "app_b"
+          }
+        }
+      },
+      "file": { "key": "app_b/src/client.erl" },
+      "span": { "start": 102, "length": 53 },
+      "text": "```erlang\u000a-spec send_request(binary()) -> ok | {error, term()}.\u000a```"
+    }
+  },
+  {
+    "key": {
+      "declaration": {
+        "func": {
+          "key": {
+            "fqn": { "module": "server", "name": "handle_call", "arity": 3 },
+            "app": "app_a"
+          }
+        }
+      },
+      "file": { "key": "app_a/src/server.erl" },
+      "span": { "start": 485, "length": 71 },
+      "text": "```erlang\u000a-spec handle_call(term(), term(), state()) -> {reply, term(), state()}.\u000a```"
+    }
+  },
+  {
+    "key": {
+      "declaration": {
+        "func": {
+          "key": {
+            "fqn": { "module": "server", "name": "handle_cast", "arity": 2 },
+            "app": "app_a"
+          }
+        }
+      },
+      "file": { "key": "app_a/src/server.erl" },
+      "span": { "start": 729, "length": 57 },
+      "text": "```erlang\u000a-spec handle_cast(term(), state()) -> {noreply, state()}.\u000a```"
+    }
+  },
+  {
+    "key": {
+      "declaration": {
+        "func": {
+          "key": {
+            "fqn": { "module": "server", "name": "handle_request", "arity": 1 },
+            "app": "app_a"
+          }
+        }
+      },
+      "file": { "key": "app_a/src/server.erl" },
+      "span": { "start": 838, "length": 57 },
+      "text": "```erlang\u000a-spec handle_request(#request{}) -> ok | {error, term()}.\u000a```"
+    }
+  },
+  {
+    "key": {
+      "declaration": {
+        "func": {
+          "key": {
+            "fqn": { "module": "server", "name": "init", "arity": 1 },
+            "app": "app_a"
+          }
+        }
+      },
+      "file": { "key": "app_a/src/server.erl" },
+      "span": { "start": 403, "length": 36 },
+      "text": "```erlang\u000a-spec init(term()) -> {ok, state()}.\u000a```"
+    }
+  },
+  {
+    "key": {
+      "declaration": {
+        "func": {
+          "key": {
+            "fqn": { "module": "server", "name": "old_api", "arity": 1 },
+            "app": "app_a"
+          }
+        }
+      },
+      "file": { "key": "app_a/src/server.erl" },
+      "span": { "start": 1035, "length": 28 },
+      "text": "```erlang\u000a-spec old_api(term()) -> ok.\u000a```"
+    }
+  },
+  {
+    "key": {
+      "declaration": {
+        "func": {
+          "key": {
+            "fqn": { "module": "server", "name": "start", "arity": 0 },
+            "app": "app_a"
+          }
+        }
+      },
+      "file": { "key": "app_a/src/server.erl" },
+      "span": { "start": 322, "length": 29 },
+      "text": "```erlang\u000a-spec start() -> {ok, pid()}.\u000a```"
+    }
+  },
+  {
+    "key": {
+      "declaration": {
+        "func": {
+          "key": {
+            "fqn": { "module": "utils", "name": "format_id", "arity": 1 },
+            "app": "app_a"
+          }
+        }
+      },
+      "file": { "key": "app_a/src/utils.erl" },
+      "span": { "start": 78, "length": 40 },
+      "text": "```erlang\u000a-spec format_id(#request{}) -> string().\u000a```"
+    }
+  },
+  {
+    "key": {
+      "declaration": {
+        "func": {
+          "key": {
+            "fqn": { "module": "utils", "name": "validate", "arity": 1 },
+            "app": "app_a"
+          }
+        }
+      },
+      "file": { "key": "app_a/src/utils.erl" },
+      "span": { "start": 177, "length": 52 },
+      "text": "```erlang\u000a-spec validate(#request{}) -> ok | {error, invalid}.\u000a```"
+    }
+  },
+  {
+    "key": {
+      "declaration": {
+        "record_": {
+          "key": { "name": "request", "module": "shared.hrl", "app": "app_a" }
+        }
+      },
+      "file": { "key": "app_a/include/shared.hrl" },
+      "span": { "start": 58, "length": 83 },
+      "text": "```erlang\u000a-record(request, {id :: integer(), payload :: binary(), retries = 0 :: integer()}).\u000a```"
+    }
+  },
+  {
+    "key": {
+      "declaration": {
+        "type_": {
+          "key": {
+            "name": "state",
+            "arity": 0,
+            "module": "server",
+            "app": "app_a"
+          }
+        }
+      },
+      "file": { "key": "app_a/src/server.erl" },
+      "span": { "start": 154, "length": 45 },
+      "text": "```erlang\u000a-type state() :: #{requests := [#request{}]}.\u000a```"
+    }
+  }
+]

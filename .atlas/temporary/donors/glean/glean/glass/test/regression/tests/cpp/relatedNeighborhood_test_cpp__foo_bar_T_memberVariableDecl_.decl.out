@@ -1,0 +1,119 @@
+[
+    "@generated",
+    {
+        "childrenContained": [],
+        "childrenExtended": [],
+        "containsParents": [
+            {
+                "child": "test/cpp//foo/bar/T/memberVariableDecl/.decl",
+                "parent": "test/cpp//foo/bar/T"
+            }
+        ],
+        "inheritedSymbols": [],
+        "parentsExtended": [],
+        "requireClass": [],
+        "requireExtends": [],
+        "requireImplements": [],
+        "symbolBasicDetails": {},
+        "symbolDetails": {
+            "test/cpp//foo/bar/T": {
+                "contains_relation": {
+                    "firstChild": "nondeterministic",
+                    "firstParent": "nondeterministic",
+                    "hasMoreChildren": false,
+                    "hasMoreParents": false
+                },
+                "extends_relation": {
+                    "firstChild": "nondeterministic",
+                    "firstParent": "nondeterministic",
+                    "hasMoreChildren": false,
+                    "hasMoreParents": false
+                },
+                "kind": 25,
+                "language": 1,
+                "location": {
+                    "filepath": "test.cpp",
+                    "range": {
+                        "columnBegin": 1,
+                        "columnEnd": 2,
+                        "lineBegin": 38,
+                        "lineEnd": 40
+                    },
+                    "repository": "test"
+                },
+                "modifiers": [],
+                "name": {
+                    "container": "foo::bar",
+                    "localName": "T"
+                },
+                "native_sym": {
+                    "sym": "87CFEB5671D26AC6"
+                },
+                "pretty_comments": [],
+                "repo_hash": "testhash",
+                "signature": "struct foo::bar::T",
+                "sym": "test/cpp//foo/bar/T",
+                "sym_location": {
+                    "filepath": "test.cpp",
+                    "range": {
+                        "columnBegin": 1,
+                        "columnEnd": 2,
+                        "lineBegin": 38,
+                        "lineEnd": 40
+                    },
+                    "repository": "test"
+                },
+                "sym_other_locations": [],
+                "type_xrefs": []
+            },
+            "test/cpp//foo/bar/T/memberVariableDecl/.decl": {
+                "contains_relation": {
+                    "firstChild": "nondeterministic",
+                    "firstParent": "nondeterministic",
+                    "hasMoreChildren": false,
+                    "hasMoreParents": false
+                },
+                "extends_relation": {
+                    "firstChild": "nondeterministic",
+                    "firstParent": "nondeterministic",
+                    "hasMoreChildren": false,
+                    "hasMoreParents": false
+                },
+                "kind": 15,
+                "language": 1,
+                "location": {
+                    "filepath": "test.cpp",
+                    "range": {
+                        "columnBegin": 3,
+                        "columnEnd": 25,
+                        "lineBegin": 39,
+                        "lineEnd": 39
+                    },
+                    "repository": "test"
+                },
+                "modifiers": [],
+                "name": {
+                    "container": "foo::bar::T",
+                    "localName": "memberVariableDecl"
+                },
+                "pretty_comments": [],
+                "repo_hash": "testhash",
+                "signature": "int foo::bar::T::memberVariableDecl",
+                "sym": "test/cpp//foo/bar/T/memberVariableDecl/.decl",
+                "sym_location": {
+                    "filepath": "test.cpp",
+                    "range": {
+                        "columnBegin": 3,
+                        "columnEnd": 25,
+                        "lineBegin": 39,
+                        "lineEnd": 39
+                    },
+                    "repository": "test"
+                },
+                "sym_other_locations": [],
+                "type_xrefs": [],
+                "visibility": 20
+            }
+        }
+    }
+]

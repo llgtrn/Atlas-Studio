@@ -1,0 +1,41 @@
+/**
+ * Copyright (c) Meta Platforms, Inc. and affiliates.
+ * All rights reserved.
+ *
+ * This source code is licensed under the BSD-style license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+//@flow
+
+import * as React from 'react';
+
+let foo: number = 1;
+
+/**
+ * This is a comment
+ */
+function bor(x: number): number {
+  return x + 1;
+}
+
+export class BazClass {}
+
+let d: string = "string";
+
+export {foo, bor as bar};
+
+export default d;
+
+export type num = number;
+
+export type MyT = {
+  field1: number,
+  ...
+}
+
+export component Introduction(name: string) {
+  return <h1>My name is {name}</h1>
+}
+
+export class C {}

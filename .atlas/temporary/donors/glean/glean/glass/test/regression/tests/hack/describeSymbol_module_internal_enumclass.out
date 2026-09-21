@@ -1,0 +1,65 @@
+[
+    "@generated",
+    {
+        "annotations": [
+            {
+                "name": "__EnumClass",
+                "source": "__EnumClass"
+            }
+        ],
+        "contains_relation": {
+            "firstChild": "nondeterministic",
+            "firstParent": "nondeterministic",
+            "hasMoreChildren": false,
+            "hasMoreParents": false
+        },
+        "extends_relation": {
+            "firstChild": "nondeterministic",
+            "firstParent": "nondeterministic",
+            "hasMoreChildren": false,
+            "hasMoreParents": false
+        },
+        "kind": 12,
+        "language": 3,
+        "location": {
+            "filepath": "www/ModuleMember.php",
+            "range": {
+                "columnBegin": 1,
+                "columnEnd": 55,
+                "lineBegin": 28,
+                "lineEnd": 28
+            },
+            "repository": "test"
+        },
+        "modifiers": [],
+        "name": {
+            "container": "",
+            "localName": "EnumClassExample"
+        },
+        "pretty_comments": [],
+        "repo_hash": "testhash",
+        "signature": "internal enum class EnumClassExample : InterfaceThis",
+        "sym": "test/php/EnumClassExample",
+        "sym_location": {
+            "filepath": "www/ModuleMember.php",
+            "range": {
+                "columnBegin": 1,
+                "columnEnd": 55,
+                "lineBegin": 28,
+                "lineEnd": 28
+            },
+            "repository": "test"
+        },
+        "sym_other_locations": [],
+        "type_xrefs": [
+            {
+                "span": {
+                    "length": 16,
+                    "start": 20
+                },
+                "type": "test/php/EnumClassExample"
+            }
+        ],
+        "visibility": 50
+    }
+]

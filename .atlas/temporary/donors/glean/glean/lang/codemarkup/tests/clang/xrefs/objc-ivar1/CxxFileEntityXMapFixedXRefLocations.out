@@ -1,0 +1,90 @@
+[
+  "@generated",
+  {
+    "key": {
+      "trace": {
+        "key": {
+          "xmap": {
+            "key": {
+              "file": { "key": "test.m" },
+              "fixed": [
+                {
+                  "target": {
+                    "declaration": {
+                      "variable": {
+                        "key": {
+                          "name": {
+                            "key": {
+                              "name": { "key": "_i" },
+                              "scope": { "global_": { } }
+                            }
+                          },
+                          "type": { "key": "int" },
+                          "kind": { "ivar": { "synthesize": false } },
+                          "source": {
+                            "file": { "key": "test.m" },
+                            "lineBegin": 10,
+                            "columnBegin": 3,
+                            "lineEnd": 10,
+                            "columnEnd": 8
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "from": {
+                    "spans": [ { "length": 2, "offsets": [ 356 ] } ],
+                    "expansions": [ ],
+                    "spellings": [ ]
+                  }
+                }
+              ],
+              "froms": [ ]
+            }
+          },
+          "targets": [ ]
+        }
+      },
+      "xref": {
+        "target": {
+          "name": "_i",
+          "file": { "key": "test.m" },
+          "location": {
+            "range": {
+              "file": { "key": "test.m" },
+              "lineBegin": 10,
+              "columnBegin": 3,
+              "lineEnd": 10,
+              "columnEnd": 8
+            }
+          },
+          "destination": {
+            "file": { "key": "test.m" },
+            "span": { "start": 242, "length": 2 }
+          }
+        },
+        "source": { "span": { "start": 356, "length": 2 } }
+      },
+      "entity": {
+        "decl": {
+          "variable": {
+            "key": {
+              "name": {
+                "key": { "name": { "key": "_i" }, "scope": { "global_": { } } }
+              },
+              "type": { "key": "int" },
+              "kind": { "ivar": { "synthesize": false } },
+              "source": {
+                "file": { "key": "test.m" },
+                "lineBegin": 10,
+                "columnBegin": 3,
+                "lineEnd": 10,
+                "columnEnd": 8
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+]

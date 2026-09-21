@@ -1,0 +1,543 @@
+{-
+  Copyright (c) Meta Platforms, Inc. and affiliates.
+  All rights reserved.
+
+  This source code is licensed under the BSD-style license found in the
+  LICENSE file in the root directory of this source tree.
+-}
+
+{-# LANGUAGE ApplicativeDo #-}
+{-# LANGUAGE TypeApplications #-}
+{-# OPTIONS_GHC -Wno-orphans #-}
+
+module Glean.Glass.SymbolId
+  (
+    -- * introduction
+    toSymbolId
+
+    -- * elimination
+  , symbolTokens
+
+  -- * the language an entity is contained within
+  , entityLanguage
+  , entityDefinitionType
+  , entityKind
+  , languageToCodeLang
+  , languageExpandCpp
+
+  -- * Lookups and language names
+  , toShortCode
+  , fromShortCode
+
+  -- * searching for entities
+  , entityToAngle
+
+  -- * Qualified names
+  , toQualifiedName
+  , toSymbolLocalName
+  , toSymbolQualifiedContainer
+
+  -- reexports
+  , SymbolRepoPath(..)
+
+  ,nativeSymbol) where
+
+import Control.Monad.Catch ( throwM, try )
+import Data.Maybe ( fromMaybe, mapMaybe )
+import Data.Tuple ( swap )
+import Util.Text ( textShow )
+import Data.Text ( Text )
+import qualified Data.Map as Map
+import qualified Data.Text as Text
+import qualified Network.URI.Encode as URI
+
+import Glean.Glass.Base (SymbolRepoPath(..))
+import Glean.Glass.Types as Glass
+    ( DefinitionKind(DefinitionKind_Definition),
+      SymbolKind,
+      QualifiedName(..),
+      Language(..),
+      SymbolId(SymbolId),
+      RepoName(..),
+      Name,
+      SymbolFilter(..) )
+
+import Glean ( getId )
+import Glean.Angle ( alt, asPredicate, factId, Angle )
+import qualified Glean.Haxl.Repos as Glean
+import Glean.Util.ToAngle ( ToAngle(toAngle), mkKey )
+
+import Glean.Glass.SymbolId.Class
+    ( Symbol(..),
+      SymbolError(SymbolError),
+      ToQName(..),
+      ToSymbolParent(..),
+      ToNativeSymbol(..) )
+import Glean.Glass.SymbolId.Angle ({- instances -})
+import Glean.Glass.SymbolId.Buck ({- instances -})
+import Glean.Glass.SymbolId.Cxx ({- instances -})
+import Glean.Glass.SymbolId.Chef ({- instances -})
+import Glean.Glass.SymbolId.Erlang ({- instances -})
+import Glean.Glass.SymbolId.Fbthrift ({- instances -})
+import Glean.Glass.SymbolId.Flow ({- instances -})
+import Glean.Glass.SymbolId.GraphQL ({- instances -})
+import Glean.Glass.SymbolId.Hack ({- instances -})
+import Glean.Glass.SymbolId.Hs ({- instances -})
+import Glean.Glass.SymbolId.Java ({- instances -})
+import Glean.Glass.SymbolId.LSIF ({- instances -})
+import Glean.Glass.SymbolId.Pp ({- instances -})
+import Glean.Glass.SymbolId.Python ({- instances -})
+import Glean.Glass.SymbolId.SCIP ({- instances -})
+import Glean.Glass.SymbolId.CSharp ({- instances -})
+
+import qualified Glean.Glass.SymbolId.Cxx as Cxx
+import qualified Glean.Glass.SymbolId.Pp as Pp
+
+import qualified Glean.Schema.Code.Types as Code
+import qualified Glean.Schema.CodeLsif.Types as Lsif
+import qualified Glean.Schema.CodeScip.Types as Scip
+
+import Glean.Schema.CodeErlang.Types as Erlang
+    ( Entity(Entity_decl, Entity_macro_usage, Entity_var_) )
+import Glean.Schema.CodeChef.Types as Chef ( Entity(Entity_symbol) )
+import Glean.Schema.CodeHack.Types as Hack ( Entity(Entity_decl) )
+import Glean.Schema.CodeJava.Types as Java ( Entity(Entity_decl) )
+import Glean.Schema.CodeKotlin.Types as Kotlin ( Entity(Entity_decl) )
+import Glean.Schema.CodePython.Types as Python ( Entity(Entity_decl) )
+import Glean.Schema.CodeFbthrift.Types as Fbthrift ( Entity(Entity_decl) )
+import Glean.Schema.CodeCsharp.Types as CSharp ( Entity(Entity_decl) )
+
+-- Introduce a SymbolId. This is essentially the semantic "path to this symbol
+-- in the Codex style. www/php/Glean/getLatestRepo
+--
+-- If we can't encode the entity, it is still useful to return the path and
+-- file, as this is enough to navigate with.
+--
+-- Symbol IDs have 3 fixed parts and 1 optional part:
+--
+-- - scm repo (corpus in biggrep term), e.g. "fbsource"
+-- - language short code (e.g py or php or cpp)
+-- - entity encoding
+-- - [optional] filters as defined in the thrift schema
+--
+-- We uri encode the pieces and separate with / so they look like nice urls
+--
+toSymbolId :: SymbolRepoPath -> Code.Entity -> Glean.RepoHaxl u w SymbolId
+toSymbolId path entity = do
+  let langCode = toShortCode (entityLanguage entity)
+  eqname <- try $ toSymbolWithPath entity (symbolPath path)
+  return $ case eqname of
+    Left (SymbolError _e) -> symbol [repo, langCode, "SYMBOL_ID_MISSING"]
+    Right spec -> symbol $ repo : langCode :
+      map (URI.encodeTextWith isAllowed) spec
+  where
+    symbol = SymbolId . Text.intercalate "/"
+    Glass.RepoName repo = symbolRepo path
+
+    -- for readability, we permit these control chars in the symbol id uri
+    isAllowed ':' = True
+    isAllowed '+' = True
+    isAllowed ',' = True
+    isAllowed '*' = True
+    isAllowed '[' = True
+    isAllowed ']' = True
+    isAllowed c = URI.isAllowed c
+
+--
+-- For entity descriptions, we use toQualifiedName to extract some info
+-- about the namespace or scope of the entity
+--
+toQualifiedName :: Code.Entity -> Glean.RepoHaxl u w (Either Text QualifiedName)
+toQualifiedName entity = do
+  qname <- toQName entity
+  return $ case qname of
+    Right (qualifiedName_localName, qualifiedName_container) ->
+      Right QualifiedName {..}
+    Left e -> Left $ "QualifiedName: " <> e
+
+
+toSymbolLocalName :: Code.Entity -> Glean.RepoHaxl u w (Maybe Name)
+toSymbolLocalName entity = do
+  qname <- toQName entity
+  return $ case qname of
+    Right (qualifiedName_localName, _) -> Just qualifiedName_localName
+    Left _ -> Nothing
+
+toSymbolQualifiedContainer :: Code.Entity -> Glean.RepoHaxl u w (Maybe Name)
+toSymbolQualifiedContainer entity = do
+  qname <- toQName entity
+  return $ case qname of
+    Right (_, qualifiedName_container) -> Just qualifiedName_container
+    Left _ -> Nothing
+
+parseFilter :: Text -> Maybe SymbolFilter
+parseFilter f = case Text.splitOn "=" f of
+  [k, v] -> case k of
+    "definition_file" -> Just (SymbolFilter_definition_file v)
+    _ -> Nothing
+  _ -> Nothing
+
+parseFilters :: Text -> [SymbolFilter]
+parseFilters = mapMaybe parseFilter . Text.split (=='&')
+
+-- | Tokenize a symbol (inverse of the intercalate "/")
+-- Leaves the path/qname/syms for further search.
+symbolTokens
+  :: SymbolId
+  -> Either Text (RepoName, Language, [Text], [SymbolFilter])
+symbolTokens (SymbolId symid)
+  | (repo: code: pieces) <- tokens
+  , Just lang <- fromShortCode code
+  = Right (RepoName repo, lang, map URI.decodeText pieces, filters)
+  | otherwise = Left $ "Invalid symbol: " <> symid
+  where
+    (ident, filters) = case Text.split (=='?') symid of
+      [identOnly] -> (identOnly, [])
+      [identPart, filtersPart] -> (identPart, parseFilters filtersPart)
+      _ -> (symid, [])
+    tokens = Text.split (=='/') ident
+
+-- | SymbolID-encoded language, used for db name lookups
+shortCodeTable :: [(Language,Text)]
+shortCodeTable =
+  [ (Language_Angle , "angle")
+  , (Language_Buck , "buck")
+  , (Language_Chef, "chef")
+  , (Language_CSharp, "cs")
+  , (Language_Cpp, "cpp")
+  , (Language_Dataswarm, "dataswarm")
+  , (Language_Erlang , "erl")
+  , (Language_Go , "go")
+  , (Language_GraphQL, "graphql")
+  , (Language_Hack, "php")
+  , (Language_Haskell, "hs")
+  , (Language_Java , "java")
+  , (Language_JavaScript, "js")
+  , (Language_Kotlin , "kotlin")
+  , (Language_PreProcessor , "pp")
+  , (Language_Python, "py")
+  , (Language_Rust , "rs")
+  , (Language_Swift , "swift")
+  , (Language_Thrift , "thrift")
+  , (Language_TypeScript , "ts")
+  ]
+
+languageToCode :: Map.Map Language Text
+languageToCode = Map.fromList shortCodeTable
+
+codeToLanguage :: Map.Map Text Language
+codeToLanguage = Map.fromList (map swap shortCodeTable)
+
+-- | Symbol identifier to use when we don't support symbol identifiers
+unsupportedSymbol :: Text
+unsupportedSymbol = "UNSUPPORTED_LANGUAGE"
+
+-- | Language to canonical shortcode in symbol
+toShortCode :: Language -> Text
+toShortCode lang = fromMaybe unsupportedSymbol
+  (Map.lookup lang languageToCode)
+
+fromShortCode :: Text -> Maybe Language
+fromShortCode code = Map.lookup code codeToLanguage
+
+-- | The language is the outermost tag of the code.Entity constructor
+entityLanguage :: Code.Entity -> Language
+entityLanguage e = case e of
+  Code.Entity_angle{} -> Language_Angle
+  Code.Entity_buck{} -> Language_Buck
+  Code.Entity_chef{} -> Language_Chef
+  Code.Entity_csharp{} -> Language_CSharp
+  Code.Entity_cxx{} -> Language_Cpp
+  Code.Entity_erlang{} -> Language_Erlang
+  Code.Entity_dataswarm{} -> Language_Dataswarm
+  Code.Entity_fbthrift{} -> Language_Thrift
+  Code.Entity_flow{} -> Language_JavaScript
+  Code.Entity_graphql{} -> Language_GraphQL
+  Code.Entity_hack{} -> Language_Hack
+  Code.Entity_hs{} -> Language_Haskell
+  Code.Entity_java{} -> Language_Java
+  Code.Entity_kotlin{} -> Language_Kotlin
+  Code.Entity_pp{} -> Language_PreProcessor
+  Code.Entity_python{} -> Language_Python
+  -- lsif languages
+  Code.Entity_lsif Lsif.Entity_go{} -> Language_Go
+  Code.Entity_lsif Lsif.Entity_typescript{} -> Language_TypeScript
+  Code.Entity_lsif Lsif.Entity_rust{} -> Language_Rust
+  Code.Entity_lsif _ -> Language__UNKNOWN 0
+  -- scip languages
+  Code.Entity_scip Scip.Entity_rust{} -> Language_Rust
+  Code.Entity_scip Scip.Entity_go{} -> Language_Go
+  Code.Entity_scip Scip.Entity_typescript{} -> Language_TypeScript
+  Code.Entity_scip Scip.Entity_java{} -> Language_Java
+  Code.Entity_scip Scip.Entity_kotlin{} -> Language_Kotlin
+  Code.Entity_scip Scip.Entity_swift{} -> Language_Swift
+  Code.Entity_scip Scip.Entity_python{} -> Language_Python
+  Code.Entity_scip Scip.Entity_typescriptReact{} -> Language_TypeScriptReact
+  Code.Entity_scip Scip.Entity_javascript{} -> Language_JavaScript
+  Code.Entity_scip Scip.Entity_javascriptReact{} -> Language_JavaScriptReact
+  Code.Entity_scip Scip.Entity_c{} -> Language_C
+  Code.Entity_scip Scip.Entity_cpp{} -> Language_Cpp
+  Code.Entity_scip Scip.Entity_ruby{} -> Language_Ruby
+  Code.Entity_scip Scip.Entity_csharp{} -> Language_CSharp
+  Code.Entity_scip Scip.Entity_visualBasic{} -> Language_VisualBasic
+  Code.Entity_scip Scip.Entity_dart{} -> Language_Dart
+  Code.Entity_scip Scip.Entity_php{} -> Language_PHP
+  Code.Entity_scip _ -> Language__UNKNOWN 0
+  Code.Entity_EMPTY -> Language__UNKNOWN 0
+
+-- | Map the user-visible glass.thrift Language enum to the internal Glean
+-- language id. This can be used for optional filtering in search.
+languageToCodeLang :: Language -> Maybe Code.Language
+languageToCodeLang l = case l of
+  Language_Angle -> Just Code.Language_Angle
+  Language_Buck -> Just Code.Language_Buck
+  Language_C -> Just Code.Language_C
+  Language_Chef -> Just Code.Language_Chef
+  Language_CSharp -> Just Code.Language_CSharp
+  Language_Cpp -> Just Code.Language_Cpp
+  Language_Dart -> Just Code.Language_Dart
+  Language_Dataswarm -> Just Code.Language_Dataswarm
+  Language_Erlang -> Just Code.Language_Erlang
+  Language_Go -> Just Code.Language_Go
+  Language_GraphQL -> Just Code.Language_GraphQL
+  Language_Hack -> Just Code.Language_Hack
+  Language_Haskell -> Just Code.Language_Haskell
+  Language_Java -> Just Code.Language_Java
+  Language_JavaScript -> Just Code.Language_JavaScript
+  Language_JavaScriptReact -> Just Code.Language_JavaScriptReact
+  Language_Kotlin -> Just Code.Language_Kotlin
+  Language_ObjectiveC -> Just Code.Language_Cpp -- we don't distinguish these
+  Language_PHP -> Just Code.Language_PHP
+  Language_PreProcessor -> Just Code.Language_PreProcessor
+  Language_Python -> Just Code.Language_Python
+  Language_Ruby -> Just Code.Language_Ruby
+  Language_Rust -> Just Code.Language_Rust
+  Language_Swift -> Just Code.Language_Swift
+  Language_Thrift -> Just Code.Language_Thrift
+  Language_TypeScript -> Just Code.Language_TypeScript
+  Language_TypeScriptReact -> Just Code.Language_TypeScriptReact
+  Language_VisualBasic -> Just Code.Language_VisualBasic
+  Language_Yaml -> Just Code.Language_Yaml
+  Language__UNKNOWN{} -> Nothing
+
+-- | Search queries for C++ should always imply the PreProcessor too
+languageExpandCpp :: [Code.Language] -> [Code.Language]
+languageExpandCpp [] = []
+languageExpandCpp (Code.Language_Cpp : rest) = Code.Language_Cpp :
+  Code.Language_PreProcessor : rest
+languageExpandCpp (lang : rest) = lang : languageExpandCpp rest
+
+-- | An encoded Entity.
+--
+-- e.g. Glean/getRepoName -- method
+--      GleanRecursive   -- enum
+--
+instance Symbol Code.Entity where
+  toSymbol _ = throwM $ SymbolError "Code.Entity: use toSymbolWithPath"
+
+  toSymbolWithPath e p = case e of
+    Code.Entity_angle x -> toSymbolWithPath x p
+    Code.Entity_hack (Hack.Entity_decl x) -> toSymbolWithPath x p
+    Code.Entity_python (Python.Entity_decl x) -> toSymbolWithPath x p
+    Code.Entity_flow x -> toSymbolWithPath x p
+    Code.Entity_csharp x -> toSymbolWithPath x p
+    Code.Entity_cxx x -> toSymbolWithPath x p
+    Code.Entity_buck x -> toSymbolWithPath x p
+    Code.Entity_chef x -> toSymbolWithPath x p
+    Code.Entity_erlang x -> toSymbolWithPath x p
+    Code.Entity_graphql x -> toSymbolWithPath x p
+    Code.Entity_hs x -> toSymbolWithPath x p
+    Code.Entity_java x -> toSymbolWithPath x p
+    Code.Entity_kotlin x -> toSymbolWithPath x p
+    Code.Entity_pp x -> toSymbolWithPath x p
+    Code.Entity_fbthrift (Fbthrift.Entity_decl x) -> toSymbolWithPath x p
+    Code.Entity_lsif ent -> case ent of -- enumerate all variants for lsif
+      Lsif.Entity_erlang se -> toSymbolWithPath se p
+      Lsif.Entity_fsharp se -> toSymbolWithPath se p
+      Lsif.Entity_go se -> toSymbolWithPath se p
+      Lsif.Entity_haskell se -> toSymbolWithPath se p
+      Lsif.Entity_java se -> toSymbolWithPath se p
+      Lsif.Entity_kotlin se -> toSymbolWithPath se p
+      Lsif.Entity_ocaml se -> toSymbolWithPath se p
+      Lsif.Entity_python se -> toSymbolWithPath se p
+      Lsif.Entity_rust se -> toSymbolWithPath se p
+      Lsif.Entity_scala se -> toSymbolWithPath se p
+      Lsif.Entity_swift se -> toSymbolWithPath se p
+      Lsif.Entity_typescript se -> toSymbolWithPath se p
+      Lsif.Entity_EMPTY -> throwM $ SymbolError "Unknown LSIF language"
+
+    Code.Entity_scip ent -> case ent of
+      Scip.Entity_rust se -> toSymbolWithPath se p
+      Scip.Entity_go se -> toSymbolWithPath se p
+      Scip.Entity_typescript se -> toSymbolWithPath se p
+      Scip.Entity_java se -> toSymbolWithPath se p
+      Scip.Entity_kotlin se -> toSymbolWithPath se p
+      Scip.Entity_swift se -> toSymbolWithPath se p
+      Scip.Entity_python se -> toSymbolWithPath se p
+      Scip.Entity_typescriptReact se -> toSymbolWithPath se p
+      Scip.Entity_javascript se -> toSymbolWithPath se p
+      Scip.Entity_javascriptReact se -> toSymbolWithPath se p
+      Scip.Entity_c se -> toSymbolWithPath se p
+      Scip.Entity_cpp se -> toSymbolWithPath se p
+      Scip.Entity_ruby se -> toSymbolWithPath se p
+      Scip.Entity_csharp se -> toSymbolWithPath se p
+      Scip.Entity_visualBasic se -> toSymbolWithPath se p
+      Scip.Entity_dart se -> toSymbolWithPath se p
+      Scip.Entity_php se -> toSymbolWithPath se p
+      Scip.Entity_EMPTY -> throwM $ SymbolError "Unknown SCIP language"
+
+    _ -> throwM $ SymbolError "Language not supported"
+
+-- | Top level with error handler, to catch attempts to query
+-- languages we don't support
+entityToAngle :: Code.Entity -> Either Text (Angle Code.Entity)
+entityToAngle e = case e of
+  Code.Entity_angle x -> Right $
+    alt @"angle" (toAngle x)
+  Code.Entity_hack (Hack.Entity_decl x) -> Right $
+    alt @"hack" (alt @"decl" (toAngle x))
+  Code.Entity_python (Python.Entity_decl x) -> Right $
+    alt @"python" (alt @"decl" (toAngle x))
+  Code.Entity_flow x -> Right $
+    alt @"flow" (toAngle x)
+  Code.Entity_cxx x -> Right $
+    alt @"cxx" (toAngle x)
+  Code.Entity_pp x -> Right $
+    alt @"pp" (toAngle x)
+  Code.Entity_hs x -> Right $
+    alt @"hs" (toAngle x)
+  Code.Entity_erlang (Erlang.Entity_decl x) -> Right $
+    alt @"erlang" (alt @"decl" (toAngle x))
+  Code.Entity_erlang (Erlang.Entity_macro_usage x) -> Right $
+    alt @"erlang" (alt @"macro_usage" (asPredicate (factId (getId x))))
+  Code.Entity_erlang (Erlang.Entity_var_ x) -> Right $
+    alt @"erlang" (alt @"var_" (asPredicate (factId (getId x))))
+  Code.Entity_graphql x -> Right $
+    alt @"graphql" (toAngle x)
+  Code.Entity_buck x -> Right $
+    alt @"buck" (toAngle x)
+  Code.Entity_chef (Chef.Entity_symbol x) -> Right $
+    alt @"chef" (alt @"symbol" (mkKey x))
+  Code.Entity_java (Java.Entity_decl x) -> Right $
+    alt @"java" (alt @"decl" (toAngle x))
+  Code.Entity_kotlin (Kotlin.Entity_decl x) -> Right $
+    alt @"kotlin" (alt @"decl" (toAngle x))
+  Code.Entity_fbthrift (Fbthrift.Entity_decl x) -> Right $
+    alt @"fbthrift" (alt @"decl" (toAngle x))
+  Code.Entity_csharp (CSharp.Entity_decl x) -> Right $
+    alt @"csharp" (alt @"decl" (toAngle x))
+  -- lsif languages, enumerate all lang constructors
+  Code.Entity_lsif se -> alt @"lsif" <$> case se of
+      Lsif.Entity_erlang x -> Right $ alt @"erlang" (toAngle x)
+      Lsif.Entity_fsharp x -> Right $ alt @"fsharp" (toAngle x)
+      Lsif.Entity_go x -> Right $ alt @"go" (toAngle x)
+      Lsif.Entity_haskell x -> Right $ alt @"haskell" (toAngle x)
+      Lsif.Entity_java x -> Right $ alt @"java" (toAngle x)
+      Lsif.Entity_kotlin x -> Right $ alt @"kotlin" (toAngle x)
+      Lsif.Entity_ocaml x -> Right $ alt @"ocaml" (toAngle x)
+      Lsif.Entity_python x -> Right $ alt @"python" (toAngle x)
+      Lsif.Entity_rust x -> Right $ alt @"rust" (toAngle x)
+      Lsif.Entity_scala x -> Right $ alt @"scala" (toAngle x)
+      Lsif.Entity_swift x -> Right $ alt @"swift" (toAngle x)
+      Lsif.Entity_typescript x -> Right $ alt @"typescript" (toAngle x)
+      Lsif.Entity_EMPTY -> Left "toAngle: Unknown LSIF language"
+  -- scip anguages, enumerate all lang constructors
+  Code.Entity_scip se -> alt @"scip" <$> case se of
+      Scip.Entity_rust x -> Right $ alt @"rust" (toAngle x)
+      Scip.Entity_go x -> Right $ alt @"go" (toAngle x)
+      Scip.Entity_typescript x -> Right $ alt @"typescript" (toAngle x)
+      Scip.Entity_java x -> Right $ alt @"java" (toAngle x)
+      Scip.Entity_kotlin x -> Right $ alt @"kotlin" (toAngle x)
+      Scip.Entity_swift x -> Right $ alt @"swift" (toAngle x)
+      Scip.Entity_python x -> Right $ alt @"python" (toAngle x)
+      Scip.Entity_typescriptReact x ->
+        Right $ alt @"typescriptReact" (toAngle x)
+      Scip.Entity_javascript x -> Right $ alt @"javascript" (toAngle x)
+      Scip.Entity_javascriptReact x ->
+        Right $ alt @"javascriptReact" (toAngle x)
+      Scip.Entity_c x -> Right $ alt @"c" (toAngle x)
+      Scip.Entity_cpp x -> Right $ alt @"cpp" (toAngle x)
+      Scip.Entity_ruby x -> Right $ alt @"ruby" (toAngle x)
+      Scip.Entity_csharp x -> Right $ alt @"csharp" (toAngle x)
+      Scip.Entity_visualBasic x -> Right $ alt @"visualBasic" (toAngle x)
+      Scip.Entity_dart x -> Right $ alt @"dart" (toAngle x)
+      Scip.Entity_php x -> Right $ alt @"php" (toAngle x)
+      Scip.Entity_EMPTY -> Left "toAngle: Unknown SCIP language"
+
+  _ -> Left $
+    "ToAngle: Unsupported language: " <> toShortCode (entityLanguage e)
+
+instance ToQName Code.Entity where
+  toQName e = case e of
+    Code.Entity_angle x -> toQName x
+    Code.Entity_buck x -> toQName x
+    Code.Entity_chef x -> toQName x
+    Code.Entity_csharp x -> toQName x
+    Code.Entity_cxx x -> toQName x
+    Code.Entity_erlang x -> toQName x
+    Code.Entity_fbthrift (Fbthrift.Entity_decl x) -> toQName x
+    Code.Entity_flow x -> toQName x
+    Code.Entity_graphql x -> toQName x
+    Code.Entity_hack (Hack.Entity_decl x) -> toQName x
+    Code.Entity_hs x -> toQName x
+    Code.Entity_java x -> toQName x
+    Code.Entity_kotlin x -> toQName x
+    Code.Entity_pp x -> toQName x
+    Code.Entity_python (Python.Entity_decl x) -> toQName x
+    Code.Entity_lsif se -> case se of -- enumerate all cases for lsif
+      Lsif.Entity_erlang x -> toQName x
+      Lsif.Entity_fsharp x -> toQName x
+      Lsif.Entity_go x -> toQName x
+      Lsif.Entity_haskell x -> toQName x
+      Lsif.Entity_java x -> toQName x
+      Lsif.Entity_kotlin x -> toQName x
+      Lsif.Entity_ocaml x -> toQName x
+      Lsif.Entity_python x -> toQName x
+      Lsif.Entity_rust x -> toQName x
+      Lsif.Entity_scala x -> toQName x
+      Lsif.Entity_swift x -> toQName x
+      Lsif.Entity_typescript x -> toQName x
+      Lsif.Entity_EMPTY -> pure $ Left "LSIF: language unsupported"
+    Code.Entity_scip se -> case se of -- enumerate all cases for scip
+      Scip.Entity_rust x -> toQName x
+      Scip.Entity_go x -> toQName x
+      Scip.Entity_typescript x -> toQName x
+      Scip.Entity_java x -> toQName x
+      Scip.Entity_kotlin x -> toQName x
+      Scip.Entity_swift x -> toQName x
+      Scip.Entity_python x -> toQName x
+      Scip.Entity_typescriptReact x -> toQName x
+      Scip.Entity_javascript x -> toQName x
+      Scip.Entity_javascriptReact x -> toQName x
+      Scip.Entity_c x -> toQName x
+      Scip.Entity_cpp x -> toQName x
+      Scip.Entity_ruby x -> toQName x
+      Scip.Entity_csharp x -> toQName x
+      Scip.Entity_visualBasic x -> toQName x
+      Scip.Entity_dart x -> toQName x
+      Scip.Entity_php x -> toQName x
+      Scip.Entity_EMPTY -> pure $ Left "SCIP: language unsupported"
+    _ -> pure $ Left ("Language unsupported: " <> textShow (entityLanguage e))
+
+instance ToSymbolParent Code.Entity where
+  toSymbolParent e = case e of
+    Code.Entity_cxx x -> toSymbolParent x
+    Code.Entity_pp{} -> return Nothing
+    _ -> return Nothing
+
+
+-- | Attribute for definition/declaration distinction
+entityDefinitionType :: Code.Entity -> Maybe Glass.DefinitionKind
+entityDefinitionType (Code.Entity_cxx e) = Just (Cxx.cxxEntityDefinitionType e)
+entityDefinitionType Code.Entity_pp{} = Just Glass.DefinitionKind_Definition
+entityDefinitionType _ = Nothing
+
+-- | Glass-side implementation of entity kinds, for C++ only
+entityKind :: Code.Entity -> Glean.RepoHaxl u w (Maybe Glass.SymbolKind)
+entityKind (Code.Entity_cxx e) = Cxx.cxxEntityKind e
+entityKind (Code.Entity_pp e) = Pp.ppEntityKind e
+entityKind _ = return Nothing
+
+nativeSymbol :: Code.Entity -> Glean.RepoHaxl u w (Maybe Text)
+nativeSymbol (Code.Entity_cxx e) = toNativeSymbol e
+nativeSymbol _ = return Nothing

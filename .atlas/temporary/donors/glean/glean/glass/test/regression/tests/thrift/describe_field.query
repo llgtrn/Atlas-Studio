@@ -1,0 +1,2 @@
+action: symbolLocation
+args: "test/thrift/lib.thrift/Attribute/aBool"

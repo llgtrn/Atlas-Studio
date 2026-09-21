@@ -1,0 +1,11 @@
+[
+  "@generated",
+  {
+    "key": {
+      "declaration": {
+        "key": { "name": "person", "module": "example", "app": "basic" }
+      },
+      "definition_text": "-record(person, {name :: string(), age :: integer()})."
+    }
+  }
+]

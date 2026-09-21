@@ -1,0 +1,3 @@
+action: documentSymbolIndex
+args: {"include_refs":true,"filepath":"leaphash.go","repository":"test"}
+

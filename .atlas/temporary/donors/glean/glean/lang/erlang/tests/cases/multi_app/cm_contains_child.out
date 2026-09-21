@@ -1,0 +1,459 @@
+[
+  "@generated",
+  {
+    "key": {
+      "child": {
+        "decl": {
+          "callback_": {
+            "key": {
+              "app": "app_a",
+              "arity": 1,
+              "module": "server",
+              "name": "on_request"
+            }
+          }
+        }
+      },
+      "parent": {
+        "decl": {
+          "module_": {
+            "key": {
+              "app": "app_a",
+              "file": { "key": "app_a/src/server.erl" },
+              "name": "server"
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "child": {
+        "decl": {
+          "func": {
+            "key": {
+              "app": "app_a",
+              "fqn": { "arity": 0, "module": "server", "name": "start" }
+            }
+          }
+        }
+      },
+      "parent": {
+        "decl": {
+          "module_": {
+            "key": {
+              "app": "app_a",
+              "file": { "key": "app_a/src/server.erl" },
+              "name": "server"
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "child": {
+        "decl": {
+          "func": {
+            "key": {
+              "app": "app_a",
+              "fqn": {
+                "arity": 1,
+                "module": "server",
+                "name": "handle_request"
+              }
+            }
+          }
+        }
+      },
+      "parent": {
+        "decl": {
+          "module_": {
+            "key": {
+              "app": "app_a",
+              "file": { "key": "app_a/src/server.erl" },
+              "name": "server"
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "child": {
+        "decl": {
+          "func": {
+            "key": {
+              "app": "app_a",
+              "fqn": { "arity": 1, "module": "server", "name": "init" }
+            }
+          }
+        }
+      },
+      "parent": {
+        "decl": {
+          "module_": {
+            "key": {
+              "app": "app_a",
+              "file": { "key": "app_a/src/server.erl" },
+              "name": "server"
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "child": {
+        "decl": {
+          "func": {
+            "key": {
+              "app": "app_a",
+              "fqn": { "arity": 1, "module": "server", "name": "old_api" }
+            }
+          }
+        }
+      },
+      "parent": {
+        "decl": {
+          "module_": {
+            "key": {
+              "app": "app_a",
+              "file": { "key": "app_a/src/server.erl" },
+              "name": "server"
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "child": {
+        "decl": {
+          "func": {
+            "key": {
+              "app": "app_a",
+              "fqn": {
+                "arity": 1,
+                "module": "server",
+                "name": "process_request"
+              }
+            }
+          }
+        }
+      },
+      "parent": {
+        "decl": {
+          "module_": {
+            "key": {
+              "app": "app_a",
+              "file": { "key": "app_a/src/server.erl" },
+              "name": "server"
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "child": {
+        "decl": {
+          "func": {
+            "key": {
+              "app": "app_a",
+              "fqn": { "arity": 1, "module": "utils", "name": "format_id" }
+            }
+          }
+        }
+      },
+      "parent": {
+        "decl": {
+          "module_": {
+            "key": {
+              "app": "app_a",
+              "file": { "key": "app_a/src/utils.erl" },
+              "name": "utils"
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "child": {
+        "decl": {
+          "func": {
+            "key": {
+              "app": "app_a",
+              "fqn": { "arity": 1, "module": "utils", "name": "retry_delay" }
+            }
+          }
+        }
+      },
+      "parent": {
+        "decl": {
+          "module_": {
+            "key": {
+              "app": "app_a",
+              "file": { "key": "app_a/src/utils.erl" },
+              "name": "utils"
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "child": {
+        "decl": {
+          "func": {
+            "key": {
+              "app": "app_a",
+              "fqn": { "arity": 1, "module": "utils", "name": "validate" }
+            }
+          }
+        }
+      },
+      "parent": {
+        "decl": {
+          "module_": {
+            "key": {
+              "app": "app_a",
+              "file": { "key": "app_a/src/utils.erl" },
+              "name": "utils"
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "child": {
+        "decl": {
+          "func": {
+            "key": {
+              "app": "app_a",
+              "fqn": { "arity": 2, "module": "server", "name": "handle_cast" }
+            }
+          }
+        }
+      },
+      "parent": {
+        "decl": {
+          "module_": {
+            "key": {
+              "app": "app_a",
+              "file": { "key": "app_a/src/server.erl" },
+              "name": "server"
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "child": {
+        "decl": {
+          "func": {
+            "key": {
+              "app": "app_a",
+              "fqn": { "arity": 3, "module": "server", "name": "handle_call" }
+            }
+          }
+        }
+      },
+      "parent": {
+        "decl": {
+          "module_": {
+            "key": {
+              "app": "app_a",
+              "file": { "key": "app_a/src/server.erl" },
+              "name": "server"
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "child": {
+        "decl": {
+          "func": {
+            "key": {
+              "app": "app_b",
+              "fqn": { "arity": 0, "module": "internal", "name": "run" }
+            }
+          }
+        }
+      },
+      "parent": {
+        "decl": {
+          "module_": {
+            "key": {
+              "app": "app_b",
+              "file": { "key": "app_b/src/internal.erl" },
+              "name": "internal"
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "child": {
+        "decl": {
+          "func": {
+            "key": {
+              "app": "app_b",
+              "fqn": { "arity": 1, "module": "client", "name": "batch_send" }
+            }
+          }
+        }
+      },
+      "parent": {
+        "decl": {
+          "module_": {
+            "key": {
+              "app": "app_b",
+              "file": { "key": "app_b/src/client.erl" },
+              "name": "client"
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "child": {
+        "decl": {
+          "func": {
+            "key": {
+              "app": "app_b",
+              "fqn": { "arity": 1, "module": "client", "name": "send_request" }
+            }
+          }
+        }
+      },
+      "parent": {
+        "decl": {
+          "module_": {
+            "key": {
+              "app": "app_b",
+              "file": { "key": "app_b/src/client.erl" },
+              "name": "client"
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "child": {
+        "decl": {
+          "record_field": {
+            "key": {
+              "app": "app_a",
+              "field_name": "id",
+              "module": "shared.hrl",
+              "record_name": "request"
+            }
+          }
+        }
+      },
+      "parent": {
+        "decl": {
+          "record_": {
+            "key": { "app": "app_a", "module": "shared.hrl", "name": "request" }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "child": {
+        "decl": {
+          "record_field": {
+            "key": {
+              "app": "app_a",
+              "field_name": "payload",
+              "module": "shared.hrl",
+              "record_name": "request"
+            }
+          }
+        }
+      },
+      "parent": {
+        "decl": {
+          "record_": {
+            "key": { "app": "app_a", "module": "shared.hrl", "name": "request" }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "child": {
+        "decl": {
+          "record_field": {
+            "key": {
+              "app": "app_a",
+              "field_name": "retries",
+              "module": "shared.hrl",
+              "record_name": "request"
+            }
+          }
+        }
+      },
+      "parent": {
+        "decl": {
+          "record_": {
+            "key": { "app": "app_a", "module": "shared.hrl", "name": "request" }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "child": {
+        "decl": {
+          "type_": {
+            "key": {
+              "app": "app_a",
+              "arity": 0,
+              "module": "server",
+              "name": "state"
+            }
+          }
+        }
+      },
+      "parent": {
+        "decl": {
+          "module_": {
+            "key": {
+              "app": "app_a",
+              "file": { "key": "app_a/src/server.erl" },
+              "name": "server"
+            }
+          }
+        }
+      }
+    }
+  }
+]

@@ -1,0 +1,205 @@
+# Copyright (c) Meta Platforms, Inc. and affiliates.
+
+schema search.python.1 {
+import python
+
+#
+# Generating SNames from an array of string fragments
+#
+# Python SNames can be really long so we support wildcard matches
+# on parent parts of the SName (unlike in Hack)
+#
+predicate QueryToScopeCase:
+  {
+    query : [string],
+    insensitive : bool, # if true , search insensitive
+    scopeName : maybe python.SName,
+  }
+  { Query, Case, SName } where
+    if ( [] = Query )
+    then (
+      true | false = Case;
+      SName = nothing : maybe python.SName
+     # one tuple
+    ) else if ( [A] = Query )
+    then (
+       PythonNameCase { Case, A, AName };
+       SN = { local_name = AName };
+       { just = SN } = SName
+     # two tuple
+    ) else if ( [B,A] = Query )
+    then (
+       PythonNameCase { Case, A, AName };
+       PythonNameCase { Case, B, BName };
+       SN_B = { local_name = BName };
+       SN_A = { AName, { just = SN_B } };
+       { just = SN_A } = SName
+     # three tuple
+    ) else if ( [C,B,A] = Query )
+    then (
+       PythonNameCase { Case, A, AName };
+       PythonNameCase { Case, B, BName };
+       PythonNameCase { Case, C, CName };
+       SN_C = { local_name = CName };
+       SN_B = { BName, { just = SN_C } };
+       SN_A = { AName, { just = SN_B } };
+       { just = SN_A } = SName
+     # four tuple
+    ) else if ( [D,C,B,A] = Query )
+    then (
+       PythonNameCase { Case, A, AName };
+       PythonNameCase { Case, B, BName };
+       PythonNameCase { Case, C, CName };
+       PythonNameCase { Case, D, DName };
+       SN_D = { local_name = DName };
+       SN_C = { CName, { just = SN_D } };
+       SN_B = { BName, { just = SN_C } };
+       SN_A = { AName, { just = SN_B } };
+       { just = SN_A } = SName
+     # five tuple, are there any? yes there are many
+     ) else if ( [E,D,C,B,A] = Query )
+     then (
+       PythonNameCase { Case, A, AName };
+       PythonNameCase { Case, B, BName };
+       PythonNameCase { Case, C, CName };
+       PythonNameCase { Case, D, DName };
+       PythonNameCase { Case, E, EName };
+       # nb. quite sensitive to ordering. we want to do the outermost first
+       SN_E = { local_name = EName };
+       SN_D = { DName, { just = SN_E } };
+       SN_C = { CName, { just = SN_D } };
+       SN_B = { BName, { just = SN_C } };
+       SN_A = { AName, { just = SN_B } };
+       { just = SN_A } = SName
+      # six tuple
+      ) else if ( [F,E,D,C,B,A] = Query )
+      then (
+       PythonNameCase { Case, A, AName };
+       PythonNameCase { Case, B, BName };
+       PythonNameCase { Case, C, CName };
+       PythonNameCase { Case, D, DName };
+       PythonNameCase { Case, E, EName };
+       PythonNameCase { Case, F, FName };
+       SN_F = { local_name = FName };
+       SN_E = { EName, { just = SN_F } };
+       SN_D = { DName, { just = SN_E } };
+       SN_C = { CName, { just = SN_D } };
+       SN_B = { BName, { just = SN_C } };
+       SN_A = { AName, { just = SN_B } };
+       { just = SN_A } = SName
+
+     # seven tuple
+      ) else if ( [G,F,E,D,C,B,A] = Query )
+      then (
+       PythonNameCase { Case, A, AName };
+       PythonNameCase { Case, B, BName };
+       PythonNameCase { Case, C, CName };
+       PythonNameCase { Case, D, DName };
+       PythonNameCase { Case, E, EName };
+       PythonNameCase { Case, F, FName };
+       PythonNameCase { Case, G, GName };
+       SN_G = { local_name = GName };
+       SN_F = { FName, { just = SN_G } };
+       SN_E = { EName, { just = SN_F } };
+       SN_D = { DName, { just = SN_E } };
+       SN_C = { CName, { just = SN_D } };
+       SN_B = { BName, { just = SN_C } };
+       SN_A = { AName, { just = SN_B } };
+       { just = SN_A } = SName
+     # eight tuple
+      ) else if ( [H,G,F,E,D,C,B,A] = Query )
+      then (
+       PythonNameCase { Case, A, AName };
+       PythonNameCase { Case, B, BName };
+       PythonNameCase { Case, C, CName };
+       PythonNameCase { Case, D, DName };
+       PythonNameCase { Case, E, EName };
+       PythonNameCase { Case, F, FName };
+       PythonNameCase { Case, G, GName };
+       PythonNameCase { Case, H, HName };
+       SN_H = { local_name = HName };
+       SN_G = { GName, { just = SN_H } };
+       SN_F = { FName, { just = SN_G } };
+       SN_E = { EName, { just = SN_F } };
+       SN_D = { DName, { just = SN_E } };
+       SN_C = { CName, { just = SN_D } };
+       SN_B = { BName, { just = SN_C } };
+       SN_A = { AName, { just = SN_B } };
+       { just = SN_A } = SName
+     # nine tuple
+      ) else if ( [I,H,G,F,E,D,C,B,A] = Query )
+      then (
+       PythonNameCase { Case, A, AName };
+       PythonNameCase { Case, B, BName };
+       PythonNameCase { Case, C, CName };
+       PythonNameCase { Case, D, DName };
+       PythonNameCase { Case, E, EName };
+       PythonNameCase { Case, F, FName };
+       PythonNameCase { Case, G, GName };
+       PythonNameCase { Case, H, HName };
+       PythonNameCase { Case, I, IName };
+       SN_I = { local_name = IName };
+       SN_H = { HName, { just = SN_I } };
+       SN_G = { GName, { just = SN_H } };
+       SN_F = { FName, { just = SN_G } };
+       SN_E = { EName, { just = SN_F } };
+       SN_D = { DName, { just = SN_E } };
+       SN_C = { CName, { just = SN_D } };
+       SN_B = { BName, { just = SN_C } };
+       SN_A = { AName, { just = SN_B } };
+       { just = SN_A } = SName
+     # ten tuple
+      ) else if ( [J,I,H,G,F,E,D,C,B,A] = Query )
+      then (
+       PythonNameCase { Case, A, AName };
+       PythonNameCase { Case, B, BName };
+       PythonNameCase { Case, C, CName };
+       PythonNameCase { Case, D, DName };
+       PythonNameCase { Case, E, EName };
+       PythonNameCase { Case, F, FName };
+       PythonNameCase { Case, G, GName };
+       PythonNameCase { Case, H, HName };
+       PythonNameCase { Case, I, IName };
+       PythonNameCase { Case, J, JName };
+       SN_J = { local_name = JName };
+       SN_I = { IName, { just = SN_J } };
+       SN_H = { HName, { just = SN_I } };
+       SN_G = { GName, { just = SN_H } };
+       SN_F = { FName, { just = SN_G } };
+       SN_E = { EName, { just = SN_F } };
+       SN_D = { DName, { just = SN_E } };
+       SN_C = { CName, { just = SN_D } };
+       SN_B = { BName, { just = SN_C } };
+       SN_A = { AName, { just = SN_B } };
+       { just = SN_A } = SName
+      ) else
+       ( SName = never : maybe python.SName )
+
+# Helper to lookup python.Name based on case sensitivity
+predicate PythonNameCase:
+  {
+    insensitive: bool,
+    namestr : string,
+    name : python.Name
+  }
+  { Insensitive, NameStr, Name } where
+    ( true = Insensitive;
+      # we only need to know if it is in one of these. please short circuit
+      if ( python.SearchClassByLowerCaseName { NameStr, LocalNameStr } )
+      then ( LocalNameStr )
+      else if ( python.SearchModuleByLowerCaseName { NameStr, LocalNameStr } )
+      then ( LocalNameStr )
+      else if ( python.SearchFunctionByLowerCaseName { NameStr, LocalNameStr } )
+      then ( LocalNameStr )
+      else ( never: string );
+      Name = python.Name LocalNameStr
+    ) | (
+      false = Insensitive;
+      # double negation to check for existence
+      !(!(python.SearchClassByName { name = NameStr } |
+           python.SearchModuleByName { name = NameStr } |
+            python.SearchFunctionByName { name = NameStr } ));
+      Name = python.Name NameStr
+    )
+
+}

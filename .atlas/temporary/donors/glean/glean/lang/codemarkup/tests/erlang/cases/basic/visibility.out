@@ -1,0 +1,142 @@
+[
+  "@generated",
+  {
+    "key": {
+      "entity": {
+        "decl": {
+          "func": {
+            "key": {
+              "app": "basic",
+              "fqn": {
+                "arity": 0,
+                "module": "example",
+                "name": "internal_helper"
+              }
+            }
+          }
+        }
+      },
+      "visibility": 2
+    }
+  },
+  {
+    "key": {
+      "entity": {
+        "decl": {
+          "func": {
+            "key": {
+              "app": "basic",
+              "fqn": { "arity": 0, "module": "example", "name": "run_all" }
+            }
+          }
+        }
+      },
+      "visibility": 0
+    }
+  },
+  {
+    "key": {
+      "entity": {
+        "decl": {
+          "func": {
+            "key": {
+              "app": "basic",
+              "fqn": { "arity": 1, "module": "example", "name": "factorial" }
+            }
+          }
+        }
+      },
+      "visibility": 0
+    }
+  },
+  {
+    "key": {
+      "entity": {
+        "decl": {
+          "func": {
+            "key": {
+              "app": "basic",
+              "fqn": { "arity": 1, "module": "example", "name": "get_name" }
+            }
+          }
+        }
+      },
+      "visibility": 0
+    }
+  },
+  {
+    "key": {
+      "entity": {
+        "decl": {
+          "func": {
+            "key": {
+              "app": "basic",
+              "fqn": { "arity": 1, "module": "example", "name": "hello" }
+            }
+          }
+        }
+      },
+      "visibility": 0
+    }
+  },
+  {
+    "key": {
+      "entity": {
+        "decl": {
+          "func": {
+            "key": {
+              "app": "basic",
+              "fqn": { "arity": 1, "module": "example", "name": "old_function" }
+            }
+          }
+        }
+      },
+      "visibility": 0
+    }
+  },
+  {
+    "key": {
+      "entity": {
+        "decl": {
+          "func": {
+            "key": {
+              "app": "basic",
+              "fqn": { "arity": 1, "module": "example", "name": "on_event" }
+            }
+          }
+        }
+      },
+      "visibility": 0
+    }
+  },
+  {
+    "key": {
+      "entity": {
+        "decl": {
+          "func": {
+            "key": {
+              "app": "basic",
+              "fqn": { "arity": 2, "module": "example", "name": "add" }
+            }
+          }
+        }
+      },
+      "visibility": 0
+    }
+  },
+  {
+    "key": {
+      "entity": {
+        "decl": {
+          "func": {
+            "key": {
+              "app": "basic",
+              "fqn": { "arity": 2, "module": "example", "name": "set_age" }
+            }
+          }
+        }
+      },
+      "visibility": 0
+    }
+  }
+]

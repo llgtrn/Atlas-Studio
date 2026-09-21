@@ -1,0 +1,901 @@
+[
+  "@generated",
+  {
+    "key": {
+      "file": { "key": "example.ts" },
+      "xref": {
+        "target": {
+          "name": "<constructor>",
+          "file": { "key": "example.ts" },
+          "location": {
+            "range": {
+              "file": { "key": "example.ts" },
+              "lineBegin": 15,
+              "columnBegin": 3,
+              "lineEnd": 15,
+              "columnEnd": 13
+            }
+          }
+        },
+        "source": {
+          "range": {
+            "file": { "key": "example.ts" },
+            "lineBegin": 49,
+            "columnBegin": 19,
+            "lineEnd": 49,
+            "columnEnd": 21
+          }
+        }
+      },
+      "entity": {
+        "typescript": {
+          "defn": {
+            "key": {
+              "symbol": {
+                "key": "scip-typescript npm . . `example.ts`/Git#`<constructor>`()."
+              },
+              "location": {
+                "key": {
+                  "file": { "key": "example.ts" },
+                  "range": {
+                    "lineBegin": 15,
+                    "columnBegin": 3,
+                    "lineEnd": 15,
+                    "columnEnd": 13
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "file": { "key": "example.ts" },
+      "xref": {
+        "target": {
+          "name": "Git",
+          "file": { "key": "example.ts" },
+          "location": {
+            "range": {
+              "file": { "key": "example.ts" },
+              "lineBegin": 14,
+              "columnBegin": 7,
+              "lineEnd": 14,
+              "columnEnd": 9
+            }
+          }
+        },
+        "source": {
+          "range": {
+            "file": { "key": "example.ts" },
+            "lineBegin": 46,
+            "columnBegin": 58,
+            "lineEnd": 46,
+            "columnEnd": 60
+          }
+        }
+      },
+      "entity": {
+        "typescript": {
+          "defn": {
+            "key": {
+              "symbol": { "key": "scip-typescript npm . . `example.ts`/Git#" },
+              "location": {
+                "key": {
+                  "file": { "key": "example.ts" },
+                  "range": {
+                    "lineBegin": 14,
+                    "columnBegin": 7,
+                    "lineEnd": 14,
+                    "columnEnd": 9
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "file": { "key": "example.ts" },
+      "xref": {
+        "target": {
+          "name": "dir",
+          "file": { "key": "example.ts" },
+          "location": {
+            "range": {
+              "file": { "key": "example.ts" },
+              "lineBegin": 15,
+              "columnBegin": 23,
+              "lineEnd": 15,
+              "columnEnd": 25
+            }
+          }
+        },
+        "source": {
+          "range": {
+            "file": { "key": "example.ts" },
+            "lineBegin": 16,
+            "columnBegin": 46,
+            "lineEnd": 16,
+            "columnEnd": 48
+          }
+        }
+      },
+      "entity": {
+        "typescript": {
+          "defn": {
+            "key": {
+              "symbol": {
+                "key": "scip-typescript npm . . `example.ts`/Git#`<constructor>`().(dir)"
+              },
+              "location": {
+                "key": {
+                  "file": { "key": "example.ts" },
+                  "range": {
+                    "lineBegin": 15,
+                    "columnBegin": 23,
+                    "lineEnd": 15,
+                    "columnEnd": 25
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "file": { "key": "example.ts" },
+      "xref": {
+        "target": {
+          "name": "dir",
+          "file": { "key": "example.ts" },
+          "location": {
+            "range": {
+              "file": { "key": "example.ts" },
+              "lineBegin": 15,
+              "columnBegin": 23,
+              "lineEnd": 15,
+              "columnEnd": 25
+            }
+          }
+        },
+        "source": {
+          "range": {
+            "file": { "key": "example.ts" },
+            "lineBegin": 24,
+            "columnBegin": 12,
+            "lineEnd": 24,
+            "columnEnd": 14
+          }
+        }
+      },
+      "entity": {
+        "typescript": {
+          "defn": {
+            "key": {
+              "symbol": {
+                "key": "scip-typescript npm . . `example.ts`/Git#`<constructor>`().(dir)"
+              },
+              "location": {
+                "key": {
+                  "file": { "key": "example.ts" },
+                  "range": {
+                    "lineBegin": 15,
+                    "columnBegin": 23,
+                    "lineEnd": 15,
+                    "columnEnd": 25
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "file": { "key": "example.ts" },
+      "xref": {
+        "target": {
+          "name": "dir",
+          "file": { "key": "example.ts" },
+          "location": {
+            "range": {
+              "file": { "key": "example.ts" },
+              "lineBegin": 15,
+              "columnBegin": 23,
+              "lineEnd": 15,
+              "columnEnd": 25
+            }
+          }
+        },
+        "source": {
+          "range": {
+            "file": { "key": "example.ts" },
+            "lineBegin": 27,
+            "columnBegin": 53,
+            "lineEnd": 27,
+            "columnEnd": 55
+          }
+        }
+      },
+      "entity": {
+        "typescript": {
+          "defn": {
+            "key": {
+              "symbol": {
+                "key": "scip-typescript npm . . `example.ts`/Git#`<constructor>`().(dir)"
+              },
+              "location": {
+                "key": {
+                  "file": { "key": "example.ts" },
+                  "range": {
+                    "lineBegin": 15,
+                    "columnBegin": 23,
+                    "lineEnd": 15,
+                    "columnEnd": 25
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "file": { "key": "example.ts" },
+      "xref": {
+        "target": {
+          "name": "dir",
+          "file": { "key": "example.ts" },
+          "location": {
+            "range": {
+              "file": { "key": "example.ts" },
+              "lineBegin": 15,
+              "columnBegin": 23,
+              "lineEnd": 15,
+              "columnEnd": 25
+            }
+          }
+        },
+        "source": {
+          "range": {
+            "file": { "key": "example.ts" },
+            "lineBegin": 30,
+            "columnBegin": 12,
+            "lineEnd": 30,
+            "columnEnd": 14
+          }
+        }
+      },
+      "entity": {
+        "typescript": {
+          "defn": {
+            "key": {
+              "symbol": {
+                "key": "scip-typescript npm . . `example.ts`/Git#`<constructor>`().(dir)"
+              },
+              "location": {
+                "key": {
+                  "file": { "key": "example.ts" },
+                  "range": {
+                    "lineBegin": 15,
+                    "columnBegin": 23,
+                    "lineEnd": 15,
+                    "columnEnd": 25
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "file": { "key": "example.ts" },
+      "xref": {
+        "target": {
+          "name": "dir",
+          "file": { "key": "example.ts" },
+          "location": {
+            "range": {
+              "file": { "key": "example.ts" },
+              "lineBegin": 15,
+              "columnBegin": 23,
+              "lineEnd": 15,
+              "columnEnd": 25
+            }
+          }
+        },
+        "source": {
+          "range": {
+            "file": { "key": "example.ts" },
+            "lineBegin": 35,
+            "columnBegin": 55,
+            "lineEnd": 35,
+            "columnEnd": 57
+          }
+        }
+      },
+      "entity": {
+        "typescript": {
+          "defn": {
+            "key": {
+              "symbol": {
+                "key": "scip-typescript npm . . `example.ts`/Git#`<constructor>`().(dir)"
+              },
+              "location": {
+                "key": {
+                  "file": { "key": "example.ts" },
+                  "range": {
+                    "lineBegin": 15,
+                    "columnBegin": 23,
+                    "lineEnd": 15,
+                    "columnEnd": 25
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "file": { "key": "example.ts" },
+      "xref": {
+        "target": {
+          "name": "git",
+          "file": { "key": "example.ts" },
+          "location": {
+            "range": {
+              "file": { "key": "example.ts" },
+              "lineBegin": 46,
+              "columnBegin": 53,
+              "lineEnd": 46,
+              "columnEnd": 55
+            }
+          }
+        },
+        "source": {
+          "range": {
+            "file": { "key": "example.ts" },
+            "lineBegin": 51,
+            "columnBegin": 20,
+            "lineEnd": 51,
+            "columnEnd": 22
+          }
+        }
+      },
+      "entity": {
+        "typescript": {
+          "defn": {
+            "key": {
+              "symbol": {
+                "key": "scip-typescript npm . . `example.ts`/createTempRepo().typeLiteral10:git."
+              },
+              "location": {
+                "key": {
+                  "file": { "key": "example.ts" },
+                  "range": {
+                    "lineBegin": 46,
+                    "columnBegin": 53,
+                    "lineEnd": 46,
+                    "columnEnd": 55
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "file": { "key": "example.ts" },
+      "xref": {
+        "target": {
+          "name": "local 13",
+          "file": { "key": "example.ts" },
+          "location": {
+            "range": {
+              "file": { "key": "example.ts" },
+              "lineBegin": 47,
+              "columnBegin": 9,
+              "lineEnd": 47,
+              "columnEnd": 15
+            }
+          }
+        },
+        "source": {
+          "range": {
+            "file": { "key": "example.ts" },
+            "lineBegin": 49,
+            "columnBegin": 23,
+            "lineEnd": 49,
+            "columnEnd": 29
+          }
+        }
+      },
+      "entity": {
+        "typescript": {
+          "defn": {
+            "key": {
+              "symbol": { "key": "example.ts/local 13" },
+              "location": {
+                "key": {
+                  "file": { "key": "example.ts" },
+                  "range": {
+                    "lineBegin": 47,
+                    "columnBegin": 9,
+                    "lineEnd": 47,
+                    "columnEnd": 15
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "file": { "key": "example.ts" },
+      "xref": {
+        "target": {
+          "name": "local 6",
+          "file": { "key": "example.ts" },
+          "location": {
+            "range": {
+              "file": { "key": "example.ts" },
+              "lineBegin": 16,
+              "columnBegin": 11,
+              "lineEnd": 16,
+              "columnEnd": 13
+            }
+          }
+        },
+        "source": {
+          "range": {
+            "file": { "key": "example.ts" },
+            "lineBegin": 17,
+            "columnBegin": 9,
+            "lineEnd": 17,
+            "columnEnd": 11
+          }
+        }
+      },
+      "entity": {
+        "typescript": {
+          "defn": {
+            "key": {
+              "symbol": { "key": "example.ts/local 6" },
+              "location": {
+                "key": {
+                  "file": { "key": "example.ts" },
+                  "range": {
+                    "lineBegin": 16,
+                    "columnBegin": 11,
+                    "lineEnd": 16,
+                    "columnEnd": 13
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "file": { "key": "example.ts" },
+      "xref": {
+        "target": {
+          "name": "local 6",
+          "file": { "key": "example.ts" },
+          "location": {
+            "range": {
+              "file": { "key": "example.ts" },
+              "lineBegin": 16,
+              "columnBegin": 11,
+              "lineEnd": 16,
+              "columnEnd": 13
+            }
+          }
+        },
+        "source": {
+          "range": {
+            "file": { "key": "example.ts" },
+            "lineBegin": 18,
+            "columnBegin": 52,
+            "lineEnd": 18,
+            "columnEnd": 54
+          }
+        }
+      },
+      "entity": {
+        "typescript": {
+          "defn": {
+            "key": {
+              "symbol": { "key": "example.ts/local 6" },
+              "location": {
+                "key": {
+                  "file": { "key": "example.ts" },
+                  "range": {
+                    "lineBegin": 16,
+                    "columnBegin": 11,
+                    "lineEnd": 16,
+                    "columnEnd": 13
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "file": { "key": "example.ts" },
+      "xref": {
+        "target": {
+          "name": "local 6",
+          "file": { "key": "example.ts" },
+          "location": {
+            "range": {
+              "file": { "key": "example.ts" },
+              "lineBegin": 16,
+              "columnBegin": 11,
+              "lineEnd": 16,
+              "columnEnd": 13
+            }
+          }
+        },
+        "source": {
+          "range": {
+            "file": { "key": "example.ts" },
+            "lineBegin": 19,
+            "columnBegin": 11,
+            "lineEnd": 19,
+            "columnEnd": 13
+          }
+        }
+      },
+      "entity": {
+        "typescript": {
+          "defn": {
+            "key": {
+              "symbol": { "key": "example.ts/local 6" },
+              "location": {
+                "key": {
+                  "file": { "key": "example.ts" },
+                  "range": {
+                    "lineBegin": 16,
+                    "columnBegin": 11,
+                    "lineEnd": 16,
+                    "columnEnd": 13
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "file": { "key": "example.ts" },
+      "xref": {
+        "target": {
+          "name": "local 6",
+          "file": { "key": "example.ts" },
+          "location": {
+            "range": {
+              "file": { "key": "example.ts" },
+              "lineBegin": 16,
+              "columnBegin": 11,
+              "lineEnd": 16,
+              "columnEnd": 13
+            }
+          }
+        },
+        "source": {
+          "range": {
+            "file": { "key": "example.ts" },
+            "lineBegin": 20,
+            "columnBegin": 11,
+            "lineEnd": 20,
+            "columnEnd": 13
+          }
+        }
+      },
+      "entity": {
+        "typescript": {
+          "defn": {
+            "key": {
+              "symbol": { "key": "example.ts/local 6" },
+              "location": {
+                "key": {
+                  "file": { "key": "example.ts" },
+                  "range": {
+                    "lineBegin": 16,
+                    "columnBegin": 11,
+                    "lineEnd": 16,
+                    "columnEnd": 13
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "file": { "key": "example.ts" },
+      "xref": {
+        "target": {
+          "name": "local 9",
+          "file": { "key": "example.ts" },
+          "location": {
+            "range": {
+              "file": { "key": "example.ts" },
+              "lineBegin": 35,
+              "columnBegin": 11,
+              "lineEnd": 35,
+              "columnEnd": 16
+            }
+          }
+        },
+        "source": {
+          "range": {
+            "file": { "key": "example.ts" },
+            "lineBegin": 36,
+            "columnBegin": 9,
+            "lineEnd": 36,
+            "columnEnd": 14
+          }
+        }
+      },
+      "entity": {
+        "typescript": {
+          "defn": {
+            "key": {
+              "symbol": { "key": "example.ts/local 9" },
+              "location": {
+                "key": {
+                  "file": { "key": "example.ts" },
+                  "range": {
+                    "lineBegin": 35,
+                    "columnBegin": 11,
+                    "lineEnd": 35,
+                    "columnEnd": 16
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "file": { "key": "example.ts" },
+      "xref": {
+        "target": {
+          "name": "local 9",
+          "file": { "key": "example.ts" },
+          "location": {
+            "range": {
+              "file": { "key": "example.ts" },
+              "lineBegin": 35,
+              "columnBegin": 11,
+              "lineEnd": 35,
+              "columnEnd": 16
+            }
+          }
+        },
+        "source": {
+          "range": {
+            "file": { "key": "example.ts" },
+            "lineBegin": 37,
+            "columnBegin": 51,
+            "lineEnd": 37,
+            "columnEnd": 56
+          }
+        }
+      },
+      "entity": {
+        "typescript": {
+          "defn": {
+            "key": {
+              "symbol": { "key": "example.ts/local 9" },
+              "location": {
+                "key": {
+                  "file": { "key": "example.ts" },
+                  "range": {
+                    "lineBegin": 35,
+                    "columnBegin": 11,
+                    "lineEnd": 35,
+                    "columnEnd": 16
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "file": { "key": "example.ts" },
+      "xref": {
+        "target": {
+          "name": "local 9",
+          "file": { "key": "example.ts" },
+          "location": {
+            "range": {
+              "file": { "key": "example.ts" },
+              "lineBegin": 35,
+              "columnBegin": 11,
+              "lineEnd": 35,
+              "columnEnd": 16
+            }
+          }
+        },
+        "source": {
+          "range": {
+            "file": { "key": "example.ts" },
+            "lineBegin": 38,
+            "columnBegin": 11,
+            "lineEnd": 38,
+            "columnEnd": 16
+          }
+        }
+      },
+      "entity": {
+        "typescript": {
+          "defn": {
+            "key": {
+              "symbol": { "key": "example.ts/local 9" },
+              "location": {
+                "key": {
+                  "file": { "key": "example.ts" },
+                  "range": {
+                    "lineBegin": 35,
+                    "columnBegin": 11,
+                    "lineEnd": 35,
+                    "columnEnd": 16
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "file": { "key": "example.ts" },
+      "xref": {
+        "target": {
+          "name": "local 9",
+          "file": { "key": "example.ts" },
+          "location": {
+            "range": {
+              "file": { "key": "example.ts" },
+              "lineBegin": 35,
+              "columnBegin": 11,
+              "lineEnd": 35,
+              "columnEnd": 16
+            }
+          }
+        },
+        "source": {
+          "range": {
+            "file": { "key": "example.ts" },
+            "lineBegin": 39,
+            "columnBegin": 11,
+            "lineEnd": 39,
+            "columnEnd": 16
+          }
+        }
+      },
+      "entity": {
+        "typescript": {
+          "defn": {
+            "key": {
+              "symbol": { "key": "example.ts/local 9" },
+              "location": {
+                "key": {
+                  "file": { "key": "example.ts" },
+                  "range": {
+                    "lineBegin": 35,
+                    "columnBegin": 11,
+                    "lineEnd": 35,
+                    "columnEnd": 16
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "file": { "key": "example.ts" },
+      "xref": {
+        "target": {
+          "name": "repoDir",
+          "file": { "key": "example.ts" },
+          "location": {
+            "range": {
+              "file": { "key": "example.ts" },
+              "lineBegin": 46,
+              "columnBegin": 36,
+              "lineEnd": 46,
+              "columnEnd": 42
+            }
+          }
+        },
+        "source": {
+          "range": {
+            "file": { "key": "example.ts" },
+            "lineBegin": 51,
+            "columnBegin": 11,
+            "lineEnd": 51,
+            "columnEnd": 17
+          }
+        }
+      },
+      "entity": {
+        "typescript": {
+          "defn": {
+            "key": {
+              "symbol": {
+                "key": "scip-typescript npm . . `example.ts`/createTempRepo().typeLiteral10:repoDir."
+              },
+              "location": {
+                "key": {
+                  "file": { "key": "example.ts" },
+                  "range": {
+                    "lineBegin": 46,
+                    "columnBegin": 36,
+                    "lineEnd": 46,
+                    "columnEnd": 42
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+]

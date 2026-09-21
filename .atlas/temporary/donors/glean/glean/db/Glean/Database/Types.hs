@@ -1,0 +1,333 @@
+{-
+  Copyright (c) Meta Platforms, Inc. and affiliates.
+  All rights reserved.
+
+  This source code is licensed under the BSD-style license found in the
+  LICENSE file in the root directory of this source tree.
+-}
+
+module Glean.Database.Types (
+  Writing(..), OpenDB(..), DBState(..),
+  Write(..), WriteContent(..),
+  DB(..),
+  Env(..), WriteQueues(..), WriteQueue(..), WriteJob(..),
+  Derivation(..),
+  EnableRecursion(..),
+  JanitorRunResult(..), JanitorException(..),
+  DebugFlags(..),
+
+  withStorageFor,
+  withDefaultStorage,
+) where
+
+import Control.DeepSeq
+import Control.Concurrent.Async
+import Control.Concurrent.MVar (MVar)
+import Control.Exception
+import Control.Trace (Tracer)
+import Data.ByteString (ByteString)
+import Data.HashMap.Strict (HashMap)
+import qualified Data.HashMap.Strict as HashMap
+import Data.HashSet (HashSet)
+import Data.IORef (IORef)
+import Data.Map (Map)
+import Data.Maybe
+import Data.Text (Text)
+import qualified Data.Text as Text
+import Data.Typeable (Typeable)
+import Data.Time
+import System.Clock
+
+import Data.RateLimiterMap
+import Util.EventBase (EventBaseDataplane)
+import Util.STM
+
+import Glean.Angle.Types hiding (describe)
+import qualified Glean.Database.Backup.Backend as Backup
+import qualified Glean.Database.BatchLocation as BatchLocation
+import Glean.Database.Catalog (Catalog)
+import Glean.Database.Config
+import Glean.Database.Exception
+import Glean.Database.Meta
+import Glean.Database.Schema.Types
+import Glean.Database.Storage (Storage, DatabaseOps, WriteLock(..))
+import Glean.Database.Trace
+import Glean.Internal.Types (StorageName(..))
+import Glean.Logger.Server (GleanServerLogger)
+import Glean.Logger.Database (GleanDatabaseLogger)
+import Glean.RTS.Foreign.FactSet (FactSet)
+import Glean.RTS.Foreign.LookupCache (LookupCache)
+import qualified Glean.RTS.Foreign.LookupCache as LookupCache
+import Glean.RTS.Foreign.Ownership
+  (Ownership, Slice, DefineOwnership, UsetId)
+import Glean.RTS.Foreign.Subst (Subst)
+import Glean.RTS.Types (Fid(..))
+import qualified Glean.ServerConfig.Types as ServerConfig
+import qualified Glean.Types as Thrift
+import Glean.Util.Metric (Point)
+import Glean.Util.Mutex
+import Glean.Util.Observed as Observed
+import Glean.Util.ShardManager
+import Glean.Util.Some
+import Util.Time
+import Glean.Util.Trace (Listener)
+import Glean.Util.Warden
+import Glean.Write.Stats (Stats)
+
+-- Write caches
+data Writing = Writing
+  { -- Write lock
+    wrLock :: Mutex (WriteLock ())
+
+    -- First free Id in the write pipeline
+  , wrNextId :: IORef Fid
+
+    -- Write cache
+  , wrLookupCache :: LookupCache
+  , wrLookupCacheAnchorName :: TVar (Maybe Text)
+
+    -- Queue of writes to this DB
+  , wrQueue :: WriteQueue
+
+    -- | If a commit is in progress, this contains the
+    -- value of 'wrNextIdId' from before the commit and
+    -- the 'FactSet' being committed.
+  , wrCommit :: TVar (Maybe (Fid, FactSet))
+  }
+
+-- An open database
+data OpenDB = OpenDB
+  { -- The database handle
+    odbHandle :: Some DatabaseOps
+
+    -- Write queue, caches etc. Nothing means DB is read only.
+  , odbWriting :: Maybe Writing
+
+    -- Database schema
+  , odbSchema :: DbSchema
+
+    -- When was the database last used
+  , odbIdleSince :: TVar TimePoint
+
+    -- For a stacked DB, keep track of the slices of the base DBs.
+    -- The list starts with this DB's base, then the base's base etc.
+  , odbBaseSlices :: [Maybe Slice]
+
+    -- ownership data from the DB
+  , odbOwnership :: TVar (Maybe Ownership)
+
+    -- The ACL mode for this database (cached from metaProperties)
+  , odbACLMode :: ACLMode
+
+    -- ACL name-to-ID mapping for resolving group names at query time
+  , odbACLMapping :: Map Text UsetId
+
+    -- Boundary between regular ownership USetIDs and ACL USetIDs. ACL
+    -- group units occupy the contiguous range
+    -- [firstACLID, firstACLID + Map.size odbACLMapping).
+  , odbFirstACLID :: Maybe UsetId
+  }
+
+-- State of a databases
+data DBState
+    -- In the process of being open
+  = Opening
+
+    -- Currently open
+  | Open OpenDB
+
+    -- In the process of being closed
+  | Closing
+
+    -- Currently closed
+  | Closed
+
+-- A known database
+data DB = DB
+  { -- The repo the database refers to
+    dbRepo :: Thrift.Repo
+
+    -- Database state
+  , dbState :: TVar DBState
+
+    -- Number of users
+  , dbUsers :: TVar Int
+  }
+
+-- | A Write in progress that we can query via pollBatch
+data Write = Write
+  { writeWait :: MVar (Either SomeException Subst)
+  , writeTimeout :: TimePoint
+  }
+
+-- | What we are going to write into the DB
+data WriteContent = WriteContent
+  { writeBatch :: !Thrift.Batch
+  , writeOwnership :: Maybe DefineOwnership
+  }
+
+-- | A Write on the WriteQueue
+data WriteJob
+  = WriteJob
+    { writeSize :: {-# UNPACK #-} !Int
+    , writeContentIO :: IO WriteContent
+    , writeDone :: MVar (Either SomeException Subst)
+    , writeStart :: Point
+    , writeOnComplete :: Either SomeException Subst -> IO ()
+      -- ^ Action to run when the write completes.
+    }
+  | WriteCheckpoint
+    { writeCheckpoint :: IO ()
+      -- ^ invoke this action when all the preceding writes on the
+      -- queue have completed, including those that are in progress.
+    }
+
+-- | The queue of WriteJobs and their total size
+data WriteQueue = WriteQueue
+  { writeQueue :: TQueue WriteJob
+  , writeQueueActive :: TVar Int
+     -- the number of active jobs on this write queue, used to
+     -- implement checkpoints.
+  , writeQueueCount :: TVar Int
+    -- The number of 'WriteJob' in queue (excluding WriteCheckpoint)
+  , writeQueueSize :: TVar Int
+  , writeQueueLatency :: TVar TimeSpec
+    -- latency of most recent write to this queue
+  }
+
+-- | So that we can round-robin writes to repos, have a queue of write queues
+data WriteQueues = WriteQueues
+  { writeQueues :: TQueue (Thrift.Repo, WriteQueue)
+  , writeQueuesSize :: TVar Int
+  }
+
+-- | Information about a derived stored predicate being derived
+data Derivation = Derivation
+  { derivationStart :: TimePoint
+  , derivationFinished :: Bool
+  , derivationStats :: Thrift.UserQueryStats
+  , derivationPendingWrites :: [Thrift.Handle]
+  , derivationError :: Maybe (TimePoint, SomeException)
+  , derivationHandle :: Thrift.Handle
+  }
+
+instance NFData Derivation where
+  rnf Derivation{..} =
+    derivationStart
+    `seq` derivationFinished
+    `seq` rnf derivationStats
+    `seq` rnf derivationPendingWrites
+    `seq` maybe () (`seq` ()) derivationError
+    `seq` derivationHandle
+    `seq`()
+
+data EnableRecursion
+  = EnableRecursion
+  | DisableRecursion
+
+data JanitorRunResult
+  = JanitorRunSuccess
+  | JanitorRunFailure JanitorException
+  | JanitorTimeout
+  | JanitorStuck
+  | JanitorDisabled
+  deriving Show
+
+data JanitorException
+  = OtherJanitorException SomeException
+  | JanitorFetchBackupsFailure SomeException
+    -- ^ Raised only when no remote db list available
+  deriving (Typeable, Show)
+
+instance Exception JanitorException
+
+data Env = Env
+  { envEventBase :: EventBaseDataplane
+  , envServerLogger :: Some GleanServerLogger
+  , envDatabaseLogger :: Some GleanDatabaseLogger
+  , envBatchLocationParser :: Some BatchLocation.Parser
+  , envLoggerRateLimit :: RateLimiterMap Text
+  , envCatalog :: Catalog
+  , envStorage :: HashMap StorageName (Some Storage)
+  , envDefaultStorage :: (StorageName, Bool)
+  , envSchemaSource :: Observed SchemaIndex
+    -- ^ The schema source, and its parsed/resolved form are both cached here.
+  , envDbSchemaCache :: MVar DbSchemaCache
+  , envUpdateSchema :: Bool
+  , envSchemaUpdateSignal :: TMVar ()
+  , envSchemaId :: Maybe Thrift.SchemaId
+    -- ^ Used to store the schema ID for the session when using the local backend
+  , envServerConfig :: Observed ServerConfig.Config
+  , envBackupBackends :: Backup.Backends
+  , envActive :: TVar (HashMap Thrift.Repo DB)
+  , envDeleting :: TVar (HashMap Thrift.Repo (Async ()))
+  , envCompleting :: TVar (HashMap Thrift.Repo (Async ()))
+  , envCompletingDerived ::
+      TVar (HashMap Thrift.Repo (HashMap PredicateId (Async ())))
+  , envShuttingDown :: TVar Bool
+      -- ^ Set on SIGTERM to reject new writes and quiesce the writer
+      -- threads while Incomplete DBs are backed up. See
+      -- 'Glean.Database.Backup.Incomplete'.
+  , envReadOnly :: Bool
+  , envMockWrites :: Bool
+  , envStats :: Stats
+  , envLookupCacheStats :: LookupCache.Stats
+  , envWarden :: Warden
+  , envDatabaseJanitor :: TVar (Maybe (UTCTime, JanitorRunResult))
+  , envDatabaseJanitorPublishedCounters :: TVar (HashSet ByteString)
+  , envCachedRestorableDBs :: TVar (Maybe (UTCTime, [(Thrift.Repo, Meta)]))
+  , envCachedAvailableDBs :: TVar (HashSet Thrift.Repo)
+  , envWrites :: TVar (HashMap Text Write)
+  , envDerivations :: TVar (HashMap (Thrift.Repo, PredicateId) Derivation)
+  , envWriteQueues :: WriteQueues
+  , envListener :: Listener
+      -- ^ A 'Listener' which might get notified about various events. This is
+      -- for testing support only.
+  , envGetCurrentTime :: IO UTCTime
+      -- ^ Yield the current time. Is normally getCurrentTime but
+      -- can be changed for testing
+  , envShardManager :: SomeShardManager
+  , envEnableRecursion :: EnableRecursion
+      -- ^ Experimental support for recursive queries. For testing only.
+  , envFilterAvailableDBs :: [Thrift.Repo] -> IO [Thrift.Repo]
+    -- ^ Filter out DBs not currently available in the server tier
+  , envResolveAclGroups :: IO (Maybe [Text])
+    -- ^ Resolve the ACL group names for the current request (see
+    -- 'Glean.Database.Config.cfgAclGroupResolver'). 'Nothing' disables
+    -- filtering; 'Just []' restricts to public facts; 'Just gs' restricts
+    -- to the named groups.
+  , envTracer :: Tracer GleanTrace
+  , envDebug :: DebugFlags
+  }
+
+withStorageFor
+  :: Env
+  -> Thrift.Repo
+  -> Meta
+  -> (forall s. Storage s => s -> IO a) -> IO a
+withStorageFor env repo meta f = do
+  let name
+        | Text.null (unStorageName n) = rocksdbName -- backwards compat
+        | otherwise = n
+        where n = metaStorage meta
+  case HashMap.lookup name (envStorage env) of
+    Nothing -> dbError repo $
+      "unknown storage: " <> Text.unpack (unStorageName name)
+    Just (Some storage) -> f storage
+
+withDefaultStorage
+  :: Env
+  -> (forall s. Storage s => StorageName -> s -> IO a)
+  -> IO a
+withDefaultStorage env fn = do
+  name <- case envDefaultStorage env of
+    (name, cli)
+      | cli -> return name
+      | otherwise -> do
+        cfg <- Observed.get (envServerConfig env)
+        return $ fromMaybe name $ fmap StorageName $
+          ServerConfig.config_db_create_storage cfg
+  case HashMap.lookup name (envStorage env) of
+    Nothing -> throwIO $ Thrift.Exception $
+      "unknown storage: " <> unStorageName name
+    Just (Some storage) -> fn name storage

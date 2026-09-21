@@ -1,0 +1,3 @@
+query: erlang.MacroUsage _
+perf: True
+transform: [gensort, []]

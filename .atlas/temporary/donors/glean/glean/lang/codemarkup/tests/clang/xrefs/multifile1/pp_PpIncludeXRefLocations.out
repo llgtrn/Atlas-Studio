@@ -1,0 +1,109 @@
+[
+  "@generated",
+  {
+    "key": {
+      "trace": {
+        "key": {
+          "file": { "key": "test.cpp" },
+          "events": [
+            {
+              "include_": {
+                "include_": {
+                  "key": {
+                    "file": { "key": "a.h" },
+                    "source": {
+                      "file": { "key": "test.cpp" },
+                      "lineBegin": 14,
+                      "columnBegin": 1,
+                      "lineEnd": 14,
+                      "columnEnd": 14
+                    },
+                    "pathSpan": { "start": 271, "length": 5 }
+                  }
+                }
+              }
+            },
+            {
+              "include_": {
+                "include_": {
+                  "key": {
+                    "file": { "key": "a.h" },
+                    "source": {
+                      "file": { "key": "test.cpp" },
+                      "lineBegin": 23,
+                      "columnBegin": 1,
+                      "lineEnd": 23,
+                      "columnEnd": 14
+                    },
+                    "pathSpan": { "start": 331, "length": 5 }
+                  }
+                }
+              }
+            }
+          ]
+        }
+      },
+      "range": {
+        "file": { "key": "test.cpp" },
+        "lineBegin": 14,
+        "columnBegin": 1,
+        "lineEnd": 14,
+        "columnEnd": 14
+      },
+      "target": { "key": "a.h" }
+    }
+  },
+  {
+    "key": {
+      "trace": {
+        "key": {
+          "file": { "key": "test.cpp" },
+          "events": [
+            {
+              "include_": {
+                "include_": {
+                  "key": {
+                    "file": { "key": "a.h" },
+                    "source": {
+                      "file": { "key": "test.cpp" },
+                      "lineBegin": 14,
+                      "columnBegin": 1,
+                      "lineEnd": 14,
+                      "columnEnd": 14
+                    },
+                    "pathSpan": { "start": 271, "length": 5 }
+                  }
+                }
+              }
+            },
+            {
+              "include_": {
+                "include_": {
+                  "key": {
+                    "file": { "key": "a.h" },
+                    "source": {
+                      "file": { "key": "test.cpp" },
+                      "lineBegin": 23,
+                      "columnBegin": 1,
+                      "lineEnd": 23,
+                      "columnEnd": 14
+                    },
+                    "pathSpan": { "start": 331, "length": 5 }
+                  }
+                }
+              }
+            }
+          ]
+        }
+      },
+      "range": {
+        "file": { "key": "test.cpp" },
+        "lineBegin": 23,
+        "columnBegin": 1,
+        "lineEnd": 23,
+        "columnEnd": 14
+      },
+      "target": { "key": "a.h" }
+    }
+  }
+]

@@ -1,0 +1,731 @@
+[
+  "@generated",
+  {
+    "key": {
+      "query": 1,
+      "parent": {
+        "parent": {
+          "hack": {
+            "decl": {
+              "container": {
+                "class_": {
+                  "key": { "name": { "key": { "name": { "key": "Machine" } } } }
+                }
+              }
+            }
+          }
+        },
+        "location": {
+          "name": "Machine",
+          "file": { "key": "www/Require.php" },
+          "location": { "span": { "start": 264, "length": 135 } }
+        }
+      },
+      "child": {
+        "child": {
+          "hack": {
+            "decl": {
+              "container": {
+                "class_": {
+                  "key": { "name": { "key": { "name": { "key": "AirBus" } } } }
+                }
+              }
+            }
+          }
+        },
+        "location": {
+          "name": "AirBus",
+          "file": { "key": "www/Require.php" },
+          "location": { "span": { "start": 763, "length": 128 } }
+        }
+      },
+      "style": 0
+    }
+  },
+  {
+    "key": {
+      "query": 1,
+      "parent": {
+        "parent": {
+          "hack": {
+            "decl": {
+              "container": {
+                "class_": {
+                  "key": {
+                    "name": { "key": { "name": { "key": "SourceClass" } } }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "location": {
+          "name": "SourceClass",
+          "file": { "key": "www/SourceClass.php" },
+          "location": { "span": { "start": 253, "length": 451 } }
+        }
+      },
+      "child": {
+        "child": {
+          "hack": {
+            "decl": {
+              "container": {
+                "class_": {
+                  "key": {
+                    "name": { "key": { "name": { "key": "RefClass" } } }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "location": {
+          "name": "RefClass",
+          "file": { "key": "www/RefClass.php" },
+          "location": { "span": { "start": 226, "length": 785 } }
+        }
+      },
+      "style": 0
+    }
+  },
+  {
+    "key": {
+      "query": 1,
+      "parent": {
+        "parent": {
+          "hack": {
+            "decl": {
+              "container": {
+                "class_": {
+                  "key": {
+                    "name": { "key": { "name": { "key": "SourceClass" } } }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "location": {
+          "name": "SourceClass",
+          "file": { "key": "www/SourceClass.php" },
+          "location": { "span": { "start": 253, "length": 451 } }
+        }
+      },
+      "child": {
+        "child": {
+          "hack": {
+            "decl": {
+              "container": {
+                "class_": {
+                  "key": {
+                    "name": { "key": { "name": { "key": "SubClass" } } }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "location": {
+          "name": "SubClass",
+          "file": { "key": "www/SourceClass.php" },
+          "location": { "span": { "start": 706, "length": 139 } }
+        }
+      },
+      "style": 0
+    }
+  },
+  {
+    "key": {
+      "query": 1,
+      "parent": {
+        "parent": {
+          "hack": {
+            "decl": {
+              "container": {
+                "class_": {
+                  "key": {
+                    "name": { "key": { "name": { "key": "SuperClass" } } }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "location": {
+          "name": "SuperClass",
+          "file": { "key": "www/SuperClass.php" },
+          "location": { "span": { "start": 226, "length": 188 } }
+        }
+      },
+      "child": {
+        "child": {
+          "hack": {
+            "decl": {
+              "container": {
+                "class_": {
+                  "key": {
+                    "name": { "key": { "name": { "key": "SourceClass" } } }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "location": {
+          "name": "SourceClass",
+          "file": { "key": "www/SourceClass.php" },
+          "location": { "span": { "start": 253, "length": 451 } }
+        }
+      },
+      "style": 0
+    }
+  },
+  {
+    "key": {
+      "query": 1,
+      "parent": {
+        "parent": {
+          "hack": {
+            "decl": {
+              "container": {
+                "interface_": {
+                  "key": {
+                    "name": { "key": { "name": { "key": "CoolStuff" } } }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "location": {
+          "name": "CoolStuff",
+          "file": { "key": "www/Require.php" },
+          "location": { "span": { "start": 441, "length": 23 } }
+        }
+      },
+      "child": {
+        "child": {
+          "hack": {
+            "decl": {
+              "container": {
+                "class_": {
+                  "key": { "name": { "key": { "name": { "key": "AirBus" } } } }
+                }
+              }
+            }
+          }
+        },
+        "location": {
+          "name": "AirBus",
+          "file": { "key": "www/Require.php" },
+          "location": { "span": { "start": 763, "length": 128 } }
+        }
+      },
+      "style": 0
+    }
+  },
+  {
+    "key": {
+      "query": 1,
+      "parent": {
+        "parent": {
+          "hack": {
+            "decl": {
+              "container": {
+                "interface_": {
+                  "key": { "name": { "key": { "name": { "key": "Fliers" } } } }
+                }
+              }
+            }
+          }
+        },
+        "location": {
+          "name": "Fliers",
+          "file": { "key": "www/Require.php" },
+          "location": { "span": { "start": 466, "length": 51 } }
+        }
+      },
+      "child": {
+        "child": {
+          "hack": {
+            "decl": {
+              "container": {
+                "class_": {
+                  "key": { "name": { "key": { "name": { "key": "AirBus" } } } }
+                }
+              }
+            }
+          }
+        },
+        "location": {
+          "name": "AirBus",
+          "file": { "key": "www/Require.php" },
+          "location": { "span": { "start": 763, "length": 128 } }
+        }
+      },
+      "style": 0
+    }
+  },
+  {
+    "key": {
+      "query": 1,
+      "parent": {
+        "parent": {
+          "hack": {
+            "decl": {
+              "container": {
+                "interface_": {
+                  "key": {
+                    "name": { "key": { "name": { "key": "SourceInterface" } } }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "location": {
+          "name": "SourceInterface",
+          "file": { "key": "www/SourceInterface.php" },
+          "location": { "span": { "start": 226, "length": 134 } }
+        }
+      },
+      "child": {
+        "child": {
+          "hack": {
+            "decl": {
+              "container": {
+                "class_": {
+                  "key": {
+                    "name": { "key": { "name": { "key": "RefClass" } } }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "location": {
+          "name": "RefClass",
+          "file": { "key": "www/RefClass.php" },
+          "location": { "span": { "start": 226, "length": 785 } }
+        }
+      },
+      "style": 0
+    }
+  },
+  {
+    "key": {
+      "query": 1,
+      "parent": {
+        "parent": {
+          "hack": {
+            "decl": {
+              "container": {
+                "trait": {
+                  "key": { "name": { "key": { "name": { "key": "Plane" } } } }
+                }
+              }
+            }
+          }
+        },
+        "location": {
+          "name": "Plane",
+          "file": { "key": "www/Require.php" },
+          "location": { "span": { "start": 519, "length": 242 } }
+        }
+      },
+      "child": {
+        "child": {
+          "hack": {
+            "decl": {
+              "container": {
+                "class_": {
+                  "key": { "name": { "key": { "name": { "key": "AirBus" } } } }
+                }
+              }
+            }
+          }
+        },
+        "location": {
+          "name": "AirBus",
+          "file": { "key": "www/Require.php" },
+          "location": { "span": { "start": 763, "length": 128 } }
+        }
+      },
+      "style": 0
+    }
+  },
+  {
+    "key": {
+      "query": 1,
+      "parent": {
+        "parent": {
+          "hack": {
+            "decl": {
+              "container": {
+                "trait": {
+                  "key": {
+                    "name": {
+                      "key": { "name": { "key": "SourceSecretTrait" } }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "location": {
+          "name": "SourceSecretTrait",
+          "file": { "key": "www/SourceTrait.php" },
+          "location": { "span": { "start": 460, "length": 107 } }
+        }
+      },
+      "child": {
+        "child": {
+          "hack": {
+            "decl": {
+              "container": {
+                "class_": {
+                  "key": {
+                    "name": { "key": { "name": { "key": "RefClass" } } }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "location": {
+          "name": "RefClass",
+          "file": { "key": "www/RefClass.php" },
+          "location": { "span": { "start": 226, "length": 785 } }
+        }
+      },
+      "style": 0
+    }
+  },
+  {
+    "key": {
+      "query": 1,
+      "parent": {
+        "parent": {
+          "hack": {
+            "decl": {
+              "container": {
+                "trait": {
+                  "key": {
+                    "name": { "key": { "name": { "key": "SourceTrait" } } }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "location": {
+          "name": "SourceTrait",
+          "file": { "key": "www/SourceTrait.php" },
+          "location": { "span": { "start": 226, "length": 232 } }
+        }
+      },
+      "child": {
+        "child": {
+          "hack": {
+            "decl": {
+              "container": {
+                "class_": {
+                  "key": {
+                    "name": { "key": { "name": { "key": "RefClass" } } }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "location": {
+          "name": "RefClass",
+          "file": { "key": "www/RefClass.php" },
+          "location": { "span": { "start": 226, "length": 785 } }
+        }
+      },
+      "style": 0
+    }
+  },
+  {
+    "key": {
+      "query": 1,
+      "parent": {
+        "parent": {
+          "hack": {
+            "decl": {
+              "method": {
+                "key": {
+                  "name": { "key": "bar" },
+                  "container": {
+                    "class_": {
+                      "key": {
+                        "name": { "key": { "name": { "key": "SourceClass" } } }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "location": {
+          "name": "bar",
+          "file": { "key": "www/SourceClass.php" },
+          "location": { "span": { "start": 392, "length": 71 } }
+        }
+      },
+      "child": {
+        "child": {
+          "hack": {
+            "decl": {
+              "method": {
+                "key": {
+                  "name": { "key": "bar" },
+                  "container": {
+                    "class_": {
+                      "key": {
+                        "name": { "key": { "name": { "key": "RefClass" } } }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "location": {
+          "name": "bar",
+          "file": { "key": "www/RefClass.php" },
+          "location": { "span": { "start": 619, "length": 390 } }
+        }
+      },
+      "style": 0
+    }
+  },
+  {
+    "key": {
+      "query": 1,
+      "parent": {
+        "parent": {
+          "hack": {
+            "decl": {
+              "method": {
+                "key": {
+                  "name": { "key": "fly" },
+                  "container": {
+                    "interface_": {
+                      "key": {
+                        "name": { "key": { "name": { "key": "Fliers" } } }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "location": {
+          "name": "fly",
+          "file": { "key": "www/Require.php" },
+          "location": { "span": { "start": 487, "length": 28 } }
+        }
+      },
+      "child": {
+        "child": {
+          "hack": {
+            "decl": {
+              "method": {
+                "key": {
+                  "name": { "key": "fly" },
+                  "container": {
+                    "class_": {
+                      "key": {
+                        "name": { "key": { "name": { "key": "AirBus" } } }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "location": {
+          "name": "fly",
+          "file": { "key": "www/Require.php" },
+          "location": { "span": { "start": 839, "length": 50 } }
+        }
+      },
+      "style": 0
+    }
+  },
+  {
+    "key": {
+      "query": 1,
+      "parent": {
+        "parent": {
+          "hack": {
+            "decl": {
+              "method": {
+                "key": {
+                  "name": { "key": "overrideMe" },
+                  "container": {
+                    "class_": {
+                      "key": {
+                        "name": { "key": { "name": { "key": "SuperClass" } } }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "location": {
+          "name": "overrideMe",
+          "file": { "key": "www/SuperClass.php" },
+          "location": { "span": { "start": 352, "length": 60 } }
+        }
+      },
+      "child": {
+        "child": {
+          "hack": {
+            "decl": {
+              "method": {
+                "key": {
+                  "name": { "key": "overrideMe" },
+                  "container": {
+                    "class_": {
+                      "key": {
+                        "name": { "key": { "name": { "key": "SourceClass" } } }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "location": {
+          "name": "overrideMe",
+          "file": { "key": "www/SourceClass.php" },
+          "location": { "span": { "start": 531, "length": 62 } }
+        }
+      },
+      "style": 0
+    }
+  },
+  {
+    "key": {
+      "query": 1,
+      "parent": {
+        "parent": {
+          "hack": {
+            "decl": {
+              "method": {
+                "key": {
+                  "name": { "key": "pleaseOverride" },
+                  "container": {
+                    "class_": {
+                      "key": {
+                        "name": { "key": { "name": { "key": "SourceClass" } } }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "location": {
+          "name": "pleaseOverride",
+          "file": { "key": "www/SourceClass.php" },
+          "location": { "span": { "start": 645, "length": 57 } }
+        }
+      },
+      "child": {
+        "child": {
+          "hack": {
+            "decl": {
+              "method": {
+                "key": {
+                  "name": { "key": "pleaseOverride" },
+                  "container": {
+                    "class_": {
+                      "key": {
+                        "name": { "key": { "name": { "key": "SubClass" } } }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "location": {
+          "name": "pleaseOverride",
+          "file": { "key": "www/SourceClass.php" },
+          "location": { "span": { "start": 745, "length": 98 } }
+        }
+      },
+      "style": 0
+    }
+  },
+  {
+    "key": {
+      "query": 1,
+      "parent": {
+        "parent": {
+          "hack": {
+            "decl": {
+              "method": {
+                "key": {
+                  "name": { "key": "takeOff" },
+                  "container": {
+                    "trait": {
+                      "key": {
+                        "name": { "key": { "name": { "key": "Plane" } } }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "location": {
+          "name": "takeOff",
+          "file": { "key": "www/Require.php" },
+          "location": { "span": { "start": 648, "length": 111 } }
+        }
+      },
+      "child": {
+        "child": {
+          "hack": {
+            "decl": {
+              "method": {
+                "key": {
+                  "name": { "key": "takeOff" },
+                  "container": {
+                    "trait": {
+                      "key": {
+                        "name": { "key": { "name": { "key": "Plane" } } }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "location": {
+          "name": "takeOff",
+          "file": { "key": "www/Require.php" },
+          "location": { "span": { "start": 648, "length": 111 } }
+        }
+      },
+      "style": 0
+    }
+  }
+]

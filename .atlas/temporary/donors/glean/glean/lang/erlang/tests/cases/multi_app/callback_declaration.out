@@ -1,0 +1,83 @@
+[
+  "@generated",
+  {
+    "key": {
+      "name": "code_change",
+      "arity": 3,
+      "module": "gen_server",
+      "app": "stdlib"
+    }
+  },
+  {
+    "key": {
+      "name": "format_status",
+      "arity": 1,
+      "module": "gen_server",
+      "app": "stdlib"
+    }
+  },
+  {
+    "key": {
+      "name": "format_status",
+      "arity": 2,
+      "module": "gen_server",
+      "app": "stdlib"
+    }
+  },
+  {
+    "key": {
+      "name": "handle_call",
+      "arity": 3,
+      "module": "gen_server",
+      "app": "stdlib"
+    }
+  },
+  {
+    "key": {
+      "name": "handle_cast",
+      "arity": 2,
+      "module": "gen_server",
+      "app": "stdlib"
+    }
+  },
+  {
+    "key": {
+      "name": "handle_continue",
+      "arity": 2,
+      "module": "gen_server",
+      "app": "stdlib"
+    }
+  },
+  {
+    "key": {
+      "name": "handle_info",
+      "arity": 2,
+      "module": "gen_server",
+      "app": "stdlib"
+    }
+  },
+  {
+    "key": {
+      "name": "init",
+      "arity": 1,
+      "module": "gen_server",
+      "app": "stdlib"
+    }
+  },
+  {
+    "key": {
+      "name": "on_request",
+      "arity": 1,
+      "module": "server",
+      "app": "app_a"
+    }
+  },
+  {
+    "key": {
+      "name": "terminate",
+      "arity": 2,
+      "module": "gen_server",
+      "app": "stdlib"
+    }
+  }
+]

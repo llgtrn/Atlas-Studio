@@ -1,0 +1,1546 @@
+# Copyright (c) Meta Platforms, Inc. and affiliates.
+
+schema cxx1.5 {
+import buck.4
+import builtin.1
+import pp1
+import src
+import fbthrift
+
+# A name (identifier)
+predicate Name : string
+
+# Types are their textual representations for now
+predicate Type : string
+
+# Named parameter
+type Parameter =
+  {
+    name : Name,
+    type : Type,
+  }
+
+# Type signature of function or method (without name or scope)
+predicate Signature :
+  {
+    returns : Type,
+    parameters : [Parameter],
+  }
+
+# -----------------------------------------------------------------------------
+# Scopes and qualified names
+
+# Fully qualified C++ namespace name (or anonymous)
+predicate NamespaceQName :
+  {
+    name : maybe Name,
+    parent : maybe NamespaceQName,
+  }
+
+# Access scope for C++ declaration
+type Access = enum { Public | Protected | Private }
+
+# Scope (still somewhat incomplete)
+type Scope =
+  {
+    global_ : builtin.Unit |
+    namespace_ : NamespaceQName |
+    recordWithAccess :
+      {
+        record : QName,
+        access : Access
+      } |
+    local : FunctionQName
+  }
+
+# Fully qualified name
+predicate QName :
+  {
+    name : Name,
+    scope : Scope,
+  }
+
+predicate ScopedName :
+  {
+    scope : Scope,
+    name : Name,
+  }
+  stored { S, N } where QName { N, S }
+
+# C++ operator name
+type Operator = string
+
+# C++ literal operator name
+type LiteralOperator = string
+
+# Describe a function or method name (without parameters or scope)
+predicate FunctionName :
+  {
+    name : Name |                         # ordinary name
+    operator_ : Operator |                # C++ operator
+    literalOperator : LiteralOperator |   # C++ literator operator (\"\"_x)
+    constructor : builtin.Unit |
+    destructor : builtin.Unit |
+    conversionOperator : Type
+  }
+
+# Fully qualified function name
+predicate FunctionQName :
+  {
+    name : FunctionName,
+    scope : Scope,
+  }
+
+# -----------------------------------------------------------------------------
+# Declarations
+
+# A namespace declaration
+predicate NamespaceDeclaration :
+  {
+    name : NamespaceQName,
+    source : src.Range,
+  }
+
+# C++ record kind - struct/class/union
+type RecordKind =
+   {
+     struct_ : builtin.Unit |
+     class_ : builtin.Unit |
+     union_ : builtin.Unit
+   }
+
+# Record declaration
+predicate RecordDeclaration :
+  {
+    name : QName,
+    kind : RecordKind,
+    source : src.Range,
+  }
+
+# Enum declaration
+predicate EnumDeclaration :
+  {
+    name : QName,
+    isScoped : bool,
+    type : maybe Type,
+    source : src.Range,
+  }
+
+# C++ method ref qualifier
+type RefQualifier = enum { None_ | LValue | RValue }
+
+# Method signature
+type MethodSignature =
+  {
+    isVirtual : bool,
+    isConst : bool,
+    isVolatile : bool,
+    refQualifier : RefQualifier,
+  }
+
+# Function declaration
+predicate FunctionDeclaration :
+  {
+    name : FunctionQName,
+    signature : Signature,
+    method : maybe MethodSignature,
+    source : src.Range,
+  }
+
+# C++ method override
+predicate MethodOverrides :
+  {
+    derived : FunctionDeclaration,
+    base : FunctionDeclaration,
+  }
+
+# Objective C category identifier
+type ObjcCategoryId =
+  {
+    className : Name,
+    categoryName : Name,
+  }
+
+# Objective C container identifier
+type ObjcContainerId =
+  {
+    protocol : Name |
+    interface_ : Name |
+    categoryInterface : ObjcCategoryId |
+    extensionInterface : Name |
+    implementation : Name |
+    categoryImplementation : ObjcCategoryId |
+  }
+
+# Objective C container (protocol, interface etc.) declaration
+predicate ObjcContainerDeclaration :
+  {
+    id : ObjcContainerId,
+    source : src.Range,
+  }
+
+# Objective C selector
+#
+# T166420010: This is not fully correct. Specifically, ObjC selectors
+# `method` and `method:` are different, but isn't distinguished here.
+predicate ObjcSelector : [string]
+
+# Objective C method declaration
+predicate ObjcMethodDeclaration :
+  {
+    selector : ObjcSelector,
+    # Locations of the slots of the selector.
+    # These correspond to the `selector` entries.
+    locations : [src.FileLocation],
+    container : ObjcContainerId,
+    signature : Signature,
+    isInstance : bool,
+    isOptional : bool,
+    isAccessor : bool,
+    source : src.Range,
+  }
+
+# The full name of an ObjC method declaration.
+#
+# If the method has no parameters, the name is the method name. e.g., `foo`
+# If the method has 1 parameter, the name ends with a colon. e.g., `foo:`
+# If the method has multiple parameters, the parameter names are
+# concatenated with a colon. e.g., `foo:bar:`
+#
+# Parameters may have no name, in which case they are omitted. e.g., `foo::`
+#
+# NOTE: Even with `ObjcSelector` not being sufficient in fully capturing
+# the name, we can deduce this name for a method since we have the `signature`.
+# That is, `parameters = []` is `method`, and `parameters = [_]` is `method:`.
+# However, Angle currently isn't powerful enough for us to perform string join
+# operations. As such, we produce these in the indexer and store them for now.
+predicate ObjcMethodDeclarationName :
+  {
+    decl : ObjcMethodDeclaration,
+    name : Name,
+  }
+
+# Objective C property declaration
+predicate ObjcPropertyDeclaration :
+  {
+    name : Name,
+    container : ObjcContainerId,
+    type : Type,
+    isInstance : bool,
+    isOptional : bool,
+    isReadOnly : bool,
+    isAtomic : bool,
+    source : src.Range,
+  }
+
+# Objective C property implementation kind
+type ObjcPropertyKind = enum { Synthesize | Dynamic }
+
+# Objective C property implementation
+predicate ObjcPropertyImplementation :
+  {
+    declaration : ObjcPropertyDeclaration,
+    kind : ObjcPropertyKind,
+    ivar : maybe Name,
+    source : src.Range,
+  }
+
+# C++ record base
+type RecordBase =
+  {
+    base : RecordDeclaration,
+    access : Access,
+    isVirtual : bool,
+  }
+
+# Enumerator declaration (constant in an enum)
+predicate Enumerator :
+  {
+    name : Name,
+    enumeration : EnumDeclaration,   # TODO: qname?
+    source : src.Range,
+  }
+
+# Enum definition
+predicate EnumDefinition :
+  {
+    declaration : EnumDeclaration,
+    enumerators : [Enumerator]
+  }
+
+# C++ function definition
+# Will also have a body eventually
+predicate FunctionDefinition :
+  {
+    declaration : FunctionDeclaration,
+    isInline : bool,
+  }
+
+# Unified Symbol Resolution (USR) hash for function
+type USR = string
+predicate USRToDeclaration:
+  {
+    hash : USR,
+    declaration : Declaration,
+  }
+
+
+# For quicker lookup of Entity -> USR
+predicate DeclarationToUSR :
+  {
+    declaration : Declaration,
+    usr : USR
+  }
+  stored { D, U } where USRToDeclaration { U, D }
+
+
+# Hash of the function's mangled name
+type MangledNameHash = string
+predicate MangledNameHashToDeclaration:
+  {
+    hash : MangledNameHash,
+    declaration : Declaration,
+  }
+
+# Objective C interface-implementation relationship
+predicate ObjcImplements :
+  {
+    implementation : ObjcContainerDeclaration,
+    interface_ : ObjcContainerDeclaration,
+  }
+
+# Reverse of ObjcImplements; efficiently look up implementations
+predicate ObjcInterfaceToImplementation :
+  {
+    interface_ : ObjcContainerDeclaration,
+    implementation : ObjcContainerDeclaration,
+  }
+  stored { If, Im } where ObjcImplements { Im, If }
+
+# Objective C method definition
+# Will also have a body eventually
+predicate ObjcMethodDefinition : ObjcMethodDeclaration
+
+predicate Declarations : [Declaration]
+
+# Two declarations refer to the same entity
+predicate Same :
+  {
+    declaration1 : Declaration,
+    declaration2 : Declaration,
+  }
+
+# An author-written explicit/partial template specialization and the primary
+# template it specializes. Emitted at the specialization's decl (gated on
+# TSK_ExplicitSpecialization) so it exists even when the specialization has no
+# recorded uses; lets Dead Code Bot keep a looks-dead specialization alive with
+# its referenced primary.
+predicate SpecializationOf :
+  {
+    specialization : Declaration,
+    primary : Declaration,
+  }
+
+# Definitions
+
+# Part of a namespace definition
+predicate NamespaceDefinition :
+  {
+    declaration : NamespaceDeclaration,
+    members : Declarations,
+  }
+
+predicate RecordDefinition :
+  {
+    declaration : RecordDeclaration,
+    bases : [RecordBase],
+    members : Declarations,
+  }
+
+# Objective C interface definition
+predicate ObjcContainerDefinition :
+  {
+    declaration : ObjcContainerDeclaration,
+    protocols : [ObjcContainerDeclaration],
+    members : Declarations,
+  }
+
+# C++ preprocessor include trace
+type IncludeTrace =
+  {
+    include_ : pp1.Include,
+    trace : maybe Trace,  # deprecated; always nothing. See IncludeTree.
+  }
+
+# A C++ preprocessor event
+type PPEvent =
+  {
+    include_ : IncludeTrace |
+    define : pp1.Define |
+    undef : pp1.Undef |
+    use : pp1.Use |
+  }
+
+# A trace of preprocessor events in a C++ file
+predicate PPTrace :
+  {
+    file : src.File,
+    events : [PPEvent]
+  }
+
+# A trace of all interesting things in a C++ file
+predicate Trace :
+  {
+    file : src.File,
+    declarations : Declarations,
+    preprocessor : PPTrace,
+  }
+
+type MaybeIncludeTree =
+  {
+    tree : maybe IncludeTree
+  }
+
+predicate IncludeTree :
+  {
+    trace : Trace,
+    # The elements in this list map 1:1 to the `IncludeTrace` in `PPTrace`.
+    children : [MaybeIncludeTree],
+  }
+
+predicate IncludeTreeParent :
+  {
+    tree : IncludeTree,
+    parent : IncludeTree
+  }
+  stored { Child , Parent } where
+    Parent = IncludeTree { _, Children };
+    { tree = { just = Child }} = Children[..]
+
+# C++ type alias kind
+type TypeAliasKind = enum { Typedef | Using }
+
+# Type alias declaration (typedef or using)
+predicate TypeAliasDeclaration :
+  {
+    name : QName,
+    type : Type,
+    kind : TypeAliasKind,
+    source : src.Range,
+  }
+
+type NamespaceTarget =
+  {
+    namespace_ : NamespaceDeclaration |
+    namespaceAlias : NamespaceAliasDeclaration |
+  }
+
+predicate NamespaceAliasDeclaration :
+  {
+    name : NamespaceQName,
+    target : NamespaceTarget,
+    source : src.Range,
+  }
+
+# Using declaration
+predicate UsingDeclaration :
+  {
+    name : FunctionQName,
+    source : src.Range,
+  }
+
+# Using directive
+predicate UsingDirective :
+  {
+    name : QName,
+    source : src.Range,
+  }
+
+# Kind of global variable
+type GlobalVariableKind =
+  enum {
+    SimpleVariable |
+    StaticVariable |
+    StaticMember
+  }
+
+# Kind of local variable
+type LocalVariableKind =
+  enum {
+    SimpleVariable |
+    StaticVariable |
+    Parameter
+  }
+
+# Global variable attributes
+type GlobalVariableAttribute =
+  enum {
+    Plain |
+    Inline |
+    Constexpr
+  }
+
+# Local variable attributes
+type LocalVariableAttribute =
+  enum {
+    Plain |
+    Constexpr
+  }
+
+# Global variable description
+type GlobalVariable =
+  {
+    kind : GlobalVariableKind,
+    attribute : GlobalVariableAttribute,
+    definition : bool,  # is this a declaration or a definition
+  }
+
+# Local variable description
+type LocalVariable =
+  {
+    kind : LocalVariableKind,
+    attribute : LocalVariableAttribute,
+  }
+
+# Attributes of non-static member variables
+type Field =
+  {
+    mutable_ : bool,
+    bitsize : maybe nat,
+  }
+
+# Attributes of Objective C ivars
+type ObjcIVar =
+  {
+    synthesize : bool,
+    bitsize : maybe nat,
+  }
+
+# Kinds of variables
+type VariableKind =
+  {
+    global_ : GlobalVariable |
+    local : LocalVariable |
+    field : Field |
+    ivar : ObjcIVar |
+  }
+
+# Variable declaration
+predicate VariableDeclaration :
+  {
+    name : QName,
+    type : Type,
+    kind : VariableKind,
+    source : src.Range,
+  }
+
+# Sum type of all declarations
+type Declaration =
+  {
+    namespace_ : NamespaceDeclaration |
+    usingDeclaration : UsingDeclaration |
+    usingDirective : UsingDirective |
+    record_ : RecordDeclaration |
+    enum_ : EnumDeclaration |
+    function_ : FunctionDeclaration |
+    variable : VariableDeclaration |
+    objcContainer : ObjcContainerDeclaration |
+    objcMethod : ObjcMethodDeclaration |
+    objcProperty : ObjcPropertyDeclaration |
+    typeAlias : TypeAliasDeclaration |
+    namespaceAlias : NamespaceAliasDeclaration |
+  }
+
+# A specific slot of an ObjC selector. The `index` field is the position
+# within the `selector` and `locations` field of `ObjCMethodDeclaration`.
+#
+# This construction of declaration accompanied by an index enables
+# representing the relationship of (decl <-> defn) + index.
+type ObjcSelectorSlot =
+  {
+    objcMethod : ObjcMethodDeclaration,
+    index : nat,
+  }
+
+# What indirect xrefs can go through
+type XRefVia =
+  {
+    usingDeclaration : UsingDeclaration |
+    usingDirective : UsingDirective |
+    macro : pp1.Use |
+  }
+
+# C++ cross-reference target
+type XRefTarget =
+  {
+    declaration : Declaration |
+    enumerator : Enumerator |
+    objcSelector : ObjcSelector |
+    objcSelectorSlot : ObjcSelectorSlot |
+    unknown : src.Loc |
+    indirect : XRefIndirectTarget |
+  }
+
+# Cross-reference that goes through something (macro or using)
+predicate XRefIndirectTarget :
+  {
+    via : XRefVia,
+    target : XRefTarget,
+  }
+
+predicate XRefTargets : [XRefTarget]
+
+# Uses of XRefs
+#
+# There are 3 different sources of uses: file, expansion, and spelling.
+# Here's an example for an overview:
+#
+#   void foo() {}
+#
+#   #define FOO foo
+#               ^^^ spelling (1)
+#
+#   #define REF(x) x
+#
+#   void f() {
+#     foo();
+#     ^^^ file (2)
+#
+#     FOO();
+#     ^^^ expansion (3)
+#
+#     REF(foo)();
+#         ^^^  spelling (4)
+#     ^^^^^^^^ expansion (5)
+#   }
+#
+# The "file" uses are non-macro uses such as (2). "expansion" uses are xrefs
+# formed within macro expansions such as (3) and (5). The "spelling" uses are
+# the actual spelled out source location of the "expansion" uses. There are two
+# cases of this, one where the spelling is inside the macro body such as (1),
+# and where the spelling is the macro argument such as (4).
+#
+# An extra wrinkle here is that this predicate captures uses from a single file.
+# Refer to the `SpellingXRef` predicate for further details.
+type From =
+  {
+    spans : src.PackedByteSpans,
+    expansions : src.PackedByteSpans,
+    spellings : src.PackedByteSpans,
+  }
+
+# Cross-references to a known target
+type FixedXRef =
+  {
+    target : XRefTarget,
+    from : From,
+  }
+
+# Note that "froms" corresponds to many "targets" in FileXRefs
+# Cross-references in a file
+predicate FileXRefMap :
+  {
+    file : src.File,
+    fixed : [FixedXRef],
+    froms : [From],
+  }
+
+# Note that "targets" entries correspond to "froms" entries (in the "xmap").
+# Instantiation of a FileXRefMap with set of external references
+predicate FileXRefs :
+  {
+    xmap : FileXRefMap,
+    targets : [XRefTargets],
+  }
+
+# Captures the spelling xrefs discovered from different files.
+#
+# In general, we discover xrefs within a file while we're indexing that file.
+# Macros are special in that we can discover xrefs for a file from another.
+#
+# Consider the following silly example:
+#
+#   // foo.h
+#   void foo(int) {}
+#   #define FOO foo(42)
+#               ^^^ spelling (1)
+#
+#   // a.cpp
+#   #include "foo.h"
+#   void f() { FOO; }
+#              ^^^ expansion (2)
+#
+# The AST of `foo.h` does not contain any xrefs, since macro definitions do not
+# carry any semantics. We discover the spelling xref from (1) at the use at (2)
+# during the indexing of `a.cpp`.
+#
+# This predicate is used for this type of "external spelling xref" cases.
+#
+# NOTE: We don't group these by file because if we did, we can easily run into
+#       a combinatorial explosion of these facts. For example, consider if
+#       the `foo.h` above contained N macro definitions. Different files can
+#       include `foo.h` and each use an arbitrary subset of the macros. We can
+#       then end up with 2^N of these facts. Indexing per file location should
+#       help to deduplicate the spelling xrefs to absolute targets.
+predicate SpellingXRef :
+  {
+    source : src.FileLocation,
+    target : XRefTarget,
+  }
+
+# Uses
+
+# Note that ("target", "file") makes a unique key for these facts
+# All uses of a declaration in a file
+predicate TargetUses :
+  {
+    target : XRefTarget,
+    file : src.File,
+    from : From,
+  }
+
+# These are all disjoint equivalence classes.  Constructors within an array
+# guaranteed identical. Array length is at least 2.
+# All the declarations for a given entity.
+predicate DeclFamily : [Declaration]
+
+# These "decl" is a unique key here.  "decl" are only present iff they are
+# in a cxx1.Same, otherwise they are implicitly in a singleton family.
+# Map a declaration to its family.
+predicate DeclToFamily :
+  {
+    decl : Declaration,
+    family : DeclFamily,
+  }
+
+# Location of the name of a declaration
+#
+# The corresponding declaration may be declared within normal code, or it may
+# be within a macro expansion. If it's a normal declaration, the name span
+# refers to the name portion of the declaration. Otherwise, the name span
+# refers to the spelling location of the name.
+#
+# Example of declaration in normal code
+#
+#   void foo() {}
+#        ^^^ name span
+#   ^^^^^^^^^^^^^ decl range
+#
+# Example of declaration in macro expansion
+#
+#   #define FOO void foo() {}
+#                    ^^^ name span
+#
+#   FOO
+#   ^^^ decl range
+#
+# The name span is commonly the destination for Code Navigation.
+predicate DeclarationNameSpan :
+  {
+    decl : Declaration,
+    file : src.File,
+    span : src.ByteSpan
+  }
+
+# Generalization of Function call facts, which handles references between
+# any kinds of declarations.
+
+# Declarations referenced from a given declaration. This can be used
+# for constructing call graphs, for example.
+#
+# Notes:
+#   - source is limited to RecordDeclaration, FunctionDeclaration,
+#     ObjcContainerDeclaration, ObjcPropertyDeclaration, ObjcMethodDeclaration
+#
+#   - Each reference in the source is attributed to exactly one
+#     declaration. So for example, a reference inside a method is
+#     attributed to the method, but not the enclosing class declaration.
+#
+#   - The order of the declarations in the list is non-deterministic,
+#     but there are no duplicates (it should be a set, really)
+#
+predicate DeclarationTargets :
+  {
+    source : Declaration,
+    targets : [Declaration],
+  }
+
+# Declarations referring to a given declaration. The inverse of DeclarationTargets.
+predicate DeclarationSources :
+  {
+    target : Declaration,
+    sources : [Declaration],
+  }
+
+# Comment referring to a given declaration
+predicate DeclarationComment :
+  {
+    declaration : Declaration,
+    file : src.File,
+    span : src.ByteSpan,
+  }
+
+# A trace of a translation unit
+predicate TranslationUnitTrace :
+  {
+    tunit : buck.TranslationUnit,
+    trace : Trace,
+  }
+
+# An include tree of a translation unit
+predicate TranslationUnitIncludeTree :
+  {
+    tunit : buck.TranslationUnit,
+    tree : IncludeTree,
+  }
+
+predicate IncludeTreeTranslationUnit :
+  {
+    tree : IncludeTree,
+    tunit : buck.TranslationUnit,
+  }
+  stored { T, U } where TranslationUnitIncludeTree { U, T }
+
+# The fileXRefs corresponding to a particular translation unit
+predicate TranslationUnitXRefs :  # 2 is already used in cxx1
+  {
+    tunit : buck.TranslationUnit,
+    xrefs : [FileXRefs]
+  }
+
+# The backing ivar of a property
+predicate ObjcPropertyIVar :
+  {
+    property : ObjcPropertyDeclaration,
+    ivar : VariableDeclaration,
+  }
+
+# Derived Predicates
+
+# Lots of entities have a Scope-indexed parent
+# This just abstracts out the lookup of the Scope component
+predicate DeclarationScope :
+  {
+    decl : cxx1.Declaration,
+    scope : cxx1.Scope
+  }
+  { Decl, Scope } where
+    # these share FunctionQName scopes
+    ( FQN = Decl.function_?.name | Decl.usingDeclaration?.name;
+      Scope = FQN.scope
+    # vanilla QName scopes
+    ) | (
+      QN =
+         Decl.record_?.name |
+         Decl.variable?.name |
+         Decl.typeAlias?.name |
+         Decl.enum_?.name |
+         Decl.usingDirective?.name;
+      Scope = QN.scope
+    # NamespaceQName scopes
+    ) | (
+      NQN = Decl.namespace_?.name | Decl.namespaceAlias?.name;
+      Scope.namespace_? = NQN
+    )
+
+# src.Range of an arbitrary Declaration.
+predicate DeclarationSrcRange :
+  {
+    decl : Declaration,
+    source : src.Range,
+  }
+  { D, R } where
+     ( { namespace_ = X } = D;
+       X = NamespaceDeclaration { source = R }) |
+     ( { usingDeclaration = X } = D;
+       X = UsingDeclaration { source = R }) |
+     ( { usingDirective = X } = D;
+       X = UsingDirective { source = R }) |
+     ( { record_ = X } = D;
+       X = RecordDeclaration { source = R }) |
+     ( { enum_ = X } = D;
+       X = EnumDeclaration { source = R }) |
+     ( { function_ = X } = D;
+       X = FunctionDeclaration { source = R }) |
+     ( { variable = X } = D;
+       X = VariableDeclaration { source = R }) |
+     ( { objcContainer = X } = D;
+       X = ObjcContainerDeclaration { source = R }) |
+     ( { objcMethod = X } = D;
+       X = ObjcMethodDeclaration { source = R }) |
+     ( { objcProperty = X } = D;
+       X = ObjcPropertyDeclaration { source = R }) |
+     ( { typeAlias = X } = D;
+       X = TypeAliasDeclaration { source = R }) |
+     ( { namespaceAlias = X } = D;
+       X = NamespaceAliasDeclaration { source = R })
+
+# cxx1.RecordDefinition can lookup from Child to Parent. Reverse this
+# here to lookup from Parent to Child.
+predicate RecordDerived :
+  {
+    base : RecordDeclaration,
+    derived : RecordDeclaration,
+  }
+  stored
+  {Base, Derived}
+  where
+   cxx1.RecordDefinition{ declaration = Derived, bases = BS };
+   cxx1.RecordBase { base = Base } = BS[..]
+
+# cxx1.MethodsOverrides can lookup from Derived to Base. Reverse this
+# here to lookup from Base to Derived.
+predicate MethodOverridden :
+  {
+    base : FunctionDeclaration,
+    derived : FunctionDeclaration,
+  }
+  stored
+  {Base, Derived}
+  where
+    cxx1.MethodOverrides{derived = Derived, base = Base}
+
+#
+# Searching for declarations by name. One per kind
+#
+
+# For search, index just those with non-empty namespace local names
+predicate NamespaceDeclarationByName :
+  {
+    name : string,
+    parent: maybe NamespaceQName,
+    decl : NamespaceDeclaration
+  } stored { NameStr, Parent, Decl } where
+    Name = cxx1.Name NameStr;
+    NamespaceDeclaration { name = { { just = Name }, Parent } } = Decl
+
+predicate NamespaceLowerCase :
+  {
+    name_lowercase: string,
+    name: string
+  } stored { prim.toLower NameStr, NameStr } where
+    NamespaceQName { name = { just = Name NameStr }}
+
+# Derived predicates to distinguish records by kind, to avoid enumerating all
+# records when searching. We flatten the QName so that the Name key is left most,
+# avoiding the need to enumerate QNames to find things.
+predicate RecordDeclarationStruct :
+  {
+    name : string,
+    scope: Scope,
+    decl : RecordDeclaration
+  } stored { NameStr, Scope, Decl } where
+    Name = cxx1.Name NameStr;
+    RecordDeclaration { name = { Name, Scope }, kind = { struct_ = _ } } = Decl
+
+predicate RecordStructLowerCase :
+  {
+    name_lowercase: string,
+    name: string
+  } stored { prim.toLower NameStr, NameStr } where
+    RecordDeclaration { name = { name = Name NameStr }, kind = { struct_ = _ } };
+
+# Derived
+predicate RecordDeclarationClass :
+  {
+    name : string,
+    scope: Scope,
+    decl : RecordDeclaration
+  } stored { NameStr, Scope, Decl } where
+    Name = cxx1.Name NameStr;
+    RecordDeclaration { name = { Name, Scope }, kind = { class_ = _ } } = Decl
+
+predicate RecordClassLowerCase :
+  {
+    name_lowercase: string,
+    name: string
+  } stored { prim.toLower NameStr, NameStr } where
+    RecordDeclaration { name = { name = Name NameStr }, kind = { class_ = _ } };
+
+# Derived
+predicate RecordDeclarationUnion :
+  {
+    name : string,
+    scope: Scope,
+    decl : RecordDeclaration
+  } stored { NameStr, Scope, Decl } where
+    Name = cxx1.Name NameStr;
+    RecordDeclaration { name = { Name, Scope }, kind = { union_ = _ } } = Decl
+
+predicate RecordUnionLowerCase :
+  {
+    name_lowercase: string,
+    name: string
+  } stored { prim.toLower NameStr, NameStr } where
+    RecordDeclaration { name = { name = Name NameStr }, kind = { union_ = _ } };
+
+# Re-index left-keyed by cxx1.Name fact to avoid QName scans
+predicate EnumDeclarationByName :
+  { name : string,
+    scope : Scope,
+    decl : EnumDeclaration
+  } stored { NameStr, Scope, Decl } where
+    EnumDeclaration { name = { Name, Scope } } = Decl;
+    Name = cxx1.Name NameStr;
+
+predicate EnumLowerCase :
+  {
+    name_lowercase: string,
+    name: string
+  } stored { prim.toLower NameStr, NameStr } where
+    EnumDeclaration { name = { name = Name NameStr } };
+
+# Search: functions with real names only, to restrict to scope use the FQName
+predicate FunctionDeclarationByNameScope :
+  {
+    name: string,
+    scope: Scope,
+    decl: FunctionDeclaration
+  } stored { NameStr, Scope, Decl } where
+    FName = FunctionName { name = Name };
+    FQName = FunctionQName { name = FName, scope = Scope };
+    cxx1.Name NameStr = Name;
+    cxx1.FunctionDeclaration { name = FQName } = Decl;
+
+predicate FunctionLowerCase :
+  {
+    name_lowercase: string,
+    name: string
+  } stored { prim.toLower NameStr, NameStr } where
+    FunctionDeclaration { name = FQName };
+    FQName = FunctionQName { name = FName };
+    FName = FunctionName { name = Name NameStr }
+
+# searching for ObjcContainers. We need to split these up by kind
+predicate ObjcContainerDeclarationInterface :
+  {
+    name: string,
+    decl: ObjcContainerDeclaration
+  } stored { NameStr, Decl } where
+    cxx1.ObjcContainerDeclaration { id = ObjcId } = Decl;
+    ObjcId =
+      { interface_ = Name } |
+      { categoryInterface = { className = Name } } |
+      { extensionInterface = Name };
+    cxx1.Name NameStr = Name
+
+predicate ObjcContainerInterfaceLowerCase :
+  {
+    name_lowercase: string,
+    name: string
+  } stored { prim.toLower NameStr, NameStr } where
+    cxx1.ObjcContainerDeclaration { id = ObjcId };
+    ObjcId =
+      { interface_ = Name } |
+      { categoryInterface = { className = Name } } |
+      { extensionInterface = Name };
+    cxx1.Name NameStr = Name
+
+# Search enumerators by name
+predicate EnumeratorByName :
+  {
+    name: string,
+    decl: cxx1.Enumerator
+  } stored { NameStr, Decl } where
+    cxx1.Enumerator { name = cxx1.Name NameStr } = Decl
+
+predicate EnumeratorLowerCase :
+  {
+    name_lowercase: string,
+    name: string
+  } stored { prim.toLower NameStr, NameStr } where
+    Enumerator { name = cxx1.Name NameStr }
+
+# type alias search by name
+predicate TypeAliasDeclarationByName :
+  {
+    name : string,
+    scope : Scope,
+    decl : cxx1.TypeAliasDeclaration
+  } stored { NameStr, Scope, Decl } where
+    cxx1.TypeAliasDeclaration { name = { cxx1.Name NameStr, Scope } } = Decl
+
+predicate TypeAliasLowerCase :
+  {
+    name_lowercase: string,
+    name: string
+  } stored { prim.toLower NameStr, NameStr } where
+    TypeAliasDeclaration { name = { name = Name NameStr } }
+
+# Variable search by name. Let's not include locals since they're too numerous
+predicate VariableDeclarationNonLocalByName :
+  {
+    name : string,
+    scope: Scope,
+    decl : VariableDeclaration
+  } stored { NameStr, Decl.name.scope, Decl } where
+    Decl.name.name = cxx1.Name NameStr;
+    Decl.kind.global_? | Decl.kind.field? | Decl.kind.ivar?;
+
+predicate VariableLowerCase :
+  {
+    name_lowercase: string,
+    name: string
+  } stored { prim.toLower NameStr, NameStr } where
+    VariableDeclaration { name = QName, kind = Kind };
+    Kind.global_? | Kind.field? | Kind.ivar?;
+    QName.name = Name NameStr;
+
+#
+# Searching for declarations by case-insensitive name or prefix
+# We have tried a few things here:
+#   lowercase name to decl
+#   lowercase name to kind and upper name
+#
+# We want to use kind-partitioned tables so that kind-filtered searches work well,
+# leading to the current design with one predicate per kind
+
+# Use this derived predicate to handle declarations without a family in
+# a uniform way as declarations with a family.
+predicate DeclFamilyOf :
+  {
+    decl : Declaration,
+    family : Declaration,
+  }
+  {Decl, FamDecl}
+  where
+    FamDecl = Decl |
+    ( D where
+      cxx1.DeclToFamily{decl=Decl, family=DF};
+      DF=cxx1.DeclFamily F;
+      D=F[..]
+    )
+
+# Maps from a declaration to a RecordDefinition that has
+# (a family member of) the declaration as a member.
+
+# With no care for the space use we could make a stored derived predicated from
+# reversing the RecordDefinitions members, but since we care about space
+# let's perform this search on the fly.
+#
+# This is quite an elaborate search, for the following reasons:
+#
+# - We have a Declaration R::F
+# - A corresponding RecordDefinition can be found by searching for
+#   RecordDefinition { declaration = { name = R }}
+# - But there might be multiple of these (due to CPP, templates etc.),
+#   and some of them might not even contain R::F, so we have to find a
+#   correct one by searching for our R::F amongst the members.
+# - Furthermore, since the members might not contain our R::F but another
+#   decl in the same DeclFamily, we have to look up the family of R::F too.
+#
+# See T68843402 for progress on each declaration type.
+#
+# It might be worth swapping the order of the DeclFamilyOf and
+# RecordDefinition queries, but to do that we would need to prove
+# that all decl D in a family share an identical scope.
+
+predicate DeclInRecord :
+  {
+    decl : Declaration,
+    record : RecordDefinition,
+  }
+  { DeclIn, Record } where
+    # Declaration{namespace} cannot be in a record
+    # Declaration{objcContainer} cannot be in a record
+    # Declaration{ObjcMethodDeclaration} cannot be in a record
+    # Declaration{ObjcPropertyDeclaration} cannot be in a record
+    DeclFamilyOf { DeclIn, Decl };
+    cxx1.DeclarationScope { Decl, Scope };
+    { recordWithAccess = { record = QName } } = Scope;
+    DeclOut = cxx1.RecordDeclaration { name = QName }; # find the parent record
+    Record = cxx1.RecordDefinition{ declaration = DeclOut, members = Decls };
+    Decls = cxx1.Declarations DS;
+    DeclIn = DS[..]; # verify in decl is a member
+
+# Like DeclInRecord but exploit the fact we already have the base decl/defn
+predicate DefnInRecord :
+  {
+    defn : DefinitionEntity,
+    record : RecordDefinition
+  }
+  { DefnIn, Record} where
+    cxx1.DefToBaseDecl { DefnIn, DeclIn };
+    cxx1.DeclarationScope { DeclIn, Scope };
+    { recordWithAccess = { record = QName } } = Scope;
+    DeclOut = cxx1.RecordDeclaration { name = QName }; # find the parent record
+    Record = cxx1.RecordDefinition{ declaration = DeclOut, members = Decls };
+    Decls = cxx1.Declarations DS;
+    DeclIn = DS[..]; # verify in decl is a member
+
+# This allows going from a objc method or property declaration
+# to a definition that contains a family member of the declaration.
+#
+# If we could prove all decl D in a family share an
+# identical container id then we could change the order
+# of the queries for the DeclFamilyOf and ObjcContainerDefinition.
+#
+#  With no care for the space use we could make a stored derived predicated from
+# reversing the RecordDefinitions members.  Since we care about space we can
+# narrow the search space and then check the members.
+predicate DeclInObjcContainer :
+  {
+    decl : Declaration,
+    record : ObjcContainerDefinition,
+  }
+  {DeclIn, Container}
+  where
+  DeclFamilyOf{decl=DeclIn, family=Decl};
+
+  CId =
+    (
+      CId where { objcMethod = X } = Decl;
+      ObjcMethodDeclaration{container = CId} = X;
+    ) | (
+      CId where { objcProperty = X } = Decl;
+      ObjcPropertyDeclaration{container = CId} = X;
+    );
+  Container = ObjcContainerDefinition{declaration={id = CId}, members=Decls};
+  Decls = Declarations DS;
+  Decl = DS[..];
+
+# This allows going from an enumerator to the enum definition(s) that
+# contain the enumerator.
+#
+#  With no care for the space use we could make a stored derived predicated from
+# reversing the RecordDefinitions members.  Since we care about space we can
+# narrow the search space and then check the enmerators list.
+predicate EnumeratorInEnum :
+  {
+    enumerator : Enumerator,
+    enum_ : EnumDefinition
+  }
+  {EnumeratorIn, EnumDefOut}
+  where
+    Enumerator{enumeration = Decl} = EnumeratorIn;
+    EnumDefOut = EnumDefinition{declaration = Decl, enumerators = Enums};
+    EnumeratorIn = Enums[..]
+
+# Given a Declaration (in some file), find the Trace(s) (in that file) that
+# contain the Declaration. Very useful for looking up members of a namespace.
+predicate DeclarationInTrace :
+  {
+    decl : Declaration,
+    trace : Trace
+  }
+  {Decl, T}
+  where
+  DeclarationSrcRange{decl = Decl, source = {file = F}};
+  T = Trace{file = F, declarations = Decls};
+  Decls = Declarations DS;
+  Decl = DS[..]
+
+predicate ObjcContainerBase :
+    {
+        declaration : ObjcContainerDeclaration,
+        base : ObjcContainerDeclaration,
+    }
+
+predicate ObjcContainerInheritance :
+    {
+        base : ObjcContainerDeclaration,
+        declaration : ObjcContainerDeclaration,
+    }
+    stored
+    { Base, Decl }
+    where
+      ObjcContainerBase { Decl, Base }
+
+predicate Attribute : string
+
+# Lookup functions with a particular attribute
+predicate FunctionAttribute :
+  {
+    attr : Attribute,
+    declaration : FunctionDeclaration,
+  }
+
+# Inverse of FunctionAttribute. Lookup attributes using function decls as keys
+predicate FunctionDeclAttribute :
+  {
+    decl : FunctionDeclaration,
+    attr : Attribute,
+  } stored
+  { Decl, Attr } where cxx1.FunctionAttribute { Attr, Decl }
+
+# Declarations with extern "C" linkage specification.
+# A fact exists for a Declaration iff it was declared inside an
+# extern "C" block (or with an explicit extern "C" prefix).
+predicate ExternCDeclaration : Declaration
+
+# ObjCContainerId to Name
+predicate ObjContainerIdName :
+  {
+    id : ObjcContainerId,
+    name : Name,
+  }
+  { Id, Name } where
+    ( { protocol = Name } = Id) |
+    ( { interface_ = Name } = Id) |
+    ( { categoryInterface = { categoryName = Name } } = Id) |
+    ( { extensionInterface = Name } = Id) |
+    ( { implementation = Name } = Id) |
+    ( { categoryImplementation = { categoryName = Name  } } = Id)
+
+# General purpose Declaration to shortname Name
+predicate DeclarationLocationName :
+  {
+    decl : Declaration,
+    source : src.Range,
+    name : string,
+  }
+  { Decl, Range, NameStr } where
+    (
+      ( { namespace_ = X } = Decl;
+        X = NamespaceDeclaration { source = Range, name = QName };
+        NamespaceDeclarationName { QName, Name }) |
+      ( { usingDeclaration = X } = Decl;
+        X = UsingDeclaration { source = Range, name = QName };
+        QName = FunctionQName { name = { name = Name }}) |
+      ( { usingDirective = X } = Decl;
+        X = UsingDirective { source = Range, name = { name = Name }}) |
+      ( { record_ = X } = Decl;
+        X = RecordDeclaration { source = Range, name = { name = Name }}) |
+      ( { enum_ = X } = Decl;
+        X = EnumDeclaration { source = Range, name = { name = Name }}) |
+      ( { variable = X } = Decl;
+        X = VariableDeclaration {
+          source = Range,
+          name = { name = Name}}) |
+      ( { objcContainer = X } = Decl;
+        X = ObjcContainerDeclaration { source = Range, id = Id };
+        ObjContainerIdName { Id, Name }) |
+      ( { objcMethod = X } = Decl;
+        X = ObjcMethodDeclaration { source = Range };
+        ObjcMethodDeclarationName { X, Name }) |
+      ( { objcProperty = X } = Decl;
+        X = ObjcPropertyDeclaration { source = Range, name = Name }) |
+      ( { typeAlias = X } = Decl;
+        X = TypeAliasDeclaration { source = Range, name = { name = Name }}) |
+      ( { namespaceAlias = X } = Decl;
+        X = NamespaceAliasDeclaration { source = Range, name = QName };
+        NamespaceDeclarationName { QName, Name });
+      Name = Name NameStr
+    ) | (
+      { function_ = X } = Decl;
+      FunctionDeclaration { source = Range, name = { FName, _ } } = X;
+      FunctionDeclarationNameString { FName, NameStr }
+    )
+
+# short name for function declarations
+predicate FunctionDeclarationName:
+  { fname : FunctionName
+  , name : Name
+  }
+  { FName, Name } where
+     # common case, ordinary names
+    ( { name = Name } = FName ) |
+    ( { operator_ = OpNameStr } = FName;
+      Name = Name OpNameStr; ) |
+    ( { literalOperator = OpNameStr } = FName;
+      Name = Name OpNameStr; ) |
+    ( { constructor = _ } = FName;
+      Name = Name "constructor"; ) |
+    ( { destructor = _ } = FName;
+      Name = Name "destructor"; ) |
+    ( { conversionOperator = Type TypeStr } = FName;
+      Name = Name TypeStr; )
+
+predicate FunctionDeclarationNameString:
+  { fname : FunctionName
+  , name : string
+  }
+  { FName, Name } where
+     # common case, ordinary names
+    ( { name = Name : string } = FName ) |
+    ( { operator_ = Name } = FName; ) |
+    ( { literalOperator = Name } = FName; ) |
+    ( { constructor = _ } = FName;
+      Name = "constructor"; ) |
+    ( { destructor = _ } = FName;
+      Name = "destructor"; ) |
+    ( { conversionOperator = Type Name } = FName; )
+
+# short name for namespace declarations
+predicate NamespaceDeclarationName:
+  { qname : NamespaceQName
+  , name : Name
+  }
+  { QName, Name } where
+    ( NamespaceQName { name = { just = Name }} = QName ) |
+    ( NamespaceQName { name = nothing } = QName; Name = Name "anonymous" )
+
+predicate DeclarationLocationNameSpan :
+  {
+    decl : Declaration,
+    source : src.Range,
+    name : string,
+    file: src.File,
+    span : src.ByteSpan,
+  }
+  { Decl, Range, NameStr, File, Span } where
+    (
+      ( { namespace_ = X } = Decl;
+        X = NamespaceDeclaration { name = QName, source = Range };
+        NamespaceDeclarationName { QName, Name }) |
+      ( { usingDeclaration = X } = Decl;
+        X = UsingDeclaration { name = QName, source = Range };
+        QName = FunctionQName { name = { name = Name }}) |
+      ( { usingDirective = X } = Decl;
+        X = UsingDirective { name = { name = Name }, source = Range}) |
+      ( { record_ = X } = Decl;
+        X = RecordDeclaration { name = { name = Name }, source = Range }) |
+      ( { enum_ = X } = Decl;
+        X = EnumDeclaration { name = { name = Name }, source = Range }) |
+      ( { variable = X } = Decl;
+        X = VariableDeclaration { name = { name = Name }, source = Range }) |
+      ( { objcContainer = X } = Decl;
+        X = ObjcContainerDeclaration { id = Id, source = Range };
+        ObjContainerIdName { Id, Name }) |
+      ( { objcMethod = X } = Decl;
+        X = ObjcMethodDeclaration { source = Range };
+        ObjcMethodDeclarationName { X, Name }) |
+      ( { objcProperty = X } = Decl;
+        X = ObjcPropertyDeclaration { name = Name, source = Range }) |
+      ( { typeAlias = X } = Decl;
+        X = TypeAliasDeclaration { name = { name = Name }, source = Range }) |
+      ( { namespaceAlias = X } = Decl;
+        X = NamespaceAliasDeclaration { name = QName, source = Range };
+        NamespaceDeclarationName { QName, Name });
+      Name = Name NameStr
+    ) | (
+      { function_ = X } = Decl;
+      FunctionDeclaration { name = { FName, _ }, source = Range } = X;
+      FunctionDeclarationNameString { FName, NameStr }
+    );
+    DeclarationNameSpan { Decl, File, Span }
+
+# Mirror of type in code.cxx.angle
+type DefinitionEntity =
+  {
+    record_ : cxx1.RecordDefinition |
+    function_ : cxx1.FunctionDefinition |
+    enum_ : cxx1.EnumDefinition |
+    objcMethod : cxx1.ObjcMethodDefinition |
+    objcContainer : cxx1.ObjcContainerDefinition |
+    variable : cxx1.VariableDeclaration |
+    namespace_ : cxx1.NamespaceDefinition |
+  }
+
+# Short name and location of a definition (via its embedded declaration)
+# N.B. This isn't the inverse of DeclToDef (use DeclFamily for that), this
+# just unwraps a Definition to get at its root declaration value
+predicate DefToBaseDecl:
+  {
+    defn : DefinitionEntity,
+    decl : Declaration,
+  }
+  { Defn, Decl } where
+    ( { record_ = { declaration = X } } = Defn;
+      Decl = Declaration { record_ = X } ) |
+    ( { function_ = { declaration = X } } = Defn;
+      Decl = Declaration { function_ = X } ) |
+    ( { enum_ = { declaration = X } } = Defn;
+      Decl = Declaration { enum_ = X } ) |
+    ( { objcMethod = ObjcMethodDefinition X } = Defn;
+      Decl = Declaration { objcMethod = X } ) |
+    ( { objcContainer = { declaration = X } } = Defn;
+      Decl = Declaration { objcContainer = X } ) |
+    ( { variable = X } = Defn;
+      Decl = Declaration { variable = X } ) |
+    ( { namespace_ = { declaration = X } } = Defn;
+      Decl = Declaration { namespace_ = X } )
+
+# All uses of preprocessor #defines in a file, as xrefs
+predicate FilePPUseXRefs:
+  {
+    file: src.File,
+    source: src.Range,
+    define: pp1.Define,
+  }
+  { File, SrcRange, Define } where
+    Trace = cxx1.Trace { file = File };
+    FilePPUseTraceXRefs { File, Trace, SrcRange, Define };
+
+# All uses of preprocessor #defines in a file, as xrefs, for a specific trace
+# (deprecated)
+predicate FilePPUseTraceXRefs:
+  {
+    file: src.File,
+    trace: cxx1.Trace,
+    source: src.Range,
+    define: pp1.Define,
+  }
+  { File, Trace, SrcRange, Define } where
+    Trace = cxx1.Trace { file = File, preprocessor = { events = PPEvents } };
+    PPEvent = PPEvents[..];
+    { use = Use } = PPEvent;
+    { macro = Macro, definition = { just = { file = TargetFile }}, source = SrcRange } = Use;
+
+    # Search for the macro define, since 'definition' isn't a range xref
+    Define = pp1.Define { macro = Macro, source = { file = TargetFile } };
+
+# Definition location for a pp1.Define
+# (deprecated)
+predicate PPDefineLocation :
+  {
+    define : pp1.Define,
+    name : string,
+    file : src.File,
+    range : src.Range,
+  }
+  { Define, Name, File, Range } where
+    { pp1.Macro Name , Range } = Define;
+    { file = File } = Range;
+
+# Type of targets of pp xrefs (shape of code.pp.angle:Entity)
+type PpEntity =
+  {
+    define : pp1.Define |
+    undef : pp1.Undef |
+    include_ : src.File |
+  }
+
+# C preprocessor entities xrefs in this file
+predicate FilePPTraceXRefs:
+  {
+    file: src.File,
+    trace: cxx1.Trace,
+    source: src.Range,
+    ppEntity: PpEntity,
+    span: src.ByteSpan,
+  }
+  { File, Trace, SrcRange, Entity, SrcSpan } where
+    Trace = cxx1.Trace { file = File, preprocessor = { events = PPEvents } };
+    PPEvent = PPEvents[..];
+    # Uses are xrefs to #define entities
+    ( { SrcRange, Entity, SrcSpan } where
+      { use = Use } = PPEvent;
+      { Macro, { just = { file = TargetFile }}, _, SrcRange, SrcSpan } = Use;
+      Define = pp1.Define { Macro, { file = TargetFile } };
+      { define = Define } = Entity ) |
+
+    # #includes are xrefs to src.Files
+    ( { SrcRange, Entity, SrcSpan } where
+      { include_ = { include_ = Include } } = PPEvent;
+      { TargetFile, SrcRange, SrcSpan } = Include;
+      { include_ = TargetFile } = Entity; )
+
+# This maps generated Cxx entities
+# to their defining Thrift declaration
+# currently limited to functions
+predicate CxxToThrift:
+  {
+    from: cxx1.XRefTarget,
+    to: fbthrift.Declaration
+  }
+
+predicate ThriftToCxx:
+  {
+    to: fbthrift.Declaration,
+    from: cxx1.XRefTarget
+  }
+  stored { To, From }
+    where cxx1.CxxToThrift { From, To }
+
+}

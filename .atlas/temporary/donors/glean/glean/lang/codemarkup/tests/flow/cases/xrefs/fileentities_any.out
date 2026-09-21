@@ -1,0 +1,1402 @@
+[
+  "@generated",
+  {
+    "key": {
+      "file": { "key": "cjs_exports.js" },
+      "location": {
+        "name": "a",
+        "file": { "key": "cjs_exports.js" },
+        "location": { "span": { "start": 298, "length": 1 } }
+      },
+      "entity": {
+        "flow": {
+          "decl": {
+            "memberDecl": {
+              "key": {
+                "name": { "key": "a" },
+                "loc": {
+                  "key": {
+                    "module": {
+                      "key": { "file": { "key": "cjs_exports.js" } }
+                    },
+                    "span": { "start": 298, "length": 1 }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "file": { "key": "cjs_exports.js" },
+      "location": {
+        "name": "b",
+        "file": { "key": "cjs_exports.js" },
+        "location": { "span": { "start": 320, "length": 1 } }
+      },
+      "entity": {
+        "flow": {
+          "decl": {
+            "memberDecl": {
+              "key": {
+                "name": { "key": "b" },
+                "loc": {
+                  "key": {
+                    "module": {
+                      "key": { "file": { "key": "cjs_exports.js" } }
+                    },
+                    "span": { "start": 320, "length": 1 }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "file": { "key": "cjs_exports.js" },
+      "location": {
+        "name": "c",
+        "file": { "key": "cjs_exports.js" },
+        "location": { "span": { "start": 345, "length": 1 } }
+      },
+      "entity": {
+        "flow": {
+          "decl": {
+            "memberDecl": {
+              "key": {
+                "name": { "key": "c" },
+                "loc": {
+                  "key": {
+                    "module": {
+                      "key": { "file": { "key": "cjs_exports.js" } }
+                    },
+                    "span": { "start": 345, "length": 1 }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "file": { "key": "cjs_exports.js" },
+      "location": {
+        "name": "cjs_exports",
+        "file": { "key": "cjs_exports.js" },
+        "location": { "span": { "start": 0, "length": 0 } }
+      },
+      "entity": {
+        "flow": { "module_": { "key": { "string_": "cjs_exports" } } }
+      }
+    }
+  },
+  {
+    "key": {
+      "file": { "key": "cjs_exports.js" },
+      "location": {
+        "name": "cjs_exports.js",
+        "file": { "key": "cjs_exports.js" },
+        "location": { "span": { "start": 0, "length": 0 } }
+      },
+      "entity": {
+        "flow": {
+          "module_": { "key": { "file": { "key": "cjs_exports.js" } } }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "file": { "key": "cjs_exports.js" },
+      "location": {
+        "name": "plus",
+        "file": { "key": "cjs_exports.js" },
+        "location": { "span": { "start": 241, "length": 4 } }
+      },
+      "entity": {
+        "flow": {
+          "decl": {
+            "localDecl": {
+              "key": {
+                "name": { "key": "plus" },
+                "loc": {
+                  "key": {
+                    "module": {
+                      "key": { "file": { "key": "cjs_exports.js" } }
+                    },
+                    "span": { "start": 241, "length": 4 }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "file": { "key": "cjs_exports.js" },
+      "location": {
+        "name": "plus",
+        "file": { "key": "cjs_exports.js" },
+        "location": { "span": { "start": 373, "length": 4 } }
+      },
+      "entity": {
+        "flow": {
+          "decl": {
+            "memberDecl": {
+              "key": {
+                "name": { "key": "plus" },
+                "loc": {
+                  "key": {
+                    "module": {
+                      "key": { "file": { "key": "cjs_exports.js" } }
+                    },
+                    "span": { "start": 373, "length": 4 }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "file": { "key": "cjs_exports.js" },
+      "location": {
+        "name": "x",
+        "file": { "key": "cjs_exports.js" },
+        "location": { "span": { "start": 246, "length": 1 } }
+      },
+      "entity": {
+        "flow": {
+          "decl": {
+            "localDecl": {
+              "key": {
+                "name": { "key": "x" },
+                "loc": {
+                  "key": {
+                    "module": {
+                      "key": { "file": { "key": "cjs_exports.js" } }
+                    },
+                    "span": { "start": 246, "length": 1 }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "file": { "key": "es_exports.js" },
+      "location": {
+        "name": "es_exports.js",
+        "file": { "key": "es_exports.js" },
+        "location": { "span": { "start": 0, "length": 0 } }
+      },
+      "entity": {
+        "flow": { "module_": { "key": { "file": { "key": "es_exports.js" } } } }
+      }
+    }
+  },
+  {
+    "key": {
+      "file": { "key": "es_exports.js.flow" },
+      "location": {
+        "name": "BazClass",
+        "file": { "key": "es_exports.js.flow" },
+        "location": { "span": { "start": 381, "length": 8 } }
+      },
+      "entity": {
+        "flow": {
+          "decl": {
+            "localDecl": {
+              "key": {
+                "name": { "key": "BazClass" },
+                "loc": {
+                  "key": {
+                    "module": {
+                      "key": { "file": { "key": "es_exports.js.flow" } }
+                    },
+                    "span": { "start": 381, "length": 8 }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "file": { "key": "es_exports.js.flow" },
+      "location": {
+        "name": "BazClass",
+        "file": { "key": "es_exports.js.flow" },
+        "location": { "span": { "start": 381, "length": 8 } }
+      },
+      "entity": {
+        "flow": {
+          "decl": {
+            "typeDecl": {
+              "key": {
+                "name": { "key": "BazClass" },
+                "loc": {
+                  "key": {
+                    "module": {
+                      "key": { "file": { "key": "es_exports.js.flow" } }
+                    },
+                    "span": { "start": 381, "length": 8 }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "file": { "key": "es_exports.js.flow" },
+      "location": {
+        "name": "C",
+        "file": { "key": "es_exports.js.flow" },
+        "location": { "span": { "start": 639, "length": 1 } }
+      },
+      "entity": {
+        "flow": {
+          "decl": {
+            "localDecl": {
+              "key": {
+                "name": { "key": "C" },
+                "loc": {
+                  "key": {
+                    "module": {
+                      "key": { "file": { "key": "es_exports.js.flow" } }
+                    },
+                    "span": { "start": 639, "length": 1 }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "file": { "key": "es_exports.js.flow" },
+      "location": {
+        "name": "C",
+        "file": { "key": "es_exports.js.flow" },
+        "location": { "span": { "start": 639, "length": 1 } }
+      },
+      "entity": {
+        "flow": {
+          "decl": {
+            "typeDecl": {
+              "key": {
+                "name": { "key": "C" },
+                "loc": {
+                  "key": {
+                    "module": {
+                      "key": { "file": { "key": "es_exports.js.flow" } }
+                    },
+                    "span": { "start": 639, "length": 1 }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "file": { "key": "es_exports.js.flow" },
+      "location": {
+        "name": "Introduction",
+        "file": { "key": "es_exports.js.flow" },
+        "location": { "span": { "start": 558, "length": 12 } }
+      },
+      "entity": {
+        "flow": {
+          "decl": {
+            "localDecl": {
+              "key": {
+                "name": { "key": "Introduction" },
+                "loc": {
+                  "key": {
+                    "module": {
+                      "key": { "file": { "key": "es_exports.js.flow" } }
+                    },
+                    "span": { "start": 558, "length": 12 }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "file": { "key": "es_exports.js.flow" },
+      "location": {
+        "name": "MyT",
+        "file": { "key": "es_exports.js.flow" },
+        "location": { "span": { "start": 506, "length": 3 } }
+      },
+      "entity": {
+        "flow": {
+          "decl": {
+            "typeDecl": {
+              "key": {
+                "name": { "key": "MyT" },
+                "loc": {
+                  "key": {
+                    "module": {
+                      "key": { "file": { "key": "es_exports.js.flow" } }
+                    },
+                    "span": { "start": 506, "length": 3 }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "file": { "key": "es_exports.js.flow" },
+      "location": {
+        "name": "React",
+        "file": { "key": "es_exports.js.flow" },
+        "location": { "span": { "start": 243, "length": 5 } }
+      },
+      "entity": {
+        "flow": {
+          "decl": {
+            "localDecl": {
+              "key": {
+                "name": { "key": "React" },
+                "loc": {
+                  "key": {
+                    "module": {
+                      "key": { "file": { "key": "es_exports.js.flow" } }
+                    },
+                    "span": { "start": 243, "length": 5 }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "file": { "key": "es_exports.js.flow" },
+      "location": {
+        "name": "bar",
+        "file": { "key": "es_exports.js.flow" },
+        "location": { "span": { "start": 324, "length": 3 } }
+      },
+      "entity": {
+        "flow": {
+          "decl": {
+            "memberDecl": {
+              "key": {
+                "name": { "key": "bar" },
+                "loc": {
+                  "key": {
+                    "module": {
+                      "key": { "file": { "key": "es_exports.js.flow" } }
+                    },
+                    "span": { "start": 324, "length": 3 }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "file": { "key": "es_exports.js.flow" },
+      "location": {
+        "name": "bor",
+        "file": { "key": "es_exports.js.flow" },
+        "location": { "span": { "start": 324, "length": 3 } }
+      },
+      "entity": {
+        "flow": {
+          "decl": {
+            "localDecl": {
+              "key": {
+                "name": { "key": "bor" },
+                "loc": {
+                  "key": {
+                    "module": {
+                      "key": { "file": { "key": "es_exports.js.flow" } }
+                    },
+                    "span": { "start": 324, "length": 3 }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "file": { "key": "es_exports.js.flow" },
+      "location": {
+        "name": "d",
+        "file": { "key": "es_exports.js.flow" },
+        "location": { "span": { "start": 398, "length": 1 } }
+      },
+      "entity": {
+        "flow": {
+          "decl": {
+            "localDecl": {
+              "key": {
+                "name": { "key": "d" },
+                "loc": {
+                  "key": {
+                    "module": {
+                      "key": { "file": { "key": "es_exports.js.flow" } }
+                    },
+                    "span": { "start": 398, "length": 1 }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "file": { "key": "es_exports.js.flow" },
+      "location": {
+        "name": "es_exports.js.flow",
+        "file": { "key": "es_exports.js.flow" },
+        "location": { "span": { "start": 0, "length": 0 } }
+      },
+      "entity": {
+        "flow": {
+          "module_": { "key": { "file": { "key": "es_exports.js.flow" } } }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "file": { "key": "es_exports.js.flow" },
+      "location": {
+        "name": "foo",
+        "file": { "key": "es_exports.js.flow" },
+        "location": { "span": { "start": 268, "length": 3 } }
+      },
+      "entity": {
+        "flow": {
+          "decl": {
+            "localDecl": {
+              "key": {
+                "name": { "key": "foo" },
+                "loc": {
+                  "key": {
+                    "module": {
+                      "key": { "file": { "key": "es_exports.js.flow" } }
+                    },
+                    "span": { "start": 268, "length": 3 }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "file": { "key": "es_exports.js.flow" },
+      "location": {
+        "name": "name",
+        "file": { "key": "es_exports.js.flow" },
+        "location": { "span": { "start": 571, "length": 4 } }
+      },
+      "entity": {
+        "flow": {
+          "decl": {
+            "localDecl": {
+              "key": {
+                "name": { "key": "name" },
+                "loc": {
+                  "key": {
+                    "module": {
+                      "key": { "file": { "key": "es_exports.js.flow" } }
+                    },
+                    "span": { "start": 571, "length": 4 }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "file": { "key": "es_exports.js.flow" },
+      "location": {
+        "name": "num",
+        "file": { "key": "es_exports.js.flow" },
+        "location": { "span": { "start": 479, "length": 3 } }
+      },
+      "entity": {
+        "flow": {
+          "decl": {
+            "typeDecl": {
+              "key": {
+                "name": { "key": "num" },
+                "loc": {
+                  "key": {
+                    "module": {
+                      "key": { "file": { "key": "es_exports.js.flow" } }
+                    },
+                    "span": { "start": 479, "length": 3 }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "file": { "key": "es_exports.js.flow" },
+      "location": {
+        "name": "x",
+        "file": { "key": "es_exports.js.flow" },
+        "location": { "span": { "start": 328, "length": 1 } }
+      },
+      "entity": {
+        "flow": {
+          "decl": {
+            "localDecl": {
+              "key": {
+                "name": { "key": "x" },
+                "loc": {
+                  "key": {
+                    "module": {
+                      "key": { "file": { "key": "es_exports.js.flow" } }
+                    },
+                    "span": { "start": 328, "length": 1 }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "file": { "key": "imports.js" },
+      "location": {
+        "name": "BazClass",
+        "file": { "key": "imports.js" },
+        "location": { "span": { "start": 295, "length": 8 } }
+      },
+      "entity": {
+        "flow": {
+          "decl": {
+            "localDecl": {
+              "key": {
+                "name": { "key": "BazClass" },
+                "loc": {
+                  "key": {
+                    "module": { "key": { "file": { "key": "imports.js" } } },
+                    "span": { "start": 295, "length": 8 }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "file": { "key": "imports.js" },
+      "location": {
+        "name": "C",
+        "file": { "key": "imports.js" },
+        "location": { "span": { "start": 799, "length": 1 } }
+      },
+      "entity": {
+        "flow": {
+          "decl": {
+            "typeDecl": {
+              "key": {
+                "name": { "key": "C" },
+                "loc": {
+                  "key": {
+                    "module": { "key": { "file": { "key": "imports.js" } } },
+                    "span": { "start": 799, "length": 1 }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "file": { "key": "imports.js" },
+      "location": {
+        "name": "CazClass",
+        "file": { "key": "imports.js" },
+        "location": { "span": { "start": 749, "length": 8 } }
+      },
+      "entity": {
+        "flow": {
+          "decl": {
+            "localDecl": {
+              "key": {
+                "name": { "key": "CazClass" },
+                "loc": {
+                  "key": {
+                    "module": { "key": { "file": { "key": "imports.js" } } },
+                    "span": { "start": 749, "length": 8 }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "file": { "key": "imports.js" },
+      "location": {
+        "name": "CazClass",
+        "file": { "key": "imports.js" },
+        "location": { "span": { "start": 749, "length": 8 } }
+      },
+      "entity": {
+        "flow": {
+          "decl": {
+            "typeDecl": {
+              "key": {
+                "name": { "key": "CazClass" },
+                "loc": {
+                  "key": {
+                    "module": { "key": { "file": { "key": "imports.js" } } },
+                    "span": { "start": 749, "length": 8 }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "file": { "key": "imports.js" },
+      "location": {
+        "name": "Component",
+        "file": { "key": "imports.js" },
+        "location": { "span": { "start": 555, "length": 9 } }
+      },
+      "entity": {
+        "flow": {
+          "decl": {
+            "localDecl": {
+              "key": {
+                "name": { "key": "Component" },
+                "loc": {
+                  "key": {
+                    "module": { "key": { "file": { "key": "imports.js" } } },
+                    "span": { "start": 555, "length": 9 }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "file": { "key": "imports.js" },
+      "location": {
+        "name": "D",
+        "file": { "key": "imports.js" },
+        "location": { "span": { "start": 829, "length": 1 } }
+      },
+      "entity": {
+        "flow": {
+          "decl": {
+            "typeDecl": {
+              "key": {
+                "name": { "key": "D" },
+                "loc": {
+                  "key": {
+                    "module": { "key": { "file": { "key": "imports.js" } } },
+                    "span": { "start": 829, "length": 1 }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "file": { "key": "imports.js" },
+      "location": {
+        "name": "MyT",
+        "file": { "key": "imports.js" },
+        "location": { "span": { "start": 599, "length": 3 } }
+      },
+      "entity": {
+        "flow": {
+          "decl": {
+            "typeDecl": {
+              "key": {
+                "name": { "key": "MyT" },
+                "loc": {
+                  "key": {
+                    "module": { "key": { "file": { "key": "imports.js" } } },
+                    "span": { "start": 599, "length": 3 }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "file": { "key": "imports.js" },
+      "location": {
+        "name": "a",
+        "file": { "key": "imports.js" },
+        "location": { "span": { "start": 238, "length": 1 } }
+      },
+      "entity": {
+        "flow": {
+          "decl": {
+            "localDecl": {
+              "key": {
+                "name": { "key": "a" },
+                "loc": {
+                  "key": {
+                    "module": { "key": { "file": { "key": "imports.js" } } },
+                    "span": { "start": 238, "length": 1 }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "file": { "key": "imports.js" },
+      "location": {
+        "name": "b",
+        "file": { "key": "imports.js" },
+        "location": { "span": { "start": 240, "length": 1 } }
+      },
+      "entity": {
+        "flow": {
+          "decl": {
+            "localDecl": {
+              "key": {
+                "name": { "key": "b" },
+                "loc": {
+                  "key": {
+                    "module": { "key": { "file": { "key": "imports.js" } } },
+                    "span": { "start": 240, "length": 1 }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "file": { "key": "imports.js" },
+      "location": {
+        "name": "bar",
+        "file": { "key": "imports.js" },
+        "location": { "span": { "start": 290, "length": 3 } }
+      },
+      "entity": {
+        "flow": {
+          "decl": {
+            "localDecl": {
+              "key": {
+                "name": { "key": "bar" },
+                "loc": {
+                  "key": {
+                    "module": { "key": { "file": { "key": "imports.js" } } },
+                    "span": { "start": 290, "length": 3 }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "file": { "key": "imports.js" },
+      "location": {
+        "name": "c",
+        "file": { "key": "imports.js" },
+        "location": { "span": { "start": 242, "length": 1 } }
+      },
+      "entity": {
+        "flow": {
+          "decl": {
+            "localDecl": {
+              "key": {
+                "name": { "key": "c" },
+                "loc": {
+                  "key": {
+                    "module": { "key": { "file": { "key": "imports.js" } } },
+                    "span": { "start": 242, "length": 1 }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "file": { "key": "imports.js" },
+      "location": {
+        "name": "d",
+        "file": { "key": "imports.js" },
+        "location": { "span": { "start": 281, "length": 1 } }
+      },
+      "entity": {
+        "flow": {
+          "decl": {
+            "localDecl": {
+              "key": {
+                "name": { "key": "d" },
+                "loc": {
+                  "key": {
+                    "module": { "key": { "file": { "key": "imports.js" } } },
+                    "span": { "start": 281, "length": 1 }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "file": { "key": "imports.js" },
+      "location": {
+        "name": "e",
+        "file": { "key": "imports.js" },
+        "location": { "span": { "start": 630, "length": 1 } }
+      },
+      "entity": {
+        "flow": {
+          "decl": {
+            "localDecl": {
+              "key": {
+                "name": { "key": "e" },
+                "loc": {
+                  "key": {
+                    "module": { "key": { "file": { "key": "imports.js" } } },
+                    "span": { "start": 630, "length": 1 }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "file": { "key": "imports.js" },
+      "location": {
+        "name": "foo",
+        "file": { "key": "imports.js" },
+        "location": { "span": { "start": 285, "length": 3 } }
+      },
+      "entity": {
+        "flow": {
+          "decl": {
+            "localDecl": {
+              "key": {
+                "name": { "key": "foo" },
+                "loc": {
+                  "key": {
+                    "module": { "key": { "file": { "key": "imports.js" } } },
+                    "span": { "start": 285, "length": 3 }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "file": { "key": "imports.js" },
+      "location": {
+        "name": "imports.js",
+        "file": { "key": "imports.js" },
+        "location": { "span": { "start": 0, "length": 0 } }
+      },
+      "entity": {
+        "flow": { "module_": { "key": { "file": { "key": "imports.js" } } } }
+      }
+    }
+  },
+  {
+    "key": {
+      "file": { "key": "imports.js" },
+      "location": {
+        "name": "num",
+        "file": { "key": "imports.js" },
+        "location": { "span": { "start": 521, "length": 3 } }
+      },
+      "entity": {
+        "flow": {
+          "decl": {
+            "typeDecl": {
+              "key": {
+                "name": { "key": "num" },
+                "loc": {
+                  "key": {
+                    "module": { "key": { "file": { "key": "imports.js" } } },
+                    "span": { "start": 521, "length": 3 }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "file": { "key": "imports.js" },
+      "location": {
+        "name": "plus",
+        "file": { "key": "imports.js" },
+        "location": { "span": { "start": 414, "length": 4 } }
+      },
+      "entity": {
+        "flow": {
+          "decl": {
+            "localDecl": {
+              "key": {
+                "name": { "key": "plus" },
+                "loc": {
+                  "key": {
+                    "module": { "key": { "file": { "key": "imports.js" } } },
+                    "span": { "start": 414, "length": 4 }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "file": { "key": "imports.js" },
+      "location": {
+        "name": "qux",
+        "file": { "key": "imports.js" },
+        "location": { "span": { "start": 338, "length": 3 } }
+      },
+      "entity": {
+        "flow": {
+          "decl": {
+            "localDecl": {
+              "key": {
+                "name": { "key": "qux" },
+                "loc": {
+                  "key": {
+                    "module": { "key": { "file": { "key": "imports.js" } } },
+                    "span": { "start": 338, "length": 3 }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "file": { "key": "imports.js" },
+      "location": {
+        "name": "s",
+        "file": { "key": "imports.js" },
+        "location": { "span": { "start": 840, "length": 1 } }
+      },
+      "entity": {
+        "flow": {
+          "decl": {
+            "localDecl": {
+              "key": {
+                "name": { "key": "s" },
+                "loc": {
+                  "key": {
+                    "module": { "key": { "file": { "key": "imports.js" } } },
+                    "span": { "start": 840, "length": 1 }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "file": { "key": "imports.js" },
+      "location": {
+        "name": "str",
+        "file": { "key": "imports.js" },
+        "location": { "span": { "start": 793, "length": 3 } }
+      },
+      "entity": {
+        "flow": {
+          "decl": {
+            "typeDecl": {
+              "key": {
+                "name": { "key": "str" },
+                "loc": {
+                  "key": {
+                    "module": { "key": { "file": { "key": "imports.js" } } },
+                    "span": { "start": 793, "length": 3 }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "file": { "key": "imports.js" },
+      "location": {
+        "name": "times",
+        "file": { "key": "imports.js" },
+        "location": { "span": { "start": 370, "length": 5 } }
+      },
+      "entity": {
+        "flow": {
+          "decl": {
+            "localDecl": {
+              "key": {
+                "name": { "key": "times" },
+                "loc": {
+                  "key": {
+                    "module": { "key": { "file": { "key": "imports.js" } } },
+                    "span": { "start": 370, "length": 5 }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "file": { "key": "imports.js" },
+      "location": {
+        "name": "x",
+        "file": { "key": "imports.js" },
+        "location": { "span": { "start": 650, "length": 1 } }
+      },
+      "entity": {
+        "flow": {
+          "decl": {
+            "localDecl": {
+              "key": {
+                "name": { "key": "x" },
+                "loc": {
+                  "key": {
+                    "module": { "key": { "file": { "key": "imports.js" } } },
+                    "span": { "start": 650, "length": 1 }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "file": { "key": "imports.js" },
+      "location": {
+        "name": "y",
+        "file": { "key": "imports.js" },
+        "location": { "span": { "start": 671, "length": 1 } }
+      },
+      "entity": {
+        "flow": {
+          "decl": {
+            "localDecl": {
+              "key": {
+                "name": { "key": "y" },
+                "loc": {
+                  "key": {
+                    "module": { "key": { "file": { "key": "imports.js" } } },
+                    "span": { "start": 671, "length": 1 }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "file": { "key": "imports.js" },
+      "location": {
+        "name": "z",
+        "file": { "key": "imports.js" },
+        "location": { "span": { "start": 698, "length": 1 } }
+      },
+      "entity": {
+        "flow": {
+          "decl": {
+            "localDecl": {
+              "key": {
+                "name": { "key": "z" },
+                "loc": {
+                  "key": {
+                    "module": { "key": { "file": { "key": "imports.js" } } },
+                    "span": { "start": 698, "length": 1 }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "file": { "key": "imports.js" },
+      "location": {
+        "name": "z1",
+        "file": { "key": "imports.js" },
+        "location": { "span": { "start": 720, "length": 2 } }
+      },
+      "entity": {
+        "flow": {
+          "decl": {
+            "localDecl": {
+              "key": {
+                "name": { "key": "z1" },
+                "loc": {
+                  "key": {
+                    "module": { "key": { "file": { "key": "imports.js" } } },
+                    "span": { "start": 720, "length": 2 }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "file": { "key": "subdir/more_cjs.js" },
+      "location": {
+        "name": "subdir/more_cjs.js",
+        "file": { "key": "subdir/more_cjs.js" },
+        "location": { "span": { "start": 0, "length": 0 } }
+      },
+      "entity": {
+        "flow": {
+          "module_": { "key": { "file": { "key": "subdir/more_cjs.js" } } }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "file": { "key": "subdir/more_cjs.js" },
+      "location": {
+        "name": "times",
+        "file": { "key": "subdir/more_cjs.js" },
+        "location": { "span": { "start": 240, "length": 5 } }
+      },
+      "entity": {
+        "flow": {
+          "decl": {
+            "localDecl": {
+              "key": {
+                "name": { "key": "times" },
+                "loc": {
+                  "key": {
+                    "module": {
+                      "key": { "file": { "key": "subdir/more_cjs.js" } }
+                    },
+                    "span": { "start": 240, "length": 5 }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "file": { "key": "subdir/more_cjs.js" },
+      "location": {
+        "name": "x",
+        "file": { "key": "subdir/more_cjs.js" },
+        "location": { "span": { "start": 246, "length": 1 } }
+      },
+      "entity": {
+        "flow": {
+          "decl": {
+            "localDecl": {
+              "key": {
+                "name": { "key": "x" },
+                "loc": {
+                  "key": {
+                    "module": {
+                      "key": { "file": { "key": "subdir/more_cjs.js" } }
+                    },
+                    "span": { "start": 246, "length": 1 }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "file": { "key": "subdir/more_cjs.js" },
+      "location": {
+        "name": "y",
+        "file": { "key": "subdir/more_cjs.js" },
+        "location": { "span": { "start": 257, "length": 1 } }
+      },
+      "entity": {
+        "flow": {
+          "decl": {
+            "localDecl": {
+              "key": {
+                "name": { "key": "y" },
+                "loc": {
+                  "key": {
+                    "module": {
+                      "key": { "file": { "key": "subdir/more_cjs.js" } }
+                    },
+                    "span": { "start": 257, "length": 1 }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+]

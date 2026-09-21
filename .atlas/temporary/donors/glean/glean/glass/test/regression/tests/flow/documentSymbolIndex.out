@@ -1,0 +1,2230 @@
+[
+    "@generated",
+    {
+        "referenced_file_digests": {},
+        "revision": "testhash",
+        "size": 69,
+        "symbols": {
+            "1": [
+                {
+                    "attributes": {
+                        "symbolKind": {
+                            "aInteger": 5
+                        },
+                        "symbolLanguage": {
+                            "aInteger": 2
+                        },
+                        "symbolName": {
+                            "aString": "imports"
+                        },
+                        "symbolParent": {
+                            "aString": ""
+                        },
+                        "symbolSignature": {
+                            "aString": "test/imports.js"
+                        }
+                    },
+                    "range": {
+                        "columnBegin": 1,
+                        "columnEnd": 1,
+                        "lineBegin": 1,
+                        "lineEnd": 1
+                    },
+                    "sym": "test/js/imports"
+                }
+            ],
+            "11": [
+                {
+                    "attributes": {
+                        "symbolKind": {
+                            "aInteger": 9
+                        },
+                        "symbolLanguage": {
+                            "aInteger": 2
+                        },
+                        "symbolName": {
+                            "aString": "a"
+                        },
+                        "symbolParent": {
+                            "aString": "cjs_exports"
+                        }
+                    },
+                    "range": {
+                        "columnBegin": 8,
+                        "columnEnd": 9,
+                        "lineBegin": 11,
+                        "lineEnd": 11
+                    },
+                    "sym": "test/js/cjs_exports/a",
+                    "target": {
+                        "filepath": "test/cjs_exports.js",
+                        "range": {
+                            "columnBegin": 16,
+                            "columnEnd": 17,
+                            "lineBegin": 13,
+                            "lineEnd": 13
+                        },
+                        "repository": "test"
+                    }
+                },
+                {
+                    "attributes": {
+                        "symbolKind": {
+                            "aInteger": 9
+                        },
+                        "symbolLanguage": {
+                            "aInteger": 2
+                        },
+                        "symbolName": {
+                            "aString": "b"
+                        },
+                        "symbolParent": {
+                            "aString": "cjs_exports"
+                        }
+                    },
+                    "range": {
+                        "columnBegin": 10,
+                        "columnEnd": 11,
+                        "lineBegin": 11,
+                        "lineEnd": 11
+                    },
+                    "sym": "test/js/cjs_exports/b",
+                    "target": {
+                        "filepath": "test/cjs_exports.js",
+                        "range": {
+                            "columnBegin": 16,
+                            "columnEnd": 17,
+                            "lineBegin": 14,
+                            "lineEnd": 14
+                        },
+                        "repository": "test"
+                    }
+                },
+                {
+                    "attributes": {
+                        "symbolKind": {
+                            "aInteger": 9
+                        },
+                        "symbolLanguage": {
+                            "aInteger": 2
+                        },
+                        "symbolName": {
+                            "aString": "c"
+                        },
+                        "symbolParent": {
+                            "aString": "cjs_exports"
+                        }
+                    },
+                    "range": {
+                        "columnBegin": 12,
+                        "columnEnd": 13,
+                        "lineBegin": 11,
+                        "lineEnd": 11
+                    },
+                    "sym": "test/js/cjs_exports/c",
+                    "target": {
+                        "filepath": "test/cjs_exports.js",
+                        "range": {
+                            "columnBegin": 16,
+                            "columnEnd": 17,
+                            "lineBegin": 15,
+                            "lineEnd": 15
+                        },
+                        "repository": "test"
+                    }
+                },
+                {
+                    "attributes": {
+                        "symbolKind": {
+                            "aInteger": 21
+                        },
+                        "symbolLanguage": {
+                            "aInteger": 2
+                        },
+                        "symbolName": {
+                            "aString": "a"
+                        },
+                        "symbolParent": {
+                            "aString": "imports"
+                        },
+                        "symbolSignature": {
+                            "aString": "a: number"
+                        }
+                    },
+                    "range": {
+                        "columnBegin": 8,
+                        "columnEnd": 9,
+                        "lineBegin": 11,
+                        "lineEnd": 11
+                    },
+                    "sym": "test/js/imports/a"
+                },
+                {
+                    "attributes": {
+                        "symbolKind": {
+                            "aInteger": 21
+                        },
+                        "symbolLanguage": {
+                            "aInteger": 2
+                        },
+                        "symbolName": {
+                            "aString": "b"
+                        },
+                        "symbolParent": {
+                            "aString": "imports"
+                        },
+                        "symbolSignature": {
+                            "aString": "b: boolean"
+                        }
+                    },
+                    "range": {
+                        "columnBegin": 10,
+                        "columnEnd": 11,
+                        "lineBegin": 11,
+                        "lineEnd": 11
+                    },
+                    "sym": "test/js/imports/b"
+                },
+                {
+                    "attributes": {
+                        "symbolKind": {
+                            "aInteger": 21
+                        },
+                        "symbolLanguage": {
+                            "aInteger": 2
+                        },
+                        "symbolName": {
+                            "aString": "c"
+                        },
+                        "symbolParent": {
+                            "aString": "imports"
+                        },
+                        "symbolSignature": {
+                            "aString": "c: string"
+                        }
+                    },
+                    "range": {
+                        "columnBegin": 12,
+                        "columnEnd": 13,
+                        "lineBegin": 11,
+                        "lineEnd": 11
+                    },
+                    "sym": "test/js/imports/c"
+                }
+            ],
+            "13": [
+                {
+                    "attributes": {
+                        "symbolKind": {
+                            "aInteger": 21
+                        },
+                        "symbolLanguage": {
+                            "aInteger": 2
+                        },
+                        "symbolName": {
+                            "aString": "BazClass"
+                        },
+                        "symbolParent": {
+                            "aString": "es_exports"
+                        },
+                        "symbolSignature": {
+                            "aString": "BazClass: class BazClass"
+                        }
+                    },
+                    "range": {
+                        "columnBegin": 22,
+                        "columnEnd": 30,
+                        "lineBegin": 13,
+                        "lineEnd": 13
+                    },
+                    "sym": "test/js/es_exports/BazClass",
+                    "target": {
+                        "filepath": "test/es_exports.js.flow",
+                        "range": {
+                            "columnBegin": 14,
+                            "columnEnd": 22,
+                            "lineBegin": 22,
+                            "lineEnd": 22
+                        },
+                        "repository": "test"
+                    }
+                },
+                {
+                    "attributes": {
+                        "symbolKind": {
+                            "aInteger": 21
+                        },
+                        "symbolLanguage": {
+                            "aInteger": 2
+                        },
+                        "symbolName": {
+                            "aString": "bor"
+                        },
+                        "symbolParent": {
+                            "aString": "es_exports"
+                        },
+                        "symbolSignature": {
+                            "aString": "bor: (x: number) => number"
+                        }
+                    },
+                    "range": {
+                        "columnBegin": 17,
+                        "columnEnd": 20,
+                        "lineBegin": 13,
+                        "lineEnd": 13
+                    },
+                    "sym": "test/js/es_exports/bor",
+                    "target": {
+                        "filepath": "test/es_exports.js.flow",
+                        "range": {
+                            "columnBegin": 10,
+                            "columnEnd": 13,
+                            "lineBegin": 18,
+                            "lineEnd": 18
+                        },
+                        "repository": "test"
+                    }
+                },
+                {
+                    "attributes": {
+                        "symbolKind": {
+                            "aInteger": 21
+                        },
+                        "symbolLanguage": {
+                            "aInteger": 2
+                        },
+                        "symbolName": {
+                            "aString": "d"
+                        },
+                        "symbolParent": {
+                            "aString": "es_exports"
+                        },
+                        "symbolSignature": {
+                            "aString": "d: string"
+                        }
+                    },
+                    "range": {
+                        "columnBegin": 8,
+                        "columnEnd": 9,
+                        "lineBegin": 13,
+                        "lineEnd": 13
+                    },
+                    "sym": "test/js/es_exports/d",
+                    "target": {
+                        "filepath": "test/es_exports.js.flow",
+                        "range": {
+                            "columnBegin": 5,
+                            "columnEnd": 6,
+                            "lineBegin": 24,
+                            "lineEnd": 24
+                        },
+                        "repository": "test"
+                    }
+                },
+                {
+                    "attributes": {
+                        "symbolKind": {
+                            "aInteger": 21
+                        },
+                        "symbolLanguage": {
+                            "aInteger": 2
+                        },
+                        "symbolName": {
+                            "aString": "foo"
+                        },
+                        "symbolParent": {
+                            "aString": "es_exports"
+                        },
+                        "symbolSignature": {
+                            "aString": "foo: number"
+                        }
+                    },
+                    "range": {
+                        "columnBegin": 12,
+                        "columnEnd": 15,
+                        "lineBegin": 13,
+                        "lineEnd": 13
+                    },
+                    "sym": "test/js/es_exports/foo",
+                    "target": {
+                        "filepath": "test/es_exports.js.flow",
+                        "range": {
+                            "columnBegin": 5,
+                            "columnEnd": 8,
+                            "lineBegin": 13,
+                            "lineEnd": 13
+                        },
+                        "repository": "test"
+                    }
+                },
+                {
+                    "attributes": {
+                        "symbolKind": {
+                            "aInteger": 21
+                        },
+                        "symbolLanguage": {
+                            "aInteger": 2
+                        },
+                        "symbolName": {
+                            "aString": "BazClass"
+                        },
+                        "symbolParent": {
+                            "aString": "imports"
+                        },
+                        "symbolSignature": {
+                            "aString": "BazClass: class BazClass"
+                        }
+                    },
+                    "range": {
+                        "columnBegin": 22,
+                        "columnEnd": 30,
+                        "lineBegin": 13,
+                        "lineEnd": 13
+                    },
+                    "sym": "test/js/imports/BazClass"
+                },
+                {
+                    "attributes": {
+                        "symbolKind": {
+                            "aInteger": 21
+                        },
+                        "symbolLanguage": {
+                            "aInteger": 2
+                        },
+                        "symbolName": {
+                            "aString": "bar"
+                        },
+                        "symbolParent": {
+                            "aString": "imports"
+                        },
+                        "symbolSignature": {
+                            "aString": "bar: (x: number) => number"
+                        }
+                    },
+                    "range": {
+                        "columnBegin": 17,
+                        "columnEnd": 20,
+                        "lineBegin": 13,
+                        "lineEnd": 13
+                    },
+                    "sym": "test/js/imports/bar"
+                },
+                {
+                    "attributes": {
+                        "symbolKind": {
+                            "aInteger": 21
+                        },
+                        "symbolLanguage": {
+                            "aInteger": 2
+                        },
+                        "symbolName": {
+                            "aString": "d"
+                        },
+                        "symbolParent": {
+                            "aString": "imports"
+                        },
+                        "symbolSignature": {
+                            "aString": "d: string"
+                        }
+                    },
+                    "range": {
+                        "columnBegin": 8,
+                        "columnEnd": 9,
+                        "lineBegin": 13,
+                        "lineEnd": 13
+                    },
+                    "sym": "test/js/imports/d"
+                },
+                {
+                    "attributes": {
+                        "symbolKind": {
+                            "aInteger": 21
+                        },
+                        "symbolLanguage": {
+                            "aInteger": 2
+                        },
+                        "symbolName": {
+                            "aString": "foo"
+                        },
+                        "symbolParent": {
+                            "aString": "imports"
+                        },
+                        "symbolSignature": {
+                            "aString": "foo: number"
+                        }
+                    },
+                    "range": {
+                        "columnBegin": 12,
+                        "columnEnd": 15,
+                        "lineBegin": 13,
+                        "lineEnd": 13
+                    },
+                    "sym": "test/js/imports/foo"
+                }
+            ],
+            "14": [
+                {
+                    "attributes": {
+                        "symbolKind": {
+                            "aInteger": 5
+                        },
+                        "symbolLanguage": {
+                            "aInteger": 2
+                        },
+                        "symbolName": {
+                            "aString": "es_exports"
+                        },
+                        "symbolParent": {
+                            "aString": ""
+                        },
+                        "symbolSignature": {
+                            "aString": "test/es_exports.js"
+                        }
+                    },
+                    "range": {
+                        "columnBegin": 13,
+                        "columnEnd": 16,
+                        "lineBegin": 14,
+                        "lineEnd": 14
+                    },
+                    "sym": "test/js/es_exports",
+                    "target": {
+                        "filepath": "test/es_exports.js",
+                        "range": {
+                            "columnBegin": 0,
+                            "columnEnd": 0,
+                            "lineBegin": 0,
+                            "lineEnd": 0
+                        },
+                        "repository": "test"
+                    }
+                },
+                {
+                    "attributes": {
+                        "symbolKind": {
+                            "aInteger": 21
+                        },
+                        "symbolLanguage": {
+                            "aInteger": 2
+                        },
+                        "symbolName": {
+                            "aString": "qux"
+                        },
+                        "symbolParent": {
+                            "aString": "imports"
+                        },
+                        "symbolSignature": {
+                            "aString": "qux: module \"./es_exports\""
+                        }
+                    },
+                    "range": {
+                        "columnBegin": 13,
+                        "columnEnd": 16,
+                        "lineBegin": 14,
+                        "lineEnd": 14
+                    },
+                    "sym": "test/js/imports/qux"
+                }
+            ],
+            "15": [
+                {
+                    "attributes": {
+                        "symbolKind": {
+                            "aInteger": 21
+                        },
+                        "symbolLanguage": {
+                            "aInteger": 2
+                        },
+                        "symbolName": {
+                            "aString": "times"
+                        },
+                        "symbolParent": {
+                            "aString": "imports"
+                        },
+                        "symbolSignature": {
+                            "aString": "times: (x: number, y: number) => number"
+                        }
+                    },
+                    "range": {
+                        "columnBegin": 8,
+                        "columnEnd": 13,
+                        "lineBegin": 15,
+                        "lineEnd": 15
+                    },
+                    "sym": "test/js/imports/times"
+                },
+                {
+                    "attributes": {
+                        "symbolKind": {
+                            "aInteger": 21
+                        },
+                        "symbolLanguage": {
+                            "aInteger": 2
+                        },
+                        "symbolName": {
+                            "aString": "times"
+                        },
+                        "symbolParent": {
+                            "aString": "more_cjs"
+                        },
+                        "symbolSignature": {
+                            "aString": "times: (x: number, y: number) => number"
+                        }
+                    },
+                    "range": {
+                        "columnBegin": 8,
+                        "columnEnd": 13,
+                        "lineBegin": 15,
+                        "lineEnd": 15
+                    },
+                    "sym": "test/js/more_cjs/times",
+                    "target": {
+                        "filepath": "test/subdir/more_cjs.js",
+                        "range": {
+                            "columnBegin": 10,
+                            "columnEnd": 15,
+                            "lineBegin": 11,
+                            "lineEnd": 11
+                        },
+                        "repository": "test"
+                    }
+                }
+            ],
+            "17": [
+                {
+                    "attributes": {
+                        "symbolKind": {
+                            "aInteger": 9
+                        },
+                        "symbolLanguage": {
+                            "aInteger": 2
+                        },
+                        "symbolName": {
+                            "aString": "plus"
+                        },
+                        "symbolParent": {
+                            "aString": "cjs_exports"
+                        }
+                    },
+                    "range": {
+                        "columnBegin": 9,
+                        "columnEnd": 13,
+                        "lineBegin": 17,
+                        "lineEnd": 17
+                    },
+                    "sym": "test/js/cjs_exports/plus",
+                    "target": {
+                        "filepath": "test/cjs_exports.js",
+                        "range": {
+                            "columnBegin": 16,
+                            "columnEnd": 20,
+                            "lineBegin": 16,
+                            "lineEnd": 16
+                        },
+                        "repository": "test"
+                    }
+                },
+                {
+                    "attributes": {
+                        "symbolKind": {
+                            "aInteger": 21
+                        },
+                        "symbolLanguage": {
+                            "aInteger": 2
+                        },
+                        "symbolName": {
+                            "aString": "plus"
+                        },
+                        "symbolParent": {
+                            "aString": "imports"
+                        },
+                        "symbolSignature": {
+                            "aString": "plus: (x: number) => number"
+                        }
+                    },
+                    "range": {
+                        "columnBegin": 9,
+                        "columnEnd": 13,
+                        "lineBegin": 17,
+                        "lineEnd": 17
+                    },
+                    "sym": "test/js/imports/plus"
+                }
+            ],
+            "20": [
+                {
+                    "attributes": {
+                        "symbolKind": {
+                            "aInteger": 2
+                        },
+                        "symbolLanguage": {
+                            "aInteger": 2
+                        },
+                        "symbolName": {
+                            "aString": "num"
+                        },
+                        "symbolParent": {
+                            "aString": "es_exports"
+                        },
+                        "symbolSignature": {
+                            "aString": "num: type num = number"
+                        }
+                    },
+                    "range": {
+                        "columnBegin": 14,
+                        "columnEnd": 17,
+                        "lineBegin": 20,
+                        "lineEnd": 20
+                    },
+                    "sym": "test/js/es_exports/num",
+                    "target": {
+                        "filepath": "test/es_exports.js.flow",
+                        "range": {
+                            "columnBegin": 13,
+                            "columnEnd": 16,
+                            "lineBegin": 30,
+                            "lineEnd": 30
+                        },
+                        "repository": "test"
+                    }
+                },
+                {
+                    "attributes": {
+                        "symbolKind": {
+                            "aInteger": 2
+                        },
+                        "symbolLanguage": {
+                            "aInteger": 2
+                        },
+                        "symbolName": {
+                            "aString": "num"
+                        },
+                        "symbolParent": {
+                            "aString": "imports"
+                        }
+                    },
+                    "range": {
+                        "columnBegin": 14,
+                        "columnEnd": 17,
+                        "lineBegin": 20,
+                        "lineEnd": 20
+                    },
+                    "sym": "test/js/imports/num"
+                }
+            ],
+            "22": [
+                {
+                    "attributes": {
+                        "symbolKind": {
+                            "aInteger": 21
+                        },
+                        "symbolLanguage": {
+                            "aInteger": 2
+                        },
+                        "symbolName": {
+                            "aString": "d"
+                        },
+                        "symbolParent": {
+                            "aString": "es_exports"
+                        },
+                        "symbolSignature": {
+                            "aString": "d: string"
+                        }
+                    },
+                    "range": {
+                        "columnBegin": 8,
+                        "columnEnd": 17,
+                        "lineBegin": 22,
+                        "lineEnd": 22
+                    },
+                    "sym": "test/js/es_exports/d",
+                    "target": {
+                        "filepath": "test/es_exports.js.flow",
+                        "range": {
+                            "columnBegin": 5,
+                            "columnEnd": 6,
+                            "lineBegin": 24,
+                            "lineEnd": 24
+                        },
+                        "repository": "test"
+                    }
+                },
+                {
+                    "attributes": {
+                        "symbolKind": {
+                            "aInteger": 21
+                        },
+                        "symbolLanguage": {
+                            "aInteger": 2
+                        },
+                        "symbolName": {
+                            "aString": "Component"
+                        },
+                        "symbolParent": {
+                            "aString": "imports"
+                        },
+                        "symbolSignature": {
+                            "aString": "Component: string"
+                        }
+                    },
+                    "range": {
+                        "columnBegin": 8,
+                        "columnEnd": 17,
+                        "lineBegin": 22,
+                        "lineEnd": 22
+                    },
+                    "sym": "test/js/imports/Component"
+                }
+            ],
+            "23": [
+                {
+                    "attributes": {
+                        "symbolKind": {
+                            "aInteger": 2
+                        },
+                        "symbolLanguage": {
+                            "aInteger": 2
+                        },
+                        "symbolName": {
+                            "aString": "MyT"
+                        },
+                        "symbolParent": {
+                            "aString": "es_exports"
+                        },
+                        "symbolSignature": {
+                            "aString": "MyT: type MyT = {field1: number, ...}"
+                        }
+                    },
+                    "range": {
+                        "columnBegin": 14,
+                        "columnEnd": 17,
+                        "lineBegin": 23,
+                        "lineEnd": 23
+                    },
+                    "sym": "test/js/es_exports/MyT",
+                    "target": {
+                        "filepath": "test/es_exports.js.flow",
+                        "range": {
+                            "columnBegin": 13,
+                            "columnEnd": 16,
+                            "lineBegin": 32,
+                            "lineEnd": 32
+                        },
+                        "repository": "test"
+                    }
+                },
+                {
+                    "attributes": {
+                        "symbolKind": {
+                            "aInteger": 2
+                        },
+                        "symbolLanguage": {
+                            "aInteger": 2
+                        },
+                        "symbolName": {
+                            "aString": "MyT"
+                        },
+                        "symbolParent": {
+                            "aString": "imports"
+                        }
+                    },
+                    "range": {
+                        "columnBegin": 14,
+                        "columnEnd": 17,
+                        "lineBegin": 23,
+                        "lineEnd": 23
+                    },
+                    "sym": "test/js/imports/MyT"
+                }
+            ],
+            "25": [
+                {
+                    "attributes": {
+                        "symbolKind": {
+                            "aInteger": 21
+                        },
+                        "symbolLanguage": {
+                            "aInteger": 2
+                        },
+                        "symbolName": {
+                            "aString": "d"
+                        },
+                        "symbolParent": {
+                            "aString": "es_exports"
+                        },
+                        "symbolSignature": {
+                            "aString": "d: string"
+                        }
+                    },
+                    "range": {
+                        "columnBegin": 17,
+                        "columnEnd": 18,
+                        "lineBegin": 25,
+                        "lineEnd": 25
+                    },
+                    "sym": "test/js/es_exports/d",
+                    "target": {
+                        "filepath": "test/es_exports.js.flow",
+                        "range": {
+                            "columnBegin": 5,
+                            "columnEnd": 6,
+                            "lineBegin": 24,
+                            "lineEnd": 24
+                        },
+                        "repository": "test"
+                    }
+                },
+                {
+                    "attributes": {
+                        "symbolKind": {
+                            "aInteger": 21
+                        },
+                        "symbolLanguage": {
+                            "aInteger": 2
+                        },
+                        "symbolName": {
+                            "aString": "d"
+                        },
+                        "symbolParent": {
+                            "aString": "imports"
+                        },
+                        "symbolSignature": {
+                            "aString": "d: string"
+                        }
+                    },
+                    "range": {
+                        "columnBegin": 17,
+                        "columnEnd": 18,
+                        "lineBegin": 25,
+                        "lineEnd": 25
+                    },
+                    "sym": "test/js/imports/d",
+                    "target": {
+                        "filepath": "test/imports.js",
+                        "range": {
+                            "columnBegin": 8,
+                            "columnEnd": 9,
+                            "lineBegin": 13,
+                            "lineEnd": 13
+                        },
+                        "repository": "test"
+                    }
+                },
+                {
+                    "attributes": {
+                        "symbolKind": {
+                            "aInteger": 21
+                        },
+                        "symbolLanguage": {
+                            "aInteger": 2
+                        },
+                        "symbolName": {
+                            "aString": "e"
+                        },
+                        "symbolParent": {
+                            "aString": "imports"
+                        },
+                        "symbolSignature": {
+                            "aString": "e: string"
+                        }
+                    },
+                    "range": {
+                        "columnBegin": 5,
+                        "columnEnd": 6,
+                        "lineBegin": 25,
+                        "lineEnd": 25
+                    },
+                    "sym": "test/js/imports/e"
+                }
+            ],
+            "27": [
+                {
+                    "attributes": {
+                        "symbolKind": {
+                            "aInteger": 9
+                        },
+                        "symbolLanguage": {
+                            "aInteger": 2
+                        },
+                        "symbolName": {
+                            "aString": "a"
+                        },
+                        "symbolParent": {
+                            "aString": "cjs_exports"
+                        }
+                    },
+                    "range": {
+                        "columnBegin": 18,
+                        "columnEnd": 19,
+                        "lineBegin": 27,
+                        "lineEnd": 27
+                    },
+                    "sym": "test/js/cjs_exports/a",
+                    "target": {
+                        "filepath": "test/cjs_exports.js",
+                        "range": {
+                            "columnBegin": 16,
+                            "columnEnd": 17,
+                            "lineBegin": 13,
+                            "lineEnd": 13
+                        },
+                        "repository": "test"
+                    }
+                },
+                {
+                    "attributes": {
+                        "symbolKind": {
+                            "aInteger": 21
+                        },
+                        "symbolLanguage": {
+                            "aInteger": 2
+                        },
+                        "symbolName": {
+                            "aString": "bor"
+                        },
+                        "symbolParent": {
+                            "aString": "es_exports"
+                        },
+                        "symbolSignature": {
+                            "aString": "bor: (x: number) => number"
+                        }
+                    },
+                    "range": {
+                        "columnBegin": 14,
+                        "columnEnd": 17,
+                        "lineBegin": 27,
+                        "lineEnd": 27
+                    },
+                    "sym": "test/js/es_exports/bor",
+                    "target": {
+                        "filepath": "test/es_exports.js.flow",
+                        "range": {
+                            "columnBegin": 10,
+                            "columnEnd": 13,
+                            "lineBegin": 18,
+                            "lineEnd": 18
+                        },
+                        "repository": "test"
+                    }
+                },
+                {
+                    "attributes": {
+                        "symbolKind": {
+                            "aInteger": 2
+                        },
+                        "symbolLanguage": {
+                            "aInteger": 2
+                        },
+                        "symbolName": {
+                            "aString": "num"
+                        },
+                        "symbolParent": {
+                            "aString": "es_exports"
+                        },
+                        "symbolSignature": {
+                            "aString": "num: type num = number"
+                        }
+                    },
+                    "range": {
+                        "columnBegin": 8,
+                        "columnEnd": 11,
+                        "lineBegin": 27,
+                        "lineEnd": 27
+                    },
+                    "sym": "test/js/es_exports/num",
+                    "target": {
+                        "filepath": "test/es_exports.js.flow",
+                        "range": {
+                            "columnBegin": 13,
+                            "columnEnd": 16,
+                            "lineBegin": 30,
+                            "lineEnd": 30
+                        },
+                        "repository": "test"
+                    }
+                },
+                {
+                    "attributes": {
+                        "symbolKind": {
+                            "aInteger": 21
+                        },
+                        "symbolLanguage": {
+                            "aInteger": 2
+                        },
+                        "symbolName": {
+                            "aString": "a"
+                        },
+                        "symbolParent": {
+                            "aString": "imports"
+                        },
+                        "symbolSignature": {
+                            "aString": "a: number"
+                        }
+                    },
+                    "range": {
+                        "columnBegin": 18,
+                        "columnEnd": 19,
+                        "lineBegin": 27,
+                        "lineEnd": 27
+                    },
+                    "sym": "test/js/imports/a",
+                    "target": {
+                        "filepath": "test/imports.js",
+                        "range": {
+                            "columnBegin": 8,
+                            "columnEnd": 9,
+                            "lineBegin": 11,
+                            "lineEnd": 11
+                        },
+                        "repository": "test"
+                    }
+                },
+                {
+                    "attributes": {
+                        "symbolKind": {
+                            "aInteger": 21
+                        },
+                        "symbolLanguage": {
+                            "aInteger": 2
+                        },
+                        "symbolName": {
+                            "aString": "bar"
+                        },
+                        "symbolParent": {
+                            "aString": "imports"
+                        },
+                        "symbolSignature": {
+                            "aString": "bar: (x: number) => number"
+                        }
+                    },
+                    "range": {
+                        "columnBegin": 14,
+                        "columnEnd": 17,
+                        "lineBegin": 27,
+                        "lineEnd": 27
+                    },
+                    "sym": "test/js/imports/bar",
+                    "target": {
+                        "filepath": "test/imports.js",
+                        "range": {
+                            "columnBegin": 17,
+                            "columnEnd": 20,
+                            "lineBegin": 13,
+                            "lineEnd": 13
+                        },
+                        "repository": "test"
+                    }
+                },
+                {
+                    "attributes": {
+                        "symbolKind": {
+                            "aInteger": 2
+                        },
+                        "symbolLanguage": {
+                            "aInteger": 2
+                        },
+                        "symbolName": {
+                            "aString": "num"
+                        },
+                        "symbolParent": {
+                            "aString": "imports"
+                        }
+                    },
+                    "range": {
+                        "columnBegin": 8,
+                        "columnEnd": 11,
+                        "lineBegin": 27,
+                        "lineEnd": 27
+                    },
+                    "sym": "test/js/imports/num",
+                    "target": {
+                        "filepath": "test/imports.js",
+                        "range": {
+                            "columnBegin": 14,
+                            "columnEnd": 17,
+                            "lineBegin": 20,
+                            "lineEnd": 20
+                        },
+                        "repository": "test"
+                    }
+                },
+                {
+                    "attributes": {
+                        "symbolKind": {
+                            "aInteger": 21
+                        },
+                        "symbolLanguage": {
+                            "aInteger": 2
+                        },
+                        "symbolName": {
+                            "aString": "x"
+                        },
+                        "symbolParent": {
+                            "aString": "imports"
+                        },
+                        "symbolSignature": {
+                            "aString": "x: num"
+                        }
+                    },
+                    "range": {
+                        "columnBegin": 5,
+                        "columnEnd": 6,
+                        "lineBegin": 27,
+                        "lineEnd": 27
+                    },
+                    "sym": "test/js/imports/x"
+                }
+            ],
+            "28": [
+                {
+                    "attributes": {
+                        "symbolKind": {
+                            "aInteger": 5
+                        },
+                        "symbolLanguage": {
+                            "aInteger": 2
+                        },
+                        "symbolName": {
+                            "aString": "es_exports"
+                        },
+                        "symbolParent": {
+                            "aString": ""
+                        },
+                        "symbolSignature": {
+                            "aString": "test/es_exports.js"
+                        }
+                    },
+                    "range": {
+                        "columnBegin": 14,
+                        "columnEnd": 17,
+                        "lineBegin": 28,
+                        "lineEnd": 28
+                    },
+                    "sym": "test/js/es_exports",
+                    "target": {
+                        "filepath": "test/es_exports.js",
+                        "range": {
+                            "columnBegin": 0,
+                            "columnEnd": 0,
+                            "lineBegin": 0,
+                            "lineEnd": 0
+                        },
+                        "repository": "test"
+                    }
+                },
+                {
+                    "attributes": {
+                        "symbolKind": {
+                            "aInteger": 9
+                        },
+                        "symbolLanguage": {
+                            "aInteger": 2
+                        },
+                        "symbolName": {
+                            "aString": "bar"
+                        },
+                        "symbolParent": {
+                            "aString": "es_exports"
+                        }
+                    },
+                    "range": {
+                        "columnBegin": 18,
+                        "columnEnd": 21,
+                        "lineBegin": 28,
+                        "lineEnd": 28
+                    },
+                    "sym": "test/js/es_exports/bar",
+                    "target": {
+                        "filepath": "test/es_exports.js.flow",
+                        "range": {
+                            "columnBegin": 10,
+                            "columnEnd": 13,
+                            "lineBegin": 18,
+                            "lineEnd": 18
+                        },
+                        "repository": "test"
+                    }
+                },
+                {
+                    "attributes": {
+                        "symbolKind": {
+                            "aInteger": 21
+                        },
+                        "symbolLanguage": {
+                            "aInteger": 2
+                        },
+                        "symbolName": {
+                            "aString": "foo"
+                        },
+                        "symbolParent": {
+                            "aString": "es_exports"
+                        },
+                        "symbolSignature": {
+                            "aString": "foo: number"
+                        }
+                    },
+                    "range": {
+                        "columnBegin": 22,
+                        "columnEnd": 25,
+                        "lineBegin": 28,
+                        "lineEnd": 28
+                    },
+                    "sym": "test/js/es_exports/foo",
+                    "target": {
+                        "filepath": "test/es_exports.js.flow",
+                        "range": {
+                            "columnBegin": 5,
+                            "columnEnd": 8,
+                            "lineBegin": 13,
+                            "lineEnd": 13
+                        },
+                        "repository": "test"
+                    }
+                },
+                {
+                    "attributes": {
+                        "symbolKind": {
+                            "aInteger": 2
+                        },
+                        "symbolLanguage": {
+                            "aInteger": 2
+                        },
+                        "symbolName": {
+                            "aString": "num"
+                        },
+                        "symbolParent": {
+                            "aString": "es_exports"
+                        },
+                        "symbolSignature": {
+                            "aString": "num: type num = number"
+                        }
+                    },
+                    "range": {
+                        "columnBegin": 8,
+                        "columnEnd": 11,
+                        "lineBegin": 28,
+                        "lineEnd": 28
+                    },
+                    "sym": "test/js/es_exports/num",
+                    "target": {
+                        "filepath": "test/es_exports.js.flow",
+                        "range": {
+                            "columnBegin": 13,
+                            "columnEnd": 16,
+                            "lineBegin": 30,
+                            "lineEnd": 30
+                        },
+                        "repository": "test"
+                    }
+                },
+                {
+                    "attributes": {
+                        "symbolKind": {
+                            "aInteger": 21
+                        },
+                        "symbolLanguage": {
+                            "aInteger": 2
+                        },
+                        "symbolName": {
+                            "aString": "foo"
+                        },
+                        "symbolParent": {
+                            "aString": "imports"
+                        },
+                        "symbolSignature": {
+                            "aString": "foo: number"
+                        }
+                    },
+                    "range": {
+                        "columnBegin": 22,
+                        "columnEnd": 25,
+                        "lineBegin": 28,
+                        "lineEnd": 28
+                    },
+                    "sym": "test/js/imports/foo",
+                    "target": {
+                        "filepath": "test/imports.js",
+                        "range": {
+                            "columnBegin": 12,
+                            "columnEnd": 15,
+                            "lineBegin": 13,
+                            "lineEnd": 13
+                        },
+                        "repository": "test"
+                    }
+                },
+                {
+                    "attributes": {
+                        "symbolKind": {
+                            "aInteger": 2
+                        },
+                        "symbolLanguage": {
+                            "aInteger": 2
+                        },
+                        "symbolName": {
+                            "aString": "num"
+                        },
+                        "symbolParent": {
+                            "aString": "imports"
+                        }
+                    },
+                    "range": {
+                        "columnBegin": 8,
+                        "columnEnd": 11,
+                        "lineBegin": 28,
+                        "lineEnd": 28
+                    },
+                    "sym": "test/js/imports/num",
+                    "target": {
+                        "filepath": "test/imports.js",
+                        "range": {
+                            "columnBegin": 14,
+                            "columnEnd": 17,
+                            "lineBegin": 20,
+                            "lineEnd": 20
+                        },
+                        "repository": "test"
+                    }
+                },
+                {
+                    "attributes": {
+                        "symbolKind": {
+                            "aInteger": 21
+                        },
+                        "symbolLanguage": {
+                            "aInteger": 2
+                        },
+                        "symbolName": {
+                            "aString": "qux"
+                        },
+                        "symbolParent": {
+                            "aString": "imports"
+                        },
+                        "symbolSignature": {
+                            "aString": "qux: module \"./es_exports\""
+                        }
+                    },
+                    "range": {
+                        "columnBegin": 14,
+                        "columnEnd": 17,
+                        "lineBegin": 28,
+                        "lineEnd": 28
+                    },
+                    "sym": "test/js/imports/qux",
+                    "target": {
+                        "filepath": "test/imports.js",
+                        "range": {
+                            "columnBegin": 13,
+                            "columnEnd": 16,
+                            "lineBegin": 14,
+                            "lineEnd": 14
+                        },
+                        "repository": "test"
+                    }
+                },
+                {
+                    "attributes": {
+                        "symbolKind": {
+                            "aInteger": 21
+                        },
+                        "symbolLanguage": {
+                            "aInteger": 2
+                        },
+                        "symbolName": {
+                            "aString": "y"
+                        },
+                        "symbolParent": {
+                            "aString": "imports"
+                        },
+                        "symbolSignature": {
+                            "aString": "y: num"
+                        }
+                    },
+                    "range": {
+                        "columnBegin": 5,
+                        "columnEnd": 6,
+                        "lineBegin": 28,
+                        "lineEnd": 28
+                    },
+                    "sym": "test/js/imports/y"
+                }
+            ],
+            "29": [
+                {
+                    "attributes": {
+                        "symbolKind": {
+                            "aInteger": 9
+                        },
+                        "symbolLanguage": {
+                            "aInteger": 2
+                        },
+                        "symbolName": {
+                            "aString": "plus"
+                        },
+                        "symbolParent": {
+                            "aString": "cjs_exports"
+                        }
+                    },
+                    "range": {
+                        "columnBegin": 14,
+                        "columnEnd": 18,
+                        "lineBegin": 29,
+                        "lineEnd": 29
+                    },
+                    "sym": "test/js/cjs_exports/plus",
+                    "target": {
+                        "filepath": "test/cjs_exports.js",
+                        "range": {
+                            "columnBegin": 16,
+                            "columnEnd": 20,
+                            "lineBegin": 16,
+                            "lineEnd": 16
+                        },
+                        "repository": "test"
+                    }
+                },
+                {
+                    "attributes": {
+                        "symbolKind": {
+                            "aInteger": 2
+                        },
+                        "symbolLanguage": {
+                            "aInteger": 2
+                        },
+                        "symbolName": {
+                            "aString": "num"
+                        },
+                        "symbolParent": {
+                            "aString": "es_exports"
+                        },
+                        "symbolSignature": {
+                            "aString": "num: type num = number"
+                        }
+                    },
+                    "range": {
+                        "columnBegin": 8,
+                        "columnEnd": 11,
+                        "lineBegin": 29,
+                        "lineEnd": 29
+                    },
+                    "sym": "test/js/es_exports/num",
+                    "target": {
+                        "filepath": "test/es_exports.js.flow",
+                        "range": {
+                            "columnBegin": 13,
+                            "columnEnd": 16,
+                            "lineBegin": 30,
+                            "lineEnd": 30
+                        },
+                        "repository": "test"
+                    }
+                },
+                {
+                    "attributes": {
+                        "symbolKind": {
+                            "aInteger": 2
+                        },
+                        "symbolLanguage": {
+                            "aInteger": 2
+                        },
+                        "symbolName": {
+                            "aString": "num"
+                        },
+                        "symbolParent": {
+                            "aString": "imports"
+                        }
+                    },
+                    "range": {
+                        "columnBegin": 8,
+                        "columnEnd": 11,
+                        "lineBegin": 29,
+                        "lineEnd": 29
+                    },
+                    "sym": "test/js/imports/num",
+                    "target": {
+                        "filepath": "test/imports.js",
+                        "range": {
+                            "columnBegin": 14,
+                            "columnEnd": 17,
+                            "lineBegin": 20,
+                            "lineEnd": 20
+                        },
+                        "repository": "test"
+                    }
+                },
+                {
+                    "attributes": {
+                        "symbolKind": {
+                            "aInteger": 21
+                        },
+                        "symbolLanguage": {
+                            "aInteger": 2
+                        },
+                        "symbolName": {
+                            "aString": "plus"
+                        },
+                        "symbolParent": {
+                            "aString": "imports"
+                        },
+                        "symbolSignature": {
+                            "aString": "plus: (x: number) => number"
+                        }
+                    },
+                    "range": {
+                        "columnBegin": 14,
+                        "columnEnd": 18,
+                        "lineBegin": 29,
+                        "lineEnd": 29
+                    },
+                    "sym": "test/js/imports/plus",
+                    "target": {
+                        "filepath": "test/imports.js",
+                        "range": {
+                            "columnBegin": 9,
+                            "columnEnd": 13,
+                            "lineBegin": 17,
+                            "lineEnd": 17
+                        },
+                        "repository": "test"
+                    }
+                },
+                {
+                    "attributes": {
+                        "symbolKind": {
+                            "aInteger": 21
+                        },
+                        "symbolLanguage": {
+                            "aInteger": 2
+                        },
+                        "symbolName": {
+                            "aString": "z"
+                        },
+                        "symbolParent": {
+                            "aString": "imports"
+                        },
+                        "symbolSignature": {
+                            "aString": "z: num"
+                        }
+                    },
+                    "range": {
+                        "columnBegin": 5,
+                        "columnEnd": 6,
+                        "lineBegin": 29,
+                        "lineEnd": 29
+                    },
+                    "sym": "test/js/imports/z"
+                }
+            ],
+            "30": [
+                {
+                    "attributes": {
+                        "symbolKind": {
+                            "aInteger": 2
+                        },
+                        "symbolLanguage": {
+                            "aInteger": 2
+                        },
+                        "symbolName": {
+                            "aString": "num"
+                        },
+                        "symbolParent": {
+                            "aString": "es_exports"
+                        },
+                        "symbolSignature": {
+                            "aString": "num: type num = number"
+                        }
+                    },
+                    "range": {
+                        "columnBegin": 9,
+                        "columnEnd": 12,
+                        "lineBegin": 30,
+                        "lineEnd": 30
+                    },
+                    "sym": "test/js/es_exports/num",
+                    "target": {
+                        "filepath": "test/es_exports.js.flow",
+                        "range": {
+                            "columnBegin": 13,
+                            "columnEnd": 16,
+                            "lineBegin": 30,
+                            "lineEnd": 30
+                        },
+                        "repository": "test"
+                    }
+                },
+                {
+                    "attributes": {
+                        "symbolKind": {
+                            "aInteger": 2
+                        },
+                        "symbolLanguage": {
+                            "aInteger": 2
+                        },
+                        "symbolName": {
+                            "aString": "num"
+                        },
+                        "symbolParent": {
+                            "aString": "imports"
+                        }
+                    },
+                    "range": {
+                        "columnBegin": 9,
+                        "columnEnd": 12,
+                        "lineBegin": 30,
+                        "lineEnd": 30
+                    },
+                    "sym": "test/js/imports/num",
+                    "target": {
+                        "filepath": "test/imports.js",
+                        "range": {
+                            "columnBegin": 14,
+                            "columnEnd": 17,
+                            "lineBegin": 20,
+                            "lineEnd": 20
+                        },
+                        "repository": "test"
+                    }
+                },
+                {
+                    "attributes": {
+                        "symbolKind": {
+                            "aInteger": 21
+                        },
+                        "symbolLanguage": {
+                            "aInteger": 2
+                        },
+                        "symbolName": {
+                            "aString": "times"
+                        },
+                        "symbolParent": {
+                            "aString": "imports"
+                        },
+                        "symbolSignature": {
+                            "aString": "times: (x: number, y: number) => number"
+                        }
+                    },
+                    "range": {
+                        "columnBegin": 15,
+                        "columnEnd": 20,
+                        "lineBegin": 30,
+                        "lineEnd": 30
+                    },
+                    "sym": "test/js/imports/times",
+                    "target": {
+                        "filepath": "test/imports.js",
+                        "range": {
+                            "columnBegin": 8,
+                            "columnEnd": 13,
+                            "lineBegin": 15,
+                            "lineEnd": 15
+                        },
+                        "repository": "test"
+                    }
+                },
+                {
+                    "attributes": {
+                        "symbolKind": {
+                            "aInteger": 21
+                        },
+                        "symbolLanguage": {
+                            "aInteger": 2
+                        },
+                        "symbolName": {
+                            "aString": "z1"
+                        },
+                        "symbolParent": {
+                            "aString": "imports"
+                        },
+                        "symbolSignature": {
+                            "aString": "z1: num"
+                        }
+                    },
+                    "range": {
+                        "columnBegin": 5,
+                        "columnEnd": 7,
+                        "lineBegin": 30,
+                        "lineEnd": 30
+                    },
+                    "sym": "test/js/imports/z1"
+                },
+                {
+                    "attributes": {
+                        "symbolKind": {
+                            "aInteger": 21
+                        },
+                        "symbolLanguage": {
+                            "aInteger": 2
+                        },
+                        "symbolName": {
+                            "aString": "times"
+                        },
+                        "symbolParent": {
+                            "aString": "more_cjs"
+                        },
+                        "symbolSignature": {
+                            "aString": "times: (x: number, y: number) => number"
+                        }
+                    },
+                    "range": {
+                        "columnBegin": 15,
+                        "columnEnd": 20,
+                        "lineBegin": 30,
+                        "lineEnd": 30
+                    },
+                    "sym": "test/js/more_cjs/times",
+                    "target": {
+                        "filepath": "test/subdir/more_cjs.js",
+                        "range": {
+                            "columnBegin": 10,
+                            "columnEnd": 15,
+                            "lineBegin": 11,
+                            "lineEnd": 11
+                        },
+                        "repository": "test"
+                    }
+                }
+            ],
+            "32": [
+                {
+                    "attributes": {
+                        "symbolKind": {
+                            "aInteger": 21
+                        },
+                        "symbolLanguage": {
+                            "aInteger": 2
+                        },
+                        "symbolName": {
+                            "aString": "BazClass"
+                        },
+                        "symbolParent": {
+                            "aString": "es_exports"
+                        },
+                        "symbolSignature": {
+                            "aString": "BazClass: class BazClass"
+                        }
+                    },
+                    "range": {
+                        "columnBegin": 24,
+                        "columnEnd": 32,
+                        "lineBegin": 32,
+                        "lineEnd": 32
+                    },
+                    "sym": "test/js/es_exports/BazClass",
+                    "target": {
+                        "filepath": "test/es_exports.js.flow",
+                        "range": {
+                            "columnBegin": 14,
+                            "columnEnd": 22,
+                            "lineBegin": 22,
+                            "lineEnd": 22
+                        },
+                        "repository": "test"
+                    }
+                },
+                {
+                    "attributes": {
+                        "symbolKind": {
+                            "aInteger": 21
+                        },
+                        "symbolLanguage": {
+                            "aInteger": 2
+                        },
+                        "symbolName": {
+                            "aString": "BazClass"
+                        },
+                        "symbolParent": {
+                            "aString": "imports"
+                        },
+                        "symbolSignature": {
+                            "aString": "BazClass: class BazClass"
+                        }
+                    },
+                    "range": {
+                        "columnBegin": 24,
+                        "columnEnd": 32,
+                        "lineBegin": 32,
+                        "lineEnd": 32
+                    },
+                    "sym": "test/js/imports/BazClass",
+                    "target": {
+                        "filepath": "test/imports.js",
+                        "range": {
+                            "columnBegin": 22,
+                            "columnEnd": 30,
+                            "lineBegin": 13,
+                            "lineEnd": 13
+                        },
+                        "repository": "test"
+                    }
+                },
+                {
+                    "attributes": {
+                        "symbolKind": {
+                            "aInteger": 2
+                        },
+                        "symbolLanguage": {
+                            "aInteger": 2
+                        },
+                        "symbolName": {
+                            "aString": "CazClass"
+                        },
+                        "symbolParent": {
+                            "aString": "imports"
+                        },
+                        "symbolSignature": {
+                            "aString": "CazClass: class CazClass"
+                        }
+                    },
+                    "range": {
+                        "columnBegin": 7,
+                        "columnEnd": 15,
+                        "lineBegin": 32,
+                        "lineEnd": 32
+                    },
+                    "sym": "test/js/imports/CazClass"
+                },
+                {
+                    "attributes": {
+                        "symbolKind": {
+                            "aInteger": 21
+                        },
+                        "symbolLanguage": {
+                            "aInteger": 2
+                        },
+                        "symbolName": {
+                            "aString": "CazClass"
+                        },
+                        "symbolParent": {
+                            "aString": "imports"
+                        },
+                        "symbolSignature": {
+                            "aString": "CazClass: class CazClass"
+                        }
+                    },
+                    "range": {
+                        "columnBegin": 7,
+                        "columnEnd": 15,
+                        "lineBegin": 32,
+                        "lineEnd": 32
+                    },
+                    "sym": "test/js/imports/CazClass"
+                }
+            ],
+            "34": [
+                {
+                    "attributes": {
+                        "symbolKind": {
+                            "aInteger": 21
+                        },
+                        "symbolLanguage": {
+                            "aInteger": 2
+                        },
+                        "symbolName": {
+                            "aString": "C"
+                        },
+                        "symbolParent": {
+                            "aString": "es_exports"
+                        },
+                        "symbolSignature": {
+                            "aString": "C: class C"
+                        }
+                    },
+                    "range": {
+                        "columnBegin": 21,
+                        "columnEnd": 22,
+                        "lineBegin": 34,
+                        "lineEnd": 34
+                    },
+                    "sym": "test/js/es_exports/C",
+                    "target": {
+                        "filepath": "test/es_exports.js.flow",
+                        "range": {
+                            "columnBegin": 14,
+                            "columnEnd": 15,
+                            "lineBegin": 41,
+                            "lineEnd": 41
+                        },
+                        "repository": "test"
+                    }
+                },
+                {
+                    "attributes": {
+                        "symbolKind": {
+                            "aInteger": 21
+                        },
+                        "symbolLanguage": {
+                            "aInteger": 2
+                        },
+                        "symbolName": {
+                            "aString": "d"
+                        },
+                        "symbolParent": {
+                            "aString": "es_exports"
+                        },
+                        "symbolSignature": {
+                            "aString": "d: string"
+                        }
+                    },
+                    "range": {
+                        "columnBegin": 15,
+                        "columnEnd": 18,
+                        "lineBegin": 34,
+                        "lineEnd": 34
+                    },
+                    "sym": "test/js/es_exports/d",
+                    "target": {
+                        "filepath": "test/es_exports.js.flow",
+                        "range": {
+                            "columnBegin": 5,
+                            "columnEnd": 6,
+                            "lineBegin": 24,
+                            "lineEnd": 24
+                        },
+                        "repository": "test"
+                    }
+                },
+                {
+                    "attributes": {
+                        "symbolKind": {
+                            "aInteger": 2
+                        },
+                        "symbolLanguage": {
+                            "aInteger": 2
+                        },
+                        "symbolName": {
+                            "aString": "C"
+                        },
+                        "symbolParent": {
+                            "aString": "imports"
+                        }
+                    },
+                    "range": {
+                        "columnBegin": 21,
+                        "columnEnd": 22,
+                        "lineBegin": 34,
+                        "lineEnd": 34
+                    },
+                    "sym": "test/js/imports/C"
+                },
+                {
+                    "attributes": {
+                        "symbolKind": {
+                            "aInteger": 2
+                        },
+                        "symbolLanguage": {
+                            "aInteger": 2
+                        },
+                        "symbolName": {
+                            "aString": "str"
+                        },
+                        "symbolParent": {
+                            "aString": "imports"
+                        }
+                    },
+                    "range": {
+                        "columnBegin": 15,
+                        "columnEnd": 18,
+                        "lineBegin": 34,
+                        "lineEnd": 34
+                    },
+                    "sym": "test/js/imports/str"
+                }
+            ],
+            "36": [
+                {
+                    "attributes": {
+                        "symbolKind": {
+                            "aInteger": 21
+                        },
+                        "symbolLanguage": {
+                            "aInteger": 2
+                        },
+                        "symbolName": {
+                            "aString": "C"
+                        },
+                        "symbolParent": {
+                            "aString": "es_exports"
+                        },
+                        "symbolSignature": {
+                            "aString": "C: class C"
+                        }
+                    },
+                    "range": {
+                        "columnBegin": 10,
+                        "columnEnd": 11,
+                        "lineBegin": 36,
+                        "lineEnd": 36
+                    },
+                    "sym": "test/js/es_exports/C",
+                    "target": {
+                        "filepath": "test/es_exports.js.flow",
+                        "range": {
+                            "columnBegin": 14,
+                            "columnEnd": 15,
+                            "lineBegin": 41,
+                            "lineEnd": 41
+                        },
+                        "repository": "test"
+                    }
+                },
+                {
+                    "attributes": {
+                        "symbolKind": {
+                            "aInteger": 2
+                        },
+                        "symbolLanguage": {
+                            "aInteger": 2
+                        },
+                        "symbolName": {
+                            "aString": "C"
+                        },
+                        "symbolParent": {
+                            "aString": "imports"
+                        }
+                    },
+                    "range": {
+                        "columnBegin": 10,
+                        "columnEnd": 11,
+                        "lineBegin": 36,
+                        "lineEnd": 36
+                    },
+                    "sym": "test/js/imports/C",
+                    "target": {
+                        "filepath": "test/imports.js",
+                        "range": {
+                            "columnBegin": 21,
+                            "columnEnd": 22,
+                            "lineBegin": 34,
+                            "lineEnd": 34
+                        },
+                        "repository": "test"
+                    }
+                },
+                {
+                    "attributes": {
+                        "symbolKind": {
+                            "aInteger": 2
+                        },
+                        "symbolLanguage": {
+                            "aInteger": 2
+                        },
+                        "symbolName": {
+                            "aString": "D"
+                        },
+                        "symbolParent": {
+                            "aString": "imports"
+                        },
+                        "symbolSignature": {
+                            "aString": "D: type D = typeof C"
+                        }
+                    },
+                    "range": {
+                        "columnBegin": 6,
+                        "columnEnd": 7,
+                        "lineBegin": 36,
+                        "lineEnd": 36
+                    },
+                    "sym": "test/js/imports/D"
+                }
+            ],
+            "37": [
+                {
+                    "attributes": {
+                        "symbolKind": {
+                            "aInteger": 21
+                        },
+                        "symbolLanguage": {
+                            "aInteger": 2
+                        },
+                        "symbolName": {
+                            "aString": "d"
+                        },
+                        "symbolParent": {
+                            "aString": "es_exports"
+                        },
+                        "symbolSignature": {
+                            "aString": "d: string"
+                        }
+                    },
+                    "range": {
+                        "columnBegin": 8,
+                        "columnEnd": 11,
+                        "lineBegin": 37,
+                        "lineEnd": 37
+                    },
+                    "sym": "test/js/es_exports/d",
+                    "target": {
+                        "filepath": "test/es_exports.js.flow",
+                        "range": {
+                            "columnBegin": 5,
+                            "columnEnd": 6,
+                            "lineBegin": 24,
+                            "lineEnd": 24
+                        },
+                        "repository": "test"
+                    }
+                },
+                {
+                    "attributes": {
+                        "symbolKind": {
+                            "aInteger": 21
+                        },
+                        "symbolLanguage": {
+                            "aInteger": 2
+                        },
+                        "symbolName": {
+                            "aString": "s"
+                        },
+                        "symbolParent": {
+                            "aString": "imports"
+                        },
+                        "symbolSignature": {
+                            "aString": "s: string"
+                        }
+                    },
+                    "range": {
+                        "columnBegin": 5,
+                        "columnEnd": 6,
+                        "lineBegin": 37,
+                        "lineEnd": 37
+                    },
+                    "sym": "test/js/imports/s"
+                },
+                {
+                    "attributes": {
+                        "symbolKind": {
+                            "aInteger": 2
+                        },
+                        "symbolLanguage": {
+                            "aInteger": 2
+                        },
+                        "symbolName": {
+                            "aString": "str"
+                        },
+                        "symbolParent": {
+                            "aString": "imports"
+                        }
+                    },
+                    "range": {
+                        "columnBegin": 8,
+                        "columnEnd": 11,
+                        "lineBegin": 37,
+                        "lineEnd": 37
+                    },
+                    "sym": "test/js/imports/str",
+                    "target": {
+                        "filepath": "test/imports.js",
+                        "range": {
+                            "columnBegin": 15,
+                            "columnEnd": 18,
+                            "lineBegin": 34,
+                            "lineEnd": 34
+                        },
+                        "repository": "test"
+                    }
+                }
+            ]
+        },
+        "truncated": false
+    }
+]

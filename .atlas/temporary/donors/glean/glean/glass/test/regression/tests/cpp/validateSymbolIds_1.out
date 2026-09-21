@@ -1,0 +1,1800 @@
+[
+    "@generated",
+    [
+        {
+            "Right": {
+                "declaration": false,
+                "errors": [],
+                "localname": "Global",
+                "params": [],
+                "path": "",
+                "qualifiers": [],
+                "returns": null,
+                "scopes": [],
+                "tag": null
+            }
+        },
+        {
+            "Right": {
+                "declaration": false,
+                "errors": [],
+                "localname": "GlobalClass",
+                "params": [],
+                "path": "",
+                "qualifiers": [],
+                "returns": null,
+                "scopes": [],
+                "tag": null
+            }
+        },
+        {
+            "Right": {
+                "declaration": false,
+                "errors": [],
+                "localname": "N1",
+                "params": [],
+                "path": "",
+                "qualifiers": [],
+                "returns": null,
+                "scopes": [],
+                "tag": null
+            }
+        },
+        {
+            "Right": {
+                "declaration": false,
+                "errors": [],
+                "localname": "Q",
+                "params": [],
+                "path": "",
+                "qualifiers": [],
+                "returns": null,
+                "scopes": [],
+                "tag": null
+            }
+        },
+        {
+            "Right": {
+                "declaration": false,
+                "errors": [],
+                "localname": "baz",
+                "params": [],
+                "path": "",
+                "qualifiers": [],
+                "returns": null,
+                "scopes": [],
+                "tag": null
+            }
+        },
+        {
+            "Right": {
+                "declaration": false,
+                "errors": [],
+                "localname": "d",
+                "params": [],
+                "path": "",
+                "qualifiers": [],
+                "returns": null,
+                "scopes": [],
+                "tag": null
+            }
+        },
+        {
+            "Right": {
+                "declaration": false,
+                "errors": [],
+                "localname": "foo",
+                "params": [],
+                "path": "",
+                "qualifiers": [],
+                "returns": null,
+                "scopes": [],
+                "tag": null
+            }
+        },
+        {
+            "Right": {
+                "declaration": false,
+                "errors": [],
+                "localname": "h",
+                "params": [
+                    "int"
+                ],
+                "path": "",
+                "qualifiers": [],
+                "returns": null,
+                "scopes": [],
+                "tag": "Function"
+            }
+        },
+        {
+            "Right": {
+                "declaration": true,
+                "errors": [],
+                "localname": "h",
+                "params": [
+                    "int"
+                ],
+                "path": "",
+                "qualifiers": [],
+                "returns": null,
+                "scopes": [],
+                "tag": "Function"
+            }
+        },
+        {
+            "Right": {
+                "declaration": true,
+                "errors": [],
+                "localname": "id",
+                "params": [
+                    "N1::N2::N3::Foo"
+                ],
+                "path": "",
+                "qualifiers": [],
+                "returns": null,
+                "scopes": [],
+                "tag": "Function"
+            }
+        },
+        {
+            "Right": {
+                "declaration": false,
+                "errors": [],
+                "localname": "maybe",
+                "params": [],
+                "path": "",
+                "qualifiers": [],
+                "returns": null,
+                "scopes": [],
+                "tag": null
+            }
+        },
+        {
+            "Right": {
+                "declaration": true,
+                "errors": [],
+                "localname": "pear",
+                "params": [],
+                "path": "",
+                "qualifiers": [],
+                "returns": null,
+                "scopes": [],
+                "tag": null
+            }
+        },
+        {
+            "Right": {
+                "declaration": true,
+                "errors": [],
+                "localname": "y",
+                "params": [],
+                "path": "",
+                "qualifiers": [],
+                "returns": null,
+                "scopes": [],
+                "tag": null
+            }
+        },
+        {
+            "Right": {
+                "declaration": false,
+                "errors": [],
+                "localname": "GA",
+                "params": [],
+                "path": "",
+                "qualifiers": [],
+                "returns": null,
+                "scopes": [
+                    "Global"
+                ],
+                "tag": null
+            }
+        },
+        {
+            "Right": {
+                "declaration": false,
+                "errors": [],
+                "localname": "GB",
+                "params": [],
+                "path": "",
+                "qualifiers": [],
+                "returns": null,
+                "scopes": [
+                    "Global"
+                ],
+                "tag": null
+            }
+        },
+        {
+            "Right": {
+                "declaration": false,
+                "errors": [],
+                "localname": "GC",
+                "params": [],
+                "path": "",
+                "qualifiers": [],
+                "returns": null,
+                "scopes": [
+                    "Global"
+                ],
+                "tag": null
+            }
+        },
+        {
+            "Right": {
+                "declaration": false,
+                "errors": [],
+                "localname": "GCA",
+                "params": [],
+                "path": "",
+                "qualifiers": [],
+                "returns": null,
+                "scopes": [
+                    "GlobalClass"
+                ],
+                "tag": null
+            }
+        },
+        {
+            "Right": {
+                "declaration": false,
+                "errors": [],
+                "localname": "GCB",
+                "params": [],
+                "path": "",
+                "qualifiers": [],
+                "returns": null,
+                "scopes": [
+                    "GlobalClass"
+                ],
+                "tag": null
+            }
+        },
+        {
+            "Right": {
+                "declaration": false,
+                "errors": [],
+                "localname": "GCC",
+                "params": [],
+                "path": "",
+                "qualifiers": [],
+                "returns": null,
+                "scopes": [
+                    "GlobalClass"
+                ],
+                "tag": null
+            }
+        },
+        {
+            "Right": {
+                "declaration": false,
+                "errors": [],
+                "localname": "N2",
+                "params": [],
+                "path": "",
+                "qualifiers": [],
+                "returns": null,
+                "scopes": [
+                    "N1"
+                ],
+                "tag": null
+            }
+        },
+        {
+            "Right": {
+                "declaration": false,
+                "errors": [],
+                "localname": "Bar",
+                "params": [],
+                "path": "",
+                "qualifiers": [],
+                "returns": null,
+                "scopes": [
+                    "N1",
+                    "N2"
+                ],
+                "tag": null
+            }
+        },
+        {
+            "Right": {
+                "declaration": false,
+                "errors": [],
+                "localname": "N3",
+                "params": [],
+                "path": "",
+                "qualifiers": [],
+                "returns": null,
+                "scopes": [
+                    "N1",
+                    "N2"
+                ],
+                "tag": null
+            }
+        },
+        {
+            "Right": {
+                "declaration": false,
+                "errors": [],
+                "localname": "foo",
+                "params": [
+                    "N1::N2::N3::Foo"
+                ],
+                "path": "",
+                "qualifiers": [],
+                "returns": null,
+                "scopes": [
+                    "N1",
+                    "N2"
+                ],
+                "tag": "Function"
+            }
+        },
+        {
+            "Right": {
+                "declaration": true,
+                "errors": [],
+                "localname": "foo",
+                "params": [
+                    "N1::N2::N3::Foo"
+                ],
+                "path": "",
+                "qualifiers": [],
+                "returns": null,
+                "scopes": [
+                    "N1",
+                    "N2"
+                ],
+                "tag": "Function"
+            }
+        },
+        {
+            "Right": {
+                "declaration": false,
+                "errors": [],
+                "localname": "bar",
+                "params": [
+                    "N1::N2::N3::Foo"
+                ],
+                "path": "",
+                "qualifiers": [],
+                "returns": null,
+                "scopes": [
+                    "N1",
+                    "N2",
+                    "Bar"
+                ],
+                "tag": "Function"
+            }
+        },
+        {
+            "Right": {
+                "declaration": true,
+                "errors": [],
+                "localname": "bar",
+                "params": [
+                    "N1::N2::N3::Foo"
+                ],
+                "path": "",
+                "qualifiers": [],
+                "returns": null,
+                "scopes": [
+                    "N1",
+                    "N2",
+                    "Bar"
+                ],
+                "tag": "Function"
+            }
+        },
+        {
+            "Right": {
+                "declaration": true,
+                "errors": [],
+                "localname": "x",
+                "params": [],
+                "path": "",
+                "qualifiers": [],
+                "returns": null,
+                "scopes": [
+                    "N1",
+                    "N2",
+                    "Bar",
+                    "bar"
+                ],
+                "tag": null
+            }
+        },
+        {
+            "Right": {
+                "declaration": false,
+                "errors": [],
+                "localname": "Foo",
+                "params": [],
+                "path": "",
+                "qualifiers": [],
+                "returns": null,
+                "scopes": [
+                    "N1",
+                    "N2",
+                    "N3"
+                ],
+                "tag": null
+            }
+        },
+        {
+            "Right": {
+                "declaration": true,
+                "errors": [],
+                "localname": "Foo",
+                "params": [],
+                "path": "",
+                "qualifiers": [],
+                "returns": null,
+                "scopes": [
+                    "N1",
+                    "N2",
+                    "N3"
+                ],
+                "tag": null
+            }
+        },
+        {
+            "Right": {
+                "declaration": true,
+                "errors": [],
+                "localname": "x",
+                "params": [],
+                "path": "",
+                "qualifiers": [],
+                "returns": null,
+                "scopes": [
+                    "N1",
+                    "N2",
+                    "foo"
+                ],
+                "tag": null
+            }
+        },
+        {
+            "Right": {
+                "declaration": false,
+                "errors": [],
+                "localname": "OO",
+                "params": [],
+                "path": "",
+                "qualifiers": [],
+                "returns": null,
+                "scopes": [
+                    "Q"
+                ],
+                "tag": null
+            }
+        },
+        {
+            "Right": {
+                "declaration": false,
+                "errors": [],
+                "localname": "QQ",
+                "params": [],
+                "path": "",
+                "qualifiers": [],
+                "returns": null,
+                "scopes": [
+                    "Q"
+                ],
+                "tag": null
+            }
+        },
+        {
+            "Right": {
+                "declaration": false,
+                "errors": [],
+                "localname": "bozzo",
+                "params": [],
+                "path": "",
+                "qualifiers": [],
+                "returns": null,
+                "scopes": [
+                    "Q"
+                ],
+                "tag": "Function"
+            }
+        },
+        {
+            "Right": {
+                "declaration": false,
+                "errors": [],
+                "localname": "operator\"\"_glean",
+                "params": [
+                    "const char32_t *",
+                    "unsigned long"
+                ],
+                "path": "",
+                "qualifiers": [],
+                "returns": null,
+                "scopes": [
+                    "Q"
+                ],
+                "tag": "Operator"
+            }
+        },
+        {
+            "Right": {
+                "declaration": true,
+                "errors": [],
+                "localname": "operator==",
+                "params": [
+                    "const Q::OO &",
+                    "const Q::OO &"
+                ],
+                "path": "",
+                "qualifiers": [],
+                "returns": null,
+                "scopes": [
+                    "Q"
+                ],
+                "tag": "Operator"
+            }
+        },
+        {
+            "Right": {
+                "declaration": true,
+                "errors": [],
+                "localname": null,
+                "params": [],
+                "path": "",
+                "qualifiers": [
+                    {
+                        "tag": "Const"
+                    },
+                    {
+                        "contents": "LValue",
+                        "tag": "RefQual"
+                    }
+                ],
+                "returns": "T &",
+                "scopes": [
+                    "Q",
+                    "OO"
+                ],
+                "tag": "TypeConversionOperator"
+            }
+        },
+        {
+            "Right": {
+                "declaration": true,
+                "errors": [],
+                "localname": null,
+                "params": [],
+                "path": "",
+                "qualifiers": [
+                    {
+                        "tag": "Const"
+                    },
+                    {
+                        "contents": "RValue",
+                        "tag": "RefQual"
+                    }
+                ],
+                "returns": "T &",
+                "scopes": [
+                    "Q",
+                    "OO"
+                ],
+                "tag": "TypeConversionOperator"
+            }
+        },
+        {
+            "Right": {
+                "declaration": true,
+                "errors": [],
+                "localname": "operator++",
+                "params": [],
+                "path": "",
+                "qualifiers": [],
+                "returns": null,
+                "scopes": [
+                    "Q",
+                    "OO"
+                ],
+                "tag": "Operator"
+            }
+        },
+        {
+            "Right": {
+                "declaration": true,
+                "errors": [],
+                "localname": "operator=",
+                "params": [
+                    "Q::OO &&"
+                ],
+                "path": "",
+                "qualifiers": [],
+                "returns": null,
+                "scopes": [
+                    "Q",
+                    "OO"
+                ],
+                "tag": "Operator"
+            }
+        },
+        {
+            "Right": {
+                "declaration": true,
+                "errors": [],
+                "localname": "operator=",
+                "params": [
+                    "const Q::OO &"
+                ],
+                "path": "",
+                "qualifiers": [],
+                "returns": null,
+                "scopes": [
+                    "Q",
+                    "OO"
+                ],
+                "tag": "Operator"
+            }
+        },
+        {
+            "Right": {
+                "declaration": true,
+                "errors": [],
+                "localname": "",
+                "params": [],
+                "path": "",
+                "qualifiers": [],
+                "returns": null,
+                "scopes": [
+                    "Q",
+                    "OO",
+                    "operator="
+                ],
+                "tag": null
+            }
+        },
+        {
+            "Right": {
+                "declaration": true,
+                "errors": [],
+                "localname": null,
+                "params": [],
+                "path": "",
+                "qualifiers": [],
+                "returns": null,
+                "scopes": [
+                    "Q",
+                    "QQ"
+                ],
+                "tag": "Destructor"
+            }
+        },
+        {
+            "Right": {
+                "declaration": true,
+                "errors": [],
+                "localname": "bozzo",
+                "params": [],
+                "path": "",
+                "qualifiers": [],
+                "returns": null,
+                "scopes": [
+                    "Q",
+                    "QQ"
+                ],
+                "tag": "Function"
+            }
+        },
+        {
+            "Right": {
+                "declaration": true,
+                "errors": [],
+                "localname": "getDouble",
+                "params": [],
+                "path": "",
+                "qualifiers": [
+                    {
+                        "tag": "Const"
+                    },
+                    {
+                        "contents": "LValue",
+                        "tag": "RefQual"
+                    }
+                ],
+                "returns": null,
+                "scopes": [
+                    "Q",
+                    "QQ"
+                ],
+                "tag": "Function"
+            }
+        },
+        {
+            "Right": {
+                "declaration": true,
+                "errors": [],
+                "localname": "getDouble",
+                "params": [],
+                "path": "",
+                "qualifiers": [
+                    {
+                        "contents": "LValue",
+                        "tag": "RefQual"
+                    }
+                ],
+                "returns": null,
+                "scopes": [
+                    "Q",
+                    "QQ"
+                ],
+                "tag": "Function"
+            }
+        },
+        {
+            "Right": {
+                "declaration": true,
+                "errors": [],
+                "localname": "getDouble",
+                "params": [],
+                "path": "",
+                "qualifiers": [
+                    {
+                        "contents": "RValue",
+                        "tag": "RefQual"
+                    }
+                ],
+                "returns": null,
+                "scopes": [
+                    "Q",
+                    "QQ"
+                ],
+                "tag": "Function"
+            }
+        },
+        {
+            "Right": {
+                "declaration": true,
+                "errors": [],
+                "localname": "thango",
+                "params": [
+                    "int",
+                    "Q::QQ &"
+                ],
+                "path": "",
+                "qualifiers": [
+                    {
+                        "contents": "LValue",
+                        "tag": "RefQual"
+                    }
+                ],
+                "returns": null,
+                "scopes": [
+                    "Q",
+                    "QQ"
+                ],
+                "tag": "Function"
+            }
+        },
+        {
+            "Right": {
+                "declaration": true,
+                "errors": [],
+                "localname": "thango",
+                "params": [
+                    "int",
+                    "Q::QQ &&"
+                ],
+                "path": "",
+                "qualifiers": [
+                    {
+                        "contents": "RValue",
+                        "tag": "RefQual"
+                    }
+                ],
+                "returns": null,
+                "scopes": [
+                    "Q",
+                    "QQ"
+                ],
+                "tag": "Function"
+            }
+        },
+        {
+            "Right": {
+                "declaration": true,
+                "errors": [],
+                "localname": "thango",
+                "params": [
+                    "int",
+                    "const Q::QQ &"
+                ],
+                "path": "",
+                "qualifiers": [
+                    {
+                        "tag": "Const"
+                    },
+                    {
+                        "contents": "LValue",
+                        "tag": "RefQual"
+                    }
+                ],
+                "returns": null,
+                "scopes": [
+                    "Q",
+                    "QQ"
+                ],
+                "tag": "Function"
+            }
+        },
+        {
+            "Right": {
+                "declaration": true,
+                "errors": [],
+                "localname": "thingo",
+                "params": [
+                    "pear<int, char>",
+                    "Q::QQ &&"
+                ],
+                "path": "",
+                "qualifiers": [
+                    {
+                        "tag": "Const"
+                    }
+                ],
+                "returns": null,
+                "scopes": [
+                    "Q",
+                    "QQ"
+                ],
+                "tag": "Function"
+            }
+        },
+        {
+            "Right": {
+                "declaration": true,
+                "errors": [],
+                "localname": "",
+                "params": [],
+                "path": "",
+                "qualifiers": [],
+                "returns": null,
+                "scopes": [
+                    "Q",
+                    "QQ",
+                    "thango"
+                ],
+                "tag": null
+            }
+        },
+        {
+            "Right": {
+                "declaration": true,
+                "errors": [],
+                "localname": "",
+                "params": [],
+                "path": "",
+                "qualifiers": [],
+                "returns": null,
+                "scopes": [
+                    "Q",
+                    "QQ",
+                    "thingo"
+                ],
+                "tag": null
+            }
+        },
+        {
+            "Right": {
+                "declaration": true,
+                "errors": [],
+                "localname": "len",
+                "params": [],
+                "path": "",
+                "qualifiers": [],
+                "returns": null,
+                "scopes": [
+                    "Q",
+                    "operator\"\"_glean"
+                ],
+                "tag": null
+            }
+        },
+        {
+            "Right": {
+                "declaration": true,
+                "errors": [],
+                "localname": "str",
+                "params": [],
+                "path": "",
+                "qualifiers": [],
+                "returns": null,
+                "scopes": [
+                    "Q",
+                    "operator\"\"_glean"
+                ],
+                "tag": null
+            }
+        },
+        {
+            "Right": {
+                "declaration": true,
+                "errors": [],
+                "localname": "a",
+                "params": [],
+                "path": "",
+                "qualifiers": [],
+                "returns": null,
+                "scopes": [
+                    "Q",
+                    "operator=="
+                ],
+                "tag": null
+            }
+        },
+        {
+            "Right": {
+                "declaration": true,
+                "errors": [],
+                "localname": "b",
+                "params": [],
+                "path": "",
+                "qualifiers": [],
+                "returns": null,
+                "scopes": [
+                    "Q",
+                    "operator=="
+                ],
+                "tag": null
+            }
+        },
+        {
+            "Right": {
+                "declaration": false,
+                "errors": [],
+                "localname": "U",
+                "params": [],
+                "path": "",
+                "qualifiers": [],
+                "returns": null,
+                "scopes": [
+                    "baz"
+                ],
+                "tag": null
+            }
+        },
+        {
+            "Right": {
+                "declaration": false,
+                "errors": [],
+                "localname": "InU",
+                "params": [],
+                "path": "",
+                "qualifiers": [],
+                "returns": null,
+                "scopes": [
+                    "baz",
+                    "U"
+                ],
+                "tag": null
+            }
+        },
+        {
+            "Right": {
+                "declaration": false,
+                "errors": [],
+                "localname": "InUClass",
+                "params": [],
+                "path": "",
+                "qualifiers": [],
+                "returns": null,
+                "scopes": [
+                    "baz",
+                    "U"
+                ],
+                "tag": null
+            }
+        },
+        {
+            "Right": {
+                "declaration": false,
+                "errors": [],
+                "localname": "UA",
+                "params": [],
+                "path": "",
+                "qualifiers": [],
+                "returns": null,
+                "scopes": [
+                    "baz",
+                    "U",
+                    "InU"
+                ],
+                "tag": null
+            }
+        },
+        {
+            "Right": {
+                "declaration": false,
+                "errors": [],
+                "localname": "UB",
+                "params": [],
+                "path": "",
+                "qualifiers": [],
+                "returns": null,
+                "scopes": [
+                    "baz",
+                    "U",
+                    "InU"
+                ],
+                "tag": null
+            }
+        },
+        {
+            "Right": {
+                "declaration": false,
+                "errors": [],
+                "localname": "UC",
+                "params": [],
+                "path": "",
+                "qualifiers": [],
+                "returns": null,
+                "scopes": [
+                    "baz",
+                    "U",
+                    "InU"
+                ],
+                "tag": null
+            }
+        },
+        {
+            "Right": {
+                "declaration": false,
+                "errors": [],
+                "localname": "UCA",
+                "params": [],
+                "path": "",
+                "qualifiers": [],
+                "returns": null,
+                "scopes": [
+                    "baz",
+                    "U",
+                    "InUClass"
+                ],
+                "tag": null
+            }
+        },
+        {
+            "Right": {
+                "declaration": false,
+                "errors": [],
+                "localname": "UCB",
+                "params": [],
+                "path": "",
+                "qualifiers": [],
+                "returns": null,
+                "scopes": [
+                    "baz",
+                    "U",
+                    "InUClass"
+                ],
+                "tag": null
+            }
+        },
+        {
+            "Right": {
+                "declaration": false,
+                "errors": [],
+                "localname": "UCC",
+                "params": [],
+                "path": "",
+                "qualifiers": [],
+                "returns": null,
+                "scopes": [
+                    "baz",
+                    "U",
+                    "InUClass"
+                ],
+                "tag": null
+            }
+        },
+        {
+            "Right": {
+                "declaration": true,
+                "errors": [],
+                "localname": null,
+                "params": [],
+                "path": "",
+                "qualifiers": [],
+                "returns": null,
+                "scopes": [
+                    "d"
+                ],
+                "tag": "CTorSignature"
+            }
+        },
+        {
+            "Right": {
+                "declaration": true,
+                "errors": [],
+                "localname": null,
+                "params": [
+                    "char",
+                    "int",
+                    "const char *"
+                ],
+                "path": "",
+                "qualifiers": [],
+                "returns": null,
+                "scopes": [
+                    "d"
+                ],
+                "tag": "CTorSignature"
+            }
+        },
+        {
+            "Right": {
+                "declaration": true,
+                "errors": [],
+                "localname": null,
+                "params": [
+                    "const char *"
+                ],
+                "path": "",
+                "qualifiers": [],
+                "returns": null,
+                "scopes": [
+                    "d"
+                ],
+                "tag": "CTorSignature"
+            }
+        },
+        {
+            "Right": {
+                "declaration": true,
+                "errors": [],
+                "localname": null,
+                "params": [
+                    "const char *",
+                    "void (*)()"
+                ],
+                "path": "",
+                "qualifiers": [],
+                "returns": null,
+                "scopes": [
+                    "d"
+                ],
+                "tag": "CTorSignature"
+            }
+        },
+        {
+            "Right": {
+                "declaration": true,
+                "errors": [],
+                "localname": null,
+                "params": [
+                    "const d &"
+                ],
+                "path": "",
+                "qualifiers": [],
+                "returns": null,
+                "scopes": [
+                    "d"
+                ],
+                "tag": "CTorSignature"
+            }
+        },
+        {
+            "Right": {
+                "declaration": true,
+                "errors": [],
+                "localname": null,
+                "params": [
+                    "pear<int, bool> &",
+                    "char"
+                ],
+                "path": "",
+                "qualifiers": [],
+                "returns": null,
+                "scopes": [
+                    "d"
+                ],
+                "tag": "CTorSignature"
+            }
+        },
+        {
+            "Right": {
+                "declaration": true,
+                "errors": [],
+                "localname": "",
+                "params": [],
+                "path": "",
+                "qualifiers": [],
+                "returns": null,
+                "scopes": [
+                    "d"
+                ],
+                "tag": "Constructor"
+            }
+        },
+        {
+            "Right": {
+                "declaration": true,
+                "errors": [],
+                "localname": "c",
+                "params": [],
+                "path": "",
+                "qualifiers": [],
+                "returns": null,
+                "scopes": [
+                    "d"
+                ],
+                "tag": "Constructor"
+            }
+        },
+        {
+            "Right": {
+                "declaration": true,
+                "errors": [],
+                "localname": "cp",
+                "params": [],
+                "path": "",
+                "qualifiers": [],
+                "returns": null,
+                "scopes": [
+                    "d"
+                ],
+                "tag": "Constructor"
+            }
+        },
+        {
+            "Right": {
+                "declaration": true,
+                "errors": [],
+                "localname": "i",
+                "params": [],
+                "path": "",
+                "qualifiers": [],
+                "returns": null,
+                "scopes": [
+                    "d"
+                ],
+                "tag": null
+            }
+        },
+        {
+            "Right": {
+                "declaration": true,
+                "errors": [],
+                "localname": "i",
+                "params": [],
+                "path": "",
+                "qualifiers": [],
+                "returns": null,
+                "scopes": [
+                    "d"
+                ],
+                "tag": "Constructor"
+            }
+        },
+        {
+            "Right": {
+                "declaration": true,
+                "errors": [],
+                "localname": "p",
+                "params": [],
+                "path": "",
+                "qualifiers": [],
+                "returns": null,
+                "scopes": [
+                    "d"
+                ],
+                "tag": "Constructor"
+            }
+        },
+        {
+            "Right": {
+                "declaration": true,
+                "errors": [],
+                "localname": "val",
+                "params": [],
+                "path": "",
+                "qualifiers": [],
+                "returns": null,
+                "scopes": [
+                    "d"
+                ],
+                "tag": "Constructor"
+            }
+        },
+        {
+            "Right": {
+                "declaration": false,
+                "errors": [],
+                "localname": "S",
+                "params": [],
+                "path": "",
+                "qualifiers": [],
+                "returns": null,
+                "scopes": [
+                    "foo"
+                ],
+                "tag": null
+            }
+        },
+        {
+            "Right": {
+                "declaration": false,
+                "errors": [],
+                "localname": "bar",
+                "params": [],
+                "path": "",
+                "qualifiers": [],
+                "returns": null,
+                "scopes": [
+                    "foo"
+                ],
+                "tag": null
+            }
+        },
+        {
+            "Right": {
+                "declaration": true,
+                "errors": [],
+                "localname": "f",
+                "params": [],
+                "path": "",
+                "qualifiers": [],
+                "returns": null,
+                "scopes": [
+                    "foo"
+                ],
+                "tag": "Function"
+            }
+        },
+        {
+            "Right": {
+                "declaration": false,
+                "errors": [],
+                "localname": "foo",
+                "params": [],
+                "path": "",
+                "qualifiers": [],
+                "returns": null,
+                "scopes": [
+                    "foo"
+                ],
+                "tag": "Function"
+            }
+        },
+        {
+            "Right": {
+                "declaration": true,
+                "errors": [],
+                "localname": "foo",
+                "params": [],
+                "path": "",
+                "qualifiers": [],
+                "returns": null,
+                "scopes": [
+                    "foo"
+                ],
+                "tag": "Function"
+            }
+        },
+        {
+            "Right": {
+                "declaration": false,
+                "errors": [],
+                "localname": "fooFn",
+                "params": [
+                    "int"
+                ],
+                "path": "",
+                "qualifiers": [],
+                "returns": null,
+                "scopes": [
+                    "foo"
+                ],
+                "tag": "Function"
+            }
+        },
+        {
+            "Right": {
+                "declaration": true,
+                "errors": [],
+                "localname": "TypedefDeclInteger",
+                "params": [],
+                "path": "",
+                "qualifiers": [],
+                "returns": null,
+                "scopes": [
+                    "foo",
+                    "S"
+                ],
+                "tag": null
+            }
+        },
+        {
+            "Right": {
+                "declaration": true,
+                "errors": [],
+                "localname": "UsingDeclInteger",
+                "params": [],
+                "path": "",
+                "qualifiers": [],
+                "returns": null,
+                "scopes": [
+                    "foo",
+                    "S"
+                ],
+                "tag": null
+            }
+        },
+        {
+            "Right": {
+                "declaration": false,
+                "errors": [],
+                "localname": "T",
+                "params": [],
+                "path": "",
+                "qualifiers": [],
+                "returns": null,
+                "scopes": [
+                    "foo",
+                    "bar"
+                ],
+                "tag": null
+            }
+        },
+        {
+            "Right": {
+                "declaration": true,
+                "errors": [],
+                "localname": "TypedefDeclShort",
+                "params": [],
+                "path": "",
+                "qualifiers": [],
+                "returns": null,
+                "scopes": [
+                    "foo",
+                    "bar"
+                ],
+                "tag": null
+            }
+        },
+        {
+            "Right": {
+                "declaration": true,
+                "errors": [],
+                "localname": "UsingDeclShort",
+                "params": [],
+                "path": "",
+                "qualifiers": [],
+                "returns": null,
+                "scopes": [
+                    "foo",
+                    "bar"
+                ],
+                "tag": null
+            }
+        },
+        {
+            "Right": {
+                "declaration": true,
+                "errors": [],
+                "localname": "g",
+                "params": [],
+                "path": "",
+                "qualifiers": [],
+                "returns": null,
+                "scopes": [
+                    "foo",
+                    "bar"
+                ],
+                "tag": "Function"
+            }
+        },
+        {
+            "Right": {
+                "declaration": true,
+                "errors": [],
+                "localname": "memberVariableDecl",
+                "params": [],
+                "path": "",
+                "qualifiers": [],
+                "returns": null,
+                "scopes": [
+                    "foo",
+                    "bar",
+                    "T"
+                ],
+                "tag": null
+            }
+        },
+        {
+            "Right": {
+                "declaration": true,
+                "errors": [],
+                "localname": "four",
+                "params": [],
+                "path": "",
+                "qualifiers": [],
+                "returns": null,
+                "scopes": [
+                    "foo",
+                    "foo"
+                ],
+                "tag": null
+            }
+        },
+        {
+            "Right": {
+                "declaration": true,
+                "errors": [],
+                "localname": "fooI",
+                "params": [],
+                "path": "",
+                "qualifiers": [],
+                "returns": null,
+                "scopes": [
+                    "foo",
+                    "fooFn"
+                ],
+                "tag": null
+            }
+        },
+        {
+            "Right": {
+                "declaration": true,
+                "errors": [],
+                "localname": "_i",
+                "params": [],
+                "path": "",
+                "qualifiers": [],
+                "returns": null,
+                "scopes": [
+                    "h"
+                ],
+                "tag": null
+            }
+        },
+        {
+            "Right": {
+                "declaration": true,
+                "errors": [],
+                "localname": "i",
+                "params": [],
+                "path": "",
+                "qualifiers": [],
+                "returns": null,
+                "scopes": [
+                    "h"
+                ],
+                "tag": null
+            }
+        },
+        {
+            "Right": {
+                "declaration": true,
+                "errors": [],
+                "localname": "s",
+                "params": [],
+                "path": "",
+                "qualifiers": [],
+                "returns": null,
+                "scopes": [
+                    "h"
+                ],
+                "tag": null
+            }
+        },
+        {
+            "Right": {
+                "declaration": true,
+                "errors": [],
+                "localname": "t",
+                "params": [],
+                "path": "",
+                "qualifiers": [],
+                "returns": null,
+                "scopes": [
+                    "h"
+                ],
+                "tag": null
+            }
+        },
+        {
+            "Right": {
+                "declaration": true,
+                "errors": [],
+                "localname": "x",
+                "params": [],
+                "path": "",
+                "qualifiers": [],
+                "returns": null,
+                "scopes": [
+                    "id"
+                ],
+                "tag": null
+            }
+        },
+        {
+            "Right": {
+                "declaration": false,
+                "errors": [],
+                "localname": "Nothing",
+                "params": [],
+                "path": "",
+                "qualifiers": [],
+                "returns": null,
+                "scopes": [
+                    "maybe"
+                ],
+                "tag": null
+            }
+        },
+        {
+            "Right": {
+                "declaration": false,
+                "errors": [],
+                "localname": "Something",
+                "params": [],
+                "path": "",
+                "qualifiers": [],
+                "returns": null,
+                "scopes": [
+                    "maybe"
+                ],
+                "tag": null
+            }
+        },
+        {
+            "Right": {
+                "declaration": true,
+                "errors": [],
+                "localname": "nothing",
+                "params": [],
+                "path": "",
+                "qualifiers": [],
+                "returns": null,
+                "scopes": [
+                    "maybe"
+                ],
+                "tag": null
+            }
+        },
+        {
+            "Right": {
+                "declaration": false,
+                "errors": [],
+                "localname": null,
+                "params": [
+                    "maybe::Nothing::_secret"
+                ],
+                "path": "",
+                "qualifiers": [],
+                "returns": null,
+                "scopes": [
+                    "maybe",
+                    "Nothing"
+                ],
+                "tag": "CTorSignature"
+            }
+        },
+        {
+            "Right": {
+                "declaration": true,
+                "errors": [],
+                "localname": "",
+                "params": [],
+                "path": "",
+                "qualifiers": [],
+                "returns": null,
+                "scopes": [
+                    "maybe",
+                    "Nothing"
+                ],
+                "tag": "Constructor"
+            }
+        },
+        {
+            "Right": {
+                "declaration": false,
+                "errors": [],
+                "localname": "_secret",
+                "params": [],
+                "path": "",
+                "qualifiers": [],
+                "returns": null,
+                "scopes": [
+                    "maybe",
+                    "Nothing"
+                ],
+                "tag": null
+            }
+        },
+        {
+            "Right": {
+                "declaration": false,
+                "errors": [],
+                "localname": "_magic",
+                "params": [],
+                "path": "",
+                "qualifiers": [],
+                "returns": null,
+                "scopes": [
+                    "maybe",
+                    "Nothing",
+                    "_secret"
+                ],
+                "tag": null
+            }
+        },
+        {
+            "Right": {
+                "declaration": false,
+                "errors": [],
+                "localname": null,
+                "params": [
+                    "int"
+                ],
+                "path": "",
+                "qualifiers": [],
+                "returns": null,
+                "scopes": [
+                    "maybe",
+                    "Something"
+                ],
+                "tag": "CTorSignature"
+            }
+        },
+        {
+            "Right": {
+                "declaration": false,
+                "errors": [],
+                "localname": null,
+                "params": [],
+                "path": "",
+                "qualifiers": [],
+                "returns": null,
+                "scopes": [
+                    "maybe",
+                    "Something"
+                ],
+                "tag": "Destructor"
+            }
+        },
+        {
+            "Right": {
+                "declaration": true,
+                "errors": [],
+                "localname": "a",
+                "params": [],
+                "path": "",
+                "qualifiers": [],
+                "returns": null,
+                "scopes": [
+                    "maybe",
+                    "Something"
+                ],
+                "tag": "Constructor"
+            }
+        },
+        {
+            "Right": {
+                "declaration": true,
+                "errors": [],
+                "localname": "a_",
+                "params": [],
+                "path": "",
+                "qualifiers": [],
+                "returns": null,
+                "scopes": [
+                    "maybe",
+                    "Something"
+                ],
+                "tag": null
+            }
+        }
+    ]
+]

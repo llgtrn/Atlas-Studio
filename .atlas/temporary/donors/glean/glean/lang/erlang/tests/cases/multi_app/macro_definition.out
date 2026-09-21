@@ -1,0 +1,24 @@
+[
+  "@generated",
+  {
+    "key": {
+      "declaration": {
+        "key": { "name": "MAX_RETRIES", "module": "shared.hrl", "app": "app_a" }
+      },
+      "definition_text": "-define(MAX_RETRIES, 3)."
+    }
+  },
+  {
+    "key": {
+      "declaration": {
+        "key": {
+          "name": "TRANSFORM",
+          "arity": 1,
+          "module": "shared.hrl",
+          "app": "app_a"
+        }
+      },
+      "definition_text": "-define(TRANSFORM(X), {ok, X})."
+    }
+  }
+]

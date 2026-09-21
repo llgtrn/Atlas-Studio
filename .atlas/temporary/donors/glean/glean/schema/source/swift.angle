@@ -1,0 +1,74 @@
+# Copyright (c) Meta, Inc. and affiliates.
+
+schema swift.1 {
+
+import lsif.types
+import scip
+import src
+
+# Unique Symbol Reference, a symbol ID used in the compiler for swift, ObjC and Clang
+predicate USR: string
+
+predicate SymbolUSR:
+  {
+    symbol: scip.Symbol,
+    usr: USR,
+  }
+
+predicate USRSymbol:
+  {
+    usr: USR,
+    symbol: scip.Symbol,
+  }
+
+predicate SymbolLanguage:
+  {
+    symbol: scip.Symbol,
+    language: lsif.types.LanguageId
+  }
+
+predicate ContainerMember:
+  {
+    container: scip.DisplayName,
+    member: scip.DisplayName,
+    kind: lsif.types.SymbolKind
+  }
+
+predicate MemberContainer:
+  {
+    member: scip.DisplayName,
+    container: scip.DisplayName
+  } stored { M, C } where
+  swift.ContainerMember { C, M, _ }
+
+predicate MemberSymbol:
+  {
+    member: ContainerMember,
+    symbol: scip.Symbol
+  }
+
+predicate SymbolContainer:
+  {
+    symbol: scip.Symbol,
+    container: scip.DisplayName
+  } stored { S, C } where
+  swift.MemberSymbol { member = swift.ContainerMember { container = C }, symbol = S }
+
+predicate FileXLangSymbolRef:
+  {
+    file: src.File,
+    range: lsif.types.RangeSpan,
+    target: scip.Symbol,
+  }
+  { File, Range, Symbol } where
+  scip.ReferenceLocation { File, Range, { symbol = Symbol } };
+  swift.SymbolLanguage { symbol = Symbol, language = ObjectiveC };
+
+# A reference enclosed by a symbol, e.g., ref is called within body of enclosingSymbol
+predicate ReferenceEnclosingSymbol:
+  {
+    ref: scip.Reference,
+    enclosingSymbol: scip.Symbol,
+  }
+
+}

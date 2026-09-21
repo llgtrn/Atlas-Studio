@@ -1,0 +1,9 @@
+query: |
+ codemarkup.SearchRelatedEntities {
+   query = ContainsChildOfParent,
+   parent = { parent = { cxx = { decl = { record_ = _ } } } },
+   child = { child = { cxx = { decl = _ } } },
+   style = ShowAll
+ }
+perf: true
+transform: [gensort, []]

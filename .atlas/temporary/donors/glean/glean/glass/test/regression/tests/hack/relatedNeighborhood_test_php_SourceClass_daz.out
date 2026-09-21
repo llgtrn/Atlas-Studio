@@ -1,0 +1,145 @@
+[
+    "@generated",
+    {
+        "childrenContained": [],
+        "childrenExtended": [],
+        "containsParents": [
+            {
+                "child": "test/php/SourceClass/:prop/daz",
+                "parent": "test/php/SourceClass"
+            }
+        ],
+        "inheritedSymbols": [],
+        "parentsExtended": [],
+        "requireClass": [],
+        "requireExtends": [],
+        "requireImplements": [],
+        "symbolBasicDetails": {},
+        "symbolDetails": {
+            "test/php/SourceClass": {
+                "annotations": [
+                    {
+                        "name": "TestAnnotation",
+                        "source": "TestAnnotation(\"Text\")",
+                        "symbol": "test/php/TestAnnotation"
+                    }
+                ],
+                "contains_relation": {
+                    "firstChild": "nondeterministic",
+                    "firstParent": "nondeterministic",
+                    "hasMoreChildren": true,
+                    "hasMoreParents": false
+                },
+                "extends_relation": {
+                    "firstChild": "nondeterministic",
+                    "firstParent": "nondeterministic",
+                    "hasMoreChildren": true,
+                    "hasMoreParents": false
+                },
+                "kind": 7,
+                "language": 3,
+                "location": {
+                    "filepath": "www/SourceClass.php",
+                    "range": {
+                        "columnBegin": 1,
+                        "columnEnd": 2,
+                        "lineBegin": 13,
+                        "lineEnd": 38
+                    },
+                    "repository": "test"
+                },
+                "modifiers": [],
+                "name": {
+                    "container": "",
+                    "localName": "SourceClass"
+                },
+                "pretty_comments": [
+                    {
+                        "location": {
+                            "filepath": "www/SourceClass.php",
+                            "range": {
+                                "columnBegin": 1,
+                                "columnEnd": 4,
+                                "lineBegin": 10,
+                                "lineEnd": 12
+                            },
+                            "repository": "test"
+                        }
+                    }
+                ],
+                "repo_hash": "testhash",
+                "signature": "class SourceClass",
+                "sym": "test/php/SourceClass",
+                "sym_location": {
+                    "filepath": "www/SourceClass.php",
+                    "range": {
+                        "columnBegin": 1,
+                        "columnEnd": 2,
+                        "lineBegin": 13,
+                        "lineEnd": 38
+                    },
+                    "repository": "test"
+                },
+                "sym_other_locations": [],
+                "type_xrefs": [
+                    {
+                        "span": {
+                            "length": 11,
+                            "start": 6
+                        },
+                        "type": "test/php/SourceClass"
+                    }
+                ]
+            },
+            "test/php/SourceClass/:prop/daz": {
+                "annotations": [],
+                "contains_relation": {
+                    "firstChild": "nondeterministic",
+                    "firstParent": "nondeterministic",
+                    "hasMoreChildren": false,
+                    "hasMoreParents": false
+                },
+                "extends_relation": {
+                    "firstChild": "nondeterministic",
+                    "firstParent": "nondeterministic",
+                    "hasMoreChildren": false,
+                    "hasMoreParents": false
+                },
+                "kind": 9,
+                "language": 3,
+                "location": {
+                    "filepath": "www/SourceClass.php",
+                    "range": {
+                        "columnBegin": 14,
+                        "columnEnd": 23,
+                        "lineBegin": 20,
+                        "lineEnd": 20
+                    },
+                    "repository": "test"
+                },
+                "modifiers": [],
+                "name": {
+                    "container": "SourceClass",
+                    "localName": "daz"
+                },
+                "pretty_comments": [],
+                "repo_hash": "testhash",
+                "signature": "public int daz",
+                "sym": "test/php/SourceClass/:prop/daz",
+                "sym_location": {
+                    "filepath": "www/SourceClass.php",
+                    "range": {
+                        "columnBegin": 14,
+                        "columnEnd": 23,
+                        "lineBegin": 20,
+                        "lineEnd": 20
+                    },
+                    "repository": "test"
+                },
+                "sym_other_locations": [],
+                "type_xrefs": [],
+                "visibility": 20
+            }
+        }
+    }
+]

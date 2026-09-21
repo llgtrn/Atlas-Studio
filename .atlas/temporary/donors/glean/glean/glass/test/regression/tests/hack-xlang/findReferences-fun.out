@@ -1,0 +1,15 @@
+[
+    "@generated",
+    [
+        {
+            "filepath": "www/test.php",
+            "range": {
+                "columnBegin": 32,
+                "columnEnd": 39,
+                "lineBegin": 20,
+                "lineEnd": 20
+            },
+            "repository": "test-xlang"
+        }
+    ]
+]

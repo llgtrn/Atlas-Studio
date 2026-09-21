@@ -1,0 +1,266 @@
+[
+    "@generated",
+    {
+        "childrenContained": [
+            "test/php/SourceInterface/JAZZ",
+            "test/php/SourceInterface/foo",
+            "test/php/SourceInterface/quux"
+        ],
+        "childrenExtended": [
+            "test/php/RefClass"
+        ],
+        "containsParents": [],
+        "inheritedSymbols": [],
+        "parentsExtended": [],
+        "requireClass": [],
+        "requireExtends": [],
+        "requireImplements": [],
+        "symbolBasicDetails": {
+            "test/php/RefClass": {
+                "kind": 7,
+                "language": 3,
+                "name": {
+                    "container": "",
+                    "localName": "RefClass"
+                },
+                "signature": "class RefClass",
+                "sym": "test/php/RefClass"
+            }
+        },
+        "symbolDetails": {
+            "test/php/SourceInterface": {
+                "annotations": [],
+                "contains_relation": {
+                    "firstChild": "nondeterministic",
+                    "firstParent": "nondeterministic",
+                    "hasMoreChildren": true,
+                    "hasMoreParents": false
+                },
+                "extends_relation": {
+                    "firstChild": "nondeterministic",
+                    "firstParent": "nondeterministic",
+                    "hasMoreChildren": false,
+                    "hasMoreParents": false
+                },
+                "kind": 13,
+                "language": 3,
+                "location": {
+                    "filepath": "www/SourceInterface.php",
+                    "range": {
+                        "columnBegin": 1,
+                        "columnEnd": 2,
+                        "lineBegin": 10,
+                        "lineEnd": 18
+                    },
+                    "repository": "test"
+                },
+                "modifiers": [],
+                "name": {
+                    "container": "",
+                    "localName": "SourceInterface"
+                },
+                "pretty_comments": [],
+                "repo_hash": "testhash",
+                "signature": "interface SourceInterface",
+                "sym": "test/php/SourceInterface",
+                "sym_location": {
+                    "filepath": "www/SourceInterface.php",
+                    "range": {
+                        "columnBegin": 1,
+                        "columnEnd": 2,
+                        "lineBegin": 10,
+                        "lineEnd": 18
+                    },
+                    "repository": "test"
+                },
+                "sym_other_locations": [],
+                "type_xrefs": [
+                    {
+                        "span": {
+                            "length": 15,
+                            "start": 10
+                        },
+                        "type": "test/php/SourceInterface"
+                    }
+                ]
+            },
+            "test/php/SourceInterface/JAZZ": {
+                "contains_relation": {
+                    "firstChild": "nondeterministic",
+                    "firstParent": "nondeterministic",
+                    "hasMoreChildren": false,
+                    "hasMoreParents": false
+                },
+                "extends_relation": {
+                    "firstChild": "nondeterministic",
+                    "firstParent": "nondeterministic",
+                    "hasMoreChildren": false,
+                    "hasMoreParents": false
+                },
+                "kind": 16,
+                "language": 3,
+                "location": {
+                    "filepath": "www/SourceInterface.php",
+                    "range": {
+                        "columnBegin": 3,
+                        "columnEnd": 27,
+                        "lineBegin": 12,
+                        "lineEnd": 12
+                    },
+                    "repository": "test"
+                },
+                "modifiers": [
+                    6
+                ],
+                "name": {
+                    "container": "SourceInterface",
+                    "localName": "JAZZ"
+                },
+                "pretty_comments": [],
+                "repo_hash": "testhash",
+                "signature": "const JAZZ",
+                "sym": "test/php/SourceInterface/JAZZ",
+                "sym_location": {
+                    "filepath": "www/SourceInterface.php",
+                    "range": {
+                        "columnBegin": 3,
+                        "columnEnd": 27,
+                        "lineBegin": 12,
+                        "lineEnd": 12
+                    },
+                    "repository": "test"
+                },
+                "sym_other_locations": [],
+                "type_xrefs": [
+                    {
+                        "span": {
+                            "length": 4,
+                            "start": 6
+                        },
+                        "type": "test/php/SourceInterface/JAZZ"
+                    }
+                ],
+                "visibility": 20
+            },
+            "test/php/SourceInterface/foo": {
+                "annotations": [],
+                "contains_relation": {
+                    "firstChild": "nondeterministic",
+                    "firstParent": "nondeterministic",
+                    "hasMoreChildren": false,
+                    "hasMoreParents": false
+                },
+                "extends_relation": {
+                    "firstChild": "nondeterministic",
+                    "firstParent": "nondeterministic",
+                    "hasMoreChildren": false,
+                    "hasMoreParents": false
+                },
+                "kind": 8,
+                "language": 3,
+                "location": {
+                    "filepath": "www/SourceInterface.php",
+                    "range": {
+                        "columnBegin": 3,
+                        "columnEnd": 37,
+                        "lineBegin": 14,
+                        "lineEnd": 14
+                    },
+                    "repository": "test"
+                },
+                "modifiers": [
+                    1,
+                    4
+                ],
+                "name": {
+                    "container": "SourceInterface",
+                    "localName": "foo"
+                },
+                "pretty_comments": [],
+                "repo_hash": "testhash",
+                "signature": "public static function foo(): int",
+                "sym": "test/php/SourceInterface/foo",
+                "sym_location": {
+                    "filepath": "www/SourceInterface.php",
+                    "range": {
+                        "columnBegin": 3,
+                        "columnEnd": 37,
+                        "lineBegin": 14,
+                        "lineEnd": 14
+                    },
+                    "repository": "test"
+                },
+                "sym_other_locations": [],
+                "type_xrefs": [
+                    {
+                        "span": {
+                            "length": 3,
+                            "start": 23
+                        },
+                        "type": "test/php/SourceInterface/foo"
+                    }
+                ],
+                "visibility": 20
+            },
+            "test/php/SourceInterface/quux": {
+                "annotations": [],
+                "contains_relation": {
+                    "firstChild": "nondeterministic",
+                    "firstParent": "nondeterministic",
+                    "hasMoreChildren": false,
+                    "hasMoreParents": false
+                },
+                "extends_relation": {
+                    "firstChild": "nondeterministic",
+                    "firstParent": "nondeterministic",
+                    "hasMoreChildren": false,
+                    "hasMoreParents": false
+                },
+                "kind": 8,
+                "language": 3,
+                "location": {
+                    "filepath": "www/SourceInterface.php",
+                    "range": {
+                        "columnBegin": 3,
+                        "columnEnd": 37,
+                        "lineBegin": 16,
+                        "lineEnd": 16
+                    },
+                    "repository": "test"
+                },
+                "modifiers": [
+                    1
+                ],
+                "name": {
+                    "container": "SourceInterface",
+                    "localName": "quux"
+                },
+                "pretty_comments": [],
+                "repo_hash": "testhash",
+                "signature": "public function quux(int $i): int",
+                "sym": "test/php/SourceInterface/quux",
+                "sym_location": {
+                    "filepath": "www/SourceInterface.php",
+                    "range": {
+                        "columnBegin": 3,
+                        "columnEnd": 37,
+                        "lineBegin": 16,
+                        "lineEnd": 16
+                    },
+                    "repository": "test"
+                },
+                "sym_other_locations": [],
+                "type_xrefs": [
+                    {
+                        "span": {
+                            "length": 4,
+                            "start": 16
+                        },
+                        "type": "test/php/SourceInterface/quux"
+                    }
+                ],
+                "visibility": 20
+            }
+        }
+    }
+]

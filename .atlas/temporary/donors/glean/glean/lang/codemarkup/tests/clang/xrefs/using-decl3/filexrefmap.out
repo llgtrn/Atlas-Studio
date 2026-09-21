@@ -1,0 +1,484 @@
+[
+  "@generated",
+  {
+    "key": {
+      "file": { "key": "test.cpp" },
+      "fixed": [
+        {
+          "target": {
+            "declaration": {
+              "namespace_": {
+                "key": {
+                  "name": { "key": { "name": { "key": "N1" } } },
+                  "source": {
+                    "file": { "key": "test.cpp" },
+                    "lineBegin": 9,
+                    "columnBegin": 1,
+                    "lineEnd": 24,
+                    "columnEnd": 1
+                  }
+                }
+              }
+            }
+          },
+          "from": {
+            "spans": [
+              {
+                "length": 2,
+                "offsets": [
+                  465,
+                  13,
+                  13,
+                  14,
+                  13,
+                  13,
+                  13,
+                  248,
+                  13,
+                  13,
+                  14,
+                  13,
+                  13,
+                  13
+                ]
+              }
+            ],
+            "expansions": [ ],
+            "spellings": [ ]
+          }
+        },
+        {
+          "target": {
+            "declaration": {
+              "record_": {
+                "key": {
+                  "name": {
+                    "key": {
+                      "name": { "key": "T" },
+                      "scope": {
+                        "namespace_": { "key": { "name": { "key": "N1" } } }
+                      }
+                    }
+                  },
+                  "kind": { "struct_": { } },
+                  "source": {
+                    "file": { "key": "test.cpp" },
+                    "lineBegin": 11,
+                    "columnBegin": 1,
+                    "lineEnd": 14,
+                    "columnEnd": 1
+                  }
+                }
+              }
+            }
+          },
+          "from": {
+            "spans": [ { "length": 1, "offsets": [ 469, 327 ] } ],
+            "expansions": [ ],
+            "spellings": [ ]
+          }
+        },
+        {
+          "target": {
+            "declaration": {
+              "enum_": {
+                "key": {
+                  "name": {
+                    "key": {
+                      "name": { "key": "E" },
+                      "scope": {
+                        "namespace_": { "key": { "name": { "key": "N1" } } }
+                      }
+                    }
+                  },
+                  "isScoped": false,
+                  "source": {
+                    "file": { "key": "test.cpp" },
+                    "lineBegin": 15,
+                    "columnBegin": 1,
+                    "lineEnd": 15,
+                    "columnEnd": 21
+                  }
+                }
+              }
+            }
+          },
+          "from": {
+            "spans": [ { "length": 1, "offsets": [ 482, 327 ] } ],
+            "expansions": [ ],
+            "spellings": [ ]
+          }
+        },
+        {
+          "target": {
+            "enumerator": {
+              "key": {
+                "name": { "key": "E1" },
+                "enumeration": {
+                  "key": {
+                    "name": {
+                      "key": {
+                        "name": { "key": "E" },
+                        "scope": {
+                          "namespace_": { "key": { "name": { "key": "N1" } } }
+                        }
+                      }
+                    },
+                    "isScoped": false,
+                    "source": {
+                      "file": { "key": "test.cpp" },
+                      "lineBegin": 15,
+                      "columnBegin": 1,
+                      "lineEnd": 15,
+                      "columnEnd": 21
+                    }
+                  }
+                },
+                "source": {
+                  "file": { "key": "test.cpp" },
+                  "lineBegin": 15,
+                  "columnBegin": 10,
+                  "lineEnd": 15,
+                  "columnEnd": 11
+                }
+              }
+            }
+          },
+          "from": {
+            "spans": [ { "length": 2, "offsets": [ 495, 327 ] } ],
+            "expansions": [ ],
+            "spellings": [ ]
+          }
+        },
+        {
+          "target": {
+            "declaration": {
+              "enum_": {
+                "key": {
+                  "name": {
+                    "key": {
+                      "name": { "key": "F" },
+                      "scope": {
+                        "namespace_": { "key": { "name": { "key": "N1" } } }
+                      }
+                    }
+                  },
+                  "isScoped": true,
+                  "source": {
+                    "file": { "key": "test.cpp" },
+                    "lineBegin": 16,
+                    "columnBegin": 1,
+                    "lineEnd": 16,
+                    "columnEnd": 27
+                  }
+                }
+              }
+            }
+          },
+          "from": {
+            "spans": [ { "length": 1, "offsets": [ 509, 327 ] } ],
+            "expansions": [ ],
+            "spellings": [ ]
+          }
+        },
+        {
+          "target": {
+            "declaration": {
+              "typeAlias": {
+                "key": {
+                  "name": {
+                    "key": {
+                      "name": { "key": "U" },
+                      "scope": {
+                        "namespace_": { "key": { "name": { "key": "N1" } } }
+                      }
+                    }
+                  },
+                  "type": { "key": "int" },
+                  "kind": 1,
+                  "source": {
+                    "file": { "key": "test.cpp" },
+                    "lineBegin": 18,
+                    "columnBegin": 1,
+                    "lineEnd": 18,
+                    "columnEnd": 13
+                  }
+                }
+              }
+            }
+          },
+          "from": {
+            "spans": [ { "length": 1, "offsets": [ 522, 327 ] } ],
+            "expansions": [ ],
+            "spellings": [ ]
+          }
+        },
+        {
+          "target": {
+            "declaration": {
+              "typeAlias": {
+                "key": {
+                  "name": {
+                    "key": {
+                      "name": { "key": "V" },
+                      "scope": {
+                        "namespace_": { "key": { "name": { "key": "N1" } } }
+                      }
+                    }
+                  },
+                  "type": { "key": "bool" },
+                  "kind": 0,
+                  "source": {
+                    "file": { "key": "test.cpp" },
+                    "lineBegin": 19,
+                    "columnBegin": 1,
+                    "lineEnd": 19,
+                    "columnEnd": 14
+                  }
+                }
+              }
+            }
+          },
+          "from": {
+            "spans": [ { "length": 1, "offsets": [ 535, 327 ] } ],
+            "expansions": [ ],
+            "spellings": [ ]
+          }
+        },
+        {
+          "target": {
+            "declaration": {
+              "record_": {
+                "key": {
+                  "name": {
+                    "key": {
+                      "name": { "key": "W" },
+                      "scope": {
+                        "namespace_": { "key": { "name": { "key": "N1" } } }
+                      }
+                    }
+                  },
+                  "kind": { "struct_": { } },
+                  "source": {
+                    "file": { "key": "test.cpp" },
+                    "lineBegin": 22,
+                    "columnBegin": 1,
+                    "lineEnd": 22,
+                    "columnEnd": 44
+                  }
+                }
+              }
+            }
+          },
+          "from": {
+            "spans": [ { "length": 1, "offsets": [ 548, 327 ] } ],
+            "expansions": [ ],
+            "spellings": [ ]
+          }
+        },
+        {
+          "target": {
+            "enumerator": {
+              "key": {
+                "name": { "key": "F2" },
+                "enumeration": {
+                  "key": {
+                    "name": {
+                      "key": {
+                        "name": { "key": "F" },
+                        "scope": {
+                          "namespace_": { "key": { "name": { "key": "N1" } } }
+                        }
+                      }
+                    },
+                    "isScoped": true,
+                    "source": {
+                      "file": { "key": "test.cpp" },
+                      "lineBegin": 16,
+                      "columnBegin": 1,
+                      "lineEnd": 16,
+                      "columnEnd": 27
+                    }
+                  }
+                },
+                "source": {
+                  "file": { "key": "test.cpp" },
+                  "lineBegin": 16,
+                  "columnBegin": 20,
+                  "lineEnd": 16,
+                  "columnEnd": 21
+                }
+              }
+            }
+          },
+          "from": {
+            "spans": [ { "length": 2, "offsets": [ 579, 114, 213 ] } ],
+            "expansions": [ ],
+            "spellings": [ ]
+          }
+        },
+        {
+          "target": {
+            "declaration": {
+              "typeAlias": {
+                "key": {
+                  "name": {
+                    "key": {
+                      "name": { "key": "Type" },
+                      "scope": {
+                        "recordWithAccess": {
+                          "record": {
+                            "key": {
+                              "name": { "key": "W" },
+                              "scope": {
+                                "namespace_": {
+                                  "key": { "name": { "key": "N1" } }
+                                }
+                              }
+                            }
+                          },
+                          "access": 0
+                        }
+                      }
+                    }
+                  },
+                  "type": { "key": "T" },
+                  "kind": 1,
+                  "source": {
+                    "file": { "key": "test.cpp" },
+                    "lineBegin": 22,
+                    "columnBegin": 12,
+                    "lineEnd": 22,
+                    "columnEnd": 25
+                  }
+                }
+              }
+            }
+          },
+          "from": {
+            "spans": [ { "length": 4, "offsets": [ 617, 114, 213 ] } ],
+            "expansions": [ ],
+            "spellings": [ ]
+          }
+        },
+        {
+          "target": {
+            "declaration": {
+              "function_": {
+                "key": {
+                  "name": {
+                    "key": {
+                      "name": { "key": { "name": { "key": "f" } } },
+                      "scope": {
+                        "recordWithAccess": {
+                          "record": {
+                            "key": {
+                              "name": { "key": "W" },
+                              "scope": {
+                                "namespace_": {
+                                  "key": { "name": { "key": "N1" } }
+                                }
+                              }
+                            }
+                          },
+                          "access": 0
+                        }
+                      }
+                    }
+                  },
+                  "signature": {
+                    "key": { "returns": { "key": "int" }, "parameters": [ ] }
+                  },
+                  "source": {
+                    "file": { "key": "test.cpp" },
+                    "lineBegin": 22,
+                    "columnBegin": 28,
+                    "lineEnd": 22,
+                    "columnEnd": 41
+                  }
+                }
+              }
+            }
+          },
+          "from": {
+            "spans": [ { "length": 1, "offsets": [ 646, 114, 213 ] } ],
+            "expansions": [ ],
+            "spellings": [ ]
+          }
+        }
+      ],
+      "froms": [
+        {
+          "spans": [ { "length": 1, "offsets": [ 552, 114 ] } ],
+          "expansions": [ ],
+          "spellings": [ ]
+        },
+        {
+          "spans": [ { "length": 1, "offsets": [ 558, 114 ] } ],
+          "expansions": [ ],
+          "spellings": [ ]
+        },
+        {
+          "spans": [ { "length": 2, "offsets": [ 565, 114 ] } ],
+          "expansions": [ ],
+          "spellings": [ ]
+        },
+        {
+          "spans": [ { "length": 1, "offsets": [ 569, 7, 107, 7 ] } ],
+          "expansions": [ ],
+          "spellings": [ ]
+        },
+        {
+          "spans": [ { "length": 1, "offsets": [ 583, 114 ] } ],
+          "expansions": [ ],
+          "spellings": [ ]
+        },
+        {
+          "spans": [ { "length": 1, "offsets": [ 589, 114 ] } ],
+          "expansions": [ ],
+          "spellings": [ ]
+        },
+        {
+          "spans": [ { "length": 1, "offsets": [ 595, 11, 29, 74, 11, 29 ] } ],
+          "expansions": [ ],
+          "spellings": [ ]
+        },
+        {
+          "spans": [ { "length": 1, "offsets": [ 879 ] } ],
+          "expansions": [ ],
+          "spellings": [ ]
+        },
+        {
+          "spans": [ { "length": 1, "offsets": [ 885 ] } ],
+          "expansions": [ ],
+          "spellings": [ ]
+        },
+        {
+          "spans": [ { "length": 2, "offsets": [ 892 ] } ],
+          "expansions": [ ],
+          "spellings": [ ]
+        },
+        {
+          "spans": [ { "length": 1, "offsets": [ 896, 7 ] } ],
+          "expansions": [ ],
+          "spellings": [ ]
+        },
+        {
+          "spans": [ { "length": 1, "offsets": [ 910 ] } ],
+          "expansions": [ ],
+          "spellings": [ ]
+        },
+        {
+          "spans": [ { "length": 1, "offsets": [ 916 ] } ],
+          "expansions": [ ],
+          "spellings": [ ]
+        },
+        {
+          "spans": [ { "length": 1, "offsets": [ 922, 11, 29 ] } ],
+          "expansions": [ ],
+          "spellings": [ ]
+        }
+      ]
+    }
+  }
+]

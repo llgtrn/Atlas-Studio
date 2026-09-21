@@ -1,0 +1,104 @@
+[
+    "@generated",
+    {
+        "edges": [
+            {
+                "child": "test/js/imports/BazClass",
+                "parent": "test/js/imports"
+            },
+            {
+                "child": "test/js/imports/C",
+                "parent": "test/js/imports"
+            },
+            {
+                "child": "test/js/imports/CazClass",
+                "parent": "test/js/imports"
+            },
+            {
+                "child": "test/js/imports/CazClass",
+                "parent": "test/js/imports"
+            },
+            {
+                "child": "test/js/imports/Component",
+                "parent": "test/js/imports"
+            },
+            {
+                "child": "test/js/imports/D",
+                "parent": "test/js/imports"
+            },
+            {
+                "child": "test/js/imports/MyT",
+                "parent": "test/js/imports"
+            },
+            {
+                "child": "test/js/imports/a",
+                "parent": "test/js/imports"
+            },
+            {
+                "child": "test/js/imports/b",
+                "parent": "test/js/imports"
+            },
+            {
+                "child": "test/js/imports/bar",
+                "parent": "test/js/imports"
+            },
+            {
+                "child": "test/js/imports/c",
+                "parent": "test/js/imports"
+            },
+            {
+                "child": "test/js/imports/d",
+                "parent": "test/js/imports"
+            },
+            {
+                "child": "test/js/imports/e",
+                "parent": "test/js/imports"
+            },
+            {
+                "child": "test/js/imports/foo",
+                "parent": "test/js/imports"
+            },
+            {
+                "child": "test/js/imports/num",
+                "parent": "test/js/imports"
+            },
+            {
+                "child": "test/js/imports/plus",
+                "parent": "test/js/imports"
+            },
+            {
+                "child": "test/js/imports/qux",
+                "parent": "test/js/imports"
+            },
+            {
+                "child": "test/js/imports/s",
+                "parent": "test/js/imports"
+            },
+            {
+                "child": "test/js/imports/str",
+                "parent": "test/js/imports"
+            },
+            {
+                "child": "test/js/imports/times",
+                "parent": "test/js/imports"
+            },
+            {
+                "child": "test/js/imports/x",
+                "parent": "test/js/imports"
+            },
+            {
+                "child": "test/js/imports/y",
+                "parent": "test/js/imports"
+            },
+            {
+                "child": "test/js/imports/z",
+                "parent": "test/js/imports"
+            },
+            {
+                "child": "test/js/imports/z1",
+                "parent": "test/js/imports"
+            }
+        ],
+        "symbolDetails": {}
+    }
+]

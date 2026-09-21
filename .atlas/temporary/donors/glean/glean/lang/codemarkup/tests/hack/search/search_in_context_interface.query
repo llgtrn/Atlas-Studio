@@ -1,0 +1,3 @@
+query: codemarkup.search.SearchByScope { name = "foo", scope = ["SourceInterface"], language = Hack, searchcase = Sensitive }
+transform: [normord, []]
+perf: true

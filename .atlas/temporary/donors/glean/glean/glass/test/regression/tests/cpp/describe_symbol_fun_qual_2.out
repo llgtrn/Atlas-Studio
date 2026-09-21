@@ -1,0 +1,52 @@
+[
+    "@generated",
+    {
+        "annotations": [],
+        "contains_relation": {
+            "firstChild": "nondeterministic",
+            "firstParent": "nondeterministic",
+            "hasMoreChildren": false,
+            "hasMoreParents": false
+        },
+        "extends_relation": {
+            "firstChild": "nondeterministic",
+            "firstParent": "nondeterministic",
+            "hasMoreChildren": false,
+            "hasMoreParents": false
+        },
+        "kind": 8,
+        "language": 1,
+        "location": {
+            "filepath": "test.cpp",
+            "range": {
+                "columnBegin": 5,
+                "columnEnd": 26,
+                "lineBegin": 143,
+                "lineEnd": 143
+            },
+            "repository": "test"
+        },
+        "modifiers": [],
+        "name": {
+            "container": "Q::QQ",
+            "localName": "getDouble() &"
+        },
+        "pretty_comments": [],
+        "repo_hash": "testhash",
+        "signature": "double& Q::QQ::getDouble()",
+        "sym": "test/cpp//Q/QQ/getDouble/.f//lvalue/.decl",
+        "sym_location": {
+            "filepath": "test.cpp",
+            "range": {
+                "columnBegin": 5,
+                "columnEnd": 26,
+                "lineBegin": 143,
+                "lineEnd": 143
+            },
+            "repository": "test"
+        },
+        "sym_other_locations": [],
+        "type_xrefs": [],
+        "visibility": 20
+    }
+]

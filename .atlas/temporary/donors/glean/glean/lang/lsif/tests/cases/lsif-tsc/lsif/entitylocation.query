@@ -1,0 +1,3 @@
+query: lsif.EntityLocation { entity = { typescript = _ } }
+perf: True
+transform: [gensort, []]

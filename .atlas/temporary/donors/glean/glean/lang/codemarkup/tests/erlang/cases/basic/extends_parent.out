@@ -1,0 +1,59 @@
+[
+  "@generated",
+  {
+    "key": {
+      "child": {
+        "decl": {
+          "func": {
+            "key": {
+              "app": "basic",
+              "fqn": { "arity": 1, "module": "example", "name": "on_event" }
+            }
+          }
+        }
+      },
+      "parent": {
+        "decl": {
+          "callback_": {
+            "key": {
+              "app": "basic",
+              "arity": 1,
+              "module": "example_behaviour",
+              "name": "on_event"
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "key": {
+      "child": {
+        "decl": {
+          "module_": {
+            "key": {
+              "app": "basic",
+              "file": {
+                "key": "glean/lang/erlang/tests/cases/basic/src/example.erl"
+              },
+              "name": "example"
+            }
+          }
+        }
+      },
+      "parent": {
+        "decl": {
+          "module_": {
+            "key": {
+              "app": "basic",
+              "file": {
+                "key": "glean/lang/erlang/tests/cases/basic/src/example_behaviour.erl"
+              },
+              "name": "example_behaviour"
+            }
+          }
+        }
+      }
+    }
+  }
+]

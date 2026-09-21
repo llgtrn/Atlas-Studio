@@ -1,0 +1,568 @@
+[
+  "@generated",
+  {
+    "key": {
+      "file": { "key": "glean/lang/erlang/tests/cases/basic/src/example.erl" },
+      "xrefs": [
+        {
+          "target": {
+            "func": {
+              "key": {
+                "fqn": { "module": "example", "name": "hello", "arity": 1 },
+                "app": "basic"
+              }
+            }
+          },
+          "source": { "start": 58, "length": 7 }
+        },
+        {
+          "target": {
+            "func": {
+              "key": {
+                "fqn": { "module": "example", "name": "add", "arity": 2 },
+                "app": "basic"
+              }
+            }
+          },
+          "source": { "start": 67, "length": 5 }
+        },
+        {
+          "target": {
+            "func": {
+              "key": {
+                "fqn": { "module": "example", "name": "factorial", "arity": 1 },
+                "app": "basic"
+              }
+            }
+          },
+          "source": { "start": 74, "length": 11 }
+        },
+        {
+          "target": {
+            "func": {
+              "key": {
+                "fqn": { "module": "example", "name": "get_name", "arity": 1 },
+                "app": "basic"
+              }
+            }
+          },
+          "source": { "start": 87, "length": 10 }
+        },
+        {
+          "target": {
+            "func": {
+              "key": {
+                "fqn": { "module": "example", "name": "set_age", "arity": 2 },
+                "app": "basic"
+              }
+            }
+          },
+          "source": { "start": 99, "length": 9 }
+        },
+        {
+          "target": {
+            "func": {
+              "key": {
+                "fqn": {
+                  "module": "example",
+                  "name": "old_function",
+                  "arity": 1
+                },
+                "app": "basic"
+              }
+            }
+          },
+          "source": { "start": 110, "length": 14 }
+        },
+        {
+          "target": {
+            "func": {
+              "key": {
+                "fqn": { "module": "example", "name": "run_all", "arity": 0 },
+                "app": "basic"
+              }
+            }
+          },
+          "source": { "start": 126, "length": 9 }
+        },
+        {
+          "target": {
+            "func": {
+              "key": {
+                "fqn": { "module": "example", "name": "on_event", "arity": 1 },
+                "app": "basic"
+              }
+            }
+          },
+          "source": { "start": 137, "length": 10 }
+        },
+        {
+          "target": {
+            "header_": { "key": { "name": "example.hrl", "app": "basic" } }
+          },
+          "source": { "start": 152, "length": 24 }
+        },
+        {
+          "target": {
+            "type_": {
+              "key": {
+                "name": "atom",
+                "arity": 0,
+                "module": "erlang",
+                "app": "erts"
+              }
+            }
+          },
+          "source": { "start": 205, "length": 4 }
+        },
+        {
+          "target": {
+            "type_": {
+              "key": {
+                "name": "term",
+                "arity": 0,
+                "module": "erlang",
+                "app": "erts"
+              }
+            }
+          },
+          "source": { "start": 222, "length": 4 }
+        },
+        {
+          "target": {
+            "type_": {
+              "key": {
+                "name": "string",
+                "arity": 0,
+                "module": "erlang",
+                "app": "erts"
+              }
+            }
+          },
+          "source": { "start": 257, "length": 6 }
+        },
+        {
+          "target": {
+            "type_": {
+              "key": {
+                "name": "integer",
+                "arity": 0,
+                "module": "erlang",
+                "app": "erts"
+              }
+            }
+          },
+          "source": { "start": 274, "length": 7 }
+        },
+        {
+          "target": {
+            "func": {
+              "key": {
+                "fqn": {
+                  "module": "example",
+                  "name": "old_function",
+                  "arity": 1
+                },
+                "app": "basic"
+              }
+            }
+          },
+          "source": { "start": 302, "length": 12 }
+        },
+        {
+          "target": {
+            "type_": {
+              "key": {
+                "name": "string",
+                "arity": 0,
+                "module": "erlang",
+                "app": "erts"
+              }
+            }
+          },
+          "source": { "start": 393, "length": 6 }
+        },
+        {
+          "target": {
+            "func": {
+              "key": {
+                "fqn": { "module": "io", "name": "format", "arity": 2 },
+                "app": "stdlib"
+              }
+            }
+          },
+          "source": { "start": 429, "length": 9 }
+        },
+        {
+          "target": {
+            "macro_": {
+              "key": {
+                "name": "HELLO",
+                "module": "example.hrl",
+                "app": "basic"
+              }
+            }
+          },
+          "source": { "start": 454, "length": 5 }
+        },
+        {
+          "target": {
+            "type_": {
+              "key": {
+                "name": "number",
+                "arity": 0,
+                "module": "erlang",
+                "app": "erts"
+              }
+            }
+          },
+          "source": { "start": 545, "length": 6 }
+        },
+        {
+          "target": {
+            "type_": {
+              "key": {
+                "name": "number",
+                "arity": 0,
+                "module": "erlang",
+                "app": "erts"
+              }
+            }
+          },
+          "source": { "start": 555, "length": 6 }
+        },
+        {
+          "target": {
+            "type_": {
+              "key": {
+                "name": "number",
+                "arity": 0,
+                "module": "erlang",
+                "app": "erts"
+              }
+            }
+          },
+          "source": { "start": 568, "length": 6 }
+        },
+        {
+          "target": {
+            "type_": {
+              "key": {
+                "name": "number",
+                "arity": 0,
+                "module": "erlang",
+                "app": "erts"
+              }
+            }
+          },
+          "source": { "start": 654, "length": 6 }
+        },
+        {
+          "target": {
+            "type_": {
+              "key": {
+                "name": "number",
+                "arity": 0,
+                "module": "erlang",
+                "app": "erts"
+              }
+            }
+          },
+          "source": { "start": 667, "length": 6 }
+        },
+        {
+          "target": {
+            "func": {
+              "key": {
+                "fqn": { "module": "example", "name": "factorial", "arity": 1 },
+                "app": "basic"
+              }
+            }
+          },
+          "source": { "start": 731, "length": 9 }
+        },
+        {
+          "target": {
+            "record_": {
+              "key": { "name": "person", "module": "example", "app": "basic" }
+            }
+          },
+          "source": { "start": 765, "length": 7 }
+        },
+        {
+          "target": {
+            "type_": {
+              "key": {
+                "name": "string",
+                "arity": 0,
+                "module": "erlang",
+                "app": "erts"
+              }
+            }
+          },
+          "source": { "start": 779, "length": 6 }
+        },
+        {
+          "target": {
+            "record_field": {
+              "key": {
+                "record_name": "person",
+                "field_name": "name",
+                "module": "example",
+                "app": "basic"
+              }
+            }
+          },
+          "source": { "start": 806, "length": 4 }
+        },
+        {
+          "target": {
+            "record_": {
+              "key": { "name": "person", "module": "example", "app": "basic" }
+            }
+          },
+          "source": { "start": 798, "length": 7 }
+        },
+        {
+          "target": {
+            "record_": {
+              "key": { "name": "person", "module": "example", "app": "basic" }
+            }
+          },
+          "source": { "start": 844, "length": 7 }
+        },
+        {
+          "target": {
+            "type_": {
+              "key": {
+                "name": "integer",
+                "arity": 0,
+                "module": "erlang",
+                "app": "erts"
+              }
+            }
+          },
+          "source": { "start": 855, "length": 7 }
+        },
+        {
+          "target": {
+            "record_": {
+              "key": { "name": "person", "module": "example", "app": "basic" }
+            }
+          },
+          "source": { "start": 869, "length": 7 }
+        },
+        {
+          "target": {
+            "record_field": {
+              "key": {
+                "record_name": "person",
+                "field_name": "age",
+                "module": "example",
+                "app": "basic"
+              }
+            }
+          },
+          "source": { "start": 908, "length": 3 }
+        },
+        {
+          "target": {
+            "record_": {
+              "key": { "name": "person", "module": "example", "app": "basic" }
+            }
+          },
+          "source": { "start": 900, "length": 7 }
+        },
+        {
+          "target": {
+            "type_": {
+              "key": {
+                "name": "term",
+                "arity": 0,
+                "module": "erlang",
+                "app": "erts"
+              }
+            }
+          },
+          "source": { "start": 940, "length": 4 }
+        },
+        {
+          "target": {
+            "func": {
+              "key": {
+                "fqn": { "module": "example", "name": "hello", "arity": 1 },
+                "app": "basic"
+              }
+            }
+          },
+          "source": { "start": 974, "length": 5 }
+        },
+        {
+          "target": {
+            "record_field": {
+              "key": {
+                "record_name": "person",
+                "field_name": "name",
+                "module": "example",
+                "app": "basic"
+              }
+            }
+          },
+          "source": { "start": 1014, "length": 4 }
+        },
+        {
+          "target": {
+            "record_field": {
+              "key": {
+                "record_name": "person",
+                "field_name": "age",
+                "module": "example",
+                "app": "basic"
+              }
+            }
+          },
+          "source": { "start": 1030, "length": 3 }
+        },
+        {
+          "target": {
+            "record_": {
+              "key": { "name": "person", "module": "example", "app": "basic" }
+            }
+          },
+          "source": { "start": 1006, "length": 7 }
+        },
+        {
+          "target": {
+            "func": {
+              "key": {
+                "fqn": { "module": "example", "name": "set_age", "arity": 2 },
+                "app": "basic"
+              }
+            }
+          },
+          "source": { "start": 1050, "length": 7 }
+        },
+        {
+          "target": {
+            "func": {
+              "key": {
+                "fqn": { "module": "example", "name": "get_name", "arity": 1 },
+                "app": "basic"
+              }
+            }
+          },
+          "source": { "start": 1077, "length": 8 }
+        },
+        {
+          "target": {
+            "func": {
+              "key": {
+                "fqn": { "module": "example", "name": "hello", "arity": 1 },
+                "app": "basic"
+              }
+            }
+          },
+          "source": { "start": 1095, "length": 5 }
+        },
+        {
+          "target": {
+            "func": {
+              "key": {
+                "fqn": { "module": "example", "name": "add", "arity": 2 },
+                "app": "basic"
+              }
+            }
+          },
+          "source": { "start": 1112, "length": 3 }
+        },
+        {
+          "target": {
+            "func": {
+              "key": {
+                "fqn": { "module": "example", "name": "factorial", "arity": 1 },
+                "app": "basic"
+              }
+            }
+          },
+          "source": { "start": 1127, "length": 9 }
+        },
+        {
+          "target": {
+            "func": {
+              "key": {
+                "fqn": {
+                  "module": "example",
+                  "name": "internal_helper",
+                  "arity": 0
+                },
+                "app": "basic"
+              }
+            }
+          },
+          "source": { "start": 1145, "length": 15 }
+        },
+        {
+          "target": {
+            "macro_": {
+              "key": {
+                "name": "ADD_ONE",
+                "arity": 1,
+                "module": "example.hrl",
+                "app": "basic"
+              }
+            }
+          },
+          "source": { "start": 1187, "length": 7 }
+        },
+        {
+          "target": {
+            "type_": {
+              "key": {
+                "name": "config",
+                "arity": 0,
+                "module": "example",
+                "app": "basic"
+              }
+            }
+          },
+          "source": { "start": 1216, "length": 6 }
+        },
+        {
+          "target": {
+            "callback_": {
+              "key": {
+                "name": "on_event",
+                "arity": 1,
+                "module": "example_behaviour",
+                "app": "basic"
+              }
+            }
+          },
+          "source": { "start": 1233, "length": 23 }
+        }
+      ]
+    }
+  },
+  {
+    "key": {
+      "file": {
+        "key": "glean/lang/erlang/tests/cases/basic/src/example_behaviour.erl"
+      },
+      "xrefs": [
+        {
+          "target": {
+            "type_": {
+              "key": {
+                "name": "term",
+                "arity": 0,
+                "module": "erlang",
+                "app": "erts"
+              }
+            }
+          },
+          "source": { "start": 57, "length": 4 }
+        }
+      ]
+    }
+  }
+]
