@@ -5,7 +5,8 @@
 
 use atlas_core::{
     AdlCompileReport, ArtifactDisposition, CensusReport, EpistemicStatus, InventoryReport,
-    Provenance, RevisionRef, SemanticFact, SemanticFactKind, SourceReport, stable_id,
+    Provenance, RevisionRef, SemanticFact, SemanticFactKind, SemanticObligation, SourceReport,
+    stable_id,
 };
 use std::{collections::BTreeMap, path::Path};
 
@@ -258,15 +259,11 @@ pub fn build_census(
     let mut coverage = BTreeMap::from([
         ("SOURCE_ARTIFACT".into(), "OBSERVED".into()),
         ("DECLARED_ADL".into(), "DECLARED".into()),
-        ("SYMBOL".into(), "UNSUPPORTED".into()),
-        ("TYPE".into(), "UNSUPPORTED".into()),
-        ("CALL".into(), "UNSUPPORTED".into()),
-        ("CONTROL_FLOW".into(), "UNSUPPORTED".into()),
-        ("DATA_FLOW".into(), "UNSUPPORTED".into()),
         ("BUILD".into(), "UNSUPPORTED".into()),
-        ("STATE".into(), "UNSUPPORTED".into()),
-        ("EFFECT".into(), "UNSUPPORTED".into()),
     ]);
+    for obligation in SemanticObligation::ALL {
+        coverage.insert(obligation.as_str().into(), "UNSUPPORTED".into());
+    }
     if parsed_artifacts == 0 {
         coverage.insert("SOURCE_ARTIFACT".into(), "UNKNOWN".into());
     }
