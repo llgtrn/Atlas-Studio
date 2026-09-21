@@ -171,6 +171,42 @@ pub fn build_census(
         });
     }
 
+    for result in &adl.constraint_results {
+        facts.push(SemanticFact {
+            id: fact_id(&format!("constraint-result:{}:{}", result.name, result.passed)),
+            kind: SemanticFactKind::ConstraintResult,
+            status: EpistemicStatus::Derived,
+            subject: result.name.clone(),
+            predicate: "passed".into(),
+            object: result.passed.to_string(),
+            provenance: Provenance {
+                source_path: ".atlas/declared".into(),
+                source_revision: None,
+                extractor: "atlas.adl.constraint-evaluator.v1".into(),
+                content_hash: None,
+                span: None,
+            },
+        });
+    }
+
+    for delta in &adl.deltas {
+        facts.push(SemanticFact {
+            id: fact_id(&format!("diagnostic:{}:{}", delta.code, delta.subject)),
+            kind: SemanticFactKind::Diagnostic,
+            status: EpistemicStatus::Derived,
+            subject: delta.subject.clone(),
+            predicate: delta.code.clone(),
+            object: delta.message.clone(),
+            provenance: Provenance {
+                source_path: ".atlas/declared".into(),
+                source_revision: None,
+                extractor: "atlas.adl.delta.v1".into(),
+                content_hash: None,
+                span: None,
+            },
+        });
+    }
+
     for transform in &adl.ir.declared.transforms {
         facts.push(SemanticFact {
             id: fact_id(&format!("transform:{}", transform.name)),

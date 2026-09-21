@@ -88,6 +88,8 @@ The bootstrap frontends currently establish structural recognition and language 
 
 **Status: normalization spine materialized; deep semantic extractors remain.** `runtime/census` now turns inventory plus declared ADL into provenance-linked typed semantic facts, and `runtime/normalize` deterministically normalizes those facts without changing epistemic status or dropping records. `SystemizeReport v9` carries both stages and coding admission fails if either stage loses accounting closure.
 
+The engineering graph now consumes normalized semantic facts rather than independently reinterpreting ADL, so census/normalization and graph projection form one semantic path instead of parallel truths. Unknown or unsupported inventory artifacts also remain visible to the graph as explicit artifact nodes/facts.
+
 Current source frontends prove artifact/language recognition only. Symbol, type, call, CFG/dataflow, build, state and effect extraction remain explicitly `UNSUPPORTED` in census coverage until independent extractors produce evidence; R4 is not complete until those dimensions become real observed facts rather than inferred placeholders.
 
 ### R5 — Incremental query and closure

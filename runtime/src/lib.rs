@@ -22,7 +22,7 @@ pub fn systemize(root: impl AsRef<Path>) -> io::Result<SystemizeReport> {
     let adl = compile_adl(&adl_sources, &source);
     let census = census::build_census(&inventory, &source, &adl);
     let normalization = normalize::normalize(&census);
-    let graph = summarize_system_graph(&source, &docs, &adl);
+    let graph = summarize_system_graph(&source, &docs, &normalization);
 
     let mut blockers = Vec::new();
     if !repository.ready {
@@ -75,6 +75,7 @@ pub fn systemize(root: impl AsRef<Path>) -> io::Result<SystemizeReport> {
             "CENSUS_PRECEDES_NORMALIZATION".into(),
             "NORMALIZATION_PRESERVES_PROVENANCE".into(),
             "NORMALIZATION_MUST_NOT_DROP_CENSUS_FACTS".into(),
+            "ENGINEERING_GRAPH_IS_PROJECTION_OF_NORMALIZED_FACTS".into(),
             "UNSUPPORTED_SEMANTIC_DIMENSIONS_ARE_EXPLICIT".into(),
             "AI_OUTPUT_IS_PROPOSAL_NOT_CANONICAL_TRUTH".into(),
         ],
@@ -95,14 +96,14 @@ pub fn check(root: impl AsRef<Path>) -> io::Result<AdlCompileReport> {
 pub fn graph(root: impl AsRef<Path>) -> io::Result<EngineeringGraph> {
     let root = root.as_ref();
     let repository = adapter::audit_repository(root)?;
-    let source = match repository.manifest.as_ref() {
-        Some(manifest) => adapter::scan_declared_source(root, manifest)?,
-        None => adapter::scan_source(root)?,
-    };
+    let inventory = inventory::build_inventory(root, repository.manifest.as_ref())?;
+    let source = adapter::source_report_from_inventory(&inventory);
     let docs = adapter::audit_docs(root.join(".atlas"))?;
     let adl_sources = adapter::read_adl_sources(root)?;
     let adl = compile_adl(&adl_sources, &source);
-    Ok(build_system_graph(&source, &docs, &adl))
+    let census = census::build_census(&inventory, &source, &adl);
+    let normalization = normalize::normalize(&census);
+    Ok(build_system_graph(&source, &docs, &normalization))
 }
 
 pub fn contract() -> Contract {
@@ -123,7 +124,7 @@ pub fn code_analyze(root: impl AsRef<Path>) -> io::Result<serde_json::Value> {
     let adl = compile_adl(&adl_sources, &source);
     let census = census::build_census(&inventory, &source, &adl);
     let normalization = normalize::normalize(&census);
-    let graph = summarize_system_graph(&source, &docs, &adl);
+    let graph = summarize_system_graph(&source, &docs, &normalization);
 
     Ok(serde_json::json!({
         "schema": "atlas.systemizer.code-analysis.v3",

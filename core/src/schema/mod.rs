@@ -56,6 +56,8 @@ pub enum SemanticFactKind {
     Binding,
     Constraint,
     Invariant,
+    ConstraintResult,
+    Diagnostic,
     Transform,
     Materialization,
 }
@@ -69,6 +71,8 @@ impl SemanticFactKind {
             Self::Binding => "BINDING",
             Self::Constraint => "CONSTRAINT",
             Self::Invariant => "INVARIANT",
+            Self::ConstraintResult => "CONSTRAINT_RESULT",
+            Self::Diagnostic => "DIAGNOSTIC",
             Self::Transform => "TRANSFORM",
             Self::Materialization => "MATERIALIZATION",
         }
