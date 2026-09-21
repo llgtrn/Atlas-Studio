@@ -1,6 +1,6 @@
 use crate::{
     identity::stable_id,
-    model::{FileFact, SourceReport},
+    schema::{FileFact, SourceReport},
 };
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
