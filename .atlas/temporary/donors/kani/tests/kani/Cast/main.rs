@@ -1,0 +1,12 @@
+// Copyright Kani Contributors
+// SPDX-License-Identifier: Apache-2.0 OR MIT
+use std::cmp::Ordering;
+pub enum Level {
+    Error,
+}
+
+#[kani::proof]
+fn main() {
+    let left = Level::Error;
+    assert!((left as u8).cmp(&0) == Ordering::Equal);
+}
