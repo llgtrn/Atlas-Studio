@@ -244,19 +244,19 @@ pub fn build_census(
 
     let parsed_artifacts = source.files_total;
     let mut coverage = BTreeMap::from([
-        ("SOURCE_ARTIFACT".into(), "OBSERVED".into()),
-        ("DECLARED_ADL".into(), "DECLARED".into()),
-        ("SYMBOL".into(), "UNSUPPORTED".into()),
-        ("TYPE".into(), "UNSUPPORTED".into()),
-        ("CALL".into(), "UNSUPPORTED".into()),
-        ("CONTROL_FLOW".into(), "UNSUPPORTED".into()),
-        ("DATA_FLOW".into(), "UNSUPPORTED".into()),
-        ("BUILD".into(), "UNSUPPORTED".into()),
-        ("STATE".into(), "UNSUPPORTED".into()),
-        ("EFFECT".into(), "UNSUPPORTED".into()),
+        ("SOURCE_ARTIFACT".into(), EpistemicStatus::Observed),
+        ("DECLARED_ADL".into(), EpistemicStatus::Declared),
+        ("SYMBOL".into(), EpistemicStatus::Unsupported),
+        ("TYPE".into(), EpistemicStatus::Unsupported),
+        ("CALL".into(), EpistemicStatus::Unsupported),
+        ("CONTROL_FLOW".into(), EpistemicStatus::Unsupported),
+        ("DATA_FLOW".into(), EpistemicStatus::Unsupported),
+        ("BUILD".into(), EpistemicStatus::Unsupported),
+        ("STATE".into(), EpistemicStatus::Unsupported),
+        ("EFFECT".into(), EpistemicStatus::Unsupported),
     ]);
     if parsed_artifacts == 0 {
-        coverage.insert("SOURCE_ARTIFACT".into(), "UNKNOWN".into());
+        coverage.insert("SOURCE_ARTIFACT".into(), EpistemicStatus::Unknown);
     }
 
     facts.sort_by(|a, b| {
@@ -325,7 +325,7 @@ mod tests {
 
         assert!(report.is_closed());
         assert_eq!(report.artifacts_accounted_total, 2);
-        assert_eq!(report.coverage.get("SYMBOL").map(String::as_str), Some("UNSUPPORTED"));
+        assert_eq!(report.coverage.get("SYMBOL"), Some(&EpistemicStatus::Unsupported));
         assert!(report.facts.iter().any(|fact| fact.status == EpistemicStatus::Unknown));
     }
 }
