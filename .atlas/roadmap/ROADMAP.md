@@ -19,14 +19,94 @@ canonical: true
 - typed binary `*.atlas`, semantic dedup/compression, logical root manifests and content-addressed shards;
 - federated cross-repo references without competing truth.
 
+## Canonical R4→R8 self-building execution
+
+The detailed normative execution map is `SELF-BUILDING-R4-R8.md`.
+
+The central rule is:
+
+~~~text
+current Atlas
+→ census approved OSS donors
+→ resolve/census their admitted direct + transitive dependencies
+→ discover and attribute mechanisms
+→ explicitly decide ABSORB_NOW / ABSORB_LATER / REFERENCE_ONLY / EXTERNAL_BOUNDARY / REJECT
+→ deep-census selected provider scope
+→ Technology Genome / evidence
+→ Atlas-native implementation
+→ verify
+→ recensus Atlas and affected donors/dependencies
+→ ABSORBED
+→ physical source deletion when the durable-knowledge gate is satisfied
+→ EXTINCT
+→ stronger Atlas
+↺
+~~~
+
+Atlas MUST NOT wait until R4, R5 or R6 are complete before starting donor census. Census and Atlas construction recursively strengthen each other.
+
+Do not confuse the two sequencing axes:
+
+- `R4..R8` describe maturity of Atlas-native capabilities;
+- `W0..W8` in `DONOR-ABSORPTION-ROADMAP.md` describe donor technology lanes.
+
+### Cross-cutting DC1 — Dependency Census Runtime
+
+DC1 is required before W0 can claim full `COARSE_CENSUSED` status. It materializes dependency-resolution contexts, direct/transitive dependency closure, source-backed dependency admission, explicit terminal boundaries and dependency fixed point under `../contracts/DEPENDENCY-CENSUS.md`.
+
+DC1 determines census breadth. R4 semantic dimensions determine census depth.
+
+### R4 — semantic census depth
+
+Current materialized baseline is R4.3.3.
+
+- **R4.3.x — real Rust semantic bootstrap:** SYMBOL, TYPE, FUNCTION_IDENTITY and FUNCTION_SIGNATURE are real typed observations; extraction is wired through canonical Census; typed records survive normalization; raw observation identity, typed obligation lineage, typed closure and typed graph projection are materialized.
+- **R4.4 — Function Identity Closure:** module/impl/trait/generic/revision-safe declaration identity. CALL is not implemented here.
+- **R4.5 — Call Semantics:** typed call sites with exact, partial, dynamic or unresolved FunctionIdentity targets.
+- **R4.6 — Control Flow:** deterministic basic blocks, branch/loop/return/failure flow.
+- **R4.7 — Data Flow:** values, definitions/uses, parameter/result flow, loads/stores and explicit ambiguity.
+- **R4.8 — State + Effect:** state reads/writes/transitions and external effects.
+- **R4.9 — Ownership / Resource Semantics:** borrow/move/copy and resource acquisition/transfer/release where evidenced.
+- **R4.10 — Concurrency:** tasks/threads/channels/locks/atomics/synchronization and concurrent state interaction.
+- **R4.11 — Persistence / Recovery:** durable writes, transactions, logs/checkpoints/recovery and failure ordering where applicable.
+- **R4.12 — R4 Semantic Closure:** complete the declared Rust reference profile, deterministic normalization/exact-dedup policy, dynamic/unresolved closure, conflict-input preservation and reference-corpus acceptance.
+
+R4 does not end census. Each R4 improvement MUST trigger recensus of affected donor/dependency scopes.
+
+### R5 — incremental query and fixed-point closure
+
+Implement dependency-aware revision invalidation, incremental recensus, recursive/fixed-point derivation and evidence-preserving query dependencies.
+
+Primary donor lane: W3.
+
+### R6 — reconciliation and CensusCertificate
+
+Implement independent-observer reconciliation, explicit conflict preservation, cross-scope reconciliation, adversarial gap queries, fixed-point closure, dependency-closure proof and CensusCertificate issuance.
+
+Primary support donor lane: W4 where applicable.
+
+### R7 — research correlation and absorption selection
+
+Keep ResearchClaim distinct from ObservedEvidence. Correlate donor Technology Genomes, Atlas capability gaps and candidate designs. Material discoveries receive explicit dispositions and evidence-linked selection/rejection/defer decisions.
+
+Primary donor lane: W5.
+
+### R8 — real ATLAS and AtlasX
+
+Implement the durable binary Atlas substrate, content addressing, integrity, transactional publication, sharding, deterministic AtlasX materialization and lineage needed for census-derived knowledge to survive physical donor-source deletion at scale.
+
+Primary donor lane: W6.
+
+R8 does not end census. It makes durable large-scale source-independent continuation possible.
+
 ## Language Genesis lane — after typed census semantics are trustworthy
 
 Atlas Development Language is synthesized from the same semantic world; it is not designed as a syntax-first side project.
 
 Sequence:
 
-- retain and extend the R4.3.2 lossless typed Census/normalization carrier beyond the currently-real SYMBOL/TYPE/FUNCTION_IDENTITY/FUNCTION_SIGNATURE dimensions;
-- deep-census selected donors and emit Technology Genomes;
+- retain and extend the R4.3.3 lossless typed Census/normalization carrier beyond the currently-real SYMBOL/TYPE/FUNCTION_IDENTITY/FUNCTION_SIGNATURE dimensions;
+- deep-census selected donors and their admitted dependency closures and emit Technology Genomes;
 - compare mechanisms/invariants/trade-offs across donors and research;
 - admit Atlas-native semantic primitives under `../contracts/DONOR-TO-LANGUAGE-GENESIS.md`;
 - evolve current ADL0 declaration syntax into the full language without creating a parallel truth model;
@@ -37,7 +117,7 @@ Sequence:
 
 The current `.atlas/declared/*.adl` implementation remains ADL0 until the readiness gates in `../contracts/ATLAS-DEVELOPMENT-LANGUAGE.md` are satisfied.
 
-Donor execution order, per-wave census targets, Atlas ownership targets, recensus gates and physical source-extinction rules are governed by `DONOR-ABSORPTION-ROADMAP.md` and its machine-readable companion `DONOR-ABSORPTION-PLAN.toml`.
+Donor execution order, per-wave census targets, Atlas ownership targets, recensus gates, discovery dispositions and physical source-extinction rules are governed by `SELF-BUILDING-R4-R8.md`, `DONOR-ABSORPTION-ROADMAP.md` and `DONOR-ABSORPTION-PLAN.toml`.
 
 ## Organism Foundation — after universal semantics are real
 
@@ -92,7 +172,7 @@ Before model training ambitions:
 
 After organism substrate and authority are mature:
 
-```text
+~~~text
 Experience
 → Durable Observation/Event
 → Memory
@@ -105,14 +185,13 @@ Experience
 → Admission
 → Activation
 → Evidence/Rollback
-```
+~~~
 
 No learning artifact activates directly.
 
 ## UI
 
 World Canvas remains a projection over the same graph. It may visualize organism organs/circuits/memory/model lineage but does not own organism truth.
-
 
 ## Rust parity/surpass maturity lane
 
