@@ -117,9 +117,9 @@ Atlas MUST NOT wait until R4, R5 or R6 are complete before censusing OSS.
 The required sequencing is:
 
 ~~~text
-R4.3.3 typed semantic ledger/graph boundary
+R4.4 Function Identity Closure materialized
         ↓
-R4.4 identity work may proceed
+R4.5 CALL semantics may proceed
         │
         └──────────────┐
                        ↓
@@ -162,26 +162,24 @@ Currently real Rust semantic dimensions:
 
 These facts are useful but are not sufficient for mechanism absorption by themselves.
 
-### R4.4 — Function Identity Closure
+### R4.4 — Function Identity Closure — materialized
 
-Purpose: make Rust declaration identity safe enough for later relations to target exact functions/methods rather than names.
+R4.4 is materialized on canonical main.
 
-Required closure includes, where source evidence supports it:
+The production identity model now distinguishes source-observable declaration context through typed declaration kind, owner/trait context and function generics while preserving repository/revision/scope identity and R4.3.3 raw-observation separation.
 
-- module-qualified free functions;
-- nested modules;
-- inherent impl methods;
-- associated functions;
-- trait method declarations;
-- trait default bodies;
-- trait implementation methods;
-- impl target identity;
-- syntactically declared trait relation;
-- generic declaration context;
-- exact repository/revision/scope identity;
-- explicit unresolved cases where compiler-global resolution is unavailable.
+Materialized declaration kinds include:
 
-R4.4 MUST NOT implement CALL.
+- free function;
+- inherent method;
+- associated function;
+- trait method declaration;
+- trait default method;
+- trait implementation method.
+
+R4.4 intentionally does not claim compiler DefId-level equivalence, type-alias equivalence, macro-expanded declarations or monomorphized instance identity.
+
+CALL remains the next semantic relation.
 
 ### R4.5 — Call Semantics
 
@@ -378,24 +376,59 @@ No research page, paper, model answer or README directly upgrades a donor implem
 
 ## R8 — durable ATLAS / AtlasX substrate
 
-R8 implements the durable semantic/evidence carrier required for Atlas knowledge to outlive donor checkout deletion at scale.
+R8 implements the durable semantic/evidence carrier required for Atlas knowledge to outlive donor checkout deletion at scale and makes the Atlas→AtlasX handoff implementable without hidden design invention.
 
 Required capabilities:
 
 - typed binary `*.atlas`;
-- content-addressed records;
+- lossless semantic compaction under `../contracts/ATLAS-SEMANTIC-COMPACTION.md`;
+- content-addressed records/blocks/shards;
 - integrity hashes;
 - transactional publication;
 - logical root manifests;
-- content-addressed sharding;
 - stable cross-shard identity/bindings;
-- deterministic `*.atlasx/` materialization;
+- explicit SelectedDesign identity;
+- deterministic Atlas→AtlasX materialization under `../contracts/ATLAS-TO-ATLASX.md`;
+- canonical AtlasX object/manifest validation under `../contracts/ATLASX-FORMAT.md`;
 - parent/lineage retention;
-- partial materialization without creating competing truth.
+- partial materialization without competing truth;
+- compiler handoff governed by `../contracts/COMPILER-IR-PIPELINE.md`.
 
 Primary donor lane: W6 — flatbuffers, arrow, zstd, blake3, object, regalloc2, mold.
 
-R8 does not authorize mechanical donor translation. It provides the durable Atlas-native carrier needed for source-independent knowledge and later materialization.
+R8 does not authorize mechanical donor translation. It provides the durable Atlas-native carrier and deterministic executable projection needed for source-independent continuation.
+
+The R8 storage/materialization blueprint is explicitly revisable if census demonstrates a better mechanism, but revision must follow `../contracts/BLUEPRINT-EVOLUTION.md`.
+
+## Evidence-driven blueprint evolution
+
+Canonical blueprints are authoritative for the current evidence state, but they are not immutable.
+
+During any R4→R8 census/recensus, Atlas may discover a mechanism, representation, compiler strategy, storage layout, verification method or dependency architecture that is materially better than the current blueprint.
+
+When that happens Atlas MUST NOT ignore the evidence merely to preserve an older plan, and MUST NOT silently redesign in implementation code.
+
+The required path is governed by `../contracts/BLUEPRINT-EVOLUTION.md`:
+
+~~~text
+current canonical blueprint
+→ donor/dependency census discovers better mechanism
+→ attribute actual provider
+→ deep census
+→ compare current vs candidate vs alternatives
+→ evidence / benchmark / proof
+→ BlueprintRevisionDecision
+→ SELECTED
+→ update canonical blueprint/roadmap/contracts if required
+→ implement
+→ recensus / verify
+~~~
+
+A blueprint revision MAY alter future sequencing, insert prerequisites, split/merge waves or change implementation strategy when evidence justifies it.
+
+A blueprint revision MUST NOT silently violate higher-level contracts/Genome invariants. If the better design requires a contract change, that contract change is explicit and compatibility/migration analysis is mandatory.
+
+"Canonical" therefore means "currently selected authoritative design", not "frozen forever".
 
 ## Continuous census and recensus rule
 
