@@ -129,6 +129,11 @@ pub struct CensusReport {
     pub artifacts_total: usize,
     pub artifacts_accounted_total: usize,
     pub facts_total: usize,
+    /// Bootstrap / derived coverage projection: at most one `EpistemicStatus` per dimension key.
+    /// This is a noncanonical summary shape kept for existing callers, never the canonical
+    /// multi-extractor accounting. Independent extractors that disagree on a dimension are
+    /// preserved in `runtime::census::CensusExtractionAccounting`, not collapsed into this map
+    /// (`.atlas/contracts/SEMANTIC-EXTRACTION.md#multi-engine-extraction`).
     pub coverage: BTreeMap<String, EpistemicStatus>,
     pub facts: Vec<SemanticFact>,
 }
