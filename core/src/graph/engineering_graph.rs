@@ -590,12 +590,80 @@ fn add_typed_semantic_nodes(
                     revision: header.provenance.source_revision.clone(),
                 });
             }
-            // Not yet materialized by any extractor (R4.6+); no graph logic to add here until
+            // R4.6: one ControlFlowBlock node per block observation, a HAS_BLOCK edge from the
+            // owning function's FunctionIdentity node (present for every block, not only the
+            // entry, so every block belonging to a function is discoverable without scanning
+            // record_ids), and one graph edge per successor whose `target` is concrete (`Some`).
+            // Successors with `target: None` (Return/Panic/Unresolved -- see
+            // `core/src/semantic/control_flow.rs`) leave the function/this block's reach
+            // entirely and correctly produce no graph edge; they remain visible as block
+            // attributes/evidence, never silently dropped.
+            SemanticObservation::ControlFlow(header) => {
+                let block_node_id = stable_id(
+                    "node",
+                    &format!("control-flow-block:{}", header.record_id.as_str()),
+                );
+                ensure_node(
+                    graph,
+                    block_node_id.clone(),
+                    "ControlFlowBlock".into(),
+                    format!(
+                        "{}:block#{}",
+                        header.subject.function.as_str(),
+                        header.subject.block_index
+                    ),
+                    BTreeMap::from([
+                        ("origin".into(), "semantic-extraction".into()),
+                        ("kind".into(), header.subject.kind.as_str().into()),
+                        ("is_entry".into(), header.subject.is_entry.to_string()),
+                    ]),
+                    &header.provenance,
+                );
+                let caller_node_id = stable_id(
+                    "node",
+                    &format!("function-identity:{}", header.subject.function.as_str()),
+                );
+                graph.edges.push(Edge {
+                    id: stable_id(
+                        "edge",
+                        &format!("{caller_node_id}:HAS_BLOCK:{block_node_id}"),
+                    ),
+                    kind: "HAS_BLOCK".into(),
+                    from: caller_node_id,
+                    to: block_node_id.clone(),
+                    attributes: BTreeMap::from([("origin".into(), "semantic-extraction".into())]),
+                    provenance: header.provenance.clone(),
+                    revision: header.provenance.source_revision.clone(),
+                });
+                for successor in &header.subject.successors {
+                    let Some(target) = &successor.target else {
+                        continue;
+                    };
+                    let target_node_id =
+                        stable_id("node", &format!("control-flow-block:{}", target.as_str()));
+                    let edge_kind = successor.kind.as_str();
+                    graph.edges.push(Edge {
+                        id: stable_id(
+                            "edge",
+                            &format!("{block_node_id}:{edge_kind}:{target_node_id}"),
+                        ),
+                        kind: edge_kind.into(),
+                        from: block_node_id.clone(),
+                        to: target_node_id,
+                        attributes: BTreeMap::from([(
+                            "origin".into(),
+                            "semantic-extraction".into(),
+                        )]),
+                        provenance: header.provenance.clone(),
+                        revision: header.provenance.source_revision.clone(),
+                    });
+                }
+            }
+            // Not yet materialized by any extractor (R4.7+); no graph logic to add here until
             // they become real observations. Matched explicitly, never via `_ => {}`, so adding a
             // new dimension's extractor without updating this function fails to compile instead
             // of silently producing no graph nodes.
-            SemanticObservation::ControlFlow(_)
-            | SemanticObservation::DataFlow(_)
+            SemanticObservation::DataFlow(_)
             | SemanticObservation::State(_)
             | SemanticObservation::Effect(_) => {}
         }
@@ -978,6 +1046,57 @@ mod tests {
         })
     }
 
+    /// R4.6: one ControlFlow block observation, letting a test construct exactly the shape it
+    /// needs (entry/not, kind, successors) while sharing repository/revision/`function` with a
+    /// `function_identity_observation`/other blocks in the same test batch.
+    fn control_flow_block_observation(
+        function: &crate::semantic::SemanticRecordId,
+        block_index: usize,
+        kind: crate::semantic::ControlFlowBlockKind,
+        is_entry: bool,
+        successors: Vec<crate::semantic::ControlFlowEdge>,
+    ) -> SemanticObservation {
+        use crate::identity::RepositoryId;
+        use crate::provenance::provenance;
+        use crate::semantic::{
+            ControlFlowBlockIdentity, ExtractorIdentity, SemanticDimension, SemanticRecordHeader,
+            SemanticRecordId, SemanticScope,
+        };
+        use crate::temporal::RevisionRef;
+
+        let repository = RepositoryId::new("atlas-studio");
+        let revision = RevisionRef {
+            kind: "git".into(),
+            value: "abc123".into(),
+        };
+        let subject = ControlFlowBlockIdentity {
+            repository: repository.clone(),
+            revision: revision.clone(),
+            function: function.clone(),
+            block_index,
+            kind,
+            is_entry,
+            successors,
+        };
+        let record_id =
+            SemanticRecordId::new(SemanticDimension::ControlFlow, &subject.identity_key());
+        SemanticObservation::ControlFlow(SemanticRecordHeader {
+            record_id,
+            dimension: SemanticDimension::ControlFlow,
+            status: EpistemicStatus::Observed,
+            subject,
+            scope: SemanticScope::new(["impl:owner"]),
+            repository,
+            revision,
+            extractor: ExtractorIdentity {
+                id: "atlas.test".into(),
+                version: "0.1.0".into(),
+            },
+            evidence_refs: Vec::new(),
+            provenance: provenance("src/lib.rs", "atlas.test"),
+        })
+    }
+
     fn normalization_with(
         typed_semantic_records: Vec<crate::semantic::SemanticObservation>,
         facts: Vec<SemanticFact>,
@@ -1193,5 +1312,142 @@ mod tests {
         let normalization = normalization_with(vec![caller, call], Vec::new());
         let graph = build_system_graph(&source(), &docs(), &normalization);
         assert!(graph.edges.iter().all(|edge| edge.kind != "CALLS"));
+    }
+
+    // --- R4.6: CONTROL_FLOW observations produce ControlFlowBlock nodes and structural edges ------
+
+    #[test]
+    fn control_flow_block_produces_a_node_and_a_has_block_edge_from_its_function() {
+        use crate::semantic::{ControlFlowBlockKind, ControlFlowEdge, ControlFlowEdgeKind};
+
+        let caller = function_identity_observation("Foo");
+        let caller_record_id = caller.record_id().clone();
+        let block = control_flow_block_observation(
+            &caller_record_id,
+            0,
+            ControlFlowBlockKind::FunctionEntry,
+            true,
+            vec![ControlFlowEdge {
+                kind: ControlFlowEdgeKind::Return,
+                target: None,
+            }],
+        );
+
+        let normalization = normalization_with(vec![caller, block], Vec::new());
+        let graph = build_system_graph(&source(), &docs(), &normalization);
+
+        let block_node = graph
+            .nodes
+            .iter()
+            .find(|node| node.kind == "ControlFlowBlock")
+            .expect("a ControlFlowBlock node must exist");
+        assert_eq!(
+            block_node.attributes.get("kind").map(String::as_str),
+            Some("FUNCTION_ENTRY")
+        );
+        assert_eq!(
+            block_node.attributes.get("is_entry").map(String::as_str),
+            Some("true")
+        );
+
+        let caller_node_id = stable_id(
+            "node",
+            &format!("function-identity:{}", caller_record_id.as_str()),
+        );
+        let has_block_edge = graph
+            .edges
+            .iter()
+            .find(|edge| edge.kind == "HAS_BLOCK")
+            .expect("a HAS_BLOCK edge must exist");
+        assert_eq!(has_block_edge.from, caller_node_id);
+        assert_eq!(has_block_edge.to, block_node.id);
+    }
+
+    #[test]
+    fn a_targetless_successor_produces_no_graph_edge() {
+        use crate::semantic::{ControlFlowBlockKind, ControlFlowEdge, ControlFlowEdgeKind};
+
+        // Return/Panic/Unresolved all carry `target: None` -- they leave the function/this
+        // block's reach entirely and must never produce a dangling or synthesized graph edge.
+        let caller = function_identity_observation("Foo");
+        let block = control_flow_block_observation(
+            &caller.record_id().clone(),
+            0,
+            ControlFlowBlockKind::FunctionEntry,
+            true,
+            vec![
+                ControlFlowEdge {
+                    kind: ControlFlowEdgeKind::Panic,
+                    target: None,
+                },
+                ControlFlowEdge {
+                    kind: ControlFlowEdgeKind::Unresolved,
+                    target: None,
+                },
+            ],
+        );
+
+        let normalization = normalization_with(vec![caller, block], Vec::new());
+        let graph = build_system_graph(&source(), &docs(), &normalization);
+
+        assert!(
+            graph
+                .edges
+                .iter()
+                .all(|edge| edge.kind != "PANIC" && edge.kind != "UNRESOLVED")
+        );
+    }
+
+    #[test]
+    fn a_branch_successor_with_a_target_produces_a_real_edge_between_two_block_nodes() {
+        use crate::semantic::{ControlFlowBlockKind, ControlFlowEdge, ControlFlowEdgeKind};
+
+        let caller = function_identity_observation("Foo");
+        let caller_record_id = caller.record_id().clone();
+
+        // Block 1 first, so its record_id is known when constructing block 0's Branch edge.
+        let then_block = control_flow_block_observation(
+            &caller_record_id,
+            1,
+            ControlFlowBlockKind::IfThen,
+            false,
+            vec![ControlFlowEdge {
+                kind: ControlFlowEdgeKind::Return,
+                target: None,
+            }],
+        );
+        let then_record_id = then_block.record_id().clone();
+
+        let entry_block = control_flow_block_observation(
+            &caller_record_id,
+            0,
+            ControlFlowBlockKind::FunctionEntry,
+            true,
+            vec![ControlFlowEdge {
+                kind: ControlFlowEdgeKind::Branch,
+                target: Some(then_record_id.clone()),
+            }],
+        );
+
+        let normalization = normalization_with(vec![caller, entry_block, then_block], Vec::new());
+        let graph = build_system_graph(&source(), &docs(), &normalization);
+
+        let then_node_id = stable_id(
+            "node",
+            &format!("control-flow-block:{}", then_record_id.as_str()),
+        );
+        let branch_edge = graph
+            .edges
+            .iter()
+            .find(|edge| edge.kind == "BRANCH")
+            .expect("a BRANCH edge must exist");
+        assert_eq!(branch_edge.to, then_node_id);
+        // Two distinct blocks, two distinct ControlFlowBlock nodes, never collapsed.
+        let block_nodes: Vec<_> = graph
+            .nodes
+            .iter()
+            .filter(|node| node.kind == "ControlFlowBlock")
+            .collect();
+        assert_eq!(block_nodes.len(), 2);
     }
 }
