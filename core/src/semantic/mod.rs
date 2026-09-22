@@ -6,6 +6,7 @@
 //! `.atlas/contracts/SEMANTIC-FACTS.md` and `.atlas/contracts/SEMANTIC-EXTRACTION.md`.
 
 pub mod call;
+pub mod concurrency;
 pub mod control_flow;
 pub mod data_flow;
 pub mod diagnostic;
@@ -19,6 +20,7 @@ pub mod symbol;
 pub mod types;
 
 pub use call::{CallDispatchKind, CallSiteIdentity};
+pub use concurrency::{ConcurrencyIdentity, ConcurrencyKind};
 pub use control_flow::{
     ControlFlowBlockIdentity, ControlFlowBlockKind, ControlFlowEdge, ControlFlowEdgeKind,
 };

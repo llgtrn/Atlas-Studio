@@ -4,14 +4,14 @@
 //! must hold observations across multiple `SemanticDimension` families in one collection without
 //! collapsing them into an untyped subject/predicate/object triple. `SemanticObservation` is that
 //! neutral carrier: each variant wraps a typed `SemanticRecordHeader<Subject>` for exactly one
-//! family. Concurrency/persistence have no identity kernel yet (deferred to R4.10/R4.11), so they
-//! carry no variant here either; their obligations are still accounted for, just with zero
-//! observations.
+//! family. Persistence has no identity kernel yet (deferred to R4.11), so it carries no variant
+//! here either; its obligations are still accounted for, just with zero observations.
 
 use super::{
-    CallSiteIdentity, ControlFlowBlockIdentity, EffectIdentity, FunctionIdentity,
-    FunctionSignature, OwnershipIdentity, SemanticDimension, SemanticRecordHeader,
-    SemanticRecordId, StateAccessIdentity, SymbolIdentity, TypeIdentity, ValueIdentity,
+    CallSiteIdentity, ConcurrencyIdentity, ControlFlowBlockIdentity, EffectIdentity,
+    FunctionIdentity, FunctionSignature, OwnershipIdentity, SemanticDimension,
+    SemanticRecordHeader, SemanticRecordId, StateAccessIdentity, SymbolIdentity, TypeIdentity,
+    ValueIdentity,
 };
 use crate::identity::{EvidenceId, RawObservationId, stable_id};
 use serde::{Deserialize, Serialize};
@@ -33,6 +33,7 @@ pub enum SemanticObservation {
     State(SemanticRecordHeader<StateAccessIdentity>),
     Effect(SemanticRecordHeader<EffectIdentity>),
     Ownership(SemanticRecordHeader<OwnershipIdentity>),
+    Concurrency(SemanticRecordHeader<ConcurrencyIdentity>),
 }
 
 impl SemanticObservation {
@@ -48,6 +49,7 @@ impl SemanticObservation {
             Self::State(_) => SemanticDimension::State,
             Self::Effect(_) => SemanticDimension::Effect,
             Self::Ownership(_) => SemanticDimension::Ownership,
+            Self::Concurrency(_) => SemanticDimension::Concurrency,
         }
     }
 
@@ -63,6 +65,7 @@ impl SemanticObservation {
             Self::State(header) => &header.record_id,
             Self::Effect(header) => &header.record_id,
             Self::Ownership(header) => &header.record_id,
+            Self::Concurrency(header) => &header.record_id,
         }
     }
 
@@ -78,6 +81,7 @@ impl SemanticObservation {
             Self::State(header) => &header.evidence_refs,
             Self::Effect(header) => &header.evidence_refs,
             Self::Ownership(header) => &header.evidence_refs,
+            Self::Concurrency(header) => &header.evidence_refs,
         }
     }
 
@@ -135,6 +139,7 @@ impl SemanticObservation {
             Self::State(header) => seed(&header.record_id, header),
             Self::Effect(header) => seed(&header.record_id, header),
             Self::Ownership(header) => seed(&header.record_id, header),
+            Self::Concurrency(header) => seed(&header.record_id, header),
         };
         RawObservationId::new(stable_id("raw-observation", &content))
     }
@@ -154,6 +159,7 @@ impl SemanticObservation {
             Self::State(header) => header.dimension,
             Self::Effect(header) => header.dimension,
             Self::Ownership(header) => header.dimension,
+            Self::Concurrency(header) => header.dimension,
         }
     }
 

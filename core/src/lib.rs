@@ -43,13 +43,14 @@ pub use schema::{
     SystemizeReport, TypedClosureAccounting,
 };
 pub use semantic::{
-    CallDispatchKind, CallSiteIdentity, ControlFlowBlockIdentity, ControlFlowBlockKind,
-    ControlFlowEdge, ControlFlowEdgeKind, DataFlowResolution, DiagnosticCode, EffectCategory,
-    EffectIdentity, ExtractionDiagnostic, ExtractorIdentity, FunctionDeclarationKind,
-    FunctionIdentity, FunctionOwner, FunctionParameter, FunctionSignature, OwnershipIdentity,
-    OwnershipKind, SemanticDimension, SemanticObligationRecord, SemanticObservation,
-    SemanticRecordHeader, SemanticRecordId, SemanticScope, StateAccessIdentity, StateAccessKind,
-    StateResolution, SymbolIdentity, SymbolRole, TypeIdentity, ValueIdentity, ValueRole,
+    CallDispatchKind, CallSiteIdentity, ConcurrencyIdentity, ConcurrencyKind,
+    ControlFlowBlockIdentity, ControlFlowBlockKind, ControlFlowEdge, ControlFlowEdgeKind,
+    DataFlowResolution, DiagnosticCode, EffectCategory, EffectIdentity, ExtractionDiagnostic,
+    ExtractorIdentity, FunctionDeclarationKind, FunctionIdentity, FunctionOwner,
+    FunctionParameter, FunctionSignature, OwnershipIdentity, OwnershipKind, SemanticDimension,
+    SemanticObligationRecord, SemanticObservation, SemanticRecordHeader, SemanticRecordId,
+    SemanticScope, StateAccessIdentity, StateAccessKind, StateResolution, SymbolIdentity,
+    SymbolRole, TypeIdentity, ValueIdentity, ValueRole,
 };
 pub use state::RepositorySnapshot;
 pub use temporal::RevisionRef;

@@ -58,8 +58,8 @@ fn function_signature_summary(signature: &FunctionSignature) -> String {
 /// Projects one real typed `SemanticObservation` (produced by a `SemanticExtractor`, never
 /// invented here) into the bootstrap `SemanticFact` triple envelope that `normalize`/graph
 /// construction already consume. `None` for dimensions with no typed kernel record and no
-/// extractor producing them yet (CALL/CONTROL_FLOW/DATA_FLOW/STATE/EFFECT/OWNERSHIP -- R4.4+):
-/// there is nothing to project because nothing was observed.
+/// extractor producing them yet (CALL/CONTROL_FLOW/DATA_FLOW/STATE/EFFECT/OWNERSHIP/CONCURRENCY --
+/// R4.4+): there is nothing to project because nothing was observed.
 ///
 /// This is a lossy compatibility projection, not a second source of truth: the typed
 /// `SemanticObservation` (retrievable from the `ExtractionBatch`es a caller passed to
@@ -117,7 +117,8 @@ fn semantic_observation_fact(observation: &SemanticObservation) -> Option<Semant
         | SemanticObservation::DataFlow(_)
         | SemanticObservation::State(_)
         | SemanticObservation::Effect(_)
-        | SemanticObservation::Ownership(_) => None,
+        | SemanticObservation::Ownership(_)
+        | SemanticObservation::Concurrency(_) => None,
     }
 }
 

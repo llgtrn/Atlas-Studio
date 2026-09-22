@@ -913,6 +913,49 @@ fn add_typed_semantic_nodes(
                     revision: header.provenance.source_revision.clone(),
                 });
             }
+            // R4.10: one ConcurrencyOperation node per observation and a PRODUCES_CONCURRENCY_OP
+            // edge from the owning function -- mirroring R4.8's simpler Effect shape (no secondary
+            // content-derived target node: unlike Ownership's `name`, a concurrency site has no
+            // natural second entity to converge on this wave).
+            SemanticObservation::Concurrency(header) => {
+                let op_node_id = stable_id(
+                    "node",
+                    &format!("concurrency-op:{}", header.record_id.as_str()),
+                );
+                ensure_node(
+                    graph,
+                    op_node_id.clone(),
+                    "ConcurrencyOperation".into(),
+                    format!(
+                        "{}@{}:{}:{}",
+                        header.subject.kind.as_str(),
+                        header.subject.span.path,
+                        header.subject.span.line,
+                        header.subject.span.column
+                    ),
+                    BTreeMap::from([
+                        ("origin".into(), "semantic-extraction".into()),
+                        ("kind".into(), header.subject.kind.as_str().into()),
+                    ]),
+                    &header.provenance,
+                );
+                let caller_node_id = stable_id(
+                    "node",
+                    &format!("function-identity:{}", header.subject.function.as_str()),
+                );
+                graph.edges.push(Edge {
+                    id: stable_id(
+                        "edge",
+                        &format!("{caller_node_id}:PRODUCES_CONCURRENCY_OP:{op_node_id}"),
+                    ),
+                    kind: "PRODUCES_CONCURRENCY_OP".into(),
+                    from: caller_node_id,
+                    to: op_node_id,
+                    attributes: BTreeMap::from([("origin".into(), "semantic-extraction".into())]),
+                    provenance: header.provenance.clone(),
+                    revision: header.provenance.source_revision.clone(),
+                });
+            }
         }
     }
 }
