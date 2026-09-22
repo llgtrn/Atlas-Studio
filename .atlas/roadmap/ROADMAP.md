@@ -17,6 +17,24 @@ canonical: true
 - typed binary `*.atlas`, semantic dedup/compression, logical root manifests and content-addressed shards;
 - federated cross-repo references without competing truth.
 
+## Language Genesis lane — after typed census semantics are trustworthy
+
+Atlas Development Language is synthesized from the same semantic world; it is not designed as a syntax-first side project.
+
+Sequence:
+
+- retain and extend the R4.3.2 lossless typed Census/normalization carrier beyond the currently-real SYMBOL/TYPE/FUNCTION_IDENTITY/FUNCTION_SIGNATURE dimensions;
+- deep-census selected donors and emit Technology Genomes;
+- compare mechanisms/invariants/trade-offs across donors and research;
+- admit Atlas-native semantic primitives under `../contracts/DONOR-TO-LANGUAGE-GENESIS.md`;
+- evolve current ADL0 declaration syntax into the full language without creating a parallel truth model;
+- implement deterministic ADL → typed semantic records → ATLAS lowering;
+- add type/effect/resource/ownership/state/concurrency semantics by explicit contract and evidence;
+- validate against reference workloads through differential compilation/behavior tests;
+- retain donor runtime dependencies only as explicit adapters/oracles, never hidden language ownership.
+
+The current `.atlas/declared/*.adl` implementation remains ADL0 until the readiness gates in `../contracts/ATLAS-DEVELOPMENT-LANGUAGE.md` are satisfied.
+
 ## Organism Foundation — after universal semantics are real
 
 Before model training ambitions:

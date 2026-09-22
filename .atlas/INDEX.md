@@ -24,25 +24,29 @@ Read in this order:
 14. `blueprints/PHYSICAL-REFOUNDATION.md`
 15. `roadmap/ROADMAP.md`
 16. `references/deepwiki/DONOR-ARCHITECTURE-SYNTHESIS.md`
-17. `contracts/ATLAS-FORMAT.md`
-18. `contracts/ATLAS-SHARDING.md`
-19. `contracts/ATLASX-FORMAT.md`
-20. `architecture/DIGITAL-ORGANISM.md`
-21. `contracts/ORGANISM-GENOME-v1.md`
-22. `contracts/ORGANISM-LIFECYCLE.md`
-23. `contracts/ORGANISM-MODEL-ADMISSION.md`
-24. `contracts/ORGANISM-HOMEOSTASIS-METABOLISM.md`
-25. `standards/ORGANISM-SPECIES.md`
-26. `blueprints/ORGANISM-COMPILATION.md`
-27. `contracts/COMPILER-PRODUCT.md`
-28. `standards/COMPILER-OPTIMIZATION.md`
-29. `architecture/INVENTION-PIPELINE.md`
-30. `blueprints/SYSTEM-BLUEPRINT.md`
-31. `blueprints/COMPILER-ROADMAP.md`
-32. `blueprints/RUST-PARITY-AND-SURPASS-ROADMAP.md`
-33. `blueprints/BULK-DONOR-ABSORPTION.md`
-34. `contracts/SYSTEM-CONTRACT.md`
-35. `guides/DEVELOPMENT.md`
+17. `contracts/ATLAS-DEVELOPMENT-LANGUAGE.md`
+18. `contracts/ADL-TO-ATLAS.md`
+19. `contracts/DONOR-TO-LANGUAGE-GENESIS.md`
+20. `contracts/ATLAS-FORMAT.md`
+21. `contracts/ATLAS-BINARY-WIRE-FORMAT.md`
+22. `contracts/ATLAS-SHARDING.md`
+23. `contracts/ATLASX-FORMAT.md`
+24. `architecture/DIGITAL-ORGANISM.md`
+25. `contracts/ORGANISM-GENOME-v1.md`
+26. `contracts/ORGANISM-LIFECYCLE.md`
+27. `contracts/ORGANISM-MODEL-ADMISSION.md`
+28. `contracts/ORGANISM-HOMEOSTASIS-METABOLISM.md`
+29. `standards/ORGANISM-SPECIES.md`
+30. `blueprints/ORGANISM-COMPILATION.md`
+31. `contracts/COMPILER-PRODUCT.md`
+32. `standards/COMPILER-OPTIMIZATION.md`
+33. `architecture/INVENTION-PIPELINE.md`
+34. `blueprints/SYSTEM-BLUEPRINT.md`
+35. `blueprints/COMPILER-ROADMAP.md`
+36. `blueprints/RUST-PARITY-AND-SURPASS-ROADMAP.md`
+37. `blueprints/BULK-DONOR-ABSORPTION.md`
+38. `contracts/SYSTEM-CONTRACT.md`
+39. `guides/DEVELOPMENT.md`
 
 Canonical chain:
 
@@ -50,9 +54,18 @@ Canonical chain:
 Reality / Corpus
   ↓ exhaustive inventory
 Strict Census S0→S10
-  ↓ reconcile / adversarial gaps / fixed point
+  ↓ typed OBSERVED records
+  ↓ normalize / reconcile / adversarial gaps / fixed point
 CensusCertificate
-  ↓ research / invention / selection
+  ↓
+Observed World ────────────────────────────┐
+                                          │
+Authored ADL                               │
+  ↓ typed DECLARED records                 │
+  ↓ canonical Census / normalize/reconcile ├─→ comparison / invention / selected design
+                                          │
+Donor Technology Genomes / research ──────┘
+  ↓
 SEALED Logical *.atlas
   ↓ content-addressed shards as needed
 Deterministic *.atlasx/
