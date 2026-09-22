@@ -1,0 +1,1519 @@
+//! Server functions for the Studio.
+//!
+//! These `#[server]` functions run on the server and are callable from
+//! the client via Leptos RPC. They bridge the Studio UI to the duumbi
+//! workspace: graph loading, building, chat, and intent management.
+
+use leptos::prelude::*;
+use serde::{Deserialize, Serialize};
+
+// GraphNode/GraphEdge/InitialData are used inside #[server] fn bodies and load_initial_data (ssr feature only)
+#[allow(unused_imports)]
+use crate::state::{
+    GraphData, GraphEdge, GraphNode, InitialData, InstalledDep, IntentSummary, RegistrySearchHit,
+};
+
+/// Server-side workspace context, shared via Leptos context.
+#[derive(Clone)]
+pub struct WorkspaceContext {
+    /// Root path of the duumbi workspace.
+    pub root: std::path::PathBuf,
+}
+
+/// Workspace status information.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct WorkspaceStatus {
+    /// Workspace name (directory name).
+    pub name: String,
+    /// Number of modules in the workspace.
+    pub module_count: usize,
+    /// List of module names.
+    pub modules: Vec<String>,
+}
+
+/// Returns the graph data for the C4 Context level.
+///
+/// Shows the application as a software system with the user (person)
+/// and stdout (external system). Derives data from the main module graph.
+#[server]
+pub async fn get_graph_context() -> Result<GraphData, ServerFnError> {
+    let ws = expect_context::<std::sync::Arc<tokio::sync::RwLock<WorkspaceContext>>>();
+    let ws = ws.read().await;
+    let graph = load_graph(&ws.root, "app/main")?;
+    Ok(build_c4_context(&graph))
+}
+
+/// Builds C4 Context level graph data from a SemanticGraph.
+#[cfg(feature = "ssr")]
+fn build_c4_context(graph: &duumbi::graph::SemanticGraph) -> GraphData {
+    let app_name = graph.module_name.0.as_str();
+    let entry_return = graph
+        .functions
+        .iter()
+        .find(|f| f.name.0 == "main")
+        .map(|f| f.return_type.to_string())
+        .unwrap_or_else(|| "void".to_string());
+
+    // Uniform node size for C4 Context level
+    let c4_w = 200.0;
+    let c4_h = 80.0;
+
+    let mut nodes = vec![
+        GraphNode {
+            id: "person:user".to_string(),
+            label: "Felhasználó".to_string(),
+            node_type: "person".to_string(),
+            badge: Some("Futtatja a programot".to_string()),
+            x: 0.0,
+            y: 0.0,
+            width: c4_w,
+            height: c4_h,
+        },
+        GraphNode {
+            id: "system:app".to_string(),
+            label: app_name.to_string(),
+            node_type: "system".to_string(),
+            badge: Some(format!("[Software System] main() → {entry_return}")),
+            x: 0.0,
+            y: 0.0,
+            width: c4_w,
+            height: c4_h,
+        },
+    ];
+
+    let mut edges = vec![GraphEdge {
+        id: "e0".to_string(),
+        source: "person:user".to_string(),
+        target: "system:app".to_string(),
+        label: "Futtatja".to_string(),
+        edge_type: "uses".to_string(),
+    }];
+
+    if has_print_op(graph) {
+        nodes.push(GraphNode {
+            id: "external:stdout".to_string(),
+            label: "stdout".to_string(),
+            node_type: "external".to_string(),
+            badge: Some("[Külső: Terminal I/O]".to_string()),
+            x: 0.0,
+            y: 0.0,
+            width: c4_w,
+            height: c4_h,
+        });
+        edges.push(GraphEdge {
+            id: "e1".to_string(),
+            source: "system:app".to_string(),
+            target: "external:stdout".to_string(),
+            label: "Kiírja az eredményt".to_string(),
+            edge_type: "output".to_string(),
+        });
+    }
+
+    GraphData { nodes, edges }
+}
+
+/// Resolves the graph file path for a module name.
+#[cfg(feature = "ssr")]
+fn resolve_graph_path(root: &std::path::Path, module_name: &str) -> std::path::PathBuf {
+    if module_name == "app/main" {
+        root.join(".duumbi/graph/main.jsonld")
+    } else {
+        let parts: Vec<&str> = module_name.split('/').collect();
+        if parts.first() == Some(&"stdlib") && parts.len() == 2 {
+            root.join(format!(".duumbi/stdlib/{}", parts[1]))
+                .join(".duumbi/graph/main.jsonld")
+        } else {
+            root.join(format!(".duumbi/graph/{module_name}.jsonld"))
+        }
+    }
+}
+
+/// Loads and builds a semantic graph from a module path.
+#[cfg(feature = "ssr")]
+fn load_graph(
+    root: &std::path::Path,
+    module_name: &str,
+) -> Result<duumbi::graph::SemanticGraph, ServerFnError> {
+    let graph_path = resolve_graph_path(root, module_name);
+    let source = std::fs::read_to_string(&graph_path)
+        .map_err(|e| ServerFnError::new(format!("Failed to read {}: {e}", graph_path.display())))?;
+    let ast = duumbi::parser::parse_jsonld(&source)
+        .map_err(|e| ServerFnError::new(format!("Parse error: {e}")))?;
+    duumbi::graph::builder::build_graph(&ast)
+        .map_err(|errors| ServerFnError::new(format!("Graph errors: {errors:?}")))
+}
+
+/// Returns graph data for the C4 Container level (binary + runtime shim).
+///
+/// Shows the native binary and runtime shim containers within the
+/// software system boundary.
+#[server]
+pub async fn get_module_detail(module_name: String) -> Result<GraphData, ServerFnError> {
+    let ws = expect_context::<std::sync::Arc<tokio::sync::RwLock<WorkspaceContext>>>();
+    let ws = ws.read().await;
+    let graph = load_graph(&ws.root, &module_name)?;
+    Ok(build_c4_container(&graph))
+}
+
+/// Builds C4 Container level graph data.
+#[cfg(feature = "ssr")]
+fn build_c4_container(graph: &duumbi::graph::SemanticGraph) -> GraphData {
+    let app_name = graph.module_name.0.as_str();
+    let has_io = has_print_op(graph);
+
+    let c4_w = 200.0;
+    let c4_h = 80.0;
+
+    let mut nodes = vec![
+        GraphNode {
+            id: "person:user".to_string(),
+            label: "Felhasználó".to_string(),
+            node_type: "person".to_string(),
+            badge: None,
+            x: 0.0,
+            y: 0.0,
+            width: c4_w,
+            height: c4_h,
+        },
+        GraphNode {
+            id: "boundary:app".to_string(),
+            label: format!("{app_name} [Software System]"),
+            node_type: "boundary".to_string(),
+            badge: None,
+            x: 0.0,
+            y: 0.0,
+            width: 400.0,
+            height: 200.0,
+        },
+        GraphNode {
+            id: "container:binary".to_string(),
+            label: "Natív Bináris".to_string(),
+            node_type: "container".to_string(),
+            badge: Some("[Cranelift compiled]".to_string()),
+            x: 0.0,
+            y: 0.0,
+            width: c4_w,
+            height: c4_h,
+        },
+    ];
+
+    let mut edges = vec![GraphEdge {
+        id: "e0".to_string(),
+        source: "person:user".to_string(),
+        target: "container:binary".to_string(),
+        label: "Futtatja".to_string(),
+        edge_type: "uses".to_string(),
+    }];
+
+    if has_io {
+        nodes.push(GraphNode {
+            id: "container:runtime".to_string(),
+            label: "Runtime Shim".to_string(),
+            node_type: "container".to_string(),
+            badge: Some("[duumbi_runtime.c]".to_string()),
+            x: 0.0,
+            y: 0.0,
+            width: c4_w,
+            height: c4_h,
+        });
+        nodes.push(GraphNode {
+            id: "external:stdout".to_string(),
+            label: "stdout".to_string(),
+            node_type: "external".to_string(),
+            badge: Some("[Terminal I/O]".to_string()),
+            x: 0.0,
+            y: 0.0,
+            width: c4_w,
+            height: c4_h,
+        });
+        edges.push(GraphEdge {
+            id: "e1".to_string(),
+            source: "container:binary".to_string(),
+            target: "container:runtime".to_string(),
+            label: "hívja".to_string(),
+            edge_type: "call".to_string(),
+        });
+        edges.push(GraphEdge {
+            id: "e2".to_string(),
+            source: "container:runtime".to_string(),
+            target: "external:stdout".to_string(),
+            label: "printf → stdout".to_string(),
+            edge_type: "output".to_string(),
+        });
+    }
+
+    GraphData { nodes, edges }
+}
+
+/// Returns graph data for the C4 Component level (active vs dead code).
+///
+/// Shows functions as components, separated into active (reachable from main)
+/// and dead code groups. Also adds sub-component nodes for op categories.
+#[server]
+pub async fn get_function_detail(
+    module_name: String,
+    #[allow(unused_variables)] _function_name: String,
+) -> Result<GraphData, ServerFnError> {
+    let ws = expect_context::<std::sync::Arc<tokio::sync::RwLock<WorkspaceContext>>>();
+    let ws = ws.read().await;
+    let graph = load_graph(&ws.root, &module_name)?;
+    Ok(build_c4_component(&graph))
+}
+
+/// Builds C4 Component level graph data.
+#[cfg(feature = "ssr")]
+fn build_c4_component(graph: &duumbi::graph::SemanticGraph) -> GraphData {
+    let reachable = reachable_fns(graph);
+    let has_io = has_print_op(graph);
+
+    let mut nodes = Vec::new();
+    let mut edges = Vec::new();
+    let mut edge_counter: usize = 0;
+
+    // Classify ops across active functions
+    let mut has_arithmetic = false;
+    let mut has_io_ops = false;
+    let mut has_control_flow = false;
+
+    for func in &graph.functions {
+        let fn_name = &func.name.0;
+        let is_active = reachable.contains(fn_name.as_str());
+
+        if is_active {
+            for block in &func.blocks {
+                for &node_idx in &block.nodes {
+                    match &graph.graph[node_idx].op {
+                        duumbi::types::Op::Add
+                        | duumbi::types::Op::Sub
+                        | duumbi::types::Op::Mul
+                        | duumbi::types::Op::Div => has_arithmetic = true,
+                        duumbi::types::Op::Print => has_io_ops = true,
+                        duumbi::types::Op::Compare(_) | duumbi::types::Op::Branch => {
+                            has_control_flow = true;
+                        }
+                        _ => {}
+                    }
+                }
+            }
+        }
+
+        let params: Vec<String> = func
+            .params
+            .iter()
+            .map(|p| format!("{}: {}", p.name, p.param_type))
+            .collect();
+        let label = if params.is_empty() {
+            format!("{}()", fn_name)
+        } else {
+            format!("{}({})", fn_name, params.join(", "))
+        };
+        let total_ops: usize = func.blocks.iter().map(|b| b.nodes.len()).sum();
+
+        if is_active {
+            let meta = if fn_name == "main" {
+                format!("→ {} | entry point", func.return_type)
+            } else {
+                format!(
+                    "→ {} | {} blocks, {} ops",
+                    func.return_type,
+                    func.blocks.len(),
+                    total_ops
+                )
+            };
+            nodes.push(GraphNode {
+                id: format!("component:{fn_name}"),
+                label,
+                node_type: "component".to_string(),
+                badge: Some(meta),
+                x: 0.0,
+                y: 0.0,
+                width: 200.0,
+                height: 60.0,
+            });
+        } else {
+            let meta = format!(
+                "→ {} | {} blocks, {} ops",
+                func.return_type,
+                func.blocks.len(),
+                total_ops
+            );
+            nodes.push(GraphNode {
+                id: format!("component:{fn_name}"),
+                label,
+                node_type: "component-dead".to_string(),
+                badge: Some(meta),
+                x: 0.0,
+                y: 0.0,
+                width: 200.0,
+                height: 60.0,
+            });
+        }
+    }
+
+    // Sub-component nodes
+    if has_arithmetic {
+        nodes.push(GraphNode {
+            id: "component:math".to_string(),
+            label: "Aritmetika".to_string(),
+            node_type: "component-sub".to_string(),
+            badge: Some("Add/Sub/Mul/Div".to_string()),
+            x: 0.0,
+            y: 0.0,
+            width: 140.0,
+            height: 50.0,
+        });
+        edges.push(GraphEdge {
+            id: format!("e{edge_counter}"),
+            source: "component:main".to_string(),
+            target: "component:math".to_string(),
+            label: "használ".to_string(),
+            edge_type: "uses".to_string(),
+        });
+        edge_counter += 1;
+    }
+
+    if has_io_ops {
+        nodes.push(GraphNode {
+            id: "component:io".to_string(),
+            label: "I/O".to_string(),
+            node_type: "component-sub".to_string(),
+            badge: Some("Print".to_string()),
+            x: 0.0,
+            y: 0.0,
+            width: 140.0,
+            height: 50.0,
+        });
+        edges.push(GraphEdge {
+            id: format!("e{edge_counter}"),
+            source: "component:main".to_string(),
+            target: "component:io".to_string(),
+            label: "használ".to_string(),
+            edge_type: "uses".to_string(),
+        });
+        edge_counter += 1;
+    }
+
+    if has_control_flow {
+        nodes.push(GraphNode {
+            id: "component:control".to_string(),
+            label: "Control Flow".to_string(),
+            node_type: "component-sub".to_string(),
+            badge: Some("Compare/Branch".to_string()),
+            x: 0.0,
+            y: 0.0,
+            width: 140.0,
+            height: 50.0,
+        });
+        edges.push(GraphEdge {
+            id: format!("e{edge_counter}"),
+            source: "component:main".to_string(),
+            target: "component:control".to_string(),
+            label: "használ".to_string(),
+            edge_type: "uses".to_string(),
+        });
+        edge_counter += 1;
+    }
+
+    // External dependencies — only add edges from component:io when the node exists
+    if has_io {
+        nodes.push(GraphNode {
+            id: "external:runtime".to_string(),
+            label: "Runtime Shim".to_string(),
+            node_type: "external".to_string(),
+            badge: Some("[duumbi_print_i64]".to_string()),
+            x: 0.0,
+            y: 0.0,
+            width: 160.0,
+            height: 60.0,
+        });
+        nodes.push(GraphNode {
+            id: "external:stdout".to_string(),
+            label: "stdout".to_string(),
+            node_type: "external".to_string(),
+            badge: Some("[Terminal]".to_string()),
+            x: 0.0,
+            y: 0.0,
+            width: 120.0,
+            height: 50.0,
+        });
+        if has_io_ops {
+            edges.push(GraphEdge {
+                id: format!("e{edge_counter}"),
+                source: "component:io".to_string(),
+                target: "external:runtime".to_string(),
+                label: "hívja".to_string(),
+                edge_type: "call".to_string(),
+            });
+            edge_counter += 1;
+        }
+        edges.push(GraphEdge {
+            id: format!("e{edge_counter}"),
+            source: "external:runtime".to_string(),
+            target: "external:stdout".to_string(),
+            label: "→ stdout".to_string(),
+            edge_type: "output".to_string(),
+        });
+    }
+
+    GraphData { nodes, edges }
+}
+
+/// Returns graph data for the Code level (ops within a block).
+#[server]
+pub async fn get_block_ops(
+    module_name: String,
+    function_name: String,
+    block_label: String,
+) -> Result<GraphData, ServerFnError> {
+    let ws = expect_context::<std::sync::Arc<tokio::sync::RwLock<WorkspaceContext>>>();
+    let ws = ws.read().await;
+    let graph = load_graph(&ws.root, &module_name)?;
+
+    let func = graph
+        .functions
+        .iter()
+        .find(|f| f.name.0 == function_name)
+        .ok_or_else(|| ServerFnError::new(format!("Function '{function_name}' not found")))?;
+
+    let block = func
+        .blocks
+        .iter()
+        .find(|b| b.label.0 == block_label)
+        .ok_or_else(|| ServerFnError::new(format!("Block '{block_label}' not found")))?;
+
+    let mut nodes = Vec::new();
+    let mut edges = Vec::new();
+
+    for &node_idx in &block.nodes {
+        let node = &graph.graph[node_idx];
+        let op_type = op_type_name_str(&node.op);
+        let result_type = node
+            .result_type
+            .as_ref()
+            .map_or("void".to_string(), |t| t.to_string());
+
+        nodes.push(GraphNode {
+            id: node.id.to_string(),
+            label: node.op.to_string(),
+            node_type: op_type.to_string(),
+            badge: Some(result_type),
+            x: 0.0,
+            y: 0.0,
+            width: 120.0,
+            height: 40.0,
+        });
+
+        use petgraph::visit::EdgeRef;
+        for edge_ref in graph
+            .graph
+            .edges_directed(node_idx, petgraph::Direction::Incoming)
+        {
+            let source_node = &graph.graph[edge_ref.source()];
+            let (label, edge_type) = edge_label_pair(edge_ref.weight());
+
+            edges.push(GraphEdge {
+                id: format!("e:{}:{}", source_node.id, node.id),
+                source: source_node.id.to_string(),
+                target: node.id.to_string(),
+                label: label.to_string(),
+                edge_type: edge_type.to_string(),
+            });
+        }
+    }
+
+    Ok(GraphData { nodes, edges })
+}
+
+/// Returns workspace status information.
+#[server]
+pub async fn get_workspace_status() -> Result<WorkspaceStatus, ServerFnError> {
+    let ws = expect_context::<std::sync::Arc<tokio::sync::RwLock<WorkspaceContext>>>();
+    let ws = ws.read().await;
+
+    let name = ws
+        .root
+        .file_name()
+        .map(|n| n.to_string_lossy().to_string())
+        .unwrap_or_else(|| "workspace".to_string());
+
+    let mut modules = Vec::new();
+    modules.extend(discover_workspace_modules(&ws.root));
+
+    let module_count = modules.len();
+    Ok(WorkspaceStatus {
+        name,
+        module_count,
+        modules,
+    })
+}
+
+/// Triggers a workspace build.
+#[server]
+pub async fn trigger_build() -> Result<String, ServerFnError> {
+    let ws = expect_context::<std::sync::Arc<tokio::sync::RwLock<WorkspaceContext>>>();
+    let ws = ws.read().await;
+
+    let response = build_workspace_for_api(&ws.root).await;
+    if response.ok {
+        Ok(response.message)
+    } else {
+        Err(ServerFnError::new(response.message))
+    }
+}
+
+/// Returns the list of intents in the workspace.
+#[server]
+pub async fn get_intents() -> Result<Vec<IntentSummary>, ServerFnError> {
+    let ws = expect_context::<std::sync::Arc<tokio::sync::RwLock<WorkspaceContext>>>();
+    let ws = ws.read().await;
+
+    let mut intents = Vec::new();
+
+    let intents_dir = ws.root.join(".duumbi/intents");
+    if intents_dir.exists()
+        && let Ok(entries) = std::fs::read_dir(&intents_dir)
+    {
+        for entry in entries.flatten() {
+            let path = entry.path();
+            if path.extension().is_some_and(|e| e == "yaml")
+                && let Ok(content) = std::fs::read_to_string(&path)
+            {
+                let slug = path
+                    .file_stem()
+                    .map(|s| s.to_string_lossy().to_string())
+                    .unwrap_or_default();
+
+                if let Ok(value) = serde_yaml::from_str::<serde_yaml::Value>(&content) {
+                    let description = value["intent"].as_str().unwrap_or(&slug).to_string();
+                    let status = value["status"].as_str().unwrap_or("Unknown").to_string();
+
+                    intents.push(IntentSummary {
+                        slug,
+                        description,
+                        status,
+                        log: Vec::new(),
+                    });
+                }
+            }
+        }
+    }
+
+    Ok(intents)
+}
+
+/// Returns the short type name for an Op.
+#[cfg(feature = "ssr")]
+pub fn op_type_name_str(op: &duumbi::types::Op) -> &'static str {
+    use duumbi::types::Op;
+    match op {
+        Op::Const(_) => "Const",
+        Op::ConstF64(_) => "ConstF64",
+        Op::ConstBool(_) => "ConstBool",
+        Op::Add => "Add",
+        Op::Sub => "Sub",
+        Op::Mul => "Mul",
+        Op::Div => "Div",
+        Op::Compare(_) => "Compare",
+        Op::Branch => "Branch",
+        Op::Call { .. } => "Call",
+        Op::Load { .. } => "Load",
+        Op::Store { .. } => "Store",
+        Op::Print => "Print",
+        Op::Return => "Return",
+        Op::ConstString(_) => "ConstString",
+        Op::PrintString => "PrintString",
+        Op::StringConcat => "StringConcat",
+        Op::StringEquals => "StringEquals",
+        Op::StringCompare(_) => "StringCompare",
+        Op::StringLength => "StringLength",
+        Op::StringSlice => "StringSlice",
+        Op::StringContains => "StringContains",
+        Op::StringFind => "StringFind",
+        Op::StringFromI64 => "StringFromI64",
+        Op::ArrayNew => "ArrayNew",
+        Op::ArrayPush => "ArrayPush",
+        Op::ArrayGet => "ArrayGet",
+        Op::ArraySet => "ArraySet",
+        Op::ArrayLength => "ArrayLength",
+        Op::StructNew { .. } => "StructNew",
+        Op::FieldGet { .. } => "FieldGet",
+        Op::FieldSet { .. } => "FieldSet",
+        Op::Alloc { .. } => "Alloc",
+        Op::Move { .. } => "Move",
+        Op::Borrow { mutable: false, .. } => "Borrow",
+        Op::Borrow { mutable: true, .. } => "BorrowMut",
+        Op::Drop { .. } => "Drop",
+        Op::ResultOk => "ResultOk",
+        Op::ResultErr => "ResultErr",
+        Op::ResultIsOk => "ResultIsOk",
+        Op::ResultUnwrap => "ResultUnwrap",
+        Op::ResultUnwrapErr => "ResultUnwrapErr",
+        Op::OptionSome => "OptionSome",
+        Op::OptionNone => "OptionNone",
+        Op::OptionIsSome => "OptionIsSome",
+        Op::OptionUnwrap => "OptionUnwrap",
+        Op::Match { .. } => "Match",
+        _ => "Unknown",
+    }
+}
+
+/// Sends a chat message to the LLM and applies any graph mutation.
+///
+/// Loads the workspace config, calls `orchestrator::mutate`, applies the patch
+/// if accepted, and returns the AI's response text along with changed node ids.
+#[server]
+pub async fn send_chat_message(
+    message: String,
+) -> Result<crate::state::ChatResponse, ServerFnError> {
+    use std::fs;
+
+    let ws = expect_context::<std::sync::Arc<tokio::sync::RwLock<WorkspaceContext>>>();
+    let ws = ws.read().await;
+
+    // Load config
+    let config = duumbi::config::load_config(&ws.root)
+        .map_err(|e| ServerFnError::new(format!("Config error: {e}")))?;
+
+    let providers = config.effective_providers();
+    let provider_cfg = providers.first().ok_or_else(|| {
+        ServerFnError::new("No LLM provider configured in config.toml".to_string())
+    })?;
+
+    let client = duumbi::agents::factory::create_provider(provider_cfg)
+        .map_err(|e| ServerFnError::new(format!("LLM provider error: {e}")))?;
+
+    let graph_path = ws.root.join(".duumbi/graph/main.jsonld");
+    let source_str = fs::read_to_string(&graph_path)
+        .map_err(|e| ServerFnError::new(format!("Failed to read graph: {e}")))?;
+    let source: serde_json::Value = serde_json::from_str(&source_str)
+        .map_err(|e| ServerFnError::new(format!("Failed to parse graph: {e}")))?;
+
+    let result = duumbi::agents::orchestrator::mutate(&client, &source, &message, 3)
+        .await
+        .map_err(|e| ServerFnError::new(format!("LLM error: {e}")))?;
+
+    let diff = duumbi::agents::orchestrator::describe_changes(&source, &result.patched);
+
+    // Save snapshot and write patched graph
+    duumbi::snapshot::save_snapshot(&ws.root, &source_str)
+        .map_err(|e| ServerFnError::new(format!("Snapshot error: {e}")))?;
+
+    let patched_str = serde_json::to_string_pretty(&result.patched)
+        .map_err(|e| ServerFnError::new(format!("Serialize error: {e}")))?;
+
+    fs::write(&graph_path, patched_str)
+        .map_err(|e| ServerFnError::new(format!("Write error: {e}")))?;
+
+    Ok(crate::state::ChatResponse {
+        text: format!("Applied {} change(s):\n{}", result.ops_count, diff),
+        changed_node_ids: Vec::new(), // TODO: extract from patched nodes
+    })
+}
+
+/// Synchronously loads initial data for SSR rendering.
+///
+/// Called once at server startup. Returns C4 Context level graph, workspace
+/// name, intents, and module list so the first SSR render has real data.
+#[cfg(feature = "ssr")]
+pub fn load_initial_data(workspace: &std::path::Path) -> InitialData {
+    use std::fs;
+
+    let name = workspace
+        .file_name()
+        .map(|n| n.to_string_lossy().to_string())
+        .unwrap_or_else(|| "workspace".to_string());
+
+    // Build C4 Context graph from main module
+    let graph = if workspace.join(".duumbi/graph/main.jsonld").exists() {
+        match load_graph(workspace, "app/main") {
+            Ok(sg) => build_c4_context(&sg),
+            Err(_) => GraphData {
+                nodes: Vec::new(),
+                edges: Vec::new(),
+            },
+        }
+    } else {
+        GraphData {
+            nodes: Vec::new(),
+            edges: Vec::new(),
+        }
+    };
+
+    let modules = discover_workspace_modules(workspace);
+
+    // Collect intents
+    let mut intents = Vec::new();
+    let intents_dir = workspace.join(".duumbi/intents");
+    if intents_dir.exists()
+        && let Ok(entries) = fs::read_dir(&intents_dir)
+    {
+        for entry in entries.flatten() {
+            let path = entry.path();
+            if path.extension().is_some_and(|e| e == "yaml")
+                && let Ok(content) = fs::read_to_string(&path)
+            {
+                let slug = path
+                    .file_stem()
+                    .map(|s| s.to_string_lossy().to_string())
+                    .unwrap_or_default();
+                if let Ok(value) = serde_yaml::from_str::<serde_yaml::Value>(&content) {
+                    let description = value["intent"].as_str().unwrap_or(&slug).to_string();
+                    let status = value["status"].as_str().unwrap_or("Unknown").to_string();
+                    intents.push(IntentSummary {
+                        slug,
+                        description,
+                        status,
+                        log: Vec::new(),
+                    });
+                }
+            }
+        }
+    }
+
+    InitialData {
+        graph,
+        workspace_name: name,
+        intents,
+        modules,
+    }
+}
+
+/// Discovers graph modules in `.duumbi/graph/**/*.jsonld`.
+#[cfg(feature = "ssr")]
+pub fn discover_workspace_modules(workspace: &std::path::Path) -> Vec<String> {
+    fn visit(dir: &std::path::Path, root: &std::path::Path, modules: &mut Vec<String>) {
+        let Ok(entries) = std::fs::read_dir(dir) else {
+            return;
+        };
+        for entry in entries.flatten() {
+            let path = entry.path();
+            if entry.file_type().is_ok_and(|t| t.is_dir()) {
+                visit(&path, root, modules);
+                continue;
+            }
+            if path.extension().and_then(|e| e.to_str()) != Some("jsonld") {
+                continue;
+            }
+            let Ok(rel) = path.strip_prefix(root) else {
+                continue;
+            };
+            let mut module = rel.with_extension("").to_string_lossy().replace('\\', "/");
+            if module == "main" {
+                module = "app/main".to_string();
+            }
+            modules.push(module);
+        }
+    }
+
+    let graph_root = workspace.join(".duumbi/graph");
+    let mut modules = Vec::new();
+    visit(&graph_root, &graph_root, &mut modules);
+
+    let stdlib_dir = workspace.join(".duumbi/stdlib");
+    if stdlib_dir.exists()
+        && let Ok(entries) = std::fs::read_dir(&stdlib_dir)
+    {
+        for entry in entries.flatten() {
+            if entry.file_type().is_ok_and(|t| t.is_dir()) {
+                modules.push(format!("stdlib/{}", entry.file_name().to_string_lossy()));
+            }
+        }
+    }
+
+    modules.sort();
+    modules.dedup();
+    modules
+}
+
+/// Computes the set of function names reachable from `main()` via Call ops (BFS).
+#[cfg(feature = "ssr")]
+fn reachable_fns(graph: &duumbi::graph::SemanticGraph) -> std::collections::HashSet<String> {
+    use std::collections::{HashSet, VecDeque};
+
+    let mut visited = HashSet::new();
+    let mut queue = VecDeque::new();
+    queue.push_back("main".to_string());
+    visited.insert("main".to_string());
+
+    while let Some(fn_name) = queue.pop_front() {
+        if let Some(func) = graph.functions.iter().find(|f| f.name.0 == fn_name) {
+            for block in &func.blocks {
+                for &node_idx in &block.nodes {
+                    if let duumbi::types::Op::Call { function, .. } = &graph.graph[node_idx].op {
+                        let callee = function.to_string();
+                        if visited.insert(callee.clone()) {
+                            queue.push_back(callee);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    visited
+}
+
+/// Returns `true` if any function in the graph contains a Print op.
+#[cfg(feature = "ssr")]
+fn has_print_op(graph: &duumbi::graph::SemanticGraph) -> bool {
+    graph.functions.iter().any(|func| {
+        func.blocks.iter().any(|block| {
+            block
+                .nodes
+                .iter()
+                .any(|&idx| matches!(graph.graph[idx].op, duumbi::types::Op::Print))
+        })
+    })
+}
+
+/// Public wrapper for `build_c4_container` (used by API routes in lib.rs).
+#[cfg(feature = "ssr")]
+pub fn build_c4_container_pub(graph: &duumbi::graph::SemanticGraph) -> GraphData {
+    build_c4_container(graph)
+}
+
+/// Public wrapper for `build_c4_component` (used by API routes in lib.rs).
+#[cfg(feature = "ssr")]
+pub fn build_c4_component_pub(graph: &duumbi::graph::SemanticGraph) -> GraphData {
+    build_c4_component(graph)
+}
+
+/// Searches configured registries for modules matching a query.
+#[server]
+pub async fn search_registry(query: String) -> Result<Vec<RegistrySearchHit>, ServerFnError> {
+    let ws = expect_context::<std::sync::Arc<tokio::sync::RwLock<WorkspaceContext>>>();
+    let ws = ws.read().await;
+
+    let config = duumbi::config::load_config(&ws.root)
+        .map_err(|e| ServerFnError::new(format!("Config error: {e}")))?;
+
+    let registries = config.registries.clone();
+
+    if registries.is_empty() {
+        return Ok(Vec::new());
+    }
+
+    let creds = duumbi::registry::credentials::load_credentials().unwrap_or_default();
+    let client_creds = duumbi::registry::credentials::to_client_credentials(&creds);
+
+    let client = duumbi::registry::RegistryClient::new(registries.clone(), client_creds, None)
+        .map_err(|e| ServerFnError::new(format!("Registry client error: {e}")))?;
+
+    let mut results = Vec::new();
+    for registry_name in registries.keys() {
+        match client.search(registry_name, &query).await {
+            Ok(resp) => {
+                for hit in resp.results {
+                    results.push(RegistrySearchHit {
+                        name: hit.name,
+                        description: hit.description,
+                        latest_version: hit.latest_version,
+                    });
+                }
+            }
+            Err(e) => {
+                tracing::warn!("Search failed for registry '{registry_name}': {e}");
+            }
+        }
+    }
+
+    Ok(results)
+}
+
+/// Installs a module by adding it as a dependency and downloading to cache.
+///
+/// First runs `duumbi deps add <module_name>` to register the dependency
+/// in config.toml, then `duumbi deps install` to download and lock it.
+#[server]
+pub async fn install_module(module_name: String) -> Result<String, ServerFnError> {
+    let ws = expect_context::<std::sync::Arc<tokio::sync::RwLock<WorkspaceContext>>>();
+    let ws = ws.read().await;
+
+    // Step 1: Add the module as a dependency in config.toml
+    let add_output = tokio::process::Command::new("cargo")
+        .args(["run", "--quiet", "--", "deps", "add", &module_name])
+        .current_dir(&ws.root)
+        .output()
+        .await
+        .map_err(|e| ServerFnError::new(format!("Failed to run deps add: {e}")))?;
+
+    if !add_output.status.success() {
+        let stderr = String::from_utf8_lossy(&add_output.stderr);
+        return Err(ServerFnError::new(format!(
+            "Failed to add dependency: {stderr}"
+        )));
+    }
+
+    // Step 2: Install (download + lock) the dependency
+    let install_output = tokio::process::Command::new("cargo")
+        .args(["run", "--quiet", "--", "deps", "install"])
+        .current_dir(&ws.root)
+        .output()
+        .await
+        .map_err(|e| ServerFnError::new(format!("Failed to run deps install: {e}")))?;
+
+    if install_output.status.success() {
+        Ok(format!("Installed {module_name} successfully"))
+    } else {
+        let stderr = String::from_utf8_lossy(&install_output.stderr);
+        Err(ServerFnError::new(format!("Install failed: {stderr}")))
+    }
+}
+
+/// Returns the list of installed dependencies from config.toml.
+#[server]
+pub async fn get_installed_deps() -> Result<Vec<InstalledDep>, ServerFnError> {
+    let ws = expect_context::<std::sync::Arc<tokio::sync::RwLock<WorkspaceContext>>>();
+    let ws = ws.read().await;
+
+    let config = duumbi::config::load_config(&ws.root)
+        .map_err(|e| ServerFnError::new(format!("Config error: {e}")))?;
+
+    let deps_map = config.dependencies.clone();
+
+    let mut deps = Vec::new();
+    for (name, dep_config) in deps_map {
+        let (version, source) = match dep_config {
+            duumbi::config::DependencyConfig::Version(v) => (v, "registry".to_string()),
+            duumbi::config::DependencyConfig::Path { path } => (path, "path".to_string()),
+            duumbi::config::DependencyConfig::VersionWithRegistry { version, registry } => {
+                (version, format!("registry ({registry})"))
+            }
+        };
+        deps.push(InstalledDep {
+            name,
+            version,
+            source,
+        });
+    }
+
+    // Also check vendor dir — supports both `vendor/pkg` and `vendor/@scope/pkg`
+    let vendor_dir = ws.root.join(".duumbi/vendor");
+    if vendor_dir.exists()
+        && let Ok(entries) = std::fs::read_dir(&vendor_dir)
+    {
+        for entry in entries.flatten() {
+            let dir_name = entry.file_name().to_string_lossy().to_string();
+            if dir_name.starts_with('@') {
+                // Scoped package: walk children (e.g. `@scope/name`)
+                let scope_dir = entry.path();
+                if let Ok(children) = std::fs::read_dir(&scope_dir) {
+                    for child in children.flatten() {
+                        let child_name = child.file_name().to_string_lossy().to_string();
+                        let full_name = format!("{dir_name}/{child_name}");
+                        if !deps.iter().any(|d| d.name == full_name) {
+                            deps.push(InstalledDep {
+                                name: full_name,
+                                version: "vendored".to_string(),
+                                source: "vendor".to_string(),
+                            });
+                        }
+                    }
+                }
+            } else if !deps.iter().any(|d| d.name == dir_name) {
+                deps.push(InstalledDep {
+                    name: dir_name,
+                    version: "vendored".to_string(),
+                    source: "vendor".to_string(),
+                });
+            }
+        }
+    }
+    Ok(deps)
+}
+
+/// Returns (label, edge_type) for a graph edge.
+#[cfg(feature = "ssr")]
+pub fn edge_label_pair(edge: &duumbi::graph::GraphEdge) -> (&'static str, &'static str) {
+    use duumbi::graph::GraphEdge;
+    match edge {
+        GraphEdge::Left => ("left", "Left"),
+        GraphEdge::Right => ("right", "Right"),
+        GraphEdge::Operand => ("operand", "Operand"),
+        GraphEdge::Condition => ("condition", "Condition"),
+        GraphEdge::TrueBlock => ("true", "TrueBlock"),
+        GraphEdge::FalseBlock => ("false", "FalseBlock"),
+        GraphEdge::Arg(n) => match n {
+            0 => ("arg[0]", "Arg"),
+            1 => ("arg[1]", "Arg"),
+            2 => ("arg[2]", "Arg"),
+            _ => ("arg[N]", "Arg"),
+        },
+        GraphEdge::Owns => ("owns", "Owns"),
+        GraphEdge::MovesFrom => ("moves", "MovesFrom"),
+        GraphEdge::BorrowsFrom => ("borrows", "BorrowsFrom"),
+        GraphEdge::Drops => ("drops", "Drops"),
+    }
+}
+
+// ── Phase 15 server functions ──────────────────────────────────────────────
+
+/// Provider info for the command palette provider list.
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct ProviderInfo {
+    /// Provider kind (e.g., "Anthropic", "OpenAI").
+    pub kind: String,
+    /// Role: "Primary" or "Fallback".
+    pub role: String,
+}
+
+/// Returns configured LLM providers from config.toml.
+#[server]
+pub async fn get_provider_list() -> Result<Vec<ProviderInfo>, ServerFnError> {
+    let ctx = expect_context::<std::sync::Arc<tokio::sync::RwLock<WorkspaceContext>>>();
+    let ws = ctx.read().await;
+
+    let config = duumbi::config::load_config(&ws.root)
+        .map_err(|e| ServerFnError::new(format!("Config: {e}")))?;
+
+    let providers = config.effective_providers();
+    Ok(providers
+        .iter()
+        .map(|p| ProviderInfo {
+            kind: p.provider.to_string(),
+            role: format!("{:?}", p.role),
+        })
+        .collect())
+}
+
+/// Runs the compiled binary and returns stdout/stderr.
+#[server]
+pub async fn trigger_run() -> Result<String, ServerFnError> {
+    let ctx = expect_context::<std::sync::Arc<tokio::sync::RwLock<WorkspaceContext>>>();
+    let ws = ctx.read().await;
+
+    let response = run_workspace_for_api(&ws.root).await;
+    if !response.ok && response.exit_code == -1 {
+        return Err(ServerFnError::new(response.stderr));
+    }
+
+    Ok(format!(
+        "Exit code: {}\n\n--- stdout ---\n{}\n--- stderr ---\n{}",
+        response.exit_code, response.stdout, response.stderr
+    ))
+}
+
+/// Executes an intent by slug (full pipeline: decompose → mutate → verify).
+#[server]
+pub async fn execute_intent(slug: String) -> Result<String, ServerFnError> {
+    let ctx = expect_context::<std::sync::Arc<tokio::sync::RwLock<WorkspaceContext>>>();
+    let ws = ctx.read().await;
+
+    let response = execute_intent_for_api(&ws.root, &slug).await;
+    if response.ok {
+        Ok(response.message)
+    } else {
+        Err(ServerFnError::new(response.message))
+    }
+}
+
+/// Creates a new intent from a natural language description.
+///
+/// Uses the LLM to generate a structured YAML spec, then saves it.
+#[server]
+pub async fn create_intent(description: String) -> Result<IntentSummary, ServerFnError> {
+    let ctx = expect_context::<std::sync::Arc<tokio::sync::RwLock<WorkspaceContext>>>();
+    let ws = ctx.read().await;
+
+    let effective = duumbi::config::load_effective_config(&ws.root)
+        .map_err(|e| ServerFnError::new(format!("Config: {e}")))?;
+
+    let providers = effective.config.effective_providers();
+    let client = duumbi::agents::factory::create_provider_chain_for_global_access(&providers)
+        .map_err(|e| ServerFnError::new(format!("Provider: {e}")))?;
+
+    // Studio always auto-confirms (no interactive prompt).
+    let result = duumbi::workflow::create_intent(&*client, &ws.root, &description, true)
+        .await
+        .map_err(|e| ServerFnError::new(format!("Create: {e}")))?;
+
+    // Reload the saved intent to get its status
+    let spec = duumbi::intent::load_intent(&ws.root, &result.slug)
+        .map_err(|e| ServerFnError::new(format!("Load: {e}")))?;
+
+    Ok(IntentSummary {
+        slug: result.slug,
+        description: spec.intent,
+        status: format!("{:?}", spec.status),
+        log: result.log,
+    })
+}
+
+/// Info about an agent template for the Studio UI.
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct AgentTemplateInfo {
+    /// Template display name.
+    pub name: String,
+    /// Agent role (e.g., "Coder", "Planner").
+    pub role: String,
+    /// Number of tools available.
+    pub tools_count: usize,
+    /// Specialization tags.
+    pub specialization: Vec<String>,
+    /// System prompt preview (first 200 chars).
+    pub prompt_preview: String,
+}
+
+/// JSON response for Studio build endpoints.
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct BuildApiResponse {
+    /// Whether the build completed successfully.
+    pub ok: bool,
+    /// Human-readable status message.
+    pub message: String,
+    /// Output binary path when the build succeeded.
+    pub output_path: Option<String>,
+}
+
+/// JSON response for Studio run endpoints.
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct RunApiResponse {
+    /// Whether the binary executed with exit code 0.
+    pub ok: bool,
+    /// Process exit code, or -1 when unavailable.
+    pub exit_code: i32,
+    /// Captured stdout.
+    pub stdout: String,
+    /// Captured stderr.
+    pub stderr: String,
+}
+
+/// JSON response for Studio intent execution endpoints.
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct IntentExecuteApiResponse {
+    /// Whether intent execution completed successfully.
+    pub ok: bool,
+    /// Human-readable status message.
+    pub message: String,
+    /// Execution log emitted by the intent pipeline.
+    pub log: Vec<String>,
+    /// Preflight lines extracted from the execution log for structured clients.
+    pub preflight: Vec<String>,
+}
+
+/// Renders the current preflight report for a Studio intent detail surface.
+#[cfg(feature = "ssr")]
+#[must_use]
+pub fn intent_preflight_lines(
+    workspace: &std::path::Path,
+    slug: &str,
+    spec: &duumbi::intent::spec::IntentSpec,
+) -> Vec<String> {
+    let report = duumbi::intent::preflight::run_preflight_for_intent(spec, workspace, slug);
+    duumbi::intent::preflight::render_preflight_report(&report)
+}
+
+/// Extracts preflight evidence from workflow logs for Studio API responses.
+#[cfg(feature = "ssr")]
+#[must_use]
+pub fn preflight_lines_from_log(log: &[String]) -> Vec<String> {
+    let mut lines = Vec::new();
+    let mut in_preflight_block = false;
+    for line in log {
+        if line.starts_with("Preflight:") {
+            in_preflight_block = true;
+            lines.push(line.clone());
+        } else if in_preflight_block && is_preflight_detail_line(line) {
+            lines.push(line.clone());
+        } else {
+            in_preflight_block = false;
+            if line.contains("Preflight blocked execution") {
+                lines.push(line.clone());
+            }
+        }
+    }
+    lines
+}
+
+#[cfg(feature = "ssr")]
+fn is_preflight_detail_line(line: &str) -> bool {
+    line.starts_with("  ")
+        || matches!(
+            line,
+            "Errors:" | "Warnings:" | "Info:" | "Reuse candidates:" | "Decomposition hints:"
+        )
+}
+
+/// Renders the Studio intent detail HTML, including text-readable preflight evidence.
+#[cfg(feature = "ssr")]
+#[must_use]
+pub fn render_intent_detail_html(
+    workspace: &std::path::Path,
+    slug: &str,
+    spec: &duumbi::intent::spec::IntentSpec,
+) -> String {
+    let mut html = format!("<h1>{}</h1>\n", escape_html(&spec.intent));
+    html.push_str(&format!(
+        "<p style=\"color:#908c82\">Status: <code>{:?}</code></p>\n",
+        spec.status
+    ));
+    let execute_slug_arg = serde_json::to_string(slug)
+        .expect("invariant: serializing a string slice to JSON cannot fail");
+    html.push_str(&format!(
+        "<p><button class=\"cip-btn cip-btn-create\" onclick=\"window.__studio.executeIntent({})\">Execute</button></p>\n",
+        escape_html(&execute_slug_arg)
+    ));
+
+    if !spec.acceptance_criteria.is_empty() {
+        html.push_str("<h2>Acceptance Criteria</h2>\n<ul>\n");
+        for criterion in &spec.acceptance_criteria {
+            html.push_str(&format!("<li>{}</li>\n", escape_html(criterion)));
+        }
+        html.push_str("</ul>\n");
+    }
+
+    if !spec.test_cases.is_empty() {
+        html.push_str("<h2>Test Cases</h2>\n<ul>\n");
+        for test_case in &spec.test_cases {
+            let escaped_args = test_case
+                .args
+                .iter()
+                .map(std::string::ToString::to_string)
+                .map(|arg| escape_html(&arg))
+                .collect::<Vec<_>>()
+                .join(", ");
+            let escaped_expected = escape_html(&test_case.expected_return.to_string());
+            html.push_str(&format!(
+                "<li><code>{}</code>({}) -> expected: {}</li>\n",
+                escape_html(&test_case.function),
+                escaped_args,
+                escaped_expected
+            ));
+        }
+        html.push_str("</ul>\n");
+    }
+
+    if !spec.modules.create.is_empty() {
+        html.push_str("<h2>Modules to Create</h2>\n<ul>\n");
+        for module in &spec.modules.create {
+            html.push_str(&format!("<li><code>{}</code></li>\n", escape_html(module)));
+        }
+        html.push_str("</ul>\n");
+    }
+    if !spec.modules.modify.is_empty() {
+        html.push_str("<h2>Modules to Modify</h2>\n<ul>\n");
+        for module in &spec.modules.modify {
+            html.push_str(&format!("<li><code>{}</code></li>\n", escape_html(module)));
+        }
+        html.push_str("</ul>\n");
+    }
+
+    let (preflight_report, bdd_report) =
+        duumbi::intent::preflight::run_preflight_for_intent_with_bdd(spec, workspace, slug);
+    let preflight = duumbi::intent::preflight::render_preflight_report(&preflight_report);
+    if !preflight.is_empty() {
+        html.push_str("<h2>Preflight</h2>\n<pre>");
+        html.push_str(&escape_html(&preflight.join("\n")));
+        html.push_str("</pre>\n");
+    }
+
+    let bdd_lines = duumbi::intent::bdd::render_bdd_report(&bdd_report);
+    if !bdd_lines.is_empty() {
+        html.push_str("<h2>BDD</h2>\n<pre>");
+        html.push_str(&escape_html(&bdd_lines.join("\n")));
+        html.push_str("</pre>\n");
+    }
+
+    html
+}
+
+#[cfg(feature = "ssr")]
+fn escape_html(value: &str) -> String {
+    value
+        .replace('&', "&amp;")
+        .replace('<', "&lt;")
+        .replace('>', "&gt;")
+        .replace('"', "&quot;")
+        .replace('\'', "&#39;")
+}
+
+/// Builds the current workspace for JSON API callers.
+#[cfg(feature = "ssr")]
+pub async fn build_workspace_for_api(workspace: &std::path::Path) -> BuildApiResponse {
+    let root = workspace.to_path_buf();
+    match tokio::task::spawn_blocking(move || duumbi::workflow::build_workspace(&root)).await {
+        Ok(result) => BuildApiResponse {
+            ok: result.ok,
+            message: result.message,
+            output_path: result.output_path,
+        },
+        Err(e) => BuildApiResponse {
+            ok: false,
+            message: format!("Build task failed: {e}"),
+            output_path: None,
+        },
+    }
+}
+
+/// Runs the current workspace binary for JSON API callers.
+#[cfg(feature = "ssr")]
+pub async fn run_workspace_for_api(workspace: &std::path::Path) -> RunApiResponse {
+    let root = workspace.to_path_buf();
+    match tokio::task::spawn_blocking(move || duumbi::workflow::run_workspace(&root)).await {
+        Ok(result) => RunApiResponse {
+            ok: result.ok,
+            exit_code: result.exit_code,
+            stdout: result.stdout,
+            stderr: result.stderr,
+        },
+        Err(e) => RunApiResponse {
+            ok: false,
+            exit_code: -1,
+            stdout: String::new(),
+            stderr: format!("Run task failed: {e}"),
+        },
+    }
+}
+
+/// Executes an intent for JSON API callers.
+#[cfg(feature = "ssr")]
+pub async fn execute_intent_for_api(
+    workspace: &std::path::Path,
+    slug: &str,
+) -> IntentExecuteApiResponse {
+    let mut preflight_log = Vec::new();
+    match duumbi::intent::execute::run_execute_blocking_preflight(
+        workspace,
+        slug,
+        &mut preflight_log,
+    ) {
+        Ok(true) => {
+            let preflight = preflight_lines_from_log(&preflight_log);
+            return IntentExecuteApiResponse {
+                ok: false,
+                message: format!("Intent '{slug}' blocked by preflight."),
+                log: preflight_log,
+                preflight,
+            };
+        }
+        Ok(false) => {}
+        Err(e) => {
+            return IntentExecuteApiResponse {
+                ok: false,
+                message: format!("Execute preflight: {e}"),
+                log: preflight_log,
+                preflight: Vec::new(),
+            };
+        }
+    }
+
+    let mut setup_preflight = Vec::new();
+    if let Ok(spec) = duumbi::intent::load_intent(workspace, slug) {
+        let report = duumbi::intent::preflight::run_preflight_for_intent(&spec, workspace, slug);
+        setup_preflight = duumbi::intent::preflight::render_preflight_report(&report);
+    }
+    let setup_log = setup_preflight.clone();
+
+    let effective = match duumbi::config::load_effective_config(workspace) {
+        Ok(config) => config,
+        Err(e) => {
+            return IntentExecuteApiResponse {
+                ok: false,
+                message: format!("Config: {e}"),
+                log: setup_log,
+                preflight: setup_preflight,
+            };
+        }
+    };
+
+    let providers = effective.config.effective_providers();
+    let client = match duumbi::agents::factory::create_provider_chain_for_global_access(&providers)
+    {
+        Ok(client) => client,
+        Err(e) => {
+            return IntentExecuteApiResponse {
+                ok: false,
+                message: format!("Provider: {e}"),
+                log: setup_log,
+                preflight: setup_preflight,
+            };
+        }
+    };
+
+    match duumbi::workflow::execute_intent(&*client, workspace, slug).await {
+        Ok(result) => {
+            let preflight = preflight_lines_from_log(&result.log);
+            IntentExecuteApiResponse {
+                ok: result.ok,
+                message: if result.ok {
+                    format!("Intent '{slug}' executed successfully — all tests passed.")
+                } else {
+                    format!("Intent '{slug}' executed — some tests failed.")
+                },
+                log: result.log,
+                preflight,
+            }
+        }
+        Err(e) => IntentExecuteApiResponse {
+            ok: false,
+            message: format!("Execute: {e}"),
+            log: setup_log,
+            preflight: setup_preflight,
+        },
+    }
+}
+
+/// Builds the agent template info list (shared by server fn and JSON API route).
+#[cfg(feature = "ssr")]
+pub fn build_agent_template_infos() -> Vec<AgentTemplateInfo> {
+    duumbi::agents::template::seed_templates()
+        .into_iter()
+        .map(|t| AgentTemplateInfo {
+            name: t.name,
+            role: format!("{:?}", t.role),
+            tools_count: t.tools.len(),
+            specialization: t.specialization,
+            prompt_preview: t.system_prompt.chars().take(200).collect(),
+        })
+        .collect()
+}
+
+/// Returns the 5 seed agent templates for display in the Studio.
+#[server]
+pub async fn get_agent_templates() -> Result<Vec<AgentTemplateInfo>, ServerFnError> {
+    Ok(build_agent_template_infos())
+}
+
+/// Tests an LLM provider connection by sending a minimal prompt.
+#[server]
+pub async fn test_provider_connection(kind: String) -> Result<String, ServerFnError> {
+    let ctx = expect_context::<std::sync::Arc<tokio::sync::RwLock<WorkspaceContext>>>();
+    let ws = ctx.read().await;
+
+    let config = duumbi::config::load_config(&ws.root)
+        .map_err(|e| ServerFnError::new(format!("Config: {e}")))?;
+
+    let providers = config.effective_providers();
+    let provider = providers
+        .iter()
+        .find(|p| p.provider.to_string() == kind)
+        .ok_or_else(|| ServerFnError::new(format!("Provider {kind} not found")))?;
+
+    let client = duumbi::agents::factory::create_provider_for_global_access(provider)
+        .map_err(|e| ServerFnError::new(format!("Create: {e}")))?;
+
+    // Send a minimal test prompt using the tools API with empty tool list.
+    // A successful call (even with parsing errors) proves connectivity.
+    let result = client
+        .call_with_tools("Respond with exactly: OK", "test")
+        .await;
+
+    match result {
+        Ok(ops) => Ok(format!(
+            "Connected — provider responded ({} ops parsed).",
+            ops.len()
+        )),
+        Err(e) => {
+            let msg = format!("{e}");
+            // Parse errors mean the connection worked but response wasn't tool-use.
+            if msg.contains("parse") || msg.contains("tool") {
+                Ok(
+                    "Connected — provider responded (no tool-use, but connection verified)."
+                        .to_string(),
+                )
+            } else {
+                Err(ServerFnError::new(format!("Connection failed: {e}")))
+            }
+        }
+    }
+}

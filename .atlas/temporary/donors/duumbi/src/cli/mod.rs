@@ -1,0 +1,1133 @@
+//! CLI module.
+//!
+//! Command-line interface using `clap` for the duumbi compiler.
+
+pub mod app;
+pub mod commands;
+pub mod completion;
+pub mod deps;
+pub mod describe;
+pub mod init;
+pub mod keystore;
+pub mod mode;
+pub mod phase15_e2e;
+pub mod progress;
+pub mod provider;
+pub mod provider_startup;
+pub mod publish;
+pub mod registry;
+pub mod repl;
+pub mod rewrite;
+pub mod theme;
+pub mod upgrade;
+pub mod yank;
+
+use std::path::PathBuf;
+
+use clap::{Parser, Subcommand, ValueEnum};
+
+#[cfg(test)]
+pub(crate) static TEST_ENV_LOCK: std::sync::Mutex<()> = std::sync::Mutex::new(());
+
+/// Duumbi — AI-first semantic graph compiler.
+#[derive(Parser, Debug)]
+#[command(name = "duumbi", version, about)]
+pub struct Cli {
+    /// General diagnostic log level for this invocation.
+    #[arg(long, value_enum, global = true)]
+    pub log_level: Option<CliLogLevel>,
+
+    /// General diagnostic log file path for this invocation.
+    #[arg(long, global = true)]
+    pub log_file: Option<PathBuf>,
+
+    /// General diagnostic log write mode for this invocation.
+    #[arg(long, value_enum, global = true)]
+    pub log_mode: Option<CliLogMode>,
+
+    /// Enable command performance JSONL logging for this invocation.
+    #[arg(long, global = true)]
+    pub perf_log: bool,
+
+    /// Performance JSONL log file path for this invocation.
+    #[arg(long, global = true)]
+    pub perf_log_file: Option<PathBuf>,
+
+    /// Performance JSONL log write mode for this invocation.
+    #[arg(long, value_enum, global = true)]
+    pub perf_log_mode: Option<CliLogMode>,
+
+    /// Subcommand to execute.
+    #[command(subcommand)]
+    pub command: Commands,
+}
+
+/// CLI values for the general diagnostic log level.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, ValueEnum)]
+pub enum CliLogLevel {
+    /// Disable general diagnostic logging.
+    Off,
+    /// Log errors only.
+    Error,
+    /// Log warnings and errors.
+    Warn,
+    /// Log informational messages and above.
+    Info,
+    /// Log debug messages and above.
+    Debug,
+    /// Log all tracing events.
+    Trace,
+}
+
+impl From<CliLogLevel> for crate::config::LogLevel {
+    fn from(value: CliLogLevel) -> Self {
+        match value {
+            CliLogLevel::Off => Self::Off,
+            CliLogLevel::Error => Self::Error,
+            CliLogLevel::Warn => Self::Warn,
+            CliLogLevel::Info => Self::Info,
+            CliLogLevel::Debug => Self::Debug,
+            CliLogLevel::Trace => Self::Trace,
+        }
+    }
+}
+
+/// CLI values for log file write mode.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, ValueEnum)]
+pub enum CliLogMode {
+    /// Append to an existing file.
+    Append,
+    /// Rewrite the file when logging starts.
+    Rewrite,
+}
+
+/// Benchmark suite selected by `duumbi benchmark`.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, ValueEnum)]
+pub enum BenchmarkSuiteArg {
+    /// Existing six-showcase benchmark suite.
+    Core,
+    /// Scaled intent-execute suite for multi-function and multi-module evidence.
+    Scaled,
+}
+
+impl From<CliLogMode> for crate::config::LogMode {
+    fn from(value: CliLogMode) -> Self {
+        match value {
+            CliLogMode::Append => Self::Append,
+            CliLogMode::Rewrite => Self::Rewrite,
+        }
+    }
+}
+
+/// Available CLI commands.
+#[derive(Subcommand, Debug)]
+pub enum Commands {
+    /// Initialize a new duumbi workspace.
+    Init {
+        /// Optional project name (defaults to current directory name).
+        name: Option<String>,
+    },
+
+    /// Compile a JSON-LD graph to a native binary.
+    Build {
+        /// Path to the input `.jsonld` file (optional if in a workspace).
+        input: Option<PathBuf>,
+
+        /// Path for the output binary (default: `output`).
+        #[arg(short, long)]
+        output: Option<PathBuf>,
+
+        /// Select local traced build telemetry instrumentation.
+        #[arg(long)]
+        trace: bool,
+
+        /// Restrict dependency resolution to workspace and vendor layers only.
+        /// Fails if any dependency is only available in the cache.
+        #[arg(long)]
+        offline: bool,
+    },
+
+    /// Build and run the compiled binary.
+    Run {
+        /// Arguments to pass to the compiled binary.
+        #[arg(trailing_var_arg = true, allow_hyphen_values = true)]
+        args: Vec<String>,
+    },
+
+    /// Parse and validate without compiling.
+    Check {
+        /// Path to the input `.jsonld` file (optional if in a workspace).
+        input: Option<PathBuf>,
+
+        /// Run contract-based property checks after ordinary validation.
+        #[arg(long)]
+        properties: bool,
+
+        /// Deterministic property-generation seed.
+        #[arg(long, default_value_t = 0)]
+        seed: u64,
+
+        /// Number of property cases to generate per function.
+        #[arg(long, default_value_t = 64, value_parser = clap::value_parser!(u32).range(1..))]
+        cases: u32,
+
+        /// Path for the property evidence JSON artifact.
+        #[arg(long)]
+        property_output: Option<PathBuf>,
+    },
+
+    /// Describe the program as human-readable pseudo-code.
+    Describe {
+        /// Path to the input `.jsonld` file (optional if in a workspace).
+        input: Option<PathBuf>,
+    },
+
+    /// Apply an AI-generated mutation to the graph (requires provider setup).
+    Add {
+        /// Natural language description of the desired change.
+        request: String,
+
+        /// Apply immediately without confirmation prompt.
+        #[arg(short = 'y', long)]
+        yes: bool,
+    },
+
+    /// Undo the last AI mutation (restores from snapshot in `.duumbi/history/`).
+    Undo,
+
+    /// Discover, preview, and explicitly apply semantic rewrite rules.
+    Rewrite {
+        /// Rewrite subcommand.
+        #[command(subcommand)]
+        subcommand: RewriteSubcommand,
+    },
+
+    /// Manage local path dependencies declared in `.duumbi/config.toml`.
+    Deps {
+        /// Dependency subcommand.
+        #[command(subcommand)]
+        subcommand: DepsSubcommand,
+    },
+
+    /// Search for modules in configured registries.
+    Search {
+        /// Search query (text-based).
+        query: String,
+        /// Limit search to a specific registry.
+        #[arg(long)]
+        registry: Option<String>,
+    },
+
+    /// Create, review, and execute intent-driven development specs.
+    Intent {
+        /// Intent subcommand.
+        #[command(subcommand)]
+        subcommand: IntentSubcommand,
+    },
+
+    /// Run native DUUMBI Loop workflows without external providers.
+    Loop {
+        /// Loop subcommand.
+        #[command(subcommand)]
+        subcommand: LoopSubcommand,
+    },
+
+    /// Manage registry configurations and authentication.
+    Registry {
+        /// Registry subcommand.
+        #[command(subcommand)]
+        subcommand: RegistrySubcommand,
+    },
+
+    /// Package and publish the current module to a registry.
+    Publish {
+        /// Target registry name (uses default-registry if omitted).
+        #[arg(long)]
+        registry: Option<String>,
+
+        /// Pack the module without uploading to the registry.
+        #[arg(long)]
+        dry_run: bool,
+
+        /// Skip confirmation prompt and publish immediately.
+        #[arg(short = 'y', long)]
+        yes: bool,
+    },
+
+    /// Mark a published module version as yanked.
+    Yank {
+        /// Module specifier: `@scope/name@version`.
+        specifier: String,
+
+        /// Target registry name (uses default-registry if omitted).
+        #[arg(long)]
+        registry: Option<String>,
+
+        /// Skip confirmation prompt.
+        #[arg(short = 'y', long)]
+        yes: bool,
+    },
+
+    /// Inspect local telemetry artifacts.
+    Telemetry {
+        /// Telemetry subcommand.
+        #[command(subcommand)]
+        subcommand: TelemetrySubcommand,
+    },
+
+    /// Migrate a Phase 4-5 workspace to Phase 7 format.
+    Upgrade,
+
+    /// Run benchmark showcases against configured LLM providers.
+    Benchmark {
+        /// Benchmark suite to run. Defaults to the existing core suite.
+        #[arg(long, value_enum)]
+        suite: Option<BenchmarkSuiteArg>,
+
+        /// Run only the low-budget smoke subset of the selected suite.
+        #[arg(long)]
+        smoke: bool,
+
+        /// Run only the named showcase(s) (comma-separated).
+        #[arg(long, value_delimiter = ',')]
+        showcase: Option<Vec<String>>,
+
+        /// Run only the named provider(s) (comma-separated).
+        #[arg(long, value_delimiter = ',')]
+        provider: Option<Vec<String>>,
+
+        /// Number of attempts per (showcase, provider) pair.
+        #[arg(long, value_parser = clap::value_parser!(u32).range(1..))]
+        attempts: Option<u32>,
+
+        /// Write JSON report to this file instead of stdout.
+        #[arg(long)]
+        output: Option<std::path::PathBuf>,
+
+        /// CI mode: exit 0 if kill criterion met, exit 1 otherwise.
+        /// Sets default attempts to 20.
+        #[arg(long)]
+        ci: bool,
+
+        /// Compare against a previous report JSON for regression detection.
+        #[arg(long)]
+        baseline: Option<std::path::PathBuf>,
+
+        /// Root directory for retained attempt evidence.
+        #[arg(long, default_value = ".duumbi/benchmark/attempts")]
+        artifact_dir: std::path::PathBuf,
+
+        /// Retain sanitized graph/intent snapshots for each attempt.
+        #[arg(long)]
+        keep_workspaces: bool,
+
+        /// Write redacted current-attempt model I/O under the artifact dir.
+        #[arg(long)]
+        capture_model_io: bool,
+    },
+
+    /// Measure determinism of provider-backed intent replay.
+    Determinism {
+        /// Determinism subcommand.
+        #[command(subcommand)]
+        subcommand: DeterminismSubcommand,
+    },
+
+    /// Run the Phase 15 E2E validation harness.
+    #[command(name = "phase15-e2e", hide = true)]
+    Phase15E2e {
+        /// Task to validate: `calculator`, `string-utils`, or `math-library`.
+        task: String,
+
+        /// Provider to use for live validation.
+        #[arg(long, default_value = "minimax")]
+        provider: String,
+
+        /// Number of Ralph Loop attempts to run.
+        #[arg(long, default_value_t = 1, value_parser = clap::value_parser!(u32).range(1..))]
+        attempts: u32,
+
+        /// Write JSON evidence report to this file.
+        #[arg(long)]
+        output: Option<std::path::PathBuf>,
+
+        /// Studio port used by the harness.
+        #[arg(long, default_value_t = 8421)]
+        port: u16,
+    },
+
+    /// Generate shell completion scripts for bash, zsh, fish, or powershell.
+    Completions {
+        /// Shell to generate completions for.
+        #[arg(value_enum)]
+        shell: clap_complete::Shell,
+    },
+
+    /// Start the DUUMBI Studio web platform.
+    Studio {
+        /// Port to listen on.
+        #[arg(short, long, default_value_t = 8421)]
+        port: u16,
+
+        /// Enable development mode (hot reload).
+        #[arg(long)]
+        dev: bool,
+    },
+
+    /// Inspect and manage the knowledge graph.
+    Knowledge {
+        /// Knowledge subcommand.
+        #[command(subcommand)]
+        subcommand: KnowledgeSubcommand,
+    },
+
+    /// Manage LLM provider configurations.
+    Provider {
+        /// Provider subcommand.
+        #[command(subcommand)]
+        subcommand: ProviderSubcommand,
+    },
+
+    /// Start the MCP (Model Context Protocol) server for external tool integration.
+    ///
+    /// Listens on stdin/stdout using JSON-RPC 2.0 by default. Use `--sse` for
+    /// Server-Sent Events transport.
+    Mcp {
+        /// Use SSE transport instead of stdio.
+        #[arg(long)]
+        sse: bool,
+
+        /// Port for SSE transport (default: 8421).
+        #[arg(long, default_value_t = 8421)]
+        port: u16,
+    },
+}
+
+/// Subcommands for `duumbi loop`.
+#[derive(Subcommand, Debug)]
+pub enum LoopSubcommand {
+    /// Run native provider-duumbi intake+spec for a local intent.
+    IntakeSpec {
+        /// Intent slug under `.duumbi/intents`.
+        intent: String,
+
+        /// Emit JSON instead of human-readable output.
+        #[arg(long)]
+        json: bool,
+    },
+
+    /// Build a native review target from a GraphPatch JSON file.
+    ReviewPatch {
+        /// Intent slug under `.duumbi/intents`.
+        intent: String,
+
+        /// GraphPatch JSON file to review.
+        #[arg(long)]
+        patch: PathBuf,
+
+        /// Emit JSON instead of human-readable output.
+        #[arg(long)]
+        json: bool,
+    },
+}
+
+/// Subcommands for `duumbi telemetry`.
+#[derive(Subcommand, Debug)]
+pub enum TelemetrySubcommand {
+    /// Inspect crash evidence and map it to graph function/block context.
+    Inspect {
+        /// Telemetry artifact directory.
+        #[arg(long)]
+        telemetry_dir: Option<PathBuf>,
+
+        /// Explicit crash artifact path.
+        #[arg(long)]
+        crash: Option<PathBuf>,
+
+        /// Explicit trace map artifact path.
+        #[arg(long = "map")]
+        map_path: Option<PathBuf>,
+    },
+    /// Emit repair-agent context JSON from mapped crash evidence.
+    RepairContext {
+        /// Telemetry artifact directory.
+        #[arg(long)]
+        telemetry_dir: Option<PathBuf>,
+
+        /// Explicit crash artifact path.
+        #[arg(long)]
+        crash: Option<PathBuf>,
+
+        /// Explicit trace map artifact path.
+        #[arg(long = "map")]
+        map_path: Option<PathBuf>,
+
+        /// Graph source file used for bounded context.
+        #[arg(long = "graph", required = true)]
+        graph_sources: Vec<PathBuf>,
+
+        /// Explicit 1-based crash JSONL line.
+        #[arg(long = "crash-entry", value_parser = clap::value_parser!(u32).range(1..))]
+        crash_entry: Option<u32>,
+    },
+    /// Validate a proposed repair patch and emit human-reviewable evidence.
+    RepairValidate {
+        /// Serialized mapped repair crash context JSON.
+        #[arg(long)]
+        context: PathBuf,
+
+        /// Proposed GraphPatch JSON. Must use the canonical `{ "ops": [...] }` shape.
+        #[arg(long)]
+        patch: PathBuf,
+
+        /// Original JSON-LD source graph.
+        #[arg(long)]
+        graph: PathBuf,
+
+        /// Optional workspace root for future temp-workspace validation.
+        #[arg(long)]
+        workspace: Option<PathBuf>,
+
+        /// Optional workspace module path for future temp-workspace validation.
+        #[arg(long)]
+        module: Option<PathBuf>,
+
+        /// Candidate-aware relevant test command. Repeatable.
+        #[arg(long = "test")]
+        tests: Vec<String>,
+
+        /// Optional path for writing the repair validation evidence JSON.
+        #[arg(long)]
+        output: Option<PathBuf>,
+    },
+}
+
+/// Subcommands for `duumbi determinism`.
+#[derive(Subcommand, Debug)]
+pub enum DeterminismSubcommand {
+    /// Replay selected benchmark showcases and report agreement metrics.
+    Replay {
+        /// Benchmark suite to replay. Defaults to the existing core suite.
+        #[arg(long, value_enum)]
+        suite: Option<BenchmarkSuiteArg>,
+
+        /// Run only the low-budget smoke subset of the selected suite.
+        #[arg(long)]
+        smoke: bool,
+
+        /// Replay only the named showcase(s) (comma-separated).
+        #[arg(long, value_delimiter = ',')]
+        showcase: Option<Vec<String>>,
+
+        /// Replay only the named provider route(s) (comma-separated).
+        #[arg(long, value_delimiter = ',')]
+        provider: Option<Vec<String>>,
+
+        /// Number of attempts per selected showcase/provider pair.
+        #[arg(long, value_parser = clap::value_parser!(u32).range(2..))]
+        attempts: Option<u32>,
+
+        /// Write JSON report to this file instead of stdout.
+        #[arg(long)]
+        output: Option<PathBuf>,
+
+        /// Root directory for replay bundles.
+        #[arg(long, default_value = ".duumbi/determinism/replays")]
+        artifact_dir: PathBuf,
+
+        /// Optional Markdown summary output path.
+        #[arg(long)]
+        markdown_output: Option<PathBuf>,
+
+        /// CI mode: explicit thresholds determine the process exit code.
+        #[arg(long)]
+        ci: bool,
+
+        /// Minimum exact graph agreement rate for CI mode.
+        #[arg(long)]
+        min_exact_agreement: Option<f64>,
+
+        /// Minimum semantic graph agreement rate for CI mode.
+        #[arg(long)]
+        min_semantic_agreement: Option<f64>,
+
+        /// Minimum behavioral agreement rate for CI mode.
+        #[arg(long)]
+        min_behavioral_agreement: Option<f64>,
+
+        /// Retain isolated attempt workspaces inside the replay bundle.
+        #[arg(long)]
+        keep_workspaces: bool,
+
+        /// Write redacted current-attempt model I/O under the artifact dir.
+        #[arg(long)]
+        capture_model_io: bool,
+    },
+}
+
+/// Subcommands for `duumbi rewrite`.
+#[derive(Subcommand, Debug)]
+pub enum RewriteSubcommand {
+    /// List available rewrite rules.
+    List {
+        /// Emit JSON instead of human-readable text.
+        #[arg(long)]
+        json: bool,
+    },
+
+    /// Preview a rewrite rule without mutating the graph.
+    Preview {
+        /// Module name such as `main`, or a path to a `.jsonld` file.
+        #[arg(long)]
+        module: Option<String>,
+        /// Rewrite rule ID.
+        #[arg(long)]
+        rule: String,
+        /// Emit JSON instead of human-readable text.
+        #[arg(long)]
+        json: bool,
+        /// Maximum matches to return, bounded by rewrite limits.
+        #[arg(long)]
+        limit: Option<usize>,
+    },
+
+    /// Apply one selected rewrite match or bounded all-matches request.
+    Apply {
+        /// Module name such as `main`, or a path to a `.jsonld` file.
+        #[arg(long)]
+        module: Option<String>,
+        /// Rewrite rule ID.
+        #[arg(long)]
+        rule: String,
+        /// Selected match ID from preview.
+        #[arg(long = "match")]
+        match_id: Option<String>,
+        /// Apply all matches within the configured bound.
+        #[arg(long)]
+        all: bool,
+        /// Maximum matches for `--all`, bounded by rewrite limits.
+        #[arg(long)]
+        max_matches: Option<usize>,
+        /// Apply immediately without confirmation prompt.
+        #[arg(short = 'y', long)]
+        yes: bool,
+        /// Emit JSON instead of human-readable text.
+        #[arg(long)]
+        json: bool,
+    },
+}
+
+/// Subcommands for `duumbi deps`.
+#[derive(Subcommand, Debug)]
+pub enum DepsSubcommand {
+    /// List all declared dependencies.
+    List,
+
+    /// Add a dependency (local path or from registry).
+    ///
+    /// For local: `duumbi deps add mymod ./path`
+    /// For registry: `duumbi deps add @scope/name[@version]`
+    Add {
+        /// Module name or `@scope/name[@version]` specifier.
+        name: String,
+        /// Local path to dependency workspace (omit for registry deps).
+        path: Option<String>,
+        /// Registry to fetch from (overrides default-registry).
+        #[arg(long)]
+        registry: Option<String>,
+    },
+
+    /// Remove a declared dependency.
+    Remove {
+        /// Dependency name to remove.
+        name: String,
+    },
+
+    /// Verify integrity of all dependencies against lockfile hashes.
+    Audit,
+
+    /// Display the dependency tree.
+    Tree {
+        /// Maximum tree depth to display.
+        #[arg(long, default_value_t = 10)]
+        depth: u32,
+    },
+
+    /// Update dependencies to latest compatible versions from registries.
+    Update {
+        /// Specific dependency to update (omit to update all).
+        name: Option<String>,
+    },
+
+    /// Download and resolve all dependencies from registries into cache.
+    Install {
+        /// Fail if deps.lock would change (CI/CD reproducibility).
+        #[arg(long)]
+        frozen: bool,
+    },
+
+    /// Copy cached dependencies into `.duumbi/vendor/` for offline builds.
+    Vendor {
+        /// Vendor all dependencies regardless of config.toml [vendor] rules.
+        #[arg(long)]
+        all: bool,
+        /// Glob pattern to match scoped module names (e.g. `"@company/*"`).
+        #[arg(long)]
+        include: Option<String>,
+    },
+}
+
+/// Subcommands for `duumbi registry`.
+#[derive(Subcommand, Debug)]
+pub enum RegistrySubcommand {
+    /// Add a registry endpoint.
+    Add {
+        /// Short name for the registry (used as key in config.toml).
+        name: String,
+        /// Base URL of the registry (must be HTTPS, or http://localhost for dev).
+        url: String,
+    },
+
+    /// List all configured registries.
+    List,
+
+    /// Remove a registry endpoint.
+    Remove {
+        /// Registry name to remove.
+        name: String,
+    },
+
+    /// Set the default registry for new dependencies.
+    Default {
+        /// Registry name to set as default.
+        name: String,
+    },
+
+    /// Authenticate with a registry (stores token in ~/.duumbi/credentials.toml).
+    Login {
+        /// Registry name to log in to.
+        registry: String,
+        /// Token for non-interactive / CI use (otherwise prompts interactively).
+        #[arg(long)]
+        token: Option<String>,
+    },
+
+    /// Remove stored credentials for a registry.
+    Logout {
+        /// Registry name (omit to log out from all).
+        registry: Option<String>,
+    },
+}
+
+/// Subcommands for `duumbi knowledge`.
+#[derive(Subcommand, Debug)]
+pub enum KnowledgeSubcommand {
+    /// List all knowledge nodes by type.
+    List {
+        /// Filter by type: success, decision, pattern.
+        #[arg(long)]
+        r#type: Option<String>,
+    },
+
+    /// Show details of a specific knowledge node.
+    Show {
+        /// Node `@id` to display.
+        id: String,
+    },
+
+    /// Remove old or low-value knowledge nodes.
+    Prune {
+        /// Remove nodes older than this many days.
+        #[arg(long, default_value_t = 90)]
+        older_than: u32,
+    },
+
+    /// Show aggregated learning statistics.
+    Stats,
+}
+
+/// Subcommands for `duumbi provider`.
+#[derive(Subcommand, Debug)]
+pub enum ProviderSubcommand {
+    /// List all configured LLM providers.
+    List,
+
+    /// Add a new LLM provider.
+    ///
+    /// Example: `duumbi provider add anthropic ANTHROPIC_API_KEY`
+    /// Subscription: `duumbi provider add anthropic ANTHROPIC_API_KEY --auth-token-env ANTHROPIC_AUTH_TOKEN`
+    Add {
+        /// Provider type: anthropic, openai, grok, openrouter, minimax.
+        #[arg(value_name = "TYPE")]
+        provider_type: String,
+        /// Environment variable name for the API key.
+        api_key_env: String,
+        /// Provider role: primary (default) or fallback.
+        #[arg(long, default_value = "primary")]
+        role: String,
+        /// Custom base URL for the API endpoint.
+        #[arg(long)]
+        base_url: Option<String>,
+        /// Environment variable name for a subscription/OAuth Bearer token.
+        ///
+        /// When set, the token is preferred over the API key and sent as
+        /// `Authorization: Bearer`. Use with Claude Pro/Max subscriptions
+        /// (generate a token via `claude setup-token`).
+        #[arg(long)]
+        auth_token_env: Option<String>,
+    },
+
+    /// Remove a provider by 1-based index or provider type.
+    Remove {
+        /// 1-based index number or provider type.
+        selector: String,
+    },
+
+    /// Update a field on an existing provider.
+    ///
+    /// Example: `duumbi provider set 1 role fallback`
+    Set {
+        /// 1-based provider index.
+        index: usize,
+        /// Field to update: api_key_env, role, base_url, auth_token_env.
+        field: String,
+        /// New value for the field.
+        value: String,
+    },
+
+    /// Inspect and control scheduled provider model-catalog updates.
+    Catalog {
+        /// Catalog subcommand.
+        #[command(subcommand)]
+        subcommand: ProviderCatalogSubcommand,
+    },
+}
+
+/// Subcommands for `duumbi provider catalog`.
+#[derive(Subcommand, Debug)]
+pub enum ProviderCatalogSubcommand {
+    /// Show local catalog update state.
+    Status,
+
+    /// Check the remote catalog hash and show review details when changed.
+    Check {
+        /// Override v1 catalog JSON URL for local smoke tests.
+        #[arg(long)]
+        catalog_url: Option<String>,
+        /// Override v1 catalog SHA-256 URL for local smoke tests.
+        #[arg(long)]
+        sha256_url: Option<String>,
+    },
+
+    /// Revalidate and adopt the currently approved remote catalog.
+    Approve {
+        /// Hash reviewed by the user; adoption fails if the remote hash changed.
+        #[arg(long)]
+        hash: String,
+        /// Override v1 catalog JSON URL for local smoke tests.
+        #[arg(long)]
+        catalog_url: Option<String>,
+        /// Override v1 catalog SHA-256 URL for local smoke tests.
+        #[arg(long)]
+        sha256_url: Option<String>,
+    },
+
+    /// Skip a catalog hash so it is not offered again.
+    Skip {
+        /// Hash to skip. Defaults to the last offered hash.
+        hash: Option<String>,
+    },
+
+    /// Remind later instead of offering the current catalog update.
+    Remind {
+        /// Hours to defer update prompts.
+        #[arg(long, default_value_t = 24, value_parser = clap::value_parser!(u64).range(1..))]
+        hours: u64,
+    },
+
+    /// Disable automatic catalog update checks.
+    Disable,
+}
+
+/// Subcommands for `duumbi intent`.
+#[derive(Subcommand, Debug)]
+pub enum IntentSubcommand {
+    /// Generate a structured intent spec from a natural language description.
+    Create {
+        /// Natural language description of what you want to build.
+        description: String,
+
+        /// Skip confirmation prompt and save immediately.
+        #[arg(short = 'y', long)]
+        yes: bool,
+    },
+
+    /// Review (list or show details of) intent specs.
+    Review {
+        /// Intent name/slug to show details for. Omit to list all.
+        name: Option<String>,
+
+        /// Open intent in $EDITOR for manual editing.
+        #[arg(short, long)]
+        edit: bool,
+    },
+
+    /// Execute an intent: decompose → mutate graph → verify tests.
+    Execute {
+        /// Intent name/slug to execute.
+        name: String,
+    },
+
+    /// Show status of intents (active, in-progress, failed).
+    Status {
+        /// Intent name/slug to show details for. Omit to list all.
+        name: Option<String>,
+    },
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn global_logging_flags_parse_before_subcommand() {
+        let cli = Cli::try_parse_from([
+            "duumbi",
+            "--log-level",
+            "debug",
+            "--log-file",
+            "duumbi.log",
+            "--log-mode",
+            "rewrite",
+            "--perf-log",
+            "--perf-log-file",
+            "perf.jsonl",
+            "--perf-log-mode",
+            "append",
+            "build",
+        ])
+        .expect("CLI must parse");
+
+        assert_eq!(cli.log_level, Some(CliLogLevel::Debug));
+        assert_eq!(
+            cli.log_file.as_deref(),
+            Some(std::path::Path::new("duumbi.log"))
+        );
+        assert_eq!(cli.log_mode, Some(CliLogMode::Rewrite));
+        assert!(cli.perf_log);
+        assert_eq!(
+            cli.perf_log_file.as_deref(),
+            Some(std::path::Path::new("perf.jsonl"))
+        );
+        assert_eq!(cli.perf_log_mode, Some(CliLogMode::Append));
+        assert!(matches!(cli.command, Commands::Build { .. }));
+    }
+
+    #[test]
+    fn global_logging_flags_parse_after_subcommand() {
+        let cli =
+            Cli::try_parse_from(["duumbi", "check", "--log-level", "off"]).expect("CLI must parse");
+
+        assert_eq!(cli.log_level, Some(CliLogLevel::Off));
+        assert!(matches!(cli.command, Commands::Check { .. }));
+    }
+
+    #[test]
+    fn build_trace_flag_parses() {
+        let cli = Cli::try_parse_from(["duumbi", "build", "--trace"])
+            .expect("CLI must parse trace build flag");
+
+        assert!(matches!(cli.command, Commands::Build { trace: true, .. }));
+    }
+
+    #[test]
+    fn check_property_flags_parse() {
+        let cli = Cli::try_parse_from([
+            "duumbi",
+            "check",
+            "main.jsonld",
+            "--properties",
+            "--seed",
+            "717",
+            "--cases",
+            "32",
+            "--property-output",
+            "/tmp/duumbi-717.json",
+        ])
+        .expect("CLI must parse property check flags");
+
+        assert!(matches!(
+            cli.command,
+            Commands::Check {
+                properties: true,
+                seed: 717,
+                cases: 32,
+                property_output: Some(_),
+                ..
+            }
+        ));
+    }
+
+    #[test]
+    fn check_property_cases_zero_is_invalid() {
+        let err = Cli::try_parse_from([
+            "duumbi",
+            "check",
+            "main.jsonld",
+            "--properties",
+            "--cases",
+            "0",
+        ])
+        .unwrap_err();
+
+        assert!(err.to_string().contains("invalid value"));
+    }
+
+    #[test]
+    fn telemetry_inspect_parses() {
+        let cli = Cli::try_parse_from([
+            "duumbi",
+            "telemetry",
+            "inspect",
+            "--telemetry-dir",
+            "tmp/telemetry",
+            "--crash",
+            "tmp/crash.jsonl",
+            "--map",
+            "tmp/trace_map.json",
+        ])
+        .expect("CLI must parse telemetry inspect");
+
+        assert!(matches!(
+            cli.command,
+            Commands::Telemetry {
+                subcommand: TelemetrySubcommand::Inspect { .. }
+            }
+        ));
+    }
+
+    #[test]
+    fn telemetry_repair_context_parses() {
+        let cli = Cli::try_parse_from([
+            "duumbi",
+            "telemetry",
+            "repair-context",
+            "--telemetry-dir",
+            "tmp/telemetry",
+            "--crash",
+            "tmp/crash.jsonl",
+            "--map",
+            "tmp/trace_map.json",
+            "--graph",
+            "graph.jsonld",
+            "--crash-entry",
+            "1",
+        ])
+        .expect("CLI must parse telemetry repair-context");
+
+        assert!(matches!(
+            cli.command,
+            Commands::Telemetry {
+                subcommand: TelemetrySubcommand::RepairContext {
+                    crash_entry: Some(1),
+                    ..
+                }
+            }
+        ));
+    }
+
+    #[test]
+    fn telemetry_repair_validate_parses() {
+        let cli = Cli::try_parse_from([
+            "duumbi",
+            "telemetry",
+            "repair-validate",
+            "--context",
+            "tmp/repair-context.json",
+            "--patch",
+            "tmp/repair-patch.json",
+            "--graph",
+            "graph.jsonld",
+            "--test",
+            "{candidate_binary}",
+            "--output",
+            "tmp/repair-validation.json",
+        ])
+        .expect("CLI must parse telemetry repair-validate");
+
+        assert!(matches!(
+            cli.command,
+            Commands::Telemetry {
+                subcommand: TelemetrySubcommand::RepairValidate { .. }
+            }
+        ));
+    }
+
+    #[test]
+    fn rewrite_list_parses() {
+        let cli =
+            Cli::try_parse_from(["duumbi", "rewrite", "list", "--json"]).expect("CLI must parse");
+
+        assert!(matches!(
+            cli.command,
+            Commands::Rewrite {
+                subcommand: RewriteSubcommand::List { json: true }
+            }
+        ));
+    }
+
+    #[test]
+    fn rewrite_preview_parses() {
+        let cli = Cli::try_parse_from([
+            "duumbi",
+            "rewrite",
+            "preview",
+            "--module",
+            "main",
+            "--rule",
+            "i64-add-zero-right",
+            "--limit",
+            "5",
+            "--json",
+        ])
+        .expect("CLI must parse rewrite preview");
+
+        assert!(matches!(
+            cli.command,
+            Commands::Rewrite {
+                subcommand: RewriteSubcommand::Preview {
+                    module: Some(_),
+                    rule,
+                    json: true,
+                    limit: Some(5),
+                }
+            } if rule == "i64-add-zero-right"
+        ));
+    }
+
+    #[test]
+    fn rewrite_apply_match_parses() {
+        let cli = Cli::try_parse_from([
+            "duumbi",
+            "rewrite",
+            "apply",
+            "--rule",
+            "i64-add-zero-right",
+            "--match",
+            "m1",
+            "--yes",
+        ])
+        .expect("CLI must parse rewrite apply");
+
+        assert!(matches!(
+            cli.command,
+            Commands::Rewrite {
+                subcommand: RewriteSubcommand::Apply {
+                    match_id: Some(_),
+                    yes: true,
+                    ..
+                }
+            }
+        ));
+    }
+}

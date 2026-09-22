@@ -1,0 +1,96 @@
+name: CI
+
+# Cross-platform build + test. The compiler (Rust + LLVM 18) and the C runtime
+# are written to be portable; this verifies that on Linux and macOS runners,
+# which we cannot exercise on the Windows dev machine. Windows is verified
+# locally and can be added to the matrix once the POSIX runs are green.
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Install LLVM 18 (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          # libpolly-18-dev: apt packages Polly's static lib separately from
+          # llvm-18-dev, and llvm-sys links it.
+          sudo apt-get install -y llvm-18 llvm-18-dev libpolly-18-dev clang-18 lld-18
+          echo "LLVM_SYS_180_PREFIX=$(llvm-config-18 --prefix)" >> "$GITHUB_ENV"
+          echo "/usr/lib/llvm-18/bin" >> "$GITHUB_PATH"
+
+      - name: Install LLVM 18 (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          # coreutils: for gtimeout (the runner image ships no `timeout`).
+          brew install llvm@18 coreutils
+          PREFIX="$(brew --prefix llvm@18)"
+          echo "LLVM_SYS_180_PREFIX=$PREFIX" >> "$GITHUB_ENV"
+          echo "$PREFIX/bin" >> "$GITHUB_PATH"
+          # llvm@18 links against zstd from the brew prefix, which macOS's
+          # linker doesn't search by default.
+          echo "LIBRARY_PATH=$(brew --prefix)/lib" >> "$GITHUB_ENV"
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Build + test compiler
+        run: cargo test --release --manifest-path compiler/Cargo.toml
+
+      - name: Build C runtime
+        run: bash runtime/build.sh
+
+      - name: Build stdlib
+        run: |
+          ./compiler/target/release/sigil-compiler --lib stdlib/units \
+            -o lib/release/sigil-stdlib.lib
+
+      - name: Build and run examples (byte-exact where applicable)
+        run: |
+          set -e
+          SC=./compiler/target/release/sigil-compiler
+          LINK="--link lib/release/sigil-stdlib.lib --native-lib lib/release/sigil_runtime.lib"
+
+          # hello-world: prints a greeting.
+          $SC examples/hello-world/main.sigil $LINK -o hw
+          test "$(./hw)" = "Hello, World!"
+
+          # file-copy: copies test_source.txt -> test_dest.txt byte-exact.
+          printf 'Sigil CI cross-platform test\nline two\n' > test_source.txt
+          rm -f test_dest.txt
+          $SC examples/file-copy/main.sigil $LINK -o fc
+          ./fc
+          cmp test_source.txt test_dest.txt
+
+          # kv-store: prints "Sigil" then "Deleted correctly". Run it once and
+          # check the captured output (grep -q on a live pipe SIGPIPEs the
+          # binary mid-write).
+          $SC examples/kv-store/main.sigil $LINK -o kv
+          KV_OUT="$(./kv)"
+          printf '%s\n' "$KV_OUT"
+          printf '%s\n' "$KV_OUT" | grep -q '^Sigil$'
+          printf '%s\n' "$KV_OUT" | grep -q '^Deleted correctly$'
+
+          # concurrency demos: must complete (exit 0). `timeout` is GNU
+          # coreutils (gtimeout on macOS, installed above); if neither resolves,
+          # run bare rather than dying silently on this assignment under set -e.
+          TIMEOUT="$(command -v timeout || command -v gtimeout || true)"
+          for ex in spawn-test parallel-test channel-test producer-consumer; do
+            $SC examples/$ex/main.sigil $LINK -o "$ex.out"
+            if [ -n "$TIMEOUT" ]; then
+              "$TIMEOUT" 30 "./$ex.out" >/dev/null
+            else
+              "./$ex.out" >/dev/null
+            fi
+          done
+
+          echo "All examples built and ran on ${{ matrix.os }}"

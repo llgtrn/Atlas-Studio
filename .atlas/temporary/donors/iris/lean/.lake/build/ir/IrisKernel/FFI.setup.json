@@ -1,0 +1,13 @@
+{"plugins": [],
+ "package": "iris-kernel",
+ "options": {"autoImplicit": false},
+ "name": "IrisKernel.FFI",
+ "isModule": false,
+ "importArts":
+ {"IrisKernel.Types":
+  ["/home/bojo/Development/ailang/lean/.lake/build/lib/lean/IrisKernel/Types.olean"],
+  "IrisKernel.Kernel":
+  ["/home/bojo/Development/ailang/lean/.lake/build/lib/lean/IrisKernel/Kernel.olean"],
+  "IrisKernel.Eval":
+  ["/home/bojo/Development/ailang/lean/.lake/build/lib/lean/IrisKernel/Eval.olean"]},
+ "dynlibs": []}

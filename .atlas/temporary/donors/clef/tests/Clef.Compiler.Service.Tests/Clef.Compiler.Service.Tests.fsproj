@@ -1,0 +1,85 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <IsTestProject>true</IsTestProject>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="DimensionalCases.fs" />
+    <Compile Include="CallableApplicationCases.fs" />
+    <Compile Include="DimensionalTests.fs" />
+    <Compile Include="ApplicationObligationCases.fs" />
+    <Compile Include="IntegerObligationCases.fs" />
+    <Compile Include="StaticStringLayoutCases.fs" />
+    <Compile Include="StringEncodingCases.fs" />
+    <Compile Include="ProgramLifetimeCases.fs" />
+    <Compile Include="ProgramActivationCases.fs" />
+    <Compile Include="ProgramInitializationSelectionCases.fs" />
+    <Compile Include="ProgramInitializationCases.fs" />
+    <Compile Include="ContinuationPlacementCases.fs" />
+    <Compile Include="SequenceAggregateCases.fs" />
+    <Compile Include="ContinuationObligationCases.fs" />
+    <Compile Include="FunctionPointerCases.fs" />
+    <Compile Include="ClosedCallbackCases.fs" />
+    <Compile Include="ClosureValueCases.fs" />
+    <Compile Include="UnitLambdaCases.fs" />
+    <Compile Include="FoldInReferenceCases.fs" />
+    <Compile Include="DirectCaptureCases.fs" />
+    <Compile Include="OptionOperationCases.fs" />
+    <Compile Include="OptionClosureCases.fs" />
+    <Compile Include="OptionValueCases.fs" />
+    <Compile Include="OptionDefaultsCases.fs" />
+    <Compile Include="OptionDefaultWithCases.fs" />
+    <Compile Include="OptionAlternativesCases.fs" />
+    <Compile Include="OptionIterationCases.fs" />
+    <Compile Include="RangeLoopCases.fs" />
+    <Compile Include="LoopBindingCases.fs" />
+    <Compile Include="ComputationAdmissionCases.fs" />
+    <Compile Include="SequenceElementCases.fs" />
+    <Compile Include="SequenceFormalCases.fs" />
+    <Compile Include="SeqProducerRecipeCases.fs" />
+    <Compile Include="TreeSequenceRecipeCases.fs" />
+    <Compile Include="SequenceProducerCases.fs" />
+    <Compile Include="SequenceOwnershipCases.fs" />
+    <Compile Include="SequenceDelegationCases.fs" />
+    <Compile Include="SequenceConsumptionCases.fs" />
+    <Compile Include="SequenceCurrentAdmissionCases.fs" />
+    <Compile Include="SequenceConsumerCases.fs" />
+    <Compile Include="SequenceSelectionCases.fs" />
+    <Compile Include="NestedMatchCases.fs" />
+    <Compile Include="SequencePullEffectCases.fs" />
+    <Compile Include="LoopRangeCases.fs" />
+    <Compile Include="ClosureEnvironmentRangeCases.fs" />
+    <Compile Include="ClosureEnvironmentCases.fs" />
+    <Compile Include="SequenceEvaluationCases.fs" />
+    <Compile Include="SequenceControlCases.fs" />
+    <Compile Include="SequenceContinuationEvidenceCases.fs" />
+    <Compile Include="SequenceLexicalCaptureCases.fs" />
+    <Compile Include="SequenceRegionCases.fs" />
+    <Compile Include="SequenceContinuationMeetCases.fs" />
+    <Compile Include="SequenceResidenceCases.fs" />
+    <Compile Include="SequenceFactoryResultsCases.fs" />
+    <Compile Include="SequenceElementRangeCases.fs" />
+    <Compile Include="CountedLoopCases.fs" />
+    <Compile Include="OptionFoldCases.fs" />
+    <Compile Include="ResultOperationCases.fs" />
+    <Compile Include="ResultEliminationCases.fs" />
+    <Compile Include="ResultPredicateCases.fs" />
+    <Compile Include="MathSineCases.fs" />
+    <Compile Include="CallEffectRangeCases.fs" />
+    <Compile Include="PipeEvaluationCases.fs" />
+    <Compile Include="MonomorphizationMembershipCases.fs" />
+    <Compile Include="ForeignReferenceCases.fs" />
+    <Compile Include="BorrowedViewCases.fs" />
+    <Compile Include="LocalUnusedCases.fs" />
+    <Compile Include="ModuleScopeCases.fs" />
+    <Compile Include="ModuleScopeTests.fs" />
+    <Compile Include="ProjectLinkTests.fs" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+    <PackageReference Include="xunit" Version="2.9.2" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" PrivateAssets="all" />
+    <ProjectReference Include="../../src/Compiler/Clef.Compiler.Service.fsproj" />
+  </ItemGroup>
+</Project>

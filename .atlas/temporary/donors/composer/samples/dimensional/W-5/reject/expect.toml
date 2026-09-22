@@ -1,0 +1,7 @@
+# Expected outcome for W-5/reject. Read by vet.sh; keys are one-line strings.
+rule = "a boundary's declared representation must cover the analysed range (D10)"
+verdict = "reject"
+code = "CCS8012"
+count = "2"
+flags = "--warnaserror"  # extra compile flags; a coverage finding is a Warning promoted under --warnaserror
+pending = "step 7"

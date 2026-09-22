@@ -1,0 +1,18 @@
+[package]
+name = "AddNumbers"
+version = "0.1.0"
+description = "Demonstrates discriminated unions, pattern matching, and SRTP arithmetic"
+authors = ["SpeakEZ Technologies, Inc."]
+license = "MIT"
+
+[compilation]
+target = "cpu"
+
+[dependencies]
+# Types and operations are CCS intrinsics - no external library needed
+platform = { path = "/home/hhh/repos/Fidelity.Platform/Profiles/Linux_x86_64_Default/Fidelity.Platform.fidproj" }
+
+[build]
+sources = ["AddNumbers.fs"]
+output = "addnumbers"
+output_kind = "console"

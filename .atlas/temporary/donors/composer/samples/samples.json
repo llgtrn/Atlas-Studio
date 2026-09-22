@@ -1,0 +1,119 @@
+{
+  "version": "1.0.0",
+  "description": "Composer sample projects catalog",
+  "samples": {
+    "console": {
+      "description": "Desktop console applications",
+      "projects": [
+        {
+          "name": "HelloWorldDirect",
+          "path": "console/FidelityHelloWorld/01_HelloWorldDirect",
+          "description": "Native Clef application with static console output",
+          "difficulty": "beginner",
+          "demonstrates": ["console-output", "entry-point"],
+          "target": "native"
+        },
+        {
+          "name": "HelloWorldSaturated",
+          "path": "console/FidelityHelloWorld/02_HelloWorldSaturated",
+          "description": "Saturated calls, console input and an interpolated greeting",
+          "difficulty": "beginner",
+          "demonstrates": ["saturated-calls", "string-interpolation", "user-input"],
+          "target": "native"
+        },
+        {
+          "name": "TimeLoop",
+          "path": "console/TimeLoop",
+          "description": "Platform-specific time operations",
+          "difficulty": "intermediate",
+          "demonstrates": ["platform-time", "high-resolution-timing", "loops"],
+          "target": "native"
+        }
+      ]
+    },
+    "embedded": {
+      "description": "ARM microcontroller targets",
+      "projects": [
+        {
+          "name": "STM32L5-Blinky",
+          "path": "embedded/stm32l5-blinky",
+          "description": "LED blink on NUCLEO-L552ZE-Q",
+          "difficulty": "intermediate",
+          "demonstrates": ["gpio", "memory-mapped-io", "bare-metal"],
+          "target": "thumbv8m.main-none-eabihf",
+          "hardware": {
+            "board": "NUCLEO-L552ZE-Q",
+            "mcu": "STM32L552ZET6Q",
+            "architecture": "ARM Cortex-M33"
+          }
+        },
+        {
+          "name": "STM32L5-UART",
+          "path": "embedded/stm32l5-uart",
+          "description": "Serial communication on NUCLEO-L552ZE-Q",
+          "difficulty": "intermediate",
+          "demonstrates": ["uart", "serial-io", "peripheral-drivers"],
+          "target": "thumbv8m.main-none-eabihf",
+          "hardware": {
+            "board": "NUCLEO-L552ZE-Q",
+            "mcu": "STM32L552ZET6Q",
+            "architecture": "ARM Cortex-M33"
+          }
+        }
+      ],
+      "common": {
+        "startup": "common/startup",
+        "linker": "common/linker"
+      }
+    },
+    "sbc": {
+      "description": "Single-board computer targets; implementation planned in Fidelity.Platform",
+      "projects": []
+    }
+  },
+  "templates": {
+    "description": "Platform configuration templates",
+    "files": [
+      {
+        "name": "desktop-x64",
+        "path": "templates/desktop-x64.toml",
+        "description": "x86-64 desktop platforms"
+      },
+      {
+        "name": "stm32l5",
+        "path": "templates/stm32l5.toml",
+        "description": "STM32L5 series microcontrollers"
+      },
+      {
+        "name": "nucleo-l552ze-q",
+        "path": "templates/nucleo-l552ze-q.toml",
+        "description": "NUCLEO-L552ZE-Q board specifics"
+      }
+    ]
+  },
+  "roadmap": {
+    "planned": [
+      {
+        "name": "QuantumCredential",
+        "path": "embedded/quantum-credential",
+        "description": "Hardware security token POC",
+        "demonstrates": ["usb-cdc", "crypto-acceleration", "trustzone"],
+        "target": "thumbv8m.main-none-eabihf"
+      },
+      {
+        "name": "KeyStation",
+        "path": "sbc/keystation",
+        "description": "Key management console for Libre Computer AML-S905X-CC-V2 (Amlogic S905X)",
+        "demonstrates": ["framebuffer", "touch-input", "ui-widgets"],
+        "target": "aarch64-unknown-none"
+      },
+      {
+        "name": "SweetPotato-Framebuffer",
+        "path": "sbc/sweet-potato-fb",
+        "description": "Meson HDMI display bring-up for Libre Computer AML-S905X-CC-V2 (Amlogic S905X)",
+        "demonstrates": ["framebuffer", "display-engine", "graphics"],
+        "target": "aarch64-unknown-none"
+      }
+    ]
+  }
+}

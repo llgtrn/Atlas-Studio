@@ -1,0 +1,71 @@
+name: Stage 9-10 - Implementation Handoff
+
+on:
+  issues:
+    types: [labeled, reopened]
+  pull_request:
+    types: [closed]
+  schedule:
+    - cron: "0 * * * *"
+  workflow_dispatch:
+    inputs:
+      issue_number:
+        description: Optional issue number to notify if it is Ready for Build or needs a Project Status correction/entry
+        required: false
+        type: string
+        default: ""
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: read
+
+concurrency:
+  group: ready-for-build-handoff
+  cancel-in-progress: false
+
+jobs:
+  notify:
+    name: Notify Stage 10 handoff
+    if: >
+      github.event_name == 'schedule' ||
+      github.event_name == 'workflow_dispatch' ||
+      github.event_name == 'pull_request' ||
+      (github.event_name == 'issues' && (github.event.action == 'reopened' || github.event.label.name == 'tech-spec-approved'))
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out helper
+        uses: actions/checkout@v7
+
+      - name: Send Ready for Build handoff
+        uses: actions/github-script@v9
+        env:
+          GH_PROJECT_PAT: ${{ secrets.GH_PROJECT_PAT }}
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          SLACK_REVIEW_CHANNEL_ID: ${{ secrets.SLACK_REVIEW_CHANNEL_ID }}
+          DUUMBI_PROJECT_NUMBER: ${{ vars.DUUMBI_PROJECT_NUMBER }}
+          DUUMBI_PROJECT_OWNER: ${{ vars.DUUMBI_PROJECT_OWNER || github.repository_owner }}
+          DUUMBI_PROJECT_OWNER_TYPE: ${{ vars.DUUMBI_PROJECT_OWNER_TYPE }}
+          DUUMBI_PROJECT_STATUS_SLACK_BUTTONS: ${{ vars.DUUMBI_PROJECT_STATUS_SLACK_BUTTONS }}
+          DUUMBI_METRICS_PATH: duumbi-workflow-metrics.json
+        with:
+          script: |
+            const fs = require("fs");
+            const handoff = await import(`${process.env.GITHUB_WORKSPACE}/scripts/github-actions/project-status-handoff.mjs`);
+            await handoff.runReadyForBuildHandoff({
+              github,
+              context,
+              core,
+              env: process.env,
+              fetchImpl: globalThis.fetch,
+              fs,
+            });
+
+      - name: Upload DUUMBI workflow metrics
+        if: always()
+        continue-on-error: true
+        uses: actions/upload-artifact@v7
+        with:
+          name: duumbi-workflow-metrics-ready-for-build-handoff-${{ github.run_id }}-${{ github.run_attempt }}
+          path: duumbi-workflow-metrics.json
+          if-no-files-found: warn

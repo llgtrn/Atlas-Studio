@@ -1,0 +1,33 @@
+{
+  "schema": "atlas.donor-provenance.v1",
+  "id": "iris",
+  "name": "IRIS",
+  "remote": "https://github.com/boj/iris.git",
+  "repository": "boj/iris",
+  "commit_sha": "743491588edf21ace27a1c331f6ff8e3b75d492d",
+  "git_tree_sha": "b07f3abdb77b72fb4d9bc8735530e6ee0fde2dc8",
+  "default_branch": "main",
+  "retrieved_at": "2026-09-22T14:05:07.919309095Z",
+  "clone_path": ".atlas/temporary/donors/iris",
+  "staging_mode": "FULL_SOURCE_TREE",
+  "license_files": [
+    ".atlas/licenses/donors/iris/LICENSE"
+  ],
+  "source_file_count": 677,
+  "observed_source_bytes": 29185299.0,
+  "ingestion_status": "CLONED",
+  "census_status": "DEEP_CENSUS_ACTIVE",
+  "technology_lanes": [
+    "semantic_graph",
+    "content_addressing",
+    "compiler",
+    "self_evolution",
+    "formal_verification",
+    "bytecode_vm"
+  ],
+  "target_owners": [
+    "core/graph",
+    "core/semantic",
+    "core/identity"
+  ]
+}

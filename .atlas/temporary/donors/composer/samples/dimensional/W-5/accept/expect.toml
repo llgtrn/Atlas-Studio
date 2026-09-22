@@ -1,0 +1,5 @@
+# Expected outcome for W-5/accept. Read by vet.sh; keys are one-line strings.
+rule = "intended loss is arithmetic: % and clamp bound the range (D10)"
+verdict = "accept"
+code = ""
+pending = "step 7"

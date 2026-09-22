@@ -630,5 +630,153 @@
     ],
     "implementation_status": "PENDING_ATLAS_NATIVE",
     "notes": "Zed is a donor/reference lane only. Do not turn Atlas Studio into a renamed Zed fork. GPL application crates are reference/principle extraction only; Apache GPUI/support crates require explicit review and preserved notices before any direct reuse."
+  },
+  {
+    "schema": "atlas.donor-provenance.v1",
+    "id": "iris",
+    "name": "IRIS",
+    "remote": "https://github.com/boj/iris.git",
+    "commit_sha": "743491588edf21ace27a1c331f6ff8e3b75d492d",
+    "default_branch": "main",
+    "retrieved_at": "2026-09-22T14:05:07.919309095Z",
+    "clone_path": ".atlas/temporary/donors/iris",
+    "tree_hash": "b07f3abdb77b72fb4d9bc8735530e6ee0fde2dc8",
+    "license_files": [
+      ".atlas/licenses/donors/iris/LICENSE"
+    ],
+    "ingestion_status": "CLONED",
+    "census_status": "DEEP_CENSUS_ACTIVE",
+    "runtime_dependency_status": "REFERENCE_ONLY",
+    "technology_lanes": [
+      "semantic_graph",
+      "content_addressing",
+      "compiler",
+      "self_evolution",
+      "formal_verification",
+      "bytecode_vm"
+    ],
+    "target_owners": [
+      "core/graph",
+      "core/semantic",
+      "core/identity"
+    ],
+    "notes": "AGPL-3.0-or-later. Canonical Rust implementation (iris-repr/iris-compiler/iris-kernel) referenced by ~85 in-source comments is absent from this clone (no .rs files, no Cargo.toml); published CI cannot pass as configured. Treat as documented reference-architecture mirror, not verified production implementation, for any mechanism attributed to the absent Rust crates. See .atlas/census/donors/semantic-graph-language-lane-2026-09-22.md."
+  },
+  {
+    "schema": "atlas.donor-provenance.v1",
+    "id": "sigil-lang",
+    "name": "Sigil",
+    "remote": "https://github.com/pzalutski-pixel/sigil-lang.git",
+    "commit_sha": "9c7de956d926fba2f9d5c0598b35c57fb6399f7f",
+    "default_branch": "main",
+    "retrieved_at": "2026-09-22T14:02:00Z",
+    "clone_path": ".atlas/temporary/donors/sigil-lang",
+    "tree_hash": "39e4e7de6a449648ba66521e4a082deb7aa13220",
+    "license_files": [
+      ".atlas/licenses/donors/sigil-lang/LICENSE"
+    ],
+    "ingestion_status": "CLONED",
+    "census_status": "DEEP_CENSUS_ACTIVE",
+    "runtime_dependency_status": "REFERENCE_ONLY",
+    "technology_lanes": [
+      "graph_native_language",
+      "content_addressing",
+      "compiler",
+      "contract_verification"
+    ],
+    "target_owners": [
+      "compiler",
+      "core/semantic",
+      "core/constraint"
+    ],
+    "notes": "Apache-2.0. Real inkwell/llvm-sys LLVM 18 FFI lowering confirmed from source+lockfile. Hash primitive (SHA-256 truncated to 32 bits) is weaker than Atlas's own FNV-1a-64 stable_id -- REJECT as an identity mechanism. See .atlas/census/donors/semantic-graph-language-lane-2026-09-22.md."
+  },
+  {
+    "schema": "atlas.donor-provenance.v1",
+    "id": "duumbi",
+    "name": "DUUMBI",
+    "remote": "https://github.com/hgahub/duumbi.git",
+    "commit_sha": "ab4c8776f795052d3669774a7ff12bdd3231fd02",
+    "default_branch": "main",
+    "retrieved_at": "2026-09-22T14:04:48.531781213Z",
+    "clone_path": ".atlas/temporary/donors/duumbi",
+    "tree_hash": "6f6b259c909619657053af8cdfbf4788b57ed9cf",
+    "license_files": [
+      ".atlas/licenses/donors/duumbi/LICENSE"
+    ],
+    "ingestion_status": "CLONED",
+    "census_status": "COARSE_CENSUSED_AND_TARGETED_DEEP_CENSUSED",
+    "runtime_dependency_status": "REFERENCE_ONLY",
+    "technology_lanes": [
+      "graph_native_language",
+      "cranelift_lowering",
+      "ai_graph_mutation",
+      "jsonld_surface_representation",
+      "intent_driven_development",
+      "mcp_graph_tools"
+    ],
+    "target_owners": [],
+    "notes": "MPL-2.0. JSON-LD graph representation is branding only -- @context never parsed/IRI-expanded anywhere in source; REJECT adopting JSON-LD over Atlas's existing binary format. Fork/parent status via GitHub API unverified (proxy-blocked); in-repo content evidence only. See .atlas/census/donors/semantic-graph-language-lane-2026-09-22.md."
+  },
+  {
+    "schema": "atlas.donor-provenance.v1",
+    "id": "composer",
+    "name": "Clef / Composer",
+    "remote": "https://github.com/FidelityFramework/Composer.git",
+    "commit_sha": "c46485096c38dc2c9fef9db4ae60caa1905ca1a3",
+    "default_branch": "main",
+    "retrieved_at": "2026-09-22T14:08:05.000000Z",
+    "clone_path": ".atlas/temporary/donors/composer",
+    "tree_hash": "f3a1d7e468bf5dd8dcb4935587ee6b6b0c1e9009",
+    "license_files": [
+      ".atlas/licenses/donors/composer/LICENSE",
+      ".atlas/licenses/donors/composer/Commercial.md",
+      ".atlas/licenses/donors/composer/PATENTS.md"
+    ],
+    "ingestion_status": "CLONED",
+    "census_status": "COARSE_CENSUSED_PLUS_TARGETED_DEEP_CENSUS",
+    "runtime_dependency_status": "NOT_APPLICABLE",
+    "technology_lanes": [
+      "program_semantic_graph",
+      "nanopass_compiler",
+      "mlir_lowering",
+      "coeffect_analysis",
+      "escape_analysis",
+      "semantic_preservation_verification"
+    ],
+    "target_owners": [
+      "compiler/hir",
+      "compiler/mir",
+      "compiler/lir",
+      "graph/engineering_graph"
+    ],
+    "notes": "Apache-2.0 dual-licensed (commercial track available); a patent notice (US Provisional 63/786,247, BAREWire zero-copy IPC) applies Fidelity-Framework-wide. Not self-contained: hard MSBuild ProjectReference to sibling FidelityFramework/clef required to build. PSG/coeffect/enrichment/escape-analysis mechanisms belong to clef, not Composer -- see reconciled attribution in .atlas/census/donors/semantic-graph-language-lane-2026-09-22.md. One deferred (not selected) BlueprintRevisionDecision candidate: hyperedge/N-ary graph relations, same doc."
+  },
+  {
+    "schema": "atlas.donor-provenance.v1",
+    "id": "clef",
+    "name": "Clef Compiler / CCS",
+    "remote": "https://github.com/FidelityFramework/clef.git",
+    "commit_sha": "e94fa905f7f13c2b8216b355e9d84b17dceef5c8",
+    "default_branch": "main",
+    "retrieved_at": "2026-09-22T14:05:13Z",
+    "clone_path": ".atlas/temporary/donors/clef",
+    "tree_hash": "872e641465cc3b1df8dcb21901d0a7315e89f0be",
+    "license_files": [
+      ".atlas/licenses/donors/clef/LICENSE"
+    ],
+    "ingestion_status": "CLONED",
+    "census_status": "COARSE_CENSUSED_PLUS_TARGETED_DEEP_CENSUS",
+    "runtime_dependency_status": "REFERENCE_ONLY",
+    "technology_lanes": [
+      "compiler_frontend",
+      "type_resolution",
+      "language_service"
+    ],
+    "target_owners": [
+      "reference/type-inference-architecture",
+      "reference/psg-obligation-model"
+    ],
+    "notes": "MIT. Confirmed periodically-republished, history-rewritten export of a private Forgejo repository (2026-09-20 rewrite deleted 209/210 branches, all 143 tags) -- treat as a lagging snapshot, re-verify pin before any future absorption. Owns PSG schema/construction/coeffect/escape analysis that Composer's docs reference by file path. Real from-scratch Hindley-Milner+dimensional+SRTP type inference confirmed, but not a bounded path to real CALL resolution for Atlas's Rust lane (would require Atlas to own a full Rust type checker, contradicting its own contract). See .atlas/census/donors/semantic-graph-language-lane-2026-09-22.md."
   }
 ]

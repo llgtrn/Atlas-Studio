@@ -1,0 +1,21 @@
+-- FizzBuzz
+-- For numbers 1 to n, returns a tuple of strings:
+--   divisible by 3 and 5 -> "FizzBuzz"
+--   divisible by 3       -> "Fizz"
+--   divisible by 5       -> "Buzz"
+--   otherwise            -> the number as a string (via int_to_string)
+
+-- Classify a single number as a string.
+let fizzbuzz_one n : Int -> String [cost: Const(3)] =
+  if n % 15 == 0 then "FizzBuzz"
+  else if n % 3 == 0 then "Fizz"
+  else if n % 5 == 0 then "Buzz"
+  else int_to_string n
+
+-- Generate FizzBuzz for 1..n as a tuple of strings.
+let fizzbuzz n : Int -> Tuple [cost: Linear(n)] =
+  map fizzbuzz_one (list_range 1 (n + 1))
+
+-- Test: FizzBuzz for 1..20
+let test_fizzbuzz x : Int -> Tuple =
+  fizzbuzz 20

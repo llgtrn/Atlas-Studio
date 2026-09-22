@@ -1,0 +1,755 @@
+name: Stage 9 - Technical Spec Review Request
+
+on:
+  issues:
+    types: [labeled]
+  schedule:
+    - cron: '20 8,16 * * *'
+  workflow_dispatch:
+    inputs:
+      issue_url:
+        description: GitHub issue URL to request technical spec review for
+        required: true
+        type: string
+      issue_number:
+        description: GitHub issue number
+        required: true
+        type: number
+      status:
+        description: Technical spec review status
+        required: false
+        default: Technical Spec Review
+        type: string
+
+permissions:
+  actions: read
+  checks: read
+  contents: read
+  pull-requests: read
+  statuses: read
+
+concurrency:
+  group: tech-spec-review-${{ github.event.issue.number || inputs.issue_number || github.event_name }}
+  cancel-in-progress: false
+
+jobs:
+  notify:
+    name: Notify Slack
+    runs-on: ubuntu-latest
+    permissions:
+      checks: read
+      contents: read
+      issues: read
+      pull-requests: read
+      statuses: read
+    outputs:
+      issue_numbers: ${{ steps.request.outputs.issue_numbers }}
+      should_notify: ${{ steps.request.outputs.should_notify }}
+      issues_queued_count: ${{ steps.request.outputs.issues_queued_count }}
+      artifact_links_found: ${{ steps.request.outputs.artifact_links_found }}
+      artifact_links_missing: ${{ steps.request.outputs.artifact_links_missing }}
+    steps:
+      - name: Validate request and build Slack payload
+        id: request
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3
+        env:
+          INPUT_ISSUE_URL: ${{ inputs.issue_url || '' }}
+          INPUT_ISSUE_NUMBER: ${{ inputs.issue_number || '' }}
+          INPUT_STATUS: ${{ inputs.status || '' }}
+          DUUMBI_REQUIRED_SPEC_REVIEWERS: ${{ vars.DUUMBI_REQUIRED_SPEC_REVIEWERS || '' }}
+        with:
+          script: |
+            const marker = "<!-- duumbi-tech-spec-review-slack-notified -->";
+            const maxScheduledIssues = 10;
+            const ozEnvironmentName = "duumbi-vault-knowledge-env";
+            const ozEnvironmentId = "eKLEWjD4PNqFC6j0EcDEYA";
+            const status = String(process.env.INPUT_STATUS || "Technical Spec Review").trim();
+            const completedReviewLabels = new Set([
+              "tech-spec-approved",
+              "technical-spec-approved",
+              "ready-for-build",
+            ]);
+            const sanitizePromptField = (value) => String(value ?? "")
+              .replace(/```/g, "'''")
+              .replace(/`/g, "'")
+              .replace(/[\r\n]+/g, " ")
+              .trim();
+            const sanitizeSlackField = (value) => sanitizePromptField(value)
+              .replace(/&/g, "&amp;")
+              .replace(/</g, "&lt;")
+              .replace(/>/g, "&gt;")
+              .replace(/@/g, "@\u200b");
+            const labelsFor = (issue) => issue.labels
+              .map((label) => typeof label === "string" ? label : label.name)
+              .filter(Boolean);
+            const isCompletedReviewIssue = (issue) =>
+              labelsFor(issue).some((label) => completedReviewLabels.has(label));
+            const issueUrlFor = (number) => `https://github.com/${context.repo.owner}/${context.repo.repo}/issues/${number}`;
+
+            const hasNotificationMarker = async (issueNumber) => {
+              const comments = await github.paginate(github.rest.issues.listComments, {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issueNumber,
+                per_page: 100,
+              });
+              return comments.some((comment) => comment.body?.includes(marker));
+            };
+
+            const fetchIssue = async (issueNumber) => {
+              const { data: issue } = await github.rest.issues.get({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issueNumber,
+              });
+              return issue;
+            };
+
+            const validateIssueUrl = (issueUrl, issueNumber) => {
+              const issueMatch = issueUrl.match(/^https:\/\/github\.com\/([^/]+)\/([^/]+)\/issues\/(\d+)\/?(?:[?#].*)?$/);
+              if (!issueMatch) {
+                throw new Error(`Invalid issue_url: ${issueUrl}`);
+              }
+              if (issueMatch[1] !== context.repo.owner || issueMatch[2] !== context.repo.repo) {
+                throw new Error(`Issue URL must belong to ${context.repo.owner}/${context.repo.repo}: ${issueUrl}`);
+              }
+              if (Number.parseInt(issueMatch[3], 10) !== issueNumber) {
+                throw new Error(`issue_url and issue_number do not match: ${issueUrl} vs ${issueNumber}`);
+              }
+            };
+
+            const findStage8Artifacts = async (issueNumber) => {
+              const comments = await github.paginate(github.rest.issues.listComments, {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issueNumber,
+                per_page: 100,
+              });
+
+              const stage8Comment = [...comments].reverse().find((comment) =>
+                /Stage 8 Technical Spec Draft/i.test(comment.body || "")
+              );
+
+              if (!stage8Comment) {
+                return {
+                  technicalSpecArtifact: "<missing: Stage 8 Technical Spec Draft artifact>",
+                  productSpecArtifact: "<missing: Stage 8 Product Spec artifact>",
+                };
+              }
+
+              const body = stage8Comment.body || "";
+              const urls = (body.match(/https:\/\/github\.com\/[^\s)]+/gi) || [])
+                .map((url) => url.replace(/[\]>.,;]+$/, ""));
+
+              return {
+                technicalSpecArtifact: urls[0] || stage8Comment.html_url,
+                productSpecArtifact: urls[1] || "<missing: Stage 8 Product Spec artifact>",
+              };
+            };
+
+            const latestReviewsByActor = (reviews) => {
+              const latest = new Map();
+              for (const review of reviews) {
+                const actor = review.user?.login || `review-${review.id}`;
+                const previous = latest.get(actor);
+                const submitted = Date.parse(review.submitted_at || 0);
+                const previousSubmitted = Date.parse(previous?.submitted_at || 0);
+                if (!previous || submitted >= previousSubmitted) latest.set(actor, review);
+              }
+              return [...latest.values()];
+            };
+
+            // Spec PRs have no required automated reviewer by default; the gate
+            // relies on Codex self-review plus checks. Keep quota-limited manual
+            // reviewers such as Greptile out of DUUMBI_REQUIRED_SPEC_REVIEWERS.
+            const requiredAutomatedReviewers = () =>
+              String(process.env.DUUMBI_REQUIRED_SPEC_REVIEWERS || "")
+                .split(",")
+                .map((reviewer) => reviewer.trim())
+                .filter(Boolean);
+
+            const normalizeReviewerLogin = (login) =>
+              String(login || "").trim().toLowerCase().replace(/\[bot\]$/, "");
+
+            const validReviewEvidenceStates = new Set(["APPROVED", "COMMENTED", "CHANGES_REQUESTED"]);
+
+            const missingRequiredReviewers = (latestReviews) => {
+              const reviewActors = new Set(
+                latestReviews
+                  .filter((review) => validReviewEvidenceStates.has(String(review.state || "").toUpperCase()))
+                  .map((review) => normalizeReviewerLogin(review.user?.login))
+                  .filter(Boolean),
+              );
+              return requiredAutomatedReviewers().filter((reviewer) => !reviewActors.has(normalizeReviewerLogin(reviewer)));
+            };
+
+            const findUnresolvedReviewThreads = async (pullNumber) => {
+              const unresolved = [];
+              let cursor = null;
+              do {
+                const data = await github.graphql(`
+                  query($owner: String!, $repo: String!, $number: Int!, $cursor: String) {
+                    repository(owner: $owner, name: $repo) {
+                      pullRequest(number: $number) {
+                        reviewThreads(first: 100, after: $cursor) {
+                          pageInfo { hasNextPage endCursor }
+                          nodes {
+                            isResolved
+                            isOutdated
+                            comments(first: 1) { nodes { url } }
+                          }
+                        }
+                      }
+                    }
+                  }`,
+                  { owner: context.repo.owner, repo: context.repo.repo, number: pullNumber, cursor },
+                );
+                const threads = data.repository?.pullRequest?.reviewThreads;
+                for (const thread of threads?.nodes || []) {
+                  if (!thread.isResolved) {
+                    const state = thread.isOutdated ? "outdated unresolved" : "active unresolved";
+                    unresolved.push(`${thread.comments?.nodes?.[0]?.url || `review thread on PR #${pullNumber}`} (${state})`);
+                  }
+                }
+                cursor = threads?.pageInfo?.hasNextPage ? threads.pageInfo.endCursor : null;
+              } while (cursor);
+              return unresolved;
+            };
+
+            const technicalSpecPrReadiness = async (issueNumber, technicalSpecArtifact) => {
+              const prMatch = technicalSpecArtifact.match(/\/pull\/(\d+)/);
+              if (!prMatch) {
+                return {
+                  ready: false,
+                  prNumber: 0,
+                  summary: "technical spec review requires a linked TECHNICAL.md PR",
+                };
+              }
+
+              const prNumber = Number(prMatch[1]);
+              const expectedPath = `specs/DUUMBI-${issueNumber}/TECHNICAL.md`;
+              const { data: pr } = await github.rest.pulls.get({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: prNumber,
+              });
+              if (pr.state !== "open") return { ready: false, prNumber, summary: "PR is not open" };
+              if (pr.draft) return { ready: false, prNumber, summary: "PR is still draft" };
+
+              const files = await github.paginate(github.rest.pulls.listFiles, {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: prNumber,
+                per_page: 100,
+              });
+              if (files.length !== 1 || files.some((file) => file.filename !== expectedPath || file.status === "removed")) {
+                return {
+                  ready: false,
+                  prNumber,
+                  summary: `PR must change only ${expectedPath}`,
+                };
+              }
+
+              const checkRuns = await github.paginate(
+                github.rest.checks.listForRef,
+                {
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  ref: pr.head.sha,
+                  per_page: 100,
+                },
+                (response) => response.data.check_runs,
+              ).then((runs) => runs.flat().filter(Boolean));
+              const badChecks = checkRuns.filter((check) =>
+                check.status !== "completed" || !["success", "neutral", "skipped"].includes(check.conclusion)
+              );
+              const { data: combinedStatus } = await github.rest.repos.getCombinedStatusForRef({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                ref: pr.head.sha,
+              });
+              const statuses = combinedStatus.statuses || [];
+              const badStatuses = statuses.filter((statusContext) => statusContext.state !== "success");
+              if (checkRuns.length + statuses.length === 0) return { ready: false, prNumber, summary: "no checks or status contexts found" };
+              if (badChecks.length > 0 || badStatuses.length > 0) return { ready: false, prNumber, summary: "checks or status contexts are not green" };
+
+              const reviews = await github.paginate(github.rest.pulls.listReviews, {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: prNumber,
+                per_page: 100,
+              });
+              const latestReviews = latestReviewsByActor(reviews);
+              const blockingReviews = latestReviews.filter((review) => review.state === "CHANGES_REQUESTED");
+              const missingReviewers = missingRequiredReviewers(latestReviews);
+              if (missingReviewers.length > 0) {
+                return {
+                  ready: false,
+                  prNumber,
+                  summary: `required automated review evidence missing from ${missingReviewers.join(", ")}; review-request checks do not count; Greptile is manual-only and not part of the default spec gate`,
+                };
+              }
+              if (blockingReviews.length > 0) return { ready: false, prNumber, summary: "blocking review decision remains" };
+
+              const unresolvedThreads = await findUnresolvedReviewThreads(prNumber);
+              if (unresolvedThreads.length > 0) return { ready: false, prNumber, summary: "unresolved review threads remain" };
+
+              return {
+                ready: true,
+                prNumber,
+                summary: `PR #${prNumber} is review-clean and ready for approval merge`,
+              };
+            };
+
+            const workflowDispatchUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/workflows/stage-approval.yml`;
+
+            const buildSlackMessage = (issue, triggeredBy, artifacts, readiness) => {
+              const issueUrl = issue.html_url || issueUrlFor(issue.number);
+              const labelNames = labelsFor(issue);
+              const labels = labelNames.join(", ") || "none";
+              const title = sanitizeSlackField(issue.title);
+              const safeLabels = sanitizeSlackField(labels);
+              const safeTriggeredBy = sanitizeSlackField(triggeredBy);
+              const correlationId = `${context.runId}-${issue.number}`;
+
+              const technicalSpecLine = artifacts.technicalSpecArtifact.startsWith("http")
+                ? `<${artifacts.technicalSpecArtifact}|Stage 8 Technical Spec Draft>`
+                : artifacts.technicalSpecArtifact;
+              const productSpecLine = artifacts.productSpecArtifact.startsWith("http")
+                ? `<${artifacts.productSpecArtifact}|Product Spec Artifact>`
+                : artifacts.productSpecArtifact;
+
+              // Find associated PR number from tech spec artifact URL
+              const prMatch = artifacts.technicalSpecArtifact.match(/\/pull\/(\d+)/);
+              const prNum = prMatch ? Number(prMatch[1]) : 0;
+
+              const buttonValue = (decision) => JSON.stringify({
+                stage: "9",
+                issue_number: issue.number,
+                decision,
+                pr_number: prNum,
+              });
+
+              return {
+                text: `DUUMBI issue #${issue.number} technical spec is ready to approve: ${title}`,
+                blocks: [
+                  {
+                    type: "section",
+                    text: {
+                      type: "mrkdwn",
+                      text: `*DUUMBI technical spec ready for approval*\n*Issue:* <${issueUrl}|#${issue.number} ${title}>\n*Technical spec artifact:* ${technicalSpecLine}\n*Product spec artifact:* ${productSpecLine}\n*Technical spec PR readiness:* <https://github.com/${context.repo.owner}/${context.repo.repo}/pull/${readiness.prNumber}|PR #${readiness.prNumber}> is review-clean and will be squash-merged on approval\n*Trigger:* \`technical-spec-review\` label\n*Status:* Technical Spec Review\n*Labels:* ${safeLabels}\n*Triggered by:* ${safeTriggeredBy}\n*Correlation:* \`${correlationId}\``,
+                    },
+                  },
+                  {
+                    type: "actions",
+                    block_id: `tech_spec_review_${issue.number}`,
+                    elements: [
+                      {
+                        type: "button",
+                        text: { type: "plain_text", text: "✅ Approve", emoji: true },
+                        style: "primary",
+                        action_id: "stage_approve",
+                        value: buttonValue("approve"),
+                        confirm: {
+                          title: { type: "plain_text", text: "Approve Technical Spec" },
+                          text: { type: "mrkdwn", text: `Approve Stage 9 Technical Spec Review for issue #${issue.number}?\nThis will merge the technical spec PR and then set the issue to *Ready for Build*.` },
+                          confirm: { type: "plain_text", text: "Approve" },
+                          deny: { type: "plain_text", text: "Cancel" },
+                        },
+                      },
+                      {
+                        type: "button",
+                        text: { type: "plain_text", text: "↩️ Request Changes", emoji: true },
+                        action_id: "stage_request_changes",
+                        value: buttonValue("request-changes"),
+                      },
+                      {
+                        type: "button",
+                        text: { type: "plain_text", text: "❓ Needs Clarification", emoji: true },
+                        action_id: "stage_needs_clarification",
+                        value: buttonValue("needs-clarification"),
+                      },
+                    ],
+                  },
+                  {
+                    type: "context",
+                    elements: [
+                      {
+                        type: "mrkdwn",
+                        text: `Buttons are handled by the Slack approval bridge. Fallback: run <${workflowDispatchUrl}|Stage Approval> workflow manually (stage=9, issue=${issue.number}).`,
+                      },
+                    ],
+                  },
+                ],
+              };
+            };
+
+            let issuesToNotify = [];
+            let triggeredBy = context.actor || "unknown";
+
+            if (context.eventName === "schedule") {
+              const openIssues = await github.paginate(github.rest.issues.listForRepo, {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                state: "open",
+                labels: "technical-spec-review",
+                per_page: 100,
+              });
+
+              for (const issue of openIssues) {
+                if (issue.pull_request) continue;
+                if (isCompletedReviewIssue(issue)) continue;
+                if (await hasNotificationMarker(issue.number)) continue;
+                issuesToNotify.push(issue);
+                if (issuesToNotify.length >= maxScheduledIssues) {
+                  core.info(`Scheduled sweep capped at ${maxScheduledIssues} issues for this run.`);
+                  break;
+                }
+              }
+              triggeredBy = "scheduled sweep";
+            } else {
+              const payload = context.eventName === "workflow_dispatch"
+                ? {
+                    issue_url: process.env.INPUT_ISSUE_URL,
+                    issue_number: Number(process.env.INPUT_ISSUE_NUMBER || 0),
+                    status,
+                    triggered_by: context.actor,
+                  }
+                : {
+                    issue_url: context.payload.issue?.html_url,
+                    issue_number: Number(context.payload.issue?.number || 0),
+                    status: "Technical Spec Review",
+                    triggered_by: context.payload.sender?.login || context.actor,
+                    label: context.payload.label?.name,
+                  };
+
+              if (context.eventName === "issues" && payload.label !== "technical-spec-review") {
+                core.info(`Ignoring label "${payload.label}".`);
+                core.setOutput("should_notify", "false");
+                return;
+              }
+
+              if (payload.status !== "Technical Spec Review") {
+                core.info(`Ignoring request because status is "${payload.status}".`);
+                core.setOutput("should_notify", "false");
+                return;
+              }
+
+              const issueNumber = payload.issue_number;
+              const issueUrl = String(payload.issue_url || "").trim();
+              if (!Number.isInteger(issueNumber) || issueNumber < 1) {
+                core.setFailed(`Invalid issue_number: ${payload.issue_number}`);
+                return;
+              }
+              try {
+                validateIssueUrl(issueUrl, issueNumber);
+              } catch (error) {
+                core.setFailed(error.message);
+                return;
+              }
+
+              const issue = await fetchIssue(issueNumber);
+              if (issuesToNotify.some((existingIssue) => existingIssue.number === issue.number)) {
+                core.info(`Skipping issue #${issue.number}: already queued.`);
+                core.setOutput("should_notify", "false");
+                return;
+              }
+              if (isCompletedReviewIssue(issue)) {
+                core.info(`Skipping issue #${issue.number}: already approved or ready for build.`);
+                core.setOutput("should_notify", "false");
+                return;
+              }
+              if (await hasNotificationMarker(issue.number)) {
+                core.info(`Skipping issue #${issue.number}: already notified.`);
+                core.setOutput("should_notify", "false");
+                return;
+              }
+
+              issuesToNotify.push(issue);
+              triggeredBy = String(payload.triggered_by || context.actor || "unknown");
+            }
+
+            if (issuesToNotify.length === 0) {
+              core.info("No unnotified issues need technical spec review.");
+              core.setOutput("issue_numbers", "[]");
+              core.setOutput("issues_queued_count", "0");
+              core.setOutput("artifact_links_found", "0");
+              core.setOutput("artifact_links_missing", "0");
+              core.setOutput("should_notify", "false");
+              return;
+            }
+
+            const slackMessages = [];
+            const notifiedIssues = [];
+            let artifactLinksFound = 0;
+            let artifactLinksMissing = 0;
+            for (const issue of issuesToNotify) {
+              if (labelsFor(issue).includes("spec-automation")) continue;
+              const artifacts = await findStage8Artifacts(issue.number);
+              if (artifacts.technicalSpecArtifact.startsWith("<missing:")) {
+                artifactLinksMissing += 1;
+                core.info(`Skipping issue #${issue.number}: missing Stage 8 technical spec artifact.`);
+                continue;
+              } else {
+                artifactLinksFound += 1;
+              }
+              const readiness = await technicalSpecPrReadiness(issue.number, artifacts.technicalSpecArtifact);
+              if (!readiness.ready) {
+                core.info(`Skipping issue #${issue.number}: technical spec PR not ready for approval (${readiness.summary}).`);
+                continue;
+              }
+              slackMessages.push(buildSlackMessage(issue, triggeredBy, artifacts, readiness));
+              notifiedIssues.push(issue);
+            }
+
+            if (slackMessages.length === 0) {
+              core.info("No technical spec review notifications are ready to send.");
+              core.setOutput("issue_numbers", "[]");
+              core.setOutput("issues_queued_count", "0");
+              core.setOutput("artifact_links_found", String(artifactLinksFound));
+              core.setOutput("artifact_links_missing", String(artifactLinksMissing));
+              core.setOutput("should_notify", "false");
+              return;
+            }
+
+            core.setOutput("slack_messages", JSON.stringify(slackMessages));
+            core.setOutput("issue_numbers", JSON.stringify(notifiedIssues.map((issue) => issue.number)));
+            core.setOutput("issues_queued_count", String(notifiedIssues.length));
+            core.setOutput("artifact_links_found", String(artifactLinksFound));
+            core.setOutput("artifact_links_missing", String(artifactLinksMissing));
+            core.setOutput("should_notify", "true");
+
+      - name: Post Slack notifications
+        if: success() && steps.request.outputs.should_notify == 'true'
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          SLACK_REVIEW_CHANNEL_ID: ${{ secrets.SLACK_REVIEW_CHANNEL_ID }}
+          SLACK_MESSAGES: ${{ steps.request.outputs.slack_messages }}
+        with:
+          script: |
+            const token = process.env.SLACK_BOT_TOKEN;
+            const channel = process.env.SLACK_REVIEW_CHANNEL_ID;
+            const messages = JSON.parse(process.env.SLACK_MESSAGES || "[]");
+
+            if (!token) {
+              core.setFailed("SLACK_BOT_TOKEN is not configured.");
+              return;
+            }
+            if (!channel) {
+              core.setFailed("SLACK_REVIEW_CHANNEL_ID is not configured.");
+              return;
+            }
+
+            for (const message of messages) {
+              const response = await fetch("https://slack.com/api/chat.postMessage", {
+                method: "POST",
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                  "Content-Type": "application/json; charset=utf-8",
+                },
+                body: JSON.stringify({
+                  channel,
+                  ...message,
+                }),
+              });
+              const body = await response.json();
+              if (!response.ok || !body.ok) {
+                core.setFailed(`Slack chat.postMessage failed: ${body.error || response.status}`);
+                return;
+              }
+              core.info(`Posted Slack notification ts=${body.ts}`);
+            }
+
+  mark-notified:
+    name: Mark notified issues
+    needs: notify
+    if: success() && needs.notify.outputs.should_notify == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - name: Mark notified issues
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3
+        env:
+          ISSUE_NUMBERS: ${{ needs.notify.outputs.issue_numbers }}
+          MARKER: <!-- duumbi-tech-spec-review-slack-notified -->
+        with:
+          script: |
+            const issueNumbers = JSON.parse(process.env.ISSUE_NUMBERS || "[]");
+            const marker = process.env.MARKER;
+            const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+
+            for (const issueNumber of issueNumbers) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issueNumber,
+                body: [
+                  marker,
+                  "Technical spec review Slack notification requested through GitHub Actions.",
+                  "",
+                  `Workflow run: ${runUrl}`,
+                  `Source event: ${context.eventName}`,
+                ].join("\n"),
+              });
+            }
+
+  metrics:
+    name: Write workflow metrics
+    needs: [notify, mark-notified]
+    if: always()
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+    steps:
+      - name: Write DUUMBI workflow metrics
+        if: always()
+        continue-on-error: true
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3
+        env:
+          NOTIFY_RESULT: ${{ needs.notify.result }}
+          MARK_NOTIFIED_RESULT: ${{ needs.mark-notified.result }}
+          ISSUE_NUMBERS: ${{ needs.notify.outputs.issue_numbers || '[]' }}
+          SHOULD_NOTIFY: ${{ needs.notify.outputs.should_notify || 'false' }}
+          ISSUES_QUEUED_COUNT: ${{ needs.notify.outputs.issues_queued_count || '0' }}
+          ARTIFACT_LINKS_FOUND: ${{ needs.notify.outputs.artifact_links_found || '0' }}
+          ARTIFACT_LINKS_MISSING: ${{ needs.notify.outputs.artifact_links_missing || '0' }}
+          DUUMBI_METRICS_PATH: duumbi-workflow-metrics.json
+        with:
+          script: |
+            const fs = require("fs");
+            const path = process.env.DUUMBI_METRICS_PATH || "duumbi-workflow-metrics.json";
+            const { owner, repo } = context.repo;
+            const now = new Date().toISOString();
+            const durationMs = (start, end) => {
+              if (!start || !end) return null;
+              const ms = new Date(end).getTime() - new Date(start).getTime();
+              return Number.isFinite(ms) && ms >= 0 ? ms : null;
+            };
+            const asNumber = (value) => {
+              const n = Number(value);
+              return Number.isFinite(n) ? n : null;
+            };
+            const safeJsonArray = (value) => {
+              try {
+                const parsed = JSON.parse(value || "[]");
+                return Array.isArray(parsed) ? parsed : [];
+              } catch {
+                return [];
+              }
+            };
+
+            let jobs = [];
+            let warning = null;
+            try {
+              jobs = await github.paginate(github.rest.actions.listJobsForWorkflowRun, {
+                owner, repo, run_id: context.runId, per_page: 100,
+              });
+            } catch (err) {
+              warning = `job metadata unavailable: ${String(err.message || err).slice(0, 160)}`;
+              core.warning(warning);
+            }
+
+            const phases = jobs.map((job) => ({
+              name: job.name,
+              conclusion: job.conclusion || job.status || "unknown",
+              started_at: job.started_at || null,
+              completed_at: job.completed_at || null,
+              duration_ms: durationMs(job.started_at, job.completed_at),
+              warning_count: null,
+              failure_count: job.conclusion === "failure" ? 1 : 0,
+            }));
+            const starts = phases.map((p) => p.started_at).filter(Boolean).sort();
+            const ends = phases.map((p) => p.completed_at).filter(Boolean).sort();
+            const hasInProgressJob = phases.some((p) => p.started_at && !p.completed_at);
+            const startedAt = starts[0] || null;
+            const completedAt = hasInProgressJob ? now : (ends[ends.length - 1] || now);
+            const failed = [process.env.NOTIFY_RESULT, process.env.MARK_NOTIFIED_RESULT].includes("failure");
+            const cancelled = [process.env.NOTIFY_RESULT, process.env.MARK_NOTIFIED_RESULT].includes("cancelled");
+            const workflowConclusion = failed ? "failure" : (cancelled ? "cancelled" : "success");
+            const issueNumbers = safeJsonArray(process.env.ISSUE_NUMBERS);
+            const issueNumber = issueNumbers.length === 1 ? Number(issueNumbers[0]) : null;
+
+            const metrics = {
+              schema_version: "duumbi.workflow_metrics.v1",
+              generated_at: now,
+              source: "github_actions",
+              repository: `${owner}/${repo}`,
+              workflow: {
+                name: context.workflow,
+                file: ".github/workflows/technical-spec-review-request.yml",
+                run_id: context.runId,
+                run_attempt: Number(process.env.GITHUB_RUN_ATTEMPT || 1),
+                event_name: context.eventName,
+                actor: context.actor,
+                ref: context.ref,
+                sha: context.sha,
+                conclusion: workflowConclusion,
+                started_at: startedAt,
+                completed_at: completedAt,
+                duration_ms: durationMs(startedAt, completedAt),
+              },
+              correlation: {
+                issue_number: Number.isFinite(issueNumber) ? issueNumber : null,
+                pr_number: null,
+                stage: "9",
+                decision: null,
+                project_status: "Technical Spec Review",
+              },
+              phases,
+              counts: {
+                issues_considered: null,
+                issues_queued: asNumber(process.env.ISSUES_QUEUED_COUNT),
+                slack_notifications_attempted: process.env.SHOULD_NOTIFY === "true" ? issueNumbers.length : 0,
+                artifact_links_found: asNumber(process.env.ARTIFACT_LINKS_FOUND),
+                artifact_links_missing: asNumber(process.env.ARTIFACT_LINKS_MISSING),
+              },
+              provider_usage: {
+                available: false,
+                reason: "no_provider_step",
+                provider: null,
+                model: null,
+                request_count: null,
+                prompt_tokens: null,
+                completion_tokens: null,
+                total_tokens: null,
+                estimated_cost_usd: null,
+                latency_ms: null,
+                failure_count: null,
+              },
+              privacy: {
+                metadata_only: true,
+                raw_prompts_included: false,
+                raw_completions_included: false,
+                raw_slack_payloads_included: false,
+                secrets_included: false,
+              },
+              warnings: warning ? [warning] : [],
+            };
+
+            fs.writeFileSync(path, `${JSON.stringify(metrics, null, 2)}\n`);
+            await core.summary
+              .addHeading("DUUMBI Workflow Metrics", 2)
+              .addTable([
+                [{ data: "Field", header: true }, { data: "Value", header: true }],
+                ["Artifact", `duumbi-workflow-metrics-technical-spec-review-${context.runId}-${process.env.GITHUB_RUN_ATTEMPT || 1}`],
+                ["Workflow conclusion", workflowConclusion],
+                ["Duration ms", String(metrics.workflow.duration_ms ?? "unavailable")],
+                ["Issues queued", String(metrics.counts.issues_queued ?? "unavailable")],
+                ["Artifact links found", String(metrics.counts.artifact_links_found ?? "unavailable")],
+                ["Artifact links missing", String(metrics.counts.artifact_links_missing ?? "unavailable")],
+                ["Provider usage", "unavailable: no_provider_step"],
+              ])
+              .write();
+
+      - name: Upload DUUMBI workflow metrics
+        if: always()
+        continue-on-error: true
+        uses: actions/upload-artifact@v7
+        with:
+          name: duumbi-workflow-metrics-technical-spec-review-${{ github.run_id }}-${{ github.run_attempt }}
+          path: duumbi-workflow-metrics.json
+          if-no-files-found: warn

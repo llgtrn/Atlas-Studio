@@ -1,0 +1,40 @@
+//! Duumbi library crate.
+//!
+//! Exposes internal modules for integration tests and external tooling.
+//! The binary entry point is `main.rs`.
+//!
+//! The compiler and CLI modules are binary-only and live in `main.rs`.
+
+pub mod agents;
+pub mod bench;
+pub mod compiler;
+pub mod config;
+pub mod context;
+pub mod contracts;
+pub mod credentials;
+pub mod deps;
+pub mod determinism;
+pub mod errors;
+pub mod examples;
+pub mod graph;
+pub mod hash;
+pub mod intent;
+pub mod interaction;
+pub mod knowledge;
+pub mod logging;
+pub mod loop_native;
+pub mod manifest;
+pub mod mcp;
+pub mod parser;
+pub mod patch;
+pub mod properties;
+pub mod query;
+pub mod registry;
+pub mod rewrite;
+pub mod session;
+pub mod snapshot;
+pub mod telemetry;
+pub mod tools;
+pub mod types;
+pub mod workflow;
+pub mod workspace;

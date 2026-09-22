@@ -1,0 +1,295 @@
+# DUUMBI Agentic Development Orchestration
+
+> **Stage 6–9 manual Desktop handoff:** Stage 5 records the specification prompt on the
+> GitHub issue and sends it once to Slack. The Owner submits it in Codex Desktop with
+> `duumbi-spec-desktop`. The Grok VM specification worker is retired; no automatic spec
+> task starts. See [manual handoff and migration](manual-spec-handoff.md).
+
+This document records the repository-side implementation of the redesigned
+DUUMBI intake-to-delivery workflow. The canonical operating model remains the
+DUUMBI Agentic Development Runbook in the vault; these files are the executable
+or source-repo contracts that support it.
+
+## Source Of Truth
+
+- GitHub Issues, PRs, CI, review threads, and Project V2 status hold execution
+  state.
+- Obsidian stores raw intake and durable knowledge.
+- Slack is a notification, clarification, and approval surface. Idea intake uses
+  Codex or Grok Bot (Stage 2), or manual Obsidian Inbox (Stage 3). GitHub Issues and
+  Ideas Discussions are retired as independent intake sources. Stage 1 Slack
+  intake was retired on 2026-09-11; stage numbers remain unchanged.
+- Stage 3b calls DeepSeek for bounded Inbox preparation; Stage 4 calls Z.ai/Zhipu
+  for bounded execution routing. Other gates have their documented model or
+  dispatch policies. Spec and implementation work remain in Codex by default.
+- The [shared intake contract](intake-contract.md) defines authoritative metadata,
+  synchronization, ownership, and the clarification loop. The portable
+  [Grok recipe](grok-intake-skill.md) uses the same contract; see
+  [Grok setup](grok-intake-setup.md) for account-specific configuration.
+
+## Skills Added Or Updated
+
+- `duumbi-inbox-enrichment` normalizes manually edited Inbox notes and detects
+  duplicates before Stage 4 triage.
+- `duumbi-delivery-autopilot` coordinates a single `Spec Needed` issue through
+  Stage 6, Stage 7 AI gate, Stage 8, Stage 9 AI gate, and Stage 10 entry.
+- `duumbi-codex-intake` searches active Inbox,
+  Processed Inbox, Atlas, and GitHub before creating duplicate notes.
+- `duumbi-spec-review` and `duumbi-tech-spec-review` now support bounded AI
+  gates while still failing closed on missing checks, scope, unresolved
+  findings, or unmerged spec PR readiness. Spec gates have no required
+  automated reviewer by default; Greptile is manual-only and reserved for the
+  final implementation PR.
+- `duumbi-closure` runs after a verified merge or equivalent completion
+  evidence to close the loop across GitHub, source surfaces, Inbox notes, and
+  durable knowledge sync decisions.
+
+## Workflows Added
+
+| Workflow | Trigger | Purpose |
+|---|---|---|
+| `inbox-enrichment-dispatch.yml` | Vault capture event, hourly at minute 17 UTC, manual | Uses DeepSeek to enrich up to five `captured` Inbox notes serially in `duumbi-vault/main`, then posts Slack only when a vault commit is created. |
+| `triage-queue-refill.yml` | every 4 hours, manual | Reads Project V2 `Needs Human Acceptance` count and uses a bounded Z.ai/Zhipu-backed Stage 4 triage refill when fewer than three issues are waiting. |
+| `clarification-routing.yml` | issue comment created, manual | Filters for explicit `@Clarification` comments on `needs-human-review` issues, uses DeepSeek for synthesis, posts a GitHub comment, and sends Slack. |
+| `spec-ai-gate.yml` | manual, repository dispatch | Records Stage 7/9 AI gate decisions and dispatches `stage-approval.yml` for clean approvals. |
+| `ready-for-build-handoff.yml` | `tech-spec-approved` label, `issues.reopened`, combined-spec PR merge, hourly, manual | Sends the Stage 10 Slack handoff when an issue becomes Ready for Build, and posts a per-occurrence Project Status correction/entry card after reopen or a merged two-file PRODUCT+TECHNICAL spec PR. Slack `blocks` stay off until `DUUMBI_PROJECT_STATUS_SLACK_BUTTONS=true`. |
+| `project-status.yml` | `project-status` repository dispatch, manual | Sets DUUMBI Project V2 Status to Ready for Build without merging a spec PR. Sibling of `stage-approval.yml`; never calls `pulls.merge` or `validateAndMergeSpecPr`. |
+| `ralph-cycle-approval-request.yml` | `needs-cycle-approval` label, twice daily, manual, repository dispatch | Sends Stage 10 bounded-cycle resource authorization Slack notifications; decisions are recorded through `stage-10-authorization.yml`. |
+| `implementation-review-request.yml` | `needs-review` label, PR ready/labeled, twice daily, manual, repository dispatch | Sends implementation review handoff notifications with linked spec and PR evidence. |
+| `stage12-closure-dispatch.yml` | merged PR, manual | Dispatches `duumbi-closure` after a developer merges the implementation PR. It does not merge, close issues, or claim `Done` itself. |
+
+## Slack Bridge Routing
+
+`scripts/slack-approval-bridge` now dispatches by stage:
+
+- Stage 5, 7, and 9 buttons use `stage-approval`.
+- Stage 10 resource buttons use `stage-10-authorization` when the payload has
+  `action_type: "stage_10_authorization"`; legacy stage-only buttons are
+  normalized into the same workflow.
+- Project Status buttons use `action_type: "project_status"` → `project-status`
+  → `project-status.yml`. The Function revision that understands this route
+  must be deployed before live Slack `blocks` are enabled. Until then, keep
+  repository variable `DUUMBI_PROJECT_STATUS_SLACK_BUTTONS` unset/false so
+  Ready-for-Build and correction/entry posts stay text-only.
+- Stage 11 merge, request-changes, clarification, and abandon decisions are made
+  directly by the human reviewer in GitHub.
+- Slack message/global shortcuts are unsupported and do not dispatch workflows.
+
+Unknown stages fall back to `stage-approval`, where unsupported stages fail
+closed. Do not ship live `project_status` buttons against an undeployed
+Function: unknown `action_type` would otherwise fall through to
+`stage-approval`.
+
+## Required Configuration
+
+- `SLACK_BOT_TOKEN`: Slack bot token for notification posts.
+- `SLACK_REVIEW_CHANNEL_ID`: human review channel.
+- `DUUMBI_PROJECT_STATUS_SLACK_BUTTONS`: optional repository variable; set to
+  `true` only after the Slack approval Function routes `project_status`.
+  Default unset/false keeps Project Status Slack posts text-only.
+- `DUUMBI_AGENT_DISPATCH_CHANNEL_ID`: optional agent dispatch channel; falls
+  back to `SLACK_REVIEW_CHANNEL_ID`.
+- `GH_PROJECT_PAT`: PAT that can read and update GitHub Project V2 and write
+  enrichment commits to `duumbi-vault/main`.
+- `DEEPSEEK_API_KEY`: DeepSeek API key used by
+  `inbox-enrichment-dispatch.yml` for one-note Inbox preparation and by
+  `clarification-routing.yml` for explicit `@Clarification` synthesis.
+- `DEEPSEEK_MODEL`: optional repository variable for DeepSeek-backed
+  automation; defaults to `deepseek-v4-pro`.
+- `ZHIPUAI_API_KEY`: Z.ai/Zhipu API key used by
+  `triage-queue-refill.yml` when the `Needs Human Acceptance` queue is below
+  target.
+- `ZHIPU_MODEL`: optional repository variable for the triage refill model;
+  defaults to `glm-5.2`.
+- `DUUMBI_PROJECT_NUMBER`: repository variable for the Project V2 number used by
+  `triage-queue-refill.yml`.
+- `DUUMBI_PROJECT_OWNER`: optional repository variable; defaults to repository
+  owner.
+- `DUUMBI_PROJECT_OWNER_TYPE`: optional repository variable; use `user` for a
+  personal-account project and `organization` for an org-owned project. When
+  omitted, the workflow infers the repository owner type from the GitHub event.
+
+## Clarification Routing Policy
+
+`clarification-routing.yml` is registered on all created issue comments and
+filters in code. It ignores general `@Codex` issue comments. It
+only processes comments whose visible text starts with `@Clarification`, and
+only when the target issue still carries the `needs-human-review` Stage 5 label.
+The workflow calls DeepSeek for a bounded JSON clarification synthesis, writes
+the synthesis as an issue comment, and sends a Slack notification when Slack
+secrets are configured. It does not update labels, Project V2 status, specs,
+PRs, or source code.
+
+## Inbox Enrichment Policy
+
+`inbox-enrichment-dispatch.yml` selects at most five notes serially whose top-level
+frontmatter is `intake_status: captured`, regardless of Codex/Grok/Obsidian source.
+It preserves the original input and ownership, replacing only its delimited
+preparation block. Legacy processed tags do not determine eligibility.
+
+A usable note becomes `ready_for_triage`. Essential missing human intent becomes
+`needs_clarification`, with a reason and 1–3 questions. After the vault push, Slack
+links the note, identifies its owner, and gives a Codex/Grok continuation prompt.
+The owner answers in the same note and returns it to `captured` when resolved.
+Waiting notes do not trigger more model calls or duplicate notifications.
+
+No candidate means no model call or Slack post. Failed notifications are visible
+in the workflow summary/metrics; do not re-enrich a waiting note to resend one.
+Stage 3b never creates GitHub issues, specs, PRs, Atlas notes, or implementation.
+
+## Stage 4 Refill LLM Policy
+
+`triage-queue-refill.yml` runs at most six times per day. It first reads Project
+V2 with `GH_PROJECT_PAT`; if at least three open issues are already in
+`Needs Human Acceptance`, it exits without calling a model or posting Slack.
+
+When refill is needed, the workflow checks out `duumbi-vault`, builds bounded
+context from `ready_for_triage` Inbox notes, Project V2 issue state, and
+active Atlas/runbook docs, and asks Z.ai/Zhipu for one strict JSON decision:
+`route_existing_issue`, `create_issue`, `needs_clarification`, or `no_action`.
+Only `route_existing_issue` and `create_issue` perform GitHub writes, and at
+most one issue is queued per run. Both actions require an exact source path
+matching an Inbox note supplied to the model; GitHub-only or fabricated sources
+are rejected before writes. Existing Todo issues may be reused only for work
+represented by an Inbox note. Ideas Discussions are no longer fetched as an
+intake queue. GitHub remains execution state and duplicate-check context.
+
+With no ready note it exits before requiring an LLM key. After successful routing,
+it marks the selected note `triaged` and archives it with issue evidence. Stage 3b
+and Stage 4 share the `duumbi-vault-intake` concurrency group. The scheduled refill
+handles execution work; the manual `duumbi-triage` skill handles knowledge,
+duplicate, defer, and no-action dispositions. See the shared contract for rollout
+and partial-write recovery.
+
+All GitHub writes use `GH_PROJECT_PAT` rather than `GITHUB_TOKEN`, so adding the
+existing `needs-human-review` label can trigger the separate Human Acceptance
+Slack gate. The refill workflow itself does not post Slack notifications; this
+avoids duplicate messages. Clarification routing uses `GITHUB_TOKEN` because it
+only comments on the already-routed issue.
+
+Default model: `glm-5.2` through the Z.ai/Zhipu chat completions endpoint:
+`https://api.z.ai/api/paas/v4/chat/completions`. The workflow records token
+counts when the provider returns usage metadata, but cost estimation is
+intentionally left null until stable pricing for this routed model is documented
+in the repository.
+
+## Gate Policy
+
+Review service selection is governed by
+`docs/automation/code-review-policy.md`:
+
+- Codex self-review is mandatory before agents mark work ready, approve an AI
+  gate, or recommend implementation merge readiness.
+- Codex review via `@chatgpt-codex-connector` is the required automated
+  reviewer on the final implementation PR.
+- Quick low-cost reviewers (MiniMax, DeepSeek Pro, Grok Build, Cursor BugBot)
+  are optional and advisory on non-final PRs; they are never a DUUMBI gate.
+- Greptile is manual-only, quota-limited, and reserved for the final
+  implementation PR when an explicitly requested deep review is justified. Do
+  not include Greptile in `DUUMBI_REQUIRED_SPEC_REVIEWERS`.
+
+Stage 7 and Stage 9 AI gates may approve only when:
+
+- the PR is spec-only
+- the PR is open, non-draft, and ready for approval merge
+- actual non-dismissed review submissions exist for every configured required
+  reviewer. By default `DUUMBI_REQUIRED_SPEC_REVIEWERS` is empty and no
+  automated reviewer is required; repositories can opt in with a
+  comma-separated low-cost reviewer list
+- reviewer-request workflow success does not count as review evidence
+- automated reviews and human reviews have no blocking `CHANGES_REQUESTED`
+  decision
+- every review thread is resolved, including threads that became outdated after
+  a fix
+- relevant checks are passing or explicitly not applicable
+- no product, architecture, security, migration, cost, scope, or verification
+  question remains
+- the proposed spec stays inside the accepted issue scope
+
+Stage 7 and Stage 9 human Slack approvals are merge finalizers for file-based
+specs. The review request workflows send Slack approval cards only after the
+linked PRODUCT.md or TECHNICAL.md PR is review-clean. Review-clean means the
+PR has green checks, no blocking review decisions, no unresolved review
+threads, and submissions from any configured required reviewers. Approval then
+revalidates the exact PR, squash-merges the spec artifact with non-closing issue
+references, records the stage decision, and advances the issue to the next
+workflow state. If the PR is draft, dirty, not spec-only, missing required
+reviewer submissions, or has unresolved review threads, the workflow fails
+closed or defers notification.
+
+The Stage 5 approval prompt starts no work by itself. The Owner submits it in Codex
+Desktop to draft and review product/technical specifications (Stages 6–9), ending in a
+spec-only PR for human review and merge. This handoff does not authorize automatic merge
+or Stage 10. The broader delivery-autopilot requires a separate explicit request. Existing
+Stage 7/9 human approval workflows retain the merge-gate behavior described above.
+
+`ready-for-build-handoff.yml` is the fallback and retry path for the Stage 10
+Slack handoff. It posts when `tech-spec-approved` is added and also scans for
+open issues that are already labeled `tech-spec-approved` or whose Project V2
+Status is `Ready for Build`. It records
+`<!-- duumbi-ready-for-build-slack-notified:v1 issue=N -->` on the issue after a
+successful Slack post, so reruns and scheduled scans do not duplicate the same
+handoff. A separate per-occurrence correction/entry path posts after
+`issues.reopened` or a merged two-file `PRODUCT.md`+`TECHNICAL.md` spec PR
+when DUUMBI Status is Done or Spec Needed; the Ready-for-Build v1 marker does
+not suppress that card. Hourly cron does not scan every Spec Needed issue for
+correction cards. Slack `blocks` are attached only when
+`DUUMBI_PROJECT_STATUS_SLACK_BUTTONS=true` after the Function routes
+`project_status`. This keeps Slack delivery independent from
+`stage-approval.yml` merge or validation failures while preserving GitHub
+Issues and Project V2 as the source of truth.
+
+Stage 11 merge remains human-authorized. The merge workflow requires explicit
+human decision, Stage 11 review artifact, green checks, a clean or handled
+Codex (`@chatgpt-codex-connector`) review, and an open non-draft implementation
+PR. It uses squash merge by default and emits the Stage 12 closure prompt
+after merge.
+
+## Metrics And Privacy
+
+All new workflows write metadata-only metrics artifacts. They must not store raw
+Slack payloads, issue bodies, comments, prompts from users, model completions,
+provider payloads, credentials, or broad logs. The Stage 4 refill workflow may
+send bounded triage context to Z.ai/Zhipu, but its metrics artifact records only
+metadata, counts, provider name/model, token usage, estimated cost, and
+warnings.
+
+Slack capability URLs, including `response_url`, stay inside the Slack bridge
+function and are not forwarded through GitHub `repository_dispatch` payloads.
+GitHub workflow summaries intentionally omit generated agent prompts that
+could contain user-provided content.
+
+
+## Stage 5 clarification and rejection details
+
+Stage 5 Slack **Needs Clarification** and **Reject** collect a rationale before
+submitting a decision. Clarification additionally requires the blocking question
+and the responsible GitHub username. The same requirements apply to manual
+`stage-approval.yml` dispatches (`rationale`, `clarification_question`,
+`clarification_owner`). Validation precedes writes. Opening/cancelling the form
+has no side effects on GitHub.
+
+The workflow records the supplied question and owner in the decision comment,
+keeps `needs-human-review`, and requests Project status `Needs Clarification`.
+The owner is recorded/mentioned, not automatically added to issue assignees.
+They answer on the issue with an `@Clarification` comment. The existing synthesis
+is advisory; it does not move status or grant approval. Accept requires a new
+human decision and removes `needs-clarification`; Reject records the rationale,
+closes the issue, and removes the review/clarification labels.
+
+Repeated submissions reuse the same evidence; different clarification rounds
+retain distinct comments. Stale decisions cannot move an accepted/closed issue
+backward. Project and Slack operations retain their existing best-effort failure
+reporting, so inspect the workflow result and Project state when either fails.
+
+See [bridge rollout instructions](../../scripts/slack-approval-bridge/README.md#rollout)
+for the Azure `SLACK_BOT_TOKEN` prerequisite, production deployment, and live
+smoke test. The interactivity URL is unchanged.
+
+## Developer-selected Inbox priority
+
+`intake-stage5.yml` accepts one exact `intake_id` through workflow_dispatch or the signed
+Slack `/duumbi-triage <intake_id>` command. It routes a ready_for_triage note through the
+Stage 4 queue writer to Stage 5 without the scheduled refill threshold or another model
+call. It preserves Human Acceptance, issue identity and the Inbox archive lifecycle.
+See [setup and recovery](targeted-intake-stage5.md).

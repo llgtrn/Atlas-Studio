@@ -1,0 +1,63 @@
+# ── Rust ────────────────────────────────────────────────────────────────────
+target/
+# Cargo.lock is intentionally tracked (binary/application crate)
+
+# ── DUUMBI workspace ────────────────────────────────────────────────────────
+.duumbi/
+
+# ── Compiled runtime shim ────────────────────────────────────────────────────
+duumbi_runtime.o
+
+# ── OS ───────────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+
+# ── IDEs ─────────────────────────────────────────────────────────────────────
+.idea/
+.vscode/*
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+!.vscode/settings.json
+*.sublime-workspace
+
+# ── Infra (Pulumi/Node.js) ───────────────────────────────────────────────────
+infra/node_modules/
+infra/bin/*.js
+infra/bin/*.js.map
+infra/bin/*.d.ts
+infra/bin/*.tsbuildinfo
+
+# ── Logs ─────────────────────────────────────────────────────────────────────
+logs/
+*.log
+
+# ── Secrets / environment ────────────────────────────────────────────────────
+.env
+.env.local
+.env.*.local
+*.env
+
+# ── Caches ────────────────────────────────────────────────────────────────────
+cache/
+
+# ── Claude Code worktrees ────────────────────────────────────────────────────
+.claude/worktrees/
+.claude/*.lock
+.claude/*.local.json
+
+# ── Codex ────────────────────────────────────────────────────────────────────
+.codex/
+
+# ── Personal AI config ────────────────────────────────────────────────────────
+# opencode.json contains personal model choices, local MCP paths, and permissions
+opencode.json
+# .mcp.json contains local MCP server configurations with machine-specific paths
+.mcp.json
+
+# ── Temporary ────────────────────────────────────────────────────────────────
+*.tmp
+*.swp
+myproject/
+docs/.obsidian/
+node_modules/

@@ -1,0 +1,38 @@
+{"synthetic": false,
+ "schemaVersion": "2025-09-10",
+ "outputs":
+ {"o": ["db33dab0258e9f64.olean"],
+  "i": "7a4f216467de0169.ilean",
+  "c": "b898f58e47f70d17.c"},
+ "log":
+ [{"message":
+   ".> LEAN_PATH=/home/bojo/Development/ailang/lean/.lake/build/lib/lean /nix/store/38kmycn5w6dd230r045zclyl4zahcm1c-lean4-4.28.0/bin/lean /home/bojo/Development/ailang/lean/IrisKernel/Properties.lean -o /home/bojo/Development/ailang/lean/.lake/build/lib/lean/IrisKernel/Properties.olean -i /home/bojo/Development/ailang/lean/.lake/build/lib/lean/IrisKernel/Properties.ilean -c /home/bojo/Development/ailang/lean/.lake/build/ir/IrisKernel/Properties.c --setup /home/bojo/Development/ailang/lean/.lake/build/ir/IrisKernel/Properties.setup.json --json",
+   "level": "trace"},
+  {"message":
+   "IrisKernel/Properties.lean:29:9: unused variable `d`\n\nNote: This linter can be disabled with `set_option linter.unusedVariables false`",
+   "level": "warning"},
+  {"message": "IrisKernel/Properties.lean:76:8: declaration uses `sorry`",
+   "level": "warning"},
+  {"message": "IrisKernel/Properties.lean:88:8: declaration uses `sorry`",
+   "level": "warning"}],
+ "inputs":
+ [["IrisKernel.Properties:deps",
+   [["deps",
+     [["«iris-kernel»/IrisKernel:extraDep",
+       [["@«iris-kernel»:extraDep", "00000000000006bb"]]],
+      ["imports",
+       [["IrisKernel.Types transitive imports (legacy)", "00000000000006bb"],
+        ["IrisKernel.Types:importAllArts", "c7d4e14353374eac"],
+        ["IrisKernel.Rules transitive imports (legacy)", "73a4fcbefeb18ee9"],
+        ["IrisKernel.Rules:importAllArts", "516462e1f0ca5f98"]]]]],
+    ["libs",
+     [["import dynlibs", "00000000000006bb"],
+      ["package external libraries", "00000000000006bb"],
+      ["module dynlibs", "00000000000006bb"],
+      ["module plugins", "00000000000006bb"]]]]],
+  ["Lean 4.28.0, commit v4.28.0", "f336884a5afab07d"],
+  ["/home/bojo/Development/ailang/lean/IrisKernel/Properties.lean",
+   "3e95d1cf3e54d1a6"],
+  ["options", [["-DautoImplicit=false", "4a85acb881fd49d0"]]],
+  ["Module.leanArgs: #[]", "00000000000006bb"]],
+ "depHash": "059d2067759cf1a9"}
