@@ -35,7 +35,7 @@ A faster unsafe or semantically weakened artifact does not count.
 AtlasX lowers to high-quality Rust/TypeScript and uses rustc/LLVM as the trusted backend.
 
 Deliver:
-- deterministic AtlasX → Rust lowering;
+- deterministic validated AtlasX binary capsule → Rust lowering;
 - exact source/semantic lineage;
 - differential tests between Atlas semantics and generated Rust;
 - benchmark harness comparing equivalent implementations;
