@@ -12,6 +12,15 @@ Atlas Development Language (ADL) is the semantics-first development language of 
 
 ADL is not defined by donor syntax and is not merely an architecture-description DSL. Its authority comes from Atlas semantic contracts, Genome policy and admitted evidence.
 
+ADL is explicitly a **Human + AI collaborative authoring surface**. The normative collaboration model is `HUMAN-AI-ADL-AUTHORING.md`.
+
+It MUST NOT degrade into either:
+
+- a human-only text language with an AI autocomplete feature;
+- an AI-only prompt language that hides engineering meaning from humans.
+
+Humans steer intent/trade-offs. External AI researches/synthesizes/codes candidates. Atlas validates/adopts semantics.
+
 ## One semantic world
 
 Existing source and ADL converge before canonical publication:
@@ -35,6 +44,35 @@ typed DECLARED semantic records ───────┤
 ```
 
 ADL does not create a second graph, type system or truth vocabulary beside Census/ATLAS.
+
+## Collaborative authoring model
+
+The mature authoring environment supports multiple synchronized projections:
+
+~~~text
+Human conversation
+ADL text
+Studio graph
+constraints
+semantic diff
+evidence
+benchmark results
+agent structured edits
+        ↓
+typed candidate semantics
+        ↓
+one canonical Atlas path
+~~~
+
+A conversational request is not canonical meaning by itself.
+
+Material AI-assisted authoring MUST produce typed candidate artifacts governed by:
+
+- `HUMAN-AI-ADL-AUTHORING.md`;
+- `ATLAS-CREATION-PIPELINE.md`;
+- `EXTERNAL-PROVIDER-TRUST.md`.
+
+External providers may generate real implementation candidates during authoring. Generated code is then ingested/censused/verified before selection and seal.
 
 ## ADL0 bootstrap subset
 
@@ -102,26 +140,42 @@ For example, Atlas may learn from Rust borrowing without copying Rust's surface 
 
 No ADL feature may require a donor runtime merely because that donor inspired the feature.
 
-## Compilation authority
+## Compilation and creation authority
 
-The conceptual ADL compilation path is:
+Pure ADL lowering remains:
 
-```text
+~~~text
 ADL source
 → syntax tree
 → name/scope resolution
 → typed semantic elaboration
 → obligation/evidence checks
 → canonical typed Atlas records
-→ normalization
-→ reconciliation
-→ selected semantic world
+~~~
+
+But material product creation may include a larger Human+AI engineering loop before seal:
+
+~~~text
+typed intent / ADL
+→ constraint envelope
+→ research / OSS discovery
+→ candidate mechanisms
+→ typed decision proposal
+→ external synthesis / code
+→ CandidateChangeSet
+→ generated-source census
+→ validation
+→ SelectedDesign
+→ SEALED logical Atlas
+→ mechanical compaction
 → *.atlas
 → *.atlasx/
 → HIR/MIR/LIR/Machine IR or delegated backend
-```
+~~~
 
-A parser AST is not canonical truth. A pretty-printer string is not canonical truth. The typed semantic records are the language/compiler boundary.
+The larger creation path is normative in `ATLAS-CREATION-PIPELINE.md`.
+
+A parser AST is not canonical truth. A pretty-printer string is not canonical truth. A provider response is not canonical truth. The typed semantic records plus admitted evidence are the language/compiler boundary.
 
 ## Epistemic status
 
@@ -154,11 +208,18 @@ ADL is not:
 - an LLVM IR skin;
 - a donor API aggregation language;
 - a UI state format;
-- a shortcut that bypasses Census, normalization or reconciliation.
+- a shortcut that bypasses Census, normalization or reconciliation;
+- a prompt archive;
+- a provider-specific language;
+- an opaque AI-generated code container.
 
 ## Current foundation
 
-R4.3.2 establishes the first lossless typed carrier through Census and N0 normalization for the currently-real Rust dimensions: SYMBOL, TYPE, FUNCTION_IDENTITY and FUNCTION_SIGNATURE, including evidence and diagnostics. This is a prerequisite for language genesis, not completion of ADL: call/control/data/state/effect/resource semantics remain to be materialized before the full language can be claimed.
+R4.5 establishes real typed Rust semantics through SYMBOL, TYPE, FUNCTION_IDENTITY, FUNCTION_SIGNATURE and CALL, including strengthened R4.4 function declaration identity and real R4.5 function-body call-site extraction through the canonical Census/Normalization path.
+
+CALL targets remain explicitly unresolved where source syntax does not prove them.
+
+This is a prerequisite for language genesis, not completion of ADL: CONTROL_FLOW, DATA_FLOW, STATE, EFFECT, OWNERSHIP, CONCURRENCY and PERSISTENCE remain to be materially implemented before the full language can be claimed.
 
 ## Readiness gates
 
