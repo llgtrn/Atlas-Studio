@@ -185,7 +185,12 @@ fn confidence(status: &EpistemicStatus) -> Option<f32> {
     match status {
         EpistemicStatus::Observed | EpistemicStatus::Declared => Some(1.0),
         EpistemicStatus::Derived => Some(0.9),
-        EpistemicStatus::Unsupported | EpistemicStatus::Unknown | EpistemicStatus::Ignored => None,
+        EpistemicStatus::Inferred
+        | EpistemicStatus::Hypothesis
+        | EpistemicStatus::Conflict
+        | EpistemicStatus::Unsupported
+        | EpistemicStatus::Unknown
+        | EpistemicStatus::Ignored => None,
     }
 }
 

@@ -44,6 +44,8 @@ UNKNOWN is explicit. Silent skip is forbidden.
 
 Every discovered function/method is represented in Atlas. Adaptive census controls depth, not existence.
 
+The canonical R4 function representation is defined by `SEMANTIC-FACTS.md`. A function is an identity plus typed semantic facets (signature, symbol/type, call, control/data flow, state/effect, ownership/concurrency/persistence and evidence). The bootstrap `SemanticFact { subject, predicate, object }` envelope is not the final function ontology.
+
 Each function MUST account for, when applicable:
 
 - identity, signature, types, generics and visibility;
@@ -103,6 +105,8 @@ Inventory
 Critical scopes may require UNKNOWN = 0.
 
 ## CensusCertificate
+
+The normative contract is `CENSUS-CERTIFICATE.md` and the machine schema is `../schemas/census-certificate.schema.json`.
 
 Every sealed root records at least corpus identity, revision set, Genome hash, inventory totals, accounted totals, semantic coverage, unresolved/unsupported artifacts, dynamic edges, binding gaps, conflicts, fixed-point iteration count, independent-pass agreement and Atlas root hash.
 

@@ -85,11 +85,34 @@ pub enum EpistemicStatus {
     Observed,
     Declared,
     Derived,
-    Unsupported,
+    Inferred,
+    Hypothesis,
+    Conflict,
     Unknown,
+    Unsupported,
     Ignored,
 }
 
+impl EpistemicStatus {
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            Self::Observed => "OBSERVED",
+            Self::Declared => "DECLARED",
+            Self::Derived => "DERIVED",
+            Self::Inferred => "INFERRED",
+            Self::Hypothesis => "HYPOTHESIS",
+            Self::Conflict => "CONFLICT",
+            Self::Unknown => "UNKNOWN",
+            Self::Unsupported => "UNSUPPORTED",
+            Self::Ignored => "IGNORED",
+        }
+    }
+}
+
+/// Bootstrap R4 interchange envelope.
+///
+/// Deep R4 semantics converge on typed records defined by the semantic-facts contract; this
+/// subject/predicate/object carrier must not become Atlas's permanent universal semantic model.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct SemanticFact {
     pub id: String,
@@ -107,7 +130,7 @@ pub struct CensusReport {
     pub artifacts_total: usize,
     pub artifacts_accounted_total: usize,
     pub facts_total: usize,
-    pub coverage: BTreeMap<String, String>,
+    pub coverage: BTreeMap<String, EpistemicStatus>,
     pub facts: Vec<SemanticFact>,
 }
 

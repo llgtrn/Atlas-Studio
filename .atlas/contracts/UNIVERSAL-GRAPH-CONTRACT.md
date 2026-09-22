@@ -42,6 +42,8 @@ A Binding states an explicit connection/realization between endpoints, including
 
 Evidence supports or contradicts claims.
 
+FactKind, EvidenceKind, EpistemicStatus and Disposition are distinct taxonomies as defined by `SEMANTIC-FACTS.md`. Graph projections MUST NOT invent a second epistemic vocabulary. If a bootstrap projection cannot carry the full normalized semantic record, that projection is non-canonical and must retain a stable reference to its normalized source rather than becoming truth authority.
+
 Temporal semantics state when an identity, relation, binding, state or claim is valid.
 
 Materialization links semantic meaning to physical code/artifact/runtime representation.
