@@ -659,13 +659,86 @@ fn add_typed_semantic_nodes(
                     });
                 }
             }
-            // Not yet materialized by any extractor (R4.7+); no graph logic to add here until
+            // R4.7: one Value node per DataFlow observation, a HAS_VALUE edge from the owning
+            // function (present for every value event, mirroring R4.6's HAS_BLOCK), and a
+            // RESOLVES_TO edge from a Use/Store to the Definition it resolved to, when resolved.
+            // An Unresolved Use/Store (resolved_definition=None) correctly produces no such edge
+            // -- never a dangling or fabricated resolution.
+            SemanticObservation::DataFlow(header) => {
+                let value_node_id = stable_id(
+                    "node",
+                    &format!("data-flow-value:{}", header.record_id.as_str()),
+                );
+                ensure_node(
+                    graph,
+                    value_node_id.clone(),
+                    "Value".into(),
+                    format!(
+                        "{}@{}:{}:{}",
+                        header.subject.name,
+                        header.subject.span.path,
+                        header.subject.span.line,
+                        header.subject.span.column
+                    ),
+                    BTreeMap::from([
+                        ("origin".into(), "semantic-extraction".into()),
+                        ("role".into(), header.subject.role.as_str().into()),
+                        (
+                            "resolution".into(),
+                            header.subject.resolution.as_str().into(),
+                        ),
+                        (
+                            "is_parameter".into(),
+                            header.subject.is_parameter.to_string(),
+                        ),
+                        (
+                            "is_return_flow".into(),
+                            header.subject.is_return_flow.to_string(),
+                        ),
+                    ]),
+                    &header.provenance,
+                );
+                let caller_node_id = stable_id(
+                    "node",
+                    &format!("function-identity:{}", header.subject.function.as_str()),
+                );
+                graph.edges.push(Edge {
+                    id: stable_id(
+                        "edge",
+                        &format!("{caller_node_id}:HAS_VALUE:{value_node_id}"),
+                    ),
+                    kind: "HAS_VALUE".into(),
+                    from: caller_node_id,
+                    to: value_node_id.clone(),
+                    attributes: BTreeMap::from([("origin".into(), "semantic-extraction".into())]),
+                    provenance: header.provenance.clone(),
+                    revision: header.provenance.source_revision.clone(),
+                });
+                if let Some(resolved) = &header.subject.resolved_definition {
+                    let def_node_id =
+                        stable_id("node", &format!("data-flow-value:{}", resolved.as_str()));
+                    graph.edges.push(Edge {
+                        id: stable_id(
+                            "edge",
+                            &format!("{value_node_id}:RESOLVES_TO:{def_node_id}"),
+                        ),
+                        kind: "RESOLVES_TO".into(),
+                        from: value_node_id,
+                        to: def_node_id,
+                        attributes: BTreeMap::from([(
+                            "origin".into(),
+                            "semantic-extraction".into(),
+                        )]),
+                        provenance: header.provenance.clone(),
+                        revision: header.provenance.source_revision.clone(),
+                    });
+                }
+            }
+            // Not yet materialized by any extractor (R4.8+); no graph logic to add here until
             // they become real observations. Matched explicitly, never via `_ => {}`, so adding a
             // new dimension's extractor without updating this function fails to compile instead
             // of silently producing no graph nodes.
-            SemanticObservation::DataFlow(_)
-            | SemanticObservation::State(_)
-            | SemanticObservation::Effect(_) => {}
+            SemanticObservation::State(_) | SemanticObservation::Effect(_) => {}
         }
     }
 }
@@ -1097,6 +1170,71 @@ mod tests {
         })
     }
 
+    /// R4.7: a DataFlow value observation whose `function` (owner) is the record_id of
+    /// `function_identity_observation(owner_name)`'s `FunctionIdentity`, so the two can be
+    /// combined in one batch to exercise the HAS_VALUE/RESOLVES_TO edges.
+    #[allow(clippy::too_many_arguments)]
+    fn data_flow_value_observation(
+        function: &crate::semantic::SemanticRecordId,
+        name: &str,
+        line: usize,
+        role: crate::semantic::ValueRole,
+        is_parameter: bool,
+        is_return_flow: bool,
+        resolved_definition: Option<crate::semantic::SemanticRecordId>,
+    ) -> SemanticObservation {
+        use crate::identity::RepositoryId;
+        use crate::provenance::provenance;
+        use crate::semantic::{
+            DataFlowResolution, ExtractorIdentity, SemanticDimension, SemanticRecordHeader,
+            SemanticRecordId, SemanticScope, ValueIdentity,
+        };
+        use crate::temporal::RevisionRef;
+
+        let repository = RepositoryId::new("atlas-studio");
+        let revision = RevisionRef {
+            kind: "git".into(),
+            value: "abc123".into(),
+        };
+        let resolution = if resolved_definition.is_some() {
+            DataFlowResolution::Resolved
+        } else {
+            DataFlowResolution::Unresolved
+        };
+        let subject = ValueIdentity {
+            repository: repository.clone(),
+            revision: revision.clone(),
+            function: function.clone(),
+            name: name.to_owned(),
+            span: crate::language::adl::SourceSpan {
+                path: "src/lib.rs".into(),
+                line,
+                column: 5,
+            },
+            role,
+            is_parameter,
+            is_return_flow,
+            resolution,
+            resolved_definition,
+        };
+        let record_id = SemanticRecordId::new(SemanticDimension::DataFlow, &subject.identity_key());
+        SemanticObservation::DataFlow(SemanticRecordHeader {
+            record_id,
+            dimension: SemanticDimension::DataFlow,
+            status: EpistemicStatus::Observed,
+            subject,
+            scope: SemanticScope::new(["impl:owner"]),
+            repository,
+            revision,
+            extractor: ExtractorIdentity {
+                id: "atlas.test".into(),
+                version: "0.1.0".into(),
+            },
+            evidence_refs: Vec::new(),
+            provenance: provenance("src/lib.rs", "atlas.test"),
+        })
+    }
+
     fn normalization_with(
         typed_semantic_records: Vec<crate::semantic::SemanticObservation>,
         facts: Vec<SemanticFact>,
@@ -1449,5 +1587,140 @@ mod tests {
             .filter(|node| node.kind == "ControlFlowBlock")
             .collect();
         assert_eq!(block_nodes.len(), 2);
+    }
+
+    // --- R4.7: DATA_FLOW observations produce Value nodes and structural edges ------------------
+
+    #[test]
+    fn data_flow_value_produces_a_node_and_a_has_value_edge_from_its_function() {
+        use crate::semantic::ValueRole;
+
+        let caller = function_identity_observation("Foo");
+        let caller_record_id = caller.record_id().clone();
+        let value = data_flow_value_observation(
+            &caller_record_id,
+            "x",
+            10,
+            ValueRole::Definition,
+            true,
+            false,
+            None,
+        );
+
+        let normalization = normalization_with(vec![caller, value], Vec::new());
+        let graph = build_system_graph(&source(), &docs(), &normalization);
+
+        let value_node = graph
+            .nodes
+            .iter()
+            .find(|node| node.kind == "Value")
+            .expect("a Value node must exist");
+        assert_eq!(
+            value_node.attributes.get("role").map(String::as_str),
+            Some("DEFINITION")
+        );
+        assert_eq!(
+            value_node.attributes.get("resolution").map(String::as_str),
+            Some("UNRESOLVED")
+        );
+        assert_eq!(
+            value_node
+                .attributes
+                .get("is_parameter")
+                .map(String::as_str),
+            Some("true")
+        );
+        assert_eq!(
+            value_node
+                .attributes
+                .get("is_return_flow")
+                .map(String::as_str),
+            Some("false")
+        );
+
+        let caller_node_id = stable_id(
+            "node",
+            &format!("function-identity:{}", caller_record_id.as_str()),
+        );
+        let has_value_edge = graph
+            .edges
+            .iter()
+            .find(|edge| edge.kind == "HAS_VALUE")
+            .expect("a HAS_VALUE edge must exist");
+        assert_eq!(has_value_edge.from, caller_node_id);
+        assert_eq!(has_value_edge.to, value_node.id);
+    }
+
+    #[test]
+    fn an_unresolved_use_produces_no_resolves_to_edge() {
+        use crate::semantic::ValueRole;
+
+        let caller = function_identity_observation("Foo");
+        let caller_record_id = caller.record_id().clone();
+        let unresolved_use = data_flow_value_observation(
+            &caller_record_id,
+            "y",
+            20,
+            ValueRole::Use,
+            false,
+            false,
+            None,
+        );
+
+        let normalization = normalization_with(vec![caller, unresolved_use], Vec::new());
+        let graph = build_system_graph(&source(), &docs(), &normalization);
+
+        assert!(graph.edges.iter().all(|edge| edge.kind != "RESOLVES_TO"));
+    }
+
+    #[test]
+    fn a_resolved_use_produces_a_real_resolves_to_edge_between_two_value_nodes() {
+        use crate::semantic::ValueRole;
+
+        let caller = function_identity_observation("Foo");
+        let caller_record_id = caller.record_id().clone();
+
+        // Definition first, so its record_id is known when constructing the Use's resolution.
+        let definition = data_flow_value_observation(
+            &caller_record_id,
+            "x",
+            10,
+            ValueRole::Definition,
+            true,
+            false,
+            None,
+        );
+        let definition_record_id = definition.record_id().clone();
+
+        let resolved_use = data_flow_value_observation(
+            &caller_record_id,
+            "x",
+            11,
+            ValueRole::Use,
+            false,
+            false,
+            Some(definition_record_id.clone()),
+        );
+
+        let normalization = normalization_with(vec![caller, definition, resolved_use], Vec::new());
+        let graph = build_system_graph(&source(), &docs(), &normalization);
+
+        let definition_node_id = stable_id(
+            "node",
+            &format!("data-flow-value:{}", definition_record_id.as_str()),
+        );
+        let resolves_to_edge = graph
+            .edges
+            .iter()
+            .find(|edge| edge.kind == "RESOLVES_TO")
+            .expect("a RESOLVES_TO edge must exist");
+        assert_eq!(resolves_to_edge.to, definition_node_id);
+        // Two distinct values, two distinct Value nodes, never collapsed.
+        let value_nodes: Vec<_> = graph
+            .nodes
+            .iter()
+            .filter(|node| node.kind == "Value")
+            .collect();
+        assert_eq!(value_nodes.len(), 2);
     }
 }
