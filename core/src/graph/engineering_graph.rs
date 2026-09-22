@@ -126,8 +126,10 @@ pub fn build_repository_graph(source: &SourceReport, docs: &DocsReport) -> Engin
         node_ids_by_identity.insert(document.path.clone(), document_id.clone());
 
         for heading in &document.headings {
-            let section_id =
-                stable_id("node", &format!("document-section:{}:{heading}", document.path));
+            let section_id = stable_id(
+                "node",
+                &format!("document-section:{}:{heading}", document.path),
+            );
             graph.nodes.push(Node {
                 id: section_id.clone(),
                 kind: "DocumentSection".into(),
@@ -334,10 +336,7 @@ pub fn build_system_graph(
             | SemanticFactKind::Transform => {
                 ensure_node(
                     &mut graph,
-                    stable_id(
-                        "node",
-                        &format!("{}:{}", fact.kind.as_str(), fact.subject),
-                    ),
+                    stable_id("node", &format!("{}:{}", fact.kind.as_str(), fact.subject)),
                     match fact.kind {
                         SemanticFactKind::Constraint => "Constraint",
                         SemanticFactKind::Invariant => "Invariant",
@@ -353,7 +352,10 @@ pub fn build_system_graph(
             SemanticFactKind::ConstraintResult | SemanticFactKind::Diagnostic => {
                 let diagnostic_id = stable_id(
                     "node",
-                    &format!("diagnostic:{}:{}:{}", fact.subject, fact.predicate, fact.object),
+                    &format!(
+                        "diagnostic:{}:{}:{}",
+                        fact.subject, fact.predicate, fact.object
+                    ),
                 );
                 ensure_node(
                     &mut graph,
@@ -387,10 +389,7 @@ pub fn build_system_graph(
                 graph.edges.push(Edge {
                     id: stable_id(
                         "edge",
-                        &format!(
-                            "normalized:{}:MATERIALIZES:{}",
-                            fact.subject, fact.object
-                        ),
+                        &format!("normalized:{}:MATERIALIZES:{}", fact.subject, fact.object),
                     ),
                     kind: "MATERIALIZES".into(),
                     from: declared_node_id(&fact.subject),
@@ -422,9 +421,7 @@ pub fn build_system_graph(
                         graph.bindings.push(Binding {
                             id: stable_id(
                                 "binding",
-                                &format!(
-                                    "{materialization_id}:MaterializationBinding:{file_id}"
-                                ),
+                                &format!("{materialization_id}:MaterializationBinding:{file_id}"),
                             ),
                             source: materialization_id.clone(),
                             target: file_id.clone(),
@@ -483,9 +480,7 @@ fn summarize_engineering_graph(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{
-        EpistemicStatus, NormalizationReport, Provenance, SemanticFact, SemanticFactKind,
-    };
+    use crate::{EpistemicStatus, NormalizationReport, Provenance, SemanticFact, SemanticFactKind};
 
     fn source() -> SourceReport {
         SourceReport {

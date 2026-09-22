@@ -13,6 +13,7 @@ pub mod identity;
 pub mod language;
 pub mod provenance;
 pub mod schema;
+pub mod semantic;
 pub mod state;
 pub mod temporal;
 
@@ -39,6 +40,12 @@ pub use schema::{
     CensusReport, DocsReport, DocumentFact, EpistemicStatus, FileFact, GraphSummary,
     NormalizationReport, RepoAudit, RepoManifest, SemanticFact, SemanticFactKind, SourceReport,
     SystemizeReport,
+};
+pub use semantic::{
+    CallSiteIdentity, ControlFlowBlockIdentity, EffectCategory, EffectIdentity, ExtractorIdentity,
+    FunctionIdentity, FunctionParameter, FunctionSignature, SemanticDimension,
+    SemanticRecordHeader, SemanticRecordId, SemanticScope, StateIdentity, SymbolIdentity,
+    SymbolRole, TypeIdentity, ValueIdentity,
 };
 pub use state::RepositorySnapshot;
 pub use temporal::RevisionRef;
