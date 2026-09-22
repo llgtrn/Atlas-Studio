@@ -15,7 +15,7 @@ Read the architecture in this order:
 - `../contracts/UNIVERSAL-GRAPH-CONTRACT.md` — universal cross-repository semantic spine.
 - `../contracts/CENSUS-COMPLETENESS.md` and `../standards/CENSUS-SCOPE.md` — exhaustive accounting, function semantics, closure and seal gate.
 - `../contracts/ATLAS-FORMAT.md` and `../contracts/ATLAS-SHARDING.md` — dense logical Atlas and physical sharding.
-- `../contracts/ATLASX-FORMAT.md` — selected expanded executable representation.
+- `../contracts/ATLASX-FORMAT.md` — selected closed-world binary system capsule.
 - `SYSTEM.md` — implementation ownership and end-to-end dataflow.
 - `DIGITAL-ORGANISM.md` — first-class organism substrate, provider independence and phenotype model.
 - `../contracts/ORGANISM-GENOME-v1.md`, `ORGANISM-LIFECYCLE.md`, `ORGANISM-MODEL-ADMISSION.md` and `ORGANISM-HOMEOSTASIS-METABOLISM.md` — organism hard semantics.
