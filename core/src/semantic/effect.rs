@@ -1,4 +1,21 @@
 //! Effect site identity and category.
+//!
+//! R4.8 (`.atlas/contracts/SEMANTIC-FACTS.md#effectfact`, `.atlas/roadmap/SELF-BUILDING-R4-R8.md`
+//! R4.8): "externally observable effects; filesystem/network/process/FFI/build/runtime interactions
+//! where applicable; failure effects; explicit unknown/dynamic behavior."
+//!
+//! Scope this wave (see `adapter::semantic::rust::effect` for the extractor): only
+//! `EffectCategory::Panic` is materialized. A panic-like macro invocation
+//! (`panic!`/`unreachable!`/`todo!`/`unimplemented!`) is detected purely by its textual macro
+//! name, exactly as R4.6's CFG builder already does to route a Panic control-flow edge -- fully
+//! syntax-determined, no type inference needed. Every other category
+//! (`FilesystemRead`/`Write`, `Network*`, `ProcessSpawn`, `FfiCall`, `Persist`, `EmitEvent`,
+//! `AuthCheck`, `Alloc`, `Free`, `ExternalIo`) would require resolving an overloaded method/function
+//! call to a specific known API (e.g. distinguishing `std::fs::File::write` from an unrelated
+//! user-defined `write` method of the same name) -- genuine type/name resolution this extractor
+//! does not have, so claiming any of them from syntax alone would fabricate compiler-resolved
+//! semantics. They remain declared in `EffectCategory` for a future wave or extractor, never
+//! emitted by this one this wave.
 
 use super::SemanticRecordId;
 use crate::identity::RepositoryId;

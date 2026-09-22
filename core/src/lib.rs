@@ -48,8 +48,8 @@ pub use semantic::{
     EffectIdentity, ExtractionDiagnostic, ExtractorIdentity, FunctionDeclarationKind,
     FunctionIdentity, FunctionOwner, FunctionParameter, FunctionSignature, SemanticDimension,
     SemanticObligationRecord, SemanticObservation, SemanticRecordHeader, SemanticRecordId,
-    SemanticScope, StateIdentity, SymbolIdentity, SymbolRole, TypeIdentity, ValueIdentity,
-    ValueRole,
+    SemanticScope, StateAccessIdentity, StateAccessKind, StateResolution, SymbolIdentity,
+    SymbolRole, TypeIdentity, ValueIdentity, ValueRole,
 };
 pub use state::RepositorySnapshot;
 pub use temporal::RevisionRef;

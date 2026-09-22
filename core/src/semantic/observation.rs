@@ -10,8 +10,8 @@
 
 use super::{
     CallSiteIdentity, ControlFlowBlockIdentity, EffectIdentity, FunctionIdentity,
-    FunctionSignature, SemanticDimension, SemanticRecordHeader, SemanticRecordId, StateIdentity,
-    SymbolIdentity, TypeIdentity, ValueIdentity,
+    FunctionSignature, SemanticDimension, SemanticRecordHeader, SemanticRecordId,
+    StateAccessIdentity, SymbolIdentity, TypeIdentity, ValueIdentity,
 };
 use crate::identity::{EvidenceId, RawObservationId, stable_id};
 use serde::{Deserialize, Serialize};
@@ -30,7 +30,7 @@ pub enum SemanticObservation {
     Call(SemanticRecordHeader<CallSiteIdentity>),
     ControlFlow(SemanticRecordHeader<ControlFlowBlockIdentity>),
     DataFlow(SemanticRecordHeader<ValueIdentity>),
-    State(SemanticRecordHeader<StateIdentity>),
+    State(SemanticRecordHeader<StateAccessIdentity>),
     Effect(SemanticRecordHeader<EffectIdentity>),
 }
 

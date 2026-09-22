@@ -142,8 +142,10 @@ mod tests {
                 "CALL",
                 "CONTROL_FLOW",
                 "DATA_FLOW",
+                "EFFECT",
                 "FUNCTION_IDENTITY",
                 "FUNCTION_SIGNATURE",
+                "STATE",
                 "SYMBOL",
                 "TYPE"
             ]

@@ -11,10 +11,11 @@ use super::super::extractor::{ExtractionInput, SemanticExtractor};
 use super::{RustSemanticExtractor, spelling};
 use atlas_core::{
     ArtifactId, CallDispatchKind, CallSiteIdentity, ContentFingerprint, ControlFlowBlockIdentity,
-    ControlFlowBlockKind, ControlFlowEdgeKind, DataFlowResolution, EpistemicStatus,
-    FunctionDeclarationKind, FunctionIdentity, FunctionSignature, RepositoryId, RevisionRef,
-    SemanticDimension, SemanticObservation, SemanticRecordId, SymbolIdentity, SymbolRole,
-    TypeIdentity, ValueIdentity, ValueRole,
+    ControlFlowBlockKind, ControlFlowEdgeKind, DataFlowResolution, EffectCategory, EffectIdentity,
+    EpistemicStatus, FunctionDeclarationKind, FunctionIdentity, FunctionSignature, RepositoryId,
+    RevisionRef, SemanticDimension, SemanticObservation, SemanticRecordId, StateAccessIdentity,
+    StateAccessKind, StateResolution, SymbolIdentity, SymbolRole, TypeIdentity, ValueIdentity,
+    ValueRole,
 };
 
 const ALL_DIMENSIONS: [SemanticDimension; 12] = [
@@ -32,9 +33,7 @@ const ALL_DIMENSIONS: [SemanticDimension; 12] = [
     SemanticDimension::Persistence,
 ];
 
-const UNSUPPORTED_DIMENSIONS: [SemanticDimension; 5] = [
-    SemanticDimension::State,
-    SemanticDimension::Effect,
+const UNSUPPORTED_DIMENSIONS: [SemanticDimension; 3] = [
     SemanticDimension::Ownership,
     SemanticDimension::Concurrency,
     SemanticDimension::Persistence,
@@ -413,6 +412,51 @@ pub fn if_in_let(x: u64) -> u64 {
 }
 "#;
 
+const STATE_EFFECT_CORPUS: &str = r#"
+pub struct Inner {
+    pub value: u64,
+}
+
+pub struct Counter {
+    pub value: u64,
+    pub inner: Inner,
+}
+
+impl Counter {
+    pub fn get(&self) -> u64 {
+        self.value
+    }
+
+    pub fn set(&mut self, new_value: u64) {
+        self.value = new_value;
+    }
+
+    pub fn increment_and_get(&mut self) -> u64 {
+        self.value = self.value + 1;
+        self.value
+    }
+
+    pub fn maybe_panic(&self, ok: bool) -> u64 {
+        if !ok {
+            panic!("not ok");
+        }
+        self.value
+    }
+
+    pub fn read_nested(&self) -> u64 {
+        self.inner.value
+    }
+
+    pub fn compound_increment(&mut self) {
+        self.value += 1;
+    }
+}
+
+pub fn free_function_with_no_self() -> u64 {
+    0
+}
+"#;
+
 fn input_for(
     artifact_path: &str,
     source: &str,
@@ -632,6 +676,60 @@ fn data_flow_values_for<'a>(
         .filter(|value| value.function == caller_id)
         .collect();
     values.sort_by_key(|value| (value.span.line, value.span.column, value.role.as_str()));
+    values
+}
+
+fn all_state_accesses(batch: &ExtractionBatch) -> Vec<&StateAccessIdentity> {
+    batch
+        .observations
+        .iter()
+        .filter_map(|observation| match observation {
+            SemanticObservation::State(header) => Some(&header.subject),
+            _ => None,
+        })
+        .collect()
+}
+
+/// Every State access observation whose `function` is exactly `caller`'s `FunctionIdentity`
+/// record_id, sorted by (span line, span column, kind) for deterministic assertions.
+fn state_accesses_for<'a>(
+    batch: &'a ExtractionBatch,
+    caller: &FunctionIdentity,
+) -> Vec<&'a StateAccessIdentity> {
+    let caller_id =
+        SemanticRecordId::new(SemanticDimension::FunctionIdentity, &caller.identity_key());
+    let mut values: Vec<&StateAccessIdentity> = all_state_accesses(batch)
+        .into_iter()
+        .filter(|value| value.function == caller_id)
+        .collect();
+    values.sort_by_key(|value| (value.span.line, value.span.column, value.kind.as_str()));
+    values
+}
+
+fn all_effects(batch: &ExtractionBatch) -> Vec<&EffectIdentity> {
+    batch
+        .observations
+        .iter()
+        .filter_map(|observation| match observation {
+            SemanticObservation::Effect(header) => Some(&header.subject),
+            _ => None,
+        })
+        .collect()
+}
+
+/// Every Effect observation whose `function` is exactly `caller`'s `FunctionIdentity` record_id,
+/// sorted by (span line, span column) for deterministic assertions.
+fn effects_for<'a>(
+    batch: &'a ExtractionBatch,
+    caller: &FunctionIdentity,
+) -> Vec<&'a EffectIdentity> {
+    let caller_id =
+        SemanticRecordId::new(SemanticDimension::FunctionIdentity, &caller.identity_key());
+    let mut values: Vec<&EffectIdentity> = all_effects(batch)
+        .into_iter()
+        .filter(|value| value.function == caller_id)
+        .collect();
+    values.sort_by_key(|value| (value.span.line, value.span.column));
     values
 }
 
@@ -863,7 +961,8 @@ fn the_users_example_from_the_contract_note_extracts_as_documented() {
     find_symbol(&batch, &[], "users").expect("users module symbol");
     find_symbol(&batch, &["users"], "User").expect("User struct symbol");
     find_symbol(&batch, &["users", "User"], "id").expect("User.id field symbol");
-    find_function_identity(&batch, &["users"], "load_user").expect("load_user identity");
+    let load_user_identity =
+        find_function_identity(&batch, &["users"], "load_user").expect("load_user identity");
     let signature = find_function_signature(&batch, &["users"], "load_user").unwrap();
     assert_eq!(signature.visibility, "pub");
     assert!(signature.is_async);
@@ -875,18 +974,35 @@ fn the_users_example_from_the_contract_note_extracts_as_documented() {
     );
 
     // `todo!()` is a macro invocation (`syn::Expr::Macro`), not a `syn::Expr::Call` -- so even
-    // with R4.5 CALL support, this body contributes no Call observation. State/Effect remain
-    // wholly unclaimed this wave regardless of body content.
+    // with R4.5 CALL support, this body contributes no Call observation. `load_user` is a free
+    // function (no `self`), so R4.8 STATE finds nothing to claim either.
     assert!(batch.observations.iter().all(|observation| !matches!(
         observation,
-        SemanticObservation::Call(_)
-            | SemanticObservation::State(_)
-            | SemanticObservation::Effect(_)
+        SemanticObservation::Call(_) | SemanticObservation::State(_)
     )));
+
+    // R4.8: `todo!()` IS panic-like, so it produces a real Effect(Panic) observation, attributed
+    // to `load_user`.
+    let effects: Vec<_> = batch
+        .observations
+        .iter()
+        .filter_map(|observation| match observation {
+            SemanticObservation::Effect(header) => Some(&header.subject),
+            _ => None,
+        })
+        .collect();
+    assert_eq!(effects.len(), 1);
+    assert_eq!(effects[0].category, EffectCategory::Panic);
+    assert_eq!(
+        effects[0].function,
+        SemanticRecordId::new(
+            SemanticDimension::FunctionIdentity,
+            &load_user_identity.identity_key()
+        )
+    );
 
     // R4.7: the `id` parameter still produces a real Definition, even though the body (`todo!()`)
     // never uses it -- an unused-but-declared parameter is not the same as no data flow at all.
-    let load_user_identity = find_function_identity(&batch, &["users"], "load_user").unwrap();
     let values = data_flow_values_for(&batch, load_user_identity);
     assert_eq!(values.len(), 1);
     assert_eq!(values[0].role, ValueRole::Definition);
@@ -926,6 +1042,8 @@ fn malformed_rust_produces_parse_failure_and_unknown_for_supported_dimensions() 
         SemanticDimension::Call,
         SemanticDimension::ControlFlow,
         SemanticDimension::DataFlow,
+        SemanticDimension::State,
+        SemanticDimension::Effect,
     ] {
         let obligation = batch.obligation_for(dimension).unwrap();
         assert_eq!(obligation.status, EpistemicStatus::Unknown);
@@ -2395,4 +2513,209 @@ fn repeated_extraction_yields_stable_data_flow_record_ids() {
 
     assert_eq!(first, second);
     assert!(!first.is_empty());
+}
+
+// --- 62. a bare `self.field` read produces a real State Read, resolved, scoped to the impl ------
+
+#[test]
+fn self_field_read_produces_a_state_read_observation() {
+    let batch = extract_all("src/lib.rs", STATE_EFFECT_CORPUS);
+    let caller = find_function_identity(&batch, &["impl:Counter"], "get").unwrap();
+    let accesses = state_accesses_for(&batch, caller);
+    assert_eq!(accesses.len(), 1);
+    assert_eq!(accesses[0].kind, StateAccessKind::Read);
+    assert_eq!(accesses[0].name, "value");
+    assert_eq!(accesses[0].resolution, StateResolution::Resolved);
+}
+
+// --- 63. a plain `self.field = value` assignment produces a Write, not a Read -------------------
+
+#[test]
+fn self_field_assignment_produces_a_write_not_a_read() {
+    let batch = extract_all("src/lib.rs", STATE_EFFECT_CORPUS);
+    let caller = find_function_identity(&batch, &["impl:Counter"], "set").unwrap();
+    let accesses = state_accesses_for(&batch, caller);
+    assert_eq!(accesses.len(), 1);
+    assert_eq!(accesses[0].kind, StateAccessKind::Write);
+    assert_eq!(accesses[0].name, "value");
+}
+
+// --- 64. a read-modify-write produces one Write (the assignment target) and two distinct Reads
+// (the RHS use and the following tail use), never collapsed into one record -----------------------
+
+#[test]
+fn read_modify_write_produces_a_write_and_two_distinct_reads() {
+    let batch = extract_all("src/lib.rs", STATE_EFFECT_CORPUS);
+    let caller = find_function_identity(&batch, &["impl:Counter"], "increment_and_get").unwrap();
+    let accesses = state_accesses_for(&batch, caller);
+    assert_eq!(accesses.len(), 3, "one Write (LHS) + two Reads (RHS, tail)");
+    assert_eq!(
+        accesses
+            .iter()
+            .filter(|a| a.kind == StateAccessKind::Write)
+            .count(),
+        1
+    );
+    assert_eq!(
+        accesses
+            .iter()
+            .filter(|a| a.kind == StateAccessKind::Read)
+            .count(),
+        2
+    );
+    // The two Reads are at genuinely different sites (different spans), so they carry distinct
+    // identity_key()s even though they name the exact same entity.
+    let read_spans: std::collections::BTreeSet<_> = accesses
+        .iter()
+        .filter(|a| a.kind == StateAccessKind::Read)
+        .map(|a| (a.span.line, a.span.column))
+        .collect();
+    assert_eq!(read_spans.len(), 2);
+}
+
+// --- 65. STATE and EFFECT coexist without interference: a conditional panic still leaves the
+// tail `self.value` read intact, and the panic itself is correctly attributed --------------------
+
+#[test]
+fn state_and_effect_coexist_without_interference() {
+    let batch = extract_all("src/lib.rs", STATE_EFFECT_CORPUS);
+    let caller = find_function_identity(&batch, &["impl:Counter"], "maybe_panic").unwrap();
+
+    let accesses = state_accesses_for(&batch, caller);
+    assert_eq!(
+        accesses.len(),
+        1,
+        "only the tail `self.value`, none inside the panic branch"
+    );
+    assert_eq!(accesses[0].kind, StateAccessKind::Read);
+    assert_eq!(accesses[0].name, "value");
+
+    let effects = effects_for(&batch, caller);
+    assert_eq!(effects.len(), 1);
+    assert_eq!(effects[0].category, EffectCategory::Panic);
+}
+
+// --- 66. a free function with no `self` produces zero State observations, never a false positive -
+
+#[test]
+fn free_function_with_no_self_produces_no_state_observations() {
+    let batch = extract_all("src/lib.rs", STATE_EFFECT_CORPUS);
+    let caller = find_function_identity(&batch, &[], "free_function_with_no_self").unwrap();
+    assert!(state_accesses_for(&batch, caller).is_empty());
+}
+
+// --- 67. a nested field chain (`self.inner.value`) reports a Read of the outer field only -- the
+// documented gap, not a silent one ----------------------------------------------------------------
+
+#[test]
+fn nested_field_chain_reports_only_the_outer_field_as_a_documented_gap() {
+    let batch = extract_all("src/lib.rs", STATE_EFFECT_CORPUS);
+    let caller = find_function_identity(&batch, &["impl:Counter"], "read_nested").unwrap();
+    let accesses = state_accesses_for(&batch, caller);
+    assert_eq!(accesses.len(), 1);
+    assert_eq!(accesses[0].kind, StateAccessKind::Read);
+    assert_eq!(
+        accesses[0].name, "inner",
+        "only the outer field is modeled this wave"
+    );
+}
+
+// --- 68. a compound assignment (`self.field += 1`) is recorded as a Read, never a Write and never
+// silently dropped -- a documented gap, matching R4.7's identical `syn::Expr::Binary` discovery --
+
+#[test]
+fn compound_assignment_is_recorded_as_a_read_not_a_write() {
+    let batch = extract_all("src/lib.rs", STATE_EFFECT_CORPUS);
+    let caller = find_function_identity(&batch, &["impl:Counter"], "compound_increment").unwrap();
+    let accesses = state_accesses_for(&batch, caller);
+    assert_eq!(
+        accesses.len(),
+        1,
+        "`self.value += 1` still produces exactly one access, never zero"
+    );
+    assert_eq!(
+        accesses[0].kind,
+        StateAccessKind::Read,
+        "compound assignment is not specially modeled as a Write this wave"
+    );
+    assert_eq!(accesses[0].name, "value");
+}
+
+// --- 69. every State/Effect observation satisfies dimension consistency, alongside every other
+// dimension this extractor produces -------------------------------------------------------------
+
+#[test]
+fn state_and_effect_observations_satisfy_dimension_consistency() {
+    let batch = extract_all("src/lib.rs", STATE_EFFECT_CORPUS);
+    let mut saw_state = false;
+    let mut saw_effect = false;
+    for observation in &batch.observations {
+        match observation {
+            SemanticObservation::State(_) => saw_state = true,
+            SemanticObservation::Effect(_) => saw_effect = true,
+            _ => {}
+        }
+        assert!(observation.is_dimension_consistent());
+    }
+    assert!(saw_state);
+    assert!(saw_effect);
+}
+
+// --- 70. STATE_EFFECT_CORPUS extraction is byte-for-byte deterministic across repeated runs ------
+
+#[test]
+fn state_effect_corpus_extraction_is_deterministic() {
+    let first = extract_all("src/lib.rs", STATE_EFFECT_CORPUS);
+    let second = extract_all("src/lib.rs", STATE_EFFECT_CORPUS);
+    assert_eq!(first.observations, second.observations);
+    assert_eq!(first.evidence, second.evidence);
+}
+
+// --- 71. STATE_EFFECT_CORPUS extraction is unaffected by requested-dimension order ---------------
+
+#[test]
+fn state_effect_corpus_is_unaffected_by_requested_dimension_order() {
+    let forward = extract(
+        "src/lib.rs",
+        STATE_EFFECT_CORPUS,
+        vec![
+            SemanticDimension::Symbol,
+            SemanticDimension::FunctionIdentity,
+            SemanticDimension::State,
+            SemanticDimension::Effect,
+        ],
+    );
+    let reversed = extract(
+        "src/lib.rs",
+        STATE_EFFECT_CORPUS,
+        vec![
+            SemanticDimension::Effect,
+            SemanticDimension::State,
+            SemanticDimension::FunctionIdentity,
+            SemanticDimension::Symbol,
+        ],
+    );
+    assert_eq!(forward.observations, reversed.observations);
+}
+
+// --- 72. repeated extraction yields the exact same State/Effect record_ids -----------------------
+
+#[test]
+fn repeated_extraction_yields_stable_state_and_effect_record_ids() {
+    let batch = extract_all("src/lib.rs", STATE_EFFECT_CORPUS);
+    let caller = find_function_identity(&batch, &["impl:Counter"], "increment_and_get").unwrap();
+    let first_state: Vec<String> = state_accesses_for(&batch, caller)
+        .into_iter()
+        .map(StateAccessIdentity::identity_key)
+        .collect();
+
+    let batch2 = extract_all("src/lib.rs", STATE_EFFECT_CORPUS);
+    let caller2 = find_function_identity(&batch2, &["impl:Counter"], "increment_and_get").unwrap();
+    let second_state: Vec<String> = state_accesses_for(&batch2, caller2)
+        .into_iter()
+        .map(StateAccessIdentity::identity_key)
+        .collect();
+
+    assert_eq!(first_state, second_state);
+    assert!(!first_state.is_empty());
 }

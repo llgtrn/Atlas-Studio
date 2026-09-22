@@ -1,8 +1,8 @@
-//! Real Rust semantic extractor (R4.3-R4.7).
+//! Real Rust semantic extractor (R4.3-R4.8).
 //!
-//! Scope is seven dimensions: SYMBOL, TYPE, FUNCTION_IDENTITY, FUNCTION_SIGNATURE, CALL,
-//! CONTROL_FLOW, DATA_FLOW. Every other requested dimension (STATE, EFFECT, OWNERSHIP,
-//! CONCURRENCY, PERSISTENCE) is always explicit `UNSUPPORTED` here — R4.8+ territory, never
+//! Scope is nine dimensions: SYMBOL, TYPE, FUNCTION_IDENTITY, FUNCTION_SIGNATURE, CALL,
+//! CONTROL_FLOW, DATA_FLOW, STATE, EFFECT. Every other requested dimension (OWNERSHIP,
+//! CONCURRENCY, PERSISTENCE) is always explicit `UNSUPPORTED` here — R4.9+ territory, never
 //! silently omitted.
 //!
 //! Parses `input.source_text` with `syn` (a real Rust parser, not regex/ad-hoc text scanning).
@@ -23,13 +23,19 @@
 //! name/type resolution, so real successor edges (see `cfg.rs`) and real local def-use resolution
 //! (see `dataflow.rs`) ARE computed -- `ControlFlowEdgeKind::Unresolved`/`DataFlowResolution::
 //! Unresolved` are used only for genuinely ambiguous/out-of-local-scope cases, never as a blanket
-//! default. A malformed file never silently disappears: parse failure yields a `ParseFailure`
-//! diagnostic plus explicit `UNKNOWN` for all supported dimensions, with the artifact still
-//! represented.
+//! default. STATE (R4.8, see `state.rs`) is narrowly scoped to single-level `self.<field>`
+//! read/write -- also syntax-determined, not resolved. EFFECT (R4.8, see `effect.rs`) is narrowly
+//! scoped to `Panic`, detected by a macro invocation's textual name alone; every other
+//! `EffectCategory` would require resolving an overloaded call to a specific known API, which this
+//! extractor cannot do without fabricating semantics, so none of them are emitted this wave. A
+//! malformed file never silently disappears: parse failure yields a `ParseFailure` diagnostic plus
+//! explicit `UNKNOWN` for all supported dimensions, with the artifact still represented.
 
 mod cfg;
 mod dataflow;
+mod effect;
 mod spelling;
+mod state;
 
 use std::collections::{BTreeMap, BTreeSet};
 
@@ -47,8 +53,8 @@ use super::extractor::{DiagnosticCode, ExtractionDiagnostic, ExtractionInput, Se
 pub const RUST_SEMANTIC_EXTRACTOR_ID: &str = "atlas.rust.source-semantic.v1";
 pub const RUST_SEMANTIC_EXTRACTOR_VERSION: &str = "0.1.0";
 
-/// Exactly the seven dimensions this wave observes from parser-visible syntax. Every other
-/// `SemanticDimension` is out of scope through R4.7 and always answered `UNSUPPORTED`.
+/// Exactly the nine dimensions this wave observes from parser-visible syntax. Every other
+/// `SemanticDimension` is out of scope through R4.8 and always answered `UNSUPPORTED`.
 pub const SUPPORTED_DIMENSIONS: &[SemanticDimension] = &[
     SemanticDimension::Symbol,
     SemanticDimension::Type,
@@ -57,6 +63,8 @@ pub const SUPPORTED_DIMENSIONS: &[SemanticDimension] = &[
     SemanticDimension::Call,
     SemanticDimension::ControlFlow,
     SemanticDimension::DataFlow,
+    SemanticDimension::State,
+    SemanticDimension::Effect,
 ];
 
 #[derive(Debug, Default)]
@@ -674,6 +682,8 @@ impl<'a> ExtractionContext<'a> {
             self.walk_block(body, scope, &caller_record_id);
             self.build_control_flow(body, scope, &caller_record_id);
             self.build_data_flow(sig, body, scope, &caller_record_id);
+            self.build_state(body, scope, &caller_record_id);
+            self.build_effects(body, scope, &caller_record_id);
         }
 
         let mut parameters = Vec::new();
