@@ -1,0 +1,326 @@
+# Composer Pipeline Overview
+
+> **Memory Architecture**: For hardware targets (CMSIS, embedded), see [BAREWire platform descriptions](https://github.com/FidelityFramework/BAREWire/blob/main/docs/11%20Platform%20Description.md)
+> which describe the memory and boundary declarations consumed by CCS and Composer, including generated bindings.
+>
+> **Desktop UI Stack**: For WebView-based desktop applications, see [WebView_Desktop_Architecture.md](./WebView_Desktop_Architecture.md)
+> which describes Partas.Solid frontend + Composer native backend with system webview rendering.
+
+## Current service boundary
+
+The [Clef specification](https://github.com/FidelityFramework/clef-lang-spec) governs language semantics. [CCS Architecture](CCS_Architecture.md) records the compiler facts and their current implementation status; [Lattice Integration](Lattice_Integration.md) is the shared entry point for editor tooling, the initial .NET host and its acceptance gates.
+
+The pipeline consumes source libraries and platform declarations as project inputs alongside compiler intrinsics. CCS owns the resulting type, range, layout and obligation facts. Composer witnesses those facts through lowering and must preserve or re-check affected properties; receiving a checked graph does not by itself certify every later transformation.
+
+## The Pipeline Model
+
+**ARCHITECTURE UPDATE (January 2026)**: Alloy absorbed into CCS. Types and operations are compiler intrinsics.
+
+```
+┌─────────────────────────────────────────────────────────┐
+│  Clef Application Code                                    │
+│  - Uses CCS intrinsics: Console.writeln, Sys.write    │
+│  - Types provided by NTUKind: string, int, Uuid, etc.  │
+│  - Project libraries and platform declarations          │
+└─────────────────────────────────────────────────────────┘
+                          │
+                          │ Compiled by CCS
+                          ▼
+┌─────────────────────────────────────────────────────────┐
+│  CCS (Clef Compiler Services)                     │
+│  - Parses Clef source (SynExpr, SynModule)                │
+│  - Type checking with NTUKind native types              │
+│  - SRTP resolution during type checking                 │
+│  - Intrinsic modules: Sys.*, Ptr.*, Console.*      │
+│  - PSG CONSTRUCTION with intrinsic markers              │
+│                                                         │
+│  OUTPUT: PSG with native types, intrinsics marked       │
+└─────────────────────────────────────────────────────────┘
+                          │
+                          │ PSG (correct by construction)
+                          ▼
+┌─────────────────────────────────────────────────────────┐
+│  COMPOSER (Consumes PSG from CCS)                      │
+├─────────────────────────────────────────────────────────┤
+│  Lowering Nanopasses (if needed)                        │
+│  - FlattenApplications, ReducePipeOperators             │
+└─────────────────────────────────────────────────────────┘
+                          │
+                          ▼
+┌─────────────────────────────────────────────────────────┐
+│  Alex (Compiler Targeting Layer)                        │
+│  - Consumes PSG as "correct by construction"            │
+│  - Read CCS facts; preserve or re-check properties       │
+│  - Zipper traversal + XParsec pattern matching          │
+│  - Intrinsic → MLIR mapping using NTUKind               │
+│  - Platform implementations for Sys.* intrinsics        │
+└─────────────────────────────────────────────────────────┘
+```
+
+**`NativePtr.*` status:** The intrinsic module listed above is compat surface, not a design commitment. Per the spec (`clef-lang-spec/spec/ffi-boundary.md`, `ntu-types.md`, `special-attributes-and-types.md`), `nativeptr` is not user-denotable and survives as internal `TNativePtr` plumbing, confined to the generated Layer 1/2 membrane, counted as the TCB metric, and regenerated out at the corpus-wide regeneration horizon. The finiteness argument for why it cannot remain surface is [Closure_Nanopass_Architecture.md](./Closure_Nanopass_Architecture.md) Section 4; the boundary contract it folds into is [C-01 PRD](./PRDs/C-01-Closures.md) Section 6.7.
+
+**CCS-First Architecture:** Types and operations ARE the compiler, not library code:
+- **CCS**: Defines NTUKind types, provides intrinsic modules, builds PSG with intrinsics marked
+- **Alex**: Traverses PSG → generates MLIR → LLVM → native binary
+- **Project inputs**: Library and platform sources participate in CCS checking; compiler intrinsic ownership does not eliminate these dependencies.
+
+**Zipper Coherence:** Alex uses PSGZipper to traverse the PSG from CCS:
+- PSG comes from CCS with all type information attached
+- Intrinsics are marked with `SemanticKind.Intrinsic`
+- Alex maps intrinsics to platform-specific MLIR
+
+## Alloy: Historical Archive (Absorbed January 2026)
+
+> **Note**: Alloy has been absorbed into CCS. The repository is preserved as a historical artifact.
+> See [CCS Architecture](CCS_Architecture.md) for the current intrinsic and library boundaries.
+
+Alloy was a BCL-free Clef standard library that proved native compilation was possible. Its functionality is now provided by CCS intrinsic modules.
+
+### What Alloy Taught Us
+
+Alloy demonstrated:
+- **BCL-free Clef is possible** - No System.* dependencies needed
+- **Fat pointer types work** - NativeStr, NativeArray as (ptr, length) structs
+- **SRTP enables zero-cost abstractions** - Compile-time polymorphism
+
+These lessons are now embodied in CCS as NTUKind types and intrinsic modules.
+
+### CCS Intrinsics (Replacement)
+
+What was Alloy is now CCS:
+
+```fsharp
+// CCS intrinsic modules - defined in CheckExpressions.fs
+// Sys.* for platform operations
+| "Sys.write" -> NativeType.TFun(intType, TFun(ptrType, TFun(intType, intType)))
+| "Sys.clock_gettime" -> NativeType.TFun(unitType, int64Type)
+
+// Console.* for I/O (thin wrappers over Sys.*)
+| "Console.writeln" -> NativeType.TFun(stringType, unitType)
+
+// Application code uses intrinsics directly
+let main() =
+    Console.writeln "Hello, World!"  // CCS intrinsic, not library call
+```
+
+**Why intrinsics?** Following ML/Rust/Triton-CPU patterns:
+- Types ARE the language (NTUKind)
+- Operations ARE the language (intrinsic modules)
+- No external library needed
+
+## Alex: The Non-Dispatch Model
+
+> **Key Insight: Centralization belongs at the OUTPUT (MLIR Builder), not at DISPATCH (traversal logic).**
+
+Alex generates MLIR through Zipper traversal and platform Bindings. There is **NO central dispatch hub**.
+
+```
+PSG Entry Point
+    ↓
+Zipper.create(psg, entryNode)     -- provides "attention"
+    ↓
+Fold over structure (pre-order/post-order)
+    ↓
+At each node: XParsec matches locally → MLIR emission
+    ↓
+Extern primitive? → ExternDispatch.dispatch(primitive)
+    ↓
+MLIR Builder accumulates           -- correct centralization
+    ↓
+Output: Complete MLIR module
+```
+
+**Component Roles:**
+
+- **Zipper**: Purely navigational - provides focus with context; reads the SSA assignment coeffect and holds no counters
+- **XParsec**: Local pattern matching - composable patterns, NOT a routing table
+- **Bindings**: Platform-specific MLIR - looked up by extern entry point, are DATA not routing
+- **MLIR Builder**: Where centralization correctly occurs - the single accumulation point
+
+**Bindings are DATA, not routing logic:**
+
+```fsharp
+// Syscall numbers as data
+module SyscallData =
+    let linuxSyscalls = Map [
+        "write", 1L
+        "read", 0L
+        "clock_gettime", 228L
+    ]
+    let macosSyscalls = Map [
+        "write", 0x2000004L  // BSD offset
+        "read", 0x2000003L
+    ]
+
+// Bindings registered by (OS, Arch, EntryPoint)
+ExternDispatch.register Linux X86_64 "fidelity_write_bytes"
+    (fun ext -> bindWriteBytes TargetPlatform.linux_x86_64 ext)
+```
+
+**NO central dispatch match statement. Bindings are looked up by entry point.**
+
+## The Fidelity Mission
+
+Unlike Fable (AST→AST, delegates memory to target runtime), Fidelity:
+- **Preserves type fidelity**: Clef types → precise native representations
+- **Preserves memory fidelity**: Compiler-verified lifetimes, deterministic allocation
+- **PSG carries proofs**: Not just syntax, but semantic guarantees about memory, types, ownership
+
+The generated native binary has the same safety properties as the source Clef.
+
+## CCS Intrinsic Modules
+
+CCS provides intrinsic modules that Alex maps to platform-specific implementations:
+
+| Intrinsic Module | MLIR Mapping | Purpose |
+|-----------------|--------------|---------|
+| Sys.write | write syscall | Low-level I/O |
+| Sys.read | read syscall | Low-level I/O |
+| Sys.clock_gettime | clock_gettime | Wall clock time |
+| Sys.clock_monotonic | clock_gettime(MONOTONIC) | High-resolution timing |
+| Sys.tick_frequency | constant (platform-specific) | Timer resolution |
+| Sys.nanosleep | nanosleep/Sleep | Thread sleep |
+| Console.write | Sys.write wrapper | String output |
+| Console.writeln | Sys.write + newline | Line output |
+| Console.readln | Sys.read wrapper | Line input |
+
+Alex provides implementations for each `(intrinsic, platform)` pair based on target platform.
+
+> **Note**: Webview bindings call library functions (WebKitGTK, WebView2, WKWebView) rather than syscalls. See [WebView_Desktop_Architecture.md](./WebView_Desktop_Architecture.md) for the full desktop UI stack architecture.
+
+## File Organization
+
+```
+clef/src/Compiler/Checking.Native/  # TYPES AND OPERATIONS
+├── NativeService.fs        # Public API for CCS
+├── NativeTypes.fs          # NTUKind enum - native type universe
+├── NativeGlobals.fs        # Type constructors (string, int, Uuid, etc.)
+├── CheckExpressions.fs     # Intrinsic modules (Sys.*, Console.*, etc.)
+├── SemanticGraph.fs        # PSG data structures with intrinsic markers
+├── SRTPResolution.fs       # SRTP resolution during type checking
+└── NameResolution.fs       # Compositional name resolution
+
+Composer/src/Core/PSG/Nanopass/  # LOWERING PASSES (post-CCS)
+├── FlattenApplications.fs
+├── ReducePipeOperators.fs
+└── ...
+
+Composer/src/Alex/
+├── Traversal/
+│   ├── PSGZipper.fs       # Bidirectional traversal (attention)
+│   ├── PSGXParsec.fs      # Local pattern matching combinators
+│   └── CCSTransfer.fs     # Intrinsic → MLIR mapping
+├── Bindings/
+│   ├── BindingTypes.fs    # Platform types
+│   ├── SysBindings.fs     # Sys.* platform implementations
+│   └── ...
+├── CodeGeneration/
+│   ├── MLIRBuilder.fs     # MLIR accumulation (correct centralization)
+│   └── TypeMapping.fs     # NTUKind → MLIR type mapping
+└── Pipeline/
+    └── CompilationOrchestrator.fs  # Entry point
+
+Alloy/ (HISTORICAL ARCHIVE - absorbed into CCS January 2026)
+└── README.md              # Explains absorbed status
+```
+
+**Note:** Alloy functionality absorbed into CCS as intrinsic modules.
+**Note:** PSGEmitter.fs and PSGScribe.fs were removed - they were antipatterns.
+
+## Anti-Patterns (DO NOT DO)
+
+```fsharp
+// WRONG: BCL dependencies anywhere
+open System.Runtime.InteropServices
+[<DllImport("__fidelity")>]
+extern int writeBytes(...)  // NO! BCL pollution
+
+// WRONG: Pattern matching on namespace names
+match symbolName with
+| "MyApp.Console.Write" -> ...  // NO! Use intrinsic markers
+
+// WRONG: Expecting library to provide what compiler should
+// (This was the Alloy anti-pattern - library as BCL equivalent)
+open Alloy  // NO! Types are NTUKind, operations are intrinsics
+
+// WRONG: Central dispatch hub (the "emitter" or "scribe" antipattern)
+module PSGEmitter =
+    let handlers = Dictionary<string, NodeHandler>()
+    let emit node =
+        match handlers.TryGetValue(getPrefix node) with
+        | true, h -> h node
+        | _ -> default node
+// This was removed TWICE. Centralization belongs at MLIR Builder output,
+// not at traversal dispatch.
+```
+
+**The correct model:**
+- Types defined by NTUKind in CCS
+- Operations defined as intrinsic modules in CCS
+- Alex recognizes `SemanticKind.Intrinsic` markers
+- Zipper provides attention (focus + context)
+- XParsec provides local pattern matching
+- MLIR Builder accumulates (correct centralization point)
+
+## PSG Construction: Handled by CCS
+
+**ARCHITECTURE UPDATE**: PSG construction has moved to CCS.
+
+See: `docs/PSG_Nanopass_Architecture.md` for nanopass principles.
+See: `docs/CCS_Architecture.md` for how CCS builds the PSG.
+
+CCS builds the PSG with:
+- Native types attached during type checking
+- SRTP resolved during type checking (not post-hoc)
+- Full symbol information preserved for design-time tooling
+
+Composer receives the completed PSG and applies **lowering nanopasses** if needed:
+- FlattenApplications
+- ReducePipeOperators  
+- DetectPlatformBindings
+- etc.
+
+### Why CCS Builds PSG
+
+With CCS handling PSG construction:
+- SRTP is resolved during type checking, not in a separate pass
+- Types are attached to nodes during construction, not overlaid later
+- No separate typed tree correlation needed
+- Symbol information flows directly from type checker to PSG
+
+## Validation Samples
+
+These samples must compile WITHOUT modification:
+- `01_HelloWorldDirect` - Console.write, Console.writeln (CCS intrinsics)
+- `02_HelloWorldSaturated` - Console.readln, interpolated strings
+- `03_HelloWorldHalfCurried` - Pipe operators, string formatting
+
+The samples use CCS intrinsics directly. Compilation flow:
+1. CCS: Parse, type check with NTUKind types, recognize intrinsics
+2. CCS: Build PSG with intrinsics marked, SRTP resolved
+3. Composer: Receive PSG from CCS ("correct by construction")
+4. Composer: Apply lowering nanopasses (flatten apps, reduce pipes, etc.)
+5. Alex/Zipper: Traverse PSG, map intrinsics → MLIR
+6. MLIR → LLVM → native binary
+
+---
+
+## Cross-References
+
+### Core Architecture
+- [CCS_Architecture.md](./CCS_Architecture.md) - CCS and PSG construction (PRIMARY)
+- [PSG_Nanopass_Architecture.md](./PSG_Nanopass_Architecture.md) - Nanopass principles
+- [BAREWire platform descriptions](https://github.com/FidelityFramework/BAREWire/blob/main/docs/11%20Platform%20Description.md) - Memory model for embedded targets
+- Note: Baker_Architecture.md is deprecated - CCS now handles type correlation
+
+### Desktop UI Stack
+- [WebView_Desktop_Architecture.md](./WebView_Desktop_Architecture.md) - Partas.Solid + webview architecture
+- [WebView_Build_Integration.md](./WebView_Build_Integration.md) - Composer as unified build orchestrator
+- [WebView_Desktop_Design.md](./WebView_Desktop_Design.md) - Implementation details (callbacks, IPC)
+
+### QuantumCredential Demo
+- [QuantumCredential/](./QuantumCredential/) - Demo documentation folder
+- [QuantumCredential demo strategy](./QuantumCredential/Demo/D-01-Demo-Strategy.md) - Integrated demo strategy (desktop + embedded)
+
+### Platform Bindings
+- See `~/repos/Farscape/docs/` for native library binding patterns (quotation-based architecture)

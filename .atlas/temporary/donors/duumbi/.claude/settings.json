@@ -1,0 +1,78 @@
+{
+  "permissions": {
+    "allow": [
+      "Read",
+      "Edit",
+      "Write",
+      "Glob",
+      "Grep",
+      "Bash(cargo *)",
+      "Bash(git status*)",
+      "Bash(git diff*)",
+      "Bash(git log*)",
+      "Bash(git branch*)",
+      "Bash(git checkout*)",
+      "Bash(git switch*)",
+      "Bash(ls *)",
+      "Bash(gh api *)",
+      "Bash(gh issue *)",
+      "Bash(gh pr *)",
+      "mcp__rust-tools__cargo-build",
+      "mcp__rust-tools__cargo-check",
+      "mcp__rust-tools__cargo-clippy",
+      "mcp__rust-tools__cargo-fmt",
+      "mcp__rust-tools__cargo-test",
+      "mcp__rust-tools__cargo-machete",
+      "mcp__rust-tools__cargo-deny-check",
+      "mcp__rust-tools__cargo-add",
+      "mcp__rust-tools__cargo-remove",
+      "mcp__rust-tools__cargo-tree",
+      "mcp__rust-tools__cargo-metadata",
+      "mcp__rust-tools__cargo-expand",
+      "mcp__rust-tools__cargo-doc",
+      "mcp__rust-tools__workspace-info",
+      "mcp__cratedocs__lookup_crate",
+      "mcp__cratedocs__lookup_item",
+      "mcp__cratedocs__search_crates",
+      "mcp__cratedocs__list_crate_items"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "file=$(cat /dev/stdin | jq -r '.tool_input.file_path // empty'); if [ -n \"$file\" ] && echo \"$file\" | grep -q '\\.rs$'; then cargo fmt -- \"$file\" 2>/dev/null; cargo clippy --all-targets -- -D warnings 2>&1 | head -20; fi",
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cmd=$(cat /dev/stdin | jq -r '.tool_input.command // empty'); if echo \"$cmd\" | grep -qE 'rm -rf|cargo publish|git push.*--force'; then echo '{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"permissionDecision\":\"deny\",\"permissionDecisionReason\":\"Blocked destructive command\"}}' >&2; exit 2; fi",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "matcher": "startup",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -f Cargo.toml ]; then cargo check --message-format short 2>&1 | tail -3; fi; echo 'DUUMBI session started'",
+            "timeout": 60
+          }
+        ]
+      }
+    ]
+  }
+}

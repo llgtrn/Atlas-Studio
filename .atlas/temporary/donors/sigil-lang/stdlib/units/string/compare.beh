@@ -1,0 +1,77 @@
+BEHAVIOR compare
+
+DESCRIPTION
+  Lexicographically compares two byte sequences.
+  Returns negative if first is less than second.
+  Returns zero if equal.
+  Returns positive if first is greater than second.
+  Comparison is byte-by-byte, not unicode-aware.
+
+CONTRACT
+  INPUT first bytes 65536
+  INPUT second bytes 65536
+  OUTPUT result int 8
+  GUARANTEES writes_output
+
+HASH 7e0ab27b
+
+IMPLEMENTATION
+  # Compare byte by byte until difference or both null
+  i = ALLOC 8 int
+  STORE i 0 8
+
+  LABEL compare_loop
+    # Check bounds
+    i_val = LOAD i 8
+    at_max = IGE i_val 65536 8
+    BRANCH at_max equal continue_compare
+
+  LABEL continue_compare
+    # Load bytes from both strings at position i
+    i_val = LOAD i 8
+    byte1 = LOAD first 1 i_val
+    byte2 = LOAD second 1 i_val
+
+    # Check if both are null (equal strings)
+    is_null1 = IEQ byte1 0 1
+    is_null2 = IEQ byte2 0 1
+    both_null = AND is_null1 is_null2 1
+    BRANCH both_null equal check_diff
+
+  LABEL check_diff
+    # If first is null but second isn't, first < second
+    BRANCH is_null1 less_than check_diff2
+
+  LABEL check_diff2
+    # If second is null but first isn't, first > second
+    BRANCH is_null2 greater_than compare_bytes
+
+  LABEL compare_bytes
+    # Compare the actual bytes
+    less = ILT byte1 byte2 1
+    BRANCH less less_than check_greater
+
+  LABEL check_greater
+    greater = IGT byte1 byte2 1
+    BRANCH greater greater_than next_byte
+
+  LABEL next_byte
+    i_val = LOAD i 8
+    new_i = IADD i_val 1 8
+    STORE i new_i 8
+    JUMP compare_loop
+
+  LABEL less_than
+    STORE result -1 8
+    JUMP done
+
+  LABEL greater_than
+    STORE result 1 8
+    JUMP done
+
+  LABEL equal
+    STORE result 0 8
+
+  LABEL done
+    FREE i
+END

@@ -1,0 +1,372 @@
+-- iris_native_compile.iris — Compile IRIS source to native binary via self_graph.
+--
+-- Uses the self_graph injection trick to extract a fully inspectable graph
+-- from any IRIS program, compiles it to bytecodes, and wraps in a native ELF.
+--
+-- Usage: iris-stage0 run iris_native_compile.iris <source.iris>
+-- Output: Bytes (pipe through python to get binary)
+--
+-- Pipeline: source → inject self_graph → compile_source → module_eval →
+--           (graph, result) → graph_to_bytecodes → native VM + ELF
+
+-- Iterative bytecode compiler with DAG node cache
+-- Handles shared nodes (DAG) correctly via compiled-node cache
+-- State: (ws, bc, env, ns, segs, cache)
+
+let ws_push stack item = (item, stack)
+
+let cache_lookup nid cache =
+  fold (0 - 1) (\s i ->
+    if s >= 0 then s else if i >= list_len cache then s
+    else let e = list_nth cache i in if e.0 == nid then e.1 else s
+  ) (list_len cache)
+
+let compile_graph pg start_nid init_env init_ns =
+  let init_state = (((0, start_nid), ()), (), init_env, init_ns, (), ()) in
+  let final_state = fold init_state (\state step ->
+    let ws = state.0 in
+    let bc = state.1 in
+    let env = state.2 in
+    let ns = state.3 in
+    let segs = state.4 in
+    let cache = state.5 in
+    if ws == () then state
+    else
+      let item = ws.0 in
+      let rest = ws.1 in
+      let tag = item.0 in
+      if tag == 0 then
+        let nid = item.1 in
+        let cached = cache_lookup nid cache in
+        let kind = graph_get_kind pg nid in
+        -- Only use cache for pure nodes (not Lambda/Let/Apply/LetRec)
+        -- Disable caching: shared nodes with slot-dependent values produce wrong results
+        let use_cached = 0 in
+        if use_cached == 1 then
+          (rest, list_concat bc (14, cached), env, ns, segs, cache)
+        else
+          if kind == 5 then
+            let tt = graph_get_lit_type_tag pg nid in
+            let lv = graph_get_lit_value pg nid in
+            if tt == 255 then
+              let s = fold (0 - 1) (\s i -> if s >= 0 then s else if i >= list_len env then s else let e = list_nth env i in if e.0 == lv then if e.1 >= 0 then e.1 else s else s) (list_len env) in
+              (rest, list_concat bc (14, if s >= 0 then s else lv), env, ns, segs, cache)
+            else (rest, list_concat bc (1, lv), env, ns, segs, cache)
+          else
+            -- Only cache pure computation nodes (not Lambda/Let/Apply/LetRec)
+            let do_cache = 0 in  -- caching disabled: shared nodes in lambda bodies cause wrong results
+            let cs = if do_cache == 1 then ns else 0 - 1 in
+            let ns2 = if do_cache == 1 then ns + 1 else ns in
+            let rest2 = if do_cache == 1 then ws_push rest (12, nid, cs) else rest in
+            if kind == 0 then
+              let op = graph_get_prim_op pg nid in
+              let ch = graph_outgoing pg nid in
+              let nc = list_len ch in
+              -- Map prim ops to direct VM opcodes where possible
+              let bop = if op == 0 then 2 else if op == 1 then 3 else if op == 2 then 4 else if op == 3 then 5 else if op == 4 then 6
+                else if op == 32 then 8 else if op == 33 then 11 else if op == 34 then 9 else if op == 35 then 10 else if op == 36 then 12 else if op == 37 then 13
+                -- String ops → direct VM opcodes
+                else if op == 176 then 30 else if op == 177 then 32 else if op == 192 then 31
+                -- Tuple/list ops → direct VM opcodes
+                else if op == 16 then 23 else if op == 21 then 24  -- bitand & shr
+                else if op == 193 then 22  -- list_append → LIST_APPEND
+                else if op == 199 then 27  -- list_range → LIST_RANGE
+                else if op == 206 then 34  -- list_concat → LIST_CONCAT
+                else if op == 194 then 35 else if op == 210 then 19  -- list_nth & tuple_get → TUPLE_GET
+                else if op == 214 then 21 else if op == 240 then 21  -- tuple_len & list_len → TUPLE_LEN
+                else 0 in
+              if nc == 3 then
+                -- 3-arg op (e.g., str_slice=178→33): compile all 3 children, emit opcode
+                let bop3 = if op == 178 then 33 else 0 in
+                if bop3 >= 2 then
+                  (ws_push (ws_push (ws_push (ws_push rest2 (1, bop3)) (0, list_nth ch 2)) (0, list_nth ch 1)) (0, list_nth ch 0), bc, env, ns2, segs, cache)
+                else (ws_push (ws_push (ws_push (ws_push rest2 (2, op, 3)) (0, list_nth ch 2)) (0, list_nth ch 1)) (0, list_nth ch 0), bc, env, ns2, segs, cache)
+              else if nc == 2 then
+                if bop >= 2 then
+                  (ws_push (ws_push (ws_push rest2 (1, bop)) (0, list_nth ch 1)) (0, list_nth ch 0), bc, env, ns2, segs, cache)
+                else (ws_push (ws_push (ws_push rest2 (2, op, nc)) (0, list_nth ch 1)) (0, list_nth ch 0), bc, env, ns2, segs, cache)
+              else if nc == 1 then
+                if bop >= 2 then (ws_push (ws_push rest2 (1, bop)) (0, list_nth ch 0), bc, env, ns2, segs, cache)
+                else (ws_push (ws_push rest2 (2, op, 1)) (0, list_nth ch 0), bc, env, ns2, segs, cache)
+              else (rest2, bc, env, ns2, segs, cache)
+            else if kind == 17 then
+              let ch = graph_outgoing pg nid in
+              (ws_push (ws_push rest2 (3, list_nth ch 1, list_nth ch 2)) (0, list_nth ch 0), bc, env, ns2, segs, cache)
+            else if kind == 11 then
+              let ch = graph_outgoing pg nid in
+              let nc = list_len ch in
+              let w = fold (ws_push rest2 (4, nc)) (\w i -> if i >= nc then w else ws_push w (0, list_nth ch (nc - 1 - i))) nc in
+              (w, bc, env, ns2, segs, cache)
+            else if kind == 13 then
+              let ch = graph_outgoing pg nid in
+              let fi = graph_get_field_index pg nid in
+              (ws_push (ws_push rest2 (5, fi)) (0, list_nth ch 0), bc, env, ns2, segs, cache)
+            else if kind == 2 then
+              let ch = graph_outgoing pg nid in
+              let b = bitand (graph_get_binder pg nid) 255 in
+              let w0 = ws_push rest2 (11, env) in
+              (ws_push w0 (0, list_nth ch 0), bc, list_append env (b, ns2), ns2 + 1, segs, cache)
+            else if kind == 3 then
+              let ch = graph_outgoing pg nid in
+              let b = bitand (graph_get_binder pg nid) 255 in
+              let w0 = ws_push rest2 (11, env) in
+              (ws_push (ws_push (ws_push w0 (0, list_nth ch 1)) (6, ns2)) (0, list_nth ch 0), bc, list_append env (b, ns2), ns2 + 1, segs, cache)
+            else if kind == 1 then
+              let ch = graph_outgoing pg nid in
+              let f = list_nth ch 0 in
+              let a = list_nth ch 1 in
+              if graph_get_kind pg f == 2 then
+                -- Apply(Lambda, arg) → let binding
+                let b = bitand (graph_get_binder pg f) 255 in
+                let bd = list_nth (graph_outgoing pg f) 0 in
+                let w0 = ws_push rest2 (11, env) in
+                (ws_push (ws_push (ws_push w0 (0, bd)) (6, ns2)) (0, a), bc, list_append env (b, ns2), ns2 + 1, segs, cache)
+              else if graph_get_kind pg f == 1 then
+                -- Apply(Apply(...), arg2) → check for curried call to deferred Lambda
+                let fch = graph_outgoing pg f in
+                let ff = list_nth fch 0 in
+                let fa = list_nth fch 1 in
+                if graph_get_kind pg ff == 2 then
+                  -- Apply(Apply(Lambda_a(body_a), arg1), arg2)
+                  -- body_a is Lambda_b(final_body) for curried 2-arg
+                  let b1 = bitand (graph_get_binder pg ff) 255 in
+                  let body_a = list_nth (graph_outgoing pg ff) 0 in
+                  if graph_get_kind pg body_a == 2 then
+                    -- Curried: Lambda_a(Lambda_b(body)). Inline as: let a=arg1, let b=arg2, body
+                    let b2 = bitand (graph_get_binder pg body_a) 255 in
+                    let final_body = list_nth (graph_outgoing pg body_a) 0 in
+                    let w0 = ws_push rest2 (11, env) in
+                    let env2 = list_append (list_append env (b1, ns2)) (b2, ns2 + 1) in
+                    -- Stack: COMPILE(fa)→STORE(a), COMPILE(a)→STORE(b), COMPILE(final_body)
+                    (ws_push (ws_push (ws_push (ws_push (ws_push w0 (0, final_body)) (6, ns2 + 1)) (0, a)) (6, ns2)) (0, fa), bc, env2, ns2 + 2, segs, cache)
+                  else
+                    -- Single-arg apply: just inline Lambda_a
+                    let w0 = ws_push rest2 (11, env) in
+                    (ws_push (ws_push (ws_push w0 (0, body_a)) (6, ns2)) (0, fa), bc, list_append env (b1, ns2), ns2 + 1, segs, cache)
+                else (ws_push (ws_push rest2 (0, a)) (0, f), bc, env, ns2, segs, cache)
+              else (ws_push (ws_push rest2 (0, a)) (0, f), bc, env, ns2, segs, cache)
+            else if kind == 8 then
+              let ch = graph_outgoing pg nid in
+              let step = list_nth ch 1 in
+              let sc = graph_outgoing pg step in
+              let ob = bitand (graph_get_binder pg step) 255 in
+              let body = list_nth sc 0 in
+              let ik = graph_get_kind pg body in
+              let ab = if ik == 2 then list_nth (graph_outgoing pg body) 0 else body in
+              let ib = if ik == 2 then bitand (graph_get_binder pg body) 255 else 0 in
+              let e2 = list_append env (ob, ns2) in
+              let e3 = if ik == 2 then list_append e2 (ib, ns2 + 1) else e2 in
+              let w0 = ws_push rest2 (11, env) in
+              (ws_push (ws_push (ws_push (ws_push (ws_push w0 (8, 0)) (0, ab)) (7, ns2, ns2 + 1)) (0, list_nth ch 2)) (0, list_nth ch 0), bc, e3, ns2 + 2, segs, cache)
+            else if kind == 16 then
+              let ch = graph_outgoing pg nid in
+              let b = bitand (graph_get_binder pg nid) 255 in
+              let w0 = ws_push rest2 (11, env) in
+              (ws_push (ws_push (ws_push w0 (0, list_nth ch 1)) (6, ns2)) (0, list_nth ch 0), bc, list_append env (b, ns2), ns2 + 1, segs, cache)
+            else (rest2, list_concat bc (1, 0), env, ns2, segs, cache)
+      else if tag == 1 then (rest, list_concat bc (item.1,), env, ns, segs, cache)
+      else if tag == 2 then (rest, list_concat bc (28, item.1, item.2), env, ns, segs, cache)
+      else if tag == 3 then
+        (ws_push (ws_push (ws_push (ws_push (ws_push rest (10, 0)) (0, item.2)) (9, 0)) (0, item.1)) (9, 0), bc, env, ns, segs, cache)
+      else if tag == 4 then (rest, list_concat bc (18, item.1), env, ns, segs, cache)
+      else if tag == 5 then (rest, list_concat bc (19, item.1), env, ns, segs, cache)
+      else if tag == 6 then (rest, list_concat bc (15, item.1), env, ns, segs, cache)
+      else if tag == 7 then
+        -- FOLD_SETUP: save bc to segments, start fresh (like guard SEG_END)
+        (rest, (), env, ns, ((item.1, item.2, bc), segs), cache)
+      else if tag == 8 then
+        -- FOLD_END: pop segment, compute body_len, assemble fold bytecodes
+        let fold_body_bc = bc in
+        let acc_slot = (segs.0).0 in
+        let idx_slot = (segs.0).1 in
+        let saved_bc = (segs.0).2 in
+        let rest_segs = segs.1 in
+        let body_len = tuple_len fold_body_bc in
+        -- Emit: saved_bc + FOLD_BEGIN(body_len+4) + STORE(idx) + STORE(acc) + body + FOLD_END
+        let fb = list_concat saved_bc (25, body_len + 4) in
+        let fb = list_concat fb (15, idx_slot) in
+        let fb = list_concat fb (15, acc_slot) in
+        let fb = list_concat fb fold_body_bc in
+        (rest, list_concat fb (26,), env, ns, rest_segs, cache)
+      else if tag == 9 then (rest, (), env, ns, (bc, segs), cache)
+      else if tag == 10 then
+        let then_bc = segs.0 in let s1 = segs.1 in let cond_bc = s1.0 in let rest_segs = s1.1 in
+        let else_bc = bc in
+        let tl = tuple_len then_bc in let el = tuple_len else_bc in let cl = tuple_len cond_bc in
+        -- RELATIVE offsets: JZ skips from JZ position, JMP skips from JMP position
+        let jz_rel = 2 + tl + 2 in let jmp_rel = 2 + el in
+        (rest, list_concat (list_concat (list_concat (list_concat cond_bc (17, jz_rel)) then_bc) (16, jmp_rel)) else_bc, env, ns, rest_segs, cache)
+      else if tag == 11 then (rest, bc, item.1, ns, segs, cache)
+      else if tag == 12 then
+        -- CACHE_STORE: emit STORE(slot) + LOAD(slot) to cache result AND keep on stack
+        (rest, list_concat bc (15, item.2, 14, item.2), env, ns, segs, list_append cache (item.1, item.2))
+      else (rest, bc, env, ns, segs, cache)
+  ) 5000000 in
+  list_concat (final_state.1) (0,)
+
+-- Extract graph from source via self_graph injection
+let extract_graph source dummy_input =
+  let slen = str_len source in
+  let pos = fold (0 - 1) (\p i ->
+    if p >= 0 then p else if i >= slen - 2 then p
+    else let c1 = char_at source i in let c2 = char_at source (i + 1) in
+      if c1 == 61 then if c2 == 10 then i else p else p
+  ) slen in
+  let injected = str_concat (str_slice source 0 pos) (str_concat "=\n  (self_graph,\n" (str_concat (str_trim (str_slice source (pos + 2) slen)) ")")) in
+  let m = compile_source injected in
+  let nb = list_len (m.1) in
+  let result = module_eval (m.0) (nb - 1) dummy_input in
+  let pg = result.0 in
+  let root = graph_get_root pg in
+  let body_node = list_nth (graph_outgoing pg root) 1 in
+  (pg, body_node)
+
+-- Compile source to bytecodes via graph extraction + iterative cached compiler
+let compile_to_bytecodes source dummy_input =
+  let extracted = extract_graph source dummy_input in
+  let pg = extracted.0 in
+  let body_node = extracted.1 in
+  compile_graph pg body_node ((0, 0),) 1
+
+-- Helpers for ELF
+let le64 v =
+  let b0 = bitand v 255 in let n1 = shr v 8 in let b1 = bitand n1 255 in
+  let n2 = shr n1 8 in let b2 = bitand n2 255 in let n3 = shr n2 8 in let b3 = bitand n3 255 in
+  let n4 = shr n3 8 in let b4 = bitand n4 255 in let n5 = shr n4 8 in let b5 = bitand n5 255 in
+  let n6 = shr n5 8 in let b6 = bitand n6 255 in let n7 = shr n6 8 in let b7 = bitand n7 255 in
+  bytes_from_ints (b0, b1, b2, b3, b4, b5, b6, b7)
+
+let emit_bc_data bc =
+  let n = tuple_len bc in
+  let header = le64 (n * 256) in
+  let n_chunks = (n + 7) / 8 in
+  fold header (\acc ci ->
+    if ci >= n_chunks then acc
+    else
+      let base = ci * 8 in
+      let chunk = fold () (\ch j ->
+        if j >= 8 then ch
+        else if base + j >= n then ch
+        else
+          let v = tuple_get bc (base + j) in
+          let b0 = bitand v 255 in let v1 = shr v 8 in let b1 = bitand v1 255 in
+          let v2 = shr v1 8 in let b2 = bitand v2 255 in let v3 = shr v2 8 in let b3 = bitand v3 255 in
+          let v4 = shr v3 8 in let b4 = bitand v4 255 in let v5 = shr v4 8 in let b5 = bitand v5 255 in
+          let v6 = shr v5 8 in let b6 = bitand v6 255 in let v7 = shr v6 8 in let b7 = bitand v7 255 in
+          list_concat ch (b0, b1, b2, b3, b4, b5, b6, b7)
+      ) 8 in
+      bytes_concat acc (bytes_from_ints chunk)
+  ) n_chunks
+
+-- AST-path compiler: tokenize → parse → AST compile (no self_graph needed)
+-- Used for multi-function programs where self_graph leaves Apply nodes unreduced.
+let compile_ast_path source =
+  let tok_m = compile_source (file_read "src/iris-programs/syntax/tokenizer.iris") in
+  let par_m = compile_source (file_read "src/iris-programs/syntax/iris_parser.iris") in
+  let tokens = module_eval (tok_m.0) 0 source in
+  let tree = module_eval (par_m.0) 0 (tokens, source) in
+  let ac_m = compile_source (file_read "src/iris-programs/compiler/ast_compile_single.iris") in
+  module_eval (ac_m.0) 0 (list_append () tree)
+
+-- Detect if source has multiple top-level let bindings
+let is_multi_func source =
+  let slen = str_len source in
+  let count = fold 0 (\cnt i ->
+    if i >= slen - 4 then cnt
+    else let at = if i == 0 then 1 else if char_at source (i - 1) == 10 then 1 else 0 in
+      if at == 1 then
+        if char_at source i == 108 then if char_at source (i + 1) == 101 then
+          if char_at source (i + 2) == 116 then if char_at source (i + 3) == 32 then cnt + 1
+          else cnt else cnt else cnt else cnt
+      else cnt
+  ) slen in
+  count
+
+-- Main: source → bytecodes → native binary
+let main source_path arg =
+  let source = file_read source_path in
+
+  -- Step 1: Transform multi-function to single-function, then graph compile
+  let tf_m = compile_source (file_read "src/iris-programs/compiler/multi_func_transform.iris") in
+  let transformed = module_eval (tf_m.0) 0 source in
+  let bytecodes = compile_to_bytecodes transformed 0 in
+  let n_bc = tuple_len bytecodes in
+
+  -- Step 2: Verify against stage0
+  let m = compile_source source in
+  let nb = list_len (m.1) in
+  let expected = module_eval (m.0) (nb - 1) 42 in
+
+  -- Step 3: Build native binary
+  let elf_m = compile_source (file_read "src/iris-programs/compiler/elf_wrapper.iris") in
+  let vm_m = compile_source (file_read "src/iris-programs/compiler/native_vm.iris") in
+  let emit_atoi = module_eval (elf_m.0) 8 () in
+  let emit_pe = module_eval (elf_m.0) 9 () in
+  let vm_code = module_eval (vm_m.0) 1 () in
+  let vm_size = bytes_len vm_code in
+  let bc_data = emit_bc_data bytecodes in
+  let bc_size = bytes_len bc_data in
+
+  -- Assemble ELF
+  let header_total = 120 in
+  let setup = bytes_from_ints (
+    0x48, 0x89, 0xe5, 0x48, 0x83, 0xec, 0x40,
+    0x48, 0x31, 0xff, 0x48, 0xc7, 0xc0, 12, 0, 0, 0, 0x0f, 0x05,
+    0x49, 0x89, 0xc7, 0x48, 0x89, 0xc7,
+    0x48, 0x81, 0xc7, 0x00, 0x00, 0x00, 0x04,
+    0x48, 0xc7, 0xc0, 12, 0, 0, 0, 0x0f, 0x05,
+    0x48, 0x8b, 0x7d, 0x10
+  ) in
+  let setup_vm = bytes_from_ints (0x48, 0x89, 0xc6) in
+  let post_call = bytes_concat (bytes_from_ints (0x49, 0x89, 0xc4, 0x48, 0x83, 0xec, 0x20)) emit_pe in
+
+  let stub_pre = bytes_len setup + bytes_len emit_atoi + bytes_len setup_vm + 10 + 5 in
+  let stub_size = stub_pre + bytes_len post_call in
+  let vm_offset = header_total + stub_size in
+  let raw_bc_offset = vm_offset + vm_size in
+  let bc_pad = raw_bc_offset % 2 in
+  let bc_offset = raw_bc_offset + bc_pad in
+  let file_size = bc_offset + bc_size in
+
+  let bc_vaddr = 4194304 + bc_offset in
+  let load_bc = bytes_concat (bytes_from_ints (0x48, 0xbf)) (le64 (bc_vaddr + 1)) in
+  let call_rel = vm_offset - header_total - stub_pre in
+  let call_vm = bytes_from_ints (0xe8,
+    bitand call_rel 255, bitand (shr call_rel 8) 255,
+    bitand (shr call_rel 16) 255, bitand (shr call_rel 24) 255) in
+
+  let stub = bytes_concat setup (bytes_concat emit_atoi (bytes_concat setup_vm
+    (bytes_concat load_bc (bytes_concat call_vm post_call)))) in
+
+  let ehdr = bytes_from_ints (
+    0x7f, 0x45, 0x4c, 0x46, 2, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    2, 0, 0x3e, 0, 1, 0, 0, 0,
+    0x78, 0, 0x40, 0, 0, 0, 0, 0,
+    0x40, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0,
+    0x40, 0, 0x38, 0, 1, 0, 0, 0, 0, 0, 0, 0
+  ) in
+  let fs0 = bitand file_size 255 in let fs1 = bitand (shr file_size 8) 255 in
+  let fs2 = bitand (shr file_size 16) 255 in
+  let ms = file_size + 65536 in
+  let ms0 = bitand ms 255 in let ms1 = bitand (shr ms 8) 255 in
+  let ms2 = bitand (shr ms 16) 255 in
+  let phdr = bytes_from_ints (
+    1, 0, 0, 0, 5, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0x40, 0, 0, 0, 0, 0,
+    0, 0, 0x40, 0, 0, 0, 0, 0,
+    fs0, fs1, fs2, 0, 0, 0, 0, 0,
+    ms0, ms1, ms2, 0, 0, 0, 0, 0,
+    0, 0x10, 0, 0, 0, 0, 0, 0
+  ) in
+
+  let pad = if bc_pad == 1 then bytes_from_ints (0x90) else bytes_from_ints () in
+  let binary = bytes_concat ehdr (bytes_concat phdr (bytes_concat stub
+    (bytes_concat vm_code (bytes_concat pad bc_data)))) in
+
+  let d1 = debug_print (str_concat "Expected: f(42) = " (int_to_string expected)) in
+  let d2 = debug_print (str_concat "Bytecodes: " (int_to_string n_bc)) in
+  let d3 = debug_print (str_concat "Binary: " (str_concat (int_to_string (bytes_len binary)) " bytes")) in
+  binary

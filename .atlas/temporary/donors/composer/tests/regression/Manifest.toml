@@ -1,0 +1,1010 @@
+# Composer Regression Test Manifest
+# Defines all samples and their expected outputs
+
+[config]
+samples_root = "../../samples/console/FidelityHelloWorld"
+compiler = "../../src/bin/Debug/net10.0/Composer"
+default_timeout_seconds = 30
+
+# =============================================================================
+# Sample 01: HelloWorldDirect
+# Static string output - no input, no variables
+# =============================================================================
+[[samples]]
+name = "01_HelloWorldDirect"
+project = "HelloWorld.fidproj"
+binary = "targets/helloworld"
+expected_output = """
+Hello, World!
+"""
+
+# =============================================================================
+# Sample 02: HelloWorldSaturated
+# Arena-based memory, console input
+# =============================================================================
+[[samples]]
+name = "02_HelloWorldSaturated"
+project = "HelloWorld.fidproj"
+binary = "targets/helloworld"
+stdin_file = "HelloWorld.stdin"
+expected_output = """
+Enter your name: Hello, Houston!
+"""
+
+# =============================================================================
+# Sample 03: HelloWorldHalfCurried
+# Pipe operators, function values
+# =============================================================================
+[[samples]]
+name = "03_HelloWorldHalfCurried"
+project = "HelloWorld.fidproj"
+binary = "targets/helloworld"
+stdin_file = "HelloWorld.stdin"
+expected_output = """
+Enter your name: Hello, Houston!
+"""
+
+# =============================================================================
+# Sample 04: HelloWorldFullCurried
+# Full currying, partial application
+# =============================================================================
+[[samples]]
+name = "04_HelloWorldFullCurried"
+project = "HelloWorld.fidproj"
+binary = "targets/helloworld"
+stdin_file = "HelloWorld.stdin"
+expected_output = """
+Enter your name: Hello, Houston!
+"""
+
+# =============================================================================
+# Sample 05: AddNumbers
+# Discriminated unions, pattern matching
+# =============================================================================
+[[samples]]
+name = "05_AddNumbers"
+project = "AddNumbers.fidproj"
+binary = "targets/addnumbers"
+expected_output = """
+=== DU Pattern Match Test ===
+IntVal 42 -> 42
+FloatVal 3.14 -> 3.14
+Done!
+"""
+
+# =============================================================================
+# Sample 06: AddNumbersInteractive
+# Interactive DU with parsing
+# =============================================================================
+[[samples]]
+name = "06_AddNumbersInteractive"
+project = "AddNumbersInteractive.fidproj"
+binary = "targets/addnumbers_interactive"
+stdin_file = "AddNumbersInteractive.stdin"
+expected_output = """
+=== Interactive Number Addition ===
+Enter any numeric form: integers (42) or decimals (3.14159265)
+
+Enter first number: Enter second number: 987 + 85.298734987000003 = 1072.298734986999988
+"""
+
+# =============================================================================
+# Sample 07: BitwiseOps
+# Idiomatic F# bitwise operators (&&&, |||, ^^^, <<<, >>>)
+# =============================================================================
+[[samples]]
+name = "07_BitsTest"
+project = "BitsTest.fidproj"
+binary = "targets/bitstest"
+expected_output = """
+AND: 20
+OR:  165
+XOR: 153
+NOT: -1
+SHL: 16
+SHR: 32
+
+--- Comparisons ---
+5 < 10: true
+10 < 5: false
+5 <= 5: true
+5 >= 5: true
+10 > 5: true
+5 = 5: true
+5 <> 10: true
+
+--- Boolean Operators ---
+true && true: true
+true && false: false
+true || false: true
+false || false: false
+range check (5 in 1..10): true
+range check (15 in 1..10): false
+"""
+
+# =============================================================================
+# Sample 08: Option
+# Option type, pattern matching
+# =============================================================================
+[[samples]]
+name = "08_Option"
+project = "Option.fidproj"
+binary = "targets/option"
+expected_output = """
+=== Option Type Test ===
+Some 42: 42
+Done!
+"""
+
+# =============================================================================
+# Sample 08a: OptionDefaults
+# Eager fallback evaluation, partial snapshots, nested/function/measured payloads
+# =============================================================================
+[[samples]]
+name = "08a_OptionDefaults"
+project = "OptionDefaults.fidproj"
+binary = "targets/optiondefaults"
+expected_output = """
+=== Option.defaultValue Test ===
+Eager fallback: pass
+Stored defaults: pass
+Nested options: pass
+Function selection: pass
+Measured values: pass
+"""
+
+# =============================================================================
+# Sample 08b: OptionDefaultWith
+# Deferred invocation, stored thunks, capture identity and unit/measured payloads
+# =============================================================================
+[[samples]]
+name = "08b_OptionDefaultWith"
+project = "OptionDefaultWith.fidproj"
+binary = "targets/optiondefaultwith"
+expected_output = """
+=== Option.defaultWith Test ===
+Deferred fallback: pass
+Stored thunks: pass
+Capture identity: pass
+Nested and function payloads: pass
+Unit effects: pass
+Measured values: pass
+"""
+
+# =============================================================================
+# Sample 08c: OptionAlternatives
+# Optional fallback values, deferred alternatives, snapshots and NTU payloads
+# =============================================================================
+[[samples]]
+name = "08c_OptionAlternatives"
+project = "OptionAlternatives.fidproj"
+binary = "targets/optionalternatives"
+expected_output = """
+=== Option Alternatives Test ===
+Eager alternatives: pass
+Deferred alternatives: pass
+Stored alternatives and captures: pass
+Optional and nested results: pass
+Record and function payloads: pass
+Measured and inverse values: pass
+"""
+
+# =============================================================================
+# Sample 08d: OptionIteration
+# Optional unit actions, evaluation order, stored identity and measured payloads
+# =============================================================================
+[[samples]]
+name = "08d_OptionIteration"
+project = "OptionIteration.fidproj"
+binary = "targets/optioniteration"
+expected_output = """
+=== Option.iter Test ===
+Optional actions: pass
+Factory and pipe order: pass
+Stored actions and captures: pass
+Measured payloads: pass
+Unit results and effects: pass
+"""
+
+# =============================================================================
+# Sample 08e: OptionFolds
+# Independent state/payload types, fold order and retained partial operands
+# =============================================================================
+[[samples]]
+name = "08e_OptionFolds"
+project = "OptionFolds.fidproj"
+binary = "targets/optionfolds"
+expected_output = """
+=== Option folds Test ===
+Callback order and empty state: pass
+Factory and pipe order: pass
+Stored operands and shared captures: pass
+Independent measured state: pass
+Function-valued state: pass
+"""
+
+# =============================================================================
+# Sample 09: Result
+# Result type, error handling
+# =============================================================================
+[[samples]]
+name = "09_Result"
+project = "Result.fidproj"
+binary = "targets/result"
+expected_output = """
+=== Result Type Test ===
+Ok 42: 42
+Error case: Something went wrong
+Done!
+"""
+
+# =============================================================================
+# Sample 09a: ResultCallbacks
+# Case-specific callbacks, preserved payloads and independent success/error types
+# =============================================================================
+[[samples]]
+name = "09a_ResultCallbacks"
+project = "ResultCallbacks.fidproj"
+binary = "targets/resultcallbacks"
+expected_output = """
+=== Result callbacks Test ===
+Selected cases and preserved payloads: pass
+Factory and pipe order: pass
+Stored callbacks and shared captures: pass
+Independent measured cases: pass
+Explicit failure propagation: pass
+"""
+
+[[samples]]
+name = "09b_ResultElimination"
+project = "ResultElimination.fidproj"
+binary = "targets/resultelimination"
+expected_output = """
+=== Result elimination Test ===
+Success values and error recovery: pass
+Factory and pipe order: pass
+Stored defaults and shared captures: pass
+Independent measured cases: pass
+Unit actions and failure propagation: pass
+"""
+
+[[samples]]
+name = "09c_ResultCases"
+project = "ResultCases.fidproj"
+binary = "targets/resultcases"
+expected_output = """
+=== Result cases Test ===
+Case tags and unit payloads: pass
+Factory and pipe order: pass
+Stored predicates and measured payloads: pass
+Callable payloads remain uninvoked: pass
+Short-circuit composition: pass
+"""
+
+# =============================================================================
+# Sample 10: Records
+# Record types, field access, copy-update
+# =============================================================================
+[[samples]]
+name = "10_Records"
+project = "Records.fidproj"
+binary = "targets/records"
+expected_output = """
+=== Records Test ===
+Hello, Alice! You are 30 years old.
+After birthday: Hello, Alice! You are 31 years old.
+Name field: Alice
+Age field: 30
+Category: Adult
+Contact: Bob, Springfield - bob@example.com
+
+=== Age Categories ===
+Age 10: Minor
+Age 35: Adult
+Age 70: Senior
+
+=== Multi-field Pattern ===
+Summary: Alice is 30
+
+=== Nested Pattern ===
+Contact city: Springfield
+Name only: Diana
+"""
+
+# =============================================================================
+# Sample 10a: ImperativeControl
+# Mutable bindings, assignment, while loops
+# =============================================================================
+[[samples]]
+name = "10a_ImperativeControl"
+project = "ImperativeControl.fidproj"
+binary = "targets/imperativecontrol"
+expected_output = """
+=== Imperative Control Test ===
+--- Mutable Bindings ---
+initial: 0
+after increment: 1
+after add 10: 11
+
+--- While Loop ---
+sum 1 to 10: 55
+countdown: 5 4 3 2 1
+
+--- Nested While ---
+multiplication table 3x3:
+1 2 3
+2 4 6
+3 6 9
+"""
+
+# =============================================================================
+# Sample 11: Closures
+# Lambdas, captured variables, arena-allocated state
+# =============================================================================
+[[samples]]
+name = "11_Closures"
+project = "Closures.fidproj"
+binary = "targets/closures"
+expected_output = """
+=== Closures Test ===
+--- Greeter ---
+Hello, Alice!
+Goodbye, Alice!
+Welcome, Bob!
+
+--- Adder ---
+add10 5: 15
+add10 20: 30
+add100 5: 105
+
+--- Range Checker ---
+5 in range 10-20: false
+15 in range 10-20: true
+25 in range 10-20: false
+
+--- Multi-Type Captures ---
+val=+42
+val=-7
+x=42
+
+--- Zero-Capture Lambda ---
+add: 7
+mul: 12
+
+--- HOF Bridge (twice) ---
+twice add10 on 5: 25
+twice (fun x -> x * 2) on 3: 12
+"""
+
+# =============================================================================
+# Sample 11a: DirectCaptures
+# Immutable direct captures, recursive forwarding and returned closures
+# =============================================================================
+[[samples]]
+name = "11a_DirectCaptures"
+project = "DirectCaptures.fidproj"
+binary = "targets/directcaptures"
+expected_output = """
+=== Direct Capture Test ===
+Repeated direct calls: pass
+Recursive forwarding: pass
+Returned closure captures: pass
+Bounded array captures: pass
+Inverse dimensions: pass
+"""
+
+[[samples]]
+name = "11b_LoopCaptures"
+project = "LoopCaptures.fidproj"
+binary = "targets/loopcaptures"
+expected_output = """
+=== Loop captures Test ===
+Counted iteration snapshots: pass
+Range iteration snapshots: pass
+Nested binding identities: pass
+Direct calls and shared captures: pass
+"""
+
+# =============================================================================
+# Sample 12: HigherOrderFunctions
+# Functions as values, composition
+# =============================================================================
+[[samples]]
+name = "12_HigherOrderFunctions"
+project = "HigherOrderFunctions.fidproj"
+binary = "targets/hof"
+expected_output = """
+=== Higher-Order Functions Test ===
+increment twice on 5: 7
+timesTwo twice on 3: 12
+
+timesTwo both (3, 7): 6, 14
+
+chooseAndApply true timesTwo square 5: 10
+chooseAndApply false timesTwo square 5: 25
+
+add10 applied to 5: 15
+mult3 applied to 7: 21
+
+timesTwo then increment on 5: 11
+increment then timesTwo on 5: 12
+"""
+
+# =============================================================================
+# Sample 13: Recursion
+# Recursive functions, tail recursion, mutual recursion
+# =============================================================================
+[[samples]]
+name = "13_Recursion"
+project = "Recursion.fidproj"
+binary = "targets/recursion"
+expected_output = """
+=== Recursion Test ===
+--- Factorial ---
+factorial 5: 120
+factorialTail 5: 120
+factorial 10: 3628800
+
+--- Fibonacci ---
+fibonacci 10: 55
+fibonacciTail 10: 55
+fibonacciTail 20: 6765
+
+--- Sum ---
+sum 1 to 10: 55
+sum 1 to 100: 5050
+
+--- Count Digits ---
+digits in 12345: 5
+digits in 7: 1
+
+--- GCD ---
+gcd 48 18: 6
+gcd 100 35: 5
+
+--- Power ---
+2^10: 1024
+3^5: 243
+
+--- Mutual Recursion (Even/Odd) ---
+isEven 10: true
+isOdd 10: false
+isEven 7: false
+isOdd 7: true
+"""
+
+# =============================================================================
+# Sample 14: Lazy
+# Lazy values with flat closure captures (PRD-14)
+# =============================================================================
+[[samples]]
+name = "14_Lazy"
+project = "Lazy.fidproj"
+binary = "targets/Lazy"
+expected_output = """
+=== Lazy Values Test (PRD-14) ===
+--- No Captures (Simple) ---
+lazy 42 = 42
+--- First Force (with side effect) ---
+Computing expensive value...
+Result: 42
+--- Second Force (no memoization) ---
+Computing expensive value...
+Result: 42
+--- Local Variable Captures ---
+lazy (10 + 20) = 30
+--- Captured Multiplication ---
+lazy (7 * 6) = 42
+--- Lazy-Returning Function ---
+lazyAdd 15 25: Adding captured values...
+40
+--- Multiple Lazy from Function ---
+lazyAdd 3 4: Adding captured values...
+7
+lazyAdd 5 6: Adding captured values...
+11
+"""
+
+# =============================================================================
+# Sample 15: SimpleSeq
+# Sequence expressions with yields, while loops (PRD-15)
+# =============================================================================
+[[samples]]
+name = "15_SimpleSeq"
+project = "SimpleSeq.fidproj"
+binary = "targets/SimpleSeq"
+timeout_seconds = 60
+expected_output = """
+=== Sample 15: Simple Sequences ===
+
+--- Part 1: Basic Sequences ---
+threeNumbers: 1 2 3
+singleElement: 42
+emptySeq (should be empty): (done)
+
+--- Part 2: While Loop Sequences ---
+countUp 5 10: 5 6 7 8 9 10
+countDown 10 5: 10 9 8 7 6 5
+
+--- Part 3: Conditional Yields ---
+evenNumbersUpTo 10: 0 2 4 6 8 10
+oddNumbersUpTo 10: 1 3 5 7 9
+nonFizzBuzzUpTo 15: 1 2 4 7 8 11 13 14
+
+--- Part 4: Sequences with Captures ---
+multiplesOf 3 5: 3 6 9 12 15
+rangeWithStep 0 20 4: 0 4 8 12 16 20
+
+--- Part 5: Computed Sequences ---
+squares 6: 1 4 9 16 25 36
+triangularNumbers 6: 1 3 6 10 15 21
+
+--- Part 6: Classic Sequences ---
+fibonacci 10: 0 1 1 2 3 5 8 13 21 34
+powersOfTwo 8: 1 2 4 8 16 32 64 128
+
+--- Verification Summary ---
+Expected values:
+  threeNumbers: 1 2 3
+  singleElement: 42
+  emptySeq: (nothing)
+  countUp 5 10: 5 6 7 8 9 10
+  countDown 10 5: 10 9 8 7 6 5
+  evenNumbersUpTo 10: 0 2 4 6 8 10
+  oddNumbersUpTo 10: 1 3 5 7 9
+  nonFizzBuzzUpTo 15: 1 2 4 7 8 11 13 14
+  multiplesOf 3 5: 3 6 9 12 15
+  rangeWithStep 0 20 4: 0 4 8 12 16 20
+  squares 6: 1 4 9 16 25 36
+  triangularNumbers 6: 1 3 6 10 15 21
+  fibonacci 10: 0 1 1 2 3 5 8 13 21 34
+  powersOfTwo 8: 1 2 4 8 16 32 64 128
+"""
+
+# C-06 native state-machine semantics; the original formatter oracle stays separate.
+[[samples]]
+name = "15a_SequenceSemantics"
+project = "SequenceSemantics.fidproj"
+binary = "targets/sequence-semantics"
+timeout_seconds = 120
+expected_output = """
+=== Sequence semantics Test ===
+Literal yields and for-in consumption: pass
+Repeated enumeration: pass
+Delayed effects and shared captures: pass
+Loop state and conditional suspension: pass
+Empty sequence effects without a payload: pass
+Caller-owned factories and counted yields: pass
+Delegation and nested independent enumeration: pass
+Retained mutable child captures: pass
+Factories inside suspended generators: pass
+Chained empty delegation preserves effects: pass
+"""
+
+# C-06 native scalar elements and NTU dimensions.
+[[samples]]
+name = "15b_SequenceElements"
+project = "SequenceElements.fidproj"
+binary = "targets/sequence-elements"
+timeout_seconds = 120
+expected_output = """
+=== Sequence elements Test ===
+Boolean payload order: pass
+Unit yields retain pull count and effects: pass
+Fractional real payloads: pass
+Measured integer payloads: pass
+Inverse measured real payloads: pass
+"""
+
+# C-06 captured templates with a proven covering activation.
+[[samples]]
+name = "15c_SequenceTemplateBorrows"
+project = "SequenceTemplateBorrows.fidproj"
+binary = "targets/sequence-template-borrows"
+timeout_seconds = 120
+expected_output = """
+=== Sequence template borrows Test ===
+Captured template delegation stays deferred: pass
+Independent enumeration retains shared cells: pass
+Nested captured templates retain covering lifetime: pass
+"""
+
+# C-06 finite additive state across suspension.
+[[samples]]
+name = "15d_SequenceAdditive"
+project = "SequenceAdditive.fidproj"
+binary = "targets/sequence-additive"
+timeout_seconds = 180
+expected_output = """
+=== Sequence additive state Test ===
+Triangular state crosses each suspension: pass
+Repeated enumeration restarts additive state: pass
+Negative deltas preserve signed state: pass
+Mixed deltas preserve every intermediate value: pass
+Zero iterations preserve the initial state: pass
+Positive non-unit steps retain a finite trip bound: pass
+Descending non-unit steps retain a finite trip bound: pass
+"""
+
+# C-07 source composition and callback environment oracles.
+[[samples]]
+name = "16a_SequenceOperations"
+project = "SequenceOperations.fidproj"
+binary = "targets/sequence-operations"
+timeout_seconds = 180
+expected_output = """
+=== Sequence operations Test ===
+Append preserves deferred input order: pass
+Repeated append enumeration restarts state: pass
+Append forms input arguments once in source order: pass
+Iter and fold preserve ordered consumption: pass
+Fold retains independent accumulator types and empty state: pass
+Take respects demand limits, exhaustion and fresh enumeration: pass
+Exists and forall stop at the first deciding predicate: pass
+"""
+
+[[samples]]
+name = "16b_SequenceCallbacks"
+project = "SequenceCallbacks.fidproj"
+binary = "targets/sequence-callbacks"
+timeout_seconds = 180
+expected_output = """
+=== Sequence callbacks Test ===
+Captured mapper aliases preserve deferred repeated invocation: pass
+Filter and take preserve composed upstream demand: pass
+Mutable captures retain original storage identity: pass
+Repeated callback formation retains distinct environments: pass
+"""
+
+[[samples]]
+name = "16c_SequenceComposition"
+project = "SequenceComposition.fidproj"
+binary = "targets/sequence-composition"
+timeout_seconds = 180
+expected_output = """
+=== Sequence composition Test ===
+Uncaptured mapping preserves doubled and squared values: pass
+Map/filter order preserves stage counts and even-square sum 220: pass
+First three doubled evens stop upstream demand exactly: pass
+Multiple immutable callback captures retain their values: pass
+Empty, singleton and rejected inputs preserve callback and exhaustion laws: pass
+Five-stage composition yields sum 400 with exact pull and callback counts: pass
+Repeated deep enumeration restarts progress and preserves shared counters: pass
+"""
+
+# =============================================================================
+# Sample 16: SeqOperations
+# Seq.map, Seq.filter, Seq.take, Seq.fold, Seq.collect (PRD-16)
+# =============================================================================
+[[samples]]
+name = "16d_SequenceCollect"
+project = "SequenceCollect.fidproj"
+binary = "targets/sequence-collect"
+compile_timeout = 180
+expected_output = """
+=== Sequence collect Test ===
+Collect retains deferred ordered child enumeration: pass
+Repeated collect restarts outer and inner state: pass
+Returned children retain immutable captures: pass
+Variable and empty inner sequences preserve values and effects: pass
+Downstream take stops within the current child: pass
+"""
+
+[[samples]]
+name = "16e_SequenceSearch"
+project = "SequenceSearch.fidproj"
+binary = "targets/sequence-search"
+timeout_seconds = 180
+expected_output = """
+=== Sequence search Test ===
+TryHead stops after one value and observes empty effects: pass
+TryPick selects the first independently measured result once: pass
+Absent search exhausts input and visits each current once: pass
+Chooser and input factories form once in source order: pass
+Nested Option selection preserves Some None: pass
+"""
+
+[[samples]]
+name = "16f_SequenceOptions"
+project = "SequenceOptions.fidproj"
+binary = "targets/sequence-options"
+timeout_seconds = 180
+expected_output = """
+=== Sequence Option elements Test ===
+Retained Option values survive later pulls and exhaustion: pass
+Repeated construction at one loop site preserves prior values: pass
+Independent enumerators and re-enumeration retain values: pass
+Delegation preserves Some and None ordering: pass
+Boolean and inverse measured real payloads preserve values: pass
+"""
+
+[[samples]]
+name = "16g_SequenceStartup"
+project = "SequenceStartup.fidproj"
+binary = "targets/sequence-startup"
+timeout_seconds = 180
+expected_output = """
+Unreferenced startup initializer executes in source order: pass
+=== Sequence startup Test ===
+Two files and multiple declarations preserve startup order: pass
+Module sequence formation precedes all deferred pulls: pass
+Main enumerates the module sequence independently twice: pass
+Named function calls enumerate after startup: pass
+Repeated reads and calls do not repeat initialization: pass
+"""
+
+[[samples]]
+name = "16h_SequenceApplications"
+project = "SequenceApplications.fidproj"
+binary = "targets/sequence-applications"
+timeout_seconds = 180
+expected_output = """
+=== Sequence application forms Test ===
+Direct and pipeline callbacks retain their captured alias: pass
+Stored producer and iter partials preserve formation and restart: pass
+Both fold partial frontiers retain independent measured state: pass
+Predicate partials preserve short circuit and empty results: pass
+Append and collect partials retain ordered child values: pass
+Bare operation aliases preserve mapped and optional results: pass
+TryPick partial retains independent result dimensions: pass
+"""
+
+[[samples]]
+name = "16_SeqOperations"
+project = "SeqOperations.fidproj"
+binary = "targets/SeqOperations"
+timeout_seconds = 60
+expected_output = """
+=== Sample 16: Sequence Operations ===
+
+--- Part 2: Seq.map ---
+naturals 5: 1 2 3 4 5\u0020
+doubled (x*2): 2 4 6 8 10\u0020
+squared (x*x): 1 4 9 16 25\u0020
+addTen (x+10): 11 12 13 14 15\u0020
+
+--- Part 3: Seq.filter ---
+evens from 1..10: 2 4 6 8 10\u0020
+odds from 1..10: 1 3 5 7 9\u0020
+greaterThan5 from 1..10: 6 7 8 9 10\u0020
+
+--- Part 4: Seq.take ---
+firstThree from 1..100: 1 2 3\u0020
+exactlyFive from 1..5: 1 2 3 4 5\u0020
+takeMoreThanAvailable: 1 2 3\u0020
+
+--- Part 5: Seq.fold ---
+sum of 1..10: 55
+product of 1..5: 120
+max of 1..10: 10
+count of 1..10: 10
+
+--- Part 6: Composed Operations ---
+evensSquared (filter even, map x*x): 4 16 36 64 100\u0020
+squaresOver10 (map x*x, filter >10): 16 25 36 49 64 81 100\u0020
+first3EvensDoubled: 4 8 12\u0020
+sumEvenSquares: 220
+
+--- Part 7: Manual vs Seq.fold ---
+manualSum 1..10: 55
+manualCount 1..10: 10
+
+--- Part 8: Closures with Captures ---
+scaledBy3: 3 6 9 12 15\u0020
+scaledBy7: 7 14 21\u0020
+above5: 6 7 8 9 10\u0020
+above0: 1 2 3 4 5\u0020
+sumPlus10Each: 65
+transformed (2*x+100): 102 104 106\u0020
+
+--- Part 9: Seq.collect ---
+expandDouble: 1 2 2 4 3 6\u0020
+expandTriple: 1 1 1 2 2 2\u0020
+expandBy10: 1 10 2 20 3 30\u0020
+repeated: 1 2 2 3 3 3 4 4 4 4\u0020
+
+--- Part 10: Composed with Captures ---
+complexPipeline 5 2 5: 12 14 16 18 20\u0020
+sumFilteredScaled 3 10: 120
+
+--- Part 11: Edge Cases ---
+mapEmpty: (done)
+filterEmpty: (done)
+foldEmpty: 42
+mapSingle: 100
+filterNone: (done)
+takeZero: (done)
+takeFromEmpty: (done)
+
+--- Part 12: Deep Composition ---
+deepPipeline1: 3 6 9 12 15\u0020
+deepPipelineWithFold: 400
+
+--- Verification Summary ---
+Expected values:
+  naturals 5: 1 2 3 4 5
+  doubled: 2 4 6 8 10
+  squared: 1 4 9 16 25
+  addTen: 11 12 13 14 15
+  evens: 2 4 6 8 10
+  odds: 1 3 5 7 9
+  greaterThan5: 6 7 8 9 10
+  firstThree: 1 2 3
+  exactlyFive: 1 2 3 4 5
+  takeMoreThanAvailable: 1 2 3
+  sum: 55
+  product: 120
+  max: 10
+  count: 10
+  evensSquared: 4 16 36 64 100
+  squaresOver10: 16 25 36 49 64 81 100
+  first3EvensDoubled: 4 8 12
+  sumEvenSquares: 220
+  manualSum: 55
+  manualCount: 10
+  scaledBy3: 3 6 9 12 15
+  scaledBy7: 7 14 21
+  above5: 6 7 8 9 10
+  above0: 1 2 3 4 5
+  sumPlus10Each: 65
+  transformed: 102 104 106
+  expandDouble: 1 2 2 4 3 6
+  expandTriple: 1 1 1 2 2 2
+  expandBy10: 1 10 2 20 3 30
+  repeated: 1 2 2 3 3 3 4 4 4 4
+  complexPipeline: 12 14 16 18 20
+  sumFilteredScaled: 120
+  foldEmpty: 42
+  mapSingle: 100
+  deepPipeline1: 3 6 9 12 15
+  deepPipelineWithFold: 400
+"""
+
+# =============================================================================
+# Sample 17: ExternCall
+# First sample using Farscape-generated binding library (Fidelity.Libc)
+# Exercises: ExternCall pathway, CaseElimination on option<nativeint> return
+# =============================================================================
+[[samples]]
+name = "17_ExternCall"
+project = "ExternCall.fidproj"
+binary = "targets/externcall"
+expected_output = """
+=== ExternCall Test ===
+malloc succeeded
+free completed
+"""
+
+# =============================================================================
+# Sample 18: Generalization
+# Let-polymorphism: generic top-level functions instantiated at several types (monomorphization), generic option
+# =============================================================================
+[[samples]]
+name = "18_Generalization"
+project = "Generalization.fidproj"
+binary = "targets/generalization"
+expected_output = """
+=== Generalization Test ===
+firstOf int: 5
+firstOf string: x
+firstOf record: 3
+firstOf empty: 42
+applyTwice incr 1: 3
+applyTwice dbl 3: 12
+wrap int: 5
+wrap string: s
+"""
+
+# =============================================================================
+# Sample 19: ModuleValues
+# Module-level values across modules and functions, mutable module value, qualified member access
+# =============================================================================
+[[samples]]
+name = "19_ModuleValues"
+project = "ModuleValues.fidproj"
+binary = "targets/modulevalues"
+expected_output = """
+=== Module Values Test ===
+rodata name: rodata
+rodata capacity: 4096
+wordSize: 8
+first of all: rodata
+total capacity: 8392704
+bump 1: 8
+bump 2: 16
+counter: 16
+k: 42
+useK 1: 43
+"""
+
+# =============================================================================
+# Sample 20: ArraySurface
+# Array.length, array literals, indexers, Array.blit, for loops, arrays of records
+# =============================================================================
+[[samples]]
+name = "20_ArraySurface"
+project = "ArraySurface.fidproj"
+binary = "targets/arraysurface"
+expected_output = """
+=== Array Surface Test ===
+count [|1;2;3|]: 3
+first: 1
+sum bytes: 16
+d0: 7
+triangle 4: 6
+countdown 3: 6
+blit dst[3]: 6
+points[1].Y: 4
+points length: 2
+a, b, c
+y
+"""
+
+# =============================================================================
+# Sample 21: RecordsAndTags
+# Field assignment through a parameter, enum union field, nested matches, string-tag equality, byte widening, a user type shadowing a spliced abbreviation
+# =============================================================================
+[[samples]]
+name = "21_RecordsAndTags"
+project = "RecordsAndTags.fidproj"
+binary = "targets/recordsandtags"
+expected_output = """
+=== Records and Tags Test ===
+writer position: 2
+writer byte 1: 4
+isAsk Ask: true
+isAsk Reply: false
+index Reply: 2
+weight Leaf 7: 7
+weight Pair 2 3: 5
+weight Empty: 0
+name 2: two
+name 9: many
+defaults isArena: true
+stack isArena: false
+differs x y: true
+differs x x: false
+defaults name: arena
+"""
+
+# =============================================================================
+# Sample 22: UnionPayloads
+# String and record union payloads, a self-referencing union, an and-group of a record and a union, option patterns at two payload types, an apostrophe in a function name
+# =============================================================================
+[[samples]]
+name = "22_UnionPayloads"
+project = "UnionPayloads.fidproj"
+binary = "targets/unionpayloads"
+expected_output = """
+=== Union Payloads Test ===
+size (P "u8"): 2
+size (F 16): 16
+size (Q 3): 3
+depth (build 3): 10
+count nested: 3
+half' 10: 5
+half' 7: -1
+scale' 1.5: 3
+scale' -1.0: -1
+"""
+
+# =============================================================================
+# Sample 23: RecordSurface
+# Nested record arrays through a let-bound field, record literal inference by exact field set, a module value with local bindings and calls, short-circuit || and &&
+# =============================================================================
+[[samples]]
+name = "23_RecordSurface"
+project = "RecordSurface.fidproj"
+binary = "targets/recordsurface"
+expected_output = """
+=== Record Surface Test ===
+sum positions: 7
+N count: 3
+F extra: 5
+linux spaces: 2
+linux total: 8392704
+orDiv 0 0: true
+andDiv 0 0: false
+orDiv 1 2: true
+andDiv 1 2: true
+"""

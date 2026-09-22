@@ -1,0 +1,401 @@
+-- ast_compile_single.iris — AST → bytecodes compiler.
+-- Supports multi-binding modules: prior declarations are inlined at call sites.
+-- Input: Module AST (from parser)
+-- Output: flat bytecodes tuple
+
+let compile_program tree =
+  let func_decls = tuple_get tree 2 in
+  let n_funcs = tuple_len func_decls in
+  let decl = tuple_get func_decls (n_funcs - 1) in
+  let children = tuple_get decl 2 in
+  let params = tuple_get children 0 in
+  let body = tuple_get children 1 in
+  let n_params = list_len params in
+  -- Check for rec flag (negative payload signals rec declaration)
+  let is_rec = if decl.1 < 0 then 1 else 0 in
+  let rec_hash = if is_rec == 1 then 0 - decl.1 - 1 else 0 in
+  -- Multi-function: wrap body with Let/in bindings for prior declarations
+  let wrapped_body = if n_funcs <= 1 then body
+    else fold body (\b i ->
+      let ri = n_funcs - 2 - i in
+      if ri < 0 then b
+      else let d = tuple_get func_decls ri in
+        if d.0 != 30 then b
+        else let raw_name = d.1 in
+        let is_rec_decl = if raw_name < 0 then 1 else 0 in
+        let dname = if is_rec_decl == 1 then 0 - raw_name - 1 else raw_name in let dchildren = d.2 in
+        let dparams = tuple_get dchildren 0 in let dbody = tuple_get dchildren 1 in
+        let np = list_len dparams in
+        let lam = if np == 0 then dbody
+          else if np == 1 then (13, (list_nth dparams 0).1, (dbody,))
+          else fold dbody (\acc j ->
+            let pi = np - 1 - j in
+            if pi < 0 then acc else (13, (list_nth dparams pi).1, (acc,))
+          ) np in
+        let wrapped_lam = if is_rec_decl == 1 then (98, lam) else lam in
+        (14, dname, (wrapped_lam, b))
+    ) n_funcs in
+  let init_scope = fold () (\sc j ->
+    if j >= n_params then sc
+    else list_append sc ((list_nth params j).1, j)
+  ) n_params in
+  -- Iterative fold-based AST compiler
+  -- State: (ws, bc, sc, ns, segs, fns) where fns = function table for Lambda inlining
+  let init_state = (((0, wrapped_body), ()), (), init_scope, n_params, (), ()) in
+  let final_state = fold init_state (\state step ->
+    let ws = state.0 in
+    let bc = state.1 in
+    let sc = state.2 in
+    let ns = state.3 in
+    let segs = state.4 in
+    let fns = state.5 in
+    if ws == () then state
+    else
+      let item = ws.0 in
+      let rest = ws.1 in
+      let tag = item.0 in
+      if tag == 0 then
+        let ast = item.1 in
+        let kind = ast.0 in
+        let payload = ast.1 in
+        if kind == 0 then (rest, list_concat bc (1, payload), sc, ns, segs, fns)
+        else if kind == 1 then (rest, list_concat bc (49, payload), sc, ns, segs, fns)
+        else if kind == 2 then (rest, list_concat bc (29, payload), sc, ns, segs, fns)
+        else if kind == 3 then (rest, list_concat bc (1, payload), sc, ns, segs, fns)
+        else if kind == 4 then
+          let slot = fold (0 - 1) (\s i -> if s >= 0 then s else let ri = list_len sc - 1 - i in if ri < 0 then s else let e = list_nth sc ri in if e.0 == payload then e.1 else s) (list_len sc) in
+          if slot >= 0 then (rest, list_concat bc (14, slot), sc, ns, segs, fns)
+          else
+            -- Check function table: compile Lambda as closure (callable value)
+            let fn_idx = fold (0 - 1) (\s i -> if s >= 0 then s else if i >= list_len fns then s else let e = list_nth fns i in if e.0 == payload then i else s) (list_len fns) in
+            if fn_idx >= 0 then let lam = (list_nth fns fn_idx).1 in
+              if lam.0 == 13 then let ph = lam.1 in let bd = list_nth (lam.2) 0 in
+                let extra = if tuple_len lam > 3 then lam.3 else 0 in
+                (((20, ph, bd, extra), rest), bc, sc, ns, segs, fns)
+              else (((0, lam), rest), bc, sc, ns, segs, fns)
+            else (rest, list_concat bc (1, 0), sc, ns, segs, fns)
+        else if kind == 5 then (rest, list_concat bc (1, 0), sc, ns, segs, fns)
+        else if kind == 10 then
+          let left = (ast.2).0 in let right = (ast.2).1 in
+          let bop = if payload == 0 then 2 else if payload == 1 then 3 else if payload == 2 then 4 else if payload == 3 then 5 else if payload == 4 then 6 else if payload == 5 then 8 else if payload == 6 then 11 else if payload == 7 then 9 else if payload == 8 then 10 else if payload == 9 then 12 else if payload == 10 then 13 else 0 in
+          if bop >= 2 then (((0, left), ((0, right), ((1, bop), rest))), bc, sc, ns, segs, fns)
+          else (((0, left), ((0, right), ((2, payload, 2), rest))), bc, sc, ns, segs, fns)
+        else if kind == 11 then
+          let operand = list_nth (ast.2) 0 in
+          if payload == 0 then (((1, 1), ((1, 0), ((0, operand), ((1, 3), rest)))), bc, sc, ns, segs, fns)
+          else (((0, operand), rest), bc, sc, ns, segs, fns)
+        else if kind == 12 then
+          let func = (ast.2).0 in let arg = (ast.2).1 in
+          if func.0 == 13 then
+            let ph = func.1 in let bd = list_nth (func.2) 0 in let slot = ns in
+            (((0, arg), ((6, slot), ((15, ph, slot), ((0, bd), ((11, sc), rest))))), bc, sc, slot + 1, segs, fns)
+          else if func.0 == 12 then
+            let inner = (func.2).0 in
+            if inner.0 == 12 then
+              let head = (inner.2).0 in
+              if head.0 == 4 then if head.1 == 3148801 then
+                let base = (inner.2).1 in let stp = (func.2).1 in
+                let acc_s = ns in let idx_s = ns + 1 in
+                let sb = if stp.0 == 13 then let si = list_nth (stp.2) 0 in if si.0 == 13 then list_nth (si.2) 0 else si else stp in
+                let ssc = if stp.0 == 13 then let ih2 = if tuple_len stp > 3 then stp.3 else 0 in if ih2 != 0 then list_append (list_append sc (stp.1, acc_s)) (ih2, idx_s) else list_append sc (stp.1, acc_s) else sc in
+                (((0, base), ((0, arg), ((7, acc_s, idx_s), ((0, sb), ((8, 0), ((11, sc), rest)))))), bc, ssc, idx_s + 1, segs, fns)
+              else
+                -- 3-arg builtins: App(App(App(f, a1), a2), a3) where f is Var
+                -- str_slice(101377937257988)→33
+                let fn3 = head.1 in
+                let arg1 = (inner.2).1 in let arg2 = (func.2).1 in
+                let op3 = if fn3 == 101377937257988 then 33 else 0 in
+                if op3 > 0 then (((0, arg1), ((0, arg2), ((0, arg), ((1, op3), rest)))), bc, sc, ns, segs, fns)
+                else if fn3 == 2967818082949884 then
+                  -- map_insert m k v: desugar to list_append m (k, v)
+                  let pair = (17, 0, (arg2, arg)) in
+                  (((0, (12, 0, ((12, 0, ((4, 91397376450088411), arg1)), pair))), rest), bc, sc, ns, segs, fns)
+                else
+                  -- 3-arg function table lookup: inline 3-param Lambda
+                  let fi3 = fold (0 - 1) (\s i -> if s >= 0 then s else if i >= list_len fns then s else let e = list_nth fns i in if e.0 == fn3 then i else s) (list_len fns) in
+                  if fi3 >= 0 then let fl3 = (list_nth fns fi3).1 in
+                    if fl3.0 == 13 then let p1 = fl3.1 in let il1 = list_nth (fl3.2) 0 in
+                      if il1.0 == 13 then let p2 = il1.1 in let il2 = list_nth (il1.2) 0 in
+                        if il2.0 == 13 then let p3 = il2.1 in let bd3 = list_nth (il2.2) 0 in let s1 = ns in let s2 = ns + 1 in let s3 = ns + 2 in
+                          (((0, arg1), ((6, s1), ((0, arg2), ((6, s2), ((0, arg), ((6, s3), ((15, p1, s1), ((15, p2, s2), ((15, p3, s3), ((0, bd3), ((11, sc), rest))))))))))), bc, sc, s3 + 1, segs, fns)
+                        else (((0, func), ((0, arg), rest)), bc, sc, ns, segs, fns)
+                      else
+                        -- Multi-param Lambda: \p1 p2 p3 -> body stored as Lambda(p1, body, (p2, p3))
+                        let extra3 = if tuple_len fl3 > 3 then tuple_get fl3 3 else 0 in
+                        if extra3 == 0 then (((0, func), ((0, arg), rest)), bc, sc, ns, segs, fns)
+                        else let bd3 = il1 in let p2 = tuple_get extra3 0 in let p3 = tuple_get extra3 1 in
+                          let s1 = ns in let s2 = ns + 1 in let s3 = ns + 2 in
+                          (((0, arg1), ((6, s1), ((0, arg2), ((6, s2), ((0, arg), ((6, s3), ((15, p1, s1), ((15, p2, s2), ((15, p3, s3), ((0, bd3), ((11, sc), rest))))))))))), bc, sc, s3 + 1, segs, fns)
+                    else (((0, func), ((0, arg), rest)), bc, sc, ns, segs, fns)
+                  else (((0, func), ((0, arg), rest)), bc, sc, ns, segs, fns)
+              else if head.0 == 12 then
+                -- 4-arg: App(App(App(App(Var(f), a1), a2), a3), a4)
+                let head2 = (head.2).0 in
+                if head2.0 == 4 then
+                  let fn4 = head2.1 in
+                  let a1 = (head.2).1 in let a2 = (inner.2).1 in let a3 = (func.2).1 in
+                  let fi4 = fold (0 - 1) (\s i -> if s >= 0 then s else if i >= list_len fns then s else let e = list_nth fns i in if e.0 == fn4 then i else s) (list_len fns) in
+                  if fi4 >= 0 then let fl4 = (list_nth fns fi4).1 in
+                    if fl4.0 == 13 then let q1 = fl4.1 in let jl1 = list_nth (fl4.2) 0 in
+                      if jl1.0 == 13 then let q2 = jl1.1 in let jl2 = list_nth (jl1.2) 0 in
+                        if jl2.0 == 13 then let q3 = jl2.1 in let jl3 = list_nth (jl2.2) 0 in
+                          if jl3.0 == 13 then let q4 = jl3.1 in let bd4 = list_nth (jl3.2) 0 in let t1 = ns in let t2 = ns+1 in let t3 = ns+2 in let t4 = ns+3 in
+                            (((0, a1), ((6, t1), ((0, a2), ((6, t2), ((0, a3), ((6, t3), ((0, arg), ((6, t4), ((15, q1, t1), ((15, q2, t2), ((15, q3, t3), ((15, q4, t4), ((0, bd4), ((11, sc), rest)))))))))))))), bc, sc, t4+1, segs, fns)
+                          else (((0, func), ((0, arg), rest)), bc, sc, ns, segs, fns)
+                        else (((0, func), ((0, arg), rest)), bc, sc, ns, segs, fns)
+                      else (((0, func), ((0, arg), rest)), bc, sc, ns, segs, fns)
+                    else (((0, func), ((0, arg), rest)), bc, sc, ns, segs, fns)
+                  else (((0, func), ((0, arg), rest)), bc, sc, ns, segs, fns)
+                else if head2.0 == 12 then
+                  -- 5-arg: App(App(App(App(App(Var(f), a1), a2), a3), a4), a5)
+                  let head3 = (head2.2).0 in
+                  if head3.0 == 4 then
+                    let fn5 = head3.1 in
+                    let a1 = (head2.2).1 in let a2 = (head.2).1 in let a3 = (inner.2).1 in let a4 = (func.2).1 in
+                    let fi5 = fold (0 - 1) (\s i -> if s >= 0 then s else if i >= list_len fns then s else let e = list_nth fns i in if e.0 == fn5 then i else s) (list_len fns) in
+                    if fi5 >= 0 then let fl5 = (list_nth fns fi5).1 in
+                      if fl5.0 == 13 then let r1 = fl5.1 in let kl1 = list_nth (fl5.2) 0 in
+                        if kl1.0 == 13 then let r2 = kl1.1 in let kl2 = list_nth (kl1.2) 0 in
+                          if kl2.0 == 13 then let r3 = kl2.1 in let kl3 = list_nth (kl2.2) 0 in
+                            if kl3.0 == 13 then let r4 = kl3.1 in let kl4 = list_nth (kl3.2) 0 in
+                              if kl4.0 == 13 then let r5 = kl4.1 in let bd5 = list_nth (kl4.2) 0 in let u1 = ns in let u2 = ns+1 in let u3 = ns+2 in let u4 = ns+3 in let u5 = ns+4 in
+                                (((0, a1), ((6, u1), ((0, a2), ((6, u2), ((0, a3), ((6, u3), ((0, a4), ((6, u4), ((0, arg), ((6, u5), ((15, r1, u1), ((15, r2, u2), ((15, r3, u3), ((15, r4, u4), ((15, r5, u5), ((0, bd5), ((11, sc), rest))))))))))))))))), bc, sc, u5+1, segs, fns)
+                              else (((0, func), ((0, arg), rest)), bc, sc, ns, segs, fns)
+                            else (((0, func), ((0, arg), rest)), bc, sc, ns, segs, fns)
+                          else (((0, func), ((0, arg), rest)), bc, sc, ns, segs, fns)
+                        else (((0, func), ((0, arg), rest)), bc, sc, ns, segs, fns)
+                      else (((0, func), ((0, arg), rest)), bc, sc, ns, segs, fns)
+                    else (((0, func), ((0, arg), rest)), bc, sc, ns, segs, fns)
+                  else (((0, func), ((0, arg), rest)), bc, sc, ns, segs, fns)
+                else (((0, func), ((0, arg), rest)), bc, sc, ns, segs, fns)
+              else (((0, func), ((0, arg), rest)), bc, sc, ns, segs, fns)
+            else
+              let inf = (func.2).0 in let ina = (func.2).1 in
+              if inf.0 == 4 then
+                let fn2 = inf.1 in
+                -- Map 2-arg function name hashes to native VM bytecodes
+                -- str_concat→32, char_at→31, tuple_get→35(dyn),
+                -- list_nth→35, list_append→22, list_concat→34, bitand→23, shr→24
+                let bop2 = if fn2 == 3142715599850722 then 32 else if fn2 == 90933368252 then 31 else if fn2 == 102256924762719 then 35 else if fn2 == 3067952630849 then 35 else if fn2 == 91397376450088411 then 22 else if fn2 == 91397376506361301 then 34 else if fn2 == 2906178986 then 23 else if fn2 == 113853 then 24 else if fn2 == 2592362147941414248 then 32 else if fn2 == 90067648134206 then 50 else if fn2 == 90067648152029 then 51 else if fn2 == 90067648146273 then 52 else if fn2 == 90067648137262 then 53 else if fn2 == 2905408004683 then 54 else if fn2 == 2905408004528 then 55 else if fn2 == 2905408004463 then 56 else 0 in
+                if bop2 > 0 then (((0, ina), ((0, arg), ((1, bop2), rest))), bc, sc, ns, segs, fns)
+                else if fn2 == 107868 then
+                  -- map fn xs: desugar to let _l = xs in fold () (\a i -> list_append a (fn (list_nth _l i))) (tuple_len _l)
+                  let _l = 999000001 in let _a = 999000002 in let _i = 999000003 in
+                  let nth = (12, 0, ((12, 0, ((4, 3067952630849), (4, _l))), (4, _i))) in
+                  let fn_app = (12, 0, (ina, nth)) in
+                  let mbody = (12, 0, ((12, 0, ((4, 91397376450088411), (4, _a))), fn_app)) in
+                  let mstep = (13, _a, (mbody,), _i) in
+                  let fb = (12, 0, ((4, 3148801), (0, 0))) in
+                  let fs = (12, 0, (fb, mstep)) in
+                  let cnt = (12, 0, ((4, 102256924767518), (4, _l))) in
+                  let fe = (12, 0, (fs, cnt)) in
+                  (((0, (14, _l, (arg, fe))), rest), bc, sc, ns, segs, fns)
+                else if fn2 == 3020475256 then
+                  -- filter pred xs: desugar to let _l = xs in fold () (\a i -> let e = list_nth _l i in if pred e then list_append a e else a) (tuple_len _l)
+                  let _l = 999000001 in let _a = 999000002 in let _i = 999000003 in let _e = 999000004 in
+                  let nth = (12, 0, ((12, 0, ((4, 3067952630849), (4, _l))), (4, _i))) in
+                  let cnd = (12, 0, (ina, (4, _e))) in
+                  let thb = (12, 0, ((12, 0, ((4, 91397376450088411), (4, _a))), (4, _e))) in
+                  let ite = (15, 0, (cnd, thb, (4, _a))) in
+                  let fbody = (14, _e, (nth, ite)) in
+                  let fstep = (13, _a, (fbody,), _i) in
+                  let fb = (12, 0, ((4, 3148801), (0, 0))) in
+                  let fs = (12, 0, (fb, fstep)) in
+                  let cnt = (12, 0, ((4, 102256924767518), (4, _l))) in
+                  let fe = (12, 0, (fs, cnt)) in
+                  (((0, (14, _l, (arg, fe))), rest), bc, sc, ns, segs, fns)
+                else if fn2 == 99621295603 then
+                  -- map_get m k: desugar to let _m = m in let _k = k in fold 0 (\a i -> let e = list_nth _m i in if e.0 == _k then e.1 else a) (tuple_len _m)
+                  let _m = 999000011 in let _k = 999000012 in let _a = 999000002 in let _i = 999000003 in let _e = 999000004 in
+                  let nth = (12, 0, ((12, 0, ((4, 3067952630849), (4, _m))), (4, _i))) in
+                  let ekey = (18, 0, ((4, _e),)) in
+                  let eval2 = (18, 1, ((4, _e),)) in
+                  let cnd = (10, 5, (ekey, (4, _k))) in
+                  let ite = (15, 0, (cnd, eval2, (4, _a))) in
+                  let gbody = (14, _e, (nth, ite)) in
+                  let gstep = (13, _a, (gbody,), _i) in
+                  let fb = (12, 0, ((4, 3148801), (0, 0))) in
+                  let fs = (12, 0, (fb, gstep)) in
+                  let cnt = (12, 0, ((4, 102256924767518), (4, _m))) in
+                  let fe = (12, 0, (fs, cnt)) in
+                  let inner = (14, _k, (arg, fe)) in
+                  (((0, (14, _m, (ina, inner))), rest), bc, sc, ns, segs, fns)
+                else
+                  -- 2-arg function table lookup: inline 2-param Lambda
+                  let fi2 = fold (0 - 1) (\s i -> if s >= 0 then s else if i >= list_len fns then s else let e = list_nth fns i in if e.0 == fn2 then i else s) (list_len fns) in
+                  if fi2 >= 0 then let fl2 = (list_nth fns fi2).1 in
+                    if fl2.0 == 99 then
+                      -- 2-arg call to prelude function: caller-save if needed
+                      if ns > 2 then
+                        (((17, ns), ((0, ina), ((0, arg), ((12, fl2.1), ((18, ns), rest))))), bc, sc, ns + 1, segs, fns)
+                      else (((0, ina), ((0, arg), ((12, fl2.1), rest))), bc, sc, ns, segs, fns)
+                    else if fl2.0 == 13 then let p1 = fl2.1 in let il = list_nth (fl2.2) 0 in
+                      if il.0 == 13 then let p2 = il.1 in let bd2 = list_nth (il.2) 0 in let s1 = ns in let s2 = ns + 1 in
+                        (((0, ina), ((6, s1), ((0, arg), ((6, s2), ((15, p1, s1), ((15, p2, s2), ((0, bd2), ((11, sc), rest)))))))), bc, sc, s2 + 1, segs, fns)
+                      else
+                        -- Multi-param Lambda: \p1 p2 -> body stored as Lambda(p1, body, p2)
+                        let extra2 = if tuple_len fl2 > 3 then tuple_get fl2 3 else 0 in
+                        if extra2 == 0 then (((0, func), ((0, arg), rest)), bc, sc, ns, segs, fns)
+                        else let bd2 = il in let p2 = extra2 in let s1 = ns in let s2 = ns + 1 in
+                          (((0, ina), ((6, s1), ((0, arg), ((6, s2), ((15, p1, s1), ((15, p2, s2), ((0, bd2), ((11, sc), rest)))))))), bc, sc, s2 + 1, segs, fns)
+                    else (((0, func), ((0, arg), rest)), bc, sc, ns, segs, fns)
+                  else
+                    -- Check scope for 2-arg dynamic closure call
+                    let f2_slot = fold (0 - 1) (\s i -> if s >= 0 then s else let ri = list_len sc - 1 - i in if ri < 0 then s else let e = list_nth sc ri in if e.0 == fn2 then e.1 else s) (list_len sc) in
+                    if f2_slot >= 0 then (((0, ina), ((0, arg), ((23, f2_slot), rest))), bc, sc, ns, segs, fns)
+                    else (((0, func), ((0, arg), rest)), bc, sc, ns, segs, fns)
+              else (((0, func), ((0, arg), rest)), bc, sc, ns, segs, fns)
+          else if func.0 == 4 then
+            let fn1 = func.1 in
+            -- Check for self-recursive call first
+            let is_self_call = if is_rec == 1 then if fn1 == rec_hash then 1 else 0 else 0 in
+            if is_self_call == 1 then
+              if ns > 2 then
+                -- Caller-save: save locals[2..ns-1] before CALL, restore after
+                (((17, ns), ((0, arg), ((12, 0), ((18, ns), rest)))), bc, sc, ns + 1, segs, fns)
+              else (((0, arg), ((12, 0), rest)), bc, sc, ns, segs, fns)
+            else
+            -- Map function name hashes to native VM bytecode opcodes (1-arg)
+            -- str_len→30, tuple_len→21, list_len→21, file_read→39, bytes_len→21,
+            -- list_range→27, debug_print→40, print→40, int_to_string→36
+            let bop = if fn1 == 105492123399 then 30 else if fn1 == 102256924767518 then 21 else if fn1 == 3067952628468 then 21 else if fn1 == 89982543473273 then 39 else if fn1 == 87018299089985 then 21 else if fn1 == 2948302481383004 then 27 else if fn1 == 84720127073411521 then 40 else if fn1 == 106934957 then 40 else if fn1 == 0 - 6636504889774124539 then 36 else if fn1 == 0 - 7456684656838069499 then 42 else if fn1 == 90067648146733 then 57 else if fn1 == 2683205306120199022 then 58 else if fn1 == 2761200499303031272 then 59 else 0 in
+            if bop > 0 then (((0, arg), ((1, bop), rest)), bc, sc, ns, segs, fns)
+            else
+              -- Check function table: resolve Var to Lambda and inline
+              let fn_idx = fold (0 - 1) (\s i -> if s >= 0 then s else if i >= list_len fns then s else let e = list_nth fns i in if e.0 == fn1 then i else s) (list_len fns) in
+              if fn_idx >= 0 then
+                let fn_lam = (list_nth fns fn_idx).1 in
+                if fn_lam.0 == 99 then
+                  -- Call target (prelude function): caller-save if needed
+                  if ns > 2 then
+                    (((17, ns), ((0, arg), ((12, fn_lam.1), ((18, ns), rest)))), bc, sc, ns + 1, segs, fns)
+                  else (((0, arg), ((12, fn_lam.1), rest)), bc, sc, ns, segs, fns)
+                else if fn_lam.0 == 13 then
+                  let ph = fn_lam.1 in let bd = list_nth (fn_lam.2) 0 in let slot = ns in
+                  (((0, arg), ((6, slot), ((15, ph, slot), ((0, bd), ((11, sc), rest))))), bc, sc, slot + 1, segs, fns)
+                else (((0, fn_lam), ((0, arg), rest)), bc, sc, ns, segs, fns)
+              else
+                -- f not in function table: check scope (may be a closure variable)
+                let f_slot = fold (0 - 1) (\s i -> if s >= 0 then s else let ri = list_len sc - 1 - i in if ri < 0 then s else let e = list_nth sc ri in if e.0 == fn1 then e.1 else s) (list_len sc) in
+                if f_slot >= 0 then
+                  -- Dynamic call: compile arg, LOAD closure, APPLY
+                  (((0, arg), ((22, f_slot), rest)), bc, sc, ns, segs, fns)
+                else (((0, func), ((0, arg), rest)), bc, sc, ns, segs, fns)
+          else (((0, func), ((0, arg), rest)), bc, sc, ns, segs, fns)
+        else if kind == 13 then
+          -- Lambda as value: compile as closure (code segment + push entry PC)
+          let bd = list_nth (ast.2) 0 in
+          let extra = if tuple_len ast > 3 then ast.3 else 0 in
+          (((20, payload, bd, extra), rest), bc, sc, ns, segs, fns)
+        else if kind == 14 then
+          let binding = (ast.2).0 in let bd = (ast.2).1 in let slot = ns in
+          if binding.0 == 98 then
+            -- Recursive Lambda (wrapped with marker 98): compile as callable prelude
+            let fn_name = if payload < 0 then 0 - payload - 1 else payload in
+            let real_lam = binding.1 in
+            let param1 = real_lam.1 in
+            let inner_lam = list_nth (real_lam.2) 0 in
+            if inner_lam.0 == 13 then
+              -- 2-param recursive: caller pushes both args, CALL pops last → locals[0], preamble STORE pops first → locals[1]
+              let param2 = inner_lam.1 in
+              let fn_body2 = list_nth (inner_lam.2) 0 in
+              let fn_pc = tuple_len bc + 2 in
+              (((16, fn_name, (param1, param2)), ((0, fn_body2), ((14, 0), ((0, bd), ((11, sc), rest))))), bc, sc, ns, segs, list_append fns (fn_name, (99, fn_pc)))
+            else
+              -- 1-param recursive (original)
+              let fn_pc = tuple_len bc + 2 in
+              (((13, fn_name, param1), ((0, inner_lam), ((14, 0), ((0, bd), ((11, sc), rest))))), bc, sc, ns, segs, list_append fns (fn_name, (99, fn_pc)))
+          else if binding.0 == 13 then
+            (((0, bd), ((11, sc), rest)), bc, sc, ns, segs, list_append fns (payload, binding))
+          else (((0, binding), ((6, slot), ((15, payload, slot), ((0, bd), ((11, sc), rest))))), bc, sc, slot + 1, segs, fns)
+        else if kind == 15 then
+          let cond = (ast.2).0 in let then_br = (ast.2).1 in let else_br = (ast.2).2 in
+          (((0, cond), ((3, then_br, else_br), rest)), bc, sc, ns, segs, fns)
+        else if kind == 17 then
+          let nc = list_len (ast.2) in
+          let w = fold ((4, nc), rest) (\w i -> if i >= nc then w else ((0, list_nth (ast.2) (nc - 1 - i)), w)) nc in
+          (w, bc, sc, ns, segs, fns)
+        else if kind == 18 then
+          (((0, list_nth (ast.2) 0), ((5, payload), rest)), bc, sc, ns, segs, fns)
+        else if kind == 19 then
+          let pip_arg = (ast.2).0 in let pip_fn = (ast.2).1 in
+          (((0, (12, 0, (pip_fn, pip_arg))), rest), bc, sc, ns, segs, fns)
+        else (rest, list_concat bc (1, 0), sc, ns, segs, fns)
+      else if tag == 1 then (rest, list_concat bc (item.1,), sc, ns, segs, fns)
+      else if tag == 2 then (rest, list_concat bc (28, item.1, item.2), sc, ns, segs, fns)
+      else if tag == 3 then
+        -- Save/restore scope between then/else branches (prevents let-binding leaks)
+        (((9, 0), ((0, item.1), ((11, sc), ((9, 0), ((0, item.2), ((11, sc), ((10, 0), rest))))))), bc, sc, ns, segs, fns)
+      else if tag == 4 then (rest, list_concat bc (18, item.1), sc, ns, segs, fns)
+      else if tag == 5 then (rest, list_concat bc (19, item.1), sc, ns, segs, fns)
+      else if tag == 6 then (rest, list_concat bc (15, item.1), sc, ns, segs, fns)
+      else if tag == 7 then (rest, list_concat bc (25, 0, 15, item.2, 15, item.1), sc, ns, segs, fns)
+      else if tag == 8 then (rest, list_concat bc (26,), sc, ns, segs, fns)
+      else if tag == 9 then (rest, (), sc, ns, (bc, segs), fns)
+      else if tag == 10 then
+        let then_bc = segs.0 in let s1 = segs.1 in let cond_bc = s1.0 in let rest_segs = s1.1 in
+        let el = tuple_len bc in let tl = tuple_len then_bc in let cl = tuple_len cond_bc in
+        let jz_rel = 2 + tl + 2 in let jmp_rel = 2 + el in
+        -- Merge: cond_bc ++ [17, jz_rel] ++ then_bc ++ [16, jmp_rel] ++ else_bc
+        (rest, list_concat (list_concat (list_concat (list_concat cond_bc (17, jz_rel)) then_bc) (16, jmp_rel)) bc, sc, ns, rest_segs, fns)
+      else if tag == 11 then (rest, bc, item.1, ns, segs, fns)
+      else if tag == 12 then (rest, list_concat bc (41, item.1), sc, ns, segs, fns)
+      else if tag == 13 then
+        -- BEGIN_FUNC: save state, set up fresh scope for function parameter
+        (rest, (), ((item.2, 0),), 1, ((bc, sc, ns), segs), fns)
+      else if tag == 14 then
+        -- END_FUNC: append HALT, merge prelude segment with JMP skip
+        let fbc = list_concat bc (0,) in
+        let sv = segs.0 in let sbc = sv.0 in let ssc = sv.1 in let sns = sv.2 in
+        let fl = tuple_len fbc in let sl = tuple_len sbc in
+        (rest, list_concat (list_concat sbc (16, 2 + fl)) fbc, ssc, sns, segs.1, fns)
+      else if tag == 15 then
+        -- SCOPE_EXTEND: deferred scope extension (hash, slot)
+        (rest, bc, list_append sc (item.1, item.2), ns, segs, fns)
+      else if tag == 16 then
+        -- BEGIN_FUNC_2: 2-param prelude. CALL puts last arg in locals[0], preamble STORE 1 pops first arg.
+        -- item.2 = (p1_hash, p2_hash). Scope: p1 → slot 1 (first arg), p2 → slot 0 (last arg, via CALL)
+        let p1 = (item.2).0 in let p2 = (item.2).1 in
+        (rest, (15, 1), ((p1, 1), (p2, 0)), 2, ((bc, sc, ns), segs), fns)
+      else if tag == 17 then
+        -- SAVE_LOCALS: emit LOAD 2, LOAD 3, ..., LOAD sn-1 (caller-save before CALL)
+        let sn = item.1 in
+        if sn <= 2 then (rest, bc, sc, ns, segs, fns)
+        else let saves = fold bc (\b i -> if 2 + i >= sn then b else list_concat b (14, 2 + i)) (sn - 2) in
+          (rest, saves, sc, ns, segs, fns)
+      else if tag == 18 then
+        -- RESTORE_LOCALS: emit STORE sn (temp), STORE sn-1..2 (restore), LOAD sn (result)
+        let sn = item.1 in
+        if sn <= 2 then (rest, bc, sc, ns, segs, fns)
+        else let b1 = list_concat bc (15, sn) in
+          let b2 = fold b1 (\b i -> list_concat b (15, sn - 1 - i)) (sn - 2) in
+          let b3 = list_concat b2 (14, sn) in
+          (rest, b3, sc, ns, segs, fns)
+      else if tag == 20 then
+        -- MAKE_CLOSURE: compile Lambda body as code segment, push entry PC
+        let ph = item.1 in let bd = item.2 in
+        let extra = if tuple_len item > 3 then item.3 else 0 in
+        if extra != 0 then
+          -- 2-param closure: scope has both params
+          (((0, bd), ((21, 0), rest)), (), ((ph, 0), (extra, 1)), 2, ((bc, sc, ns), segs), fns)
+        else
+          (((0, bd), ((21, 0), rest)), (), ((ph, 0),), 1, ((bc, sc, ns), segs), fns)
+      else if tag == 21 then
+        -- MAKE_CLOSURE_END: append HALT, merge with JMP skip, push entry PC
+        let fbc = list_concat bc (0,) in
+        let sv = segs.0 in let sbc = sv.0 in let ssc = sv.1 in let sns = sv.2 in
+        let fl = tuple_len fbc in let sl = tuple_len sbc in
+        let entry_pc = sl + 2 in
+        (rest, list_concat (list_concat (list_concat sbc (16, 2 + fl)) fbc) (1, entry_pc), ssc, sns, segs.1, fns)
+      else if tag == 22 then
+        -- APPLY_VAR: emit LOAD slot, APPLY(44) for 1-arg dynamic call
+        (rest, list_concat bc (14, item.1, 44), sc, ns, segs, fns)
+      else if tag == 23 then
+        -- APPLY2_VAR: emit LOAD slot, APPLY2(45) for 2-arg dynamic call
+        (rest, list_concat bc (14, item.1, 45), sc, ns, segs, fns)
+      else (rest, bc, sc, ns, segs, fns)
+  ) 5000000 in
+  list_concat (final_state.1) (0,)
+
+
+

@@ -1,0 +1,6 @@
+# Expected outcome for W-6/accept. Read by vet.sh; keys are one-line strings.
+rule = "width is propagated, never unified: one body at the joined range"
+verdict = "accept"
+code = ""
+pending = "step 7"
+scheme = "forall k u. k<u> -> k<u> -> k<u>"  # one body; the parameter range is the join of the sites (design note (g))

@@ -1,0 +1,59 @@
+name: Stage 5 - Clarification Synthesis
+
+on:
+  issue_comment:
+    types: [created]
+  workflow_dispatch:
+    inputs:
+      issue_number:
+        description: Issue number to route
+        required: true
+        type: number
+      comment_url:
+        description: Source clarification comment URL
+        required: false
+        type: string
+        default: ''
+      comment_body:
+        description: Source clarification comment body; must start with @Clarification
+        required: false
+        type: string
+        default: '@Clarification'
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: clarification-routing-${{ github.event.issue.number || inputs.issue_number || github.run_id }}
+  cancel-in-progress: false
+
+jobs:
+  route:
+    name: Route clarification response
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          persist-credentials: false
+
+      - name: Evaluate clarification
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+          DEEPSEEK_MODEL: ${{ vars.DEEPSEEK_MODEL || 'deepseek-v4-pro' }}
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          SLACK_REVIEW_CHANNEL_ID: ${{ secrets.SLACK_REVIEW_CHANNEL_ID }}
+          DUUMBI_AGENT_DISPATCH_CHANNEL_ID: ${{ secrets.DUUMBI_AGENT_DISPATCH_CHANNEL_ID }}
+          DUUMBI_METRICS_PATH: duumbi-workflow-metrics.json
+        run: node scripts/github-actions/clarification-routing.mjs
+
+      - name: Upload DUUMBI workflow metrics
+        if: always()
+        continue-on-error: true
+        uses: actions/upload-artifact@v7
+        with:
+          name: duumbi-workflow-metrics-clarification-routing-${{ github.run_id }}-${{ github.run_attempt }}
+          path: duumbi-workflow-metrics.json
+          if-no-files-found: warn

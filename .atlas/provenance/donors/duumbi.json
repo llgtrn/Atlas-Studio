@@ -1,0 +1,87 @@
+{
+  "schema": "atlas.donor-provenance.v1",
+  "id": "duumbi",
+  "name": "DUUMBI",
+  "remote": "https://github.com/hgahub/duumbi.git",
+  "repository": "hgahub/duumbi",
+  "commit_sha": "ab4c8776f795052d3669774a7ff12bdd3231fd02",
+  "git_tree_sha": "6f6b259c909619657053af8cdfbf4788b57ed9cf",
+  "default_branch": "main",
+  "retrieved_at": "2026-09-22T14:04:48.531781213Z",
+  "clone_path": ".atlas/temporary/donors/duumbi",
+  "staging_mode": "FULL_SOURCE_TREE",
+  "license_files": [
+    ".atlas/licenses/donors/duumbi/LICENSE"
+  ],
+  "source_file_count": 675,
+  "observed_source_bytes": 19539408,
+  "ingestion_status": "CLONED",
+  "census_status": "COARSE_CENSUSED_AND_TARGETED_DEEP_CENSUSED",
+  "decision_status": "UNDER_COORDINATOR_REVIEW",
+  "runtime_dependency_status": "REFERENCE_ONLY",
+  "provenance_note": "Content evidence (README.md, AGENTS.md) indicates hgahub/duumbi is the canonical/primary source repo for the DUUMBI project (sibling repos hgahub/duumbi-vault and hgahub/duumbi-registry under the same org for planning and registry backend). GitHub API fork/parent/source flags could not be verified in this sandbox (api.github.com blocked by session proxy); fork status is NOT independently confirmed via API, only via in-repo content evidence.",
+  "license_identification": "MPL-2.0 (Mozilla Public License Version 2.0), confirmed by LICENSE file header text and Cargo.toml license field. File-level (weak) copyleft.",
+  "technology_lanes": [
+    "graph_native_language",
+    "cranelift_lowering",
+    "ai_graph_mutation",
+    "jsonld_surface_representation",
+    "intent_driven_development",
+    "mcp_graph_tools"
+  ],
+  "target_owners": [],
+  "dependency_closure": {
+    "status": "PARTIAL_TRANSITIVE",
+    "detail": "COMPLETE for the Rust/Cargo package graph as resolved in Cargo.lock (572 [[package]] entries, a genuine Cargo-computed fixed point; all 14 cranelift-* crates pinned consistently at 0.135.2, petgraph 0.8.3, target-lexicon 0.13.5). NOT further expanded past explicit non-Cargo terminal boundaries: (1) vendored SQLite 3.53.2 amalgamation in runtime/third_party/sqlite (public-domain, separate license, not a Cargo dependency), (2) system libcurl dynamically linked via runtime/duumbi_runtime.c (-lcurl at link time, not vendored, not a Cargo dependency), (3) Rust toolchain >=1.95 (stable channel, pinned transitively by cranelift-*/wasmtime-internal-core rust-version requirements per AGENTS.md and rust-toolchain.toml), (4) host C compiler/linker ($CC or cc on PATH, used by src/compiler/linker.rs), (5) each locked crate's own OS-level/system-library requirements (e.g. TLS backend internals of reqwest/rustls) were not individually expanded."
+  },
+  "mechanisms_examined": [
+    {
+      "mechanism": "graph_schema",
+      "provider": "duumbi (own code: src/parser/, src/types.rs); underlying JSON parsing by serde_json (dependency); NOT a JSON-LD library (none present)",
+      "disposition": "REJECT",
+      "note": "@context is never read/expanded anywhere in src/parser/ (confirmed by exhaustive grep); field access is hardcoded string literals, not IRI resolution. AGENTS.md's claim of a 'json-ld crate' dependency is false per Cargo.toml/Cargo.lock. JSON-LD branding carries no real standards/interop benefit here."
+    },
+    {
+      "mechanism": "node_identity",
+      "provider": "duumbi (own code: src/types.rs NodeId, src/graph/builder.rs; separate semantic_hash in src/hash.rs uses sha2 dependency)",
+      "disposition": "REFERENCE_ONLY",
+      "note": "Primary NodeId is author/AI-assigned hierarchical path string, not content-addressed. A separate content-hash (semantic_hash, SHA-256, @id-independent) exists but is used only for registry/lockfile integrity, never as graph node identity. Contrasts with Atlas's stable_id-hashed identity_key() as primary identity; no evidence DUUMBI's split is superior for Atlas's needs."
+    },
+    {
+      "mechanism": "operation_taxonomy",
+      "provider": "duumbi (own code: Op enum in src/types.rs, ~46 variants); Cranelift IR target of lowering is cranelift-codegen/cranelift-frontend (dependencies)",
+      "disposition": "REFERENCE_ONLY",
+      "note": "Execution/instruction vocabulary, not a semantic-fact vocabulary; not directly comparable to Atlas's SemanticFactKind family. Call resolution is purely static (no DYNAMIC_RESOLVED_SET/DYNAMIC_PARTIAL/UNRESOLVED dispatch kinds)."
+    },
+    {
+      "mechanism": "reference_binding_model",
+      "provider": "duumbi (own code: src/parser/ast.rs NodeRef, src/graph/builder.rs node_map, src/graph/program.rs cross-module export-table resolution); storage via petgraph (dependency) StableGraph/NodeIndex",
+      "disposition": "REFERENCE_ONLY",
+      "note": "Real two-phase (intra-module then inter-module) reference resolution with E010 ambiguous/unresolved diagnostics; genuinely tested, not stub."
+    },
+    {
+      "mechanism": "graph_mutation_semantics",
+      "provider": "duumbi (own code: src/patch.rs PatchOp/apply_patch, src/mcp/tools/graph.rs graph_mutate)",
+      "disposition": "REFERENCE_ONLY",
+      "note": "Mutate -> reparse -> rebuild -> revalidate -> write-iff-valid discipline confirmed real in both CLI and MCP entry points. Sound design precedent, not a code-reuse candidate (MPL-2.0, architecture mismatch)."
+    },
+    {
+      "mechanism": "validation",
+      "provider": "duumbi (own code: src/graph/validator.rs 2407 lines, src/graph/ownership.rs, src/graph/result_safety.rs)",
+      "disposition": "REFERENCE_ONLY",
+      "note": "Real, extensive, gated (ownership/result checks only run when relevant op kinds present). Binary valid/invalid gate, no EpistemicStatus-equivalent gradation; not a richer model than Atlas's own."
+    },
+    {
+      "mechanism": "cranelift_lowering_boundary",
+      "provider": "Cranelift (external dependency: cranelift-codegen/cranelift-frontend/cranelift-module/cranelift-object, all 0.135.2) for IR/codegen/object-emission; duumbi (own code: src/compiler/lowering.rs 4119 lines) for graph-to-Cranelift mapping, C-runtime call convention, guarded arithmetic, struct layout; host C toolchain (external, system) for final link",
+      "disposition": "EXTERNAL_BOUNDARY",
+      "note": "Single flat graph->Cranelift lowering, no staged HIR/MIR/LIR/MachineIR the way Atlas's COMPILER-IR-PIPELINE.md requires. Confirms Cranelift is viable as an Atlas LIR-consuming external native backend (already anticipated by Atlas's own contract) but DUUMBI's own glue code is not a reuse candidate."
+    },
+    {
+      "mechanism": "ai_driven_mutation_intent_query",
+      "provider": "duumbi (own code across src/agents/ 13227 lines, src/mcp/ 1782 lines, src/intent/ multiple files incl. execute.rs 2346 lines, src/query/); reqwest+tokio (dependencies) provide only HTTP/async transport",
+      "disposition": "REFERENCE_ONLY",
+      "note": "Confirmed real and substantial, not aspirational/stub, by direct code reading (not just docs). graph_query MCP tool is a linear filter scan, not a graph pattern-matching query language (REJECT as a query-engine model). Useful as an end-to-end existence proof / design reference only."
+    }
+  ]
+}

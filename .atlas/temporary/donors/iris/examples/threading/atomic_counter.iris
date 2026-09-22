@@ -1,0 +1,13 @@
+-- Atomic Counter
+-- Demonstrates shared-state mutation using the atomic effect primitives.
+-- atomic_write: set a named slot to a value
+-- atomic_add:   add to a named slot atomically (safe for concurrent callers)
+-- atomic_read:  read the current value of a named slot
+--
+-- Typical use: multiple threads increment a shared counter without a mutex.
+
+-- Initialize the "count" slot to x, increment by 1, return the new value.
+let counter x : Int -> Int [cost: Const(3)] =
+  let _r1 = atomic_write "count" x in
+  let _r2 = atomic_add "count" 1 in
+  atomic_read "count"

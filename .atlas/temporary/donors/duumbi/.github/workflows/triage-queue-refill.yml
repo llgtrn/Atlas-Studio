@@ -1,0 +1,67 @@
+name: Stage 4 - Triage Queue Refill
+
+on:
+  schedule:
+    - cron: '0 */4 * * *'
+  workflow_dispatch:
+    inputs:
+      target_human_acceptance_min:
+        description: Minimum Needs Human Acceptance issues to keep waiting
+        required: false
+        type: number
+        default: 3
+
+permissions:
+  contents: read
+
+concurrency:
+  group: duumbi-vault-intake
+  cancel-in-progress: false
+
+jobs:
+  refill:
+    name: Refill Needs Human Acceptance queue
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+
+      - name: Check out DUUMBI vault
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        continue-on-error: true
+        with:
+          repository: ${{ github.repository_owner }}/duumbi-vault
+          path: duumbi-vault
+          token: ${{ secrets.GH_PROJECT_PAT }}
+          persist-credentials: true
+
+      - name: Inspect Project V2 and refill queue
+        uses: actions/github-script@373c709c69115d41ff229c7e5df9f8788daa9553
+        env:
+          GH_PROJECT_PAT: ${{ secrets.GH_PROJECT_PAT }}
+          ZHIPUAI_API_KEY: ${{ secrets.ZHIPUAI_API_KEY }}
+          ZHIPU_MODEL: ${{ vars.ZHIPU_MODEL || 'glm-5.2' }}
+          DUUMBI_PROJECT_OWNER: ${{ vars.DUUMBI_PROJECT_OWNER || github.repository_owner }}
+          DUUMBI_PROJECT_OWNER_TYPE: ${{ vars.DUUMBI_PROJECT_OWNER_TYPE }}
+          DUUMBI_PROJECT_NUMBER: ${{ vars.DUUMBI_PROJECT_NUMBER }}
+          DUUMBI_METRICS_PATH: duumbi-workflow-metrics.json
+        with:
+          script: |
+            const refill = await import(`${process.env.GITHUB_WORKSPACE}/scripts/github-actions/triage-queue-refill.mjs`);
+            await refill.runTriageQueueRefill({
+              env: process.env,
+              context,
+              core,
+              summary: core.summary,
+              fetchImpl: fetch,
+              workspace: process.env.GITHUB_WORKSPACE,
+            });
+
+      - name: Upload DUUMBI workflow metrics
+        if: always()
+        continue-on-error: true
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: duumbi-workflow-metrics-triage-refill-${{ github.run_id }}-${{ github.run_attempt }}
+          path: duumbi-workflow-metrics.json
+          if-no-files-found: warn

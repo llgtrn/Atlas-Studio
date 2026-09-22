@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "rust-tools": {
+      "command": "rust-mcp-server",
+      "args": ["--workspace", "."],
+      "env": {}
+    },
+    "cratedocs": {
+      "command": "cratedocs",
+      "args": ["stdio"],
+      "env": {}
+    }
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "schema": "atlas.donor-provenance.v1",
+  "id": "composer",
+  "name": "Clef / Composer",
+  "remote": "https://github.com/FidelityFramework/Composer.git",
+  "repository": "FidelityFramework/Composer",
+  "commit_sha": "c46485096c38dc2c9fef9db4ae60caa1905ca1a3",
+  "git_tree_sha": "f3a1d7e468bf5dd8dcb4935587ee6b6b0c1e9009",
+  "default_branch": "main",
+  "retrieved_at": "2026-09-22T14:08:05.000000Z",
+  "clone_path": ".atlas/temporary/donors/composer",
+  "staging_mode": "FULL_SOURCE_TREE",
+  "license_files": [
+    ".atlas/licenses/donors/composer/LICENSE",
+    ".atlas/licenses/donors/composer/Commercial.md",
+    ".atlas/licenses/donors/composer/PATENTS.md"
+  ],
+  "source_file_count": 789,
+  "observed_source_bytes": 5188304.0,
+  "ingestion_status": "CLONED",
+  "census_status": "COARSE_CENSUSED_PLUS_TARGETED_DEEP_CENSUS",
+  "decision_status": "PENDING_COORDINATOR_REVIEW",
+  "runtime_dependency_status": "NOT_APPLICABLE",
+  "provenance_note": "Repository is not a read-only mirror (active-development signals: CLAUDE.md written for local engineering use, .mise.toml/.mcp.json dev tooling, overridable Directory.Build.local.props). However Composer is not self-contained: it hard-references a sibling checkout of FidelityFramework/clef via MSBuild ProjectReference (../clef/src/Compiler/Clef.Compiler.Service.fsproj) for CCS (PSG schema, construction, symbol correlation, reachability, enrichment/saturation, coeffect analysis, escape analysis all live in clef, not here), plus a sibling ../../Thuja checkout. See census doc Source section for full citation trail.",
+  "license_identification": "Apache-2.0 (dual-licensed; commercial license track available via Commercial.md; patent notice in PATENTS.md scoped to BAREWire zero-copy IPC, US Provisional Patent App No. 63/786,247, owned by SpeakEZ Technologies Inc.)",
+  "technology_lanes": [
+    "program_semantic_graph",
+    "nanopass_compiler",
+    "mlir_lowering",
+    "coeffect_analysis",
+    "escape_analysis",
+    "semantic_preservation_verification"
+  ],
+  "target_owners": [
+    "compiler/hir",
+    "compiler/mir",
+    "compiler/lir",
+    "graph/engineering_graph"
+  ],
+  "sibling_donor_coupling": {
+    "coupled_repository": "FidelityFramework/clef",
+    "coupling_kind": "HARD_BUILD_DEPENDENCY_MSBUILD_PROJECTREFERENCE",
+    "coupling_evidence": "Directory.Build.props: ClefCompilerServiceProject defaults to $(MSBuildThisFileDirectory)../clef/src/Compiler/Clef.Compiler.Service.fsproj; Composer.fsproj references $(ClefCompilerServiceProject); docs/CCS_Architecture.md links PSG/coeffect/escape/reachability/obligation source files directly into FidelityFramework/clef by GitHub URL.",
+    "attribution_split": "clef owns PSG schema/identity/construction/symbol-correlation/reachability/enrichment-saturation/coeffect-analysis/escape-analysis. Composer owns PSG-to-MLIR lowering (Alex: Zipper+XParsec+Elements+Patterns+Witnesses), backend code generation (LLVM/MCU/CIRCT/AIE/GPU), and the SMT-obligation-correspondence scaffold (SMTTransfer.fs).",
+    "note_for_coordinator": "Reconcile with sibling agent's clef census before assigning ABSORB dispositions to any PSG/coeffect/enrichment mechanism."
+  },
+  "dependency_closure_status": "DIRECT_ONLY (NuGet, no lockfile present) + PARTIAL_TRANSITIVE (two hard sibling-repo ProjectReferences: clef, Thuja, both out of this clone's scope) + EXTERNAL_BOUNDARY (mlir-opt, mlir-translate, opt, ld.lld, cvc5 as unwired-documentation-only toolchain dependency)"
+}

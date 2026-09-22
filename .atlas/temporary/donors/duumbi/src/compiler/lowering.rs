@@ -1,0 +1,4119 @@
+//! Cranelift IR lowering — graph nodes to Cranelift instructions.
+//!
+//! Compiles a validated `SemanticGraph` into a native object file
+//! using the Cranelift code generator. Supports multi-function,
+//! multi-block compilation with f64/bool types, Compare, Branch,
+//! Call, Load, and Store operations.
+
+use std::collections::{HashMap, HashSet};
+
+use cranelift_codegen::ir::condcodes::{FloatCC, IntCC};
+use cranelift_codegen::ir::types;
+use cranelift_codegen::ir::{AbiParam, InstBuilder, MemFlagsData, TrapCode, Value};
+use cranelift_codegen::settings::{self, Configurable};
+use cranelift_codegen::{self, Context, isa};
+use cranelift_frontend::{FunctionBuilder, FunctionBuilderContext, Variable};
+use cranelift_module::{DataDescription, DataId, FuncId, Linkage, Module};
+use cranelift_object::{ObjectBuilder, ObjectModule};
+use petgraph::visit::EdgeRef;
+use target_lexicon::Triple;
+
+use crate::graph::program::Program;
+use crate::graph::{BlockInfo, FunctionInfo, GraphEdge, SemanticGraph};
+use crate::telemetry::{TelemetryBuildMode, TraceMapKind};
+use crate::types::{CompareOp, DuumbiType, FunctionName, NodeId, Op};
+
+use super::CompileError;
+
+/// Holds FuncIds for all C runtime functions declared in the object module.
+///
+/// Replaces individual print function parameters — all runtime function
+/// references are grouped here for clean passing through the compilation pipeline.
+// AI-AGENT: Do NOT split this into smaller structs (e.g. PrintFuncs, StringFuncs).
+// compile_function() needs every runtime FuncId to handle all op types in a
+// single pass. Splitting would require passing multiple structs or a longer
+// parameter list — both are harder to maintain as new runtime ops are added.
+struct RuntimeFuncs {
+    print_i64: FuncId,
+    print_f64: FuncId,
+    print_bool: FuncId,
+    print_string: FuncId,
+    read_line: FuncId,
+    print_ln: FuncId,
+    file_read: FuncId,
+    file_write: FuncId,
+    file_exists: FuncId,
+    list_dir: FuncId,
+    path_join: FuncId,
+    string_new: FuncId,
+    string_free: FuncId,
+    string_len: FuncId,
+    string_concat: FuncId,
+    string_equals: FuncId,
+    string_compare: FuncId,
+    string_slice: FuncId,
+    string_contains: FuncId,
+    string_find: FuncId,
+    string_from_i64: FuncId,
+    array_new: FuncId,
+    array_push: FuncId,
+    array_get: FuncId,
+    array_set: FuncId,
+    array_len: FuncId,
+    array_free: FuncId,
+    struct_new: FuncId,
+    struct_field_get: FuncId,
+    struct_field_set: FuncId,
+    struct_free: FuncId,
+
+    // Result functions (Phase 9a-3)
+    result_new_ok: FuncId,
+    result_new_err: FuncId,
+    result_is_ok: FuncId,
+    result_unwrap: FuncId,
+    result_unwrap_err: FuncId,
+    result_free: FuncId,
+    checked_add: FuncId,
+    checked_sub: FuncId,
+    checked_mul: FuncId,
+    checked_div: FuncId,
+
+    // Option functions (Phase 9a-3)
+    option_new_some: FuncId,
+    option_new_none: FuncId,
+    option_is_some: FuncId,
+    option_unwrap: FuncId,
+    option_free: FuncId,
+
+    // Math functions (Phase 9A)
+    sqrt: FuncId,
+    pow: FuncId,
+    powi64: FuncId,
+    fmod: FuncId,
+
+    // String utility functions (Phase 9A)
+    string_trim: FuncId,
+    string_to_upper: FuncId,
+    string_to_lower: FuncId,
+    string_replace: FuncId,
+
+    // JSON functions (DUUMBI-379)
+    json_parse: FuncId,
+    json_stringify: FuncId,
+    json_get_field: FuncId,
+    json_array_len: FuncId,
+    json_array_get: FuncId,
+    json_free: FuncId,
+
+    // TCP functions (DUUMBI-379)
+    tcp_connect: FuncId,
+    tcp_listen: FuncId,
+    tcp_accept: FuncId,
+    tcp_read: FuncId,
+    tcp_write: FuncId,
+    tcp_close: FuncId,
+    tcp_listener_close: FuncId,
+    tcp_socket_free: FuncId,
+    tcp_listener_free: FuncId,
+
+    // HTTP server functions (DUUMBI-381)
+    server_new: FuncId,
+    route_add_static: FuncId,
+    server_start: FuncId,
+    server_close: FuncId,
+    server_free: FuncId,
+
+    // HTTP functions (DUUMBI-380)
+    http_get: FuncId,
+    http_post: FuncId,
+    http_put: FuncId,
+    http_delete: FuncId,
+    http_status: FuncId,
+    http_body: FuncId,
+    http_headers: FuncId,
+    http_response_close: FuncId,
+    http_response_free: FuncId,
+
+    // DB functions (DUUMBI-380)
+    db_open: FuncId,
+    db_execute: FuncId,
+    db_query: FuncId,
+    db_rows_len: FuncId,
+    db_row_get: FuncId,
+    db_close: FuncId,
+    db_rows_close: FuncId,
+    db_connection_free: FuncId,
+    db_rows_free: FuncId,
+
+    panic_at: FuncId,
+
+    trace: Option<RuntimeTraceFuncs>,
+}
+
+struct RuntimeTraceFuncs {
+    init: FuncId,
+    function_enter: FuncId,
+    function_exit: FuncId,
+    block_enter: FuncId,
+    block_exit: FuncId,
+    #[allow(dead_code)] // Declared for ABI completeness; runtime calls it from duumbi_panic.
+    panic: FuncId,
+}
+
+struct RuntimeTraceRefs {
+    init: cranelift_codegen::ir::FuncRef,
+    function_enter: cranelift_codegen::ir::FuncRef,
+    function_exit: cranelift_codegen::ir::FuncRef,
+    block_enter: cranelift_codegen::ir::FuncRef,
+    block_exit: cranelift_codegen::ir::FuncRef,
+    #[allow(dead_code)] // See RuntimeTraceFuncs::panic.
+    panic: cranelift_codegen::ir::FuncRef,
+}
+
+struct NodePanicContext<'a> {
+    obj_module: &'a mut ObjectModule,
+    string_data: &'a HashMap<String, DataId>,
+    panic_at_ref: cranelift_codegen::ir::FuncRef,
+}
+
+#[derive(Debug, Clone)]
+struct StructLayout {
+    offsets: HashMap<String, i64>,
+    total_size: i64,
+}
+
+#[derive(Debug, Default)]
+struct StructLayoutBuilder {
+    fields: Vec<String>,
+    field_types: HashMap<String, DuumbiType>,
+}
+
+#[derive(Debug, Clone)]
+struct ImportedFunction<'a> {
+    key: String,
+    symbol: String,
+    function_name: String,
+    info: &'a FunctionInfo,
+}
+
+fn callable_key(module_name: &str, function_name: &str) -> String {
+    format!("{module_name}::{function_name}")
+}
+
+fn function_symbol_name(module_name: &str, function_name: &str) -> String {
+    if function_name == "main" {
+        "main".to_string()
+    } else {
+        format!(
+            "duumbi__{}__{}",
+            mangle_symbol_component(module_name),
+            mangle_symbol_component(function_name)
+        )
+    }
+}
+
+fn mangle_symbol_component(value: &str) -> String {
+    let mut out = String::new();
+    for byte in value.bytes() {
+        match byte {
+            b'a'..=b'z' | b'A'..=b'Z' | b'0'..=b'9' => out.push(byte as char),
+            _ => out.push_str(&format!("_x{byte:02x}_")),
+        }
+    }
+    if out.is_empty() { "_".to_string() } else { out }
+}
+
+/// Helper to declare an imported C function with given param/return types.
+fn declare_runtime_fn(
+    module: &mut ObjectModule,
+    name: &str,
+    params: &[cranelift_codegen::ir::Type],
+    returns: &[cranelift_codegen::ir::Type],
+) -> Result<FuncId, CompileError> {
+    let mut sig = module.make_signature();
+    for &p in params {
+        sig.params.push(AbiParam::new(p));
+    }
+    for &r in returns {
+        sig.returns.push(AbiParam::new(r));
+    }
+    module
+        .declare_function(name, Linkage::Import, &sig)
+        .map_err(|e| CompileError::Cranelift {
+            message: format!("Failed to declare {name}: {e}"),
+        })
+}
+
+/// Declares all C runtime functions in the object module.
+fn declare_all_runtime_fns(
+    module: &mut ObjectModule,
+    telemetry: TelemetryBuildMode,
+) -> Result<RuntimeFuncs, CompileError> {
+    let i64t = types::I64;
+    let f64t = types::F64;
+    let i8t = types::I8;
+    let trace = if telemetry.is_trace() {
+        Some(RuntimeTraceFuncs {
+            init: declare_runtime_fn(module, "duumbi_trace_init", &[], &[])?,
+            function_enter: declare_runtime_fn(
+                module,
+                "duumbi_trace_function_enter",
+                &[i64t],
+                &[],
+            )?,
+            function_exit: declare_runtime_fn(module, "duumbi_trace_function_exit", &[i64t], &[])?,
+            block_enter: declare_runtime_fn(module, "duumbi_trace_block_enter", &[i64t], &[])?,
+            block_exit: declare_runtime_fn(module, "duumbi_trace_block_exit", &[i64t], &[])?,
+            panic: declare_runtime_fn(module, "duumbi_trace_panic", &[i64t], &[])?,
+        })
+    } else {
+        None
+    };
+
+    Ok(RuntimeFuncs {
+        // Print functions
+        print_i64: declare_runtime_fn(module, "duumbi_print_i64", &[i64t], &[])?,
+        print_f64: declare_runtime_fn(module, "duumbi_print_f64", &[f64t], &[])?,
+        print_bool: declare_runtime_fn(module, "duumbi_print_bool", &[i8t], &[])?,
+        print_string: declare_runtime_fn(module, "duumbi_print_string", &[i64t], &[])?,
+        read_line: declare_runtime_fn(module, "duumbi_read_line", &[], &[i64t])?,
+        print_ln: declare_runtime_fn(module, "duumbi_print_ln", &[i64t], &[i64t])?,
+        file_read: declare_runtime_fn(module, "duumbi_file_read", &[i64t, i64t], &[i64t])?,
+        file_write: declare_runtime_fn(module, "duumbi_file_write", &[i64t, i64t], &[i64t])?,
+        file_exists: declare_runtime_fn(module, "duumbi_file_exists", &[i64t], &[i64t])?,
+        list_dir: declare_runtime_fn(module, "duumbi_list_dir", &[i64t], &[i64t])?,
+        path_join: declare_runtime_fn(module, "duumbi_path_join", &[i64t, i64t], &[i64t])?,
+
+        // String functions (ptr = i64)
+        string_new: declare_runtime_fn(module, "duumbi_string_new", &[i64t, i64t], &[i64t])?,
+        string_free: declare_runtime_fn(module, "duumbi_string_free", &[i64t], &[])?,
+        string_len: declare_runtime_fn(module, "duumbi_string_len", &[i64t], &[i64t])?,
+        string_concat: declare_runtime_fn(module, "duumbi_string_concat", &[i64t, i64t], &[i64t])?,
+        string_equals: declare_runtime_fn(module, "duumbi_string_equals", &[i64t, i64t], &[i8t])?,
+        string_compare: declare_runtime_fn(
+            module,
+            "duumbi_string_compare",
+            &[i64t, i64t],
+            &[i64t],
+        )?,
+        string_slice: declare_runtime_fn(
+            module,
+            "duumbi_string_slice",
+            &[i64t, i64t, i64t],
+            &[i64t],
+        )?,
+        string_contains: declare_runtime_fn(
+            module,
+            "duumbi_string_contains",
+            &[i64t, i64t],
+            &[i8t],
+        )?,
+        string_find: declare_runtime_fn(module, "duumbi_string_find", &[i64t, i64t], &[i64t])?,
+        string_from_i64: declare_runtime_fn(module, "duumbi_string_from_i64", &[i64t], &[i64t])?,
+
+        // Array functions (push returns new ptr, get returns i64 value)
+        array_new: declare_runtime_fn(module, "duumbi_array_new", &[i64t], &[i64t])?,
+        array_push: declare_runtime_fn(module, "duumbi_array_push", &[i64t, i64t], &[i64t])?,
+        array_get: declare_runtime_fn(module, "duumbi_array_get", &[i64t, i64t], &[i64t])?,
+        array_set: declare_runtime_fn(module, "duumbi_array_set", &[i64t, i64t, i64t], &[])?,
+        array_len: declare_runtime_fn(module, "duumbi_array_len", &[i64t], &[i64t])?,
+        array_free: declare_runtime_fn(module, "duumbi_array_free", &[i64t], &[])?,
+
+        // Struct functions
+        struct_new: declare_runtime_fn(module, "duumbi_struct_new", &[i64t], &[i64t])?,
+        struct_field_get: declare_runtime_fn(
+            module,
+            "duumbi_struct_field_get",
+            &[i64t, i64t],
+            &[i64t],
+        )?,
+        struct_field_set: declare_runtime_fn(
+            module,
+            "duumbi_struct_field_set",
+            &[i64t, i64t, i64t],
+            &[],
+        )?,
+        struct_free: declare_runtime_fn(module, "duumbi_struct_free", &[i64t], &[])?,
+
+        // Result functions (Phase 9a-3) — all pointers represented as i64
+        result_new_ok: declare_runtime_fn(module, "duumbi_result_new_ok", &[i64t], &[i64t])?,
+        result_new_err: declare_runtime_fn(module, "duumbi_result_new_err", &[i64t], &[i64t])?,
+        result_is_ok: declare_runtime_fn(module, "duumbi_result_is_ok", &[i64t], &[i8t])?,
+        result_unwrap: declare_runtime_fn(module, "duumbi_result_unwrap", &[i64t], &[i64t])?,
+        result_unwrap_err: declare_runtime_fn(
+            module,
+            "duumbi_result_unwrap_err",
+            &[i64t],
+            &[i64t],
+        )?,
+        result_free: declare_runtime_fn(module, "duumbi_result_free", &[i64t], &[])?,
+        checked_add: declare_runtime_fn(module, "duumbi_i64_add_checked", &[i64t, i64t], &[i64t])?,
+        checked_sub: declare_runtime_fn(module, "duumbi_i64_sub_checked", &[i64t, i64t], &[i64t])?,
+        checked_mul: declare_runtime_fn(module, "duumbi_i64_mul_checked", &[i64t, i64t], &[i64t])?,
+        checked_div: declare_runtime_fn(module, "duumbi_i64_div_checked", &[i64t, i64t], &[i64t])?,
+
+        // Option functions (Phase 9a-3)
+        option_new_some: declare_runtime_fn(module, "duumbi_option_new_some", &[i64t], &[i64t])?,
+        option_new_none: declare_runtime_fn(module, "duumbi_option_new_none", &[], &[i64t])?,
+        option_is_some: declare_runtime_fn(module, "duumbi_option_is_some", &[i64t], &[i8t])?,
+        option_unwrap: declare_runtime_fn(module, "duumbi_option_unwrap", &[i64t], &[i64t])?,
+        option_free: declare_runtime_fn(module, "duumbi_option_free", &[i64t], &[])?,
+
+        // Math functions (Phase 9A) — link with -lm
+        sqrt: declare_runtime_fn(module, "duumbi_sqrt", &[f64t], &[f64t])?,
+        pow: declare_runtime_fn(module, "duumbi_pow", &[f64t, f64t], &[f64t])?,
+        powi64: declare_runtime_fn(module, "duumbi_powi64", &[i64t, i64t], &[i64t])?,
+        fmod: declare_runtime_fn(module, "duumbi_fmod", &[f64t, f64t], &[f64t])?,
+
+        // String utility functions (Phase 9A)
+        string_trim: declare_runtime_fn(module, "duumbi_string_trim", &[i64t], &[i64t])?,
+        string_to_upper: declare_runtime_fn(module, "duumbi_string_to_upper", &[i64t], &[i64t])?,
+        string_to_lower: declare_runtime_fn(module, "duumbi_string_to_lower", &[i64t], &[i64t])?,
+        string_replace: declare_runtime_fn(
+            module,
+            "duumbi_string_replace",
+            &[i64t, i64t, i64t],
+            &[i64t],
+        )?,
+        json_parse: declare_runtime_fn(module, "duumbi_json_parse", &[i64t], &[i64t])?,
+        json_stringify: declare_runtime_fn(module, "duumbi_json_stringify", &[i64t], &[i64t])?,
+        json_get_field: declare_runtime_fn(
+            module,
+            "duumbi_json_get_field",
+            &[i64t, i64t],
+            &[i64t],
+        )?,
+        json_array_len: declare_runtime_fn(module, "duumbi_json_array_len", &[i64t], &[i64t])?,
+        json_array_get: declare_runtime_fn(
+            module,
+            "duumbi_json_array_get",
+            &[i64t, i64t],
+            &[i64t],
+        )?,
+        json_free: declare_runtime_fn(module, "duumbi_json_free", &[i64t], &[])?,
+        tcp_connect: declare_runtime_fn(
+            module,
+            "duumbi_tcp_connect",
+            &[i64t, i64t, i64t],
+            &[i64t],
+        )?,
+        tcp_listen: declare_runtime_fn(module, "duumbi_tcp_listen", &[i64t, i64t, i64t], &[i64t])?,
+        tcp_accept: declare_runtime_fn(module, "duumbi_tcp_accept", &[i64t, i64t], &[i64t])?,
+        tcp_read: declare_runtime_fn(module, "duumbi_tcp_read", &[i64t, i64t, i64t], &[i64t])?,
+        tcp_write: declare_runtime_fn(module, "duumbi_tcp_write", &[i64t, i64t, i64t], &[i64t])?,
+        tcp_close: declare_runtime_fn(module, "duumbi_tcp_close", &[i64t], &[i64t])?,
+        tcp_listener_close: declare_runtime_fn(
+            module,
+            "duumbi_tcp_listener_close",
+            &[i64t],
+            &[i64t],
+        )?,
+        tcp_socket_free: declare_runtime_fn(module, "duumbi_tcp_socket_free", &[i64t], &[])?,
+        tcp_listener_free: declare_runtime_fn(module, "duumbi_tcp_listener_free", &[i64t], &[])?,
+        server_new: declare_runtime_fn(module, "duumbi_server_new", &[i64t, i64t, i64t], &[i64t])?,
+        route_add_static: declare_runtime_fn(
+            module,
+            "duumbi_route_add_static",
+            &[i64t, i64t, i64t, i64t, i64t, i64t],
+            &[i64t],
+        )?,
+        server_start: declare_runtime_fn(
+            module,
+            "duumbi_server_start",
+            &[i64t, i64t, i64t],
+            &[i64t],
+        )?,
+        server_close: declare_runtime_fn(module, "duumbi_server_close", &[i64t], &[i64t])?,
+        server_free: declare_runtime_fn(module, "duumbi_server_free", &[i64t], &[])?,
+        http_get: declare_runtime_fn(module, "duumbi_http_get", &[i64t, i64t, i64t], &[i64t])?,
+        http_post: declare_runtime_fn(
+            module,
+            "duumbi_http_post",
+            &[i64t, i64t, i64t, i64t],
+            &[i64t],
+        )?,
+        http_put: declare_runtime_fn(
+            module,
+            "duumbi_http_put",
+            &[i64t, i64t, i64t, i64t],
+            &[i64t],
+        )?,
+        http_delete: declare_runtime_fn(
+            module,
+            "duumbi_http_delete",
+            &[i64t, i64t, i64t],
+            &[i64t],
+        )?,
+        http_status: declare_runtime_fn(module, "duumbi_http_status", &[i64t], &[i64t])?,
+        http_body: declare_runtime_fn(module, "duumbi_http_body", &[i64t], &[i64t])?,
+        http_headers: declare_runtime_fn(module, "duumbi_http_headers", &[i64t], &[i64t])?,
+        http_response_close: declare_runtime_fn(
+            module,
+            "duumbi_http_response_close",
+            &[i64t],
+            &[i64t],
+        )?,
+        http_response_free: declare_runtime_fn(module, "duumbi_http_response_free", &[i64t], &[])?,
+        db_open: declare_runtime_fn(module, "duumbi_db_open", &[i64t], &[i64t])?,
+        db_execute: declare_runtime_fn(module, "duumbi_db_execute", &[i64t, i64t, i64t], &[i64t])?,
+        db_query: declare_runtime_fn(module, "duumbi_db_query", &[i64t, i64t, i64t], &[i64t])?,
+        db_rows_len: declare_runtime_fn(module, "duumbi_db_rows_len", &[i64t], &[i64t])?,
+        db_row_get: declare_runtime_fn(module, "duumbi_db_row_get", &[i64t, i64t, i64t], &[i64t])?,
+        db_close: declare_runtime_fn(module, "duumbi_db_close", &[i64t], &[i64t])?,
+        db_rows_close: declare_runtime_fn(module, "duumbi_db_rows_close", &[i64t], &[i64t])?,
+        db_connection_free: declare_runtime_fn(module, "duumbi_db_connection_free", &[i64t], &[])?,
+        db_rows_free: declare_runtime_fn(module, "duumbi_db_rows_free", &[i64t], &[])?,
+        panic_at: declare_runtime_fn(module, "duumbi_panic_at", &[i64t, i64t], &[])?,
+        trace,
+    })
+}
+
+/// Converts a `DuumbiType` to a Cranelift IR type.
+///
+/// Heap types (String, Array, Struct) are represented as pointers (I64)
+/// in Cranelift IR — all heap values are opaque pointers to C runtime
+/// allocated memory.
+fn duumbi_type_to_cl(ty: &DuumbiType) -> cranelift_codegen::ir::Type {
+    match ty {
+        DuumbiType::I64 => types::I64,
+        DuumbiType::F64 => types::F64,
+        DuumbiType::Bool => types::I8,
+        DuumbiType::Void => types::I64, // should not be used for values
+        // Heap types are pointer-sized (opaque pointers to C runtime memory)
+        DuumbiType::String
+        | DuumbiType::Json
+        | DuumbiType::TcpSocket
+        | DuumbiType::TcpListener
+        | DuumbiType::HttpServer
+        | DuumbiType::HttpResponse
+        | DuumbiType::DbConnection
+        | DuumbiType::DbRows
+        | DuumbiType::Array(_)
+        | DuumbiType::Struct(_) => types::I64,
+        // References are pointer-sized (Phase 9a-2)
+        DuumbiType::Ref(_) | DuumbiType::RefMut(_) => types::I64,
+        // Result/Option are pointer-sized tagged unions (Phase 9a-3)
+        DuumbiType::Result(_, _) | DuumbiType::Option(_) => types::I64,
+    }
+}
+
+/// Converts a `CompareOp` to Cranelift integer condition code.
+fn compare_op_to_intcc(op: &CompareOp) -> IntCC {
+    match op {
+        CompareOp::Eq => IntCC::Equal,
+        CompareOp::Ne => IntCC::NotEqual,
+        CompareOp::Lt => IntCC::SignedLessThan,
+        CompareOp::Le => IntCC::SignedLessThanOrEqual,
+        CompareOp::Gt => IntCC::SignedGreaterThan,
+        CompareOp::Ge => IntCC::SignedGreaterThanOrEqual,
+    }
+}
+
+/// Converts a `CompareOp` to Cranelift float condition code.
+fn compare_op_to_floatcc(op: &CompareOp) -> FloatCC {
+    match op {
+        CompareOp::Eq => FloatCC::Equal,
+        CompareOp::Ne => FloatCC::NotEqual,
+        CompareOp::Lt => FloatCC::LessThan,
+        CompareOp::Le => FloatCC::LessThanOrEqual,
+        CompareOp::Gt => FloatCC::GreaterThan,
+        CompareOp::Ge => FloatCC::GreaterThanOrEqual,
+    }
+}
+
+/// Creates the ISA and ObjectModule shared setup.
+fn create_object_module() -> Result<ObjectModule, CompileError> {
+    let triple = object_target_triple();
+
+    let mut settings_builder = settings::builder();
+    settings_builder
+        .set("opt_level", "speed")
+        .map_err(|e| CompileError::Cranelift {
+            message: format!("Failed to set opt_level: {e}"),
+        })?;
+    settings_builder
+        .set("is_pic", "true")
+        .map_err(|e| CompileError::Cranelift {
+            message: format!("Failed to set is_pic: {e}"),
+        })?;
+
+    let flags = settings::Flags::new(settings_builder);
+
+    let isa = isa::lookup(triple.clone())
+        .map_err(|e| CompileError::Cranelift {
+            message: format!("ISA lookup failed: {e}"),
+        })?
+        .finish(flags)
+        .map_err(|e| CompileError::Cranelift {
+            message: format!("ISA finish failed: {e}"),
+        })?;
+
+    let obj_builder = ObjectBuilder::new(
+        isa.clone(),
+        "duumbi_output",
+        cranelift_module::default_libcall_names(),
+    )
+    .map_err(|e| CompileError::ObjectEmission {
+        message: format!("ObjectBuilder creation failed: {e}"),
+    })?;
+
+    Ok(ObjectModule::new(obj_builder))
+}
+
+fn object_target_triple() -> Triple {
+    object_target_triple_for_host(Triple::host())
+}
+
+fn object_target_triple_for_host(triple: Triple) -> Triple {
+    #[cfg(target_os = "macos")]
+    {
+        let mut triple = triple;
+        if matches!(
+            triple.operating_system,
+            target_lexicon::OperatingSystem::Darwin(_)
+        ) {
+            triple.operating_system =
+                target_lexicon::OperatingSystem::MacOSX(Some(macos_deployment_target(&triple)));
+        }
+        triple
+    }
+
+    #[cfg(not(target_os = "macos"))]
+    triple
+}
+
+#[cfg(target_os = "macos")]
+fn macos_deployment_target(triple: &Triple) -> target_lexicon::DeploymentTarget {
+    std::env::var("MACOSX_DEPLOYMENT_TARGET")
+        .ok()
+        .and_then(|value| parse_macos_deployment_target(&value))
+        .unwrap_or_else(|| default_macos_deployment_target(triple))
+}
+
+#[cfg(target_os = "macos")]
+fn default_macos_deployment_target(triple: &Triple) -> target_lexicon::DeploymentTarget {
+    let major = match triple.architecture {
+        target_lexicon::Architecture::Aarch64(_) => 11,
+        _ => 10,
+    };
+    let minor = if major == 10 { 12 } else { 0 };
+    target_lexicon::DeploymentTarget {
+        major,
+        minor,
+        patch: 0,
+    }
+}
+
+#[cfg(target_os = "macos")]
+fn parse_macos_deployment_target(value: &str) -> Option<target_lexicon::DeploymentTarget> {
+    let mut parts = value.split('.');
+    let major = parts.next()?.parse().ok()?;
+    let minor = parts.next().map_or(Some(0), |part| part.parse().ok())?;
+    let patch = parts.next().map_or(Some(0), |part| part.parse().ok())?;
+    if parts.next().is_some() {
+        return None;
+    }
+    Some(target_lexicon::DeploymentTarget {
+        major,
+        minor,
+        patch,
+    })
+}
+
+/// Declares a function signature in the Cranelift module.
+fn make_func_signature(
+    obj_module: &ObjectModule,
+    func_info: &FunctionInfo,
+) -> cranelift_codegen::ir::Signature {
+    let mut sig = obj_module.make_signature();
+    for param in &func_info.params {
+        sig.params
+            .push(AbiParam::new(duumbi_type_to_cl(&param.param_type)));
+    }
+    if func_info.return_type != DuumbiType::Void {
+        sig.returns
+            .push(AbiParam::new(duumbi_type_to_cl(&func_info.return_type)));
+    }
+    sig
+}
+
+/// Compiles a validated semantic graph to a native object file.
+///
+/// Returns the raw bytes of the native object file (Mach-O on macOS, ELF on
+/// Linux).
+/// For multi-module programs use [`compile_program`] instead.
+#[allow(dead_code)] // Public library API; the CLI uses compile_to_object_with_telemetry.
+#[must_use = "compilation errors should be handled"]
+pub fn compile_to_object(graph: &SemanticGraph) -> Result<Vec<u8>, CompileError> {
+    compile_to_object_with_telemetry(graph, TelemetryBuildMode::Off)
+}
+
+/// Compiles a validated semantic graph with an explicit telemetry mode.
+#[must_use = "compilation errors should be handled"]
+pub fn compile_to_object_with_telemetry(
+    graph: &SemanticGraph,
+    telemetry: TelemetryBuildMode,
+) -> Result<Vec<u8>, CompileError> {
+    compile_to_object_impl(graph, &HashSet::new(), &[], telemetry)
+}
+
+/// Compiles a multi-module [`Program`] to per-module native object files.
+///
+/// Returns a map of `module_name → object_bytes`. Each exported function
+/// receives `Linkage::Export`; each cross-module callee is declared with
+/// `Linkage::Import` so the linker can resolve the symbol.
+///
+/// # Errors
+///
+/// Returns [`CompileError`] if more than one module defines `main`, or if
+/// Cranelift IR generation fails for any module.
+#[allow(dead_code)] // Called by CLI in upcoming phase (#61)
+#[must_use = "compilation errors should be handled"]
+pub fn compile_program(program: &Program) -> Result<HashMap<String, Vec<u8>>, CompileError> {
+    compile_program_with_telemetry(program, TelemetryBuildMode::Off)
+}
+
+/// Compiles a multi-module [`Program`] with an explicit telemetry mode.
+#[allow(dead_code)] // Called by CLI when traced builds are requested.
+#[must_use = "compilation errors should be handled"]
+pub fn compile_program_with_telemetry(
+    program: &Program,
+    telemetry: TelemetryBuildMode,
+) -> Result<HashMap<String, Vec<u8>>, CompileError> {
+    // Build a cross-module function info lookup: (module_name, fn_name) → &FunctionInfo
+    let all_fn_info: HashMap<(String, String), &FunctionInfo> = program
+        .modules
+        .iter()
+        .flat_map(|(module_name, sg)| {
+            sg.functions
+                .iter()
+                .map(|fi| ((module_name.0.clone(), fi.name.0.clone()), fi))
+        })
+        .collect();
+
+    // Validate: at most one module may define `main`
+    let main_count = program
+        .modules
+        .values()
+        .filter(|sg| sg.functions.iter().any(|f| f.name.0 == "main"))
+        .count();
+    if main_count > 1 {
+        return Err(CompileError::Cranelift {
+            message: "Multiple modules define 'main': only one entry module is allowed".to_string(),
+        });
+    }
+
+    let mut objects: HashMap<String, Vec<u8>> = HashMap::new();
+
+    for (module_name, sg) in &program.modules {
+        // Functions exported by this module
+        let exported_fns: HashSet<String> = program
+            .qualified_exports
+            .iter()
+            .filter(|(mn, _)| mn.0 == module_name.0)
+            .map(|(_, fn_name)| fn_name.0.clone())
+            .collect();
+
+        // Local function names defined in this module
+        let local_fn_names: HashSet<&str> =
+            sg.functions.iter().map(|f| f.name.0.as_str()).collect();
+
+        // Cross-module calls: Call ops targeting functions not in this module
+        let mut imported: HashMap<String, ImportedFunction<'_>> = HashMap::new();
+        for node in sg.graph.node_weights() {
+            if let Op::Call { module, function } = &node.op {
+                let target_module = if let Some(module) = module {
+                    module.clone()
+                } else if local_fn_names.contains(function.as_str()) {
+                    module_name.0.clone()
+                } else if let Some(resolved_module) =
+                    program.exports.get(&FunctionName(function.clone()))
+                {
+                    resolved_module.0.clone()
+                } else {
+                    continue;
+                };
+
+                if target_module == module_name.0 {
+                    continue;
+                }
+
+                let key = callable_key(&target_module, function);
+                if imported.contains_key(&key) {
+                    continue;
+                }
+                if let Some(fi) = all_fn_info.get(&(target_module.clone(), function.clone())) {
+                    imported.insert(
+                        key.clone(),
+                        ImportedFunction {
+                            key,
+                            symbol: function_symbol_name(&target_module, function),
+                            function_name: function.clone(),
+                            info: fi,
+                        },
+                    );
+                }
+            }
+        }
+
+        let imported_list: Vec<ImportedFunction<'_>> = imported.into_values().collect();
+
+        let obj_bytes = compile_to_object_impl(sg, &exported_fns, &imported_list, telemetry)?;
+        objects.insert(module_name.0.clone(), obj_bytes);
+    }
+
+    Ok(objects)
+}
+
+/// Internal implementation shared by [`compile_to_object`] and [`compile_program`].
+///
+/// - `exported_fns`: function names in this module that get `Linkage::Export`
+///   (in addition to `main` which is always exported).
+/// - `imported_fns`: functions defined in other modules; declared with
+///   `Linkage::Import` so the linker resolves them.
+fn compile_to_object_impl(
+    graph: &SemanticGraph,
+    exported_fns: &HashSet<String>,
+    imported_fns: &[ImportedFunction<'_>],
+    telemetry: TelemetryBuildMode,
+) -> Result<Vec<u8>, CompileError> {
+    let mut obj_module = create_object_module()?;
+
+    // Declare all C runtime functions
+    let runtime = declare_all_runtime_fns(&mut obj_module, telemetry)?;
+
+    // Collect and embed string constants as data sections
+    let string_data = embed_string_constants(graph, &mut obj_module)?;
+    let struct_layouts = build_struct_layouts(graph)?;
+
+    let mut func_ids: HashMap<String, FuncId> = HashMap::new();
+    let mut func_sigs: HashMap<String, cranelift_codegen::ir::Signature> = HashMap::new();
+    let mut unqualified_imports: HashMap<String, String> = HashMap::new();
+    let mut ambiguous_unqualified_imports: HashSet<String> = HashSet::new();
+
+    // Declare imported cross-module functions (Linkage::Import) first.
+    // Their FuncIds are added to func_ids so compile_function can resolve calls.
+    for import in imported_fns {
+        let sig = make_func_signature(&obj_module, import.info);
+        let func_id = obj_module
+            .declare_function(&import.symbol, Linkage::Import, &sig)
+            .map_err(|e| CompileError::Cranelift {
+                message: format!(
+                    "Failed to declare imported function '{}': {e}",
+                    import.symbol
+                ),
+            })?;
+        func_ids.insert(import.key.clone(), func_id);
+        func_sigs.insert(import.key.clone(), sig);
+        if ambiguous_unqualified_imports.contains(&import.function_name) {
+            continue;
+        }
+        if let Some(existing) = unqualified_imports.get(&import.function_name) {
+            if existing != &import.key {
+                unqualified_imports.remove(&import.function_name);
+                ambiguous_unqualified_imports.insert(import.function_name.clone());
+            }
+        } else {
+            unqualified_imports.insert(import.function_name.clone(), import.key.clone());
+        }
+    }
+
+    // Declare all local functions.
+    // `main` and explicitly exported functions get Linkage::Export.
+    for func_info in &graph.functions {
+        let sig = make_func_signature(&obj_module, func_info);
+        let key = callable_key(&graph.module_name.0, &func_info.name.0);
+        let symbol = function_symbol_name(&graph.module_name.0, &func_info.name.0);
+        let linkage = if func_info.name.0 == "main" || exported_fns.contains(&func_info.name.0) {
+            Linkage::Export
+        } else {
+            Linkage::Local
+        };
+        let func_id = obj_module
+            .declare_function(&symbol, linkage, &sig)
+            .map_err(|e| CompileError::Cranelift {
+                message: format!("Failed to declare function '{}': {e}", func_info.name),
+            })?;
+        func_ids.insert(key.clone(), func_id);
+        func_sigs.insert(key, sig);
+    }
+
+    // Define each local function (emit Cranelift IR).
+    let mut fn_builder_ctx = FunctionBuilderContext::new();
+    for func_info in &graph.functions {
+        let key = callable_key(&graph.module_name.0, &func_info.name.0);
+        let func_id = func_ids[&key];
+        let sig = func_sigs[&key].clone();
+
+        let mut ctx = Context::new();
+        ctx.func.signature = sig;
+
+        compile_function(
+            graph,
+            func_info,
+            &mut ctx,
+            &mut fn_builder_ctx,
+            &mut obj_module,
+            &func_ids,
+            &func_sigs,
+            &unqualified_imports,
+            &runtime,
+            &string_data,
+            &struct_layouts,
+        )?;
+
+        verify_compiled_function(&ctx, &obj_module, func_info)?;
+
+        obj_module
+            .define_function(func_id, &mut ctx)
+            .map_err(|e| CompileError::Cranelift {
+                message: format!("Failed to define function '{}': {e}", func_info.name),
+            })?;
+    }
+
+    // Finish and produce the object bytes
+    let product = obj_module.finish();
+    let bytes = product.emit().map_err(|e| CompileError::ObjectEmission {
+        message: format!("Failed to emit object: {e}"),
+    })?;
+
+    Ok(bytes)
+}
+
+fn verify_compiled_function(
+    ctx: &Context,
+    obj_module: &ObjectModule,
+    func_info: &FunctionInfo,
+) -> Result<(), CompileError> {
+    cranelift_codegen::verify_function(&ctx.func, obj_module.isa().flags()).map_err(|errors| {
+        CompileError::Cranelift {
+            message: format!(
+                "Cranelift verifier failed for function '{}': {errors}",
+                func_info.name
+            ),
+        }
+    })
+}
+
+/// Collects all string constants from the graph and embeds them as data sections.
+///
+/// Returns a map from the string literal content to its [`DataId`], so the
+/// compiler can reference the data at use sites via `symbol_value`.
+fn embed_string_constants(
+    graph: &SemanticGraph,
+    obj_module: &mut ObjectModule,
+) -> Result<HashMap<String, DataId>, CompileError> {
+    let mut string_data: HashMap<String, DataId> = HashMap::new();
+    let mut counter = 0u32;
+
+    insert_c_string_constant(
+        obj_module,
+        &mut string_data,
+        &mut counter,
+        "division by zero",
+    )?;
+    insert_c_string_constant(
+        obj_module,
+        &mut string_data,
+        &mut counter,
+        "division overflow",
+    )?;
+    insert_c_string_constant(
+        obj_module,
+        &mut string_data,
+        &mut counter,
+        "array index out of bounds",
+    )?;
+
+    for node in graph.graph.node_weights() {
+        if let Op::ConstString(ref s) = node.op {
+            insert_c_string_constant(obj_module, &mut string_data, &mut counter, s)?;
+        }
+
+        if matches!(node.op, Op::Div | Op::ArrayGet | Op::ArraySet) {
+            insert_c_string_constant(
+                obj_module,
+                &mut string_data,
+                &mut counter,
+                node.id.0.as_str(),
+            )?;
+        }
+    }
+
+    Ok(string_data)
+}
+
+fn insert_c_string_constant(
+    obj_module: &mut ObjectModule,
+    string_data: &mut HashMap<String, DataId>,
+    counter: &mut u32,
+    value: &str,
+) -> Result<(), CompileError> {
+    if string_data.contains_key(value) {
+        return Ok(());
+    }
+
+    let data_name = format!(".str.{}", *counter);
+    *counter += 1;
+
+    let data_id = obj_module
+        .declare_data(&data_name, Linkage::Local, false, false)
+        .map_err(|e| CompileError::Cranelift {
+            message: format!("Failed to declare string data '{data_name}': {e}"),
+        })?;
+
+    let mut bytes = value.as_bytes().to_vec();
+    bytes.push(0);
+
+    let mut desc = DataDescription::new();
+    desc.define(bytes.into_boxed_slice());
+
+    obj_module
+        .define_data(data_id, &desc)
+        .map_err(|e| CompileError::Cranelift {
+            message: format!("Failed to define string data '{data_name}': {e}"),
+        })?;
+
+    string_data.insert(value.to_string(), data_id);
+    Ok(())
+}
+
+fn build_struct_layouts(
+    graph: &SemanticGraph,
+) -> Result<HashMap<String, StructLayout>, CompileError> {
+    let mut builders: HashMap<String, StructLayoutBuilder> = HashMap::new();
+
+    for node_idx in graph.graph.node_indices() {
+        let node = &graph.graph[node_idx];
+        match &node.op {
+            Op::StructNew { struct_name } => {
+                builders.entry(struct_name.clone()).or_default();
+            }
+            Op::FieldGet { field_name } => {
+                let struct_name = struct_operand_name(graph, node_idx)?;
+                let field_type = node.result_type.clone();
+                record_struct_field(
+                    &mut builders,
+                    &struct_name,
+                    field_name,
+                    field_type,
+                    &node.id,
+                )?;
+            }
+            Op::FieldSet { field_name } => {
+                let struct_name = struct_operand_name(graph, node_idx)?;
+                let field_type = get_right_operand_type(graph, node_idx);
+                record_struct_field(
+                    &mut builders,
+                    &struct_name,
+                    field_name,
+                    field_type,
+                    &node.id,
+                )?;
+            }
+            _ => {}
+        }
+    }
+
+    let mut layouts = HashMap::new();
+    for (struct_name, builder) in builders {
+        let mut offsets = HashMap::new();
+        let mut fields = builder.fields;
+        fields.sort();
+        for (idx, field_name) in fields.iter().enumerate() {
+            offsets.insert(field_name.clone(), idx as i64 * 8);
+        }
+        let total_size = std::cmp::max(fields.len(), 1) as i64 * 8;
+        layouts.insert(
+            struct_name,
+            StructLayout {
+                offsets,
+                total_size,
+            },
+        );
+    }
+
+    Ok(layouts)
+}
+
+fn record_struct_field(
+    builders: &mut HashMap<String, StructLayoutBuilder>,
+    struct_name: &str,
+    field_name: &str,
+    field_type: Option<DuumbiType>,
+    node_id: &NodeId,
+) -> Result<(), CompileError> {
+    let builder = builders.entry(struct_name.to_string()).or_default();
+    if !builder.fields.iter().any(|field| field == field_name) {
+        builder.fields.push(field_name.to_string());
+    }
+    if let Some(field_type) = field_type {
+        if let Some(existing) = builder.field_types.get(field_name) {
+            if existing != &field_type {
+                return Err(CompileError::Cranelift {
+                    message: format!(
+                        "Conflicting type evidence for struct '{struct_name}' field \
+                         '{field_name}' at node '{node_id}': '{existing}' vs '{field_type}'"
+                    ),
+                });
+            }
+        } else {
+            builder
+                .field_types
+                .insert(field_name.to_string(), field_type);
+        }
+    }
+    Ok(())
+}
+
+/// Compiles a single function into Cranelift IR.
+#[allow(clippy::too_many_arguments)] // Internal helper with many Cranelift context params
+fn compile_function(
+    graph: &SemanticGraph,
+    func_info: &FunctionInfo,
+    ctx: &mut Context,
+    fn_builder_ctx: &mut FunctionBuilderContext,
+    obj_module: &mut ObjectModule,
+    func_ids: &HashMap<String, FuncId>,
+    func_sigs: &HashMap<String, cranelift_codegen::ir::Signature>,
+    unqualified_imports: &HashMap<String, String>,
+    runtime: &RuntimeFuncs,
+    string_data: &HashMap<String, DataId>,
+    struct_layouts: &HashMap<String, StructLayout>,
+) -> Result<(), CompileError> {
+    let mut builder = FunctionBuilder::new(&mut ctx.func, fn_builder_ctx);
+
+    // Import runtime function references into this function
+    let print_i64_ref = obj_module.declare_func_in_func(runtime.print_i64, builder.func);
+    let print_f64_ref = obj_module.declare_func_in_func(runtime.print_f64, builder.func);
+    let print_bool_ref = obj_module.declare_func_in_func(runtime.print_bool, builder.func);
+    let print_string_ref = obj_module.declare_func_in_func(runtime.print_string, builder.func);
+    let read_line_ref = obj_module.declare_func_in_func(runtime.read_line, builder.func);
+    let print_ln_ref = obj_module.declare_func_in_func(runtime.print_ln, builder.func);
+    let file_read_ref = obj_module.declare_func_in_func(runtime.file_read, builder.func);
+    let file_write_ref = obj_module.declare_func_in_func(runtime.file_write, builder.func);
+    let file_exists_ref = obj_module.declare_func_in_func(runtime.file_exists, builder.func);
+    let list_dir_ref = obj_module.declare_func_in_func(runtime.list_dir, builder.func);
+    let path_join_ref = obj_module.declare_func_in_func(runtime.path_join, builder.func);
+    let string_new_ref = obj_module.declare_func_in_func(runtime.string_new, builder.func);
+    let string_free_ref = obj_module.declare_func_in_func(runtime.string_free, builder.func);
+    let string_len_ref = obj_module.declare_func_in_func(runtime.string_len, builder.func);
+    let string_concat_ref = obj_module.declare_func_in_func(runtime.string_concat, builder.func);
+    let string_equals_ref = obj_module.declare_func_in_func(runtime.string_equals, builder.func);
+    let string_compare_ref = obj_module.declare_func_in_func(runtime.string_compare, builder.func);
+    let string_slice_ref = obj_module.declare_func_in_func(runtime.string_slice, builder.func);
+    let string_contains_ref =
+        obj_module.declare_func_in_func(runtime.string_contains, builder.func);
+    let string_find_ref = obj_module.declare_func_in_func(runtime.string_find, builder.func);
+    let string_from_i64_ref =
+        obj_module.declare_func_in_func(runtime.string_from_i64, builder.func);
+    let array_new_ref = obj_module.declare_func_in_func(runtime.array_new, builder.func);
+    let array_push_ref = obj_module.declare_func_in_func(runtime.array_push, builder.func);
+    let array_get_ref = obj_module.declare_func_in_func(runtime.array_get, builder.func);
+    let array_set_ref = obj_module.declare_func_in_func(runtime.array_set, builder.func);
+    let array_len_ref = obj_module.declare_func_in_func(runtime.array_len, builder.func);
+    let array_free_ref = obj_module.declare_func_in_func(runtime.array_free, builder.func);
+    let struct_new_ref = obj_module.declare_func_in_func(runtime.struct_new, builder.func);
+    let struct_field_get_ref =
+        obj_module.declare_func_in_func(runtime.struct_field_get, builder.func);
+    let struct_field_set_ref =
+        obj_module.declare_func_in_func(runtime.struct_field_set, builder.func);
+    let struct_free_ref = obj_module.declare_func_in_func(runtime.struct_free, builder.func);
+
+    // Result/Option function refs (Phase 9a-3)
+    let result_new_ok_ref = obj_module.declare_func_in_func(runtime.result_new_ok, builder.func);
+    let result_new_err_ref = obj_module.declare_func_in_func(runtime.result_new_err, builder.func);
+    let result_is_ok_ref = obj_module.declare_func_in_func(runtime.result_is_ok, builder.func);
+    let result_unwrap_ref = obj_module.declare_func_in_func(runtime.result_unwrap, builder.func);
+    let result_unwrap_err_ref =
+        obj_module.declare_func_in_func(runtime.result_unwrap_err, builder.func);
+    let result_free_ref = obj_module.declare_func_in_func(runtime.result_free, builder.func);
+    let checked_add_ref = obj_module.declare_func_in_func(runtime.checked_add, builder.func);
+    let checked_sub_ref = obj_module.declare_func_in_func(runtime.checked_sub, builder.func);
+    let checked_mul_ref = obj_module.declare_func_in_func(runtime.checked_mul, builder.func);
+    let checked_div_ref = obj_module.declare_func_in_func(runtime.checked_div, builder.func);
+    let option_new_some_ref =
+        obj_module.declare_func_in_func(runtime.option_new_some, builder.func);
+    let option_new_none_ref =
+        obj_module.declare_func_in_func(runtime.option_new_none, builder.func);
+    let option_is_some_ref = obj_module.declare_func_in_func(runtime.option_is_some, builder.func);
+    let option_unwrap_ref = obj_module.declare_func_in_func(runtime.option_unwrap, builder.func);
+    let option_free_ref = obj_module.declare_func_in_func(runtime.option_free, builder.func);
+
+    // Math function references (Phase 9A)
+    let sqrt_ref = obj_module.declare_func_in_func(runtime.sqrt, builder.func);
+    let pow_ref = obj_module.declare_func_in_func(runtime.pow, builder.func);
+    let powi64_ref = obj_module.declare_func_in_func(runtime.powi64, builder.func);
+    let fmod_ref = obj_module.declare_func_in_func(runtime.fmod, builder.func);
+
+    // String utility function references (Phase 9A)
+    let string_trim_ref = obj_module.declare_func_in_func(runtime.string_trim, builder.func);
+    let string_to_upper_ref =
+        obj_module.declare_func_in_func(runtime.string_to_upper, builder.func);
+    let string_to_lower_ref =
+        obj_module.declare_func_in_func(runtime.string_to_lower, builder.func);
+    let string_replace_ref = obj_module.declare_func_in_func(runtime.string_replace, builder.func);
+    let json_parse_ref = obj_module.declare_func_in_func(runtime.json_parse, builder.func);
+    let json_stringify_ref = obj_module.declare_func_in_func(runtime.json_stringify, builder.func);
+    let json_get_field_ref = obj_module.declare_func_in_func(runtime.json_get_field, builder.func);
+    let json_array_len_ref = obj_module.declare_func_in_func(runtime.json_array_len, builder.func);
+    let json_array_get_ref = obj_module.declare_func_in_func(runtime.json_array_get, builder.func);
+    let json_free_ref = obj_module.declare_func_in_func(runtime.json_free, builder.func);
+    let tcp_connect_ref = obj_module.declare_func_in_func(runtime.tcp_connect, builder.func);
+    let tcp_listen_ref = obj_module.declare_func_in_func(runtime.tcp_listen, builder.func);
+    let tcp_accept_ref = obj_module.declare_func_in_func(runtime.tcp_accept, builder.func);
+    let tcp_read_ref = obj_module.declare_func_in_func(runtime.tcp_read, builder.func);
+    let tcp_write_ref = obj_module.declare_func_in_func(runtime.tcp_write, builder.func);
+    let tcp_close_ref = obj_module.declare_func_in_func(runtime.tcp_close, builder.func);
+    let tcp_listener_close_ref =
+        obj_module.declare_func_in_func(runtime.tcp_listener_close, builder.func);
+    let tcp_socket_free_ref =
+        obj_module.declare_func_in_func(runtime.tcp_socket_free, builder.func);
+    let tcp_listener_free_ref =
+        obj_module.declare_func_in_func(runtime.tcp_listener_free, builder.func);
+    let server_new_ref = obj_module.declare_func_in_func(runtime.server_new, builder.func);
+    let route_add_static_ref =
+        obj_module.declare_func_in_func(runtime.route_add_static, builder.func);
+    let server_start_ref = obj_module.declare_func_in_func(runtime.server_start, builder.func);
+    let server_close_ref = obj_module.declare_func_in_func(runtime.server_close, builder.func);
+    let server_free_ref = obj_module.declare_func_in_func(runtime.server_free, builder.func);
+    let http_get_ref = obj_module.declare_func_in_func(runtime.http_get, builder.func);
+    let http_post_ref = obj_module.declare_func_in_func(runtime.http_post, builder.func);
+    let http_put_ref = obj_module.declare_func_in_func(runtime.http_put, builder.func);
+    let http_delete_ref = obj_module.declare_func_in_func(runtime.http_delete, builder.func);
+    let http_status_ref = obj_module.declare_func_in_func(runtime.http_status, builder.func);
+    let http_body_ref = obj_module.declare_func_in_func(runtime.http_body, builder.func);
+    let http_headers_ref = obj_module.declare_func_in_func(runtime.http_headers, builder.func);
+    let http_response_close_ref =
+        obj_module.declare_func_in_func(runtime.http_response_close, builder.func);
+    let http_response_free_ref =
+        obj_module.declare_func_in_func(runtime.http_response_free, builder.func);
+    let db_open_ref = obj_module.declare_func_in_func(runtime.db_open, builder.func);
+    let db_execute_ref = obj_module.declare_func_in_func(runtime.db_execute, builder.func);
+    let db_query_ref = obj_module.declare_func_in_func(runtime.db_query, builder.func);
+    let db_rows_len_ref = obj_module.declare_func_in_func(runtime.db_rows_len, builder.func);
+    let db_row_get_ref = obj_module.declare_func_in_func(runtime.db_row_get, builder.func);
+    let db_close_ref = obj_module.declare_func_in_func(runtime.db_close, builder.func);
+    let db_rows_close_ref = obj_module.declare_func_in_func(runtime.db_rows_close, builder.func);
+    let db_connection_free_ref =
+        obj_module.declare_func_in_func(runtime.db_connection_free, builder.func);
+    let db_rows_free_ref = obj_module.declare_func_in_func(runtime.db_rows_free, builder.func);
+    let panic_at_ref = obj_module.declare_func_in_func(runtime.panic_at, builder.func);
+    let trace_refs = runtime.trace.as_ref().map(|trace| RuntimeTraceRefs {
+        init: obj_module.declare_func_in_func(trace.init, builder.func),
+        function_enter: obj_module.declare_func_in_func(trace.function_enter, builder.func),
+        function_exit: obj_module.declare_func_in_func(trace.function_exit, builder.func),
+        block_enter: obj_module.declare_func_in_func(trace.block_enter, builder.func),
+        block_exit: obj_module.declare_func_in_func(trace.block_exit, builder.func),
+        panic: obj_module.declare_func_in_func(trace.panic, builder.func),
+    });
+    let function_trace_id = trace_refs
+        .as_ref()
+        .map(|_| trace_id_for_function(graph, func_info).map(|id| id as i64))
+        .transpose()?;
+
+    // Import all callable function references
+    let mut func_refs: HashMap<String, cranelift_codegen::ir::FuncRef> = HashMap::new();
+    for (name, &fid) in func_ids {
+        let fref = obj_module.declare_func_in_func(fid, builder.func);
+        func_refs.insert(name.clone(), fref);
+    }
+
+    // Create all blocks up front (needed for forward branch references)
+    let mut block_map: HashMap<String, cranelift_codegen::ir::Block> = HashMap::new();
+    for block_info in &func_info.blocks {
+        let cl_block = builder.create_block();
+        block_map.insert(block_info.label.0.clone(), cl_block);
+    }
+
+    // Add entry block params for function parameters
+    let entry_block = block_map
+        .get(func_info.blocks.first().map_or("entry", |b| &b.label.0))
+        .copied()
+        .ok_or_else(|| CompileError::Cranelift {
+            message: format!("No blocks in function '{}'", func_info.name),
+        })?;
+
+    for param in &func_info.params {
+        builder.append_block_param(entry_block, duumbi_type_to_cl(&param.param_type));
+    }
+
+    // SSA value map: NodeId -> Cranelift Value
+    let mut value_map: HashMap<NodeId, Value> = HashMap::new();
+
+    // Variable map for Load/Store and function params
+    let mut var_map: HashMap<String, Variable> = HashMap::new();
+
+    // Track heap-allocated values for automatic Drop insertion at scope exits.
+    // Ordered Vec for deterministic LIFO (last-allocated freed first) ordering.
+    // Entries: (NodeId, SSA Value, DuumbiType). Removed on explicit Drop or Move.
+    let mut heap_allocs: Vec<(NodeId, Value, DuumbiType)> = Vec::new();
+
+    // Process each block
+    for (block_idx, block_info) in func_info.blocks.iter().enumerate() {
+        let cl_block = block_map[&block_info.label.0];
+        builder.switch_to_block(cl_block);
+
+        // Make function parameters available as named variables in the entry block
+        if block_idx == 0 {
+            for (i, param) in func_info.params.iter().enumerate() {
+                let param_val = builder.block_params(cl_block)[i];
+                let cl_type = duumbi_type_to_cl(&param.param_type);
+                let var = builder.declare_var(cl_type);
+                builder.def_var(var, param_val);
+                var_map.insert(param.name.clone(), var);
+            }
+        }
+
+        if let Some(trace) = trace_refs.as_ref() {
+            if block_idx == 0 {
+                if func_info.name.0 == "main" {
+                    builder.ins().call(trace.init, &[]);
+                }
+                let Some(function_id) = function_trace_id else {
+                    return Err(CompileError::Cranelift {
+                        message: format!("Missing trace ID for function '{}'", func_info.name),
+                    });
+                };
+                emit_trace_event_call(&mut builder, trace.function_enter, function_id);
+            }
+            emit_trace_event_call(
+                &mut builder,
+                trace.block_enter,
+                trace_id_for_block(graph, func_info, block_info)? as i64,
+            );
+        }
+
+        // Emit instructions for each node
+        for &node_idx in &block_info.nodes {
+            let node = &graph.graph[node_idx];
+
+            match &node.op {
+                Op::Const(val) => {
+                    let cl_val = builder.ins().iconst(types::I64, *val);
+                    value_map.insert(node.id.clone(), cl_val);
+                }
+                Op::ConstF64(val) => {
+                    let cl_val = builder.ins().f64const(*val);
+                    value_map.insert(node.id.clone(), cl_val);
+                }
+                Op::ConstBool(val) => {
+                    let cl_val = builder.ins().iconst(types::I8, i64::from(*val as u8));
+                    value_map.insert(node.id.clone(), cl_val);
+                }
+                Op::Add | Op::Sub | Op::Mul | Op::Div => {
+                    let (left_val, right_val) = get_binary_operands(graph, node_idx, &value_map)?;
+
+                    let is_float = node.result_type == Some(DuumbiType::F64);
+
+                    let result = if is_float {
+                        match &node.op {
+                            Op::Add => builder.ins().fadd(left_val, right_val),
+                            Op::Sub => builder.ins().fsub(left_val, right_val),
+                            Op::Mul => builder.ins().fmul(left_val, right_val),
+                            Op::Div => builder.ins().fdiv(left_val, right_val),
+                            _ => unreachable!(),
+                        }
+                    } else {
+                        match &node.op {
+                            Op::Add => builder.ins().iadd(left_val, right_val),
+                            Op::Sub => builder.ins().isub(left_val, right_val),
+                            Op::Mul => builder.ins().imul(left_val, right_val),
+                            Op::Div => emit_guarded_integer_div(
+                                &mut builder,
+                                obj_module,
+                                string_data,
+                                panic_at_ref,
+                                left_val,
+                                right_val,
+                                &node.id,
+                            )?,
+                            _ => unreachable!(),
+                        }
+                    };
+                    value_map.insert(node.id.clone(), result);
+                }
+                Op::AddChecked | Op::SubChecked | Op::MulChecked | Op::DivChecked => {
+                    if node.result_type
+                        != Some(DuumbiType::Result(
+                            Box::new(DuumbiType::I64),
+                            Box::new(DuumbiType::String),
+                        ))
+                    {
+                        return Err(CompileError::Cranelift {
+                            message: format!(
+                                "{} requires result<i64,string> result type at node '{}'",
+                                node.op, node.id
+                            ),
+                        });
+                    }
+
+                    let (left_val, right_val) = get_binary_operands(graph, node_idx, &value_map)?;
+                    let runtime_ref = match &node.op {
+                        Op::AddChecked => checked_add_ref,
+                        Op::SubChecked => checked_sub_ref,
+                        Op::MulChecked => checked_mul_ref,
+                        Op::DivChecked => checked_div_ref,
+                        _ => unreachable!(),
+                    };
+                    let call = builder.ins().call(runtime_ref, &[left_val, right_val]);
+                    let result = builder.inst_results(call)[0];
+                    value_map.insert(node.id.clone(), result);
+                }
+                Op::Compare(cmp_op) => {
+                    let (left_val, right_val) = get_binary_operands(graph, node_idx, &value_map)?;
+
+                    // Determine operand type from left edge source
+                    let left_is_float =
+                        get_left_operand_type(graph, node_idx) == Some(DuumbiType::F64);
+
+                    let result = if left_is_float {
+                        let cc = compare_op_to_floatcc(cmp_op);
+                        builder.ins().fcmp(cc, left_val, right_val)
+                    } else {
+                        let cc = compare_op_to_intcc(cmp_op);
+                        builder.ins().icmp(cc, left_val, right_val)
+                    };
+                    value_map.insert(node.id.clone(), result);
+                }
+                Op::Branch => {
+                    let cond_val = get_condition_operand(graph, node_idx, &value_map)?;
+                    let (true_label, false_label) = get_branch_targets(graph, node_idx)?;
+
+                    let true_block = block_map.get(&true_label).copied().ok_or_else(|| {
+                        CompileError::Cranelift {
+                            message: format!("Branch true target block '{true_label}' not found"),
+                        }
+                    })?;
+                    let false_block = block_map.get(&false_label).copied().ok_or_else(|| {
+                        CompileError::Cranelift {
+                            message: format!("Branch false target block '{false_label}' not found"),
+                        }
+                    })?;
+
+                    if let Some(trace) = trace_refs.as_ref() {
+                        emit_trace_event_call(
+                            &mut builder,
+                            trace.block_exit,
+                            trace_id_for_block(graph, func_info, block_info)? as i64,
+                        );
+                    }
+                    builder
+                        .ins()
+                        .brif(cond_val, true_block, &[], false_block, &[]);
+                }
+                Op::Call { module, function } => {
+                    let local_key = callable_key(&graph.module_name.0, function);
+                    let target_key = if let Some(module) = module {
+                        callable_key(module, function)
+                    } else if func_refs.contains_key(&local_key) {
+                        local_key
+                    } else {
+                        unqualified_imports
+                            .get(function)
+                            .cloned()
+                            .unwrap_or_else(|| function.clone())
+                    };
+
+                    let func_ref = func_refs.get(&target_key).copied().ok_or_else(|| {
+                        CompileError::Cranelift {
+                            message: format!("Function '{function}' not found for call"),
+                        }
+                    })?;
+
+                    let args = get_call_args(graph, node_idx, &value_map)?;
+                    let call_inst = builder.ins().call(func_ref, &args);
+
+                    // Get return value if the called function returns something
+                    if let Some(target_sig) = func_sigs.get(&target_key)
+                        && !target_sig.returns.is_empty()
+                    {
+                        let ret_val = builder.inst_results(call_inst)[0];
+                        value_map.insert(node.id.clone(), ret_val);
+                    }
+                }
+                Op::Load { variable } => {
+                    let var =
+                        var_map
+                            .get(variable)
+                            .copied()
+                            .ok_or_else(|| CompileError::Cranelift {
+                                message: format!("Variable '{variable}' not declared for Load"),
+                            })?;
+                    let val = builder.use_var(var);
+                    value_map.insert(node.id.clone(), val);
+                }
+                Op::Store { variable } => {
+                    let operand_val = get_unary_operand(graph, node_idx, &value_map)?;
+                    if let Some(&var) = var_map.get(variable) {
+                        builder.def_var(var, operand_val);
+                    } else {
+                        // Infer type from the operand's output type
+                        let cl_type = get_operand_output_type(graph, node_idx)
+                            .as_ref()
+                            .map_or(types::I64, duumbi_type_to_cl);
+                        let var = builder.declare_var(cl_type);
+                        builder.def_var(var, operand_val);
+                        var_map.insert(variable.clone(), var);
+                    }
+                }
+                Op::Print => {
+                    let operand_val = get_unary_operand(graph, node_idx, &value_map)?;
+
+                    // Determine which print function to call based on operand type
+                    let operand_type = get_operand_output_type(graph, node_idx);
+                    let print_ref = match operand_type {
+                        Some(DuumbiType::F64) => print_f64_ref,
+                        Some(DuumbiType::Bool) => print_bool_ref,
+                        _ => print_i64_ref,
+                    };
+                    builder.ins().call(print_ref, &[operand_val]);
+                }
+                Op::Return => {
+                    let operand_val = get_unary_operand(graph, node_idx, &value_map)?;
+
+                    // Auto-drop: free remaining heap values before return (LIFO order).
+                    // Skip the value being returned (it escapes to the caller).
+                    let return_source_id = find_return_operand_node_id(graph, node_idx);
+                    // LIFO order: iterate in reverse (last-allocated freed first),
+                    // skipping the returned value.
+                    let to_free: Vec<(Value, DuumbiType)> = heap_allocs
+                        .iter()
+                        .rev()
+                        .filter(|(id, _, _)| return_source_id.as_ref() != Some(id))
+                        .map(|(_, val, ty)| (*val, ty.clone()))
+                        .collect();
+                    for (val, ty) in &to_free {
+                        match ty {
+                            DuumbiType::String => {
+                                builder.ins().call(string_free_ref, &[*val]);
+                            }
+                            DuumbiType::Json => {
+                                builder.ins().call(json_free_ref, &[*val]);
+                            }
+                            DuumbiType::TcpSocket => {
+                                builder.ins().call(tcp_socket_free_ref, &[*val]);
+                            }
+                            DuumbiType::TcpListener => {
+                                builder.ins().call(tcp_listener_free_ref, &[*val]);
+                            }
+                            DuumbiType::HttpServer => {
+                                builder.ins().call(server_free_ref, &[*val]);
+                            }
+                            DuumbiType::HttpResponse => {
+                                builder.ins().call(http_response_free_ref, &[*val]);
+                            }
+                            DuumbiType::DbConnection => {
+                                builder.ins().call(db_connection_free_ref, &[*val]);
+                            }
+                            DuumbiType::DbRows => {
+                                builder.ins().call(db_rows_free_ref, &[*val]);
+                            }
+                            DuumbiType::Array(_) => {
+                                builder.ins().call(array_free_ref, &[*val]);
+                            }
+                            DuumbiType::Struct(_) => {
+                                builder.ins().call(struct_free_ref, &[*val]);
+                            }
+                            DuumbiType::Result(_, _) => {
+                                builder.ins().call(result_free_ref, &[*val]);
+                            }
+                            DuumbiType::Option(_) => {
+                                builder.ins().call(option_free_ref, &[*val]);
+                            }
+                            _ => {}
+                        }
+                    }
+                    heap_allocs.clear();
+
+                    if let Some(trace) = trace_refs.as_ref() {
+                        emit_trace_event_call(
+                            &mut builder,
+                            trace.block_exit,
+                            trace_id_for_block(graph, func_info, block_info)? as i64,
+                        );
+                        let Some(function_id) = function_trace_id else {
+                            return Err(CompileError::Cranelift {
+                                message: format!(
+                                    "Missing trace ID for function '{}'",
+                                    func_info.name
+                                ),
+                            });
+                        };
+                        emit_trace_event_call(&mut builder, trace.function_exit, function_id);
+                    }
+
+                    // If the declared return type is i64 but the value is i8 (from
+                    // StringContains/StringEquals/Compare/ConstBool), zero-extend so
+                    // Cranelift verification passes.  Functions returning Bool keep their
+                    // i8 value untouched.
+                    let return_val = if func_info.return_type == DuumbiType::I64
+                        && builder.func.dfg.value_type(operand_val) == types::I8
+                    {
+                        builder.ins().uextend(types::I64, operand_val)
+                    } else {
+                        operand_val
+                    };
+                    builder.ins().return_(&[return_val]);
+                }
+                // -- Phase 9a-1: String ops --
+                Op::ConstString(s) => {
+                    // Get the embedded data address, then call duumbi_string_new(ptr, len)
+                    let data_id = string_data.get(s).ok_or_else(|| CompileError::Cranelift {
+                        message: format!("String constant data not found for '{s}'"),
+                    })?;
+                    let gv = obj_module.declare_data_in_func(*data_id, builder.func);
+                    let ptr = builder.ins().symbol_value(types::I64, gv);
+                    let len = builder.ins().iconst(types::I64, s.len() as i64);
+                    let call = builder.ins().call(string_new_ref, &[ptr, len]);
+                    let result = builder.inst_results(call)[0];
+                    value_map.insert(node.id.clone(), result);
+                }
+                Op::PrintString => {
+                    let operand_val = get_unary_operand(graph, node_idx, &value_map)?;
+                    builder.ins().call(print_string_ref, &[operand_val]);
+                }
+                Op::ReadLine => {
+                    let call = builder.ins().call(read_line_ref, &[]);
+                    let result = builder.inst_results(call)[0];
+                    value_map.insert(node.id.clone(), result);
+                }
+                Op::PrintLn => {
+                    let operand_val = get_unary_operand(graph, node_idx, &value_map)?;
+                    let call = builder.ins().call(print_ln_ref, &[operand_val]);
+                    let result = builder.inst_results(call)[0];
+                    value_map.insert(node.id.clone(), result);
+                }
+                Op::ReadFile => {
+                    let (path_val, max_bytes_val) =
+                        get_binary_operands(graph, node_idx, &value_map)?;
+                    let call = builder
+                        .ins()
+                        .call(file_read_ref, &[path_val, max_bytes_val]);
+                    let result = builder.inst_results(call)[0];
+                    value_map.insert(node.id.clone(), result);
+                }
+                Op::WriteFile => {
+                    let (path_val, contents_val) =
+                        get_binary_operands(graph, node_idx, &value_map)?;
+                    let call = builder
+                        .ins()
+                        .call(file_write_ref, &[path_val, contents_val]);
+                    let result = builder.inst_results(call)[0];
+                    value_map.insert(node.id.clone(), result);
+                }
+                Op::FileExists => {
+                    let path_val = get_unary_operand(graph, node_idx, &value_map)?;
+                    let call = builder.ins().call(file_exists_ref, &[path_val]);
+                    let result = builder.inst_results(call)[0];
+                    value_map.insert(node.id.clone(), result);
+                }
+                Op::ListDir => {
+                    let path_val = get_unary_operand(graph, node_idx, &value_map)?;
+                    let call = builder.ins().call(list_dir_ref, &[path_val]);
+                    let result = builder.inst_results(call)[0];
+                    value_map.insert(node.id.clone(), result);
+                }
+                Op::PathJoin => {
+                    let (left_val, right_val) = get_binary_operands(graph, node_idx, &value_map)?;
+                    let call = builder.ins().call(path_join_ref, &[left_val, right_val]);
+                    let result = builder.inst_results(call)[0];
+                    value_map.insert(node.id.clone(), result);
+                }
+                Op::StringConcat => {
+                    let (left_val, right_val) = get_binary_operands(graph, node_idx, &value_map)?;
+                    let left_type = get_left_operand_type(graph, node_idx);
+                    let right_type = get_right_operand_type(graph, node_idx);
+                    let (left_val, free_left) = coerce_string_concat_operand(
+                        &mut builder,
+                        left_val,
+                        left_type,
+                        string_from_i64_ref,
+                        "left",
+                        &node.id,
+                    )?;
+                    let (right_val, free_right) = coerce_string_concat_operand(
+                        &mut builder,
+                        right_val,
+                        right_type,
+                        string_from_i64_ref,
+                        "right",
+                        &node.id,
+                    )?;
+                    let call = builder
+                        .ins()
+                        .call(string_concat_ref, &[left_val, right_val]);
+                    let result = builder.inst_results(call)[0];
+                    if free_left {
+                        builder.ins().call(string_free_ref, &[left_val]);
+                    }
+                    if free_right {
+                        builder.ins().call(string_free_ref, &[right_val]);
+                    }
+                    value_map.insert(node.id.clone(), result);
+                }
+                Op::StringEquals => {
+                    let (left_val, right_val) = get_binary_operands(graph, node_idx, &value_map)?;
+                    let call = builder
+                        .ins()
+                        .call(string_equals_ref, &[left_val, right_val]);
+                    let result = builder.inst_results(call)[0];
+                    value_map.insert(node.id.clone(), result);
+                }
+                Op::StringCompare(_) => {
+                    let (left_val, right_val) = get_binary_operands(graph, node_idx, &value_map)?;
+                    let call = builder
+                        .ins()
+                        .call(string_compare_ref, &[left_val, right_val]);
+                    let cmp_result = builder.inst_results(call)[0];
+                    // Convert i64 compare result to bool based on CompareOp
+                    let zero = builder.ins().iconst(types::I64, 0);
+                    let Op::StringCompare(ref cmp_op) = node.op else {
+                        unreachable!()
+                    };
+                    let cc = compare_op_to_intcc(cmp_op);
+                    let bool_result = builder.ins().icmp(cc, cmp_result, zero);
+                    value_map.insert(node.id.clone(), bool_result);
+                }
+                Op::StringLength => {
+                    let operand_val = get_unary_operand(graph, node_idx, &value_map)?;
+                    let call = builder.ins().call(string_len_ref, &[operand_val]);
+                    let result = builder.inst_results(call)[0];
+                    value_map.insert(node.id.clone(), result);
+                }
+                Op::StringSlice => {
+                    // operand = string, left = start index, right = end index
+                    let operand_val = get_unary_operand(graph, node_idx, &value_map)?;
+                    let (start_val, end_val) = get_binary_operands(graph, node_idx, &value_map)?;
+                    let call = builder
+                        .ins()
+                        .call(string_slice_ref, &[operand_val, start_val, end_val]);
+                    let result = builder.inst_results(call)[0];
+                    value_map.insert(node.id.clone(), result);
+                }
+                Op::StringContains => {
+                    let (left_val, right_val) = get_binary_operands(graph, node_idx, &value_map)?;
+                    let call = builder
+                        .ins()
+                        .call(string_contains_ref, &[left_val, right_val]);
+                    let result = builder.inst_results(call)[0];
+                    value_map.insert(node.id.clone(), result);
+                }
+                Op::StringFind => {
+                    let (left_val, right_val) = get_binary_operands(graph, node_idx, &value_map)?;
+                    let call = builder.ins().call(string_find_ref, &[left_val, right_val]);
+                    let result = builder.inst_results(call)[0];
+                    value_map.insert(node.id.clone(), result);
+                }
+                Op::StringFromI64 => {
+                    let operand_val = get_unary_operand(graph, node_idx, &value_map)?;
+                    let formatted_val = if builder.func.dfg.value_type(operand_val) == types::I8 {
+                        builder.ins().uextend(types::I64, operand_val)
+                    } else {
+                        operand_val
+                    };
+                    let call = builder.ins().call(string_from_i64_ref, &[formatted_val]);
+                    let result = builder.inst_results(call)[0];
+                    value_map.insert(node.id.clone(), result);
+                }
+                Op::StringTrim => {
+                    let operand_val = get_unary_operand(graph, node_idx, &value_map)?;
+                    let call = builder.ins().call(string_trim_ref, &[operand_val]);
+                    let result = builder.inst_results(call)[0];
+                    value_map.insert(node.id.clone(), result);
+                }
+                Op::StringToUpper => {
+                    let operand_val = get_unary_operand(graph, node_idx, &value_map)?;
+                    let call = builder.ins().call(string_to_upper_ref, &[operand_val]);
+                    let result = builder.inst_results(call)[0];
+                    value_map.insert(node.id.clone(), result);
+                }
+                Op::StringToLower => {
+                    let operand_val = get_unary_operand(graph, node_idx, &value_map)?;
+                    let call = builder.ins().call(string_to_lower_ref, &[operand_val]);
+                    let result = builder.inst_results(call)[0];
+                    value_map.insert(node.id.clone(), result);
+                }
+                Op::StringReplace => {
+                    // haystack = operand, needle = left, replacement = right
+                    let haystack_val = get_unary_operand(graph, node_idx, &value_map)?;
+                    let (needle_val, replacement_val) =
+                        get_binary_operands(graph, node_idx, &value_map)?;
+                    let call = builder.ins().call(
+                        string_replace_ref,
+                        &[haystack_val, needle_val, replacement_val],
+                    );
+                    let result = builder.inst_results(call)[0];
+                    value_map.insert(node.id.clone(), result);
+                }
+
+                // -- Phase 9A: Type cast ops --
+                Op::CastI64ToF64 => {
+                    let operand_val = get_unary_operand(graph, node_idx, &value_map)?;
+                    let result = builder.ins().fcvt_from_sint(types::F64, operand_val);
+                    value_map.insert(node.id.clone(), result);
+                }
+                Op::CastF64ToI64 => {
+                    let operand_val = get_unary_operand(graph, node_idx, &value_map)?;
+                    // An i8 operand means a bool/compare result is being widened to i64
+                    // (LLMs sometimes use CastF64ToI64 for this). Use uextend, not
+                    // fcvt_to_sint_sat (which is float→int only and would fail Cranelift
+                    // verification).
+                    let result = if builder.func.dfg.value_type(operand_val) == types::I8 {
+                        builder.ins().uextend(types::I64, operand_val)
+                    } else {
+                        builder.ins().fcvt_to_sint_sat(types::I64, operand_val)
+                    };
+                    value_map.insert(node.id.clone(), result);
+                }
+
+                // -- Phase 9a-1: Array ops --
+                Op::ArrayNew => {
+                    // elem_size from result_type: Array<i64> → 8, Array<String> → 8 (ptr)
+                    let elem_size = match &node.result_type {
+                        Some(DuumbiType::Array(inner)) => type_size(inner),
+                        _ => 8, // default pointer size
+                    };
+                    let size_val = builder.ins().iconst(types::I64, elem_size);
+                    let call = builder.ins().call(array_new_ref, &[size_val]);
+                    let result = builder.inst_results(call)[0];
+                    value_map.insert(node.id.clone(), result);
+                }
+                Op::ArrayPush => {
+                    let (arr_val, elem_val) = get_binary_operands(graph, node_idx, &value_map)?;
+                    let call = builder.ins().call(array_push_ref, &[arr_val, elem_val]);
+                    // Push returns the (possibly reallocated) array pointer.
+                    // Update the array value in the value map so subsequent ops
+                    // use the new pointer. We update the source array node's entry.
+                    let new_arr = builder.inst_results(call)[0];
+                    // Find the array source node and update its value
+                    for edge_ref in graph
+                        .graph
+                        .edges_directed(node_idx, petgraph::Direction::Incoming)
+                    {
+                        if matches!(edge_ref.weight(), GraphEdge::Left) {
+                            let source_node = &graph.graph[edge_ref.source()];
+                            value_map.insert(source_node.id.clone(), new_arr);
+                        }
+                    }
+                }
+                Op::ArrayGet => {
+                    let (arr_val, idx_val) = get_binary_operands(graph, node_idx, &value_map)?;
+                    let mut panic_context = NodePanicContext {
+                        obj_module,
+                        string_data,
+                        panic_at_ref,
+                    };
+                    emit_array_bounds_guard(
+                        &mut builder,
+                        &mut panic_context,
+                        array_len_ref,
+                        arr_val,
+                        idx_val,
+                        &node.id,
+                    )?;
+                    let call = builder.ins().call(array_get_ref, &[arr_val, idx_val]);
+                    let result = builder.inst_results(call)[0];
+                    value_map.insert(node.id.clone(), result);
+                }
+                Op::ArrayTryGet => {
+                    if !matches!(node.result_type, Some(DuumbiType::Option(_))) {
+                        return Err(CompileError::Cranelift {
+                            message: format!(
+                                "ArrayTryGet requires Option<T> result type at node '{}'",
+                                node.id
+                            ),
+                        });
+                    }
+                    let (arr_val, idx_val) = get_binary_operands(graph, node_idx, &value_map)?;
+                    let result = emit_array_try_get(
+                        &mut builder,
+                        array_len_ref,
+                        array_get_ref,
+                        option_new_some_ref,
+                        option_new_none_ref,
+                        arr_val,
+                        idx_val,
+                    );
+                    value_map.insert(node.id.clone(), result);
+                }
+                Op::ArraySet => {
+                    // operand = array, left = index, right = value
+                    let operand_val = get_unary_operand(graph, node_idx, &value_map)?;
+                    let (idx_val, elem_val) = get_binary_operands(graph, node_idx, &value_map)?;
+                    let mut panic_context = NodePanicContext {
+                        obj_module,
+                        string_data,
+                        panic_at_ref,
+                    };
+                    emit_array_bounds_guard(
+                        &mut builder,
+                        &mut panic_context,
+                        array_len_ref,
+                        operand_val,
+                        idx_val,
+                        &node.id,
+                    )?;
+                    builder
+                        .ins()
+                        .call(array_set_ref, &[operand_val, idx_val, elem_val]);
+                }
+                Op::ArrayLength => {
+                    let operand_val = get_unary_operand(graph, node_idx, &value_map)?;
+                    let call = builder.ins().call(array_len_ref, &[operand_val]);
+                    let result = builder.inst_results(call)[0];
+                    value_map.insert(node.id.clone(), result);
+                }
+
+                // -- Phase 9a-1: Struct ops --
+                Op::StructNew { struct_name } => {
+                    let layout =
+                        struct_layouts
+                            .get(struct_name)
+                            .ok_or_else(|| CompileError::Cranelift {
+                                message: format!("Struct layout '{struct_name}' not found"),
+                            })?;
+                    let total_size = builder.ins().iconst(types::I64, layout.total_size);
+                    let call = builder.ins().call(struct_new_ref, &[total_size]);
+                    let result = builder.inst_results(call)[0];
+                    value_map.insert(node.id.clone(), result);
+                }
+                Op::FieldGet { field_name } => {
+                    let operand_val = get_unary_operand(graph, node_idx, &value_map)?;
+                    let offset_val =
+                        resolve_struct_field_offset(graph, node_idx, struct_layouts, field_name)?;
+                    let offset = builder.ins().iconst(types::I64, offset_val);
+                    let call = builder
+                        .ins()
+                        .call(struct_field_get_ref, &[operand_val, offset]);
+                    let field_value = builder.inst_results(call)[0];
+                    let result =
+                        coerce_struct_field_load(&mut builder, field_value, &node.result_type);
+                    value_map.insert(node.id.clone(), result);
+                }
+                Op::FieldSet { field_name } => {
+                    let operand_val = get_unary_operand(graph, node_idx, &value_map)?;
+                    let value_val = get_right_operand(graph, node_idx, &value_map)?;
+                    let stored_value = coerce_struct_field_store(&mut builder, value_val);
+                    let offset_val =
+                        resolve_struct_field_offset(graph, node_idx, struct_layouts, field_name)?;
+                    let offset = builder.ins().iconst(types::I64, offset_val);
+                    builder
+                        .ins()
+                        .call(struct_field_set_ref, &[operand_val, offset, stored_value]);
+                }
+                // -- Ownership ops (Phase 9a-2) --
+                Op::Alloc { alloc_type } => {
+                    // Allocate a new heap value based on type.
+                    // Each type uses its specific _new() constructor.
+                    let cl_val = match alloc_type {
+                        DuumbiType::String => {
+                            let zero = builder.ins().iconst(types::I64, 0);
+                            let inst = builder.ins().call(string_new_ref, &[zero, zero]);
+                            builder.inst_results(inst)[0]
+                        }
+                        DuumbiType::Array(_) => {
+                            let elem_size = match alloc_type {
+                                DuumbiType::Array(inner) => type_size(inner),
+                                _ => 8,
+                            };
+                            let size_val = builder.ins().iconst(types::I64, elem_size);
+                            let inst = builder.ins().call(array_new_ref, &[size_val]);
+                            builder.inst_results(inst)[0]
+                        }
+                        DuumbiType::Struct(_) => {
+                            let cap = builder.ins().iconst(types::I64, 8);
+                            let inst = builder.ins().call(struct_new_ref, &[cap]);
+                            builder.inst_results(inst)[0]
+                        }
+                        _ => builder.ins().iconst(types::I64, 0),
+                    };
+                    value_map.insert(node.id.clone(), cl_val);
+                    // Track for automatic Drop insertion at scope exit
+                    if alloc_type.is_heap_type() {
+                        heap_allocs.push((node.id.clone(), cl_val, alloc_type.clone()));
+                    }
+                }
+                Op::Move { .. } => {
+                    // Move is a pointer copy — no runtime cost.
+                    // The source SSA value is simply forwarded.
+                    // Remove source from heap_allocs (ownership transferred).
+                    let source_node_id = find_operand_node_id(graph, node_idx);
+                    let operand_val = get_operand(graph, node_idx, &value_map)?;
+                    value_map.insert(node.id.clone(), operand_val);
+                    if let Some(ref src_id) = source_node_id {
+                        // Remove source from tracking, transfer to move result
+                        if let Some(pos) = heap_allocs.iter().position(|(id, _, _)| id == src_id) {
+                            let (_, val, ty) = heap_allocs.remove(pos);
+                            heap_allocs.push((node.id.clone(), val, ty));
+                        }
+                    }
+                }
+                Op::Borrow { .. } => {
+                    // Borrow (shared or mutable) is a pointer copy — no runtime cost.
+                    // Safety is enforced by the validator, not at runtime.
+                    // Does NOT transfer ownership — source stays in heap_allocs.
+                    let operand_val = get_operand(graph, node_idx, &value_map)?;
+                    value_map.insert(node.id.clone(), operand_val);
+                }
+                Op::Drop { .. } => {
+                    // Explicit Drop — dispatch to type-specific free function.
+                    let source_node_id = find_operand_node_id(graph, node_idx);
+                    let operand_val = get_operand(graph, node_idx, &value_map)?;
+                    let source_type = find_operand_type(graph, node_idx);
+                    match source_type {
+                        Some(DuumbiType::String) => {
+                            builder.ins().call(string_free_ref, &[operand_val]);
+                        }
+                        Some(DuumbiType::Json) => {
+                            builder.ins().call(json_free_ref, &[operand_val]);
+                        }
+                        Some(DuumbiType::TcpSocket) => {
+                            builder.ins().call(tcp_socket_free_ref, &[operand_val]);
+                        }
+                        Some(DuumbiType::TcpListener) => {
+                            builder.ins().call(tcp_listener_free_ref, &[operand_val]);
+                        }
+                        Some(DuumbiType::HttpServer) => {
+                            builder.ins().call(server_free_ref, &[operand_val]);
+                        }
+                        Some(DuumbiType::HttpResponse) => {
+                            builder.ins().call(http_response_free_ref, &[operand_val]);
+                        }
+                        Some(DuumbiType::DbConnection) => {
+                            builder.ins().call(db_connection_free_ref, &[operand_val]);
+                        }
+                        Some(DuumbiType::DbRows) => {
+                            builder.ins().call(db_rows_free_ref, &[operand_val]);
+                        }
+                        Some(DuumbiType::Array(_)) => {
+                            builder.ins().call(array_free_ref, &[operand_val]);
+                        }
+                        Some(DuumbiType::Struct(_)) => {
+                            builder.ins().call(struct_free_ref, &[operand_val]);
+                        }
+                        Some(DuumbiType::Result(_, _)) => {
+                            builder.ins().call(result_free_ref, &[operand_val]);
+                        }
+                        Some(DuumbiType::Option(_)) => {
+                            builder.ins().call(option_free_ref, &[operand_val]);
+                        }
+                        _ => {}
+                    }
+                    // Remove from heap_allocs — explicitly freed
+                    if let Some(ref src_id) = source_node_id
+                        && let Some(pos) = heap_allocs.iter().position(|(id, _, _)| id == src_id)
+                    {
+                        heap_allocs.remove(pos);
+                    }
+                }
+                // -- Phase 9a-3: Result ops --
+                Op::ResultOk => {
+                    let operand_val = get_unary_operand(graph, node_idx, &value_map)?;
+                    let call = builder.ins().call(result_new_ok_ref, &[operand_val]);
+                    let result = builder.inst_results(call)[0];
+                    value_map.insert(node.id.clone(), result);
+                }
+                Op::ResultErr => {
+                    let operand_val = get_unary_operand(graph, node_idx, &value_map)?;
+                    let call = builder.ins().call(result_new_err_ref, &[operand_val]);
+                    let result = builder.inst_results(call)[0];
+                    value_map.insert(node.id.clone(), result);
+                }
+                Op::ResultIsOk => {
+                    let operand_val = get_unary_operand(graph, node_idx, &value_map)?;
+                    let call = builder.ins().call(result_is_ok_ref, &[operand_val]);
+                    let result = builder.inst_results(call)[0];
+                    value_map.insert(node.id.clone(), result);
+                }
+                Op::ResultUnwrap => {
+                    let operand_val = get_unary_operand(graph, node_idx, &value_map)?;
+                    let call = builder.ins().call(result_unwrap_ref, &[operand_val]);
+                    let payload = builder.inst_results(call)[0];
+                    let result = if node.result_type == Some(DuumbiType::Bool) {
+                        builder.ins().ireduce(types::I8, payload)
+                    } else {
+                        payload
+                    };
+                    value_map.insert(node.id.clone(), result);
+                }
+                Op::ResultUnwrapErr => {
+                    let operand_val = get_unary_operand(graph, node_idx, &value_map)?;
+                    let call = builder.ins().call(result_unwrap_err_ref, &[operand_val]);
+                    let payload = builder.inst_results(call)[0];
+                    let result = if node.result_type == Some(DuumbiType::Bool) {
+                        builder.ins().ireduce(types::I8, payload)
+                    } else {
+                        payload
+                    };
+                    value_map.insert(node.id.clone(), result);
+                }
+
+                // -- Phase 9a-3: Option ops --
+                Op::OptionSome => {
+                    let operand_val = get_unary_operand(graph, node_idx, &value_map)?;
+                    let call = builder.ins().call(option_new_some_ref, &[operand_val]);
+                    let result = builder.inst_results(call)[0];
+                    value_map.insert(node.id.clone(), result);
+                }
+                Op::OptionNone => {
+                    // option_new_none() takes no arguments
+                    let call = builder.ins().call(option_new_none_ref, &[]);
+                    let result = builder.inst_results(call)[0];
+                    value_map.insert(node.id.clone(), result);
+                }
+                Op::OptionIsSome => {
+                    let operand_val = get_unary_operand(graph, node_idx, &value_map)?;
+                    let call = builder.ins().call(option_is_some_ref, &[operand_val]);
+                    let result = builder.inst_results(call)[0];
+                    value_map.insert(node.id.clone(), result);
+                }
+                Op::OptionUnwrap => {
+                    let operand_val = get_unary_operand(graph, node_idx, &value_map)?;
+                    let call = builder.ins().call(option_unwrap_ref, &[operand_val]);
+                    let payload = builder.inst_results(call)[0];
+                    let result = if node.result_type == Some(DuumbiType::Bool) {
+                        builder.ins().ireduce(types::I8, payload)
+                    } else {
+                        payload
+                    };
+                    value_map.insert(node.id.clone(), result);
+                }
+
+                // -- Phase 9a-3: Match op --
+                Op::Match {
+                    ok_block,
+                    err_block,
+                } => {
+                    // Get the Result/Option value being matched
+                    let operand_val = get_unary_operand(graph, node_idx, &value_map)?;
+
+                    // Determine discriminant: is_ok for Result, is_some for Option
+                    let operand_type = get_operand_output_type(graph, node_idx);
+                    let discriminant = match &operand_type {
+                        Some(DuumbiType::Option(_)) => {
+                            let call = builder.ins().call(option_is_some_ref, &[operand_val]);
+                            builder.inst_results(call)[0]
+                        }
+                        Some(DuumbiType::Result(_, _)) => {
+                            let call = builder.ins().call(result_is_ok_ref, &[operand_val]);
+                            builder.inst_results(call)[0]
+                        }
+                        other => {
+                            return Err(CompileError::Cranelift {
+                                message: format!(
+                                    "Match operand must be Result or Option, found {:?} at node {}",
+                                    other, node.id
+                                ),
+                            });
+                        }
+                    };
+
+                    // Look up target Cranelift blocks
+                    let ok_cl_block = block_map.get(ok_block).copied().ok_or_else(|| {
+                        CompileError::Cranelift {
+                            message: format!(
+                                "Match ok_block '{}' not found in function '{}'",
+                                ok_block, func_info.name
+                            ),
+                        }
+                    })?;
+                    let err_cl_block = block_map.get(err_block).copied().ok_or_else(|| {
+                        CompileError::Cranelift {
+                            message: format!(
+                                "Match err_block '{}' not found in function '{}'",
+                                err_block, func_info.name
+                            ),
+                        }
+                    })?;
+
+                    // Branch: non-zero discriminant → ok_block, zero → err_block
+                    if let Some(trace) = trace_refs.as_ref() {
+                        emit_trace_event_call(
+                            &mut builder,
+                            trace.block_exit,
+                            trace_id_for_block(graph, func_info, block_info)? as i64,
+                        );
+                    }
+                    builder
+                        .ins()
+                        .brif(discriminant, ok_cl_block, &[], err_cl_block, &[]);
+                }
+
+                // -- Phase 9A: Math ops --
+                Op::Modulo => {
+                    let (left_val, right_val) = get_binary_operands(graph, node_idx, &value_map)?;
+                    let is_float = node.result_type == Some(DuumbiType::F64);
+                    let result = if is_float {
+                        // f64 modulo via C shim (fmod)
+                        let call = builder.ins().call(fmod_ref, &[left_val, right_val]);
+                        builder.inst_results(call)[0]
+                    } else {
+                        // i64 modulo: signed remainder
+                        builder.ins().srem(left_val, right_val)
+                    };
+                    value_map.insert(node.id.clone(), result);
+                }
+                Op::Negate => {
+                    let operand_val = get_unary_operand(graph, node_idx, &value_map)?;
+                    let is_float = node.result_type == Some(DuumbiType::F64);
+                    let result = if is_float {
+                        builder.ins().fneg(operand_val)
+                    } else {
+                        builder.ins().ineg(operand_val)
+                    };
+                    value_map.insert(node.id.clone(), result);
+                }
+                Op::Sqrt => {
+                    let operand_val = get_unary_operand(graph, node_idx, &value_map)?;
+                    let call = builder.ins().call(sqrt_ref, &[operand_val]);
+                    let result = builder.inst_results(call)[0];
+                    value_map.insert(node.id.clone(), result);
+                }
+                Op::Pow => {
+                    let (left_val, right_val) = get_binary_operands(graph, node_idx, &value_map)?;
+                    let call = builder.ins().call(pow_ref, &[left_val, right_val]);
+                    let result = builder.inst_results(call)[0];
+                    value_map.insert(node.id.clone(), result);
+                }
+                Op::PowI64 => {
+                    let (left_val, right_val) = get_binary_operands(graph, node_idx, &value_map)?;
+                    let call = builder.ins().call(powi64_ref, &[left_val, right_val]);
+                    let result = builder.inst_results(call)[0];
+                    value_map.insert(node.id.clone(), result);
+                }
+
+                // -- Phase 9A: Bitwise ops --
+                Op::BitwiseAnd => {
+                    let (left_val, right_val) = get_binary_operands(graph, node_idx, &value_map)?;
+                    let result = builder.ins().band(left_val, right_val);
+                    value_map.insert(node.id.clone(), result);
+                }
+                Op::BitwiseOr => {
+                    let (left_val, right_val) = get_binary_operands(graph, node_idx, &value_map)?;
+                    let result = builder.ins().bor(left_val, right_val);
+                    value_map.insert(node.id.clone(), result);
+                }
+                Op::BitwiseXor => {
+                    let (left_val, right_val) = get_binary_operands(graph, node_idx, &value_map)?;
+                    let result = builder.ins().bxor(left_val, right_val);
+                    value_map.insert(node.id.clone(), result);
+                }
+                Op::BitwiseNot => {
+                    let operand_val = get_unary_operand(graph, node_idx, &value_map)?;
+                    let result = builder.ins().bnot(operand_val);
+                    value_map.insert(node.id.clone(), result);
+                }
+                Op::ShiftLeft => {
+                    let (left_val, right_val) = get_binary_operands(graph, node_idx, &value_map)?;
+                    let result = builder.ins().ishl(left_val, right_val);
+                    value_map.insert(node.id.clone(), result);
+                }
+                Op::ShiftRight => {
+                    let (left_val, right_val) = get_binary_operands(graph, node_idx, &value_map)?;
+                    let result = builder.ins().sshr(left_val, right_val);
+                    value_map.insert(node.id.clone(), result);
+                }
+
+                Op::JsonParse => {
+                    let operand_val = get_unary_operand(graph, node_idx, &value_map)?;
+                    let call = builder.ins().call(json_parse_ref, &[operand_val]);
+                    let result = builder.inst_results(call)[0];
+                    value_map.insert(node.id.clone(), result);
+                }
+                Op::JsonStringify => {
+                    let operand_val = get_unary_operand(graph, node_idx, &value_map)?;
+                    let call = builder.ins().call(json_stringify_ref, &[operand_val]);
+                    let result = builder.inst_results(call)[0];
+                    value_map.insert(node.id.clone(), result);
+                }
+                Op::JsonGetField => {
+                    let operand_val = get_unary_operand(graph, node_idx, &value_map)?;
+                    let key_val = get_left_operand(graph, node_idx, &value_map)?;
+                    let call = builder
+                        .ins()
+                        .call(json_get_field_ref, &[operand_val, key_val]);
+                    let result = builder.inst_results(call)[0];
+                    value_map.insert(node.id.clone(), result);
+                }
+                Op::JsonArrayLen => {
+                    let operand_val = get_unary_operand(graph, node_idx, &value_map)?;
+                    let call = builder.ins().call(json_array_len_ref, &[operand_val]);
+                    let result = builder.inst_results(call)[0];
+                    value_map.insert(node.id.clone(), result);
+                }
+                Op::JsonArrayGet => {
+                    let operand_val = get_unary_operand(graph, node_idx, &value_map)?;
+                    let index_val = get_left_operand(graph, node_idx, &value_map)?;
+                    let call = builder
+                        .ins()
+                        .call(json_array_get_ref, &[operand_val, index_val]);
+                    let result = builder.inst_results(call)[0];
+                    value_map.insert(node.id.clone(), result);
+                }
+                Op::TcpConnect => {
+                    let host_val = get_unary_operand(graph, node_idx, &value_map)?;
+                    let port_val = get_left_operand(graph, node_idx, &value_map)?;
+                    let timeout_val = get_right_operand(graph, node_idx, &value_map)?;
+                    let call = builder
+                        .ins()
+                        .call(tcp_connect_ref, &[host_val, port_val, timeout_val]);
+                    let result = builder.inst_results(call)[0];
+                    value_map.insert(node.id.clone(), result);
+                }
+                Op::TcpListen => {
+                    let host_val = get_unary_operand(graph, node_idx, &value_map)?;
+                    let port_val = get_left_operand(graph, node_idx, &value_map)?;
+                    let timeout_val = get_right_operand(graph, node_idx, &value_map)?;
+                    let call = builder
+                        .ins()
+                        .call(tcp_listen_ref, &[host_val, port_val, timeout_val]);
+                    let result = builder.inst_results(call)[0];
+                    value_map.insert(node.id.clone(), result);
+                }
+                Op::TcpAccept => {
+                    let listener_val = get_unary_operand(graph, node_idx, &value_map)?;
+                    let timeout_val = get_left_operand(graph, node_idx, &value_map)?;
+                    let call = builder
+                        .ins()
+                        .call(tcp_accept_ref, &[listener_val, timeout_val]);
+                    let result = builder.inst_results(call)[0];
+                    value_map.insert(node.id.clone(), result);
+                }
+                Op::TcpRead => {
+                    let socket_val = get_unary_operand(graph, node_idx, &value_map)?;
+                    let max_bytes_val = get_left_operand(graph, node_idx, &value_map)?;
+                    let timeout_val = get_right_operand(graph, node_idx, &value_map)?;
+                    let call = builder
+                        .ins()
+                        .call(tcp_read_ref, &[socket_val, max_bytes_val, timeout_val]);
+                    let result = builder.inst_results(call)[0];
+                    value_map.insert(node.id.clone(), result);
+                }
+                Op::TcpWrite => {
+                    let socket_val = get_unary_operand(graph, node_idx, &value_map)?;
+                    let data_val = get_left_operand(graph, node_idx, &value_map)?;
+                    let timeout_val = get_right_operand(graph, node_idx, &value_map)?;
+                    let call = builder
+                        .ins()
+                        .call(tcp_write_ref, &[socket_val, data_val, timeout_val]);
+                    let result = builder.inst_results(call)[0];
+                    value_map.insert(node.id.clone(), result);
+                }
+                Op::TcpClose => {
+                    let socket_val = get_unary_operand(graph, node_idx, &value_map)?;
+                    let call = builder.ins().call(tcp_close_ref, &[socket_val]);
+                    let result = builder.inst_results(call)[0];
+                    value_map.insert(node.id.clone(), result);
+                }
+                Op::TcpListenerClose => {
+                    let listener_val = get_unary_operand(graph, node_idx, &value_map)?;
+                    let call = builder.ins().call(tcp_listener_close_ref, &[listener_val]);
+                    let result = builder.inst_results(call)[0];
+                    value_map.insert(node.id.clone(), result);
+                }
+                Op::ServerNew => {
+                    let host_val = get_unary_operand(graph, node_idx, &value_map)?;
+                    let port_val = get_left_operand(graph, node_idx, &value_map)?;
+                    let timeout_val = get_right_operand(graph, node_idx, &value_map)?;
+                    let call = builder
+                        .ins()
+                        .call(server_new_ref, &[host_val, port_val, timeout_val]);
+                    let result = builder.inst_results(call)[0];
+                    value_map.insert(node.id.clone(), result);
+                }
+                Op::RouteAddStatic => {
+                    let server_val = get_unary_operand(graph, node_idx, &value_map)?;
+                    let args = get_call_args(graph, node_idx, &value_map)?;
+                    if args.len() != 5 {
+                        return Err(CompileError::Cranelift {
+                            message: format!(
+                                "RouteAddStatic node '{}' must have exactly 5 args",
+                                node.id
+                            ),
+                        });
+                    }
+                    let call = builder.ins().call(
+                        route_add_static_ref,
+                        &[server_val, args[0], args[1], args[2], args[3], args[4]],
+                    );
+                    let result = builder.inst_results(call)[0];
+                    value_map.insert(node.id.clone(), result);
+                }
+                Op::ServerStart => {
+                    let server_val = get_unary_operand(graph, node_idx, &value_map)?;
+                    let max_requests_val = get_left_operand(graph, node_idx, &value_map)?;
+                    let timeout_val = get_right_operand(graph, node_idx, &value_map)?;
+                    let call = builder.ins().call(
+                        server_start_ref,
+                        &[server_val, max_requests_val, timeout_val],
+                    );
+                    let result = builder.inst_results(call)[0];
+                    value_map.insert(node.id.clone(), result);
+                }
+                Op::ServerClose => {
+                    let server_val = get_unary_operand(graph, node_idx, &value_map)?;
+                    let call = builder.ins().call(server_close_ref, &[server_val]);
+                    let result = builder.inst_results(call)[0];
+                    value_map.insert(node.id.clone(), result);
+                }
+                Op::HttpGet => {
+                    let url_val = get_unary_operand(graph, node_idx, &value_map)?;
+                    let headers_val = get_left_operand(graph, node_idx, &value_map)?;
+                    let timeout_val = get_right_operand(graph, node_idx, &value_map)?;
+                    let call = builder
+                        .ins()
+                        .call(http_get_ref, &[url_val, headers_val, timeout_val]);
+                    let result = builder.inst_results(call)[0];
+                    value_map.insert(node.id.clone(), result);
+                }
+                Op::HttpPost => {
+                    let url_val = get_unary_operand(graph, node_idx, &value_map)?;
+                    let headers_val = get_left_operand(graph, node_idx, &value_map)?;
+                    let body_val = get_right_operand(graph, node_idx, &value_map)?;
+                    let timeout_val = get_arg_operand(graph, node_idx, 0, &value_map)?;
+                    let call = builder.ins().call(
+                        http_post_ref,
+                        &[url_val, headers_val, body_val, timeout_val],
+                    );
+                    let result = builder.inst_results(call)[0];
+                    value_map.insert(node.id.clone(), result);
+                }
+                Op::HttpPut => {
+                    let url_val = get_unary_operand(graph, node_idx, &value_map)?;
+                    let headers_val = get_left_operand(graph, node_idx, &value_map)?;
+                    let body_val = get_right_operand(graph, node_idx, &value_map)?;
+                    let timeout_val = get_arg_operand(graph, node_idx, 0, &value_map)?;
+                    let call = builder
+                        .ins()
+                        .call(http_put_ref, &[url_val, headers_val, body_val, timeout_val]);
+                    let result = builder.inst_results(call)[0];
+                    value_map.insert(node.id.clone(), result);
+                }
+                Op::HttpDelete => {
+                    let url_val = get_unary_operand(graph, node_idx, &value_map)?;
+                    let headers_val = get_left_operand(graph, node_idx, &value_map)?;
+                    let timeout_val = get_right_operand(graph, node_idx, &value_map)?;
+                    let call = builder
+                        .ins()
+                        .call(http_delete_ref, &[url_val, headers_val, timeout_val]);
+                    let result = builder.inst_results(call)[0];
+                    value_map.insert(node.id.clone(), result);
+                }
+                Op::HttpStatus => {
+                    let response_val = get_unary_operand(graph, node_idx, &value_map)?;
+                    let call = builder.ins().call(http_status_ref, &[response_val]);
+                    let result = builder.inst_results(call)[0];
+                    value_map.insert(node.id.clone(), result);
+                }
+                Op::HttpBody => {
+                    let response_val = get_unary_operand(graph, node_idx, &value_map)?;
+                    let call = builder.ins().call(http_body_ref, &[response_val]);
+                    let result = builder.inst_results(call)[0];
+                    value_map.insert(node.id.clone(), result);
+                }
+                Op::HttpHeaders => {
+                    let response_val = get_unary_operand(graph, node_idx, &value_map)?;
+                    let call = builder.ins().call(http_headers_ref, &[response_val]);
+                    let result = builder.inst_results(call)[0];
+                    value_map.insert(node.id.clone(), result);
+                }
+                Op::HttpResponseFree => {
+                    let response_val = get_unary_operand(graph, node_idx, &value_map)?;
+                    let call = builder.ins().call(http_response_close_ref, &[response_val]);
+                    let result = builder.inst_results(call)[0];
+                    value_map.insert(node.id.clone(), result);
+                }
+                Op::DbOpen => {
+                    let path_val = get_unary_operand(graph, node_idx, &value_map)?;
+                    let call = builder.ins().call(db_open_ref, &[path_val]);
+                    let result = builder.inst_results(call)[0];
+                    value_map.insert(node.id.clone(), result);
+                }
+                Op::DbExecute => {
+                    let conn_val = get_unary_operand(graph, node_idx, &value_map)?;
+                    let sql_val = get_left_operand(graph, node_idx, &value_map)?;
+                    let params_val = get_right_operand(graph, node_idx, &value_map)?;
+                    let call = builder
+                        .ins()
+                        .call(db_execute_ref, &[conn_val, sql_val, params_val]);
+                    let result = builder.inst_results(call)[0];
+                    value_map.insert(node.id.clone(), result);
+                }
+                Op::DbQuery => {
+                    let conn_val = get_unary_operand(graph, node_idx, &value_map)?;
+                    let sql_val = get_left_operand(graph, node_idx, &value_map)?;
+                    let params_val = get_right_operand(graph, node_idx, &value_map)?;
+                    let call = builder
+                        .ins()
+                        .call(db_query_ref, &[conn_val, sql_val, params_val]);
+                    let result = builder.inst_results(call)[0];
+                    value_map.insert(node.id.clone(), result);
+                }
+                Op::DbRowsLen => {
+                    let rows_val = get_unary_operand(graph, node_idx, &value_map)?;
+                    let call = builder.ins().call(db_rows_len_ref, &[rows_val]);
+                    let result = builder.inst_results(call)[0];
+                    value_map.insert(node.id.clone(), result);
+                }
+                Op::DbRowGet => {
+                    let rows_val = get_unary_operand(graph, node_idx, &value_map)?;
+                    let row_index_val = get_left_operand(graph, node_idx, &value_map)?;
+                    let column_val = get_right_operand(graph, node_idx, &value_map)?;
+                    let call = builder
+                        .ins()
+                        .call(db_row_get_ref, &[rows_val, row_index_val, column_val]);
+                    let result = builder.inst_results(call)[0];
+                    value_map.insert(node.id.clone(), result);
+                }
+                Op::DbClose => {
+                    let conn_val = get_unary_operand(graph, node_idx, &value_map)?;
+                    let call = builder.ins().call(db_close_ref, &[conn_val]);
+                    let result = builder.inst_results(call)[0];
+                    value_map.insert(node.id.clone(), result);
+                }
+                Op::DbRowsFree => {
+                    let rows_val = get_unary_operand(graph, node_idx, &value_map)?;
+                    let call = builder.ins().call(db_rows_close_ref, &[rows_val]);
+                    let result = builder.inst_results(call)[0];
+                    value_map.insert(node.id.clone(), result);
+                }
+            }
+
+            // Track heap-producing non-ownership ops for auto-drop.
+            // Any op whose output_type() is a heap type (string, array, struct,
+            // result, option) gets tracked here. This includes ConstString,
+            // StringConcat, StringSlice, StringFromI64, StringTrim, StringToUpper,
+            // StringToLower, StringReplace, ArrayNew, StructNew, ResultOk,
+            // ResultErr, OptionSome, OptionNone, and future heap-producing ops.
+            // Match and Branch are control-flow terminators with no result value.
+            if !matches!(
+                &node.op,
+                Op::Alloc { .. }
+                    | Op::Move { .. }
+                    | Op::Borrow { .. }
+                    | Op::Drop { .. }
+                    | Op::Load { .. }
+                    | Op::Return
+                    | Op::Branch
+                    | Op::Match { .. }
+            ) && let Some(ref rt) = node.result_type
+                && rt.is_heap_type()
+                && let Some(&val) = value_map.get(&node.id)
+            {
+                heap_allocs.push((node.id.clone(), val, rt.clone()));
+            }
+        }
+    }
+
+    // Seal all blocks
+    builder.seal_all_blocks();
+    builder.finalize(obj_module.isa().frontend_config());
+
+    Ok(())
+}
+
+fn emit_trace_event_call(
+    builder: &mut FunctionBuilder<'_>,
+    func_ref: cranelift_codegen::ir::FuncRef,
+    trace_id: i64,
+) {
+    let trace_id_value = builder.ins().iconst(types::I64, trace_id);
+    builder.ins().call(func_ref, &[trace_id_value]);
+}
+
+fn emit_guarded_integer_div(
+    builder: &mut FunctionBuilder<'_>,
+    obj_module: &mut ObjectModule,
+    string_data: &HashMap<String, DataId>,
+    panic_at_ref: cranelift_codegen::ir::FuncRef,
+    left_val: Value,
+    right_val: Value,
+    node_id: &NodeId,
+) -> Result<Value, CompileError> {
+    let zero = builder.ins().iconst(types::I64, 0);
+    let is_zero = builder.ins().icmp(IntCC::Equal, right_val, zero);
+    emit_node_panic_guard(
+        builder,
+        obj_module,
+        string_data,
+        panic_at_ref,
+        is_zero,
+        "division by zero",
+        node_id,
+    )?;
+
+    let min_i64 = builder.ins().iconst(types::I64, i64::MIN);
+    let minus_one = builder.ins().iconst(types::I64, -1);
+    let left_is_min = builder.ins().icmp(IntCC::Equal, left_val, min_i64);
+    let right_is_minus_one = builder.ins().icmp(IntCC::Equal, right_val, minus_one);
+    let is_signed_overflow = builder.ins().band(left_is_min, right_is_minus_one);
+    emit_node_panic_guard(
+        builder,
+        obj_module,
+        string_data,
+        panic_at_ref,
+        is_signed_overflow,
+        "division overflow",
+        node_id,
+    )?;
+    Ok(builder.ins().sdiv(left_val, right_val))
+}
+
+fn emit_array_bounds_guard(
+    builder: &mut FunctionBuilder<'_>,
+    panic_context: &mut NodePanicContext<'_>,
+    array_len_ref: cranelift_codegen::ir::FuncRef,
+    arr_val: Value,
+    idx_val: Value,
+    node_id: &NodeId,
+) -> Result<(), CompileError> {
+    let len_call = builder.ins().call(array_len_ref, &[arr_val]);
+    let len_val = builder.inst_results(len_call)[0];
+    let zero = builder.ins().iconst(types::I64, 0);
+    let is_negative = builder.ins().icmp(IntCC::SignedLessThan, idx_val, zero);
+    let is_too_large = builder
+        .ins()
+        .icmp(IntCC::SignedGreaterThanOrEqual, idx_val, len_val);
+    let out_of_bounds = builder.ins().bor(is_negative, is_too_large);
+    emit_node_panic_guard(
+        builder,
+        panic_context.obj_module,
+        panic_context.string_data,
+        panic_context.panic_at_ref,
+        out_of_bounds,
+        "array index out of bounds",
+        node_id,
+    )
+}
+
+fn emit_array_try_get(
+    builder: &mut FunctionBuilder<'_>,
+    array_len_ref: cranelift_codegen::ir::FuncRef,
+    array_get_ref: cranelift_codegen::ir::FuncRef,
+    option_new_some_ref: cranelift_codegen::ir::FuncRef,
+    option_new_none_ref: cranelift_codegen::ir::FuncRef,
+    arr_val: Value,
+    idx_val: Value,
+) -> Value {
+    let len_call = builder.ins().call(array_len_ref, &[arr_val]);
+    let len_val = builder.inst_results(len_call)[0];
+    let zero = builder.ins().iconst(types::I64, 0);
+    let is_negative = builder.ins().icmp(IntCC::SignedLessThan, idx_val, zero);
+    let is_too_large = builder
+        .ins()
+        .icmp(IntCC::SignedGreaterThanOrEqual, idx_val, len_val);
+    let out_of_bounds = builder.ins().bor(is_negative, is_too_large);
+
+    let none_block = builder.create_block();
+    let some_block = builder.create_block();
+    let continue_block = builder.create_block();
+    builder.append_block_param(continue_block, types::I64);
+
+    builder
+        .ins()
+        .brif(out_of_bounds, none_block, &[], some_block, &[]);
+
+    builder.switch_to_block(some_block);
+    let get_call = builder.ins().call(array_get_ref, &[arr_val, idx_val]);
+    let item_val = builder.inst_results(get_call)[0];
+    let some_call = builder.ins().call(option_new_some_ref, &[item_val]);
+    let some_val = builder.inst_results(some_call)[0];
+    builder.ins().jump(continue_block, &[some_val.into()]);
+
+    builder.switch_to_block(none_block);
+    let none_call = builder.ins().call(option_new_none_ref, &[]);
+    let none_val = builder.inst_results(none_call)[0];
+    builder.ins().jump(continue_block, &[none_val.into()]);
+
+    builder.switch_to_block(continue_block);
+    builder.block_params(continue_block)[0]
+}
+
+fn emit_node_panic_guard(
+    builder: &mut FunctionBuilder<'_>,
+    obj_module: &mut ObjectModule,
+    string_data: &HashMap<String, DataId>,
+    panic_at_ref: cranelift_codegen::ir::FuncRef,
+    should_panic: Value,
+    message: &str,
+    node_id: &NodeId,
+) -> Result<(), CompileError> {
+    let panic_block = builder.create_block();
+    let continue_block = builder.create_block();
+
+    builder
+        .ins()
+        .brif(should_panic, panic_block, &[], continue_block, &[]);
+
+    builder.switch_to_block(panic_block);
+    let message_ptr = c_string_ptr(builder, obj_module, string_data, message)?;
+    let node_id_ptr = c_string_ptr(builder, obj_module, string_data, node_id.0.as_str())?;
+    builder
+        .ins()
+        .call(panic_at_ref, &[message_ptr, node_id_ptr]);
+    builder.ins().trap(TrapCode::unwrap_user(1));
+
+    builder.switch_to_block(continue_block);
+    Ok(())
+}
+
+fn c_string_ptr(
+    builder: &mut FunctionBuilder<'_>,
+    obj_module: &mut ObjectModule,
+    string_data: &HashMap<String, DataId>,
+    value: &str,
+) -> Result<Value, CompileError> {
+    let data_id = string_data
+        .get(value)
+        .ok_or_else(|| CompileError::Cranelift {
+            message: format!("C string data not found for '{value}'"),
+        })?;
+    let gv = obj_module.declare_data_in_func(*data_id, builder.func);
+    Ok(builder.ins().symbol_value(types::I64, gv))
+}
+
+fn trace_id_for_function(
+    graph: &SemanticGraph,
+    func_info: &FunctionInfo,
+) -> Result<u64, CompileError> {
+    let graph_id =
+        crate::telemetry::function_trace_graph_id(graph, func_info).map_err(|source| {
+            CompileError::Cranelift {
+                message: format!("Trace instrumentation requires graph identity: {source}"),
+            }
+        })?;
+    Ok(crate::telemetry::trace_id(
+        TraceMapKind::Function,
+        &graph_id,
+    ))
+}
+
+fn trace_id_for_block(
+    graph: &SemanticGraph,
+    func_info: &FunctionInfo,
+    block_info: &BlockInfo,
+) -> Result<u64, CompileError> {
+    let graph_id =
+        crate::telemetry::block_trace_graph_id(graph, func_info, block_info).map_err(|source| {
+            CompileError::Cranelift {
+                message: format!("Trace instrumentation requires graph identity: {source}"),
+            }
+        })?;
+    Ok(crate::telemetry::trace_id(TraceMapKind::Block, &graph_id))
+}
+
+/// Resolves the left and right operand SSA values for a binary operation node.
+fn get_binary_operands(
+    graph: &SemanticGraph,
+    node_idx: petgraph::stable_graph::NodeIndex,
+    value_map: &HashMap<NodeId, Value>,
+) -> Result<(Value, Value), CompileError> {
+    let mut left_val = None;
+    let mut right_val = None;
+
+    for edge_ref in graph
+        .graph
+        .edges_directed(node_idx, petgraph::Direction::Incoming)
+    {
+        let source_node = &graph.graph[edge_ref.source()];
+        let val = value_map
+            .get(&source_node.id)
+            .ok_or_else(|| CompileError::Cranelift {
+                message: format!(
+                    "SSA value not found for operand '{}' of node '{}'",
+                    source_node.id, graph.graph[node_idx].id
+                ),
+            })?;
+
+        match edge_ref.weight() {
+            GraphEdge::Left => left_val = Some(*val),
+            GraphEdge::Right => right_val = Some(*val),
+            _ => {}
+        }
+    }
+
+    let left = left_val.ok_or_else(|| CompileError::Cranelift {
+        message: format!(
+            "Missing left operand for node '{}'",
+            graph.graph[node_idx].id
+        ),
+    })?;
+    let right = right_val.ok_or_else(|| CompileError::Cranelift {
+        message: format!(
+            "Missing right operand for node '{}'",
+            graph.graph[node_idx].id
+        ),
+    })?;
+
+    Ok((left, right))
+}
+
+/// Resolves the single operand SSA value for a unary operation node.
+fn get_unary_operand(
+    graph: &SemanticGraph,
+    node_idx: petgraph::stable_graph::NodeIndex,
+    value_map: &HashMap<NodeId, Value>,
+) -> Result<Value, CompileError> {
+    for edge_ref in graph
+        .graph
+        .edges_directed(node_idx, petgraph::Direction::Incoming)
+    {
+        if matches!(edge_ref.weight(), GraphEdge::Operand) {
+            let source_node = &graph.graph[edge_ref.source()];
+            return value_map.get(&source_node.id).copied().ok_or_else(|| {
+                CompileError::Cranelift {
+                    message: format!(
+                        "SSA value not found for operand '{}' of node '{}'",
+                        source_node.id, graph.graph[node_idx].id
+                    ),
+                }
+            });
+        }
+    }
+
+    Err(CompileError::Cranelift {
+        message: format!("Missing operand for node '{}'", graph.graph[node_idx].id),
+    })
+}
+
+/// Resolves the condition operand for a Branch node.
+fn get_condition_operand(
+    graph: &SemanticGraph,
+    node_idx: petgraph::stable_graph::NodeIndex,
+    value_map: &HashMap<NodeId, Value>,
+) -> Result<Value, CompileError> {
+    for edge_ref in graph
+        .graph
+        .edges_directed(node_idx, petgraph::Direction::Incoming)
+    {
+        if matches!(edge_ref.weight(), GraphEdge::Condition) {
+            let source_node = &graph.graph[edge_ref.source()];
+            return value_map.get(&source_node.id).copied().ok_or_else(|| {
+                CompileError::Cranelift {
+                    message: format!(
+                        "SSA value not found for condition '{}' of node '{}'",
+                        source_node.id, graph.graph[node_idx].id
+                    ),
+                }
+            });
+        }
+    }
+
+    Err(CompileError::Cranelift {
+        message: format!(
+            "Missing condition for Branch node '{}'",
+            graph.graph[node_idx].id
+        ),
+    })
+}
+
+/// Gets the branch target block labels from a Branch node's AST data.
+fn get_branch_targets(
+    graph: &SemanticGraph,
+    node_idx: petgraph::stable_graph::NodeIndex,
+) -> Result<(String, String), CompileError> {
+    // The branch targets are stored in the Op::Branch node's associated AST,
+    // but since the graph only stores Op::Branch without the labels,
+    // we need to find TrueBlock/FalseBlock edges or store labels differently.
+    // In our design, Branch targets come from OpAst.true_block/false_block
+    // which aren't stored in the graph node directly. We need another approach.
+    //
+    // Solution: Walk outgoing edges looking for TrueBlock/FalseBlock edge types
+    // that were stored during graph building. But we didn't add those edges since
+    // they point to blocks, not nodes. Instead, we'll look at the graph node's
+    // metadata. Since we don't store labels in GraphNode, we need to extract them
+    // from the AST-level data that was preserved during parsing.
+    //
+    // Actually, the proper approach is: the builder should have stored the
+    // true_block/false_block labels somewhere accessible. For now, we'll
+    // scan the AST info stored in the OpAst. But we don't have the AST at
+    // compile time — only the graph.
+    //
+    // Revised approach: Store branch target labels directly in the GraphNode
+    // or in a side table. For Phase 1, let's use a simple approach:
+    // We look at the node's ID and find the corresponding function/block
+    // to look up target labels from the original parse data.
+    //
+    // Simplest approach: Add the target labels to the graph node somehow.
+    // Since we already have the block_map built, let's store target info
+    // in a new field. But we can't modify GraphNode now without breaking things.
+    //
+    // PRAGMATIC FIX: We'll store branch metadata in the Op enum itself.
+    // But Op::Branch has no fields. Let's check if we can get the info
+    // another way.
+
+    // In the current design, branch targets should be found by looking at
+    // the AST. Since we don't have direct AST access here, we need to
+    // refactor. For now, scan for nodes in target blocks that have edges.
+    //
+    // ACTUAL SOLUTION: We need to modify the graph builder to store branch
+    // target block labels. We'll use a side-table approach in SemanticGraph.
+
+    let _node = &graph.graph[node_idx];
+
+    // Look up branch targets from the branch_targets map
+    if let Some(targets) = graph.branch_targets.get(&graph.graph[node_idx].id) {
+        return Ok((targets.0.clone(), targets.1.clone()));
+    }
+
+    Err(CompileError::Cranelift {
+        message: format!(
+            "Branch target labels not found for node '{}'",
+            graph.graph[node_idx].id
+        ),
+    })
+}
+
+/// Gets the output type of the operand connected to a node via Operand edge.
+fn get_operand_output_type(
+    graph: &SemanticGraph,
+    node_idx: petgraph::stable_graph::NodeIndex,
+) -> Option<DuumbiType> {
+    for edge_ref in graph
+        .graph
+        .edges_directed(node_idx, petgraph::Direction::Incoming)
+    {
+        if matches!(edge_ref.weight(), GraphEdge::Operand) {
+            let source_node = &graph.graph[edge_ref.source()];
+            return resolve_node_output_type(source_node);
+        }
+    }
+    None
+}
+
+/// Gets the output type of the left operand of a binary/compare node.
+fn get_left_operand_type(
+    graph: &SemanticGraph,
+    node_idx: petgraph::stable_graph::NodeIndex,
+) -> Option<DuumbiType> {
+    for edge_ref in graph
+        .graph
+        .edges_directed(node_idx, petgraph::Direction::Incoming)
+    {
+        if matches!(edge_ref.weight(), GraphEdge::Left) {
+            let source_node = &graph.graph[edge_ref.source()];
+            return resolve_node_output_type(source_node);
+        }
+    }
+    None
+}
+
+/// Gets the output type of the right operand of a binary node.
+fn get_right_operand_type(
+    graph: &SemanticGraph,
+    node_idx: petgraph::stable_graph::NodeIndex,
+) -> Option<DuumbiType> {
+    for edge_ref in graph
+        .graph
+        .edges_directed(node_idx, petgraph::Direction::Incoming)
+    {
+        if matches!(edge_ref.weight(), GraphEdge::Right) {
+            let source_node = &graph.graph[edge_ref.source()];
+            return resolve_node_output_type(source_node);
+        }
+    }
+    None
+}
+
+fn coerce_string_concat_operand(
+    builder: &mut FunctionBuilder<'_>,
+    value: Value,
+    value_type: Option<DuumbiType>,
+    string_from_i64_ref: cranelift_codegen::ir::FuncRef,
+    side: &str,
+    concat_node_id: &NodeId,
+) -> Result<(Value, bool), CompileError> {
+    match value_type {
+        Some(DuumbiType::String) | None => Ok((value, false)),
+        Some(DuumbiType::I64 | DuumbiType::Bool) => {
+            let numeric_value = if builder.func.dfg.value_type(value) == types::I8 {
+                builder.ins().uextend(types::I64, value)
+            } else {
+                value
+            };
+            let call = builder.ins().call(string_from_i64_ref, &[numeric_value]);
+            Ok((builder.inst_results(call)[0], true))
+        }
+        Some(other) => Err(CompileError::Cranelift {
+            message: format!(
+                "StringConcat {} operand for node '{}' has unsupported type '{}'",
+                side, concat_node_id, other
+            ),
+        }),
+    }
+}
+
+fn coerce_struct_field_store(builder: &mut FunctionBuilder<'_>, value: Value) -> Value {
+    match builder.func.dfg.value_type(value) {
+        types::I8 => builder.ins().uextend(types::I64, value),
+        types::F64 => builder
+            .ins()
+            .bitcast(types::I64, MemFlagsData::new(), value),
+        _ => value,
+    }
+}
+
+fn coerce_struct_field_load(
+    builder: &mut FunctionBuilder<'_>,
+    value: Value,
+    result_type: &Option<DuumbiType>,
+) -> Value {
+    match result_type {
+        Some(DuumbiType::Bool) => builder.ins().ireduce(types::I8, value),
+        Some(DuumbiType::F64) => builder
+            .ins()
+            .bitcast(types::F64, MemFlagsData::new(), value),
+        _ => value,
+    }
+}
+
+/// Resolves the output type of a graph node for lowering decisions.
+fn resolve_node_output_type(node: &crate::graph::GraphNode) -> Option<DuumbiType> {
+    node.op.output_type(&node.result_type)
+}
+
+fn resolve_struct_field_offset(
+    graph: &SemanticGraph,
+    node_idx: petgraph::stable_graph::NodeIndex,
+    struct_layouts: &HashMap<String, StructLayout>,
+    field_name: &str,
+) -> Result<i64, CompileError> {
+    let struct_name = struct_operand_name(graph, node_idx)?;
+    let layout = struct_layouts
+        .get(&struct_name)
+        .ok_or_else(|| CompileError::Cranelift {
+            message: format!("Struct layout '{struct_name}' not found"),
+        })?;
+    layout
+        .offsets
+        .get(field_name)
+        .copied()
+        .ok_or_else(|| CompileError::Cranelift {
+            message: format!("Struct '{struct_name}' field '{field_name}' has no layout offset"),
+        })
+}
+
+fn struct_operand_name(
+    graph: &SemanticGraph,
+    node_idx: petgraph::stable_graph::NodeIndex,
+) -> Result<String, CompileError> {
+    for edge_ref in graph
+        .graph
+        .edges_directed(node_idx, petgraph::Direction::Incoming)
+    {
+        if matches!(edge_ref.weight(), GraphEdge::Operand) {
+            let source_node = &graph.graph[edge_ref.source()];
+            if let Op::StructNew { struct_name } = &source_node.op {
+                return Ok(struct_name.clone());
+            }
+            if let Some(DuumbiType::Struct(struct_name)) = resolve_node_output_type(source_node) {
+                return Ok(struct_name);
+            }
+            return Err(CompileError::Cranelift {
+                message: format!(
+                    "Struct field op '{}' operand '{}' is not a struct value",
+                    graph.graph[node_idx].id, source_node.id
+                ),
+            });
+        }
+    }
+
+    Err(CompileError::Cranelift {
+        message: format!(
+            "Struct field op '{}' is missing struct operand",
+            graph.graph[node_idx].id
+        ),
+    })
+}
+
+/// Returns the size in bytes for a DuumbiType (for array element sizing).
+fn type_size(ty: &DuumbiType) -> i64 {
+    match ty {
+        DuumbiType::I64 => 8,
+        DuumbiType::F64 => 8,
+        DuumbiType::Bool => 1,
+        DuumbiType::Void => 0,
+        // Heap types are pointer-sized
+        DuumbiType::String
+        | DuumbiType::Json
+        | DuumbiType::TcpSocket
+        | DuumbiType::TcpListener
+        | DuumbiType::HttpServer
+        | DuumbiType::HttpResponse
+        | DuumbiType::DbConnection
+        | DuumbiType::DbRows
+        | DuumbiType::Array(_)
+        | DuumbiType::Struct(_) => 8,
+        // References are pointer-sized (Phase 9a-2)
+        DuumbiType::Ref(_) | DuumbiType::RefMut(_) => 8,
+        // Result/Option are pointer-sized tagged unions (Phase 9a-3)
+        DuumbiType::Result(_, _) | DuumbiType::Option(_) => 8,
+    }
+}
+
+/// Resolves the left operand SSA value for a node.
+fn get_left_operand(
+    graph: &SemanticGraph,
+    node_idx: petgraph::stable_graph::NodeIndex,
+    value_map: &HashMap<NodeId, Value>,
+) -> Result<Value, CompileError> {
+    for edge_ref in graph
+        .graph
+        .edges_directed(node_idx, petgraph::Direction::Incoming)
+    {
+        if matches!(edge_ref.weight(), GraphEdge::Left) {
+            let source_node = &graph.graph[edge_ref.source()];
+            return value_map.get(&source_node.id).copied().ok_or_else(|| {
+                CompileError::Cranelift {
+                    message: format!(
+                        "SSA value not found for left operand '{}' of node '{}'",
+                        source_node.id, graph.graph[node_idx].id
+                    ),
+                }
+            });
+        }
+    }
+    Err(CompileError::Cranelift {
+        message: format!(
+            "Missing left operand for node '{}'",
+            graph.graph[node_idx].id
+        ),
+    })
+}
+
+/// Resolves the right operand SSA value for a node.
+fn get_right_operand(
+    graph: &SemanticGraph,
+    node_idx: petgraph::stable_graph::NodeIndex,
+    value_map: &HashMap<NodeId, Value>,
+) -> Result<Value, CompileError> {
+    for edge_ref in graph
+        .graph
+        .edges_directed(node_idx, petgraph::Direction::Incoming)
+    {
+        if matches!(edge_ref.weight(), GraphEdge::Right) {
+            let source_node = &graph.graph[edge_ref.source()];
+            return value_map.get(&source_node.id).copied().ok_or_else(|| {
+                CompileError::Cranelift {
+                    message: format!(
+                        "SSA value not found for right operand '{}' of node '{}'",
+                        source_node.id, graph.graph[node_idx].id
+                    ),
+                }
+            });
+        }
+    }
+    Err(CompileError::Cranelift {
+        message: format!(
+            "Missing right operand for node '{}'",
+            graph.graph[node_idx].id
+        ),
+    })
+}
+
+/// Resolves an ordered `Arg(index)` SSA value for ops that need a fourth input.
+fn get_arg_operand(
+    graph: &SemanticGraph,
+    node_idx: petgraph::stable_graph::NodeIndex,
+    index: usize,
+    value_map: &HashMap<NodeId, Value>,
+) -> Result<Value, CompileError> {
+    for edge_ref in graph
+        .graph
+        .edges_directed(node_idx, petgraph::Direction::Incoming)
+    {
+        if matches!(edge_ref.weight(), GraphEdge::Arg(idx) if *idx == index) {
+            let source_node = &graph.graph[edge_ref.source()];
+            return value_map.get(&source_node.id).copied().ok_or_else(|| {
+                CompileError::Cranelift {
+                    message: format!(
+                        "SSA value not found for arg {index} '{}' of node '{}'",
+                        source_node.id, graph.graph[node_idx].id
+                    ),
+                }
+            });
+        }
+    }
+    Err(CompileError::Cranelift {
+        message: format!(
+            "Missing arg {index} for node '{}'",
+            graph.graph[node_idx].id
+        ),
+    })
+}
+
+/// Resolves the single operand SSA value for ownership ops.
+///
+/// Follows incoming Operand, MovesFrom, BorrowsFrom, or Drops edges
+/// to find the source value.
+fn get_operand(
+    graph: &SemanticGraph,
+    node_idx: petgraph::stable_graph::NodeIndex,
+    value_map: &HashMap<NodeId, Value>,
+) -> Result<Value, CompileError> {
+    for edge_ref in graph
+        .graph
+        .edges_directed(node_idx, petgraph::Direction::Incoming)
+    {
+        match edge_ref.weight() {
+            GraphEdge::Operand
+            | GraphEdge::MovesFrom
+            | GraphEdge::BorrowsFrom
+            | GraphEdge::Drops => {
+                let source_node = &graph.graph[edge_ref.source()];
+                return value_map.get(&source_node.id).copied().ok_or_else(|| {
+                    CompileError::Cranelift {
+                        message: format!(
+                            "SSA value not found for operand '{}' of node '{}'",
+                            source_node.id, graph.graph[node_idx].id
+                        ),
+                    }
+                });
+            }
+            _ => {}
+        }
+    }
+    Err(CompileError::Cranelift {
+        message: format!(
+            "Missing operand for ownership op '{}'",
+            graph.graph[node_idx].id
+        ),
+    })
+}
+
+/// Finds the output type of the operand connected via ownership edges.
+///
+/// Used by Drop to determine which type-specific free function to call.
+fn find_operand_type(
+    graph: &SemanticGraph,
+    node_idx: petgraph::stable_graph::NodeIndex,
+) -> Option<DuumbiType> {
+    for edge_ref in graph
+        .graph
+        .edges_directed(node_idx, petgraph::Direction::Incoming)
+    {
+        match edge_ref.weight() {
+            GraphEdge::Operand
+            | GraphEdge::MovesFrom
+            | GraphEdge::BorrowsFrom
+            | GraphEdge::Drops => {
+                let source_node = &graph.graph[edge_ref.source()];
+                return resolve_node_output_type(source_node);
+            }
+            _ => {}
+        }
+    }
+    None
+}
+
+/// Finds the NodeId of the Return operand (the value being returned).
+///
+/// Used to exclude the returned value from automatic Drop insertion.
+fn find_return_operand_node_id(
+    graph: &SemanticGraph,
+    node_idx: petgraph::stable_graph::NodeIndex,
+) -> Option<NodeId> {
+    for edge_ref in graph
+        .graph
+        .edges_directed(node_idx, petgraph::Direction::Incoming)
+    {
+        if matches!(edge_ref.weight(), GraphEdge::Operand) {
+            return Some(graph.graph[edge_ref.source()].id.clone());
+        }
+    }
+    None
+}
+
+/// Finds the NodeId of the operand connected via ownership edges.
+///
+/// Used for heap_allocs tracking — to know which allocation to remove
+/// when a value is Moved or Dropped.
+fn find_operand_node_id(
+    graph: &SemanticGraph,
+    node_idx: petgraph::stable_graph::NodeIndex,
+) -> Option<NodeId> {
+    for edge_ref in graph
+        .graph
+        .edges_directed(node_idx, petgraph::Direction::Incoming)
+    {
+        match edge_ref.weight() {
+            GraphEdge::Operand
+            | GraphEdge::MovesFrom
+            | GraphEdge::BorrowsFrom
+            | GraphEdge::Drops => {
+                return Some(graph.graph[edge_ref.source()].id.clone());
+            }
+            _ => {}
+        }
+    }
+    None
+}
+
+/// Collects Call argument values in order.
+fn get_call_args(
+    graph: &SemanticGraph,
+    node_idx: petgraph::stable_graph::NodeIndex,
+    value_map: &HashMap<NodeId, Value>,
+) -> Result<Vec<Value>, CompileError> {
+    let mut args: Vec<(usize, Value)> = Vec::new();
+
+    for edge_ref in graph
+        .graph
+        .edges_directed(node_idx, petgraph::Direction::Incoming)
+    {
+        if let GraphEdge::Arg(idx) = edge_ref.weight() {
+            let source_node = &graph.graph[edge_ref.source()];
+            let val =
+                value_map
+                    .get(&source_node.id)
+                    .copied()
+                    .ok_or_else(|| CompileError::Cranelift {
+                        message: format!(
+                            "SSA value not found for arg '{}' of Call node '{}'",
+                            source_node.id, graph.graph[node_idx].id
+                        ),
+                    })?;
+            args.push((*idx, val));
+        }
+    }
+
+    args.sort_by_key(|(idx, _)| *idx);
+    Ok(args.into_iter().map(|(_, v)| v).collect())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::graph::builder::build_graph;
+    use crate::parser::parse_jsonld;
+
+    fn fixture_add() -> String {
+        std::fs::read_to_string("tests/fixtures/add.jsonld")
+            .expect("invariant: add.jsonld fixture must exist")
+    }
+
+    fn assert_valid_object(obj_bytes: &[u8]) {
+        assert!(!obj_bytes.is_empty());
+        let is_macho = obj_bytes.len() >= 4
+            && (obj_bytes[0..4] == [0xCF, 0xFA, 0xED, 0xFE]
+                || obj_bytes[0..4] == [0xFE, 0xED, 0xFA, 0xCF]);
+        let is_elf = obj_bytes.len() >= 4 && obj_bytes[0..4] == [0x7F, 0x45, 0x4C, 0x46];
+        let is_coff = obj_bytes.len() >= 2
+            && matches!(&obj_bytes[0..2], [0x4C, 0x01] | [0x64, 0x86] | [0x64, 0xAA]);
+        assert!(
+            is_macho || is_elf || is_coff,
+            "Output should be a valid Mach-O, ELF, or COFF object file"
+        );
+    }
+
+    fn object_contains(obj_bytes: &[u8], needle: &str) -> bool {
+        obj_bytes
+            .windows(needle.len())
+            .any(|window| window == needle.as_bytes())
+    }
+
+    #[cfg(target_os = "macos")]
+    fn macho_build_version_platform(obj_bytes: &[u8]) -> Option<u32> {
+        const LC_BUILD_VERSION: u32 = 0x32;
+        let magic = u32::from_le_bytes(obj_bytes.get(0..4)?.try_into().ok()?);
+        if magic != 0xfeedfacf {
+            return None;
+        }
+        let ncmds = u32::from_le_bytes(obj_bytes.get(16..20)?.try_into().ok()?);
+        let mut offset = 32usize;
+        for _ in 0..ncmds {
+            let cmd = u32::from_le_bytes(obj_bytes.get(offset..offset + 4)?.try_into().ok()?);
+            let cmdsize =
+                u32::from_le_bytes(obj_bytes.get(offset + 4..offset + 8)?.try_into().ok()?)
+                    as usize;
+            if cmd == LC_BUILD_VERSION {
+                return Some(u32::from_le_bytes(
+                    obj_bytes.get(offset + 8..offset + 12)?.try_into().ok()?,
+                ));
+            }
+            offset = offset.checked_add(cmdsize)?;
+        }
+        None
+    }
+
+    #[cfg(target_os = "macos")]
+    #[test]
+    fn macos_object_triple_uses_macosx_platform() {
+        let triple = object_target_triple_for_host(
+            "aarch64-apple-darwin"
+                .parse()
+                .expect("test triple should parse"),
+        );
+
+        assert!(matches!(
+            triple.operating_system,
+            target_lexicon::OperatingSystem::MacOSX(_)
+        ));
+    }
+
+    #[cfg(target_os = "macos")]
+    #[test]
+    fn macos_objects_emit_platform_macos() {
+        let module = parse_jsonld(&fixture_add()).expect("invariant: fixture must parse");
+        let sg = build_graph(&module).expect("invariant: valid fixture must build");
+        let obj_bytes = compile_to_object(&sg).expect("compilation should succeed");
+
+        assert_eq!(macho_build_version_platform(&obj_bytes), Some(1));
+    }
+
+    #[test]
+    fn symbol_component_mangling_is_injective_for_escape_like_names() {
+        assert_ne!(
+            mangle_symbol_component("a/b"),
+            mangle_symbol_component("a_x2f_b")
+        );
+        assert_ne!(
+            function_symbol_name("a/b", "helper"),
+            function_symbol_name("a_x2f_b", "helper")
+        );
+    }
+
+    #[test]
+    fn compile_add_graph_produces_object() {
+        let module = parse_jsonld(&fixture_add()).expect("invariant: fixture must parse");
+        let sg = build_graph(&module).expect("invariant: fixture must build");
+        let obj_bytes = compile_to_object(&sg).expect("compilation should succeed");
+        assert_valid_object(&obj_bytes);
+    }
+
+    #[test]
+    fn compile_server_stdlib_graph_produces_runtime_imports() {
+        let module = parse_jsonld(
+            &std::fs::read_to_string("stdlib/server.jsonld")
+                .expect("invariant: server stdlib graph must exist"),
+        )
+        .expect("server stdlib graph must parse");
+        let sg = crate::graph::builder::build_graph_no_call_check(&module)
+            .expect("server stdlib graph must build");
+        let obj_bytes = compile_to_object(&sg).expect("compilation should succeed");
+        assert_valid_object(&obj_bytes);
+        assert!(object_contains(&obj_bytes, "duumbi_server_new"));
+        assert!(object_contains(&obj_bytes, "duumbi_route_add_static"));
+        assert!(object_contains(&obj_bytes, "duumbi_server_start"));
+        assert!(object_contains(&obj_bytes, "duumbi_server_close"));
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn c_runtime_server_handles_one_loopback_request() {
+        use std::io::Write as _;
+        use std::net::TcpListener;
+        use std::process::Command;
+
+        let probe = TcpListener::bind("127.0.0.1:0").expect("free loopback port");
+        let port = probe.local_addr().expect("local addr").port();
+        drop(probe);
+
+        let tmp = tempfile::TempDir::new().expect("tempdir");
+        let harness = tmp.path().join("server_harness.c");
+        let binary = tmp.path().join("server_harness");
+        let mut file = std::fs::File::create(&harness).expect("create harness");
+        writeln!(
+            file,
+            r#"
+#include <assert.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/socket.h>
+#include <sys/wait.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <unistd.h>
+#include "duumbi_runtime.h"
+
+static void *str(const char *s) {{
+    return duumbi_string_new(s, (uint64_t)strlen(s));
+}}
+
+static void client_request(int port) {{
+    usleep(100000);
+    int fd = socket(AF_INET, SOCK_STREAM, 0);
+    assert(fd >= 0);
+    struct sockaddr_in addr;
+    memset(&addr, 0, sizeof(addr));
+    addr.sin_family = AF_INET;
+    addr.sin_port = htons((uint16_t)port);
+    assert(inet_pton(AF_INET, "127.0.0.1", &addr.sin_addr) == 1);
+    assert(connect(fd, (struct sockaddr *)&addr, sizeof(addr)) == 0);
+    const char *req = "GET /health HTTP/1.1\r\nHost: localhost\r\n\r\n";
+    assert(send(fd, req, strlen(req), 0) > 0);
+    char buf[512];
+    int total = 0;
+    for (;;) {{
+        int n = (int)recv(fd, buf + total, sizeof(buf) - 1 - (size_t)total, 0);
+        if (n <= 0) break;
+        total += n;
+        if (total >= (int)sizeof(buf) - 1) break;
+    }}
+    assert(total > 0);
+    buf[total] = '\0';
+    assert(strstr(buf, "HTTP/1.1 200 OK") != NULL);
+    assert(strstr(buf, "Content-Length: 2") != NULL);
+    assert(strstr(buf, "\r\n\r\nok") != NULL);
+    close(fd);
+    _exit(0);
+}}
+
+int main(void) {{
+    void *server_res = duumbi_server_new(str("127.0.0.1"), {port}, 1000);
+    assert(duumbi_result_is_ok(server_res));
+    void *server = (void *)(intptr_t)duumbi_result_unwrap(server_res);
+    void *headers_res = duumbi_json_parse(str("{{}}"));
+    assert(duumbi_result_is_ok(headers_res));
+    void *headers = (void *)(intptr_t)duumbi_result_unwrap(headers_res);
+    void *route_res = duumbi_route_add_static(
+        server, str("GET"), str("/health"), 200, headers, str("ok")
+    );
+    assert(duumbi_result_is_ok(route_res));
+    pid_t child = fork();
+    assert(child >= 0);
+    if (child == 0) client_request({port});
+    void *start_res = duumbi_server_start(server, 1, 2000);
+    assert(duumbi_result_is_ok(start_res));
+    assert(duumbi_result_unwrap(start_res) == 1);
+    int status = 0;
+    assert(waitpid(child, &status, 0) == child);
+    assert(WIFEXITED(status) && WEXITSTATUS(status) == 0);
+    void *close_res = duumbi_server_close(server);
+    assert(duumbi_result_is_ok(close_res));
+    duumbi_server_free(server);
+    return 0;
+}}
+"#
+        )
+        .expect("write harness");
+
+        let compile = Command::new("cc")
+            .arg("runtime/duumbi_runtime.c")
+            .arg(&harness)
+            .arg("-Iruntime")
+            .arg("-lm")
+            .arg("-lcurl")
+            .arg("-o")
+            .arg(&binary)
+            .output()
+            .expect("run cc");
+        assert!(
+            compile.status.success(),
+            "cc failed\nstdout:\n{}\nstderr:\n{}",
+            String::from_utf8_lossy(&compile.stdout),
+            String::from_utf8_lossy(&compile.stderr)
+        );
+
+        let run = Command::new(&binary).output().expect("run harness");
+        assert!(
+            run.status.success(),
+            "server harness failed\nstdout:\n{}\nstderr:\n{}",
+            String::from_utf8_lossy(&run.stdout),
+            String::from_utf8_lossy(&run.stderr)
+        );
+    }
+
+    #[test]
+    fn default_compile_does_not_reference_trace_hooks() {
+        let module = parse_jsonld(&fixture_add()).expect("invariant: fixture must parse");
+        let sg = build_graph(&module).expect("invariant: fixture must build");
+        let obj_bytes = compile_to_object(&sg).expect("compilation should succeed");
+
+        assert!(!object_contains(&obj_bytes, "duumbi_trace_init"));
+        assert!(!object_contains(&obj_bytes, "duumbi_trace_function_enter"));
+        assert!(!object_contains(&obj_bytes, "duumbi_trace_function_exit"));
+        assert!(!object_contains(&obj_bytes, "duumbi_trace_block_enter"));
+        assert!(!object_contains(&obj_bytes, "duumbi_trace_block_exit"));
+    }
+
+    #[test]
+    fn default_compile_allows_missing_trace_graph_identity() {
+        let module = parse_jsonld(&fixture_add()).expect("invariant: fixture must parse");
+        let mut sg = build_graph(&module).expect("invariant: fixture must build");
+        for (index, node) in sg.graph.node_weights_mut().enumerate() {
+            node.id = NodeId(format!("node-{index}"));
+        }
+
+        let obj_bytes = compile_to_object(&sg).expect("default compilation should succeed");
+
+        assert_valid_object(&obj_bytes);
+        assert!(!object_contains(&obj_bytes, "duumbi_trace_init"));
+    }
+
+    #[test]
+    fn traced_compile_references_trace_hooks() {
+        let module = parse_jsonld(&fixture_add()).expect("invariant: fixture must parse");
+        let sg = build_graph(&module).expect("invariant: fixture must build");
+        let obj_bytes = compile_to_object_with_telemetry(&sg, TelemetryBuildMode::Trace)
+            .expect("traced compilation should succeed");
+
+        assert_valid_object(&obj_bytes);
+        assert!(object_contains(&obj_bytes, "duumbi_trace_init"));
+        assert!(object_contains(&obj_bytes, "duumbi_trace_function_enter"));
+        assert!(object_contains(&obj_bytes, "duumbi_trace_block_enter"));
+        assert!(object_contains(&obj_bytes, "duumbi_trace_block_exit"));
+        assert!(object_contains(&obj_bytes, "duumbi_trace_function_exit"));
+    }
+
+    #[test]
+    fn traced_compile_rejects_missing_trace_graph_identity() {
+        let module = parse_jsonld(&fixture_add()).expect("invariant: fixture must parse");
+        let mut sg = build_graph(&module).expect("invariant: fixture must build");
+        for (index, node) in sg.graph.node_weights_mut().enumerate() {
+            node.id = NodeId(format!("node-{index}"));
+        }
+
+        let err = compile_to_object_with_telemetry(&sg, TelemetryBuildMode::Trace)
+            .expect_err("traced compilation should require graph identity");
+
+        let message = err.to_string();
+        assert!(message.contains("Trace instrumentation requires graph identity"));
+        assert!(message.contains("missing function graph identity"));
+    }
+
+    #[test]
+    fn compile_const_return() {
+        use crate::graph::*;
+        use crate::types::*;
+        use petgraph::stable_graph::StableGraph;
+
+        let mut g = StableGraph::new();
+        let c = g.add_node(GraphNode {
+            id: NodeId("c".to_string()),
+            op: Op::Const(42),
+            result_type: Some(DuumbiType::I64),
+            function: FunctionName("main".to_string()),
+            block: BlockLabel("entry".to_string()),
+            owner: None,
+            lifetime: None,
+            lifetime_param: None,
+        });
+        let r = g.add_node(GraphNode {
+            id: NodeId("r".to_string()),
+            op: Op::Return,
+            result_type: None,
+            function: FunctionName("main".to_string()),
+            block: BlockLabel("entry".to_string()),
+            owner: None,
+            lifetime: None,
+            lifetime_param: None,
+        });
+        g.add_edge(c, r, GraphEdge::Operand);
+
+        let sg = SemanticGraph {
+            graph: g,
+            node_map: HashMap::new(),
+            functions: vec![FunctionInfo {
+                name: FunctionName("main".to_string()),
+                return_type: DuumbiType::I64,
+                params: vec![],
+                lifetime_params: Vec::new(),
+                contracts: Default::default(),
+                blocks: vec![BlockInfo {
+                    label: BlockLabel("entry".to_string()),
+                    nodes: vec![c, r],
+                }],
+            }],
+            branch_targets: HashMap::new(),
+            module_name: ModuleName("test".to_string()),
+        };
+
+        let obj_bytes = compile_to_object(&sg).expect("compilation should succeed");
+        assert!(!obj_bytes.is_empty());
+    }
+
+    #[test]
+    fn duumbi380_ops_lower_to_runtime_symbols() {
+        use crate::compiler::linker;
+        use crate::graph::*;
+        use crate::types::*;
+        use petgraph::stable_graph::StableGraph;
+        use std::path::Path;
+
+        fn node(id: &str, op: Op, result_type: Option<DuumbiType>) -> GraphNode {
+            GraphNode {
+                id: NodeId(id.to_string()),
+                op,
+                result_type,
+                function: FunctionName("main".to_string()),
+                block: BlockLabel("entry".to_string()),
+                owner: None,
+                lifetime: None,
+                lifetime_param: None,
+            }
+        }
+
+        fn result(ok: DuumbiType) -> DuumbiType {
+            DuumbiType::Result(Box::new(ok), Box::new(DuumbiType::String))
+        }
+
+        let mut g = StableGraph::new();
+        let url = g.add_node(node(
+            "url",
+            Op::ConstString("http://127.0.0.1/".to_string()),
+            Some(DuumbiType::String),
+        ));
+        let headers = g.add_node(node("headers", Op::Const(0), Some(DuumbiType::Json)));
+        let body = g.add_node(node(
+            "body",
+            Op::ConstString("{}".to_string()),
+            Some(DuumbiType::String),
+        ));
+        let timeout = g.add_node(node("timeout", Op::Const(1000), Some(DuumbiType::I64)));
+        let response = g.add_node(node(
+            "response",
+            Op::Const(0),
+            Some(DuumbiType::HttpResponse),
+        ));
+        let path = g.add_node(node(
+            "path",
+            Op::ConstString(":memory:".to_string()),
+            Some(DuumbiType::String),
+        ));
+        let conn = g.add_node(node("conn", Op::Const(0), Some(DuumbiType::DbConnection)));
+        let sql = g.add_node(node(
+            "sql",
+            Op::ConstString("select 1".to_string()),
+            Some(DuumbiType::String),
+        ));
+        let params = g.add_node(node(
+            "params",
+            Op::Const(0),
+            Some(DuumbiType::Array(Box::new(DuumbiType::String))),
+        ));
+        let rows = g.add_node(node("rows", Op::Const(0), Some(DuumbiType::DbRows)));
+        let column = g.add_node(node(
+            "column",
+            Op::ConstString("value".to_string()),
+            Some(DuumbiType::String),
+        ));
+
+        let http_result = result(DuumbiType::HttpResponse);
+        let i64_result = result(DuumbiType::I64);
+        let string_result = result(DuumbiType::String);
+        let json_result = result(DuumbiType::Json);
+        let db_result = result(DuumbiType::DbConnection);
+        let rows_result = result(DuumbiType::DbRows);
+
+        let http_get = g.add_node(node("http_get", Op::HttpGet, Some(http_result.clone())));
+        g.add_edge(url, http_get, GraphEdge::Operand);
+        g.add_edge(headers, http_get, GraphEdge::Left);
+        g.add_edge(timeout, http_get, GraphEdge::Right);
+
+        let http_post = g.add_node(node("http_post", Op::HttpPost, Some(http_result.clone())));
+        g.add_edge(url, http_post, GraphEdge::Operand);
+        g.add_edge(headers, http_post, GraphEdge::Left);
+        g.add_edge(body, http_post, GraphEdge::Right);
+        g.add_edge(timeout, http_post, GraphEdge::Arg(0));
+
+        let http_put = g.add_node(node("http_put", Op::HttpPut, Some(http_result.clone())));
+        g.add_edge(url, http_put, GraphEdge::Operand);
+        g.add_edge(headers, http_put, GraphEdge::Left);
+        g.add_edge(body, http_put, GraphEdge::Right);
+        g.add_edge(timeout, http_put, GraphEdge::Arg(0));
+
+        let http_delete = g.add_node(node(
+            "http_delete",
+            Op::HttpDelete,
+            Some(http_result.clone()),
+        ));
+        g.add_edge(url, http_delete, GraphEdge::Operand);
+        g.add_edge(headers, http_delete, GraphEdge::Left);
+        g.add_edge(timeout, http_delete, GraphEdge::Right);
+
+        let http_status = g.add_node(node(
+            "http_status",
+            Op::HttpStatus,
+            Some(i64_result.clone()),
+        ));
+        g.add_edge(response, http_status, GraphEdge::Operand);
+
+        let http_body = g.add_node(node("http_body", Op::HttpBody, Some(string_result.clone())));
+        g.add_edge(response, http_body, GraphEdge::Operand);
+
+        let http_headers = g.add_node(node(
+            "http_headers",
+            Op::HttpHeaders,
+            Some(json_result.clone()),
+        ));
+        g.add_edge(response, http_headers, GraphEdge::Operand);
+
+        let http_response_free = g.add_node(node(
+            "http_response_free",
+            Op::HttpResponseFree,
+            Some(i64_result.clone()),
+        ));
+        g.add_edge(response, http_response_free, GraphEdge::Operand);
+
+        let db_open = g.add_node(node("db_open", Op::DbOpen, Some(db_result)));
+        g.add_edge(path, db_open, GraphEdge::Operand);
+
+        let db_execute = g.add_node(node("db_execute", Op::DbExecute, Some(i64_result.clone())));
+        g.add_edge(conn, db_execute, GraphEdge::Operand);
+        g.add_edge(sql, db_execute, GraphEdge::Left);
+        g.add_edge(params, db_execute, GraphEdge::Right);
+
+        let db_query = g.add_node(node("db_query", Op::DbQuery, Some(rows_result)));
+        g.add_edge(conn, db_query, GraphEdge::Operand);
+        g.add_edge(sql, db_query, GraphEdge::Left);
+        g.add_edge(params, db_query, GraphEdge::Right);
+
+        let db_rows_len = g.add_node(node("db_rows_len", Op::DbRowsLen, Some(i64_result.clone())));
+        g.add_edge(rows, db_rows_len, GraphEdge::Operand);
+
+        let db_row_get = g.add_node(node("db_row_get", Op::DbRowGet, Some(string_result)));
+        g.add_edge(rows, db_row_get, GraphEdge::Operand);
+        g.add_edge(timeout, db_row_get, GraphEdge::Left);
+        g.add_edge(column, db_row_get, GraphEdge::Right);
+
+        let db_close = g.add_node(node("db_close", Op::DbClose, Some(i64_result.clone())));
+        g.add_edge(conn, db_close, GraphEdge::Operand);
+
+        let db_rows_free = g.add_node(node("db_rows_free", Op::DbRowsFree, Some(i64_result)));
+        g.add_edge(rows, db_rows_free, GraphEdge::Operand);
+
+        let zero = g.add_node(node("zero", Op::Const(0), Some(DuumbiType::I64)));
+        let ret = g.add_node(node("return", Op::Return, None));
+        g.add_edge(zero, ret, GraphEdge::Operand);
+
+        let nodes = vec![
+            url,
+            headers,
+            body,
+            timeout,
+            response,
+            path,
+            conn,
+            sql,
+            params,
+            rows,
+            column,
+            http_get,
+            http_post,
+            http_put,
+            http_delete,
+            http_status,
+            http_body,
+            http_headers,
+            http_response_free,
+            db_open,
+            db_execute,
+            db_query,
+            db_rows_len,
+            db_row_get,
+            db_close,
+            db_rows_free,
+            zero,
+            ret,
+        ];
+
+        let sg = SemanticGraph {
+            graph: g,
+            node_map: HashMap::new(),
+            functions: vec![FunctionInfo {
+                name: FunctionName("main".to_string()),
+                return_type: DuumbiType::I64,
+                params: vec![],
+                lifetime_params: Vec::new(),
+                contracts: Default::default(),
+                blocks: vec![BlockInfo {
+                    label: BlockLabel("entry".to_string()),
+                    nodes,
+                }],
+            }],
+            branch_targets: HashMap::new(),
+            module_name: ModuleName("test".to_string()),
+        };
+
+        let obj_bytes = compile_to_object(&sg).expect("DUUMBI-380 ops must lower");
+
+        for symbol in [
+            "duumbi_http_get",
+            "duumbi_http_post",
+            "duumbi_http_put",
+            "duumbi_http_delete",
+            "duumbi_http_status",
+            "duumbi_http_body",
+            "duumbi_http_headers",
+            "duumbi_http_response_close",
+            "duumbi_http_response_free",
+            "duumbi_db_open",
+            "duumbi_db_execute",
+            "duumbi_db_query",
+            "duumbi_db_rows_len",
+            "duumbi_db_row_get",
+            "duumbi_db_close",
+            "duumbi_db_rows_close",
+            "duumbi_db_connection_free",
+            "duumbi_db_rows_free",
+        ] {
+            assert!(
+                object_contains(&obj_bytes, symbol),
+                "object should reference runtime symbol {symbol}"
+            );
+        }
+
+        let tmp = tempfile::TempDir::new().expect("invariant: tempdir must be creatable");
+        let obj_path = tmp.path().join("duumbi380.o");
+        let runtime_o = tmp.path().join("duumbi_runtime.o");
+        let binary = tmp.path().join("duumbi380_bin");
+        std::fs::write(&obj_path, obj_bytes).expect("invariant: object must be writable");
+        linker::compile_runtime(Path::new("runtime/duumbi_runtime.c"), &runtime_o)
+            .expect("runtime with DUUMBI-380 symbols must compile");
+        linker::link(&obj_path, &runtime_o, &binary)
+            .expect("DUUMBI-380 lowered object must link with runtime symbols");
+    }
+
+    #[test]
+    fn compile_f64_const_return() {
+        use crate::graph::*;
+        use crate::types::*;
+        use petgraph::stable_graph::StableGraph;
+
+        let mut g = StableGraph::new();
+        let c = g.add_node(GraphNode {
+            id: NodeId("c".to_string()),
+            op: Op::ConstF64(2.5),
+            result_type: Some(DuumbiType::F64),
+            function: FunctionName("main".to_string()),
+            block: BlockLabel("entry".to_string()),
+            owner: None,
+            lifetime: None,
+            lifetime_param: None,
+        });
+        let print = g.add_node(GraphNode {
+            id: NodeId("p".to_string()),
+            op: Op::Print,
+            result_type: None,
+            function: FunctionName("main".to_string()),
+            block: BlockLabel("entry".to_string()),
+            owner: None,
+            lifetime: None,
+            lifetime_param: None,
+        });
+        let zero = g.add_node(GraphNode {
+            id: NodeId("z".to_string()),
+            op: Op::Const(0),
+            result_type: Some(DuumbiType::I64),
+            function: FunctionName("main".to_string()),
+            block: BlockLabel("entry".to_string()),
+            owner: None,
+            lifetime: None,
+            lifetime_param: None,
+        });
+        let r = g.add_node(GraphNode {
+            id: NodeId("r".to_string()),
+            op: Op::Return,
+            result_type: None,
+            function: FunctionName("main".to_string()),
+            block: BlockLabel("entry".to_string()),
+            owner: None,
+            lifetime: None,
+            lifetime_param: None,
+        });
+        g.add_edge(c, print, GraphEdge::Operand);
+        g.add_edge(zero, r, GraphEdge::Operand);
+
+        let sg = SemanticGraph {
+            graph: g,
+            node_map: HashMap::new(),
+            functions: vec![FunctionInfo {
+                name: FunctionName("main".to_string()),
+                return_type: DuumbiType::I64,
+                params: vec![],
+                lifetime_params: Vec::new(),
+                contracts: Default::default(),
+                blocks: vec![BlockInfo {
+                    label: BlockLabel("entry".to_string()),
+                    nodes: vec![c, print, zero, r],
+                }],
+            }],
+            branch_targets: HashMap::new(),
+            module_name: ModuleName("test".to_string()),
+        };
+
+        let obj_bytes = compile_to_object(&sg).expect("f64 compilation should succeed");
+        assert!(!obj_bytes.is_empty());
+    }
+
+    // -----------------------------------------------------------------------
+    // Multi-module compile_program tests
+    // -----------------------------------------------------------------------
+
+    /// Builds a minimal valid module JSON-LD string for testing.
+    fn make_module_jsonld(name: &str, exports: &[&str]) -> String {
+        let exports_json = if exports.is_empty() {
+            String::new()
+        } else {
+            let items: Vec<String> = exports.iter().map(|e| format!("\"{e}\"")).collect();
+            format!(",\n    \"duumbi:exports\": [{}]", items.join(", "))
+        };
+        format!(
+            r#"{{
+    "@context": {{"duumbi": "https://duumbi.dev/ns/core#"}},
+    "@type": "duumbi:Module",
+    "@id": "duumbi:{name}",
+    "duumbi:name": "{name}"{exports_json},
+    "duumbi:functions": [{{
+        "@type": "duumbi:Function",
+        "@id": "duumbi:{name}/main",
+        "duumbi:name": "main",
+        "duumbi:returnType": "i64",
+        "duumbi:blocks": [{{
+            "@type": "duumbi:Block",
+            "@id": "duumbi:{name}/main/entry",
+            "duumbi:label": "entry",
+            "duumbi:ops": [
+                {{"@type": "duumbi:Const", "@id": "duumbi:{name}/main/entry/0",
+                  "duumbi:value": 0, "duumbi:resultType": "i64"}},
+                {{"@type": "duumbi:Return", "@id": "duumbi:{name}/main/entry/1",
+                  "duumbi:operand": {{"@id": "duumbi:{name}/main/entry/0"}}}}
+            ]
+        }}]
+    }}]
+}}"#
+        )
+    }
+
+    fn write_program_workspace(files: &[(&str, &str)]) -> tempfile::TempDir {
+        let dir = tempfile::TempDir::new().expect("invariant: tempdir must be creatable");
+        let graph_dir = dir.path().join(".duumbi").join("graph");
+        std::fs::create_dir_all(&graph_dir).expect("invariant: must create graph dir");
+        for (filename, content) in files {
+            std::fs::write(graph_dir.join(filename), content)
+                .expect("invariant: must write fixture file");
+        }
+        dir
+    }
+
+    #[test]
+    fn compile_program_single_module_produces_object() {
+        use crate::graph::program::Program;
+
+        let module = make_module_jsonld("main", &[]);
+        let ws = write_program_workspace(&[("main.jsonld", &module)]);
+        let program = Program::load(ws.path()).expect("invariant: single-module program must load");
+
+        let objects = compile_program(&program).expect("compilation must succeed");
+        assert_eq!(objects.len(), 1);
+        assert!(
+            objects.contains_key("main"),
+            "must have 'main' module object"
+        );
+        assert_valid_object(&objects["main"]);
+    }
+
+    /// Builds a module with a single exported function named `helper` (not `main`).
+    ///
+    /// Useful for multi-module tests where only one module should have `main`.
+    fn make_helper_module_jsonld(name: &str) -> String {
+        format!(
+            r#"{{
+    "@context": {{"duumbi": "https://duumbi.dev/ns/core#"}},
+    "@type": "duumbi:Module",
+    "@id": "duumbi:{name}",
+    "duumbi:name": "{name}",
+    "duumbi:exports": ["helper"],
+    "duumbi:functions": [{{
+        "@type": "duumbi:Function",
+        "@id": "duumbi:{name}/helper",
+        "duumbi:name": "helper",
+        "duumbi:returnType": "i64",
+        "duumbi:blocks": [{{
+            "@type": "duumbi:Block",
+            "@id": "duumbi:{name}/helper/entry",
+            "duumbi:label": "entry",
+            "duumbi:ops": [
+                {{"@type": "duumbi:Const", "@id": "duumbi:{name}/helper/entry/0",
+                  "duumbi:value": 1, "duumbi:resultType": "i64"}},
+                {{"@type": "duumbi:Return", "@id": "duumbi:{name}/helper/entry/1",
+                  "duumbi:operand": {{"@id": "duumbi:{name}/helper/entry/0"}}}}
+            ]
+        }}]
+    }}]
+}}"#
+        )
+    }
+
+    #[test]
+    fn compile_program_two_modules_both_produce_objects() {
+        use crate::graph::program::Program;
+
+        // math exports `helper` (not `main`) — only `entry` has the real `main`
+        let math = make_helper_module_jsonld("math");
+        let entry = make_module_jsonld("entry", &[]);
+
+        let ws = write_program_workspace(&[("math.jsonld", &math), ("entry.jsonld", &entry)]);
+        let program = Program::load(ws.path()).expect("invariant: program must load");
+
+        let objects = compile_program(&program).expect("compilation must succeed");
+        assert_eq!(objects.len(), 2);
+        assert!(
+            objects.contains_key("math"),
+            "must have 'math' module object"
+        );
+        assert!(
+            objects.contains_key("entry"),
+            "must have 'entry' module object"
+        );
+        assert_valid_object(&objects["math"]);
+        assert_valid_object(&objects["entry"]);
+    }
+
+    #[test]
+    fn stdlib_math_module_parses_builds_and_compiles() {
+        use crate::graph::program::Program;
+
+        // Validate the embedded stdlib math module end-to-end.
+        // It exports abs, max, min — no main function.
+        const MATH_JSONLD: &str = include_str!("../../stdlib/math.jsonld");
+        let main_module = make_module_jsonld("main", &[]);
+
+        // Write math as the stdlib dep + main
+        let dir = tempfile::TempDir::new().expect("invariant: tempdir");
+        let graph_dir = dir.path().join(".duumbi").join("graph");
+        std::fs::create_dir_all(&graph_dir).expect("invariant: create graph dir");
+        std::fs::write(graph_dir.join("main.jsonld"), &main_module).expect("write main");
+        std::fs::write(graph_dir.join("math.jsonld"), MATH_JSONLD).expect("write math");
+
+        let program = Program::load(dir.path()).expect("program must load with math stdlib");
+        assert!(
+            program
+                .modules
+                .contains_key(&crate::types::ModuleName("math".to_string()))
+        );
+        assert_eq!(
+            program.exports.len(),
+            8,
+            "abs + max + min + sqrt + pow + mod + clamp + sign should be exported"
+        );
+
+        let objects = compile_program(&program).expect("stdlib math must compile");
+        assert_eq!(objects.len(), 2, "main + math modules");
+        assert_valid_object(&objects["math"]);
+    }
+
+    #[test]
+    fn compile_program_multiple_main_returns_error() {
+        use crate::graph::program::Program;
+
+        // Both modules define `main` — compile_program should reject this
+        let mod_a = make_module_jsonld("a", &[]);
+        let mod_b = make_module_jsonld("b", &[]);
+
+        let ws = write_program_workspace(&[("a.jsonld", &mod_a), ("b.jsonld", &mod_b)]);
+        let program = Program::load(ws.path()).expect("invariant: program must load");
+
+        let result = compile_program(&program);
+        assert!(result.is_err(), "multiple mains should be rejected");
+        let err = result.unwrap_err();
+        assert!(
+            format!("{err}").contains("Multiple modules define 'main'"),
+            "unexpected error: {err}"
+        );
+    }
+}
