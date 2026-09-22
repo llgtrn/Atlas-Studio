@@ -1,0 +1,30 @@
+target/
+notes.md
+.vscode
+node_modules
+dist/
+pkg/
+
+# perf stuff
+flamegraph.svg
+perf.data*
+profile.json
+nightly/output/
+nightly/.venv/
+/*.json
+/*.txt
+
+_scratch.egg
+/*.egg
+*.log
+*.dot
+*.svg
+*.DS_Store
+
+# racket
+scripts/compiled
+tests/*.json
+
+lcov.info
+
+__pycache__/

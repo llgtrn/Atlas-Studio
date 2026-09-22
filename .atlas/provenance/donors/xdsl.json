@@ -1,0 +1,41 @@
+{
+  "schema": "atlas.donor-provenance.v1",
+  "id": "xdsl",
+  "name": "xDSL",
+  "remote": "https://github.com/xdslproject/xdsl.git",
+  "repository": "xdslproject/xdsl",
+  "commit_sha": "00703508e37a2b4ef06687b3bbbe4cd78c41c740",
+  "default_branch": "main",
+  "retrieved_at": "2026-09-22T15:50:00Z",
+  "clone_path": ".atlas/temporary/donors/xdsl",
+  "staging_mode": "FULL_SOURCE_TREE",
+  "staging_note": "Normal-sized pure-Python repository, staged as a full shallow clone (`git clone --depth 1`), matching this repo's flat donor-staging convention (donor root = repo root, no extra repo-name nesting). Nested `.git` metadata removed after capturing the pinned commit SHA.",
+  "nested_git_removed": true,
+  "pin_policy": "This exact commit SHA is the durable pin. The clone was a floating shallow clone of xdsl's HEAD at clone time (depth 1); the SHA recorded here, not any branch name, is the identity that must be used to re-derive or re-verify this donor's content.",
+  "license": "Apache-2.0 WITH LLVM-exception",
+  "license_evidence": "Verified by reading .atlas/temporary/donors/xdsl/LICENSE directly: header text reads 'The xDSL project is under the Apache License v2.0 with LLVM Exceptions'. Cross-checked against pyproject.toml's `project.license` field: {text = \"Apache License v2.0 with LLVM Exceptions\"}.",
+  "license_files": [
+    ".atlas/temporary/donors/xdsl/LICENSE"
+  ],
+  "source_file_count": 1439,
+  "observed_source_bytes": 13681894,
+  "ingestion_status": "CLONED",
+  "census_status": "DEEP_CENSUS_ACTIVE",
+  "decision_status": "PENDING_COORDINATOR_REVIEW",
+  "runtime_dependency_status": "REFERENCE_ONLY",
+  "purpose": "DONOR_GAP=ATLAS_NATIVE_SEMANTIC_IR_DIALECT_MECHANISM",
+  "technology_lanes": [
+    "ir_design",
+    "dialect_definition",
+    "pattern_rewriting",
+    "declarative_operation_definition",
+    "parser_printer_design"
+  ],
+  "target_owners": [
+    "core/asir",
+    "core/asir/dialect",
+    "compiler"
+  ],
+  "relationship_to_mlir_donor": "xDSL is a from-scratch pure-Python reimplementation of MLIR's IR/dialect/pattern-rewrite model, staged alongside the `mlir` donor (.atlas/provenance/donors/mlir.json) specifically because its Operation/Attribute/IRDL implementation is far more readable than MLIR's C++/TableGen originals and is a closer structural analog to what a from-scratch Rust ASIR implementation would look like (plain typed data structures + runtime-registered traits, no code-generation step required to get a working dialect).",
+  "not_a_runtime_dependency": "Atlas does not and will not depend on xDSL as a runtime or build dependency for ASIR. This stage exists purely for architecture-education census; any adoption is a clean-room Rust reimplementation of studied ideas, never copied Python source."
+}

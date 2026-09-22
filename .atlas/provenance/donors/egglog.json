@@ -1,0 +1,40 @@
+{
+  "schema": "atlas.donor-provenance.v1",
+  "id": "egglog",
+  "name": "egglog",
+  "remote": "https://github.com/egraphs-good/egglog",
+  "repository": "egraphs-good/egglog",
+  "commit_sha": "90635860397ce710f8c0a4eeb04154a8ebc3ac05",
+  "default_branch": "main",
+  "retrieved_at": "2026-09-22T15:51:00Z",
+  "clone_path": ".atlas/temporary/donors/egglog",
+  "clone_method": "git clone --depth 1 (shallow, single-commit, nested .git removed after pinning)",
+  "staging_mode": "FULL_SOURCE_TREE",
+  "license": "MIT",
+  "license_files": [
+    ".atlas/temporary/donors/egglog/LICENSE"
+  ],
+  "license_evidence": "Root LICENSE file: standard MIT License text, 'Copyright (c) 2025 egraphs-good', verified by direct read.",
+  "quarantine_actions": [
+    "egglog/.claude -> egglog/_donor-quarantine.claude (directory rename, contents preserved: skills/tidy-diff-docs/SKILL.md)",
+    "egglog/CLAUDE.md -> egglog/CLAUDE.md.donor-untrusted (file rename, content preserved)"
+  ],
+  "source_file_count": 569,
+  "observed_tree_size": "11M",
+  "ingestion_status": "CLONED",
+  "census_status": "CENSUSED",
+  "runtime_dependency_status": "NOT_ADOPTED_AS_RUNTIME_DEPENDENCY",
+  "purpose": "DONOR_GAP=ATLAS_DECISION_LAYER_EQUIVALENCE_CLASS_AND_COST_EXTRACTION_MECHANISM",
+  "technology_lanes": [
+    "equality_saturation",
+    "e_graph_equivalence_classes",
+    "datalog_relational_query",
+    "cost_based_extraction",
+    "union_find",
+    "worst_case_optimal_join"
+  ],
+  "target_owners": [
+    "architecture/decision-layer",
+    "architecture/jev-class"
+  ]
+}

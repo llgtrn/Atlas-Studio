@@ -1,0 +1,33 @@
+{
+  "schema": "atlas.donor-provenance.v1",
+  "id": "capnproto",
+  "name": "Cap'n Proto",
+  "remote": "https://github.com/capnproto/capnproto.git",
+  "repository": "capnproto/capnproto",
+  "commit_sha": "7fff7b6482a19bdedb18884d13f66a1a4f5e5650",
+  "default_branch": "master",
+  "retrieved_at": "2026-09-22T15:53:06Z",
+  "clone_path": ".atlas/temporary/donors/capnproto",
+  "staging_mode": "FULL_SOURCE_TREE",
+  "clone_method": "git clone --depth 1 (shallow, .git removed post-clone; commit_sha recorded via git rev-parse HEAD before removal)",
+  "license_files": [
+    ".atlas/licenses/donors/capnproto/LICENSE"
+  ],
+  "license_identifier": "MIT",
+  "license_evidence": "LICENSE file at repo root, verified by direct read: 'Licensed under the MIT License' with copyright 'Sandstonghold Development Group, Inc.; Cloudflare, Inc.; and other contributors' (2013-2017). Standard MIT permission/warranty text follows.",
+  "ingestion_status": "CLONED",
+  "census_status": "DEEP_CENSUSED",
+  "decision_status": "STUDY_FOR_BINARY_FORMAT_LANE",
+  "runtime_dependency_status": "STUDY_ONLY_NOT_A_DEPENDENCY",
+  "technology_lanes": [
+    "binary_encoding",
+    "canonical_serialization",
+    "zero_copy_wire_format",
+    "schema_evolution"
+  ],
+  "target_owners": [
+    "core/atlas-format",
+    "runtime/binary"
+  ],
+  "framing_note": "Donated as a binary/canonical encoding reference for Atlas's own .atlas wire format (pointer-based traversal, canonical-form rules for hashing/signing, schema-evolution discipline). NOT a donor for Atlas's semantic ontology/type system."
+}

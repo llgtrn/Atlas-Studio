@@ -1,0 +1,39 @@
+{
+  "schema": "atlas.donor-provenance.v1",
+  "id": "wasm-spec",
+  "name": "WebAssembly Specification",
+  "remote": "https://github.com/WebAssembly/spec",
+  "repository": "WebAssembly/spec",
+  "commit_sha": "ba9fd9f5c23e569201265d5bda6fb8dde18ad8c0",
+  "default_branch": "main",
+  "retrieved_at": "2026-09-22T15:51:45Z",
+  "clone_path": ".atlas/temporary/donors/wasm-spec",
+  "clone_method": "git clone --depth 1 (shallow, single-commit, nested .git removed after pinning; note: submodules referenced by .gitmodules were not initialized, this is a top-level-only shallow clone)",
+  "staging_mode": "FULL_SOURCE_TREE",
+  "license": "MULTIPLE (per top-level directory, declared in root LICENSE)",
+  "license_files": [
+    ".atlas/temporary/donors/wasm-spec/LICENSE",
+    ".atlas/temporary/donors/wasm-spec/document/LICENSE",
+    ".atlas/temporary/donors/wasm-spec/interpreter/LICENSE",
+    ".atlas/temporary/donors/wasm-spec/test/LICENSE",
+    ".atlas/temporary/donors/wasm-spec/papers/LICENSE"
+  ],
+  "license_evidence": "Root LICENSE file is an index stating per-directory terms, verified by direct read: document/ = W3C Software and Document Notice and License; spectec/, interpreter/, test/ = Apache License 2.0 (full text confirmed in interpreter/LICENSE); proposals/ = Creative Commons CC0 1.0 Universal; papers/ = Creative Commons Attribution 4.0 International (CC BY 4.0). No single blanket license identifier applies to the whole tree.",
+  "quarantine_actions": [],
+  "source_file_count": 1294,
+  "observed_tree_size": "51M",
+  "ingestion_status": "CLONED",
+  "census_status": "CENSUSED",
+  "runtime_dependency_status": "NOT_ADOPTED_AS_RUNTIME_DEPENDENCY",
+  "purpose": "DONOR_GAP=ATLAS_VALIDATION_BINARY_ENCODING_SEPARATION_PRIOR_ART",
+  "technology_lanes": [
+    "instruction_validation_algorithm",
+    "stack_machine_type_checking",
+    "sectioned_binary_format",
+    "semantic_binary_separation"
+  ],
+  "target_owners": [
+    "architecture/compiler-ir-pipeline",
+    "architecture/atlasx-format"
+  ]
+}

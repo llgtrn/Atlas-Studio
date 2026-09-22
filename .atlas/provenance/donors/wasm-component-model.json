@@ -1,0 +1,37 @@
+{
+  "schema": "atlas.donor-provenance.v1",
+  "id": "wasm-component-model",
+  "name": "WebAssembly Component Model",
+  "remote": "https://github.com/WebAssembly/component-model",
+  "repository": "WebAssembly/component-model",
+  "commit_sha": "5b724da8c634c4f2b2d2b3f6a4e9e13b4eb01596",
+  "default_branch": "main",
+  "retrieved_at": "2026-09-22T15:51:30Z",
+  "clone_path": ".atlas/temporary/donors/wasm-component-model",
+  "clone_method": "git clone --depth 1 (shallow, single-commit, nested .git removed after pinning)",
+  "staging_mode": "FULL_SOURCE_TREE",
+  "license": "Apache-2.0",
+  "license_files": [
+    ".atlas/temporary/donors/wasm-component-model/LICENSE",
+    ".atlas/temporary/donors/wasm-component-model/LICENSE-APACHE"
+  ],
+  "license_evidence": "Root LICENSE file states 'Unless otherwise noted in a LICENSE in a subdirectory, all files are licensed under Apache 2.0 (LICENSE-APACHE)'; LICENSE-APACHE is the standard Apache License 2.0 full text, verified by direct read.",
+  "quarantine_actions": [],
+  "source_file_count": 103,
+  "observed_tree_size": "2.7M",
+  "ingestion_status": "CLONED",
+  "census_status": "CENSUSED",
+  "runtime_dependency_status": "NOT_ADOPTED_AS_RUNTIME_DEPENDENCY",
+  "purpose": "DONOR_GAP=ATLAS_INTERFACE_COMPONENT_CAPABILITY_BOUNDARY_SEMANTICS",
+  "technology_lanes": [
+    "interface_definition_language",
+    "component_boundary",
+    "canonical_abi",
+    "type_constructors",
+    "world_and_interface_composition"
+  ],
+  "target_owners": [
+    "architecture/interface-boundary",
+    "architecture/component-model"
+  ]
+}

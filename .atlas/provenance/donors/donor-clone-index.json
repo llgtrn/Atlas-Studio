@@ -778,5 +778,337 @@
       "reference/psg-obligation-model"
     ],
     "notes": "MIT. Confirmed periodically-republished, history-rewritten export of a private Forgejo repository (2026-09-20 rewrite deleted 209/210 branches, all 143 tags) -- treat as a lagging snapshot, re-verify pin before any future absorption. Owns PSG schema/construction/coeffect/escape analysis that Composer's docs reference by file path. Real from-scratch Hindley-Milner+dimensional+SRTP type inference confirmed, but not a bounded path to real CALL resolution for Atlas's Rust lane (would require Atlas to own a full Rust type checker, contradicting its own contract). See .atlas/census/donors/semantic-graph-language-lane-2026-09-22.md."
+  },
+  {
+    "schema": "atlas.donor-provenance.v1",
+    "id": "mlir",
+    "name": "MLIR",
+    "remote": "https://github.com/llvm/llvm-project.git",
+    "repository": "llvm/llvm-project",
+    "commit_sha": "4790b21292d10b2cab1037ebef100e7f595e4209",
+    "default_branch": "main",
+    "retrieved_at": "2026-09-22T15:50:00Z",
+    "clone_path": ".atlas/temporary/donors/mlir",
+    "staging_mode": "PARTIAL_SPARSE_SUBTREE_MLIR_ONLY",
+    "staging_note": "Lane-scoped subtree stage, NOT a full llvm-project monorepo stage. Cloned via `git clone --filter=blob:none --sparse --depth 1` followed by `git sparse-checkout set mlir`, restricting the working tree to the `mlir/` subdirectory of the llvm-project monorepo at the pinned commit. After capturing the pinned commit SHA, the outer llvm-project top-level files/dirs (clang, lldb, etc.) were discarded and the inner `mlir/` subtree was flattened up one level, so this donor's root (`.atlas/temporary/donors/mlir/`) IS the `mlir/` subtree root directly (CMakeLists.txt, LICENSE.TXT, include/, lib/, test/, tools/, python/, ...), matching this repo's flat donor-staging convention (donor root = staged source root, no extra repo-name nesting). This donor is distinct from, and does not modify or duplicate, the pre-existing `llvm-project` donor (`.atlas/temporary/donors/llvm-project/`, full monorepo, pinned separately at commit 0bd330675f9eb08126e467505a0800f167084473) already staged for the compiler_backend/ir/optimizer/codegen lane. The `mlir` donor exists specifically for the ASIR (Atlas Semantic IR) design-education lane: dialect-definition mechanism, IR object model, bytecode, IRDL, pattern rewriting.",
+    "nested_git_removed": true,
+    "pin_policy": "This exact commit SHA is the durable pin. The clone was a floating shallow clone of llvm-project's HEAD at clone time (depth 1, blob:none partial filter); the SHA recorded here, not any branch name, is the identity that must be used to re-derive or re-verify this donor's content.",
+    "license": "Apache-2.0 WITH LLVM-exception",
+    "license_evidence": "Verified by reading .atlas/temporary/donors/mlir/LICENSE.TXT directly (the mlir/ subtree's own copy of the LLVM Project license file, byte-identical in content/header to the top-level llvm-project LICENSE.TXT): header text reads 'The LLVM Project is under the Apache License v2.0 with LLVM Exceptions', SPDX identifier confirmed from source file headers throughout the tree as 'Apache-2.0 WITH LLVM-exception'.",
+    "license_files": [
+      ".atlas/temporary/donors/mlir/LICENSE.TXT"
+    ],
+    "source_file_count": 7774,
+    "observed_source_bytes": 78542366,
+    "ingestion_status": "CLONED",
+    "census_status": "DEEP_CENSUS_ACTIVE",
+    "decision_status": "PENDING_COORDINATOR_REVIEW",
+    "runtime_dependency_status": "REFERENCE_ONLY",
+    "purpose": "DONOR_GAP=ATLAS_NATIVE_SEMANTIC_IR_DIALECT_MECHANISM",
+    "technology_lanes": [
+      "ir_design",
+      "dialect_definition",
+      "bytecode_serialization",
+      "pattern_rewriting",
+      "compiler_pass_infrastructure",
+      "verifier_infrastructure"
+    ],
+    "target_owners": [
+      "core/asir",
+      "core/asir/dialect",
+      "core/asir/bytecode",
+      "compiler"
+    ],
+    "not_a_runtime_dependency": "Atlas does not and will not depend on MLIR/LLVM as a runtime or build dependency for ASIR. This stage exists purely for architecture-education census; any adoption is a clean-room Rust reimplementation of studied ideas, never copied C++ source."
+  },
+  {
+    "schema": "atlas.donor-provenance.v1",
+    "id": "xdsl",
+    "name": "xDSL",
+    "remote": "https://github.com/xdslproject/xdsl.git",
+    "repository": "xdslproject/xdsl",
+    "commit_sha": "00703508e37a2b4ef06687b3bbbe4cd78c41c740",
+    "default_branch": "main",
+    "retrieved_at": "2026-09-22T15:50:00Z",
+    "clone_path": ".atlas/temporary/donors/xdsl",
+    "staging_mode": "FULL_SOURCE_TREE",
+    "staging_note": "Normal-sized pure-Python repository, staged as a full shallow clone (`git clone --depth 1`), matching this repo's flat donor-staging convention (donor root = repo root, no extra repo-name nesting). Nested `.git` metadata removed after capturing the pinned commit SHA.",
+    "nested_git_removed": true,
+    "pin_policy": "This exact commit SHA is the durable pin. The clone was a floating shallow clone of xdsl's HEAD at clone time (depth 1); the SHA recorded here, not any branch name, is the identity that must be used to re-derive or re-verify this donor's content.",
+    "license": "Apache-2.0 WITH LLVM-exception",
+    "license_evidence": "Verified by reading .atlas/temporary/donors/xdsl/LICENSE directly: header text reads 'The xDSL project is under the Apache License v2.0 with LLVM Exceptions'. Cross-checked against pyproject.toml's `project.license` field: {text = \"Apache License v2.0 with LLVM Exceptions\"}.",
+    "license_files": [
+      ".atlas/temporary/donors/xdsl/LICENSE"
+    ],
+    "source_file_count": 1439,
+    "observed_source_bytes": 13681894,
+    "ingestion_status": "CLONED",
+    "census_status": "DEEP_CENSUS_ACTIVE",
+    "decision_status": "PENDING_COORDINATOR_REVIEW",
+    "runtime_dependency_status": "REFERENCE_ONLY",
+    "purpose": "DONOR_GAP=ATLAS_NATIVE_SEMANTIC_IR_DIALECT_MECHANISM",
+    "technology_lanes": [
+      "ir_design",
+      "dialect_definition",
+      "pattern_rewriting",
+      "declarative_operation_definition",
+      "parser_printer_design"
+    ],
+    "target_owners": [
+      "core/asir",
+      "core/asir/dialect",
+      "compiler"
+    ],
+    "relationship_to_mlir_donor": "xDSL is a from-scratch pure-Python reimplementation of MLIR's IR/dialect/pattern-rewrite model, staged alongside the `mlir` donor (.atlas/provenance/donors/mlir.json) specifically because its Operation/Attribute/IRDL implementation is far more readable than MLIR's C++/TableGen originals and is a closer structural analog to what a from-scratch Rust ASIR implementation would look like (plain typed data structures + runtime-registered traits, no code-generation step required to get a working dialect).",
+    "not_a_runtime_dependency": "Atlas does not and will not depend on xDSL as a runtime or build dependency for ASIR. This stage exists purely for architecture-education census; any adoption is a clean-room Rust reimplementation of studied ideas, never copied Python source."
+  },
+  {
+    "schema": "atlas.donor-provenance.v1",
+    "id": "egglog",
+    "name": "egglog",
+    "remote": "https://github.com/egraphs-good/egglog",
+    "repository": "egraphs-good/egglog",
+    "commit_sha": "90635860397ce710f8c0a4eeb04154a8ebc3ac05",
+    "default_branch": "main",
+    "retrieved_at": "2026-09-22T15:51:00Z",
+    "clone_path": ".atlas/temporary/donors/egglog",
+    "clone_method": "git clone --depth 1 (shallow, single-commit, nested .git removed after pinning)",
+    "staging_mode": "FULL_SOURCE_TREE",
+    "license": "MIT",
+    "license_files": [
+      ".atlas/temporary/donors/egglog/LICENSE"
+    ],
+    "license_evidence": "Root LICENSE file: standard MIT License text, 'Copyright (c) 2025 egraphs-good', verified by direct read.",
+    "quarantine_actions": [
+      "egglog/.claude -> egglog/_donor-quarantine.claude (directory rename, contents preserved: skills/tidy-diff-docs/SKILL.md)",
+      "egglog/CLAUDE.md -> egglog/CLAUDE.md.donor-untrusted (file rename, content preserved)"
+    ],
+    "source_file_count": 569,
+    "observed_tree_size": "11M",
+    "ingestion_status": "CLONED",
+    "census_status": "CENSUSED",
+    "runtime_dependency_status": "NOT_ADOPTED_AS_RUNTIME_DEPENDENCY",
+    "purpose": "DONOR_GAP=ATLAS_DECISION_LAYER_EQUIVALENCE_CLASS_AND_COST_EXTRACTION_MECHANISM",
+    "technology_lanes": [
+      "equality_saturation",
+      "e_graph_equivalence_classes",
+      "datalog_relational_query",
+      "cost_based_extraction",
+      "union_find",
+      "worst_case_optimal_join"
+    ],
+    "target_owners": [
+      "architecture/decision-layer",
+      "architecture/jev-class"
+    ]
+  },
+  {
+    "schema": "atlas.donor-provenance.v1",
+    "id": "wasm-component-model",
+    "name": "WebAssembly Component Model",
+    "remote": "https://github.com/WebAssembly/component-model",
+    "repository": "WebAssembly/component-model",
+    "commit_sha": "5b724da8c634c4f2b2d2b3f6a4e9e13b4eb01596",
+    "default_branch": "main",
+    "retrieved_at": "2026-09-22T15:51:30Z",
+    "clone_path": ".atlas/temporary/donors/wasm-component-model",
+    "clone_method": "git clone --depth 1 (shallow, single-commit, nested .git removed after pinning)",
+    "staging_mode": "FULL_SOURCE_TREE",
+    "license": "Apache-2.0",
+    "license_files": [
+      ".atlas/temporary/donors/wasm-component-model/LICENSE",
+      ".atlas/temporary/donors/wasm-component-model/LICENSE-APACHE"
+    ],
+    "license_evidence": "Root LICENSE file states 'Unless otherwise noted in a LICENSE in a subdirectory, all files are licensed under Apache 2.0 (LICENSE-APACHE)'; LICENSE-APACHE is the standard Apache License 2.0 full text, verified by direct read.",
+    "quarantine_actions": [],
+    "source_file_count": 103,
+    "observed_tree_size": "2.7M",
+    "ingestion_status": "CLONED",
+    "census_status": "CENSUSED",
+    "runtime_dependency_status": "NOT_ADOPTED_AS_RUNTIME_DEPENDENCY",
+    "purpose": "DONOR_GAP=ATLAS_INTERFACE_COMPONENT_CAPABILITY_BOUNDARY_SEMANTICS",
+    "technology_lanes": [
+      "interface_definition_language",
+      "component_boundary",
+      "canonical_abi",
+      "type_constructors",
+      "world_and_interface_composition"
+    ],
+    "target_owners": [
+      "architecture/interface-boundary",
+      "architecture/component-model"
+    ]
+  },
+  {
+    "schema": "atlas.donor-provenance.v1",
+    "id": "wasm-spec",
+    "name": "WebAssembly Specification",
+    "remote": "https://github.com/WebAssembly/spec",
+    "repository": "WebAssembly/spec",
+    "commit_sha": "ba9fd9f5c23e569201265d5bda6fb8dde18ad8c0",
+    "default_branch": "main",
+    "retrieved_at": "2026-09-22T15:51:45Z",
+    "clone_path": ".atlas/temporary/donors/wasm-spec",
+    "clone_method": "git clone --depth 1 (shallow, single-commit, nested .git removed after pinning; note: submodules referenced by .gitmodules were not initialized, this is a top-level-only shallow clone)",
+    "staging_mode": "FULL_SOURCE_TREE",
+    "license": "MULTIPLE (per top-level directory, declared in root LICENSE)",
+    "license_files": [
+      ".atlas/temporary/donors/wasm-spec/LICENSE",
+      ".atlas/temporary/donors/wasm-spec/document/LICENSE",
+      ".atlas/temporary/donors/wasm-spec/interpreter/LICENSE",
+      ".atlas/temporary/donors/wasm-spec/test/LICENSE",
+      ".atlas/temporary/donors/wasm-spec/papers/LICENSE"
+    ],
+    "license_evidence": "Root LICENSE file is an index stating per-directory terms, verified by direct read: document/ = W3C Software and Document Notice and License; spectec/, interpreter/, test/ = Apache License 2.0 (full text confirmed in interpreter/LICENSE); proposals/ = Creative Commons CC0 1.0 Universal; papers/ = Creative Commons Attribution 4.0 International (CC BY 4.0). No single blanket license identifier applies to the whole tree.",
+    "quarantine_actions": [],
+    "source_file_count": 1294,
+    "observed_tree_size": "51M",
+    "ingestion_status": "CLONED",
+    "census_status": "CENSUSED",
+    "runtime_dependency_status": "NOT_ADOPTED_AS_RUNTIME_DEPENDENCY",
+    "purpose": "DONOR_GAP=ATLAS_VALIDATION_BINARY_ENCODING_SEPARATION_PRIOR_ART",
+    "technology_lanes": [
+      "instruction_validation_algorithm",
+      "stack_machine_type_checking",
+      "sectioned_binary_format",
+      "semantic_binary_separation"
+    ],
+    "target_owners": [
+      "architecture/compiler-ir-pipeline",
+      "architecture/atlasx-format"
+    ]
+  },
+  {
+    "schema": "atlas.donor-provenance.v1",
+    "id": "capnproto",
+    "name": "Cap'n Proto",
+    "remote": "https://github.com/capnproto/capnproto.git",
+    "repository": "capnproto/capnproto",
+    "commit_sha": "7fff7b6482a19bdedb18884d13f66a1a4f5e5650",
+    "default_branch": "master",
+    "retrieved_at": "2026-09-22T15:53:06Z",
+    "clone_path": ".atlas/temporary/donors/capnproto",
+    "staging_mode": "FULL_SOURCE_TREE",
+    "clone_method": "git clone --depth 1 (shallow, .git removed post-clone; commit_sha recorded via git rev-parse HEAD before removal)",
+    "license_files": [
+      ".atlas/licenses/donors/capnproto/LICENSE"
+    ],
+    "license_identifier": "MIT",
+    "license_evidence": "LICENSE file at repo root, verified by direct read: 'Licensed under the MIT License' with copyright 'Sandstonghold Development Group, Inc.; Cloudflare, Inc.; and other contributors' (2013-2017). Standard MIT permission/warranty text follows.",
+    "ingestion_status": "CLONED",
+    "census_status": "DEEP_CENSUSED",
+    "decision_status": "STUDY_FOR_BINARY_FORMAT_LANE",
+    "runtime_dependency_status": "STUDY_ONLY_NOT_A_DEPENDENCY",
+    "technology_lanes": [
+      "binary_encoding",
+      "canonical_serialization",
+      "zero_copy_wire_format",
+      "schema_evolution"
+    ],
+    "target_owners": [
+      "core/atlas-format",
+      "runtime/binary"
+    ],
+    "framing_note": "Donated as a binary/canonical encoding reference for Atlas's own .atlas wire format (pointer-based traversal, canonical-form rules for hashing/signing, schema-evolution discipline). NOT a donor for Atlas's semantic ontology/type system."
+  },
+  {
+    "schema": "atlas.donor-provenance.v1",
+    "id": "flatbuffers",
+    "name": "FlatBuffers",
+    "remote": "https://github.com/google/flatbuffers.git",
+    "repository": "google/flatbuffers",
+    "commit_sha": "b8431fbcd7a5c71817f314e18b332c0648554efa",
+    "git_tree_sha": "0b3c731daf52a90658ab86e4912075ea4b7da735",
+    "default_branch": "master",
+    "retrieved_at": "2026-09-21T03:00:34.9575636Z",
+    "clone_path": ".atlas/temporary/donors/flatbuffers",
+    "staging_mode": "FULL_SOURCE_TREE",
+    "license_files": [
+      ".atlas/licenses/donors/flatbuffers/LICENSE"
+    ],
+    "source_file_count": 1947,
+    "observed_source_bytes": 13950171.0,
+    "ingestion_status": "CLONED",
+    "census_status": "DEEP_CENSUSED",
+    "decision_status": "APPROVED_COMPILER_BINARY_LANE",
+    "runtime_dependency_status": "REFERENCE_ONLY",
+    "technology_lanes": [
+      "schema",
+      "serialization",
+      "zero_copy_binary_format",
+      "rust_native_reader_writer"
+    ],
+    "target_owners": [
+      "compiler",
+      "runtime/binary",
+      "core/atlas-format"
+    ],
+    "framing_note": "Deep census upgrade (2026-09-22): read docs/source/evolution.md (schema evolution rules), docs/source/internals.md (vtable/offset binary layout), and rust/flatbuffers/src/*.rs (vtable.rs, verifier.rs, builder.rs, follow.rs) directly for lessons applicable to Atlas's own Rust-native .atlas reader/writer. Prior COARSE_CENSUSED state only recorded inventory; see .atlas/census/donors/flatbuffers.md for the full deep-dive mechanisms census."
+  },
+  {
+    "schema": "atlas.donor-provenance.v1",
+    "id": "rkyv",
+    "name": "rkyv",
+    "remote": "https://github.com/rkyv/rkyv.git",
+    "repository": "rkyv/rkyv",
+    "commit_sha": "4845668ae9730a3987966769f6872d86b822dc41",
+    "default_branch": "master",
+    "retrieved_at": "2026-09-22T15:53:06Z",
+    "clone_path": ".atlas/temporary/donors/rkyv",
+    "staging_mode": "FULL_SOURCE_TREE",
+    "clone_method": "git clone --depth 1 (shallow, .git removed post-clone; commit_sha recorded via git rev-parse HEAD before removal)",
+    "license_files": [
+      ".atlas/licenses/donors/rkyv/LICENSE"
+    ],
+    "license_identifier": "MIT",
+    "license_evidence": "LICENSE file at repo root, verified by direct read: 'Copyright 2021 David Koloski' followed by standard MIT permission/warranty text. Workspace Cargo.toml also declares license = \"MIT\" for all crates.",
+    "ingestion_status": "CLONED",
+    "census_status": "DEEP_CENSUSED",
+    "decision_status": "STUDY_FOR_BINARY_FORMAT_LANE_CONDITIONAL_CACHE_DEPENDENCY",
+    "runtime_dependency_status": "STUDY_ONLY_FOR_PORTABLE_FORMAT / POSSIBLE_FUTURE_CARGO_DEPENDENCY_FOR_INTERNAL_CACHING_ONLY",
+    "technology_lanes": [
+      "binary_encoding",
+      "zero_copy_archive",
+      "rust_native_serialization",
+      "bytes_validation"
+    ],
+    "target_owners": [
+      "core/atlas-format",
+      "runtime/binary",
+      "runtime/cache"
+    ],
+    "framing_note": "Donated as a Rust-native zero-copy archive-format reference. rkyv's own docs (book_src/feature-comparison.md, read verbatim in this census) state 'Schema evolution: no' and 'Cross-language: no' for itself, versus 'yes'/'yes' for Cap'n Proto and FlatBuffers -- this is rkyv's own claim, confirmed by reading its source, not an assumption carried in from the census brief. Recommended for Atlas's ephemeral/internal cache artifacts (e.g. local systemize-output cache) where producer and consumer share one build, NOT for the long-lived, cross-version-compatible .atlas/.atlasx portable artifact."
+  },
+  {
+    "schema": "atlas.donor-provenance.v1",
+    "id": "agentir",
+    "name": "AgentIR",
+    "remote": "https://github.com/WhitzardAgent/agentir.git",
+    "repository": "WhitzardAgent/agentir",
+    "commit_sha": "68d991160ad579d2b4514da01684249a2a0bf629",
+    "default_branch": "main",
+    "retrieved_at": "2026-09-22T15:53:06Z",
+    "clone_path": ".atlas/temporary/donors/agentir",
+    "staging_mode": "FULL_SOURCE_TREE",
+    "clone_method": "git clone --depth 1 (shallow, .git removed post-clone; commit_sha recorded via git rev-parse HEAD before removal). Existence confirmed first via `git ls-remote https://github.com/WhitzardAgent/agentir.git` -- resolved cleanly to this same SHA on refs/heads/main and HEAD, so the clone proceeded normally.",
+    "license_files": [
+      ".atlas/licenses/donors/agentir/LICENSE"
+    ],
+    "license_identifier": "Apache-2.0",
+    "license_evidence": "LICENSE file at repo root, verified by direct read: standard Apache License, Version 2.0 full text. README badge also states 'license-Apache--2.0'.",
+    "ingestion_status": "CLONED",
+    "census_status": "DEEP_CENSUSED",
+    "decision_status": "STUDY_FOR_PIPELINE_STAGING_DISCIPLINE",
+    "runtime_dependency_status": "STUDY_ONLY_NOT_A_DEPENDENCY",
+    "technology_lanes": [
+      "construction_pipeline_process",
+      "trace_ir_process_pattern"
+    ],
+    "target_owners": [
+      "core/pipeline",
+      "docs/process"
+    ],
+    "provenance_note": "README badges/links (e.g. 'github.com/ravenSanstete/agentir') point at what appears to be an earlier/personal fork or pre-org-transfer repo name; the clone actually performed and pinned here is from the canonical org path given in the task, WhitzardAgent/agentir, verified reachable and resolvable via git ls-remote before cloning. MANIFEST.md in the tree describes itself as a 'documentation overlay' that 'intentionally does not include src/ or tests/' -- this is stale/aspirational text left over from a docs-only companion package; this actual clone DOES contain a full src/agentir/ implementation (dialects, dsl, frontends, ir, passes) and a tests/ directory, confirmed by direct directory listing.",
+    "framing_note": "Donated as a process/pipeline-staging reference (parse -> canonicalize -> verify -> transform -> lower) and an interoperability-envelope example, NOT as a semantic-model donor. AgentIR represents agent execution trajectories (a record of what an agent did); Atlas's ASIR represents a program's static semantic structure -- a different concern. Only the pipeline-staging discipline and pass-manager/diagnostics conventions are judged relevant; the trace/event data model itself is judged not transferable."
   }
 ]

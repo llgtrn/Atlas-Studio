@@ -1,0 +1,2 @@
+{"id": "at-001", "messages": [{"role": "system", "content": "You are a helpful assistant."}, {"role": "user", "content": "What is 2+2?"}, {"role": "assistant", "content": "2+2 equals 4."}, {"role": "tool", "content": "{\"result\": 4}"}], "reward": 0.8, "original_source": "sharegpt"}
+{"id": "at-002", "task_id": "task-at-002", "conversations": [{"from": "user", "value": "Explain quantum computing briefly."}, {"from": "assistant", "value": "Quantum computing uses qubits, superposition, and entanglement to perform computations."}]}

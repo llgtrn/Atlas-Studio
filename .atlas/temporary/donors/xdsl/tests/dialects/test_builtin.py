@@ -1,0 +1,1433 @@
+import math
+import re
+import struct
+from collections.abc import Sequence
+from io import StringIO
+
+import pytest
+from typing_extensions import TypeVar
+
+from xdsl.dialects.arith import ConstantOp
+from xdsl.dialects.builtin import (
+    DYNAMIC_INDEX,
+    AnyFloat,
+    ArrayAttr,
+    ArrayOfConstraint,
+    BoolAttr,
+    BytesAttr,
+    ComplexType,
+    DenseArrayBase,
+    DenseIntOrFPElementsAttr,
+    FloatAttr,
+    FloatData,
+    FloatNonfiniteBehavior,
+    FloatSemantics,
+    IndexType,
+    IntAttr,
+    IntAttrConstraint,
+    IntegerAttr,
+    IntegerType,
+    MemRefType,
+    NoneAttr,
+    PackableType,
+    ReducedPrecisionFloatType,
+    ShapedType,
+    Signedness,
+    StaticShapeArrayConstr,
+    StridedLayoutAttr,
+    SymbolRefAttr,
+    TensorType,
+    UnrealizedConversionCastOp,
+    VectorBaseTypeAndRankConstraint,
+    VectorBaseTypeConstraint,
+    VectorRankConstraint,
+    VectorType,
+    bf16,
+    container_of,
+    f4E2M1FN,
+    f6E2M3FN,
+    f6E3M2FN,
+    f8E3M4,
+    f8E4M3,
+    f8E4M3B11FNUZ,
+    f8E4M3FN,
+    f8E4M3FNUZ,
+    f8E5M2,
+    f8E5M2FNUZ,
+    f8E8M0FNU,
+    f16,
+    f32,
+    f64,
+    f80,
+    f128,
+    i1,
+    i8,
+    i16,
+    i32,
+    i64,
+    tf32,
+)
+from xdsl.ir import Attribute, Data
+from xdsl.irdl import (
+    AnyAttr,
+    AtMost,
+    BaseAttr,
+    ConstraintContext,
+    NotEqualIntConstraint,
+    ParamAttrConstraint,
+    RangeLengthConstraint,
+    RangeOf,
+    RangeVarConstraint,
+    TypeVarConstraint,
+    eq,
+    irdl_attr_definition,
+)
+from xdsl.printer import Printer
+from xdsl.utils.exceptions import VerifyException
+
+
+@pytest.mark.parametrize(
+    "lhs, rhs, equal",
+    [
+        (0.0, 0.0, True),
+        (-0.0, -0.0, True),
+        (0.0, -0.0, False),
+        (-0.0, 0.0, False),
+        (1.0, 1.0, True),
+        (1.0, -1.0, False),
+        (math.inf, math.inf, True),
+        (-math.inf, -math.inf, True),
+        (math.inf, -math.inf, False),
+    ],
+)
+def test_float_data_equality(lhs: float, rhs: float, equal: bool):
+    assert (FloatData(lhs) == FloatData(rhs)) is equal
+    assert (FloatAttr(lhs, f64) == FloatAttr(rhs, f64)) is equal
+    if equal:
+        assert hash(FloatData(lhs)) == hash(FloatData(rhs))
+
+
+def test_float_data_nan_equality():
+    assert FloatData(float("nan")) == FloatData(float("nan"))
+
+
+@pytest.mark.parametrize(
+    "e, m, s",
+    [
+        (5, 3, True),
+        (3, 0, True),
+        (0, 3, True),
+        (1, 3, True),
+        (5, 3, False),
+        (3, 0, False),
+        (0, 1, False),
+        (1, 7, False),
+    ],
+)
+def test_FloatSemantics_bitwidths(e: int, m: int, s: bool):
+    fs = FloatSemantics(exponent_bits=e, mantissa_bits=m, exponent_bias=12, has_sign=s)
+    expected = e + m + int(s)
+    assert fs.bitwidth == expected
+
+
+@pytest.mark.parametrize(
+    "e, m",
+    [
+        (5, 2),
+        (4, 3),
+        (2, 1),
+        (8, 0),
+        (0, 3),
+    ],
+)
+def test_FloatSemantics_field_layout_properties(e: int, m: int):
+    fs = FloatSemantics(exponent_bits=e, mantissa_bits=m, exponent_bias=0)
+    assert fs.max_exponent == (1 << e) - 1
+    assert fs.max_mantissa == (1 << m) - 1
+    assert fs.sign_shift == e + m
+
+
+@pytest.mark.parametrize(
+    "significand, shift, expected",
+    [
+        # shift <= 0 is a plain left shift, no rounding.
+        (5, 0, 5),
+        (3, -2, 12),
+        # Below the halfway point rounds down.
+        (5, 2, 1),
+        # Above the halfway point rounds up.
+        (7, 2, 2),
+        # Exact ties go to even: 2.5 -> 2, 3.5 -> 4.
+        (5, 1, 2),
+        (7, 1, 4),
+    ],
+)
+def test_FloatSemantics_round_half_even(significand: int, shift: int, expected: int):
+    assert FloatSemantics.round_half_even(significand, shift) == expected
+
+
+def test_FloatType_bitwidths():
+    assert bf16.bitwidth == 16
+    assert f16.bitwidth == 16
+    assert f32.bitwidth == 32
+    assert f64.bitwidth == 64
+    assert f80.bitwidth == 80
+    assert f128.bitwidth == 128
+    assert tf32.bitwidth == 19
+    assert f8E5M2.bitwidth == 8
+    assert f8E4M3.bitwidth == 8
+    assert f8E4M3FN.bitwidth == 8
+    assert f8E5M2FNUZ.bitwidth == 8
+    assert f8E4M3FNUZ.bitwidth == 8
+    assert f8E4M3B11FNUZ.bitwidth == 8
+    assert f8E3M4.bitwidth == 8
+    assert f8E8M0FNU.bitwidth == 8
+    assert f6E2M3FN.bitwidth == 6
+    assert f6E3M2FN.bitwidth == 6
+    assert f4E2M1FN.bitwidth == 4
+
+
+def test_FloatType_formats():
+    # bf16 and the reduced-precision types implement PackableType directly, with no
+    # struct format string.
+    assert not hasattr(bf16, "format")
+    assert not hasattr(tf32, "format")
+    assert f16.format == "<e"
+    assert f32.format == "<f"
+    assert f64.format == "<d"
+    with pytest.raises(NotImplementedError):
+        f80.format
+    with pytest.raises(NotImplementedError):
+        f128.format
+
+
+def test_IntegerType_verifier():
+    IntegerType(32)
+    with pytest.raises(VerifyException):
+        IntegerType(-1)
+
+
+def test_IntegerType_formats():
+    assert IntegerType(1).format == "<b"
+    assert IntegerType(2).format == "<b"
+    assert IntegerType(7).format == "<b"
+    assert IntegerType(8).format == "<b"
+    assert IntegerType(9).format == "<h"
+    assert IntegerType(15).format == "<h"
+    assert IntegerType(16).format == "<h"
+    assert IntegerType(17).format == "<i"
+    assert IntegerType(31).format == "<i"
+    assert IntegerType(32).format == "<i"
+    assert IntegerType(33).format == "<q"
+    assert IntegerType(63).format == "<q"
+    assert IntegerType(64).format == "<q"
+    assert IntegerType(1, Signedness.UNSIGNED).format == "<B"
+    assert IntegerType(2, Signedness.UNSIGNED).format == "<B"
+    assert IntegerType(7, Signedness.UNSIGNED).format == "<B"
+    assert IntegerType(8, Signedness.UNSIGNED).format == "<B"
+    assert IntegerType(9, Signedness.UNSIGNED).format == "<H"
+    assert IntegerType(15, Signedness.UNSIGNED).format == "<H"
+    assert IntegerType(16, Signedness.UNSIGNED).format == "<H"
+    assert IntegerType(17, Signedness.UNSIGNED).format == "<I"
+    assert IntegerType(31, Signedness.UNSIGNED).format == "<I"
+    assert IntegerType(32, Signedness.UNSIGNED).format == "<I"
+    assert IntegerType(33, Signedness.UNSIGNED).format == "<Q"
+    assert IntegerType(63, Signedness.UNSIGNED).format == "<Q"
+    assert IntegerType(64, Signedness.UNSIGNED).format == "<Q"
+    with pytest.raises(NotImplementedError):
+        IntegerType(65).format
+
+
+def test_IndexType_formats():
+    assert IndexType().format == "<q"
+
+
+def test_FloatType_packing():
+    nums = (-128, -1, 0, 1, 127)
+    buffer = f32.pack(nums)
+    unpacked = f32.unpack(buffer, len(nums))
+    assert nums == unpacked
+
+    pi = f64.unpack(f64.pack((math.pi,)), 1)[0]
+    assert pi == math.pi
+
+    # bf16 has no struct format code; pack/unpack are overridden directly.
+    bf16_buffer = bf16.pack(nums)
+    assert bf16.unpack(bf16_buffer, len(nums)) == nums
+
+
+@pytest.mark.parametrize(
+    "value, expected_raw",
+    [
+        (0.0, b"\x00\x00"),
+        (-0.0, b"\x00\x80"),
+        (1.0, b"\x80\x3f"),
+        (-1.0, b"\x80\xbf"),
+        (2.0, b"\x00\x40"),
+        (float("inf"), b"\x80\x7f"),
+        (float("-inf"), b"\x80\xff"),
+    ],
+)
+def test_bf16_pack_bit_patterns(value: float, expected_raw: bytes):
+    assert bf16.pack((value,)) == expected_raw
+    # Round-trip via struct so +0.0 and -0.0 stay distinguishable.
+    decoded = bf16.unpack(expected_raw, 1)[0]
+    assert struct.pack(">f", decoded) == struct.pack(">f", value)
+
+
+def test_bf16_pack_nan_stays_quiet():
+    raw = bf16.pack((float("nan"),))
+    bits = int.from_bytes(raw, "little")
+    assert (bits & 0x7F80) == 0x7F80  # exponent all-ones
+    assert (bits & 0x007F) != 0  # mantissa non-zero
+    assert bits & 0x0040  # quiet bit set
+
+
+def test_bf16_pack_rounds_to_nearest_even():
+    # Halfway between two bf16 values; ties go to even (mantissa LSB 0).
+    halfway = 1.0 + 2.0**-8
+    assert bf16.pack((halfway,)) == (0x3F80).to_bytes(2, "little")
+    just_above = 1.0 + 2.0**-8 + 2.0**-20
+    assert bf16.pack((just_above,)) == (0x3F81).to_bytes(2, "little")
+
+
+@pytest.mark.parametrize(
+    "value, type_, tolerance",
+    [
+        # f80/f128 have no precision-normalisation path (their format raises
+        # NotImplementedError); FloatAttr stores the float as-is.
+        (0.1, f80, None),
+        (0.1, f128, None),
+        # bf16 normalises through pack/unpack; 1.5 is exactly representable.
+        (1.5, bf16, None),
+        # 0.1 is not exactly representable in bf16; round-trip is within ULP.
+        (0.1, bf16, 2**-6),
+    ],
+)
+def test_FloatAttr_normalisation(
+    value: float, type_: AnyFloat, tolerance: float | None
+):
+    data = FloatAttr(value, type_).value.data
+    if tolerance is None:
+        assert data == value
+    else:
+        assert data != value
+        assert abs(data - value) < tolerance
+
+
+# (value, type, expected narrowed value): each `value` is not exactly
+# representable in the target type, so FloatAttr must round it to `expected`.
+_REDUCED_NARROWING = [
+    (0.1, tf32, 0.0999755859375),
+    (0.1, f8E5M2, 0.09375),
+    (0.1, f8E4M3, 0.1015625),
+    (0.1, f8E4M3FN, 0.1015625),
+    (0.1, f8E5M2FNUZ, 0.09375),
+    (0.1, f8E4M3FNUZ, 0.1015625),
+    (0.1, f8E4M3B11FNUZ, 0.1015625),
+    (0.1, f8E3M4, 0.09375),
+    # e8m0 has no mantissa; it snaps to the nearest power of two.
+    (3.0, f8E8M0FNU, 4.0),
+    (0.1, f6E2M3FN, 0.125),
+    (0.1, f6E3M2FN, 0.125),
+    (0.1, f4E2M1FN, 0.0),
+]
+
+
+@pytest.mark.parametrize("value, type_, expected", _REDUCED_NARROWING)
+def test_reduced_float_narrowing(value: float, type_: AnyFloat, expected: float):
+    data = FloatAttr(value, type_).value.data
+    assert data != value
+    assert data == expected
+
+
+# (type, representable value): `value` is exactly representable, so pack/unpack
+# must round-trip it bit-exactly.
+_REDUCED_REPRESENTABLE = [
+    (tf32, 1.5),
+    (f8E5M2, 1.5),
+    (f8E4M3, 1.25),
+    (f8E4M3FN, 1.25),
+    (f8E5M2FNUZ, 0.5),
+    (f8E4M3FNUZ, 1.25),
+    (f8E4M3B11FNUZ, 1.25),
+    (f8E3M4, 1.0625),
+    (f8E8M0FNU, 4.0),
+    (f6E2M3FN, 1.375),
+    (f6E3M2FN, 1.5),
+    (f4E2M1FN, 1.5),
+]
+
+
+@pytest.mark.parametrize("type_, value", _REDUCED_REPRESENTABLE)
+def test_reduced_float_packing(type_: AnyFloat, value: float):
+    packed = type_.pack((value,))
+    assert len(packed) == type_.size
+    assert type_.unpack(packed, 1)[0] == value
+
+
+@pytest.mark.parametrize(
+    "type_, value, expected_raw",
+    [
+        # tf32: 19 bits -> 3 little-endian bytes. 1.5 = sign 0, biased exp 127,
+        # mantissa 0x200 -> 0x1FE00, packed low byte first as 00 fe 01.
+        (tf32, 1.5, b"\x00\xfe\x01"),
+        # f4E2M1FN: 1.5 = 1.1b, sign 0, exp_field bias(1)+0, mantissa 1 -> 0b011.
+        (f4E2M1FN, 1.5, b"\x03"),
+        # f8E4M3: 1.0 = sign 0, exp_field bias(7), mantissa 0 -> 0b0111000 = 0x38.
+        (f8E4M3, 1.0, b"\x38"),
+        # f8E8M0FNU: 4.0 = 2**2, biased exponent 127+2 = 129 = 0x81.
+        (f8E8M0FNU, 4.0, b"\x81"),
+    ],
+)
+def test_reduced_float_pack_bit_patterns(
+    type_: AnyFloat, value: float, expected_raw: bytes
+):
+    assert type_.pack((value,)) == expected_raw
+    assert type_.unpack(expected_raw, 1)[0] == value
+
+
+def test_f8e8m0fnu_rejects_signed_values():
+    """f8E8M0FNU is unsigned: -0.0 encodes like +0.0, negative finite values are rejected."""
+    assert f8E8M0FNU.pack((-0.0,)) == f8E8M0FNU.pack((0.0,)) == b"\x00"
+    with pytest.raises(ValueError, match="does not support signed values"):
+        f8E8M0FNU.pack((-4.0,))
+
+
+@pytest.mark.parametrize("type_", [f64, bf16, tf32])
+def test_float_rejects_truncated_buffer(type_: AnyFloat):
+    """
+    The struct-based (f64) and manual (bf16, tf32) float codecs all reject a truncated
+    buffer identically.
+    """
+    packed = type_.pack((1.5, 2.0))
+    assert type_.unpack(packed, 2) == (1.5, 2.0)
+    truncated = packed[:-1]  # ends part-way through the final element
+    with pytest.raises(ValueError, match="Buffer length"):
+        next(type_.iter_unpack(truncated))
+    with pytest.raises(ValueError, match="Buffer length"):
+        type_.unpack(truncated, 2)
+
+
+_REDUCED_TYPES = (
+    tf32,
+    f8E5M2,
+    f8E4M3,
+    f8E4M3FN,
+    f8E5M2FNUZ,
+    f8E4M3FNUZ,
+    f8E4M3B11FNUZ,
+    f8E3M4,
+    f8E8M0FNU,
+    f6E2M3FN,
+    f6E3M2FN,
+    f4E2M1FN,
+)
+
+
+@pytest.mark.parametrize("type_", [t for t in _REDUCED_TYPES if t.bitwidth <= 8])
+def test_reduced_float_bit_pattern_roundtrip(type_: AnyFloat):
+    """Every bit pattern decodes, and every finite value re-encodes to the same bits."""
+    for pattern in range(1 << type_.bitwidth):
+        raw = pattern.to_bytes(type_.size, "little")
+        value = type_.unpack(raw, 1)[0]
+        if math.isnan(value) or math.isinf(value):
+            continue
+        assert type_.pack((value,)) == raw
+
+
+@pytest.mark.parametrize("type_", _REDUCED_TYPES)
+def test_reduced_float_encode_nonfinite(type_: ReducedPrecisionFloatType):
+    """Infinities, NaNs and overflowing magnitudes encode per the format's semantics."""
+    behavior = type_.SEMANTICS.nonfinite
+    for magnitude in (math.inf, -math.inf, 1e40):
+        result = type_.unpack(type_.pack((magnitude,)), 1)[0]
+        if behavior is FloatNonfiniteBehavior.IEEE:
+            assert math.isinf(result)
+        elif behavior is FloatNonfiniteBehavior.FINITE_ONLY:
+            assert math.isfinite(result)  # saturates to the largest finite value
+        else:
+            assert math.isnan(result)
+    nan_result = type_.unpack(type_.pack((math.nan,)), 1)[0]
+    if behavior is FloatNonfiniteBehavior.FINITE_ONLY:
+        assert math.isfinite(nan_result)
+    else:
+        assert math.isnan(nan_result)
+
+
+def test_reduced_float_encode_zero():
+    """Zero encodes to +0, honouring signed vs unsigned (FNUZ) zero."""
+    assert f8E5M2.pack((0.0,)) == b"\x00"
+    assert f8E5M2.pack((-0.0,)) == b"\x80"
+    assert f8E5M2FNUZ.pack((0.0,)) == b"\x00"
+    assert f8E5M2FNUZ.pack((-0.0,)) == b"\x00"  # FNUZ has no negative zero
+
+
+def test_reduced_float_codec_edge_cases():
+    assert f8E5M2.compile_time_size == 1
+    buffer = bytearray(2)
+    f8E5M2.pack_into(buffer, 1, 1.5)
+    assert bytes(buffer[1:]) == f8E5M2.pack((1.5,))
+    # a subnormal f64 input underflows to zero
+    assert f8E5M2.unpack(f8E5M2.pack((5e-324,)), 1)[0] == 0.0
+    # e8m0 has no subnormals; tiny magnitudes underflow to the smallest value
+    assert f8E8M0FNU.unpack(f8E8M0FNU.pack((1e-40,)), 1)[0] == 2.0**-127
+    # a subnormal that rounds up lands on the smallest normal
+    assert f8E5M2.unpack(f8E5M2.pack((0.95 * 2.0**-14,)), 1)[0] == 2.0**-14
+    # unpacking an empty buffer yields nothing
+    assert list(f8E5M2.iter_unpack(b"")) == []
+
+
+def test_IntegerType_size():
+    assert IntegerType(1).size == 1
+    assert IntegerType(2).size == 1
+    assert IntegerType(8).size == 1
+    assert IntegerType(16).size == 2
+    assert IntegerType(32).size == 4
+    assert IntegerType(64).size == 8
+
+
+@pytest.mark.parametrize("elem_ty", [IntegerType(1), IntegerType(32), f16, f32])
+def test_ComplexType_size(elem_ty: AnyFloat | IntegerType):
+    assert ComplexType(elem_ty).size == elem_ty.size * 2
+
+
+def test_IntegerType_normalized():
+    si8 = IntegerType(8, Signedness.SIGNED)
+    ui8 = IntegerType(8, Signedness.UNSIGNED)
+
+    assert i8.normalized_value(-1) == -1
+    assert i8.normalized_value(1) == 1
+    assert i8.normalized_value(255) == -1
+
+    assert si8.normalized_value(-1) == -1
+    assert si8.normalized_value(1) == 1
+    assert si8.normalized_value(255) is None
+
+    assert ui8.normalized_value(-1) is None
+    assert ui8.normalized_value(1) == 1
+    assert ui8.normalized_value(255) == 255
+
+
+def test_IntegerType_get_normalized():
+    si8 = IntegerType(8, Signedness.SIGNED)
+    ui8 = IntegerType(8, Signedness.UNSIGNED)
+
+    assert i8.get_normalized_value(-1) == -1
+    assert i8.get_normalized_value(1) == 1
+    assert i8.get_normalized_value(255) == -1
+
+    assert si8.get_normalized_value(-1) == -1
+    assert si8.get_normalized_value(1) == 1
+
+    with pytest.raises(ValueError, match=r".*\[-128, 128\).*"):
+        assert si8.get_normalized_value(255)
+
+    with pytest.raises(ValueError, match=r".*\[0, 256\).*"):
+        assert ui8.get_normalized_value(-1) is None
+    assert ui8.get_normalized_value(1) == 1
+    assert ui8.get_normalized_value(255) == 255
+
+
+def test_IntegerType_truncated():
+    si8 = IntegerType(8, Signedness.SIGNED)
+    ui8 = IntegerType(8, Signedness.UNSIGNED)
+
+    assert i8.normalized_value(-1, truncate_bits=True) == -1
+    assert i8.normalized_value(1, truncate_bits=True) == 1
+    assert i8.normalized_value(255, truncate_bits=True) == -1
+    assert i8.normalized_value(256, truncate_bits=True) == 0
+
+    assert si8.normalized_value(-1, truncate_bits=True) == -1
+    assert si8.normalized_value(1, truncate_bits=True) == 1
+    assert si8.normalized_value(255, truncate_bits=True) == -1
+    assert si8.normalized_value(256, truncate_bits=True) == 0
+
+    assert ui8.normalized_value(-1, truncate_bits=True) == 255
+    assert ui8.normalized_value(1, truncate_bits=True) == 1
+    assert ui8.normalized_value(255, truncate_bits=True) == 255
+    assert ui8.normalized_value(256, truncate_bits=True) == 0
+
+
+def test_IntegerAttr_normalize():
+    """
+    Test that the value within the accepted signless range is normalized to signed
+    range.
+    """
+    assert IntegerAttr(-1, 8) == IntegerAttr(255, 8)
+    assert str(IntegerAttr(255, 8)) == "-1 : i8"
+
+    with pytest.raises(
+        VerifyException,
+        match=re.escape(
+            "Integer value -129 is out of range for type i8 which supports "
+            "values in the range [-128, 256)"
+        ),
+    ):
+        IntegerAttr(-129, 8)
+
+    with pytest.raises(
+        VerifyException,
+        match=re.escape(
+            "Integer value 256 is out of range for type i8 which supports "
+            "values in the range [-128, 256)"
+        ),
+    ):
+        IntegerAttr(256, 8)
+
+
+def test_IntAttr___bool__():
+    assert not IntAttr(0)
+    assert IntAttr(1)
+
+
+def test_BoolAttr___bool__():
+    assert not BoolAttr.from_bool(False)
+    assert BoolAttr.from_bool(True)
+
+
+@pytest.mark.parametrize(
+    "expected, value, type",
+    [
+        ("true", -1, IntegerType(1)),
+        ("false", 0, IntegerType(1)),
+        ("true", True, IntegerType(1)),
+        ("false", False, IntegerType(1)),
+        ("-1 : si1", -1, IntegerType(1, signedness=Signedness.SIGNED)),
+        ("0 : si1", 0, IntegerType(1, signedness=Signedness.SIGNED)),
+        ("-1 : si1", True, IntegerType(1, signedness=Signedness.SIGNED)),
+        ("0 : si1", False, IntegerType(1, signedness=Signedness.SIGNED)),
+        ("1 : ui1", -1, IntegerType(1, signedness=Signedness.UNSIGNED)),
+        ("0 : ui1", 0, IntegerType(1, signedness=Signedness.UNSIGNED)),
+        ("1 : ui1", True, IntegerType(1, signedness=Signedness.UNSIGNED)),
+        ("0 : ui1", False, IntegerType(1, signedness=Signedness.UNSIGNED)),
+        ("-1 : i32", -1, IntegerType(32)),
+        ("0 : i32", 0, IntegerType(32)),
+        ("1 : i32", True, IntegerType(32)),
+        ("0 : i32", False, IntegerType(32)),
+        ("-1 : si32", -1, IntegerType(32, signedness=Signedness.SIGNED)),
+        ("0 : si32", 0, IntegerType(32, signedness=Signedness.SIGNED)),
+        ("1 : si32", True, IntegerType(32, signedness=Signedness.SIGNED)),
+        ("0 : si32", False, IntegerType(32, signedness=Signedness.SIGNED)),
+        ("-1 : index", -1, IndexType()),
+        ("0 : index", 0, IndexType()),
+        ("1 : index", True, IndexType()),
+        ("0 : index", False, IndexType()),
+    ],
+)
+def test_print_integer_attr(expected: str, value: int, type: IntegerType | IndexType):
+    printer = Printer()
+    printer.stream = StringIO()
+    IntegerAttr(value, type, truncate_bits=True).print_builtin(printer)
+    assert printer.stream.getvalue() == expected
+
+
+def test_IntegerType_packing():
+    # i1
+    nums_i1 = (0, 1, 0, 1)
+    buffer_i1 = i1.pack(nums_i1)
+    unpacked_i1 = i1.unpack(buffer_i1, len(nums_i1))
+    assert nums_i1 == unpacked_i1
+    attrs_i1 = IntegerAttr.unpack(i1, buffer_i1, len(nums_i1))
+    assert attrs_i1 == tuple(IntegerAttr(n, i1) for n in nums_i1)
+    assert tuple(attr for attr in IntegerAttr.iter_unpack(i1, buffer_i1)) == attrs_i1
+
+    # custom bitwidths up to 64 can also be packed:
+    i2 = IntegerType(2)
+    nums_i2 = (0, 1, 2, 3)
+    buffer_i2 = i2.pack(nums_i2)
+    unpacked_i2 = i2.unpack(buffer_i2, len(nums_i2))
+    assert nums_i2 == unpacked_i2
+    attrs_i2 = IntegerAttr.unpack(i2, buffer_i2, len(nums_i2))
+    assert attrs_i2 == tuple(IntegerAttr(n, i2) for n in nums_i2)
+    assert tuple(attr for attr in IntegerAttr.iter_unpack(i2, buffer_i2)) == attrs_i2
+
+    # i8
+    nums_i8 = (-128, -1, 0, 1, 127)
+    buffer_i8 = i8.pack(nums_i8)
+    unpacked_i8 = i8.unpack(buffer_i8, len(nums_i8))
+    assert nums_i8 == unpacked_i8
+    attrs_i8 = IntegerAttr.unpack(i8, buffer_i8, len(nums_i8))
+    assert attrs_i8 == tuple(IntegerAttr(n, i8) for n in nums_i8)
+    assert tuple(attr for attr in IntegerAttr.iter_unpack(i8, buffer_i8)) == attrs_i8
+
+    # i16
+    nums_i16 = (-32768, -1, 0, 1, 32767)
+    buffer_i16 = i16.pack(nums_i16)
+    unpacked_i16 = i16.unpack(buffer_i16, len(nums_i16))
+    assert nums_i16 == unpacked_i16
+    attrs_i16 = IntegerAttr.unpack(i16, buffer_i16, len(nums_i16))
+    assert attrs_i16 == tuple(IntegerAttr(n, i16) for n in nums_i16)
+    assert tuple(attr for attr in IntegerAttr.iter_unpack(i16, buffer_i16)) == attrs_i16
+
+    # i32
+    nums_i32 = (-2147483648, -1, 0, 1, 2147483647)
+    buffer_i32 = i32.pack(nums_i32)
+    unpacked_i32 = i32.unpack(buffer_i32, len(nums_i32))
+    assert nums_i32 == unpacked_i32
+    attrs_i32 = IntegerAttr.unpack(i32, buffer_i32, len(nums_i32))
+    assert attrs_i32 == tuple(IntegerAttr(n, i32) for n in nums_i32)
+    assert tuple(attr for attr in IntegerAttr.iter_unpack(i32, buffer_i32)) == attrs_i32
+
+    # i64
+    nums_i64 = (-9223372036854775808, -1, 0, 1, 9223372036854775807)
+    buffer_i64 = i64.pack(nums_i64)
+    unpacked_i64 = i64.unpack(buffer_i64, len(nums_i64))
+    assert nums_i64 == unpacked_i64
+    attrs_i64 = IntegerAttr.unpack(i64, buffer_i64, len(nums_i64))
+    assert attrs_i64 == tuple(IntegerAttr(n, i64) for n in nums_i64)
+    assert tuple(attr for attr in IntegerAttr.iter_unpack(i64, buffer_i64)) == attrs_i64
+
+    # bf16
+    nums_bf16 = (-3.140625, -1.0, 0.0, 1.0, 3.140625)
+    buffer_bf16 = bf16.pack(nums_bf16)
+    unpacked_bf16 = bf16.unpack(buffer_bf16, len(nums_bf16))
+    assert nums_bf16 == unpacked_bf16
+    attrs_bf16 = FloatAttr.unpack(bf16, buffer_bf16, len(nums_bf16))
+    assert attrs_bf16 == tuple(FloatAttr(n, bf16) for n in nums_bf16)
+    assert (
+        tuple(attr for attr in FloatAttr.iter_unpack(bf16, buffer_bf16)) == attrs_bf16
+    )
+    # pack_into mirrors pack for the same values.
+    pack_into_buffer = bytearray(2 * len(nums_bf16))
+    for i, n in enumerate(nums_bf16):
+        bf16.pack_into(pack_into_buffer, 2 * i, n)
+    assert bytes(pack_into_buffer) == buffer_bf16
+
+    # f16
+    nums_f16 = (-3.140625, -1.0, 0.0, 1.0, 3.140625)
+    buffer_f16 = f16.pack(nums_f16)
+    unpacked_f16 = f16.unpack(buffer_f16, len(nums_f16))
+    assert nums_f16 == unpacked_f16
+    attrs_f16 = FloatAttr.unpack(f16, buffer_f16, len(nums_f16))
+    assert attrs_f16 == tuple(FloatAttr(n, f16) for n in nums_f16)
+    assert tuple(attr for attr in FloatAttr.iter_unpack(f16, buffer_f16)) == attrs_f16
+
+    # f32
+    nums_f32 = (-3.140000104904175, -1.0, 0.0, 1.0, 3.140000104904175)
+    buffer_f32 = f32.pack(nums_f32)
+    unpacked_f32 = f32.unpack(buffer_f32, len(nums_f32))
+    assert nums_f32 == unpacked_f32
+    attrs_f32 = FloatAttr.unpack(f32, buffer_f32, len(nums_f32))
+    assert attrs_f32 == tuple(FloatAttr(n, f32) for n in nums_f32)
+    assert tuple(attr for attr in FloatAttr.iter_unpack(f32, buffer_f32)) == attrs_f32
+
+    # f64
+    nums_f64 = (-3.14159265359, -1.0, 0.0, 1.0, 3.14159265359)
+    buffer_f64 = f64.pack(nums_f64)
+    unpacked_f64 = f64.unpack(buffer_f64, len(nums_f64))
+    assert nums_f64 == unpacked_f64
+    attrs_f64 = FloatAttr.unpack(f64, buffer_f64, len(nums_f64))
+    assert attrs_f64 == tuple(FloatAttr(n, f64) for n in nums_f64)
+    assert tuple(attr for attr in FloatAttr.iter_unpack(f64, buffer_f64)) == attrs_f64
+
+    # Test error cases
+    # Different Python versions have different error messages for these
+    with pytest.raises(Exception, match="format requires -128 <= number <= 127"):
+        # Values must be normalized before packing
+        i8.pack((255,))
+    with pytest.raises(
+        Exception,
+        match=re.compile(
+            "format requires (-32768)|(\\(-0x7fff -1\\)|\\(-32767 -1\\)) "
+            "<= number <= (32767)|(0x7fff)"
+        ),
+    ):
+        i16.pack((32768,))
+    with pytest.raises(
+        Exception, match="format requires -2147483648 <= number <= 2147483647"
+    ):
+        i32.pack((2147483648,))
+    with pytest.raises(
+        Exception,
+        match=re.compile(
+            "argument out of range|format requires "
+            "-9223372036854775808 <= number <= 9223372036854775807"
+        ),
+    ):
+        i64.pack((9223372036854775808,))
+
+    nums_complex_i32 = ((-128, -1), (0, 1), (127, 128))
+    complex_i32 = ComplexType(i32)
+    buffer_complex_i32 = complex_i32.pack(nums_complex_i32)
+    unpacked_complex_i32 = complex_i32.unpack(buffer_complex_i32, len(nums_complex_i32))
+    assert nums_complex_i32 == unpacked_complex_i32
+    assert (
+        tuple(val for val in complex_i32.iter_unpack(buffer_complex_i32))
+        == nums_complex_i32
+    )
+
+    nums_complex_f32 = ((-128.0, -1.0), (0.0, 1.0), (127.0, 128.0))
+    complex_f32 = ComplexType(f32)
+    buffer_complex_f32 = complex_f32.pack(nums_complex_f32)
+    unpacked_complex_f32 = complex_f32.unpack(buffer_complex_f32, len(nums_complex_f32))
+    assert nums_complex_f32 == unpacked_complex_f32
+    assert (
+        tuple(val for val in complex_f32.iter_unpack(buffer_complex_f32))
+        == nums_complex_f32
+    )
+
+
+@pytest.mark.parametrize("ftype", [f64, bf16, tf32])
+def test_packing_errors(ftype: PackableType[object]):
+    size = ftype.compile_time_size
+
+    data = ftype.pack((1, 2, 3))
+    len_data = len(data)
+    assert ftype.unpack(data, 3) == (1, 2, 3)
+
+    # Drop a byte
+    prefix = bytearray(data[:-1])
+    len_prefix = len(prefix)
+
+    with pytest.raises(
+        ValueError,
+        match=f"Buffer length {len_prefix} not product of {ftype.name} element size {size} and num 2.",
+    ):
+        ftype.unpack(prefix, 2)
+
+    with pytest.raises(
+        ValueError,
+        match=f"Buffer length {len_prefix} not multiple of {ftype.name} element size {size}.",
+    ):
+        ftype.iter_unpack(prefix)
+
+    # Only raise error if writing past the end.
+    ftype.pack_into(prefix, 0, 4)
+    assert next(ftype.iter_unpack(prefix[:size])) == 4
+
+    with pytest.raises(
+        ValueError,
+        match=re.escape(
+            f"Buffer length {len_prefix} too small for packing {size} bytes at "
+            f"offset {size * 2}, expected at least {len_data}."
+        ),
+    ):
+        ftype.pack_into(prefix, size * 2, 4)
+
+
+def test_DenseIntOrFPElementsAttr_fp_type_conversion():
+    check1 = DenseIntOrFPElementsAttr.from_list(TensorType(f64, [2]), [4, 5])
+
+    value1 = check1.get_attrs()[0].value.data
+    value2 = check1.get_attrs()[1].value.data
+
+    # Ensure type conversion happened properly during attribute construction.
+    assert isinstance(value1, float)
+    assert value1 == 4.0
+    assert isinstance(value2, float)
+    assert value2 == 5.0
+
+
+def test_DenseIntOrFPElementsAttr_splat():
+    attr_int = DenseIntOrFPElementsAttr.from_list(TensorType(i64, [3]), [4])
+    assert len(attr_int) == 3
+    assert tuple(attr_int.get_values()) == (4, 4, 4)
+    assert attr_int.is_splat()
+
+    attr_float = DenseIntOrFPElementsAttr.from_list(TensorType(f32, [2, 2]), [4.5])
+    assert len(attr_float) == 4
+    assert tuple(attr_float.get_values()) == (4.5, 4.5, 4.5, 4.5)
+    assert attr_float.is_splat()
+
+
+def test_DenseIntOrFPElementsAttr_initialization():
+    # legal zero-rank tensor
+    attr = DenseIntOrFPElementsAttr.from_list(TensorType(f32, []), [5.5])
+    assert attr.type == TensorType(f32, [])
+    assert len(attr) == 1
+
+    # illegal zero-rank tensor
+    with pytest.raises(
+        VerifyException,
+        match=re.escape("A zero-rank tensor can only hold 1 value but 2 were given."),
+    ):
+        DenseIntOrFPElementsAttr.from_list(TensorType(f32, []), [5.5, 5.6])
+
+    # legal 1 element tensor
+    attr = DenseIntOrFPElementsAttr.from_list(TensorType(f32, [1]), [5.5])
+    assert attr.type == TensorType(f32, [1])
+    assert len(attr) == 1
+
+    # legal normal tensor
+    attr = DenseIntOrFPElementsAttr.from_list(TensorType(f32, [2]), [5.5, 5.6])
+    assert attr.type == TensorType(f32, [2])
+    assert len(attr) == 2
+
+
+def test_DenseIntOrFPElementsAttr_values():
+    int_attr = DenseIntOrFPElementsAttr.from_list(TensorType(i32, [4]), [1, 2, 3, 4])
+    assert tuple(int_attr.get_values()) == (1, 2, 3, 4)
+    assert tuple(int_attr.iter_values()) == (1, 2, 3, 4)
+    assert tuple(int_attr.get_attrs()) == (
+        IntegerAttr(1, i32),
+        IntegerAttr(2, i32),
+        IntegerAttr(3, i32),
+        IntegerAttr(4, i32),
+    )
+    assert tuple(int_attr.iter_attrs()) == (
+        IntegerAttr(1, i32),
+        IntegerAttr(2, i32),
+        IntegerAttr(3, i32),
+        IntegerAttr(4, i32),
+    )
+
+    index_attr = DenseIntOrFPElementsAttr.from_list(
+        TensorType(IndexType(), [4]), [1, 2, 3, 4]
+    )
+    assert tuple(index_attr.get_values()) == (1, 2, 3, 4)
+    assert tuple(index_attr.iter_values()) == (1, 2, 3, 4)
+    assert tuple(index_attr.get_attrs()) == (
+        IntegerAttr(1, IndexType()),
+        IntegerAttr(2, IndexType()),
+        IntegerAttr(3, IndexType()),
+        IntegerAttr(4, IndexType()),
+    )
+    assert tuple(index_attr.iter_attrs()) == (
+        IntegerAttr(1, IndexType()),
+        IntegerAttr(2, IndexType()),
+        IntegerAttr(3, IndexType()),
+        IntegerAttr(4, IndexType()),
+    )
+
+    float_attr = DenseIntOrFPElementsAttr.from_list(
+        TensorType(f32, [4]),
+        [1.0, 2.0, 3.0, 4.0],
+    )
+    assert tuple(float_attr.get_values()) == (1.0, 2.0, 3.0, 4.0)
+    assert tuple(float_attr.iter_values()) == (1.0, 2.0, 3.0, 4.0)
+    assert tuple(float_attr.get_attrs()) == (
+        FloatAttr(1.0, f32),
+        FloatAttr(2.0, f32),
+        FloatAttr(3.0, f32),
+        FloatAttr(4.0, f32),
+    )
+    assert tuple(float_attr.iter_attrs()) == (
+        FloatAttr(1.0, f32),
+        FloatAttr(2.0, f32),
+        FloatAttr(3.0, f32),
+        FloatAttr(4.0, f32),
+    )
+
+    complex_f32 = ComplexType(f32)
+    complex_f32_attr = DenseIntOrFPElementsAttr.from_list(
+        TensorType(complex_f32, [2]),
+        [(1.0, 2.0), (3.0, 4.0)],
+    )
+    assert tuple(complex_f32_attr.get_values()) == ((1.0, 2.0), (3.0, 4.0))
+    assert tuple(complex_f32_attr.iter_values()) == ((1.0, 2.0), (3.0, 4.0))
+    with pytest.raises(NotImplementedError):
+        complex_f32_attr.get_attrs()
+    with pytest.raises(NotImplementedError):
+        complex_f32_attr.iter_attrs()
+
+    complex_i32 = ComplexType(i32)
+    complex_i32_attr = DenseIntOrFPElementsAttr.from_list(
+        TensorType(complex_i32, [2]),
+        [(1, 2), (3, 4)],
+    )
+    assert tuple(complex_i32_attr.get_values()) == ((1, 2), (3, 4))
+    assert tuple(complex_i32_attr.iter_values()) == ((1, 2), (3, 4))
+    with pytest.raises(NotImplementedError):
+        complex_i32_attr.get_attrs()
+    with pytest.raises(NotImplementedError):
+        complex_i32_attr.iter_attrs()
+
+
+def test_tensor_constr():
+    # No constraint
+    constr = TensorType.constr()
+    constr.verify(TensorType(i32, [1]), ConstraintContext())
+    constr.verify(TensorType(i32, [50, 1000, 2]), ConstraintContext())
+    constr.verify(TensorType(f64, [50]), ConstraintContext())
+
+    # int32 constraint
+    constr = TensorType.constr(i32)
+    constr.verify(TensorType(i32, [1]), ConstraintContext())
+    constr.verify(TensorType(i32, [1, 2]), ConstraintContext())
+    with pytest.raises(VerifyException):
+        constr.verify(TensorType(i64, [1]), ConstraintContext())
+
+    # int32 constraint with shape (1,)
+    shape = ArrayAttr([IntAttr(1)])
+    constr = TensorType.constr(i32, shape)
+    constr.verify(TensorType(i32, shape), ConstraintContext())
+    with pytest.raises(VerifyException):
+        constr.verify(TensorType(i32, [1, 2]), ConstraintContext())
+    with pytest.raises(VerifyException):
+        constr.verify(TensorType(i64, [1]), ConstraintContext())
+
+    # int32 constraint with rank <= 3
+    shape = ArrayOfConstraint(
+        RangeLengthConstraint(
+            constraint=RangeOf(IntAttrConstraint.get()), length=AtMost(3)
+        )
+    )
+    constr = TensorType.constr(i32, shape)
+    constr.verify(TensorType(i32, [50]), ConstraintContext())
+    constr.verify(TensorType(i32, [50, 1000]), ConstraintContext())
+    constr.verify(TensorType(i32, [50, 1000, 2]), ConstraintContext())
+    with pytest.raises(VerifyException):
+        constr.verify(TensorType(i32, [50, 1000, 2, 4]), ConstraintContext())
+    with pytest.raises(VerifyException):
+        constr.verify(TensorType(i64, [50, 1000]), ConstraintContext())
+
+
+@pytest.mark.parametrize(
+    "ref,expected",
+    [
+        (SymbolRefAttr("test"), "test"),
+        (SymbolRefAttr("test", ["2"]), "test.2"),
+        (SymbolRefAttr("test", ["2", "3"]), "test.2.3"),
+    ],
+)
+def test_SymbolRefAttr_string_value(ref: SymbolRefAttr, expected: str):
+    assert ref.string_value() == expected
+
+
+def test_symbol_ref_attr_get_from_string():
+    assert SymbolRefAttr.get("test") == SymbolRefAttr("test")
+
+
+def test_symbol_ref_attr_get_from_symbol_ref_attr():
+    ref = SymbolRefAttr("test", ["nested"])
+
+    assert SymbolRefAttr.get(ref) is ref
+
+
+def test_array_len_and_iter_attr():
+    arr = ArrayAttr([IntAttr(i) for i in range(10)])
+
+    assert len(arr) == 10
+    assert len(arr.data) == len(arr)
+
+    # check that it is iterable
+    assert tuple(arr) == arr.data
+
+
+@pytest.mark.parametrize(
+    "attr, dims, scalable_dims, num_scalable_dims",
+    [
+        (i32, (1, 2), [False, False], 0),
+        (i32, (1, 2), [True, False], 1),
+        (i32, (1, 1, 3), [False, False, False], 0),
+        (i64, (1, 1, 3), [True, False, True], 2),
+        (i64, (1, 1, 3), None, 0),
+        (i64, (), [], 0),
+    ],
+)
+def test_vector_constructor(
+    attr: Attribute,
+    dims: list[int],
+    scalable_dims: list[bool] | None,
+    num_scalable_dims: int,
+):
+    if scalable_dims is not None:
+        scalable_dims_attr = ArrayAttr(BoolAttr.from_bool(s) for s in scalable_dims)
+    else:
+        scalable_dims_attr = None
+    vec = VectorType(attr, dims, scalable_dims_attr)
+
+    assert vec.get_num_dims() == len(dims)
+    assert vec.get_num_scalable_dims() == num_scalable_dims
+    assert vec.get_shape() == dims
+    if scalable_dims is not None:
+        assert vec.get_scalable_dims() == tuple(scalable_dims)
+    else:
+        assert vec.get_scalable_dims() == (False,) * len(dims)
+
+
+@pytest.mark.parametrize(
+    "dims, scalable_dims",
+    [
+        ([], [True]),
+        ([1, 2], [False]),
+    ],
+)
+def test_vector_verifier_fail(dims: list[int], scalable_dims: list[bool]):
+    with pytest.raises(
+        VerifyException,
+        match=(
+            f"Number of scalable dimension specifiers {len(scalable_dims)} must equal "
+            f"to number of dimensions {len(dims)}."
+        ),
+    ):
+        VectorType(i32, dims, ArrayAttr(BoolAttr.from_bool(s) for s in scalable_dims))
+
+
+def test_vector_rank_constraint_verify():
+    vector_type = VectorType(i32, [1, 2])
+    constraint = VectorRankConstraint(2)
+
+    constraint.verify(vector_type, ConstraintContext())
+
+
+def test_vector_rank_constraint_rank_mismatch():
+    vector_type = VectorType(i32, [1, 2])
+    constraint = VectorRankConstraint(3)
+
+    with pytest.raises(
+        VerifyException, match=re.escape("Expected vector rank to be 3, got 2.")
+    ):
+        constraint.verify(vector_type, ConstraintContext())
+
+
+def test_vector_rank_constraint_attr_mismatch():
+    memref_type = MemRefType(i32, [1, 2])
+    constraint = VectorRankConstraint(3)
+
+    with pytest.raises(
+        VerifyException,
+        match=re.escape("memref<1x2xi32> should be of type VectorType."),
+    ):
+        constraint.verify(memref_type, ConstraintContext())
+
+
+def test_vector_base_type_constraint_verify():
+    vector_type = VectorType(i32, [1, 2])
+    constraint = VectorBaseTypeConstraint(i32)
+
+    constraint.verify(vector_type, ConstraintContext())
+
+
+def test_vector_base_type_constraint_type_mismatch():
+    vector_type = VectorType(i32, [1, 2])
+    constraint = VectorBaseTypeConstraint(i64)
+
+    with pytest.raises(
+        VerifyException, match=re.escape("Expected vector type to be i64, got i32.")
+    ):
+        constraint.verify(vector_type, ConstraintContext())
+
+
+def test_vector_base_type_constraint_attr_mismatch():
+    memref_type = MemRefType(i32, [1, 2])
+    constraint = VectorBaseTypeConstraint(i32)
+
+    with pytest.raises(
+        VerifyException,
+        match=re.escape("memref<1x2xi32> should be of type VectorType."),
+    ):
+        constraint.verify(memref_type, ConstraintContext())
+
+
+def test_vector_base_type_and_rank_constraint_verify():
+    vector_type = VectorType(i32, [1, 2])
+    constraint = VectorBaseTypeAndRankConstraint(i32, 2)
+
+    constraint.verify(vector_type, ConstraintContext())
+
+
+def test_vector_base_type_and_rank_constraint_base_type_mismatch():
+    vector_type = VectorType(i32, [1, 2])
+    constraint = VectorBaseTypeAndRankConstraint(i64, 2)
+
+    with pytest.raises(
+        VerifyException, match=re.escape("Expected vector type to be i64, got i32.")
+    ):
+        constraint.verify(vector_type, ConstraintContext())
+
+
+def test_vector_base_type_and_rank_constraint_rank_mismatch():
+    vector_type = VectorType(i32, [1, 2])
+    constraint = VectorBaseTypeAndRankConstraint(i32, 3)
+
+    with pytest.raises(
+        VerifyException, match=re.escape("Expected vector rank to be 3, got 2.")
+    ):
+        constraint.verify(vector_type, ConstraintContext())
+
+
+def test_vector_base_type_and_rank_constraint_attr_mismatch():
+    memref_type = MemRefType(i32, [1, 2])
+    constraint = VectorBaseTypeAndRankConstraint(i32, 2)
+
+    with pytest.raises(
+        VerifyException,
+        match=re.escape("""The following constraints were not satisfied:
+memref<1x2xi32> should be of type VectorType.
+memref<1x2xi32> should be of type VectorType."""),
+    ):
+        constraint.verify(memref_type, ConstraintContext())
+
+
+def test_unrealized_conversion_cast():
+    i64_constant = ConstantOp.from_int_and_width(1, 64)
+    f32_constant = ConstantOp(FloatAttr(10.1, f32))
+
+    conv_op1 = UnrealizedConversionCastOp.get([i64_constant.results[0]], [f32])
+    conv_op2, res = UnrealizedConversionCastOp.cast_one(f32_constant.results[0], i32)
+
+    assert conv_op1.inputs[0].type == i64
+    assert conv_op1.outputs[0].type == f32
+
+    assert conv_op2.inputs[0].type == f32
+    assert conv_op2.outputs[0] is res
+    assert res.type == i32
+
+
+@pytest.mark.parametrize(
+    "strides, offset, expected_strides, expected_offset",
+    [
+        ([2], None, ArrayAttr([IntAttr(2)]), NoneAttr()),
+        ([None], 2, ArrayAttr([NoneAttr()]), IntAttr(2)),
+        ([IntAttr(2)], NoneAttr(), ArrayAttr([IntAttr(2)]), NoneAttr()),
+        ([NoneAttr()], IntAttr(2), ArrayAttr([NoneAttr()]), IntAttr(2)),
+    ],
+)
+def test_strided_constructor(
+    strides: ArrayAttr[IntAttr | NoneAttr] | Sequence[int | IntAttr | NoneAttr | None],
+    offset: int | IntAttr | NoneAttr | None,
+    expected_strides: ArrayAttr[IntAttr | NoneAttr],
+    expected_offset: IntAttr | NoneAttr,
+):
+    strided = StridedLayoutAttr(strides, offset)
+    assert strided.strides == expected_strides
+    assert strided.offset == expected_offset
+
+
+def test_complex_init():
+    assert ComplexType(f32) == ComplexType.new([f32])
+    assert ComplexType(i32) == ComplexType.new([i32])
+
+
+def test_dense_as_tuple():
+    floats = DenseArrayBase.from_list(f32, [3.14159, 2.71828])
+    assert floats.get_values() == (3.141590118408203, 2.718280076980591)
+    assert tuple(floats.iter_values()) == (3.141590118408203, 2.718280076980591)
+    assert tuple(floats.iter_attrs()) == (
+        FloatAttr(3.141590118408203, f32),
+        FloatAttr(2.718280076980591, f32),
+    )
+    assert floats.get_attrs() == (
+        FloatAttr(3.141590118408203, f32),
+        FloatAttr(2.718280076980591, f32),
+    )
+
+    ints = DenseArrayBase.from_list(i32, [1, 1, 2, 3, 5, 8])
+    assert ints.get_values() == (1, 1, 2, 3, 5, 8)
+    assert tuple(ints.iter_values()) == (1, 1, 2, 3, 5, 8)
+    assert tuple(ints.iter_attrs()) == (
+        IntegerAttr(1, i32),
+        IntegerAttr(1, i32),
+        IntegerAttr(2, i32),
+        IntegerAttr(3, i32),
+        IntegerAttr(5, i32),
+        IntegerAttr(8, i32),
+    )
+    assert ints.get_attrs() == (
+        IntegerAttr(1, i32),
+        IntegerAttr(1, i32),
+        IntegerAttr(2, i32),
+        IntegerAttr(3, i32),
+        IntegerAttr(5, i32),
+        IntegerAttr(8, i32),
+    )
+
+
+def test_from_list():
+    with pytest.raises(
+        ValueError,
+        match=re.escape(
+            "Integer value 99999999 is out of range for type i8 which supports values in the range [-128, 256)"
+        ),
+    ):
+        DenseArrayBase.from_list(i8, (99999999, 255, 256))
+
+
+def test_create_dense_wrong_size():
+    with pytest.raises(
+        VerifyException,
+        match=re.escape("Data length of array (1) not divisible by element size 2"),
+    ):
+        DenseArrayBase(i16, BytesAttr(b"F"))
+
+
+def test_strides():
+    assert ShapedType.strides_for_shape(()) == ()
+    assert ShapedType.strides_for_shape((), factor=2) == ()
+    assert ShapedType.strides_for_shape((1,)) == (1,)
+    assert ShapedType.strides_for_shape((1,), factor=2) == (2,)
+    assert ShapedType.strides_for_shape((2, 3)) == (3, 1)
+    assert ShapedType.strides_for_shape((4, 5, 6), factor=2) == (60, 12, 2)
+    # Dynamic index
+    assert ShapedType.strides_for_shape((DYNAMIC_INDEX,)) == (1,)
+    assert ShapedType.strides_for_shape((DYNAMIC_INDEX, 3)) == (
+        3,
+        1,
+    )
+    assert ShapedType.strides_for_shape((2, DYNAMIC_INDEX)) == (
+        None,
+        1,
+    )
+    assert ShapedType.strides_for_shape((2, DYNAMIC_INDEX), factor=4) == (
+        None,
+        4,
+    )
+
+
+def test_integer_type_repr():
+    assert repr(IntegerType(16)) == "IntegerType(16)"
+    assert (
+        repr(IntegerType(16, Signedness.SIGNED)) == "IntegerType(16, Signedness.SIGNED)"
+    )
+
+
+def test_vector_constr():
+    constr = VectorType.constr(i32)
+    assert constr == ParamAttrConstraint.get(VectorType, i32, AnyAttr(), AnyAttr())
+    constr.verify(VectorType(i32, [1]), ConstraintContext())
+    constr.verify(VectorType(i32, [1, 2]), ConstraintContext())
+    with pytest.raises(VerifyException):
+        constr.verify(VectorType(i64, [1]), ConstraintContext())
+
+    shape = ArrayAttr([IntAttr(1)])
+    scalable_dims = ArrayAttr([IntegerAttr(0, IntegerType(1))])
+    constr = VectorType.constr(
+        i32,
+        shape=shape,
+        scalable_dims=scalable_dims,
+    )
+    assert constr == ParamAttrConstraint.get(VectorType, i32, shape, scalable_dims)
+    constr.verify(VectorType(i32, shape, scalable_dims), ConstraintContext())
+    with pytest.raises(VerifyException):
+        constr.verify(VectorType(i32, [1, 2], scalable_dims), ConstraintContext())
+    with pytest.raises(VerifyException):
+        constr.verify(VectorType(i64, [1]), ConstraintContext())
+
+
+def test_array_constr():
+    constr = ArrayAttr.constr(i32)
+    assert constr.verifies(ArrayAttr([]))
+    assert constr.verifies(ArrayAttr([i32]))
+    assert not constr.verifies(ArrayAttr([i64]))
+
+    T = RangeVarConstraint("T", RangeOf(eq(i32)))
+    constr = ArrayAttr.constr(T)
+    assert constr.can_infer({"T"})
+
+    ctx = ConstraintContext()
+    ctx.set_range_variable("T", (i32, i32))
+    assert constr.infer(ctx) == ArrayAttr([i32, i32])
+
+    assert constr.get_bases() == {ArrayAttr}
+
+
+def test_dense_array_constr():
+    constr = DenseArrayBase.constr()
+    assert constr.verifies(DenseArrayBase.from_list(i32, [1, 2, 3]))
+    assert constr.verifies(DenseArrayBase.from_list(i64, [1, 2, 3]))
+    assert constr.verifies(DenseArrayBase.from_list(f32, [1.0, 2.0, 3.0]))
+
+    constr = DenseArrayBase.constr(IntegerType)
+    assert constr.verifies(DenseArrayBase.from_list(i32, [1, 2, 3]))
+    assert constr.verifies(DenseArrayBase.from_list(i64, [1, 2, 3]))
+    assert not constr.verifies(DenseArrayBase.from_list(f32, [1.0, 2.0, 3.0]))
+
+    constr = DenseArrayBase.constr(i32)
+    assert constr.verifies(DenseArrayBase.from_list(i32, [1, 2, 3]))
+    assert not constr.verifies(DenseArrayBase.from_list(i64, [1, 2, 3]))
+    assert not constr.verifies(DenseArrayBase.from_list(f32, [1.0, 2.0, 3.0]))
+
+    constr = DenseArrayBase.constr(i64)
+    assert not constr.verifies(DenseArrayBase.from_list(i32, [1, 2, 3]))
+    assert constr.verifies(DenseArrayBase.from_list(i64, [1, 2, 3]))
+    assert not constr.verifies(DenseArrayBase.from_list(f32, [1.0, 2.0, 3.0]))
+
+    constr = DenseArrayBase.constr(AnyFloat)
+    assert not constr.verifies(DenseArrayBase.from_list(i32, [1, 2, 3]))
+    assert not constr.verifies(DenseArrayBase.from_list(i64, [1, 2, 3]))
+    assert constr.verifies(DenseArrayBase.from_list(f32, [1.0, 2.0, 3.0]))
+
+
+def test_shaped_type_has_static_shape():
+    """Test ShapedType.has_static_shape() method for all shaped types."""
+
+    # Test TensorType
+    static_tensor = TensorType(i32, [3, 4])
+    assert static_tensor.has_static_shape() is True
+
+    scalar_tensor = TensorType(f64, [])
+    assert scalar_tensor.has_static_shape() is True
+
+    dynamic_tensor = TensorType(f32, [3, DYNAMIC_INDEX])
+    assert dynamic_tensor.has_static_shape() is False
+
+    # Test VectorType
+    static_vector = VectorType(i32, [8])
+    assert static_vector.has_static_shape() is True
+
+    dynamic_vector = VectorType(f32, [4, DYNAMIC_INDEX])
+    assert dynamic_vector.has_static_shape() is False
+
+    # Test MemRefType
+    static_memref = MemRefType(i64, [8, 16])
+    assert static_memref.has_static_shape() is True
+
+    dynamic_memref = MemRefType(i32, [DYNAMIC_INDEX])
+    assert dynamic_memref.has_static_shape() is False
+
+
+################################################################################
+# Mapping Type Var
+################################################################################
+
+
+@irdl_attr_definition
+class A(Data[int]):
+    name = "test.a"
+
+
+@irdl_attr_definition
+class B(Data[int]):
+    name = "test.b"
+
+
+_A = TypeVar("_A", bound=Attribute)
+
+
+def test_array_of_constraint():
+    """Test mapping type variables in ArrayOfConstraint."""
+    array_constraint = ArrayOfConstraint(TypeVarConstraint(_A, BaseAttr(A)))
+
+    assert array_constraint.mapping_type_vars({_A: BaseAttr(B)}) == ArrayOfConstraint(
+        BaseAttr(B)
+    )
+
+
+def test_container_of_constraint():
+    """Test mapping type variables in ContainerOf."""
+
+    container_constraint = container_of(TypeVarConstraint(_A, BaseAttr(A)))
+
+    assert container_constraint.mapping_type_vars({_A: BaseAttr(B)}) == container_of(
+        BaseAttr(B)
+    )
+
+
+################################################################################
+# NotEqualIntConstraint
+################################################################################
+def test_not_equal_int_constraint():
+    constraint = NotEqualIntConstraint(5)
+
+    # Test with integer attribute not equal to 5
+    constraint.verify(3, ConstraintContext())
+
+    # Test with integer attribute equal to 5
+    with pytest.raises(VerifyException, match="expected integer != 5"):
+        constraint.verify(5, ConstraintContext())
+
+
+################################################################################
+# StaticShapeArrayConstraint
+################################################################################
+def test_static_shape_array_constraint():
+    static_shape = ArrayAttr([IntAttr(1), IntAttr(2), IntAttr(3)])
+    StaticShapeArrayConstr.verify(static_shape, ConstraintContext())
+
+    dynamic_shape = ArrayAttr([IntAttr(1), IntAttr(DYNAMIC_INDEX), IntAttr(3)])
+    with pytest.raises(
+        VerifyException, match="expected static shape, but got dynamic dimension"
+    ):
+        StaticShapeArrayConstr.verify(dynamic_shape, ConstraintContext())
