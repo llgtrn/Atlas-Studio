@@ -43,9 +43,10 @@ pub use schema::{
     SystemizeReport, TypedClosureAccounting,
 };
 pub use semantic::{
-    CallDispatchKind, CallSiteIdentity, ControlFlowBlockIdentity, DiagnosticCode, EffectCategory,
-    EffectIdentity, ExtractionDiagnostic, ExtractorIdentity, FunctionDeclarationKind,
-    FunctionIdentity, FunctionOwner, FunctionParameter, FunctionSignature, SemanticDimension,
+    CallDispatchKind, CallSiteIdentity, ControlFlowBlockIdentity, ControlFlowBlockKind,
+    ControlFlowEdge, ControlFlowEdgeKind, DiagnosticCode, EffectCategory, EffectIdentity,
+    ExtractionDiagnostic, ExtractorIdentity, FunctionDeclarationKind, FunctionIdentity,
+    FunctionOwner, FunctionParameter, FunctionSignature, SemanticDimension,
     SemanticObligationRecord, SemanticObservation, SemanticRecordHeader, SemanticRecordId,
     SemanticScope, StateIdentity, SymbolIdentity, SymbolRole, TypeIdentity, ValueIdentity,
 };
