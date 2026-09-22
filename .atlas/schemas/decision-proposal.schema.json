@@ -1,0 +1,158 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:atlas:schema:decision-proposal:v1",
+  "title": "Atlas DecisionProposal v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "decision_id",
+    "provider_receipt_ref",
+    "decision_kind",
+    "candidate_ids",
+    "criteria",
+    "ranking",
+    "confidence",
+    "evidence_refs",
+    "authority_requirement",
+    "status"
+  ],
+  "properties": {
+    "schema": {
+      "const": "atlas.decision-proposal.v1"
+    },
+    "decision_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "provider_receipt_ref": {
+      "type": "string",
+      "minLength": 1
+    },
+    "decision_kind": {
+      "enum": [
+        "RANK",
+        "SCORE",
+        "SHORTLIST",
+        "ROUTE",
+        "NEXT_EXPERIMENT",
+        "REUSE_COMBINE_INVENT",
+        "ESCALATE"
+      ]
+    },
+    "candidate_ids": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true
+    },
+    "criteria": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "description",
+          "hard_constraint"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1
+          },
+          "hard_constraint": {
+            "type": "boolean"
+          },
+          "weight": {
+            "type": [
+              "number",
+              "null"
+            ]
+          }
+        }
+      }
+    },
+    "ranking": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "candidate_id",
+          "rank",
+          "score",
+          "rationale"
+        ],
+        "properties": {
+          "candidate_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "rank": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "score": {
+            "type": "number"
+          },
+          "rationale": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "confidence": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "evidence_refs": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true
+    },
+    "unknowns": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true
+    },
+    "authority_requirement": {
+      "enum": [
+        "HUMAN_REQUIRED",
+        "POLICY_AUTO",
+        "HYBRID"
+      ]
+    },
+    "status": {
+      "enum": [
+        "PROPOSED",
+        "USED_FOR_EXPLORATION",
+        "SUPERSEDED",
+        "REJECTED"
+      ]
+    },
+    "selected_for_next_step_candidate_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  }
+}
