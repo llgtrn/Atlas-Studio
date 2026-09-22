@@ -10,6 +10,10 @@ canonical: true
 
 This contract defines the deterministic transformation from one SEALED logical `*.atlas` root and one explicitly selected design into one canonical `*.atlasx/` executable engineering representation.
 
+The selected design record is governed by `SELECTED-DESIGN.md`.
+
+The canonical AtlasX physical encoding is governed by `ATLASX-BINARY-WIRE-FORMAT.md`.
+
 The transformation is not decompression.
 
 It is:
@@ -36,6 +40,7 @@ Materialization MUST NOT invent new design semantics.
 
 SelectedDesign
 = explicit authoritative design choice inside that Atlas root
+  conforming to SELECTED-DESIGN.md
 
 *.atlasx/
 = deterministic expanded executable representation of that SelectedDesign
@@ -267,7 +272,7 @@ AtlasXRoot
 └─ LineageEvidence
 ~~~
 
-The directory projection in `ATLASX-FORMAT.md` is a physical organization over this object model.
+The logical object model and directory projection are governed by `ATLASX-FORMAT.md`; canonical binary bytes, object classes, manifest framing and root hashing are governed by `ATLASX-BINARY-WIRE-FORMAT.md`.
 
 ## Manifest requirements
 
@@ -319,7 +324,7 @@ AtlasXRootId =
   )
 ~~~
 
-The exact digest/serialization is versioned by the materialization schema.
+The exact v1 digest/serialization is fixed by `ATLASX-BINARY-WIRE-FORMAT.md`; future revisions require explicit schema/version migration.
 
 Local output directory path is not AtlasX identity.
 
