@@ -434,6 +434,58 @@ pub fn build_system_graph(
                 }
             }
             SemanticFactKind::Binding => {}
+            // R4.3.1: real SemanticExtractor observations, projected from the typed R4.1 kernel
+            // record into the bootstrap fact envelope by `runtime::census::build_census`. Each
+            // gets a lightweight node keyed by the originating `SemanticRecordId` (carried as
+            // `fact.subject`), so the graph is demonstrably downstream of real extraction --
+            // never a graph authored directly by a parser/extractor
+            // (`.atlas/decisions/0001-one-normalized-semantic-path.md`). Deeper graph modeling
+            // (call edges, control/data-flow projection) is out of scope until those dimensions
+            // themselves become real (R4.4+).
+            SemanticFactKind::Symbol => {
+                ensure_node(
+                    &mut graph,
+                    stable_id("node", &format!("symbol:{}", fact.subject)),
+                    "Symbol".into(),
+                    fact.object.clone(),
+                    BTreeMap::from([("origin".into(), "semantic-extraction".into())]),
+                    fact,
+                );
+            }
+            SemanticFactKind::Type => {
+                ensure_node(
+                    &mut graph,
+                    stable_id("node", &format!("type:{}", fact.subject)),
+                    "Type".into(),
+                    fact.object.clone(),
+                    BTreeMap::from([("origin".into(), "semantic-extraction".into())]),
+                    fact,
+                );
+            }
+            SemanticFactKind::FunctionIdentity => {
+                ensure_node(
+                    &mut graph,
+                    stable_id("node", &format!("function-identity:{}", fact.subject)),
+                    "FunctionIdentity".into(),
+                    fact.object.clone(),
+                    BTreeMap::from([("origin".into(), "semantic-extraction".into())]),
+                    fact,
+                );
+            }
+            SemanticFactKind::FunctionSignature => {
+                ensure_node(
+                    &mut graph,
+                    stable_id("node", &format!("function-signature:{}", fact.subject)),
+                    "FunctionSignature".into(),
+                    fact.object.clone(),
+                    BTreeMap::from([("origin".into(), "semantic-extraction".into())]),
+                    fact,
+                );
+            }
+            // Per-artifact obligation-status bookkeeping (OBSERVED/UNKNOWN/UNSUPPORTED for one
+            // dimension): already recorded via `add_normalized_fact` above; no dedicated node,
+            // exactly like `SourceArtifact`'s "language" fact.
+            SemanticFactKind::SemanticObligation => {}
         }
     }
 

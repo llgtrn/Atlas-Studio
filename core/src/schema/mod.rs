@@ -59,6 +59,23 @@ pub enum SemanticFactKind {
     Diagnostic,
     Transform,
     Materialization,
+    /// A `SemanticExtractor`-observed SYMBOL, projected from a real `SemanticObservation::Symbol`
+    /// kernel record into the bootstrap census/graph triple envelope
+    /// (`.atlas/contracts/SEMANTIC-EXTRACTION.md#r4-acceptance-matrix`: "SemanticFact remains a
+    /// compatibility envelope, not the only semantic type system" -- the typed kernel record
+    /// remains the source of truth this is projected *from*, never invented independently here).
+    Symbol,
+    /// A `SemanticExtractor`-observed TYPE (source spelling only; never a compiler-resolved
+    /// canonical identity). See `Symbol` above for why this projection exists.
+    Type,
+    FunctionIdentity,
+    FunctionSignature,
+    /// One requested `SemanticDimension`'s obligation status (`OBSERVED`/`UNKNOWN`/`UNSUPPORTED`/
+    /// ...) for one (artifact, extractor) pair, independent of whether that dimension produced any
+    /// individual `Symbol`/`Type`/`FunctionIdentity`/`FunctionSignature` fact. This is what makes a
+    /// dimension's status visible *per artifact* in the canonical census, not only as a single
+    /// repository-wide summary (see `CensusReport.coverage`'s own doc comment).
+    SemanticObligation,
 }
 
 impl SemanticFactKind {
@@ -74,6 +91,11 @@ impl SemanticFactKind {
             Self::Diagnostic => "DIAGNOSTIC",
             Self::Transform => "TRANSFORM",
             Self::Materialization => "MATERIALIZATION",
+            Self::Symbol => "SYMBOL",
+            Self::Type => "TYPE",
+            Self::FunctionIdentity => "FUNCTION_IDENTITY",
+            Self::FunctionSignature => "FUNCTION_SIGNATURE",
+            Self::SemanticObligation => "SEMANTIC_OBLIGATION",
         }
     }
 }
@@ -129,10 +151,13 @@ pub struct CensusReport {
     pub artifacts_total: usize,
     pub artifacts_accounted_total: usize,
     pub facts_total: usize,
-    /// Bootstrap / derived coverage projection: at most one `EpistemicStatus` per dimension key.
-    /// This is a noncanonical summary shape kept for existing callers, never the canonical
-    /// multi-extractor accounting. Independent extractors that disagree on a dimension are
-    /// preserved in `runtime::census::CensusExtractionAccounting`, not collapsed into this map
+    /// Bootstrap / derived coverage projection: at most one `EpistemicStatus` per dimension key,
+    /// aggregated across every artifact and extractor that addressed it (most-informative status
+    /// wins: OBSERVED > CONFLICT > UNKNOWN > IGNORED > UNSUPPORTED). This is a noncanonical summary
+    /// shape kept for existing callers, never the canonical multi-extractor accounting. Independent
+    /// extractors that disagree on a dimension, and each artifact's own per-dimension status, are
+    /// preserved without collapsing in `facts` (`SemanticFactKind::SemanticObligation`) and in
+    /// `runtime::census::CensusExtractionAccounting`, not only in this single summary map
     /// (`.atlas/contracts/SEMANTIC-EXTRACTION.md#multi-engine-extraction`).
     pub coverage: BTreeMap<String, EpistemicStatus>,
     pub facts: Vec<SemanticFact>,
