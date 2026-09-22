@@ -44,10 +44,10 @@ pub use schema::{
 };
 pub use semantic::{
     CallSiteIdentity, ControlFlowBlockIdentity, DiagnosticCode, EffectCategory, EffectIdentity,
-    ExtractionDiagnostic, ExtractorIdentity, FunctionIdentity, FunctionParameter,
-    FunctionSignature, SemanticDimension, SemanticObligationRecord, SemanticObservation,
-    SemanticRecordHeader, SemanticRecordId, SemanticScope, StateIdentity, SymbolIdentity,
-    SymbolRole, TypeIdentity, ValueIdentity,
+    ExtractionDiagnostic, ExtractorIdentity, FunctionDeclarationKind, FunctionIdentity,
+    FunctionOwner, FunctionParameter, FunctionSignature, SemanticDimension,
+    SemanticObligationRecord, SemanticObservation, SemanticRecordHeader, SemanticRecordId,
+    SemanticScope, StateIdentity, SymbolIdentity, SymbolRole, TypeIdentity, ValueIdentity,
 };
 pub use state::RepositorySnapshot;
 pub use temporal::RevisionRef;

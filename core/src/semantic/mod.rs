@@ -22,7 +22,9 @@ pub use control_flow::ControlFlowBlockIdentity;
 pub use data_flow::ValueIdentity;
 pub use diagnostic::{DiagnosticCode, ExtractionDiagnostic};
 pub use effect::{EffectCategory, EffectIdentity};
-pub use function::{FunctionIdentity, FunctionParameter, FunctionSignature};
+pub use function::{
+    FunctionDeclarationKind, FunctionIdentity, FunctionOwner, FunctionParameter, FunctionSignature,
+};
 pub use obligation::SemanticObligationRecord;
 pub use observation::SemanticObservation;
 pub use state::StateIdentity;
