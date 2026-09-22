@@ -145,6 +145,7 @@ mod tests {
                 "EFFECT",
                 "FUNCTION_IDENTITY",
                 "FUNCTION_SIGNATURE",
+                "OWNERSHIP",
                 "STATE",
                 "SYMBOL",
                 "TYPE"
