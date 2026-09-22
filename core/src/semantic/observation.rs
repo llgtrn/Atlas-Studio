@@ -18,7 +18,10 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub enum SemanticObservation {
-    FunctionIdentity(SemanticRecordHeader<FunctionIdentity>),
+    // Boxed: R4.4 grew `FunctionIdentity` with `declaration_kind`/`owner`/`generics` (`owner`
+    // embeds an `Option<TypeIdentity>`), making it far larger than the smallest variants; boxing
+    // keeps the enum itself compact.
+    FunctionIdentity(Box<SemanticRecordHeader<FunctionIdentity>>),
     // Boxed: FunctionSignature embeds a FunctionIdentity plus parameter/generic vectors, making
     // it far larger than the other variants; boxing keeps the enum itself compact.
     FunctionSignature(Box<SemanticRecordHeader<FunctionSignature>>),

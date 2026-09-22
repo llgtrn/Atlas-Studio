@@ -23,9 +23,10 @@ mod spelling;
 use std::collections::{BTreeMap, BTreeSet};
 
 use atlas_core::{
-    EpistemicStatus, Evidence, EvidenceId, FunctionIdentity, FunctionParameter, FunctionSignature,
-    Provenance, SemanticDimension, SemanticObservation, SemanticRecordHeader, SemanticRecordId,
-    SemanticScope, SymbolIdentity, SymbolRole, TypeIdentity, stable_id,
+    EpistemicStatus, Evidence, EvidenceId, FunctionDeclarationKind, FunctionIdentity,
+    FunctionOwner, FunctionParameter, FunctionSignature, Provenance, SemanticDimension,
+    SemanticObservation, SemanticRecordHeader, SemanticRecordId, SemanticScope, SymbolIdentity,
+    SymbolRole, TypeIdentity, stable_id,
 };
 use syn::spanned::Spanned;
 
@@ -305,11 +306,16 @@ impl<'a> ExtractionContext<'a> {
         subject
     }
 
+    #[allow(clippy::too_many_arguments)]
     fn function_identity(
         &self,
         scope: &SemanticScope,
         name: &str,
         span: atlas_core::SourceSpan,
+        role: SymbolRole,
+        declaration_kind: FunctionDeclarationKind,
+        owner: FunctionOwner,
+        generics: Vec<String>,
     ) -> FunctionIdentity {
         FunctionIdentity {
             repository: self.input.repository.clone(),
@@ -321,10 +327,13 @@ impl<'a> ExtractionContext<'a> {
                 revision: self.input.revision.clone(),
                 scope: scope.clone(),
                 name: name.to_owned(),
-                role: SymbolRole::Definition,
+                role,
             },
             span,
             generated: false,
+            declaration_kind,
+            owner,
+            generics,
         }
     }
 
@@ -362,7 +371,7 @@ impl<'a> ExtractionContext<'a> {
             provenance: self.provenance_for(Some(&span)),
             subject: identity,
         };
-        let observation = SemanticObservation::FunctionIdentity(header);
+        let observation = SemanticObservation::FunctionIdentity(Box::new(header));
         debug_assert!(observation.is_dimension_consistent());
         self.observations.push(observation);
     }
@@ -413,6 +422,7 @@ impl<'a> ExtractionContext<'a> {
         self.observations.push(observation);
     }
 
+    #[allow(clippy::too_many_arguments)]
     fn handle_function(
         &mut self,
         name: &str,
@@ -421,10 +431,27 @@ impl<'a> ExtractionContext<'a> {
         scope: &SemanticScope,
         span: atlas_core::SourceSpan,
         role: SymbolRole,
+        declaration_kind: FunctionDeclarationKind,
+        owner: FunctionOwner,
     ) {
         self.emit_symbol(scope, name, role, span.clone());
 
-        let identity = self.function_identity(scope, name, span);
+        let generics: Vec<String> = sig
+            .generics
+            .params
+            .iter()
+            .map(spelling::generic_param_spelling)
+            .collect();
+
+        let identity = self.function_identity(
+            scope,
+            name,
+            span,
+            role,
+            declaration_kind,
+            owner,
+            generics.clone(),
+        );
         self.emit_function_identity(identity.clone());
 
         let mut parameters = Vec::new();
@@ -462,12 +489,6 @@ impl<'a> ExtractionContext<'a> {
             }
         };
 
-        let generics = sig
-            .generics
-            .params
-            .iter()
-            .map(spelling::generic_param_spelling)
-            .collect();
         let abi = sig.abi.as_ref().map(spelling::abi_spelling);
         let is_extern = sig.abi.is_some();
 
@@ -498,6 +519,8 @@ impl<'a> ExtractionContext<'a> {
                     scope,
                     span,
                     SymbolRole::Definition,
+                    FunctionDeclarationKind::FreeFunction,
+                    FunctionOwner::none(),
                 );
             }
             syn::Item::Struct(item_struct) => self.handle_struct(item_struct, scope),
@@ -595,13 +618,23 @@ impl<'a> ExtractionContext<'a> {
         let nested = nested_scope(scope, &format!("trait:{name}"));
         for trait_item in &item.items {
             if let syn::TraitItem::Fn(method) = trait_item {
-                let role = if method.default.is_some() {
-                    SymbolRole::Definition
+                let (role, declaration_kind) = if method.default.is_some() {
+                    (
+                        SymbolRole::Definition,
+                        FunctionDeclarationKind::TraitDefaultMethod,
+                    )
                 } else {
-                    SymbolRole::Declaration
+                    (
+                        SymbolRole::Declaration,
+                        FunctionDeclarationKind::TraitMethodDeclaration,
+                    )
                 };
                 let method_name = method.sig.ident.to_string();
                 let method_span = self.span_of(method);
+                let owner = FunctionOwner {
+                    target: None,
+                    trait_path: Some(name.clone()),
+                };
                 self.handle_function(
                     &method_name,
                     "inherited".to_owned(),
@@ -609,6 +642,8 @@ impl<'a> ExtractionContext<'a> {
                     &nested,
                     method_span,
                     role,
+                    declaration_kind,
+                    owner,
                 );
             }
         }
@@ -616,21 +651,38 @@ impl<'a> ExtractionContext<'a> {
 
     fn handle_impl(&mut self, item: &syn::ItemImpl, scope: &SemanticScope) {
         let self_type = spelling::type_spelling(&item.self_ty);
-        let segment = match &item.trait_ {
-            Some((trait_path, _)) => {
-                format!(
-                    "impl:{} for {self_type}",
-                    spelling::path_spelling(trait_path)
-                )
-            }
+        let trait_path = item
+            .trait_
+            .as_ref()
+            .map(|(path, _)| spelling::path_spelling(path));
+        let segment = match &trait_path {
+            Some(trait_path) => format!("impl:{trait_path} for {self_type}"),
             None => format!("impl:{self_type}"),
         };
         let nested = nested_scope(scope, &segment);
+
+        // Owner target: the impl's self type, observed at the OUTER scope (it is referenced here,
+        // not defined here) -- same TypeIdentity a parameter/return type of this shape would get,
+        // so it participates in TYPE coverage like any other observed type spelling.
+        let target_span = self.span_of(item.self_ty.as_ref());
+        let target = self.emit_type_identity(scope, &self_type, Some(target_span));
+
         for impl_item in &item.items {
             if let syn::ImplItem::Fn(method) = impl_item {
                 let method_name = method.sig.ident.to_string();
                 let visibility = spelling::visibility_spelling(&method.vis);
                 let method_span = self.span_of(method);
+                let has_receiver =
+                    matches!(method.sig.inputs.first(), Some(syn::FnArg::Receiver(_)));
+                let declaration_kind = match (&trait_path, has_receiver) {
+                    (Some(_), _) => FunctionDeclarationKind::TraitImplementationMethod,
+                    (None, true) => FunctionDeclarationKind::InherentMethod,
+                    (None, false) => FunctionDeclarationKind::AssociatedFunction,
+                };
+                let owner = FunctionOwner {
+                    target: Some(target.clone()),
+                    trait_path: trait_path.clone(),
+                };
                 self.handle_function(
                     &method_name,
                     visibility,
@@ -638,6 +690,8 @@ impl<'a> ExtractionContext<'a> {
                     &nested,
                     method_span,
                     SymbolRole::Definition,
+                    declaration_kind,
+                    owner,
                 );
             }
         }

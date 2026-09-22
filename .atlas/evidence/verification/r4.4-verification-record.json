@@ -1,0 +1,208 @@
+{
+  "schema": "atlas.r4.verification-record.v1",
+  "wave": "R4.4",
+  "wave_title": "Function Identity Closure -- strengthen Rust FunctionIdentity with a typed declaration_kind, owner (impl target / trait path) and generics, so a future CALL relation (R4.5+, NOT implemented this wave) can target one stable, scope-correct function identity instead of a matching name",
+  "identity": {
+    "base_commit_sha": "944f4a60d7a29772a587753adc186a4ac44dcb9a",
+    "candidate_commit_sha": "297af7dc909a66ed6b019c79aceb4be475c4c9f3",
+    "candidate_tree_sha": "96a4763a140c5eb55beb8b2afc5c8c5ee8699cc3",
+    "branch": "claude/r4-semantic-materialization-jz2z44",
+    "commits_in_range": [
+      "7c153d29f9 feat: strengthen FunctionIdentity with declaration kind, owner and generics",
+      "25216e8ba7 feat: extractor threads declaration kind, owner and generics into FunctionIdentity",
+      "ef4ee2dbc8 test: R4.4 function identity closure corpus and required test matrix",
+      "056e915847 test: strengthened FunctionIdentity stays multi-extractor safe through Census",
+      "297af7dc90 test: distinct FunctionIdentity records stay distinct graph nodes"
+    ],
+    "note": "base_commit_sha == the merge commit for PR #12 (R4.3.3). This wave branches from canonical main at that exact point. The branch name claude/r4-semantic-materialization-jz2z44 is the harness's fixed designated branch for this repository/task pair, reused across waves; per operator instruction it was restarted from fresh origin/main (git checkout -B <name> origin/main) rather than stacked on the already-merged R4.3.3 history it previously pointed at."
+  },
+  "toolchain": {
+    "pinned_by": "rust-toolchain.toml",
+    "channel": "1.90.0",
+    "rustc": "rustc 1.90.0 (1159e78c4 2025-09-14)",
+    "cargo": "cargo 1.90.0 (840b83a10 2025-07-30)",
+    "matches_ci_pin": true
+  },
+  "working_tree_clean": true,
+  "git_diff_check_exit": 0,
+  "cargo_lock_status": {
+    "diff_vs_base": "empty -- byte-identical to 944f4a60d7's Cargo.lock",
+    "intentional": true,
+    "reason": "This wave adds no new dependencies; it only evolves existing core/adapter/runtime types and the Rust extractor's classification logic."
+  },
+  "ci_status": "UNAVAILABLE_INFRASTRUCTURE",
+  "ci_status_detail": "GitHub Actions assigns no runner at all, reproducing identically on main across every prior R4 wave (R4.1 through R4.3.3 evidence records document the same root cause). Not a test/code failure; excluded from correctness verification per operator instruction. Recorded as UNAVAILABLE_INFRASTRUCTURE only because that exact condition (steps: [], runner_id: 0, runner_name: \"\", or a checkout/setup failure before any test body runs) was actually observed this wave -- see verification_passes below for the specific check run inspected.",
+  "diff_summary": {
+    "range": "944f4a60d7..297af7dc90",
+    "files_changed": 8,
+    "insertions": 1118,
+    "deletions": 36,
+    "changed_files": [
+      "adapter/src/semantic/rust/mod.rs",
+      "adapter/src/semantic/rust/tests.rs",
+      "core/src/graph/engineering_graph.rs",
+      "core/src/lib.rs",
+      "core/src/semantic/function.rs",
+      "core/src/semantic/mod.rs",
+      "core/src/semantic/observation.rs",
+      "runtime/src/census/mod.rs"
+    ]
+  },
+  "identity_model": {
+    "before": "FunctionIdentity carried repository/revision/language/scope/symbol/span/generated only. Disambiguation across free functions, nested modules, inherent methods, trait declarations/defaults/implementations, associated functions and generic declarations existed ONLY as an incidental side effect of the Rust extractor's scope-string encoding (e.g. a SemanticScope segment literally spelled \"impl:Reader for Foo\" or \"trait:Reader\") -- the typed kernel itself had no field answering \"is this a trait implementation method\" or \"what impl/trait owns this method\" without re-parsing that string. Additionally, function_identity() unconditionally hardcoded symbol.role = SymbolRole::Definition, so a trait method DECLARATION (no body) incoherently claimed Definition inside its own FunctionIdentity even though the separately-emitted Symbol observation for the same declaration correctly recorded Declaration.",
+    "after": "FunctionIdentity gains three new typed fields, all participating in identity_key(): declaration_kind: FunctionDeclarationKind (FreeFunction/InherentMethod/AssociatedFunction/TraitMethodDeclaration/TraitDefaultMethod/TraitImplementationMethod), owner: FunctionOwner { target: Option<TypeIdentity>, trait_path: Option<String> } (syntactically-observed impl self type and/or trait path -- never a compiler-resolved DefId), and generics: Vec<String> (this function's own declared generic parameters, source-spelling order). SemanticRecordId/record_id() itself, and every family's identity_key() call chain, remain the exact same kind of deterministic string-hash mechanism used throughout R4 -- no new identity *mechanism* was introduced, only new *fields* feeding the existing one. FunctionSignature embeds FunctionIdentity directly, so it inherits the strengthening automatically with zero changes to its own struct. The symbol.role coherence bug is fixed: the correct role (Declaration for a trait method with no body, Definition otherwise) now flows into both the Symbol observation and the embedded FunctionIdentity.symbol.role consistently."
+  },
+  "declaration_kinds_implemented": [
+    "FreeFunction -- top-level or nested-module function, not inside impl/trait",
+    "InherentMethod -- impl Type { fn foo(&self) } -- has a self/&self/&mut self receiver",
+    "AssociatedFunction -- impl Type { fn foo() } -- no receiver (e.g. Type::new())",
+    "TraitMethodDeclaration -- trait Name { fn foo(&self); } -- no body",
+    "TraitDefaultMethod -- trait Name { fn foo(&self) { .. } } -- has a default body",
+    "TraitImplementationMethod -- impl Trait for Type { fn foo(&self) { .. } }, receiver or not"
+  ],
+  "owner_trait_model": {
+    "representation": "FunctionOwner { target: Option<TypeIdentity>, trait_path: Option<String> }. target is Some(<impl self type>) whenever the function is declared inside any impl block (inherent or trait impl); None for a free function or a trait-declared method (which has no impl target -- the trait itself is named via trait_path). trait_path is Some(<trait name/path as syntactically written>) for a trait declaration/default method (the enclosing trait) and for a trait impl method (the impl's `for <Trait>` clause); None for a free function or an inherent method.",
+    "epistemic_discipline": "Both fields are always a literal source-level spelling (identical in kind to TypeIdentity.name), never a compiler-resolved identity. A trait declaration (owner.target=None, trait_path=Some(\"Reader\")) and its implementation (owner.target=Some(\"Foo\"), trait_path=Some(\"Reader\")) are ALWAYS represented as two distinct FunctionIdentity values with two distinct identity_key()s -- R4.4 never asserts they are the 'same' function, only that the shared trait_path string is an observable source-level relationship between them. Whether that implementation is compiler-provably the canonical implementation of that trait declaration remains an explicit reconciliation-owned relation, never claimed at extraction time.",
+    "no_fuzzy_merge": "No identity is ever synthesized from name equality, signature equality, display-string equality, span-shape similarity or model judgment. Every distinguishing field (declaration_kind, owner.target, owner.trait_path, generics, scope, span, revision) is either literally present in the syn AST or explicitly None/empty when source syntax does not supply it."
+  },
+  "generics": "FunctionIdentity.generics: Vec<String> -- the function's OWN declared generic parameters (e.g. [\"T\", \"U: Clone\"]), in source declaration order, computed once per function and shared between FunctionIdentity and the pre-existing FunctionSignature.generics (previously computed twice, now computed once and cloned). Never a monomorphized instance identity (e.g. convert::<u32>() is explicitly out of scope, R4.5+ territory). Enclosing impl-block/trait-block generic parameter LISTS (the `<T>` in `impl<T> Foo<T> for Bar<T>`) are not separately captured as their own field this wave -- they already participate indirectly via the self-type/trait-path spellings (`spelling::type_spelling`/`path_spelling` render a type's own generic ARGUMENTS, e.g. \"Bar<T>\"/\"Foo<T>\", inline), which is sufficient for the required test matrix (all of which test a function's OWN generics) but is noted below as unmodeled surface for a future wave.",
+  "revision_scope_rules": {
+    "revision": "FunctionIdentity.revision (and the embedded SymbolIdentity.revision) remain first-class identity fields, unchanged in kind from pre-R4.4; a revision change alone still changes identity_key() (re-confirmed by a dedicated R4.4-corpus test in addition to the pre-existing R4.3 one).",
+    "scope": "SemanticScope segment accumulation (module nesting, still including the pre-existing \"impl:X\"/\"trait:X\" string segments for backward compatibility and human-readable grouping) is unchanged; it remains source-syntax-derived, never traversal-order- or HashMap-iteration-derived.",
+    "repository_first_class": "FunctionIdentity.repository (a RepositoryId, distinct from RevisionRef) was already first-class before this wave and remains so; no function is assumed to belong to a single implicit root repository, so functions discovered later in a dependency-expanded corpus (R4's separate, NOT-implemented-this-wave DEPENDENCY-CENSUS.md capability) remain globally distinguishable by (repository, revision, ...) without redesign."
+  },
+  "epistemic_limits": {
+    "what_source_proves": "Which impl block a method is declared inside (self type spelling); whether that impl syntactically names a trait, and which one; whether a trait method has a default body; whether a method has a receiver; a function's own declared generic parameters; module/scope nesting; the exact source span.",
+    "what_remains_unresolved": "Whether a trait impl is the compiler-canonical implementation of a given trait declaration (no rustc name resolution is performed); whether two differently-spelled impl targets denote the same underlying type (e.g. via a type alias) -- TypeIdentity.canonical stays None throughout, exactly as in R4.3; monomorphized/instantiated generic identities (e.g. convert::<u32>) -- not modeled; macro-expanded declarations -- never fabricated, only what syn parses directly from source is ever emitted; full compiler DefId-level resolution -- not claimed anywhere."
+  },
+  "pipeline_losslessness": {
+    "extractor_to_batch": "handle_impl/handle_trait/walk_item now construct and thread FunctionDeclarationKind + FunctionOwner + generics through handle_function -> function_identity() -> emit_function_identity()/emit_function_signature(), so every ExtractionBatch.observations entry for FUNCTION_IDENTITY/FUNCTION_SIGNATURE carries the full strengthened struct.",
+    "batch_to_census": "build_census() is unchanged in its dedup/derivation LOGIC from R4.3.3 (still raw_observation_id-keyed dedup, still typed_obligations/typed_closure derived from the same batches); it required no code changes to carry the new FunctionIdentity fields losslessly, since it operates generically over SemanticObservation.",
+    "census_to_normalization": "normalize()/normalize_typed_records() likewise required no code changes; N0 (sort + exact raw-identity dedup only) passes the strengthened struct through byte-for-byte, confirmed by a dedicated round-trip assertion in the new runtime test.",
+    "normalization_to_graph": "add_typed_semantic_nodes()'s FunctionIdentity arm already (from R4.3.3) keys the graph node id on header.record_id.as_str() -- since record_id is derived from the now-strengthened identity_key(), distinct strengthened FunctionIdentity values automatically produce distinct graph nodes with ZERO graph code changes required this wave; only new tests were added to prove it."
+  },
+  "multi_extractor_proof": {
+    "claim": "Two independent extractors reporting the identical strengthened FunctionIdentity claim (same repository/revision/scope/symbol/span/declaration_kind/owner/generics) both survive Census and Normalization as two independent typed_semantic_records entries.",
+    "mechanism": "record_id() (built from the now-strengthened identity_key()) is identical for both observations, proving the semantic CLAIM identity is unaffected by which extractor reported it; raw_observation_id() (which additionally hashes extractor id/version, status, evidence_refs, provenance and the full typed payload) differs between the two, so R4.3.3's raw_observation_id-keyed dedup (unmodified this wave) correctly keeps both.",
+    "test": "runtime::census::tests::strengthened_function_identity_claim_from_two_extractors_survives_census_and_normalization"
+  },
+  "verification_passes": [
+    {
+      "pass": "primary",
+      "performed_by": "this session, in-place checkout, clean target/ rebuild, pinned rustc 1.90.0",
+      "commands": {
+        "git status --porcelain": { "result": "clean" },
+        "git diff --check": { "exit_code": 0 },
+        "cargo fmt --all --check": { "exit_code": 0 },
+        "cargo clippy --workspace --all-targets -- -D warnings": { "exit_code": 0, "warnings": 0, "note": "SemanticObservation::FunctionIdentity had to be boxed to clear clippy::large_enum_variant after FunctionIdentity grew; fixed in the same wave, re-verified clean" },
+        "cargo test --workspace --locked": {
+          "exit_code": 0,
+          "totals": "161 passed, 0 failed, 0 ignored (66 adapter, 55 core, 40 runtime)",
+          "new_tests_adapter": [
+            "same_name_in_different_modules_is_distinct",
+            "same_method_name_on_different_inherent_impl_targets_is_distinct",
+            "inherent_method_is_distinct_from_trait_impl_method_of_the_same_name",
+            "two_traits_with_the_same_method_name_on_the_same_target_are_distinct",
+            "trait_method_declaration_vs_default_method_are_represented_correctly",
+            "trait_declaration_and_implementation_method_are_distinct_but_share_an_observable_trait_path",
+            "associated_function_is_distinguishable_from_a_receiver_method",
+            "generic_function_declaration_produces_a_deterministic_identity",
+            "generic_parameter_content_participates_in_identity",
+            "revision_change_alters_identity_for_r4_4_declaration_shapes",
+            "r4_4_corpus_extraction_is_deterministic",
+            "r4_4_corpus_is_unaffected_by_requested_dimension_order",
+            "function_signature_carries_the_strengthened_function_identity",
+            "symbol_and_function_identity_roles_remain_coherent",
+            "r4_4_corpus_observations_satisfy_dimension_consistency",
+            "deeply_nested_module_function_has_its_own_distinct_identity",
+            "four_same_named_execute_declarations_are_all_pairwise_distinct_function_identities"
+          ],
+          "new_tests_core": [
+            "semantic::function::tests::declaration_kind_alone_changes_identity",
+            "semantic::function::tests::owner_target_alone_distinguishes_same_named_methods_on_different_impl_targets",
+            "semantic::function::tests::owner_trait_path_alone_distinguishes_inherent_from_trait_impl_method",
+            "semantic::function::tests::owner_trait_path_alone_distinguishes_two_traits_on_the_same_target",
+            "semantic::function::tests::generics_participate_in_identity",
+            "semantic::function::tests::identical_fields_produce_identical_identity",
+            "graph::engineering_graph::tests::distinct_function_identities_never_collapse_to_one_graph_node",
+            "graph::engineering_graph::tests::function_identity_graph_nodes_do_not_depend_on_the_compatibility_fact"
+          ],
+          "new_tests_runtime": [
+            "census::tests::strengthened_function_identity_claim_from_two_extractors_survives_census_and_normalization"
+          ]
+        },
+        "cargo test --workspace --doc --locked": { "exit_code": 0, "doctests": 0 },
+        "cargo run -q -p atlas-cli -- docs audit --root .atlas": { "exit_code": 0, "gate_ready": true },
+        "cargo run -q -p atlas-cli -- systemize --root . --out <tmp>": {
+          "exit_code": 0,
+          "coding_admission_allowed": true,
+          "coding_admission_blockers": [],
+          "census_typed_semantic_records": 2786,
+          "census_typed_obligations": 516,
+          "census_typed_closure": { "typed_observations_total": 2786, "typed_obligations_total": 516 },
+          "normalization_input_typed_closure": { "typed_observations_total": 2786, "typed_obligations_total": 516 },
+          "normalization_normalized_typed_closure": { "typed_observations_total": 2786, "typed_obligations_total": 516 },
+          "real_function_identity_count": 435,
+          "real_declaration_kind_distribution": {
+            "FREE_FUNCTION": 323,
+            "INHERENT_METHOD": 63,
+            "TRAIT_IMPLEMENTATION_METHOD": 24,
+            "ASSOCIATED_FUNCTION": 12,
+            "TRAIT_METHOD_DECLARATION": 8,
+            "TRAIT_DEFAULT_METHOD": 5
+          },
+          "note": "is_closed()==true (blockers empty) on this real, much larger self-census (up from 2616/516 pre-R4.4 to 2786/516 -- +170 new typed observations, all attributable to FunctionIdentity/FunctionSignature identity_key() now differing where declaration_kind/owner/generics previously collided or where the fixed symbol.role coherence bug changed which records exist) proves the strengthened identity model and all R4.3.3 closure/referential-integrity checks pass against real production Rust code across every declaration_kind, not only hand-built test fixtures."
+        }
+      }
+    },
+    {
+      "pass": "independent",
+      "performed_by": "fresh subagent, isolated git worktree, no shared context, candidate 297af7dc909a66ed6b019c79aceb4be475c4c9f3 (worktree was initially checked out at the branch base and self-corrected to the candidate commit before verifying)",
+      "commands_all_exit_0": true,
+      "diff_confirmed_matches_description": true,
+      "test_totals": "161/161 passing (66 adapter, 55 core, 40 runtime), 0 failed; all 20 named new tests confirmed present",
+      "clippy_fmt": "both clean, 0 warnings",
+      "docs_gate": "gate_ready=true",
+      "systemize_reconfirmation": "coding_admission={allowed:true, blockers:[]}; 435 FunctionIdentity records with all 6 declaration_kind variants present (FREE_FUNCTION 323, INHERENT_METHOD 63, TRAIT_IMPLEMENTATION_METHOD 24, ASSOCIATED_FUNCTION 12, TRAIT_METHOD_DECLARATION 8, TRAIT_DEFAULT_METHOD 5), matching the primary pass exactly",
+      "cargo_lock_reconfirmation": "empty diff, no unintended dependency changes",
+      "falsification_results": {
+        "E_extractor_identity_contamination": "CONFIRMED LOAD-BEARING -- reverting build_census's dedup to record_id-only collapsed the two independent-extractor observations to 1, as predicted. Reverted cleanly.",
+        "F_graph_collision": "CONFIRMED LOAD-BEARING -- keying add_typed_semantic_nodes's FunctionIdentity node id on symbol.name instead of record_id collapsed two distinct FunctionIdentity records to 1 graph node, as predicted. Reverted cleanly.",
+        "A_module_collision": "Did NOT reproduce as originally framed: with scope stripped from identity_key(), same_name_in_different_modules_is_distinct still passed, because (1) the embedded SymbolIdentity.identity_key() redundantly re-encodes the same scope, and (2) `a::run`/`b::run` sit at different source lines so span alone also disambiguates. This exposed no production defect -- record_id genuinely differs whenever ANY identity-relevant field differs, and multiple fields legitimately differ here simultaneously (by design: the Rust extractor's pre-existing scope-string encoding was deliberately KEPT, not removed, per this wave's explicit smallest-coherent-evolution scope) -- but it means this specific adapter-level test does not, by itself, isolate scope/owner as the ONLY load-bearing mechanism against real extractor output.",
+        "B_owner_collision": "Same shape as A: constant-folding FunctionOwner::identity_key() left same_method_name_on_different_inherent_impl_targets_is_distinct passing, because the extractor still encodes the impl target into the SemanticScope segment (\"impl:Foo\" vs \"impl:Bar\") redundantly with the new owner field.",
+        "C_trait_collision": "Same redundancy pattern confirmed for both described states (declaration_kind blanked; declaration_kind+trait_path both blanked) -- scope-string segments (\"impl:Reader for Foo\" vs \"impl:OtherReader for Foo\") kept the test passing in both cases.",
+        "D_inherent_vs_trait_collision": "Uncovered a genuine TEST-ASSERTION bug, not a production defect: `inherent_method_is_distinct_from_trait_impl_method_of_the_same_name`'s `.find(|identity| identity.owner.trait_path.as_deref() == Some(\"Reader\"))` predicate is ambiguous -- a trait's own DECLARATION (`Reader::read`) carries the identical trait_path as its IMPLEMENTATION (`Reader for Foo::read`), so which one `.find()` returned depended on ExtractionBatch's observation ordering (itself a function of identity-derived hash values, which shifted under the agent's field-blanking edits). The independent agent verified via a temporary debug test that all 5 real `identity_key()` values for `read` stayed pairwise-distinct throughout -- the production identity mechanism was never actually in question, only this test's selection logic.",
+        "fix_applied": "Both affected tests (inherent_method_is_distinct_from_trait_impl_method_of_the_same_name, two_traits_with_the_same_method_name_on_the_same_target_are_distinct) now additionally require `declaration_kind == FunctionDeclarationKind::TraitImplementationMethod` in their `.find()` predicates, unambiguously selecting the implementation method regardless of iteration order. Committed as 84e157032e. Re-verified: 66/66 adapter tests (161/161 workspace) still pass after the fix.",
+        "net_assessment": "The core-level unit tests (semantic::function::tests::owner_target_alone_distinguishes_same_named_methods_on_different_impl_targets, owner_trait_path_alone_distinguishes_inherent_from_trait_impl_method, owner_trait_path_alone_distinguishes_two_traits_on_the_same_target -- all pre-existing in the primary pass, unaffected by A/B/C) already rigorously isolate declaration_kind/owner as load-bearing on hand-built FunctionIdentity literals with identical scope, independent of any scope-string redundancy. E and F rigorously prove the Census/graph consumers are correctly wired to the strengthened record_id. The adapter-level tests against real extractor output additionally corroborate end-to-end distinctness on real syn-parsed source, but coexist with (rather than isolate against) the deliberately-retained legacy scope-string encoding -- this is a test-rigor gap, not a production-code gap, and does not contradict any requirement (the task explicitly permitted keeping existing encoding under a smallest-coherent-evolution design)."
+      },
+      "contract_judgment": "Independently read SEMANTIC-EXTRACTION.md and NORMALIZATION.md. NORMALIZATION.md#identity explicitly forbids \"same display name\"/\"unqualified text\" as an equivalence proof and lists declaration identity as an allowed scoping component; SEMANTIC-EXTRACTION.md forbids inventing facts or compiler-resolved semantics. FunctionOwner's framing (syntactic-only, source-spelling, no DefId, no claim that a trait declaration and its implementation are \"the same\" function) was judged consistent with both -- it adds identity-scoping, not equivalence, and correctly defers \"does this impl canonically implement that trait method\" to reconciliation.",
+      "other_findings": "TypeIdentity.canonical confirmed None everywhere new code touches it (adapter's emit_type_identity, core test helpers) -- no fabricated compiler resolution. No Default impl/derive on FunctionIdentity; the sole production constructor (adapter/src/semantic/rust/mod.rs::function_identity) explicitly threads declaration_kind/owner/generics on every call -- no silent-default gap.",
+      "verdict": "VERIFIED -- production identity/Census/graph mechanism confirmed correct and load-bearing (E, F); one test-assertion ambiguity found (D) and fixed; no production defects found."
+    }
+  ],
+  "no_tests_lints_gates_disabled": true,
+  "no_verify_bypass_used": false,
+  "overall_verdict": "VERIFIED",
+  "runtime_invariants_established": [
+    "FunctionIdentity.identity_key() now distinguishes: (1) same name, different modules; (2) same method name, different inherent impl owners; (3) an inherent method vs. a trait-impl method of the same name on the same owner; (4) two different traits implementing the same method name on the same owner; (5) a trait method declaration vs. its default-bodied sibling (both by declaration_kind and by the now-coherent symbol.role); (6) an associated function (no receiver) vs. a receiver method of the same owner; (7) distinct generic parameter lists on an otherwise-identical declaration -- all via typed structure (declaration_kind/owner/generics), confirmed load-bearing in isolation at the core-record level (independent of any scope-string redundancy the Rust extractor also happens to retain).",
+    "FunctionSignature automatically inherits every one of the above through its embedded FunctionIdentity, with zero changes to FunctionSignature's own struct or identity_key() call chain.",
+    "The R4.3.3 raw-observation-vs-semantic-claim identity separation is unmodified and re-confirmed under the strengthened model: two independent extractors reporting the identical strengthened FunctionIdentity claim share record_id (the claim) while differing in raw_observation_id (the per-extractor attribution), so neither can silently overwrite the other through Census or Normalization.",
+    "The engineering graph's FunctionIdentity nodes are keyed on the now-strengthened record_id with no graph code changes required, so two FunctionIdentity records differing only in owner automatically produce two distinct graph nodes -- proven by a dedicated test, not merely assumed from the R4.3.3 mechanism carrying over."
+  ],
+  "contract_clauses_satisfied": [
+    ".atlas/contracts/SEMANTIC-EXTRACTION.md (function/method identity closure: every discovered function/method now carries a stable, scope-and-owner-correct identity rather than a name-only or scope-string-incidental one; no monomorphized/compiler-resolved identity is fabricated)",
+    ".atlas/contracts/NORMALIZATION.md#identity (\"Name equality is not identity equality\": two methods named `read`/`get`/`execute` on different owners, or via different traits, are provably distinct FunctionIdentity values; no equivalence is asserted between a trait declaration and its implementation without compiler-provided evidence)",
+    ".atlas/decisions/0002-epistemic-status-model.md (FunctionIdentity's new owner/declaration_kind fields carry only what source syntax can literally prove; no field claims OBSERVED-grade certainty about compiler-resolved trait/impl equivalence)",
+    ".atlas/architecture/CAPABILITY-ARCHITECTURE.md (typed identity/relation/schema/epistemic-status/revision-scope primitives live under core/semantic + core/schema, not as a parallel adapter/runtime taxonomy -- FunctionDeclarationKind and FunctionOwner were added under core/src/semantic/function.rs, not duplicated in adapter or runtime)"
+  ],
+  "still_unsupported": [
+    "CALL -- no call-target resolution, call graph, or SemanticObservation::Call output from Rust extraction; this wave deliberately stops at identity, not the call relation itself.",
+    "CONTROL_FLOW / DATA_FLOW / STATE / EFFECT / OWNERSHIP / CONCURRENCY / PERSISTENCE -- unmaterialized, unchanged from R4.3.3.",
+    "Transitive dependency census runtime (.atlas/contracts/DEPENDENCY-CENSUS.md) -- explicitly out of scope this wave; FunctionIdentity.repository remains first-class so dependency-expanded-corpus functions remain distinguishable when that capability is built, but no dependency resolution logic was added.",
+    "Full compiler/global Rust name resolution -- no rustc, no HIR/MIR, no trait solving, no macro expansion; declaration_kind/owner are always syntactic-only conclusions.",
+    "Monomorphized/instantiated generic identity (e.g. convert::<u32>) -- not modeled; FunctionIdentity.generics captures only the function's own declared parameter list.",
+    "Impl-block-level and trait-block-level generic parameter LISTS (the `<T>` in `impl<T> Foo<T> for Bar<T>` / `trait Foo<T>`) are not captured as their own explicit field -- they participate only indirectly via the self-type/trait-path spellings already rendering generic arguments inline. Sufficient for this wave's required test matrix (all of which exercise a function's own generics) but noted as unmodeled surface for a future wave if impl/trait-level generic identity ever needs independent disambiguation.",
+    "Reconciliation of a trait declaration with its implementation(s) into one provably-equivalent relation -- remains an explicit, unimplemented reconciliation-owned relation; R4.4 only guarantees the two stay distinct AND that their observable trait_path relationship survives.",
+    "The Rust extractor's pre-existing scope-string encoding (e.g. a SemanticScope segment literally spelling \"impl:Reader for Foo\") was deliberately RETAINED alongside the new typed owner/declaration_kind fields rather than removed, per this wave's smallest-coherent-evolution scope. Independent verification confirmed this means the new typed fields are proven load-bearing in isolation only at the core-record level (hand-built FunctionIdentity literals) and at the Census/graph consumer level (raw_observation_id dedup, graph node keying) -- not by the adapter-level tests running against real extractor output, which currently pass via a redundant combination of scope-string and span disambiguation as well as the new fields. Removing the now-redundant scope-string encoding (or adding adapter-level tests that neutralize it to isolate owner/declaration_kind specifically) is unstarted future cleanup, not required by this wave's acceptance criteria."
+  ]
+}

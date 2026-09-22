@@ -817,6 +817,78 @@ mod tests {
         })
     }
 
+    /// R4.4: a strengthened `FunctionIdentity` observation for an inherent method `get` owned by
+    /// `owner_name` (e.g. `"Foo"`/`"Bar"`), so two calls with different `owner_name` produce two
+    /// distinct declarations of the same method name -- exactly the shape the graph boundary must
+    /// keep as two distinct nodes.
+    fn function_identity_observation(owner_name: &str) -> crate::semantic::SemanticObservation {
+        use crate::identity::RepositoryId;
+        use crate::provenance::provenance;
+        use crate::semantic::{
+            ExtractorIdentity, FunctionDeclarationKind, FunctionIdentity, FunctionOwner,
+            SemanticDimension, SemanticRecordHeader, SemanticRecordId, SemanticScope,
+            SymbolIdentity, SymbolRole, TypeIdentity,
+        };
+        use crate::temporal::RevisionRef;
+
+        let repository = RepositoryId::new("atlas-studio");
+        let revision = RevisionRef {
+            kind: "git".into(),
+            value: "abc123".into(),
+        };
+        let scope = SemanticScope::new([format!("impl:{owner_name}")]);
+        let identity = FunctionIdentity {
+            repository: repository.clone(),
+            revision: revision.clone(),
+            language: "rust".into(),
+            scope: scope.clone(),
+            symbol: SymbolIdentity {
+                repository: repository.clone(),
+                revision: revision.clone(),
+                scope: scope.clone(),
+                name: "get".into(),
+                role: SymbolRole::Definition,
+            },
+            span: crate::language::adl::SourceSpan {
+                path: "src/lib.rs".into(),
+                line: 1,
+                column: 1,
+            },
+            generated: false,
+            declaration_kind: FunctionDeclarationKind::InherentMethod,
+            owner: FunctionOwner {
+                target: Some(TypeIdentity {
+                    repository: repository.clone(),
+                    revision: revision.clone(),
+                    scope: SemanticScope::new(Vec::<String>::new()),
+                    name: owner_name.into(),
+                    canonical: None,
+                }),
+                trait_path: None,
+            },
+            generics: Vec::new(),
+        };
+        let record_id = SemanticRecordId::new(
+            SemanticDimension::FunctionIdentity,
+            &identity.identity_key(),
+        );
+        crate::semantic::SemanticObservation::FunctionIdentity(Box::new(SemanticRecordHeader {
+            record_id,
+            dimension: SemanticDimension::FunctionIdentity,
+            status: EpistemicStatus::Observed,
+            subject: identity,
+            scope,
+            repository,
+            revision,
+            extractor: ExtractorIdentity {
+                id: "atlas.test".into(),
+                version: "0.1.0".into(),
+            },
+            evidence_refs: Vec::new(),
+            provenance: provenance("src/lib.rs", "atlas.test"),
+        }))
+    }
+
     fn normalization_with(
         typed_semantic_records: Vec<crate::semantic::SemanticObservation>,
         facts: Vec<SemanticFact>,
@@ -893,5 +965,70 @@ mod tests {
         let a = build_system_graph(&source(), &docs(), &normalization);
         let b = build_system_graph(&source(), &docs(), &normalization);
         assert_eq!(a, b);
+    }
+
+    // --- R4.4 required test 18: distinct FunctionIdentity records => distinct graph nodes -------
+
+    #[test]
+    fn distinct_function_identities_never_collapse_to_one_graph_node() {
+        let foo_get = function_identity_observation("Foo");
+        let bar_get = function_identity_observation("Bar");
+        // Same method NAME ("get"), same dimension, different owner -- the pre-R4.4 graph node id
+        // was keyed by `fact.subject` (== record_id), so this only stays distinct because R4.4
+        // strengthened FunctionIdentity's identity_key to include `owner`.
+        assert_ne!(foo_get.record_id(), bar_get.record_id());
+
+        let normalization = normalization_with(vec![foo_get, bar_get], Vec::new());
+        let graph = build_system_graph(&source(), &docs(), &normalization);
+
+        let function_identity_nodes: Vec<_> = graph
+            .nodes
+            .iter()
+            .filter(|node| node.kind == "FunctionIdentity")
+            .collect();
+        assert_eq!(
+            function_identity_nodes.len(),
+            2,
+            "two distinct FunctionIdentity records (different owner) must produce two distinct \
+             graph nodes, never collapse because their method name matches"
+        );
+        assert_ne!(
+            function_identity_nodes[0].id, function_identity_nodes[1].id,
+            "graph node ids must differ for distinct FunctionIdentity records"
+        );
+    }
+
+    // --- R4.4 required test 19: compatibility fact is not a second FunctionIdentity graph source -
+
+    #[test]
+    fn function_identity_graph_nodes_do_not_depend_on_the_compatibility_fact() {
+        let observation = function_identity_observation("Foo");
+        let record_id = observation.record_id().as_str().to_owned();
+        let compat_fact = semantic(
+            "compat-function-identity",
+            SemanticFactKind::FunctionIdentity,
+            EpistemicStatus::Observed,
+            &record_id,
+            "declares_function",
+            "Foo::get",
+        );
+
+        let without_fact = normalization_with(vec![observation.clone()], Vec::new());
+        let with_fact = normalization_with(vec![observation], vec![compat_fact]);
+
+        let graph_without = build_system_graph(&source(), &docs(), &without_fact);
+        let graph_with = build_system_graph(&source(), &docs(), &with_fact);
+
+        assert!(
+            graph_without
+                .nodes
+                .iter()
+                .any(|node| node.kind == "FunctionIdentity"),
+            "a typed FunctionIdentity observation must produce a graph node with zero \
+             compatibility facts present"
+        );
+        assert_eq!(graph_without.nodes, graph_with.nodes);
+        assert_eq!(graph_without.edges, graph_with.edges);
+        assert_eq!(graph_without.bindings, graph_with.bindings);
     }
 }

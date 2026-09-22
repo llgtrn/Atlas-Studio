@@ -1,9 +1,22 @@
 //! Function identity and signature.
 //!
-//! Function identity is never based on display name alone; disambiguation across overloads,
-//! trait/impl methods and generics is `.atlas/contracts/SEMANTIC-EXTRACTION.md` R4.4 closure work.
-//! This kernel materializes the typed shape; deeper disambiguation rules land with the Rust
-//! extractor.
+//! Function identity is never based on display name alone. R4.4 (`.atlas/contracts/
+//! SEMANTIC-EXTRACTION.md`) closes declaration-identity ambiguity across free functions, nested
+//! modules, inherent/trait methods, trait declarations/defaults/implementations, associated
+//! functions and generic declarations, so a later CALL relation can target one stable,
+//! scope-correct `FunctionIdentity` rather than a matching name. This kernel materializes the
+//! typed shape; the Rust extractor (`adapter/src/semantic/rust`) is the only producer of real
+//! values.
+//!
+//! What source syntax alone can prove, and what it cannot: `declaration_kind`/`owner` are always
+//! derived from what `syn` literally parsed (an `impl` block's self type and optional trait path,
+//! whether a trait method has a default body, whether a method has a receiver) -- never from
+//! compiler name resolution. `owner.target`/`owner.trait_path` are source-level spellings, exactly
+//! like `TypeIdentity.name`; they never claim a globally-resolved compiler `DefId`, and never
+//! assert that a trait declaration and its implementation are the *same* canonical declaration
+//! (`.atlas/contracts/NORMALIZATION.md`: identity resolution precedes dedup, and forbids "same
+//! display name" as an equivalence proof). Whether `impl Reader for Foo::read` canonically
+//! implements `trait Reader::read` remains a reconciliation-owned relation, not an identity claim.
 
 use super::SemanticScope;
 use super::symbol::SymbolIdentity;
@@ -12,6 +25,78 @@ use crate::identity::RepositoryId;
 use crate::language::adl::SourceSpan;
 use crate::temporal::RevisionRef;
 use serde::{Deserialize, Serialize};
+
+/// Which declaration shape produced a `FunctionIdentity`, as literally observable from source
+/// syntax alone. Kept as an explicit typed enum -- never inferred later from a scope/display
+/// string -- so a later CALL relation (R4.5+) can match on it without re-parsing anything.
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+pub enum FunctionDeclarationKind {
+    /// A top-level or nested-module function: not inside any `impl`/`trait` block.
+    FreeFunction,
+    /// A function inside an inherent `impl Type { ... }` block WITH a `self`/`&self`/`&mut self`
+    /// receiver.
+    InherentMethod,
+    /// A function inside an inherent `impl Type { ... }` block with NO receiver (e.g.
+    /// `Type::new()`).
+    AssociatedFunction,
+    /// A method declared inside a `trait Name { ... }` block with no body (`fn read(&self);`).
+    TraitMethodDeclaration,
+    /// A method declared inside a `trait Name { ... }` block WITH a default body.
+    TraitDefaultMethod,
+    /// A method inside an `impl Trait for Type { ... }` block, receiver or not.
+    TraitImplementationMethod,
+}
+
+impl FunctionDeclarationKind {
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            Self::FreeFunction => "FREE_FUNCTION",
+            Self::InherentMethod => "INHERENT_METHOD",
+            Self::AssociatedFunction => "ASSOCIATED_FUNCTION",
+            Self::TraitMethodDeclaration => "TRAIT_METHOD_DECLARATION",
+            Self::TraitDefaultMethod => "TRAIT_DEFAULT_METHOD",
+            Self::TraitImplementationMethod => "TRAIT_IMPLEMENTATION_METHOD",
+        }
+    }
+}
+
+/// Syntactically-observed declaration ownership for a method/associated function: who source
+/// syntax says this function is declared "inside". Never a globally-resolved compiler entity --
+/// see this module's doc comment.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct FunctionOwner {
+    /// The enclosing `impl` block's self type (e.g. `Foo`, `Bar<T>`), present whenever this
+    /// function is declared inside an `impl` block (inherent or trait impl). `None` for a
+    /// `FreeFunction`, `TraitMethodDeclaration` or `TraitDefaultMethod` -- those have no `impl`
+    /// target; the trait itself is named via `trait_path` instead.
+    pub target: Option<TypeIdentity>,
+    /// The trait path syntactically named by `impl <trait_path> for <target>`, or by the
+    /// enclosing `trait <trait_path> { ... }`. `None` for a `FreeFunction`, `InherentMethod` or
+    /// `AssociatedFunction`.
+    pub trait_path: Option<String>,
+}
+
+impl FunctionOwner {
+    /// No enclosing `impl`/`trait` -- a free function.
+    pub const fn none() -> Self {
+        Self {
+            target: None,
+            trait_path: None,
+        }
+    }
+
+    fn identity_key(&self) -> String {
+        format!(
+            "target={}|trait={}",
+            self.target
+                .as_ref()
+                .map(TypeIdentity::identity_key)
+                .unwrap_or_default(),
+            self.trait_path.as_deref().unwrap_or(""),
+        )
+    }
+}
 
 /// Stable function/method identity.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
@@ -23,13 +108,22 @@ pub struct FunctionIdentity {
     pub symbol: SymbolIdentity,
     pub span: SourceSpan,
     pub generated: bool,
+    /// Which declaration shape this is (free function, inherent/trait method, ...). See
+    /// `FunctionDeclarationKind`.
+    pub declaration_kind: FunctionDeclarationKind,
+    /// Syntactically-observed enclosing `impl`/`trait` context. See `FunctionOwner`.
+    pub owner: FunctionOwner,
+    /// This function's own declared generic parameters (e.g. `["T", "U: Clone"]`), in source
+    /// declaration order -- never a monomorphized instance identity (`convert::<u32>` is R4.5+
+    /// territory, not modeled here).
+    pub generics: Vec<String>,
 }
 
 impl FunctionIdentity {
     /// Deterministic, order-independent encoding of this function's identity fields.
     pub fn identity_key(&self) -> String {
         format!(
-            "{}|{}:{}|{}|{}|{}|{}:{}:{}|{}",
+            "{}|{}:{}|{}|{}|{}|{}:{}:{}|{}|kind={}|{}|generics=[{}]",
             self.repository.as_str(),
             self.revision.kind,
             self.revision.value,
@@ -40,6 +134,9 @@ impl FunctionIdentity {
             self.span.line,
             self.span.column,
             self.generated,
+            self.declaration_kind.as_str(),
+            self.owner.identity_key(),
+            self.generics.join(","),
         )
     }
 }
@@ -94,6 +191,9 @@ mod tests {
                 column: 1,
             },
             generated: false,
+            declaration_kind: FunctionDeclarationKind::FreeFunction,
+            owner: FunctionOwner::none(),
+            generics: Vec::new(),
         }
     }
 
@@ -124,5 +224,116 @@ mod tests {
             ..a.clone()
         };
         assert_ne!(a.identity_key(), b.identity_key());
+    }
+
+    // --- R4.4: declaration_kind/owner/generics participate in identity_key ---------------------
+
+    #[test]
+    fn declaration_kind_alone_changes_identity() {
+        let a = identity("widgets");
+        let b = FunctionIdentity {
+            declaration_kind: FunctionDeclarationKind::AssociatedFunction,
+            ..a.clone()
+        };
+        assert_ne!(a.identity_key(), b.identity_key());
+    }
+
+    fn type_identity(name: &str) -> TypeIdentity {
+        TypeIdentity {
+            repository: RepositoryId::new("atlas-studio"),
+            revision: RevisionRef {
+                kind: "git".into(),
+                value: "abc123".into(),
+            },
+            scope: SemanticScope::new(Vec::<String>::new()),
+            name: name.into(),
+            canonical: None,
+        }
+    }
+
+    #[test]
+    fn owner_target_alone_distinguishes_same_named_methods_on_different_impl_targets() {
+        let base = identity("widgets");
+        let foo = FunctionIdentity {
+            declaration_kind: FunctionDeclarationKind::InherentMethod,
+            owner: FunctionOwner {
+                target: Some(type_identity("Foo")),
+                trait_path: None,
+            },
+            ..base.clone()
+        };
+        let bar = FunctionIdentity {
+            owner: FunctionOwner {
+                target: Some(type_identity("Bar")),
+                trait_path: None,
+            },
+            ..foo.clone()
+        };
+        assert_ne!(foo.identity_key(), bar.identity_key());
+    }
+
+    #[test]
+    fn owner_trait_path_alone_distinguishes_inherent_from_trait_impl_method() {
+        let base = identity("widgets");
+        let inherent = FunctionIdentity {
+            declaration_kind: FunctionDeclarationKind::InherentMethod,
+            owner: FunctionOwner {
+                target: Some(type_identity("Foo")),
+                trait_path: None,
+            },
+            ..base.clone()
+        };
+        let trait_impl = FunctionIdentity {
+            declaration_kind: FunctionDeclarationKind::TraitImplementationMethod,
+            owner: FunctionOwner {
+                target: Some(type_identity("Foo")),
+                trait_path: Some("Reader".into()),
+            },
+            ..inherent.clone()
+        };
+        assert_ne!(inherent.identity_key(), trait_impl.identity_key());
+    }
+
+    #[test]
+    fn owner_trait_path_alone_distinguishes_two_traits_on_the_same_target() {
+        let base = identity("widgets");
+        let reader = FunctionIdentity {
+            declaration_kind: FunctionDeclarationKind::TraitImplementationMethod,
+            owner: FunctionOwner {
+                target: Some(type_identity("Foo")),
+                trait_path: Some("Reader".into()),
+            },
+            ..base.clone()
+        };
+        let other_reader = FunctionIdentity {
+            owner: FunctionOwner {
+                target: Some(type_identity("Foo")),
+                trait_path: Some("OtherReader".into()),
+            },
+            ..reader.clone()
+        };
+        assert_ne!(reader.identity_key(), other_reader.identity_key());
+    }
+
+    #[test]
+    fn generics_participate_in_identity() {
+        let a = identity("widgets");
+        let single = FunctionIdentity {
+            generics: vec!["T".into()],
+            ..a.clone()
+        };
+        let double = FunctionIdentity {
+            generics: vec!["T".into(), "U".into()],
+            ..a.clone()
+        };
+        assert_ne!(a.identity_key(), single.identity_key());
+        assert_ne!(single.identity_key(), double.identity_key());
+    }
+
+    #[test]
+    fn identical_fields_produce_identical_identity() {
+        let a = identity("widgets");
+        let b = identity("widgets");
+        assert_eq!(a.identity_key(), b.identity_key());
     }
 }

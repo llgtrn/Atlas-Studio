@@ -10,9 +10,9 @@ use super::super::batch::ExtractionBatch;
 use super::super::extractor::{ExtractionInput, SemanticExtractor};
 use super::{RustSemanticExtractor, spelling};
 use atlas_core::{
-    ArtifactId, ContentFingerprint, EpistemicStatus, FunctionIdentity, FunctionSignature,
-    RepositoryId, RevisionRef, SemanticDimension, SemanticObservation, SymbolIdentity, SymbolRole,
-    TypeIdentity,
+    ArtifactId, ContentFingerprint, EpistemicStatus, FunctionDeclarationKind, FunctionIdentity,
+    FunctionSignature, RepositoryId, RevisionRef, SemanticDimension, SemanticObservation,
+    SymbolIdentity, SymbolRole, TypeIdentity,
 };
 
 const ALL_DIMENSIONS: [SemanticDimension; 12] = [
@@ -141,6 +141,89 @@ pub mod users {
 
 const MALFORMED: &str = "pub fn broken( {\n";
 
+/// R4.4 function-identity-closure corpus (`.atlas/contracts/SEMANTIC-EXTRACTION.md` R4.4): the
+/// exact declaration shapes R4.4 must keep distinguishable -- same name in different modules, same
+/// method name on different inherent impl targets, an inherent method vs a trait impl method of
+/// the same name on the same target, two different traits implementing the same method name for
+/// the same target, a trait method declaration vs its sibling default-bodied method, an
+/// associated function (no receiver) vs a receiver method, and generic function declarations.
+const R4_4_CORPUS: &str = r#"
+mod a {
+    pub fn run() {}
+}
+
+mod b {
+    pub fn run() {}
+}
+
+pub struct Foo;
+pub struct Bar;
+
+impl Foo {
+    pub fn get(&self) {}
+    pub fn create() -> Self { Foo }
+    pub fn read(&self) {}
+}
+
+impl Bar {
+    pub fn get(&self) {}
+}
+
+pub trait Reader {
+    fn read(&self);
+    fn default_read(&self) {}
+}
+
+impl Reader for Foo {
+    fn read(&self) {}
+}
+
+pub trait OtherReader {
+    fn read(&self);
+}
+
+impl OtherReader for Foo {
+    fn read(&self) {}
+}
+
+pub fn generic<T>(value: T) -> T { value }
+
+pub fn generic_two<T, U>(a: T, b: U) -> T { a }
+
+pub mod nested {
+    pub mod inner {
+        pub fn run() {}
+    }
+}
+"#;
+
+/// R4.4 regression fixture (`.atlas/contracts/SEMANTIC-EXTRACTION.md` R4.4 "future CALL safety"):
+/// four declarations all named `execute`, split across two modules and two distinct inherent impl
+/// targets. A future CALL relation must be able to target exactly one of these -- never a bare
+/// textual `"execute"` key -- so every one of them MUST produce a pairwise-distinct
+/// `FunctionIdentity`. No `Call`/`ControlFlow`/`DataFlow`/`State`/`Effect` observation is ever
+/// produced from this fixture; R4.4 stops at identity, not the call relation itself.
+const CALL_SAFETY_CORPUS: &str = r#"
+mod a {
+    pub fn execute() {}
+}
+
+mod b {
+    pub fn execute() {}
+}
+
+pub struct X;
+pub struct Y;
+
+impl X {
+    pub fn execute(&self) {}
+}
+
+impl Y {
+    pub fn execute(&self) {}
+}
+"#;
+
 fn input_for(
     artifact_path: &str,
     source: &str,
@@ -255,6 +338,33 @@ fn find_function_signature<'a>(
             }
             _ => None,
         })
+}
+
+/// Every `FunctionIdentity` observation whose symbol name is `name`, regardless of scope --
+/// R4.4's owner/trait/declaration-kind fields (not scope alone) are what a test then filters on to
+/// pick out one exact declaration among several same-named ones.
+fn function_identities_named<'a>(
+    batch: &'a ExtractionBatch,
+    name: &str,
+) -> Vec<&'a FunctionIdentity> {
+    batch
+        .observations
+        .iter()
+        .filter_map(|observation| match observation {
+            SemanticObservation::FunctionIdentity(header) if header.subject.symbol.name == name => {
+                Some(&header.subject)
+            }
+            _ => None,
+        })
+        .collect()
+}
+
+fn owner_target_name(identity: &FunctionIdentity) -> Option<&str> {
+    identity
+        .owner
+        .target
+        .as_ref()
+        .map(|target| target.name.as_str())
 }
 
 // --- 1. free/public function symbol observation ------------------------------------------------
@@ -713,4 +823,403 @@ fn type_spelling_renders_common_shapes_cleanly() {
     assert_eq!(spelling::type_spelling(&parse("&mut u64")), "&mut u64");
     assert_eq!(spelling::type_spelling(&parse("(u64, u64)")), "(u64, u64)");
     assert_eq!(spelling::type_spelling(&parse("[u8; 4]")), "[u8; 4]");
+}
+
+// =================================================================================================
+// R4.4 -- Function Identity Closure
+//
+// Every test below fails under the pre-R4.4 extractor: `FunctionIdentity` had no
+// `declaration_kind`/`owner`/`generics` fields, and `function_identity()` hardcoded
+// `symbol.role = SymbolRole::Definition` regardless of the actual declaration (a trait method
+// DECLARATION with no body would incoherently claim `Definition`). Distinctness that already held
+// only incidentally through the scope-string encoding (e.g. `"impl:Reader for Foo"`) is asserted
+// here directly against the new typed fields, never against a display string.
+// =================================================================================================
+
+// --- 1. same function name in different modules => distinct FunctionIdentity -------------------
+
+#[test]
+fn same_name_in_different_modules_is_distinct() {
+    let batch = extract_all("src/lib.rs", R4_4_CORPUS);
+    let a = find_function_identity(&batch, &["a"], "run").expect("a::run");
+    let b = find_function_identity(&batch, &["b"], "run").expect("b::run");
+    assert_ne!(a.identity_key(), b.identity_key());
+    assert_eq!(a.declaration_kind, FunctionDeclarationKind::FreeFunction);
+    assert_eq!(b.declaration_kind, FunctionDeclarationKind::FreeFunction);
+}
+
+// --- 2. same method name on different inherent impl targets => distinct identity ---------------
+
+#[test]
+fn same_method_name_on_different_inherent_impl_targets_is_distinct() {
+    let batch = extract_all("src/lib.rs", R4_4_CORPUS);
+    let candidates = function_identities_named(&batch, "get");
+    let foo_get = candidates
+        .iter()
+        .find(|identity| owner_target_name(identity) == Some("Foo"))
+        .expect("Foo::get");
+    let bar_get = candidates
+        .iter()
+        .find(|identity| owner_target_name(identity) == Some("Bar"))
+        .expect("Bar::get");
+    assert_ne!(foo_get.identity_key(), bar_get.identity_key());
+    assert_eq!(
+        foo_get.declaration_kind,
+        FunctionDeclarationKind::InherentMethod
+    );
+    assert_eq!(
+        bar_get.declaration_kind,
+        FunctionDeclarationKind::InherentMethod
+    );
+}
+
+// --- 3. inherent `Foo::read` vs `Reader for Foo::read` => distinct identity --------------------
+
+#[test]
+fn inherent_method_is_distinct_from_trait_impl_method_of_the_same_name() {
+    let batch = extract_all("src/lib.rs", R4_4_CORPUS);
+    let candidates = function_identities_named(&batch, "read");
+    let inherent = candidates
+        .iter()
+        .find(|identity| {
+            owner_target_name(identity) == Some("Foo") && identity.owner.trait_path.is_none()
+        })
+        .expect("inherent Foo::read");
+    // `owner.trait_path == Some("Reader")` alone is ambiguous: it also matches the trait
+    // DECLARATION `Reader::read` (which shares the same trait_path but has no impl owner). Require
+    // declaration_kind explicitly so this picks out the trait IMPLEMENTATION method regardless of
+    // `candidates`' iteration order.
+    let trait_impl = candidates
+        .iter()
+        .find(|identity| {
+            identity.owner.trait_path.as_deref() == Some("Reader")
+                && identity.declaration_kind == FunctionDeclarationKind::TraitImplementationMethod
+        })
+        .expect("Reader for Foo::read");
+    assert_ne!(inherent.identity_key(), trait_impl.identity_key());
+    assert_eq!(
+        inherent.declaration_kind,
+        FunctionDeclarationKind::InherentMethod
+    );
+    assert_eq!(
+        trait_impl.declaration_kind,
+        FunctionDeclarationKind::TraitImplementationMethod
+    );
+}
+
+// --- 4. two traits with the same method name implemented for the same type => distinct identity
+
+#[test]
+fn two_traits_with_the_same_method_name_on_the_same_target_are_distinct() {
+    let batch = extract_all("src/lib.rs", R4_4_CORPUS);
+    let candidates = function_identities_named(&batch, "read");
+    // `owner.trait_path == Some(<name>)` alone is ambiguous: each trait's own DECLARATION
+    // (`Reader::read`/`OtherReader::read`) shares the same trait_path as its implementation.
+    // Require declaration_kind explicitly so this picks out the IMPLEMENTATION methods
+    // regardless of `candidates`' iteration order.
+    let reader = candidates
+        .iter()
+        .find(|identity| {
+            identity.owner.trait_path.as_deref() == Some("Reader")
+                && identity.declaration_kind == FunctionDeclarationKind::TraitImplementationMethod
+        })
+        .expect("Reader for Foo::read");
+    let other_reader = candidates
+        .iter()
+        .find(|identity| {
+            identity.owner.trait_path.as_deref() == Some("OtherReader")
+                && identity.declaration_kind == FunctionDeclarationKind::TraitImplementationMethod
+        })
+        .expect("OtherReader for Foo::read");
+    assert_ne!(reader.identity_key(), other_reader.identity_key());
+    assert_eq!(owner_target_name(reader), Some("Foo"));
+    assert_eq!(owner_target_name(other_reader), Some("Foo"));
+}
+
+// --- 5. trait method declaration vs trait default method body are represented correctly --------
+
+#[test]
+fn trait_method_declaration_vs_default_method_are_represented_correctly() {
+    let batch = extract_all("src/lib.rs", R4_4_CORPUS);
+    let declared = find_function_identity(&batch, &["trait:Reader"], "read")
+        .expect("Reader::read declaration");
+    assert_eq!(
+        declared.declaration_kind,
+        FunctionDeclarationKind::TraitMethodDeclaration
+    );
+    assert_eq!(declared.symbol.role, SymbolRole::Declaration);
+    assert_eq!(declared.owner.target, None);
+    assert_eq!(declared.owner.trait_path.as_deref(), Some("Reader"));
+
+    let defaulted = find_function_identity(&batch, &["trait:Reader"], "default_read")
+        .expect("Reader::default_read");
+    assert_eq!(
+        defaulted.declaration_kind,
+        FunctionDeclarationKind::TraitDefaultMethod
+    );
+    assert_eq!(defaulted.symbol.role, SymbolRole::Definition);
+    assert_eq!(defaulted.owner.target, None);
+    assert_eq!(defaulted.owner.trait_path.as_deref(), Some("Reader"));
+}
+
+// --- 6. trait declaration vs implementation method: distinct, but source relationship survives -
+
+#[test]
+fn trait_declaration_and_implementation_method_are_distinct_but_share_an_observable_trait_path() {
+    let batch = extract_all("src/lib.rs", R4_4_CORPUS);
+    let declaration = find_function_identity(&batch, &["trait:Reader"], "read")
+        .expect("Reader::read declaration");
+    let implementation = function_identities_named(&batch, "read")
+        .into_iter()
+        .find(|identity| {
+            identity.declaration_kind == FunctionDeclarationKind::TraitImplementationMethod
+                && identity.owner.trait_path.as_deref() == Some("Reader")
+        })
+        .expect("Reader for Foo::read implementation");
+
+    // Distinct declarations -- never claimed to be "the same" function.
+    assert_ne!(declaration.identity_key(), implementation.identity_key());
+    // ...but the syntactic relationship (both name trait `Reader`) remains directly observable,
+    // never requiring re-derivation from a display string.
+    assert_eq!(
+        declaration.owner.trait_path,
+        implementation.owner.trait_path
+    );
+}
+
+// --- 7. associated function vs receiver method are distinguishable -----------------------------
+
+#[test]
+fn associated_function_is_distinguishable_from_a_receiver_method() {
+    let batch = extract_all("src/lib.rs", R4_4_CORPUS);
+    let create = find_function_identity(&batch, &["impl:Foo"], "create").expect("Foo::create");
+    let get = find_function_identity(&batch, &["impl:Foo"], "get").expect("Foo::get");
+    assert_eq!(
+        create.declaration_kind,
+        FunctionDeclarationKind::AssociatedFunction
+    );
+    assert_eq!(
+        get.declaration_kind,
+        FunctionDeclarationKind::InherentMethod
+    );
+    assert_ne!(create.identity_key(), get.identity_key());
+
+    let signature = find_function_signature(&batch, &["impl:Foo"], "create").unwrap();
+    assert!(
+        signature.parameters.is_empty(),
+        "an associated function has no receiver parameter"
+    );
+}
+
+// --- 8. generic function declaration produces deterministic identity ---------------------------
+
+#[test]
+fn generic_function_declaration_produces_a_deterministic_identity() {
+    let a = extract_all("src/lib.rs", R4_4_CORPUS);
+    let b = extract_all("src/lib.rs", R4_4_CORPUS);
+    let identity_a = find_function_identity(&a, &[], "generic").unwrap();
+    let identity_b = find_function_identity(&b, &[], "generic").unwrap();
+    assert_eq!(identity_a.identity_key(), identity_b.identity_key());
+    assert_eq!(identity_a.generics, vec!["T".to_owned()]);
+}
+
+// --- 9. generic parameter order/content participates in identity -------------------------------
+
+#[test]
+fn generic_parameter_content_participates_in_identity() {
+    let batch = extract_all("src/lib.rs", R4_4_CORPUS);
+    let single = find_function_identity(&batch, &[], "generic").unwrap();
+    let double = find_function_identity(&batch, &[], "generic_two").unwrap();
+    assert_eq!(single.generics, vec!["T".to_owned()]);
+    assert_eq!(double.generics, vec!["T".to_owned(), "U".to_owned()]);
+    assert_ne!(single.identity_key(), double.identity_key());
+}
+
+// --- 10. revision change produces revision-distinct identity (R4.4 corpus) ---------------------
+
+#[test]
+fn revision_change_alters_identity_for_r4_4_declaration_shapes() {
+    let a = RustSemanticExtractor.extract(&input_for(
+        "src/lib.rs",
+        R4_4_CORPUS,
+        "revision-a",
+        vec![SemanticDimension::FunctionIdentity],
+    ));
+    let b = RustSemanticExtractor.extract(&input_for(
+        "src/lib.rs",
+        R4_4_CORPUS,
+        "revision-b",
+        vec![SemanticDimension::FunctionIdentity],
+    ));
+    let identity_a = function_identities_named(&a, "get")
+        .into_iter()
+        .find(|i| owner_target_name(i) == Some("Foo"))
+        .unwrap();
+    let identity_b = function_identities_named(&b, "get")
+        .into_iter()
+        .find(|i| owner_target_name(i) == Some("Foo"))
+        .unwrap();
+    assert_ne!(identity_a.identity_key(), identity_b.identity_key());
+}
+
+// --- 11. repeated extraction is exactly deterministic over the R4.4 corpus ---------------------
+
+#[test]
+fn r4_4_corpus_extraction_is_deterministic() {
+    let a = extract_all("src/lib.rs", R4_4_CORPUS);
+    let b = extract_all("src/lib.rs", R4_4_CORPUS);
+    assert_eq!(a, b);
+}
+
+// --- 12. requested-dimension ordering does not change identities (R4.4 corpus) -----------------
+
+#[test]
+fn r4_4_corpus_is_unaffected_by_requested_dimension_order() {
+    let mut reversed = ALL_DIMENSIONS.to_vec();
+    reversed.reverse();
+    let forward = extract_all("src/lib.rs", R4_4_CORPUS);
+    let backward = extract("src/lib.rs", R4_4_CORPUS, reversed);
+    assert_eq!(forward.observations, backward.observations);
+}
+
+// --- 13. FunctionSignature refers to the correct, strengthened FunctionIdentity ----------------
+
+#[test]
+fn function_signature_carries_the_strengthened_function_identity() {
+    let batch = extract_all("src/lib.rs", R4_4_CORPUS);
+    let signature = find_function_signature(&batch, &["impl:Foo"], "get").unwrap();
+    assert_eq!(owner_target_name(&signature.function), Some("Foo"));
+    assert_eq!(
+        signature.function.declaration_kind,
+        FunctionDeclarationKind::InherentMethod
+    );
+
+    let trait_signature = batch
+        .observations
+        .iter()
+        .filter_map(|observation| match observation {
+            SemanticObservation::FunctionSignature(header)
+                if header.subject.function.symbol.name == "read"
+                    && header.subject.function.owner.trait_path.as_deref() == Some("Reader")
+                    && header.subject.function.declaration_kind
+                        == FunctionDeclarationKind::TraitImplementationMethod =>
+            {
+                Some(&header.subject)
+            }
+            _ => None,
+        })
+        .next()
+        .expect("Reader for Foo::read signature");
+    assert_eq!(owner_target_name(&trait_signature.function), Some("Foo"));
+}
+
+// --- 14. SymbolIdentity and FunctionIdentity remain coherent ------------------------------------
+
+#[test]
+fn symbol_and_function_identity_roles_remain_coherent() {
+    let batch = extract_all("src/lib.rs", R4_4_CORPUS);
+
+    let declared_symbol =
+        find_symbol(&batch, &["trait:Reader"], "read").expect("Reader::read symbol");
+    let declared_identity = find_function_identity(&batch, &["trait:Reader"], "read")
+        .expect("Reader::read function identity");
+    assert_eq!(declared_symbol.role, SymbolRole::Declaration);
+    assert_eq!(declared_identity.symbol.role, SymbolRole::Declaration);
+    assert_eq!(declared_symbol.role, declared_identity.symbol.role);
+
+    let defaulted_symbol =
+        find_symbol(&batch, &["trait:Reader"], "default_read").expect("default_read symbol");
+    let defaulted_identity = find_function_identity(&batch, &["trait:Reader"], "default_read")
+        .expect("default_read function identity");
+    assert_eq!(defaulted_symbol.role, SymbolRole::Definition);
+    assert_eq!(defaulted_identity.symbol.role, SymbolRole::Definition);
+}
+
+// --- 15. every observation satisfies is_dimension_consistent() (R4.4 corpus) -------------------
+
+#[test]
+fn r4_4_corpus_observations_satisfy_dimension_consistency() {
+    let batch = extract_all("src/lib.rs", R4_4_CORPUS);
+    assert!(!batch.observations.is_empty());
+    for observation in &batch.observations {
+        assert!(observation.is_dimension_consistent());
+    }
+}
+
+// --- nested module scope (mod nested { mod inner { fn run() } }) still closes identity ---------
+
+#[test]
+fn deeply_nested_module_function_has_its_own_distinct_identity() {
+    let batch = extract_all("src/lib.rs", R4_4_CORPUS);
+    let nested_run =
+        find_function_identity(&batch, &["nested", "inner"], "run").expect("nested::inner::run");
+    let a_run = find_function_identity(&batch, &["a"], "run").expect("a::run");
+    assert_ne!(nested_run.identity_key(), a_run.identity_key());
+    assert_eq!(
+        nested_run.declaration_kind,
+        FunctionDeclarationKind::FreeFunction
+    );
+}
+
+// --- Regression: future CALL safety. Four `execute()`s, all pairwise distinct ------------------
+
+#[test]
+fn four_same_named_execute_declarations_are_all_pairwise_distinct_function_identities() {
+    let batch = extract_all("src/lib.rs", CALL_SAFETY_CORPUS);
+
+    // Never produced this wave: no Call/ControlFlow/DataFlow/State/Effect observation exists.
+    assert!(batch.observations.iter().all(|observation| !matches!(
+        observation,
+        SemanticObservation::Call(_)
+            | SemanticObservation::ControlFlow(_)
+            | SemanticObservation::DataFlow(_)
+            | SemanticObservation::State(_)
+            | SemanticObservation::Effect(_)
+    )));
+
+    let a_execute = find_function_identity(&batch, &["a"], "execute").expect("a::execute");
+    let b_execute = find_function_identity(&batch, &["b"], "execute").expect("b::execute");
+    let x_execute = function_identities_named(&batch, "execute")
+        .into_iter()
+        .find(|identity| owner_target_name(identity) == Some("X"))
+        .expect("X::execute");
+    let y_execute = function_identities_named(&batch, "execute")
+        .into_iter()
+        .find(|identity| owner_target_name(identity) == Some("Y"))
+        .expect("Y::execute");
+
+    let all = [
+        a_execute.identity_key(),
+        b_execute.identity_key(),
+        x_execute.identity_key(),
+        y_execute.identity_key(),
+    ];
+    for (i, left) in all.iter().enumerate() {
+        for (j, right) in all.iter().enumerate() {
+            if i != j {
+                assert_ne!(
+                    left, right,
+                    "every `execute` declaration must be a pairwise-distinct FunctionIdentity \
+                     so a future CALL relation can target exactly one of them, never a bare \
+                     textual `\"execute\"` key"
+                );
+            }
+        }
+    }
+
+    // Each record_id (the stable identity a future CALL target would reference) is likewise
+    // pairwise distinct, derived from the strengthened identity_key -- never from display name.
+    let record_ids: std::collections::BTreeSet<&str> = batch
+        .observations
+        .iter()
+        .filter_map(|observation| match observation {
+            SemanticObservation::FunctionIdentity(header)
+                if header.subject.symbol.name == "execute" =>
+            {
+                Some(header.record_id.as_str())
+            }
+            _ => None,
+        })
+        .collect();
+    assert_eq!(record_ids.len(), 4);
 }
