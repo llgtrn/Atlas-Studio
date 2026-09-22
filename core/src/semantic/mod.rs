@@ -29,7 +29,7 @@ pub use function::{
 };
 pub use obligation::SemanticObligationRecord;
 pub use observation::SemanticObservation;
-pub use state::StateIdentity;
+pub use state::{StateAccessIdentity, StateAccessKind, StateResolution};
 pub use symbol::{SymbolIdentity, SymbolRole};
 pub use types::TypeIdentity;
 
