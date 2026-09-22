@@ -1,0 +1,140 @@
+{
+  "schema": "atlas.r4.verification-record.v1",
+  "wave": "R4.2.1",
+  "wave_title": "Harden verification evidence integrity and multi-extractor census accounting",
+  "identity": {
+    "base_commit_sha": "56f43fb8934eb8167f84479e6df8697243ead642",
+    "candidate_commit_sha": "3640d149500e86328bf423ffb5c705070fe45cbb",
+    "candidate_tree_sha": "3de0db2d40c58f190e6acf7c87b5be04871b7a22",
+    "branch": "claude/r4.2.1-hardening",
+    "commits_in_range": [
+      "38526f083d refactor: preserve per-extractor census obligations",
+      "2688cc6c3d fix: correct r4.2 verification record identities",
+      "3640d14950 fix: correct spliced timezone in merge commit timestamp"
+    ],
+    "note": "base_commit_sha == the merge commit recorded as merge_commit_sha in r4.2-verification-record.json; R4.2.1 branches from canonical main at that exact point."
+  },
+  "temporal": {
+    "base_commit_authored_at": "2026-09-22T15:09:13+09:00",
+    "candidate_commit_authored_at": "2026-09-22T07:32:32Z",
+    "verification_completed_at": null,
+    "note": "Git-authoritative author-date timestamps only (git show -s --format=%ad --date=iso-strict). verification_completed_at is left null: Git proves when commits were authored, not when local verification commands finished running, and no other authoritative source for that instant exists in this repository."
+  },
+  "toolchain": {
+    "pinned_by": "rust-toolchain.toml",
+    "channel": "1.90.0",
+    "rustc": "rustc 1.90.0 (1159e78c4 2025-09-14)",
+    "cargo": "cargo 1.90.0 (840b83a10 2025-07-30)",
+    "matches_ci_pin": true
+  },
+  "working_tree_clean": true,
+  "git_diff_check_exit": 0,
+  "cargo_lock_status": {
+    "diff_vs_base": "empty -- byte-identical to origin/main's Cargo.lock",
+    "intentional": true,
+    "reason": "This wave adds no new dependencies; it only edits existing modules and documentation/evidence files."
+  },
+  "ci_status": "UNAVAILABLE_INFRASTRUCTURE",
+  "ci_status_detail": "GitHub Actions assigns no runner at all, reproducing identically on main across many prior commits. Not a test/code failure; excluded from correctness verification per operator instruction. Same root cause documented in the R4.1 and R4.2 VerificationRecords.",
+  "diff_summary": {
+    "range": "56f43fb893..3640d14950",
+    "files_changed": 4,
+    "insertions": 500,
+    "deletions": 35,
+    "changed_files": [
+      ".atlas/evidence/verification/r4.2-verification-record.json",
+      "core/src/schema/mod.rs",
+      "runtime/src/census/extraction.rs",
+      "runtime/src/census/mod.rs"
+    ]
+  },
+  "verification_passes": [
+    {
+      "pass": "primary",
+      "performed_by": "this session, in-place checkout, clean target/ rebuild, pinned rustc 1.90.0",
+      "commands": {
+        "git status --porcelain": { "result": "clean" },
+        "git diff --check": { "exit_code": 0 },
+        "cargo fmt --all --check": { "exit_code": 0 },
+        "cargo clippy --workspace --all-targets -- -D warnings": { "exit_code": 0, "warnings": 0 },
+        "cargo test --workspace --locked": {
+          "exit_code": 0,
+          "totals": "56 passed, 0 failed, 0 ignored (19 adapter, 23 core, 14 runtime incl. 10 new tests in census::extraction::multi_extractor_tests)"
+        },
+        "cargo test --workspace --doc --locked": { "exit_code": 0, "doctests": 0 },
+        "cargo run -q -p atlas-cli -- docs audit --root .atlas": {
+          "exit_code": 0,
+          "gate_ready": true,
+          "hard_violations_total": 0,
+          "required_control_docs_missing": []
+        }
+      }
+    },
+    {
+      "pass": "independent (round 1, commit 2688cc6c3d, superseded by round 2 below)",
+      "performed_by": "fresh subagent, isolated git worktree (/tmp/independent-verify-r421), no shared context",
+      "commit_confirmed_exact_match": true,
+      "commands_all_exit_0": true,
+      "test_totals": "56 passed, 0 failed, 0 ignored",
+      "docs_gate": "gate_ready=true, hard_violations_total=0",
+      "finding": "Caught a real bug: merge_commit_authored_at was '2026-09-22T06:09:13+09:00', splicing the UTC clock value with the +09:00 offset label -- an instant before the commits it was supposed to postdate. Fixed in commit 3640d14950.",
+      "verdict": "VERIFIED (implementation), with one non-blocking evidence-metadata defect flagged"
+    },
+    {
+      "pass": "independent (round 2, final candidate commit 3640d149500e86328bf423ffb5c705070fe45cbb)",
+      "performed_by": "fresh subagent, isolated git worktree (/tmp/independent-verify-r421-final), no shared context",
+      "commit_confirmed_exact_match": true,
+      "commands": {
+        "git status --porcelain": { "result": "clean" },
+        "git diff --check": { "exit_code": 0 },
+        "cargo fmt --all --check": { "exit_code": 0 },
+        "cargo clippy --workspace --all-targets -- -D warnings": { "exit_code": 0 },
+        "cargo test --workspace --locked": {
+          "exit_code": 0,
+          "totals": "19 adapter + 23 core + 14 runtime = 56 passed, 0 failed, 0 ignored"
+        },
+        "cargo test --workspace --doc --locked": { "exit_code": 0, "doctests": 0 },
+        "cargo run -q -p atlas-cli -- docs audit --root .atlas": {
+          "exit_code": 0,
+          "gate_ready": true,
+          "hard_violations_total": 0,
+          "required_control_docs_missing": []
+        }
+      },
+      "identity_reconfirmation": "Independently re-derived tree SHAs via `git cat-file -p` for candidate be8cbbeb57 (tree 7e0e462f...), verification-record b6c2b664d6 (tree cc89f404...), merge 56f43fb893 (tree cc89f404...) against the whole repo (not just the worktree): all match r4.2-verification-record.json's identity block exactly.",
+      "temporal_reconfirmation": "Independently re-derived author dates via `git show -s --format=%ad --date=iso-strict`: candidate 2026-09-22T06:02:02Z, evidence 2026-09-22T06:08:20Z, merge 2026-09-22T15:09:13+09:00 -- all match r4.2-verification-record.json's corrected temporal block exactly, including confirming merge_commit_authored_at is the corrected value (not the buggy one), and that candidate < evidence < merge holds in absolute time.",
+      "last_write_wins_removal_confirmed": "grep -rn 'fn merge_batch_into_coverage' across the whole repository: zero matches (function no longer exists as production code; only historical prose mentions remain in the older evidence JSON). CensusExtractionAccounting::record_batch only calls self.records.push(...) on a Vec -- no .insert() call anywhere in the file.",
+      "diff_range_sanity": "Only the 4 files listed in diff_summary changed; no CI/workflow files touched; zero #[ignore]/--no-verify/skip-test markers; no new epistemic-status-like duplicate enum introduced (grepped for 'enum.*Status'/'enum.*Coverage' -- only the existing canonical EpistemicStatus is used).",
+      "red_flags": "One non-blocking note: r4.2-verification-record.json's corrected_by field references .atlas/evidence/verification/r4.2.1-verification-record.json, which did not exist yet at commit 3640d14950 -- resolved by this file's own creation in the next commit of this same branch/PR.",
+      "verdict": "VERIFIED"
+    }
+  ],
+  "no_tests_lints_gates_disabled": true,
+  "no_verify_bypass_used": false,
+  "overall_verdict": "VERIFIED",
+  "evidence_fix": {
+    "candidate_commit": "be8cbbeb57f68542ee2a7bcb2af5e0e45ae3a949",
+    "candidate_tree": "7e0e462f6997b9d07d718f5350009db90283442d",
+    "evidence_commit": "b6c2b664d641da637a868a31fe35e4b8ae989592",
+    "evidence_tree": "cc89f404fa8908f621cf40d6bb7aa7ffdfae4e6d",
+    "merge_commit": "56f43fb8934eb8167f84479e6df8697243ead642",
+    "merge_tree": "cc89f404fa8908f621cf40d6bb7aa7ffdfae4e6d",
+    "temporal_correction": "recorded_at (fabricated, predated its own subject commits) replaced by three git-authoritative author-date timestamps; a first correction attempt introduced a new timezone-splice bug in merge_commit_authored_at, caught by independent verification round 1 and fixed before round 2."
+  },
+  "accounting_fix": {
+    "old_behavior": "runtime::census::extraction::merge_batch_into_coverage performed coverage.insert(dimension.as_str(), obligation.status) for every obligation in every recorded batch, unconditionally overwriting whatever an earlier batch had written for the same dimension key. Two independent extractors disagreeing on one dimension (e.g. Extractor A: SYMBOL -> OBSERVED, Extractor B: SYMBOL -> UNKNOWN) collapsed to whichever ran last -- a traversal-order-dependent semantic result forbidden by SEMANTIC-EXTRACTION.md#multi-engine-extraction.",
+    "new_behavior": "runtime::census::CensusExtractionAccounting::record_batch appends every ObligationResult as an ExtractorObligationRecord {artifact, extractor, obligation}; nothing is ever removed or overwritten. records_for(dimension) returns every preserved record for that dimension across every extractor/artifact. sorted() gives a deterministic publication order (SemanticDimension -> ExtractorIdentity -> ArtifactId -> stable record identity) that is representation only, never a truth ranking. No automatic reconciliation, no synthesized CONFLICT status, no 'X beats Y' rule of any kind was introduced.",
+    "bootstrap_coverage_map_status": "CensusReport.coverage (core/src/schema/mod.rs) is now explicitly documented as a noncanonical bootstrap/derived projection, never populated by CensusExtractionAccounting; build_census's own internal 12-dimension coverage map (fixed in R4.2) is untouched by this wave."
+  },
+  "contract_clauses_satisfied": [
+    ".atlas/contracts/SEMANTIC-EXTRACTION.md#multi-engine-extraction (independent extractors' results remain separately attributable; one may not overwrite another -- proven by 10 dedicated tests)",
+    ".atlas/contracts/NORMALIZATION.md#conflict-handling (disagreement is preserved, not resolved, this wave; no automatic reconciliation rule was implemented)",
+    ".atlas/decisions/0002-epistemic-status-model.md (EpistemicStatus remains the sole canonical taxonomy; no CoverageStatus/AggregatedStatus/etc. was introduced)"
+  ],
+  "still_unsupported": [
+    "No real Rust (or any language) deep semantic analyzer -- R4.3+",
+    "CensusExtractionAccounting is not yet wired into build_census's production call graph (same deferred status as its predecessor merge_batch_into_coverage)",
+    "Reconciliation of disagreeing extractor results (choosing/merging a winner, emitting CONFLICT) remains entirely out of scope -- explicitly deferred to a later wave",
+    "OwnershipFact/ConcurrencyFact/PersistenceFact identity kernels remain unmaterialized (R4.10)"
+  ]
+}
