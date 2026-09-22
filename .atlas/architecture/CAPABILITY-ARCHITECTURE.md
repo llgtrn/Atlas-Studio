@@ -49,7 +49,7 @@ CandidateDesign
 SelectedDesign
         ↓
 EXECUTABLE WORLD
-SEALED *.atlas → deterministic *.atlasx/ → compiler → product
+SEALED *.atlas → recursive selected-system closure → *.atlasx binary capsule → compiler → product
         ↓
 runtime evidence → recensus
 ```
