@@ -22,12 +22,12 @@ Build an independent engineering-world compiler capable of strict corpus account
 8. Research correlation, gap graph, invention candidates and selected-design graph.
 9. Donor Technology Genome extraction and cross-donor mechanism comparison.
 10. Atlas Development Language semantic genesis: evolve ADL0 declarations into typed language constructs that lower into the same canonical semantic world.
-14. Deterministic ADL → typed records → logical ATLAS compilation path.
-15. Deterministic general ATLASX executable representation.
-16. Organism Genome v1 and Digital Organism target profile: Genome → Organ → Circuit → Trait → Model → Weight → Memory → Body → Lifecycle.
-11. Organism persistent identity and lifecycle substrate.
-12. Model/provider binding plus candidate weight/model admission.
-13. Memory/learning/adaptation substrate.
+11. Deterministic ADL → typed records → logical ATLAS compilation path.
+12. Deterministic general ATLASX executable representation.
+13. Organism Genome v1 and Digital Organism target profile: Genome → Organ → Circuit → Trait → Model → Weight → Memory → Body → Lifecycle.
+14. Organism persistent identity and lifecycle substrate.
+15. Model/provider binding plus candidate weight/model admission.
+16. Memory/learning/adaptation substrate.
 17. Homeostasis and metabolism substrate.
 18. Body/environment capability adapters and authority boundaries.
 19. Phase 1 delegated Rust/TypeScript/bounded-C compiler.
