@@ -140,6 +140,7 @@ mod tests {
             supported,
             vec![
                 "CALL",
+                "CONTROL_FLOW",
                 "FUNCTION_IDENTITY",
                 "FUNCTION_SIGNATURE",
                 "SYMBOL",

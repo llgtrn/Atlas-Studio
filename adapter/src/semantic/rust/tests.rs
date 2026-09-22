@@ -10,10 +10,10 @@ use super::super::batch::ExtractionBatch;
 use super::super::extractor::{ExtractionInput, SemanticExtractor};
 use super::{RustSemanticExtractor, spelling};
 use atlas_core::{
-    ArtifactId, CallDispatchKind, CallSiteIdentity, ContentFingerprint, EpistemicStatus,
-    FunctionDeclarationKind, FunctionIdentity, FunctionSignature, RepositoryId, RevisionRef,
-    SemanticDimension, SemanticObservation, SemanticRecordId, SymbolIdentity, SymbolRole,
-    TypeIdentity,
+    ArtifactId, CallDispatchKind, CallSiteIdentity, ContentFingerprint, ControlFlowBlockIdentity,
+    ControlFlowBlockKind, ControlFlowEdgeKind, EpistemicStatus, FunctionDeclarationKind,
+    FunctionIdentity, FunctionSignature, RepositoryId, RevisionRef, SemanticDimension,
+    SemanticObservation, SemanticRecordId, SymbolIdentity, SymbolRole, TypeIdentity,
 };
 
 const ALL_DIMENSIONS: [SemanticDimension; 12] = [
@@ -31,8 +31,7 @@ const ALL_DIMENSIONS: [SemanticDimension; 12] = [
     SemanticDimension::Persistence,
 ];
 
-const UNSUPPORTED_DIMENSIONS: [SemanticDimension; 7] = [
-    SemanticDimension::ControlFlow,
+const UNSUPPORTED_DIMENSIONS: [SemanticDimension; 6] = [
     SemanticDimension::DataFlow,
     SemanticDimension::State,
     SemanticDimension::Effect,
@@ -272,6 +271,85 @@ pub fn caller_no_calls() -> u64 {
 }
 "#;
 
+/// R4.6 CONTROL_FLOW corpus: straight-line, `if`/`if-else`/else-if chain, `while` (may-not-enter),
+/// labeled nested loops with a labeled `break` resolving through an intermediate unlabeled loop,
+/// an unresolved (unmatched-label) `break`, an unconditional panic, and a `match`.
+const CFG_CORPUS: &str = r#"
+pub fn straight_line() -> u64 {
+    let x = 1;
+    let y = 2;
+    x + y
+}
+
+pub fn simple_if(cond: bool) -> u64 {
+    if cond {
+        return 1;
+    }
+    2
+}
+
+pub fn if_else(cond: bool) -> u64 {
+    if cond {
+        1
+    } else {
+        2
+    }
+}
+
+pub fn else_if_chain(x: u64) -> u64 {
+    if x == 0 {
+        0
+    } else if x == 1 {
+        1
+    } else {
+        2
+    }
+}
+
+pub fn while_loop(n: u64) -> u64 {
+    let mut i = 0;
+    while i < n {
+        i += 1;
+    }
+    i
+}
+
+pub fn labeled_break(n: u64) -> u64 {
+    'outer: loop {
+        loop {
+            if n > 0 {
+                break 'outer;
+            }
+        }
+    }
+    n
+}
+
+pub fn unresolved_break() -> u64 {
+    loop {
+        break 'nowhere;
+    }
+}
+
+pub fn panics_unconditionally() -> u64 {
+    panic!("boom")
+}
+
+pub fn matches_on_value(x: u64) -> u64 {
+    match x {
+        0 => 10,
+        1 => {
+            return 20;
+        }
+        _ => 30,
+    }
+}
+
+pub fn no_calls_no_branches() -> u64 {
+    42
+}
+"#;
+
 fn input_for(
     artifact_path: &str,
     source: &str,
@@ -438,6 +516,33 @@ fn calls_by_caller<'a>(
         .into_iter()
         .filter(|call| call.function == caller_id)
         .collect()
+}
+
+fn all_control_flow_blocks(batch: &ExtractionBatch) -> Vec<&ControlFlowBlockIdentity> {
+    batch
+        .observations
+        .iter()
+        .filter_map(|observation| match observation {
+            SemanticObservation::ControlFlow(header) => Some(&header.subject),
+            _ => None,
+        })
+        .collect()
+}
+
+/// Every ControlFlow block observation whose `function` is exactly `caller`'s `FunctionIdentity`
+/// record_id, sorted by `block_index` for deterministic assertions.
+fn control_flow_blocks_for<'a>(
+    batch: &'a ExtractionBatch,
+    caller: &FunctionIdentity,
+) -> Vec<&'a ControlFlowBlockIdentity> {
+    let caller_id =
+        SemanticRecordId::new(SemanticDimension::FunctionIdentity, &caller.identity_key());
+    let mut blocks: Vec<&ControlFlowBlockIdentity> = all_control_flow_blocks(batch)
+        .into_iter()
+        .filter(|block| block.function == caller_id)
+        .collect();
+    blocks.sort_by_key(|block| block.block_index);
+    blocks
 }
 
 // --- 1. free/public function symbol observation ------------------------------------------------
@@ -680,16 +785,25 @@ fn the_users_example_from_the_contract_note_extracts_as_documented() {
     );
 
     // `todo!()` is a macro invocation (`syn::Expr::Macro`), not a `syn::Expr::Call` -- so even
-    // with R4.5 CALL support, this body contributes no Call observation. ControlFlow/DataFlow/
-    // State/Effect remain wholly unclaimed this wave regardless of body content.
+    // with R4.5 CALL support, this body contributes no Call observation. DataFlow/State/Effect
+    // remain wholly unclaimed this wave regardless of body content.
     assert!(batch.observations.iter().all(|observation| !matches!(
         observation,
         SemanticObservation::Call(_)
-            | SemanticObservation::ControlFlow(_)
             | SemanticObservation::DataFlow(_)
             | SemanticObservation::State(_)
             | SemanticObservation::Effect(_)
     )));
+
+    // R4.6: `todo!()` IS panic-like, so `load_user`'s single FunctionEntry block gets a real
+    // Panic terminator edge.
+    let load_user = find_function_identity(&batch, &["users"], "load_user").unwrap();
+    let blocks = control_flow_blocks_for(&batch, load_user);
+    assert_eq!(blocks.len(), 1);
+    assert!(blocks[0].is_entry);
+    assert_eq!(blocks[0].successors.len(), 1);
+    assert_eq!(blocks[0].successors[0].kind, ControlFlowEdgeKind::Panic);
+    assert!(blocks[0].successors[0].target.is_none());
 }
 
 // --- 19. malformed Rust: ParseFailure + UNKNOWN for supported dims, UNSUPPORTED for the rest ----
@@ -712,6 +826,7 @@ fn malformed_rust_produces_parse_failure_and_unknown_for_supported_dimensions() 
         SemanticDimension::FunctionIdentity,
         SemanticDimension::FunctionSignature,
         SemanticDimension::Call,
+        SemanticDimension::ControlFlow,
     ] {
         let obligation = batch.obligation_for(dimension).unwrap();
         assert_eq!(obligation.status, EpistemicStatus::Unknown);
@@ -1243,11 +1358,12 @@ fn four_same_named_execute_declarations_are_all_pairwise_distinct_function_ident
     let batch = extract_all("src/lib.rs", CALL_SAFETY_CORPUS);
 
     // Every declaration here has an empty body (`{}`), so no Call observation is produced even
-    // with R4.5 CALL support; ControlFlow/DataFlow/State/Effect remain wholly unclaimed this wave.
+    // with R4.5 CALL support; DataFlow/State/Effect remain wholly unclaimed this wave. R4.6 CALL
+    // FLOW still produces one (trivial, Return-terminated) FunctionEntry block per function --
+    // an empty body is not the same as "no body."
     assert!(batch.observations.iter().all(|observation| !matches!(
         observation,
         SemanticObservation::Call(_)
-            | SemanticObservation::ControlFlow(_)
             | SemanticObservation::DataFlow(_)
             | SemanticObservation::State(_)
             | SemanticObservation::Effect(_)
@@ -1473,6 +1589,375 @@ fn repeated_extraction_yields_stable_call_record_ids() {
     let second: Vec<String> = calls_by_caller(&batch2, caller2)
         .into_iter()
         .map(CallSiteIdentity::identity_key)
+        .collect();
+
+    assert_eq!(first, second);
+    assert!(!first.is_empty());
+}
+
+// =================================================================================================
+// R4.6: CONTROL_FLOW semantics
+// =================================================================================================
+
+fn edge_kinds(block: &ControlFlowBlockIdentity) -> Vec<ControlFlowEdgeKind> {
+    block.successors.iter().map(|edge| edge.kind).collect()
+}
+
+// --- 34. a straight-line body produces exactly one block, falling through to Return -------------
+
+#[test]
+fn straight_line_body_produces_one_entry_block_that_returns() {
+    let batch = extract_all("src/lib.rs", CFG_CORPUS);
+    let caller = find_function_identity(&batch, &[], "straight_line").unwrap();
+    let blocks = control_flow_blocks_for(&batch, caller);
+    assert_eq!(blocks.len(), 1);
+    assert!(blocks[0].is_entry);
+    assert_eq!(blocks[0].kind, ControlFlowBlockKind::FunctionEntry);
+    assert_eq!(edge_kinds(blocks[0]), vec![ControlFlowEdgeKind::Return]);
+    assert!(blocks[0].successors[0].target.is_none());
+}
+
+// --- 35. `if` with no `else`, followed by more code: Branch to the then-block, Fallthrough to
+//     a real join block for the "condition false" case -----------------------------------------
+
+#[test]
+fn if_with_no_else_produces_a_join_block_for_the_false_case() {
+    let batch = extract_all("src/lib.rs", CFG_CORPUS);
+    let caller = find_function_identity(&batch, &[], "simple_if").unwrap();
+    let blocks = control_flow_blocks_for(&batch, caller);
+    assert_eq!(blocks.len(), 3, "entry + then-branch + join");
+
+    let entry = blocks.iter().find(|b| b.is_entry).unwrap();
+    assert_eq!(entry.kind, ControlFlowBlockKind::FunctionEntry);
+    let mut entry_kinds = edge_kinds(entry);
+    entry_kinds.sort();
+    assert_eq!(
+        entry_kinds,
+        vec![
+            ControlFlowEdgeKind::Fallthrough,
+            ControlFlowEdgeKind::Branch
+        ]
+    );
+
+    let then_block = blocks
+        .iter()
+        .find(|b| b.kind == ControlFlowBlockKind::IfThen)
+        .expect("an IfThen block");
+    // `return 1;` inside the then-branch always returns, regardless of the join.
+    assert_eq!(edge_kinds(then_block), vec![ControlFlowEdgeKind::Return]);
+
+    let join = blocks
+        .iter()
+        .find(|b| b.kind == ControlFlowBlockKind::Continuation)
+        .expect("a join/continuation block for the code after the if");
+    // The join's own tail (`2`) falls through to the function's implicit return.
+    assert_eq!(edge_kinds(join), vec![ControlFlowEdgeKind::Return]);
+
+    // The entry's Fallthrough edge must land exactly on the join block.
+    let fallthrough_target = entry
+        .successors
+        .iter()
+        .find(|edge| edge.kind == ControlFlowEdgeKind::Fallthrough)
+        .and_then(|edge| edge.target.as_ref());
+    let join_record_id =
+        SemanticRecordId::new(SemanticDimension::ControlFlow, &join.identity_key());
+    assert_eq!(fallthrough_target, Some(&join_record_id));
+}
+
+// --- 36. `if`/`else` (both blocks): two Branch edges, no join block needed when the if is the
+//     function's own tail ------------------------------------------------------------------------
+
+#[test]
+fn if_else_produces_two_branch_edges_and_no_unnecessary_join() {
+    let batch = extract_all("src/lib.rs", CFG_CORPUS);
+    let caller = find_function_identity(&batch, &[], "if_else").unwrap();
+    let blocks = control_flow_blocks_for(&batch, caller);
+    // entry + then + else -- no Continuation block, since nothing follows the if.
+    assert_eq!(blocks.len(), 3);
+    assert!(
+        blocks
+            .iter()
+            .all(|b| b.kind != ControlFlowBlockKind::Continuation)
+    );
+
+    let entry = blocks.iter().find(|b| b.is_entry).unwrap();
+    assert_eq!(
+        edge_kinds(entry),
+        vec![ControlFlowEdgeKind::Branch, ControlFlowEdgeKind::Branch]
+    );
+
+    let then_block = blocks
+        .iter()
+        .find(|b| b.kind == ControlFlowBlockKind::IfThen)
+        .unwrap();
+    let else_block = blocks
+        .iter()
+        .find(|b| b.kind == ControlFlowBlockKind::IfElse)
+        .unwrap();
+    assert_eq!(edge_kinds(then_block), vec![ControlFlowEdgeKind::Return]);
+    assert_eq!(edge_kinds(else_block), vec![ControlFlowEdgeKind::Return]);
+}
+
+// --- 37. an else-if chain flattens into one decision point with N Branch edges ------------------
+
+#[test]
+fn else_if_chain_flattens_into_one_multi_branch_decision_point() {
+    let batch = extract_all("src/lib.rs", CFG_CORPUS);
+    let caller = find_function_identity(&batch, &[], "else_if_chain").unwrap();
+    let blocks = control_flow_blocks_for(&batch, caller);
+    // entry + 3 arm bodies (if/else-if/else), no separate block for the nested condition itself.
+    assert_eq!(blocks.len(), 4);
+
+    let entry = blocks.iter().find(|b| b.is_entry).unwrap();
+    assert_eq!(
+        edge_kinds(entry),
+        vec![
+            ControlFlowEdgeKind::Branch,
+            ControlFlowEdgeKind::Branch,
+            ControlFlowEdgeKind::Branch
+        ]
+    );
+    // Every branch target is distinct.
+    let targets: std::collections::BTreeSet<&SemanticRecordId> = entry
+        .successors
+        .iter()
+        .filter_map(|edge| edge.target.as_ref())
+        .collect();
+    assert_eq!(targets.len(), 3);
+}
+
+// --- 38. a `while` loop may skip its body entirely: Branch to body + Fallthrough past the loop --
+
+#[test]
+fn while_loop_has_a_may_not_enter_edge_and_a_self_loop_repeat_edge() {
+    let batch = extract_all("src/lib.rs", CFG_CORPUS);
+    let caller = find_function_identity(&batch, &[], "while_loop").unwrap();
+    let blocks = control_flow_blocks_for(&batch, caller);
+
+    let entry = blocks.iter().find(|b| b.is_entry).unwrap();
+    let mut entry_kinds = edge_kinds(entry);
+    entry_kinds.sort();
+    assert_eq!(
+        entry_kinds,
+        vec![
+            ControlFlowEdgeKind::Fallthrough,
+            ControlFlowEdgeKind::Branch
+        ],
+        "entering the loop AND skipping it entirely must both be real edges"
+    );
+
+    let body = blocks
+        .iter()
+        .find(|b| b.kind == ControlFlowBlockKind::WhileBody)
+        .expect("a WhileBody block");
+    // The body falls through to itself (LoopRepeat), a genuine self-loop edge.
+    assert_eq!(edge_kinds(body), vec![ControlFlowEdgeKind::LoopRepeat]);
+    let self_target = body.successors[0].target.as_ref().unwrap();
+    let body_record_id =
+        SemanticRecordId::new(SemanticDimension::ControlFlow, &body.identity_key());
+    assert_eq!(self_target, &body_record_id);
+}
+
+// --- 39. a `loop` (never `while`/`for`) has NO may-not-enter edge: it always executes at least
+//     once ----------------------------------------------------------------------------------------
+
+#[test]
+fn bare_loop_has_no_skip_edge() {
+    let batch = extract_all("src/lib.rs", CFG_CORPUS);
+    let caller = find_function_identity(&batch, &[], "unresolved_break").unwrap();
+    let blocks = control_flow_blocks_for(&batch, caller);
+    let entry = blocks.iter().find(|b| b.is_entry).unwrap();
+    // Only one way forward: into the loop body. A bare `loop` can only be left via `break`.
+    assert_eq!(edge_kinds(entry), vec![ControlFlowEdgeKind::Branch]);
+}
+
+// --- 40. a labeled `break` resolves through an intermediate unlabeled loop to the correct outer
+//     loop's own continuation, not the nearest (unlabeled) enclosing loop -----------------------
+
+#[test]
+fn labeled_break_resolves_through_an_intermediate_unlabeled_loop() {
+    let batch = extract_all("src/lib.rs", CFG_CORPUS);
+    let caller = find_function_identity(&batch, &[], "labeled_break").unwrap();
+    let blocks = control_flow_blocks_for(&batch, caller);
+
+    // Exactly one block has a Break edge (the `if n > 0 { break 'outer; }` then-branch).
+    let break_blocks: Vec<_> = blocks
+        .iter()
+        .filter(|b| edge_kinds(b).contains(&ControlFlowEdgeKind::Break))
+        .collect();
+    assert_eq!(break_blocks.len(), 1);
+    let break_edge = break_blocks[0]
+        .successors
+        .iter()
+        .find(|e| e.kind == ControlFlowEdgeKind::Break)
+        .unwrap();
+    // It must resolve to a concrete target (the code after the OUTER labeled loop, i.e. the
+    // block containing `n`), not Unresolved and not the inner unlabeled loop's own repeat point.
+    let target = break_edge.target.as_ref().expect("a resolved break target");
+
+    // The target must be the join/continuation block that contains the final `n` -- i.e. NOT
+    // any block whose own kind is LoopBody (which would indicate it incorrectly resolved to a
+    // loop-repeat point instead of the code after the outer loop).
+    let target_block = blocks
+        .iter()
+        .find(|b| {
+            &SemanticRecordId::new(SemanticDimension::ControlFlow, &b.identity_key()) == target
+        })
+        .expect("the break target must be one of this function's own blocks");
+    assert_ne!(target_block.kind, ControlFlowBlockKind::LoopBody);
+    assert_eq!(edge_kinds(target_block), vec![ControlFlowEdgeKind::Return]);
+
+    // Two distinct LoopBody blocks exist (outer loop's body, inner loop's body).
+    let loop_bodies: Vec<_> = blocks
+        .iter()
+        .filter(|b| b.kind == ControlFlowBlockKind::LoopBody)
+        .collect();
+    assert_eq!(loop_bodies.len(), 2);
+}
+
+// --- 41. a `break` whose label matches no enclosing loop is explicit UNRESOLVED, never dropped --
+
+#[test]
+fn unmatched_labeled_break_is_explicitly_unresolved() {
+    let batch = extract_all("src/lib.rs", CFG_CORPUS);
+    let caller = find_function_identity(&batch, &[], "unresolved_break").unwrap();
+    let blocks = control_flow_blocks_for(&batch, caller);
+    let unresolved_blocks: Vec<_> = blocks
+        .iter()
+        .filter(|b| edge_kinds(b).contains(&ControlFlowEdgeKind::Unresolved))
+        .collect();
+    assert_eq!(unresolved_blocks.len(), 1);
+    let edge = unresolved_blocks[0]
+        .successors
+        .iter()
+        .find(|e| e.kind == ControlFlowEdgeKind::Unresolved)
+        .unwrap();
+    assert!(edge.target.is_none());
+}
+
+// --- 42. an unconditional panic-like macro produces a Panic edge, never fallthrough --------------
+
+#[test]
+fn unconditional_panic_produces_a_panic_edge() {
+    let batch = extract_all("src/lib.rs", CFG_CORPUS);
+    let caller = find_function_identity(&batch, &[], "panics_unconditionally").unwrap();
+    let blocks = control_flow_blocks_for(&batch, caller);
+    assert_eq!(blocks.len(), 1);
+    assert_eq!(edge_kinds(blocks[0]), vec![ControlFlowEdgeKind::Panic]);
+    assert!(blocks[0].successors[0].target.is_none());
+}
+
+// --- 43. a `match` produces one Branch edge per arm, each arm its own MatchArm block ------------
+
+#[test]
+fn match_produces_one_branch_edge_per_arm() {
+    let batch = extract_all("src/lib.rs", CFG_CORPUS);
+    let caller = find_function_identity(&batch, &[], "matches_on_value").unwrap();
+    let blocks = control_flow_blocks_for(&batch, caller);
+    // entry + 3 arms.
+    assert_eq!(blocks.len(), 4);
+
+    let entry = blocks.iter().find(|b| b.is_entry).unwrap();
+    assert_eq!(
+        edge_kinds(entry),
+        vec![
+            ControlFlowEdgeKind::Branch,
+            ControlFlowEdgeKind::Branch,
+            ControlFlowEdgeKind::Branch
+        ]
+    );
+
+    let arms: Vec<_> = blocks
+        .iter()
+        .filter(|b| b.kind == ControlFlowBlockKind::MatchArm)
+        .collect();
+    assert_eq!(arms.len(), 3);
+    // Every arm -- whether a bare expression (`10`, `30`) or an explicit `return 20;` -- resolves
+    // to Return, since this match is the function's own tail expression.
+    for arm in &arms {
+        assert_eq!(edge_kinds(arm), vec![ControlFlowEdgeKind::Return]);
+    }
+}
+
+// --- 44. every ControlFlow observation satisfies dimension consistency, and CALL/ControlFlow
+//     coexist without interfering with each other -------------------------------------------------
+
+#[test]
+fn control_flow_observations_satisfy_dimension_consistency_alongside_call() {
+    let batch = extract_all("src/lib.rs", CFG_CORPUS);
+    let mut saw_control_flow = false;
+    for observation in &batch.observations {
+        if matches!(observation, SemanticObservation::ControlFlow(_)) {
+            saw_control_flow = true;
+        }
+        assert!(observation.is_dimension_consistent());
+    }
+    assert!(saw_control_flow);
+}
+
+// --- 45. CFG extraction is byte-for-byte deterministic across repeated runs ----------------------
+
+#[test]
+fn cfg_corpus_extraction_is_deterministic() {
+    let first = extract_all("src/lib.rs", CFG_CORPUS);
+    let second = extract_all("src/lib.rs", CFG_CORPUS);
+    assert_eq!(first.observations, second.observations);
+    assert_eq!(first.evidence, second.evidence);
+}
+
+// --- 46. CFG extraction is unaffected by requested-dimension order ------------------------------
+
+#[test]
+fn cfg_corpus_is_unaffected_by_requested_dimension_order() {
+    let forward = extract(
+        "src/lib.rs",
+        CFG_CORPUS,
+        vec![
+            SemanticDimension::Symbol,
+            SemanticDimension::FunctionIdentity,
+            SemanticDimension::ControlFlow,
+        ],
+    );
+    let reversed = extract(
+        "src/lib.rs",
+        CFG_CORPUS,
+        vec![
+            SemanticDimension::ControlFlow,
+            SemanticDimension::FunctionIdentity,
+            SemanticDimension::Symbol,
+        ],
+    );
+    assert_eq!(forward.observations, reversed.observations);
+}
+
+// --- 47. a function with no calls and no branches produces exactly one trivial CFG block --------
+
+#[test]
+fn no_branches_function_produces_exactly_one_block() {
+    let batch = extract_all("src/lib.rs", CFG_CORPUS);
+    let caller = find_function_identity(&batch, &[], "no_calls_no_branches").unwrap();
+    let blocks = control_flow_blocks_for(&batch, caller);
+    assert_eq!(blocks.len(), 1);
+    assert!(blocks[0].is_entry);
+}
+
+// --- 48. block record_ids are stable identity: identical source re-extracted twice produces the
+//     exact same block record_ids and edge targets, never dependent on traversal/hash order -----
+
+#[test]
+fn repeated_extraction_yields_stable_control_flow_record_ids_and_edges() {
+    let batch = extract_all("src/lib.rs", CFG_CORPUS);
+    let caller = find_function_identity(&batch, &[], "labeled_break").unwrap();
+    let first: Vec<String> = control_flow_blocks_for(&batch, caller)
+        .into_iter()
+        .map(ControlFlowBlockIdentity::identity_key)
+        .collect();
+
+    let batch2 = extract_all("src/lib.rs", CFG_CORPUS);
+    let caller2 = find_function_identity(&batch2, &[], "labeled_break").unwrap();
+    let second: Vec<String> = control_flow_blocks_for(&batch2, caller2)
+        .into_iter()
+        .map(ControlFlowBlockIdentity::identity_key)
         .collect();
 
     assert_eq!(first, second);
