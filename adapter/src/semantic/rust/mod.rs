@@ -1,8 +1,9 @@
-//! Real Rust semantic extractor (R4.3-R4.5).
+//! Real Rust semantic extractor (R4.3-R4.6).
 //!
-//! Scope is five dimensions: SYMBOL, TYPE, FUNCTION_IDENTITY, FUNCTION_SIGNATURE, CALL. Every
-//! other requested dimension (CONTROL_FLOW, DATA_FLOW, STATE, EFFECT, OWNERSHIP, CONCURRENCY,
-//! PERSISTENCE) is always explicit `UNSUPPORTED` here — R4.6+ territory, never silently omitted.
+//! Scope is six dimensions: SYMBOL, TYPE, FUNCTION_IDENTITY, FUNCTION_SIGNATURE, CALL,
+//! CONTROL_FLOW. Every other requested dimension (DATA_FLOW, STATE, EFFECT, OWNERSHIP,
+//! CONCURRENCY, PERSISTENCE) is always explicit `UNSUPPORTED` here — R4.7+ territory, never
+//! silently omitted.
 //!
 //! Parses `input.source_text` with `syn` (a real Rust parser, not regex/ad-hoc text scanning).
 //! Parsing untrusted source text never authorizes executing it: this extractor never runs
@@ -16,10 +17,15 @@
 //! `TypeIdentity.canonical` stays `None` for every observation this extractor produces, and every
 //! `CALL` observation (R4.5) stays `CallDispatchKind::Unresolved` with an empty `callees` list --
 //! this extractor has no `use`-import tracking or type inference, so it can soundly observe WHERE
-//! a call syntactically occurs and WHO makes it, never WHOM it calls. A malformed file never
+//! a call syntactically occurs and WHO makes it, never WHOM it calls. CONTROL_FLOW (R4.6) is
+//! different in kind: a function's control-flow structure is fully determined by Rust's own syntax
+//! and language semantics, not by name/type resolution, so real successor edges ARE computed (see
+//! `cfg.rs`) -- `ControlFlowEdgeKind::Unresolved` is used only for genuinely ambiguous cases (e.g.
+//! an unmatched labeled `break`/`continue`), never as a blanket default. A malformed file never
 //! silently disappears: parse failure yields a `ParseFailure` diagnostic plus explicit `UNKNOWN`
 //! for all supported dimensions, with the artifact still represented.
 
+mod cfg;
 mod spelling;
 
 use std::collections::{BTreeMap, BTreeSet};
@@ -38,14 +44,15 @@ use super::extractor::{DiagnosticCode, ExtractionDiagnostic, ExtractionInput, Se
 pub const RUST_SEMANTIC_EXTRACTOR_ID: &str = "atlas.rust.source-semantic.v1";
 pub const RUST_SEMANTIC_EXTRACTOR_VERSION: &str = "0.1.0";
 
-/// Exactly the five dimensions this wave observes from parser-visible syntax. Every other
-/// `SemanticDimension` is out of scope through R4.5 and always answered `UNSUPPORTED`.
+/// Exactly the six dimensions this wave observes from parser-visible syntax. Every other
+/// `SemanticDimension` is out of scope through R4.6 and always answered `UNSUPPORTED`.
 pub const SUPPORTED_DIMENSIONS: &[SemanticDimension] = &[
     SemanticDimension::Symbol,
     SemanticDimension::Type,
     SemanticDimension::FunctionIdentity,
     SemanticDimension::FunctionSignature,
     SemanticDimension::Call,
+    SemanticDimension::ControlFlow,
 ];
 
 #[derive(Debug, Default)]
@@ -661,6 +668,7 @@ impl<'a> ExtractionContext<'a> {
 
         if let Some(body) = body {
             self.walk_block(body, scope, &caller_record_id);
+            self.build_control_flow(body, scope, &caller_record_id);
         }
 
         let mut parameters = Vec::new();
