@@ -250,7 +250,18 @@ impl<'a> ExtractionContext<'a> {
         self.observations.push(observation);
     }
 
-    fn emit_type_identity(&mut self, scope: &SemanticScope, name: &str) -> TypeIdentity {
+    /// `span` is the source location of the syntax that produced `name`'s spelling (e.g. the
+    /// `syn::Type` node, a receiver, or a field), when the caller has one available. Dedup means
+    /// only the *first* occurrence of an identical (scope, name) type in this file contributes its
+    /// span as evidence -- later occurrences of e.g. `u64` reuse the same record rather than each
+    /// attaching their own span, which would require tracking multiple spans per identity (a
+    /// larger data-model change out of scope here).
+    fn emit_type_identity(
+        &mut self,
+        scope: &SemanticScope,
+        name: &str,
+        span: Option<atlas_core::SourceSpan>,
+    ) -> TypeIdentity {
         let subject = TypeIdentity {
             repository: self.input.repository.clone(),
             revision: self.input.revision.clone(),
@@ -266,7 +277,14 @@ impl<'a> ExtractionContext<'a> {
                 &format!("{}:{}:type", self.input_fingerprint, record_id.as_str()),
             ));
             if self.record_dimension_hit(dimension, record_id.clone(), evidence_id.clone()) {
-                self.push_evidence(&evidence_id, format!("parsed type spelling `{name}`"));
+                let location = span
+                    .as_ref()
+                    .map(|span| format!(" at {}:{}:{}", span.path, span.line, span.column))
+                    .unwrap_or_default();
+                self.push_evidence(
+                    &evidence_id,
+                    format!("parsed type spelling `{name}`{location}"),
+                );
                 let header = SemanticRecordHeader {
                     record_id,
                     dimension,
@@ -277,7 +295,7 @@ impl<'a> ExtractionContext<'a> {
                     revision: self.input.revision.clone(),
                     extractor: self.extractor.clone(),
                     evidence_refs: vec![evidence_id],
-                    provenance: self.provenance_for(None),
+                    provenance: self.provenance_for(span.as_ref()),
                 };
                 let observation = SemanticObservation::Type(header);
                 debug_assert!(observation.is_dimension_consistent());
@@ -414,7 +432,8 @@ impl<'a> ExtractionContext<'a> {
             match argument {
                 syn::FnArg::Receiver(receiver) => {
                     let type_name = spelling::receiver_type_spelling(receiver);
-                    let type_identity = self.emit_type_identity(scope, &type_name);
+                    let span = self.span_of(receiver);
+                    let type_identity = self.emit_type_identity(scope, &type_name, Some(span));
                     let label = spelling::receiver_label(receiver);
                     parameters.push(FunctionParameter {
                         name: label,
@@ -424,7 +443,8 @@ impl<'a> ExtractionContext<'a> {
                 syn::FnArg::Typed(pat_type) => {
                     let param_name = spelling::pattern_spelling(&pat_type.pat);
                     let type_name = spelling::type_spelling(&pat_type.ty);
-                    let type_identity = self.emit_type_identity(scope, &type_name);
+                    let span = self.span_of(&pat_type.ty);
+                    let type_identity = self.emit_type_identity(scope, &type_name, Some(span));
                     parameters.push(FunctionParameter {
                         name: param_name,
                         type_identity,
@@ -437,7 +457,8 @@ impl<'a> ExtractionContext<'a> {
             syn::ReturnType::Default => None,
             syn::ReturnType::Type(_, ty) => {
                 let type_name = spelling::type_spelling(ty);
-                Some(self.emit_type_identity(scope, &type_name))
+                let span = self.span_of(ty.as_ref());
+                Some(self.emit_type_identity(scope, &type_name, Some(span)))
             }
         };
 
@@ -492,7 +513,8 @@ impl<'a> ExtractionContext<'a> {
                     span,
                 );
                 let type_name = spelling::type_spelling(&item_type.ty);
-                self.emit_type_identity(scope, &type_name);
+                let type_span = self.span_of(item_type.ty.as_ref());
+                self.emit_type_identity(scope, &type_name, Some(type_span));
             }
             syn::Item::Const(item_const) => {
                 let span = self.span_of(item_const);
@@ -503,7 +525,8 @@ impl<'a> ExtractionContext<'a> {
                     span,
                 );
                 let type_name = spelling::type_spelling(&item_const.ty);
-                self.emit_type_identity(scope, &type_name);
+                let type_span = self.span_of(item_const.ty.as_ref());
+                self.emit_type_identity(scope, &type_name, Some(type_span));
             }
             syn::Item::Static(item_static) => {
                 let span = self.span_of(item_static);
@@ -514,7 +537,8 @@ impl<'a> ExtractionContext<'a> {
                     span,
                 );
                 let type_name = spelling::type_spelling(&item_static.ty);
-                self.emit_type_identity(scope, &type_name);
+                let type_span = self.span_of(item_static.ty.as_ref());
+                self.emit_type_identity(scope, &type_name, Some(type_span));
             }
             syn::Item::Mod(item_mod) => self.handle_mod(item_mod, scope),
             // Everything else (`use`, `extern crate`, macro invocations at item position, foreign
@@ -538,7 +562,8 @@ impl<'a> ExtractionContext<'a> {
             let field_span = self.span_of(field);
             self.emit_symbol(&nested, &field_name, SymbolRole::Definition, field_span);
             let type_name = spelling::type_spelling(&field.ty);
-            self.emit_type_identity(&nested, &type_name);
+            let type_span = self.span_of(&field.ty);
+            self.emit_type_identity(&nested, &type_name, Some(type_span));
         }
     }
 
@@ -557,7 +582,8 @@ impl<'a> ExtractionContext<'a> {
             );
             for field in &variant.fields {
                 let type_name = spelling::type_spelling(&field.ty);
-                self.emit_type_identity(&nested, &type_name);
+                let type_span = self.span_of(&field.ty);
+                self.emit_type_identity(&nested, &type_name, Some(type_span));
             }
         }
     }

@@ -11,7 +11,7 @@
 use atlas_core::{ArtifactId, ContentFingerprint, ExtractorIdentity, RepositoryId, RevisionRef};
 use serde::{Deserialize, Serialize};
 
-use super::batch::ExtractionBatch;
+use super::batch::{ExtractionBatch, ObligationResult};
 
 /// Every field a `SemanticExtractor` may consult to produce a deterministic, revision-pinned
 /// `ExtractionBatch`. See `.atlas/contracts/SEMANTIC-EXTRACTION.md#extractioninput`.
@@ -166,4 +166,63 @@ pub trait SemanticExtractor: Sync {
     /// `ExtractionBatch::is_closed`) — a dimension outside `supported_dimensions()` is accounted
     /// as `UNSUPPORTED`, never silently dropped.
     fn extract(&self, input: &ExtractionInput) -> ExtractionBatch;
+
+    /// The closed `ExtractionBatch` this extractor would produce when `input.source_text` could
+    /// not be obtained at all — e.g. a filesystem read failure in the runtime orchestration layer
+    /// upstream of extraction (reading content is that layer's job, never this trait's; see
+    /// `ExtractionInput::source_text`). `reason` should typically carry
+    /// `DiagnosticCode::InvalidInput`, but any diagnostic describing why the source was
+    /// unavailable is accepted.
+    ///
+    /// Every dimension this extractor supports becomes `UNKNOWN` — evidence was never obtainable,
+    /// which is a distinct cause from "obtained but insufficient" yet the same epistemic status.
+    /// Every dimension it does not support stays `UNSUPPORTED` regardless: source availability
+    /// never changes what an extractor is capable of analyzing. A read failure must never remove
+    /// the artifact from accounting (`.atlas/contracts/SEMANTIC-EXTRACTION.md#failure-semantics`),
+    /// so this default implementation always returns a batch closed over
+    /// `input.requested_dimensions`, never propagates an error, and never panics.
+    fn unavailable(
+        &self,
+        input: &ExtractionInput,
+        reason: ExtractionDiagnostic,
+    ) -> ExtractionBatch {
+        let extractor = self.identity();
+        let input_fingerprint = input.identity_key(&extractor);
+        let mut diagnostics = vec![reason.clone()];
+        let mut obligations = Vec::with_capacity(input.requested_dimensions.len());
+
+        for &dimension in &input.requested_dimensions {
+            if self.supported_dimensions().contains(&dimension) {
+                obligations.push(ObligationResult::unknown(dimension, reason.id.clone()));
+            } else {
+                let unsupported = ExtractionDiagnostic::new(
+                    DiagnosticCode::UnsupportedSemanticDimension,
+                    Some(dimension),
+                    format!(
+                        "{} does not support {} regardless of source availability",
+                        self.id(),
+                        dimension.as_str()
+                    ),
+                );
+                obligations.push(ObligationResult::unsupported(
+                    dimension,
+                    unsupported.id.clone(),
+                ));
+                diagnostics.push(unsupported);
+            }
+        }
+        obligations.sort_by_key(|obligation| obligation.dimension.as_str());
+
+        ExtractionBatch {
+            extractor,
+            repository: input.repository.clone(),
+            revision: input.revision.clone(),
+            artifact: input.artifact.clone(),
+            input_fingerprint,
+            observations: Vec::new(),
+            evidence: Vec::new(),
+            obligations,
+            diagnostics,
+        }
+    }
 }

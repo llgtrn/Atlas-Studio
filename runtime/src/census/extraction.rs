@@ -13,23 +13,34 @@
 //! a winner -- that is reconciliation's job, out of scope for this wave
 //! (`.atlas/contracts/NORMALIZATION.md#conflict-handling`).
 //!
-//! `extract_semantics` (R4.3) is the real production call site: called from `runtime::systemize`,
-//! it identifies every admitted, successfully-parsed artifact, selects the registered
+//! `extract_semantics` (R4.3, hardened R4.3.1) is the real production call site: called from
+//! `runtime::systemize` (and the other report-building entry points) *before* `build_census`, it
+//! identifies every admitted, successfully-parsed artifact, selects the registered
 //! `SemanticExtractor` for its language (currently real for `"rust"`; every other language still
-//! resolves to no extractor and is simply skipped here, exactly as it was before this wave), and
-//! records every resulting `ExtractionBatch` into `CensusExtractionAccounting`.
+//! resolves to no extractor and is simply skipped here, unchanged from R4.3), and returns every
+//! resulting `ExtractionBatch`. The caller folds those batches into both the canonical
+//! `CensusReport` (`build_census`) and `CensusExtractionAccounting` -- the same extraction result
+//! set backs both, so census truth and closure accounting can never disagree
+//! (`.atlas/decisions/0001-one-normalized-semantic-path.md`).
+//!
+//! R4.3.1 fix: this function is now infallible. A per-artifact source-read failure no longer
+//! propagates an `io::Error` that would abort extraction of every remaining artifact -- it
+//! produces an explicit, closed `ExtractionBatch` via `SemanticExtractor::unavailable` instead
+//! (`.atlas/contracts/SEMANTIC-EXTRACTION.md#failure-semantics`: "A failure must not remove the
+//! artifact from census accounting").
 
-use adapter::{ExtractionBatch, ExtractionInput};
+use adapter::{DiagnosticCode, ExtractionBatch, ExtractionDiagnostic, ExtractionInput};
 use atlas_core::{
     ArtifactDisposition, ArtifactId, ContentFingerprint, EvidenceId, ExtractorIdentity,
     InventoryReport, RepositoryId, RevisionRef, SemanticDimension, SemanticRecordId, stable_id,
 };
-use std::{fs, io, path::Path};
+use std::{collections::BTreeMap, fs, path::Path};
 
 /// Every canonical R4 semantic dimension, requested uniformly so a production extraction call
 /// never silently narrows what it asks an extractor to account for
-/// (`.atlas/contracts/CENSUS-COMPLETENESS.md`).
-const ALL_SEMANTIC_DIMENSIONS: [SemanticDimension; 12] = [
+/// (`.atlas/contracts/CENSUS-COMPLETENESS.md`). `pub` so `build_census`/`systemize` and tests share
+/// the one canonical list rather than each keeping their own copy.
+pub const ALL_SEMANTIC_DIMENSIONS: [SemanticDimension; 12] = [
     SemanticDimension::Symbol,
     SemanticDimension::Type,
     SemanticDimension::FunctionIdentity,
@@ -45,23 +56,29 @@ const ALL_SEMANTIC_DIMENSIONS: [SemanticDimension; 12] = [
 ];
 
 /// Runs every registered `SemanticExtractor` against every admitted, successfully-parsed
-/// (`ArtifactDisposition::Parsed`) artifact whose language has one, and records every result into
-/// a fresh `CensusExtractionAccounting`. Never executes the artifact's content -- only reads and
-/// parses its text. A read or parse failure on one artifact never removes another artifact's
-/// results: each artifact is extracted independently, and a parser-level failure inside an
-/// extractor is itself accounted for as an explicit `ExtractionDiagnostic` + `UNKNOWN` obligation
-/// by that extractor (see `adapter::semantic::rust`), never a silent drop.
+/// (`ArtifactDisposition::Parsed`) artifact whose language has one, and returns every resulting
+/// `ExtractionBatch`. Never executes the artifact's content -- only reads and parses its text.
 ///
-/// Returns the accounting plus whether every produced batch was `is_closed` against the full
-/// canonical dimension set -- the closure verification this wiring must perform before treating an
-/// extractor's output as trustworthy (`.atlas/contracts/SEMANTIC-EXTRACTION.md#extractionbatch`).
+/// Failure isolation: a read failure or a parse failure on one artifact never removes another
+/// artifact's results, and never aborts the remaining artifacts in this call. Each artifact is
+/// extracted independently:
+/// - a parser-level failure inside an extractor is accounted for as an explicit
+///   `ExtractionDiagnostic` (`ParseFailure`) + `UNKNOWN` obligation by that extractor itself (see
+///   `adapter::semantic::rust`);
+/// - a filesystem read failure (the file disappeared, permission denied, invalid UTF-8, ...) is
+///   caught here, in this orchestration layer, and turned into an explicit `ExtractionDiagnostic`
+///   (`InvalidInput`) + `UNKNOWN` obligation via `SemanticExtractor::unavailable` -- a distinct
+///   diagnostic code from a parse failure, even though both share the `UNKNOWN` epistemic status,
+///   so the underlying cause is never lost.
+///
+/// Every dimension outside what an extractor supports stays `UNSUPPORTED` regardless of which of
+/// the above paths ran; nothing here upgrades UNSUPPORTED into UNKNOWN or vice versa.
 pub fn extract_semantics(
     inventory: &InventoryReport,
     repository: RepositoryId,
     revision: RevisionRef,
-) -> io::Result<(CensusExtractionAccounting, bool)> {
-    let mut accounting = CensusExtractionAccounting::new();
-    let mut all_closed = true;
+) -> Vec<ExtractionBatch> {
+    let mut batches = Vec::new();
     let root = Path::new(&inventory.root);
 
     for artifact in &inventory.artifacts {
@@ -75,36 +92,60 @@ pub fn extract_semantics(
         if extractors.is_empty() {
             continue;
         }
-
-        let source_text = fs::read_to_string(root.join(&artifact.path))?;
         let source_frontend_id = adapter::resolve_source_frontend(Path::new(&artifact.path))
             .map(|matched| matched.frontend_id.to_owned())
             .unwrap_or_default();
-        let content_fingerprint = Some(ContentFingerprint(stable_id("content", &source_text)));
 
-        for extractor in extractors {
-            let input = ExtractionInput {
-                repository: repository.clone(),
-                revision: revision.clone(),
-                artifact: artifact.id.clone(),
-                artifact_path: artifact.path.clone(),
-                source_text: source_text.clone(),
-                content_fingerprint: content_fingerprint.clone(),
-                source_frontend_id: source_frontend_id.clone(),
-                language: language.to_owned(),
-                build_profile: None,
-                scope_policy: None,
-                requested_dimensions: ALL_SEMANTIC_DIMENSIONS.to_vec(),
-            };
-            let batch = extractor.extract(&input);
-            if !batch.is_closed(&ALL_SEMANTIC_DIMENSIONS) {
-                all_closed = false;
+        match fs::read_to_string(root.join(&artifact.path)) {
+            Ok(source_text) => {
+                let content_fingerprint =
+                    Some(ContentFingerprint(stable_id("content", &source_text)));
+                for extractor in &extractors {
+                    let input = ExtractionInput {
+                        repository: repository.clone(),
+                        revision: revision.clone(),
+                        artifact: artifact.id.clone(),
+                        artifact_path: artifact.path.clone(),
+                        source_text: source_text.clone(),
+                        content_fingerprint: content_fingerprint.clone(),
+                        source_frontend_id: source_frontend_id.clone(),
+                        language: language.to_owned(),
+                        build_profile: None,
+                        scope_policy: None,
+                        requested_dimensions: ALL_SEMANTIC_DIMENSIONS.to_vec(),
+                    };
+                    batches.push(extractor.extract(&input));
+                }
             }
-            accounting.record_batch(&batch);
+            Err(read_error) => {
+                // Never `?`-propagate: one artifact's read failure must not abort extraction of
+                // every artifact that comes after it in `inventory.artifacts`.
+                let diagnostic = ExtractionDiagnostic::new(
+                    DiagnosticCode::InvalidInput,
+                    None,
+                    format!("failed to read {}: {read_error}", artifact.path),
+                );
+                for extractor in &extractors {
+                    let input = ExtractionInput {
+                        repository: repository.clone(),
+                        revision: revision.clone(),
+                        artifact: artifact.id.clone(),
+                        artifact_path: artifact.path.clone(),
+                        source_text: String::new(),
+                        content_fingerprint: None,
+                        source_frontend_id: source_frontend_id.clone(),
+                        language: language.to_owned(),
+                        build_profile: None,
+                        scope_policy: None,
+                        requested_dimensions: ALL_SEMANTIC_DIMENSIONS.to_vec(),
+                    };
+                    batches.push(extractor.unavailable(&input, diagnostic.clone()));
+                }
+            }
         }
     }
 
-    Ok((accounting, all_closed))
+    batches
 }
 
 /// One extractor's obligation result for one dimension on one artifact, preserved independently
@@ -221,6 +262,31 @@ impl CensusExtractionAccounting {
         let mut records = self.records.clone();
         records.sort_by_key(ExtractorObligationRecord::identity_key);
         records
+    }
+
+    /// `true` iff, for every distinct (artifact, extractor identity) pair that contributed any
+    /// record, `requested` appears exactly once each. Derived directly from the retained ledger
+    /// rather than tracked as a separately-threaded boolean, so this closure check and the
+    /// `CensusReport` built from the same extraction batches can never disagree about what
+    /// extraction actually produced (`.atlas/contracts/SEMANTIC-EXTRACTION.md#extractionbatch`).
+    pub fn is_closed(&self, requested: &[SemanticDimension]) -> bool {
+        let mut grouped: BTreeMap<(&str, &str, &str), Vec<SemanticDimension>> = BTreeMap::new();
+        for record in &self.records {
+            grouped
+                .entry((
+                    record.artifact.as_str(),
+                    record.extractor.id.as_str(),
+                    record.extractor.version.as_str(),
+                ))
+                .or_default()
+                .push(record.obligation.dimension);
+        }
+        grouped.values().all(|dimensions| {
+            dimensions.len() == requested.len()
+                && requested.iter().all(|dimension| {
+                    dimensions.iter().filter(|seen| *seen == dimension).count() == 1
+                })
+        })
     }
 }
 
@@ -964,6 +1030,14 @@ mod production_wiring_tests {
         }
     }
 
+    fn accounting_from(batches: &[ExtractionBatch]) -> CensusExtractionAccounting {
+        let mut accounting = CensusExtractionAccounting::new();
+        for batch in batches {
+            accounting.record_batch(batch);
+        }
+        accounting
+    }
+
     #[test]
     fn production_wiring_extracts_real_rust_semantics_and_isolates_a_malformed_file() {
         let dir = scratch_dir();
@@ -976,16 +1050,19 @@ mod production_wiring_tests {
             vec![rust_artifact("valid.rs"), rust_artifact("broken.rs")],
         );
 
-        let (accounting, all_closed) = extract_semantics(
+        let batches = extract_semantics(
             &inventory,
             RepositoryId::new("atlas-studio"),
             RevisionRef {
                 kind: "git".into(),
                 value: "abc123".into(),
             },
-        )
-        .unwrap();
-        assert!(all_closed, "every real extractor batch must be closed");
+        );
+        let accounting = accounting_from(&batches);
+        assert!(
+            accounting.is_closed(&ALL_SEMANTIC_DIMENSIONS),
+            "every real extractor batch must be closed"
+        );
 
         let records = accounting.sorted();
         let valid_artifact = ArtifactId::new("artifact:valid.rs");
@@ -1034,17 +1111,111 @@ mod production_wiring_tests {
             }],
         );
 
-        let (accounting, all_closed) = extract_semantics(
+        let batches = extract_semantics(
             &inventory,
             RepositoryId::new("atlas-studio"),
             RevisionRef {
                 kind: "git".into(),
                 value: "abc123".into(),
             },
-        )
-        .unwrap();
-        assert!(all_closed);
-        assert!(accounting.is_empty());
+        );
+        assert!(batches.is_empty());
+
+        fs::remove_dir_all(&dir).unwrap();
+    }
+
+    // --- R4.3.1: per-artifact read-failure isolation ------------------------------------------
+    //
+    // A middle artifact whose file was admitted into inventory but can no longer be read (removed
+    // after admission, permission denied, ...) must not abort extraction of the artifacts that
+    // come after it, and must not silently vanish from accounting itself.
+
+    #[test]
+    fn a_read_failure_on_a_middle_artifact_never_aborts_or_erases_the_batch() {
+        let dir = scratch_dir();
+        fs::create_dir_all(&dir).unwrap();
+        fs::write(dir.join("a.rs"), "pub fn from_a() {}\n").unwrap();
+        fs::write(dir.join("c.rs"), "pub fn from_c() {}\n").unwrap();
+        // b.rs is deliberately never written: inventory admits it (as it would have, e.g., in the
+        // instant between classification and extraction), but reading it now fails with NotFound.
+
+        let inventory = InventoryReport::new(
+            dir.to_string_lossy().into_owned(),
+            vec![
+                rust_artifact("a.rs"),
+                rust_artifact("b.rs"),
+                rust_artifact("c.rs"),
+            ],
+        );
+
+        let batches = extract_semantics(
+            &inventory,
+            RepositoryId::new("atlas-studio"),
+            RevisionRef {
+                kind: "git".into(),
+                value: "abc123".into(),
+            },
+        );
+        // All three artifacts produced a batch: b's read failure did not remove a or c, and did
+        // not stop extraction from reaching c.
+        assert_eq!(batches.len(), 3);
+
+        let accounting = accounting_from(&batches);
+        assert!(accounting.is_closed(&ALL_SEMANTIC_DIMENSIONS));
+
+        let by_artifact = |path: &str, dimension: SemanticDimension| {
+            accounting
+                .sorted()
+                .into_iter()
+                .find(|record| {
+                    record.artifact == ArtifactId::new(format!("artifact:{path}"))
+                        && record.obligation.dimension == dimension
+                })
+                .unwrap_or_else(|| panic!("missing {path}/{dimension:?} obligation"))
+        };
+
+        let a = by_artifact("a.rs", SemanticDimension::Symbol);
+        assert_eq!(a.obligation.status, EpistemicStatus::Observed);
+        assert!(!a.obligation.observation_ids.is_empty());
+
+        let b = by_artifact("b.rs", SemanticDimension::Symbol);
+        assert_eq!(
+            b.obligation.status,
+            EpistemicStatus::Unknown,
+            "an unreadable artifact's supported dimensions are UNKNOWN, never silently dropped"
+        );
+
+        let c = by_artifact("c.rs", SemanticDimension::Symbol);
+        assert_eq!(
+            c.obligation.status,
+            EpistemicStatus::Observed,
+            "extraction must continue past a read failure to the artifacts that follow it"
+        );
+
+        // The read failure is distinguishable from a parse failure: it carries an INVALID_INPUT
+        // diagnostic, never PARSE_FAILURE (`.atlas/contracts/SEMANTIC-EXTRACTION.md`: read failure,
+        // parse failure, unsupported and unknown must not collapse into one undifferentiated state).
+        let b_batch = batches
+            .iter()
+            .find(|batch| batch.artifact == ArtifactId::new("artifact:b.rs"))
+            .unwrap();
+        assert!(
+            b_batch
+                .diagnostics
+                .iter()
+                .any(|diagnostic| diagnostic.code == adapter::DiagnosticCode::InvalidInput)
+        );
+        assert!(
+            !b_batch
+                .diagnostics
+                .iter()
+                .any(|diagnostic| diagnostic.code == adapter::DiagnosticCode::ParseFailure)
+        );
+
+        // Unsupported dimensions stay UNSUPPORTED even for the unreadable artifact -- source
+        // availability never changes what the extractor is capable of analyzing.
+        let b_ownership = by_artifact("b.rs", SemanticDimension::Ownership);
+        assert_eq!(b_ownership.obligation.status, EpistemicStatus::Unsupported);
 
         fs::remove_dir_all(&dir).unwrap();
     }
