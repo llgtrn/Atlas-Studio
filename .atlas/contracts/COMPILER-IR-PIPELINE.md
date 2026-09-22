@@ -10,6 +10,8 @@ canonical: true
 
 This contract defines the semantic responsibilities and lowering boundaries from validated ATLASX to physical product.
 
+Compiler input authority is the validated `*.atlasx` binary capsule defined by `ARTIFACT-LAYERING.md` and `ATLASX-BINARY-WIRE-FORMAT.md`. An unpacked AtlasX directory is a noncanonical projection and MUST NOT become compiler authority.
+
 The minimum canonical logical record/op schemas for HIR, MIR, LIR and Machine IR v1 are defined by `COMPILER-IR-SCHEMAS.md`.
 
 It exists to prevent compiler implementations from inventing incompatible meanings for HIR, MIR, LIR or Machine IR.
@@ -17,7 +19,7 @@ It exists to prevent compiler implementations from inventing incompatible meanin
 The canonical native pipeline is:
 
 ~~~text
-validated *.atlasx root
+validated *.atlasx binary capsule
         ↓
 HIR
         ↓
@@ -40,7 +42,7 @@ Delegated bootstrap backends may temporarily emit Rust/TypeScript/bounded C, but
 
 A compiler invocation MUST identify all inputs that may affect output semantics or physical specialization:
 
-- validated AtlasX root identity;
+- validated AtlasX capsule root identity;
 - parent Atlas root identity through AtlasX lineage;
 - Genome identity/hash;
 - compiler identity/version;
@@ -342,7 +344,7 @@ Unsupported required semantics MUST produce a compiler diagnostic/failure, not s
 
 This lowering:
 
-- consumes only validated AtlasX semantic objects;
+- consumes only validated semantics/entries from the AtlasX binary capsule;
 - converts executable selected-design semantics into compiler-oriented high-level IR;
 - expands compiler-owned generic/specialization structures;
 - retains dynamic bindings that remain semantically dynamic;
@@ -551,7 +553,7 @@ Generic "do not optimize" strings are insufficient.
 
 Each material compiler run MUST be able to produce lineage/evidence containing:
 
-- input AtlasX root;
+- input AtlasX capsule root identity;
 - compiler/pipeline versions;
 - profiles/target/ABI;
 - pass pipeline;
@@ -737,7 +739,7 @@ A selected revision may change stage internals or, with explicit contract migrat
 
 Forbidden:
 
-- compiling unvalidated arbitrary AtlasX directory files;
+- compiling unvalidated arbitrary AtlasX directory files or treating an unpacked AtlasX directory as canonical input;
 - skipping a stage while silently moving its responsibilities elsewhere;
 - losing effect/authority/transaction barriers during lowering;
 - assuming unknown alias/ownership freedom;
