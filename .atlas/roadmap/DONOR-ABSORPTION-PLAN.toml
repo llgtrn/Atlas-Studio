@@ -1,17 +1,157 @@
 schema = "atlas.donor-absorption-plan.v1"
 canonical = true
+
+self_building_roadmap = "SELF-BUILDING-R4-R8.md"
 donor_registry = "../references/donor-corpus.toml"
 source_root = ".atlas/temporary/donors"
-extinction_policy = "PHYSICAL_SOURCE_DELETION_REQUIRED"
-absorbed_is_extinct = false
-extinct_requires_source_path_absent = true
-extinct_forbids_atlas_controlled_source_archive_cache_snapshot = true
-reference_oracle_with_local_source_is_extinct = false
+
+r_wave_namespace = "ATLAS_MATURITY"
+w_wave_namespace = "DONOR_EXECUTION_LANE"
+r_and_w_waves_are_distinct = true
+
+continuous_census_required = true
+continuous_recensus_required = true
+post_implementation_recensus_required = true
+idea_discovery_may_expand_plan = true
+interesting_idea_alone_may_not_pull_forward = true
+
 dependency_census_policy = "TRANSITIVE_CLOSURE_REQUIRED"
 dependency_census_applies_to = ["ATLAS_SELF", "DONORS", "ALL_ADMITTED_CORPORA"]
 dependency_context_matrix_required = true
 source_backed_dependency_census_required = true
 opaque_dependency_must_be_explicit_terminal = true
+discovered_dependency_is_not_automatic_donor = true
+donor_promotion_requires_explicit_admission = true
+dependency_provider_attribution_required = true
+
+absorption_decision_evidence_required = true
+atlas_native_owner_required_before_absorption = true
+allowed_native_owners = ["core", "runtime", "adapter", "apps"]
+deep_census_required_before_absorption = true
+mechanical_translation_forbidden = true
+permanent_donor_runtime_dependency_for_native_technology_forbidden = true
+
+discovery_dispositions = [
+  "ABSORB_NOW",
+  "ABSORB_LATER",
+  "REFERENCE_ONLY",
+  "EXTERNAL_BOUNDARY",
+  "REJECT"
+]
+
+extinction_policy = "PHYSICAL_SOURCE_DELETION_REQUIRED"
+absorbed_is_extinct = false
+extinction_ready_is_extinct = false
+source_deleted_required_before_extinct = true
+scope_level_extinction_supported = true
+dependency_aware_extinction_required = true
+extinct_requires_source_path_absent = true
+extinct_forbids_atlas_controlled_source_archive_cache_snapshot = true
+reference_oracle_with_local_source_is_extinct = false
+durable_knowledge_required_before_source_deletion = true
+post_delete_recensus_required = true
+
+[dependency_runtime_gate]
+id = "DC1"
+name = "dependency-census-runtime"
+kind = "CROSS_CUTTING_GATE"
+required_before_w0_coarse_censused = true
+requires = [
+  "resolution_contexts",
+  "direct_dependency_resolution",
+  "transitive_dependency_closure",
+  "stable_dependency_identity",
+  "source_backed_dependency_admission",
+  "explicit_non_source_terminals",
+  "build_dynamic_dependency_obligations",
+  "dependency_fixed_point"
+]
+
+[[r_wave]]
+id = "R4.3.x"
+name = "real-rust-semantic-bootstrap"
+status = "MATERIALIZED_THROUGH_R4.3.3"
+semantic_dimensions = ["SYMBOL", "TYPE", "FUNCTION_IDENTITY", "FUNCTION_SIGNATURE"]
+primary_donor_waves = ["W0", "W1", "W2"]
+
+[[r_wave]]
+id = "R4.4"
+name = "function-identity-closure"
+status = "NEXT"
+goal = "module/impl/trait/generic/revision-safe declaration identity"
+forbidden_scope = ["CALL"]
+
+[[r_wave]]
+id = "R4.5"
+name = "call-semantics"
+status = "PLANNED"
+semantic_dimensions = ["CALL"]
+
+[[r_wave]]
+id = "R4.6"
+name = "control-flow"
+status = "PLANNED"
+semantic_dimensions = ["CONTROL_FLOW"]
+
+[[r_wave]]
+id = "R4.7"
+name = "data-flow"
+status = "PLANNED"
+semantic_dimensions = ["DATA_FLOW"]
+
+[[r_wave]]
+id = "R4.8"
+name = "state-effect"
+status = "PLANNED"
+semantic_dimensions = ["STATE", "EFFECT"]
+
+[[r_wave]]
+id = "R4.9"
+name = "ownership-resource"
+status = "PLANNED"
+semantic_dimensions = ["OWNERSHIP"]
+
+[[r_wave]]
+id = "R4.10"
+name = "concurrency"
+status = "PLANNED"
+semantic_dimensions = ["CONCURRENCY"]
+
+[[r_wave]]
+id = "R4.11"
+name = "persistence-recovery"
+status = "PLANNED"
+semantic_dimensions = ["PERSISTENCE"]
+
+[[r_wave]]
+id = "R4.12"
+name = "r4-semantic-closure"
+status = "PLANNED"
+goal = "declared Rust profile closes all R4 semantic obligations and deterministic normalization/reference-corpus gates"
+
+[[r_wave]]
+id = "R5"
+name = "incremental-query-fixed-point"
+status = "PLANNED"
+primary_donor_waves = ["W3"]
+
+[[r_wave]]
+id = "R6"
+name = "reconciliation-census-certificate"
+status = "PLANNED"
+primary_donor_waves = ["W4"]
+
+[[r_wave]]
+id = "R7"
+name = "research-correlation-absorption-selection"
+status = "PLANNED"
+primary_donor_waves = ["W5"]
+
+[[r_wave]]
+id = "R8"
+name = "real-atlas-atlasx"
+status = "PLANNED"
+primary_donor_waves = ["W6"]
 
 [[wave]]
 id = "W0"
@@ -19,14 +159,17 @@ name = "corpus-accounting"
 order = 0
 scope = "ALL_ADMITTED_DONORS"
 mode = "COARSE_CENSUS_WITH_TRANSITIVE_DEPENDENCY_CLOSURE"
+primary_atlas_maturity = ["R4", "DC1"]
 goal = "pin provenance and map repository/language/module/build/dependency/capability topology through direct and transitive dependencies for every admitted donor"
 exit = "all admitted donors and all active dependency edges in admitted contexts explicitly accounted"
+coarse_censused_requires_dc1 = true
 
 [[wave]]
 id = "W1"
 name = "source-intelligence-semantic-graph"
 order = 1
 donors = ["tree-sitter", "rust-analyzer", "scip", "kythe", "glean", "joern", "semgrep", "ast-grep", "sourcetrail"]
+primary_atlas_maturity = ["R4"]
 semantic_dimensions = ["SYMBOL", "TYPE", "FUNCTION_IDENTITY", "FUNCTION_SIGNATURE", "CALL", "CONTROL_FLOW", "DATA_FLOW"]
 atlas_targets = ["adapter/source", "core/identity", "core/schema", "core/graph", "runtime/census", "runtime/normalize", "runtime/query"]
 
@@ -35,6 +178,7 @@ id = "W2"
 name = "compiler-semantic-core"
 order = 2
 donors = ["rust", "llvm-project", "wasmtime", "wasm-tools"]
+primary_atlas_maturity = ["R4"]
 semantic_dimensions = ["TYPE", "FUNCTION_IDENTITY", "FUNCTION_SIGNATURE", "CALL", "CONTROL_FLOW", "DATA_FLOW", "STATE", "EFFECT", "OWNERSHIP", "CONCURRENCY", "PERSISTENCE"]
 atlas_targets = ["core/semantic", "runtime/census", "runtime/compile", "adapter/execution", "adapter/exchange"]
 
@@ -43,6 +187,7 @@ id = "W3"
 name = "incremental-reasoning-build"
 order = 3
 donors = ["salsa", "datafrog", "differential-dataflow", "souffle", "buck2"]
+primary_atlas_maturity = ["R5"]
 semantic_dimensions = ["DATA_FLOW", "STATE", "EFFECT", "PERSISTENCE"]
 atlas_targets = ["runtime/query", "runtime/closure", "runtime/census", "adapter/build"]
 
@@ -51,6 +196,7 @@ id = "W4"
 name = "verification-safety"
 order = 4
 donors = ["kani", "miri", "verus"]
+primary_atlas_maturity = ["R6"]
 semantic_dimensions = ["STATE", "EFFECT", "OWNERSHIP", "CONCURRENCY"]
 atlas_targets = ["runtime/verify", "core/constraint", "core/evidence"]
 
@@ -59,6 +205,7 @@ id = "W5"
 name = "transformation-migration"
 order = 5
 donors = ["openrewrite", "c2rust", "crubit", "py2many"]
+primary_atlas_maturity = ["R7"]
 semantic_dimensions = ["SYMBOL", "TYPE", "FUNCTION_IDENTITY", "FUNCTION_SIGNATURE", "CALL", "CONTROL_FLOW", "DATA_FLOW", "STATE", "EFFECT"]
 atlas_targets = ["runtime/invention", "runtime/refactor", "runtime/materialize", "adapter/language-interop"]
 
@@ -67,6 +214,7 @@ id = "W6"
 name = "binary-storage-data-backend"
 order = 6
 donors = ["flatbuffers", "arrow", "zstd", "blake3", "object", "regalloc2", "mold"]
+primary_atlas_maturity = ["R8"]
 semantic_dimensions = ["TYPE", "DATA_FLOW", "STATE", "EFFECT", "PERSISTENCE"]
 atlas_targets = ["core/atlas", "runtime/seal", "adapter/storage", "adapter/compression", "runtime/compile"]
 
@@ -75,6 +223,8 @@ id = "W7"
 name = "security-trust"
 order = 7
 donors = ["containers-image", "podman", "selinux", "openscap", "keycloak", "keylime", "clair"]
+primary_atlas_maturity = ["LATER_DEFAULT"]
+pull_forward_requires = "ABSORB_NOW"
 semantic_dimensions = ["STATE", "EFFECT", "OWNERSHIP", "CONCURRENCY", "PERSISTENCE"]
 atlas_targets = ["core/security", "runtime/security", "adapter/security"]
 
@@ -83,8 +233,59 @@ id = "W8"
 name = "studio-editor-projection"
 order = 8
 donors = ["zed", "opendesign", "xyflow", "cytoscape-js", "elkjs"]
+primary_atlas_maturity = ["LATER_DEFAULT"]
+pull_forward_requires = "ABSORB_NOW"
 semantic_dimensions = ["STATE", "EFFECT", "CONCURRENCY", "PERSISTENCE"]
 atlas_targets = ["apps/studio"]
+
+[discovery_record]
+required = [
+  "discovery_identity",
+  "provider_identity",
+  "provider_revision_or_version",
+  "provider_scope",
+  "evidence_refs",
+  "root_donor_or_dependency_attribution",
+  "atlas_capability_target",
+  "atlas_native_owner",
+  "disposition",
+  "decision_rationale",
+  "required_semantic_depth",
+  "prerequisites_or_blockers",
+  "verification_plan",
+  "dependency_removal_plan",
+  "extinction_implications"
+]
+
+[absorb_now_gate]
+required = [
+  "current_blocker_or_clear_high_leverage",
+  "bounded_scope",
+  "actual_provider_identified",
+  "evidence_available",
+  "atlas_native_owner_known",
+  "required_semantic_depth_achievable",
+  "verification_defined",
+  "dependency_removal_or_extinction_path_credible"
+]
+
+[absorption_gate]
+required = [
+  "transitive_dependency_closure_accounted",
+  "technology_genome_durable",
+  "provenance_and_license_durable",
+  "atlas_native_replacement_exists",
+  "donor_runtime_build_test_source_dependency_zero",
+  "tests_and_material_benchmarks_pass_where_applicable",
+  "atlas_recensus_agrees_with_selected_design",
+  "remaining_donor_only_knowledge_captured_deferred_externalized_or_rejected"
+]
+
+[extinction_ready_gate]
+required = [
+  "absorption_gate_passed",
+  "all_non_deletion_extinction_obligations_passed"
+]
 
 [extinction_gate]
 required = [
@@ -92,10 +293,7 @@ required = [
   "technology_genome_durable",
   "provenance_and_license_durable",
   "atlas_native_replacement_exists",
-  "donor_runtime_source_dependency_zero",
-  "tests_and_material_benchmarks_pass_where_applicable",
-  "atlas_recensus_agrees_with_selected_design",
-  "remaining_donor_only_knowledge_captured_or_explicitly_rejected",
+  "donor_runtime_build_test_source_dependency_zero",
   "donor_source_files_physically_deleted",
   "donor_source_path_absent",
   "no_atlas_controlled_source_archive_cache_snapshot",

@@ -12,9 +12,13 @@ The authored architecture is ahead of current physical code. `main` already has 
 
 Refoundation closes that gap without a big-bang rewrite and without creating a second Atlas.
 
+The canonical R4→R8 self-building execution map is `../roadmap/SELF-BUILDING-R4-R8.md`.
+
 ## Current bootstrap reality
 
-```text
+At the R4.3.3 baseline:
+
+~~~text
 core/src/
   capability/
   census/
@@ -25,15 +29,19 @@ core/src/
   language/
   provenance/
   schema/
+  semantic/
   state/
   temporal/
   lib.rs
 
 runtime/src/
+  census/
   inventory/
+  normalize/
   lib.rs
 
 adapter/src/
+  semantic/
   source/
   vcs/
   lib.rs
@@ -44,9 +52,9 @@ apps/
 
 tools/
   historical/bootstrap subsystems
-```
+~~~
 
-R1 now materializes an inventory ledger before the semantic source projection. Unknown extensions, oversized text, binary content, symlinks and explicit policy boundaries receive typed dispositions instead of disappearing. Deeper semantic frontends remain later waves.
+Dependency-census runtime ownership is specified but `runtime/src/dependency/` and `adapter/src/dependency/` are not yet materialized at this baseline.
 
 ## Refoundation waves
 
@@ -58,7 +66,7 @@ Each work run starts from exact `main`, adds one real primitive, proves invarian
 
 **Status: materialized on the native path.** Typed artifact identity and disposition now precede deeper parsing.
 
-```text
+~~~text
 admitted total
 =
 parsed
@@ -68,47 +76,107 @@ parsed
 + unsupported
 + unknown
 + externalized
-```
+~~~
 
 No extension, size, parser failure or file type may silently remove an artifact from accounting.
 
 ### R2 — Typed semantic kernel
 
-**Status: native ownership split materialized; semantic hardening continues.** The generic `core/model` bucket has been removed. Existing production types now live under graph/schema/state/temporal/evidence/provenance/constraint/capability owners, while the crate-root compatibility surface keeps runtime and adapters stable.
+**Status: native ownership split materialized; semantic hardening continues.** The generic `core/model` bucket has been removed. Existing production types now live under graph/schema/state/temporal/evidence/provenance/constraint/capability/semantic owners, while crate-root compatibility re-exports keep runtime and adapters stable.
 
-New foundational semantics must not expand the generic string-map model. Later R2 work must harden typed identity/relation/state/event/capability semantics only when they gain real runtime callers, durable evidence and verification.
+New foundational semantics must not expand the generic string-map model. Later hardening must add typed identity/relation/state/event/capability semantics only when they gain real runtime callers, durable evidence and verification.
 
 ### R3 — Structural source boundary
 
-**Status: typed boundary materialized.** `adapter/source/frontend.rs` now owns the `SourceFrontend` contract, stable frontend identities and the built-in source registry. Inventory recognition routes through that contract instead of a private extension switch.
+**Status: typed boundary materialized.** `adapter/source/frontend.rs` owns the `SourceFrontend` contract, stable frontend identities and the built-in source registry. Inventory recognition routes through that contract instead of a private extension switch.
 
-The bootstrap frontends currently establish structural recognition and language ownership only. Incremental syntax, compiler metadata and independent semantic extractors remain implementation mechanisms behind the contract and will deepen in R4 without becoming canonical truth.
+Structural recognition is not canonical semantic truth. Deeper parser/compiler/index mechanisms remain evidence-producing implementations behind the semantic extraction boundary.
 
-### R4 — Semantic normalization
+### R4 — Semantic census and normalization
 
-**Status: normalization spine materialized and semantic contracts locked; deep semantic extractors remain.**
+**Status: R4.3.3 materialized; deeper semantic dimensions remain.**
 
-R4 is governed by `../contracts/SEMANTIC-FACTS.md`, `../contracts/SEMANTIC-EXTRACTION.md`, `../contracts/NORMALIZATION.md`, durable decisions 0001/0002, and the R4 acceptance matrix in the extraction contract. `runtime/census` now turns inventory plus declared ADL into provenance-linked typed semantic facts, and `runtime/normalize` deterministically normalizes those facts without changing epistemic status or dropping records. `SystemizeReport v9` carries both stages and coding admission fails if either stage loses accounting closure.
+R4 is governed by `../contracts/SEMANTIC-FACTS.md`, `../contracts/SEMANTIC-EXTRACTION.md`, `../contracts/NORMALIZATION.md`, durable decisions 0001/0002, and the R4 acceptance matrix in the extraction contract.
 
-The engineering graph now consumes normalized semantic facts rather than independently reinterpreting ADL, so census/normalization and graph projection form one semantic path instead of parallel truths. Unknown or unsupported inventory artifacts also remain visible to the graph as explicit artifact nodes/facts.
+Materialized through R4.3.3:
 
-Current source frontends prove artifact/language recognition only. Symbol, type, call, CFG/dataflow, build, state and effect extraction remain explicitly `UNSUPPORTED` in census coverage until independent extractors produce evidence; R4 is not complete until those dimensions become real observed facts rather than inferred placeholders.
+- a real Rust semantic extractor exists;
+- SYMBOL observations are real;
+- TYPE observations are real;
+- FUNCTION_IDENTITY observations are real;
+- FUNCTION_SIGNATURE observations are real;
+- extraction is folded into canonical `build_census`;
+- typed observations are preserved losslessly through Census and normalization;
+- independent extractor observations are separated by raw observation identity rather than collapsed by semantic claim identity;
+- typed obligation/evidence/diagnostic lineage survives in canonical reports;
+- typed closure accounting is machine-enforced;
+- the engineering graph projects currently-real semantic node families directly from normalized typed semantic records;
+- compatibility `SemanticFact` records remain projection/bootstrap compatibility rather than semantic authority.
+
+Still pending in R4:
+
+- R4.4 Function Identity Closure;
+- CALL;
+- CONTROL_FLOW;
+- DATA_FLOW;
+- STATE;
+- EFFECT;
+- OWNERSHIP;
+- CONCURRENCY;
+- PERSISTENCE;
+- deeper deterministic normalization/equivalence rules;
+- declared-profile R4 closure/reference corpus.
+
+Do not describe currently-real Symbol/Type/FunctionIdentity/FunctionSignature extraction as UNSUPPORTED.
+
+Do not claim the remaining dimensions are implemented merely because their typed kernels/contracts exist.
+
+The prospective R4.4→R4.12 sequence is canonical in `../roadmap/SELF-BUILDING-R4-R8.md`.
+
+### DC1 — Dependency Census Runtime — cross-cutting gate
+
+**Status: contract-locked, not production-materialized at the R4.3.3 baseline.**
+
+DC1 is not an R4 semantic dimension. It expands census breadth:
+
+~~~text
+root corpus
+→ admitted resolution contexts
+→ direct dependencies
+→ transitive dependencies
+→ source-backed dependency admission
+→ explicit non-source terminals
+→ dependency fixed point
+→ expanded federated inventory
+~~~
+
+DC1 must be production-real before W0 may claim full `COARSE_CENSUSED` status for the donor corpus.
+
+The normative contract is `../contracts/DEPENDENCY-CENSUS.md`.
 
 ### R5 — Incremental query and closure
 
-Create dependency-aware revision invalidation plus fixed-point derivation. Derived facts retain input revision/evidence lineage.
+Create dependency-aware revision invalidation plus fixed-point derivation and incremental recensus. Derived facts retain input revision/evidence lineage.
+
+R5 operates on the donor/dependency corpus already being censused; it does not start census for the first time.
 
 ### R6 — Reconciliation and certificate
 
-Implement explicit UNKNOWN/DYNAMIC/UNSUPPORTED/CONFLICT, cross-scope reconciliation, adversarial gaps, fixed point and CensusCertificate.
+Implement explicit UNKNOWN/DYNAMIC/UNSUPPORTED/CONFLICT handling, cross-scope reconciliation, adversarial gaps, fixed point and CensusCertificate.
 
-### R7 — Research boundary
+R6 must include dependency closure in the proof boundary.
 
-Implement ResearchClaim separately from observed facts. DeepWiki/papers/docs can seed claims; implementation claims about donors require exact-pinned-source corroboration.
+### R7 — Research correlation and selection
+
+Implement ResearchClaim separately from observed facts and connect observed donor mechanisms, Technology Genomes, capability gaps and candidate/selected Atlas-native designs.
+
+Research/model output cannot impersonate observed implementation evidence.
 
 ### R8 — Real ATLAS and AtlasX
 
 Implement binary records, content addressing, integrity, transactional publication, sharding, deterministic AtlasX and lineage.
+
+R8 provides the durable canonical carrier needed for census-derived donor knowledge to survive physical source deletion at scale. It does not end the census/recensus loop.
 
 ### R9 — Compiler and verification
 
@@ -116,7 +184,30 @@ Only after semantic closure: mature HIR/MIR/LIR/Machine IR, delegated backends, 
 
 ### R10 — Studio convergence
 
-Refactor UI toward `apps/studio`. Zed/OpenDesign/XYFlow/Cytoscape/ELK inform interaction/design; UI state remains derived.
+Refactor UI toward `apps/studio`. Studio/editor donors inform interaction/design through the donor absorption process; UI state remains derived.
+
+## Self-building rule
+
+Atlas does not finish R4→R8 and then begin learning from donors.
+
+The required loop throughout refoundation is:
+
+~~~text
+current native capability
+→ census donors + admitted dependency closure
+→ discover/attribute mechanism
+→ explicit disposition
+→ deep census selected scope
+→ Atlas-native implementation
+→ verify
+→ recensus Atlas + affected donors/dependencies
+→ absorb
+→ physical extinction when gates close
+→ stronger native capability
+↺
+~~~
+
+Discovery and extinction semantics are canonical in `../roadmap/SELF-BUILDING-R4-R8.md` and `../roadmap/DONOR-ABSORPTION-ROADMAP.md`.
 
 ## Legacy tool extinction map
 
@@ -138,8 +229,10 @@ Other tool families need explicit census before an owner is assigned.
 
 ## Donor extinction gate
 
-A donor mechanism may disappear from `.atlas/temporary` only when its revision/license/provenance are durable, its mechanism/invariants are captured, an Atlas-native replacement exists, runtime dependency is zero for native technology, verification passes, recensus agrees, and remaining donor-only knowledge is captured or rejected.
+A donor scope may disappear from active Atlas-controlled source only when its revision/license/provenance are durable, relevant dependency closure is accounted, its mechanism/invariants are captured, an Atlas-native replacement exists, runtime/build/test source dependency is zero, verification passes, recensus agrees, required durable knowledge survives deletion, physical source deletion is performed, path absence is verified, and post-delete recensus remains valid.
+
+`ABSORBED`, `EXTINCTION_READY`, `SOURCE_DELETED` and `EXTINCT` are distinct states.
 
 ## Completion
 
-Refoundation is complete when there is no silent inventory omission, foundational semantics are typed, research cannot impersonate observation, incremental/fixed-point closure is real runtime behavior, `tools/` is bounded migration compatibility only, and canonical behavior lives under `core/runtime/adapter/apps`.
+Refoundation is complete when there is no silent inventory omission, foundational semantics are typed, research cannot impersonate observation, dependency census is first-class, incremental/fixed-point closure is real runtime behavior, `tools/` is bounded migration compatibility only, and canonical behavior lives under `core/runtime/adapter/apps`.

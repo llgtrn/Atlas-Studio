@@ -24,32 +24,33 @@ Read in this order:
 14. `architecture/SYSTEM.md`
 15. `blueprints/PHYSICAL-REFOUNDATION.md`
 16. `roadmap/ROADMAP.md`
-17. `roadmap/DONOR-ABSORPTION-ROADMAP.md`
-18. `roadmap/DONOR-ABSORPTION-PLAN.toml`
-19. `references/deepwiki/DONOR-ARCHITECTURE-SYNTHESIS.md`
-20. `contracts/ATLAS-DEVELOPMENT-LANGUAGE.md`
-21. `contracts/ADL-TO-ATLAS.md`
-22. `contracts/DONOR-TO-LANGUAGE-GENESIS.md`
-23. `contracts/ATLAS-FORMAT.md`
-24. `contracts/ATLAS-BINARY-WIRE-FORMAT.md`
-25. `contracts/ATLAS-SHARDING.md`
-26. `contracts/ATLASX-FORMAT.md`
-27. `architecture/DIGITAL-ORGANISM.md`
-28. `contracts/ORGANISM-GENOME-v1.md`
-29. `contracts/ORGANISM-LIFECYCLE.md`
-30. `contracts/ORGANISM-MODEL-ADMISSION.md`
-31. `contracts/ORGANISM-HOMEOSTASIS-METABOLISM.md`
-32. `standards/ORGANISM-SPECIES.md`
-33. `blueprints/ORGANISM-COMPILATION.md`
-34. `contracts/COMPILER-PRODUCT.md`
-35. `standards/COMPILER-OPTIMIZATION.md`
-36. `architecture/INVENTION-PIPELINE.md`
-37. `blueprints/SYSTEM-BLUEPRINT.md`
-38. `blueprints/COMPILER-ROADMAP.md`
-39. `blueprints/RUST-PARITY-AND-SURPASS-ROADMAP.md`
-40. `blueprints/BULK-DONOR-ABSORPTION.md`
-41. `contracts/SYSTEM-CONTRACT.md`
-42. `guides/DEVELOPMENT.md`
+17. `roadmap/SELF-BUILDING-R4-R8.md`
+18. `roadmap/DONOR-ABSORPTION-ROADMAP.md`
+19. `roadmap/DONOR-ABSORPTION-PLAN.toml`
+20. `references/deepwiki/DONOR-ARCHITECTURE-SYNTHESIS.md`
+21. `contracts/ATLAS-DEVELOPMENT-LANGUAGE.md`
+22. `contracts/ADL-TO-ATLAS.md`
+23. `contracts/DONOR-TO-LANGUAGE-GENESIS.md`
+24. `contracts/ATLAS-FORMAT.md`
+25. `contracts/ATLAS-BINARY-WIRE-FORMAT.md`
+26. `contracts/ATLAS-SHARDING.md`
+27. `contracts/ATLASX-FORMAT.md`
+28. `architecture/DIGITAL-ORGANISM.md`
+29. `contracts/ORGANISM-GENOME-v1.md`
+30. `contracts/ORGANISM-LIFECYCLE.md`
+31. `contracts/ORGANISM-MODEL-ADMISSION.md`
+32. `contracts/ORGANISM-HOMEOSTASIS-METABOLISM.md`
+33. `standards/ORGANISM-SPECIES.md`
+34. `blueprints/ORGANISM-COMPILATION.md`
+35. `contracts/COMPILER-PRODUCT.md`
+36. `standards/COMPILER-OPTIMIZATION.md`
+37. `architecture/INVENTION-PIPELINE.md`
+38. `blueprints/SYSTEM-BLUEPRINT.md`
+39. `blueprints/COMPILER-ROADMAP.md`
+40. `blueprints/RUST-PARITY-AND-SURPASS-ROADMAP.md`
+41. `blueprints/BULK-DONOR-ABSORPTION.md`
+42. `contracts/SYSTEM-CONTRACT.md`
+43. `guides/DEVELOPMENT.md`
 
 Canonical chain:
 
@@ -84,3 +85,5 @@ Evidence + recensus
 ```
 
 The universal graph/binding/evidence/temporal grammar remains invariant across census, storage, materialization, optimization and generated repositories/products.
+
+For any implementation work between R4 and R8, `roadmap/SELF-BUILDING-R4-R8.md` is mandatory reading. It fixes the R4.4→R4.12 sequence, DC1 dependency-census gate, continuous donor/dependency recensus loop, discovery dispositions, donor-promotion rule, absorption gates and physical extinction semantics. Implementation agents MUST NOT invent alternate sequencing or donor states when these docs already specify them.
