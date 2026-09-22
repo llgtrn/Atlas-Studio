@@ -58,6 +58,35 @@ impl SemanticObservation {
             Self::Effect(header) => &header.record_id,
         }
     }
+
+    /// The wrapped header's own `dimension` field, independent of the variant tag. Used only to
+    /// check `is_dimension_consistent`; `dimension()` above (derived from the variant) remains the
+    /// authoritative value everywhere else.
+    fn header_dimension(&self) -> SemanticDimension {
+        match self {
+            Self::FunctionIdentity(header) => header.dimension,
+            Self::FunctionSignature(header) => header.dimension,
+            Self::Symbol(header) => header.dimension,
+            Self::Type(header) => header.dimension,
+            Self::Call(header) => header.dimension,
+            Self::ControlFlow(header) => header.dimension,
+            Self::DataFlow(header) => header.dimension,
+            Self::State(header) => header.dimension,
+            Self::Effect(header) => header.dimension,
+        }
+    }
+
+    /// `true` iff the wrapped header's `dimension` field agrees with `self.dimension()`.
+    ///
+    /// Rust's type system ties each variant to its `Subject` type (e.g. `Type(SemanticRecordHeader
+    /// <TypeIdentity>)`), but nothing ties the header's plain `dimension: SemanticDimension` field
+    /// to that variant -- a `Type(..)` observation whose header still says `dimension:
+    /// SemanticDimension::Symbol` compiles. This method is the explicit check for that invariant;
+    /// callers that build a `SemanticObservation` by hand (extractors, test fixtures) should use
+    /// it rather than trust construction alone.
+    pub fn is_dimension_consistent(&self) -> bool {
+        self.header_dimension() == self.dimension()
+    }
 }
 
 #[cfg(test)]
@@ -102,5 +131,95 @@ mod tests {
 
         assert_eq!(observation.dimension(), SemanticDimension::Symbol);
         assert_eq!(observation.record_id(), &header.record_id);
+    }
+
+    fn symbol_header(dimension: SemanticDimension) -> SemanticRecordHeader<SymbolIdentity> {
+        SemanticRecordHeader {
+            record_id: SemanticRecordId::new(SemanticDimension::Symbol, "k"),
+            dimension,
+            status: EpistemicStatus::Observed,
+            subject: SymbolIdentity {
+                repository: RepositoryId::new("atlas-studio"),
+                revision: RevisionRef {
+                    kind: "git".into(),
+                    value: "abc123".into(),
+                },
+                scope: SemanticScope::new(["core"]),
+                name: "run".into(),
+                role: SymbolRole::Definition,
+            },
+            scope: SemanticScope::new(["core"]),
+            repository: RepositoryId::new("atlas-studio"),
+            revision: RevisionRef {
+                kind: "git".into(),
+                value: "abc123".into(),
+            },
+            extractor: ExtractorIdentity {
+                id: "atlas.test".into(),
+                version: "0.1.0".into(),
+            },
+            evidence_refs: Vec::new(),
+            provenance: provenance("core/src/lib.rs", "atlas.test"),
+        }
+    }
+
+    fn type_header(dimension: SemanticDimension) -> SemanticRecordHeader<crate::TypeIdentity> {
+        SemanticRecordHeader {
+            record_id: SemanticRecordId::new(SemanticDimension::Type, "k"),
+            dimension,
+            status: EpistemicStatus::Observed,
+            subject: crate::TypeIdentity {
+                repository: RepositoryId::new("atlas-studio"),
+                revision: RevisionRef {
+                    kind: "git".into(),
+                    value: "abc123".into(),
+                },
+                scope: SemanticScope::new(["core"]),
+                name: "Result".into(),
+                canonical: None,
+            },
+            scope: SemanticScope::new(["core"]),
+            repository: RepositoryId::new("atlas-studio"),
+            revision: RevisionRef {
+                kind: "git".into(),
+                value: "abc123".into(),
+            },
+            extractor: ExtractorIdentity {
+                id: "atlas.test".into(),
+                version: "0.1.0".into(),
+            },
+            evidence_refs: Vec::new(),
+            provenance: provenance("core/src/lib.rs", "atlas.test"),
+        }
+    }
+
+    // --- 1. Symbol variant + Symbol dimension is valid ---------------------------------------
+
+    #[test]
+    fn symbol_variant_with_symbol_dimension_is_consistent() {
+        let observation = SemanticObservation::Symbol(symbol_header(SemanticDimension::Symbol));
+        assert!(observation.is_dimension_consistent());
+    }
+
+    // --- 2. Type variant + Type dimension is valid --------------------------------------------
+
+    #[test]
+    fn type_variant_with_type_dimension_is_consistent() {
+        let observation = SemanticObservation::Type(type_header(SemanticDimension::Type));
+        assert!(observation.is_dimension_consistent());
+    }
+
+    // --- 3. a manually malformed variant/header mismatch is detected -------------------------
+
+    #[test]
+    fn malformed_variant_header_mismatch_is_detected() {
+        // The type system allows this: the variant tag says Symbol, but the header's own
+        // `dimension` field says Type. This is exactly the bug an earlier test fixture had
+        // (mutating `header.dimension` without changing the enum variant); the invariant check
+        // must catch it rather than silently accept it.
+        let mismatched = SemanticObservation::Symbol(symbol_header(SemanticDimension::Type));
+        assert!(!mismatched.is_dimension_consistent());
+        // dimension() stays authoritative (derived from the variant), never from the header field.
+        assert_eq!(mismatched.dimension(), SemanticDimension::Symbol);
     }
 }

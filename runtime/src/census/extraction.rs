@@ -20,7 +20,7 @@
 //! plugs into; it is not itself the production call site yet.
 
 use adapter::ExtractionBatch;
-use atlas_core::{ArtifactId, ExtractorIdentity, SemanticDimension, SemanticRecordId};
+use atlas_core::{ArtifactId, EvidenceId, ExtractorIdentity, SemanticDimension, SemanticRecordId};
 
 /// One extractor's obligation result for one dimension on one artifact, preserved independently
 /// alongside every other extractor's result for the same (artifact, dimension) pair.
@@ -29,6 +29,58 @@ pub struct ExtractorObligationRecord {
     pub artifact: ArtifactId,
     pub extractor: ExtractorIdentity,
     pub obligation: adapter::ObligationResult,
+}
+
+impl ExtractorObligationRecord {
+    /// Deterministic publication identity for this record.
+    ///
+    /// Every field that could make two records semantically distinguishable participates:
+    /// dimension, extractor id/version, artifact, epistemic status, and the full content of
+    /// `observation_ids`/`evidence_refs`/`diagnostics` (canonicalized by sorting, since those
+    /// lists' own element order is not semantically meaningful here). Field order matches the
+    /// canonical publication grouping (`SemanticDimension -> ExtractorIdentity -> ArtifactId ->
+    /// record content`), so sorting by this key alone reproduces that grouping without a separate
+    /// comparator stage.
+    ///
+    /// Two records that differ in *any* field never tie under this key; two records that tie are
+    /// therefore identical in every field and thus indistinguishable, so their relative order
+    /// carries no meaning. Never derived from Vec insertion order, HashMap iteration, thread
+    /// scheduling or wall-clock time.
+    pub fn identity_key(&self) -> String {
+        let mut observation_ids: Vec<&str> = self
+            .obligation
+            .observation_ids
+            .iter()
+            .map(SemanticRecordId::as_str)
+            .collect();
+        observation_ids.sort_unstable();
+        let mut evidence_refs: Vec<&str> = self
+            .obligation
+            .evidence_refs
+            .iter()
+            .map(EvidenceId::as_str)
+            .collect();
+        evidence_refs.sort_unstable();
+        let mut diagnostics: Vec<&str> = self
+            .obligation
+            .diagnostics
+            .iter()
+            .map(String::as_str)
+            .collect();
+        diagnostics.sort_unstable();
+
+        format!(
+            "{}|{}:{}|{}|{}|obs=[{}]|evi=[{}]|diag=[{}]",
+            self.obligation.dimension.as_str(),
+            self.extractor.id,
+            self.extractor.version,
+            self.artifact.as_str(),
+            self.obligation.status.as_str(),
+            observation_ids.join(","),
+            evidence_refs.join(","),
+            diagnostics.join(","),
+        )
+    }
 }
 
 /// Multi-extractor census accounting: an append-only collection of `ExtractorObligationRecord`.
@@ -82,28 +134,9 @@ impl CensusExtractionAccounting {
     /// scheduling or any other nondeterministic source.
     pub fn sorted(&self) -> Vec<ExtractorObligationRecord> {
         let mut records = self.records.clone();
-        records.sort_by(|a, b| {
-            a.obligation
-                .dimension
-                .as_str()
-                .cmp(b.obligation.dimension.as_str())
-                .then_with(|| a.extractor.id.cmp(&b.extractor.id))
-                .then_with(|| a.extractor.version.cmp(&b.extractor.version))
-                .then_with(|| a.artifact.as_str().cmp(b.artifact.as_str()))
-                .then_with(|| {
-                    observation_sort_key(&a.obligation).cmp(observation_sort_key(&b.obligation))
-                })
-        });
+        records.sort_by_key(ExtractorObligationRecord::identity_key);
         records
     }
-}
-
-fn observation_sort_key(obligation: &adapter::ObligationResult) -> &str {
-    obligation
-        .observation_ids
-        .first()
-        .map(SemanticRecordId::as_str)
-        .unwrap_or("")
 }
 
 #[cfg(test)]
@@ -166,7 +199,7 @@ mod multi_extractor_tests {
     use atlas_core::{
         EpistemicStatus, Evidence, EvidenceId, Provenance, RepositoryId, RevisionRef,
         SemanticObservation, SemanticRecordHeader, SemanticScope, SymbolIdentity, SymbolRole,
-        stable_id,
+        TypeIdentity, stable_id,
     };
 
     fn extractor(id: &str, version: &str) -> ExtractorIdentity {
@@ -217,13 +250,18 @@ mod multi_extractor_tests {
                 span: None,
             },
         };
+        let observation = SemanticObservation::Symbol(header);
+        assert!(
+            observation.is_dimension_consistent(),
+            "fixture must not produce mismatched variant/dimension observations"
+        );
         ExtractionBatch {
             extractor,
             repository,
             revision: revision.clone(),
             artifact: ArtifactId::new(format!("artifact:{artifact_path}")),
             input_fingerprint: format!("{extractor_id}:{artifact_path}"),
-            observations: vec![SemanticObservation::Symbol(header)],
+            observations: vec![observation],
             evidence: vec![Evidence {
                 id: evidence_id.as_str().to_owned(),
                 kind: "SOURCE_TEXT".into(),
@@ -233,6 +271,79 @@ mod multi_extractor_tests {
             }],
             obligations: vec![ObligationResult::observed(
                 SemanticDimension::Symbol,
+                vec![record_id],
+                vec![evidence_id],
+            )],
+            diagnostics: Vec::new(),
+        }
+    }
+
+    /// A genuine `SemanticObservation::Type(SemanticRecordHeader<TypeIdentity>)`, never a
+    /// `Symbol` variant with its `dimension` field mutated to `Type` (that was a real, since-fixed
+    /// bug in this test module: the variant tag and the header's `dimension` field disagreed).
+    fn observed_type_batch(
+        extractor_id: &str,
+        artifact_path: &str,
+        type_name: &str,
+    ) -> ExtractionBatch {
+        let extractor = extractor(extractor_id, "0.1.0");
+        let repository = RepositoryId::new("atlas-studio");
+        let revision = RevisionRef {
+            kind: "git".into(),
+            value: "abc123".into(),
+        };
+        let evidence_id = EvidenceId::new(stable_id(
+            "evidence",
+            &format!("{extractor_id}:{type_name}"),
+        ));
+        let type_identity = TypeIdentity {
+            repository: repository.clone(),
+            revision: revision.clone(),
+            scope: SemanticScope::new(["fixture"]),
+            name: type_name.into(),
+            canonical: None,
+        };
+        let record_id =
+            SemanticRecordId::new(SemanticDimension::Type, &type_identity.identity_key());
+        let header = SemanticRecordHeader {
+            record_id: record_id.clone(),
+            dimension: SemanticDimension::Type,
+            status: EpistemicStatus::Observed,
+            subject: type_identity,
+            scope: SemanticScope::new(["fixture"]),
+            repository: repository.clone(),
+            revision: revision.clone(),
+            extractor: extractor.clone(),
+            evidence_refs: vec![evidence_id.clone()],
+            provenance: Provenance {
+                source_path: artifact_path.into(),
+                source_revision: Some(revision.clone()),
+                extractor: extractor_id.into(),
+                content_hash: None,
+                span: None,
+            },
+        };
+        let observation = SemanticObservation::Type(header);
+        assert!(
+            observation.is_dimension_consistent(),
+            "fixture must not produce mismatched variant/dimension observations"
+        );
+        ExtractionBatch {
+            extractor,
+            repository,
+            revision: revision.clone(),
+            artifact: ArtifactId::new(format!("artifact:{artifact_path}")),
+            input_fingerprint: format!("{extractor_id}:{artifact_path}"),
+            observations: vec![observation],
+            evidence: vec![Evidence {
+                id: evidence_id.as_str().to_owned(),
+                kind: "SOURCE_TEXT".into(),
+                path: artifact_path.into(),
+                summary: format!("{extractor_id} observed type `{type_name}`"),
+                revision: Some(revision),
+            }],
+            obligations: vec![ObligationResult::observed(
+                SemanticDimension::Type,
                 vec![record_id],
                 vec![evidence_id],
             )],
@@ -401,12 +512,9 @@ mod multi_extractor_tests {
             "src/lib.rs",
             SemanticDimension::Type,
         ));
-        // A second, independent extractor observes TYPE for the same artifact.
-        let mut observed_type = observed_symbol_batch("extractor-b", "src/lib.rs", "known");
-        observed_type.obligations[0].dimension = SemanticDimension::Type;
-        if let SemanticObservation::Symbol(header) = &mut observed_type.observations[0] {
-            header.dimension = SemanticDimension::Type;
-        }
+        // A second, independent extractor observes TYPE for the same artifact, via a genuine
+        // Type observation (not a Symbol variant with its dimension field mutated).
+        let observed_type = observed_type_batch("extractor-b", "src/lib.rs", "Known");
         accounting.record_batch(&observed_type);
 
         let records = accounting.records_for(SemanticDimension::Type);
@@ -513,5 +621,203 @@ mod multi_extractor_tests {
         let rust_extractors = adapter::extractors_for_language("rust");
         assert_eq!(rust_extractors.len(), 1);
         assert!(rust_extractors[0].supported_dimensions().is_empty());
+    }
+
+    // === R4.2.2 determinism hardening ==========================================================
+    //
+    // The publication key before this wave was `dimension -> extractor id -> extractor version ->
+    // artifact -> first observation id`. Two records with empty `observation_ids` (e.g. UNKNOWN
+    // and UNSUPPORTED for the same artifact/extractor/dimension) tied under that key, so a stable
+    // sort preserved whichever insertion order they arrived in -- forward and reversed ingestion
+    // could publish in different orders. `identity_key()` closes that gap by folding in status and
+    // the full (canonicalized) content of observation_ids/evidence_refs/diagnostics.
+
+    fn diagnostic_only_batch(
+        extractor_id: &str,
+        version: &str,
+        artifact_path: &str,
+        obligation: ObligationResult,
+    ) -> ExtractionBatch {
+        ExtractionBatch {
+            extractor: extractor(extractor_id, version),
+            repository: RepositoryId::new("atlas-studio"),
+            revision: RevisionRef {
+                kind: "git".into(),
+                value: "abc123".into(),
+            },
+            artifact: ArtifactId::new(format!("artifact:{artifact_path}")),
+            input_fingerprint: format!("{extractor_id}:{version}:{artifact_path}"),
+            observations: Vec::new(),
+            evidence: Vec::new(),
+            obligations: vec![obligation],
+            diagnostics: Vec::new(),
+        }
+    }
+
+    // CASE A: same artifact/extractor/dimension, UNKNOWN vs UNSUPPORTED -- both have empty
+    // observation_ids, which is exactly the counterexample that tied under the old sort key.
+
+    #[test]
+    fn case_a_unknown_vs_unsupported_is_order_independent() {
+        let unknown = diagnostic_only_batch(
+            "extractor-a",
+            "0.1.0",
+            "src/lib.rs",
+            ObligationResult::unknown(SemanticDimension::Symbol, "diag-unknown"),
+        );
+        let unsupported = diagnostic_only_batch(
+            "extractor-a",
+            "0.1.0",
+            "src/lib.rs",
+            ObligationResult::unsupported(SemanticDimension::Symbol, "diag-unsupported"),
+        );
+
+        let mut forward = CensusExtractionAccounting::new();
+        forward.record_batch(&unknown);
+        forward.record_batch(&unsupported);
+
+        let mut reversed = CensusExtractionAccounting::new();
+        reversed.record_batch(&unsupported);
+        reversed.record_batch(&unknown);
+
+        assert_eq!(forward.len(), 2);
+        assert_eq!(forward.sorted(), reversed.sorted());
+    }
+
+    // CASE B: same artifact/extractor/dimension/status, differing only by diagnostic id.
+
+    #[test]
+    fn case_b_same_status_different_diagnostics_is_order_independent() {
+        let first = diagnostic_only_batch(
+            "extractor-a",
+            "0.1.0",
+            "src/lib.rs",
+            ObligationResult::unknown(SemanticDimension::Symbol, "diag-1"),
+        );
+        let second = diagnostic_only_batch(
+            "extractor-a",
+            "0.1.0",
+            "src/lib.rs",
+            ObligationResult::unknown(SemanticDimension::Symbol, "diag-2"),
+        );
+
+        let mut forward = CensusExtractionAccounting::new();
+        forward.record_batch(&first);
+        forward.record_batch(&second);
+
+        let mut reversed = CensusExtractionAccounting::new();
+        reversed.record_batch(&second);
+        reversed.record_batch(&first);
+
+        assert_eq!(forward.len(), 2);
+        assert_eq!(forward.sorted(), reversed.sorted());
+    }
+
+    // CASE C: same semantic record, but observation_ids/evidence_refs supplied in different input
+    // order. List order is not semantically meaningful here, so identity must be canonical.
+
+    #[test]
+    fn case_c_child_collection_order_does_not_affect_identity() {
+        let id_a = SemanticRecordId::new(SemanticDimension::Symbol, "a");
+        let id_b = SemanticRecordId::new(SemanticDimension::Symbol, "b");
+        let evidence_x = EvidenceId::new("evidence:x".to_owned());
+        let evidence_y = EvidenceId::new("evidence:y".to_owned());
+
+        let forward = ExtractorObligationRecord {
+            artifact: ArtifactId::new("artifact:src/lib.rs"),
+            extractor: extractor("extractor-a", "0.1.0"),
+            obligation: ObligationResult::observed(
+                SemanticDimension::Symbol,
+                vec![id_a.clone(), id_b.clone()],
+                vec![evidence_x.clone(), evidence_y.clone()],
+            ),
+        };
+        let reversed = ExtractorObligationRecord {
+            artifact: ArtifactId::new("artifact:src/lib.rs"),
+            extractor: extractor("extractor-a", "0.1.0"),
+            obligation: ObligationResult::observed(
+                SemanticDimension::Symbol,
+                vec![id_b, id_a],
+                vec![evidence_y, evidence_x],
+            ),
+        };
+
+        assert_eq!(forward.identity_key(), reversed.identity_key());
+    }
+
+    // CASE D: two different extractor ids remain distinct.
+
+    #[test]
+    fn case_d_different_extractor_ids_remain_distinct() {
+        let a = diagnostic_only_batch(
+            "extractor-a",
+            "0.1.0",
+            "src/lib.rs",
+            ObligationResult::unknown(SemanticDimension::Symbol, "diag"),
+        );
+        let b = diagnostic_only_batch(
+            "extractor-b",
+            "0.1.0",
+            "src/lib.rs",
+            ObligationResult::unknown(SemanticDimension::Symbol, "diag"),
+        );
+
+        let record_a = ExtractorObligationRecord {
+            artifact: a.artifact.clone(),
+            extractor: a.extractor.clone(),
+            obligation: a.obligations[0].clone(),
+        };
+        let record_b = ExtractorObligationRecord {
+            artifact: b.artifact.clone(),
+            extractor: b.extractor.clone(),
+            obligation: b.obligations[0].clone(),
+        };
+        assert_ne!(record_a.identity_key(), record_b.identity_key());
+    }
+
+    // CASE E: same extractor id, different version remains distinct.
+
+    #[test]
+    fn case_e_same_extractor_id_different_version_remains_distinct() {
+        let v1 = diagnostic_only_batch(
+            "extractor-a",
+            "0.1.0",
+            "src/lib.rs",
+            ObligationResult::unknown(SemanticDimension::Symbol, "diag"),
+        );
+        let v2 = diagnostic_only_batch(
+            "extractor-a",
+            "0.2.0",
+            "src/lib.rs",
+            ObligationResult::unknown(SemanticDimension::Symbol, "diag"),
+        );
+
+        let record_v1 = ExtractorObligationRecord {
+            artifact: v1.artifact.clone(),
+            extractor: v1.extractor.clone(),
+            obligation: v1.obligations[0].clone(),
+        };
+        let record_v2 = ExtractorObligationRecord {
+            artifact: v2.artifact.clone(),
+            extractor: v2.extractor.clone(),
+            obligation: v2.obligations[0].clone(),
+        };
+        assert_ne!(record_v1.identity_key(), record_v2.identity_key());
+    }
+
+    // Section 10 item 4: production/test helpers never generate mismatched variant/header pairs.
+    // observed_symbol_batch/observed_type_batch already assert this at construction time; this
+    // test additionally proves it from the outside, against their actual returned batches.
+
+    #[test]
+    fn fixture_helpers_never_produce_mismatched_variant_header_observations() {
+        let symbol_batch = observed_symbol_batch("extractor-a", "src/lib.rs", "known");
+        let type_batch = observed_type_batch("extractor-b", "src/lib.rs", "Known");
+
+        for batch in [&symbol_batch, &type_batch] {
+            for observation in &batch.observations {
+                assert!(observation.is_dimension_consistent());
+            }
+        }
     }
 }
