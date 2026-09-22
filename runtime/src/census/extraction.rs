@@ -13,14 +13,99 @@
 //! a winner -- that is reconciliation's job, out of scope for this wave
 //! (`.atlas/contracts/NORMALIZATION.md#conflict-handling`).
 //!
-//! Full per-artifact wiring into `census::build_census`'s production path remains deferred: every
-//! extractor registered today is a `StaticUnsupportedExtractor`, so wiring it in now would only
-//! reproduce results the bootstrap coverage map already states directly. This is the real, tested
-//! attach point a real R4.3+ extractor (or a second independent extractor sharing a dimension)
-//! plugs into; it is not itself the production call site yet.
+//! `extract_semantics` (R4.3) is the real production call site: called from `runtime::systemize`,
+//! it identifies every admitted, successfully-parsed artifact, selects the registered
+//! `SemanticExtractor` for its language (currently real for `"rust"`; every other language still
+//! resolves to no extractor and is simply skipped here, exactly as it was before this wave), and
+//! records every resulting `ExtractionBatch` into `CensusExtractionAccounting`.
 
-use adapter::ExtractionBatch;
-use atlas_core::{ArtifactId, EvidenceId, ExtractorIdentity, SemanticDimension, SemanticRecordId};
+use adapter::{ExtractionBatch, ExtractionInput};
+use atlas_core::{
+    ArtifactDisposition, ArtifactId, ContentFingerprint, EvidenceId, ExtractorIdentity,
+    InventoryReport, RepositoryId, RevisionRef, SemanticDimension, SemanticRecordId, stable_id,
+};
+use std::{fs, io, path::Path};
+
+/// Every canonical R4 semantic dimension, requested uniformly so a production extraction call
+/// never silently narrows what it asks an extractor to account for
+/// (`.atlas/contracts/CENSUS-COMPLETENESS.md`).
+const ALL_SEMANTIC_DIMENSIONS: [SemanticDimension; 12] = [
+    SemanticDimension::Symbol,
+    SemanticDimension::Type,
+    SemanticDimension::FunctionIdentity,
+    SemanticDimension::FunctionSignature,
+    SemanticDimension::Call,
+    SemanticDimension::ControlFlow,
+    SemanticDimension::DataFlow,
+    SemanticDimension::State,
+    SemanticDimension::Effect,
+    SemanticDimension::Ownership,
+    SemanticDimension::Concurrency,
+    SemanticDimension::Persistence,
+];
+
+/// Runs every registered `SemanticExtractor` against every admitted, successfully-parsed
+/// (`ArtifactDisposition::Parsed`) artifact whose language has one, and records every result into
+/// a fresh `CensusExtractionAccounting`. Never executes the artifact's content -- only reads and
+/// parses its text. A read or parse failure on one artifact never removes another artifact's
+/// results: each artifact is extracted independently, and a parser-level failure inside an
+/// extractor is itself accounted for as an explicit `ExtractionDiagnostic` + `UNKNOWN` obligation
+/// by that extractor (see `adapter::semantic::rust`), never a silent drop.
+///
+/// Returns the accounting plus whether every produced batch was `is_closed` against the full
+/// canonical dimension set -- the closure verification this wiring must perform before treating an
+/// extractor's output as trustworthy (`.atlas/contracts/SEMANTIC-EXTRACTION.md#extractionbatch`).
+pub fn extract_semantics(
+    inventory: &InventoryReport,
+    repository: RepositoryId,
+    revision: RevisionRef,
+) -> io::Result<(CensusExtractionAccounting, bool)> {
+    let mut accounting = CensusExtractionAccounting::new();
+    let mut all_closed = true;
+    let root = Path::new(&inventory.root);
+
+    for artifact in &inventory.artifacts {
+        if artifact.disposition != ArtifactDisposition::Parsed {
+            continue;
+        }
+        let Some(language) = artifact.language.as_deref() else {
+            continue;
+        };
+        let extractors = adapter::extractors_for_language(language);
+        if extractors.is_empty() {
+            continue;
+        }
+
+        let source_text = fs::read_to_string(root.join(&artifact.path))?;
+        let source_frontend_id = adapter::resolve_source_frontend(Path::new(&artifact.path))
+            .map(|matched| matched.frontend_id.to_owned())
+            .unwrap_or_default();
+        let content_fingerprint = Some(ContentFingerprint(stable_id("content", &source_text)));
+
+        for extractor in extractors {
+            let input = ExtractionInput {
+                repository: repository.clone(),
+                revision: revision.clone(),
+                artifact: artifact.id.clone(),
+                artifact_path: artifact.path.clone(),
+                source_text: source_text.clone(),
+                content_fingerprint: content_fingerprint.clone(),
+                source_frontend_id: source_frontend_id.clone(),
+                language: language.to_owned(),
+                build_profile: None,
+                scope_policy: None,
+                requested_dimensions: ALL_SEMANTIC_DIMENSIONS.to_vec(),
+            };
+            let batch = extractor.extract(&input);
+            if !batch.is_closed(&ALL_SEMANTIC_DIMENSIONS) {
+                all_closed = false;
+            }
+            accounting.record_batch(&batch);
+        }
+    }
+
+    Ok((accounting, all_closed))
+}
 
 /// One extractor's obligation result for one dimension on one artifact, preserved independently
 /// alongside every other extractor's result for the same (artifact, dimension) pair.
@@ -154,6 +239,7 @@ mod tests {
             },
             artifact: ArtifactId::new("artifact:src/lib.rs"),
             artifact_path: "src/lib.rs".into(),
+            source_text: "pub fn known() {}\n".into(),
             content_fingerprint: Some(ContentFingerprint("sha256:deadbeef".into())),
             source_frontend_id: "atlas.source.rust.bootstrap.v1".into(),
             language: "rust".into(),
@@ -180,11 +266,22 @@ mod tests {
         let mut accounting = CensusExtractionAccounting::new();
         accounting.record_batch(&batch);
 
-        for dimension in &requested {
-            let records = accounting.records_for(*dimension);
+        // R4.3: SYMBOL and FUNCTION_IDENTITY are now real extraction (evidence-backed OBSERVED);
+        // OWNERSHIP remains UNSUPPORTED (R4.10+). Neither is silently dropped.
+        for dimension in [
+            SemanticDimension::Symbol,
+            SemanticDimension::FunctionIdentity,
+        ] {
+            let records = accounting.records_for(dimension);
             assert_eq!(records.len(), 1);
-            assert_eq!(records[0].obligation.status, EpistemicStatus::Unsupported);
+            assert_eq!(records[0].obligation.status, EpistemicStatus::Observed);
         }
+        let ownership_records = accounting.records_for(SemanticDimension::Ownership);
+        assert_eq!(ownership_records.len(), 1);
+        assert_eq!(
+            ownership_records[0].obligation.status,
+            EpistemicStatus::Unsupported
+        );
     }
 }
 
@@ -614,13 +711,23 @@ mod multi_extractor_tests {
         );
     }
 
-    // --- 12. no real Rust extraction is introduced --------------------------------------------
+    // --- 12. R4.3: a real Rust extractor is now registered, scoped to exactly 4 dimensions -----
 
     #[test]
-    fn no_real_rust_extractor_was_registered_this_wave() {
+    fn a_real_rust_extractor_is_registered_supporting_exactly_the_r4_3_dimensions() {
         let rust_extractors = adapter::extractors_for_language("rust");
         assert_eq!(rust_extractors.len(), 1);
-        assert!(rust_extractors[0].supported_dimensions().is_empty());
+        assert_eq!(rust_extractors[0].id(), "atlas.rust.source-semantic.v1");
+        let mut supported: Vec<&str> = rust_extractors[0]
+            .supported_dimensions()
+            .iter()
+            .map(SemanticDimension::as_str)
+            .collect();
+        supported.sort_unstable();
+        assert_eq!(
+            supported,
+            vec!["FUNCTION_IDENTITY", "FUNCTION_SIGNATURE", "SYMBOL", "TYPE"]
+        );
     }
 
     // === R4.2.2 determinism hardening ==========================================================
@@ -819,5 +926,126 @@ mod multi_extractor_tests {
                 assert!(observation.is_dimension_consistent());
             }
         }
+    }
+}
+
+/// Proves `extract_semantics` (the real production wiring, called from `runtime::systemize`) reads
+/// actual files from disk, selects the real Rust extractor, and never lets one malformed file erase
+/// another file's successfully extracted semantics.
+#[cfg(test)]
+mod production_wiring_tests {
+    use super::*;
+    use atlas_core::{
+        ArtifactDisposition, ArtifactId, ArtifactKind, ArtifactRecord, EpistemicStatus,
+        InventoryReport, RepositoryId, RevisionRef,
+    };
+    use std::{
+        fs,
+        time::{SystemTime, UNIX_EPOCH},
+    };
+
+    fn scratch_dir() -> std::path::PathBuf {
+        let nonce = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_nanos();
+        std::env::temp_dir().join(format!("atlas-r4.3-extract-{}-{nonce}", std::process::id()))
+    }
+
+    fn rust_artifact(path: &str) -> ArtifactRecord {
+        ArtifactRecord {
+            id: ArtifactId::new(format!("artifact:{path}")),
+            path: path.to_owned(),
+            kind: ArtifactKind::File,
+            bytes: 0,
+            disposition: ArtifactDisposition::Parsed,
+            language: Some("rust".into()),
+            reason: None,
+        }
+    }
+
+    #[test]
+    fn production_wiring_extracts_real_rust_semantics_and_isolates_a_malformed_file() {
+        let dir = scratch_dir();
+        fs::create_dir_all(&dir).unwrap();
+        fs::write(dir.join("valid.rs"), "pub fn known() {}\n").unwrap();
+        fs::write(dir.join("broken.rs"), "pub fn broken( {\n").unwrap();
+
+        let inventory = InventoryReport::new(
+            dir.to_string_lossy().into_owned(),
+            vec![rust_artifact("valid.rs"), rust_artifact("broken.rs")],
+        );
+
+        let (accounting, all_closed) = extract_semantics(
+            &inventory,
+            RepositoryId::new("atlas-studio"),
+            RevisionRef {
+                kind: "git".into(),
+                value: "abc123".into(),
+            },
+        )
+        .unwrap();
+        assert!(all_closed, "every real extractor batch must be closed");
+
+        let records = accounting.sorted();
+        let valid_artifact = ArtifactId::new("artifact:valid.rs");
+        let broken_artifact = ArtifactId::new("artifact:broken.rs");
+
+        let valid_symbol = records
+            .iter()
+            .find(|record| {
+                record.artifact == valid_artifact
+                    && record.obligation.dimension == SemanticDimension::Symbol
+            })
+            .expect("valid.rs SYMBOL obligation present");
+        assert_eq!(valid_symbol.obligation.status, EpistemicStatus::Observed);
+        assert!(!valid_symbol.obligation.observation_ids.is_empty());
+
+        // The malformed file never disappears from accounting -- it still gets an explicit UNKNOWN
+        // obligation (never silently dropped), and it never erases valid.rs's results above.
+        let broken_symbol = records
+            .iter()
+            .find(|record| {
+                record.artifact == broken_artifact
+                    && record.obligation.dimension == SemanticDimension::Symbol
+            })
+            .expect("broken.rs SYMBOL obligation present -- malformed input is never dropped");
+        assert_eq!(broken_symbol.obligation.status, EpistemicStatus::Unknown);
+
+        fs::remove_dir_all(&dir).unwrap();
+    }
+
+    #[test]
+    fn extract_semantics_skips_artifacts_with_no_registered_extractor() {
+        let dir = scratch_dir();
+        fs::create_dir_all(&dir).unwrap();
+        fs::write(dir.join("notes.md"), "# hello\n").unwrap();
+
+        let inventory = InventoryReport::new(
+            dir.to_string_lossy().into_owned(),
+            vec![ArtifactRecord {
+                id: ArtifactId::new("artifact:notes.md"),
+                path: "notes.md".into(),
+                kind: ArtifactKind::File,
+                bytes: 0,
+                disposition: ArtifactDisposition::Parsed,
+                language: Some("markdown".into()),
+                reason: None,
+            }],
+        );
+
+        let (accounting, all_closed) = extract_semantics(
+            &inventory,
+            RepositoryId::new("atlas-studio"),
+            RevisionRef {
+                kind: "git".into(),
+                value: "abc123".into(),
+            },
+        )
+        .unwrap();
+        assert!(all_closed);
+        assert!(accounting.is_empty());
+
+        fs::remove_dir_all(&dir).unwrap();
     }
 }
