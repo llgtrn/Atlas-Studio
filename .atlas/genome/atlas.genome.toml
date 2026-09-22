@@ -186,10 +186,21 @@ partial_materialization_supported = true
 unchanged_shard_reuse_supported = true
 single_logical_truth_required = true
 
+[selected_design]
+explicit_typed_record_required = true
+lifecycle_distinct_from_epistemic_status = true
+selection_evidence_required = true
+materialization_critical_bindings_must_resolve_or_be_explicit_dynamic_external = true
+supersession_lineage_required = true
+
 [atlasx_format]
 suffix = ".atlasx"
 expanded_executable_repository_representation = true
 validated_manifested_root_required = true
+binary_wire_v1_required = true
+manifest_is_compiler_authority = true
+content_addressed_canonical_objects_required = true
+cross_object_global_identity_required = true
 selected_design_identity_required = true
 explicit_materialization_scope_required = true
 explicit_profile_identities_required_when_applicable = true
@@ -225,6 +236,10 @@ verify_and_recensus_required = true
 current_phase = 0
 validated_atlasx_root_required = true
 hir_mir_lir_machine_ir_distinct = true
+compiler_ir_v1_schemas_explicit = true
+mir_cfg_values_and_failure_paths_explicit = true
+lir_target_layout_abi_explicit = true
+machine_ir_target_opcode_constraints_explicit = true
 atlasx_to_hir_contract_required = true
 hir_to_mir_contract_required = true
 mir_to_lir_contract_required = true
