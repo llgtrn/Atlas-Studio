@@ -13,7 +13,12 @@
 //! entity, requires semantics beyond syntax (which fields represent a "state machine", RAII drop
 //! timing) that this wave does not fabricate. `StateAccessKind` still declares all five contract
 //! categories so a future wave (or a different extractor) can materialize them without a breaking
-//! enum change; this extractor simply never emits `Transition`/`Create`/`Delete` this wave.
+//! enum change; this extractor simply never emits `Transition`/`Create`/`Delete` this wave. A
+//! compound assignment (`self.field += 1`) is also never emitted as `Write` -- the field it
+//! touches is recorded only as an ordinary `Read`, since this extractor's Rust parser represents
+//! compound assignment as `Expr::Binary`, not `Expr::Assign` (see `adapter`'s extractor doc
+//! comment for the exact discovery); never silently dropped, just not distinguished from a plain
+//! read this wave.
 
 use super::SemanticRecordId;
 use crate::identity::RepositoryId;

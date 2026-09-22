@@ -9,6 +9,11 @@
 //! access this wave. Module-level `static` reads/writes, and any access not rooted at a bare
 //! `self`, are not modeled this wave -- resolving them would require a source-unit-wide
 //! declaration pre-pass this extractor does not yet perform; a documented gap, not a silent one.
+//! Compound-assignment operators (`self.field += 1`) are represented by this `syn` version as
+//! `syn::Expr::Binary` with a compound `BinOp`, not `syn::Expr::Assign` (the same discovery
+//! R4.7's `dataflow.rs` documents for local bindings) -- they are NOT specially modeled as a Write
+//! here either, so `self.field` on the left of a compound assignment is recorded only as an
+//! ordinary Read via the general expression walk, never as a Write and never silently dropped.
 
 use atlas_core::{
     EpistemicStatus, EvidenceId, SemanticDimension, SemanticObservation, SemanticRecordHeader,

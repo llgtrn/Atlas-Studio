@@ -446,6 +446,10 @@ impl Counter {
     pub fn read_nested(&self) -> u64 {
         self.inner.value
     }
+
+    pub fn compound_increment(&mut self) {
+        self.value += 1;
+    }
 }
 
 pub fn free_function_with_no_self() -> u64 {
@@ -2616,7 +2620,28 @@ fn nested_field_chain_reports_only_the_outer_field_as_a_documented_gap() {
     );
 }
 
-// --- 68. every State/Effect observation satisfies dimension consistency, alongside every other
+// --- 68. a compound assignment (`self.field += 1`) is recorded as a Read, never a Write and never
+// silently dropped -- a documented gap, matching R4.7's identical `syn::Expr::Binary` discovery --
+
+#[test]
+fn compound_assignment_is_recorded_as_a_read_not_a_write() {
+    let batch = extract_all("src/lib.rs", STATE_EFFECT_CORPUS);
+    let caller = find_function_identity(&batch, &["impl:Counter"], "compound_increment").unwrap();
+    let accesses = state_accesses_for(&batch, caller);
+    assert_eq!(
+        accesses.len(),
+        1,
+        "`self.value += 1` still produces exactly one access, never zero"
+    );
+    assert_eq!(
+        accesses[0].kind,
+        StateAccessKind::Read,
+        "compound assignment is not specially modeled as a Write this wave"
+    );
+    assert_eq!(accesses[0].name, "value");
+}
+
+// --- 69. every State/Effect observation satisfies dimension consistency, alongside every other
 // dimension this extractor produces -------------------------------------------------------------
 
 #[test]
@@ -2636,7 +2661,7 @@ fn state_and_effect_observations_satisfy_dimension_consistency() {
     assert!(saw_effect);
 }
 
-// --- 69. STATE_EFFECT_CORPUS extraction is byte-for-byte deterministic across repeated runs ------
+// --- 70. STATE_EFFECT_CORPUS extraction is byte-for-byte deterministic across repeated runs ------
 
 #[test]
 fn state_effect_corpus_extraction_is_deterministic() {
@@ -2646,7 +2671,7 @@ fn state_effect_corpus_extraction_is_deterministic() {
     assert_eq!(first.evidence, second.evidence);
 }
 
-// --- 70. STATE_EFFECT_CORPUS extraction is unaffected by requested-dimension order ---------------
+// --- 71. STATE_EFFECT_CORPUS extraction is unaffected by requested-dimension order ---------------
 
 #[test]
 fn state_effect_corpus_is_unaffected_by_requested_dimension_order() {
@@ -2673,7 +2698,7 @@ fn state_effect_corpus_is_unaffected_by_requested_dimension_order() {
     assert_eq!(forward.observations, reversed.observations);
 }
 
-// --- 71. repeated extraction yields the exact same State/Effect record_ids -----------------------
+// --- 72. repeated extraction yields the exact same State/Effect record_ids -----------------------
 
 #[test]
 fn repeated_extraction_yields_stable_state_and_effect_record_ids() {
