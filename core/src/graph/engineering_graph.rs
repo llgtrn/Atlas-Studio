@@ -734,11 +734,119 @@ fn add_typed_semantic_nodes(
                     });
                 }
             }
-            // Not yet materialized by any extractor (R4.8+); no graph logic to add here until
-            // they become real observations. Matched explicitly, never via `_ => {}`, so adding a
-            // new dimension's extractor without updating this function fails to compile instead
-            // of silently producing no graph nodes.
-            SemanticObservation::State(_) | SemanticObservation::Effect(_) => {}
+            // R4.8: one StateAccess node per observation, a HAS_ACCESS edge from the owning
+            // function (mirroring R4.6/R4.7's HAS_BLOCK/HAS_VALUE), and a TARGETS edge to a
+            // StateEntity node. The entity itself is not its own top-level SemanticRecord this
+            // wave -- its identity is fully determined by (scope, name), so the graph projection
+            // derives a stable node id from that content directly (the same pattern already used
+            // for a source-file's Technology node, derived from a language string rather than its
+            // own semantic record), letting every access to the same field converge on one node.
+            SemanticObservation::State(header) => {
+                let access_node_id = stable_id(
+                    "node",
+                    &format!("state-access:{}", header.record_id.as_str()),
+                );
+                ensure_node(
+                    graph,
+                    access_node_id.clone(),
+                    "StateAccess".into(),
+                    format!("{}:{}", header.subject.name, header.subject.kind.as_str()),
+                    BTreeMap::from([
+                        ("origin".into(), "semantic-extraction".into()),
+                        ("kind".into(), header.subject.kind.as_str().into()),
+                        (
+                            "resolution".into(),
+                            header.subject.resolution.as_str().into(),
+                        ),
+                    ]),
+                    &header.provenance,
+                );
+                let caller_node_id = stable_id(
+                    "node",
+                    &format!("function-identity:{}", header.subject.function.as_str()),
+                );
+                graph.edges.push(Edge {
+                    id: stable_id(
+                        "edge",
+                        &format!("{caller_node_id}:HAS_ACCESS:{access_node_id}"),
+                    ),
+                    kind: "HAS_ACCESS".into(),
+                    from: caller_node_id,
+                    to: access_node_id.clone(),
+                    attributes: BTreeMap::from([("origin".into(), "semantic-extraction".into())]),
+                    provenance: header.provenance.clone(),
+                    revision: header.provenance.source_revision.clone(),
+                });
+                let entity_node_id = stable_id(
+                    "node",
+                    &format!(
+                        "state-entity:{}:{}",
+                        header.subject.scope.join(),
+                        header.subject.name
+                    ),
+                );
+                ensure_node(
+                    graph,
+                    entity_node_id.clone(),
+                    "StateEntity".into(),
+                    format!("{}.{}", header.subject.scope.join(), header.subject.name),
+                    BTreeMap::from([("origin".into(), "semantic-extraction".into())]),
+                    &header.provenance,
+                );
+                graph.edges.push(Edge {
+                    id: stable_id(
+                        "edge",
+                        &format!("{access_node_id}:TARGETS:{entity_node_id}"),
+                    ),
+                    kind: "TARGETS".into(),
+                    from: access_node_id,
+                    to: entity_node_id,
+                    attributes: BTreeMap::from([("origin".into(), "semantic-extraction".into())]),
+                    provenance: header.provenance.clone(),
+                    revision: header.provenance.source_revision.clone(),
+                });
+            }
+            // R4.8: one Effect node per observation and a PRODUCES_EFFECT edge from the owning
+            // function. Only `EffectCategory::Panic` is materialized this wave (see
+            // `core::semantic::effect`'s module doc comment), but the projection itself handles
+            // every category uniformly -- no per-category graph logic to extend later.
+            SemanticObservation::Effect(header) => {
+                let effect_node_id =
+                    stable_id("node", &format!("effect:{}", header.record_id.as_str()));
+                ensure_node(
+                    graph,
+                    effect_node_id.clone(),
+                    "Effect".into(),
+                    format!(
+                        "{}@{}:{}:{}",
+                        header.subject.category.as_str(),
+                        header.subject.span.path,
+                        header.subject.span.line,
+                        header.subject.span.column
+                    ),
+                    BTreeMap::from([
+                        ("origin".into(), "semantic-extraction".into()),
+                        ("category".into(), header.subject.category.as_str().into()),
+                    ]),
+                    &header.provenance,
+                );
+                let caller_node_id = stable_id(
+                    "node",
+                    &format!("function-identity:{}", header.subject.function.as_str()),
+                );
+                graph.edges.push(Edge {
+                    id: stable_id(
+                        "edge",
+                        &format!("{caller_node_id}:PRODUCES_EFFECT:{effect_node_id}"),
+                    ),
+                    kind: "PRODUCES_EFFECT".into(),
+                    from: caller_node_id,
+                    to: effect_node_id,
+                    attributes: BTreeMap::from([("origin".into(), "semantic-extraction".into())]),
+                    provenance: header.provenance.clone(),
+                    revision: header.provenance.source_revision.clone(),
+                });
+            }
         }
     }
 }
@@ -1224,6 +1332,109 @@ mod tests {
             status: EpistemicStatus::Observed,
             subject,
             scope: SemanticScope::new(["impl:owner"]),
+            repository,
+            revision,
+            extractor: ExtractorIdentity {
+                id: "atlas.test".into(),
+                version: "0.1.0".into(),
+            },
+            evidence_refs: Vec::new(),
+            provenance: provenance("src/lib.rs", "atlas.test"),
+        })
+    }
+
+    /// R4.8: a State access observation whose `function` (owner) is a fixed synthetic
+    /// `FunctionIdentity` record_id -- the graph tests only need the STATE claim itself to be
+    /// independently attributable, not a paired FunctionIdentity observation.
+    fn state_access_observation(
+        function: &crate::semantic::SemanticRecordId,
+        name: &str,
+        line: usize,
+        kind: crate::semantic::StateAccessKind,
+    ) -> SemanticObservation {
+        use crate::identity::RepositoryId;
+        use crate::provenance::provenance;
+        use crate::semantic::{
+            ExtractorIdentity, SemanticDimension, SemanticRecordHeader, SemanticRecordId,
+            SemanticScope, StateAccessIdentity, StateResolution,
+        };
+        use crate::temporal::RevisionRef;
+
+        let repository = RepositoryId::new("atlas-studio");
+        let revision = RevisionRef {
+            kind: "git".into(),
+            value: "abc123".into(),
+        };
+        let scope = SemanticScope::new(["impl:Owner"]);
+        let subject = StateAccessIdentity {
+            repository: repository.clone(),
+            revision: revision.clone(),
+            function: function.clone(),
+            scope: scope.clone(),
+            name: name.to_owned(),
+            span: crate::language::adl::SourceSpan {
+                path: "src/lib.rs".into(),
+                line,
+                column: 5,
+            },
+            kind,
+            resolution: StateResolution::Resolved,
+        };
+        let record_id = SemanticRecordId::new(SemanticDimension::State, &subject.identity_key());
+        SemanticObservation::State(SemanticRecordHeader {
+            record_id,
+            dimension: SemanticDimension::State,
+            status: EpistemicStatus::Observed,
+            subject,
+            scope,
+            repository,
+            revision,
+            extractor: ExtractorIdentity {
+                id: "atlas.test".into(),
+                version: "0.1.0".into(),
+            },
+            evidence_refs: Vec::new(),
+            provenance: provenance("src/lib.rs", "atlas.test"),
+        })
+    }
+
+    /// R4.8: a Panic Effect observation whose `function` (owner) is a fixed synthetic
+    /// `FunctionIdentity` record_id.
+    fn effect_observation(
+        function: &crate::semantic::SemanticRecordId,
+        line: usize,
+    ) -> SemanticObservation {
+        use crate::identity::RepositoryId;
+        use crate::provenance::provenance;
+        use crate::semantic::{
+            EffectCategory, EffectIdentity, ExtractorIdentity, SemanticDimension,
+            SemanticRecordHeader, SemanticRecordId, SemanticScope,
+        };
+        use crate::temporal::RevisionRef;
+
+        let repository = RepositoryId::new("atlas-studio");
+        let revision = RevisionRef {
+            kind: "git".into(),
+            value: "abc123".into(),
+        };
+        let subject = EffectIdentity {
+            repository: repository.clone(),
+            revision: revision.clone(),
+            function: function.clone(),
+            category: EffectCategory::Panic,
+            span: crate::language::adl::SourceSpan {
+                path: "src/lib.rs".into(),
+                line,
+                column: 5,
+            },
+        };
+        let record_id = SemanticRecordId::new(SemanticDimension::Effect, &subject.identity_key());
+        SemanticObservation::Effect(SemanticRecordHeader {
+            record_id,
+            dimension: SemanticDimension::Effect,
+            status: EpistemicStatus::Observed,
+            subject,
+            scope: SemanticScope::new(["impl:Owner"]),
             repository,
             revision,
             extractor: ExtractorIdentity {
@@ -1722,5 +1933,155 @@ mod tests {
             .filter(|node| node.kind == "Value")
             .collect();
         assert_eq!(value_nodes.len(), 2);
+    }
+
+    // --- R4.8: STATE observations produce StateAccess/StateEntity nodes and structural edges ------
+
+    #[test]
+    fn state_access_produces_a_node_and_a_has_access_edge_from_its_function() {
+        let caller = function_identity_observation("Foo");
+        let caller_record_id = caller.record_id().clone();
+        let access = state_access_observation(
+            &caller_record_id,
+            "value",
+            10,
+            crate::semantic::StateAccessKind::Read,
+        );
+
+        let normalization = normalization_with(vec![caller, access], Vec::new());
+        let graph = build_system_graph(&source(), &docs(), &normalization);
+
+        let access_node = graph
+            .nodes
+            .iter()
+            .find(|node| node.kind == "StateAccess")
+            .expect("a StateAccess node must exist");
+        assert_eq!(
+            access_node.attributes.get("kind").map(String::as_str),
+            Some("READ")
+        );
+        assert_eq!(
+            access_node.attributes.get("resolution").map(String::as_str),
+            Some("RESOLVED")
+        );
+
+        let caller_node_id = stable_id(
+            "node",
+            &format!("function-identity:{}", caller_record_id.as_str()),
+        );
+        let has_access_edge = graph
+            .edges
+            .iter()
+            .find(|edge| edge.kind == "HAS_ACCESS")
+            .expect("a HAS_ACCESS edge must exist");
+        assert_eq!(has_access_edge.from, caller_node_id);
+        assert_eq!(has_access_edge.to, access_node.id);
+    }
+
+    #[test]
+    fn two_accesses_of_the_same_field_converge_on_one_state_entity_node() {
+        let caller = function_identity_observation("Foo");
+        let caller_record_id = caller.record_id().clone();
+        let read = state_access_observation(
+            &caller_record_id,
+            "value",
+            10,
+            crate::semantic::StateAccessKind::Read,
+        );
+        let write = state_access_observation(
+            &caller_record_id,
+            "value",
+            11,
+            crate::semantic::StateAccessKind::Write,
+        );
+
+        let normalization = normalization_with(vec![caller, read, write], Vec::new());
+        let graph = build_system_graph(&source(), &docs(), &normalization);
+
+        let entity_nodes: Vec<_> = graph
+            .nodes
+            .iter()
+            .filter(|node| node.kind == "StateEntity")
+            .collect();
+        assert_eq!(
+            entity_nodes.len(),
+            1,
+            "same scope+name must converge on exactly one StateEntity node"
+        );
+
+        let targets_edges: Vec<_> = graph
+            .edges
+            .iter()
+            .filter(|edge| edge.kind == "TARGETS")
+            .collect();
+        assert_eq!(targets_edges.len(), 2, "one TARGETS edge per access");
+        assert!(
+            targets_edges
+                .iter()
+                .all(|edge| edge.to == entity_nodes[0].id)
+        );
+
+        let access_nodes: Vec<_> = graph
+            .nodes
+            .iter()
+            .filter(|node| node.kind == "StateAccess")
+            .collect();
+        assert_eq!(
+            access_nodes.len(),
+            2,
+            "two distinct access events, never collapsed"
+        );
+    }
+
+    // --- R4.8: EFFECT observations produce Effect nodes and a PRODUCES_EFFECT edge -----------------
+
+    #[test]
+    fn effect_produces_a_node_and_a_produces_effect_edge_from_its_function() {
+        let caller = function_identity_observation("Foo");
+        let caller_record_id = caller.record_id().clone();
+        let effect = effect_observation(&caller_record_id, 20);
+
+        let normalization = normalization_with(vec![caller, effect], Vec::new());
+        let graph = build_system_graph(&source(), &docs(), &normalization);
+
+        let effect_node = graph
+            .nodes
+            .iter()
+            .find(|node| node.kind == "Effect")
+            .expect("an Effect node must exist");
+        assert_eq!(
+            effect_node.attributes.get("category").map(String::as_str),
+            Some("PANIC")
+        );
+
+        let caller_node_id = stable_id(
+            "node",
+            &format!("function-identity:{}", caller_record_id.as_str()),
+        );
+        let produces_effect_edge = graph
+            .edges
+            .iter()
+            .find(|edge| edge.kind == "PRODUCES_EFFECT")
+            .expect("a PRODUCES_EFFECT edge must exist");
+        assert_eq!(produces_effect_edge.from, caller_node_id);
+        assert_eq!(produces_effect_edge.to, effect_node.id);
+    }
+
+    #[test]
+    fn two_effects_from_the_same_function_produce_two_distinct_effect_nodes() {
+        let caller = function_identity_observation("Foo");
+        let caller_record_id = caller.record_id().clone();
+        let first = effect_observation(&caller_record_id, 20);
+        let second = effect_observation(&caller_record_id, 30);
+
+        let normalization = normalization_with(vec![caller, first, second], Vec::new());
+        let graph = build_system_graph(&source(), &docs(), &normalization);
+
+        let effect_nodes: Vec<_> = graph
+            .nodes
+            .iter()
+            .filter(|node| node.kind == "Effect")
+            .collect();
+        assert_eq!(effect_nodes.len(), 2);
     }
 }

@@ -1091,6 +1091,160 @@ mod tests {
         }
     }
 
+    /// R4.8: a State access observation, attributed to `extractor_id`, whose `function` (owner)
+    /// is a fixed synthetic `FunctionIdentity` record_id -- the test only needs the STATE claim
+    /// itself to be independently attributable, not a paired FunctionIdentity observation.
+    fn extraction_batch_with_state_from(
+        artifact_path: &str,
+        extractor_id: &str,
+        evidence_id: &str,
+        evidence_summary: &str,
+    ) -> ExtractionBatch {
+        use atlas_core::{
+            Evidence, EvidenceId, RepositoryId, SemanticRecordHeader, SemanticRecordId,
+            StateAccessIdentity, StateAccessKind, StateResolution, provenance,
+        };
+
+        let repository = RepositoryId::new("atlas-studio");
+        let revision = atlas_core::RevisionRef {
+            kind: "git".into(),
+            value: "abc123".into(),
+        };
+        let extractor = ExtractorIdentity {
+            id: extractor_id.into(),
+            version: "0.1.0".into(),
+        };
+        let scope = SemanticScope::new(["impl:Owner"]);
+        let function = SemanticRecordId::new(SemanticDimension::FunctionIdentity, "owner-fn-key");
+        let subject = StateAccessIdentity {
+            repository: repository.clone(),
+            revision: revision.clone(),
+            function,
+            scope: scope.clone(),
+            name: "value".into(),
+            span: atlas_core::SourceSpan {
+                path: artifact_path.into(),
+                line: 3,
+                column: 5,
+            },
+            kind: StateAccessKind::Read,
+            resolution: StateResolution::Resolved,
+        };
+        let record_id = SemanticRecordId::new(SemanticDimension::State, &subject.identity_key());
+        let evidence_id = EvidenceId::new(evidence_id.to_owned());
+        let header = SemanticRecordHeader {
+            record_id: record_id.clone(),
+            dimension: SemanticDimension::State,
+            status: EpistemicStatus::Observed,
+            scope,
+            repository: repository.clone(),
+            revision: revision.clone(),
+            extractor: extractor.clone(),
+            evidence_refs: vec![evidence_id.clone()],
+            provenance: provenance(artifact_path, &extractor.id),
+            subject,
+        };
+        let observation = SemanticObservation::State(header);
+        assert!(observation.is_dimension_consistent());
+
+        ExtractionBatch {
+            extractor,
+            repository,
+            revision,
+            artifact: ArtifactId::new(format!("artifact:{artifact_path}")),
+            input_fingerprint: format!("test:{artifact_path}"),
+            observations: vec![observation],
+            evidence: vec![Evidence {
+                id: evidence_id.as_str().to_owned(),
+                kind: "PARSER_OUTPUT".into(),
+                path: artifact_path.into(),
+                summary: evidence_summary.into(),
+                revision: None,
+            }],
+            obligations: vec![ObligationResult::observed(
+                SemanticDimension::State,
+                vec![record_id],
+                vec![evidence_id],
+            )],
+            diagnostics: Vec::new(),
+        }
+    }
+
+    /// R4.8: a Panic Effect observation, attributed to `extractor_id`, whose `function` (owner)
+    /// is a fixed synthetic `FunctionIdentity` record_id.
+    fn extraction_batch_with_effect_from(
+        artifact_path: &str,
+        extractor_id: &str,
+        evidence_id: &str,
+        evidence_summary: &str,
+    ) -> ExtractionBatch {
+        use atlas_core::{
+            EffectCategory, EffectIdentity, Evidence, EvidenceId, RepositoryId,
+            SemanticRecordHeader, SemanticRecordId, provenance,
+        };
+
+        let repository = RepositoryId::new("atlas-studio");
+        let revision = atlas_core::RevisionRef {
+            kind: "git".into(),
+            value: "abc123".into(),
+        };
+        let extractor = ExtractorIdentity {
+            id: extractor_id.into(),
+            version: "0.1.0".into(),
+        };
+        let scope = SemanticScope::new(Vec::<String>::new());
+        let function = SemanticRecordId::new(SemanticDimension::FunctionIdentity, "owner-fn-key");
+        let subject = EffectIdentity {
+            repository: repository.clone(),
+            revision: revision.clone(),
+            function,
+            category: EffectCategory::Panic,
+            span: atlas_core::SourceSpan {
+                path: artifact_path.into(),
+                line: 3,
+                column: 5,
+            },
+        };
+        let record_id = SemanticRecordId::new(SemanticDimension::Effect, &subject.identity_key());
+        let evidence_id = EvidenceId::new(evidence_id.to_owned());
+        let header = SemanticRecordHeader {
+            record_id: record_id.clone(),
+            dimension: SemanticDimension::Effect,
+            status: EpistemicStatus::Observed,
+            scope,
+            repository: repository.clone(),
+            revision: revision.clone(),
+            extractor: extractor.clone(),
+            evidence_refs: vec![evidence_id.clone()],
+            provenance: provenance(artifact_path, &extractor.id),
+            subject,
+        };
+        let observation = SemanticObservation::Effect(header);
+        assert!(observation.is_dimension_consistent());
+
+        ExtractionBatch {
+            extractor,
+            repository,
+            revision,
+            artifact: ArtifactId::new(format!("artifact:{artifact_path}")),
+            input_fingerprint: format!("test:{artifact_path}"),
+            observations: vec![observation],
+            evidence: vec![Evidence {
+                id: evidence_id.as_str().to_owned(),
+                kind: "PARSER_OUTPUT".into(),
+                path: artifact_path.into(),
+                summary: evidence_summary.into(),
+                revision: None,
+            }],
+            obligations: vec![ObligationResult::observed(
+                SemanticDimension::Effect,
+                vec![record_id],
+                vec![evidence_id],
+            )],
+            diagnostics: Vec::new(),
+        }
+    }
+
     fn single_rust_file_context() -> (InventoryReport, SourceReport, AdlCompileReport) {
         let inventory = InventoryReport::new(
             "/repo",
@@ -1956,6 +2110,150 @@ pub async unsafe extern "C" fn example<T>(x: Vec<T>, y: &mut usize) -> Result<T,
             .typed_semantic_records
             .iter()
             .filter(|observation| matches!(observation, SemanticObservation::DataFlow(_)))
+            .collect();
+        assert_eq!(normalized.len(), 2);
+    }
+
+    // === R4.8: State/Effect claims stay multi-extractor safe =======================================
+    //
+    // Same proof, for the two new R4.8 dimensions: two independent extractors observing the exact
+    // same claim must both survive Census/Normalization, share one claim identity (record_id), and
+    // remain distinctly attributable by raw_observation_id/extractor id.
+
+    #[test]
+    fn same_state_access_claim_from_two_extractors_survives_census_and_normalization() {
+        let (inventory, source, adl) = single_rust_file_context();
+        let batches = [
+            extraction_batch_with_state_from(
+                "src/lib.rs",
+                "extractor-a",
+                "evidence:state-a",
+                "extractor-a observed a state access at src/lib.rs",
+            ),
+            extraction_batch_with_state_from(
+                "src/lib.rs",
+                "extractor-b",
+                "evidence:state-b",
+                "extractor-b observed a state access at src/lib.rs",
+            ),
+        ];
+
+        let census = build_census(&inventory, &source, &adl, &batches);
+        let accesses: Vec<_> = census
+            .typed_semantic_records
+            .iter()
+            .filter(|observation| matches!(observation, SemanticObservation::State(_)))
+            .collect();
+        assert_eq!(
+            accesses.len(),
+            2,
+            "independent extractors' observations of the same state access must both survive Census"
+        );
+
+        let claim_ids: std::collections::BTreeSet<&str> = accesses
+            .iter()
+            .map(|observation| observation.record_id().as_str())
+            .collect();
+        assert_eq!(
+            claim_ids.len(),
+            1,
+            "both observations share the same State claim"
+        );
+
+        let raw_ids: std::collections::BTreeSet<_> = accesses
+            .iter()
+            .map(|observation| observation.raw_observation_id())
+            .collect();
+        assert_eq!(raw_ids.len(), 2);
+
+        let extractor_ids: std::collections::BTreeSet<&str> = accesses
+            .iter()
+            .map(|observation| {
+                let SemanticObservation::State(header) = observation else {
+                    unreachable!()
+                };
+                header.extractor.id.as_str()
+            })
+            .collect();
+        assert_eq!(
+            extractor_ids,
+            std::collections::BTreeSet::from(["extractor-a", "extractor-b"])
+        );
+
+        let normalization = crate::normalize::normalize(&census);
+        let normalized: Vec<_> = normalization
+            .typed_semantic_records
+            .iter()
+            .filter(|observation| matches!(observation, SemanticObservation::State(_)))
+            .collect();
+        assert_eq!(normalized.len(), 2);
+    }
+
+    #[test]
+    fn same_effect_claim_from_two_extractors_survives_census_and_normalization() {
+        let (inventory, source, adl) = single_rust_file_context();
+        let batches = [
+            extraction_batch_with_effect_from(
+                "src/lib.rs",
+                "extractor-a",
+                "evidence:effect-a",
+                "extractor-a observed a panic effect at src/lib.rs",
+            ),
+            extraction_batch_with_effect_from(
+                "src/lib.rs",
+                "extractor-b",
+                "evidence:effect-b",
+                "extractor-b observed a panic effect at src/lib.rs",
+            ),
+        ];
+
+        let census = build_census(&inventory, &source, &adl, &batches);
+        let effects: Vec<_> = census
+            .typed_semantic_records
+            .iter()
+            .filter(|observation| matches!(observation, SemanticObservation::Effect(_)))
+            .collect();
+        assert_eq!(
+            effects.len(),
+            2,
+            "independent extractors' observations of the same effect must both survive Census"
+        );
+
+        let claim_ids: std::collections::BTreeSet<&str> = effects
+            .iter()
+            .map(|observation| observation.record_id().as_str())
+            .collect();
+        assert_eq!(
+            claim_ids.len(),
+            1,
+            "both observations share the same Effect claim"
+        );
+
+        let raw_ids: std::collections::BTreeSet<_> = effects
+            .iter()
+            .map(|observation| observation.raw_observation_id())
+            .collect();
+        assert_eq!(raw_ids.len(), 2);
+
+        let extractor_ids: std::collections::BTreeSet<&str> = effects
+            .iter()
+            .map(|observation| {
+                let SemanticObservation::Effect(header) = observation else {
+                    unreachable!()
+                };
+                header.extractor.id.as_str()
+            })
+            .collect();
+        assert_eq!(
+            extractor_ids,
+            std::collections::BTreeSet::from(["extractor-a", "extractor-b"])
+        );
+
+        let normalization = crate::normalize::normalize(&census);
+        let normalized: Vec<_> = normalization
+            .typed_semantic_records
+            .iter()
+            .filter(|observation| matches!(observation, SemanticObservation::Effect(_)))
             .collect();
         assert_eq!(normalized.len(), 2);
     }
