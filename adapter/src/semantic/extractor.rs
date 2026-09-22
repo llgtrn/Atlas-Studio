@@ -25,6 +25,11 @@ pub struct ExtractionInput {
     pub revision: RevisionRef,
     pub artifact: ArtifactId,
     pub artifact_path: String,
+    /// The artifact's full source text, read once by the runtime orchestration layer and passed
+    /// in here so `extract` stays a pure function of its input (no extractor-side filesystem I/O,
+    /// better determinism/testability). Untrusted input: parsing it never authorizes executing
+    /// it (build.rs, proc macros, `cargo build`/`test`, shell/install scripts, network calls).
+    pub source_text: String,
     pub content_fingerprint: Option<ContentFingerprint>,
     pub source_frontend_id: String,
     pub language: String,
@@ -47,12 +52,13 @@ impl ExtractionInput {
             .collect::<Vec<_>>();
         dimensions.sort_unstable();
         format!(
-            "{}|{}:{}|{}|{}|{}|{}|{}|{}|{}|{}:{}",
+            "{}|{}:{}|{}|{}|{}|{}|{}|{}|{}|{}|{}:{}",
             self.repository.as_str(),
             self.revision.kind,
             self.revision.value,
             self.artifact.as_str(),
             self.artifact_path,
+            atlas_core::stable_id("source-text", &self.source_text),
             self.content_fingerprint
                 .as_ref()
                 .map(|f| f.0.as_str())
