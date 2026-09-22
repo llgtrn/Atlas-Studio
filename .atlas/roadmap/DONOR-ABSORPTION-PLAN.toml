@@ -83,14 +83,14 @@ primary_donor_waves = ["W0", "W1", "W2"]
 [[r_wave]]
 id = "R4.4"
 name = "function-identity-closure"
-status = "NEXT"
+status = "MATERIALIZED"
 goal = "module/impl/trait/generic/revision-safe declaration identity"
 forbidden_scope = ["CALL"]
 
 [[r_wave]]
 id = "R4.5"
 name = "call-semantics"
-status = "PLANNED"
+status = "NEXT"
 semantic_dimensions = ["CALL"]
 
 [[r_wave]]
