@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # Verifies the invariant in .atlas/contracts/DONOR-WORKBENCH-ISOLATION.md: no path under
 # .atlas/temporary/donors/** is live/discoverable as agent-tooling configuration (a `.claude`,
-# `.codex` or `.cursor` directory, or a bare CLAUDE.md/AGENTS.md/.mcp.json file). Donor content is
-# census-visible but must never be repository or agent authority.
+# `.codex` or `.cursor` directory; a bare CLAUDE.md/AGENTS.md/.mcp.json file; or a GitHub Copilot
+# ambient-instruction file, copilot-instructions.md or .github/instructions/*.instructions.md).
+# Donor content is census-visible but must never be repository or agent authority.
 #
 # Exit 0: clean. Exit 1: a live agent-tooling-shaped path was found under donors -- quarantine it
 # (see the contract doc for the exact rename convention) before merging.
@@ -17,7 +18,11 @@ done < <(find .atlas/temporary/donors -type d \( -iname ".claude" -o -iname ".co
 
 while IFS= read -r -d '' path; do
   violations+=("$path")
-done < <(find .atlas/temporary/donors -type f \( -iname "CLAUDE.md" -o -iname "AGENTS.md" -o -iname ".mcp.json" \) -print0 2>/dev/null)
+done < <(find .atlas/temporary/donors -type f \( -iname "CLAUDE.md" -o -iname "AGENTS.md" -o -iname ".mcp.json" -o -iname "copilot-instructions.md" \) -print0 2>/dev/null)
+
+while IFS= read -r -d '' path; do
+  violations+=("$path")
+done < <(find .atlas/temporary/donors -type f -path "*/.github/instructions/*.instructions.md" -print0 2>/dev/null)
 
 if [ "${#violations[@]}" -eq 0 ]; then
   echo "verify-donor-quarantine: clean -- no live agent-tooling-shaped paths under .atlas/temporary/donors/"
@@ -31,5 +36,5 @@ done
 echo
 echo "Quarantine each one per .atlas/contracts/DONOR-WORKBENCH-ISOLATION.md before merging:"
 echo "  a .claude/.codex/.cursor directory -> rename to _donor-quarantine.<name-without-leading-dot>"
-echo "  a CLAUDE.md/AGENTS.md/.mcp.json file -> append the suffix .donor-untrusted"
+echo "  a CLAUDE.md/AGENTS.md/.mcp.json/copilot-instructions.md/*.instructions.md file -> append the suffix .donor-untrusted"
 exit 1
