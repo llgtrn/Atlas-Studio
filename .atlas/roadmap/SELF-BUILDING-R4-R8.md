@@ -387,12 +387,13 @@ Required capabilities:
 - transactional publication;
 - logical root manifests;
 - stable cross-shard identity/bindings;
-- explicit SelectedDesign identity;
+- explicit SelectedDesign identity under `../contracts/SELECTED-DESIGN.md`;
 - deterministic Atlas→AtlasX materialization under `../contracts/ATLAS-TO-ATLASX.md`;
 - canonical AtlasX object/manifest validation under `../contracts/ATLASX-FORMAT.md`;
+- canonical AtlasX v1 bytes/root hashing under `../contracts/ATLASX-BINARY-WIRE-FORMAT.md`;
 - parent/lineage retention;
 - partial materialization without competing truth;
-- compiler handoff governed by `../contracts/COMPILER-IR-PIPELINE.md`.
+- compiler handoff governed by `../contracts/COMPILER-IR-PIPELINE.md` and v1 IR records/opcodes governed by `../contracts/COMPILER-IR-SCHEMAS.md`.
 
 Primary donor lane: W6 — flatbuffers, arrow, zstd, blake3, object, regalloc2, mold.
 
