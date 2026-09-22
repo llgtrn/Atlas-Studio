@@ -148,7 +148,7 @@ If a conversation cannot be converted into typed candidate semantics without amb
 
 ## Search/research-assisted authoring
 
-ADL authoring may invoke a research provider to search:
+ADL authoring may invoke a Perplexity-class research provider (provider category, not a mandatory vendor) to search:
 
 - the current Atlas knowledge base;
 - censused donors;
