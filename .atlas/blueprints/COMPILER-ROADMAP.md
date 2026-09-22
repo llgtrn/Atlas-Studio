@@ -25,6 +25,23 @@ Deliver:
 
 Exit gate: no silent omissions in the admitted corpus; required scopes reach closure; a SEALED logical Atlas root can be independently verified.
 
+## Atlas Development Language lane
+
+Full Atlas Development Language work begins only after typed census semantics can survive losslessly through Census/normalization. The current ADL0 declaration parser remains a bootstrap subset.
+
+```text
+deep donor census
+→ Technology Genomes
+→ mechanism/invariant comparison
+→ Atlas-native semantic primitives
+→ ADL feature admission
+→ typed ADL lowering
+→ canonical semantic world
+→ *.atlas
+```
+
+This lane is governed by `../contracts/ATLAS-DEVELOPMENT-LANGUAGE.md`, `../contracts/ADL-TO-ATLAS.md` and `../contracts/DONOR-TO-LANGUAGE-GENESIS.md`. Donor syntax or APIs may not become language authority by convenience.
+
 ## Phase 1 — Deterministic ATLASX + Delegated Compiler
 
 ```text
