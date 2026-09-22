@@ -6,14 +6,14 @@ canonical: true
 ---
 # Compiler Product Contract
 
-Atlas compilation transforms one validated canonical AtlasX root into a verified physical product while preserving graph, temporal, evidence, authority and target-specific invariants.
+Atlas compilation transforms one validated canonical AtlasX binary capsule into a verified physical product while preserving graph, temporal, evidence, authority and target-specific invariants.
 
 The normative compiler-stage semantics and lowering boundaries are defined by `COMPILER-IR-PIPELINE.md`; the minimum v1 logical record/op schemas are defined by `COMPILER-IR-SCHEMAS.md`. This product contract defines the end-to-end product obligation; it does not permit implementation-specific reinterpretation of HIR/MIR/LIR/Machine IR.
 
 ## General product pipeline
 
 ~~~text
-validated *.atlasx root
+validated *.atlasx binary capsule
  + DeploymentProfile
  + HardwareProfile
  + WorkloadProfile
@@ -43,7 +43,7 @@ Every arrow above is governed by an explicit lowering/equivalence contract. A co
 ## Digital Organism product pipeline
 
 ```text
-Digital-Organism AtlasX
+Digital-Organism AtlasX capsule
  + Organism Genome
  + Environment Profile
  + admitted Model/Provider bindings
@@ -87,7 +87,7 @@ An organism cannot gain authority merely because a model proposes an action or l
 
 ## Product evidence
 
-A production artifact records lineage to Atlas root, AtlasX root, Atlas Genome, Organism Genome where applicable, compiler version, target profiles, model/provider/checkpoint bindings, optimization configuration, tests, benchmarks and artifact hashes.
+A production artifact records lineage to Atlas root, AtlasX capsule root, Atlas Genome, Organism Genome where applicable, compiler version, target profiles, model/provider/checkpoint bindings, optimization configuration, tests, benchmarks and artifact hashes.
 
 ## Blueprint evolution
 
