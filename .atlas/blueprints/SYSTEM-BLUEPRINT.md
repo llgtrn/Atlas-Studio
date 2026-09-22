@@ -8,7 +8,7 @@ canonical: true
 
 ## Objective
 
-Build an independent engineering-world compiler capable of strict corpus accounting, Human+AI research/synthesis, evidence-backed design selection, generated-code census, dense Atlas publication, deterministic AtlasX expansion and verified product compilation. Digital Organism is a first-class target kind: Atlas can compile a complete organism substrate around external, self-hosted, hybrid or absent neural models rather than treating weights as the product.
+Build an independent engineering-world compiler capable of strict corpus accounting, Human+AI research/synthesis, evidence-backed design selection, generated-code census, dense Atlas publication, deterministic closed-world AtlasX capsule construction and verified product compilation. Digital Organism is a first-class target kind: Atlas can compile a complete organism substrate around external, self-hosted, hybrid or absent neural models rather than treating weights as the product.
 
 ## Blueprint authority and evolution
 
@@ -40,7 +40,7 @@ Implementation agents may not silently redesign around this blueprint.
 14. Atlas Development Language semantic genesis: evolve ADL0 declarations into typed language constructs that lower into the same canonical semantic world.
 15. Deterministic ADL/provider candidate → typed records → validated selected semantic world → logical ATLAS seal.
 16. Deterministic provider-independent mechanical compaction into physical `*.atlas`.
-17. Deterministic SelectedDesign → validated ATLASX executable representation under `../contracts/ATLAS-TO-ATLASX.md`.
+17. Deterministic SelectedDesign → validated ATLASX closed-world binary capsule under `../contracts/ATLAS-TO-ATLASX.md`.
 18. Organism Genome v1 and Digital Organism target profile: Genome → Organ → Circuit → Trait → Model → Weight → Memory → Body → Lifecycle.
 19. Organism persistent identity and lifecycle substrate.
 20. Model/provider binding plus candidate weight/model admission.
@@ -99,7 +99,7 @@ Human/AI intent + observed world
 → SEALED logical Atlas
 → provider-independent lossless semantic compaction / wire / shards
 → physical *.atlas
-→ deterministic AtlasX materialization
+→ deterministic AtlasX selected-system closure + capsule packaging
 → validated AtlasX root
 → HIR
 → MIR
