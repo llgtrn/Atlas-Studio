@@ -141,6 +141,7 @@ mod tests {
             vec![
                 "CALL",
                 "CONTROL_FLOW",
+                "DATA_FLOW",
                 "FUNCTION_IDENTITY",
                 "FUNCTION_SIGNATURE",
                 "SYMBOL",

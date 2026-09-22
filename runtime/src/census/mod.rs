@@ -1010,6 +1010,87 @@ mod tests {
         }
     }
 
+    /// R4.7: a DataFlow value observation, attributed to `extractor_id`, whose `function` (owner)
+    /// is a fixed synthetic `FunctionIdentity` record_id -- the test only needs the DATA_FLOW
+    /// claim itself to be independently attributable, not a paired FunctionIdentity observation.
+    fn extraction_batch_with_data_flow_from(
+        artifact_path: &str,
+        extractor_id: &str,
+        evidence_id: &str,
+        evidence_summary: &str,
+    ) -> ExtractionBatch {
+        use atlas_core::{
+            DataFlowResolution, Evidence, EvidenceId, RepositoryId, SemanticRecordHeader,
+            SemanticRecordId, ValueIdentity, ValueRole, provenance,
+        };
+
+        let repository = RepositoryId::new("atlas-studio");
+        let revision = atlas_core::RevisionRef {
+            kind: "git".into(),
+            value: "abc123".into(),
+        };
+        let extractor = ExtractorIdentity {
+            id: extractor_id.into(),
+            version: "0.1.0".into(),
+        };
+        let scope = SemanticScope::new(Vec::<String>::new());
+        let function = SemanticRecordId::new(SemanticDimension::FunctionIdentity, "owner-fn-key");
+        let subject = ValueIdentity {
+            repository: repository.clone(),
+            revision: revision.clone(),
+            function,
+            name: "x".into(),
+            span: atlas_core::SourceSpan {
+                path: artifact_path.into(),
+                line: 3,
+                column: 5,
+            },
+            role: ValueRole::Definition,
+            is_parameter: false,
+            is_return_flow: false,
+            resolution: DataFlowResolution::Unresolved,
+            resolved_definition: None,
+        };
+        let record_id = SemanticRecordId::new(SemanticDimension::DataFlow, &subject.identity_key());
+        let evidence_id = EvidenceId::new(evidence_id.to_owned());
+        let header = SemanticRecordHeader {
+            record_id: record_id.clone(),
+            dimension: SemanticDimension::DataFlow,
+            status: EpistemicStatus::Observed,
+            scope,
+            repository: repository.clone(),
+            revision: revision.clone(),
+            extractor: extractor.clone(),
+            evidence_refs: vec![evidence_id.clone()],
+            provenance: provenance(artifact_path, &extractor.id),
+            subject,
+        };
+        let observation = SemanticObservation::DataFlow(header);
+        assert!(observation.is_dimension_consistent());
+
+        ExtractionBatch {
+            extractor,
+            repository,
+            revision,
+            artifact: ArtifactId::new(format!("artifact:{artifact_path}")),
+            input_fingerprint: format!("test:{artifact_path}"),
+            observations: vec![observation],
+            evidence: vec![Evidence {
+                id: evidence_id.as_str().to_owned(),
+                kind: "PARSER_OUTPUT".into(),
+                path: artifact_path.into(),
+                summary: evidence_summary.into(),
+                revision: None,
+            }],
+            obligations: vec![ObligationResult::observed(
+                SemanticDimension::DataFlow,
+                vec![record_id],
+                vec![evidence_id],
+            )],
+            diagnostics: Vec::new(),
+        }
+    }
+
     fn single_rust_file_context() -> (InventoryReport, SourceReport, AdlCompileReport) {
         let inventory = InventoryReport::new(
             "/repo",
@@ -1800,6 +1881,81 @@ pub async unsafe extern "C" fn example<T>(x: Vec<T>, y: &mut usize) -> Result<T,
             .typed_semantic_records
             .iter()
             .filter(|observation| matches!(observation, SemanticObservation::ControlFlow(_)))
+            .collect();
+        assert_eq!(normalized.len(), 2);
+    }
+
+    // === R4.7: DataFlow value claims stay multi-extractor safe =====================================
+    //
+    // Same proof, for the new DATA_FLOW dimension: two independent extractors observing the exact
+    // same value must both survive Census/Normalization, share one claim identity (record_id), and
+    // remain distinctly attributable by raw_observation_id/extractor id.
+
+    #[test]
+    fn same_data_flow_value_claim_from_two_extractors_survives_census_and_normalization() {
+        let (inventory, source, adl) = single_rust_file_context();
+        let batches = [
+            extraction_batch_with_data_flow_from(
+                "src/lib.rs",
+                "extractor-a",
+                "evidence:dataflow-a",
+                "extractor-a observed a data-flow value at src/lib.rs",
+            ),
+            extraction_batch_with_data_flow_from(
+                "src/lib.rs",
+                "extractor-b",
+                "evidence:dataflow-b",
+                "extractor-b observed a data-flow value at src/lib.rs",
+            ),
+        ];
+
+        let census = build_census(&inventory, &source, &adl, &batches);
+        let values: Vec<_> = census
+            .typed_semantic_records
+            .iter()
+            .filter(|observation| matches!(observation, SemanticObservation::DataFlow(_)))
+            .collect();
+        assert_eq!(
+            values.len(),
+            2,
+            "independent extractors' observations of the same value must both survive Census"
+        );
+
+        let claim_ids: std::collections::BTreeSet<&str> = values
+            .iter()
+            .map(|observation| observation.record_id().as_str())
+            .collect();
+        assert_eq!(
+            claim_ids.len(),
+            1,
+            "both observations share the same DataFlow claim"
+        );
+
+        let raw_ids: std::collections::BTreeSet<_> = values
+            .iter()
+            .map(|observation| observation.raw_observation_id())
+            .collect();
+        assert_eq!(raw_ids.len(), 2);
+
+        let extractor_ids: std::collections::BTreeSet<&str> = values
+            .iter()
+            .map(|observation| {
+                let SemanticObservation::DataFlow(header) = observation else {
+                    unreachable!()
+                };
+                header.extractor.id.as_str()
+            })
+            .collect();
+        assert_eq!(
+            extractor_ids,
+            std::collections::BTreeSet::from(["extractor-a", "extractor-b"])
+        );
+
+        let normalization = crate::normalize::normalize(&census);
+        let normalized: Vec<_> = normalization
+            .typed_semantic_records
+            .iter()
+            .filter(|observation| matches!(observation, SemanticObservation::DataFlow(_)))
             .collect();
         assert_eq!(normalized.len(), 2);
     }
