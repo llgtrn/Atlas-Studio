@@ -1,0 +1,107 @@
+{
+  "schema": "atlas.r4.verification-record.v1",
+  "wave": "R4.2.2",
+  "wave_title": "Harden deterministic publication ordering and semantic consistency of multi-extractor census accounting",
+  "identity": {
+    "base_commit_sha": "63df8126baf8b16d58e62889ba089a540582aac0",
+    "candidate_commit_sha": "69ae81f9efccf2e92a542dc9a4093fe5ed87c6f8",
+    "candidate_tree_sha": "c9058cf9be2ea9ca92079f713042b4ece38142db",
+    "branch": "claude/r4.2.2-determinism",
+    "commits_in_range": [
+      "981dcc7804 fix: enforce SemanticObservation variant/dimension consistency",
+      "69ae81f9ef fix: complete extractor obligation publication identity, remove malformed fixture"
+    ]
+  },
+  "temporal": {
+    "base_commit_authored_at": "2026-09-22T16:40:12+09:00",
+    "candidate_commit_authored_at": "2026-09-22T08:25:51Z",
+    "verification_completed_at": null,
+    "note": "Git-authoritative author-date timestamps only (git show -s --format=%ad --date=iso-strict). verification_completed_at is left null: Git proves when commits were authored, not when local verification commands finished running."
+  },
+  "toolchain": {
+    "pinned_by": "rust-toolchain.toml",
+    "channel": "1.90.0",
+    "rustc": "rustc 1.90.0 (1159e78c4 2025-09-14)",
+    "cargo": "cargo 1.90.0 (840b83a10 2025-07-30)",
+    "matches_ci_pin": true
+  },
+  "working_tree_clean": true,
+  "git_diff_check_exit": 0,
+  "cargo_lock_status": {
+    "diff_vs_base": "empty -- byte-identical to origin/main's Cargo.lock",
+    "intentional": true,
+    "reason": "This wave adds no new dependencies; it only edits two existing modules."
+  },
+  "ci_status": "UNAVAILABLE_INFRASTRUCTURE",
+  "ci_status_detail": "GitHub Actions assigns no runner at all, reproducing identically on main across many prior commits. Not a test/code failure; excluded from correctness verification per operator instruction. Same root cause documented in the R4.1/R4.2/R4.2.1 VerificationRecords.",
+  "diff_summary": {
+    "range": "63df8126ba..69ae81f9ef",
+    "files_changed": 2,
+    "insertions": 454,
+    "deletions": 29,
+    "changed_files": [
+      "core/src/semantic/observation.rs",
+      "runtime/src/census/extraction.rs"
+    ]
+  },
+  "verification_passes": [
+    {
+      "pass": "primary",
+      "performed_by": "this session, in-place checkout, clean target/ rebuild, pinned rustc 1.90.0",
+      "commands": {
+        "git status --porcelain": { "result": "clean" },
+        "git diff --check": { "exit_code": 0 },
+        "cargo fmt --all --check": { "exit_code": 0 },
+        "cargo clippy --workspace --all-targets -- -D warnings": { "exit_code": 0, "warnings": 0 },
+        "cargo test --workspace --locked": {
+          "exit_code": 0,
+          "totals": "65 passed, 0 failed, 0 ignored (19 adapter, 26 core incl. 4 new dimension-consistency tests, 20 runtime incl. 6 new determinism/consistency tests)"
+        },
+        "cargo test --workspace --doc --locked": { "exit_code": 0, "doctests": 0 },
+        "cargo run -q -p atlas-cli -- docs audit --root .atlas": {
+          "exit_code": 0,
+          "gate_ready": true,
+          "hard_violations_total": 0,
+          "required_control_docs_missing": []
+        }
+      }
+    },
+    {
+      "pass": "independent",
+      "performed_by": "fresh subagent, isolated git worktree (/tmp/independent-verify-r422), no shared context",
+      "commit_confirmed_exact_match": true,
+      "commands_all_exit_0": true,
+      "test_totals": "19 adapter + 26 core + 20 runtime = 65 passed, 0 failed, 0 ignored",
+      "docs_gate": "gate_ready=true, hard_violations_total=0, required_control_docs_missing=[]",
+      "defect_a_reconfirmation": "Diffed against base to confirm the old sorted() comparator chain was dimension -> extractor id -> extractor version -> artifact -> observation_sort_key(first observation_id only). Confirmed ObligationResult::unknown/unsupported (adapter/src/semantic/batch.rs) both produce empty observation_ids AND evidence_refs, so they truly tied under the old key. Confirmed the new identity_key() folds in obligation.status.as_str() plus fully sorted observation_ids/evidence_refs/diagnostics (not just the first element). Confirmed case_a_unknown_vs_unsupported_is_order_independent constructs exactly this counterexample and asserts forward.sorted() == reversed.sorted() after ingesting both orders -- direct proof the fix closes the gap. Cases B-E also present and correctly targeted.",
+      "defect_b_reconfirmation": "Confirmed observed_type_batch constructs SemanticObservation::Type(SemanticRecordHeader<TypeIdentity>) directly, with a genuine TypeIdentity subject -- no Symbol-header dimension mutation. Confirmed both observed_symbol_batch and observed_type_batch assert .is_dimension_consistent() immediately after construction. Grepped/read the full file: no mutation of a SemanticObservation's header.dimension without a matching variant change exists anywhere.",
+      "is_dimension_consistent_reconfirmation": "Confirmed core/src/semantic/observation.rs's is_dimension_consistent() is a real check (self.header_dimension() == self.dimension()), not a stub, and that its 3 tests (Symbol-consistent, Type-consistent, malformed-mismatch-detected) all pass.",
+      "diff_range_sanity": "git diff --stat over the full range touches exactly core/src/semantic/observation.rs and runtime/src/census/extraction.rs; no CI/workflow files. Grepped for #[ignore], --no-verify, .skip(, 'beats', 'precedence', 'winner', and any new EpistemicStatus::Conflict assignment: zero matches beyond pre-existing assertions that no such status is ever synthesized. No new epistemic-status-like duplicate enum introduced; no reconciliation logic added.",
+      "verdict": "VERIFIED"
+    }
+  ],
+  "no_tests_lints_gates_disabled": true,
+  "no_verify_bypass_used": false,
+  "overall_verdict": "VERIFIED",
+  "determinism_fix": {
+    "old_sort_key": "SemanticDimension -> ExtractorIdentity.id -> ExtractorIdentity.version -> ArtifactId -> observation_ids.first() (empty string when observation_ids is empty)",
+    "new_identity_key": "SemanticDimension -> ExtractorIdentity.id -> ExtractorIdentity.version -> ArtifactId -> EpistemicStatus -> sorted(observation_ids) -> sorted(evidence_refs) -> sorted(diagnostics), all folded into one string via ExtractorObligationRecord::identity_key(); sorted() sorts by this key alone",
+    "counterexample_closed": "Two records for the same artifact/extractor/dimension, one UNKNOWN and one UNSUPPORTED, both with empty observation_ids and evidence_refs: tied under the old key (stable sort preserved insertion order, so forward vs reversed ingestion published differently); the new key includes status, so they never tie regardless of ingestion order.",
+    "proof": "5-case test matrix (CASE A: UNKNOWN vs UNSUPPORTED tie; CASE B: same status, differing diagnostic ids; CASE C: observation/evidence list order invariance; CASE D: distinct extractor ids; CASE E: same extractor id, differing version), all asserting forward.sorted() == reversed.sorted() or direct identity_key() equality/inequality."
+  },
+  "semantic_consistency_fix": {
+    "old_malformed_fixture": "A test constructed a 'TYPE observation' by taking a SemanticObservation::Symbol(header) and mutating header.dimension to SemanticDimension::Type without changing the enum variant -- variant tag said Symbol, header.dimension field said Type, obligation.dimension said Type: three disagreeing signals in one object.",
+    "new_invariant": "SemanticObservation::is_dimension_consistent() (core/src/semantic/observation.rs), checking header_dimension() == dimension() (the latter authoritatively derived from the variant tag, never from the header field). observed_type_batch now constructs a genuine SemanticObservation::Type(SemanticRecordHeader<TypeIdentity>); both observation-producing test fixtures assert this invariant at construction time, and a dedicated test re-checks it from the outside."
+  },
+  "contract_clauses_satisfied": [
+    ".atlas/contracts/SEMANTIC-EXTRACTION.md#determinism (publication order no longer depends on Vec insertion order, HashMap iteration, thread scheduling or wall-clock time for records that previously tied)",
+    ".atlas/contracts/SEMANTIC-FACTS.md (SemanticObservation's variant/dimension consistency is now an explicit, tested invariant rather than an implicit, silently-violable assumption)",
+    ".atlas/decisions/0002-epistemic-status-model.md (EpistemicStatus remains the sole canonical taxonomy; no CoverageStatus/AggregatedStatus/etc. introduced)"
+  ],
+  "still_unsupported": [
+    "No real Rust (or any language) deep semantic analyzer -- R4.3+",
+    "CensusExtractionAccounting is not yet wired into build_census's production call graph",
+    "Reconciliation of disagreeing extractor results remains entirely out of scope -- explicitly deferred",
+    "OwnershipFact/ConcurrencyFact/PersistenceFact identity kernels remain unmaterialized (R4.10)"
+  ]
+}
