@@ -365,6 +365,16 @@ The exact canonical file encoding may evolve under `BLUEPRINT-EVOLUTION.md`, but
 - reader compatibility/migration must be explicit;
 - deterministic root hashing must remain defined.
 
+## Provider-free materialization boundary
+
+All research/decision/synthesis activity that changes executable meaning must finish before logical Atlas seal.
+
+ATLAS → ATLASX materialization MUST NOT call external research, decision or synthesis providers to fill gaps, choose implementations or invent semantics.
+
+If materialization encounters a missing required semantic fact or binding, it fails or preserves an explicitly permitted dynamic boundary according to this contract.
+
+Provider availability must not affect deterministic AtlasX output for a pinned Atlas root and materialization inputs.
+
 ## No invention during materialization
 
 Materialization MUST NOT:
