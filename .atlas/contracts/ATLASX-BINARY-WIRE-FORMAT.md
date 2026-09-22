@@ -4,113 +4,107 @@ type: contract
 status: active
 canonical: true
 ---
-# ATLASX Binary Wire Format Contract
+# ATLASX Binary Capsule Wire Format Contract
 
-## Purpose
+## Authority and version break
 
-This contract defines the canonical physical encoding for AtlasX v1 objects and `manifest.atlasx`.
+This contract defines the canonical physical encoding for AtlasX **wire v2**.
 
-ATLASX is an expanded directory representation, but its canonical semantic files are typed binary objects, not JSON/Markdown authority.
+It is governed by `ARTIFACT-LAYERING.md` and `ATLASX-FORMAT.md`.
 
-The logical object model is defined by `ATLASX-FORMAT.md`.
+AtlasX wire v1 encoded canonical semantics as a directory containing `manifest.atlasx` and content-addressed object files.
 
-The materialization algorithm is defined by `ATLAS-TO-ATLASX.md`.
+That physical model is superseded.
 
-## Canonical directory rule
-
-A canonical AtlasX tree contains:
+Because the canonical root changed from a directory/object set to one binary capsule, this is a wire-major break.
 
 ~~~text
-<system>.atlasx/
-├─ manifest.atlasx
-├─ modules/
-├─ types/
-├─ functions/
-├─ interfaces/
-├─ capabilities/
-├─ bindings/
-├─ state/
-├─ effects/
-├─ resources/
-├─ concurrency/
-├─ persistence/
-├─ constraints/
-├─ external/
-├─ tests/
-├─ profiles/
-├─ targets/
-├─ lineage/
-├─ graph/
-├─ runtime/
-└─ ui/
+AtlasX wire v1 = legacy directory/object encoding; migration input only
+AtlasX wire v2 = canonical single-file *.atlasx capsule
 ~~~
 
-A directory may be absent when it has no canonical objects for the selected design.
+A v2 reader MUST NOT interpret v1 bytes as v2.
 
-Canonical object filenames are content-addressed:
+A v1 reader MUST reject v2 by magic/major version.
+
+## Canonical physical unit
+
+The canonical publication unit is exactly one binary file:
 
 ~~~text
-<directory>/<decoded-content-hash-hex>.atlasx
+<system>.atlasx
 ~~~
 
-`manifest.atlasx` is the only canonical non-content-named file.
+The file contains:
 
-Human-readable/debug files MAY coexist, but if they are not listed as canonical objects in the manifest they are not compiler authority.
+~~~text
+fixed capsule header
+root manifest section
+entry directory
+canonical entry payloads
+optional signature/attestation material
+~~~
 
-## Byte order
+An unpacked filesystem tree is not canonical wire representation.
 
-All fixed-width integers are little-endian.
+## Byte order and bounds
 
-All lengths are unsigned.
+- All fixed-width integers are little-endian.
+- All offsets are unsigned absolute offsets from the start of the capsule file.
+- Readers MUST bounds-check every offset, length, count, addition, multiplication, and decode operation before allocation/read.
+- Readers MUST reject required regions that overlap illegally.
+- Readers MUST enforce decoded-size and nesting limits before decompression.
+- Readers MUST reject truncated input.
+- No entry is trusted before required integrity checks pass.
 
-Readers MUST bounds-check:
+## Fixed 96-byte capsule header
 
-- encoded lengths;
-- decoded lengths;
-- record lengths;
-- field lengths;
-- count × element-size calculations;
-- nested-record depths;
-- decompression limits.
-
-Malformed/truncated input MUST be rejected.
-
-## Fixed object header
-
-Every canonical AtlasX v1 binary object begins with an 80-byte header:
+Every AtlasX v2 capsule begins with:
 
 ~~~text
 offset  size  field
-0       8     magic = "ATLSX\0\1\0"
-8       2     header_len = 80
-10      2     format_major = 1
+0       8     magic = "ATLSX\0\2\0"
+8       2     header_len = 96
+10      2     format_major = 2
 12      2     format_minor
 14      2     flags
-16      2     object_class
-18      2     object_schema_version
-20      2     digest_algorithm
-22      2     codec
-24      8     encoded_length
-32      8     decoded_length
-40      32    decoded_content_hash
-72      8     reserved = 0
+16      2     digest_algorithm
+18      2     default_codec
+20      2     capsule_profile
+22      2     reserved0 = 0
+24      32    genome_hash
+56      8     root_manifest_offset
+64      8     root_manifest_length
+72      8     entry_directory_offset
+80      8     entry_directory_length
+88      8     file_length
 ~~~
 
-The encoded payload begins at byte 80.
-
-`encoded_length` counts bytes after the header.
-
-`decoded_length` is the payload size after codec decoding.
-
-`decoded_content_hash` authenticates exactly the decoded canonical payload bytes.
+`file_length` MUST equal the actual capsule byte length.
 
 Unknown major versions MUST be rejected.
 
-Unknown minor versions MAY be accepted only when all required object/record/field semantics are understood or explicitly skippable.
+A newer minor version MAY be accepted only when every required entry/field encountered is understood or explicitly skippable.
+
+## Capsule profile identifiers
+
+Wire v2 reserves:
+
+~~~text
+0 = INVALID
+1 = VERIFY_ONLY
+2 = BUILD_REPRODUCIBLE
+3 = EXECUTABLE_PORTABLE
+4 = DEPLOYMENT_TARGETED
+~~~
+
+The header value MUST match the profile declared by the root manifest.
+
+Mismatch invalidates the capsule.
 
 ## Algorithm identifiers
 
-AtlasX v1 uses the same core identifiers as ATLAS wire v1:
+Wire v2 reserves:
 
 ~~~text
 digest_algorithm
@@ -123,127 +117,132 @@ codec
 1 = ZSTD
 ~~~
 
-Supporting a codec implementation does not grant its donor implementation architectural ownership.
+Additional algorithms require an explicit compatible schema revision.
 
-## Object classes
+A codec implementation is an implementation detail; its donor does not become architectural authority.
 
-AtlasX v1 reserves these canonical object classes:
+## Entry directory
+
+The entry directory is an array of fixed 80-byte entries:
+
+~~~text
+size  field
+2     entry_class
+2     entry_flags
+2     codec
+2     entry_schema_version
+8     offset
+8     encoded_length
+8     decoded_length
+8     logical_record_count
+32    decoded_content_hash
+8     reserved = 0
+~~~
+
+Directory entries MUST be sorted canonically by:
+
+~~~text
+entry_class
+→ decoded_content_hash
+→ offset
+~~~
+
+for SEALED publication.
+
+Offsets/lengths refer to encoded payload bytes.
+
+`decoded_content_hash` authenticates decoded canonical payload bytes, not compression framing.
+
+## Core entry classes
+
+AtlasX v2 reserves:
 
 ~~~text
 1   ROOT_MANIFEST
-2   MODULES
-3   TYPES
-4   FUNCTIONS
-5   INTERFACES
-6   CAPABILITIES
-7   BINDINGS
-8   STATE
-9   EFFECTS
-10  OWNERSHIP_RESOURCES
-11  CONCURRENCY
-12  PERSISTENCE_RECOVERY
-13  CONSTRAINTS_INVARIANTS
-14  EXTERNAL_BOUNDARIES
-15  TESTS
-16  PROFILES
-17  TARGETS
-18  LINEAGE_EVIDENCE
-19  GRAPH_VIEW
-20  RUNTIME
-21  UI
+2   ATLAS_ARTIFACT
+3   SELECTED_SYSTEM_CLOSURE
+4   DEPENDENCY_CLOSURE
+5   RUNTIME_PAYLOAD
+6   BUILD_INPUT
+7   ASSET_RESOURCE
+8   PROFILE_TARGET
+9   EXTERNAL_BOUNDARY
+10  SBOM
+11  LICENSE_ATTRIBUTION
+12  PROVENANCE_EVIDENCE
+13  SECURITY_ATTESTATION
+14  REPRODUCIBILITY
+15  MIGRATION
+16  OPTIONAL_SOURCE
+17  OPTIONAL_DEBUG
+18  SIGNATURE_BLOCK
 ~~~
 
 Classes 1–1023 are reserved for canonical AtlasX core.
 
-Extensions use Genome-registered class/schema identifiers and may not redefine core meaning.
+Extensions use Genome-registered identifiers and may not redefine core classes.
 
-## Canonical directory mapping
+## Root manifest
 
-Core classes map to default directories:
+Every capsule MUST contain exactly one `ROOT_MANIFEST` entry.
 
-~~~text
-MODULES                 → modules/
-TYPES                   → types/
-FUNCTIONS               → functions/
-INTERFACES              → interfaces/
-CAPABILITIES             → capabilities/
-BINDINGS                 → bindings/
-STATE                    → state/
-EFFECTS                  → effects/
-OWNERSHIP_RESOURCES      → resources/
-CONCURRENCY              → concurrency/
-PERSISTENCE_RECOVERY     → persistence/
-CONSTRAINTS_INVARIANTS   → constraints/
-EXTERNAL_BOUNDARIES      → external/
-TESTS                    → tests/
-PROFILES                 → profiles/
-TARGETS                  → targets/
-LINEAGE_EVIDENCE         → lineage/
-GRAPH_VIEW               → graph/
-RUNTIME                  → runtime/
-UI                       → ui/
-~~~
+The root manifest commits to at least:
 
-A future blueprint may change physical grouping under `BLUEPRINT-EVOLUTION.md`, but v1 canonical publication uses this mapping.
+- AtlasX root identity;
+- wire major/minor;
+- capsule schema version;
+- capsule profile;
+- Genome identity/hash;
+- root/parent Atlas identity;
+- embedded Atlas artifact identities;
+- SelectedDesign identity;
+- requested scope;
+- target/profile identities;
+- dependency-closure identity;
+- exact canonical entry inventory;
+- required versus optional entries;
+- external boundaries;
+- compiler contract/version;
+- build/reproduction contract when applicable;
+- compatibility requirements;
+- permitted pinned-fetch records;
+- signature/attestation policy.
 
-## Record framing
+The manifest MUST NOT depend on extraction paths.
 
-Decoded object payloads consist of deterministic length-delimited records.
+## Canonical record framing
 
-Each record begins:
+Record-oriented decoded entries use:
 
 ~~~text
-size  field
-2     record_kind
-2     record_schema_version
-4     record_flags
-8     payload_length
-~~~
-
-Then:
-
-~~~text
+u16 record_kind
+u16 record_schema_version
+u32 record_flags
+u64 payload_length
 payload[payload_length]
 ~~~
 
-Records MUST be emitted in canonical order defined by the object-class schema.
-
-For identity-bearing records, default ordering is:
+Record payload fields use:
 
 ~~~text
-stable semantic identity bytes
-→ record_kind
-→ decoded record-content hash
+u16 field_tag
+u8  wire_type
+u8  field_flags
+u32 field_length
+field_bytes[field_length]
 ~~~
 
-A class-specific contract may define a stronger order.
-
-## Tagged field framing
-
-Record payloads use fields:
-
-~~~text
-size  field
-2     field_tag
-1     wire_type
-1     field_flags
-4     field_length
-N     field_bytes
-~~~
-
-Fields MUST be emitted in ascending `field_tag`.
-
-Repeated values preserve semantic order when order matters. Otherwise the field schema defines deterministic sorting.
+Fields MUST be emitted in ascending `field_tag` order.
 
 Unknown optional fields may be skipped.
 
 Unknown required fields reject the record.
 
-Field tags are never repurposed with different meaning within a schema lineage.
+Existing field tags are never repurposed with different meaning.
 
 ## Wire types
 
-AtlasX v1 defines:
+Wire v2 defines:
 
 ~~~text
 0   INVALID
@@ -261,275 +260,291 @@ AtlasX v1 defines:
 12  BOOL
 ~~~
 
-`GLOBAL_ID` carries a stable identity defined by the semantic schema.
+A `LOCAL_INDEX` is valid only within its containing decoded entry.
 
-`LOCAL_INDEX` is allowed only within the current object payload and MUST NOT become a cross-object identity.
+Cross-entry references MUST use stable global/content identities.
 
-## String rules
+## Manifest entry records
 
-UTF8 fields preserve their exact semantic UTF-8 byte sequence unless the field schema explicitly defines normalization.
-
-Generic Unicode normalization MUST NOT be applied silently to source spellings or identity-bearing strings.
-
-Canonical sorting of unconstrained UTF8 strings is bytewise UTF-8 lexicographic order.
-
-## Root manifest object
-
-`manifest.atlasx` MUST use `object_class = ROOT_MANIFEST`.
-
-It MUST contain exactly one root-manifest record.
-
-Required root-manifest fields:
+For each canonical directory entry other than the root manifest, the root manifest MUST contain one corresponding `CapsuleEntry` record including at least:
 
 ~~~text
-tag  meaning
-1    atlasx_root_id
-2    parent_atlas_root_id
-3    genome_hash
-4    selected_design_id
-5    materialized_scope_id
-6    target_kind
-7    materializer_identity
-8    materializer_version
-9    materialization_schema_version
-10   compiler_ir_contract_version
-11   profile_ref           repeated
-12   external_binding_ref  repeated
-13   semantic_barrier_ref  repeated
-14   object_entry          repeated
-15   dynamic_obligation    repeated
-16   compatibility_requirement repeated
+entry_class
+entry_schema_version
+decoded_content_hash
+decoded_length
+required
+semantic_role
+atlas_lineage_ref     optional by class
+dependency_role       optional by class
+target_profile_ref    optional by class
 ~~~
 
-Tag 1 is excluded from the root-ID preimage to avoid self-reference.
+The manifest entry inventory and physical entry directory MUST match exactly for canonical entries.
 
-All other semantic fields are included.
+An unexplained physical entry is rejected unless explicitly marked noncanonical padding under a future compatible rule.
 
-## ObjectEntry
+## Atlas artifact entries
 
-Each manifest `object_entry` nested record MUST contain:
+An `ATLAS_ARTIFACT` entry may contain:
 
-~~~text
-tag  meaning
-1    relative_path
-2    object_class
-3    object_schema_version
-4    decoded_content_hash
-5    decoded_length
-6    required
-7    logical_record_count
-~~~
+1. exact canonical bytes of a sealed `*.atlas`; or
+2. an Atlas-native capsule embedding form that is provably identity-equivalent to the referenced Atlas semantic root.
 
-Relative paths MUST:
+The default v2 rule is exact canonical `*.atlas` bytes.
 
-- be UTF-8;
-- use `/`;
-- be relative to the AtlasX root;
-- not begin with `/`;
-- not contain `.` or `..` path segments;
-- match the canonical directory mapping for core classes;
-- match the content-addressed filename rule.
+The capsule MUST preserve the embedded artifact's own identity.
 
-Object entries are sorted by:
+Packaging MUST NOT silently rewrite Atlas semantics.
 
-~~~text
-object_class
-→ decoded_content_hash
-→ relative_path
-~~~
+## Dependency closure entries
+
+Dependency records MUST support transitive closure.
+
+Each dependency record includes, where applicable:
+
+- dependency identity;
+- exact version/revision;
+- decoded content hash;
+- parent dependency relation;
+- build/runtime role;
+- target/profile applicability;
+- source/provenance;
+- license/obligations;
+- admission status;
+- payload reference or pinned-fetch record.
+
+A mutable package range is not canonical closure.
+
+## Pinned-fetch records
+
+A `PINNED_FETCH` record MUST contain at least:
+
+- expected content hash;
+- expected decoded length when known;
+- immutable identity/revision;
+- allowed retrieval origins or resolver class;
+- transport integrity/authentication requirements;
+- offline/failure behavior;
+- admission/cache policy;
+- provenance/license references.
+
+A URL alone is insufficient.
+
+The root manifest MUST declare whether pinned fetch is permitted for the capsule profile.
+
+## Runtime payload entries
+
+Runtime payloads remain opaque bytes only with explicit typed metadata that binds them to:
+
+- content identity;
+- payload class;
+- target/ABI/runtime;
+- originating Atlas semantics;
+- SelectedDesign;
+- required loader/runtime;
+- integrity policy.
+
+Opaque bytes without semantic lineage are not valid canonical runtime payloads.
+
+## Build-input entries
+
+BUILD_REPRODUCIBLE and stricter profiles may carry:
+
+- delegated generated source;
+- compiler/toolchain payload;
+- linker/runtime support;
+- build graph;
+- deterministic recipe;
+- environment contract;
+- patches.
+
+Every build-significant input must be embedded or pinned.
+
+## Asset/resource entries
+
+Assets/resources that affect selected behavior MUST be in the canonical inventory.
+
+Optional documentation/media not required for selected behavior may be noncanonical or optional according to policy.
+
+## Supply-chain entries
+
+SBOM, license, attribution, provenance, security, and evidence entries may be factored independently but remain content-addressed and root-bound.
+
+A required legal/security obligation may not be hidden in an unmanifested sidecar.
+
+## Signature block
+
+Signature semantics are policy/schema governed.
+
+A signature MUST bind at least the AtlasX root identity and relevant policy/domain separator.
+
+Signatures are not included in the preimage in a self-referential way.
+
+Multiple signatures/attestations may be present.
 
 ## AtlasX root identity
 
-The root identity is computed from the canonical decoded root-manifest payload with field tag 1 omitted.
+The root identity is computed over canonical decoded root-manifest semantics with the `atlasx_root_id` field omitted from its own preimage.
 
 Conceptually:
 
 ~~~text
-atlasx_root_id =
+AtlasXRootId =
 H(
-  canonical_manifest_fields_2_through_16
+  domain_separator("ATLASX-V2")
+  + canonical_manifest_without_root_id
+  + ordered required entry identities
 )
 ~~~
 
-The digest algorithm is the one declared by `manifest.atlasx`.
+The exact field tags and domain separator bytes are fixed by the machine schema for v2.
 
-After computing the root ID, tag 1 stores that exact digest/identity.
+After computation, the root ID field stores the exact result.
 
 A reader MUST recompute and compare it.
 
-## Object content identity
+Codec framing and physical extraction path MUST NOT affect root identity.
 
-A canonical object file's physical filename is the lowercase hexadecimal form of its `decoded_content_hash`.
+## Canonical entry identity
 
-Because manifest entries also include `object_class` and schema version, identical payload bytes under two classes do not become the same semantic object accidentally.
+Each entry's physical integrity identity is its `decoded_content_hash`.
 
-Object semantic identities inside the payload remain independent of the filename/hash.
+Semantic identities carried inside the entry remain distinct from the physical content hash where the semantic schema defines them separately.
 
-## Canonical record families
-
-Each core object class carries only its corresponding logical records:
-
-- MODULES: module/composition records;
-- TYPES: type records;
-- FUNCTIONS: function/signature/body records;
-- INTERFACES: interface records;
-- CAPABILITIES: capability records;
-- BINDINGS: binding records;
-- STATE: state/transition records;
-- EFFECTS: effect records;
-- OWNERSHIP_RESOURCES: ownership/resource records;
-- CONCURRENCY: task/thread/channel/lock/atomic/order records;
-- PERSISTENCE_RECOVERY: transaction/durability/recovery records;
-- CONSTRAINTS_INVARIANTS: constraints/barriers/invariants;
-- EXTERNAL_BOUNDARIES: explicit external capability/provider boundaries;
-- TESTS: selected verification test records;
-- PROFILES: deployment/hardware/workload/profile records;
-- TARGETS: target/ABI requirement records;
-- LINEAGE_EVIDENCE: Atlas/SelectedDesign/evidence mappings;
-- GRAPH_VIEW: derived executable graph projection;
-- RUNTIME: runtime composition records;
-- UI: UI projection semantics.
-
-A record MUST NOT be placed in an unrelated class merely for convenience.
-
-## Cross-object references
-
-Cross-object semantic references MUST use GLOBAL_ID or another schema-defined stable content identity.
-
-A LOCAL_INDEX from one object MUST NEVER reference another object.
-
-The validator MUST verify every required cross-object reference resolves to:
-
-- a canonical object record in the same AtlasX root;
-- an explicit external boundary;
-- an explicitly permitted dynamic runtime binding.
-
-## Graph view
-
-GRAPH_VIEW is a deterministic projection over canonical AtlasX objects.
-
-It MUST NOT introduce semantics absent from those objects.
-
-Node/edge/binding identity must remain reconstructable.
-
-A compiler MAY use graph view as an acceleration structure, but truth comes from validated canonical AtlasX semantics.
+Two entries with equal bytes but different semantic classes are not automatically the same semantic object.
 
 ## Compression
 
-Each object independently declares a codec.
+Compression occurs after canonical decoded entry construction.
 
-The root/object identity is based on decoded canonical payload content, so codec framing MUST NOT change semantic identity.
+~~~text
+canonical typed content
+→ entry framing
+→ deterministic/declared codec
+→ capsule placement
+~~~
 
-Canonical publication SHOULD use deterministic codec settings when practical.
+The root/entry semantic identity is based on decoded canonical content.
 
 Readers MUST enforce decoded-length/resource limits before decompression.
 
-## Publication transaction
+## Physical layout
 
-AtlasX publication is transactional at root-manifest level.
-
-Required order:
+Canonical v2 publication order is:
 
 ~~~text
-1. write all canonical object files to staging
-2. fsync/verify each object according to platform policy
-3. compute object hashes
-4. build canonical manifest payload
-5. compute AtlasX root identity
-6. write/verify manifest.atlasx in staging
-7. atomically publish/switch root directory/reference
-8. only then advertise the AtlasX root
+Header
+RootManifest payload
+EntryDirectory
+EntryPayloads sorted by canonical directory order
+Signature/Attestation entries where declared by directory
 ~~~
 
-A manifest MUST NOT reference missing/unverified required objects.
+Padding is forbidden in canonical v2 unless a future minor-version rule explicitly defines deterministic padding.
+
+The header's offsets make physical scanning unnecessary.
+
+## Transactional publication
+
+Writers MUST:
+
+~~~text
+1. construct all canonical decoded entries
+2. validate closure
+3. compute decoded entry hashes
+4. construct canonical root manifest
+5. compute AtlasX root identity
+6. encode/compress entries
+7. build entry directory
+8. write complete capsule to staging
+9. reread/verify bounds + hashes + root
+10. fsync according to platform policy
+11. atomically publish final *.atlasx
+~~~
+
+A partially written capsule MUST never be advertised as valid.
 
 ## Reader verification order
 
 A reader/compiler MUST conceptually verify:
 
 ~~~text
-manifest header/magic/version
-→ manifest bounds/codec/hash
-→ recompute AtlasX root ID
-→ parent Atlas / Genome / SelectedDesign compatibility
-→ object-entry path validity
-→ required object presence
-→ each object header/bounds
-→ each object decoded hash
-→ record framing
-→ field framing
-→ class/schema constraints
-→ cross-object reference closure
-→ dynamic/external boundary validity
-→ semantic barrier presence
-→ compiler-contract compatibility
+magic / major version
+→ file_length
+→ header bounds
+→ root-manifest bounds
+→ entry-directory bounds
+→ directory entry bounds / overlap
+→ algorithm support
+→ decode root manifest
+→ Genome/schema compatibility
+→ capsule-profile agreement
+→ recompute AtlasX root identity
+→ manifest/directory inventory agreement
+→ decode required entries
+→ per-entry decoded hashes
+→ embedded *.atlas integrity
+→ SelectedDesign relationship
+→ dependency transitive closure
+→ pinned-fetch policy
+→ external-boundary policy
+→ supply-chain/security obligations
+→ compiler contract compatibility
 ~~~
 
-Failure at a required step invalidates the root.
+Any required failure invalidates the capsule.
 
-## Canonical versus noncanonical files
+## Unpack projection
 
-Files not listed as canonical object entries are noncanonical projections/cache/debug material.
+`atlasx unpack` may project entries to directories/files.
 
-Examples:
+Extraction paths are derived convenience names.
 
-- pretty JSON;
-- Markdown;
-- generated diagrams;
-- temporary source renderings;
-- search indexes;
-- compiler caches.
+They are NOT part of semantic identity unless an entry's own typed semantics explicitly includes a path requirement.
 
-They MUST NOT affect AtlasX root identity.
+A compiler MUST NOT establish authority by rescanning an unpacked directory.
 
-The compiler MUST NOT rely on them for semantic truth.
+## Migration from wire v1
 
-## Evolution
+Wire v1 directory/object roots are accepted only by an explicit migration reader.
 
-A backward-compatible field may be added as optional under a compatible schema version.
+Migration MUST:
 
-Existing tag meanings are never repurposed.
+- verify the v1 root/object hashes under v1 rules;
+- recover parent Atlas + SelectedDesign lineage;
+- classify every retained object into v2 entry classes;
+- compute missing dependency/runtime/resource closure required by the target v2 profile;
+- reject ambiguous/unmanifested semantic authority;
+- produce a new v2 capsule root identity.
 
-Breaking changes require:
-
-- incompatible object schema version; or
-- new wire major version;
-
-plus explicit migration/compatibility rules.
-
-## Blueprint evolution
-
-This v1 physical layout is canonical now, not permanently frozen.
-
-If census/benchmark evidence demonstrates a better AtlasX encoding or object organization, Atlas MAY revise the blueprint through `BLUEPRINT-EVOLUTION.md`.
-
-A revision may improve physical representation.
-
-It may not silently reinterpret old object bytes, stable semantic IDs or root lineage.
+Migration is not an in-place reinterpretation.
 
 ## Forbidden shortcuts
 
 Forbidden:
 
-- canonical JSON manifest substituted for `manifest.atlasx`;
-- filename/path used as semantic identity;
-- compiler scanning arbitrary files instead of the manifest;
+- treating `<system>.atlasx/` as canonical v2;
+- JSON/YAML/Markdown root manifest as v2 authority;
+- compiler directory scanning for hidden inputs;
+- path/filename as semantic identity;
+- floating dependency versions;
+- cross-entry LOCAL_INDEX references;
+- hashing codec framing as semantic identity;
 - unbounded decompression;
-- cross-file LOCAL_INDEX references;
-- object hash computed over incidental codec framing as semantic identity;
-- hidden required object outside manifest;
-- silently accepting unknown required fields/classes;
-- human-readable debug projection used as compiler authority.
+- undeclared external dependency;
+- model invocation to fill missing capsule semantics;
+- silent v1→v2 reinterpretation.
 
 ## Final invariant
 
-A canonical AtlasX root is independently verifiable from bytes.
+A canonical AtlasX v2 artifact is one independently verifiable binary capsule.
 
-Two compliant implementations receiving the same materialization inputs and using the same v1 schemas must agree on:
+Two compliant implementations given identical canonical inputs MUST agree on:
 
-- canonical object semantics;
-- object content hashes;
-- manifest object inventory/order;
+- required entry semantics;
+- decoded content hashes;
+- canonical entry ordering;
 - AtlasX root identity.
 
-Physical codec bytes may differ only where the declared publication policy permits decoded-content identity to remain stable.
+Any implementation that requires the old directory tree as semantic authority is not AtlasX v2 compliant.
