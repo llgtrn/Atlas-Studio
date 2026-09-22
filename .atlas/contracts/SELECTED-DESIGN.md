@@ -15,10 +15,14 @@ It is not an inference, not a compiler preference and not a directory layout.
 ~~~text
 Observed world / research / Technology Genomes
         ↓
-candidate designs
-        ↓ validation
+candidate designs + CandidateChangeSets
+        ↓
+typed decision proposals / experiments
+        ↓
+generated implementation census + validation
+        ↓
 validated candidate(s)
-        ↓ explicit selection
+        ↓ explicit authorized selection
 SelectedDesign
         ↓
 ATLAS → ATLASX materialization
@@ -41,6 +45,39 @@ SUPERSEDED
 These MUST NOT be encoded as OBSERVED/DECLARED/etc.
 
 Evidence supporting the design retains its own EpistemicStatus.
+
+## Selection authority
+
+Every material SelectedDesign coordinate MUST declare one authority mode:
+
+~~~text
+HUMAN_REQUIRED
+POLICY_AUTO
+HYBRID
+~~~
+
+`HUMAN_REQUIRED` requires an authorized human selection event.
+
+`POLICY_AUTO` allows automatic selection only inside an explicit bounded policy envelope after all mandatory semantic/security/dependency/license/verification gates pass.
+
+`HYBRID` allows automated research/ranking/synthesis but requires human confirmation for final selection.
+
+A research provider, Jev-class decision provider, synthesis provider or verification provider may propose or rank. None may silently grant itself selection authority.
+
+## Decision and implementation lineage
+
+A SelectedDesign created through AI-assisted creation MUST retain references sufficient to reconstruct:
+
+- candidate set;
+- DecisionProposal records used materially;
+- CandidateChangeSet records;
+- ProviderReceipt records;
+- constraint envelope;
+- validation evidence;
+- human/policy selection event;
+- blueprint revision decision where applicable.
+
+Model prose alone is not sufficient selection lineage.
 
 ## Required SelectedDesign fields
 
@@ -71,6 +108,10 @@ A canonical SelectedDesign MUST contain at least:
 - required tests/proofs/benchmarks;
 - unresolved items explicitly permitted at runtime;
 - evidence references;
+- CandidateChangeSet references for selected generated implementation where applicable;
+- DecisionProposal references that materially influenced selection;
+- ProviderReceipt references where external providers participated;
+- selection authority mode and authority event;
 - selection rationale;
 - BlueprintRevisionDecision references when the selection changes an active blueprint;
 - supersedes/superseded-by lineage when applicable.
@@ -300,6 +341,23 @@ At minimum classify barriers such as:
 
 The compiler receives these through AtlasX.
 
+## Fast decision provider boundary
+
+A typed decision provider may select the **next candidate to explore/test** and may rank fully validated alternatives.
+
+Its score/confidence is not proof.
+
+A candidate MUST NOT become SelectedDesign merely because it has the highest provider score.
+
+Selection still obeys:
+
+- hard Genome constraints;
+- security policy;
+- semantic closure;
+- dependency/license policy;
+- required verification;
+- declared authority mode.
+
 ## Evidence and selection
 
 A design may become SELECTED only when the validation evidence required by policy exists.
@@ -367,6 +425,9 @@ Forbidden:
 - "selected" because only one candidate exists;
 - materializer choosing a candidate;
 - compiler choosing a candidate;
+- research/decision/synthesis provider choosing itself as authority;
+- highest model/provider score automatically becoming selected design;
+- generated code becoming selected without canonical census/validation;
 - implicit default provider;
 - converting UNKNOWN to default;
 - changing selected design during codegen;

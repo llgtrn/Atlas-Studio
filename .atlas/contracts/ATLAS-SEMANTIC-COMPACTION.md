@@ -37,6 +37,12 @@ decode(encode(logical_atlas))
 ≡ logical_atlas
 ~~~
 
+and for the same sealed logical Atlas + same canonical compaction profile:
+
+~~~text
+semantic compaction decisions are provider-independent and deterministic
+~~~
+
 where equivalence means preservation of all canonical engineering meaning required by the active schemas/Genome, including identity, provenance, evidence, epistemic status, obligations, conflicts and unresolved states.
 
 Canonical compaction is lossless with respect to meaning.
@@ -68,6 +74,32 @@ The following MUST NOT be subjected to lossy/approximate canonical encoding:
 
 Approximate equivalence is not canonical equivalence.
 
+## Post-seal mechanical boundary
+
+Canonical compaction begins only after logical Atlas seal.
+
+During a canonical compaction run the following are forbidden:
+
+- research-provider calls;
+- web/OSS search;
+- decision-provider calls;
+- synthesis/code-provider calls;
+- semantic invention;
+- heuristic deletion of "unimportant" records;
+- model-based approximate deduplication;
+- model summaries substituted for records.
+
+The compactor receives:
+
+- exact sealed logical Atlas identity;
+- exact compaction profile;
+- exact schema/wire versions;
+- deterministic configuration.
+
+It emits the canonical physical representation without changing selected meaning.
+
+External AI may help design a future compaction algorithm, but only through the ordinary blueprint-revision process before that algorithm becomes the selected deterministic compaction implementation.
+
 ## Compaction stages
 
 Canonical semantic compaction MAY use the following stages when deterministic and schema-governed:
@@ -89,6 +121,8 @@ Canonical semantic compaction MAY use the following stages when deterministic an
 15. shard-level codec compression.
 
 The selected physical strategy is a blueprint and MAY evolve under `BLUEPRINT-EVOLUTION.md` when census/benchmark evidence demonstrates a better mechanism.
+
+Once selected, a compaction profile is executable policy, not an invitation for a provider/model to make per-artifact semantic choices.
 
 ## Vocabulary packing
 

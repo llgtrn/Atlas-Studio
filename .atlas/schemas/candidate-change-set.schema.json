@@ -1,0 +1,226 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:atlas:schema:candidate-change-set:v1",
+  "title": "Atlas CandidateChangeSet v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "change_id",
+    "parent_repository_revision",
+    "parent_atlas_or_design_ref",
+    "provider_receipt_refs",
+    "declared_intent",
+    "affected_scope",
+    "file_changes",
+    "proposed_dependencies",
+    "semantic_changes",
+    "security_changes",
+    "tests",
+    "expected_semantics",
+    "unknowns",
+    "status"
+  ],
+  "properties": {
+    "schema": {
+      "const": "atlas.candidate-change-set.v1"
+    },
+    "change_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "parent_repository_revision": {
+      "type": "string",
+      "minLength": 1
+    },
+    "parent_atlas_or_design_ref": {
+      "type": "string",
+      "minLength": 1
+    },
+    "provider_receipt_refs": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true
+    },
+    "decision_proposal_ref": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "declared_intent": {
+      "type": "string",
+      "minLength": 1
+    },
+    "affected_scope": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true
+    },
+    "file_changes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "path",
+          "operation",
+          "content_hash"
+        ],
+        "properties": {
+          "path": {
+            "type": "string",
+            "minLength": 1
+          },
+          "operation": {
+            "enum": [
+              "ADD",
+              "MODIFY",
+              "DELETE",
+              "RENAME"
+            ]
+          },
+          "content_hash": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "previous_path": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      }
+    },
+    "proposed_dependencies": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "identity",
+          "reason",
+          "admission_status"
+        ],
+        "properties": {
+          "identity": {
+            "type": "string",
+            "minLength": 1
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1
+          },
+          "admission_status": {
+            "enum": [
+              "PROPOSED",
+              "ADMITTED",
+              "REJECTED",
+              "EXTERNAL_BOUNDARY"
+            ]
+          }
+        }
+      }
+    },
+    "semantic_changes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "kind",
+          "summary"
+        ],
+        "properties": {
+          "kind": {
+            "enum": [
+              "CAPABILITY",
+              "INTERFACE",
+              "BINDING",
+              "STATE",
+              "EFFECT",
+              "OWNERSHIP_RESOURCE",
+              "CONCURRENCY",
+              "PERSISTENCE_RECOVERY",
+              "CONSTRAINT_INVARIANT",
+              "IMPLEMENTATION",
+              "OTHER"
+            ]
+          },
+          "summary": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "security_changes": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "tests": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "benchmarks_or_proofs": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "expected_semantics": {
+      "type": "string",
+      "minLength": 1
+    },
+    "observed_semantics_ref": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "unknowns": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true
+    },
+    "rollback_plan": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "status": {
+      "enum": [
+        "PROPOSED",
+        "INGESTED",
+        "CENSUSED",
+        "VALIDATING",
+        "VALIDATED",
+        "REJECTED",
+        "SUPERSEDED",
+        "SELECTED"
+      ]
+    }
+  }
+}

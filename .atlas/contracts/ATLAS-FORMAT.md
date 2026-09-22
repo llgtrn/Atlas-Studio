@@ -6,7 +6,9 @@ canonical: true
 ---
 # ATLAS Dense Binary Artifact Contract
 
-A `*.atlas` is the dense canonical engineering/design artifact produced by admitted census, reconciliation, research correlation, invention and design selection.
+A `*.atlas` is the dense canonical engineering/design artifact produced by admitted census, reconciliation, research correlation, invention, candidate implementation synthesis, generated-code census, validation and design selection.
+
+The creation order is governed by `ATLAS-CREATION-PIPELINE.md`.
 
 Atlas aims for lossless engineering meaning, not small summaries. A logical Atlas may be much larger than source even after compression.
 
@@ -26,6 +28,11 @@ A logical Atlas may contain:
 - donor technology/research claims;
 - conflicts/unknowns/hypotheses/gaps;
 - candidate/rejected/selected designs;
+- selected implementation semantics;
+- CandidateChangeSet lineage;
+- material DecisionProposal lineage;
+- ProviderReceipt lineage;
+- constraint-envelope identity;
 - deployment/compiler/materialization hints;
 - provenance/license/evidence roots;
 - cross-repository references;
@@ -38,6 +45,28 @@ It also MUST NOT be treated as "compressed source code." The canonical payload i
 ## Function-level requirement
 
 Every discovered function is represented. Repetition is compressed semantically using stable IDs, interning, content-addressed records and shared graph structure rather than by deleting meaning.
+
+## Logical completeness before compaction
+
+The logical Atlas is semantically complete before the physical compactor starts.
+
+For AI-assisted creation this means, where applicable:
+
+~~~text
+research
+→ alternatives
+→ typed decision
+→ generated implementation
+→ generated-source census
+→ validation
+→ SelectedDesign
+→ logical seal
+→ compaction
+~~~
+
+A logical Atlas MUST NOT depend on a future provider invocation to discover what the selected implementation means.
+
+Provider-generated source may be embedded/referenced according to THIN/FAT policy, but selected implementation semantics and their lineage must already be canonical.
 
 ## Semantic compaction before physical encoding
 
@@ -55,6 +84,8 @@ logical typed Atlas
 ```
 
 Lossy approximation is forbidden for canonical semantic truth. Approximate/quantized search accelerators are allowed only as explicitly noncanonical, regenerable indexes.
+
+The canonical post-seal compaction run MUST NOT invoke research, decision, synthesis, coding or verification models. It is a deterministic/mechanical transform over the already-sealed logical Atlas.
 
 ## Physical encoding
 
@@ -102,6 +133,12 @@ The transition from SEALED Atlas to executable AtlasX is governed by `ATLAS-TO-A
 ATLASX is not decompressed Atlas. It is one deterministic executable projection selected from the richer Atlas world through explicit SelectedDesign identity, scope, profiles, bindings, lineage and materialization validation.
 
 Artifact size is never justification for silent semantic omission.
+
+## Provider independence
+
+A sealed Atlas artifact must remain meaningful if every external AI/research/decision provider used during creation becomes unavailable.
+
+Provider receipts/evidence may remain as lineage. Provider availability is not required to decode, validate or compile the already-selected canonical semantics.
 
 ## Blueprint evolution
 

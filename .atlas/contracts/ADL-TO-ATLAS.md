@@ -8,37 +8,47 @@ canonical: true
 
 ## Purpose
 
-This contract defines how authored Atlas Development Language source enters the same canonical semantic world as census-derived source knowledge.
+This contract defines how authored Atlas Development Language source and AI-assisted candidate implementation enter the same canonical semantic world as census-derived source knowledge.
 
-ADL is an authoring surface. `*.atlas` is the dense canonical semantic artifact. They are not the same representation.
+ADL is an authoring surface. External provider output is candidate material. `*.atlas` is the dense canonical semantic artifact. They are not the same representation.
+
+Human/AI collaboration is governed by `HUMAN-AI-ADL-AUTHORING.md`. Full creation/seal ordering is governed by `ATLAS-CREATION-PIPELINE.md`.
 
 ## Convergence rule
 
 There is one semantic convergence point:
 
-```text
-EXISTING IMPLEMENTATION                     AUTHORED ADL
-pinned source @ revision                    ADL source @ revision
-        ↓                                           ↓
-inventory / SourceFrontend                  parse / elaborate
-        ↓                                           ↓
-SemanticExtractor                           typed declared records
-        ↓                                           │
-typed observed records                      │
-        └──────────────────┬────────────────┘
-                           ↓
-                         Census
-                           ↓
-                       Normalize
-                           ↓
-                       Reconcile
-                           ↓
-                    selected design
-                           ↓
-                       *.atlas
-```
+~~~text
+EXISTING IMPLEMENTATION        AUTHORED ADL           AI-GENERATED CANDIDATE
+pinned source @ revision       ADL @ revision         CandidateChangeSet source
+        ↓                           ↓                         ↓
+Inventory/SourceFrontend       parse/elaborate        untrusted Inventory/Frontend
+        ↓                           ↓                         ↓
+SemanticExtractor             typed DECLARED         SemanticExtractor
+        ↓                           │                         ↓
+typed OBSERVED                 │                  typed OBSERVED generated-source facts
+        └──────────────┬────────────┴─────────────────────────┘
+                       ↓
+                     Census
+                       ↓
+                   Normalize
+                       ↓
+                   Reconcile
+                       ↓
+             validation / selection
+                       ↓
+                 SelectedDesign
+                       ↓
+              SEALED logical Atlas
+                       ↓
+          deterministic mechanical compaction
+                       ↓
+                    *.atlas
+~~~
 
-Direct ADL → EngineeringGraph and direct ADL → opaque binary publication are forbidden.
+The synthesis provider's claim about what its code does remains separate from the semantic observations produced by censusing that code.
+
+Direct ADL → EngineeringGraph, direct provider-output → canonical graph, direct provider-output → SelectedDesign and direct ADL/provider-output → opaque binary publication are forbidden.
 
 ## Semantic mapping requirements
 
@@ -104,6 +114,26 @@ typed ADL semantics
 
 Never the reverse.
 
+## Candidate implementation reconciliation
+
+When external AI generates implementation code during Atlas creation:
+
+1. its intended semantics are candidate/declared claims;
+2. its generated files enter the untrusted corpus path;
+3. Atlas inventories and semantically censuses them;
+4. observed generated implementation is compared with the provider's declared intent;
+5. discrepancies become explicit obligations/conflicts;
+6. security/dependency/license/test/benchmark/proof gates run;
+7. only validated candidates may participate in selection.
+
+A provider may not self-certify that generated code matches its proposal.
+
+The machine candidate envelope is `../schemas/candidate-change-set.schema.json`.
+
+Provider interaction lineage uses `../schemas/provider-receipt.schema.json`.
+
+Typed fast-decision output uses `../schemas/decision-proposal.schema.json`.
+
 ## ATLAS publication
 
 A SEALED logical Atlas produced from ADL MUST preserve all semantic information required to reproduce the selected design meaning, including:
@@ -116,7 +146,9 @@ A SEALED logical Atlas produced from ADL MUST preserve all semantic information 
 - unresolved or rejected alternatives where Genome policy requires them;
 - compiler/language/Genome version pins.
 
-ATLAS may semantically compress repeated structure through interning, DAG sharing and content addressing. Compression may not delete meaning.
+ATLAS may semantically compact repeated structure through exact interning, DAG sharing, factoring, graph/column packing and content addressing. Compaction may not delete meaning.
+
+AI/research/decision/synthesis providers MUST NOT participate in the canonical post-seal compaction run. Post-seal compaction is mechanical and governed by `ATLAS-SEMANTIC-COMPACTION.md`.
 
 ## Source retention
 
