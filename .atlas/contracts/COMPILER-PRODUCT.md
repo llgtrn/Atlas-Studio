@@ -6,28 +6,39 @@ canonical: true
 ---
 # Compiler Product Contract
 
-Atlas compilation transforms selected AtlasX meaning into a verified physical product while preserving graph, temporal, evidence, authority and target-specific invariants.
+Atlas compilation transforms one validated canonical AtlasX root into a verified physical product while preserving graph, temporal, evidence, authority and target-specific invariants.
+
+The normative compiler-stage semantics and lowering boundaries are defined by `COMPILER-IR-PIPELINE.md`. This product contract defines the end-to-end product obligation; it does not permit implementation-specific reinterpretation of HIR/MIR/LIR/Machine IR.
 
 ## General product pipeline
 
-```text
-*.atlasx/
+~~~text
+validated *.atlasx root
  + DeploymentProfile
  + HardwareProfile
  + WorkloadProfile
+ + Target / ABI profile
        ↓
-World/Graph Optimizer
+HIR
        ↓
-HIR → MIR → LIR → Machine IR
+MIR
        ↓
-codegen → LTO → link → post-link
+LIR
+       ↓
+Machine IR
+       ↓
+codegen / object emission
+       ↓
+LTO → link → post-link
        ↓
 physical product
        ↓
 runtime profile / PGO / auto-tuning
        ↺
-Atlas evidence
-```
+Atlas evidence / candidate blueprint revision
+~~~
+
+Every arrow above is governed by an explicit lowering/equivalence contract. A compiler may optimize internally, but it may not silently move semantic responsibilities between stages.
 
 ## Digital Organism product pipeline
 
@@ -77,3 +88,14 @@ An organism cannot gain authority merely because a model proposes an action or l
 ## Product evidence
 
 A production artifact records lineage to Atlas root, AtlasX root, Atlas Genome, Organism Genome where applicable, compiler version, target profiles, model/provider/checkpoint bindings, optimization configuration, tests, benchmarks and artifact hashes.
+
+## Blueprint evolution
+
+Compiler/product architecture is allowed to improve from census evidence.
+
+If donor/dependency census, proof, differential testing or benchmark evidence reveals a materially better compiler mechanism, IR representation, backend boundary or optimization strategy, Atlas MAY revise the compiler blueprint through `BLUEPRINT-EVOLUTION.md`.
+
+A compiler optimization that changes only physical implementation while preserving the selected design may remain an optimization.
+
+A discovery that changes stage semantics, identity, ABI, selected architecture or required invariants is a blueprint/contract revision and MUST NOT be hidden inside an optimization pass.
+
