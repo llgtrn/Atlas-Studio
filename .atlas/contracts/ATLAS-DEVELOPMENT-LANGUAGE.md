@@ -6,6 +6,8 @@ canonical: true
 ---
 # Atlas Development Language Contract
 
+Artifact-role authority is `ARTIFACT-LAYERING.md`: ADL is the natural-language-first Human+AI Intent Artifact, never the canonical binary semantic artifact itself.
+
 ## Purpose
 
 Atlas Development Language (ADL) is the semantics-first development language of Atlas Studio. It exists so humans, agents and Atlas itself can author systems directly in the same typed semantic universe that strict census reconstructs from existing source.
@@ -169,7 +171,8 @@ typed intent / ADL
 → SEALED logical Atlas
 → mechanical compaction
 → *.atlas
-→ *.atlasx/
+→ selected-system + transitive dependency/runtime/resource closure
+→ *.atlasx binary capsule
 → HIR/MIR/LIR/Machine IR or delegated backend
 ~~~
 
