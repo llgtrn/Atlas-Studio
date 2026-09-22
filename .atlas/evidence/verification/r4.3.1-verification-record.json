@@ -1,0 +1,152 @@
+{
+  "schema": "atlas.r4.verification-record.v1",
+  "wave": "R4.3.1",
+  "wave_title": "Fold Rust semantic extraction into the canonical census truth pipeline (fix accounting-sidecar architecture) and isolate per-artifact read failures",
+  "identity": {
+    "base_commit_sha": "abb9b9cd1cb2bd2f1606ba02ed4d21ca937c6477",
+    "candidate_commit_sha": "dafb3982626c97b42f73955bbfb845a9e6c20702",
+    "candidate_tree_sha": "54a8988fa3098048dcb0074f306a969a26e1ec54",
+    "branch": "claude/r4.3.1-canonical-census-integration",
+    "commits_in_range": [
+      "20382a8300 fix: isolate per-artifact extraction read failures and attach type spans",
+      "b98d397b37 feat: evolve SemanticFactKind to carry real extraction results",
+      "dafb398262 refactor: fold semantic extraction into canonical census construction"
+    ],
+    "note": "base_commit_sha == the merge commit for PR #8 (R4.3). This wave branches from canonical main at that exact point."
+  },
+  "temporal": {
+    "base_commit_authored_at": "2026-09-22T18:31:34+09:00",
+    "candidate_commit_authored_at": "2026-09-22T10:07:11Z",
+    "verification_completed_at": null,
+    "note": "Git-authoritative author-date timestamps only (git show -s --format=%ad --date=iso-strict). verification_completed_at is left null: Git proves when commits were authored, not when local verification commands finished running."
+  },
+  "toolchain": {
+    "pinned_by": "rust-toolchain.toml",
+    "channel": "1.90.0",
+    "rustc": "rustc 1.90.0 (1159e78c4 2025-09-14)",
+    "cargo": "cargo 1.90.0 (840b83a10 2025-07-30)",
+    "matches_ci_pin": true
+  },
+  "working_tree_clean": true,
+  "git_diff_check_exit": 0,
+  "cargo_lock_status": {
+    "diff_vs_base": "empty -- byte-identical to abb9b9cd1c's Cargo.lock",
+    "intentional": true,
+    "reason": "This wave adds no new dependencies; it only edits existing modules to fold already-produced extraction results into the canonical census path and to isolate read failures."
+  },
+  "ci_status": "UNAVAILABLE_INFRASTRUCTURE",
+  "ci_status_detail": "GitHub Actions assigns no runner at all, reproducing identically on main across every prior R4 wave (R4.1/R4.2/R4.2.1/R4.2.2/R4.3 evidence records document the same root cause). Not a test/code failure; excluded from correctness verification per operator instruction.",
+  "diff_summary": {
+    "range": "abb9b9cd1c..dafb398262",
+    "files_changed": 7,
+    "insertions": 890,
+    "deletions": 149,
+    "changed_files": [
+      "adapter/src/semantic/extractor.rs",
+      "adapter/src/semantic/rust/mod.rs",
+      "core/src/graph/engineering_graph.rs",
+      "core/src/schema/mod.rs",
+      "runtime/src/census/extraction.rs",
+      "runtime/src/census/mod.rs",
+      "runtime/src/lib.rs"
+    ]
+  },
+  "architectural_defect_fixed": {
+    "old_runtime_flow": "systemize(): build_census(inventory, source, adl) [hardcoded UNSUPPORTED coverage for all 12 R4 dimensions] -> normalize -> graph; THEN, separately, extract_semantics(...) ran the real RustSemanticExtractor and discarded every SemanticObservation/ObligationResult after only computing a single closure boolean fed into coding_admission.blockers. Real extraction never reached CensusReport.facts, so normalize()/build_system_graph() were never actually downstream of what the extractor produced -- an accounting-only sidecar next to, not inside, the one normalized semantic path.",
+    "new_runtime_flow": "systemize()/graph()/code_analyze(): extraction_batches = extract_semantics(...) runs FIRST; census = build_census(inventory, source, adl, &extraction_batches) folds every SemanticObservation into a typed SemanticFactKind (Symbol/Type/FunctionIdentity/FunctionSignature) fact and every ObligationResult into a per-artifact SemanticObligation fact, and derives CensusReport.coverage from that same data (most-informative-status-wins) instead of a hardcoded literal; normalize(&census) and build_system_graph(...) then run on that same CensusReport. CensusExtractionAccounting (for the closure blocker) is built from the identical extraction_batches slice census was built from, so closure accounting and canonical census truth can never disagree.",
+    "empirical_proof_against_this_repository": {
+      "census_facts_total": "570 (pre-fix, approx, R4.3-era self-census) -> 2943 (post-fix)",
+      "new_fact_kind_distribution": { "SYMBOL": 981, "TYPE": 664, "FUNCTION_IDENTITY": 338, "FUNCTION_SIGNATURE": 338, "SEMANTIC_OBLIGATION": 492 },
+      "coverage_before": "SYMBOL/TYPE/FUNCTION_IDENTITY/FUNCTION_SIGNATURE hardcoded UNSUPPORTED regardless of real extraction result",
+      "coverage_after": "SYMBOL/TYPE/FUNCTION_IDENTITY/FUNCTION_SIGNATURE = OBSERVED (derived); the other 8 R4 dimensions remain UNSUPPORTED (still real -- R4.4+/R4.10 territory)",
+      "normalization_losslessness": "normalization.normalized_facts_total (2943) == census.facts_total (2943) exactly",
+      "graph_growth": "graph.nodes_total = 2986, graph.facts_total = 2990 -- both larger than and consistent with census.facts_total, confirming the engineering graph now derives real content from extraction, not only from declared ADL/artifact facts"
+    }
+  },
+  "read_failure_isolation_fixed": {
+    "old_behavior": "extract_semantics used `fs::read_to_string(root.join(&artifact.path))?` -- a single unreadable artifact (removed after inventory admission, permission denied, invalid UTF-8, ...) propagated an io::Error out of the whole function via `?`, silently aborting extraction of every artifact enumerated after it in inventory.artifacts.",
+    "new_behavior": "extract_semantics is now infallible (returns Vec<ExtractionBatch> directly). A read failure is caught per-artifact via a match/Err arm, which builds an ExtractionDiagnostic(DiagnosticCode::InvalidInput) and calls the new SemanticExtractor::unavailable(...) default trait method for every registered extractor for that artifact's language, producing a closed batch (every supported dimension UNKNOWN, every unsupported dimension UNSUPPORTED) before continuing the loop -- never a silent drop, never an abort of later artifacts.",
+    "distinguishability": "The read-failure diagnostic uses DiagnosticCode::InvalidInput; a parser-level failure (unchanged, pre-existing) uses DiagnosticCode::ParseFailure. Both share EpistemicStatus::Unknown (evidence was insufficient either way) but the underlying cause is preserved via the distinct diagnostic code, never collapsed into one undifferentiated state.",
+    "proof": "New test a_read_failure_on_a_middle_artifact_never_aborts_or_erases_the_batch (runtime/src/census/extraction.rs) constructs an inventory of [a.rs (readable), b.rs (admitted but never written to disk), c.rs (readable)] and asserts: all 3 artifacts produce a batch; a.rs and c.rs SYMBOL obligations are OBSERVED; b.rs SYMBOL obligation is UNKNOWN with an InvalidInput diagnostic (never ParseFailure); b.rs's OWNERSHIP obligation is still UNSUPPORTED; the whole accounting is_closed()."
+  },
+  "verification_passes": [
+    {
+      "pass": "primary",
+      "performed_by": "this session, in-place checkout, clean target/ rebuild, pinned rustc 1.90.0",
+      "commands": {
+        "git status --porcelain": { "result": "clean" },
+        "git diff --check": { "exit_code": 0 },
+        "cargo fmt --all --check": { "exit_code": 0 },
+        "cargo clippy --workspace --all-targets -- -D warnings": { "exit_code": 0, "warnings": 0 },
+        "cargo test --workspace --locked": {
+          "exit_code": 0,
+          "totals": "101 passed, 0 failed, 0 ignored (49 adapter, 26 core, 26 runtime incl. 5 new tests: real_extraction_observations_reach_census_before_normalization, extraction_is_deterministic_across_repeated_census_builds, unknown_and_unsupported_obligations_remain_distinct_after_canonical_integration, a_read_failure_on_a_middle_artifact_never_aborts_or_erases_the_batch, plus updated production_wiring_tests)"
+        },
+        "cargo test --workspace --doc --locked": { "exit_code": 0, "doctests": 0 },
+        "cargo run -q -p atlas-cli -- docs audit --root .atlas": {
+          "exit_code": 0,
+          "gate_ready": true,
+          "hard_violations_total": 0,
+          "required_control_docs_missing": []
+        },
+        "cargo run -q -p atlas-cli -- systemize --root . --out <tmp>": {
+          "exit_code": 0,
+          "coding_admission_allowed": true,
+          "coding_admission_blockers": [],
+          "census_facts_total": 2943,
+          "census_facts_total_equals_len_facts": true,
+          "fact_kind_distribution": { "SYMBOL": 981, "TYPE": 664, "FUNCTION_IDENTITY": 338, "FUNCTION_SIGNATURE": 338, "SEMANTIC_OBLIGATION": 492 },
+          "coverage": { "SYMBOL": "OBSERVED", "TYPE": "OBSERVED", "FUNCTION_IDENTITY": "OBSERVED", "FUNCTION_SIGNATURE": "OBSERVED", "CALL": "UNSUPPORTED", "CONTROL_FLOW": "UNSUPPORTED", "DATA_FLOW": "UNSUPPORTED", "STATE": "UNSUPPORTED", "EFFECT": "UNSUPPORTED", "OWNERSHIP": "UNSUPPORTED", "CONCURRENCY": "UNSUPPORTED", "PERSISTENCE": "UNSUPPORTED" },
+          "normalization_normalized_facts_total": 2943,
+          "graph_nodes_total": 2986,
+          "graph_facts_total": 2990
+        }
+      }
+    },
+    {
+      "pass": "independent",
+      "performed_by": "fresh subagent, isolated git worktree, no shared context, candidate dafb3982626c97b42f73955bbfb845a9e6c20702",
+      "commit_confirmed_exact_match": true,
+      "commands_all_exit_0": true,
+      "test_totals": "49 adapter + 26 core + 26 runtime = 101 passed, 0 failed, 0 ignored",
+      "docs_gate": "gate_ready=true",
+      "systemize_reconfirmation": "coding_admission={allowed:true, blockers:[]}; census.facts_total=2943=len(facts); fact kind distribution matches (SYMBOL 981, TYPE 664, FUNCTION_IDENTITY 338, FUNCTION_SIGNATURE 338, SEMANTIC_OBLIGATION 492); coverage matches exactly; normalization.normalized_facts_total=2943 (lossless); graph.nodes_total=2986, graph.facts_total=2990",
+      "cargo_lock_reconfirmation": "git diff -- Cargo.lock over the full range produced zero lines",
+      "code_review_findings": {
+        "build_census_folds_before_construction": "VERIFIED -- extraction_batches loop populates facts/dimension_summary before facts.sort_by and the final CensusReport{} construction; coverage's 12 R4 entries derived from dimension_summary, hardcoded-literal pattern removed",
+        "single_extraction_batches_source_for_both_views": "VERIFIED -- systemize/graph/code_analyze each bind one extraction_batches variable, pass it to both build_census and (in systemize) CensusExtractionAccounting::record_batch in a loop, before normalize/graph run",
+        "extract_semantics_infallible_and_isolates_read_failures": "VERIFIED -- returns Vec<ExtractionBatch> directly, Err arm of a match (not `?`) builds an unavailable() batch and falls through to the next artifact; no early return/break in the loop",
+        "unavailable_produces_a_closed_batch": "VERIFIED -- one obligation per requested dimension, supported->UNKNOWN, unsupported->UNSUPPORTED, satisfying ExtractionBatch::is_closed by construction",
+        "read_failure_diagnostic_distinct_from_parse_failure": "VERIFIED -- DiagnosticCode::InvalidInput for read failures vs the pre-existing DiagnosticCode::ParseFailure for parser failures, never conflated",
+        "no_fabricated_canonical_type_identity": "VERIFIED -- grep 'canonical: Some' across the whole repository: exactly one hit, in core/src/semantic/types.rs (pre-existing, outside this diff's 7 files); semantic_observation_fact's Type arm projects only .name (plain spelling)",
+        "no_r4_4_scope_creep": "VERIFIED -- diff-wide grep for call-graph/control-flow/data-flow/ownership/trait-resolution logic finds only a doc-comment noting it is out of scope; only the 4 in-scope dimensions gained graph node projection",
+        "spot_checked_tests_exercise_real_behavior": "VERIFIED -- traced real_extraction_observations_reach_census_before_normalization and a_read_failure_on_a_middle_artifact_never_aborts_or_erases_the_batch against the real build_census/normalize/build_system_graph chain and real filesystem I/O through extract_semantics respectively; neither is a tautology"
+      },
+      "verdict": "VERIFIED"
+    }
+  ],
+  "no_tests_lints_gates_disabled": true,
+  "no_verify_bypass_used": false,
+  "overall_verdict": "VERIFIED",
+  "runtime_invariants_established": [
+    "No semantic observation Atlas treats as census truth can bypass CensusReport -- every ExtractionBatch passed to build_census is folded into census.facts before normalize/graph run.",
+    "No graph semantic fact exists solely because an extractor sidecar emitted it -- the engineering graph is built from NormalizationReport.facts, which is built from CensusReport.facts, which now genuinely includes real extraction output.",
+    "No supported extraction failure (read failure or parse failure) can silently remove an artifact from census accounting -- both failure modes produce an explicit, closed ExtractionBatch with UNKNOWN obligations, never a dropped artifact.",
+    "Closure accounting (CensusExtractionAccounting.is_closed) and canonical census truth (CensusReport) are built from the identical extraction_batches slice in every production entry point (systemize/graph/code_analyze), so they cannot structurally disagree."
+  ],
+  "contract_clauses_satisfied": [
+    ".atlas/decisions/0001-one-normalized-semantic-path.md (Inventory -> SemanticExtractor -> Census -> Normalize -> Reconcile -> Graph is now genuinely one path in the runtime call graph, not an extraction sidecar beside a separately-built census)",
+    ".atlas/contracts/SEMANTIC-EXTRACTION.md#failure-semantics (a read failure, like a parse failure, no longer removes the artifact from census accounting; both produce explicit UNKNOWN + a diagnostic, distinguishable by DiagnosticCode)",
+    ".atlas/contracts/SEMANTIC-EXTRACTION.md#r4-acceptance-matrix (\"SemanticFact remains a compatibility envelope, not the only semantic type system\": the five new SemanticFactKind variants are lossy projections of the typed SemanticObservation kernel records, never an independently-invented second semantic model)",
+    ".atlas/contracts/CENSUS-COMPLETENESS.md (per-artifact per-dimension obligation status is now visible in the canonical census via SemanticObligation facts, not only as a single repository-wide coverage summary)",
+    ".atlas/decisions/0002-epistemic-status-model.md (EpistemicStatus remains the sole canonical taxonomy; TypeIdentity.canonical stays None everywhere; UNKNOWN and UNSUPPORTED remain distinct and are never collapsed)"
+  ],
+  "still_unsupported": [
+    "CALL/CONTROL_FLOW/DATA_FLOW/STATE/EFFECT -- no call-graph/CFG/dataflow/state/effect analysis yet (R4.4+); these dimensions' SemanticObligation facts correctly remain UNSUPPORTED",
+    "OWNERSHIP/CONCURRENCY/PERSISTENCE -- unmaterialized (R4.10)",
+    "Compiler-backed name resolution / TypeIdentity.canonical resolution -- R4.4+",
+    "Reconciliation of disagreeing extractor results -- explicitly deferred (NORMALIZATION.md#conflict-handling); this wave only ensures disagreement reaches the canonical census, not that it is resolved",
+    "Deeper graph modeling for the four newly-real dimensions (call edges, control/data-flow projection onto the graph) -- only lightweight per-observation nodes exist so far; edge/relationship projection is deferred to when CALL/CONTROL_FLOW/DATA_FLOW themselves become real",
+    "R4.4/R4.5 semantic expansion itself -- deliberately not started this wave, per explicit instruction"
+  ]
+}
