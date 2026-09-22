@@ -51,14 +51,20 @@ Read in this order:
 Canonical chain:
 
 ```text
-Reality / Corpus                         Authored ADL
-  ↓ exhaustive inventory                   ↓ typed elaboration
-Strict Census S0→S10                       ↓
-  ↓ typed observations ────────────────────┘
-  ↓ reconcile / adversarial gaps / fixed point
-Canonical typed semantic world
-  ↓ research / donor-genesis / invention / selection
-CensusCertificate + selected design
+Reality / Corpus
+  ↓ exhaustive inventory
+Strict Census S0→S10
+  ↓ typed OBSERVED records
+  ↓ normalize / reconcile / adversarial gaps / fixed point
+CensusCertificate
+  ↓
+Observed World ────────────────────────────┐
+                                          │
+Authored ADL                               │
+  ↓ typed DECLARED records                 │
+  ↓ canonical Census / normalize/reconcile ├─→ comparison / invention / selected design
+                                          │
+Donor Technology Genomes / research ──────┘
   ↓
 SEALED Logical *.atlas
   ↓ content-addressed shards as needed
