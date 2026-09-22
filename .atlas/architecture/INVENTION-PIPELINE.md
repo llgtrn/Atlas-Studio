@@ -10,10 +10,10 @@ Atlas converts observed implementation and research evidence into reusable engin
 
 ## Full pipeline
 
-```text
+~~~text
 implementation / source reality
   ↓
-exhaustive inventory
+exhaustive inventory + dependency closure
   ↓
 function + semantic-atom census
   ↓
@@ -21,23 +21,39 @@ mechanism / algorithm / protocol extraction
   ↓
 invariant / trade-off / limitation
   ↓
-cross-donor + research comparison
+Human intent + Genome/security/target constraint envelope
   ↓
-gap / conflict / unknown graph
+Atlas knowledge + donor/dependency knowledge + external research
   ↓
-candidate invention
+candidate mechanism set
   ↓
-experiment / simulation / benchmark / proof
+typed fast decision fabric (rank / shortlist / route)
   ↓
-validated candidate
+external synthesis / code generation
+  ↓
+CandidateChangeSet
+  ↓
+inventory + census generated implementation as untrusted source
+  ↓
+compare intended semantics vs observed generated semantics
+  ↓
+security / dependency / license / tests / benchmark / proof
+  ↓
+candidate repair / alternative loop
+  ↓
+validated candidate(s)
   ↓
 compare against current canonical blueprint
   ↓
 BlueprintRevisionDecision when architecture would change
   ↓
-selected design / selected blueprint revision
+authorized SelectedDesign
   ↓
-SEALED logical *.atlas
+SEALED logical Atlas
+  ↓
+deterministic mechanical semantic compaction
+  ↓
+*.atlas
   ↓
 deterministic *.atlasx/
   ↓
@@ -46,7 +62,13 @@ semantic/world optimization
 compiled product
   ↓
 runtime evidence / PGO / recensus
-```
+~~~
+
+The detailed authoring/provider/seal rules are canonical in:
+
+- `../contracts/HUMAN-AI-ADL-AUTHORING.md`;
+- `../contracts/ATLAS-CREATION-PIPELINE.md`;
+- `../contracts/EXTERNAL-PROVIDER-TRUST.md`.
 
 ## Census before invention
 
@@ -54,9 +76,53 @@ Observed source reality is never rewritten by inference. Census uses the canonic
 
 Every function is accounted for. Important blocks and expressions lower to semantic atoms. Dynamic behavior, reflection, macros, FFI, generated code, feature flags, config-driven behavior and unresolved external targets must be explicit rather than silently skipped.
 
+## Research, decision and synthesis are separate roles
+
+Atlas treats external intelligence as replaceable role-specific providers.
+
+~~~text
+ResearchProvider
+  finds and attributes possibilities
+
+DecisionProvider
+  ranks/scores/routes candidate exploration
+
+SynthesisProvider
+  writes candidate ADL/code/tests
+
+VerificationProvider
+  contributes/checks evidence
+~~~
+
+A Jev-class decision provider is suitable for low-latency typed ranking/routing.
+
+A research/search provider may behave like a research assistant over OSS/web/papers.
+
+A frontier synthesis provider may generate real implementation candidate code.
+
+None of these roles owns canonical truth.
+
 ## Evidence triangulation
 
 Atlas may correlate code, compiler/parser facts, tests, runtime traces, benchmarks, build graphs, specs/RFCs, scientific papers and explanatory documentation. Source describes current implementation; research explains mechanisms/trade-offs; model output remains candidate analysis until verified.
+
+## Candidate code is part of invention, not a post-Atlas afterthought
+
+Atlas SHOULD be able to synthesize and test the actual implementation before logical Atlas seal.
+
+The preferred loop is:
+
+~~~text
+candidate architecture
+→ generate implementation
+→ census implementation
+→ validate
+→ revise
+→ select
+→ seal
+~~~
+
+The final logical Atlas should therefore contain/point to the selected implementation semantics and evidence, not merely an architecture description that requires a future model to invent the real logic.
 
 ## Invention at every scope
 
@@ -122,8 +188,12 @@ bulk stage donors
 → deep census selected provider scope
 → extract principles/invariants
 → synthesize/invent Atlas-native design
+→ generate CandidateChangeSet implementation
+→ census generated implementation
 → validate
-→ commit knowledge into *.atlas
+→ select
+→ seal logical Atlas
+→ mechanically compact into *.atlas
 → materialize via ATLAS-TO-ATLASX contract
 → compile through explicit IR pipeline
 → benchmark / verify / recensus
