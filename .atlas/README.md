@@ -8,13 +8,16 @@ canonical: true
 
 `.atlas/` is the sole repository knowledge/control root for Atlas Studio. It is distinct from the `*.atlas` binary artifact format.
 
-Canonical lifecycle:
+Canonical lifecycle has two semantic ingress paths that converge before publication:
 
 ```text
-admitted reality
-→ strict census + completeness proof
-→ research/invention/selection
-→ SEALED logical *.atlas
+admitted existing reality                authored Atlas Development Language
+→ strict census + completeness proof     → parse/elaborate typed declarations
+                \                         /
+                 → canonical typed semantic world
+                 → normalize/reconcile
+                 → research/donor-genesis/invention/selection
+                 → SEALED logical *.atlas
 → optional content-addressed shards
 → deterministic *.atlasx/
 → world/semantic optimization
@@ -30,3 +33,7 @@ Durable architecture, contracts, Genome source, provenance, licenses and deliber
 Read `INDEX.md` for the mandatory route. The Genome source is `.atlas/genome/atlas.genome.toml`; the intended compiled form is `.atlas/artifacts/atlas-genome.atlas`.
 
 Human-readable graph/artifact exports are projections. They do not replace the binary logical Atlas or its root/shard integrity model.
+
+The current `.atlas/declared/*.adl` syntax is ADL0, the bootstrap declaration subset of the future Atlas Development Language. It is not evidence that the full development language is complete. See `contracts/ATLAS-DEVELOPMENT-LANGUAGE.md` and `contracts/ADL-TO-ATLAS.md`.
+
+A `*.atlas` is semantic compression, not merely compressed source. FAT artifacts may embed source/evidence blobs, but typed semantics remain authoritative.
