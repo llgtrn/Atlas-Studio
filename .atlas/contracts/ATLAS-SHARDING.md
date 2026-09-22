@@ -8,7 +8,7 @@ canonical: true
 
 One logical Atlas does not require one physical file, repository or storage location.
 
-Physical root/shard headers, section directories, content hashes and manifest framing follow `ATLAS-BINARY-WIRE-FORMAT.md`; this contract governs the logical federation invariants above that wire representation.
+Physical root/shard headers, section directories, content hashes and manifest framing follow `ATLAS-BINARY-WIRE-FORMAT.md`; lossless pre-wire factoring follows `ATLAS-SEMANTIC-COMPACTION.md`; this contract governs the logical federation invariants above that wire representation.
 
 ```text
 Logical Atlas Root
@@ -53,3 +53,19 @@ A sealed Atlas may support:
 - SHARDED: either mode split across authenticated locations.
 
 Size is not a reason to discard engineering meaning. Completeness outranks compactness.
+
+## Blueprint evolution
+
+Shard boundaries, packing strategy and reuse policy are blueprints, not immutable semantic law.
+
+If census/benchmark evidence finds a materially better partitioning or storage mechanism, Atlas MAY revise the sharding blueprint through `BLUEPRINT-EVOLUTION.md`.
+
+Such a revision MUST preserve:
+
+- global semantic identities;
+- root/shard lineage;
+- cross-shard binding correctness;
+- required content-addressing/integrity;
+- reader compatibility or explicit migration.
+
+Moving a record to a different shard MUST NOT change its semantic identity.
