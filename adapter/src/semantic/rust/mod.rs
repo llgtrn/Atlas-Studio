@@ -1,9 +1,8 @@
-//! Real Rust semantic extractor (R4.3-R4.9).
+//! Real Rust semantic extractor (R4.3-R4.10).
 //!
-//! Scope is ten dimensions: SYMBOL, TYPE, FUNCTION_IDENTITY, FUNCTION_SIGNATURE, CALL,
-//! CONTROL_FLOW, DATA_FLOW, STATE, EFFECT, OWNERSHIP. Every other requested dimension
-//! (CONCURRENCY, PERSISTENCE) is always explicit `UNSUPPORTED` here — R4.10+ territory, never
-//! silently omitted.
+//! Scope is eleven dimensions: SYMBOL, TYPE, FUNCTION_IDENTITY, FUNCTION_SIGNATURE, CALL,
+//! CONTROL_FLOW, DATA_FLOW, STATE, EFFECT, OWNERSHIP, CONCURRENCY. Every other requested dimension
+//! (PERSISTENCE) is always explicit `UNSUPPORTED` here — R4.11+ territory, never silently omitted.
 //!
 //! Parses `input.source_text` with `syn` (a real Rust parser, not regex/ad-hoc text scanning).
 //! Parsing untrusted source text never authorizes executing it: this extractor never runs
@@ -34,11 +33,16 @@
 //! does: `&`/`&mut` borrow sites are fully syntax-determined (real `BorrowShared`/`BorrowMut`), but
 //! whether a bare identifier used by value is actually moved or merely copied depends on its
 //! type's `Copy`-ness, which this extractor cannot resolve -- `OwnershipKind::MoveOrCopy` names
-//! that gap explicitly rather than guessing. A malformed file never silently disappears: parse
+//! that gap explicitly rather than guessing. CONCURRENCY (R4.10, see `concurrency.rs`) only emits
+//! `Await` (dedicated `.await` syntax, fully determined) and `Spawn` (callee spelling ending in
+//! `spawn`, the same name-based risk class EFFECT already accepts for panic macros);
+//! `Lock`/`Unlock`/channel/atomic operations would require resolving a method call to a specific
+//! known API and are never emitted this wave. A malformed file never silently disappears: parse
 //! failure yields a `ParseFailure` diagnostic plus
 //! explicit `UNKNOWN` for all supported dimensions, with the artifact still represented.
 
 mod cfg;
+mod concurrency;
 mod dataflow;
 mod effect;
 mod ownership;
@@ -74,6 +78,7 @@ pub const SUPPORTED_DIMENSIONS: &[SemanticDimension] = &[
     SemanticDimension::State,
     SemanticDimension::Effect,
     SemanticDimension::Ownership,
+    SemanticDimension::Concurrency,
 ];
 
 /// Useful facts are emitted for these dimensions, but this extractor does not yet prove exhaustive
@@ -699,6 +704,7 @@ impl<'a> ExtractionContext<'a> {
             self.build_state(body, scope, &caller_record_id);
             self.build_effects(body, scope, &caller_record_id);
             self.build_ownership(body, scope, &caller_record_id);
+            self.build_concurrency(body, scope, &caller_record_id);
         }
 
         let mut parameters = Vec::new();
