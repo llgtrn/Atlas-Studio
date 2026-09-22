@@ -10,7 +10,11 @@ canonical: true
 
 ATLASX is executable engineering representation, not expanded prose and not a second semantic universe.
 
+The selected design model is governed by `SELECTED-DESIGN.md`.
+
 The materialization algorithm is governed by `ATLAS-TO-ATLASX.md`.
+
+The canonical v1 binary object/manifest encoding is governed by `ATLASX-BINARY-WIRE-FORMAT.md`.
 
 The compiler handoff is governed by `COMPILER-IR-PIPELINE.md`.
 
@@ -125,7 +129,7 @@ A future blueprint MAY change directory/layout strategy under `BLUEPRINT-EVOLUTI
 
 ## Canonical encoding
 
-Canonical AtlasX semantic objects MUST use a deterministic typed encoding.
+Canonical AtlasX semantic objects MUST use the deterministic typed encoding defined by `ATLASX-BINARY-WIRE-FORMAT.md` for v1.
 
 Human-readable JSON/YAML/Markdown/source projections MAY exist for debugging, review or interoperability but are noncanonical unless a future explicit contract revision changes this rule.
 
