@@ -8,7 +8,7 @@ canonical: true
 
 The roadmap is cumulative. Later phases may replace physical backends but may not weaken Genome, census completeness, graph, temporal, evidence or provenance invariants.
 
-Normative stage semantics and lowering boundaries are defined by `../contracts/ATLAS-TO-ATLASX.md`, `../contracts/ATLASX-FORMAT.md` and `../contracts/COMPILER-IR-PIPELINE.md`.
+Normative design/materialization/compiler semantics are defined by `../contracts/SELECTED-DESIGN.md`, `../contracts/ATLAS-TO-ATLASX.md`, `../contracts/ATLASX-FORMAT.md`, `../contracts/ATLASX-BINARY-WIRE-FORMAT.md`, `../contracts/COMPILER-IR-PIPELINE.md` and `../contracts/COMPILER-IR-SCHEMAS.md`.
 
 This roadmap is a blueprint. It is canonical for the current evidence state but MAY be revised under `../contracts/BLUEPRINT-EVOLUTION.md` when donor/dependency census or verification/benchmark evidence proves a materially better architecture. Such revision must be explicit; implementation code may not silently redefine the pipeline.
 
@@ -72,7 +72,7 @@ Exit gate: substantial AtlasX systems produce verified products while Rust/TS re
 
 ## Phase 2 — Atlas HIR/MIR + Whole-Semantic Optimizer
 
-HIR and MIR are not implementation-defined names. Their normative responsibilities are fixed by `../contracts/COMPILER-IR-PIPELINE.md`.
+HIR and MIR are not implementation-defined names. Their normative responsibilities are fixed by `../contracts/COMPILER-IR-PIPELINE.md`; their v1 logical record/op schemas are fixed by `../contracts/COMPILER-IR-SCHEMAS.md`.
 
 Deliver:
 
