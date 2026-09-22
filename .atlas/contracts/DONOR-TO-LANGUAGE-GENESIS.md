@@ -117,7 +117,7 @@ A donor-informed ADL feature is admitted only when:
 
 ## Extinction
 
-Donor source may be deleted from `.atlas/temporary/` only after the relevant knowledge is durable in Atlas and the extinction gate in `BULK-DONOR-ABSORPTION.md` is satisfied.
+Donor source may be deleted from `.atlas/temporary/` only after the relevant knowledge is durable in Atlas and the extinction gate in `../blueprints/BULK-DONOR-ABSORPTION.md` is satisfied.
 
 The durable result is not "we once read the donor." It is:
 
