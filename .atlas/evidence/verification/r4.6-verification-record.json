@@ -1,0 +1,191 @@
+{
+  "schema": "atlas.r4.verification-record.v1",
+  "wave": "R4.6",
+  "wave_title": "Control Flow -- materialize the CONTROL_FLOW dimension (.atlas/contracts/SEMANTIC-FACTS.md#controlflowfact): ControlFlowBlockKind + ControlFlowEdgeKind + ControlFlowBlockIdentity typed kernel, and a real structured-CFG lowering pass for Rust function/method bodies computing actual successor edges (branches, loop repeats/skip edges, return/break/continue/panic terminators, labeled-break resolution through nested loops), not a placeholder. Unlike R4.5's CALL dimension, CFG structure is fully determined by Rust's own syntax/language semantics rather than requiring name/type resolution, so edges are computed for real; ControlFlowEdgeKind::Unresolved is reserved for genuinely ambiguous cases (an unmatched labeled break/continue).",
+  "identity": {
+    "base_commit_sha": "3c09967e07911ab7617735c80dc3fe8843d33992",
+    "candidate_commit_sha": "9352dacf41c41f4000c1e136723b06c62621ac1d",
+    "branch": "claude/r4-semantic-materialization-jz2z44",
+    "commits_in_range": [
+      "43be2d0c2d feat(core): R4.6 Control-flow block identity kernel (ControlFlowBlockKind, ControlFlowEdge)",
+      "44a3d7c3d9 feat(adapter): real structured-CFG lowering for Rust function/method bodies",
+      "1f035ee1d9 test: extend R4.5-era expectations and add R4.6 CONTROL_FLOW correctness corpus",
+      "9352dacf41 feat(core,runtime): project CONTROL_FLOW blocks into the engineering graph"
+    ],
+    "note": "base_commit_sha == main's HEAD at wave start (the merge commit for PR #17, the semantic-graph-native-language donor census). The branch name claude/r4-semantic-materialization-jz2z44 is the harness's fixed designated branch for this repository/task pair, reused across waves; per operator instruction it was restarted from fresh origin/main (git checkout -B <name>, pointing at current HEAD) rather than stacked on the already-merged PR #17 history it previously pointed at. Legitimate fast-forward push: main's history already contains the prior branch tip as an ancestor."
+  },
+  "toolchain": {
+    "pinned_by": "rust-toolchain.toml",
+    "channel": "1.90.0",
+    "rustc": "rustc 1.90.0 (1159e78c4 2025-09-14)",
+    "cargo": "cargo 1.90.0 (840b83a10 2025-07-30)",
+    "matches_ci_pin": true
+  },
+  "working_tree_clean": true,
+  "cargo_lock_status": {
+    "diff_vs_base": "empty -- byte-identical to 3c09967e07's Cargo.lock",
+    "intentional": true,
+    "reason": "This wave adds no new dependencies; it only evolves existing core/adapter/runtime types, adds a new adapter submodule (cfg.rs), and extends the engineering-graph projection."
+  },
+  "ci_status": "UNAVAILABLE_INFRASTRUCTURE",
+  "ci_status_detail": "GitHub Actions assigns no runner at all (job dies in 2-3 seconds; get_job_logs returns HTTP 404, no retrievable log content), reproducing identically on main across every prior R4 wave (R4.1 through R4.5 evidence records document the same root cause). One re-run was triggered on PR #18's failing check run (id 106791071607 -> re-run id 106791315002) and failed identically 21 seconds later, confirming this is not a transient flake. A comment was posted on PR #18 recording the diagnosis before the re-run, per operator PR-babysitting policy. Not a test/code failure; excluded from correctness verification per operator instruction.",
+  "diff_summary": {
+    "range": "3c09967e07..9352dacf41",
+    "files_changed": 10,
+    "insertions": 1725,
+    "deletions": 27,
+    "changed_files": [
+      "adapter/src/semantic/registry.rs",
+      "adapter/src/semantic/rust/cfg.rs",
+      "adapter/src/semantic/rust/mod.rs",
+      "adapter/src/semantic/rust/tests.rs",
+      "core/src/graph/engineering_graph.rs",
+      "core/src/lib.rs",
+      "core/src/semantic/control_flow.rs",
+      "core/src/semantic/mod.rs",
+      "runtime/src/census/extraction.rs",
+      "runtime/src/census/mod.rs"
+    ]
+  },
+  "cfg_model": {
+    "kernel": "core/src/semantic/control_flow.rs: ControlFlowBlockKind (FunctionEntry/IfThen/IfElse/LoopBody/WhileBody/ForLoopBody/MatchArm/NestedBlockExpr/Continuation -- structural role), ControlFlowEdgeKind (Fallthrough/Branch/LoopRepeat/Return/Break/Panic/Unresolved -- the contract's exact required categories: blocks, terminators, successors, exceptional/unwind edges, entry/exit), ControlFlowEdge { kind, target: Option<SemanticRecordId> }, ControlFlowBlockIdentity { repository, revision, function, block_index, kind, is_entry, successors }.",
+    "identity_key_design": "ControlFlowBlockIdentity::identity_key() covers only repository/revision/function/block_index -- kind/is_entry/successors are content, not identity, for the same reason R4.5's CallSiteIdentity excludes dispatch/callees: block_index (assigned deterministically per function) already disambiguates identity, so record_id stays stable if a later wave computes a more precise successor set for the same block.",
+    "key_design_difference_from_call": "Unlike R4.5's CALL dimension (where callee resolution genuinely requires name/type information this extractor doesn't have and never will), a function's control-flow STRUCTURE is fully determined by Rust's own syntax and language semantics, not by type inference or import resolution. There is therefore no equivalent epistemic reason to leave CFG edges unresolved by default -- real successor edges are computed wherever source syntax structurally determines them; ControlFlowEdgeKind::Unresolved is reserved for genuinely ambiguous cases (a labeled break/continue whose label matches no loop this extractor tracked).",
+    "extraction": "adapter/src/semantic/rust/cfg.rs (new file): a real structured-CFG lowering pass. lower_stmts recursively splits a function body's statement list into blocks at branch/loop/early-exit boundaries; a Continuation enum (FallthroughTo/Return/LoopRepeat) threads 'what happens when this segment completes' through the recursion so join points and loop back-edges compose correctly across nesting; a loop_stack: Vec<LoopFrame> resolves labeled and unlabeled break/continue to the correct enclosing loop, walking innermost-to-outermost past intermediate unlabeled loops to find a matching label. while/for loops get a genuine 'may not enter' skip edge (the condition/iterator can be false/empty on the first check); a bare loop does not (always executes at least once). An else-if chain flattens into one multi-branch decision point rather than a synthetic intermediate node, consistent with the top-level if's own condition also never being modeled as a node. panic!/unreachable!/todo!/unimplemented! (matched via the macro path's last segment, so both bare and qualified invocations are caught, and both syn::Stmt::Macro and syn::Stmt::Expr(Expr::Macro(_), _) shapes) produce a Panic edge.",
+    "scope_this_wave": "Only statement-level control flow is split into blocks: a construct nested inside a larger expression (e.g. `let x = if c {1} else {2};`) is not modeled -- its branches are still walked for CALL purposes (R4.5) but contribute no separate ControlFlow block/edge structure. Closures get no CFG of their own (build_control_flow is called exactly once per function/method body, never recursively for a nested closure). Both are documented gaps in the module doc comments, not silent omissions -- independently confirmed true of the code (not just asserted) by the independent verification pass.",
+    "graph_projection": "core/src/graph/engineering_graph.rs: the previously no-op SemanticObservation::ControlFlow arm now creates one ControlFlowBlock node per block observation plus a HAS_BLOCK edge from the owning function's FunctionIdentity node (present for every block, not only the entry, so every block belonging to a function is discoverable without scanning record_ids), and one graph edge per successor whose target is concrete (Some). Successors with target=None (Return/Panic/Unresolved) correctly produce no graph edge -- they remain visible as block content/evidence, never silently dropped and never fabricated as a dangling edge."
+  },
+  "pipeline_losslessness": {
+    "extractor_to_batch": "lower_stmts/lower_if/lower_match/lower_loop feed emit_block() -> ExtractionContext.observations, so every ExtractionBatch.observations entry for CONTROL_FLOW carries the full ControlFlowBlockIdentity struct with evidence/provenance.",
+    "batch_to_census": "build_census() required zero code changes to carry ControlFlow observations losslessly -- it operates generically over SemanticObservation, exactly as it did for R4.5's Call observations.",
+    "census_to_normalization": "normalize()/normalize_typed_records() likewise required zero code changes; confirmed by a dedicated runtime multi-extractor round-trip test.",
+    "normalization_to_graph": "add_typed_semantic_nodes()'s ControlFlow arm is the one place that DID require new code this wave (previously an explicit no-op) -- ControlFlowBlock node + HAS_BLOCK edge + per-successor edges, proven by three dedicated graph tests."
+  },
+  "multi_extractor_proof": {
+    "claim": "Two independent extractors reporting the identical ControlFlow block claim (same repository/revision/function/block_index/kind/is_entry/successors) both survive Census and Normalization as two independent typed_semantic_records entries.",
+    "mechanism": "record_id() (built from ControlFlowBlockIdentity::identity_key(), which excludes kind/is_entry/successors) is identical for both observations, proving the semantic CLAIM identity is unaffected by which extractor reported it; raw_observation_id() (extractor id/version + status + evidence_refs + provenance + full typed payload) differs between the two, so R4.3.3's raw_observation_id-keyed dedup (unmodified this wave) correctly keeps both.",
+    "test": "runtime::census::tests::same_control_flow_block_claim_from_two_extractors_survives_census_and_normalization"
+  },
+  "verification_passes": [
+    {
+      "pass": "primary",
+      "performed_by": "this session, in-place checkout, clean target/ rebuild (rm -rf target), pinned rustc 1.90.0",
+      "commands": {
+        "git status --porcelain": { "result": "clean" },
+        "cargo fmt --all --check": { "exit_code": 0 },
+        "cargo clippy --workspace --all-targets --locked -- -D warnings": { "exit_code": 0, "warnings": 0 },
+        "cargo build --workspace --locked": { "exit_code": 0, "note": "clean rebuild from rm -rf target" },
+        "cargo test --workspace --locked": {
+          "exit_code": 0,
+          "totals": "201 passed, 0 failed, 0 ignored (92 adapter, 67 core, 42 runtime, 0 atlas-cli unit tests)",
+          "new_tests_adapter_cfg_corpus": [
+            "straight_line_body_produces_one_entry_block_that_returns",
+            "if_with_no_else_produces_a_join_block_for_the_false_case",
+            "if_else_produces_two_branch_edges_and_no_unnecessary_join",
+            "else_if_chain_flattens_into_one_multi_branch_decision_point",
+            "while_loop_has_a_may_not_enter_edge_and_a_self_loop_repeat_edge",
+            "bare_loop_has_no_skip_edge",
+            "labeled_break_resolves_through_an_intermediate_unlabeled_loop",
+            "unmatched_labeled_break_is_explicitly_unresolved",
+            "unconditional_panic_produces_a_panic_edge",
+            "match_produces_one_branch_edge_per_arm",
+            "control_flow_observations_satisfy_dimension_consistency_alongside_call",
+            "cfg_corpus_extraction_is_deterministic",
+            "cfg_corpus_is_unaffected_by_requested_dimension_order",
+            "no_branches_function_produces_exactly_one_block",
+            "repeated_extraction_yields_stable_control_flow_record_ids_and_edges"
+          ],
+          "updated_tests_adapter": [
+            "semantic::registry::tests::rust_resolves_to_the_real_semantic_extractor (now expects CONTROL_FLOW in supported_dimensions)",
+            "malformed_rust_produces_parse_failure_and_unknown_for_supported_dimensions (CONTROL_FLOW added to the UNKNOWN-for-supported-dims loop)",
+            "unsupported_dimensions_are_always_explicit (CONTROL_FLOW removed from UNSUPPORTED_DIMENSIONS)",
+            "four_same_named_execute_declarations_are_all_pairwise_distinct_function_identities (empty bodies now produce a trivial ControlFlow entry block)",
+            "the_users_example_from_the_contract_note_extracts_as_documented (a panic-like tail expression now produces a real ControlFlow Panic-edge block, asserted explicitly)"
+          ],
+          "new_tests_core": [
+            "semantic::control_flow::tests::identity_key_distinguishes_block_index",
+            "semantic::control_flow::tests::identity_key_distinguishes_owning_function",
+            "semantic::control_flow::tests::identity_key_is_unaffected_by_kind_is_entry_and_successors",
+            "semantic::control_flow::tests::block_kind_as_str_matches_the_screaming_snake_vocabulary",
+            "semantic::control_flow::tests::edge_kind_as_str_matches_the_contract_vocabulary",
+            "graph::engineering_graph::tests::control_flow_block_produces_a_node_and_a_has_block_edge_from_its_function",
+            "graph::engineering_graph::tests::a_targetless_successor_produces_no_graph_edge",
+            "graph::engineering_graph::tests::a_branch_successor_with_a_target_produces_a_real_edge_between_two_block_nodes"
+          ],
+          "new_tests_runtime": [
+            "census::tests::same_control_flow_block_claim_from_two_extractors_survives_census_and_normalization"
+          ],
+          "updated_tests_runtime": [
+            "census::extraction::multi_extractor_tests::a_real_rust_extractor_is_registered_supporting_exactly_the_r4_6_dimensions (renamed from ...r4_5_dimensions, now expects CONTROL_FLOW)"
+          ]
+        },
+        "cargo test --workspace --doc --locked": { "exit_code": 0, "doctests": 0 },
+        "cargo run -q -p atlas-cli -- docs audit --root .atlas": { "exit_code": 0, "gate_ready": true, "hard_violations_total": 0 },
+        "cargo run -q -p atlas-cli -- systemize --root . --out <tmp>": {
+          "exit_code": 0,
+          "coding_admission_allowed": true,
+          "coding_admission_blockers": [],
+          "census_typed_semantic_records_total": 6246,
+          "typed_records_by_dimension": {
+            "CALL": 3702,
+            "SYMBOL": 1247,
+            "CONTROL_FLOW": 1225,
+            "TYPE": 872,
+            "FUNCTION_IDENTITY": 510,
+            "FUNCTION_SIGNATURE": 510
+          },
+          "control_flow_edge_kind_distribution": { "RETURN": 744, "BRANCH": 563, "FALLTHROUGH": 208, "LOOP_REPEAT": 203, "BREAK": 5, "PANIC": 1, "UNRESOLVED": 0 },
+          "control_flow_target_none_by_kind": { "RETURN": 744, "PANIC": 1 },
+          "control_flow_block_kind_distribution": { "FUNCTION_ENTRY": 502, "MATCH_ARM": 310, "CONTINUATION": 160, "IF_THEN": 124, "FOR_LOOP_BODY": 112, "IF_ELSE": 10, "WHILE_BODY": 7 },
+          "graph_summary": { "nodes_total": 9299, "edges_total": 7250, "bindings_total": 59, "facts_total": 3853 },
+          "note": "Real, much larger self-census against Atlas-Studio's own current source: 1,225 real CONTROL_FLOW blocks extracted from this repository's own Rust code. Every RETURN/PANIC edge has target=None as designed; all 5 BREAK edges resolved to a concrete target (hand-verified individually); zero UNRESOLVED edges in this repo's own code (no unmatched labels present). This is a real production run, not only hand-built test fixtures."
+        }
+      }
+    },
+    {
+      "pass": "independent",
+      "performed_by": "fresh subagent, isolated git worktree, no shared context, candidate 9352dacf41c41f4000c1e136723b06c62621ac1d",
+      "steps_all_pass": true,
+      "diff_confirmed_matches_description": "exactly 10 files, 1725 insertions / 27 deletions, 4 commits, no unrelated changes",
+      "commands_all_exit_0": "cargo fmt --all --check, cargo clippy --workspace --all-targets --locked -- -D warnings, cargo test --workspace --locked (201/201), cargo test --workspace --doc --locked (0 doctests)",
+      "labeled_break_hand_trace": "Independently hand-traced the labeled_break fixture's exact block numbering before reading the test (block0=FunctionEntry Branch->block2, block1=Continuation('n', Return/None), block2=outer LoopBody Branch->block3, block3=inner LoopBody Branch->block4/LoopRepeat->block3, block4=IfThen(break 'outer) ). Confirmed resolve_break's loop_stack.iter().rev().find(label==\"outer\") walks innermost(block3's unlabeled frame, no match)->outermost(block2's \"outer\" frame, match), resolving via continuation_target(&frame.after_loop) to Some(block1) -- the block containing 'n', never a loop-repeat point. Confirmed the named test asserts this non-vacuously: it explicitly rules out target_block.kind==LoopBody (the exact wrong-resolution bug class) AND positively pins edge_kinds(target_block)==[Return].",
+      "falsification_results": {
+        "label_matching_removed": "Changed resolve_break's labeled case to fall back to the nearest enclosing loop regardless of label (noted: the literal 'always .first()' recipe given was a false negative for this specific 2-frame corpus since the labeled frame happens to sit first; the independent agent used the substantively equivalent 'nearest enclosing loop regardless of label' mutation instead, which properly falsifies). Result: labeled_break_resolves_through_an_intermediate_unlabeled_loop FAILED ('left: LoopBody, right: LoopBody' -- wrongly resolved to a loop-repeat point); unmatched_labeled_break_is_explicitly_unresolved also failed (same code path). 90/92 passed. Reverted cleanly.",
+        "identity_key_kind_leak": "Added self.kind.as_str() into ControlFlowBlockIdentity::identity_key()'s format string. identity_key_is_unaffected_by_kind_is_entry_and_successors failed exactly as predicted. 66/67 passed. Reverted cleanly.",
+        "may_not_enter_removed": "Neutralized the may_not_enter skip-edge condition. while_loop_has_a_may_not_enter_edge_and_a_self_loop_repeat_edge failed with 'left: [Branch], right: [Fallthrough, Branch]' (missing the skip edge) as predicted. 91/92 passed. Reverted cleanly.",
+        "if_no_else_join_removed": "Removed the None => edges.push(continuation_to_edge(&join_cont)) arm in lower_if. if_with_no_else_produces_a_join_block_for_the_false_case failed with 'left: [Branch], right: [Fallthrough, Branch]' as predicted. 91/92 passed. Reverted cleanly.",
+        "net_assessment": "All four falsifications broke exactly the named invariant(s) and nothing else; none were vacuous. Full 201-test suite re-confirmed green after each revert. One process note recorded (not a code defect): the coordinator's literal falsification-recipe suggestion for the label-matching case was a false negative in this specific corpus shape; the independent agent substituted an equivalent mutation that did properly falsify, and flagged the recipe wording as worth correcting in future waves."
+      },
+      "graph_wiring_verification": "Read the ControlFlow arm in core/src/graph/engineering_graph.rs directly: confirmed every block gets a HAS_BLOCK edge from its owning function's node unconditionally (not only the entry block), and the successor loop uses 'let Some(target) = &successor.target else { continue }' before creating any edge, so Return/Panic/Unresolved (target=None) produce zero graph edges. Ran the three named graph tests directly -- all 3 passed.",
+      "systemize_reconfirmation": "Ran cargo run -q -p atlas-cli -- systemize --root . --out /tmp/verify_r46_systemize independently (~39MB output). Verified via script: 1225 ControlFlow records; 0 RETURN/PANIC edges with non-null target; all 5 BREAK edges present have non-null targets (spot-checked all 5, not a subset); coding_admission.allowed==true. Output file deleted afterward.",
+      "doc_comment_claim_checks": "Independently verified three specific module-doc-comment claims against code (not trusting the prose): (1) 'only statement-level control flow is split into blocks' -- confirmed, lower_stmts only inspects stmt_expr() which matches solely Stmt::Expr, never Stmt::Local, so a let-bound if/else is never split. (2) 'closures get no CFG of their own' -- confirmed, build_control_flow is called exactly once per function/method body (mod.rs:671), never from within Expr::Closure handling. (3) 'a bare loop always executes at least once so gets no skip edge' -- confirmed, lower_divergent passes may_not_enter=false for Expr::Loop, true for While/ForLoop.",
+      "other_findings": "No scope creep -- diff precisely scoped to CONTROL_FLOW materialization plus minimal supporting wiring/tests. No incorrect CFG edge found in the independent agent's own hand-trace of the highest-risk case (labeled break through nested loops). No vacuous falsification found.",
+      "verdict": "VERIFIED -- no blockers. All 8 requested verification steps pass; the labeled-break resolution (identified in advance as the highest-risk part of this wave) is confirmed correct by independent hand-trace, not just by trusting the test suite."
+    }
+  ],
+  "no_tests_lints_gates_disabled": true,
+  "no_verify_bypass_used": false,
+  "overall_verdict": "VERIFIED",
+  "runtime_invariants_established": [
+    "Every function/method body's statement-level control flow (if/else/else-if chains, match, loop/while/for, return/break/continue, panic-like macros) produces a structurally correct CFG: blocks split exactly at branch/loop/early-exit boundaries, with real successor edges -- confirmed load-bearing by falsification (removing the may-not-enter skip edge, the if-no-else join edge, or the label-matching logic each breaks exactly the test(s) that depend on it).",
+    "Labeled break/continue correctly resolve through intermediate unlabeled loops to the matching labeled loop, never to the nearest enclosing loop regardless of label -- independently hand-traced and confirmed correct by the verification pass, the highest-risk invariant in this wave.",
+    "An unmatched labeled break/continue produces an explicit UNRESOLVED edge, never a silently dropped or fabricated one.",
+    "ControlFlowBlockIdentity::identity_key() is provably unaffected by kind/is_entry/successors -- confirmed both by a core-level unit test and by falsification.",
+    "The engineering graph's ControlFlowBlock/HAS_BLOCK/successor-edge projection never creates a dangling or fabricated edge for a target=None successor (Return/Panic/Unresolved) -- confirmed by a dedicated test and independently traced through the code.",
+    "A real 1,225-block production run against this repository's own source confirms the design holds outside hand-built fixtures: every RETURN/PANIC edge has target=None, every BREAK edge resolves to a concrete target."
+  ],
+  "contract_clauses_satisfied": [
+    ".atlas/contracts/SEMANTIC-FACTS.md#controlflowfact ('Represents blocks, terminators, successors, exceptional/unwind edges and entry/exit relationships. CFG identity MUST be stable for identical pinned input and MUST NOT depend on traversal/hash iteration order.' -- ControlFlowBlockKind/ControlFlowEdgeKind implement the required categories; block_index assignment is a deterministic pre-order traversal, never HashMap/thread-order-dependent.)",
+    ".atlas/roadmap/SELF-BUILDING-R4-R8.md#r4.6 ('deterministic block identity; entry/exit; branches; loops; return edges; panic/failure edges; explicit unresolved control constructs; function-to-CFG closure.' -- every item materialized: is_entry marks the entry block, Branch/LoopRepeat/Return/Panic/Break/Unresolved cover the required edge categories, every function with a body gets a closed CFG with no silently-omitted block.)",
+    ".atlas/contracts/SEMANTIC-EXTRACTION.md (no compiler-resolved semantics fabricated from syntax alone -- CFG structure IS syntax-determined, unlike CALL, so this wave's real edge computation does not violate the epistemic-honesty principle; Unresolved is used only for genuinely undeterminable cases)",
+    ".atlas/decisions/0001-one-normalized-semantic-path.md (ControlFlow observations flow through the same Inventory -> SourceFrontend -> SemanticExtractor -> Census -> Normalize -> Reconcile -> graph path as every other dimension; no parser/extractor-to-graph bypass was introduced)"
+  ],
+  "still_unsupported": [
+    "Expression-level CFG splitting -- a construct nested inside a larger expression (e.g. `let x = if c {1} else {2};`) is not modeled as its own blocks this wave; deferred, documented gap, not silently omitted.",
+    "Closures get no CFG of their own -- they have no FunctionIdentity in Atlas's model to attribute one to; independently confirmed via code trace, not just doc-comment assertion.",
+    "Try (`?`) propagation is not modeled as a distinct branching edge -- a block containing `?` is treated as ordinary Fallthrough content, matching the conservative documented-gap pattern from prior waves.",
+    "DATA_FLOW / STATE / EFFECT / OWNERSHIP / CONCURRENCY / PERSISTENCE -- unmaterialized, unchanged from R4.5.",
+    "Cross-function/interprocedural CFG traversal, reachability, or cycle detection -- this wave only records individual functions' own CFGs; no graph algorithm consumes the HAS_BLOCK/successor edges yet beyond their existence.",
+    "Full compiler/global Rust name resolution -- unchanged; CFG structure computation never required it, but CALL resolution still doesn't have it either."
+  ]
+}
