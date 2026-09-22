@@ -100,10 +100,12 @@ Normative R8 contracts include:
 - `../contracts/ATLAS-SEMANTIC-COMPACTION.md`;
 - `../contracts/ATLAS-BINARY-WIRE-FORMAT.md`;
 - `../contracts/ATLAS-SHARDING.md`;
+- `../contracts/SELECTED-DESIGN.md`;
 - `../contracts/ATLAS-TO-ATLASX.md`;
-- `../contracts/ATLASX-FORMAT.md`.
+- `../contracts/ATLASX-FORMAT.md`;
+- `../contracts/ATLASX-BINARY-WIRE-FORMAT.md`.
 
-Compiler handoff is governed by `../contracts/COMPILER-IR-PIPELINE.md`.
+Compiler handoff is governed by `../contracts/COMPILER-IR-PIPELINE.md` and `../contracts/COMPILER-IR-SCHEMAS.md`.
 
 Primary donor lane: W6.
 
