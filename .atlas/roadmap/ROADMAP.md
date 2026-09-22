@@ -58,11 +58,11 @@ DC1 determines census breadth. R4 semantic dimensions determine census depth.
 
 ### R4 — semantic census depth
 
-Current materialized baseline is R4.4.
+Current materialized baseline is R4.5.
 
 - **R4.3.x — real Rust semantic bootstrap:** SYMBOL, TYPE, FUNCTION_IDENTITY and FUNCTION_SIGNATURE are real typed observations; extraction is wired through canonical Census; typed records survive normalization; raw observation identity, typed obligation lineage, typed closure and typed graph projection are materialized.
-- **R4.4 — Function Identity Closure — materialized:** typed declaration kind, impl/trait owner context and function generics strengthen module/impl/trait/revision-safe declaration identity; CALL remains intentionally absent.
-- **R4.5 — Call Semantics:** typed call sites with exact, partial, dynamic or unresolved FunctionIdentity targets.
+- **R4.4 — Function Identity Closure — materialized:** typed declaration kind, impl/trait owner context and function generics strengthen module/impl/trait/revision-safe declaration identity.
+- **R4.5 — Call Semantics — materialized:** real Rust function/method-body call sites flow through canonical Census/Normalization; caller identity is observed while unresolved callees remain explicitly unresolved rather than fabricated.
 - **R4.6 — Control Flow:** deterministic basic blocks, branch/loop/return/failure flow.
 - **R4.7 — Data Flow:** values, definitions/uses, parameter/result flow, loads/stores and explicit ambiguity.
 - **R4.8 — State + Effect:** state reads/writes/transitions and external effects.
@@ -85,15 +85,33 @@ Implement independent-observer reconciliation, explicit conflict preservation, c
 
 Primary support donor lane: W4 where applicable.
 
-### R7 — research correlation and absorption selection
+### R7 — research, decision, synthesis and absorption selection
 
-Keep ResearchClaim distinct from ObservedEvidence. Correlate donor Technology Genomes, Atlas capability gaps and candidate designs. Material discoveries receive explicit dispositions and evidence-linked selection/rejection/defer decisions.
+Keep ResearchClaim distinct from ObservedEvidence while adding the mature Human+AI engineering loop:
 
-Primary donor lane: W5.
+- Human/AI typed intent and constraint envelopes;
+- research providers over Atlas knowledge, admitted OSS and external references;
+- multiple candidate mechanisms;
+- typed Jev-class decision proposals for rank/score/route decisions;
+- external synthesis/code providers;
+- CandidateChangeSet;
+- generated-code census as untrusted source;
+- security/dependency/license/test/benchmark/proof admission;
+- explicit Human/Policy/Hybrid SelectedDesign authority;
+- ProviderReceipt lineage;
+- evidence-linked absorption/blueprint revision.
+
+Normative contracts:
+
+- `../contracts/HUMAN-AI-ADL-AUTHORING.md`;
+- `../contracts/ATLAS-CREATION-PIPELINE.md`;
+- `../contracts/EXTERNAL-PROVIDER-TRUST.md`.
+
+Primary donor lane: W5 plus admitted external provider adapters.
 
 ### R8 — real ATLAS and AtlasX
 
-Implement the durable binary Atlas substrate, lossless semantic compaction, content addressing, integrity, transactional publication, sharding, deterministic SelectedDesign→AtlasX materialization, validated AtlasX object closure and lineage needed for census-derived knowledge to survive physical donor-source deletion at scale.
+Implement the durable binary Atlas substrate after the selected implementation has already been synthesized/censused/validated: logical seal, provider-independent lossless semantic compaction, content addressing, integrity, transactional publication, sharding, deterministic SelectedDesign→AtlasX materialization, validated AtlasX object closure and lineage needed for census-derived knowledge to survive physical donor-source deletion at scale.
 
 Normative R8 contracts include:
 
@@ -122,6 +140,42 @@ A selected blueprint revision may resequence future work, insert a prerequisite,
 It MUST remain evidence-backed, explicit, migration-aware when identity/schema changes, and followed by targeted recensus.
 
 Implementation agents MUST NOT silently redesign around the roadmap, and MUST NOT ignore stronger evidence merely to preserve obsolete sequencing.
+
+## Human + AI engineering creation lane
+
+ADL and Studio are not intended to become conventional human-only editors with a chatbot attached.
+
+The target experience is:
+
+~~~text
+Human intent / conversation / ADL / Studio
+        ↓
+Genome + security + target constraint envelope
+        ↓
+Atlas knowledge + donor/dependency census + OSS/web research
+        ↓
+multiple mechanism/design candidates
+        ↓
+typed fast decision/ranking
+        ↓
+external synthesis provider writes real implementation candidate
+        ↓
+CandidateChangeSet
+        ↓
+Atlas inventories/censuses generated code
+        ↓
+security + dependency + license + semantic + verification gates
+        ↓
+authorized SelectedDesign
+        ↓
+SEALED logical Atlas
+        ↓
+mechanical deterministic compaction
+~~~
+
+Search/research may feel like a research assistant; fast typed selection may use a Jev-class provider; code synthesis may use frontier external providers. These are replaceable adapters and do not own canonical semantics.
+
+This lane is governed by `../contracts/HUMAN-AI-ADL-AUTHORING.md`, `../contracts/ATLAS-CREATION-PIPELINE.md` and `../contracts/EXTERNAL-PROVIDER-TRUST.md`.
 
 ## Language Genesis lane — after typed census semantics are trustworthy
 
