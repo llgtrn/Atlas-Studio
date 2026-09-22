@@ -11,9 +11,10 @@ use super::super::extractor::{ExtractionInput, SemanticExtractor};
 use super::{RustSemanticExtractor, spelling};
 use atlas_core::{
     ArtifactId, CallDispatchKind, CallSiteIdentity, ContentFingerprint, ControlFlowBlockIdentity,
-    ControlFlowBlockKind, ControlFlowEdgeKind, EpistemicStatus, FunctionDeclarationKind,
-    FunctionIdentity, FunctionSignature, RepositoryId, RevisionRef, SemanticDimension,
-    SemanticObservation, SemanticRecordId, SymbolIdentity, SymbolRole, TypeIdentity,
+    ControlFlowBlockKind, ControlFlowEdgeKind, DataFlowResolution, EpistemicStatus,
+    FunctionDeclarationKind, FunctionIdentity, FunctionSignature, RepositoryId, RevisionRef,
+    SemanticDimension, SemanticObservation, SemanticRecordId, SymbolIdentity, SymbolRole,
+    TypeIdentity, ValueIdentity, ValueRole,
 };
 
 const ALL_DIMENSIONS: [SemanticDimension; 12] = [
@@ -31,8 +32,7 @@ const ALL_DIMENSIONS: [SemanticDimension; 12] = [
     SemanticDimension::Persistence,
 ];
 
-const UNSUPPORTED_DIMENSIONS: [SemanticDimension; 6] = [
-    SemanticDimension::DataFlow,
+const UNSUPPORTED_DIMENSIONS: [SemanticDimension; 5] = [
     SemanticDimension::State,
     SemanticDimension::Effect,
     SemanticDimension::Ownership,
@@ -350,6 +350,64 @@ pub fn no_calls_no_branches() -> u64 {
 }
 "#;
 
+/// R4.7 DATA_FLOW corpus: simple def-use, shadowing, mutation (Store), block-scoped shadowing,
+/// a method receiver's Definition/Use, return-flow (explicit `return` and tail-expression), an
+/// unresolved use (no matching local definition), and a not-modeled tuple-destructuring pattern
+/// (documented gap: no Definitions emitted for its sub-bindings).
+const DATA_FLOW_CORPUS: &str = r#"
+pub fn simple_def_use(x: u64) -> u64 {
+    let y = x + 1;
+    y
+}
+
+pub fn shadowing() -> u64 {
+    let x = 1;
+    let x = x + 1;
+    x
+}
+
+pub fn mutation() -> u64 {
+    let mut x = 1;
+    x = 2;
+    x
+}
+
+pub fn block_scoped_shadow() -> u64 {
+    let x = 1;
+    {
+        let x = 2;
+        let _unused = x;
+    }
+    x
+}
+
+pub fn uses_unknown_name() -> u64 {
+    y
+}
+
+pub fn early_return(x: u64) -> u64 {
+    if x > 0 {
+        return x;
+    }
+    0
+}
+
+pub struct Holder {
+    pub value: u64,
+}
+
+impl Holder {
+    pub fn get(&self) -> u64 {
+        self.value
+    }
+}
+
+pub fn destructures_a_tuple() -> u64 {
+    let (a, b) = (1, 2);
+    a + b
+}
+"#;
+
 fn input_for(
     artifact_path: &str,
     source: &str,
@@ -543,6 +601,33 @@ fn control_flow_blocks_for<'a>(
         .collect();
     blocks.sort_by_key(|block| block.block_index);
     blocks
+}
+
+fn all_data_flow_values(batch: &ExtractionBatch) -> Vec<&ValueIdentity> {
+    batch
+        .observations
+        .iter()
+        .filter_map(|observation| match observation {
+            SemanticObservation::DataFlow(header) => Some(&header.subject),
+            _ => None,
+        })
+        .collect()
+}
+
+/// Every DataFlow value observation whose `function` is exactly `caller`'s `FunctionIdentity`
+/// record_id, sorted by (span line, span column, role) for deterministic assertions.
+fn data_flow_values_for<'a>(
+    batch: &'a ExtractionBatch,
+    caller: &FunctionIdentity,
+) -> Vec<&'a ValueIdentity> {
+    let caller_id =
+        SemanticRecordId::new(SemanticDimension::FunctionIdentity, &caller.identity_key());
+    let mut values: Vec<&ValueIdentity> = all_data_flow_values(batch)
+        .into_iter()
+        .filter(|value| value.function == caller_id)
+        .collect();
+    values.sort_by_key(|value| (value.span.line, value.span.column, value.role.as_str()));
+    values
 }
 
 // --- 1. free/public function symbol observation ------------------------------------------------
@@ -785,15 +870,23 @@ fn the_users_example_from_the_contract_note_extracts_as_documented() {
     );
 
     // `todo!()` is a macro invocation (`syn::Expr::Macro`), not a `syn::Expr::Call` -- so even
-    // with R4.5 CALL support, this body contributes no Call observation. DataFlow/State/Effect
-    // remain wholly unclaimed this wave regardless of body content.
+    // with R4.5 CALL support, this body contributes no Call observation. State/Effect remain
+    // wholly unclaimed this wave regardless of body content.
     assert!(batch.observations.iter().all(|observation| !matches!(
         observation,
         SemanticObservation::Call(_)
-            | SemanticObservation::DataFlow(_)
             | SemanticObservation::State(_)
             | SemanticObservation::Effect(_)
     )));
+
+    // R4.7: the `id` parameter still produces a real Definition, even though the body (`todo!()`)
+    // never uses it -- an unused-but-declared parameter is not the same as no data flow at all.
+    let load_user_identity = find_function_identity(&batch, &["users"], "load_user").unwrap();
+    let values = data_flow_values_for(&batch, load_user_identity);
+    assert_eq!(values.len(), 1);
+    assert_eq!(values[0].role, ValueRole::Definition);
+    assert!(values[0].is_parameter);
+    assert_eq!(values[0].name, "id");
 
     // R4.6: `todo!()` IS panic-like, so `load_user`'s single FunctionEntry block gets a real
     // Panic terminator edge.
@@ -827,6 +920,7 @@ fn malformed_rust_produces_parse_failure_and_unknown_for_supported_dimensions() 
         SemanticDimension::FunctionSignature,
         SemanticDimension::Call,
         SemanticDimension::ControlFlow,
+        SemanticDimension::DataFlow,
     ] {
         let obligation = batch.obligation_for(dimension).unwrap();
         assert_eq!(obligation.status, EpistemicStatus::Unknown);
@@ -1358,13 +1452,13 @@ fn four_same_named_execute_declarations_are_all_pairwise_distinct_function_ident
     let batch = extract_all("src/lib.rs", CALL_SAFETY_CORPUS);
 
     // Every declaration here has an empty body (`{}`), so no Call observation is produced even
-    // with R4.5 CALL support; DataFlow/State/Effect remain wholly unclaimed this wave. R4.6 CALL
-    // FLOW still produces one (trivial, Return-terminated) FunctionEntry block per function --
-    // an empty body is not the same as "no body."
+    // with R4.5 CALL support; State/Effect remain wholly unclaimed this wave. R4.6 CONTROL_FLOW
+    // still produces one (trivial, Return-terminated) FunctionEntry block per function, and R4.7
+    // DATA_FLOW still produces a `self` Definition for X::execute/Y::execute's receivers -- an
+    // empty body is not the same as "no body" or "no parameters."
     assert!(batch.observations.iter().all(|observation| !matches!(
         observation,
         SemanticObservation::Call(_)
-            | SemanticObservation::DataFlow(_)
             | SemanticObservation::State(_)
             | SemanticObservation::Effect(_)
     )));
@@ -1958,6 +2052,306 @@ fn repeated_extraction_yields_stable_control_flow_record_ids_and_edges() {
     let second: Vec<String> = control_flow_blocks_for(&batch2, caller2)
         .into_iter()
         .map(ControlFlowBlockIdentity::identity_key)
+        .collect();
+
+    assert_eq!(first, second);
+    assert!(!first.is_empty());
+}
+
+// =================================================================================================
+// R4.7: DATA_FLOW semantics
+// =================================================================================================
+
+// --- 49. a parameter Definition and a simple let-binding resolve correctly ----------------------
+
+#[test]
+fn simple_def_use_resolves_correctly() {
+    let batch = extract_all("src/lib.rs", DATA_FLOW_CORPUS);
+    let caller = find_function_identity(&batch, &[], "simple_def_use").unwrap();
+    let values = data_flow_values_for(&batch, caller);
+    assert_eq!(values.len(), 4);
+
+    let x_def = values
+        .iter()
+        .find(|v| v.role == ValueRole::Definition && v.name == "x")
+        .expect("Definition of x (the parameter)");
+    assert!(x_def.is_parameter);
+
+    let x_use = values
+        .iter()
+        .find(|v| v.role == ValueRole::Use && v.name == "x")
+        .expect("Use of x inside y's initializer");
+    assert_eq!(x_use.resolution, DataFlowResolution::Resolved);
+    let x_def_id = SemanticRecordId::new(SemanticDimension::DataFlow, &x_def.identity_key());
+    assert_eq!(x_use.resolved_definition.as_ref(), Some(&x_def_id));
+
+    let y_def = values
+        .iter()
+        .find(|v| v.role == ValueRole::Definition && v.name == "y")
+        .expect("Definition of y");
+    assert!(!y_def.is_parameter);
+
+    let y_use = values
+        .iter()
+        .find(|v| v.role == ValueRole::Use && v.name == "y")
+        .expect("Use of y in tail position");
+    assert!(
+        y_use.is_return_flow,
+        "the tail `y` is the function's return value"
+    );
+    let y_def_id = SemanticRecordId::new(SemanticDimension::DataFlow, &y_def.identity_key());
+    assert_eq!(y_use.resolved_definition.as_ref(), Some(&y_def_id));
+}
+
+// --- 50. shadowing: a use resolves to the definition visible AT THAT POINT, not the final one ----
+
+#[test]
+fn shadowing_resolves_to_the_definition_visible_at_that_point() {
+    let batch = extract_all("src/lib.rs", DATA_FLOW_CORPUS);
+    let caller = find_function_identity(&batch, &[], "shadowing").unwrap();
+    let values = data_flow_values_for(&batch, caller);
+
+    let defs: Vec<_> = values
+        .iter()
+        .filter(|v| v.role == ValueRole::Definition && v.name == "x")
+        .collect();
+    assert_eq!(defs.len(), 2, "two distinct `let x` bindings");
+    assert_ne!(defs[0].span, defs[1].span);
+
+    let uses: Vec<_> = values
+        .iter()
+        .filter(|v| v.role == ValueRole::Use && v.name == "x")
+        .collect();
+    assert_eq!(uses.len(), 2);
+
+    let first_def_id = SemanticRecordId::new(SemanticDimension::DataFlow, &defs[0].identity_key());
+    let second_def_id = SemanticRecordId::new(SemanticDimension::DataFlow, &defs[1].identity_key());
+
+    // The use inside the second `let x = x + 1;`'s initializer must resolve to the FIRST x
+    // (shadowing takes effect only after the new binding completes, matching real Rust semantics).
+    let init_use = uses.iter().find(|u| !u.is_return_flow).unwrap();
+    assert_eq!(init_use.resolved_definition.as_ref(), Some(&first_def_id));
+
+    // The tail `x` must resolve to the SECOND (most recent) x.
+    let tail_use = uses.iter().find(|u| u.is_return_flow).unwrap();
+    assert_eq!(tail_use.resolved_definition.as_ref(), Some(&second_def_id));
+}
+
+// --- 51. a plain assignment produces a Store resolved to its Definition, not a new Definition ---
+
+#[test]
+fn assignment_produces_a_store_not_a_new_definition() {
+    let batch = extract_all("src/lib.rs", DATA_FLOW_CORPUS);
+    let caller = find_function_identity(&batch, &[], "mutation").unwrap();
+    let values = data_flow_values_for(&batch, caller);
+
+    let defs: Vec<_> = values
+        .iter()
+        .filter(|v| v.role == ValueRole::Definition && v.name == "x")
+        .collect();
+    assert_eq!(
+        defs.len(),
+        1,
+        "`x = 2;` must not create a second Definition"
+    );
+
+    let store = values
+        .iter()
+        .find(|v| v.role == ValueRole::Store)
+        .expect("a Store event for `x = 2;`");
+    let def_id = SemanticRecordId::new(SemanticDimension::DataFlow, &defs[0].identity_key());
+    assert_eq!(store.resolved_definition.as_ref(), Some(&def_id));
+}
+
+// --- 52. a shadow inside a nested block does not leak out after the block ends -------------------
+
+#[test]
+fn block_scoped_shadow_does_not_leak_out() {
+    let batch = extract_all("src/lib.rs", DATA_FLOW_CORPUS);
+    let caller = find_function_identity(&batch, &[], "block_scoped_shadow").unwrap();
+    let values = data_flow_values_for(&batch, caller);
+
+    let defs: Vec<_> = values
+        .iter()
+        .filter(|v| v.role == ValueRole::Definition && v.name == "x")
+        .collect();
+    assert_eq!(defs.len(), 2, "outer `let x` and inner `let x`");
+    let outer_def = defs.iter().min_by_key(|d| d.span.line).unwrap();
+    let inner_def = defs.iter().max_by_key(|d| d.span.line).unwrap();
+    let outer_id = SemanticRecordId::new(SemanticDimension::DataFlow, &outer_def.identity_key());
+    let inner_id = SemanticRecordId::new(SemanticDimension::DataFlow, &inner_def.identity_key());
+
+    let uses: Vec<_> = values
+        .iter()
+        .filter(|v| v.role == ValueRole::Use && v.name == "x")
+        .collect();
+    assert_eq!(uses.len(), 2);
+
+    // The use inside the inner block (`let _unused = x;`) resolves to the INNER shadow.
+    let inner_use = uses.iter().min_by_key(|u| u.span.line).unwrap();
+    assert_eq!(inner_use.resolved_definition.as_ref(), Some(&inner_id));
+
+    // The tail `x`, after the block has closed, resolves back to the OUTER definition -- the
+    // inner shadow's scope ended when its enclosing block did.
+    let tail_use = uses.iter().find(|u| u.is_return_flow).unwrap();
+    assert_eq!(tail_use.resolved_definition.as_ref(), Some(&outer_id));
+}
+
+// --- 53. a use with no matching local definition is explicitly UNRESOLVED, never guessed ---------
+
+#[test]
+fn use_with_no_local_definition_is_explicitly_unresolved() {
+    let batch = extract_all("src/lib.rs", DATA_FLOW_CORPUS);
+    let caller = find_function_identity(&batch, &[], "uses_unknown_name").unwrap();
+    let values = data_flow_values_for(&batch, caller);
+    assert_eq!(values.len(), 1);
+    assert_eq!(values[0].role, ValueRole::Use);
+    assert_eq!(values[0].resolution, DataFlowResolution::Unresolved);
+    assert!(values[0].resolved_definition.is_none());
+    assert!(values[0].is_return_flow);
+}
+
+// --- 54. an explicit `return x;` flags that specific use as return-flow, a condition use does not
+
+#[test]
+fn explicit_return_is_flagged_as_return_flow_a_condition_use_is_not() {
+    let batch = extract_all("src/lib.rs", DATA_FLOW_CORPUS);
+    let caller = find_function_identity(&batch, &[], "early_return").unwrap();
+    let values = data_flow_values_for(&batch, caller);
+
+    let uses: Vec<_> = values
+        .iter()
+        .filter(|v| v.role == ValueRole::Use && v.name == "x")
+        .collect();
+    assert_eq!(
+        uses.len(),
+        2,
+        "one in the `if` condition, one in `return x;`"
+    );
+    assert_eq!(uses.iter().filter(|u| u.is_return_flow).count(), 1);
+    assert_eq!(uses.iter().filter(|u| !u.is_return_flow).count(), 1);
+    // Both resolve to the same parameter Definition.
+    let resolved: std::collections::BTreeSet<_> =
+        uses.iter().map(|u| u.resolved_definition.clone()).collect();
+    assert_eq!(resolved.len(), 1);
+    assert!(resolved.iter().next().unwrap().is_some());
+}
+
+// --- 55. a method receiver (`&self`) is a real Definition, and `self.field` resolves it ----------
+
+#[test]
+fn method_receiver_is_a_definition_and_field_access_resolves_it() {
+    let batch = extract_all("src/lib.rs", DATA_FLOW_CORPUS);
+    let caller = find_function_identity(&batch, &["impl:Holder"], "get").unwrap();
+    let values = data_flow_values_for(&batch, caller);
+    assert_eq!(values.len(), 2);
+
+    let self_def = values
+        .iter()
+        .find(|v| v.role == ValueRole::Definition && v.name == "self")
+        .expect("a Definition for the &self receiver");
+    assert!(self_def.is_parameter);
+
+    let self_use = values
+        .iter()
+        .find(|v| v.role == ValueRole::Use && v.name == "self")
+        .expect("a Use of self as the base of `self.value`");
+    let def_id = SemanticRecordId::new(SemanticDimension::DataFlow, &self_def.identity_key());
+    assert_eq!(self_use.resolved_definition.as_ref(), Some(&def_id));
+}
+
+// --- 56. a tuple-destructuring pattern is a documented, honest gap: no Definitions for its
+//     sub-bindings, so subsequent uses of them are explicitly UNRESOLVED, never fabricated -------
+
+#[test]
+fn tuple_destructuring_pattern_is_not_modeled_and_its_uses_stay_unresolved() {
+    let batch = extract_all("src/lib.rs", DATA_FLOW_CORPUS);
+    let caller = find_function_identity(&batch, &[], "destructures_a_tuple").unwrap();
+    let values = data_flow_values_for(&batch, caller);
+
+    assert!(
+        values.iter().all(|v| v.role != ValueRole::Definition),
+        "a `let (a, b) = ..;` pattern must not produce fabricated Definitions this wave"
+    );
+    let uses: Vec<_> = values.iter().filter(|v| v.role == ValueRole::Use).collect();
+    assert_eq!(
+        uses.len(),
+        2,
+        "uses of both `a` and `b` in the tail expression"
+    );
+    assert!(
+        uses.iter()
+            .all(|u| u.resolution == DataFlowResolution::Unresolved),
+        "with no Definition ever registered for a/b, their uses must stay explicitly UNRESOLVED"
+    );
+}
+
+// --- 57. every DataFlow observation satisfies dimension consistency, alongside CALL/CONTROL_FLOW -
+
+#[test]
+fn data_flow_observations_satisfy_dimension_consistency() {
+    let batch = extract_all("src/lib.rs", DATA_FLOW_CORPUS);
+    let mut saw_data_flow = false;
+    for observation in &batch.observations {
+        if matches!(observation, SemanticObservation::DataFlow(_)) {
+            saw_data_flow = true;
+        }
+        assert!(observation.is_dimension_consistent());
+    }
+    assert!(saw_data_flow);
+}
+
+// --- 58. DATA_FLOW extraction is byte-for-byte deterministic across repeated runs ----------------
+
+#[test]
+fn data_flow_corpus_extraction_is_deterministic() {
+    let first = extract_all("src/lib.rs", DATA_FLOW_CORPUS);
+    let second = extract_all("src/lib.rs", DATA_FLOW_CORPUS);
+    assert_eq!(first.observations, second.observations);
+    assert_eq!(first.evidence, second.evidence);
+}
+
+// --- 59. DATA_FLOW extraction is unaffected by requested-dimension order ------------------------
+
+#[test]
+fn data_flow_corpus_is_unaffected_by_requested_dimension_order() {
+    let forward = extract(
+        "src/lib.rs",
+        DATA_FLOW_CORPUS,
+        vec![
+            SemanticDimension::Symbol,
+            SemanticDimension::FunctionIdentity,
+            SemanticDimension::DataFlow,
+        ],
+    );
+    let reversed = extract(
+        "src/lib.rs",
+        DATA_FLOW_CORPUS,
+        vec![
+            SemanticDimension::DataFlow,
+            SemanticDimension::FunctionIdentity,
+            SemanticDimension::Symbol,
+        ],
+    );
+    assert_eq!(forward.observations, reversed.observations);
+}
+
+// --- 60. repeated extraction yields the exact same DataFlow record_ids --------------------------
+
+#[test]
+fn repeated_extraction_yields_stable_data_flow_record_ids() {
+    let batch = extract_all("src/lib.rs", DATA_FLOW_CORPUS);
+    let caller = find_function_identity(&batch, &[], "shadowing").unwrap();
+    let first: Vec<String> = data_flow_values_for(&batch, caller)
+        .into_iter()
+        .map(ValueIdentity::identity_key)
+        .collect();
+
+    let batch2 = extract_all("src/lib.rs", DATA_FLOW_CORPUS);
+    let caller2 = find_function_identity(&batch2, &[], "shadowing").unwrap();
+    let second: Vec<String> = data_flow_values_for(&batch2, caller2)
+        .into_iter()
+        .map(ValueIdentity::identity_key)
         .collect();
 
     assert_eq!(first, second);
