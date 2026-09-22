@@ -21,6 +21,7 @@ fn fixture_input(artifact_path: &str, dimensions: Vec<SemanticDimension>) -> Ext
         },
         artifact: ArtifactId::new(format!("artifact:{artifact_path}")),
         artifact_path: artifact_path.to_owned(),
+        source_text: String::new(),
         content_fingerprint: Some(ContentFingerprint(format!("sha256:{artifact_path}"))),
         source_frontend_id: "atlas.test.fixture-frontend.v1".into(),
         language: "fixture".into(),

@@ -12,3 +12,12 @@ publish = false
 [dependencies]
 atlas_core = { package = "core", path = "../core" }
 serde = { workspace = true }
+
+# Real Rust parser for the R4.3 semantic extractor (`adapter/src/semantic/rust/`). Already present
+# in Cargo.lock transitively via `serde_derive` at these exact versions; declaring them directly
+# here only enables additional features on an already-resolved dependency graph, it does not add a
+# new crate. Chosen over regex/ad-hoc parsing per `.atlas/contracts/SEMANTIC-EXTRACTION.md`: a real
+# AST is required, and `syn` is the de facto standard one for Rust source.
+syn = { version = "3.0.6", features = ["full"] }
+quote = "1.0.47"
+proc-macro2 = { version = "1.0.107", features = ["span-locations"] }

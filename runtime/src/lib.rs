@@ -6,8 +6,8 @@ pub mod normalize;
 
 use atlas_core::{
     AdlCompileReport, AdlProgram, CLI_API, CodingAdmission, Contract, DocsReport, EngineeringGraph,
-    Evidence, RevisionRef, SystemizeReport, WorkPrepareReport, WorkRequest, build_system_graph,
-    compile_adl, parse_adl_source, summarize_system_graph,
+    Evidence, RepositoryId, RevisionRef, SystemizeReport, WorkPrepareReport, WorkRequest,
+    build_system_graph, compile_adl, parse_adl_source, summarize_system_graph,
 };
 use std::{io, path::Path};
 
@@ -23,6 +23,21 @@ pub fn systemize(root: impl AsRef<Path>) -> io::Result<SystemizeReport> {
     let census = census::build_census(&inventory, &source, &adl);
     let normalization = normalize::normalize(&census);
     let graph = summarize_system_graph(&source, &docs, &normalization);
+
+    // R4.3: run every registered `SemanticExtractor` (currently real for Rust) against every
+    // admitted, successfully-parsed artifact and record the results into
+    // `CensusExtractionAccounting`. This is the real production call site
+    // (`.atlas/contracts/SEMANTIC-EXTRACTION.md`), not merely a helper exercised by tests: its
+    // closure result feeds `coding_admission.blockers` below.
+    let repository_id = RepositoryId::new(
+        repository
+            .manifest
+            .as_ref()
+            .map(|manifest| manifest.repo.clone())
+            .unwrap_or_else(|| root.to_string_lossy().into_owned()),
+    );
+    let (_extraction_accounting, extraction_accounting_closed) =
+        census::extraction::extract_semantics(&inventory, repository_id, snapshot.revision())?;
 
     let mut blockers = Vec::new();
     if !repository.ready {
@@ -42,6 +57,9 @@ pub fn systemize(root: impl AsRef<Path>) -> io::Result<SystemizeReport> {
     }
     if !normalization.is_closed() {
         blockers.push("NORMALIZATION_ACCOUNTING_NOT_CLOSED".to_owned());
+    }
+    if !extraction_accounting_closed {
+        blockers.push("SEMANTIC_EXTRACTION_ACCOUNTING_NOT_CLOSED".to_owned());
     }
 
     Ok(SystemizeReport {
@@ -77,6 +95,7 @@ pub fn systemize(root: impl AsRef<Path>) -> io::Result<SystemizeReport> {
             "NORMALIZATION_MUST_NOT_DROP_CENSUS_FACTS".into(),
             "ENGINEERING_GRAPH_IS_PROJECTION_OF_NORMALIZED_FACTS".into(),
             "UNSUPPORTED_SEMANTIC_DIMENSIONS_ARE_EXPLICIT".into(),
+            "SEMANTIC_EXTRACTION_NEVER_FABRICATES_COMPILER_RESOLVED_SEMANTICS".into(),
             "AI_OUTPUT_IS_PROPOSAL_NOT_CANONICAL_TRUTH".into(),
         ],
     })

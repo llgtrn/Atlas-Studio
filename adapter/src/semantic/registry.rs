@@ -9,6 +9,7 @@ use atlas_core::SemanticDimension;
 
 use super::batch::{ExtractionBatch, ObligationResult};
 use super::extractor::{DiagnosticCode, ExtractionDiagnostic, ExtractionInput, SemanticExtractor};
+use super::rust::RustSemanticExtractor;
 
 /// Placeholder extractor for a language with no deep semantic analyzer implemented yet. Declares
 /// zero supported dimensions and answers every requested dimension with an explicit `UNSUPPORTED`
@@ -90,10 +91,13 @@ impl SemanticExtractor for StaticUnsupportedExtractor {
     }
 }
 
-static RUST_STATIC_UNSUPPORTED: StaticUnsupportedExtractor =
-    StaticUnsupportedExtractor::new("atlas.rust.static-unsupported.v1", "0.1.0", &["rust"]);
+// R4.3: Rust now resolves to a real semantic extractor (`atlas.rust.source-semantic.v1`),
+// materializing SYMBOL/TYPE/FUNCTION_IDENTITY/FUNCTION_SIGNATURE from source syntax.
+// `StaticUnsupportedExtractor` remains available above as the fallback shape for a language with
+// no deep analyzer implemented yet -- it is simply not the one registered for "rust" anymore.
+static RUST_SEMANTIC: RustSemanticExtractor = RustSemanticExtractor;
 
-static BUILTIN_EXTRACTORS: [&'static dyn SemanticExtractor; 1] = [&RUST_STATIC_UNSUPPORTED];
+static BUILTIN_EXTRACTORS: [&'static dyn SemanticExtractor; 1] = [&RUST_SEMANTIC];
 
 pub fn semantic_extractors() -> &'static [&'static dyn SemanticExtractor] {
     &BUILTIN_EXTRACTORS
@@ -122,11 +126,20 @@ mod tests {
     }
 
     #[test]
-    fn rust_resolves_to_the_static_unsupported_extractor() {
+    fn rust_resolves_to_the_real_semantic_extractor() {
         let matches = extractors_for_language("rust");
         assert_eq!(matches.len(), 1);
-        assert_eq!(matches[0].id(), "atlas.rust.static-unsupported.v1");
-        assert!(matches[0].supported_dimensions().is_empty());
+        assert_eq!(matches[0].id(), "atlas.rust.source-semantic.v1");
+        let mut supported: Vec<&str> = matches[0]
+            .supported_dimensions()
+            .iter()
+            .map(SemanticDimension::as_str)
+            .collect();
+        supported.sort_unstable();
+        assert_eq!(
+            supported,
+            vec!["FUNCTION_IDENTITY", "FUNCTION_SIGNATURE", "SYMBOL", "TYPE"]
+        );
     }
 
     #[test]
