@@ -77,7 +77,7 @@ pub fn systemize(root: impl AsRef<Path>) -> io::Result<SystemizeReport> {
     }
 
     Ok(SystemizeReport {
-        schema: "atlas.systemizer.systemize-report.v9".into(),
+        schema: "atlas.systemizer.systemize-report.v10".into(),
         cli_api: CLI_API.into(),
         root: root.canonicalize()?.to_string_lossy().into_owned(),
         snapshot,
