@@ -1,0 +1,150 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:atlas:schema:provider-receipt:v1",
+  "title": "Atlas ProviderReceipt v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "receipt_id",
+    "role",
+    "provider_id",
+    "service_or_model_id",
+    "input_refs",
+    "constraint_envelope_hash",
+    "permission_profile",
+    "output_refs",
+    "invoked_at",
+    "provenance"
+  ],
+  "properties": {
+    "schema": {
+      "const": "atlas.provider-receipt.v1"
+    },
+    "receipt_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "role": {
+      "enum": [
+        "RESEARCH_PROVIDER",
+        "DECISION_PROVIDER",
+        "SYNTHESIS_PROVIDER",
+        "VERIFICATION_PROVIDER"
+      ]
+    },
+    "provider_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "service_or_model_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "service_or_model_version": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "input_refs": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true
+    },
+    "input_content_hash": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "constraint_envelope_hash": {
+      "type": "string",
+      "minLength": 1
+    },
+    "permission_profile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "network",
+        "filesystem_scope",
+        "canonical_write",
+        "secret_access",
+        "process_execution",
+        "tool_installation"
+      ],
+      "properties": {
+        "network": {
+          "type": "boolean"
+        },
+        "filesystem_scope": {
+          "type": "string",
+          "minLength": 1
+        },
+        "canonical_write": {
+          "const": false
+        },
+        "secret_access": {
+          "type": "boolean"
+        },
+        "process_execution": {
+          "type": "boolean"
+        },
+        "tool_installation": {
+          "const": false
+        }
+      }
+    },
+    "output_refs": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true
+    },
+    "output_content_hash": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "invoked_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "sampling_or_config_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "parent_candidate_or_decision_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "latency_ms": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 0
+    },
+    "cost_metadata": {
+      "type": [
+        "object",
+        "null"
+      ]
+    },
+    "provenance": {
+      "type": "string",
+      "minLength": 1
+    }
+  }
+}
