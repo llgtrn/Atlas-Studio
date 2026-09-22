@@ -141,6 +141,34 @@ Use when the technology is irrelevant, redundant, unjustified, incompatible with
 
 The rationale remains durable.
 
+## Blueprint revision from donor discovery
+
+A donor/dependency discovery may do more than fill an existing Atlas capability gap.
+
+It may demonstrate that the **current Atlas blueprint itself is inferior**.
+
+When the discovered mechanism would change Atlas architecture, representation, storage, materialization, compiler staging, identity, query strategy or another selected design rule, the discovery MUST enter the blueprint-evolution path defined by `../contracts/BLUEPRINT-EVOLUTION.md`.
+
+~~~text
+census discovery
+→ actual provider attribution
+→ explicit discovery disposition
+→ deep census
+→ compare current blueprint vs candidate vs alternatives
+→ evidence / benchmark / proof
+→ BlueprintRevisionDecision
+→ SELECTED
+→ update canonical blueprint/roadmap/contracts if required
+→ Atlas-native implementation
+→ recensus / verification
+~~~
+
+`ABSORB_NOW` may therefore trigger a blueprint revision when the mechanism is not merely an implementation detail but a better design for Atlas itself.
+
+Do not force a superior mechanism into an obsolete blueprint.
+
+Do not silently rewrite the blueprint in code either.
+
 ## Absorption decision criteria
 
 A discovery may be selected for absorption only after considering:
