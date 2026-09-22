@@ -4,172 +4,347 @@ type: contract
 status: active
 canonical: true
 ---
-# ADL to ATLAS Contract
+# ADL → ATLAS Semantic Resolution Contract
+
+## Authority
+
+This contract is governed by `ARTIFACT-LAYERING.md`.
+
+ADL is the collaborative intent/constraint authoring layer.
+
+`*.atlas` is the canonical binary semantic artifact.
+
+They are not the same representation.
 
 ## Purpose
 
-This contract defines how authored Atlas Development Language source and AI-assisted candidate implementation enter the same canonical semantic world as census-derived source knowledge.
+This contract defines how natural-language-first ADL, existing implementation census, and AI-generated candidate implementation converge into one exact typed semantic world before `*.atlas` publication.
 
-ADL is an authoring surface. External provider output is candidate material. `*.atlas` is the dense canonical semantic artifact. They are not the same representation.
+The core rule is:
 
-Human/AI collaboration is governed by `HUMAN-AI-ADL-AUTHORING.md`. Full creation/seal ordering is governed by `ATLAS-CREATION-PIPELINE.md`.
+> ADL describes desired truth. ATLAS encodes resolved exact truth.
 
-## Convergence rule
-
-There is one semantic convergence point:
+## Canonical convergence
 
 ~~~text
-EXISTING IMPLEMENTATION        AUTHORED ADL           AI-GENERATED CANDIDATE
-pinned source @ revision       ADL @ revision         CandidateChangeSet source
-        ↓                           ↓                         ↓
-Inventory/SourceFrontend       parse/elaborate        untrusted Inventory/Frontend
-        ↓                           ↓                         ↓
-SemanticExtractor             typed DECLARED         SemanticExtractor
-        ↓                           │                         ↓
-typed OBSERVED                 │                  typed OBSERVED generated-source facts
-        └──────────────┬────────────┴─────────────────────────┘
-                       ↓
-                     Census
-                       ↓
-                   Normalize
-                       ↓
-                   Reconcile
-                       ↓
-             validation / selection
-                       ↓
-                 SelectedDesign
-                       ↓
-              SEALED logical Atlas
-                       ↓
-          deterministic mechanical compaction
-                       ↓
-                    *.atlas
+EXISTING IMPLEMENTATION       AUTHORED ADL / CONVERSATION       AI-GENERATED CANDIDATE
+pinned source @ revision      natural language + typed hints    CandidateChangeSet source
+        ↓                                ↓                               ↓
+Inventory / Frontend            interpret / elaborate            untrusted Inventory
+        ↓                                ↓                               ↓
+SemanticExtractor              typed DECLARED records            SemanticExtractor
+        ↓                                │                               ↓
+typed OBSERVED                 │                         typed OBSERVED generated-source facts
+        └──────────────────────┴───────────────┬─────────────────────────┘
+                                              ↓
+                                            Census
+                                              ↓
+                                         Normalize
+                                              ↓
+                                         Reconcile
+                                              ↓
+                              research / decisions / validation
+                                              ↓
+                                       SelectedDesign
+                                              ↓
+                              resolved typed semantic world
+                                              ↓
+                                        logical seal
+                                              ↓
+                        deterministic semantic compaction/encoding
+                                              ↓
+                                         *.atlas
 ~~~
 
-The synthesis provider's claim about what its code does remains separate from the semantic observations produced by censusing that code.
+Direct prose → canonical binary is forbidden.
 
-Direct ADL → EngineeringGraph, direct provider-output → canonical graph, direct provider-output → SelectedDesign and direct ADL/provider-output → opaque binary publication are forbidden.
+Direct provider output → canonical truth is forbidden.
 
-## Semantic mapping requirements
+Direct generated code → SelectedDesign is forbidden.
 
-Every ADL construct that survives parsing MUST lower to typed Atlas semantic records with, where applicable:
+## ADL is natural-language-first
 
-- stable record identity;
-- subject/scope identity;
-- repository/design identity;
-- source revision;
-- semantic kind;
-- typed payload;
-- epistemic status;
-- provenance/source span;
-- compiler/extractor identity;
-- evidence or declaration references;
-- unresolved obligations/diagnostics.
+ADL MAY be written primarily in natural language.
 
-A construct that cannot yet be represented losslessly MUST remain unsupported/unknown or block publication. It may not be flattened into an undocumented string merely to make compilation continue.
+Example:
 
-## Status rules
+~~~text
+Build a local-first note application.
+
+User data must stay on device unless sync is explicitly enabled.
+
+Prefer mature permissively licensed OSS.
+
+Atlas may choose the storage architecture.
+Minimize attack surface and operational complexity.
+~~~
+
+The authoring system may enrich this into structured constraints, but natural language remains a first-class input surface.
+
+The compiler MUST NOT treat raw prose as the final semantic representation.
+
+## ADL semantic extraction
+
+Each meaningful ADL statement is converted into one or more typed authoring records such as:
+
+- goal;
+- requirement;
+- constraint;
+- preference;
+- prohibition;
+- non-goal;
+- acceptance criterion;
+- security policy;
+- performance objective;
+- allowed degree of freedom;
+- evidence requirement;
+- design authority requirement.
+
+Where the meaning is ambiguous, the typed result MUST retain ambiguity or create a resolution obligation.
+
+It MUST NOT silently guess a canonical answer.
+
+## Epistemic status
 
 Raw ADL declarations enter as `DECLARED`.
 
-Named deterministic compiler passes may emit `DERIVED` records with lineage to their ADL inputs and rule identity.
+Named deterministic rules may emit `DERIVED` records with explicit lineage.
 
 ADL compilation alone cannot create `OBSERVED` implementation evidence.
 
-When authored ADL and observed implementation facts coexist, both survive into normalization/reconciliation. Agreement does not erase either epistemic path; disagreement becomes an explicit reconciliation obligation.
+Observed truth comes from admitted census/measurement/verification paths.
 
-## Identity and references
+When declared and observed facts agree, both lineages survive.
 
-ADL names are source-level handles, not automatically canonical global identities.
+When they disagree, Atlas creates an explicit reconciliation obligation/conflict.
 
-Resolution MUST account for enough repository/design, revision, module/scope, declaration and type/function identity to prevent accidental equivalence.
+## Human + AI authoring
 
-Name equality alone is never sufficient to merge records.
+Human and AI may jointly author ADL.
 
-## Typed normalization
+AI may:
 
-ADL-derived records participate in the same typed normalization rules as census-derived records.
+- reformulate natural language;
+- surface ambiguity;
+- search Atlas knowledge;
+- search admitted/public OSS;
+- propose candidate mechanisms;
+- generate structured constraints;
+- propose DecisionProposal records;
+- generate CandidateChangeSet implementation;
+- explain semantic diffs.
 
-Normalization may canonicalize representation where the rule is explicit. It may not:
+AI may not self-promote its proposal into canonical truth.
 
-- erase source spans or declaration lineage;
-- turn source spelling into compiler-resolved identity without proof;
-- choose a winner between conflicting declared/observed records;
-- collapse distinct scopes because names match.
+Authoring authority and selection authority follow `HUMAN-AI-ADL-AUTHORING.md`, `EXTERNAL-PROVIDER-TRUST.md`, and `SELECTED-DESIGN.md`.
 
-## Compatibility projections
+## Research and donor census
 
-Human-readable graph views, JSON reports and bootstrap `SemanticFact` triples may be derived from the typed semantic world.
+When ADL leaves a design coordinate open, Atlas may research/census OSS mechanisms.
 
-They MUST NOT become the only carrier of ADL meaning.
+Promising donor claims remain research/candidate material until admitted and censused.
 
-The authoritative direction is:
+For selected mechanisms Atlas SHOULD census transitive dependency closure to the depth required by policy.
 
-```text
-typed ADL semantics
-→ normalized typed semantics
-→ reconciled semantic world
-→ graph / report / compatibility projection
-```
-
-Never the reverse.
+A README claim or model summary is not equivalent to observed semantics.
 
 ## Candidate implementation reconciliation
 
-When external AI generates implementation code during Atlas creation:
+When an external synthesis provider generates code:
 
-1. its intended semantics are candidate/declared claims;
-2. its generated files enter the untrusted corpus path;
-3. Atlas inventories and semantically censuses them;
-4. observed generated implementation is compared with the provider's declared intent;
-5. discrepancies become explicit obligations/conflicts;
+1. provider intent is recorded as candidate/declared claims;
+2. generated files enter the untrusted corpus path;
+3. Atlas inventories/censuses those files;
+4. observed implementation facts remain separate from provider assertions;
+5. declared-versus-observed discrepancies become obligations/conflicts;
 6. security/dependency/license/test/benchmark/proof gates run;
-7. only validated candidates may participate in selection.
+7. only validated implementation candidates may enter selection.
 
-A provider may not self-certify that generated code matches its proposal.
+A provider cannot self-certify generated code.
 
-The machine candidate envelope is `../schemas/candidate-change-set.schema.json`.
+## Semantic resolution
 
-Provider interaction lineage uses `../schemas/provider-receipt.schema.json`.
+Before logical seal, publication-critical questions must have exact typed answers.
 
-Typed fast-decision output uses `../schemas/decision-proposal.schema.json`.
+Resolution includes, where applicable:
+
+- identity;
+- scope;
+- type;
+- symbol;
+- function/signature/body;
+- call/control/data flow;
+- state/effect;
+- ownership/resource;
+- concurrency;
+- persistence/recovery;
+- capability/interface;
+- binding;
+- security/authority;
+- dependency;
+- target/profile;
+- invariants;
+- obligations;
+- permitted runtime dynamics/external boundaries;
+- SelectedDesign.
+
+A record that cannot be represented losslessly must remain UNKNOWN/UNSUPPORTED or block seal.
+
+Flattening meaning into display text is not semantic resolution.
+
+## Identity and names
+
+ADL names are authoring handles.
+
+They are not automatically canonical global identities.
+
+Canonical identity resolution MUST account for sufficient design/repository/revision/module/scope/type/function coordinates to prevent accidental equivalence.
+
+Name equality alone is never sufficient for merge.
+
+## Typed normalization
+
+ADL-derived typed records participate in the same normalization/reconciliation world as census-derived records.
+
+Normalization may canonicalize representation under explicit rules.
+
+It may not:
+
+- erase authoring/source span lineage;
+- turn spelling into compiler-resolved identity without proof;
+- choose a winner between conflicting facts;
+- collapse distinct scopes because names match;
+- upgrade DECLARED to OBSERVED.
+
+## Selection boundary
+
+ADL may express preferences and authority policy.
+
+ADL does not itself become SelectedDesign.
+
+Selection occurs only after:
+
+- required semantic closure;
+- candidate validation;
+- dependency/license/security gates;
+- required tests/benchmarks/proofs;
+- explicit HUMAN_REQUIRED / POLICY_AUTO / HYBRID authority handling.
+
+The selected result is represented by `SelectedDesign`.
+
+## Seal boundary
+
+The logical seal is the hard boundary after which no provider may decide what the system means.
+
+Before seal:
+
+~~~text
+human/AI authoring
+research
+census
+decision proposals
+candidate synthesis
+generated-code census
+validation
+selection
+resolution
+~~~
+
+After seal:
+
+~~~text
+deterministic normalization
+canonicalization
+semantic compaction
+binary encoding
+integrity publication
+~~~
+
+If post-seal processing discovers missing meaning, publication fails and returns to the pre-seal world.
 
 ## ATLAS publication
 
-A SEALED logical Atlas produced from ADL MUST preserve all semantic information required to reproduce the selected design meaning, including:
+The SEALED logical Atlas MUST preserve all information required to recover the selected exact semantics, including:
 
-- typed declarations and derived records;
+- typed declarations/observations/derived records;
 - constraints/invariants;
-- graph/binding relationships;
+- graph/binding relations;
 - state/effect/resource semantics;
+- security/authority semantics;
+- dependency semantics;
 - evidence/provenance;
-- unresolved or rejected alternatives where Genome policy requires them;
-- compiler/language/Genome version pins.
+- selected design;
+- unresolved non-blocking facts where policy retains them;
+- compiler/language/Genome/schema pins.
 
-ATLAS may semantically compact repeated structure through exact interning, DAG sharing, factoring, graph/column packing and content addressing. Compaction may not delete meaning.
+Canonical output is binary `*.atlas`.
 
-AI/research/decision/synthesis providers MUST NOT participate in the canonical post-seal compaction run. Post-seal compaction is mechanical and governed by `ATLAS-SEMANTIC-COMPACTION.md`.
+ADL text is not the canonical payload.
 
 ## Source retention
 
-ATLAS is not required to embed ADL text when the authenticated source is retained externally and policy allows THIN mode.
+The resulting Atlas artifact MAY omit original ADL text when policy allows.
 
-FAT mode MAY embed compressed ADL/source blobs as evidence.
+FAT mode MAY embed authenticated ADL/source blobs for reconstruction/audit.
 
-Embedded source is evidence/reconstruction material, not a replacement for canonical typed semantics.
+Embedded ADL remains evidence/source material, not semantic authority.
 
-## Materialization
+A valid Atlas artifact must remain semantically meaningful when the original ADL is unavailable.
 
-`*.atlasx/` is a deterministic expanded executable representation selected from one logical Atlas root.
+## Round-trip semantics
 
-ADL does not directly own generated Rust, TypeScript, C, WASM or machine code. Those are downstream materializations/backends with lineage to the semantic world.
+~~~text
+*.atlas
+→ atlas disasm / explain / export
+→ human-readable projection
+~~~
 
-## Round-trip rule
+This is a semantic projection.
 
-A text regeneration from ATLAS is a projection unless exact source preservation is explicitly requested.
+It is not required to reproduce original wording, formatting, comments, or conversation unless exact source blobs were deliberately embedded.
 
-Semantic equivalence is required; byte-for-byte reproduction of original ADL formatting/comments is not required unless source blobs were embedded and that mode explicitly promises it.
+Semantic equivalence is required.
+
+Textual byte-for-byte equivalence is not.
+
+## Relationship to AtlasX
+
+ADL does not directly produce `*.atlasx`.
+
+The mandatory order is:
+
+~~~text
+ADL
+→ resolved semantic world
+→ SEALED *.atlas
+→ selected-system/dependency/runtime/resource closure
+→ *.atlasx
+~~~
+
+AtlasX packaging MUST NOT reopen ADL interpretation.
+
+## Forbidden paths
+
+Forbidden:
+
+- ADL prose → opaque `*.atlas` bytes without typed resolution;
+- ADL prose → `*.atlasx` directly;
+- provider answer → canonical semantic graph directly;
+- generated source → SelectedDesign without census/validation;
+- model interpretation after seal;
+- compiler inferring what ADL "probably meant";
+- canonical semantic meaning represented only by strings.
 
 ## Versioning
 
-An ADL language-version change or Atlas semantic-schema change that alters meaning MUST produce a new identity/version and explicit compatibility decision. Existing sealed artifacts are never silently reinterpreted under newer semantics.
+An ADL language-version change or Atlas semantic-schema change that alters meaning requires explicit version/identity/compatibility handling.
+
+Existing sealed Atlas artifacts are never silently reinterpreted under newer ADL semantics.
+
+## Final invariant
+
+ADL is where humans and AI describe, negotiate, research, and refine desired truth.
+
+`*.atlas` is where that process ends as exact provider-independent typed semantic truth.
+
+The transition succeeds only when Atlas can understand the resulting semantic artifact without reading the original natural-language ADL again.
