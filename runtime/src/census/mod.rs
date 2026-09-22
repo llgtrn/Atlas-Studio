@@ -118,11 +118,7 @@ pub fn build_census(
             subject: binding.consumer.clone(),
             predicate: "binds_to".into(),
             object: binding.provider.clone(),
-            provenance: adl_provenance(
-                &binding.span.path,
-                binding.span.line,
-                binding.span.column,
-            ),
+            provenance: adl_provenance(&binding.span.path, binding.span.line, binding.span.column),
         });
         facts.push(SemanticFact {
             id: fact_id(&format!("binding:{}:capability", binding.name)),
@@ -131,11 +127,7 @@ pub fn build_census(
             subject: binding.name.clone(),
             predicate: "capability".into(),
             object: binding.capability.clone(),
-            provenance: adl_provenance(
-                &binding.span.path,
-                binding.span.line,
-                binding.span.column,
-            ),
+            provenance: adl_provenance(&binding.span.path, binding.span.line, binding.span.column),
         });
     }
 
@@ -173,7 +165,10 @@ pub fn build_census(
 
     for result in &adl.constraint_results {
         facts.push(SemanticFact {
-            id: fact_id(&format!("constraint-result:{}:{}", result.name, result.passed)),
+            id: fact_id(&format!(
+                "constraint-result:{}:{}",
+                result.name, result.passed
+            )),
             kind: SemanticFactKind::ConstraintResult,
             status: EpistemicStatus::Derived,
             subject: result.name.clone(),
@@ -329,6 +324,11 @@ mod tests {
             report.coverage.get("SYMBOL"),
             Some(&EpistemicStatus::Unsupported)
         );
-        assert!(report.facts.iter().any(|fact| fact.status == EpistemicStatus::Unknown));
+        assert!(
+            report
+                .facts
+                .iter()
+                .any(|fact| fact.status == EpistemicStatus::Unknown)
+        );
     }
 }

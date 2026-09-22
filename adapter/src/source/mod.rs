@@ -1,6 +1,6 @@
 use atlas_core::{
-    stable_id, ArtifactDisposition, ArtifactId, ArtifactKind, ArtifactRecord, FileFact,
-    InventoryReport, RepoManifest, SourceReport,
+    ArtifactDisposition, ArtifactId, ArtifactKind, ArtifactRecord, FileFact, InventoryReport,
+    RepoManifest, SourceReport, stable_id,
 };
 
 pub mod frontend;
@@ -104,7 +104,12 @@ fn classify_file(root: &Path, path: &Path) -> io::Result<ArtifactRecord> {
     })
 }
 
-fn classify_non_file(root: &Path, path: &Path, kind: ArtifactKind, reason: &str) -> io::Result<ArtifactRecord> {
+fn classify_non_file(
+    root: &Path,
+    path: &Path,
+    kind: ArtifactKind,
+    reason: &str,
+) -> io::Result<ArtifactRecord> {
     let relative_path = relative(root, path);
     Ok(ArtifactRecord {
         id: artifact_id(&relative_path),
@@ -268,10 +273,11 @@ mod tests {
         fs::create_dir_all(&src).unwrap();
         fs::write(src.join("ok.rs"), "fn main() {}\n").unwrap();
         fs::write(src.join("unknown.xyz"), "semantic depth unavailable\n").unwrap();
-        File::create(src.join("huge.rs"))
-            .unwrap()
-            .set_len(MAX_SEMANTIC_BYTES + 1)
-            .unwrap();
+        // `set_len` alone would leave a sparse file whose unwritten region reads back as
+        // null bytes, which `looks_binary` would (correctly) classify as BinaryDescribed
+        // instead of exercising the oversized-text path this test targets.
+        let oversized_text = vec![b'a'; (MAX_SEMANTIC_BYTES + 1) as usize];
+        fs::write(src.join("huge.rs"), &oversized_text).unwrap();
 
         let report = inventory_source(&root).unwrap();
 
