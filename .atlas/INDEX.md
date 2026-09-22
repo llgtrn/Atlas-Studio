@@ -36,25 +36,28 @@ Read in this order:
 26. `contracts/ATLAS-SEMANTIC-COMPACTION.md`
 27. `contracts/ATLAS-BINARY-WIRE-FORMAT.md`
 28. `contracts/ATLAS-SHARDING.md`
-29. `contracts/ATLAS-TO-ATLASX.md`
-30. `contracts/ATLASX-FORMAT.md`
-31. `contracts/COMPILER-IR-PIPELINE.md`
-32. `architecture/DIGITAL-ORGANISM.md`
-33. `contracts/ORGANISM-GENOME-v1.md`
-34. `contracts/ORGANISM-LIFECYCLE.md`
-35. `contracts/ORGANISM-MODEL-ADMISSION.md`
-36. `contracts/ORGANISM-HOMEOSTASIS-METABOLISM.md`
-37. `standards/ORGANISM-SPECIES.md`
-38. `blueprints/ORGANISM-COMPILATION.md`
-39. `contracts/COMPILER-PRODUCT.md`
-40. `standards/COMPILER-OPTIMIZATION.md`
-41. `architecture/INVENTION-PIPELINE.md`
-42. `blueprints/SYSTEM-BLUEPRINT.md`
-43. `blueprints/COMPILER-ROADMAP.md`
-44. `blueprints/RUST-PARITY-AND-SURPASS-ROADMAP.md`
-45. `blueprints/BULK-DONOR-ABSORPTION.md`
-46. `contracts/SYSTEM-CONTRACT.md`
-47. `guides/DEVELOPMENT.md`
+29. `contracts/SELECTED-DESIGN.md`
+30. `contracts/ATLAS-TO-ATLASX.md`
+31. `contracts/ATLASX-FORMAT.md`
+32. `contracts/ATLASX-BINARY-WIRE-FORMAT.md`
+33. `contracts/COMPILER-IR-PIPELINE.md`
+34. `contracts/COMPILER-IR-SCHEMAS.md`
+35. `architecture/DIGITAL-ORGANISM.md`
+36. `contracts/ORGANISM-GENOME-v1.md`
+37. `contracts/ORGANISM-LIFECYCLE.md`
+38. `contracts/ORGANISM-MODEL-ADMISSION.md`
+39. `contracts/ORGANISM-HOMEOSTASIS-METABOLISM.md`
+40. `standards/ORGANISM-SPECIES.md`
+41. `blueprints/ORGANISM-COMPILATION.md`
+42. `contracts/COMPILER-PRODUCT.md`
+43. `standards/COMPILER-OPTIMIZATION.md`
+44. `architecture/INVENTION-PIPELINE.md`
+45. `blueprints/SYSTEM-BLUEPRINT.md`
+46. `blueprints/COMPILER-ROADMAP.md`
+47. `blueprints/RUST-PARITY-AND-SURPASS-ROADMAP.md`
+48. `blueprints/BULK-DONOR-ABSORPTION.md`
+49. `contracts/SYSTEM-CONTRACT.md`
+50. `guides/DEVELOPMENT.md`
 
 Canonical chain:
 
@@ -106,8 +109,11 @@ For implementation work between R4 and R8:
 - `roadmap/SELF-BUILDING-R4-R8.md` fixes the active self-building/census sequence;
 - `contracts/BLUEPRINT-EVOLUTION.md` fixes how evidence may change that sequence/architecture;
 - `contracts/ATLAS-SEMANTIC-COMPACTION.md` prevents storage compression from deleting meaning;
+- `contracts/SELECTED-DESIGN.md` prevents implicit design selection/default providers;
 - `contracts/ATLAS-TO-ATLASX.md` prevents hidden invention during materialization;
-- `contracts/COMPILER-IR-PIPELINE.md` prevents implementation-defined HIR/MIR/LIR/Machine IR.
+- `contracts/ATLASX-BINARY-WIRE-FORMAT.md` fixes canonical AtlasX v1 bytes/root hashing;
+- `contracts/COMPILER-IR-PIPELINE.md` fixes stage responsibilities/lowering boundaries;
+- `contracts/COMPILER-IR-SCHEMAS.md` fixes HIR/MIR/LIR/Machine IR v1 record/op families.
 
 Implementation agents MUST NOT invent alternate donor states, semantic paths, materialization rules or compiler-stage meanings when these canonical docs already specify them.
 
