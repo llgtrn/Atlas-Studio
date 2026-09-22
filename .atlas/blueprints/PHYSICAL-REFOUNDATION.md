@@ -16,7 +16,7 @@ The canonical R4→R8 self-building execution map is `../roadmap/SELF-BUILDING-R
 
 ## Current bootstrap reality
 
-At the R4.4 baseline:
+At the R4.5 baseline:
 
 ~~~text
 core/src/
@@ -94,11 +94,11 @@ Structural recognition is not canonical semantic truth. Deeper parser/compiler/i
 
 ### R4 — Semantic census and normalization
 
-**Status: R4.4 materialized; CALL and deeper semantic dimensions remain.**
+**Status: R4.5 materialized; CONTROL_FLOW and deeper semantic dimensions remain.**
 
 R4 is governed by `../contracts/SEMANTIC-FACTS.md`, `../contracts/SEMANTIC-EXTRACTION.md`, `../contracts/NORMALIZATION.md`, durable decisions 0001/0002, and the R4 acceptance matrix in the extraction contract.
 
-Materialized through R4.4:
+Materialized through R4.5:
 
 - a real Rust semantic extractor exists;
 - SYMBOL observations are real;
@@ -112,11 +112,11 @@ Materialized through R4.4:
 - typed closure accounting is machine-enforced;
 - the engineering graph projects currently-real semantic node families directly from normalized typed semantic records;
 - compatibility `SemanticFact` records remain projection/bootstrap compatibility rather than semantic authority;
-- FunctionIdentity now carries typed declaration kind, owner/trait context and function generics sufficient to distinguish free functions, inherent/associated methods, trait declarations/defaults and trait-implementation methods at source-evidence level.
+- FunctionIdentity now carries typed declaration kind, owner/trait context and function generics sufficient to distinguish free functions, inherent/associated methods, trait declarations/defaults and trait-implementation methods at source-evidence level;
+- CALL is real: Rust function/method bodies emit call-site observations through the canonical extractor/Census/Normalization path, graph projection includes CallSite + MAKES_CALL, and unresolved callees remain explicitly unresolved rather than fabricated.
 
 Still pending in R4:
 
-- CALL (R4.5);
 - CONTROL_FLOW;
 - DATA_FLOW;
 - STATE;
@@ -131,11 +131,11 @@ Do not describe currently-real Symbol/Type/FunctionIdentity/FunctionSignature ex
 
 Do not claim the remaining dimensions are implemented merely because their typed kernels/contracts exist.
 
-The prospective R4.5→R4.12 sequence is canonical in `../roadmap/SELF-BUILDING-R4-R8.md`.
+The prospective R4.6→R4.12 sequence is canonical in `../roadmap/SELF-BUILDING-R4-R8.md`.
 
 ### DC1 — Dependency Census Runtime — cross-cutting gate
 
-**Status: contract-locked, not production-materialized at the R4.4 baseline.**
+**Status: contract-locked, not production-materialized at the R4.5 baseline.**
 
 DC1 is not an R4 semantic dimension. It expands census breadth:
 
@@ -166,11 +166,22 @@ Implement explicit UNKNOWN/DYNAMIC/UNSUPPORTED/CONFLICT handling, cross-scope re
 
 R6 must include dependency closure in the proof boundary.
 
-### R7 — Research correlation and selection
+### R7 — Human-AI research, decision, synthesis and selection
 
 Implement ResearchClaim separately from observed facts and connect observed donor mechanisms, Technology Genomes, capability gaps and candidate/selected Atlas-native designs.
 
-Research/model output cannot impersonate observed implementation evidence.
+Add the mature external-intelligence loop under `../contracts/HUMAN-AI-ADL-AUTHORING.md`, `../contracts/ATLAS-CREATION-PIPELINE.md` and `../contracts/EXTERNAL-PROVIDER-TRUST.md`:
+
+- typed constraint envelopes;
+- research-provider ingress;
+- Jev-class typed decision proposals;
+- external synthesis/code providers;
+- CandidateChangeSets;
+- generated-code census;
+- provider receipts;
+- explicit Human/Policy/Hybrid selection authority.
+
+Research/model/provider output cannot impersonate observed implementation evidence or canonical policy.
 
 ### R8 — Real ATLAS and AtlasX
 
