@@ -1,0 +1,140 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:atlas:schema:constraint-envelope:v1",
+  "title": "Atlas ConstraintEnvelope v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "envelope_id",
+    "genome_hash",
+    "security_policy_refs",
+    "target_profile_refs",
+    "determinism",
+    "dependency_policy_refs",
+    "license_policy_refs",
+    "execution_policy_refs",
+    "verification_policy_refs",
+    "hard_constraints"
+  ],
+  "properties": {
+    "schema": {
+      "const": "atlas.constraint-envelope.v1"
+    },
+    "envelope_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "genome_hash": {
+      "type": "string",
+      "minLength": 1
+    },
+    "security_policy_refs": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true
+    },
+    "target_profile_refs": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true
+    },
+    "determinism": {
+      "enum": [
+        "REQUIRED",
+        "PROFILE_DEFINED",
+        "NOT_REQUIRED"
+      ]
+    },
+    "dependency_policy_refs": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true
+    },
+    "license_policy_refs": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true
+    },
+    "execution_policy_refs": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true
+    },
+    "verification_policy_refs": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true
+    },
+    "performance_objectives": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "metric",
+          "relation",
+          "value"
+        ],
+        "properties": {
+          "metric": {
+            "type": "string",
+            "minLength": 1
+          },
+          "relation": {
+            "enum": [
+              "LT",
+              "LTE",
+              "EQ",
+              "GTE",
+              "GT",
+              "MINIMIZE",
+              "MAXIMIZE"
+            ]
+          },
+          "value": {
+            "type": [
+              "number",
+              "string"
+            ]
+          }
+        }
+      }
+    },
+    "hard_constraints": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true
+    },
+    "soft_preferences": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true
+    }
+  }
+}
