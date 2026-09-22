@@ -53,7 +53,7 @@ Logical *.atlas
         ↓
 Organism genome synthesis + selected design
         ↓
-*.atlasx/ with target_kind = digital_organism
+*.atlasx binary capsule with target_kind = digital_organism
         ↓
 Atlas Compiler
         ↓
