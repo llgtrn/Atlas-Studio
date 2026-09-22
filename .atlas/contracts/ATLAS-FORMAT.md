@@ -33,11 +33,15 @@ A logical Atlas may contain:
 
 It MUST NOT merely be a zip of prose/Markdown/JSON summaries.
 
+It also MUST NOT be treated as "compressed source code." The canonical payload is typed engineering meaning. THIN mode may reference authenticated source externally; FAT mode may embed source/evidence blobs, but those blobs remain evidence rather than substitutes for typed semantics.
+
 ## Function-level requirement
 
 Every discovered function is represented. Repetition is compressed semantically using stable IDs, interning, content-addressed records and shared graph structure rather than by deleting meaning.
 
 ## Physical encoding
+
+The normative wire-v1 container structure is defined by `ATLAS-BINARY-WIRE-FORMAT.md`. This document defines logical requirements; the wire contract defines headers, section framing, typed record framing, integrity and reader validation.
 
 The format SHALL support:
 
@@ -65,6 +69,12 @@ Cross-shard references use global IDs. Unchanged shards may be reused across rev
 ## Portable modes
 
 THIN Atlas stores semantics plus authenticated source/evidence references. FAT Atlas may additionally embed compressed admitted source/evidence blobs. Either may be sharded.
+
+## Language convergence
+
+Existing-language census and Atlas Development Language compilation converge into the same typed semantic world before ATLAS publication. ATLAS is therefore language-independent semantic storage, not a serialized AST of Rust, TypeScript or ADL.
+
+See `ATLAS-DEVELOPMENT-LANGUAGE.md` and `ADL-TO-ATLAS.md`.
 
 ## Canonical role
 
