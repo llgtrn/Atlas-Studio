@@ -885,9 +885,16 @@ fn inherent_method_is_distinct_from_trait_impl_method_of_the_same_name() {
             owner_target_name(identity) == Some("Foo") && identity.owner.trait_path.is_none()
         })
         .expect("inherent Foo::read");
+    // `owner.trait_path == Some("Reader")` alone is ambiguous: it also matches the trait
+    // DECLARATION `Reader::read` (which shares the same trait_path but has no impl owner). Require
+    // declaration_kind explicitly so this picks out the trait IMPLEMENTATION method regardless of
+    // `candidates`' iteration order.
     let trait_impl = candidates
         .iter()
-        .find(|identity| identity.owner.trait_path.as_deref() == Some("Reader"))
+        .find(|identity| {
+            identity.owner.trait_path.as_deref() == Some("Reader")
+                && identity.declaration_kind == FunctionDeclarationKind::TraitImplementationMethod
+        })
         .expect("Reader for Foo::read");
     assert_ne!(inherent.identity_key(), trait_impl.identity_key());
     assert_eq!(
@@ -906,13 +913,23 @@ fn inherent_method_is_distinct_from_trait_impl_method_of_the_same_name() {
 fn two_traits_with_the_same_method_name_on_the_same_target_are_distinct() {
     let batch = extract_all("src/lib.rs", R4_4_CORPUS);
     let candidates = function_identities_named(&batch, "read");
+    // `owner.trait_path == Some(<name>)` alone is ambiguous: each trait's own DECLARATION
+    // (`Reader::read`/`OtherReader::read`) shares the same trait_path as its implementation.
+    // Require declaration_kind explicitly so this picks out the IMPLEMENTATION methods
+    // regardless of `candidates`' iteration order.
     let reader = candidates
         .iter()
-        .find(|identity| identity.owner.trait_path.as_deref() == Some("Reader"))
+        .find(|identity| {
+            identity.owner.trait_path.as_deref() == Some("Reader")
+                && identity.declaration_kind == FunctionDeclarationKind::TraitImplementationMethod
+        })
         .expect("Reader for Foo::read");
     let other_reader = candidates
         .iter()
-        .find(|identity| identity.owner.trait_path.as_deref() == Some("OtherReader"))
+        .find(|identity| {
+            identity.owner.trait_path.as_deref() == Some("OtherReader")
+                && identity.declaration_kind == FunctionDeclarationKind::TraitImplementationMethod
+        })
         .expect("OtherReader for Foo::read");
     assert_ne!(reader.identity_key(), other_reader.identity_key());
     assert_eq!(owner_target_name(reader), Some("Foo"));
