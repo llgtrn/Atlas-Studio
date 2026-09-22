@@ -1,0 +1,204 @@
+{
+  "schema": "atlas.r4.verification-record.v1",
+  "wave": "R4.7",
+  "wave_title": "Data Flow -- materialize the DATA_FLOW dimension (.atlas/contracts/SEMANTIC-FACTS.md#dataflowfact, .atlas/roadmap/SELF-BUILDING-R4-R8.md R4.7): values; definitions/uses; parameter flow; return flow; load/store relationships; local propagation; typed unresolved/alias ambiguity where deeper analysis is unavailable. Reuses R4.6's key design insight: which lexical binding a bare identifier refers to within one function body is fully determined by Rust's own scoping/shadowing rules -- syntax alone, no type inference needed -- so this wave resolves it for real via a scope stack, unlike R4.5's CALL (which genuinely requires type/import resolution this extractor doesn't have). Deliberately bounded: only simple `Pat::Ident` bindings are modeled (tuple/struct destructuring stays Unresolved, not silently dropped); only plain `=` assignment produces a Store; alias/borrow/points-to analysis is explicitly out of scope.",
+  "identity": {
+    "base_commit_sha": "3eac36e0f5ca44e6a1f1ce52facc835cc37f18ad",
+    "candidate_commit_sha": "58864f6801",
+    "branch": "claude/r4-semantic-materialization-jz2z44",
+    "commits_in_range": [
+      "70f721b86f feat(core): R4.7 Data-flow value identity kernel (ValueRole, DataFlowResolution)",
+      "d8dc829b82 feat(adapter): real scope-stack def-use resolution for Rust function bodies",
+      "0ab7cd95c5 test(adapter): DATA_FLOW correctness corpus and R4.7 dimension-list updates",
+      "b28f91dfcb feat(core,runtime): project DATA_FLOW values into the engineering graph",
+      "58864f6801 fix(adapter): thread real return-flow context through nested blocks"
+    ],
+    "note": "base_commit_sha == main's HEAD at wave start (the merge commit for PR #20, the donor-workbench quarantine fix). The branch name claude/r4-semantic-materialization-jz2z44 is the harness's fixed designated branch for this repository/task pair, reused across waves; per operator instruction it was restarted from fresh origin/main rather than stacked on the already-merged PR #20 history it previously pointed at."
+  },
+  "toolchain": {
+    "pinned_by": "rust-toolchain.toml",
+    "channel": "1.90.0",
+    "rustc": "rustc 1.90.0 (1159e78c4 2025-09-14)",
+    "cargo": "cargo 1.90.0 (840b83a10 2025-07-30)",
+    "matches_ci_pin": true
+  },
+  "working_tree_clean": true,
+  "cargo_lock_status": {
+    "diff_vs_base": "empty -- byte-identical to 3eac36e0f5's Cargo.lock",
+    "intentional": true,
+    "reason": "This wave adds no new dependencies; it only evolves existing core/adapter/runtime types, adds a new adapter submodule (dataflow.rs), and extends the engineering-graph projection."
+  },
+  "ci_status": "UNAVAILABLE_INFRASTRUCTURE",
+  "ci_status_detail": "GitHub Actions assigns no runner at all (job dies in seconds; get_job_logs returns HTTP 404, no retrievable log content), reproducing identically on main across every prior R4 wave (R4.1 through R4.6 evidence records document the same root cause). One re-run was triggered on PR #22's first failing check run (job 106803181744 -> re-run job 106803519724) and failed identically ~20 seconds later, confirming this is not a transient flake. A comment was posted on PR #22 recording the diagnosis before the re-run, per operator PR-babysitting policy. Not a test/code failure; excluded from correctness verification per operator instruction.",
+  "diff_summary": {
+    "range": "3eac36e0f5..58864f6801",
+    "files_changed": 10,
+    "insertions": 1443,
+    "deletions": 38,
+    "changed_files": [
+      "adapter/src/semantic/registry.rs",
+      "adapter/src/semantic/rust/dataflow.rs",
+      "adapter/src/semantic/rust/mod.rs",
+      "adapter/src/semantic/rust/tests.rs",
+      "core/src/graph/engineering_graph.rs",
+      "core/src/lib.rs",
+      "core/src/semantic/data_flow.rs",
+      "core/src/semantic/mod.rs",
+      "runtime/src/census/extraction.rs",
+      "runtime/src/census/mod.rs"
+    ]
+  },
+  "data_flow_model": {
+    "kernel": "core/src/semantic/data_flow.rs: ValueRole (Definition/Use/Store), DataFlowResolution (Resolved/Unresolved), ValueIdentity { repository, revision, function, name, span, role, is_parameter, is_return_flow, resolution, resolved_definition }.",
+    "identity_key_design": "ValueIdentity::identity_key() covers repository/revision/function/name/span/role -- role participates because Definition/Use/Store are different entity kinds even at an identical (function, name, span) triple, unlike R4.6's ControlFlowBlockKind (purely descriptive content, since block_index alone already disambiguates). resolution/resolved_definition/is_parameter/is_return_flow are deliberately excluded: they are resolution facts about an already-identified entity that a later wave may compute more precisely for the exact same claim, not identity-distinguishing fields. Confirmed both by a core-level unit test and by independent falsification (removing `role` from the format string broke exactly identity_key_distinguishes_role, 75/76 passing).",
+    "key_design_difference_from_call": "Unlike R4.5's CALL (callee resolution genuinely requires name/type information this extractor doesn't have), which lexical binding a bare identifier resolves to within one function body is fully determined by Rust's own scoping/shadowing rules -- syntax alone. So, as with R4.6's CFG, real resolution is computed via a scope stack rather than left Unresolved by default; Unresolved is reserved for genuinely undeterminable cases (no matching local definition -- a field access, module item, or closure capture from an enclosing scope).",
+    "extraction": "adapter/src/semantic/rust/dataflow.rs (new file): DataFlowWalker tracks a scope_stack: Vec<BTreeMap<String, SemanticRecordId>>, one map per open lexical block/pattern scope, pushed/popped around function bodies, if/loop/for bodies, and match arms. Parameters (including &self) are bound as Definitions in an outer scope before the body is walked. simple_pat_ident recognizes only Pat::Ident (through Pat::Type unwrapping) -- tuple/struct/slice destructuring patterns bind nothing this wave, a documented gap proven by a dedicated test, not a silent omission. Only Expr::Assign with a single-segment Expr::Path LHS produces a Store; compound assignment (`x += 1`) parses as Expr::Binary in this syn version (independently confirmed by the verification pass via a throwaway parse probe), so its operands are ordinary Uses.",
+    "scope_this_wave": "No alias/borrow/points-to analysis: references, compound places (self.field, arr[i], *ptr), and cross-function value flow are not modeled -- reads as Unresolved or simply not emitted as Store/Definition. Closures get no data-flow scoping of their own (consistent with R4.6's CFG giving closures no CFG either -- neither has a FunctionIdentity to attribute records to). Every omission is Unresolved or absent by design, never fabricated -- independently confirmed true of the code by direct read, not just doc-comment assertion.",
+    "graph_projection": "core/src/graph/engineering_graph.rs: the previously no-op SemanticObservation::DataFlow arm now creates one Value node per observation (role/resolution/is_parameter/is_return_flow attributes) plus an unconditional HAS_VALUE edge from the owning function's FunctionIdentity node (present for every value event, mirroring R4.6's HAS_BLOCK), and a RESOLVES_TO edge from a Use/Store's node to its resolved Definition's node only when resolved_definition is Some. An Unresolved value correctly produces no dangling or fabricated edge -- confirmed by a dedicated test and independently falsified (making the edge unconditional broke exactly the two tests that depend on the guard)."
+  },
+  "bug_found_and_fixed_during_this_wave": {
+    "summary": "is_return_flow was computed structurally per-block (a block's own last bare-identifier statement was unconditionally flagged as return-flow if it looked like a tail expression), so a non-tail nested block -- e.g. the branches of `let y = if cond { x } else { x };` -- was silently over-flagged as the function's return value even though its value only feeds a local `let` binding.",
+    "discovered_by": "independent verification pass, via direct code-read of walk_block/walk_expr plus a reverted probe test, contradicting the field's own doc comment (which the initial 12-test corpus never exercised: no non-tail nested if/block fixture existed).",
+    "severity_at_discovery": "non-blocking for record identity, resolution, or graph structure -- is_return_flow is excluded from identity_key() and not consumed by the RESOLVES_TO edge logic -- but a real, silent contradiction of the field's documented contract.",
+    "fix_commit": "58864f6801",
+    "fix_mechanism": "walk_block now takes the caller's own is_return_flow context instead of recomputing it structurally from each block's own shape; a tail statement only propagates return-flow when the block itself is in that context. Loop/while/for bodies now explicitly pass false (never return-flow); the function's own top-level body passes true; Expr::Block and Expr::If's then_branch now thread the context they were given instead of ignoring it.",
+    "regression_coverage": "new fixture `if_in_let` + test `return_flow_does_not_leak_out_of_a_non_tail_if_branch`: asserts all three `x` uses inside `let y = if x > 0 { x } else { x };` are NOT return-flow, while the function's own bare-identifier tail `y` is.",
+    "real_evidence_before_after": "self-systemize against this repository's own source: is_return_flow=true count dropped from 41 (buggy) to 38 (fixed) -- consistent with removing exactly the false positives, not a wholesale behavior change (7172 -> 7190 total DataFlow records between runs reflects incidental source drift from the fix commit itself, not the bug)."
+  },
+  "pipeline_losslessness": {
+    "extractor_to_batch": "walk_block/walk_stmt/walk_expr feed emit()/emit_definition()/emit_use_or_store() -> ExtractionContext.observations, so every ExtractionBatch.observations entry for DATA_FLOW carries the full ValueIdentity struct with evidence/provenance.",
+    "batch_to_census": "build_census() required zero code changes to carry DataFlow observations losslessly -- it operates generically over SemanticObservation, exactly as it did for R4.5/R4.6.",
+    "census_to_normalization": "normalize()/normalize_typed_records() likewise required zero code changes; confirmed by a dedicated runtime multi-extractor round-trip test.",
+    "normalization_to_graph": "add_typed_semantic_nodes()'s DataFlow arm is the one place that DID require new code this wave (previously part of a combined no-op arm) -- Value node + HAS_VALUE edge + conditional RESOLVES_TO edge, proven by three dedicated graph tests."
+  },
+  "multi_extractor_proof": {
+    "claim": "Two independent extractors reporting the identical DataFlow value claim (same repository/revision/function/name/span/role) both survive Census and Normalization as two independent typed_semantic_records entries.",
+    "mechanism": "record_id() (built from ValueIdentity::identity_key(), which excludes resolution/resolved_definition/is_parameter/is_return_flow) is identical for both observations, proving the semantic CLAIM identity is unaffected by which extractor reported it; raw_observation_id() (extractor id/version + status + evidence_refs + provenance + full typed payload) differs between the two, so R4.3.3's raw_observation_id-keyed dedup (unmodified this wave) correctly keeps both.",
+    "test": "runtime::census::tests::same_data_flow_value_claim_from_two_extractors_survives_census_and_normalization"
+  },
+  "verification_passes": [
+    {
+      "pass": "primary",
+      "performed_by": "this session, in-place checkout, clean target/ rebuild (rm -rf target), pinned rustc 1.90.0",
+      "commands": {
+        "git status --porcelain": { "result": "clean" },
+        "cargo fmt --all --check": { "exit_code": 0 },
+        "cargo clippy --workspace --all-targets --locked -- -D warnings": { "exit_code": 0, "warnings": 0 },
+        "cargo build --workspace --locked": { "exit_code": 0, "note": "clean rebuild from rm -rf target" },
+        "cargo test --workspace --locked": {
+          "exit_code": 0,
+          "totals": "224 passed, 0 failed, 0 ignored (105 adapter, 76 core, 43 runtime, 0 atlas-cli unit tests)",
+          "new_tests_adapter_data_flow_corpus": [
+            "simple_def_use_resolves_correctly",
+            "shadowing_resolves_to_the_definition_visible_at_that_point",
+            "assignment_produces_a_store_not_a_new_definition",
+            "block_scoped_shadow_does_not_leak_out",
+            "use_with_no_local_definition_is_explicitly_unresolved",
+            "explicit_return_is_flagged_as_return_flow_a_condition_use_is_not",
+            "return_flow_does_not_leak_out_of_a_non_tail_if_branch",
+            "method_receiver_is_a_definition_and_field_access_resolves_it",
+            "tuple_destructuring_pattern_is_not_modeled_and_its_uses_stay_unresolved",
+            "data_flow_observations_satisfy_dimension_consistency",
+            "data_flow_corpus_extraction_is_deterministic",
+            "data_flow_corpus_is_unaffected_by_requested_dimension_order",
+            "repeated_extraction_yields_stable_data_flow_record_ids"
+          ],
+          "updated_tests_adapter": [
+            "semantic::registry::tests::rust_resolves_to_the_real_semantic_extractor (now expects DATA_FLOW in supported_dimensions)",
+            "malformed_rust_produces_parse_failure_and_unknown_for_supported_dimensions (DATA_FLOW added to the UNKNOWN-for-supported-dims loop)",
+            "unsupported_dimensions_are_always_explicit (DATA_FLOW removed from UNSUPPORTED_DIMENSIONS)",
+            "four_same_named_execute_declarations_are_all_pairwise_distinct_function_identities (two of four fixtures have &self receivers, now produce DataFlow records)",
+            "the_users_example_from_the_contract_note_extracts_as_documented (load_user's id parameter now asserted as a real Definition)"
+          ],
+          "new_tests_core": [
+            "semantic::data_flow::tests::identity_key_distinguishes_name",
+            "semantic::data_flow::tests::identity_key_distinguishes_owning_function",
+            "semantic::data_flow::tests::identity_key_distinguishes_role",
+            "semantic::data_flow::tests::identity_key_distinguishes_span",
+            "semantic::data_flow::tests::identity_key_is_unaffected_by_resolution_fields",
+            "semantic::data_flow::tests::resolution_as_str_matches_the_screaming_snake_vocabulary",
+            "semantic::data_flow::tests::role_as_str_matches_the_screaming_snake_vocabulary",
+            "graph::engineering_graph::tests::data_flow_value_produces_a_node_and_a_has_value_edge_from_its_function",
+            "graph::engineering_graph::tests::an_unresolved_use_produces_no_resolves_to_edge",
+            "graph::engineering_graph::tests::a_resolved_use_produces_a_real_resolves_to_edge_between_two_value_nodes"
+          ],
+          "new_tests_runtime": [
+            "census::tests::same_data_flow_value_claim_from_two_extractors_survives_census_and_normalization"
+          ],
+          "updated_tests_runtime": [
+            "census::extraction::multi_extractor_tests::a_real_rust_extractor_is_registered_supporting_exactly_the_r4_7_dimensions (renamed from ...r4_6_dimensions, now expects DATA_FLOW)"
+          ]
+        },
+        "cargo test --workspace --doc --locked": { "exit_code": 0, "doctests": 0 },
+        "cargo run -q -p atlas-cli -- docs audit --root .atlas": { "exit_code": 0, "gate_ready": true, "hard_violations_total": 0 },
+        "cargo run -q -p atlas-cli -- systemize --root . --out <tmp>": {
+          "exit_code": 0,
+          "coding_admission_allowed": true,
+          "coding_admission_blockers": [],
+          "census_typed_semantic_records_total": 15883,
+          "typed_records_by_dimension": {
+            "CALL": 4047,
+            "CONTROL_FLOW": 1347,
+            "DATA_FLOW": 7172,
+            "FUNCTION_IDENTITY": 550,
+            "FUNCTION_SIGNATURE": 550,
+            "SYMBOL": 1306,
+            "TYPE": 911
+          },
+          "data_flow_role_distribution": { "USE": 5091, "DEFINITION": 2059, "STORE": 22 },
+          "data_flow_resolution_distribution": { "RESOLVED": 5424, "UNRESOLVED": 1748 },
+          "data_flow_is_return_flow_distribution_before_fix": { "true": 41, "false": 7131 },
+          "data_flow_is_return_flow_distribution_after_fix": { "true": 38, "false": 7152 },
+          "coherence_check": "0 Use/Store records violate (resolution==UNRESOLVED) <=> (resolved_definition is None); 0 Definitions violate resolution==RESOLVED && resolved_definition==None",
+          "note": "Real, much larger self-census against Atlas-Studio's own current source: 7,172 real DATA_FLOW values extracted from this repository's own Rust code, re-run before and after the is_return_flow fix on the actual production corpus to confirm the fix's real-world effect, not just the synthetic regression test."
+        }
+      }
+    },
+    {
+      "pass": "independent",
+      "performed_by": "fresh subagent, isolated git worktree, no shared context, initial candidate b28f91dfcb (pre-fix)",
+      "steps_all_pass": true,
+      "diff_confirmed_matches_description": "exactly 10 files, +1390/-38 (pre-fix diff), 5 commits (4 at the time of this pass), no unrelated changes",
+      "commands_all_exit_0": "cargo fmt --all --check, cargo clippy --workspace --all-targets --locked -- -D warnings, cargo test --workspace --locked (223/223 at the time), cargo test --workspace --doc --locked (0 doctests)",
+      "shadowing_hand_trace": "Independently hand-traced `shadowing` (predicted init-use resolves to the first Definition, tail-use resolves to the second/most-recent Definition) and `block_scoped_shadow` (predicted the inner-block use resolves to the inner shadow, the post-block tail use resolves to the outer Definition, no leak) BEFORE reading the corresponding tests. Both predictions matched exactly what `shadowing_resolves_to_the_definition_visible_at_that_point` and `block_scoped_shadow_does_not_leak_out` assert -- no divergence.",
+      "identity_key_direct_read": "Confirmed by direct read of core/src/semantic/data_flow.rs's identity_key() format string: resolution/resolved_definition/is_parameter/is_return_flow do not appear; role.as_str() does, as the last field.",
+      "destructuring_and_compound_assign_direct_read": "Confirmed by direct read of simple_pat_ident (only Pat::Ident, through Pat::Type unwrapping) and the Expr::Assign arm (Store only for a single-segment Expr::Path LHS). Independently confirmed via a throwaway syn::parse_str probe that `x += 1;` parses as Expr::Binary in this syn version (3.0.6), not a distinct compound-assignment form -- matching the doc comment's specific version claim, not just trusting the prose.",
+      "falsification_results": {
+        "scope_pop_removed": "Removed self.pop_scope() in walk_block -- block_scoped_shadow_does_not_leak_out failed (103/104 passing at the time). Reverted cleanly.",
+        "resolves_to_made_unconditional": "Dropped the `if let Some(resolved)` guard in the graph's DataFlow arm -- an_unresolved_use_produces_no_resolves_to_edge failed, plus one collateral failure (a_resolved_use_produces_a_real_resolves_to_edge_between_two_value_nodes, an expected side effect of this specific falsification shape, not a separate bug). Reverted cleanly.",
+        "role_removed_from_identity_key": "Removed role.as_str() from identity_key()'s format string -- identity_key_distinguishes_role failed (75/76 passing). Full workspace suite re-confirmed green after each revert (223 passed)."
+      },
+      "graph_wiring_verification": "Read the DataFlow arm in core/src/graph/engineering_graph.rs directly: confirmed every Value node gets a HAS_VALUE edge from its owning function's node unconditionally, and the resolved_definition check uses `if let Some(resolved) = ...` before creating any RESOLVES_TO edge, so an Unresolved value produces zero graph edges. Ran the three named graph tests directly -- all 3 passed.",
+      "systemize_reconfirmation": "Ran cargo run -q -p atlas-cli -- systemize --root . --out <tmp> independently. Verified via script: 7172 DataFlow records (pre-fix commit); role distribution USE 5091 / DEFINITION 2059 / STORE 22; resolution distribution RESOLVED 5424 (majority, expected for local-variable uses) / UNRESOLVED 1748 (field accesses, module items, self-methods, correctly left Unresolved); coding_admission.allowed==true; zero coherence violations between resolution and resolved_definition. Output file deleted afterward.",
+      "doc_comment_claim_checks": "Independently verified module-doc-comment claims against code, not trusting prose: (1) destructuring is not modeled -- confirmed. (2) compound assignment is not specially modeled and is Expr::Binary in this syn version -- confirmed via probe. (3) closures get no data-flow scoping of their own -- confirmed, build_data_flow is called exactly once per function/method body.",
+      "bug_found": "is_return_flow over-approximates for a non-tail nested if/block (documented in `bug_found_and_fixed_during_this_wave` above) -- flagged as a real, non-blocking defect contradicting the field's own doc comment; not caught by the initial 12-test corpus, which never exercised a non-tail nested block. Fixed in commit 58864f6801 with a dedicated regression test, both re-verified by the primary pass after the fix (this record's `pipeline_losslessness`/`bug_found_and_fixed_during_this_wave` sections reflect the post-fix state; the independent pass itself ran against the pre-fix commit and is the pass that discovered the bug).",
+      "other_findings": "No scope creep -- diff precisely scoped to DATA_FLOW materialization plus minimal supporting wiring/tests. No vacuous falsification found; each mutation broke exactly its named invariant(s) (plus one expected, explained collateral in the RESOLVES_TO falsification).",
+      "verdict": "VERIFIED (pre-fix candidate) -- the highest-risk invariant (shadowing/block-scoping via the scope stack) is confirmed correct by independent hand-trace, not just by trusting the test suite; one real non-blocking bug was found and subsequently fixed with regression coverage, re-verified by the primary pass."
+    }
+  ],
+  "no_tests_lints_gates_disabled": true,
+  "no_verify_bypass_used": false,
+  "overall_verdict": "VERIFIED",
+  "runtime_invariants_established": [
+    "Which lexical binding a bare identifier use resolves to within one function body is correctly computed via a scope stack respecting Rust's real shadowing/block-scoping rules -- confirmed by independent hand-trace matching the test suite exactly, and load-bearing by falsification (removing the scope-pop on block exit breaks exactly the shadow-leak test).",
+    "ValueIdentity::identity_key() is provably unaffected by resolution/resolved_definition/is_parameter/is_return_flow, while role does participate -- confirmed both by a core-level unit test and by falsification.",
+    "The engineering graph's Value/HAS_VALUE/RESOLVES_TO projection never creates a dangling or fabricated edge for an Unresolved value -- confirmed by a dedicated test and independently traced through and falsified in the code.",
+    "is_return_flow correctly reflects only a chain of genuine tail positions reaching the function's own return value, not any block's structurally-last bare-identifier statement -- this invariant did NOT hold at the wave's initial candidate (b28f91dfcb), was caught by independent verification, and was fixed with regression coverage (commit 58864f6801) before merge.",
+    "A real 7,172-value production run against this repository's own source confirms the design holds outside hand-built fixtures: plausible role/resolution distributions, zero coherence violations, and a measurable before/after reduction in is_return_flow false positives from the fix."
+  ],
+  "contract_clauses_satisfied": [
+    ".atlas/contracts/SEMANTIC-FACTS.md#dataflowfact (values; definitions/uses; parameter flow; return flow; load/store relationships; local propagation; typed unresolved/alias ambiguity where deeper analysis is unavailable -- all materialized; DataFlowResolution::Unresolved is used only for genuinely undeterminable cases, never a guess)",
+    ".atlas/roadmap/SELF-BUILDING-R4-R8.md#r4.7 ('Do not claim compiler-complete alias analysis unless actually evidenced.' -- alias/borrow/points-to analysis is explicitly out of scope this wave, documented and independently confirmed true of the code)",
+    ".atlas/contracts/SEMANTIC-EXTRACTION.md (no compiler-resolved semantics fabricated from syntax alone -- local def-use resolution IS syntax-determined, unlike CALL, so this wave's real resolution does not violate the epistemic-honesty principle)",
+    ".atlas/decisions/0001-one-normalized-semantic-path.md (DataFlow observations flow through the same Inventory -> SourceFrontend -> SemanticExtractor -> Census -> Normalize -> Reconcile -> graph path as every other dimension; no parser/extractor-to-graph bypass was introduced)"
+  ],
+  "still_unsupported": [
+    "Alias/borrow/points-to analysis -- references, compound places (self.field, arr[i], *ptr) are not modeled as aliasing; deferred to R4.9 (Ownership and Resource Semantics) per the roadmap.",
+    "Tuple/struct/slice destructuring patterns bind no Definitions this wave -- uses of destructured names stay Unresolved, a documented gap proven by a dedicated test, not silently dropped.",
+    "Compound assignment operators (`x += 1`) are not specially modeled as a Store -- their operands are ordinary Uses via the general expression walk (this syn version parses them as Expr::Binary, not a distinct assignment form).",
+    "Closures get no data-flow scoping of their own -- they have no FunctionIdentity in Atlas's model to attribute records to; independently confirmed via code trace.",
+    "STATE / EFFECT / OWNERSHIP / CONCURRENCY / PERSISTENCE -- unmaterialized, unchanged from R4.6.",
+    "Cross-function/interprocedural data-flow tracing -- this wave only records individual functions' own local def-use graphs; no graph algorithm consumes the HAS_VALUE/RESOLVES_TO edges yet beyond their existence.",
+    "Full compiler/global Rust name resolution -- unchanged; local def-use resolution never required it, but CALL resolution still doesn't have it either."
+  ]
+}
