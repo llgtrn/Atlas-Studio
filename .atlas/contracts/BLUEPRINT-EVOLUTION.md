@@ -98,7 +98,9 @@ Model output, README prose or an unverified paper claim MAY suggest a candidate 
 
 ## BlueprintRevisionDecision
 
-Every material blueprint change MUST have a durable revision decision with at least:
+The machine schema is `../schemas/blueprint-revision-decision.schema.json`.
+
+Every material blueprint change MUST have a durable revision decision conforming to that schema and carrying at least:
 
 - revision identity;
 - current blueprint identity/revision;
@@ -124,7 +126,7 @@ Every material blueprint change MUST have a durable revision decision with at le
 - decision state;
 - rationale.
 
-A future machine-readable representation may encode this record, but these semantic obligations are normative now.
+Schema-validity does not by itself select the revision; the evidence/validation gates in this contract still apply.
 
 ## Decision states
 
