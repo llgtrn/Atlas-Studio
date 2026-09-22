@@ -38,6 +38,8 @@ delete donor checkout from .atlas/temporary
 
 Deletion is incremental. Atlas does not wait for the entire donor corpus to be absorbed before removing already-extinguished donor source.
 
+When donor knowledge is intended to inform Atlas Development Language or compiler primitives, absorption additionally follows `../contracts/DONOR-TO-LANGUAGE-GENESIS.md`: syntax/API copying is not absorption; the durable intermediate is a Technology Genome containing mechanisms, invariants, trade-offs and evidence.
+
 ## Extinction gate
 
 A donor scope may be removed from `.atlas/temporary/` only when:
