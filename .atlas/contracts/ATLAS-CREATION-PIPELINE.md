@@ -127,6 +127,8 @@ current canonical Atlas knowledge
 
 The purpose is to avoid reinventing known mechanisms while still allowing new discovery.
 
+A Perplexity-class research provider is an example adapter for this stage; no named service is mandatory.
+
 Research output is typed as ResearchClaim/CandidateMechanism evidence.
 
 Research output MUST record:
