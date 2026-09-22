@@ -4,500 +4,463 @@ type: contract
 status: active
 canonical: true
 ---
-# ATLASX Expanded Executable Representation Contract
+# ATLASX Closed-World System Capsule Contract
 
-`<system>.atlasx/` is the deterministic expanded executable representation of one explicitly selected design from one pinned SEALED logical Atlas root.
+## Authority
 
-ATLASX is executable engineering representation, not expanded prose and not a second semantic universe.
+This contract is subordinate to and must be read with `ARTIFACT-LAYERING.md`.
 
-The selected design model is governed by `SELECTED-DESIGN.md`.
+If any older AtlasX document describes `<system>.atlasx/` as canonical semantic authority, that directory model is superseded.
 
-The materialization algorithm is governed by `ATLAS-TO-ATLASX.md`.
+A canonical `*.atlasx` is one binary system capsule.
 
-The canonical v1 binary object/manifest encoding is governed by `ATLASX-BINARY-WIRE-FORMAT.md`.
+## Purpose
 
-The compiler handoff is governed by `COMPILER-IR-PIPELINE.md`.
+A `*.atlasx` binds one explicitly selected Atlas system to the complete material closure required by its declared capsule profile.
 
-## Role
+It is not a second semantic universe.
+
+It does not replace the semantic authority of `*.atlas`.
+
+It exists to make the selected system movable, independently verifiable, reproducible, buildable, and/or executable without undeclared ambient dependencies.
+
+~~~text
+SEALED *.atlas semantic root
+        +
+SelectedDesign
+        +
+selected-system closure
+        +
+dependency/runtime/resource closure
+        +
+supply-chain/security/reproduction material
+        ↓
+canonical *.atlasx binary capsule
+~~~
+
+## Canonical role
 
 ~~~text
 *.atlas
-= full engineering world
-  observations + conflicts + alternatives + evidence + selected design
+= exact canonical semantic truth for a declared scope
 
-*.atlasx/
-= one deterministic executable projection
-  of one SelectedDesign
-  with explicit scope/profiles/bindings/lineage
+*.atlasx
+= closed-world capsule binding one selected semantic world
+  to everything materially required by the declared capsule profile
 ~~~
 
-ATLASX MUST NOT contain an independently invented architecture.
+A capsule MAY embed multiple `*.atlas` units.
 
-## Required canonical root
+A capsule MUST NOT invent semantics absent from the parent Atlas world and SelectedDesign.
 
-Every AtlasX tree MUST contain exactly one canonical root manifest:
+## Capsule profiles
+
+Every AtlasX capsule MUST declare exactly one primary closure profile:
 
 ~~~text
-<system>.atlasx/
-└─ manifest.atlasx
+VERIFY_ONLY
+BUILD_REPRODUCIBLE
+EXECUTABLE_PORTABLE
+DEPLOYMENT_TARGETED
 ~~~
 
-The manifest is authoritative for the AtlasX object/file inventory.
+A future Genome-registered profile may extend this set.
 
-Arbitrary files present in the directory but absent from the manifest are not canonical compiler input.
+### VERIFY_ONLY
 
-## Required manifest fields
+Must contain everything required to validate:
 
-The canonical manifest MUST identify:
+- capsule integrity;
+- parent Atlas integrity;
+- selected design;
+- dependency identities;
+- obligations;
+- security/policy closure;
+- provenance/evidence required by verification.
 
-- AtlasX schema/version;
-- AtlasX root identity/hash;
-- parent Atlas root identity/hash;
-- parent Genome identity/hash;
+It need not contain a directly runnable target binary.
+
+### BUILD_REPRODUCIBLE
+
+Adds the closure required to reconstruct the selected product under the declared build contract, including exact toolchain identities and all build-significant material.
+
+### EXECUTABLE_PORTABLE
+
+Adds the runtime payloads/resources required to execute on the declared portable runtime/ABI class without undeclared host dependencies.
+
+### DEPLOYMENT_TARGETED
+
+Adds target/deployment-specific payloads, configuration, resource contracts, and attestations required by the declared deployment target.
+
+The selected profile participates in capsule identity.
+
+## Closed-world rule
+
+For each required material dependency, exactly one of these states MUST hold:
+
+~~~text
+EMBEDDED
+PINNED_FETCH
+EXPLICIT_RUNTIME_EXTERNAL_BOUNDARY
+~~~
+
+### EMBEDDED
+
+The required bytes are present in the capsule and integrity-bound.
+
+### PINNED_FETCH
+
+The bytes are not physically embedded, but the capsule includes:
+
+- immutable content identity;
+- expected size/type;
+- authenticated retrieval policy;
+- provenance/license metadata;
+- offline failure semantics;
+- cache/admission policy.
+
+PINNED_FETCH is allowed only when the selected capsule profile and security policy permit it.
+
+A mutable URL or package version range is not a pinned fetch.
+
+### EXPLICIT_RUNTIME_EXTERNAL_BOUNDARY
+
+The dependency is intentionally external at runtime and is part of selected semantics, for example:
+
+- remote service;
+- user-selected provider;
+- approved plugin boundary;
+- deployment endpoint.
+
+The capsule MUST preserve the interface, authority, protocol/version, failure, and discovery policy.
+
+An undeclared host library is not an external boundary.
+
+## Forbidden ambient dependencies
+
+The capsule MUST NOT depend silently on:
+
+- arbitrary PATH toolchains;
+- system libraries discovered at runtime;
+- latest registry packages;
+- floating git branches;
+- unpinned model checkpoints;
+- undeclared environment variables;
+- files outside capsule closure;
+- host locale/timezone when semantics depend on them;
+- model/provider availability to recover missing semantics.
+
+## Logical capsule model
+
+A canonical capsule contains these logical classes when applicable:
+
+~~~text
+AtlasXCapsule
+├─ RootManifest
+├─ AtlasArtifacts
+├─ SelectedSystemClosure
+├─ DependencyClosure
+├─ RuntimePayloads
+├─ BuildInputs
+├─ AssetsResources
+├─ ProfilesTargets
+├─ ExternalBoundaries
+├─ SupplyChain
+├─ SecurityAttestations
+├─ Reproducibility
+├─ Migration
+└─ OptionalEvidenceSourceDebug
+~~~
+
+### RootManifest
+
+The root manifest identifies:
+
+- AtlasX wire/schema version;
+- capsule root identity;
+- capsule profile;
+- parent/root Atlas identity;
+- all embedded Atlas artifact identities;
 - SelectedDesign identity;
-- requested materialization scope;
-- target kind;
-- materializer identity/version;
-- exact deployment/hardware/workload profile identities when present;
-- exact admitted external binding identities;
-- canonical object/file inventory;
-- per-object/file content hashes;
-- required compiler-pipeline contract/version;
-- required target/ABI contract versions;
-- semantic barrier set;
-- explicitly permitted runtime-dynamic obligations;
-- lineage root;
+- requested scope;
+- target/deployment profile identities;
+- dependency closure root;
+- entry inventory;
+- external boundaries;
+- toolchain/build contract where applicable;
+- security/signature policy;
 - compatibility requirements.
 
-Values affecting executable semantics MUST participate in AtlasX root identity.
+### AtlasArtifacts
 
-Local output path, wall-clock time and incidental build-host data MUST NOT affect semantic root identity.
+Contains one or more canonical Atlas semantic artifacts or canonical internal Atlas sections whose identities exactly match the parent semantic roots declared by the manifest.
 
-## Canonical logical object classes
+### SelectedSystemClosure
 
-ATLASX supports these canonical classes when applicable:
+Contains the deterministic transitive semantic/material selection from SelectedDesign.
 
-- Module;
-- Type;
-- Function;
-- FunctionBody;
-- Interface;
-- Capability;
-- Binding;
-- State;
-- Effect;
-- OwnershipResource;
-- Concurrency;
-- PersistenceRecovery;
-- ConstraintInvariant;
-- ExternalBoundary;
-- Test;
-- Profile;
-- Target;
-- LineageEvidence;
-- GraphView.
+It MUST NOT include unrelated alternatives as executable authority.
 
-A target profile may add typed domain-specific classes through Genome-registered schemas.
+Historical/rejected evidence may be carried as optional evidence only.
 
-An extension may extend this set. It may not redefine a core class with different meaning.
+### DependencyClosure
 
-## Default physical projection
+Contains or pins every build/runtime dependency required by the capsule profile.
 
-The default canonical projection is:
+The dependency closure MUST include transitive dependencies, not merely direct package names.
+
+### RuntimePayloads
+
+May include:
+
+- native executables;
+- shared/static runtime payloads;
+- WASM;
+- bytecode;
+- model/checkpoint files;
+- firmware/device payloads;
+- generated runtime tables.
+
+Their relation to Atlas semantics and target/profile MUST be explicit.
+
+### BuildInputs
+
+For reproducible-build profiles, may include:
+
+- compiler/toolchain artifacts or pinned identities;
+- linker/runtime support;
+- generated source when used as delegated backend input;
+- build graph;
+- deterministic build recipe;
+- environment contract;
+- required patches.
+
+### AssetsResources
+
+Includes selected system assets/static resources/configuration schemas that affect build/runtime behavior.
+
+### SupplyChain
+
+Includes, where policy requires:
+
+- SBOM;
+- licenses;
+- attribution;
+- donor/dependency provenance;
+- source hashes;
+- admission records;
+- vulnerability/security evidence;
+- dependency census lineage.
+
+### SecurityAttestations
+
+May include:
+
+- signatures;
+- attestations;
+- trust roots;
+- policy envelopes;
+- sandbox/capability declarations;
+- verification receipts.
+
+### Reproducibility
+
+Carries enough pinned information to reproduce the declared capsule profile without guessing ambient inputs.
+
+## Canonical binary requirement
+
+The canonical AtlasX artifact is one binary capsule encoded by `ATLASX-BINARY-WIRE-FORMAT.md`.
+
+The canonical identity is the capsule root identity derived from canonical decoded manifest/entry semantics.
+
+Internal entries MAY be individually compressed, content-addressed, and independently verified.
+
+## No canonical directory tree
+
+A filesystem tree is never the AtlasX semantic root.
+
+The following is a tooling projection only:
 
 ~~~text
-<system>.atlasx/
-├─ manifest.atlasx
-├─ graph/
-├─ modules/
-├─ interfaces/
-├─ runtime/
-├─ ui/
-├─ tests/
-├─ profiles/
-│  ├─ deployment.atlasx
-│  ├─ hardware.atlasx
-│  └─ workload.atlasx
-└─ targets/
+atlasx unpack system.atlasx
+→ system.atlasx.unpacked/
+   ├─ manifest/
+   ├─ atlas/
+   ├─ dependencies/
+   ├─ runtime/
+   ├─ assets/
+   ├─ supply-chain/
+   └─ ...
 ~~~
 
-Directory placement is not semantic identity.
+Files in that tree are convenient inspection/workspace material.
 
-Objects are identified by stable semantic identity and content hash.
+The original capsule remains authoritative.
 
-A future blueprint MAY change directory/layout strategy under `BLUEPRINT-EVOLUTION.md` without changing logical meaning.
+Editing the unpacked tree does not mutate the original capsule.
 
-## Canonical encoding
+Repacking requires complete revalidation and produces a new or identical capsule identity depending on canonical content.
 
-Canonical AtlasX semantic objects MUST use the deterministic typed encoding defined by `ATLASX-BINARY-WIRE-FORMAT.md` for v1.
+## Entry identity
 
-Human-readable JSON/YAML/Markdown/source projections MAY exist for debugging, review or interoperability but are noncanonical unless a future explicit contract revision changes this rule.
+Every canonical capsule entry MUST have:
 
-A compiler consumes validated canonical AtlasX objects referenced by `manifest.atlasx`, not arbitrary human-readable files.
+- entry class;
+- schema/version where applicable;
+- canonical content identity/hash;
+- encoded and decoded length;
+- required/optional flag;
+- compression/encryption metadata where permitted;
+- lineage/role metadata required by its class.
 
-## Deterministic object identity
+A local extraction path is not semantic identity.
 
-Each AtlasX object identity derives from:
+## Atlas artifact identity
 
-- parent semantic lineage;
-- object kind;
-- selected-design coordinate;
-- deterministic materialization coordinate when one parent object expands into several executable objects;
-- schema/version.
+Embedded Atlas artifacts MUST retain their own canonical identities.
 
-Names are display metadata, not sufficient identity.
+AtlasX MUST NOT rewrite an Atlas artifact's semantics merely to package it.
 
-## Object closure
+If packaging requires a semantic change, a new Atlas artifact must be created and sealed first.
 
-Every canonical AtlasX reference MUST resolve to:
+## Dependency identity
 
-- another canonical AtlasX object in the same root;
-- a typed external boundary;
-- an explicitly permitted runtime-dynamic binding.
+A dependency entry MUST identify enough information to prevent substitution, including where applicable:
 
-Broken references invalidate the AtlasX root.
+- ecosystem/package/module identity;
+- exact version/revision;
+- content hash;
+- source/provenance;
+- license/obligations;
+- transitive parent relation;
+- target/profile applicability;
+- build/runtime role.
 
-## Function representation
-
-An executable function object MUST preserve or reference:
-
-- stable function identity;
-- signature;
-- body/CFG semantics where available/required;
-- call relationships relevant to executable lowering;
-- type dependencies;
-- state/effect semantics;
-- ownership/resource semantics;
-- concurrency semantics where relevant;
-- persistence/recovery semantics where relevant;
-- failure behavior;
-- external boundaries;
-- constraints/barriers;
-- parent Atlas lineage.
-
-Display source text is optional and nonauthoritative.
-
-## Type representation
-
-A canonical type object MUST preserve enough information for deterministic compiler lowering, including where applicable:
-
-- identity;
-- structure;
-- generic parameters;
-- variants/fields;
-- ownership/resource semantics;
-- representation/layout constraints explicitly selected by design;
-- ABI/interface requirements;
-- parent Atlas lineage.
-
-Physical target layout need not be fixed in AtlasX unless it is part of selected design semantics. Target-specific layout is normally compiler LIR work.
-
-## Binding representation
-
-Bindings MUST remain first-class.
-
-A binding object identifies:
-
-- binding identity;
-- source capability/interface;
-- selected target/provider when design-time resolved;
-- dynamic-binding policy when intentionally deferred;
-- authority/security constraints;
-- lifecycle/temporal requirements;
-- failure semantics;
-- evidence/lineage.
-
-A dynamic binding MUST NOT be serialized as if it were statically resolved.
-
-## State/effect representation
-
-State and effects remain typed, distinct concepts.
-
-State objects/relations identify:
-
-- state identity;
-- legal transitions;
-- initialization/lifecycle constraints;
-- persistence policy where selected;
-- ownership/concurrency constraints.
-
-Effect objects identify:
-
-- effect kind;
-- subject/function;
-- ordering requirements;
-- external boundary if any;
-- authority/transaction barriers;
-- lineage.
-
-## Ownership/resource representation
-
-ATLASX carries ownership/resource semantics required for compilation.
-
-This may include:
-
-- move/copy/borrow requirements;
-- resource acquisition/release;
-- ownership transfer;
-- region/lifetime constraints when part of selected semantics;
-- external resource boundaries.
-
-Compiler optimization may refine physical lifetime/placement but MUST preserve these requirements.
-
-## Concurrency representation
-
-Concurrency objects may include:
-
-- tasks/threads;
-- synchronization;
-- channels;
-- locks;
-- atomics;
-- ordering requirements;
-- shared-state relationships;
-- cancellation/failure semantics.
-
-Compiler lowering may specialize the implementation, not remove required ordering.
-
-## Persistence/recovery representation
-
-Persistence/recovery semantics may include:
-
-- durable state;
-- transaction boundaries;
-- commit/abort;
-- checkpoints/logs;
-- recovery requirements;
-- durability ordering;
-- external storage boundary.
-
-Compiler/runtime lowering MUST preserve selected durability semantics.
-
-## Constraint and semantic-barrier representation
-
-Constraints/invariants that affect executable legality MUST survive into AtlasX.
-
-Materialization MUST emit typed semantic barriers for at least:
-
-- authority;
-- safety;
-- effect;
-- transaction;
-- persistence;
-- recovery;
-- concurrency/order;
-- temporal/lifecycle;
-- external interface;
-- provider/model admission where applicable.
-
-Generic unstructured strings are not sufficient for mature canonical barriers.
-
-## Tests
-
-Tests selected as part of executable verification MAY be canonical AtlasX objects.
-
-Each canonical test identifies:
-
-- test identity;
-- target scope;
-- required inputs/environment profile;
-- expected semantic property or observable behavior;
-- lineage/evidence;
-- required compiler/product admission role.
-
-Tests not selected for executable/product verification may remain only in parent Atlas knowledge.
-
-## Profiles
-
-Profiles are typed canonical inputs, not ambient environment descriptions.
-
-A profile MUST have:
-
-- identity/hash;
-- schema/version;
-- declared constraints/objectives;
-- provenance;
-- deterministic serialization.
-
-Profile changes that affect executable semantics change the relevant AtlasX/compiler identity.
-
-## Targets
-
-A Target object identifies:
-
-- target kind;
-- required runtime model;
-- required compiler/backend class;
-- external boundaries;
-- target-specific semantic requirements;
-- target/ABI constraints if already selected.
-
-Detailed physical instruction/ABI lowering is governed by `COMPILER-IR-PIPELINE.md`.
+Version range alone is insufficient for canonical closure.
 
 ## External boundaries
 
-External boundaries remain explicit.
+An external boundary MUST record:
 
-AtlasX MUST identify:
-
-- provider/capability/interface;
-- version/protocol/ABI constraints;
-- authority/security requirements;
-- runtime binding/discovery policy;
+- capability/interface identity;
+- protocol/ABI/schema version constraints;
+- authority/security policy;
+- runtime discovery policy;
 - failure semantics;
-- ownership/resource transfer where applicable.
+- ownership/resource transfer;
+- allowed provider set or contract;
+- evidence/provenance.
 
-An external dependency remains external. Materialization does not relabel it Atlas-native.
+External does not mean untracked.
 
-## Lineage and evidence
+## Source and ADL
 
-Every canonical object MUST be traceable to:
+ADL MAY be embedded as optional evidence/reconstruction material.
 
-- AtlasX root;
-- SelectedDesign;
-- parent Atlas root;
-- originating Atlas semantic records;
-- relevant blueprint revision decision when design changed;
-- external-provider evidence where applicable.
+Source MAY be embedded when policy or reproduction requires it.
 
-Lineage may be factored/deduplicated physically, but must remain exactly reconstructable.
+Neither ADL nor source text replaces typed Atlas semantics.
 
-## Partial materialization
+A valid capsule MUST remain semantically meaningful if optional ADL prose is removed.
 
-Partial AtlasX roots are allowed when the requested scope is explicit.
+## Compiler handoff
 
-A partial root MUST:
-
-- identify the exact materialized scope;
-- represent omitted dependencies as typed external/reference boundaries when required;
-- preserve parent Atlas lineage;
-- avoid claims of whole-system completeness;
-- include all executable dependencies required by the partial scope.
-
-## Dynamic runtime resolution
-
-ATLASX may intentionally preserve runtime-dynamic behavior.
-
-Examples:
-
-- plugin/provider discovery;
-- user-selected adapter;
-- runtime service endpoint;
-- dynamic capability binding.
-
-Such behavior MUST be explicitly typed as dynamic.
-
-UNKNOWN is not dynamic.
-
-UNRESOLVED is not automatically permitted runtime resolution.
-
-## Digital Organism profile
-
-When `target_kind = digital_organism`, AtlasX extends the general executable representation with:
+The compiler consumes:
 
 ~~~text
-organism/
-├─ genome/
-├─ identity/
-├─ species_traits/
-├─ organs/
-├─ circuits/
-├─ body/
-├─ brain/
-│  ├─ model_definitions/
-│  ├─ provider_bindings/
-│  ├─ training/
-│  ├─ inference/
-│  └─ checkpoint_manifests/
-├─ world/
-├─ memory/
-├─ learning/
-├─ homeostasis/
-├─ metabolism/
-├─ capabilities/
-├─ authority/
-├─ lifecycle/
-├─ adapters/
-└─ evidence/
+validated *.atlasx capsule
++ explicit compiler configuration allowed by contract
+→ HIR / delegated backend
 ~~~
-
-This remains an extension of the same AtlasX object/lineage rules.
-
-It is not a separate compiler universe and not merely a weights directory.
-
-## Compiler input
-
-The compiler accepts a validated AtlasX root plus explicit compiler/target/profile inputs.
 
 The compiler MUST NOT:
 
-- infer missing selected-design semantics;
-- accept arbitrary unmanifested directory files as canonical input;
-- silently repair broken references;
-- silently resolve UNKNOWN/CONFLICT;
-- reinterpret a dynamic binding as static;
-- use host defaults for semantic target decisions.
-
-The next stage is HIR or an explicitly contracted delegated backend under `COMPILER-IR-PIPELINE.md`.
+- scan arbitrary sibling files for canonical input;
+- infer missing dependencies from the host;
+- resolve UNKNOWN by default;
+- choose a different SelectedDesign;
+- call a model to recover missing semantics;
+- silently upgrade dependencies;
+- treat unpacked debug files as authority.
 
 ## Determinism
 
 For identical:
 
-- parent Atlas root;
+- parent Atlas semantic identities;
 - SelectedDesign;
-- scope;
-- target kind;
-- profiles;
-- external bindings;
-- materializer version/schema;
+- requested scope;
+- capsule profile;
+- dependency closure;
+- runtime/build/resource entries;
+- target/profile identities;
+- external boundaries;
+- AtlasX schema/canonicalization rules;
 
-AtlasX MUST have the same canonical semantic root identity.
+two compliant implementations MUST agree on the AtlasX semantic root identity.
 
-Directory path, file timestamp, traversal order, thread schedule and host locale MUST NOT affect that identity.
+Incidental publication timestamp, host path, extraction path, file mtime, traversal order, or thread scheduling MUST NOT change root identity.
 
 ## Validation
 
-An AtlasX validator MUST reject at least:
+A validator MUST reject at least:
 
-- manifest/schema incompatibility;
-- parent Atlas mismatch;
-- Genome mismatch;
-- missing required object;
-- unresolved required reference;
-- duplicate conflicting identity;
-- object hash mismatch;
-- hidden required obligation;
-- invalid dynamic boundary;
-- missing required semantic barrier;
-- compiler-contract incompatibility.
+- invalid magic/version;
+- root hash mismatch;
+- parent Atlas identity mismatch;
+- Genome/schema incompatibility;
+- missing required entry;
+- duplicate conflicting entry identity;
+- content hash mismatch;
+- undeclared dependency;
+- floating dependency;
+- invalid pinned-fetch policy;
+- missing license/obligation material required by policy;
+- broken transitive dependency edge;
+- hidden host dependency declared by no entry/boundary;
+- SelectedDesign mismatch;
+- external boundary contract violation;
+- compiler-contract incompatibility;
+- malformed bounds/decompression abuse.
 
-## Blueprint evolution
+## Extinction interaction
 
-The ATLASX blueprint may change when census demonstrates a better executable representation or materialization strategy.
+A donor/dependency checkout may be physically extinguished only when required retained material has moved into:
 
-Examples:
+- canonical Atlas semantics/provenance/evidence; and/or
+- canonical AtlasX dependency/runtime/source closure;
 
-- better object factoring;
-- better module structure;
-- better deterministic expansion;
-- better incremental reuse;
-- better canonical encoding.
+according to policy.
 
-Any change follows `BLUEPRINT-EVOLUTION.md`.
+AtlasX therefore becomes the physical closure boundary that makes donor-source deletion safe for selected systems when all extinction gates pass.
 
-A layout improvement may change physical organization while preserving logical object meaning.
+## Migration from AtlasX directory v1 drafts
 
-A semantic/identity change requires explicit schema/contract migration.
+Older pre-contract AtlasX directory material is migration input, not canonical authority.
+
+Migration:
+
+~~~text
+old <system>.atlasx/
+→ validate old manifest/object hashes
+→ classify canonical objects
+→ bind parent Atlas + SelectedDesign
+→ compute dependency/runtime/resource closure
+→ encode one *.atlasx capsule
+→ verify capsule root
+~~~
+
+After migration, the directory is disposable projection/workspace material.
 
 ## Final invariant
 
-ATLASX is one validated deterministic executable projection of a selected Atlas design.
+A canonical AtlasX artifact is one independently verifiable closed-world binary capsule for one selected system closure.
 
-It is neither:
+It is not:
 
 - arbitrary generated source;
-- prose;
+- a canonical directory;
 - a donor repository copy;
-- a place for hidden compiler invention;
-- an alternate semantic truth system.
+- a second truth database;
+- a place for hidden compiler decisions;
+- a package that relies on undeclared ambient host state.
