@@ -117,9 +117,9 @@ Atlas MUST NOT wait until R4, R5 or R6 are complete before censusing OSS.
 The required sequencing is:
 
 ~~~text
-R4.4 Function Identity Closure materialized
+R4.5 CALL semantics materialized
         ↓
-R4.5 CALL semantics may proceed
+R4.6 CONTROL_FLOW may proceed
         │
         └──────────────┐
                        ↓
@@ -153,12 +153,15 @@ Current materialized sequence:
 - R4.3.2 — lossless typed records through Census and normalization;
 - R4.3.3 — raw observation identity, typed obligation lineage, typed closure accounting, and typed engineering-graph boundary.
 
-Currently real Rust semantic dimensions:
+Currently real Rust semantic dimensions through R4.5:
 
 - SYMBOL;
 - TYPE;
 - FUNCTION_IDENTITY;
-- FUNCTION_SIGNATURE.
+- FUNCTION_SIGNATURE;
+- CALL.
+
+R4.5 observes real function-body call sites through the canonical semantic path while leaving targets UNRESOLVED where source evidence is insufficient.
 
 These facts are useful but are not sufficient for mechanism absorption by themselves.
 
@@ -181,20 +184,21 @@ R4.4 intentionally does not claim compiler DefId-level equivalence, type-alias e
 
 CALL remains the next semantic relation.
 
-### R4.5 — Call Semantics
+### R4.5 — Call Semantics — materialized
 
-Materialize typed CALL observations:
+R4.5 is materialized on canonical main.
 
-- call-site identity;
-- caller FunctionIdentity;
-- exact static target when evidenced;
-- finite partial target sets when evidenced;
-- dynamic target placeholders;
-- unresolved target obligations;
-- FFI/external call boundaries;
-- call evidence/provenance.
+Production Rust semantic extraction now observes real function/method-body call sites and attributes them to the enclosing FunctionIdentity through the canonical SourceFrontend → SemanticExtractor → Census → Normalize → graph path.
 
-Name-only call targets are forbidden.
+Current source-only resolution discipline is conservative:
+
+- real call-site identity is OBSERVED;
+- caller identity is preserved;
+- dispatch remains UNRESOLVED when target resolution is not proven;
+- unresolved callees are not fabricated;
+- graph projection contains CallSite nodes and caller→MAKES_CALL edges without invented callee edges.
+
+Deeper target resolution may improve through later semantic/compiler evidence without changing the identity of the already-observed call site.
 
 ### R4.6 — Control Flow
 
@@ -347,32 +351,51 @@ R6 does not mean "choose a winner whenever extractors disagree." Conflict remain
 
 R6 is the first point at which Atlas can make strong proof-producing statements that a declared census scope is closed for a declared policy/profile.
 
-## R7 — research correlation and absorption selection
+## R7 — research, typed decision, synthesis and absorption selection
 
-R7 connects observed donor reality to research and design decisions without allowing research/model claims to impersonate observation.
+R7 connects observed donor reality to research and Human+AI design decisions without allowing research/model claims to impersonate observation.
 
 Required capabilities:
 
 - ResearchClaim distinct from ObservedEvidence;
 - Technology Genome comparison;
 - Atlas capability-gap graph;
+- Human/AI typed intent and constraint envelopes;
+- research-provider integration over Atlas knowledge + OSS + external references;
 - candidate mechanism/design records;
-- evidence-linked absorption decisions;
-- explicit selected/rejected/deferred dispositions;
-- validation obligations before native implementation becomes selected design.
+- typed DecisionProposal records for Jev-class rank/score/route decisions;
+- ProviderReceipt lineage;
+- CandidateChangeSet records;
+- external synthesis/code providers producing real candidate implementation;
+- generated implementation ingested and censused as untrusted source;
+- declared generated intent compared with observed generated semantics;
+- security/dependency/license/test/benchmark/proof gates;
+- explicit Human/Policy/Hybrid selection authority;
+- evidence-linked absorption and blueprint-revision decisions.
 
-Primary donor lane: W5 — openrewrite, c2rust, crubit, py2many.
+Normative contracts:
 
-R7 MUST preserve this rule:
+- `../contracts/HUMAN-AI-ADL-AUTHORING.md`;
+- `../contracts/ATLAS-CREATION-PIPELINE.md`;
+- `../contracts/EXTERNAL-PROVIDER-TRUST.md`;
+- `../contracts/SELECTED-DESIGN.md`.
+
+Primary donor lane: W5 — openrewrite, c2rust, crubit, py2many — plus explicitly admitted research/decision/synthesis provider adapters.
+
+R7 MUST preserve:
 
 ~~~text
 Observed implementation
 ≠ ResearchClaim
+≠ DecisionProposal
 ≠ CandidateDesign
+≠ CandidateChangeSet
 ≠ SelectedDesign
 ~~~
 
-No research page, paper, model answer or README directly upgrades a donor implementation claim to OBSERVED.
+A fast decision provider may reduce search cost. A synthesis provider may write real candidate code. Neither is canonical truth.
+
+No research page, paper, search result, model answer, provider score or README directly upgrades a donor/generated implementation claim to OBSERVED.
 
 ## R8 — durable ATLAS / AtlasX substrate
 
@@ -388,6 +411,9 @@ Required capabilities:
 - logical root manifests;
 - stable cross-shard identity/bindings;
 - explicit SelectedDesign identity under `../contracts/SELECTED-DESIGN.md`;
+- selected implementation semantics and provider/candidate lineage complete before seal;
+- logical Atlas seal after candidate implementation census/verification;
+- deterministic provider-independent mechanical compaction after seal;
 - deterministic Atlas→AtlasX materialization under `../contracts/ATLAS-TO-ATLASX.md`;
 - canonical AtlasX object/manifest validation under `../contracts/ATLASX-FORMAT.md`;
 - canonical AtlasX v1 bytes/root hashing under `../contracts/ATLASX-BINARY-WIRE-FORMAT.md`;
@@ -400,6 +426,24 @@ Primary donor lane: W6 — flatbuffers, arrow, zstd, blake3, object, regalloc2, 
 R8 does not authorize mechanical donor translation. It provides the durable Atlas-native carrier and deterministic executable projection needed for source-independent continuation.
 
 The R8 storage/materialization blueprint is explicitly revisable if census demonstrates a better mechanism, but revision must follow `../contracts/BLUEPRINT-EVOLUTION.md`.
+
+## Human-AI creation maturity rule
+
+Provider integration MUST follow the maturity of Atlas's semantic/verification substrate.
+
+Atlas may experiment with research/decision/synthesis providers earlier, but MUST NOT claim the mature autonomous creation loop until it can:
+
+- type the constraint envelope;
+- preserve provider receipts;
+- produce typed candidate/decision/change-set records;
+- census generated implementation deeply enough for the active profile;
+- enforce security/dependency/license gates;
+- compare declared intent against observed implementation;
+- validate candidate semantics;
+- select under explicit authority;
+- seal without requiring future provider availability.
+
+The provider layer accelerates engineering; it does not weaken census requirements.
 
 ## Evidence-driven blueprint evolution
 
