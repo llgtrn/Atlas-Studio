@@ -795,10 +795,10 @@ mod multi_extractor_tests {
         );
     }
 
-    // --- 12. R4.5: a real Rust extractor is now registered, scoped to exactly 5 dimensions -----
+    // --- 12. R4.6: a real Rust extractor is now registered, scoped to exactly 6 dimensions -----
 
     #[test]
-    fn a_real_rust_extractor_is_registered_supporting_exactly_the_r4_5_dimensions() {
+    fn a_real_rust_extractor_is_registered_supporting_exactly_the_r4_6_dimensions() {
         let rust_extractors = adapter::extractors_for_language("rust");
         assert_eq!(rust_extractors.len(), 1);
         assert_eq!(rust_extractors[0].id(), "atlas.rust.source-semantic.v1");
@@ -812,6 +812,7 @@ mod multi_extractor_tests {
             supported,
             vec![
                 "CALL",
+                "CONTROL_FLOW",
                 "FUNCTION_IDENTITY",
                 "FUNCTION_SIGNATURE",
                 "SYMBOL",
