@@ -1,0 +1,79 @@
+{
+  "schema": "atlas.r4.verification-record.v1",
+  "wave": "R4.1",
+  "wave_title": "Typed Semantic Record Kernel",
+  "certifies": {
+    "merge_commit_sha": "11d2ab7580d1cfedfe676f28c239cf70ed35ad02",
+    "pre_toolchain_pin_commit_sha": "fd5f41de14b6c8556cda2f3b720fff16d14fa0a9",
+    "toolchain_pin_commit_sha": "9b7b91567d676ef52433cb4c1c1fe5fe4ace97d8",
+    "pull_request": "https://github.com/llgtrn/Atlas-Studio/pull/3",
+    "base_commit_sha": "0ac4ca77e06204748bee323baefd0360d6a5547f"
+  },
+  "recorded_at": "2026-09-22T03:30:00Z",
+  "toolchain": {
+    "pinned_by": "rust-toolchain.toml",
+    "channel": "1.90.0",
+    "rustc": "rustc 1.90.0 (1159e78c4 2025-09-14)",
+    "cargo": "cargo 1.90.0 (840b83a10 2025-07-30)",
+    "matches_ci_pin": true,
+    "ci_pin_source": ".github/workflows/ci.yml (rustup toolchain install 1.90.0)"
+  },
+  "working_tree_clean": true,
+  "git_diff_check_exit": 0,
+  "cargo_lock_unchanged_vs_base": true,
+  "ci_status": "UNAVAILABLE_INFRASTRUCTURE",
+  "ci_status_detail": "GitHub Actions 'rust' check completes in single-digit seconds with no runner ever assigned (runner_id: 0) and no retrievable logs (404). Reproduces identically on canonical main across many prior commits, including base commit 0ac4ca77e0 itself. This is a runner-provisioning/infra issue, not a code or test failure, and is excluded from correctness verification per operator instruction.",
+  "verification_passes": [
+    {
+      "pass": "primary",
+      "performed_by": "session, in-place checkout, rustc 1.94.1 (stable)",
+      "commit_verified": "fd5f41de14b6c8556cda2f3b720fff16d14fa0a9",
+      "commands": {
+        "cargo fmt --all --check": { "exit_code": 0 },
+        "cargo clippy --workspace --all-targets -- -D warnings": { "exit_code": 0 },
+        "cargo test --workspace --locked": { "exit_code": 0, "tests": "28 passed, 0 failed, 0 ignored" },
+        "cargo test --workspace --doc --locked": { "exit_code": 0, "tests": "0 doctests present" },
+        "cargo run -q -p atlas-cli -- docs audit --root .atlas": { "exit_code": 0, "gate_ready": true, "hard_violations_total": 0 }
+      }
+    },
+    {
+      "pass": "independent",
+      "performed_by": "fresh subagent, isolated git worktree, no shared context",
+      "commit_verified": "fd5f41de14b6c8556cda2f3b720fff16d14fa0a9",
+      "commit_confirmed_exact_match": true,
+      "commands": {
+        "cargo fmt --all --check": { "exit_code": 0 },
+        "cargo clippy --workspace --all-targets -- -D warnings": { "exit_code": 0 },
+        "cargo test --workspace --locked": { "exit_code": 0, "tests": "28 passed, 0 failed, 0 ignored" },
+        "cargo test --workspace --doc --locked": { "exit_code": 0, "tests": "0 doctests present" },
+        "cargo run -q -p atlas-cli -- docs audit --root .atlas": { "exit_code": 0, "gate_ready": true, "hard_violations_total": 0 }
+      },
+      "diff_review": {
+        "range": "0ac4ca77e0..fd5f41de14",
+        "files_changed": 14,
+        "insertions": 906,
+        "deletions": 37,
+        "ci_or_workflow_files_touched": false,
+        "bypass_markers_found": "none (#[ignore], #![allow, no-verify, skip, TODO, FIXME all absent from range diff)",
+        "ignored_tests_workspace_wide": 0
+      },
+      "verdict": "VERIFIED"
+    },
+    {
+      "pass": "toolchain-pin re-verification",
+      "performed_by": "session, in-place checkout, rustc 1.90.0 (matches CI pin exactly)",
+      "commit_verified": "9b7b91567d676ef52433cb4c1c1fe5fe4ace97d8",
+      "commands": {
+        "cargo fmt --all --check": { "exit_code": 0 },
+        "cargo clippy --workspace --all-targets -- -D warnings": { "exit_code": 0 },
+        "cargo test --workspace --locked": { "exit_code": 0, "tests": "28 passed, 0 failed, 0 ignored" },
+        "cargo test --workspace --doc --locked": { "exit_code": 0, "tests": "0 doctests present" },
+        "cargo run -q -p atlas-cli -- docs audit --root .atlas": { "exit_code": 0, "gate_ready": true, "hard_violations_total": 0 }
+      },
+      "note": "Re-ran the full suite from a clean target/ directory under the exact toolchain version CI installs, closing the prior toolchain drift (rust-toolchain.toml tracked 'stable'=1.94.1 locally while CI pinned 1.90.0)."
+    }
+  ],
+  "no_tests_lints_gates_disabled": true,
+  "no_verify_bypass_used": false,
+  "overall_verdict": "VERIFIED"
+}
