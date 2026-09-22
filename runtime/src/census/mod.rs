@@ -447,8 +447,11 @@ pub fn build_census(
         }
     }
 
-    // Deterministic ordering: never derived from Vec insertion/HashMap/traversal order.
+    // Deterministic ordering: never derived from Vec insertion/HashMap/traversal order. De-duped by
+    // `record_id` so a record that legitimately repeats across batches (e.g. re-observed via a
+    // shared extraction dependency) collapses to one entry, matching `evidence`/`diagnostics` below.
     typed_semantic_records.sort_by(|a, b| a.record_id().as_str().cmp(b.record_id().as_str()));
+    typed_semantic_records.dedup_by(|a, b| a.record_id() == b.record_id());
     let evidence: Vec<Evidence> = evidence_by_id.into_values().collect();
     let diagnostics: Vec<ExtractionDiagnostic> = diagnostics_by_id.into_values().collect();
 
@@ -1134,5 +1137,39 @@ pub async unsafe extern "C" fn example<T>(x: Vec<T>, y: &mut usize) -> Result<T,
                 .typed_semantic_records
                 .is_empty()
         );
+    }
+
+    // --- typed_semantic_records de-duplicates by record_id, matching evidence/diagnostics --------
+
+    #[test]
+    fn typed_semantic_records_collapse_an_exact_record_id_repeat_across_batches() {
+        let (inventory, source, adl) = single_rust_file_context();
+        // The exact same observation (identical record_id) reported by two batches -- e.g. a
+        // legitimate re-observation via a shared extraction dependency -- must collapse to one
+        // entry, matching how `evidence`/`diagnostics` already de-duplicate by id.
+        let batches = [
+            extraction_batch_with_one_symbol("src/lib.rs"),
+            extraction_batch_with_one_symbol("src/lib.rs"),
+        ];
+
+        let census = build_census(&inventory, &source, &adl, &batches);
+        let symbol_records: Vec<_> = census
+            .typed_semantic_records
+            .iter()
+            .filter(|observation| matches!(observation, SemanticObservation::Symbol(_)))
+            .collect();
+        assert_eq!(
+            symbol_records.len(),
+            1,
+            "an exact record_id repeat across batches must not appear as a literal duplicate"
+        );
+
+        let normalization = crate::normalize::normalize(&census);
+        let normalized_symbol_records: Vec<_> = normalization
+            .typed_semantic_records
+            .iter()
+            .filter(|observation| matches!(observation, SemanticObservation::Symbol(_)))
+            .collect();
+        assert_eq!(normalized_symbol_records.len(), 1);
     }
 }

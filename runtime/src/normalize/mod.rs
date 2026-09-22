@@ -22,6 +22,7 @@ use std::collections::BTreeMap;
 fn normalize_typed_records(records: &[SemanticObservation]) -> Vec<SemanticObservation> {
     let mut normalized = records.to_vec();
     normalized.sort_by(|a, b| a.record_id().as_str().cmp(b.record_id().as_str()));
+    normalized.dedup_by(|a, b| a.record_id() == b.record_id());
     normalized
 }
 
