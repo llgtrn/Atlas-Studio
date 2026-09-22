@@ -8,6 +8,7 @@
 pub mod call;
 pub mod control_flow;
 pub mod data_flow;
+pub mod diagnostic;
 pub mod effect;
 pub mod function;
 pub mod observation;
@@ -18,6 +19,7 @@ pub mod types;
 pub use call::CallSiteIdentity;
 pub use control_flow::ControlFlowBlockIdentity;
 pub use data_flow::ValueIdentity;
+pub use diagnostic::{DiagnosticCode, ExtractionDiagnostic};
 pub use effect::{EffectCategory, EffectIdentity};
 pub use function::{FunctionIdentity, FunctionParameter, FunctionSignature};
 pub use observation::SemanticObservation;

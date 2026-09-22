@@ -655,6 +655,9 @@ mod tests {
             input_facts_total: facts.len(),
             normalized_facts_total: facts.len(),
             kinds: BTreeMap::new(),
+            typed_semantic_records: Vec::new(),
+            evidence: Vec::new(),
+            diagnostics: Vec::new(),
             facts,
         };
 

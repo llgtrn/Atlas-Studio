@@ -209,7 +209,8 @@ impl ExtractorObligationRecord {
     }
 }
 
-/// Multi-extractor census accounting: an append-only collection of `ExtractorObligationRecord`.
+/// Multi-extractor census accounting: an append-only collection of `ExtractorObligationRecord`,
+/// plus the full lineage of diagnostic objects that justify an `UNKNOWN`/`UNSUPPORTED` obligation.
 ///
 /// This is NOT the bootstrap `CensusReport.coverage: BTreeMap<String, EpistemicStatus>` (a
 /// derived, single-valued projection kept for existing callers). This structure is the canonical
@@ -217,6 +218,12 @@ impl ExtractorObligationRecord {
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct CensusExtractionAccounting {
     records: Vec<ExtractorObligationRecord>,
+    /// Every `ExtractionDiagnostic` seen so far, keyed by its stable id. An `ObligationResult`
+    /// only carries diagnostic *ids* (`ObligationResult.diagnostics: Vec<String>`); resolving one
+    /// against this map answers "what diagnostic caused this dimension's status" and "was it a
+    /// parser failure (`ParseFailure`) or a read failure (`InvalidInput`)" without either being
+    /// silently collapsed into a bare `UNKNOWN`.
+    diagnostics: BTreeMap<String, ExtractionDiagnostic>,
 }
 
 impl CensusExtractionAccounting {
@@ -224,9 +231,10 @@ impl CensusExtractionAccounting {
         Self::default()
     }
 
-    /// Appends every obligation in `batch`, tagged with `batch.artifact`/`batch.extractor`. Never
-    /// removes or overwrites an existing record: an extractor's result can never erase another
-    /// extractor's result, regardless of ingestion order.
+    /// Appends every obligation in `batch`, tagged with `batch.artifact`/`batch.extractor`, and
+    /// retains every diagnostic `batch` reported. Never removes or overwrites an existing record:
+    /// an extractor's result can never erase another extractor's result, regardless of ingestion
+    /// order.
     pub fn record_batch(&mut self, batch: &ExtractionBatch) {
         for obligation in &batch.obligations {
             self.records.push(ExtractorObligationRecord {
@@ -235,6 +243,16 @@ impl CensusExtractionAccounting {
                 obligation: obligation.clone(),
             });
         }
+        for diagnostic in &batch.diagnostics {
+            self.diagnostics
+                .insert(diagnostic.id.clone(), diagnostic.clone());
+        }
+    }
+
+    /// Resolves a diagnostic id (as found in an `ObligationResult.diagnostics` entry) to the full
+    /// `ExtractionDiagnostic` object that produced it, when this accounting has seen it.
+    pub fn diagnostic(&self, id: &str) -> Option<&ExtractionDiagnostic> {
+        self.diagnostics.get(id)
     }
 
     pub fn len(&self) -> usize {

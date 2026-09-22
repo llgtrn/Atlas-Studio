@@ -2,9 +2,41 @@
 //!
 //! Normalization gives observed/declared facts a deterministic vocabulary without upgrading their
 //! epistemic status or dropping provenance. It is intentionally lossless at this stage.
+//!
+//! R4.3.2: normalization is typed-semantic aware. `normalize_typed_records` is the real N0
+//! normalization step for `CensusReport.typed_semantic_records` -- deterministic ordering only, no
+//! restructuring, no field mutation, no dedup beyond exact-id collapse (there are no further
+//! normalization/reconciliation rules to apply yet; see `.atlas/contracts/NORMALIZATION.md`). The
+//! pre-existing `normalize_fact`/`canonical_predicate` logic remains, unchanged, for the
+//! `SemanticFact` compatibility projection that `facts` carries.
 
-use atlas_core::{CensusReport, NormalizationReport, SemanticFact, stable_id};
+use atlas_core::{
+    CensusReport, Evidence, ExtractionDiagnostic, NormalizationReport, SemanticFact,
+    SemanticObservation, stable_id,
+};
 use std::collections::BTreeMap;
+
+/// N0 typed normalization: deterministic ordering by `record_id`, everything else preserved
+/// verbatim. `normalize(record) == record` up to this ordering -- never a lossy
+/// record-to-string-to-record round trip.
+fn normalize_typed_records(records: &[SemanticObservation]) -> Vec<SemanticObservation> {
+    let mut normalized = records.to_vec();
+    normalized.sort_by(|a, b| a.record_id().as_str().cmp(b.record_id().as_str()));
+    normalized.dedup_by(|a, b| a.record_id() == b.record_id());
+    normalized
+}
+
+fn normalize_evidence(evidence: &[Evidence]) -> Vec<Evidence> {
+    let mut normalized = evidence.to_vec();
+    normalized.sort_by(|a, b| a.id.cmp(&b.id));
+    normalized
+}
+
+fn normalize_diagnostics(diagnostics: &[ExtractionDiagnostic]) -> Vec<ExtractionDiagnostic> {
+    let mut normalized = diagnostics.to_vec();
+    normalized.sort_by(|a, b| a.id.cmp(&b.id));
+    normalized
+}
 
 fn canonical_predicate(value: &str) -> String {
     let mut out = String::new();
@@ -61,10 +93,13 @@ pub fn normalize(census: &CensusReport) -> NormalizationReport {
     }
 
     NormalizationReport {
-        schema: "atlas.normalization-report.v1".into(),
+        schema: "atlas.normalization-report.v2".into(),
         input_facts_total: census.facts_total,
         normalized_facts_total: facts.len(),
         kinds,
+        typed_semantic_records: normalize_typed_records(&census.typed_semantic_records),
+        evidence: normalize_evidence(&census.evidence),
+        diagnostics: normalize_diagnostics(&census.diagnostics),
         facts,
     }
 }
@@ -82,6 +117,9 @@ mod tests {
             artifacts_accounted_total: 0,
             facts_total: 1,
             coverage: BTreeMap::new(),
+            typed_semantic_records: Vec::new(),
+            evidence: Vec::new(),
+            diagnostics: Vec::new(),
             facts: vec![SemanticFact {
                 id: "raw:1".into(),
                 kind: SemanticFactKind::DeclaredEdge,

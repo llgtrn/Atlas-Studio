@@ -3,8 +3,13 @@
 //! These records are data contracts. Mechanics that populate them belong in adapter/runtime.
 
 use crate::{
-    census::InventoryReport, constraint::CodingAdmission, language::adl::AdlCompileReport,
-    provenance::Provenance, state::RepositorySnapshot,
+    census::InventoryReport,
+    constraint::CodingAdmission,
+    evidence::Evidence,
+    language::adl::AdlCompileReport,
+    provenance::Provenance,
+    semantic::{ExtractionDiagnostic, SemanticObservation},
+    state::RepositorySnapshot,
 };
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
@@ -145,6 +150,23 @@ pub struct SemanticFact {
     pub provenance: Provenance,
 }
 
+/// The canonical census representation, R4.3.2.
+///
+/// `typed_semantic_records`/`evidence`/`diagnostics` are the lossless carriers: every
+/// `SemanticObservation` a `SemanticExtractor` produced, every `Evidence` record backing one, and
+/// every `ExtractionDiagnostic` explaining an `UNKNOWN`/`UNSUPPORTED` obligation, retained verbatim
+/// (only deterministically ordered and de-duplicated by id where the same record legitimately
+/// repeats across batches) -- no field of a `FunctionSignature`/`TypeIdentity`/`SymbolIdentity`/
+/// `FunctionIdentity` is lost between extraction and this report.
+///
+/// `facts` remains the bootstrap `SemanticFact { subject, predicate, object }` envelope, but it is
+/// now explicitly a *derived compatibility projection* of `typed_semantic_records` (plus
+/// artifact/ADL facts that have no richer typed kernel record yet), never an independent source of
+/// truth (`.atlas/contracts/SEMANTIC-EXTRACTION.md#r4-acceptance-matrix`: "SemanticFact remains a
+/// compatibility envelope, not the only semantic type system"). Removing `facts` entirely would
+/// lose only display convenience, never semantic content: everything it carries for a
+/// Symbol/Type/FunctionIdentity/FunctionSignature fact is already present, in full structural
+/// fidelity, in `typed_semantic_records`.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct CensusReport {
     pub schema: String,
@@ -160,6 +182,20 @@ pub struct CensusReport {
     /// `runtime::census::CensusExtractionAccounting`, not only in this single summary map
     /// (`.atlas/contracts/SEMANTIC-EXTRACTION.md#multi-engine-extraction`).
     pub coverage: BTreeMap<String, EpistemicStatus>,
+    /// The lossless typed semantic world: every `SemanticObservation` a `SemanticExtractor`
+    /// produced this census run, unmodified (record identity, dimension, epistemic status,
+    /// subject -- with every field of its family, e.g. `FunctionSignature`'s parameters/generics/
+    /// abi/visibility/async/unsafe/extern/return type -- scope, repository, revision, extractor
+    /// id+version, evidence refs, provenance/span), sorted by `record_id` for determinism.
+    pub typed_semantic_records: Vec<SemanticObservation>,
+    /// Every `Evidence` record backing a `typed_semantic_records` entry (resolve an
+    /// observation's `evidence_refs` against this list), de-duplicated by id, sorted by id.
+    pub evidence: Vec<Evidence>,
+    /// Every `ExtractionDiagnostic` an extractor reported this run (resolve an `ObligationResult`'s
+    /// `diagnostics` ids -- see `runtime::census::CensusExtractionAccounting` -- against this list
+    /// to distinguish, for example, a read failure `InvalidInput` from a parser `ParseFailure`),
+    /// de-duplicated by id, sorted by id.
+    pub diagnostics: Vec<ExtractionDiagnostic>,
     pub facts: Vec<SemanticFact>,
 }
 
@@ -170,12 +206,25 @@ impl CensusReport {
     }
 }
 
+/// R4.3.2: normalization is now typed-semantic aware. `typed_semantic_records`/`evidence`/
+/// `diagnostics` flow through from `CensusReport` under a minimal N0 normalization (deterministic
+/// ordering only -- no restructuring, no dedup beyond exact-id collapse, no status/provenance/
+/// evidence mutation): `normalize(record) == record`, up to canonical ordering. This is
+/// `normalize(typed record) -> equivalent typed record`, never `typed record -> display string ->
+/// normalized display string` (`.atlas/contracts/NORMALIZATION.md`).
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct NormalizationReport {
     pub schema: String,
     pub input_facts_total: usize,
     pub normalized_facts_total: usize,
     pub kinds: BTreeMap<String, usize>,
+    /// The typed semantic world, deterministically ordered by `record_id`. Identity, status,
+    /// subject (full structure), scope, repository, revision, extractor and provenance are
+    /// preserved verbatim from `CensusReport.typed_semantic_records` -- normalization here means
+    /// canonical ordering, not restructuring.
+    pub typed_semantic_records: Vec<SemanticObservation>,
+    pub evidence: Vec<Evidence>,
+    pub diagnostics: Vec<ExtractionDiagnostic>,
     pub facts: Vec<SemanticFact>,
 }
 

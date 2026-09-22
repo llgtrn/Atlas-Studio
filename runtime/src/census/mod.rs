@@ -19,10 +19,10 @@ pub use extraction::{
 
 use adapter::{ExtractionBatch, ObligationResult};
 use atlas_core::{
-    AdlCompileReport, ArtifactDisposition, ArtifactId, CensusReport, EpistemicStatus,
-    ExtractorIdentity, FunctionSignature, InventoryReport, Provenance, RevisionRef,
-    SemanticDimension, SemanticFact, SemanticFactKind, SemanticObservation, SemanticScope,
-    SourceReport, stable_id,
+    AdlCompileReport, ArtifactDisposition, ArtifactId, CensusReport, EpistemicStatus, Evidence,
+    ExtractionDiagnostic, ExtractorIdentity, FunctionSignature, InventoryReport, Provenance,
+    RevisionRef, SemanticDimension, SemanticFact, SemanticFactKind, SemanticObservation,
+    SemanticScope, SourceReport, stable_id,
 };
 use std::{collections::BTreeMap, path::Path};
 
@@ -399,15 +399,21 @@ pub fn build_census(
 
     let parsed_artifacts = source.files_total;
 
-    // R4.3.1: fold real `SemanticExtractor` output into the SAME canonical census this function
-    // returns, before normalization/graph ever run. `path_by_artifact` recovers each artifact's
-    // human path for provenance -- `ExtractionBatch` itself only carries the opaque `ArtifactId`.
+    // R4.3.2: retain the real `SemanticExtractor` output LOSSLESSLY -- `typed_semantic_records`/
+    // `evidence`/`diagnostics` are the canonical carriers; `facts` (built below, from
+    // `typed_semantic_records`) is a derived compatibility projection, never populated
+    // independently from the raw batches (`.atlas/contracts/SEMANTIC-EXTRACTION.md#r4-acceptance-matrix`).
+    // `path_by_artifact` recovers each artifact's human path for provenance -- `ExtractionBatch`
+    // itself only carries the opaque `ArtifactId`.
     let path_by_artifact: BTreeMap<&str, &str> = inventory
         .artifacts
         .iter()
         .map(|artifact| (artifact.id.as_str(), artifact.path.as_str()))
         .collect();
     let mut dimension_summary: BTreeMap<SemanticDimension, EpistemicStatus> = BTreeMap::new();
+    let mut typed_semantic_records: Vec<SemanticObservation> = Vec::new();
+    let mut evidence_by_id: BTreeMap<String, Evidence> = BTreeMap::new();
+    let mut diagnostics_by_id: BTreeMap<String, ExtractionDiagnostic> = BTreeMap::new();
 
     for batch in extraction_batches {
         let artifact_path = path_by_artifact
@@ -415,10 +421,12 @@ pub fn build_census(
             .copied()
             .unwrap_or_default();
 
-        for observation in &batch.observations {
-            if let Some(fact) = semantic_observation_fact(observation) {
-                facts.push(fact);
-            }
+        typed_semantic_records.extend(batch.observations.iter().cloned());
+        for item in &batch.evidence {
+            evidence_by_id.insert(item.id.clone(), item.clone());
+        }
+        for diagnostic in &batch.diagnostics {
+            diagnostics_by_id.insert(diagnostic.id.clone(), diagnostic.clone());
         }
 
         for obligation in &batch.obligations {
@@ -436,6 +444,22 @@ pub fn build_census(
             if status_rank(obligation.status) > status_rank(*summary) {
                 *summary = obligation.status;
             }
+        }
+    }
+
+    // Deterministic ordering: never derived from Vec insertion/HashMap/traversal order. De-duped by
+    // `record_id` so a record that legitimately repeats across batches (e.g. re-observed via a
+    // shared extraction dependency) collapses to one entry, matching `evidence`/`diagnostics` below.
+    typed_semantic_records.sort_by(|a, b| a.record_id().as_str().cmp(b.record_id().as_str()));
+    typed_semantic_records.dedup_by(|a, b| a.record_id() == b.record_id());
+    let evidence: Vec<Evidence> = evidence_by_id.into_values().collect();
+    let diagnostics: Vec<ExtractionDiagnostic> = diagnostics_by_id.into_values().collect();
+
+    // The compatibility `SemanticFact` projection is derived FROM `typed_semantic_records` (never
+    // computed independently from the raw batches): one is always clearly downstream of the other.
+    for observation in &typed_semantic_records {
+        if let Some(fact) = semantic_observation_fact(observation) {
+            facts.push(fact);
         }
     }
 
@@ -468,11 +492,14 @@ pub fn build_census(
     });
 
     CensusReport {
-        schema: "atlas.census-report.v1".into(),
+        schema: "atlas.census-report.v2".into(),
         artifacts_total: inventory.artifacts_total,
         artifacts_accounted_total: inventory.artifacts.len(),
         facts_total: facts.len(),
         coverage,
+        typed_semantic_records,
+        evidence,
+        diagnostics,
         facts,
     }
 }
@@ -768,5 +795,381 @@ mod tests {
             census.coverage.get("CALL"),
             Some(&EpistemicStatus::Unsupported)
         );
+    }
+
+    // === R4.3.2: lossless typed semantic path ====================================================
+    //
+    // Every test below FAILS under the pre-R4.3.2 architecture: `CensusReport`/`NormalizationReport`
+    // had no `typed_semantic_records`/`evidence`/`diagnostics` fields at all, so a `FunctionSignature`'s
+    // parameters/generics/abi/visibility/is_async/is_unsafe/is_extern, an observation's evidence, and
+    // an obligation's causing diagnostic were all unrecoverable once `semantic_observation_fact`
+    // collapsed them into a subject/predicate/object string triple.
+
+    fn function_signature_fixture_batch() -> ExtractionBatch {
+        use adapter::ExtractionInput;
+        use atlas_core::ContentFingerprint;
+
+        // Modifier order matches syn's `Signature` grammar (const, async, unsafe/safe, extern):
+        // this is syntactically valid (parses cleanly), even though `async` + `extern "C"` would be
+        // semantically rejected by rustc -- our extractor only ever runs `syn`, never `rustc`.
+        const SOURCE: &str = r#"
+pub async unsafe extern "C" fn example<T>(x: Vec<T>, y: &mut usize) -> Result<T, Error> {
+    todo!()
+}
+"#;
+        let extractor = adapter::extractors_for_language("rust")
+            .into_iter()
+            .next()
+            .expect("rust has a registered extractor");
+        let requested = vec![
+            SemanticDimension::Symbol,
+            SemanticDimension::Type,
+            SemanticDimension::FunctionIdentity,
+            SemanticDimension::FunctionSignature,
+        ];
+        let input = ExtractionInput {
+            repository: atlas_core::RepositoryId::new("atlas-studio"),
+            revision: atlas_core::RevisionRef {
+                kind: "git".into(),
+                value: "abc123".into(),
+            },
+            artifact: ArtifactId::new("artifact:src/lib.rs"),
+            artifact_path: "src/lib.rs".into(),
+            source_text: SOURCE.into(),
+            content_fingerprint: Some(ContentFingerprint("sha256:fixture".into())),
+            source_frontend_id: "atlas.source.rust.bootstrap.v1".into(),
+            language: "rust".into(),
+            build_profile: None,
+            scope_policy: None,
+            requested_dimensions: requested.clone(),
+        };
+        let batch = extractor.extract(&input);
+        assert!(batch.is_closed(&requested), "fixture batch must be closed");
+        batch
+    }
+
+    fn find_function_signature(records: &[SemanticObservation]) -> &atlas_core::FunctionSignature {
+        records
+            .iter()
+            .find_map(|observation| match observation {
+                SemanticObservation::FunctionSignature(header) => Some(&header.subject),
+                _ => None,
+            })
+            .expect("a FunctionSignature observation must be present")
+    }
+
+    // --- Required test 1: FunctionSignature round-trip preservation --------------------------
+
+    #[test]
+    fn function_signature_round_trips_losslessly_through_census_and_normalization() {
+        let (inventory, source, adl) = single_rust_file_context();
+        let batch = function_signature_fixture_batch();
+        let batches = [batch];
+
+        let census = build_census(&inventory, &source, &adl, &batches);
+        let signature = find_function_signature(&census.typed_semantic_records);
+
+        assert_eq!(signature.function.symbol.name, "example");
+        assert_eq!(signature.visibility, "pub");
+        assert!(signature.is_async, "async must survive");
+        assert!(signature.is_unsafe, "unsafe must survive");
+        assert!(signature.is_extern, "extern must survive");
+        assert_eq!(signature.abi.as_deref(), Some("C"));
+        assert_eq!(signature.generics, vec!["T".to_owned()]);
+        assert_eq!(signature.parameters.len(), 2);
+        assert_eq!(signature.parameters[0].name, "x");
+        assert_eq!(signature.parameters[0].type_identity.name, "Vec<T>");
+        assert_eq!(signature.parameters[1].name, "y");
+        assert_eq!(signature.parameters[1].type_identity.name, "&mut usize");
+        let return_type = signature.return_type.as_ref().expect("return type present");
+        assert_eq!(return_type.name, "Result<T, Error>");
+        assert!(
+            return_type.canonical.is_none(),
+            "no compiler-resolved canonical type identity is ever fabricated"
+        );
+
+        let signature_header = census
+            .typed_semantic_records
+            .iter()
+            .find(|observation| matches!(observation, SemanticObservation::FunctionSignature(_)))
+            .unwrap();
+        assert_eq!(
+            signature_header.dimension(),
+            SemanticDimension::FunctionSignature
+        );
+
+        // Survives normalization not as a reconstructed string, but as the SAME typed record
+        // (up to canonical ordering) -- normalize(typed record) -> equivalent typed record.
+        let normalization = crate::normalize::normalize(&census);
+        let normalized_signature_header = normalization
+            .typed_semantic_records
+            .iter()
+            .find(|observation| matches!(observation, SemanticObservation::FunctionSignature(_)))
+            .expect("FunctionSignature observation must survive normalization");
+        assert_eq!(normalized_signature_header, signature_header);
+    }
+
+    // --- Required test 2: identity preservation -----------------------------------------------
+
+    #[test]
+    fn identity_and_attribution_fields_survive_census_and_normalization() {
+        let (inventory, source, adl) = single_rust_file_context();
+        let batch = extraction_batch_with_one_symbol("src/lib.rs");
+        let batches = [batch];
+
+        let census = build_census(&inventory, &source, &adl, &batches);
+        let symbol_header = census
+            .typed_semantic_records
+            .iter()
+            .find(|observation| matches!(observation, SemanticObservation::Symbol(_)))
+            .expect("Symbol observation present");
+        let SemanticObservation::Symbol(header) = symbol_header else {
+            unreachable!()
+        };
+
+        assert_eq!(
+            header.repository,
+            atlas_core::RepositoryId::new("atlas-studio")
+        );
+        assert_eq!(header.revision.value, "abc123");
+        assert_eq!(header.scope.segments, Vec::<String>::new());
+        assert_eq!(
+            header.extractor,
+            ExtractorIdentity {
+                id: "atlas.rust.source-semantic.v1".into(),
+                version: "0.1.0".into(),
+            }
+        );
+        assert_eq!(header.status, EpistemicStatus::Observed);
+
+        let normalization = crate::normalize::normalize(&census);
+        let normalized = normalization
+            .typed_semantic_records
+            .iter()
+            .find(|observation| matches!(observation, SemanticObservation::Symbol(_)))
+            .expect("Symbol observation must survive normalization");
+        assert_eq!(
+            normalized, symbol_header,
+            "identity/attribution must be byte-for-byte identical after normalization"
+        );
+    }
+
+    // --- Required test 3: evidence lineage preservation ---------------------------------------
+
+    #[test]
+    fn evidence_lineage_survives_census_and_normalization() {
+        let (inventory, source, adl) = single_rust_file_context();
+        let batch = extraction_batch_with_one_symbol("src/lib.rs");
+        let batches = [batch];
+
+        let census = build_census(&inventory, &source, &adl, &batches);
+        let SemanticObservation::Symbol(header) = census
+            .typed_semantic_records
+            .iter()
+            .find(|observation| matches!(observation, SemanticObservation::Symbol(_)))
+            .unwrap()
+        else {
+            unreachable!()
+        };
+        assert!(!header.evidence_refs.is_empty());
+        let evidence_id = header.evidence_refs[0].as_str();
+        let evidence = census
+            .evidence
+            .iter()
+            .find(|item| item.id == evidence_id)
+            .expect("evidence backing the observation must be retained in census.evidence");
+        assert_eq!(evidence.summary, "test-observed symbol `known`");
+        assert_eq!(evidence.kind, "PARSER_OUTPUT");
+
+        let normalization = crate::normalize::normalize(&census);
+        let normalized_evidence = normalization
+            .evidence
+            .iter()
+            .find(|item| item.id == evidence_id)
+            .expect("evidence must survive normalization");
+        assert_eq!(normalized_evidence, evidence);
+    }
+
+    // --- Required test 4: diagnostic preservation (read failure vs parse failure) -------------
+
+    #[test]
+    fn diagnostic_lineage_distinguishes_parse_failure_from_read_failure_after_build_census() {
+        use adapter::ExtractionInput;
+        use atlas_core::{ContentFingerprint, DiagnosticCode, ExtractionDiagnostic};
+
+        let (inventory, source, adl) = single_rust_file_context();
+        let extractor_impl = adapter::extractors_for_language("rust")
+            .into_iter()
+            .next()
+            .unwrap();
+        let requested = vec![SemanticDimension::Symbol];
+
+        let parse_input = ExtractionInput {
+            repository: atlas_core::RepositoryId::new("atlas-studio"),
+            revision: atlas_core::RevisionRef {
+                kind: "git".into(),
+                value: "abc123".into(),
+            },
+            artifact: ArtifactId::new("artifact:broken.rs"),
+            artifact_path: "broken.rs".into(),
+            source_text: "pub fn broken( {".into(),
+            content_fingerprint: Some(ContentFingerprint("sha256:broken".into())),
+            source_frontend_id: "atlas.source.rust.bootstrap.v1".into(),
+            language: "rust".into(),
+            build_profile: None,
+            scope_policy: None,
+            requested_dimensions: requested.clone(),
+        };
+        let parse_failure_batch = extractor_impl.extract(&parse_input);
+
+        let read_input = ExtractionInput {
+            repository: atlas_core::RepositoryId::new("atlas-studio"),
+            revision: atlas_core::RevisionRef {
+                kind: "git".into(),
+                value: "abc123".into(),
+            },
+            artifact: ArtifactId::new("artifact:missing.rs"),
+            artifact_path: "missing.rs".into(),
+            source_text: String::new(),
+            content_fingerprint: None,
+            source_frontend_id: "atlas.source.rust.bootstrap.v1".into(),
+            language: "rust".into(),
+            build_profile: None,
+            scope_policy: None,
+            requested_dimensions: requested,
+        };
+        let read_diagnostic = ExtractionDiagnostic::new(
+            DiagnosticCode::InvalidInput,
+            None,
+            "failed to read missing.rs".to_owned(),
+        );
+        let read_failure_batch = extractor_impl.unavailable(&read_input, read_diagnostic);
+
+        let batches = [parse_failure_batch, read_failure_batch];
+        let census = build_census(&inventory, &source, &adl, &batches);
+
+        let parse_diag = census
+            .diagnostics
+            .iter()
+            .find(|diagnostic| diagnostic.code == DiagnosticCode::ParseFailure)
+            .expect("ParseFailure diagnostic must survive into census.diagnostics");
+        let read_diag = census
+            .diagnostics
+            .iter()
+            .find(|diagnostic| diagnostic.code == DiagnosticCode::InvalidInput)
+            .expect("InvalidInput diagnostic must survive into census.diagnostics");
+        assert_ne!(parse_diag.code, read_diag.code);
+
+        // Both artifacts' SYMBOL obligation is UNKNOWN -- it is NOT sufficient for both to merely
+        // say UNKNOWN; the accounting ledger must resolve each to its OWN distinct cause.
+        let mut accounting = CensusExtractionAccounting::new();
+        for batch in &batches {
+            accounting.record_batch(batch);
+        }
+        let broken_obligation = accounting
+            .records_for(SemanticDimension::Symbol)
+            .into_iter()
+            .find(|record| record.artifact == ArtifactId::new("artifact:broken.rs"))
+            .unwrap();
+        let missing_obligation = accounting
+            .records_for(SemanticDimension::Symbol)
+            .into_iter()
+            .find(|record| record.artifact == ArtifactId::new("artifact:missing.rs"))
+            .unwrap();
+        assert_eq!(
+            broken_obligation.obligation.status,
+            EpistemicStatus::Unknown
+        );
+        assert_eq!(
+            missing_obligation.obligation.status,
+            EpistemicStatus::Unknown
+        );
+
+        let broken_diagnostic = accounting
+            .diagnostic(&broken_obligation.obligation.diagnostics[0])
+            .expect("diagnostic must be resolvable from the accounting ledger");
+        let missing_diagnostic = accounting
+            .diagnostic(&missing_obligation.obligation.diagnostics[0])
+            .expect("diagnostic must be resolvable from the accounting ledger");
+        assert_eq!(broken_diagnostic.code, DiagnosticCode::ParseFailure);
+        assert_eq!(missing_diagnostic.code, DiagnosticCode::InvalidInput);
+        assert_ne!(
+            broken_diagnostic.code, missing_diagnostic.code,
+            "both obligations are UNKNOWN, but their causes must remain distinguishable"
+        );
+    }
+
+    // --- Required test 6: compatibility projection is downstream, never the sole carrier ------
+
+    #[test]
+    fn removing_the_compatibility_fact_projection_would_not_erase_typed_semantic_truth() {
+        let (inventory, source, adl) = single_rust_file_context();
+        let batch = function_signature_fixture_batch();
+        let batches = [batch];
+        let census = build_census(&inventory, &source, &adl, &batches);
+
+        let signature_fact = census
+            .facts
+            .iter()
+            .find(|fact| fact.kind == SemanticFactKind::FunctionSignature)
+            .expect("compatibility FunctionSignature fact present");
+        // The compatibility projection is a lossy display summary: it never mentions the ABI or
+        // visibility at all (proving `facts` alone cannot answer "what is this function's ABI").
+        assert!(!signature_fact.object.contains("extern"));
+        assert!(!signature_fact.object.contains("pub"));
+
+        // The typed world retains everything, independently of `facts`.
+        let signature = find_function_signature(&census.typed_semantic_records);
+        assert_eq!(signature.abi.as_deref(), Some("C"));
+        assert_eq!(signature.visibility, "pub");
+
+        // Concretely: clearing `facts` (simulating "no compatibility projection exists") leaves
+        // `typed_semantic_records` completely untouched -- it was never derived FROM `facts`.
+        let mut without_compatibility_projection = census.clone();
+        without_compatibility_projection.facts.clear();
+        without_compatibility_projection.facts_total = 0;
+        assert_eq!(
+            without_compatibility_projection.typed_semantic_records,
+            census.typed_semantic_records
+        );
+        assert!(
+            !without_compatibility_projection
+                .typed_semantic_records
+                .is_empty()
+        );
+    }
+
+    // --- typed_semantic_records de-duplicates by record_id, matching evidence/diagnostics --------
+
+    #[test]
+    fn typed_semantic_records_collapse_an_exact_record_id_repeat_across_batches() {
+        let (inventory, source, adl) = single_rust_file_context();
+        // The exact same observation (identical record_id) reported by two batches -- e.g. a
+        // legitimate re-observation via a shared extraction dependency -- must collapse to one
+        // entry, matching how `evidence`/`diagnostics` already de-duplicate by id.
+        let batches = [
+            extraction_batch_with_one_symbol("src/lib.rs"),
+            extraction_batch_with_one_symbol("src/lib.rs"),
+        ];
+
+        let census = build_census(&inventory, &source, &adl, &batches);
+        let symbol_records: Vec<_> = census
+            .typed_semantic_records
+            .iter()
+            .filter(|observation| matches!(observation, SemanticObservation::Symbol(_)))
+            .collect();
+        assert_eq!(
+            symbol_records.len(),
+            1,
+            "an exact record_id repeat across batches must not appear as a literal duplicate"
+        );
+
+        let normalization = crate::normalize::normalize(&census);
+        let normalized_symbol_records: Vec<_> = normalization
+            .typed_semantic_records
+            .iter()
+            .filter(|observation| matches!(observation, SemanticObservation::Symbol(_)))
+            .collect();
+        assert_eq!(normalized_symbol_records.len(), 1);
     }
 }

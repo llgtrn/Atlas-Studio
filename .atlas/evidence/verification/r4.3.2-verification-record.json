@@ -1,0 +1,146 @@
+{
+  "schema": "atlas.r4.verification-record.v1",
+  "wave": "R4.3.2",
+  "wave_title": "Preserve typed Rust semantic records losslessly through Census and normalization; demote SemanticFact to a derived compatibility projection",
+  "identity": {
+    "base_commit_sha": "c69cfdbc7b95650ff0d7651a210d8b0f9e3962c1",
+    "candidate_commit_sha": "fa529fb0511c1cce6fe7e10edd73d4de7a3097a7",
+    "branch": "claude/r4-semantic-materialization-jz2z44",
+    "commits_in_range": [
+      "e63d813491 refactor: move DiagnosticCode/ExtractionDiagnostic into core semantic kernel",
+      "201ab642e2 feat: evolve CensusReport/NormalizationReport to carry typed semantic records",
+      "716456f881 feat: attach diagnostic lineage to CensusExtractionAccounting",
+      "c5df1150f7 refactor: build_census retains typed observations losslessly, derives facts from them",
+      "2264e9f5b1 feat: make normalization typed-semantic aware (N0)",
+      "dfcce5ebb5 chore: bump SystemizeReport schema, update fixtures for new report fields",
+      "fa529fb051 fix: de-duplicate typed_semantic_records by record_id, matching its doc claim"
+    ],
+    "note": "base_commit_sha == the merge commit for PR #9 (R4.3.1). This wave branches from canonical main at that exact point. The branch name claude/r4-semantic-materialization-jz2z44 is the harness's fixed designated branch for this repository/task pair and was reused across multiple prior waves whose PRs were already merged into main; per operator instruction it was restarted from fresh origin/main (git checkout -B <name> origin/main) rather than stacked on the stale, already-merged R4.2 history it previously pointed at."
+  },
+  "toolchain": {
+    "pinned_by": "rust-toolchain.toml",
+    "channel": "1.90.0",
+    "rustc": "rustc 1.90.0 (1159e78c4 2025-09-14)",
+    "cargo": "cargo 1.90.0 (840b83a10 2025-07-30)",
+    "matches_ci_pin": true
+  },
+  "working_tree_clean": true,
+  "git_diff_check_exit": 0,
+  "cargo_lock_status": {
+    "diff_vs_base": "empty -- byte-identical to c69cfdbc7b's Cargo.lock",
+    "intentional": true,
+    "reason": "This wave adds no new dependencies; it only evolves existing core/runtime types and construction logic."
+  },
+  "ci_status": "UNAVAILABLE_INFRASTRUCTURE",
+  "ci_status_detail": "GitHub Actions assigns no runner at all, reproducing identically on main across every prior R4 wave (R4.1 through R4.3.1 evidence records document the same root cause). Not a test/code failure; excluded from correctness verification per operator instruction.",
+  "diff_summary": {
+    "range": "c69cfdbc7b..fa529fb051",
+    "files_changed": 10,
+    "insertions": 621,
+    "deletions": 88,
+    "changed_files": [
+      "adapter/src/semantic/extractor.rs",
+      "core/src/graph/engineering_graph.rs",
+      "core/src/lib.rs",
+      "core/src/schema/mod.rs",
+      "core/src/semantic/diagnostic.rs",
+      "core/src/semantic/mod.rs",
+      "runtime/src/census/extraction.rs",
+      "runtime/src/census/mod.rs",
+      "runtime/src/lib.rs",
+      "runtime/src/normalize/mod.rs"
+    ]
+  },
+  "architectural_defect_fixed": {
+    "lossy_path_before": "build_census() folded every ExtractionBatch's typed SemanticObservation records (SemanticObservation::Symbol/Type/FunctionIdentity/FunctionSignature, each a full SemanticRecordHeader<Subject> with record_id/dimension/status/subject/scope/repository/revision/extractor/evidence_refs/provenance) directly into a lossy generic SemanticFact{subject,predicate,object} triple via semantic_observation_fact()/function_signature_summary(), then discarded the original typed record. function_signature_summary() never even included generics/abi/visibility/is_extern in its display string. No mechanism retained ExtractionDiagnostic objects -- only bare diagnostic-id strings survived via ObligationResult.diagnostics: Vec<String>, so a caller could not distinguish which DiagnosticCode (e.g. ParseFailure vs InvalidInput) caused a given UNKNOWN obligation once outside the transient ExtractionBatch.",
+    "typed_path_after": "CensusReport and NormalizationReport each gained three fields: typed_semantic_records: Vec<SemanticObservation>, evidence: Vec<Evidence>, diagnostics: Vec<ExtractionDiagnostic>. build_census() now folds every batch's observations/evidence/diagnostics into these fields first (deduped by record_id/id, deterministically sorted), and only THEN derives the compatibility SemanticFact projection by iterating the already-retained typed_semantic_records -- never independently from the raw batches -- so `facts` is provably downstream of, not a second independently-mutable copy of, the typed truth. normalize() carries all three fields through an N0 pass (normalize_typed_records/normalize_evidence/normalize_diagnostics: deterministic id-ordering plus exact-id dedup only, zero field mutation or restructuring) alongside the pre-existing string-canonicalizing logic for `facts`. CensusExtractionAccounting gained a diagnostics: BTreeMap<String, ExtractionDiagnostic> + diagnostic(&self, id) lookup so an obligation's diagnostic id resolves back to its real DiagnosticCode.",
+    "layering_change": "DiagnosticCode/ExtractionDiagnostic moved from adapter/src/semantic/extractor.rs into core/src/semantic/diagnostic.rs (pure typed data, no adapter mechanics), re-exported from adapter for zero-ripple compatibility -- this was required so CensusReport (a core type) could hold ExtractionDiagnostic without introducing a core -> adapter dependency. ObligationResult was deliberately left in adapter; its per-artifact/extractor attribution role is already served by the runtime-level CensusExtractionAccounting, avoiding two independently-mutable structures for the same obligation-ledger concept.",
+    "empirical_proof_against_this_repository": {
+      "self_census_counts": "typed_semantic_records=2294, evidence=2396, diagnostics=8, facts_total=2930 (post-fix; observed alongside 3 sibling agent-worktree checkouts incidentally present under .claude/worktrees/ at scan time, so this count is not directly comparable run-to-run and is reported only to demonstrate non-trivial real population, not as a precise regression baseline)",
+      "coding_admission": "allowed=true, blockers=[]",
+      "normalization_losslessness": "normalization.typed_semantic_records/evidence/diagnostics counts equal census's exactly (2294/2396/8)"
+    }
+  },
+  "verification_passes": [
+    {
+      "pass": "primary",
+      "performed_by": "this session, in-place checkout, clean target/ rebuild, pinned rustc 1.90.0",
+      "commands": {
+        "git status --porcelain": { "result": "clean" },
+        "git diff --check": { "exit_code": 0 },
+        "cargo fmt --all --check": { "exit_code": 0 },
+        "cargo clippy --workspace --all-targets -- -D warnings": { "exit_code": 0, "warnings": 0 },
+        "cargo test --workspace --locked": {
+          "exit_code": 0,
+          "totals": "107 passed, 0 failed, 0 ignored (49 adapter, 26 core, 32 runtime)",
+          "new_tests": [
+            "function_signature_round_trips_losslessly_through_census_and_normalization",
+            "identity_and_attribution_fields_survive_census_and_normalization",
+            "evidence_lineage_survives_census_and_normalization",
+            "diagnostic_lineage_distinguishes_parse_failure_from_read_failure_after_build_census",
+            "removing_the_compatibility_fact_projection_would_not_erase_typed_semantic_truth",
+            "typed_semantic_records_collapse_an_exact_record_id_repeat_across_batches"
+          ]
+        },
+        "cargo test --workspace --doc --locked": { "exit_code": 0, "doctests": 0 },
+        "cargo run -q -p atlas-cli -- docs audit --root .atlas": { "exit_code": 0, "gate_ready": true },
+        "cargo run -q -p atlas-cli -- systemize --root . --out <tmp>": {
+          "exit_code": 0,
+          "coding_admission_allowed": true,
+          "coding_admission_blockers": [],
+          "census_typed_semantic_records": 2294,
+          "census_evidence": 2396,
+          "census_diagnostics": 8,
+          "census_facts_total": 2930,
+          "normalization_typed_semantic_records": 2294,
+          "graph_nodes_total": 3048,
+          "graph_facts_total": 2978
+        }
+      }
+    },
+    {
+      "pass": "independent",
+      "performed_by": "fresh subagent, isolated git worktree, no shared context, first checked candidate dfcce5ebb5aa46b5f1bd173be72a0b78ad2cf15a (all commits except the final dedup fix)",
+      "commit_confirmed_exact_match": true,
+      "commands_all_exit_0": true,
+      "test_totals_at_checked_commit": "49 adapter + 26 core + 31 runtime = 106 passed, 0 failed (the 6th test, typed_semantic_records_collapse_an_exact_record_id_repeat_across_batches, did not exist yet at this commit; it was added afterward in direct response to this pass's finding)",
+      "docs_gate": "gate_ready=true",
+      "cargo_lock_reconfirmation": "git diff -- Cargo.lock over the full range produced zero lines",
+      "falsification_test": "Commented out `typed_semantic_records.extend(batch.observations.iter().cloned());` in build_census; 5 of the 6 (at that commit, 5 total) new/dependent tests failed, including the pre-existing R4.3.1 test real_extraction_observations_reach_census_before_normalization, confirming the tests genuinely exercise the production fix rather than being vacuous. Change was reverted immediately; working tree confirmed clean afterward.",
+      "systemize_reconfirmation": "coding_admission={allowed:true, blockers:[]}; census.typed_semantic_records == normalization.typed_semantic_records verified as exact list equality via parsed JSON, confirming normalization is genuinely lossless in practice, not only by claim",
+      "code_review_findings": {
+        "diff_fidelity": "VERIFIED -- every structural claim (field additions, derivation-not-independent-computation of facts, DiagnosticCode/ExtractionDiagnostic relocation to core with adapter re-export, CensusExtractionAccounting.diagnostic() lookup, N0 sort-only normalization, deliberately untouched engineering_graph.rs) checked against the actual diff and matches",
+        "contract_alignment": "VERIFIED -- SEMANTIC-FACTS.md's Bootstrap compatibility rule (kind/status typed, provenance preserved, losslessly mappable, no undocumented free-form predicates, graph remains derived) is satisfied, and this wave resolves that rule's stated precondition (\"until typed records are materialized in core/\"). NORMALIZATION.md's non-authority rules and N0-bootstrap-pass language are honored -- normalize_typed_records/evidence/diagnostics perform stable sort only, no restructuring.",
+        "scope_note_not_a_violation": "The engineering graph is explicitly and admittedly still built from the lossy `.facts` projection, not from typed_semantic_records -- deliberately out of scope for this wave per its commit message; the losslessness claim holds through NormalizationReport, not yet through graph projection (matches CENSUS-COMPLETENESS.md/decision-0001's allowance that the graph is a downstream projection this milestone does not need to change).",
+        "discrepancy_found_and_fixed": "CensusReport's doc comment claimed typed_semantic_records is de-duplicated by id where a record legitimately repeats across batches (matching evidence/diagnostics, which dedup via BTreeMap), but the implementation at the checked commit only sorted the Vec -- no dedup_by call existed, so an exact record_id repeat across batches would have survived as a literal duplicate entry, contradicting the doc comment. This was a real doc/implementation gap, not exercised by any test at that commit. Fixed in the immediately following commit (fa529fb051): dedup_by(record_id) added after the sort in both build_census and normalize_typed_records, plus a new regression test (typed_semantic_records_collapse_an_exact_record_id_repeat_across_batches) proving two batches reporting the identical observation collapse to one entry through census and normalization. Re-verified after the fix in the primary pass above: 107/107 passing, clippy/fmt clean."
+      },
+      "verdict": "VERIFIED (with one finding, subsequently fixed and re-verified in the primary pass)"
+    }
+  ],
+  "no_tests_lints_gates_disabled": true,
+  "no_verify_bypass_used": false,
+  "overall_verdict": "VERIFIED",
+  "runtime_invariants_established": [
+    "Every SemanticObservation a SemanticExtractor produces is retained, with full structural fidelity (all FunctionSignature/TypeIdentity/SymbolIdentity/FunctionIdentity fields, identity, scope, repository, revision, extractor id+version, evidence refs, provenance), in CensusReport.typed_semantic_records and NormalizationReport.typed_semantic_records -- never collapsed into a display string before those fields are populated.",
+    "Every Evidence and ExtractionDiagnostic a batch reports is retained in CensusReport.evidence/diagnostics and NormalizationReport.evidence/diagnostics, deduplicated by id and deterministically ordered, so an observation's evidence_refs and an obligation's diagnostic id remain resolvable to full objects after build_census/normalize -- including distinguishing a parse failure from a read failure that both report EpistemicStatus::Unknown.",
+    "The bootstrap SemanticFact envelope (`facts`) is now provably a derived compatibility projection of typed_semantic_records, constructed by iterating that already-retained collection, never independently from raw batches -- removing `facts` entirely would lose only display convenience, never semantic content, for any fact with a richer typed kernel record.",
+    "typed_semantic_records/evidence/diagnostics de-duplicate by id/record_id consistently across all three fields, matching their doc contracts and preventing literal duplicate entries when the same record legitimately repeats across batches.",
+    "No compiler-resolved canonical type identity is ever fabricated: TypeIdentity.canonical stays None for source-level-only spelling, verified both by a dedicated round-trip test and by the independent pass's repository-wide grep for `canonical: Some` finding only the pre-existing unrelated test fixture."
+  ],
+  "contract_clauses_satisfied": [
+    ".atlas/contracts/SEMANTIC-FACTS.md#bootstrap-compatibility-rule (kind/status typed, provenance preserved, losslessly mappable to typed FactKind, no undocumented free-form predicates, graph/ATLAS projections remain derived -- and its stated precondition, \"until typed records are materialized in core/\", is now resolved by this wave)",
+    ".atlas/contracts/SEMANTIC-FACTS.md#function-representation (FunctionIdentity and FunctionSignature's full facet lists -- parameters/order/types, return type, generics, ABI/calling convention, visibility, async form, safety qualifiers -- now survive as typed records, not display-string summaries)",
+    ".atlas/contracts/NORMALIZATION.md (\"the current R4 bootstrap normalization is intentionally lossless and may perform zero deduplication until these rules are implemented\" / \"N0 bootstrap pass ... valid because it is lossless and status-preserving\": normalize_typed_records/evidence/diagnostics do exactly this -- deterministic ordering plus exact-id collapse, no restructuring, no promotion/demotion of EpistemicStatus)",
+    ".atlas/decisions/0001-one-normalized-semantic-path.md (Inventory -> SemanticExtractor -> Census -> Normalize -> Reconcile -> Graph remains one path; the engineering graph is unchanged this wave and still consumes only NormalizationReport.facts, so no new bypass was introduced)",
+    ".atlas/contracts/SEMANTIC-EXTRACTION.md#r4-acceptance-matrix (\"SemanticFact remains a compatibility envelope, not the only semantic type system\": now literally enforced -- typed_semantic_records is the canonical carrier and facts is derived from it in the same function)"
+  ],
+  "still_unsupported": [
+    "The engineering graph still projects only from NormalizationReport.facts (the compatibility projection), not from typed_semantic_records directly -- losslessness is established through Census and Normalization, not yet through graph projection. Deliberately out of scope for this milestone (architectural preservation, not graph rework).",
+    "CALL/CONTROL_FLOW/DATA_FLOW/STATE/EFFECT/OWNERSHIP/CONCURRENCY/PERSISTENCE -- no extraction exists for these dimensions yet (R4.4+); this wave did not add any (explicit scope exclusion).",
+    "Compiler-backed name resolution / TypeIdentity.canonical resolution, rustc/HIR/MIR/trait-solving/macro-expansion/cross-crate resolution, call graph, CFG, dataflow -- none added or required this wave; TypeIdentity.canonical remains None everywhere except the pre-existing unrelated test fixture.",
+    "Normalization identity resolution/equivalence-class formation/exact-semantic dedup rules from NORMALIZATION.md beyond id-based dedup -- still N0 (sort + exact-id collapse only); full stable-identity/equivalence semantics are future R4 work, not claimed here.",
+    "Reconciliation of disagreeing extractor results across batches -- explicitly deferred; this wave only ensures every observation (agreeing or disagreeing) reaches the canonical, lossless typed record set, not that disagreement is resolved.",
+    "R4.4/R4.5 semantic expansion itself -- deliberately not started this wave, per explicit instruction."
+  ],
+  "acceptance_statement": "Atlas Studio now preserves the currently-real Rust semantic records losslessly through Census and typed normalization; the generic SemanticFact envelope is only a compatibility projection and is no longer the authoritative semantic carrier."
+}

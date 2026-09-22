@@ -42,10 +42,11 @@ pub use schema::{
     SystemizeReport,
 };
 pub use semantic::{
-    CallSiteIdentity, ControlFlowBlockIdentity, EffectCategory, EffectIdentity, ExtractorIdentity,
-    FunctionIdentity, FunctionParameter, FunctionSignature, SemanticDimension, SemanticObservation,
-    SemanticRecordHeader, SemanticRecordId, SemanticScope, StateIdentity, SymbolIdentity,
-    SymbolRole, TypeIdentity, ValueIdentity,
+    CallSiteIdentity, ControlFlowBlockIdentity, DiagnosticCode, EffectCategory, EffectIdentity,
+    ExtractionDiagnostic, ExtractorIdentity, FunctionIdentity, FunctionParameter,
+    FunctionSignature, SemanticDimension, SemanticObservation, SemanticRecordHeader,
+    SemanticRecordId, SemanticScope, StateIdentity, SymbolIdentity, SymbolRole, TypeIdentity,
+    ValueIdentity,
 };
 pub use state::RepositorySnapshot;
 pub use temporal::RevisionRef;
