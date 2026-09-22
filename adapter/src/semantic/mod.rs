@@ -4,12 +4,15 @@
 //! -> Normalize -> Reconcile -> Graph/ATLAS projection`
 //! (`.atlas/decisions/0001-one-normalized-semantic-path.md`). This module owns the boundary and
 //! its accounting model only; it performs no deep Rust (or any other language) semantic analysis
-//! — that is R4.3+. It has no dependency on `atlas_core::graph`: an extractor cannot mutate the
+//! — that is R4.3+. It never imports the engineering-graph module: an extractor cannot mutate the
 //! engineering graph directly.
 
 pub mod batch;
 pub mod extractor;
 pub mod registry;
+
+#[cfg(test)]
+mod boundary_tests;
 
 pub use batch::{ExtractionBatch, ObligationResult};
 pub use extractor::{DiagnosticCode, ExtractionDiagnostic, ExtractionInput, SemanticExtractor};

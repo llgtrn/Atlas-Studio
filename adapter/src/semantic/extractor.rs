@@ -5,8 +5,8 @@
 //! boundary; neither owns canonical truth (`.atlas/decisions/0001-one-normalized-semantic-path.md`).
 //! Extraction converts a pinned admitted artifact into typed raw observations and explicit
 //! obligation accounting. It does not normalize identities globally, reconcile conflicts, invent
-//! facts, or write the engineering graph directly — this module has no dependency on
-//! `atlas_core::graph` at all.
+//! facts, or write the engineering graph directly — this module never imports the
+//! engineering-graph module at all.
 
 use atlas_core::{ArtifactId, ContentFingerprint, ExtractorIdentity, RepositoryId, RevisionRef};
 use serde::{Deserialize, Serialize};
