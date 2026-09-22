@@ -547,12 +547,54 @@ fn add_typed_semantic_nodes(
                     &header.provenance,
                 );
             }
-            // Not yet materialized by any extractor (R4.4+); no graph logic to add here until
+            // R4.5: one lightweight CallSite node per Call observation, plus a MAKES_CALL edge
+            // from the caller's FunctionIdentity node. Never an edge to a callee: every
+            // `CallSiteIdentity` produced this wave has `dispatch == Unresolved` and empty
+            // `callees` (see `core/src/semantic/call.rs`), so there is nothing to point at yet.
+            // The caller's node id is derived the same way `FunctionIdentity`'s own node id is
+            // derived above (`function-identity:<record_id>`), so the edge resolves correctly
+            // whether or not that FunctionIdentity observation is present in this same batch.
+            SemanticObservation::Call(header) => {
+                let call_site_id =
+                    stable_id("node", &format!("call-site:{}", header.record_id.as_str()));
+                ensure_node(
+                    graph,
+                    call_site_id.clone(),
+                    "CallSite".into(),
+                    format!(
+                        "{}:{}:{}",
+                        header.subject.span.path,
+                        header.subject.span.line,
+                        header.subject.span.column
+                    ),
+                    BTreeMap::from([
+                        ("origin".into(), "semantic-extraction".into()),
+                        ("dispatch".into(), header.subject.dispatch.as_str().into()),
+                    ]),
+                    &header.provenance,
+                );
+                let caller_node_id = stable_id(
+                    "node",
+                    &format!("function-identity:{}", header.subject.function.as_str()),
+                );
+                graph.edges.push(Edge {
+                    id: stable_id(
+                        "edge",
+                        &format!("{caller_node_id}:MAKES_CALL:{call_site_id}"),
+                    ),
+                    kind: "MAKES_CALL".into(),
+                    from: caller_node_id,
+                    to: call_site_id,
+                    attributes: BTreeMap::from([("origin".into(), "semantic-extraction".into())]),
+                    provenance: header.provenance.clone(),
+                    revision: header.provenance.source_revision.clone(),
+                });
+            }
+            // Not yet materialized by any extractor (R4.6+); no graph logic to add here until
             // they become real observations. Matched explicitly, never via `_ => {}`, so adding a
             // new dimension's extractor without updating this function fails to compile instead
             // of silently producing no graph nodes.
-            SemanticObservation::Call(_)
-            | SemanticObservation::ControlFlow(_)
+            SemanticObservation::ControlFlow(_)
             | SemanticObservation::DataFlow(_)
             | SemanticObservation::State(_)
             | SemanticObservation::Effect(_) => {}
@@ -889,6 +931,53 @@ mod tests {
         }))
     }
 
+    /// R4.5: a Call observation whose `function` (caller) is the record_id of
+    /// `function_identity_observation(owner_name)`'s `FunctionIdentity`, so the two can be
+    /// combined in one batch to exercise the MAKES_CALL edge.
+    fn call_observation(caller: &crate::semantic::SemanticRecordId) -> SemanticObservation {
+        use crate::identity::RepositoryId;
+        use crate::provenance::provenance;
+        use crate::semantic::{
+            CallDispatchKind, CallSiteIdentity, ExtractorIdentity, SemanticDimension,
+            SemanticRecordHeader, SemanticRecordId, SemanticScope,
+        };
+        use crate::temporal::RevisionRef;
+
+        let repository = RepositoryId::new("atlas-studio");
+        let revision = RevisionRef {
+            kind: "git".into(),
+            value: "abc123".into(),
+        };
+        let subject = CallSiteIdentity {
+            repository: repository.clone(),
+            revision: revision.clone(),
+            function: caller.clone(),
+            span: crate::language::adl::SourceSpan {
+                path: "src/lib.rs".into(),
+                line: 5,
+                column: 4,
+            },
+            dispatch: CallDispatchKind::Unresolved,
+            callees: Vec::new(),
+        };
+        let record_id = SemanticRecordId::new(SemanticDimension::Call, &subject.identity_key());
+        SemanticObservation::Call(SemanticRecordHeader {
+            record_id,
+            dimension: SemanticDimension::Call,
+            status: EpistemicStatus::Observed,
+            subject,
+            scope: SemanticScope::new(["impl:owner"]),
+            repository,
+            revision,
+            extractor: ExtractorIdentity {
+                id: "atlas.test".into(),
+                version: "0.1.0".into(),
+            },
+            evidence_refs: Vec::new(),
+            provenance: provenance("src/lib.rs", "atlas.test"),
+        })
+    }
+
     fn normalization_with(
         typed_semantic_records: Vec<crate::semantic::SemanticObservation>,
         facts: Vec<SemanticFact>,
@@ -1030,5 +1119,79 @@ mod tests {
         assert_eq!(graph_without.nodes, graph_with.nodes);
         assert_eq!(graph_without.edges, graph_with.edges);
         assert_eq!(graph_without.bindings, graph_with.bindings);
+    }
+
+    // --- R4.5: CALL observations produce a CallSite node and a MAKES_CALL edge -------------------
+
+    #[test]
+    fn call_observation_produces_a_call_site_node_and_makes_call_edge() {
+        let caller = function_identity_observation("Foo");
+        let caller_record_id = caller.record_id().clone();
+        let call = call_observation(&caller_record_id);
+
+        let normalization = normalization_with(vec![caller, call], Vec::new());
+        let graph = build_system_graph(&source(), &docs(), &normalization);
+
+        let call_site = graph
+            .nodes
+            .iter()
+            .find(|node| node.kind == "CallSite")
+            .expect("a CallSite node must exist for the Call observation");
+
+        let caller_node_id = stable_id(
+            "node",
+            &format!("function-identity:{}", caller_record_id.as_str()),
+        );
+        let edge = graph
+            .edges
+            .iter()
+            .find(|edge| edge.kind == "MAKES_CALL")
+            .expect("a MAKES_CALL edge must exist");
+        assert_eq!(edge.from, caller_node_id);
+        assert_eq!(edge.to, call_site.id);
+        assert_eq!(
+            call_site.attributes.get("dispatch").map(String::as_str),
+            Some("UNRESOLVED")
+        );
+    }
+
+    #[test]
+    fn call_site_node_id_is_derived_from_the_caller_even_without_its_own_function_identity_observation()
+     {
+        // The graph must resolve a caller's node id the same way whether or not that caller's own
+        // FunctionIdentity observation is present in this exact batch (e.g. a requested-dimension
+        // subset that includes CALL but not FUNCTION_IDENTITY).
+        let caller = function_identity_observation("Foo");
+        let caller_record_id = caller.record_id().clone();
+        let call = call_observation(&caller_record_id);
+
+        let with_caller = normalization_with(vec![caller.clone(), call.clone()], Vec::new());
+        let without_caller = normalization_with(vec![call], Vec::new());
+
+        let graph_with = build_system_graph(&source(), &docs(), &with_caller);
+        let graph_without = build_system_graph(&source(), &docs(), &without_caller);
+
+        let edge_with = graph_with
+            .edges
+            .iter()
+            .find(|edge| edge.kind == "MAKES_CALL")
+            .expect("MAKES_CALL edge with caller present");
+        let edge_without = graph_without
+            .edges
+            .iter()
+            .find(|edge| edge.kind == "MAKES_CALL")
+            .expect("MAKES_CALL edge with caller absent");
+        assert_eq!(edge_with.from, edge_without.from);
+    }
+
+    #[test]
+    fn no_call_edge_ever_targets_a_callee_this_wave() {
+        // Every Call observation this wave carries an empty `callees` list -- the graph must never
+        // synthesize a callee edge from thin air.
+        let caller = function_identity_observation("Foo");
+        let call = call_observation(&caller.record_id().clone());
+        let normalization = normalization_with(vec![caller, call], Vec::new());
+        let graph = build_system_graph(&source(), &docs(), &normalization);
+        assert!(graph.edges.iter().all(|edge| edge.kind != "CALLS"));
     }
 }
