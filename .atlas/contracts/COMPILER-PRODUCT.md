@@ -8,7 +8,7 @@ canonical: true
 
 Atlas compilation transforms one validated canonical AtlasX root into a verified physical product while preserving graph, temporal, evidence, authority and target-specific invariants.
 
-The normative compiler-stage semantics and lowering boundaries are defined by `COMPILER-IR-PIPELINE.md`. This product contract defines the end-to-end product obligation; it does not permit implementation-specific reinterpretation of HIR/MIR/LIR/Machine IR.
+The normative compiler-stage semantics and lowering boundaries are defined by `COMPILER-IR-PIPELINE.md`; the minimum v1 logical record/op schemas are defined by `COMPILER-IR-SCHEMAS.md`. This product contract defines the end-to-end product obligation; it does not permit implementation-specific reinterpretation of HIR/MIR/LIR/Machine IR.
 
 ## General product pipeline
 
