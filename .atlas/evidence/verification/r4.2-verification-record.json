@@ -1,0 +1,113 @@
+{
+  "schema": "atlas.r4.verification-record.v1",
+  "wave": "R4.2",
+  "wave_title": "Semantic Extractor Boundary",
+  "candidate_commit_sha": "be8cbbeb57f68542ee2a7bcb2af5e0e45ae3a949",
+  "tree_sha": "be8cbbeb57f68542ee2a7bcb2af5e0e45ae3a949",
+  "base_sha": "0fa8da866be548206ba9d8fcbac20c9bcd279812",
+  "branch": "claude/r4-semantic-materialization-jz2z44",
+  "recorded_at": "2026-09-22T05:10:00Z",
+  "toolchain": {
+    "pinned_by": "rust-toolchain.toml",
+    "channel": "1.90.0",
+    "rustc": "rustc 1.90.0 (1159e78c4 2025-09-14)",
+    "cargo": "cargo 1.90.0 (840b83a10 2025-07-30)",
+    "matches_ci_pin": true
+  },
+  "working_tree_clean": true,
+  "git_diff_check_exit": 0,
+  "cargo_lock_status": {
+    "diff_vs_base": "exactly one added line: \"serde\" under the adapter package's dependencies",
+    "intentional": true,
+    "reason": "adapter/src/semantic/* introduces typed data contracts (ExtractionInput/ExtractionBatch/etc.) that derive Serialize/Deserialize directly, not just transitively through core"
+  },
+  "ci_status": "UNAVAILABLE_INFRASTRUCTURE",
+  "ci_status_detail": "GitHub Actions assigns no runner at all (fails in single-digit seconds, runner_id: 0, no retrievable logs), reproducing identically on main across many prior commits. Not a test/code failure; excluded from correctness verification per operator instruction. Same root cause documented in the R4.1 VerificationRecord.",
+  "verification_passes": [
+    {
+      "pass": "primary",
+      "performed_by": "this session, in-place checkout, clean target/ rebuild, pinned rustc 1.90.0",
+      "commands": {
+        "git status --porcelain": { "result": "clean" },
+        "git diff --check": { "exit_code": 0 },
+        "cargo fmt --all --check": { "exit_code": 0 },
+        "cargo clippy --workspace --all-targets -- -D warnings": { "exit_code": 0, "warnings": 0 },
+        "cargo test --workspace --locked": {
+          "exit_code": 0,
+          "totals": "45 passed, 0 failed, 0 ignored (19 adapter incl. 12 in semantic::boundary_tests, 23 core, 3 runtime)"
+        },
+        "cargo test --workspace --doc --locked": { "exit_code": 0, "doctests": 0 },
+        "cargo run -q -p atlas-cli -- docs audit --root .atlas": {
+          "exit_code": 0,
+          "gate_ready": true,
+          "hard_violations_total": 0,
+          "required_control_docs_missing": []
+        }
+      }
+    },
+    {
+      "pass": "independent",
+      "performed_by": "fresh subagent, isolated git worktree (/tmp/independent-verify-r42), no shared context",
+      "commit_confirmed_exact_match": true,
+      "commands": {
+        "git status --porcelain": { "result": "clean" },
+        "git diff --check": { "exit_code": 0 },
+        "cargo fmt --all --check": { "exit_code": 0 },
+        "cargo clippy --workspace --all-targets -- -D warnings": { "exit_code": 0 },
+        "cargo test --workspace --locked": {
+          "exit_code": 0,
+          "totals": "19 adapter + 23 core + 3 runtime passed, 0 failed, 0 ignored"
+        },
+        "cargo test --workspace --doc --locked": { "exit_code": 0, "doctests": 0 },
+        "cargo run -q -p atlas-cli -- docs audit --root .atlas": {
+          "exit_code": 0,
+          "gate_ready": true,
+          "hard_violations_total": 0
+        }
+      },
+      "diff_review": {
+        "range": "0fa8da866b..be8cbbeb57",
+        "ci_or_workflow_files_touched": false,
+        "bypass_markers_found": "none (#[ignore], --no-verify, skip/disable-test patterns: zero matches)",
+        "changed_files": [
+          "Cargo.lock",
+          "adapter/Cargo.toml",
+          "adapter/src/lib.rs",
+          "adapter/src/semantic/batch.rs",
+          "adapter/src/semantic/boundary_tests.rs",
+          "adapter/src/semantic/extractor.rs",
+          "adapter/src/semantic/mod.rs",
+          "adapter/src/semantic/registry.rs",
+          "core/src/lib.rs",
+          "core/src/semantic/mod.rs",
+          "core/src/semantic/observation.rs",
+          "runtime/src/census/extraction.rs",
+          "runtime/src/census/mod.rs"
+        ],
+        "graph_dependency_check": "grepped adapter/src/semantic/{mod,extractor,batch,registry}.rs (production files, excluding the test file) for EngineeringGraph / atlas_core::graph: zero matches. The only occurrences of those literal strings anywhere under adapter/src/semantic/ are inside boundary_tests.rs's own self-checking test (extractor_boundary_has_no_graph_dependency), which passed.",
+        "epistemic_status_reuse_check": "ObligationResult.status (adapter/src/semantic/batch.rs) is typed EpistemicStatus, the single canonical enum defined at core/src/schema/mod.rs -- no duplicate status enum introduced. Confirmed by dedicated passing test obligation_status_is_the_canonical_epistemic_status_type.",
+        "boundary_test_count_check": "boundary_tests.rs contains exactly 12 #[test] functions; all 12 appear by name in the passing test output, none failed or skipped."
+      },
+      "verdict": "VERIFIED"
+    }
+  ],
+  "no_tests_lints_gates_disabled": true,
+  "no_verify_bypass_used": false,
+  "overall_verdict": "VERIFIED",
+  "contract_clauses_satisfied": [
+    ".atlas/contracts/SEMANTIC-EXTRACTION.md#semanticextractor (trait materialized: id/version/supported_languages/supported_dimensions/extract)",
+    ".atlas/contracts/SEMANTIC-EXTRACTION.md#extractioninput (revision-pinned, deterministic, no mutable global/UI/wall-clock/random state)",
+    ".atlas/contracts/SEMANTIC-EXTRACTION.md#extractionbatch (typed observations + evidence + obligation results + diagnostics + input fingerprint)",
+    ".atlas/contracts/SEMANTIC-EXTRACTION.md#obligation-result (every requested dimension explicitly accounted; UNKNOWN != UNSUPPORTED, both proven by dedicated tests)",
+    ".atlas/contracts/SEMANTIC-EXTRACTION.md#failure-semantics (8 minimum diagnostic causes typed as DiagnosticCode; failure never removes a dimension from accounting)",
+    ".atlas/contracts/SEMANTIC-FACTS.md#bootstrap-compatibility-rule (SemanticObservation carries typed R4.1 kernel records; SemanticFact triple envelope not reintroduced in the extraction path)",
+    ".atlas/decisions/0001-one-normalized-semantic-path.md (extractor has no dependency on atlas_core::graph; census can consume ExtractionBatch via merge_batch_into_coverage without a second semantic path)",
+    ".atlas/contracts/CENSUS-COMPLETENESS.md (FUNCTION_IDENTITY, FUNCTION_SIGNATURE, OWNERSHIP, CONCURRENCY, PERSISTENCE added to census coverage, closing the named gap)"
+  ],
+  "still_unsupported": [
+    "No real Rust (or any language) deep semantic analyzer -- R4.3+",
+    "ExtractionBatch not wired into build_census's main production call graph (merge_batch_into_coverage exists, tested, and is the real attach point, but is not yet called from systemize()'s default path)",
+    "OwnershipFact/ConcurrencyFact/PersistenceFact identity kernels remain unmaterialized (R4.10); their obligations are accounted as UNSUPPORTED with zero observations",
+    "EvidenceKind remains an untyped String on the bootstrap Evidence struct (values set to canonical vocabulary strings, e.g. SOURCE_TEXT, but the field type itself is not yet a typed enum)"
+  ]
+}
