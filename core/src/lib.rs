@@ -43,7 +43,7 @@ pub use schema::{
 };
 pub use semantic::{
     CallSiteIdentity, ControlFlowBlockIdentity, EffectCategory, EffectIdentity, ExtractorIdentity,
-    FunctionIdentity, FunctionParameter, FunctionSignature, SemanticDimension,
+    FunctionIdentity, FunctionParameter, FunctionSignature, SemanticDimension, SemanticObservation,
     SemanticRecordHeader, SemanticRecordId, SemanticScope, StateIdentity, SymbolIdentity,
     SymbolRole, TypeIdentity, ValueIdentity,
 };
