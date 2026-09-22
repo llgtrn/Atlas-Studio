@@ -111,10 +111,11 @@ Primary donor lane: W5 plus admitted external provider adapters.
 
 ### R8 — real ATLAS and AtlasX
 
-Implement the durable binary Atlas substrate after the selected implementation has already been synthesized/censused/validated: logical seal, provider-independent lossless semantic compaction, content addressing, integrity, transactional publication, sharding, deterministic SelectedDesign→AtlasX materialization, validated AtlasX object closure and lineage needed for census-derived knowledge to survive physical donor-source deletion at scale.
+Implement the durable binary Atlas substrate after the selected implementation has already been synthesized/censused/validated: logical seal, provider-independent lossless semantic compaction, content addressing, integrity, transactional publication, sharding, deterministic SelectedDesign→selected-system closure, recursive transitive dependency/runtime/resource/build closure, AtlasX wire-v2 single-file capsule publication, and lineage needed for census-derived knowledge to survive physical donor-source deletion at scale.
 
 Normative R8 contracts include:
 
+- `../contracts/ARTIFACT-LAYERING.md`;
 - `../contracts/ATLAS-SEMANTIC-COMPACTION.md`;
 - `../contracts/ATLAS-BINARY-WIRE-FORMAT.md`;
 - `../contracts/ATLAS-SHARDING.md`;
@@ -148,7 +149,7 @@ ADL and Studio are not intended to become conventional human-only editors with a
 The target experience is:
 
 ~~~text
-Human intent / conversation / ADL / Studio
+Human intent / conversation / natural-language-first ADL / Studio
         ↓
 Genome + security + target constraint envelope
         ↓
@@ -171,6 +172,10 @@ authorized SelectedDesign
 SEALED logical Atlas
         ↓
 mechanical deterministic compaction
+        ↓
+*.atlas binary
+        ↓
+closed-world AtlasX closure when a system capsule is required
 ~~~
 
 Search/research may feel like a research assistant; fast typed selection may use a Jev-class provider; code synthesis may use frontier external providers. These are replaceable adapters and do not own canonical semantics.
@@ -213,10 +218,13 @@ Before model training ambitions:
 - lifecycle/birth/suspend/retire/recovery;
 - species templates as reusable constraints, not product silos.
 
-## Phase 1 — deterministic AtlasX + delegated compiler
+## Phase 1 — deterministic AtlasX closure + delegated compiler
 
-- general `*.atlas → *.atlasx/`;
-- digital-organism AtlasX profile;
+- general `*.atlas → selected-system closure → *.atlasx binary capsule`;
+- recursive transitive dependency/runtime/resource/build closure by capsule profile;
+- AtlasX wire-v2 single-file pack/verify/unpack tooling;
+- legacy AtlasX wire-v1 directory/object migration reader only;
+- digital-organism AtlasX capsule profile;
 - Rust backend / TypeScript frontend / bounded C boundary lowering;
 - phenotype repository/product generation;
 - compile/test/benchmark/recensus and product lineage.
