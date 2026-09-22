@@ -5,7 +5,7 @@
 
 pub mod extraction;
 
-pub use extraction::merge_batch_into_coverage;
+pub use extraction::{CensusExtractionAccounting, ExtractorObligationRecord};
 
 use atlas_core::{
     AdlCompileReport, ArtifactDisposition, CensusReport, EpistemicStatus, InventoryReport,
