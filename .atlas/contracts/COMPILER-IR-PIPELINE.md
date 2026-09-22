@@ -10,6 +10,8 @@ canonical: true
 
 This contract defines the semantic responsibilities and lowering boundaries from validated ATLASX to physical product.
 
+The minimum canonical logical record/op schemas for HIR, MIR, LIR and Machine IR v1 are defined by `COMPILER-IR-SCHEMAS.md`.
+
 It exists to prevent compiler implementations from inventing incompatible meanings for HIR, MIR, LIR or Machine IR.
 
 The canonical native pipeline is:
@@ -79,7 +81,7 @@ Optimization is invalid if any required invariant is lost.
 
 ## Stage principle
 
-Every stage has one responsibility level.
+Every stage has one responsibility level. Stage implementations MUST map losslessly to the corresponding v1 schema in `COMPILER-IR-SCHEMAS.md` unless an explicit later schema revision has been selected.
 
 ~~~text
 AtlasX
