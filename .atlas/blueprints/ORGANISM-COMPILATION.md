@@ -23,7 +23,7 @@ organism species/trait/genome synthesis
               ↓
 selected organism design
               ↓
-*.atlasx/ [target_kind = digital_organism]
+*.atlasx binary capsule [target_kind = digital_organism]
               ↓
 Atlas compiler
               ↓
