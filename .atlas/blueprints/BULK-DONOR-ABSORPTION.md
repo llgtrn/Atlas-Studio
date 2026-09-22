@@ -21,7 +21,9 @@ pin SHA + license + provenance
       ↓
 coarse census all donors
       ↓
-capability/dependency graph
+resolve direct + transitive dependency closure
+      ↓
+capability/dependency graph across expanded corpus
       ↓
 deep census selected lane
       ↓
@@ -97,4 +99,6 @@ Stage together:
 - rui314/mold
 - apache/arrow
 
-They are not all deep-censused at once. Coarse census all; deep work follows roadmap dependencies.
+They are not all deep-censused at once. Coarse census all, including dependency closure for admitted contexts; deep work follows roadmap dependencies.
+
+Top-level repository membership never limits census. Source-backed transitive dependencies are recursively inventoried/censused under `../contracts/DEPENDENCY-CENSUS.md`, while non-source/system/toolchain/service boundaries remain explicit terminal nodes.

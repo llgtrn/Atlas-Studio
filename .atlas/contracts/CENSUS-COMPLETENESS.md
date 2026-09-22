@@ -8,14 +8,18 @@ canonical: true
 
 Atlas census is proof-producing accounting, not best-effort repository summarization.
 
-For a pinned corpus, repository revision and Genome, every admitted artifact and every discovered executable scope MUST be accounted for. Atlas may report UNKNOWN or UNSUPPORTED, but it may not silently omit.
+For a pinned corpus, repository revision, admitted dependency-resolution contexts and Genome, every admitted artifact, every discovered executable scope and every active direct/transitive dependency edge MUST be accounted for. Atlas may report UNKNOWN or UNSUPPORTED, but it may not silently omit.
+
+Repository boundaries do not bound census completeness. The normative transitive dependency rules are defined by `DEPENDENCY-CENSUS.md`.
 
 ## Closure pipeline
 
 ```text
-corpus inventory
+root corpus inventory
   ↓
-artifact classification
+dependency resolution + transitive closure
+  ↓
+expanded corpus inventory / artifact classification
   ↓
 syntax / build / dependency passes
   ↓
@@ -33,6 +37,14 @@ CensusCertificate
   ↓
 SEALED *.atlas eligibility
 ```
+
+## Dependency closure
+
+For every admitted build/runtime context Atlas resolves the dependency graph to transitive closure. Every active direct/transitive edge is typed and every resolved dependency instance is either source-backed and admitted to inventory/census, or terminates at an explicit binary/toolchain/system/service/external boundary.
+
+A manifest or lockfile is evidence for closure; it is not closure by itself. Build-time, generated, proc-macro, native/FFI, plugin and dynamic dependencies must be accounted or explicitly unresolved.
+
+Atlas Studio self-census follows exactly the same rule. Atlas cannot claim CLOSED/SEALED self-census while its own active dependency graph contains silent external nodes.
 
 ## Inventory closure
 
@@ -93,6 +105,7 @@ A logical Atlas may be sealed only when required closure classes satisfy policy:
 
 ```text
 Inventory
+∧ Dependency Closure
 ∧ Parse/Accounting
 ∧ Semantic Obligations
 ∧ Binding
@@ -108,7 +121,7 @@ Critical scopes may require UNKNOWN = 0.
 
 The normative contract is `CENSUS-CERTIFICATE.md` and the machine schema is `../schemas/census-certificate.schema.json`.
 
-Every sealed root records at least corpus identity, revision set, Genome hash, inventory totals, accounted totals, semantic coverage, unresolved/unsupported artifacts, dynamic edges, binding gaps, conflicts, fixed-point iteration count, independent-pass agreement and Atlas root hash.
+Every sealed root records at least corpus identity, revision set, Genome hash, inventory totals, dependency node/edge/context totals and closure state, accounted totals, semantic coverage, unresolved/unsupported artifacts, dynamic edges, binding gaps, conflicts, fixed-point iteration count, independent-pass agreement and Atlas root hash.
 
 States:
 

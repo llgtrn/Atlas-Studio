@@ -9,8 +9,8 @@ canonical: true
 ## Responsibilities
 
 - `core/` owns global identity, scope, universal graph primitives, state/event/temporal semantics, bindings, evidence/provenance, claim status, constraints/invariants, Atlas Genome semantics, Organism Genome semantics, ATLAS/ATLASX contracts and compiler IR types.
-- `runtime/` owns secure admission, exhaustive census accounting, reconciliation/fixed-point closure, corpus/design construction, invention, organism-genome synthesis, ATLAS publication, AtlasX materialization, compiler passes, optimization, verification, profiling, recensus and incremental invalidation.
-- `adapter/` owns Git/filesystem/parsers/compiler metadata/storage/provider/model API/self-hosted inference/research/benchmark/OS/toolchain/hardware/environment mechanics. Adapters never become semantic authority.
+- `runtime/` owns secure admission, exhaustive census accounting, transitive dependency closure orchestration, reconciliation/fixed-point closure, corpus/design construction, invention, organism-genome synthesis, ATLAS publication, AtlasX materialization, compiler passes, optimization, verification, profiling, recensus and incremental invalidation.
+- `adapter/` owns Git/filesystem/parsers/package-manager/build-system/compiler metadata/storage/provider/model API/self-hosted inference/research/benchmark/OS/toolchain/hardware/environment mechanics. Adapters never become semantic authority.
 - `apps/studio/` owns TypeScript/TSX projections only. UI state is not engineering truth.
 - `.atlas/` owns authored control knowledge, Genome sources/contracts, architecture, provenance/license references and durable evidence.
 - `.atlas/artifacts/` owns durable compiled Genome/Atlas/product manifests as implemented.
@@ -21,12 +21,16 @@ Atlas has separate observation and research ingress paths.
 
 ```text
 OBSERVATION PATH
-pinned repositories @ exact revisions
+pinned root repositories @ exact revisions
 build metadata / tests / runtime traces / binary metadata
         ↓
 secure admission
         ↓
-inventory ledger
+root inventory ledger
+        ↓
+transitive dependency resolution / closure
+        ↓
+expanded federated inventory
         ↓
 multi-engine census
         ↓
@@ -126,6 +130,8 @@ Organism targets add typed primitives for persistent organism identity, Organism
 External LLM/model providers and self-hosted models are interchangeable capability providers only where the Organism Genome declares compatible semantics. Provider sessions never own organism identity or durable memory.
 
 ## Census architecture
+
+Census starts from a root corpus but expands through the transitive dependency graph for every admitted resolution context. Source-backed dependencies become federated census scopes; binary/toolchain/system/service dependencies become explicit terminal boundaries. The same mechanism is used for Atlas self-census and as a general Atlas feature. See `../contracts/DEPENDENCY-CENSUS.md`.
 
 Every admitted artifact is accounted for. Every discovered function/method is represented. Adaptive census controls semantic depth, not existence. Independent extractors may disagree; conflict triggers deeper census.
 

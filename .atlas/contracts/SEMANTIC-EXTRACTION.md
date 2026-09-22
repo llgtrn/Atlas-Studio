@@ -85,7 +85,25 @@ CONCURRENCY
 PERSISTENCE
 ~~~
 
-Build/dependency metadata may come from dedicated extractors but enters the same census path.
+Build/dependency metadata may come from dedicated resolvers/extractors but enters the same census path. Dependency extraction MUST satisfy `DEPENDENCY-CENSUS.md`: root-manifest parsing alone is insufficient; resolution is contextual and transitively closed.
+
+## Dependency extraction boundary
+
+A package/build ecosystem adapter may discover dependency declarations and resolution evidence, but it does not own dependency truth.
+
+Conceptually:
+
+~~~text
+DependencyResolver
+├─ id/version
+├─ supported ecosystems/build systems
+├─ resolve(root, resolution_context)
+└─ → typed dependency nodes + edges + diagnostics + evidence
+~~~
+
+Resolved dependency records enter Census before normalization/reconciliation. Independent sources such as manifests, lockfiles, package-manager metadata, compiler metadata, binary linkage and runtime traces may disagree; such disagreements remain explicit reconciliation obligations.
+
+Source-backed dependency nodes are recursively admitted to inventory/census until dependency fixed point. Non-source nodes terminate only through explicit typed boundary disposition.
 
 ## Obligation result
 

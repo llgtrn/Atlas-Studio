@@ -7,15 +7,20 @@ absorbed_is_extinct = false
 extinct_requires_source_path_absent = true
 extinct_forbids_atlas_controlled_source_archive_cache_snapshot = true
 reference_oracle_with_local_source_is_extinct = false
+dependency_census_policy = "TRANSITIVE_CLOSURE_REQUIRED"
+dependency_census_applies_to = ["ATLAS_SELF", "DONORS", "ALL_ADMITTED_CORPORA"]
+dependency_context_matrix_required = true
+source_backed_dependency_census_required = true
+opaque_dependency_must_be_explicit_terminal = true
 
 [[wave]]
 id = "W0"
 name = "corpus-accounting"
 order = 0
 scope = "ALL_ADMITTED_DONORS"
-mode = "COARSE_CENSUS"
-goal = "pin provenance and map repository/language/module/build/dependency/capability topology for every admitted donor"
-exit = "all admitted donors explicitly accounted"
+mode = "COARSE_CENSUS_WITH_TRANSITIVE_DEPENDENCY_CLOSURE"
+goal = "pin provenance and map repository/language/module/build/dependency/capability topology through direct and transitive dependencies for every admitted donor"
+exit = "all admitted donors and all active dependency edges in admitted contexts explicitly accounted"
 
 [[wave]]
 id = "W1"
@@ -83,6 +88,7 @@ atlas_targets = ["apps/studio"]
 
 [extinction_gate]
 required = [
+  "transitive_dependency_closure_accounted",
   "technology_genome_durable",
   "provenance_and_license_durable",
   "atlas_native_replacement_exists",

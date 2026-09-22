@@ -60,7 +60,9 @@ DeepWiki can tell Atlas where to look and can explain mechanisms or trade-offs. 
 
 ```text
 Secure Admission
-→ Inventory Ledger
+→ Root Inventory Ledger
+→ Dependency Resolution + Transitive Closure
+→ Expanded Federated Inventory
 → Structural Frontends
 → Semantic Frontends
 → Normalized Typed Fact Graph
@@ -114,6 +116,7 @@ The former `core/model` bootstrap bucket is extinct; its running types are owned
 runtime/src/
 ├─ admission/
 ├─ inventory/
+├─ dependency/
 ├─ census/
 ├─ normalize/
 ├─ reconcile/
@@ -138,6 +141,7 @@ adapter/src/
 ├─ filesystem/
 ├─ vcs/
 ├─ source/
+├─ dependency/
 ├─ build/
 ├─ binary/
 ├─ exchange/
@@ -170,6 +174,23 @@ apps/
 ```
 
 Editor buffers, rendered graph positions, browser state and UI caches are projections, never canonical engineering truth.
+
+## Dependency census is first-class
+
+Dependency discovery is not a package-list side feature. Atlas resolves admitted build/runtime contexts transitively and represents the result in the universal graph.
+
+~~~text
+root scope
+→ direct dependency edges
+→ transitive dependency edges
+→ source-backed scopes / explicit terminal boundaries
+→ dependency fixed point
+→ ordinary census
+~~~
+
+This capability applies identically to Atlas itself, donor repositories and user/project corpora. Package managers, lockfiles and build tools are adapter evidence sources; canonical dependency identity/edges live in Atlas semantics. SBOM/license/security/build views are projections over the same dependency graph.
+
+See `../contracts/DEPENDENCY-CENSUS.md`.
 
 ## Inventory is stronger than scanning
 
@@ -255,7 +276,9 @@ These lanes are absorption routes, not permanent subsystem names.
 
 ```text
 typed identity/schema
-→ exhaustive inventory ledger
+→ exhaustive root inventory ledger
+→ transitive dependency closure
+→ expanded federated inventory
 → structural census
 → semantic normalization
 → incremental query + fixed point

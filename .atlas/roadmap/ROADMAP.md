@@ -10,7 +10,9 @@ canonical: true
 
 - Genome loader/validator/hash in Rust;
 - universal graph/binding/state/event/temporal/evidence primitives;
-- exhaustive inventory and Rust self-census;
+- exhaustive root inventory and transitive dependency closure;
+- Atlas self-census across its own full admitted dependency contexts, not only Atlas-owned source;
+- first-class dependency census usable for arbitrary admitted projects/donors;
 - every discovered function represented;
 - CFG/call/data/state/effect extraction and explicit dynamic/unknown records;
 - reconciliation, adversarial gaps, fixed point and CensusCertificate;

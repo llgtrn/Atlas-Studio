@@ -52,6 +52,17 @@ fixed_point_required_for_seal = true
 census_certificate_required_for_seal = true
 critical_scope_unknown_zero_when_policy_requires = true
 global_local_atomic_plan_required = true
+transitive_dependency_closure_required = true
+dependency_census_required_for_atlas_self = true
+dependency_census_required_for_all_admitted_corpora = true
+dependency_resolution_context_required = true
+dependency_context_matrix_required = true
+every_active_dependency_edge_accounted = true
+source_backed_dependency_enters_census = true
+non_source_dependency_explicit_terminal_required = true
+lockfile_alone_is_not_dependency_closure = true
+build_dynamic_dependency_accounting_required = true
+dependency_fixed_point_required_for_closure = true
 scope_lattice = [
   "federation", "repository", "system_domain", "package_crate_app", "module",
   "file", "type_trait_interface_component", "function_method",
@@ -319,6 +330,7 @@ secret_persistence_requires_explicit_policy = true
 bulk_staging_preferred_for_approved_bounded_set = true
 temporary_root_is_workbench_not_vendor_directory = true
 coarse_census_all_before_deep_lane = true
+transitive_dependency_closure_required = true
 deep_census_follows_dependency_graph = true
 mechanical_translation_forbidden = true
 incremental_extinction_required = true

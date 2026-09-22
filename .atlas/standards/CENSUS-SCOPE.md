@@ -26,9 +26,19 @@ S10 Semantic atom
 
 Every admitted artifact and every discovered S7 function/method is accounted for. Adaptive zoom decides how far below S7 to lower, except critical scopes where Genome may force S10 closure.
 
+The scope lattice is not confined to one repository. Dependency closure can expand one S1/S3 scope into additional repository/package scopes recursively. Those dependency scopes remain sovereign identities in the same S0 federation and are linked by typed dependency edges.
+
 ## Semantic atom examples
 
 CALL, LOAD, STORE, READ_STATE, WRITE_STATE, TRANSITION, EMIT_EVENT, AUTH_CHECK, BORROW, MOVE, COPY, ALLOC, FREE, LOCK, UNLOCK, ATOMIC, PERSIST, NETWORK_SEND, FFI_CALL, BRANCH, PANIC and RETURN.
+
+## Dependency expansion
+
+Before a root scope can close, Atlas applies `../contracts/DEPENDENCY-CENSUS.md` for every admitted resolution context.
+
+Direct and transitive runtime, build, dev/test, proc-macro/codegen, toolchain, native/system, dynamic/plugin and external capability dependencies are explicit. Source-backed dependencies enter the same scope lattice; opaque/external boundaries receive explicit terminal records.
+
+Semantic depth may adapt inside a dependency, but dependency existence and edge accounting may not.
 
 ## Mandatory lenses
 

@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "urn:atlas:schema:census-certificate:v1",
-  "title": "Atlas CensusCertificate v1",
+  "$id": "urn:atlas:schema:census-certificate:v2",
+  "title": "Atlas CensusCertificate v2",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -11,6 +11,7 @@
     "corpus",
     "genome",
     "inventory",
+    "dependency",
     "semantic",
     "normalization",
     "reconciliation",
@@ -21,49 +22,93 @@
   ],
   "properties": {
     "schema": {
-      "const": "atlas.census-certificate.v1"
+      "const": "atlas.census-certificate.v2"
     },
     "certificate_id": {
       "type": "string",
       "minLength": 1
     },
     "state": {
-      "enum": ["DRAFT", "CENSUSED", "RECONCILED", "CLOSED", "SEALED"]
+      "enum": [
+        "DRAFT",
+        "CENSUSED",
+        "RECONCILED",
+        "CLOSED",
+        "SEALED"
+      ]
     },
     "corpus": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["corpus_id", "root_hash", "revisions"],
+      "required": [
+        "corpus_id",
+        "root_hash",
+        "revisions"
+      ],
       "properties": {
-        "corpus_id": {"type": "string", "minLength": 1},
-        "root_hash": {"type": "string", "minLength": 1},
+        "corpus_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "root_hash": {
+          "type": "string",
+          "minLength": 1
+        },
         "revisions": {
           "type": "object",
           "minProperties": 1,
-          "additionalProperties": {"type": "string", "minLength": 1}
+          "additionalProperties": {
+            "type": "string",
+            "minLength": 1
+          }
         }
       }
     },
     "genome": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["schema", "hash"],
+      "required": [
+        "schema",
+        "hash"
+      ],
       "properties": {
-        "schema": {"type": "string", "minLength": 1},
-        "hash": {"type": "string", "minLength": 1}
+        "schema": {
+          "type": "string",
+          "minLength": 1
+        },
+        "hash": {
+          "type": "string",
+          "minLength": 1
+        }
       }
     },
     "inventory": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["artifacts_total", "artifacts_accounted_total", "closed", "dispositions"],
+      "required": [
+        "artifacts_total",
+        "artifacts_accounted_total",
+        "closed",
+        "dispositions"
+      ],
       "properties": {
-        "artifacts_total": {"type": "integer", "minimum": 0},
-        "artifacts_accounted_total": {"type": "integer", "minimum": 0},
-        "closed": {"type": "boolean"},
+        "artifacts_total": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "artifacts_accounted_total": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "closed": {
+          "type": "boolean"
+        },
         "dispositions": {
           "type": "object",
-          "additionalProperties": {"type": "integer", "minimum": 0}
+          "additionalProperties": {
+            "type": "integer",
+            "minimum": 0
+          }
         }
       }
     },
@@ -83,9 +128,18 @@
         "binding_gaps_total"
       ],
       "properties": {
-        "facts_total": {"type": "integer", "minimum": 0},
-        "obligations_total": {"type": "integer", "minimum": 0},
-        "obligations_accounted_total": {"type": "integer", "minimum": 0},
+        "facts_total": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "obligations_total": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "obligations_accounted_total": {
+          "type": "integer",
+          "minimum": 0
+        },
         "coverage": {
           "type": "object",
           "additionalProperties": {
@@ -102,12 +156,30 @@
             ]
           }
         },
-        "unknown_total": {"type": "integer", "minimum": 0},
-        "unsupported_total": {"type": "integer", "minimum": 0},
-        "ignored_total": {"type": "integer", "minimum": 0},
-        "conflict_total": {"type": "integer", "minimum": 0},
-        "dynamic_edges_total": {"type": "integer", "minimum": 0},
-        "binding_gaps_total": {"type": "integer", "minimum": 0}
+        "unknown_total": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "unsupported_total": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "ignored_total": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "conflict_total": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "dynamic_edges_total": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "binding_gaps_total": {
+          "type": "integer",
+          "minimum": 0
+        }
       }
     },
     "normalization": {
@@ -122,95 +194,265 @@
         "provenance_complete"
       ],
       "properties": {
-        "input_records_total": {"type": "integer", "minimum": 0},
-        "normalized_records_total": {"type": "integer", "minimum": 0},
-        "exact_duplicates_merged": {"type": "integer", "minimum": 0},
-        "equivalence_classes_total": {"type": "integer", "minimum": 0},
-        "conflict_candidates_total": {"type": "integer", "minimum": 0},
-        "provenance_complete": {"type": "boolean"},
-        "root_hash": {"type": ["string", "null"]}
+        "input_records_total": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "normalized_records_total": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "exact_duplicates_merged": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "equivalence_classes_total": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "conflict_candidates_total": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "provenance_complete": {
+          "type": "boolean"
+        },
+        "root_hash": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
       }
     },
     "reconciliation": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["complete", "unresolved_conflicts_total"],
+      "required": [
+        "complete",
+        "unresolved_conflicts_total"
+      ],
       "properties": {
-        "complete": {"type": "boolean"},
-        "unresolved_conflicts_total": {"type": "integer", "minimum": 0}
+        "complete": {
+          "type": "boolean"
+        },
+        "unresolved_conflicts_total": {
+          "type": "integer",
+          "minimum": 0
+        }
       }
     },
     "fixed_point": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["iterations", "converged", "delta_at_exit"],
+      "required": [
+        "iterations",
+        "converged",
+        "delta_at_exit"
+      ],
       "properties": {
-        "iterations": {"type": "integer", "minimum": 0},
-        "converged": {"type": "boolean"},
-        "delta_at_exit": {"type": "integer", "minimum": 0}
+        "iterations": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "converged": {
+          "type": "boolean"
+        },
+        "delta_at_exit": {
+          "type": "integer",
+          "minimum": 0
+        }
       }
     },
     "independent_passes": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["passes_total", "agreement", "conflicts_total"],
+      "required": [
+        "passes_total",
+        "agreement",
+        "conflicts_total"
+      ],
       "properties": {
-        "passes_total": {"type": "integer", "minimum": 0},
-        "agreement": {"enum": ["EXACT", "PARTIAL", "CONFLICT", "NOT_APPLICABLE"]},
-        "conflicts_total": {"type": "integer", "minimum": 0}
+        "passes_total": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "agreement": {
+          "enum": [
+            "EXACT",
+            "PARTIAL",
+            "CONFLICT",
+            "NOT_APPLICABLE"
+          ]
+        },
+        "conflicts_total": {
+          "type": "integer",
+          "minimum": 0
+        }
       }
     },
     "evidence": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["root_hash", "provenance_complete"],
+      "required": [
+        "root_hash",
+        "provenance_complete"
+      ],
       "properties": {
-        "root_hash": {"type": "string", "minLength": 1},
-        "provenance_complete": {"type": "boolean"}
+        "root_hash": {
+          "type": "string",
+          "minLength": 1
+        },
+        "provenance_complete": {
+          "type": "boolean"
+        }
       }
     },
     "atlas": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "root_hash": {"type": ["string", "null"]}
+        "root_hash": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
       }
     },
     "blockers": {
       "type": "array",
-      "items": {"type": "string", "minLength": 1},
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
       "uniqueItems": true
+    },
+    "dependency": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "contexts_total",
+        "nodes_total",
+        "edges_total",
+        "source_backed_total",
+        "source_censused_total",
+        "terminal_boundary_total",
+        "unresolved_total",
+        "fixed_point_converged",
+        "closed"
+      ],
+      "properties": {
+        "contexts_total": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "nodes_total": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "edges_total": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "source_backed_total": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "source_censused_total": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "terminal_boundary_total": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "unresolved_total": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "fixed_point_converged": {
+          "type": "boolean"
+        },
+        "closed": {
+          "type": "boolean"
+        },
+        "root_hash": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
     }
   },
   "allOf": [
     {
       "if": {
-        "properties": {"state": {"const": "SEALED"}},
-        "required": ["state"]
+        "properties": {
+          "state": {
+            "const": "SEALED"
+          }
+        },
+        "required": [
+          "state"
+        ]
       },
       "then": {
-        "required": ["atlas"],
+        "required": [
+          "atlas"
+        ],
         "properties": {
           "inventory": {
-            "properties": {"closed": {"const": true}}
+            "properties": {
+              "closed": {
+                "const": true
+              }
+            }
           },
           "normalization": {
-            "properties": {"provenance_complete": {"const": true}}
+            "properties": {
+              "provenance_complete": {
+                "const": true
+              }
+            }
           },
           "reconciliation": {
-            "properties": {"complete": {"const": true}}
+            "properties": {
+              "complete": {
+                "const": true
+              }
+            }
           },
           "fixed_point": {
             "properties": {
-              "converged": {"const": true},
-              "delta_at_exit": {"const": 0}
+              "converged": {
+                "const": true
+              },
+              "delta_at_exit": {
+                "const": 0
+              }
             }
           },
           "evidence": {
-            "properties": {"provenance_complete": {"const": true}}
+            "properties": {
+              "provenance_complete": {
+                "const": true
+              }
+            }
           },
           "blockers": {
             "maxItems": 0
+          },
+          "dependency": {
+            "properties": {
+              "fixed_point_converged": {
+                "const": true
+              },
+              "closed": {
+                "const": true
+              }
+            }
           }
         }
       }

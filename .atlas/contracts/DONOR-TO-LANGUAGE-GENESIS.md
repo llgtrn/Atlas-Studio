@@ -21,9 +21,11 @@ pin exact revision + license + provenance
       ↓
 coarse census
       ↓
+transitive dependency closure
+      ↓
 capability/dependency graph
       ↓
-deep semantic census of selected mechanisms
+deep semantic census of selected mechanisms and their provider scopes
       ↓
 Technology Genome
       ↓
@@ -51,6 +53,14 @@ donor scope EXTINCT
 ```
 
 Skipping directly from donor syntax/API to an ADL feature is forbidden.
+
+## Dependency attribution
+
+Donor mechanisms MUST be attributed through the transitive dependency graph defined by `DEPENDENCY-CENSUS.md`.
+
+If an apparent donor capability is implemented by a dependency, the Technology Genome cites that dependency as provider evidence. Atlas may not flatten a dependency-provided mechanism into the top-level donor merely for convenience.
+
+A dependency only becomes an absorption donor after explicit donor admission. Census accounting and donor admission are separate decisions.
 
 ## Technology Genome
 

@@ -45,6 +45,14 @@ A donor retained locally as an explicit oracle/reference is not extinct.
 
 Historical Git objects are outside this active-tree deletion rule unless a separate history-scrubbing policy is adopted.
 
+## Dependency closure rule
+
+Every donor is censused through its resolved dependency closure under `../contracts/DEPENDENCY-CENSUS.md`.
+
+The top-level donor repository is not assumed to own every mechanism observed in its behavior. Atlas follows dependency edges transitively, inventories/censuses source-backed dependency nodes, and attributes mechanisms to the actual provider scope.
+
+A transitive dependency may be promoted into the donor registry only when Atlas explicitly decides to absorb technology from it. Until then it remains a fully accounted dependency-census node.
+
 ## Recursion rule
 
 Every semantic capability wave closes this loop:
@@ -83,7 +91,8 @@ Goals:
 
 - exact revision/license/provenance pinned;
 - cheap whole-repository inventory;
-- repository/language/module/build/dependency/capability map;
+- full direct + transitive dependency closure for admitted contexts;
+- repository/language/module/build/dependency/capability map across the expanded dependency corpus;
 - source regions mapped to Atlas capabilities;
 - no donor silently omitted.
 
@@ -264,6 +273,7 @@ Before a scope can transition from ABSORBED to EXTINCT, the verification record 
 
 - the exact absorbed donor/revision/scope;
 - the Technology Genome/evidence/native replacement that supersedes it;
+- complete census accounting for the donor's relevant transitive dependency closure;
 - zero runtime/build/test dependency on the donor source for that scope;
 - deletion of the donor source files from the active Atlas-controlled donor path;
 - absence of substitute local source archives/caches/snapshots/vendor copies;

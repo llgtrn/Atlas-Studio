@@ -40,6 +40,7 @@ A certificate identifies:
 - certificate identity;
 - corpus identity and corpus root hash;
 - exact repository revision set;
+- admitted dependency-resolution context set;
 - exact Genome schema/hash;
 - evidence/provenance root;
 - normalized semantic root when available;
@@ -55,6 +56,24 @@ The certificate records:
 - whether accounting is closed.
 
 SEALED requires admitted total = accounted total.
+
+## Dependency closure accounting
+
+The certificate records, across all admitted resolution contexts:
+
+- resolution context total;
+- resolved dependency node total;
+- dependency edge total;
+- source-backed dependency total;
+- source-backed dependency nodes inventoried/censused;
+- explicit non-source terminal total;
+- unresolved dependency total;
+- whether dependency closure reached fixed point;
+- deterministic dependency closure root/hash when available.
+
+A dependency node is not omitted because it is outside the root repository.
+
+SEALED requires dependency closure to be closed. Policy may allow explicit UNKNOWN/UNSUPPORTED terminal states, but silent unresolved dependency edges are forbidden.
 
 ## Semantic accounting
 
@@ -112,6 +131,7 @@ At minimum:
 
 ~~~text
 inventory_closed
+AND dependency_closure_closed
 AND semantic_obligations_accounted
 AND normalization_closed
 AND reconciliation_complete
