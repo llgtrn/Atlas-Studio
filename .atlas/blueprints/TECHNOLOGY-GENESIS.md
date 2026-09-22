@@ -22,6 +22,8 @@ Discover -> pin provenance -> graphinize each donor -> extract Technology Genome
 
 Donors inform design but do not define canonical target semantics. Transpilers and AI outputs remain candidates.
 
+For language/compiler capabilities, the required bridge from donor evidence to an Atlas-native primitive is the Technology Genome defined by `../contracts/DONOR-TO-LANGUAGE-GENESIS.md`. Atlas learns mechanisms and invariants before choosing surface syntax or implementation.
+
 ## State
 
 Donor source/provenance is reference evidence. Native target implementation and tests live in the target repository.
@@ -37,3 +39,5 @@ Exact donor revisions/licenses, graph mappings, design rationale, differential f
 ## Verification
 
 A native claim requires no runtime linkage/import/process dependency on the donor technology and sufficient behavioral proof.
+
+An ADL-language claim additionally requires that the resulting primitive map into the universal typed semantic world and lower deterministically through `../contracts/ADL-TO-ATLAS.md`.
