@@ -1,0 +1,217 @@
+{
+  "schema": "atlas.r4.verification-record.v1",
+  "wave": "R4.8",
+  "wave_title": "State and Effect -- materialize the STATE and EFFECT dimensions (.atlas/contracts/SEMANTIC-FACTS.md#stateaccessfact, #effectfact; .atlas/roadmap/SELF-BUILDING-R4-R8.md R4.8): state identities; reads; writes; transitions; externally observable effects; filesystem/network/process/FFI/build/runtime interactions where applicable; failure effects; explicit unknown/dynamic behavior. This is the first R4 wave materializing two dimensions in one wave. STATE is narrowly scoped to single-level `self.<field>` read/write, reusing R4.6/R4.7's key insight (which entity a bare `self.field` touches is syntax-determined). EFFECT is narrowly scoped to Panic, detected by macro name alone -- every other EffectCategory would require resolving an overloaded call to a specific known API, which this extractor cannot do from syntax alone without fabricating compiler-resolved semantics.",
+  "identity": {
+    "base_commit_sha": "f76573cb575bab6ba69021410cba1401afe26242",
+    "candidate_commit_sha": "b08e027139",
+    "branch": "claude/r4-semantic-materialization-jz2z44",
+    "commits_in_range": [
+      "6b64a6054e feat(core): R4.8 State/Effect access kernels (StateAccessKind, EffectCategory scope)",
+      "2bf8912879 feat(adapter): real self.field access and Panic-effect detection for Rust",
+      "596e71afe7 test(adapter): STATE/EFFECT correctness corpus and R4.8 dimension-list updates",
+      "7e98fe1864 feat(core,runtime): project STATE/EFFECT observations into the engineering graph",
+      "b08e027139 docs(adapter,core): document compound-assignment as a Read, not silently dropped"
+    ],
+    "note": "base_commit_sha == main's HEAD at wave start (the merge commit for PR #22, R4.7 Data Flow). The branch name claude/r4-semantic-materialization-jz2z44 is the harness's fixed designated branch for this repository/task pair, reused across waves; per operator instruction it was restarted from fresh origin/main rather than stacked on the already-merged PR #22 history it previously pointed at."
+  },
+  "toolchain": {
+    "pinned_by": "rust-toolchain.toml",
+    "channel": "1.90.0",
+    "rustc": "rustc 1.90.0 (1159e78c4 2025-09-14)",
+    "cargo": "cargo 1.90.0 (840b83a10 2025-07-30)",
+    "matches_ci_pin": true
+  },
+  "working_tree_clean": true,
+  "cargo_lock_status": {
+    "diff_vs_base": "empty -- byte-identical to f76573cb57's Cargo.lock",
+    "intentional": true,
+    "reason": "This wave adds no new dependencies; it only evolves existing core/adapter/runtime types, adds two new adapter submodules (state.rs, effect.rs), and extends the engineering-graph projection."
+  },
+  "ci_status": "UNAVAILABLE_INFRASTRUCTURE",
+  "ci_status_detail": "GitHub Actions assigns no runner at all (job dies in seconds; get_job_logs returns HTTP 404, no retrievable log content), reproducing identically on main across every prior R4 wave (R4.1 through R4.7 evidence records document the same root cause). One re-run was triggered on PR #24's failing check run (job 106815523530 -> re-run job 106815670380) and failed identically ~20 seconds later, confirming this is not a transient flake. A comment was posted on PR #24 recording the diagnosis before the re-run, per operator PR-babysitting policy. Not a test/code failure; excluded from correctness verification per operator instruction.",
+  "diff_summary": {
+    "range": "f76573cb57..b08e027139",
+    "files_changed": 13,
+    "insertions": 1720,
+    "deletions": 48,
+    "changed_files": [
+      "adapter/src/semantic/registry.rs",
+      "adapter/src/semantic/rust/effect.rs",
+      "adapter/src/semantic/rust/mod.rs",
+      "adapter/src/semantic/rust/state.rs",
+      "adapter/src/semantic/rust/tests.rs",
+      "core/src/graph/engineering_graph.rs",
+      "core/src/lib.rs",
+      "core/src/semantic/effect.rs",
+      "core/src/semantic/mod.rs",
+      "core/src/semantic/observation.rs",
+      "core/src/semantic/state.rs",
+      "runtime/src/census/extraction.rs",
+      "runtime/src/census/mod.rs"
+    ]
+  },
+  "state_model": {
+    "kernel": "core/src/semantic/state.rs: StateAccessKind (Read/Write/Transition/Create/Delete), StateResolution (Resolved/Unresolved), StateAccessIdentity { repository, revision, function, scope, name, span, kind, resolution } -- renamed/extended from the pre-existing minimal StateIdentity scaffold.",
+    "identity_key_design": "StateAccessIdentity::identity_key() covers repository/revision/function/scope/name/span/kind -- kind participates because a Read and a Write are different entity kinds even at an identical (function, entity, span) triple, mirroring R4.7's ValueRole precedent. resolution is deliberately excluded: a resolution fact about an already-identified access event. Confirmed both by a core-level unit test and by independent falsification (removing kind from the format string broke exactly identity_key_distinguishes_kind, and independently, the verification pass flagged that no adapter/graph-level test reinforces this beyond the one core unit test -- a real, minor coverage gap noted but not blocking since the invariant IS enforced, just at one layer).",
+    "scope_this_wave": "Only single-level self.<field> access is modeled -- self.a.b reports a Read of self.a only (independently hand-verified by the verification pass by tracing self_field_ident's recursion before reading the corresponding test). Module-level static/const reads/writes and any access not rooted at a bare self are not modeled -- would require a source-unit-wide declaration pre-pass this extractor does not yet perform. A compound assignment (self.field += 1) is recorded as an ordinary Read, never a Write -- syn represents it as Expr::Binary, not Expr::Assign (the same discovery R4.7's dataflow.rs already documents for local bindings); this specific consequence was found under-documented by the independent verification pass and fixed in commit b08e027139 with an added doc sentence and a regression test. Only Read/Write are ever emitted; Transition/Create/Delete are declared in the enum for a future wave but never produced, since distinguishing them from a plain access requires semantics beyond syntax.",
+    "extraction": "adapter/src/semantic/rust/state.rs (new file): StateWalker walks the full expression tree of a function/method body (not only tail/statement positions). self_field_ident recognizes exactly self.<ident> (Expr::Field whose base is a bare single-segment self path); the Expr::Assign arm special-cases a self.field LHS as a Write, falling through to the ordinary Read-producing walk for every other assignment shape.",
+    "graph_projection": "core/src/graph/engineering_graph.rs: the State arm creates one StateAccess node per observation (kind/resolution attributes) plus an unconditional HAS_ACCESS edge from the owning function's node, and a TARGETS edge to a StateEntity node whose id is derived from (scope, name) CONTENT rather than the observation's own record_id -- letting a Read and a Write of the same field (different record_ids, since kind is part of identity) converge on one StateEntity node. Independently hand-traced and confirmed correct by the verification pass before reading the corresponding test, and confirmed load-bearing by falsification (deriving the entity id from record_id instead broke exactly the convergence test)."
+  },
+  "effect_model": {
+    "kernel": "core/src/semantic/effect.rs: EffectCategory (11 variants) and EffectIdentity already existed from an earlier scaffold, fully shaped as a per-site record; only the module doc comment changed this wave, to declare the real scope.",
+    "scope_this_wave": "Only EffectCategory::Panic is materialized, detected by a panic-like macro's textual name alone (panic!/unreachable!/todo!/unimplemented!) -- the exact same detection R4.6's CFG builder already performs to route a Panic control-flow edge (independently confirmed byte-identical logic, reimplemented rather than shared, by the verification pass). Every other category would require resolving an overloaded method/function call to a specific known API (e.g. distinguishing std::fs::File::write from an unrelated user method of the same name), which this extractor cannot do without fabricating compiler-resolved semantics -- independently confirmed by grep that no other EffectCategory variant is ever constructed anywhere in effect.rs.",
+    "extraction": "adapter/src/semantic/rust/effect.rs (new file): EffectWalker walks the full expression tree (unlike the CFG builder, not limited to tail/statement positions -- a panic anywhere in a condition, guard, or nested call argument is a real effect site).",
+    "graph_projection": "core/src/graph/engineering_graph.rs: the Effect arm creates one Effect node per observation (category attribute) plus a PRODUCES_EFFECT edge from the owning function's node."
+  },
+  "bug_found_and_fixed_during_this_wave": {
+    "summary": "Not a logic bug -- the independent verification pass found that self.field += 1 (compound assignment) is silently classified as a Read (never a Write), which is correct per the module doc's literal wording (\"a plain name = .. assignment\" is the only case called a Write) but the specific compound-assignment consequence was not spelled out, so a reader could mistake it for an unhandled/silent gap rather than an explicit, evidenced one.",
+    "discovered_by": "independent verification pass, cross-checking every real self.field mutation in this repository's own compiled source (adapter/src/semantic/rust/cfg.rs:101's self.next_index += 1) against the self-systemize output and finding it recorded as READ, then tracing why.",
+    "severity_at_discovery": "documentation completeness gap only -- the behavior itself was already correct and intentional (matching R4.7's identical, already-documented Expr::Binary discovery for local bindings), not a correctness defect.",
+    "fix_commit": "b08e027139",
+    "fix_mechanism": "Added an explicit sentence to both core/src/semantic/state.rs's and adapter/src/semantic/rust/state.rs's module doc comments naming the exact behavior and its cause.",
+    "regression_coverage": "new fixture method Counter::compound_increment (self.value += 1;) + test compound_assignment_is_recorded_as_a_read_not_a_write: asserts exactly one access, kind Read, name \"value\"."
+  },
+  "pipeline_losslessness": {
+    "extractor_to_batch": "StateWalker/EffectWalker feed emit_access()/emit_panic() -> ExtractionContext.observations, so every ExtractionBatch.observations entry for STATE/EFFECT carries the full typed payload with evidence/provenance.",
+    "batch_to_census": "build_census() required zero code changes to carry State/Effect observations losslessly -- it operates generically over SemanticObservation, exactly as it did for every prior dimension.",
+    "census_to_normalization": "normalize()/normalize_typed_records() likewise required zero code changes; confirmed by dedicated runtime multi-extractor round-trip tests for both dimensions.",
+    "normalization_to_graph": "add_typed_semantic_nodes()'s State and Effect arms are the ones that DID require new code this wave (previously one combined no-op arm) -- StateAccess/StateEntity/HAS_ACCESS/TARGETS and Effect/PRODUCES_EFFECT, proven by six dedicated graph tests."
+  },
+  "multi_extractor_proof": {
+    "claim": "Two independent extractors reporting the identical State (or Effect) claim both survive Census and Normalization as two independent typed_semantic_records entries, sharing one record_id but distinct raw_observation_ids.",
+    "tests": [
+      "runtime::census::tests::same_state_access_claim_from_two_extractors_survives_census_and_normalization",
+      "runtime::census::tests::same_effect_claim_from_two_extractors_survives_census_and_normalization"
+    ]
+  },
+  "verification_passes": [
+    {
+      "pass": "primary",
+      "performed_by": "this session, in-place checkout, clean target/ rebuild (rm -rf target), pinned rustc 1.90.0",
+      "commands": {
+        "git status --porcelain": { "result": "clean" },
+        "cargo fmt --all --check": { "exit_code": 0 },
+        "cargo clippy --workspace --all-targets --locked -- -D warnings": { "exit_code": 0, "warnings": 0 },
+        "cargo build --workspace --locked": { "exit_code": 0, "note": "clean rebuild from rm -rf target" },
+        "cargo test --workspace --locked": {
+          "exit_code": 0,
+          "totals": "248 passed, 0 failed, 0 ignored (116 adapter, 87 core, 45 runtime, 0 atlas-cli unit tests)",
+          "new_tests_adapter_state_effect_corpus": [
+            "self_field_read_produces_a_state_read_observation",
+            "self_field_assignment_produces_a_write_not_a_read",
+            "read_modify_write_produces_a_write_and_two_distinct_reads",
+            "state_and_effect_coexist_without_interference",
+            "free_function_with_no_self_produces_no_state_observations",
+            "nested_field_chain_reports_only_the_outer_field_as_a_documented_gap",
+            "compound_assignment_is_recorded_as_a_read_not_a_write",
+            "state_and_effect_observations_satisfy_dimension_consistency",
+            "state_effect_corpus_extraction_is_deterministic",
+            "state_effect_corpus_is_unaffected_by_requested_dimension_order",
+            "repeated_extraction_yields_stable_state_and_effect_record_ids"
+          ],
+          "updated_tests_adapter": [
+            "semantic::registry::tests::rust_resolves_to_the_real_semantic_extractor (now expects STATE/EFFECT in supported_dimensions)",
+            "malformed_rust_produces_parse_failure_and_unknown_for_supported_dimensions (STATE/EFFECT added to the UNKNOWN-for-supported-dims loop)",
+            "unsupported_dimensions_are_always_explicit (STATE/EFFECT removed from UNSUPPORTED_DIMENSIONS, now 3 entries)",
+            "the_users_example_from_the_contract_note_extracts_as_documented (load_user's todo!() now asserted as a real Effect(Panic) observation)"
+          ],
+          "new_tests_core": [
+            "semantic::state::tests::identity_key_distinguishes_kind",
+            "semantic::state::tests::identity_key_distinguishes_name",
+            "semantic::state::tests::identity_key_distinguishes_owning_function",
+            "semantic::state::tests::identity_key_distinguishes_scope",
+            "semantic::state::tests::identity_key_distinguishes_span",
+            "semantic::state::tests::identity_key_is_unaffected_by_resolution",
+            "semantic::state::tests::kind_as_str_matches_the_screaming_snake_vocabulary",
+            "semantic::state::tests::resolution_as_str_matches_the_screaming_snake_vocabulary",
+            "graph::engineering_graph::tests::state_access_produces_a_node_and_a_has_access_edge_from_its_function",
+            "graph::engineering_graph::tests::two_accesses_of_the_same_field_converge_on_one_state_entity_node",
+            "graph::engineering_graph::tests::effect_produces_a_node_and_a_produces_effect_edge_from_its_function",
+            "graph::engineering_graph::tests::two_effects_from_the_same_function_produce_two_distinct_effect_nodes"
+          ],
+          "new_tests_runtime": [
+            "census::tests::same_state_access_claim_from_two_extractors_survives_census_and_normalization",
+            "census::tests::same_effect_claim_from_two_extractors_survives_census_and_normalization"
+          ],
+          "updated_tests_runtime": [
+            "census::extraction::multi_extractor_tests::a_real_rust_extractor_is_registered_supporting_exactly_the_r4_8_dimensions (renamed from ...r4_7_dimensions, now expects STATE/EFFECT)"
+          ]
+        },
+        "cargo test --workspace --doc --locked": { "exit_code": 0, "doctests": 0 },
+        "cargo run -q -p atlas-cli -- docs audit --root .atlas": { "exit_code": 0, "gate_ready": true, "hard_violations_total": 0 },
+        "cargo run -q -p atlas-cli -- systemize --root . --out <tmp>": {
+          "exit_code": 0,
+          "coding_admission_allowed": true,
+          "coding_admission_blockers": [],
+          "census_typed_semantic_records_total": 17710,
+          "typed_records_by_dimension": {
+            "CALL": 4470,
+            "CONTROL_FLOW": 1528,
+            "DATA_FLOW": 7983,
+            "EFFECT": 8,
+            "FUNCTION_IDENTITY": 596,
+            "FUNCTION_SIGNATURE": 596,
+            "STATE": 193,
+            "SYMBOL": 1376,
+            "TYPE": 960
+          },
+          "state_kind_distribution": { "READ": 193, "WRITE": 0 },
+          "state_resolution_distribution": { "RESOLVED": 193, "UNRESOLVED": 0 },
+          "effect_category_distribution": { "PANIC": 8 },
+          "grep_sanity_check": "0 real `self.field = ..` assignments exist in this repository's own compiled source (core/adapter/runtime/apps) -- the only 3 textual matches are inside tests.rs string-literal corpus fixtures, not compiled code -- fully consistent with the observed 0 WRITE / 193 READ split. Independently cross-checked by the verification pass, which additionally found the one real compound-assignment mutation in this repo's own source (cfg.rs:101's self.next_index += 1) correctly recorded as READ per the compound-assignment scope note. All 25 textual panic!/unreachable!/todo!/unimplemented! occurrences in the repo were reconciled against the 8 emitted Effect records: 8 real, 4 inside string-literal test fixtures, 4 comment-text mentions, 9 inside closures (correctly unattributed per the documented closure gap) -- 8+4+4+9=25, no discrepancy.",
+          "note": "Real, much larger self-census against Atlas-Studio's own current source: 193 real STATE and 8 real EFFECT records extracted from this repository's own Rust code, cross-validated against a manual grep of the actual source (not only hand-built test fixtures)."
+        }
+      }
+    },
+    {
+      "pass": "independent",
+      "performed_by": "fresh subagent, isolated git worktree, no shared context, candidate 7e98fe1864 (pre-doc-fix)",
+      "steps_all_pass": true,
+      "diff_confirmed_matches_description": "exactly 13 files, +1685/-48, no unrelated changes -- three files not explicitly named in the task brief (core/src/lib.rs, core/src/semantic/mod.rs, core/src/semantic/observation.rs) independently confirmed to be pure StateIdentity->StateAccessIdentity rename/re-export plumbing, not scope creep",
+      "commands_all_exit_0": "cargo fmt --all --check, cargo clippy --workspace --all-targets --locked -- -D warnings, cargo test --workspace --locked (247/247 at the time), cargo test --workspace --doc --locked (0 doctests)",
+      "state_entity_convergence_hand_trace": "Independently read the State arm's entity_node_id derivation (stable_id from scope+name content, never kind) and predicted a Read and a Write of the same field converge on one StateEntity node BEFORE reading the corresponding test. Confirmed exactly against two_accesses_of_the_same_field_converge_on_one_state_entity_node.",
+      "nested_field_chain_hand_trace": "Independently traced self_field_ident's recursion for self.inner.value by hand and predicted exactly one Read, for \"inner\" only, BEFORE reading the corresponding test. Confirmed exactly against nested_field_chain_reports_only_the_outer_field_as_a_documented_gap.",
+      "identity_key_direct_read": "Confirmed by direct read of core/src/semantic/state.rs's identity_key() format string: kind is included (last field); resolution never appears.",
+      "effect_scope_direct_read": "Confirmed by grep that EffectCategory::Panic is the only variant ever constructed anywhere in adapter/src/semantic/rust/effect.rs, and that its is_panic_like_macro is byte-identical to the pre-existing one in cfg.rs (reimplemented, not shared, as claimed).",
+      "falsification_results": {
+        "self_field_assign_special_case_removed": "Removed the self.field= Write special-case in state.rs's Expr::Assign arm -- exactly 2 tests failed (self_field_assignment_produces_a_write_not_a_read, read_modify_write_produces_a_write_and_two_distinct_reads), 113/115 still passed. Reverted cleanly.",
+        "state_entity_id_from_record_id": "Changed the StateEntity node id to derive from the observation's own record_id instead of (scope, name) -- exactly 1 test failed (two_accesses_of_the_same_field_converge_on_one_state_entity_node), 86/87 still passed. Reverted cleanly.",
+        "kind_removed_from_identity_key": "Removed kind from StateAccessIdentity::identity_key() -- exactly 1 test failed (identity_key_distinguishes_kind), all 115 adapter + 86 other core tests still passed. Reverted cleanly. Noted (not a bug): this invariant is reinforced only at the core unit-test layer, not by any adapter/graph-level round-trip test, since a Read and a Write never land at the identical span in real/fixture code -- a minor coverage observation, not a defect."
+      },
+      "graph_wiring_verification": "Read both new arms in engineering_graph.rs directly: State's HAS_ACCESS edge is unconditional per access, TARGETS always points at the content-derived StateEntity node; Effect's PRODUCES_EFFECT edge is unconditional per observation. Ran all six named graph tests directly -- all passed.",
+      "systemize_reconfirmation": "Ran cargo run -q -p atlas-cli -- systemize --root . --out <tmp> independently (80.8MB output, deleted after inspection). Verified via script: 193 STATE records (100% READ/RESOLVED), 8 EFFECT records (100% PANIC). Grep-cross-checked both distributions against the actual repository source directly (not only trusting the tool's own count) -- found and reported the compound-assignment documentation gap this way (see bug_found_and_fixed_during_this_wave).",
+      "doc_comment_claim_checks": "Independently verified module-doc-comment claims against code: (1) 'only single-level self.field is modeled' -- confirmed via hand-trace. (2) 'only Panic is emitted' -- confirmed via grep. (3) 'compound assignment recorded as Read' -- confirmed, and flagged as under-documented at the time (fixed in the follow-up commit this record covers).",
+      "other_findings": "No scope creep. No vacuous tests. One documentation-completeness gap found (compound-assignment consequence not spelled out) and subsequently fixed with a doc sentence + regression test in commit b08e027139, which this verification record's primary pass re-confirmed.",
+      "verdict": "VERIFIED -- no blockers. Both highest-risk invariants (StateEntity content-derived convergence, nested-field-chain scoping) independently hand-traced and confirmed correct before reading their tests. One non-blocking documentation gap found and fixed before merge."
+    }
+  ],
+  "no_tests_lints_gates_disabled": true,
+  "no_verify_bypass_used": false,
+  "overall_verdict": "VERIFIED",
+  "runtime_invariants_established": [
+    "A single-level self.<field> read or write is correctly detected and attributed to the enclosing method's scope, with kind (Read/Write) participating in claim identity -- confirmed by independent hand-trace and falsification.",
+    "Two accesses of the same (scope, name) state entity, regardless of kind, converge on exactly one StateEntity graph node via a content-derived (not record_id-derived) node id -- confirmed by independent hand-trace before reading the test, and load-bearing by falsification.",
+    "A nested field chain (self.a.b) reports a Read of the outer field only, never fabricating or silently dropping the inner projection -- confirmed by independent hand-trace before reading the test.",
+    "A compound assignment (self.field += 1) is recorded as an ordinary Read, never a Write and never silently dropped -- discovered under-documented by independent verification, fixed with an explicit doc sentence and regression test before merge.",
+    "Only EffectCategory::Panic is ever emitted this wave -- confirmed by direct grep that no other variant is ever constructed in the extractor.",
+    "A real 193-STATE/8-EFFECT production run against this repository's own source, cross-checked against a manual grep of the actual source text (not only hand-built fixtures), confirms the design holds outside test fixtures and reconciles every real occurrence with zero discrepancy."
+  ],
+  "contract_clauses_satisfied": [
+    ".atlas/contracts/SEMANTIC-FACTS.md#stateaccessfact (READ/WRITE/TRANSITION/CREATE/DELETE against a typed state identity, with operation site and alias/resolution status -- Read/Write materialized with real operation sites and explicit Resolved status; Transition/Create/Delete declared but honestly unmaterialized)",
+    ".atlas/contracts/SEMANTIC-FACTS.md#effectfact (observable effects including filesystem/network/process/FFI/persistence/event emission/authorization/allocation/panic -- only Panic materialized, every other category explicitly and verifiably never fabricated)",
+    ".atlas/roadmap/SELF-BUILDING-R4-R8.md#r4.8 (state identities; reads; writes; transitions; externally observable effects; failure effects; explicit unknown/dynamic behavior -- all present, transitions/most-effect-categories explicitly declared unmaterialized rather than silently omitted)",
+    ".atlas/contracts/SEMANTIC-EXTRACTION.md (no compiler-resolved semantics fabricated from syntax alone -- self.field resolution and panic-macro detection are both fully syntax-determined, unlike an overloaded-call effect category, which is correctly never claimed)",
+    ".atlas/decisions/0001-one-normalized-semantic-path.md (State/Effect observations flow through the same Inventory -> SourceFrontend -> SemanticExtractor -> Census -> Normalize -> Reconcile -> graph path as every other dimension; no parser/extractor-to-graph bypass was introduced)"
+  ],
+  "still_unsupported": [
+    "Module-level static/const reads/writes -- would require a source-unit-wide declaration pre-pass this extractor does not yet perform; documented gap.",
+    "Nested field chains beyond one level (self.a.b.c) -- only the outermost self.<field> is modeled; documented and independently hand-verified.",
+    "Compound assignment as a distinct Write -- recorded as an ordinary Read; documented (this wave's fix) and regression-tested.",
+    "StateAccessKind::Transition/Create/Delete -- declared, never emitted; requires semantics beyond syntax this wave does not fabricate.",
+    "Every EffectCategory except Panic (FilesystemRead/Write, Network*, ProcessSpawn, FfiCall, Persist, EmitEvent, AuthCheck, Alloc, Free, ExternalIo) -- would require resolving an overloaded call to a known API; correctly never claimed.",
+    "Closures get no State/Effect attribution of their own -- consistent with R4.6/R4.7 (no FunctionIdentity to attribute records to); independently confirmed for EFFECT by reconciling every closure-internal panic! occurrence as unattributed.",
+    "OWNERSHIP / CONCURRENCY / PERSISTENCE -- unmaterialized, unchanged from R4.7.",
+    "Full compiler/global Rust name resolution -- unchanged; STATE/EFFECT never required it, but CALL resolution still doesn't have it either."
+  ]
+}
