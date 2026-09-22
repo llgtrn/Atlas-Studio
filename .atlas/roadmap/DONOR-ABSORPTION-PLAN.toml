@@ -90,13 +90,13 @@ forbidden_scope = ["CALL"]
 [[r_wave]]
 id = "R4.5"
 name = "call-semantics"
-status = "NEXT"
+status = "MATERIALIZED"
 semantic_dimensions = ["CALL"]
 
 [[r_wave]]
 id = "R4.6"
 name = "control-flow"
-status = "PLANNED"
+status = "NEXT"
 semantic_dimensions = ["CONTROL_FLOW"]
 
 [[r_wave]]
