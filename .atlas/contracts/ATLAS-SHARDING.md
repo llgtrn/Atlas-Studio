@@ -8,6 +8,8 @@ canonical: true
 
 One logical Atlas does not require one physical file, repository or storage location.
 
+Physical root/shard headers, section directories, content hashes and manifest framing follow `ATLAS-BINARY-WIRE-FORMAT.md`; this contract governs the logical federation invariants above that wire representation.
+
 ```text
 Logical Atlas Root
     ↓
