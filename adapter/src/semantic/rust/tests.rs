@@ -10,9 +10,10 @@ use super::super::batch::ExtractionBatch;
 use super::super::extractor::{ExtractionInput, SemanticExtractor};
 use super::{RustSemanticExtractor, spelling};
 use atlas_core::{
-    ArtifactId, ContentFingerprint, EpistemicStatus, FunctionDeclarationKind, FunctionIdentity,
-    FunctionSignature, RepositoryId, RevisionRef, SemanticDimension, SemanticObservation,
-    SymbolIdentity, SymbolRole, TypeIdentity,
+    ArtifactId, CallDispatchKind, CallSiteIdentity, ContentFingerprint, EpistemicStatus,
+    FunctionDeclarationKind, FunctionIdentity, FunctionSignature, RepositoryId, RevisionRef,
+    SemanticDimension, SemanticObservation, SemanticRecordId, SymbolIdentity, SymbolRole,
+    TypeIdentity,
 };
 
 const ALL_DIMENSIONS: [SemanticDimension; 12] = [
@@ -30,8 +31,7 @@ const ALL_DIMENSIONS: [SemanticDimension; 12] = [
     SemanticDimension::Persistence,
 ];
 
-const UNSUPPORTED_DIMENSIONS: [SemanticDimension; 8] = [
-    SemanticDimension::Call,
+const UNSUPPORTED_DIMENSIONS: [SemanticDimension; 7] = [
     SemanticDimension::ControlFlow,
     SemanticDimension::DataFlow,
     SemanticDimension::State,
@@ -224,6 +224,54 @@ impl Y {
 }
 "#;
 
+/// R4.5 CALL corpus: direct calls, calls nested in control flow, method calls, an associated-
+/// function call, a `let`-bound call, functions with zero calls, and one macro invocation that
+/// must never be mistaken for a call (a macro's expansion is not observable from syntax alone).
+const CALL_CORPUS: &str = r#"
+pub fn helper(x: u64) -> u64 { x }
+
+pub fn caller_direct() -> u64 {
+    helper(1)
+}
+
+pub fn caller_nested() -> u64 {
+    if helper(1) > 0 {
+        helper(2)
+    } else {
+        helper(3)
+    }
+}
+
+pub struct Greeter;
+
+impl Greeter {
+    pub fn new() -> Self {
+        Greeter
+    }
+
+    pub fn greet(&self) -> String {
+        self.shout()
+    }
+
+    fn shout(&self) -> String {
+        "hi".to_owned()
+    }
+}
+
+pub fn caller_method() -> String {
+    let g = Greeter::new();
+    g.greet()
+}
+
+pub fn caller_macro_only() {
+    println!("no calls here");
+}
+
+pub fn caller_no_calls() -> u64 {
+    42
+}
+"#;
+
 fn input_for(
     artifact_path: &str,
     source: &str,
@@ -365,6 +413,31 @@ fn owner_target_name(identity: &FunctionIdentity) -> Option<&str> {
         .target
         .as_ref()
         .map(|target| target.name.as_str())
+}
+
+fn all_calls(batch: &ExtractionBatch) -> Vec<&CallSiteIdentity> {
+    batch
+        .observations
+        .iter()
+        .filter_map(|observation| match observation {
+            SemanticObservation::Call(header) => Some(&header.subject),
+            _ => None,
+        })
+        .collect()
+}
+
+/// Every CALL observation whose `function` (the caller) is exactly `caller`'s `FunctionIdentity`
+/// record_id -- the same identity a future CALL relation would target, never a bare name match.
+fn calls_by_caller<'a>(
+    batch: &'a ExtractionBatch,
+    caller: &FunctionIdentity,
+) -> Vec<&'a CallSiteIdentity> {
+    let caller_id =
+        SemanticRecordId::new(SemanticDimension::FunctionIdentity, &caller.identity_key());
+    all_calls(batch)
+        .into_iter()
+        .filter(|call| call.function == caller_id)
+        .collect()
 }
 
 // --- 1. free/public function symbol observation ------------------------------------------------
@@ -606,8 +679,9 @@ fn the_users_example_from_the_contract_note_extracts_as_documented() {
         "Result<User, Error>"
     );
 
-    // Never claimed this wave: no Call/ControlFlow/DataFlow/State/Effect observation exists,
-    // even though the body plainly contains a `todo!()` call expression.
+    // `todo!()` is a macro invocation (`syn::Expr::Macro`), not a `syn::Expr::Call` -- so even
+    // with R4.5 CALL support, this body contributes no Call observation. ControlFlow/DataFlow/
+    // State/Effect remain wholly unclaimed this wave regardless of body content.
     assert!(batch.observations.iter().all(|observation| !matches!(
         observation,
         SemanticObservation::Call(_)
@@ -637,6 +711,7 @@ fn malformed_rust_produces_parse_failure_and_unknown_for_supported_dimensions() 
         SemanticDimension::Type,
         SemanticDimension::FunctionIdentity,
         SemanticDimension::FunctionSignature,
+        SemanticDimension::Call,
     ] {
         let obligation = batch.obligation_for(dimension).unwrap();
         assert_eq!(obligation.status, EpistemicStatus::Unknown);
@@ -1167,7 +1242,8 @@ fn deeply_nested_module_function_has_its_own_distinct_identity() {
 fn four_same_named_execute_declarations_are_all_pairwise_distinct_function_identities() {
     let batch = extract_all("src/lib.rs", CALL_SAFETY_CORPUS);
 
-    // Never produced this wave: no Call/ControlFlow/DataFlow/State/Effect observation exists.
+    // Every declaration here has an empty body (`{}`), so no Call observation is produced even
+    // with R4.5 CALL support; ControlFlow/DataFlow/State/Effect remain wholly unclaimed this wave.
     assert!(batch.observations.iter().all(|observation| !matches!(
         observation,
         SemanticObservation::Call(_)
@@ -1222,4 +1298,183 @@ fn four_same_named_execute_declarations_are_all_pairwise_distinct_function_ident
         })
         .collect();
     assert_eq!(record_ids.len(), 4);
+}
+
+// =================================================================================================
+// R4.5: CALL semantics
+// =================================================================================================
+
+// --- 23. a direct free-function call is attributed to the correct caller -----------------------
+
+#[test]
+fn direct_call_is_attributed_to_the_correct_caller() {
+    let batch = extract_all("src/lib.rs", CALL_CORPUS);
+    let caller = find_function_identity(&batch, &[], "caller_direct").expect("caller_direct");
+    let calls = calls_by_caller(&batch, caller);
+    assert_eq!(calls.len(), 1);
+    assert_eq!(calls[0].repository, caller.repository);
+    assert_eq!(calls[0].revision, caller.revision);
+}
+
+// --- 24. calls nested inside control flow (condition + both branches) are all captured ---------
+
+#[test]
+fn calls_nested_in_control_flow_are_all_captured() {
+    let batch = extract_all("src/lib.rs", CALL_CORPUS);
+    let caller = find_function_identity(&batch, &[], "caller_nested").expect("caller_nested");
+    // One call in the `if` condition, one in the `then` branch, one in the `else` branch.
+    assert_eq!(calls_by_caller(&batch, caller).len(), 3);
+}
+
+// --- 25. method calls and associated-function calls are captured, attributed to their caller ----
+
+#[test]
+fn method_and_associated_function_calls_are_captured() {
+    let batch = extract_all("src/lib.rs", CALL_CORPUS);
+
+    // `Greeter::new()` (an associated-function call) + `g.greet()` (a method call).
+    let caller_method =
+        find_function_identity(&batch, &[], "caller_method").expect("caller_method");
+    assert_eq!(calls_by_caller(&batch, caller_method).len(), 2);
+
+    // `self.shout()` inside `greet`'s own body.
+    let greet = find_function_identity(&batch, &["impl:Greeter"], "greet").expect("Greeter::greet");
+    assert_eq!(calls_by_caller(&batch, greet).len(), 1);
+
+    // `"hi".to_owned()` inside `shout`'s own body.
+    let shout = find_function_identity(&batch, &["impl:Greeter"], "shout").expect("Greeter::shout");
+    assert_eq!(calls_by_caller(&batch, shout).len(), 1);
+}
+
+// --- 26. functions whose body makes no calls produce zero CALL observations for that caller -----
+
+#[test]
+fn functions_with_no_calls_produce_no_call_observations() {
+    let batch = extract_all("src/lib.rs", CALL_CORPUS);
+
+    let helper = find_function_identity(&batch, &[], "helper").expect("helper");
+    assert!(calls_by_caller(&batch, helper).is_empty());
+
+    let no_calls = find_function_identity(&batch, &[], "caller_no_calls").expect("caller_no_calls");
+    assert!(calls_by_caller(&batch, no_calls).is_empty());
+
+    // `Greeter::new`'s body (`Greeter`) is a bare path expression, not a call.
+    let new_fn = find_function_identity(&batch, &["impl:Greeter"], "new").expect("Greeter::new");
+    assert!(calls_by_caller(&batch, new_fn).is_empty());
+}
+
+// --- 27. a macro invocation is never mistaken for a call: its expansion is unobservable ---------
+
+#[test]
+fn macro_invocation_is_never_treated_as_a_call() {
+    let batch = extract_all("src/lib.rs", CALL_CORPUS);
+    let caller =
+        find_function_identity(&batch, &[], "caller_macro_only").expect("caller_macro_only");
+    assert!(calls_by_caller(&batch, caller).is_empty());
+}
+
+// --- 28. anti-fabrication: every CALL observation stays UNRESOLVED with zero claimed callees ----
+
+#[test]
+fn call_dispatch_is_always_unresolved_with_no_fabricated_callees() {
+    let batch = extract_all("src/lib.rs", CALL_CORPUS);
+    let calls = all_calls(&batch);
+    assert!(!calls.is_empty());
+    for call in calls {
+        assert_eq!(
+            call.dispatch,
+            CallDispatchKind::Unresolved,
+            "this extractor has no use-import tracking or type inference; it must never claim a \
+             resolved callee"
+        );
+        assert!(call.callees.is_empty());
+    }
+}
+
+// --- 29. CALL observations carry evidence/provenance like every other dimension -----------------
+
+#[test]
+fn call_observations_carry_evidence_and_provenance() {
+    let batch = extract_all("src/lib.rs", CALL_CORPUS);
+    for observation in &batch.observations {
+        if let SemanticObservation::Call(header) = observation {
+            assert!(!header.evidence_refs.is_empty());
+            assert_eq!(header.provenance.source_path, "src/lib.rs");
+            assert!(header.provenance.span.is_some());
+        }
+    }
+}
+
+// --- 30. every CALL observation satisfies dimension consistency ---------------------------------
+
+#[test]
+fn call_observations_satisfy_dimension_consistency() {
+    let batch = extract_all("src/lib.rs", CALL_CORPUS);
+    let mut saw_call = false;
+    for observation in &batch.observations {
+        if matches!(observation, SemanticObservation::Call(_)) {
+            saw_call = true;
+        }
+        assert!(observation.is_dimension_consistent());
+    }
+    assert!(saw_call);
+}
+
+// --- 31. extraction of the CALL corpus is byte-for-byte deterministic across repeated runs ------
+
+#[test]
+fn call_corpus_extraction_is_deterministic() {
+    let first = extract_all("src/lib.rs", CALL_CORPUS);
+    let second = extract_all("src/lib.rs", CALL_CORPUS);
+    assert_eq!(first.observations, second.observations);
+    assert_eq!(first.evidence, second.evidence);
+}
+
+// --- 32. CALL extraction is unaffected by requested-dimension order -----------------------------
+
+#[test]
+fn call_corpus_is_unaffected_by_requested_dimension_order() {
+    let forward = extract(
+        "src/lib.rs",
+        CALL_CORPUS,
+        vec![
+            SemanticDimension::Symbol,
+            SemanticDimension::FunctionIdentity,
+            SemanticDimension::Call,
+        ],
+    );
+    let reversed = extract(
+        "src/lib.rs",
+        CALL_CORPUS,
+        vec![
+            SemanticDimension::Call,
+            SemanticDimension::FunctionIdentity,
+            SemanticDimension::Symbol,
+        ],
+    );
+    assert_eq!(forward.observations, reversed.observations);
+}
+
+// --- 33. repeated extraction yields the exact same call-site record_ids -------------------------
+// (`core/src/semantic/call.rs`'s `identity_key_is_unaffected_by_dispatch_and_callees` proves the
+// underlying type-level guarantee; this proves the extractor's own output is consistent with it.)
+
+#[test]
+fn repeated_extraction_yields_stable_call_record_ids() {
+    let batch = extract_all("src/lib.rs", CALL_CORPUS);
+    let caller = find_function_identity(&batch, &[], "caller_direct").expect("caller_direct");
+    let first: Vec<String> = calls_by_caller(&batch, caller)
+        .into_iter()
+        .map(CallSiteIdentity::identity_key)
+        .collect();
+
+    let batch2 = extract_all("src/lib.rs", CALL_CORPUS);
+    let caller2 = find_function_identity(&batch2, &[], "caller_direct").expect("caller_direct");
+    let second: Vec<String> = calls_by_caller(&batch2, caller2)
+        .into_iter()
+        .map(CallSiteIdentity::identity_key)
+        .collect();
+
+    assert_eq!(first, second);
+    assert!(!first.is_empty());
 }

@@ -138,7 +138,13 @@ mod tests {
         supported.sort_unstable();
         assert_eq!(
             supported,
-            vec!["FUNCTION_IDENTITY", "FUNCTION_SIGNATURE", "SYMBOL", "TYPE"]
+            vec![
+                "CALL",
+                "FUNCTION_IDENTITY",
+                "FUNCTION_SIGNATURE",
+                "SYMBOL",
+                "TYPE"
+            ]
         );
     }
 
