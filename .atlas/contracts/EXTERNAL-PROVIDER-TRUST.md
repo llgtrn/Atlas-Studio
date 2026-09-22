@@ -238,7 +238,7 @@ No provider may smuggle a permanent runtime dependency into Atlas-native technol
 
 ## ProviderReceipt integrity
 
-ProviderReceipt MUST be content-addressable or hash-bound to its material inputs/outputs under the active schema.
+ProviderReceipt MUST conform to `../schemas/provider-receipt.schema.json` and be content-addressable or hash-bound to its material inputs/outputs under the active schema.
 
 ProviderReceipt records lineage such as:
 
