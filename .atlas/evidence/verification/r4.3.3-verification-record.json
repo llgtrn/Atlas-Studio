@@ -133,8 +133,25 @@
     {
       "pass": "independent",
       "performed_by": "fresh subagent, isolated git worktree, no shared context, candidate a194f0881bed83e59fdc9e986942568fa21c781e",
-      "note": "First attempt failed with a disk-space exhaustion error while checking out the worktree (unrelated to this wave's diff) -- three stale, already-merged prior-wave verification worktrees (R4.3.1/R4.3.2, ~6.6G each) were consuming disk; removed via `git worktree remove --force` after confirming each had a clean `git status`, freeing ~20G, and the independent pass was re-dispatched successfully on the same candidate commit.",
-      "verdict_pending_at_evidence_write_time": "the independent pass was in flight when this evidence record was first drafted; see the deliverable report for its findings, folded in before this wave's PR was opened/merged."
+      "setup_note": "First attempt failed with a disk-space exhaustion error while checking out the worktree (unrelated to this wave's diff) -- three stale, already-merged prior-wave verification worktrees (R4.3.1/R4.3.2, ~6.6G each) were consuming disk; removed via `git worktree remove --force` after confirming each had a clean `git status`, freeing ~20G. The re-dispatched agent's worktree was then handed to it checked out at the branch base (269297b33b) rather than the candidate; the agent self-corrected via `git checkout a194f0881b` (detached HEAD, same worktree) before verifying -- noted here as an operational hiccup, not a code concern.",
+      "commands_all_exit_0": true,
+      "diff_confirmed_matches_description": true,
+      "test_totals": "49 adapter + 47 core + 39 runtime = 135 passed, 0 failed; all 10 explicitly-named required tests confirmed present and passing",
+      "docs_gate": "gate_ready=true",
+      "systemize_reconfirmation": "coding_admission={allowed:true, blockers:[]}; census.typed_semantic_records=2616, typed_obligations=516, typed_closure matches both; normalization.input_typed_closure == normalized_typed_closure == {2616, 516}, matching live vec lengths exactly; schemas census v3/normalization v3/systemize v11",
+      "cargo_lock_reconfirmation": "no unintended diff",
+      "falsification_test": "Reverted runtime/src/census/mod.rs's dedup to record_id()-only; same_semantic_claim_from_two_extractors_survives_independently_through_census failed exactly as predicted (left: 1, right: 2), proving the pre-fix R4.3.2 bug was real and the new test genuinely exercises the fix. Reverted cleanly; git status --porcelain confirmed clean and the original test passing again afterward.",
+      "code_review_findings": {
+        "node_identity_unchanged": "VERIFIED -- both the old fact-driven and new typed-record-driven node construction paths key nodes by record_id().as_str(), so this is a safe swap of data source, not a behavior change in node identity",
+        "graph_never_reparses_fact_object": "VERIFIED -- grep confirms add_typed_semantic_nodes uses only typed header.subject/header.scope fields, never fact.object string parsing",
+        "no_remaining_record_id_only_dedup_in_production_code": "VERIFIED -- the only other record_id-based dedup found (adapter's single-extractor, single-artifact internal ExtractionContext.seen_record_ids) is legitimate and out of scope for the multi-extractor defect this wave fixes",
+        "obligation_id_collision_safety": "VERIFIED as structurally sound given extract_semantics's one-batch-per-(artifact,extractor) construction",
+        "contract_alignment": "VERIFIED independently against SEMANTIC-EXTRACTION.md#multi-engine-extraction and NORMALIZATION.md#record-identity by reading the contracts directly, not accepting the summary's framing"
+      },
+      "minor_notes_non_blocking": [
+        "add_typed_semantic_nodes creates only nodes, no edges -- confirmed this matches the pre-R4.3.3 behavior exactly (no regression, description was accurate)"
+      ],
+      "verdict": "VERIFIED -- no bugs found; recommended merge"
     }
   ],
   "no_tests_lints_gates_disabled": true,
