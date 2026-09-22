@@ -58,6 +58,15 @@ typed_id!(CapabilityId);
 typed_id!(TechnologyId);
 typed_id!(EvidenceId);
 typed_id!(ArtifactId);
+// Identity of one exact raw `SemanticObservation` -- distinct from `SemanticRecordId` (the
+// semantic CLAIM identity, shared by every extractor that reports the same subject/scope/
+// revision). See `SemanticObservation::raw_observation_id` and
+// `.atlas/contracts/SEMANTIC-EXTRACTION.md#multi-engine-extraction`.
+typed_id!(RawObservationId);
+// Identity of one `SemanticObligationRecord` -- the (repository, revision, artifact, extractor,
+// dimension) coordinate an `ObligationResult` was reported against. See
+// `.atlas/contracts/CENSUS-COMPLETENESS.md`.
+typed_id!(SemanticObligationId);
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct ContentFingerprint(pub String);

@@ -13,6 +13,7 @@ use super::{
     FunctionSignature, SemanticDimension, SemanticRecordHeader, SemanticRecordId, StateIdentity,
     SymbolIdentity, TypeIdentity, ValueIdentity,
 };
+use crate::identity::{EvidenceId, RawObservationId, stable_id};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
@@ -57,6 +58,77 @@ impl SemanticObservation {
             Self::State(header) => &header.record_id,
             Self::Effect(header) => &header.record_id,
         }
+    }
+
+    pub fn evidence_refs(&self) -> &[EvidenceId] {
+        match self {
+            Self::FunctionIdentity(header) => &header.evidence_refs,
+            Self::FunctionSignature(header) => &header.evidence_refs,
+            Self::Symbol(header) => &header.evidence_refs,
+            Self::Type(header) => &header.evidence_refs,
+            Self::Call(header) => &header.evidence_refs,
+            Self::ControlFlow(header) => &header.evidence_refs,
+            Self::DataFlow(header) => &header.evidence_refs,
+            Self::State(header) => &header.evidence_refs,
+            Self::Effect(header) => &header.evidence_refs,
+        }
+    }
+
+    /// Deterministic identity of this exact RAW observation -- distinct from `record_id()`, the
+    /// semantic CLAIM identity. `record_id()` is derived only from a family's `identity_key()`
+    /// (e.g. repository/revision/scope/name for a symbol), which deliberately does NOT include
+    /// which extractor produced the observation, what evidence backs it, its epistemic status, or
+    /// (for families like `FunctionSignature` whose `identity_key()` covers only the underlying
+    /// `FunctionIdentity`) every field of the typed payload itself. Two independent extractors --
+    /// or the same extractor reporting genuinely different content -- MAY legitimately share a
+    /// `record_id()` while differing here.
+    ///
+    /// Only an observation identical in every field -- claim identity, extractor id/version,
+    /// epistemic status, evidence refs, provenance, and the full typed payload -- shares this id
+    /// with another. Callers MUST key raw-observation de-duplication on THIS identity, never on
+    /// `record_id()` alone: collapsing by `record_id()` would silently erase one extractor's
+    /// observation whenever another extractor (or a later revision of this one) reports the same
+    /// semantic claim (`.atlas/contracts/SEMANTIC-EXTRACTION.md#multi-engine-extraction`:
+    /// "Independent extractors MAY analyze the same dimension. Their identities/evidence remain
+    /// separate ... one extractor may not overwrite another"; `.atlas/contracts/NORMALIZATION.md`:
+    /// `RawRecordId != NormalizedRecordId`).
+    pub fn raw_observation_id(&self) -> RawObservationId {
+        fn seed<Subject: std::fmt::Debug>(
+            record_id: &SemanticRecordId,
+            header: &SemanticRecordHeader<Subject>,
+        ) -> String {
+            let evidence_refs: Vec<&str> = header
+                .evidence_refs
+                .iter()
+                .map(EvidenceId::as_str)
+                .collect();
+            format!(
+                "{}|{}:{}|{}|evidence=[{}]|provenance={}:{}:{}:{}|payload={:?}",
+                record_id.as_str(),
+                header.extractor.id,
+                header.extractor.version,
+                header.status.as_str(),
+                evidence_refs.join(","),
+                header.provenance.source_path,
+                header.provenance.extractor,
+                header.provenance.content_hash.as_deref().unwrap_or(""),
+                header.provenance.span.as_deref().unwrap_or(""),
+                header.subject,
+            )
+        }
+
+        let content = match self {
+            Self::FunctionIdentity(header) => seed(&header.record_id, header),
+            Self::FunctionSignature(header) => seed(&header.record_id, header),
+            Self::Symbol(header) => seed(&header.record_id, header),
+            Self::Type(header) => seed(&header.record_id, header),
+            Self::Call(header) => seed(&header.record_id, header),
+            Self::ControlFlow(header) => seed(&header.record_id, header),
+            Self::DataFlow(header) => seed(&header.record_id, header),
+            Self::State(header) => seed(&header.record_id, header),
+            Self::Effect(header) => seed(&header.record_id, header),
+        };
+        RawObservationId::new(stable_id("raw-observation", &content))
     }
 
     /// The wrapped header's own `dimension` field, independent of the variant tag. Used only to
@@ -221,5 +293,68 @@ mod tests {
         assert!(!mismatched.is_dimension_consistent());
         // dimension() stays authoritative (derived from the variant), never from the header field.
         assert_eq!(mismatched.dimension(), SemanticDimension::Symbol);
+    }
+
+    // --- 4. raw_observation_id: R4.3.3 raw-vs-claim identity separation ----------------------
+
+    #[test]
+    fn raw_observation_id_differs_from_record_id() {
+        let observation = SemanticObservation::Symbol(symbol_header(SemanticDimension::Symbol));
+        assert_ne!(
+            observation.raw_observation_id().as_str(),
+            observation.record_id().as_str()
+        );
+    }
+
+    #[test]
+    fn two_extractors_reporting_the_same_claim_get_different_raw_observation_ids() {
+        let mut header_a = symbol_header(SemanticDimension::Symbol);
+        header_a.extractor = ExtractorIdentity {
+            id: "extractor-a".into(),
+            version: "0.1.0".into(),
+        };
+        let mut header_b = header_a.clone();
+        header_b.extractor = ExtractorIdentity {
+            id: "extractor-b".into(),
+            version: "0.1.0".into(),
+        };
+
+        let a = SemanticObservation::Symbol(header_a);
+        let b = SemanticObservation::Symbol(header_b);
+
+        // Same semantic claim identity (record_id unchanged by extractor)...
+        assert_eq!(a.record_id(), b.record_id());
+        // ...but distinct raw observation identity: neither may silently erase the other.
+        assert_ne!(a.raw_observation_id(), b.raw_observation_id());
+    }
+
+    #[test]
+    fn identical_raw_observations_share_a_raw_observation_id() {
+        let header = symbol_header(SemanticDimension::Symbol);
+        let a = SemanticObservation::Symbol(header.clone());
+        let b = SemanticObservation::Symbol(header);
+        assert_eq!(a.raw_observation_id(), b.raw_observation_id());
+    }
+
+    #[test]
+    fn differing_evidence_refs_change_the_raw_observation_id_even_with_the_same_extractor() {
+        let mut header_a = symbol_header(SemanticDimension::Symbol);
+        header_a.evidence_refs = vec![crate::identity::EvidenceId::new("evidence:a")];
+        let mut header_b = header_a.clone();
+        header_b.evidence_refs = vec![crate::identity::EvidenceId::new("evidence:b")];
+
+        let a = SemanticObservation::Symbol(header_a);
+        let b = SemanticObservation::Symbol(header_b);
+
+        assert_eq!(a.record_id(), b.record_id());
+        assert_ne!(a.raw_observation_id(), b.raw_observation_id());
+    }
+
+    #[test]
+    fn evidence_refs_accessor_matches_the_wrapped_header() {
+        let mut header = symbol_header(SemanticDimension::Symbol);
+        header.evidence_refs = vec![crate::identity::EvidenceId::new("evidence:known")];
+        let observation = SemanticObservation::Symbol(header.clone());
+        assert_eq!(observation.evidence_refs(), header.evidence_refs.as_slice());
     }
 }
