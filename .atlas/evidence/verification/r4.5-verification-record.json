@@ -1,0 +1,182 @@
+{
+  "schema": "atlas.r4.verification-record.v1",
+  "wave": "R4.5",
+  "wave_title": "Call Semantics -- materialize the CALL dimension (.atlas/contracts/SEMANTIC-FACTS.md#callfact): CallDispatchKind + CallSiteIdentity typed kernel, real Rust extraction of call/method-call sites from function bodies (previously unwalked), and engineering-graph projection of Call observations. Every call site produced this wave stays dispatch=UNRESOLVED with empty callees -- deliberately no name/callee resolution, since the Rust extractor has no use-import tracking or type inference.",
+  "identity": {
+    "base_commit_sha": "07e773a16a5af866c33368e8d50163659de0db69",
+    "candidate_commit_sha": "6ee27d7cca0ac550a9b0fe67378e1cff3b6fc7b0",
+    "candidate_tree_sha": "ec1bd2b3a9d3c299349f274869b41ffc8c4d37ed",
+    "branch": "claude/r4-semantic-materialization-jz2z44",
+    "commits_in_range": [
+      "5c9efdf918 feat(core): R4.5 Call site identity kernel (CallDispatchKind, CallSiteIdentity)",
+      "8e70c798a8 feat(adapter): extract real CALL observations from Rust function/method bodies",
+      "20481201db test: extend R4.3-era expectations and add R4.5 CALL correctness corpus",
+      "6ee27d7cca feat(core,runtime): project CALL observations into the engineering graph"
+    ],
+    "note": "base_commit_sha == main's HEAD at wave start (the merge commit for PR #15, R4.4's docs-hardening follow-up). The branch name claude/r4-semantic-materialization-jz2z44 is the harness's fixed designated branch for this repository/task pair, reused across waves; per operator instruction it was restarted from fresh origin/main (git checkout -B <name>, pointing at current HEAD) rather than stacked on the already-merged R4.4 history it previously pointed at. This was a legitimate fast-forward push: main's history at 07e773a16a already contains the prior branch tip (bc8244f45c) as an ancestor via PR #14's merge commit."
+  },
+  "toolchain": {
+    "pinned_by": "rust-toolchain.toml",
+    "channel": "1.90.0",
+    "rustc": "rustc 1.90.0 (1159e78c4 2025-09-14)",
+    "cargo": "cargo 1.90.0 (840b83a10 2025-07-30)",
+    "matches_ci_pin": true
+  },
+  "working_tree_clean": true,
+  "cargo_lock_status": {
+    "diff_vs_base": "empty -- byte-identical to 07e773a16a's Cargo.lock",
+    "intentional": true,
+    "reason": "This wave adds no new dependencies; it only evolves existing core/adapter/runtime types, the Rust extractor's body-walker, and the engineering-graph projection."
+  },
+  "ci_status": "UNAVAILABLE_INFRASTRUCTURE",
+  "ci_status_detail": "GitHub Actions assigns no runner at all (job dies in 2-3 seconds; get_job_logs returns HTTP 404, no retrievable log content), reproducing identically on main across every prior R4 wave (R4.1 through R4.4 evidence records document the same root cause). Not a test/code failure; excluded from correctness verification per operator instruction. Check run id 106776764772 on PR #16, conclusion 'failure', started_at/completed_at 2 seconds apart, HTTP 404 on get_job_logs -- the exact UNAVAILABLE_INFRASTRUCTURE signature.",
+  "diff_summary": {
+    "range": "07e773a16a..6ee27d7cca",
+    "files_changed": 10,
+    "insertions": 913,
+    "deletions": 33,
+    "changed_files": [
+      "adapter/src/semantic/registry.rs",
+      "adapter/src/semantic/rust/mod.rs",
+      "adapter/src/semantic/rust/spelling.rs",
+      "adapter/src/semantic/rust/tests.rs",
+      "core/src/graph/engineering_graph.rs",
+      "core/src/lib.rs",
+      "core/src/semantic/call.rs",
+      "core/src/semantic/mod.rs",
+      "runtime/src/census/extraction.rs",
+      "runtime/src/census/mod.rs"
+    ]
+  },
+  "call_model": {
+    "kernel": "core/src/semantic/call.rs: CallDispatchKind (StaticResolved/DynamicResolvedSet/DynamicPartial/Unresolved -- the contract's exact vocabulary) and CallSiteIdentity { repository, revision, function: SemanticRecordId (the CALLER's FunctionIdentity record_id), span, dispatch, callees: Vec<SemanticRecordId> }.",
+    "identity_key_design": "CallSiteIdentity::identity_key() deliberately excludes dispatch/callees -- only repository/revision/function/span participate. dispatch/callees are treated as a RESOLUTION FACT about an already-uniquely-identified call site (identified by caller + span), not an identity-disambiguating feature, so record_id stays stable if a later wave improves resolution (Unresolved -> StaticResolved) without orphaning any existing reference to the record. This deliberately diverges from TypeIdentity.canonical's own precedent (which DOES participate in its identity_key) -- judged as producing worse lineage-stability behavior for this specific case; TypeIdentity itself was left unchanged (out of scope).",
+    "extraction": "adapter/src/semantic/rust/mod.rs: RustSemanticExtractor now walks function/method BODIES (previously only sig: &syn::Signature was ever inspected -- bodies were completely untouched through R4.4). New walk_block/walk_stmt/walk_expr recursively traverse Binary/Unary/If/Match/Block/Loop/While/ForLoop/Paren/Group/Reference/Field/Index/Return/Break/Assign/Try/Await/Struct/Array/Tuple/Closure/Cast/Range/Let (and Stmt::Local/Stmt::Item, the latter dispatching back through walk_item so a nested fn/struct/etc. declared inside a block is not call-walked as part of the outer function), finding syn::Expr::Call/MethodCall nodes and emitting one Call observation per site via a new emit_call() method, attributed to the enclosing function's FunctionIdentity record_id (computed independently of whether FUNCTION_IDENTITY itself was requested, so CALL attribution never silently disappears under a requested-dimension subset). A macro invocation (println!, todo!, ...) is parsed as syn::Expr::Macro/syn::Stmt::Macro, never syn::Expr::Call, so it is never mistaken for a call -- its expansion is not observable from syntax alone. CALL joins SUPPORTED_DIMENSIONS (now five: SYMBOL, TYPE, FUNCTION_IDENTITY, FUNCTION_SIGNATURE, CALL).",
+    "epistemic_discipline": "Every CallSiteIdentity this extractor produces has dispatch=CallDispatchKind::Unresolved and callees=Vec::new(), with NO exception -- the extractor has zero use-import tracking and zero type inference, so it can soundly observe WHERE a call syntactically occurs and WHO makes it, but never WHOM it calls. No resolution heuristic (not even narrow same-file lexical matching) was implemented, judged too risky for producing false STATIC_RESOLVED claims given unmodeled shadowing/imports -- the maximally epistemically honest choice for this wave.",
+    "graph_projection": "core/src/graph/engineering_graph.rs: the previously no-op SemanticObservation::Call arm in add_typed_semantic_nodes() now creates one CallSite node per Call observation (identity = span 'path:line:column', attributes include dispatch) plus a MAKES_CALL edge from the caller's FunctionIdentity node -- never an edge to a callee, since callees are always empty this wave. The caller's graph node id is derived identically to how the FunctionIdentity arm derives its own node id (stable_id('node', 'function-identity:<record_id>')), confirmed byte-identical by tracing both derivations back through handle_function's shared identity.identity_key() computation, so the edge resolves correctly whether or not that FunctionIdentity observation is present in the same batch."
+  },
+  "pipeline_losslessness": {
+    "extractor_to_batch": "walk_block/walk_stmt/walk_expr feed emit_call() -> ExtractionContext.observations, so every ExtractionBatch.observations entry for CALL carries the full CallSiteIdentity struct with evidence/provenance.",
+    "batch_to_census": "build_census() required zero code changes to carry Call observations losslessly -- it operates generically over SemanticObservation, exactly as it did for R4.4's strengthened FunctionIdentity.",
+    "census_to_normalization": "normalize()/normalize_typed_records() likewise required zero code changes; confirmed by a dedicated runtime multi-extractor round-trip test.",
+    "normalization_to_graph": "add_typed_semantic_nodes()'s Call arm is the one place that DID require new code this wave (previously an explicit no-op) -- CallSite node + MAKES_CALL edge, proven by three dedicated graph tests."
+  },
+  "multi_extractor_proof": {
+    "claim": "Two independent extractors reporting the identical Call claim (same repository/revision/function/span/dispatch/callees) both survive Census and Normalization as two independent typed_semantic_records entries.",
+    "mechanism": "record_id() (built from CallSiteIdentity::identity_key(), which excludes dispatch/callees) is identical for both observations, proving the semantic CLAIM identity is unaffected by which extractor reported it; raw_observation_id() (extractor id/version + status + evidence_refs + provenance + full typed payload) differs between the two, so R4.3.3's raw_observation_id-keyed dedup (unmodified this wave) correctly keeps both.",
+    "test": "runtime::census::tests::same_call_site_claim_from_two_extractors_survives_census_and_normalization"
+  },
+  "verification_passes": [
+    {
+      "pass": "primary",
+      "performed_by": "this session, in-place checkout, clean target/ rebuild (rm -rf target), pinned rustc 1.90.0",
+      "commands": {
+        "git status --porcelain": { "result": "clean" },
+        "cargo fmt --all --check": { "exit_code": 0 },
+        "cargo clippy --workspace --all-targets --locked -- -D warnings": { "exit_code": 0, "warnings": 0, "note": "SemanticObservation::Call carries an unboxed CallSiteIdentity; clippy::large_enum_variant did NOT trigger after adding dispatch/callees fields -- re-checked explicitly, still clean" },
+        "cargo build --workspace --locked": { "exit_code": 0, "note": "clean rebuild from rm -rf target" },
+        "cargo test --workspace --locked": {
+          "exit_code": 0,
+          "totals": "178 passed, 0 failed, 0 ignored (77 adapter, 60 core, 41 runtime, 0 atlas-cli unit tests)",
+          "new_tests_adapter": [
+            "direct_call_is_attributed_to_the_correct_caller",
+            "calls_nested_in_control_flow_are_all_captured",
+            "method_and_associated_function_calls_are_captured",
+            "functions_with_no_calls_produce_no_call_observations",
+            "macro_invocation_is_never_treated_as_a_call",
+            "call_dispatch_is_always_unresolved_with_no_fabricated_callees",
+            "call_observations_carry_evidence_and_provenance",
+            "call_observations_satisfy_dimension_consistency",
+            "call_corpus_extraction_is_deterministic",
+            "call_corpus_is_unaffected_by_requested_dimension_order",
+            "repeated_extraction_yields_stable_call_record_ids"
+          ],
+          "updated_tests_adapter": [
+            "semantic::registry::tests::rust_resolves_to_the_real_semantic_extractor (now expects CALL in supported_dimensions)",
+            "malformed_rust_produces_parse_failure_and_unknown_for_supported_dimensions (CALL added to the UNKNOWN-for-supported-dims loop)",
+            "unsupported_dimensions_are_always_explicit (CALL removed from UNSUPPORTED_DIMENSIONS)"
+          ],
+          "new_tests_core": [
+            "semantic::call::tests::identity_key_distinguishes_span",
+            "semantic::call::tests::identity_key_distinguishes_owning_function",
+            "semantic::call::tests::identity_key_is_unaffected_by_dispatch_and_callees",
+            "semantic::call::tests::dispatch_kind_as_str_matches_the_contract_vocabulary",
+            "graph::engineering_graph::tests::call_observation_produces_a_call_site_node_and_makes_call_edge",
+            "graph::engineering_graph::tests::call_site_node_id_is_derived_from_the_caller_even_without_its_own_function_identity_observation",
+            "graph::engineering_graph::tests::no_call_edge_ever_targets_a_callee_this_wave"
+          ],
+          "new_tests_runtime": [
+            "census::tests::same_call_site_claim_from_two_extractors_survives_census_and_normalization"
+          ],
+          "updated_tests_runtime": [
+            "census::extraction::multi_extractor_tests::a_real_rust_extractor_is_registered_supporting_exactly_the_r4_5_dimensions (renamed from ...r4_3_dimensions, now expects CALL)"
+          ]
+        },
+        "cargo test --workspace --doc --locked": { "exit_code": 0, "doctests": 0 },
+        "cargo run -q -p atlas-cli -- docs audit --root .atlas": { "exit_code": 0, "gate_ready": true, "hard_violations_total": 0 },
+        "cargo run -q -p atlas-cli -- systemize --root . --out <tmp>": {
+          "exit_code": 0,
+          "coding_admission_allowed": true,
+          "coding_admission_blockers": [],
+          "census_typed_semantic_records_total": 6246,
+          "typed_records_by_dimension": {
+            "CALL": 3349,
+            "SYMBOL": 1160,
+            "TYPE": 811,
+            "FUNCTION_IDENTITY": 463,
+            "FUNCTION_SIGNATURE": 463
+          },
+          "call_dispatch_distribution": { "UNRESOLVED": 3349, "STATIC_RESOLVED": 0, "DYNAMIC_RESOLVED_SET": 0, "DYNAMIC_PARTIAL": 0 },
+          "call_callees_nonempty_count": 0,
+          "graph_summary": { "nodes_total": 7341, "edges_total": 4541, "bindings_total": 48, "facts_total": 3596 },
+          "note": "Real, much larger self-census against Atlas-Studio's own current source: 3,349 real CALL observations extracted from this repository's own Rust code, every single one dispatch=UNRESOLVED with empty callees, proving the anti-fabrication invariant holds in production, not only on hand-built test fixtures."
+        }
+      }
+    },
+    {
+      "pass": "independent",
+      "performed_by": "fresh subagent, isolated git worktree, no shared context, candidate 6ee27d7cca0ac550a9b0fe67378e1cff3b6fc7b0",
+      "steps_all_pass": true,
+      "diff_confirmed_matches_description": "exactly 10 files, 913 insertions / 33 deletions, 4 commits, no unrelated changes",
+      "commands_all_exit_0": "cargo fmt --all --check, cargo clippy --workspace --all-targets --locked -- -D warnings, cargo test --workspace --locked (178/178), cargo test --workspace --doc --locked (0 doctests)",
+      "identity_key_verification": "read core/src/semantic/call.rs:65-76 directly -- confirmed only repository/revision/function/span appear in the identity_key() format string; dispatch/callees genuinely absent, not merely absent from the doc comment",
+      "dispatch_construction_audit": "grepped the entire adapter crate for every CallDispatchKind construction site -- exactly one exists (emit_call in adapter/src/semantic/rust/mod.rs), unconditionally CallDispatchKind::Unresolved with callees: Vec::new(); no other construction site anywhere",
+      "falsification_results": {
+        "call_emission_removed": "Commented out self.emit_call(...) in the syn::Expr::Call arm of walk_expr. Exactly 4 tests failed (direct_call_is_attributed_to_the_correct_caller, calls_nested_in_control_flow_are_all_captured, method_and_associated_function_calls_are_captured, repeated_extraction_yields_stable_call_record_ids), 73 other adapter tests still passed. direct_call_is_attributed_to_the_correct_caller failed with 'left: 0, right: 1' as predicted. Reverted cleanly, re-verified 77/77 adapter tests pass.",
+        "identity_key_dispatch_leak": "Added self.dispatch.as_str() into CallSiteIdentity::identity_key()'s format string. identity_key_is_unaffected_by_dispatch_and_callees failed exactly as predicted ('left: ...UNRESOLVED, right: ...STATIC_RESOLVED'). Reverted cleanly.",
+        "control_flow_recursion_removed": "Removed the recursive walk into if_expr.then_branch in the syn::Expr::If arm of walk_expr. calls_nested_in_control_flow_are_all_captured failed with 'left: 2, right: 3' (exactly one fewer call found, as predicted). Reverted cleanly.",
+        "net_assessment": "All three falsifications broke exactly the named invariant and nothing else; none were vacuous -- each diagnostic output (0 vs 1, 2 vs 3, UNRESOLVED vs STATIC_RESOLVED) matches the predicted failure mode precisely. Full 178-test suite re-confirmed green after each revert."
+      },
+      "graph_wiring_verification": "Read the Call arm in core/src/graph/engineering_graph.rs directly: confirmed it creates exactly one CallSite node and one MAKES_CALL edge per Call observation, never a callee edge. Traced the caller node-id derivation (stable_id('node', 'function-identity:<header.subject.function>')) against the FunctionIdentity arm's own node-id derivation (stable_id('node', 'function-identity:<header.record_id>')) back through adapter/src/semantic/rust/mod.rs's handle_function, confirming both derive from the identical identity.identity_key() computation -- byte-identical, no dangling-edge risk. Ran the three named graph tests directly (cargo test -p core -- call_observation_produces_a_call_site_node_and_makes_call_edge call_site_node_id_is_derived_from_the_caller_even_without_its_own_function_identity_observation no_call_edge_ever_targets_a_callee_this_wave) -- all 3 passed.",
+      "systemize_reconfirmation": "Ran cargo run -q -p atlas-cli -- systemize --root . --out /tmp/verify_systemize_out independently. census.typed_semantic_records contains 6246 total records, 3349 tagged {\"Call\": {...}}; programmatically checked every one: 0 with dispatch != UNRESOLVED, 0 with non-empty callees. coding_admission.allowed == true. Output file deleted afterward.",
+      "cargo_lock_reconfirmation": "empty diff vs main, no unintended dependency changes",
+      "contract_citation_check": "Confirmed the module doc comment's citation (.atlas/contracts/SEMANTIC-FACTS.md#callfact) is real -- the CallFact section genuinely exists in that file at line 129, not a fabricated citation.",
+      "other_findings": "No scope creep: walk_expr's catch-all _ => {} arm is explicitly documented as 'never claimed, never fabricated' for unmodeled expression shapes, consistent with the epistemic-honesty design goal rather than a silent omission. No hand-wavy doc-comment claim found unsupported by actual code behavior.",
+      "verdict": "VERIFIED -- no blockers. All 8 verification steps pass; the core epistemic-honesty claim (CALL dimension never resolves a callee) is genuinely true in the code, not just asserted in comments; the falsification sweep proves the tests are real, not vacuous."
+    }
+  ],
+  "no_tests_lints_gates_disabled": true,
+  "no_verify_bypass_used": false,
+  "overall_verdict": "VERIFIED",
+  "runtime_invariants_established": [
+    "Every syn::Expr::Call/MethodCall node reachable through the walker's covered expression forms (Binary/Unary/If/Match/Block/Loop/While/ForLoop/Paren/Group/Reference/Field/Index/Return/Break/Assign/Try/Await/Struct/Array/Tuple/Closure/Cast/Range/Let, plus Local-init and top-level statement position) inside a function/method body produces exactly one CALL observation, attributed to the enclosing function's FunctionIdentity record_id -- confirmed load-bearing by falsification (removing emit_call, or removing one recursion arm, breaks exactly the tests that depend on it).",
+    "CallSiteIdentity::identity_key() is provably unaffected by dispatch/callees -- confirmed both by a core-level unit test and by falsification (adding dispatch to the key breaks the test that proves its absence).",
+    "Every CALL observation this extractor produces has dispatch=Unresolved and callees=[] with zero exceptions -- confirmed by exhaustive grep of every CallDispatchKind construction site in the adapter crate, and by a real 3,349-observation production run against this repository's own source.",
+    "A macro invocation is never mistaken for a call -- confirmed by a dedicated test using a real println! invocation.",
+    "The engineering graph's CallSite/MAKES_CALL projection resolves the caller's node id via the identical derivation the FunctionIdentity arm uses for its own node id, so the edge never dangles regardless of which FunctionIdentity observations are present in the same batch -- confirmed by a dedicated test and independently traced through the code by the verification pass."
+  ],
+  "contract_clauses_satisfied": [
+    ".atlas/contracts/SEMANTIC-FACTS.md#callfact ('Must distinguish: STATIC_RESOLVED, DYNAMIC_RESOLVED_SET, DYNAMIC_PARTIAL, UNRESOLVED. A call record contains caller, callsite, candidate/resolved callee identities, dispatch kind and argument/result bindings when known. Dynamic calls are explicit; failure to resolve never erases the call.' -- CallDispatchKind implements the exact four-state vocabulary; CallSiteIdentity carries caller+callsite+dispatch+callees; every call site is still recorded even though this extractor cannot resolve it, satisfying 'failure to resolve never erases the call'.)",
+    ".atlas/contracts/SEMANTIC-EXTRACTION.md (no compiler-resolved semantics fabricated from syntax alone -- dispatch/callees never claim resolution the extractor cannot prove)",
+    ".atlas/decisions/0001-one-normalized-semantic-path.md (Call observations flow through the same Inventory -> SourceFrontend -> SemanticExtractor -> Census -> Normalize -> Reconcile -> graph path as every other dimension; no parser/extractor-to-graph bypass was introduced)",
+    ".atlas/decisions/0002-epistemic-status-model.md (every Call observation carries EpistemicStatus::Observed for the literal syntactic fact of the call site's existence and location; the SEPARATE dispatch field, not EpistemicStatus, carries the honest UNRESOLVED resolution state -- the two axes are not conflated)"
+  ],
+  "still_unsupported": [
+    "Call target resolution of any kind -- dispatch is always UNRESOLVED, callees always empty. No use-import tracking, no type inference, no lexical same-file heuristic was implemented; a narrower resolution heuristic was deliberately considered and rejected this wave as still too risky given unmodeled shadowing/imports.",
+    "CONTROL_FLOW / DATA_FLOW / STATE / EFFECT / OWNERSHIP / CONCURRENCY / PERSISTENCE -- unmaterialized, unchanged from R4.4.",
+    "Argument/result bindings at a call site -- SEMANTIC-FACTS.md#callfact also mentions 'argument/result bindings when known'; CallSiteIdentity does not yet carry this (deferred, DATA_FLOW-adjacent territory, R4.7+).",
+    "Transitive dependency census runtime (.atlas/contracts/DEPENDENCY-CENSUS.md) -- unchanged, out of scope this wave.",
+    "Full compiler/global Rust name resolution -- no rustc, no HIR/MIR, no trait solving, no macro expansion; every Call observation is a syntactic-only conclusion.",
+    "Cross-function/interprocedural call graph traversal, reachability, or cycle detection -- this wave only records individual call SITES; no graph algorithm consumes the MAKES_CALL edges yet beyond their existence."
+  ]
+}

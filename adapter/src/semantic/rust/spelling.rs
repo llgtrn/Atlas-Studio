@@ -188,6 +188,17 @@ pub fn receiver_label(receiver: &syn::Receiver) -> String {
     }
 }
 
+/// The declared spelling of a direct call's callee expression -- e.g. `"foo"`, `"Type::method"`,
+/// `"(get_fn())"`. This is a raw textual summary for evidence only, never a resolved target: R4.5's
+/// Rust extractor makes no claim about which function a call reaches (see the `rust` module's doc
+/// comment and `core/src/semantic/call.rs`).
+pub fn call_callee_spelling(expr: &syn::Expr) -> String {
+    match expr {
+        syn::Expr::Path(path) => path_spelling(&path.path),
+        other => other.to_token_stream().to_string(),
+    }
+}
+
 pub fn pattern_spelling(pat: &syn::Pat) -> String {
     match pat {
         syn::Pat::Ident(ident) => ident.ident.to_string(),

@@ -1,4 +1,15 @@
 //! Call site identity.
+//!
+//! R4.5 (`.atlas/contracts/SEMANTIC-FACTS.md#callfact`): "A call record contains caller, callsite,
+//! candidate/resolved callee identities, dispatch kind and argument/result bindings when known.
+//! Dynamic calls are explicit; failure to resolve never erases the call." The Rust extractor has no
+//! rustc-backed name resolution (never will, per every prior wave's epistemic discipline), so it
+//! can soundly observe WHERE a call syntactically occurs and WHO makes it, but not, in the general
+//! case, WHOM it calls -- an unqualified path or a method-call receiver's type is not determinable
+//! from `syn` alone. `dispatch`/`callees` are therefore always `Unresolved`/`[]` from this
+//! extractor today; the fields exist, typed and real, so a later wave that adds real resolution
+//! (still never rustc/full name resolution -- see `.atlas/contracts/SEMANTIC-EXTRACTION.md`) can
+//! populate them without a schema change.
 
 use super::SemanticRecordId;
 use crate::identity::RepositoryId;
@@ -6,13 +17,47 @@ use crate::language::adl::SourceSpan;
 use crate::temporal::RevisionRef;
 use serde::{Deserialize, Serialize};
 
+/// `.atlas/contracts/SEMANTIC-FACTS.md#callfact`'s four dispatch outcomes, verbatim.
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+pub enum CallDispatchKind {
+    StaticResolved,
+    DynamicResolvedSet,
+    DynamicPartial,
+    Unresolved,
+}
+
+impl CallDispatchKind {
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            Self::StaticResolved => "STATIC_RESOLVED",
+            Self::DynamicResolvedSet => "DYNAMIC_RESOLVED_SET",
+            Self::DynamicPartial => "DYNAMIC_PARTIAL",
+            Self::Unresolved => "UNRESOLVED",
+        }
+    }
+}
+
 /// Identity of one call site, owned by exactly one function.
+///
+/// `dispatch`/`callees` are deliberately NOT part of `identity_key()`: they are a RESOLUTION FACT
+/// about an already-uniquely-identified call site (identified by which function makes it and at
+/// which source span), not part of the site's identity. Keeping them out of the identity means
+/// `record_id` stays stable if a later wave resolves a call this extractor could only mark
+/// `Unresolved` today -- re-extraction after a resolution improvement updates this record's
+/// content without orphaning any existing reference to it.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct CallSiteIdentity {
     pub repository: RepositoryId,
     pub revision: RevisionRef,
+    /// The CALLER: the `FunctionIdentity` record_id of the function this call site is inside.
     pub function: SemanticRecordId,
     pub span: SourceSpan,
+    pub dispatch: CallDispatchKind,
+    /// Candidate/resolved callee `FunctionIdentity` record_ids. Empty whenever `dispatch ==
+    /// Unresolved`; MAY be non-empty for `DynamicPartial`/`DynamicResolvedSet` (a candidate set)
+    /// or hold exactly one entry for `StaticResolved`.
+    pub callees: Vec<SemanticRecordId>,
 }
 
 impl CallSiteIdentity {
@@ -49,6 +94,8 @@ mod tests {
                 line: 10,
                 column: 5,
             },
+            dispatch: CallDispatchKind::Unresolved,
+            callees: Vec::new(),
         }
     }
 
@@ -71,5 +118,33 @@ mod tests {
             ..base()
         };
         assert_ne!(base().identity_key(), other.identity_key());
+    }
+
+    // --- R4.5: dispatch/callees are content, not identity ---------------------------------------
+
+    #[test]
+    fn identity_key_is_unaffected_by_dispatch_and_callees() {
+        // A later resolution improvement (Unresolved -> StaticResolved) must not orphan an
+        // existing reference to this call site's record_id.
+        let resolved = CallSiteIdentity {
+            dispatch: CallDispatchKind::StaticResolved,
+            callees: vec![SemanticRecordId::new(
+                SemanticDimension::FunctionIdentity,
+                "callee-key",
+            )],
+            ..base()
+        };
+        assert_eq!(base().identity_key(), resolved.identity_key());
+    }
+
+    #[test]
+    fn dispatch_kind_as_str_matches_the_contract_vocabulary() {
+        assert_eq!(CallDispatchKind::StaticResolved.as_str(), "STATIC_RESOLVED");
+        assert_eq!(
+            CallDispatchKind::DynamicResolvedSet.as_str(),
+            "DYNAMIC_RESOLVED_SET"
+        );
+        assert_eq!(CallDispatchKind::DynamicPartial.as_str(), "DYNAMIC_PARTIAL");
+        assert_eq!(CallDispatchKind::Unresolved.as_str(), "UNRESOLVED");
     }
 }

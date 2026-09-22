@@ -854,6 +854,83 @@ mod tests {
         }
     }
 
+    /// R4.5: a Call observation (`CallSiteIdentity`), attributed to `extractor_id`, whose `function`
+    /// (caller) is a fixed synthetic `FunctionIdentity` record_id -- the test only needs the CALL
+    /// claim itself to be independently attributable, not a paired FunctionIdentity observation.
+    fn extraction_batch_with_call_from(
+        artifact_path: &str,
+        extractor_id: &str,
+        evidence_id: &str,
+        evidence_summary: &str,
+    ) -> ExtractionBatch {
+        use atlas_core::{
+            CallDispatchKind, CallSiteIdentity, Evidence, EvidenceId, RepositoryId,
+            SemanticRecordHeader, SemanticRecordId, provenance,
+        };
+
+        let repository = RepositoryId::new("atlas-studio");
+        let revision = atlas_core::RevisionRef {
+            kind: "git".into(),
+            value: "abc123".into(),
+        };
+        let extractor = ExtractorIdentity {
+            id: extractor_id.into(),
+            version: "0.1.0".into(),
+        };
+        let scope = SemanticScope::new(Vec::<String>::new());
+        let caller = SemanticRecordId::new(SemanticDimension::FunctionIdentity, "caller-fn-key");
+        let subject = CallSiteIdentity {
+            repository: repository.clone(),
+            revision: revision.clone(),
+            function: caller,
+            span: atlas_core::SourceSpan {
+                path: artifact_path.into(),
+                line: 3,
+                column: 5,
+            },
+            dispatch: CallDispatchKind::Unresolved,
+            callees: Vec::new(),
+        };
+        let record_id = SemanticRecordId::new(SemanticDimension::Call, &subject.identity_key());
+        let evidence_id = EvidenceId::new(evidence_id.to_owned());
+        let header = SemanticRecordHeader {
+            record_id: record_id.clone(),
+            dimension: SemanticDimension::Call,
+            status: EpistemicStatus::Observed,
+            scope,
+            repository: repository.clone(),
+            revision: revision.clone(),
+            extractor: extractor.clone(),
+            evidence_refs: vec![evidence_id.clone()],
+            provenance: provenance(artifact_path, &extractor.id),
+            subject,
+        };
+        let observation = SemanticObservation::Call(header);
+        assert!(observation.is_dimension_consistent());
+
+        ExtractionBatch {
+            extractor,
+            repository,
+            revision,
+            artifact: ArtifactId::new(format!("artifact:{artifact_path}")),
+            input_fingerprint: format!("test:{artifact_path}"),
+            observations: vec![observation],
+            evidence: vec![Evidence {
+                id: evidence_id.as_str().to_owned(),
+                kind: "PARSER_OUTPUT".into(),
+                path: artifact_path.into(),
+                summary: evidence_summary.into(),
+                revision: None,
+            }],
+            obligations: vec![ObligationResult::observed(
+                SemanticDimension::Call,
+                vec![record_id],
+                vec![evidence_id],
+            )],
+            diagnostics: Vec::new(),
+        }
+    }
+
     fn single_rust_file_context() -> (InventoryReport, SourceReport, AdlCompileReport) {
         let inventory = InventoryReport::new(
             "/repo",
@@ -1494,6 +1571,81 @@ pub async unsafe extern "C" fn example<T>(x: Vec<T>, y: &mut usize) -> Result<T,
             .typed_semantic_records
             .iter()
             .filter(|observation| matches!(observation, SemanticObservation::FunctionIdentity(_)))
+            .collect();
+        assert_eq!(normalized.len(), 2);
+    }
+
+    // === R4.5: Call claims stay multi-extractor safe =============================================
+    //
+    // Same proof, for the new CALL dimension: two independent extractors observing the exact same
+    // call site must both survive Census/Normalization, share one claim identity (record_id), and
+    // remain distinctly attributable by raw_observation_id/extractor id.
+
+    #[test]
+    fn same_call_site_claim_from_two_extractors_survives_census_and_normalization() {
+        let (inventory, source, adl) = single_rust_file_context();
+        let batches = [
+            extraction_batch_with_call_from(
+                "src/lib.rs",
+                "extractor-a",
+                "evidence:call-a",
+                "extractor-a observed a call at src/lib.rs:3:5",
+            ),
+            extraction_batch_with_call_from(
+                "src/lib.rs",
+                "extractor-b",
+                "evidence:call-b",
+                "extractor-b observed a call at src/lib.rs:3:5",
+            ),
+        ];
+
+        let census = build_census(&inventory, &source, &adl, &batches);
+        let calls: Vec<_> = census
+            .typed_semantic_records
+            .iter()
+            .filter(|observation| matches!(observation, SemanticObservation::Call(_)))
+            .collect();
+        assert_eq!(
+            calls.len(),
+            2,
+            "independent extractors' observations of the same call site must both survive Census"
+        );
+
+        let claim_ids: std::collections::BTreeSet<&str> = calls
+            .iter()
+            .map(|observation| observation.record_id().as_str())
+            .collect();
+        assert_eq!(
+            claim_ids.len(),
+            1,
+            "both observations share the same Call claim"
+        );
+
+        let raw_ids: std::collections::BTreeSet<_> = calls
+            .iter()
+            .map(|observation| observation.raw_observation_id())
+            .collect();
+        assert_eq!(raw_ids.len(), 2);
+
+        let extractor_ids: std::collections::BTreeSet<&str> = calls
+            .iter()
+            .map(|observation| {
+                let SemanticObservation::Call(header) = observation else {
+                    unreachable!()
+                };
+                header.extractor.id.as_str()
+            })
+            .collect();
+        assert_eq!(
+            extractor_ids,
+            std::collections::BTreeSet::from(["extractor-a", "extractor-b"])
+        );
+
+        let normalization = crate::normalize::normalize(&census);
+        let normalized: Vec<_> = normalization
+            .typed_semantic_records
+            .iter()
+            .filter(|observation| matches!(observation, SemanticObservation::Call(_)))
             .collect();
         assert_eq!(normalized.len(), 2);
     }

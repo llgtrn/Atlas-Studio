@@ -17,7 +17,7 @@ pub mod state;
 pub mod symbol;
 pub mod types;
 
-pub use call::CallSiteIdentity;
+pub use call::{CallDispatchKind, CallSiteIdentity};
 pub use control_flow::ControlFlowBlockIdentity;
 pub use data_flow::ValueIdentity;
 pub use diagnostic::{DiagnosticCode, ExtractionDiagnostic};
