@@ -13,6 +13,12 @@ continuous_census_required = true
 continuous_recensus_required = true
 post_implementation_recensus_required = true
 idea_discovery_may_expand_plan = true
+discovered_technology_may_trigger_blueprint_revision = true
+blueprint_revision_requires_evidence = true
+blueprint_revision_requires_explicit_decision = true
+blueprint_revision_may_resequence_future_waves = true
+blueprint_revision_may_not_silently_violate_contract = true
+selected_blueprint_revision_requires_targeted_recensus = true
 interesting_idea_alone_may_not_pull_forward = true
 
 dependency_census_policy = "TRANSITIVE_CLOSURE_REQUIRED"
