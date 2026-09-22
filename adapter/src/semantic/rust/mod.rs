@@ -1,8 +1,8 @@
-//! Real Rust semantic extractor (R4.3-R4.6).
+//! Real Rust semantic extractor (R4.3-R4.7).
 //!
-//! Scope is six dimensions: SYMBOL, TYPE, FUNCTION_IDENTITY, FUNCTION_SIGNATURE, CALL,
-//! CONTROL_FLOW. Every other requested dimension (DATA_FLOW, STATE, EFFECT, OWNERSHIP,
-//! CONCURRENCY, PERSISTENCE) is always explicit `UNSUPPORTED` here — R4.7+ territory, never
+//! Scope is seven dimensions: SYMBOL, TYPE, FUNCTION_IDENTITY, FUNCTION_SIGNATURE, CALL,
+//! CONTROL_FLOW, DATA_FLOW. Every other requested dimension (STATE, EFFECT, OWNERSHIP,
+//! CONCURRENCY, PERSISTENCE) is always explicit `UNSUPPORTED` here — R4.8+ territory, never
 //! silently omitted.
 //!
 //! Parses `input.source_text` with `syn` (a real Rust parser, not regex/ad-hoc text scanning).
@@ -17,15 +17,18 @@
 //! `TypeIdentity.canonical` stays `None` for every observation this extractor produces, and every
 //! `CALL` observation (R4.5) stays `CallDispatchKind::Unresolved` with an empty `callees` list --
 //! this extractor has no `use`-import tracking or type inference, so it can soundly observe WHERE
-//! a call syntactically occurs and WHO makes it, never WHOM it calls. CONTROL_FLOW (R4.6) is
-//! different in kind: a function's control-flow structure is fully determined by Rust's own syntax
-//! and language semantics, not by name/type resolution, so real successor edges ARE computed (see
-//! `cfg.rs`) -- `ControlFlowEdgeKind::Unresolved` is used only for genuinely ambiguous cases (e.g.
-//! an unmatched labeled `break`/`continue`), never as a blanket default. A malformed file never
-//! silently disappears: parse failure yields a `ParseFailure` diagnostic plus explicit `UNKNOWN`
-//! for all supported dimensions, with the artifact still represented.
+//! a call syntactically occurs and WHO makes it, never WHOM it calls. CONTROL_FLOW (R4.6) and
+//! DATA_FLOW (R4.7) are different in kind: a function's control-flow structure and its local
+//! def-use bindings are both fully determined by Rust's own syntax and scoping rules, not by
+//! name/type resolution, so real successor edges (see `cfg.rs`) and real local def-use resolution
+//! (see `dataflow.rs`) ARE computed -- `ControlFlowEdgeKind::Unresolved`/`DataFlowResolution::
+//! Unresolved` are used only for genuinely ambiguous/out-of-local-scope cases, never as a blanket
+//! default. A malformed file never silently disappears: parse failure yields a `ParseFailure`
+//! diagnostic plus explicit `UNKNOWN` for all supported dimensions, with the artifact still
+//! represented.
 
 mod cfg;
+mod dataflow;
 mod spelling;
 
 use std::collections::{BTreeMap, BTreeSet};
@@ -44,8 +47,8 @@ use super::extractor::{DiagnosticCode, ExtractionDiagnostic, ExtractionInput, Se
 pub const RUST_SEMANTIC_EXTRACTOR_ID: &str = "atlas.rust.source-semantic.v1";
 pub const RUST_SEMANTIC_EXTRACTOR_VERSION: &str = "0.1.0";
 
-/// Exactly the six dimensions this wave observes from parser-visible syntax. Every other
-/// `SemanticDimension` is out of scope through R4.6 and always answered `UNSUPPORTED`.
+/// Exactly the seven dimensions this wave observes from parser-visible syntax. Every other
+/// `SemanticDimension` is out of scope through R4.7 and always answered `UNSUPPORTED`.
 pub const SUPPORTED_DIMENSIONS: &[SemanticDimension] = &[
     SemanticDimension::Symbol,
     SemanticDimension::Type,
@@ -53,6 +56,7 @@ pub const SUPPORTED_DIMENSIONS: &[SemanticDimension] = &[
     SemanticDimension::FunctionSignature,
     SemanticDimension::Call,
     SemanticDimension::ControlFlow,
+    SemanticDimension::DataFlow,
 ];
 
 #[derive(Debug, Default)]
@@ -669,6 +673,7 @@ impl<'a> ExtractionContext<'a> {
         if let Some(body) = body {
             self.walk_block(body, scope, &caller_record_id);
             self.build_control_flow(body, scope, &caller_record_id);
+            self.build_data_flow(sig, body, scope, &caller_record_id);
         }
 
         let mut parameters = Vec::new();
