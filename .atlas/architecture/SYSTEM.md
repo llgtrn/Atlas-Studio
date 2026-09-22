@@ -66,6 +66,27 @@ profile evidence + recensus
 
 A DeepWiki page, paper or model analysis may create a `ResearchClaim`; it never directly creates `ObservedEvidence`. Donor implementation claims require corroboration against the exact pinned donor revision.
 
+### ADL authoring ingress
+
+Atlas Development Language is a second authoring ingress into the same semantic world, not a second universe:
+
+```text
+existing implementation                  ADL source
+        ↓ census                            ↓ parse/elaborate
+typed OBSERVED records                  typed DECLARED records
+        └───────────────┬───────────────────┘
+                        ↓
+               canonical Census
+                        ↓
+                normalize/reconcile
+                        ↓
+            selected semantic world
+                        ↓
+                    *.atlas
+```
+
+The current `.atlas/declared/*.adl` parser is ADL0, a bootstrap architectural declaration subset. Full ADL must preserve function/type/control/data/state/effect/resource semantics as typed records. See `../contracts/ATLAS-DEVELOPMENT-LANGUAGE.md` and `../contracts/ADL-TO-ATLAS.md`.
+
 ## Native capability ownership
 
 Production architecture converges on four owners:
@@ -112,7 +133,7 @@ Only Genome-eligible CLOSED/SEALED census roots may feed production materializat
 
 ## ATLAS / ATLASX
 
-A logical `*.atlas` is dense binary engineering/design knowledge and may span immutable content-addressed shards.
+A logical `*.atlas` is dense binary engineering/design knowledge and may span immutable content-addressed shards. It is semantic compression rather than a source archive: source text may be embedded as FAT evidence, but typed semantic records remain authoritative. Physical wire-v1 structure is governed by `../contracts/ATLAS-BINARY-WIRE-FORMAT.md`.
 
 `*.atlasx/` is deterministic selected executable representation. For `target_kind = digital_organism`, AtlasX includes an organism profile/genome plus the executable organ/circuit/body/brain/memory/lifecycle semantics required to create a phenotype.
 
