@@ -39,9 +39,26 @@ It also MUST NOT be treated as "compressed source code." The canonical payload i
 
 Every discovered function is represented. Repetition is compressed semantically using stable IDs, interning, content-addressed records and shared graph structure rather than by deleting meaning.
 
+## Semantic compaction before physical encoding
+
+Canonical density is governed by `ATLAS-SEMANTIC-COMPACTION.md`.
+
+The required layering is:
+
+```text
+logical typed Atlas
+→ semantic interning/factoring/exact-dedup
+→ graph/column/block packing
+→ binary physical encoding
+→ per-section/shard codec compression
+→ content-addressed publication
+```
+
+Lossy approximation is forbidden for canonical semantic truth. Approximate/quantized search accelerators are allowed only as explicitly noncanonical, regenerable indexes.
+
 ## Physical encoding
 
-The normative wire-v1 container structure is defined by `ATLAS-BINARY-WIRE-FORMAT.md`. This document defines logical requirements; the wire contract defines headers, section framing, typed record framing, integrity and reader validation.
+The normative wire-v1 container structure is defined by `ATLAS-BINARY-WIRE-FORMAT.md`. This document defines logical requirements; the compaction contract defines lossless density rules; the wire contract defines headers, section framing, typed record framing, integrity and reader validation.
 
 The format SHALL support:
 
@@ -78,4 +95,18 @@ See `ATLAS-DEVELOPMENT-LANGUAGE.md` and `ADL-TO-ATLAS.md`.
 
 ## Canonical role
 
-ATLAS retains more knowledge than a single materialization. ATLASX selects one executable design projection. Artifact size is never justification for silent semantic omission.
+ATLAS retains more knowledge than a single materialization.
+
+The transition from SEALED Atlas to executable AtlasX is governed by `ATLAS-TO-ATLASX.md`.
+
+ATLASX is not decompressed Atlas. It is one deterministic executable projection selected from the richer Atlas world through explicit SelectedDesign identity, scope, profiles, bindings, lineage and materialization validation.
+
+Artifact size is never justification for silent semantic omission.
+
+## Blueprint evolution
+
+The logical/physical design described here is canonical for the current evidence state, not permanently frozen.
+
+If donor/dependency census demonstrates a materially better compaction, storage, identity, materialization or access mechanism, Atlas MAY revise the blueprint through `BLUEPRINT-EVOLUTION.md`.
+
+A revision MUST preserve higher-level contracts or explicitly revise them with migration/compatibility evidence. No implementation may silently reinterpret existing sealed artifacts.

@@ -14,6 +14,8 @@ A logical Atlas may be one file or a root plus immutable shards. Every physical 
 
 This document defines **wire v1 structure**. Individual semantic record schemas remain governed by their own typed contracts and Genome/schema pins.
 
+Lossless semantic factoring/compaction before wire encoding is governed by `ATLAS-SEMANTIC-COMPACTION.md`. The wire layer MUST NOT be used as an excuse to discard canonical meaning.
+
 ## Byte order and bounds
 
 - All fixed-width integers are little-endian.
@@ -208,6 +210,18 @@ Source blobs are evidence/reconstruction material. They do not replace typed sem
 
 ## Compression
 
+Physical codec compression is the final layer after semantic compaction.
+
+The canonical layering is:
+
+~~~text
+typed semantic records
+→ exact semantic compaction/factoring
+→ wire records/sections
+→ section codec
+→ shard/root publication
+~~~
+
 Each section independently declares its codec.
 
 Compression MUST be deterministic for canonical publication under the pinned publication profile, or the logical content hash/root identity MUST be defined over decoded canonical content so codec nondeterminism cannot change semantic identity.
@@ -261,3 +275,26 @@ SEALED publication MUST use canonical ordering, schema/version pins and integrit
 New semantic record kinds/fields use schema versions and compatibility rules. Existing field tags are never repurposed with different meaning.
 
 A breaking change requires a new major wire version or a new incompatible schema identity explicitly rejected by older readers.
+
+## Blueprint evolution and wire stability
+
+The chosen compaction/layout/codec strategy may evolve under `BLUEPRINT-EVOLUTION.md` when census or benchmark evidence finds a better mechanism.
+
+However, a blueprint change does not permit silent wire reinterpretation.
+
+A change that modifies any of the following requires explicit schema/version compatibility treatment:
+
+- header meaning;
+- section type meaning;
+- record/field meaning;
+- identity derivation;
+- canonical ordering;
+- logical content hash definition;
+- required/optional semantics.
+
+Physical improvements beneath unchanged logical/wire semantics may evolve without a major version when compatibility remains provable.
+
+Old SEALED artifacts MUST remain either:
+
+- readable under the declared compatibility policy; or
+- explicitly rejected/migrated by version, never silently misread.

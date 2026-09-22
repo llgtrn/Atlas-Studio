@@ -1,0 +1,406 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:atlas:schema:blueprint-revision-decision:v1",
+  "title": "Atlas BlueprintRevisionDecision v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "revision_id",
+    "state",
+    "current_blueprint",
+    "proposed_blueprint",
+    "trigger",
+    "problem_statement",
+    "objectives",
+    "candidate",
+    "alternatives",
+    "impact",
+    "migration",
+    "verification",
+    "decision"
+  ],
+  "properties": {
+    "schema": {
+      "const": "atlas.blueprint-revision-decision.v1"
+    },
+    "revision_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "state": {
+      "enum": [
+        "PROPOSED",
+        "EVIDENCE_GATHERING",
+        "VALIDATED",
+        "SELECTED",
+        "SUPERSEDED",
+        "REJECTED"
+      ]
+    },
+    "current_blueprint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "revision"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "revision": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "proposed_blueprint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "revision"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "revision": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "trigger": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "summary",
+        "evidence_refs"
+      ],
+      "properties": {
+        "kind": {
+          "enum": [
+            "DONOR_CENSUS",
+            "DEPENDENCY_CENSUS",
+            "ATLAS_SELF_CENSUS",
+            "TEST_FAILURE",
+            "RUNTIME_EVIDENCE",
+            "BENCHMARK",
+            "PROOF",
+            "IMPLEMENTATION_CONTRADICTION",
+            "RESEARCH_CORROBORATED",
+            "OTHER_EVIDENCED"
+          ]
+        },
+        "summary": {
+          "type": "string",
+          "minLength": 1
+        },
+        "evidence_refs": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "provider_identity": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "provider_revision": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "provider_scope": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "problem_statement": {
+      "type": "string",
+      "minLength": 1
+    },
+    "objectives": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "candidate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "summary",
+        "native_owners",
+        "mechanisms",
+        "invariants"
+      ],
+      "properties": {
+        "summary": {
+          "type": "string",
+          "minLength": 1
+        },
+        "native_owners": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "core",
+              "runtime",
+              "adapter",
+              "apps"
+            ]
+          }
+        },
+        "mechanisms": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "invariants": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "alternatives": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "summary",
+          "disposition",
+          "rationale"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "summary": {
+            "type": "string",
+            "minLength": 1
+          },
+          "disposition": {
+            "enum": [
+              "CURRENT",
+              "CANDIDATE",
+              "REJECTED",
+              "DEFERRED",
+              "PROFILE_SPECIFIC"
+            ]
+          },
+          "rationale": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "impact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "preserved_invariants",
+        "strengthened_invariants",
+        "weakened_tradeoffs",
+        "dependencies_added",
+        "dependencies_removed",
+        "affected_r_waves",
+        "affected_w_waves",
+        "affected_semantic_schemas",
+        "affected_wire_storage",
+        "affected_atlasx_compiler",
+        "affected_contracts_genome"
+      ],
+      "properties": {
+        "preserved_invariants": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "strengthened_invariants": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "weakened_tradeoffs": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "dependencies_added": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "dependencies_removed": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "affected_r_waves": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "affected_w_waves": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "affected_semantic_schemas": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "affected_wire_storage": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "affected_atlasx_compiler": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "affected_contracts_genome": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "migration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "required",
+        "compatibility_plan",
+        "identity_schema_impact",
+        "recensus_plan",
+        "rollback_plan"
+      ],
+      "properties": {
+        "required": {
+          "type": "boolean"
+        },
+        "compatibility_plan": {
+          "type": "string",
+          "minLength": 1
+        },
+        "identity_schema_impact": {
+          "type": "string",
+          "minLength": 1
+        },
+        "recensus_plan": {
+          "type": "string",
+          "minLength": 1
+        },
+        "rollback_plan": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "verification": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "plan",
+        "falsification_cases",
+        "benchmark_or_proof_evidence_refs"
+      ],
+      "properties": {
+        "plan": {
+          "type": "string",
+          "minLength": 1
+        },
+        "falsification_cases": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "benchmark_or_proof_evidence_refs": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "decision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "rationale",
+        "selected_revision"
+      ],
+      "properties": {
+        "rationale": {
+          "type": "string",
+          "minLength": 1
+        },
+        "selected_revision": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    }
+  }
+}

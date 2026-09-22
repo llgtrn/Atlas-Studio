@@ -130,6 +130,20 @@ normalization_may_not_change_epistemic_status = true
 normalization_may_not_silently_drop_provenance = true
 census_certificate_machine_schema_required = true
 
+[blueprint_evolution]
+canonical_blueprint_is_current_selected_design_not_permanent_freeze = true
+census_may_trigger_blueprint_revision = true
+dependency_census_may_trigger_blueprint_revision = true
+blueprint_revision_requires_evidence = true
+blueprint_revision_requires_explicit_decision = true
+blueprint_revision_requires_current_candidate_alternative_comparison = true
+blueprint_revision_may_resequence_future_waves = true
+blueprint_revision_may_not_silently_violate_contract = true
+identity_schema_change_requires_migration_analysis = true
+selected_blueprint_revision_requires_targeted_recensus = true
+model_preference_alone_cannot_select_blueprint = true
+implementation_silent_redesign_forbidden = true
+
 [invention]
 observed_world_must_not_be_overwritten_by_candidate = true
 gap_graph_required = true
@@ -144,6 +158,14 @@ dense_canonical_engineering_artifact = true
 completeness_outranks_compression_ratio = true
 function_semantics_retained = true
 semantic_interning_required = true
+lossless_semantic_compaction_required = true
+exact_semantic_dedup_only = true
+raw_observation_lineage_must_survive_semantic_dedup = true
+canonical_graph_compaction_must_be_reconstructable = true
+canonical_columnar_compaction_must_be_reconstructable = true
+approximate_accelerators_must_be_noncanonical = true
+approximate_accelerators_must_be_regenerable = true
+local_table_ordinal_must_not_be_global_identity = true
 content_addressed_records_required = true
 chunked_random_access_required = true
 integrity_hashes_required = true
@@ -164,9 +186,29 @@ partial_materialization_supported = true
 unchanged_shard_reuse_supported = true
 single_logical_truth_required = true
 
+[selected_design]
+explicit_typed_record_required = true
+lifecycle_distinct_from_epistemic_status = true
+selection_evidence_required = true
+materialization_critical_bindings_must_resolve_or_be_explicit_dynamic_external = true
+supersession_lineage_required = true
+
 [atlasx_format]
 suffix = ".atlasx"
 expanded_executable_repository_representation = true
+validated_manifested_root_required = true
+binary_wire_v1_required = true
+manifest_is_compiler_authority = true
+content_addressed_canonical_objects_required = true
+cross_object_global_identity_required = true
+selected_design_identity_required = true
+explicit_materialization_scope_required = true
+explicit_profile_identities_required_when_applicable = true
+explicit_external_binding_identities_required = true
+materialization_may_not_invent_semantics = true
+required_unknown_conflict_may_not_silently_default = true
+canonical_object_reference_closure_required = true
+semantic_barriers_required = true
 deterministic_for_pinned_inputs = true
 human_readable_projection_is_noncanonical = true
 selected_design_only = true
@@ -175,6 +217,14 @@ partial_scope_materialization_supported = true
 compiler_profiles_supported = true
 
 [materialization]
+parent_atlas_root_required = true
+selected_design_closure_required = true
+design_authorized_binding_resolution_only = true
+deterministic_expansion_required = true
+lineage_to_parent_semantics_required = true
+canonical_atlasx_root_hash_required = true
+transactional_publication_required = true
+no_semantic_optimization_during_materialization = true
 backend_bootstrap = "rust"
 frontend_bootstrap = "typescript"
 c_default_role = "ffi_device_os_vendor_boundary"
@@ -184,6 +234,22 @@ verify_and_recensus_required = true
 
 [compiler]
 current_phase = 0
+validated_atlasx_root_required = true
+hir_mir_lir_machine_ir_distinct = true
+compiler_ir_v1_schemas_explicit = true
+mir_cfg_values_and_failure_paths_explicit = true
+lir_target_layout_abi_explicit = true
+machine_ir_target_opcode_constraints_explicit = true
+atlasx_to_hir_contract_required = true
+hir_to_mir_contract_required = true
+mir_to_lir_contract_required = true
+lir_to_machine_ir_contract_required = true
+semantic_barrier_preservation_required = true
+compiler_lineage_preservation_required = true
+target_profile_explicit_required = true
+abi_profile_explicit_required = true
+unsupported_required_semantics_fail_explicitly = true
+compiler_pass_may_not_hide_blueprint_change = true
 phase_1 = "atlasx_to_rust_typescript_c_boundary"
 phase_2 = "typed_hir_mir_semantic_world_optimizer"
 phase_3 = "lir_llvm_cranelift_wasm_external_native_backends"

@@ -31,7 +31,11 @@ experiment / simulation / benchmark / proof
   ↓
 validated candidate
   ↓
-selected design
+compare against current canonical blueprint
+  ↓
+BlueprintRevisionDecision when architecture would change
+  ↓
+selected design / selected blueprint revision
   ↓
 SEALED logical *.atlas
   ↓
@@ -46,7 +50,7 @@ runtime evidence / PGO / recensus
 
 ## Census before invention
 
-Observed source reality is never rewritten by inference. Census records FACT, VERIFIED_OBSERVATION, INFERENCE, HYPOTHESIS, CONFLICT and UNKNOWN distinctly.
+Observed source reality is never rewritten by inference. Census uses the canonical EpistemicStatus vocabulary: OBSERVED, DECLARED, DERIVED, INFERRED, HYPOTHESIS, CONFLICT, UNKNOWN, UNSUPPORTED and IGNORED. Fact kind, evidence kind and epistemic status remain distinct.
 
 Every function is accounted for. Important blocks and expressions lower to semantic atoms. Dynamic behavior, reflection, macros, FFI, generated code, feature flags, config-driven behavior and unresolved external targets must be explicit rather than silently skipped.
 
@@ -70,19 +74,59 @@ Every scope may be queried for material improvement opportunities:
 
 No material opportunity is itself a valid result. Invention is not mandatory churn.
 
+## Blueprint evolution from invention/census
+
+A validated candidate may reveal that the current canonical blueprint is no longer the best design.
+
+Atlas is allowed to change the blueprint.
+
+The change is governed by `../contracts/BLUEPRINT-EVOLUTION.md` and MUST be explicit.
+
+~~~text
+observed mechanism / validated candidate
+→ current blueprint comparison
+→ alternatives comparison
+→ invariant + migration + performance analysis
+→ BlueprintRevisionDecision
+→ SELECTED
+→ update canonical blueprint/roadmap/contracts if required
+→ implementation
+→ recensus / verification
+~~~
+
+This distinction matters:
+
+~~~text
+new implementation under unchanged design
+= ordinary implementation/optimization
+
+better architecture or semantic boundary
+= blueprint revision
+
+change to higher-level normative invariant
+= explicit contract/Genome revision
+~~~
+
+Do not force a superior discovered mechanism into an obsolete blueprint merely to keep old docs unchanged.
+
+Do not silently change the blueprint in code either.
+
 ## Absorption and extinction
 
 ```text
 bulk stage donors
 → pin SHA/license/provenance
-→ coarse census all
-→ deep census selected lane
+→ coarse census all + transitive dependency closure
+→ attribute mechanisms to actual providers
+→ explicit discovery disposition
+→ deep census selected provider scope
 → extract principles/invariants
 → synthesize/invent Atlas-native design
 → validate
 → commit knowledge into *.atlas
-→ materialize *.atlasx/
-→ compile/benchmark/recensus
+→ materialize via ATLAS-TO-ATLASX contract
+→ compile through explicit IR pipeline
+→ benchmark / verify / recensus
 → extinction gate
 → delete absorbed donor checkout
 ```

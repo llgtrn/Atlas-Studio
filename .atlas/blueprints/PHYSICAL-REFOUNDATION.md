@@ -16,7 +16,7 @@ The canonical R4→R8 self-building execution map is `../roadmap/SELF-BUILDING-R
 
 ## Current bootstrap reality
 
-At the R4.3.3 baseline:
+At the R4.4 baseline:
 
 ~~~text
 core/src/
@@ -94,11 +94,11 @@ Structural recognition is not canonical semantic truth. Deeper parser/compiler/i
 
 ### R4 — Semantic census and normalization
 
-**Status: R4.3.3 materialized; deeper semantic dimensions remain.**
+**Status: R4.4 materialized; CALL and deeper semantic dimensions remain.**
 
 R4 is governed by `../contracts/SEMANTIC-FACTS.md`, `../contracts/SEMANTIC-EXTRACTION.md`, `../contracts/NORMALIZATION.md`, durable decisions 0001/0002, and the R4 acceptance matrix in the extraction contract.
 
-Materialized through R4.3.3:
+Materialized through R4.4:
 
 - a real Rust semantic extractor exists;
 - SYMBOL observations are real;
@@ -111,12 +111,12 @@ Materialized through R4.3.3:
 - typed obligation/evidence/diagnostic lineage survives in canonical reports;
 - typed closure accounting is machine-enforced;
 - the engineering graph projects currently-real semantic node families directly from normalized typed semantic records;
-- compatibility `SemanticFact` records remain projection/bootstrap compatibility rather than semantic authority.
+- compatibility `SemanticFact` records remain projection/bootstrap compatibility rather than semantic authority;
+- FunctionIdentity now carries typed declaration kind, owner/trait context and function generics sufficient to distinguish free functions, inherent/associated methods, trait declarations/defaults and trait-implementation methods at source-evidence level.
 
 Still pending in R4:
 
-- R4.4 Function Identity Closure;
-- CALL;
+- CALL (R4.5);
 - CONTROL_FLOW;
 - DATA_FLOW;
 - STATE;
@@ -131,11 +131,11 @@ Do not describe currently-real Symbol/Type/FunctionIdentity/FunctionSignature ex
 
 Do not claim the remaining dimensions are implemented merely because their typed kernels/contracts exist.
 
-The prospective R4.4→R4.12 sequence is canonical in `../roadmap/SELF-BUILDING-R4-R8.md`.
+The prospective R4.5→R4.12 sequence is canonical in `../roadmap/SELF-BUILDING-R4-R8.md`.
 
 ### DC1 — Dependency Census Runtime — cross-cutting gate
 
-**Status: contract-locked, not production-materialized at the R4.3.3 baseline.**
+**Status: contract-locked, not production-materialized at the R4.4 baseline.**
 
 DC1 is not an R4 semantic dimension. It expands census breadth:
 
@@ -208,6 +208,16 @@ current native capability
 ~~~
 
 Discovery and extinction semantics are canonical in `../roadmap/SELF-BUILDING-R4-R8.md` and `../roadmap/DONOR-ABSORPTION-ROADMAP.md`.
+
+## Evidence-driven refoundation blueprint evolution
+
+This blueprint is authoritative for the current evidence state, but it is intentionally revisable.
+
+If census or implementation evidence demonstrates a better native ownership split, migration sequence, storage/materialization mechanism or compiler boundary, Atlas MAY revise this blueprint under `../contracts/BLUEPRINT-EVOLUTION.md`.
+
+The revision must be explicit, evidence-backed and migration-aware. It must not create a second Atlas or silently violate higher-level contracts.
+
+Refoundation therefore preserves hard invariants while allowing better mechanisms discovered during census to replace weaker earlier design choices.
 
 ## Legacy tool extinction map
 

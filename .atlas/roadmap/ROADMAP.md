@@ -58,10 +58,10 @@ DC1 determines census breadth. R4 semantic dimensions determine census depth.
 
 ### R4 — semantic census depth
 
-Current materialized baseline is R4.3.3.
+Current materialized baseline is R4.4.
 
 - **R4.3.x — real Rust semantic bootstrap:** SYMBOL, TYPE, FUNCTION_IDENTITY and FUNCTION_SIGNATURE are real typed observations; extraction is wired through canonical Census; typed records survive normalization; raw observation identity, typed obligation lineage, typed closure and typed graph projection are materialized.
-- **R4.4 — Function Identity Closure:** module/impl/trait/generic/revision-safe declaration identity. CALL is not implemented here.
+- **R4.4 — Function Identity Closure — materialized:** typed declaration kind, impl/trait owner context and function generics strengthen module/impl/trait/revision-safe declaration identity; CALL remains intentionally absent.
 - **R4.5 — Call Semantics:** typed call sites with exact, partial, dynamic or unresolved FunctionIdentity targets.
 - **R4.6 — Control Flow:** deterministic basic blocks, branch/loop/return/failure flow.
 - **R4.7 — Data Flow:** values, definitions/uses, parameter/result flow, loads/stores and explicit ambiguity.
@@ -93,11 +93,35 @@ Primary donor lane: W5.
 
 ### R8 — real ATLAS and AtlasX
 
-Implement the durable binary Atlas substrate, content addressing, integrity, transactional publication, sharding, deterministic AtlasX materialization and lineage needed for census-derived knowledge to survive physical donor-source deletion at scale.
+Implement the durable binary Atlas substrate, lossless semantic compaction, content addressing, integrity, transactional publication, sharding, deterministic SelectedDesign→AtlasX materialization, validated AtlasX object closure and lineage needed for census-derived knowledge to survive physical donor-source deletion at scale.
+
+Normative R8 contracts include:
+
+- `../contracts/ATLAS-SEMANTIC-COMPACTION.md`;
+- `../contracts/ATLAS-BINARY-WIRE-FORMAT.md`;
+- `../contracts/ATLAS-SHARDING.md`;
+- `../contracts/SELECTED-DESIGN.md`;
+- `../contracts/ATLAS-TO-ATLASX.md`;
+- `../contracts/ATLASX-FORMAT.md`;
+- `../contracts/ATLASX-BINARY-WIRE-FORMAT.md`.
+
+Compiler handoff is governed by `../contracts/COMPILER-IR-PIPELINE.md` and `../contracts/COMPILER-IR-SCHEMAS.md`.
 
 Primary donor lane: W6.
 
 R8 does not end census. It makes durable large-scale source-independent continuation possible.
+
+## Evidence-driven blueprint evolution
+
+All roadmaps and blueprints are canonical for the current evidence state, not permanently frozen.
+
+If donor/dependency census discovers a materially better mechanism for census, query, reconciliation, ATLAS compaction/storage, AtlasX materialization, compiler IR, verification or another Atlas-native capability, Atlas MAY revise the affected blueprint through `../contracts/BLUEPRINT-EVOLUTION.md`.
+
+A selected blueprint revision may resequence future work, insert a prerequisite, split/merge a wave or replace an implementation strategy.
+
+It MUST remain evidence-backed, explicit, migration-aware when identity/schema changes, and followed by targeted recensus.
+
+Implementation agents MUST NOT silently redesign around the roadmap, and MUST NOT ignore stronger evidence merely to preserve obsolete sequencing.
 
 ## Language Genesis lane — after typed census semantics are trustworthy
 
@@ -105,7 +129,7 @@ Atlas Development Language is synthesized from the same semantic world; it is no
 
 Sequence:
 
-- retain and extend the R4.3.3 lossless typed Census/normalization carrier beyond the currently-real SYMBOL/TYPE/FUNCTION_IDENTITY/FUNCTION_SIGNATURE dimensions;
+- retain and extend the R4.4 lossless typed Census/normalization carrier beyond the currently-real SYMBOL/TYPE/FUNCTION_IDENTITY/FUNCTION_SIGNATURE dimensions and strengthened declaration identity;
 - deep-census selected donors and their admitted dependency closures and emit Technology Genomes;
 - compare mechanisms/invariants/trade-offs across donors and research;
 - admit Atlas-native semantic primitives under `../contracts/DONOR-TO-LANGUAGE-GENESIS.md`;
