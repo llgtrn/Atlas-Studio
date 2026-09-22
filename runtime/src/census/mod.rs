@@ -1326,6 +1326,80 @@ mod tests {
         }
     }
 
+    fn extraction_batch_with_concurrency_from(
+        artifact_path: &str,
+        extractor_id: &str,
+        evidence_id: &str,
+        evidence_summary: &str,
+    ) -> ExtractionBatch {
+        use atlas_core::{
+            ConcurrencyIdentity, ConcurrencyKind, Evidence, EvidenceId, RepositoryId,
+            SemanticRecordHeader, SemanticRecordId, provenance,
+        };
+
+        let repository = RepositoryId::new("atlas-studio");
+        let revision = atlas_core::RevisionRef {
+            kind: "git".into(),
+            value: "abc123".into(),
+        };
+        let extractor = ExtractorIdentity {
+            id: extractor_id.into(),
+            version: "0.1.0".into(),
+        };
+        let scope = SemanticScope::new(Vec::<String>::new());
+        let function = SemanticRecordId::new(SemanticDimension::FunctionIdentity, "owner-fn-key");
+        let subject = ConcurrencyIdentity {
+            repository: repository.clone(),
+            revision: revision.clone(),
+            function,
+            kind: ConcurrencyKind::Await,
+            span: atlas_core::SourceSpan {
+                path: artifact_path.into(),
+                line: 3,
+                column: 5,
+            },
+        };
+        let record_id =
+            SemanticRecordId::new(SemanticDimension::Concurrency, &subject.identity_key());
+        let evidence_id = EvidenceId::new(evidence_id.to_owned());
+        let header = SemanticRecordHeader {
+            record_id: record_id.clone(),
+            dimension: SemanticDimension::Concurrency,
+            status: EpistemicStatus::Observed,
+            scope,
+            repository: repository.clone(),
+            revision: revision.clone(),
+            extractor: extractor.clone(),
+            evidence_refs: vec![evidence_id.clone()],
+            provenance: provenance(artifact_path, &extractor.id),
+            subject,
+        };
+        let observation = SemanticObservation::Concurrency(header);
+        assert!(observation.is_dimension_consistent());
+
+        ExtractionBatch {
+            extractor,
+            repository,
+            revision,
+            artifact: ArtifactId::new(format!("artifact:{artifact_path}")),
+            input_fingerprint: format!("test:{artifact_path}"),
+            observations: vec![observation],
+            evidence: vec![Evidence {
+                id: evidence_id.as_str().to_owned(),
+                kind: "PARSER_OUTPUT".into(),
+                path: artifact_path.into(),
+                summary: evidence_summary.into(),
+                revision: None,
+            }],
+            obligations: vec![ObligationResult::observed(
+                SemanticDimension::Concurrency,
+                vec![record_id],
+                vec![evidence_id],
+            )],
+            diagnostics: Vec::new(),
+        }
+    }
+
     fn single_rust_file_context() -> (InventoryReport, SourceReport, AdlCompileReport) {
         let inventory = InventoryReport::new(
             "/repo",
@@ -2410,6 +2484,81 @@ pub async unsafe extern "C" fn example<T>(x: Vec<T>, y: &mut usize) -> Result<T,
             .typed_semantic_records
             .iter()
             .filter(|observation| matches!(observation, SemanticObservation::Ownership(_)))
+            .collect();
+        assert_eq!(normalized.len(), 2);
+    }
+
+    // === R4.10: Concurrency claims stay multi-extractor safe ========================================
+    //
+    // Same proof, for the new R4.10 dimension: two independent extractors observing the exact same
+    // claim must both survive Census/Normalization, share one claim identity (record_id), and
+    // remain distinctly attributable by raw_observation_id/extractor id.
+
+    #[test]
+    fn same_concurrency_claim_from_two_extractors_survives_census_and_normalization() {
+        let (inventory, source, adl) = single_rust_file_context();
+        let batches = [
+            extraction_batch_with_concurrency_from(
+                "src/lib.rs",
+                "extractor-a",
+                "evidence:concurrency-a",
+                "extractor-a observed an await at src/lib.rs",
+            ),
+            extraction_batch_with_concurrency_from(
+                "src/lib.rs",
+                "extractor-b",
+                "evidence:concurrency-b",
+                "extractor-b observed an await at src/lib.rs",
+            ),
+        ];
+
+        let census = build_census(&inventory, &source, &adl, &batches);
+        let ops: Vec<_> = census
+            .typed_semantic_records
+            .iter()
+            .filter(|observation| matches!(observation, SemanticObservation::Concurrency(_)))
+            .collect();
+        assert_eq!(
+            ops.len(),
+            2,
+            "independent extractors' observations of the same concurrency op must both survive Census"
+        );
+
+        let claim_ids: std::collections::BTreeSet<&str> = ops
+            .iter()
+            .map(|observation| observation.record_id().as_str())
+            .collect();
+        assert_eq!(
+            claim_ids.len(),
+            1,
+            "both observations share the same Concurrency claim"
+        );
+
+        let raw_ids: std::collections::BTreeSet<_> = ops
+            .iter()
+            .map(|observation| observation.raw_observation_id())
+            .collect();
+        assert_eq!(raw_ids.len(), 2);
+
+        let extractor_ids: std::collections::BTreeSet<&str> = ops
+            .iter()
+            .map(|observation| {
+                let SemanticObservation::Concurrency(header) = observation else {
+                    unreachable!()
+                };
+                header.extractor.id.as_str()
+            })
+            .collect();
+        assert_eq!(
+            extractor_ids,
+            std::collections::BTreeSet::from(["extractor-a", "extractor-b"])
+        );
+
+        let normalization = crate::normalize::normalize(&census);
+        let normalized: Vec<_> = normalization
+            .typed_semantic_records
+            .iter()
+            .filter(|observation| matches!(observation, SemanticObservation::Concurrency(_)))
             .collect();
         assert_eq!(normalized.len(), 2);
     }
