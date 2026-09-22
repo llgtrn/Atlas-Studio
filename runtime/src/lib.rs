@@ -6,10 +6,23 @@ pub mod normalize;
 
 use atlas_core::{
     AdlCompileReport, AdlProgram, CLI_API, CodingAdmission, Contract, DocsReport, EngineeringGraph,
-    Evidence, RepositoryId, RevisionRef, SystemizeReport, WorkPrepareReport, WorkRequest,
-    build_system_graph, compile_adl, parse_adl_source, summarize_system_graph,
+    Evidence, RepoAudit, RepositoryId, RevisionRef, SystemizeReport, WorkPrepareReport,
+    WorkRequest, build_system_graph, compile_adl, parse_adl_source, summarize_system_graph,
 };
 use std::{io, path::Path};
+
+/// The `RepositoryId` extraction/census pin for `root`: the declared manifest repo name when one
+/// exists, else the canonicalized root path. Shared by every entry point that runs extraction so
+/// they all pin identity the same way.
+fn resolve_repository_id(repository: &RepoAudit, root: &Path) -> RepositoryId {
+    RepositoryId::new(
+        repository
+            .manifest
+            .as_ref()
+            .map(|manifest| manifest.repo.clone())
+            .unwrap_or_else(|| root.to_string_lossy().into_owned()),
+    )
+}
 
 pub fn systemize(root: impl AsRef<Path>) -> io::Result<SystemizeReport> {
     let root = root.as_ref();
@@ -20,24 +33,25 @@ pub fn systemize(root: impl AsRef<Path>) -> io::Result<SystemizeReport> {
     let docs = adapter::audit_docs(root.join(".atlas"))?;
     let adl_sources = adapter::read_adl_sources(root)?;
     let adl = compile_adl(&adl_sources, &source);
-    let census = census::build_census(&inventory, &source, &adl);
+
+    // R4.3.1: semantic extraction runs BEFORE census construction, and its results flow directly
+    // into the canonical `CensusReport` that `normalize`/`graph` below then consume -- extraction
+    // is no longer a post-census accounting-only sidecar
+    // (`.atlas/contracts/SEMANTIC-EXTRACTION.md`: "Census -> Normalize -> Reconcile -> Engineering
+    // Graph" is the one normalized path). `extraction_accounting` and `census` are both built from
+    // the exact same `extraction_batches`, so closure accounting and canonical census truth can
+    // never disagree about what extraction produced.
+    let repository_id = resolve_repository_id(&repository, root);
+    let extraction_batches =
+        census::extraction::extract_semantics(&inventory, repository_id, snapshot.revision());
+    let mut extraction_accounting = census::CensusExtractionAccounting::new();
+    for batch in &extraction_batches {
+        extraction_accounting.record_batch(batch);
+    }
+
+    let census = census::build_census(&inventory, &source, &adl, &extraction_batches);
     let normalization = normalize::normalize(&census);
     let graph = summarize_system_graph(&source, &docs, &normalization);
-
-    // R4.3: run every registered `SemanticExtractor` (currently real for Rust) against every
-    // admitted, successfully-parsed artifact and record the results into
-    // `CensusExtractionAccounting`. This is the real production call site
-    // (`.atlas/contracts/SEMANTIC-EXTRACTION.md`), not merely a helper exercised by tests: its
-    // closure result feeds `coding_admission.blockers` below.
-    let repository_id = RepositoryId::new(
-        repository
-            .manifest
-            .as_ref()
-            .map(|manifest| manifest.repo.clone())
-            .unwrap_or_else(|| root.to_string_lossy().into_owned()),
-    );
-    let (_extraction_accounting, extraction_accounting_closed) =
-        census::extraction::extract_semantics(&inventory, repository_id, snapshot.revision())?;
 
     let mut blockers = Vec::new();
     if !repository.ready {
@@ -58,7 +72,7 @@ pub fn systemize(root: impl AsRef<Path>) -> io::Result<SystemizeReport> {
     if !normalization.is_closed() {
         blockers.push("NORMALIZATION_ACCOUNTING_NOT_CLOSED".to_owned());
     }
-    if !extraction_accounting_closed {
+    if !extraction_accounting.is_closed(&census::extraction::ALL_SEMANTIC_DIMENSIONS) {
         blockers.push("SEMANTIC_EXTRACTION_ACCOUNTING_NOT_CLOSED".to_owned());
     }
 
@@ -114,13 +128,17 @@ pub fn check(root: impl AsRef<Path>) -> io::Result<AdlCompileReport> {
 
 pub fn graph(root: impl AsRef<Path>) -> io::Result<EngineeringGraph> {
     let root = root.as_ref();
+    let snapshot = adapter::snapshot_git(root)?;
     let repository = adapter::audit_repository(root)?;
     let inventory = inventory::build_inventory(root, repository.manifest.as_ref())?;
     let source = adapter::source_report_from_inventory(&inventory);
     let docs = adapter::audit_docs(root.join(".atlas"))?;
     let adl_sources = adapter::read_adl_sources(root)?;
     let adl = compile_adl(&adl_sources, &source);
-    let census = census::build_census(&inventory, &source, &adl);
+    let repository_id = resolve_repository_id(&repository, root);
+    let extraction_batches =
+        census::extraction::extract_semantics(&inventory, repository_id, snapshot.revision());
+    let census = census::build_census(&inventory, &source, &adl, &extraction_batches);
     let normalization = normalize::normalize(&census);
     Ok(build_system_graph(&source, &docs, &normalization))
 }
@@ -135,13 +153,17 @@ pub fn docs_audit(root: impl AsRef<Path>) -> io::Result<DocsReport> {
 
 pub fn code_analyze(root: impl AsRef<Path>) -> io::Result<serde_json::Value> {
     let root = root.as_ref();
+    let snapshot = adapter::snapshot_git(root)?;
     let repository = adapter::audit_repository(root)?;
     let inventory = inventory::build_inventory(root, repository.manifest.as_ref())?;
     let source = adapter::source_report_from_inventory(&inventory);
     let docs = adapter::audit_docs(root.join(".atlas"))?;
     let adl_sources = adapter::read_adl_sources(root)?;
     let adl = compile_adl(&adl_sources, &source);
-    let census = census::build_census(&inventory, &source, &adl);
+    let repository_id = resolve_repository_id(&repository, root);
+    let extraction_batches =
+        census::extraction::extract_semantics(&inventory, repository_id, snapshot.revision());
+    let census = census::build_census(&inventory, &source, &adl, &extraction_batches);
     let normalization = normalize::normalize(&census);
     let graph = summarize_system_graph(&source, &docs, &normalization);
 
