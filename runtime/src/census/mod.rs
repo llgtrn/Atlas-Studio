@@ -3,9 +3,13 @@
 //! Census converts admitted inventory and declared ADL into typed semantic facts while preserving
 //! provenance and explicit unsupported/unknown states. It does not grant truth to model output.
 
+pub mod extraction;
+
+pub use extraction::merge_batch_into_coverage;
+
 use atlas_core::{
     AdlCompileReport, ArtifactDisposition, CensusReport, EpistemicStatus, InventoryReport,
-    Provenance, SemanticFact, SemanticFactKind, SourceReport, stable_id,
+    Provenance, SemanticDimension, SemanticFact, SemanticFactKind, SourceReport, stable_id,
 };
 use std::{collections::BTreeMap, path::Path};
 
@@ -238,17 +242,65 @@ pub fn build_census(
     }
 
     let parsed_artifacts = source.files_total;
+    // SOURCE_ARTIFACT/DECLARED_ADL/BUILD are accounting axes outside the canonical R4 semantic
+    // dimension set (SEMANTIC-EXTRACTION.md); the rest are keyed by SemanticDimension::as_str()
+    // rather than duplicated string literals, so this map can never silently drift from the
+    // canonical dimension list. All twelve R4 dimensions are explicit here -- including
+    // FUNCTION_IDENTITY, FUNCTION_SIGNATURE, OWNERSHIP, CONCURRENCY and PERSISTENCE, which the
+    // bootstrap census previously omitted -- even though every one of them is UNSUPPORTED until a
+    // real extractor exists (R4.3+ for Rust).
     let mut coverage = BTreeMap::from([
         ("SOURCE_ARTIFACT".into(), EpistemicStatus::Observed),
         ("DECLARED_ADL".into(), EpistemicStatus::Declared),
-        ("SYMBOL".into(), EpistemicStatus::Unsupported),
-        ("TYPE".into(), EpistemicStatus::Unsupported),
-        ("CALL".into(), EpistemicStatus::Unsupported),
-        ("CONTROL_FLOW".into(), EpistemicStatus::Unsupported),
-        ("DATA_FLOW".into(), EpistemicStatus::Unsupported),
         ("BUILD".into(), EpistemicStatus::Unsupported),
-        ("STATE".into(), EpistemicStatus::Unsupported),
-        ("EFFECT".into(), EpistemicStatus::Unsupported),
+        (
+            SemanticDimension::Symbol.as_str().into(),
+            EpistemicStatus::Unsupported,
+        ),
+        (
+            SemanticDimension::Type.as_str().into(),
+            EpistemicStatus::Unsupported,
+        ),
+        (
+            SemanticDimension::FunctionIdentity.as_str().into(),
+            EpistemicStatus::Unsupported,
+        ),
+        (
+            SemanticDimension::FunctionSignature.as_str().into(),
+            EpistemicStatus::Unsupported,
+        ),
+        (
+            SemanticDimension::Call.as_str().into(),
+            EpistemicStatus::Unsupported,
+        ),
+        (
+            SemanticDimension::ControlFlow.as_str().into(),
+            EpistemicStatus::Unsupported,
+        ),
+        (
+            SemanticDimension::DataFlow.as_str().into(),
+            EpistemicStatus::Unsupported,
+        ),
+        (
+            SemanticDimension::State.as_str().into(),
+            EpistemicStatus::Unsupported,
+        ),
+        (
+            SemanticDimension::Effect.as_str().into(),
+            EpistemicStatus::Unsupported,
+        ),
+        (
+            SemanticDimension::Ownership.as_str().into(),
+            EpistemicStatus::Unsupported,
+        ),
+        (
+            SemanticDimension::Concurrency.as_str().into(),
+            EpistemicStatus::Unsupported,
+        ),
+        (
+            SemanticDimension::Persistence.as_str().into(),
+            EpistemicStatus::Unsupported,
+        ),
     ]);
     if parsed_artifacts == 0 {
         coverage.insert("SOURCE_ARTIFACT".into(), EpistemicStatus::Unknown);

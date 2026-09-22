@@ -3,9 +3,14 @@
 use atlas_core::{AdlSource, DocsReport, DocumentFact, RepoAudit, RepoManifest, validate_manifest};
 use std::{collections::BTreeMap, fs, io, path::Path};
 
+pub mod semantic;
 pub mod source;
 pub mod vcs;
 
+pub use semantic::{
+    DiagnosticCode, ExtractionBatch, ExtractionDiagnostic, ExtractionInput, ObligationResult,
+    SemanticExtractor, StaticUnsupportedExtractor, extractors_for_language, semantic_extractors,
+};
 pub use source::{
     SourceFrontend, SourceFrontendMatch, inventory_declared_source, inventory_source,
     resolve_source_frontend, scan_declared_source, scan_source, source_frontends,
