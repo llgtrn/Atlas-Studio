@@ -52,6 +52,17 @@ The compaction stage occurs AFTER semantic seal.
 
 No AI/model decision is permitted inside canonical compaction.
 
+## Machine contracts
+
+The following machine schemas are normative for the first implementation profile:
+
+- `../schemas/constraint-envelope.schema.json`;
+- `../schemas/provider-receipt.schema.json`;
+- `../schemas/decision-proposal.schema.json`;
+- `../schemas/candidate-change-set.schema.json`.
+
+A later implementation may add richer typed Rust/API forms, but those forms MUST preserve these semantic obligations or explicitly version/migrate them.
+
 ## Stage C0 — Intent
 
 Inputs may come from:
@@ -72,6 +83,8 @@ Unstructured intent may start the process. It may not bypass typing/validation.
 ## Stage C1 — Constraint Envelope
 
 Before research or synthesis, Atlas constructs a constraint envelope from all applicable canonical policy.
+
+The v1 machine envelope is `../schemas/constraint-envelope.schema.json`.
 
 The envelope MUST include where applicable:
 
@@ -176,7 +189,7 @@ A Jev-class decision provider may:
 - choose reuse vs combine vs invent;
 - decide escalation to a stronger provider.
 
-The output is a typed `DecisionProposal`.
+The output is a typed `DecisionProposal` conforming to `../schemas/decision-proposal.schema.json`.
 
 The decision provider MUST NOT:
 
@@ -206,7 +219,7 @@ Permitted outputs include:
 - implementation rationale;
 - dependency proposals.
 
-All outputs MUST be packaged into a typed `CandidateChangeSet`.
+All outputs MUST be packaged into a typed `CandidateChangeSet` conforming to `../schemas/candidate-change-set.schema.json`.
 
 The provider MUST NOT modify the canonical sealed Atlas directly.
 
@@ -498,7 +511,7 @@ No role owns canonical truth.
 
 ## Provider receipts
 
-Every material external-provider invocation MUST be traceable through a ProviderReceipt containing at least:
+Every material external-provider invocation MUST be traceable through a ProviderReceipt conforming to `../schemas/provider-receipt.schema.json` and containing at least:
 
 - provider identity;
 - model/service identity/version where available;
