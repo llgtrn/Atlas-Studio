@@ -3,26 +3,52 @@
 //! Normalization gives observed/declared facts a deterministic vocabulary without upgrading their
 //! epistemic status or dropping provenance. It is intentionally lossless at this stage.
 //!
-//! R4.3.2: normalization is typed-semantic aware. `normalize_typed_records` is the real N0
+//! R4.3.2/R4.3.3: normalization is typed-semantic aware. `normalize_typed_records` is the real N0
 //! normalization step for `CensusReport.typed_semantic_records` -- deterministic ordering only, no
-//! restructuring, no field mutation, no dedup beyond exact-id collapse (there are no further
-//! normalization/reconciliation rules to apply yet; see `.atlas/contracts/NORMALIZATION.md`). The
-//! pre-existing `normalize_fact`/`canonical_predicate` logic remains, unchanged, for the
-//! `SemanticFact` compatibility projection that `facts` carries.
+//! restructuring, no field mutation, no dedup beyond EXACT raw-observation collapse (there are no
+//! further normalization/reconciliation rules to apply yet; see
+//! `.atlas/contracts/NORMALIZATION.md`). `normalize_typed_obligations` carries
+//! `CensusReport.typed_obligations` through the same N0 discipline. The pre-existing
+//! `normalize_fact`/`canonical_predicate` logic remains, unchanged, for the `SemanticFact`
+//! compatibility projection that `facts` carries.
 
 use atlas_core::{
     CensusReport, Evidence, ExtractionDiagnostic, NormalizationReport, SemanticFact,
-    SemanticObservation, stable_id,
+    SemanticObligationRecord, SemanticObservation, TypedClosureAccounting, stable_id,
 };
 use std::collections::BTreeMap;
 
-/// N0 typed normalization: deterministic ordering by `record_id`, everything else preserved
-/// verbatim. `normalize(record) == record` up to this ordering -- never a lossy
-/// record-to-string-to-record round trip.
+/// N0 typed normalization: deterministic ordering, everything else preserved verbatim.
+/// `normalize(record) == record` up to this ordering -- never a lossy record-to-string-to-record
+/// round trip. De-duplication is by `raw_observation_id` (an EXACT raw-content match), never by
+/// `record_id` alone: two independent extractors reporting the same semantic claim share a
+/// `record_id` by design and must both survive
+/// (`.atlas/contracts/SEMANTIC-EXTRACTION.md#multi-engine-extraction`).
 fn normalize_typed_records(records: &[SemanticObservation]) -> Vec<SemanticObservation> {
     let mut normalized = records.to_vec();
-    normalized.sort_by(|a, b| a.record_id().as_str().cmp(b.record_id().as_str()));
-    normalized.dedup_by(|a, b| a.record_id() == b.record_id());
+    normalized.sort_by(|a, b| {
+        a.record_id()
+            .as_str()
+            .cmp(b.record_id().as_str())
+            .then_with(|| {
+                a.raw_observation_id()
+                    .as_str()
+                    .cmp(b.raw_observation_id().as_str())
+            })
+    });
+    normalized.dedup_by(|a, b| a.raw_observation_id() == b.raw_observation_id());
+    normalized
+}
+
+/// N0 typed normalization for the obligation ledger: deterministic ordering by `obligation_id`,
+/// full-equality dedup (never merges two obligations that legitimately differ in content), no
+/// reconciliation, no winner selection, no epistemic promotion, no evidence/diagnostic loss.
+fn normalize_typed_obligations(
+    obligations: &[SemanticObligationRecord],
+) -> Vec<SemanticObligationRecord> {
+    let mut normalized = obligations.to_vec();
+    normalized.sort_by(|a, b| a.obligation_id.as_str().cmp(b.obligation_id.as_str()));
+    normalized.dedup_by(|a, b| a == b);
     normalized
 }
 
@@ -92,14 +118,24 @@ pub fn normalize(census: &CensusReport) -> NormalizationReport {
         *kinds.entry(fact.kind.as_str().to_owned()).or_insert(0) += 1;
     }
 
+    let typed_semantic_records = normalize_typed_records(&census.typed_semantic_records);
+    let typed_obligations = normalize_typed_obligations(&census.typed_obligations);
+    let normalized_typed_closure = TypedClosureAccounting {
+        typed_observations_total: typed_semantic_records.len(),
+        typed_obligations_total: typed_obligations.len(),
+    };
+
     NormalizationReport {
-        schema: "atlas.normalization-report.v2".into(),
+        schema: "atlas.normalization-report.v3".into(),
         input_facts_total: census.facts_total,
         normalized_facts_total: facts.len(),
         kinds,
-        typed_semantic_records: normalize_typed_records(&census.typed_semantic_records),
+        typed_semantic_records,
         evidence: normalize_evidence(&census.evidence),
         diagnostics: normalize_diagnostics(&census.diagnostics),
+        typed_obligations,
+        input_typed_closure: census.typed_closure,
+        normalized_typed_closure,
         facts,
     }
 }
@@ -120,6 +156,11 @@ mod tests {
             typed_semantic_records: Vec::new(),
             evidence: Vec::new(),
             diagnostics: Vec::new(),
+            typed_obligations: Vec::new(),
+            typed_closure: TypedClosureAccounting {
+                typed_observations_total: 0,
+                typed_obligations_total: 0,
+            },
             facts: vec![SemanticFact {
                 id: "raw:1".into(),
                 kind: SemanticFactKind::DeclaredEdge,

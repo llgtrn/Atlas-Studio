@@ -1,11 +1,12 @@
 use super::{Binding, Edge, EngineeringGraph, Fact, Node};
 use crate::{
     identity::stable_id,
-    provenance::provenance,
+    provenance::{Provenance, provenance},
     schema::{
         DocsReport, EpistemicStatus, GraphSummary, NormalizationReport, SemanticFact,
         SemanticFactKind, SourceReport,
     },
+    semantic::SemanticObservation,
 };
 use std::collections::BTreeMap;
 
@@ -202,7 +203,7 @@ fn ensure_node(
     kind: String,
     identity: String,
     attributes: BTreeMap<String, String>,
-    fact: &SemanticFact,
+    provenance: &Provenance,
 ) {
     if graph.nodes.iter().any(|node| node.id == id) {
         return;
@@ -212,8 +213,8 @@ fn ensure_node(
         kind,
         identity,
         attributes,
-        provenance: fact.provenance.clone(),
-        revision: fact.provenance.source_revision.clone(),
+        provenance: provenance.clone(),
+        revision: provenance.source_revision.clone(),
     });
 }
 
@@ -264,7 +265,7 @@ pub fn build_system_graph(
                         ("disposition".into(), fact.object.clone()),
                         ("epistemic_status".into(), format!("{:?}", fact.status)),
                     ]),
-                    fact,
+                    &fact.provenance,
                 );
                 graph.edges.push(Edge {
                     id: stable_id("edge", &format!("{repo_id}:CONTAINS:{artifact_id}")),
@@ -283,7 +284,7 @@ pub fn build_system_graph(
                     fact.object.clone(),
                     fact.subject.clone(),
                     BTreeMap::from([("origin".into(), "normalized-declared".into())]),
-                    fact,
+                    &fact.provenance,
                 );
             }
             SemanticFactKind::DeclaredEdge => {
@@ -346,7 +347,7 @@ pub fn build_system_graph(
                     .into(),
                     fact.subject.clone(),
                     BTreeMap::from([("origin".into(), "normalized-declared".into())]),
-                    fact,
+                    &fact.provenance,
                 );
             }
             SemanticFactKind::ConstraintResult | SemanticFactKind::Diagnostic => {
@@ -366,7 +367,7 @@ pub fn build_system_graph(
                         ("code".into(), fact.predicate.clone()),
                         ("value".into(), fact.object.clone()),
                     ]),
-                    fact,
+                    &fact.provenance,
                 );
             }
             SemanticFactKind::Materialization => {
@@ -384,7 +385,7 @@ pub fn build_system_graph(
                         ("path".into(), fact.object.clone()),
                         ("origin".into(), "normalized-declared".into()),
                     ]),
-                    fact,
+                    &fact.provenance,
                 );
                 graph.edges.push(Edge {
                     id: stable_id(
@@ -434,54 +435,19 @@ pub fn build_system_graph(
                 }
             }
             SemanticFactKind::Binding => {}
-            // R4.3.1: real SemanticExtractor observations, projected from the typed R4.1 kernel
-            // record into the bootstrap fact envelope by `runtime::census::build_census`. Each
-            // gets a lightweight node keyed by the originating `SemanticRecordId` (carried as
-            // `fact.subject`), so the graph is demonstrably downstream of real extraction --
-            // never a graph authored directly by a parser/extractor
-            // (`.atlas/decisions/0001-one-normalized-semantic-path.md`). Deeper graph modeling
-            // (call edges, control/data-flow projection) is out of scope until those dimensions
-            // themselves become real (R4.4+).
-            SemanticFactKind::Symbol => {
-                ensure_node(
-                    &mut graph,
-                    stable_id("node", &format!("symbol:{}", fact.subject)),
-                    "Symbol".into(),
-                    fact.object.clone(),
-                    BTreeMap::from([("origin".into(), "semantic-extraction".into())]),
-                    fact,
-                );
-            }
-            SemanticFactKind::Type => {
-                ensure_node(
-                    &mut graph,
-                    stable_id("node", &format!("type:{}", fact.subject)),
-                    "Type".into(),
-                    fact.object.clone(),
-                    BTreeMap::from([("origin".into(), "semantic-extraction".into())]),
-                    fact,
-                );
-            }
-            SemanticFactKind::FunctionIdentity => {
-                ensure_node(
-                    &mut graph,
-                    stable_id("node", &format!("function-identity:{}", fact.subject)),
-                    "FunctionIdentity".into(),
-                    fact.object.clone(),
-                    BTreeMap::from([("origin".into(), "semantic-extraction".into())]),
-                    fact,
-                );
-            }
-            SemanticFactKind::FunctionSignature => {
-                ensure_node(
-                    &mut graph,
-                    stable_id("node", &format!("function-signature:{}", fact.subject)),
-                    "FunctionSignature".into(),
-                    fact.object.clone(),
-                    BTreeMap::from([("origin".into(), "semantic-extraction".into())]),
-                    fact,
-                );
-            }
+            // R4.3.3: Symbol/Type/FunctionIdentity/FunctionSignature nodes are no longer created
+            // from this compatibility-fact loop. They are now built directly from
+            // `normalization.typed_semantic_records` by `add_typed_semantic_nodes` below, so
+            // semantic graph identity no longer depends on the lossy `SemanticFact` projection
+            // (`.atlas/contracts/SEMANTIC-EXTRACTION.md#r4-acceptance-matrix`: "SemanticFact
+            // remains a compatibility envelope, not the only semantic type system"). These facts
+            // still reach `graph.facts` via `add_normalized_fact` above (legacy/report
+            // convenience), but that projection is no longer a second path to graph truth: adding
+            // or removing it changes no node, no edge, and no binding.
+            SemanticFactKind::Symbol
+            | SemanticFactKind::Type
+            | SemanticFactKind::FunctionIdentity
+            | SemanticFactKind::FunctionSignature => {}
             // Per-artifact obligation-status bookkeeping (OBSERVED/UNKNOWN/UNSUPPORTED for one
             // dimension): already recorded via `add_normalized_fact` above; no dedicated node,
             // exactly like `SourceArtifact`'s "language" fact.
@@ -489,7 +455,109 @@ pub fn build_system_graph(
         }
     }
 
+    add_typed_semantic_nodes(&mut graph, &normalization.typed_semantic_records);
+
     graph
+}
+
+fn scoped_identity(scope: &crate::semantic::SemanticScope, name: &str) -> String {
+    if scope.segments.is_empty() {
+        name.to_owned()
+    } else {
+        format!("{}::{}", scope.join(), name)
+    }
+}
+
+fn function_signature_identity(signature: &crate::semantic::FunctionSignature) -> String {
+    let params = signature
+        .parameters
+        .iter()
+        .map(|parameter| format!("{}: {}", parameter.name, parameter.type_identity.name))
+        .collect::<Vec<_>>()
+        .join(", ");
+    let return_type = signature
+        .return_type
+        .as_ref()
+        .map(|type_identity| type_identity.name.clone())
+        .unwrap_or_else(|| "()".to_owned());
+    let asyncness = if signature.is_async { "async " } else { "" };
+    let unsafety = if signature.is_unsafe { "unsafe " } else { "" };
+    format!("{asyncness}{unsafety}fn({params}) -> {return_type}")
+}
+
+/// R4.3.3: the authoritative source for SYMBOL/TYPE/FUNCTION_IDENTITY/FUNCTION_SIGNATURE graph
+/// nodes -- built directly from typed `SemanticObservation` records, never by parsing
+/// `SemanticFact.object` and never gated on the compatibility fact existing at all
+/// (`.atlas/decisions/0001-one-normalized-semantic-path.md`: no parser/extractor bypass may create
+/// canonical semantics, but the typed kernel record is exactly the *normalized* semantic path this
+/// graph is meant to project from -- the lossy string projection was the bypass). Each observation
+/// gets a lightweight node keyed by its `record_id`; deeper graph modeling (call edges,
+/// control/data-flow projection) remains out of scope until those dimensions themselves become
+/// real (R4.4+). CALL/CONTROL_FLOW/DATA_FLOW/STATE/EFFECT observations are matched explicitly (never
+/// via a wildcard) precisely so a future dimension is impossible to forget here silently.
+fn add_typed_semantic_nodes(
+    graph: &mut EngineeringGraph,
+    typed_semantic_records: &[SemanticObservation],
+) {
+    for observation in typed_semantic_records {
+        match observation {
+            SemanticObservation::Symbol(header) => {
+                ensure_node(
+                    graph,
+                    stable_id("node", &format!("symbol:{}", header.record_id.as_str())),
+                    "Symbol".into(),
+                    scoped_identity(&header.scope, &header.subject.name),
+                    BTreeMap::from([("origin".into(), "semantic-extraction".into())]),
+                    &header.provenance,
+                );
+            }
+            SemanticObservation::Type(header) => {
+                ensure_node(
+                    graph,
+                    stable_id("node", &format!("type:{}", header.record_id.as_str())),
+                    "Type".into(),
+                    header.subject.name.clone(),
+                    BTreeMap::from([("origin".into(), "semantic-extraction".into())]),
+                    &header.provenance,
+                );
+            }
+            SemanticObservation::FunctionIdentity(header) => {
+                ensure_node(
+                    graph,
+                    stable_id(
+                        "node",
+                        &format!("function-identity:{}", header.record_id.as_str()),
+                    ),
+                    "FunctionIdentity".into(),
+                    scoped_identity(&header.scope, &header.subject.symbol.name),
+                    BTreeMap::from([("origin".into(), "semantic-extraction".into())]),
+                    &header.provenance,
+                );
+            }
+            SemanticObservation::FunctionSignature(header) => {
+                ensure_node(
+                    graph,
+                    stable_id(
+                        "node",
+                        &format!("function-signature:{}", header.record_id.as_str()),
+                    ),
+                    "FunctionSignature".into(),
+                    function_signature_identity(&header.subject),
+                    BTreeMap::from([("origin".into(), "semantic-extraction".into())]),
+                    &header.provenance,
+                );
+            }
+            // Not yet materialized by any extractor (R4.4+); no graph logic to add here until
+            // they become real observations. Matched explicitly, never via `_ => {}`, so adding a
+            // new dimension's extractor without updating this function fails to compile instead
+            // of silently producing no graph nodes.
+            SemanticObservation::Call(_)
+            | SemanticObservation::ControlFlow(_)
+            | SemanticObservation::DataFlow(_)
+            | SemanticObservation::State(_)
+            | SemanticObservation::Effect(_) => {}
+        }
+    }
 }
 
 pub fn summarize_graph(source: &SourceReport) -> GraphSummary {
@@ -532,7 +600,10 @@ fn summarize_engineering_graph(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{EpistemicStatus, NormalizationReport, Provenance, SemanticFact, SemanticFactKind};
+    use crate::{
+        EpistemicStatus, NormalizationReport, Provenance, SemanticFact, SemanticFactKind,
+        TypedClosureAccounting,
+    };
 
     fn source() -> SourceReport {
         SourceReport {
@@ -658,6 +729,15 @@ mod tests {
             typed_semantic_records: Vec::new(),
             evidence: Vec::new(),
             diagnostics: Vec::new(),
+            typed_obligations: Vec::new(),
+            input_typed_closure: TypedClosureAccounting {
+                typed_observations_total: 0,
+                typed_obligations_total: 0,
+            },
+            normalized_typed_closure: TypedClosureAccounting {
+                typed_observations_total: 0,
+                typed_obligations_total: 0,
+            },
             facts,
         };
 
@@ -693,5 +773,125 @@ mod tests {
                 .iter()
                 .any(|fact| fact.predicate == "passed" && fact.object == "true")
         );
+    }
+
+    // === R4.3.3: typed records, not compatibility facts, drive semantic graph identity =========
+
+    fn symbol_observation() -> crate::semantic::SemanticObservation {
+        use crate::identity::RepositoryId;
+        use crate::provenance::provenance;
+        use crate::semantic::{
+            ExtractorIdentity, SemanticDimension, SemanticRecordHeader, SemanticRecordId,
+            SemanticScope, SymbolIdentity, SymbolRole,
+        };
+        use crate::temporal::RevisionRef;
+
+        let repository = RepositoryId::new("atlas-studio");
+        let revision = RevisionRef {
+            kind: "git".into(),
+            value: "abc123".into(),
+        };
+        let scope = SemanticScope::new(Vec::<String>::new());
+        let symbol = SymbolIdentity {
+            repository: repository.clone(),
+            revision: revision.clone(),
+            scope: scope.clone(),
+            name: "known".into(),
+            role: SymbolRole::Definition,
+        };
+        let record_id = SemanticRecordId::new(SemanticDimension::Symbol, &symbol.identity_key());
+        crate::semantic::SemanticObservation::Symbol(SemanticRecordHeader {
+            record_id,
+            dimension: SemanticDimension::Symbol,
+            status: EpistemicStatus::Observed,
+            subject: symbol,
+            scope,
+            repository,
+            revision,
+            extractor: ExtractorIdentity {
+                id: "atlas.test".into(),
+                version: "0.1.0".into(),
+            },
+            evidence_refs: Vec::new(),
+            provenance: provenance("src/lib.rs", "atlas.test"),
+        })
+    }
+
+    fn normalization_with(
+        typed_semantic_records: Vec<crate::semantic::SemanticObservation>,
+        facts: Vec<SemanticFact>,
+    ) -> NormalizationReport {
+        NormalizationReport {
+            schema: "test".into(),
+            input_facts_total: facts.len(),
+            normalized_facts_total: facts.len(),
+            kinds: BTreeMap::new(),
+            typed_obligations: Vec::new(),
+            input_typed_closure: TypedClosureAccounting {
+                typed_observations_total: typed_semantic_records.len(),
+                typed_obligations_total: 0,
+            },
+            normalized_typed_closure: TypedClosureAccounting {
+                typed_observations_total: typed_semantic_records.len(),
+                typed_obligations_total: 0,
+            },
+            typed_semantic_records,
+            evidence: Vec::new(),
+            diagnostics: Vec::new(),
+            facts,
+        }
+    }
+
+    #[test]
+    fn semantic_graph_projects_from_typed_records_without_compatibility_facts() {
+        // No compatibility SemanticFact at all -- `facts` is empty. Under the pre-R4.3.3
+        // implementation (which only created Symbol/Type/FunctionIdentity/FunctionSignature nodes
+        // while iterating `normalization.facts`), this would produce zero semantic nodes.
+        let normalization = normalization_with(vec![symbol_observation()], Vec::new());
+
+        let graph = build_system_graph(&source(), &docs(), &normalization);
+        assert!(
+            graph
+                .nodes
+                .iter()
+                .any(|node| node.kind == "Symbol" && node.identity == "known"),
+            "a typed Symbol observation must produce a graph node even with no compatibility fact"
+        );
+    }
+
+    #[test]
+    fn compatibility_semantic_fact_does_not_change_the_semantic_graph_result() {
+        let observation = symbol_observation();
+        let compat_fact = semantic(
+            "compat-symbol",
+            SemanticFactKind::Symbol,
+            EpistemicStatus::Observed,
+            observation.record_id().as_str(),
+            "declares_symbol",
+            "known",
+        );
+
+        let without_fact = normalization_with(vec![observation.clone()], Vec::new());
+        let with_fact = normalization_with(vec![observation], vec![compat_fact]);
+
+        let graph_without = build_system_graph(&source(), &docs(), &without_fact);
+        let graph_with = build_system_graph(&source(), &docs(), &with_fact);
+
+        // Same semantic graph truth (nodes/edges/bindings) either way: the compatibility fact is
+        // never a second path to graph truth, only ever additional `graph.facts` bookkeeping.
+        assert_eq!(graph_without.nodes, graph_with.nodes);
+        assert_eq!(graph_without.edges, graph_with.edges);
+        assert_eq!(graph_without.bindings, graph_with.bindings);
+        // The compatibility fact IS still visible as report bookkeeping, so the two are not
+        // wholesale identical -- only their semantic-graph-truth parts are.
+        assert_ne!(graph_without.facts.len(), graph_with.facts.len());
+    }
+
+    #[test]
+    fn typed_semantic_graph_projection_is_deterministic() {
+        let normalization = normalization_with(vec![symbol_observation()], Vec::new());
+        let a = build_system_graph(&source(), &docs(), &normalization);
+        let b = build_system_graph(&source(), &docs(), &normalization);
+        assert_eq!(a, b);
     }
 }

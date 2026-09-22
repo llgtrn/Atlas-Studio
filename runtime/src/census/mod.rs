@@ -21,8 +21,8 @@ use adapter::{ExtractionBatch, ObligationResult};
 use atlas_core::{
     AdlCompileReport, ArtifactDisposition, ArtifactId, CensusReport, EpistemicStatus, Evidence,
     ExtractionDiagnostic, ExtractorIdentity, FunctionSignature, InventoryReport, Provenance,
-    RevisionRef, SemanticDimension, SemanticFact, SemanticFactKind, SemanticObservation,
-    SemanticScope, SourceReport, stable_id,
+    RevisionRef, SemanticDimension, SemanticFact, SemanticFactKind, SemanticObligationRecord,
+    SemanticObservation, SemanticScope, SourceReport, TypedClosureAccounting, stable_id,
 };
 use std::{collections::BTreeMap, path::Path};
 
@@ -414,6 +414,7 @@ pub fn build_census(
     let mut typed_semantic_records: Vec<SemanticObservation> = Vec::new();
     let mut evidence_by_id: BTreeMap<String, Evidence> = BTreeMap::new();
     let mut diagnostics_by_id: BTreeMap<String, ExtractionDiagnostic> = BTreeMap::new();
+    let mut typed_obligations: Vec<SemanticObligationRecord> = Vec::new();
 
     for batch in extraction_batches {
         let artifact_path = path_by_artifact
@@ -438,6 +439,22 @@ pub fn build_census(
                 obligation,
             ));
 
+            // R4.3.3: the canonical typed obligation ledger, so a Census-only reader can answer
+            // "which extractor evaluated this dimension, for which artifact, at which revision,
+            // with what status, backed by which observations/evidence/diagnostics" without the
+            // original transient `ExtractionBatch`es (`.atlas/contracts/CENSUS-COMPLETENESS.md`).
+            typed_obligations.push(SemanticObligationRecord::new(
+                batch.artifact.clone(),
+                batch.repository.clone(),
+                batch.revision.clone(),
+                batch.extractor.clone(),
+                obligation.dimension,
+                obligation.status,
+                obligation.observation_ids.clone(),
+                obligation.evidence_refs.clone(),
+                obligation.diagnostics.clone(),
+            ));
+
             let summary = dimension_summary
                 .entry(obligation.dimension)
                 .or_insert(obligation.status);
@@ -447,13 +464,36 @@ pub fn build_census(
         }
     }
 
-    // Deterministic ordering: never derived from Vec insertion/HashMap/traversal order. De-duped by
-    // `record_id` so a record that legitimately repeats across batches (e.g. re-observed via a
-    // shared extraction dependency) collapses to one entry, matching `evidence`/`diagnostics` below.
-    typed_semantic_records.sort_by(|a, b| a.record_id().as_str().cmp(b.record_id().as_str()));
-    typed_semantic_records.dedup_by(|a, b| a.record_id() == b.record_id());
+    // Deterministic ordering: never derived from Vec insertion/HashMap/traversal order. De-duped
+    // by `raw_observation_id` -- an EXACT match on claim identity, extractor, status, evidence,
+    // provenance AND typed payload -- so only a genuinely identical raw observation collapses.
+    // Sorting/deduping by `record_id` alone (the pre-R4.3.3 behavior) is unsafe: two independent
+    // extractors reporting the SAME semantic claim share a `record_id` by design, and collapsing
+    // on it would silently erase one extractor's observation
+    // (`.atlas/contracts/SEMANTIC-EXTRACTION.md#multi-engine-extraction`: "Independent extractors
+    // MAY analyze the same dimension. Their identities/evidence remain separate ... one extractor
+    // may not overwrite another").
+    typed_semantic_records.sort_by(|a, b| {
+        a.record_id()
+            .as_str()
+            .cmp(b.record_id().as_str())
+            .then_with(|| {
+                a.raw_observation_id()
+                    .as_str()
+                    .cmp(b.raw_observation_id().as_str())
+            })
+    });
+    typed_semantic_records.dedup_by(|a, b| a.raw_observation_id() == b.raw_observation_id());
     let evidence: Vec<Evidence> = evidence_by_id.into_values().collect();
     let diagnostics: Vec<ExtractionDiagnostic> = diagnostics_by_id.into_values().collect();
+
+    // Obligations use the same "preserve two independent records rather than merge" discipline:
+    // `obligation_id` is a coordinate identity (artifact/extractor/dimension), unique by
+    // construction, so a genuine duplicate key always carries identical content; dedup_by full
+    // equality still never silently drops a content-differing collision if that invariant is ever
+    // violated.
+    typed_obligations.sort_by(|a, b| a.obligation_id.as_str().cmp(b.obligation_id.as_str()));
+    typed_obligations.dedup_by(|a, b| a == b);
 
     // The compatibility `SemanticFact` projection is derived FROM `typed_semantic_records` (never
     // computed independently from the raw batches): one is always clearly downstream of the other.
@@ -491,8 +531,13 @@ pub fn build_census(
             .then_with(|| a.id.cmp(&b.id))
     });
 
+    let typed_closure = TypedClosureAccounting {
+        typed_observations_total: typed_semantic_records.len(),
+        typed_obligations_total: typed_obligations.len(),
+    };
+
     CensusReport {
-        schema: "atlas.census-report.v2".into(),
+        schema: "atlas.census-report.v3".into(),
         artifacts_total: inventory.artifacts_total,
         artifacts_accounted_total: inventory.artifacts.len(),
         facts_total: facts.len(),
@@ -500,6 +545,8 @@ pub fn build_census(
         typed_semantic_records,
         evidence,
         diagnostics,
+        typed_obligations,
+        typed_closure,
         facts,
     }
 }
@@ -624,6 +671,77 @@ mod tests {
                 kind: "PARSER_OUTPUT".into(),
                 path: artifact_path.into(),
                 summary: "test-observed symbol `known`".into(),
+                revision: None,
+            }],
+            obligations: vec![ObligationResult::observed(
+                SemanticDimension::Symbol,
+                vec![record_id],
+                vec![evidence_id],
+            )],
+            diagnostics: Vec::new(),
+        }
+    }
+
+    /// Like `extraction_batch_with_one_symbol`, but with a caller-chosen extractor identity and
+    /// evidence id, so two batches can report the SAME semantic claim (same `SymbolIdentity`,
+    /// hence same `record_id`) while differing in exactly the fields that make them independent
+    /// raw observations.
+    fn extraction_batch_with_symbol_from(
+        artifact_path: &str,
+        extractor_id: &str,
+        evidence_id: &str,
+        evidence_summary: &str,
+    ) -> ExtractionBatch {
+        use atlas_core::{
+            Evidence, EvidenceId, RepositoryId, SemanticRecordHeader, SemanticRecordId,
+            SymbolIdentity, SymbolRole, provenance,
+        };
+
+        let repository = RepositoryId::new("atlas-studio");
+        let revision = atlas_core::RevisionRef {
+            kind: "git".into(),
+            value: "abc123".into(),
+        };
+        let extractor = ExtractorIdentity {
+            id: extractor_id.into(),
+            version: "0.1.0".into(),
+        };
+        let symbol = SymbolIdentity {
+            repository: repository.clone(),
+            revision: revision.clone(),
+            scope: SemanticScope::new(Vec::<String>::new()),
+            name: "known".into(),
+            role: SymbolRole::Definition,
+        };
+        let record_id = SemanticRecordId::new(SemanticDimension::Symbol, &symbol.identity_key());
+        let evidence_id = EvidenceId::new(evidence_id.to_owned());
+        let header = SemanticRecordHeader {
+            record_id: record_id.clone(),
+            dimension: SemanticDimension::Symbol,
+            status: EpistemicStatus::Observed,
+            subject: symbol,
+            scope: SemanticScope::new(Vec::<String>::new()),
+            repository: repository.clone(),
+            revision: revision.clone(),
+            extractor: extractor.clone(),
+            evidence_refs: vec![evidence_id.clone()],
+            provenance: provenance(artifact_path, &extractor.id),
+        };
+        let observation = SemanticObservation::Symbol(header);
+        assert!(observation.is_dimension_consistent());
+
+        ExtractionBatch {
+            extractor,
+            repository,
+            revision,
+            artifact: ArtifactId::new(format!("artifact:{artifact_path}")),
+            input_fingerprint: format!("test:{artifact_path}"),
+            observations: vec![observation],
+            evidence: vec![Evidence {
+                id: evidence_id.as_str().to_owned(),
+                kind: "PARSER_OUTPUT".into(),
+                path: artifact_path.into(),
+                summary: evidence_summary.into(),
                 revision: None,
             }],
             obligations: vec![ObligationResult::observed(
@@ -1171,5 +1289,380 @@ pub async unsafe extern "C" fn example<T>(x: Vec<T>, y: &mut usize) -> Result<T,
             .filter(|observation| matches!(observation, SemanticObservation::Symbol(_)))
             .collect();
         assert_eq!(normalized_symbol_records.len(), 1);
+    }
+
+    // === R4.3.3: multi-extractor raw observation survival + canonical obligation lineage =======
+    //
+    // Every test below FAILS under the pre-R4.3.3 architecture: `typed_semantic_records` deduped
+    // by `record_id` alone (erasing one extractor's observation of a shared semantic claim), and
+    // no canonical, serializable obligation ledger existed at all (only the runtime-local
+    // `CensusExtractionAccounting`).
+
+    fn two_extractor_symbol_batches() -> [ExtractionBatch; 2] {
+        [
+            extraction_batch_with_symbol_from(
+                "src/lib.rs",
+                "extractor-a",
+                "evidence:a",
+                "extractor-a observed `known`",
+            ),
+            extraction_batch_with_symbol_from(
+                "src/lib.rs",
+                "extractor-b",
+                "evidence:b",
+                "extractor-b observed `known`",
+            ),
+        ]
+    }
+
+    // --- Required test 1: same semantic claim from two extractors survives Census -------------
+
+    #[test]
+    fn same_semantic_claim_from_two_extractors_survives_independently_through_census() {
+        let (inventory, source, adl) = single_rust_file_context();
+        let batches = two_extractor_symbol_batches();
+
+        let census = build_census(&inventory, &source, &adl, &batches);
+        let symbol_records: Vec<_> = census
+            .typed_semantic_records
+            .iter()
+            .filter(|observation| matches!(observation, SemanticObservation::Symbol(_)))
+            .collect();
+        assert_eq!(
+            symbol_records.len(),
+            2,
+            "independent extractors' observations of the same semantic claim must both survive"
+        );
+
+        // Same semantic claim identity...
+        let claim_ids: std::collections::BTreeSet<&str> = symbol_records
+            .iter()
+            .map(|observation| observation.record_id().as_str())
+            .collect();
+        assert_eq!(
+            claim_ids.len(),
+            1,
+            "both observations share the same SymbolIdentity claim"
+        );
+
+        // ...but distinct, independently attributable extractors.
+        let extractor_ids: std::collections::BTreeSet<&str> = symbol_records
+            .iter()
+            .map(|observation| {
+                let SemanticObservation::Symbol(header) = observation else {
+                    unreachable!()
+                };
+                header.extractor.id.as_str()
+            })
+            .collect();
+        assert_eq!(
+            extractor_ids,
+            std::collections::BTreeSet::from(["extractor-a", "extractor-b"])
+        );
+    }
+
+    // --- Required test 2: same, but through normalization --------------------------------------
+
+    #[test]
+    fn same_semantic_claim_from_two_extractors_survives_independently_through_normalization() {
+        let (inventory, source, adl) = single_rust_file_context();
+        let batches = two_extractor_symbol_batches();
+
+        let census = build_census(&inventory, &source, &adl, &batches);
+        let normalization = crate::normalize::normalize(&census);
+        let symbol_records: Vec<_> = normalization
+            .typed_semantic_records
+            .iter()
+            .filter(|observation| matches!(observation, SemanticObservation::Symbol(_)))
+            .collect();
+        assert_eq!(
+            symbol_records.len(),
+            2,
+            "normalization must not collapse two independent extractors' observations"
+        );
+        let extractor_ids: std::collections::BTreeSet<&str> = symbol_records
+            .iter()
+            .map(|observation| {
+                let SemanticObservation::Symbol(header) = observation else {
+                    unreachable!()
+                };
+                header.extractor.id.as_str()
+            })
+            .collect();
+        assert_eq!(
+            extractor_ids,
+            std::collections::BTreeSet::from(["extractor-a", "extractor-b"])
+        );
+    }
+
+    // --- Required test 3: both evidence sets remain resolvable ---------------------------------
+
+    #[test]
+    fn both_extractors_evidence_sets_remain_resolvable_through_census_and_normalization() {
+        let (inventory, source, adl) = single_rust_file_context();
+        let batches = two_extractor_symbol_batches();
+
+        let census = build_census(&inventory, &source, &adl, &batches);
+        assert!(census.evidence.iter().any(|item| item.id == "evidence:a"));
+        assert!(census.evidence.iter().any(|item| item.id == "evidence:b"));
+
+        let normalization = crate::normalize::normalize(&census);
+        assert!(
+            normalization
+                .evidence
+                .iter()
+                .any(|item| item.id == "evidence:a")
+        );
+        assert!(
+            normalization
+                .evidence
+                .iter()
+                .any(|item| item.id == "evidence:b")
+        );
+    }
+
+    // --- Required tests 5/6/7: typed obligation survives Census+normalization and resolves -----
+
+    #[test]
+    fn typed_obligation_survives_census_and_normalization_and_resolves_its_references() {
+        let (inventory, source, adl) = single_rust_file_context();
+        let batch = extraction_batch_with_one_symbol("src/lib.rs");
+        let batches = [batch];
+
+        let census = build_census(&inventory, &source, &adl, &batches);
+        let obligation = census
+            .typed_obligations
+            .iter()
+            .find(|obligation| obligation.dimension == SemanticDimension::Symbol)
+            .expect("a typed SYMBOL obligation must survive census");
+        assert_eq!(obligation.status, EpistemicStatus::Observed);
+        assert_eq!(obligation.artifact, ArtifactId::new("artifact:src/lib.rs"));
+        assert_eq!(obligation.extractor.id, "atlas.rust.source-semantic.v1");
+        assert!(!obligation.observation_ids.is_empty());
+        assert!(!obligation.evidence_refs.is_empty());
+
+        for id in &obligation.observation_ids {
+            assert!(
+                census
+                    .typed_semantic_records
+                    .iter()
+                    .any(|observation| observation.record_id() == id),
+                "obligation.observation_ids must resolve within census.typed_semantic_records"
+            );
+        }
+        for id in &obligation.evidence_refs {
+            assert!(
+                census.evidence.iter().any(|item| item.id == id.as_str()),
+                "obligation.evidence_refs must resolve within census.evidence"
+            );
+        }
+
+        let normalization = crate::normalize::normalize(&census);
+        let normalized_obligation = normalization
+            .typed_obligations
+            .iter()
+            .find(|candidate| candidate.obligation_id == obligation.obligation_id)
+            .expect("the typed obligation must survive normalization");
+        assert_eq!(normalized_obligation, obligation);
+        for id in &normalized_obligation.observation_ids {
+            assert!(
+                normalization
+                    .typed_semantic_records
+                    .iter()
+                    .any(|observation| observation.record_id() == id)
+            );
+        }
+    }
+
+    // --- Required test 8: parse vs read failure distinguishable from CANONICAL Census alone ----
+
+    #[test]
+    fn canonical_census_alone_distinguishes_parse_failure_from_read_failure() {
+        use adapter::ExtractionInput;
+        use atlas_core::{ContentFingerprint, DiagnosticCode, ExtractionDiagnostic};
+
+        let (inventory, source, adl) = single_rust_file_context();
+        let extractor_impl = adapter::extractors_for_language("rust")
+            .into_iter()
+            .next()
+            .unwrap();
+        let requested = vec![SemanticDimension::Symbol];
+
+        let parse_input = ExtractionInput {
+            repository: atlas_core::RepositoryId::new("atlas-studio"),
+            revision: atlas_core::RevisionRef {
+                kind: "git".into(),
+                value: "abc123".into(),
+            },
+            artifact: ArtifactId::new("artifact:broken.rs"),
+            artifact_path: "broken.rs".into(),
+            source_text: "pub fn broken( {".into(),
+            content_fingerprint: Some(ContentFingerprint("sha256:broken".into())),
+            source_frontend_id: "atlas.source.rust.bootstrap.v1".into(),
+            language: "rust".into(),
+            build_profile: None,
+            scope_policy: None,
+            requested_dimensions: requested.clone(),
+        };
+        let parse_failure_batch = extractor_impl.extract(&parse_input);
+
+        let read_input = ExtractionInput {
+            repository: atlas_core::RepositoryId::new("atlas-studio"),
+            revision: atlas_core::RevisionRef {
+                kind: "git".into(),
+                value: "abc123".into(),
+            },
+            artifact: ArtifactId::new("artifact:missing.rs"),
+            artifact_path: "missing.rs".into(),
+            source_text: String::new(),
+            content_fingerprint: None,
+            source_frontend_id: "atlas.source.rust.bootstrap.v1".into(),
+            language: "rust".into(),
+            build_profile: None,
+            scope_policy: None,
+            requested_dimensions: requested,
+        };
+        let read_diagnostic = ExtractionDiagnostic::new(
+            DiagnosticCode::InvalidInput,
+            None,
+            "failed to read missing.rs".to_owned(),
+        );
+        let read_failure_batch = extractor_impl.unavailable(&read_input, read_diagnostic);
+
+        let batches = [parse_failure_batch, read_failure_batch];
+        let census = build_census(&inventory, &source, &adl, &batches);
+
+        // Using ONLY the canonical, serializable Census fields (typed_obligations + diagnostics)
+        // -- never `runtime::census::CensusExtractionAccounting` -- prove the two artifacts'
+        // UNKNOWN SYMBOL obligations remain distinguishable by cause.
+        let broken_obligation = census
+            .typed_obligations
+            .iter()
+            .find(|obligation| {
+                obligation.artifact == ArtifactId::new("artifact:broken.rs")
+                    && obligation.dimension == SemanticDimension::Symbol
+            })
+            .expect("broken.rs SYMBOL obligation must be present");
+        let missing_obligation = census
+            .typed_obligations
+            .iter()
+            .find(|obligation| {
+                obligation.artifact == ArtifactId::new("artifact:missing.rs")
+                    && obligation.dimension == SemanticDimension::Symbol
+            })
+            .expect("missing.rs SYMBOL obligation must be present");
+        assert_eq!(broken_obligation.status, EpistemicStatus::Unknown);
+        assert_eq!(missing_obligation.status, EpistemicStatus::Unknown);
+
+        let broken_diag_id = broken_obligation
+            .diagnostic_ids
+            .first()
+            .expect("broken.rs obligation must reference a diagnostic");
+        let missing_diag_id = missing_obligation
+            .diagnostic_ids
+            .first()
+            .expect("missing.rs obligation must reference a diagnostic");
+        let broken_diag = census
+            .diagnostics
+            .iter()
+            .find(|diagnostic| &diagnostic.id == broken_diag_id)
+            .expect("broken.rs diagnostic must resolve within census.diagnostics");
+        let missing_diag = census
+            .diagnostics
+            .iter()
+            .find(|diagnostic| &diagnostic.id == missing_diag_id)
+            .expect("missing.rs diagnostic must resolve within census.diagnostics");
+        assert_eq!(broken_diag.code, DiagnosticCode::ParseFailure);
+        assert_eq!(missing_diag.code, DiagnosticCode::InvalidInput);
+        assert_ne!(
+            broken_diag.code, missing_diag.code,
+            "both obligations are UNKNOWN, but their causes must remain distinguishable using \
+             only canonical Census data"
+        );
+    }
+
+    // --- Required test 9: serialized SystemizeReport (via CensusReport) retains lineage --------
+
+    #[test]
+    fn serialized_census_report_retains_obligation_lineage_after_round_trip() {
+        let (inventory, source, adl) = single_rust_file_context();
+        let batch = extraction_batch_with_one_symbol("src/lib.rs");
+        let batches = [batch];
+        let census = build_census(&inventory, &source, &adl, &batches);
+
+        // `CensusReport`/`NormalizationReport` are direct fields of `SystemizeReport`, so a
+        // lossless serde round trip here proves the same for the full serialized report.
+        let json = serde_json::to_string(&census).expect("CensusReport must serialize");
+        let deserialized: atlas_core::CensusReport =
+            serde_json::from_str(&json).expect("CensusReport must deserialize");
+        assert_eq!(deserialized, census, "serde round trip must be lossless");
+
+        // Answer an obligation-lineage query using ONLY the deserialized copy.
+        let obligation = deserialized
+            .typed_obligations
+            .iter()
+            .find(|obligation| obligation.dimension == SemanticDimension::Symbol)
+            .expect("obligation must survive serialization");
+        assert_eq!(obligation.extractor.id, "atlas.rust.source-semantic.v1");
+        assert_eq!(obligation.artifact, ArtifactId::new("artifact:src/lib.rs"));
+        for id in &obligation.observation_ids {
+            assert!(
+                deserialized
+                    .typed_semantic_records
+                    .iter()
+                    .any(|observation| observation.record_id() == id)
+            );
+        }
+        for id in &obligation.evidence_refs {
+            assert!(
+                deserialized
+                    .evidence
+                    .iter()
+                    .any(|item| item.id == id.as_str())
+            );
+        }
+    }
+
+    // --- Task 3: CensusExtractionAccounting stays consistent with the canonical obligation ledger
+
+    #[test]
+    fn census_extraction_accounting_agrees_with_typed_obligations_on_the_same_batches() {
+        let (inventory, source, adl) = single_rust_file_context();
+        let batches = two_extractor_symbol_batches();
+
+        let census = build_census(&inventory, &source, &adl, &batches);
+        let mut accounting = CensusExtractionAccounting::new();
+        for batch in &batches {
+            accounting.record_batch(batch);
+        }
+
+        let census_coordinates: std::collections::BTreeSet<(String, String, String)> = census
+            .typed_obligations
+            .iter()
+            .map(|obligation| {
+                (
+                    obligation.artifact.as_str().to_owned(),
+                    obligation.extractor.id.clone(),
+                    obligation.dimension.as_str().to_owned(),
+                )
+            })
+            .collect();
+        let accounting_coordinates: std::collections::BTreeSet<(String, String, String)> =
+            accounting
+                .sorted()
+                .iter()
+                .map(|record| {
+                    (
+                        record.artifact.as_str().to_owned(),
+                        record.extractor.id.clone(),
+                        record.obligation.dimension.as_str().to_owned(),
+                    )
+                })
+                .collect();
+        assert_eq!(
+            census_coordinates, accounting_coordinates,
+            "both views are built from the identical extraction batches and must never disagree \
+             about which (artifact, extractor, dimension) coordinates were addressed"
+        );
     }
 }
