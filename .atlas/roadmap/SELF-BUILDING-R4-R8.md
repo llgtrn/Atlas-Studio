@@ -414,16 +414,19 @@ Required capabilities:
 - selected implementation semantics and provider/candidate lineage complete before seal;
 - logical Atlas seal after candidate implementation census/verification;
 - deterministic provider-independent mechanical compaction after seal;
-- deterministic Atlas→AtlasX materialization under `../contracts/ATLAS-TO-ATLASX.md`;
-- canonical AtlasX object/manifest validation under `../contracts/ATLASX-FORMAT.md`;
-- canonical AtlasX v1 bytes/root hashing under `../contracts/ATLASX-BINARY-WIRE-FORMAT.md`;
+- artifact-role enforcement under `../contracts/ARTIFACT-LAYERING.md`;
+- deterministic Atlas→AtlasX selected-system closure under `../contracts/ATLAS-TO-ATLASX.md`;
+- recursive transitive dependency/build/runtime/resource closure to the declared capsule profile;
+- canonical single-file AtlasX capsule validation under `../contracts/ATLASX-FORMAT.md`;
+- canonical AtlasX wire v2 bytes/root hashing under `../contracts/ATLASX-BINARY-WIRE-FORMAT.md`;
+- explicit migration-only handling for legacy AtlasX wire v1 directory/object roots;
 - parent/lineage retention;
-- partial materialization without competing truth;
+- explicit scoped capsules without competing semantic truth;
 - compiler handoff governed by `../contracts/COMPILER-IR-PIPELINE.md` and v1 IR records/opcodes governed by `../contracts/COMPILER-IR-SCHEMAS.md`.
 
 Primary donor lane: W6 — flatbuffers, arrow, zstd, blake3, object, regalloc2, mold.
 
-R8 does not authorize mechanical donor translation. It provides the durable Atlas-native carrier and deterministic executable projection needed for source-independent continuation.
+R8 does not authorize mechanical donor translation. It provides the durable Atlas-native semantic carrier plus deterministic closed-world system capsule required for source-independent continuation and safe donor extinction.
 
 The R8 storage/materialization blueprint is explicitly revisable if census demonstrates a better mechanism, but revision must follow `../contracts/BLUEPRINT-EVOLUTION.md`.
 
