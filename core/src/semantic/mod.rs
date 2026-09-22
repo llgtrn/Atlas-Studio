@@ -21,7 +21,7 @@ pub use call::{CallDispatchKind, CallSiteIdentity};
 pub use control_flow::{
     ControlFlowBlockIdentity, ControlFlowBlockKind, ControlFlowEdge, ControlFlowEdgeKind,
 };
-pub use data_flow::ValueIdentity;
+pub use data_flow::{DataFlowResolution, ValueIdentity, ValueRole};
 pub use diagnostic::{DiagnosticCode, ExtractionDiagnostic};
 pub use effect::{EffectCategory, EffectIdentity};
 pub use function::{
