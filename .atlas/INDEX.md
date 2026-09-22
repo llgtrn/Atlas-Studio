@@ -85,3 +85,5 @@ Evidence + recensus
 ```
 
 The universal graph/binding/evidence/temporal grammar remains invariant across census, storage, materialization, optimization and generated repositories/products.
+
+For any implementation work between R4 and R8, `roadmap/SELF-BUILDING-R4-R8.md` is mandatory reading. It fixes the R4.4→R4.12 sequence, DC1 dependency-census gate, continuous donor/dependency recensus loop, discovery dispositions, donor-promotion rule, absorption gates and physical extinction semantics. Implementation agents MUST NOT invent alternate sequencing or donor states when these docs already specify them.
