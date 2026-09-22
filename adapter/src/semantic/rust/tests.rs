@@ -406,6 +406,11 @@ pub fn destructures_a_tuple() -> u64 {
     let (a, b) = (1, 2);
     a + b
 }
+
+pub fn if_in_let(x: u64) -> u64 {
+    let y = if x > 0 { x } else { x };
+    y
+}
 "#;
 
 fn input_for(
@@ -2237,7 +2242,41 @@ fn explicit_return_is_flagged_as_return_flow_a_condition_use_is_not() {
     assert!(resolved.iter().next().unwrap().is_some());
 }
 
-// --- 55. a method receiver (`&self`) is a real Definition, and `self.field` resolves it ----------
+// --- 55. return-flow does not leak out of a non-tail nested block: an `if` used as a `let`
+// initializer's branches are never return-flow, only the outer `let`-bound tail identifier is ----
+
+#[test]
+fn return_flow_does_not_leak_out_of_a_non_tail_if_branch() {
+    let batch = extract_all("src/lib.rs", DATA_FLOW_CORPUS);
+    let caller = find_function_identity(&batch, &[], "if_in_let").unwrap();
+    let values = data_flow_values_for(&batch, caller);
+
+    let branch_uses: Vec<_> = values
+        .iter()
+        .filter(|v| v.role == ValueRole::Use && v.name == "x")
+        .collect();
+    assert_eq!(
+        branch_uses.len(),
+        3,
+        "one in the `if` condition, one in each of the then/else branches"
+    );
+    assert!(
+        branch_uses.iter().all(|u| !u.is_return_flow),
+        "none of these `x` uses is the function's own return value -- they all feed a `let` \
+         binding, not a `return`/tail position"
+    );
+
+    let tail_use = values
+        .iter()
+        .find(|v| v.role == ValueRole::Use && v.name == "y")
+        .expect("the function body's own tail identifier `y`");
+    assert!(
+        tail_use.is_return_flow,
+        "`y` is the function body's own bare-identifier tail expression"
+    );
+}
+
+// --- 56. a method receiver (`&self`) is a real Definition, and `self.field` resolves it ----------
 
 #[test]
 fn method_receiver_is_a_definition_and_field_access_resolves_it() {
@@ -2260,7 +2299,7 @@ fn method_receiver_is_a_definition_and_field_access_resolves_it() {
     assert_eq!(self_use.resolved_definition.as_ref(), Some(&def_id));
 }
 
-// --- 56. a tuple-destructuring pattern is a documented, honest gap: no Definitions for its
+// --- 57. a tuple-destructuring pattern is a documented, honest gap: no Definitions for its
 //     sub-bindings, so subsequent uses of them are explicitly UNRESOLVED, never fabricated -------
 
 #[test]
@@ -2286,7 +2325,7 @@ fn tuple_destructuring_pattern_is_not_modeled_and_its_uses_stay_unresolved() {
     );
 }
 
-// --- 57. every DataFlow observation satisfies dimension consistency, alongside CALL/CONTROL_FLOW -
+// --- 58. every DataFlow observation satisfies dimension consistency, alongside CALL/CONTROL_FLOW -
 
 #[test]
 fn data_flow_observations_satisfy_dimension_consistency() {
@@ -2301,7 +2340,7 @@ fn data_flow_observations_satisfy_dimension_consistency() {
     assert!(saw_data_flow);
 }
 
-// --- 58. DATA_FLOW extraction is byte-for-byte deterministic across repeated runs ----------------
+// --- 59. DATA_FLOW extraction is byte-for-byte deterministic across repeated runs ----------------
 
 #[test]
 fn data_flow_corpus_extraction_is_deterministic() {
@@ -2311,7 +2350,7 @@ fn data_flow_corpus_extraction_is_deterministic() {
     assert_eq!(first.evidence, second.evidence);
 }
 
-// --- 59. DATA_FLOW extraction is unaffected by requested-dimension order ------------------------
+// --- 60. DATA_FLOW extraction is unaffected by requested-dimension order ------------------------
 
 #[test]
 fn data_flow_corpus_is_unaffected_by_requested_dimension_order() {
@@ -2336,7 +2375,7 @@ fn data_flow_corpus_is_unaffected_by_requested_dimension_order() {
     assert_eq!(forward.observations, reversed.observations);
 }
 
-// --- 60. repeated extraction yields the exact same DataFlow record_ids --------------------------
+// --- 61. repeated extraction yields the exact same DataFlow record_ids --------------------------
 
 #[test]
 fn repeated_extraction_yields_stable_data_flow_record_ids() {

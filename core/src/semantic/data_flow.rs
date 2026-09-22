@@ -90,8 +90,12 @@ pub struct ValueIdentity {
     /// `true` only for a `Definition` introduced by a function parameter (as opposed to a `let`
     /// binding).
     pub is_parameter: bool,
-    /// `true` only for a `Use` whose value is the function's own return value (an explicit
-    /// `return expr;`, or the function body's tail expression when it is a bare identifier).
+    /// `true` only for a `Use` whose value is the function's own return value: an explicit
+    /// `return expr;`, or a bare identifier reached via a chain of tail positions starting at the
+    /// function body itself (its own tail expression, and transitively the tail of a nested
+    /// `if`/`match`/`{ }` block expression that is *itself* in that chain). A block reached as a
+    /// `let` initializer, a loop body, or any other non-tail position is never return-flow,
+    /// regardless of that block's own last statement's syntactic shape.
     pub is_return_flow: bool,
     pub resolution: DataFlowResolution,
     /// The resolved `Definition`'s own record_id, when `resolution == Resolved`. Always `None` for

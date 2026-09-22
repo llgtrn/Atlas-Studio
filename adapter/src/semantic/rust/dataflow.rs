@@ -156,12 +156,19 @@ impl<'ctx, 'a> DataFlowWalker<'ctx, 'a> {
         }
     }
 
-    fn walk_block(&mut self, block: &syn::Block) {
+    /// `is_return_flow`: whether THIS block's own tail expression (if it has one) is itself in a
+    /// position that flows to the enclosing function's return value -- true only for the function
+    /// body itself and for a chain of directly-nested tail positions (an `if`/`match` arm/`{ }`
+    /// block expression that is itself in return-flow position). A block reached as a `let`
+    /// initializer, a loop body, or any other non-tail position must pass `false`, since its own
+    /// last statement never flows to the function's return regardless of that statement's own
+    /// syntactic shape.
+    fn walk_block(&mut self, block: &syn::Block, is_return_flow: bool) {
         self.push_scope();
         let len = block.stmts.len();
         for (index, stmt) in block.stmts.iter().enumerate() {
             let is_tail = index + 1 == len && matches!(stmt, syn::Stmt::Expr(_, None));
-            self.walk_stmt(stmt, is_tail);
+            self.walk_stmt(stmt, is_tail && is_return_flow);
         }
         self.pop_scope();
     }
@@ -212,10 +219,10 @@ impl<'ctx, 'a> DataFlowWalker<'ctx, 'a> {
                     self.walk_expr(value, true);
                 }
             }
-            syn::Expr::Block(block_expr) => self.walk_block(&block_expr.block),
+            syn::Expr::Block(block_expr) => self.walk_block(&block_expr.block, is_return_flow),
             syn::Expr::If(if_expr) => {
                 self.walk_expr(&if_expr.cond, false);
-                self.walk_block(&if_expr.then_branch);
+                self.walk_block(&if_expr.then_branch, is_return_flow);
                 if let Some((_, else_expr)) = &if_expr.else_branch {
                     self.walk_expr(else_expr, is_return_flow);
                 }
@@ -243,10 +250,13 @@ impl<'ctx, 'a> DataFlowWalker<'ctx, 'a> {
                     self.pop_scope();
                 }
             }
-            syn::Expr::Loop(loop_expr) => self.walk_block(&loop_expr.body),
+            // Loop/while/for bodies are never return-flow: their own last statement is a
+            // statement-position value (unit, absent a `break value`, which this wave does not
+            // thread as return-flow either), never the enclosing function's return value.
+            syn::Expr::Loop(loop_expr) => self.walk_block(&loop_expr.body, false),
             syn::Expr::While(while_expr) => {
                 self.walk_expr(&while_expr.cond, false);
-                self.walk_block(&while_expr.body);
+                self.walk_block(&while_expr.body, false);
             }
             syn::Expr::ForLoop(for_loop) => {
                 self.walk_expr(&for_loop.expr, false);
@@ -255,7 +265,7 @@ impl<'ctx, 'a> DataFlowWalker<'ctx, 'a> {
                     let span = self.ctx.span_of(ident);
                     self.emit_definition(&ident.to_string(), span, false);
                 }
-                self.walk_block(&for_loop.body);
+                self.walk_block(&for_loop.body, false);
                 self.pop_scope();
             }
             syn::Expr::Binary(binary) => {
@@ -362,7 +372,7 @@ impl<'a> ExtractionContext<'a> {
                 }
             }
         }
-        walker.walk_block(body);
+        walker.walk_block(body, true);
         walker.pop_scope();
     }
 }
