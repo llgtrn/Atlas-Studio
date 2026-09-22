@@ -22,7 +22,7 @@ Repositories / OSS / specs / DeepWiki / papers / tests / benchmarks
                               ↓
                       materializer
                               ↓
-                       *.atlasx/
+                       *.atlasx binary capsule
               expanded executable repo tree
                               ↓
                          compiler
