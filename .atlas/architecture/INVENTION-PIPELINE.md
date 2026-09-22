@@ -55,7 +55,7 @@ deterministic mechanical semantic compaction
   ↓
 *.atlas
   ↓
-deterministic *.atlasx/
+closed-world *.atlasx binary capsule
   ↓
 semantic/world optimization
   ↓
