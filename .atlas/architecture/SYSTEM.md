@@ -9,70 +9,79 @@ canonical: true
 ## Responsibilities
 
 - `core/` owns global identity, scope, universal graph primitives, state/event/temporal semantics, bindings, evidence/provenance, claim status, constraints/invariants, Atlas Genome semantics, Organism Genome semantics, ATLAS/ATLASX contracts and compiler IR types.
-- `runtime/` owns secure admission, exhaustive census accounting, transitive dependency closure orchestration, reconciliation/fixed-point closure, corpus/design construction, invention, organism-genome synthesis, ATLAS publication, AtlasX materialization, compiler passes, optimization, verification, profiling, recensus and incremental invalidation.
-- `adapter/` owns Git/filesystem/parsers/package-manager/build-system/compiler metadata/storage/provider/model API/self-hosted inference/research/benchmark/OS/toolchain/hardware/environment mechanics. Adapters never become semantic authority.
+- `runtime/` owns secure admission, exhaustive census accounting, transitive dependency closure orchestration, reconciliation/fixed-point closure, corpus/design construction, research orchestration, typed decision orchestration, candidate synthesis admission, generated-code census, invention, organism-genome synthesis, SelectedDesign admission, ATLAS publication, AtlasX materialization, compiler passes, optimization, verification, profiling, recensus and incremental invalidation.
+- `adapter/` owns Git/filesystem/parsers/package-manager/build-system/compiler metadata/storage/research-provider/decision-provider/synthesis-provider/verification-provider/model API/self-hosted inference/benchmark/OS/toolchain/hardware/environment mechanics. Adapters never become semantic authority.
 - `apps/studio/` owns TypeScript/TSX projections only. UI state is not engineering truth.
 - `.atlas/` owns authored control knowledge, Genome sources/contracts, architecture, provenance/license references and durable evidence.
 - `.atlas/artifacts/` owns durable compiled Genome/Atlas/product manifests as implemented.
 
 ## End-to-end dataflow
 
-Atlas has separate observation and research ingress paths.
+Atlas has separate observation, authoring and external-intelligence ingress paths that converge before canonical seal.
 
-```text
+~~~text
 OBSERVATION PATH
-pinned root repositories @ exact revisions
-build metadata / tests / runtime traces / binary metadata
+pinned roots / build metadata / tests / traces / binaries
         ↓
-secure admission
+secure admission → inventory → dependency closure → census
         ↓
-root inventory ledger
-        ↓
-transitive dependency resolution / closure
-        ↓
-expanded federated inventory
-        ↓
-multi-engine census
-        ↓
-typed semantic facts
-        ↓
-reconcile / adversarial gaps / fixed point
-        ↓
-CensusCertificate
-        ↓
-Observed World ────────────────┐
-                               │
-RESEARCH PATH                  │
-DeepWiki / papers / RFCs / docs│
-        ↓                      │
-ResearchClaim                  │
-        ↓ corroboration ───────┘
-                 ↓
-comparison / gap graph
-        ↓
-invention + validation
-        ↓
-selected design
-        ↓
-SEALED logical *.atlas
-        ↓
-content-addressed shards
-        ↓
-deterministic *.atlasx/
-        ↓
-HIR → MIR → LIR → Machine IR
-        ↓
-codegen / verify / link / product
-        ↓
-profile evidence + recensus
-        ↺
-```
+typed OBSERVED world
+        │
+        ├────────────────────────────────────────────┐
+        │                                            │
+AUTHORING PATH                                       │
+Human intent / ADL / Studio                          │
+        ↓                                            │
+typed DECLARED intent                                │
+        │                                            │
+        ├───────────────────┐                        │
+        │                   │                        │
+EXTERNAL INTELLIGENCE       │                        │
+constraint envelope         │                        │
+        ↓                   │                        │
+research provider           │                        │
+        ↓                   │                        │
+ResearchClaim / candidate mechanisms                 │
+        ↓                                            │
+typed decision provider → DecisionProposal           │
+        ↓                                            │
+synthesis provider → CandidateChangeSet              │
+        ↓                                            │
+generated source/artifacts                           │
+        ↓                                            │
+UNTRUSTED inventory → census → observed generated semantics
+        └──────────────────────┬─────────────────────┘
+                               ↓
+               reconcile / validation / security
+               dependency / license / tests / proof
+                               ↓
+                    authorized SelectedDesign
+                               ↓
+                    SEALED logical Atlas
+                               ↓
+             mechanical provider-independent compaction
+                               ↓
+                  content-addressed *.atlas
+                               ↓
+                 deterministic *.atlasx/
+                               ↓
+                 HIR → MIR → LIR → Machine IR
+                               ↓
+                codegen / verify / link / product
+                               ↓
+                   profile evidence + recensus
+                               ↺
+~~~
 
-A DeepWiki page, paper or model analysis may create a `ResearchClaim`; it never directly creates `ObservedEvidence`. Donor implementation claims require corroboration against the exact pinned donor revision.
+A paper, page, search result or model analysis may create a `ResearchClaim`; it never directly creates `ObservedEvidence`.
 
-### ADL authoring ingress
+A decision-provider score is not selection authority.
 
-Atlas Development Language is a second authoring ingress into the same semantic world, not a second universe:
+A synthesis provider may write real candidate code, but that code becomes implementation evidence only after Atlas inventories/censuses/validates it.
+
+### Human-AI ADL authoring ingress
+
+Atlas Development Language is a Human+AI collaborative authoring ingress into the same semantic world, not a second universe:
 
 ```text
 existing implementation                  ADL source
@@ -89,7 +98,19 @@ typed OBSERVED records                  typed DECLARED records
                     *.atlas
 ```
 
-The current `.atlas/declared/*.adl` parser is ADL0, a bootstrap architectural declaration subset. Full ADL must preserve function/type/control/data/state/effect/resource semantics as typed records. See `../contracts/ATLAS-DEVELOPMENT-LANGUAGE.md` and `../contracts/ADL-TO-ATLAS.md`.
+The current `.atlas/declared/*.adl` parser is ADL0, a bootstrap architectural declaration subset. Full ADL must preserve function/type/control/data/state/effect/resource semantics as typed records.
+
+Conversation, Studio edits and external provider proposals are projections/candidates, not alternate truth systems.
+
+See `../contracts/ATLAS-DEVELOPMENT-LANGUAGE.md`, `../contracts/HUMAN-AI-ADL-AUTHORING.md`, `../contracts/ADL-TO-ATLAS.md`, `../contracts/ATLAS-CREATION-PIPELINE.md` and `../contracts/EXTERNAL-PROVIDER-TRUST.md`.
+
+## Trust boundary
+
+Donor/source corpus and external-provider output are untrusted by default.
+
+Instruction-looking files under donor/corpus roots — including CLAUDE/AGENTS files, `.claude/`, `.codex/`, skills, hooks and tool configs — remain census data and MUST NOT become agent/tool authority.
+
+External providers receive least privilege and submit typed candidates/receipts. Canonical policy/admission is Atlas-owned.
 
 ## Native capability ownership
 
@@ -139,7 +160,11 @@ Only Genome-eligible CLOSED/SEALED census roots may feed production materializat
 
 ## ATLAS / ATLASX
 
-A logical `*.atlas` is dense binary engineering/design knowledge and may span immutable content-addressed shards. It is semantic compression rather than a source archive: source text may be embedded as FAT evidence, but typed semantic records remain authoritative. Physical wire-v1 structure is governed by `../contracts/ATLAS-BINARY-WIRE-FORMAT.md`.
+A logical `*.atlas` is dense binary engineering/design knowledge and may span immutable content-addressed shards. It is semantic compression rather than a source archive: source text may be embedded as FAT evidence, but typed semantic records remain authoritative.
+
+When AI-assisted synthesis is used, the selected implementation has already been generated, censused and validated before logical seal.
+
+Post-seal compaction is mechanical/provider-independent and governed by `../contracts/ATLAS-SEMANTIC-COMPACTION.md`; physical wire-v1 structure is governed by `../contracts/ATLAS-BINARY-WIRE-FORMAT.md`.
 
 `*.atlasx/` is deterministic selected executable representation. For `target_kind = digital_organism`, AtlasX includes an organism profile/genome plus the executable organ/circuit/body/brain/memory/lifecycle semantics required to create a phenotype.
 
