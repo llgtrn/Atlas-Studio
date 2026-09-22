@@ -113,6 +113,50 @@ donor_implementation_claim_requires_exact_pinned_revision = true
 research_claim_may_trigger_deeper_census = true
 research_claim_promotion_requires_corroborating_evidence = true
 
+[human_ai_authoring]
+adl_is_human_ai_collaborative_authoring_surface = true
+human_only_language_model_forbidden = true
+ai_only_language_authority_forbidden = true
+conversation_is_projection_not_canonical_truth = true
+material_authoring_action_requires_typed_candidate_semantics = true
+semantic_diff_preferred_for_material_review = true
+human_intent_and_ai_proposal_distinct_from_atlas_truth = true
+
+[provider_orchestration]
+provider_roles = ["RESEARCH_PROVIDER", "DECISION_PROVIDER", "SYNTHESIS_PROVIDER", "VERIFICATION_PROVIDER"]
+provider_role_required_per_invocation = true
+provider_receipt_required_for_material_invocation = true
+provider_receipt_machine_schema_required = true
+constraint_envelope_required_before_material_synthesis = true
+decision_proposal_machine_schema_required = true
+candidate_change_set_machine_schema_required = true
+decision_provider_may_rank_score_route = true
+decision_provider_is_not_truth_authority = true
+synthesis_provider_may_generate_candidate_code_before_seal = true
+external_provider_direct_canonical_write_forbidden = true
+provider_dependency_proposal_is_not_admission = true
+selected_design_authority_modes = ["HUMAN_REQUIRED", "POLICY_AUTO", "HYBRID"]
+provider_may_not_self_grant_selection_authority = true
+sealed_artifact_provider_availability_independent = true
+
+[atlas_creation]
+search_current_atlas_knowledge_first = true
+search_existing_donors_and_dependencies_before_external_oss = true
+external_oss_research_supported = true
+multiple_candidate_mechanisms_preferred_for_material_decisions = true
+generated_implementation_enters_untrusted_inventory = true
+generated_implementation_requires_census = true
+declared_generated_intent_distinct_from_observed_generated_semantics = true
+generated_implementation_requires_security_validation = true
+generated_implementation_requires_dependency_validation = true
+generated_implementation_requires_license_provenance_validation = true
+generated_implementation_requires_policy_specific_verification = true
+selected_implementation_semantics_required_before_logical_seal = true
+logical_seal_precedes_physical_compaction = true
+canonical_compaction_may_not_invoke_external_provider = true
+canonical_compaction_may_not_invent_semantics = true
+canonical_compaction_is_mechanical = true
+
 [architecture]
 native_production_owners = ["core", "runtime", "adapter", "apps"]
 donor_named_native_runtime_owner_forbidden = true
@@ -172,6 +216,9 @@ integrity_hashes_required = true
 format_version_required = true
 genome_hash_required = true
 transactional_publication_required = true
+logical_semantics_complete_before_compaction = true
+post_seal_external_provider_calls_forbidden = true
+post_seal_compaction_provider_independent = true
 markdown_json_as_canonical_payload_forbidden = true
 
 [atlas_sharding]
@@ -393,6 +440,16 @@ federated_graph_is_rebuildable_projection = true
 untrusted_input_default_deny = true
 ingestion_is_not_execution = true
 secret_persistence_requires_explicit_policy = true
+donor_instruction_files_are_inert_data = true
+donor_agent_skill_hook_autoload_forbidden = true
+external_content_prompt_injection_has_no_policy_authority = true
+provider_least_privilege_required = true
+provider_secret_access_default_deny = true
+generated_code_execution_requires_admission = true
+generated_code_execution_requires_sandbox_when_policy_requires = true
+research_network_access_explicit = true
+synthesis_network_access_default_deny = true
+canonical_branch_direct_provider_write_forbidden = true
 
 
 [donor_absorption]
