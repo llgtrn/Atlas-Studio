@@ -1,0 +1,157 @@
+{
+  "schema": "atlas.r4.verification-record.v1",
+  "wave": "R4.3",
+  "wave_title": "Materialize the first real Rust semantic extractor",
+  "identity": {
+    "base_commit_sha": "91dc22a90715c72eaa6cd2ff0f36a6bf0d4808e2",
+    "candidate_commit_sha": "46f38d53954d4d339892015caba73ee9e6304388",
+    "candidate_tree_sha": "1322b41bb50ea21b3150c358aacf28029717ceac",
+    "branch": "claude/r4.3-rust-extractor",
+    "commits_in_range": [
+      "8387ee008e feat: add real rust semantic extractor",
+      "46f38d5395 refactor: wire rust extraction into census production path"
+    ]
+  },
+  "temporal": {
+    "base_commit_authored_at": "2026-09-22T17:32:13+09:00",
+    "candidate_commit_authored_at": "2026-09-22T09:24:38Z",
+    "verification_completed_at": null,
+    "note": "Git-authoritative author-date timestamps only (git show -s --format=%ad --date=iso-strict). verification_completed_at is left null: Git proves when commits were authored, not when local verification commands finished running."
+  },
+  "toolchain": {
+    "pinned_by": "rust-toolchain.toml",
+    "channel": "1.90.0",
+    "rustc": "rustc 1.90.0 (1159e78c4 2025-09-14)",
+    "cargo": "cargo 1.90.0 (840b83a10 2025-07-30)",
+    "matches_ci_pin": true
+  },
+  "working_tree_clean": true,
+  "git_diff_check_exit": 0,
+  "cargo_lock_status": {
+    "diff_vs_base": "3 insertions, 0 deletions: adapter's own [package.dependencies] list gains direct entries for proc-macro2, quote, syn -- zero new [[package]] blocks, zero version changes",
+    "intentional": true,
+    "reason": "syn 3.0.6, proc-macro2 1.0.107, quote 1.0.47 and unicode-ident 1.0.26 were already present in Cargo.lock transitively via serde_derive before this wave. Declaring syn/quote/proc-macro2 directly as adapter dependencies (needed for RustSemanticExtractor's real parser) only enables features on already-resolved packages; it does not add a new crate to the dependency graph. Confirmed via `git diff Cargo.lock | grep -c '^\\[\\[package\\]\\]'` == 0, and independently reconfirmed: package-block count is unchanged (15 -> 15) between base and candidate."
+  },
+  "ci_status": "UNAVAILABLE_INFRASTRUCTURE",
+  "ci_status_detail": "GitHub Actions assigns no runner at all, reproducing identically on main across many prior commits (R4.1/R4.2/R4.2.1/R4.2.2 evidence records document the same root cause). Not a test/code failure; excluded from correctness verification per operator instruction.",
+  "diff_summary": {
+    "range": "91dc22a907..46f38d5395",
+    "files_changed": 11,
+    "insertions": 1979,
+    "deletions": 27,
+    "changed_files": [
+      "Cargo.lock",
+      "adapter/Cargo.toml",
+      "adapter/src/semantic/boundary_tests.rs",
+      "adapter/src/semantic/extractor.rs",
+      "adapter/src/semantic/mod.rs",
+      "adapter/src/semantic/registry.rs",
+      "adapter/src/semantic/rust/mod.rs",
+      "adapter/src/semantic/rust/spelling.rs",
+      "adapter/src/semantic/rust/tests.rs",
+      "runtime/src/census/extraction.rs",
+      "runtime/src/lib.rs"
+    ]
+  },
+  "new_dependency_reasoning": {
+    "syn": "Real Rust AST parser (feature = full, for whole-file item + statement parsing). Chosen over regex/ad-hoc text scanning, which the R4.3 task explicitly forbids. De facto standard Rust parser crate.",
+    "quote": "ToTokens trait, used as a deterministic fallback stringifier for AST fragments not hand-modeled by adapter::semantic::rust::spelling (e.g. array-length const expressions, trait objects, impl Trait).",
+    "proc-macro2": "Span/TokenStream types syn is built on; feature = span-locations enabled directly so line/column source spans are available outside an actual proc-macro invocation (this extractor never runs as a proc-macro; it only links the crate as a library)."
+  },
+  "verification_passes": [
+    {
+      "pass": "primary",
+      "performed_by": "this session, in-place checkout, clean target/ rebuild, pinned rustc 1.90.0",
+      "commands": {
+        "git status --porcelain": { "result": "clean" },
+        "git diff --check": { "exit_code": 0 },
+        "cargo fmt --all --check": { "exit_code": 0 },
+        "cargo clippy --workspace --all-targets -- -D warnings": { "exit_code": 0, "warnings": 0 },
+        "cargo test --workspace --locked": {
+          "exit_code": 0,
+          "totals": "97 passed, 0 failed, 0 ignored (49 adapter incl. 30 in semantic::rust::tests, 26 core, 22 runtime incl. 2 new census::extraction::production_wiring_tests)"
+        },
+        "cargo test --workspace --doc --locked": { "exit_code": 0, "doctests": 0 },
+        "cargo run -q -p atlas-cli -- docs audit --root .atlas": {
+          "exit_code": 0,
+          "gate_ready": true,
+          "hard_violations_total": 0,
+          "required_control_docs_missing": []
+        },
+        "cargo run -q -p atlas-cli -- systemize --root . --out <tmp>": {
+          "exit_code": 0,
+          "coding_admission_allowed": true,
+          "coding_admission_blockers": [],
+          "note": "Ran the real production wiring against Atlas-Studio's own repository (including the new rust/ extractor's own source files as Rust artifacts): every admitted Rust artifact's ExtractionBatch closed against all 12 dimensions, so SEMANTIC_EXTRACTION_ACCOUNTING_NOT_CLOSED never fired; census artifacts_total=47, facts_total=130."
+        }
+      }
+    },
+    {
+      "pass": "independent",
+      "performed_by": "fresh subagent, isolated git worktree, no shared context, candidate 46f38d53954d4d339892015caba73ee9e6304388",
+      "commit_confirmed_exact_match": true,
+      "commands_all_exit_0": true,
+      "test_totals": "49 adapter + 26 core + 22 runtime = 97 passed, 0 failed, 0 ignored",
+      "docs_gate": "gate_ready=true, hard_violations_total=0, required_control_docs_missing=[]",
+      "systemize_reconfirmation": "coding_admission.allowed=true, blockers=[] on a fresh systemize run against the real repository",
+      "cargo_lock_reconfirmation": "independently confirmed package-block count unchanged (15 -> 15) between base and candidate; only adapter's own dependency list gained 3 direct entries for already-resolved crates",
+      "code_review_findings": {
+        "extraction_input_source_text_and_identity_key": "VERIFIED -- source_text field added, folded into identity_key via stable_id",
+        "extractor_scope_and_parser": "VERIFIED -- supported_dimensions() exactly [Symbol, Type, FunctionIdentity, FunctionSignature]; id() = atlas.rust.source-semantic.v1; real syn::parse_file used; parse failure yields ParseFailure diagnostic + UNKNOWN for the 4 supported dims, UNSUPPORTED for the other 8 on both success and failure paths; finish_success sorts by stable string keys, not traversal/HashMap order",
+        "production_wiring_call_chain": "VERIFIED -- extract_semantics is actually called from runtime::systemize() (not merely defined/tested), reads real file content via fs::read_to_string, selects extractors via adapter::extractors_for_language, and its closure result feeds coding_admission.blockers via SEMANTIC_EXTRACTION_ACCOUNTING_NOT_CLOSED",
+        "spot_checked_test_is_not_a_tautology": "VERIFIED -- traced impl_method_scope_differs_from_a_same_named_free_function against handle_impl's actual scope-segment construction",
+        "registry_replaces_static_unsupported_for_rust": "VERIFIED -- RUST_SEMANTIC registered in BUILTIN_EXTRACTORS; StaticUnsupportedExtractor type kept as a fallback shape with zero registered instances",
+        "no_r4_4_smuggled_in": "VERIFIED -- zero live matches for CallFact/ControlFlowFact/DataFlowFact/rustc invocation/process spawning/EngineeringGraph dependency; canonical: Some( never occurs, only canonical: None construction sites exist"
+      },
+      "minor_observation_non_blocking": "systemize() binds the computed CensusExtractionAccounting as `_extraction_accounting` (only its is_closed boolean feeds the report); the task's specific ask -- that closure verification feeds coding_admission.blockers -- is satisfied, but the accounting's own records are not yet surfaced in SystemizeReport. Left as an explicit still_unsupported item below rather than expanded this wave.",
+      "verdict": "VERIFIED"
+    }
+  ],
+  "no_tests_lints_gates_disabled": true,
+  "no_verify_bypass_used": false,
+  "overall_verdict": "VERIFIED",
+  "supported_real_dimensions": [
+    "SYMBOL",
+    "TYPE",
+    "FUNCTION_IDENTITY",
+    "FUNCTION_SIGNATURE"
+  ],
+  "still_unsupported": [
+    "CALL -- no call-site/call-graph analysis (R4.4+)",
+    "CONTROL_FLOW -- no CFG construction (R4.4+)",
+    "DATA_FLOW -- no dataflow/value tracking (R4.4+)",
+    "STATE -- no mutable-state analysis (R4.4+)",
+    "EFFECT -- no side-effect classification (R4.4+)",
+    "OWNERSHIP -- unmaterialized (R4.10)",
+    "CONCURRENCY -- unmaterialized (R4.10)",
+    "PERSISTENCE -- unmaterialized (R4.10)",
+    "Compiler-backed name resolution / TypeIdentity.canonical resolution -- R4.4+",
+    "Trait/impl equivalence and generic-instantiation identity closure -- R4.4+",
+    "Macro expansion (procedural or declarative) -- never executed; only syntax literally present in source is observed",
+    "Reconciliation of disagreeing extractor results -- explicitly deferred (NORMALIZATION.md#conflict-handling)",
+    "CensusExtractionAccounting's own records are not yet surfaced in SystemizeReport -- only its is_closed summary feeds coding_admission.blockers this wave"
+  ],
+  "contract_clauses_satisfied": [
+    ".atlas/contracts/SEMANTIC-EXTRACTION.md#semanticextractor (RustSemanticExtractor materializes id/version/supported_languages/supported_dimensions/extract with a real parser)",
+    ".atlas/contracts/SEMANTIC-EXTRACTION.md#failure-semantics (malformed Rust yields ParseFailure diagnostic + UNKNOWN for supported dims, never a silent drop; proven by dedicated tests and a valid.rs+broken.rs failure-isolation test)",
+    ".atlas/contracts/SEMANTIC-FACTS.md (every OBSERVED record carries Evidence/EvidenceId/Provenance; no new evidence vocabulary invented, PARSER_OUTPUT/SOURCE_TEXT reused)",
+    ".atlas/contracts/CENSUS-COMPLETENESS.md (all 12 dimensions always accounted for a Rust artifact; the 8 out-of-scope dimensions are explicit UNSUPPORTED, never omitted)",
+    ".atlas/decisions/0001-one-normalized-semantic-path.md (Inventory -> SourceFrontend -> RustSemanticExtractor -> ExtractionBatch -> CensusExtractionAccounting is now called from runtime::systemize; extractor has no dependency on atlas_core::graph)",
+    ".atlas/decisions/0002-epistemic-status-model.md (EpistemicStatus remains the sole canonical taxonomy; TypeIdentity.canonical stays None everywhere -- no compiler-resolved semantics fabricated)"
+  ],
+  "definition_of_done_checklist": {
+    "real_rust_parser_used": true,
+    "real_extractor_and_registry_materialized": true,
+    "real_extraction_for_all_4_supported_dimensions": true,
+    "real_evidence_and_provenance": true,
+    "real_parse_failure_handling": true,
+    "closed_dimension_accounting": true,
+    "determinism_and_consistency_tested": true,
+    "real_runtime_wiring_calling_census_extraction_accounting": true,
+    "all_8_excluded_dimensions_unsupported": true,
+    "fmt_clippy_tests_doctests_docs_gate_pass": true,
+    "independent_verification_pass": "VERIFIED",
+    "durable_evidence_committed": true,
+    "r4_4_not_started": true
+  }
+}
