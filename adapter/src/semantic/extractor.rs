@@ -13,6 +13,14 @@ use serde::{Deserialize, Serialize};
 
 use super::batch::{ExtractionBatch, ObligationResult};
 
+/// Re-exported from `atlas_core` (R4.3.2): `DiagnosticCode`/`ExtractionDiagnostic` are pure typed
+/// data with no adapter-specific mechanics, so they live in the core semantic kernel alongside
+/// `SemanticObservation` and friends -- this lets `CensusReport` (a `core` type) retain full
+/// diagnostic objects without a reverse `core` -> `adapter` dependency. Existing callers importing
+/// them from this module (`adapter::semantic::extractor::{DiagnosticCode, ExtractionDiagnostic}`)
+/// are unaffected.
+pub use atlas_core::{DiagnosticCode, ExtractionDiagnostic};
+
 /// Every field a `SemanticExtractor` may consult to produce a deterministic, revision-pinned
 /// `ExtractionBatch`. See `.atlas/contracts/SEMANTIC-EXTRACTION.md#extractioninput`.
 ///
@@ -70,69 +78,6 @@ impl ExtractionInput {
             extractor.id,
             extractor.version,
         ) + &format!("|{}", dimensions.join(","))
-    }
-}
-
-/// Minimum diagnostic causes an extractor may report; see
-/// `.atlas/contracts/SEMANTIC-EXTRACTION.md#failure-semantics`. A diagnostic never removes the
-/// artifact or the dimension from accounting — it always pairs with an explicit
-/// `ObligationResult` (`UNKNOWN` or `UNSUPPORTED`, as appropriate).
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
-pub enum DiagnosticCode {
-    UnsupportedLanguageOrProfile,
-    UnsupportedSemanticDimension,
-    ParseFailure,
-    CompilerMetadataUnavailable,
-    ResourceLimit,
-    InvalidInput,
-    IncompleteAnalysis,
-    InternalExtractorFailure,
-}
-
-impl DiagnosticCode {
-    pub const fn as_str(&self) -> &'static str {
-        match self {
-            Self::UnsupportedLanguageOrProfile => "UNSUPPORTED_LANGUAGE_OR_PROFILE",
-            Self::UnsupportedSemanticDimension => "UNSUPPORTED_SEMANTIC_DIMENSION",
-            Self::ParseFailure => "PARSE_FAILURE",
-            Self::CompilerMetadataUnavailable => "COMPILER_METADATA_UNAVAILABLE",
-            Self::ResourceLimit => "RESOURCE_LIMIT",
-            Self::InvalidInput => "INVALID_INPUT",
-            Self::IncompleteAnalysis => "INCOMPLETE_ANALYSIS",
-            Self::InternalExtractorFailure => "INTERNAL_EXTRACTOR_FAILURE",
-        }
-    }
-}
-
-/// A typed extraction diagnostic. Stable, content-derived `id` — never a random UUID.
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-pub struct ExtractionDiagnostic {
-    pub id: String,
-    pub code: DiagnosticCode,
-    pub dimension: Option<atlas_core::SemanticDimension>,
-    pub message: String,
-}
-
-impl ExtractionDiagnostic {
-    pub fn new(
-        code: DiagnosticCode,
-        dimension: Option<atlas_core::SemanticDimension>,
-        message: impl Into<String>,
-    ) -> Self {
-        let message = message.into();
-        let seed = format!(
-            "{}|{}|{}",
-            code.as_str(),
-            dimension.map(|d| d.as_str()).unwrap_or(""),
-            message
-        );
-        Self {
-            id: atlas_core::stable_id("extraction-diagnostic", &seed),
-            code,
-            dimension,
-            message,
-        }
     }
 }
 
