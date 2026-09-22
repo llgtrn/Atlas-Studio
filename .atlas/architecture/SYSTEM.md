@@ -63,7 +63,9 @@ UNTRUSTED inventory → census → observed generated semantics
                                ↓
                   content-addressed *.atlas
                                ↓
-                 deterministic *.atlasx/
+       recursive selected-system/material closure
+                               ↓
+           closed-world *.atlasx binary capsule
                                ↓
                  HIR → MIR → LIR → Machine IR
                                ↓
@@ -102,7 +104,7 @@ The current `.atlas/declared/*.adl` parser is ADL0, a bootstrap architectural de
 
 Conversation, Studio edits and external provider proposals are projections/candidates, not alternate truth systems.
 
-See `../contracts/ATLAS-DEVELOPMENT-LANGUAGE.md`, `../contracts/HUMAN-AI-ADL-AUTHORING.md`, `../contracts/ADL-TO-ATLAS.md`, `../contracts/ATLAS-CREATION-PIPELINE.md` and `../contracts/EXTERNAL-PROVIDER-TRUST.md`.
+See `../contracts/ARTIFACT-LAYERING.md`, `../contracts/ATLAS-DEVELOPMENT-LANGUAGE.md`, `../contracts/HUMAN-AI-ADL-AUTHORING.md`, `../contracts/ADL-TO-ATLAS.md`, `../contracts/ATLAS-CREATION-PIPELINE.md` and `../contracts/EXTERNAL-PROVIDER-TRUST.md`.
 
 ## Trust boundary
 
@@ -166,7 +168,7 @@ When AI-assisted synthesis is used, the selected implementation has already been
 
 Post-seal compaction is mechanical/provider-independent and governed by `../contracts/ATLAS-SEMANTIC-COMPACTION.md`; physical wire-v1 structure is governed by `../contracts/ATLAS-BINARY-WIRE-FORMAT.md`.
 
-`*.atlasx/` is deterministic selected executable representation. For `target_kind = digital_organism`, AtlasX includes an organism profile/genome plus the executable organ/circuit/body/brain/memory/lifecycle semantics required to create a phenotype.
+`*.atlasx` is the deterministic closed-world binary capsule for one selected system closure. It binds selected Atlas semantics to the transitive dependency/runtime/resource/build/reproduction material required by its declared capsule profile. An unpacked AtlasX directory is a noncanonical tooling projection only. For `target_kind = digital_organism`, AtlasX additionally closes the organism profile/genome plus the selected organ/circuit/body/brain/memory/lifecycle payloads required by that capsule profile.
 
 ## Compiler architecture
 
