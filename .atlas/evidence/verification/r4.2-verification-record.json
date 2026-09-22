@@ -2,11 +2,31 @@
   "schema": "atlas.r4.verification-record.v1",
   "wave": "R4.2",
   "wave_title": "Semantic Extractor Boundary",
-  "candidate_commit_sha": "be8cbbeb57f68542ee2a7bcb2af5e0e45ae3a949",
-  "tree_sha": "be8cbbeb57f68542ee2a7bcb2af5e0e45ae3a949",
-  "base_sha": "0fa8da866be548206ba9d8fcbac20c9bcd279812",
+  "corrected_by": "R4.2.1 (.atlas/evidence/verification/r4.2.1-verification-record.json), which independently re-derived every SHA below from `git cat-file -p` rather than from prose",
+  "correction_note": "The original version of this record conflated a commit SHA with its tree SHA (tree_sha was literally set to the candidate commit's own SHA, which is not how Git tree identity works) and recorded_at predated the candidate/evidence commits it was supposedly summarizing. Both are corrected below; no verification command result was changed.",
+  "identity": {
+    "base_commit_sha": "0fa8da866be548206ba9d8fcbac20c9bcd279812",
+    "candidate_commit_sha": "be8cbbeb57f68542ee2a7bcb2af5e0e45ae3a949",
+    "candidate_tree_sha": "7e0e462f6997b9d07d718f5350009db90283442d",
+    "verification_record_commit_sha": "b6c2b664d641da637a868a31fe35e4b8ae989592",
+    "verification_record_tree_sha": "cc89f404fa8908f621cf40d6bb7aa7ffdfae4e6d",
+    "merge_commit_sha": "56f43fb8934eb8167f84479e6df8697243ead642",
+    "merge_tree_sha": "cc89f404fa8908f621cf40d6bb7aa7ffdfae4e6d",
+    "note": "verification_record_tree_sha == merge_tree_sha because origin/main had not advanced past base_commit_sha between branch creation and merge, so the merge was a fast-forward-content merge commit (two parents, same tree as the branch head)."
+  },
+  "candidate_verification_reconfirmed": {
+    "method": "git diff --stat candidate_commit_sha..verification_record_commit_sha, re-run during R4.2.1",
+    "result": "exactly 1 file changed, 113 insertions(+), 0 deletions(-): .atlas/evidence/verification/r4.2-verification-record.json",
+    "conclusion": "No production source changed between the verified candidate commit and the commit that recorded this evidence. The R4.2 implementation verification itself remains valid; only this record's own metadata was wrong."
+  },
   "branch": "claude/r4-semantic-materialization-jz2z44",
-  "recorded_at": "2026-09-22T05:10:00Z",
+  "temporal": {
+    "candidate_commit_authored_at": "2026-09-22T06:02:02Z",
+    "evidence_commit_authored_at": "2026-09-22T06:08:20Z",
+    "merge_commit_authored_at": "2026-09-22T06:09:13+09:00",
+    "verification_completed_at": null,
+    "note": "These three timestamps are Git-authoritative (author dates from `git show -s --format=%ad` on each commit) and prove when each commit was made, not when the verification commands themselves finished running -- Git does not record that. The original recorded_at field (2026-09-22T05:10:00Z) predated candidate_commit_authored_at and was fabricated; it is removed rather than corrected to another guess. verification_completed_at is left null because no authoritative source for that exact instant exists in this repository's history."
+  },
   "toolchain": {
     "pinned_by": "rust-toolchain.toml",
     "channel": "1.90.0",
