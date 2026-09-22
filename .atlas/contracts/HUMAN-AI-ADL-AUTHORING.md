@@ -198,7 +198,7 @@ Atlas may use a fast typed decision provider — a **Jev-class decision fabric**
 
 A decision provider is an optimization/decision mechanism, not a truth oracle.
 
-Its output MUST be represented as a typed `DecisionProposal` and retain:
+Its output MUST be represented as a typed `DecisionProposal` conforming to `../schemas/decision-proposal.schema.json` and retain:
 
 - provider identity/version;
 - exact candidate set;
