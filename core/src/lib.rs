@@ -27,7 +27,8 @@ pub use graph::{
 };
 pub use identity::{
     ArtifactId, CapabilityId, ContentFingerprint, EdgeId, EvidenceId, IntegrityDigest, NodeId,
-    RepositoryId, RevisionId, SymbolId, TechnologyId, stable_id,
+    RawObservationId, RepositoryId, RevisionId, SemanticObligationId, SymbolId, TechnologyId,
+    stable_id,
 };
 pub use language::adl::{
     AdlCompileReport, AdlDeclaration, AdlDiagnostic, AdlProgram, AdlSource, AdlToken, AtlasIr,
@@ -39,14 +40,14 @@ pub use provenance::{Provenance, provenance};
 pub use schema::{
     CensusReport, DocsReport, DocumentFact, EpistemicStatus, FileFact, GraphSummary,
     NormalizationReport, RepoAudit, RepoManifest, SemanticFact, SemanticFactKind, SourceReport,
-    SystemizeReport,
+    SystemizeReport, TypedClosureAccounting,
 };
 pub use semantic::{
     CallSiteIdentity, ControlFlowBlockIdentity, DiagnosticCode, EffectCategory, EffectIdentity,
     ExtractionDiagnostic, ExtractorIdentity, FunctionIdentity, FunctionParameter,
-    FunctionSignature, SemanticDimension, SemanticObservation, SemanticRecordHeader,
-    SemanticRecordId, SemanticScope, StateIdentity, SymbolIdentity, SymbolRole, TypeIdentity,
-    ValueIdentity,
+    FunctionSignature, SemanticDimension, SemanticObligationRecord, SemanticObservation,
+    SemanticRecordHeader, SemanticRecordId, SemanticScope, StateIdentity, SymbolIdentity,
+    SymbolRole, TypeIdentity, ValueIdentity,
 };
 pub use state::RepositorySnapshot;
 pub use temporal::RevisionRef;
