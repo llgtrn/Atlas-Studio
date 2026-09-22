@@ -89,9 +89,12 @@ SEALED logical Atlas
 Normative contracts:
 
 - `../contracts/ATLAS-SEMANTIC-COMPACTION.md`;
+- `../contracts/SELECTED-DESIGN.md`;
 - `../contracts/ATLAS-TO-ATLASX.md`;
 - `../contracts/ATLASX-FORMAT.md`;
-- `../contracts/COMPILER-IR-PIPELINE.md`.
+- `../contracts/ATLASX-BINARY-WIRE-FORMAT.md`;
+- `../contracts/COMPILER-IR-PIPELINE.md`;
+- `../contracts/COMPILER-IR-SCHEMAS.md`.
 
 No implementation may bypass these boundaries by inventing direct graph/source/codegen truth.
 
