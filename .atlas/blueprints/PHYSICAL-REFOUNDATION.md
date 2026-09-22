@@ -185,7 +185,7 @@ Research/model/provider output cannot impersonate observed implementation eviden
 
 ### R8 — Real ATLAS and AtlasX
 
-Implement binary records, content addressing, integrity, transactional publication, sharding, deterministic AtlasX and lineage.
+Implement Atlas binary records, content addressing, integrity, transactional publication, sharding, deterministic AtlasX wire-v2 single-file capsule packaging, and lineage.
 
 R8 provides the durable canonical carrier needed for census-derived donor knowledge to survive physical source deletion at scale. It does not end the census/recensus loop.
 
