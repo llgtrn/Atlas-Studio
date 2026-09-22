@@ -1,0 +1,97 @@
+schema = "atlas.donor-absorption-plan.v1"
+canonical = true
+donor_registry = "../references/donor-corpus.toml"
+source_root = ".atlas/temporary/donors"
+extinction_policy = "PHYSICAL_SOURCE_DELETION_REQUIRED"
+absorbed_is_extinct = false
+extinct_requires_source_path_absent = true
+extinct_forbids_atlas_controlled_source_archive_cache_snapshot = true
+reference_oracle_with_local_source_is_extinct = false
+
+[[wave]]
+id = "W0"
+name = "corpus-accounting"
+order = 0
+scope = "ALL_ADMITTED_DONORS"
+mode = "COARSE_CENSUS"
+goal = "pin provenance and map repository/language/module/build/dependency/capability topology for every admitted donor"
+exit = "all admitted donors explicitly accounted"
+
+[[wave]]
+id = "W1"
+name = "source-intelligence-semantic-graph"
+order = 1
+donors = ["tree-sitter", "rust-analyzer", "scip", "kythe", "glean", "joern", "semgrep", "ast-grep", "sourcetrail"]
+semantic_dimensions = ["SYMBOL", "TYPE", "FUNCTION_IDENTITY", "FUNCTION_SIGNATURE", "CALL", "CONTROL_FLOW", "DATA_FLOW"]
+atlas_targets = ["adapter/source", "core/identity", "core/schema", "core/graph", "runtime/census", "runtime/normalize", "runtime/query"]
+
+[[wave]]
+id = "W2"
+name = "compiler-semantic-core"
+order = 2
+donors = ["rust", "llvm-project", "wasmtime", "wasm-tools"]
+semantic_dimensions = ["TYPE", "FUNCTION_IDENTITY", "FUNCTION_SIGNATURE", "CALL", "CONTROL_FLOW", "DATA_FLOW", "STATE", "EFFECT", "OWNERSHIP", "CONCURRENCY", "PERSISTENCE"]
+atlas_targets = ["core/semantic", "runtime/census", "runtime/compile", "adapter/execution", "adapter/exchange"]
+
+[[wave]]
+id = "W3"
+name = "incremental-reasoning-build"
+order = 3
+donors = ["salsa", "datafrog", "differential-dataflow", "souffle", "buck2"]
+semantic_dimensions = ["DATA_FLOW", "STATE", "EFFECT", "PERSISTENCE"]
+atlas_targets = ["runtime/query", "runtime/closure", "runtime/census", "adapter/build"]
+
+[[wave]]
+id = "W4"
+name = "verification-safety"
+order = 4
+donors = ["kani", "miri", "verus"]
+semantic_dimensions = ["STATE", "EFFECT", "OWNERSHIP", "CONCURRENCY"]
+atlas_targets = ["runtime/verify", "core/constraint", "core/evidence"]
+
+[[wave]]
+id = "W5"
+name = "transformation-migration"
+order = 5
+donors = ["openrewrite", "c2rust", "crubit", "py2many"]
+semantic_dimensions = ["SYMBOL", "TYPE", "FUNCTION_IDENTITY", "FUNCTION_SIGNATURE", "CALL", "CONTROL_FLOW", "DATA_FLOW", "STATE", "EFFECT"]
+atlas_targets = ["runtime/invention", "runtime/refactor", "runtime/materialize", "adapter/language-interop"]
+
+[[wave]]
+id = "W6"
+name = "binary-storage-data-backend"
+order = 6
+donors = ["flatbuffers", "arrow", "zstd", "blake3", "object", "regalloc2", "mold"]
+semantic_dimensions = ["TYPE", "DATA_FLOW", "STATE", "EFFECT", "PERSISTENCE"]
+atlas_targets = ["core/atlas", "runtime/seal", "adapter/storage", "adapter/compression", "runtime/compile"]
+
+[[wave]]
+id = "W7"
+name = "security-trust"
+order = 7
+donors = ["containers-image", "podman", "selinux", "openscap", "keycloak", "keylime", "clair"]
+semantic_dimensions = ["STATE", "EFFECT", "OWNERSHIP", "CONCURRENCY", "PERSISTENCE"]
+atlas_targets = ["core/security", "runtime/security", "adapter/security"]
+
+[[wave]]
+id = "W8"
+name = "studio-editor-projection"
+order = 8
+donors = ["zed", "opendesign", "xyflow", "cytoscape-js", "elkjs"]
+semantic_dimensions = ["STATE", "EFFECT", "CONCURRENCY", "PERSISTENCE"]
+atlas_targets = ["apps/studio"]
+
+[extinction_gate]
+required = [
+  "technology_genome_durable",
+  "provenance_and_license_durable",
+  "atlas_native_replacement_exists",
+  "donor_runtime_source_dependency_zero",
+  "tests_and_material_benchmarks_pass_where_applicable",
+  "atlas_recensus_agrees_with_selected_design",
+  "remaining_donor_only_knowledge_captured_or_explicitly_rejected",
+  "donor_source_files_physically_deleted",
+  "donor_source_path_absent",
+  "no_atlas_controlled_source_archive_cache_snapshot",
+  "post_delete_recensus_and_verification_pass"
+]

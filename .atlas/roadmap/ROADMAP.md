@@ -35,6 +35,8 @@ Sequence:
 
 The current `.atlas/declared/*.adl` implementation remains ADL0 until the readiness gates in `../contracts/ATLAS-DEVELOPMENT-LANGUAGE.md` are satisfied.
 
+Donor execution order, per-wave census targets, Atlas ownership targets, recensus gates and physical source-extinction rules are governed by `DONOR-ABSORPTION-ROADMAP.md` and its machine-readable companion `DONOR-ABSORPTION-PLAN.toml`.
+
 ## Organism Foundation — after universal semantics are real
 
 Before model training ambitions:

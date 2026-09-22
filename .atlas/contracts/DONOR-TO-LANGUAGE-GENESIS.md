@@ -41,7 +41,13 @@ differential tests / benchmarks / recensus
       ↓
 donor scope ABSORBED
       ↓
-donor runtime dependency = 0
+donor runtime/source dependency = 0
+      ↓
+physically delete donor OSS source files
+      ↓
+verify source path absent
+      ↓
+donor scope EXTINCT
 ```
 
 Skipping directly from donor syntax/API to an ADL feature is forbidden.
@@ -117,7 +123,13 @@ A donor-informed ADL feature is admitted only when:
 
 ## Extinction
 
-Donor source may be deleted from `.atlas/temporary/` only after the relevant knowledge is durable in Atlas and the extinction gate in `../blueprints/BULK-DONOR-ABSORPTION.md` is satisfied.
+`ABSORBED` and `EXTINCT` are distinct states.
+
+A donor scope becomes ABSORBED when its required mechanism knowledge is durable, its Atlas-native replacement exists, dependency is zero for that scope, and verification/recensus gates pass.
+
+A donor scope becomes EXTINCT only after Atlas **physically deletes the donor OSS source files** for that scope from `.atlas/temporary/donors/<donor>/` (and any Atlas-controlled substitute source archive/cache/snapshot), then verifies the source path is absent. Merely ceasing to import or use the files is not extinction.
+
+If Atlas deliberately retains donor source locally as an oracle/reference, that donor remains explicitly non-extinct.
 
 The durable result is not "we once read the donor." It is:
 
@@ -127,7 +139,10 @@ typed semantic knowledge
 + evidence/provenance
 + native implementation
 + verification
++ physical donor-source deletion proof
 ```
+
+Provenance, license text/obligations, revision hashes, typed semantic knowledge and verification evidence survive extinction. The donor source tree/files themselves do not.
 
 ## Research sources
 
