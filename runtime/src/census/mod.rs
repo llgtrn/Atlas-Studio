@@ -753,6 +753,107 @@ mod tests {
         }
     }
 
+    /// R4.4: a strengthened `FunctionIdentity` observation (an inherent method `Foo::get`, with a
+    /// declared generic parameter, exactly like `extraction_batch_with_symbol_from` but for the
+    /// `FunctionIdentity` dimension), from a caller-chosen extractor identity -- so two batches can
+    /// report the SAME strengthened semantic claim while differing in exactly the fields that make
+    /// them independent raw observations.
+    fn extraction_batch_with_function_identity_from(
+        artifact_path: &str,
+        extractor_id: &str,
+        evidence_id: &str,
+        evidence_summary: &str,
+    ) -> ExtractionBatch {
+        use atlas_core::{
+            Evidence, EvidenceId, FunctionDeclarationKind, FunctionIdentity, FunctionOwner,
+            RepositoryId, SemanticRecordHeader, SemanticRecordId, SymbolIdentity, SymbolRole,
+            TypeIdentity, provenance,
+        };
+
+        let repository = RepositoryId::new("atlas-studio");
+        let revision = atlas_core::RevisionRef {
+            kind: "git".into(),
+            value: "abc123".into(),
+        };
+        let extractor = ExtractorIdentity {
+            id: extractor_id.into(),
+            version: "0.1.0".into(),
+        };
+        let scope = SemanticScope::new(["impl:Foo"]);
+        let identity = FunctionIdentity {
+            repository: repository.clone(),
+            revision: revision.clone(),
+            language: "rust".into(),
+            scope: scope.clone(),
+            symbol: SymbolIdentity {
+                repository: repository.clone(),
+                revision: revision.clone(),
+                scope: scope.clone(),
+                name: "get".into(),
+                role: SymbolRole::Definition,
+            },
+            span: atlas_core::SourceSpan {
+                path: artifact_path.into(),
+                line: 1,
+                column: 1,
+            },
+            generated: false,
+            declaration_kind: FunctionDeclarationKind::InherentMethod,
+            owner: FunctionOwner {
+                target: Some(TypeIdentity {
+                    repository: repository.clone(),
+                    revision: revision.clone(),
+                    scope: SemanticScope::new(Vec::<String>::new()),
+                    name: "Foo".into(),
+                    canonical: None,
+                }),
+                trait_path: None,
+            },
+            generics: vec!["T".into()],
+        };
+        let record_id = SemanticRecordId::new(
+            SemanticDimension::FunctionIdentity,
+            &identity.identity_key(),
+        );
+        let evidence_id = EvidenceId::new(evidence_id.to_owned());
+        let header = SemanticRecordHeader {
+            record_id: record_id.clone(),
+            dimension: SemanticDimension::FunctionIdentity,
+            status: EpistemicStatus::Observed,
+            scope: scope.clone(),
+            repository: repository.clone(),
+            revision: revision.clone(),
+            extractor: extractor.clone(),
+            evidence_refs: vec![evidence_id.clone()],
+            provenance: provenance(artifact_path, &extractor.id),
+            subject: identity,
+        };
+        let observation = SemanticObservation::FunctionIdentity(Box::new(header));
+        assert!(observation.is_dimension_consistent());
+
+        ExtractionBatch {
+            extractor,
+            repository,
+            revision,
+            artifact: ArtifactId::new(format!("artifact:{artifact_path}")),
+            input_fingerprint: format!("test:{artifact_path}"),
+            observations: vec![observation],
+            evidence: vec![Evidence {
+                id: evidence_id.as_str().to_owned(),
+                kind: "PARSER_OUTPUT".into(),
+                path: artifact_path.into(),
+                summary: evidence_summary.into(),
+                revision: None,
+            }],
+            obligations: vec![ObligationResult::observed(
+                SemanticDimension::FunctionIdentity,
+                vec![record_id],
+                vec![evidence_id],
+            )],
+            diagnostics: Vec::new(),
+        }
+    }
+
     fn single_rust_file_context() -> (InventoryReport, SourceReport, AdlCompileReport) {
         let inventory = InventoryReport::new(
             "/repo",
@@ -1313,6 +1414,88 @@ pub async unsafe extern "C" fn example<T>(x: Vec<T>, y: &mut usize) -> Result<T,
                 "extractor-b observed `known`",
             ),
         ]
+    }
+
+    // === R4.4: strengthened FunctionIdentity claims stay multi-extractor safe ===================
+    //
+    // Same proof as the R4.3.3 Symbol tests above, but for the R4.4-strengthened FunctionIdentity
+    // dimension specifically: the new declaration_kind/owner/generics fields must not have
+    // reintroduced any record_id-vs-raw_observation_id conflation, and the semantic claim identity
+    // (record_id) must remain untouched by which extractor reported it.
+
+    #[test]
+    fn strengthened_function_identity_claim_from_two_extractors_survives_census_and_normalization()
+    {
+        let (inventory, source, adl) = single_rust_file_context();
+        let batches = [
+            extraction_batch_with_function_identity_from(
+                "src/lib.rs",
+                "extractor-a",
+                "evidence:a",
+                "extractor-a observed `Foo::get`",
+            ),
+            extraction_batch_with_function_identity_from(
+                "src/lib.rs",
+                "extractor-b",
+                "evidence:b",
+                "extractor-b observed `Foo::get`",
+            ),
+        ];
+
+        let census = build_census(&inventory, &source, &adl, &batches);
+        let function_identities: Vec<_> = census
+            .typed_semantic_records
+            .iter()
+            .filter(|observation| matches!(observation, SemanticObservation::FunctionIdentity(_)))
+            .collect();
+        assert_eq!(
+            function_identities.len(),
+            2,
+            "independent extractors' observations of the same strengthened FunctionIdentity \
+             claim must both survive Census"
+        );
+
+        // Required test 17: the semantic claim identity (record_id) is not polluted by extractor
+        // id -- both observations report the SAME record_id (they describe the same claim)...
+        let claim_ids: std::collections::BTreeSet<&str> = function_identities
+            .iter()
+            .map(|observation| observation.record_id().as_str())
+            .collect();
+        assert_eq!(
+            claim_ids.len(),
+            1,
+            "both observations share the same FunctionIdentity claim"
+        );
+
+        // ...while raw_observation_id (extractor-attributed) remains distinct per extractor.
+        let raw_ids: std::collections::BTreeSet<_> = function_identities
+            .iter()
+            .map(|observation| observation.raw_observation_id())
+            .collect();
+        assert_eq!(raw_ids.len(), 2);
+
+        let extractor_ids: std::collections::BTreeSet<&str> = function_identities
+            .iter()
+            .map(|observation| {
+                let SemanticObservation::FunctionIdentity(header) = observation else {
+                    unreachable!()
+                };
+                header.extractor.id.as_str()
+            })
+            .collect();
+        assert_eq!(
+            extractor_ids,
+            std::collections::BTreeSet::from(["extractor-a", "extractor-b"])
+        );
+
+        // Survives normalization too, still independently attributable.
+        let normalization = crate::normalize::normalize(&census);
+        let normalized: Vec<_> = normalization
+            .typed_semantic_records
+            .iter()
+            .filter(|observation| matches!(observation, SemanticObservation::FunctionIdentity(_)))
+            .collect();
+        assert_eq!(normalized.len(), 2);
     }
 
     // --- Required test 1: same semantic claim from two extractors survives Census -------------
