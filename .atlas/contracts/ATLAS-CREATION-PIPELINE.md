@@ -6,6 +6,12 @@ canonical: true
 ---
 # ATLAS Creation Pipeline Contract
 
+## Authority
+
+Artifact roles are fixed by `ARTIFACT-LAYERING.md`: ADL is the Intent Artifact, `*.atlas` is the Canonical Semantic Artifact, and `*.atlasx` is the downstream Closed-World System Capsule.
+
+This contract ends at canonical `*.atlas` publication. AtlasX closure/packaging is a separate post-Atlas stage governed by `ATLAS-TO-ATLASX.md` and MUST NOT reopen semantic interpretation.
+
 ## Purpose
 
 A canonical `*.atlas` file is NOT produced by serializing a design sketch.
@@ -46,6 +52,18 @@ Deterministic Mechanical Compaction
 *.atlas
 ~~~
 
+Only after a canonical Atlas exists may the downstream system-closure path begin:
+
+~~~text
+*.atlas
+  ↓
+selected-system + transitive dependency/runtime/resource/build closure
+  ↓
+*.atlasx binary capsule
+~~~
+
+That downstream step is NOT an opportunity to reinterpret ADL, call a model for missing meaning, or choose a new design.
+
 The AI-assisted stages occur BEFORE semantic seal.
 
 The compaction stage occurs AFTER semantic seal.
@@ -78,7 +96,7 @@ Inputs may come from:
 
 Intent is typed into explicit goals and constraints before a material design decision is admitted.
 
-Unstructured intent may start the process. It may not bypass typing/validation.
+Unstructured intent may start the process. Natural-language-first Human+AI ADL is explicitly allowed and expected. It may not bypass typing/validation, and raw prose is never canonical execution semantics.
 
 ## Stage C1 — Constraint Envelope
 
