@@ -662,9 +662,9 @@ default_branch = "master"
 retrieved_at = "2026-09-21T03:00:34.9575636Z"
 staging_mode = "FULL_SOURCE_TREE"
 license = [".atlas/licenses/donors/flatbuffers/LICENSE"]
-technology_domains = ["schema", "serialization", "zero_copy_binary_format"]
+technology_domains = ["schema", "serialization", "zero_copy_binary_format", "rust_native_reader_writer"]
 ingestion_status = "CLONED"
-census_status = "COARSE_CENSUSED"
+census_status = "DEEP_CENSUSED"
 decision_status = "APPROVED_COMPILER_BINARY_LANE"
 native_replacement = "atlas binary schema/layout lessons and deterministic interchange boundaries"
 runtime_dependency_status = "REFERENCE_ONLY"
@@ -994,24 +994,6 @@ decision_status = "STUDY_FOR_BINARY_FORMAT_LANE"
 native_replacement = "architecture study only -- not adopted as a runtime dependency; see census disposition table"
 runtime_dependency_status = "STUDY_ONLY_NOT_A_DEPENDENCY"
 evidence = [".atlas/provenance/donors/capnproto.json", ".atlas/census/donors/capnproto.md"]
-
-[[donor]]
-id = "flatbuffers"
-name = "FlatBuffers"
-repository = "google/flatbuffers"
-resolved_url = "https://github.com/google/flatbuffers.git"
-commit_sha = "b8431fbcd7a5c71817f314e18b332c0648554efa"
-git_tree_sha = "0b3c731daf52a90658ab86e4912075ea4b7da735"
-default_branch = "master"
-retrieved_at = "2026-09-21T03:00:34.9575636Z"
-license = "UNVERIFIED"
-technology_domains = ["schema", "serialization", "zero_copy_binary_format", "rust_native_reader_writer"]
-ingestion_status = "CLONED"
-census_status = "DEEP_CENSUSED"
-decision_status = "APPROVED_COMPILER_BINARY_LANE"
-native_replacement = "architecture study only -- not adopted as a runtime dependency; see census disposition table"
-runtime_dependency_status = "REFERENCE_ONLY"
-evidence = [".atlas/provenance/donors/flatbuffers.json", ".atlas/census/donors/flatbuffers.md"]
 
 [[donor]]
 id = "rkyv"
