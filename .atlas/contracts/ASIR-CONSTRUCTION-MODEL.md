@@ -194,6 +194,10 @@ type validation        -- operand/result types check against ASIR's current type
     |
 semantic validation     -- op is well-formed against the target dialect's own rules
     |                      (e.g. atlas.cf.cond_branch's true/false targets must exist)
+architectural validation -- evaluate the isolated post-transaction candidate against the
+    |                        pinned ArchitecturalIntegrityEnvelope and affected impact closure
+    |                        under ARCHITECTURAL-INTEGRITY.md; HARD violations reject the txn
+    |
 security validation     -- effects/capabilities declared here match what static analysis
     |                      of any attached generated code actually exhibits (see
     |                      "Generated code is untrusted input" below)
@@ -216,6 +220,9 @@ A proposal that fails any stage is rejected with a typed diagnostic, exactly as 
 - A provider MUST NOT establish canonical semantics through prose. A `CandidateChangeSet.semantic_changes[].summary` string remains allowed as a human-readable label, exactly as today, but it is never itself the semantic claim; the semantic claim is the typed `AtlasConstructionOperation` (once this contract's schema/code path exists) or the typed `SemanticObservation` (today, for extracted/existing source).
 - Every ACP operation MUST be schema-valid against `atlas-construction-operation.schema.json` before any downstream stage inspects it.
 - Every operation MUST be independently type-checkable where its dialect defines a type-checking rule.
+- Every transaction that can affect architecture MUST be evaluated on an isolated post-transaction semantic state against the pinned ArchitecturalIntegrityEnvelope from `ARCHITECTURAL-INTEGRITY.md`; architecture is a transaction/global property, not merely an operation-local annotation.
+- A HARD architectural violation rejects the entire transaction even if type checks, tests or benchmarks pass. Provider self-asserted equivalence is never sufficient evidence.
+- Architectural impact closure MUST be derived from observed semantic relationships; an operation's declared `invariants[]` may contribute intent but cannot prove its own compliance.
 - Every effectful operation MUST expose its own effect set in `effects[]` — never an effect discovered only by executing the operation.
 - Every privileged effect MUST bind to an explicit capability/authority reference in `required_capabilities[]` — never an implicit ambient permission.
 - Every imported/generated semantic claim MUST preserve provenance/evidence through to a `ProviderReceipt` — no operation is admissible with an evidence chain that terminates in nothing.
