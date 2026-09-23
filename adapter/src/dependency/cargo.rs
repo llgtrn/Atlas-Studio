@@ -31,7 +31,19 @@ struct LockPackage {
     version: String,
     source: Option<String>,
     checksum: Option<String>,
-    dependencies: Vec<String>,
+    dependencies: Vec<LockDependencyRef>,
+}
+
+/// One `Cargo.lock` `dependencies` array entry. Cargo emits a bare `"name"` when exactly one
+/// resolved version of that name exists in the lockfile, and disambiguates with a resolved
+/// version as `"name version"` (or `"name version (source)"`) whenever more than one does. The
+/// `(source)` suffix, needed only when the same name *and* version resolve from two different
+/// sources, is not parsed yet -- a named, documented, not-yet-exercised gap distinct from the
+/// version disambiguation this type exists to carry.
+#[derive(Debug, Clone, PartialEq, Eq)]
+struct LockDependencyRef {
+    name: String,
+    version: Option<String>,
 }
 
 /// The value of `key = "..."` on `line`, if `line` is exactly that assignment.
@@ -42,15 +54,22 @@ fn quoted_field(line: &str, key: &str) -> Option<String> {
     Some(inner.to_owned())
 }
 
-/// The bare name inside one `"name"` (or `"name",`) lockfile dependency-array entry line.
-fn dependency_array_entry(line: &str) -> Option<String> {
+/// The bare quoted string inside one `"value"` (or `"value",`) array-entry line, e.g. a
+/// `workspace.members` entry. Unlike `lock_dependency_ref`, this never strips a trailing token --
+/// a workspace member path has no lockfile-style version suffix to disambiguate.
+fn quoted_array_string(line: &str) -> Option<String> {
     let trimmed = line.trim().trim_end_matches(',');
     let inner = trimmed.strip_prefix('"')?.strip_suffix('"')?;
-    // Cargo.lock disambiguates same-named packages at different resolved versions as
-    // `"name version"` or `"name version (source)"`. This parser only reads the bare name; see
-    // the module/report doc comments for how a resulting ambiguous match is reported rather than
-    // guessed.
-    Some(inner.split_whitespace().next().unwrap_or(inner).to_owned())
+    Some(inner.to_owned())
+}
+
+/// One `"name"` or disambiguated `"name version"` lockfile dependency-array entry line.
+fn lock_dependency_ref(line: &str) -> Option<LockDependencyRef> {
+    let inner = quoted_array_string(line)?;
+    let mut tokens = inner.split_whitespace();
+    let name = tokens.next()?.to_owned();
+    let version = tokens.next().map(str::to_owned);
+    Some(LockDependencyRef { name, version })
 }
 
 fn parse_cargo_lock(text: &str) -> Vec<LockPackage> {
@@ -77,10 +96,8 @@ fn parse_cargo_lock(text: &str) -> Vec<LockPackage> {
                 package.checksum = Some(value);
             } else if let Some(rest) = trimmed.strip_prefix("dependencies = [") {
                 if let Some(inline) = rest.strip_suffix(']') {
-                    package.dependencies = inline
-                        .split(',')
-                        .filter_map(dependency_array_entry)
-                        .collect();
+                    package.dependencies =
+                        inline.split(',').filter_map(lock_dependency_ref).collect();
                 } else {
                     while let Some(&dep_line) = lines.peek() {
                         if dep_line.trim() == "]" {
@@ -88,8 +105,8 @@ fn parse_cargo_lock(text: &str) -> Vec<LockPackage> {
                             break;
                         }
                         lines.next();
-                        if let Some(name) = dependency_array_entry(dep_line) {
-                            package.dependencies.push(name);
+                        if let Some(dependency_ref) = lock_dependency_ref(dep_line) {
+                            package.dependencies.push(dependency_ref);
                         }
                     }
                 }
@@ -114,10 +131,7 @@ fn workspace_members(root_manifest: &str) -> Vec<String> {
             if let Some(rest) = rest.strip_prefix('=') {
                 let rest = rest.trim();
                 if let Some(inline) = rest.strip_prefix('[').and_then(|r| r.strip_suffix(']')) {
-                    return inline
-                        .split(',')
-                        .filter_map(dependency_array_entry)
-                        .collect();
+                    return inline.split(',').filter_map(quoted_array_string).collect();
                 }
             }
         }
@@ -251,23 +265,43 @@ pub fn census_cargo_workspace(root: &Path) -> io::Result<Option<DependencyClosur
             .get(&package.name)
             .cloned()
             .unwrap_or_else(|| "Cargo.lock".to_owned());
-        for dependency_name in &package.dependencies {
+        for dependency_ref in &package.dependencies {
+            let dependency_name = &dependency_ref.name;
             let Some(candidates) = by_name.get(dependency_name.as_str()) else {
                 dangling_references.push(format!("{} -> {dependency_name}", package.name));
                 continue;
             };
-            if candidates.len() > 1 {
-                // Multiple resolved versions share this name; disambiguating requires reading the
-                // lockfile's `"name version"` array-entry form (see `dependency_array_entry`'s own
-                // doc comment), which this parser does not do yet -- reported rather than guessed.
-                dangling_references.push(format!(
-                    "{} -> {dependency_name} (ambiguous: {} candidates)",
-                    package.name,
-                    candidates.len()
-                ));
-                continue;
-            }
-            let provider_package = candidates[0];
+            let provider_package = match (candidates.as_slice(), &dependency_ref.version) {
+                ([single], _) => *single,
+                (_, Some(version)) => {
+                    match candidates.iter().find(|p| &p.version == version) {
+                        Some(matched) => *matched,
+                        None => {
+                            // Cargo.lock's own disambiguated entry names a resolved version this
+                            // lockfile has no matching `[[package]]` block for -- a real dangling
+                            // reference, not an unresolved ambiguity.
+                            dangling_references.push(format!(
+                                "{} -> {dependency_name} {version} (no matching resolved version among {} candidates)",
+                                package.name,
+                                candidates.len()
+                            ));
+                            continue;
+                        }
+                    }
+                }
+                (_, None) => {
+                    // Multiple resolved versions share this name and the lockfile entry carries no
+                    // disambiguating version suffix -- real Cargo.lock output always disambiguates
+                    // in this situation, so this is an adversarial/malformed-input case, reported
+                    // rather than guessed.
+                    dangling_references.push(format!(
+                        "{} -> {dependency_name} (ambiguous: {} candidates, no disambiguating version in lockfile entry)",
+                        package.name,
+                        candidates.len()
+                    ));
+                    continue;
+                }
+            };
             let source_kind = if provider_package.source.is_some() {
                 DependencySourceKind::Registry
             } else {
@@ -325,6 +359,13 @@ pub fn census_cargo_workspace(root: &Path) -> io::Result<Option<DependencyClosur
 mod tests {
     use super::*;
 
+    fn dep_ref(name: &str) -> LockDependencyRef {
+        LockDependencyRef {
+            name: name.to_owned(),
+            version: None,
+        }
+    }
+
     // --- 1. Cargo.lock parsing -----------------------------------------------------------------
 
     const LOCK_FIXTURE: &str = r#"
@@ -371,7 +412,7 @@ checksum = "cafef00d"
             Some("registry+https://github.com/rust-lang/crates.io-index")
         );
         assert_eq!(syn.checksum.as_deref(), Some("deadbeef"));
-        assert_eq!(syn.dependencies, vec!["unicode-ident".to_owned()]);
+        assert_eq!(syn.dependencies, vec![dep_ref("unicode-ident")]);
     }
 
     #[test]
@@ -386,10 +427,7 @@ checksum = "cafef00d"
     fn multi_line_dependency_array_is_parsed() {
         let packages = parse_cargo_lock(LOCK_FIXTURE);
         let adapter = packages.iter().find(|p| p.name == "adapter").unwrap();
-        assert_eq!(
-            adapter.dependencies,
-            vec!["core".to_owned(), "syn".to_owned()]
-        );
+        assert_eq!(adapter.dependencies, vec![dep_ref("core"), dep_ref("syn")]);
     }
 
     #[test]
@@ -403,7 +441,27 @@ dependencies = ["core", "syn"]
         let packages = parse_cargo_lock(fixture);
         assert_eq!(
             packages[0].dependencies,
-            vec!["core".to_owned(), "syn".to_owned()]
+            vec![dep_ref("core"), dep_ref("syn")]
+        );
+    }
+
+    #[test]
+    fn disambiguated_dependency_array_entry_carries_its_resolved_version() {
+        let fixture = r#"
+[[package]]
+name = "adapter"
+version = "0.1.0"
+dependencies = [
+ "syn 2.0.0",
+]
+"#;
+        let packages = parse_cargo_lock(fixture);
+        assert_eq!(
+            packages[0].dependencies,
+            vec![LockDependencyRef {
+                name: "syn".to_owned(),
+                version: Some("2.0.0".to_owned()),
+            }]
         );
     }
 
@@ -642,6 +700,137 @@ checksum = "cafef00d"
         assert_eq!(report.edges_total, 1);
         assert_eq!(report.edges[0].kind, None);
         assert_eq!(report.edges[0].evidence_path, "Cargo.lock");
+
+        let _ = fs::remove_dir_all(&dir);
+    }
+
+    // --- 4b. same-name, multiple-resolved-version disambiguation --------------------------------
+
+    #[test]
+    fn a_disambiguated_lockfile_entry_resolves_to_the_matching_version_not_an_ambiguity() {
+        let dir = std::env::temp_dir().join(format!(
+            "atlas-dep-census-test-{}",
+            std::process::id().to_string() + "-5"
+        ));
+        let _ = fs::remove_dir_all(&dir);
+        write(
+            &dir.join("Cargo.lock"),
+            r#"
+[[package]]
+name = "adapter"
+version = "0.1.0"
+dependencies = [
+ "syn 2.0.0",
+]
+
+[[package]]
+name = "syn"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "old"
+
+[[package]]
+name = "syn"
+version = "2.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "new"
+"#,
+        );
+
+        let report = census_cargo_workspace(&dir).unwrap().unwrap();
+        assert!(
+            report.is_closed(),
+            "a real disambiguated lockfile entry must not be reported as a dangling/ambiguous reference: {:?}",
+            report.dangling_references
+        );
+        assert_eq!(report.edges_total, 1);
+        assert_eq!(report.edges[0].provider.version, "2.0.0");
+        assert_eq!(report.edges[0].provider.checksum.as_deref(), Some("new"));
+
+        let _ = fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn a_disambiguated_lockfile_entry_naming_a_version_with_no_matching_package_is_a_dangling_reference()
+     {
+        let dir = std::env::temp_dir().join(format!(
+            "atlas-dep-census-test-{}",
+            std::process::id().to_string() + "-6"
+        ));
+        let _ = fs::remove_dir_all(&dir);
+        write(
+            &dir.join("Cargo.lock"),
+            r#"
+[[package]]
+name = "adapter"
+version = "0.1.0"
+dependencies = [
+ "syn 3.0.0",
+]
+
+[[package]]
+name = "syn"
+version = "1.0.0"
+
+[[package]]
+name = "syn"
+version = "2.0.0"
+"#,
+        );
+
+        let report = census_cargo_workspace(&dir).unwrap().unwrap();
+        assert!(!report.is_closed());
+        assert_eq!(report.edges_total, 0);
+        assert_eq!(
+            report.dangling_references,
+            vec![
+                "adapter -> syn 3.0.0 (no matching resolved version among 2 candidates)".to_owned()
+            ]
+        );
+
+        let _ = fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn an_ambiguous_entry_with_no_disambiguating_version_is_reported_not_guessed() {
+        // Real Cargo.lock output always disambiguates when more than one resolved version of a
+        // name exists, so this exercises the adversarial/malformed-input case: a hand-edited or
+        // corrupted lockfile whose dependency entry carries no version suffix at all.
+        let dir = std::env::temp_dir().join(format!(
+            "atlas-dep-census-test-{}",
+            std::process::id().to_string() + "-7"
+        ));
+        let _ = fs::remove_dir_all(&dir);
+        write(
+            &dir.join("Cargo.lock"),
+            r#"
+[[package]]
+name = "adapter"
+version = "0.1.0"
+dependencies = [
+ "syn",
+]
+
+[[package]]
+name = "syn"
+version = "1.0.0"
+
+[[package]]
+name = "syn"
+version = "2.0.0"
+"#,
+        );
+
+        let report = census_cargo_workspace(&dir).unwrap().unwrap();
+        assert!(!report.is_closed());
+        assert_eq!(report.edges_total, 0);
+        assert_eq!(
+            report.dangling_references,
+            vec![
+                "adapter -> syn (ambiguous: 2 candidates, no disambiguating version in lockfile entry)"
+                    .to_owned()
+            ]
+        );
 
         let _ = fs::remove_dir_all(&dir);
     }

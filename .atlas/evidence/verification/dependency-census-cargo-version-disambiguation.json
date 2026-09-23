@@ -1,0 +1,60 @@
+{
+  "schema": "atlas.self-build.generation-evidence.v1",
+  "wave": "DEPENDENCY-CENSUS (Cargo same-name multi-version disambiguation)",
+  "wave_title": "Closes a correctness gap in the already-OBSERVED BUILD dependency census: a Cargo.lock dependency-array entry disambiguated as `\"name version\"` now resolves to its matching resolved package instead of being reported as an unresolved ambiguity. `.atlas/contracts/DEPENDENCY-CENSUS.md`.",
+  "generation_model": {
+    "G_n": "eddb37d510 (docs(roadmap): correct stale R4.6-R4.12 status in donor-absorption plan) -- stable generation this candidate was built and validated against",
+    "gap_discovered_by": "self-inspection of the dependency-census-cargo-bootstrap generation's own recorded scope: `adapter/src/dependency/cargo.rs`'s `dependency_array_entry` explicitly discarded a lockfile entry's disambiguating version suffix, so any real same-crate-name/multiple-resolved-version situation would be reported as an unresolved ambiguity (a false closure-blocking negative) rather than correctly resolved -- a named, tested-as-absent, not-yet-exercised gap in the prior generation's own evidence record"
+  },
+  "priority_classification": "correctness/architectural integrity (priority 1 of the controller's own ordering) -- this is a latent bug in an already-materialized, already-OBSERVED capability (BUILD dependency census), not a new-capability extension, so it outranks further scope growth of the same feature (dependency closure, priority 6).",
+  "design_decisions": [
+    {
+      "question": "How much of Cargo.lock's disambiguation syntax to parse?",
+      "decision": "Parse `\"name\"` and `\"name version\"`. The further `\"name version (source)\"` form (needed only when the same name AND version resolve from two distinct sources) is left as a named, documented, not-yet-materialized gap -- real Cargo.lock output for a pure-registry/workspace closure like this repository's own never needs it, and guessing at unparsed source-disambiguation input would violate the 'never claim a fact this extractor cannot prove' discipline."
+    },
+    {
+      "question": "What should happen when a disambiguated entry names a version with no matching [[package]] block?",
+      "decision": "Report as a dangling reference with a distinct message ('no matching resolved version among N candidates'), not silently treated as unresolved ambiguity -- this is a different, more specific failure than genuine ambiguity and deserves a distinguishable diagnostic."
+    },
+    {
+      "question": "What should happen for a genuinely ambiguous entry (multiple candidates, no version suffix at all)?",
+      "decision": "Still report as a dangling/ambiguous reference rather than guess. Real Cargo.lock output always disambiguates in this situation, so this path is adversarial/malformed-input coverage (a hand-edited or corrupted lockfile), not a live gap -- kept and tested per the falsification requirement, not deleted for being currently unreachable from real input."
+    }
+  ],
+  "stable_validator_law_compliance": {
+    "claim": "The fix correctly disambiguates a real same-name multi-version Cargo.lock entry, and does not regress this repository's own real (unambiguous) dependency closure.",
+    "self_written_evidence": "New unit tests in adapter/src/dependency/cargo.rs: a positive disambiguation case (resolves to the correct version/checksum among two candidates), a named-version-with-no-match dangling case, and a no-version-suffix-with-multiple-candidates adversarial case.",
+    "independent_evidence_channel": "The existing, already-validated systemize CLI binary was run fresh against this repository's real root after the fix: dependency_closure.edges_total == 28, instances_total == 14, dangling_references == [] -- byte-identical to the pre-fix run, proving the fix introduces no regression against the one real corpus available (which has no live ambiguity to exercise the new code path on).",
+    "no_circular_self_certification": true
+  },
+  "implementation": {
+    "extraction": "adapter/src/dependency/cargo.rs -- LockDependencyRef{name, version} replaces the bare-String dependency list; lock_dependency_ref() parses the optional version suffix; census_cargo_workspace()'s edge-resolution loop matches by version when a lockfile disambiguates and multiple candidates share a name",
+    "no_schema_change": "DependencyClosureReport/DependencyEdge/DependencyIdentity shapes are unchanged; this generation only changes which entries produce an edge vs. a dangling reference"
+  },
+  "adversarial_and_falsification_coverage": [
+    "a_disambiguated_lockfile_entry_resolves_to_the_matching_version_not_an_ambiguity -- the positive case this generation exists to fix",
+    "a_disambiguated_lockfile_entry_naming_a_version_with_no_matching_package_is_a_dangling_reference -- a version-specific dangling reference, distinguishable from generic ambiguity",
+    "an_ambiguous_entry_with_no_disambiguating_version_is_reported_not_guessed -- adversarial/malformed lockfile input still never guesses",
+    "real_self_census_of_this_repositorys_own_workspace_finds_no_dangling_references -- re-run unchanged, confirming no regression against Atlas's own real corpus"
+  ],
+  "validation_this_generation": {
+    "commands": {
+      "cargo fmt --all --check": { "exit_code": 0 },
+      "cargo clippy --workspace --all-targets -- -D warnings": { "exit_code": 0, "warnings": 0 },
+      "cargo test --workspace": {
+        "exit_code": 0,
+        "totals": "379 passed, 0 failed (203 adapter, 123 core, 53 runtime), up from 375"
+      },
+      "cargo run -q -p atlas-cli -- systemize --root . (real self-census cross-check)": {
+        "exit_code": 0,
+        "finding": "dependency_closure.edges_total == 28; instances_total == 14; dangling_references == []; coding_admission.allowed == true -- unchanged from the prior generation, confirming no regression"
+      }
+    }
+  },
+  "recensus_scope_after_promotion": [
+    "no prior CLOSED/EXTINCT conclusion depended on the prior ambiguity-handling behavior, so no prior claim requires reopening",
+    "the `\"name version (source)\"` lockfile form remains a named, not-yet-materialized gap; a future generation exercising a real multi-source same-name-same-version workspace would need it"
+  ],
+  "overall_verdict": "MATERIALIZED AND VERIFIED. Fixes a real correctness gap in the already-OBSERVED BUILD dependency-census capability (priority 1: correctness/architectural integrity) rather than extending its scope. No circular self-certification: validated independently via the pre-existing systemize CLI against this repository's own real files, which show byte-identical output before and after (this repository's own corpus has no live ambiguity), while the new unit tests directly exercise the fixed code path with synthetic ambiguous fixtures.",
+  "historical_evidence_retained": true
+}

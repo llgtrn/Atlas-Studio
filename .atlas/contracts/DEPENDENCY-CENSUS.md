@@ -218,16 +218,22 @@ promoting `BUILD` to `OBSERVED` once a real, dangling-reference-free closure exi
 real self-census test reading this repository's own actual manifest files (not only synthetic
 fixtures), and independently via a full `systemize` CLI run against this repository showing
 `BUILD: OBSERVED`, 28 real edges, 14 real resolved instances, zero dangling references.
+Same-name multi-version disambiguation is also materialized: a `Cargo.lock` dependency-array entry
+disambiguated as `"name version"` resolves to the matching `[[package]]` block by version, a
+disambiguated entry naming a version with no matching block is a real dangling reference (not a
+guess), and a genuinely ambiguous entry with no version suffix at all (adversarial/malformed input
+-- real Cargo.lock output always disambiguates when more than one resolved version exists) is
+still reported rather than guessed.
 
 **Still TARGET, not silently claimed done**: other ecosystems (npm, pip, ...); resolution-context
 modeling (target/profile/feature/optional activation -- this wave accounts every edge as
 unconditionally active, matching every real edge in this workspace today, but does not yet parse
 `[target.'cfg(...)'.dependencies]` or `optional = true`); dynamic/build-script-discovered
 dependencies (`ProcMacro`/`TargetConditional`/`Optional` are declared in `DependencyKind` but never
-emitted); same-name multi-version disambiguation (an ambiguous lockfile match is reported as a
-closure-blocking reference rather than resolved); non-Cargo build metadata (compiler/toolchain
-version, native/FFI links); reconciliation from independent sources (this wave has exactly one
-evidence channel: the lockfile/manifests themselves).
+emitted); the `"name version (source)"` lockfile form, needed only when the same name and version
+resolve from two different sources; non-Cargo build metadata (compiler/toolchain version,
+native/FFI links); reconciliation from independent sources (this wave has exactly one evidence
+channel: the lockfile/manifests themselves).
 
 ## Extinction interaction
 
