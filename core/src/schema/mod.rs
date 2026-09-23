@@ -6,9 +6,13 @@ use crate::{
     census::InventoryReport,
     constraint::CodingAdmission,
     evidence::Evidence,
+    identity::RawObservationId,
     language::adl::AdlCompileReport,
     provenance::Provenance,
-    semantic::{ExtractionDiagnostic, SemanticObligationRecord, SemanticObservation},
+    semantic::{
+        ExtractionDiagnostic, SemanticDimension, SemanticObligationRecord, SemanticObservation,
+        SemanticRecordId,
+    },
     state::RepositorySnapshot,
 };
 use serde::{Deserialize, Serialize};
@@ -336,17 +340,42 @@ pub struct NormalizationReport {
     pub input_typed_closure: TypedClosureAccounting,
     /// This report's own typed-record/obligation counts, captured AFTER normalization.
     pub normalized_typed_closure: TypedClosureAccounting,
+    /// Count of raw observations collapsed by `normalize_typed_records`'s exact raw-identity dedup
+    /// (`.atlas/contracts/NORMALIZATION.md#deduplication`: byte-identical `raw_observation_id`,
+    /// which already entails identical dimension, `record_id`, subject payload, status, extractor
+    /// and evidence -- the narrowest, always-safe case of "exact semantic duplicate"). This is the
+    /// `+ explicitly represented exact-dedup equivalence` term in the contract's closure invariant;
+    /// see `typed_semantics_closed()`.
+    pub exact_duplicates_merged: usize,
+    /// Groups of typed observations that share a `record_id` (the same semantic claim identity)
+    /// but disagree on `subject_repr()` (what the claim actually is). Detection is deliberately
+    /// conservative/over-inclusive: it flags any payload difference, including one that might
+    /// later prove to be mere resolution progress rather than a true disagreement, because a false
+    /// positive here costs reconciliation one extra candidate to inspect while a false negative
+    /// would silently hide a real conflict. Presence in this list is not itself a verdict --
+    /// `.atlas/contracts/NORMALIZATION.md#conflict-handling`: "Normalization may detect a conflict
+    /// candidate but does not resolve it."
+    pub conflict_candidates: Vec<ConflictCandidate>,
     pub facts: Vec<SemanticFact>,
 }
 
+/// See `NormalizationReport::conflict_candidates`.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct ConflictCandidate {
+    pub record_id: SemanticRecordId,
+    pub dimension: SemanticDimension,
+    pub raw_observation_ids: Vec<RawObservationId>,
+}
+
 impl NormalizationReport {
-    /// `true` iff every typed observation/obligation normalization received is still present
-    /// (`input_typed_closure == normalized_typed_closure`, and both match the live `Vec::len()`s),
-    /// and every cross-reference among them still resolves within this report -- independent of
-    /// whatever the compatibility `facts` projection says.
+    /// `true` iff every typed observation/obligation normalization received is still present or
+    /// explicitly accounted as an exact-duplicate collapse (`input_typed_closure ==
+    /// normalized_typed_closure + exact_duplicates_merged`, and the live record vec matches the
+    /// post-dedup count), and every cross-reference among them still resolves within this report
+    /// -- independent of whatever the compatibility `facts` projection says.
     pub fn typed_semantics_closed(&self) -> bool {
         self.input_typed_closure.typed_observations_total
-            == self.normalized_typed_closure.typed_observations_total
+            == self.normalized_typed_closure.typed_observations_total + self.exact_duplicates_merged
             && self.normalized_typed_closure.typed_observations_total
                 == self.typed_semantic_records.len()
             && self.input_typed_closure.typed_obligations_total
@@ -554,6 +583,8 @@ mod tests {
             typed_obligations: census.typed_obligations.clone(),
             input_typed_closure: census.typed_closure,
             normalized_typed_closure: census.typed_closure,
+            exact_duplicates_merged: 0,
+            conflict_candidates: Vec::new(),
             facts: Vec::new(),
         }
     }
