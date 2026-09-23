@@ -170,7 +170,25 @@ fn visit_inventory(
 fn inventory_from_roots(root: PathBuf, roots: Vec<PathBuf>) -> io::Result<InventoryReport> {
     let mut artifacts = BTreeMap::new();
     for path in roots {
-        if path.is_dir() {
+        // `path.is_dir()`/`path.is_file()` below both follow symlinks. `visit_inventory`'s own
+        // recursive walk correctly never follows a symlinked subdirectory it encounters (its
+        // `DirEntry::file_type()` does not follow links), but a ROOT passed into this function
+        // (each manifest-declared root, for `inventory_declared_source`) never went through that
+        // same check -- a declared root that is itself, on disk, a symlink pointing outside the
+        // repository (e.g. `source_roots = ["vendor"]` where `vendor` is a symlink) would be
+        // silently followed and fully walked, reading real file content from outside the intended
+        // boundary. `declared_root_is_contained`'s lexical string check cannot catch this: the
+        // string "vendor" is perfectly ordinary and contained; only the filesystem knows it is a
+        // symlink. `fs::symlink_metadata` (unlike `Path::is_dir`/`is_file`) never follows the
+        // final component, so this check is safe to perform before deciding how to treat `path`.
+        let is_symlink = fs::symlink_metadata(&path)
+            .map(|meta| meta.file_type().is_symlink())
+            .unwrap_or(false);
+        if is_symlink {
+            let record =
+                classify_non_file(&root, &path, ArtifactKind::Symlink, "symlink-not-followed")?;
+            artifacts.insert(record.path.clone(), record);
+        } else if path.is_dir() {
             visit_inventory(&root, &path, &mut artifacts)?;
         } else if path.is_file() {
             let record = classify_file(&root, &path)?;
@@ -452,5 +470,44 @@ mod tests {
         assert!(report.is_closed());
 
         fs::remove_dir_all(root).unwrap();
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn a_declared_root_that_is_itself_a_symlink_escaping_the_repository_is_never_followed() {
+        // `declared_root_is_contained` is a purely lexical check on the manifest's own string --
+        // it cannot see that a perfectly ordinary-looking name like "vendor" is, ON DISK, a
+        // symlink to somewhere outside the repository. `inventory_from_roots` previously decided
+        // whether to walk a declared root via `path.is_dir()`/`path.is_file()`, both of which
+        // follow symlinks -- so a declared root that was itself a symlink pointing outside the
+        // repository would be silently walked, reading real file content from outside the
+        // intended boundary, with no defense at all (distinct from the `..`/absolute-path string
+        // escape fixed separately).
+        let root = scratch_root();
+        fs::create_dir_all(&root).unwrap();
+        let outside = root.parent().unwrap().join(format!(
+            "atlas-inventory-symlink-outside-{}",
+            root.file_name().unwrap().to_string_lossy()
+        ));
+        fs::create_dir_all(&outside).unwrap();
+        fs::write(outside.join("secret.rs"), "fn leaked() {}\n").unwrap();
+        std::os::unix::fs::symlink(&outside, root.join("vendor")).unwrap();
+
+        let manifest = manifest_with_declared_roots(vec!["vendor"]);
+        let report = inventory_declared_source(&root, &manifest).unwrap();
+
+        assert!(
+            report
+                .artifacts
+                .iter()
+                .all(|artifact| !artifact.path.contains("secret.rs")),
+            "a declared root that is itself a symlink escaping the repository must never be \
+             walked: {:?}",
+            report.artifacts
+        );
+        assert!(report.is_closed());
+
+        fs::remove_dir_all(&root).unwrap();
+        fs::remove_dir_all(&outside).unwrap();
     }
 }

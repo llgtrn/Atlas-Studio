@@ -1,0 +1,57 @@
+{
+  "schema": "atlas.self-build.generation-evidence.v1",
+  "wave": "TRUST BOUNDARY -- a declared root that is itself a symlink can escape the repository boundary",
+  "wave_title": "adapter::source::inventory_from_roots decided whether to walk each root (both the single inventory_source root and each inventory_declared_source manifest-declared root) via Path::is_dir()/Path::is_file(), both of which follow symlinks. A declared root that is itself, on disk, a symlink to outside the repository (e.g. source_roots = [\"vendor\"] where vendor -> /etc) was silently followed and fully walked, reading real file content from outside the intended boundary -- a second, distinct escape vector from the `..`/absolute-path string escape fixed two generations ago, which declared_root_is_contained's lexical check cannot see at all (the string \"vendor\" is perfectly ordinary; only the filesystem knows it is a symlink).",
+  "generation_model": {
+    "G_n": "478707ebe7 (docs(evidence): investigate normalization/census/extractor sweep, defer one finding) -- stable generation this candidate was built and validated against",
+    "gap_discovered_by": "Direct adversarial self-testing of this session's own prior security fix, per the standing loop's own instruction to generate scenarios that specifically exploit a capability once a generation gains it. Having fixed the string-level `..`/absolute-path escape (66b796d7de) and the allowed_paths defense-in-depth follow-on (aba88aa752), asked: what OTHER way could a declared root escape the repository that a purely lexical string check cannot see? Symlinks were the obvious next angle -- confirmed by tracing `inventory_from_roots`'s use of `Path::is_dir()`/`is_file()` (which follow symlinks) versus `visit_inventory`'s own nested-walk use of `DirEntry::file_type()` (which correctly does not). Proved the vulnerability was real BEFORE fixing it: wrote the regression test first (`a_declared_root_that_is_itself_a_symlink_escaping_the_repository_is_never_followed`), ran it against the unfixed code, and confirmed it failed with a real leaked artifact (`vendor/secret.rs`, real file content, from a real sibling directory outside the declared root) -- falsification-first, not merely inferred from reading the code."
+  },
+  "priority_classification": "security/trust boundary (priority 2) -- the same class and severity as the `..`/absolute-path escape fixed earlier this session, reachable through the exact same untrusted input surface (`.atlas/repo.toml` manifest arrays, not necessarily pre-admitted trusted config per `EXTERNAL-PROVIDER-TRUST.md`'s own candidate-reconciliation and donor-corpus-sweep scenarios).",
+  "design_decisions": [
+    {
+      "question": "Fix by extending `declared_root_is_contained` (the lexical string check), or at the filesystem-access point?",
+      "decision": "At the filesystem-access point (`inventory_from_roots`), not the lexical check. `declared_root_is_contained` operates on the manifest string alone, before any filesystem access -- it fundamentally cannot know whether a given name resolves to a symlink on disk, and trying to make it aware of the filesystem would blur the layering this session has otherwise kept clean (a pure, testable-without-a-filesystem lexical predicate vs. the actual filesystem-walk sink). The correct fix is exactly the same shape as `visit_inventory`'s own existing, already-correct symlink handling: check `fs::symlink_metadata` (never follows the final component) before deciding how to treat a path, and this needed to happen at `inventory_from_roots`'s own top-level loop, the one place that was inconsistent with the rest of the walker."
+    },
+    {
+      "question": "Does this affect `inventory_source`'s own single root (the plain, non-manifest fallback)?",
+      "decision": "No functional change for the normal case: `inventory_source` calls `root.as_ref().canonicalize()?` before ever reaching `inventory_from_roots`, and `canonicalize()` fully resolves symlinks -- the canonicalized `root` passed in can never itself be a symlink by the time this new check runs. The new check is a no-op for that path and only changes behavior for `inventory_declared_source`'s manifest-declared roots, which are joined (`root.join(path)`) without canonicalizing each individual declared root."
+    }
+  ],
+  "stable_validator_law_compliance": {
+    "claim": "A declared root that is itself a symlink to outside the repository is never walked, recorded instead as an IgnoredByExplicitPolicy-equivalent Symlink artifact (matching the existing nested-symlink handling); an ordinary declared root (file, directory, or nonexistent) is walked exactly as before, with zero behavioral change.",
+    "self_written_evidence": "New test `a_declared_root_that_is_itself_a_symlink_escaping_the_repository_is_never_followed`: creates a real symlink on disk pointing to a real sibling directory containing a real file, declares it as a source root, and asserts the resulting inventory contains zero artifacts referencing that file. Written and run against the UNFIXED code first, confirmed to fail with the real leaked artifact path (`vendor/secret.rs`), then confirmed to pass after the fix -- proof the test exercises the real vulnerability, not a hypothetical one. All 3 pre-existing declared-root tests (escaping-via-dotdot, absolute-path, ordinary-root) re-run unchanged.",
+    "independent_evidence_channel": "Re-ran `atlas-cli systemize --root .` against this repository's own real `.atlas/repo.toml`: `coding_admission` unchanged (still only the pre-existing `ADL_CONSTRAINT_VIOLATED`/WebUI gap), `inventory` still closed -- this repository's own real manifest declares no symlinked roots, so the fix produces zero regression on its own real state.",
+    "no_circular_self_certification": true
+  },
+  "implementation": {
+    "sink_enforcement": "adapter/src/source/mod.rs -- inventory_from_roots now checks fs::symlink_metadata(&path) before Path::is_dir()/is_file(); a symlinked root is recorded via the existing classify_non_file(..., ArtifactKind::Symlink, \"symlink-not-followed\") path instead of being walked"
+  },
+  "adversarial_and_falsification_coverage": [
+    "a_declared_root_that_is_itself_a_symlink_escaping_the_repository_is_never_followed -- real filesystem exploit: a real symlink to a real external directory with a real file, proven to leak before the fix (test run against unfixed code first) and proven closed after",
+    "the three pre-existing declared-root tests (dotdot escape, absolute path, ordinary root) re-run unchanged -- confirms no regression to the string-level defenses or normal walking behavior",
+    "real self-census of this repository's own real manifest -- zero regression, no symlinked roots present"
+  ],
+  "validation_this_generation": {
+    "commands": {
+      "cargo fmt --all --check": { "exit_code": 0 },
+      "cargo clippy --workspace --all-targets -- -D warnings": { "exit_code": 0, "warnings": 0 },
+      "cargo test --workspace": {
+        "exit_code": 0,
+        "totals": "235 adapter (+1), 149 core, 61 runtime -- 445 total, 0 failed, up from 444"
+      },
+      "regression-first falsification": {
+        "before_fix": "new test FAILED: artifact `vendor/secret.rs` present with real leaked content (bytes: 15, disposition: Parsed)",
+        "after_fix": "new test passes: zero artifacts reference the outside file; the symlinked root is recorded as a Symlink/symlink-not-followed artifact instead"
+      },
+      "cargo run -q -p atlas-cli -- systemize --root .": { "exit_code": 0, "finding": "coding_admission unchanged, zero regression" },
+      "cargo run -q -p atlas-cli -- docs audit --root .atlas": { "exit_code": 0 }
+    }
+  },
+  "recensus_scope_after_promotion": [
+    "no prior CLOSED/EXTINCT conclusion depended on symlinked declared roots being followed, so no external conclusion requires reopening",
+    "this generation's own methodology (falsification-first: write the exploit test against unfixed code, confirm it fails for the real claimed reason, then fix and confirm it passes) is the concrete instance of the standing loop's own 'generate scenarios that specifically exploit a newly-hardened capability' requirement -- applied here to this session's own two most recent security fixes, not merely to inherited code",
+    "the same symlink-following distinction (Path::is_dir()/is_file() vs DirEntry::file_type()) is worth checking if any future code adds a new top-level filesystem-root-accepting entry point outside adapter::source"
+  ],
+  "overall_verdict": "MATERIALIZED AND VERIFIED. Closes a second, distinct path-escape vector found by directly adversarially testing this session's own prior security fix: a manifest-declared root that is itself a symlink to outside the repository is now refused the same way nested symlinks already were, rather than being silently followed and fully walked. Proven real via falsification-first testing (the exploit test failed against unfixed code with real leaked content before it was fixed).",
+  "historical_evidence_retained": true
+}
