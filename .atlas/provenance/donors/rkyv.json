@@ -1,0 +1,34 @@
+{
+  "schema": "atlas.donor-provenance.v1",
+  "id": "rkyv",
+  "name": "rkyv",
+  "remote": "https://github.com/rkyv/rkyv.git",
+  "repository": "rkyv/rkyv",
+  "commit_sha": "4845668ae9730a3987966769f6872d86b822dc41",
+  "default_branch": "master",
+  "retrieved_at": "2026-09-22T15:53:06Z",
+  "clone_path": ".atlas/temporary/donors/rkyv",
+  "staging_mode": "FULL_SOURCE_TREE",
+  "clone_method": "git clone --depth 1 (shallow, .git removed post-clone; commit_sha recorded via git rev-parse HEAD before removal)",
+  "license_files": [
+    ".atlas/licenses/donors/rkyv/LICENSE"
+  ],
+  "license_identifier": "MIT",
+  "license_evidence": "LICENSE file at repo root, verified by direct read: 'Copyright 2021 David Koloski' followed by standard MIT permission/warranty text. Workspace Cargo.toml also declares license = \"MIT\" for all crates.",
+  "ingestion_status": "CLONED",
+  "census_status": "DEEP_CENSUSED",
+  "decision_status": "STUDY_FOR_BINARY_FORMAT_LANE_CONDITIONAL_CACHE_DEPENDENCY",
+  "runtime_dependency_status": "STUDY_ONLY_FOR_PORTABLE_FORMAT / POSSIBLE_FUTURE_CARGO_DEPENDENCY_FOR_INTERNAL_CACHING_ONLY",
+  "technology_lanes": [
+    "binary_encoding",
+    "zero_copy_archive",
+    "rust_native_serialization",
+    "bytes_validation"
+  ],
+  "target_owners": [
+    "core/atlas-format",
+    "runtime/binary",
+    "runtime/cache"
+  ],
+  "framing_note": "Donated as a Rust-native zero-copy archive-format reference. rkyv's own docs (book_src/feature-comparison.md, read verbatim in this census) state 'Schema evolution: no' and 'Cross-language: no' for itself, versus 'yes'/'yes' for Cap'n Proto and FlatBuffers -- this is rkyv's own claim, confirmed by reading its source, not an assumption carried in from the census brief. Recommended for Atlas's ephemeral/internal cache artifacts (e.g. local systemize-output cache) where producer and consumer share one build, NOT for the long-lived, cross-version-compatible .atlas/.atlasx portable artifact."
+}

@@ -892,3 +892,157 @@ decision_status = "PENDING"
 native_replacement = "reference architecture only -- not a bounded path to real Atlas CALL resolution, see lane synthesis"
 runtime_dependency_status = "REFERENCE_ONLY"
 evidence = [".atlas/provenance/donors/clef.json", ".atlas/census/donors/clef.md", ".atlas/census/donors/semantic-graph-language-lane-2026-09-22.md"]
+
+[[donor]]
+id = "mlir"
+name = "MLIR (llvm-project subtree)"
+repository = "llvm/llvm-project"
+resolved_url = "https://github.com/llvm/llvm-project.git"
+commit_sha = "4790b21292d10b2cab1037ebef100e7f595e4209"
+default_branch = "main"
+retrieved_at = "2026-09-22T15:50:00Z"
+license = "Apache-2.0 WITH LLVM-exception"
+technology_domains = ["ir_design", "dialect_definition", "bytecode_serialization", "pattern_rewriting", "compiler_pass_infrastructure", "verifier_infrastructure"]
+ingestion_status = "CLONED"
+census_status = "DEEP_CENSUS_ACTIVE"
+decision_status = "PENDING_COORDINATOR_REVIEW"
+native_replacement = "architecture study only -- not adopted as a runtime dependency; see census disposition table"
+runtime_dependency_status = "REFERENCE_ONLY"
+evidence = [".atlas/provenance/donors/mlir.json", ".atlas/census/donors/mlir.md"]
+
+[[donor]]
+id = "xdsl"
+name = "xDSL"
+repository = "xdslproject/xdsl"
+resolved_url = "https://github.com/xdslproject/xdsl.git"
+commit_sha = "00703508e37a2b4ef06687b3bbbe4cd78c41c740"
+default_branch = "main"
+retrieved_at = "2026-09-22T15:50:00Z"
+license = "Apache-2.0 WITH LLVM-exception"
+technology_domains = ["ir_design", "dialect_definition", "pattern_rewriting", "declarative_operation_definition", "parser_printer_design"]
+ingestion_status = "CLONED"
+census_status = "DEEP_CENSUS_ACTIVE"
+decision_status = "PENDING_COORDINATOR_REVIEW"
+native_replacement = "architecture study only -- not adopted as a runtime dependency; see census disposition table"
+runtime_dependency_status = "REFERENCE_ONLY"
+evidence = [".atlas/provenance/donors/xdsl.json", ".atlas/census/donors/xdsl.md"]
+
+[[donor]]
+id = "egglog"
+name = "egglog"
+repository = "egraphs-good/egglog"
+resolved_url = "https://github.com/egraphs-good/egglog.git"
+commit_sha = "90635860397ce710f8c0a4eeb04154a8ebc3ac05"
+default_branch = "main"
+retrieved_at = "2026-09-22T15:51:00Z"
+license = "MIT"
+technology_domains = ["equality_saturation", "e_graph_equivalence_classes", "datalog_relational_query", "cost_based_extraction", "union_find", "worst_case_optimal_join"]
+ingestion_status = "CLONED"
+census_status = "CENSUSED"
+decision_status = "PENDING"
+native_replacement = "architecture study only -- not adopted as a runtime dependency; see census disposition table"
+runtime_dependency_status = "NOT_ADOPTED_AS_RUNTIME_DEPENDENCY"
+evidence = [".atlas/provenance/donors/egglog.json", ".atlas/census/donors/egglog.md"]
+
+[[donor]]
+id = "wasm-component-model"
+name = "WebAssembly Component Model"
+repository = "WebAssembly/component-model"
+resolved_url = "https://github.com/WebAssembly/component-model.git"
+commit_sha = "5b724da8c634c4f2b2d2b3f6a4e9e13b4eb01596"
+default_branch = "main"
+retrieved_at = "2026-09-22T15:51:30Z"
+license = "Apache-2.0"
+technology_domains = ["interface_definition_language", "component_boundary", "canonical_abi", "type_constructors", "world_and_interface_composition"]
+ingestion_status = "CLONED"
+census_status = "CENSUSED"
+decision_status = "PENDING"
+native_replacement = "architecture study only -- not adopted as a runtime dependency; see census disposition table"
+runtime_dependency_status = "NOT_ADOPTED_AS_RUNTIME_DEPENDENCY"
+evidence = [".atlas/provenance/donors/wasm-component-model.json", ".atlas/census/donors/wasm-component-model.md"]
+
+[[donor]]
+id = "wasm-spec"
+name = "WebAssembly spec"
+repository = "WebAssembly/spec"
+resolved_url = "https://github.com/WebAssembly/spec.git"
+commit_sha = "ba9fd9f5c23e569201265d5bda6fb8dde18ad8c0"
+default_branch = "main"
+retrieved_at = "2026-09-22T15:51:45Z"
+license = "MULTIPLE (per top-level directory, declared in root LICENSE)"
+technology_domains = ["instruction_validation_algorithm", "stack_machine_type_checking", "sectioned_binary_format", "semantic_binary_separation"]
+ingestion_status = "CLONED"
+census_status = "CENSUSED"
+decision_status = "PENDING"
+native_replacement = "architecture study only -- not adopted as a runtime dependency; see census disposition table"
+runtime_dependency_status = "NOT_ADOPTED_AS_RUNTIME_DEPENDENCY"
+evidence = [".atlas/provenance/donors/wasm-spec.json", ".atlas/census/donors/wasm-spec.md"]
+
+[[donor]]
+id = "capnproto"
+name = "Cap'n Proto"
+repository = "capnproto/capnproto"
+resolved_url = "https://github.com/capnproto/capnproto.git"
+commit_sha = "7fff7b6482a19bdedb18884d13f66a1a4f5e5650"
+default_branch = "master"
+retrieved_at = "2026-09-22T15:53:06Z"
+license = "MIT"
+technology_domains = ["binary_encoding", "canonical_serialization", "zero_copy_wire_format", "schema_evolution"]
+ingestion_status = "CLONED"
+census_status = "DEEP_CENSUSED"
+decision_status = "STUDY_FOR_BINARY_FORMAT_LANE"
+native_replacement = "architecture study only -- not adopted as a runtime dependency; see census disposition table"
+runtime_dependency_status = "STUDY_ONLY_NOT_A_DEPENDENCY"
+evidence = [".atlas/provenance/donors/capnproto.json", ".atlas/census/donors/capnproto.md"]
+
+[[donor]]
+id = "flatbuffers"
+name = "FlatBuffers"
+repository = "google/flatbuffers"
+resolved_url = "https://github.com/google/flatbuffers.git"
+commit_sha = "b8431fbcd7a5c71817f314e18b332c0648554efa"
+git_tree_sha = "0b3c731daf52a90658ab86e4912075ea4b7da735"
+default_branch = "master"
+retrieved_at = "2026-09-21T03:00:34.9575636Z"
+license = "UNVERIFIED"
+technology_domains = ["schema", "serialization", "zero_copy_binary_format", "rust_native_reader_writer"]
+ingestion_status = "CLONED"
+census_status = "DEEP_CENSUSED"
+decision_status = "APPROVED_COMPILER_BINARY_LANE"
+native_replacement = "architecture study only -- not adopted as a runtime dependency; see census disposition table"
+runtime_dependency_status = "REFERENCE_ONLY"
+evidence = [".atlas/provenance/donors/flatbuffers.json", ".atlas/census/donors/flatbuffers.md"]
+
+[[donor]]
+id = "rkyv"
+name = "rkyv"
+repository = "rkyv/rkyv"
+resolved_url = "https://github.com/rkyv/rkyv.git"
+commit_sha = "4845668ae9730a3987966769f6872d86b822dc41"
+default_branch = "master"
+retrieved_at = "2026-09-22T15:53:06Z"
+license = "MIT"
+technology_domains = ["binary_encoding", "zero_copy_archive", "rust_native_serialization", "bytes_validation"]
+ingestion_status = "CLONED"
+census_status = "DEEP_CENSUSED"
+decision_status = "STUDY_FOR_BINARY_FORMAT_LANE_CONDITIONAL_CACHE_DEPENDENCY"
+native_replacement = "architecture study only -- not adopted as a runtime dependency; see census disposition table"
+runtime_dependency_status = "STUDY_ONLY_FOR_PORTABLE_FORMAT / POSSIBLE_FUTURE_CARGO_DEPENDENCY_FOR_INTERNAL_CACHING_ONLY"
+evidence = [".atlas/provenance/donors/rkyv.json", ".atlas/census/donors/rkyv.md"]
+
+[[donor]]
+id = "agentir"
+name = "AgentIR"
+repository = "WhitzardAgent/agentir"
+resolved_url = "https://github.com/WhitzardAgent/agentir.git"
+commit_sha = "68d991160ad579d2b4514da01684249a2a0bf629"
+default_branch = "main"
+retrieved_at = "2026-09-22T15:53:06Z"
+license = "Apache-2.0"
+technology_domains = ["construction_pipeline_process", "trace_ir_process_pattern"]
+ingestion_status = "CLONED"
+census_status = "DEEP_CENSUSED"
+decision_status = "STUDY_FOR_PIPELINE_STAGING_DISCIPLINE"
+native_replacement = "architecture study only -- not adopted as a runtime dependency; see census disposition table"
+runtime_dependency_status = "STUDY_ONLY_NOT_A_DEPENDENCY"
+evidence = [".atlas/provenance/donors/agentir.json", ".atlas/census/donors/agentir.md"]

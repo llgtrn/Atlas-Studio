@@ -1,0 +1,32 @@
+{
+  "schema": "atlas.donor-provenance.v1",
+  "id": "agentir",
+  "name": "AgentIR",
+  "remote": "https://github.com/WhitzardAgent/agentir.git",
+  "repository": "WhitzardAgent/agentir",
+  "commit_sha": "68d991160ad579d2b4514da01684249a2a0bf629",
+  "default_branch": "main",
+  "retrieved_at": "2026-09-22T15:53:06Z",
+  "clone_path": ".atlas/temporary/donors/agentir",
+  "staging_mode": "FULL_SOURCE_TREE",
+  "clone_method": "git clone --depth 1 (shallow, .git removed post-clone; commit_sha recorded via git rev-parse HEAD before removal). Existence confirmed first via `git ls-remote https://github.com/WhitzardAgent/agentir.git` -- resolved cleanly to this same SHA on refs/heads/main and HEAD, so the clone proceeded normally.",
+  "license_files": [
+    ".atlas/licenses/donors/agentir/LICENSE"
+  ],
+  "license_identifier": "Apache-2.0",
+  "license_evidence": "LICENSE file at repo root, verified by direct read: standard Apache License, Version 2.0 full text. README badge also states 'license-Apache--2.0'.",
+  "ingestion_status": "CLONED",
+  "census_status": "DEEP_CENSUSED",
+  "decision_status": "STUDY_FOR_PIPELINE_STAGING_DISCIPLINE",
+  "runtime_dependency_status": "STUDY_ONLY_NOT_A_DEPENDENCY",
+  "technology_lanes": [
+    "construction_pipeline_process",
+    "trace_ir_process_pattern"
+  ],
+  "target_owners": [
+    "core/pipeline",
+    "docs/process"
+  ],
+  "provenance_note": "README badges/links (e.g. 'github.com/ravenSanstete/agentir') point at what appears to be an earlier/personal fork or pre-org-transfer repo name; the clone actually performed and pinned here is from the canonical org path given in the task, WhitzardAgent/agentir, verified reachable and resolvable via git ls-remote before cloning. MANIFEST.md in the tree describes itself as a 'documentation overlay' that 'intentionally does not include src/ or tests/' -- this is stale/aspirational text left over from a docs-only companion package; this actual clone DOES contain a full src/agentir/ implementation (dialects, dsl, frontends, ir, passes) and a tests/ directory, confirmed by direct directory listing.",
+  "framing_note": "Donated as a process/pipeline-staging reference (parse -> canonicalize -> verify -> transform -> lower) and an interoperability-envelope example, NOT as a semantic-model donor. AgentIR represents agent execution trajectories (a record of what an agent did); Atlas's ASIR represents a program's static semantic structure -- a different concern. Only the pipeline-staging discipline and pass-manager/diagnostics conventions are judged relevant; the trace/event data model itself is judged not transferable."
+}

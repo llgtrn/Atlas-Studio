@@ -1,0 +1,9 @@
+[book]
+authors = ["David Koloski"]
+language = "en"
+src = "book_src"
+title = "rkyv"
+
+[output.html]
+cname = "rkyv.org"
+edit-url-template = "https://github.com/rkyv/rkyv/edit/master/{path}"

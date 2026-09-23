@@ -1,0 +1,144 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:atlas:schema:atlas-construction-operation:v1",
+  "title": "Atlas Construction Operation v1",
+  "description": "Typed decode target for one ACP (Atlas Construction Protocol) wire operation, per .atlas/contracts/ASIR-CONSTRUCTION-MODEL.md. A provider's JSON/tool-call payload MUST decode into this shape before any downstream validation stage inspects it; provider-transport-specific framing MUST NOT survive past this decode. This is a proposal envelope, never canonical state by itself -- admission into canonical ASIR is governed by EXTERNAL-PROVIDER-TRUST.md's authority model.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "op_id",
+    "dialect",
+    "opcode",
+    "operands",
+    "results",
+    "effects",
+    "required_capabilities",
+    "evidence_refs",
+    "provider_receipt_ref",
+    "status"
+  ],
+  "properties": {
+    "schema": {
+      "const": "atlas.construction-operation.v1"
+    },
+    "op_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Stable identity of this proposed operation within its owning transaction. Not a canonical SemanticRecordId -- that identity is assigned only on admission."
+    },
+    "dialect": {
+      "type": "string",
+      "pattern": "^atlas\\.[a-z0-9_]+$",
+      "description": "Dialect namespace, e.g. 'atlas.cf', 'atlas.state', 'atlas.effect'. See ASIR-CONSTRUCTION-MODEL.md's reserved namespace list."
+    },
+    "opcode": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^[a-z][a-z0-9_.]*$",
+      "description": "Opcode within the dialect, e.g. 'cond_branch', 'read', 'require'. The full dialect-qualified name is '<dialect>.<opcode>'."
+    },
+    "operands": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["kind", "ref"],
+        "properties": {
+          "kind": {
+            "enum": ["value_ref", "block_ref", "symbol_ref", "type_ref", "literal"]
+          },
+          "ref": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "results": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "type_ref"],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "type_ref": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "regions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["blocks"],
+        "properties": {
+          "blocks": {
+            "type": "array",
+            "items": { "type": "string", "minLength": 1 }
+          }
+        }
+      }
+    },
+    "successors": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["kind"],
+        "properties": {
+          "kind": { "type": "string", "minLength": 1 },
+          "target_block_ref": { "type": ["string", "null"] }
+        }
+      }
+    },
+    "attributes": {
+      "type": "object",
+      "description": "Typed, schema-validated key/value data. Never a channel for unvalidated free-form content to bypass this schema's own required fields."
+    },
+    "effects": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "description": "Every effect this operation may produce, dialect-qualified (e.g. 'atlas.effect.panic'). Every effectful operation MUST declare its effects here -- never discovered only by executing it."
+    },
+    "required_capabilities": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "description": "Explicit capability/authority references this operation requires. Every privileged effect MUST bind to an explicit entry here, never an implicit ambient permission."
+    },
+    "preconditions": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "postconditions": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "invariants": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "obligation_refs": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "evidence_refs": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "description": "Must resolve to real evidence (e.g. a ProviderReceipt or extraction evidence record). An operation with no evidence chain is not admissible."
+    },
+    "provider_receipt_ref": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Which ProviderReceipt produced this proposed operation. Required -- an operation with no attributable provider invocation cannot be admitted."
+    },
+    "status": {
+      "enum": ["PROPOSED", "SCHEMA_VALID", "TYPE_VALID", "SEMANTIC_VALID", "SECURITY_VALID", "OBLIGATION_VALID", "ADMITTED", "REJECTED", "SUPERSEDED"],
+      "description": "Mirrors the admission pipeline stages in ASIR-CONSTRUCTION-MODEL.md. Only ADMITTED operations may contribute to canonical ASIR state."
+    },
+    "rejection_reason": {
+      "type": ["string", "null"]
+    }
+  }
+}

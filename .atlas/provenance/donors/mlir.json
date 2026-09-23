@@ -1,0 +1,42 @@
+{
+  "schema": "atlas.donor-provenance.v1",
+  "id": "mlir",
+  "name": "MLIR",
+  "remote": "https://github.com/llvm/llvm-project.git",
+  "repository": "llvm/llvm-project",
+  "commit_sha": "4790b21292d10b2cab1037ebef100e7f595e4209",
+  "default_branch": "main",
+  "retrieved_at": "2026-09-22T15:50:00Z",
+  "clone_path": ".atlas/temporary/donors/mlir",
+  "staging_mode": "PARTIAL_SPARSE_SUBTREE_MLIR_ONLY",
+  "staging_note": "Lane-scoped subtree stage, NOT a full llvm-project monorepo stage. Cloned via `git clone --filter=blob:none --sparse --depth 1` followed by `git sparse-checkout set mlir`, restricting the working tree to the `mlir/` subdirectory of the llvm-project monorepo at the pinned commit. After capturing the pinned commit SHA, the outer llvm-project top-level files/dirs (clang, lldb, etc.) were discarded and the inner `mlir/` subtree was flattened up one level, so this donor's root (`.atlas/temporary/donors/mlir/`) IS the `mlir/` subtree root directly (CMakeLists.txt, LICENSE.TXT, include/, lib/, test/, tools/, python/, ...), matching this repo's flat donor-staging convention (donor root = staged source root, no extra repo-name nesting). This donor is distinct from, and does not modify or duplicate, the pre-existing `llvm-project` donor (`.atlas/temporary/donors/llvm-project/`, full monorepo, pinned separately at commit 0bd330675f9eb08126e467505a0800f167084473) already staged for the compiler_backend/ir/optimizer/codegen lane. The `mlir` donor exists specifically for the ASIR (Atlas Semantic IR) design-education lane: dialect-definition mechanism, IR object model, bytecode, IRDL, pattern rewriting.",
+  "nested_git_removed": true,
+  "pin_policy": "This exact commit SHA is the durable pin. The clone was a floating shallow clone of llvm-project's HEAD at clone time (depth 1, blob:none partial filter); the SHA recorded here, not any branch name, is the identity that must be used to re-derive or re-verify this donor's content.",
+  "license": "Apache-2.0 WITH LLVM-exception",
+  "license_evidence": "Verified by reading .atlas/temporary/donors/mlir/LICENSE.TXT directly (the mlir/ subtree's own copy of the LLVM Project license file, byte-identical in content/header to the top-level llvm-project LICENSE.TXT): header text reads 'The LLVM Project is under the Apache License v2.0 with LLVM Exceptions', SPDX identifier confirmed from source file headers throughout the tree as 'Apache-2.0 WITH LLVM-exception'.",
+  "license_files": [
+    ".atlas/temporary/donors/mlir/LICENSE.TXT"
+  ],
+  "source_file_count": 7774,
+  "observed_source_bytes": 78542366,
+  "ingestion_status": "CLONED",
+  "census_status": "DEEP_CENSUS_ACTIVE",
+  "decision_status": "PENDING_COORDINATOR_REVIEW",
+  "runtime_dependency_status": "REFERENCE_ONLY",
+  "purpose": "DONOR_GAP=ATLAS_NATIVE_SEMANTIC_IR_DIALECT_MECHANISM",
+  "technology_lanes": [
+    "ir_design",
+    "dialect_definition",
+    "bytecode_serialization",
+    "pattern_rewriting",
+    "compiler_pass_infrastructure",
+    "verifier_infrastructure"
+  ],
+  "target_owners": [
+    "core/asir",
+    "core/asir/dialect",
+    "core/asir/bytecode",
+    "compiler"
+  ],
+  "not_a_runtime_dependency": "Atlas does not and will not depend on MLIR/LLVM as a runtime or build dependency for ASIR. This stage exists purely for architecture-education census; any adoption is a clean-room Rust reimplementation of studied ideas, never copied C++ source."
+}

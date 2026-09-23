@@ -953,6 +953,26 @@ expand donor roots through admitted dependency closure
 
 R8 is not the end of census. It is the point where census-derived knowledge has a durable native carrier suitable for large-scale source-independent continuation.
 
+## Construction protocol roadmap (added alongside R4.8; does not renumber any existing wave)
+
+`.atlas/contracts/ASIR-CONSTRUCTION-MODEL.md` locks the architecture for the layer between ADL authoring and sealed `.atlas` construction: ACP (the provider wire protocol) and ASIR (construction-time typed semantic state, the same vocabulary `COMPILER-IR-SCHEMAS.md`'s HIR already locks post-seal). None of the items below are implemented yet; they are locked architecture awaiting production code, sequenced to land once R4's extraction-path dimensions are far enough along that construction-time (provider-proposed, not only extracted) semantics become load-bearing:
+
+- **donor census, recursive dependency closure** — semantic-representation donor lane (MLIR/IRDL, xDSL, egglog, WASM Component Model, Cap'n Proto, AgentIR, FlatBuffers, rkyv, WASM spec; `.atlas/census/donors/`), each with real recursive dependency-closure accounting, not top-level-repository-only census.
+- **ACP transport + typed construction-operation decode** — `atlas-construction-operation.schema.json` exists; the Rust decode/validation path from a provider's wire payload into that typed shape does not yet exist.
+- **ASIR in-memory construction state** — a mutable, pre-seal typed graph distinct from today's per-dimension `SemanticObservation` records (which represent *extracted*, not *constructed*, semantics); does not exist yet.
+- **dialect registry** — a real, queryable registry of the `atlas.*` namespaces `ASIR-CONSTRUCTION-MODEL.md` reserves, with the dialect-qualified-name-to-HIR-node-kind mapping table encoded as data, not only prose.
+- **construction-operation verifier** — schema/type/semantic/security/obligation validation stages per `ASIR-CONSTRUCTION-MODEL.md`'s admission pipeline.
+- **typed effect/capability binding at construction time** — today's R4.8 EFFECT/STATE dimensions are extracted from existing source; construction-time proposals need the same typed effect/capability discipline enforced *before* admission, not only observed after the fact.
+- **obligation attachment at construction time** — extending `SemanticObligationRecord` lineage to construction-proposed operations, not only extraction obligations.
+- **evidence/provenance attachment at construction time** — wiring `ProviderReceipt`/evidence lineage through `AtlasConstructionOperation.evidence_refs`/`provider_receipt_ref` end to end.
+- **semantic transactions** — the `CandidateChangeSet.semantic_changes[].construction_ops_refs` field exists (additive schema patch); the code path that batches/applies a transaction with `expect` clauses against a declared ASIR base does not.
+- **Jev typed decision integration** — `DecisionProposal` already exists and already fits; what's missing is the actual construction-time caller that populates it from real alternative `AtlasConstructionOperation`/`CandidateChangeSet` candidates, plus (TARGET, evidence-gated) an egglog-informed equivalence-class/cost-extraction mechanism for enumerating alternatives, per `.atlas/census/donors/egglog.md`.
+- **canonical textual debug printer** — `atlas inspect`/`atlas disasm`/`atlas explain`-style human-readable projections of sealed semantic state, explicitly never a canonical source-of-truth format.
+- **canonical binary encoding + versioning** — already governed by `ATLASX-BINARY-WIRE-FORMAT.md`/`ATLAS-BINARY-WIRE-FORMAT.md`; ASIR-to-binary is a new producer of that same target format, not a new format.
+- **deterministic canonicalization at the construction layer** — extending `ATLAS-SEMANTIC-COMPACTION.md`'s existing determinism target so construction-time nondeterminism (transaction ordering, provider phrasing variance) cannot leak into sealed output; currently untested at this layer.
+- **provider-independent compaction** — confirming (with a real test, not only a doc claim) that ASIR-to-`.atlas` compaction never re-invokes a provider mid-compaction, matching `ATLAS-FORMAT.md`'s existing "post-seal compaction run MUST NOT invoke research/decision/synthesis/coding/verification models" rule.
+- **extinction integration** — once a donor's studied semantics are Atlas-natively implemented, verified, and evidence-complete per `.atlas/contracts/BULK-DONOR-ABSORPTION.md`/the extinction contract, the same STAGED -> ... -> EXTINCT progression already governs these donors; none of the donors staged for this lane are extinction-eligible yet (they were staged for architecture study, not for absorption of specific mechanisms).
+
 ## Final invariant
 
 Atlas Studio is not built first and used to census OSS later.

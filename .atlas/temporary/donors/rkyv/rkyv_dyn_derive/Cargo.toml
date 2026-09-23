@@ -1,0 +1,25 @@
+[package]
+name = "rkyv_dyn_derive"
+description = "Macros for rkyv_dyn"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+proc-macro = true
+
+[dependencies]
+proc-macro2.workspace = true
+syn = { workspace = true, features = ["full"] }
+quote.workspace = true
+
+[features]
+default = []
+bytecheck = []
+
+[package.metadata.docs.rs]
+all-features = true
