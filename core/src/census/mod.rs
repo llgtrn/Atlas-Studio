@@ -5,8 +5,9 @@ use std::collections::BTreeMap;
 pub mod dependency;
 
 pub use dependency::{
-    DependencyClosureReport, DependencyClosureState, DependencyEcosystem, DependencyEdge,
-    DependencyIdentity, DependencyKind, DependencySourceKind, DynamicDependencyObligation,
+    DependencyActivation, DependencyClosureReport, DependencyClosureState, DependencyEcosystem,
+    DependencyEdge, DependencyIdentity, DependencyRole, DependencySourceKind,
+    DynamicDependencyObligation,
 };
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]

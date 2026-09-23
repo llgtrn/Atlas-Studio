@@ -212,10 +212,10 @@ permanent `UNSUPPORTED` stub (`runtime::census::build_census`).
 (`.atlas/contracts/DEPENDENCY-CENSUS.md#atlas-self-census`). `adapter::census_cargo_workspace`
 statically parses `Cargo.lock` (Cargo's own already-fully-resolved transitive graph -- no
 `cargo tree`/`cargo metadata` execution in the production path) plus each workspace member's own
-`Cargo.toml` (for real, evidenced `DependencyKind::Runtime`/`Dev`/`Build`/`Optional`/
-`TargetConditional`, never defaulted by assumption), producing a typed `DependencyClosureReport`
-(`core::census::dependency`) wired into `SystemizeReport` and promoting `BUILD` to `OBSERVED` once
-`DependencyClosureState::Closed` is actually reached (below).
+`Cargo.toml` (for real, evidenced `DependencyRole`/`DependencyActivation`, never defaulted by
+assumption), producing a typed `DependencyClosureReport` (`core::census::dependency`) wired into
+`SystemizeReport` and promoting `BUILD` to `OBSERVED` once `DependencyClosureState::Closed` is
+actually reached (below).
 
 Same-name multi-version disambiguation is materialized: a `Cargo.lock` dependency-array entry
 disambiguated as `"name version"` resolves to the matching `[[package]]` block by version, a
@@ -224,15 +224,22 @@ guess), and a genuinely ambiguous entry with no version suffix at all (adversari
 -- real Cargo.lock output always disambiguates when more than one resolved version exists) is
 still reported rather than guessed.
 
-`Optional` and `TargetConditional` `DependencyKind` emission is materialized: a manifest entry
-declaring `optional = true` (in any dependency table, including one spanning multiple physical
-lines as a multi-line inline table) is classified `Optional`, and a dependency declared under
-`[target.'cfg(...)'.dependencies]`/`.dev-dependencies]`/`.build-dependencies]` (any target-selector
-spelling) is classified `TargetConditional`. `Optional` here means "declared optional in the
-manifest", not "active in this admitted context" -- feature-selection resolution is still TARGET
-(below). `TargetConditional` does not yet parse or represent the target-selector expression itself
-(`cfg(unix)` vs. `cfg(windows)`, an admitted-target policy match), only that the edge is
-conditional on *some* target.
+**Dependency role and activation are separate, orthogonal typed facts, never collapsed into one
+enum.** An earlier version of `DependencyEdge` carried a single `DependencyKind` with
+`Runtime`/`Dev`/`Build` and `Optional`/`TargetConditional` as mutually-exclusive alternatives, so a
+`[dev-dependencies]` entry declaring `optional = true` lost its `Dev` classification entirely
+(reported only as `Optional`), and a target-conditional `[build-dependencies]` entry lost its
+`Build` classification (reported only as `TargetConditional`) -- a real dependency can be `Build`
+role, `optional`, and `target_conditional` all at once, and no single fact may overwrite another.
+Fixed: `DependencyEdge.role: Option<DependencyRole>` (`Runtime`/`Dev`/`Build`/`ProcMacro`, which
+table) and `DependencyEdge.activation: DependencyActivation` (`{optional: bool,
+target_conditional: bool}`, under what condition) are independent fields; a `[dev-dependencies]`
+entry with `optional = true` is `role: Some(Dev), activation: {optional: true, ..}`, and a
+target-conditional `[build-dependencies]` entry is `role: Some(Build), activation: {..,
+target_conditional: true}`. Neither flag means "active in this admitted resolution context" --
+feature-selection resolution and target-selector-expression parsing against an admitted target
+matrix both remain explicit TARGET work (below); this wave only records that the manifest declared
+the condition at all.
 
 **Closure state is explicit, not a bare boolean** (`DependencyClosureState`:
 `NotApplicable`/`Blocked`/`Partial`/`Closed`). A prior version of this bootstrap represented
@@ -292,11 +299,12 @@ violate the "ingestion is not execution" security boundary this contract require
 production path.
 
 **Still TARGET, not silently claimed done**: other ecosystems (npm, pip, ...); full
-resolution-context modeling (feature-selection activation for `Optional` edges; parsing the actual
-target-selector expression for `TargetConditional` edges against an admitted target-context matrix
--- this wave accounts every edge as unconditionally active, matching every real edge in this
-workspace today, since it has neither construct); `ProcMacro` `DependencyKind` emission (requires
-reading a dependency's own manifest, which this parser never does); the `"name version (source)"`
+resolution-context modeling (feature-selection activation for `activation.optional` edges; parsing
+the actual target-selector expression for `activation.target_conditional` edges against an admitted
+target-context matrix -- this wave accounts every edge as unconditionally active, matching every
+real edge in this workspace today, since none carry either flag); `ProcMacro` `DependencyRole`
+emission (requires reading a dependency's own manifest, which this parser never does); the
+`"name version (source)"`
 lockfile form, needed only when the same name and version resolve from two different sources;
 non-Cargo build metadata (compiler/toolchain version, native/FFI links); a single non-workspace
 root crate (`[package]` with no `[workspace]` at all -- workspace-member discovery requires a

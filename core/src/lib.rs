@@ -19,9 +19,10 @@ pub mod temporal;
 
 pub use capability::{WorkPrepareReport, WorkRequest};
 pub use census::{
-    ArtifactDisposition, ArtifactKind, ArtifactRecord, DependencyClosureReport,
-    DependencyClosureState, DependencyEcosystem, DependencyEdge, DependencyIdentity,
-    DependencyKind, DependencySourceKind, DynamicDependencyObligation, InventoryReport,
+    ArtifactDisposition, ArtifactKind, ArtifactRecord, DependencyActivation,
+    DependencyClosureReport, DependencyClosureState, DependencyEcosystem, DependencyEdge,
+    DependencyIdentity, DependencyRole, DependencySourceKind, DynamicDependencyObligation,
+    InventoryReport,
 };
 pub use constraint::{CodingAdmission, validate_manifest};
 pub use evidence::Evidence;

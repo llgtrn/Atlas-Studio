@@ -10,13 +10,19 @@
 //! Only what these two file shapes literally state is recorded. A dependency name appearing in a
 //! `Cargo.lock` package's own `dependencies` list with no corresponding `[[package]]` entry is a
 //! dangling reference, never silently dropped. A transitive edge between two external (non-
-//! workspace) packages never gets a guessed `DependencyKind`: this parser never fetches or reads
+//! workspace) packages never gets a guessed `DependencyRole`: this parser never fetches or reads
 //! an external crate's own manifest, so it cannot know which of that crate's own dependency
 //! tables the edge came from.
+//!
+//! `DependencyRole` (which manifest table) and `DependencyActivation` (optional/target-conditional)
+//! are independently evidenced facts about one edge, never collapsed into each other: a
+//! `[dev-dependencies]` entry with `optional = true` keeps its `Dev` role AND its
+//! `activation.optional == true`, rather than one fact silently overwriting the other.
 
 use atlas_core::{
-    DependencyClosureReport, DependencyClosureState, DependencyEcosystem, DependencyEdge,
-    DependencyIdentity, DependencyKind, DependencySourceKind, DynamicDependencyObligation,
+    DependencyActivation, DependencyClosureReport, DependencyClosureState, DependencyEcosystem,
+    DependencyEdge, DependencyIdentity, DependencyRole, DependencySourceKind,
+    DynamicDependencyObligation,
 };
 use std::{
     collections::{BTreeMap, BTreeSet},
@@ -266,46 +272,52 @@ fn manifest_sections(manifest: &str) -> Vec<(&str, String)> {
     sections
 }
 
-/// Classifies a manifest section header as a dependency table, if it is one. A bare
-/// `[dependencies]`/`[dev-dependencies]`/`[build-dependencies]` table is unconditionally active;
-/// the same tables nested under `[target.'cfg(...)'.dependencies]` (any target-selector spelling)
-/// are only active for that target, so every dependency declared there is `TargetConditional`
-/// regardless of which of the three sub-tables it came from -- this bootstrap does not yet parse
-/// or represent the target-selector expression itself, an explicit, documented gap.
-fn dependency_section_kind(header: &str) -> Option<DependencyKind> {
+/// Classifies a manifest section header into its `(DependencyRole, is_target_conditional)` facts,
+/// if it is a dependency table at all. Role and target-conditionality are orthogonal: a bare
+/// `[build-dependencies]` table is `(Build, false)`; the identical table nested under
+/// `[target.'cfg(...)'.build-dependencies]` (any target-selector spelling -- the selector
+/// expression itself is not yet parsed/represented, an explicit, documented gap) is `(Build,
+/// true)` -- the role is preserved, never overwritten, by target-conditionality.
+fn dependency_section_role(header: &str) -> Option<(DependencyRole, bool)> {
     match header {
-        "[dependencies]" => Some(DependencyKind::Runtime),
-        "[dev-dependencies]" => Some(DependencyKind::Dev),
-        "[build-dependencies]" => Some(DependencyKind::Build),
-        _ if header.starts_with("[target.")
-            && (header.ends_with(".dependencies]")
-                || header.ends_with(".dev-dependencies]")
-                || header.ends_with(".build-dependencies]")) =>
-        {
-            Some(DependencyKind::TargetConditional)
+        "[dependencies]" => Some((DependencyRole::Runtime, false)),
+        "[dev-dependencies]" => Some((DependencyRole::Dev, false)),
+        "[build-dependencies]" => Some((DependencyRole::Build, false)),
+        _ if header.starts_with("[target.") && header.ends_with(".dependencies]") => {
+            Some((DependencyRole::Runtime, true))
+        }
+        _ if header.starts_with("[target.") && header.ends_with(".dev-dependencies]") => {
+            Some((DependencyRole::Dev, true))
+        }
+        _ if header.starts_with("[target.") && header.ends_with(".build-dependencies]") => {
+            Some((DependencyRole::Build, true))
         }
         _ => None,
     }
 }
 
-/// `(crate_name, DependencyKind)` for every dependency this manifest text directly declares,
-/// across every recognized table. An entry declaring `optional = true` is classified `Optional`
-/// regardless of which table it came from, since Cargo only actually activates it when the
-/// enabling feature is selected -- a fact this bootstrap does not yet model as its own resolution
-/// context, so `Optional` here means "declared optional", not "active in this admitted context".
-fn manifest_dependency_kinds(manifest: &str) -> Vec<(String, DependencyKind)> {
+/// `(crate_name, DependencyRole, DependencyActivation)` for every dependency this manifest text
+/// directly declares, across every recognized table. Role (which table) and activation
+/// (optional/target-conditional) are independently evidenced and never overwrite each other: a
+/// `[dev-dependencies]` entry with `optional = true` is `(Dev, {optional: true, ..})`, not
+/// collapsed into an `Optional`-only fact that discards `Dev`. Neither `optional` nor
+/// `target_conditional` means "active in this admitted context" -- Cargo only actually activates
+/// an optional dependency when the enabling feature is selected, a fact this bootstrap does not
+/// yet model as its own resolution context; here they mean only "declared" that way.
+fn manifest_dependency_roles(
+    manifest: &str,
+) -> Vec<(String, DependencyRole, DependencyActivation)> {
     let mut result = Vec::new();
     for (header, body) in manifest_sections(manifest) {
-        let Some(section_kind) = dependency_section_kind(header) else {
+        let Some((role, target_conditional)) = dependency_section_role(header) else {
             continue;
         };
         for entry in manifest_dependency_entries(&body) {
-            let kind = if entry.optional {
-                DependencyKind::Optional
-            } else {
-                section_kind
+            let activation = DependencyActivation {
+                optional: entry.optional,
+                target_conditional,
             };
-            result.push((entry.resolved_name, kind));
+            result.push((entry.resolved_name, role, activation));
         }
     }
     result
@@ -335,7 +347,8 @@ fn classify_source_kind(source: Option<&str>, is_workspace_member: bool) -> Depe
 }
 
 /// Censuses `root`'s Cargo dependency closure: `Cargo.lock` (the full resolved transitive graph)
-/// plus each workspace member's own `Cargo.toml` (for real, evidenced `DependencyKind`).
+/// plus each workspace member's own `Cargo.toml` (for real, evidenced `DependencyRole`/
+/// `DependencyActivation`).
 ///
 /// Returns `Ok(None)` when `root` has no `Cargo.lock` at all (not a Cargo workspace) -- the caller
 /// is responsible for representing that as `DependencyClosureState::NotApplicable`, never as a
@@ -352,7 +365,10 @@ pub fn census_cargo_workspace(root: &Path) -> io::Result<Option<DependencyClosur
     let packages = parse_cargo_lock(&lock_text);
 
     let mut unsupported_constructs = Vec::new();
-    let mut kinds_by_consumer: BTreeMap<String, Vec<(String, DependencyKind)>> = BTreeMap::new();
+    let mut roles_by_consumer: BTreeMap<
+        String,
+        Vec<(String, DependencyRole, DependencyActivation)>,
+    > = BTreeMap::new();
     let mut evidence_by_consumer: BTreeMap<String, String> = BTreeMap::new();
     let mut workspace_member_names: BTreeSet<String> = BTreeSet::new();
     if let Some(root_manifest) = read_to_string(&root.join("Cargo.toml"))? {
@@ -373,9 +389,9 @@ pub fn census_cargo_workspace(root: &Path) -> io::Result<Option<DependencyClosur
                     .find_map(|line| quoted_field(line.trim(), "name"))
                     .unwrap_or_else(|| member.clone());
                 workspace_member_names.insert(consumer_name.clone());
-                kinds_by_consumer.insert(
+                roles_by_consumer.insert(
                     consumer_name.clone(),
-                    manifest_dependency_kinds(&member_manifest),
+                    manifest_dependency_roles(&member_manifest),
                 );
                 evidence_by_consumer.insert(consumer_name, relative_manifest_path);
             }
@@ -393,7 +409,7 @@ pub fn census_cargo_workspace(root: &Path) -> io::Result<Option<DependencyClosur
     let mut edges = Vec::new();
     let mut dangling_references = Vec::new();
     for package in &packages {
-        let consumer_kinds = kinds_by_consumer.get(&package.name);
+        let consumer_roles = roles_by_consumer.get(&package.name);
         let consumer_evidence = evidence_by_consumer
             .get(&package.name)
             .cloned()
@@ -439,13 +455,13 @@ pub fn census_cargo_workspace(root: &Path) -> io::Result<Option<DependencyClosur
                 provider_package.source.as_deref(),
                 workspace_member_names.contains(&provider_package.name),
             );
-            let kind = consumer_kinds.and_then(|declared| {
-                declared
-                    .iter()
-                    .find(|(name, _)| name == dependency_name)
-                    .map(|(_, kind)| *kind)
+            let declared = consumer_roles
+                .and_then(|declared| declared.iter().find(|(name, _, _)| name == dependency_name));
+            let role = declared.map(|(_, role, _)| *role);
+            let activation = declared.map_or(DependencyActivation::ALWAYS, |(_, _, activation)| {
+                *activation
             });
-            let evidence_path = if kind.is_some() {
+            let evidence_path = if role.is_some() {
                 consumer_evidence.clone()
             } else {
                 "Cargo.lock".to_owned()
@@ -460,7 +476,8 @@ pub fn census_cargo_workspace(root: &Path) -> io::Result<Option<DependencyClosur
                     source_locator: provider_package.source.clone(),
                     checksum: provider_package.checksum.clone(),
                 },
-                kind,
+                role,
+                activation,
                 evidence_path,
             });
         }
@@ -490,7 +507,7 @@ pub fn census_cargo_workspace(root: &Path) -> io::Result<Option<DependencyClosur
     };
 
     Ok(Some(DependencyClosureReport {
-        schema: "atlas.dependency-closure-report.v2".into(),
+        schema: "atlas.dependency-closure-report.v3".into(),
         ecosystem: DependencyEcosystem::Cargo,
         root: root.to_string_lossy().into_owned(),
         state,
@@ -615,6 +632,16 @@ dependencies = [
 
     // --- 2. Cargo.toml manifest dependency-table parsing ----------------------------------------
 
+    const ALWAYS: DependencyActivation = DependencyActivation::ALWAYS;
+    const OPTIONAL: DependencyActivation = DependencyActivation {
+        optional: true,
+        target_conditional: false,
+    };
+    const TARGET_CONDITIONAL: DependencyActivation = DependencyActivation {
+        optional: false,
+        target_conditional: true,
+    };
+
     #[test]
     fn plain_dependencies_table_is_recognized_as_runtime() {
         let manifest = r#"
@@ -626,13 +653,13 @@ atlas_core = { package = "core", path = "../core" }
 serde = { workspace = true }
 syn = { version = "3.0.6", features = ["full"] }
 "#;
-        let kinds = manifest_dependency_kinds(manifest);
+        let roles = manifest_dependency_roles(manifest);
         assert_eq!(
-            kinds,
+            roles,
             vec![
-                ("core".to_owned(), DependencyKind::Runtime),
-                ("serde".to_owned(), DependencyKind::Runtime),
-                ("syn".to_owned(), DependencyKind::Runtime),
+                ("core".to_owned(), DependencyRole::Runtime, ALWAYS),
+                ("serde".to_owned(), DependencyRole::Runtime, ALWAYS),
+                ("syn".to_owned(), DependencyRole::Runtime, ALWAYS),
             ]
         );
     }
@@ -643,8 +670,11 @@ syn = { version = "3.0.6", features = ["full"] }
 [dependencies]
 atlas_core = { package = "core", path = "../core" }
 "#;
-        let kinds = manifest_dependency_kinds(manifest);
-        assert_eq!(kinds, vec![("core".to_owned(), DependencyKind::Runtime)]);
+        let roles = manifest_dependency_roles(manifest);
+        assert_eq!(
+            roles,
+            vec![("core".to_owned(), DependencyRole::Runtime, ALWAYS)]
+        );
     }
 
     #[test]
@@ -659,13 +689,13 @@ proptest = "1"
 [build-dependencies]
 cc = "1"
 "#;
-        let kinds = manifest_dependency_kinds(manifest);
+        let roles = manifest_dependency_roles(manifest);
         assert_eq!(
-            kinds,
+            roles,
             vec![
-                ("serde".to_owned(), DependencyKind::Runtime),
-                ("proptest".to_owned(), DependencyKind::Dev),
-                ("cc".to_owned(), DependencyKind::Build),
+                ("serde".to_owned(), DependencyRole::Runtime, ALWAYS),
+                ("proptest".to_owned(), DependencyRole::Dev, ALWAYS),
+                ("cc".to_owned(), DependencyRole::Build, ALWAYS),
             ]
         );
     }
@@ -673,12 +703,18 @@ cc = "1"
     #[test]
     fn dotted_workspace_key_resolves_to_its_bare_crate_name() {
         let manifest = "[dependencies]\nserde.workspace = true\n";
-        let kinds = manifest_dependency_kinds(manifest);
-        assert_eq!(kinds, vec![("serde".to_owned(), DependencyKind::Runtime)]);
+        let roles = manifest_dependency_roles(manifest);
+        assert_eq!(
+            roles,
+            vec![("serde".to_owned(), DependencyRole::Runtime, ALWAYS)]
+        );
     }
 
     #[test]
-    fn optional_true_classifies_the_dependency_as_optional_regardless_of_its_table() {
+    fn optional_true_preserves_role_and_sets_the_activation_flag_regardless_of_table() {
+        // The exact regression this split type fixes: an optional dependency must keep its real
+        // table role (Runtime/Dev/...), never collapse to a bare "it's optional" fact that
+        // discards which table it came from.
         let manifest = r#"
 [dependencies]
 serde = "1"
@@ -687,13 +723,13 @@ extra = { version = "1", optional = true }
 [dev-dependencies]
 also-extra = { version = "1", optional = true }
 "#;
-        let kinds = manifest_dependency_kinds(manifest);
+        let roles = manifest_dependency_roles(manifest);
         assert_eq!(
-            kinds,
+            roles,
             vec![
-                ("serde".to_owned(), DependencyKind::Runtime),
-                ("extra".to_owned(), DependencyKind::Optional),
-                ("also-extra".to_owned(), DependencyKind::Optional),
+                ("serde".to_owned(), DependencyRole::Runtime, ALWAYS),
+                ("extra".to_owned(), DependencyRole::Runtime, OPTIONAL),
+                ("also-extra".to_owned(), DependencyRole::Dev, OPTIONAL),
             ]
         );
     }
@@ -704,12 +740,17 @@ also-extra = { version = "1", optional = true }
 [dependencies]
 serde = { version = "1", optional = false }
 "#;
-        let kinds = manifest_dependency_kinds(manifest);
-        assert_eq!(kinds, vec![("serde".to_owned(), DependencyKind::Runtime)]);
+        let roles = manifest_dependency_roles(manifest);
+        assert_eq!(
+            roles,
+            vec![("serde".to_owned(), DependencyRole::Runtime, ALWAYS)]
+        );
     }
 
     #[test]
-    fn target_conditional_dependency_tables_are_classified_as_target_conditional() {
+    fn target_conditional_dependency_tables_preserve_role_and_set_the_activation_flag() {
+        // The exact regression this split type fixes: a target-conditional dev-dependency must
+        // keep its Dev role, never collapse to a bare "it's target-conditional" fact.
         let manifest = r#"
 [dependencies]
 serde = "1"
@@ -719,15 +760,45 @@ libc = "0.2"
 
 [target.'cfg(windows)'.dev-dependencies]
 winapi = "0.3"
+
+[target.'cfg(windows)'.build-dependencies]
+embed-resource = "1"
 "#;
-        let kinds = manifest_dependency_kinds(manifest);
+        let roles = manifest_dependency_roles(manifest);
         assert_eq!(
-            kinds,
+            roles,
             vec![
-                ("serde".to_owned(), DependencyKind::Runtime),
-                ("libc".to_owned(), DependencyKind::TargetConditional),
-                ("winapi".to_owned(), DependencyKind::TargetConditional),
+                ("serde".to_owned(), DependencyRole::Runtime, ALWAYS),
+                (
+                    "libc".to_owned(),
+                    DependencyRole::Runtime,
+                    TARGET_CONDITIONAL
+                ),
+                ("winapi".to_owned(), DependencyRole::Dev, TARGET_CONDITIONAL),
+                (
+                    "embed-resource".to_owned(),
+                    DependencyRole::Build,
+                    TARGET_CONDITIONAL
+                ),
             ]
+        );
+    }
+
+    #[test]
+    fn optional_and_target_conditional_together_set_both_activation_flags() {
+        let manifest =
+            "[target.'cfg(unix)'.build-dependencies]\nfoo = { version = \"1\", optional = true }\n";
+        let roles = manifest_dependency_roles(manifest);
+        assert_eq!(
+            roles,
+            vec![(
+                "foo".to_owned(),
+                DependencyRole::Build,
+                DependencyActivation {
+                    optional: true,
+                    target_conditional: true,
+                }
+            )]
         );
     }
 
@@ -735,29 +806,35 @@ winapi = "0.3"
     fn a_multiline_inline_table_dependency_entry_is_still_read_correctly() {
         // Without joining continuation lines, `optional = true` here would be invisible (only
         // `foo = { version = "1",` is on the entry's own first line), silently misclassifying a
-        // real optional dependency as Runtime.
+        // real optional dependency as always-active.
         let manifest = "[dependencies]\nfoo = {\n    version = \"1\",\n    optional = true,\n}\n";
-        let kinds = manifest_dependency_kinds(manifest);
-        assert_eq!(kinds, vec![("foo".to_owned(), DependencyKind::Optional)]);
+        let roles = manifest_dependency_roles(manifest);
+        assert_eq!(
+            roles,
+            vec![("foo".to_owned(), DependencyRole::Runtime, OPTIONAL)]
+        );
     }
 
     #[test]
     fn a_multiline_inline_table_rename_is_still_read_correctly() {
         let manifest =
             "[dependencies]\natlas_core = {\n    package = \"core\",\n    path = \"../core\",\n}\n";
-        let kinds = manifest_dependency_kinds(manifest);
-        assert_eq!(kinds, vec![("core".to_owned(), DependencyKind::Runtime)]);
+        let roles = manifest_dependency_roles(manifest);
+        assert_eq!(
+            roles,
+            vec![("core".to_owned(), DependencyRole::Runtime, ALWAYS)]
+        );
     }
 
     #[test]
     fn a_multiline_inline_table_does_not_swallow_the_next_real_entry() {
         let manifest = "[dependencies]\nfoo = {\n    version = \"1\",\n}\nbar = \"2\"\n";
-        let kinds = manifest_dependency_kinds(manifest);
+        let roles = manifest_dependency_roles(manifest);
         assert_eq!(
-            kinds,
+            roles,
             vec![
-                ("foo".to_owned(), DependencyKind::Runtime),
-                ("bar".to_owned(), DependencyKind::Runtime),
+                ("foo".to_owned(), DependencyRole::Runtime, ALWAYS),
+                ("bar".to_owned(), DependencyRole::Runtime, ALWAYS),
             ]
         );
     }
@@ -851,7 +928,8 @@ checksum = "deadbeef"
             .find(|edge| edge.provider.name == "core")
             .unwrap();
         assert_eq!(core_edge.consumer, "adapter");
-        assert_eq!(core_edge.kind, Some(DependencyKind::Runtime));
+        assert_eq!(core_edge.role, Some(DependencyRole::Runtime));
+        assert_eq!(core_edge.activation, DependencyActivation::ALWAYS);
         assert_eq!(core_edge.evidence_path, "adapter/Cargo.toml");
         assert_eq!(
             core_edge.provider.source_kind,
@@ -863,7 +941,7 @@ checksum = "deadbeef"
             .iter()
             .find(|edge| edge.provider.name == "syn")
             .unwrap();
-        assert_eq!(syn_edge.kind, Some(DependencyKind::Runtime));
+        assert_eq!(syn_edge.role, Some(DependencyRole::Runtime));
         assert_eq!(
             syn_edge.provider.source_kind,
             DependencySourceKind::Registry
@@ -918,7 +996,7 @@ dependencies = [
     }
 
     #[test]
-    fn a_transitive_edge_between_two_external_packages_has_no_guessed_kind() {
+    fn a_transitive_edge_between_two_external_packages_has_no_guessed_role() {
         let dir = std::env::temp_dir().join(format!(
             "atlas-dep-census-test-{}",
             std::process::id().to_string() + "-4"
@@ -946,7 +1024,8 @@ checksum = "cafef00d"
 
         let report = census_cargo_workspace(&dir).unwrap().unwrap();
         assert_eq!(report.edges_total, 1);
-        assert_eq!(report.edges[0].kind, None);
+        assert_eq!(report.edges[0].role, None);
+        assert_eq!(report.edges[0].activation, DependencyActivation::ALWAYS);
         assert_eq!(report.edges[0].evidence_path, "Cargo.lock");
 
         let _ = fs::remove_dir_all(&dir);
@@ -1288,16 +1367,16 @@ version = "0.1.0"
         );
         assert!(report.edges_total > 0);
 
-        // Every workspace member's own direct dependency must have an evidenced kind (read from
+        // Every workspace member's own direct dependency must have an evidenced role (read from
         // that member's own Cargo.toml), never left as an unevidenced transitive-only edge.
         for member in ["core", "adapter", "runtime", "atlas-cli"] {
             let has_evidenced_edge = report
                 .edges
                 .iter()
-                .any(|edge| edge.consumer == member && edge.kind.is_some());
+                .any(|edge| edge.consumer == member && edge.role.is_some());
             assert!(
                 has_evidenced_edge,
-                "expected at least one evidenced-kind dependency edge for workspace member `{member}`"
+                "expected at least one evidenced-role dependency edge for workspace member `{member}`"
             );
         }
     }

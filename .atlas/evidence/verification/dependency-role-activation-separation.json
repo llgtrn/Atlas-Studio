@@ -1,0 +1,71 @@
+{
+  "schema": "atlas.self-build.generation-evidence.v1",
+  "wave": "DEPENDENCY-CENSUS -- separate DependencyRole from DependencyActivation (fix semantic collapse)",
+  "wave_title": "DependencyKind's Runtime/Dev/Build/Optional/TargetConditional variants were mutually-exclusive alternatives, so an optional dev-dependency or a target-conditional build-dependency silently lost its real table role. Split into orthogonal DependencyRole + DependencyActivation. `.atlas/contracts/DEPENDENCY-CENSUS.md`.",
+  "generation_model": {
+    "G_n": "7d894a8886 (fix(security): close if/else-chain vector; document known incompleteness) -- stable generation this candidate was built and validated against",
+    "gap_discovered_by": "External review of commit e09a97a681 (feat(census): emit Optional/TargetConditional DependencyKind), correctly identifying that manifest_dependency_kinds's `if entry.optional { DependencyKind::Optional } else { section_kind }` branch discards the real table role (Runtime/Dev/Build) whenever an entry is also optional, and the analogous target-conditional-section branch discards it whenever an entry is declared under [target.*.dependencies]. Verified directly against the code at current HEAD before making any change: the collapse was real and still present (unaffected by the intervening dependency-census hardening generations, which addressed closure-state/source-classification/independent-oracle/CI, none of which touched this specific defect).",
+    "note_on_review_staleness": "The review that raised this also restated several other concerns (false closure state, source misclassification, circular independent-verification claim, CI investigation) that were already fixed in intervening commits 68f11f2953/14e24e8223/ebc53574ca (closure-state model, independent cargo-metadata oracle, corrective evidence) before this review's own reference point (e09a97a681). Those are NOT re-done here -- re-verified as still correctly in place (see validation_this_generation) rather than redundantly reimplemented. The one genuinely new, unaddressed, valid finding is the DependencyKind role/activation collapse, which this generation fixes."
+  },
+  "priority_classification": "correctness/architectural integrity (priority 1) -- a real dependency's own table role (whether it's a dev-only or build-only dependency, which matters for e.g. license/attack-surface analysis distinguishing shipped vs. dev-only code) was being silently destroyed by an unrelated fact (optional/target-conditional) about the same edge. This is exactly the 'semantic compression Atlas should avoid' the review named.",
+  "design_decisions": [
+    {
+      "question": "Combined enum with product variants (Always/Optional/TargetConditional/OptionalAndTargetConditional) as the review's own sketch suggested, or two independent fields?",
+      "decision": "Two independent fields: DependencyEdge.role: Option<DependencyRole> and DependencyEdge.activation: DependencyActivation (a {optional: bool, target_conditional: bool} struct). A combined activation enum with 4 variants works for 2 boolean flags, but does not extend cleanly if a third orthogonal activation fact is ever evidenced (e.g. a specific feature name or the target-selector expression itself, both already named as TARGET work) -- it would need doubling variants again. Two boolean fields compose without combinatorial growth and match how Cargo itself treats these as independent manifest keys."
+    },
+    {
+      "question": "What activation value for role: None (unevidenced transitive edge)?",
+      "decision": "DependencyActivation::ALWAYS -- no manifest declaration was read for such an edge, so no optional/target-conditional fact can be evidenced either; defaulting to 'both false' is honest (matches 'never claim a fact this extractor cannot prove'), not a guess, since the alternative would be inventing a fourth 'unknown activation' state for a fact that was simply never looked at, which the role field already communicates via None."
+    },
+    {
+      "question": "Does evidence_path need to encode which section (dependencies/dev-dependencies/target...) now, to satisfy the review's reconstruction-overclaim concern?",
+      "decision": "No longer applicable -- DEPENDENCY-CENSUS.md's current text does not claim evidence_path alone reconstructs the table (checked, no such claim exists in current docs). With role/activation now real typed fields, the section IS the role+activation facts directly; evidence_path remains only 'which file' (Cargo.lock vs. the member's own Cargo.toml), which was always its only claimed meaning."
+    }
+  ],
+  "stable_validator_law_compliance": {
+    "claim": "role and activation are now independently preserved for every combination (plain, optional, target-conditional, both), for every role (Runtime/Dev/Build), with zero regression to existing closure/source-classification/oracle behavior.",
+    "self_written_evidence": "New/updated tests in core/src/census/dependency.rs (activation_always_is_neither_optional_nor_target_conditional, activation_optional_and_target_conditional_are_independent_flags, a_dependency_role_survives_alongside_either_activation_flag) and adapter/src/dependency/cargo.rs (optional_true_preserves_role_and_sets_the_activation_flag_regardless_of_table, target_conditional_dependency_tables_preserve_role_and_set_the_activation_flag, optional_and_target_conditional_together_set_both_activation_flags -- the exact combination the review named as previously impossible to represent) -- each asserting the FULL (role, activation) tuple, not just one half.",
+    "independent_evidence_channel": "The pre-existing cargo-metadata differential oracle (adapter/src/dependency/cargo_oracle.rs, added in an earlier generation specifically because a wrapper-based 'independent' claim was previously found circular) re-run unchanged and still passes: it compares (consumer, provider name, provider version) edge topology, which this generation's change does not touch, confirming the role/activation refactor did not silently alter which edges exist. A before/after systemize run against this repository's own real root shows dependency_closure.state/edges_total/dangling_references unchanged (CLOSED, 29 edges, []), and the new role/activation distribution (12 RUNTIME, 1 DEV, 16 unevidenced, all activation {false,false}) matches this repository's own real manifests, which declare no optional or target-conditional dependencies.",
+    "no_circular_self_certification": true
+  },
+  "implementation": {
+    "core_kernel": "core/src/census/dependency.rs -- DependencyKind removed; DependencyRole (Runtime/Dev/Build/ProcMacro) and DependencyActivation ({optional, target_conditional}, with ALWAYS const and is_always()) added; DependencyEdge.kind -> role: Option<DependencyRole>, new activation: DependencyActivation field",
+    "extraction": "adapter/src/dependency/cargo.rs -- dependency_section_kind -> dependency_section_role returning (DependencyRole, bool); manifest_dependency_kinds -> manifest_dependency_roles returning (name, DependencyRole, DependencyActivation) triples, never letting optional/target_conditional overwrite role",
+    "schema_bump": "DependencyClosureReport schema atlas.dependency-closure-report.v2 -> v3 (DependencyEdge shape changed: kind field removed, role + activation fields added)"
+  },
+  "adversarial_and_falsification_coverage": [
+    "a_dependency_role_survives_alongside_either_activation_flag -- Dev+optional and Build+target_conditional combinations, asserting role is unaffected",
+    "optional_and_target_conditional_together_set_both_activation_flags -- the exact three-way combination (Build role, optional, target_conditional all at once) the review named as a real Cargo shape the prior model could not represent at all",
+    "activation_optional_and_target_conditional_are_independent_flags -- the four activation states are pairwise distinct, not collapsed",
+    "target_conditional_dependency_tables_preserve_role_and_set_the_activation_flag -- extended to include a target-conditional build-dependency (embed-resource), not just runtime/dev as the prior test covered",
+    "full workspace test suite (414 tests) and the independent cargo-metadata oracle both re-run clean"
+  ],
+  "validation_this_generation": {
+    "commands": {
+      "cargo fmt --all --check": { "exit_code": 0 },
+      "cargo clippy --workspace --all-targets -- -D warnings": { "exit_code": 0, "warnings": 0 },
+      "cargo test --workspace": {
+        "exit_code": 0,
+        "totals": "414 passed, 0 failed (226 adapter, 130 core, 58 runtime), up from 410"
+      },
+      "cargo test -p adapter dependency::cargo_oracle (independent oracle re-check)": {
+        "exit_code": 0,
+        "finding": "both differential tests pass unchanged -- edge topology (consumer/provider/version) is untouched by this role/activation refactor"
+      },
+      "cargo run -q -p atlas-cli -- systemize --root . (before/after self-census diff)": {
+        "exit_code": 0,
+        "finding": "schema atlas.dependency-closure-report.v3; state CLOSED; edges_total 29; dangling_references []; coding_admission.allowed true -- unchanged in substance; role/activation distribution {RUNTIME: 12, DEV: 1, unevidenced: 16}, all activation {optional: false, target_conditional: false} (this repository's own real manifests declare neither construct)"
+      },
+      "remote CI re-check (mcp__github__actions_list on latest HEAD 7d894a8886)": {
+        "finding": "still failure in ~3-4 seconds, runner never assigned -- identical signature to the pre-existing, repository-independent infrastructure condition documented in ebc53574ca's evidence since run #1 (2026-09-20). Re-confirmed, not a new regression introduced by this or any intervening generation. No repository-controlled action can address it; not re-investigated further per that prior evidence record."
+      }
+    }
+  },
+  "recensus_scope_after_promotion": [
+    "no prior CLOSED/EXTINCT conclusion depended on the collapsed DependencyKind model being correct, so no external conclusion requires reopening",
+    "resolution-context modeling (resolving activation.optional against an actual feature selection, activation.target_conditional against an actual admitted target matrix) remains explicit TARGET work, unaffected by this generation",
+    "ProcMacro DependencyRole emission remains out of reach (requires reading a dependency's own manifest)"
+  ],
+  "overall_verdict": "MATERIALIZED AND VERIFIED. Fixes a real semantic-collapse defect correctly identified by external review: DependencyRole and DependencyActivation are now independently preserved typed facts, never overwriting each other, covering every combination including the three-way (role + optional + target_conditional) case the prior model could not represent at all. Other concerns raised in the same review (closure-state, source classification, independent oracle, CI) were already fixed in intervening commits and are re-verified here as still correctly in place, not re-implemented.",
+  "historical_evidence_retained": true
+}

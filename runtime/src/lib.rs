@@ -85,7 +85,7 @@ pub fn systemize(root: impl AsRef<Path>) -> io::Result<SystemizeReport> {
     // now makes that distinction explicit end to end.
     let dependency_closure = adapter::census_cargo_workspace(root)?.unwrap_or_else(|| {
         atlas_core::DependencyClosureReport {
-            schema: "atlas.dependency-closure-report.v2".into(),
+            schema: "atlas.dependency-closure-report.v3".into(),
             ecosystem: atlas_core::DependencyEcosystem::Cargo,
             root: root.to_string_lossy().into_owned(),
             state: atlas_core::DependencyClosureState::NotApplicable,

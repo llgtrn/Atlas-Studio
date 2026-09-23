@@ -40,14 +40,25 @@ impl DependencyEcosystem {
     }
 }
 
-/// `.atlas/contracts/DEPENDENCY-CENSUS.md#dependency-edge`'s dependency-kind vocabulary. Declared
-/// in full; only `Runtime`/`Dev`/`Build` are reachable from a Cargo manifest's own three
-/// dependency-table headers. The rest name real Cargo/ecosystem concepts this wave does not yet
-/// evidence (matching the `PersistenceKind`/`ConcurrencyKind` precedent: declared, not emitted,
-/// rather than silently absent from the enum).
+/// `.atlas/contracts/DEPENDENCY-CENSUS.md#dependency-edge`'s dependency-*role* vocabulary --
+/// **which manifest table** declared the edge. Declared in full; only `Runtime`/`Dev`/`Build` are
+/// reachable from a Cargo manifest's own three dependency-table headers. `ProcMacro` names a real
+/// Cargo/ecosystem concept this wave does not yet evidence (matching the `PersistenceKind`/
+/// `ConcurrencyKind` precedent: declared, not emitted, rather than silently absent from the enum).
+///
+/// Deliberately excludes `optional`/target-conditionality: role (which table) and activation
+/// (whether the edge is unconditionally active) are orthogonal facts about one edge -- a
+/// `[build-dependencies]` entry can independently be `optional = true`, be declared under
+/// `[target.'cfg(...)'.build-dependencies]`, or both at once. An earlier version of this type
+/// collapsed both dimensions into one enum (`Optional`/`TargetConditional` as alternatives to
+/// `Runtime`/`Dev`/`Build`), which silently destroyed the role fact for any dependency that was
+/// ALSO optional or target-conditional (e.g. a `[dev-dependencies]` entry with `optional = true`
+/// lost its `Dev` classification entirely, reported only as `Optional`). See `DependencyActivation`
+/// for the orthogonal axis, and `DependencyEdge::role`/`DependencyEdge::activation` for how a
+/// single edge carries both without either overwriting the other.
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
-pub enum DependencyKind {
+pub enum DependencyRole {
     /// A plain `[dependencies]` table entry.
     Runtime,
     /// A `[dev-dependencies]` table entry.
@@ -57,23 +68,51 @@ pub enum DependencyKind {
     /// Reserved; not emitted this wave (would require reading the crate's own build.rs/proc-macro
     /// declaration, e.g. a `proc-macro = true` manifest flag this parser does not yet read).
     ProcMacro,
-    /// Reserved; not emitted this wave (target-conditional `[target.'cfg(...)'.dependencies]`
-    /// tables are not yet parsed -- see the module doc comment's scope note).
-    TargetConditional,
-    /// Reserved; not emitted this wave (an `optional = true` manifest entry is not yet parsed).
-    Optional,
 }
 
-impl DependencyKind {
+impl DependencyRole {
     pub const fn as_str(&self) -> &'static str {
         match self {
             Self::Runtime => "RUNTIME",
             Self::Dev => "DEV",
             Self::Build => "BUILD",
             Self::ProcMacro => "PROC_MACRO",
-            Self::TargetConditional => "TARGET_CONDITIONAL",
-            Self::Optional => "OPTIONAL",
         }
+    }
+}
+
+/// The orthogonal axis to `DependencyRole`: under what condition an edge is actually active, per
+/// `.atlas/contracts/DEPENDENCY-CENSUS.md#resolution-context`. A struct, not a sum type, because
+/// the two flags are independent and may both be set on the same edge (an optional,
+/// target-conditional dependency is a real, ordinary Cargo shape, not an edge case requiring its
+/// own combined variant).
+///
+/// Neither flag means "active in this admitted resolution context" -- only "the manifest declares
+/// this condition". Resolving `optional` against an actual feature selection, or `target_conditional`
+/// against an actual admitted target-context matrix, remains explicit TARGET work
+/// (`.atlas/contracts/DEPENDENCY-CENSUS.md#resolution-context`); this wave only records that the
+/// condition was declared at all.
+#[derive(
+    Debug, Clone, Copy, Default, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Hash,
+)]
+pub struct DependencyActivation {
+    /// The manifest entry declares `optional = true`, in any dependency table.
+    pub optional: bool,
+    /// The manifest entry is declared under a `[target.'cfg(...)'.*dependencies]` table (any
+    /// target-selector spelling; the selector expression itself is not yet parsed/represented).
+    pub target_conditional: bool,
+}
+
+impl DependencyActivation {
+    /// Unconditionally active: neither optional nor target-conditional. The common case for every
+    /// real edge in this repository's own workspace today.
+    pub const ALWAYS: Self = Self {
+        optional: false,
+        target_conditional: false,
+    };
+
+    pub const fn is_always(&self) -> bool {
+        !self.optional && !self.target_conditional
     }
 }
 
@@ -158,12 +197,17 @@ pub struct DependencyEdge {
     /// edge, or another resolved package for a transitive edge).
     pub consumer: String,
     pub provider: DependencyIdentity,
-    /// `Some(kind)` only when this edge's manifest declaration was actually read (a workspace
+    /// `Some(role)` only when this edge's manifest declaration was actually read (a workspace
     /// member's own `Cargo.toml`); `None` for a transitive edge between two external packages,
     /// whose originating manifest this parser never fetches or reads (`.atlas/contracts/
     /// SEMANTIC-EXTRACTION.md`-style discipline: never claim a fact this extractor cannot prove
     /// from the input it actually read). Never defaulted to `Runtime` by assumption.
-    pub kind: Option<DependencyKind>,
+    pub role: Option<DependencyRole>,
+    /// `DependencyActivation::ALWAYS` when `role.is_none()` (no manifest declaration was read, so
+    /// no optional/target-conditional fact can be evidenced either) or when the manifest entry
+    /// declared neither condition. Always a real, independently-evidenced fact when `role.is_some()`
+    /// -- never inferred from `role`, and never causes `role` to change.
+    pub activation: DependencyActivation,
     /// `.atlas` root-relative path to the file this edge's existence was read from (e.g.
     /// `"Cargo.lock"` or `"adapter/Cargo.toml"`).
     pub evidence_path: String,
@@ -171,9 +215,9 @@ pub struct DependencyEdge {
 
 impl DependencyEdge {
     /// Deterministic, order-independent encoding of this edge's identity: which consumer requires
-    /// which exact provider instance. `kind`/`evidence_path` are content about an already-
-    /// identified edge, not part of what makes the edge itself distinct -- excluded here for the
-    /// same reason `CallSiteIdentity` excludes `dispatch`/`callees`.
+    /// which exact provider instance. `role`/`activation`/`evidence_path` are content about an
+    /// already-identified edge, not part of what makes the edge itself distinct -- excluded here
+    /// for the same reason `CallSiteIdentity` excludes `dispatch`/`callees`.
     pub fn identity_key(&self) -> String {
         format!("{}|{}", self.consumer, self.provider.identity_key())
     }
@@ -220,7 +264,7 @@ impl DependencyClosureState {
 
 /// A class of dependency obligation that a purely static lockfile/manifest parse cannot resolve
 /// (`.atlas/contracts/DEPENDENCY-CENSUS.md#build-time-and-dynamic-dependency-discovery`). Declared
-/// in full (matching the `DependencyKind`/`PersistenceKind` precedent); every class this bootstrap
+/// in full (matching the `DependencyRole`/`PersistenceKind` precedent); every class this bootstrap
 /// reports is always `UNKNOWN` -- none are actually probed yet, so the vocabulary exists to make
 /// that gap explicit rather than letting a resolved static package graph silently stand in for
 /// "no active dependency behavior can appear from any other source."
@@ -374,19 +418,24 @@ mod tests {
     }
 
     #[test]
-    fn edge_identity_key_is_unaffected_by_kind_and_evidence_path() {
+    fn edge_identity_key_is_unaffected_by_role_activation_and_evidence_path() {
         let base = DependencyEdge {
             consumer: "adapter".into(),
             provider: registry_package("syn", "1.0.0"),
-            kind: None,
+            role: None,
+            activation: DependencyActivation::ALWAYS,
             evidence_path: "Cargo.lock".into(),
         };
-        let with_kind = DependencyEdge {
-            kind: Some(DependencyKind::Runtime),
+        let with_role = DependencyEdge {
+            role: Some(DependencyRole::Runtime),
+            activation: DependencyActivation {
+                optional: true,
+                target_conditional: true,
+            },
             evidence_path: "adapter/Cargo.toml".into(),
             ..base.clone()
         };
-        assert_eq!(base.identity_key(), with_kind.identity_key());
+        assert_eq!(base.identity_key(), with_role.identity_key());
     }
 
     #[test]
@@ -394,7 +443,8 @@ mod tests {
         let a = DependencyEdge {
             consumer: "adapter".into(),
             provider: registry_package("syn", "1.0.0"),
-            kind: None,
+            role: None,
+            activation: DependencyActivation::ALWAYS,
             evidence_path: "Cargo.lock".into(),
         };
         let b = DependencyEdge {
@@ -427,7 +477,8 @@ mod tests {
         report.edges = vec![DependencyEdge {
             consumer: "adapter".into(),
             provider: registry_package("syn", "1.0.0"),
-            kind: Some(DependencyKind::Runtime),
+            role: Some(DependencyRole::Runtime),
+            activation: DependencyActivation::ALWAYS,
             evidence_path: "adapter/Cargo.toml".into(),
         }];
         assert!(report.is_closed());
@@ -480,17 +531,12 @@ mod tests {
     }
 
     #[test]
-    fn kind_and_ecosystem_and_source_kind_as_str_match_the_screaming_snake_vocabulary() {
+    fn role_and_ecosystem_and_source_kind_as_str_match_the_screaming_snake_vocabulary() {
         assert_eq!(DependencyEcosystem::Cargo.as_str(), "CARGO");
-        assert_eq!(DependencyKind::Runtime.as_str(), "RUNTIME");
-        assert_eq!(DependencyKind::Dev.as_str(), "DEV");
-        assert_eq!(DependencyKind::Build.as_str(), "BUILD");
-        assert_eq!(DependencyKind::ProcMacro.as_str(), "PROC_MACRO");
-        assert_eq!(
-            DependencyKind::TargetConditional.as_str(),
-            "TARGET_CONDITIONAL"
-        );
-        assert_eq!(DependencyKind::Optional.as_str(), "OPTIONAL");
+        assert_eq!(DependencyRole::Runtime.as_str(), "RUNTIME");
+        assert_eq!(DependencyRole::Dev.as_str(), "DEV");
+        assert_eq!(DependencyRole::Build.as_str(), "BUILD");
+        assert_eq!(DependencyRole::ProcMacro.as_str(), "PROC_MACRO");
         assert_eq!(
             DependencySourceKind::WorkspaceMember.as_str(),
             "WORKSPACE_MEMBER"
@@ -499,5 +545,73 @@ mod tests {
         assert_eq!(DependencySourceKind::Vcs.as_str(), "VCS");
         assert_eq!(DependencySourceKind::Path.as_str(), "PATH");
         assert_eq!(DependencySourceKind::Other.as_str(), "OTHER");
+    }
+
+    #[test]
+    fn activation_always_is_neither_optional_nor_target_conditional() {
+        assert!(DependencyActivation::ALWAYS.is_always());
+        assert_eq!(
+            DependencyActivation::ALWAYS,
+            DependencyActivation {
+                optional: false,
+                target_conditional: false,
+            }
+        );
+    }
+
+    #[test]
+    fn activation_optional_and_target_conditional_are_independent_flags() {
+        let optional_only = DependencyActivation {
+            optional: true,
+            target_conditional: false,
+        };
+        let target_only = DependencyActivation {
+            optional: false,
+            target_conditional: true,
+        };
+        let both = DependencyActivation {
+            optional: true,
+            target_conditional: true,
+        };
+        assert!(!optional_only.is_always());
+        assert!(!target_only.is_always());
+        assert!(!both.is_always());
+        assert_ne!(optional_only, target_only);
+        assert_ne!(optional_only, both);
+        assert_ne!(target_only, both);
+    }
+
+    #[test]
+    fn a_dependency_role_survives_alongside_either_activation_flag() {
+        // The exact regression this type split fixes: a Dev/Build role must never be overwritten
+        // by an Optional/TargetConditional fact about the same edge.
+        let dev_and_optional = DependencyEdge {
+            consumer: "adapter".into(),
+            provider: registry_package("proptest", "1.0.0"),
+            role: Some(DependencyRole::Dev),
+            activation: DependencyActivation {
+                optional: true,
+                target_conditional: false,
+            },
+            evidence_path: "adapter/Cargo.toml".into(),
+        };
+        assert_eq!(dev_and_optional.role, Some(DependencyRole::Dev));
+        assert!(dev_and_optional.activation.optional);
+
+        let build_and_target_conditional = DependencyEdge {
+            consumer: "adapter".into(),
+            provider: registry_package("cc", "1.0.0"),
+            role: Some(DependencyRole::Build),
+            activation: DependencyActivation {
+                optional: false,
+                target_conditional: true,
+            },
+            evidence_path: "adapter/Cargo.toml".into(),
+        };
+        assert_eq!(
+            build_and_target_conditional.role,
+            Some(DependencyRole::Build)
+        );
+        assert!(build_and_target_conditional.activation.target_conditional);
     }
 }
