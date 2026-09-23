@@ -13,21 +13,28 @@
 //! a winner -- that is reconciliation's job, out of scope for this wave
 //! (`.atlas/contracts/NORMALIZATION.md#conflict-handling`).
 //!
-//! `extract_semantics` (R4.3, hardened R4.3.1) is the real production call site: called from
-//! `runtime::systemize` (and the other report-building entry points) *before* `build_census`, it
-//! identifies every admitted, successfully-parsed artifact, selects the registered
-//! `SemanticExtractor` for its language (currently real for `"rust"`; every other language still
-//! resolves to no extractor and is simply skipped here, unchanged from R4.3), and returns every
-//! resulting `ExtractionBatch`. The caller folds those batches into both the canonical
-//! `CensusReport` (`build_census`) and `CensusExtractionAccounting` -- the same extraction result
-//! set backs both, so census truth and closure accounting can never disagree
-//! (`.atlas/decisions/0001-one-normalized-semantic-path.md`).
+//! `extract_semantics` (R4.3, hardened R4.3.1/R4.3.4) is the real production call site: called
+//! from `runtime::systemize` (and the other report-building entry points) *before* `build_census`,
+//! it identifies every admitted, successfully-parsed artifact, selects the registered
+//! `SemanticExtractor` for its language (currently real for `"rust"`; every other language
+//! produces an explicit `unsupported_language_batch` instead, never a silent skip -- see that
+//! function's own doc comment), and returns every resulting `ExtractionBatch`. The caller folds
+//! those batches into both the canonical `CensusReport` (`build_census`) and
+//! `CensusExtractionAccounting` -- the same extraction result set backs both, so census truth and
+//! closure accounting can never disagree (`.atlas/decisions/0001-one-normalized-semantic-path.md`).
 //!
 //! R4.3.1 fix: this function is now infallible. A per-artifact source-read failure no longer
 //! propagates an `io::Error` that would abort extraction of every remaining artifact -- it
 //! produces an explicit, closed `ExtractionBatch` via `SemanticExtractor::unavailable` instead
 //! (`.atlas/contracts/SEMANTIC-EXTRACTION.md#failure-semantics`: "A failure must not remove the
 //! artifact from census accounting").
+//!
+//! R4.3.4 fix: the same "must not remove the artifact from census accounting" rule was, until now,
+//! violated for a *language* Atlas has no registered extractor for at all (not a per-artifact read
+//! failure): such an artifact previously produced zero batches, zero obligations and zero
+//! diagnostics, disappearing from `CensusExtractionAccounting` with no trace. Real and live in this
+//! repository's own inventory (its own `toml`/`markdown`/`json` `Parsed` artifacts), not merely a
+//! hypothetical corpus.
 
 use adapter::{DiagnosticCode, ExtractionBatch, ExtractionDiagnostic, ExtractionInput};
 use atlas_core::{
@@ -35,6 +42,58 @@ use atlas_core::{
     InventoryReport, RepositoryId, RevisionRef, SemanticDimension, SemanticRecordId, stable_id,
 };
 use std::{collections::BTreeMap, fs, path::Path};
+
+/// Sentinel `ExtractorIdentity` for `unsupported_language_batch` below: no real
+/// `SemanticExtractor` instance exists to attribute this batch to, since none is registered for
+/// the artifact's language at all. Never a real extractor's own id/version, so it can never be
+/// confused with one in `CensusExtractionAccounting`/`SemanticObligationRecord` lineage.
+const NO_EXTRACTOR: ExtractorIdentity = ExtractorIdentity {
+    id: String::new(),
+    version: String::new(),
+};
+
+/// The closed `ExtractionBatch` for a `Parsed`, language-tagged artifact whose language has no
+/// registered `SemanticExtractor` at all (`adapter::extractors_for_language` returned empty).
+///
+/// Before this existed, `extract_semantics` simply `continue`d past such an artifact, producing no
+/// batch, no obligation, and no diagnostic -- silently removing it from extraction accounting
+/// entirely. That violates `ExtractionDiagnostic`'s own documented invariant ("a diagnostic never
+/// removes the artifact or the dimension from accounting -- it always pairs with an explicit
+/// `ObligationResult`") and is real, not merely a corpus with a hypothetical non-Rust file: this
+/// repository's own real inventory currently carries `Parsed` `toml`/`markdown`/`json` artifacts
+/// that hit exactly this path. `DiagnosticCode::UnsupportedLanguageOrProfile` existed in the
+/// vocabulary for exactly this case but was never constructed anywhere until now.
+///
+/// Every dimension is `UNSUPPORTED` (not `UNKNOWN`): this is not "evidence was unobtainable for a
+/// capable extractor" (`SemanticExtractor::unavailable`'s case), it is "no extractor capable of
+/// analyzing this language exists at all" -- the same distinction `ObligationResult::unsupported`
+/// vs `::unknown` already draws for a single extractor's own unsupported dimensions.
+fn unsupported_language_batch(input: &ExtractionInput) -> ExtractionBatch {
+    let diagnostic = ExtractionDiagnostic::new(
+        DiagnosticCode::UnsupportedLanguageOrProfile,
+        None,
+        format!(
+            "no registered SemanticExtractor supports language \"{}\" ({})",
+            input.language, input.artifact_path
+        ),
+    );
+    let obligations = input
+        .requested_dimensions
+        .iter()
+        .map(|&dimension| adapter::ObligationResult::unsupported(dimension, diagnostic.id.clone()))
+        .collect();
+    ExtractionBatch {
+        extractor: NO_EXTRACTOR,
+        repository: input.repository.clone(),
+        revision: input.revision.clone(),
+        artifact: input.artifact.clone(),
+        input_fingerprint: input.identity_key(&NO_EXTRACTOR),
+        observations: Vec::new(),
+        evidence: Vec::new(),
+        obligations,
+        diagnostics: vec![diagnostic],
+    }
+}
 
 /// Every canonical R4 semantic dimension, requested uniformly so a production extraction call
 /// never silently narrows what it asks an extractor to account for
@@ -90,6 +149,22 @@ pub fn extract_semantics(
         };
         let extractors = adapter::extractors_for_language(language);
         if extractors.is_empty() {
+            // No registered `SemanticExtractor` supports this language at all -- explicit
+            // accounting via `unsupported_language_batch`, never a silent skip (see its own doc
+            // comment for why this branch is not merely a no-op).
+            batches.push(unsupported_language_batch(&ExtractionInput {
+                repository: repository.clone(),
+                revision: revision.clone(),
+                artifact: artifact.id.clone(),
+                artifact_path: artifact.path.clone(),
+                source_text: String::new(),
+                content_fingerprint: None,
+                source_frontend_id: String::new(),
+                language: language.to_owned(),
+                build_profile: None,
+                scope_policy: None,
+                requested_dimensions: ALL_SEMANTIC_DIMENSIONS.to_vec(),
+            }));
             continue;
         }
         let source_frontend_id = adapter::resolve_source_frontend(Path::new(&artifact.path))
@@ -1126,7 +1201,13 @@ mod production_wiring_tests {
     }
 
     #[test]
-    fn extract_semantics_skips_artifacts_with_no_registered_extractor() {
+    fn extract_semantics_accounts_for_artifacts_with_no_registered_extractor_explicitly() {
+        // Before `unsupported_language_batch` existed, such an artifact silently vanished from
+        // extraction accounting: zero batches, zero obligations, zero diagnostics. That violated
+        // `ExtractionDiagnostic`'s own documented invariant ("a diagnostic never removes the
+        // artifact or the dimension from accounting") and is a REAL gap in this repository's own
+        // inventory today (its own toml/markdown/json Parsed artifacts hit exactly this path) --
+        // not a hypothetical corpus.
         let dir = scratch_dir();
         fs::create_dir_all(&dir).unwrap();
         fs::write(dir.join("notes.md"), "# hello\n").unwrap();
@@ -1152,7 +1233,23 @@ mod production_wiring_tests {
                 value: "abc123".into(),
             },
         );
-        assert!(batches.is_empty());
+
+        assert_eq!(batches.len(), 1, "the artifact must not silently vanish");
+        let batch = &batches[0];
+        assert_eq!(batch.artifact, ArtifactId::new("artifact:notes.md"));
+        assert!(
+            batch.is_closed(&ALL_SEMANTIC_DIMENSIONS),
+            "every requested dimension must still be explicitly accounted for"
+        );
+        for obligation in &batch.obligations {
+            assert_eq!(obligation.status, EpistemicStatus::Unsupported);
+            assert!(!obligation.diagnostics.is_empty());
+        }
+        assert_eq!(batch.diagnostics.len(), 1);
+        assert_eq!(
+            batch.diagnostics[0].code,
+            DiagnosticCode::UnsupportedLanguageOrProfile
+        );
 
         fs::remove_dir_all(&dir).unwrap();
     }

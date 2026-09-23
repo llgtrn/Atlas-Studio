@@ -187,7 +187,8 @@ Current materialized sequence:
 - R4.3 — first real Rust semantic extractor;
 - R4.3.1 — canonical production census wiring;
 - R4.3.2 — lossless typed records through Census and normalization;
-- R4.3.3 — raw observation identity, typed obligation lineage, typed closure accounting, and typed engineering-graph boundary.
+- R4.3.3 — raw observation identity, typed obligation lineage, typed closure accounting, and typed engineering-graph boundary;
+- R4.3.4 — a `Parsed`, language-tagged artifact with no registered `SemanticExtractor` for its language now produces an explicit `UNSUPPORTED`-obligation `ExtractionBatch` (`runtime::census::extraction::unsupported_language_batch`, `DiagnosticCode::UnsupportedLanguageOrProfile`) instead of silently vanishing from `CensusExtractionAccounting` -- a real, live gap in this repository's own inventory (its own `toml`/`markdown`/`json` `Parsed` artifacts), not a hypothetical corpus.
 
 Currently materialized Rust semantic dimensions are:
 

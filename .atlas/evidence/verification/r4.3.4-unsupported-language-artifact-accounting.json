@@ -1,0 +1,63 @@
+{
+  "schema": "atlas.self-build.generation-evidence.v1",
+  "wave": "R4.3.4 -- unsupported-language artifact accounting",
+  "wave_title": "A Parsed, language-tagged artifact with no registered SemanticExtractor at all no longer silently vanishes from CensusExtractionAccounting. `.atlas/contracts/SEMANTIC-EXTRACTION.md#failure-semantics`.",
+  "generation_model": {
+    "G_n": "ebc53574ca (docs(evidence): correct dependency-census generation verification record) -- stable generation this candidate was built and validated against",
+    "gap_discovered_by": "auditing the codebase for the same 'vacuous closure/silent disappearance' bug class just fixed for DependencyClosureReport, applied to every other is_closed()-style accounting method in the repository. runtime::census::extraction::CensusExtractionAccounting::is_closed() uses grouped.values().all(...), which is vacuously true for zero groups -- structurally the same risk shape. Tracing why zero groups could occur led to extract_semantics's `if extractors.is_empty() { continue; }` branch, which produces no batch, no obligation and no diagnostic for such an artifact. Confirmed LIVE (not hypothetical) by querying this repository's own real inventory via `cargo run -p atlas-cli -- systemize`: 64 Parsed artifacts, only 58 'rust' (with a registered extractor); 3 toml + 1 markdown + 2 json artifacts hit this exact silent-skip path today. Further confirmed by finding `DiagnosticCode::UnsupportedLanguageOrProfile` declared in the vocabulary (core/src/semantic/diagnostic.rs) but never constructed anywhere in the codebase -- a named, evidently-intended-but-never-wired case."
+  },
+  "priority_classification": "correctness/architectural integrity (priority 1) AND census blindness (priority 4) -- this is a live violation of ExtractionDiagnostic's own documented invariant ('a diagnostic never removes the artifact or the dimension from accounting') in this repository's own real self-census today, not merely a hypothetical for other admitted repos.",
+  "design_decisions": [
+    {
+      "question": "Should the fallback use SemanticExtractor::unavailable (the existing read-failure path)?",
+      "decision": "No -- `unavailable` is a trait method requiring a concrete extractor instance (`&self`), and none exists when zero extractors are registered for the language at all. A free function (`unsupported_language_batch`) building the ExtractionBatch directly was required."
+    },
+    {
+      "question": "UNKNOWN or UNSUPPORTED for every dimension?",
+      "decision": "UNSUPPORTED -- this is 'no extractor capable of analyzing this language exists', not 'evidence was unobtainable for a capable extractor' (which is what UNKNOWN already means via `unavailable`). Matches the existing ObligationResult::unsupported vs ::unknown distinction a single extractor's own unsupported dimensions already draw."
+      },
+    {
+      "question": "What ExtractorIdentity to attribute the batch to, with no real extractor involved?",
+      "decision": "A sentinel `NO_EXTRACTOR` constant with empty id/version strings, documented explicitly as never a real extractor's identity, so it can never be confused with genuine extractor lineage in CensusExtractionAccounting/SemanticObligationRecord."
+    },
+    {
+      "question": "Which DiagnosticCode?",
+      "decision": "DiagnosticCode::UnsupportedLanguageOrProfile -- already declared in the vocabulary for exactly this case, previously dead code. Reused rather than inventing a new code, per the loop's own 'use existing repository vocabulary' rule."
+    }
+  ],
+  "stable_validator_law_compliance": {
+    "claim": "A Parsed artifact whose language has no registered extractor now produces a closed ExtractionBatch (every requested dimension UNSUPPORTED, one diagnostic) instead of silently vanishing, and this does not regress the aggregate per-dimension census.coverage.",
+    "self_written_evidence": "Rewrote the existing test (previously named `extract_semantics_skips_artifacts_with_no_registered_extractor`, which asserted the OLD silent-skip behavior as intentional) to `extract_semantics_accounts_for_artifacts_with_no_registered_extractor_explicitly`, asserting the batch exists, is closed over all 12 dimensions, every obligation is UNSUPPORTED with a diagnostic, and the diagnostic code is UnsupportedLanguageOrProfile.",
+    "independent_evidence_channel": "Ran the pre-existing systemize CLI against this repository's own real root before and after the fix and diffed census.typed_closure.typed_obligations_total: 696 before, 768 after -- an increase of exactly 72 = 6 (the real toml/markdown/json artifacts) x 12 (ALL_SEMANTIC_DIMENSIONS), precisely matching the predicted effect with no off-by-one or double-count. census.coverage (the aggregate per-dimension summary) is byte-identical before and after, confirming status_rank's max-based aggregation correctly prevents the new UNSUPPORTED entries from downgrading dimensions already OBSERVED/UNKNOWN from real Rust extraction. coding_admission.allowed stays true throughout. This is real self-consistency evidence from the same binary, not claimed as circularly-independent per the correction recorded in dependency-census-independent-validator-correction.json -- it is offered here as a quantitative regression/effect check, not as sole proof of correctness (that is the rewritten unit test's job).",
+    "no_circular_self_certification": true
+  },
+  "implementation": {
+    "core_kernel": "no core type changes -- reuses existing ExtractionBatch/ObligationResult/ExtractionDiagnostic/DiagnosticCode",
+    "extraction": "runtime/src/census/extraction.rs -- unsupported_language_batch(), NO_EXTRACTOR sentinel, wired into extract_semantics's `extractors.is_empty()` branch"
+  },
+  "adversarial_and_falsification_coverage": [
+    "extract_semantics_accounts_for_artifacts_with_no_registered_extractor_explicitly -- the exact regression this generation fixes, on a real markdown fixture file",
+    "full workspace test suite (404 tests) re-run clean, including every existing R4.3.1-R4.3.3 production-wiring test (read-failure isolation, real Rust extraction) unaffected by this change"
+  ],
+  "validation_this_generation": {
+    "commands": {
+      "cargo fmt --all --check": { "exit_code": 0 },
+      "cargo clippy --workspace --all-targets -- -D warnings": { "exit_code": 0, "warnings": 0 },
+      "cargo test --workspace": {
+        "exit_code": 0,
+        "totals": "404 passed, 0 failed (219 adapter, 127 core, 58 runtime) -- same total as before since an existing test was rewritten, not added"
+      },
+      "cargo run -q -p atlas-cli -- systemize --root . (before/after self-census diff)": {
+        "exit_code": 0,
+        "finding": "typed_obligations_total 696 -> 768 (+72, exactly 6 artifacts x 12 dimensions); census.coverage unchanged; coding_admission.allowed unchanged (true)"
+      }
+    }
+  },
+  "recensus_scope_after_promotion": [
+    "no prior CLOSED/EXTINCT conclusion depended on the silent-skip behavior being correct, so no prior claim requires reopening -- this generation only adds previously-missing accounting for artifacts that were always present in the inventory",
+    "a future generation adding a second language extractor (e.g. a second real SemanticExtractor) will naturally reduce how many artifacts hit this fallback path; that is expected evolution, not a regression of this fix",
+    "ProcMacro DependencyKind and other 'requires reading a dependency's own manifest' gaps remain separately tracked in DEPENDENCY-CENSUS.md, unaffected by this generation"
+  ],
+  "overall_verdict": "MATERIALIZED AND VERIFIED. Fixes a real, live violation of SEMANTIC-EXTRACTION.md's own 'a diagnostic never removes the artifact from accounting' rule, discovered by systematically auditing for the same bug class fixed last generation in a different subsystem (dependency closure). Quantitatively confirmed via typed_obligations_total delta matching the exact predicted effect, with zero regression to aggregate coverage or coding admission.",
+  "historical_evidence_retained": true
+}
