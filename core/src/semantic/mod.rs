@@ -168,6 +168,18 @@ pub struct SemanticRecordHeader<Subject> {
 mod tests {
     use super::*;
 
+    #[test]
+    fn scoped_name_is_bare_when_scope_has_no_segments() {
+        let scope = SemanticScope::new(Vec::<String>::new());
+        assert_eq!(scope.scoped_name("run"), "run");
+    }
+
+    #[test]
+    fn scoped_name_joins_segments_before_the_name() {
+        let scope = SemanticScope::new(["core", "widgets"]);
+        assert_eq!(scope.scoped_name("run"), "core::widgets::run");
+    }
+
     fn extractor() -> ExtractorIdentity {
         ExtractorIdentity {
             id: "atlas.rust.extractor".into(),

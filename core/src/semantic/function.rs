@@ -223,6 +223,50 @@ mod tests {
     }
 
     #[test]
+    fn summary_renders_asyncness_unsafety_parameters_and_return_type() {
+        let signature = FunctionSignature {
+            function: identity("widgets"),
+            parameters: vec![
+                FunctionParameter {
+                    name: "x".into(),
+                    type_identity: type_identity("Vec<T>"),
+                },
+                FunctionParameter {
+                    name: "y".into(),
+                    type_identity: type_identity("&mut usize"),
+                },
+            ],
+            return_type: Some(type_identity("Result<T, Error>")),
+            generics: Vec::new(),
+            abi: None,
+            visibility: "pub".into(),
+            is_async: true,
+            is_unsafe: true,
+            is_extern: false,
+        };
+        assert_eq!(
+            signature.summary(),
+            "async unsafe fn(x: Vec<T>, y: &mut usize) -> Result<T, Error>"
+        );
+    }
+
+    #[test]
+    fn summary_renders_unit_return_and_no_modifiers_when_absent() {
+        let signature = FunctionSignature {
+            function: identity("widgets"),
+            parameters: Vec::new(),
+            return_type: None,
+            generics: Vec::new(),
+            abi: None,
+            visibility: "pub".into(),
+            is_async: false,
+            is_unsafe: false,
+            is_extern: false,
+        };
+        assert_eq!(signature.summary(), "fn() -> ()");
+    }
+
+    #[test]
     fn same_name_functions_in_separate_scopes_have_distinct_identity() {
         let a = identity("widgets");
         let b = identity("engine");
