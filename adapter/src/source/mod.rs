@@ -122,25 +122,26 @@ fn classify_non_file(
     })
 }
 
-/// Records `dir` itself as an accounted, unwalked artifact instead of propagating the `io::Error`
-/// that made it unreadable (permission denial being the common real case -- but any `read_dir`
-/// failure is handled identically). `.atlas/contracts/DEPENDENCY-CENSUS.md`'s "ingestion is not
-/// execution" sibling principle applies here too: one unreadable subtree, anywhere in a real
-/// filesystem walk, must never abort accounting for every other artifact in the repository (the
-/// same discipline `runtime::census::extraction::extract_semantics` already documents and applies
-/// for a per-file read failure). `fs::symlink_metadata` only needs search permission on `dir`'s
-/// *parents* (already proven, since this directory's own entry was just read from there), not on
-/// `dir` itself, so it still succeeds even when `dir`'s own permissions are what blocked the
-/// `read_dir` above; a `bytes: 0` fallback covers the rarer case where `dir` disappeared between
-/// being listed and being stat'd.
-fn record_unreadable_directory(
+/// Records `path` itself as an accounted, unclassified artifact instead of propagating the
+/// `io::Error` that made it inaccessible (permission denial being the common real case for either
+/// a directory `read_dir` couldn't list or a file `classify_file`/`classify_non_file` couldn't
+/// stat/open -- but any such failure, including one caused by the path vanishing mid-walk, is
+/// handled identically). `.atlas/contracts/DEPENDENCY-CENSUS.md`'s "ingestion is not execution"
+/// sibling principle applies here too: one inaccessible artifact, anywhere in a real filesystem
+/// walk, must never abort accounting for every other artifact in the repository (the same
+/// discipline `runtime::census::extraction::extract_semantics` already documents and applies for a
+/// per-file read failure). `fs::symlink_metadata` only needs search permission on `path`'s
+/// *parent* (already proven, since this entry was just read from there), not on `path` itself, so
+/// it still succeeds even when `path`'s own permissions are what caused `error`; a `bytes: 0`
+/// fallback covers the rarer case where `path` vanished between being listed and being stat'd.
+fn record_unreadable_artifact(
     root: &Path,
-    dir: &Path,
+    path: &Path,
     out: &mut BTreeMap<String, ArtifactRecord>,
     error: &io::Error,
 ) {
-    let relative_path = relative(root, dir);
-    let bytes = fs::symlink_metadata(dir)
+    let relative_path = relative(root, path);
+    let bytes = fs::symlink_metadata(path)
         .map(|meta| meta.len())
         .unwrap_or(0);
     let record = ArtifactRecord {
@@ -150,9 +151,48 @@ fn record_unreadable_directory(
         bytes,
         disposition: ArtifactDisposition::Unknown,
         language: None,
-        reason: Some(format!("directory-not-readable: {error}")),
+        reason: Some(format!("artifact-not-accessible: {error}")),
     };
     out.insert(record.path.clone(), record);
+}
+
+/// The classification outcome for one already-listed directory entry, kept separate from
+/// `visit_inventory`'s loop so every failure path -- `entry.file_type()`, `classify_file`,
+/// `classify_non_file` -- funnels through one `Result`, handled uniformly by the caller instead of
+/// each needing its own bespoke recovery.
+fn classify_entry(
+    root: &Path,
+    entry: &fs::DirEntry,
+    out: &mut BTreeMap<String, ArtifactRecord>,
+) -> io::Result<Option<ArtifactRecord>> {
+    let path = entry.path();
+    let name = entry.file_name().to_string_lossy().into_owned();
+    let file_type = entry.file_type()?;
+
+    if file_type.is_dir() {
+        if ignored_directory(&name) {
+            Ok(Some(policy_boundary(root, &path)))
+        } else {
+            visit_inventory(root, &path, out)?;
+            Ok(None)
+        }
+    } else if file_type.is_file() {
+        Ok(Some(classify_file(root, &path)?))
+    } else if file_type.is_symlink() {
+        Ok(Some(classify_non_file(
+            root,
+            &path,
+            ArtifactKind::Symlink,
+            "symlink-not-followed",
+        )?))
+    } else {
+        Ok(Some(classify_non_file(
+            root,
+            &path,
+            ArtifactKind::Special,
+            "special-file-not-parsed",
+        )?))
+    }
 }
 
 fn visit_inventory(
@@ -163,14 +203,14 @@ fn visit_inventory(
     let read_dir = match fs::read_dir(dir) {
         Ok(read_dir) => read_dir,
         Err(error) => {
-            record_unreadable_directory(root, dir, out, &error);
+            record_unreadable_artifact(root, dir, out, &error);
             return Ok(());
         }
     };
     let mut entries: Vec<_> = match read_dir.collect::<Result<_, _>>() {
         Ok(entries) => entries,
         Err(error) => {
-            record_unreadable_directory(root, dir, out, &error);
+            record_unreadable_artifact(root, dir, out, &error);
             return Ok(());
         }
     };
@@ -178,36 +218,21 @@ fn visit_inventory(
 
     for entry in entries {
         let path = entry.path();
-        let name = entry.file_name().to_string_lossy().into_owned();
-        let file_type = entry.file_type()?;
-
-        let record = if file_type.is_dir() {
-            if ignored_directory(&name) {
-                Some(policy_boundary(root, &path))
-            } else {
-                visit_inventory(root, &path, out)?;
-                None
+        // Falsification: confirmed a real, non-root `chmod 000` FILE (distinct from the
+        // already-fixed unreadable-DIRECTORY case) still aborted the whole walk here -- `?`
+        // propagated `entry.file_type()`/`classify_file`/`classify_non_file`'s `io::Error` (e.g.
+        // `fs::metadata`/`File::open` failing on a permission-denied or vanished file) straight
+        // out of `visit_inventory`, exactly the same defect class, just one level of granularity
+        // finer (one FILE, not one DIRECTORY). Same recovery: record it, never abort every other
+        // artifact because of it.
+        match classify_entry(root, &entry, out) {
+            Ok(Some(record)) => {
+                out.insert(record.path.clone(), record);
             }
-        } else if file_type.is_file() {
-            Some(classify_file(root, &path)?)
-        } else if file_type.is_symlink() {
-            Some(classify_non_file(
-                root,
-                &path,
-                ArtifactKind::Symlink,
-                "symlink-not-followed",
-            )?)
-        } else {
-            Some(classify_non_file(
-                root,
-                &path,
-                ArtifactKind::Special,
-                "special-file-not-parsed",
-            )?)
-        };
-
-        if let Some(record) = record {
-            out.insert(record.path.clone(), record);
+            Ok(None) => {}
+            Err(error) => {
+                record_unreadable_artifact(root, &path, out, &error);
+            }
         }
     }
     Ok(())
@@ -661,6 +686,57 @@ mod tests {
         assert!(report.is_closed());
 
         fs::set_permissions(&locked, fs::Permissions::from_mode(0o755)).unwrap();
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn an_unreadable_file_is_recorded_not_classified_and_does_not_abort_the_rest_of_the_tree() {
+        // Same defect class as the unreadable-directory case above, one level of granularity
+        // finer: confirmed against the unfixed code via `su ubuntu -c '.../atlas-systemizer
+        // code analyze --root ...'` that a single `chmod 000` FILE (not directory) still aborted
+        // the whole walk with "Permission denied (os error 13)" and zero output -- `classify_file`'s
+        // `fs::metadata`/`File::open` calls were still `?`-propagated out of `visit_inventory`
+        // even after the directory-level fix. Same root-detection skip as above; the real-process
+        // verification is the authoritative evidence for this fix.
+        if running_as_root() {
+            eprintln!(
+                "skipping an_unreadable_file_is_recorded_not_classified_and_does_not_abort_the_rest_of_the_tree: \
+                 running as root, which bypasses the permission check this test exercises"
+            );
+            return;
+        }
+
+        let root = scratch_root();
+        let src = root.join("src");
+        fs::create_dir_all(&src).unwrap();
+        fs::write(src.join("ok.rs"), "fn main() {}\n").unwrap();
+        let locked = src.join("locked.rs");
+        fs::write(&locked, "fn hidden() {}\n").unwrap();
+        fs::set_permissions(&locked, fs::Permissions::from_mode(0o000)).unwrap();
+
+        let report = inventory_source(&root).unwrap();
+
+        assert_eq!(
+            report.dispositions.get("PARSED"),
+            Some(&1),
+            "the readable sibling file must still be inventoried: {:?}",
+            report.artifacts
+        );
+        let locked_artifact = report
+            .artifacts
+            .iter()
+            .find(|artifact| artifact.path == "src/locked.rs")
+            .unwrap_or_else(|| {
+                panic!(
+                    "the unreadable file must still be accounted for, never silently dropped: {:?}",
+                    report.artifacts
+                )
+            });
+        assert_eq!(locked_artifact.disposition, ArtifactDisposition::Unknown);
+        assert!(report.is_closed());
+
+        fs::set_permissions(&locked, fs::Permissions::from_mode(0o644)).unwrap();
         fs::remove_dir_all(root).unwrap();
     }
 }

@@ -1,0 +1,51 @@
+{
+  "schema": "atlas.self-build.generation-evidence.v1",
+  "wave": "CORRECTNESS -- a single unreadable FILE (distinct from the already-fixed unreadable-DIRECTORY case) still aborted the whole source-tree walk",
+  "wave_title": "The immediately preceding generation (10d1576a4) fixed `visit_inventory`'s `fs::read_dir(dir)?` so an unreadable DIRECTORY no longer aborts the walk. `visit_inventory`'s per-entry classification still called `classify_file(root, &path)?` unconditionally -- and `classify_file` itself calls `fs::metadata(path)?` and (via `looks_binary`) `File::open(path)?`, either of which returns `Err` for a permission-denied or vanished FILE. That `?` still propagated straight out of `visit_inventory`, aborting the whole source-tree walk for one unreadable file, the exact same defect class one level of granularity finer than the directory case just fixed.",
+  "generation_model": {
+    "G_n": "10d1576a43 (fix(adapter): an unreadable directory no longer aborts the whole walk) -- stable generation this candidate was built and validated against",
+    "gap_discovered_by": "Direct continuation of the immediately preceding generation's own falsification method, narrowed from a directory to a file: constructed a real scratch repository (via the non-root `ubuntu` account, since root bypasses the permission checks this class of bug depends on -- the same rigor already established) with one ordinary readable `.rs` file and one `chmod 000` `.rs` file, committed with git (permissions set AFTER commit, since git itself refuses to `add` an unreadable file -- confirming this is a realistic post-checkout scenario, e.g. a build step or another process locking a file down after checkout, not merely a synthetic one). Reproduced the crash cleanly against the code as it stood immediately after the directory-level fix: `atlas-systemizer: <root>: Permission denied (os error 13)`, zero stdout -- proving the directory-level fix, while real and necessary, had not closed the class completely."
+  },
+  "priority_classification": "correctness / hostile-and-degraded-environment handling (priority 1/2) -- the fifth instance this session of the same defect class (one artifact's io::Error aborting the entire pipeline), now closed at the finest remaining granularity (one file) for the source-tree walker specifically.",
+  "design_decisions": [
+    {
+      "question": "Patch each of `entry.file_type()`, `classify_file`, `classify_non_file`'s call sites individually inside the loop (mirroring the directory-level fix's per-call-site `match`), or restructure once?",
+      "decision": "Restructure once: extracted the whole per-entry classification decision into a new `classify_entry(root, entry, out) -> io::Result<Option<ArtifactRecord>>`, called from `visit_inventory`'s loop through a single `match` that recovers from ANY `Err` it returns (whichever of the three internal calls produced it) via the same `record_unreadable_artifact` helper the directory fix introduced -- renamed from `record_unreadable_directory` since it's now generically about any inaccessible path, not directories specifically. This closes the whole per-entry failure surface in one place rather than requiring three near-identical recovery blocks (one per internal call site), and means a future fourth internal call added to entry classification is protected automatically rather than needing its own bespoke recovery to be remembered."
+    },
+    {
+      "question": "What `ArtifactKind`/`ArtifactDisposition` to record for an unreadable FILE, given `entry.file_type()` may itself be what failed (so we may not even know whether it was a file, directory, or symlink)?",
+      "decision": "`ArtifactKind::Special`/`ArtifactDisposition::Unknown` -- the same pair the directory case uses, and for the same reason: `Unknown` precisely means 'we cannot determine what this artifact actually is/contains', which is exactly true whether `entry.file_type()`, `fs::metadata`, or `File::open` was the call that failed. Using `ArtifactKind::File` would overclaim a fact (that we successfully determined it IS a regular file) the failure may not have actually established."
+    }
+  ],
+  "stable_validator_law_compliance": {
+    "claim": "A single file this process cannot classify -- because it cannot be stat'd, cannot be opened for its binary-detection sniff, or its directory-entry type cannot be determined -- anywhere in a repository's source tree no longer aborts `systemize`/`code_analyze`/`check`/`parse`/`work prepare`. It is recorded as an explicit `ArtifactRecord` (kind `SPECIAL`, disposition `UNKNOWN`, reason naming the real OS error) rather than silently dropped, and every other artifact in the repository is still inventoried normally.",
+    "self_written_evidence": "New `#[cfg(unix)]` regression test `an_unreadable_file_is_recorded_not_classified_and_does_not_abort_the_rest_of_the_tree` in `adapter/src/source/mod.rs`, using a real `chmod 000` file, guarded by the same root-detection skip introduced for the directory-level test in the immediately preceding generation.",
+    "independent_evidence_channel": "Real, rebuilt `atlas-systemizer` binary invoked as the non-root `ubuntu` account against a scratch repository with one `chmod 000` `.rs` file: previously `exit 2`, 'Permission denied (os error 13)', zero stdout; now `exit 0`, correctly listing `Cargo.toml`/`src/lib.rs` as parsed while recording `src/locked.rs` as `{\"kind\": \"SPECIAL\", \"disposition\": \"UNKNOWN\", \"reason\": \"artifact-not-accessible: Permission denied (os error 13)\"}`. Full workspace re-run (`cargo fmt --all --check`, `cargo clippy --workspace --all-targets -- -D warnings`, `cargo test --workspace`) and a fresh `systemize` run against the real Atlas-Studio repository itself confirm zero regression to any existing gate, blocker, or test.",
+    "no_circular_self_certification": true
+  },
+  "implementation": {
+    "adapter/src/source/mod.rs": "`record_unreadable_directory` renamed to `record_unreadable_artifact` (generalized: it now records any inaccessible path, not directories specifically; reason prefix changed from `directory-not-readable:` to `artifact-not-accessible:`). New `classify_entry` function extracts the per-entry classification decision (`entry.file_type()`/`classify_file`/`classify_non_file`) out of `visit_inventory`'s loop into its own `io::Result<Option<ArtifactRecord>>`. `visit_inventory`'s loop now matches on `classify_entry`'s result, recovering via `record_unreadable_artifact` on any `Err` instead of propagating it. New falsification-first regression test."
+  },
+  "adversarial_and_falsification_coverage": [
+    "an_unreadable_file_is_recorded_not_classified_and_does_not_abort_the_rest_of_the_tree -- real chmod 000 file, root-detection-guarded, exercises the actual regression on any non-root CI",
+    "real end-to-end CLI verification as a genuine non-root user (su ubuntu), falsification-first: the exact crash was reproduced and captured against the code as it stood immediately after the directory-level fix, before this fix was written",
+    "confirmed the realistic trigger path (git itself refuses to `add` an unreadable file, so the test constructs the scenario by locking the file down AFTER a normal commit -- matching how this would actually arise, e.g. a build artifact or another process restricting a file post-checkout)",
+    "full workspace re-run and a fresh systemize run against the real repository, confirming zero regression (coding_admission.allowed: true, zero blockers unchanged; 466 tests passing, up from 465)"
+  ],
+  "validation_this_generation": {
+    "commands": {
+      "cargo fmt --all --check": { "exit_code": 0 },
+      "cargo clippy --workspace --all-targets -- -D warnings": { "exit_code": 0, "warnings": 0 },
+      "cargo test --workspace": { "exit_code": 0, "totals": "248 adapter (+1), 1 atlas-cli, 156 core, 61 runtime -- 466 total, 0 failed, up from 465" },
+      "cargo run -q -p atlas-cli -- systemize --root .": { "finding": "coding_admission.allowed: true, zero blockers -- unchanged" },
+      "su ubuntu -c 'atlas-systemizer code analyze --root <repo with a chmod-000 file under src/>'": { "before": "exit 2, 'Permission denied (os error 13)', zero stdout", "after": "exit 0, other files inventoried normally, locked file recorded as SPECIAL/UNKNOWN with its real OS error as the reason" }
+    }
+  },
+  "recensus_scope_after_promotion": [
+    "no prior CLOSED/EXTINCT conclusion depended on this crash class existing or not existing, so no external conclusion requires reopening",
+    "this generation closes the finest remaining granularity of the per-artifact-read-failure defect class for `adapter::source::visit_inventory` specifically: directory-level (previous generation) and now file/entry-level are both closed for the source-tree walker, matching the file-content-level closure (non-UTF-8) two generations prior for `.adl`/`.md`/`repo.toml`",
+    "the `classify_entry` extraction pattern (funnel every per-entry failure path through one `Result`, recovered in exactly one place) is a reusable template for any future filesystem walker added to this codebase, avoiding the need to remember a bespoke recovery block per internal call site"
+  ],
+  "overall_verdict": "MATERIALIZED AND VERIFIED. A single unreadable file anywhere in a repository's source tree previously aborted the entire pipeline with zero report -- the file-level sibling of the directory-level defect fixed in the immediately preceding generation, discovered by directly continuing that generation's own falsification method one level finer. Fixed by extracting per-entry classification into `classify_entry` and recovering uniformly from any failure path through the same `record_unreadable_artifact` helper (now generalized rather than directory-specific), with the unreadable file explicitly accounted for (never silently dropped). Verified with a real, non-root, falsification-first end-to-end reproduction plus a root-detection-guarded unit regression test, with zero regression to the real repository's own state or any existing test.",
+  "historical_evidence_retained": true
+}
