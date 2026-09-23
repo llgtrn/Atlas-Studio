@@ -1,8 +1,7 @@
-//! Real Rust semantic extractor (R4.3-R4.10).
+//! Real Rust semantic extractor (R4.3-R4.11).
 //!
-//! Scope is eleven dimensions: SYMBOL, TYPE, FUNCTION_IDENTITY, FUNCTION_SIGNATURE, CALL,
-//! CONTROL_FLOW, DATA_FLOW, STATE, EFFECT, OWNERSHIP, CONCURRENCY. Every other requested dimension
-//! (PERSISTENCE) is always explicit `UNSUPPORTED` here — R4.11+ territory, never silently omitted.
+//! Scope is all twelve dimensions: SYMBOL, TYPE, FUNCTION_IDENTITY, FUNCTION_SIGNATURE, CALL,
+//! CONTROL_FLOW, DATA_FLOW, STATE, EFFECT, OWNERSHIP, CONCURRENCY, PERSISTENCE.
 //!
 //! Parses `input.source_text` with `syn` (a real Rust parser, not regex/ad-hoc text scanning).
 //! Parsing untrusted source text never authorizes executing it: this extractor never runs
@@ -37,8 +36,12 @@
 //! `Await` (dedicated `.await` syntax, fully determined) and `Spawn` (callee spelling ending in
 //! `spawn`, the same name-based risk class EFFECT already accepts for panic macros);
 //! `Lock`/`Unlock`/channel/atomic operations would require resolving a method call to a specific
-//! known API and are never emitted this wave. A malformed file never silently disappears: parse
-//! failure yields a `ParseFailure` diagnostic plus
+//! known API and are never emitted this wave. PERSISTENCE (R4.11, see `persistence.rs`) has no
+//! dedicated syntax at all and no resolved-API adapter, so every candidate is a textual
+//! callee-spelling guess (`commit`/`flush`/`sync`/`sync_all`/`sync_data`/`checkpoint`/`snapshot`),
+//! always `Inferred` with an unresolved `PlaceRef` -- see `core::semantic::persistence`'s module
+//! doc comment for why a durable-state target is never derived from spelling. A malformed file
+//! never silently disappears: parse failure yields a `ParseFailure` diagnostic plus
 //! explicit `UNKNOWN` for all supported dimensions, with the artifact still represented.
 
 mod cfg;
@@ -46,6 +49,7 @@ mod concurrency;
 mod dataflow;
 mod effect;
 mod ownership;
+mod persistence;
 mod spelling;
 mod state;
 
@@ -65,8 +69,8 @@ use super::extractor::{DiagnosticCode, ExtractionDiagnostic, ExtractionInput, Se
 pub const RUST_SEMANTIC_EXTRACTOR_ID: &str = "atlas.rust.source-semantic.v1";
 pub const RUST_SEMANTIC_EXTRACTOR_VERSION: &str = "0.1.0";
 
-/// Exactly the eleven dimensions this wave observes from parser-visible syntax. Every other
-/// `SemanticDimension` is out of scope through R4.10 and always answered `UNSUPPORTED`.
+/// Exactly the twelve dimensions this wave observes from parser-visible syntax -- every
+/// `SemanticDimension` variant that exists.
 pub const SUPPORTED_DIMENSIONS: &[SemanticDimension] = &[
     SemanticDimension::Symbol,
     SemanticDimension::Type,
@@ -79,6 +83,7 @@ pub const SUPPORTED_DIMENSIONS: &[SemanticDimension] = &[
     SemanticDimension::Effect,
     SemanticDimension::Ownership,
     SemanticDimension::Concurrency,
+    SemanticDimension::Persistence,
 ];
 
 /// Whether this extractor's declared profile for a dimension has been checked to visit every
@@ -117,25 +122,26 @@ fn dimension_coverage(dimension: SemanticDimension) -> DimensionCoverage {
         | SemanticDimension::FunctionIdentity
         | SemanticDimension::FunctionSignature => Exhaustive,
         // Every full-expression-tree walker (CALL/CONTROL_FLOW/DATA_FLOW/STATE/EFFECT/OWNERSHIP/
-        // CONCURRENCY) shares one real, permanent gap: a bare `syn::Expr::Macro` invocation's
-        // arguments are an opaque `TokenStream`, never re-parsed as expressions without macro
-        // expansion (which this extractor never performs -- `.atlas/contracts/
-        // SEMANTIC-EXTRACTION.md`). A call, move, state access, effect, borrow or concurrency site
-        // written only inside a macro invocation's arguments (e.g. `my_macro!(hidden_call())`) is
-        // therefore structurally invisible to all seven, regardless of how complete each walker's
-        // own `syn::Expr` variant coverage otherwise is. CONTROL_FLOW additionally never splits
-        // below statement level (its own module doc comment already states this). None of the
-        // seven may claim a zero-observation result as verified absence.
+        // CONCURRENCY/PERSISTENCE) shares one real, permanent gap: a bare `syn::Expr::Macro`
+        // invocation's arguments are an opaque `TokenStream`, never re-parsed as expressions
+        // without macro expansion (which this extractor never performs -- `.atlas/contracts/
+        // SEMANTIC-EXTRACTION.md`). A call, move, state access, effect, borrow, concurrency or
+        // persistence site written only inside a macro invocation's arguments (e.g.
+        // `my_macro!(hidden_call())`) is therefore structurally invisible to all eight, regardless
+        // of how complete each walker's own `syn::Expr` variant coverage otherwise is. CONTROL_FLOW
+        // additionally never splits below statement level (its own module doc comment already
+        // states this). PERSISTENCE additionally has no dedicated syntax at all (unlike
+        // CONCURRENCY's `.await`) and no resolved-API adapter, so every candidate it emits is a
+        // textual spelling guess -- see `persistence.rs`. None of the eight may claim a
+        // zero-observation result as verified absence.
         SemanticDimension::Call
         | SemanticDimension::ControlFlow
         | SemanticDimension::DataFlow
         | SemanticDimension::State
         | SemanticDimension::Effect
         | SemanticDimension::Ownership
-        | SemanticDimension::Concurrency => Partial,
-        // Not yet a supported dimension; never reached through `SUPPORTED_DIMENSIONS`, but this
-        // match stays exhaustive over every `SemanticDimension` variant on purpose.
-        SemanticDimension::Persistence => Partial,
+        | SemanticDimension::Concurrency
+        | SemanticDimension::Persistence => Partial,
     }
 }
 
@@ -809,6 +815,7 @@ impl<'a> ExtractionContext<'a> {
             self.build_effects(body, scope, &caller_record_id);
             self.build_ownership(body, scope, &caller_record_id);
             self.build_concurrency(body, scope, &caller_record_id);
+            self.build_persistence(body, scope, &caller_record_id);
         }
 
         let mut parameters = Vec::new();

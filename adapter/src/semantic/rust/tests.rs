@@ -13,10 +13,10 @@ use atlas_core::{
     ArtifactId, CallDispatchKind, CallSiteIdentity, ConcurrencyIdentity, ConcurrencyKind,
     ContentFingerprint, ControlFlowBlockIdentity, ControlFlowBlockKind, ControlFlowEdgeKind,
     DataFlowResolution, EffectCategory, EffectIdentity, EpistemicStatus, FunctionDeclarationKind,
-    FunctionIdentity, FunctionSignature, OwnershipIdentity, OwnershipKind, RepositoryId,
-    RevisionRef, SemanticDimension, SemanticObservation, SemanticRecordId, StateAccessIdentity,
-    StateAccessKind, StateResolution, SymbolIdentity, SymbolRole, TypeIdentity, ValueIdentity,
-    ValueRole,
+    FunctionIdentity, FunctionSignature, OwnershipIdentity, OwnershipKind, PersistenceIdentity,
+    PersistenceKind, PersistenceResolution, PlaceRef, RepositoryId, RevisionRef, SemanticDimension,
+    SemanticObservation, SemanticRecordId, StateAccessIdentity, StateAccessKind, StateResolution,
+    SymbolIdentity, SymbolRole, TypeIdentity, ValueIdentity, ValueRole,
 };
 
 const ALL_DIMENSIONS: [SemanticDimension; 12] = [
@@ -33,8 +33,6 @@ const ALL_DIMENSIONS: [SemanticDimension; 12] = [
     SemanticDimension::Concurrency,
     SemanticDimension::Persistence,
 ];
-
-const UNSUPPORTED_DIMENSIONS: [SemanticDimension; 1] = [SemanticDimension::Persistence];
 
 /// Reference correctness corpus: one small, real Rust file covering every R4.3 minimum
 /// construct. `greet` is deliberately declared twice -- once as a free function, once as a
@@ -858,6 +856,34 @@ fn concurrency_ops_for<'a>(
     values
 }
 
+fn all_persistence_ops(batch: &ExtractionBatch) -> Vec<&PersistenceIdentity> {
+    batch
+        .observations
+        .iter()
+        .filter_map(|observation| match observation {
+            SemanticObservation::Persistence(header) => Some(&header.subject),
+            _ => None,
+        })
+        .collect()
+}
+
+/// Every Persistence operation observation whose `function` is exactly `caller`'s
+/// `FunctionIdentity` record_id, sorted by (span line, span column, kind) for deterministic
+/// assertions.
+fn persistence_ops_for<'a>(
+    batch: &'a ExtractionBatch,
+    caller: &FunctionIdentity,
+) -> Vec<&'a PersistenceIdentity> {
+    let caller_id =
+        SemanticRecordId::new(SemanticDimension::FunctionIdentity, &caller.identity_key());
+    let mut values: Vec<&PersistenceIdentity> = all_persistence_ops(batch)
+        .into_iter()
+        .filter(|value| value.function == caller_id)
+        .collect();
+    values.sort_by_key(|value| (value.span.line, value.span.column, value.kind.as_str()));
+    values
+}
+
 // --- 1. free/public function symbol observation ------------------------------------------------
 
 #[test]
@@ -1171,29 +1197,25 @@ fn malformed_rust_produces_parse_failure_and_unknown_for_supported_dimensions() 
         SemanticDimension::Effect,
         SemanticDimension::Ownership,
         SemanticDimension::Concurrency,
+        SemanticDimension::Persistence,
     ] {
         let obligation = batch.obligation_for(dimension).unwrap();
         assert_eq!(obligation.status, EpistemicStatus::Unknown);
         assert!(!obligation.diagnostics.is_empty());
     }
-    for &dimension in &UNSUPPORTED_DIMENSIONS {
-        assert_eq!(
-            batch.obligation_for(dimension).unwrap().status,
-            EpistemicStatus::Unsupported
-        );
-    }
 }
 
-// --- 20. unsupported dimensions are always explicit, never silently dropped --------------------
+// --- 20. every SemanticDimension variant is now supported by this extractor (R4.11 closes the
+// last gap); a dimension going from unsupported to supported must never silently drop it from
+// batch accounting -----------------------------------------------------------------------------
 
 #[test]
-fn unsupported_dimensions_are_always_explicit() {
+fn every_dimension_variant_is_now_supported_and_accounted_for() {
     let batch = extract_all("src/lib.rs", CORPUS);
     assert!(batch.is_closed(&ALL_DIMENSIONS));
-    for &dimension in &UNSUPPORTED_DIMENSIONS {
+    for &dimension in &ALL_DIMENSIONS {
         let obligation = batch.obligation_for(dimension).unwrap();
-        assert_eq!(obligation.status, EpistemicStatus::Unsupported);
-        assert!(!obligation.diagnostics.is_empty());
+        assert_ne!(obligation.status, EpistemicStatus::Unsupported);
     }
 }
 
@@ -3696,4 +3718,264 @@ pub fn inspect(x: u64) -> u64 {
             .any(|op| op.kind == OwnershipKind::MoveOrCopy && op.name == "x"),
         "matching on x by value alone is not itself a move -- x is only inspected, not consumed"
     );
+}
+
+// =====================================================================================================
+// R4.11 PERSISTENCE: conservative, textual-spelling-only durable-state candidate detection. Every
+// adversarial case here proves the central invariant: unresolved call spelling never becomes a
+// resolved persistence fact, exactly as R4.8's panic-macro and R4.10's spawn-spelling precedents
+// already established. See core::semantic::persistence's module doc comment for the PlaceRef
+// bridge this dimension uses instead of inventing a fifth spelling-keyed target identity.
+// =====================================================================================================
+
+const PERSISTENCE_CORPUS: &str = r#"
+pub fn commits_something(store: &mut Store) {
+    store.commit();
+}
+
+pub fn unrelated_business_logic(game: &mut Game) {
+    game.commit();
+}
+
+pub fn flushes_a_ui(ui: &mut Ui) {
+    ui.flush();
+}
+
+pub fn syncs_a_cache(cache: &mut Cache) {
+    cache.sync();
+}
+
+pub fn checkpoints_a_builder(builder: &mut Builder) {
+    builder.checkpoint();
+}
+
+pub fn snapshots_a_builder(builder: &mut Builder) {
+    builder.snapshot();
+}
+
+pub fn calls_something_unrelated(widget: &mut Widget) {
+    widget.render();
+}
+
+pub fn commits_twice(store: &mut Store) {
+    store.commit();
+    store.commit();
+}
+
+pub fn commits_inside_async_block(store: &mut Store) {
+    let _ = async {
+        store.commit();
+    };
+}
+
+pub fn commits_inside_closure(store: &mut Store) {
+    let _ = || {
+        store.commit();
+    };
+}
+
+pub struct Store;
+impl Store {
+    pub fn commit(&mut self) {}
+}
+pub struct Game;
+impl Game {
+    pub fn commit(&mut self) {}
+}
+pub struct Ui;
+impl Ui {
+    pub fn flush(&mut self) {}
+}
+pub struct Cache;
+impl Cache {
+    pub fn sync(&mut self) {}
+}
+pub struct Builder;
+impl Builder {
+    pub fn checkpoint(&mut self) {}
+    pub fn snapshot(&mut self) {}
+}
+pub struct Widget;
+impl Widget {
+    pub fn render(&mut self) {}
+}
+"#;
+
+// --- 109. a real-shaped `commit()` call is recorded as an Inferred candidate, never Observed -----
+
+#[test]
+fn commit_call_is_recorded_as_an_inferred_candidate() {
+    let batch = extract_all("src/lib.rs", PERSISTENCE_CORPUS);
+    let caller = find_function_identity(&batch, &[], "commits_something").unwrap();
+    let ops = persistence_ops_for(&batch, caller);
+    assert_eq!(ops.len(), 1);
+    assert_eq!(ops[0].kind, PersistenceKind::Commit);
+    assert_eq!(ops[0].resolution, PersistenceResolution::Unresolved);
+    assert_eq!(ops[0].place, PlaceRef::Unresolved);
+}
+
+// --- 110. an UNRELATED method merely named `commit` is treated identically -- this extractor
+// cannot and must not distinguish it from a real durable commit by spelling alone ------------------
+
+#[test]
+fn unrelated_commit_spelled_method_is_still_only_inferred_never_observed() {
+    let batch = extract_all("src/lib.rs", PERSISTENCE_CORPUS);
+    let caller = find_function_identity(&batch, &[], "unrelated_business_logic").unwrap();
+    let caller_id =
+        SemanticRecordId::new(SemanticDimension::FunctionIdentity, &caller.identity_key());
+    let header = batch
+        .observations
+        .iter()
+        .find_map(|observation| match observation {
+            SemanticObservation::Persistence(header) if header.subject.function == caller_id => {
+                Some(header)
+            }
+            _ => None,
+        })
+        .expect("game.commit() still produces a textual candidate");
+    assert_eq!(
+        header.status,
+        atlas_core::EpistemicStatus::Inferred,
+        "an unrelated game.commit() must never become OBSERVED merely because it is spelled like a durable commit"
+    );
+}
+
+// --- 111. flush/sync/checkpoint/snapshot spellings map to their own distinct PersistenceKind -----
+
+#[test]
+fn each_persistence_spelling_maps_to_its_own_kind() {
+    let batch = extract_all("src/lib.rs", PERSISTENCE_CORPUS);
+    let cases = [
+        ("flushes_a_ui", PersistenceKind::Flush),
+        ("syncs_a_cache", PersistenceKind::Sync),
+        ("checkpoints_a_builder", PersistenceKind::Checkpoint),
+    ];
+    for (function_name, expected_kind) in cases {
+        let caller = find_function_identity(&batch, &[], function_name).unwrap();
+        let ops = persistence_ops_for(&batch, caller);
+        assert_eq!(
+            ops.len(),
+            1,
+            "{function_name} should produce exactly one candidate"
+        );
+        assert_eq!(ops[0].kind, expected_kind);
+    }
+    let snapshot_caller = find_function_identity(&batch, &[], "snapshots_a_builder").unwrap();
+    let snapshot_ops = persistence_ops_for(&batch, snapshot_caller);
+    assert_eq!(snapshot_ops.len(), 1);
+    assert_eq!(snapshot_ops[0].kind, PersistenceKind::Snapshot);
+}
+
+// --- 112. an ordinary, unrelated method call produces no Persistence observation at all -----------
+
+#[test]
+fn unrelated_method_call_produces_no_persistence_observation() {
+    let batch = extract_all("src/lib.rs", PERSISTENCE_CORPUS);
+    let caller = find_function_identity(&batch, &[], "calls_something_unrelated").unwrap();
+    assert!(persistence_ops_for(&batch, caller).is_empty());
+}
+
+// --- 113. two identical-spelling commit() calls at different sites remain two distinct
+// observations, never collapsed -- the same lesson R4.9's OwnershipTarget bug already established -
+
+#[test]
+fn two_identical_spelling_commit_calls_remain_distinct_observations() {
+    let batch = extract_all("src/lib.rs", PERSISTENCE_CORPUS);
+    let caller = find_function_identity(&batch, &[], "commits_twice").unwrap();
+    let ops = persistence_ops_for(&batch, caller);
+    assert_eq!(
+        ops.len(),
+        2,
+        "both commit() sites must be recorded independently"
+    );
+    assert_ne!(
+        (ops[0].span.line, ops[0].span.column),
+        (ops[1].span.line, ops[1].span.column)
+    );
+}
+
+// --- 114. a persistence-shaped call inside a nested async block or closure is NOT attributed to
+// the enclosing function -- consistent with every other dimension's deferred-region exclusion -----
+
+#[test]
+fn persistence_call_inside_async_block_is_not_attributed_to_the_enclosing_function() {
+    let batch = extract_all("src/lib.rs", PERSISTENCE_CORPUS);
+    let caller = find_function_identity(&batch, &[], "commits_inside_async_block").unwrap();
+    assert!(
+        persistence_ops_for(&batch, caller).is_empty(),
+        "a commit() inside an async block belongs to that deferred region, never to the function \
+         that merely constructs it"
+    );
+}
+
+#[test]
+fn persistence_call_inside_closure_is_not_attributed_to_the_enclosing_function() {
+    let batch = extract_all("src/lib.rs", PERSISTENCE_CORPUS);
+    let caller = find_function_identity(&batch, &[], "commits_inside_closure").unwrap();
+    assert!(
+        persistence_ops_for(&batch, caller).is_empty(),
+        "a commit() inside a closure belongs to that deferred region, never to the enclosing fn"
+    );
+}
+
+// --- 115. a state mutation alone never fabricates a durable persistence fact ----------------------
+
+#[test]
+fn plain_state_mutation_never_fabricates_persistence() {
+    const CORPUS: &str = r#"
+pub struct Counter {
+    value: u64,
+}
+impl Counter {
+    pub fn increment(&mut self) {
+        self.value += 1;
+    }
+}
+"#;
+    let batch = extract_all("src/lib.rs", CORPUS);
+    let caller = find_function_identity(&batch, &["impl:Counter"], "increment").unwrap();
+    assert!(persistence_ops_for(&batch, caller).is_empty());
+}
+
+// --- 116. every Persistence observation satisfies dimension consistency --------------------------
+
+#[test]
+fn persistence_observations_satisfy_dimension_consistency() {
+    let batch = extract_all("src/lib.rs", PERSISTENCE_CORPUS);
+    assert!(
+        batch
+            .observations
+            .iter()
+            .filter(|observation| matches!(observation, SemanticObservation::Persistence(_)))
+            .all(SemanticObservation::is_dimension_consistent)
+    );
+}
+
+// --- 117. deterministic across repeated extraction, and unaffected by requested dimension order --
+
+#[test]
+fn persistence_corpus_extraction_is_deterministic() {
+    let a = extract_all("src/lib.rs", PERSISTENCE_CORPUS);
+    let b = extract_all("src/lib.rs", PERSISTENCE_CORPUS);
+    assert_eq!(a.observations, b.observations);
+}
+
+#[test]
+fn repeated_extraction_yields_stable_persistence_record_ids() {
+    let batch = extract_all("src/lib.rs", PERSISTENCE_CORPUS);
+    let caller = find_function_identity(&batch, &[], "commits_something").unwrap();
+    let first: Vec<String> = persistence_ops_for(&batch, caller)
+        .into_iter()
+        .map(PersistenceIdentity::identity_key)
+        .collect();
+
+    let batch2 = extract_all("src/lib.rs", PERSISTENCE_CORPUS);
+    let caller2 = find_function_identity(&batch2, &[], "commits_something").unwrap();
+    let second: Vec<String> = persistence_ops_for(&batch2, caller2)
+        .into_iter()
+        .map(PersistenceIdentity::identity_key)
+        .collect();
+
+    assert_eq!(first, second);
+    assert!(!first.is_empty());
 }
