@@ -2634,7 +2634,11 @@ fn compound_assignment_is_recorded_as_read_and_write() {
     let batch = extract_all("src/lib.rs", STATE_EFFECT_CORPUS);
     let caller = find_function_identity(&batch, &["impl:Counter"], "compound_increment").unwrap();
     let accesses = state_accesses_for(&batch, caller);
-    assert_eq!(accesses.len(), 2, "`self.value += 1` is a read-modify-write");
+    assert_eq!(
+        accesses.len(),
+        2,
+        "`self.value += 1` is a read-modify-write"
+    );
     assert_eq!(
         accesses
             .iter()
@@ -2713,6 +2717,7 @@ fn partial_state_effect_dimensions_remain_unknown_with_or_without_observations()
         assert!(!obligation.diagnostics.is_empty());
     }
 }
+
 // --- 69. every State/Effect observation satisfies dimension consistency, alongside every other
 // dimension this extractor produces -------------------------------------------------------------
 

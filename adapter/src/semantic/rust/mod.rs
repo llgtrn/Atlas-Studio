@@ -998,14 +998,17 @@ impl<'a> ExtractionContext<'a> {
                     let diagnostic_id = diagnostic.id.clone();
                     self.diagnostics.push(diagnostic);
                     match records {
-                        Some((ids, refs)) => obligations.push(
-                            ObligationResult::unknown_with_observations(
-                                dimension, ids, refs, diagnostic_id,
-                            ),
-                        ),
-                        None => obligations.push(ObligationResult::unknown(
-                            dimension, diagnostic_id,
-                        )),
+                        Some((ids, refs)) => {
+                            obligations.push(ObligationResult::unknown_with_observations(
+                                dimension,
+                                ids,
+                                refs,
+                                diagnostic_id,
+                            ))
+                        }
+                        None => {
+                            obligations.push(ObligationResult::unknown(dimension, diagnostic_id))
+                        }
                     }
                     continue;
                 }

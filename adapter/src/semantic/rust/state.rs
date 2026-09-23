@@ -24,8 +24,7 @@ use atlas_core::{
 
 use super::ExtractionContext;
 
-/// The field this expression accesses via a bare `self.<field>`, if it is exactly that shape
-/// (not a deeper chain like `self.a.b`, and not a tuple-index field like `self.0`).
+/// True for Rust compound-assignment operators represented by syn as `Expr::Binary`.
 fn is_compound_assignment(op: &syn::BinOp) -> bool {
     matches!(
         op,
@@ -42,6 +41,8 @@ fn is_compound_assignment(op: &syn::BinOp) -> bool {
     )
 }
 
+/// The field this expression accesses via a bare `self.<field>`, if it is exactly that shape
+/// (not a deeper chain like `self.a.b`, and not a tuple-index field like `self.0`).
 fn self_field_ident(field: &syn::ExprField) -> Option<syn::Ident> {
     let syn::Expr::Path(path) = field.base.as_ref() else {
         return None;

@@ -58,13 +58,13 @@ DC1 determines census breadth. R4 semantic dimensions determine census depth.
 
 ### R4 — semantic census depth
 
-Current materialized baseline is R4.5.
+Current materialized baseline is R4.8 bootstrap: R4.6 CONTROL_FLOW and R4.7 DATA_FLOW are materialized; R4.8 emits useful STATE/EFFECT evidence but canonical R4.8 closure remains open.
 
 - **R4.3.x — real Rust semantic bootstrap:** SYMBOL, TYPE, FUNCTION_IDENTITY and FUNCTION_SIGNATURE are real typed observations; extraction is wired through canonical Census; typed records survive normalization; raw observation identity, typed obligation lineage, typed closure and typed graph projection are materialized.
 - **R4.4 — Function Identity Closure — materialized:** typed declaration kind, impl/trait owner context and function generics strengthen module/impl/trait/revision-safe declaration identity.
 - **R4.5 — Call Semantics — materialized:** real Rust function/method-body call sites flow through canonical Census/Normalization; caller identity is observed while unresolved callees remain explicitly unresolved rather than fabricated.
-- **R4.6 — Control Flow:** deterministic basic blocks, branch/loop/return/failure flow.
-- **R4.7 — Data Flow:** values, definitions/uses, parameter/result flow, loads/stores and explicit ambiguity.
+- **R4.6 — Control Flow — materialized:** deterministic basic blocks, branch/loop/return/failure flow.
+- **R4.7 — Data Flow — materialized:** values, definitions/uses, parameter/result flow, loads/stores and explicit ambiguity.
 - **R4.8 — State + Effect:** bootstrap materialized, closure open; partial STATE/EFFECT facts remain useful but dimension obligations stay UNKNOWN until unmodeled state/effect forms and resolution gaps are closed. Compound assignment is read+write; textual panic-like macros are inferred until resolved.
 - **R4.9 — Ownership / Resource Semantics:** borrow/move/copy and resource acquisition/transfer/release where evidenced.
 - **R4.10 — Concurrency:** tasks/threads/channels/locks/atomics/synchronization and concurrent state interaction.

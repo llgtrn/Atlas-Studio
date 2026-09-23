@@ -153,17 +153,21 @@ Current materialized sequence:
 - R4.3.2 — lossless typed records through Census and normalization;
 - R4.3.3 — raw observation identity, typed obligation lineage, typed closure accounting, and typed engineering-graph boundary.
 
-Currently real Rust semantic dimensions through R4.5:
+Currently materialized Rust semantic dimensions are:
 
 - SYMBOL;
 - TYPE;
 - FUNCTION_IDENTITY;
 - FUNCTION_SIGNATURE;
-- CALL.
+- CALL;
+- CONTROL_FLOW;
+- DATA_FLOW;
+- partial STATE;
+- partial EFFECT.
 
-R4.5 observes real function-body call sites through the canonical semantic path while leaving targets UNRESOLVED where source evidence is insufficient.
+R4.5 observes real function-body call sites while leaving targets UNRESOLVED where source evidence is insufficient. R4.6 and R4.7 materialize control/data-flow structure. R4.8 now produces useful STATE/EFFECT observations, but those two dimension obligations deliberately remain UNKNOWN until their declared closure gaps are resolved.
 
-These facts are useful but are not sufficient for mechanism absorption by themselves.
+These facts are increasingly useful for mechanism absorption, but partial R4.8 evidence must not be mistaken for full semantic closure.
 
 ### R4.4 — Function Identity Closure — materialized
 
@@ -200,9 +204,9 @@ Current source-only resolution discipline is conservative:
 
 Deeper target resolution may improve through later semantic/compiler evidence without changing the identity of the already-observed call site.
 
-### R4.6 — Control Flow
+### R4.6 — Control Flow — materialized
 
-Materialize CONTROL_FLOW:
+CONTROL_FLOW is materialized on canonical main with:
 
 - deterministic block identity;
 - entry/exit;
@@ -215,9 +219,9 @@ Materialize CONTROL_FLOW:
 
 CFG identity MUST be stable for identical pinned input and MUST NOT depend on traversal/hash iteration order.
 
-### R4.7 — Data Flow
+### R4.7 — Data Flow — materialized
 
-Materialize DATA_FLOW:
+DATA_FLOW is materialized on canonical main with:
 
 - values;
 - definitions/uses;
@@ -252,6 +256,7 @@ R4.8 closure still requires materializing/accounting:
 - closure evidence sufficient to justify any verified negative fact.
 
 This is the minimum point at which many donor mechanisms become semantically useful for absorption because Atlas can connect implementation behavior to state change and external effect, but the closure claim remains profile-scoped and evidence-gated.
+
 ### R4.9 — Ownership and Resource Semantics
 
 Materialize OWNERSHIP at the level required for reliable census:
