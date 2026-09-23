@@ -925,7 +925,7 @@ census_status = "DEEP_CENSUS_ACTIVE"
 decision_status = "PENDING_COORDINATOR_REVIEW"
 native_replacement = "architecture study only -- not adopted as a runtime dependency; see census disposition table"
 runtime_dependency_status = "REFERENCE_ONLY"
-evidence = [".atlas/provenance/donors/xdsl.json", ".atlas/census/donors/xdsl.md"]
+evidence = [".atlas/provenance/donors/xdsl.json", ".atlas/census/donors/xdsl.md", ".atlas/genome/technology/xdsl-merged-trait-interface-dispatch.md"]
 
 [[donor]]
 id = "egglog"
