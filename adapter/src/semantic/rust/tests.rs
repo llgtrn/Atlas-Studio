@@ -346,8 +346,8 @@ pub fn no_calls_no_branches() -> u64 {
 
 /// R4.7 DATA_FLOW corpus: simple def-use, shadowing, mutation (Store), block-scoped shadowing,
 /// a method receiver's Definition/Use, return-flow (explicit `return` and tail-expression), an
-/// unresolved use (no matching local definition), and a not-modeled tuple-destructuring pattern
-/// (documented gap: no Definitions emitted for its sub-bindings).
+/// unresolved use (no matching local definition), and (R4.12) a tuple-destructuring pattern, whose
+/// sub-bindings now each emit a real Definition.
 const DATA_FLOW_CORPUS: &str = r#"
 pub fn simple_def_use(x: u64) -> u64 {
     let y = x + 1;
@@ -404,6 +404,34 @@ pub fn destructures_a_tuple() -> u64 {
 pub fn if_in_let(x: u64) -> u64 {
     let y = if x > 0 { x } else { x };
     y
+}
+
+pub struct Point {
+    pub x: u64,
+    pub y: u64,
+}
+
+pub fn destructures_a_struct(p: Point) -> u64 {
+    let Point { x, y } = p;
+    x + y
+}
+
+pub fn destructures_a_slice(values: [u64; 2]) -> u64 {
+    let [first, second] = values;
+    first + second
+}
+
+pub fn binds_with_at_pattern(x: u64) -> u64 {
+    match x {
+        n @ 1..=5 => n,
+        other => other,
+    }
+}
+
+pub fn binds_via_or_pattern(x: Result<u64, u64>) -> u64 {
+    match x {
+        Ok(value) | Err(value) => value,
+    }
 }
 "#;
 
@@ -2566,19 +2594,30 @@ fn method_receiver_is_a_definition_and_field_access_resolves_it() {
     assert_eq!(self_use.resolved_definition.as_ref(), Some(&def_id));
 }
 
-// --- 57. a tuple-destructuring pattern is a documented, honest gap: no Definitions for its
-//     sub-bindings, so subsequent uses of them are explicitly UNRESOLVED, never fabricated -------
+// --- 57. R4.12: a tuple-destructuring pattern binds every sub-binding, so subsequent uses of them
+//     resolve instead of staying explicitly UNRESOLVED (the earlier documented gap) --------------
 
 #[test]
-fn tuple_destructuring_pattern_is_not_modeled_and_its_uses_stay_unresolved() {
+fn tuple_destructuring_pattern_binds_both_sub_bindings_and_their_uses_resolve() {
+    // R4.12 closed the previously-documented destructuring gap: `let (a, b) = ..;` now emits a
+    // Definition for each sub-binding, so `a + b` resolves both uses instead of staying
+    // unresolved.
     let batch = extract_all("src/lib.rs", DATA_FLOW_CORPUS);
     let caller = find_function_identity(&batch, &[], "destructures_a_tuple").unwrap();
     let values = data_flow_values_for(&batch, caller);
 
-    assert!(
-        values.iter().all(|v| v.role != ValueRole::Definition),
-        "a `let (a, b) = ..;` pattern must not produce fabricated Definitions this wave"
+    let definitions: Vec<_> = values
+        .iter()
+        .filter(|v| v.role == ValueRole::Definition)
+        .collect();
+    let mut definition_names: Vec<&str> = definitions.iter().map(|d| d.name.as_str()).collect();
+    definition_names.sort_unstable();
+    assert_eq!(
+        definition_names,
+        vec!["a", "b"],
+        "a `let (a, b) = ..;` pattern must bind both sub-bindings"
     );
+
     let uses: Vec<_> = values.iter().filter(|v| v.role == ValueRole::Use).collect();
     assert_eq!(
         uses.len(),
@@ -2587,9 +2626,129 @@ fn tuple_destructuring_pattern_is_not_modeled_and_its_uses_stay_unresolved() {
     );
     assert!(
         uses.iter()
-            .all(|u| u.resolution == DataFlowResolution::Unresolved),
-        "with no Definition ever registered for a/b, their uses must stay explicitly UNRESOLVED"
+            .all(|u| u.resolution == DataFlowResolution::Resolved),
+        "with a Definition now registered for both a and b, their uses must resolve"
     );
+}
+
+// --- 57a. R4.12: struct destructuring binds each named field's local, not the field name itself --
+
+#[test]
+fn struct_destructuring_pattern_binds_each_local_and_its_uses_resolve() {
+    let batch = extract_all("src/lib.rs", DATA_FLOW_CORPUS);
+    let caller = find_function_identity(&batch, &[], "destructures_a_struct").unwrap();
+    let values = data_flow_values_for(&batch, caller);
+
+    let mut definition_names: Vec<&str> = values
+        .iter()
+        .filter(|v| v.role == ValueRole::Definition && !v.is_parameter)
+        .map(|d| d.name.as_str())
+        .collect();
+    definition_names.sort_unstable();
+    assert_eq!(
+        definition_names,
+        vec!["x", "y"],
+        "`let Point {{ x, y }} = p;` must bind both `x` and `y`"
+    );
+
+    let body_uses: Vec<_> = values
+        .iter()
+        .filter(|v| v.role == ValueRole::Use && (v.name == "x" || v.name == "y"))
+        .collect();
+    assert_eq!(body_uses.len(), 2);
+    assert!(
+        body_uses
+            .iter()
+            .all(|u| u.resolution == DataFlowResolution::Resolved)
+    );
+}
+
+// --- 57b. R4.12: slice destructuring binds each element local ------------------------------------
+
+#[test]
+fn slice_destructuring_pattern_binds_each_local_and_its_uses_resolve() {
+    let batch = extract_all("src/lib.rs", DATA_FLOW_CORPUS);
+    let caller = find_function_identity(&batch, &[], "destructures_a_slice").unwrap();
+    let values = data_flow_values_for(&batch, caller);
+
+    let mut definition_names: Vec<&str> = values
+        .iter()
+        .filter(|v| v.role == ValueRole::Definition && !v.is_parameter)
+        .map(|d| d.name.as_str())
+        .collect();
+    definition_names.sort_unstable();
+    assert_eq!(
+        definition_names,
+        vec!["first", "second"],
+        "`let [first, second] = values;` must bind both elements"
+    );
+
+    let body_uses: Vec<_> = values
+        .iter()
+        .filter(|v| v.role == ValueRole::Use && (v.name == "first" || v.name == "second"))
+        .collect();
+    assert_eq!(body_uses.len(), 2);
+    assert!(
+        body_uses
+            .iter()
+            .all(|u| u.resolution == DataFlowResolution::Resolved)
+    );
+}
+
+// --- 57c. R4.12: an `n @ sub_pattern` match arm binds `n`, distinct from any name `sub_pattern`
+//     itself might also bind -------------------------------------------------------------------
+
+#[test]
+fn at_pattern_binds_its_own_name_in_addition_to_the_sub_pattern() {
+    let batch = extract_all("src/lib.rs", DATA_FLOW_CORPUS);
+    let caller = find_function_identity(&batch, &[], "binds_with_at_pattern").unwrap();
+    let values = data_flow_values_for(&batch, caller);
+
+    // The fixture's second arm (`other => other`) also binds a plain identifier pattern, so this
+    // asserts `n` is present among the definitions rather than that it is the only non-parameter
+    // one.
+    let n_definitions: Vec<_> = values
+        .iter()
+        .filter(|v| v.role == ValueRole::Definition && v.name == "n")
+        .collect();
+    assert_eq!(
+        n_definitions.len(),
+        1,
+        "`n @ 1..=5` must bind `n`; the range pattern itself binds nothing"
+    );
+
+    let n_use = values
+        .iter()
+        .find(|v| v.role == ValueRole::Use && v.name == "n")
+        .expect("the arm body's use of `n`");
+    assert_eq!(n_use.resolution, DataFlowResolution::Resolved);
+}
+
+// --- 57d. R4.12: an Or pattern (`Ok(value) | Err(value)`) binds `value` from whichever alternative
+//     matches; this walker does not attempt to prove which, so each alternative's own occurrence of
+//     the shared name gets its own Definition rather than fabricating a single merged one ----------
+
+#[test]
+fn or_pattern_binds_the_shared_name_in_every_alternative() {
+    let batch = extract_all("src/lib.rs", DATA_FLOW_CORPUS);
+    let caller = find_function_identity(&batch, &[], "binds_via_or_pattern").unwrap();
+    let values = data_flow_values_for(&batch, caller);
+
+    let value_definitions: Vec<_> = values
+        .iter()
+        .filter(|v| v.role == ValueRole::Definition && v.name == "value")
+        .collect();
+    assert_eq!(
+        value_definitions.len(),
+        2,
+        "`Ok(value) | Err(value)` binds `value` once per alternative"
+    );
+
+    let value_use = values
+        .iter()
+        .find(|v| v.role == ValueRole::Use && v.name == "value")
+        .expect("the arm body's use of `value`");
+    assert_eq!(value_use.resolution, DataFlowResolution::Resolved);
 }
 
 // --- 58. every DataFlow observation satisfies dimension consistency, alongside CALL/CONTROL_FLOW -

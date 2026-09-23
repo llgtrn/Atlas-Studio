@@ -239,7 +239,13 @@ DATA_FLOW's bootstrap is materialized on canonical main with:
 
 Do not claim compiler-complete alias analysis unless actually evidenced.
 
-R4.7 shares CALL's macro-invocation-opacity gap, and its own already-documented gaps (tuple/struct/slice destructuring patterns bind no Definitions) remain open. DATA_FLOW observations may be emitted while the dimension obligation remains UNKNOWN; zero observations are not verified absence.
+R4.7 shares CALL's macro-invocation-opacity gap. R4.12 closed its own previously-documented gap:
+tuple/tuple-struct/struct/slice destructuring, `&`/parenthesized wrapping and `ident @ sub_pattern`
+bindings in a `let`/match-arm/`for`/parameter position now each emit a real Definition
+(`adapter::semantic::rust::dataflow::DataFlowWalker::walk_binding_pat`), so their subsequent uses
+resolve instead of staying explicitly UNRESOLVED. CALL↔DATA_FLOW argument/result binding remains a
+separate, still-open TARGET (unaffected by this fix). DATA_FLOW observations may be emitted while
+the dimension obligation remains UNKNOWN; zero observations are not verified absence.
 
 ### R4.8 — State and Effect — bootstrap materialized, closure remains open
 

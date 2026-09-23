@@ -9,9 +9,11 @@
 //! or are simply not modeled as `Store`/`Definition` events this wave. See the module doc comment
 //! on `core::semantic::data_flow` for the full scope/rationale.
 //!
-//! Scope this wave: only simple identifier patterns (`syn::Pat::Ident`, with or without `mut`) are
-//! modeled as `Definition`s -- a `let (a, b) = ..;` tuple/struct/slice-destructuring pattern binds
-//! nothing this wave (a documented gap, not a fabricated one). A plain `x = ..;` assignment
+//! `walk_binding_pat` emits a `Definition` for every simple identifier binding within a `let`/
+//! match-arm/`for`/parameter pattern, including tuple/tuple-struct/struct/slice destructuring,
+//! `&`/`&mut`/parenthesized wrapping and `ident @ sub_pattern` bindings (R4.12: this previously
+//! bound nothing for any destructuring pattern, a documented, not fabricated, gap -- now closed for
+//! the pattern shapes Rust source actually uses). A plain `x = ..;` assignment
 //! (`syn::Expr::Assign`) with a simple identifier LHS is modeled as a `Store`. Compound-assignment
 //! operators (`x += 1`) are represented by this `syn` version as `syn::Expr::Binary` with a
 //! compound `BinOp` (`AddAssign`, ...), not a distinct assignment form -- but that `BinOp` variant
@@ -151,13 +153,67 @@ impl<'ctx, 'a> DataFlowWalker<'ctx, 'a> {
         self.emit(subject, span);
     }
 
-    /// The identifier this simple `syn::Pat` binds, if it is (or wraps, via `mut`/type ascription)
-    /// a plain `syn::Pat::Ident` -- the only pattern shape modeled this wave.
-    fn simple_pat_ident(pat: &syn::Pat) -> Option<&syn::Ident> {
+    /// Emits a `Definition` for every simple identifier binding within `pat`, recursing through the
+    /// full pattern surface a `let`/`match`-arm/`for` binding position can use: tuple/tuple-struct/
+    /// struct/slice destructuring, `&`/`&mut` and parenthesized wrapping, type ascription, and an
+    /// `ident @ sub_pattern` binding (which binds BOTH `ident` and whatever `sub_pattern` itself
+    /// binds). `Pat::Or` (`Some(x) | None`) walks every alternative -- each alternative that binds a
+    /// name produces its own `Definition` at that alternative's own span, since only one alternative
+    /// matches at runtime and this walker does not attempt to prove which. `Pat::Rest` (`..`),
+    /// `Pat::Wild` (`_`), literal/range/path/const patterns and `Pat::Const` bind nothing and are
+    /// walked (for nested cases) or ignored (for leaves) without emitting anything.
+    ///
+    /// Replaces the earlier `simple_pat_ident`-only treatment of a `let`/match-arm/`for` pattern,
+    /// which silently bound nothing for any destructuring pattern (a documented, not fabricated,
+    /// gap -- see this module's doc comment history) -- closing that gap for the actually-common
+    /// destructuring shapes Rust source uses, not merely the simple-identifier case.
+    fn walk_binding_pat(&mut self, pat: &syn::Pat, is_parameter: bool) {
         match pat {
-            syn::Pat::Ident(pat_ident) => Some(&pat_ident.ident),
-            syn::Pat::Type(pat_type) => Self::simple_pat_ident(&pat_type.pat),
-            _ => None,
+            syn::Pat::Ident(pat_ident) => {
+                let span = self.ctx.span_of(&pat_ident.ident);
+                self.emit_definition(&pat_ident.ident.to_string(), span, is_parameter);
+                if let Some((_, sub_pat)) = &pat_ident.subpat {
+                    self.walk_binding_pat(sub_pat, is_parameter);
+                }
+            }
+            syn::Pat::Type(pat_type) => self.walk_binding_pat(&pat_type.pat, is_parameter),
+            syn::Pat::Reference(pat_ref) => self.walk_binding_pat(&pat_ref.pat, is_parameter),
+            syn::Pat::Paren(pat_paren) => self.walk_binding_pat(&pat_paren.pat, is_parameter),
+            syn::Pat::Tuple(pat_tuple) => {
+                for elem in &pat_tuple.elems {
+                    self.walk_binding_pat(elem, is_parameter);
+                }
+            }
+            syn::Pat::TupleStruct(pat_tuple_struct) => {
+                for elem in &pat_tuple_struct.elems {
+                    self.walk_binding_pat(elem, is_parameter);
+                }
+            }
+            syn::Pat::Struct(pat_struct) => {
+                for field in &pat_struct.fields {
+                    self.walk_binding_pat(&field.pat, is_parameter);
+                }
+            }
+            syn::Pat::Slice(pat_slice) => {
+                for elem in &pat_slice.elems {
+                    self.walk_binding_pat(elem, is_parameter);
+                }
+            }
+            syn::Pat::Or(pat_or) => {
+                for case in &pat_or.cases {
+                    self.walk_binding_pat(case, is_parameter);
+                }
+            }
+            syn::Pat::Wild(_)
+            | syn::Pat::Rest(_)
+            | syn::Pat::Lit(_)
+            | syn::Pat::Range(_)
+            | syn::Pat::Path(_)
+            | syn::Pat::Const(_)
+            | syn::Pat::Verbatim(_) => {}
+            // Non-exhaustive enum: any pattern shape this `syn` version adds later binds nothing
+            // until this walker is updated for it, rather than failing to compile.
+            _ => {}
         }
     }
 
@@ -187,10 +243,7 @@ impl<'ctx, 'a> DataFlowWalker<'ctx, 'a> {
                         self.walk_expr(diverge, false);
                     }
                 }
-                if let Some(ident) = Self::simple_pat_ident(&local.pat) {
-                    let span = self.ctx.span_of(ident);
-                    self.emit_definition(&ident.to_string(), span, false);
-                }
+                self.walk_binding_pat(&local.pat, false);
             }
             syn::Stmt::Expr(expr, _) => self.walk_expr(expr, is_tail),
             syn::Stmt::Item(_) | syn::Stmt::Macro(_) => {}
@@ -238,8 +291,7 @@ impl<'ctx, 'a> DataFlowWalker<'ctx, 'a> {
                     self.push_scope();
                     // Match guards are parsed into `arm.pat` as `Pat::Guard` in this `syn`
                     // version (see adapter/src/semantic/rust/mod.rs's walk_expr::Expr::Match
-                    // arm for the same discovery). Only a bare identifier arm pattern (or the
-                    // inner pattern of a guard) is modeled as a Definition this wave.
+                    // arm for the same discovery).
                     let bound_pat = match &arm.pat {
                         syn::Pat::Guard(guard) => {
                             self.walk_expr(&guard.guard, false);
@@ -247,10 +299,7 @@ impl<'ctx, 'a> DataFlowWalker<'ctx, 'a> {
                         }
                         other => other,
                     };
-                    if let Some(ident) = Self::simple_pat_ident(bound_pat) {
-                        let span = self.ctx.span_of(ident);
-                        self.emit_definition(&ident.to_string(), span, false);
-                    }
+                    self.walk_binding_pat(bound_pat, false);
                     self.walk_expr(&arm.body, is_return_flow);
                     self.pop_scope();
                 }
@@ -266,10 +315,7 @@ impl<'ctx, 'a> DataFlowWalker<'ctx, 'a> {
             syn::Expr::ForLoop(for_loop) => {
                 self.walk_expr(&for_loop.expr, false);
                 self.push_scope();
-                if let Some(ident) = Self::simple_pat_ident(&for_loop.pat) {
-                    let span = self.ctx.span_of(ident);
-                    self.emit_definition(&ident.to_string(), span, false);
-                }
+                self.walk_binding_pat(&for_loop.pat, false);
                 self.walk_block(&for_loop.body, false);
                 self.pop_scope();
             }
@@ -409,10 +455,7 @@ impl<'a> ExtractionContext<'a> {
                     walker.emit_definition("self", span, true);
                 }
                 syn::FnArg::Typed(pat_type) => {
-                    if let Some(ident) = DataFlowWalker::simple_pat_ident(&pat_type.pat) {
-                        let span = walker.ctx.span_of(ident);
-                        walker.emit_definition(&ident.to_string(), span, true);
-                    }
+                    walker.walk_binding_pat(&pat_type.pat, true);
                 }
             }
         }
