@@ -2,6 +2,13 @@ use crate::ArtifactId;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
+pub mod dependency;
+
+pub use dependency::{
+    DependencyClosureReport, DependencyEcosystem, DependencyEdge, DependencyIdentity,
+    DependencyKind, DependencySourceKind,
+};
+
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum ArtifactKind {

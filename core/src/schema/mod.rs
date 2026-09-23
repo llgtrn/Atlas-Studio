@@ -461,6 +461,11 @@ pub struct SystemizeReport {
     pub census: CensusReport,
     pub normalization: NormalizationReport,
     pub graph: GraphSummary,
+    /// `.atlas/contracts/DEPENDENCY-CENSUS.md`: the resolved Cargo dependency closure for this
+    /// workspace root. Repository-root-level like `docs`/`adl`/`repository` above (it needs
+    /// filesystem access `CensusReport`'s own per-artifact semantic census does not have), not a
+    /// `CensusReport` field.
+    pub dependency_closure: crate::census::DependencyClosureReport,
     pub invariants: Vec<String>,
 }
 

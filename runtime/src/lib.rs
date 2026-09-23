@@ -49,9 +49,34 @@ pub fn systemize(root: impl AsRef<Path>) -> io::Result<SystemizeReport> {
         extraction_accounting.record_batch(batch);
     }
 
-    let census = census::build_census(&inventory, &source, &adl, &extraction_batches);
+    let mut census = census::build_census(&inventory, &source, &adl, &extraction_batches);
     let normalization = normalize::normalize(&census);
     let graph = summarize_system_graph(&source, &docs, &normalization);
+
+    // `.atlas/contracts/DEPENDENCY-CENSUS.md`: census does not stop at the repository boundary.
+    // `BUILD` starts life as a permanent `Unsupported` stub in `census::build_census` (an
+    // accounting axis outside the R4 semantic dimension set, computed with no filesystem access);
+    // promote it to real evidence here now that a real, closed Cargo dependency closure exists.
+    let dependency_closure = adapter::census_cargo_workspace(root)?.unwrap_or_else(|| {
+        atlas_core::DependencyClosureReport {
+            schema: "atlas.dependency-closure-report.v1".into(),
+            ecosystem: atlas_core::DependencyEcosystem::Cargo,
+            root: root.to_string_lossy().into_owned(),
+            edges_total: 0,
+            instances_total: 0,
+            edges: Vec::new(),
+            dangling_references: Vec::new(),
+        }
+    });
+    if dependency_closure.edges_total > 0 && dependency_closure.is_closed() {
+        census
+            .coverage
+            .insert("BUILD".into(), atlas_core::EpistemicStatus::Observed);
+    } else if !dependency_closure.dangling_references.is_empty() {
+        census
+            .coverage
+            .insert("BUILD".into(), atlas_core::EpistemicStatus::Unknown);
+    }
 
     let mut blockers = Vec::new();
     if !repository.ready {
@@ -75,9 +100,12 @@ pub fn systemize(root: impl AsRef<Path>) -> io::Result<SystemizeReport> {
     if !extraction_accounting.is_closed(&census::extraction::ALL_SEMANTIC_DIMENSIONS) {
         blockers.push("SEMANTIC_EXTRACTION_ACCOUNTING_NOT_CLOSED".to_owned());
     }
+    if !dependency_closure.is_closed() {
+        blockers.push("DEPENDENCY_CLOSURE_NOT_CLOSED".to_owned());
+    }
 
     Ok(SystemizeReport {
-        schema: "atlas.systemizer.systemize-report.v11".into(),
+        schema: "atlas.systemizer.systemize-report.v12".into(),
         cli_api: CLI_API.into(),
         root: root.canonicalize()?.to_string_lossy().into_owned(),
         snapshot,
@@ -95,6 +123,7 @@ pub fn systemize(root: impl AsRef<Path>) -> io::Result<SystemizeReport> {
         census,
         normalization,
         graph,
+        dependency_closure,
         invariants: vec![
             "CANONICAL_REPOSITORY_KNOWLEDGE_IS_IN_ATLAS_ROOT".into(),
             "FACTS_COMPILE_TO_ONE_ENGINEERING_GRAPH".into(),
@@ -111,6 +140,7 @@ pub fn systemize(root: impl AsRef<Path>) -> io::Result<SystemizeReport> {
             "UNSUPPORTED_SEMANTIC_DIMENSIONS_ARE_EXPLICIT".into(),
             "SEMANTIC_EXTRACTION_NEVER_FABRICATES_COMPILER_RESOLVED_SEMANTICS".into(),
             "AI_OUTPUT_IS_PROPOSAL_NOT_CANONICAL_TRUTH".into(),
+            "DEPENDENCY_CLOSURE_IS_CANONICAL_CENSUS_TRUTH".into(),
         ],
     })
 }
