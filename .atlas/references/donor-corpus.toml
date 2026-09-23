@@ -175,7 +175,7 @@ runtime_dependency_status = "REFERENCE_ONLY"
 principles_status = "PRINCIPLES_EXTRACTED"
 implementation_status = "PENDING_ATLAS_NATIVE"
 target_owners = ["runtime/link", "runtime/query"]
-evidence = [".atlas/provenance/donors/joern.json", ".atlas/census/joern.md", ".atlas/census/donors/source-intelligence-lane-2026-09-20.md"]
+evidence = [".atlas/provenance/donors/joern.json", ".atlas/census/joern.md", ".atlas/census/donors/source-intelligence-lane-2026-09-20.md", ".atlas/genome/technology/joern-columnar-property-graph-layout.md"]
 
 [[donor]]
 id = "kani"
