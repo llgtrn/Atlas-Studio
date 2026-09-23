@@ -1,0 +1,95 @@
+{
+  "schema": "atlas.r4.verification-record.v1",
+  "wave": "R4.10",
+  "wave_title": "Concurrency Semantics -- bootstrap materialize the CONCURRENCY dimension (.atlas/contracts/SEMANTIC-FACTS.md#concurrencyfact, .atlas/roadmap/SELF-BUILDING-R4-R8.md R4.10): threads/tasks; channels; locks/unlocks; atomics; synchronization; ordering relationships; concurrent state interaction; dynamic/unresolved concurrency obligations. This record covers the bootstrap kernel/extractor (materialized on main via PR #26) AND the epistemic-status correction applied in this session's second hardening pass -- no separate durable record was created for the pre-hardening state, since that state (Spawn recorded as Observed) was never independently verified as VERIFIED before being corrected.",
+  "identity": {
+    "base_commit_sha": "6f4f1fa03f2795cb5c65b8441748e3c13ea6f919",
+    "candidate_state": "uncommitted working tree on local branch _local-hardening-reconciliation, descended from f9bdfd0b9d4326916abbff506fa62d164a68ddea (PR #26 merge commit) plus this branch's prior reconciliation commits",
+    "branch": "_local-hardening-reconciliation (local scratch branch; designated branch claude/r4-semantic-materialization-jz2z44 free at the time of this pass)",
+    "note": "CONCURRENCY's original bootstrap (ConcurrencyKind::Await/Spawn) was implemented and cherry-picked onto main via PR #26 without its own durable r4.10-verification-record.json. This record is the first durable R4.10 evidence, written only after correcting a real epistemic overclaim found in that bootstrap (see bugs_found_and_fixed_this_pass)."
+  },
+  "toolchain": {
+    "pinned_by": "rust-toolchain.toml",
+    "channel": "1.90.0",
+    "rustc": "rustc 1.90.0 (1159e78c4 2025-09-14)",
+    "cargo": "cargo 1.90.0 (840b83a10 2025-07-30)",
+    "matches_ci_pin": true
+  },
+  "concurrency_model": {
+    "kernel": "core/src/semantic/concurrency.rs: ConcurrencyKind (Await, Spawn real; Lock/Unlock/ChannelCreate/ChannelSend/ChannelReceive/AtomicOp declared, never emitted), ConcurrencyIdentity { repository, revision, function, kind, span }.",
+    "scope_this_wave": "`expr.await` is dedicated syn::Expr::Await syntax, cannot be shadowed or overloaded -> Await, always Observed. A call whose callee spelling ends in the segment `spawn` -> Spawn, recorded as Inferred (corrected this pass from Observed): a locally-defined `fn spawn()` or an unrelated `game::spawn(enemy)` is not evidence of real concurrency, and this extractor has no call-target resolution to tell the two apart. Lock/Unlock/channel/atomic operations are declared but never emitted -- method names like `.lock()`/`.send()`/`.recv()` collide constantly with unrelated user-defined methods, and claiming them from a bare method name alone would fabricate compiler-resolved semantics."
+  },
+  "bugs_found_and_fixed_this_pass": [
+    {
+      "id": "concurrency-spawn-overclaimed-observed",
+      "description": "A spelling-only Spawn match was recorded as EpistemicStatus::Observed -- an unconditional, resolved concurrency claim from spelling alone.",
+      "fix": "Spawn candidates now recorded as Inferred; Await remains Observed. Engineering graph's ConcurrencyOperation node now also carries a status attribute (previously silently dropped).",
+      "full_detail": "see .atlas/evidence/verification/r4.4-r4.10-second-hardening-pass-correction.json"
+    },
+    {
+      "id": "missing-yield-coverage",
+      "description": "syn::Expr::Yield fell to the catch-all arm, silently dropping an await/spawn site inside `yield value`.",
+      "fix": "Added the same Yield arm effect.rs/state.rs already had.",
+      "full_detail": "see .atlas/evidence/verification/r4.4-r4.10-second-hardening-pass-correction.json"
+    }
+  ],
+  "closure_status": {
+    "implementation": "bootstrap materialized -- real Await detection and honestly-downgraded Spawn candidate detection.",
+    "coverage_profile": "Partial (see dimension_coverage in adapter/src/semantic/rust/mod.rs): shares the macro-invocation-argument-opacity gap with every other full-expression-tree dimension. Closures/async blocks get no concurrency attribution of their own (deferred executable regions, consistent with every other dimension); an async block's own `.await`/spawn sites belong to whatever polls it, not to the function that merely constructs it.",
+    "closure": "OPEN -- dimension obligation remains UNKNOWN even when real observations exist; zero observations are never verified absence. Lock/Unlock/channel/atomic/synchronization/ordering/concurrent-state-interaction semantics remain entirely unmaterialized, correctly.",
+    "known_gaps": [
+      "macro-invocation-argument opacity (shared, permanent)",
+      "Lock/Unlock/ChannelCreate/ChannelSend/ChannelReceive/AtomicOp (unmaterialized, requires resolved API evidence)",
+      "async block bodies produce no Concurrency observations of their own (consistent exclusion, not a bug)",
+      "no first-class ExecutableRegionIdentity for a spawned/async task (evaluated, deferred as TARGET)"
+    ]
+  },
+  "multi_extractor_and_graph_proof": {
+    "claim": "Two independent extractors reporting the identical Concurrency claim both survive Census and Normalization; the engineering graph now preserves EpistemicStatus as a node attribute rather than erasing it (fixed this pass).",
+    "tests": [
+      "runtime::census::tests::same_concurrency_claim_from_two_extractors_survives_census_and_normalization"
+    ]
+  },
+  "verification_passes": [
+    {
+      "pass": "single pass, this session",
+      "note": "Unlike some earlier R4 waves' records, this is a single-pass (not independently-cross-checked-by-a-second-agent) verification. Stated explicitly rather than implying a rigor this record does not actually have.",
+      "commands": {
+        "cargo fmt --all --check": { "exit_code": 0 },
+        "cargo check --workspace --all-targets": { "exit_code": 0 },
+        "cargo clippy --workspace --all-targets -- -D warnings": { "exit_code": 0, "warnings": 0 },
+        "cargo test --workspace": {
+          "exit_code": 0,
+          "totals": "305 passed, 0 failed, 0 ignored (155 adapter, 103 core, 47 runtime)"
+        },
+        "cargo run -q -p atlas-cli -- docs audit --root .atlas": { "exit_code": 0, "gate_ready": true }
+      },
+      "concurrency_specific_tests": [
+        "dot_await_expression_is_recorded_as_an_await_site",
+        "qualified_spawn_call_is_recorded_as_a_spawn_site",
+        "a_non_spawn_call_produces_no_concurrency_observation",
+        "both_if_else_branches_await_sites_are_recorded",
+        "spawn_call_inside_a_loop_body_is_recorded",
+        "concurrency_observations_satisfy_dimension_consistency",
+        "concurrency_corpus_extraction_is_deterministic",
+        "concurrency_corpus_is_unaffected_by_requested_dimension_order",
+        "repeated_extraction_yields_stable_concurrency_record_ids",
+        "spawn_spelling_candidate_is_inferred_not_observed",
+        "dot_await_remains_observed"
+      ]
+    }
+  ],
+  "ci_status": "NOT_YET_RUN",
+  "ci_status_detail": "This record is written before this branch's commits have been pushed and run through GitHub Actions CI. GitHub Actions on this repository has shown a repeated UNAVAILABLE_INFRASTRUCTURE pattern (no runner assigned) across many prior PRs this session; if that recurs here it will be handled per the established babysitting protocol, not treated as a code defect without independent confirmation.",
+  "no_tests_lints_gates_disabled": true,
+  "no_verify_bypass_used": false,
+  "overall_verdict": "VERIFIED AS A BOOTSTRAP -- implementation and its epistemic-status correction are real, tested, and locally validated (single-pass). R4.10 canonical dimension closure is explicitly NOT claimed; see closure_status.",
+  "still_unsupported": [
+    "Lock/Unlock",
+    "ChannelCreate/ChannelSend/ChannelReceive",
+    "AtomicOp",
+    "synchronization ordering relationships",
+    "concurrent state interaction",
+    "resolved-API-based upgrade of a Spawn candidate to a real Observed Spawn"
+  ]
+}
