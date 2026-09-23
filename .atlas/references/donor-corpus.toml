@@ -908,7 +908,7 @@ census_status = "DEEP_CENSUS_ACTIVE"
 decision_status = "PENDING_COORDINATOR_REVIEW"
 native_replacement = "architecture study only -- not adopted as a runtime dependency; see census disposition table"
 runtime_dependency_status = "REFERENCE_ONLY"
-evidence = [".atlas/provenance/donors/mlir.json", ".atlas/census/donors/mlir.md"]
+evidence = [".atlas/provenance/donors/mlir.json", ".atlas/census/donors/mlir.md", ".atlas/genome/technology/mlir-external-model-interface-registration.md"]
 
 [[donor]]
 id = "xdsl"
