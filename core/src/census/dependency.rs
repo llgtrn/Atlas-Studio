@@ -176,27 +176,20 @@ pub struct DependencyIdentity {
     pub checksum: Option<String>,
 }
 
-/// Escapes `\` and `|` so a `|`-joined identity key built from `value` can never be confused with
-/// one built from a different split of the same joined characters (e.g. `name: "a|b", version:
-/// "c"` vs `name: "a", version: "b|c"` would otherwise both encode to `...a|b|c...`). Needed only
-/// for fields this codebase cannot prove are free of the separator: unlike a Rust identifier
-/// (`syn`'s lexer guarantees no `|` can appear in one, which is why the same unescaped `|`-join
-/// pattern is safe for every other `identity_key()` in this codebase), a Cargo package `name`/
-/// `version` is read by a bespoke static parser that never validates it against crates.io's real
-/// charset rules -- "ingestion is not execution" means no external validator is consulted, so a
-/// hand-crafted, malformed/hostile `Cargo.lock` can contain a literal `|` in either field.
-fn escape_identity_field(value: &str) -> String {
-    value.replace('\\', "\\\\").replace('|', "\\|")
-}
-
 impl DependencyIdentity {
     /// Deterministic, order-independent encoding of this dependency instance's identity fields.
+    /// `name`/`version` are escaped (`crate::identity::escape_identity_field`) before joining:
+    /// they are read by this crate's own bespoke static parser, which never validates them
+    /// against crates.io's real charset rules, unlike every other `identity_key()` in this
+    /// codebase whose fields are extracted from real Rust source through `syn`'s own lexer (which
+    /// guarantees no `|` can appear in a valid identifier).
     pub fn identity_key(&self) -> String {
+        use crate::identity::escape_identity_field;
         format!(
             "{}|{}|{}|{}",
             self.ecosystem.as_str(),
-            escape_identity_field(&self.name),
-            escape_identity_field(&self.version),
+            escape_identity_field(&self.name, '|'),
+            escape_identity_field(&self.version, '|'),
             self.source_kind.as_str(),
         )
     }
@@ -234,7 +227,7 @@ impl DependencyEdge {
     pub fn identity_key(&self) -> String {
         format!(
             "{}|{}",
-            escape_identity_field(&self.consumer),
+            crate::identity::escape_identity_field(&self.consumer, '|'),
             self.provider.identity_key()
         )
     }

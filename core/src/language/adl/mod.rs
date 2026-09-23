@@ -1,5 +1,5 @@
 use crate::{
-    identity::stable_id,
+    identity::{escape_identity_field, stable_id},
     schema::{FileFact, SourceReport},
 };
 use serde::{Deserialize, Serialize};
@@ -691,9 +691,19 @@ pub fn compile_adl(sources: &[AdlSource], observed: &SourceReport) -> AdlCompile
                     });
                 }
                 AdlDeclaration::Relation(relation) => edges.push(DeclaredEdge {
+                    // `from`/`relation`/`to` are extracted from raw source text by
+                    // `parse_relation`'s simple `split_once("->")`, not through a restrictive
+                    // lexer -- any of the three can contain a literal `:`, so each is escaped
+                    // before joining to keep two genuinely different relations from ever
+                    // computing the same edge id.
                     id: stable_id(
                         "declared-edge",
-                        &format!("{}:{}:{}", relation.from, relation.relation, relation.to),
+                        &format!(
+                            "{}:{}:{}",
+                            escape_identity_field(&relation.from, ':'),
+                            escape_identity_field(&relation.relation, ':'),
+                            escape_identity_field(&relation.to, ':'),
+                        ),
                     ),
                     from: relation.from,
                     relation: relation.relation,
@@ -1012,6 +1022,35 @@ constraint BackendIsRust {
                 .diagnostics
                 .iter()
                 .any(|diagnostic| diagnostic.code == "ATLAS-E022")
+        );
+    }
+
+    #[test]
+    fn two_genuinely_different_relations_never_collide_into_the_same_edge_id() {
+        // `parse_relation` extracts `from`/`relation`/`to` from raw source text via simple
+        // `split_once("->")`, not through a restrictive lexer -- any of the three can contain a
+        // literal `:`. Two genuinely different relations, joined unescaped with `:` for the
+        // edge's `stable_id`, could otherwise produce the identical id.
+        let source = AdlSource {
+            path: ".atlas/declared/broken.adl".into(),
+            text: "atlas 1\nsystem Broken\nA ->r:B-> C\nA ->r-> B:C\n".into(),
+        };
+        let observed = SourceReport {
+            schema: "test".into(),
+            root: "/repo".into(),
+            files_total: 0,
+            languages: BTreeMap::new(),
+            files: Vec::new(),
+        };
+        let report = compile_adl(&[source], &observed);
+        assert_eq!(
+            report.ir.declared.edges.len(),
+            2,
+            "both relations must be recorded as distinct declared edges"
+        );
+        assert_ne!(
+            report.ir.declared.edges[0].id, report.ir.declared.edges[1].id,
+            "two genuinely different (from, relation, to) triples must never share an edge id"
         );
     }
 

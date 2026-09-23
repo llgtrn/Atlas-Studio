@@ -34,7 +34,7 @@ pub use graph::{
 pub use identity::{
     ArtifactId, CapabilityId, ContentFingerprint, EdgeId, EvidenceId, IntegrityDigest, NodeId,
     RawObservationId, RepositoryId, RevisionId, SemanticObligationId, SymbolId, TechnologyId,
-    stable_id,
+    escape_identity_field, stable_id,
 };
 pub use language::adl::{
     AdlCompileReport, AdlDeclaration, AdlDiagnostic, AdlProgram, AdlSource, AdlToken, AtlasIr,

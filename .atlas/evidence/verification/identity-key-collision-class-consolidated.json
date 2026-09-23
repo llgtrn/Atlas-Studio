@@ -1,0 +1,59 @@
+{
+  "schema": "atlas.self-build.generation-evidence.v1",
+  "wave": "SEMANTIC PRESERVATION -- consolidate the escaping fix into a shared helper; close two sibling collisions in the same bug class",
+  "wave_title": "The prior generation fixed DependencyIdentity/DependencyEdge::identity_key()'s unescaped `|`-join collision with a private helper in core::census::dependency. Searching for the same pattern class elsewhere in the codebase found two more real, reachable instances of the identical bug: core::language::adl's declared-edge id (from/relation/to joined unescaped with `:`) and core::graph::engineering_graph's Diagnostic node id (subject/predicate/object joined unescaped with `:`, feeding ensure_node's id-based dedup -- the more severe of the two, since it can actually merge two distinct facts into one graph node, unlike the ADL edge id which nothing currently deduplicates by).",
+  "generation_model": {
+    "G_n": "a7016a620f (fix(census): escape the join separator in dependency identity_key()) -- stable generation this candidate was built and validated against",
+    "gap_discovered_by": "Direct follow-on search after the prior generation's dependency-identity fix: grepped the whole workspace for the same unescaped multi-field `format!` join pattern used for identity/dedup purposes. Confirmed dozens of other identity_key() implementations across core/src/semantic/*.rs and adapter/src/semantic/rust/*.rs are safe by construction (their fields are extracted from real Rust source through syn's own lexer, which cannot produce the separator character) and did not need touching. Found two genuinely reachable instances where at least one joined field comes from a permissive, non-lexer-based parser: core::language::adl::compile_adl's declared-edge id construction, and core::graph::engineering_graph's ConstraintResult/Diagnostic node id construction. Proved both real falsification-first: wrote a regression test for each, ran it against the unfixed code, and confirmed both failed for the claimed reason (a real edge-id collision; two genuinely different diagnostics collapsing into one graph node) before writing either fix."
+  },
+  "priority_classification": "semantic preservation (priority 3), consistent with the prior generation's classification of the same bug class. The Diagnostic-node instance is the more consequential of the two: it is the first case found this session where this exact collision class demonstrably corrupts a DEDUPLICATED identifier (via ensure_node), not merely produces a non-unique-but-otherwise-inert id field.",
+  "design_decisions": [
+    {
+      "question": "Keep three separate escaping helpers (one per file), or consolidate?",
+      "decision": "Consolidated into one shared, generic `core::identity::escape_identity_field(value: &str, separator: char) -> String`, alongside `stable_id` itself (the function it exists to make safe to use with multi-field input). Three near-identical private copies, one per file, would have been exactly the 'duplicate semantic concept' this session's own engineering-quality principle warns against -- especially once a second and third real instance of the same bug turned up in unrelated files, confirming this is a recurring pattern worth naming once, not a one-off local concern. The function is parameterized by `separator` (not hardcoded to `|`) since the three real call sites use different delimiters (`|` for Cargo identity, `:` for ADL/graph identity)."
+    },
+    {
+      "question": "How confident to be about the other ~40 identity_key()/stable_id multi-field-join call sites not being fixed?",
+      "decision": "Ruled out via a uniform, checkable argument rather than per-call-site guessing: every OTHER instance's variable fields are Rust source content (symbol names, type names, function signatures, call targets) that passed through `syn`'s own tokenizer/lexer before reaching this codebase's types -- a `|`/`:` cannot appear in a syntactically valid Rust identifier or path segment, so the separator-collision precondition (a field containing the separator) is structurally unreachable for those types, not merely empirically unobserved. The two NEW instances fixed this generation are both cases where that argument does NOT hold: ADL relation fields (raw substring splitting, not a lexer) and the Diagnostic fact's `subject` field (which can carry ADL-authored text through the same non-lexer path)."
+    }
+  ],
+  "stable_validator_law_compliance": {
+    "claim": "Two genuinely different ADL relations can never compute the same declared-edge id; two genuinely different ConstraintResult/Diagnostic facts can never collapse into the same graph node via id collision; the shared escaping helper itself is collision-free by construction for any separator, proven independent of any specific call site.",
+    "self_written_evidence": "Three new tests in core/src/identity/mod.rs exercising escape_identity_field directly (two-field-join collision, backslash-embedding collision, no-op-for-ordinary-input regression guard). One new test in core/src/language/adl/mod.rs (two_genuinely_different_relations_never_collide_into_the_same_edge_id), run against unfixed code first and confirmed to fail with a real id collision. One new test in core/src/graph/engineering_graph.rs (two_different_diagnostic_facts_never_collapse_into_one_node_via_an_unescaped_join), run against unfixed code first and confirmed to fail with two facts collapsing into one node.",
+    "independent_evidence_channel": "Re-ran the full real-world verification suite established across this session's prior generations: the 15-donor real Cargo corpus sweep, the independent cargo-metadata differential oracle, and this repository's own real atlas-cli graph/systemize/docs-audit output -- all byte-identical before and after (this repository's own real ADL relations and diagnostics contain no separator characters, so the escaping is a no-op for every real identity these suites exercise, exactly as designed).",
+    "no_circular_self_certification": true
+  },
+  "implementation": {
+    "shared_helper": "core/src/identity/mod.rs -- new pub fn escape_identity_field(value: &str, separator: char) -> String, re-exported from core/src/lib.rs; core::census::dependency's local copy removed in favor of this shared one",
+    "adl_fix": "core/src/language/adl/mod.rs -- compile_adl's declared-edge id construction now escapes from/relation/to before joining",
+    "graph_fix": "core/src/graph/engineering_graph.rs -- the ConstraintResult/Diagnostic node id construction now escapes subject/predicate/object before joining"
+  },
+  "adversarial_and_falsification_coverage": [
+    "escaping_prevents_a_two_field_join_from_colliding_across_different_splits / escaping_prevents_a_collision_via_an_embedded_backslash / escaping_is_a_no_op_for_ordinary_fields -- the shared helper's own correctness, independent of any call site",
+    "two_genuinely_different_relations_never_collide_into_the_same_edge_id -- run against unfixed code first, confirmed to fail with a real edge-id collision",
+    "two_different_diagnostic_facts_never_collapse_into_one_node_via_an_unescaped_join -- run against unfixed code first, confirmed to fail with a real node-count collapse (2 diagnostics -> 1 node)",
+    "the 15-donor real corpus sweep, the independent cargo-metadata oracle, and this repository's own real graph/systemize/docs-audit output all re-run clean -- zero behavioral change for any real, non-adversarial identity"
+  ],
+  "validation_this_generation": {
+    "commands": {
+      "cargo fmt --all --check": { "exit_code": 0 },
+      "cargo clippy --workspace --all-targets -- -D warnings": { "exit_code": 0, "warnings": 0 },
+      "cargo test --workspace": {
+        "exit_code": 0,
+        "totals": "235 adapter, 156 core (+5), 61 runtime -- 452 total, 0 failed, up from 447"
+      },
+      "regression-first falsification": {
+        "adl_edge_id": "before: FAILED (both relations produced the same edge id); after: passes, ids distinct",
+        "diagnostic_node_id": "before: FAILED (2 diagnostics collapsed into 1 graph node); after: passes, 2 distinct nodes"
+      },
+      "cargo run -q -p atlas-cli -- systemize/graph/docs audit --root .": { "finding": "zero regression against this repository's own real state" }
+    }
+  },
+  "recensus_scope_after_promotion": [
+    "no prior CLOSED/EXTINCT conclusion depended on any of these three identity computations being collision-safe under adversarial input, so no external conclusion requires reopening",
+    "this closes the full sweep of the identity_key()/multi-field-stable_id-join pattern class across the codebase for this session: every other instance is ruled out by the syn-lexer safety argument, not merely unexamined",
+    "the shared escape_identity_field helper is now available for any future multi-field identity computation that reads free-form, non-lexer-validated content -- the pattern to reach for instead of a naive unescaped format! join"
+  ],
+  "overall_verdict": "MATERIALIZED AND VERIFIED. Consolidated the prior generation's ad hoc collision fix into a shared, reusable core::identity helper, and used it to close two more real instances of the same bug class found by systematically searching for the pattern rather than assuming the prior fix was the only one. Both new fixes proven real falsification-first (regression tests run against unfixed code and confirmed to fail for the claimed reason before either fix was written), and both proven harmless for every real-world identity this project's extensive verification suite exercises.",
+  "historical_evidence_retained": true
+}

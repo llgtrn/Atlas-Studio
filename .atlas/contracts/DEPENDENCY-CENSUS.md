@@ -309,6 +309,15 @@ against this session's own recently-added graph-identity consumer, not merely in
 the code: the regression test was run against the unfixed code and confirmed to fail with a real
 collision before the escaping fix was written.
 
+The escaping helper (`escape_identity_field`) now lives in `core::identity`, alongside `stable_id`
+itself, rather than as a private copy in this module -- the same collision class was independently
+found and fixed the same way in two other multi-field identity joins this session:
+`core::language::adl`'s declared-edge id (`from`/`relation`/`to`, extracted from raw ADL source
+text by simple substring splitting, not a restrictive lexer) and
+`core::graph::engineering_graph`'s `Diagnostic` node id (`subject`/`predicate`/`object`, where
+`subject` can be ADL-authored text). See `ADL-TO-ATLAS.md` and `UNIVERSAL-GRAPH-CONTRACT.md` for
+those.
+
 **Dynamic/build-time dependency obligations are declared, not implied away.** Every
 `DynamicDependencyObligation` class -- `BuildScript`/`ProcMacroExpansion`/`PkgConfig`/`NativeLinking`/
 `GeneratedSource`/`EnvironmentProbe`/`DynamicLoading`/`PluginDiscovery`/`ExternalCapability` -- is

@@ -383,11 +383,17 @@ pub fn build_system_graph(
                 );
             }
             SemanticFactKind::ConstraintResult | SemanticFactKind::Diagnostic => {
+                // `subject`/`predicate`/`object` are not all drawn from a fixed, code-controlled
+                // charset (`subject` in particular can be ADL-authored text extracted by simple
+                // substring splitting, not a restrictive lexer) -- escaped before joining so two
+                // genuinely different triples can never collide into the same node id.
                 let diagnostic_id = stable_id(
                     "node",
                     &format!(
                         "diagnostic:{}:{}:{}",
-                        fact.subject, fact.predicate, fact.object
+                        crate::identity::escape_identity_field(&fact.subject, ':'),
+                        crate::identity::escape_identity_field(&fact.predicate, ':'),
+                        crate::identity::escape_identity_field(&fact.object, ':'),
                     ),
                 );
                 ensure_node(
@@ -1313,6 +1319,46 @@ mod tests {
         let normalization = normalization_with(Vec::new(), Vec::new());
         let graph = build_system_graph(&source(), &docs(), &normalization);
         assert!(graph.evidence.is_empty());
+    }
+
+    #[test]
+    fn two_different_diagnostic_facts_never_collapse_into_one_node_via_an_unescaped_join() {
+        // `fact.subject`/`fact.predicate`/`fact.object` for a Diagnostic fact are not restricted
+        // to a fixed, code-controlled charset the way an enum's own `.as_str()` is: `subject` in
+        // particular can be an ADL-authored materialization target name, extracted from raw
+        // source text by simple substring splitting (`core::language::adl::parse_relation` and
+        // friends), not through a restrictive lexer. A hostile/careless ADL author could name two
+        // genuinely different things such that their (subject, predicate, object) triples, joined
+        // unescaped with `:`, produce the identical string -- silently merging two distinct
+        // diagnostics into one graph node via `ensure_node`'s id-based dedup.
+        let colliding_a = semantic(
+            "diag-a",
+            SemanticFactKind::Diagnostic,
+            EpistemicStatus::Derived,
+            "Foo:bar",
+            "baz",
+            "X",
+        );
+        let colliding_b = semantic(
+            "diag-b",
+            SemanticFactKind::Diagnostic,
+            EpistemicStatus::Derived,
+            "Foo",
+            "bar:baz",
+            "X",
+        );
+        let normalization = normalization_with(Vec::new(), vec![colliding_a, colliding_b]);
+        let graph = build_system_graph(&source(), &docs(), &normalization);
+
+        let diagnostic_nodes = graph
+            .nodes
+            .iter()
+            .filter(|node| node.kind == "Diagnostic")
+            .count();
+        assert_eq!(
+            diagnostic_nodes, 2,
+            "two genuinely different diagnostics must never collapse into one graph node"
+        );
     }
 
     #[test]
