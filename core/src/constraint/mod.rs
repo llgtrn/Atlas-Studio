@@ -90,7 +90,10 @@ pub fn validate_manifest(manifest: &RepoManifest) -> Vec<String> {
 /// this copy exists so an escaping declared root is also a reported `policy_violations` entry
 /// (and therefore a `REPO_GATE_NOT_READY` blocker), not only a silently-filtered inventory
 /// artifact -- `core` has no dependency on `adapter` to share the one implementation directly.
-fn declared_root_is_contained(declared: &str) -> bool {
+/// `pub`: also used by `runtime::prepare_work` to filter `WorkRequest.allowed_paths` -- the
+/// literal capability-scoping data handed to an external provider -- so an escaping manifest
+/// entry can never appear in it, as defense in depth beyond `coding_admission.allowed` alone.
+pub fn declared_root_is_contained(declared: &str) -> bool {
     use std::path::{Component, Path};
     let declared_path = Path::new(declared);
     if declared_path.is_absolute() {

@@ -1,0 +1,54 @@
+{
+  "schema": "atlas.self-build.generation-evidence.v1",
+  "wave": "TRUST BOUNDARY -- filter WorkRequest.allowed_paths through the same containment check as the inventory sink",
+  "wave_title": "runtime::prepare_work built WorkRequest.allowed_paths directly from manifest.source_roots/frontend_roots/test_roots without filtering through declared_root_is_contained -- the same fields hardened against path traversal in the immediately preceding generation (66b796d7de). An escaping entry is already caught upstream (REPO_GATE_NOT_READY forces allowed: false), but the raw, unsanitized path string would still appear in the WorkRequest JSON handed to any consumer that reads allowed_paths directly.",
+  "generation_model": {
+    "G_n": "81efaca9a5 (fix(graph): populate EngineeringGraph.evidence from normalization) -- stable generation this candidate was built and validated against",
+    "gap_discovered_by": "Direct self-review while reading apps/cli/src/main.rs end to end (a small, previously only agent-summarized file, read in full this generation) to look for the next gap myself rather than delegating. Noticed prepare_work's WorkRequest.allowed_paths construction and recognized it draws from the exact same manifest.source_roots/backend_roots/frontend_roots/test_roots fields the immediately preceding generation (66b796d7de) hardened against path escape -- but that fix only touched the inventory-walk sink (adapter::source::inventory_declared_source) and the policy-report layer (core::constraint::validate_manifest); it never touched this third, independent consumer of the same raw manifest fields."
+  },
+  "priority_classification": "security/trust boundary (priority 2) -- defense in depth on an already-primarily-mitigated issue. `.atlas/contracts/EXTERNAL-PROVIDER-TRUST.md`'s 'Capability minimum' clause requires default-deny outside the assigned workspace for every provider invocation; `allowed_paths` is the literal mechanism by which that assignment is communicated, so it must uphold the same guarantee as the enforcement points that already exist, not rely solely on the caller also checking `allowed`.",
+  "design_decisions": [
+    {
+      "question": "Is this worth a separate fix given `coding_admission.allowed`/`WorkPrepareReport.allowed` already correctly blocks on an escaping root (via REPO_GATE_NOT_READY, from the prior generation's validate_manifest change)?",
+      "decision": "Yes, as defense in depth, following the same reasoning already established in the prior generation's own evidence record: 'a policy-layer-only fix would not have been sufficient... The sink itself had to refuse the walk.' `allowed_paths` is effectively another sink -- the actual data a downstream provider/orchestrator reads to know its scope -- and relying on it to always separately re-check `allowed` before trusting `allowed_paths` is exactly the kind of single-point-of-trust this session has repeatedly found insufficient (the `coding_admission`/`check` disagreement fixed two generations ago is the same shape: one signal was correct, a second consumer of related data did not honor it)."
+    },
+    {
+      "question": "Reimplement the containment check in `runtime`, or expose the existing `core::constraint` one?",
+      "decision": "Expose the existing one (`pub fn declared_root_is_contained` in `core::constraint`, now re-exported at the crate root). `runtime` already depends on `core` (`atlas_core`), unlike the `core`/`adapter` split that required two independent copies in the prior generation. Reusing the exact same predicate guarantees `allowed_paths` and `policy_violations` can never disagree about which entries are contained."
+    }
+  ],
+  "stable_validator_law_compliance": {
+    "claim": "`WorkRequest.allowed_paths` never contains a declared root that is absolute or net-upward-`..`-escaping, using the exact same predicate already proven correct and tested in `core::constraint`; an ordinary manifest with only legitimate relative roots is completely unaffected.",
+    "self_written_evidence": "Reuses the 5 existing core::constraint tests proving declared_root_is_contained's correctness (ordinary_relative_roots_are_contained, an_absolute_root_is_never_contained, a_net_upward_traversal_is_never_contained, validate_manifest_reports_an_escaping_source_root_as_a_violation, validate_manifest_accepts_ordinary_relative_roots) -- the wiring change itself is a single `.retain()` call reusing that already-verified predicate, not new logic requiring its own falsification suite.",
+    "independent_evidence_channel": "Ran `atlas-cli work prepare --root . --goal test` against this repository's own real `.atlas/repo.toml` (not a synthetic fixture): `request.allowed_paths` is unchanged (`['adapter', 'adapter/tests', 'apps/studio', 'apps/studio/src', 'core', 'core/tests', 'runtime', 'runtime/tests']`) -- proving the filter does not remove any of this repository's own real, legitimate declared roots. `allowed: false` with blockers `[ADL_CONSTRAINT_VIOLATED, WORKTREE_HAS_UNCOMMITTED_CHANGES]` -- both pre-existing/expected, zero regression.",
+    "no_circular_self_certification": true
+  },
+  "implementation": {
+    "core_export": "core/src/constraint/mod.rs -- declared_root_is_contained changed from private to pub; re-exported from core/src/lib.rs",
+    "runtime_wiring": "runtime/src/lib.rs::prepare_work -- WorkRequest.allowed_paths construction now retains only entries for which atlas_core::declared_root_is_contained returns true, before sort/dedup"
+  },
+  "adversarial_and_falsification_coverage": [
+    "reuses core::constraint's existing containment-predicate test suite (the predicate itself is unchanged, only its visibility and a new caller)",
+    "real self-census of this repository's own real, legitimate manifest: allowed_paths unchanged, confirming zero false-positive filtering"
+  ],
+  "validation_this_generation": {
+    "commands": {
+      "cargo fmt --all --check": { "exit_code": 0 },
+      "cargo clippy --workspace --all-targets -- -D warnings": { "exit_code": 0, "warnings": 0 },
+      "cargo test --workspace": {
+        "exit_code": 0,
+        "totals": "234 adapter, 149 core, 61 runtime -- 444 total, 0 failed, unchanged from prior generation (no new logic, only a visibility change and one new call site)"
+      },
+      "cargo run -q -p atlas-cli -- work prepare --root . --goal test (before/after)": {
+        "finding": "request.allowed_paths unchanged -- this repository's real manifest has no escaping roots, so nothing was filtered; allowed/blockers unchanged (still the pre-existing ADL_CONSTRAINT_VIOLATED plus the expected WORKTREE_HAS_UNCOMMITTED_CHANGES from this session's own uncommitted work)"
+      },
+      "cargo run -q -p atlas-cli -- docs audit --root .atlas": { "exit_code": 0 }
+    }
+  },
+  "recensus_scope_after_promotion": [
+    "no prior CLOSED/EXTINCT conclusion depended on allowed_paths being unfiltered, so no external conclusion requires reopening",
+    "this closes the last known consumer of the raw source_roots/backend_roots/frontend_roots/test_roots manifest fields that had not yet been routed through declared_root_is_contained -- the inventory-walk sink, the policy-report layer, and this capability-scoping data are now all consistent"
+  ],
+  "overall_verdict": "MATERIALIZED AND VERIFIED. Closes the remaining gap left by the prior generation's path-traversal fix: WorkRequest.allowed_paths, the literal capability-scoping data handed to an external provider, is now filtered through the same containment predicate as the inventory-walk sink and the policy-validation layer, rather than relying solely on a caller separately honoring the allowed flag. Verified against this repository's own real manifest with zero false-positive filtering.",
+  "historical_evidence_retained": true
+}

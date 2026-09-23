@@ -314,6 +314,14 @@ pub fn prepare_work(
         base_revision: base_revision.clone(),
         goal: goal.into(),
         scope: vec!["single-repository".into()],
+        // A manifest-declared root that escapes the repository boundary is already caught by
+        // `validate_manifest`/`repository.ready` (a `REPO_GATE_NOT_READY` blocker, which makes
+        // `allowed` below `false`) and is never walked by `inventory_declared_source` regardless.
+        // Filtered again here as defense in depth: `allowed_paths` is the literal capability-
+        // scoping data an external provider reads to know what it may touch
+        // (`.atlas/contracts/EXTERNAL-PROVIDER-TRUST.md#capability-minimum`), so it must never
+        // contain an escaping entry even if some future caller inspected this list without first
+        // checking `allowed`/`coding_admission`.
         allowed_paths: system
             .repository
             .manifest
@@ -322,6 +330,7 @@ pub fn prepare_work(
                 let mut paths = manifest.source_roots.clone();
                 paths.extend(manifest.frontend_roots.clone());
                 paths.extend(manifest.test_roots.clone());
+                paths.retain(|path| atlas_core::declared_root_is_contained(path));
                 paths.sort();
                 paths.dedup();
                 paths

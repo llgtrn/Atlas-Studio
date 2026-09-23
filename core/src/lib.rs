@@ -24,7 +24,7 @@ pub use census::{
     DependencyIdentity, DependencyRole, DependencySourceKind, DynamicDependencyObligation,
     InventoryReport,
 };
-pub use constraint::{CodingAdmission, validate_manifest};
+pub use constraint::{CodingAdmission, declared_root_is_contained, validate_manifest};
 pub use evidence::Evidence;
 pub use graph::{
     Binding, Edge, EngineeringGraph, Fact, Node, add_dependency_closure, build_repository_graph,

@@ -207,6 +207,8 @@ Grant only the role-specific capabilities required for the invocation.
 
 This closes a real gap: `.atlas/repo.toml` is not necessarily pre-admitted, trusted config the way this repository's own copy is — this contract's own candidate-reconciliation path, and donor-corpus census sweeps against externally-authored trees, can both point census/inventory at a `.atlas/repo.toml` this session did not author. Before this fix, a hostile or careless declared root could cause a full filesystem walk (and file-content read) outside the intended repository boundary with no defense at either layer.
 
+The same `core::declared_root_is_contained` predicate is applied a third time, as further defense in depth: `runtime::prepare_work` builds `WorkRequest.allowed_paths` — the literal capability-scoping data an external provider reads to know which paths it may touch, per this contract's own "Capability minimum" clause — directly from these same manifest arrays. An escaping declared root is already caught upstream (`REPO_GATE_NOT_READY` forces `coding_admission.allowed`/`WorkPrepareReport.allowed` to `false`), but `allowed_paths` itself is filtered too, so the capability-scoping data a provider reads can never contain an escaping entry even if some future caller inspected that list without first checking `allowed`.
+
 ## Canonical-write prohibition
 
 An external provider MUST NOT directly mutate:
