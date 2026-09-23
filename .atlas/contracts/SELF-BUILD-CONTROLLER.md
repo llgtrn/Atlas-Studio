@@ -10,27 +10,30 @@ canonical: true
 
 The Self-Build Controller is the canonical planner for Atlas improving Atlas. It turns evidence-backed capability gaps into bounded engineering work without granting an external model authority over canonical state.
 
+Recursive generations, stable-validator separation, scenario expansion, convergence and extinction probes are normative in `RECURSIVE-SELF-CENSUS.md`. The controller MUST plan inside that contract rather than treating self-build as a one-shot backlog.
+
 The controller does not write production code, select its own authority, mutate main, issue CensusCertificates, or seal Atlas. It emits a typed SelfBuildWorkOrder that the normal research, synthesis, verification, selection and admission pipeline executes.
 
 ## Canonical loop
 
 ~~~text
-current Atlas revision
-→ self-census + dependency census
-→ closure / conflicts / metrics / verification evidence
-→ capability-gap graph
-→ roadmap + Genome + policy comparison
-→ SelfBuildWorkOrder
-→ research / donor census
-→ candidate mechanisms
-→ synthesis CandidateChangeSet
-→ census generated implementation
-→ verify / benchmark / prove
+stable G_n
+→ self-census + dependency census + scenario frontier
+→ closure / conflicts / verification evidence
+→ capability-gap + extinction-gap graph
+→ bounded SelfBuildWorkOrder
+→ research / donor census / alternatives
+→ untrusted CandidateChangeSet C_n+1
+→ census candidate
+→ validate with G_n where applicable
+  + independent evidence for new capability
+  + candidate self-census only as supplementary evidence
 → SelectedDesign
 → AdmissionTransaction
-→ admitted Atlas revision
-→ recensus
-→ recompute capability gaps
+→ promote G_n+1
+→ mandatory stronger recensus
+→ expand bounded scenario frontier
+→ recompute gaps + convergence
 ↺
 ~~~
 
@@ -81,6 +84,22 @@ A provider may propose a priority. The controller records the actual policy/evid
 HUMAN_REQUIRED, POLICY_AUTO and HYBRID have the same meaning as SelectedDesign authority.
 
 POLICY_AUTO is permitted only for a bounded work order whose mutation class, allowed scope, verification requirements and admission policy are already authorized. Identity/schema/wire/Genome/security-policy changes should default to stronger authority unless an explicit policy says otherwise.
+
+## Generation and convergence requirements
+
+Every automated/hybrid cycle MUST:
+
+- keep the admitted generation separate from the candidate;
+- census generated implementation as untrusted;
+- require independent evidence for material new claims;
+- recensus scopes invalidated by stronger observation capability;
+- include evidence-linked scenario regression/falsification;
+- refuse one-pass fixed-point claims;
+- refuse extinction until the isolated donor-disappearance probe succeeds.
+
+Planning gap labels from `RECURSIVE-SELF-CENSUS.md` are not new EpistemicStatus values.
+
+POLICY_AUTO may propose convergence only after the policy/Genome convergence window; unattended convergence requires at least two clean promoted generations.
 
 ## Failure and liveness
 
