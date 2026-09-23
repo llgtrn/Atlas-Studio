@@ -56,6 +56,33 @@ Ephemeral agent context is not project memory. Sealed Atlas artifacts and their 
 
 See .atlas/contracts/AGENT-HOST-EMBEDDED-RUNTIME.md.
 
+## Multi-AI construction
+
+A canonical `*.atlas` may be constructed by a heterogeneous AI/tool swarm, but the swarm is never the authority or durable memory of the project.
+
+~~~text
+Atlas ConstructionTaskGraph
+        ↓
+ProviderRouter
+├─ host-native coding/subagents
+├─ remote AI providers
+├─ Jev-class decision providers
+├─ local/self-hosted models
+└─ remote Atlas/deterministic workers
+        ↓
+typed Atlas blackboard + CandidateAtlas branches
+        ↓
+verify / compare / repair
+        ↓
+authorized selection / admission / seal
+~~~
+
+The first embedded host may be Claude-oriented while Atlas still routes admitted tasks to GPT/Gemini/Jev/other providers or remote Atlas workers. Provider choice is execution routing, not semantic truth.
+
+Agents receive bounded task/capability leases and task-specific semantic context slices. Their conversations are not project memory. Jev emits typed decision proposals; it does not own SelectedDesign. Provider consensus cannot bypass verification, AdmissionTransaction or seal.
+
+See .atlas/contracts/MULTI-AI-CONSTRUCTION-FABRIC.md.
+
 ## Core invariants
 
 - `.atlas/` is the repository control root; `*.atlas` is a dense binary engineering artifact.
