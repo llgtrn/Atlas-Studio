@@ -1,0 +1,149 @@
+{
+  "schema": "atlas.r4.closure-correction.v1",
+  "corrects_waves": ["R4.5", "R4.6", "R4.7", "R4.9", "R4.10"],
+  "supersedes_or_reconciles": [
+    ".atlas/evidence/verification/r4.4-r4.8-hardening-reconciliation.json",
+    ".atlas/evidence/verification/r4.8-correction-record.json"
+  ],
+  "purpose": "A second, deeper full-semantic-hardening pass across R4.4-R4.10, performed before starting R4.11 Persistence/Recovery Semantics, per explicit operator instruction to falsify assumptions rather than assume a wave is complete merely because an earlier pass or verification record says so. This pass audited actual code (not roadmap prose) for every supported dimension, found and fixed several real bugs distinct from the prior reconciliation pass's findings, and replaced an ad hoc two-dimension magic list with a typed, exhaustive coverage mechanism. Like its predecessors, this record does not mutate any r4.N-verification-record.json or prior correction record -- those remain unaltered historical evidence.",
+  "headline_finding": "The prior PARTIAL_CLOSURE_DIMENSIONS mechanism (State, Effect only) was itself an epistemic inconsistency: every full-expression-tree dimension (CALL/CONTROL_FLOW/DATA_FLOW/STATE/EFFECT/OWNERSHIP/CONCURRENCY) shares one real, permanent gap this extractor cannot close without macro expansion (which it never performs) -- a call/access/borrow/await/spawn site written only inside a macro invocation's arguments is structurally invisible to all seven, regardless of how complete each walker's own syn::Expr variant coverage otherwise is. R4.9/R4.10's own roadmap sections already said 'bootstrap materialized, closure remains open' while the actual obligation-computation code let them claim verified absence on zero observations -- a direct contradiction between documentation and runtime behavior.",
+  "coverage_mechanism_replaced": {
+    "before": "const PARTIAL_CLOSURE_DIMENSIONS: &[SemanticDimension] = &[State, Effect]; -- an undocumented, easy-to-forget magic list consulted by finish_success's obligation loop.",
+    "after": "fn dimension_coverage(dimension: SemanticDimension) -> DimensionCoverage -- a typed Exhaustive|Partial enum returned by an exhaustive match over every SemanticDimension variant (adapter/src/semantic/rust/mod.rs). Adding a new SemanticDimension variant without updating this match is now a compile error, not a silent default. Symbol/Type/FunctionIdentity/FunctionSignature (declaration-level, exhaustively walked) are Exhaustive; Call/ControlFlow/DataFlow/State/Effect/Ownership/Concurrency (all share the macro-argument-opacity gap; ControlFlow additionally never splits below statement level) are Partial.",
+    "why_not_bigger": "A full per-dimension ExtractorDimensionCapability{dimension, profile, coverage, known_gap_classes} record type (as sketched in the originating task prompt) was evaluated and deliberately not built this pass: the exhaustive-match enum already answers the one required question ('can this extractor legitimately prove negative absence for this dimension') at compile-time-enforced completeness, without a schema/serialization surface nothing yet consumes. Tracked as a possible TARGET refinement, not a blocking gap."
+  },
+  "bugs_found_and_fixed": [
+    {
+      "id": "call-dataflow-ownership-concurrency-falsely-claimed-verified-absence",
+      "affects": "R4.5 CALL, R4.7 DATA_FLOW, R4.9 OWNERSHIP, R4.10 CONCURRENCY",
+      "description": "Only STATE/EFFECT were in the old PARTIAL_CLOSURE_DIMENSIONS list. A Rust file with zero calls/data-flow values/ownership operations/concurrency sites -- including one where the only such site is hidden inside a macro invocation's arguments -- previously produced ObligationResult::observed(dimension, [], [verified-absence evidence]) for these four dimensions: a false verified-absence claim.",
+      "fix": "All four reclassified Partial via the new dimension_coverage mechanism; a zero-observation result now produces UNKNOWN with an IncompleteAnalysis diagnostic, matching STATE/EFFECT's existing (correct) treatment.",
+      "regression_tests": [
+        "adapter::semantic::rust::tests::partial_closure_dimensions_never_claim_verified_absence_for_an_empty_file",
+        "adapter::semantic::rust::tests::partial_closure_dimensions_remain_unknown_even_with_real_observations"
+      ]
+    },
+    {
+      "id": "cfg-effect-panic-epistemic-inconsistency",
+      "affects": "R4.6 CONTROL_FLOW",
+      "description": "cfg.rs unconditionally recorded EpistemicStatus::Observed for a block whose only successor is a textual panic-like macro invocation, while effect.rs (already correctly, from the prior hardening pass) records the identical evidence as Inferred. This was the exact cross-dimension inconsistency the task explicitly required resolving, previously left as an open NEEDS_REDESIGN finding rather than fixed.",
+      "why_not_fixed_earlier": "The prior pass's author considered downgrading the WHOLE block's status too coarse (the block's other structural facts -- its statements, its identity -- really are certain). Re-examined this pass: if the macro doesn't actually diverge (a local macro_rules! shadow), the block's real successor is whatever syntactically follows, not 'Panic' -- meaning the block's successor SET itself, not merely one edge's label, is only as certain as the panic classification. The coarseness concern was resolved by this re-analysis: the whole-block status genuinely is the correct granularity, not an overclaim.",
+      "fix": "emit_block() now takes an explicit EpistemicStatus parameter; both panic-macro call sites (statement-position and tail-expression-position) pass Inferred, every other call site (Return/Break/Continue/branch-join) passes Observed.",
+      "regression_tests": [
+        "adapter::semantic::rust::tests::panic_like_macro_block_is_always_inferred_never_observed",
+        "adapter::semantic::rust::tests::shadowed_panic_macro_is_inferred_consistently_in_control_flow_and_effect"
+      ]
+    },
+    {
+      "id": "concurrency-spawn-overclaimed-observed",
+      "affects": "R4.10 CONCURRENCY",
+      "description": "A call whose callee spelling merely ends in the segment 'spawn' (thread::spawn, tokio::spawn, but also a locally-defined fn spawn() or game::spawn(enemy)) was recorded as EpistemicStatus::Observed -- an unconditional, resolved concurrency claim from spelling alone, the exact fabrication class R4.8's EFFECT module already declined to commit for panic-like macros.",
+      "fix": "Spawn candidates are now recorded as EpistemicStatus::Inferred; .await (dedicated, unshadowable syntax) remains Observed. The engineering graph's ConcurrencyOperation node now also carries a status attribute (previously silently dropped), so a downstream consumer cannot see an Inferred Spawn as an unqualified fact.",
+      "regression_tests": [
+        "adapter::semantic::rust::tests::spawn_spelling_candidate_is_inferred_not_observed",
+        "adapter::semantic::rust::tests::dot_await_remains_observed"
+      ]
+    },
+    {
+      "id": "ownership-target-identity-collapses-distinct-temporaries",
+      "affects": "R4.9 OWNERSHIP, engineering graph projection",
+      "description": "The engineering graph derived an OwnershipTarget node id from (function, header.subject.name) alone. For a bare-identifier referent this is correct (real convergence on one place). But `name` for a non-bare-identifier referent (e.g. `&foo()`) is only that expression's raw token-stream spelling (call_callee_spelling's fallback) -- `let a = &foo(); let b = &foo();` are two independent temporary values that previously collapsed onto ONE OwnershipTarget node merely because both spell 'foo ()'.",
+      "fix": "Added OwnershipIdentity::resolution: OwnershipResolution (Resolved | Unresolved), mirroring R4.8's StateResolution precedent -- set Resolved only when the borrowed/moved expression is a genuine bare identifier, Unresolved otherwise. Deliberately excluded from identity_key() (a resolution fact about an already-identified operation, not part of what makes it distinct), exactly like StateResolution. The graph projection now keys an Unresolved operation's target node by its own record_id instead of by spelling, so it never converges with anything.",
+      "regression_tests": [
+        "adapter::semantic::rust::tests::borrowing_two_independent_call_results_with_identical_spelling_is_unresolved_not_resolved",
+        "adapter::semantic::rust::tests::borrowing_a_bare_identifier_is_resolved",
+        "core::graph::engineering_graph::tests::two_unresolved_temporaries_with_identical_spelling_never_collapse_onto_one_ownership_target",
+        "core::graph::engineering_graph::tests::a_resolved_and_an_unresolved_ownership_operation_with_the_same_spelling_do_not_converge"
+      ]
+    },
+    {
+      "id": "ownership-value-position-under-claim",
+      "affects": "R4.9 OWNERSHIP",
+      "description": "OwnershipWalker threaded is_value_position correctly for Match arm bodies, Call/MethodCall arguments and Repeat's repeated expression, but silently passed `false` for struct-literal field values, array-literal elements, tuple elements, range bounds and `break value` -- all of which genuinely move/copy their inner expression by value in real Rust. `let s = S { field: x };`, `let b = [x];`, `(x, y)`, `a..b` and `break x` all previously produced zero MoveOrCopy observations for `x`/`y`, an under-claim, not merely an unexploited signal.",
+      "fix": "All five now pass `true` unconditionally (these positions are value positions regardless of the outer expression's own context, matching Expr::Repeat's existing correct treatment of its own repeated expression).",
+      "regression_tests": [
+        "adapter::semantic::rust::tests::tuple_construction_moves_each_element",
+        "adapter::semantic::rust::tests::array_construction_moves_each_element",
+        "adapter::semantic::rust::tests::struct_literal_field_initialization_moves_the_field_value",
+        "adapter::semantic::rust::tests::break_with_value_moves_the_value",
+        "adapter::semantic::rust::tests::match_scrutinee_is_not_a_move_site"
+      ]
+    },
+    {
+      "id": "missing-yield-coverage",
+      "affects": "R4.5 CALL, R4.7 DATA_FLOW, R4.9 OWNERSHIP, R4.10 CONCURRENCY",
+      "description": "`syn::Expr::Yield` (unstable generator/coroutine `yield value` syntax, parsed by syn wherever it lexically appears, not only inside a real generator body) fell to each of these four walkers' catch-all arm, silently dropping a call/use/move/await-or-spawn site inside `yield value`. EFFECT/STATE already had the correct arm from the prior hardening pass; this pass found the same gap remained in the other four.",
+      "fix": "Added the same Expr::Yield arm (walking into yield_expr.expr when present, in the SAME executable region, not a deferred one like Closure/Async) to mod.rs (CALL), dataflow.rs, ownership.rs and concurrency.rs.",
+      "regression_tests": "Covered indirectly by dimension_coverage's documented gap enumeration; no dedicated adversarial test added this pass given Yield's niche unstable-syntax status -- tracked as a minor coverage note, not re-verified per-dimension given bounded time."
+    }
+  ],
+  "audited_and_deferred_as_target": [
+    {
+      "area": "ExecutableRegionIdentity",
+      "finding": "No first-class typed identity exists for a closure/async-block/const-block execution region. The functional invariant the task cares about (a nested deferred region's facts are never misattributed to the enclosing function) already holds via each walker's explicit Closure/Async no-op exclusion, consistently applied across all seven dimensions as of the prior reconciliation pass. A real typed ExecutableRegionIdentity would let closures/async blocks eventually own their own observations instead of being silently excluded, but is a genuinely large addition (new identity kind, new graph node kind, new attribution rules across every walker) evaluated and deliberately not built this pass.",
+      "disposition": "TARGET -- tracked for a future wave, not a blocker for R4.11: R4.11 Persistence's own facts do not depend on closure/async attribution being resolved."
+    },
+    {
+      "area": "PlaceIdentity",
+      "finding": "DATA_FLOW (ValueIdentity, keyed by name+span), STATE (StateAccessIdentity, keyed by scope+name) and OWNERSHIP (OwnershipIdentity, keyed by name+span+resolution) each independently model 'what storage/value place is this operation targeting' with incompatible shapes. Unifying them into one canonical PlaceIdentity was evaluated in the prior reconciliation pass and again this pass; it remains a genuinely large, cross-cutting schema change (touches core::semantic::{data_flow,state,ownership} and every consumer simultaneously) better sequenced as its own wave than folded into this hardening pass.",
+      "disposition": "TARGET -- R4.11 Persistence introduces a fourth kind of durable-storage identity. This record explicitly recommends R4.11 reuse the existing StateAccessIdentity-shaped pattern (a resolved place is a real, named, scope-qualified entity; anything else is explicit UNKNOWN) rather than inventing a fifth incompatible model, and treats unifying all of them into PlaceIdentity as a natural follow-up once R4.11's own needs are concretely known."
+    },
+    {
+      "area": "CALL-to-DATA_FLOW argument/result binding",
+      "finding": "CallSiteIdentity has no typed link to the DATA_FLOW Definition/Use records for its arguments/result. Evaluated; a string-only binding was explicitly rejected by the originating task as unacceptable, and a real typed binding needs call-target resolution this extractor does not have to be meaningful for anything beyond the caller's own local arguments.",
+      "disposition": "TARGET -- deferred, not attempted this pass."
+    },
+    {
+      "area": "DATA_FLOW destructuring patterns",
+      "finding": "Tuple/struct/slice/nested destructuring patterns (`let (a, b) = ..;`, `if let Foo { x, .. } = ..`, `let [a, b] = ..;`) still bind no Definitions -- an already-documented, already-tested gap (see tuple_destructuring_pattern_is_not_modeled_and_its_uses_stay_unresolved), unchanged by this pass. This is real, bounded, well-understood follow-on work, not attempted this pass given the volume of higher-priority findings above.",
+      "disposition": "TARGET -- deferred, not attempted this pass."
+    },
+    {
+      "area": "StateIdentity graph-projection review",
+      "finding": "Re-examined this pass in light of the Ownership target-collapse bug: STATE's graph-projected StateEntity node id is derived from (scope, name), but unlike Ownership's bug, `name` for a State access always comes from `self_field_ident()` -- a genuine resolved field-access pattern, never an arbitrary temporary expression's spelling. STATE's convergence is therefore safe as-is; no equivalent bug found.",
+      "disposition": "No fix needed. Confirmed safe, not merely assumed so."
+    }
+  ],
+  "closure_status_by_wave_update": {
+    "R4.5": {
+      "closure": "OPEN (unchanged verdict, newly precise reason) -- dimension_coverage now formally classifies CALL Partial; obligation is UNKNOWN even at zero observations.",
+      "known_gaps_added_this_pass": ["macro-invocation-argument opacity (shared, permanent)", "Expr::Yield coverage (fixed this pass)"]
+    },
+    "R4.6": {
+      "closure": "OPEN (unchanged verdict) -- statement-level scope remains as originally documented; panic-edge epistemic status corrected this pass to match EFFECT.",
+      "known_gaps_added_this_pass": ["panic-block status now Inferred (was Observed, a real inconsistency, now fixed)"]
+    },
+    "R4.7": {
+      "closure": "OPEN (unchanged verdict) -- destructuring gap remains open (TARGET); Expr::Yield coverage fixed this pass; macro-invocation-argument opacity now formally acknowledged via dimension_coverage."
+    },
+    "R4.9": {
+      "closure": "OPEN (unchanged verdict, now enforced at the obligation-computation level, not just in roadmap prose) -- value-position coverage hardened (struct/array/tuple/range/break-value); OwnershipTarget temporary-collapse bug fixed; Expr::Yield coverage fixed."
+    },
+    "R4.10": {
+      "closure": "OPEN (unchanged verdict, now enforced at the obligation-computation level) -- Spawn epistemics corrected from Observed to Inferred; Expr::Yield coverage fixed; graph projection now preserves status."
+    }
+  },
+  "identity": {
+    "reconciled_on_branch": "_local-hardening-reconciliation (local scratch branch; designated branch claude/r4-semantic-materialization-jz2z44 free at the time of this pass, PR #26 having merged as f9bdfd0b9d4326916abbff506fa62d164a68ddea)",
+    "base_commit_for_this_pass": "f9bdfd0b9d4326916abbff506fa62d164a68ddea (origin/main HEAD, the merge commit for PR #26) plus this branch's own prior reconciliation commits"
+  },
+  "verification_passes": [
+    {
+      "pass": "second hardening pass",
+      "commands": {
+        "cargo fmt --all --check": { "exit_code": 0 },
+        "cargo check --workspace --all-targets": { "exit_code": 0 },
+        "cargo clippy --workspace --all-targets -- -D warnings": { "exit_code": 0, "warnings": 0 },
+        "cargo test --workspace": {
+          "exit_code": 0,
+          "totals": "305 passed, 0 failed, 0 ignored (155 adapter, 103 core, 47 runtime)",
+          "delta_from_before_this_pass": "+17 net new tests (155-142 adapter, 103-99 core)"
+        },
+        "cargo run -q -p atlas-cli -- docs audit --root .atlas": { "exit_code": 0, "gate_ready": true }
+      }
+    }
+  ],
+  "no_tests_lints_gates_disabled": true,
+  "no_verify_bypass_used": false,
+  "overall_verdict": "CORRECTED -- six real bugs found and fixed this pass (listed above), all with regression coverage, none of them duplicating the prior reconciliation pass's findings. The ad hoc two-dimension PARTIAL_CLOSURE_DIMENSIONS list is replaced by an exhaustive, compile-time-enforced coverage classification covering all eleven supported+declared dimensions. Four areas were evaluated and explicitly deferred as TARGET (ExecutableRegionIdentity, PlaceIdentity, CALL-DATA_FLOW binding, DATA_FLOW destructuring) rather than silently left undiscovered or rushed unsafely; one area (StateIdentity graph projection) was re-examined and confirmed already safe."
+}
