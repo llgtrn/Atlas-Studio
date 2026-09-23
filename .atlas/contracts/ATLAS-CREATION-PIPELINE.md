@@ -77,11 +77,70 @@ The following machine schemas are normative for the first implementation profile
 - `../schemas/decision-proposal.schema.json`;
 - `../schemas/candidate-change-set.schema.json`;
 - `../schemas/self-build-work-order.schema.json`;
-- `../schemas/admission-transaction.schema.json`;
-- `../schemas/architectural-integrity-envelope.schema.json`;
-- `../schemas/architectural-integrity-report.schema.json`.
+- `../schemas/admission-transaction.schema.json`.
 
 A later implementation may add richer typed Rust/API forms, but those forms MUST preserve these semantic obligations or explicitly version/migrate them.
+
+## Execution host and sandbox topology
+
+Construction may run inside an embedded coding-agent host under `AGENT-HOST-EMBEDDED-RUNTIME.md`.
+
+The preferred early deployment shape is:
+
+~~~text
+coding agent
+→ local MCP/API adapter
+→ AtlasCore in the same outer host sandbox
+→ Atlas-managed CandidateWorkspace
+→ census / verify / admission / seal
+~~~
+
+This permits Atlas to reuse the host's compute and checkout without making the host or provider canonical authority.
+
+The following remain distinct even when physically co-located:
+
+- AgentHost outer sandbox;
+- Atlas control plane;
+- CandidateWorkspace;
+- execution sandbox/backend;
+- VerificationWorld;
+- admission/seal authority.
+
+A mutable host working tree is candidate material until admitted. Canonical parent/revision identity is pinned independently of the worktree.
+
+Atlas MUST NOT assume nested container/VM capabilities. The available SandboxBackend is capability-detected; work requiring stronger isolation, determinism or scale is rejected, explicitly downgraded by policy, or dispatched to an appropriate remote backend.
+
+MCP is a transport adapter. It MUST NOT become the canonical semantic representation or grant a model direct authority to select, verify, admit or seal its own output.
+
+## Construction intelligence fabric
+
+Creation MAY use many providers/subagents under `MULTI-AI-CONSTRUCTION-FABRIC.md`.
+
+~~~text
+ConstraintEnvelope / SelfBuildWorkOrder
+        ↓
+ConstructionTaskGraph
+        ↓
+ProviderRouter + bounded AgentLease
+        ↓
+research / architecture / synthesis / critic / verification workers
+        ↓
+typed Atlas blackboard records
+        ↓
+CandidateAtlas branches + evidence
+        ↓
+DecisionProposal(s) / repair routing
+        ↓
+normal selection / admission / seal path
+~~~
+
+Atlas MUST NOT use free-form agent conversation as the durable coordination state of this loop.
+
+The provider/model may differ per task. A cloud coding host may supply a native Claude-class worker while Atlas simultaneously routes other tasks to GPT-class, Gemini-class, Jev-class, local/self-hosted, or remote Atlas workers. Named vendors are examples only.
+
+A task-specific ContextCompiler SHOULD expose the smallest sufficient attributed semantic slice, including relevant constraints, obligations, UNKNOWN/CONFLICT state and evidence. Context truncation or provider-window optimization MUST NOT convert a known uncertainty into absence.
+
+Candidate branches retain separate identities/evidence. Cross-provider agreement is evidence, not authority.
 
 ## Autonomous self-build entrypoint
 
@@ -221,6 +280,8 @@ A Jev-class decision provider may:
 
 The output is a typed `DecisionProposal` conforming to `../schemas/decision-proposal.schema.json`.
 
+Jev is a decision role/fabric, not a singular root judge. Atlas MAY request multiple independent DecisionProposals, use Jev to route the next experiment/provider, or reconcile disagreement. A ranking never becomes SelectedDesign merely through consensus or score.
+
 The decision provider MUST NOT:
 
 - create OBSERVED evidence;
@@ -250,6 +311,8 @@ Permitted outputs include:
 - dependency proposals.
 
 All outputs MUST be packaged into a typed `CandidateChangeSet` conforming to `../schemas/candidate-change-set.schema.json`.
+
+In embedded-agent-host mode, the coding provider MAY edit the host checkout or an Atlas-created worktree directly. Those bytes remain candidate material. Atlas MUST derive or validate the CandidateChangeSet against the pinned parent and MUST NOT treat ordinary filesystem mutation or a provider-created commit as canonical admission.
 
 The provider MUST NOT modify the canonical sealed Atlas directly.
 
@@ -341,6 +404,8 @@ Generated code MUST NOT be executed merely because the synthesis provider reques
 
 Execution occurs only under the active security/sandbox policy.
 
+Execution topology and sandbox capability claims are governed by `AGENT-HOST-EMBEDDED-RUNTIME.md`. An outer cloud sandbox does not automatically satisfy candidate isolation, verification independence, benchmark reproducibility or destructive-test requirements.
+
 ## Stage C9 — Construction-time verification
 
 C9 executes the canonical VERIFY / BENCH / PROVE semantics in `VERIFICATION-METRICS-PERFORMANCE.md`.
@@ -352,9 +417,6 @@ Validation is not a post-build check against an already-final artifact. It is pa
 Possible gates include:
 
 - semantic verifier;
-- architectural-integrity verification against the exact pinned ArchitecturalIntegrityEnvelope;
-- architecture impact-closure validation;
-- load-bearing replacement equivalence/falsification evidence where affected;
 - compiler/type checks;
 - unit/integration/property tests;
 - differential tests;
@@ -379,8 +441,6 @@ A semantically correct candidate is not automatically selected if it violates an
 A CostModel prediction may prune or prioritize candidates but cannot satisfy an empirical performance obligation that policy requires to be measured.
 
 C9 emits durable structured evidence/diagnostics and an obligation-evaluation result. It does not itself select or seal.
-
-Architectural integrity is a distinct hard gate under ARCHITECTURAL-INTEGRITY.md. A candidate may be syntactically valid, locally semantically correct and test-green yet still be INVALID because it bypasses a selected ownership/state/authority/interface/failure/lifecycle boundary. A required HARD architectural violation is admission-blocking; a required UNKNOWN/CONFLICT remains unresolved rather than being treated as PASS.
 
 ## CandidateAtlas versus final *.atlas
 
@@ -456,8 +516,6 @@ For Atlas self-build this also includes the post-apply AdmissionTransaction rece
 
 If selection, application, binding resolution, dependency resolution or environment/profile changes invalidate material evidence, the affected gates MUST be rerun.
 
-For architecture-bearing candidates, C11B MUST also establish an ArchitecturalIntegrityReport for the exact selected candidate/revision with closed impact closure, zero HARD violations, required UNKNOWN/CONFLICT states closed according to Genome policy, and required load-bearing equivalence evidence. Any intentional architecture change MUST already have a SELECTED BlueprintRevisionDecision and a corresponding active envelope; selection of an implementation does not silently supersede architecture.
-
 The result is SealEligibleAtlas, not yet a published artifact.
 
 ## Stage C12 — Logical Atlas seal
@@ -485,8 +543,6 @@ The SEALED logical Atlas MUST preserve enough information to explain and reprodu
 - conflicts/unknowns permitted by policy;
 - Genome/schema/version pins;
 - CensusCertificate;
-- ArchitecturalIntegrityEnvelope identity/hash;
-- exact ArchitecturalIntegrityReport and affected-invariant/equivalence evidence roots used for seal eligibility;
 - SelfBuildWorkOrder and committed AdmissionTransaction lineage when the logical Atlas represents an admitted self-build revision.
 
 The logical Atlas is already complete engineering meaning before physical compaction starts.
@@ -622,6 +678,16 @@ Every material external-provider invocation MUST be traceable through a Provider
 - provenance.
 
 ProviderReceipt is lineage/evidence, not proof of correctness.
+
+## Agent-host and session independence
+
+A canonical Atlas may be constructed entirely inside one embedded agent-host cloud session, but the result MUST NOT depend on that session continuing to exist.
+
+Ephemeral build caches, candidate worktrees and derived indexes may disappear. The sealed semantic meaning, required evidence/attestation roots, admitted revision identity and lineage required by policy remain durable.
+
+A later session must be able to restore/checkout the admitted revision, load compatible durable Atlas state, perform incremental recensus and continue without relying on the previous model context.
+
+The same creation semantics apply whether the caller is CLI, MCP, remote API, CI or future Atlas Studio.
 
 ## External service independence
 
