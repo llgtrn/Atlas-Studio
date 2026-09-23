@@ -13,10 +13,10 @@ use atlas_core::{
     ArtifactId, CallDispatchKind, CallSiteIdentity, ConcurrencyIdentity, ConcurrencyKind,
     ContentFingerprint, ControlFlowBlockIdentity, ControlFlowBlockKind, ControlFlowEdgeKind,
     DataFlowResolution, EffectCategory, EffectIdentity, EpistemicStatus, FunctionDeclarationKind,
-    FunctionIdentity, FunctionSignature, OwnershipIdentity, OwnershipKind, RepositoryId,
-    RevisionRef, SemanticDimension, SemanticObservation, SemanticRecordId, StateAccessIdentity,
-    StateAccessKind, StateResolution, SymbolIdentity, SymbolRole, TypeIdentity, ValueIdentity,
-    ValueRole,
+    FunctionIdentity, FunctionSignature, OwnershipIdentity, OwnershipKind, PersistenceIdentity,
+    PersistenceKind, PersistenceResolution, PlaceRef, RepositoryId, RevisionRef, SemanticDimension,
+    SemanticObservation, SemanticRecordId, StateAccessIdentity, StateAccessKind, StateResolution,
+    SymbolIdentity, SymbolRole, TypeIdentity, ValueIdentity, ValueRole,
 };
 
 const ALL_DIMENSIONS: [SemanticDimension; 12] = [
@@ -33,8 +33,6 @@ const ALL_DIMENSIONS: [SemanticDimension; 12] = [
     SemanticDimension::Concurrency,
     SemanticDimension::Persistence,
 ];
-
-const UNSUPPORTED_DIMENSIONS: [SemanticDimension; 1] = [SemanticDimension::Persistence];
 
 /// Reference correctness corpus: one small, real Rust file covering every R4.3 minimum
 /// construct. `greet` is deliberately declared twice -- once as a free function, once as a
@@ -265,6 +263,67 @@ pub fn caller_macro_only() {
 pub fn caller_no_calls() -> u64 {
     42
 }
+
+pub struct Widget {
+    pub value: u64,
+}
+
+impl Widget {
+    pub fn get(&self) -> u64 {
+        self.value
+    }
+}
+
+pub fn caller_with_simple_argument(x: u64) -> u64 {
+    helper(x)
+}
+
+pub fn caller_with_two_simple_arguments(x: u64, y: u64) -> u64 {
+    two_args(x, y)
+}
+
+pub fn two_args(a: u64, b: u64) -> u64 {
+    a + b
+}
+
+pub fn caller_with_complex_argument(w: &Widget) -> u64 {
+    helper(w.get())
+}
+
+pub fn caller_with_method_call_argument(w: &Widget, x: u64) -> u64 {
+    w.get_with(x)
+}
+
+impl Widget {
+    pub fn get_with(&self, extra: u64) -> u64 {
+        self.value + extra
+    }
+}
+
+pub fn caller_with_let_result(x: u64) -> u64 {
+    let y = helper(x);
+    y
+}
+
+pub fn caller_with_assign_result(x: u64) -> u64 {
+    let mut y = 0;
+    y = helper(x);
+    y
+}
+
+pub fn caller_with_call_inside_a_larger_expression(x: u64) -> u64 {
+    let y = helper(x) + 1;
+    y
+}
+
+pub fn two_args_tuple(a: u64, b: u64) -> (u64, u64) {
+    (a, b)
+}
+
+pub fn caller_with_destructured_result(x: u64) -> (u64, u64) {
+    let (a, b) = two_args_tuple(x, x);
+    (a, b)
+}
 "#;
 
 /// R4.6 CONTROL_FLOW corpus: straight-line, `if`/`if-else`/else-if chain, `while` (may-not-enter),
@@ -348,8 +407,8 @@ pub fn no_calls_no_branches() -> u64 {
 
 /// R4.7 DATA_FLOW corpus: simple def-use, shadowing, mutation (Store), block-scoped shadowing,
 /// a method receiver's Definition/Use, return-flow (explicit `return` and tail-expression), an
-/// unresolved use (no matching local definition), and a not-modeled tuple-destructuring pattern
-/// (documented gap: no Definitions emitted for its sub-bindings).
+/// unresolved use (no matching local definition), and (R4.12) a tuple-destructuring pattern, whose
+/// sub-bindings now each emit a real Definition.
 const DATA_FLOW_CORPUS: &str = r#"
 pub fn simple_def_use(x: u64) -> u64 {
     let y = x + 1;
@@ -406,6 +465,34 @@ pub fn destructures_a_tuple() -> u64 {
 pub fn if_in_let(x: u64) -> u64 {
     let y = if x > 0 { x } else { x };
     y
+}
+
+pub struct Point {
+    pub x: u64,
+    pub y: u64,
+}
+
+pub fn destructures_a_struct(p: Point) -> u64 {
+    let Point { x, y } = p;
+    x + y
+}
+
+pub fn destructures_a_slice(values: [u64; 2]) -> u64 {
+    let [first, second] = values;
+    first + second
+}
+
+pub fn binds_with_at_pattern(x: u64) -> u64 {
+    match x {
+        n @ 1..=5 => n,
+        other => other,
+    }
+}
+
+pub fn binds_via_or_pattern(x: Result<u64, u64>) -> u64 {
+    match x {
+        Ok(value) | Err(value) => value,
+    }
 }
 "#;
 
@@ -858,6 +945,34 @@ fn concurrency_ops_for<'a>(
     values
 }
 
+fn all_persistence_ops(batch: &ExtractionBatch) -> Vec<&PersistenceIdentity> {
+    batch
+        .observations
+        .iter()
+        .filter_map(|observation| match observation {
+            SemanticObservation::Persistence(header) => Some(&header.subject),
+            _ => None,
+        })
+        .collect()
+}
+
+/// Every Persistence operation observation whose `function` is exactly `caller`'s
+/// `FunctionIdentity` record_id, sorted by (span line, span column, kind) for deterministic
+/// assertions.
+fn persistence_ops_for<'a>(
+    batch: &'a ExtractionBatch,
+    caller: &FunctionIdentity,
+) -> Vec<&'a PersistenceIdentity> {
+    let caller_id =
+        SemanticRecordId::new(SemanticDimension::FunctionIdentity, &caller.identity_key());
+    let mut values: Vec<&PersistenceIdentity> = all_persistence_ops(batch)
+        .into_iter()
+        .filter(|value| value.function == caller_id)
+        .collect();
+    values.sort_by_key(|value| (value.span.line, value.span.column, value.kind.as_str()));
+    values
+}
+
 // --- 1. free/public function symbol observation ------------------------------------------------
 
 #[test]
@@ -1171,29 +1286,25 @@ fn malformed_rust_produces_parse_failure_and_unknown_for_supported_dimensions() 
         SemanticDimension::Effect,
         SemanticDimension::Ownership,
         SemanticDimension::Concurrency,
+        SemanticDimension::Persistence,
     ] {
         let obligation = batch.obligation_for(dimension).unwrap();
         assert_eq!(obligation.status, EpistemicStatus::Unknown);
         assert!(!obligation.diagnostics.is_empty());
     }
-    for &dimension in &UNSUPPORTED_DIMENSIONS {
-        assert_eq!(
-            batch.obligation_for(dimension).unwrap().status,
-            EpistemicStatus::Unsupported
-        );
-    }
 }
 
-// --- 20. unsupported dimensions are always explicit, never silently dropped --------------------
+// --- 20. every SemanticDimension variant is now supported by this extractor (R4.11 closes the
+// last gap); a dimension going from unsupported to supported must never silently drop it from
+// batch accounting -----------------------------------------------------------------------------
 
 #[test]
-fn unsupported_dimensions_are_always_explicit() {
+fn every_dimension_variant_is_now_supported_and_accounted_for() {
     let batch = extract_all("src/lib.rs", CORPUS);
     assert!(batch.is_closed(&ALL_DIMENSIONS));
-    for &dimension in &UNSUPPORTED_DIMENSIONS {
+    for &dimension in &ALL_DIMENSIONS {
         let obligation = batch.obligation_for(dimension).unwrap();
-        assert_eq!(obligation.status, EpistemicStatus::Unsupported);
-        assert!(!obligation.diagnostics.is_empty());
+        assert_ne!(obligation.status, EpistemicStatus::Unsupported);
     }
 }
 
@@ -1939,6 +2050,281 @@ fn repeated_extraction_yields_stable_call_record_ids() {
     assert!(!first.is_empty());
 }
 
+// --- 34. R4.12: a simple single-identifier call argument's PlaceRef converges on the EXACT SAME
+//     record_id DATA_FLOW's own Use observation carries for that argument -- proven, not merely
+//     designed, matching R4.11's PlaceRef-convergence proof pattern -----------------------------
+
+#[test]
+fn call_argument_place_ref_converges_on_the_data_flow_uses_own_record_id() {
+    let batch = extract_all("src/lib.rs", CALL_CORPUS);
+    let caller = find_function_identity(&batch, &[], "caller_with_simple_argument")
+        .expect("caller_with_simple_argument");
+    let calls = calls_by_caller(&batch, caller);
+    assert_eq!(calls.len(), 1);
+    assert_eq!(calls[0].arguments.len(), 1);
+
+    let PlaceRef::Resolved {
+        dimension,
+        record_id,
+    } = &calls[0].arguments[0]
+    else {
+        panic!("a simple identifier argument must resolve to an existing DATA_FLOW record");
+    };
+    assert_eq!(*dimension, SemanticDimension::DataFlow);
+
+    let values = data_flow_values_for(&batch, caller);
+    let x_use = values
+        .iter()
+        .find(|v| v.role == ValueRole::Use && v.name == "x")
+        .expect("DATA_FLOW's own Use observation for the `x` argument");
+    let x_use_record_id = SemanticRecordId::new(SemanticDimension::DataFlow, &x_use.identity_key());
+
+    assert_eq!(
+        record_id, &x_use_record_id,
+        "the CALL argument's PlaceRef must name the EXACT SAME node DATA_FLOW's own pass produced, \
+         not an independently invented one"
+    );
+}
+
+// --- 35. multiple arguments each get their own PlaceRef, in source order ------------------------
+
+#[test]
+fn multiple_call_arguments_each_get_their_own_place_ref_in_order() {
+    let batch = extract_all("src/lib.rs", CALL_CORPUS);
+    let caller = find_function_identity(&batch, &[], "caller_with_two_simple_arguments")
+        .expect("caller_with_two_simple_arguments");
+    let calls = calls_by_caller(&batch, caller);
+    assert_eq!(calls.len(), 1);
+    assert_eq!(calls[0].arguments.len(), 2);
+
+    let values = data_flow_values_for(&batch, caller);
+    let expected: Vec<SemanticRecordId> = ["x", "y"]
+        .iter()
+        .map(|name| {
+            let use_value = values
+                .iter()
+                .find(|v| v.role == ValueRole::Use && v.name == *name)
+                .unwrap_or_else(|| panic!("DATA_FLOW Use for `{name}`"));
+            SemanticRecordId::new(SemanticDimension::DataFlow, &use_value.identity_key())
+        })
+        .collect();
+
+    for (argument, expected_record_id) in calls[0].arguments.iter().zip(expected.iter()) {
+        let PlaceRef::Resolved { record_id, .. } = argument else {
+            panic!("both simple-identifier arguments must resolve");
+        };
+        assert_eq!(record_id, expected_record_id);
+    }
+}
+
+// --- 36. an argument requiring deeper analysis (a method-call receiver expression) stays
+//     Unresolved -- never fabricated from spelling, matching every other PlaceRef consumer -------
+
+#[test]
+fn a_non_simple_call_argument_expression_is_unresolved() {
+    // `caller_with_complex_argument` contains two call sites: `w.get()` (zero arguments) and the
+    // outer `helper(w.get())` (one argument, the method call's own result) -- filter to the one
+    // with an argument to isolate the outer call.
+    let batch = extract_all("src/lib.rs", CALL_CORPUS);
+    let caller = find_function_identity(&batch, &[], "caller_with_complex_argument")
+        .expect("caller_with_complex_argument");
+    let calls = calls_by_caller(&batch, caller);
+    assert_eq!(
+        calls.len(),
+        2,
+        "the outer helper(..) call and the w.get() method call"
+    );
+    let outer_call = calls
+        .iter()
+        .find(|call| !call.arguments.is_empty())
+        .expect("the outer helper(w.get()) call");
+    assert_eq!(outer_call.arguments, vec![PlaceRef::Unresolved]);
+}
+
+// --- 37. a method call's own arguments are bound identically to a direct call's -------------------
+
+#[test]
+fn method_call_arguments_are_bound_identically_to_direct_call_arguments() {
+    let batch = extract_all("src/lib.rs", CALL_CORPUS);
+    let caller = find_function_identity(&batch, &[], "caller_with_method_call_argument")
+        .expect("caller_with_method_call_argument");
+    let calls = calls_by_caller(&batch, caller);
+    let get_with_call = calls
+        .iter()
+        .find(|call| call.arguments.len() == 1)
+        .expect("the .get_with(x) method call");
+
+    let values = data_flow_values_for(&batch, caller);
+    let x_use = values
+        .iter()
+        .find(|v| v.role == ValueRole::Use && v.name == "x")
+        .expect("DATA_FLOW's own Use observation for the `x` argument");
+    let expected = SemanticRecordId::new(SemanticDimension::DataFlow, &x_use.identity_key());
+
+    assert_eq!(
+        get_with_call.arguments,
+        vec![PlaceRef::Resolved {
+            dimension: SemanticDimension::DataFlow,
+            record_id: expected
+        }]
+    );
+}
+
+// --- 38. when DATA_FLOW is not part of the same requested-dimension set, CALL never fabricates a
+//     Resolved reference to a record this exact request will not produce -------------------------
+
+#[test]
+fn call_argument_place_ref_stays_unresolved_when_data_flow_was_not_requested() {
+    let batch = extract(
+        "src/lib.rs",
+        CALL_CORPUS,
+        vec![SemanticDimension::Call, SemanticDimension::FunctionIdentity],
+    );
+    let caller = find_function_identity(&batch, &[], "caller_with_simple_argument")
+        .expect("caller_with_simple_argument");
+    let calls = calls_by_caller(&batch, caller);
+    assert_eq!(calls[0].arguments, vec![PlaceRef::Unresolved]);
+}
+
+// --- 39. arguments are content, not identity: two identical-argument calls at different sites
+//     remain distinct, and identity_key() is unaffected by the arguments field itself -------------
+
+#[test]
+fn call_arguments_never_affect_the_call_sites_own_identity() {
+    let batch = extract_all("src/lib.rs", CALL_CORPUS);
+    let caller = find_function_identity(&batch, &[], "caller_with_simple_argument")
+        .expect("caller_with_simple_argument");
+    let calls = calls_by_caller(&batch, caller);
+    let call = calls[0];
+    let without_arguments = CallSiteIdentity {
+        arguments: Vec::new(),
+        ..call.clone()
+    };
+    assert_eq!(call.identity_key(), without_arguments.identity_key());
+}
+
+// --- 40. R4.12: a call that IS the direct initializer of a simple `let` binding gets a `result`
+//     PlaceRef converging on the EXACT SAME record_id DATA_FLOW's own Definition carries ---------
+
+#[test]
+fn call_result_place_ref_converges_on_the_data_flows_own_definition_record_id() {
+    let batch = extract_all("src/lib.rs", CALL_CORPUS);
+    let caller = find_function_identity(&batch, &[], "caller_with_let_result")
+        .expect("caller_with_let_result");
+    let calls = calls_by_caller(&batch, caller);
+    assert_eq!(calls.len(), 1);
+
+    let PlaceRef::Resolved {
+        dimension,
+        record_id,
+    } = &calls[0].result
+    else {
+        panic!("a direct `let y = helper(x);` initializer must resolve its call's result");
+    };
+    assert_eq!(*dimension, SemanticDimension::DataFlow);
+
+    let values = data_flow_values_for(&batch, caller);
+    let y_definition = values
+        .iter()
+        .find(|v| v.role == ValueRole::Definition && v.name == "y")
+        .expect("DATA_FLOW's own Definition for `y`");
+    let expected = SemanticRecordId::new(SemanticDimension::DataFlow, &y_definition.identity_key());
+
+    assert_eq!(
+        record_id, &expected,
+        "the CALL result's PlaceRef must name the EXACT SAME node DATA_FLOW's own pass produced"
+    );
+}
+
+// --- 41. a call that IS the direct right-hand side of a plain assignment gets a `result` PlaceRef
+//     converging on DATA_FLOW's own Store record_id --------------------------------------------
+
+#[test]
+fn call_result_place_ref_converges_on_the_data_flows_own_store_record_id_for_assignment() {
+    let batch = extract_all("src/lib.rs", CALL_CORPUS);
+    let caller = find_function_identity(&batch, &[], "caller_with_assign_result")
+        .expect("caller_with_assign_result");
+    let calls = calls_by_caller(&batch, caller);
+    assert_eq!(calls.len(), 1);
+
+    let PlaceRef::Resolved {
+        dimension,
+        record_id,
+    } = &calls[0].result
+    else {
+        panic!("a direct `y = helper(x);` assignment must resolve its call's result");
+    };
+    assert_eq!(*dimension, SemanticDimension::DataFlow);
+
+    let values = data_flow_values_for(&batch, caller);
+    let y_store = values
+        .iter()
+        .find(|v| v.role == ValueRole::Store && v.name == "y")
+        .expect("DATA_FLOW's own Store for `y`");
+    let expected = SemanticRecordId::new(SemanticDimension::DataFlow, &y_store.identity_key());
+
+    assert_eq!(record_id, &expected);
+}
+
+// --- 42. a call buried inside a larger expression has no single value it "becomes" -- result
+//     stays Unresolved even though the OUTER let binding itself is a simple identifier ----------
+
+#[test]
+fn call_result_stays_unresolved_when_the_call_is_not_the_entire_initializer() {
+    let batch = extract_all("src/lib.rs", CALL_CORPUS);
+    let caller = find_function_identity(&batch, &[], "caller_with_call_inside_a_larger_expression")
+        .expect("caller_with_call_inside_a_larger_expression");
+    let calls = calls_by_caller(&batch, caller);
+    assert_eq!(calls.len(), 1);
+    assert_eq!(calls[0].result, PlaceRef::Unresolved);
+}
+
+// --- 43. a destructuring `let` pattern has no single identifier a call's result could
+//     unambiguously become -- result stays Unresolved even though DATA_FLOW itself now binds
+//     every sub-identifier (R4.12's destructuring fix) --------------------------------------------
+
+#[test]
+fn call_result_stays_unresolved_for_a_destructured_let_pattern() {
+    let batch = extract_all("src/lib.rs", CALL_CORPUS);
+    let caller = find_function_identity(&batch, &[], "caller_with_destructured_result")
+        .expect("caller_with_destructured_result");
+    let calls = calls_by_caller(&batch, caller);
+    assert_eq!(calls.len(), 1);
+    assert_eq!(calls[0].result, PlaceRef::Unresolved);
+}
+
+// --- 44. when DATA_FLOW is not part of the same requested-dimension set, CALL never fabricates a
+//     Resolved result reference either (mirrors test 38 for arguments) ---------------------------
+
+#[test]
+fn call_result_place_ref_stays_unresolved_when_data_flow_was_not_requested() {
+    let batch = extract(
+        "src/lib.rs",
+        CALL_CORPUS,
+        vec![SemanticDimension::Call, SemanticDimension::FunctionIdentity],
+    );
+    let caller = find_function_identity(&batch, &[], "caller_with_let_result")
+        .expect("caller_with_let_result");
+    let calls = calls_by_caller(&batch, caller);
+    assert_eq!(calls[0].result, PlaceRef::Unresolved);
+}
+
+// --- 45. result is content, not identity ----------------------------------------------------------
+
+#[test]
+fn call_result_never_affects_the_call_sites_own_identity() {
+    let batch = extract_all("src/lib.rs", CALL_CORPUS);
+    let caller = find_function_identity(&batch, &[], "caller_with_let_result")
+        .expect("caller_with_let_result");
+    let calls = calls_by_caller(&batch, caller);
+    let call = calls[0];
+    let without_result = CallSiteIdentity {
+        result: PlaceRef::Unresolved,
+        ..call.clone()
+    };
+    assert_eq!(call.identity_key(), without_result.identity_key());
+}
+
 // =================================================================================================
 // R4.6: CONTROL_FLOW semantics
 // =================================================================================================
@@ -2544,19 +2930,30 @@ fn method_receiver_is_a_definition_and_field_access_resolves_it() {
     assert_eq!(self_use.resolved_definition.as_ref(), Some(&def_id));
 }
 
-// --- 57. a tuple-destructuring pattern is a documented, honest gap: no Definitions for its
-//     sub-bindings, so subsequent uses of them are explicitly UNRESOLVED, never fabricated -------
+// --- 57. R4.12: a tuple-destructuring pattern binds every sub-binding, so subsequent uses of them
+//     resolve instead of staying explicitly UNRESOLVED (the earlier documented gap) --------------
 
 #[test]
-fn tuple_destructuring_pattern_is_not_modeled_and_its_uses_stay_unresolved() {
+fn tuple_destructuring_pattern_binds_both_sub_bindings_and_their_uses_resolve() {
+    // R4.12 closed the previously-documented destructuring gap: `let (a, b) = ..;` now emits a
+    // Definition for each sub-binding, so `a + b` resolves both uses instead of staying
+    // unresolved.
     let batch = extract_all("src/lib.rs", DATA_FLOW_CORPUS);
     let caller = find_function_identity(&batch, &[], "destructures_a_tuple").unwrap();
     let values = data_flow_values_for(&batch, caller);
 
-    assert!(
-        values.iter().all(|v| v.role != ValueRole::Definition),
-        "a `let (a, b) = ..;` pattern must not produce fabricated Definitions this wave"
+    let definitions: Vec<_> = values
+        .iter()
+        .filter(|v| v.role == ValueRole::Definition)
+        .collect();
+    let mut definition_names: Vec<&str> = definitions.iter().map(|d| d.name.as_str()).collect();
+    definition_names.sort_unstable();
+    assert_eq!(
+        definition_names,
+        vec!["a", "b"],
+        "a `let (a, b) = ..;` pattern must bind both sub-bindings"
     );
+
     let uses: Vec<_> = values.iter().filter(|v| v.role == ValueRole::Use).collect();
     assert_eq!(
         uses.len(),
@@ -2565,9 +2962,129 @@ fn tuple_destructuring_pattern_is_not_modeled_and_its_uses_stay_unresolved() {
     );
     assert!(
         uses.iter()
-            .all(|u| u.resolution == DataFlowResolution::Unresolved),
-        "with no Definition ever registered for a/b, their uses must stay explicitly UNRESOLVED"
+            .all(|u| u.resolution == DataFlowResolution::Resolved),
+        "with a Definition now registered for both a and b, their uses must resolve"
     );
+}
+
+// --- 57a. R4.12: struct destructuring binds each named field's local, not the field name itself --
+
+#[test]
+fn struct_destructuring_pattern_binds_each_local_and_its_uses_resolve() {
+    let batch = extract_all("src/lib.rs", DATA_FLOW_CORPUS);
+    let caller = find_function_identity(&batch, &[], "destructures_a_struct").unwrap();
+    let values = data_flow_values_for(&batch, caller);
+
+    let mut definition_names: Vec<&str> = values
+        .iter()
+        .filter(|v| v.role == ValueRole::Definition && !v.is_parameter)
+        .map(|d| d.name.as_str())
+        .collect();
+    definition_names.sort_unstable();
+    assert_eq!(
+        definition_names,
+        vec!["x", "y"],
+        "`let Point {{ x, y }} = p;` must bind both `x` and `y`"
+    );
+
+    let body_uses: Vec<_> = values
+        .iter()
+        .filter(|v| v.role == ValueRole::Use && (v.name == "x" || v.name == "y"))
+        .collect();
+    assert_eq!(body_uses.len(), 2);
+    assert!(
+        body_uses
+            .iter()
+            .all(|u| u.resolution == DataFlowResolution::Resolved)
+    );
+}
+
+// --- 57b. R4.12: slice destructuring binds each element local ------------------------------------
+
+#[test]
+fn slice_destructuring_pattern_binds_each_local_and_its_uses_resolve() {
+    let batch = extract_all("src/lib.rs", DATA_FLOW_CORPUS);
+    let caller = find_function_identity(&batch, &[], "destructures_a_slice").unwrap();
+    let values = data_flow_values_for(&batch, caller);
+
+    let mut definition_names: Vec<&str> = values
+        .iter()
+        .filter(|v| v.role == ValueRole::Definition && !v.is_parameter)
+        .map(|d| d.name.as_str())
+        .collect();
+    definition_names.sort_unstable();
+    assert_eq!(
+        definition_names,
+        vec!["first", "second"],
+        "`let [first, second] = values;` must bind both elements"
+    );
+
+    let body_uses: Vec<_> = values
+        .iter()
+        .filter(|v| v.role == ValueRole::Use && (v.name == "first" || v.name == "second"))
+        .collect();
+    assert_eq!(body_uses.len(), 2);
+    assert!(
+        body_uses
+            .iter()
+            .all(|u| u.resolution == DataFlowResolution::Resolved)
+    );
+}
+
+// --- 57c. R4.12: an `n @ sub_pattern` match arm binds `n`, distinct from any name `sub_pattern`
+//     itself might also bind -------------------------------------------------------------------
+
+#[test]
+fn at_pattern_binds_its_own_name_in_addition_to_the_sub_pattern() {
+    let batch = extract_all("src/lib.rs", DATA_FLOW_CORPUS);
+    let caller = find_function_identity(&batch, &[], "binds_with_at_pattern").unwrap();
+    let values = data_flow_values_for(&batch, caller);
+
+    // The fixture's second arm (`other => other`) also binds a plain identifier pattern, so this
+    // asserts `n` is present among the definitions rather than that it is the only non-parameter
+    // one.
+    let n_definitions: Vec<_> = values
+        .iter()
+        .filter(|v| v.role == ValueRole::Definition && v.name == "n")
+        .collect();
+    assert_eq!(
+        n_definitions.len(),
+        1,
+        "`n @ 1..=5` must bind `n`; the range pattern itself binds nothing"
+    );
+
+    let n_use = values
+        .iter()
+        .find(|v| v.role == ValueRole::Use && v.name == "n")
+        .expect("the arm body's use of `n`");
+    assert_eq!(n_use.resolution, DataFlowResolution::Resolved);
+}
+
+// --- 57d. R4.12: an Or pattern (`Ok(value) | Err(value)`) binds `value` from whichever alternative
+//     matches; this walker does not attempt to prove which, so each alternative's own occurrence of
+//     the shared name gets its own Definition rather than fabricating a single merged one ----------
+
+#[test]
+fn or_pattern_binds_the_shared_name_in_every_alternative() {
+    let batch = extract_all("src/lib.rs", DATA_FLOW_CORPUS);
+    let caller = find_function_identity(&batch, &[], "binds_via_or_pattern").unwrap();
+    let values = data_flow_values_for(&batch, caller);
+
+    let value_definitions: Vec<_> = values
+        .iter()
+        .filter(|v| v.role == ValueRole::Definition && v.name == "value")
+        .collect();
+    assert_eq!(
+        value_definitions.len(),
+        2,
+        "`Ok(value) | Err(value)` binds `value` once per alternative"
+    );
+
+    let value_use = values
+        .iter()
+        .find(|v| v.role == ValueRole::Use && v.name == "value")
+        .expect("the arm body's use of `value`");
+    assert_eq!(value_use.resolution, DataFlowResolution::Resolved);
 }
 
 // --- 58. every DataFlow observation satisfies dimension consistency, alongside CALL/CONTROL_FLOW -
@@ -3202,4 +3719,879 @@ fn repeated_extraction_yields_stable_concurrency_record_ids() {
 
     assert_eq!(first, second);
     assert!(!first.is_empty());
+}
+
+// =====================================================================================================
+// R4.4-R4.8 hardening pass: adversarial/falsification tests proving real bugs found by audit are
+// actually fixed, not merely documented. See
+// .atlas/evidence/verification/r4.4-r4.8-hardening-correction.json.
+// =====================================================================================================
+
+const R4_HARDENING_CORPUS: &str = r#"
+pub fn outer() {
+    let c = || hidden_call();
+    let _ = c;
+}
+
+fn hidden_call() {}
+
+pub fn call_inside_unsafe() {
+    unsafe {
+        marked_call();
+    }
+}
+
+fn marked_call() {}
+
+pub fn call_inside_const_block() -> u32 {
+    const { computed_call() }
+}
+
+const fn computed_call() -> u32 {
+    0
+}
+
+pub fn call_inside_repeat() -> [u32; 3] {
+    [repeated_call(); 3]
+}
+
+fn repeated_call() -> u32 {
+    0
+}
+"#;
+
+// --- 91. R4.5 CALL: a call inside a closure body is never attributed to the enclosing function ---
+// (adversarial case from the hardening-pass audit: CALL used to recurse into Closure bodies while
+// every other dimension already refused to, misattributing `hidden_call` to `outer`).
+
+#[test]
+fn a_call_inside_a_closure_body_is_not_attributed_to_the_enclosing_function() {
+    let batch = extract_all("src/lib.rs", R4_HARDENING_CORPUS);
+    let outer = find_function_identity(&batch, &[], "outer").unwrap();
+    assert!(
+        calls_by_caller(&batch, outer).is_empty(),
+        "hidden_call() is inside a closure body and must never be attributed to outer()"
+    );
+}
+
+// --- 92. R4.5 CALL: a call inside an `unsafe { .. }` block is found, not silently missed ----------
+
+#[test]
+fn a_call_inside_an_unsafe_block_is_attributed_to_the_enclosing_function() {
+    let batch = extract_all("src/lib.rs", R4_HARDENING_CORPUS);
+    let caller = find_function_identity(&batch, &[], "call_inside_unsafe").unwrap();
+    assert_eq!(calls_by_caller(&batch, caller).len(), 1);
+}
+
+// --- 93. R4.5 CALL: a call inside a `const { .. }` block is found, not silently missed -------------
+
+#[test]
+fn a_call_inside_a_const_block_is_attributed_to_the_enclosing_function() {
+    let batch = extract_all("src/lib.rs", R4_HARDENING_CORPUS);
+    let caller = find_function_identity(&batch, &[], "call_inside_const_block").unwrap();
+    assert_eq!(calls_by_caller(&batch, caller).len(), 1);
+}
+
+// --- 94. R4.5 CALL: a call inside a `[expr; N]` repeat expression is found, not silently missed ---
+
+#[test]
+fn a_call_inside_a_repeat_expression_is_attributed_to_the_enclosing_function() {
+    let batch = extract_all("src/lib.rs", R4_HARDENING_CORPUS);
+    let caller = find_function_identity(&batch, &[], "call_inside_repeat").unwrap();
+    assert_eq!(calls_by_caller(&batch, caller).len(), 1);
+}
+
+// --- 95. R4.7 cross-dimension consistency: a compound assignment to a local binding produces the
+// same Use-then-Store shape DATA_FLOW already models for a plain assignment, matching STATE's
+// Read-then-Write treatment of `self.field += 1` -- neither dimension may treat `+=` as read-only. -
+
+#[test]
+fn compound_assignment_to_a_local_binding_produces_use_then_store_in_data_flow() {
+    const CORPUS: &str = r#"
+pub fn compound_local() -> u64 {
+    let mut x = 0u64;
+    x += 1;
+    x
+}
+"#;
+    let batch = extract_all("src/lib.rs", CORPUS);
+    let caller = find_function_identity(&batch, &[], "compound_local").unwrap();
+    let values = data_flow_values_for(&batch, caller);
+    let x_values: Vec<_> = values.iter().filter(|value| value.name == "x").collect();
+    // Definition (the `let`), Use+Store at the SAME span (the `x += 1`), Use (the tail `x`).
+    let compound_use = x_values
+        .iter()
+        .find(|value| value.role == ValueRole::Use && value.span.line == 4)
+        .expect("a Use of `x` on the `x += 1` line");
+    let compound_store = x_values
+        .iter()
+        .find(|value| value.role == ValueRole::Store && value.span.line == 4)
+        .expect("a Store of `x` on the `x += 1` line");
+    assert_eq!(
+        (compound_use.span.line, compound_use.span.column),
+        (compound_store.span.line, compound_store.span.column),
+        "the compound assignment's Use and Store must be the same operand site"
+    );
+}
+
+// =====================================================================================================
+// R4.4-R4.10 reconciliation pass: every full-expression-tree dimension shares the same real,
+// permanent macro-invocation-argument opacity gap (see `dimension_coverage`'s doc comment), so
+// CALL/CONTROL_FLOW/DATA_FLOW/OWNERSHIP/CONCURRENCY must never claim verified absence, exactly like
+// STATE/EFFECT already correctly refuse to. This section falsifies that for all five dimensions,
+// and adds regression coverage for the CFG panic-epistemics and Spawn-epistemics fixes.
+// =====================================================================================================
+
+// --- 96. every full-expression-tree dimension's obligation stays UNKNOWN for an empty file, never
+// verified absence -- the macro-argument-opacity gap applies even when nothing was observed --------
+
+#[test]
+fn partial_closure_dimensions_never_claim_verified_absence_for_an_empty_file() {
+    let batch = extract("src/empty.rs", "", ALL_DIMENSIONS.to_vec());
+    for &dimension in &[
+        SemanticDimension::Call,
+        SemanticDimension::ControlFlow,
+        SemanticDimension::DataFlow,
+        SemanticDimension::State,
+        SemanticDimension::Effect,
+        SemanticDimension::Ownership,
+        SemanticDimension::Concurrency,
+    ] {
+        let obligation = batch.obligation_for(dimension).unwrap();
+        assert_eq!(
+            obligation.status,
+            EpistemicStatus::Unknown,
+            "{dimension:?} must not claim verified absence"
+        );
+        assert!(obligation.observation_ids.is_empty());
+        assert!(!obligation.diagnostics.is_empty());
+    }
+}
+
+// --- 97. every full-expression-tree dimension's obligation stays UNKNOWN even when real
+// observations exist -- partial coverage must preserve evidence without claiming closure ----------
+
+const R4_10_RECONCILIATION_CORPUS: &str = r#"
+pub fn everything(x: u64) -> u64 {
+    let borrowed = &x;
+    called(*borrowed);
+    std::thread::spawn(move || {
+        let _ = x;
+    });
+    x
+}
+
+fn called(_value: u64) {}
+"#;
+
+#[test]
+fn partial_closure_dimensions_remain_unknown_even_with_real_observations() {
+    let batch = extract_all("src/lib.rs", R4_10_RECONCILIATION_CORPUS);
+    for &dimension in &[
+        SemanticDimension::Call,
+        SemanticDimension::ControlFlow,
+        SemanticDimension::DataFlow,
+        SemanticDimension::Ownership,
+        SemanticDimension::Concurrency,
+    ] {
+        let obligation = batch.obligation_for(dimension).unwrap();
+        assert_eq!(
+            obligation.status,
+            EpistemicStatus::Unknown,
+            "{dimension:?} must stay UNKNOWN even though real observations exist"
+        );
+        assert!(
+            !obligation.observation_ids.is_empty(),
+            "{dimension:?} must still preserve its real observations"
+        );
+    }
+}
+
+// --- 98. a block terminating via a textual panic-like macro is always Inferred, never Observed,
+// regardless of whether a local shadow is actually present -- this extractor has no macro/name
+// resolution at all, so an absent same-file `macro_rules!` redefinition never upgrades confidence --
+
+#[test]
+fn panic_like_macro_block_is_always_inferred_never_observed() {
+    let batch = extract_all("src/lib.rs", STATE_EFFECT_CORPUS);
+    let caller = find_function_identity(&batch, &["impl:Counter"], "maybe_panic").unwrap();
+    let caller_id =
+        SemanticRecordId::new(SemanticDimension::FunctionIdentity, &caller.identity_key());
+    let panic_block = batch
+        .observations
+        .iter()
+        .find_map(|observation| match observation {
+            SemanticObservation::ControlFlow(header)
+                if header.subject.function == caller_id
+                    && header
+                        .subject
+                        .successors
+                        .iter()
+                        .any(|edge| edge.kind == ControlFlowEdgeKind::Panic) =>
+            {
+                Some(header)
+            }
+            _ => None,
+        })
+        .expect("maybe_panic's body produces a block with a Panic edge");
+    assert_eq!(
+        panic_block.status,
+        EpistemicStatus::Inferred,
+        "a textual panic-like macro can never be Observed without macro/name resolution"
+    );
+}
+
+// --- 99. CONTROL_FLOW and EFFECT never disagree over the same panic-like macro evidence, including
+// the adversarial case where the macro name is actually locally shadowed -----------------------------
+
+#[test]
+fn shadowed_panic_macro_is_inferred_consistently_in_control_flow_and_effect() {
+    const CORPUS: &str = r#"
+macro_rules! panic {
+    () => {};
+}
+
+pub fn shadowed_panic() {
+    panic!();
+}
+"#;
+    let batch = extract_all("src/lib.rs", CORPUS);
+    let caller = find_function_identity(&batch, &[], "shadowed_panic").unwrap();
+    let caller_id =
+        SemanticRecordId::new(SemanticDimension::FunctionIdentity, &caller.identity_key());
+    let cfg_status = batch
+        .observations
+        .iter()
+        .find_map(|observation| match observation {
+            SemanticObservation::ControlFlow(header)
+                if header.subject.function == caller_id
+                    && header
+                        .subject
+                        .successors
+                        .iter()
+                        .any(|edge| edge.kind == ControlFlowEdgeKind::Panic) =>
+            {
+                Some(header.status)
+            }
+            _ => None,
+        })
+        .expect("shadowed_panic's body produces a block with a Panic edge");
+    let effect_status = batch
+        .observations
+        .iter()
+        .find_map(|observation| match observation {
+            SemanticObservation::Effect(header) if header.subject.function == caller_id => {
+                Some(header.status)
+            }
+            _ => None,
+        })
+        .expect("shadowed_panic's body produces an Effect observation");
+    assert_eq!(cfg_status, EpistemicStatus::Inferred);
+    assert_eq!(effect_status, EpistemicStatus::Inferred);
+}
+
+// --- 100. a call whose callee spelling merely ends in `spawn` is INFERRED, never a resolved
+// OBSERVED concurrency fact -- `fn spawn()`/`game::spawn(enemy)` are not concurrency evidence -----
+
+#[test]
+fn spawn_spelling_candidate_is_inferred_not_observed() {
+    let batch = extract_all("src/lib.rs", CONCURRENCY_CORPUS);
+    let caller = find_function_identity(&batch, &[], "spawn_work").unwrap();
+    let caller_id =
+        SemanticRecordId::new(SemanticDimension::FunctionIdentity, &caller.identity_key());
+    let header = batch
+        .observations
+        .iter()
+        .find_map(|observation| match observation {
+            SemanticObservation::Concurrency(header)
+                if header.subject.function == caller_id
+                    && header.subject.kind == ConcurrencyKind::Spawn =>
+            {
+                Some(header)
+            }
+            _ => None,
+        })
+        .expect("spawn_work produces a Spawn candidate");
+    assert_eq!(
+        header.status,
+        EpistemicStatus::Inferred,
+        "a spelling-only spawn match is never resolved evidence of real concurrency"
+    );
+}
+
+// --- 101. `.await` remains OBSERVED -- dedicated syntax cannot be shadowed or overloaded, unlike a
+// `spawn`-spelled call ------------------------------------------------------------------------------
+
+#[test]
+fn dot_await_remains_observed() {
+    let batch = extract_all("src/lib.rs", CONCURRENCY_CORPUS);
+    let caller = find_function_identity(&batch, &[], "await_something").unwrap();
+    let caller_id =
+        SemanticRecordId::new(SemanticDimension::FunctionIdentity, &caller.identity_key());
+    let header = batch
+        .observations
+        .iter()
+        .find_map(|observation| match observation {
+            SemanticObservation::Concurrency(header)
+                if header.subject.function == caller_id
+                    && header.subject.kind == ConcurrencyKind::Await =>
+            {
+                Some(header)
+            }
+            _ => None,
+        })
+        .expect("await_something produces an Await site");
+    assert_eq!(header.status, EpistemicStatus::Observed);
+}
+
+// --- 102. two independent temporaries with identical textual spelling (`&foo()` twice) must not
+// collapse onto one OwnershipTarget in the engineering graph merely because they read alike --------
+// (see `core::graph::engineering_graph`'s own dedicated test for the graph-node-level proof; this
+// test proves the adapter-level `OwnershipResolution` classification the graph fix depends on) -----
+
+#[test]
+fn borrowing_two_independent_call_results_with_identical_spelling_is_unresolved_not_resolved() {
+    const CORPUS: &str = r#"
+pub fn two_borrows() {
+    let a = &foo();
+    let b = &foo();
+    let _ = (a, b);
+}
+
+fn foo() -> u64 {
+    0
+}
+"#;
+    let batch = extract_all("src/lib.rs", CORPUS);
+    let caller = find_function_identity(&batch, &[], "two_borrows").unwrap();
+    let ops = ownership_ops_for(&batch, caller);
+    let borrows: Vec<_> = ops
+        .iter()
+        .filter(|op| op.kind == OwnershipKind::BorrowShared)
+        .collect();
+    assert_eq!(borrows.len(), 2, "both `&foo()` sites must be recorded");
+    for borrow in &borrows {
+        assert_eq!(
+            borrow.resolution,
+            atlas_core::OwnershipResolution::Unresolved,
+            "a borrowed call-result temporary has no resolvable place identity"
+        );
+    }
+    assert_ne!(
+        (borrows[0].span.line, borrows[0].span.column),
+        (borrows[1].span.line, borrows[1].span.column),
+        "the two temporaries remain distinct sites"
+    );
+}
+
+// --- 103. a bare-identifier borrow stays Resolved -- the resolution split must not weaken the
+// already-correct convergent case ---------------------------------------------------------------
+
+#[test]
+fn borrowing_a_bare_identifier_is_resolved() {
+    const CORPUS: &str = r#"
+pub fn borrow_name(x: u64) -> u64 {
+    let r = &x;
+    *r
+}
+"#;
+    let batch = extract_all("src/lib.rs", CORPUS);
+    let caller = find_function_identity(&batch, &[], "borrow_name").unwrap();
+    let ops = ownership_ops_for(&batch, caller);
+    let borrow = ops
+        .iter()
+        .find(|op| op.kind == OwnershipKind::BorrowShared)
+        .expect("&x is recorded");
+    assert_eq!(borrow.resolution, atlas_core::OwnershipResolution::Resolved);
+}
+
+// =====================================================================================================
+// R4.9 value-position coverage: struct/array/tuple literal fields, range bounds and `break value`
+// were all silently treated as non-value positions -- a real gap, since Rust genuinely moves/copies
+// each of these by value. Falsifies both the positive cases (real move sites now recorded) and the
+// negative cases (a scrutinee/receiver/condition is still correctly never a move site).
+// =====================================================================================================
+
+// --- 104. tuple construction moves/copies each element by value ---------------------------------
+
+#[test]
+fn tuple_construction_moves_each_element() {
+    const CORPUS: &str = r#"
+pub fn make_tuple(x: u64, y: u64) -> (u64, u64) {
+    (x, y)
+}
+"#;
+    let batch = extract_all("src/lib.rs", CORPUS);
+    let caller = find_function_identity(&batch, &[], "make_tuple").unwrap();
+    let ops = ownership_ops_for(&batch, caller);
+    let moves: Vec<_> = ops
+        .iter()
+        .filter(|op| op.kind == OwnershipKind::MoveOrCopy)
+        .collect();
+    assert_eq!(moves.len(), 2, "both tuple elements are move/copy sites");
+}
+
+// --- 105. array-literal construction moves/copies each element by value -------------------------
+
+#[test]
+fn array_construction_moves_each_element() {
+    const CORPUS: &str = r#"
+pub fn make_array(x: u64) -> [u64; 1] {
+    [x]
+}
+"#;
+    let batch = extract_all("src/lib.rs", CORPUS);
+    let caller = find_function_identity(&batch, &[], "make_array").unwrap();
+    let ops = ownership_ops_for(&batch, caller);
+    assert!(
+        ops.iter()
+            .any(|op| op.kind == OwnershipKind::MoveOrCopy && op.name == "x")
+    );
+}
+
+// --- 106. struct-literal field initialization moves/copies the field value by value --------------
+
+#[test]
+fn struct_literal_field_initialization_moves_the_field_value() {
+    const CORPUS: &str = r#"
+pub struct S {
+    field: u64,
+}
+
+pub fn make_struct(x: u64) -> S {
+    S { field: x }
+}
+"#;
+    let batch = extract_all("src/lib.rs", CORPUS);
+    let caller = find_function_identity(&batch, &[], "make_struct").unwrap();
+    let ops = ownership_ops_for(&batch, caller);
+    assert!(
+        ops.iter()
+            .any(|op| op.kind == OwnershipKind::MoveOrCopy && op.name == "x"),
+        "the struct field's initializer value is a move/copy site"
+    );
+}
+
+// --- 107. `break value` moves/copies the loop's result value by value ---------------------------
+
+#[test]
+fn break_with_value_moves_the_value() {
+    const CORPUS: &str = r#"
+pub fn find_first(x: u64) -> u64 {
+    loop {
+        break x;
+    }
+}
+"#;
+    let batch = extract_all("src/lib.rs", CORPUS);
+    let caller = find_function_identity(&batch, &[], "find_first").unwrap();
+    let ops = ownership_ops_for(&batch, caller);
+    assert!(
+        ops.iter()
+            .any(|op| op.kind == OwnershipKind::MoveOrCopy && op.name == "x"),
+        "`break x` moves/copies x into the loop's result"
+    );
+}
+
+// --- 108. a match scrutinee is still never itself a move/copy site (no false positive from the
+// value-position fixes above) ---------------------------------------------------------------------
+
+#[test]
+fn match_scrutinee_is_not_a_move_site() {
+    const CORPUS: &str = r#"
+pub fn inspect(x: u64) -> u64 {
+    match x {
+        _ => 0,
+    }
+}
+"#;
+    let batch = extract_all("src/lib.rs", CORPUS);
+    let caller = find_function_identity(&batch, &[], "inspect").unwrap();
+    let ops = ownership_ops_for(&batch, caller);
+    assert!(
+        !ops.iter()
+            .any(|op| op.kind == OwnershipKind::MoveOrCopy && op.name == "x"),
+        "matching on x by value alone is not itself a move -- x is only inspected, not consumed"
+    );
+}
+
+// =====================================================================================================
+// R4.11 PERSISTENCE: conservative, textual-spelling-only durable-state candidate detection. Every
+// adversarial case here proves the central invariant: unresolved call spelling never becomes a
+// resolved persistence fact, exactly as R4.8's panic-macro and R4.10's spawn-spelling precedents
+// already established. See core::semantic::persistence's module doc comment for the PlaceRef
+// bridge this dimension uses instead of inventing a fifth spelling-keyed target identity.
+// =====================================================================================================
+
+const PERSISTENCE_CORPUS: &str = r#"
+pub fn commits_something(store: &mut Store) {
+    store.commit();
+}
+
+pub fn unrelated_business_logic(game: &mut Game) {
+    game.commit();
+}
+
+pub fn flushes_a_ui(ui: &mut Ui) {
+    ui.flush();
+}
+
+pub fn syncs_a_cache(cache: &mut Cache) {
+    cache.sync();
+}
+
+pub fn checkpoints_a_builder(builder: &mut Builder) {
+    builder.checkpoint();
+}
+
+pub fn snapshots_a_builder(builder: &mut Builder) {
+    builder.snapshot();
+}
+
+pub fn calls_something_unrelated(widget: &mut Widget) {
+    widget.render();
+}
+
+pub fn commits_twice(store: &mut Store) {
+    store.commit();
+    store.commit();
+}
+
+pub fn commits_inside_async_block(store: &mut Store) {
+    let _ = async {
+        store.commit();
+    };
+}
+
+pub fn commits_inside_closure(store: &mut Store) {
+    let _ = || {
+        store.commit();
+    };
+}
+
+pub struct Store;
+impl Store {
+    pub fn commit(&mut self) {}
+}
+pub struct Game;
+impl Game {
+    pub fn commit(&mut self) {}
+}
+pub struct Ui;
+impl Ui {
+    pub fn flush(&mut self) {}
+}
+pub struct Cache;
+impl Cache {
+    pub fn sync(&mut self) {}
+}
+pub struct Builder;
+impl Builder {
+    pub fn checkpoint(&mut self) {}
+    pub fn snapshot(&mut self) {}
+}
+pub struct Widget;
+impl Widget {
+    pub fn render(&mut self) {}
+}
+"#;
+
+// --- 109. a real-shaped `commit()` call is recorded as an Inferred candidate, never Observed -----
+
+#[test]
+fn commit_call_is_recorded_as_an_inferred_candidate() {
+    let batch = extract_all("src/lib.rs", PERSISTENCE_CORPUS);
+    let caller = find_function_identity(&batch, &[], "commits_something").unwrap();
+    let ops = persistence_ops_for(&batch, caller);
+    assert_eq!(ops.len(), 1);
+    assert_eq!(ops[0].kind, PersistenceKind::Commit);
+    assert_eq!(ops[0].resolution, PersistenceResolution::Unresolved);
+    assert_eq!(ops[0].place, PlaceRef::Unresolved);
+}
+
+// --- 110. an UNRELATED method merely named `commit` is treated identically -- this extractor
+// cannot and must not distinguish it from a real durable commit by spelling alone ------------------
+
+#[test]
+fn unrelated_commit_spelled_method_is_still_only_inferred_never_observed() {
+    let batch = extract_all("src/lib.rs", PERSISTENCE_CORPUS);
+    let caller = find_function_identity(&batch, &[], "unrelated_business_logic").unwrap();
+    let caller_id =
+        SemanticRecordId::new(SemanticDimension::FunctionIdentity, &caller.identity_key());
+    let header = batch
+        .observations
+        .iter()
+        .find_map(|observation| match observation {
+            SemanticObservation::Persistence(header) if header.subject.function == caller_id => {
+                Some(header)
+            }
+            _ => None,
+        })
+        .expect("game.commit() still produces a textual candidate");
+    assert_eq!(
+        header.status,
+        atlas_core::EpistemicStatus::Inferred,
+        "an unrelated game.commit() must never become OBSERVED merely because it is spelled like a durable commit"
+    );
+}
+
+// --- 111. flush/sync/checkpoint/snapshot spellings map to their own distinct PersistenceKind -----
+
+#[test]
+fn each_persistence_spelling_maps_to_its_own_kind() {
+    let batch = extract_all("src/lib.rs", PERSISTENCE_CORPUS);
+    let cases = [
+        ("flushes_a_ui", PersistenceKind::Flush),
+        ("syncs_a_cache", PersistenceKind::Sync),
+        ("checkpoints_a_builder", PersistenceKind::Checkpoint),
+    ];
+    for (function_name, expected_kind) in cases {
+        let caller = find_function_identity(&batch, &[], function_name).unwrap();
+        let ops = persistence_ops_for(&batch, caller);
+        assert_eq!(
+            ops.len(),
+            1,
+            "{function_name} should produce exactly one candidate"
+        );
+        assert_eq!(ops[0].kind, expected_kind);
+    }
+    let snapshot_caller = find_function_identity(&batch, &[], "snapshots_a_builder").unwrap();
+    let snapshot_ops = persistence_ops_for(&batch, snapshot_caller);
+    assert_eq!(snapshot_ops.len(), 1);
+    assert_eq!(snapshot_ops[0].kind, PersistenceKind::Snapshot);
+}
+
+// --- 112. an ordinary, unrelated method call produces no Persistence observation at all -----------
+
+#[test]
+fn unrelated_method_call_produces_no_persistence_observation() {
+    let batch = extract_all("src/lib.rs", PERSISTENCE_CORPUS);
+    let caller = find_function_identity(&batch, &[], "calls_something_unrelated").unwrap();
+    assert!(persistence_ops_for(&batch, caller).is_empty());
+}
+
+// --- 113. two identical-spelling commit() calls at different sites remain two distinct
+// observations, never collapsed -- the same lesson R4.9's OwnershipTarget bug already established -
+
+#[test]
+fn two_identical_spelling_commit_calls_remain_distinct_observations() {
+    let batch = extract_all("src/lib.rs", PERSISTENCE_CORPUS);
+    let caller = find_function_identity(&batch, &[], "commits_twice").unwrap();
+    let ops = persistence_ops_for(&batch, caller);
+    assert_eq!(
+        ops.len(),
+        2,
+        "both commit() sites must be recorded independently"
+    );
+    assert_ne!(
+        (ops[0].span.line, ops[0].span.column),
+        (ops[1].span.line, ops[1].span.column)
+    );
+}
+
+// --- 114. a persistence-shaped call inside a nested async block or closure is NOT attributed to
+// the enclosing function -- consistent with every other dimension's deferred-region exclusion -----
+
+#[test]
+fn persistence_call_inside_async_block_is_not_attributed_to_the_enclosing_function() {
+    let batch = extract_all("src/lib.rs", PERSISTENCE_CORPUS);
+    let caller = find_function_identity(&batch, &[], "commits_inside_async_block").unwrap();
+    assert!(
+        persistence_ops_for(&batch, caller).is_empty(),
+        "a commit() inside an async block belongs to that deferred region, never to the function \
+         that merely constructs it"
+    );
+}
+
+#[test]
+fn persistence_call_inside_closure_is_not_attributed_to_the_enclosing_function() {
+    let batch = extract_all("src/lib.rs", PERSISTENCE_CORPUS);
+    let caller = find_function_identity(&batch, &[], "commits_inside_closure").unwrap();
+    assert!(
+        persistence_ops_for(&batch, caller).is_empty(),
+        "a commit() inside a closure belongs to that deferred region, never to the enclosing fn"
+    );
+}
+
+// --- 115. a state mutation alone never fabricates a durable persistence fact ----------------------
+
+#[test]
+fn plain_state_mutation_never_fabricates_persistence() {
+    const CORPUS: &str = r#"
+pub struct Counter {
+    value: u64,
+}
+impl Counter {
+    pub fn increment(&mut self) {
+        self.value += 1;
+    }
+}
+"#;
+    let batch = extract_all("src/lib.rs", CORPUS);
+    let caller = find_function_identity(&batch, &["impl:Counter"], "increment").unwrap();
+    assert!(persistence_ops_for(&batch, caller).is_empty());
+}
+
+// --- 116. every Persistence observation satisfies dimension consistency --------------------------
+
+#[test]
+fn persistence_observations_satisfy_dimension_consistency() {
+    let batch = extract_all("src/lib.rs", PERSISTENCE_CORPUS);
+    assert!(
+        batch
+            .observations
+            .iter()
+            .filter(|observation| matches!(observation, SemanticObservation::Persistence(_)))
+            .all(SemanticObservation::is_dimension_consistent)
+    );
+}
+
+// --- 117. deterministic across repeated extraction, and unaffected by requested dimension order --
+
+#[test]
+fn persistence_corpus_extraction_is_deterministic() {
+    let a = extract_all("src/lib.rs", PERSISTENCE_CORPUS);
+    let b = extract_all("src/lib.rs", PERSISTENCE_CORPUS);
+    assert_eq!(a.observations, b.observations);
+}
+
+#[test]
+fn repeated_extraction_yields_stable_persistence_record_ids() {
+    let batch = extract_all("src/lib.rs", PERSISTENCE_CORPUS);
+    let caller = find_function_identity(&batch, &[], "commits_something").unwrap();
+    let first: Vec<String> = persistence_ops_for(&batch, caller)
+        .into_iter()
+        .map(PersistenceIdentity::identity_key)
+        .collect();
+
+    let batch2 = extract_all("src/lib.rs", PERSISTENCE_CORPUS);
+    let caller2 = find_function_identity(&batch2, &[], "commits_something").unwrap();
+    let second: Vec<String> = persistence_ops_for(&batch2, caller2)
+        .into_iter()
+        .map(PersistenceIdentity::identity_key)
+        .collect();
+
+    assert_eq!(first, second);
+    assert!(!first.is_empty());
+}
+
+// === R4.12: the named R4 Rust reference profile ===============================================
+//
+// `.atlas/contracts/SEMANTIC-EXTRACTION.md#r4-definition-of-done` (item 1): "any project-wide
+// claim that R4 is complete MUST name the language/profile/reference corpus against which these
+// gates were proven." Every corpus above this section proves one dimension (or one wave) in
+// isolation; none is a single, named artifact exercising all twelve `SemanticDimension` variants
+// together. `R4_REFERENCE_PROFILE_CORPUS` is that artifact: one small, real, compiling-shaped
+// Rust file, combined from the same recognized constructs already proven dimension-by-dimension
+// above (a direct call, a branch, a def/use, a `self.field` read/write, a panic, a shared borrow,
+// `.await`, `thread::spawn`, and a `commit()` spelling), so an R4-closure claim naming this corpus
+// can point at real evidence for every mandatory dimension, not merely "not Unsupported".
+const R4_REFERENCE_PROFILE_CORPUS: &str = r#"
+pub struct Widget {
+    pub value: u64,
+}
+
+impl Widget {
+    pub fn new(value: u64) -> Self {
+        Widget { value }
+    }
+
+    pub fn get(&self) -> u64 {
+        self.value
+    }
+
+    pub fn set(&mut self, new_value: u64) {
+        self.value = new_value;
+    }
+
+    pub fn maybe_panic(&self, ok: bool) -> u64 {
+        if !ok {
+            panic!("not ok");
+        }
+        self.value
+    }
+}
+
+pub fn helper(x: u64) -> u64 {
+    x
+}
+
+pub fn caller(w: &Widget) -> u64 {
+    let doubled = helper(w.get()) * 2;
+    doubled
+}
+
+pub fn borrow_widget(w: &Widget) -> u64 {
+    w.value
+}
+
+pub async fn awaits_something(x: u64) -> u64 {
+    x.await
+}
+
+fn do_work() {}
+
+pub fn spawns_work() {
+    thread::spawn(do_work);
+}
+
+pub struct Store;
+impl Store {
+    pub fn commit(&mut self) {}
+}
+
+pub fn commits_a_store(store: &mut Store) {
+    store.commit();
+}
+"#;
+
+fn dimension_count(batch: &ExtractionBatch, dimension: SemanticDimension) -> usize {
+    batch
+        .observations
+        .iter()
+        .filter(|observation| observation.dimension() == dimension)
+        .count()
+}
+
+// --- 118. the reference profile is evidence-producing for EVERY mandatory dimension, not merely
+// accounted -- the strongest form of R4.12 Definition-of-Done item 1 ------------------------------
+
+#[test]
+fn reference_profile_produces_real_evidence_for_every_mandatory_dimension() {
+    let batch = extract_all("src/lib.rs", R4_REFERENCE_PROFILE_CORPUS);
+    assert!(batch.is_closed(&ALL_DIMENSIONS));
+    for &dimension in &ALL_DIMENSIONS {
+        let obligation = batch.obligation_for(dimension).unwrap();
+        assert_ne!(
+            obligation.status,
+            EpistemicStatus::Unsupported,
+            "{dimension:?} must not be Unsupported in the R4 reference profile"
+        );
+        assert!(
+            dimension_count(&batch, dimension) > 0,
+            "{dimension:?} produced zero observations in the R4 reference profile; the named \
+             closure corpus must exercise every mandatory dimension with real evidence"
+        );
+    }
+}
+
+// --- 119. deterministic across repeated extraction, matching every other corpus's proof ----------
+
+#[test]
+fn reference_profile_extraction_is_deterministic() {
+    let a = extract_all("src/lib.rs", R4_REFERENCE_PROFILE_CORPUS);
+    let b = extract_all("src/lib.rs", R4_REFERENCE_PROFILE_CORPUS);
+    assert_eq!(a.observations, b.observations);
+    assert_eq!(a.obligations, b.obligations);
+}
+
+// --- 120. unaffected by requested-dimension ordering, matching CORPUS's own such proof ------------
+
+#[test]
+fn reference_profile_extraction_is_unaffected_by_requested_dimension_order() {
+    let mut reversed = ALL_DIMENSIONS.to_vec();
+    reversed.reverse();
+    let forward = extract_all("src/lib.rs", R4_REFERENCE_PROFILE_CORPUS);
+    let backward = extract("src/lib.rs", R4_REFERENCE_PROFILE_CORPUS, reversed);
+    assert_eq!(forward.observations, backward.observations);
 }

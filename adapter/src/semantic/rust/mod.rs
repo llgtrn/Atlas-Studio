@@ -1,8 +1,7 @@
-//! Real Rust semantic extractor (R4.3-R4.10).
+//! Real Rust semantic extractor (R4.3-R4.11).
 //!
-//! Scope is eleven dimensions: SYMBOL, TYPE, FUNCTION_IDENTITY, FUNCTION_SIGNATURE, CALL,
-//! CONTROL_FLOW, DATA_FLOW, STATE, EFFECT, OWNERSHIP, CONCURRENCY. Every other requested dimension
-//! (PERSISTENCE) is always explicit `UNSUPPORTED` here — R4.11+ territory, never silently omitted.
+//! Scope is all twelve dimensions: SYMBOL, TYPE, FUNCTION_IDENTITY, FUNCTION_SIGNATURE, CALL,
+//! CONTROL_FLOW, DATA_FLOW, STATE, EFFECT, OWNERSHIP, CONCURRENCY, PERSISTENCE.
 //!
 //! Parses `input.source_text` with `syn` (a real Rust parser, not regex/ad-hoc text scanning).
 //! Parsing untrusted source text never authorizes executing it: this extractor never runs
@@ -37,8 +36,12 @@
 //! `Await` (dedicated `.await` syntax, fully determined) and `Spawn` (callee spelling ending in
 //! `spawn`, the same name-based risk class EFFECT already accepts for panic macros);
 //! `Lock`/`Unlock`/channel/atomic operations would require resolving a method call to a specific
-//! known API and are never emitted this wave. A malformed file never silently disappears: parse
-//! failure yields a `ParseFailure` diagnostic plus
+//! known API and are never emitted this wave. PERSISTENCE (R4.11, see `persistence.rs`) has no
+//! dedicated syntax at all and no resolved-API adapter, so every candidate is a textual
+//! callee-spelling guess (`commit`/`flush`/`sync`/`sync_all`/`sync_data`/`checkpoint`/`snapshot`),
+//! always `Inferred` with an unresolved `PlaceRef` -- see `core::semantic::persistence`'s module
+//! doc comment for why a durable-state target is never derived from spelling. A malformed file
+//! never silently disappears: parse failure yields a `ParseFailure` diagnostic plus
 //! explicit `UNKNOWN` for all supported dimensions, with the artifact still represented.
 
 mod cfg;
@@ -46,16 +49,18 @@ mod concurrency;
 mod dataflow;
 mod effect;
 mod ownership;
+mod persistence;
 mod spelling;
 mod state;
 
 use std::collections::{BTreeMap, BTreeSet};
 
 use atlas_core::{
-    CallDispatchKind, CallSiteIdentity, EpistemicStatus, Evidence, EvidenceId,
+    CallDispatchKind, CallSiteIdentity, DataFlowResolution, EpistemicStatus, Evidence, EvidenceId,
     FunctionDeclarationKind, FunctionIdentity, FunctionOwner, FunctionParameter, FunctionSignature,
-    Provenance, SemanticDimension, SemanticObservation, SemanticRecordHeader, SemanticRecordId,
-    SemanticScope, SymbolIdentity, SymbolRole, TypeIdentity, stable_id,
+    PlaceRef, Provenance, SemanticDimension, SemanticObservation, SemanticRecordHeader,
+    SemanticRecordId, SemanticScope, SymbolIdentity, SymbolRole, TypeIdentity, ValueIdentity,
+    ValueRole, stable_id,
 };
 use syn::spanned::Spanned;
 
@@ -65,8 +70,8 @@ use super::extractor::{DiagnosticCode, ExtractionDiagnostic, ExtractionInput, Se
 pub const RUST_SEMANTIC_EXTRACTOR_ID: &str = "atlas.rust.source-semantic.v1";
 pub const RUST_SEMANTIC_EXTRACTOR_VERSION: &str = "0.1.0";
 
-/// Exactly the eleven dimensions this wave observes from parser-visible syntax. Every other
-/// `SemanticDimension` is out of scope through R4.10 and always answered `UNSUPPORTED`.
+/// Exactly the twelve dimensions this wave observes from parser-visible syntax -- every
+/// `SemanticDimension` variant that exists.
 pub const SUPPORTED_DIMENSIONS: &[SemanticDimension] = &[
     SemanticDimension::Symbol,
     SemanticDimension::Type,
@@ -79,12 +84,67 @@ pub const SUPPORTED_DIMENSIONS: &[SemanticDimension] = &[
     SemanticDimension::Effect,
     SemanticDimension::Ownership,
     SemanticDimension::Concurrency,
+    SemanticDimension::Persistence,
 ];
 
-/// Useful facts are emitted for these dimensions, but this extractor does not yet prove exhaustive
-/// closure over their full canonical contracts.
-const PARTIAL_CLOSURE_DIMENSIONS: &[SemanticDimension] =
-    &[SemanticDimension::State, SemanticDimension::Effect];
+/// Whether this extractor's declared profile for a dimension has been checked to visit every
+/// syntactic form that could produce an observation, or whether real, named gaps remain.
+///
+/// This is the one place that answers "can this extractor legitimately prove negative absence for
+/// this dimension" -- a wave label or test count must never substitute for this. See
+/// `dimension_coverage` for the per-dimension reasoning.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum DimensionCoverage {
+    /// A zero-observation result for this dimension is real evidence of absence: this extractor's
+    /// declared profile has been checked to walk every syntactic form that could produce one.
+    Exhaustive,
+    /// A named, real syntactic form exists that this extractor does not walk into. A
+    /// zero-observation result never proves absence; the dimension's obligation stays UNKNOWN
+    /// even when real observations exist.
+    Partial,
+}
+
+/// Coverage classification for every dimension this extractor supports. An exhaustive match (not
+/// a lookup table with a permissive default) so adding a new `SemanticDimension` variant forces an
+/// explicit decision here rather than silently defaulting either way.
+fn dimension_coverage(dimension: SemanticDimension) -> DimensionCoverage {
+    use DimensionCoverage::{Exhaustive, Partial};
+    match dimension {
+        // Declaration-level: every `syn::Item` this file's top-level/nested-`mod` walk visits is
+        // checked for a Symbol/Type/FunctionIdentity/FunctionSignature-shaped declaration. Real,
+        // documented, permanent exclusions exist (compiler-generated functions, item-level
+        // function-like macro-expanded declarations, monomorphized instances, resolved DefIds --
+        // see R4.4's own verification record) -- but those are OUT_OF_PROFILE exclusions this
+        // extractor never silently claims to cover, not unvisited reachable syntax within the
+        // declared profile itself, so a zero-observation result over that declared profile is
+        // real evidence.
+        SemanticDimension::Symbol
+        | SemanticDimension::Type
+        | SemanticDimension::FunctionIdentity
+        | SemanticDimension::FunctionSignature => Exhaustive,
+        // Every full-expression-tree walker (CALL/CONTROL_FLOW/DATA_FLOW/STATE/EFFECT/OWNERSHIP/
+        // CONCURRENCY/PERSISTENCE) shares one real, permanent gap: a bare `syn::Expr::Macro`
+        // invocation's arguments are an opaque `TokenStream`, never re-parsed as expressions
+        // without macro expansion (which this extractor never performs -- `.atlas/contracts/
+        // SEMANTIC-EXTRACTION.md`). A call, move, state access, effect, borrow, concurrency or
+        // persistence site written only inside a macro invocation's arguments (e.g.
+        // `my_macro!(hidden_call())`) is therefore structurally invisible to all eight, regardless
+        // of how complete each walker's own `syn::Expr` variant coverage otherwise is. CONTROL_FLOW
+        // additionally never splits below statement level (its own module doc comment already
+        // states this). PERSISTENCE additionally has no dedicated syntax at all (unlike
+        // CONCURRENCY's `.await`) and no resolved-API adapter, so every candidate it emits is a
+        // textual spelling guess -- see `persistence.rs`. None of the eight may claim a
+        // zero-observation result as verified absence.
+        SemanticDimension::Call
+        | SemanticDimension::ControlFlow
+        | SemanticDimension::DataFlow
+        | SemanticDimension::State
+        | SemanticDimension::Effect
+        | SemanticDimension::Ownership
+        | SemanticDimension::Concurrency
+        | SemanticDimension::Persistence => Partial,
+    }
+}
 
 #[derive(Debug, Default)]
 pub struct RustSemanticExtractor;
@@ -463,6 +523,158 @@ impl<'a> ExtractionContext<'a> {
         self.observations.push(observation);
     }
 
+    /// A `PlaceRef` at the SAME DATA_FLOW record_id `dataflow.rs`'s own walker would independently
+    /// compute for a value of role `role` named `name` at `span` inside `caller` -- reusing
+    /// `ValueIdentity::identity_key()` itself (never a hand-duplicated copy of its format string)
+    /// so the two walkers cannot silently drift apart. Gated on
+    /// `self.wants(SemanticDimension::DataFlow)`: a `Resolved` reference is only ever constructed
+    /// when DATA_FLOW is actually part of this same extraction request, so it never names a record
+    /// that (per this exact request) will not exist in this batch. `resolution`/
+    /// `resolved_definition`/`is_return_flow`/`is_parameter` are placeholder values below because
+    /// none of them affect `identity_key()`; only `function`, `name`, `span` and `role` do.
+    fn place_ref_for_value(
+        &self,
+        name: &str,
+        span: atlas_core::SourceSpan,
+        caller: &SemanticRecordId,
+        role: ValueRole,
+    ) -> PlaceRef {
+        if !self.wants(SemanticDimension::DataFlow) {
+            return PlaceRef::Unresolved;
+        }
+        let subject = ValueIdentity {
+            repository: self.input.repository.clone(),
+            revision: self.input.revision.clone(),
+            function: caller.clone(),
+            name: name.to_owned(),
+            span,
+            role,
+            is_parameter: false,
+            is_return_flow: false,
+            resolution: DataFlowResolution::Unresolved,
+            resolved_definition: None,
+        };
+        PlaceRef::Resolved {
+            dimension: SemanticDimension::DataFlow,
+            record_id: SemanticRecordId::new(SemanticDimension::DataFlow, &subject.identity_key()),
+        }
+    }
+
+    /// The `PlaceRef` a CALL argument expression should carry: `Resolved` when `arg` is a simple
+    /// single-identifier expression (the same shape `dataflow.rs`'s own `Expr::Path` arm
+    /// recognizes, via the shared `spelling::simple_path_ident`), else `Unresolved`.
+    fn place_ref_for_argument(&self, arg: &syn::Expr, caller: &SemanticRecordId) -> PlaceRef {
+        let Some(ident) = spelling::simple_path_ident(arg) else {
+            return PlaceRef::Unresolved;
+        };
+        self.place_ref_for_value(
+            &ident.to_string(),
+            self.span_of(arg),
+            caller,
+            ValueRole::Use,
+        )
+    }
+
+    /// Emits and walks a `Call`/`MethodCall` expression (`call_like` MUST be one of those two
+    /// variants), carrying `result` as this call's own `CallSiteIdentity.result`. Shared by
+    /// `walk_expr` (which always passes `PlaceRef::Unresolved` -- an arbitrary call expression
+    /// buried in a larger one has no single well-defined "result" binding) and
+    /// `walk_value_position_expr` (which computes a real `result` for the narrow case where this
+    /// call IS the entire value a `let`/assignment target receives).
+    fn walk_call_like(
+        &mut self,
+        call_like: &syn::Expr,
+        scope: &SemanticScope,
+        caller: &SemanticRecordId,
+        result: PlaceRef,
+    ) {
+        match call_like {
+            syn::Expr::Call(call) => {
+                let span = self.span_of(call);
+                let summary = spelling::call_callee_spelling(&call.func);
+                let arguments = call
+                    .args
+                    .iter()
+                    .map(|arg| self.place_ref_for_argument(arg, caller))
+                    .collect();
+                self.emit_call(scope, caller.clone(), span, &summary, arguments, result);
+                self.walk_expr(&call.func, scope, caller);
+                for arg in &call.args {
+                    self.walk_expr(arg, scope, caller);
+                }
+            }
+            syn::Expr::MethodCall(method_call) => {
+                let span = self.span_of(method_call);
+                let summary = format!(".{}", method_call.method);
+                let arguments = method_call
+                    .args
+                    .iter()
+                    .map(|arg| self.place_ref_for_argument(arg, caller))
+                    .collect();
+                self.emit_call(scope, caller.clone(), span, &summary, arguments, result);
+                self.walk_expr(&method_call.receiver, scope, caller);
+                for arg in &method_call.args {
+                    self.walk_expr(arg, scope, caller);
+                }
+            }
+            other => unreachable!(
+                "walk_call_like called with a non-call expression: {:?}",
+                std::mem::discriminant(other)
+            ),
+        }
+    }
+
+    /// Walks `expr` in a position where its resulting value directly becomes `result` (a `let`
+    /// binding's Definition, or a plain assignment's Store) IF `expr` is exactly a `Call`/
+    /// `MethodCall` expression -- e.g. the direct initializer of `let y = helper(x);`, not a nested
+    /// subexpression like `helper(x) + 1` (which has no single value this call's result "becomes").
+    /// Delegates to the ordinary `walk_expr` (implying `PlaceRef::Unresolved`) for every other case.
+    fn walk_value_position_expr(
+        &mut self,
+        expr: &syn::Expr,
+        scope: &SemanticScope,
+        caller: &SemanticRecordId,
+        result: PlaceRef,
+    ) {
+        match expr {
+            syn::Expr::Call(_) | syn::Expr::MethodCall(_) => {
+                self.walk_call_like(expr, scope, caller, result);
+            }
+            other => self.walk_expr(other, scope, caller),
+        }
+    }
+
+    /// The `PlaceRef` a `let <simple ident> = <init>;` binding's result-position should carry, if
+    /// `pat` reduces to a single simple identifier (`spelling::simple_binding_ident` -- the SAME
+    /// recognizer that decided `dataflow.rs`'s own `Definition` used to bind for this exact
+    /// pattern, before R4.12's destructuring fix generalized `walk_binding_pat`; a destructuring
+    /// pattern has no single identifier a call's result could unambiguously "become", so it stays
+    /// `Unresolved` here even though DATA_FLOW itself now binds every sub-identifier).
+    fn place_ref_for_let_result(&self, pat: &syn::Pat, caller: &SemanticRecordId) -> PlaceRef {
+        let Some(ident) = spelling::simple_binding_ident(pat) else {
+            return PlaceRef::Unresolved;
+        };
+        self.place_ref_for_value(
+            &ident.to_string(),
+            self.span_of(ident),
+            caller,
+            ValueRole::Definition,
+        )
+    }
+
+    /// The `PlaceRef` a plain `<simple path> = <init>;` assignment's result-position should carry.
+    fn place_ref_for_assign_result(&self, lhs: &syn::Expr, caller: &SemanticRecordId) -> PlaceRef {
+        let Some(ident) = spelling::simple_path_ident(lhs) else {
+            return PlaceRef::Unresolved;
+        };
+        self.place_ref_for_value(
+            &ident.to_string(),
+            self.span_of(lhs),
+            caller,
+            ValueRole::Store,
+        )
+    }
+
     /// Emits one CALL observation for a call site syntactically inside `caller`'s body.
     ///
     /// `dispatch`/`callees` are always `Unresolved`/`[]`: see the module doc comment and
@@ -473,6 +685,8 @@ impl<'a> ExtractionContext<'a> {
         caller: SemanticRecordId,
         span: atlas_core::SourceSpan,
         callee_summary: &str,
+        arguments: Vec<PlaceRef>,
+        result: PlaceRef,
     ) {
         let dimension = SemanticDimension::Call;
         if !self.wants(dimension) {
@@ -485,6 +699,8 @@ impl<'a> ExtractionContext<'a> {
             span: span.clone(),
             dispatch: CallDispatchKind::Unresolved,
             callees: Vec::new(),
+            arguments,
+            result,
         };
         let record_id = SemanticRecordId::new(dimension, &subject.identity_key());
         let evidence_id = EvidenceId::new(stable_id(
@@ -532,7 +748,8 @@ impl<'a> ExtractionContext<'a> {
         match stmt {
             syn::Stmt::Local(local) => {
                 if let Some(init) = &local.init {
-                    self.walk_expr(&init.expr, scope, caller);
+                    let result = self.place_ref_for_let_result(&local.pat, caller);
+                    self.walk_value_position_expr(&init.expr, scope, caller, result);
                     if let Some((_, diverge)) = &init.diverge {
                         self.walk_expr(diverge, scope, caller);
                     }
@@ -546,23 +763,8 @@ impl<'a> ExtractionContext<'a> {
 
     fn walk_expr(&mut self, expr: &syn::Expr, scope: &SemanticScope, caller: &SemanticRecordId) {
         match expr {
-            syn::Expr::Call(call) => {
-                let span = self.span_of(call);
-                let summary = spelling::call_callee_spelling(&call.func);
-                self.emit_call(scope, caller.clone(), span, &summary);
-                self.walk_expr(&call.func, scope, caller);
-                for arg in &call.args {
-                    self.walk_expr(arg, scope, caller);
-                }
-            }
-            syn::Expr::MethodCall(method_call) => {
-                let span = self.span_of(method_call);
-                let summary = format!(".{}", method_call.method);
-                self.emit_call(scope, caller.clone(), span, &summary);
-                self.walk_expr(&method_call.receiver, scope, caller);
-                for arg in &method_call.args {
-                    self.walk_expr(arg, scope, caller);
-                }
+            syn::Expr::Call(_) | syn::Expr::MethodCall(_) => {
+                self.walk_call_like(expr, scope, caller, PlaceRef::Unresolved);
             }
             syn::Expr::Binary(binary) => {
                 self.walk_expr(&binary.left, scope, caller);
@@ -617,7 +819,8 @@ impl<'a> ExtractionContext<'a> {
             }
             syn::Expr::Assign(assign) => {
                 self.walk_expr(&assign.left, scope, caller);
-                self.walk_expr(&assign.right, scope, caller);
+                let result = self.place_ref_for_assign_result(&assign.left, caller);
+                self.walk_value_position_expr(&assign.right, scope, caller, result);
             }
             syn::Expr::Try(try_expr) => self.walk_expr(&try_expr.expr, scope, caller),
             syn::Expr::Await(await_expr) => self.walk_expr(&await_expr.base, scope, caller),
@@ -639,7 +842,16 @@ impl<'a> ExtractionContext<'a> {
                     self.walk_expr(elem, scope, caller);
                 }
             }
-            syn::Expr::Closure(closure) => self.walk_expr(&closure.body, scope, caller),
+            // A closure body is a separate executable region that runs later (possibly never, or
+            // from a completely different caller) than the enclosing function -- attributing its
+            // call sites to `caller` would misattribute them exactly as CFG/DATA_FLOW/STATE/
+            // EFFECT/OWNERSHIP/CONCURRENCY already correctly refuse to do (none of them recurse
+            // into a closure body either; see each file's own "Closures get no ... attribution"
+            // comment). This extractor has no closure/executable-region identity of its own yet
+            // (`ExecutableRegionIdentity`-shaped work is future scope), so a closure's calls are
+            // left explicitly outside this dimension's current profile rather than misattributed
+            // to the outer function. Corrects a prior version of this walker that recursed here.
+            syn::Expr::Closure(_) => {}
             syn::Expr::Cast(cast) => self.walk_expr(&cast.expr, scope, caller),
             syn::Expr::Range(range) => {
                 if let Some(start) = &range.start {
@@ -650,9 +862,51 @@ impl<'a> ExtractionContext<'a> {
                 }
             }
             syn::Expr::Let(let_expr) => self.walk_expr(&let_expr.expr, scope, caller),
-            // Literals, bare paths, `continue`, and any other/future `syn::Expr` shape: either
-            // structurally cannot contain a nested call (a literal, an identifier) or is out of
-            // scope for R4.5's minimum call walker. Never claimed, never fabricated.
+            // `unsafe { .. }`/`const { .. }`/`try { .. }` execute immediately as part of the same
+            // executable region (unlike Closure/Async, they are not deferred) -- a call inside one
+            // is a real call site of the enclosing function, so these recurse rather than falling
+            // to the catch-all below.
+            syn::Expr::Unsafe(unsafe_expr) => {
+                for stmt in &unsafe_expr.block.stmts {
+                    self.walk_stmt(stmt, scope, caller);
+                }
+            }
+            syn::Expr::Const(const_expr) => {
+                for stmt in &const_expr.block.stmts {
+                    self.walk_stmt(stmt, scope, caller);
+                }
+            }
+            syn::Expr::TryBlock(try_block) => {
+                for stmt in &try_block.block.stmts {
+                    self.walk_stmt(stmt, scope, caller);
+                }
+            }
+            syn::Expr::Repeat(repeat) => {
+                self.walk_expr(&repeat.expr, scope, caller);
+                self.walk_expr(&repeat.len, scope, caller);
+            }
+            syn::Expr::RawAddr(raw_addr) => self.walk_expr(&raw_addr.expr, scope, caller),
+            // `async { .. }`/`async move { .. }` is a separate deferred executable region (a
+            // Future body polled later, possibly never, exactly like a Closure) -- excluded for
+            // the same misattribution reason as `Expr::Closure` above, not merely unhandled.
+            syn::Expr::Async(_) => {}
+            // `yield value` (unstable generator/coroutine syntax) evaluates `value` immediately as
+            // part of the SAME executable region -- syn parses it wherever it lexically appears,
+            // not only inside a generator body, so a bare fn/method containing `yield f()` is real,
+            // parseable input this walker must not silently skip. Not a deferred region like
+            // Closure/Async: matches CALL's own Return/Break precedent, and EFFECT/STATE's already
+            // -correct treatment of the same variant.
+            syn::Expr::Yield(yield_expr) => {
+                if let Some(value) = &yield_expr.expr {
+                    self.walk_expr(value, scope, caller);
+                }
+            }
+            // A bare macro invocation used as an expression (`Expr::Macro`) is opaque token-stream
+            // input this extractor never re-parses as expressions without macro expansion, which
+            // it never performs (`.atlas/contracts/SEMANTIC-EXTRACTION.md`) -- a call written only
+            // inside a macro invocation's arguments is a real, permanent, out-of-profile gap (see
+            // `dimension_coverage`), not a silently-omitted one. Literals, bare paths, `continue`,
+            // and any other/future `syn::Expr` shape structurally cannot contain a nested call.
             _ => {}
         }
     }
@@ -705,6 +959,7 @@ impl<'a> ExtractionContext<'a> {
             self.build_effects(body, scope, &caller_record_id);
             self.build_ownership(body, scope, &caller_record_id);
             self.build_concurrency(body, scope, &caller_record_id);
+            self.build_persistence(body, scope, &caller_record_id);
         }
 
         let mut parameters = Vec::new();
@@ -997,7 +1252,7 @@ impl<'a> ExtractionContext<'a> {
         for &dimension in &self.input.requested_dimensions {
             if SUPPORTED_DIMENSIONS.contains(&dimension) {
                 let records = self.dimension_records.remove(&dimension);
-                if PARTIAL_CLOSURE_DIMENSIONS.contains(&dimension) {
+                if dimension_coverage(dimension) == DimensionCoverage::Partial {
                     let diagnostic = ExtractionDiagnostic::new(
                         DiagnosticCode::IncompleteAnalysis,
                         Some(dimension),

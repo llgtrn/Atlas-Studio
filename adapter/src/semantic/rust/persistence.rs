@@ -1,68 +1,72 @@
-//! R4.10: real `Await`/`Spawn` concurrency-site detection for one function/method body.
+//! R4.11: conservative durable-state/recovery-site detection for one function/method body.
 //!
-//! See the module doc comment on `core::semantic::concurrency` for the exact scope and rationale.
-//! `expr.await` is dedicated `syn::Expr::Await` syntax -- fully syntax-determined, cannot be
-//! shadowed or overloaded, so it is recorded as `EpistemicStatus::Observed`. A call whose callee
-//! spelling ends in the segment `spawn` is only a textual candidate, the same risk/precision class
-//! R4.8's `is_panic_like_macro` already accepts for macro names: a function or method merely named
-//! `spawn` (`fn spawn() { .. }`, `game::spawn(enemy)`) is not evidence of real concurrency, and this
-//! extractor has no call-target resolution to tell the two apart. A spelling match is therefore
-//! recorded as `EpistemicStatus::Inferred`, never `Observed` -- only a resolved/admitted concurrency
-//! API would justify `Observed` here, and this extractor does not yet have one. Every other
-//! `ConcurrencyKind` (`Lock`/`Unlock`/`ChannelCreate`/
-//! `ChannelSend`/`ChannelReceive`/`AtomicOp`) would require resolving a method/function call to a
-//! specific known API, which this extractor cannot do without fabricating semantics, so none of
-//! them are emitted this wave. Unlike R4.9's OWNERSHIP, no context threading is needed: `Await`/
-//! `Spawn` sites are real wherever they occur in the expression tree, not only in specific
-//! positions, so this walker mirrors R4.8 EFFECT's simpler unconditional full-tree walk.
+//! See the module doc comment on `core::semantic::persistence` for the exact scope, the
+//! `PlaceRef` bridge rationale, and why this extractor never invents a spelling-keyed target
+//! identity. This wave has no dedicated Rust syntax for persistence (unlike R4.10's `.await`) and
+//! no resolved-API adapter, so every `PersistenceKind` this walker emits is a textual
+//! callee-spelling candidate ONLY -- exactly R4.8's `is_panic_like_macro`/R4.10's `is_spawn_call`
+//! risk class -- and is always `EpistemicStatus::Inferred` with `PersistenceResolution::Unresolved`
+//! and `PlaceRef::Unresolved`. `game.commit()`, `ui.flush()`, `cache.sync()` and
+//! `builder.snapshot()` are exactly as "persistence-shaped" by spelling as a real durable API call;
+//! this extractor cannot tell them apart without resolving the receiver's type, so it never claims
+//! `Observed`.
 
 use atlas_core::{
-    ConcurrencyIdentity, ConcurrencyKind, EpistemicStatus, EvidenceId, SemanticDimension,
-    SemanticObservation, SemanticRecordHeader, SemanticRecordId, SemanticScope, stable_id,
+    EpistemicStatus, EvidenceId, PersistenceIdentity, PersistenceKind, PersistenceResolution,
+    PlaceRef, SemanticDimension, SemanticObservation, SemanticRecordHeader, SemanticRecordId,
+    SemanticScope, stable_id,
 };
 
 use super::ExtractionContext;
 use super::spelling::call_callee_spelling;
 
-fn is_spawn_call(callee: &syn::Expr) -> bool {
-    call_callee_spelling(callee)
-        .rsplit("::")
-        .next()
-        .is_some_and(|last| last == "spawn")
+/// A callee spelling's last path/method segment, matched against a small, closed set of
+/// persistence-shaped names. Every match is equally uncertain (see the module doc comment) --
+/// there is no "more trustworthy" spelling among these, so all five map to `Inferred` alike.
+fn persistence_candidate_kind(callee: &syn::Expr) -> Option<PersistenceKind> {
+    let spelling = call_callee_spelling(callee);
+    let last_segment = spelling.rsplit("::").next().unwrap_or(&spelling);
+    match last_segment {
+        "commit" => Some(PersistenceKind::Commit),
+        "flush" => Some(PersistenceKind::Flush),
+        "sync" | "sync_all" | "sync_data" => Some(PersistenceKind::Sync),
+        "checkpoint" => Some(PersistenceKind::Checkpoint),
+        "snapshot" => Some(PersistenceKind::Snapshot),
+        _ => None,
+    }
 }
 
-struct ConcurrencyWalker<'ctx, 'a> {
+struct PersistenceWalker<'ctx, 'a> {
     ctx: &'ctx mut ExtractionContext<'a>,
     function: SemanticRecordId,
     scope: SemanticScope,
 }
 
-impl<'ctx, 'a> ConcurrencyWalker<'ctx, 'a> {
-    fn emit(
-        &mut self,
-        span: atlas_core::SourceSpan,
-        kind: ConcurrencyKind,
-        status: EpistemicStatus,
-    ) {
-        let subject = ConcurrencyIdentity {
+impl<'ctx, 'a> PersistenceWalker<'ctx, 'a> {
+    fn emit_candidate(&mut self, span: atlas_core::SourceSpan, kind: PersistenceKind) {
+        let subject = PersistenceIdentity {
             repository: self.ctx.input.repository.clone(),
             revision: self.ctx.input.revision.clone(),
             function: self.function.clone(),
             kind,
             span: span.clone(),
+            // This wave's only mode: a spelling candidate names no resolvable place, and never
+            // fabricates one -- see the module doc comment and the R4.9 OwnershipTarget lesson.
+            place: PlaceRef::Unresolved,
+            resolution: PersistenceResolution::Unresolved,
         };
         let record_id =
-            SemanticRecordId::new(SemanticDimension::Concurrency, &subject.identity_key());
+            SemanticRecordId::new(SemanticDimension::Persistence, &subject.identity_key());
         let evidence_id = EvidenceId::new(stable_id(
             "evidence",
             &format!(
-                "{}:{}:concurrency",
+                "{}:{}:persistence",
                 self.ctx.input_fingerprint,
                 record_id.as_str()
             ),
         ));
         if !self.ctx.record_dimension_hit(
-            SemanticDimension::Concurrency,
+            SemanticDimension::Persistence,
             record_id.clone(),
             evidence_id.clone(),
         ) {
@@ -71,7 +75,7 @@ impl<'ctx, 'a> ConcurrencyWalker<'ctx, 'a> {
         self.ctx.push_evidence(
             &evidence_id,
             format!(
-                "parsed concurrency {} at {}:{}:{}",
+                "parsed persistence candidate {} at {}:{}:{}",
                 subject.kind.as_str(),
                 span.path,
                 span.line,
@@ -80,8 +84,8 @@ impl<'ctx, 'a> ConcurrencyWalker<'ctx, 'a> {
         );
         let header = SemanticRecordHeader {
             record_id: record_id.clone(),
-            dimension: SemanticDimension::Concurrency,
-            status,
+            dimension: SemanticDimension::Persistence,
+            status: EpistemicStatus::Inferred,
             subject,
             scope: self.scope.clone(),
             repository: self.ctx.input.repository.clone(),
@@ -90,7 +94,7 @@ impl<'ctx, 'a> ConcurrencyWalker<'ctx, 'a> {
             evidence_refs: vec![evidence_id],
             provenance: self.ctx.provenance_for(Some(&span)),
         };
-        let observation = SemanticObservation::Concurrency(header);
+        let observation = SemanticObservation::Persistence(header);
         debug_assert!(observation.is_dimension_consistent());
         self.ctx.observations.push(observation);
     }
@@ -118,18 +122,32 @@ impl<'ctx, 'a> ConcurrencyWalker<'ctx, 'a> {
 
     fn walk_expr(&mut self, expr: &syn::Expr) {
         match expr {
-            syn::Expr::Await(await_expr) => {
-                let span = self.ctx.span_of(expr);
-                self.emit(span, ConcurrencyKind::Await, EpistemicStatus::Observed);
-                self.walk_expr(&await_expr.base);
-            }
             syn::Expr::Call(call) => {
-                if is_spawn_call(&call.func) {
+                if let Some(kind) = persistence_candidate_kind(&call.func) {
                     let span = self.ctx.span_of(call);
-                    self.emit(span, ConcurrencyKind::Spawn, EpistemicStatus::Inferred);
+                    self.emit_candidate(span, kind);
                 }
                 self.walk_expr(&call.func);
                 for arg in &call.args {
+                    self.walk_expr(arg);
+                }
+            }
+            syn::Expr::MethodCall(method_call) => {
+                let last_segment = method_call.method.to_string();
+                let kind = match last_segment.as_str() {
+                    "commit" => Some(PersistenceKind::Commit),
+                    "flush" => Some(PersistenceKind::Flush),
+                    "sync" | "sync_all" | "sync_data" => Some(PersistenceKind::Sync),
+                    "checkpoint" => Some(PersistenceKind::Checkpoint),
+                    "snapshot" => Some(PersistenceKind::Snapshot),
+                    _ => None,
+                };
+                if let Some(kind) = kind {
+                    let span = self.ctx.span_of(method_call);
+                    self.emit_candidate(span, kind);
+                }
+                self.walk_expr(&method_call.receiver);
+                for arg in &method_call.args {
                     self.walk_expr(arg);
                 }
             }
@@ -187,13 +205,8 @@ impl<'ctx, 'a> ConcurrencyWalker<'ctx, 'a> {
                 }
             }
             syn::Expr::Try(try_expr) => self.walk_expr(&try_expr.expr),
+            syn::Expr::Await(await_expr) => self.walk_expr(&await_expr.base),
             syn::Expr::Cast(cast) => self.walk_expr(&cast.expr),
-            syn::Expr::MethodCall(method_call) => {
-                self.walk_expr(&method_call.receiver);
-                for arg in &method_call.args {
-                    self.walk_expr(arg);
-                }
-            }
             syn::Expr::Struct(struct_expr) => {
                 for field in &struct_expr.fields {
                     self.walk_expr(&field.expr);
@@ -222,7 +235,7 @@ impl<'ctx, 'a> ConcurrencyWalker<'ctx, 'a> {
             }
             syn::Expr::Let(let_expr) => self.walk_expr(&let_expr.expr),
             // `unsafe { .. }`/`const { .. }`/`try { .. }` execute immediately as part of the same
-            // executable region -- an `.await`/spawn-shaped call inside one is a real site of the
+            // executable region -- a persistence-shaped call inside one is a real site of the
             // enclosing function.
             syn::Expr::Unsafe(unsafe_expr) => self.walk_block(&unsafe_expr.block),
             syn::Expr::Const(const_expr) => self.walk_block(&const_expr.block),
@@ -238,32 +251,32 @@ impl<'ctx, 'a> ConcurrencyWalker<'ctx, 'a> {
                     self.walk_expr(value);
                 }
             }
-            // Closures and `async { .. }` blocks get no concurrency attribution of their own this
-            // wave (consistent with R4.6/R4.7/R4.8/R4.9 -- both are separate deferred executable
-            // regions, and `async { .. }`'s own `.await`/spawn sites belong to whatever polls it,
-            // not to this function); a bare macro invocation's arguments are opaque token streams
-            // this extractor never re-parses (a real, permanent gap -- see `dimension_coverage`);
-            // path/literal/other forms carry no nested expressions this
-            // walker tracks.
+            // Closures and `async { .. }` blocks get no persistence attribution of their own this
+            // wave (consistent with R4.6-R4.10 -- both are separate deferred executable regions;
+            // see `ExecutableRegionIdentity`'s TARGET status in `dimension_coverage`); a bare macro
+            // invocation's arguments are opaque token streams this extractor never re-parses (a
+            // real, permanent gap -- see `dimension_coverage`); path/literal/other forms carry no
+            // nested expressions this walker tracks.
             _ => {}
         }
     }
 }
 
 impl<'a> ExtractionContext<'a> {
-    /// Walks one function/method body, emitting Await for every `.await` and Spawn for every call
-    /// whose callee spelling ends in `spawn`, reachable anywhere in it. No-op when `CONCURRENCY`
-    /// was not requested.
-    pub(super) fn build_concurrency(
+    /// Walks one function/method body, emitting an `Inferred` `PersistenceKind` candidate for
+    /// every call/method-call whose callee spelling matches `commit`/`flush`/`sync`/`sync_all`/
+    /// `sync_data`/`checkpoint`/`snapshot`, reachable anywhere in it. No-op when `PERSISTENCE` was
+    /// not requested.
+    pub(super) fn build_persistence(
         &mut self,
         body: &syn::Block,
         scope: &SemanticScope,
         function: &SemanticRecordId,
     ) {
-        if !self.wants(SemanticDimension::Concurrency) {
+        if !self.wants(SemanticDimension::Persistence) {
             return;
         }
-        let mut walker = ConcurrencyWalker {
+        let mut walker = PersistenceWalker {
             ctx: self,
             function: function.clone(),
             scope: scope.clone(),

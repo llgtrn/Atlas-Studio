@@ -6,7 +6,7 @@ use crate::{
         DocsReport, EpistemicStatus, GraphSummary, NormalizationReport, SemanticFact,
         SemanticFactKind, SourceReport,
     },
-    semantic::SemanticObservation,
+    semantic::{SemanticDimension, SemanticObservation, SemanticRecordId},
 };
 use std::collections::BTreeMap;
 
@@ -216,6 +216,31 @@ fn ensure_node(
         provenance: provenance.clone(),
         revision: provenance.source_revision.clone(),
     });
+}
+
+/// Reconstructs the graph node id that `dimension`'s own observation-handling arm above already
+/// produced for `record_id` (e.g. `"state-access:{record_id}"` for a STATE access). Used by
+/// PERSISTENCE's `PlaceRef::Resolved` projection to draw an edge at an EXISTING node rather than
+/// inventing a new one -- see `SemanticObservation::Persistence`'s own doc comment. Every
+/// dimension `PlaceRef::Resolved` can legitimately name is listed explicitly; an unexpected
+/// dimension falls back to a generic prefix rather than panicking, since this is graph
+/// PROJECTION, never a source of new semantic identity truth.
+fn place_node_id_for(dimension: SemanticDimension, record_id: &SemanticRecordId) -> String {
+    let prefix = match dimension {
+        SemanticDimension::DataFlow => "data-flow-value",
+        SemanticDimension::State => "state-access",
+        SemanticDimension::Ownership => "ownership-op",
+        SemanticDimension::Call => "call-site",
+        SemanticDimension::ControlFlow => "control-flow-block",
+        SemanticDimension::Concurrency => "concurrency-op",
+        SemanticDimension::Persistence => "persistence-op",
+        SemanticDimension::Symbol
+        | SemanticDimension::Type
+        | SemanticDimension::FunctionIdentity
+        | SemanticDimension::FunctionSignature
+        | SemanticDimension::Effect => "semantic-record",
+    };
+    stable_id("node", &format!("{prefix}:{}", record_id.as_str()))
 }
 
 fn add_normalized_fact(graph: &mut EngineeringGraph, fact: &SemanticFact) {
@@ -851,10 +876,15 @@ fn add_typed_semantic_nodes(
             }
             // R4.9: one OwnershipOperation node per observation, a HAS_OPERATION edge from the
             // owning function (mirroring R4.8's HAS_ACCESS), and a TARGETS edge to an
-            // OwnershipTarget node derived from (function, name) content -- the same
+            // OwnershipTarget node. When `resolution` is `Resolved` (a bare-identifier referent),
+            // the target node id is derived from (function, name) content -- the same
             // content-derived-node pattern R4.8 already uses for StateEntity, letting every
-            // borrow/move of the same local converge on one node without inventing a new
-            // dimension for "the place itself."
+            // borrow/move of the same local converge on one node. When `resolution` is
+            // `Unresolved` (the referent is an unresolved temporary expression, e.g. `&foo()`),
+            // `name` is only that expression's textual spelling: two independent temporaries with
+            // identical spelling (`&foo()` on one line, `&foo()` on the next) are NOT the same
+            // value, so the target node id is keyed by this operation's own record instead,
+            // deliberately never converging.
             SemanticObservation::Ownership(header) => {
                 let op_node_id = stable_id(
                     "node",
@@ -867,7 +897,12 @@ fn add_typed_semantic_nodes(
                     format!("{}:{}", header.subject.name, header.subject.kind.as_str()),
                     BTreeMap::from([
                         ("origin".into(), "semantic-extraction".into()),
+                        ("status".into(), header.status.as_str().into()),
                         ("kind".into(), header.subject.kind.as_str().into()),
+                        (
+                            "resolution".into(),
+                            header.subject.resolution.as_str().into(),
+                        ),
                     ]),
                     &header.provenance,
                 );
@@ -887,20 +922,32 @@ fn add_typed_semantic_nodes(
                     provenance: header.provenance.clone(),
                     revision: header.provenance.source_revision.clone(),
                 });
-                let target_node_id = stable_id(
-                    "node",
-                    &format!(
-                        "ownership-target:{}:{}",
-                        header.subject.function.as_str(),
-                        header.subject.name
+                let target_node_id = match header.subject.resolution {
+                    crate::semantic::OwnershipResolution::Resolved => stable_id(
+                        "node",
+                        &format!(
+                            "ownership-target:{}:{}",
+                            header.subject.function.as_str(),
+                            header.subject.name
+                        ),
                     ),
-                );
+                    crate::semantic::OwnershipResolution::Unresolved => stable_id(
+                        "node",
+                        &format!("ownership-target-unresolved:{}", header.record_id.as_str()),
+                    ),
+                };
                 ensure_node(
                     graph,
                     target_node_id.clone(),
                     "OwnershipTarget".into(),
                     header.subject.name.clone(),
-                    BTreeMap::from([("origin".into(), "semantic-extraction".into())]),
+                    BTreeMap::from([
+                        ("origin".into(), "semantic-extraction".into()),
+                        (
+                            "resolution".into(),
+                            header.subject.resolution.as_str().into(),
+                        ),
+                    ]),
                     &header.provenance,
                 );
                 graph.edges.push(Edge {
@@ -935,6 +982,7 @@ fn add_typed_semantic_nodes(
                     ),
                     BTreeMap::from([
                         ("origin".into(), "semantic-extraction".into()),
+                        ("status".into(), header.status.as_str().into()),
                         ("kind".into(), header.subject.kind.as_str().into()),
                     ]),
                     &header.provenance,
@@ -955,6 +1003,83 @@ fn add_typed_semantic_nodes(
                     provenance: header.provenance.clone(),
                     revision: header.provenance.source_revision.clone(),
                 });
+            }
+            // R4.11: one PersistenceOperation node per observation and a PRODUCES_PERSISTENCE_OP
+            // edge from the owning function, mirroring R4.10 CONCURRENCY's shape. Unlike
+            // OWNERSHIP/STATE, this projection never invents its own content-derived target node
+            // for the operation's place: when `place` is `PlaceRef::Resolved`, it draws a
+            // REFERS_TO_PLACE edge directly to the EXISTING node that dimension's own observation
+            // already produced (reconstructing that dimension's own node-id prefix scheme, never a
+            // new one) -- proving cross-dimension identity convergence without inventing a fifth
+            // place model. When `place` is `PlaceRef::Unresolved` (this extractor's only mode this
+            // wave -- see `core::semantic::persistence`), no place-target node or edge is created
+            // at all, which is deliberately safer than OWNERSHIP's old bug: there is no
+            // spelling-keyed node here to accidentally collapse two unrelated temporaries onto.
+            SemanticObservation::Persistence(header) => {
+                let op_node_id = stable_id(
+                    "node",
+                    &format!("persistence-op:{}", header.record_id.as_str()),
+                );
+                ensure_node(
+                    graph,
+                    op_node_id.clone(),
+                    "PersistenceOperation".into(),
+                    format!(
+                        "{}@{}:{}:{}",
+                        header.subject.kind.as_str(),
+                        header.subject.span.path,
+                        header.subject.span.line,
+                        header.subject.span.column
+                    ),
+                    BTreeMap::from([
+                        ("origin".into(), "semantic-extraction".into()),
+                        ("status".into(), header.status.as_str().into()),
+                        ("kind".into(), header.subject.kind.as_str().into()),
+                        (
+                            "resolution".into(),
+                            header.subject.resolution.as_str().into(),
+                        ),
+                    ]),
+                    &header.provenance,
+                );
+                let caller_node_id = stable_id(
+                    "node",
+                    &format!("function-identity:{}", header.subject.function.as_str()),
+                );
+                graph.edges.push(Edge {
+                    id: stable_id(
+                        "edge",
+                        &format!("{caller_node_id}:PRODUCES_PERSISTENCE_OP:{op_node_id}"),
+                    ),
+                    kind: "PRODUCES_PERSISTENCE_OP".into(),
+                    from: caller_node_id,
+                    to: op_node_id.clone(),
+                    attributes: BTreeMap::from([("origin".into(), "semantic-extraction".into())]),
+                    provenance: header.provenance.clone(),
+                    revision: header.provenance.source_revision.clone(),
+                });
+                if let crate::semantic::PlaceRef::Resolved {
+                    dimension,
+                    record_id,
+                } = &header.subject.place
+                {
+                    let place_node_id = place_node_id_for(*dimension, record_id);
+                    graph.edges.push(Edge {
+                        id: stable_id(
+                            "edge",
+                            &format!("{op_node_id}:REFERS_TO_PLACE:{place_node_id}"),
+                        ),
+                        kind: "REFERS_TO_PLACE".into(),
+                        from: op_node_id,
+                        to: place_node_id,
+                        attributes: BTreeMap::from([(
+                            "origin".into(),
+                            "semantic-extraction".into(),
+                        )]),
+                        provenance: header.provenance.clone(),
+                        revision: header.provenance.source_revision.clone(),
+                    });
+                }
             }
         }
     }
@@ -1138,6 +1263,8 @@ mod tests {
                 typed_observations_total: 0,
                 typed_obligations_total: 0,
             },
+            exact_duplicates_merged: 0,
+            conflict_candidates: Vec::new(),
             facts,
         };
 
@@ -1296,7 +1423,7 @@ mod tests {
         use crate::identity::RepositoryId;
         use crate::provenance::provenance;
         use crate::semantic::{
-            CallDispatchKind, CallSiteIdentity, ExtractorIdentity, SemanticDimension,
+            CallDispatchKind, CallSiteIdentity, ExtractorIdentity, PlaceRef, SemanticDimension,
             SemanticRecordHeader, SemanticRecordId, SemanticScope,
         };
         use crate::temporal::RevisionRef;
@@ -1317,6 +1444,8 @@ mod tests {
             },
             dispatch: CallDispatchKind::Unresolved,
             callees: Vec::new(),
+            arguments: Vec::new(),
+            result: PlaceRef::Unresolved,
         };
         let record_id = SemanticRecordId::new(SemanticDimension::Call, &subject.identity_key());
         SemanticObservation::Call(SemanticRecordHeader {
@@ -1566,6 +1695,61 @@ mod tests {
         use crate::identity::RepositoryId;
         use crate::provenance::provenance;
         use crate::semantic::{
+            ExtractorIdentity, OwnershipIdentity, OwnershipResolution, SemanticDimension,
+            SemanticRecordHeader, SemanticRecordId, SemanticScope,
+        };
+        use crate::temporal::RevisionRef;
+
+        let repository = RepositoryId::new("atlas-studio");
+        let revision = RevisionRef {
+            kind: "git".into(),
+            value: "abc123".into(),
+        };
+        let subject = OwnershipIdentity {
+            repository: repository.clone(),
+            revision: revision.clone(),
+            function: function.clone(),
+            name: name.to_owned(),
+            span: crate::language::adl::SourceSpan {
+                path: "src/lib.rs".into(),
+                line,
+                column: 5,
+            },
+            kind,
+            resolution: OwnershipResolution::Resolved,
+        };
+        let record_id =
+            SemanticRecordId::new(SemanticDimension::Ownership, &subject.identity_key());
+        SemanticObservation::Ownership(SemanticRecordHeader {
+            record_id,
+            dimension: SemanticDimension::Ownership,
+            status: EpistemicStatus::Observed,
+            subject,
+            scope: SemanticScope::new(["impl:Owner"]),
+            repository,
+            revision,
+            extractor: ExtractorIdentity {
+                id: "atlas.test".into(),
+                version: "0.1.0".into(),
+            },
+            evidence_refs: Vec::new(),
+            provenance: provenance("src/lib.rs", "atlas.test"),
+        })
+    }
+
+    /// Like `ownership_observation`, but with an explicit `resolution` -- for proving that an
+    /// `Unresolved` (unresolved-temporary) operation never converges with another by spelling
+    /// alone, unlike a `Resolved` (real place) one.
+    fn ownership_observation_with_resolution(
+        function: &crate::semantic::SemanticRecordId,
+        name: &str,
+        line: usize,
+        kind: crate::semantic::OwnershipKind,
+        resolution: crate::semantic::OwnershipResolution,
+    ) -> SemanticObservation {
+        use crate::identity::RepositoryId;
+        use crate::provenance::provenance;
+        use crate::semantic::{
             ExtractorIdentity, OwnershipIdentity, SemanticDimension, SemanticRecordHeader,
             SemanticRecordId, SemanticScope,
         };
@@ -1587,6 +1771,7 @@ mod tests {
                 column: 5,
             },
             kind,
+            resolution,
         };
         let record_id =
             SemanticRecordId::new(SemanticDimension::Ownership, &subject.identity_key());
@@ -1594,6 +1779,61 @@ mod tests {
             record_id,
             dimension: SemanticDimension::Ownership,
             status: EpistemicStatus::Observed,
+            subject,
+            scope: SemanticScope::new(["impl:Owner"]),
+            repository,
+            revision,
+            extractor: ExtractorIdentity {
+                id: "atlas.test".into(),
+                version: "0.1.0".into(),
+            },
+            evidence_refs: Vec::new(),
+            provenance: provenance("src/lib.rs", "atlas.test"),
+        })
+    }
+
+    /// R4.11: a Persistence candidate observation whose `function` (owner) is a fixed synthetic
+    /// `FunctionIdentity` record_id. `place` lets a test prove `PlaceRef::Resolved` convergence
+    /// against another dimension's own observation (see `place_node_id_for`), or leave it
+    /// `Unresolved` to match this extractor's actual bootstrap behavior.
+    fn persistence_observation(
+        function: &crate::semantic::SemanticRecordId,
+        kind: crate::semantic::PersistenceKind,
+        line: usize,
+        place: crate::semantic::PlaceRef,
+    ) -> SemanticObservation {
+        use crate::identity::RepositoryId;
+        use crate::provenance::provenance;
+        use crate::semantic::{
+            ExtractorIdentity, PersistenceIdentity, PersistenceResolution, SemanticDimension,
+            SemanticRecordHeader, SemanticRecordId, SemanticScope,
+        };
+        use crate::temporal::RevisionRef;
+
+        let repository = RepositoryId::new("atlas-studio");
+        let revision = RevisionRef {
+            kind: "git".into(),
+            value: "abc123".into(),
+        };
+        let subject = PersistenceIdentity {
+            repository: repository.clone(),
+            revision: revision.clone(),
+            function: function.clone(),
+            kind,
+            span: crate::language::adl::SourceSpan {
+                path: "src/lib.rs".into(),
+                line,
+                column: 5,
+            },
+            place,
+            resolution: PersistenceResolution::Unresolved,
+        };
+        let record_id =
+            SemanticRecordId::new(SemanticDimension::Persistence, &subject.identity_key());
+        SemanticObservation::Persistence(SemanticRecordHeader {
+            record_id,
+            dimension: SemanticDimension::Persistence,
+            status: EpistemicStatus::Inferred,
             subject,
             scope: SemanticScope::new(["impl:Owner"]),
             repository,
@@ -1628,6 +1868,8 @@ mod tests {
             typed_semantic_records,
             evidence: Vec::new(),
             diagnostics: Vec::new(),
+            exact_duplicates_merged: 0,
+            conflict_candidates: Vec::new(),
             facts,
         }
     }
@@ -2367,5 +2609,214 @@ mod tests {
             .filter(|node| node.kind == "OwnershipTarget")
             .collect();
         assert_eq!(target_nodes.len(), 2);
+    }
+
+    #[test]
+    fn two_unresolved_temporaries_with_identical_spelling_never_collapse_onto_one_ownership_target()
+    {
+        // `let a = &foo(); let b = &foo();` -- two independent call-result temporaries that happen
+        // to read alike must never converge onto one OwnershipTarget merely because their spelling
+        // matches, unlike a real place name (see the `Resolved` convergence test above).
+        let caller = function_identity_observation("Foo");
+        let caller_record_id = caller.record_id().clone();
+        let first = ownership_observation_with_resolution(
+            &caller_record_id,
+            "foo ()",
+            10,
+            crate::semantic::OwnershipKind::BorrowShared,
+            crate::semantic::OwnershipResolution::Unresolved,
+        );
+        let second = ownership_observation_with_resolution(
+            &caller_record_id,
+            "foo ()",
+            11,
+            crate::semantic::OwnershipKind::BorrowShared,
+            crate::semantic::OwnershipResolution::Unresolved,
+        );
+
+        let normalization = normalization_with(vec![caller, first, second], Vec::new());
+        let graph = build_system_graph(&source(), &docs(), &normalization);
+
+        let target_nodes: Vec<_> = graph
+            .nodes
+            .iter()
+            .filter(|node| node.kind == "OwnershipTarget")
+            .collect();
+        assert_eq!(
+            target_nodes.len(),
+            2,
+            "identically-spelled unresolved temporaries must never collapse onto one target"
+        );
+
+        let op_nodes: Vec<_> = graph
+            .nodes
+            .iter()
+            .filter(|node| node.kind == "OwnershipOperation")
+            .collect();
+        assert_eq!(op_nodes.len(), 2);
+
+        let targets_edges: Vec<_> = graph
+            .edges
+            .iter()
+            .filter(|edge| edge.kind == "TARGETS")
+            .collect();
+        assert_eq!(targets_edges.len(), 2);
+        let target_ids: std::collections::BTreeSet<_> =
+            targets_edges.iter().map(|edge| edge.to.clone()).collect();
+        assert_eq!(
+            target_ids.len(),
+            2,
+            "each unresolved operation must TARGET its own distinct node"
+        );
+    }
+
+    #[test]
+    fn a_resolved_and_an_unresolved_ownership_operation_with_the_same_spelling_do_not_converge() {
+        // A real place name (`x`) and an unresolved temporary that happens to share the same
+        // textual spelling (contrived, but the classification must not depend on getting lucky
+        // with distinct spellings) must still never converge -- `resolution` alone decides.
+        let caller = function_identity_observation("Foo");
+        let caller_record_id = caller.record_id().clone();
+        let resolved = ownership_observation_with_resolution(
+            &caller_record_id,
+            "x",
+            10,
+            crate::semantic::OwnershipKind::BorrowShared,
+            crate::semantic::OwnershipResolution::Resolved,
+        );
+        let unresolved = ownership_observation_with_resolution(
+            &caller_record_id,
+            "x",
+            11,
+            crate::semantic::OwnershipKind::BorrowShared,
+            crate::semantic::OwnershipResolution::Unresolved,
+        );
+
+        let normalization = normalization_with(vec![caller, resolved, unresolved], Vec::new());
+        let graph = build_system_graph(&source(), &docs(), &normalization);
+
+        let target_nodes: Vec<_> = graph
+            .nodes
+            .iter()
+            .filter(|node| node.kind == "OwnershipTarget")
+            .collect();
+        assert_eq!(target_nodes.len(), 2);
+    }
+
+    // --- R4.11 PERSISTENCE graph projection ------------------------------------------------------
+
+    #[test]
+    fn persistence_observation_produces_a_node_and_a_produces_op_edge_from_its_function() {
+        let caller = function_identity_observation("Foo");
+        let caller_record_id = caller.record_id().clone();
+        let candidate = persistence_observation(
+            &caller_record_id,
+            crate::semantic::PersistenceKind::Commit,
+            10,
+            crate::semantic::PlaceRef::Unresolved,
+        );
+
+        let normalization = normalization_with(vec![caller, candidate], Vec::new());
+        let graph = build_system_graph(&source(), &docs(), &normalization);
+
+        let op_node = graph
+            .nodes
+            .iter()
+            .find(|node| node.kind == "PersistenceOperation")
+            .expect("a PersistenceOperation node must exist");
+        assert_eq!(
+            op_node.attributes.get("status").map(String::as_str),
+            Some("INFERRED")
+        );
+        assert_eq!(
+            op_node.attributes.get("kind").map(String::as_str),
+            Some("COMMIT")
+        );
+        assert_eq!(
+            op_node.attributes.get("resolution").map(String::as_str),
+            Some("UNRESOLVED")
+        );
+
+        let caller_node_id = stable_id(
+            "node",
+            &format!("function-identity:{}", caller_record_id.as_str()),
+        );
+        let produces_edge = graph
+            .edges
+            .iter()
+            .find(|edge| edge.kind == "PRODUCES_PERSISTENCE_OP")
+            .expect("a PRODUCES_PERSISTENCE_OP edge must exist");
+        assert_eq!(produces_edge.from, caller_node_id);
+        assert_eq!(produces_edge.to, op_node.id);
+    }
+
+    #[test]
+    fn unresolved_persistence_place_produces_no_refers_to_place_edge() {
+        // The safest possible choice for the bootstrap's only real mode: no target node/edge at
+        // all, rather than a new one keyed by anything spelling-derived (the R4.9 lesson).
+        let caller = function_identity_observation("Foo");
+        let caller_record_id = caller.record_id().clone();
+        let candidate = persistence_observation(
+            &caller_record_id,
+            crate::semantic::PersistenceKind::Flush,
+            10,
+            crate::semantic::PlaceRef::Unresolved,
+        );
+
+        let normalization = normalization_with(vec![caller, candidate], Vec::new());
+        let graph = build_system_graph(&source(), &docs(), &normalization);
+
+        assert!(
+            !graph
+                .edges
+                .iter()
+                .any(|edge| edge.kind == "REFERS_TO_PLACE"),
+            "an Unresolved place must never produce a REFERS_TO_PLACE edge"
+        );
+    }
+
+    #[test]
+    fn resolved_persistence_place_converges_on_the_existing_state_access_node() {
+        // Proves cross-dimension identity convergence: a PERSISTENCE operation whose PlaceRef
+        // resolves to a STATE access's own record_id draws an edge at that SAME graph node --
+        // never a new, independently-invented persistence-only target.
+        let caller = function_identity_observation("Foo");
+        let caller_record_id = caller.record_id().clone();
+        let state_access = state_access_observation(
+            &caller_record_id,
+            "balance",
+            10,
+            crate::semantic::StateAccessKind::Write,
+        );
+        let state_record_id = state_access.record_id().clone();
+        let candidate = persistence_observation(
+            &caller_record_id,
+            crate::semantic::PersistenceKind::Commit,
+            11,
+            crate::semantic::PlaceRef::Resolved {
+                dimension: crate::semantic::SemanticDimension::State,
+                record_id: state_record_id.clone(),
+            },
+        );
+
+        let normalization = normalization_with(vec![caller, state_access, candidate], Vec::new());
+        let graph = build_system_graph(&source(), &docs(), &normalization);
+
+        let expected_place_node_id =
+            place_node_id_for(crate::semantic::SemanticDimension::State, &state_record_id);
+        assert!(
+            graph
+                .nodes
+                .iter()
+                .any(|node| node.id == expected_place_node_id && node.kind == "StateAccess"),
+            "the resolved place node must be the SAME node STATE's own observation produced"
+        );
+
+        let refers_edge = graph
+            .edges
+            .iter()
+            .find(|edge| edge.kind == "REFERS_TO_PLACE")
+            .expect("a REFERS_TO_PLACE edge must exist for a Resolved place");
+        assert_eq!(refers_edge.to, expected_place_node_id);
     }
 }

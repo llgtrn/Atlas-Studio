@@ -138,6 +138,33 @@ ATLASX is not decompressed Atlas. It is one deterministic executable projection 
 
 Artifact size is never justification for silent semantic omission.
 
+## Host and session independence
+
+A sealed Atlas artifact is durable engineering memory, not an agent-session cache.
+
+Atlas may be created inside an ephemeral local or cloud coding sandbox, but destruction of that session MUST NOT destroy the only canonical copy of the selected semantic world or the evidence/lineage required by its seal policy.
+
+Regenerable state may remain ephemeral:
+
+- build caches;
+- scratch candidate worktrees;
+- derived indexes;
+- temporary execution logs not admitted as evidence.
+
+Durable artifact/evidence publication MUST be sufficient for a later compatible Atlas runtime to:
+
+~~~text
+load sealed Atlas meaning
+→ restore/checkout the admitted source revision when source remains required
+→ validate schema/Genome coordinates
+→ incremental recensus
+→ continue engineering without prior provider conversational memory
+~~~
+
+The execution host, transport adapter and original coding-provider session are provenance/environment details, not required semantic dependencies of the sealed artifact.
+
+See `AGENT-HOST-EMBEDDED-RUNTIME.md`.
+
 ## Provider independence
 
 A sealed Atlas artifact must remain meaningful if every external AI/research/decision provider used during creation becomes unavailable.

@@ -105,6 +105,28 @@ atlas.ffi.*            foreign-function/external-boundary operations
 
 Numeric opcode encoding is explicitly deferred: `.atlas`'s physical binary wire format already interns strings/symbols (`ATLAS-BINARY-WIRE-FORMAT.md`), so a dialect-qualified name can be encoded as an interned symbol reference without needing a separately-assigned numeric opcode space at this stage. Locking numeric opcode ranges before the dialect set has evidence from real construction traffic would risk exactly the "arbitrary opcode numbers" trap this contract is instructed to avoid. [CONTRACT — naming locked; numeric encoding explicitly TARGET/deferred.]
 
+## Relationship to the multi-AI construction fabric
+
+`MULTI-AI-CONSTRUCTION-FABRIC.md` owns orchestration: task decomposition, provider routing, bounded worker leases, context slicing, candidate branching and Jev-class decision flow.
+
+This contract owns the typed construction boundary once a provider proposes semantic work.
+
+~~~text
+ConstructionTaskGraph / ProviderRouter
+        ↓
+provider proposes typed operation(s)
+        ↓
+ACP transport
+        ↓
+AtlasConstructionOperation decode/validation
+        ↓
+ASIR candidate state
+~~~
+
+A ProviderRouter decision MUST NOT leak provider-specific envelopes into ASIR identity. The same semantic operation proposed by different admitted providers must decode against the same typed construction vocabulary.
+
+Agent-to-agent chat is not ACP and is not ASIR. If one provider consumes another provider's output, Atlas should pass the typed record/evidence reference rather than make an informal transcript the semantic handoff.
+
 ## ACP — Atlas Construction Protocol
 
 ACP is the provider/wire protocol. It is transport, not semantics.

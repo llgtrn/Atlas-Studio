@@ -206,3 +206,59 @@ pub fn pattern_spelling(pat: &syn::Pat) -> String {
         other => other.to_token_stream().to_string(),
     }
 }
+
+/// The identifier a `let`/parameter pattern binds, if it is (or wraps, via type ascription) a
+/// plain `syn::Pat::Ident` -- i.e. a SINGLE simple binding, not a tuple/struct/slice/... pattern
+/// that would bind more than one name (or none). Used where a caller needs to know "does this
+/// whole pattern reduce to exactly one identifier", distinct from `dataflow.rs`'s
+/// `walk_binding_pat`, which instead finds EVERY identifier a pattern binds (including inside a
+/// destructuring one).
+pub fn simple_binding_ident(pat: &syn::Pat) -> Option<&syn::Ident> {
+    match pat {
+        syn::Pat::Ident(pat_ident) => Some(&pat_ident.ident),
+        syn::Pat::Type(pat_type) => simple_binding_ident(&pat_type.pat),
+        _ => None,
+    }
+}
+
+/// The identifier `expr` names, if it is a bare, single-segment, unqualified path expression
+/// (`x`, not `x.field`, `Type::x`, `::x`, `(expr)`, or anything else). This is the exact structural
+/// shape `dataflow.rs`'s `Expr::Path` arm recognizes as a DATA_FLOW `Use`/`Store` site -- shared
+/// here so R4.12's CALL argument binding (`mod.rs`'s `build_calls`) can recognize the identical
+/// shape without duplicating (and risking silently drifting from) DATA_FLOW's own recognition rule.
+pub fn simple_path_ident(expr: &syn::Expr) -> Option<&syn::Ident> {
+    match expr {
+        syn::Expr::Path(path)
+            if path.path.leading_colon.is_none() && path.path.segments.len() == 1 =>
+        {
+            Some(&path.path.segments[0].ident)
+        }
+        _ => None,
+    }
+}
+
+/// Whether `op` is a compound-assignment operator (`+=`, `-=`, `*=`, `/=`, `%=`, `^=`, `&=`, `|=`,
+/// `<<=`, `>>=`) rather than a plain arithmetic/bitwise operator (`+`, `-`, ...).
+///
+/// `syn` gives these distinct `BinOp` variants (`BinOp::AddAssign` vs `BinOp::Add`, etc.) -- fully
+/// syntax-determined, no type resolution needed. A `syn::Expr::Binary` carrying one of these ops is
+/// therefore provably a read-modify-write of its left operand, not merely a read: R4.7's
+/// `dataflow.rs` uses this to emit a Use+Store pair for a simple-identifier left operand,
+/// correcting an earlier reading of this `syn` version's `Expr::Binary` representation that
+/// concluded (wrongly) that compound assignment could not be distinguished from plain arithmetic
+/// without deeper analysis.
+pub fn is_compound_assign_op(op: &syn::BinOp) -> bool {
+    matches!(
+        op,
+        syn::BinOp::AddAssign(_)
+            | syn::BinOp::SubAssign(_)
+            | syn::BinOp::MulAssign(_)
+            | syn::BinOp::DivAssign(_)
+            | syn::BinOp::RemAssign(_)
+            | syn::BinOp::BitXorAssign(_)
+            | syn::BinOp::BitAndAssign(_)
+            | syn::BinOp::BitOrAssign(_)
+            | syn::BinOp::ShlAssign(_)
+            | syn::BinOp::ShrAssign(_)
+    )
+}

@@ -16,8 +16,11 @@
 //!   `spawn` (`thread::spawn`, `tokio::spawn`, `std::thread::spawn`, ...), exactly the same
 //!   risk/precision class R4.8's `is_panic_like_macro` already accepts for macro names: a local
 //!   identifier or re-exported function that happens to be named/aliased `spawn` would be a false
-//!   positive, but this extractor has no `use`-import or type resolution to do better, and the
-//!   alternative (claiming nothing) would silently drop real evidence.
+//!   positive (`fn spawn() { .. }`, `game::spawn(enemy)`), and this extractor has no `use`-import or
+//!   type resolution to do better. This is why a spelling match is recorded as
+//!   `EpistemicStatus::Inferred`, never `Observed` -- only a resolved/admitted concurrency API would
+//!   justify `Observed`. Recording it as `Inferred` rather than dropping it preserves real evidence
+//!   without overclaiming certainty.
 //!
 //! `Lock`/`Unlock`/`ChannelSend`/`ChannelReceive`/`ChannelCreate`/`AtomicOp` are declared for a
 //! future wave but never emitted this wave: unlike `spawn`, method names like `.lock()`/`.send()`/

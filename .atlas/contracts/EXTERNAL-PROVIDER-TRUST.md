@@ -96,6 +96,42 @@ are untrusted content unless they originate from an explicitly authorized Atlas 
 
 External content MUST NOT be reclassified as operator/system instruction by convenience.
 
+## Agent host versus provider versus Atlas runtime
+
+Agent host, coding provider and Atlas runtime are separate trust concepts even when one vendor supplies more than one of them.
+
+A cloud coding session MAY host AtlasCore inside the same outer sandbox under `AGENT-HOST-EMBEDDED-RUNTIME.md`.
+
+This physical co-location does not change the authority model:
+
+~~~text
+AgentHost
+= execution environment
+
+CodingProvider
+= research/reasoning/synthesis participant
+
+AtlasCore
+= semantic/admission authority under canonical policy
+~~~
+
+A mutable worktree exposed to the coding provider is candidate state. Provider edits or provider-created commits do not become canonical Atlas state merely because they exist in the host checkout.
+
+Where the host permits stronger separation, Atlas SHOULD keep the admitted parent read-only and give the provider a dedicated candidate worktree. Where that is unavailable, Atlas MUST pin the parent, freeze/hash the exact candidate used for evidence, detect stale/concurrent mutation and require AdmissionTransaction for self-source changes.
+
+The host's outer sandbox is useful security infrastructure but does not by itself establish:
+
+- Atlas candidate isolation;
+- verification independence;
+- benchmark reproducibility;
+- exact VerificationWorld identity;
+- admission authority;
+- seal authority.
+
+Atlas MUST NOT assume nested Docker/KVM/privileged namespace capabilities merely because it runs in a cloud sandbox. Required execution capability is discovered and policy-checked; work that cannot be safely executed locally is rejected or dispatched to an admitted backend.
+
+MCP/API/CLI calls from the provider are requests. They never bypass the same capability, verification and admission rules used by other callers.
+
 ## Provider role capabilities
 
 Each external invocation has an explicit role and capability profile.
@@ -131,6 +167,20 @@ May inspect candidate artifacts and evidence.
 May propose findings.
 
 It may not mark its own candidate as canonically VERIFIED unless the repository's independent verification policy admits and records that result.
+
+## Multi-provider routing, subagents and credential boundary
+
+Atlas MAY use multiple providers concurrently or sequentially under `MULTI-AI-CONSTRUCTION-FABRIC.md`.
+
+Provider choice is an execution-routing decision. It does not change the trust class of the output.
+
+A host-native subagent and a remote API model are both provider workers when they perform Atlas construction work. Any worker that can independently access Atlas-controlled files, tools, network, secrets or mutable candidate state MUST receive a bounded task/capability lease or equivalent host-enforced envelope.
+
+A parent provider MUST NOT widen authority by spawning a child worker. Child work that crosses Atlas-controlled boundaries must remain attributable to the parent task and may not exceed the parent's policy unless separately authorized.
+
+Atlas SHOULD place raw third-party provider credentials behind an admitted credential/provider gateway rather than exposing them to an ordinary coding-agent workspace. Provider workers SHOULD receive scoped capability references where possible.
+
+Cross-provider communication SHOULD occur through typed Atlas-owned records/evidence, not an ungoverned shared chat transcript. A provider summary of another provider's output does not replace the original ProviderReceipt/evidence lineage.
 
 ## Capability minimum
 

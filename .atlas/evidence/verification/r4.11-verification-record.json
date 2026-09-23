@@ -1,0 +1,140 @@
+{
+  "schema": "atlas.r4.verification-record.v1",
+  "wave": "R4.11",
+  "wave_title": "Persistence and Recovery Semantics -- bootstrap materialize the PERSISTENCE dimension (.atlas/contracts/SEMANTIC-FACTS.md#persistencefact, .atlas/roadmap/SELF-BUILDING-R4-R8.md R4.11): durable read/write/commit/rollback/checkpoint/recovery relationships and durable resource identity. This record covers the design-guard pass performed BEFORE implementation (deciding the canonical place/location boundary) and the resulting kernel/extractor/graph/multi-extractor wiring.",
+  "identity": {
+    "base_commit_sha": "135b630ac08264f8e98bbb48b8013ce84bdd8880",
+    "candidate_state": "uncommitted working tree on branch claude/r4-semantic-materialization-jz2z44, descended from PR #27's own tip (not yet merged at the time this record was written -- PR #27 remains open, base_commit_sha above is that PR's own HEAD)",
+    "branch": "claude/r4-semantic-materialization-jz2z44",
+    "note": "PR #27 (R4.4-R4.10 second hardening pass) was not yet merged when this R4.11 work began. Per explicit operator instruction ('work on the correct intended base... do not duplicate already-landed fixes'), R4.11 was built directly on top of PR #27's own branch tip rather than waiting or rebasing onto a stale pre-hardening main, since R4.11's design guard explicitly depends on that hardening pass's dimension_coverage mechanism and OwnershipResolution precedent."
+  },
+  "toolchain": {
+    "pinned_by": "rust-toolchain.toml",
+    "channel": "1.90.0",
+    "rustc": "rustc 1.90.0 (1159e78c4 2025-09-14)",
+    "cargo": "cargo 1.90.0 (840b83a10 2025-07-30)",
+    "matches_ci_pin": true
+  },
+  "design_guard_pass": {
+    "question": "Is the repository ready for a first-class PlaceIdentity shared by DATA_FLOW/STATE/OWNERSHIP/PERSISTENCE, or does R4.11 need the smaller bridge instead?",
+    "identity_landscape_before_implementing": {
+      "DATA_FLOW": "ValueIdentity, keyed by (function, name, span, role); a resolved Use/Store carries resolved_definition: Option<SemanticRecordId>, a real typed cross-reference to the Definition record -- the most mature existing 'place' concept, though scoped to local bindings only.",
+      "STATE": "StateAccessIdentity, keyed by (function, scope, name, kind); converges same-named self.field accesses onto one content-derived StateEntity graph node. Safe (unlike the OWNERSHIP bug below) because `name` always comes from self_field_ident(), a genuinely resolved field-access pattern, never an arbitrary temporary's spelling -- re-confirmed this pass, not merely assumed.",
+      "OWNERSHIP": "OwnershipIdentity, keyed by (function, name, span, kind) plus OwnershipResolution (Resolved/Unresolved), added in the immediately-prior hardening pass after a real bug: the engineering graph derived a target node id from (function, name) where name could be an UNRESOLVED TEMPORARY's raw spelling, letting two independent `&foo()` temporaries collapse onto one graph node.",
+      "conclusion": "Three independently-shaped mechanisms already exist. A full shared PlaceIdentity replacing all three would be a genuinely large, cross-cutting migration (touches core::semantic::{data_flow,state,ownership} and every consumer simultaneously, breaking three already-shipped identity_key() shapes) -- correctly evaluated and deferred as TARGET in the prior hardening pass's own evidence record, re-confirmed rather than re-litigated this pass."
+    },
+    "decision": "Built the smallest correct bridge instead of faking full convergence: PlaceRef (core::semantic::persistence) -- Resolved { dimension, record_id } | Unresolved. PersistenceIdentity.place: PlaceRef is deliberately excluded from identity_key() (matches OwnershipIdentity's resolution / ValueIdentity's resolved_definition precedent exactly).",
+    "convergence_proven_not_merely_designed": "core::graph::engineering_graph::tests::resolved_persistence_place_converges_on_the_existing_state_access_node constructs a PERSISTENCE observation whose PlaceRef::Resolved names a STATE observation's own record_id, and asserts the graph draws its REFERS_TO_PLACE edge at the EXACT SAME node id STATE's own projection arm produced (via a new place_node_id_for(dimension, record_id) helper reconstructing that dimension's node-id prefix scheme) -- not a new, independently-invented node. This is the concrete falsification proving the bridge works, not just documentation asserting it does.",
+    "identity_debt_introduced": "NO -- PlaceRef never derives identity from source spelling (game.commit() and wal.commit() produce identically-shaped Unresolved candidates); it never invents a new target node when Unresolved (unlike the fixed OWNERSHIP bug, there is no place-target node at all in that case, so nothing can collapse); and it reuses existing dimensions' own canonical identities via cross-reference rather than duplicating them."
+  },
+  "persistence_model": {
+    "kernel": "core/src/semantic/persistence.rs: PersistenceKind (12 variants: Commit/Flush/Sync/Checkpoint/Snapshot emitted this wave; JournalAppend/DurableRead/DurableWrite/TransactionBegin/TransactionAbort/Recover/Restore declared, never emitted), PersistenceResolution (Resolved/Unresolved), PlaceRef (the bridge, see design_guard_pass above), PersistenceIdentity { repository, revision, function, kind, span, place, resolution }.",
+    "scope_this_wave": "No dedicated Rust syntax for persistence exists (unlike R4.10's `.await`), and no resolved-API adapter exists yet, so every PersistenceKind this wave materializes is a textual callee-spelling candidate ONLY (Call and MethodCall receivers/functions whose last path/method segment is exactly commit/flush/sync/sync_all/sync_data/checkpoint/snapshot), exactly R4.8's is_panic_like_macro / R4.10's is_spawn_call risk class. Always EpistemicStatus::Inferred, PersistenceResolution::Unresolved, PlaceRef::Unresolved -- never Observed, never a resolved place, regardless of how 'real' the receiver looks.",
+    "walker_coverage": "adapter/src/semantic/rust/persistence.rs's PersistenceWalker was built with full expression-tree coverage from the start (Unsafe/Const/Repeat/RawAddr/TryBlock/Yield all walked; Closure/Async explicitly excluded as deferred regions), learning directly from the prior hardening pass's finding that CALL/DATA_FLOW/OWNERSHIP/CONCURRENCY initially shipped without this coverage and needed a follow-up fix -- PERSISTENCE does not repeat that mistake."
+  },
+  "bugs_found_this_pass": [],
+  "closure_status": {
+    "implementation": "bootstrap materialized -- conservative textual-spelling-only candidate detection, with the PlaceRef bridge wired end-to-end (kernel, extractor, graph projection, multi-extractor preservation).",
+    "coverage_profile": "Partial (see dimension_coverage in adapter/src/semantic/rust/mod.rs, now covering all 8 full-expression-tree dimensions including PERSISTENCE): shares the macro-invocation-argument-opacity gap every other full-tree walker has, and additionally has no dedicated syntax at all (unlike CONCURRENCY's `.await`) and no resolved-API adapter.",
+    "closure": "OPEN -- dimension obligation remains UNKNOWN even when real candidates exist; zero observations are never verified absence (falsified directly: cargo run systemize against this repository's own source found zero real commit/flush/sync/checkpoint/snapshot method calls -- independently confirmed by grep -- and the resulting PERSISTENCE obligation for every artifact is UNKNOWN with an IncompleteAnalysis diagnostic, never fabricated Observed absence).",
+    "known_gaps": [
+      "no dedicated syntax evidence source at all (fundamental to Rust, not a bootstrap limitation)",
+      "no resolved-API adapter yet for std::fs::File::sync_all, database transaction commit APIs, WAL append APIs, snapshot APIs, etc. -- PersistenceResolution::Resolved is a real code path (tested directly in core::semantic::persistence's own unit tests) but never reached by the current Rust extractor",
+      "DurableRead/DurableWrite/JournalAppend/TransactionBegin/TransactionAbort/Recover/Restore declared, never emitted",
+      "durability ordering (write -> flush -> commit) and recovery-relation semantics (restore recovers-from checkpoint/journal) not yet modeled -- PlaceRef gives operations a shared location reference but no ordering/graph-edge semantics between two PERSISTENCE operations themselves",
+      "no connection yet to FailureScenario/VerificationWorld/obligation/evidence from VERIFICATION-METRICS-PERFORMANCE.md -- documented as a TARGET relationship in the roadmap, not implemented this pass",
+      "PlaceRef itself is an explicit BRIDGE, not the TARGET first-class PlaceIdentity shared natively by all four dimensions"
+    ]
+  },
+  "cross_dimension_consistency_proven": [
+    {
+      "invariant": "a bare STATE mutation never fabricates a durable PERSISTENCE fact",
+      "test": "adapter::semantic::rust::tests::plain_state_mutation_never_fabricates_persistence"
+    },
+    {
+      "invariant": "an unrelated method merely spelled like a persistence operation (game.commit()) is treated identically to a real one -- both only Inferred, never Observed",
+      "test": "adapter::semantic::rust::tests::unrelated_commit_spelled_method_is_still_only_inferred_never_observed"
+    },
+    {
+      "invariant": "two identically-spelled operations at different sites remain distinct, never collapsed (the R4.9 OwnershipTarget lesson, re-applied and re-tested for a new dimension)",
+      "test": "adapter::semantic::rust::tests::two_identical_spelling_commit_calls_remain_distinct_observations"
+    },
+    {
+      "invariant": "a persistence-shaped call inside a nested closure/async block is never attributed to the enclosing function",
+      "tests": [
+        "adapter::semantic::rust::tests::persistence_call_inside_async_block_is_not_attributed_to_the_enclosing_function",
+        "adapter::semantic::rust::tests::persistence_call_inside_closure_is_not_attributed_to_the_enclosing_function"
+      ]
+    },
+    {
+      "invariant": "a Resolved PlaceRef converges on the SAME graph node an existing dimension's own observation produced -- proven, not merely asserted",
+      "test": "core::graph::engineering_graph::tests::resolved_persistence_place_converges_on_the_existing_state_access_node"
+    },
+    {
+      "invariant": "an Unresolved PlaceRef produces no place-target node/edge at all -- the safest possible choice, no new spelling-collapse risk",
+      "test": "core::graph::engineering_graph::tests::unresolved_persistence_place_produces_no_refers_to_place_edge"
+    }
+  ],
+  "multi_extractor_and_graph_proof": {
+    "claim": "Two independent extractors reporting the identical Persistence claim both survive Census and Normalization; the engineering graph preserves EpistemicStatus/PersistenceResolution as node attributes.",
+    "tests": [
+      "runtime::census::tests::same_persistence_claim_from_two_extractors_survives_census_and_normalization",
+      "core::graph::engineering_graph::tests::persistence_observation_produces_a_node_and_a_produces_op_edge_from_its_function"
+    ]
+  },
+  "verification_passes": [
+    {
+      "pass": "single pass, this session",
+      "note": "Unlike some earlier R4 waves' records, this is a single-pass (not independently-cross-checked-by-a-second-agent) verification. Stated explicitly rather than implying a rigor this record does not actually have.",
+      "commands": {
+        "cargo fmt --all --check": { "exit_code": 0 },
+        "cargo check --workspace --all-targets": { "exit_code": 0 },
+        "rm -rf target && cargo build --workspace": { "exit_code": 0, "note": "clean rebuild from scratch" },
+        "cargo clippy --workspace --all-targets -- -D warnings": { "exit_code": 0, "warnings": 0 },
+        "cargo test --workspace": {
+          "exit_code": 0,
+          "totals": "327 passed, 0 failed, 0 ignored (166 adapter, 113 core, 48 runtime)"
+        },
+        "cargo run -q -p atlas-cli -- docs audit --root .atlas": { "exit_code": 0, "gate_ready": true },
+        "cargo run -q -p atlas-cli -- systemize --root . --out <tmp>": {
+          "exit_code": 0,
+          "finding": "0 real Persistence observations anywhere in this repository's own compiled source (independently cross-checked by grep -rnE for commit/flush/sync/sync_all/sync_data/checkpoint/snapshot method-call spellings across core/adapter/runtime/apps -- the only matches are inside doc comments and a test-fixture string constant, never real invoked code); every requested artifact's PERSISTENCE obligation is UNKNOWN with an IncompleteAnalysis diagnostic, confirming zero observations never becomes fabricated verified absence.",
+          "cross_check": "core/src/graph/engineering_graph.rs's own genuine unreachable!() match arm (from the prior R4.4-R4.10 hardening pass) continues to independently confirm CONTROL_FLOW's INFERRED-panic-block fix (1 real INFERRED record) alongside this run, proving the self-census pipeline itself still works correctly end-to-end for a dimension known to have real evidence in this repo."
+        }
+      },
+      "persistence_specific_tests": [
+        "commit_call_is_recorded_as_an_inferred_candidate",
+        "unrelated_commit_spelled_method_is_still_only_inferred_never_observed",
+        "each_persistence_spelling_maps_to_its_own_kind",
+        "unrelated_method_call_produces_no_persistence_observation",
+        "two_identical_spelling_commit_calls_remain_distinct_observations",
+        "persistence_call_inside_async_block_is_not_attributed_to_the_enclosing_function",
+        "persistence_call_inside_closure_is_not_attributed_to_the_enclosing_function",
+        "plain_state_mutation_never_fabricates_persistence",
+        "persistence_observations_satisfy_dimension_consistency",
+        "persistence_corpus_extraction_is_deterministic",
+        "repeated_extraction_yields_stable_persistence_record_ids",
+        "persistence_observation_produces_a_node_and_a_produces_op_edge_from_its_function",
+        "unresolved_persistence_place_produces_no_refers_to_place_edge",
+        "resolved_persistence_place_converges_on_the_existing_state_access_node",
+        "same_persistence_claim_from_two_extractors_survives_census_and_normalization"
+      ]
+    }
+  ],
+  "ci_status": "NOT_YET_RUN",
+  "ci_status_detail": "This record is written before this branch's commits have been pushed. GitHub Actions on this repository has shown a repeated UNAVAILABLE_INFRASTRUCTURE pattern (no runner assigned) across many prior PRs this session, documented in earlier verification records; if that recurs here it will be handled per the established babysitting protocol, not treated as a code defect without independent confirmation.",
+  "no_tests_lints_gates_disabled": true,
+  "no_verify_bypass_used": false,
+  "overall_verdict": "VERIFIED AS A BOOTSTRAP -- implementation, the PlaceRef design-guard bridge, and cross-dimension convergence are real, falsified (not merely asserted), and locally validated (single-pass). R4.11 canonical dimension closure is explicitly NOT claimed; see closure_status. No new identity debt was introduced.",
+  "still_unsupported": [
+    "DurableRead/DurableWrite/JournalAppend/TransactionBegin/TransactionAbort/Recover/Restore",
+    "resolved-API-based upgrade of a candidate to a real Observed persistence fact",
+    "durability ordering and recovery-relation semantics between PERSISTENCE operations",
+    "connection to FailureScenario/VerificationWorld/obligation/evidence",
+    "a full first-class PlaceIdentity shared natively by DATA_FLOW/STATE/OWNERSHIP/PERSISTENCE (PlaceRef is the bridge, not the destination)"
+  ],
+  "r4_12_readiness": {
+    "verdict": "R4.11 does not block R4.12 preparation, but R4.12 must evaluate closure across all nine now-supported dimensions (FUNCTION_IDENTITY/CALL/CONTROL_FLOW/DATA_FLOW/STATE/EFFECT/OWNERSHIP/CONCURRENCY/PERSISTENCE) uniformly via dimension_coverage, not by re-deriving per-dimension closure logic ad hoc.",
+    "no_r4_12_blocking_identity_or_epistemic_model_introduced": true
+  }
+}

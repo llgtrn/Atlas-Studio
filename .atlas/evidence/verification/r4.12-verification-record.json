@@ -1,0 +1,122 @@
+{
+  "schema": "atlas.r4.verification-record.v1",
+  "wave": "R4.12",
+  "wave_title": "R4 Semantic Closure -- evaluate whether the declared Rust reference profile satisfies the canonical R4 acceptance contract (.atlas/contracts/SEMANTIC-EXTRACTION.md#r4-definition-of-done). This record covers a gap audit against that Definition of Done, the infrastructure-level fixes it required (conflict-candidate detection, an honest exact-duplicate accounting invariant), and the first NAMED R4 Rust reference profile a project-wide R4-complete claim can point to.",
+  "identity": {
+    "base_commit_sha": "2ae4ce9630cfad6aff28f78c0c8911dc228974cb",
+    "candidate_state": "uncommitted working tree on branch claude/r4-semantic-materialization-jz2z44, descended from PR #27's own tip (R4.4-R4.11 hardening plus a parallel, non-conflicting embedded-agent-host-runtime doc/contract series from the repository owner). PR #27 remains open.",
+    "branch": "claude/r4-semantic-materialization-jz2z44"
+  },
+  "toolchain": {
+    "pinned_by": "rust-toolchain.toml",
+    "channel": "1.90.0",
+    "rustc": "rustc 1.90.0 (1159e78c4 2025-09-14)",
+    "cargo": "cargo 1.90.0 (840b83a10 2025-07-30)",
+    "matches_ci_pin": true
+  },
+  "gap_audit_against_r4_definition_of_done": {
+    "source": ".atlas/contracts/SEMANTIC-EXTRACTION.md#r4-definition-of-done (9 items) and .atlas/roadmap/SELF-BUILDING-R4-R8.md's R4.12 bullet list (11 items, a near-1:1 superset)",
+    "findings_before_this_pass": [
+      { "item": "all mandatory dimensions evidence-producing or explicitly accounted", "status": "DONE (dimension_coverage, R4.4-R4.11)" },
+      { "item": "every discovered function has a stable identity record", "status": "DONE (R4.4)" },
+      { "item": "no mandatory dimension silently absent", "status": "DONE (dimension_coverage exhaustive match; a missing arm is a compile error)" },
+      { "item": "normalization is deterministic and provenance-preserving", "status": "DONE" },
+      { "item": "exact semantic duplicates follow NORMALIZATION.md", "status": "PARTIAL -- only a byte-identical raw_observation_id collapse existed, uncounted and unreported; NORMALIZATION.md's 6-point rule (merge on FactKind+identity+payload+compatible status, union evidence, retain attribution) was not implemented or observable in any report" },
+      { "item": "conflict candidates survive into reconciliation input", "status": "MISSING -- EpistemicStatus::Conflict existed as a value but nothing ever detected or surfaced a disagreement; two records sharing a record_id with genuinely different typed payload (e.g. two extractors claiming different Call resolved-target sets) sat silently in typed_semantic_records with no signal they disagreed" },
+      { "item": "graph construction consumes only the normalized path", "status": "DONE (R4.3.3)" },
+      { "item": "tests prove deterministic output and accounting closure", "status": "PARTIAL -- determinism was proven per-dimension/per-wave; no single NAMED corpus proved every mandatory dimension evidence-producing together, so no project-wide R4-complete claim had anything concrete to cite" },
+      { "item": "SemanticFact remains a compatibility envelope, not the only semantic type system", "status": "DONE (R4.3.3)" }
+    ],
+    "conclusion": "2 of 9 items were genuinely missing (conflict-candidate detection; a named, jointly-evidence-producing reference corpus), 2 were partial (exact-duplicate policy; closure-test completeness), 5 were already done. This pass targets exactly the missing/partial items -- it does not re-litigate the 5 already-done items."
+  },
+  "changes_this_pass": {
+    "conflict_candidate_detection": {
+      "what": "SemanticObservation::subject_repr() (core/src/semantic/observation.rs) exposes each variant's typed payload via the same Debug-format component raw_observation_id() already used internally. runtime::normalize::detect_conflict_candidates groups typed_semantic_records by record_id (guaranteed same dimension, since SemanticRecordId embeds it) and flags any group whose members disagree on subject_repr() as a ConflictCandidate { record_id, dimension, raw_observation_ids } (core/src/schema/mod.rs), reported on NormalizationReport.conflict_candidates.",
+      "deliberate_conservatism": "Detection is full-payload-equality-based, not per-dimension-nuanced. This is intentionally OVER-inclusive (e.g. a future resolved-vs-unresolved difference on a non-identity field would also flag) rather than under-inclusive, because a false positive costs reconciliation one extra candidate to inspect while a false negative would silently hide a real disagreement -- the same asymmetry .atlas/contracts/NORMALIZATION.md's own epistemic-preservation rules apply elsewhere. A precise per-dimension conflict rule (distinguishing 'resolution progress' from 'genuine disagreement') is left as TARGET work, since zero real occurrence exists yet to design it against (see self_census_cross_check below) and guessing the boundary wrong risks a worse mistake than deferring it.",
+      "tests": [
+        "runtime::normalize::tests::two_extractors_disagreeing_about_a_calls_resolved_targets_are_a_conflict_candidate (CallSiteIdentity.dispatch/callees, the exact 'extractor call-target sets' example NORMALIZATION.md's own Conflict handling section names)",
+        "runtime::normalize::tests::two_extractors_agreeing_about_a_calls_resolved_target_are_not_a_conflict",
+        "runtime::normalize::tests::two_extractors_reporting_the_same_symbol_are_not_exact_duplicates_or_a_conflict"
+      ]
+    },
+    "exact_duplicate_accounting": {
+      "what": "normalize_typed_records now returns (Vec<SemanticObservation>, usize), the second element counting how many raw observations the existing raw_observation_id-exact dedup_by collapsed. Reported on NormalizationReport.exact_duplicates_merged.",
+      "closure_invariant_fix": "NormalizationReport::typed_semantics_closed() previously asserted input_typed_closure.typed_observations_total == normalized_typed_closure.typed_observations_total -- an invariant that would have silently reported FALSE the first time real exact-duplicate collapse ever fired on a direct normalize() call bypassing build_census's own pre-dedup (build_census performs the identical collapse before typed_closure is even computed, which is why this gap was latent rather than already failing). Fixed to input == normalized + exact_duplicates_merged, matching .atlas/contracts/NORMALIZATION.md#closure-invariants verbatim ('input = normalized + explicitly represented exact-dedup equivalence').",
+      "still_bridge_not_target": "This remains the narrowest safe case (byte-identical raw content, including evidence). NORMALIZATION.md's broader rule -- merging same-extractor observations that agree on identity+payload+status but differ in evidence, unioning the evidence -- is NOT implemented. Deliberately deferred: zero real trigger exists in any current Rust walker's output shape (each walker emits exactly one evidence ref per observation), and implementing a merge-with-union mechanism for an unexercised scenario would be speculative restructuring of a working, tested invariant for no evidenced benefit.",
+      "tests": [
+        "runtime::normalize::tests::byte_identical_raw_observations_collapse_and_are_counted_as_exact_duplicates"
+      ]
+    },
+    "named_r4_reference_profile": {
+      "what": "R4_REFERENCE_PROFILE_CORPUS: one small, real, compiling-shaped Rust file combining already-proven-recognized constructs (a direct call, a branch, a let-binding def/use, a self.field read/write, a panic!, a shared &Widget borrow, .await, thread::spawn, and a commit() spelling) so it is evidence-producing -- not merely accounted -- for all 12 SemanticDimension variants simultaneously. Defined twice deliberately: once in adapter::semantic::rust::tests (proving the extractor boundary alone) and once in runtime::census::tests (proving the FULL canonical path: real extraction -> build_census -> normalize, using the real registered extractor via adapter::extractors_for_language, not a hand-built fixture).",
+      "why_this_was_missing": ".atlas/contracts/SEMANTIC-EXTRACTION.md#r4-definition-of-done's closing sentence requires naming 'the language/profile/reference corpus against which these gates were proven' for any project-wide R4-complete claim. Every existing corpus (CORPUS, CALL_CORPUS, CFG_CORPUS, DATA_FLOW_CORPUS, STATE_EFFECT_CORPUS, OWNERSHIP_CORPUS, CONCURRENCY_CORPUS, PERSISTENCE_CORPUS, ...) proves exactly one dimension or one wave in isolation; none was a single named artifact spanning all twelve together, so no R4-complete claim had one concrete corpus to point at.",
+      "tests": [
+        "adapter::semantic::rust::tests::reference_profile_produces_real_evidence_for_every_mandatory_dimension",
+        "adapter::semantic::rust::tests::reference_profile_extraction_is_deterministic",
+        "adapter::semantic::rust::tests::reference_profile_extraction_is_unaffected_by_requested_dimension_order",
+        "runtime::census::tests::reference_profile_survives_census_and_normalization_with_no_duplicates_or_conflicts"
+      ]
+    }
+  },
+  "bugs_found_this_pass": [
+    {
+      "bug": "NormalizationReport::typed_semantics_closed()'s equality check did not account for the exact-duplicate delta the contract's own closure-invariant formula requires -- latent (never triggered by any existing test or by build_census's own pipeline, which pre-dedups before typed_closure is computed) rather than actively wrong, but a real gap between the coded invariant and the contract text.",
+      "fix": "input_typed_closure.typed_observations_total == normalized_typed_closure.typed_observations_total + exact_duplicates_merged; proven by byte_identical_raw_observations_collapse_and_are_counted_as_exact_duplicates, which constructs a CensusReport directly (bypassing build_census) so the dedup genuinely fires inside normalize() itself, not before it."
+    }
+  ],
+  "self_census_cross_check": {
+    "command": "cargo run -q -p atlas-cli -- systemize --root . --out <tmp>",
+    "scale": "25159 typed_semantic_records, 636 typed_obligations, 5042 compatibility facts, 29526 graph nodes, 32588 graph edges, across this repository's own real source (rust/toml/json/markdown)",
+    "finding": "normalization.exact_duplicates_merged == 0 and normalization.conflict_candidates == [] against the ENTIRE real Atlas-Studio codebase -- both new mechanisms run cleanly at real scale with zero false positives, and (as expected for a single-registered-extractor-per-language repository) zero real triggers, consistent with dimension_coverage's own finding that no genuine multi-extractor or exact-duplicate scenario exists in this repository yet."
+  },
+  "closure_status": {
+    "r4_definition_of_done": {
+      "1_mandatory_dimensions_evidence_producing_or_accounted": "DONE -- and now proven in the STRONGEST form (evidence-producing, not merely accounted) via one named corpus",
+      "2_every_function_stable_identity": "DONE (R4.4, unchanged)",
+      "3_no_dimension_silently_absent": "DONE (unchanged)",
+      "4_normalization_deterministic_and_provenance_preserving": "DONE (unchanged)",
+      "5_exact_semantic_duplicates_follow_normalization_md": "PARTIAL -- the narrowest safe case (byte-identical raw content) is now real, counted, and closure-invariant-correct; the contract's broader same-extractor-differing-evidence merge rule remains explicit BRIDGE/TARGET work, deferred for the reasons stated above",
+      "6_conflict_candidates_survive_into_reconciliation_input": "DONE -- detected, reported, tested against both a genuine disagreement and genuine corroboration, and validated at real scale",
+      "7_graph_construction_consumes_only_normalized_path": "DONE (unchanged)",
+      "8_tests_prove_deterministic_output_and_accounting_closure": "DONE -- the named reference profile closes this gap directly",
+      "9_semanticfact_remains_compatibility_envelope": "DONE (unchanged)"
+    },
+    "overall": "R4.12 is MATERIALIZED, NOT FULLY CLOSED. 8 of 9 Definition-of-Done items are genuinely done; item 5 remains explicitly PARTIAL/BRIDGE, named rather than hidden, exactly like every other dimension-level 'closure remains open' status this roadmap already uses for R4.5-R4.11. R4 as a whole is profile-scoped (per the contract's own text: 'Do not claim universal language/compiler completeness') -- this record names its profile as R4_REFERENCE_PROFILE_CORPUS, per the contract's own requirement."
+  },
+  "verification_passes": [
+    {
+      "pass": "single pass, this session",
+      "note": "Not independently cross-checked by a second agent. Stated explicitly rather than implying a rigor this record does not have.",
+      "commands": {
+        "cargo fmt --all --check": { "exit_code": 0 },
+        "cargo check --workspace --all-targets": { "exit_code": 0 },
+        "rm -rf target && cargo build --workspace": { "exit_code": 0, "note": "clean rebuild from scratch" },
+        "cargo clippy --workspace --all-targets -- -D warnings": { "exit_code": 0, "warnings": 0 },
+        "cargo test --workspace": {
+          "exit_code": 0,
+          "totals": "335 passed, 0 failed, 0 ignored (169 adapter, 113 core, 53 runtime), up from 331"
+        },
+        "cargo run -q -p atlas-cli -- docs audit --root .atlas": { "exit_code": 0, "gate_ready": true },
+        "cargo run -q -p atlas-cli -- systemize --root . --out <tmp>": {
+          "exit_code": 0,
+          "finding": "see self_census_cross_check above"
+        }
+      }
+    }
+  ],
+  "ci_status": "NOT_YET_RUN_FOR_THIS_COMMIT",
+  "ci_status_detail": "This record is written before this change has been pushed. GitHub Actions on this repository has shown a repeated no-runner-assigned infrastructure pattern across many prior pushes this session (confirmed base-wide, not PR-specific, each time); if it recurs here it will be handled per the established babysitting protocol on PR #27, not treated as a code defect without independent confirmation.",
+  "no_tests_lints_gates_disabled": true,
+  "no_verify_bypass_used": false,
+  "overall_verdict": "MATERIALIZED, NOT FULLY CLOSED. The two genuinely missing R4 Definition-of-Done mechanisms (conflict-candidate detection; a named, jointly-evidence-producing reference profile) are now real, tested at both unit and full-pipeline scope, and validated against this repository's own 25k-observation self-census with zero false positives. The one remaining partial item (the contract's full exact-duplicate equivalence-class rule) is named explicitly as BRIDGE/TARGET rather than silently left out or overclaimed as done. No new identity or epistemic model was introduced; ConflictCandidate and the exact_duplicates_merged count are purely additive reporting over the existing normalized-record architecture.",
+  "still_unsupported": [
+    "NORMALIZATION.md's full same-extractor-differing-evidence exact-duplicate merge (with evidence union)",
+    "per-dimension-nuanced conflict rules distinguishing genuine disagreement from mere resolution progress (current detection is deliberately over-inclusive instead)",
+    "reconciliation itself (R6): conflict candidates are detected and preserved, never resolved, by design this wave",
+    "a full first-class PlaceIdentity, and every other TARGET item already named in prior R4.5-R4.11 records -- unchanged by this pass"
+  ],
+  "r4_13_and_beyond_readiness": {
+    "verdict": "R4's infrastructure-level gate (determinism, non-omission, dedup accounting, conflict preservation, graph-path purity, a named reference profile) is now proven. Per-dimension closure (R4.5-R4.11's individual 'closure remains open' statuses) is unaffected and unresolved by this pass -- R4.12 operates one level above those, on the PIPELINE's own guarantees, not on any single dimension's remaining Rust-construct coverage gaps.",
+    "no_blocking_identity_or_epistemic_model_introduced": true
+  }
+}
