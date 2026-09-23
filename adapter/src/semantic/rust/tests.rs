@@ -4229,6 +4229,13 @@ pub fn commits_something(store: &mut Store) {
     store.commit();
 }
 
+pub fn commits_in_let_else_diverge(store: &mut Store, found: Option<u8>) {
+    let Some(_value) = found else {
+        store.commit();
+        return;
+    };
+}
+
 pub fn unrelated_business_logic(game: &mut Game) {
     game.commit();
 }
@@ -4308,6 +4315,22 @@ fn commit_call_is_recorded_as_an_inferred_candidate() {
     assert_eq!(ops[0].kind, PersistenceKind::Commit);
     assert_eq!(ops[0].resolution, PersistenceResolution::Unresolved);
     assert_eq!(ops[0].place, PlaceRef::Unresolved);
+}
+
+// --- a persistence-shaped call inside a `let ... else { diverge }` block's diverge arm is still
+// walked -- this exact branch (`Local.init.diverge`) is shared, via `StatementWalker::walk_stmt`'s
+// default method, by every one of ConcurrencyWalker/PersistenceWalker/StateWalker, and before this
+// test no corpus anywhere in this suite exercised real let-else syntax at all (confirmed by
+// grepping this whole file): a regression here would have silently dropped every extraction site
+// written as a let-else diverge block, in three dimensions at once, with nothing to catch it -----
+
+#[test]
+fn persistence_call_inside_a_let_else_diverge_block_is_recorded() {
+    let batch = extract_all("src/lib.rs", PERSISTENCE_CORPUS);
+    let caller = find_function_identity(&batch, &[], "commits_in_let_else_diverge").unwrap();
+    let ops = persistence_ops_for(&batch, caller);
+    assert_eq!(ops.len(), 1);
+    assert_eq!(ops[0].kind, PersistenceKind::Commit);
 }
 
 // --- 110. an UNRELATED method merely named `commit` is treated identically -- this extractor
