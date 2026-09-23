@@ -38,19 +38,20 @@ pub use language::adl::{
 };
 pub use provenance::{Provenance, provenance};
 pub use schema::{
-    CensusReport, DocsReport, DocumentFact, EpistemicStatus, FileFact, GraphSummary,
-    NormalizationReport, RepoAudit, RepoManifest, SemanticFact, SemanticFactKind, SourceReport,
-    SystemizeReport, TypedClosureAccounting,
+    CensusReport, ConflictCandidate, DocsReport, DocumentFact, EpistemicStatus, FileFact,
+    GraphSummary, NormalizationReport, RepoAudit, RepoManifest, SemanticFact, SemanticFactKind,
+    SourceReport, SystemizeReport, TypedClosureAccounting,
 };
 pub use semantic::{
     CallDispatchKind, CallSiteIdentity, ConcurrencyIdentity, ConcurrencyKind,
     ControlFlowBlockIdentity, ControlFlowBlockKind, ControlFlowEdge, ControlFlowEdgeKind,
     DataFlowResolution, DiagnosticCode, EffectCategory, EffectIdentity, ExtractionDiagnostic,
     ExtractorIdentity, FunctionDeclarationKind, FunctionIdentity, FunctionOwner, FunctionParameter,
-    FunctionSignature, OwnershipIdentity, OwnershipKind, SemanticDimension,
-    SemanticObligationRecord, SemanticObservation, SemanticRecordHeader, SemanticRecordId,
-    SemanticScope, StateAccessIdentity, StateAccessKind, StateResolution, SymbolIdentity,
-    SymbolRole, TypeIdentity, ValueIdentity, ValueRole,
+    FunctionSignature, OwnershipIdentity, OwnershipKind, OwnershipResolution, PersistenceIdentity,
+    PersistenceKind, PersistenceResolution, PlaceRef, SemanticDimension, SemanticObligationRecord,
+    SemanticObservation, SemanticRecordHeader, SemanticRecordId, SemanticScope,
+    StateAccessIdentity, StateAccessKind, StateResolution, SymbolIdentity, SymbolRole,
+    TypeIdentity, ValueIdentity, ValueRole,
 };
 pub use state::RepositorySnapshot;
 pub use temporal::RevisionRef;
