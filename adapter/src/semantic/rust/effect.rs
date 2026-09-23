@@ -15,15 +15,7 @@ use atlas_core::{
 };
 
 use super::ExtractionContext;
-
-fn is_panic_like_macro(mac: &syn::Macro) -> bool {
-    mac.path.segments.last().is_some_and(|segment| {
-        matches!(
-            segment.ident.to_string().as_str(),
-            "panic" | "unreachable" | "todo" | "unimplemented"
-        )
-    })
-}
+use super::spelling::is_panic_like_macro;
 
 struct EffectWalker<'ctx, 'a> {
     ctx: &'ctx mut ExtractionContext<'a>,

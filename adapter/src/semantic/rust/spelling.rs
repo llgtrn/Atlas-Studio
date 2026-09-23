@@ -262,3 +262,24 @@ pub fn is_compound_assign_op(op: &syn::BinOp) -> bool {
             | syn::BinOp::ShrAssign(_)
     )
 }
+
+/// Whether `mac`'s path ends in a segment textually spelled `panic`/`unreachable`/`todo`/
+/// `unimplemented` -- a macro name is useful evidence but never proof the invoked macro resolves
+/// to Rust's standard panic behavior (macro bindings may be shadowed; this extractor performs no
+/// macro/name resolution), so every caller of this function must record its own finding as
+/// `EpistemicStatus::Inferred`, never `Observed`.
+///
+/// Shared by `cfg.rs` (a block whose only successor is a panic-like macro invocation) and
+/// `effect.rs` (the same invocation as an `EffectCategory::Panic` candidate) so the two dimensions
+/// can never silently disagree about which macro invocations count -- the same defect class (and
+/// the same fix shape) as `persistence.rs`'s `persistence_kind_for_spelling` unification: this
+/// function used to be defined twice, once per file, byte-for-byte identical, with nothing
+/// preventing the two copies from drifting apart on a future edit to only one of them.
+pub fn is_panic_like_macro(mac: &syn::Macro) -> bool {
+    mac.path.segments.last().is_some_and(|segment| {
+        matches!(
+            segment.ident.to_string().as_str(),
+            "panic" | "unreachable" | "todo" | "unimplemented"
+        )
+    })
+}

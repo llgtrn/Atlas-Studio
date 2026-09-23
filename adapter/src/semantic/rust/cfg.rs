@@ -15,6 +15,7 @@ use atlas_core::{
 };
 
 use super::ExtractionContext;
+use super::spelling::is_panic_like_macro;
 
 /// Where control goes when a straight-line statement sequence completes without an early exit.
 #[derive(Clone)]
@@ -61,15 +62,6 @@ struct LoopFrame {
     repeat_target: SemanticRecordId,
     /// Where a `break` goes: whatever this loop's own enclosing continuation was.
     after_loop: Continuation,
-}
-
-fn is_panic_like_macro(mac: &syn::Macro) -> bool {
-    mac.path.segments.last().is_some_and(|segment| {
-        matches!(
-            segment.ident.to_string().as_str(),
-            "panic" | "unreachable" | "todo" | "unimplemented"
-        )
-    })
 }
 
 fn stmt_expr(stmt: &syn::Stmt) -> Option<&syn::Expr> {
