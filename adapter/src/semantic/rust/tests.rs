@@ -4649,3 +4649,46 @@ fn nesting_well_within_the_depth_guard_still_extracts_normally() {
     let identity = find_function_identity(&batch, &[], "f").expect("function f");
     assert_eq!(identity.symbol.name, "f");
 }
+
+#[test]
+fn long_bracket_free_binary_operator_chain_does_not_abort_the_process() {
+    // A second, independent adversarial vector from the bracket-nesting one above: zero brackets
+    // at all (bracket-nesting depth is just 1, from the function body braces), yet 2,000 chained
+    // `+` terms reliably overflowed the stack the same way before this guard existed -- proof that
+    // a bracket-depth-only check would have been an incomplete fix.
+    let n = 5000;
+    let chain = std::iter::repeat_n("1", n).collect::<Vec<_>>().join("+");
+    let source = format!("pub fn f() -> i32 {{ {chain} }}\n");
+    let batch = extract_all("src/probe.rs", &source);
+
+    assert!(batch.is_closed(&ALL_DIMENSIONS));
+    for &dimension in &ALL_DIMENSIONS {
+        let obligation = batch.obligation_for(dimension).unwrap();
+        if SUPPORTED_DIMENSIONS.contains(&dimension) {
+            assert_eq!(obligation.status, EpistemicStatus::Unknown);
+        } else {
+            assert_eq!(obligation.status, EpistemicStatus::Unsupported);
+        }
+    }
+    assert_eq!(batch.diagnostics.len(), 1);
+    assert_eq!(batch.diagnostics[0].code, DiagnosticCode::ResourceLimit);
+}
+
+#[test]
+fn a_short_real_operator_chain_still_extracts_normally() {
+    // The chain-length guard must not false-positive on real code -- a handful of chained
+    // arithmetic/comparison/method-call operators is completely ordinary Rust.
+    let batch = extract_all(
+        "src/probe.rs",
+        "pub fn f(x: i32) -> bool { x + 1 - 2 * 3 / 4 == 5 && x.abs() > 0 }\n",
+    );
+    assert!(batch.is_closed(&ALL_DIMENSIONS));
+    assert!(
+        !batch
+            .diagnostics
+            .iter()
+            .any(|diagnostic| diagnostic.code == DiagnosticCode::ResourceLimit)
+    );
+    let identity = find_function_identity(&batch, &[], "f").expect("function f");
+    assert_eq!(identity.symbol.name, "f");
+}

@@ -1,0 +1,62 @@
+{
+  "schema": "atlas.self-build.generation-evidence-correction.v1",
+  "wave": "R4.3.6 -- generalize the stack-overflow guard to a bracket-free crash vector",
+  "corrects": {
+    "target_evidence_file": ".atlas/evidence/verification/r4.3.5-bracket-nesting-depth-guard.json",
+    "target_field": "overall_verdict / implementation.extraction (max_bracket_nesting_depth, MAX_BRACKET_NESTING_DEPTH)",
+    "policy": "Historical evidence is immutable; the original r4.3.5 file is left unmodified. This record supersedes its conclusion, per RECURSIVE-SELF-CENSUS.md's 'monotonic evidence, revisable conclusions' rule."
+  },
+  "original_claim": "r4.3.5's overall_verdict states the bracket-nesting-depth guard is 'MATERIALIZED AND VERIFIED', closing the stack-overflow denial-of-service. Its own recensus_scope_after_promotion entry did flag 'the same DoS class ... should be considered whenever a second language extractor is added' but did not anticipate that the SAME extractor, SAME language, had a second unguarded vector.",
+  "discovered_flaw": "Continuing the standing loop's own mandated adversarial-input falsification practice past the r4.3.5 fix (rather than stopping at the first successful mitigation), a bracket-free construct was tested: a long chained binary-operator expression (`1+1+1+...+1`, no parentheses/braces/brackets at all). max_bracket_nesting_depth reports a depth of only 1 for such an expression (just the enclosing function body braces), so it sailed straight through the r4.3.5 guard -- and reproduced the IDENTICAL SIGABRT stack-overflow crash in an isolated real process, confirmed at n=2,000 terms (n=1,000 safe). The r4.3.5 guard was real and effective for its own tested vector, but was not a complete fix for 'parser recursion depth in general', only for 'bracket nesting specifically' -- a scope gap the original evidence record did not make explicit enough.",
+  "additional_investigation": {
+    "stacker_attempt": "Before generalizing the text-scan heuristic, `stacker` (the crate rustc itself uses to solve exactly this class of problem -- growing the stack on demand for deep recursion) was added as a real dependency and wired around the outer `syn::parse_file` + AST-walk call, with a 256KiB red zone and a 256MiB growth segment. This was REJECTED after empirical testing: the exact same n=5,000 binary-chain fixture still crashed with SIGABRT even with this wrapper in place. Root cause: `stacker::maybe_grow` only grows the stack at the moment it is called; called once at the OUTER boundary (before any recursion has happened), there is always ample headroom at that instant, so it never decides to switch to the larger segment -- the actual exhaustion happens many frames deeper, inside `syn`'s own internal recursive-descent calls, which never themselves call back out to request more stack (verified: no `stacker` integration exists anywhere in syn 3.0.6's own source). `stacker` only helps when instrumented AT EACH recursive call site, which requires modifying the recursing function itself -- possible for Atlas's own AST walker, but not for a third-party parser crate. The `stacker` dependency was removed after this negative result; it did not become part of the shipped fix."
+  },
+  "corrected_interpretation": "R4.3.5's fix should be read as 'closes the bracket-nesting vector specifically', not 'closes stack-overflow denial-of-service in general' -- the broader claim was premature. This generation (R4.3.6) is the first to close the general case (both known vectors) with a single combined metric, and explicitly documents that further, yet-untested constructs could in principle exist (see recensus_scope below) rather than re-claiming completeness without further evidence.",
+  "replacement_verification": {
+    "mechanism": "adapter::semantic::rust::max_structural_recursion_risk replaces max_bracket_nesting_depth. Combined metric: bracket-nesting depth (as before, reset to a fresh chain-run count on every bracket push/pop) PLUS a chain-run counter incremented for consecutive expression-continuation operator bytes (arithmetic/logical/comparison/method-chain '.'/etc.) at the CURRENT bracket depth, reset at bracket boundaries and at ';'. Deliberately NOT reset on newline, since an adversary could otherwise trivially evade a per-line check by inserting a newline between every chained operator while driving the identical parse-tree depth.",
+    "threshold": "MAX_STRUCTURAL_RECURSION_RISK = 64 -- unchanged numeric value from r4.3.5's MAX_BRACKET_NESTING_DEPTH, now guarding a combined metric. Still far below both observed crash floors (300 for brackets, 2,000 for chains) and far above any real value this repository's own source corpus produces.",
+    "falsification_proof": "Both previously-crashing fixtures (50,000-level bracket nesting; 5,000-term binary chain) re-run in isolated real processes after the fix: both now complete successfully with a well-formed closed ExtractionBatch (every supported dimension UNKNOWN, DiagnosticCode::ResourceLimit) instead of SIGABRT. Two new negative-control tests (a small real nested expression; a short real operator chain) confirm no false positive on legitimate code.",
+    "no_circular_self_certification": true
+  },
+  "implementation": {
+    "extraction": "adapter/src/semantic/rust/mod.rs -- max_structural_recursion_risk() replaces max_bracket_nesting_depth(); MAX_STRUCTURAL_RECURSION_RISK replaces MAX_BRACKET_NESTING_DEPTH; finish_resource_limit()'s diagnostic message updated to name the new metric",
+    "removed": "the stacker dependency (adapter/Cargo.toml) and its EXTRACTION_STACK_RED_ZONE/EXTRACTION_STACK_SIZE wrapper -- tried, found ineffective for this specific problem, removed rather than left as dead/misleading code"
+  },
+  "adversarial_and_falsification_coverage": [
+    "deeply_nested_parenthesized_expression_does_not_abort_the_process -- bracket vector, re-verified against the new combined guard",
+    "nesting_well_within_the_depth_guard_still_extracts_normally -- bracket negative control, re-verified",
+    "long_bracket_free_binary_operator_chain_does_not_abort_the_process -- the new vector this generation closes, with full obligation/diagnostic assertions (previously a weaker unasserted probe)",
+    "a_short_real_operator_chain_still_extracts_normally -- chain negative control, new",
+    "full workspace test suite (408 tests) completes without the process aborting"
+  ],
+  "validation_this_generation": {
+    "commands": {
+      "cargo fmt --all --check": { "exit_code": 0 },
+      "cargo clippy --workspace --all-targets -- -D warnings": { "exit_code": 0, "warnings": 0 },
+      "cargo test --workspace": {
+        "exit_code": 0,
+        "totals": "408 passed, 0 failed (223 adapter, 127 core, 58 runtime), up from 406"
+      },
+      "isolated pre-fix reproduction of the new vector (binary chain, depths 100/150/250/500/1000/2000/5000)": {
+        "result": "safe through 1,000; SIGABRT from 2,000 upward -- confirmed before any generalized fix existed"
+      },
+      "isolated post-fix verification (both vectors, at their previously-crashing depths)": {
+        "result": "both exit 0, both produce a well-formed closed batch with a ResourceLimit diagnostic"
+      },
+      "isolated stacker-wrapper test (rejected approach)": {
+        "result": "same n=5000 binary-chain fixture still SIGABRT'd with a 256MiB stacker::maybe_grow wrapper in place -- documented as negative evidence, not shipped"
+      },
+      "cargo run -q -p atlas-cli -- systemize --root . (before/after self-census diff)": {
+        "exit_code": 0,
+        "finding": "census.coverage and typed_obligations_total (768) byte-identical before and after; coding_admission.allowed unchanged (true) -- zero regression, the generalized guard never triggers on this repository's own real corpus"
+      }
+    }
+  },
+  "recensus_scope_after_promotion": [
+    "no prior CLOSED/EXTINCT conclusion depended on the bracket-only guard being a complete fix, so no external conclusion requires reopening beyond r4.3.5's own evidence file (corrected by this record)",
+    "this guard is still a coarse heuristic over two specific, empirically-confirmed constructs (bracket nesting, operator chains). A yet-untested third construct (e.g. deeply nested match-arm patterns, deeply chained generic trait bounds, deeply nested closures) is not proven safe merely by analogy -- it is PLAUSIBLE the combined metric also bounds these (since method-chain '.' and most operator-like characters are already counted), but this has not been independently falsification-tested the way the two known vectors were, and should not be silently assumed",
+    "the same DoS class must be considered whenever a second language extractor is added -- not automatically inherited by a different parser implementation"
+  ],
+  "overall_verdict": "CORRECTED AND RE-VERIFIED. R4.3.5's guard is retracted as a claim of general stack-overflow-DoS closure and narrowed to what it actually was: a bracket-nesting-specific fix. R4.3.6 closes the second confirmed vector with one generalized metric, documents a rejected alternative approach (stacker) with the empirical reasoning for rejecting it, and is explicit that further untested constructs remain a named, honest limitation rather than silently assumed closed.",
+  "historical_evidence_retained": true
+}

@@ -168,9 +168,9 @@ impl SemanticExtractor for RustSemanticExtractor {
 
     fn extract(&self, input: &ExtractionInput) -> ExtractionBatch {
         let mut ctx = ExtractionContext::new(input, self.identity());
-        let depth = max_bracket_nesting_depth(&input.source_text);
-        if depth > MAX_BRACKET_NESTING_DEPTH {
-            return ctx.finish_resource_limit(depth);
+        let risk = max_structural_recursion_risk(&input.source_text);
+        if risk > MAX_STRUCTURAL_RECURSION_RISK {
+            return ctx.finish_resource_limit(risk);
         }
         match syn::parse_file(&input.source_text) {
             Ok(file) => {
@@ -186,39 +186,71 @@ impl SemanticExtractor for RustSemanticExtractor {
 }
 
 /// Adversarial guard against a stack-overflow denial-of-service: `syn` is a recursive-descent
-/// parser, and `MAX_SEMANTIC_BYTES` (`adapter::source`) gates only on file *size*, never on
-/// structural nesting *depth*, so a small, well-under-the-byte-limit file with extreme
-/// parenthesis/brace/bracket nesting reaches this extractor unfiltered. Empirically, a 50-level
-/// bracket-nested expression parses fine, but 300 levels reliably overflows even a reduced test-
-/// thread stack (2MB), aborting the whole process -- not a catchable Rust panic (stack overflow
-/// during unwinding cannot itself unwind), so it takes down extraction for every artifact in the
-/// run, not just the pathological one. This repository's own entire real source corpus never
-/// nests deeper than 13. `MAX_BRACKET_NESTING_DEPTH` sits with a large safety margin on both
-/// sides: far below the observed crash floor, far above any real code this extractor has ever
-/// seen.
-const MAX_BRACKET_NESTING_DEPTH: usize = 64;
+/// parser with no built-in recursion-depth protection (verified against its 3.0.6 source: no
+/// `stacker`-style stack-growth integration exists), and `MAX_SEMANTIC_BYTES` (`adapter::source`)
+/// gates only on file *size*, never on structural recursion depth, so a small, well-under-the-
+/// byte-limit file that drives deep parser recursion reaches this extractor unfiltered.
+///
+/// `stacker::maybe_grow` was tried and does NOT help here: it can only grow the stack at the
+/// moment it is called, and calling it once around the outer `syn::parse_file`/walk boundary makes
+/// no difference, because at that outer call there is always still plenty of headroom -- the
+/// exhaustion happens many frames deeper, inside `syn`'s own recursive descent, which never calls
+/// back out to request more stack. Only a pre-parse structural bound, checked before `syn` ever
+/// runs, actually prevents the crash. Confirmed empirically (isolated real-process reproduction,
+/// not merely theorized): even with an outer `stacker::maybe_grow(256KiB, 256MiB, ..)` wrapper, the
+/// exact same adversarial input still aborted the process with `SIGABRT`.
+///
+/// Two independent constructs were confirmed to drive this recursion to a crash:
+/// - explicit bracket nesting (`(((...)))`) -- 300 levels reliably overflowed a reduced (~2MB)
+///   test-thread stack; 100 levels did not;
+/// - a bracket-free chained binary-operator expression (`1+1+1+...`) -- 2,000 terms reliably
+///   overflowed the same stack; 1,000 terms did not.
+///
+/// `max_structural_recursion_risk` bounds both with one combined metric rather than maintaining
+/// two separate ad-hoc scans, since both are fundamentally the same risk (parser recursion depth
+/// proportional to admitted-input structure): bracket nesting increments/decrements a depth
+/// counter as before; a run of consecutive expression-continuation operator bytes (arithmetic,
+/// logical, comparison, method-chain `.`, ...) at the *current* bracket depth also increments a
+/// counter, reset whenever a bracket boundary is crossed (a new nesting level restarts local chain
+/// risk). The combined maximum is compared against one threshold. Like the bracket-only scan this
+/// replaces, this is a coarse, syntax-unaware, pre-parse text scan (no exclusion for string/char
+/// literals or comments) that can only ever over-count real structural risk, never under-count --
+/// so it can only be more conservative than strictly necessary, never miss a genuine risk. This
+/// repository's own entire real source corpus never nests brackets deeper than 13 and never chains
+/// more than a handful of operators in a row.
+const MAX_STRUCTURAL_RECURSION_RISK: usize = 64;
 
-/// The maximum net nesting depth of `(`/`{`/`[` (combined, since any of the three can drive `syn`'s
-/// expression/type/pattern recursion) anywhere in `source`, including inside string/char literals
-/// and comments. Not syntax-aware by design: a coarse, fast, pre-parse text scan that can only ever
-/// over-count (never under-count) real structural depth, so it can only be more conservative than
-/// necessary, never miss a genuine risk.
-fn max_bracket_nesting_depth(source: &str) -> usize {
-    let mut depth: usize = 0;
-    let mut max_depth: usize = 0;
+fn max_structural_recursion_risk(source: &str) -> usize {
+    let mut bracket_depth: usize = 0;
+    let mut chain_run: usize = 0;
+    let mut max_risk: usize = 0;
     for byte in source.bytes() {
         match byte {
             b'(' | b'{' | b'[' => {
-                depth += 1;
-                max_depth = max_depth.max(depth);
+                bracket_depth += 1;
+                chain_run = 0;
+                max_risk = max_risk.max(bracket_depth);
             }
             b')' | b'}' | b']' => {
-                depth = depth.saturating_sub(1);
+                bracket_depth = bracket_depth.saturating_sub(1);
+                chain_run = 0;
+            }
+            b'+' | b'-' | b'*' | b'/' | b'%' | b'&' | b'|' | b'^' | b'<' | b'>' | b'=' | b'!'
+            | b'.' | b'?' | b',' => {
+                chain_run += 1;
+                max_risk = max_risk.max(bracket_depth + chain_run);
+            }
+            // Deliberately NOT reset on newline: an adversary could otherwise trivially evade this
+            // guard by inserting a newline between every chained operator
+            // (`1 +\n1 +\n1 +\n...`), which drives the exact same parser recursion depth as a
+            // single unbroken line.
+            b';' => {
+                chain_run = 0;
             }
             _ => {}
         }
     }
-    max_depth
+    max_risk
 }
 
 fn nested_scope(scope: &SemanticScope, segment: &str) -> SemanticScope {
@@ -1371,18 +1403,18 @@ impl<'a> ExtractionContext<'a> {
         }
     }
 
-    /// See `max_bracket_nesting_depth`'s doc comment. Mirrors `finish_parse_failure`'s shape
+    /// See `max_structural_recursion_risk`'s doc comment. Mirrors `finish_parse_failure`'s shape
     /// exactly (every supported dimension `UNKNOWN`, every unsupported one `UNSUPPORTED`) since
     /// the epistemic meaning is the same: evidence was not obtained, for a documented reason, and
     /// the artifact is never removed from accounting.
-    fn finish_resource_limit(mut self, observed_depth: usize) -> ExtractionBatch {
+    fn finish_resource_limit(mut self, observed_risk: usize) -> ExtractionBatch {
         let diagnostic = ExtractionDiagnostic::new(
             DiagnosticCode::ResourceLimit,
             None,
             format!(
-                "{} nesting depth {observed_depth} exceeds MAX_BRACKET_NESTING_DEPTH \
-                 ({MAX_BRACKET_NESTING_DEPTH}); refusing to parse to avoid a stack-overflow \
-                 denial-of-service in the recursive-descent parser",
+                "{} structural recursion risk {observed_risk} exceeds \
+                 MAX_STRUCTURAL_RECURSION_RISK ({MAX_STRUCTURAL_RECURSION_RISK}); refusing to \
+                 parse to avoid a stack-overflow denial-of-service in the recursive-descent parser",
                 self.input.artifact_path
             ),
         );
