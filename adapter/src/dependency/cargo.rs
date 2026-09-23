@@ -1521,4 +1521,99 @@ version = "0.1.0"
             "expected substantial real edge coverage"
         );
     }
+
+    #[test]
+    fn real_donor_corpus_exercises_every_source_kind_role_and_activation_combination() {
+        // Atlas's own workspace has zero git dependencies, zero non-workspace path dependencies,
+        // and zero optional/target-conditional dependencies -- every classification branch for
+        // those facts was previously verified only by synthetic fixtures. This repository's real
+        // donor corpus genuinely exercises all of them: aggregate, real evidence that
+        // classify_source_kind/manifest_dependency_roles produce non-trivial, real-world-shaped
+        // output, not merely "does not crash" on real input.
+        let donor_root = Path::new(env!("CARGO_MANIFEST_DIR"))
+            .parent()
+            .expect("adapter/ has a parent directory")
+            .join(".atlas/temporary/donors");
+        let known_cargo_donors = [
+            "ast-grep",
+            "buck2",
+            "c2rust",
+            "crubit",
+            "duumbi",
+            "egglog",
+            "miri",
+            "mold",
+            "object",
+            "rust-analyzer",
+            "rust",
+            "tree-sitter",
+            "wasm-tools",
+            "wasmtime",
+            "zed",
+        ];
+
+        let mut vcs_count = 0usize;
+        let mut path_count = 0usize;
+        let mut dev_role_count = 0usize;
+        let mut build_role_count = 0usize;
+        let mut optional_count = 0usize;
+        let mut target_conditional_count = 0usize;
+        let mut optional_and_target_conditional_count = 0usize;
+
+        for name in known_cargo_donors {
+            let root = donor_root.join(name);
+            let Ok(Some(report)) = census_cargo_workspace(&root) else {
+                continue;
+            };
+            for edge in &report.edges {
+                match edge.provider.source_kind {
+                    DependencySourceKind::Vcs => vcs_count += 1,
+                    DependencySourceKind::Path => path_count += 1,
+                    _ => {}
+                }
+                match edge.role {
+                    Some(DependencyRole::Dev) => dev_role_count += 1,
+                    Some(DependencyRole::Build) => build_role_count += 1,
+                    _ => {}
+                }
+                if edge.activation.optional && edge.activation.target_conditional {
+                    optional_and_target_conditional_count += 1;
+                } else if edge.activation.optional {
+                    optional_count += 1;
+                } else if edge.activation.target_conditional {
+                    target_conditional_count += 1;
+                }
+            }
+        }
+
+        assert!(
+            vcs_count > 0,
+            "expected at least one real git dependency across the donor corpus"
+        );
+        assert!(
+            path_count > 0,
+            "expected at least one real non-workspace path dependency across the donor corpus"
+        );
+        assert!(
+            dev_role_count > 0,
+            "expected at least one real Dev-role edge"
+        );
+        assert!(
+            build_role_count > 0,
+            "expected at least one real Build-role edge"
+        );
+        assert!(
+            optional_count > 0,
+            "expected at least one real optional-only edge"
+        );
+        assert!(
+            target_conditional_count > 0,
+            "expected at least one real target-conditional-only edge"
+        );
+        assert!(
+            optional_and_target_conditional_count > 0,
+            "expected at least one real edge that is BOTH optional and target-conditional -- the \
+             exact combination the DependencyRole/DependencyActivation split exists to represent"
+        );
+    }
 }
