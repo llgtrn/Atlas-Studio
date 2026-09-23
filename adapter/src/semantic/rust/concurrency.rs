@@ -211,8 +211,21 @@ impl<'ctx, 'a> ConcurrencyWalker<'ctx, 'a> {
                 }
             }
             syn::Expr::Let(let_expr) => self.walk_expr(&let_expr.expr),
-            // Closures get no concurrency attribution of their own this wave (consistent with
-            // R4.6/R4.7/R4.8/R4.9); path/literal/other forms carry no nested expressions this
+            // `unsafe { .. }`/`const { .. }`/`try { .. }` execute immediately as part of the same
+            // executable region -- an `.await`/spawn-shaped call inside one is a real site of the
+            // enclosing function.
+            syn::Expr::Unsafe(unsafe_expr) => self.walk_block(&unsafe_expr.block),
+            syn::Expr::Const(const_expr) => self.walk_block(&const_expr.block),
+            syn::Expr::TryBlock(try_block) => self.walk_block(&try_block.block),
+            syn::Expr::Repeat(repeat) => {
+                self.walk_expr(&repeat.expr);
+                self.walk_expr(&repeat.len);
+            }
+            syn::Expr::RawAddr(raw_addr) => self.walk_expr(&raw_addr.expr),
+            // Closures and `async { .. }` blocks get no concurrency attribution of their own this
+            // wave (consistent with R4.6/R4.7/R4.8/R4.9 -- both are separate deferred executable
+            // regions, and `async { .. }`'s own `.await`/spawn sites belong to whatever polls it,
+            // not to this function); path/literal/other forms carry no nested expressions this
             // walker tracks.
             _ => {}
         }

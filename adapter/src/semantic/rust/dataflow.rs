@@ -11,11 +11,15 @@
 //!
 //! Scope this wave: only simple identifier patterns (`syn::Pat::Ident`, with or without `mut`) are
 //! modeled as `Definition`s -- a `let (a, b) = ..;` tuple/struct/slice-destructuring pattern binds
-//! nothing this wave (a documented gap, not a fabricated one). Only a plain `x = ..;` assignment
-//! (`syn::Expr::Assign`) with a simple identifier LHS is modeled as a `Store`; compound-assignment
+//! nothing this wave (a documented gap, not a fabricated one). A plain `x = ..;` assignment
+//! (`syn::Expr::Assign`) with a simple identifier LHS is modeled as a `Store`. Compound-assignment
 //! operators (`x += 1`) are represented by this `syn` version as `syn::Expr::Binary` with a
-//! compound `BinOp`, not a distinct assignment form, and are not specially modeled -- their operand
-//! identifiers are still found as ordinary `Use`s via the general expression walk.
+//! compound `BinOp` (`AddAssign`, ...), not a distinct assignment form -- but that `BinOp` variant
+//! is itself syntax-distinct from plain arithmetic (`AddAssign` vs `Add`, ...), so a compound
+//! assignment to a simple identifier is modeled as BOTH a `Use` (the old value) and a `Store` (the
+//! new value), matching R4.8's `state.rs` treatment of `self.field += 1` (see
+//! `spelling::is_compound_assign_op`), correcting an earlier reading of this representation that
+//! concluded it could only ever produce a plain `Use`.
 
 use atlas_core::{
     DataFlowResolution, EpistemicStatus, EvidenceId, SemanticDimension, SemanticObservation,
@@ -24,6 +28,7 @@ use atlas_core::{
 use std::collections::BTreeMap;
 
 use super::ExtractionContext;
+use super::spelling;
 
 struct DataFlowWalker<'ctx, 'a> {
     ctx: &'ctx mut ExtractionContext<'a>,
@@ -268,6 +273,22 @@ impl<'ctx, 'a> DataFlowWalker<'ctx, 'a> {
                 self.walk_block(&for_loop.body, false);
                 self.pop_scope();
             }
+            syn::Expr::Binary(binary) if spelling::is_compound_assign_op(&binary.op) => {
+                // `x += 1` etc.: provably a read-modify-write of the left operand, not merely a
+                // read -- see `spelling::is_compound_assign_op`.
+                match binary.left.as_ref() {
+                    syn::Expr::Path(path)
+                        if path.path.leading_colon.is_none() && path.path.segments.len() == 1 =>
+                    {
+                        let name = path.path.segments[0].ident.to_string();
+                        let span = self.ctx.span_of(binary.left.as_ref());
+                        self.emit_use_or_store(&name, span.clone(), ValueRole::Use, false);
+                        self.emit_use_or_store(&name, span, ValueRole::Store, false);
+                    }
+                    other => self.walk_expr(other, false),
+                }
+                self.walk_expr(&binary.right, false);
+            }
             syn::Expr::Binary(binary) => {
                 self.walk_expr(&binary.left, false);
                 self.walk_expr(&binary.right, false);
@@ -328,10 +349,24 @@ impl<'ctx, 'a> DataFlowWalker<'ctx, 'a> {
                 }
             }
             syn::Expr::Let(let_expr) => self.walk_expr(&let_expr.expr, false),
-            // Closures get no data-flow scoping of their own this wave (consistent with R4.6's
-            // CFG, which gives closures no CFG either -- neither has a FunctionIdentity to
-            // attribute records to); Continue/literals/other forms carry no nested expressions
-            // this walker tracks. Never claimed, never fabricated.
+            // `unsafe { .. }`/`try { .. }` execute immediately as part of the same executable
+            // region and may themselves be in return-flow (tail) position, exactly like a plain
+            // `{ .. }` block above. `const { .. }` is a distinct compile-time-evaluated context,
+            // never itself the function's runtime return value, so it is walked but never as
+            // return-flow.
+            syn::Expr::Unsafe(unsafe_expr) => self.walk_block(&unsafe_expr.block, is_return_flow),
+            syn::Expr::TryBlock(try_block) => self.walk_block(&try_block.block, is_return_flow),
+            syn::Expr::Const(const_expr) => self.walk_block(&const_expr.block, false),
+            syn::Expr::Repeat(repeat) => {
+                self.walk_expr(&repeat.expr, false);
+                self.walk_expr(&repeat.len, false);
+            }
+            syn::Expr::RawAddr(raw_addr) => self.walk_expr(&raw_addr.expr, false),
+            // Closures and `async { .. }` blocks get no data-flow scoping of their own this wave
+            // (consistent with R4.6's CFG, which gives neither a CFG either -- both are separate
+            // deferred executable regions with no FunctionIdentity to attribute records to);
+            // Continue/literals/other forms carry no nested expressions this walker tracks. Never
+            // claimed, never fabricated.
             _ => {}
         }
     }

@@ -238,9 +238,27 @@ impl<'ctx, 'a> OwnershipWalker<'ctx, 'a> {
                 }
             }
             syn::Expr::Let(let_expr) => self.walk_expr(&let_expr.expr, false),
-            // Closures get no ownership attribution of their own this wave (consistent with
-            // R4.6/R4.7/R4.8); macro/literal/other forms carry no nested ownership-relevant
-            // expressions this walker tracks.
+            // `unsafe { .. }`/`try { .. }` execute immediately and may themselves sit in a
+            // value/move position, exactly like a plain `{ .. }` block above. `const { .. }` is a
+            // distinct compile-time-evaluated context, never itself a runtime move/copy site.
+            syn::Expr::Unsafe(unsafe_expr) => {
+                self.walk_block(&unsafe_expr.block, is_value_position)
+            }
+            syn::Expr::TryBlock(try_block) => self.walk_block(&try_block.block, is_value_position),
+            syn::Expr::Const(const_expr) => self.walk_block(&const_expr.block, false),
+            // `[expr; N]`: `expr` is consumed by value into the array (a real move/copy site if it
+            // is a bare identifier); `N` must be const-evaluable, never a move/copy site.
+            syn::Expr::Repeat(repeat) => {
+                self.walk_expr(&repeat.expr, true);
+                self.walk_expr(&repeat.len, false);
+            }
+            // `&raw const place`/`&raw mut place`: addresses a place, does not move/copy it --
+            // the same treatment `Expr::Reference`'s own referent already gets above.
+            syn::Expr::RawAddr(raw_addr) => self.walk_expr(&raw_addr.expr, false),
+            // Closures and `async { .. }` blocks get no ownership attribution of their own this
+            // wave (consistent with R4.6/R4.7/R4.8 -- both are separate deferred executable
+            // regions); macro/literal/other forms carry no nested ownership-relevant expressions
+            // this walker tracks.
             _ => {}
         }
     }

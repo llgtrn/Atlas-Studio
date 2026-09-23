@@ -639,7 +639,16 @@ impl<'a> ExtractionContext<'a> {
                     self.walk_expr(elem, scope, caller);
                 }
             }
-            syn::Expr::Closure(closure) => self.walk_expr(&closure.body, scope, caller),
+            // A closure body is a separate executable region that runs later (possibly never, or
+            // from a completely different caller) than the enclosing function -- attributing its
+            // call sites to `caller` would misattribute them exactly as CFG/DATA_FLOW/STATE/
+            // EFFECT/OWNERSHIP/CONCURRENCY already correctly refuse to do (none of them recurse
+            // into a closure body either; see each file's own "Closures get no ... attribution"
+            // comment). This extractor has no closure/executable-region identity of its own yet
+            // (`ExecutableRegionIdentity`-shaped work is future scope), so a closure's calls are
+            // left explicitly outside this dimension's current profile rather than misattributed
+            // to the outer function. Corrects a prior version of this walker that recursed here.
+            syn::Expr::Closure(_) => {}
             syn::Expr::Cast(cast) => self.walk_expr(&cast.expr, scope, caller),
             syn::Expr::Range(range) => {
                 if let Some(start) = &range.start {
@@ -650,9 +659,38 @@ impl<'a> ExtractionContext<'a> {
                 }
             }
             syn::Expr::Let(let_expr) => self.walk_expr(&let_expr.expr, scope, caller),
-            // Literals, bare paths, `continue`, and any other/future `syn::Expr` shape: either
-            // structurally cannot contain a nested call (a literal, an identifier) or is out of
-            // scope for R4.5's minimum call walker. Never claimed, never fabricated.
+            // `unsafe { .. }`/`const { .. }`/`try { .. }` execute immediately as part of the same
+            // executable region (unlike Closure/Async, they are not deferred) -- a call inside one
+            // is a real call site of the enclosing function, so these recurse rather than falling
+            // to the catch-all below.
+            syn::Expr::Unsafe(unsafe_expr) => {
+                for stmt in &unsafe_expr.block.stmts {
+                    self.walk_stmt(stmt, scope, caller);
+                }
+            }
+            syn::Expr::Const(const_expr) => {
+                for stmt in &const_expr.block.stmts {
+                    self.walk_stmt(stmt, scope, caller);
+                }
+            }
+            syn::Expr::TryBlock(try_block) => {
+                for stmt in &try_block.block.stmts {
+                    self.walk_stmt(stmt, scope, caller);
+                }
+            }
+            syn::Expr::Repeat(repeat) => {
+                self.walk_expr(&repeat.expr, scope, caller);
+                self.walk_expr(&repeat.len, scope, caller);
+            }
+            syn::Expr::RawAddr(raw_addr) => self.walk_expr(&raw_addr.expr, scope, caller),
+            // `async { .. }`/`async move { .. }` is a separate deferred executable region (a
+            // Future body polled later, possibly never, exactly like a Closure) -- excluded for
+            // the same misattribution reason as `Expr::Closure` above, not merely unhandled.
+            syn::Expr::Async(_) => {}
+            // Literals, bare paths, `continue`, `yield` (unreachable here in practice: it is only
+            // valid inside a generator/coroutine closure body, itself already excluded above), and
+            // any other/future `syn::Expr` shape: either structurally cannot contain a nested call
+            // or is out of scope for R4.5's minimum call walker. Never claimed, never fabricated.
             _ => {}
         }
     }

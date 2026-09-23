@@ -3203,3 +3203,116 @@ fn repeated_extraction_yields_stable_concurrency_record_ids() {
     assert_eq!(first, second);
     assert!(!first.is_empty());
 }
+
+// =====================================================================================================
+// R4.4-R4.8 hardening pass: adversarial/falsification tests proving real bugs found by audit are
+// actually fixed, not merely documented. See
+// .atlas/evidence/verification/r4.4-r4.8-hardening-correction.json.
+// =====================================================================================================
+
+const R4_HARDENING_CORPUS: &str = r#"
+pub fn outer() {
+    let c = || hidden_call();
+    let _ = c;
+}
+
+fn hidden_call() {}
+
+pub fn call_inside_unsafe() {
+    unsafe {
+        marked_call();
+    }
+}
+
+fn marked_call() {}
+
+pub fn call_inside_const_block() -> u32 {
+    const { computed_call() }
+}
+
+const fn computed_call() -> u32 {
+    0
+}
+
+pub fn call_inside_repeat() -> [u32; 3] {
+    [repeated_call(); 3]
+}
+
+fn repeated_call() -> u32 {
+    0
+}
+"#;
+
+// --- 91. R4.5 CALL: a call inside a closure body is never attributed to the enclosing function ---
+// (adversarial case from the hardening-pass audit: CALL used to recurse into Closure bodies while
+// every other dimension already refused to, misattributing `hidden_call` to `outer`).
+
+#[test]
+fn a_call_inside_a_closure_body_is_not_attributed_to_the_enclosing_function() {
+    let batch = extract_all("src/lib.rs", R4_HARDENING_CORPUS);
+    let outer = find_function_identity(&batch, &[], "outer").unwrap();
+    assert!(
+        calls_by_caller(&batch, outer).is_empty(),
+        "hidden_call() is inside a closure body and must never be attributed to outer()"
+    );
+}
+
+// --- 92. R4.5 CALL: a call inside an `unsafe { .. }` block is found, not silently missed ----------
+
+#[test]
+fn a_call_inside_an_unsafe_block_is_attributed_to_the_enclosing_function() {
+    let batch = extract_all("src/lib.rs", R4_HARDENING_CORPUS);
+    let caller = find_function_identity(&batch, &[], "call_inside_unsafe").unwrap();
+    assert_eq!(calls_by_caller(&batch, caller).len(), 1);
+}
+
+// --- 93. R4.5 CALL: a call inside a `const { .. }` block is found, not silently missed -------------
+
+#[test]
+fn a_call_inside_a_const_block_is_attributed_to_the_enclosing_function() {
+    let batch = extract_all("src/lib.rs", R4_HARDENING_CORPUS);
+    let caller = find_function_identity(&batch, &[], "call_inside_const_block").unwrap();
+    assert_eq!(calls_by_caller(&batch, caller).len(), 1);
+}
+
+// --- 94. R4.5 CALL: a call inside a `[expr; N]` repeat expression is found, not silently missed ---
+
+#[test]
+fn a_call_inside_a_repeat_expression_is_attributed_to_the_enclosing_function() {
+    let batch = extract_all("src/lib.rs", R4_HARDENING_CORPUS);
+    let caller = find_function_identity(&batch, &[], "call_inside_repeat").unwrap();
+    assert_eq!(calls_by_caller(&batch, caller).len(), 1);
+}
+
+// --- 95. R4.7 cross-dimension consistency: a compound assignment to a local binding produces the
+// same Use-then-Store shape DATA_FLOW already models for a plain assignment, matching STATE's
+// Read-then-Write treatment of `self.field += 1` -- neither dimension may treat `+=` as read-only. -
+
+#[test]
+fn compound_assignment_to_a_local_binding_produces_use_then_store_in_data_flow() {
+    const CORPUS: &str = r#"
+pub fn compound_local() -> u64 {
+    let mut x = 0u64;
+    x += 1;
+    x
+}
+"#;
+    let batch = extract_all("src/lib.rs", CORPUS);
+    let caller = find_function_identity(&batch, &[], "compound_local").unwrap();
+    let values = data_flow_values_for(&batch, caller);
+    let x_values: Vec<_> = values.iter().filter(|value| value.name == "x").collect();
+    // Definition (the `let`), Use+Store at the SAME span (the `x += 1`), Use (the tail `x`).
+    let compound_use = x_values
+        .iter()
+        .find(|value| value.role == ValueRole::Use && value.span.line == 4)
+        .expect("a Use of `x` on the `x += 1` line");
+    let compound_store = x_values
+        .iter()
+        .find(|value| value.role == ValueRole::Store && value.span.line == 4)
+        .expect("a Store of `x` on the `x += 1` line");
+    assert_eq!(
+        (compound_use.span.line, compound_use.span.column),
+        (compound_store.span.line, compound_store.span.column),
+        "the compound assignment's Use and Store must be the same operand site"
+    );
+}

@@ -206,3 +206,29 @@ pub fn pattern_spelling(pat: &syn::Pat) -> String {
         other => other.to_token_stream().to_string(),
     }
 }
+
+/// Whether `op` is a compound-assignment operator (`+=`, `-=`, `*=`, `/=`, `%=`, `^=`, `&=`, `|=`,
+/// `<<=`, `>>=`) rather than a plain arithmetic/bitwise operator (`+`, `-`, ...).
+///
+/// `syn` gives these distinct `BinOp` variants (`BinOp::AddAssign` vs `BinOp::Add`, etc.) -- fully
+/// syntax-determined, no type resolution needed. A `syn::Expr::Binary` carrying one of these ops is
+/// therefore provably a read-modify-write of its left operand, not merely a read: R4.7's
+/// `dataflow.rs` uses this to emit a Use+Store pair for a simple-identifier left operand,
+/// correcting an earlier reading of this `syn` version's `Expr::Binary` representation that
+/// concluded (wrongly) that compound assignment could not be distinguished from plain arithmetic
+/// without deeper analysis.
+pub fn is_compound_assign_op(op: &syn::BinOp) -> bool {
+    matches!(
+        op,
+        syn::BinOp::AddAssign(_)
+            | syn::BinOp::SubAssign(_)
+            | syn::BinOp::MulAssign(_)
+            | syn::BinOp::DivAssign(_)
+            | syn::BinOp::RemAssign(_)
+            | syn::BinOp::BitXorAssign(_)
+            | syn::BinOp::BitAndAssign(_)
+            | syn::BinOp::BitOrAssign(_)
+            | syn::BinOp::ShlAssign(_)
+            | syn::BinOp::ShrAssign(_)
+    )
+}
