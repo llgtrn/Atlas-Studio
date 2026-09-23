@@ -1,0 +1,107 @@
+{
+  "schema": "atlas.r4.verification-record.v1",
+  "wave": "R4.9",
+  "wave_title": "Ownership and Resource Semantics -- bootstrap materialize the OWNERSHIP dimension (.atlas/contracts/SEMANTIC-FACTS.md#ownershipfact, .atlas/roadmap/SELF-BUILDING-R4-R8.md R4.9): borrow/move/copy behavior where evidenced; allocation/free/resource acquisition/release; resource ownership transfer; lifetime/region facts only to the level supported by admitted evidence; explicit unresolved ownership where compiler-grade analysis is absent. This record covers the bootstrap kernel/extractor (materialized on main via PR #26) AND the hardening fixes applied in the same session's second hardening pass before this record was written -- no separate durable record was created for the pre-hardening state, since that state was never independently verified as VERIFIED before being corrected.",
+  "identity": {
+    "base_commit_sha": "6f4f1fa03f2795cb5c65b8441748e3c13ea6f919",
+    "candidate_state": "uncommitted working tree on local branch _local-hardening-reconciliation, descended from f9bdfd0b9d4326916abbff506fa62d164a68ddea (PR #26 merge commit) plus this branch's prior reconciliation commits, at the time this record was written; see the commit history for this branch for the exact commits that materialize this record's claims",
+    "branch": "_local-hardening-reconciliation (local scratch branch; designated branch claude/r4-semantic-materialization-jz2z44 free at the time of this pass)",
+    "note": "OWNERSHIP's original bootstrap (OwnershipKind::BorrowShared/BorrowMut/MoveOrCopy, real borrow-site detection) was implemented and cherry-picked onto main via PR #26 without its own durable r4.9-verification-record.json -- test counts in commit messages are not a substitute for one, per operator instruction. This record is the first durable R4.9 evidence, written only after this session's own second hardening pass corrected two real bugs found in that bootstrap (see bugs_found_and_fixed)."
+  },
+  "toolchain": {
+    "pinned_by": "rust-toolchain.toml",
+    "channel": "1.90.0",
+    "rustc": "rustc 1.90.0 (1159e78c4 2025-09-14)",
+    "cargo": "cargo 1.90.0 (840b83a10 2025-07-30)",
+    "matches_ci_pin": true
+  },
+  "ownership_model": {
+    "kernel": "core/src/semantic/ownership.rs: OwnershipKind (BorrowShared/BorrowMut/MoveOrCopy real; Acquire/Release/Transfer/Escape declared, never emitted), OwnershipResolution (Resolved/Unresolved, added this pass), OwnershipIdentity { repository, revision, function, name, span, kind, resolution }.",
+    "scope_this_wave": "`&expr`/`&mut expr` is fully syntax-determined -> BorrowShared/BorrowMut, always Observed. A bare identifier used by value at a genuine value position (call/method-call argument, let/assignment RHS, struct/array/tuple literal field/element, range bound, break value, return value, or a genuine tail-position chain back to the function body) -> MoveOrCopy, always Observed (the fact that a by-value use occurred is syntax-determined; whether it moves or copies is not, and is never guessed). Acquire/Release/Transfer/Escape and allocation/free are declared but never emitted -- would require resolving an overloaded call to a specific known API, the same problem R4.8 EFFECT already declined to solve without fabricating semantics.",
+    "identity_key_design": "identity_key() covers repository/revision/function/name/span/kind. `resolution` is deliberately excluded, mirroring R4.8's StateResolution precedent -- it is a resolution fact about an already-identified operation, not part of what makes the operation itself distinct."
+  },
+  "bugs_found_and_fixed_this_pass": [
+    {
+      "id": "ownership-target-identity-collapses-distinct-temporaries",
+      "description": "The engineering graph derived an OwnershipTarget node id from (function, name) where `name` could be an unresolved temporary expression's raw spelling (e.g. `&foo()`), not a real place. Two independent temporaries with identical spelling previously collapsed onto one graph node.",
+      "fix": "Added OwnershipResolution; graph projection keys an Unresolved operation's target by its own record_id instead of by spelling.",
+      "full_detail": "see .atlas/evidence/verification/r4.4-r4.10-second-hardening-pass-correction.json"
+    },
+    {
+      "id": "ownership-value-position-under-claim",
+      "description": "struct-literal field values, array/tuple elements, range bounds and `break value` were silently treated as non-value positions, under-claiming real MoveOrCopy sites.",
+      "fix": "All five now correctly treated as value positions.",
+      "full_detail": "see .atlas/evidence/verification/r4.4-r4.10-second-hardening-pass-correction.json"
+    }
+  ],
+  "closure_status": {
+    "implementation": "bootstrap materialized -- real borrow-site and honestly-ambiguous move-or-copy-site detection, now with corrected value-position coverage and corrected graph target identity.",
+    "coverage_profile": "Partial (see dimension_coverage in adapter/src/semantic/rust/mod.rs): shares the macro-invocation-argument-opacity gap with every other full-expression-tree dimension. Field-projected places (self.field) are not modeled as move sources (matches R4.8 STATE's single-level self.field precedent). A method call's receiver is never a move-or-copy site (self/&self/&mut self cannot be told from the call site alone).",
+    "closure": "OPEN -- dimension obligation remains UNKNOWN even when real observations exist; zero observations are never verified absence. Resource semantics (Acquire/Release/Transfer/Escape/allocation/free) remain entirely unmaterialized, correctly.",
+    "known_gaps": [
+      "macro-invocation-argument opacity (shared, permanent)",
+      "self.field as a move source (unmodeled, matches STATE precedent)",
+      "method-call receiver move/copy classification (unmodeled, requires type resolution)",
+      "Acquire/Release/Transfer/Escape/allocation/free (unmaterialized, requires resolved API evidence)",
+      "no first-class PlaceIdentity shared with DATA_FLOW/STATE (evaluated, deferred as TARGET)"
+    ]
+  },
+  "multi_extractor_and_graph_proof": {
+    "claim": "Two independent extractors reporting the identical Ownership claim both survive Census and Normalization; the engineering graph preserves EpistemicStatus and OwnershipResolution as node attributes rather than erasing them.",
+    "tests": [
+      "runtime::census::tests::same_ownership_claim_from_two_extractors_survives_census_and_normalization",
+      "core::graph::engineering_graph::tests::a_borrow_and_a_move_of_the_same_name_converge_on_one_ownership_target_node",
+      "core::graph::engineering_graph::tests::two_ownership_ops_on_different_names_produce_two_distinct_target_nodes",
+      "core::graph::engineering_graph::tests::two_unresolved_temporaries_with_identical_spelling_never_collapse_onto_one_ownership_target",
+      "core::graph::engineering_graph::tests::a_resolved_and_an_unresolved_ownership_operation_with_the_same_spelling_do_not_converge"
+    ]
+  },
+  "verification_passes": [
+    {
+      "pass": "single pass, this session",
+      "note": "Unlike some earlier R4 waves' records, this is a single-pass (not independently-cross-checked-by-a-second-agent) verification. Stated explicitly rather than implying a rigor this record does not actually have.",
+      "commands": {
+        "cargo fmt --all --check": { "exit_code": 0 },
+        "cargo check --workspace --all-targets": { "exit_code": 0 },
+        "cargo clippy --workspace --all-targets -- -D warnings": { "exit_code": 0, "warnings": 0 },
+        "cargo test --workspace": {
+          "exit_code": 0,
+          "totals": "305 passed, 0 failed, 0 ignored (155 adapter, 103 core, 47 runtime)"
+        },
+        "cargo run -q -p atlas-cli -- docs audit --root .atlas": { "exit_code": 0, "gate_ready": true }
+      },
+      "ownership_specific_tests": [
+        "pure_field_projection_produces_no_ownership_observations",
+        "tail_returned_bare_identifier_is_a_move_or_copy",
+        "a_borrow_and_a_later_move_of_the_same_name_are_both_recorded",
+        "both_if_else_tail_branches_are_move_sites_the_condition_is_not",
+        "borrowing_a_field_projection_is_a_borrow_not_a_move",
+        "ownership_observations_satisfy_dimension_consistency",
+        "ownership_corpus_extraction_is_deterministic",
+        "ownership_corpus_is_unaffected_by_requested_dimension_order",
+        "repeated_extraction_yields_stable_ownership_record_ids",
+        "borrowing_two_independent_call_results_with_identical_spelling_is_unresolved_not_resolved",
+        "borrowing_a_bare_identifier_is_resolved",
+        "tuple_construction_moves_each_element",
+        "array_construction_moves_each_element",
+        "struct_literal_field_initialization_moves_the_field_value",
+        "break_with_value_moves_the_value",
+        "match_scrutinee_is_not_a_move_site"
+      ]
+    }
+  ],
+  "ci_status": "NOT_YET_RUN",
+  "ci_status_detail": "This record is written before this branch's commits have been pushed and run through GitHub Actions CI. GitHub Actions on this repository has shown a repeated UNAVAILABLE_INFRASTRUCTURE pattern (no runner assigned) across many prior PRs this session, documented in earlier verification records; if that recurs here it will be handled per the established babysitting protocol, not treated as a code defect without independent confirmation.",
+  "no_tests_lints_gates_disabled": true,
+  "no_verify_bypass_used": false,
+  "overall_verdict": "VERIFIED AS A BOOTSTRAP -- implementation and its hardening fixes are real, tested, and locally validated (single-pass). R4.9 canonical dimension closure is explicitly NOT claimed; see closure_status.",
+  "still_unsupported": [
+    "self.field / nested field projections as move/copy sources",
+    "method-call receiver move/copy classification",
+    "Acquire/Release/Transfer/Escape",
+    "allocation/free",
+    "lifetime/region facts",
+    "resolved-API-based upgrade of MoveOrCopy to a real Move or Copy verdict",
+    "first-class PlaceIdentity shared with DATA_FLOW/STATE"
+  ]
+}
