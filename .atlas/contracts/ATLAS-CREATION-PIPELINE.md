@@ -112,6 +112,36 @@ Atlas MUST NOT assume nested container/VM capabilities. The available SandboxBac
 
 MCP is a transport adapter. It MUST NOT become the canonical semantic representation or grant a model direct authority to select, verify, admit or seal its own output.
 
+## Construction intelligence fabric
+
+Creation MAY use many providers/subagents under `MULTI-AI-CONSTRUCTION-FABRIC.md`.
+
+~~~text
+ConstraintEnvelope / SelfBuildWorkOrder
+        ↓
+ConstructionTaskGraph
+        ↓
+ProviderRouter + bounded AgentLease
+        ↓
+research / architecture / synthesis / critic / verification workers
+        ↓
+typed Atlas blackboard records
+        ↓
+CandidateAtlas branches + evidence
+        ↓
+DecisionProposal(s) / repair routing
+        ↓
+normal selection / admission / seal path
+~~~
+
+Atlas MUST NOT use free-form agent conversation as the durable coordination state of this loop.
+
+The provider/model may differ per task. A cloud coding host may supply a native Claude-class worker while Atlas simultaneously routes other tasks to GPT-class, Gemini-class, Jev-class, local/self-hosted, or remote Atlas workers. Named vendors are examples only.
+
+A task-specific ContextCompiler SHOULD expose the smallest sufficient attributed semantic slice, including relevant constraints, obligations, UNKNOWN/CONFLICT state and evidence. Context truncation or provider-window optimization MUST NOT convert a known uncertainty into absence.
+
+Candidate branches retain separate identities/evidence. Cross-provider agreement is evidence, not authority.
+
 ## Autonomous self-build entrypoint
 
 When the construction target is Atlas itself, autonomous or semi-autonomous work begins with a typed SelfBuildWorkOrder governed by SELF-BUILD-CONTROLLER.md. The controller derives bounded work from the capability-gap graph, roadmap, Genome, evidence and policy; it does not directly generate or admit code.
@@ -249,6 +279,8 @@ A Jev-class decision provider may:
 - decide escalation to a stronger provider.
 
 The output is a typed `DecisionProposal` conforming to `../schemas/decision-proposal.schema.json`.
+
+Jev is a decision role/fabric, not a singular root judge. Atlas MAY request multiple independent DecisionProposals, use Jev to route the next experiment/provider, or reconcile disagreement. A ranking never becomes SelectedDesign merely through consensus or score.
 
 The decision provider MUST NOT:
 
