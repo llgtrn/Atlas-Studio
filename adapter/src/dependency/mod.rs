@@ -5,5 +5,7 @@
 //! becomes typed Atlas facts; adapter mechanics never define the canonical model").
 
 pub mod cargo;
+#[cfg(test)]
+mod cargo_oracle;
 
 pub use cargo::census_cargo_workspace;

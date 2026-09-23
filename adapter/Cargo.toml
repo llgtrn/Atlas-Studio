@@ -21,3 +21,10 @@ serde = { workspace = true }
 syn = { version = "3.0.6", features = ["full"] }
 quote = "1.0.47"
 proc-macro2 = { version = "1.0.107", features = ["span-locations"] }
+
+[dev-dependencies]
+# Verification-only: parses `cargo metadata`'s JSON output for the independent dependency-census
+# differential oracle (`src/dependency/cargo_oracle.rs`). Never a production dependency -- kept out
+# of `[dependencies]` so `census_cargo_workspace` itself cannot reach it, matching the "ingestion is
+# not execution" security boundary this oracle deliberately sits outside of.
+serde_json = { workspace = true }
