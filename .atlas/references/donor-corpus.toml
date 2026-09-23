@@ -668,7 +668,7 @@ census_status = "DEEP_CENSUSED"
 decision_status = "APPROVED_COMPILER_BINARY_LANE"
 native_replacement = "atlas binary schema/layout lessons and deterministic interchange boundaries"
 runtime_dependency_status = "REFERENCE_ONLY"
-evidence = [".atlas/provenance/donors/flatbuffers.json", ".atlas/census/donors/flatbuffers.md"]
+evidence = [".atlas/provenance/donors/flatbuffers.json", ".atlas/census/donors/flatbuffers.md", ".atlas/genome/technology/flatbuffers-vtable-schema-evolution.md"]
 
 [[donor]]
 id = "llvm-project"
