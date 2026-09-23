@@ -222,30 +222,65 @@ pub fn audit_repository(root: impl AsRef<Path>) -> io::Result<RepoAudit> {
     })
 }
 
+/// The control-document paths (`.atlas`-relative) `audit_docs` treats as required for
+/// `gate_ready`. Shared between the real walk below and the "no `.atlas` directory at all" early
+/// report so the two paths can never silently disagree about what "required" means.
+const REQUIRED_CONTROL_DOCS: [&str; 20] = [
+    "README.md",
+    "INDEX.md",
+    "TEMPLATE.md",
+    "architecture/README.md",
+    "architecture/SYSTEM.md",
+    "architecture/constitution/NORTH-STAR.md",
+    "blueprints/SYSTEM-BLUEPRINT.md",
+    "blueprints/PHYSICAL-REFOUNDATION.md",
+    "contracts/SYSTEM-CONTRACT.md",
+    "contracts/SEMANTIC-FACTS.md",
+    "contracts/SEMANTIC-EXTRACTION.md",
+    "contracts/NORMALIZATION.md",
+    "contracts/CENSUS-COMPLETENESS.md",
+    "contracts/CENSUS-CERTIFICATE.md",
+    "decisions/README.md",
+    "decisions/0001-one-normalized-semantic-path.md",
+    "decisions/0002-epistemic-status-model.md",
+    "roadmap/ROADMAP.md",
+    "guides/DEVELOPMENT.md",
+    "references/README.md",
+];
+
 pub fn audit_docs(root: impl AsRef<Path>) -> io::Result<DocsReport> {
-    let root = root.as_ref().canonicalize()?;
-    let required = [
-        "README.md",
-        "INDEX.md",
-        "TEMPLATE.md",
-        "architecture/README.md",
-        "architecture/SYSTEM.md",
-        "architecture/constitution/NORTH-STAR.md",
-        "blueprints/SYSTEM-BLUEPRINT.md",
-        "blueprints/PHYSICAL-REFOUNDATION.md",
-        "contracts/SYSTEM-CONTRACT.md",
-        "contracts/SEMANTIC-FACTS.md",
-        "contracts/SEMANTIC-EXTRACTION.md",
-        "contracts/NORMALIZATION.md",
-        "contracts/CENSUS-COMPLETENESS.md",
-        "contracts/CENSUS-CERTIFICATE.md",
-        "decisions/README.md",
-        "decisions/0001-one-normalized-semantic-path.md",
-        "decisions/0002-epistemic-status-model.md",
-        "roadmap/ROADMAP.md",
-        "guides/DEVELOPMENT.md",
-        "references/README.md",
-    ];
+    let root = root.as_ref();
+    // A target repository this bootstrap has never been pointed at before (or any repository
+    // never admitted into Atlas at all) has no `.atlas` directory whatsoever -- not an empty one,
+    // not an incomplete one, simply absent. `Path::canonicalize()` and `fs::read_dir` both require
+    // the path to exist, so calling either on a genuinely missing root would raise a raw,
+    // contextless `io::ErrorKind::NotFound` that propagates uncaught to the CLI's top level. Every
+    // other "declared but not present" fact in this codebase is reported explicitly rather than
+    // treated as fatal (a missing Cargo.lock is `DependencyClosureState::NotApplicable`; a missing
+    // individual required doc is a `required_control_docs_missing` entry) -- an absent `.atlas`
+    // directory is the same class of fact, reported the same way: every required doc missing, zero
+    // documents observed, gate not ready.
+    if !root.is_dir() {
+        let required_control_docs_missing = REQUIRED_CONTROL_DOCS
+            .iter()
+            .map(|path| (*path).to_owned())
+            .collect::<Vec<_>>();
+        let hard_violations_total = required_control_docs_missing.len();
+        return Ok(DocsReport {
+            schema: "atlas.systemizer.docs-report.v2".into(),
+            standard: "atlas.docs.v1".into(),
+            root: root.to_string_lossy().into_owned(),
+            gate_ready: false,
+            hard_violations_total,
+            documents_total: 0,
+            canonical_frontmatter_total: 0,
+            required_control_docs_missing,
+            missing_frontmatter: Vec::new(),
+            documents: Vec::new(),
+        });
+    }
+    let root = root.canonicalize()?;
+    let required = REQUIRED_CONTROL_DOCS;
     let required_control_docs_missing = required
         .iter()
         .filter(|path| !root.join(path).is_file())
@@ -410,6 +445,44 @@ fn visit_docs(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::time::{SystemTime, UNIX_EPOCH};
+
+    fn scratch_root() -> std::path::PathBuf {
+        let nonce = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_nanos();
+        std::env::temp_dir().join(format!("atlas-audit-docs-{}-{nonce}", std::process::id()))
+    }
+
+    // Falsification: a target repository `atlas-systemizer` has never been pointed at before has
+    // no `.atlas` directory at all -- not an empty one, not an incomplete one, simply absent. Every
+    // other "declared but not actually present" case in this codebase (a missing Cargo.lock, a
+    // missing declared source root, a missing individual required doc) is reported as an explicit,
+    // typed, non-fatal fact; this one instead let `Path::canonicalize()` raise a raw
+    // `io::ErrorKind::NotFound`, propagated by `?` all the way to `main`, which prints only the raw
+    // OS message ("No such file or directory (os error 2)") with no path and no explanation, and
+    // exits nonzero -- the single most common real first-time input (a fresh, not-yet-admitted
+    // repository) crashed the whole CLI instead of producing the same kind of report an
+    // existing-but-incomplete `.atlas` directory already receives.
+    #[test]
+    fn a_completely_missing_atlas_directory_is_reported_not_fatal() {
+        let root = scratch_root();
+        std::fs::create_dir_all(&root).unwrap();
+        let docs_root = root.join(".atlas");
+        assert!(!docs_root.exists());
+
+        let report = audit_docs(&docs_root).expect(
+            "a missing .atlas directory must be reported as a not-ready DocsReport, \
+             never a raw io::Error",
+        );
+
+        assert!(!report.gate_ready);
+        assert_eq!(report.documents_total, 0);
+        assert!(!report.required_control_docs_missing.is_empty());
+
+        std::fs::remove_dir_all(&root).unwrap();
+    }
 
     #[test]
     fn parses_atlas_manifest_policy_fields() {
