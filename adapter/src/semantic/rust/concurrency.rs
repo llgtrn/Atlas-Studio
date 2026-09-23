@@ -2,9 +2,14 @@
 //!
 //! See the module doc comment on `core::semantic::concurrency` for the exact scope and rationale.
 //! `expr.await` is dedicated `syn::Expr::Await` syntax -- fully syntax-determined, cannot be
-//! shadowed or overloaded. A call whose callee spelling ends in the segment `spawn` is detected
-//! purely by that textual spelling, the same risk/precision class R4.8's `is_panic_like_macro`
-//! already accepts for macro names. Every other `ConcurrencyKind` (`Lock`/`Unlock`/`ChannelCreate`/
+//! shadowed or overloaded, so it is recorded as `EpistemicStatus::Observed`. A call whose callee
+//! spelling ends in the segment `spawn` is only a textual candidate, the same risk/precision class
+//! R4.8's `is_panic_like_macro` already accepts for macro names: a function or method merely named
+//! `spawn` (`fn spawn() { .. }`, `game::spawn(enemy)`) is not evidence of real concurrency, and this
+//! extractor has no call-target resolution to tell the two apart. A spelling match is therefore
+//! recorded as `EpistemicStatus::Inferred`, never `Observed` -- only a resolved/admitted concurrency
+//! API would justify `Observed` here, and this extractor does not yet have one. Every other
+//! `ConcurrencyKind` (`Lock`/`Unlock`/`ChannelCreate`/
 //! `ChannelSend`/`ChannelReceive`/`AtomicOp`) would require resolving a method/function call to a
 //! specific known API, which this extractor cannot do without fabricating semantics, so none of
 //! them are emitted this wave. Unlike R4.9's OWNERSHIP, no context threading is needed: `Await`/
@@ -33,7 +38,12 @@ struct ConcurrencyWalker<'ctx, 'a> {
 }
 
 impl<'ctx, 'a> ConcurrencyWalker<'ctx, 'a> {
-    fn emit(&mut self, span: atlas_core::SourceSpan, kind: ConcurrencyKind) {
+    fn emit(
+        &mut self,
+        span: atlas_core::SourceSpan,
+        kind: ConcurrencyKind,
+        status: EpistemicStatus,
+    ) {
         let subject = ConcurrencyIdentity {
             repository: self.ctx.input.repository.clone(),
             revision: self.ctx.input.revision.clone(),
@@ -71,7 +81,7 @@ impl<'ctx, 'a> ConcurrencyWalker<'ctx, 'a> {
         let header = SemanticRecordHeader {
             record_id: record_id.clone(),
             dimension: SemanticDimension::Concurrency,
-            status: EpistemicStatus::Observed,
+            status,
             subject,
             scope: self.scope.clone(),
             repository: self.ctx.input.repository.clone(),
@@ -110,13 +120,13 @@ impl<'ctx, 'a> ConcurrencyWalker<'ctx, 'a> {
         match expr {
             syn::Expr::Await(await_expr) => {
                 let span = self.ctx.span_of(expr);
-                self.emit(span, ConcurrencyKind::Await);
+                self.emit(span, ConcurrencyKind::Await, EpistemicStatus::Observed);
                 self.walk_expr(&await_expr.base);
             }
             syn::Expr::Call(call) => {
                 if is_spawn_call(&call.func) {
                     let span = self.ctx.span_of(call);
-                    self.emit(span, ConcurrencyKind::Spawn);
+                    self.emit(span, ConcurrencyKind::Spawn, EpistemicStatus::Inferred);
                 }
                 self.walk_expr(&call.func);
                 for arg in &call.args {
@@ -211,8 +221,29 @@ impl<'ctx, 'a> ConcurrencyWalker<'ctx, 'a> {
                 }
             }
             syn::Expr::Let(let_expr) => self.walk_expr(&let_expr.expr),
-            // Closures get no concurrency attribution of their own this wave (consistent with
-            // R4.6/R4.7/R4.8/R4.9); path/literal/other forms carry no nested expressions this
+            // `unsafe { .. }`/`const { .. }`/`try { .. }` execute immediately as part of the same
+            // executable region -- an `.await`/spawn-shaped call inside one is a real site of the
+            // enclosing function.
+            syn::Expr::Unsafe(unsafe_expr) => self.walk_block(&unsafe_expr.block),
+            syn::Expr::Const(const_expr) => self.walk_block(&const_expr.block),
+            syn::Expr::TryBlock(try_block) => self.walk_block(&try_block.block),
+            syn::Expr::Repeat(repeat) => {
+                self.walk_expr(&repeat.expr);
+                self.walk_expr(&repeat.len);
+            }
+            syn::Expr::RawAddr(raw_addr) => self.walk_expr(&raw_addr.expr),
+            // `yield value` evaluates `value` immediately in the SAME executable region.
+            syn::Expr::Yield(yield_expr) => {
+                if let Some(value) = &yield_expr.expr {
+                    self.walk_expr(value);
+                }
+            }
+            // Closures and `async { .. }` blocks get no concurrency attribution of their own this
+            // wave (consistent with R4.6/R4.7/R4.8/R4.9 -- both are separate deferred executable
+            // regions, and `async { .. }`'s own `.await`/spawn sites belong to whatever polls it,
+            // not to this function); a bare macro invocation's arguments are opaque token streams
+            // this extractor never re-parses (a real, permanent gap -- see `dimension_coverage`);
+            // path/literal/other forms carry no nested expressions this
             // walker tracks.
             _ => {}
         }
