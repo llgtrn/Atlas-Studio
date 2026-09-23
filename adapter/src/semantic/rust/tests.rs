@@ -3316,3 +3316,384 @@ pub fn compound_local() -> u64 {
         "the compound assignment's Use and Store must be the same operand site"
     );
 }
+
+// =====================================================================================================
+// R4.4-R4.10 reconciliation pass: every full-expression-tree dimension shares the same real,
+// permanent macro-invocation-argument opacity gap (see `dimension_coverage`'s doc comment), so
+// CALL/CONTROL_FLOW/DATA_FLOW/OWNERSHIP/CONCURRENCY must never claim verified absence, exactly like
+// STATE/EFFECT already correctly refuse to. This section falsifies that for all five dimensions,
+// and adds regression coverage for the CFG panic-epistemics and Spawn-epistemics fixes.
+// =====================================================================================================
+
+// --- 96. every full-expression-tree dimension's obligation stays UNKNOWN for an empty file, never
+// verified absence -- the macro-argument-opacity gap applies even when nothing was observed --------
+
+#[test]
+fn partial_closure_dimensions_never_claim_verified_absence_for_an_empty_file() {
+    let batch = extract("src/empty.rs", "", ALL_DIMENSIONS.to_vec());
+    for &dimension in &[
+        SemanticDimension::Call,
+        SemanticDimension::ControlFlow,
+        SemanticDimension::DataFlow,
+        SemanticDimension::State,
+        SemanticDimension::Effect,
+        SemanticDimension::Ownership,
+        SemanticDimension::Concurrency,
+    ] {
+        let obligation = batch.obligation_for(dimension).unwrap();
+        assert_eq!(
+            obligation.status,
+            EpistemicStatus::Unknown,
+            "{dimension:?} must not claim verified absence"
+        );
+        assert!(obligation.observation_ids.is_empty());
+        assert!(!obligation.diagnostics.is_empty());
+    }
+}
+
+// --- 97. every full-expression-tree dimension's obligation stays UNKNOWN even when real
+// observations exist -- partial coverage must preserve evidence without claiming closure ----------
+
+const R4_10_RECONCILIATION_CORPUS: &str = r#"
+pub fn everything(x: u64) -> u64 {
+    let borrowed = &x;
+    called(*borrowed);
+    std::thread::spawn(move || {
+        let _ = x;
+    });
+    x
+}
+
+fn called(_value: u64) {}
+"#;
+
+#[test]
+fn partial_closure_dimensions_remain_unknown_even_with_real_observations() {
+    let batch = extract_all("src/lib.rs", R4_10_RECONCILIATION_CORPUS);
+    for &dimension in &[
+        SemanticDimension::Call,
+        SemanticDimension::ControlFlow,
+        SemanticDimension::DataFlow,
+        SemanticDimension::Ownership,
+        SemanticDimension::Concurrency,
+    ] {
+        let obligation = batch.obligation_for(dimension).unwrap();
+        assert_eq!(
+            obligation.status,
+            EpistemicStatus::Unknown,
+            "{dimension:?} must stay UNKNOWN even though real observations exist"
+        );
+        assert!(
+            !obligation.observation_ids.is_empty(),
+            "{dimension:?} must still preserve its real observations"
+        );
+    }
+}
+
+// --- 98. a block terminating via a textual panic-like macro is always Inferred, never Observed,
+// regardless of whether a local shadow is actually present -- this extractor has no macro/name
+// resolution at all, so an absent same-file `macro_rules!` redefinition never upgrades confidence --
+
+#[test]
+fn panic_like_macro_block_is_always_inferred_never_observed() {
+    let batch = extract_all("src/lib.rs", STATE_EFFECT_CORPUS);
+    let caller = find_function_identity(&batch, &["impl:Counter"], "maybe_panic").unwrap();
+    let caller_id =
+        SemanticRecordId::new(SemanticDimension::FunctionIdentity, &caller.identity_key());
+    let panic_block = batch
+        .observations
+        .iter()
+        .find_map(|observation| match observation {
+            SemanticObservation::ControlFlow(header)
+                if header.subject.function == caller_id
+                    && header
+                        .subject
+                        .successors
+                        .iter()
+                        .any(|edge| edge.kind == ControlFlowEdgeKind::Panic) =>
+            {
+                Some(header)
+            }
+            _ => None,
+        })
+        .expect("maybe_panic's body produces a block with a Panic edge");
+    assert_eq!(
+        panic_block.status,
+        EpistemicStatus::Inferred,
+        "a textual panic-like macro can never be Observed without macro/name resolution"
+    );
+}
+
+// --- 99. CONTROL_FLOW and EFFECT never disagree over the same panic-like macro evidence, including
+// the adversarial case where the macro name is actually locally shadowed -----------------------------
+
+#[test]
+fn shadowed_panic_macro_is_inferred_consistently_in_control_flow_and_effect() {
+    const CORPUS: &str = r#"
+macro_rules! panic {
+    () => {};
+}
+
+pub fn shadowed_panic() {
+    panic!();
+}
+"#;
+    let batch = extract_all("src/lib.rs", CORPUS);
+    let caller = find_function_identity(&batch, &[], "shadowed_panic").unwrap();
+    let caller_id =
+        SemanticRecordId::new(SemanticDimension::FunctionIdentity, &caller.identity_key());
+    let cfg_status = batch
+        .observations
+        .iter()
+        .find_map(|observation| match observation {
+            SemanticObservation::ControlFlow(header)
+                if header.subject.function == caller_id
+                    && header
+                        .subject
+                        .successors
+                        .iter()
+                        .any(|edge| edge.kind == ControlFlowEdgeKind::Panic) =>
+            {
+                Some(header.status)
+            }
+            _ => None,
+        })
+        .expect("shadowed_panic's body produces a block with a Panic edge");
+    let effect_status = batch
+        .observations
+        .iter()
+        .find_map(|observation| match observation {
+            SemanticObservation::Effect(header) if header.subject.function == caller_id => {
+                Some(header.status)
+            }
+            _ => None,
+        })
+        .expect("shadowed_panic's body produces an Effect observation");
+    assert_eq!(cfg_status, EpistemicStatus::Inferred);
+    assert_eq!(effect_status, EpistemicStatus::Inferred);
+}
+
+// --- 100. a call whose callee spelling merely ends in `spawn` is INFERRED, never a resolved
+// OBSERVED concurrency fact -- `fn spawn()`/`game::spawn(enemy)` are not concurrency evidence -----
+
+#[test]
+fn spawn_spelling_candidate_is_inferred_not_observed() {
+    let batch = extract_all("src/lib.rs", CONCURRENCY_CORPUS);
+    let caller = find_function_identity(&batch, &[], "spawn_work").unwrap();
+    let caller_id =
+        SemanticRecordId::new(SemanticDimension::FunctionIdentity, &caller.identity_key());
+    let header = batch
+        .observations
+        .iter()
+        .find_map(|observation| match observation {
+            SemanticObservation::Concurrency(header)
+                if header.subject.function == caller_id
+                    && header.subject.kind == ConcurrencyKind::Spawn =>
+            {
+                Some(header)
+            }
+            _ => None,
+        })
+        .expect("spawn_work produces a Spawn candidate");
+    assert_eq!(
+        header.status,
+        EpistemicStatus::Inferred,
+        "a spelling-only spawn match is never resolved evidence of real concurrency"
+    );
+}
+
+// --- 101. `.await` remains OBSERVED -- dedicated syntax cannot be shadowed or overloaded, unlike a
+// `spawn`-spelled call ------------------------------------------------------------------------------
+
+#[test]
+fn dot_await_remains_observed() {
+    let batch = extract_all("src/lib.rs", CONCURRENCY_CORPUS);
+    let caller = find_function_identity(&batch, &[], "await_something").unwrap();
+    let caller_id =
+        SemanticRecordId::new(SemanticDimension::FunctionIdentity, &caller.identity_key());
+    let header = batch
+        .observations
+        .iter()
+        .find_map(|observation| match observation {
+            SemanticObservation::Concurrency(header)
+                if header.subject.function == caller_id
+                    && header.subject.kind == ConcurrencyKind::Await =>
+            {
+                Some(header)
+            }
+            _ => None,
+        })
+        .expect("await_something produces an Await site");
+    assert_eq!(header.status, EpistemicStatus::Observed);
+}
+
+// --- 102. two independent temporaries with identical textual spelling (`&foo()` twice) must not
+// collapse onto one OwnershipTarget in the engineering graph merely because they read alike --------
+// (see `core::graph::engineering_graph`'s own dedicated test for the graph-node-level proof; this
+// test proves the adapter-level `OwnershipResolution` classification the graph fix depends on) -----
+
+#[test]
+fn borrowing_two_independent_call_results_with_identical_spelling_is_unresolved_not_resolved() {
+    const CORPUS: &str = r#"
+pub fn two_borrows() {
+    let a = &foo();
+    let b = &foo();
+    let _ = (a, b);
+}
+
+fn foo() -> u64 {
+    0
+}
+"#;
+    let batch = extract_all("src/lib.rs", CORPUS);
+    let caller = find_function_identity(&batch, &[], "two_borrows").unwrap();
+    let ops = ownership_ops_for(&batch, caller);
+    let borrows: Vec<_> = ops
+        .iter()
+        .filter(|op| op.kind == OwnershipKind::BorrowShared)
+        .collect();
+    assert_eq!(borrows.len(), 2, "both `&foo()` sites must be recorded");
+    for borrow in &borrows {
+        assert_eq!(
+            borrow.resolution,
+            atlas_core::OwnershipResolution::Unresolved,
+            "a borrowed call-result temporary has no resolvable place identity"
+        );
+    }
+    assert_ne!(
+        (borrows[0].span.line, borrows[0].span.column),
+        (borrows[1].span.line, borrows[1].span.column),
+        "the two temporaries remain distinct sites"
+    );
+}
+
+// --- 103. a bare-identifier borrow stays Resolved -- the resolution split must not weaken the
+// already-correct convergent case ---------------------------------------------------------------
+
+#[test]
+fn borrowing_a_bare_identifier_is_resolved() {
+    const CORPUS: &str = r#"
+pub fn borrow_name(x: u64) -> u64 {
+    let r = &x;
+    *r
+}
+"#;
+    let batch = extract_all("src/lib.rs", CORPUS);
+    let caller = find_function_identity(&batch, &[], "borrow_name").unwrap();
+    let ops = ownership_ops_for(&batch, caller);
+    let borrow = ops
+        .iter()
+        .find(|op| op.kind == OwnershipKind::BorrowShared)
+        .expect("&x is recorded");
+    assert_eq!(borrow.resolution, atlas_core::OwnershipResolution::Resolved);
+}
+
+// =====================================================================================================
+// R4.9 value-position coverage: struct/array/tuple literal fields, range bounds and `break value`
+// were all silently treated as non-value positions -- a real gap, since Rust genuinely moves/copies
+// each of these by value. Falsifies both the positive cases (real move sites now recorded) and the
+// negative cases (a scrutinee/receiver/condition is still correctly never a move site).
+// =====================================================================================================
+
+// --- 104. tuple construction moves/copies each element by value ---------------------------------
+
+#[test]
+fn tuple_construction_moves_each_element() {
+    const CORPUS: &str = r#"
+pub fn make_tuple(x: u64, y: u64) -> (u64, u64) {
+    (x, y)
+}
+"#;
+    let batch = extract_all("src/lib.rs", CORPUS);
+    let caller = find_function_identity(&batch, &[], "make_tuple").unwrap();
+    let ops = ownership_ops_for(&batch, caller);
+    let moves: Vec<_> = ops
+        .iter()
+        .filter(|op| op.kind == OwnershipKind::MoveOrCopy)
+        .collect();
+    assert_eq!(moves.len(), 2, "both tuple elements are move/copy sites");
+}
+
+// --- 105. array-literal construction moves/copies each element by value -------------------------
+
+#[test]
+fn array_construction_moves_each_element() {
+    const CORPUS: &str = r#"
+pub fn make_array(x: u64) -> [u64; 1] {
+    [x]
+}
+"#;
+    let batch = extract_all("src/lib.rs", CORPUS);
+    let caller = find_function_identity(&batch, &[], "make_array").unwrap();
+    let ops = ownership_ops_for(&batch, caller);
+    assert!(
+        ops.iter()
+            .any(|op| op.kind == OwnershipKind::MoveOrCopy && op.name == "x")
+    );
+}
+
+// --- 106. struct-literal field initialization moves/copies the field value by value --------------
+
+#[test]
+fn struct_literal_field_initialization_moves_the_field_value() {
+    const CORPUS: &str = r#"
+pub struct S {
+    field: u64,
+}
+
+pub fn make_struct(x: u64) -> S {
+    S { field: x }
+}
+"#;
+    let batch = extract_all("src/lib.rs", CORPUS);
+    let caller = find_function_identity(&batch, &[], "make_struct").unwrap();
+    let ops = ownership_ops_for(&batch, caller);
+    assert!(
+        ops.iter()
+            .any(|op| op.kind == OwnershipKind::MoveOrCopy && op.name == "x"),
+        "the struct field's initializer value is a move/copy site"
+    );
+}
+
+// --- 107. `break value` moves/copies the loop's result value by value ---------------------------
+
+#[test]
+fn break_with_value_moves_the_value() {
+    const CORPUS: &str = r#"
+pub fn find_first(x: u64) -> u64 {
+    loop {
+        break x;
+    }
+}
+"#;
+    let batch = extract_all("src/lib.rs", CORPUS);
+    let caller = find_function_identity(&batch, &[], "find_first").unwrap();
+    let ops = ownership_ops_for(&batch, caller);
+    assert!(
+        ops.iter()
+            .any(|op| op.kind == OwnershipKind::MoveOrCopy && op.name == "x"),
+        "`break x` moves/copies x into the loop's result"
+    );
+}
+
+// --- 108. a match scrutinee is still never itself a move/copy site (no false positive from the
+// value-position fixes above) ---------------------------------------------------------------------
+
+#[test]
+fn match_scrutinee_is_not_a_move_site() {
+    const CORPUS: &str = r#"
+pub fn inspect(x: u64) -> u64 {
+    match x {
+        _ => 0,
+    }
+}
+"#;
+    let batch = extract_all("src/lib.rs", CORPUS);
+    let caller = find_function_identity(&batch, &[], "inspect").unwrap();
+    let ops = ownership_ops_for(&batch, caller);
+    assert!(
+        !ops.iter()
+            .any(|op| op.kind == OwnershipKind::MoveOrCopy && op.name == "x"),
+        "matching on x by value alone is not itself a move -- x is only inspected, not consumed"
+    );
+}

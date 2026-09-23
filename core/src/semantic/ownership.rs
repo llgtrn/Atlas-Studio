@@ -64,6 +64,29 @@ impl OwnershipKind {
     }
 }
 
+/// Whether `name` identifies a real, reusable place (a bare local/parameter identifier -- the same
+/// binding really is targeted by every operation sharing that name in that function) or is merely
+/// the textual spelling of an unresolved temporary expression (e.g. `foo()` inside `&foo()`), where
+/// two operations with identical spelling are NOT the same value merely because they read alike.
+/// Mirrors R4.8's `StateResolution` precedent.
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+pub enum OwnershipResolution {
+    /// `name` is a bare identifier: a real place, safe to converge multiple operations onto.
+    Resolved,
+    /// `name` is only the spelling of a temporary expression: never converge on it by name alone.
+    Unresolved,
+}
+
+impl OwnershipResolution {
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            Self::Resolved => "RESOLVED",
+            Self::Unresolved => "UNRESOLVED",
+        }
+    }
+}
+
 /// Identity of one ownership-relevant operation site: `kind` performed against the place/value
 /// named `name`, attributed to the accessing `function`, at `span`.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
@@ -74,10 +97,14 @@ pub struct OwnershipIdentity {
     pub name: String,
     pub span: SourceSpan,
     pub kind: OwnershipKind,
+    pub resolution: OwnershipResolution,
 }
 
 impl OwnershipIdentity {
     /// Deterministic, order-independent encoding of this ownership operation's identity fields.
+    /// `resolution` is deliberately excluded -- like R4.8's `StateResolution` precedent, it is a
+    /// resolution fact about an already-identified operation, not part of what makes the operation
+    /// itself a distinct entity.
     pub fn identity_key(&self) -> String {
         format!(
             "{}|{}:{}|{}|{}|{}:{}:{}|{}",
@@ -114,6 +141,7 @@ mod tests {
                 column: 5,
             },
             kind: OwnershipKind::BorrowShared,
+            resolution: OwnershipResolution::Resolved,
         }
     }
 
@@ -155,6 +183,21 @@ mod tests {
             ..base()
         };
         assert_ne!(base().identity_key(), other.identity_key());
+    }
+
+    #[test]
+    fn identity_key_is_unaffected_by_resolution() {
+        let other = OwnershipIdentity {
+            resolution: OwnershipResolution::Unresolved,
+            ..base()
+        };
+        assert_eq!(base().identity_key(), other.identity_key());
+    }
+
+    #[test]
+    fn resolution_as_str_matches_the_screaming_snake_vocabulary() {
+        assert_eq!(OwnershipResolution::Resolved.as_str(), "RESOLVED");
+        assert_eq!(OwnershipResolution::Unresolved.as_str(), "UNRESOLVED");
     }
 
     #[test]

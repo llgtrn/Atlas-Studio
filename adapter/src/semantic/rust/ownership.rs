@@ -4,11 +4,16 @@
 //! See the module doc comment on `core::semantic::ownership` for the exact scope and rationale.
 //! `&expr`/`&mut expr` is fully syntax-determined (unlike a call's target, borrow syntax never
 //! requires type resolution), so those sites are recorded as real `BorrowShared`/`BorrowMut`
-//! observations. A bare identifier used by value -- a call argument, a `let` initializer, an
-//! assignment RHS, an explicit `return` value, or the function's own implicit tail-expression
-//! return -- is recorded as `MoveOrCopy`: syntax alone confirms a by-value use occurred, but
-//! whether it moves or copies depends on whether the identifier's type implements `Copy`, which
-//! this extractor cannot resolve, so it never guesses either way.
+//! observations. When the referent is not a bare identifier (e.g. `&foo()`), `OwnershipIdentity`'s
+//! `resolution` is `Unresolved`: `name` is only that expression's textual spelling, and two
+//! independent temporaries must never converge onto one target merely because their spelling
+//! matches (see `core::graph::engineering_graph`'s ownership projection). A bare identifier used by
+//! value -- a call/method-call argument, a `let` initializer, an assignment RHS, a struct/array/
+//! tuple literal's field/element value, a range bound, a `break` value, an explicit `return` value,
+//! or the function's own implicit tail-expression return -- is recorded as `MoveOrCopy`: syntax
+//! alone confirms a by-value use occurred, but whether it moves or copies depends on whether the
+//! identifier's type implements `Copy`, which this extractor cannot resolve, so it never guesses
+//! either way.
 //!
 //! Scope this wave: only a bare, single-segment identifier (`syn::Expr::Path`) is tracked as a
 //! move-or-copy source -- a field-projected place (`self.field`) is not modeled as a move source,
@@ -21,8 +26,9 @@
 //! position.
 
 use atlas_core::{
-    EpistemicStatus, EvidenceId, OwnershipIdentity, OwnershipKind, SemanticDimension,
-    SemanticObservation, SemanticRecordHeader, SemanticRecordId, SemanticScope, stable_id,
+    EpistemicStatus, EvidenceId, OwnershipIdentity, OwnershipKind, OwnershipResolution,
+    SemanticDimension, SemanticObservation, SemanticRecordHeader, SemanticRecordId, SemanticScope,
+    stable_id,
 };
 
 use super::ExtractionContext;
@@ -39,7 +45,13 @@ struct OwnershipWalker<'ctx, 'a> {
 }
 
 impl<'ctx, 'a> OwnershipWalker<'ctx, 'a> {
-    fn emit(&mut self, name: &str, span: atlas_core::SourceSpan, kind: OwnershipKind) {
+    fn emit(
+        &mut self,
+        name: &str,
+        span: atlas_core::SourceSpan,
+        kind: OwnershipKind,
+        resolution: OwnershipResolution,
+    ) {
         let subject = OwnershipIdentity {
             repository: self.ctx.input.repository.clone(),
             revision: self.ctx.input.revision.clone(),
@@ -47,6 +59,7 @@ impl<'ctx, 'a> OwnershipWalker<'ctx, 'a> {
             name: name.to_owned(),
             span: span.clone(),
             kind,
+            resolution,
         };
         let record_id =
             SemanticRecordId::new(SemanticDimension::Ownership, &subject.identity_key());
@@ -128,9 +141,22 @@ impl<'ctx, 'a> OwnershipWalker<'ctx, 'a> {
                 } else {
                     OwnershipKind::BorrowShared
                 };
+                // A bare-identifier referent (`&x`) is a real, reusable place: every borrow of `x`
+                // in this function genuinely targets the same binding, so `Resolved` lets the graph
+                // projection converge them onto one target. Any other referent (`&foo()`, `&(a, b)`,
+                // `&self.field`, ...) has no resolvable place this wave -- `name` is only that
+                // expression's textual spelling, and two syntactically identical but independent
+                // temporaries (`&foo()` on one line, `&foo()` on the next) must never collapse onto
+                // one target merely because they read alike. `Unresolved` tells the graph projection
+                // to key this operation's target by its own site instead of by spelling.
+                let resolution = if is_bare_path(&reference.expr) {
+                    OwnershipResolution::Resolved
+                } else {
+                    OwnershipResolution::Unresolved
+                };
                 let name = call_callee_spelling(&reference.expr);
                 let span = self.ctx.span_of(reference);
-                self.emit(&name, span, kind);
+                self.emit(&name, span, kind, resolution);
                 // The referent is borrowed here, not itself moved/copied -- but it may still
                 // contain nested ownership-relevant subexpressions (e.g. `&f(x)`).
                 self.walk_expr(&reference.expr, false);
@@ -138,7 +164,12 @@ impl<'ctx, 'a> OwnershipWalker<'ctx, 'a> {
             syn::Expr::Path(_) if is_value_position && is_bare_path(expr) => {
                 let name = call_callee_spelling(expr);
                 let span = self.ctx.span_of(expr);
-                self.emit(&name, span, OwnershipKind::MoveOrCopy);
+                self.emit(
+                    &name,
+                    span,
+                    OwnershipKind::MoveOrCopy,
+                    OwnershipResolution::Resolved,
+                );
             }
             syn::Expr::Assign(assign) => {
                 self.walk_expr(&assign.left, false);
@@ -189,9 +220,11 @@ impl<'ctx, 'a> OwnershipWalker<'ctx, 'a> {
                 self.walk_expr(&index.expr, false);
                 self.walk_expr(&index.index, false);
             }
+            // `break value` moves/copies `value` by value into the loop expression's own result --
+            // always a value position regardless of whether the loop itself sits in one.
             syn::Expr::Break(brk) => {
                 if let Some(value) = &brk.expr {
-                    self.walk_expr(value, false);
+                    self.walk_expr(value, true);
                 }
             }
             syn::Expr::Try(try_expr) => self.walk_expr(&try_expr.expr, false),
@@ -211,30 +244,36 @@ impl<'ctx, 'a> OwnershipWalker<'ctx, 'a> {
                     self.walk_expr(arg, true);
                 }
             }
+            // A struct/array/tuple literal's field/element expressions are always consumed by
+            // value into the constructed value -- always a value position, regardless of whether
+            // the literal itself sits in one (matches `Expr::Repeat`'s existing treatment of its
+            // own `expr`, below).
             syn::Expr::Struct(struct_expr) => {
                 for field in &struct_expr.fields {
-                    self.walk_expr(&field.expr, false);
+                    self.walk_expr(&field.expr, true);
                 }
                 if let Some(rest) = &struct_expr.rest {
-                    self.walk_expr(rest, false);
+                    // `..rest` moves/copies the whole base struct, not one field.
+                    self.walk_expr(rest, true);
                 }
             }
             syn::Expr::Array(array) => {
                 for elem in &array.elems {
-                    self.walk_expr(elem, false);
+                    self.walk_expr(elem, true);
                 }
             }
             syn::Expr::Tuple(tuple) => {
                 for elem in &tuple.elems {
-                    self.walk_expr(elem, false);
+                    self.walk_expr(elem, true);
                 }
             }
+            // `a..b`/`a..=b`: both bounds are consumed by value into the constructed `Range`.
             syn::Expr::Range(range) => {
                 if let Some(start) = &range.start {
-                    self.walk_expr(start, false);
+                    self.walk_expr(start, true);
                 }
                 if let Some(end) = &range.end {
-                    self.walk_expr(end, false);
+                    self.walk_expr(end, true);
                 }
             }
             syn::Expr::Let(let_expr) => self.walk_expr(&let_expr.expr, false),
@@ -255,10 +294,19 @@ impl<'ctx, 'a> OwnershipWalker<'ctx, 'a> {
             // `&raw const place`/`&raw mut place`: addresses a place, does not move/copy it --
             // the same treatment `Expr::Reference`'s own referent already gets above.
             syn::Expr::RawAddr(raw_addr) => self.walk_expr(&raw_addr.expr, false),
+            // `yield value`: `value` is consumed by value into the yield, a real move/copy site if
+            // it is a bare identifier -- syn parses it wherever it lexically appears.
+            syn::Expr::Yield(yield_expr) => {
+                if let Some(value) = &yield_expr.expr {
+                    self.walk_expr(value, true);
+                }
+            }
             // Closures and `async { .. }` blocks get no ownership attribution of their own this
             // wave (consistent with R4.6/R4.7/R4.8 -- both are separate deferred executable
-            // regions); macro/literal/other forms carry no nested ownership-relevant expressions
-            // this walker tracks.
+            // regions); a bare macro invocation's arguments are opaque token streams this extractor
+            // never re-parses (a real, permanent gap -- see `dimension_coverage`);
+            // literal/other forms carry no nested ownership-relevant expressions this walker
+            // tracks.
             _ => {}
         }
     }

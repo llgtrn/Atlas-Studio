@@ -81,10 +81,63 @@ pub const SUPPORTED_DIMENSIONS: &[SemanticDimension] = &[
     SemanticDimension::Concurrency,
 ];
 
-/// Useful facts are emitted for these dimensions, but this extractor does not yet prove exhaustive
-/// closure over their full canonical contracts.
-const PARTIAL_CLOSURE_DIMENSIONS: &[SemanticDimension] =
-    &[SemanticDimension::State, SemanticDimension::Effect];
+/// Whether this extractor's declared profile for a dimension has been checked to visit every
+/// syntactic form that could produce an observation, or whether real, named gaps remain.
+///
+/// This is the one place that answers "can this extractor legitimately prove negative absence for
+/// this dimension" -- a wave label or test count must never substitute for this. See
+/// `dimension_coverage` for the per-dimension reasoning.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum DimensionCoverage {
+    /// A zero-observation result for this dimension is real evidence of absence: this extractor's
+    /// declared profile has been checked to walk every syntactic form that could produce one.
+    Exhaustive,
+    /// A named, real syntactic form exists that this extractor does not walk into. A
+    /// zero-observation result never proves absence; the dimension's obligation stays UNKNOWN
+    /// even when real observations exist.
+    Partial,
+}
+
+/// Coverage classification for every dimension this extractor supports. An exhaustive match (not
+/// a lookup table with a permissive default) so adding a new `SemanticDimension` variant forces an
+/// explicit decision here rather than silently defaulting either way.
+fn dimension_coverage(dimension: SemanticDimension) -> DimensionCoverage {
+    use DimensionCoverage::{Exhaustive, Partial};
+    match dimension {
+        // Declaration-level: every `syn::Item` this file's top-level/nested-`mod` walk visits is
+        // checked for a Symbol/Type/FunctionIdentity/FunctionSignature-shaped declaration. Real,
+        // documented, permanent exclusions exist (compiler-generated functions, item-level
+        // function-like macro-expanded declarations, monomorphized instances, resolved DefIds --
+        // see R4.4's own verification record) -- but those are OUT_OF_PROFILE exclusions this
+        // extractor never silently claims to cover, not unvisited reachable syntax within the
+        // declared profile itself, so a zero-observation result over that declared profile is
+        // real evidence.
+        SemanticDimension::Symbol
+        | SemanticDimension::Type
+        | SemanticDimension::FunctionIdentity
+        | SemanticDimension::FunctionSignature => Exhaustive,
+        // Every full-expression-tree walker (CALL/CONTROL_FLOW/DATA_FLOW/STATE/EFFECT/OWNERSHIP/
+        // CONCURRENCY) shares one real, permanent gap: a bare `syn::Expr::Macro` invocation's
+        // arguments are an opaque `TokenStream`, never re-parsed as expressions without macro
+        // expansion (which this extractor never performs -- `.atlas/contracts/
+        // SEMANTIC-EXTRACTION.md`). A call, move, state access, effect, borrow or concurrency site
+        // written only inside a macro invocation's arguments (e.g. `my_macro!(hidden_call())`) is
+        // therefore structurally invisible to all seven, regardless of how complete each walker's
+        // own `syn::Expr` variant coverage otherwise is. CONTROL_FLOW additionally never splits
+        // below statement level (its own module doc comment already states this). None of the
+        // seven may claim a zero-observation result as verified absence.
+        SemanticDimension::Call
+        | SemanticDimension::ControlFlow
+        | SemanticDimension::DataFlow
+        | SemanticDimension::State
+        | SemanticDimension::Effect
+        | SemanticDimension::Ownership
+        | SemanticDimension::Concurrency => Partial,
+        // Not yet a supported dimension; never reached through `SUPPORTED_DIMENSIONS`, but this
+        // match stays exhaustive over every `SemanticDimension` variant on purpose.
+        SemanticDimension::Persistence => Partial,
+    }
+}
 
 #[derive(Debug, Default)]
 pub struct RustSemanticExtractor;
@@ -687,10 +740,23 @@ impl<'a> ExtractionContext<'a> {
             // Future body polled later, possibly never, exactly like a Closure) -- excluded for
             // the same misattribution reason as `Expr::Closure` above, not merely unhandled.
             syn::Expr::Async(_) => {}
-            // Literals, bare paths, `continue`, `yield` (unreachable here in practice: it is only
-            // valid inside a generator/coroutine closure body, itself already excluded above), and
-            // any other/future `syn::Expr` shape: either structurally cannot contain a nested call
-            // or is out of scope for R4.5's minimum call walker. Never claimed, never fabricated.
+            // `yield value` (unstable generator/coroutine syntax) evaluates `value` immediately as
+            // part of the SAME executable region -- syn parses it wherever it lexically appears,
+            // not only inside a generator body, so a bare fn/method containing `yield f()` is real,
+            // parseable input this walker must not silently skip. Not a deferred region like
+            // Closure/Async: matches CALL's own Return/Break precedent, and EFFECT/STATE's already
+            // -correct treatment of the same variant.
+            syn::Expr::Yield(yield_expr) => {
+                if let Some(value) = &yield_expr.expr {
+                    self.walk_expr(value, scope, caller);
+                }
+            }
+            // A bare macro invocation used as an expression (`Expr::Macro`) is opaque token-stream
+            // input this extractor never re-parses as expressions without macro expansion, which
+            // it never performs (`.atlas/contracts/SEMANTIC-EXTRACTION.md`) -- a call written only
+            // inside a macro invocation's arguments is a real, permanent, out-of-profile gap (see
+            // `dimension_coverage`), not a silently-omitted one. Literals, bare paths, `continue`,
+            // and any other/future `syn::Expr` shape structurally cannot contain a nested call.
             _ => {}
         }
     }
@@ -1035,7 +1101,7 @@ impl<'a> ExtractionContext<'a> {
         for &dimension in &self.input.requested_dimensions {
             if SUPPORTED_DIMENSIONS.contains(&dimension) {
                 let records = self.dimension_records.remove(&dimension);
-                if PARTIAL_CLOSURE_DIMENSIONS.contains(&dimension) {
+                if dimension_coverage(dimension) == DimensionCoverage::Partial {
                     let diagnostic = ExtractionDiagnostic::new(
                         DiagnosticCode::IncompleteAnalysis,
                         Some(dimension),

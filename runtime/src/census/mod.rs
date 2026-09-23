@@ -1258,8 +1258,8 @@ mod tests {
         evidence_summary: &str,
     ) -> ExtractionBatch {
         use atlas_core::{
-            Evidence, EvidenceId, OwnershipIdentity, OwnershipKind, RepositoryId,
-            SemanticRecordHeader, SemanticRecordId, provenance,
+            Evidence, EvidenceId, OwnershipIdentity, OwnershipKind, OwnershipResolution,
+            RepositoryId, SemanticRecordHeader, SemanticRecordId, provenance,
         };
 
         let repository = RepositoryId::new("atlas-studio");
@@ -1284,6 +1284,7 @@ mod tests {
                 column: 5,
             },
             kind: OwnershipKind::BorrowShared,
+            resolution: OwnershipResolution::Resolved,
         };
         let record_id =
             SemanticRecordId::new(SemanticDimension::Ownership, &subject.identity_key());

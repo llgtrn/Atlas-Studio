@@ -47,7 +47,7 @@ pub use semantic::{
     ControlFlowBlockIdentity, ControlFlowBlockKind, ControlFlowEdge, ControlFlowEdgeKind,
     DataFlowResolution, DiagnosticCode, EffectCategory, EffectIdentity, ExtractionDiagnostic,
     ExtractorIdentity, FunctionDeclarationKind, FunctionIdentity, FunctionOwner, FunctionParameter,
-    FunctionSignature, OwnershipIdentity, OwnershipKind, SemanticDimension,
+    FunctionSignature, OwnershipIdentity, OwnershipKind, OwnershipResolution, SemanticDimension,
     SemanticObligationRecord, SemanticObservation, SemanticRecordHeader, SemanticRecordId,
     SemanticScope, StateAccessIdentity, StateAccessKind, StateResolution, SymbolIdentity,
     SymbolRole, TypeIdentity, ValueIdentity, ValueRole,

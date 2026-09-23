@@ -362,9 +362,18 @@ impl<'ctx, 'a> DataFlowWalker<'ctx, 'a> {
                 self.walk_expr(&repeat.len, false);
             }
             syn::Expr::RawAddr(raw_addr) => self.walk_expr(&raw_addr.expr, false),
+            // `yield value` evaluates `value` immediately in the SAME executable region -- syn
+            // parses it wherever it lexically appears, not only inside a real generator body.
+            syn::Expr::Yield(yield_expr) => {
+                if let Some(value) = &yield_expr.expr {
+                    self.walk_expr(value, false);
+                }
+            }
             // Closures and `async { .. }` blocks get no data-flow scoping of their own this wave
             // (consistent with R4.6's CFG, which gives neither a CFG either -- both are separate
-            // deferred executable regions with no FunctionIdentity to attribute records to);
+            // deferred executable regions with no FunctionIdentity to attribute records to); a bare
+            // macro invocation's arguments are opaque token streams this extractor never re-parses
+            // (a real, permanent gap, not silently omitted -- see `dimension_coverage`).
             // Continue/literals/other forms carry no nested expressions this walker tracks. Never
             // claimed, never fabricated.
             _ => {}

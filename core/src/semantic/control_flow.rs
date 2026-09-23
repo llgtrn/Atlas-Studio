@@ -6,14 +6,26 @@
 //!
 //! Unlike R4.5's CALL dimension (where callee resolution genuinely requires name/type information
 //! this extractor doesn't have and never will), a function's control-flow STRUCTURE -- which branch
-//! executes when, where a loop repeats to, where a `return`/`break`/panic actually goes -- is fully
+//! executes when, where a loop repeats to, where a `return`/`break` actually goes -- is fully
 //! determined by Rust's own language syntax and semantics, not by type inference or import
-//! resolution. There is therefore no equivalent epistemic reason to leave CFG edges unresolved by
-//! default: `adapter`'s extractor computes real successor edges wherever source syntax structurally
-//! determines them, and uses `ControlFlowEdgeKind::Unresolved` only for genuinely ambiguous cases
-//! (e.g. a labeled `break`/`continue` whose label doesn't match any enclosing construct this
-//! extractor tracked -- a real possibility in syntactically-valid-but-semantically-odd input, since
-//! this extractor performs no name resolution).
+//! resolution. There is therefore no equivalent epistemic reason to leave those CFG edges
+//! unresolved by default: `adapter`'s extractor computes real successor edges wherever source
+//! syntax structurally determines them, and uses `ControlFlowEdgeKind::Unresolved` only for
+//! genuinely ambiguous cases (e.g. a labeled `break`/`continue` whose label doesn't match any
+//! enclosing construct this extractor tracked -- a real possibility in
+//! syntactically-valid-but-semantically-odd input, since this extractor performs no name
+//! resolution).
+//!
+//! A block whose only path out is a textual panic-like macro invocation (`Panic` edge kind, below)
+//! is the one exception: unlike `return`/`break`, whether the invoked macro actually diverges is
+//! NOT fully determined by syntax alone -- a local `macro_rules!` redefinition of `panic`/
+//! `unreachable`/`todo`/`unimplemented` can make it do anything, and this extractor has no
+//! macro/name resolution to rule that out (the same limitation R4.8's EFFECT already documents for
+//! the identical evidence). Because the block's own successor set depends on this classification --
+//! if the macro doesn't really diverge, the block's true successor is whatever syntactically
+//! follows, not "leaves the function" -- the whole block's `SemanticRecordHeader::status` is
+//! `EpistemicStatus::Inferred`, not `Observed`, whenever it terminates this way. Every other block
+//! shape stays `Observed`.
 //!
 //! Scope this wave: only statement-level control flow is split into blocks (an `if`/`match`/
 //! `loop`/`while`/`for`/bare-block used directly AS a statement or the tail of a statement list).
@@ -95,8 +107,11 @@ pub enum ControlFlowEdgeKind {
     /// continuation leads. `target` is `Some` when that continuation is a concrete modeled
     /// block, `None` when it resolves to `Return` or another unresolved case further out.
     Break,
-    /// A `panic!`/`unreachable!`/`todo!`/`unimplemented!` invocation -- abnormal termination.
-    /// Always `target: None`.
+    /// A `panic!`/`unreachable!`/`todo!`/`unimplemented!`-spelled macro invocation -- textual
+    /// evidence of abnormal termination, not proof of it (the macro name could be locally
+    /// shadowed; see this module's doc comment). Always `target: None`. The owning block's
+    /// `SemanticRecordHeader::status` is `Inferred`, never `Observed`, whenever a block's only
+    /// successor is this edge kind.
     Panic,
     /// Control demonstrably leaves this block, but this extractor cannot determine where --
     /// e.g. a labeled `break`/`continue` whose label matched no loop this extractor tracked
