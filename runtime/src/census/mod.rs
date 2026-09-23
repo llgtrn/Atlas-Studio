@@ -57,9 +57,10 @@ fn function_signature_summary(signature: &FunctionSignature) -> String {
 
 /// Projects one real typed `SemanticObservation` (produced by a `SemanticExtractor`, never
 /// invented here) into the bootstrap `SemanticFact` triple envelope that `normalize`/graph
-/// construction already consume. `None` for dimensions with no typed kernel record and no
-/// extractor producing them yet (CALL/CONTROL_FLOW/DATA_FLOW/STATE/EFFECT/OWNERSHIP/CONCURRENCY --
-/// R4.4+): there is nothing to project because nothing was observed.
+/// construction already consume. `None` for dimensions that already have a typed kernel/extractor
+/// (CALL/CONTROL_FLOW/DATA_FLOW/STATE/EFFECT/OWNERSHIP/CONCURRENCY/PERSISTENCE -- R4.4+): the typed
+/// `SemanticObservation` variant itself is the canonical record; this bootstrap compatibility
+/// envelope was never extended to cover them and there is no reason to start now.
 ///
 /// This is a lossy compatibility projection, not a second source of truth: the typed
 /// `SemanticObservation` (retrievable from the `ExtractionBatch`es a caller passed to
@@ -118,7 +119,8 @@ fn semantic_observation_fact(observation: &SemanticObservation) -> Option<Semant
         | SemanticObservation::State(_)
         | SemanticObservation::Effect(_)
         | SemanticObservation::Ownership(_)
-        | SemanticObservation::Concurrency(_) => None,
+        | SemanticObservation::Concurrency(_)
+        | SemanticObservation::Persistence(_) => None,
     }
 }
 
@@ -1401,6 +1403,83 @@ mod tests {
         }
     }
 
+    fn extraction_batch_with_persistence_from(
+        artifact_path: &str,
+        extractor_id: &str,
+        evidence_id: &str,
+        evidence_summary: &str,
+    ) -> ExtractionBatch {
+        use atlas_core::{
+            Evidence, EvidenceId, PersistenceIdentity, PersistenceKind, PersistenceResolution,
+            PlaceRef, RepositoryId, SemanticRecordHeader, SemanticRecordId, provenance,
+        };
+
+        let repository = RepositoryId::new("atlas-studio");
+        let revision = atlas_core::RevisionRef {
+            kind: "git".into(),
+            value: "abc123".into(),
+        };
+        let extractor = ExtractorIdentity {
+            id: extractor_id.into(),
+            version: "0.1.0".into(),
+        };
+        let scope = SemanticScope::new(Vec::<String>::new());
+        let function = SemanticRecordId::new(SemanticDimension::FunctionIdentity, "owner-fn-key");
+        let subject = PersistenceIdentity {
+            repository: repository.clone(),
+            revision: revision.clone(),
+            function,
+            kind: PersistenceKind::Commit,
+            span: atlas_core::SourceSpan {
+                path: artifact_path.into(),
+                line: 3,
+                column: 5,
+            },
+            place: PlaceRef::Unresolved,
+            resolution: PersistenceResolution::Unresolved,
+        };
+        let record_id =
+            SemanticRecordId::new(SemanticDimension::Persistence, &subject.identity_key());
+        let evidence_id = EvidenceId::new(evidence_id.to_owned());
+        let header = SemanticRecordHeader {
+            record_id: record_id.clone(),
+            dimension: SemanticDimension::Persistence,
+            status: EpistemicStatus::Inferred,
+            scope,
+            repository: repository.clone(),
+            revision: revision.clone(),
+            extractor: extractor.clone(),
+            evidence_refs: vec![evidence_id.clone()],
+            provenance: provenance(artifact_path, &extractor.id),
+            subject,
+        };
+        let observation = SemanticObservation::Persistence(header);
+        assert!(observation.is_dimension_consistent());
+
+        ExtractionBatch {
+            extractor,
+            repository,
+            revision,
+            artifact: ArtifactId::new(format!("artifact:{artifact_path}")),
+            input_fingerprint: format!("test:{artifact_path}"),
+            observations: vec![observation],
+            evidence: vec![Evidence {
+                id: evidence_id.as_str().to_owned(),
+                kind: "PARSER_OUTPUT".into(),
+                path: artifact_path.into(),
+                summary: evidence_summary.into(),
+                revision: None,
+            }],
+            obligations: vec![ObligationResult::unknown_with_observations(
+                SemanticDimension::Persistence,
+                vec![record_id],
+                vec![evidence_id],
+                "diagnostic:test-persistence-partial-coverage",
+            )],
+            diagnostics: Vec::new(),
+        }
+    }
+
     fn single_rust_file_context() -> (InventoryReport, SourceReport, AdlCompileReport) {
         let inventory = InventoryReport::new(
             "/repo",
@@ -2560,6 +2639,79 @@ pub async unsafe extern "C" fn example<T>(x: Vec<T>, y: &mut usize) -> Result<T,
             .typed_semantic_records
             .iter()
             .filter(|observation| matches!(observation, SemanticObservation::Concurrency(_)))
+            .collect();
+        assert_eq!(normalized.len(), 2);
+    }
+
+    // Same proof, for the new R4.11 dimension: two independent extractors observing the exact same
+    // persistence candidate claim must both survive Census/Normalization, share one claim identity
+    // (record_id), and remain distinctly attributable by raw_observation_id/extractor id.
+
+    #[test]
+    fn same_persistence_claim_from_two_extractors_survives_census_and_normalization() {
+        let (inventory, source, adl) = single_rust_file_context();
+        let batches = [
+            extraction_batch_with_persistence_from(
+                "src/lib.rs",
+                "extractor-a",
+                "evidence:persistence-a",
+                "extractor-a observed a commit candidate at src/lib.rs",
+            ),
+            extraction_batch_with_persistence_from(
+                "src/lib.rs",
+                "extractor-b",
+                "evidence:persistence-b",
+                "extractor-b observed a commit candidate at src/lib.rs",
+            ),
+        ];
+
+        let census = build_census(&inventory, &source, &adl, &batches);
+        let ops: Vec<_> = census
+            .typed_semantic_records
+            .iter()
+            .filter(|observation| matches!(observation, SemanticObservation::Persistence(_)))
+            .collect();
+        assert_eq!(
+            ops.len(),
+            2,
+            "independent extractors' observations of the same persistence candidate must both survive Census"
+        );
+
+        let claim_ids: std::collections::BTreeSet<&str> = ops
+            .iter()
+            .map(|observation| observation.record_id().as_str())
+            .collect();
+        assert_eq!(
+            claim_ids.len(),
+            1,
+            "both observations share the same Persistence claim"
+        );
+
+        let raw_ids: std::collections::BTreeSet<_> = ops
+            .iter()
+            .map(|observation| observation.raw_observation_id())
+            .collect();
+        assert_eq!(raw_ids.len(), 2);
+
+        let extractor_ids: std::collections::BTreeSet<&str> = ops
+            .iter()
+            .map(|observation| {
+                let SemanticObservation::Persistence(header) = observation else {
+                    unreachable!()
+                };
+                header.extractor.id.as_str()
+            })
+            .collect();
+        assert_eq!(
+            extractor_ids,
+            std::collections::BTreeSet::from(["extractor-a", "extractor-b"])
+        );
+
+        let normalization = crate::normalize::normalize(&census);
+        let normalized: Vec<_> = normalization
+            .typed_semantic_records
+            .iter()
+            .filter(|observation| matches!(observation, SemanticObservation::Persistence(_)))
             .collect();
         assert_eq!(normalized.len(), 2);
     }
