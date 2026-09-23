@@ -436,6 +436,41 @@ VP1 includes, at the contract/runtime maturity appropriate to the active wave:
 - evidence/attestation roots bound by the seal without turning the immutable artifact into a mutable telemetry database.
 
 Analytic models may prune candidate space. Final performance claims remain evidence-scoped. A failed required metric/obligation returns the candidate to the repair loop; it does not create a final `*.atlas`.
+## AH1 — embedded agent-host execution fabric (cross-cutting R4→R8)
+
+Atlas MUST be runnable as an embedded subsystem inside the coding environment that is already performing the work.
+
+Normative host/runtime semantics are defined by `../contracts/AGENT-HOST-EMBEDDED-RUNTIME.md`.
+
+The primary early deployment target is:
+
+~~~text
+coding agent in local/cloud host sandbox
+→ local MCP/API adapter
+→ AtlasCore
+→ Atlas CandidateWorkspace / SandboxBackend
+→ Census / verify / admission / seal
+~~~
+
+The host may supply compute, checkout and an outer security sandbox. Atlas supplies the durable semantic world, uncertainty/closure, candidate isolation semantics, evidence binding, admission and artifact lifecycle.
+
+AH1 MUST preserve:
+
+- agent host is infrastructure, not canonical authority;
+- coding provider is replaceable temporary intelligence;
+- MCP/API/CLI/Studio are adapters over one AtlasCore;
+- mutable worktree is candidate state until admitted;
+- provider-created commit is not AdmissionTransaction;
+- outer host sandbox is not the same thing as Atlas job isolation or VerificationWorld;
+- nested Docker/KVM/privileged sandbox capability is never assumed;
+- verification binds an exact frozen candidate;
+- sealed Atlas/evidence state outlives the originating agent session;
+- heavy jobs may scale out without changing semantic identity.
+
+AH1 allows Atlas V1 to borrow cloud-agent compute rather than requiring an Atlas cloud platform on day one. Scale-out workers become an implementation option when workloads exceed the embedded host.
+
+Atlas Studio is a later native frontend over the same core, not a prerequisite for Atlas and not a separate truth system.
+
 ## R7 — research, typed decision, synthesis, self-build control and admission
 
 R7 connects observed donor reality to research and Human+AI design decisions without allowing research/model claims to impersonate observation. R7 is also the first maturity level at which Atlas may run a complete bounded self-coding loop.
@@ -470,6 +505,7 @@ Normative contracts:
 - ../contracts/HUMAN-AI-ADL-AUTHORING.md;
 - ../contracts/ATLAS-CREATION-PIPELINE.md;
 - ../contracts/EXTERNAL-PROVIDER-TRUST.md;
+- ../contracts/AGENT-HOST-EMBEDDED-RUNTIME.md;
 - ../contracts/SELECTED-DESIGN.md;
 - ../contracts/SELF-BUILD-CONTROLLER.md;
 - ../contracts/ADMISSION-TRANSACTION.md;
@@ -534,6 +570,7 @@ self-census / closure / metrics
 → SelfBuildWorkOrder
 → research / donor census
 → candidate set / typed decision
+→ Atlas-managed candidate workspace / SandboxBackend
 → synthesis CandidateChangeSet
 → untrusted census
 → CandidateAtlas
