@@ -1,0 +1,32 @@
+{
+  "schema": "atlas.r4.verification-correction.v1",
+  "wave": "R4.7",
+  "corrects_record": ".atlas/evidence/verification/r4.7-verification-record.json",
+  "base_merge_commit": "2ae4ce9630cfad6aff28f78c0c8911dc228974cb",
+  "correction_kind": "GAP_CLOSED",
+  "reason": [
+    "The prior record correctly, honestly documented that a `let (a, b) = ..;` (or any tuple/tuple-struct/struct/slice/reference/paren/@-binding/Or) destructuring pattern bound no Definitions -- a stated gap, not a fabricated capability.",
+    "R4.12's gap audit against the R4 acceptance contract's reference-profile requirement surfaced this as a real, closeable Rust-construct gap rather than leaving it open indefinitely: destructuring bindings are common, syntactically unambiguous (Rust's pattern grammar needs no type inference to know which identifiers a pattern binds), and closing it required no new identity model -- ValueIdentity/DataFlowResolution were already sufficient."
+  ],
+  "fix": {
+    "what": "adapter::semantic::rust::dataflow::DataFlowWalker::walk_binding_pat replaces the old simple_pat_ident (Pat::Ident/Pat::Type only) helper at every binding-position call site (let, match-arm, for-loop pattern, function/closure parameter): it recurses through Pat::Tuple/TupleStruct/Struct/Slice/Reference/Paren, and Pat::Ident's own @ sub-pattern, emitting a Definition for every simple identifier binding found. Pat::Or walks every alternative (each may bind the same name at its own span, since only one alternative matches at runtime and this walker does not attempt to prove which). Pat::Wild/Rest/Lit/Range/Path/Const/Macro/Verbatim and any future non_exhaustive variant bind nothing, matched explicitly or via an intentional catch-all.",
+    "adversarial_coverage_added": [
+      "tuple_destructuring_pattern_binds_both_sub_bindings_and_their_uses_resolve (rewritten from the prior gap-proving test to now prove the fix)",
+      "struct_destructuring_pattern_binds_each_local_and_its_uses_resolve",
+      "slice_destructuring_pattern_binds_each_local_and_its_uses_resolve",
+      "at_pattern_binds_its_own_name_in_addition_to_the_sub_pattern",
+      "or_pattern_binds_the_shared_name_in_every_alternative"
+    ]
+  },
+  "new_interpretation": "R4.7's destructuring-pattern gap is CLOSED. R4.7 bootstrap remains materialized; R4.7's own overall closure status (shared CALL macro-invocation-opacity gap; CALL<->DATA_FLOW argument/result binding still a separate open TARGET) is otherwise unchanged by this correction.",
+  "required_runtime_invariants": [
+    "every simple identifier binding inside a tuple/tuple-struct/struct/slice/reference/paren/@ pattern in a let/match-arm/for/parameter position emits a Definition",
+    "an Or pattern's shared bound name gets one Definition per alternative, never a single fabricated merged one",
+    "a pattern shape that binds nothing (wildcard, rest, literal, range, path, const) still emits no Definition"
+  ],
+  "self_census_cross_check": {
+    "command": "cargo run -q -p atlas-cli -- systemize --root . --out <tmp>",
+    "finding": "typed_semantic_records grew from 25159 to 25912 on this repository's own real source after this fix (genuine new/changed real code, not measurement noise); exact_duplicates_merged remained 0 and conflict_candidates remained empty at this larger scale."
+  },
+  "historical_evidence_retained": true
+}
