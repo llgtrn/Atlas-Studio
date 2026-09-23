@@ -1444,6 +1444,7 @@ mod tests {
             },
             dispatch: CallDispatchKind::Unresolved,
             callees: Vec::new(),
+            arguments: Vec::new(),
         };
         let record_id = SemanticRecordId::new(SemanticDimension::Call, &subject.identity_key());
         SemanticObservation::Call(SemanticRecordHeader {

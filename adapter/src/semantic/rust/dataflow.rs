@@ -252,23 +252,21 @@ impl<'ctx, 'a> DataFlowWalker<'ctx, 'a> {
 
     fn walk_expr(&mut self, expr: &syn::Expr, is_return_flow: bool) {
         match expr {
-            syn::Expr::Path(path)
-                if path.path.leading_colon.is_none() && path.path.segments.len() == 1 =>
-            {
-                let name = path.path.segments[0].ident.to_string();
-                let span = self.ctx.span_of(path);
-                self.emit_use_or_store(&name, span, ValueRole::Use, is_return_flow);
+            syn::Expr::Path(_) => {
+                if let Some(ident) = spelling::simple_path_ident(expr) {
+                    let name = ident.to_string();
+                    let span = self.ctx.span_of(expr);
+                    self.emit_use_or_store(&name, span, ValueRole::Use, is_return_flow);
+                }
             }
             syn::Expr::Assign(assign) => {
-                match assign.left.as_ref() {
-                    syn::Expr::Path(path)
-                        if path.path.leading_colon.is_none() && path.path.segments.len() == 1 =>
-                    {
-                        let name = path.path.segments[0].ident.to_string();
+                match spelling::simple_path_ident(assign.left.as_ref()) {
+                    Some(ident) => {
+                        let name = ident.to_string();
                         let span = self.ctx.span_of(assign.left.as_ref());
                         self.emit_use_or_store(&name, span, ValueRole::Store, false);
                     }
-                    other => self.walk_expr(other, false),
+                    None => self.walk_expr(assign.left.as_ref(), false),
                 }
                 self.walk_expr(&assign.right, false);
             }
@@ -322,16 +320,14 @@ impl<'ctx, 'a> DataFlowWalker<'ctx, 'a> {
             syn::Expr::Binary(binary) if spelling::is_compound_assign_op(&binary.op) => {
                 // `x += 1` etc.: provably a read-modify-write of the left operand, not merely a
                 // read -- see `spelling::is_compound_assign_op`.
-                match binary.left.as_ref() {
-                    syn::Expr::Path(path)
-                        if path.path.leading_colon.is_none() && path.path.segments.len() == 1 =>
-                    {
-                        let name = path.path.segments[0].ident.to_string();
+                match spelling::simple_path_ident(binary.left.as_ref()) {
+                    Some(ident) => {
+                        let name = ident.to_string();
                         let span = self.ctx.span_of(binary.left.as_ref());
                         self.emit_use_or_store(&name, span.clone(), ValueRole::Use, false);
                         self.emit_use_or_store(&name, span, ValueRole::Store, false);
                     }
-                    other => self.walk_expr(other, false),
+                    None => self.walk_expr(binary.left.as_ref(), false),
                 }
                 self.walk_expr(&binary.right, false);
             }

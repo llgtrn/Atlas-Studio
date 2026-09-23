@@ -894,6 +894,7 @@ mod tests {
             },
             dispatch: CallDispatchKind::Unresolved,
             callees: Vec::new(),
+            arguments: Vec::new(),
         };
         let record_id = SemanticRecordId::new(SemanticDimension::Call, &subject.identity_key());
         let evidence_id = EvidenceId::new(evidence_id.to_owned());

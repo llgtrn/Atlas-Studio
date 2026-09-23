@@ -207,6 +207,22 @@ pub fn pattern_spelling(pat: &syn::Pat) -> String {
     }
 }
 
+/// The identifier `expr` names, if it is a bare, single-segment, unqualified path expression
+/// (`x`, not `x.field`, `Type::x`, `::x`, `(expr)`, or anything else). This is the exact structural
+/// shape `dataflow.rs`'s `Expr::Path` arm recognizes as a DATA_FLOW `Use`/`Store` site -- shared
+/// here so R4.12's CALL argument binding (`mod.rs`'s `build_calls`) can recognize the identical
+/// shape without duplicating (and risking silently drifting from) DATA_FLOW's own recognition rule.
+pub fn simple_path_ident(expr: &syn::Expr) -> Option<&syn::Ident> {
+    match expr {
+        syn::Expr::Path(path)
+            if path.path.leading_colon.is_none() && path.path.segments.len() == 1 =>
+        {
+            Some(&path.path.segments[0].ident)
+        }
+        _ => None,
+    }
+}
+
 /// Whether `op` is a compound-assignment operator (`+=`, `-=`, `*=`, `/=`, `%=`, `^=`, `&=`, `|=`,
 /// `<<=`, `>>=`) rather than a plain arithmetic/bitwise operator (`+`, `-`, ...).
 ///

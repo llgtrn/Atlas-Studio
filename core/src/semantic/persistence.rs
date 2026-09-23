@@ -24,12 +24,14 @@
 //!
 //! A fourth, independently-invented `PersistenceTarget { name: String }` would be a FIFTH
 //! incompatible answer to the same question, repeating exactly the OWNERSHIP bug's root cause
-//! (source spelling standing in for canonical object identity) in new code. `PlaceRef` below is
-//! the deliberately small bridge that lets PERSISTENCE point at an EXISTING dimension's own
+//! (source spelling standing in for canonical object identity) in new code. `super::place::PlaceRef`
+//! is the deliberately small bridge that lets PERSISTENCE point at an EXISTING dimension's own
 //! already-canonical identity where evidence allows, or explicitly say "no existing canonical
 //! record, and no fabricated one either" where it doesn't -- without requiring the larger,
 //! genuinely cross-cutting migration a single shared `PlaceIdentity` type (replacing all three
-//! existing shapes) would need. See the CURRENT/BRIDGE/TARGET note below `PlaceRef` itself.
+//! existing shapes) would need. See the CURRENT/BRIDGE/TARGET note on `PlaceRef` itself
+//! (`core::semantic::place`) -- moved out of this module once R4.12 gave it a second real
+//! consumer (`core::semantic::call::CallSiteIdentity`).
 //!
 //! # Scope this wave
 //!
@@ -45,7 +47,8 @@
 //! `Restore` are declared for a future wave (would need resolved-API evidence this extractor does
 //! not have) but never emitted.
 
-use super::{SemanticDimension, SemanticRecordId};
+use super::SemanticRecordId;
+use super::place::PlaceRef;
 use crate::identity::RepositoryId;
 use crate::language::adl::SourceSpan;
 use crate::temporal::RevisionRef;
@@ -124,42 +127,8 @@ impl PersistenceResolution {
     }
 }
 
-/// A reference to the semantic location/resource a durable-state operation acts on.
-///
-/// **CURRENT**: this is what ships this wave. **BRIDGE**: this is deliberately not the final
-/// canonical place model -- it lets PERSISTENCE (and any later dimension) point at an existing
-/// dimension's own already-canonical `SemanticRecordId` instead of inventing a new string-keyed
-/// target, without requiring DATA_FLOW/STATE/OWNERSHIP to migrate their own stable identity shapes
-/// first. **TARGET**: a single first-class `PlaceIdentity` (or equivalent) shared natively by
-/// DATA_FLOW/STATE/OWNERSHIP/PERSISTENCE remains future work -- tracked in
-/// `.atlas/evidence/verification/r4.4-r4.10-second-hardening-pass-correction.json` -- and would
-/// likely absorb `PlaceRef::Resolved`'s role once it exists.
-///
-/// Deliberately excluded from `PersistenceIdentity::identity_key()` (like `OwnershipIdentity`'s
-/// `resolution` and `ValueIdentity`'s `resolved_definition`): a fact ABOUT an already-identified
-/// operation, not part of what makes the operation itself a distinct entity.
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-pub enum PlaceRef {
-    /// This operation's location is the same semantic location an existing dimension's record
-    /// already names -- e.g. a STATE access's `record_id`, a DATA_FLOW value's `record_id`, or an
-    /// OWNERSHIP operation's `record_id` this persistence operation is provably co-located with.
-    /// `dimension` is carried alongside `record_id` (rather than left to be re-derived) because
-    /// each dimension's own engineering-graph node id uses a distinct prefix scheme
-    /// (`state-access:`, `data-flow-value:`, `ownership-op:`, ...) that cannot be reconstructed
-    /// from a bare `SemanticRecordId` alone. Never constructed from source spelling alone.
-    Resolved {
-        dimension: SemanticDimension,
-        record_id: SemanticRecordId,
-    },
-    /// No existing canonical record to point at. Never backfilled with a spelling-derived name --
-    /// see the module doc comment's OWNERSHIP-bug precedent. Distinctness between two Unresolved
-    /// operations at different sites is guaranteed by `PersistenceIdentity`'s own `span`/`kind`
-    /// (part of `identity_key()`), not by anything inside this variant.
-    Unresolved,
-}
-
 /// Identity of one durable-state/recovery operation site: `kind` performed by the function at
-/// `span`, referencing `place` where evidence allows.
+/// `span`, referencing `place` (a `super::place::PlaceRef`) where evidence allows.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct PersistenceIdentity {
     pub repository: RepositoryId,

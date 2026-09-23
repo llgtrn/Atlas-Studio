@@ -263,6 +263,42 @@ pub fn caller_macro_only() {
 pub fn caller_no_calls() -> u64 {
     42
 }
+
+pub struct Widget {
+    pub value: u64,
+}
+
+impl Widget {
+    pub fn get(&self) -> u64 {
+        self.value
+    }
+}
+
+pub fn caller_with_simple_argument(x: u64) -> u64 {
+    helper(x)
+}
+
+pub fn caller_with_two_simple_arguments(x: u64, y: u64) -> u64 {
+    two_args(x, y)
+}
+
+pub fn two_args(a: u64, b: u64) -> u64 {
+    a + b
+}
+
+pub fn caller_with_complex_argument(w: &Widget) -> u64 {
+    helper(w.get())
+}
+
+pub fn caller_with_method_call_argument(w: &Widget, x: u64) -> u64 {
+    w.get_with(x)
+}
+
+impl Widget {
+    pub fn get_with(&self, extra: u64) -> u64 {
+        self.value + extra
+    }
+}
 "#;
 
 /// R4.6 CONTROL_FLOW corpus: straight-line, `if`/`if-else`/else-if chain, `while` (may-not-enter),
@@ -1987,6 +2023,159 @@ fn repeated_extraction_yields_stable_call_record_ids() {
 
     assert_eq!(first, second);
     assert!(!first.is_empty());
+}
+
+// --- 34. R4.12: a simple single-identifier call argument's PlaceRef converges on the EXACT SAME
+//     record_id DATA_FLOW's own Use observation carries for that argument -- proven, not merely
+//     designed, matching R4.11's PlaceRef-convergence proof pattern -----------------------------
+
+#[test]
+fn call_argument_place_ref_converges_on_the_data_flow_uses_own_record_id() {
+    let batch = extract_all("src/lib.rs", CALL_CORPUS);
+    let caller = find_function_identity(&batch, &[], "caller_with_simple_argument")
+        .expect("caller_with_simple_argument");
+    let calls = calls_by_caller(&batch, caller);
+    assert_eq!(calls.len(), 1);
+    assert_eq!(calls[0].arguments.len(), 1);
+
+    let PlaceRef::Resolved {
+        dimension,
+        record_id,
+    } = &calls[0].arguments[0]
+    else {
+        panic!("a simple identifier argument must resolve to an existing DATA_FLOW record");
+    };
+    assert_eq!(*dimension, SemanticDimension::DataFlow);
+
+    let values = data_flow_values_for(&batch, caller);
+    let x_use = values
+        .iter()
+        .find(|v| v.role == ValueRole::Use && v.name == "x")
+        .expect("DATA_FLOW's own Use observation for the `x` argument");
+    let x_use_record_id = SemanticRecordId::new(SemanticDimension::DataFlow, &x_use.identity_key());
+
+    assert_eq!(
+        record_id, &x_use_record_id,
+        "the CALL argument's PlaceRef must name the EXACT SAME node DATA_FLOW's own pass produced, \
+         not an independently invented one"
+    );
+}
+
+// --- 35. multiple arguments each get their own PlaceRef, in source order ------------------------
+
+#[test]
+fn multiple_call_arguments_each_get_their_own_place_ref_in_order() {
+    let batch = extract_all("src/lib.rs", CALL_CORPUS);
+    let caller = find_function_identity(&batch, &[], "caller_with_two_simple_arguments")
+        .expect("caller_with_two_simple_arguments");
+    let calls = calls_by_caller(&batch, caller);
+    assert_eq!(calls.len(), 1);
+    assert_eq!(calls[0].arguments.len(), 2);
+
+    let values = data_flow_values_for(&batch, caller);
+    let expected: Vec<SemanticRecordId> = ["x", "y"]
+        .iter()
+        .map(|name| {
+            let use_value = values
+                .iter()
+                .find(|v| v.role == ValueRole::Use && v.name == *name)
+                .unwrap_or_else(|| panic!("DATA_FLOW Use for `{name}`"));
+            SemanticRecordId::new(SemanticDimension::DataFlow, &use_value.identity_key())
+        })
+        .collect();
+
+    for (argument, expected_record_id) in calls[0].arguments.iter().zip(expected.iter()) {
+        let PlaceRef::Resolved { record_id, .. } = argument else {
+            panic!("both simple-identifier arguments must resolve");
+        };
+        assert_eq!(record_id, expected_record_id);
+    }
+}
+
+// --- 36. an argument requiring deeper analysis (a method-call receiver expression) stays
+//     Unresolved -- never fabricated from spelling, matching every other PlaceRef consumer -------
+
+#[test]
+fn a_non_simple_call_argument_expression_is_unresolved() {
+    // `caller_with_complex_argument` contains two call sites: `w.get()` (zero arguments) and the
+    // outer `helper(w.get())` (one argument, the method call's own result) -- filter to the one
+    // with an argument to isolate the outer call.
+    let batch = extract_all("src/lib.rs", CALL_CORPUS);
+    let caller = find_function_identity(&batch, &[], "caller_with_complex_argument")
+        .expect("caller_with_complex_argument");
+    let calls = calls_by_caller(&batch, caller);
+    assert_eq!(
+        calls.len(),
+        2,
+        "the outer helper(..) call and the w.get() method call"
+    );
+    let outer_call = calls
+        .iter()
+        .find(|call| !call.arguments.is_empty())
+        .expect("the outer helper(w.get()) call");
+    assert_eq!(outer_call.arguments, vec![PlaceRef::Unresolved]);
+}
+
+// --- 37. a method call's own arguments are bound identically to a direct call's -------------------
+
+#[test]
+fn method_call_arguments_are_bound_identically_to_direct_call_arguments() {
+    let batch = extract_all("src/lib.rs", CALL_CORPUS);
+    let caller = find_function_identity(&batch, &[], "caller_with_method_call_argument")
+        .expect("caller_with_method_call_argument");
+    let calls = calls_by_caller(&batch, caller);
+    let get_with_call = calls
+        .iter()
+        .find(|call| call.arguments.len() == 1)
+        .expect("the .get_with(x) method call");
+
+    let values = data_flow_values_for(&batch, caller);
+    let x_use = values
+        .iter()
+        .find(|v| v.role == ValueRole::Use && v.name == "x")
+        .expect("DATA_FLOW's own Use observation for the `x` argument");
+    let expected = SemanticRecordId::new(SemanticDimension::DataFlow, &x_use.identity_key());
+
+    assert_eq!(
+        get_with_call.arguments,
+        vec![PlaceRef::Resolved {
+            dimension: SemanticDimension::DataFlow,
+            record_id: expected
+        }]
+    );
+}
+
+// --- 38. when DATA_FLOW is not part of the same requested-dimension set, CALL never fabricates a
+//     Resolved reference to a record this exact request will not produce -------------------------
+
+#[test]
+fn call_argument_place_ref_stays_unresolved_when_data_flow_was_not_requested() {
+    let batch = extract(
+        "src/lib.rs",
+        CALL_CORPUS,
+        vec![SemanticDimension::Call, SemanticDimension::FunctionIdentity],
+    );
+    let caller = find_function_identity(&batch, &[], "caller_with_simple_argument")
+        .expect("caller_with_simple_argument");
+    let calls = calls_by_caller(&batch, caller);
+    assert_eq!(calls[0].arguments, vec![PlaceRef::Unresolved]);
+}
+
+// --- 39. arguments are content, not identity: two identical-argument calls at different sites
+//     remain distinct, and identity_key() is unaffected by the arguments field itself -------------
+
+#[test]
+fn call_arguments_never_affect_the_call_sites_own_identity() {
+    let batch = extract_all("src/lib.rs", CALL_CORPUS);
+    let caller = find_function_identity(&batch, &[], "caller_with_simple_argument")
+        .expect("caller_with_simple_argument");
+    let calls = calls_by_caller(&batch, caller);
+    let call = calls[0];
+    let without_arguments = CallSiteIdentity {
+        arguments: Vec::new(),
+        ..call.clone()
+    };
+    assert_eq!(call.identity_key(), without_arguments.identity_key());
 }
 
 // =================================================================================================

@@ -56,10 +56,11 @@ mod state;
 use std::collections::{BTreeMap, BTreeSet};
 
 use atlas_core::{
-    CallDispatchKind, CallSiteIdentity, EpistemicStatus, Evidence, EvidenceId,
+    CallDispatchKind, CallSiteIdentity, DataFlowResolution, EpistemicStatus, Evidence, EvidenceId,
     FunctionDeclarationKind, FunctionIdentity, FunctionOwner, FunctionParameter, FunctionSignature,
-    Provenance, SemanticDimension, SemanticObservation, SemanticRecordHeader, SemanticRecordId,
-    SemanticScope, SymbolIdentity, SymbolRole, TypeIdentity, stable_id,
+    PlaceRef, Provenance, SemanticDimension, SemanticObservation, SemanticRecordHeader,
+    SemanticRecordId, SemanticScope, SymbolIdentity, SymbolRole, TypeIdentity, ValueIdentity,
+    ValueRole, stable_id,
 };
 use syn::spanned::Spanned;
 
@@ -522,6 +523,46 @@ impl<'a> ExtractionContext<'a> {
         self.observations.push(observation);
     }
 
+    /// The `PlaceRef` a CALL argument expression should carry: `Resolved` at the SAME DATA_FLOW
+    /// `Use` record_id `dataflow.rs`'s own walker would independently compute for this exact
+    /// (function, span) if it recognizes `arg` as a simple single-identifier expression, else
+    /// `Unresolved`.
+    ///
+    /// This reuses `ValueIdentity::identity_key()` itself (never a hand-duplicated copy of its
+    /// format string) so the two walkers cannot silently drift apart, and reuses
+    /// `spelling::simple_path_ident` (the same recognizer `dataflow.rs`'s own `Expr::Path` arm
+    /// calls) so "is this argument a recognized DATA_FLOW site" is answered identically by both.
+    /// Gated on `self.wants(SemanticDimension::DataFlow)`: a `Resolved` reference is only ever
+    /// constructed when DATA_FLOW is actually part of this same extraction request, so it never
+    /// names a record that (per this exact request) will not exist in this batch.
+    /// `resolution`/`resolved_definition`/`is_return_flow` are set to placeholder values below
+    /// because -- like `is_parameter` -- none of them affect `identity_key()`; only `function`,
+    /// `name`, `span` and `role` do.
+    fn place_ref_for_argument(&self, arg: &syn::Expr, caller: &SemanticRecordId) -> PlaceRef {
+        if !self.wants(SemanticDimension::DataFlow) {
+            return PlaceRef::Unresolved;
+        }
+        let Some(ident) = spelling::simple_path_ident(arg) else {
+            return PlaceRef::Unresolved;
+        };
+        let subject = ValueIdentity {
+            repository: self.input.repository.clone(),
+            revision: self.input.revision.clone(),
+            function: caller.clone(),
+            name: ident.to_string(),
+            span: self.span_of(arg),
+            role: ValueRole::Use,
+            is_parameter: false,
+            is_return_flow: false,
+            resolution: DataFlowResolution::Unresolved,
+            resolved_definition: None,
+        };
+        PlaceRef::Resolved {
+            dimension: SemanticDimension::DataFlow,
+            record_id: SemanticRecordId::new(SemanticDimension::DataFlow, &subject.identity_key()),
+        }
+    }
+
     /// Emits one CALL observation for a call site syntactically inside `caller`'s body.
     ///
     /// `dispatch`/`callees` are always `Unresolved`/`[]`: see the module doc comment and
@@ -532,6 +573,7 @@ impl<'a> ExtractionContext<'a> {
         caller: SemanticRecordId,
         span: atlas_core::SourceSpan,
         callee_summary: &str,
+        arguments: Vec<PlaceRef>,
     ) {
         let dimension = SemanticDimension::Call;
         if !self.wants(dimension) {
@@ -544,6 +586,7 @@ impl<'a> ExtractionContext<'a> {
             span: span.clone(),
             dispatch: CallDispatchKind::Unresolved,
             callees: Vec::new(),
+            arguments,
         };
         let record_id = SemanticRecordId::new(dimension, &subject.identity_key());
         let evidence_id = EvidenceId::new(stable_id(
@@ -608,7 +651,12 @@ impl<'a> ExtractionContext<'a> {
             syn::Expr::Call(call) => {
                 let span = self.span_of(call);
                 let summary = spelling::call_callee_spelling(&call.func);
-                self.emit_call(scope, caller.clone(), span, &summary);
+                let arguments = call
+                    .args
+                    .iter()
+                    .map(|arg| self.place_ref_for_argument(arg, caller))
+                    .collect();
+                self.emit_call(scope, caller.clone(), span, &summary, arguments);
                 self.walk_expr(&call.func, scope, caller);
                 for arg in &call.args {
                     self.walk_expr(arg, scope, caller);
@@ -617,7 +665,12 @@ impl<'a> ExtractionContext<'a> {
             syn::Expr::MethodCall(method_call) => {
                 let span = self.span_of(method_call);
                 let summary = format!(".{}", method_call.method);
-                self.emit_call(scope, caller.clone(), span, &summary);
+                let arguments = method_call
+                    .args
+                    .iter()
+                    .map(|arg| self.place_ref_for_argument(arg, caller))
+                    .collect();
+                self.emit_call(scope, caller.clone(), span, &summary, arguments);
                 self.walk_expr(&method_call.receiver, scope, caller);
                 for arg in &method_call.args {
                     self.walk_expr(arg, scope, caller);
