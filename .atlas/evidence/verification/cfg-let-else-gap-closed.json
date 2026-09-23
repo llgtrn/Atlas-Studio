@@ -1,0 +1,59 @@
+{
+  "schema": "atlas.self-build.generation-evidence.v1",
+  "wave": "SEMANTIC PRESERVATION -- close CFG's let-else diverge-block gap, flagged as this session's own top priority",
+  "wave_title": "The immediately preceding generation found and explicitly documented (rather than fixed) a real, in-scope CFG gap: a `let PAT = EXPR else { diverge }` statement's diverge block was completely invisible to `lower_stmts`'s successor computation, making a function whose only conditional exit was a let-else diverge block indistinguishable from one with no conditional exit at all. That generation's own evidence record explicitly flagged this as 'the next generation's actual priority.' This generation implements the real fix.",
+  "generation_model": {
+    "G_n": "19bb7d3d30 (docs+test(adapter): document CFG's let-else diverge-block gap, add falsifiable baseline) -- stable generation this candidate was built and validated against",
+    "gap_discovered_by": "Already found and documented by the prior generation; this generation's own work was implementation, not discovery."
+  },
+  "priority_classification": "semantic preservation (priority 3) -- as established by the prior generation's evidence record, this gap sits inside CFG's own declared scope (successor edges computed wherever source syntax structurally determines them), not excused by the type-resolution wall that justifies most of this extractor's other open gaps.",
+  "design_decisions": [
+    {
+      "question": "How to model the let-else statement's two paths as CFG blocks/edges?",
+      "decision": "Exactly like `if`/`match`: intercept `Stmt::Local` with `init.diverge.is_some()` before the existing `stmt_expr`-based dispatch, split the remaining statements in the same list into a join continuation (reusing the IDENTICAL empty-remaining-statements handling already used for if/match/loop, so a let-else as the last statement synthesizes no empty Continuation block), emit the current block with two edges (Fallthrough to the join continuation for the success path, Branch to a new LetElseDiverge block for the failure path), and recursively lower the diverge block's own statements exactly like any other block body. Chose Branch (not a new edge kind) for the diverge edge, matching how `lower_if`'s then/else edges are both Branch -- the diverge arm is exactly 'one arm of a conditional decision point,' the existing definition of Branch."
+    },
+    {
+      "question": "What continuation should the diverge block's own inner statements use if they (invalidly, since a let-else diverge block's type must be `!`) don't actually diverge?",
+      "decision": "The same join_cont as the success path -- a best-effort default matching `lower_if`'s own precedent (a bare `if` with no `else` falls back to `continuation_to_edge(&join_cont)`), not a fabricated claim about what malformed/adversarial input would really do."
+    },
+    {
+      "question": "New ControlFlowBlockKind variant, or reuse an existing one (e.g. IfElse)?",
+      "decision": "New variant, LetElseDiverge -- reusing IfElse would conflate two genuinely different syntactic origins (an `if`'s else block vs. a let-else's diverge block), and Rust's own exhaustive-match enforcement (confirmed: the build failed until every existing match on ControlFlowBlockKind was updated, then passed once explicit) is exactly the mechanism this session's own engineering discipline relies on to prevent a future dimension/variant from being silently forgotten somewhere."
+    }
+  ],
+  "stable_validator_law_compliance": {
+    "claim": "A let-else statement's diverge block is now a real, separately-lowered CFG block with correct Branch/Fallthrough edges, verified against a plain case, the no-remaining-statements edge case, and correct loop_stack propagation into the diverge block's own recursively-lowered statements.",
+    "self_written_evidence": "Renamed and rewrote the prior generation's own regression-baseline test (which asserted the OLD, incomplete 1-block/Return-only behavior) to assert the NEW, complete 3-block graph precisely (entry decision point with Fallthrough+Branch edges, Continuation block, LetElseDiverge block), confirmed it now fails loudly against the pre-fix code (re-ran it before the fix: failed exactly as designed, pointing at the update-this-test message the prior generation wrote) and passes against the fix. Added two further adversarial tests: zero-remaining-statements (proving no empty Continuation block is synthesized, mirroring if/match's own precedent exactly) and a `continue` inside the diverge block resolving to the correct enclosing for-loop body block (proving loop_stack context survives the new recursive lower_stmts call).",
+    "independent_evidence_channel": "cargo build --workspace clean; the compiler itself enforced exhaustive-match completeness for the new ControlFlowBlockKind variant. Full cargo test --workspace: 487 total (262 adapter, +2 net versus the prior generation: 3 new tests, 1 renamed-in-place), 0 failed -- crucially, every pre-existing CFG test (if/match/loop/break/continue/panic-macro coverage) still passes unchanged, confirming this is a purely additive change with no regression to already-correct behavior. Re-ran this repository's own self-census and docs audit: both clean.",
+    "no_circular_self_certification": true
+  },
+  "implementation": {
+    "core_change": "core/src/semantic/control_flow.rs -- added ControlFlowBlockKind::LetElseDiverge (with as_str() mapping); updated the module's own doc comment from 'gap acknowledged' to 'gap closed', cross-referencing the new tests.",
+    "adapter_change": "adapter/src/semantic/rust/cfg.rs -- lower_stmts now intercepts Stmt::Local with a diverge arm before the stmt_expr-based dispatch, implementing the branch-splitting logic described above; updated the module's own doc comment to match.",
+    "roadmap_change": ".atlas/roadmap/SELF-BUILDING-R4-R8.md R4.6 section -- updated the third-gap paragraph from 'found, deferred' to 'found, closed same session', naming the exact verification performed.",
+    "test_change": "adapter/src/semantic/rust/tests.rs -- renamed/rewrote the prior baseline test to assert the correct complete graph; added let_else_as_the_last_statement_does_not_synthesize_an_empty_continuation_block and let_else_diverge_continue_resolves_to_the_enclosing_loop."
+  },
+  "adversarial_and_falsification_coverage": [
+    "confirmed the rewritten test fails against the pre-fix code before confirming it passes against the fix (not merely written to pass)",
+    "explicit edge case: let-else as the last statement in a block (no remaining statements) -- proves no wasteful/incorrect empty block synthesis",
+    "explicit cross-cutting case: continue inside the diverge block, inside a for-loop -- proves the fix composes correctly with pre-existing loop_stack machinery rather than only being tested in isolation",
+    "full pre-existing CFG test suite (if/match/loop/break/continue/panic-macro, labeled break/continue, shadowing interactions) re-run unchanged and confirmed passing, proving no regression to already-correct behavior"
+  ],
+  "validation_this_generation": {
+    "commands": {
+      "cargo build --workspace": { "exit_code": 0, "note": "compiler enforced exhaustive-match completeness for the new enum variant" },
+      "cargo fmt --all --check": { "exit_code": 0 },
+      "cargo clippy --workspace --all-targets -- -D warnings": { "exit_code": 0, "warnings": 0 },
+      "cargo test --workspace": { "exit_code": 0, "totals": "262 adapter, 2 apps/cli, 160 core, 63 runtime -- 487 total, 0 failed" },
+      "cargo run -q -p atlas-cli -- systemize --root . --out ...": { "exit_code": 0 },
+      "cargo run -q -p atlas-cli -- docs audit --root .atlas": { "exit_code": 0, "gate_ready": true }
+    }
+  },
+  "recensus_scope_after_promotion": [
+    "no prior CLOSED/EXTINCT conclusion depended on CFG's let-else handling, so no external conclusion requires reopening",
+    "R4.6's own closure status remains 'bootstrap materialized, closure remains open' (two other named gaps -- expression-nested control flow, closures -- remain open), but this specific third gap is now closed with real, tested implementation, not merely documented",
+    "this is the first generation this session where a previously-documented, in-scope mandatory gap was actually closed with implementation, rather than a new gap being found or an already-correct behavior being confirmed -- directly progresses the loop's own 3-consecutive-clean-generation convergence criterion once this gap-closure itself is confirmed stable across a future recensus"
+  ],
+  "overall_verdict": "MATERIALIZED, IMPLEMENTED, AND VERIFIED. Closed the real, in-scope CFG gap the immediately preceding generation found and explicitly flagged as the top priority. Let-else diverge blocks are now real, correctly-connected CFG blocks, verified against the plain case, the empty-remaining-statements edge case, and correct composition with the pre-existing loop_stack machinery, with the full pre-existing CFG test suite confirmed unchanged and passing.",
+  "historical_evidence_retained": true
+}

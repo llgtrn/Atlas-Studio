@@ -35,12 +35,10 @@
 //! no `FunctionIdentity` in Atlas's model to attribute one to). Both are real, documented gaps, not
 //! silent omissions -- true expression-level CFG splitting is deferred to a future wave.
 //!
-//! A third gap, found later by direct adversarial testing (see `adapter::semantic::rust::cfg`'s
-//! own module doc comment): a `let PAT = EXPR else { diverge }` statement's diverge block is not
-//! yet split into its own block/edge either -- the whole statement is currently treated as
-//! non-diverging straight-line code, so a function whose only conditional early exit is a let-else
-//! diverge block is reported identically to one with no conditional exit at all. Also a real,
-//! explicitly acknowledged gap, not a silent one.
+//! A `let PAT = EXPR else { diverge }` statement is also split into its own decision point, one
+//! more real branch shape alongside `if`/`match`/loops -- found missing, then closed, by direct
+//! adversarial testing this session (see `adapter::semantic::rust::cfg`'s own module doc comment
+//! and `ControlFlowBlockKind::LetElseDiverge` below).
 
 use super::SemanticRecordId;
 use crate::identity::RepositoryId;
@@ -75,6 +73,11 @@ pub enum ControlFlowBlockKind {
     /// `syn` node distinct from its parent's statement list; it exists because that list had to
     /// be split at the branch/loop boundary.
     Continuation,
+    /// A `let PAT = EXPR else { .. }` statement's diverge arm -- taken when the pattern fails to
+    /// match. Must never complete normally in valid Rust (the diverge block's type is `!`), but
+    /// this extractor still lowers its own statements like any other block rather than assuming
+    /// that guarantee holds for untrusted/malformed input.
+    LetElseDiverge,
 }
 
 impl ControlFlowBlockKind {
@@ -89,6 +92,7 @@ impl ControlFlowBlockKind {
             Self::MatchArm => "MATCH_ARM",
             Self::NestedBlockExpr => "NESTED_BLOCK_EXPR",
             Self::Continuation => "CONTINUATION",
+            Self::LetElseDiverge => "LET_ELSE_DIVERGE",
         }
     }
 }

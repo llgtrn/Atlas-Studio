@@ -8,14 +8,16 @@
 //! module doc comment on `core::semantic::control_flow` for the exact scope (statement-level
 //! constructs only; closures get no CFG of their own) and rationale.
 //!
-//! **Known, explicitly acknowledged gap** (found by direct adversarial testing, not yet closed):
-//! `lower_stmts` dispatches purely on `stmt_expr`, which returns `None` for every `syn::Stmt::
-//! Local` -- so a `let PAT = EXPR else { diverge }` statement's diverge block is completely
-//! invisible to successor computation, exactly as if it were an ordinary non-diverging `let`. A
-//! function whose only conditional early exit is a let-else diverge block is reported identically
-//! to one with no conditional exit at all. See `let_else_diverge_block_is_a_known_unrepresented_
-//! cfg_gap` in `tests.rs`, which asserts this exact (incomplete) behavior as a regression baseline
-//! rather than leaving the gap silent.
+//! `let PAT = EXPR else { diverge }` is lowered as a real decision point exactly like `if`/`match`:
+//! `lower_stmts` intercepts a `syn::Stmt::Local` whose `init.diverge` is `Some` before falling
+//! through to `stmt_expr`'s (deliberate) `None` for every other `Stmt::Local`, splits the
+//! remaining statements into a join continuation (mirroring the `if`/`match`/loop `remaining`
+//! handling below exactly, including the empty-remaining case producing no synthesized block), and
+//! separately lowers the diverge block's own statements as a `ControlFlowBlockKind::LetElseDiverge`
+//! block -- found missing, then closed, by direct adversarial testing this session; see
+//! `let_else_diverge_block_is_a_real_cfg_branch_point`/`let_else_as_the_last_statement_does_not_
+//! synthesize_an_empty_continuation_block`/`let_else_diverge_continue_resolves_to_the_enclosing_
+//! loop` in `tests.rs`.
 
 use atlas_core::{
     ControlFlowBlockIdentity, ControlFlowBlockKind, ControlFlowEdge, ControlFlowEdgeKind,
@@ -267,6 +269,77 @@ impl<'ctx, 'a> CfgBuilder<'ctx, 'a> {
                     return;
                 }
                 continue;
+            }
+            if let syn::Stmt::Local(local) = stmt
+                && let Some((_, diverge_expr)) =
+                    local.init.as_ref().and_then(|init| init.diverge.as_ref())
+            {
+                // A `let PAT = EXPR else { diverge }` statement is a decision point exactly like
+                // `if`/`match`: the "success" (pattern matched) path continues into whatever
+                // follows this statement in the same list (the same join-continuation split
+                // `if`/`match`/loop already use below), and the "diverge" (pattern failed) path
+                // branches into the diverge block's own, separately lowered statements.
+                let remaining = &stmts[i + 1..];
+                let join_cont = if remaining.is_empty() {
+                    cont
+                } else {
+                    let join_index = self.reserve_index();
+                    let join_id = self.block_id_for(join_index);
+                    let join_span = self.ctx.span_of(&remaining[0]);
+                    self.lower_stmts(
+                        remaining,
+                        cont,
+                        join_id.clone(),
+                        join_index,
+                        ControlFlowBlockKind::Continuation,
+                        false,
+                        join_span,
+                    );
+                    Continuation::FallthroughTo(join_id)
+                };
+                let mut successors = vec![continuation_to_edge(&join_cont)];
+                // `syn`'s grammar only ever produces `Expr::Block` for a let-else diverge arm;
+                // anything else cannot occur from valid `syn` parsing, but untrusted input is
+                // never trusted to panic on -- same discipline as `lower_if`'s own `_ =>
+                // Unresolved` fallback for its structurally-guaranteed-but-not-panicked-on shape.
+                if let syn::Expr::Block(diverge_block) = diverge_expr.as_ref() {
+                    let diverge_index = self.reserve_index();
+                    let diverge_id = self.block_id_for(diverge_index);
+                    let diverge_span = self.ctx.span_of(&diverge_block.block);
+                    self.lower_stmts(
+                        &diverge_block.block.stmts,
+                        // A diverge block must never complete normally in valid Rust (its type is
+                        // `!`) -- if it somehow does (malformed input), falling through to the
+                        // same join continuation as the success path is a reasonable best-effort
+                        // default, not a fabricated claim, matching `lower_if`'s own no-else
+                        // fallback to `join_cont`.
+                        join_cont.clone(),
+                        diverge_id.clone(),
+                        diverge_index,
+                        ControlFlowBlockKind::LetElseDiverge,
+                        false,
+                        diverge_span,
+                    );
+                    successors.push(ControlFlowEdge {
+                        kind: ControlFlowEdgeKind::Branch,
+                        target: Some(diverge_id),
+                    });
+                } else {
+                    successors.push(ControlFlowEdge {
+                        kind: ControlFlowEdgeKind::Unresolved,
+                        target: None,
+                    });
+                }
+                self.emit_block(
+                    entry_id,
+                    entry_index,
+                    entry_kind,
+                    is_entry,
+                    successors,
+                    span,
+                    EpistemicStatus::Observed,
+                );
+                return;
             }
             let Some(expr) = stmt_expr(stmt) else {
                 continue;

@@ -11,13 +11,13 @@ use super::super::extractor::{ExtractionInput, SemanticExtractor};
 use super::{RustSemanticExtractor, SUPPORTED_DIMENSIONS, spelling};
 use atlas_core::{
     ArtifactId, CallDispatchKind, CallSiteIdentity, ConcurrencyIdentity, ConcurrencyKind,
-    ContentFingerprint, ControlFlowBlockIdentity, ControlFlowBlockKind, ControlFlowEdgeKind,
-    DataFlowResolution, DiagnosticCode, EffectCategory, EffectIdentity, EpistemicStatus,
-    FunctionDeclarationKind, FunctionIdentity, FunctionSignature, OwnershipIdentity, OwnershipKind,
-    PersistenceIdentity, PersistenceKind, PersistenceResolution, PlaceRef, RepositoryId,
-    RevisionRef, SemanticDimension, SemanticObservation, SemanticRecordId, StateAccessIdentity,
-    StateAccessKind, StateResolution, SymbolIdentity, SymbolRole, TypeIdentity, ValueIdentity,
-    ValueRole,
+    ContentFingerprint, ControlFlowBlockIdentity, ControlFlowBlockKind, ControlFlowEdge,
+    ControlFlowEdgeKind, DataFlowResolution, DiagnosticCode, EffectCategory, EffectIdentity,
+    EpistemicStatus, FunctionDeclarationKind, FunctionIdentity, FunctionSignature,
+    OwnershipIdentity, OwnershipKind, PersistenceIdentity, PersistenceKind, PersistenceResolution,
+    PlaceRef, RepositoryId, RevisionRef, SemanticDimension, SemanticObservation, SemanticRecordId,
+    StateAccessIdentity, StateAccessKind, StateResolution, SymbolIdentity, SymbolRole,
+    TypeIdentity, ValueIdentity, ValueRole,
 };
 
 const ALL_DIMENSIONS: [SemanticDimension; 12] = [
@@ -5081,19 +5081,17 @@ fn a_raw_string_with_an_embedded_shorter_hash_quote_sequence_is_parsed_to_its_re
     );
 }
 
-// --- KNOWN GAP, explicitly acknowledged (see cfg.rs's own module doc comment): a `let PAT = EXPR
-// else { diverge }` statement's diverge block is invisible to CFG's successor computation. `lower_
-// stmts` dispatches only on `Stmt::Expr` (via `stmt_expr`, which returns `None` for `Stmt::Local`,
-// causing the whole `let` statement -- diverge block included -- to be skipped with `continue`).
-// A function whose only early-exit path is a let-else diverge block is therefore reported as having
-// exactly one, unconditionally-returning block, with the diverge block's own `return 0;` never
-// represented as its own edge at all -- CFG cannot currently distinguish this function from one
-// with no conditional exit whatsoever. This is the same class of honestly-documented, real residual
-// gap as R4.3.7's macro-shadowing risk and R4.6's own "statement-level only" scope boundary: found
-// by direct adversarial testing (this test asserts the CURRENT, incomplete behavior precisely, so a
-// future fix is a deliberate, falsifiable change to this test, not a silent behavior drift).
+// --- a `let PAT = EXPR else { diverge }` statement is a real CFG decision point, exactly like
+// `if`/`match`: the entry block gets two successors (Fallthrough into the success continuation,
+// Branch into the diverge block), and the diverge block's own statements are lowered like any
+// other block. Closes a real gap found by direct adversarial testing: before this fix, `lower_
+// stmts` dispatched only on `Stmt::Expr` (via `stmt_expr`, which returns `None` for `Stmt::Local`),
+// so the whole `let` statement -- diverge block included -- was silently skipped, and a function
+// whose only early exit was a let-else diverge block was reported identically to one with no
+// conditional exit at all.
+
 #[test]
-fn let_else_diverge_block_is_a_known_unrepresented_cfg_gap() {
+fn let_else_diverge_block_is_a_real_cfg_branch_point() {
     const SRC: &str = r#"
 pub fn maybe(found: Option<u8>) -> u8 {
     let Some(value) = found else {
@@ -5105,14 +5103,142 @@ pub fn maybe(found: Option<u8>) -> u8 {
     let batch = extract_all("src/probe.rs", SRC);
     let caller = find_function_identity(&batch, &[], "maybe").unwrap();
     let blocks = control_flow_blocks_for(&batch, caller);
-    // Exactly one block is emitted for the whole function body -- the let-else statement produced
-    // no block of its own, and neither did its diverge arm's `return 0;`.
     assert_eq!(
         blocks.len(),
-        1,
-        "if this changes, CFG has started representing let-else diverge blocks -- update this \
-         test to assert the real, now-correct successor graph instead of this known gap"
+        3,
+        "expected one entry (decision point) block, one Continuation block (the success path's \
+         `value` tail expression), and one LetElseDiverge block (the diverge arm's `return 0;`)"
     );
-    assert_eq!(blocks[0].successors.len(), 1);
-    assert_eq!(blocks[0].successors[0].kind, ControlFlowEdgeKind::Return);
+
+    let entry = &blocks[0];
+    assert!(entry.is_entry);
+    assert_eq!(entry.kind, ControlFlowBlockKind::FunctionEntry);
+    assert_eq!(entry.successors.len(), 2);
+    assert_eq!(entry.successors[0].kind, ControlFlowEdgeKind::Fallthrough);
+    let continuation_id = entry.successors[0].target.clone().unwrap();
+    assert_eq!(entry.successors[1].kind, ControlFlowEdgeKind::Branch);
+    let diverge_id = entry.successors[1].target.clone().unwrap();
+    assert_ne!(continuation_id, diverge_id);
+
+    let continuation = blocks
+        .iter()
+        .find(|b| {
+            SemanticRecordId::new(SemanticDimension::ControlFlow, &b.identity_key())
+                == continuation_id
+        })
+        .expect("the entry block's Fallthrough target must be one of the emitted blocks");
+    assert_eq!(continuation.kind, ControlFlowBlockKind::Continuation);
+    assert!(!continuation.is_entry);
+    assert_eq!(continuation.successors.len(), 1);
+    assert_eq!(
+        continuation.successors[0].kind,
+        ControlFlowEdgeKind::Return,
+        "the success path's tail expression `value` implicitly returns"
+    );
+
+    let diverge = blocks
+        .iter()
+        .find(|b| {
+            SemanticRecordId::new(SemanticDimension::ControlFlow, &b.identity_key()) == diverge_id
+        })
+        .expect("the entry block's Branch target must be one of the emitted blocks");
+    assert_eq!(diverge.kind, ControlFlowBlockKind::LetElseDiverge);
+    assert!(!diverge.is_entry);
+    assert_eq!(diverge.successors.len(), 1);
+    assert_eq!(
+        diverge.successors[0].kind,
+        ControlFlowEdgeKind::Return,
+        "the diverge arm's own `return 0;` is a real Return edge"
+    );
+}
+
+// --- a let-else statement as the LAST statement in a block (no remaining statements after it)
+// must not synthesize an empty, unnecessary Continuation block -- the success path's edge must
+// point directly at the enclosing continuation, mirroring `if`/`match`'s own no-remaining-
+// statements handling exactly -----------------------------------------------------------------
+
+#[test]
+fn let_else_as_the_last_statement_does_not_synthesize_an_empty_continuation_block() {
+    const SRC: &str = r#"
+pub fn maybe(found: Option<u8>) {
+    let Some(_value) = found else {
+        return;
+    };
+}
+"#;
+    let batch = extract_all("src/probe.rs", SRC);
+    let caller = find_function_identity(&batch, &[], "maybe").unwrap();
+    let blocks = control_flow_blocks_for(&batch, caller);
+    assert_eq!(
+        blocks.len(),
+        2,
+        "expected only the entry (decision point) block and the LetElseDiverge block -- no \
+         Continuation block for zero remaining statements"
+    );
+    assert!(
+        blocks
+            .iter()
+            .all(|b| b.kind != ControlFlowBlockKind::Continuation),
+        "no Continuation block should exist when there are no statements after the let-else"
+    );
+    let entry = &blocks[0];
+    assert_eq!(entry.successors.len(), 2);
+    assert_eq!(
+        entry.successors[0],
+        ControlFlowEdge {
+            kind: ControlFlowEdgeKind::Return,
+            target: None,
+        },
+        "the success path falls off the end of the function body directly -- an implicit `()` \
+         return, exactly like a bare `if` with no else and no trailing expression"
+    );
+}
+
+// --- a let-else diverge block's own `continue` correctly resolves against the enclosing loop --
+// stresses the interaction between the new let-else branch and `loop_stack`, since the diverge
+// block's own statements are lowered via a recursive `lower_stmts` call while still inside the
+// loop's frame ---------------------------------------------------------------------------------
+
+#[test]
+fn let_else_diverge_continue_resolves_to_the_enclosing_loop() {
+    const SRC: &str = r#"
+pub fn skip_missing(items: &[Option<u8>]) -> u8 {
+    let mut total = 0;
+    for item in items {
+        let Some(value) = item else {
+            continue;
+        };
+        total += value;
+    }
+    total
+}
+"#;
+    let batch = extract_all("src/probe.rs", SRC);
+    let caller = find_function_identity(&batch, &[], "skip_missing").unwrap();
+    let blocks = control_flow_blocks_for(&batch, caller);
+    let diverge = blocks
+        .iter()
+        .find(|b| b.kind == ControlFlowBlockKind::LetElseDiverge)
+        .expect("the for-loop body's let-else diverge arm must produce a LetElseDiverge block");
+    assert_eq!(diverge.successors.len(), 1);
+    assert_eq!(
+        diverge.successors[0].kind,
+        ControlFlowEdgeKind::LoopRepeat,
+        "a bare `continue` inside the diverge block must resolve to the enclosing for-loop's own \
+         repeat target, exactly as it would for a `continue` anywhere else in the loop body"
+    );
+    let for_loop_body = blocks
+        .iter()
+        .find(|b| b.kind == ControlFlowBlockKind::ForLoopBody)
+        .expect("the for-loop body must still produce its own block");
+    assert_eq!(
+        diverge.successors[0].target,
+        Some(SemanticRecordId::new(
+            SemanticDimension::ControlFlow,
+            &for_loop_body.identity_key()
+        )),
+        "the diverge arm's `continue` must target the SAME loop-body block a normal `continue` \
+         anywhere else in this loop would -- proving loop_stack context survives the recursive \
+         lower_stmts call for the diverge block's own statements"
+    );
 }
