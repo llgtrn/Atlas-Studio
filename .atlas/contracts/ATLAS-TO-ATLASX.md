@@ -34,9 +34,10 @@ Materialization MUST NOT invent new design semantics.
 
 ~~~text
 *.atlas
-= complete canonical engineering knowledge for the admitted scope
+= SEALED complete canonical engineering knowledge for the admitted scope
   including observations, conflicts, alternatives, rejected candidates,
-  evidence, unknowns, Technology Genomes and selected design
+  evidence/attestation commitments, unknowns, Technology Genomes,
+  selected design and the seal-policy result that authorized publication
 
 SelectedDesign
 = explicit authoritative design choice inside that Atlas root
@@ -78,13 +79,15 @@ If an external fact affects materialization, it must enter through an explicit p
 Before materialization:
 
 1. verify Atlas wire/root integrity;
-2. verify Genome/schema compatibility;
-3. verify required shards are present/resolvable;
-4. verify CensusCertificate/seal policy required by the selected scope;
-5. locate exactly one SelectedDesign identity;
-6. verify the SelectedDesign refers only to identities reachable from the pinned Atlas root or explicit admitted external boundaries;
-7. verify materialization-critical obligations are closed;
-8. reject contradictory selected-design state.
+2. verify that the root is SEALED rather than candidate/unsealed state;
+3. verify Genome/schema compatibility;
+4. verify required shards are present/resolvable;
+5. verify seal identity/policy and required evidence/attestation roots;
+6. verify CensusCertificate and obligation state required by the selected scope;
+7. locate exactly one SelectedDesign identity;
+8. verify the SelectedDesign refers only to identities reachable from the pinned Atlas root or explicit admitted external boundaries;
+9. verify materialization-critical obligations are closed;
+10. reject contradictory selected-design state.
 
 Materialization MUST fail closed on required integrity/schema/selection errors.
 

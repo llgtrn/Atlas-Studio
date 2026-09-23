@@ -97,6 +97,8 @@ Keep ResearchClaim distinct from ObservedEvidence while adding the mature Human+
 - external synthesis/code providers;
 - CandidateChangeSet;
 - generated-code census as untrusted source;
+- CandidateAtlas construction state distinct from sealed/published `*.atlas`;
+- construction-time VERIFY / BENCH / PROVE obligation evaluation, not post-publication testing;
 - security/dependency/license/test/benchmark/proof admission;
 - explicit Human/Policy/Hybrid SelectedDesign authority;
 - AdmissionTransaction for exact-parent, atomic, rollbackable canonical self-modification;
@@ -115,7 +117,9 @@ Primary donor lane: W5 plus admitted external provider adapters.
 
 ### R8 — real ATLAS and AtlasX
 
-Implement the durable binary Atlas substrate after the selected implementation has already been synthesized/censused/validated: logical seal, provider-independent lossless semantic compaction, content addressing, integrity, transactional publication, sharding, deterministic SelectedDesign→AtlasX materialization, validated AtlasX object closure and lineage needed for census-derived knowledge to survive physical donor-source deletion at scale.
+Implement the durable binary Atlas substrate only after the selected implementation has been synthesized, censused, construction-verified and found seal-eligible: logical seal with obligation/evidence commitments, provider-independent lossless semantic compaction, content addressing, integrity, transactional publication, sharding, deterministic SelectedDesign→AtlasX materialization, validated AtlasX object closure and lineage needed for census-derived knowledge to survive physical donor-source deletion at scale.
+
+A canonical `*.atlas` is therefore a post-verification/post-seal publication, never a design sketch or an unverified candidate container.
 
 Normative R8 contracts include:
 
@@ -123,6 +127,7 @@ Normative R8 contracts include:
 - `../contracts/ATLAS-BINARY-WIRE-FORMAT.md`;
 - `../contracts/ATLAS-SHARDING.md`;
 - `../contracts/SELECTED-DESIGN.md`;
+- `../contracts/VERIFICATION-METRICS-PERFORMANCE.md`;
 - `../contracts/ATLAS-TO-ATLASX.md`;
 - `../contracts/ATLASX-FORMAT.md`;
 - `../contracts/ATLASX-BINARY-WIRE-FORMAT.md`.
@@ -168,13 +173,23 @@ CandidateChangeSet
         ↓
 Atlas inventories/censuses generated code
         ↓
-security + dependency + license + semantic + verification gates
+CandidateAtlas
+        ↓
+CostModel / constraint pruning
+        ↓
+VERIFY / BENCH / PROVE required obligations
+        ↓
+repair/regenerate until admissible
         ↓
 authorized SelectedDesign
+        ↓
+final exact-candidate seal gate
         ↓
 SEALED logical Atlas
         ↓
 mechanical deterministic compaction
+        ↓
+canonical *.atlas
 ~~~
 
 Search/research may feel like a research assistant; fast typed selection may use a Jev-class provider; code synthesis may use frontier external providers. These are replaceable adapters and do not own canonical semantics.

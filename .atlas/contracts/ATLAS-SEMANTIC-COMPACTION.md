@@ -15,7 +15,7 @@ Density MUST come from removing representational redundancy, not deleting engine
 This contract defines the lossless semantic-compaction layer between the canonical logical Atlas and its physical wire/shard encoding.
 
 ~~~text
-Logical Atlas semantic world
+SEALED logical Atlas semantic world
         ↓
 canonical semantic compaction
         ↓
@@ -78,6 +78,10 @@ Approximate equivalence is not canonical equivalence.
 
 Canonical compaction begins only after logical Atlas seal.
 
+CandidateAtlas and SealEligibleAtlas are not legal canonical-compaction inputs.
+
+The compactor MUST fail closed if the input does not carry/verifiably reference the required seal identity, SelectedDesign identity, active seal-policy identity and evidence/attestation commitment required by the publication profile.
+
 During a canonical compaction run the following are forbidden:
 
 - research-provider calls;
@@ -92,6 +96,9 @@ During a canonical compaction run the following are forbidden:
 The compactor receives:
 
 - exact sealed logical Atlas identity;
+- exact seal/policy identity;
+- exact SelectedDesign identity;
+- exact required evidence/attestation root(s);
 - exact compaction profile;
 - exact schema/wire versions;
 - deterministic configuration.

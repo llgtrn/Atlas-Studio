@@ -33,24 +33,38 @@ CandidateChangeSet
         ↓
 Untrusted Ingestion + Census
         ↓
-Semantic / Security / Dependency / License Validation
+CandidateAtlas semantic world
         ↓
-Tests / Benchmarks / Proof / Differential Checks
+Analytic CostModel / constraint pruning
         ↓
-Candidate Revision Loop
+VerificationWorld materialization
+        ↓
+VERIFY / BENCH / PROVE required obligations
+        ↓
+Candidate Revision / Repair Loop ↺
+        ↓
+VALIDATED CandidateAtlas
         ↓
 SelectedDesign
+        ↓
+AdmissionTransaction when Atlas self-source changes
+        ↓
+Final exact-candidate seal gate
         ↓
 SEALED Logical Atlas
         ↓
 Deterministic Mechanical Compaction
         ↓
-*.atlas
+canonical *.atlas
 ~~~
 
 The AI-assisted stages occur BEFORE semantic seal.
 
+Verification/benchmark/obligation evaluation are construction stages, not post-publication cleanup.
+
 The compaction stage occurs AFTER semantic seal.
+
+No canonical `*.atlas` publication exists before the seal gate passes.
 
 No AI/model decision is permitted inside canonical compaction.
 
@@ -325,9 +339,13 @@ Generated code MUST NOT be executed merely because the synthesis provider reques
 
 Execution occurs only under the active security/sandbox policy.
 
-## Stage C9 — Validation
+## Stage C9 — Construction-time verification
 
-A candidate becomes VALIDATED only after the required policy-specific gates pass.
+C9 executes the canonical VERIFY / BENCH / PROVE semantics in `VERIFICATION-METRICS-PERFORMANCE.md`.
+
+A CandidateAtlas becomes VALIDATED only after the exact required policy-specific gates for that candidate/revision/profile pass.
+
+Validation is not a post-build check against an already-final artifact. It is part of deciding whether a candidate is allowed to become seal-eligible.
 
 Possible gates include:
 
@@ -352,6 +370,18 @@ Possible gates include:
 A benchmark winner is not automatically semantically valid.
 
 A semantically correct candidate is not automatically selected if it violates another hard objective.
+
+A CostModel prediction may prune or prioritize candidates but cannot satisfy an empirical performance obligation that policy requires to be measured.
+
+C9 emits durable structured evidence/diagnostics and an obligation-evaluation result. It does not itself select or seal.
+
+## CandidateAtlas versus final *.atlas
+
+CandidateAtlas is a logical construction state, not a canonical published `*.atlas` file.
+
+Atlas MAY persist/debug/cache candidate state, but any such serialization must be explicitly unsealed/noncanonical.
+
+Only the output of C12 followed by deterministic C13 compaction may be published as canonical `*.atlas`.
 
 ## Stage C10 — Candidate revision loop
 
@@ -407,9 +437,23 @@ The transaction pins the exact parent revision, applies the candidate in isolati
 
 POLICY_AUTO selection does not imply unrestricted repository writes; the SelfBuildWorkOrder and admission policy must authorize the exact mutation class.
 
+## Stage C11B — Final exact-candidate seal eligibility
+
+Selection chooses the candidate/design. It does not make prior evidence automatically fresh forever.
+
+Before C12, Atlas MUST establish that the exact selected candidate/revision and all material selected bindings still satisfy the active seal policy.
+
+For normal creation this means checking that the required C9 evidence applies exactly to the SelectedDesign.
+
+For Atlas self-build this also includes the post-apply AdmissionTransaction recensus/verification of the exact resulting repository tree.
+
+If selection, application, binding resolution, dependency resolution or environment/profile changes invalidate material evidence, the affected gates MUST be rerun.
+
+The result is SealEligibleAtlas, not yet a published artifact.
+
 ## Stage C12 — Logical Atlas seal
 
-Only after selection and closure may Atlas seal the logical Atlas.
+Only after authorized selection, required closure and exact-candidate seal eligibility may Atlas seal the logical Atlas.
 
 The SEALED logical Atlas MUST preserve enough information to explain and reproduce the selected engineering meaning, including where policy requires:
 
@@ -424,13 +468,19 @@ The SEALED logical Atlas MUST preserve enough information to explain and reprodu
 - research/evidence references;
 - dependencies;
 - security/admission decisions;
-- tests/benchmarks/proofs;
+- VerificationPlan / VerificationWorld / FailureScenario definitions required by policy;
+- MetricContracts and performance/resource objectives;
+- tests/benchmarks/proofs and their exact evidence/attestation identities;
+- obligation evaluation state for the exact seal policy;
+- evidence/attestation root(s) sufficient to verify admission;
 - conflicts/unknowns permitted by policy;
 - Genome/schema/version pins;
 - CensusCertificate;
 - SelfBuildWorkOrder and committed AdmissionTransaction lineage when the logical Atlas represents an admitted self-build revision.
 
 The logical Atlas is already complete engineering meaning before physical compaction starts.
+
+The seal is the boundary after which VERIFY/BENCH/PROVE results used for admission are historical evidence about an immutable selected semantic world. New observations may create new attestations or a new candidate, but they do not silently rewrite the existing seal.
 
 ## Stage C13 — Mechanical compaction
 
@@ -489,9 +539,11 @@ research / donor census
 
 Once the compaction blueprint/profile is selected, the actual seal→bytes transformation is mechanical.
 
-## Build-in-place principle
+## Build-in-place and build-through-verification principle
 
 Atlas creation is allowed to generate implementation logic before the `*.atlas` artifact exists.
+
+It is also required to verify that implementation before final `*.atlas` publication when the active seal policy requires verification.
 
 This is intentional.
 
@@ -501,10 +553,15 @@ The desired cycle is:
 design candidate
 → code candidate
 → census code
-→ verify code
+→ CandidateAtlas
+→ predict / optimize
+→ verify / bench / prove required obligations
+→ repair until admissible
 → select code/design
+→ final exact-candidate seal gate
 → seal semantics
 → compact
+→ canonical *.atlas
 ~~~
 
 NOT:
@@ -576,10 +633,15 @@ decide quickly
 synthesize aggressively
 trust nothing implicitly
 census what was generated
-verify what was claimed
+model cost before brute-force search
+verify the exact candidate
+measure declared metrics
+evaluate named obligations
+repair failures
 select explicitly
-seal complete meaning
+seal only evidence-backed meaning
 compress mechanically
+publish *.atlas only after seal
 ~~~
 
 External intelligence accelerates invention.

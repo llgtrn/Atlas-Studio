@@ -8,7 +8,9 @@ canonical: true
 
 ## Purpose
 
-A SelectedDesign is the explicit canonical design choice inside one logical Atlas root that is eligible for deterministic AtlasX materialization.
+A SelectedDesign is the explicit authorized design choice inside one logical Atlas construction world.
+
+It is not yet a seal and is not by itself sufficient for canonical AtlasX materialization.
 
 It is not an inference, not a compiler preference and not a directory layout.
 
@@ -24,6 +26,12 @@ generated implementation census + validation
 validated candidate(s)
         ↓ explicit authorized selection
 SelectedDesign
+        ↓
+final exact-candidate seal eligibility
+        ↓
+SEALED logical Atlas
+        ↓
+canonical *.atlas
         ↓
 ATLAS → ATLASX materialization
 ~~~
@@ -120,9 +128,13 @@ A canonical SelectedDesign MUST contain at least:
 
 No executable-significant field may be implicit.
 
-## Selection is not repository mutation
+## Selection is not repository mutation and not seal
 
 For Atlas self-building, a SelectedDesign records the authorized design choice but does not apply a CandidateChangeSet to canonical source. The exact source transition is governed by ADMISSION-TRANSACTION.md and must be re-observed after application. A selected candidate that fails post-apply recensus/verification never becomes an admitted Atlas revision.
+
+For every creation path, SelectedDesign also does not mean "verification complete forever" and does not itself authorize canonical `*.atlas` publication.
+
+The exact selected candidate must satisfy the final seal-eligibility gate in ATLAS-CREATION-PIPELINE.md. Any material change after validation invalidates the affected evidence and requires the relevant VERIFY/BENCH/PROVE obligations to be reevaluated.
 
 ## Stable design identity
 

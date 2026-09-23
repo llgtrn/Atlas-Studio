@@ -8,12 +8,16 @@ canonical: true
 
 ## Purpose
 
-Atlas treats verification, measurement and performance objectives as engineering semantics, not CI files attached after construction.
+Atlas treats verification, measurement, proof obligations and performance objectives as first-class construction semantics.
 
-## Canonical model
+They are NOT post-build utilities attached after a canonical `*.atlas` already exists.
+
+A final canonical `*.atlas` may be published only after the exact selected candidate has satisfied the seal policy's required verification obligations and the resulting evidence has been bound into the logical seal.
+
+## Canonical construction model
 
 ~~~text
-semantic implementation
+semantic implementation candidate
 + obligations/invariants
 + MetricContract
 + Workload
@@ -22,14 +26,68 @@ semantic implementation
 + FailureScenario
 + performance objectives
 + CostModel
-→ candidate
-→ analytic prediction / pruning
-→ materialize verification world
-→ tests / analysis / fuzz / fault injection / benchmark
-→ Observation + Evidence
-→ calibration / structured failure
-→ repair or selection
+        ↓
+CandidateAtlas
+        ↓
+analytic prediction / constraint solving / pruning
+        ↓
+materialize selected verification worlds
+        ↓
+VERIFY
+  semantic / type / static / security / dependency / license
+  unit / property / fuzz / differential / integration / system
+  failure / recovery / compatibility
+        ↓
+BENCH + METRICS
+  empirical Observation under pinned Workload + Environment
+        ↓
+PROVE / OBLIGATION EVALUATION
+  bind evidence to each required obligation
+        ↓
+failed / unknown required obligation?
+   yes → structured failure → repair / redesign / regenerate ↺
+   no
+        ↓
+SealEligibleAtlas
+        ↓
+authorized selection + final exact-candidate gate
+        ↓
+SEALED logical Atlas
+        ↓
+deterministic compaction
+        ↓
+canonical *.atlas
 ~~~
+
+Mathematical models reduce search cost. Evidence decides admission.
+
+There is no valid canonical flow of:
+
+~~~text
+write final *.atlas
+→ later verify whether it should have existed
+~~~
+
+## Construction-state vocabulary
+
+The following states are semantically distinct:
+
+~~~text
+CandidateAtlas
+SealEligibleAtlas
+SEALED logical Atlas
+physical canonical *.atlas
+~~~
+
+**CandidateAtlas** is a logical candidate semantic world under construction. It may be incomplete, failing, experimentally materialized, benchmarked, repaired or rejected. It is not a canonical published `*.atlas`.
+
+**SealEligibleAtlas** is a candidate for which every obligation required by the active seal policy has an acceptable evidence state for the exact selected candidate/revision/profile. Eligibility is still not publication.
+
+**SEALED logical Atlas** is the immutable logical engineering meaning authorized for publication. The seal binds the selected design, relevant constraints, exact obligation set, evidence/attestation roots, policy identity and all permitted unresolved states.
+
+The physical canonical `*.atlas` is only the deterministic compacted representation of that SEALED logical Atlas.
+
+Debug/migration tooling MAY serialize unsealed candidate state, but such bytes MUST be explicitly noncanonical/unsealed and MUST NOT be advertised as a canonical `*.atlas`.
 
 ## MetricContract
 
@@ -53,6 +111,93 @@ A test is one evidence producer. An obligation is what must hold. Evidence may c
 
 A pass never means universal correctness beyond the declared scope and environment.
 
+Construction MUST evaluate the exact obligations required by the active seal policy. A required obligation may not disappear merely because no convenient test exists.
+
+A provider claim such as "this should be correct" is not verification evidence.
+
+A benchmark number is not correctness evidence unless the obligation itself is a measured performance/resource property.
+
+A formal proof artifact is evidence for the exact property/model/assumptions it covers; it does not prove unrelated implementation properties.
+
+## VERIFY / BENCH / PROVE are construction operations
+
+Atlas defines three logical operation classes independent of any particular CLI spelling.
+
+### VERIFY
+
+VERIFY orchestrates the evidence-producing checks required for a candidate, which may include:
+
+- semantic/graph/obligation consistency;
+- compiler/type/static analysis;
+- security, capability and policy analysis;
+- dependency/license/provenance checks;
+- unit/property/fuzz/differential tests;
+- integration/system scenarios;
+- VerificationWorld materialization;
+- compatibility checks;
+- failure/recovery scenarios;
+- Atlas recensus and semantic-delta checks.
+
+VERIFY emits structured evidence and diagnostics. It does not select a design and does not seal an artifact.
+
+### BENCH
+
+BENCH executes measurement plans under pinned Workload + Environment assumptions and emits empirical Observations.
+
+BENCH MAY measure latency, throughput, CPU, memory, IO, bandwidth, startup, recovery, energy, monetary cost or other typed metrics.
+
+A predicted value from CostModel is never relabeled as a benchmark observation.
+
+### PROVE
+
+PROVE means **obligation evaluation**, not a blanket claim that all software correctness has been mathematically proven.
+
+PROVE takes:
+
+~~~text
+required obligation
++ exact candidate/revision
++ assumptions/profile
++ admissible evidence set
+→ satisfied / violated / unresolved according to the obligation's policy
+~~~
+
+Evidence may include formal proof/model checking where available, but may also be a policy-defined combination of static analysis, tests, failure campaigns, differential evidence and measurements.
+
+The term "prove" MUST always remain scoped to the named obligation and its assumptions.
+
+### CLI projection
+
+A future or current CLI MAY expose surfaces such as:
+
+~~~text
+atlas build
+atlas verify
+atlas bench
+atlas prove
+atlas inspect
+atlas seal
+~~~
+
+These command spellings are UX/API projections, not the canonical semantic model.
+
+Conceptually, a high-level `atlas build <input>` may orchestrate construction internally as:
+
+~~~text
+construct
+→ predict / optimize
+→ verify
+→ bench where required
+→ prove/evaluate obligations
+→ repair loop
+→ select
+→ seal
+→ compact
+→ publish *.atlas
+~~~
+
+Calling `atlas verify`, `atlas bench` or `atlas prove` manually is useful for development/debugging, but creation of a final `*.atlas` invokes the same logical engines as part of construction whenever required by policy.
+
 ## Performance model
 
 CostModel is distinct from empirical evidence. Atlas may represent complexity, queueing, critical paths, contention, memory/IO/network cost, reliability and other mathematical models.
@@ -73,16 +218,61 @@ FailureScenario is first-class and may describe node/process loss, storage failu
 
 Steady-state and failure-state performance are separate regimes.
 
-## Artifact identity and mutable evidence
+## Artifact identity, EvidenceBundle and mutable observations
 
-Stable semantic definitions, objectives and verification plans may be part of logical Atlas identity. New runtime/benchmark observations must be content-addressed evidence/attestations and must not silently mutate the semantic identity of an already sealed artifact.
+Stable semantic definitions, objectives, MetricContracts and verification plans may be part of logical Atlas identity.
 
-## CI and verify
+Run-specific observations MUST remain attributable, content-addressed evidence rather than silently rewriting semantic definitions.
 
-Atlas should converge on an Atlas-native verify operation capable of semantic checks, static/security analysis, environment materialization, tests, failure injection, metric collection, objective evaluation and evidence production.
+A seal SHOULD bind an evidence/attestation root sufficient to establish the exact evidence set used for admission. Large raw traces or benchmark samples may remain in content-addressed EvidenceBundles or authenticated external evidence storage according to policy; the sealed Atlas retains the identities/hashes required to verify the admission claim.
 
-Traditional CI is one executor/materializer of this plan.
+New observations produced after sealing do not retroactively mutate the old seal. They may:
+
+- create additional attestations against the same immutable artifact;
+- trigger a new candidate/revision;
+- invalidate a deployment policy externally;
+- become input to a later calibration/model revision.
+
+## Seal gate
+
+A candidate MUST NOT become SEALED merely because one test suite passed.
+
+The seal gate evaluates the exact required obligation set for the selected artifact/profile.
+
+Depending on policy, required classes may include:
+
+- semantic consistency;
+- security/authority;
+- dependency/provenance/license;
+- correctness and compatibility;
+- failure/recovery;
+- performance/resource objectives;
+- reproducibility;
+- CensusCertificate/closure;
+- selected-design and admission lineage.
+
+Required VIOLATED, CONFLICT, UNKNOWN or UNSUPPORTED obligations block the seal unless the active policy explicitly permits that exact unresolved state for that exact non-critical obligation.
+
+No synthesis, research, decision or verification provider may weaken the seal policy to make its own candidate pass.
+
+## CI and execution backends
+
+Traditional CI is one executor/materializer of Atlas verification semantics.
+
+Docker Compose, GitHub Actions, Kubernetes, VMs, Firecracker, local processes and remote workers may execute a VerificationPlan. None is the source of truth for what must be verified.
 
 ## Final invariant
 
-Atlas uses mathematics to reduce search cost and evidence to decide whether the resulting implementation actually satisfies the declared objective.
+Atlas uses mathematics to reduce search cost, measurement to characterize reality, and scoped evidence to decide whether a candidate is eligible to become a sealed canonical `*.atlas`.
+
+~~~text
+candidate
+→ verify / bench / prove obligations
+→ evidence
+→ repair until policy passes
+→ seal
+→ compact
+→ *.atlas
+~~~
+
+Never the reverse.

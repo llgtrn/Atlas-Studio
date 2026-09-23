@@ -368,6 +368,8 @@ R6 is the first point at which Atlas can make strong proof-producing statements 
 
 Before the mature autonomous creation loop may be claimed, Atlas must make verification/measurement first-class under ../contracts/VERIFICATION-METRICS-PERFORMANCE.md.
 
+VP1 is part of `*.atlas` construction. It is not a promise to create a final artifact first and test it afterward.
+
 VP1 includes, at the contract/runtime maturity appropriate to the active wave:
 
 - Obligation distinct from Test/Evidence;
@@ -378,9 +380,12 @@ VP1 includes, at the contract/runtime maturity appropriate to the active wave:
 - TheoreticalCost / PredictedPerformance / EmpiricalObservation separation;
 - CostModel, uncertainty and calibration;
 - multi-objective optimization/search as replaceable solver backends;
-- seal/admission policies that bind claims to exact workload/environment/evidence scope.
+- seal/admission policies that bind claims to exact workload/environment/evidence scope;
+- CandidateAtlas → SealEligibleAtlas → SEALED logical Atlas state separation;
+- VERIFY / BENCH / PROVE logical engines reusable both inside construction and through future CLI/API surfaces;
+- evidence/attestation roots bound by the seal without turning the immutable artifact into a mutable telemetry database.
 
-Analytic models may prune candidate space. Final performance claims remain evidence-scoped.
+Analytic models may prune candidate space. Final performance claims remain evidence-scoped. A failed required metric/obligation returns the candidate to the repair loop; it does not create a final `*.atlas`.
 ## R7 — research, typed decision, synthesis, self-build control and admission
 
 R7 connects observed donor reality to research and Human+AI design decisions without allowing research/model claims to impersonate observation. R7 is also the first maturity level at which Atlas may run a complete bounded self-coding loop.
@@ -401,7 +406,10 @@ Required capabilities:
 - external synthesis/code providers producing real candidate implementation;
 - generated implementation ingested and censused as untrusted source;
 - declared generated intent compared with observed generated semantics;
-- security/dependency/license/test/benchmark/proof and VP1 gates;
+- CandidateAtlas state after generated-code census;
+- analytic CostModel/constraint pruning before expensive materialization where useful;
+- construction-time VERIFY / BENCH / PROVE and VP1 gates;
+- security/dependency/license/test/benchmark/proof evidence bound to named obligations;
 - explicit Human/Policy/Hybrid selection authority;
 - AdmissionTransaction governed by ../contracts/ADMISSION-TRANSACTION.md for canonical Atlas source mutation;
 - post-apply recensus and expected-vs-observed semantic-delta verification;
@@ -449,7 +457,9 @@ Required capabilities:
 - stable cross-shard identity/bindings;
 - explicit SelectedDesign identity under `../contracts/SELECTED-DESIGN.md`;
 - selected implementation semantics and provider/candidate lineage complete before seal;
-- logical Atlas seal after candidate implementation census/verification;
+- final exact-candidate seal-eligibility gate after candidate implementation census/verification;
+- logical Atlas seal that binds SelectedDesign + required obligation/evidence commitments;
+- canonical `*.atlas` publication only after seal;
 - deterministic provider-independent mechanical compaction after seal;
 - deterministic Atlas→AtlasX materialization under `../contracts/ATLAS-TO-ATLASX.md`;
 - canonical AtlasX object/manifest validation under `../contracts/ATLASX-FORMAT.md`;
@@ -476,11 +486,17 @@ self-census / closure / metrics
 → candidate set / typed decision
 → synthesis CandidateChangeSet
 → untrusted census
-→ verification / benchmark / proof
+→ CandidateAtlas
+→ CostModel / constraint pruning
+→ VERIFY / BENCH / PROVE required obligations
+→ repair loop until admissible
 → authorized SelectedDesign
-→ AdmissionTransaction
-→ exact applied-tree recensus
-→ admitted Atlas revision
+→ AdmissionTransaction when self-source changes
+→ exact applied-tree recensus / reverify
+→ SealEligibleAtlas
+→ SEALED logical Atlas
+→ deterministic compacted *.atlas when publication is required
+→ admitted Atlas revision / durable artifact
 → recompute gaps
 ↺
 ~~~

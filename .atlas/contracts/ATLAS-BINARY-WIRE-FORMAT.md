@@ -127,6 +127,9 @@ A root container MUST contain exactly one `ROOT_MANIFEST`.
 The manifest commits to at least:
 
 - logical Atlas root identity;
+- seal identity and seal-policy identity;
+- SelectedDesign identity when the root is materialization-capable;
+- required verification/evidence/attestation root identities used by the seal;
 - Atlas wire version;
 - Atlas semantic schema set;
 - exact Genome identity/hash;
@@ -139,6 +142,8 @@ The manifest commits to at least:
 - compatibility requirements.
 
 A shard manifest MUST bind the shard to its logical root and content identity.
+
+A root that is candidate/unsealed state MUST NOT be advertised as canonical sealed `*.atlas`. Debug or migration containers, when supported, require an explicit unsealed marker/profile and are outside canonical publication identity.
 
 ## Record framing
 
@@ -259,7 +264,9 @@ magic/version/header bounds
 → section hashes
 → record framing/bounds
 → semantic schema constraints
-→ CensusCertificate / seal policy when required
+→ seal identity / seal-policy identity
+→ required verification/evidence/attestation roots
+→ CensusCertificate / obligation closure required by seal policy
 ```
 
 Failure at any required step rejects trust in the artifact.
