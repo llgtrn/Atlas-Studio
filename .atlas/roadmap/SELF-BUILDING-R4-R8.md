@@ -165,9 +165,10 @@ Currently materialized Rust semantic dimensions are:
 - partial STATE;
 - partial EFFECT;
 - partial OWNERSHIP;
-- partial CONCURRENCY.
+- partial CONCURRENCY;
+- partial PERSISTENCE.
 
-R4.5 observes real function-body call sites while leaving targets UNRESOLVED where source evidence is insufficient. R4.6 and R4.7 materialize control/data-flow structure. R4.8 produces useful STATE/EFFECT observations; R4.9/R4.10 produce useful OWNERSHIP/CONCURRENCY observations. A full R4.4-R4.10 reconciliation audit confirmed that CALL/CONTROL_FLOW/DATA_FLOW/OWNERSHIP/CONCURRENCY share the same real, permanent gap already known for STATE/EFFECT (a call/access/site written only inside a macro invocation's arguments is structurally invisible without macro expansion, which this extractor never performs) -- all seven full-expression-tree dimensions therefore deliberately keep their obligation UNKNOWN until their declared closure gaps are resolved, per `dimension_coverage` in `adapter::semantic::rust::mod`. Only the four declaration-level dimensions (SYMBOL/TYPE/FUNCTION_IDENTITY/FUNCTION_SIGNATURE) are currently exhaustive over their own explicitly-scoped profile.
+R4.5 observes real function-body call sites while leaving targets UNRESOLVED where source evidence is insufficient. R4.6 and R4.7 materialize control/data-flow structure. R4.8 produces useful STATE/EFFECT observations; R4.9/R4.10 produce useful OWNERSHIP/CONCURRENCY observations; R4.11 produces useful PERSISTENCE candidates. A full R4.4-R4.10 reconciliation audit confirmed that CALL/CONTROL_FLOW/DATA_FLOW/OWNERSHIP/CONCURRENCY share the same real, permanent gap already known for STATE/EFFECT (a call/access/site written only inside a macro invocation's arguments is structurally invisible without macro expansion, which this extractor never performs) -- all eight full-expression-tree dimensions (PERSISTENCE included, which additionally has no dedicated syntax at all and no resolved-API adapter) therefore deliberately keep their obligation UNKNOWN until their declared closure gaps are resolved, per `dimension_coverage` in `adapter::semantic::rust::mod`. Only the four declaration-level dimensions (SYMBOL/TYPE/FUNCTION_IDENTITY/FUNCTION_SIGNATURE) are currently exhaustive over their own explicitly-scoped profile.
 
 These facts are increasingly useful for mechanism absorption, but partial evidence in any of the seven expression-tree dimensions must not be mistaken for full semantic closure.
 
@@ -290,17 +291,58 @@ R4.10 closure still requires materializing/accounting:
 - concurrent state interaction;
 - dynamic/unresolved concurrency obligations.
 
-### R4.11 — Persistence and Recovery Semantics
+### R4.11 — Persistence and Recovery Semantics — bootstrap materialized, closure remains open
 
-Materialize PERSISTENCE:
+Canonical main now has a useful R4.11 bootstrap: `Commit`/`Flush`/`Sync`/`Checkpoint`/`Snapshot`
+textual callee-spelling candidates, always `EpistemicStatus::Inferred` (never `Observed` --
+`game.commit()` and `wal.commit()` are equally uncertain to this extractor). This is not R4.11
+semantic closure.
 
-- durable writes;
-- transaction boundaries;
-- log/checkpoint/recovery behavior where applicable;
-- durability ordering;
-- recovery/failure paths;
-- external persistence boundaries;
-- explicit unknowns.
+**Design guard enforced before implementation**: R4.11 does NOT introduce a fourth/fifth
+independent `name: String`-keyed target identity alongside DATA_FLOW's `ValueIdentity`, STATE's
+`StateAccessIdentity` and OWNERSHIP's `OwnershipIdentity`. Instead, `PersistenceIdentity.place:
+PlaceRef` (`core::semantic::persistence`) is a small bridge: `PlaceRef::Resolved { dimension,
+record_id }` lets a persistence operation point at an EXISTING dimension's own already-canonical
+record when evidence allows (proven by a dedicated graph test converging a PERSISTENCE operation
+onto the SAME `StateAccess` node a STATE observation produced), and `PlaceRef::Unresolved` names
+"no canonical place" explicitly rather than fabricating one from spelling -- this extractor's only
+mode this wave, since it has no resolved-API adapter yet. A full first-class `PlaceIdentity` shared
+natively by all four dimensions remains TARGET work (see
+`.atlas/evidence/verification/r4.4-r4.10-second-hardening-pass-correction.json`); `PlaceRef` is
+explicitly the bridge, not the destination.
+
+Until deeper resolution exists:
+
+- PERSISTENCE observations may be emitted while the dimension obligation remains UNKNOWN;
+- zero observations in the partially covered PERSISTENCE dimension are not verified absence;
+- a textual `commit`/`flush`/`sync`/`checkpoint`/`snapshot` spelling is `Inferred` unless a
+  resolved/admitted API adapter proves the actual durable operation;
+- a bare STATE mutation (`self.counter += 1`) never fabricates a PERSISTENCE fact, and a durability
+  boundary (a resolved commit) does not retroactively claim every prior STATE write as durable --
+  the two dimensions stay typed and separate, linkable only through `PlaceRef` where evidence
+  proves the same location;
+- closures/async blocks get no PERSISTENCE attribution of their own, consistent with every other
+  dimension's deferred-region exclusion (a `persist().await` inside `async { .. }` belongs to that
+  region, never to the function that merely constructs it).
+
+R4.11 closure still requires materializing/accounting:
+
+- `DurableRead`/`DurableWrite`/`JournalAppend`/`TransactionBegin`/`TransactionAbort`/`Recover`/
+  `Restore` (declared in `PersistenceKind`, never emitted -- would need resolved-API evidence this
+  extractor does not have);
+- durability ordering relationships (write → flush → commit; concurrent writers vs. a checkpoint);
+- recovery/failure-path relationships (a restore that recovers-from a checkpoint/journal);
+- external persistence boundaries (files/objects/blobs, database tables/keys) as resolvable
+  `PlaceRef` targets, not just STATE-shared ones;
+- connection to `FailureScenario`/`VerificationWorld`/obligation/evidence
+  (`VERIFICATION-METRICS-PERFORMANCE.md`) -- e.g. an obligation "committed writes survive process
+  restart" backed by a crash-then-recover `FailureScenario`'s evidence, not by one passing test
+  treated as universal truth;
+- closure evidence sufficient to justify any verified negative fact.
+
+This is the minimum point at which Atlas can connect implementation behavior to durable-state
+claims for mechanism absorption, but the closure claim remains profile-scoped and evidence-gated,
+exactly like R4.8/R4.9/R4.10 before it.
 
 ### R4.12 — R4 Semantic Closure
 
