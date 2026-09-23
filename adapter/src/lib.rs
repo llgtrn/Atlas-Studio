@@ -48,7 +48,13 @@ fn visit_adl_sources(root: &Path, dir: &Path, out: &mut Vec<AdlSource>) -> io::R
     entries.sort_by_key(|entry| entry.file_name());
     for entry in entries {
         let path = entry.path();
-        if entry.file_type()?.is_dir() {
+        // `entry.file_type()` itself can fail (the entry vanishing between being listed and
+        // being typed, or a permission oddity) -- same "never abort every other entry" discipline
+        // as the `read_dir` calls above; skip just this one entry rather than propagating.
+        let Ok(file_type) = entry.file_type() else {
+            continue;
+        };
+        if file_type.is_dir() {
             visit_adl_sources(root, &path, out)?;
             continue;
         }
@@ -63,15 +69,20 @@ fn visit_adl_sources(root: &Path, dir: &Path, out: &mut Vec<AdlSource>) -> io::R
         // `runtime::census::extraction::extract_semantics` already establishes the right
         // discipline for a per-artifact read/decode failure: account for it, never abort every
         // other artifact's processing because of it (its own doc comment: "one artifact's read
-        // failure must not abort extraction of every artifact that comes after it"). A `.adl`
-        // file's bytes are not guaranteed to be valid UTF-8 (a hostile or merely corrupted
-        // encoding), and `AdlSource.text` requires a real `String` -- `from_utf8_lossy` is the
-        // same lossy-but-never-crashing decode `Path::to_string_lossy` already uses elsewhere in
-        // this codebase: the file remains present in `sources` (never silently dropped) and its
-        // valid portions stay byte-for-byte intact; only genuinely undecodable byte sequences
-        // become U+FFFD, which then naturally surfaces through `parse_adl_source`'s normal
-        // diagnostics (e.g. `ATLAS-E000`/`ATLAS-E010`) rather than aborting the whole read.
-        let text = String::from_utf8_lossy(&fs::read(&path)?).into_owned();
+        // failure must not abort extraction of every artifact that comes after it"). Two distinct
+        // failure modes share this same discipline here: `fs::read` itself can fail (permission
+        // denial or the file vanishing -- skip this one file, same as any other entry-level
+        // failure above), and a successfully-read file's bytes are not guaranteed to be valid
+        // UTF-8 (a hostile or merely corrupted encoding), handled by `from_utf8_lossy` -- the same
+        // lossy-but-never-crashing decode `Path::to_string_lossy` already uses elsewhere in this
+        // codebase: the file remains present in `sources` (never silently dropped) and its valid
+        // portions stay byte-for-byte intact; only genuinely undecodable byte sequences become
+        // U+FFFD, which then naturally surfaces through `parse_adl_source`'s normal diagnostics
+        // (e.g. `ATLAS-E000`/`ATLAS-E010`) rather than aborting the whole read.
+        let Ok(bytes) = fs::read(&path) else {
+            continue;
+        };
+        let text = String::from_utf8_lossy(&bytes).into_owned();
         out.push(AdlSource {
             path: relative,
             text,
@@ -212,16 +223,25 @@ pub fn audit_repository(root: impl AsRef<Path>) -> io::Result<RepoAudit> {
     let mut manifest = None;
     let mut policy_violations = Vec::new();
     if repo_manifest.is_file() {
-        // Same discipline as `visit_adl_sources`/`visit_docs`: a manifest whose bytes are not
-        // valid UTF-8 must not abort the whole repository audit. Lossy-decoded, never dropped.
-        let text = String::from_utf8_lossy(&fs::read(&repo_manifest)?).into_owned();
-        match parse_repo_manifest(&text) {
-            Ok(parsed) => {
-                archetype = parsed.system_kind.clone();
-                policy_violations = validate_manifest(&parsed);
-                manifest = Some(parsed);
+        // Same discipline as `visit_adl_sources`/`visit_docs`: `fs::read` itself can fail
+        // (permission denial being the common real case even though `is_file()` above confirmed
+        // the manifest exists), and a manifest whose bytes ARE readable are not guaranteed to be
+        // valid UTF-8 -- neither must abort the whole repository audit. An unreadable manifest is
+        // reported the same way a manifest that fails to parse already is (via
+        // `missing_required_roles`), since both are "the manifest exists but this audit could not
+        // use it" -- a distinct fact from "repository_manifest" (the file genuinely absent) above.
+        match fs::read(&repo_manifest) {
+            Ok(bytes) => match parse_repo_manifest(&String::from_utf8_lossy(&bytes)) {
+                Ok(parsed) => {
+                    archetype = parsed.system_kind.clone();
+                    policy_violations = validate_manifest(&parsed);
+                    manifest = Some(parsed);
+                }
+                Err(errors) => missing_required_roles.extend(errors),
+            },
+            Err(error) => {
+                missing_required_roles.push(format!("repository_manifest_unreadable:{error}"));
             }
-            Err(errors) => missing_required_roles.extend(errors),
         }
     }
 
@@ -431,7 +451,12 @@ fn visit_docs(
     entries.sort_by_key(|e| e.file_name());
     for entry in entries {
         let path = entry.path();
-        if entry.file_type()?.is_dir() {
+        // `entry.file_type()` itself can fail (entry vanishing mid-walk, a permission oddity) --
+        // same "never abort every other entry" discipline as the `read_dir` calls above.
+        let Ok(file_type) = entry.file_type() else {
+            continue;
+        };
+        if file_type.is_dir() {
             let name = entry.file_name().to_string_lossy().into_owned();
             if matches!(name.as_str(), "temporary" | "provenance" | "licenses") {
                 continue;
@@ -449,11 +474,17 @@ fn visit_docs(
         if path.extension().and_then(|x| x.to_str()) != Some("md") {
             continue;
         }
+        // Same discipline as `visit_adl_sources`/`audit_repository`: `fs::read` itself can fail
+        // (permission denial or the file vanishing) -- skip this one doc, never abort auditing
+        // every other doc in the tree. Only counted toward `documents_total` once actually read,
+        // so a skipped doc is never silently miscounted as an audited-but-unreported one.
+        let Ok(bytes) = fs::read(&path) else {
+            continue;
+        };
         *documents_total += 1;
-        // Same discipline as `visit_adl_sources`/`audit_repository`: a doc whose bytes are not
-        // valid UTF-8 must not abort auditing every other doc in the tree. Lossy-decoded, never
-        // dropped -- it still counts toward `documents_total` and gets a `DocumentFact` below.
-        let text = String::from_utf8_lossy(&fs::read(&path)?).into_owned();
+        // A doc whose bytes are not valid UTF-8 must not abort auditing every other doc in the
+        // tree either. Lossy-decoded, never dropped.
+        let text = String::from_utf8_lossy(&bytes).into_owned();
         let relative = path
             .strip_prefix(root)
             .unwrap_or(&path)
@@ -490,6 +521,25 @@ mod tests {
             .unwrap()
             .as_nanos();
         std::env::temp_dir().join(format!("atlas-audit-docs-{}-{nonce}", std::process::id()))
+    }
+
+    // Mirrors `adapter::source::tests::running_as_root` (duplicated rather than shared, matching
+    // this file's own existing `scratch_root` precedent of a small per-module test helper rather
+    // than new cross-module plumbing for test-only code). Root bypasses discretionary directory
+    // permission checks entirely on Linux, so a `chmod 000` file remains fully readable to it and
+    // a permission-denied-read test cannot be exercised meaningfully under it.
+    #[cfg(unix)]
+    fn running_as_root() -> bool {
+        std::fs::read_to_string("/proc/self/status")
+            .ok()
+            .and_then(|status| {
+                status
+                    .lines()
+                    .find_map(|line| line.strip_prefix("Uid:"))
+                    .and_then(|rest| rest.split_whitespace().next())
+                    .map(|uid| uid == "0")
+            })
+            .unwrap_or(false)
     }
 
     // Falsification: a target repository `atlas-systemizer` has never been pointed at before has
@@ -606,6 +656,117 @@ mod tests {
             .expect("a non-UTF-8 doc must not abort auditing the rest of the tree");
         assert_eq!(report.documents_total, 2);
 
+        std::fs::remove_dir_all(&root).unwrap();
+    }
+
+    // Falsification: distinct from the three non-UTF-8 tests above, which only exercise a
+    // successful `fs::read` returning garbled content. Confirmed against the code as it stood
+    // immediately after those three fixes, via a real non-root process (`su ubuntu -c
+    // '.../atlas-systemizer systemize --root ...'`), that `fs::read` itself FAILING (permission
+    // denial on a `.adl` file) still aborted the whole `systemize` run with "Permission denied
+    // (os error 13)" and zero output -- the `from_utf8_lossy` fix only ever saw bytes that were
+    // successfully read. Same root-detection skip as `adapter::source::tests`; the real-process
+    // verification is the authoritative evidence for this fix.
+    #[cfg(unix)]
+    #[test]
+    fn an_unreadable_adl_file_does_not_abort_reading_the_rest_of_the_declared_tree() {
+        if running_as_root() {
+            eprintln!(
+                "skipping an_unreadable_adl_file_does_not_abort_reading_the_rest_of_the_declared_tree: \
+                 running as root, which bypasses the permission check this test exercises"
+            );
+            return;
+        }
+        use std::os::unix::fs::PermissionsExt;
+
+        let root = scratch_root();
+        let declared = root.join(".atlas").join("declared");
+        std::fs::create_dir_all(&declared).unwrap();
+        std::fs::write(declared.join("valid.adl"), "atlas 1\n").unwrap();
+        let locked = declared.join("locked.adl");
+        std::fs::write(&locked, "atlas 1\n").unwrap();
+        std::fs::set_permissions(&locked, std::fs::Permissions::from_mode(0o000)).unwrap();
+
+        let sources = read_adl_sources(&root)
+            .expect("an unreadable .adl file must not abort reading the rest of the tree");
+        assert_eq!(
+            sources.len(),
+            1,
+            "the unreadable file is skipped (no accounting channel exists here); the readable \
+             sibling must still be read: {sources:?}"
+        );
+        assert_eq!(sources[0].path, ".atlas/declared/valid.adl");
+
+        std::fs::set_permissions(&locked, std::fs::Permissions::from_mode(0o644)).unwrap();
+        std::fs::remove_dir_all(&root).unwrap();
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn an_unreadable_repo_manifest_does_not_abort_the_repository_audit() {
+        if running_as_root() {
+            eprintln!(
+                "skipping an_unreadable_repo_manifest_does_not_abort_the_repository_audit: \
+                 running as root, which bypasses the permission check this test exercises"
+            );
+            return;
+        }
+        use std::os::unix::fs::PermissionsExt;
+
+        let root = scratch_root();
+        let atlas_root = root.join(".atlas");
+        std::fs::create_dir_all(&atlas_root).unwrap();
+        let manifest = atlas_root.join("repo.toml");
+        std::fs::write(&manifest, "schema = \"atlas.repo.v2\"\n").unwrap();
+        std::fs::set_permissions(&manifest, std::fs::Permissions::from_mode(0o000)).unwrap();
+
+        let audit = audit_repository(&root)
+            .expect("an unreadable repo.toml must not abort the repository audit");
+        // The file exists (it was found and an unreadable-read was attempted, not crashed on) so
+        // it must never be reported via the "repository_manifest role missing" path -- reserved
+        // for the file genuinely not existing, a distinct fact from "exists but unreadable".
+        assert!(
+            !audit
+                .missing_required_roles
+                .iter()
+                .any(|role| role == "repository_manifest"),
+            "an existing-but-unreadable manifest must be distinguished from a missing one, got: {:?}",
+            audit.missing_required_roles
+        );
+
+        std::fs::set_permissions(&manifest, std::fs::Permissions::from_mode(0o644)).unwrap();
+        std::fs::remove_dir_all(&root).unwrap();
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn an_unreadable_doc_does_not_abort_auditing_the_rest_of_the_tree() {
+        if running_as_root() {
+            eprintln!(
+                "skipping an_unreadable_doc_does_not_abort_auditing_the_rest_of_the_tree: \
+                 running as root, which bypasses the permission check this test exercises"
+            );
+            return;
+        }
+        use std::os::unix::fs::PermissionsExt;
+
+        let root = scratch_root();
+        let docs_root = root.join(".atlas");
+        std::fs::create_dir_all(&docs_root).unwrap();
+        std::fs::write(docs_root.join("README.md"), "# ok\n").unwrap();
+        let locked = docs_root.join("locked.md");
+        std::fs::write(&locked, "# secret\n").unwrap();
+        std::fs::set_permissions(&locked, std::fs::Permissions::from_mode(0o000)).unwrap();
+
+        let report = audit_docs(&docs_root)
+            .expect("an unreadable doc must not abort auditing the rest of the tree");
+        assert_eq!(
+            report.documents_total, 1,
+            "the unreadable doc is skipped (no accounting channel exists here); the readable \
+             sibling must still be counted"
+        );
+
+        std::fs::set_permissions(&locked, std::fs::Permissions::from_mode(0o644)).unwrap();
         std::fs::remove_dir_all(&root).unwrap();
     }
 
