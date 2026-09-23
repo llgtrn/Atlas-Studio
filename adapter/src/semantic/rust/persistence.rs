@@ -20,13 +20,16 @@ use atlas_core::{
 use super::ExtractionContext;
 use super::spelling::call_callee_spelling;
 
-/// A callee spelling's last path/method segment, matched against a small, closed set of
-/// persistence-shaped names. Every match is equally uncertain (see the module doc comment) --
-/// there is no "more trustworthy" spelling among these, so all five map to `Inferred` alike.
-fn persistence_candidate_kind(callee: &syn::Expr) -> Option<PersistenceKind> {
-    let spelling = call_callee_spelling(callee);
-    let last_segment = spelling.rsplit("::").next().unwrap_or(&spelling);
-    match last_segment {
+/// The single closed set of persistence-shaped spellings this extractor recognizes, shared by
+/// both call-site shapes below (a free/path call's last segment, and a method call's bare method
+/// name) so the two can never silently drift apart -- the exact defect class R4.12's CALL/
+/// DATA_FLOW convergence fix already closed for a different pair of walkers (see
+/// `call_argument_place_ref_converges_on_the_data_flow_uses_own_record_id`'s own doc comment:
+/// "the SAME recognizer ... factored out to guarantee the two walkers cannot silently drift
+/// apart"). Every match is equally uncertain (see the module doc comment) -- there is no "more
+/// trustworthy" spelling among these, so all five map to `Inferred` alike.
+fn persistence_kind_for_spelling(name: &str) -> Option<PersistenceKind> {
+    match name {
         "commit" => Some(PersistenceKind::Commit),
         "flush" => Some(PersistenceKind::Flush),
         "sync" | "sync_all" | "sync_data" => Some(PersistenceKind::Sync),
@@ -34,6 +37,14 @@ fn persistence_candidate_kind(callee: &syn::Expr) -> Option<PersistenceKind> {
         "snapshot" => Some(PersistenceKind::Snapshot),
         _ => None,
     }
+}
+
+/// A free/path call's callee spelling, reduced to its last `::`-separated segment and classified
+/// via `persistence_kind_for_spelling`.
+fn persistence_candidate_kind(callee: &syn::Expr) -> Option<PersistenceKind> {
+    let spelling = call_callee_spelling(callee);
+    let last_segment = spelling.rsplit("::").next().unwrap_or(&spelling);
+    persistence_kind_for_spelling(last_segment)
 }
 
 struct PersistenceWalker<'ctx, 'a> {
@@ -133,15 +144,7 @@ impl<'ctx, 'a> PersistenceWalker<'ctx, 'a> {
                 }
             }
             syn::Expr::MethodCall(method_call) => {
-                let last_segment = method_call.method.to_string();
-                let kind = match last_segment.as_str() {
-                    "commit" => Some(PersistenceKind::Commit),
-                    "flush" => Some(PersistenceKind::Flush),
-                    "sync" | "sync_all" | "sync_data" => Some(PersistenceKind::Sync),
-                    "checkpoint" => Some(PersistenceKind::Checkpoint),
-                    "snapshot" => Some(PersistenceKind::Snapshot),
-                    _ => None,
-                };
+                let kind = persistence_kind_for_spelling(&method_call.method.to_string());
                 if let Some(kind) = kind {
                     let span = self.ctx.span_of(method_call);
                     self.emit_candidate(span, kind);

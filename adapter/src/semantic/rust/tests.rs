@@ -4414,6 +4414,44 @@ fn persistence_call_inside_closure_is_not_attributed_to_the_enclosing_function()
     );
 }
 
+// --- a free/path-form call (`Store::commit(&mut store)`, syn::Expr::Call) is classified
+// identically to the equivalent method-form call (`store.commit()`, syn::Expr::MethodCall) -----
+//
+// Before this fix, the two call shapes were classified by two independently-written, unreused
+// match arms (`persistence_candidate_kind` for Expr::Call, an inline duplicate in the
+// Expr::MethodCall arm) -- and no existing test in this corpus exercised the Expr::Call path at
+// all, so a silent divergence between the two copies (e.g. a new spelling added to only one)
+// would have gone completely unnoticed. Both call sites now share one function
+// (`persistence_kind_for_spelling`), and this test proves the two call shapes agree.
+#[test]
+fn free_form_and_method_form_calls_are_classified_identically() {
+    const CORPUS: &str = r#"
+pub fn commits_via_ufcs(store: &mut Store) {
+    Store::commit(store);
+}
+
+pub fn commits_via_method(store: &mut Store) {
+    store.commit();
+}
+
+pub struct Store;
+impl Store {
+    pub fn commit(&mut self) {}
+}
+"#;
+    let batch = extract_all("src/lib.rs", CORPUS);
+
+    let ufcs_caller = find_function_identity(&batch, &[], "commits_via_ufcs").unwrap();
+    let ufcs_ops = persistence_ops_for(&batch, ufcs_caller);
+    assert_eq!(ufcs_ops.len(), 1);
+    assert_eq!(ufcs_ops[0].kind, PersistenceKind::Commit);
+
+    let method_caller = find_function_identity(&batch, &[], "commits_via_method").unwrap();
+    let method_ops = persistence_ops_for(&batch, method_caller);
+    assert_eq!(method_ops.len(), 1);
+    assert_eq!(method_ops[0].kind, PersistenceKind::Commit);
+}
+
 // --- 115. a state mutation alone never fabricates a durable persistence fact ----------------------
 
 #[test]
