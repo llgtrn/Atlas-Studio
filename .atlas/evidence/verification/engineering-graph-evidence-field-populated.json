@@ -1,0 +1,57 @@
+{
+  "schema": "atlas.self-build.generation-evidence.v1",
+  "wave": "CENSUS BLINDNESS -- EngineeringGraph.evidence was declared but never populated",
+  "wave_title": "core::graph::EngineeringGraph.evidence is a real typed field, but build_source_graph/build_repository_graph both left it Vec::new() unconditionally and build_system_graph never touched it either, even though it receives a NormalizationReport whose own evidence field (normalize_evidence(&census.evidence)) is real evidence directly backing the facts that same function projects into graph nodes/edges. A consumer reading EngineeringGraph in isolation had no way to see which evidence backed it, despite the type being clearly designed to carry that.",
+  "generation_model": {
+    "G_n": "539f764d0e (feat(graph): project the resolved dependency closure into EngineeringGraph) -- stable generation this candidate was built and validated against",
+    "gap_discovered_by": "Second finding from the same delegated census/graph-pipeline investigation that surfaced the dependency-closure-projection gap fixed in the prior generation (same investigation report, finding #2). Independently confirmed before acting: grepped core/src/graph/engineering_graph.rs for `.evidence` and found zero writes to `graph.evidence` anywhere in the file outside its unconditional `Vec::new()` initialization in `build_source_graph`; confirmed `NormalizationReport.evidence` is real, non-trivial data (`runtime/src/normalize/mod.rs::normalize_evidence`) by running `atlas-cli graph --root .` against this repository's own real workspace before any fix and observing an empty `evidence: []` array despite the same command's `facts`/`nodes` arrays containing thousands of real, evidenced entries."
+  },
+  "priority_classification": "census blindness (priority 4) -- a real, typed field the graph schema was designed to carry (evidence lineage for the facts a consumer is looking at) was silently empty in every graph this codebase has ever produced, contradicting `UNIVERSAL-GRAPH-CONTRACT.md`'s 'Cross-repository contract' section, which lists 'evidence/provenance roots' as a required part of what a repository's graph boundary publishes.",
+  "design_decisions": [
+    {
+      "question": "Populate `graph.evidence` in `build_source_graph`/`build_repository_graph` (which don't receive a `NormalizationReport`) or only in `build_system_graph` (which does)?",
+      "decision": "Only `build_system_graph`. `build_source_graph`/`build_repository_graph` operate purely on `SourceReport`/`DocsReport` -- they have no `NormalizationReport` to draw evidence from, and inventing a placeholder evidence source for those lighter-weight, lower-fidelity graph variants would not be honest evidence (each entry must trace to something real). `build_system_graph` is the one graph constructor that already receives `normalization: &NormalizationReport`, whose own `evidence` field is exactly the real, already-computed evidence backing the facts that same function projects."
+    },
+    {
+      "question": "Assign, extend, or merge/dedupe against any evidence the repository-graph layer might already have contributed?",
+      "decision": "Direct assignment (`graph.evidence = normalization.evidence.clone()`). Verified `build_repository_graph`/`build_source_graph` never populate `.evidence` at all (confirmed by grep), so there is nothing to merge with or lose by overwriting -- `build_system_graph` calls `build_repository_graph` first and then sets `.evidence` once, matching the simplicity of assigning a field that starts genuinely empty."
+    }
+  ],
+  "stable_validator_law_compliance": {
+    "claim": "`build_system_graph`'s output graph carries exactly the same evidence as the `NormalizationReport` it was built from; a normalization report with no evidence still produces a graph with empty (not fabricated) evidence; existing graph construction (nodes/edges/facts/bindings) is completely unaffected.",
+    "self_written_evidence": "Two new tests in core/src/graph/engineering_graph.rs: build_system_graph_carries_normalization_evidence_onto_the_graph (a normalization report with one real Evidence record produces a graph whose `.evidence` contains that exact record) and build_system_graph_with_no_normalization_evidence_leaves_the_graph_evidence_empty (regression guard: no evidence in, no evidence fabricated out). All ~30 pre-existing build_system_graph tests re-run unchanged.",
+    "independent_evidence_channel": "Ran `atlas-cli graph --root .` against this repository's own real workspace (not a synthetic fixture): before this fix, `evidence: []`; after, 14,673 real evidence records, each with a real kind (e.g. `PARSER_OUTPUT`), a real source path, a real human-readable summary (e.g. 'parsed call to `.clone` at core/src/semantic/observation.rs:388:27'), and the real current git revision -- sourced from this repository's own actual extraction/census/normalization pipeline, not invented for this fix. `atlas-cli systemize --root .` and `atlas-cli docs audit --root .atlas` both re-run clean.",
+    "no_circular_self_certification": true
+  },
+  "implementation": {
+    "core_graph": "core/src/graph/engineering_graph.rs -- build_system_graph now sets `graph.evidence = normalization.evidence.clone();` immediately after building the repository-level graph, before projecting normalized facts into nodes/edges"
+  },
+  "adversarial_and_falsification_coverage": [
+    "build_system_graph_carries_normalization_evidence_onto_the_graph -- a real Evidence record placed into NormalizationReport.evidence is confirmed present, by id, on the resulting graph",
+    "build_system_graph_with_no_normalization_evidence_leaves_the_graph_evidence_empty -- regression guard against fabricating evidence that was never really there",
+    "real self-census of this repository's own workspace: 0 -> 14,673 real evidence records, each independently traceable to a real source location this fix did not invent"
+  ],
+  "validation_this_generation": {
+    "commands": {
+      "cargo fmt --all --check": { "exit_code": 0 },
+      "cargo clippy --workspace --all-targets -- -D warnings": { "exit_code": 0, "warnings": 0 },
+      "cargo test --workspace": {
+        "exit_code": 0,
+        "totals": "234 adapter, 149 core (+2), 61 runtime -- 444 total, 0 failed, up from 442"
+      },
+      "cargo run -q -p atlas-cli -- graph --root . (before/after)": {
+        "before": "evidence: [] (always, in every graph this codebase has ever produced)",
+        "after": "14,673 real evidence records with real kind/path/summary/revision fields"
+      },
+      "cargo run -q -p atlas-cli -- systemize --root .": { "exit_code": 0, "finding": "no regression" },
+      "cargo run -q -p atlas-cli -- docs audit --root .atlas": { "exit_code": 0 }
+    }
+  },
+  "recensus_scope_after_promotion": [
+    "no prior CLOSED/EXTINCT conclusion depended on graph.evidence being empty, so no external conclusion requires reopening",
+    "the same delegated investigation's third finding (dangling documentation-to-source path references silently dropped with no diagnostic in build_repository_graph, core/src/graph/engineering_graph.rs around the `document.references` loop) remains explicitly deferred: the investigating agent itself flagged lower confidence, since `path_references`'s substring-matching heuristic is already a known-imprecise feature, not a completeness guarantee, so 'dangling reference' there may often just mean 'the heuristic didn't match', not 'the doc genuinely references something that no longer exists'. Named TARGET for a future generation if that heuristic is ever hardened enough to make the distinction meaningful.",
+    "build_source_graph/build_repository_graph's own `.evidence: Vec::new()` remains correct and intentional (documented above as a design decision, not left unexplained) -- they simply have no evidence source available at their layer"
+  ],
+  "overall_verdict": "MATERIALIZED AND VERIFIED. Closes a real, typed-but-empty field: EngineeringGraph.evidence now carries the real evidence backing the facts build_system_graph projects, closing a gap between what the graph schema was designed to carry (per UNIVERSAL-GRAPH-CONTRACT.md's own required evidence/provenance-roots language) and what it actually contained in every graph this codebase has produced to date. Verified against this repository's own real workspace: 14,673 real evidence records now present where none were before.",
+  "historical_evidence_retained": true
+}

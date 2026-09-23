@@ -82,3 +82,7 @@ This is how Atlas-generated Ops, development cells, services, libraries, device 
 ## Compiler preservation
 
 All compiler phases may optimize representation but may not erase externally observable graph identities/bindings or their required evidence/temporal semantics. Physical implementation is replaceable; semantic connection is durable.
+
+## Implementation status
+
+`EngineeringGraph.evidence` was declared on the type (`core::graph::EngineeringGraph`) but no constructor populated it -- `build_source_graph`/`build_repository_graph` both left it `Vec::new()` unconditionally, and `build_system_graph` never touched it either, even though it receives a `NormalizationReport` whose own `evidence` field (`normalize_evidence(&census.evidence)`) is real evidence backing the exact facts that function projects into graph nodes/edges. Fixed: `build_system_graph` now carries `normalization.evidence` onto `graph.evidence`, so a consumer of the graph can trace which evidence backs it without a separate lookup into `NormalizationReport`. `.atlas/contracts/DEPENDENCY-CENSUS.md#implementation-status` separately documents the resolved dependency closure's own projection into this graph (`Package`/`Dependency` nodes, `RESOLVES_DEPENDENCY` edges).

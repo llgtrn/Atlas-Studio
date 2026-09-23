@@ -261,6 +261,12 @@ pub fn build_system_graph(
     normalization: &NormalizationReport,
 ) -> EngineeringGraph {
     let mut graph = build_repository_graph(source, docs);
+    // `EngineeringGraph.evidence` was declared on the type but no constructor ever populated it
+    // (`build_source_graph`/`build_repository_graph` both leave it `Vec::new()`, and this function
+    // never touched it either) -- `normalization.evidence` (`normalize_evidence(&census.evidence)`)
+    // is the real evidence backing the normalized facts this function is about to project into
+    // nodes/edges below, so it belongs on the graph those facts produce.
+    graph.evidence = normalization.evidence.clone();
     let repo_id = stable_id("node", &source.root);
     let file_ids_by_path = graph
         .nodes
@@ -1285,6 +1291,28 @@ mod tests {
         assert!(graph.edges.iter().any(|edge| edge.kind == "CONTAINS"));
         assert!(graph.edges.iter().any(|edge| edge.kind == "USES"));
         assert_eq!(graph.facts.len(), 1);
+    }
+
+    #[test]
+    fn build_system_graph_carries_normalization_evidence_onto_the_graph() {
+        let mut normalization = normalization_with(Vec::new(), Vec::new());
+        normalization.evidence = vec![crate::Evidence {
+            id: "evidence:test".into(),
+            kind: "test".into(),
+            path: "core/src/lib.rs".into(),
+            summary: "test evidence".into(),
+            revision: None,
+        }];
+        let graph = build_system_graph(&source(), &docs(), &normalization);
+        assert_eq!(graph.evidence.len(), 1);
+        assert_eq!(graph.evidence[0].id, "evidence:test");
+    }
+
+    #[test]
+    fn build_system_graph_with_no_normalization_evidence_leaves_the_graph_evidence_empty() {
+        let normalization = normalization_with(Vec::new(), Vec::new());
+        let graph = build_system_graph(&source(), &docs(), &normalization);
+        assert!(graph.evidence.is_empty());
     }
 
     #[test]
