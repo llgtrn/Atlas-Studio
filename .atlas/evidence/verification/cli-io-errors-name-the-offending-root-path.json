@@ -1,0 +1,49 @@
+{
+  "schema": "atlas.self-build.generation-evidence.v1",
+  "wave": "CORRECTNESS -- every CLI subcommand's io::Error lost all path context, indistinguishable from any other io failure anywhere in the pipeline",
+  "wave_title": "The immediately preceding generation (bf2833e2) fixed `audit_docs` so a repository with no `.atlas` directory produces a typed report instead of crashing. Verifying that fix's own boundary surfaced a deeper, related gap: `apps/cli/src/main.rs`'s `run()` function maps every `runtime::*` call's `io::Result` error through `.map_err(|e| e.to_string())`, and `io::Error::to_string()` is purely the bare OS message (\"No such file or directory (os error 2)\") -- it never includes the path that failed, because Rust's `io::Error` carries no path by construction. A mistyped or nonexistent `--root` (arguably the single most common real CLI usage mistake -- more fundamental even than a missing `.atlas` subdirectory, since here the target repository itself does not exist) produced a message with zero indication of which path was the problem, identical to what a permission-denied error, a disk error, or any other unrelated io failure anywhere deep in the pipeline would also produce.",
+  "generation_model": {
+    "G_n": "bf2833e27f (fix(adapter): audit_docs no longer crashes on a completely missing .atlas directory) -- stable generation this candidate was built and validated against",
+    "gap_discovered_by": "Re-testing the previous generation's own fix at its edges (this session's established highest-yield lane: adversarially re-testing recently-added/recently-fixed capabilities) by trying an even more basic malformed input than 'root exists but .atlas does not' -- 'root does not exist at all'. `atlas-systemizer systemize --root /tmp/definitely_does_not_exist_xyz123` still failed, but now for a legitimately different, non-fixable-the-same-way reason (there is truly no repository to inventory when the root itself is absent, unlike the `.atlas`-missing case which still has a real git repo and real source files worth reporting on) -- so a full typed empty report is not the right fix here. Reading the raw error message ('atlas-systemizer: No such file or directory (os error 2)') revealed the actual defect: no path is named at all, making even a legitimate, expected failure undiagnosable from the message alone. Traced to `apps/cli/src/main.rs`'s uniform `.map_err(|e| e.to_string())?` pattern, present at all seven `runtime::*`-calling subcommand handlers."
+  },
+  "priority_classification": "correctness / diagnostics quality (priority 1) -- every CLI entry point silently discards the one piece of information (which path failed) needed to act on an io error, for what is very plausibly the most common real usage mistake (a wrong `--root`).",
+  "design_decisions": [
+    {
+      "question": "Treat a nonexistent `--root` the same way as a missing `.atlas` directory (a typed, non-fatal report), or as a clean but still-fatal CLI error?",
+      "decision": "Fatal CLI error, but a well-labeled one. Unlike a missing `.atlas` directory (where a real git repository and real source files still exist and are worth reporting on), a nonexistent root means there is no repository at all -- nothing to snapshot, inventory, or report. Inventing a typed empty report here would be fabricating structure the input never justified. The actual defect is narrower and more general than 'handle this one case': `io::Error::to_string()` never carries path context anywhere in this CLI, so the fix is to attach it uniformly at the one place all seven subcommands already funnel their `root`-derived io errors through, not to special-case root non-existence."
+    },
+    {
+      "question": "Add path context inside each `runtime::*` function (so the io::Error itself carries it), or at the CLI boundary where the path string is still in scope?",
+      "decision": "At the CLI boundary (`apps/cli/src/main.rs`), using the `root` string each handler already has in scope: `.map_err(|e| format!(\"{root}: {e}\"))`. Threading path context through every `io::Error` return path inside `runtime`/`adapter`/`core` (dozens of call sites, many of which handle paths other than the top-level root) would be a much larger, riskier change for the same observable benefit, and would blur the architectural boundary the CLI crate's own doc comment already states (\"Thin command projection over the native Atlas runtime. No repository mechanics live here.\") -- attaching user-facing message context is exactly a thin CLI-layer concern, not a runtime-layer one."
+    }
+  ],
+  "stable_validator_law_compliance": {
+    "claim": "Every `atlas-systemizer` subcommand that takes `--root` (`docs audit`, `code analyze`, `parse`, `check`, `graph`, `systemize`, `work prepare`) now reports the offending root path alongside any io::Error raised while processing it (e.g. `\"/tmp/xyz: No such file or directory (os error 2)\"` instead of the previous bare `\"No such file or directory (os error 2)\"`), with no change to any successful-path output.",
+    "self_written_evidence": "New falsification-first test `atlas_systemizer::tests::a_nonexistent_root_error_names_the_offending_path` in `apps/cli/src/main.rs` (a `#[cfg(test)] mod tests` added to the binary target itself, since `apps/cli` has no lib target and no prior test infrastructure): confirmed to fail against the unfixed code (assertion failure: error message did not contain the root path), then confirmed to pass after the fix.",
+    "independent_evidence_channel": "Real, rebuilt `atlas-systemizer` binary invoked with a genuinely nonexistent `--root`: message is now `\"atlas-systemizer: /tmp/definitely_does_not_exist_xyz123: No such file or directory (os error 2)\"`. Full workspace re-run (`cargo fmt --all --check`, `cargo clippy --workspace --all-targets -- -D warnings`, `cargo test --workspace`) and a fresh `systemize` run against the real Atlas-Studio repository itself confirm zero regression to any existing gate, blocker, or test.",
+    "no_circular_self_certification": true
+  },
+  "implementation": {
+    "apps/cli/src/main.rs": "All seven `runtime::*(&root, ...)` call sites' `.map_err(|e| e.to_string())` changed to `.map_err(|e| format!(\"{root}: {e}\"))`, using the `root` binding each handler already holds. `runtime::docs_audit`/`code_analyze`/`parse` calls changed from taking `root` by value to `&root` so the value remains available for the error-formatting closure afterward. New `#[cfg(test)] mod tests` (placed after `main()`, matching `clippy::items_after_test_module`) with the falsification-first regression test."
+  },
+  "adversarial_and_falsification_coverage": [
+    "a_nonexistent_root_error_names_the_offending_path -- falsification-first: confirmed to fail against the unfixed code with the exact claimed missing-context defect before the fix was written",
+    "real CLI verification (rebuilt binary) with a genuinely nonexistent --root: message now names the path",
+    "full workspace re-run and a fresh systemize run against the real repository, confirming zero regression (coding_admission.allowed: true, zero blockers unchanged; 461 tests passing, up from 460)"
+  ],
+  "validation_this_generation": {
+    "commands": {
+      "cargo fmt --all --check": { "exit_code": 0 },
+      "cargo clippy --workspace --all-targets -- -D warnings": { "exit_code": 0, "warnings": 0 },
+      "cargo test --workspace": { "exit_code": 0, "totals": "243 adapter, 1 atlas-cli (+1 new), 156 core, 61 runtime -- 461 total, 0 failed, up from 460" },
+      "cargo run -q -p atlas-cli -- systemize --root .": { "finding": "coding_admission.allowed: true, zero blockers -- unchanged" }
+    }
+  },
+  "recensus_scope_after_promotion": [
+    "no prior CLOSED/EXTINCT conclusion depended on this message-quality gap, so no external conclusion requires reopening",
+    "this generation was discovered entirely by re-testing the immediately preceding generation's own fix at a slightly more extreme boundary (root itself missing, not just .atlas) -- the same adversarial-retest-of-recent-work discipline that found the .atlas crash itself, applied one layer deeper",
+    "the CLI crate (`apps/cli`) had no prior test infrastructure at all; this generation added its first regression test as a `#[cfg(test)] mod tests` directly in the binary target, a pattern now available for any future CLI-layer behavior that needs its own coverage"
+  ],
+  "overall_verdict": "MATERIALIZED AND VERIFIED. Every `atlas-systemizer` subcommand's io::Error previously carried zero path context, making a nonexistent or mistyped --root (the most common real CLI usage mistake) indistinguishable from any other io failure. Every root-taking subcommand now names the offending path in its error message, verified with a falsification-first regression test (the CLI crate's first) and a real rebuilt-binary run, with zero regression to the real repository's own state or any existing test.",
+  "historical_evidence_retained": true
+}
