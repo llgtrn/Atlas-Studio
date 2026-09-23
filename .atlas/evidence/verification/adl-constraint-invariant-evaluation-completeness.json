@@ -1,0 +1,74 @@
+{
+  "schema": "atlas.self-build.generation-evidence.v1",
+  "wave": "ADL COMPILER -- close silent constraint/invariant evaluation gaps",
+  "wave_title": "core/src/language/adl/mod.rs's parse_constraint_check silently returned an empty check list (no diagnostic) for any constraint/invariant body it did not recognize, and evaluate_constraints only ever iterated declared.constraints, never declared.invariants -- so an unrecognized constraint silently reported passed:true, and every invariant declaration was parsed, recorded, and then completely skipped by evaluation, never appearing in constraint_results at all.",
+  "generation_model": {
+    "G_n": "06549c5a62 (test(census): verify source/role/activation against real donor data) -- stable generation this candidate was built and validated against",
+    "gap_discovered_by": "Adversarial code-reading of core/src/language/adl/mod.rs (the ADL compiler), an area not previously audited this session, after the dependency-census capability's known gaps (role/activation collapse, multi-line workspace.members, real-scale verification) were closed. Traced parse_constraint_check's two recognized patterns (`require materialized X`, and the `forall`/`where`/`require`/`==` shape) and found the fallback path returns Vec::new() with no AdlDiagnostic, unlike the established sibling function parse_relation, which returns Result<RelationDecl, AdlDiagnostic> with code ATLAS-E030 for the analogous unrecognized-syntax case. Following the empty Vec downstream into evaluate_constraints found `passed: diagnostics.is_empty()`, which is trivially true when checks is empty -- a constraint whose syntax was never understood reports as having passed. Grepping every reference to `invariants` in the same file then found a second, independent, and more severe defect: DeclaredGraph.invariants is populated during parsing but evaluate_constraints's `.map()` chain only iterates `declared.constraints` -- `declared.invariants` is read nowhere in the whole file except to populate it. Confirmed the real-world consequence via runtime/src/census/mod.rs (invariants are recorded as `Declared` SemanticFact but never as `ConstraintResult` facts) and apps/cli/src/main.rs (the `check` subcommand's ADL_CHECK_NOT_READY gate reads only report.diagnostics and report.constraint_results.passed, neither of which a violated invariant could ever populate)."
+  },
+  "priority_classification": "correctness/architectural integrity (priority 1) -- `.atlas/contracts/ARCHITECTURAL-INTEGRITY.md:155` states explicitly: 'If Atlas cannot evaluate a required hard invariant, the result is UNKNOWN/INCOMPLETE, not PASS.' Both defects directly violated this canonical rule: an unrecognized constraint reported PASS instead of UNKNOWN, and every invariant was silently excluded from evaluation entirely rather than reported as unevaluated.",
+  "design_decisions": [
+    {
+      "question": "For unrecognized constraint/invariant syntax: drop the declaration entirely (matching parse_relation's behavior for unrecognized relations), or keep it with zero checks?",
+      "decision": "Keep the declaration (as ConstraintDecl with empty checks), but diagnose it (ATLAS-E052) and never let it report passed:true. Unlike a relation, a constraint/invariant has a name with real provenance value -- recording that a constraint named X was declared but could not be understood is itself useful census evidence (an OBSERVED_BUT_NOT_UNDERSTOOD state in the standing loop's own epistemic vocabulary), whereas dropping it silently would erase that a declaration existed at all."
+    },
+    {
+      "question": "Diagnose only at parse time (ATLAS-E052), or also defensively at evaluation time?",
+      "decision": "Both. parse_adl_source pushes ATLAS-E052 into the program's top-level diagnostics when parse_constraint_check returns Err (unrecognized or empty body). evaluate_constraints additionally never reports passed:true for a zero-check declaration -- it pushes a second diagnostic (ATLAS-E053) directly onto that declaration's own ConstraintResult and reports passed:false. This is defense-in-depth: the per-result diagnostic makes the specific broken constraint/invariant identifiable directly from constraint_results (which is what a human or tool scanning for 'what failed' would read), not only inferable from a separate top-level diagnostics list that doesn't name which constraint it came from as clearly in that data shape."
+    },
+    {
+      "question": "How to fix invariants never being evaluated: duplicate evaluate_constraints's logic for invariants, or merge?",
+      "decision": "Merge -- `declared.constraints.iter().chain(declared.invariants.iter())`. Constraints and invariants already share one type (ConstraintDecl/ConstraintCheck) and were always intended to share evaluation semantics (both check declared-graph attribute/materialization conditions); the difference between them is declarative categorization (which is preserved separately via DeclaredGraph.constraints vs .invariants and the Constraint/Invariant AdlDeclaration variants), not evaluation logic. A duplicated second evaluation loop would be exactly the kind of duplicate semantic concept this session's own engineering-quality rules (avoid duplicate semantic concepts) warn against."
+    },
+    {
+      "question": "Should an empty constraint/invariant body ever be treated as a legitimate no-op (vacuously true)?",
+      "decision": "No. The ADL grammar has no construct expressing an intentional no-op constraint, and treating empty-as-vacuously-true is exactly the silent-pass failure mode being fixed. Any zero-check declaration is treated uniformly as evaluation-impossible, matching the ARCHITECTURAL-INTEGRITY.md rule cited above."
+    }
+  ],
+  "stable_validator_law_compliance": {
+    "claim": "Every constraint AND every invariant declared in ADL source is evaluated by the same pass and appears in constraint_results; a declaration whose syntax was not recognized is diagnosed (ATLAS-E052) and never reports passed:true (ATLAS-E053 as defense-in-depth); a genuinely satisfied or violated constraint/invariant behaves identically to before this change (no regression to the existing recognized-syntax evaluation logic, which was not touched).",
+    "self_written_evidence": "Six new tests in core/src/language/adl/mod.rs: unrecognized_constraint_syntax_is_diagnosed_not_silently_admitted (ATLAS-E052 present, declaration still recorded with zero checks), unrecognized_constraint_syntax_never_reports_as_passed (constraint_results entry exists, passed:false, ATLAS-E053 present, top-level diagnostics non-empty), empty_constraint_body_is_diagnosed_not_treated_as_vacuously_true, invariants_are_evaluated_just_like_constraints_not_silently_skipped (a deliberately-violated invariant produces a constraint_results entry with passed:false and an ATLAS-E050 diagnostic -- proving it is now actually evaluated, not merely present), a_satisfied_invariant_passes_exactly_like_a_satisfied_constraint (no regression: a correctly-written, satisfied invariant passes cleanly with zero diagnostics), plus the pre-existing constraint_and_materialization_use_observed_graph and parser_accepts_vertical_slice tests re-run unchanged to confirm no regression to already-working recognized-syntax constraints.",
+    "independent_evidence_channel": "Re-ran the fixed compiler against this repository's own real, independently-authored `.atlas/declared/system.adl` (not a synthetic fixture -- the file predates this fix and was not written to exercise it) via `atlas-cli check --root .` and `atlas-cli systemize --root .`: all four of its real constraints (BackendIsRust, CoreIsMaterialized, AdapterIsMaterialized, RuntimeIsMaterialized) still evaluate cleanly with passed:true and zero diagnostics -- proving the fix does not misclassify real, valid, already-recognized constraint syntax. The repository's real ADL currently declares zero `invariant` blocks, so the invariant-evaluation fix's real-world non-regression is established via `docs audit` and `systemize` both still reporting coding_admission.allowed:true and dependency_closure.state:CLOSED (unrelated to invariants, but proving no incidental breakage of the surrounding compile_adl pipeline).",
+    "no_circular_self_certification": true
+  },
+  "implementation": {
+    "core_compiler": "core/src/language/adl/mod.rs -- parse_constraint_check now returns Result<Vec<ConstraintCheck>, String> (Err carries the unrecognized/empty joined body text) instead of silently returning Vec::new(); its one call site in parse_adl_source's [\"constraint\", ...] | [\"invariant\", ...] match arm pushes a new ATLAS-E052 diagnostic on Err, while still recording the ConstraintDecl (with empty checks) for provenance; evaluate_constraints now iterates `declared.constraints.iter().chain(declared.invariants.iter())` instead of `declared.constraints` alone, and pushes a new ATLAS-E053 diagnostic (and forces passed:false) for any declaration whose checks list is empty, before attempting to evaluate its (nonexistent) checks"
+  },
+  "adversarial_and_falsification_coverage": [
+    "unrecognized_constraint_syntax_is_diagnosed_not_silently_admitted -- malformed constraint body ('this is not valid constraint syntax') now produces ATLAS-E052, not silence",
+    "unrecognized_constraint_syntax_never_reports_as_passed -- the same malformed constraint's constraint_results entry is passed:false with ATLAS-E053, not the prior silent passed:true",
+    "empty_constraint_body_is_diagnosed_not_treated_as_vacuously_true -- `constraint X {}` with a genuinely empty body is diagnosed the same way as unrecognized syntax, not treated as a legitimate no-op",
+    "invariants_are_evaluated_just_like_constraints_not_silently_skipped -- a deliberately violated invariant (entity language=python, invariant requires language=rust) now produces a failing constraint_results entry with ATLAS-E050, proving invariants are genuinely evaluated end-to-end, not merely parsed",
+    "a_satisfied_invariant_passes_exactly_like_a_satisfied_constraint -- regression guard: a correctly-written, satisfied invariant still passes cleanly with zero diagnostics",
+    "real self-census of this repository's own .atlas/declared/system.adl (4 real constraints, 0 real invariants) re-run clean via atlas-cli check/systemize -- zero regression to already-working recognized syntax"
+  ],
+  "validation_this_generation": {
+    "commands": {
+      "cargo fmt --all --check": { "exit_code": 0 },
+      "cargo clippy --workspace --all-targets -- -D warnings": { "exit_code": 0, "warnings": 0 },
+      "cargo test --workspace": {
+        "exit_code": 0,
+        "totals": "424 passed, 0 failed (231 adapter, 135 core, 58 runtime), up from 419 (+5 new ADL tests)"
+      },
+      "cargo run -q -p atlas-cli -- check --root .": {
+        "exit_code": 2,
+        "finding": "ADL_CHECK_NOT_READY unchanged in cause: report.diagnostics is empty and all 4 real constraints (BackendIsRust, CoreIsMaterialized, AdapterIsMaterialized, RuntimeIsMaterialized) report passed:true with zero diagnostics -- the only failing constraint_results entry is the pre-existing, unrelated ObservedMaterialization:WebUI (ATLAS-E040, a real missing materialization for the WebUI target, not touched by this generation)"
+      },
+      "cargo run -q -p atlas-cli -- systemize --root . --out /tmp/gen-next.json": {
+        "exit_code": 0,
+        "finding": "coding_admission.allowed true; dependency_closure.state CLOSED -- unchanged, zero regression"
+      },
+      "cargo run -q -p atlas-cli -- docs audit --root .atlas": {
+        "exit_code": 0
+      }
+    }
+  },
+  "recensus_scope_after_promotion": [
+    "no prior CLOSED/EXTINCT conclusion depended on the previous silent-pass or invariant-skip behavior, so no external conclusion requires reopening",
+    "the pre-existing WebUI materialization gap (ATLAS-E040, ObservedMaterialization:WebUI) remains open and unrelated to this generation -- it already correctly reports passed:false and was already visible before this fix",
+    "ADL's grammar itself (only two recognized constraint-check shapes: `require materialized X` and `forall/where/require ==`) remains intentionally minimal; this generation makes departures from it visible rather than expanding the grammar, which was out of scope",
+    "the same silent-fallback-to-empty-with-implicit-success pattern found here (an unrecognized/unhandled input path defaulting to a trivially-true or trivially-empty result rather than an explicit diagnosed state) is worth keeping in mind as a class of defect when auditing other parser/evaluator pairs in this codebase"
+  ],
+  "overall_verdict": "MATERIALIZED AND VERIFIED. Two real correctness defects in the ADL compiler's constraint/invariant handling are fixed: (1) unrecognized constraint/invariant syntax now produces an explicit ATLAS-E052 diagnostic and can never report passed:true (ATLAS-E053 defense-in-depth), directly implementing the canonical rule in ARCHITECTURAL-INTEGRITY.md that unevaluable invariants must read UNKNOWN/INCOMPLETE, not PASS; (2) `invariant` declarations are now evaluated by the exact same pass as `constraint` declarations, closing a gap where every invariant in the language was silently excluded from `constraint_results` and therefore invisible to `atlas-cli check`'s readiness gate. Verified against this repository's own real, independently-authored declared system with zero regression to already-working constraints.",
+  "historical_evidence_retained": true
+}

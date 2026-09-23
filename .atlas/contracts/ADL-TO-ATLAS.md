@@ -173,3 +173,13 @@ Semantic equivalence is required; byte-for-byte reproduction of original ADL for
 ## Versioning
 
 An ADL language-version change or Atlas semantic-schema change that alters meaning MUST produce a new identity/version and explicit compatibility decision. Existing sealed artifacts are never silently reinterpreted under newer semantics.
+
+## Implementation status: constraint/invariant evaluation
+
+`constraint` and `invariant` blocks share one representation (`ConstraintDecl`/`ConstraintCheck`) and one evaluation path (`core::language::adl::evaluate_constraints`), materialized as `AdlCompileReport.constraint_results`.
+
+- A constraint/invariant body that does not match a recognized check syntax (including an empty body) is diagnosed with `ATLAS-E052` at parse time. The declaration is still recorded (for provenance — Atlas observed that a constraint/invariant named X was declared), but it carries zero checks.
+- A declaration with zero checks NEVER reports `passed: true`. Per `ARCHITECTURAL-INTEGRITY.md`'s rule that an invariant Atlas cannot evaluate is UNKNOWN/INCOMPLETE, not PASS, `evaluate_constraints` emits a defense-in-depth `ATLAS-E053` diagnostic and reports `passed: false` for any declaration with no evaluable checks, regardless of how it reached that state.
+- `invariant` declarations are evaluated by the exact same pass as `constraint` declarations. They are not a documentation-only or declared-but-unchecked category.
+
+This closes a real gap: earlier revisions silently returned `passed: true` for unrecognized constraint syntax (an unchecked constraint reporting success), and separately never evaluated `invariant` blocks at all (parsed and recorded, but absent from `constraint_results` and therefore invisible to `atlas-cli check`'s readiness gate).

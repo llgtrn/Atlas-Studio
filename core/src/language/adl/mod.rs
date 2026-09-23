@@ -381,7 +381,10 @@ fn parse_relation(line: &str, path: &str, line_no: usize) -> Result<RelationDecl
     })
 }
 
-fn parse_constraint_check(lines: &[(usize, String)]) -> Vec<ConstraintCheck> {
+/// Returns `Err(joined_body)` when the body does not match any recognized
+/// constraint syntax (including an empty body), so the caller can diagnose
+/// it instead of silently admitting a constraint/invariant that checks nothing.
+fn parse_constraint_check(lines: &[(usize, String)]) -> Result<Vec<ConstraintCheck>, String> {
     let joined = lines
         .iter()
         .map(|(_, line)| strip_comment(line).trim_matches('}').trim())
@@ -393,9 +396,9 @@ fn parse_constraint_check(lines: &[(usize, String)]) -> Vec<ConstraintCheck> {
         .nth(1)
         .and_then(|tail| tail.split_whitespace().next())
     {
-        return vec![ConstraintCheck::MaterializationExists {
+        return Ok(vec![ConstraintCheck::MaterializationExists {
             target: target.trim().into(),
-        }];
+        }]);
     }
     let words = joined.split_whitespace().collect::<Vec<_>>();
     let entity_kind = words
@@ -415,15 +418,15 @@ fn parse_constraint_check(lines: &[(usize, String)]) -> Vec<ConstraintCheck> {
     });
     match (entity_kind, require_pair) {
         (Some(entity_kind), Some((require_attr, require_value))) => {
-            vec![ConstraintCheck::AttributeEquals {
+            Ok(vec![ConstraintCheck::AttributeEquals {
                 entity_kind,
                 where_attr: where_pair.as_ref().map(|pair| pair.0.clone()),
                 where_value: where_pair.map(|pair| pair.1),
                 require_attr,
                 require_value,
-            }]
+            }])
         }
-        _ => Vec::new(),
+        _ => Err(joined),
     }
 }
 
@@ -515,9 +518,34 @@ pub fn parse_adl_source(source: &AdlSource) -> AdlProgram {
             ["constraint", name, ..] | ["invariant", name, ..] => {
                 let is_invariant = parts[0] == "invariant";
                 let (body, next) = collect_block(&lines, index);
+                let checks = match parse_constraint_check(&body) {
+                    Ok(checks) => checks,
+                    Err(unrecognized) => {
+                        let kind = if is_invariant {
+                            "invariant"
+                        } else {
+                            "constraint"
+                        };
+                        let snippet = if unrecognized.is_empty() {
+                            "<empty body>".to_string()
+                        } else {
+                            unrecognized
+                        };
+                        diagnostics.push(adl_diag(
+                            "ATLAS-E052",
+                            format!(
+                                "{kind} `{name}` body did not match any recognized constraint syntax: `{snippet}`"
+                            ),
+                            &source.path,
+                            *line_no,
+                            1,
+                        ));
+                        Vec::new()
+                    }
+                };
                 let decl = ConstraintDecl {
                     name: (*name).into(),
-                    checks: parse_constraint_check(&body),
+                    checks,
                     span: SourceSpan {
                         path: source.path.clone(),
                         line: *line_no,
@@ -772,8 +800,26 @@ fn evaluate_constraints(declared: &DeclaredGraph) -> Vec<ConstraintResult> {
     declared
         .constraints
         .iter()
+        .chain(declared.invariants.iter())
         .map(|constraint| {
             let mut diagnostics = Vec::new();
+            if constraint.checks.is_empty() {
+                // A required constraint/invariant that was never successfully
+                // parsed into an evaluable check must never report as
+                // trivially passed: `.atlas/contracts/ARCHITECTURAL-INTEGRITY.md`
+                // requires UNKNOWN/INCOMPLETE, not PASS, when evaluation is
+                // impossible. `ATLAS-E052` (if present) already explains why.
+                diagnostics.push(adl_diag(
+                    "ATLAS-E053",
+                    format!(
+                        "constraint `{}` has no evaluable checks and cannot be verified",
+                        constraint.name
+                    ),
+                    &constraint.span.path,
+                    constraint.span.line,
+                    constraint.span.column,
+                ));
+            }
             for check in &constraint.checks {
                 match check {
                     ConstraintCheck::AttributeEquals {
@@ -992,5 +1038,170 @@ constraint BackendIsRust {
         assert!(report.diagnostics.is_empty());
         assert!(report.deltas.is_empty());
         assert!(report.constraint_results.iter().all(|result| result.passed));
+    }
+
+    #[test]
+    fn unrecognized_constraint_syntax_is_diagnosed_not_silently_admitted() {
+        let source = AdlSource {
+            path: ".atlas/declared/broken.adl".into(),
+            text: "atlas 1\nsystem Broken\nconstraint Nonsense {\n    this is not valid constraint syntax\n}\n"
+                .into(),
+        };
+        let program = parse_adl_source(&source);
+        assert!(
+            program
+                .diagnostics
+                .iter()
+                .any(|diagnostic| diagnostic.code == "ATLAS-E052"),
+            "unrecognized constraint body must be diagnosed: {:?}",
+            program.diagnostics
+        );
+        let constraint = program
+            .declarations
+            .iter()
+            .find_map(|decl| match decl {
+                AdlDeclaration::Constraint(c) if c.name == "Nonsense" => Some(c),
+                _ => None,
+            })
+            .expect("constraint declaration is still recorded for provenance");
+        assert!(
+            constraint.checks.is_empty(),
+            "unrecognized syntax must not fabricate a check"
+        );
+    }
+
+    #[test]
+    fn unrecognized_constraint_syntax_never_reports_as_passed() {
+        let source = AdlSource {
+            path: ".atlas/declared/broken.adl".into(),
+            text: "atlas 1\nsystem Broken\nconstraint Nonsense {\n    this is not valid constraint syntax\n}\n"
+                .into(),
+        };
+        let observed = SourceReport {
+            schema: "test".into(),
+            root: "/repo".into(),
+            files_total: 0,
+            languages: BTreeMap::new(),
+            files: Vec::new(),
+        };
+        let report = compile_adl(&[source], &observed);
+        let result = report
+            .constraint_results
+            .iter()
+            .find(|result| result.name == "Nonsense")
+            .expect("constraint result is still reported even when unevaluable");
+        assert!(
+            !result.passed,
+            "a constraint that was never successfully parsed must not report passed:true"
+        );
+        assert!(
+            result
+                .diagnostics
+                .iter()
+                .any(|diagnostic| diagnostic.code == "ATLAS-E053")
+        );
+        assert!(
+            !report.diagnostics.is_empty(),
+            "top-level diagnostics must also flag it"
+        );
+    }
+
+    #[test]
+    fn empty_constraint_body_is_diagnosed_not_treated_as_vacuously_true() {
+        let source = AdlSource {
+            path: ".atlas/declared/empty.adl".into(),
+            text: "atlas 1\nsystem Empty\nconstraint DoesNothing {\n}\n".into(),
+        };
+        let program = parse_adl_source(&source);
+        assert!(
+            program
+                .diagnostics
+                .iter()
+                .any(|diagnostic| diagnostic.code == "ATLAS-E052")
+        );
+    }
+
+    #[test]
+    fn invariants_are_evaluated_just_like_constraints_not_silently_skipped() {
+        let source = AdlSource {
+            path: ".atlas/declared/system.adl".into(),
+            text: r#"atlas 1
+system Example
+entity Runtime Compiler {
+    kind = backend
+    language = python
+}
+invariant BackendMustBeRust {
+    forall x: Runtime
+        where x.kind == backend
+    require x.language == rust
+}
+"#
+            .into(),
+        };
+        let observed = SourceReport {
+            schema: "test".into(),
+            root: "/repo".into(),
+            files_total: 0,
+            languages: BTreeMap::new(),
+            files: Vec::new(),
+        };
+        let report = compile_adl(&[source], &observed);
+        assert_eq!(
+            report.ir.declared.invariants.len(),
+            1,
+            "invariant declaration must still be recorded"
+        );
+        let result = report
+            .constraint_results
+            .iter()
+            .find(|result| result.name == "BackendMustBeRust")
+            .expect("invariant must produce a constraint_results entry, not be silently skipped");
+        assert!(
+            !result.passed,
+            "a genuinely violated invariant (language=python, required rust) must be reported as failed"
+        );
+        assert!(
+            result
+                .diagnostics
+                .iter()
+                .any(|diagnostic| diagnostic.code == "ATLAS-E050")
+        );
+    }
+
+    #[test]
+    fn a_satisfied_invariant_passes_exactly_like_a_satisfied_constraint() {
+        let source = AdlSource {
+            path: ".atlas/declared/system.adl".into(),
+            text: r#"atlas 1
+system Example
+entity Runtime Compiler {
+    kind = backend
+    language = rust
+}
+invariant BackendMustBeRust {
+    forall x: Runtime
+        where x.kind == backend
+    require x.language == rust
+}
+"#
+            .into(),
+        };
+        let observed = SourceReport {
+            schema: "test".into(),
+            root: "/repo".into(),
+            files_total: 0,
+            languages: BTreeMap::new(),
+            files: Vec::new(),
+        };
+        let report = compile_adl(&[source], &observed);
+        assert!(report.diagnostics.is_empty());
+        let result = report
+            .constraint_results
+            .iter()
+            .find(|result| result.name == "BackendMustBeRust")
+            .expect("invariant must produce a constraint_results entry");
+        assert!(result.passed);
+        assert!(result.diagnostics.is_empty());
     }
 }
