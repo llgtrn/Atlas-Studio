@@ -56,6 +56,8 @@ EXTINCT
 
 Deletion is incremental. Atlas does not wait for the entire donor corpus to be absorbed before removing source for scopes whose complete extinction gates have closed.
 
+Deletion is generationally rechecked. Stronger observation/verification capability MUST revisit affected extinction-readiness conclusions. The generation law and isolated extinction probe are normative in `../contracts/RECURSIVE-SELF-CENSUS.md`.
+
 **ABSORBED is not EXTINCT.** ABSORBED means the required knowledge, Atlas-native implementation, dependency-removal proof and verification exist. EXTINCT is a later physical state reached only after donor OSS source files have actually been deleted from Atlas-controlled working storage and their absence plus post-delete correctness have been verified.
 
 `EXTINCTION_READY` is a non-terminal state between those claims. It is used when the native replacement and non-deletion gates are complete but the durable-knowledge/source-deletion gate has not yet been executed.
@@ -156,6 +158,37 @@ A donor intentionally retained locally as a differential oracle/reference is `RE
 Physical deletion applies to the active Atlas-controlled source tree/workspace. It does not require rewriting historical Git objects unless a separate history-scrubbing policy explicitly requires that.
 
 Git history is not the only preservation mechanism. The canonical durable Atlas knowledge carrier must preserve the semantic/evidence result after donor checkout deletion without requiring the deleted donor source tree to remain locally available.
+
+## Extinction sweep and zero-source target
+
+At the end of each admitted self-build generation:
+
+~~~text
+recompute donor semantic/dependency/scenario gaps
+→ select EXTINCTION_READY candidates
+→ isolated donor-disappearance probe
+→ physical deletion
+→ post-delete rebuild + recensus + scenarios
+→ EXTINCT
+→ repeat next generation with stronger Atlas
+~~~
+
+The long-run native-absorption target is zero retained donor source, but zero never authorizes deletion by itself. Unresolved, REFERENCE_ONLY and EXTERNAL_BOUNDARY scopes remain explicit and block a whole-corpus extinction claim.
+
+A sweep with no newly eligible donor is not self-build convergence; use the multi-generation fixed-point rules in `../contracts/RECURSIVE-SELF-CENSUS.md`.
+
+### Clean-room deletion requirements
+
+The pre-delete probe MUST make the target donor genuinely unavailable rather than merely unused by the happy-path build:
+
+- remove or isolate the donor checkout;
+- remove Atlas-controlled vendor/cache/archive substitutes for the target scope;
+- disable silent network re-fetch;
+- include build/test/runtime/helper-tool dependency checks;
+- run the relevant scenario frontier;
+- recensus after the probe.
+
+Only a passing probe authorizes the destructive SOURCE_DELETED transition.
 
 ## Scope-level extinction
 
