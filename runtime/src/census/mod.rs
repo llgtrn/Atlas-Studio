@@ -3066,4 +3066,140 @@ pub async unsafe extern "C" fn example<T>(x: Vec<T>, y: &mut usize) -> Result<T,
              about which (artifact, extractor, dimension) coordinates were addressed"
         );
     }
+
+    // === R4.12: the named R4 Rust reference profile, run through the FULL canonical path ==========
+    //
+    // `.atlas/contracts/SEMANTIC-EXTRACTION.md#r4-definition-of-done` (item 1) requires naming the
+    // reference corpus a project-wide R4-complete claim is proven against.
+    // `adapter::semantic::rust::tests` already proves this exact corpus is evidence-producing for
+    // every mandatory dimension at the extractor's own boundary; this test proves the same corpus
+    // survives the REST of the canonical path -- Census -> Normalize -- untouched: no exact
+    // duplicates spuriously collapsed, no conflict candidates from a single, internally consistent
+    // extractor's own output, and `is_closed()`/`typed_semantics_closed()` both hold on the real
+    // `NormalizationReport` this pipeline produces (not a hand-built fixture).
+
+    const R4_REFERENCE_PROFILE_CORPUS: &str = r#"
+pub struct Widget {
+    pub value: u64,
+}
+
+impl Widget {
+    pub fn new(value: u64) -> Self {
+        Widget { value }
+    }
+
+    pub fn get(&self) -> u64 {
+        self.value
+    }
+
+    pub fn set(&mut self, new_value: u64) {
+        self.value = new_value;
+    }
+
+    pub fn maybe_panic(&self, ok: bool) -> u64 {
+        if !ok {
+            panic!("not ok");
+        }
+        self.value
+    }
+}
+
+pub fn helper(x: u64) -> u64 {
+    x
+}
+
+pub fn caller(w: &Widget) -> u64 {
+    let doubled = helper(w.get()) * 2;
+    doubled
+}
+
+pub fn borrow_widget(w: &Widget) -> u64 {
+    w.value
+}
+
+pub async fn awaits_something(x: u64) -> u64 {
+    x.await
+}
+
+fn do_work() {}
+
+pub fn spawns_work() {
+    thread::spawn(do_work);
+}
+
+pub struct Store;
+impl Store {
+    pub fn commit(&mut self) {}
+}
+
+pub fn commits_a_store(store: &mut Store) {
+    store.commit();
+}
+"#;
+
+    fn extract_reference_profile() -> ExtractionBatch {
+        use adapter::ExtractionInput;
+        use atlas_core::ContentFingerprint;
+
+        let extractor = adapter::extractors_for_language("rust")
+            .into_iter()
+            .next()
+            .expect("rust has a registered extractor");
+        let input = ExtractionInput {
+            repository: atlas_core::RepositoryId::new("atlas-studio"),
+            revision: atlas_core::RevisionRef {
+                kind: "git".into(),
+                value: "abc123".into(),
+            },
+            artifact: ArtifactId::new("artifact:src/lib.rs"),
+            artifact_path: "src/lib.rs".into(),
+            source_text: R4_REFERENCE_PROFILE_CORPUS.into(),
+            content_fingerprint: Some(ContentFingerprint("sha256:fixture".into())),
+            source_frontend_id: "atlas.source.rust.bootstrap.v1".into(),
+            language: "rust".into(),
+            build_profile: None,
+            scope_policy: None,
+            requested_dimensions: ALL_SEMANTIC_DIMENSIONS.to_vec(),
+        };
+        extractor.extract(&input)
+    }
+
+    #[test]
+    fn reference_profile_survives_census_and_normalization_with_no_duplicates_or_conflicts() {
+        let (inventory, source, adl) = single_rust_file_context();
+        let batch = extract_reference_profile();
+        assert!(batch.is_closed(&ALL_SEMANTIC_DIMENSIONS));
+
+        let census = build_census(&inventory, &source, &adl, &[batch]);
+        assert!(census.is_closed());
+        for &dimension in &ALL_SEMANTIC_DIMENSIONS {
+            assert_ne!(
+                census.coverage.get(dimension.as_str()),
+                Some(&EpistemicStatus::Unsupported),
+                "{dimension:?} must not be Unsupported in the R4 reference profile"
+            );
+            let observed = census
+                .typed_semantic_records
+                .iter()
+                .any(|observation| observation.dimension() == dimension);
+            assert!(
+                observed,
+                "{dimension:?} produced zero observations reaching Census in the R4 reference \
+                 profile"
+            );
+        }
+
+        let normalization = crate::normalize::normalize(&census);
+        assert!(normalization.is_closed());
+        assert_eq!(
+            normalization.exact_duplicates_merged, 0,
+            "a single, internally consistent extractor's own output must not collapse against \
+             itself"
+        );
+        assert!(
+            normalization.conflict_candidates.is_empty(),
+            "a single extractor disagreeing with itself would be a real bug, not the \
+             multi-extractor scenario conflict detection exists for"
+        );
+    }
 }

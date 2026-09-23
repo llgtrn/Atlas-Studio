@@ -3979,3 +3979,124 @@ fn repeated_extraction_yields_stable_persistence_record_ids() {
     assert_eq!(first, second);
     assert!(!first.is_empty());
 }
+
+// === R4.12: the named R4 Rust reference profile ===============================================
+//
+// `.atlas/contracts/SEMANTIC-EXTRACTION.md#r4-definition-of-done` (item 1): "any project-wide
+// claim that R4 is complete MUST name the language/profile/reference corpus against which these
+// gates were proven." Every corpus above this section proves one dimension (or one wave) in
+// isolation; none is a single, named artifact exercising all twelve `SemanticDimension` variants
+// together. `R4_REFERENCE_PROFILE_CORPUS` is that artifact: one small, real, compiling-shaped
+// Rust file, combined from the same recognized constructs already proven dimension-by-dimension
+// above (a direct call, a branch, a def/use, a `self.field` read/write, a panic, a shared borrow,
+// `.await`, `thread::spawn`, and a `commit()` spelling), so an R4-closure claim naming this corpus
+// can point at real evidence for every mandatory dimension, not merely "not Unsupported".
+const R4_REFERENCE_PROFILE_CORPUS: &str = r#"
+pub struct Widget {
+    pub value: u64,
+}
+
+impl Widget {
+    pub fn new(value: u64) -> Self {
+        Widget { value }
+    }
+
+    pub fn get(&self) -> u64 {
+        self.value
+    }
+
+    pub fn set(&mut self, new_value: u64) {
+        self.value = new_value;
+    }
+
+    pub fn maybe_panic(&self, ok: bool) -> u64 {
+        if !ok {
+            panic!("not ok");
+        }
+        self.value
+    }
+}
+
+pub fn helper(x: u64) -> u64 {
+    x
+}
+
+pub fn caller(w: &Widget) -> u64 {
+    let doubled = helper(w.get()) * 2;
+    doubled
+}
+
+pub fn borrow_widget(w: &Widget) -> u64 {
+    w.value
+}
+
+pub async fn awaits_something(x: u64) -> u64 {
+    x.await
+}
+
+fn do_work() {}
+
+pub fn spawns_work() {
+    thread::spawn(do_work);
+}
+
+pub struct Store;
+impl Store {
+    pub fn commit(&mut self) {}
+}
+
+pub fn commits_a_store(store: &mut Store) {
+    store.commit();
+}
+"#;
+
+fn dimension_count(batch: &ExtractionBatch, dimension: SemanticDimension) -> usize {
+    batch
+        .observations
+        .iter()
+        .filter(|observation| observation.dimension() == dimension)
+        .count()
+}
+
+// --- 118. the reference profile is evidence-producing for EVERY mandatory dimension, not merely
+// accounted -- the strongest form of R4.12 Definition-of-Done item 1 ------------------------------
+
+#[test]
+fn reference_profile_produces_real_evidence_for_every_mandatory_dimension() {
+    let batch = extract_all("src/lib.rs", R4_REFERENCE_PROFILE_CORPUS);
+    assert!(batch.is_closed(&ALL_DIMENSIONS));
+    for &dimension in &ALL_DIMENSIONS {
+        let obligation = batch.obligation_for(dimension).unwrap();
+        assert_ne!(
+            obligation.status,
+            EpistemicStatus::Unsupported,
+            "{dimension:?} must not be Unsupported in the R4 reference profile"
+        );
+        assert!(
+            dimension_count(&batch, dimension) > 0,
+            "{dimension:?} produced zero observations in the R4 reference profile; the named \
+             closure corpus must exercise every mandatory dimension with real evidence"
+        );
+    }
+}
+
+// --- 119. deterministic across repeated extraction, matching every other corpus's proof ----------
+
+#[test]
+fn reference_profile_extraction_is_deterministic() {
+    let a = extract_all("src/lib.rs", R4_REFERENCE_PROFILE_CORPUS);
+    let b = extract_all("src/lib.rs", R4_REFERENCE_PROFILE_CORPUS);
+    assert_eq!(a.observations, b.observations);
+    assert_eq!(a.obligations, b.obligations);
+}
+
+// --- 120. unaffected by requested-dimension ordering, matching CORPUS's own such proof ------------
+
+#[test]
+fn reference_profile_extraction_is_unaffected_by_requested_dimension_order() {
+    let mut reversed = ALL_DIMENSIONS.to_vec();
+    reversed.reverse();
+    let forward = extract_all("src/lib.rs", R4_REFERENCE_PROFILE_CORPUS);
+    let backward = extract("src/lib.rs", R4_REFERENCE_PROFILE_CORPUS, reversed);
+    assert_eq!(forward.observations, backward.observations);
+}
