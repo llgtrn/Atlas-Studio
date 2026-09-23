@@ -1,0 +1,56 @@
+{
+  "schema": "atlas.self-build.generation-evidence.v1",
+  "wave": "SELF-DECLARATION CORRECTNESS -- WebUI materialization declared the wrong path, blocking coding_admission for this whole session",
+  "wave_title": "`.atlas/declared/system.adl` declared `materialize WebUI { path = \"apps/ui\" }`, but `apps/ui/` has never existed in this repository -- the real, existing frontend scaffold is `apps/studio` (README.md, package.json, design/tokens.json), which is also what `.atlas/repo.toml`'s own `frontend_roots`/`test_roots` correctly reference. The ADL declaration and the manifest disagreed about where the frontend lives; the ADL declaration was simply wrong (a stale path, not a genuinely missing implementation). This was the sole real, currently-blocking coding_admission.allowed:false condition throughout every generation this session (surfaced correctly starting with the commit that fixed constraint_results gating, 0f4735e0be), and it is now corrected.",
+  "generation_model": {
+    "G_n": "7c67cd4ae4 (fix(core): consolidate identity-key escaping; close two more join collisions) -- stable generation this candidate was built and validated against",
+    "gap_discovered_by": "Direct reconsideration of the persistent ADL_CONSTRAINT_VIOLATED/ObservedMaterialization:WebUI blocker that had been correctly, visibly present across every generation since it was first surfaced by this session's own coding_admission gating fix. Rather than continuing to treat it as permanent out-of-scope TARGET work, cross-checked the declared materialization path against `.atlas/repo.toml`'s own `frontend_roots` field and the real filesystem: the manifest says `apps/studio`, the real directory `apps/studio/` exists with real files, and neither the manifest nor the filesystem has ever had an `apps/ui`. This is a stale/typo'd declaration, not a genuinely unbuilt frontend -- a one-line correction closes it."
+  },
+  "priority_classification": "correctness/architectural integrity (priority 1) -- two canonical truth sources (`.atlas/repo.toml` and `.atlas/declared/system.adl`) disagreed about a basic fact (where the frontend lives), and the wrong one was the ADL declaration Atlas's own materialization-verification machinery checks against.",
+  "design_decisions": [
+    {
+      "question": "Fix the declared path, or create an `apps/ui` directory (e.g. a symlink or stub) to match the existing (wrong) declaration?",
+      "decision": "Fix the declared path. `apps/studio` is the real, manifest-referenced, already-scaffolded frontend location (README.md, package.json, design/tokens.json already present); `apps/ui` has no basis anywhere else in the repository. Creating a stub `apps/ui` to satisfy a stale declaration would be exactly the kind of 'materialize just to make a metric look better' the standing loop's extinction-discipline principle warns against in spirit -- the correct fix is to make the declaration honest, not to fabricate matching filesystem state."
+    },
+    {
+      "question": "Also add `language = typescript` to the materialize block, matching the WebUI entity's own `language = typescript` attribute and the pattern used by Core/Adapter/Runtime's materialize blocks (which each redundantly declare `language = rust`)?",
+      "decision": "No, not yet. `apps/studio` currently contains only README.md/package.json/design/tokens.json -- no `.ts`/`.tsx` files. Declaring `language = typescript` on the materialize block would immediately trigger the sibling `MATERIALIZATION_LANGUAGE_NOT_OBSERVED` check (`ATLAS-E054`, fixed earlier this session) and re-introduce a coding_admission blocker -- correctly this time, since no TypeScript source is observed there yet. Per this project's own 'never claim a fact this extractor cannot prove' discipline, the declaration should only assert `language = typescript` once real `.ts`/`.tsx` files actually exist under `apps/studio` -- TARGET work for whenever the frontend gains real source, not this generation."
+    }
+  ],
+  "stable_validator_law_compliance": {
+    "claim": "coding_admission.allowed is true and blockers is empty for the first time this session, with zero regression to any other check -- every other constraint (BackendIsRust, CoreIsMaterialized, AdapterIsMaterialized, RuntimeIsMaterialized) continues to pass exactly as before.",
+    "self_written_evidence": "This is a data correction to a declared fact, not new machinery -- the existing, already-tested constraint/materialization evaluation logic (verified extensively earlier this session) is what now correctly reports the corrected declaration as satisfied. No new test was needed or added; the change is verified entirely by re-running the existing real-repository checks below.",
+    "independent_evidence_channel": "Ran `atlas-cli systemize --root .`, `atlas-cli check --root .`, and `atlas-cli docs audit --root .atlas` against this repository's own real, corrected state (not a synthetic fixture): systemize's coding_admission.allowed flips from false to true with blockers going from `['ADL_CONSTRAINT_VIOLATED']` to `[]`; check exits 0 (previously exited 2 with ADL_CHECK_NOT_READY); all four remaining constraint_results continue to pass unchanged. `atlas-cli work prepare` correctly still reports `allowed: false` with only `WORKTREE_HAS_UNCOMMITTED_CHANGES` (this generation's own uncommitted edit, expected mid-change and resolved by the commit that follows) -- confirming the fix is precisely scoped to the one real condition it targets, not accidentally masking anything else.",
+    "no_circular_self_certification": true
+  },
+  "implementation": {
+    "declared_truth": ".atlas/declared/system.adl -- materialize WebUI's path corrected from \"apps/ui\" (never existed) to \"apps/studio\" (the real, manifest-referenced, already-scaffolded frontend location)"
+  },
+  "adversarial_and_falsification_coverage": [
+    "real self-census before/after: coding_admission.allowed false->true, blockers ['ADL_CONSTRAINT_VIOLATED']->[], atlas-cli check exit 2->0, zero change to the four other constraint_results",
+    "work prepare re-run to confirm the fix doesn't mask a different real blocker: WORKTREE_HAS_UNCOMMITTED_CHANGES is still correctly reported (this generation's own uncommitted edit) and will clear on commit, proving the ADL_CONSTRAINT_VIOLATED clearance is real and specific, not a false green from a broken check"
+  ],
+  "validation_this_generation": {
+    "commands": {
+      "cargo fmt --all --check": { "exit_code": 0 },
+      "cargo clippy --workspace --all-targets -- -D warnings": { "exit_code": 0, "warnings": 0 },
+      "cargo test --workspace": { "exit_code": 0, "totals": "452 passed, 0 failed -- unchanged, no code changed this generation" },
+      "cargo run -q -p atlas-cli -- systemize --root . (before/after)": {
+        "before": "coding_admission: {allowed: false, blockers: [ADL_CONSTRAINT_VIOLATED]}",
+        "after": "coding_admission: {allowed: true, blockers: []}"
+      },
+      "cargo run -q -p atlas-cli -- check --root . (before/after)": {
+        "before": "exit 2, ADL_CHECK_NOT_READY",
+        "after": "exit 0"
+      },
+      "cargo run -q -p atlas-cli -- docs audit --root .atlas": { "exit_code": 0 }
+    }
+  },
+  "recensus_scope_after_promotion": [
+    "no prior CLOSED/EXTINCT conclusion depended on the WebUI materialization gap staying open, so no external conclusion requires reopening -- if anything, this closes the one condition several of this session's own evidence records (dependency-role-activation-separation.json, adl-constraint-results-gate-coding-admission.json, and others) explicitly named as 'the pre-existing, unrelated WebUI gap' while validating unrelated fixes",
+    "apps/studio still has no real TypeScript source (only README.md/package.json/design/tokens.json) -- declaring `language = typescript` on its materialize block, and actually building the frontend, remain real, separate, explicit TARGET work, not claimed done by this correction",
+    "this is a concrete instance of the standing loop's own priority-1 correctness lane applying to Atlas's declared self-model, not only to its implementation code -- a repository's canonical truth sources (manifest vs. declared ADL) disagreeing with each other is itself a correctness defect worth fixing on the same footing as a code bug"
+  ],
+  "overall_verdict": "MATERIALIZED AND VERIFIED. Corrected a stale declared-materialization path that was the sole real, currently-blocking coding_admission condition throughout this entire session. coding_admission.allowed is true with zero blockers for the first time. Verified precisely scoped (only the targeted blocker cleared, WORKTREE_HAS_UNCOMMITTED_CHANGES from this generation's own uncommitted edit still correctly reported) and zero regression to any other check.",
+  "historical_evidence_retained": true
+}

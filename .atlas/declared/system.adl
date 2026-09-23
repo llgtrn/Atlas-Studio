@@ -88,7 +88,7 @@ materialize Runtime {
 }
 
 materialize WebUI {
-    path = "apps/ui"
+    path = "apps/studio"
 }
 
 constraint BackendIsRust {
