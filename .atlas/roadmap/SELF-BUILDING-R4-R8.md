@@ -518,6 +518,52 @@ AH1 allows Atlas V1 to borrow cloud-agent compute rather than requiring an Atlas
 
 Atlas Studio is a later native frontend over the same core, not a prerequisite for Atlas and not a separate truth system.
 
+## AIF1 — multi-AI construction fabric (cross-cutting R6→R8, load-bearing in R7)
+
+Normative orchestration semantics are defined by `../contracts/MULTI-AI-CONSTRUCTION-FABRIC.md`.
+
+Atlas MUST be able to decompose one construction objective into a typed task graph and route independent tasks to heterogeneous workers without granting any worker canonical authority.
+
+Target execution classes include:
+
+~~~text
+HOST_NATIVE_AI_WORKER
+REMOTE_AI_PROVIDER_WORKER
+REMOTE_ATLAS_EXECUTION_WORKER
+DETERMINISTIC_EXECUTION_WORKER
+~~~
+
+AIF1 MUST preserve:
+
+- provider role is distinct from vendor/model identity;
+- every material worker invocation has attributable task/provider lineage;
+- tool/filesystem/network-capable subagents run under bounded leases/capability envelopes;
+- child agents cannot widen parent authority or budget;
+- agent-to-agent durable coordination uses typed Atlas records, not a shared chat transcript;
+- context windows receive compiled semantic slices, while Atlas remains durable memory;
+- Jev-class decisions emit `DecisionProposal`, never direct SelectedDesign/seal authority;
+- candidate branches remain identity/evidence separated;
+- raw provider credentials are brokered/scoped rather than sprayed into coding sandboxes where possible;
+- budget exhaustion is explicit and cannot weaken verification/closure policy;
+- remote provider or worker fallback does not change task semantic identity;
+- provider consensus is evidence, not seal authority.
+
+The intended early embedded shape can therefore be:
+
+~~~text
+Claude-oriented cloud AgentHost
+├─ host-native Claude/coding subagents
+├─ AtlasCore + local MCP
+├─ ProviderRouter
+│  ├─ remote GPT-class provider
+│  ├─ remote Gemini-class provider
+│  ├─ Jev-class provider
+│  └─ remote Atlas workers
+└─ Atlas CandidateWorkspaces / verification backends
+~~~
+
+Names above are deployment examples, never required dependencies.
+
 ## R7 — research, typed decision, synthesis, self-build control and admission
 
 R7 connects observed donor reality to research and Human+AI design decisions without allowing research/model claims to impersonate observation. R7 is also the first maturity level at which Atlas may run a complete bounded self-coding loop.
@@ -553,6 +599,7 @@ Normative contracts:
 - ../contracts/ATLAS-CREATION-PIPELINE.md;
 - ../contracts/EXTERNAL-PROVIDER-TRUST.md;
 - ../contracts/AGENT-HOST-EMBEDDED-RUNTIME.md;
+- ../contracts/MULTI-AI-CONSTRUCTION-FABRIC.md;
 - ../contracts/SELECTED-DESIGN.md;
 - ../contracts/SELF-BUILD-CONTROLLER.md;
 - ../contracts/ADMISSION-TRANSACTION.md;
