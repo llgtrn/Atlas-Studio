@@ -56,6 +56,61 @@ DC1 is required before W0 can claim full `COARSE_CENSUSED` status. It materializ
 
 DC1 determines census breadth. R4 semantic dimensions determine census depth.
 
+### Cross-cutting AH1 — Embedded Agent Host Runtime
+
+Atlas is a tool/runtime substrate before it is an IDE and MUST support provider-neutral embedding under `../contracts/AGENT-HOST-EMBEDDED-RUNTIME.md`.
+
+The primary early host profile is:
+
+~~~text
+coding-agent cloud/local session
+→ local MCP/API adapter
+→ AtlasCore inside the same outer host sandbox
+→ Atlas-managed candidate workspaces
+→ Census / verification / admission / seal
+~~~
+
+This allows Atlas to reuse agent-cloud compute and checkout while keeping semantic truth, uncertainty, verification and admission inside Atlas.
+
+AH1 target capabilities include:
+
+- provider-neutral AtlasCore separated from CLI/MCP/API/Studio adapters;
+- local stdio MCP adapter for embedded coding agents;
+- exact parent/candidate identity when the provider edits the host worktree;
+- sandbox capability detection rather than Docker/KVM assumptions;
+- workspace/process isolation baseline inside an outer host sandbox;
+- stronger container/microVM/remote backends when available/required;
+- candidate freeze/hash before verification;
+- durable Atlas/evidence state that outlives ephemeral agent sessions;
+- optional remote scale-out for large census, fuzzing, benchmarks, failure injection, GPU and multi-node workloads;
+- Atlas Studio as a later frontend over the same core rather than a second semantic system.
+
+AH1 is cross-cutting. It does not wait for R8, and it does not make MCP or any named agent vendor part of canonical Atlas semantics.
+
+### Cross-cutting AIF1 — Multi-AI Construction Fabric
+
+Atlas construction must support many AI/provider workers without turning provider conversation into project memory or provider consensus into authority. Normative architecture is `../contracts/MULTI-AI-CONSTRUCTION-FABRIC.md`.
+
+AIF1 is load-bearing for mature R7 and may begin earlier as infrastructure. Target capabilities include:
+
+- provider-neutral `ProviderRouter` across host-native, remote AI and remote Atlas execution workers;
+- typed `ConstructionTaskGraph` with explicit dependencies/fan-out/fan-in;
+- bounded `AgentLease`/capability envelope for any worker with Atlas tool/filesystem/network access;
+- recursive subagent-spawn discipline that cannot widen parent authority/budget;
+- Atlas-owned typed semantic blackboard instead of shared-chat memory;
+- task-specific `ContextCompiler` over Census/semantic state, preserving UNKNOWN/CONFLICT/obligation context;
+- Jev-class Decision Fabric emitting typed `DecisionProposal` records for rank/route/shortlist/next-experiment choices;
+- concurrent speculative CandidateAtlas branches with separate CandidateChangeSet/evidence lineage;
+- credential/provider gateway so raw external API secrets need not enter coding workspaces;
+- token/money/time/CPU/GPU/network budget scheduling and explicit exhaustion state;
+- independent critic/verification routing across providers/backends where policy requires;
+- restricted-egress fallback through remote Atlas workers/provider gateways;
+- provider-independent ASIR/ACP decode and provider-independent final seal.
+
+AIF1 MUST reuse ProviderReceipt, DecisionProposal, CandidateChangeSet, SelfBuildWorkOrder, ASIR/ACP and existing authority contracts rather than create a second truth model.
+
+AIF1 is TARGET architecture until production code/evidence materializes each capability.
+
 ### R4 — semantic census depth
 
 Current materialized baseline is R4.8 bootstrap: R4.6 CONTROL_FLOW and R4.7 DATA_FLOW are materialized; R4.8 emits useful STATE/EFFECT evidence but canonical R4.8 closure remains open.
@@ -111,7 +166,8 @@ Normative contracts:
 
 - `../contracts/HUMAN-AI-ADL-AUTHORING.md`;
 - `../contracts/ATLAS-CREATION-PIPELINE.md`;
-- `../contracts/EXTERNAL-PROVIDER-TRUST.md`.
+- `../contracts/EXTERNAL-PROVIDER-TRUST.md`;
+- `../contracts/MULTI-AI-CONSTRUCTION-FABRIC.md`.
 
 Primary donor lane: W5 plus admitted external provider adapters.
 
@@ -194,7 +250,7 @@ canonical *.atlas
 
 Search/research may feel like a research assistant; fast typed selection may use a Jev-class provider; code synthesis may use frontier external providers. These are replaceable adapters and do not own canonical semantics.
 
-This lane is governed by `../contracts/HUMAN-AI-ADL-AUTHORING.md`, `../contracts/ATLAS-CREATION-PIPELINE.md`, `../contracts/EXTERNAL-PROVIDER-TRUST.md`, `../contracts/SELF-BUILD-CONTROLLER.md`, `../contracts/ADMISSION-TRANSACTION.md` and `../contracts/VERIFICATION-METRICS-PERFORMANCE.md`.
+This lane is governed by `../contracts/HUMAN-AI-ADL-AUTHORING.md`, `../contracts/ATLAS-CREATION-PIPELINE.md`, `../contracts/EXTERNAL-PROVIDER-TRUST.md`, `../contracts/AGENT-HOST-EMBEDDED-RUNTIME.md`, `../contracts/SELF-BUILD-CONTROLLER.md`, `../contracts/ADMISSION-TRANSACTION.md` and `../contracts/VERIFICATION-METRICS-PERFORMANCE.md`.
 
 ## Language Genesis lane — after typed census semantics are trustworthy
 
