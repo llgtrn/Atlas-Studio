@@ -77,7 +77,9 @@ The following machine schemas are normative for the first implementation profile
 - `../schemas/decision-proposal.schema.json`;
 - `../schemas/candidate-change-set.schema.json`;
 - `../schemas/self-build-work-order.schema.json`;
-- `../schemas/admission-transaction.schema.json`.
+- `../schemas/admission-transaction.schema.json`;
+- `../schemas/architectural-integrity-envelope.schema.json`;
+- `../schemas/architectural-integrity-report.schema.json`.
 
 A later implementation may add richer typed Rust/API forms, but those forms MUST preserve these semantic obligations or explicitly version/migrate them.
 
@@ -417,6 +419,9 @@ Validation is not a post-build check against an already-final artifact. It is pa
 Possible gates include:
 
 - semantic verifier;
+- architectural-integrity verification against the exact pinned ArchitecturalIntegrityEnvelope;
+- architecture impact-closure validation;
+- load-bearing replacement equivalence/falsification evidence where affected;
 - compiler/type checks;
 - unit/integration/property tests;
 - differential tests;
@@ -441,6 +446,8 @@ A semantically correct candidate is not automatically selected if it violates an
 A CostModel prediction may prune or prioritize candidates but cannot satisfy an empirical performance obligation that policy requires to be measured.
 
 C9 emits durable structured evidence/diagnostics and an obligation-evaluation result. It does not itself select or seal.
+
+Architectural integrity is a distinct hard gate under ARCHITECTURAL-INTEGRITY.md. A candidate may be syntactically valid, locally semantically correct and test-green yet still be INVALID because it bypasses a selected ownership/state/authority/interface/failure/lifecycle boundary. A required HARD architectural violation is admission-blocking; a required UNKNOWN/CONFLICT remains unresolved rather than being treated as PASS.
 
 ## CandidateAtlas versus final *.atlas
 
@@ -516,6 +523,8 @@ For Atlas self-build this also includes the post-apply AdmissionTransaction rece
 
 If selection, application, binding resolution, dependency resolution or environment/profile changes invalidate material evidence, the affected gates MUST be rerun.
 
+For architecture-bearing candidates, C11B MUST also establish an ArchitecturalIntegrityReport for the exact selected candidate/revision with closed impact closure, zero HARD violations, required UNKNOWN/CONFLICT states closed according to Genome policy, and required load-bearing equivalence evidence. Any intentional architecture change MUST already have a SELECTED BlueprintRevisionDecision and a corresponding active envelope; selection of an implementation does not silently supersede architecture.
+
 The result is SealEligibleAtlas, not yet a published artifact.
 
 ## Stage C12 — Logical Atlas seal
@@ -543,6 +552,8 @@ The SEALED logical Atlas MUST preserve enough information to explain and reprodu
 - conflicts/unknowns permitted by policy;
 - Genome/schema/version pins;
 - CensusCertificate;
+- ArchitecturalIntegrityEnvelope identity/hash;
+- exact ArchitecturalIntegrityReport and affected-invariant/equivalence evidence roots used for seal eligibility;
 - SelfBuildWorkOrder and committed AdmissionTransaction lineage when the logical Atlas represents an admitted self-build revision.
 
 The logical Atlas is already complete engineering meaning before physical compaction starts.
