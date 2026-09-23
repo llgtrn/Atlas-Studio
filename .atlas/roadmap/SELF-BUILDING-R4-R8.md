@@ -155,19 +155,22 @@ Current materialized sequence:
 
 Currently materialized Rust semantic dimensions are:
 
-- SYMBOL;
-- TYPE;
-- FUNCTION_IDENTITY;
-- FUNCTION_SIGNATURE;
-- CALL;
-- CONTROL_FLOW;
-- DATA_FLOW;
+- SYMBOL (exhaustive over the declared declaration-level profile);
+- TYPE (exhaustive over the declared declaration-level profile);
+- FUNCTION_IDENTITY (exhaustive over the declared declaration-level profile);
+- FUNCTION_SIGNATURE (exhaustive over the declared declaration-level profile);
+- partial CALL;
+- partial CONTROL_FLOW;
+- partial DATA_FLOW;
 - partial STATE;
-- partial EFFECT.
+- partial EFFECT;
+- partial OWNERSHIP;
+- partial CONCURRENCY;
+- partial PERSISTENCE.
 
-R4.5 observes real function-body call sites while leaving targets UNRESOLVED where source evidence is insufficient. R4.6 and R4.7 materialize control/data-flow structure. R4.8 now produces useful STATE/EFFECT observations, but those two dimension obligations deliberately remain UNKNOWN until their declared closure gaps are resolved.
+R4.5 observes real function-body call sites while leaving targets UNRESOLVED where source evidence is insufficient. R4.6 and R4.7 materialize control/data-flow structure. R4.8 produces useful STATE/EFFECT observations; R4.9/R4.10 produce useful OWNERSHIP/CONCURRENCY observations; R4.11 produces useful PERSISTENCE candidates. A full R4.4-R4.10 reconciliation audit confirmed that CALL/CONTROL_FLOW/DATA_FLOW/OWNERSHIP/CONCURRENCY share the same real, permanent gap already known for STATE/EFFECT (a call/access/site written only inside a macro invocation's arguments is structurally invisible without macro expansion, which this extractor never performs) -- all eight full-expression-tree dimensions (PERSISTENCE included, which additionally has no dedicated syntax at all and no resolved-API adapter) therefore deliberately keep their obligation UNKNOWN until their declared closure gaps are resolved, per `dimension_coverage` in `adapter::semantic::rust::mod`. Only the four declaration-level dimensions (SYMBOL/TYPE/FUNCTION_IDENTITY/FUNCTION_SIGNATURE) are currently exhaustive over their own explicitly-scoped profile.
 
-These facts are increasingly useful for mechanism absorption, but partial R4.8 evidence must not be mistaken for full semantic closure.
+These facts are increasingly useful for mechanism absorption, but partial evidence in any of the seven expression-tree dimensions must not be mistaken for full semantic closure.
 
 ### R4.4 — Function Identity Closure — materialized
 
@@ -188,11 +191,11 @@ R4.4 intentionally does not claim compiler DefId-level equivalence, type-alias e
 
 CALL remains the next semantic relation.
 
-### R4.5 — Call Semantics — materialized
+### R4.5 — Call Semantics — bootstrap materialized, closure remains open
 
-R4.5 is materialized on canonical main.
+R4.5's bootstrap is materialized on canonical main.
 
-Production Rust semantic extraction now observes real function/method-body call sites and attributes them to the enclosing FunctionIdentity through the canonical SourceFrontend → SemanticExtractor → Census → Normalize → graph path.
+Production Rust semantic extraction now observes real function/method-body call sites and attributes them to the enclosing FunctionIdentity through the canonical SourceFrontend → SemanticExtractor → Census → Normalize → graph path. A full R4.4-R4.10 reconciliation audit confirmed a closure a bare "materialized" label previously implied but never proved: a call written only inside a macro invocation's arguments (`my_macro!(hidden_call())`) is structurally invisible to this extractor without macro expansion, which it never performs. This is a real, permanent gap shared by every full-expression-tree dimension (CALL/CONTROL_FLOW/DATA_FLOW/STATE/EFFECT/OWNERSHIP/CONCURRENCY alike), not unique to R4.5 -- see `dimension_coverage` in `adapter::semantic::rust::mod`, the one canonical place answering whether a dimension may treat zero observations as verified absence.
 
 Current source-only resolution discipline is conservative:
 
@@ -200,38 +203,53 @@ Current source-only resolution discipline is conservative:
 - caller identity is preserved;
 - dispatch remains UNRESOLVED when target resolution is not proven;
 - unresolved callees are not fabricated;
-- graph projection contains CallSite nodes and caller→MAKES_CALL edges without invented callee edges.
+- graph projection contains CallSite nodes and caller→MAKES_CALL edges without invented callee edges;
+- CALL observations may be emitted while the dimension obligation remains UNKNOWN; zero observations are not verified absence.
 
 Deeper target resolution may improve through later semantic/compiler evidence without changing the identity of the already-observed call site.
 
-### R4.6 — Control Flow — materialized
+R4.12 closed CALL's own named argument-binding gap: `CallSiteIdentity.arguments: Vec<PlaceRef>` carries one entry per syntactic argument position, `PlaceRef::Resolved { dimension: DataFlow, record_id }` for a simple single-identifier argument, `PlaceRef::Unresolved` for anything requiring deeper analysis. The `record_id` is computed by reusing `ValueIdentity::identity_key()` itself (never a hand-duplicated formula), and `spelling::simple_path_ident` (the SAME recognizer DATA_FLOW's own `Expr::Path` arm now also calls, factored out to guarantee the two walkers cannot silently drift apart) -- proven, not merely designed, by `adapter::semantic::rust::tests::call_argument_place_ref_converges_on_the_data_flow_uses_own_record_id`, which asserts the CALL argument's `PlaceRef` names the EXACT SAME node DATA_FLOW's own pass produced. `PlaceRef` itself moved to `core::semantic::place` (out of `persistence.rs`) once it gained this second real consumer.
 
-CONTROL_FLOW is materialized on canonical main with:
+Result-binding is closed too: `CallSiteIdentity.result: PlaceRef` resolves to the DATA_FLOW `Definition`/`Store` record_id a call's return value directly becomes -- `let y = helper(x);` (Definition), `y = helper(x);` (Store) -- narrowly scoped to the case where the call expression IS the entire initializer/right-hand side (never a subexpression: `let y = helper(x) + 1;` stays `Unresolved`, since no single value the call's result "becomes" exists there), and only when the binding pattern reduces to one simple identifier (`spelling::simple_binding_ident`; a destructured `let (a, b) = two_args_tuple(x, x);` stays `Unresolved` even though DATA_FLOW itself binds every sub-identifier, since a call's single return value has no well-defined mapping onto more than one bound name). Proven by `adapter::semantic::rust::tests::call_result_place_ref_converges_on_the_data_flows_own_definition_record_id`/`..._store_record_id_for_assignment`. Self-census against this repository's own real source confirms both halves fire genuinely: 1638 real call results resolved, 3668 correctly `Unresolved`, zero new duplicates or conflicts at scale (26541 typed observations).
+
+### R4.6 — Control Flow — bootstrap materialized, closure remains open
+
+CONTROL_FLOW's bootstrap is materialized on canonical main with:
 
 - deterministic block identity;
 - entry/exit;
 - branches;
 - loops;
 - return edges;
-- panic/failure edges;
+- panic-like-macro edges;
 - explicit unresolved control constructs;
-- function-to-CFG closure.
+- function-to-CFG closure for the declared statement-level profile.
 
 CFG identity MUST be stable for identical pinned input and MUST NOT depend on traversal/hash iteration order.
 
-### R4.7 — Data Flow — materialized
+This wave's own scope was always statement-level only (a construct nested inside a larger expression, e.g. `let x = if c { a() } else { b() };`, is not given its own CFG blocks -- an honestly documented gap, not a silent one), and shares CALL's macro-invocation-opacity gap. A block whose only successor is a textual panic-like macro invocation now carries `EpistemicStatus::Inferred`, not `Observed`, on the whole block -- the same limitation R4.8 EFFECT already documents for the identical evidence, since the block's own successor set genuinely depends on whether the macro actually diverges (see `core::semantic::control_flow`). CONTROL_FLOW observations may be emitted while the dimension obligation remains UNKNOWN; zero observations are not verified absence.
 
-DATA_FLOW is materialized on canonical main with:
+### R4.7 — Data Flow — bootstrap materialized, closure remains open
+
+DATA_FLOW's bootstrap is materialized on canonical main with:
 
 - values;
 - definitions/uses;
 - parameter flow;
 - return flow;
-- load/store relationships;
+- load/store relationships, including compound-assignment Use+Store;
 - local propagation;
 - typed unresolved/alias ambiguity where deeper analysis is unavailable.
 
 Do not claim compiler-complete alias analysis unless actually evidenced.
+
+R4.7 shares CALL's macro-invocation-opacity gap. R4.12 closed its own previously-documented gap:
+tuple/tuple-struct/struct/slice destructuring, `&`/parenthesized wrapping and `ident @ sub_pattern`
+bindings in a `let`/match-arm/`for`/parameter position now each emit a real Definition
+(`adapter::semantic::rust::dataflow::DataFlowWalker::walk_binding_pat`), so their subsequent uses
+resolve instead of staying explicitly UNRESOLVED. CALL↔DATA_FLOW binding (both argument- and
+result-binding halves) is now closed too (see R4.5's section above). DATA_FLOW observations may be emitted while the dimension
+obligation remains UNKNOWN; zero observations are not verified absence.
 
 ### R4.8 — State and Effect — bootstrap materialized, closure remains open
 
@@ -283,35 +301,113 @@ R4.10 closure still requires materializing/accounting:
 - concurrent state interaction;
 - dynamic/unresolved concurrency obligations.
 
-### R4.11 — Persistence and Recovery Semantics
+### R4.11 — Persistence and Recovery Semantics — bootstrap materialized, closure remains open
 
-Materialize PERSISTENCE:
+Canonical main now has a useful R4.11 bootstrap: `Commit`/`Flush`/`Sync`/`Checkpoint`/`Snapshot`
+textual callee-spelling candidates, always `EpistemicStatus::Inferred` (never `Observed` --
+`game.commit()` and `wal.commit()` are equally uncertain to this extractor). This is not R4.11
+semantic closure.
 
-- durable writes;
-- transaction boundaries;
-- log/checkpoint/recovery behavior where applicable;
-- durability ordering;
-- recovery/failure paths;
-- external persistence boundaries;
-- explicit unknowns.
+**Design guard enforced before implementation**: R4.11 does NOT introduce a fourth/fifth
+independent `name: String`-keyed target identity alongside DATA_FLOW's `ValueIdentity`, STATE's
+`StateAccessIdentity` and OWNERSHIP's `OwnershipIdentity`. Instead, `PersistenceIdentity.place:
+PlaceRef` (`core::semantic::persistence`) is a small bridge: `PlaceRef::Resolved { dimension,
+record_id }` lets a persistence operation point at an EXISTING dimension's own already-canonical
+record when evidence allows (proven by a dedicated graph test converging a PERSISTENCE operation
+onto the SAME `StateAccess` node a STATE observation produced), and `PlaceRef::Unresolved` names
+"no canonical place" explicitly rather than fabricating one from spelling -- this extractor's only
+mode this wave, since it has no resolved-API adapter yet. A full first-class `PlaceIdentity` shared
+natively by all four dimensions remains TARGET work (see
+`.atlas/evidence/verification/r4.4-r4.10-second-hardening-pass-correction.json`); `PlaceRef` is
+explicitly the bridge, not the destination.
 
-### R4.12 — R4 Semantic Closure
+Until deeper resolution exists:
 
-R4 closes only after the declared Rust reference profile satisfies the canonical R4 acceptance contract.
+- PERSISTENCE observations may be emitted while the dimension obligation remains UNKNOWN;
+- zero observations in the partially covered PERSISTENCE dimension are not verified absence;
+- a textual `commit`/`flush`/`sync`/`checkpoint`/`snapshot` spelling is `Inferred` unless a
+  resolved/admitted API adapter proves the actual durable operation;
+- a bare STATE mutation (`self.counter += 1`) never fabricates a PERSISTENCE fact, and a durability
+  boundary (a resolved commit) does not retroactively claim every prior STATE write as durable --
+  the two dimensions stay typed and separate, linkable only through `PlaceRef` where evidence
+  proves the same location;
+- closures/async blocks get no PERSISTENCE attribution of their own, consistent with every other
+  dimension's deferred-region exclusion (a `persist().await` inside `async { .. }` belongs to that
+  region, never to the function that merely constructs it).
 
-R4.12 must include:
+R4.11 closure still requires materializing/accounting:
 
-- all mandatory R4 dimensions evidence-producing or explicitly accounted;
-- every discovered function with stable identity/signature or explicit unresolved state;
-- deterministic normalization;
-- exact semantic duplicate policy;
-- multi-extractor observations preserved;
-- conflict candidates preserved for reconciliation;
-- dynamic/unresolved facts explicit;
-- reference corpus;
-- deterministic accounting/closure tests;
-- graph construction only from normalized typed truth;
-- no compatibility `SemanticFact` authority over typed semantics.
+- `DurableRead`/`DurableWrite`/`JournalAppend`/`TransactionBegin`/`TransactionAbort`/`Recover`/
+  `Restore` (declared in `PersistenceKind`, never emitted -- would need resolved-API evidence this
+  extractor does not have);
+- durability ordering relationships (write → flush → commit; concurrent writers vs. a checkpoint);
+- recovery/failure-path relationships (a restore that recovers-from a checkpoint/journal);
+- external persistence boundaries (files/objects/blobs, database tables/keys) as resolvable
+  `PlaceRef` targets, not just STATE-shared ones;
+- connection to `FailureScenario`/`VerificationWorld`/obligation/evidence
+  (`VERIFICATION-METRICS-PERFORMANCE.md`) -- e.g. an obligation "committed writes survive process
+  restart" backed by a crash-then-recover `FailureScenario`'s evidence, not by one passing test
+  treated as universal truth;
+- closure evidence sufficient to justify any verified negative fact.
+
+This is the minimum point at which Atlas can connect implementation behavior to durable-state
+claims for mechanism absorption, but the closure claim remains profile-scoped and evidence-gated,
+exactly like R4.8/R4.9/R4.10 before it.
+
+### R4.12 — R4 Semantic Closure — infrastructure gate materialized, one item remains a named bridge
+
+R4 closes only after the declared Rust reference profile satisfies the canonical R4 acceptance
+contract (`.atlas/contracts/SEMANTIC-EXTRACTION.md#r4-definition-of-done`). R4.12 operates one
+level above any single dimension's own remaining closure status (R4.5-R4.11 each keep their own
+"closure remains open" state, unaffected by this section): it is the pipeline-level gate --
+determinism, non-omission, dedup accounting, conflict preservation, graph-path purity, and a named
+reference corpus -- not a claim that every dimension has exhausted Rust's construct space.
+
+Named Rust reference profile: `R4_REFERENCE_PROFILE_CORPUS`
+(`adapter::semantic::rust::tests`, mirrored in `runtime::census::tests` for the full
+Census→Normalize path), the first single corpus proven evidence-producing -- not merely accounted
+-- for all twelve `SemanticDimension` variants together. Every project-wide R4-complete claim
+names this corpus, per the contract's own closing requirement.
+
+Status against the 9-item Definition of Done, this wave:
+
+- all mandatory R4 dimensions evidence-producing or explicitly accounted: **done**, and now proven
+  in the strongest form via the named reference profile;
+- every discovered function with stable identity/signature or explicit unresolved state: **done**
+  (R4.4, unchanged);
+- deterministic normalization: **done** (unchanged);
+- exact semantic duplicate policy: **partial** -- the narrowest safe case (byte-identical raw
+  observations) is now real, counted (`NormalizationReport.exact_duplicates_merged`), and the
+  closure invariant (`typed_semantics_closed()`) correctly accounts for the collapse
+  (`input == normalized + exact_duplicates_merged`, matching
+  `.atlas/contracts/NORMALIZATION.md#closure-invariants` verbatim). `NORMALIZATION.md`'s broader
+  rule -- merging same-extractor observations that agree on identity/payload/status but differ
+  only in evidence, unioning that evidence -- remains explicit **bridge/target**: no current Rust
+  walker's output shape ever triggers it (each emits exactly one evidence ref per observation), and
+  self-census against this repository's own ~25k observations confirms zero real occurrence, so it
+  is named rather than guessed at;
+- multi-extractor observations preserved: **done** (R4.3.3 onward, unchanged);
+- conflict candidates preserved for reconciliation: **done**, newly this wave --
+  `NormalizationReport.conflict_candidates` groups typed records by `record_id` and flags any group
+  disagreeing on typed payload (`SemanticObservation::subject_repr()`), proven against the exact
+  "extractor call-target sets" disagreement example `NORMALIZATION.md` itself names
+  (`CallSiteIdentity.dispatch`/`callees` differing under one call-site identity), and against real
+  corroboration (identical payload, different extractor) correctly NOT flagging. Deliberately
+  over-inclusive rather than per-dimension-nuanced: reconciliation (R6) decides, this wave only
+  detects and preserves;
+- dynamic/unresolved facts explicit: **done** (unchanged, e.g. `CallDispatchKind`'s four states);
+- reference corpus: **done**, newly this wave -- see `R4_REFERENCE_PROFILE_CORPUS` above;
+- deterministic accounting/closure tests: **done**, newly this wave -- the named corpus closes this
+  gap directly (`reference_profile_produces_real_evidence_for_every_mandatory_dimension`,
+  `reference_profile_survives_census_and_normalization_with_no_duplicates_or_conflicts`);
+- graph construction only from normalized typed truth: **done** (R4.3.3, unchanged);
+- no compatibility `SemanticFact` authority over typed semantics: **done** (R4.3.3, unchanged).
+
+R4.12 is **materialized, not fully closed**: 8 of 9 items are genuinely done; the exact-duplicate
+equivalence-class rule remains a named bridge, not silently omitted or overclaimed.
+`.atlas/evidence/verification/r4.12-verification-record.json` records the full gap audit, the
+self-census cross-check at real scale, and the bug found and fixed this pass (the closure
+invariant did not yet account for the exact-duplicate delta the contract's own formula requires).
 
 R4 closure is profile-scoped. Do not claim universal language/compiler completeness.
 
@@ -387,20 +483,86 @@ VP1 includes, at the contract/runtime maturity appropriate to the active wave:
 - evidence/attestation roots bound by the seal without turning the immutable artifact into a mutable telemetry database.
 
 Analytic models may prune candidate space. Final performance claims remain evidence-scoped. A failed required metric/obligation returns the candidate to the repair loop; it does not create a final `*.atlas`.
+## AH1 — embedded agent-host execution fabric (cross-cutting R4→R8)
 
-## AI1 — Architectural Integrity / Collapse Prevention (cross-cutting R4→R8)
+Atlas MUST be runnable as an embedded subsystem inside the coding environment that is already performing the work.
 
-AI1 is governed by ../contracts/ARCHITECTURAL-INTEGRITY.md. It is distinct from VP1: VP1 asks whether obligations/metrics are verified; AI1 asks whether the exact candidate still obeys the selected load-bearing system architecture.
+Normative host/runtime semantics are defined by `../contracts/AGENT-HOST-EMBEDDED-RUNTIME.md`.
 
-The implementation sequence is intentionally distributed across the existing R-waves rather than inventing a new maturity number:
+The primary early deployment target is:
 
-- **R4 observation substrate** — typed call/control/data/state/effect/ownership/concurrency/persistence semantics must be rich enough to observe architecture-relevant topology instead of guessing from folders or prose.
-- **R5 impact closure** — dependency-aware incremental invalidation must compute which architecture invariants can be affected by a semantic delta and prove when cached unaffected results are reusable.
-- **R6 reconciliation** — multi-observer evidence must reconcile architecture-relevant facts, preserve CONFLICT/UNKNOWN, and produce the observed-architecture root needed by an ArchitecturalIntegrityReport.
-- **R7 admission** — CandidateChangeSet/ACP transactions must be checked on isolated post-change candidate state against a pinned ArchitecturalIntegrityEnvelope. HARD violation rejects admission; intentional architecture change requires a SELECTED BlueprintRevisionDecision.
-- **R8 durable seal/materialization** — logical Atlas binds the exact envelope/report/equivalence evidence roots; AtlasX materialization revalidates invariants affected by selected bindings, profiles, partial closure or deterministic expansion.
+~~~text
+coding agent in local/cloud host sandbox
+→ local MCP/API adapter
+→ AtlasCore
+→ Atlas CandidateWorkspace / SandboxBackend
+→ Census / verify / admission / seal
+~~~
 
-AI1 starts as CONTRACT now. No wave may claim the production capability merely because these docs/schemas exist.
+The host may supply compute, checkout and an outer security sandbox. Atlas supplies the durable semantic world, uncertainty/closure, candidate isolation semantics, evidence binding, admission and artifact lifecycle.
+
+AH1 MUST preserve:
+
+- agent host is infrastructure, not canonical authority;
+- coding provider is replaceable temporary intelligence;
+- MCP/API/CLI/Studio are adapters over one AtlasCore;
+- mutable worktree is candidate state until admitted;
+- provider-created commit is not AdmissionTransaction;
+- outer host sandbox is not the same thing as Atlas job isolation or VerificationWorld;
+- nested Docker/KVM/privileged sandbox capability is never assumed;
+- verification binds an exact frozen candidate;
+- sealed Atlas/evidence state outlives the originating agent session;
+- heavy jobs may scale out without changing semantic identity.
+
+AH1 allows Atlas V1 to borrow cloud-agent compute rather than requiring an Atlas cloud platform on day one. Scale-out workers become an implementation option when workloads exceed the embedded host.
+
+Atlas Studio is a later native frontend over the same core, not a prerequisite for Atlas and not a separate truth system.
+
+## AIF1 — multi-AI construction fabric (cross-cutting R6→R8, load-bearing in R7)
+
+Normative orchestration semantics are defined by `../contracts/MULTI-AI-CONSTRUCTION-FABRIC.md`.
+
+Atlas MUST be able to decompose one construction objective into a typed task graph and route independent tasks to heterogeneous workers without granting any worker canonical authority.
+
+Target execution classes include:
+
+~~~text
+HOST_NATIVE_AI_WORKER
+REMOTE_AI_PROVIDER_WORKER
+REMOTE_ATLAS_EXECUTION_WORKER
+DETERMINISTIC_EXECUTION_WORKER
+~~~
+
+AIF1 MUST preserve:
+
+- provider role is distinct from vendor/model identity;
+- every material worker invocation has attributable task/provider lineage;
+- tool/filesystem/network-capable subagents run under bounded leases/capability envelopes;
+- child agents cannot widen parent authority or budget;
+- agent-to-agent durable coordination uses typed Atlas records, not a shared chat transcript;
+- context windows receive compiled semantic slices, while Atlas remains durable memory;
+- Jev-class decisions emit `DecisionProposal`, never direct SelectedDesign/seal authority;
+- candidate branches remain identity/evidence separated;
+- raw provider credentials are brokered/scoped rather than sprayed into coding sandboxes where possible;
+- budget exhaustion is explicit and cannot weaken verification/closure policy;
+- remote provider or worker fallback does not change task semantic identity;
+- provider consensus is evidence, not seal authority.
+
+The intended early embedded shape can therefore be:
+
+~~~text
+Claude-oriented cloud AgentHost
+├─ host-native Claude/coding subagents
+├─ AtlasCore + local MCP
+├─ ProviderRouter
+│  ├─ remote GPT-class provider
+│  ├─ remote Gemini-class provider
+│  ├─ Jev-class provider
+│  └─ remote Atlas workers
+└─ Atlas CandidateWorkspaces / verification backends
+~~~
+
+Names above are deployment examples, never required dependencies.
 
 ## R7 — research, typed decision, synthesis, self-build control and admission
 
@@ -436,11 +598,12 @@ Normative contracts:
 - ../contracts/HUMAN-AI-ADL-AUTHORING.md;
 - ../contracts/ATLAS-CREATION-PIPELINE.md;
 - ../contracts/EXTERNAL-PROVIDER-TRUST.md;
+- ../contracts/AGENT-HOST-EMBEDDED-RUNTIME.md;
+- ../contracts/MULTI-AI-CONSTRUCTION-FABRIC.md;
 - ../contracts/SELECTED-DESIGN.md;
 - ../contracts/SELF-BUILD-CONTROLLER.md;
 - ../contracts/ADMISSION-TRANSACTION.md;
-- ../contracts/VERIFICATION-METRICS-PERFORMANCE.md;
-- ../contracts/ARCHITECTURAL-INTEGRITY.md.
+- ../contracts/VERIFICATION-METRICS-PERFORMANCE.md.
 
 Primary donor lane: W5 — openrewrite, c2rust, crubit, py2many — plus explicitly admitted research/decision/synthesis/verification provider adapters.
 
@@ -476,10 +639,9 @@ Required capabilities:
 - selected implementation semantics and provider/candidate lineage complete before seal;
 - final exact-candidate seal-eligibility gate after candidate implementation census/verification;
 - logical Atlas seal that binds SelectedDesign + required obligation/evidence commitments;
-- logical Atlas seal binds the active ArchitecturalIntegrityEnvelope and exact eligible integrity/equivalence evidence roots;
 - canonical `*.atlas` publication only after seal;
 - deterministic provider-independent mechanical compaction after seal;
-- deterministic Atlas→AtlasX materialization under `../contracts/ATLAS-TO-ATLASX.md`, including materialization-critical architectural revalidation;
+- deterministic Atlas→AtlasX materialization under `../contracts/ATLAS-TO-ATLASX.md`;
 - canonical AtlasX object/manifest validation under `../contracts/ATLASX-FORMAT.md`;
 - canonical AtlasX v1 bytes/root hashing under `../contracts/ATLASX-BINARY-WIRE-FORMAT.md`;
 - parent/lineage retention;
@@ -502,6 +664,7 @@ self-census / closure / metrics
 → SelfBuildWorkOrder
 → research / donor census
 → candidate set / typed decision
+→ Atlas-managed candidate workspace / SandboxBackend
 → synthesis CandidateChangeSet
 → untrusted census
 → CandidateAtlas
@@ -980,7 +1143,6 @@ R8 is not the end of census. It is the point where census-derived knowledge has 
 - **ASIR in-memory construction state** — a mutable, pre-seal typed graph distinct from today's per-dimension `SemanticObservation` records (which represent *extracted*, not *constructed*, semantics); does not exist yet.
 - **dialect registry** — a real, queryable registry of the `atlas.*` namespaces `ASIR-CONSTRUCTION-MODEL.md` reserves, with the dialect-qualified-name-to-HIR-node-kind mapping table encoded as data, not only prose.
 - **construction-operation verifier** — schema/type/semantic/security/obligation validation stages per `ASIR-CONSTRUCTION-MODEL.md`'s admission pipeline.
-- **architectural-integrity verifier** — isolated post-transaction observed-architecture derivation, impact closure, HARD-invariant falsification, load-bearing equivalence and `ArchitecturalIntegrityReport` production under `ARCHITECTURAL-INTEGRITY.md`; not implemented yet.
 - **typed effect/capability binding at construction time** — today's R4.8 EFFECT/STATE dimensions are extracted from existing source; construction-time proposals need the same typed effect/capability discipline enforced *before* admission, not only observed after the fact.
 - **obligation attachment at construction time** — extending `SemanticObligationRecord` lineage to construction-proposed operations, not only extraction obligations.
 - **evidence/provenance attachment at construction time** — wiring `ProviderReceipt`/evidence lineage through `AtlasConstructionOperation.evidence_refs`/`provider_receipt_ref` end to end.
