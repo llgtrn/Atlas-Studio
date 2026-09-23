@@ -5,12 +5,35 @@ pub mod inventory;
 pub mod normalize;
 
 use atlas_core::{
-    AdlCompileReport, AdlProgram, CLI_API, CodingAdmission, ConstraintResult, Contract, DocsReport,
+    AdlCompileReport, AdlProgram, CLI_API, CodingAdmission, ConstraintResult, Contract,
+    DependencyClosureReport, DependencyClosureState, DependencyEcosystem, DocsReport,
     EngineeringGraph, Evidence, RepoAudit, RepositoryId, RevisionRef, SystemizeReport,
-    WorkPrepareReport, WorkRequest, build_system_graph, compile_adl, parse_adl_source,
-    summarize_system_graph,
+    WorkPrepareReport, WorkRequest, add_dependency_closure, build_system_graph, compile_adl,
+    parse_adl_source, summarize_system_graph_with_dependencies,
 };
 use std::{io, path::Path};
+
+/// The real, evidenced Cargo dependency closure for `root` (`census_cargo_workspace`), or a
+/// `NotApplicable` report when no `Cargo.lock` exists at all -- never a fabricated empty-but-
+/// `Closed` report (`.atlas/contracts/DEPENDENCY-CENSUS.md#implementation-status`). Shared by
+/// every entry point that needs the closure (`systemize`, `graph`, `code_analyze`) so they can
+/// never disagree about which state a given root resolves to.
+fn resolve_dependency_closure(root: &Path) -> io::Result<DependencyClosureReport> {
+    Ok(
+        adapter::census_cargo_workspace(root)?.unwrap_or_else(|| DependencyClosureReport {
+            schema: "atlas.dependency-closure-report.v3".into(),
+            ecosystem: DependencyEcosystem::Cargo,
+            root: root.to_string_lossy().into_owned(),
+            state: DependencyClosureState::NotApplicable,
+            edges_total: 0,
+            instances_total: 0,
+            edges: Vec::new(),
+            dangling_references: Vec::new(),
+            unsupported_constructs: Vec::new(),
+            dynamic_obligations: Vec::new(),
+        }),
+    )
+}
 
 /// The `RepositoryId` extraction/census pin for `root`: the declared manifest repo name when one
 /// exists, else the canonicalized root path. Shared by every entry point that runs extraction so
@@ -82,33 +105,22 @@ pub fn systemize(root: impl AsRef<Path>) -> io::Result<SystemizeReport> {
 
     let mut census = census::build_census(&inventory, &source, &adl, &extraction_batches);
     let normalization = normalize::normalize(&census);
-    let graph = summarize_system_graph(&source, &docs, &normalization);
 
     // `.atlas/contracts/DEPENDENCY-CENSUS.md`: census does not stop at the repository boundary.
     // `BUILD` starts life as a permanent `Unsupported` stub in `census::build_census` (an
     // accounting axis outside the R4 semantic dimension set, computed with no filesystem access);
     // promote it to real evidence here now that a real, closed Cargo dependency closure exists.
-    //
-    // `census_cargo_workspace` returning `None` means no `Cargo.lock` exists at all -- this
-    // ecosystem is `NotApplicable` here, never a fabricated empty-but-`Closed` report. Previously
-    // this fallback built a bare zero-edge report whose `dangling_references.is_empty()` made
-    // `is_closed()` silently `true` for a repository where Cargo dependency census never ran at
-    // all -- indistinguishable from a genuinely verified empty closure. `DependencyClosureState`
-    // now makes that distinction explicit end to end.
-    let dependency_closure = adapter::census_cargo_workspace(root)?.unwrap_or_else(|| {
-        atlas_core::DependencyClosureReport {
-            schema: "atlas.dependency-closure-report.v3".into(),
-            ecosystem: atlas_core::DependencyEcosystem::Cargo,
-            root: root.to_string_lossy().into_owned(),
-            state: atlas_core::DependencyClosureState::NotApplicable,
-            edges_total: 0,
-            instances_total: 0,
-            edges: Vec::new(),
-            dangling_references: Vec::new(),
-            unsupported_constructs: Vec::new(),
-            dynamic_obligations: Vec::new(),
-        }
-    });
+    // Computed before `graph` below so the resolved edges can be projected into it
+    // (`DEPENDENCY-CENSUS.md`: "the dependency graph is part of canonical census truth... feeds
+    // query, graph, security..." -- previously `dependency_closure` reached only this report's own
+    // sibling field, never `EngineeringGraph` itself).
+    let dependency_closure = resolve_dependency_closure(root)?;
+    let graph = summarize_system_graph_with_dependencies(
+        &source,
+        &docs,
+        &normalization,
+        &dependency_closure,
+    );
     // `NotApplicable` (no Cargo.lock at all -- e.g. a non-Rust admitted repository) is not a
     // failure and leaves `BUILD` at whatever `census::build_census` already set (`Unsupported`):
     // this ecosystem was never observed here, not incompletely observed. Only `Partial`/`Blocked`
@@ -218,7 +230,9 @@ pub fn graph(root: impl AsRef<Path>) -> io::Result<EngineeringGraph> {
         census::extraction::extract_semantics(&inventory, repository_id, snapshot.revision());
     let census = census::build_census(&inventory, &source, &adl, &extraction_batches);
     let normalization = normalize::normalize(&census);
-    Ok(build_system_graph(&source, &docs, &normalization))
+    let mut graph = build_system_graph(&source, &docs, &normalization);
+    add_dependency_closure(&mut graph, &resolve_dependency_closure(root)?);
+    Ok(graph)
 }
 
 pub fn contract() -> Contract {
@@ -243,7 +257,13 @@ pub fn code_analyze(root: impl AsRef<Path>) -> io::Result<serde_json::Value> {
         census::extraction::extract_semantics(&inventory, repository_id, snapshot.revision());
     let census = census::build_census(&inventory, &source, &adl, &extraction_batches);
     let normalization = normalize::normalize(&census);
-    let graph = summarize_system_graph(&source, &docs, &normalization);
+    let dependency_closure = resolve_dependency_closure(root)?;
+    let graph = summarize_system_graph_with_dependencies(
+        &source,
+        &docs,
+        &normalization,
+        &dependency_closure,
+    );
 
     Ok(serde_json::json!({
         "schema": "atlas.systemizer.code-analysis.v3",
@@ -252,6 +272,7 @@ pub fn code_analyze(root: impl AsRef<Path>) -> io::Result<serde_json::Value> {
         "adl": adl,
         "census": census,
         "normalization": normalization,
+        "dependency_closure": dependency_closure,
         "graph": graph,
         "source_of_truth": "derived engineering analysis; target repositories remain sovereign"
     }))

@@ -1,5 +1,6 @@
 use super::{Binding, Edge, EngineeringGraph, Fact, Node};
 use crate::{
+    census::{DependencyClosureReport, DependencyIdentity},
     identity::stable_id,
     provenance::{Provenance, provenance},
     schema::{
@@ -1102,6 +1103,98 @@ pub fn summarize_system_graph(
 ) -> GraphSummary {
     let graph = build_system_graph(source, docs, normalization);
     summarize_engineering_graph(&graph, source, "NORMALIZED_SEMANTIC_GRAPH")
+}
+
+/// Same as `summarize_system_graph`, but also projects `dependency_closure` into the graph before
+/// summarizing (`add_dependency_closure`) -- so `nodes_total`/`edges_total` account for resolved
+/// dependency edges too, not only source/declared/normalized-semantic facts.
+pub fn summarize_system_graph_with_dependencies(
+    source: &SourceReport,
+    docs: &DocsReport,
+    normalization: &NormalizationReport,
+    dependency_closure: &DependencyClosureReport,
+) -> GraphSummary {
+    let mut graph = build_system_graph(source, docs, normalization);
+    add_dependency_closure(&mut graph, dependency_closure);
+    summarize_engineering_graph(&graph, source, "NORMALIZED_SEMANTIC_GRAPH")
+}
+
+fn dependency_consumer_node_id(consumer: &str) -> String {
+    stable_id("node", &format!("dependency-consumer:{consumer}"))
+}
+
+fn dependency_provider_node_id(provider: &DependencyIdentity) -> String {
+    stable_id(
+        "node",
+        &format!("dependency-provider:{}", provider.identity_key()),
+    )
+}
+
+/// Projects a resolved `DependencyClosureReport` (`.atlas/contracts/DEPENDENCY-CENSUS.md`) into
+/// `graph`: one `Package` node per consumer, one `Dependency` node per distinct resolved provider
+/// identity, and a `RESOLVES_DEPENDENCY` edge between them carrying the edge's real, independently-
+/// evidenced `role`/`activation` facts as attributes. Additive and idempotent (`ensure_node`
+/// dedups by id) -- safe to call on an already-built graph, and a no-op for a closure with no
+/// edges (e.g. `NotApplicable`/`Blocked` states, or a genuinely dependency-free workspace).
+///
+/// `.atlas/contracts/DEPENDENCY-CENSUS.md`: "The dependency graph is part of canonical census
+/// truth, not an optional SBOM side report... The same typed dependency records feed query,
+/// graph, security, license/provenance, build reasoning, invention, compiler optimization and
+/// extinction analysis." Before this function existed, `DependencyClosureReport` was computed and
+/// attached only as a sibling top-level `SystemizeReport` field -- never reaching `EngineeringGraph`
+/// at all, so that claim did not hold for the actual graph artifact.
+pub fn add_dependency_closure(graph: &mut EngineeringGraph, closure: &DependencyClosureReport) {
+    for edge in &closure.edges {
+        let prov = provenance(&edge.evidence_path, "atlas.dependency-closure.v1");
+
+        let consumer_id = dependency_consumer_node_id(&edge.consumer);
+        ensure_node(
+            graph,
+            consumer_id.clone(),
+            "Package".into(),
+            edge.consumer.clone(),
+            BTreeMap::new(),
+            &prov,
+        );
+
+        let provider_id = dependency_provider_node_id(&edge.provider);
+        ensure_node(
+            graph,
+            provider_id.clone(),
+            "Dependency".into(),
+            format!("{}@{}", edge.provider.name, edge.provider.version),
+            BTreeMap::from([
+                ("ecosystem".into(), edge.provider.ecosystem.as_str().into()),
+                ("name".into(), edge.provider.name.clone()),
+                ("version".into(), edge.provider.version.clone()),
+                (
+                    "source_kind".into(),
+                    edge.provider.source_kind.as_str().into(),
+                ),
+            ]),
+            &prov,
+        );
+
+        let mut edge_attributes = BTreeMap::from([
+            ("optional".into(), edge.activation.optional.to_string()),
+            (
+                "target_conditional".into(),
+                edge.activation.target_conditional.to_string(),
+            ),
+        ]);
+        if let Some(role) = edge.role {
+            edge_attributes.insert("role".into(), role.as_str().into());
+        }
+        graph.edges.push(Edge {
+            id: stable_id("edge", &format!("dependency:{}", edge.identity_key())),
+            kind: "RESOLVES_DEPENDENCY".into(),
+            from: consumer_id,
+            to: provider_id,
+            attributes: edge_attributes,
+            provenance: prov.clone(),
+            revision: None,
+        });
+    }
 }
 
 fn summarize_engineering_graph(
@@ -2818,5 +2911,159 @@ mod tests {
             .find(|edge| edge.kind == "REFERS_TO_PLACE")
             .expect("a REFERS_TO_PLACE edge must exist for a Resolved place");
         assert_eq!(refers_edge.to, expected_place_node_id);
+    }
+
+    fn dependency_edge(
+        consumer: &str,
+        provider_name: &str,
+        provider_version: &str,
+        role: Option<crate::census::DependencyRole>,
+        activation: crate::census::DependencyActivation,
+    ) -> crate::census::DependencyEdge {
+        crate::census::DependencyEdge {
+            consumer: consumer.into(),
+            provider: DependencyIdentity {
+                ecosystem: crate::census::DependencyEcosystem::Cargo,
+                name: provider_name.into(),
+                version: provider_version.into(),
+                source_kind: crate::census::DependencySourceKind::Registry,
+                source_locator: Some("registry+https://example.invalid".into()),
+                checksum: None,
+            },
+            role,
+            activation,
+            evidence_path: "Cargo.lock".into(),
+        }
+    }
+
+    fn dependency_closure(edges: Vec<crate::census::DependencyEdge>) -> DependencyClosureReport {
+        DependencyClosureReport {
+            schema: "test".into(),
+            ecosystem: crate::census::DependencyEcosystem::Cargo,
+            root: "/repo".into(),
+            state: crate::census::DependencyClosureState::Closed,
+            edges_total: edges.len(),
+            instances_total: edges.len(),
+            edges,
+            dangling_references: Vec::new(),
+            unsupported_constructs: Vec::new(),
+            dynamic_obligations: Vec::new(),
+        }
+    }
+
+    #[test]
+    fn dependency_closure_projects_consumer_and_provider_nodes_and_a_depends_on_edge() {
+        let mut graph = build_source_graph(&source());
+        let closure = dependency_closure(vec![dependency_edge(
+            "core",
+            "serde",
+            "1.0.0",
+            Some(crate::census::DependencyRole::Runtime),
+            crate::census::DependencyActivation::ALWAYS,
+        )]);
+        add_dependency_closure(&mut graph, &closure);
+
+        let consumer = graph
+            .nodes
+            .iter()
+            .find(|node| node.kind == "Package" && node.identity == "core")
+            .expect("a Package node must exist for the consumer");
+        let provider = graph
+            .nodes
+            .iter()
+            .find(|node| node.kind == "Dependency" && node.identity == "serde@1.0.0")
+            .expect("a Dependency node must exist for the resolved provider");
+
+        let edge = graph
+            .edges
+            .iter()
+            .find(|edge| edge.kind == "RESOLVES_DEPENDENCY")
+            .expect("a RESOLVES_DEPENDENCY edge must exist");
+        assert_eq!(edge.from, consumer.id);
+        assert_eq!(edge.to, provider.id);
+        assert_eq!(edge.attributes.get("role"), Some(&"RUNTIME".to_string()));
+        assert_eq!(edge.attributes.get("optional"), Some(&"false".to_string()));
+    }
+
+    #[test]
+    fn dependency_closure_with_no_edges_is_a_no_op() {
+        let mut graph = build_source_graph(&source());
+        let nodes_before = graph.nodes.len();
+        let edges_before = graph.edges.len();
+        add_dependency_closure(&mut graph, &dependency_closure(Vec::new()));
+        assert_eq!(graph.nodes.len(), nodes_before);
+        assert_eq!(graph.edges.len(), edges_before);
+    }
+
+    #[test]
+    fn two_edges_sharing_the_same_provider_do_not_duplicate_the_provider_node() {
+        let mut graph = build_source_graph(&source());
+        let closure = dependency_closure(vec![
+            dependency_edge(
+                "core",
+                "serde",
+                "1.0.0",
+                Some(crate::census::DependencyRole::Runtime),
+                crate::census::DependencyActivation::ALWAYS,
+            ),
+            dependency_edge(
+                "adapter",
+                "serde",
+                "1.0.0",
+                Some(crate::census::DependencyRole::Runtime),
+                crate::census::DependencyActivation::ALWAYS,
+            ),
+        ]);
+        add_dependency_closure(&mut graph, &closure);
+
+        let provider_nodes = graph
+            .nodes
+            .iter()
+            .filter(|node| node.kind == "Dependency" && node.identity == "serde@1.0.0")
+            .count();
+        assert_eq!(provider_nodes, 1, "one shared provider must be one node");
+        let depends_on_edges = graph
+            .edges
+            .iter()
+            .filter(|edge| edge.kind == "RESOLVES_DEPENDENCY")
+            .count();
+        assert_eq!(depends_on_edges, 2, "each consumer still gets its own edge");
+    }
+
+    #[test]
+    fn an_unevidenced_role_produces_no_role_attribute_but_still_records_the_edge() {
+        let mut graph = build_source_graph(&source());
+        let closure = dependency_closure(vec![dependency_edge(
+            "serde",
+            "syn",
+            "2.0.0",
+            None,
+            crate::census::DependencyActivation::ALWAYS,
+        )]);
+        add_dependency_closure(&mut graph, &closure);
+
+        let edge = graph
+            .edges
+            .iter()
+            .find(|edge| edge.kind == "RESOLVES_DEPENDENCY")
+            .expect("a RESOLVES_DEPENDENCY edge must exist even with no evidenced role");
+        assert!(!edge.attributes.contains_key("role"));
+    }
+
+    #[test]
+    fn summarize_system_graph_with_dependencies_counts_projected_dependency_nodes() {
+        let normalization = normalization_with(Vec::new(), Vec::new());
+        let closure = dependency_closure(vec![dependency_edge(
+            "core",
+            "serde",
+            "1.0.0",
+            Some(crate::census::DependencyRole::Runtime),
+            crate::census::DependencyActivation::ALWAYS,
+        )]);
+        let without = summarize_system_graph(&source(), &docs(), &normalization);
+        let with =
+            summarize_system_graph_with_dependencies(&source(), &docs(), &normalization, &closure);
+        assert_eq!(with.nodes_total, without.nodes_total + 2);
+        assert_eq!(with.edges_total, without.edges_total + 1);
     }
 }

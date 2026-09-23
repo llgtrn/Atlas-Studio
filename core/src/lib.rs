@@ -27,8 +27,9 @@ pub use census::{
 pub use constraint::{CodingAdmission, validate_manifest};
 pub use evidence::Evidence;
 pub use graph::{
-    Binding, Edge, EngineeringGraph, Fact, Node, build_repository_graph, build_source_graph,
-    build_system_graph, summarize_graph, summarize_repository_graph, summarize_system_graph,
+    Binding, Edge, EngineeringGraph, Fact, Node, add_dependency_closure, build_repository_graph,
+    build_source_graph, build_system_graph, summarize_graph, summarize_repository_graph,
+    summarize_system_graph, summarize_system_graph_with_dependencies,
 };
 pub use identity::{
     ArtifactId, CapabilityId, ContentFingerprint, EdgeId, EvidenceId, IntegrityDigest, NodeId,

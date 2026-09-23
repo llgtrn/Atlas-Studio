@@ -315,6 +315,27 @@ anything gating coding admission, since it executes `cargo` as a subprocess and 
 violate the "ingestion is not execution" security boundary this contract requires of the
 production path.
 
+**The resolved dependency closure now reaches `EngineeringGraph`, not only `SystemizeReport`'s own
+sibling field.** This contract's own canonical rule states the dependency graph "is part of
+canonical census truth, not an optional SBOM side report" and that "the same typed dependency
+records feed query, graph, security...". Until this wave, `DependencyClosureReport` was computed
+and attached only as a top-level field of `SystemizeReport`, never projected into
+`core::graph::EngineeringGraph` at all -- `core::graph::engineering_graph` had zero references to
+`DependencyEdge`, so a `Closed` dependency closure with real, evidenced package relationships
+produced zero graph nodes or edges for any of them. Fixed: `core::graph::add_dependency_closure`
+projects each `DependencyEdge` into one `Package` node (the consumer), one `Dependency` node (the
+resolved provider, keyed by its `identity_key()` so a provider shared by multiple consumers is one
+node, not one per edge), and a `RESOLVES_DEPENDENCY` edge between them carrying the edge's real
+`role`/`activation` facts as attributes -- named `RESOLVES_DEPENDENCY`, not the more obvious
+`DEPENDS_ON`, because this repository's own real `.atlas/declared/system.adl` already uses
+`depends_on` as a declared ADL relation predicate (module-level architecture intent, e.g. `Runtime
+->depends_on-> Core`), which independently projects to a graph edge kind of `DEPENDS_ON` -- reusing
+that string would have silently conflated two different evidence layers (declared intent vs.
+resolved build dependency) under one indistinguishable edge kind. `runtime::graph`/
+`runtime::code_analyze`/`runtime::systemize` all now compute the real dependency closure before
+building/summarizing the graph and project it in, via a single shared `resolve_dependency_closure`
+helper so all three entry points can never disagree about which closure a given root resolves to.
+
 **Still TARGET, not silently claimed done**: other ecosystems (npm, pip, ...); full
 resolution-context modeling (feature-selection activation for `activation.optional` edges; parsing
 the actual target-selector expression for `activation.target_conditional` edges against an admitted
