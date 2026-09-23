@@ -351,7 +351,9 @@ mod tests {
         accounting.record_batch(&batch);
 
         // R4.3: SYMBOL and FUNCTION_IDENTITY are now real extraction (evidence-backed OBSERVED);
-        // PERSISTENCE remains UNSUPPORTED (R4.11+). Neither is silently dropped.
+        // PERSISTENCE (R4.11) is supported but Partial-coverage -- this input has no
+        // persistence-shaped call, so its obligation is UNKNOWN, never fabricated Observed
+        // absence. Neither is silently dropped.
         for dimension in [
             SemanticDimension::Symbol,
             SemanticDimension::FunctionIdentity,
@@ -364,7 +366,7 @@ mod tests {
         assert_eq!(persistence_records.len(), 1);
         assert_eq!(
             persistence_records[0].obligation.status,
-            EpistemicStatus::Unsupported
+            EpistemicStatus::Unknown
         );
     }
 }
@@ -795,10 +797,10 @@ mod multi_extractor_tests {
         );
     }
 
-    // --- 12. R4.10: a real Rust extractor is now registered, scoped to exactly 11 dimensions ---
+    // --- 12. R4.11: a real Rust extractor is now registered, scoped to all twelve dimensions ---
 
     #[test]
-    fn a_real_rust_extractor_is_registered_supporting_exactly_the_r4_10_dimensions() {
+    fn a_real_rust_extractor_is_registered_supporting_exactly_the_r4_11_dimensions() {
         let rust_extractors = adapter::extractors_for_language("rust");
         assert_eq!(rust_extractors.len(), 1);
         assert_eq!(rust_extractors[0].id(), "atlas.rust.source-semantic.v1");
@@ -819,6 +821,7 @@ mod multi_extractor_tests {
                 "FUNCTION_IDENTITY",
                 "FUNCTION_SIGNATURE",
                 "OWNERSHIP",
+                "PERSISTENCE",
                 "STATE",
                 "SYMBOL",
                 "TYPE"
@@ -1242,13 +1245,11 @@ mod production_wiring_tests {
                 .any(|diagnostic| diagnostic.code == adapter::DiagnosticCode::ParseFailure)
         );
 
-        // Unsupported dimensions stay UNSUPPORTED even for the unreadable artifact -- source
-        // availability never changes what the extractor is capable of analyzing.
+        // Every supported dimension (not merely SYMBOL) goes UNKNOWN for the unreadable artifact,
+        // including R4.11 PERSISTENCE -- a dimension recently promoted from UNSUPPORTED to
+        // supported must not accidentally regress to a stale UNSUPPORTED status once it's real.
         let b_persistence = by_artifact("b.rs", SemanticDimension::Persistence);
-        assert_eq!(
-            b_persistence.obligation.status,
-            EpistemicStatus::Unsupported
-        );
+        assert_eq!(b_persistence.obligation.status, EpistemicStatus::Unknown);
 
         fs::remove_dir_all(&dir).unwrap();
     }
