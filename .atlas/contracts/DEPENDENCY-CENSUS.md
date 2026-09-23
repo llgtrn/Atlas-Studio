@@ -225,15 +225,25 @@ guess), and a genuinely ambiguous entry with no version suffix at all (adversari
 -- real Cargo.lock output always disambiguates when more than one resolved version exists) is
 still reported rather than guessed.
 
-**Still TARGET, not silently claimed done**: other ecosystems (npm, pip, ...); resolution-context
-modeling (target/profile/feature/optional activation -- this wave accounts every edge as
-unconditionally active, matching every real edge in this workspace today, but does not yet parse
-`[target.'cfg(...)'.dependencies]` or `optional = true`); dynamic/build-script-discovered
-dependencies (`ProcMacro`/`TargetConditional`/`Optional` are declared in `DependencyKind` but never
-emitted); the `"name version (source)"` lockfile form, needed only when the same name and version
-resolve from two different sources; non-Cargo build metadata (compiler/toolchain version,
-native/FFI links); reconciliation from independent sources (this wave has exactly one evidence
-channel: the lockfile/manifests themselves).
+`Optional` and `TargetConditional` `DependencyKind` emission is also materialized: a manifest entry
+declaring `optional = true` (in any dependency table) is classified `Optional`, and a dependency
+declared under `[target.'cfg(...)'.dependencies]`/`.dev-dependencies]`/`.build-dependencies]` (any
+target-selector spelling) is classified `TargetConditional`. `Optional` here means "declared
+optional in the manifest", not "active in this admitted context" -- feature-selection resolution
+is still TARGET (below). `TargetConditional` does not yet parse or represent the target-selector
+expression itself (`cfg(unix)` vs. `cfg(windows)`, an admitted-target policy match), only that the
+edge is conditional on *some* target.
+
+**Still TARGET, not silently claimed done**: other ecosystems (npm, pip, ...); full
+resolution-context modeling (feature-selection activation for `Optional` edges; parsing the actual
+target-selector expression for `TargetConditional` edges against an admitted target-context matrix
+-- this wave accounts every edge as unconditionally active, matching every real edge in this
+workspace today, since it has neither construct); dynamic/build-script-discovered dependencies
+(`ProcMacro` is declared in `DependencyKind` but never emitted -- it requires reading a
+dependency's own manifest, which this parser never does); the `"name version (source)"` lockfile
+form, needed only when the same name and version resolve from two different sources; non-Cargo
+build metadata (compiler/toolchain version, native/FFI links); reconciliation from independent
+sources (this wave has exactly one evidence channel: the lockfile/manifests themselves).
 
 ## Extinction interaction
 

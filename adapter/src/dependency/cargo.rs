@@ -139,11 +139,16 @@ fn workspace_members(root_manifest: &str) -> Vec<String> {
     Vec::new()
 }
 
-/// One `[dependencies]`/`[dev-dependencies]`/`[build-dependencies]` table entry: the manifest key
-/// (before any `.workspace`/inline-table suffix) and the resolved crate name it actually names
-/// (the key itself, unless the entry renames via `package = "..."`, e.g. `atlas_core = { package
-/// = "core", path = "../core" }` names the crate `core`, not `atlas_core`).
-fn manifest_dependency_entries(section: &str) -> Vec<(String, String)> {
+/// One `[dependencies]`-shaped table entry: the resolved crate name it actually names (the key
+/// itself, unless the entry renames via `package = "..."`, e.g. `atlas_core = { package = "core",
+/// path = "../core" }` names the crate `core`, not `atlas_core`) and whether it declares
+/// `optional = true`.
+struct ManifestDependencyEntry {
+    resolved_name: String,
+    optional: bool,
+}
+
+fn manifest_dependency_entries(section: &str) -> Vec<ManifestDependencyEntry> {
     let mut entries = Vec::new();
     for line in section.lines() {
         let trimmed = line.trim();
@@ -163,8 +168,13 @@ fn manifest_dependency_entries(section: &str) -> Vec<(String, String)> {
             continue;
         }
         let value = trimmed[eq_pos + 1..].trim();
-        let resolved = quoted_field_anywhere(value, "package").unwrap_or_else(|| key.to_owned());
-        entries.push((key.to_owned(), resolved));
+        let resolved_name =
+            quoted_field_anywhere(value, "package").unwrap_or_else(|| key.to_owned());
+        let optional = bool_field_anywhere(value, "optional").unwrap_or(false);
+        entries.push(ManifestDependencyEntry {
+            resolved_name,
+            optional,
+        });
     }
     entries
 }
@@ -178,30 +188,82 @@ fn quoted_field_anywhere(text: &str, key: &str) -> Option<String> {
     Some(text[start..end].to_owned())
 }
 
-/// `(dependency table header, DependencyKind)` pairs this parser recognizes.
-const DEPENDENCY_SECTIONS: &[(&str, DependencyKind)] = &[
-    ("[dependencies]", DependencyKind::Runtime),
-    ("[dev-dependencies]", DependencyKind::Dev),
-    ("[build-dependencies]", DependencyKind::Build),
-];
+/// Like `quoted_field_anywhere`, but for a bare `key = true`/`key = false` (inline-table booleans
+/// are never quoted in TOML).
+fn bool_field_anywhere(text: &str, key: &str) -> Option<bool> {
+    if text.contains(&format!("{key} = true")) {
+        Some(true)
+    } else if text.contains(&format!("{key} = false")) {
+        Some(false)
+    } else {
+        None
+    }
+}
 
-/// `(crate_name, DependencyKind)` for every dependency this manifest text directly declares,
-/// across every recognized table.
-fn manifest_dependency_kinds(manifest: &str) -> Vec<(String, DependencyKind)> {
-    let mut result = Vec::new();
+/// Every top-level `[section header]` in `manifest`, paired with its body text (up to the next
+/// section header or end of file).
+fn manifest_sections(manifest: &str) -> Vec<(&str, String)> {
     let lines: Vec<&str> = manifest.lines().collect();
-    for &(header, kind) in DEPENDENCY_SECTIONS {
-        let Some(start) = lines.iter().position(|line| line.trim() == header) else {
+    let mut sections = Vec::new();
+    let mut index = 0;
+    while index < lines.len() {
+        let trimmed = lines[index].trim();
+        if !trimmed.starts_with('[') {
+            index += 1;
             continue;
-        };
-        let end = lines[start + 1..]
+        }
+        let start = index + 1;
+        let end = lines[start..]
             .iter()
             .position(|line| line.trim_start().starts_with('['))
-            .map(|offset| start + 1 + offset)
+            .map(|offset| start + offset)
             .unwrap_or(lines.len());
-        let section = lines[start + 1..end].join("\n");
-        for (_, resolved_name) in manifest_dependency_entries(&section) {
-            result.push((resolved_name, kind));
+        sections.push((trimmed, lines[start..end].join("\n")));
+        index = end;
+    }
+    sections
+}
+
+/// Classifies a manifest section header as a dependency table, if it is one. A bare
+/// `[dependencies]`/`[dev-dependencies]`/`[build-dependencies]` table is unconditionally active;
+/// the same tables nested under `[target.'cfg(...)'.dependencies]` (any target-selector spelling)
+/// are only active for that target, so every dependency declared there is `TargetConditional`
+/// regardless of which of the three sub-tables it came from -- this bootstrap does not yet parse
+/// or represent the target-selector expression itself, an explicit, documented gap.
+fn dependency_section_kind(header: &str) -> Option<DependencyKind> {
+    match header {
+        "[dependencies]" => Some(DependencyKind::Runtime),
+        "[dev-dependencies]" => Some(DependencyKind::Dev),
+        "[build-dependencies]" => Some(DependencyKind::Build),
+        _ if header.starts_with("[target.")
+            && (header.ends_with(".dependencies]")
+                || header.ends_with(".dev-dependencies]")
+                || header.ends_with(".build-dependencies]")) =>
+        {
+            Some(DependencyKind::TargetConditional)
+        }
+        _ => None,
+    }
+}
+
+/// `(crate_name, DependencyKind)` for every dependency this manifest text directly declares,
+/// across every recognized table. An entry declaring `optional = true` is classified `Optional`
+/// regardless of which table it came from, since Cargo only actually activates it when the
+/// enabling feature is selected -- a fact this bootstrap does not yet model as its own resolution
+/// context, so `Optional` here means "declared optional", not "active in this admitted context".
+fn manifest_dependency_kinds(manifest: &str) -> Vec<(String, DependencyKind)> {
+    let mut result = Vec::new();
+    for (header, body) in manifest_sections(manifest) {
+        let Some(section_kind) = dependency_section_kind(header) else {
+            continue;
+        };
+        for entry in manifest_dependency_entries(&body) {
+            let kind = if entry.optional {
+                DependencyKind::Optional
+            } else {
+                section_kind
+            };
+            result.push((entry.resolved_name, kind));
         }
     }
     result
@@ -527,6 +589,60 @@ cc = "1"
         let manifest = "[dependencies]\nserde.workspace = true\n";
         let kinds = manifest_dependency_kinds(manifest);
         assert_eq!(kinds, vec![("serde".to_owned(), DependencyKind::Runtime)]);
+    }
+
+    #[test]
+    fn optional_true_classifies_the_dependency_as_optional_regardless_of_its_table() {
+        let manifest = r#"
+[dependencies]
+serde = "1"
+extra = { version = "1", optional = true }
+
+[dev-dependencies]
+also-extra = { version = "1", optional = true }
+"#;
+        let kinds = manifest_dependency_kinds(manifest);
+        assert_eq!(
+            kinds,
+            vec![
+                ("serde".to_owned(), DependencyKind::Runtime),
+                ("extra".to_owned(), DependencyKind::Optional),
+                ("also-extra".to_owned(), DependencyKind::Optional),
+            ]
+        );
+    }
+
+    #[test]
+    fn optional_false_is_not_classified_as_optional() {
+        let manifest = r#"
+[dependencies]
+serde = { version = "1", optional = false }
+"#;
+        let kinds = manifest_dependency_kinds(manifest);
+        assert_eq!(kinds, vec![("serde".to_owned(), DependencyKind::Runtime)]);
+    }
+
+    #[test]
+    fn target_conditional_dependency_tables_are_classified_as_target_conditional() {
+        let manifest = r#"
+[dependencies]
+serde = "1"
+
+[target.'cfg(unix)'.dependencies]
+libc = "0.2"
+
+[target.'cfg(windows)'.dev-dependencies]
+winapi = "0.3"
+"#;
+        let kinds = manifest_dependency_kinds(manifest);
+        assert_eq!(
+            kinds,
+            vec![
+                ("serde".to_owned(), DependencyKind::Runtime),
+                ("libc".to_owned(), DependencyKind::TargetConditional),
+                ("winapi".to_owned(), DependencyKind::TargetConditional),
+            ]
+        );
     }
 
     // --- 3. workspace members array --------------------------------------------------------------

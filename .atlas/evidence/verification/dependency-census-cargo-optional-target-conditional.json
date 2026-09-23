@@ -1,0 +1,59 @@
+{
+  "schema": "atlas.self-build.generation-evidence.v1",
+  "wave": "DEPENDENCY-CENSUS (Cargo Optional/TargetConditional DependencyKind emission)",
+  "wave_title": "Closes two named TARGET gaps in the OBSERVED BUILD dependency census: `optional = true` manifest entries now classify as DependencyKind::Optional, and dependencies declared under [target.'cfg(...)'.dependencies]/.dev-dependencies]/.build-dependencies] now classify as DependencyKind::TargetConditional. `.atlas/contracts/DEPENDENCY-CENSUS.md`.",
+  "generation_model": {
+    "G_n": "37533f1a2e (fix(census): disambiguate same-name multi-version Cargo.lock entries) -- stable generation this candidate was built and validated against",
+    "gap_discovered_by": "self-inspection of DEPENDENCY-CENSUS.md's own recorded 'Still TARGET' list, which explicitly named 'ProcMacro/TargetConditional/Optional DependencyKind emission' as declared-in-vocabulary but never emitted -- an OBSERVATION_GAP distinct from a live incorrectness, since this workspace's own manifests have neither construct today"
+  },
+  "priority_classification": "dependency closure (priority 6 of the controller's own ordering) -- extends the scope of an already-materialized capability (BUILD dependency census) toward full DEPENDENCY-CENSUS.md contract closure, rather than fixing a live defect (that was Generation 3, priority 1).",
+  "design_decisions": [
+    {
+      "question": "Should Optional/TargetConditional override the section-derived Runtime/Dev/Build kind, or combine with it?",
+      "decision": "Override -- DependencyKind stays a single classification per edge (matching the existing enum shape and DEPENDENCY-CENSUS.md's own kind vocabulary listing 'optional/feature-gated' and implicitly target-conditional as their own classes, not modifiers). A dependency that is both e.g. dev + optional is classified Optional; which table it lived in remains reconstructable from evidence_path if ever needed."
+    },
+    {
+      "question": "Should TargetConditional parse and represent the actual target-selector expression (e.g. distinguish cfg(unix) from cfg(windows))?",
+      "decision": "Not this wave -- classified uniformly as TargetConditional regardless of selector. Representing the selector requires an admitted target-context matrix (DEPENDENCY-CENSUS.md's own 'Resolution context' section) this bootstrap does not yet model; named explicitly as remaining TARGET rather than silently narrowed."
+    },
+    {
+      "question": "Does Optional here mean the dependency is actually active in some admitted context?",
+      "decision": "No -- it means 'declared optional in the manifest text'. Feature-selection resolution (which optional dependencies a given admitted feature set actually activates) is a separate, larger resolution-context capability, explicitly still TARGET, not claimed by this wave."
+    }
+  ],
+  "stable_validator_law_compliance": {
+    "claim": "optional = true and [target.*.dependencies] manifest entries are correctly classified, and this repository's own real dependency closure is unaffected (it has neither construct).",
+    "self_written_evidence": "New unit tests in adapter/src/dependency/cargo.rs: optional_true_classifies_the_dependency_as_optional_regardless_of_its_table, optional_false_is_not_classified_as_optional, target_conditional_dependency_tables_are_classified_as_target_conditional.",
+    "independent_evidence_channel": "The existing systemize CLI was run fresh against this repository's real root: dependency_closure.edges_total == 28, instances_total == 14, dangling_references == [] -- byte-identical to the pre-change run; edge kind distribution shows only RUNTIME and None (no Optional/TargetConditional edges), confirming this repository's own real manifests exercise neither construct and the change is a pure scope extension, not a live reclassification.",
+    "no_circular_self_certification": true
+  },
+  "implementation": {
+    "extraction": "adapter/src/dependency/cargo.rs -- ManifestDependencyEntry{resolved_name, optional} replaces the (key, resolved_name) tuple; bool_field_anywhere() detects `optional = true`/`false`; manifest_sections()/dependency_section_kind() generalize the previous fixed-header DEPENDENCY_SECTIONS table to also recognize [target.'cfg(...)'.*dependencies] headers of any selector spelling"
+  },
+  "adversarial_and_falsification_coverage": [
+    "optional_true_classifies_the_dependency_as_optional_regardless_of_its_table -- across both [dependencies] and [dev-dependencies]",
+    "optional_false_is_not_classified_as_optional -- an explicit optional = false is not mistaken for optional = true (substring-adjacent risk in bool_field_anywhere)",
+    "target_conditional_dependency_tables_are_classified_as_target_conditional -- across .dependencies and .dev-dependencies target sub-tables",
+    "real_self_census_of_this_repositorys_own_workspace_finds_no_dangling_references -- re-run unchanged, confirming no regression"
+  ],
+  "validation_this_generation": {
+    "commands": {
+      "cargo fmt --all --check": { "exit_code": 0 },
+      "cargo clippy --workspace --all-targets -- -D warnings": { "exit_code": 0, "warnings": 0 },
+      "cargo test --workspace": {
+        "exit_code": 0,
+        "totals": "382 passed, 0 failed (206 adapter, 123 core, 53 runtime), up from 379"
+      },
+      "cargo run -q -p atlas-cli -- systemize --root . (real self-census cross-check)": {
+        "exit_code": 0,
+        "finding": "dependency_closure.edges_total == 28; instances_total == 14; dangling_references == []; edge kind distribution {RUNTIME: 12, null: 16} -- unchanged from the prior generation"
+      }
+    }
+  },
+  "recensus_scope_after_promotion": [
+    "no prior CLOSED/EXTINCT conclusion depended on the absence of Optional/TargetConditional classification, so no prior claim requires reopening",
+    "full resolution-context modeling (feature-selection activation, target-selector-expression parsing against an admitted context matrix) remains a named, larger TARGET gap for a future generation"
+  ],
+  "overall_verdict": "MATERIALIZED AND VERIFIED FOR THE STATED SCOPE. Closes two named DEPENDENCY-CENSUS.md TARGET items (Optional/TargetConditional DependencyKind emission); ProcMacro remains out of reach (requires reading a dependency's own manifest, out of this parser's scope) and resolution-context activation semantics remain explicitly TARGET. No circular self-certification: validated independently via the pre-existing systemize CLI against this repository's own real files (byte-identical before/after, since this repository exercises neither construct), while new unit tests directly exercise both classifications with synthetic fixtures.",
+  "historical_evidence_retained": true
+}
