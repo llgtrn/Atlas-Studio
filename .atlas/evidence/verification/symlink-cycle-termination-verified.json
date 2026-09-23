@@ -1,0 +1,50 @@
+{
+  "schema": "atlas.self-build.generation-evidence.v1",
+  "wave": "VERIFICATION -- prove, not assume, that a symlink cycle inside the repository cannot cause unbounded directory-walk recursion",
+  "wave_title": "Two prior generations this session fixed real path-ESCAPE vectors via symlinks (a declared root that is itself a symlink to outside the repository). Neither directly answered a distinct, related question: could a symlink CYCLE reachable entirely from inside the repository (never escaping it) cause unbounded/infinite directory-walk recursion -- a denial-of-service independent of path escape? This generation answers it with real evidence rather than leaving it assumed-safe.",
+  "generation_model": {
+    "G_n": "21695f40fd (test(semantic): adversarially falsify the DoS-guard's comment/string skip) -- stable generation this candidate was built and validated against",
+    "gap_discovered_by": "Direct scenario generation from the standing loop's own list ('malformed/hostile inputs... filesystem') applied to a capability this session already hardened twice (symlink-escape handling). Initially reproduced what looked like a real hang: a self-referential symlink (`src/self_loop -> .`) caused `cargo run ... -- systemize` to be killed by a 10-second `timeout`. Investigated rigorously before concluding it was a real bug: re-ran with a longer timeout (30s) against the identical scenario and it completed in 69ms; re-ran again with a pre-built binary (eliminating any compile-time contribution) and both a self-loop and an independent two-hop cycle (`src/a/link_to_b -> ../b`, `src/b/link_to_a -> ../a`) completed in ~11ms each with exit code 0. Root-caused the original false alarm: the first invocation's 10-second budget was consumed by `cargo` needing to rebuild the `adapter`/`atlas-cli` crates after this session's own recent test-file edits, not by any runtime hang -- confirmed by the dramatic speed difference between the cold and warm runs of the exact same scenario."
+  },
+  "priority_classification": "verification blindness (priority 5) -- a real, plausible DoS question this session's own prior symlink-escape fixes raised but never directly answered. Closing it with evidence (a passing, permanent regression test whose own completion is the termination proof) rather than leaving it as an assumed-safe gap is exactly the falsification discipline the standing loop requires ('Falsification is required for every significant claim').",
+  "design_decisions": [
+    {
+      "question": "How to test 'does not hang' as a permanent, CI-safe regression test, given a real infinite loop can't be asserted against with a normal `assert!`?",
+      "decision": "The test's own completion is the proof: if `visit_inventory`'s symlink handling were ever broken (e.g. a future refactor switched back to a symlink-following check), this test would hang the whole test binary rather than return -- the same implicit technique the pre-existing bracket-nesting/operator-chain/if-else-chain DoS tests already use (none of them set an explicit per-test timeout either; a real regression in any of those guards would hang `cargo test` itself, which is an obvious, loud signal to any developer or CI run, not a silent failure)."
+    },
+    {
+      "question": "Investigate the initial apparent hang further, or accept the first negative result as a real bug and start designing a fix?",
+      "decision": "Investigate further before concluding either way -- this session's own established discipline (falsification-first: prove a claim is real before acting on it) applies equally to a NEGATIVE finding as a positive one. A 10-second timeout on a `cargo run` invocation (which silently rebuilds before executing) is not, by itself, strong evidence of an infinite loop; re-testing with a pre-built binary and a longer budget cleanly separated compile time from run time and settled the question with certainty (11ms with a warm binary, both for a self-loop and an independent two-hop cycle) rather than either wrongly implementing a fix for a non-existent bug or wrongly leaving a genuine hang unfixed."
+    }
+  ],
+  "stable_validator_law_compliance": {
+    "claim": "A symlink cycle reachable entirely from inside a repository -- whether a direct self-reference or a multi-hop cycle -- is recorded as a non-followed `Symlink` artifact and never causes unbounded recursion, using the same `DirEntry::file_type()`-based (never-follows) mechanism already relied on for the path-escape fixes.",
+    "self_written_evidence": "New test `a_symlink_cycle_inside_the_repository_terminates_and_is_recorded_not_followed` in adapter/src/source/mod.rs: constructs a real self-referential symlink on disk, calls the real `inventory_source` function, and asserts both that it returns (not merely that it doesn't crash) and that the symlink is correctly recorded as `ArtifactKind::Symlink`, not recursed into.",
+    "independent_evidence_channel": "Direct real-process CLI verification against two independently-constructed scratch repositories (a self-loop and a separate two-hop cycle), using a pre-built binary to eliminate compile-time noise from the timing measurement: both completed in ~11ms with exit code 0. This is the same 'construct the real exploit scenario, run the real binary against it' technique used for every other security finding this session, applied here to a claim that turned out to already be true rather than one requiring a fix.",
+    "no_circular_self_certification": true
+  },
+  "implementation": {
+    "test_only": "adapter/src/source/mod.rs -- new regression test only; no production code changed (the existing DirEntry::file_type()-based symlink handling, already in place from before this session, was already correct for this case)"
+  },
+  "adversarial_and_falsification_coverage": [
+    "a_symlink_cycle_inside_the_repository_terminates_and_is_recorded_not_followed -- real self-referential symlink on disk, proves termination and correct non-recursion",
+    "real CLI verification (pre-built binary, two independent scratch repositories: self-loop and two-hop cycle) -- both terminate in ~11ms",
+    "root-caused and ruled out the initial false-alarm hang (cold `cargo run` compile time, not a runtime bug) with a controlled re-test rather than either over-reacting or dismissing it without evidence"
+  ],
+  "validation_this_generation": {
+    "commands": {
+      "cargo fmt --all --check": { "exit_code": 0 },
+      "cargo clippy --workspace --all-targets -- -D warnings": { "exit_code": 0, "warnings": 0 },
+      "cargo test --workspace": { "exit_code": 0, "totals": "242 adapter (+1), 156 core, 61 runtime -- 459 total, 0 failed, up from 457" },
+      "real CLI verification against a self-referential symlink and an independent two-hop symlink cycle (pre-built binary)": {
+        "finding": "both complete in ~11ms with exit code 0; the symlink is recorded as a non-followed artifact in both cases"
+      }
+    }
+  },
+  "recensus_scope_after_promotion": [
+    "no prior CLOSED/EXTINCT conclusion depended on this being unverified, so no external conclusion requires reopening -- this closes an open question the prior two symlink-escape fixes raised but left unanswered, with evidence rather than assumption",
+    "the same DirEntry::file_type()-based non-following behavior this generation verified for cycles is the identical mechanism the prior two generations' fixes already relied on for path-escape safety -- this generation adds cycle-termination as an independently-verified property of that same mechanism, not a new mechanism"
+  ],
+  "overall_verdict": "VERIFIED, NO FIX NEEDED. A symlink cycle reachable entirely from inside a repository cannot cause unbounded directory-walk recursion -- confirmed with real evidence (a passing permanent regression test, plus real CLI runs against two independently-constructed cycle shapes), not merely assumed safe by extension from the prior path-escape fixes. An initial apparent 10-second hang was investigated rigorously and correctly attributed to cold compile time, not a runtime bug, avoiding both a false negative (shipping a real bug) and a false positive (implementing an unnecessary fix).",
+  "historical_evidence_retained": true
+}

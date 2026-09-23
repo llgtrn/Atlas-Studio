@@ -510,4 +510,36 @@ mod tests {
         fs::remove_dir_all(&root).unwrap();
         fs::remove_dir_all(&outside).unwrap();
     }
+
+    #[cfg(unix)]
+    #[test]
+    fn a_symlink_cycle_inside_the_repository_terminates_and_is_recorded_not_followed() {
+        // A distinct DoS vector from the path-escape cases above: a symlink that creates a CYCLE
+        // reachable entirely from within the repository (never escaping it), which could in
+        // principle cause unbounded/infinite directory-walk recursion if symlinks were ever
+        // followed mid-walk. `visit_inventory`'s recursive walk uses `DirEntry::file_type()`
+        // (never follows a symlink) rather than `Path::is_dir()` (follows), so a cycle should be
+        // caught the same way any other symlink is -- recorded as `Symlink`/`symlink-not-followed`
+        // and never recursed into. This test's own completion is the proof of termination: if this
+        // guard were ever broken, this call would hang indefinitely rather than return.
+        let root = scratch_root();
+        let src = root.join("src");
+        fs::create_dir_all(&src).unwrap();
+        fs::write(src.join("ok.rs"), "fn main() {}\n").unwrap();
+        // `self_loop -> .` inside `src/` -- the directory entry points back at its own parent.
+        std::os::unix::fs::symlink(".", src.join("self_loop")).unwrap();
+
+        let report = inventory_source(&root).unwrap();
+
+        assert_eq!(report.dispositions.get("PARSED"), Some(&1));
+        let symlink_artifacts = report
+            .artifacts
+            .iter()
+            .filter(|artifact| artifact.kind == ArtifactKind::Symlink)
+            .count();
+        assert_eq!(symlink_artifacts, 1, "artifacts: {:?}", report.artifacts);
+        assert!(report.is_closed());
+
+        fs::remove_dir_all(root).unwrap();
+    }
 }
