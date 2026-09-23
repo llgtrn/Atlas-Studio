@@ -122,6 +122,19 @@ impl SemanticScope {
     pub fn join(&self) -> String {
         self.segments.join("::")
     }
+
+    /// `name` qualified by this scope (`"core::widgets::run"`), or `name` alone when this scope
+    /// has no segments. Shared canonical form for every caller that needs a scoped display/summary
+    /// string for a symbol -- previously duplicated, byte-for-byte identically, as a private free
+    /// function in both `core::graph::engineering_graph` and `runtime::census`, with nothing
+    /// preventing the two copies from silently drifting apart on a future edit to only one.
+    pub fn scoped_name(&self, name: &str) -> String {
+        if self.segments.is_empty() {
+            name.to_owned()
+        } else {
+            format!("{}::{}", self.join(), name)
+        }
+    }
 }
 
 /// Identity and implementation version of the extractor that produced a semantic record.

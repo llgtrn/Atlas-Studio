@@ -20,39 +20,14 @@ pub use extraction::{
 use adapter::{ExtractionBatch, ObligationResult};
 use atlas_core::{
     AdlCompileReport, ArtifactDisposition, ArtifactId, CensusReport, EpistemicStatus, Evidence,
-    ExtractionDiagnostic, ExtractorIdentity, FunctionSignature, InventoryReport, Provenance,
-    RevisionRef, SemanticDimension, SemanticFact, SemanticFactKind, SemanticObligationRecord,
-    SemanticObservation, SemanticScope, SourceReport, TypedClosureAccounting, stable_id,
+    ExtractionDiagnostic, ExtractorIdentity, InventoryReport, Provenance, RevisionRef,
+    SemanticDimension, SemanticFact, SemanticFactKind, SemanticObligationRecord,
+    SemanticObservation, SourceReport, TypedClosureAccounting, stable_id,
 };
 use std::{collections::BTreeMap, path::Path};
 
 fn fact_id(seed: &str) -> String {
     stable_id("semantic-fact", seed)
-}
-
-fn scoped_name(scope: &SemanticScope, name: &str) -> String {
-    if scope.segments.is_empty() {
-        name.to_owned()
-    } else {
-        format!("{}::{}", scope.join(), name)
-    }
-}
-
-fn function_signature_summary(signature: &FunctionSignature) -> String {
-    let params = signature
-        .parameters
-        .iter()
-        .map(|parameter| format!("{}: {}", parameter.name, parameter.type_identity.name))
-        .collect::<Vec<_>>()
-        .join(", ");
-    let return_type = signature
-        .return_type
-        .as_ref()
-        .map(|type_identity| type_identity.name.clone())
-        .unwrap_or_else(|| "()".to_owned());
-    let asyncness = if signature.is_async { "async " } else { "" };
-    let unsafety = if signature.is_unsafe { "unsafe " } else { "" };
-    format!("{asyncness}{unsafety}fn({params}) -> {return_type}")
 }
 
 /// Projects one real typed `SemanticObservation` (produced by a `SemanticExtractor`, never
@@ -77,7 +52,7 @@ fn semantic_observation_fact(observation: &SemanticObservation) -> Option<Semant
             status: header.status,
             subject: header.record_id.as_str().to_owned(),
             predicate: "declares_symbol".into(),
-            object: scoped_name(&header.subject.scope, &header.subject.name),
+            object: header.subject.scope.scoped_name(&header.subject.name),
             provenance: header.provenance.clone(),
         }),
         SemanticObservation::Type(header) => Some(SemanticFact {
@@ -98,7 +73,10 @@ fn semantic_observation_fact(observation: &SemanticObservation) -> Option<Semant
             status: header.status,
             subject: header.record_id.as_str().to_owned(),
             predicate: "declares_function".into(),
-            object: scoped_name(&header.subject.scope, &header.subject.symbol.name),
+            object: header
+                .subject
+                .scope
+                .scoped_name(&header.subject.symbol.name),
             provenance: header.provenance.clone(),
         }),
         SemanticObservation::FunctionSignature(header) => Some(SemanticFact {
@@ -110,7 +88,7 @@ fn semantic_observation_fact(observation: &SemanticObservation) -> Option<Semant
             status: header.status,
             subject: header.record_id.as_str().to_owned(),
             predicate: "function_signature".into(),
-            object: function_signature_summary(&header.subject),
+            object: header.subject.summary(),
             provenance: header.provenance.clone(),
         }),
         SemanticObservation::Call(_)
@@ -559,8 +537,8 @@ pub fn build_census(
 mod tests {
     use super::*;
     use atlas_core::{
-        ArtifactId, ArtifactKind, ArtifactRecord, FileFact, InventoryReport, SourceReport,
-        compile_adl,
+        ArtifactId, ArtifactKind, ArtifactRecord, FileFact, InventoryReport, SemanticScope,
+        SourceReport, compile_adl,
     };
 
     #[test]

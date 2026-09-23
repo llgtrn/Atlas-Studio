@@ -161,6 +161,31 @@ pub struct FunctionSignature {
     pub is_extern: bool,
 }
 
+impl FunctionSignature {
+    /// A source-spelling display summary (`"async unsafe fn(x: u8) -> Result<T, E>"`), never a
+    /// canonical/compiler-resolved signature -- built purely from each parameter/return type's own
+    /// `TypeIdentity.name`, which is exactly the source-syntax spelling this whole kernel commits to
+    /// (see this module's own doc comment). Shared canonical form for every caller that needs a
+    /// display/summary string for a signature -- previously duplicated, byte-for-byte identically,
+    /// as a private free function in both `core::graph::engineering_graph` and `runtime::census`.
+    pub fn summary(&self) -> String {
+        let params = self
+            .parameters
+            .iter()
+            .map(|parameter| format!("{}: {}", parameter.name, parameter.type_identity.name))
+            .collect::<Vec<_>>()
+            .join(", ");
+        let return_type = self
+            .return_type
+            .as_ref()
+            .map(|type_identity| type_identity.name.clone())
+            .unwrap_or_else(|| "()".to_owned());
+        let asyncness = if self.is_async { "async " } else { "" };
+        let unsafety = if self.is_unsafe { "unsafe " } else { "" };
+        format!("{asyncness}{unsafety}fn({params}) -> {return_type}")
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::super::symbol::SymbolRole;

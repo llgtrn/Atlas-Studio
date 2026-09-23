@@ -11,7 +11,11 @@
 //! declaration pre-pass this extractor does not yet perform; a documented gap, not a silent one.
 //! Compound-assignment operators such as `self.field += 1` are represented by syn as
 //! `Expr::Binary` with an assignment BinOp. They are semantically read-modify-write, so this
-//! extractor emits both a Read and a Write at the same operation site. Async/closure/const bodies
+//! extractor emits both a Read and a Write at the same operation site, recognized via the same
+//! `spelling::is_compound_assign_op` R4.7's `dataflow.rs` already uses for its own Use+Store pair
+//! (previously a second, independently-maintained copy of the identical match existed here --
+//! unified so STATE and DATA_FLOW can never silently disagree about which operators are
+//! compound-assignment). Async/closure/const bodies
 //! remain separate attribution domains this syntax-only wave does not flatten into the enclosing
 //! function; the dimension obligation therefore remains UNKNOWN until those and other documented
 //! gaps are closed.
@@ -23,23 +27,7 @@ use atlas_core::{
 };
 
 use super::ExtractionContext;
-
-/// True for Rust compound-assignment operators represented by syn as `Expr::Binary`.
-fn is_compound_assignment(op: &syn::BinOp) -> bool {
-    matches!(
-        op,
-        syn::BinOp::AddAssign(_)
-            | syn::BinOp::SubAssign(_)
-            | syn::BinOp::MulAssign(_)
-            | syn::BinOp::DivAssign(_)
-            | syn::BinOp::RemAssign(_)
-            | syn::BinOp::BitXorAssign(_)
-            | syn::BinOp::BitAndAssign(_)
-            | syn::BinOp::BitOrAssign(_)
-            | syn::BinOp::ShlAssign(_)
-            | syn::BinOp::ShrAssign(_)
-    )
-}
+use super::spelling::is_compound_assign_op;
 
 /// The field this expression accesses via a bare `self.<field>`, if it is exactly that shape
 /// (not a deeper chain like `self.a.b`, and not a tuple-index field like `self.0`).
@@ -194,7 +182,7 @@ impl<'ctx, 'a> StateWalker<'ctx, 'a> {
                 self.walk_block(&for_loop.body);
             }
             syn::Expr::Binary(binary) => {
-                if is_compound_assignment(&binary.op) {
+                if is_compound_assign_op(&binary.op) {
                     match binary.left.as_ref() {
                         syn::Expr::Field(field) if self_field_ident(field).is_some() => {
                             let ident = self_field_ident(field).expect("matched above");

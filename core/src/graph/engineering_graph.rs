@@ -498,31 +498,6 @@ pub fn build_system_graph(
     graph
 }
 
-fn scoped_identity(scope: &crate::semantic::SemanticScope, name: &str) -> String {
-    if scope.segments.is_empty() {
-        name.to_owned()
-    } else {
-        format!("{}::{}", scope.join(), name)
-    }
-}
-
-fn function_signature_identity(signature: &crate::semantic::FunctionSignature) -> String {
-    let params = signature
-        .parameters
-        .iter()
-        .map(|parameter| format!("{}: {}", parameter.name, parameter.type_identity.name))
-        .collect::<Vec<_>>()
-        .join(", ");
-    let return_type = signature
-        .return_type
-        .as_ref()
-        .map(|type_identity| type_identity.name.clone())
-        .unwrap_or_else(|| "()".to_owned());
-    let asyncness = if signature.is_async { "async " } else { "" };
-    let unsafety = if signature.is_unsafe { "unsafe " } else { "" };
-    format!("{asyncness}{unsafety}fn({params}) -> {return_type}")
-}
-
 /// R4.3.3: the authoritative source for SYMBOL/TYPE/FUNCTION_IDENTITY/FUNCTION_SIGNATURE graph
 /// nodes -- built directly from typed `SemanticObservation` records, never by parsing
 /// `SemanticFact.object` and never gated on the compatibility fact existing at all
@@ -544,7 +519,7 @@ fn add_typed_semantic_nodes(
                     graph,
                     stable_id("node", &format!("symbol:{}", header.record_id.as_str())),
                     "Symbol".into(),
-                    scoped_identity(&header.scope, &header.subject.name),
+                    header.scope.scoped_name(&header.subject.name),
                     BTreeMap::from([("origin".into(), "semantic-extraction".into())]),
                     &header.provenance,
                 );
@@ -567,7 +542,7 @@ fn add_typed_semantic_nodes(
                         &format!("function-identity:{}", header.record_id.as_str()),
                     ),
                     "FunctionIdentity".into(),
-                    scoped_identity(&header.scope, &header.subject.symbol.name),
+                    header.scope.scoped_name(&header.subject.symbol.name),
                     BTreeMap::from([("origin".into(), "semantic-extraction".into())]),
                     &header.provenance,
                 );
@@ -580,7 +555,7 @@ fn add_typed_semantic_nodes(
                         &format!("function-signature:{}", header.record_id.as_str()),
                     ),
                     "FunctionSignature".into(),
-                    function_signature_identity(&header.subject),
+                    header.subject.summary(),
                     BTreeMap::from([("origin".into(), "semantic-extraction".into())]),
                     &header.provenance,
                 );
