@@ -4858,6 +4858,78 @@ fn adversarial_truncated_comment_and_string_inputs_never_panic() {
     }
 }
 
+// --- fourth adversarial vector: a long `as`-cast chain does not abort the process ----------------
+//
+// Found by direct adversarial testing, distinct from the three vectors already documented on
+// `max_structural_recursion_risk` (R4.3.5 bracket nesting, R4.3.6 bracket-free operator chains,
+// R4.3.7 if/else-if chains): `as` is a bare keyword with no punctuation signature at all, so
+// before this fix it incremented neither `bracket_depth` nor `chain_run`, leaving a cast chain
+// completely invisible to the guard. Confirmed empirically (isolated `cargo test` reproduction,
+// default per-test thread stack): before the fix, 2,000 terms reliably drove this exact input to
+// `signal: 6, SIGABRT`; 1,000 terms did not.
+#[test]
+fn long_as_cast_chain_does_not_abort_the_process() {
+    let n = 5000usize;
+    let chain = std::iter::repeat_n("u8", n)
+        .collect::<Vec<_>>()
+        .join(" as ");
+    let source = format!("pub fn f(x: u8) -> u8 {{ x as {chain} }}\n");
+    let batch = extract_all("src/probe.rs", &source);
+
+    assert!(batch.is_closed(&ALL_DIMENSIONS));
+    for &dimension in &ALL_DIMENSIONS {
+        let obligation = batch.obligation_for(dimension).unwrap();
+        if SUPPORTED_DIMENSIONS.contains(&dimension) {
+            assert_eq!(obligation.status, EpistemicStatus::Unknown);
+        } else {
+            assert_eq!(obligation.status, EpistemicStatus::Unsupported);
+        }
+    }
+    assert_eq!(batch.diagnostics.len(), 1);
+    assert_eq!(batch.diagnostics[0].code, DiagnosticCode::ResourceLimit);
+}
+
+#[test]
+fn a_short_real_as_cast_chain_still_extracts_normally() {
+    // The `as`-chain guard must not false-positive on real code -- a handful of chained casts is
+    // completely ordinary Rust (e.g. `x as u32 as u64`).
+    let batch = extract_all(
+        "src/probe.rs",
+        "pub fn f(x: u8) -> u64 { x as u16 as u32 as u64 }\n",
+    );
+    assert!(batch.is_closed(&ALL_DIMENSIONS));
+    assert!(
+        !batch
+            .diagnostics
+            .iter()
+            .any(|diagnostic| diagnostic.code == DiagnosticCode::ResourceLimit)
+    );
+    let identity = find_function_identity(&batch, &[], "f").expect("function f");
+    assert_eq!(identity.symbol.name, "f");
+}
+
+#[test]
+fn identifiers_merely_containing_the_letters_as_do_not_trigger_the_guard() {
+    // The word-boundary check on the `as`-keyword scan must not fire on ordinary identifiers that
+    // happen to contain the substring "as" -- unlike the pre-existing, deliberately unchecked
+    // `else`/`fn` scans, `as` is short enough that a bare substring match would be a real false
+    // positive on very common words.
+    let mut source = String::from("pub fn f(task: u8, class: u8, database: u8) -> u8 {\n    ");
+    for name in ["task", "class", "database", "phase", "release", "base"].repeat(50) {
+        source.push_str(&format!("let _ = {name};\n    "));
+    }
+    source.push_str("task\n}\n");
+    let batch = extract_all("src/probe.rs", &source);
+    assert!(
+        !batch
+            .diagnostics
+            .iter()
+            .any(|diagnostic| diagnostic.code == DiagnosticCode::ResourceLimit),
+        "identifiers containing \"as\" as a substring must never be mistaken for the cast keyword: {:?}",
+        batch.diagnostics
+    );
+}
+
 #[test]
 fn a_raw_string_with_an_embedded_shorter_hash_quote_sequence_is_parsed_to_its_real_end() {
     // A subtle correctness case for the raw-string skip's hash-count matching: `r##"..."##`

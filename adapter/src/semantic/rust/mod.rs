@@ -200,7 +200,7 @@ impl SemanticExtractor for RustSemanticExtractor {
 /// not merely theorized): even with an outer `stacker::maybe_grow(256KiB, 256MiB, ..)` wrapper, the
 /// exact same adversarial input still aborted the process with `SIGABRT`.
 ///
-/// Three independent constructs were confirmed (real-process, isolated reproduction) to drive this
+/// Four independent constructs were confirmed (real-process, isolated reproduction) to drive this
 /// recursion to a crash:
 /// - explicit bracket nesting (`(((...)))`) -- 300 levels reliably overflowed a reduced (~2MB)
 ///   test-thread stack; 100 levels did not;
@@ -210,9 +210,16 @@ impl SemanticExtractor for RustSemanticExtractor {
 ///   not nested (bracket-nesting depth stays at 2 regardless of chain length), and there is no
 ///   operator-character run either (`if`/`else` are keywords), yet the AST is exactly as deeply
 ///   *recursive* as the bracket case (`Expr::If { then, else: Some(Box<Expr::If{..}>) }` nests one
-///   level per arm) -- 3,000 arms reliably overflowed the same stack.
+///   level per arm) -- 3,000 arms reliably overflowed the same stack;
+/// - a chained cast expression (`x as T as T as T ...`) -- found by direct adversarial testing
+///   after noting `as` is a bare keyword with no punctuation signature at all (no bracket, no
+///   tracked operator character), so it was invisible to every counter above it. `Expr::Cast`
+///   wraps its base expression one level per `as` (`Expr::Cast { expr: Box<Expr>, ty: Box<Type> }`),
+///   exactly the same right-nesting shape as the `if`/`else` chain -- 2,000 terms reliably
+///   overflowed the same stack (isolated `cargo test` reproduction, default per-test thread stack,
+///   `signal: 6, SIGABRT`); 1,000 terms did not.
 ///
-/// `max_structural_recursion_risk` bounds all three with one combined metric rather than
+/// `max_structural_recursion_risk` bounds all four with one combined metric rather than
 /// maintaining separate ad-hoc scans, since all are fundamentally the same risk (parser recursion
 /// depth proportional to admitted-input structure, regardless of which concrete syntax drives it):
 /// bracket nesting increments/decrements a depth counter as before; a run of consecutive
@@ -220,14 +227,22 @@ impl SemanticExtractor for RustSemanticExtractor {
 /// at the *current* bracket depth also increments a counter, reset whenever a bracket boundary is
 /// crossed; a run of `else` keyword occurrences (not reset by brace boundaries, since chain arms
 /// are siblings at the same bracket depth -- only by `;` or a new `fn`, approximating "next
-/// function") increments a third counter. The combined maximum is compared against one threshold.
+/// function") increments a third counter; a run of word-boundary-checked `as` keyword occurrences
+/// (unlike the coarse, boundary-unchecked `else`/`fn` scans, `as` is short enough that an
+/// unchecked substring match would false-positive on ordinary identifiers containing it --
+/// `task`, `class`, `database`, `phase`, `release`, ... -- so this one specific check verifies the
+/// byte immediately before and after are not themselves identifier characters) shares the same
+/// `chain_run` counter as the operator-byte run, since (like those operators, and unlike
+/// `else`/`if`'s sibling braces) a real `as`-chain has no intervening bracket to reset it anyway.
+/// The combined maximum is compared against one threshold.
 ///
-/// This is a coarse, syntax-unaware, pre-parse text scan (no real keyword-boundary checking, no
-/// char-literal or byte-string exclusion) that can only ever over-count real structural risk,
-/// never under-count -- so it can only be more conservative than strictly necessary, never miss
-/// one of these three specific, confirmed vectors. It is explicitly NOT claimed complete: a
-/// fourth, fifth, ... construct that drives the same class of parser/AST recursion through some
-/// other keyword or syntax shape may exist and would not necessarily be caught by this heuristic.
+/// This is a coarse, syntax-unaware, pre-parse text scan (no real keyword-boundary checking for
+/// `else`/`fn`, no char-literal or byte-string exclusion) that can only ever over-count real
+/// structural risk, never under-count -- so it can only be more conservative than strictly
+/// necessary, never miss one of these four specific, confirmed vectors. It is explicitly NOT
+/// claimed complete: a fifth, sixth, ... construct that drives the same class of parser/AST
+/// recursion through some other keyword or syntax shape may exist and would not necessarily be
+/// caught by this heuristic.
 /// A fully complete fix would require either patching `syn` itself to grow its own stack during
 /// recursion (impractical -- `syn` is a third-party dependency this bootstrap does not vendor or
 /// fork) or replacing whole-file parsing with a from-scratch, formally depth-bounded parser (a
@@ -288,6 +303,15 @@ fn skip_string_literal(bytes: &[u8], start: usize) -> Option<usize> {
     None
 }
 
+/// `true` for a byte that can appear inside a Rust identifier (ASCII alphanumeric or `_`). Used
+/// only to word-boundary-check the `as`-keyword scan in `max_structural_recursion_risk` below --
+/// deliberately ASCII-only, matching this whole scan's existing byte-oriented approach; a
+/// non-ASCII identifier byte (Rust identifiers may contain Unicode) is never itself `a`/`s`, so it
+/// cannot hide or fabricate an `as` match either way.
+const fn is_identifier_byte(byte: u8) -> bool {
+    byte.is_ascii_alphanumeric() || byte == b'_'
+}
+
 fn max_structural_recursion_risk(source: &str) -> usize {
     let bytes = source.as_bytes();
     let mut bracket_depth: usize = 0;
@@ -345,6 +369,22 @@ fn max_structural_recursion_risk(source: &str) -> usize {
             }
             b'f' if bytes[index..].starts_with(b"fn ") || bytes[index..].starts_with(b"fn(") => {
                 else_run = 0;
+            }
+            // `as` (the cast keyword) is only two bytes, far more collision-prone as a bare
+            // substring than `else`/`fn` -- an unchecked match would false-positive on every
+            // ordinary identifier containing it (`task`, `class`, `database`, `phase`, ...), so
+            // this is the one check in this scan that verifies real word boundaries on both sides.
+            // Shares `chain_run` (not a dedicated counter): a genuine `x as T as T as ...` chain
+            // has no intervening bracket to reset it, the same as the operator-byte run above.
+            b'a' if bytes[index..].starts_with(b"as")
+                && !index
+                    .checked_sub(1)
+                    .and_then(|i| bytes.get(i))
+                    .is_some_and(|b| is_identifier_byte(*b))
+                && !bytes.get(index + 2).is_some_and(|b| is_identifier_byte(*b)) =>
+            {
+                chain_run += 1;
+                max_risk = max_risk.max(bracket_depth + chain_run);
             }
             _ => {}
         }

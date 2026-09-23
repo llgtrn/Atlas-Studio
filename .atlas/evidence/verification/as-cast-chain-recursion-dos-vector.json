@@ -1,0 +1,58 @@
+{
+  "schema": "atlas.self-build.generation-evidence.v1",
+  "wave": "SECURITY / CORRECTNESS -- fourth stack-overflow DoS vector in max_structural_recursion_risk",
+  "wave_title": "adapter::semantic::rust::max_structural_recursion_risk's own doc comment explicitly warned it was 'NOT claimed complete: a fourth, fifth, ... construct that drives the same class of parser/AST recursion through some other keyword or syntax shape may exist and would not necessarily be caught by this heuristic.' Direct adversarial testing targeting that exact warning found a chained cast expression (`x as T as T as T ...`) drives the identical SIGABRT stack-overflow crash R4.3.5/6/7 already closed for three other constructs -- `as` is a bare keyword with no bracket and no tracked operator character, so it was invisible to every existing counter.",
+  "generation_model": {
+    "G_n": "b6ce6dd7f3 (genome(donors): AgentIR lossy-lowering disclosure genome) -- stable generation this candidate was built and validated against",
+    "gap_discovered_by": "Direct empirical adversarial testing, not static reasoning alone: read max_structural_recursion_risk's own doc comment and its exhaustive match arms (bracket chars, operator-class chars, `else`, `fn`), reasoned through several candidate constructs that reuse only already-tracked characters (nested generics via `<>`, chained closures via `|`, chained references via `&` -- all found to already be covered), then focused on `as`: a bare keyword contributing to neither counter. Confirmed by actually running a probe test (`cargo test -p adapter --lib probe_long_as_cast_chain_recursion_risk -- --nocapture`) against the pre-fix code, which reproduced `signal: 6, SIGABRT` at 2,000 terms -- the same empirical-reproduction discipline R4.3.5/6/7 themselves used, not a claim taken on reasoning alone."
+  },
+  "priority_classification": "correctness/security (priority 1/2 in the fixed self-selection order) -- an unauthenticated denial-of-service vector against the extraction pipeline: a small, well-under-MAX_SEMANTIC_BYTES adversarial file aborts the entire extraction process (SIGABRT, unrecoverable -- a Rust stack overflow cannot be caught by catch_unwind) for every artifact in the run, not just the hostile one.",
+  "design_decisions": [
+    {
+      "question": "Give `as` its own dedicated run counter (like `else_run`) or share the existing `chain_run` counter (like the operator-byte class)?",
+      "decision": "Share `chain_run`. `else_run` needed its own counter specifically because if/else arms have sibling braces that reset `chain_run` on every arm boundary; a real `as`-chain (`x as T as T as T`) has no intervening bracket at all, so it accumulates correctly in the same counter the operator-byte class already uses, with no additional state needed."
+    },
+    {
+      "question": "Match `as` as a bare 2-byte substring (matching the existing `else`/`fn` scans' own lack of boundary checking) or add real word-boundary checking?",
+      "decision": "Add real word-boundary checking (byte before and after must not themselves be identifier characters), because `as` at two bytes is dramatically more collision-prone against ordinary identifiers (`task`, `class`, `database`, `phase`, `release`, `base`, ...) than `else` (4 bytes) or `fn ` (3 bytes + required trailing space/paren) ever were. An unchecked match would have made this guard fire on a large fraction of ordinary Rust source, a real correctness regression (false-positive ResourceLimit diagnostics) this session's own established engineering discipline forbids introducing. Verified directly: a dedicated negative test constructs a function repeating `task`/`class`/`database`/`phase`/`release`/`base` 50 times each (300 occurrences of \"as\"-containing identifiers) and asserts zero ResourceLimit diagnostics."
+    }
+  ],
+  "stable_validator_law_compliance": {
+    "claim": "A chained cast expression of adversarial length now produces a graceful `DiagnosticCode::ResourceLimit` diagnostic instead of aborting the process, with zero regression on real code (chained casts, or ordinary identifiers containing the substring \"as\").",
+    "self_written_evidence": "Three new regression tests in adapter/src/semantic/rust/tests.rs: `long_as_cast_chain_does_not_abort_the_process` (5,000-term cast chain -> exactly one ResourceLimit diagnostic, matching the exact assertion shape of the three prior vectors' own tests), `a_short_real_as_cast_chain_still_extracts_normally` (3-term chain extracts cleanly, no false positive), `identifiers_merely_containing_the_letters_as_do_not_trigger_the_guard` (300 \"as\"-substring-containing identifier uses -> zero false positives).",
+    "independent_evidence_channel": "Isolated real-process reproduction before the fix (`cargo test -p adapter --lib probe_long_as_cast_chain_recursion_risk -- --nocapture`): 1,000 terms passed cleanly, 1,200/1,400/1,600/2,000/5,000/10,000/200,000 all reliably reproduced `signal: 6, SIGABRT`, bisected the real crash threshold empirically rather than assuming one. After the fix, the identical 5,000-term input produces a clean `ResourceLimit` diagnostic (`cargo test` exit 0). Separately ran this repository's own real self-census (`cargo run -p atlas-cli -- systemize --root . --out ...`) after the fix: 470 total diagnostics, 0 RESOURCE_LIMIT -- proving the new word-boundary-checked `as` scan does not false-positive against this repository's own real, `as`-cast-containing Rust source.",
+    "no_circular_self_certification": true
+  },
+  "implementation": {
+    "core_change": "none -- this is entirely within adapter's own pre-parse guard, no schema/contract change",
+    "adapter_change": "adapter/src/semantic/rust/mod.rs -- added `is_identifier_byte` helper; `max_structural_recursion_risk` gained one new match arm (`b'a'` with a word-boundary-checked `starts_with(b\"as\")` guard) sharing the existing `chain_run` counter; updated the function's own doc comment to document this as the fourth confirmed vector, matching the documentation style already established for the first three"
+  },
+  "adversarial_and_falsification_coverage": [
+    "isolated real-process reproduction of the crash before the fix, at multiple depths, bisecting the real threshold (not assumed)",
+    "isolated real-process confirmation the fix converts the crash into a graceful diagnostic at the same depth that previously crashed",
+    "negative test: a short, ordinary cast chain must not false-positive",
+    "negative test: 300 ordinary identifier occurrences containing the substring \"as\" must not false-positive",
+    "real self-census of this repository's own real source confirms zero RESOURCE_LIMIT regressions"
+  ],
+  "validation_this_generation": {
+    "commands": {
+      "cargo fmt --all --check": { "exit_code": 0 },
+      "cargo clippy --workspace --all-targets -- -D warnings": { "exit_code": 0, "warnings": 0 },
+      "cargo test --workspace": {
+        "exit_code": 0,
+        "totals": "254 adapter, 2 apps/cli, 156 core, 62 runtime -- 474 total, 0 failed, +3 new tests versus the prior generation"
+      },
+      "cargo run -q -p atlas-cli -- systemize --root . --out /tmp/systemize_check2.json": {
+        "exit_code": 0,
+        "finding": "470 total diagnostics, 0 RESOURCE_LIMIT -- zero false positives against this repository's own real source"
+      },
+      "cargo run -q -p atlas-cli -- docs audit --root .atlas": { "exit_code": 0, "gate_ready": true }
+    }
+  },
+  "recensus_scope_after_promotion": [
+    "no prior CLOSED/EXTINCT conclusion depended on the exact set of covered recursion vectors, so no external conclusion requires reopening",
+    "the guard's own doc comment (and now the roadmap) continues to explicitly state this heuristic is not claimed complete -- a fifth vector remains possible and is not foreclosed by this fix"
+  ],
+  "overall_verdict": "MATERIALIZED AND VERIFIED. A real, empirically-confirmed fourth stack-overflow denial-of-service vector (chained `as` casts) is closed with a word-boundary-checked extension to the existing combined-metric guard, verified both by isolated real-process crash reproduction/resolution and by a real self-census of this repository's own source showing zero regression. The guard's own honest 'not claimed complete' disclaimer is preserved, not weakened, by this fix.",
+  "historical_evidence_retained": true
+}
