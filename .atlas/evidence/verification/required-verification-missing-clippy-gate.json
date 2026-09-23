@@ -1,0 +1,50 @@
+{
+  "schema": "atlas.self-build.generation-evidence.v1",
+  "wave": "VERIFICATION BLINDNESS -- WorkRequest.required_verification silently weaker than the repository's own real CI gate",
+  "wave_title": "runtime::prepare_work built WorkRequest.required_verification as [\"cargo fmt --all --check\", \"cargo test --workspace\", \"atlas-systemizer systemize\"] -- omitting `cargo clippy --workspace --all-targets -- -D warnings`, which `.github/workflows/ci.yml` has run on every push/PR to main all along. A candidate could pass prepare_work's own admission contract while still being guaranteed to fail the repository's real CI, because the admission-time verification list and the enforcement-time verification list had silently diverged.",
+  "generation_model": {
+    "G_n": "5c6bcb80b8 (docs(census): precisely verify the source-intelligence lane's identity gap) -- stable generation this candidate was built and validated against",
+    "gap_discovered_by": "Direct self-review of runtime::prepare_work's WorkRequest construction, cross-checked against the repository's own authoritative `.github/workflows/ci.yml` rather than against any secondary doc (`.atlas/guides/DEVELOPMENT.md` documents no concrete cargo commands at all, and no canonical contract enumerates required_verification's expected contents) -- the CI workflow file is the one place the real, enforced gate is unambiguously recorded."
+  },
+  "priority_classification": "correctness / verification blindness (priority 1/6 in the fixed self-selection order) -- required_verification is the literal list a candidate/provider is told it must satisfy before being treated as verified; a gap between that list and the repository's real enforcement mechanism is a verification-blindness defect, not merely a documentation nit.",
+  "design_decisions": [
+    {
+      "question": "Hardcode the fix as a fourth literal string in the existing `vec![...]`, or extract a named function?",
+      "decision": "Extract `required_verification_commands()` as its own pure function so the exact command set has one canonical definition point and can be unit-tested directly without needing a full `prepare_work` run (which requires a real git checkout and `.atlas/repo.toml`)."
+    },
+    {
+      "question": "How to prevent this exact defect (an admission-time list silently drifting from CI's real command set) from recurring silently in the future?",
+      "decision": "Write the regression test as a direct file-based falsification against `.github/workflows/ci.yml` itself -- parsing its own `- run: cargo ...` lines and asserting every one appears in `required_verification_commands()` -- rather than asserting a hardcoded expected list. A hardcoded expected-list test would only have caught this specific omission once; the file-based test catches any future CI command added to ci.yml that required_verification does not track, without needing a parallel manual update to the test itself."
+    }
+  ],
+  "stable_validator_law_compliance": {
+    "claim": "`required_verification_commands()` is now a strict superset of every `cargo ...` command `.github/workflows/ci.yml` actually runs (fmt --all --check, clippy --workspace --all-targets -- -D warnings, test --workspace), plus the pre-existing `atlas-systemizer systemize` step which is not itself a `cargo` invocation and is unaffected by this change.",
+    "self_written_evidence": "New test `required_verification_commands_cover_every_command_ci_runs` in `runtime/src/lib.rs` reads the real `.github/workflows/ci.yml` from disk (via `CARGO_MANIFEST_DIR`), extracts every `- run: cargo ...` step, and asserts each one is present verbatim in `required_verification_commands()`. This is a genuine falsification, not a tautology: before the fix, this exact test fails (clippy command present in ci.yml, absent from required_verification) -- confirmed by re-deriving the diff manually against the pre-fix three-entry vec.",
+    "independent_evidence_channel": "Ran the full local equivalent of the CI gate directly: `cargo fmt --all --check` (clean after `cargo fmt --all`), `cargo clippy --workspace --all-targets -- -D warnings` (0 warnings), `cargo test --workspace` (471 passed: 251 adapter + 2 apps/cli + 156 core + 62 runtime, 0 failed), `cargo run -q -p atlas-cli -- docs audit --root .atlas` (exit 0, no doc-drift findings).",
+    "no_circular_self_certification": true
+  },
+  "implementation": {
+    "runtime_change": "runtime/src/lib.rs -- extracted `required_verification_commands() -> Vec<String>` (adds the previously-missing `\"cargo clippy --workspace --all-targets -- -D warnings\"` entry, positioned to mirror ci.yml's own step order: fmt, clippy, test, then the Atlas-specific systemize step), and `prepare_work` now calls it instead of inlining the vec."
+  },
+  "adversarial_and_falsification_coverage": [
+    "new test cross-checks against the real ci.yml file on disk, not a copy of its expected contents -- a future CI command added without updating required_verification_commands() will fail this test rather than passing silently",
+    "confirmed the omission was real by inspecting ci.yml directly (`- run: cargo clippy --workspace --all-targets -- -D warnings` at line 34) before making any change, not by assumption"
+  ],
+  "validation_this_generation": {
+    "commands": {
+      "cargo fmt --all --check": { "exit_code": 0 },
+      "cargo clippy --workspace --all-targets -- -D warnings": { "exit_code": 0, "warnings": 0 },
+      "cargo test --workspace": {
+        "exit_code": 0,
+        "totals": "251 adapter, 2 apps/cli, 156 core, 62 runtime -- 471 total, 0 failed, +1 new test (required_verification_commands_cover_every_command_ci_runs) versus the prior generation"
+      },
+      "cargo run -q -p atlas-cli -- docs audit --root .atlas": { "exit_code": 0 }
+    }
+  },
+  "recensus_scope_after_promotion": [
+    "no prior CLOSED/EXTINCT conclusion depended on required_verification's exact contents, so no external conclusion requires reopening",
+    "any future caller of prepare_work now receives a required_verification list that is a genuine superset of the repository's real CI gate, closing this specific admission-time/enforcement-time divergence"
+  ],
+  "overall_verdict": "MATERIALIZED AND VERIFIED. WorkRequest.required_verification now includes the clippy gate the repository's own CI has enforced all along, closing a real verification-blindness gap where a candidate could satisfy prepare_work's admission contract while being guaranteed to fail CI. Regression-proofed against future drift via a test that reads the real ci.yml file rather than a hardcoded expectation.",
+  "historical_evidence_retained": true
+}

@@ -292,6 +292,21 @@ pub fn parse(root: impl AsRef<Path>) -> io::Result<Vec<AdlProgram>> {
     Ok(sources.iter().map(parse_adl_source).collect())
 }
 
+/// The exact command set the repository's own CI gate (`.github/workflows/ci.yml`) enforces on
+/// every push/PR, in the order CI runs them. `WorkRequest.required_verification` must stay a
+/// superset of this list: a candidate that only satisfies a weaker local list could pass
+/// `prepare_work`'s admission and still fail CI, which is exactly the gap this closes (CI already
+/// runs `cargo clippy --workspace --all-targets -- -D warnings`, but this list previously omitted
+/// it and would have let a lint-violating candidate look admissible).
+fn required_verification_commands() -> Vec<String> {
+    vec![
+        "cargo fmt --all --check".into(),
+        "cargo clippy --workspace --all-targets -- -D warnings".into(),
+        "cargo test --workspace".into(),
+        "atlas-systemizer systemize".into(),
+    ]
+}
+
 pub fn prepare_work(
     root: impl AsRef<Path>,
     goal: impl Into<String>,
@@ -350,11 +365,7 @@ pub fn prepare_work(
             ".atlas/provenance".into(),
             ".atlas/licenses".into(),
         ],
-        required_verification: vec![
-            "cargo fmt --all --check".into(),
-            "cargo test --workspace".into(),
-            "atlas-systemizer systemize".into(),
-        ],
+        required_verification: required_verification_commands(),
     };
 
     let allowed = blockers.is_empty();
@@ -440,6 +451,39 @@ mod tests {
             not_applicable_blocks, closed_blocks,
             "neither blocks, but for different reasons"
         );
+    }
+
+    // `.github/workflows/ci.yml` is the repository's real, authoritative CI gate. This is a
+    // direct, file-based falsification: it reads the actual CI workflow rather than re-asserting
+    // a hardcoded expectation, so it cannot silently drift the way the previous omission did
+    // (required_verification was missing the clippy command CI has run all along).
+    #[test]
+    fn required_verification_commands_cover_every_command_ci_runs() {
+        let ci_yaml = std::fs::read_to_string(
+            std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../.github/workflows/ci.yml"),
+        )
+        .expect("repository's CI workflow file must exist and be readable");
+
+        let ci_commands: Vec<&str> = ci_yaml
+            .lines()
+            .filter_map(|line| line.trim().strip_prefix("- run: cargo "))
+            .map(|rest| rest.trim())
+            .collect();
+        assert!(
+            !ci_commands.is_empty(),
+            "expected to find at least one `- run: cargo ...` step in ci.yml; the parsing above \
+             may have drifted from the workflow file's actual format"
+        );
+
+        let required = required_verification_commands();
+        for ci_command in ci_commands {
+            let full_command = format!("cargo {ci_command}");
+            assert!(
+                required.iter().any(|r| r == &full_command),
+                "CI runs `{full_command}` but WorkRequest.required_verification does not \
+                 require it -- a candidate could pass prepare_work's admission and still fail CI"
+            );
+        }
     }
 
     fn constraint_result(name: &str, passed: bool) -> ConstraintResult {
