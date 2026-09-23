@@ -148,6 +148,8 @@ Independent extractors MAY analyze the same dimension. Their identities/evidence
 
 Extractor crashes, parser errors, resource limits and unsupported syntax become diagnostics plus UNKNOWN or UNSUPPORTED according to cause. A failure must not remove the artifact from census accounting.
 
+**Implementation note (R4.3.5, `adapter::semantic::rust`)**: a resource-limit failure mode is now real, not only declared vocabulary. `syn` is a recursive-descent parser; nothing previously bounded the structural nesting depth of an admitted artifact's source, only its byte size (`MAX_SEMANTIC_BYTES`, a separate, size-only gate). A small file with extreme bracket nesting reliably overflowed the stack and aborted the whole extraction process -- for every artifact in the run, not just the pathological one -- rather than producing a diagnostic. `RustSemanticExtractor::extract` now pre-scans raw source text for bracket-nesting depth (`max_bracket_nesting_depth`) before ever invoking `syn`, and refuses to parse (every supported dimension `UNKNOWN`, `DiagnosticCode::ResourceLimit`) above `MAX_BRACKET_NESTING_DEPTH = 64` -- far below the observed crash floor (a 300-level nesting reliably overflowed even a reduced 2MB test-thread stack) and far above any real nesting depth this repository's own source corpus has ever reached (13).
+
 ## Security boundary
 
 Source is untrusted input. Extraction is analysis, not execution.

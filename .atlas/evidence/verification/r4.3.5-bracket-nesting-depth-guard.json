@@ -1,0 +1,78 @@
+{
+  "schema": "atlas.self-build.generation-evidence.v1",
+  "wave": "R4.3.5 -- bracket-nesting-depth guard (stack-overflow denial-of-service fix)",
+  "wave_title": "A pre-parse structural nesting-depth guard closes a real, empirically-confirmed stack-overflow crash vector in RustSemanticExtractor. `.atlas/contracts/SEMANTIC-EXTRACTION.md#failure-semantics`.",
+  "generation_model": {
+    "G_n": "3992c6cc24 (fix(census): account for artifacts whose language has no extractor) -- stable generation this candidate was built and validated against",
+    "gap_discovered_by": "falsification scenario generation per the standing loop directive's own explicit list ('malformed/hostile inputs... run malformed or adversarial artifacts'), applied specifically to the Rust extractor's use of `syn` (a recursive-descent parser). Hypothesis: MAX_SEMANTIC_BYTES (adapter/src/source/mod.rs) gates admitted-artifact byte size but never structural nesting depth, so a small file with extreme bracket nesting could reach the extractor unfiltered and overflow the parser's call stack. Tested empirically (not merely theorized) by constructing a deeply-nested-parentheses Rust source fixture and running it through the REAL production extractor (RustSemanticExtractor::extract, not a synthetic mock) in an isolated single-test process."
+  },
+  "priority_classification": "security/trust boundary (priority 2) -- an admitted, untrusted source artifact could crash the entire census/systemize process for every artifact in the run, not merely fail to be analyzed. Also correctness (priority 1): this violates SEMANTIC-EXTRACTION.md's own 'a failure must not remove the artifact from census accounting' rule in the most severe possible way (it removes every artifact, by killing the process).",
+  "falsification_evidence": {
+    "reproduction": "50,000 levels of `(`/`)` nesting inside a trivial `pub fn f() -> i32 { ... }` body (~100KB source, well under MAX_SEMANTIC_BYTES's 4MB limit) run through RustSemanticExtractor::extract in an isolated `cargo test -p adapter --lib <test> -- --exact` process: `thread '...' has overflowed its stack / fatal runtime error: stack overflow, aborting` -- process exit via SIGABRT (signal 6), unrecoverable (a Rust stack overflow is not a catchable panic; unwinding itself needs stack space that may not exist).",
+    "threshold_calibration": "Depth 50,000: crash. Depth 5,000: crash. Depth 2,000: crash. Depth 800: crash. Depth 300: crash. Depth 100: no crash. So the true crash floor in this environment (a reduced-stack Rust test thread, ~2MB) sits between 100 and 300 -- far lower than initially assumed, meaning even moderately pathological input (not just extreme 50k-level nesting) was enough to kill the process.",
+    "real_corpus_comparison": "This repository's own entire real .rs source corpus (every file, workspace-wide) was scanned for maximum bracket-nesting depth: 13, in adapter/src/dependency/cargo.rs. No legitimate code anywhere in this repository comes remotely close to the crash floor."
+  },
+  "design_decisions": [
+    {
+      "question": "Catch the stack overflow instead of preventing it (e.g. via catch_unwind or a signal handler)?",
+      "decision": "Not possible in safe, portable Rust -- a stack overflow aborts the process directly; it is not a panic and cannot be caught by std::panic::catch_unwind (unwinding itself requires stack space the overflow has already exhausted). Prevention via a pre-parse depth check is the only sound approach without platform-specific guard-page/signal tricks."
+    },
+    {
+      "question": "Run the parse on a dedicated thread with a larger stack instead of a pre-scan?",
+      "decision": "Rejected as the primary fix (though compatible as future defense-in-depth): raising the stack size only raises the crash floor, it does not eliminate the vector -- an attacker simply nests deeper. A structural pre-scan bounds the actual risk directly and is far cheaper than spawning a thread per artifact."
+    },
+    {
+      "question": "What depth limit, and how was it chosen?",
+      "decision": "64. Chosen with large safety margin on both sides of the two empirically-measured bounds: the observed crash floor (100-300 in a reduced-stack test environment; production environments with the default 8MB main-thread stack likely tolerate more, but this bootstrap does not rely on that difference) and the observed real-code maximum (13, this repository's own entire corpus). 64 is ~4.6x below the lowest observed crash point and ~4.9x above the highest observed real value."
+    },
+    {
+      "question": "Syntax-aware (skip brackets inside string/char literals and comments) or a coarse raw-text scan?",
+      "decision": "Coarse raw-text scan (max_bracket_nesting_depth counts every ( { [ / ) } ] byte, including inside literals/comments). This can only ever OVER-count real structural depth, never under-count -- so it can only be more conservative than strictly necessary, never miss a genuine risk. A syntax-aware scan would itself need to tokenize the input, adding complexity and its own potential failure modes, for a case where over-conservatism has no real cost (no legitimate code approaches the threshold)."
+    },
+    {
+      "question": "UNKNOWN or UNSUPPORTED for the resulting obligations, and which DiagnosticCode?",
+      "decision": "UNKNOWN for every dimension this extractor supports (evidence was not obtained, for a documented safety reason -- the same status finish_parse_failure already uses), UNSUPPORTED for dimensions outside its support regardless. DiagnosticCode::ResourceLimit -- already declared in the vocabulary, previously dead code, reused per the loop's own 'use existing repository vocabulary' rule (the same pattern as R4.3.4's UnsupportedLanguageOrProfile reuse)."
+    }
+  ],
+  "stable_validator_law_compliance": {
+    "claim": "The guard prevents the crash, is negative (never triggers) on this repository's own real source, and produces a well-formed, closed ExtractionBatch when it does trigger.",
+    "self_written_evidence": "Two new tests in adapter/src/semantic/rust/tests.rs: deeply_nested_parenthesized_expression_does_not_abort_the_process (the exact 50,000-level fixture that previously crashed the process, now asserted to produce a closed batch with every supported dimension UNKNOWN, every unsupported one UNSUPPORTED, and exactly one ResourceLimit diagnostic) and nesting_well_within_the_depth_guard_still_extracts_normally (a small, legitimately nested expression still extracts real FunctionIdentity evidence with no ResourceLimit diagnostic).",
+    "independent_evidence_channel": "The falsification itself -- the crash was reproduced empirically in an isolated real process, not asserted from theory, before any fix existed; after the fix, the same exact fixture (and several calibration depths in between) was re-run and confirmed non-crashing. A before/after systemize run against this repository's own real root confirms census.coverage and typed_obligations_total are byte-identical (768), proving the guard is inert on real code and introduces zero regression to the aggregate census.",
+    "no_circular_self_certification": true
+  },
+  "implementation": {
+    "extraction": "adapter/src/semantic/rust/mod.rs -- max_bracket_nesting_depth() (free function), MAX_BRACKET_NESTING_DEPTH (const = 64), ExtractionContext::finish_resource_limit() (mirrors finish_parse_failure's shape), wired into RustSemanticExtractor::extract before syn::parse_file is ever called"
+  },
+  "adversarial_and_falsification_coverage": [
+    "deeply_nested_parenthesized_expression_does_not_abort_the_process -- the exact fixture that previously produced SIGABRT, now asserted to produce a well-formed closed batch instead",
+    "nesting_well_within_the_depth_guard_still_extracts_normally -- proves no false positive on legitimate, if unusually nested, code",
+    "full workspace test suite (406 tests) re-run to completion without the process aborting, proving no other test path independently triggers the same class of crash"
+  ],
+  "validation_this_generation": {
+    "commands": {
+      "cargo fmt --all --check": { "exit_code": 0 },
+      "cargo clippy --workspace --all-targets -- -D warnings": { "exit_code": 0, "warnings": 0 },
+      "cargo test --workspace": {
+        "exit_code": 0,
+        "totals": "406 passed, 0 failed (221 adapter, 127 core, 58 runtime), up from 404 -- process completed without aborting"
+      },
+      "isolated pre-fix reproduction (cargo test -p adapter --lib <test> -- --exact, depths 50000/5000/2000/800/300)": {
+        "result": "every depth from 300 upward: SIGABRT stack overflow, confirmed before any fix existed"
+      },
+      "isolated post-fix verification (same command, depth 50000)": {
+        "result": "exit 0, test passes, batch closed with ResourceLimit diagnostic"
+      },
+      "cargo run -q -p atlas-cli -- systemize --root . (before/after self-census diff)": {
+        "exit_code": 0,
+        "finding": "census.coverage and typed_obligations_total (768) byte-identical before and after; coding_admission.allowed unchanged (true) -- zero regression, guard never triggers on this repository's own real corpus"
+      }
+    }
+  },
+  "recensus_scope_after_promotion": [
+    "no prior CLOSED/EXTINCT conclusion depended on the absence of this guard, so no prior claim requires reopening -- this generation closes a security gap that existed silently since the Rust extractor's own bootstrap",
+    "a future generation could add a genuine syntax-aware depth check (excluding literals/comments) if the coarse raw-text scan is ever found to false-positive on real code; no such case exists today",
+    "the same DoS class (unbounded recursion during parsing) should be considered whenever a second language extractor is added -- this is not automatically inherited by a different parser implementation"
+  ],
+  "overall_verdict": "MATERIALIZED AND VERIFIED. Closes a real, empirically-reproduced, severe (whole-process-crashing) security/robustness gap discovered via the standing loop's own mandated adversarial-input falsification practice, not a hypothetical. No circular self-certification: the crash was reproduced in an isolated real process before any fix existed, and the fix's effectiveness was verified the same way, plus a before/after real self-census diff proving zero regression.",
+  "historical_evidence_retained": true
+}

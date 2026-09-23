@@ -188,7 +188,8 @@ Current materialized sequence:
 - R4.3.1 — canonical production census wiring;
 - R4.3.2 — lossless typed records through Census and normalization;
 - R4.3.3 — raw observation identity, typed obligation lineage, typed closure accounting, and typed engineering-graph boundary;
-- R4.3.4 — a `Parsed`, language-tagged artifact with no registered `SemanticExtractor` for its language now produces an explicit `UNSUPPORTED`-obligation `ExtractionBatch` (`runtime::census::extraction::unsupported_language_batch`, `DiagnosticCode::UnsupportedLanguageOrProfile`) instead of silently vanishing from `CensusExtractionAccounting` -- a real, live gap in this repository's own inventory (its own `toml`/`markdown`/`json` `Parsed` artifacts), not a hypothetical corpus.
+- R4.3.4 — a `Parsed`, language-tagged artifact with no registered `SemanticExtractor` for its language now produces an explicit `UNSUPPORTED`-obligation `ExtractionBatch` (`runtime::census::extraction::unsupported_language_batch`, `DiagnosticCode::UnsupportedLanguageOrProfile`) instead of silently vanishing from `CensusExtractionAccounting` -- a real, live gap in this repository's own inventory (its own `toml`/`markdown`/`json` `Parsed` artifacts), not a hypothetical corpus;
+- R4.3.5 — a pre-parse bracket-nesting-depth guard (`adapter::semantic::rust::max_bracket_nesting_depth`, `MAX_BRACKET_NESTING_DEPTH = 64`) closes a real stack-overflow denial-of-service: `MAX_SEMANTIC_BYTES` bounded admitted-artifact byte size but never structural nesting depth, and a small pathologically-nested file reliably aborted the whole extraction process (`SIGABRT`, unrecoverable -- a Rust stack overflow cannot be caught by `catch_unwind`) rather than producing a diagnostic. Empirically confirmed: 300 levels of nesting crashed a reduced test-thread stack; this repository's own real source never exceeds depth 13.
 
 Currently materialized Rust semantic dimensions are:
 

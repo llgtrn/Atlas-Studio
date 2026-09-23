@@ -8,15 +8,16 @@
 
 use super::super::batch::ExtractionBatch;
 use super::super::extractor::{ExtractionInput, SemanticExtractor};
-use super::{RustSemanticExtractor, spelling};
+use super::{RustSemanticExtractor, SUPPORTED_DIMENSIONS, spelling};
 use atlas_core::{
     ArtifactId, CallDispatchKind, CallSiteIdentity, ConcurrencyIdentity, ConcurrencyKind,
     ContentFingerprint, ControlFlowBlockIdentity, ControlFlowBlockKind, ControlFlowEdgeKind,
-    DataFlowResolution, EffectCategory, EffectIdentity, EpistemicStatus, FunctionDeclarationKind,
-    FunctionIdentity, FunctionSignature, OwnershipIdentity, OwnershipKind, PersistenceIdentity,
-    PersistenceKind, PersistenceResolution, PlaceRef, RepositoryId, RevisionRef, SemanticDimension,
-    SemanticObservation, SemanticRecordId, StateAccessIdentity, StateAccessKind, StateResolution,
-    SymbolIdentity, SymbolRole, TypeIdentity, ValueIdentity, ValueRole,
+    DataFlowResolution, DiagnosticCode, EffectCategory, EffectIdentity, EpistemicStatus,
+    FunctionDeclarationKind, FunctionIdentity, FunctionSignature, OwnershipIdentity, OwnershipKind,
+    PersistenceIdentity, PersistenceKind, PersistenceResolution, PlaceRef, RepositoryId,
+    RevisionRef, SemanticDimension, SemanticObservation, SemanticRecordId, StateAccessIdentity,
+    StateAccessKind, StateResolution, SymbolIdentity, SymbolRole, TypeIdentity, ValueIdentity,
+    ValueRole,
 };
 
 const ALL_DIMENSIONS: [SemanticDimension; 12] = [
@@ -4594,4 +4595,57 @@ fn reference_profile_extraction_is_unaffected_by_requested_dimension_order() {
     let forward = extract_all("src/lib.rs", R4_REFERENCE_PROFILE_CORPUS);
     let backward = extract("src/lib.rs", R4_REFERENCE_PROFILE_CORPUS, reversed);
     assert_eq!(forward.observations, backward.observations);
+}
+
+// --- 121. adversarial: pathologically deep nesting must not crash the whole process ---------------
+//
+// PROBE ONLY -- not yet asserting a fixed outcome. `MAX_SEMANTIC_BYTES` gates on file size at
+// admission time, never on AST nesting depth, so a small, well-under-the-size-limit file with
+// extreme parenthesis nesting reaches this extractor unfiltered. `syn` is a recursive-descent
+// parser; sufficiently deep nesting can exhaust the stack. If that happens here, it aborts the
+// whole extraction process for every artifact in the run, not just this one -- a real denial-of-
+// service vector via hostile input, distinct from the graceful ParseFailure/UNKNOWN path a
+// syntactically-invalid file already takes.
+#[test]
+fn deeply_nested_parenthesized_expression_does_not_abort_the_process() {
+    // Depths this low already reliably overflowed a reduced test-thread stack before the
+    // MAX_BRACKET_NESTING_DEPTH guard existed -- this is the exact adversarial case that reduced
+    // this whole process to `signal: 6, SIGABRT` rather than a graceful diagnostic.
+    let depth = 50_000;
+    let source = format!(
+        "pub fn f() -> i32 {{\n{}1{}\n}}\n",
+        "(".repeat(depth),
+        ")".repeat(depth)
+    );
+    let batch = extract_all("src/probe.rs", &source);
+    assert!(batch.is_closed(&ALL_DIMENSIONS));
+    for &dimension in &ALL_DIMENSIONS {
+        let obligation = batch.obligation_for(dimension).unwrap();
+        if SUPPORTED_DIMENSIONS.contains(&dimension) {
+            assert_eq!(obligation.status, EpistemicStatus::Unknown);
+        } else {
+            assert_eq!(obligation.status, EpistemicStatus::Unsupported);
+        }
+    }
+    assert_eq!(batch.diagnostics.len(), 1);
+    assert_eq!(batch.diagnostics[0].code, DiagnosticCode::ResourceLimit);
+}
+
+#[test]
+fn nesting_well_within_the_depth_guard_still_extracts_normally() {
+    // The guard must not false-positive on real, if unusually deeply nested, legitimate code --
+    // this repository's own real source never exceeds a bracket-nesting depth of 13. (Real
+    // extraction still emits its usual IncompleteAnalysis diagnostics for the partial dimensions
+    // -- unrelated to this guard -- so this asserts no ResourceLimit diagnostic specifically,
+    // not zero diagnostics.)
+    let batch = extract_all("src/probe.rs", "pub fn f() -> i32 { ((((((1)))))) }\n");
+    assert!(batch.is_closed(&ALL_DIMENSIONS));
+    assert!(
+        !batch
+            .diagnostics
+            .iter()
+            .any(|diagnostic| diagnostic.code == DiagnosticCode::ResourceLimit)
+    );
+    let identity = find_function_identity(&batch, &[], "f").expect("function f");
+    assert_eq!(identity.symbol.name, "f");
 }

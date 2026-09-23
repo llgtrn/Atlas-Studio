@@ -168,6 +168,10 @@ impl SemanticExtractor for RustSemanticExtractor {
 
     fn extract(&self, input: &ExtractionInput) -> ExtractionBatch {
         let mut ctx = ExtractionContext::new(input, self.identity());
+        let depth = max_bracket_nesting_depth(&input.source_text);
+        if depth > MAX_BRACKET_NESTING_DEPTH {
+            return ctx.finish_resource_limit(depth);
+        }
         match syn::parse_file(&input.source_text) {
             Ok(file) => {
                 let root_scope = SemanticScope::new(Vec::<String>::new());
@@ -179,6 +183,42 @@ impl SemanticExtractor for RustSemanticExtractor {
             Err(error) => ctx.finish_parse_failure(&error),
         }
     }
+}
+
+/// Adversarial guard against a stack-overflow denial-of-service: `syn` is a recursive-descent
+/// parser, and `MAX_SEMANTIC_BYTES` (`adapter::source`) gates only on file *size*, never on
+/// structural nesting *depth*, so a small, well-under-the-byte-limit file with extreme
+/// parenthesis/brace/bracket nesting reaches this extractor unfiltered. Empirically, a 50-level
+/// bracket-nested expression parses fine, but 300 levels reliably overflows even a reduced test-
+/// thread stack (2MB), aborting the whole process -- not a catchable Rust panic (stack overflow
+/// during unwinding cannot itself unwind), so it takes down extraction for every artifact in the
+/// run, not just the pathological one. This repository's own entire real source corpus never
+/// nests deeper than 13. `MAX_BRACKET_NESTING_DEPTH` sits with a large safety margin on both
+/// sides: far below the observed crash floor, far above any real code this extractor has ever
+/// seen.
+const MAX_BRACKET_NESTING_DEPTH: usize = 64;
+
+/// The maximum net nesting depth of `(`/`{`/`[` (combined, since any of the three can drive `syn`'s
+/// expression/type/pattern recursion) anywhere in `source`, including inside string/char literals
+/// and comments. Not syntax-aware by design: a coarse, fast, pre-parse text scan that can only ever
+/// over-count (never under-count) real structural depth, so it can only be more conservative than
+/// necessary, never miss a genuine risk.
+fn max_bracket_nesting_depth(source: &str) -> usize {
+    let mut depth: usize = 0;
+    let mut max_depth: usize = 0;
+    for byte in source.bytes() {
+        match byte {
+            b'(' | b'{' | b'[' => {
+                depth += 1;
+                max_depth = max_depth.max(depth);
+            }
+            b')' | b'}' | b']' => {
+                depth = depth.saturating_sub(1);
+            }
+            _ => {}
+        }
+    }
+    max_depth
 }
 
 fn nested_scope(scope: &SemanticScope, segment: &str) -> SemanticScope {
@@ -1317,6 +1357,47 @@ impl<'a> ExtractionContext<'a> {
         self.observations
             .sort_by(|a, b| a.record_id().as_str().cmp(b.record_id().as_str()));
         self.evidence.sort_by(|a, b| a.id.cmp(&b.id));
+
+        ExtractionBatch {
+            extractor: self.extractor.clone(),
+            repository: self.input.repository.clone(),
+            revision: self.input.revision.clone(),
+            artifact: self.input.artifact.clone(),
+            input_fingerprint: self.input_fingerprint.clone(),
+            observations: self.observations,
+            evidence: self.evidence,
+            obligations,
+            diagnostics: self.diagnostics,
+        }
+    }
+
+    /// See `max_bracket_nesting_depth`'s doc comment. Mirrors `finish_parse_failure`'s shape
+    /// exactly (every supported dimension `UNKNOWN`, every unsupported one `UNSUPPORTED`) since
+    /// the epistemic meaning is the same: evidence was not obtained, for a documented reason, and
+    /// the artifact is never removed from accounting.
+    fn finish_resource_limit(mut self, observed_depth: usize) -> ExtractionBatch {
+        let diagnostic = ExtractionDiagnostic::new(
+            DiagnosticCode::ResourceLimit,
+            None,
+            format!(
+                "{} nesting depth {observed_depth} exceeds MAX_BRACKET_NESTING_DEPTH \
+                 ({MAX_BRACKET_NESTING_DEPTH}); refusing to parse to avoid a stack-overflow \
+                 denial-of-service in the recursive-descent parser",
+                self.input.artifact_path
+            ),
+        );
+        let diagnostic_id = diagnostic.id.clone();
+        self.diagnostics.push(diagnostic);
+
+        let mut obligations = Vec::with_capacity(self.input.requested_dimensions.len());
+        for &dimension in &self.input.requested_dimensions {
+            if SUPPORTED_DIMENSIONS.contains(&dimension) {
+                obligations.push(ObligationResult::unknown(dimension, diagnostic_id.clone()));
+            } else {
+                obligations.push(self.unsupported_obligation(dimension));
+            }
+        }
+        obligations.sort_by_key(|obligation| obligation.dimension.as_str());
 
         ExtractionBatch {
             extractor: self.extractor.clone(),
