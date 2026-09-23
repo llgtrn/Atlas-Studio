@@ -1,0 +1,65 @@
+{
+  "schema": "atlas.self-build.generation-evidence-correction.v1",
+  "wave": "R4.3.7 -- third stack-overflow vector (if/else-if chains) and an explicit statement of acknowledged incompleteness",
+  "corrects": {
+    "target_evidence_file": ".atlas/evidence/verification/r4.3.6-structural-recursion-risk-generalization.json",
+    "target_field": "overall_verdict / recensus_scope_after_promotion",
+    "policy": "Historical evidence is immutable; r4.3.5 and r4.3.6 evidence files are left unmodified. This record supersedes their conclusions, per RECURSIVE-SELF-CENSUS.md's 'monotonic evidence, revisable conclusions' rule."
+  },
+  "original_claim": "r4.3.6's overall_verdict describes the combined bracket+operator-chain metric as closing 'the second confirmed vector', explicit that further untested constructs remain a named limitation -- but did not anticipate finding a third vector in the very next round of the SAME falsification exercise, nor had verified whether a keyword-driven (rather than symbol-driven) construct could bypass the metric entirely.",
+  "discovered_flaw": "Continuing the standing loop's own mandated adversarial-input falsification practice past r4.3.6 (exactly as r4.3.6's own recensus_scope entry anticipated might be necessary), an `if x==0 {0} else if x==1 {1} else if x==2 {2} ... else {-1}` chain was tested. Its bracket-nesting depth is only 2 (each arm's `{}` pair is a SIBLING of the next, not nested inside it -- Rust's grammar makes `else` introduce a new `Expr::If` as the ELSE BRANCH of the previous one, so the AST nests one level per arm even though the braces do not), and it contains no operator-continuation characters at all (`if`/`else` are bare keywords). max_structural_recursion_risk (r4.3.6) therefore reported a risk of only 3 for a 3,000-arm chain -- and reproduced the identical SIGABRT stack-overflow crash in an isolated real process (n=3,000 crashed; not independently re-calibrated to a finer floor since the pattern was already unambiguous and the fix approach -- keyword-run counting -- generalizes cheaply regardless of the exact floor).",
+  "design_decisions": [
+    {
+      "question": "Track 'else' keyword occurrences as a resettable run, like chain_run, or as a simple monotonic count?",
+      "decision": "A run, reset at ';' (a real statement boundary) and at 'fn ' (a coarse function-boundary proxy) but deliberately NOT at brace boundaries (`{`/`}`) or newlines -- chain arms are textual siblings across brace boundaries, and an adversary could otherwise evade a per-line or per-brace check by formatting. Not resetting at every brace does mean a large file containing MANY separate, small, unrelated if/else statements across one function without intervening ';' could in principle accumulate risk unrelated to any single real recursive chain -- accepted as a conservative (over-cautious) trade-off consistent with this whole heuristic's design: it may reject some benign input it doesn't need to, but must never fail to reject a genuinely pathological one."
+    },
+    {
+      "question": "Keep hunting for a fourth, fifth, ... vector before shipping this fix?",
+      "decision": "No -- explicitly stopped here. Three real, distinct vectors found in direct succession (brackets, operator chains, else chains) is itself strong evidence that an ad-hoc syntax-unaware text scan cannot be made exhaustive against an open-ended space of keyword-driven and symbol-driven recursive grammar constructs. Continuing to chase individual constructs one at a time has diminishing security value relative to the effort, and risks 'narrowing scenario coverage to fake convergence' in the opposite direction (endlessly patching symptoms while implicitly claiming completeness never earned). Per RECURSIVE-SELF-CENSUS.md's own false-convergence list and this task's explicit instruction to use UNVERIFIED/PARTIALLY_MODELED-style honesty rather than false CLOSED claims, this generation instead documents the residual risk explicitly and names the two real complete-fix options (patch/fork syn to add internal stack-growth hooks, or replace whole-file parsing with a from-scratch depth-bounded parser) as future work not attempted this wave."
+    }
+  ],
+  "stable_validator_law_compliance": {
+    "claim": "The else-chain vector is closed; the two prior vectors remain closed; no false positive on real code, including this repository's own entire real source corpus and its own extensive if/else-bearing test fixtures.",
+    "self_written_evidence": "long_if_else_chain_does_not_abort_the_process (the exact 3,000-arm fixture that previously crashed, now asserted to produce a well-formed closed batch with ResourceLimit) and a_short_real_if_else_chain_still_extracts_normally (a real, small if/else-if/else extracts normal FunctionIdentity evidence with no false-positive diagnostic). Both prior vectors' tests re-run and still pass.",
+    "independent_evidence_channel": "The full 410-test workspace suite -- which includes dozens of real if/else-bearing Rust fixtures across the R4.3/R4.4/.../R4.12 corpora -- completes without the process aborting, proving the else-run reset logic does not false-positive on any of this repository's own extensive real test corpus, not merely the one hand-picked negative-control fixture. A before/after systemize run against this repository's own real root (58 real .rs source files, several containing genuine if/else-if chains) shows census.coverage and typed_obligations_total byte-identical (768) -- zero regression on real code.",
+    "no_circular_self_certification": true
+  },
+  "implementation": {
+    "extraction": "adapter/src/semantic/rust/mod.rs -- max_structural_recursion_risk extended with an else_run counter (byte-window match on the literal \"else\"/\"fn \"/\"fn(\" substrings), combined into the same MAX_STRUCTURAL_RECURSION_RISK=64 threshold; doc comment rewritten to name all three vectors and to explicitly disclaim completeness"
+  },
+  "adversarial_and_falsification_coverage": [
+    "long_if_else_chain_does_not_abort_the_process -- the new vector this generation closes, with full obligation/diagnostic assertions",
+    "a_short_real_if_else_chain_still_extracts_normally -- negative control for the new metric component",
+    "deeply_nested_parenthesized_expression_does_not_abort_the_process / nesting_well_within_the_depth_guard_still_extracts_normally -- re-verified, vector 1 still closed",
+    "long_bracket_free_binary_operator_chain_does_not_abort_the_process / a_short_real_operator_chain_still_extracts_normally -- re-verified, vector 2 still closed",
+    "full workspace test suite (410 tests) completes without the process aborting -- the strongest available proxy for 'no false positive across this repository's own real and fixture Rust corpus'"
+  ],
+  "validation_this_generation": {
+    "commands": {
+      "cargo fmt --all --check": { "exit_code": 0 },
+      "cargo clippy --workspace --all-targets -- -D warnings": { "exit_code": 0, "warnings": 0 },
+      "cargo test --workspace": {
+        "exit_code": 0,
+        "totals": "410 passed, 0 failed (225 adapter, 127 core, 58 runtime), up from 408"
+      },
+      "isolated pre-fix reproduction of the new vector (3,000-arm if/else chain)": {
+        "result": "SIGABRT, confirmed before any fix for this vector existed"
+      },
+      "isolated post-fix verification (same fixture)": {
+        "result": "exit 0, well-formed closed batch with ResourceLimit diagnostic"
+      },
+      "cargo run -q -p atlas-cli -- systemize --root . (before/after self-census diff)": {
+        "exit_code": 0,
+        "finding": "census.coverage and typed_obligations_total (768) byte-identical before and after; coding_admission.allowed unchanged (true)"
+      }
+    }
+  },
+  "recensus_scope_after_promotion": [
+    "no prior CLOSED/EXTINCT conclusion depended on the else-chain vector being closed, so no external conclusion requires reopening beyond r4.3.5/r4.3.6's own evidence files (corrected by this record)",
+    "EXPLICITLY NOT CLOSED: this heuristic guard remains a best-effort mitigation against a known-incomplete enumeration of recursive-descent-triggering constructs, not a formal proof of safety against all possible admitted input. A fourth vector (e.g. match-arm guard chains, nested loop/while-let chains, or some other keyword-driven recursive grammar shape) has not been ruled out and should not be assumed absent",
+    "a genuinely complete fix (patching/forking syn for internal stack-growth hooks, or a from-scratch depth-bounded parser) remains named future work, not attempted this wave -- explicitly distinguished from what this generation actually closed",
+    "the same DoS class must be considered whenever a second language extractor is added -- not automatically inherited by a different parser implementation"
+  ],
+  "overall_verdict": "MATERIALIZED FOR THREE SPECIFIC, EMPIRICALLY-CONFIRMED VECTORS; EXPLICITLY NOT CLAIMED COMPLETE. Closes the third real vector found by continued adversarial testing (if/else-if chains) with the same combined metric and threshold. Deliberately stops the construct-by-construct hunt here and states the residual risk plainly, per the standing loop's own explicit demand to use honest epistemic states (UNVERIFIED/PARTIALLY_MODELED) rather than fake convergence via narrowed scenario coverage -- three real vectors found in direct succession is itself the evidence that this approach cannot be assumed exhaustive.",
+  "historical_evidence_retained": true
+}

@@ -4692,3 +4692,51 @@ fn a_short_real_operator_chain_still_extracts_normally() {
     let identity = find_function_identity(&batch, &[], "f").expect("function f");
     assert_eq!(identity.symbol.name, "f");
 }
+
+#[test]
+fn long_if_else_chain_does_not_abort_the_process() {
+    // A third, independent adversarial vector: each arm's own braces are siblings, not nested
+    // (bracket-nesting depth stays at 2 the whole way through, regardless of chain length), and
+    // there is no operator-character run either (`if`/`else` are keywords) -- yet the AST is
+    // exactly as recursive as the bracket case (`Expr::If` nests one level per arm via its own
+    // `else` branch), and 3,000 arms reliably overflowed the stack the same way before this guard
+    // covered it.
+    let n = 3000;
+    let mut source = String::from("pub fn f(x: i32) -> i32 {\n");
+    for i in 0..n {
+        source.push_str(&format!("if x == {i} {{ {i} }} else "));
+    }
+    source.push_str("{ -1 }\n}\n");
+    let batch = extract_all("src/probe.rs", &source);
+
+    assert!(batch.is_closed(&ALL_DIMENSIONS));
+    for &dimension in &ALL_DIMENSIONS {
+        let obligation = batch.obligation_for(dimension).unwrap();
+        if SUPPORTED_DIMENSIONS.contains(&dimension) {
+            assert_eq!(obligation.status, EpistemicStatus::Unknown);
+        } else {
+            assert_eq!(obligation.status, EpistemicStatus::Unsupported);
+        }
+    }
+    assert_eq!(batch.diagnostics.len(), 1);
+    assert_eq!(batch.diagnostics[0].code, DiagnosticCode::ResourceLimit);
+}
+
+#[test]
+fn a_short_real_if_else_chain_still_extracts_normally() {
+    // The else-chain guard must not false-positive on real code -- a handful of if/else-if arms is
+    // completely ordinary Rust, and this repository's own real source has plenty of them.
+    let batch = extract_all(
+        "src/probe.rs",
+        "pub fn f(x: i32) -> i32 { if x == 1 { 1 } else if x == 2 { 2 } else { 0 } }\n",
+    );
+    assert!(batch.is_closed(&ALL_DIMENSIONS));
+    assert!(
+        !batch
+            .diagnostics
+            .iter()
+            .any(|diagnostic| diagnostic.code == DiagnosticCode::ResourceLimit)
+    );
+    let identity = find_function_identity(&batch, &[], "f").expect("function f");
+    assert_eq!(identity.symbol.name, "f");
+}

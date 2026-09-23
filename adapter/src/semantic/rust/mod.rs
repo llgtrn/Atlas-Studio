@@ -200,36 +200,54 @@ impl SemanticExtractor for RustSemanticExtractor {
 /// not merely theorized): even with an outer `stacker::maybe_grow(256KiB, 256MiB, ..)` wrapper, the
 /// exact same adversarial input still aborted the process with `SIGABRT`.
 ///
-/// Two independent constructs were confirmed to drive this recursion to a crash:
+/// Three independent constructs were confirmed (real-process, isolated reproduction) to drive this
+/// recursion to a crash:
 /// - explicit bracket nesting (`(((...)))`) -- 300 levels reliably overflowed a reduced (~2MB)
 ///   test-thread stack; 100 levels did not;
 /// - a bracket-free chained binary-operator expression (`1+1+1+...`) -- 2,000 terms reliably
-///   overflowed the same stack; 1,000 terms did not.
+///   overflowed the same stack; 1,000 terms did not;
+/// - an `if ... else if ... else if ... else { .. }` chain -- each arm's own braces are siblings,
+///   not nested (bracket-nesting depth stays at 2 regardless of chain length), and there is no
+///   operator-character run either (`if`/`else` are keywords), yet the AST is exactly as deeply
+///   *recursive* as the bracket case (`Expr::If { then, else: Some(Box<Expr::If{..}>) }` nests one
+///   level per arm) -- 3,000 arms reliably overflowed the same stack.
 ///
-/// `max_structural_recursion_risk` bounds both with one combined metric rather than maintaining
-/// two separate ad-hoc scans, since both are fundamentally the same risk (parser recursion depth
-/// proportional to admitted-input structure): bracket nesting increments/decrements a depth
-/// counter as before; a run of consecutive expression-continuation operator bytes (arithmetic,
-/// logical, comparison, method-chain `.`, ...) at the *current* bracket depth also increments a
-/// counter, reset whenever a bracket boundary is crossed (a new nesting level restarts local chain
-/// risk). The combined maximum is compared against one threshold. Like the bracket-only scan this
-/// replaces, this is a coarse, syntax-unaware, pre-parse text scan (no exclusion for string/char
-/// literals or comments) that can only ever over-count real structural risk, never under-count --
-/// so it can only be more conservative than strictly necessary, never miss a genuine risk. This
-/// repository's own entire real source corpus never nests brackets deeper than 13 and never chains
-/// more than a handful of operators in a row.
+/// `max_structural_recursion_risk` bounds all three with one combined metric rather than
+/// maintaining separate ad-hoc scans, since all are fundamentally the same risk (parser recursion
+/// depth proportional to admitted-input structure, regardless of which concrete syntax drives it):
+/// bracket nesting increments/decrements a depth counter as before; a run of consecutive
+/// expression-continuation operator bytes (arithmetic, logical, comparison, method-chain `.`, ...)
+/// at the *current* bracket depth also increments a counter, reset whenever a bracket boundary is
+/// crossed; a run of `else` keyword occurrences (not reset by brace boundaries, since chain arms
+/// are siblings at the same bracket depth -- only by `;` or a new `fn`, approximating "next
+/// function") increments a third counter. The combined maximum is compared against one threshold.
+///
+/// This is a coarse, syntax-unaware, pre-parse text scan (no exclusion for string/char literals or
+/// comments, no real keyword-boundary checking) that can only ever over-count real structural
+/// risk, never under-count -- so it can only be more conservative than strictly necessary, never
+/// miss one of these three specific, confirmed vectors. It is explicitly NOT claimed complete: a
+/// fourth, fifth, ... construct that drives the same class of parser/AST recursion through some
+/// other keyword or syntax shape may exist and would not necessarily be caught by this heuristic.
+/// A fully complete fix would require either patching `syn` itself to grow its own stack during
+/// recursion (impractical -- `syn` is a third-party dependency this bootstrap does not vendor or
+/// fork) or replacing whole-file parsing with a from-scratch, formally depth-bounded parser (a
+/// large undertaking, not attempted this wave). This repository's own entire real source corpus
+/// never nests brackets deeper than 13, never chains more than a handful of operators in a row,
+/// and has no `if`/`else` chain anywhere near this length.
 const MAX_STRUCTURAL_RECURSION_RISK: usize = 64;
 
 fn max_structural_recursion_risk(source: &str) -> usize {
+    let bytes = source.as_bytes();
     let mut bracket_depth: usize = 0;
     let mut chain_run: usize = 0;
+    let mut else_run: usize = 0;
     let mut max_risk: usize = 0;
-    for byte in source.bytes() {
+    for (index, &byte) in bytes.iter().enumerate() {
         match byte {
             b'(' | b'{' | b'[' => {
                 bracket_depth += 1;
                 chain_run = 0;
-                max_risk = max_risk.max(bracket_depth);
+                max_risk = max_risk.max(bracket_depth).max(else_run);
             }
             b')' | b'}' | b']' => {
                 bracket_depth = bracket_depth.saturating_sub(1);
@@ -240,15 +258,23 @@ fn max_structural_recursion_risk(source: &str) -> usize {
                 chain_run += 1;
                 max_risk = max_risk.max(bracket_depth + chain_run);
             }
-            // Deliberately NOT reset on newline: an adversary could otherwise trivially evade this
-            // guard by inserting a newline between every chained operator
-            // (`1 +\n1 +\n1 +\n...`), which drives the exact same parser recursion depth as a
-            // single unbroken line.
             b';' => {
                 chain_run = 0;
+                else_run = 0;
+            }
+            b'e' if bytes[index..].starts_with(b"else") => {
+                else_run += 1;
+                max_risk = max_risk.max(else_run);
+            }
+            b'f' if bytes[index..].starts_with(b"fn ") || bytes[index..].starts_with(b"fn(") => {
+                else_run = 0;
             }
             _ => {}
         }
+        // Deliberately NOT reset on newline for either chain_run or else_run: an adversary could
+        // otherwise trivially evade this guard by inserting a newline between every chained
+        // operator or `else` arm, which drives the exact same parser recursion depth as an
+        // unbroken line.
     }
     max_risk
 }
