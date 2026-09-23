@@ -208,6 +208,8 @@ Current source-only resolution discipline is conservative:
 
 Deeper target resolution may improve through later semantic/compiler evidence without changing the identity of the already-observed call site.
 
+R4.12 closed CALL's own named argument-binding gap: `CallSiteIdentity.arguments: Vec<PlaceRef>` carries one entry per syntactic argument position, `PlaceRef::Resolved { dimension: DataFlow, record_id }` for a simple single-identifier argument, `PlaceRef::Unresolved` for anything requiring deeper analysis. The `record_id` is computed by reusing `ValueIdentity::identity_key()` itself (never a hand-duplicated formula), and `spelling::simple_path_ident` (the SAME recognizer DATA_FLOW's own `Expr::Path` arm now also calls, factored out to guarantee the two walkers cannot silently drift apart) -- proven, not merely designed, by `adapter::semantic::rust::tests::call_argument_place_ref_converges_on_the_data_flow_uses_own_record_id`, which asserts the CALL argument's `PlaceRef` names the EXACT SAME node DATA_FLOW's own pass produced. `PlaceRef` itself moved to `core::semantic::place` (out of `persistence.rs`) once it gained this second real consumer. Result-binding (the DATA_FLOW `Definition`/`Store` a call's return value flows into, e.g. `let y = helper(x);`) remains a separate, still-open TARGET: it requires threading enclosing-binding context through the CALL walker's statement-level traversal, which argument binding did not need.
+
 ### R4.6 — Control Flow — bootstrap materialized, closure remains open
 
 CONTROL_FLOW's bootstrap is materialized on canonical main with:
@@ -243,9 +245,10 @@ R4.7 shares CALL's macro-invocation-opacity gap. R4.12 closed its own previously
 tuple/tuple-struct/struct/slice destructuring, `&`/parenthesized wrapping and `ident @ sub_pattern`
 bindings in a `let`/match-arm/`for`/parameter position now each emit a real Definition
 (`adapter::semantic::rust::dataflow::DataFlowWalker::walk_binding_pat`), so their subsequent uses
-resolve instead of staying explicitly UNRESOLVED. CALL↔DATA_FLOW argument/result binding remains a
-separate, still-open TARGET (unaffected by this fix). DATA_FLOW observations may be emitted while
-the dimension obligation remains UNKNOWN; zero observations are not verified absence.
+resolve instead of staying explicitly UNRESOLVED. CALL's own argument-binding half of
+CALL↔DATA_FLOW binding is now closed too (see R4.5's section above); CALL's result-binding half
+remains a separate, still-open TARGET. DATA_FLOW observations may be emitted while the dimension
+obligation remains UNKNOWN; zero observations are not verified absence.
 
 ### R4.8 — State and Effect — bootstrap materialized, closure remains open
 

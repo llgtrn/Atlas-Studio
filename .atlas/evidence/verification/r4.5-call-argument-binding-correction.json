@@ -1,0 +1,44 @@
+{
+  "schema": "atlas.r4.verification-correction.v1",
+  "wave": "R4.5",
+  "corrects_record": ".atlas/evidence/verification/r4.5-verification-record.json",
+  "base_merge_commit": "05098be3c2adcef3e8ef2c9b3139af18f2f592bc",
+  "correction_kind": "GAP_CLOSED",
+  "reason": [
+    "core/src/semantic/call.rs's own module doc comment already named 'argument/result bindings' as part of the eventual CallFact contract (.atlas/contracts/SEMANTIC-FACTS.md#callfact), but CallSiteIdentity never carried them -- a real, contract-named gap, not scope creep.",
+    "CALL and DATA_FLOW are two independent extraction passes over the same AST with no cross-reference between a call's argument expression and the DATA_FLOW Use it corresponds to, or between the call's result and the Definition/Store consuming it.",
+    "Closing this safely required proving CALL can independently compute the SAME record_id DATA_FLOW's own walker produces for a given argument -- not merely predicting it -- since a wrong prediction would repeat exactly the identity-invention mistake this whole R4 hardening arc has been fighting (the R4.9 OwnershipTarget bug, PERSISTENCE's PlaceRef guard, etc.)."
+  ],
+  "design_decision": {
+    "question": "Can CALL reuse the existing PlaceRef bridge (core::semantic::persistence, R4.11) instead of inventing a new cross-reference mechanism?",
+    "answer": "YES. PlaceRef was already dimension-agnostic in shape (Resolved{dimension, record_id} | Unresolved); it had never had a second real consumer until now. Moved to its own module, core::semantic::place, once R4.12's CALL argument binding gave it that second consumer -- the right time to generalize, not before.",
+    "convergence_mechanism": "CallSiteIdentity.arguments[i] is computed by constructing the SAME ValueIdentity struct DATA_FLOW's own walker would build for that argument position (function/name/span/role, the only fields ValueIdentity::identity_key() actually uses) and calling identity_key() itself -- never a hand-duplicated copy of that formula. The recognition rule for 'is this argument expression a DATA_FLOW Use site' (spelling::simple_path_ident) was factored out of dataflow.rs and is now called by BOTH walkers, so they cannot silently drift apart.",
+    "safety_gate": "A Resolved reference is only ever constructed when SemanticDimension::DataFlow is part of the SAME extraction request (self.wants(DataFlow)) -- proven by call_argument_place_ref_stays_unresolved_when_data_flow_was_not_requested -- so CALL never names a record this exact request will not produce."
+  },
+  "fix": {
+    "what": "CallSiteIdentity gained arguments: Vec<PlaceRef>, excluded from identity_key() (same precedent as dispatch/callees). adapter::semantic::rust::mod's Expr::Call/MethodCall arms compute one PlaceRef per syntactic argument via the new place_ref_for_argument helper.",
+    "scope_this_wave": "Argument binding ONLY. Result binding (the Definition/Store a call's return value flows into) remains explicit TARGET work: it requires threading enclosing-binding context through the CALL walker's statement-level traversal (knowing whether the call is the init of a simple let/assign), which argument binding did not need.",
+    "adversarial_coverage_added": [
+      "call_argument_place_ref_converges_on_the_data_flow_uses_own_record_id (the convergence proof, mirroring R4.11's PlaceRef proof pattern)",
+      "multiple_call_arguments_each_get_their_own_place_ref_in_order",
+      "a_non_simple_call_argument_expression_is_unresolved",
+      "method_call_arguments_are_bound_identically_to_direct_call_arguments",
+      "call_argument_place_ref_stays_unresolved_when_data_flow_was_not_requested",
+      "call_arguments_never_affect_the_call_sites_own_identity",
+      "identity_key_is_unaffected_by_arguments (core::semantic::call's own unit test)"
+    ]
+  },
+  "new_interpretation": "R4.5's CALL↔DATA_FLOW argument-binding gap is CLOSED. R4.5's overall closure status (macro-invocation-opacity gap, shared with every other full-expression-tree dimension) is otherwise unchanged. Result-binding remains a separate, still-open TARGET.",
+  "required_runtime_invariants": [
+    "a simple single-identifier call argument's PlaceRef names the exact record_id DATA_FLOW's own Use observation for that argument carries",
+    "a call argument requiring deeper analysis (a method-call receiver, a nested call, a literal, ...) stays PlaceRef::Unresolved, never fabricated from spelling",
+    "a Resolved PlaceRef is only ever constructed when DataFlow was requested in the same extraction call",
+    "arguments never affect a call site's own identity_key()"
+  ],
+  "self_census_cross_check": {
+    "command": "cargo run -q -p atlas-cli -- systemize --root . --out <tmp>",
+    "scale": "5260 real CALL observations in this repository's own source",
+    "finding": "1045 arguments resolved to a real DATA_FLOW record_id, 3578 correctly stayed Unresolved (complex expressions) -- the feature fires genuinely on real code, not only test fixtures. exact_duplicates_merged remained 0 and conflict_candidates remained empty at this larger scale (25912 -> 26189 typed observations)."
+  },
+  "historical_evidence_retained": true
+}
