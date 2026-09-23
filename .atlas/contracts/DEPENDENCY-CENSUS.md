@@ -203,6 +203,32 @@ Dependency closure is complete for an admitted context only when:
 
 Dependency closure participates in fixed-point census closure.
 
+## Implementation status
+
+This contract was written before an implementation existed; `.atlas/coverage.BUILD` was a
+permanent `UNSUPPORTED` stub (`runtime::census::build_census`).
+
+**Materialized and verified**: the Cargo ecosystem, for Atlas's own workspace
+(`.atlas/contracts/DEPENDENCY-CENSUS.md#atlas-self-census`). `adapter::census_cargo_workspace`
+statically parses `Cargo.lock` (Cargo's own already-fully-resolved transitive graph -- no
+`cargo tree`/`cargo metadata` execution) plus each workspace member's own `Cargo.toml` (for real,
+evidenced `DependencyKind::Runtime`/`Dev`/`Build`, never defaulted by assumption), producing a
+typed `DependencyClosureReport` (`core::census::dependency`) wired into `SystemizeReport` and
+promoting `BUILD` to `OBSERVED` once a real, dangling-reference-free closure exists. Proven via a
+real self-census test reading this repository's own actual manifest files (not only synthetic
+fixtures), and independently via a full `systemize` CLI run against this repository showing
+`BUILD: OBSERVED`, 28 real edges, 14 real resolved instances, zero dangling references.
+
+**Still TARGET, not silently claimed done**: other ecosystems (npm, pip, ...); resolution-context
+modeling (target/profile/feature/optional activation -- this wave accounts every edge as
+unconditionally active, matching every real edge in this workspace today, but does not yet parse
+`[target.'cfg(...)'.dependencies]` or `optional = true`); dynamic/build-script-discovered
+dependencies (`ProcMacro`/`TargetConditional`/`Optional` are declared in `DependencyKind` but never
+emitted); same-name multi-version disambiguation (an ambiguous lockfile match is reported as a
+closure-blocking reference rather than resolved); non-Cargo build metadata (compiler/toolchain
+version, native/FFI links); reconciliation from independent sources (this wave has exactly one
+evidence channel: the lockfile/manifests themselves).
+
 ## Extinction interaction
 
 A donor scope cannot be ABSORBED/EXTINCT based only on its top-level repository.
