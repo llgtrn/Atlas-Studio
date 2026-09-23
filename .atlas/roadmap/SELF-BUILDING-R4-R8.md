@@ -63,6 +63,42 @@ stronger Atlas capability
 
 Census is therefore not a one-time import phase. Atlas builds itself by repeatedly improving census, recensusing donors and dependencies, absorbing selected mechanisms, and deleting donor source only after the extinction gate closes.
 
+The normative recursive-generation law is `../contracts/RECURSIVE-SELF-CENSUS.md`. Every admitted generation becomes a stronger observation instrument; candidate self-analysis cannot be sole proof, and stronger perception MUST revisit affected prior closure/extinction conclusions.
+
+## Mandatory generational execution
+
+~~~text
+G_n stable Atlas
+  ↓ self/dependency/donor census + S_n
+typed capability/extinction gaps
+  ↓ bounded work order
+C_n+1 candidate
+  ↓ G_n-applicable gates + independent new-capability evidence
+admission
+  ↓
+G_n+1
+  ↓ mandatory stronger recensus
+new obligations / revised donor dispositions / S_n+1
+  ↓
+repeat until multi-generation fixed point
+~~~
+
+R4 already participates: every material semantic-perception improvement triggers recensus. R5 reduces recomputation cost; R6 strengthens falsification; R7 automates bounded generation work; R8 strengthens source-independent rebuild/extinction proof.
+
+A clean generation is not convergence. Unattended POLICY_AUTO requires at least two consecutive convergence-clean promoted generations under the recursive contract.
+
+### What a stronger generation must revisit
+
+A promoted generation MUST revisit any prior claim whose truth depended on a weaker observation horizon, including:
+
+- negative evidence in the changed semantic dimension;
+- dependency absence claims affected by new dynamic/build observation;
+- Technology Genomes inferred from weaker donor census;
+- ABSORBED and EXTINCTION_READY scopes;
+- architecture falsification scenarios whose observability improved.
+
+A new gap discovered after promotion is not a regression in the process. Hiding it would be the regression.
+
 ## Two independent axes
 
 Do not confuse Atlas construction revisions with donor execution waves.
