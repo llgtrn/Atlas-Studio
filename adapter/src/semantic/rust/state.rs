@@ -27,6 +27,7 @@ use atlas_core::{
 };
 
 use super::ExtractionContext;
+use super::StatementWalker;
 use super::spelling::is_compound_assign_op;
 
 /// The field this expression accesses via a bare `self.<field>`, if it is exactly that shape
@@ -114,22 +115,9 @@ impl<'ctx, 'a> StateWalker<'ctx, 'a> {
             self.walk_stmt(stmt);
         }
     }
+}
 
-    fn walk_stmt(&mut self, stmt: &syn::Stmt) {
-        match stmt {
-            syn::Stmt::Local(local) => {
-                if let Some(init) = &local.init {
-                    self.walk_expr(&init.expr);
-                    if let Some((_, diverge)) = &init.diverge {
-                        self.walk_expr(diverge);
-                    }
-                }
-            }
-            syn::Stmt::Expr(expr, _) => self.walk_expr(expr),
-            syn::Stmt::Item(_) | syn::Stmt::Macro(_) => {}
-        }
-    }
-
+impl<'ctx, 'a> StatementWalker for StateWalker<'ctx, 'a> {
     fn walk_expr(&mut self, expr: &syn::Expr) {
         match expr {
             syn::Expr::Field(field) => match self_field_ident(field) {

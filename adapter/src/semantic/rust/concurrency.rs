@@ -22,6 +22,7 @@ use atlas_core::{
 };
 
 use super::ExtractionContext;
+use super::StatementWalker;
 use super::spelling::call_callee_spelling;
 
 fn is_spawn_call(callee: &syn::Expr) -> bool {
@@ -100,22 +101,9 @@ impl<'ctx, 'a> ConcurrencyWalker<'ctx, 'a> {
             self.walk_stmt(stmt);
         }
     }
+}
 
-    fn walk_stmt(&mut self, stmt: &syn::Stmt) {
-        match stmt {
-            syn::Stmt::Local(local) => {
-                if let Some(init) = &local.init {
-                    self.walk_expr(&init.expr);
-                    if let Some((_, diverge)) = &init.diverge {
-                        self.walk_expr(diverge);
-                    }
-                }
-            }
-            syn::Stmt::Expr(expr, _) => self.walk_expr(expr),
-            syn::Stmt::Item(_) | syn::Stmt::Macro(_) => {}
-        }
-    }
-
+impl<'ctx, 'a> StatementWalker for ConcurrencyWalker<'ctx, 'a> {
     fn walk_expr(&mut self, expr: &syn::Expr) {
         match expr {
             syn::Expr::Await(await_expr) => {

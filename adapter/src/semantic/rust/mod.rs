@@ -433,6 +433,38 @@ fn function_signature_identity_key(signature: &FunctionSignature) -> String {
     )
 }
 
+/// Shared statement-level dispatch for a walker whose only per-statement work is walking nested
+/// expressions: a `let` binding's initializer (and its `else` diverge arm) and a bare expression
+/// statement, with item declarations and macro invocations ignored. Implement `walk_expr` and
+/// this default `walk_stmt` handles the rest.
+///
+/// `ConcurrencyWalker`/`PersistenceWalker`/`StateWalker` all previously carried their own,
+/// byte-for-byte-identical `walk_stmt` method -- three independently-maintained copies of the
+/// same dispatch, found by this session's own duplicate-function-body sweep
+/// (`.atlas/evidence/verification/duplicate-classification-logic-swept-clean.json` and its
+/// follow-up permanent regression test in `runtime::tests`). `EffectWalker` needs a genuinely
+/// different `walk_stmt` (it must also recognize a bare `Stmt::Macro` as a possible panic site,
+/// per `is_panic_like_macro`) and correctly does not implement this trait -- the duplication this
+/// trait removes was real, not a case where every walker secretly needed the same behavior.
+trait StatementWalker {
+    fn walk_expr(&mut self, expr: &syn::Expr);
+
+    fn walk_stmt(&mut self, stmt: &syn::Stmt) {
+        match stmt {
+            syn::Stmt::Local(local) => {
+                if let Some(init) = &local.init {
+                    self.walk_expr(&init.expr);
+                    if let Some((_, diverge)) = &init.diverge {
+                        self.walk_expr(diverge);
+                    }
+                }
+            }
+            syn::Stmt::Expr(expr, _) => self.walk_expr(expr),
+            syn::Stmt::Item(_) | syn::Stmt::Macro(_) => {}
+        }
+    }
+}
+
 /// Per-artifact accumulation of observations/evidence/obligations across one `extract()` call.
 struct ExtractionContext<'a> {
     input: &'a ExtractionInput,

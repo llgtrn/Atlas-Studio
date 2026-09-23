@@ -486,6 +486,187 @@ mod tests {
         }
     }
 
+    // `.atlas/evidence/verification/duplicate-classification-logic-swept-clean.json`: five
+    // separate instances of the same defect class -- a small classification/helper function
+    // copy-pasted into a second file (sometimes under a different name), with nothing to stop the
+    // two copies silently drifting apart on a future edit to only one -- were found and fixed by a
+    // one-off script this session. This test formalizes that script as a permanent, rerunning
+    // regression check, per `.atlas/contracts/RECURSIVE-SELF-CENSUS.md`'s own preference for
+    // machine-readable, durable evidence over a script that runs once and is discarded.
+    //
+    // Extracts every top-level `fn`'s brace-matched body from every `.rs` file in the four
+    // workspace crates (skipping file names containing "test" and everything from a file's first
+    // `#[cfg(test)]` onward, so real test fixtures/corpora are never flagged), normalizes
+    // whitespace, and fails if any exact body text (long enough to be a real finding, not a
+    // trivial one-liner) appears in more than one file. Deliberately coarse and over-inclusive in
+    // one direction only: a byte-matching brace counter can be confused by an unbalanced brace
+    // inside a string/comment, but this repository's own source has none (verified: this test
+    // currently passes cleanly), and any future false positive is a loud, investigable test
+    // failure, never a silent miss.
+    mod duplicate_function_body_sweep {
+        use std::path::{Path, PathBuf};
+
+        fn workspace_root() -> PathBuf {
+            Path::new(env!("CARGO_MANIFEST_DIR"))
+                .join("..")
+                .canonicalize()
+                .expect("workspace root must exist")
+        }
+
+        fn rust_files_under(dir: &Path, out: &mut Vec<PathBuf>) {
+            let Ok(entries) = std::fs::read_dir(dir) else {
+                return;
+            };
+            let mut entries: Vec<_> = entries.filter_map(Result::ok).collect();
+            entries.sort_by_key(|entry| entry.file_name());
+            for entry in entries {
+                let path = entry.path();
+                let Ok(file_type) = entry.file_type() else {
+                    continue;
+                };
+                if file_type.is_dir() {
+                    rust_files_under(&path, out);
+                } else if path.extension().and_then(|ext| ext.to_str()) == Some("rs") {
+                    out.push(path);
+                }
+            }
+        }
+
+        /// Every top-level `fn <name> ... { ... }` body in `text` (brace-matched from the first
+        /// `{` after the `fn` keyword), whitespace-normalized to a single-spaced string. Only
+        /// scans up to `text`'s first `#[cfg(test)]` occurrence, if any.
+        fn top_level_fn_bodies(text: &str) -> Vec<String> {
+            let scan_end = text.find("#[cfg(test)]").unwrap_or(text.len());
+            let scan_text = &text[..scan_end];
+            let bytes = scan_text.as_bytes();
+            let mut bodies = Vec::new();
+            let mut index = 0;
+            while let Some(offset) = scan_text[index..].find("fn ") {
+                let fn_at = index + offset;
+                // Require a preceding word boundary so this never matches inside an identifier
+                // merely ending in "fn " (e.g. none realistically exist, but stay precise).
+                let boundary_ok = fn_at == 0
+                    || !bytes[fn_at - 1].is_ascii_alphanumeric() && bytes[fn_at - 1] != b'_';
+                let Some(brace_start) = scan_text[fn_at..].find('{') else {
+                    break;
+                };
+                let brace_start = fn_at + brace_start;
+                // A `;` before the first `{` means this "fn " was a trait method signature with
+                // no body, or occurred inside a type/string this scan doesn't need to handle
+                // specially -- either way, skip past it without counting a body.
+                let semi_before_brace = scan_text[fn_at..brace_start].find(';');
+                if !boundary_ok || semi_before_brace.is_some() {
+                    index = fn_at + 3;
+                    continue;
+                }
+                let mut depth = 0usize;
+                let mut i = brace_start;
+                while i < bytes.len() {
+                    match bytes[i] {
+                        b'{' => depth += 1,
+                        b'}' => {
+                            depth -= 1;
+                            if depth == 0 {
+                                break;
+                            }
+                        }
+                        _ => {}
+                    }
+                    i += 1;
+                }
+                if depth == 0 && i < bytes.len() {
+                    let body = &scan_text[brace_start..=i];
+                    let normalized = body.split_whitespace().collect::<Vec<_>>().join(" ");
+                    if normalized.len() >= 60 {
+                        bodies.push(normalized);
+                    }
+                    index = i + 1;
+                } else {
+                    // Unbalanced (should not happen for real Rust source) -- stop scanning this
+                    // file rather than loop on a broken byte offset.
+                    break;
+                }
+            }
+            bodies
+        }
+
+        /// Exact, whitespace-normalized function bodies this sweep must NOT flag, each with its
+        /// own justification -- deliberately narrow (an exact string match, not a pattern), so a
+        /// future edit that changes the body even slightly makes the exemption stop matching and
+        /// the sweep re-evaluate that spot fresh, rather than silently widening what it excuses.
+        ///
+        /// Unlike every real finding this sweep and its predecessor script already found and
+        /// fixed this session (a classification/dispatch function accidentally copy-pasted into a
+        /// second file), this one entry is a *coincidental* shape match between four independently
+        /// meaningful concepts, not an accidental duplication of one concept:
+        /// `DataFlowResolution`/`OwnershipResolution`/`PersistenceResolution`/`StateResolution`
+        /// (`core::semantic::{data_flow,ownership,persistence,state}`) each document their own,
+        /// genuinely different, dimension-specific meaning of "Resolved"/"Unresolved" in their own
+        /// per-variant doc comments -- merging them into one shared type would trade away real
+        /// type safety (today, passing an `OwnershipResolution` where a `DataFlowResolution` is
+        /// expected is a compile error; a shared type would make that a silent, valid conversion)
+        /// for a purely cosmetic reduction of a trivial two-arm `as_str` match, which is a much
+        /// worse trade than the real fixes this sweep already produced.
+        const KNOWN_ACCEPTABLE_DUPLICATE_BODIES: &[&str] = &[
+            "{ match self { Self::Resolved => \"RESOLVED\", Self::Unresolved => \"UNRESOLVED\", } }",
+        ];
+
+        #[test]
+        fn no_function_body_is_duplicated_verbatim_across_two_workspace_source_files() {
+            let root = workspace_root();
+            let mut files = Vec::new();
+            for crate_dir in ["core/src", "adapter/src", "runtime/src", "apps/cli/src"] {
+                rust_files_under(&root.join(crate_dir), &mut files);
+            }
+            assert!(
+                files.len() > 20,
+                "expected to find real source files under the workspace root {root:?}; found {}",
+                files.len()
+            );
+
+            let mut bodies_by_text: std::collections::BTreeMap<String, Vec<PathBuf>> =
+                std::collections::BTreeMap::new();
+            for path in &files {
+                if path
+                    .file_name()
+                    .and_then(|name| name.to_str())
+                    .is_some_and(|name| name.contains("test"))
+                {
+                    continue;
+                }
+                let Ok(text) = std::fs::read_to_string(path) else {
+                    continue;
+                };
+                for body in top_level_fn_bodies(&text) {
+                    bodies_by_text.entry(body).or_default().push(path.clone());
+                }
+            }
+
+            let mut violations = Vec::new();
+            for (body, paths) in &bodies_by_text {
+                if KNOWN_ACCEPTABLE_DUPLICATE_BODIES.contains(&body.as_str()) {
+                    continue;
+                }
+                let unique_files: std::collections::BTreeSet<&PathBuf> = paths.iter().collect();
+                if unique_files.len() > 1 {
+                    violations.push(format!(
+                        "identical function body appears in {} different files: {:?}\nbody: {}",
+                        unique_files.len(),
+                        unique_files,
+                        &body[..body.len().min(160)]
+                    ));
+                }
+            }
+            assert!(
+                violations.is_empty(),
+                "found duplicated function bodies across workspace source files -- extract a \
+                 shared function/method instead, per this session's own established fix pattern \
+                 (see .atlas/evidence/verification/duplicate-classification-logic-swept-clean.json):\n\n{}",
+                violations.join("\n\n")
+            );
+        }
+    }
+
     fn constraint_result(name: &str, passed: bool) -> ConstraintResult {
         ConstraintResult {
             name: name.into(),

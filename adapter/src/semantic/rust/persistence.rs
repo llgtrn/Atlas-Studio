@@ -18,6 +18,7 @@ use atlas_core::{
 };
 
 use super::ExtractionContext;
+use super::StatementWalker;
 use super::spelling::call_callee_spelling;
 
 /// The single closed set of persistence-shaped spellings this extractor recognizes, shared by
@@ -115,22 +116,9 @@ impl<'ctx, 'a> PersistenceWalker<'ctx, 'a> {
             self.walk_stmt(stmt);
         }
     }
+}
 
-    fn walk_stmt(&mut self, stmt: &syn::Stmt) {
-        match stmt {
-            syn::Stmt::Local(local) => {
-                if let Some(init) = &local.init {
-                    self.walk_expr(&init.expr);
-                    if let Some((_, diverge)) = &init.diverge {
-                        self.walk_expr(diverge);
-                    }
-                }
-            }
-            syn::Stmt::Expr(expr, _) => self.walk_expr(expr),
-            syn::Stmt::Item(_) | syn::Stmt::Macro(_) => {}
-        }
-    }
-
+impl<'ctx, 'a> StatementWalker for PersistenceWalker<'ctx, 'a> {
     fn walk_expr(&mut self, expr: &syn::Expr) {
         match expr {
             syn::Expr::Call(call) => {

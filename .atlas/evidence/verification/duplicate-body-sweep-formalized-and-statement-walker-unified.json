@@ -1,0 +1,54 @@
+{
+  "schema": "atlas.self-build.generation-evidence.v1",
+  "wave": "VERIFICATION BLINDNESS + CORRECTNESS -- formalize the duplicate-function-body sweep as a permanent test; fixes two more real instances it immediately found",
+  "wave_title": "The previous generation's duplicate-classification-logic sweep was a one-off Python script, discarded after use -- a real verification blind spot, since nothing would catch a sixth instance of the same defect class from ever being reintroduced. Ported the sweep to a permanent Rust regression test in runtime::tests (following the exact precedent of required_verification_commands_cover_every_command_ci_runs, which already reads sibling files via CARGO_MANIFEST_DIR). The Rust port scans function bodies anywhere in a file (not just column-0 top-level fns, a real blind spot in the original Python regex), and immediately found two more real instances the Python script had missed for exactly that reason.",
+  "generation_model": {
+    "G_n": "1f889401ea (test(core): direct coverage for SemanticScope::scoped_name and FunctionSignature::summary) -- stable generation this candidate was built and validated against",
+    "gap_discovered_by": "Deciding to formalize last generation's throwaway Python sweep script as a permanent check, per RECURSIVE-SELF-CENSUS.md's preference for durable, rerunnable evidence over a one-off tool. Writing the Rust port surfaced its own methodological improvement (scanning any `fn `, not just line-start `fn`, so `impl` block methods are covered) which immediately produced two new real findings on first run -- not hypothetical, an actual test failure against the current repository state."
+  },
+  "priority_classification": "verification blindness (priority 4) for the formalization itself; correctness/architectural integrity (priority 1) for the two new fixes it found -- a walker-shape duplication (ConcurrencyWalker/PersistenceWalker/StateWalker each carrying byte-for-byte-identical walk_stmt) and a coincidental-shape false positive (four independently-meaningful Resolution enums) that required real architectural judgment to correctly NOT merge.",
+  "design_decisions": [
+    {
+      "question": "For the ConcurrencyWalker/PersistenceWalker/StateWalker walk_stmt duplication: extract a free function (the pattern used for every fix so far), or something else?",
+      "decision": "A shared trait with a default method (`StatementWalker::walk_stmt`), because unlike every prior fix this one is polymorphic -- `walk_stmt` calls `self.walk_expr(...)`, and each walker's `walk_expr` is genuinely different (that's the whole point of having three separate walkers). A free function can't express 'the same dispatch shape, but calling back into a type-specific method'; a trait with one required method (`walk_expr`) and one default method (`walk_stmt`) can. `EffectWalker`, which needs a genuinely different `walk_stmt` (it also recognizes `Stmt::Macro` for panic-like spellings), correctly does not implement this trait and keeps its own inherent method -- confirmed this is real, not an oversight, by reading its body before excluding it."
+    },
+    {
+      "question": "For the four Resolution enums (DataFlowResolution/OwnershipResolution/PersistenceResolution/StateResolution) sharing an identical as_str body: merge into one shared type, or leave as-is?",
+      "decision": "Leave as-is, with a narrow, justified, exact-string exemption in the sweep test -- the first finding this session where the right fix was NOT to unify. Read all four enums' own per-variant doc comments and confirmed each documents a genuinely different, dimension-specific meaning of 'Resolved'/'Unresolved' (DataFlow: was a local Definition found; Ownership: is this a bare identifier vs. a temporary's spelling; Persistence: resolved-API evidence vs. bare spelling; State: undocumented but used identically to the others' pattern). Merging into one shared type would make e.g. an OwnershipResolution silently valid wherever a DataFlowResolution is expected (both being the same underlying type), trading away a real compile-time safety property for a purely cosmetic ~4-line boilerplate reduction -- the opposite trade of every real fix this sweep has produced so far, where the shared logic actually was one concept accidentally split into two copies."
+    }
+  ],
+  "stable_validator_law_compliance": {
+    "claim": "The exact duplicate-function-body defect class (five real instances found and fixed across this session, now formalized as a permanent check) cannot be silently reintroduced; the one remaining coincidental shape-match is explicitly documented and narrowly exempted, not silently ignored by a blanket threshold or file-path exclusion.",
+    "self_written_evidence": "The new permanent test (`runtime::tests::duplicate_function_body_sweep::no_function_body_is_duplicated_verbatim_across_two_workspace_source_files`) is itself the falsification mechanism: it failed immediately on first run (proving it actually checks something, not a tautology), was used to drive the walk_stmt fix, then failed again on the coincidental Resolution-enum finding until the narrow, justified exemption was added, then passed. All three states (failing on a real bug, failing on a judged-acceptable coincidence, passing after the real bug is fixed and the coincidence is explicitly exempted) were directly observed, not assumed.",
+    "independent_evidence_channel": "cargo build/fmt/clippy all clean. Full cargo test --workspace: 481 total (256 adapter, 2 apps/cli, 160 core, 63 runtime -- +1 versus the prior generation, the new sweep test itself), 0 failed. Ran the adapter-level CONCURRENCY/PERSISTENCE/STATE test suites specifically (24 tests) to confirm the StatementWalker trait refactor changed no observable extraction behavior. Re-ran this repository's own self-census and docs audit: both clean.",
+    "no_circular_self_certification": true
+  },
+  "implementation": {
+    "runtime_change": "runtime/src/lib.rs -- added tests::duplicate_function_body_sweep, a permanent module containing the directory walker, brace-matched fn-body extractor, the KNOWN_ACCEPTABLE_DUPLICATE_BODIES exemption list (one entry, fully justified), and the regression test itself.",
+    "adapter_change": "adapter/src/semantic/rust/mod.rs -- added the StatementWalker trait (one required method walk_expr, one default method walk_stmt). concurrency.rs/persistence.rs/state.rs -- removed each walker's own duplicate inherent walk_stmt; walk_expr moved from the inherent impl block into a new `impl StatementWalker for XWalker` block; added the corresponding `use super::StatementWalker;` import. EffectWalker (effect.rs) deliberately left unchanged -- its walk_stmt is genuinely different, confirmed by reading it before excluding it from this refactor."
+  },
+  "adversarial_and_falsification_coverage": [
+    "the permanent test is itself the adversarial tool going forward: any future accidental copy-paste of a >=60-character function body into a second workspace source file will fail cargo test, not merely go unnoticed until the next manual sweep",
+    "confirmed the exemption is narrow (exact string match, not a path or name pattern) so it cannot silently swallow an unrelated future duplicate that happens to share this one specific body text",
+    "confirmed EffectWalker's own walk_stmt genuinely differs (handles Stmt::Macro) before excluding it from the StatementWalker trait, rather than assuming uniformity across all five R4.8-R4.11 walkers"
+  ],
+  "validation_this_generation": {
+    "commands": {
+      "cargo build --workspace": { "exit_code": 0 },
+      "cargo fmt --all --check": { "exit_code": 0 },
+      "cargo clippy --workspace --all-targets -- -D warnings": { "exit_code": 0, "warnings": 0 },
+      "cargo test --workspace": {
+        "exit_code": 0,
+        "totals": "256 adapter, 2 apps/cli, 160 core, 63 runtime -- 481 total, 0 failed, +1 new test (the permanent sweep) versus the prior generation"
+      },
+      "cargo run -q -p atlas-cli -- systemize --root . --out /tmp/systemize_final4.json": { "exit_code": 0 },
+      "cargo run -q -p atlas-cli -- docs audit --root .atlas": { "exit_code": 0, "gate_ready": true }
+    }
+  },
+  "recensus_scope_after_promotion": [
+    "no prior CLOSED/EXTINCT conclusion depended on any of the changed files' exact internal structure, so no external conclusion requires reopening",
+    "the duplicate-function-body defect class is now guarded by a standing, self-running test rather than requiring a future generation to rediscover it manually -- this is a durable capability improvement to the census engine's own self-inspection, per the standing directive's own requirement that census include Atlas's own blind spots"
+  ],
+  "overall_verdict": "MATERIALIZED AND VERIFIED. Formalized a one-off script into a permanent, self-running regression test, which immediately paid for itself by finding two more real instances of this session's own established defect class (one genuine bug, fixed via a shared trait; one coincidental shape-match, correctly left unmerged with a narrow, justified exemption after real architectural analysis). This defect class can no longer regress silently in this repository.",
+  "historical_evidence_retained": true
+}
