@@ -162,6 +162,7 @@ impl<'ctx, 'a> CfgBuilder<'ctx, 'a> {
         }
     }
 
+    #[allow(clippy::too_many_arguments)]
     fn emit_block(
         &mut self,
         record_id: SemanticRecordId,
@@ -170,6 +171,7 @@ impl<'ctx, 'a> CfgBuilder<'ctx, 'a> {
         is_entry: bool,
         successors: Vec<ControlFlowEdge>,
         span: atlas_core::SourceSpan,
+        status: EpistemicStatus,
     ) {
         let subject = ControlFlowBlockIdentity {
             repository: self.ctx.input.repository.clone(),
@@ -208,7 +210,7 @@ impl<'ctx, 'a> CfgBuilder<'ctx, 'a> {
         let header = SemanticRecordHeader {
             record_id,
             dimension: SemanticDimension::ControlFlow,
-            status: EpistemicStatus::Observed,
+            status,
             subject,
             scope: self.scope.clone(),
             repository: self.ctx.input.repository.clone(),
@@ -251,6 +253,15 @@ impl<'ctx, 'a> CfgBuilder<'ctx, 'a> {
                             target: None,
                         }],
                         span,
+                        // A textual panic-like macro name can be shadowed by a local
+                        // `macro_rules!` redefinition that may not actually diverge; this
+                        // extractor has no macro/name resolution to rule that out (matching
+                        // EFFECT's identical treatment of the same evidence -- see
+                        // `is_panic_like_macro`'s doc comment). The whole block's shape genuinely
+                        // depends on this classification: if the macro doesn't diverge, this
+                        // block's real successor is whatever follows, not `Panic`. So the block's
+                        // status is `Inferred`, not just the edge's kind.
+                        EpistemicStatus::Inferred,
                     );
                     return;
                 }
@@ -271,6 +282,7 @@ impl<'ctx, 'a> CfgBuilder<'ctx, 'a> {
                             target: None,
                         }],
                         span,
+                        EpistemicStatus::Observed,
                     );
                     return;
                 }
@@ -283,6 +295,7 @@ impl<'ctx, 'a> CfgBuilder<'ctx, 'a> {
                         is_entry,
                         vec![edge],
                         span,
+                        EpistemicStatus::Observed,
                     );
                     return;
                 }
@@ -295,6 +308,7 @@ impl<'ctx, 'a> CfgBuilder<'ctx, 'a> {
                         is_entry,
                         vec![edge],
                         span,
+                        EpistemicStatus::Observed,
                     );
                     return;
                 }
@@ -309,6 +323,8 @@ impl<'ctx, 'a> CfgBuilder<'ctx, 'a> {
                             target: None,
                         }],
                         span,
+                        // See the identical rationale on the `syn::Stmt::Macro` panic arm above.
+                        EpistemicStatus::Inferred,
                     );
                     return;
                 }
@@ -344,6 +360,7 @@ impl<'ctx, 'a> CfgBuilder<'ctx, 'a> {
                         is_entry,
                         successors,
                         span,
+                        EpistemicStatus::Observed,
                     );
                     return;
                 }
@@ -357,6 +374,7 @@ impl<'ctx, 'a> CfgBuilder<'ctx, 'a> {
             is_entry,
             vec![continuation_to_edge(&cont)],
             span,
+            EpistemicStatus::Observed,
         );
     }
 
