@@ -24,6 +24,25 @@ fn resolve_repository_id(repository: &RepoAudit, root: &Path) -> RepositoryId {
     )
 }
 
+/// `BUILD` coverage promotion and coding-admission blocking, derived purely from a
+/// `DependencyClosureReport`'s `state` (`.atlas/contracts/DEPENDENCY-CENSUS.md#implementation-status`).
+/// Returns `(coverage update, whether this state blocks coding admission)`. Extracted as a pure
+/// function so the exact defect it replaces -- a fabricated `NotApplicable` report whose
+/// `dangling_references.is_empty()` made `is_closed()` silently read `true`, so a repository with
+/// no Cargo workspace at all never raised `DEPENDENCY_CLOSURE_NOT_CLOSED` and looked identical to
+/// a genuinely verified empty closure -- is directly, cheaply falsifiable without running the full
+/// `systemize` pipeline.
+fn build_coverage_from_dependency_closure(
+    state: atlas_core::DependencyClosureState,
+) -> (Option<atlas_core::EpistemicStatus>, bool) {
+    use atlas_core::{DependencyClosureState as State, EpistemicStatus as Status};
+    match state {
+        State::Closed => (Some(Status::Observed), false),
+        State::Partial | State::Blocked => (Some(Status::Unknown), true),
+        State::NotApplicable => (None, false),
+    }
+}
+
 pub fn systemize(root: impl AsRef<Path>) -> io::Result<SystemizeReport> {
     let root = root.as_ref();
     let snapshot = adapter::snapshot_git(root)?;
@@ -57,25 +76,36 @@ pub fn systemize(root: impl AsRef<Path>) -> io::Result<SystemizeReport> {
     // `BUILD` starts life as a permanent `Unsupported` stub in `census::build_census` (an
     // accounting axis outside the R4 semantic dimension set, computed with no filesystem access);
     // promote it to real evidence here now that a real, closed Cargo dependency closure exists.
+    //
+    // `census_cargo_workspace` returning `None` means no `Cargo.lock` exists at all -- this
+    // ecosystem is `NotApplicable` here, never a fabricated empty-but-`Closed` report. Previously
+    // this fallback built a bare zero-edge report whose `dangling_references.is_empty()` made
+    // `is_closed()` silently `true` for a repository where Cargo dependency census never ran at
+    // all -- indistinguishable from a genuinely verified empty closure. `DependencyClosureState`
+    // now makes that distinction explicit end to end.
     let dependency_closure = adapter::census_cargo_workspace(root)?.unwrap_or_else(|| {
         atlas_core::DependencyClosureReport {
-            schema: "atlas.dependency-closure-report.v1".into(),
+            schema: "atlas.dependency-closure-report.v2".into(),
             ecosystem: atlas_core::DependencyEcosystem::Cargo,
             root: root.to_string_lossy().into_owned(),
+            state: atlas_core::DependencyClosureState::NotApplicable,
             edges_total: 0,
             instances_total: 0,
             edges: Vec::new(),
             dangling_references: Vec::new(),
+            unsupported_constructs: Vec::new(),
+            dynamic_obligations: Vec::new(),
         }
     });
-    if dependency_closure.edges_total > 0 && dependency_closure.is_closed() {
-        census
-            .coverage
-            .insert("BUILD".into(), atlas_core::EpistemicStatus::Observed);
-    } else if !dependency_closure.dangling_references.is_empty() {
-        census
-            .coverage
-            .insert("BUILD".into(), atlas_core::EpistemicStatus::Unknown);
+    // `NotApplicable` (no Cargo.lock at all -- e.g. a non-Rust admitted repository) is not a
+    // failure and leaves `BUILD` at whatever `census::build_census` already set (`Unsupported`):
+    // this ecosystem was never observed here, not incompletely observed. Only `Partial`/`Blocked`
+    // (a real Cargo workspace census actually attempted and failed to fully close) demote `BUILD`
+    // to `Unknown` and raise a coding-admission blocker.
+    let (build_status, dependency_closure_blocks) =
+        build_coverage_from_dependency_closure(dependency_closure.state);
+    if let Some(status) = build_status {
+        census.coverage.insert("BUILD".into(), status);
     }
 
     let mut blockers = Vec::new();
@@ -100,7 +130,10 @@ pub fn systemize(root: impl AsRef<Path>) -> io::Result<SystemizeReport> {
     if !extraction_accounting.is_closed(&census::extraction::ALL_SEMANTIC_DIMENSIONS) {
         blockers.push("SEMANTIC_EXTRACTION_ACCOUNTING_NOT_CLOSED".to_owned());
     }
-    if !dependency_closure.is_closed() {
+    // `NotApplicable` never blocks: absence of a Cargo workspace at this root is not itself a
+    // failure (see `build_coverage_from_dependency_closure` above). Only an actually-attempted-
+    // but-incomplete Cargo census (`Partial`/`Blocked`) withholds coding admission.
+    if dependency_closure_blocks {
         blockers.push("DEPENDENCY_CLOSURE_NOT_CLOSED".to_owned());
     }
 
@@ -291,4 +324,67 @@ pub fn prepare_work(
             revision: Some(base_revision),
         }],
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use atlas_core::{DependencyClosureState, EpistemicStatus};
+
+    // `.atlas/contracts/DEPENDENCY-CENSUS.md`: BUILD coverage/coding-admission must derive from
+    // evidence state, not default structure values. One falsification case per state transition.
+
+    #[test]
+    fn not_applicable_promotes_no_coverage_and_never_blocks() {
+        let (status, blocks) =
+            build_coverage_from_dependency_closure(DependencyClosureState::NotApplicable);
+        assert_eq!(status, None);
+        assert!(
+            !blocks,
+            "a repository with no Cargo workspace at all must not be treated as a failed dependency census"
+        );
+    }
+
+    #[test]
+    fn closed_promotes_build_to_observed_and_never_blocks() {
+        let (status, blocks) =
+            build_coverage_from_dependency_closure(DependencyClosureState::Closed);
+        assert_eq!(status, Some(EpistemicStatus::Observed));
+        assert!(!blocks);
+    }
+
+    #[test]
+    fn partial_demotes_build_to_unknown_and_blocks() {
+        let (status, blocks) =
+            build_coverage_from_dependency_closure(DependencyClosureState::Partial);
+        assert_eq!(status, Some(EpistemicStatus::Unknown));
+        assert!(blocks);
+    }
+
+    #[test]
+    fn blocked_demotes_build_to_unknown_and_blocks() {
+        let (status, blocks) =
+            build_coverage_from_dependency_closure(DependencyClosureState::Blocked);
+        assert_eq!(status, Some(EpistemicStatus::Unknown));
+        assert!(
+            blocks,
+            "a present but unparseable Cargo.lock must not be treated as a closed dependency census"
+        );
+    }
+
+    #[test]
+    fn not_applicable_and_closed_are_never_conflated() {
+        // The exact regression this module's helper replaces: both states previously produced
+        // `is_closed() == true` from a fabricated zero-edge report, making a repository with no
+        // Cargo workspace indistinguishable from one with a genuinely verified empty closure.
+        let (not_applicable_status, not_applicable_blocks) =
+            build_coverage_from_dependency_closure(DependencyClosureState::NotApplicable);
+        let (closed_status, closed_blocks) =
+            build_coverage_from_dependency_closure(DependencyClosureState::Closed);
+        assert_ne!(not_applicable_status, closed_status);
+        assert_eq!(
+            not_applicable_blocks, closed_blocks,
+            "neither blocks, but for different reasons"
+        );
+    }
 }

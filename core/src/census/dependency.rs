@@ -79,18 +79,30 @@ impl DependencyKind {
 
 /// Where a resolved dependency's source lives (`.atlas/contracts/DEPENDENCY-CENSUS.md#source-backed-dependencies`
 /// / `#non-source-terminal-boundaries`).
+///
+/// `Cargo.lock` alone cannot distinguish `WorkspaceMember` from `Path` -- both have no `source`
+/// field. Correct classification of a source-less package additionally requires the caller to
+/// know the real workspace-member package-name set (`adapter::census_cargo_workspace` reads it
+/// from the root manifest's `workspace.members` before classifying any package).
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum DependencySourceKind {
-    /// A local workspace path member (a `Cargo.lock` package entry with no `source` field).
+    /// A `Cargo.lock` package entry with no `source` field whose name is a real, evidenced
+    /// workspace member (present in the root manifest's `workspace.members`).
     WorkspaceMember,
-    /// A registry-resolved package (a `Cargo.lock` package entry with a `source = "registry+..."`
-    /// field).
+    /// A `source = "registry+..."` entry.
     Registry,
-    /// Reserved; not emitted this wave (a `source = "git+..."` entry).
+    /// A `source = "git+..."` entry.
     Vcs,
-    /// Reserved; not emitted this wave (a non-workspace local `path = "..."` dependency).
+    /// A `Cargo.lock` package entry with no `source` field whose name is NOT a known workspace
+    /// member -- a local `path = "..."` dependency outside the workspace (or, if workspace-member
+    /// discovery itself was incomplete, an evidenced-absent case; never silently folded into
+    /// `WorkspaceMember`).
     Path,
+    /// A `source` field present but matching neither the `registry+` nor `git+` prefix this
+    /// bootstrap recognizes (e.g. a future/unfamiliar source-protocol spelling). Explicit rather
+    /// than guessed.
+    Other,
 }
 
 impl DependencySourceKind {
@@ -100,6 +112,7 @@ impl DependencySourceKind {
             Self::Registry => "REGISTRY",
             Self::Vcs => "VCS",
             Self::Path => "PATH",
+            Self::Other => "OTHER",
         }
     }
 }
@@ -166,6 +179,110 @@ impl DependencyEdge {
     }
 }
 
+/// Evidence-backed closure state for one `DependencyClosureReport`
+/// (`.atlas/contracts/DEPENDENCY-CENSUS.md#closure`).
+///
+/// Replaces a bare `dangling_references.is_empty()` boolean, which cannot distinguish "this
+/// ecosystem does not exist at this root" from "census never ran" from "census ran and verified a
+/// real, dependency-free result" -- three states a fabricated zero-edge default report previously
+/// collapsed into one silent `true`.
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+pub enum DependencyClosureState {
+    /// This ecosystem has no manifest/lockfile at the admitted root at all (e.g. no `Cargo.lock`
+    /// for the Cargo ecosystem) -- not a failure, simply not applicable to this repository.
+    NotApplicable,
+    /// A lockfile exists but yielded zero `[[package]]` entries. Real Cargo output always lists at
+    /// least the root/member packages themselves, so this is evidence of a malformed, truncated,
+    /// or otherwise unreadable lockfile, not a verified empty project -- distinct from `Closed`
+    /// with zero edges (real packages, genuinely zero resolved dependencies).
+    Blocked,
+    /// At least one package resolved, but closure is incomplete: a dangling reference, an
+    /// unresolved multi-version ambiguity, or a detected-but-unsupported manifest construct that
+    /// could hide an active dependency exists in scope.
+    Partial,
+    /// Every referenced provider resolved to a real package entry, no unresolved ambiguity or
+    /// detected-but-unsupported construct remains, and at least one real package was observed
+    /// (whether or not it has any dependencies of its own).
+    Closed,
+}
+
+impl DependencyClosureState {
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            Self::NotApplicable => "NOT_APPLICABLE",
+            Self::Blocked => "BLOCKED",
+            Self::Partial => "PARTIAL",
+            Self::Closed => "CLOSED",
+        }
+    }
+}
+
+/// A class of dependency obligation that a purely static lockfile/manifest parse cannot resolve
+/// (`.atlas/contracts/DEPENDENCY-CENSUS.md#build-time-and-dynamic-dependency-discovery`). Declared
+/// in full (matching the `DependencyKind`/`PersistenceKind` precedent); every class this bootstrap
+/// reports is always `UNKNOWN` -- none are actually probed yet, so the vocabulary exists to make
+/// that gap explicit rather than letting a resolved static package graph silently stand in for
+/// "no active dependency behavior can appear from any other source."
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+pub enum DynamicDependencyObligation {
+    /// A `build.rs` build script can introduce or select dependencies Cargo.lock alone does not
+    /// reveal the effect of.
+    BuildScript,
+    /// A proc-macro crate's expansion-time behavior is not observed by a static parse.
+    ProcMacroExpansion,
+    /// `pkg-config`-discovered native dependencies are resolved at build time, not in Cargo.lock.
+    PkgConfig,
+    /// Native/FFI linking against a system library is not represented by the Cargo graph.
+    NativeLinking,
+    /// Source generated during the build (`OUT_DIR` artifacts, codegen) may itself carry further
+    /// dependency obligations.
+    GeneratedSource,
+    /// Build scripts/proc-macros may branch on environment variables in ways that change effective
+    /// dependency behavior.
+    EnvironmentProbe,
+    /// `dlopen`-style dynamic loading is invisible to static manifest/lockfile analysis.
+    DynamicLoading,
+    /// Runtime plugin discovery can introduce dependency behavior with no manifest trace at all.
+    PluginDiscovery,
+    /// A dependency on an external service/capability (network API, daemon, ...) is not a Cargo
+    /// package and never appears in this closure.
+    ExternalCapability,
+}
+
+impl DynamicDependencyObligation {
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            Self::BuildScript => "BUILD_SCRIPT",
+            Self::ProcMacroExpansion => "PROC_MACRO_EXPANSION",
+            Self::PkgConfig => "PKG_CONFIG",
+            Self::NativeLinking => "NATIVE_LINKING",
+            Self::GeneratedSource => "GENERATED_SOURCE",
+            Self::EnvironmentProbe => "ENVIRONMENT_PROBE",
+            Self::DynamicLoading => "DYNAMIC_LOADING",
+            Self::PluginDiscovery => "PLUGIN_DISCOVERY",
+            Self::ExternalCapability => "EXTERNAL_CAPABILITY",
+        }
+    }
+
+    /// The full declared vocabulary, in a stable order. `adapter::census_cargo_workspace` reports
+    /// every one of these as an explicit still-`UNKNOWN` obligation whenever it actually attempts
+    /// a census (i.e. whenever a lockfile was found at all) -- see `DependencyClosureReport::
+    /// dynamic_obligations`.
+    pub const ALL: [Self; 9] = [
+        Self::BuildScript,
+        Self::ProcMacroExpansion,
+        Self::PkgConfig,
+        Self::NativeLinking,
+        Self::GeneratedSource,
+        Self::EnvironmentProbe,
+        Self::DynamicLoading,
+        Self::PluginDiscovery,
+        Self::ExternalCapability,
+    ];
+}
+
 /// The resolved dependency closure for one ecosystem within one repository root
 /// (`.atlas/contracts/DEPENDENCY-CENSUS.md#closure`).
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
@@ -173,6 +290,7 @@ pub struct DependencyClosureReport {
     pub schema: String,
     pub ecosystem: DependencyEcosystem,
     pub root: String,
+    pub state: DependencyClosureState,
     pub edges_total: usize,
     /// Distinct `DependencyIdentity` count (`edges_total` counts edges, which may share a
     /// provider; this counts resolved instances).
@@ -181,16 +299,25 @@ pub struct DependencyClosureReport {
     /// A provider name appearing in some package's `dependencies` list with no corresponding
     /// `[[package]]` entry of its own -- a malformed/incomplete lockfile, never silently dropped.
     pub dangling_references: Vec<String>,
+    /// A detected manifest/lockfile construct this bootstrap's parser does not fully read (e.g. a
+    /// multi-line `workspace.members` array, or a dependency entry whose inline table spans more
+    /// than one physical line) -- named explicitly rather than silently mis-parsed or ignored.
+    /// Non-empty here forces `state` below `Closed`, since such a construct could hide an active
+    /// dependency this closure would then wrongly omit.
+    pub unsupported_constructs: Vec<String>,
+    /// The static `DynamicDependencyObligation` classes this closure does not resolve -- see that
+    /// type's own doc comment. Always the full `DynamicDependencyObligation::ALL` vocabulary
+    /// whenever `state != NotApplicable`, empty otherwise (no ecosystem was found to have dynamic
+    /// obligations about).
+    pub dynamic_obligations: Vec<DynamicDependencyObligation>,
 }
 
 impl DependencyClosureReport {
-    /// `true` iff every referenced provider actually resolved to a real package entry (no
-    /// dangling reference) and at least one edge was found. An empty, otherwise-clean closure
-    /// (zero edges) is not itself a failure, but callers deciding overall census coverage should
-    /// treat zero edges as "not attempted/not applicable" rather than "closed", since a genuinely
-    /// dependency-free workspace is not the expected case here.
+    /// `true` iff `state == Closed`. Kept as a convenience predicate; new code should generally
+    /// match on `state` directly, since `Closed` alone does not distinguish `NotApplicable` from
+    /// `Blocked`/`Partial` the way callers deciding *why* closure failed usually need to.
     pub fn is_closed(&self) -> bool {
-        self.dangling_references.is_empty()
+        self.state == DependencyClosureState::Closed
     }
 }
 
@@ -277,37 +404,79 @@ mod tests {
         assert_ne!(a.identity_key(), b.identity_key());
     }
 
-    #[test]
-    fn closure_with_no_dangling_references_is_closed() {
-        let report = DependencyClosureReport {
+    fn base_report(state: DependencyClosureState) -> DependencyClosureReport {
+        DependencyClosureReport {
             schema: "test".into(),
             ecosystem: DependencyEcosystem::Cargo,
             root: "/repo".into(),
-            edges_total: 1,
-            instances_total: 1,
-            edges: vec![DependencyEdge {
-                consumer: "adapter".into(),
-                provider: registry_package("syn", "1.0.0"),
-                kind: Some(DependencyKind::Runtime),
-                evidence_path: "adapter/Cargo.toml".into(),
-            }],
+            state,
+            edges_total: 0,
+            instances_total: 0,
+            edges: Vec::new(),
             dangling_references: Vec::new(),
-        };
+            unsupported_constructs: Vec::new(),
+            dynamic_obligations: Vec::new(),
+        }
+    }
+
+    #[test]
+    fn a_report_in_the_closed_state_is_closed() {
+        let mut report = base_report(DependencyClosureState::Closed);
+        report.edges_total = 1;
+        report.instances_total = 1;
+        report.edges = vec![DependencyEdge {
+            consumer: "adapter".into(),
+            provider: registry_package("syn", "1.0.0"),
+            kind: Some(DependencyKind::Runtime),
+            evidence_path: "adapter/Cargo.toml".into(),
+        }];
         assert!(report.is_closed());
     }
 
     #[test]
-    fn closure_with_a_dangling_reference_is_not_closed() {
-        let report = DependencyClosureReport {
-            schema: "test".into(),
-            ecosystem: DependencyEcosystem::Cargo,
-            root: "/repo".into(),
-            edges_total: 0,
-            instances_total: 0,
-            edges: Vec::new(),
-            dangling_references: vec!["ghost-crate".into()],
-        };
+    fn a_report_with_a_dangling_reference_is_partial_not_closed() {
+        let mut report = base_report(DependencyClosureState::Partial);
+        report.dangling_references = vec!["ghost-crate".into()];
         assert!(!report.is_closed());
+    }
+
+    #[test]
+    fn not_applicable_is_not_closed() {
+        // The state this repository's own runtime wiring previously collapsed into a silent
+        // `is_closed() == true` by fabricating a zero-edge report when no Cargo.lock exists at
+        // all -- distinct from a genuinely verified empty closure.
+        assert!(!base_report(DependencyClosureState::NotApplicable).is_closed());
+    }
+
+    #[test]
+    fn blocked_is_not_closed() {
+        // A present Cargo.lock that parsed to zero [[package]] entries -- evidence of a malformed
+        // or truncated lockfile, not a verified dependency-free project.
+        assert!(!base_report(DependencyClosureState::Blocked).is_closed());
+    }
+
+    #[test]
+    fn closure_state_as_str_matches_the_screaming_snake_vocabulary() {
+        assert_eq!(
+            DependencyClosureState::NotApplicable.as_str(),
+            "NOT_APPLICABLE"
+        );
+        assert_eq!(DependencyClosureState::Blocked.as_str(), "BLOCKED");
+        assert_eq!(DependencyClosureState::Partial.as_str(), "PARTIAL");
+        assert_eq!(DependencyClosureState::Closed.as_str(), "CLOSED");
+    }
+
+    #[test]
+    fn dynamic_dependency_obligation_all_matches_its_declared_length_and_vocabulary() {
+        assert_eq!(DynamicDependencyObligation::ALL.len(), 9);
+        let mut seen = std::collections::BTreeSet::new();
+        for obligation in DynamicDependencyObligation::ALL {
+            assert!(
+                seen.insert(obligation.as_str()),
+                "duplicate obligation class: {}",
+                obligation.as_str()
+            );
+        }
     }
 
     #[test]
@@ -329,5 +498,6 @@ mod tests {
         assert_eq!(DependencySourceKind::Registry.as_str(), "REGISTRY");
         assert_eq!(DependencySourceKind::Vcs.as_str(), "VCS");
         assert_eq!(DependencySourceKind::Path.as_str(), "PATH");
+        assert_eq!(DependencySourceKind::Other.as_str(), "OTHER");
     }
 }

@@ -15,11 +15,11 @@
 //! tables the edge came from.
 
 use atlas_core::{
-    DependencyClosureReport, DependencyEcosystem, DependencyEdge, DependencyIdentity,
-    DependencyKind, DependencySourceKind,
+    DependencyClosureReport, DependencyClosureState, DependencyEcosystem, DependencyEdge,
+    DependencyIdentity, DependencyKind, DependencySourceKind, DynamicDependencyObligation,
 };
 use std::{
-    collections::BTreeMap,
+    collections::{BTreeMap, BTreeSet},
     fs,
     io::{self, ErrorKind},
     path::Path,
@@ -118,12 +118,13 @@ fn parse_cargo_lock(text: &str) -> Vec<LockPackage> {
 }
 
 /// The declared array-of-strings value of `workspace.members` in a root `Cargo.toml`, e.g.
-/// `members = ["core", "runtime", "adapter", "apps/cli"]`. Only the single-line array shape is
-/// read (Atlas's own root manifest uses it); a multi-line `members = [` array is treated the same
-/// way `dependencies` arrays are in `parse_cargo_lock`, for the same reason -- not yet needed by
-/// any manifest this parser actually reads, so left as an explicit, documented gap rather than
-/// guessed at.
-fn workspace_members(root_manifest: &str) -> Vec<String> {
+/// `members = ["core", "runtime", "adapter", "apps/cli"]`, plus whether a `members` key was found
+/// whose value this parser could not read (a multi-line array). Only the single-line array shape
+/// is read (Atlas's own root manifest uses it); a multi-line `members = [` array is detected and
+/// named explicitly -- distinct from "no workspace declared at all" -- rather than silently
+/// treated the same as an empty/absent `members` key, since the caller must know a real workspace
+/// exists whose full member list it could not read.
+fn workspace_members(root_manifest: &str) -> (Vec<String>, bool) {
     for line in root_manifest.lines() {
         let trimmed = line.trim();
         if let Some(rest) = trimmed.strip_prefix("members") {
@@ -131,12 +132,18 @@ fn workspace_members(root_manifest: &str) -> Vec<String> {
             if let Some(rest) = rest.strip_prefix('=') {
                 let rest = rest.trim();
                 if let Some(inline) = rest.strip_prefix('[').and_then(|r| r.strip_suffix(']')) {
-                    return inline.split(',').filter_map(quoted_array_string).collect();
+                    return (
+                        inline.split(',').filter_map(quoted_array_string).collect(),
+                        false,
+                    );
+                }
+                if rest.starts_with('[') {
+                    return (Vec::new(), true);
                 }
             }
         }
     }
-    Vec::new()
+    (Vec::new(), false)
 }
 
 /// One `[dependencies]`-shaped table entry: the resolved crate name it actually names (the key
@@ -148,14 +155,33 @@ struct ManifestDependencyEntry {
     optional: bool,
 }
 
+/// Net count of `{`/`}` in `text` -- used to detect and join an inline table value that spans
+/// more than one physical line (e.g. `foo = { version = "1",\n features = ["x"] }`). Adequate for
+/// this bounded shape: a Cargo dependency-table value never itself contains a literal brace inside
+/// a string (versions/features never do), so counting raw characters cannot be fooled here the way
+/// it could be for arbitrary TOML.
+fn brace_depth(text: &str) -> i32 {
+    text.chars()
+        .map(|c| match c {
+            '{' => 1,
+            '}' => -1,
+            _ => 0,
+        })
+        .sum()
+}
+
 fn manifest_dependency_entries(section: &str) -> Vec<ManifestDependencyEntry> {
     let mut entries = Vec::new();
-    for line in section.lines() {
-        let trimmed = line.trim();
+    let lines: Vec<&str> = section.lines().collect();
+    let mut index = 0;
+    while index < lines.len() {
+        let trimmed = lines[index].trim();
         if trimmed.is_empty() || trimmed.starts_with('#') {
+            index += 1;
             continue;
         }
         let Some(eq_pos) = trimmed.find('=') else {
+            index += 1;
             continue;
         };
         let key = trimmed[..eq_pos]
@@ -165,16 +191,32 @@ fn manifest_dependency_entries(section: &str) -> Vec<ManifestDependencyEntry> {
             .unwrap_or_default()
             .trim();
         if key.is_empty() {
+            index += 1;
             continue;
         }
-        let value = trimmed[eq_pos + 1..].trim();
+        let mut value = trimmed[eq_pos + 1..].trim().to_owned();
+        // An inline table opened here but not closed on the same line spans further physical
+        // lines; join them so `quoted_field_anywhere`/`bool_field_anywhere` see the whole table,
+        // not just its first fragment (a bare `package = "..."` or `optional = true` on a later
+        // line would otherwise be silently missed).
+        let mut depth = brace_depth(&value);
+        while depth > 0 {
+            index += 1;
+            let Some(&next) = lines.get(index) else {
+                break;
+            };
+            value.push(' ');
+            value.push_str(next.trim());
+            depth += brace_depth(next.trim());
+        }
         let resolved_name =
-            quoted_field_anywhere(value, "package").unwrap_or_else(|| key.to_owned());
-        let optional = bool_field_anywhere(value, "optional").unwrap_or(false);
+            quoted_field_anywhere(&value, "package").unwrap_or_else(|| key.to_owned());
+        let optional = bool_field_anywhere(&value, "optional").unwrap_or(false);
         entries.push(ManifestDependencyEntry {
             resolved_name,
             optional,
         });
+        index += 1;
     }
     entries
 }
@@ -277,21 +319,49 @@ fn read_to_string(path: &Path) -> io::Result<Option<String>> {
     }
 }
 
+/// Classifies a resolved package's source (`.atlas/contracts/DEPENDENCY-CENSUS.md#dependency-identity`).
+/// `Cargo.lock` alone cannot distinguish a workspace member from an external path dependency --
+/// both have no `source` field -- so the caller must also know the real workspace-member
+/// package-name set. A `source` field present but matching neither recognized prefix is `Other`,
+/// never silently folded into `Registry`.
+fn classify_source_kind(source: Option<&str>, is_workspace_member: bool) -> DependencySourceKind {
+    match source {
+        None if is_workspace_member => DependencySourceKind::WorkspaceMember,
+        None => DependencySourceKind::Path,
+        Some(source) if source.starts_with("registry+") => DependencySourceKind::Registry,
+        Some(source) if source.starts_with("git+") => DependencySourceKind::Vcs,
+        Some(_) => DependencySourceKind::Other,
+    }
+}
+
 /// Censuses `root`'s Cargo dependency closure: `Cargo.lock` (the full resolved transitive graph)
 /// plus each workspace member's own `Cargo.toml` (for real, evidenced `DependencyKind`).
 ///
-/// Returns `Ok(None)` when `root` has no `Cargo.lock` at all (not a Cargo workspace) -- distinct
-/// from a present-but-empty closure, which `Ok(Some(report))` with `edges_total == 0` represents.
+/// Returns `Ok(None)` when `root` has no `Cargo.lock` at all (not a Cargo workspace) -- the caller
+/// is responsible for representing that as `DependencyClosureState::NotApplicable`, never as a
+/// fabricated empty-but-closed report (`.atlas/contracts/DEPENDENCY-CENSUS.md#implementation-status`).
+///
+/// Scope note: workspace-member discovery requires a `[workspace] members = [...]` array in the
+/// root manifest; a single, non-workspace root crate (`[package]` with no `[workspace]` at all) is
+/// not yet a recognized shape -- out of scope for this wave, since Atlas's own self-census (the
+/// only real corpus this bootstrap is proven against) is always a workspace.
 pub fn census_cargo_workspace(root: &Path) -> io::Result<Option<DependencyClosureReport>> {
     let Some(lock_text) = read_to_string(&root.join("Cargo.lock"))? else {
         return Ok(None);
     };
     let packages = parse_cargo_lock(&lock_text);
 
+    let mut unsupported_constructs = Vec::new();
     let mut kinds_by_consumer: BTreeMap<String, Vec<(String, DependencyKind)>> = BTreeMap::new();
     let mut evidence_by_consumer: BTreeMap<String, String> = BTreeMap::new();
+    let mut workspace_member_names: BTreeSet<String> = BTreeSet::new();
     if let Some(root_manifest) = read_to_string(&root.join("Cargo.toml"))? {
-        for member in workspace_members(&root_manifest) {
+        let (members, members_unsupported) = workspace_members(&root_manifest);
+        if members_unsupported {
+            unsupported_constructs
+                .push("Cargo.toml: multi-line workspace.members array is not parsed".to_owned());
+        }
+        for member in members {
             let manifest_path = root.join(&member).join("Cargo.toml");
             let relative_manifest_path = format!("{member}/Cargo.toml");
             if let Some(member_manifest) = read_to_string(&manifest_path)? {
@@ -301,7 +371,8 @@ pub fn census_cargo_workspace(root: &Path) -> io::Result<Option<DependencyClosur
                 let consumer_name = member_manifest
                     .lines()
                     .find_map(|line| quoted_field(line.trim(), "name"))
-                    .unwrap_or(member);
+                    .unwrap_or_else(|| member.clone());
+                workspace_member_names.insert(consumer_name.clone());
                 kinds_by_consumer.insert(
                     consumer_name.clone(),
                     manifest_dependency_kinds(&member_manifest),
@@ -364,11 +435,10 @@ pub fn census_cargo_workspace(root: &Path) -> io::Result<Option<DependencyClosur
                     continue;
                 }
             };
-            let source_kind = if provider_package.source.is_some() {
-                DependencySourceKind::Registry
-            } else {
-                DependencySourceKind::WorkspaceMember
-            };
+            let source_kind = classify_source_kind(
+                provider_package.source.as_deref(),
+                workspace_member_names.contains(&provider_package.name),
+            );
             let kind = consumer_kinds.and_then(|declared| {
                 declared
                     .iter()
@@ -406,14 +476,30 @@ pub fn census_cargo_workspace(root: &Path) -> io::Result<Option<DependencyClosur
     instance_keys.sort();
     instance_keys.dedup();
 
+    // `.atlas/contracts/DEPENDENCY-CENSUS.md#implementation-status`: a present Cargo.lock that
+    // parsed to zero [[package]] entries is evidence of a malformed/truncated lockfile, not a
+    // verified empty project -- real Cargo output always lists at least the workspace's own
+    // member packages. Distinct from `Closed` with zero edges (real packages, genuinely no
+    // dependencies), which this state model treats as a real, verified answer.
+    let state = if packages.is_empty() {
+        DependencyClosureState::Blocked
+    } else if !dangling_references.is_empty() || !unsupported_constructs.is_empty() {
+        DependencyClosureState::Partial
+    } else {
+        DependencyClosureState::Closed
+    };
+
     Ok(Some(DependencyClosureReport {
-        schema: "atlas.dependency-closure-report.v1".into(),
+        schema: "atlas.dependency-closure-report.v2".into(),
         ecosystem: DependencyEcosystem::Cargo,
         root: root.to_string_lossy().into_owned(),
+        state,
         edges_total: edges.len(),
         instances_total: instance_keys.len(),
         edges,
         dangling_references,
+        unsupported_constructs,
+        dynamic_obligations: DynamicDependencyObligation::ALL.to_vec(),
     }))
 }
 
@@ -645,6 +731,37 @@ winapi = "0.3"
         );
     }
 
+    #[test]
+    fn a_multiline_inline_table_dependency_entry_is_still_read_correctly() {
+        // Without joining continuation lines, `optional = true` here would be invisible (only
+        // `foo = { version = "1",` is on the entry's own first line), silently misclassifying a
+        // real optional dependency as Runtime.
+        let manifest = "[dependencies]\nfoo = {\n    version = \"1\",\n    optional = true,\n}\n";
+        let kinds = manifest_dependency_kinds(manifest);
+        assert_eq!(kinds, vec![("foo".to_owned(), DependencyKind::Optional)]);
+    }
+
+    #[test]
+    fn a_multiline_inline_table_rename_is_still_read_correctly() {
+        let manifest =
+            "[dependencies]\natlas_core = {\n    package = \"core\",\n    path = \"../core\",\n}\n";
+        let kinds = manifest_dependency_kinds(manifest);
+        assert_eq!(kinds, vec![("core".to_owned(), DependencyKind::Runtime)]);
+    }
+
+    #[test]
+    fn a_multiline_inline_table_does_not_swallow_the_next_real_entry() {
+        let manifest = "[dependencies]\nfoo = {\n    version = \"1\",\n}\nbar = \"2\"\n";
+        let kinds = manifest_dependency_kinds(manifest);
+        assert_eq!(
+            kinds,
+            vec![
+                ("foo".to_owned(), DependencyKind::Runtime),
+                ("bar".to_owned(), DependencyKind::Runtime),
+            ]
+        );
+    }
+
     // --- 3. workspace members array --------------------------------------------------------------
 
     #[test]
@@ -653,13 +770,28 @@ winapi = "0.3"
             "[workspace]\nmembers = [\"core\", \"runtime\", \"adapter\", \"apps/cli\"]\n";
         assert_eq!(
             workspace_members(manifest),
-            vec![
-                "core".to_owned(),
-                "runtime".to_owned(),
-                "adapter".to_owned(),
-                "apps/cli".to_owned(),
-            ]
+            (
+                vec![
+                    "core".to_owned(),
+                    "runtime".to_owned(),
+                    "adapter".to_owned(),
+                    "apps/cli".to_owned(),
+                ],
+                false,
+            )
         );
+    }
+
+    #[test]
+    fn multiline_workspace_members_is_detected_as_unsupported_not_silently_empty() {
+        let manifest = "[workspace]\nmembers = [\n    \"core\",\n    \"adapter\",\n]\n";
+        assert_eq!(workspace_members(manifest), (Vec::new(), true));
+    }
+
+    #[test]
+    fn absent_workspace_members_is_not_flagged_unsupported() {
+        let manifest = "[package]\nname = \"solo\"\n";
+        assert_eq!(workspace_members(manifest), (Vec::new(), false));
     }
 
     // --- 4. end-to-end census against a synthetic workspace on disk ----------------------------
@@ -946,6 +1078,189 @@ version = "2.0.0"
                 "adapter -> syn (ambiguous: 2 candidates, no disambiguating version in lockfile entry)"
                     .to_owned()
             ]
+        );
+
+        let _ = fs::remove_dir_all(&dir);
+    }
+
+    // --- 4c. source classification and closure-state semantics ---------------------------------
+
+    #[test]
+    fn a_git_dependency_is_classified_vcs_not_registry() {
+        let dir = std::env::temp_dir().join(format!(
+            "atlas-dep-census-test-{}",
+            std::process::id().to_string() + "-8"
+        ));
+        let _ = fs::remove_dir_all(&dir);
+        write(
+            &dir.join("Cargo.lock"),
+            r#"
+[[package]]
+name = "adapter"
+version = "0.1.0"
+dependencies = [
+ "somecrate",
+]
+
+[[package]]
+name = "somecrate"
+version = "0.1.0"
+source = "git+https://github.com/example/somecrate?rev=abc123#abc123"
+"#,
+        );
+
+        let report = census_cargo_workspace(&dir).unwrap().unwrap();
+        assert_eq!(
+            report.edges[0].provider.source_kind,
+            DependencySourceKind::Vcs
+        );
+
+        let _ = fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn an_unrecognized_source_prefix_is_classified_other_not_registry() {
+        let dir = std::env::temp_dir().join(format!(
+            "atlas-dep-census-test-{}",
+            std::process::id().to_string() + "-9"
+        ));
+        let _ = fs::remove_dir_all(&dir);
+        write(
+            &dir.join("Cargo.lock"),
+            r#"
+[[package]]
+name = "adapter"
+version = "0.1.0"
+dependencies = [
+ "somecrate",
+]
+
+[[package]]
+name = "somecrate"
+version = "0.1.0"
+source = "sparse+https://example.com/index/"
+"#,
+        );
+
+        let report = census_cargo_workspace(&dir).unwrap().unwrap();
+        assert_eq!(
+            report.edges[0].provider.source_kind,
+            DependencySourceKind::Other
+        );
+
+        let _ = fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn a_source_less_package_outside_the_known_workspace_members_is_classified_path_not_workspace_member()
+     {
+        // A non-workspace `path = "..."` dependency has no `source` field in Cargo.lock, exactly
+        // like a real workspace member. Only cross-referencing the root manifest's own declared
+        // `workspace.members` (here: only "adapter") can tell them apart.
+        let dir = std::env::temp_dir().join(format!(
+            "atlas-dep-census-test-{}",
+            std::process::id().to_string() + "-10"
+        ));
+        let _ = fs::remove_dir_all(&dir);
+        write(
+            &dir.join("Cargo.toml"),
+            "[workspace]\nmembers = [\"adapter\"]\n",
+        );
+        write(
+            &dir.join("Cargo.lock"),
+            r#"
+[[package]]
+name = "adapter"
+version = "0.1.0"
+dependencies = [
+ "sibling",
+]
+
+[[package]]
+name = "sibling"
+version = "0.1.0"
+"#,
+        );
+        write(
+            &dir.join("adapter/Cargo.toml"),
+            "[package]\nname = \"adapter\"\n\n[dependencies]\nsibling = { path = \"../sibling\" }\n",
+        );
+
+        let report = census_cargo_workspace(&dir).unwrap().unwrap();
+        let sibling_edge = report
+            .edges
+            .iter()
+            .find(|edge| edge.provider.name == "sibling")
+            .unwrap();
+        assert_eq!(
+            sibling_edge.provider.source_kind,
+            DependencySourceKind::Path
+        );
+
+        let _ = fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn a_lockfile_with_zero_packages_is_blocked_not_closed() {
+        let dir = std::env::temp_dir().join(format!(
+            "atlas-dep-census-test-{}",
+            std::process::id().to_string() + "-11"
+        ));
+        let _ = fs::remove_dir_all(&dir);
+        write(
+            &dir.join("Cargo.lock"),
+            "# This file is automatically @generated by Cargo.\nversion = 4\n",
+        );
+
+        let report = census_cargo_workspace(&dir).unwrap().unwrap();
+        assert_eq!(report.state, DependencyClosureState::Blocked);
+        assert!(!report.is_closed());
+
+        let _ = fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn a_multiline_workspace_members_array_forces_partial_state_even_with_no_dangling_references() {
+        let dir = std::env::temp_dir().join(format!(
+            "atlas-dep-census-test-{}",
+            std::process::id().to_string() + "-12"
+        ));
+        let _ = fs::remove_dir_all(&dir);
+        write(
+            &dir.join("Cargo.toml"),
+            "[workspace]\nmembers = [\n    \"core\",\n]\n",
+        );
+        write(
+            &dir.join("Cargo.lock"),
+            "\n[[package]]\nname = \"core\"\nversion = \"0.1.0\"\n",
+        );
+
+        let report = census_cargo_workspace(&dir).unwrap().unwrap();
+        assert_eq!(report.state, DependencyClosureState::Partial);
+        assert!(!report.unsupported_constructs.is_empty());
+        assert!(report.dangling_references.is_empty());
+
+        let _ = fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn a_closed_report_still_names_every_dynamic_obligation_as_unresolved() {
+        let dir = std::env::temp_dir().join(format!(
+            "atlas-dep-census-test-{}",
+            std::process::id().to_string() + "-13"
+        ));
+        let _ = fs::remove_dir_all(&dir);
+        write(
+            &dir.join("Cargo.lock"),
+            "\n[[package]]\nname = \"core\"\nversion = \"0.1.0\"\n",
+        );
+
+        let report = census_cargo_workspace(&dir).unwrap().unwrap();
+        assert_eq!(report.state, DependencyClosureState::Closed);
+        assert_eq!(
+            report.dynamic_obligations.len(),
+            DynamicDependencyObligation::ALL.len(),
+            "a resolved static graph must not imply build.rs/proc-macro/... obligations are resolved too"
         );
 
         let _ = fs::remove_dir_all(&dir);
