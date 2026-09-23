@@ -119,6 +119,26 @@ agent edits   ┘
 
 No projection may create a second truth system.
 
+## Agent-host authoring surfaces
+
+Atlas does not require its own IDE in order to provide the canonical semantic/admission substrate.
+
+A coding-agent host may be the active authoring cockpit while Atlas runs beside it as an embedded subsystem governed by `AGENT-HOST-EMBEDDED-RUNTIME.md`.
+
+~~~text
+Human ↔ Claude Code / another coding agent
+             ↓ local MCP/API adapter
+          AtlasCore
+             ↓
+typed candidate semantics / Census / verification / admission
+~~~
+
+The agent host may own the editor, terminal, cloud compute and outer sandbox. It does not own Atlas semantic truth.
+
+Agent-facing MCP tools are another projection of the same AtlasCore, alongside ADL text, conversation, CLI, CI and future Studio views.
+
+Atlas Studio may later become the native visual cockpit over this same semantic world. Studio MUST NOT fork the semantic model or require a second project memory system.
+
 ## Conversation-native authoring
 
 A conversation may request:
