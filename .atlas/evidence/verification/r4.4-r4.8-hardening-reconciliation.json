@@ -1,0 +1,87 @@
+{
+  "schema": "atlas.r4.closure-correction.v1",
+  "corrects_waves": ["R4.4", "R4.5", "R4.6", "R4.7", "R4.8"],
+  "supersedes_or_reconciles": [
+    ".atlas/evidence/verification/r4.8-correction-record.json"
+  ],
+  "purpose": "A full semantic hardening audit across R4.4-R4.8 was independently performed twice in parallel: once on main (commits 222398ac4b, 04683242c4, cfc439f57a, recorded in r4.8-correction-record.json) and once on a local scratch branch (_local-r4.10-staging, commit d2c7de8040, never previously pushed). This record reconciles the two: it does NOT re-apply any finding main's own hardening already fixed, explicitly records why one local finding was dropped rather than merged, and documents the local findings that survive as genuinely additive, now applied on top of main's version in this same reconciliation pass. Like r4.8-correction-record.json, this record does not mutate any r4.N-verification-record.json -- those remain unaltered historical evidence.",
+  "reconciliation_classification": {
+    "DUPLICATE_MAIN_not_reapplied": [
+      {
+        "concept": "EFFECT/STATE Unsafe/Const/Repeat/RawAddr/TryBlock/Async traversal arms",
+        "finding": "main's hardening (222398ac4b) already added these to adapter/src/semantic/rust/effect.rs and state.rs, matching what the local pass independently found and fixed for the same two dimensions."
+      },
+      {
+        "concept": "STATE compound-assignment Read+Write",
+        "finding": "main's state.rs already has a private is_compound_assignment() producing the same Read-then-Write pair for self.field += 1 that the local pass independently derived."
+      },
+      {
+        "concept": "core/src/semantic/{effect,state}.rs doc comments",
+        "finding": "main's prose already correctly describes the fixed compound-assignment and panic-epistemics behavior; no doc correction needed on top."
+      },
+      {
+        "concept": "partial-closure UNKNOWN-not-verified-absence semantics",
+        "finding": "main's PARTIAL_CLOSURE_DIMENSIONS mechanism in adapter/src/semantic/rust/mod.rs (State, Effect) already ensures a zero-observation dimension reports UNKNOWN rather than a false verified-absence Observed(empty). This is a more architecturally significant fix than anything in the local pass and was not duplicated."
+      }
+    ],
+    "MAIN_STRONGER_DROP_LOCAL": [
+      {
+        "concept": "panic-macro-shadowing epistemics (EFFECT)",
+        "local_approach": "ExtractionContext::shadowed_panic_like_macro_names scanned only same-file macro_rules! redefinitions and used absence-of-shadow to upgrade EffectCategory::Panic to EpistemicStatus::Observed.",
+        "main_approach": "effect.rs unconditionally records every panic-like macro-name match as EpistemicStatus::Inferred, regardless of any shadow scan.",
+        "decision": "Main's approach is kept. This extractor has no macro/name resolution at all (documented in its own module doc comment); a macro name can also be shadowed via a `use` import from another file or crate, which a same-file-only scan cannot see. Upgrading to Observed on the strength of an incomplete shadow scan is an overclaim risk the local pass did not fully account for. The always-Inferred treatment is the epistemically safer position given the extractor's real capability, so it is not replaced."
+      }
+    ],
+    "LOCAL_BUGFIX_KEEP_and_LOCAL_ADDITIVE_KEEP_reapplied_this_pass": [
+      {
+        "concept": "CALL closure-misattribution",
+        "finding": "adapter/src/semantic/rust/mod.rs's CALL walker still recurses into syn::Expr::Closure bodies on main and attributes every call found inside to the enclosing function (e.g. `fn outer() { let c = || hidden_call(); }` records hidden_call() as called by outer()), even though every other dimension already correctly refuses to. Main's hardening pass never touched mod.rs's CALL walker for this. Fixed in this pass: syn::Expr::Closure(_) => {} (no-op), matching every other dimension.",
+        "regression_test": "adapter::semantic::rust::tests::a_call_inside_a_closure_body_is_not_attributed_to_the_enclosing_function"
+      },
+      {
+        "concept": "missing Unsafe/Const/Repeat/RawAddr/TryBlock coverage in CALL, DATA_FLOW, OWNERSHIP, CONCURRENCY",
+        "finding": "Main's hardening added this coverage only to EFFECT and STATE. CALL (mod.rs), DATA_FLOW (dataflow.rs), and the two new R4.9/R4.10 dimensions OWNERSHIP (ownership.rs) and CONCURRENCY (concurrency.rs, which did not exist on main before this same reconciliation pass) still silently missed a call/data-flow/move-or-copy/await-or-spawn site inside an unsafe/const/repeat/raw-address/try block. Fixed in this pass: the same five-arm pattern added to all four files, with an explicit Expr::Async(_) => {} exclusion in each (a deferred region, like Closure).",
+        "regression_tests": [
+          "adapter::semantic::rust::tests::a_call_inside_an_unsafe_block_is_attributed_to_the_enclosing_function",
+          "adapter::semantic::rust::tests::a_call_inside_a_const_block_is_attributed_to_the_enclosing_function",
+          "adapter::semantic::rust::tests::a_call_inside_a_repeat_expression_is_attributed_to_the_enclosing_function"
+        ]
+      },
+      {
+        "concept": "DATA_FLOW compound-assignment under-claim",
+        "finding": "Main's hardening fixed this only for STATE. dataflow.rs's own module doc comment on main still explicitly (and now incorrectly) states compound-assignment operators 'are not specially modeled' and are folded into a plain Use via the general Binary walk. Fixed in this pass: added spelling::is_compound_assign_op (a shared syntax-level compound-BinOp check, since dataflow.rs and state.rs each need the same predicate and state.rs's existing private equivalent was left unmodified rather than refactored, to minimize the surface of this reconciliation). x += 1 now emits a Use and a Store at the same site, matching STATE's already-correct Read+Write treatment of self.field += 1.",
+        "regression_test": "adapter::semantic::rust::tests::compound_assignment_to_a_local_binding_produces_use_then_store_in_data_flow"
+      }
+    ],
+    "NEEDS_REDESIGN_recorded_not_fixed": [
+      {
+        "concept": "CONTROL_FLOW vs EFFECT panic-epistemics inconsistency",
+        "finding": "core/src/semantic/control_flow.rs's Panic edge kind carries no epistemic caveat, and cfg.rs unconditionally emits the owning block's SemanticRecordHeader.status as EpistemicStatus::Observed for a block that terminates via a panic-like macro invocation -- including when that exact macro name is locally shadowed by a macro_rules! redefinition that may not actually diverge. EFFECT (effect.rs), observing the identical macro invocation, unconditionally records EpistemicStatus::Inferred for the same case. This is a genuine, still-open cross-dimension inconsistency over the same evidence: CFG claims certainty EFFECT explicitly does not.",
+        "why_not_fixed_here": "The correct fix is not simply to make CFG's block status match EFFECT's (always Inferred), because a CFG block's SemanticRecordHeader.status is one field describing the WHOLE block record (its existence, its other successors, its statements) -- all of which really are Observed regardless of one successor's macro-shadow uncertainty. Downgrading the entire block to Inferred whenever it happens to contain a Panic edge would itself be a new, different epistemic error (under-claiming facts that ARE certain). The architecturally sound fix needs per-edge epistemic status (an EpistemicStatus carried on ControlFlowEdge itself, not only on ControlFlowBlockIdentity's header), which is a schema change affecting core::semantic::control_flow, the adapter's cfg.rs, and every graph/runtime consumer of ControlFlowEdge -- larger than belongs in this reconciliation pass. Tracked here as an explicit, open finding rather than silently left undiscovered.",
+        "disposition": "TARGET -- future wave, likely alongside any broader per-edge/per-fact epistemic-status modeling work."
+      }
+    ]
+  },
+  "identity": {
+    "reconciled_on_branch": "_local-hardening-reconciliation (local scratch branch; designated branch claude/r4-semantic-materialization-jz2z44 occupied by open PR #26 for R4.9/R4.10 at the time of this reconciliation)",
+    "base_commit_for_reconciliation": "6f4f1fa03f2795cb5c65b8441748e3c13ea6f919 (origin/main HEAD, the merge commit for PR #25) plus the seven cherry-picked R4.9/R4.10 commits from PR #26",
+    "note": "This reconciliation intentionally supersedes the CLOSURE INTERPRETATION of an earlier, never-pushed local evidence draft (schema atlas.r4.closure-correction.v1, commit d96f5bc080 on _local-r4.10-staging) that predates discovery of main's own parallel hardening pass. That earlier draft is not itself part of repository history and is not a historical record this one needs to preserve verbatim, but its bug-finding methodology and per-wave closure analysis were the starting point for the reconciliation_classification above."
+  },
+  "verification_passes": [
+    {
+      "pass": "reconciliation",
+      "commands": {
+        "cargo check --workspace": { "exit_code": 0 },
+        "cargo test --workspace": {
+          "exit_code": 0,
+          "totals": "288 passed, 0 failed, 0 ignored (142 adapter, 99 core, 47 runtime)"
+        },
+        "cargo fmt --all --check": { "exit_code": 0 },
+        "cargo clippy --workspace --all-targets -- -D warnings": { "exit_code": 0, "warnings": 0 }
+      }
+    }
+  ],
+  "no_tests_lints_gates_disabled": true,
+  "no_verify_bypass_used": false,
+  "overall_verdict": "RECONCILED -- every local R4.4-R4.8 hardening finding classified against main's independently-pushed hardening pass; nothing duplicated, one finding (panic-macro Observed/Inferred via same-file shadow detection) dropped in favor of main's stronger always-Inferred treatment, three genuinely additive fixes (CALL closure-misattribution, missing Unsafe/Const/Repeat/RawAddr/TryBlock coverage in CALL/DATA_FLOW/OWNERSHIP/CONCURRENCY, DATA_FLOW compound-assignment Use+Store) re-applied on top of main's version, and one still-open cross-dimension inconsistency (CFG vs EFFECT panic epistemics) recorded as an explicit TARGET finding rather than fixed or silently dropped."
+}
