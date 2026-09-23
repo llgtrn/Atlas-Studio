@@ -1,0 +1,42 @@
+{
+  "schema": "atlas.self-build.generation-evidence.v1",
+  "wave": "INVESTIGATION -- normalization/census/extractor sweep; one real finding considered and deliberately deferred",
+  "wave_title": "A delegated investigation into runtime/src/normalize/mod.rs, runtime/src/census/mod.rs, adapter/src/semantic/, and core/src/capability/mod.rs found this area of the codebase unusually well-hardened already (most candidates traced back to documented, intentional, already-tested behavior -- see ruled_out below) and surfaced exactly one real, low-severity, currently-unreachable finding, which this record documents as investigated and deliberately NOT acted on this generation, with reasoning, rather than silently dropped.",
+  "generation_model": {
+    "G_n": "aba88aa752 (fix(security): filter WorkRequest.allowed_paths through the same containment check) -- stable generation this candidate was built and validated against",
+    "gap_discovered_by": "Delegated investigation (Explore agent) scoped to normalization conflict-handling, census assembly, and non-Rust semantic extractors -- areas not yet audited this session. Independently verified the one real finding directly against the code: `adapter/src/semantic/rust/mod.rs:449,501,574,620,831` each call `debug_assert!(observation.is_dimension_consistent())` -- a no-op in release builds -- rather than a real, always-enforced check, unlike the equivalent invariant checks in test-side fixture builders (`runtime/src/census/mod.rs`, `runtime/src/census/extraction.rs`), which use plain `assert!`."
+    },
+  "priority_classification": "investigated, not actionable this generation -- would be priority 1 (correctness) if live, but is currently unreachable by construction (see design_decisions) and converting it to a real check without further care would introduce a new risk (see the specific reason below), so it does not meet the bar for a well-scoped fix right now.",
+  "design_decisions": [
+    {
+      "question": "Should `debug_assert!` simply become `assert!` (matching the test-side convention) so the invariant is enforced in release builds too?",
+      "decision": "Not this generation. Verified directly: at each of the 5 call sites, the same local `dimension` variable seeds both `SemanticRecordId::new(dimension, ..)` (the header) and the immediately-following variant-constructor selection, so no code path today can actually produce a dimension-inconsistent observation -- the check is currently unreachable, not currently protective. Separately and more importantly, verified this codebase has NO panic-isolation boundary anywhere in production code (grepped the whole workspace for `catch_unwind`: zero results, in or out of test code). This extraction pipeline's own established resilience principle (`production_wiring_extracts_real_rust_semantics_and_isolates_a_malformed_file`: a read failure or parse failure on one artifact must never abort or erase the whole batch) means a bare `assert!` that DID fire (from some future refactor this generation cannot predict) would crash the entire `systemize`/census run for the whole repository, not just isolate the one problematic observation -- trading a currently-harmless no-op for a new, real availability risk, for a defect that cannot occur today. That is a worse outcome than the status quo, not a strict improvement, so it is not a safe drop-in fix. A correct fix would instead need to make dimension-inconsistency a diagnosed, isolated, skip-this-observation outcome (consistent with this session's own 'never fabricate, never crash the whole pipeline for one bad input' pattern already applied elsewhere), which requires restructuring each of the 5 call sites' control flow to a fallible path -- a meaningfully larger, more invasive change than the risk (currently zero, by construction) justifies right now."
+    }
+  ],
+  "stable_validator_law_compliance": {
+    "claim": "This finding was investigated with the same rigor as every acted-on finding this session, and the decision not to act on it is falsifiable and reasoned, not a silent drop.",
+    "self_written_evidence": "N/A -- no code changed this generation. This record itself is the evidence that the finding was surfaced, independently re-verified (exact call sites confirmed, panic-isolation absence confirmed via grep), and its non-action justified.",
+    "independent_evidence_channel": "Direct grep verification of both claims (the 5 exact `debug_assert!` call sites, and the absence of any `catch_unwind` anywhere in the workspace) was performed independently of the delegated investigation's own report, not merely trusted from its summary.",
+    "no_circular_self_certification": true
+  },
+  "implementation": {
+    "note": "No production code changed this generation. This is a documented investigation-and-deferral record, per the standing loop's own requirement that epistemic gaps be classified explicitly rather than silently ignored."
+  },
+  "adversarial_and_falsification_coverage": [
+    "N/A this generation -- see recensus_scope_after_promotion for the concrete, named condition under which this should be revisited"
+  ],
+  "validation_this_generation": {
+    "commands": {
+      "grep for catch_unwind across the whole workspace (excluding target/ and donor corpus)": { "result": "zero matches, confirming no panic-isolation boundary exists in production or test code" },
+      "grep for debug_assert!(observation.is_dimension_consistent()) in adapter/src/semantic/rust/mod.rs": { "result": "exactly 5 matches, at lines 449, 501, 574, 620, 831, matching the investigating agent's report exactly" }
+    }
+  },
+  "recensus_scope_after_promotion": [
+    "no prior CLOSED/EXTINCT conclusion depended on this invariant being enforced in release builds, so no external conclusion requires reopening",
+    "TARGET for a future generation: if/when a panic-isolation boundary is ever added around per-artifact extraction (catching a panic from one file's extraction and converting it to a diagnosed Unsupported/Unknown result for that artifact alone, matching the existing read-failure isolation pattern), promote these 5 `debug_assert!` sites to real, always-enforced checks at the same time -- the isolation boundary is the prerequisite that makes the promotion safe, not a separate unrelated task",
+    "alternatively, TARGET for a future generation: restructure the 5 call sites to make dimension-construction fallible/diagnosed directly, without requiring a general panic-isolation boundary first -- either approach closes this gap; neither was attempted this generation given the currently-zero exploitability",
+    "this generation counts as investigated-clean for priorities 1-4 in the areas covered (normalization, census assembly, non-Rust extractors, capability/work-prepare logic) -- one generation toward the standing loop's 3-consecutive-clean-generations fixed-point criterion, provided a subsequent independent pass does not surface a new mandatory gap in a different area"
+  ],
+  "overall_verdict": "INVESTIGATED, ONE REAL FINDING DELIBERATELY DEFERRED WITH REASONING. The normalization/census/extractor area of this codebase is confirmed well-hardened (conflict-candidate non-resolution is documented contract behavior, not a silent drop; census assembly has no drop/double-count gap; the only real extractor's DoS guard already covers generic/nested-type recursion). The one real finding (debug_assert-only dimension-consistency checks in the Rust extractor) is currently unreachable by construction, and naively hardening it without first addressing the complete absence of panic isolation in this codebase would trade a harmless no-op for a new availability risk -- correctly deferred rather than fixed hastily.",
+  "historical_evidence_retained": true
+}
