@@ -23,8 +23,6 @@ A logical Atlas may contain:
 - nodes/edges/bindings/interfaces/capabilities;
 - temporal facts/events;
 - constraints/invariants;
-- ArchitecturalIntegrityEnvelope, load-bearing classification and architecture falsification conditions;
-- exact ArchitecturalIntegrityReport/equivalence evidence used for candidate seal eligibility;
 - ownership/memory/concurrency semantics;
 - source observations and runtime/test evidence;
 - donor technology/research claims;
@@ -39,8 +37,6 @@ A logical Atlas may contain:
 - provenance/license/evidence roots;
 - cross-repository references;
 - CensusCertificate and completeness ledger.
-
-Architecture-integrity records are canonical engineering meaning, not optional review metadata. A sealed logical Atlas that depends on architecture-bearing semantics MUST retain enough envelope/report/evidence lineage to prove which load-bearing invariants were admitted and why.
 
 It MUST NOT merely be a zip of prose/Markdown/JSON summaries.
 
@@ -137,6 +133,33 @@ The transition from SEALED Atlas to executable AtlasX is governed by `ATLAS-TO-A
 ATLASX is not decompressed Atlas. It is one deterministic executable projection selected from the richer Atlas world through explicit SelectedDesign identity, scope, profiles, bindings, lineage and materialization validation.
 
 Artifact size is never justification for silent semantic omission.
+
+## Host and session independence
+
+A sealed Atlas artifact is durable engineering memory, not an agent-session cache.
+
+Atlas may be created inside an ephemeral local or cloud coding sandbox, but destruction of that session MUST NOT destroy the only canonical copy of the selected semantic world or the evidence/lineage required by its seal policy.
+
+Regenerable state may remain ephemeral:
+
+- build caches;
+- scratch candidate worktrees;
+- derived indexes;
+- temporary execution logs not admitted as evidence.
+
+Durable artifact/evidence publication MUST be sufficient for a later compatible Atlas runtime to:
+
+~~~text
+load sealed Atlas meaning
+→ restore/checkout the admitted source revision when source remains required
+→ validate schema/Genome coordinates
+→ incremental recensus
+→ continue engineering without prior provider conversational memory
+~~~
+
+The execution host, transport adapter and original coding-provider session are provenance/environment details, not required semantic dependencies of the sealed artifact.
+
+See `AGENT-HOST-EMBEDDED-RUNTIME.md`.
 
 ## Provider independence
 
