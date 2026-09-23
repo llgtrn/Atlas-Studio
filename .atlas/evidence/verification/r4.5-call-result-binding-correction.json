@@ -1,0 +1,44 @@
+{
+  "schema": "atlas.r4.verification-correction.v1",
+  "wave": "R4.5",
+  "corrects_record": ".atlas/evidence/verification/r4.5-call-argument-binding-correction.json",
+  "base_merge_commit": "cf7a5a9745a3a795dd3e4a2e12bea1c6903d694b",
+  "correction_kind": "GAP_CLOSED",
+  "reason": [
+    "The argument-binding correction explicitly named result-binding as a separate, still-open TARGET: 'it needs enclosing-binding context threaded through the CALL walker's statement-level traversal, which argument binding did not need.' This record closes that TARGET.",
+    "core/src/semantic/call.rs's module doc comment already named 'argument/result bindings' together as part of the CallFact contract; only half was closed previously."
+  ],
+  "design_decision": {
+    "question": "Can result-binding reuse the exact same PlaceRef/identity_key-reuse mechanism argument-binding proved, or does it need new machinery?",
+    "answer": "Reuse, with one narrowing not needed for arguments: a call's return value only has a well-defined 'result' when the call expression IS THE ENTIRE value position, not a subexpression (`let y = helper(x) + 1;` has no single value the call's result 'becomes'), and only when the binding pattern is a single simple identifier, not a destructuring one (`let (a, b) = two_args_tuple(x, x);` -- a call's one return value has no defined mapping onto two separately-bound names, even though R4.12's own destructuring fix now binds both `a` and `b` for DATA_FLOW's own purposes).",
+    "mechanism": "core::semantic::call::CallSiteIdentity gained result: PlaceRef, excluded from identity_key() (same precedent as arguments/dispatch/callees). adapter::semantic::rust::mod's walk_stmt (Stmt::Local) and walk_expr (Expr::Assign) compute the result PlaceRef via the SAME place_ref_for_value helper argument-binding already uses (generalized to take a ValueRole parameter: Definition for let, Store for assignment), gated the same way (self.wants(DataFlow)) and recognized via spelling::simple_binding_ident (Pat::Ident/Pat::Type only -- deliberately narrower than dataflow.rs's own walk_binding_pat, which finds every identifier a destructuring pattern binds; result-binding needs 'is this ONE identifier', not 'find every identifier').",
+    "threading_without_a_new_parameter": "Rather than threading a 'result binding' parameter through the entire recursive walk_expr descent (which would touch every existing call site), a new walk_value_position_expr method intercepts ONLY at the exact two syntactic positions that can have a well-defined result (a Stmt::Local's direct init, an Expr::Assign's direct right-hand side): if the expression there is exactly Call/MethodCall, it calls the shared walk_call_like helper with the real computed result; otherwise it delegates to the ordinary walk_expr (implying Unresolved). walk_expr's own Call/MethodCall arms (reached from every other position) always pass PlaceRef::Unresolved via the same walk_call_like helper, so there is exactly one code path that ever emits a CALL observation, whichever way it was reached."
+  },
+  "fix": {
+    "what": "CallSiteIdentity.result: PlaceRef. adapter::semantic::rust::mod's Stmt::Local and Expr::Assign handling compute it via place_ref_for_let_result/place_ref_for_assign_result and pass it through walk_value_position_expr/walk_call_like.",
+    "adversarial_coverage_added": [
+      "call_result_place_ref_converges_on_the_data_flows_own_definition_record_id (let y = helper(x); convergence proof)",
+      "call_result_place_ref_converges_on_the_data_flows_own_store_record_id_for_assignment (y = helper(x); convergence proof)",
+      "call_result_stays_unresolved_when_the_call_is_not_the_entire_initializer (let y = helper(x) + 1;)",
+      "call_result_stays_unresolved_for_a_destructured_let_pattern (let (a, b) = two_args_tuple(x, x);)",
+      "call_result_place_ref_stays_unresolved_when_data_flow_was_not_requested (gating, mirrors argument-binding's own such test)",
+      "call_result_never_affects_the_call_sites_own_identity",
+      "identity_key_is_unaffected_by_result (core::semantic::call's own unit test)"
+    ]
+  },
+  "new_interpretation": "R4.5's CALL<->DATA_FLOW binding gap (.atlas/contracts/SEMANTIC-FACTS.md#callfact's 'argument/result bindings') is now CLOSED in both halves. R4.5's overall closure status (macro-invocation-opacity gap, shared with every other full-expression-tree dimension) is otherwise unchanged.",
+  "required_runtime_invariants": [
+    "a call that is the direct initializer of a simple let binding resolves to DATA_FLOW's own Definition record_id for that binding",
+    "a call that is the direct right-hand side of a simple assignment resolves to DATA_FLOW's own Store record_id",
+    "a call buried inside a larger expression never fabricates a result binding",
+    "a call whose enclosing pattern destructures stays Unresolved even though DATA_FLOW itself binds every sub-identifier",
+    "result is only ever Resolved when DataFlow was requested in the same extraction call",
+    "result never affects a call site's own identity_key()"
+  ],
+  "self_census_cross_check": {
+    "command": "cargo run -q -p atlas-cli -- systemize --root . --out <tmp>",
+    "scale": "5260+ real CALL observations in this repository's own source",
+    "finding": "1638 call results resolved to a real DATA_FLOW record_id, 3668 correctly stayed Unresolved -- the feature fires genuinely on real code. exact_duplicates_merged remained 0 and conflict_candidates remained empty at this larger scale (26189 -> 26541 typed observations)."
+  },
+  "historical_evidence_retained": true
+}
