@@ -753,6 +753,7 @@ fn add_typed_semantic_nodes(
                     format!("{}:{}", header.subject.name, header.subject.kind.as_str()),
                     BTreeMap::from([
                         ("origin".into(), "semantic-extraction".into()),
+                        ("status".into(), header.status.as_str().into()),
                         ("kind".into(), header.subject.kind.as_str().into()),
                         (
                             "resolution".into(),
@@ -826,6 +827,7 @@ fn add_typed_semantic_nodes(
                     ),
                     BTreeMap::from([
                         ("origin".into(), "semantic-extraction".into()),
+                        ("status".into(), header.status.as_str().into()),
                         ("category".into(), header.subject.category.as_str().into()),
                     ]),
                     &header.provenance,

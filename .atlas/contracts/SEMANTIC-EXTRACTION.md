@@ -118,6 +118,8 @@ For each requested dimension and applicable scope, an extractor emits one of:
 
 UNKNOWN means evidence is insufficient. UNSUPPORTED means the current extractor/runtime cannot perform the analysis. They are not interchangeable.
 
+A dimension MAY emit evidence-backed observations while its overall obligation remains UNKNOWN when the extractor covers only part of the dimension's declared semantic surface. UNKNOWN with non-empty observation identities means "useful partial evidence exists; closure is not proven." Verified absence is permitted only when the full declared obligation scope for that extractor/profile was exhaustively checked. A partial STATE/EFFECT extractor MUST NOT turn "no fact found in the subset I understand" into a negative semantic fact about unmodeled state/effect forms.
+
 ## Determinism
 
 For identical artifact content, repository revision, extractor version, language/build profile and scope policy, output MUST be semantically equivalent independent of traversal order, thread scheduling or filesystem enumeration order.

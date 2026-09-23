@@ -450,6 +450,13 @@ impl Counter {
     pub fn compound_increment(&mut self) {
         self.value += 1;
     }
+
+    pub fn unsafe_wrapped(&mut self) {
+        unsafe {
+            self.value = 7;
+            panic!("inside unsafe");
+        }
+    }
 }
 
 pub fn free_function_with_no_self() -> u64 {
@@ -2620,27 +2627,92 @@ fn nested_field_chain_reports_only_the_outer_field_as_a_documented_gap() {
     );
 }
 
-// --- 68. a compound assignment (`self.field += 1`) is recorded as a Read, never a Write and never
-// silently dropped -- a documented gap, matching R4.7's identical `syn::Expr::Binary` discovery --
+// --- 68. compound assignment is read-modify-write: one Read + one Write at the same site --------
 
 #[test]
-fn compound_assignment_is_recorded_as_a_read_not_a_write() {
+fn compound_assignment_is_recorded_as_read_and_write() {
     let batch = extract_all("src/lib.rs", STATE_EFFECT_CORPUS);
     let caller = find_function_identity(&batch, &["impl:Counter"], "compound_increment").unwrap();
     let accesses = state_accesses_for(&batch, caller);
+    assert_eq!(accesses.len(), 2, "`self.value += 1` is a read-modify-write");
     assert_eq!(
-        accesses.len(),
-        1,
-        "`self.value += 1` still produces exactly one access, never zero"
+        accesses
+            .iter()
+            .filter(|access| access.kind == StateAccessKind::Read)
+            .count(),
+        1
     );
     assert_eq!(
-        accesses[0].kind,
-        StateAccessKind::Read,
-        "compound assignment is not specially modeled as a Write this wave"
+        accesses
+            .iter()
+            .filter(|access| access.kind == StateAccessKind::Write)
+            .count(),
+        1
     );
-    assert_eq!(accesses[0].name, "value");
+    assert!(accesses.iter().all(|access| access.name == "value"));
 }
 
+// --- 68a. macro spelling is evidence, not compiler-resolved truth -------------------------------
+
+#[test]
+fn panic_like_macro_is_inferred_not_observed() {
+    let batch = extract_all("src/lib.rs", STATE_EFFECT_CORPUS);
+    let caller = find_function_identity(&batch, &["impl:Counter"], "maybe_panic").unwrap();
+    let caller_id =
+        SemanticRecordId::new(SemanticDimension::FunctionIdentity, &caller.identity_key());
+    let header = batch
+        .observations
+        .iter()
+        .find_map(|observation| match observation {
+            SemanticObservation::Effect(header) if header.subject.function == caller_id => {
+                Some(header)
+            }
+            _ => None,
+        })
+        .expect("panic-like effect candidate");
+    assert_eq!(header.subject.category, EffectCategory::Panic);
+    assert_eq!(header.status, EpistemicStatus::Inferred);
+}
+
+// --- 68b. nested unsafe blocks are still traversed ---------------------------------------------
+
+#[test]
+fn unsafe_block_preserves_nested_state_and_effect_observations() {
+    let batch = extract_all("src/lib.rs", STATE_EFFECT_CORPUS);
+    let caller = find_function_identity(&batch, &["impl:Counter"], "unsafe_wrapped").unwrap();
+    let accesses = state_accesses_for(&batch, caller);
+    assert_eq!(accesses.len(), 1);
+    assert_eq!(accesses[0].kind, StateAccessKind::Write);
+    assert_eq!(accesses[0].name, "value");
+    let effects = effects_for(&batch, caller);
+    assert_eq!(effects.len(), 1);
+    assert_eq!(effects[0].category, EffectCategory::Panic);
+}
+
+// --- 68c. partial R4.8 analysis never fabricates verified absence -------------------------------
+
+#[test]
+fn partial_state_effect_dimensions_remain_unknown_with_or_without_observations() {
+    let populated = extract_all("src/lib.rs", STATE_EFFECT_CORPUS);
+    for dimension in [SemanticDimension::State, SemanticDimension::Effect] {
+        let obligation = populated.obligation_for(dimension).unwrap();
+        assert_eq!(obligation.status, EpistemicStatus::Unknown);
+        assert!(!obligation.observation_ids.is_empty());
+        assert!(!obligation.diagnostics.is_empty());
+    }
+
+    let empty = extract(
+        "src/empty.rs",
+        "",
+        vec![SemanticDimension::State, SemanticDimension::Effect],
+    );
+    for dimension in [SemanticDimension::State, SemanticDimension::Effect] {
+        let obligation = empty.obligation_for(dimension).unwrap();
+        assert_eq!(obligation.status, EpistemicStatus::Unknown);
+        assert!(obligation.observation_ids.is_empty());
+        assert!(!obligation.diagnostics.is_empty());
+    }
+}
 // --- 69. every State/Effect observation satisfies dimension consistency, alongside every other
 // dimension this extractor produces -------------------------------------------------------------
 

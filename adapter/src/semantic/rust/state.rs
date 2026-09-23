@@ -9,11 +9,12 @@
 //! access this wave. Module-level `static` reads/writes, and any access not rooted at a bare
 //! `self`, are not modeled this wave -- resolving them would require a source-unit-wide
 //! declaration pre-pass this extractor does not yet perform; a documented gap, not a silent one.
-//! Compound-assignment operators (`self.field += 1`) are represented by this `syn` version as
-//! `syn::Expr::Binary` with a compound `BinOp`, not `syn::Expr::Assign` (the same discovery
-//! R4.7's `dataflow.rs` documents for local bindings) -- they are NOT specially modeled as a Write
-//! here either, so `self.field` on the left of a compound assignment is recorded only as an
-//! ordinary Read via the general expression walk, never as a Write and never silently dropped.
+//! Compound-assignment operators such as `self.field += 1` are represented by syn as
+//! `Expr::Binary` with an assignment BinOp. They are semantically read-modify-write, so this
+//! extractor emits both a Read and a Write at the same operation site. Async/closure/const bodies
+//! remain separate attribution domains this syntax-only wave does not flatten into the enclosing
+//! function; the dimension obligation therefore remains UNKNOWN until those and other documented
+//! gaps are closed.
 
 use atlas_core::{
     EpistemicStatus, EvidenceId, SemanticDimension, SemanticObservation, SemanticRecordHeader,
@@ -25,6 +26,22 @@ use super::ExtractionContext;
 
 /// The field this expression accesses via a bare `self.<field>`, if it is exactly that shape
 /// (not a deeper chain like `self.a.b`, and not a tuple-index field like `self.0`).
+fn is_compound_assignment(op: &syn::BinOp) -> bool {
+    matches!(
+        op,
+        syn::BinOp::AddAssign(_)
+            | syn::BinOp::SubAssign(_)
+            | syn::BinOp::MulAssign(_)
+            | syn::BinOp::DivAssign(_)
+            | syn::BinOp::RemAssign(_)
+            | syn::BinOp::BitXorAssign(_)
+            | syn::BinOp::BitAndAssign(_)
+            | syn::BinOp::BitOrAssign(_)
+            | syn::BinOp::ShlAssign(_)
+            | syn::BinOp::ShrAssign(_)
+    )
+}
+
 fn self_field_ident(field: &syn::ExprField) -> Option<syn::Ident> {
     let syn::Expr::Path(path) = field.base.as_ref() else {
         return None;
@@ -176,13 +193,41 @@ impl<'ctx, 'a> StateWalker<'ctx, 'a> {
                 self.walk_block(&for_loop.body);
             }
             syn::Expr::Binary(binary) => {
-                self.walk_expr(&binary.left);
+                if is_compound_assignment(&binary.op) {
+                    match binary.left.as_ref() {
+                        syn::Expr::Field(field) if self_field_ident(field).is_some() => {
+                            let ident = self_field_ident(field).expect("matched above");
+                            let span = self.ctx.span_of(field);
+                            self.emit_access(
+                                &ident.to_string(),
+                                span.clone(),
+                                StateAccessKind::Read,
+                            );
+                            self.emit_access(&ident.to_string(), span, StateAccessKind::Write);
+                        }
+                        other => self.walk_expr(other),
+                    }
+                } else {
+                    self.walk_expr(&binary.left);
+                }
                 self.walk_expr(&binary.right);
             }
             syn::Expr::Unary(unary) => self.walk_expr(&unary.expr),
             syn::Expr::Paren(paren) => self.walk_expr(&paren.expr),
             syn::Expr::Group(group) => self.walk_expr(&group.expr),
             syn::Expr::Reference(reference) => self.walk_expr(&reference.expr),
+            syn::Expr::RawAddr(raw_addr) => self.walk_expr(&raw_addr.expr),
+            syn::Expr::Unsafe(unsafe_expr) => self.walk_block(&unsafe_expr.block),
+            syn::Expr::TryBlock(try_block) => self.walk_block(&try_block.block),
+            syn::Expr::Repeat(repeat) => {
+                self.walk_expr(&repeat.expr);
+                self.walk_expr(&repeat.len);
+            }
+            syn::Expr::Yield(yield_expr) => {
+                if let Some(value) = &yield_expr.expr {
+                    self.walk_expr(value);
+                }
+            }
             syn::Expr::Index(index) => {
                 self.walk_expr(&index.expr);
                 self.walk_expr(&index.index);
@@ -234,9 +279,10 @@ impl<'ctx, 'a> StateWalker<'ctx, 'a> {
                 }
             }
             syn::Expr::Let(let_expr) => self.walk_expr(&let_expr.expr),
-            // Closures get no state attribution of their own this wave (consistent with
-            // R4.6/R4.7); path/literal/macro/other forms carry no nested `self.field` access this
-            // walker tracks.
+            // Closures, async blocks and const blocks are separate attribution/execution domains
+            // this wave does not flatten into the enclosing function. Macro token bodies and
+            // future non-exhaustive syn variants likewise remain open STATE obligations.
+            syn::Expr::Closure(_) | syn::Expr::Async(_) | syn::Expr::Const(_) => {}
             _ => {}
         }
     }

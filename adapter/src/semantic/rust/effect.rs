@@ -1,12 +1,13 @@
-//! R4.8: real Panic effect-site detection for one function/method body.
+//! R4.8: conservative panic-like effect-site candidates for one function/method body.
 //!
-//! See the module doc comment on `core::semantic::effect` for the exact scope and rationale: only
-//! `EffectCategory::Panic` is materialized this wave, detected purely by a macro invocation's
-//! textual name (`panic!`/`unreachable!`/`todo!`/`unimplemented!`) -- fully syntax-determined, the
-//! same detection R4.6's CFG builder already performs to route a Panic control-flow edge. Unlike
-//! the CFG builder, this walker is not limited to tail/statement positions -- a panic-like macro
-//! anywhere in an expression tree (a condition, a match arm's guard, a nested call argument) is a
-//! real effect site regardless of whether it also happens to end a block.
+//! A textual macro name panic!/unreachable!/todo!/unimplemented! is useful evidence but is not
+//! sufficient to prove the invoked macro resolves to Rust's standard panic behavior: macro
+//! bindings may be shadowed and this extractor performs no macro/name resolution. Such sites are
+//! therefore emitted as EffectCategory::Panic with EpistemicStatus::Inferred, never OBSERVED.
+//! Other effect categories remain unmaterialized until deeper API/type resolution exists.
+//! Unsafe/try/repeat/raw-address/yield expression containers are traversed; closures, async blocks,
+//! const blocks and macro token bodies remain explicit closure gaps, so the EFFECT obligation stays
+//! UNKNOWN even when useful effect observations are present.
 
 use atlas_core::{
     EffectCategory, EffectIdentity, EpistemicStatus, EvidenceId, SemanticDimension,
@@ -59,7 +60,7 @@ impl<'ctx, 'a> EffectWalker<'ctx, 'a> {
         self.ctx.push_evidence(
             &evidence_id,
             format!(
-                "parsed effect {} at {}:{}:{}",
+                "parsed panic-like macro candidate {} at {}:{}:{}",
                 subject.category.as_str(),
                 span.path,
                 span.line,
@@ -69,7 +70,7 @@ impl<'ctx, 'a> EffectWalker<'ctx, 'a> {
         let header = SemanticRecordHeader {
             record_id: record_id.clone(),
             dimension: SemanticDimension::Effect,
-            status: EpistemicStatus::Observed,
+            status: EpistemicStatus::Inferred,
             subject,
             scope: self.scope.clone(),
             repository: self.ctx.input.repository.clone(),
@@ -154,6 +155,18 @@ impl<'ctx, 'a> EffectWalker<'ctx, 'a> {
             syn::Expr::Paren(paren) => self.walk_expr(&paren.expr),
             syn::Expr::Group(group) => self.walk_expr(&group.expr),
             syn::Expr::Reference(reference) => self.walk_expr(&reference.expr),
+            syn::Expr::RawAddr(raw_addr) => self.walk_expr(&raw_addr.expr),
+            syn::Expr::Unsafe(unsafe_expr) => self.walk_block(&unsafe_expr.block),
+            syn::Expr::TryBlock(try_block) => self.walk_block(&try_block.block),
+            syn::Expr::Repeat(repeat) => {
+                self.walk_expr(&repeat.expr);
+                self.walk_expr(&repeat.len);
+            }
+            syn::Expr::Yield(yield_expr) => {
+                if let Some(value) = &yield_expr.expr {
+                    self.walk_expr(value);
+                }
+            }
             syn::Expr::Field(field) => self.walk_expr(&field.base),
             syn::Expr::Index(index) => {
                 self.walk_expr(&index.expr);
@@ -211,18 +224,19 @@ impl<'ctx, 'a> EffectWalker<'ctx, 'a> {
                 }
             }
             syn::Expr::Let(let_expr) => self.walk_expr(&let_expr.expr),
-            // Closures get no effect attribution of their own this wave (consistent with
-            // R4.6/R4.7 -- neither has a FunctionIdentity to attribute records to); path/literal/
-            // other forms carry no nested expressions this walker tracks.
+            // Closures, async blocks and const blocks are separate attribution/execution domains
+            // this wave does not flatten into the enclosing function. Macro token bodies and
+            // future non-exhaustive syn variants remain open EFFECT obligations.
+            syn::Expr::Closure(_) | syn::Expr::Async(_) | syn::Expr::Const(_) => {}
             _ => {}
         }
     }
 }
 
 impl<'a> ExtractionContext<'a> {
-    /// Walks one function/method body, emitting a Panic Effect observation for every
-    /// panic-like macro invocation reachable in it (anywhere in the expression tree, not only tail
-    /// positions). No-op when `EFFECT` was not requested.
+    /// Walks one function/method body, emitting an INFERRED Panic Effect candidate for every
+    /// panic-like macro spelling reachable in expression forms this wave can soundly attribute to
+    /// the enclosing function. No-op when `EFFECT` was not requested.
     pub(super) fn build_effects(
         &mut self,
         body: &syn::Block,

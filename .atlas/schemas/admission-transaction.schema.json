@@ -1,0 +1,108 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:atlas:schema:admission-transaction:v1",
+  "title": "Atlas AdmissionTransaction v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "transaction_id",
+    "parent_repository_revision",
+    "selected_design_ref",
+    "candidate_change_set_ref",
+    "authority_event_ref",
+    "verification_evidence_refs",
+    "recensus_scope",
+    "rollback_plan",
+    "status"
+  ],
+  "properties": {
+    "schema": {
+      "const": "atlas.admission-transaction.v1"
+    },
+    "transaction_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "parent_repository_revision": {
+      "type": "string",
+      "minLength": 1
+    },
+    "self_build_work_order_ref": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "selected_design_ref": {
+      "type": "string",
+      "minLength": 1
+    },
+    "candidate_change_set_ref": {
+      "type": "string",
+      "minLength": 1
+    },
+    "authority_event_ref": {
+      "type": "string",
+      "minLength": 1
+    },
+    "verification_evidence_refs": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true
+    },
+    "expected_semantic_delta_ref": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "observed_semantic_delta_ref": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "recensus_scope": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true
+    },
+    "rollback_plan": {
+      "type": "string",
+      "minLength": 1
+    },
+    "resulting_repository_revision": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "failure_evidence_refs": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true
+    },
+    "status": {
+      "enum": [
+        "PREPARED",
+        "APPLYING",
+        "VERIFYING",
+        "COMMITTED",
+        "ROLLED_BACK",
+        "REJECTED"
+      ]
+    }
+  }
+}

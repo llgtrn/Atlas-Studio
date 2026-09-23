@@ -7,18 +7,11 @@
 //! identity, with operation site, alias/resolution status and transaction/authority boundary when
 //! known."
 //!
-//! Scope this wave (see `adapter::semantic::rust::state` for the extractor): only `TRANSITION`,
-//! `CREATE` and `DELETE` remain unmaterialized -- distinguishing a plain field mutation from a
-//! genuine state-machine transition, or attributing construction/destruction to a specific state
-//! entity, requires semantics beyond syntax (which fields represent a "state machine", RAII drop
-//! timing) that this wave does not fabricate. `StateAccessKind` still declares all five contract
-//! categories so a future wave (or a different extractor) can materialize them without a breaking
-//! enum change; this extractor simply never emits `Transition`/`Create`/`Delete` this wave. A
-//! compound assignment (`self.field += 1`) is also never emitted as `Write` -- the field it
-//! touches is recorded only as an ordinary `Read`, since this extractor's Rust parser represents
-//! compound assignment as `Expr::Binary`, not `Expr::Assign` (see `adapter`'s extractor doc
-//! comment for the exact discovery); never silently dropped, just not distinguished from a plain
-//! read this wave.
+//! Scope this wave: single-level self.<field> READ/WRITE is materialized. Compound assignment is
+//! explicitly read-modify-write and therefore produces both READ and WRITE records at one site.
+//! TRANSITION/CREATE/DELETE, module-level statics, deeper projection identity, closures/async
+//! attribution and other unresolved forms remain open; the Rust extractor consequently keeps the
+//! overall STATE obligation UNKNOWN rather than fabricating verified absence.
 
 use super::SemanticRecordId;
 use crate::identity::RepositoryId;

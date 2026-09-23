@@ -17,6 +17,8 @@ The normative path is:
 ~~~text
 Human/Agent Intent
         ↓
+SelfBuildWorkOrder (when Atlas is improving itself)
+        ↓
 Constraint Envelope
         ↓
 Research / OSS Discovery
@@ -59,9 +61,17 @@ The following machine schemas are normative for the first implementation profile
 - `../schemas/constraint-envelope.schema.json`;
 - `../schemas/provider-receipt.schema.json`;
 - `../schemas/decision-proposal.schema.json`;
-- `../schemas/candidate-change-set.schema.json`.
+- `../schemas/candidate-change-set.schema.json`;
+- `../schemas/self-build-work-order.schema.json`;
+- `../schemas/admission-transaction.schema.json`.
 
 A later implementation may add richer typed Rust/API forms, but those forms MUST preserve these semantic obligations or explicitly version/migrate them.
+
+## Autonomous self-build entrypoint
+
+When the construction target is Atlas itself, autonomous or semi-autonomous work begins with a typed SelfBuildWorkOrder governed by SELF-BUILD-CONTROLLER.md. The controller derives bounded work from the capability-gap graph, roadmap, Genome, evidence and policy; it does not directly generate or admit code.
+
+A conversational/human task may enter directly at C0. A POLICY_AUTO self-build task must carry a valid SelfBuildWorkOrder before research/synthesis begins.
 
 ## Stage C0 — Intent
 
@@ -104,6 +114,8 @@ The envelope MUST include where applicable:
 - ownership/resource requirements;
 - concurrency/order requirements;
 - verification requirements;
+- semantic MetricContract/performance objectives, Workload and VerificationWorld references where applicable;
+- allowed CostModel/optimization policy and empirical-evidence requirements where applicable;
 - completion/unknown policy.
 
 External providers MUST receive the relevant constraint envelope before proposing implementation.
@@ -332,7 +344,10 @@ Possible gates include:
 - dependency closure checks;
 - license/provenance checks;
 - Atlas recensus;
-- regression comparison.
+- regression comparison;
+- VerificationWorld/failure-scenario obligations;
+- scoped metric objectives and empirical observations;
+- analytic CostModel predictions where useful for pruning, kept distinct from measured evidence.
 
 A benchmark winner is not automatically semantically valid.
 
@@ -351,8 +366,9 @@ Atlas may feed typed validation evidence back to:
 
 ~~~text
 candidate
-→ validation result
+→ validation result + semantic metrics
 → structured failure evidence
+→ CostModel/sensitivity/calibration where applicable
 → re-rank / repair / synthesize alternative
 → new CandidateChangeSet
 → census / validate again
@@ -383,6 +399,14 @@ Selection may be:
 
 An external provider may propose. Atlas/policy owns admission.
 
+## Stage C11A — Admission transaction for Atlas self-build
+
+When the selected candidate changes Atlas's own canonical repository/native source, selection is not the mutation boundary. The selected CandidateChangeSet MUST pass the AdmissionTransaction contract in ADMISSION-TRANSACTION.md.
+
+The transaction pins the exact parent revision, applies the candidate in isolation, reruns invalidated gates, recensuses the exact applied tree, compares expected versus observed semantic delta, and either commits one resulting canonical revision or rolls back with durable failure evidence.
+
+POLICY_AUTO selection does not imply unrestricted repository writes; the SelfBuildWorkOrder and admission policy must authorize the exact mutation class.
+
 ## Stage C12 — Logical Atlas seal
 
 Only after selection and closure may Atlas seal the logical Atlas.
@@ -403,7 +427,8 @@ The SEALED logical Atlas MUST preserve enough information to explain and reprodu
 - tests/benchmarks/proofs;
 - conflicts/unknowns permitted by policy;
 - Genome/schema/version pins;
-- CensusCertificate.
+- CensusCertificate;
+- SelfBuildWorkOrder and committed AdmissionTransaction lineage when the logical Atlas represents an admitted self-build revision.
 
 The logical Atlas is already complete engineering meaning before physical compaction starts.
 

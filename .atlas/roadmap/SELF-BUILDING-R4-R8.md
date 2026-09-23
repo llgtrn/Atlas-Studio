@@ -229,21 +229,29 @@ Materialize DATA_FLOW:
 
 Do not claim compiler-complete alias analysis unless actually evidenced.
 
-### R4.8 — State and Effect
+### R4.8 — State and Effect — bootstrap materialized, closure remains open
 
-Materialize STATE and EFFECT:
+Canonical main now has a useful R4.8 bootstrap: single-level self.field READ/WRITE extraction, compound-assignment read-modify-write hardening, and conservative panic-like macro candidates. This is not R4.8 semantic closure.
+
+Until deeper resolution exists:
+
+- STATE/EFFECT observations may be emitted while the dimension obligation remains UNKNOWN;
+- zero observations in a partially covered STATE/EFFECT dimension are not verified absence;
+- a textual panic-like macro spelling is INFERRED unless macro/name resolution proves the actual panic effect;
+- closures/async/const attribution and unmodeled state forms remain explicit gaps.
+
+R4.8 closure still requires materializing/accounting:
 
 - state identities;
-- reads;
-- writes;
-- transitions;
+- reads and writes;
+- transitions/create/delete where applicable;
 - externally observable effects;
 - filesystem/network/process/FFI/build/runtime interactions where applicable;
 - failure effects;
-- explicit unknown/dynamic behavior.
+- explicit unknown/dynamic behavior;
+- closure evidence sufficient to justify any verified negative fact.
 
-This is the minimum point at which many donor mechanisms become semantically useful for absorption because Atlas can connect implementation behavior to state change and external effect.
-
+This is the minimum point at which many donor mechanisms become semantically useful for absorption because Atlas can connect implementation behavior to state change and external effect, but the closure claim remains profile-scoped and evidence-gated.
 ### R4.9 — Ownership and Resource Semantics
 
 Materialize OWNERSHIP at the level required for reliable census:
@@ -351,15 +359,34 @@ R6 does not mean "choose a winner whenever extractors disagree." Conflict remain
 
 R6 is the first point at which Atlas can make strong proof-producing statements that a declared census scope is closed for a declared policy/profile.
 
-## R7 — research, typed decision, synthesis and absorption selection
+## VP1 — verification, metrics and performance semantics (cross-cutting R6→R8)
 
-R7 connects observed donor reality to research and Human+AI design decisions without allowing research/model claims to impersonate observation.
+Before the mature autonomous creation loop may be claimed, Atlas must make verification/measurement first-class under ../contracts/VERIFICATION-METRICS-PERFORMANCE.md.
+
+VP1 includes, at the contract/runtime maturity appropriate to the active wave:
+
+- Obligation distinct from Test/Evidence;
+- MetricContract distinct from Observation and Objective;
+- Workload and VerificationWorld/EnvironmentGraph;
+- failure scenarios;
+- semantic verification plans capable of CI/compose-grade system tests without making a vendor/config format canonical;
+- TheoreticalCost / PredictedPerformance / EmpiricalObservation separation;
+- CostModel, uncertainty and calibration;
+- multi-objective optimization/search as replaceable solver backends;
+- seal/admission policies that bind claims to exact workload/environment/evidence scope.
+
+Analytic models may prune candidate space. Final performance claims remain evidence-scoped.
+## R7 — research, typed decision, synthesis, self-build control and admission
+
+R7 connects observed donor reality to research and Human+AI design decisions without allowing research/model claims to impersonate observation. R7 is also the first maturity level at which Atlas may run a complete bounded self-coding loop.
 
 Required capabilities:
 
 - ResearchClaim distinct from ObservedEvidence;
 - Technology Genome comparison;
 - Atlas capability-gap graph;
+- SelfBuildController governed by ../contracts/SELF-BUILD-CONTROLLER.md;
+- typed SelfBuildWorkOrder records that pin parent revision, scope, authority and gates;
 - Human/AI typed intent and constraint envelopes;
 - research-provider integration over Atlas knowledge + OSS + external references;
 - candidate mechanism/design records;
@@ -369,18 +396,23 @@ Required capabilities:
 - external synthesis/code providers producing real candidate implementation;
 - generated implementation ingested and censused as untrusted source;
 - declared generated intent compared with observed generated semantics;
-- security/dependency/license/test/benchmark/proof gates;
+- security/dependency/license/test/benchmark/proof and VP1 gates;
 - explicit Human/Policy/Hybrid selection authority;
+- AdmissionTransaction governed by ../contracts/ADMISSION-TRANSACTION.md for canonical Atlas source mutation;
+- post-apply recensus and expected-vs-observed semantic-delta verification;
 - evidence-linked absorption and blueprint-revision decisions.
 
 Normative contracts:
 
-- `../contracts/HUMAN-AI-ADL-AUTHORING.md`;
-- `../contracts/ATLAS-CREATION-PIPELINE.md`;
-- `../contracts/EXTERNAL-PROVIDER-TRUST.md`;
-- `../contracts/SELECTED-DESIGN.md`.
+- ../contracts/HUMAN-AI-ADL-AUTHORING.md;
+- ../contracts/ATLAS-CREATION-PIPELINE.md;
+- ../contracts/EXTERNAL-PROVIDER-TRUST.md;
+- ../contracts/SELECTED-DESIGN.md;
+- ../contracts/SELF-BUILD-CONTROLLER.md;
+- ../contracts/ADMISSION-TRANSACTION.md;
+- ../contracts/VERIFICATION-METRICS-PERFORMANCE.md.
 
-Primary donor lane: W5 — openrewrite, c2rust, crubit, py2many — plus explicitly admitted research/decision/synthesis provider adapters.
+Primary donor lane: W5 — openrewrite, c2rust, crubit, py2many — plus explicitly admitted research/decision/synthesis/verification provider adapters.
 
 R7 MUST preserve:
 
@@ -391,12 +423,12 @@ Observed implementation
 ≠ CandidateDesign
 ≠ CandidateChangeSet
 ≠ SelectedDesign
+≠ AdmissionTransaction
 ~~~
 
-A fast decision provider may reduce search cost. A synthesis provider may write real candidate code. Neither is canonical truth.
+A fast decision provider may reduce search cost. A synthesis provider may write real candidate code. Neither is canonical truth. A SelectedDesign is still not a canonical repository mutation until its AdmissionTransaction commits and the exact resulting tree passes recensus/verification.
 
 No research page, paper, search result, model answer, provider score or README directly upgrades a donor/generated implementation claim to OBSERVED.
-
 ## R8 — durable ATLAS / AtlasX substrate
 
 R8 implements the durable semantic/evidence carrier required for Atlas knowledge to outlive donor checkout deletion at scale and makes the Atlas→AtlasX handoff implementable without hidden design invention.
@@ -426,6 +458,29 @@ Primary donor lane: W6 — flatbuffers, arrow, zstd, blake3, object, regalloc2, 
 R8 does not authorize mechanical donor translation. It provides the durable Atlas-native carrier and deterministic executable projection needed for source-independent continuation.
 
 The R8 storage/materialization blueprint is explicitly revisable if census demonstrates a better mechanism, but revision must follow `../contracts/BLUEPRINT-EVOLUTION.md`.
+
+## Mature self-building acceptance loop
+
+Atlas may claim a mature bounded self-building loop only when the following exact cycle is executable without hidden manual semantic invention:
+
+~~~text
+self-census / closure / metrics
+→ capability gap
+→ SelfBuildWorkOrder
+→ research / donor census
+→ candidate set / typed decision
+→ synthesis CandidateChangeSet
+→ untrusted census
+→ verification / benchmark / proof
+→ authorized SelectedDesign
+→ AdmissionTransaction
+→ exact applied-tree recensus
+→ admitted Atlas revision
+→ recompute gaps
+↺
+~~~
+
+R8 then makes the selected semantics/evidence durable as Atlas/AtlasX; it does not replace the admission boundary.
 
 ## Human-AI creation maturity rule
 

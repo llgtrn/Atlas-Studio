@@ -24,11 +24,14 @@
 //! (see `dataflow.rs`) ARE computed -- `ControlFlowEdgeKind::Unresolved`/`DataFlowResolution::
 //! Unresolved` are used only for genuinely ambiguous/out-of-local-scope cases, never as a blanket
 //! default. STATE (R4.8, see `state.rs`) is narrowly scoped to single-level `self.<field>`
-//! read/write -- also syntax-determined, not resolved. EFFECT (R4.8, see `effect.rs`) is narrowly
-//! scoped to `Panic`, detected by a macro invocation's textual name alone; every other
-//! `EffectCategory` would require resolving an overloaded call to a specific known API, which this
-//! extractor cannot do without fabricating semantics, so none of them are emitted this wave. A
-//! malformed file never silently disappears: parse failure yields a `ParseFailure` diagnostic plus
+//! read/write, including the read+write semantics of compound assignment. EFFECT (R4.8, see
+//! `effect.rs`) recognizes panic-like macro spellings as INFERRED candidates rather than
+//! OBSERVED panic effects because textual macro names can be shadowed and this extractor does not
+//! perform macro/name resolution. Every other `EffectCategory` likewise requires deeper
+//! resolution. STATE/EFFECT preserve useful observations while their per-dimension obligation
+//! remains UNKNOWN until the declared R4.8 profile has real closure; zero observations are never
+//! misreported as verified absence. A malformed file never silently disappears: parse failure
+//! yields a `ParseFailure` diagnostic plus
 //! explicit `UNKNOWN` for all supported dimensions, with the artifact still represented.
 
 mod cfg;
@@ -66,6 +69,11 @@ pub const SUPPORTED_DIMENSIONS: &[SemanticDimension] = &[
     SemanticDimension::State,
     SemanticDimension::Effect,
 ];
+
+/// Useful facts are emitted for these dimensions, but this extractor does not yet prove exhaustive
+/// closure over their full canonical contracts.
+const PARTIAL_CLOSURE_DIMENSIONS: &[SemanticDimension] =
+    &[SemanticDimension::State, SemanticDimension::Effect];
 
 #[derive(Debug, Default)]
 pub struct RustSemanticExtractor;
@@ -975,14 +983,38 @@ impl<'a> ExtractionContext<'a> {
         let mut obligations = Vec::with_capacity(self.input.requested_dimensions.len());
         for &dimension in &self.input.requested_dimensions {
             if SUPPORTED_DIMENSIONS.contains(&dimension) {
-                match self.dimension_records.remove(&dimension) {
+                let records = self.dimension_records.remove(&dimension);
+                if PARTIAL_CLOSURE_DIMENSIONS.contains(&dimension) {
+                    let diagnostic = ExtractionDiagnostic::new(
+                        DiagnosticCode::IncompleteAnalysis,
+                        Some(dimension),
+                        format!(
+                            "{} currently has partial {} coverage for {}; emitted observations are valid, but absence of unmodeled forms is not proven",
+                            RUST_SEMANTIC_EXTRACTOR_ID,
+                            dimension.as_str(),
+                            self.input.artifact_path
+                        ),
+                    );
+                    let diagnostic_id = diagnostic.id.clone();
+                    self.diagnostics.push(diagnostic);
+                    match records {
+                        Some((ids, refs)) => obligations.push(
+                            ObligationResult::unknown_with_observations(
+                                dimension, ids, refs, diagnostic_id,
+                            ),
+                        ),
+                        None => obligations.push(ObligationResult::unknown(
+                            dimension, diagnostic_id,
+                        )),
+                    }
+                    continue;
+                }
+
+                match records {
                     Some((ids, refs)) => {
                         obligations.push(ObligationResult::observed(dimension, ids, refs))
                     }
                     None => {
-                        // Verified absence: the file parsed successfully (an exhaustive scan) and
-                        // simply declares nothing of this kind. OBSERVED with zero observation_ids
-                        // but a non-empty evidence_ref, never a bare "not found".
                         let evidence_id = EvidenceId::new(stable_id(
                             "evidence",
                             &format!(
@@ -1000,9 +1032,7 @@ impl<'a> ExtractionContext<'a> {
                             ),
                         );
                         obligations.push(ObligationResult::observed(
-                            dimension,
-                            Vec::new(),
-                            vec![evidence_id],
+                            dimension, Vec::new(), vec![evidence_id],
                         ));
                     }
                 }

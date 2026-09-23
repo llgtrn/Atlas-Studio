@@ -305,6 +305,12 @@ A design coordinate MUST declare one of:
 
 No provider may silently decide its own authority class.
 
+## Autonomous self-build is policy-bounded
+
+When Atlas initiates its own next engineering task, SELF-BUILD-CONTROLLER.md governs capability-gap selection and emits a SelfBuildWorkOrder. External AI still participates only through typed provider roles. A successful SelectedDesign becomes canonical source only through ADMISSION-TRANSACTION.md.
+
+Metrics, VerificationWorld evidence, FailureScenario results and CostModel predictions may guide candidate search under VERIFICATION-METRICS-PERFORMANCE.md. Prediction never substitutes for required empirical evidence.
+
 ## Semantic diffs over text diffs
 
 Human/AI review SHOULD prioritize semantic diffs:

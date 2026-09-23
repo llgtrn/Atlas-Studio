@@ -65,7 +65,7 @@ Current materialized baseline is R4.5.
 - **R4.5 — Call Semantics — materialized:** real Rust function/method-body call sites flow through canonical Census/Normalization; caller identity is observed while unresolved callees remain explicitly unresolved rather than fabricated.
 - **R4.6 — Control Flow:** deterministic basic blocks, branch/loop/return/failure flow.
 - **R4.7 — Data Flow:** values, definitions/uses, parameter/result flow, loads/stores and explicit ambiguity.
-- **R4.8 — State + Effect:** state reads/writes/transitions and external effects.
+- **R4.8 — State + Effect:** bootstrap materialized, closure open; partial STATE/EFFECT facts remain useful but dimension obligations stay UNKNOWN until unmodeled state/effect forms and resolution gaps are closed. Compound assignment is read+write; textual panic-like macros are inferred until resolved.
 - **R4.9 — Ownership / Resource Semantics:** borrow/move/copy and resource acquisition/transfer/release where evidenced.
 - **R4.10 — Concurrency:** tasks/threads/channels/locks/atomics/synchronization and concurrent state interaction.
 - **R4.11 — Persistence / Recovery:** durable writes, transactions, logs/checkpoints/recovery and failure ordering where applicable.
@@ -93,11 +93,15 @@ Keep ResearchClaim distinct from ObservedEvidence while adding the mature Human+
 - research providers over Atlas knowledge, admitted OSS and external references;
 - multiple candidate mechanisms;
 - typed Jev-class decision proposals for rank/score/route decisions;
+- SelfBuildController + typed SelfBuildWorkOrder derived from capability gaps;
 - external synthesis/code providers;
 - CandidateChangeSet;
 - generated-code census as untrusted source;
 - security/dependency/license/test/benchmark/proof admission;
 - explicit Human/Policy/Hybrid SelectedDesign authority;
+- AdmissionTransaction for exact-parent, atomic, rollbackable canonical self-modification;
+- post-apply recensus and semantic-delta verification;
+- semantic metrics / VerificationWorld / failure scenarios / CostModel feedback under the verification-performance contract;
 - ProviderReceipt lineage;
 - evidence-linked absorption/blueprint revision.
 
@@ -175,7 +179,7 @@ mechanical deterministic compaction
 
 Search/research may feel like a research assistant; fast typed selection may use a Jev-class provider; code synthesis may use frontier external providers. These are replaceable adapters and do not own canonical semantics.
 
-This lane is governed by `../contracts/HUMAN-AI-ADL-AUTHORING.md`, `../contracts/ATLAS-CREATION-PIPELINE.md` and `../contracts/EXTERNAL-PROVIDER-TRUST.md`.
+This lane is governed by `../contracts/HUMAN-AI-ADL-AUTHORING.md`, `../contracts/ATLAS-CREATION-PIPELINE.md`, `../contracts/EXTERNAL-PROVIDER-TRUST.md`, `../contracts/SELF-BUILD-CONTROLLER.md`, `../contracts/ADMISSION-TRANSACTION.md` and `../contracts/VERIFICATION-METRICS-PERFORMANCE.md`.
 
 ## Language Genesis lane — after typed census semantics are trustworthy
 

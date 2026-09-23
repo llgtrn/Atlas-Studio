@@ -249,11 +249,17 @@ update discoveries / Technology Genomes / decisions
   ↓
 deep-census selected ABSORB_NOW mechanisms
   ↓
-implement Atlas-native capability
+SelfBuildWorkOrder / candidate mechanism set where R7 self-build is active
+  ↓
+synthesize or implement Atlas-native candidate
   ↓
 verify + benchmark/prove where applicable
   ↓
-re-census Atlas implementation
+SelectedDesign
+  ↓
+AdmissionTransaction when canonical Atlas source changes
+  ↓
+re-census exact admitted Atlas implementation
   ↓
 ABSORBED
   ↓
@@ -279,7 +285,7 @@ Do not confuse Atlas maturity with donor lanes.
 | R4 + DC1 | W0, W1, W2 | dependency breadth, source intelligence, semantic/compiler understanding |
 | R5 | W3 | incremental query, fixed point, build/dependency reasoning |
 | R6 | W4 where relevant | verification/safety evidence for closure |
-| R7 | W5 | transformation/migration and evidence-linked selection |
+| R7 | W5 | transformation/migration, self-build work orders, synthesis, evidence-linked selection and admission |
 | R8 | W6 | durable ATLAS/storage/data/backend knowledge carrier |
 | later/default | W7 | security/trust, unless a bounded prerequisite is pulled forward |
 | later/default | W8 | Studio/editor projection, unless a bounded prerequisite is pulled forward |

@@ -58,7 +58,7 @@ HYBRID
 
 `HUMAN_REQUIRED` requires an authorized human selection event.
 
-`POLICY_AUTO` allows automatic selection only inside an explicit bounded policy envelope after all mandatory semantic/security/dependency/license/verification gates pass.
+`POLICY_AUTO` allows automatic selection only inside an explicit bounded policy envelope after all mandatory semantic/security/dependency/license/verification gates pass. For Atlas self-build, POLICY_AUTO also requires a bounded SelfBuildWorkOrder and does not itself authorize repository mutation; canonical source changes still require AdmissionTransaction.
 
 `HYBRID` allows automated research/ranking/synthesis but requires human confirmation for final selection.
 
@@ -106,6 +106,8 @@ A canonical SelectedDesign MUST contain at least:
 - target/ABI constraints known at design time;
 - allowed profile variation;
 - required tests/proofs/benchmarks;
+- semantic metric objectives, workload/environment scope and failure scenarios where design-significant;
+- required empirical evidence and any admitted analytic CostModel constraints where performance is a selection criterion;
 - unresolved items explicitly permitted at runtime;
 - evidence references;
 - CandidateChangeSet references for selected generated implementation where applicable;
@@ -117,6 +119,10 @@ A canonical SelectedDesign MUST contain at least:
 - supersedes/superseded-by lineage when applicable.
 
 No executable-significant field may be implicit.
+
+## Selection is not repository mutation
+
+For Atlas self-building, a SelectedDesign records the authorized design choice but does not apply a CandidateChangeSet to canonical source. The exact source transition is governed by ADMISSION-TRANSACTION.md and must be re-observed after application. A selected candidate that fails post-apply recensus/verification never becomes an admitted Atlas revision.
 
 ## Stable design identity
 

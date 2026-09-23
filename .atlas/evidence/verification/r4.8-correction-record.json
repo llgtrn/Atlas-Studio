@@ -1,0 +1,21 @@
+{
+  "schema": "atlas.r4.verification-correction.v1",
+  "wave": "R4.8",
+  "corrects_record": ".atlas/evidence/verification/r4.8-verification-record.json",
+  "base_merge_commit": "bb6bb013075d41b34c8dde8b1f199c65fe26caca",
+  "correction_kind": "CLOSURE_INTERPRETATION_AND_EPISTEMIC_HARDENING",
+  "reason": [
+    "The prior record correctly verified the implemented bootstrap mechanics but overstated canonical R4.8 closure.",
+    "STATE/EFFECT coverage is partial, so zero observations cannot establish verified absence for the full dimension.",
+    "Compound assignment is semantically read-modify-write and must emit both READ and WRITE.",
+    "A panic-like macro textual name is insufficient to prove actual Panic effect without macro/name resolution."
+  ],
+  "new_interpretation": "R4.8 bootstrap materialized; R4.8 closure remains open and profile-scoped.",
+  "required_runtime_invariants": [
+    "partial STATE/EFFECT observations survive while obligation status remains UNKNOWN",
+    "compound assignment emits READ and WRITE",
+    "panic-like textual macros are INFERRED rather than OBSERVED",
+    "nested unsafe expression blocks are traversed"
+  ],
+  "historical_evidence_retained": true
+}

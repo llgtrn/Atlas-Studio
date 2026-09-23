@@ -20,7 +20,10 @@ use super::extractor::ExtractionDiagnostic;
 /// - `status = Observed`, `observation_ids` non-empty: evidence-backed observation(s).
 /// - `status = Observed`, `observation_ids` empty, `evidence_refs` non-empty: verified absence —
 ///   the obligation set was exhaustively checked and found nothing (never bare "not found").
-/// - `status = Unknown`: evidence was insufficient to answer the obligation.
+/// - `status = Unknown`, `observation_ids` empty: evidence was insufficient to answer the obligation.
+/// - `status = Unknown`, `observation_ids` non-empty: partial evidence exists, but the extractor
+///   cannot prove closure over the full declared dimension; observations remain durable without
+///   being misrepresented as exhaustive coverage.
 /// - `status = Unsupported`: this extractor/runtime cannot evaluate the dimension yet.
 /// - `status = Ignored`: explicit policy exclusion (see `scope_policy` on `ExtractionInput`).
 /// - `status = Conflict`: multiple incompatible candidate observations remain in `observation_ids`;
@@ -51,6 +54,24 @@ impl ObligationResult {
             status: EpistemicStatus::Unknown,
             observation_ids: Vec::new(),
             evidence_refs: Vec::new(),
+            diagnostics: vec![diagnostic_id.into()],
+        }
+    }
+
+    /// Partial evidence with an explicitly open obligation. This is the correct shape when an
+    /// extractor can observe some facts in a dimension but cannot prove exhaustive closure over
+    /// all fact families promised by that dimension.
+    pub fn unknown_with_observations(
+        dimension: SemanticDimension,
+        observation_ids: Vec<SemanticRecordId>,
+        evidence_refs: Vec<EvidenceId>,
+        diagnostic_id: impl Into<String>,
+    ) -> Self {
+        Self {
+            dimension,
+            status: EpistemicStatus::Unknown,
+            observation_ids,
+            evidence_refs,
             diagnostics: vec![diagnostic_id.into()],
         }
     }
