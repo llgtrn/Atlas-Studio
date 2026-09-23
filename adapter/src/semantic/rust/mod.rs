@@ -65,8 +65,8 @@ use super::extractor::{DiagnosticCode, ExtractionDiagnostic, ExtractionInput, Se
 pub const RUST_SEMANTIC_EXTRACTOR_ID: &str = "atlas.rust.source-semantic.v1";
 pub const RUST_SEMANTIC_EXTRACTOR_VERSION: &str = "0.1.0";
 
-/// Exactly the ten dimensions this wave observes from parser-visible syntax. Every other
-/// `SemanticDimension` is out of scope through R4.9 and always answered `UNSUPPORTED`.
+/// Exactly the eleven dimensions this wave observes from parser-visible syntax. Every other
+/// `SemanticDimension` is out of scope through R4.10 and always answered `UNSUPPORTED`.
 pub const SUPPORTED_DIMENSIONS: &[SemanticDimension] = &[
     SemanticDimension::Symbol,
     SemanticDimension::Type,
@@ -1048,7 +1048,9 @@ impl<'a> ExtractionContext<'a> {
                             ),
                         );
                         obligations.push(ObligationResult::observed(
-                            dimension, Vec::new(), vec![evidence_id],
+                            dimension,
+                            Vec::new(),
+                            vec![evidence_id],
                         ));
                     }
                 }
