@@ -35,6 +35,9 @@ Genome MUST define:
 - optimization freedoms and semantic barriers;
 - verification/recensus/product-evidence requirements;
 - donor absorption/extinction rules;
+- recursive self-census generation and stable-validator policy;
+- bounded scenario-frontier and multi-generation convergence policy;
+- isolated extinction-probe and total donor-source extinction criteria;
 - cross-repository federation/security boundaries.
 
 ## Completeness principle
@@ -82,6 +85,14 @@ Genome MUST ensure:
 - canonical post-seal compaction is mechanical.
 
 The machine-readable hard requirements live in `.atlas/genome/atlas.genome.toml`.
+
+## Recursive self-build principle
+
+When automated self-building is enabled, policy MUST satisfy `RECURSIVE-SELF-CENSUS.md`.
+
+Unattended POLICY_AUTO recursion must preserve a stable admitted validator separate from the candidate, prohibit candidate self-analysis as sole promotion authority, require post-promotion recensus, bind a finite evidence-linked scenario frontier, require at least two clean promoted generations for convergence, and require isolated donor-disappearance proof before extinction.
+
+A policy change to these rules changes Genome identity and recensus impact.
 
 ## Determinism
 
