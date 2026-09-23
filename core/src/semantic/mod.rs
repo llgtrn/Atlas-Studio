@@ -15,6 +15,7 @@ pub mod function;
 pub mod obligation;
 pub mod observation;
 pub mod ownership;
+pub mod persistence;
 pub mod state;
 pub mod symbol;
 pub mod types;
@@ -33,6 +34,7 @@ pub use function::{
 pub use obligation::SemanticObligationRecord;
 pub use observation::SemanticObservation;
 pub use ownership::{OwnershipIdentity, OwnershipKind, OwnershipResolution};
+pub use persistence::{PersistenceIdentity, PersistenceKind, PersistenceResolution, PlaceRef};
 pub use state::{StateAccessIdentity, StateAccessKind, StateResolution};
 pub use symbol::{SymbolIdentity, SymbolRole};
 pub use types::TypeIdentity;

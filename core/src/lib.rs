@@ -47,10 +47,11 @@ pub use semantic::{
     ControlFlowBlockIdentity, ControlFlowBlockKind, ControlFlowEdge, ControlFlowEdgeKind,
     DataFlowResolution, DiagnosticCode, EffectCategory, EffectIdentity, ExtractionDiagnostic,
     ExtractorIdentity, FunctionDeclarationKind, FunctionIdentity, FunctionOwner, FunctionParameter,
-    FunctionSignature, OwnershipIdentity, OwnershipKind, OwnershipResolution, SemanticDimension,
-    SemanticObligationRecord, SemanticObservation, SemanticRecordHeader, SemanticRecordId,
-    SemanticScope, StateAccessIdentity, StateAccessKind, StateResolution, SymbolIdentity,
-    SymbolRole, TypeIdentity, ValueIdentity, ValueRole,
+    FunctionSignature, OwnershipIdentity, OwnershipKind, OwnershipResolution, PersistenceIdentity,
+    PersistenceKind, PersistenceResolution, PlaceRef, SemanticDimension, SemanticObligationRecord,
+    SemanticObservation, SemanticRecordHeader, SemanticRecordId, SemanticScope,
+    StateAccessIdentity, StateAccessKind, StateResolution, SymbolIdentity, SymbolRole,
+    TypeIdentity, ValueIdentity, ValueRole,
 };
 pub use state::RepositorySnapshot;
 pub use temporal::RevisionRef;
