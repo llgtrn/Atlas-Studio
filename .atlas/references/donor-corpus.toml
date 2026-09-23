@@ -630,7 +630,7 @@ census_status = "COARSE_CENSUSED"
 decision_status = "APPROVED_COMPILER_BINARY_LANE"
 native_replacement = "core identity/content-addressed hash strategy and shard integrity evidence"
 runtime_dependency_status = "REFERENCE_ONLY"
-evidence = [".atlas/provenance/donors/blake3.json", ".atlas/census/donors/blake3.md"]
+evidence = [".atlas/provenance/donors/blake3.json", ".atlas/census/donors/blake3.md", ".atlas/genome/technology/blake3-content-addressing.md"]
 
 [[donor]]
 id = "rust"

@@ -15,7 +15,7 @@ canonical: true
 - Branch: main
 - Retrieved: 2026-09-21T03:00:34.9575636Z
 - Staging mode: FULL_SOURCE_TREE
-- Clone path: .atlas/temporary/object
+- Clone path: .atlas/temporary/donors/object (corrected -- this record previously said `.atlas/temporary/object`, which does not exist; verified against the real filesystem)
 
 ## Coarse Inventory
 

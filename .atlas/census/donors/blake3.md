@@ -15,7 +15,9 @@ canonical: true
 - Branch: master
 - Retrieved: 2026-09-21T03:00:34.9575636Z
 - Staging mode: FULL_SOURCE_TREE
-- Clone path: .atlas/temporary/blake3
+- Clone path: .atlas/temporary/donors/blake3 (corrected -- this record previously said
+  `.atlas/temporary/blake3`, which does not exist; verified against the real filesystem while
+  building `.atlas/genome/technology/blake3-content-addressing.md`)
 
 ## Coarse Inventory
 

@@ -15,7 +15,7 @@ canonical: true
 - Branch: dev
 - Retrieved: 2026-09-21T03:00:34.9575636Z
 - Staging mode: FULL_SOURCE_TREE
-- Clone path: .atlas/temporary/zstd
+- Clone path: .atlas/temporary/donors/zstd (corrected -- this record previously said `.atlas/temporary/zstd`, which does not exist; verified against the real filesystem)
 
 ## Coarse Inventory
 
