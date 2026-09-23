@@ -57,9 +57,10 @@ fn function_signature_summary(signature: &FunctionSignature) -> String {
 
 /// Projects one real typed `SemanticObservation` (produced by a `SemanticExtractor`, never
 /// invented here) into the bootstrap `SemanticFact` triple envelope that `normalize`/graph
-/// construction already consume. `None` for dimensions with no typed kernel record and no
-/// extractor producing them yet (CALL/CONTROL_FLOW/DATA_FLOW/STATE/EFFECT/OWNERSHIP/CONCURRENCY --
-/// R4.4+): there is nothing to project because nothing was observed.
+/// construction already consume. `None` for dimensions that already have a typed kernel/extractor
+/// (CALL/CONTROL_FLOW/DATA_FLOW/STATE/EFFECT/OWNERSHIP/CONCURRENCY/PERSISTENCE -- R4.4+): the typed
+/// `SemanticObservation` variant itself is the canonical record; this bootstrap compatibility
+/// envelope was never extended to cover them and there is no reason to start now.
 ///
 /// This is a lossy compatibility projection, not a second source of truth: the typed
 /// `SemanticObservation` (retrievable from the `ExtractionBatch`es a caller passed to
@@ -118,7 +119,8 @@ fn semantic_observation_fact(observation: &SemanticObservation) -> Option<Semant
         | SemanticObservation::State(_)
         | SemanticObservation::Effect(_)
         | SemanticObservation::Ownership(_)
-        | SemanticObservation::Concurrency(_) => None,
+        | SemanticObservation::Concurrency(_)
+        | SemanticObservation::Persistence(_) => None,
     }
 }
 
@@ -866,7 +868,7 @@ mod tests {
         evidence_summary: &str,
     ) -> ExtractionBatch {
         use atlas_core::{
-            CallDispatchKind, CallSiteIdentity, Evidence, EvidenceId, RepositoryId,
+            CallDispatchKind, CallSiteIdentity, Evidence, EvidenceId, PlaceRef, RepositoryId,
             SemanticRecordHeader, SemanticRecordId, provenance,
         };
 
@@ -892,6 +894,8 @@ mod tests {
             },
             dispatch: CallDispatchKind::Unresolved,
             callees: Vec::new(),
+            arguments: Vec::new(),
+            result: PlaceRef::Unresolved,
         };
         let record_id = SemanticRecordId::new(SemanticDimension::Call, &subject.identity_key());
         let evidence_id = EvidenceId::new(evidence_id.to_owned());
@@ -1258,8 +1262,8 @@ mod tests {
         evidence_summary: &str,
     ) -> ExtractionBatch {
         use atlas_core::{
-            Evidence, EvidenceId, OwnershipIdentity, OwnershipKind, RepositoryId,
-            SemanticRecordHeader, SemanticRecordId, provenance,
+            Evidence, EvidenceId, OwnershipIdentity, OwnershipKind, OwnershipResolution,
+            RepositoryId, SemanticRecordHeader, SemanticRecordId, provenance,
         };
 
         let repository = RepositoryId::new("atlas-studio");
@@ -1284,6 +1288,7 @@ mod tests {
                 column: 5,
             },
             kind: OwnershipKind::BorrowShared,
+            resolution: OwnershipResolution::Resolved,
         };
         let record_id =
             SemanticRecordId::new(SemanticDimension::Ownership, &subject.identity_key());
@@ -1395,6 +1400,83 @@ mod tests {
                 SemanticDimension::Concurrency,
                 vec![record_id],
                 vec![evidence_id],
+            )],
+            diagnostics: Vec::new(),
+        }
+    }
+
+    fn extraction_batch_with_persistence_from(
+        artifact_path: &str,
+        extractor_id: &str,
+        evidence_id: &str,
+        evidence_summary: &str,
+    ) -> ExtractionBatch {
+        use atlas_core::{
+            Evidence, EvidenceId, PersistenceIdentity, PersistenceKind, PersistenceResolution,
+            PlaceRef, RepositoryId, SemanticRecordHeader, SemanticRecordId, provenance,
+        };
+
+        let repository = RepositoryId::new("atlas-studio");
+        let revision = atlas_core::RevisionRef {
+            kind: "git".into(),
+            value: "abc123".into(),
+        };
+        let extractor = ExtractorIdentity {
+            id: extractor_id.into(),
+            version: "0.1.0".into(),
+        };
+        let scope = SemanticScope::new(Vec::<String>::new());
+        let function = SemanticRecordId::new(SemanticDimension::FunctionIdentity, "owner-fn-key");
+        let subject = PersistenceIdentity {
+            repository: repository.clone(),
+            revision: revision.clone(),
+            function,
+            kind: PersistenceKind::Commit,
+            span: atlas_core::SourceSpan {
+                path: artifact_path.into(),
+                line: 3,
+                column: 5,
+            },
+            place: PlaceRef::Unresolved,
+            resolution: PersistenceResolution::Unresolved,
+        };
+        let record_id =
+            SemanticRecordId::new(SemanticDimension::Persistence, &subject.identity_key());
+        let evidence_id = EvidenceId::new(evidence_id.to_owned());
+        let header = SemanticRecordHeader {
+            record_id: record_id.clone(),
+            dimension: SemanticDimension::Persistence,
+            status: EpistemicStatus::Inferred,
+            scope,
+            repository: repository.clone(),
+            revision: revision.clone(),
+            extractor: extractor.clone(),
+            evidence_refs: vec![evidence_id.clone()],
+            provenance: provenance(artifact_path, &extractor.id),
+            subject,
+        };
+        let observation = SemanticObservation::Persistence(header);
+        assert!(observation.is_dimension_consistent());
+
+        ExtractionBatch {
+            extractor,
+            repository,
+            revision,
+            artifact: ArtifactId::new(format!("artifact:{artifact_path}")),
+            input_fingerprint: format!("test:{artifact_path}"),
+            observations: vec![observation],
+            evidence: vec![Evidence {
+                id: evidence_id.as_str().to_owned(),
+                kind: "PARSER_OUTPUT".into(),
+                path: artifact_path.into(),
+                summary: evidence_summary.into(),
+                revision: None,
+            }],
+            obligations: vec![ObligationResult::unknown_with_observations(
+                SemanticDimension::Persistence,
+                vec![record_id],
+                vec![evidence_id],
+                "diagnostic:test-persistence-partial-coverage",
             )],
             diagnostics: Vec::new(),
         }
@@ -2563,6 +2645,79 @@ pub async unsafe extern "C" fn example<T>(x: Vec<T>, y: &mut usize) -> Result<T,
         assert_eq!(normalized.len(), 2);
     }
 
+    // Same proof, for the new R4.11 dimension: two independent extractors observing the exact same
+    // persistence candidate claim must both survive Census/Normalization, share one claim identity
+    // (record_id), and remain distinctly attributable by raw_observation_id/extractor id.
+
+    #[test]
+    fn same_persistence_claim_from_two_extractors_survives_census_and_normalization() {
+        let (inventory, source, adl) = single_rust_file_context();
+        let batches = [
+            extraction_batch_with_persistence_from(
+                "src/lib.rs",
+                "extractor-a",
+                "evidence:persistence-a",
+                "extractor-a observed a commit candidate at src/lib.rs",
+            ),
+            extraction_batch_with_persistence_from(
+                "src/lib.rs",
+                "extractor-b",
+                "evidence:persistence-b",
+                "extractor-b observed a commit candidate at src/lib.rs",
+            ),
+        ];
+
+        let census = build_census(&inventory, &source, &adl, &batches);
+        let ops: Vec<_> = census
+            .typed_semantic_records
+            .iter()
+            .filter(|observation| matches!(observation, SemanticObservation::Persistence(_)))
+            .collect();
+        assert_eq!(
+            ops.len(),
+            2,
+            "independent extractors' observations of the same persistence candidate must both survive Census"
+        );
+
+        let claim_ids: std::collections::BTreeSet<&str> = ops
+            .iter()
+            .map(|observation| observation.record_id().as_str())
+            .collect();
+        assert_eq!(
+            claim_ids.len(),
+            1,
+            "both observations share the same Persistence claim"
+        );
+
+        let raw_ids: std::collections::BTreeSet<_> = ops
+            .iter()
+            .map(|observation| observation.raw_observation_id())
+            .collect();
+        assert_eq!(raw_ids.len(), 2);
+
+        let extractor_ids: std::collections::BTreeSet<&str> = ops
+            .iter()
+            .map(|observation| {
+                let SemanticObservation::Persistence(header) = observation else {
+                    unreachable!()
+                };
+                header.extractor.id.as_str()
+            })
+            .collect();
+        assert_eq!(
+            extractor_ids,
+            std::collections::BTreeSet::from(["extractor-a", "extractor-b"])
+        );
+
+        let normalization = crate::normalize::normalize(&census);
+        let normalized: Vec<_> = normalization
+            .typed_semantic_records
+            .iter()
+            .filter(|observation| matches!(observation, SemanticObservation::Persistence(_)))
+            .collect();
+        assert_eq!(normalized.len(), 2);
+    }
+
     // --- Required test 1: same semantic claim from two extractors survives Census -------------
 
     #[test]
@@ -2911,6 +3066,142 @@ pub async unsafe extern "C" fn example<T>(x: Vec<T>, y: &mut usize) -> Result<T,
             census_coordinates, accounting_coordinates,
             "both views are built from the identical extraction batches and must never disagree \
              about which (artifact, extractor, dimension) coordinates were addressed"
+        );
+    }
+
+    // === R4.12: the named R4 Rust reference profile, run through the FULL canonical path ==========
+    //
+    // `.atlas/contracts/SEMANTIC-EXTRACTION.md#r4-definition-of-done` (item 1) requires naming the
+    // reference corpus a project-wide R4-complete claim is proven against.
+    // `adapter::semantic::rust::tests` already proves this exact corpus is evidence-producing for
+    // every mandatory dimension at the extractor's own boundary; this test proves the same corpus
+    // survives the REST of the canonical path -- Census -> Normalize -- untouched: no exact
+    // duplicates spuriously collapsed, no conflict candidates from a single, internally consistent
+    // extractor's own output, and `is_closed()`/`typed_semantics_closed()` both hold on the real
+    // `NormalizationReport` this pipeline produces (not a hand-built fixture).
+
+    const R4_REFERENCE_PROFILE_CORPUS: &str = r#"
+pub struct Widget {
+    pub value: u64,
+}
+
+impl Widget {
+    pub fn new(value: u64) -> Self {
+        Widget { value }
+    }
+
+    pub fn get(&self) -> u64 {
+        self.value
+    }
+
+    pub fn set(&mut self, new_value: u64) {
+        self.value = new_value;
+    }
+
+    pub fn maybe_panic(&self, ok: bool) -> u64 {
+        if !ok {
+            panic!("not ok");
+        }
+        self.value
+    }
+}
+
+pub fn helper(x: u64) -> u64 {
+    x
+}
+
+pub fn caller(w: &Widget) -> u64 {
+    let doubled = helper(w.get()) * 2;
+    doubled
+}
+
+pub fn borrow_widget(w: &Widget) -> u64 {
+    w.value
+}
+
+pub async fn awaits_something(x: u64) -> u64 {
+    x.await
+}
+
+fn do_work() {}
+
+pub fn spawns_work() {
+    thread::spawn(do_work);
+}
+
+pub struct Store;
+impl Store {
+    pub fn commit(&mut self) {}
+}
+
+pub fn commits_a_store(store: &mut Store) {
+    store.commit();
+}
+"#;
+
+    fn extract_reference_profile() -> ExtractionBatch {
+        use adapter::ExtractionInput;
+        use atlas_core::ContentFingerprint;
+
+        let extractor = adapter::extractors_for_language("rust")
+            .into_iter()
+            .next()
+            .expect("rust has a registered extractor");
+        let input = ExtractionInput {
+            repository: atlas_core::RepositoryId::new("atlas-studio"),
+            revision: atlas_core::RevisionRef {
+                kind: "git".into(),
+                value: "abc123".into(),
+            },
+            artifact: ArtifactId::new("artifact:src/lib.rs"),
+            artifact_path: "src/lib.rs".into(),
+            source_text: R4_REFERENCE_PROFILE_CORPUS.into(),
+            content_fingerprint: Some(ContentFingerprint("sha256:fixture".into())),
+            source_frontend_id: "atlas.source.rust.bootstrap.v1".into(),
+            language: "rust".into(),
+            build_profile: None,
+            scope_policy: None,
+            requested_dimensions: ALL_SEMANTIC_DIMENSIONS.to_vec(),
+        };
+        extractor.extract(&input)
+    }
+
+    #[test]
+    fn reference_profile_survives_census_and_normalization_with_no_duplicates_or_conflicts() {
+        let (inventory, source, adl) = single_rust_file_context();
+        let batch = extract_reference_profile();
+        assert!(batch.is_closed(&ALL_SEMANTIC_DIMENSIONS));
+
+        let census = build_census(&inventory, &source, &adl, &[batch]);
+        assert!(census.is_closed());
+        for &dimension in &ALL_SEMANTIC_DIMENSIONS {
+            assert_ne!(
+                census.coverage.get(dimension.as_str()),
+                Some(&EpistemicStatus::Unsupported),
+                "{dimension:?} must not be Unsupported in the R4 reference profile"
+            );
+            let observed = census
+                .typed_semantic_records
+                .iter()
+                .any(|observation| observation.dimension() == dimension);
+            assert!(
+                observed,
+                "{dimension:?} produced zero observations reaching Census in the R4 reference \
+                 profile"
+            );
+        }
+
+        let normalization = crate::normalize::normalize(&census);
+        assert!(normalization.is_closed());
+        assert_eq!(
+            normalization.exact_duplicates_merged, 0,
+            "a single, internally consistent extractor's own output must not collapse against \
+             itself"
+        );
+        assert!(
+            normalization.conflict_candidates.is_empty(),
+            "a single extractor disagreeing with itself would be a real bug, not the \
+             multi-extractor scenario conflict detection exists for"
         );
     }
 }
