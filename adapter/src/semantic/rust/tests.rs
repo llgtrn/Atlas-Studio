@@ -4241,6 +4241,10 @@ pub fn commits_in_if_let_scrutinee(store: &mut Store) {
     }
 }
 
+pub fn commits_under_raw_address_of(store: &mut Store) {
+    let _ptr = &raw const store.commit();
+}
+
 pub fn unrelated_business_logic(game: &mut Game) {
     game.commit();
 }
@@ -4348,6 +4352,19 @@ fn persistence_call_inside_a_let_else_diverge_block_is_recorded() {
 fn persistence_call_as_an_if_let_scrutinee_is_recorded() {
     let batch = extract_all("src/lib.rs", PERSISTENCE_CORPUS);
     let caller = find_function_identity(&batch, &[], "commits_in_if_let_scrutinee").unwrap();
+    let ops = persistence_ops_for(&batch, caller);
+    assert_eq!(ops.len(), 1);
+    assert_eq!(ops[0].kind, PersistenceKind::Commit);
+}
+
+// --- a persistence-shaped call under `&raw const`/`&raw mut` is still walked -- `syn::Expr::
+// RawAddr` is handled identically in all seven walker files, and no corpus anywhere in this suite
+// used `&raw` syntax at all before this test ------------------------------------------------------
+
+#[test]
+fn persistence_call_under_raw_address_of_is_recorded() {
+    let batch = extract_all("src/lib.rs", PERSISTENCE_CORPUS);
+    let caller = find_function_identity(&batch, &[], "commits_under_raw_address_of").unwrap();
     let ops = persistence_ops_for(&batch, caller);
     assert_eq!(ops.len(), 1);
     assert_eq!(ops[0].kind, PersistenceKind::Commit);
