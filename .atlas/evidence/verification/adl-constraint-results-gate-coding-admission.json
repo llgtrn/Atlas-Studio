@@ -1,0 +1,72 @@
+{
+  "schema": "atlas.self-build.generation-evidence.v1",
+  "wave": "ADL COMPILER -- wire constraint_results into coding_admission; close the last silent-materialization-delta gap",
+  "wave_title": "runtime::systemize's coding_admission gate (which runtime::prepare_work, the AI-work-readiness gate, builds its blockers from) inspected only adl.diagnostics, never adl.constraint_results -- the sibling field evaluate_constraints and the declared/observed materialization-delta conversion actually report constraint/invariant/materialization failures through. A declared architectural constraint could fail while coding_admission.allowed stayed true. Separately, one of the two materialization-delta codes (MATERIALIZATION_LANGUAGE_NOT_OBSERVED) was computed but never converted into a failing ConstraintResult at all, unlike its sibling MISSING_MATERIALIZATION.",
+  "generation_model": {
+    "G_n": "d49b47a727 (fix(adl): diagnose unrecognized constraint syntax; evaluate invariants) -- stable generation this candidate was built and validated against",
+    "gap_discovered_by": "Continuation of the same adversarial code-reading pass over core/src/language/adl/mod.rs that found the previous generation's two bugs. Delegated a scoped search (Explore agent) for the same bug class (write-only fields; silent-empty-fallback treated as success) across the rest of core/src, runtime/src, adapter/src, apps/cli/src, excluding the files already hardened this session. It correctly found that compare_declared_observed's MATERIALIZATION_LANGUAGE_NOT_OBSERVED delta is computed but never gates anything (only MISSING_MATERIALIZATION is special-cased in the delta-to-ConstraintResult loop). Verifying that finding directly against the code led one level deeper: runtime::systemize's coding_admission blocker list (runtime/src/lib.rs) checks `adl.diagnostics.is_empty()` but never reads `adl.constraint_results` at all -- a strictly larger, more severe defect that subsumes the agent's finding (fixing only the delta-conversion gap would still leave ALL constraint_results failures, including the already-correctly-computed MISSING_MATERIALIZATION/ATLAS-E040 case, unable to block coding_admission). Confirmed live and currently manifesting, not hypothetical: this repository's own real .atlas/declared/system.adl declares `materialize WebUI { path = \"apps/ui\" }`, and apps/ui/ does not exist -- `atlas-cli check` already correctly reported ADL_CHECK_NOT_READY for this before this fix, while `atlas-cli systemize`'s coding_admission.allowed simultaneously reported true for the identical real repository state. Two canonical readiness gates disagreed about the same real, present condition."
+  },
+  "priority_classification": "correctness/architectural integrity (priority 1) -- the most severe class in the standing priority order. `.atlas/contracts/ARCHITECTURAL-INTEGRITY.md` requires that AI-assisted work be gated on real evaluated state, and `EXTERNAL-PROVIDER-TRUST.md`-style reasoning requires the readiness gate itself to be trustworthy. A gate that silently ignores an entire category of real failure (every constraint/invariant/materialization check) is a trust-boundary defect in Atlas's own machinery, not merely a missing feature.",
+  "design_decisions": [
+    {
+      "question": "Where to add the constraint_results check: inline in runtime::systemize, or as an extracted pure function?",
+      "decision": "Extracted pure function `adl_constraint_violation_blocks(constraint_results: &[ConstraintResult]) -> bool`, mirroring the exact established pattern immediately above it in the same file (`build_coverage_from_dependency_closure`, whose own doc comment explains it was extracted for the same reason: 'so the exact defect it replaces ... is directly, cheaply falsifiable without running the full systemize pipeline'). Consistency with an existing, working pattern in the same file, rather than inventing a new style."
+    },
+    {
+      "question": "New blocker code name?",
+      "decision": "`ADL_CONSTRAINT_VIOLATED`, matching the existing `ADL_DIAGNOSTICS_PRESENT` naming convention (same subsystem prefix, past-tense/state-description suffix) used by every other blocker in the same list (`REPO_GATE_NOT_READY`, `DOCS_GATE_NOT_READY`, `INVENTORY_ACCOUNTING_NOT_CLOSED`, etc.)."
+    },
+    {
+      "question": "For the MATERIALIZATION_LANGUAGE_NOT_OBSERVED gap: always convert to a ConstraintResult, or dedupe against MISSING_MATERIALIZATION for the same subject?",
+      "decision": "Dedupe. `compare_declared_observed`'s language check is not gated on `exists`, so when a materialization's whole declared path is missing, BOTH delta codes fire for the same subject (no files match the prefix, so no file can match the declared language either). Converting both unconditionally would produce two constraint_results entries with the same `name` for one root cause. Skip the MATERIALIZATION_LANGUAGE_NOT_OBSERVED-to-ConstraintResult conversion when a MISSING_MATERIALIZATION delta already exists for the same subject -- the more fundamental failure already blocks, and the second entry would be redundant, not additive information."
+    },
+    {
+      "question": "New diagnostic code for the newly-gated MATERIALIZATION_LANGUAGE_NOT_OBSERVED path?",
+      "decision": "ATLAS-E054 (next available after E053, added in the immediately prior generation), following the existing sequential-allocation convention in this file."
+    }
+  ],
+  "stable_validator_law_compliance": {
+    "claim": "coding_admission.allowed is false whenever any real constraint, invariant, or materialization delta has failed evaluation, not only when a parse/link diagnostic exists; a materialization whose observed files are the wrong language now blocks the same way a wholly-missing materialization already did, without double-counting when both conditions hold at once.",
+    "self_written_evidence": "Two new tests in core/src/language/adl/mod.rs (materialization_language_mismatch_is_a_failing_constraint_result_not_only_an_inert_delta -- proves ATLAS-E054 now appears in constraint_results, not only in the inert deltas list; a_wholly_missing_materialization_path_produces_exactly_one_failing_result_not_two -- proves the dedupe). Three new tests in runtime/src/lib.rs (no_constraint_results_never_blocks, all_passing_constraint_results_never_block, a_single_failing_constraint_result_blocks) exercising `adl_constraint_violation_blocks` directly, the same falsification style already established for `build_coverage_from_dependency_closure` in the same file.",
+    "independent_evidence_channel": "Re-ran `atlas-cli systemize --root .` and `atlas-cli check --root .` against this repository's own real, independently-declared `.atlas/declared/system.adl` (not a synthetic fixture -- this file's WebUI materialization gap predates this fix and was not written to exercise it). Before this fix: `check` exits 2 (ADL_CHECK_NOT_READY) while `systemize`'s coding_admission.allowed is true -- two gates disagreeing about the same real repository. After this fix: `systemize`'s coding_admission.allowed is false with blocker ADL_CONSTRAINT_VIOLATED, and `check` still exits 2 for the same root cause (ObservedMaterialization:WebUI, ATLAS-E040) -- both gates now agree, and the disagreement is resolved by the gate becoming stricter (more truthful), not by the other gate becoming more permissive.",
+    "no_circular_self_certification": true
+  },
+  "implementation": {
+    "core_compiler": "core/src/language/adl/mod.rs -- compile_adl's delta-to-ConstraintResult loop now also converts MATERIALIZATION_LANGUAGE_NOT_OBSERVED (ATLAS-E054), deduped against MISSING_MATERIALIZATION for the same subject via a BTreeSet of already-covered subjects",
+    "runtime_gate": "runtime/src/lib.rs -- new pure predicate adl_constraint_violation_blocks(&[ConstraintResult]) -> bool; systemize's blockers now push ADL_CONSTRAINT_VIOLATED when it returns true; ConstraintResult imported from atlas_core"
+  },
+  "adversarial_and_falsification_coverage": [
+    "materialization_language_mismatch_is_a_failing_constraint_result_not_only_an_inert_delta -- a materialization whose path exists but whose files are the wrong language now produces a failing constraint_results entry (ATLAS-E054), not only an inert delta/Diagnostic fact",
+    "a_wholly_missing_materialization_path_produces_exactly_one_failing_result_not_two -- regression guard against double-counting when both delta codes fire for the same subject",
+    "a_single_failing_constraint_result_blocks (runtime) -- the exact defect being fixed: one passed:false entry among otherwise-passing ones must still block",
+    "no_constraint_results_never_blocks / all_passing_constraint_results_never_block (runtime) -- regression guards: empty or all-passing constraint_results must not spuriously block",
+    "real self-census of this repository's own .atlas/declared/system.adl: coding_admission.allowed flips from the previously-incorrect true to the correct false, now agreeing with atlas-cli check's independently-computed ADL_CHECK_NOT_READY for the exact same underlying WebUI materialization gap"
+  ],
+  "validation_this_generation": {
+    "commands": {
+      "cargo fmt --all --check": { "exit_code": 0 },
+      "cargo clippy --workspace --all-targets -- -D warnings": { "exit_code": 0, "warnings": 0 },
+      "cargo test --workspace": {
+        "exit_code": 0,
+        "totals": "231 adapter, 137 core (+2), 61 runtime (+3) -- 429 total, 0 failed, up from 424"
+      },
+      "cargo run -q -p atlas-cli -- systemize --root . (before/after)": {
+        "before": "coding_admission: {allowed: true, blockers: []} despite constraint_results containing a real failing entry (ObservedMaterialization:WebUI, ATLAS-E040)",
+        "after": "coding_admission: {allowed: false, blockers: [ADL_CONSTRAINT_VIOLATED]} -- correctly reflects the real, pre-existing ObservedMaterialization:WebUI failure",
+        "exit_code": 0
+      },
+      "cargo run -q -p atlas-cli -- check --root .": {
+        "exit_code": 2,
+        "finding": "unchanged: ADL_CHECK_NOT_READY, same root cause (ObservedMaterialization:WebUI) -- now consistent with systemize's coding_admission instead of contradicting it"
+      },
+      "cargo run -q -p atlas-cli -- docs audit --root .atlas": { "exit_code": 0 }
+    }
+  },
+  "recensus_scope_after_promotion": [
+    "no prior CLOSED/EXTINCT conclusion depended on coding_admission silently ignoring constraint_results, so no external conclusion requires reopening -- if anything, this generation reveals that any prior generation's own 'coding_admission.allowed: true' self-report should be treated with the awareness that, before this fix, it never actually verified constraint/invariant/materialization state (a scope caveat on this session's own earlier validation_this_generation entries that quoted coding_admission.allowed: true as evidence -- those checks were still individually true, but the gate itself was less complete than presented)",
+    "the WebUI materialization gap this fix surfaces (apps/ui declared but not present) is real, pre-existing, and now correctly blocking -- named TARGET work for a future generation (either materialize apps/ui, or revise the declared system.adl if WebUI is no longer in scope), explicitly out of scope for this generation, which is about the evaluation machinery's correctness, not about completing every declared materialization",
+    "the same 'gate reads only one of two sibling report fields' pattern (diagnostics vs constraint_results here) is worth keeping in mind when auditing other report-consuming gates in this codebase (docs.gate_ready, inventory/census/normalization/extraction .is_closed() calls) -- spot-checked in this generation's investigation and found each of those already reads the specific field its own gate is meant to cover, unlike this one"
+  ],
+  "overall_verdict": "MATERIALIZED AND VERIFIED. Closes a real, live, currently-manifesting trust-boundary defect: the canonical coding_admission gate (which AI-assisted work readiness is checked against via prepare_work) previously never inspected adl.constraint_results, so a declared constraint, invariant, or materialization could fail while coding_admission.allowed stayed true. Also closes the specific case an independent investigating agent found: MATERIALIZATION_LANGUAGE_NOT_OBSERVED deltas were computed but never converted into a failing constraint_results entry. Verified against this repository's own real, pre-existing WebUI materialization gap: two previously-disagreeing canonical readiness gates (systemize's coding_admission and the separate check subcommand) now agree.",
+  "historical_evidence_retained": true
+}

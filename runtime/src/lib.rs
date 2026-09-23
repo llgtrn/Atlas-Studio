@@ -5,9 +5,10 @@ pub mod inventory;
 pub mod normalize;
 
 use atlas_core::{
-    AdlCompileReport, AdlProgram, CLI_API, CodingAdmission, Contract, DocsReport, EngineeringGraph,
-    Evidence, RepoAudit, RepositoryId, RevisionRef, SystemizeReport, WorkPrepareReport,
-    WorkRequest, build_system_graph, compile_adl, parse_adl_source, summarize_system_graph,
+    AdlCompileReport, AdlProgram, CLI_API, CodingAdmission, ConstraintResult, Contract, DocsReport,
+    EngineeringGraph, Evidence, RepoAudit, RepositoryId, RevisionRef, SystemizeReport,
+    WorkPrepareReport, WorkRequest, build_system_graph, compile_adl, parse_adl_source,
+    summarize_system_graph,
 };
 use std::{io, path::Path};
 
@@ -41,6 +42,17 @@ fn build_coverage_from_dependency_closure(
         State::Partial | State::Blocked => (Some(Status::Unknown), true),
         State::NotApplicable => (None, false),
     }
+}
+
+/// Whether `coding_admission` must block on ADL constraint/invariant/materialization-delta
+/// evaluation. Extracted as a pure function so the exact defect it replaces -- this gate
+/// previously inspected only `adl.diagnostics` (parse/link diagnostics), never
+/// `adl.constraint_results` (the sibling field `evaluate_constraints` and the declared/observed
+/// materialization deltas actually report failures through), so a declared constraint, invariant,
+/// or materialization could fail while `coding_admission.allowed` stayed `true` -- is directly,
+/// cheaply falsifiable without running the full `systemize` pipeline.
+fn adl_constraint_violation_blocks(constraint_results: &[ConstraintResult]) -> bool {
+    constraint_results.iter().any(|result| !result.passed)
 }
 
 pub fn systemize(root: impl AsRef<Path>) -> io::Result<SystemizeReport> {
@@ -117,6 +129,9 @@ pub fn systemize(root: impl AsRef<Path>) -> io::Result<SystemizeReport> {
     }
     if !adl.diagnostics.is_empty() {
         blockers.push("ADL_DIAGNOSTICS_PRESENT".to_owned());
+    }
+    if adl_constraint_violation_blocks(&adl.constraint_results) {
+        blockers.push("ADL_CONSTRAINT_VIOLATED".to_owned());
     }
     if !inventory.is_closed() {
         blockers.push("INVENTORY_ACCOUNTING_NOT_CLOSED".to_owned());
@@ -386,5 +401,37 @@ mod tests {
             not_applicable_blocks, closed_blocks,
             "neither blocks, but for different reasons"
         );
+    }
+
+    fn constraint_result(name: &str, passed: bool) -> ConstraintResult {
+        ConstraintResult {
+            name: name.into(),
+            passed,
+            diagnostics: Vec::new(),
+        }
+    }
+
+    #[test]
+    fn no_constraint_results_never_blocks() {
+        assert!(!adl_constraint_violation_blocks(&[]));
+    }
+
+    #[test]
+    fn all_passing_constraint_results_never_block() {
+        assert!(!adl_constraint_violation_blocks(&[
+            constraint_result("A", true),
+            constraint_result("B", true),
+        ]));
+    }
+
+    #[test]
+    fn a_single_failing_constraint_result_blocks() {
+        // This is the exact defect this helper replaces: a declared constraint, invariant, or
+        // materialization delta failing (passed: false) previously had no effect on
+        // coding_admission at all, since only `adl.diagnostics` was inspected.
+        assert!(adl_constraint_violation_blocks(&[
+            constraint_result("A", true),
+            constraint_result("ObservedMaterialization:WebUI", false),
+        ]));
     }
 }

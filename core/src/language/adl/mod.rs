@@ -761,20 +761,34 @@ pub fn compile_adl(sources: &[AdlSource], observed: &SourceReport) -> AdlCompile
     };
     let mut constraint_results = evaluate_constraints(&declared);
     let deltas = compare_declared_observed(&declared, observed);
+    // A materialization whose path is entirely missing already gets an ATLAS-E040 entry below;
+    // skip the language-mismatch delta for the same subject so one root cause does not produce
+    // two redundant failing constraint_results entries (the language check inherently also fails
+    // when the whole path is absent, since no files at all match the declared prefix).
+    let missing_materialization_subjects: std::collections::BTreeSet<&str> = deltas
+        .iter()
+        .filter(|delta| delta.code == "MISSING_MATERIALIZATION")
+        .map(|delta| delta.subject.as_str())
+        .collect();
     for delta in &deltas {
-        if delta.code == "MISSING_MATERIALIZATION" {
-            constraint_results.push(ConstraintResult {
-                name: format!("ObservedMaterialization:{}", delta.subject),
-                passed: false,
-                diagnostics: vec![adl_diag(
-                    "ATLAS-E040",
-                    &delta.message,
-                    ".atlas/declared",
-                    1,
-                    1,
-                )],
-            });
-        }
+        let code = match delta.code.as_str() {
+            "MISSING_MATERIALIZATION" => "ATLAS-E040",
+            // Previously computed by `compare_declared_observed` and recorded only as an inert
+            // `Diagnostic`-kind census fact -- never turned into a failing `ConstraintResult`, so
+            // a declared materialization whose observed files existed but were the wrong language
+            // never blocked `coding_admission` or `atlas-cli check`.
+            "MATERIALIZATION_LANGUAGE_NOT_OBSERVED"
+                if !missing_materialization_subjects.contains(delta.subject.as_str()) =>
+            {
+                "ATLAS-E054"
+            }
+            _ => continue,
+        };
+        constraint_results.push(ConstraintResult {
+            name: format!("ObservedMaterialization:{}", delta.subject),
+            passed: false,
+            diagnostics: vec![adl_diag(code, &delta.message, ".atlas/declared", 1, 1)],
+        });
     }
     let ir = AtlasIr {
         schema: "atlas.ir.v1".into(),
@@ -1203,5 +1217,94 @@ invariant BackendMustBeRust {
             .expect("invariant must produce a constraint_results entry");
         assert!(result.passed);
         assert!(result.diagnostics.is_empty());
+    }
+
+    #[test]
+    fn materialization_language_mismatch_is_a_failing_constraint_result_not_only_an_inert_delta() {
+        let source = AdlSource {
+            path: ".atlas/declared/system.adl".into(),
+            text: r#"atlas 1
+system Example
+materialize Compiler {
+    path = "core"
+    language = rust
+}
+"#
+            .into(),
+        };
+        let observed = SourceReport {
+            schema: "test".into(),
+            root: "/repo".into(),
+            files_total: 1,
+            languages: BTreeMap::from([("python".into(), 1)]),
+            files: vec![FileFact {
+                path: "core/src/lib.py".into(),
+                language: "python".into(),
+                bytes: 10,
+            }],
+        };
+        let report = compile_adl(&[source], &observed);
+        assert!(
+            report
+                .deltas
+                .iter()
+                .any(|delta| delta.code == "MATERIALIZATION_LANGUAGE_NOT_OBSERVED")
+        );
+        let result = report
+            .constraint_results
+            .iter()
+            .find(|result| result.name == "ObservedMaterialization:Compiler")
+            .expect(
+                "a declared-but-wrong-language materialization must produce a failing \
+                 constraint_results entry, not only an inert delta",
+            );
+        assert!(!result.passed);
+        assert!(
+            result
+                .diagnostics
+                .iter()
+                .any(|diagnostic| diagnostic.code == "ATLAS-E054")
+        );
+    }
+
+    #[test]
+    fn a_wholly_missing_materialization_path_produces_exactly_one_failing_result_not_two() {
+        let source = AdlSource {
+            path: ".atlas/declared/system.adl".into(),
+            text: r#"atlas 1
+system Example
+materialize Compiler {
+    path = "core"
+    language = rust
+}
+"#
+            .into(),
+        };
+        let observed = SourceReport {
+            schema: "test".into(),
+            root: "/repo".into(),
+            files_total: 0,
+            languages: BTreeMap::new(),
+            files: Vec::new(),
+        };
+        let report = compile_adl(&[source], &observed);
+        let matching = report
+            .constraint_results
+            .iter()
+            .filter(|result| result.name == "ObservedMaterialization:Compiler")
+            .collect::<Vec<_>>();
+        assert_eq!(
+            matching.len(),
+            1,
+            "MISSING_MATERIALIZATION and the redundant MATERIALIZATION_LANGUAGE_NOT_OBSERVED \
+             delta for the same subject must not both become separate failing results"
+        );
+        assert!(!matching[0].passed);
+        assert!(
+            matching[0]
+                .diagnostics
+                .iter()
+                .any(|diagnostic| diagnostic.code == "ATLAS-E040")
+        );
     }
 }
