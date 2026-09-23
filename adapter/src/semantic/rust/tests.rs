@@ -5080,3 +5080,39 @@ fn a_raw_string_with_an_embedded_shorter_hash_quote_sequence_is_parsed_to_its_re
         batch.diagnostics
     );
 }
+
+// --- KNOWN GAP, explicitly acknowledged (see cfg.rs's own module doc comment): a `let PAT = EXPR
+// else { diverge }` statement's diverge block is invisible to CFG's successor computation. `lower_
+// stmts` dispatches only on `Stmt::Expr` (via `stmt_expr`, which returns `None` for `Stmt::Local`,
+// causing the whole `let` statement -- diverge block included -- to be skipped with `continue`).
+// A function whose only early-exit path is a let-else diverge block is therefore reported as having
+// exactly one, unconditionally-returning block, with the diverge block's own `return 0;` never
+// represented as its own edge at all -- CFG cannot currently distinguish this function from one
+// with no conditional exit whatsoever. This is the same class of honestly-documented, real residual
+// gap as R4.3.7's macro-shadowing risk and R4.6's own "statement-level only" scope boundary: found
+// by direct adversarial testing (this test asserts the CURRENT, incomplete behavior precisely, so a
+// future fix is a deliberate, falsifiable change to this test, not a silent behavior drift).
+#[test]
+fn let_else_diverge_block_is_a_known_unrepresented_cfg_gap() {
+    const SRC: &str = r#"
+pub fn maybe(found: Option<u8>) -> u8 {
+    let Some(value) = found else {
+        return 0;
+    };
+    value
+}
+"#;
+    let batch = extract_all("src/probe.rs", SRC);
+    let caller = find_function_identity(&batch, &[], "maybe").unwrap();
+    let blocks = control_flow_blocks_for(&batch, caller);
+    // Exactly one block is emitted for the whole function body -- the let-else statement produced
+    // no block of its own, and neither did its diverge arm's `return 0;`.
+    assert_eq!(
+        blocks.len(),
+        1,
+        "if this changes, CFG has started representing let-else diverge blocks -- update this \
+         test to assert the real, now-correct successor graph instead of this known gap"
+    );
+    assert_eq!(blocks[0].successors.len(), 1);
+    assert_eq!(blocks[0].successors[0].kind, ControlFlowEdgeKind::Return);
+}

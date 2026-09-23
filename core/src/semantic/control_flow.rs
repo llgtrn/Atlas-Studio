@@ -34,6 +34,13 @@
 //! separate ControlFlow block/edge structure. Closures likewise get no CFG of their own (they have
 //! no `FunctionIdentity` in Atlas's model to attribute one to). Both are real, documented gaps, not
 //! silent omissions -- true expression-level CFG splitting is deferred to a future wave.
+//!
+//! A third gap, found later by direct adversarial testing (see `adapter::semantic::rust::cfg`'s
+//! own module doc comment): a `let PAT = EXPR else { diverge }` statement's diverge block is not
+//! yet split into its own block/edge either -- the whole statement is currently treated as
+//! non-diverging straight-line code, so a function whose only conditional early exit is a let-else
+//! diverge block is reported identically to one with no conditional exit at all. Also a real,
+//! explicitly acknowledged gap, not a silent one.
 
 use super::SemanticRecordId;
 use crate::identity::RepositoryId;

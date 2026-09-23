@@ -7,6 +7,15 @@
 //! a call's target, it never requires name/type resolution this extractor doesn't have. See the
 //! module doc comment on `core::semantic::control_flow` for the exact scope (statement-level
 //! constructs only; closures get no CFG of their own) and rationale.
+//!
+//! **Known, explicitly acknowledged gap** (found by direct adversarial testing, not yet closed):
+//! `lower_stmts` dispatches purely on `stmt_expr`, which returns `None` for every `syn::Stmt::
+//! Local` -- so a `let PAT = EXPR else { diverge }` statement's diverge block is completely
+//! invisible to successor computation, exactly as if it were an ordinary non-diverging `let`. A
+//! function whose only conditional early exit is a let-else diverge block is reported identically
+//! to one with no conditional exit at all. See `let_else_diverge_block_is_a_known_unrepresented_
+//! cfg_gap` in `tests.rs`, which asserts this exact (incomplete) behavior as a regression baseline
+//! rather than leaving the gap silent.
 
 use atlas_core::{
     ControlFlowBlockIdentity, ControlFlowBlockKind, ControlFlowEdge, ControlFlowEdgeKind,
