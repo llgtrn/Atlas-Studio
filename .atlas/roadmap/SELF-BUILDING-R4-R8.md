@@ -155,19 +155,21 @@ Current materialized sequence:
 
 Currently materialized Rust semantic dimensions are:
 
-- SYMBOL;
-- TYPE;
-- FUNCTION_IDENTITY;
-- FUNCTION_SIGNATURE;
-- CALL;
-- CONTROL_FLOW;
-- DATA_FLOW;
+- SYMBOL (exhaustive over the declared declaration-level profile);
+- TYPE (exhaustive over the declared declaration-level profile);
+- FUNCTION_IDENTITY (exhaustive over the declared declaration-level profile);
+- FUNCTION_SIGNATURE (exhaustive over the declared declaration-level profile);
+- partial CALL;
+- partial CONTROL_FLOW;
+- partial DATA_FLOW;
 - partial STATE;
-- partial EFFECT.
+- partial EFFECT;
+- partial OWNERSHIP;
+- partial CONCURRENCY.
 
-R4.5 observes real function-body call sites while leaving targets UNRESOLVED where source evidence is insufficient. R4.6 and R4.7 materialize control/data-flow structure. R4.8 now produces useful STATE/EFFECT observations, but those two dimension obligations deliberately remain UNKNOWN until their declared closure gaps are resolved.
+R4.5 observes real function-body call sites while leaving targets UNRESOLVED where source evidence is insufficient. R4.6 and R4.7 materialize control/data-flow structure. R4.8 produces useful STATE/EFFECT observations; R4.9/R4.10 produce useful OWNERSHIP/CONCURRENCY observations. A full R4.4-R4.10 reconciliation audit confirmed that CALL/CONTROL_FLOW/DATA_FLOW/OWNERSHIP/CONCURRENCY share the same real, permanent gap already known for STATE/EFFECT (a call/access/site written only inside a macro invocation's arguments is structurally invisible without macro expansion, which this extractor never performs) -- all seven full-expression-tree dimensions therefore deliberately keep their obligation UNKNOWN until their declared closure gaps are resolved, per `dimension_coverage` in `adapter::semantic::rust::mod`. Only the four declaration-level dimensions (SYMBOL/TYPE/FUNCTION_IDENTITY/FUNCTION_SIGNATURE) are currently exhaustive over their own explicitly-scoped profile.
 
-These facts are increasingly useful for mechanism absorption, but partial R4.8 evidence must not be mistaken for full semantic closure.
+These facts are increasingly useful for mechanism absorption, but partial evidence in any of the seven expression-tree dimensions must not be mistaken for full semantic closure.
 
 ### R4.4 — Function Identity Closure — materialized
 
@@ -188,11 +190,11 @@ R4.4 intentionally does not claim compiler DefId-level equivalence, type-alias e
 
 CALL remains the next semantic relation.
 
-### R4.5 — Call Semantics — materialized
+### R4.5 — Call Semantics — bootstrap materialized, closure remains open
 
-R4.5 is materialized on canonical main.
+R4.5's bootstrap is materialized on canonical main.
 
-Production Rust semantic extraction now observes real function/method-body call sites and attributes them to the enclosing FunctionIdentity through the canonical SourceFrontend → SemanticExtractor → Census → Normalize → graph path.
+Production Rust semantic extraction now observes real function/method-body call sites and attributes them to the enclosing FunctionIdentity through the canonical SourceFrontend → SemanticExtractor → Census → Normalize → graph path. A full R4.4-R4.10 reconciliation audit confirmed a closure a bare "materialized" label previously implied but never proved: a call written only inside a macro invocation's arguments (`my_macro!(hidden_call())`) is structurally invisible to this extractor without macro expansion, which it never performs. This is a real, permanent gap shared by every full-expression-tree dimension (CALL/CONTROL_FLOW/DATA_FLOW/STATE/EFFECT/OWNERSHIP/CONCURRENCY alike), not unique to R4.5 -- see `dimension_coverage` in `adapter::semantic::rust::mod`, the one canonical place answering whether a dimension may treat zero observations as verified absence.
 
 Current source-only resolution discipline is conservative:
 
@@ -200,38 +202,43 @@ Current source-only resolution discipline is conservative:
 - caller identity is preserved;
 - dispatch remains UNRESOLVED when target resolution is not proven;
 - unresolved callees are not fabricated;
-- graph projection contains CallSite nodes and caller→MAKES_CALL edges without invented callee edges.
+- graph projection contains CallSite nodes and caller→MAKES_CALL edges without invented callee edges;
+- CALL observations may be emitted while the dimension obligation remains UNKNOWN; zero observations are not verified absence.
 
 Deeper target resolution may improve through later semantic/compiler evidence without changing the identity of the already-observed call site.
 
-### R4.6 — Control Flow — materialized
+### R4.6 — Control Flow — bootstrap materialized, closure remains open
 
-CONTROL_FLOW is materialized on canonical main with:
+CONTROL_FLOW's bootstrap is materialized on canonical main with:
 
 - deterministic block identity;
 - entry/exit;
 - branches;
 - loops;
 - return edges;
-- panic/failure edges;
+- panic-like-macro edges;
 - explicit unresolved control constructs;
-- function-to-CFG closure.
+- function-to-CFG closure for the declared statement-level profile.
 
 CFG identity MUST be stable for identical pinned input and MUST NOT depend on traversal/hash iteration order.
 
-### R4.7 — Data Flow — materialized
+This wave's own scope was always statement-level only (a construct nested inside a larger expression, e.g. `let x = if c { a() } else { b() };`, is not given its own CFG blocks -- an honestly documented gap, not a silent one), and shares CALL's macro-invocation-opacity gap. A block whose only successor is a textual panic-like macro invocation now carries `EpistemicStatus::Inferred`, not `Observed`, on the whole block -- the same limitation R4.8 EFFECT already documents for the identical evidence, since the block's own successor set genuinely depends on whether the macro actually diverges (see `core::semantic::control_flow`). CONTROL_FLOW observations may be emitted while the dimension obligation remains UNKNOWN; zero observations are not verified absence.
 
-DATA_FLOW is materialized on canonical main with:
+### R4.7 — Data Flow — bootstrap materialized, closure remains open
+
+DATA_FLOW's bootstrap is materialized on canonical main with:
 
 - values;
 - definitions/uses;
 - parameter flow;
 - return flow;
-- load/store relationships;
+- load/store relationships, including compound-assignment Use+Store;
 - local propagation;
 - typed unresolved/alias ambiguity where deeper analysis is unavailable.
 
 Do not claim compiler-complete alias analysis unless actually evidenced.
+
+R4.7 shares CALL's macro-invocation-opacity gap, and its own already-documented gaps (tuple/struct/slice destructuring patterns bind no Definitions) remain open. DATA_FLOW observations may be emitted while the dimension obligation remains UNKNOWN; zero observations are not verified absence.
 
 ### R4.8 — State and Effect — bootstrap materialized, closure remains open
 
