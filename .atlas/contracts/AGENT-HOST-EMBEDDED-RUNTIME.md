@@ -280,6 +280,28 @@ An MCP call from a model is a request to Atlas, not proof that the requested act
 
 Local stdio MCP is a preferred embedded shape because it permits the agent and Atlas to communicate without requiring an independent Atlas cloud service. Remote transports remain valid.
 
+## Multi-provider execution inside one AgentHost
+
+An embedded AgentHost MAY contain a host-native coding provider while Atlas simultaneously uses other admitted AI providers or remote Atlas workers.
+
+~~~text
+AgentHost OuterSandbox
+├─ host-native coding agent
+├─ AtlasCore + local MCP adapter
+├─ Atlas CandidateWorkspaces
+└─ Atlas ProviderRouter
+   ├─ host-native subagents
+   ├─ remote AI providers
+   ├─ Jev-class decision provider
+   └─ remote Atlas execution workers
+~~~
+
+The host-native provider is merely the closest execution route. It is not the only provider Atlas may use and does not become Atlas's root coordinator by physical co-location.
+
+Provider routing, typed ConstructionTaskGraph/AgentLease discipline, semantic blackboard, ContextCompiler, multi-provider budgets and Jev-class decision orchestration are governed by `MULTI-AI-CONSTRUCTION-FABRIC.md`.
+
+If host egress prevents a provider call, Atlas must route to another admitted backend, queue/dispatch the task to a capable remote Atlas worker, or keep the task explicitly blocked. It MUST NOT silently downgrade the task or fabricate provider availability.
+
 ## Sandbox hierarchy
 
 Atlas MUST model at least the following logical layers even if some layers share one physical machine:
