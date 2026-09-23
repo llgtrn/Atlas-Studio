@@ -51,7 +51,7 @@ Before commit it must have, where applicable:
 
 ## Embedded agent-host rule
 
-When Atlas runs inside a coding-agent host, the provider may have physical write access to the current checkout.
+When Atlas runs inside a coding-agent host under `AGENT-HOST-EMBEDDED-RUNTIME.md`, the provider may have physical write access to the current checkout.
 
 Physical write access is not canonical mutation authority.
 
