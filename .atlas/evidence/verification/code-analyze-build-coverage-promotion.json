@@ -1,0 +1,54 @@
+{
+  "schema": "atlas.self-build.generation-evidence.v1",
+  "wave": "CENSUS BLINDNESS -- code_analyze's own census.coverage.BUILD never promoted, contradicting its own reported dependency_closure",
+  "wave_title": "runtime::code_analyze computes a real dependency_closure and reports it as a top-level JSON field, but never fed its state back into census.coverage.BUILD the way runtime::systemize does -- so a single atlas-cli code analyze response could simultaneously report dependency_closure.state: CLOSED and census.coverage.BUILD: UNSUPPORTED for the exact same repository, a direct self-contradiction within one report.",
+  "generation_model": {
+    "G_n": "0a90ffe2f9 (fix(declared): correct WebUI materialization path to apps/studio) -- stable generation this candidate was built and validated against",
+    "gap_discovered_by": "Direct re-census of this repository's own real state via `atlas-cli code analyze --root .` (not delegated to an agent), inspecting the raw JSON output for anomalies rather than assuming prior fixes covered every entry point. Found `census.coverage.BUILD: UNSUPPORTED` in the same response that reported `dependency_closure.state: CLOSED` with 29 real edges -- immediately recognized as the same 'BUILD never promoted' defect class `runtime::systemize` already had fixed for itself (this session's earlier `resolve_dependency_closure`/`build_coverage_from_dependency_closure` wiring), just not propagated to this second, separate entry point built on the same underlying data."
+    },
+  "priority_classification": "census blindness (priority 4) -- one of Atlas's own canonical report-producing entry points contradicted itself about a directly checkable fact (whether the Cargo dependency closure had been observed), which is exactly the class of self-inconsistency this session has repeatedly found and fixed across other entry points (the `coding_admission`/`check` disagreement fixed several generations ago is the same shape of bug: one code path correctly derives a fact, a sibling code path building on the same underlying data does not).",
+  "design_decisions": [
+    {
+      "question": "Duplicate systemize's promotion logic inline in code_analyze, or refactor further?",
+      "decision": "Reuse the exact same already-tested pure function (`build_coverage_from_dependency_closure`) `systemize` already uses, applied to `code_analyze`'s own already-computed `dependency_closure` (which the graph-projection work earlier this session added to `code_analyze` for an unrelated reason -- projecting it into the graph). No new logic was written; this is purely a wiring fix reusing existing, already-falsified logic (5 existing tests in runtime/src/lib.rs cover every `DependencyClosureState` transition for this exact function), so no new test was added -- the fix's correctness rests entirely on that already-established test coverage plus direct real-repository verification."
+    },
+    {
+      "question": "Should code_analyze also gain a coding_admission/blockers field to match systemize?",
+      "decision": "No -- out of scope for this fix. `code_analyze`'s own schema/purpose (`atlas.systemizer.code-analysis.v3`, 'derived engineering analysis; target repositories remain sovereign') is a raw diagnostic dump, not a gated readiness report; it has never had a `coding_admission` field and adding one would be an unrelated scope expansion. This fix only makes the `census.coverage.BUILD` field it already reports accurate, not add a new gating concept to an endpoint that was never meant to gate anything."
+    }
+  ],
+  "stable_validator_law_compliance": {
+    "claim": "`atlas-cli code analyze`'s `census.coverage.BUILD` value now agrees with its own `dependency_closure.state` in the same response, using the identical, already-verified promotion rule `systemize` uses (`Closed` -> `Observed`, `Partial`/`Blocked` -> `Unknown`, `NotApplicable` -> unchanged).",
+    "self_written_evidence": "No new test needed: the promotion function itself (`build_coverage_from_dependency_closure`) already has 5 falsification tests covering every state transition, written when `systemize`'s own version of this bug was fixed earlier this session. This change is pure wiring reuse of that already-proven logic in a second call site.",
+    "independent_evidence_channel": "Ran `atlas-cli code analyze --root .` against this repository's own real workspace (not a synthetic fixture): `census.coverage.BUILD` flips from `UNSUPPORTED` to `OBSERVED`, now agreeing with the same response's `dependency_closure.state: CLOSED`. Re-ran `atlas-cli systemize --root .` and `atlas-cli docs audit --root .atlas` to confirm zero regression to the unrelated, already-correct systemize path: `coding_admission.allowed` remains `true` with zero blockers (the milestone reached in the immediately prior generation).",
+    "no_circular_self_certification": true
+  },
+  "implementation": {
+    "runtime_wiring": "runtime/src/lib.rs::code_analyze -- census is now `mut`; dependency_closure is computed before normalization (reordered, matching systemize's own ordering) and its build_coverage_from_dependency_closure result is applied to census.coverage.BUILD before the response is assembled"
+  },
+  "adversarial_and_falsification_coverage": [
+    "reuses build_coverage_from_dependency_closure's existing 5-test falsification suite (one per DependencyClosureState transition), already proven correct",
+    "real self-census of this repository's own workspace via atlas-cli code analyze: BUILD: UNSUPPORTED -> OBSERVED, now consistent with the same response's dependency_closure.state: CLOSED -- the exact self-contradiction that motivated this fix is directly observed as resolved",
+    "real self-census via atlas-cli systemize/docs audit: zero regression, coding_admission remains fully green"
+  ],
+  "validation_this_generation": {
+    "commands": {
+      "cargo fmt --all --check": { "exit_code": 0 },
+      "cargo clippy --workspace --all-targets -- -D warnings": { "exit_code": 0, "warnings": 0 },
+      "cargo test --workspace": { "exit_code": 0, "totals": "452 passed, 0 failed -- unchanged (pure wiring fix, no new logic)" },
+      "cargo run -q -p atlas-cli -- code analyze --root . (before/after)": {
+        "before": "census.coverage.BUILD: UNSUPPORTED, dependency_closure.state: CLOSED -- self-contradictory within one response",
+        "after": "census.coverage.BUILD: OBSERVED, dependency_closure.state: CLOSED -- consistent"
+      },
+      "cargo run -q -p atlas-cli -- systemize --root .": { "finding": "coding_admission.allowed: true, blockers: [] -- unchanged, zero regression" },
+      "cargo run -q -p atlas-cli -- docs audit --root .atlas": { "exit_code": 0 }
+    }
+  },
+  "recensus_scope_after_promotion": [
+    "no prior CLOSED/EXTINCT conclusion depended on code_analyze's BUILD coverage being stale, so no external conclusion requires reopening",
+    "runtime::graph (the third entry point that also computes dependency_closure, for its own graph projection) has no census.coverage field at all in its return type (EngineeringGraph, not CensusReport) -- confirmed not affected by this same defect class, ruling it out rather than leaving it unchecked",
+    "this closes the full sweep of dependency-closure-to-BUILD-coverage wiring across all of Atlas's report-producing entry points: systemize (already correct), code_analyze (fixed this generation), graph (not applicable, no coverage field)"
+  ],
+  "overall_verdict": "MATERIALIZED AND VERIFIED. Closed a real self-contradiction in atlas-cli code analyze's own output: census.coverage.BUILD disagreed with the same response's dependency_closure.state for this repository's own real, Closed 29-edge dependency closure. Fixed by reusing systemize's own already-tested promotion logic. Verified directly against this repository's own real state with zero regression to the unrelated, already-green systemize path.",
+  "historical_evidence_retained": true
+}

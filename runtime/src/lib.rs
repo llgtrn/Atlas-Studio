@@ -255,9 +255,18 @@ pub fn code_analyze(root: impl AsRef<Path>) -> io::Result<serde_json::Value> {
     let repository_id = resolve_repository_id(&repository, root);
     let extraction_batches =
         census::extraction::extract_semantics(&inventory, repository_id, snapshot.revision());
-    let census = census::build_census(&inventory, &source, &adl, &extraction_batches);
-    let normalization = normalize::normalize(&census);
+    let mut census = census::build_census(&inventory, &source, &adl, &extraction_batches);
+    // Same promotion `systemize` applies (`.atlas/contracts/DEPENDENCY-CENSUS.md`): `BUILD`
+    // starts life as a permanent `Unsupported` stub in `census::build_census` and must be
+    // promoted to real evidence once a real, closed Cargo dependency closure exists -- otherwise
+    // `code_analyze`'s own `census.coverage.BUILD` silently disagrees with the `dependency_closure`
+    // this same response reports two fields below, contradicting real, observed state.
     let dependency_closure = resolve_dependency_closure(root)?;
+    let (build_status, _) = build_coverage_from_dependency_closure(dependency_closure.state);
+    if let Some(status) = build_status {
+        census.coverage.insert("BUILD".into(), status);
+    }
+    let normalization = normalize::normalize(&census);
     let graph = summarize_system_graph_with_dependencies(
         &source,
         &docs,

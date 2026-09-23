@@ -215,7 +215,12 @@ statically parses `Cargo.lock` (Cargo's own already-fully-resolved transitive gr
 `Cargo.toml` (for real, evidenced `DependencyRole`/`DependencyActivation`, never defaulted by
 assumption), producing a typed `DependencyClosureReport` (`core::census::dependency`) wired into
 `SystemizeReport` and promoting `BUILD` to `OBSERVED` once `DependencyClosureState::Closed` is
-actually reached (below).
+actually reached (below). `runtime::code_analyze` applies the identical promotion (previously it
+did not: it built `dependency_closure` and reported it as its own JSON field, but never fed its
+`state` back into `census.coverage.BUILD`, so `atlas-cli code analyze`'s own output could report
+`BUILD: UNSUPPORTED` in the very same response that reports `dependency_closure.state: CLOSED` --
+caught by directly inspecting this repository's own real `code analyze` output, which exhibited
+exactly that self-contradiction before the fix).
 
 Same-name multi-version disambiguation is materialized: a `Cargo.lock` dependency-array entry
 disambiguated as `"name version"` resolves to the matching `[[package]]` block by version, a
