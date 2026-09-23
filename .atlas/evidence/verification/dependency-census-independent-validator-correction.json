@@ -1,0 +1,68 @@
+{
+  "schema": "atlas.self-build.generation-evidence-correction.v1",
+  "wave": "DEPENDENCY-CENSUS (independent-validator claim correction + closure-state/source-classification/dynamic-obligation hardening)",
+  "corrects": {
+    "target_evidence_file": ".atlas/evidence/verification/dependency-census-cargo-bootstrap.json",
+    "target_field": "stable_validator_law_compliance.independent_evidence_channel",
+    "policy": "Historical evidence is immutable; the original file is left unmodified. This record supersedes its conclusion, per RECURSIVE-SELF-CENSUS.md's 'monotonic evidence, revisable conclusions' rule."
+  },
+  "original_claim": "\"The EXISTING, already-validated systemize CLI binary (built before this change existed conceptually, for an unrelated purpose) was run fresh against this repository's real root and inspected directly: census.coverage.BUILD == 'OBSERVED' ... the same stable machinery this repository already trusted for every other census axis, not a check invented alongside the candidate to agree with it.\" and \"no_circular_self_certification: true\".",
+  "discovered_flaw": "`runtime::systemize` calls `adapter::census_cargo_workspace` directly (see `runtime/src/lib.rs`'s `systemize()`). The `systemize` CLI is a thin wrapper around this same function -- there is no second implementation, no second resolution algorithm, and no independently-sourced data behind the CLI's output for this specific capability. Running the CLI and inspecting its dependency_closure field is candidate implementation -> CLI wrapper -> candidate implementation result: the same code path checked against itself through an extra layer of indirection. A bug in `census_cargo_workspace` that produces a self-consistent wrong answer (e.g. every edge subtly misclassified the same way) would pass this check every time, because the 'independent' channel was never independent. This violates RECURSIVE-SELF-CENSUS.md's stable-validator law (\"a candidate must never be sole authority proving itself\") and its hard invariant against circular self-certification, even though the original evidence record explicitly and sincerely believed it was satisfying that law -- the CLI genuinely was pre-existing and built for an unrelated purpose, which is why the flaw was not obvious without deliberately auditing the call graph.",
+  "corrected_interpretation": "The dependency-census-cargo-bootstrap generation's SELF-WRITTEN TESTS (including the real-self-census test reading this repository's own actual files) remain valid evidence that the parser does what its own logic intends. But the generation's claim of INDEPENDENT verification was false until this correction: no evidence external to the candidate's own code existed. The generation's overall verdict of 'MATERIALIZED AND VERIFIED FOR THE STATED BOOTSTRAP SCOPE' should be read as 'materialized and self-consistent' for that specific claim, not independently verified, until the replacement evidence below.",
+  "replacement_verification": {
+    "mechanism": "adapter/src/dependency/cargo_oracle.rs (test-only, gated `#[cfg(test)] mod cargo_oracle;` in adapter/src/dependency/mod.rs -- never reachable from adapter's own public API or from `census_cargo_workspace`/`systemize`/coding-admission)",
+    "oracle": "`cargo metadata --format-version=1 --offline`, Cargo's own dependency resolver, run as a subprocess against this repository's real, already-resolved workspace (no network access; uses the existing Cargo.lock and local registry cache). Shares zero code with adapter/src/dependency/cargo.rs.",
+    "what_it_compares": "candidate_parser_agrees_with_cargo_metadata_on_this_repositorys_real_resolved_edges: every (consumer, provider name, provider version) edge triple the candidate parser produced vs. every edge cargo metadata's own resolve.nodes[].deps report, on this repository's real workspace. candidate_parser_agrees_with_cargo_metadata_on_resolved_package_identity: every (name, version) package identity the candidate resolved is a subset of what cargo metadata itself resolved.",
+    "canonical_extractor_vs_oracle_distinction": "Recorded explicitly in cargo_oracle.rs's own module doc comment and in DEPENDENCY-CENSUS.md's Implementation status section: `census_cargo_workspace` (production, pure static parsing, no process execution) != the oracle (test-only, executes `cargo` as a subprocess, never reachable from production code) -- keeping the security boundary this contract requires (`.atlas/contracts/DEPENDENCY-CENSUS.md#build-time-and-dynamic-dependency-discovery`: 'Census is analysis; execution requires separately authorized/sandboxed capability') intact for the real production path.",
+    "falsification_proof_the_oracle_has_teeth": "Manually mutated `census_cargo_workspace` to append \"-MUTATED\" to every edge's consumer name and re-ran the oracle test: it failed immediately with a clear diff showing every mismatched triple. The mutation was then reverted and the full test suite re-confirmed green. This proves the oracle comparison is not vacuously true -- it genuinely depends on the candidate parser's real output.",
+    "no_circular_self_certification": true
+  },
+  "additional_hardening_this_correction_bundles": [
+    {
+      "defect": "DependencyClosureReport.is_closed() == dangling_references.is_empty() could not distinguish NotApplicable (no Cargo.lock) from Blocked (malformed lockfile) from a genuinely verified Closed empty graph. runtime::systemize's fallback for the no-Cargo.lock case fabricated a zero-edge report that silently read is_closed() == true, so DEPENDENCY_CLOSURE_NOT_CLOSED never fired for a repository where Cargo census never ran at all.",
+      "fix": "New DependencyClosureState enum (NotApplicable/Blocked/Partial/Closed) replacing the bare boolean; runtime::build_coverage_from_dependency_closure (pure, unit-tested, one falsification case per state transition) derives BUILD coverage and the coding-admission blocker from state, never from default structure values."
+    },
+    {
+      "defect": "classify_source_kind (formerly inline: source.is_some() => Registry, source.is_none() => WorkspaceMember) misclassified a git+ dependency as Registry and any non-workspace path dependency as WorkspaceMember (both lack a source field in Cargo.lock, indistinguishable without cross-referencing real workspace-member evidence).",
+      "fix": "New DependencySourceKind::Other variant; classify_source_kind now checks the source string's actual prefix (registry+/git+) and cross-references the real, evidenced workspace-member name set (read from the root manifest's own workspace.members) before ever concluding WorkspaceMember for a source-less package. Adversarial fixtures added for git, unrecognized-source, and non-workspace-path-dependency cases."
+    },
+    {
+      "defect": "A multi-line workspace.members array was silently treated identically to 'no workspace declared'. A multi-line inline-table dependency entry (optional = true on a continuation line) was silently misread as if only its first physical line existed.",
+      "fix": "workspace_members() now returns whether it detected an unparsed multi-line members array, recorded in the new unsupported_constructs field and forcing Partial state. manifest_dependency_entries() now joins a multi-line inline table via brace-depth tracking before classifying it, so optional/rename detection is correct even when the entry spans several physical lines."
+    },
+    {
+      "defect": "A resolved static Cargo.lock/Cargo.toml graph could be read as 'dependency closure verified' with no explicit signal that build.rs, proc-macro expansion, pkg-config, native linking, generated source, environment probes, dynamic loading, plugin discovery, or external-capability dependencies remain entirely unobserved.",
+      "fix": "New DynamicDependencyObligation enum (9 named classes) and DependencyClosureReport.dynamic_obligations field, populated with the full vocabulary as still-unresolved whenever a census actually runs. No detection logic yet -- explicit declaration only, per RECURSIVE-SELF-CENSUS.md's own 'they do not all need full implementation this generation, but the model must be able to say so' standard."
+    }
+  ],
+  "ci_state": {
+    "finding": "Every GitHub Actions workflow run on this repository's main branch, from run #1 (the very first commit, 2026-09-20) through the run for this generation's own most recent push, has completed with conclusion=failure in 2-3 seconds, with runner_id=0 and runner_name=\"\" on the job -- meaning no runner was ever assigned to execute it. This predates every commit in this repository's dependency-census work by days and is unrelated to any workflow-file content (the workflow file itself has not materially changed in that time, and the failure mode -- job dispatched, immediately failed, never assigned a runner -- is inconsistent with a workflow-syntax or code/test failure, which would show a runner assignment and step-level logs).",
+    "conclusion": "This is a pre-existing infrastructure/account-level condition (e.g. an Actions minutes/spending limit or a runner-provisioning restriction on this GitHub account), outside repository control and not fixable by any change to .github/workflows/ci.yml or to the Rust code. Per this task's own instruction ('If the failure is genuinely external infrastructure: document exact evidence; do not mark CI-backed verification as passed; use another independent machine verification path; continue unrelated work'), CI-backed verification is NOT claimed passed for this or any generation in this repository's history. The independent verification path used throughout is local, direct execution of the same commands CI would run (cargo fmt --all --check, cargo clippy --workspace --all-targets -- -D warnings, cargo test --workspace) plus, as of this generation, the cargo-metadata differential oracle above.",
+    "evidence": "mcp__github__actions_list(list_workflow_runs, branch=main): 210+ runs, every one conclusion=failure, created_at to updated_at spans of 2-3 seconds. mcp__github__actions_get(get_workflow_job, job_id=<latest run's job>): runner_id=0, runner_name=\"\", labels=[\"ubuntu-latest\"], status=completed, conclusion=failure, started_at to completed_at span of 2 seconds -- consistent with a job that was queued and failed before any runner picked it up. The earliest run (run #1, id 35495415401, 2026-09-20T06:53:44Z, for commit 79c5ab18 \"bootstrap: materialize Atlas Systemizer Rust subsystem\") shows the identical pattern, ruling out any cause introduced by this or any later generation."
+  },
+  "validation_this_generation": {
+    "commands": {
+      "cargo fmt --all --check": { "exit_code": 0 },
+      "cargo clippy --workspace --all-targets -- -D warnings": { "exit_code": 0, "warnings": 0 },
+      "cargo test --workspace": {
+        "exit_code": 0,
+        "totals": "404 passed, 0 failed (219 adapter, 127 core, 58 runtime), up from 382"
+      },
+      "cargo run -q -p atlas-cli -- systemize --root . (production self-census, unaffected by the test-only oracle)": {
+        "exit_code": 0,
+        "finding": "dependency_closure.schema == 'atlas.dependency-closure-report.v2'; state == 'CLOSED'; edges_total == 28; instances_total == 14; dangling_references == []; unsupported_constructs == []; dynamic_obligations.length == 9; source distribution {WORKSPACE_MEMBER: 4, REGISTRY: 24}; coding_admission.allowed == true; census.coverage.BUILD == 'OBSERVED' -- unchanged in substance from the prior generation, confirming no regression"
+      },
+      "cargo test -p adapter dependency::cargo_oracle (the independent oracle itself)": {
+        "exit_code": 0,
+        "finding": "both differential tests pass against this repository's real workspace; a deliberate mutation (consumer name corruption) was shown to make the oracle test fail, then reverted, proving the comparison is not vacuous"
+      }
+    }
+  },
+  "recensus_scope_after_promotion": [
+    "no prior CLOSED/EXTINCT conclusion depended on the false independent-validator claim being true, so no external conclusion requires reopening -- this correction only strengthens the evidence behind an already-materialized capability",
+    "the schema bump (v1 -> v2) is additive (new required fields: state, unsupported_constructs, dynamic_obligations); no consumer of the v1 shape exists outside this repository's own test suite and runtime wiring, both updated in the same generation",
+    "future generations adding a second production ecosystem, resolution-context modeling, or any dynamic-obligation detection must recensus this same scope, since a stronger observer could reveal edges or obligations this generation's model does not yet distinguish"
+  ],
+  "overall_verdict": "CORRECTED AND RE-VERIFIED. The prior generation's independent-validator claim is retracted for the reason stated above; a genuinely independent, code-sharing-free oracle (cargo metadata, test-only, security-boundary-isolated) now backs the same claim, proven to have real discriminating power via a deliberate mutation test. Four additional real defects the task's audit specifically named (closure-state semantics, source classification, unsupported-construct silence, dynamic-obligation silence) are fixed in the same generation, each with adversarial/falsification test coverage. CI-backed verification is explicitly NOT claimed, with exact evidence for why (pre-existing, repository-independent infrastructure failure present since this repository's very first commit).",
+  "historical_evidence_retained": true
+}

@@ -211,39 +211,100 @@ permanent `UNSUPPORTED` stub (`runtime::census::build_census`).
 **Materialized and verified**: the Cargo ecosystem, for Atlas's own workspace
 (`.atlas/contracts/DEPENDENCY-CENSUS.md#atlas-self-census`). `adapter::census_cargo_workspace`
 statically parses `Cargo.lock` (Cargo's own already-fully-resolved transitive graph -- no
-`cargo tree`/`cargo metadata` execution) plus each workspace member's own `Cargo.toml` (for real,
-evidenced `DependencyKind::Runtime`/`Dev`/`Build`, never defaulted by assumption), producing a
-typed `DependencyClosureReport` (`core::census::dependency`) wired into `SystemizeReport` and
-promoting `BUILD` to `OBSERVED` once a real, dangling-reference-free closure exists. Proven via a
-real self-census test reading this repository's own actual manifest files (not only synthetic
-fixtures), and independently via a full `systemize` CLI run against this repository showing
-`BUILD: OBSERVED`, 28 real edges, 14 real resolved instances, zero dangling references.
-Same-name multi-version disambiguation is also materialized: a `Cargo.lock` dependency-array entry
+`cargo tree`/`cargo metadata` execution in the production path) plus each workspace member's own
+`Cargo.toml` (for real, evidenced `DependencyKind::Runtime`/`Dev`/`Build`/`Optional`/
+`TargetConditional`, never defaulted by assumption), producing a typed `DependencyClosureReport`
+(`core::census::dependency`) wired into `SystemizeReport` and promoting `BUILD` to `OBSERVED` once
+`DependencyClosureState::Closed` is actually reached (below).
+
+Same-name multi-version disambiguation is materialized: a `Cargo.lock` dependency-array entry
 disambiguated as `"name version"` resolves to the matching `[[package]]` block by version, a
 disambiguated entry naming a version with no matching block is a real dangling reference (not a
 guess), and a genuinely ambiguous entry with no version suffix at all (adversarial/malformed input
 -- real Cargo.lock output always disambiguates when more than one resolved version exists) is
 still reported rather than guessed.
 
-`Optional` and `TargetConditional` `DependencyKind` emission is also materialized: a manifest entry
-declaring `optional = true` (in any dependency table) is classified `Optional`, and a dependency
-declared under `[target.'cfg(...)'.dependencies]`/`.dev-dependencies]`/`.build-dependencies]` (any
-target-selector spelling) is classified `TargetConditional`. `Optional` here means "declared
-optional in the manifest", not "active in this admitted context" -- feature-selection resolution
-is still TARGET (below). `TargetConditional` does not yet parse or represent the target-selector
-expression itself (`cfg(unix)` vs. `cfg(windows)`, an admitted-target policy match), only that the
-edge is conditional on *some* target.
+`Optional` and `TargetConditional` `DependencyKind` emission is materialized: a manifest entry
+declaring `optional = true` (in any dependency table, including one spanning multiple physical
+lines as a multi-line inline table) is classified `Optional`, and a dependency declared under
+`[target.'cfg(...)'.dependencies]`/`.dev-dependencies]`/`.build-dependencies]` (any target-selector
+spelling) is classified `TargetConditional`. `Optional` here means "declared optional in the
+manifest", not "active in this admitted context" -- feature-selection resolution is still TARGET
+(below). `TargetConditional` does not yet parse or represent the target-selector expression itself
+(`cfg(unix)` vs. `cfg(windows)`, an admitted-target policy match), only that the edge is
+conditional on *some* target.
+
+**Closure state is explicit, not a bare boolean** (`DependencyClosureState`:
+`NotApplicable`/`Blocked`/`Partial`/`Closed`). A prior version of this bootstrap represented
+closure as `dangling_references.is_empty()` alone, which could not distinguish "no Cargo.lock
+exists at this root" from "census never ran" from "a real, verified, dependency-free closure" --
+`runtime::systemize` fabricated a zero-edge default report for the no-`Cargo.lock` case, whose
+`is_closed()` then silently read `true`, so a repository outside the Cargo ecosystem entirely
+looked identical to one with a genuinely closed Cargo census and never raised
+`DEPENDENCY_CLOSURE_NOT_CLOSED`. Fixed: `NotApplicable` (no `Cargo.lock`) never blocks and leaves
+`BUILD` at its prior status; `Blocked` (a present `Cargo.lock` that parsed to zero `[[package]]`
+entries -- evidence of a malformed/truncated file, not a verified empty project) and `Partial` (a
+dangling reference, unresolved ambiguity, or detected-but-unsupported manifest construct) both
+block; `Closed` requires real resolved packages and zero unresolved issues of any kind. See
+`runtime::build_coverage_from_dependency_closure` and its own falsification tests, one per state
+transition.
+
+**Source classification is evidence-based, not a two-way guess.** A prior version classified any
+package with a `source` field as `Registry` and any without as `WorkspaceMember` -- wrong for a
+`git+...` source (classified `Registry`) and for a non-workspace local `path = "..."` dependency
+(classified `WorkspaceMember` merely for lacking a `source` field, which a real workspace member
+also lacks). Fixed: `Vcs` for a `git+` source, `Other` for a source matching neither recognized
+prefix, and `Path` for a source-less package whose name is not in the real, evidenced
+workspace-member set (cross-referenced from the root manifest's own `workspace.members`) --
+`WorkspaceMember` now requires that positive evidence, never merely the absence of a `source`
+field.
+
+**Unsupported manifest constructs are named explicitly, not silently mis-parsed.** A multi-line
+`workspace.members` array is detected (previously silently treated as "no workspace declared")
+and forces `Partial` state rather than a false `Closed`. A multi-line inline-table dependency
+entry (e.g. `foo = {\n version = "1",\n optional = true\n}`) is now actually read correctly
+(the continuation lines are joined before classification), closing what was a real, if
+unexercised, misclassification risk rather than merely naming it.
+
+**Dynamic/build-time dependency obligations are declared, not implied away.** Every
+`DynamicDependencyObligation` class -- `BuildScript`/`ProcMacroExpansion`/`PkgConfig`/`NativeLinking`/
+`GeneratedSource`/`EnvironmentProbe`/`DynamicLoading`/`PluginDiscovery`/`ExternalCapability` -- is
+reported as still-unresolved (`DependencyClosureReport::dynamic_obligations`) whenever a census
+actually runs. `BUILD: OBSERVED` from a `Closed` static package graph means exactly that: the
+static package graph is resolved. It does not mean no build script, proc-macro, or native link
+could introduce dependency behavior this closure does not see -- that remains a separate, always
+explicit axis, none of it implemented yet.
+
+**Independent verification is now genuinely independent.** A prior evidence record
+(`dependency-census-cargo-bootstrap.json`) claimed the pre-existing `systemize` CLI as an
+independent evidence channel. That claim was false: `systemize` calls
+`adapter::census_cargo_workspace` internally -- the same candidate parser under test, reached
+through a different entry point, not a second implementation or a second source of truth. See
+`.atlas/evidence/verification/dependency-census-independent-validator-correction.json` for the
+corrective record. `adapter::dependency::cargo_oracle` (test-only, never reachable from production
+code) now runs `cargo metadata --format-version=1 --offline` -- Cargo's own resolver, sharing no
+code with this crate's static parser -- and diffs its resolved edges and package identities
+against the candidate's output on this repository's own real workspace. **Canonical census
+extractor != independent verification oracle**: the oracle exists strictly as `#[cfg(test)]`
+verification evidence and must never be called from `census_cargo_workspace`, `systemize`, or
+anything gating coding admission, since it executes `cargo` as a subprocess and would otherwise
+violate the "ingestion is not execution" security boundary this contract requires of the
+production path.
 
 **Still TARGET, not silently claimed done**: other ecosystems (npm, pip, ...); full
 resolution-context modeling (feature-selection activation for `Optional` edges; parsing the actual
 target-selector expression for `TargetConditional` edges against an admitted target-context matrix
 -- this wave accounts every edge as unconditionally active, matching every real edge in this
-workspace today, since it has neither construct); dynamic/build-script-discovered dependencies
-(`ProcMacro` is declared in `DependencyKind` but never emitted -- it requires reading a
-dependency's own manifest, which this parser never does); the `"name version (source)"` lockfile
-form, needed only when the same name and version resolve from two different sources; non-Cargo
-build metadata (compiler/toolchain version, native/FFI links); reconciliation from independent
-sources (this wave has exactly one evidence channel: the lockfile/manifests themselves).
+workspace today, since it has neither construct); `ProcMacro` `DependencyKind` emission (requires
+reading a dependency's own manifest, which this parser never does); the `"name version (source)"`
+lockfile form, needed only when the same name and version resolve from two different sources;
+non-Cargo build metadata (compiler/toolchain version, native/FFI links); a single non-workspace
+root crate (`[package]` with no `[workspace]` at all -- workspace-member discovery requires a
+`[workspace] members = [...]` array; Atlas's own self-census, the only real corpus this bootstrap
+is proven against, is always a workspace); actually implementing any dynamic-dependency-obligation
+probe (all nine classes remain declared-but-unresolved); a second real evidence channel besides
+`cargo metadata` (e.g. a from-scratch independent parser) for continuous production use -- the
+`cargo metadata` oracle is verification-only and runs only in this crate's own test suite.
 
 ## Extinction interaction
 
