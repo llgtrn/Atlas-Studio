@@ -56,6 +56,37 @@ DC1 is required before W0 can claim full `COARSE_CENSUSED` status. It materializ
 
 DC1 determines census breadth. R4 semantic dimensions determine census depth.
 
+### Cross-cutting AH1 — Embedded Agent Host Runtime
+
+Atlas is a tool/runtime substrate before it is an IDE and MUST support provider-neutral embedding under `../contracts/AGENT-HOST-EMBEDDED-RUNTIME.md`.
+
+The primary early host profile is:
+
+~~~text
+coding-agent cloud/local session
+→ local MCP/API adapter
+→ AtlasCore inside the same outer host sandbox
+→ Atlas-managed candidate workspaces
+→ Census / verification / admission / seal
+~~~
+
+This allows Atlas to reuse agent-cloud compute and checkout while keeping semantic truth, uncertainty, verification and admission inside Atlas.
+
+AH1 target capabilities include:
+
+- provider-neutral AtlasCore separated from CLI/MCP/API/Studio adapters;
+- local stdio MCP adapter for embedded coding agents;
+- exact parent/candidate identity when the provider edits the host worktree;
+- sandbox capability detection rather than Docker/KVM assumptions;
+- workspace/process isolation baseline inside an outer host sandbox;
+- stronger container/microVM/remote backends when available/required;
+- candidate freeze/hash before verification;
+- durable Atlas/evidence state that outlives ephemeral agent sessions;
+- optional remote scale-out for large census, fuzzing, benchmarks, failure injection, GPU and multi-node workloads;
+- Atlas Studio as a later frontend over the same core rather than a second semantic system.
+
+AH1 is cross-cutting. It does not wait for R8, and it does not make MCP or any named agent vendor part of canonical Atlas semantics.
+
 ### R4 — semantic census depth
 
 Current materialized baseline is R4.8 bootstrap: R4.6 CONTROL_FLOW and R4.7 DATA_FLOW are materialized; R4.8 emits useful STATE/EFFECT evidence but canonical R4.8 closure remains open.
@@ -194,7 +225,7 @@ canonical *.atlas
 
 Search/research may feel like a research assistant; fast typed selection may use a Jev-class provider; code synthesis may use frontier external providers. These are replaceable adapters and do not own canonical semantics.
 
-This lane is governed by `../contracts/HUMAN-AI-ADL-AUTHORING.md`, `../contracts/ATLAS-CREATION-PIPELINE.md`, `../contracts/EXTERNAL-PROVIDER-TRUST.md`, `../contracts/SELF-BUILD-CONTROLLER.md`, `../contracts/ADMISSION-TRANSACTION.md` and `../contracts/VERIFICATION-METRICS-PERFORMANCE.md`.
+This lane is governed by `../contracts/HUMAN-AI-ADL-AUTHORING.md`, `../contracts/ATLAS-CREATION-PIPELINE.md`, `../contracts/EXTERNAL-PROVIDER-TRUST.md`, `../contracts/AGENT-HOST-EMBEDDED-RUNTIME.md`, `../contracts/SELF-BUILD-CONTROLLER.md`, `../contracts/ADMISSION-TRANSACTION.md` and `../contracts/VERIFICATION-METRICS-PERFORMANCE.md`.
 
 ## Language Genesis lane — after typed census semantics are trustworthy
 
