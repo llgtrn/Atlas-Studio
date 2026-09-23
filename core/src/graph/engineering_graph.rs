@@ -1263,6 +1263,8 @@ mod tests {
                 typed_observations_total: 0,
                 typed_obligations_total: 0,
             },
+            exact_duplicates_merged: 0,
+            conflict_candidates: Vec::new(),
             facts,
         };
 
@@ -1864,6 +1866,8 @@ mod tests {
             typed_semantic_records,
             evidence: Vec::new(),
             diagnostics: Vec::new(),
+            exact_duplicates_merged: 0,
+            conflict_candidates: Vec::new(),
             facts,
         }
     }

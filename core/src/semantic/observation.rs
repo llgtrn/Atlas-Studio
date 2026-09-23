@@ -168,6 +168,31 @@ impl SemanticObservation {
         }
     }
 
+    /// Debug-formatted subject payload only -- the same `payload={:?}` component already used
+    /// inside `raw_observation_id()`'s seed, exposed on its own. Used ONLY to detect whether two
+    /// observations sharing a `record_id` (the same semantic claim identity) actually agree on
+    /// WHAT that claim is (`normalize::detect_conflict_candidates`,
+    /// `.atlas/contracts/NORMALIZATION.md#conflict-handling`). Not an identity, hash or ordering
+    /// source: two observations may legitimately have equal `subject_repr()` while differing in
+    /// extractor/evidence/provenance (independent corroboration), and the reverse (differing
+    /// `subject_repr()` under the same `record_id`) is exactly the conflict-candidate signal.
+    pub fn subject_repr(&self) -> String {
+        match self {
+            Self::FunctionIdentity(header) => format!("{:?}", header.subject),
+            Self::FunctionSignature(header) => format!("{:?}", header.subject),
+            Self::Symbol(header) => format!("{:?}", header.subject),
+            Self::Type(header) => format!("{:?}", header.subject),
+            Self::Call(header) => format!("{:?}", header.subject),
+            Self::ControlFlow(header) => format!("{:?}", header.subject),
+            Self::DataFlow(header) => format!("{:?}", header.subject),
+            Self::State(header) => format!("{:?}", header.subject),
+            Self::Effect(header) => format!("{:?}", header.subject),
+            Self::Ownership(header) => format!("{:?}", header.subject),
+            Self::Concurrency(header) => format!("{:?}", header.subject),
+            Self::Persistence(header) => format!("{:?}", header.subject),
+        }
+    }
+
     /// `true` iff the wrapped header's `dimension` field agrees with `self.dimension()`.
     ///
     /// Rust's type system ties each variant to its `Subject` type (e.g. `Type(SemanticRecordHeader
