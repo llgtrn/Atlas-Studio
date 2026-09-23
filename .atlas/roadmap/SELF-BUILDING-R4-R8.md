@@ -344,23 +344,60 @@ This is the minimum point at which Atlas can connect implementation behavior to 
 claims for mechanism absorption, but the closure claim remains profile-scoped and evidence-gated,
 exactly like R4.8/R4.9/R4.10 before it.
 
-### R4.12 — R4 Semantic Closure
+### R4.12 — R4 Semantic Closure — infrastructure gate materialized, one item remains a named bridge
 
-R4 closes only after the declared Rust reference profile satisfies the canonical R4 acceptance contract.
+R4 closes only after the declared Rust reference profile satisfies the canonical R4 acceptance
+contract (`.atlas/contracts/SEMANTIC-EXTRACTION.md#r4-definition-of-done`). R4.12 operates one
+level above any single dimension's own remaining closure status (R4.5-R4.11 each keep their own
+"closure remains open" state, unaffected by this section): it is the pipeline-level gate --
+determinism, non-omission, dedup accounting, conflict preservation, graph-path purity, and a named
+reference corpus -- not a claim that every dimension has exhausted Rust's construct space.
 
-R4.12 must include:
+Named Rust reference profile: `R4_REFERENCE_PROFILE_CORPUS`
+(`adapter::semantic::rust::tests`, mirrored in `runtime::census::tests` for the full
+Census→Normalize path), the first single corpus proven evidence-producing -- not merely accounted
+-- for all twelve `SemanticDimension` variants together. Every project-wide R4-complete claim
+names this corpus, per the contract's own closing requirement.
 
-- all mandatory R4 dimensions evidence-producing or explicitly accounted;
-- every discovered function with stable identity/signature or explicit unresolved state;
-- deterministic normalization;
-- exact semantic duplicate policy;
-- multi-extractor observations preserved;
-- conflict candidates preserved for reconciliation;
-- dynamic/unresolved facts explicit;
-- reference corpus;
-- deterministic accounting/closure tests;
-- graph construction only from normalized typed truth;
-- no compatibility `SemanticFact` authority over typed semantics.
+Status against the 9-item Definition of Done, this wave:
+
+- all mandatory R4 dimensions evidence-producing or explicitly accounted: **done**, and now proven
+  in the strongest form via the named reference profile;
+- every discovered function with stable identity/signature or explicit unresolved state: **done**
+  (R4.4, unchanged);
+- deterministic normalization: **done** (unchanged);
+- exact semantic duplicate policy: **partial** -- the narrowest safe case (byte-identical raw
+  observations) is now real, counted (`NormalizationReport.exact_duplicates_merged`), and the
+  closure invariant (`typed_semantics_closed()`) correctly accounts for the collapse
+  (`input == normalized + exact_duplicates_merged`, matching
+  `.atlas/contracts/NORMALIZATION.md#closure-invariants` verbatim). `NORMALIZATION.md`'s broader
+  rule -- merging same-extractor observations that agree on identity/payload/status but differ
+  only in evidence, unioning that evidence -- remains explicit **bridge/target**: no current Rust
+  walker's output shape ever triggers it (each emits exactly one evidence ref per observation), and
+  self-census against this repository's own ~25k observations confirms zero real occurrence, so it
+  is named rather than guessed at;
+- multi-extractor observations preserved: **done** (R4.3.3 onward, unchanged);
+- conflict candidates preserved for reconciliation: **done**, newly this wave --
+  `NormalizationReport.conflict_candidates` groups typed records by `record_id` and flags any group
+  disagreeing on typed payload (`SemanticObservation::subject_repr()`), proven against the exact
+  "extractor call-target sets" disagreement example `NORMALIZATION.md` itself names
+  (`CallSiteIdentity.dispatch`/`callees` differing under one call-site identity), and against real
+  corroboration (identical payload, different extractor) correctly NOT flagging. Deliberately
+  over-inclusive rather than per-dimension-nuanced: reconciliation (R6) decides, this wave only
+  detects and preserves;
+- dynamic/unresolved facts explicit: **done** (unchanged, e.g. `CallDispatchKind`'s four states);
+- reference corpus: **done**, newly this wave -- see `R4_REFERENCE_PROFILE_CORPUS` above;
+- deterministic accounting/closure tests: **done**, newly this wave -- the named corpus closes this
+  gap directly (`reference_profile_produces_real_evidence_for_every_mandatory_dimension`,
+  `reference_profile_survives_census_and_normalization_with_no_duplicates_or_conflicts`);
+- graph construction only from normalized typed truth: **done** (R4.3.3, unchanged);
+- no compatibility `SemanticFact` authority over typed semantics: **done** (R4.3.3, unchanged).
+
+R4.12 is **materialized, not fully closed**: 8 of 9 items are genuinely done; the exact-duplicate
+equivalence-class rule remains a named bridge, not silently omitted or overclaimed.
+`.atlas/evidence/verification/r4.12-verification-record.json` records the full gap audit, the
+self-census cross-check at real scale, and the bug found and fixed this pass (the closure
+invariant did not yet account for the exact-duplicate delta the contract's own formula requires).
 
 R4 closure is profile-scoped. Do not claim universal language/compiler completeness.
 
