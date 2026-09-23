@@ -10,9 +10,10 @@ use super::super::batch::ExtractionBatch;
 use super::super::extractor::{ExtractionInput, SemanticExtractor};
 use super::{RustSemanticExtractor, spelling};
 use atlas_core::{
-    ArtifactId, CallDispatchKind, CallSiteIdentity, ContentFingerprint, ControlFlowBlockIdentity,
-    ControlFlowBlockKind, ControlFlowEdgeKind, DataFlowResolution, EffectCategory, EffectIdentity,
-    EpistemicStatus, FunctionDeclarationKind, FunctionIdentity, FunctionSignature, RepositoryId,
+    ArtifactId, CallDispatchKind, CallSiteIdentity, ConcurrencyIdentity, ConcurrencyKind,
+    ContentFingerprint, ControlFlowBlockIdentity, ControlFlowBlockKind, ControlFlowEdgeKind,
+    DataFlowResolution, EffectCategory, EffectIdentity, EpistemicStatus, FunctionDeclarationKind,
+    FunctionIdentity, FunctionSignature, OwnershipIdentity, OwnershipKind, RepositoryId,
     RevisionRef, SemanticDimension, SemanticObservation, SemanticRecordId, StateAccessIdentity,
     StateAccessKind, StateResolution, SymbolIdentity, SymbolRole, TypeIdentity, ValueIdentity,
     ValueRole,
@@ -33,11 +34,7 @@ const ALL_DIMENSIONS: [SemanticDimension; 12] = [
     SemanticDimension::Persistence,
 ];
 
-const UNSUPPORTED_DIMENSIONS: [SemanticDimension; 3] = [
-    SemanticDimension::Ownership,
-    SemanticDimension::Concurrency,
-    SemanticDimension::Persistence,
-];
+const UNSUPPORTED_DIMENSIONS: [SemanticDimension; 1] = [SemanticDimension::Persistence];
 
 /// Reference correctness corpus: one small, real Rust file covering every R4.3 minimum
 /// construct. `greet` is deliberately declared twice -- once as a free function, once as a
@@ -464,6 +461,72 @@ pub fn free_function_with_no_self() -> u64 {
 }
 "#;
 
+const OWNERSHIP_CORPUS: &str = r#"
+pub struct Widget {
+    pub value: u64,
+}
+
+pub fn borrow_shared_via_field(w: &Widget) -> u64 {
+    w.value
+}
+
+pub fn borrow_mut_via_field(w: &mut Widget) {
+    w.value = 1;
+}
+
+pub fn consume(w: Widget) -> Widget {
+    w
+}
+
+pub fn borrow_then_consume(w: Widget) -> Widget {
+    let _ = &w;
+    consume(w)
+}
+
+pub fn conditional_move(flag: bool, a: Widget, b: Widget) -> Widget {
+    if flag {
+        a
+    } else {
+        b
+    }
+}
+
+pub fn double_borrow(w: &Widget) -> u64 {
+    let x = &w.value;
+    *x
+}
+"#;
+
+const CONCURRENCY_CORPUS: &str = r#"
+pub async fn await_something(x: u64) -> u64 {
+    x.await
+}
+
+fn do_work() {}
+
+pub fn spawn_work() {
+    thread::spawn(do_work);
+}
+
+pub fn call_without_spawn() {
+    do_work();
+}
+
+pub async fn conditional_await(flag: bool, a: u64, b: u64) -> u64 {
+    if flag {
+        a.await
+    } else {
+        b.await
+    }
+}
+
+pub fn spawn_in_a_loop() {
+    for _ in 0..3 {
+        thread::spawn(do_work);
+    }
+}
+"#;
+
 fn input_for(
     artifact_path: &str,
     source: &str,
@@ -737,6 +800,61 @@ fn effects_for<'a>(
         .filter(|value| value.function == caller_id)
         .collect();
     values.sort_by_key(|value| (value.span.line, value.span.column));
+    values
+}
+
+fn all_ownership_ops(batch: &ExtractionBatch) -> Vec<&OwnershipIdentity> {
+    batch
+        .observations
+        .iter()
+        .filter_map(|observation| match observation {
+            SemanticObservation::Ownership(header) => Some(&header.subject),
+            _ => None,
+        })
+        .collect()
+}
+
+/// Every Ownership operation observation whose `function` is exactly `caller`'s `FunctionIdentity`
+/// record_id, sorted by (span line, span column, kind) for deterministic assertions.
+fn ownership_ops_for<'a>(
+    batch: &'a ExtractionBatch,
+    caller: &FunctionIdentity,
+) -> Vec<&'a OwnershipIdentity> {
+    let caller_id =
+        SemanticRecordId::new(SemanticDimension::FunctionIdentity, &caller.identity_key());
+    let mut values: Vec<&OwnershipIdentity> = all_ownership_ops(batch)
+        .into_iter()
+        .filter(|value| value.function == caller_id)
+        .collect();
+    values.sort_by_key(|value| (value.span.line, value.span.column, value.kind.as_str()));
+    values
+}
+
+fn all_concurrency_ops(batch: &ExtractionBatch) -> Vec<&ConcurrencyIdentity> {
+    batch
+        .observations
+        .iter()
+        .filter_map(|observation| match observation {
+            SemanticObservation::Concurrency(header) => Some(&header.subject),
+            _ => None,
+        })
+        .collect()
+}
+
+/// Every Concurrency operation observation whose `function` is exactly `caller`'s
+/// `FunctionIdentity` record_id, sorted by (span line, span column, kind) for deterministic
+/// assertions.
+fn concurrency_ops_for<'a>(
+    batch: &'a ExtractionBatch,
+    caller: &FunctionIdentity,
+) -> Vec<&'a ConcurrencyIdentity> {
+    let caller_id =
+        SemanticRecordId::new(SemanticDimension::FunctionIdentity, &caller.identity_key());
+    let mut values: Vec<&ConcurrencyIdentity> = all_concurrency_ops(batch)
+        .into_iter()
+        .filter(|value| value.function == caller_id)
+        .collect();
+    values.sort_by_key(|value| (value.span.line, value.span.column, value.kind.as_str()));
     values
 }
 
@@ -1051,6 +1169,8 @@ fn malformed_rust_produces_parse_failure_and_unknown_for_supported_dimensions() 
         SemanticDimension::DataFlow,
         SemanticDimension::State,
         SemanticDimension::Effect,
+        SemanticDimension::Ownership,
+        SemanticDimension::Concurrency,
     ] {
         let obligation = batch.obligation_for(dimension).unwrap();
         assert_eq!(obligation.status, EpistemicStatus::Unknown);
@@ -2795,4 +2915,291 @@ fn repeated_extraction_yields_stable_state_and_effect_record_ids() {
 
     assert_eq!(first_state, second_state);
     assert!(!first_state.is_empty());
+}
+
+// --- 73. pure field projection through a reference parameter produces zero Ownership
+// observations -- `w.value` where `w: &Widget` contains no `&`/`&mut` and no bare-identifier
+// by-value use, so nothing is (or should be) recorded -------------------------------------------
+
+#[test]
+fn pure_field_projection_produces_no_ownership_observations() {
+    let batch = extract_all("src/lib.rs", OWNERSHIP_CORPUS);
+    let shared = find_function_identity(&batch, &[], "borrow_shared_via_field").unwrap();
+    assert!(ownership_ops_for(&batch, shared).is_empty());
+    let mutable = find_function_identity(&batch, &[], "borrow_mut_via_field").unwrap();
+    assert!(ownership_ops_for(&batch, mutable).is_empty());
+}
+
+// --- 74. a bare identifier returned as the function's own tail expression is a real MoveOrCopy --
+
+#[test]
+fn tail_returned_bare_identifier_is_a_move_or_copy() {
+    let batch = extract_all("src/lib.rs", OWNERSHIP_CORPUS);
+    let caller = find_function_identity(&batch, &[], "consume").unwrap();
+    let ops = ownership_ops_for(&batch, caller);
+    assert_eq!(ops.len(), 1);
+    assert_eq!(ops[0].kind, OwnershipKind::MoveOrCopy);
+    assert_eq!(ops[0].name, "w");
+}
+
+// --- 75. a shared borrow (`&w`) and a later by-value use of the same name are both recorded,
+// never conflated into one observation ------------------------------------------------------------
+
+#[test]
+fn a_borrow_and_a_later_move_of_the_same_name_are_both_recorded() {
+    let batch = extract_all("src/lib.rs", OWNERSHIP_CORPUS);
+    let caller = find_function_identity(&batch, &[], "borrow_then_consume").unwrap();
+    let ops = ownership_ops_for(&batch, caller);
+    assert_eq!(
+        ops.len(),
+        2,
+        "one BorrowShared, one MoveOrCopy, same name, different sites"
+    );
+    assert_eq!(ops[0].kind, OwnershipKind::BorrowShared);
+    assert_eq!(ops[0].name, "w");
+    assert_eq!(ops[1].kind, OwnershipKind::MoveOrCopy);
+    assert_eq!(ops[1].name, "w");
+    assert_ne!(
+        (ops[0].span.line, ops[0].span.column),
+        (ops[1].span.line, ops[1].span.column)
+    );
+}
+
+// --- 76. both branches of an `if`/`else` tail expression are reached as MoveOrCopy sites, but
+// the condition itself is never flagged -- return-flow threading matches R4.7's dataflow.rs -----
+
+#[test]
+fn both_if_else_tail_branches_are_move_sites_the_condition_is_not() {
+    let batch = extract_all("src/lib.rs", OWNERSHIP_CORPUS);
+    let caller = find_function_identity(&batch, &[], "conditional_move").unwrap();
+    let ops = ownership_ops_for(&batch, caller);
+    assert_eq!(ops.len(), 2);
+    assert!(ops.iter().all(|op| op.kind == OwnershipKind::MoveOrCopy));
+    let names: std::collections::BTreeSet<&str> = ops.iter().map(|op| op.name.as_str()).collect();
+    assert_eq!(
+        names,
+        std::collections::BTreeSet::from(["a", "b"]),
+        "the condition `flag` must never be flagged as a move-or-copy site"
+    );
+}
+
+// --- 77. borrowing a field projection (`&w.value`) is a real BorrowShared whose name matches the
+// same spelling helper CALL (R4.5) already uses for a callee -- never a bare-identifier move -----
+
+#[test]
+fn borrowing_a_field_projection_is_a_borrow_not_a_move() {
+    let batch = extract_all("src/lib.rs", OWNERSHIP_CORPUS);
+    let caller = find_function_identity(&batch, &[], "double_borrow").unwrap();
+    let ops = ownership_ops_for(&batch, caller);
+    assert_eq!(
+        ops.len(),
+        1,
+        "only the `&w.value` borrow; `*x` is not itself a move of `x`"
+    );
+    assert_eq!(ops[0].kind, OwnershipKind::BorrowShared);
+}
+
+// --- 78. every Ownership observation satisfies dimension consistency, alongside every other
+// dimension this extractor produces ---------------------------------------------------------------
+
+#[test]
+fn ownership_observations_satisfy_dimension_consistency() {
+    let batch = extract_all("src/lib.rs", OWNERSHIP_CORPUS);
+    let mut saw_ownership = false;
+    for observation in &batch.observations {
+        if matches!(observation, SemanticObservation::Ownership(_)) {
+            saw_ownership = true;
+        }
+        assert!(observation.is_dimension_consistent());
+    }
+    assert!(saw_ownership);
+}
+
+// --- 79. OWNERSHIP_CORPUS extraction is byte-for-byte deterministic across repeated runs --------
+
+#[test]
+fn ownership_corpus_extraction_is_deterministic() {
+    let first = extract_all("src/lib.rs", OWNERSHIP_CORPUS);
+    let second = extract_all("src/lib.rs", OWNERSHIP_CORPUS);
+    assert_eq!(first.observations, second.observations);
+    assert_eq!(first.evidence, second.evidence);
+}
+
+// --- 80. OWNERSHIP_CORPUS extraction is unaffected by requested-dimension order ------------------
+
+#[test]
+fn ownership_corpus_is_unaffected_by_requested_dimension_order() {
+    let forward = extract(
+        "src/lib.rs",
+        OWNERSHIP_CORPUS,
+        vec![
+            SemanticDimension::Symbol,
+            SemanticDimension::FunctionIdentity,
+            SemanticDimension::Ownership,
+        ],
+    );
+    let reversed = extract(
+        "src/lib.rs",
+        OWNERSHIP_CORPUS,
+        vec![
+            SemanticDimension::Ownership,
+            SemanticDimension::FunctionIdentity,
+            SemanticDimension::Symbol,
+        ],
+    );
+    assert_eq!(forward.observations, reversed.observations);
+}
+
+// --- 81. repeated extraction yields the exact same Ownership record_ids -------------------------
+
+#[test]
+fn repeated_extraction_yields_stable_ownership_record_ids() {
+    let batch = extract_all("src/lib.rs", OWNERSHIP_CORPUS);
+    let caller = find_function_identity(&batch, &[], "borrow_then_consume").unwrap();
+    let first: Vec<String> = ownership_ops_for(&batch, caller)
+        .into_iter()
+        .map(OwnershipIdentity::identity_key)
+        .collect();
+
+    let batch2 = extract_all("src/lib.rs", OWNERSHIP_CORPUS);
+    let caller2 = find_function_identity(&batch2, &[], "borrow_then_consume").unwrap();
+    let second: Vec<String> = ownership_ops_for(&batch2, caller2)
+        .into_iter()
+        .map(OwnershipIdentity::identity_key)
+        .collect();
+
+    assert_eq!(first, second);
+    assert!(!first.is_empty());
+}
+
+// --- 82. `.await` is recorded for a real postfix-await expression -------------------------------
+
+#[test]
+fn dot_await_expression_is_recorded_as_an_await_site() {
+    let batch = extract_all("src/lib.rs", CONCURRENCY_CORPUS);
+    let caller = find_function_identity(&batch, &[], "await_something").unwrap();
+    let ops = concurrency_ops_for(&batch, caller);
+    assert_eq!(ops.len(), 1);
+    assert_eq!(ops[0].kind, ConcurrencyKind::Await);
+}
+
+// --- 83. a call whose callee spelling ends in `spawn` is recorded as a Spawn site ----------------
+
+#[test]
+fn qualified_spawn_call_is_recorded_as_a_spawn_site() {
+    let batch = extract_all("src/lib.rs", CONCURRENCY_CORPUS);
+    let caller = find_function_identity(&batch, &[], "spawn_work").unwrap();
+    let ops = concurrency_ops_for(&batch, caller);
+    assert_eq!(ops.len(), 1);
+    assert_eq!(ops[0].kind, ConcurrencyKind::Spawn);
+}
+
+// --- 84. a call whose callee does not end in `spawn` produces no Concurrency observation ---------
+
+#[test]
+fn a_non_spawn_call_produces_no_concurrency_observation() {
+    let batch = extract_all("src/lib.rs", CONCURRENCY_CORPUS);
+    let caller = find_function_identity(&batch, &[], "call_without_spawn").unwrap();
+    assert!(concurrency_ops_for(&batch, caller).is_empty());
+}
+
+// --- 85. both branches of an `if`/`else` are reached for Await sites -- unlike R4.9's OWNERSHIP,
+// this walker has no value-position/tail-context restriction: every `.await` anywhere is real ----
+
+#[test]
+fn both_if_else_branches_await_sites_are_recorded() {
+    let batch = extract_all("src/lib.rs", CONCURRENCY_CORPUS);
+    let caller = find_function_identity(&batch, &[], "conditional_await").unwrap();
+    let ops = concurrency_ops_for(&batch, caller);
+    assert_eq!(ops.len(), 2);
+    assert!(ops.iter().all(|op| op.kind == ConcurrencyKind::Await));
+    assert_ne!(
+        (ops[0].span.line, ops[0].span.column),
+        (ops[1].span.line, ops[1].span.column)
+    );
+}
+
+// --- 86. a Spawn site inside a loop body is still recorded -- this walker has no
+// loop-body-is-never-value-position restriction the way OWNERSHIP does ----------------------------
+
+#[test]
+fn spawn_call_inside_a_loop_body_is_recorded() {
+    let batch = extract_all("src/lib.rs", CONCURRENCY_CORPUS);
+    let caller = find_function_identity(&batch, &[], "spawn_in_a_loop").unwrap();
+    let ops = concurrency_ops_for(&batch, caller);
+    assert_eq!(ops.len(), 1);
+    assert_eq!(ops[0].kind, ConcurrencyKind::Spawn);
+}
+
+// --- 87. every Concurrency observation satisfies dimension consistency, alongside every other
+// dimension this extractor produces ---------------------------------------------------------------
+
+#[test]
+fn concurrency_observations_satisfy_dimension_consistency() {
+    let batch = extract_all("src/lib.rs", CONCURRENCY_CORPUS);
+    let mut saw_concurrency = false;
+    for observation in &batch.observations {
+        if matches!(observation, SemanticObservation::Concurrency(_)) {
+            saw_concurrency = true;
+        }
+        assert!(observation.is_dimension_consistent());
+    }
+    assert!(saw_concurrency);
+}
+
+// --- 88. CONCURRENCY_CORPUS extraction is byte-for-byte deterministic across repeated runs -------
+
+#[test]
+fn concurrency_corpus_extraction_is_deterministic() {
+    let first = extract_all("src/lib.rs", CONCURRENCY_CORPUS);
+    let second = extract_all("src/lib.rs", CONCURRENCY_CORPUS);
+    assert_eq!(first.observations, second.observations);
+    assert_eq!(first.evidence, second.evidence);
+}
+
+// --- 89. CONCURRENCY_CORPUS extraction is unaffected by requested-dimension order ----------------
+
+#[test]
+fn concurrency_corpus_is_unaffected_by_requested_dimension_order() {
+    let forward = extract(
+        "src/lib.rs",
+        CONCURRENCY_CORPUS,
+        vec![
+            SemanticDimension::Symbol,
+            SemanticDimension::FunctionIdentity,
+            SemanticDimension::Concurrency,
+        ],
+    );
+    let reversed = extract(
+        "src/lib.rs",
+        CONCURRENCY_CORPUS,
+        vec![
+            SemanticDimension::Concurrency,
+            SemanticDimension::FunctionIdentity,
+            SemanticDimension::Symbol,
+        ],
+    );
+    assert_eq!(forward.observations, reversed.observations);
+}
+
+// --- 90. repeated extraction yields the exact same Concurrency record_ids ------------------------
+
+#[test]
+fn repeated_extraction_yields_stable_concurrency_record_ids() {
+    let batch = extract_all("src/lib.rs", CONCURRENCY_CORPUS);
+    let caller = find_function_identity(&batch, &[], "conditional_await").unwrap();
+    let first: Vec<String> = concurrency_ops_for(&batch, caller)
+        .into_iter()
+        .map(ConcurrencyIdentity::identity_key)
+        .collect();
+
+    let batch2 = extract_all("src/lib.rs", CONCURRENCY_CORPUS);
+    let caller2 = find_function_identity(&batch2, &[], "conditional_await").unwrap();
+    let second: Vec<String> = concurrency_ops_for(&batch2, caller2)
+        .into_iter()
+        .map(ConcurrencyIdentity::identity_key)
+        .collect();
+
+    assert_eq!(first, second);
+    assert!(!first.is_empty());
 }

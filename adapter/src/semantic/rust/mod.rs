@@ -1,9 +1,8 @@
-//! Real Rust semantic extractor (R4.3-R4.8).
+//! Real Rust semantic extractor (R4.3-R4.10).
 //!
-//! Scope is nine dimensions: SYMBOL, TYPE, FUNCTION_IDENTITY, FUNCTION_SIGNATURE, CALL,
-//! CONTROL_FLOW, DATA_FLOW, STATE, EFFECT. Every other requested dimension (OWNERSHIP,
-//! CONCURRENCY, PERSISTENCE) is always explicit `UNSUPPORTED` here — R4.9+ territory, never
-//! silently omitted.
+//! Scope is eleven dimensions: SYMBOL, TYPE, FUNCTION_IDENTITY, FUNCTION_SIGNATURE, CALL,
+//! CONTROL_FLOW, DATA_FLOW, STATE, EFFECT, OWNERSHIP, CONCURRENCY. Every other requested dimension
+//! (PERSISTENCE) is always explicit `UNSUPPORTED` here — R4.11+ territory, never silently omitted.
 //!
 //! Parses `input.source_text` with `syn` (a real Rust parser, not regex/ad-hoc text scanning).
 //! Parsing untrusted source text never authorizes executing it: this extractor never runs
@@ -30,13 +29,23 @@
 //! perform macro/name resolution. Every other `EffectCategory` likewise requires deeper
 //! resolution. STATE/EFFECT preserve useful observations while their per-dimension obligation
 //! remains UNKNOWN until the declared R4.8 profile has real closure; zero observations are never
-//! misreported as verified absence. A malformed file never silently disappears: parse failure
-//! yields a `ParseFailure` diagnostic plus
+//! misreported as verified absence. OWNERSHIP (R4.9, see `ownership.rs`) splits the same way CALL
+//! does: `&`/`&mut` borrow sites are fully syntax-determined (real `BorrowShared`/`BorrowMut`), but
+//! whether a bare identifier used by value is actually moved or merely copied depends on its
+//! type's `Copy`-ness, which this extractor cannot resolve -- `OwnershipKind::MoveOrCopy` names
+//! that gap explicitly rather than guessing. CONCURRENCY (R4.10, see `concurrency.rs`) only emits
+//! `Await` (dedicated `.await` syntax, fully determined) and `Spawn` (callee spelling ending in
+//! `spawn`, the same name-based risk class EFFECT already accepts for panic macros);
+//! `Lock`/`Unlock`/channel/atomic operations would require resolving a method call to a specific
+//! known API and are never emitted this wave. A malformed file never silently disappears: parse
+//! failure yields a `ParseFailure` diagnostic plus
 //! explicit `UNKNOWN` for all supported dimensions, with the artifact still represented.
 
 mod cfg;
+mod concurrency;
 mod dataflow;
 mod effect;
+mod ownership;
 mod spelling;
 mod state;
 
@@ -56,8 +65,8 @@ use super::extractor::{DiagnosticCode, ExtractionDiagnostic, ExtractionInput, Se
 pub const RUST_SEMANTIC_EXTRACTOR_ID: &str = "atlas.rust.source-semantic.v1";
 pub const RUST_SEMANTIC_EXTRACTOR_VERSION: &str = "0.1.0";
 
-/// Exactly the nine dimensions this wave observes from parser-visible syntax. Every other
-/// `SemanticDimension` is out of scope through R4.8 and always answered `UNSUPPORTED`.
+/// Exactly the eleven dimensions this wave observes from parser-visible syntax. Every other
+/// `SemanticDimension` is out of scope through R4.10 and always answered `UNSUPPORTED`.
 pub const SUPPORTED_DIMENSIONS: &[SemanticDimension] = &[
     SemanticDimension::Symbol,
     SemanticDimension::Type,
@@ -68,6 +77,8 @@ pub const SUPPORTED_DIMENSIONS: &[SemanticDimension] = &[
     SemanticDimension::DataFlow,
     SemanticDimension::State,
     SemanticDimension::Effect,
+    SemanticDimension::Ownership,
+    SemanticDimension::Concurrency,
 ];
 
 /// Useful facts are emitted for these dimensions, but this extractor does not yet prove exhaustive
@@ -692,6 +703,8 @@ impl<'a> ExtractionContext<'a> {
             self.build_data_flow(sig, body, scope, &caller_record_id);
             self.build_state(body, scope, &caller_record_id);
             self.build_effects(body, scope, &caller_record_id);
+            self.build_ownership(body, scope, &caller_record_id);
+            self.build_concurrency(body, scope, &caller_record_id);
         }
 
         let mut parameters = Vec::new();
@@ -1035,7 +1048,9 @@ impl<'a> ExtractionContext<'a> {
                             ),
                         );
                         obligations.push(ObligationResult::observed(
-                            dimension, Vec::new(), vec![evidence_id],
+                            dimension,
+                            Vec::new(),
+                            vec![evidence_id],
                         ));
                     }
                 }

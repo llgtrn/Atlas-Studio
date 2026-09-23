@@ -849,6 +849,113 @@ fn add_typed_semantic_nodes(
                     revision: header.provenance.source_revision.clone(),
                 });
             }
+            // R4.9: one OwnershipOperation node per observation, a HAS_OPERATION edge from the
+            // owning function (mirroring R4.8's HAS_ACCESS), and a TARGETS edge to an
+            // OwnershipTarget node derived from (function, name) content -- the same
+            // content-derived-node pattern R4.8 already uses for StateEntity, letting every
+            // borrow/move of the same local converge on one node without inventing a new
+            // dimension for "the place itself."
+            SemanticObservation::Ownership(header) => {
+                let op_node_id = stable_id(
+                    "node",
+                    &format!("ownership-op:{}", header.record_id.as_str()),
+                );
+                ensure_node(
+                    graph,
+                    op_node_id.clone(),
+                    "OwnershipOperation".into(),
+                    format!("{}:{}", header.subject.name, header.subject.kind.as_str()),
+                    BTreeMap::from([
+                        ("origin".into(), "semantic-extraction".into()),
+                        ("kind".into(), header.subject.kind.as_str().into()),
+                    ]),
+                    &header.provenance,
+                );
+                let caller_node_id = stable_id(
+                    "node",
+                    &format!("function-identity:{}", header.subject.function.as_str()),
+                );
+                graph.edges.push(Edge {
+                    id: stable_id(
+                        "edge",
+                        &format!("{caller_node_id}:HAS_OPERATION:{op_node_id}"),
+                    ),
+                    kind: "HAS_OPERATION".into(),
+                    from: caller_node_id,
+                    to: op_node_id.clone(),
+                    attributes: BTreeMap::from([("origin".into(), "semantic-extraction".into())]),
+                    provenance: header.provenance.clone(),
+                    revision: header.provenance.source_revision.clone(),
+                });
+                let target_node_id = stable_id(
+                    "node",
+                    &format!(
+                        "ownership-target:{}:{}",
+                        header.subject.function.as_str(),
+                        header.subject.name
+                    ),
+                );
+                ensure_node(
+                    graph,
+                    target_node_id.clone(),
+                    "OwnershipTarget".into(),
+                    header.subject.name.clone(),
+                    BTreeMap::from([("origin".into(), "semantic-extraction".into())]),
+                    &header.provenance,
+                );
+                graph.edges.push(Edge {
+                    id: stable_id("edge", &format!("{op_node_id}:TARGETS:{target_node_id}")),
+                    kind: "TARGETS".into(),
+                    from: op_node_id,
+                    to: target_node_id,
+                    attributes: BTreeMap::from([("origin".into(), "semantic-extraction".into())]),
+                    provenance: header.provenance.clone(),
+                    revision: header.provenance.source_revision.clone(),
+                });
+            }
+            // R4.10: one ConcurrencyOperation node per observation and a PRODUCES_CONCURRENCY_OP
+            // edge from the owning function -- mirroring R4.8's simpler Effect shape (no secondary
+            // content-derived target node: unlike Ownership's `name`, a concurrency site has no
+            // natural second entity to converge on this wave).
+            SemanticObservation::Concurrency(header) => {
+                let op_node_id = stable_id(
+                    "node",
+                    &format!("concurrency-op:{}", header.record_id.as_str()),
+                );
+                ensure_node(
+                    graph,
+                    op_node_id.clone(),
+                    "ConcurrencyOperation".into(),
+                    format!(
+                        "{}@{}:{}:{}",
+                        header.subject.kind.as_str(),
+                        header.subject.span.path,
+                        header.subject.span.line,
+                        header.subject.span.column
+                    ),
+                    BTreeMap::from([
+                        ("origin".into(), "semantic-extraction".into()),
+                        ("kind".into(), header.subject.kind.as_str().into()),
+                    ]),
+                    &header.provenance,
+                );
+                let caller_node_id = stable_id(
+                    "node",
+                    &format!("function-identity:{}", header.subject.function.as_str()),
+                );
+                graph.edges.push(Edge {
+                    id: stable_id(
+                        "edge",
+                        &format!("{caller_node_id}:PRODUCES_CONCURRENCY_OP:{op_node_id}"),
+                    ),
+                    kind: "PRODUCES_CONCURRENCY_OP".into(),
+                    from: caller_node_id,
+                    to: op_node_id,
+                    attributes: BTreeMap::from([("origin".into(), "semantic-extraction".into())]),
+                    provenance: header.provenance.clone(),
+                    revision: header.provenance.source_revision.clone(),
+                });
+            }
         }
     }
 }
@@ -1434,6 +1541,58 @@ mod tests {
         SemanticObservation::Effect(SemanticRecordHeader {
             record_id,
             dimension: SemanticDimension::Effect,
+            status: EpistemicStatus::Observed,
+            subject,
+            scope: SemanticScope::new(["impl:Owner"]),
+            repository,
+            revision,
+            extractor: ExtractorIdentity {
+                id: "atlas.test".into(),
+                version: "0.1.0".into(),
+            },
+            evidence_refs: Vec::new(),
+            provenance: provenance("src/lib.rs", "atlas.test"),
+        })
+    }
+
+    /// R4.9: an Ownership operation observation whose `function` (owner) is a fixed synthetic
+    /// `FunctionIdentity` record_id.
+    fn ownership_observation(
+        function: &crate::semantic::SemanticRecordId,
+        name: &str,
+        line: usize,
+        kind: crate::semantic::OwnershipKind,
+    ) -> SemanticObservation {
+        use crate::identity::RepositoryId;
+        use crate::provenance::provenance;
+        use crate::semantic::{
+            ExtractorIdentity, OwnershipIdentity, SemanticDimension, SemanticRecordHeader,
+            SemanticRecordId, SemanticScope,
+        };
+        use crate::temporal::RevisionRef;
+
+        let repository = RepositoryId::new("atlas-studio");
+        let revision = RevisionRef {
+            kind: "git".into(),
+            value: "abc123".into(),
+        };
+        let subject = OwnershipIdentity {
+            repository: repository.clone(),
+            revision: revision.clone(),
+            function: function.clone(),
+            name: name.to_owned(),
+            span: crate::language::adl::SourceSpan {
+                path: "src/lib.rs".into(),
+                line,
+                column: 5,
+            },
+            kind,
+        };
+        let record_id =
+            SemanticRecordId::new(SemanticDimension::Ownership, &subject.identity_key());
+        SemanticObservation::Ownership(SemanticRecordHeader {
+            record_id,
+            dimension: SemanticDimension::Ownership,
             status: EpistemicStatus::Observed,
             subject,
             scope: SemanticScope::new(["impl:Owner"]),
@@ -2085,5 +2244,128 @@ mod tests {
             .filter(|node| node.kind == "Effect")
             .collect();
         assert_eq!(effect_nodes.len(), 2);
+    }
+
+    // --- R4.9: OWNERSHIP observations produce OwnershipOperation/OwnershipTarget nodes and
+    // structural edges --------------------------------------------------------------------------
+
+    #[test]
+    fn ownership_op_produces_a_node_and_a_has_operation_edge_from_its_function() {
+        let caller = function_identity_observation("Foo");
+        let caller_record_id = caller.record_id().clone();
+        let op = ownership_observation(
+            &caller_record_id,
+            "w",
+            10,
+            crate::semantic::OwnershipKind::BorrowShared,
+        );
+
+        let normalization = normalization_with(vec![caller, op], Vec::new());
+        let graph = build_system_graph(&source(), &docs(), &normalization);
+
+        let op_node = graph
+            .nodes
+            .iter()
+            .find(|node| node.kind == "OwnershipOperation")
+            .expect("an OwnershipOperation node must exist");
+        assert_eq!(
+            op_node.attributes.get("kind").map(String::as_str),
+            Some("BORROW_SHARED")
+        );
+
+        let caller_node_id = stable_id(
+            "node",
+            &format!("function-identity:{}", caller_record_id.as_str()),
+        );
+        let has_operation_edge = graph
+            .edges
+            .iter()
+            .find(|edge| edge.kind == "HAS_OPERATION")
+            .expect("a HAS_OPERATION edge must exist");
+        assert_eq!(has_operation_edge.from, caller_node_id);
+        assert_eq!(has_operation_edge.to, op_node.id);
+    }
+
+    #[test]
+    fn a_borrow_and_a_move_of_the_same_name_converge_on_one_ownership_target_node() {
+        let caller = function_identity_observation("Foo");
+        let caller_record_id = caller.record_id().clone();
+        let borrow = ownership_observation(
+            &caller_record_id,
+            "w",
+            10,
+            crate::semantic::OwnershipKind::BorrowShared,
+        );
+        let mv = ownership_observation(
+            &caller_record_id,
+            "w",
+            11,
+            crate::semantic::OwnershipKind::MoveOrCopy,
+        );
+
+        let normalization = normalization_with(vec![caller, borrow, mv], Vec::new());
+        let graph = build_system_graph(&source(), &docs(), &normalization);
+
+        let target_nodes: Vec<_> = graph
+            .nodes
+            .iter()
+            .filter(|node| node.kind == "OwnershipTarget")
+            .collect();
+        assert_eq!(
+            target_nodes.len(),
+            1,
+            "same function+name must converge on exactly one OwnershipTarget node"
+        );
+
+        let targets_edges: Vec<_> = graph
+            .edges
+            .iter()
+            .filter(|edge| edge.kind == "TARGETS")
+            .collect();
+        assert_eq!(targets_edges.len(), 2, "one TARGETS edge per operation");
+        assert!(
+            targets_edges
+                .iter()
+                .all(|edge| edge.to == target_nodes[0].id)
+        );
+
+        let op_nodes: Vec<_> = graph
+            .nodes
+            .iter()
+            .filter(|node| node.kind == "OwnershipOperation")
+            .collect();
+        assert_eq!(
+            op_nodes.len(),
+            2,
+            "two distinct operations, never collapsed"
+        );
+    }
+
+    #[test]
+    fn two_ownership_ops_on_different_names_produce_two_distinct_target_nodes() {
+        let caller = function_identity_observation("Foo");
+        let caller_record_id = caller.record_id().clone();
+        let a = ownership_observation(
+            &caller_record_id,
+            "a",
+            10,
+            crate::semantic::OwnershipKind::MoveOrCopy,
+        );
+        let b = ownership_observation(
+            &caller_record_id,
+            "b",
+            11,
+            crate::semantic::OwnershipKind::MoveOrCopy,
+        );
+
+        let normalization = normalization_with(vec![caller, a, b], Vec::new());
+        let graph = build_system_graph(&source(), &docs(), &normalization);
+
+        let target_nodes: Vec<_> = graph
+            .nodes
+            .iter()
+            .filter(|node| node.kind == "OwnershipTarget")
+            .collect();
+        assert_eq!(target_nodes.len(), 2);
     }
 }

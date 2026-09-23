@@ -338,7 +338,7 @@ mod tests {
         let requested = vec![
             SemanticDimension::Symbol,
             SemanticDimension::FunctionIdentity,
-            SemanticDimension::Ownership,
+            SemanticDimension::Persistence,
         ];
         let extractor = extractors_for_language("rust")
             .into_iter()
@@ -351,7 +351,7 @@ mod tests {
         accounting.record_batch(&batch);
 
         // R4.3: SYMBOL and FUNCTION_IDENTITY are now real extraction (evidence-backed OBSERVED);
-        // OWNERSHIP remains UNSUPPORTED (R4.10+). Neither is silently dropped.
+        // PERSISTENCE remains UNSUPPORTED (R4.11+). Neither is silently dropped.
         for dimension in [
             SemanticDimension::Symbol,
             SemanticDimension::FunctionIdentity,
@@ -360,10 +360,10 @@ mod tests {
             assert_eq!(records.len(), 1);
             assert_eq!(records[0].obligation.status, EpistemicStatus::Observed);
         }
-        let ownership_records = accounting.records_for(SemanticDimension::Ownership);
-        assert_eq!(ownership_records.len(), 1);
+        let persistence_records = accounting.records_for(SemanticDimension::Persistence);
+        assert_eq!(persistence_records.len(), 1);
         assert_eq!(
-            ownership_records[0].obligation.status,
+            persistence_records[0].obligation.status,
             EpistemicStatus::Unsupported
         );
     }
@@ -795,10 +795,10 @@ mod multi_extractor_tests {
         );
     }
 
-    // --- 12. R4.8: a real Rust extractor is now registered, scoped to exactly 9 dimensions -----
+    // --- 12. R4.10: a real Rust extractor is now registered, scoped to exactly 11 dimensions ---
 
     #[test]
-    fn a_real_rust_extractor_is_registered_supporting_exactly_the_r4_8_dimensions() {
+    fn a_real_rust_extractor_is_registered_supporting_exactly_the_r4_10_dimensions() {
         let rust_extractors = adapter::extractors_for_language("rust");
         assert_eq!(rust_extractors.len(), 1);
         assert_eq!(rust_extractors[0].id(), "atlas.rust.source-semantic.v1");
@@ -812,11 +812,13 @@ mod multi_extractor_tests {
             supported,
             vec![
                 "CALL",
+                "CONCURRENCY",
                 "CONTROL_FLOW",
                 "DATA_FLOW",
                 "EFFECT",
                 "FUNCTION_IDENTITY",
                 "FUNCTION_SIGNATURE",
+                "OWNERSHIP",
                 "STATE",
                 "SYMBOL",
                 "TYPE"
@@ -1242,8 +1244,11 @@ mod production_wiring_tests {
 
         // Unsupported dimensions stay UNSUPPORTED even for the unreadable artifact -- source
         // availability never changes what the extractor is capable of analyzing.
-        let b_ownership = by_artifact("b.rs", SemanticDimension::Ownership);
-        assert_eq!(b_ownership.obligation.status, EpistemicStatus::Unsupported);
+        let b_persistence = by_artifact("b.rs", SemanticDimension::Persistence);
+        assert_eq!(
+            b_persistence.obligation.status,
+            EpistemicStatus::Unsupported
+        );
 
         fs::remove_dir_all(&dir).unwrap();
     }

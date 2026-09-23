@@ -6,6 +6,7 @@
 //! `.atlas/contracts/SEMANTIC-FACTS.md` and `.atlas/contracts/SEMANTIC-EXTRACTION.md`.
 
 pub mod call;
+pub mod concurrency;
 pub mod control_flow;
 pub mod data_flow;
 pub mod diagnostic;
@@ -13,11 +14,13 @@ pub mod effect;
 pub mod function;
 pub mod obligation;
 pub mod observation;
+pub mod ownership;
 pub mod state;
 pub mod symbol;
 pub mod types;
 
 pub use call::{CallDispatchKind, CallSiteIdentity};
+pub use concurrency::{ConcurrencyIdentity, ConcurrencyKind};
 pub use control_flow::{
     ControlFlowBlockIdentity, ControlFlowBlockKind, ControlFlowEdge, ControlFlowEdgeKind,
 };
@@ -29,6 +32,7 @@ pub use function::{
 };
 pub use obligation::SemanticObligationRecord;
 pub use observation::SemanticObservation;
+pub use ownership::{OwnershipIdentity, OwnershipKind};
 pub use state::{StateAccessIdentity, StateAccessKind, StateResolution};
 pub use symbol::{SymbolIdentity, SymbolRole};
 pub use types::TypeIdentity;
