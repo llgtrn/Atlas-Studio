@@ -267,11 +267,28 @@ workspace-member set (cross-referenced from the root manifest's own `workspace.m
 field.
 
 **Unsupported manifest constructs are named explicitly, not silently mis-parsed.** A multi-line
-`workspace.members` array is detected (previously silently treated as "no workspace declared")
-and forces `Partial` state rather than a false `Closed`. A multi-line inline-table dependency
-entry (e.g. `foo = {\n version = "1",\n optional = true\n}`) is now actually read correctly
-(the continuation lines are joined before classification), closing what was a real, if
+`workspace.members` array (the common real-world style, confirmed by directly running this
+extractor against six real external Cargo workspaces up to 1,827 packages, three of which use
+exactly this shape) is now actually parsed to completion, not merely detected: blank lines and
+`#`-comment lines inside the array are skipped, not misread as members, and only a genuinely
+truncated array (no closing `]` line at all) still forces `Partial` state. A multi-line
+inline-table dependency entry (e.g. `foo = {\n version = "1",\n optional = true\n}`) is also read
+correctly (the continuation lines are joined before classification), closing what was a real, if
 unexercised, misclassification risk rather than merely naming it.
+
+**Verified at real-world scale, not only against Atlas's own small workspace.** Atlas's own
+workspace has 4 members and ~29 edges, with no target-conditional, optional, git, or multi-version
+dependencies -- far too small to meaningfully stress this extractor. `adapter::census_cargo_workspace`
+is also run, as a real test
+(`real_census_of_every_cargo_based_donor_workspace_reaches_closed_state`), against every
+Cargo-based project in this repository's own committed donor corpus
+(`.atlas/temporary/donors/`, not gitignored): `ast-grep`, `buck2`, `c2rust`, `crubit`, `duumbi`,
+`egglog`, `miri`, `mold`, `object`, `rust`, `rust-analyzer`, `tree-sitter`, `wasm-tools`,
+`wasmtime`, `zed` -- 15 real, independently-authored workspaces, 26,748 real dependency edges
+total, `zed` alone contributing 10,193 edges across 1,808 resolved instances. All 15 reach `Closed`
+with zero dangling references and zero unsupported constructs. This is how the multi-line
+`workspace.members` gap above was actually found and prioritized: 3 of the first 6 donors tested
+(`tree-sitter`/`wasmtime`/`zed`) hit `Partial` purely because of it, before that fix existed.
 
 **Dynamic/build-time dependency obligations are declared, not implied away.** Every
 `DynamicDependencyObligation` class -- `BuildScript`/`ProcMacroExpansion`/`PkgConfig`/`NativeLinking`/

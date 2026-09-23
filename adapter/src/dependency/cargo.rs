@@ -125,14 +125,20 @@ fn parse_cargo_lock(text: &str) -> Vec<LockPackage> {
 
 /// The declared array-of-strings value of `workspace.members` in a root `Cargo.toml`, e.g.
 /// `members = ["core", "runtime", "adapter", "apps/cli"]`, plus whether a `members` key was found
-/// whose value this parser could not read (a multi-line array). Only the single-line array shape
-/// is read (Atlas's own root manifest uses it); a multi-line `members = [` array is detected and
-/// named explicitly -- distinct from "no workspace declared at all" -- rather than silently
-/// treated the same as an empty/absent `members` key, since the caller must know a real workspace
-/// exists whose full member list it could not read.
+/// whose value this parser could not read to completion (a multi-line array with no closing `]`
+/// line -- a truncated/malformed manifest). Both the single-line array shape (Atlas's own root
+/// manifest uses it) and the multi-line shape (the common real-world style -- confirmed empirically
+/// against six real external Cargo workspaces up to 1,827 packages, three of which use exactly this
+/// shape) are read; blank lines and `#`-comment lines inside a multi-line array are skipped, not
+/// misread as members. A `members` key found but never properly closed is detected and named
+/// explicitly -- distinct from "no workspace declared at all" -- rather than silently treated the
+/// same as an empty/absent key, since the caller must know a real workspace exists whose full
+/// member list it could not read.
 fn workspace_members(root_manifest: &str) -> (Vec<String>, bool) {
-    for line in root_manifest.lines() {
-        let trimmed = line.trim();
+    let lines: Vec<&str> = root_manifest.lines().collect();
+    let mut index = 0;
+    while index < lines.len() {
+        let trimmed = lines[index].trim();
         if let Some(rest) = trimmed.strip_prefix("members") {
             let rest = rest.trim_start();
             if let Some(rest) = rest.strip_prefix('=') {
@@ -144,10 +150,24 @@ fn workspace_members(root_manifest: &str) -> (Vec<String>, bool) {
                     );
                 }
                 if rest.starts_with('[') {
-                    return (Vec::new(), true);
+                    let mut members = Vec::new();
+                    let mut cursor = index + 1;
+                    while cursor < lines.len() {
+                        let line = lines[cursor].trim();
+                        if line.starts_with(']') {
+                            return (members, false);
+                        }
+                        if let Some(name) = quoted_array_string(line) {
+                            members.push(name);
+                        }
+                        cursor += 1;
+                    }
+                    // Reached end of file with no closing `]` line -- truncated/malformed.
+                    return (members, true);
                 }
             }
         }
+        index += 1;
     }
     (Vec::new(), false)
 }
@@ -860,9 +880,36 @@ embed-resource = "1"
     }
 
     #[test]
-    fn multiline_workspace_members_is_detected_as_unsupported_not_silently_empty() {
+    fn multiline_workspace_members_is_parsed_correctly() {
+        // Confirmed empirically as the common real-world shape: 3 of 6 real external Cargo
+        // workspaces tested (tree-sitter, wasmtime, zed, up to 1,827 packages) use exactly this
+        // form, and a bracket-detection-only guard previously left every one of them `Partial`.
         let manifest = "[workspace]\nmembers = [\n    \"core\",\n    \"adapter\",\n]\n";
-        assert_eq!(workspace_members(manifest), (Vec::new(), true));
+        assert_eq!(
+            workspace_members(manifest),
+            (vec!["core".to_owned(), "adapter".to_owned()], false)
+        );
+    }
+
+    #[test]
+    fn multiline_workspace_members_skips_blank_and_comment_lines() {
+        // Real shape from a real donor manifest (zed's own Cargo.toml): blank lines and
+        // `#`-comment lines appear inside the array between groups of members.
+        let manifest = "[workspace]\nmembers = [\n    \"a\",\n\n    # a comment\n    \"b\",\n]\n";
+        assert_eq!(
+            workspace_members(manifest),
+            (vec!["a".to_owned(), "b".to_owned()], false)
+        );
+    }
+
+    #[test]
+    fn multiline_workspace_members_with_no_closing_bracket_is_flagged_unsupported() {
+        // Genuinely truncated/malformed input (no closing `]` line at all) -- distinguished from
+        // the ordinary, now-supported multi-line case above.
+        let manifest = "[workspace]\nmembers = [\n    \"core\",\n    \"adapter\",\n";
+        let (members, unsupported) = workspace_members(manifest);
+        assert_eq!(members, vec!["core".to_owned(), "adapter".to_owned()]);
+        assert!(unsupported);
     }
 
     #[test]
@@ -1299,7 +1346,9 @@ version = "0.1.0"
     }
 
     #[test]
-    fn a_multiline_workspace_members_array_forces_partial_state_even_with_no_dangling_references() {
+    fn a_well_formed_multiline_workspace_members_array_is_closed_with_evidenced_kind() {
+        // The common real-world shape (see multiline_workspace_members_is_parsed_correctly) must
+        // reach real Closed state with real evidenced roles, not merely avoid a crash.
         let dir = std::env::temp_dir().join(format!(
             "atlas-dep-census-test-{}",
             std::process::id().to_string() + "-12"
@@ -1308,6 +1357,30 @@ version = "0.1.0"
         write(
             &dir.join("Cargo.toml"),
             "[workspace]\nmembers = [\n    \"core\",\n]\n",
+        );
+        write(
+            &dir.join("Cargo.lock"),
+            "\n[[package]]\nname = \"core\"\nversion = \"0.1.0\"\n",
+        );
+        write(&dir.join("core/Cargo.toml"), "[package]\nname = \"core\"\n");
+
+        let report = census_cargo_workspace(&dir).unwrap().unwrap();
+        assert_eq!(report.state, DependencyClosureState::Closed);
+        assert!(report.unsupported_constructs.is_empty());
+
+        let _ = fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn a_truncated_multiline_workspace_members_array_forces_partial_state() {
+        let dir = std::env::temp_dir().join(format!(
+            "atlas-dep-census-test-{}",
+            std::process::id().to_string() + "-12b"
+        ));
+        let _ = fs::remove_dir_all(&dir);
+        write(
+            &dir.join("Cargo.toml"),
+            "[workspace]\nmembers = [\n    \"core\",\n",
         );
         write(
             &dir.join("Cargo.lock"),
@@ -1379,5 +1452,73 @@ version = "0.1.0"
                 "expected at least one evidenced-role dependency edge for workspace member `{member}`"
             );
         }
+    }
+
+    // --- 6. real-world verification: this repository's own donor corpus ------------------------
+
+    #[test]
+    fn real_census_of_every_cargo_based_donor_workspace_reaches_closed_state() {
+        // Stronger verification than any synthetic fixture or Atlas's own small workspace (4
+        // members, ~29 edges, no target-conditional/optional/git dependencies) can provide: every
+        // real, independently-authored, large Cargo workspace in this repository's own committed
+        // donor corpus (`.atlas/temporary/donors/`, not gitignored -- a permanent part of this
+        // checkout), up to 1,827 packages (zed) and 10,000+ edges. Found and fixed the multi-line
+        // `workspace.members` gap this way: 3 of the first 6 donors tested hit `Partial` purely
+        // because of it before that fix existed. Directories are looked up dynamically and skipped
+        // (not failed) if absent, so this test tolerates future donor-corpus reorganization without
+        // becoming flaky -- but asserts hard against dangling references or unsupported constructs
+        // for every donor it does find, and requires finding at least half of the named set so this
+        // can never silently degrade into a no-op.
+        let donor_root = Path::new(env!("CARGO_MANIFEST_DIR"))
+            .parent()
+            .expect("adapter/ has a parent directory")
+            .join(".atlas/temporary/donors");
+        let known_cargo_donors = [
+            "ast-grep",
+            "buck2",
+            "c2rust",
+            "crubit",
+            "duumbi",
+            "egglog",
+            "miri",
+            "mold",
+            "object",
+            "rust-analyzer",
+            "rust",
+            "tree-sitter",
+            "wasm-tools",
+            "wasmtime",
+            "zed",
+        ];
+
+        let mut donors_found = 0usize;
+        let mut total_edges = 0usize;
+        for name in known_cargo_donors {
+            let root = donor_root.join(name);
+            let Ok(Some(report)) = census_cargo_workspace(&root) else {
+                continue;
+            };
+            donors_found += 1;
+            total_edges += report.edges_total;
+            assert_eq!(
+                report.state,
+                DependencyClosureState::Closed,
+                "donor `{name}` did not reach Closed: dangling={:?} unsupported={:?}",
+                report.dangling_references,
+                report.unsupported_constructs
+            );
+            assert!(report.dangling_references.is_empty(), "donor `{name}`");
+            assert!(report.unsupported_constructs.is_empty(), "donor `{name}`");
+        }
+
+        assert!(
+            donors_found >= known_cargo_donors.len() / 2,
+            "expected to find at least half of the known Cargo-based donors under {}; found {donors_found}",
+            donor_root.display()
+        );
+        assert!(
+            total_edges > 1000,
+            "expected substantial real edge coverage"
+        );
     }
 }

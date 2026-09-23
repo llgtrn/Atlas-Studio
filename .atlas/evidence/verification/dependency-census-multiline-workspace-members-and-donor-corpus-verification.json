@@ -1,0 +1,65 @@
+{
+  "schema": "atlas.self-build.generation-evidence.v1",
+  "wave": "DEPENDENCY-CENSUS -- parse multi-line workspace.members; verify against the real donor corpus at scale",
+  "wave_title": "Closes the named 'multi-line workspace.members not parsed' TARGET gap, discovered to have real, quantified, high impact by running the already-hardened Cargo dependency census against this repository's own real donor corpus for the first time.",
+  "generation_model": {
+    "G_n": "5b37589827 (fix(census): separate dependency role from activation semantics) -- stable generation this candidate was built and validated against",
+    "gap_discovered_by": "Systematic priority re-evaluation per the standing loop's own ordering: correctness/security/semantic-preservation/census-blindness/verification-blindness were all re-audited and found clean (no unguarded panics anywhere in production code across the whole workspace -- 5 unreachable!()/expect() call sites individually traced to their single call site and confirmed genuinely unreachable by construction; DiagnosticCode's one remaining unused variant, CompilerMetadataUnavailable, confirmed architecturally unreachable since Atlas never consults rustc/compiler metadata by design). With no new priority-1-through-5 gap found, moved to priority 6 (dependency closure) and asked: what is the strongest available verification for the just-hardened Cargo census beyond Atlas's own small workspace? This repository's own donor corpus (.atlas/temporary/donors/, 58 real cloned repositories, 15 of them genuinely Cargo-based) was identified as real, already-present, high-value verification material -- running census_cargo_workspace against it directly (via a throwaway example binary, later converted into a real test) surfaced the multi-line workspace.members gap's true real-world impact: 3 of the first 6 donors tested (tree-sitter, wasmtime, zed) landed in Partial state purely because of it, none of them for any other reason."
+  },
+  "priority_classification": "dependency closure (priority 6) -- a named, already-documented TARGET gap, but its real-world impact was unquantified until this generation ran the extractor against real external workspaces at scale for the first time. Also verification (priority 5): this generation materially strengthens the evidence behind the whole Cargo census capability, which previously had only Atlas's own small, simple workspace as a real-world data point.",
+  "design_decisions": [
+    {
+      "question": "Parse the multi-line array properly, or just widen the 'unsupported' detection to more shapes?",
+      "decision": "Parse it properly -- the shape is simple (one quoted string per line, plus blank/comment lines, terminated by a line starting with ']'), the same technique already used for Cargo.lock's own multi-line dependency arrays elsewhere in this file, and real donor manifests (zed) confirmed blank lines and #-comments genuinely appear inside real members arrays, both of which must be skipped rather than misread."
+    },
+    {
+      "question": "What distinguishes 'multi-line, well-formed' from 'multi-line, still unsupported'?",
+      "decision": "Only a truly truncated array (reaches end of file with no line ever starting with ']') is now flagged unsupported/forces Partial. This is now a real malformed-input case (a genuinely broken or cut-off manifest), not the ordinary real-world style, which is fully supported."
+    },
+    {
+      "question": "Should the donor-corpus verification become a permanent test or stay a one-off exploratory script?",
+      "decision": "Permanent test (real_census_of_every_cargo_based_donor_workspace_reaches_closed_state) -- it runs in 0.22s (measured), well within normal test-suite budget, and provides verification strength no synthetic fixture can match. Made resilient to future donor-corpus reorganization: looks up each donor by name and skips (does not fail) any that are absent, but requires finding at least half of the 15 named donors and censusing over 1,000 real edges, so it cannot silently degrade into a no-op if the corpus changes."
+    }
+  ],
+  "stable_validator_law_compliance": {
+    "claim": "Multi-line workspace.members is now correctly parsed, and the whole Cargo dependency-census capability holds (Closed, zero dangling, zero unsupported) against real, large, independently-authored external Cargo workspaces, not only Atlas's own small one or synthetic fixtures.",
+    "self_written_evidence": "New unit tests: multiline_workspace_members_is_parsed_correctly, multiline_workspace_members_skips_blank_and_comment_lines (using the exact real shape from zed's own manifest), multiline_workspace_members_with_no_closing_bracket_is_flagged_unsupported, a_well_formed_multiline_workspace_members_array_is_closed_with_evidenced_kind, a_truncated_multiline_workspace_members_array_forces_partial_state.",
+    "independent_evidence_channel": "The real donor corpus itself is the independent evidence here: 15 real Cargo-based projects this repository did not author (ast-grep, buck2, c2rust, crubit, duumbi, egglog, miri, mold, object, rust, rust-analyzer, tree-sitter, wasm-tools, wasmtime, zed), each with its own real Cargo.lock/Cargo.toml this extractor never saw during development, collectively exercising 26,748 real dependency edges and 1,827 packages (zed) at once -- an order of magnitude beyond any synthetic test fixture or Atlas's own workspace could provide. This is genuinely independent from the candidate's own construction in the sense that mattered here: the candidate parser was not designed against these specific files, so their success is real evidence of general correctness, not overfitting to a known-good case. (It is not claimed as an independent SECOND IMPLEMENTATION the way the cargo-metadata oracle is -- that remains the differential-oracle channel for edge-topology correctness specifically; this is corpus-scale coverage evidence for parsing robustness.)",
+    "no_circular_self_certification": true
+  },
+  "implementation": {
+    "extraction": "adapter/src/dependency/cargo.rs -- workspace_members() rewritten to actually collect multi-line array entries (skipping blank/comment lines) until a closing ']' line, only flagging unsupported=true when no closing line is ever found (genuine truncation)"
+  },
+  "adversarial_and_falsification_coverage": [
+    "multiline_workspace_members_skips_blank_and_comment_lines -- the exact real interleaved blank-line/comment shape found in zed's own Cargo.toml",
+    "multiline_workspace_members_with_no_closing_bracket_is_flagged_unsupported -- genuine truncation still correctly detected, not silently accepted as empty",
+    "real_census_of_every_cargo_based_donor_workspace_reaches_closed_state -- 15 real external workspaces, 26,748 real edges, zero dangling, zero unsupported",
+    "real_self_census_of_this_repositorys_own_workspace_finds_no_dangling_references -- re-verified unchanged"
+  ],
+  "validation_this_generation": {
+    "commands": {
+      "cargo fmt --all --check": { "exit_code": 0 },
+      "cargo clippy --workspace --all-targets -- -D warnings": { "exit_code": 0, "warnings": 0 },
+      "cargo test --workspace": {
+        "exit_code": 0,
+        "totals": "418 passed, 0 failed (230 adapter, 130 core, 58 runtime), up from 414"
+      },
+      "real donor-corpus census sweep (all 15 known Cargo-based donors, measured 0.247s total)": {
+        "before_fix": "3 of 6 donors tested (tree-sitter, wasmtime, zed) landed Partial, all three solely due to the unparsed multi-line workspace.members array; the other 3 (object, mold, rust-analyzer) were already Closed",
+        "after_fix": "15/15 Closed, 0 dangling, 0 unsupported, 26748 total edges censused (ast-grep 697, buck2 4355, c2rust 784, crubit 724, duumbi 1688, egglog 477, miri 451, mold 112, object 61, rust-analyzer 1156, rust 2412, tree-sitter 733, wasm-tools 991, wasmtime 1914, zed 10193)"
+      },
+      "cargo run -q -p atlas-cli -- systemize --root . (before/after self-census diff)": {
+        "exit_code": 0,
+        "finding": "dependency_closure.state CLOSED; typed_obligations_total 768 (unchanged); coding_admission.allowed true -- zero regression on Atlas's own real workspace (its manifest already used the single-line form, so this fix does not change Atlas's own census output at all, only donors')"
+      }
+    }
+  },
+  "recensus_scope_after_promotion": [
+    "no prior CLOSED/EXTINCT conclusion depended on multi-line workspace.members remaining unparsed, so no external conclusion requires reopening",
+    "the multi-line inline-table dependency entry gap (also previously named 'unsupported') was already fixed in an earlier generation; this generation only closes the workspace.members case, the one remaining item in that pairing",
+    "the same real donor corpus (15 Cargo-based projects) is now a standing, reusable verification asset for future dependency-census generations -- any future extension (e.g. resolution-context modeling) should re-run against it, not only against Atlas's own workspace",
+    "the 43 non-Cargo donors in the corpus (npm/Python/Go/etc. projects) remain out of scope for this wave's Cargo-only extractor -- named TARGET for a future ecosystem generation if a concrete gap ever motivates it"
+  ],
+  "overall_verdict": "MATERIALIZED AND VERIFIED AT REAL-WORLD SCALE. Closes the named multi-line workspace.members TARGET gap, discovered to have real, quantified impact (3 of 6 initially-tested real donors) by exercising the already-hardened Cargo census against genuine external projects for the first time -- the strongest verification evidence this capability has had to date, an order of magnitude beyond Atlas's own workspace or any synthetic fixture. No circular self-certification: the donor corpus is real, independently-authored, and untouched by this extractor's own development.",
+  "historical_evidence_retained": true
+}
