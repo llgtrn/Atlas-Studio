@@ -4930,6 +4930,36 @@ fn identifiers_merely_containing_the_letters_as_do_not_trigger_the_guard() {
     );
 }
 
+// --- falsification: a long, flat `::`-separated path does not risk parser recursion -------------
+//
+// Swept as a fifth candidate adversarial vector alongside three others (a deeply nested qualified
+// path `<<T as A>::B as C>::D`, a long `where T: A + B + C + ...` bound chain, and deeply nested
+// generic type args `Vec<Vec<Vec<...>>>`) -- the other three were confirmed to already trip the
+// existing bracket/operator-chain counters (via `<`/`>`/`+`), same as the already-documented
+// vectors, so they needed no new coverage. This one is different in kind: a long flat path has NO
+// nesting at all (`a::b::c::...::z` is one segment list, not one segment wrapping the next), so it
+// is expected, by the same "`syn` parses a `Punctuated<T, Sep>` list with a loop, not recursion"
+// reasoning already established for comma-separated lists (see the `b','` match arm above), to be
+// safe regardless of length -- confirmed empirically here rather than left as an assumption, since
+// the as-cast chain (this file's own immediately preceding regression test) already showed once
+// this generation that "should be iterative" reasoning about `syn`'s internals is not always
+// trustworthy without direct confirmation.
+#[test]
+fn a_long_flat_colon_separated_path_does_not_abort_the_process() {
+    let n = 10_000usize;
+    let path_chain = std::iter::repeat_n("seg", n).collect::<Vec<_>>().join("::");
+    let source = format!("pub fn f() -> u8 {{ {path_chain}::VALUE }}\n");
+    let batch = extract_all("src/probe.rs", &source);
+    assert!(
+        !batch
+            .diagnostics
+            .iter()
+            .any(|diagnostic| diagnostic.code == DiagnosticCode::ResourceLimit),
+        "a long flat path has no real nesting and must not trip the recursion guard: {:?}",
+        batch.diagnostics
+    );
+}
+
 #[test]
 fn a_raw_string_with_an_embedded_shorter_hash_quote_sequence_is_parsed_to_its_real_end() {
     // A subtle correctness case for the raw-string skip's hash-count matching: `r##"..."##`
