@@ -4827,3 +4827,56 @@ fn a_real_adversarial_chain_after_a_comment_still_trips_the_guard() {
     );
     assert_eq!(batch.diagnostics[0].code, DiagnosticCode::ResourceLimit);
 }
+#[test]
+fn adversarial_truncated_comment_and_string_inputs_never_panic() {
+    // The comment/string-literal skip added alongside the false-positive fix above is new,
+    // security-relevant code that now runs on every extraction -- per the standing loop's own
+    // discipline of generating scenarios that specifically exploit a capability once a generation
+    // adds it, this proves the skip logic itself is panic-safe (never indexes out of bounds, never
+    // infinite-loops) on truncated/malformed input: an unterminated `//` comment or string literal
+    // at end of file, a bare `r`/`r#`/`r"` with nothing following, and other edge shapes a hostile
+    // or simply incomplete/mid-edit file could contain. Correctness of well-formed input is
+    // covered by the dedicated tests above; this is exclusively a crash-safety sweep.
+    let cases = [
+        "pub fn f() {} // unterminated comment at EOF, no trailing newline",
+        "pub fn f() { let x = \"unterminated string",
+        "pub fn f() { let x = \"escaped backslash at very end\\",
+        "pub fn f() { let x = r",
+        "pub fn f() { let x = r#",
+        "pub fn f() { let x = r#####\"never closes",
+        "pub fn f() { let x = r##\"contains \"# but not real end\"##",
+        "pub fn f() { let x = r\"",
+        "",
+        "//",
+        "/",
+        "\"",
+        "r",
+    ];
+    for case in cases {
+        let batch = extract_all("src/probe.rs", case);
+        let _ = batch.diagnostics.len();
+    }
+}
+
+#[test]
+fn a_raw_string_with_an_embedded_shorter_hash_quote_sequence_is_parsed_to_its_real_end() {
+    // A subtle correctness case for the raw-string skip's hash-count matching: `r##"..."##`
+    // requires exactly two `#` after the closing `"` to end the literal -- a single `"#` embedded
+    // inside the content (fewer hashes than the opener) must NOT be mistaken for the real close.
+    // If it were, the skip would end early, leaving `# but not real end"##` to be scanned as
+    // ordinary code, which is itself a (differently-shaped) false-positive/false-negative risk.
+    let divider = "-".repeat(90);
+    let source = format!(
+        "pub const FIXTURE: &str = r##\"contains an embedded \"# here, then {divider}\"##;\n"
+    );
+    let batch = extract_all("src/probe.rs", &source);
+    assert!(
+        !batch
+            .diagnostics
+            .iter()
+            .any(|diagnostic| diagnostic.code == DiagnosticCode::ResourceLimit),
+        "the dash run after the embedded short hash-quote is still inside the real string and \
+         must not be counted: {:?}",
+        batch.diagnostics
+    );
+}
