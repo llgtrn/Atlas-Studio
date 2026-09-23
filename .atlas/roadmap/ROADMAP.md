@@ -113,7 +113,7 @@ AIF1 is TARGET architecture until production code/evidence materializes each cap
 
 ### R4 — semantic census depth
 
-Current materialized baseline is R4.8 bootstrap: R4.6 CONTROL_FLOW and R4.7 DATA_FLOW are materialized; R4.8 emits useful STATE/EFFECT evidence but canonical R4.8 closure remains open.
+Current materialized baseline extends through R4.11 bootstrap (`.atlas/roadmap/SELF-BUILDING-R4-R8.md` is the detailed record; this table previously undercounted it, still describing R4.9-R4.11 as not yet started after `adapter::semantic::rust::SUPPORTED_DIMENSIONS` had already grown to all twelve R4 dimensions): R4.6 CONTROL_FLOW through R4.11 PERSISTENCE all have a real, typed, Census/Normalization-wired bootstrap; every one of them carries `DimensionCoverage::Partial` (`adapter::semantic::rust::dimension_coverage`) with real, named, documented gaps, never a silent claim of exhaustive coverage. R4.12 (full R4 semantic closure across all twelve dimensions) remains open.
 
 - **R4.3.x — real Rust semantic bootstrap:** SYMBOL, TYPE, FUNCTION_IDENTITY and FUNCTION_SIGNATURE are real typed observations; extraction is wired through canonical Census; typed records survive normalization; raw observation identity, typed obligation lineage, typed closure and typed graph projection are materialized.
 - **R4.4 — Function Identity Closure — materialized:** typed declaration kind, impl/trait owner context and function generics strengthen module/impl/trait/revision-safe declaration identity.
@@ -121,10 +121,10 @@ Current materialized baseline is R4.8 bootstrap: R4.6 CONTROL_FLOW and R4.7 DATA
 - **R4.6 — Control Flow — materialized:** deterministic basic blocks, branch/loop/return/failure flow.
 - **R4.7 — Data Flow — materialized:** values, definitions/uses, parameter/result flow, loads/stores and explicit ambiguity.
 - **R4.8 — State + Effect:** bootstrap materialized, closure open; partial STATE/EFFECT facts remain useful but dimension obligations stay UNKNOWN until unmodeled state/effect forms and resolution gaps are closed. Compound assignment is read+write; textual panic-like macros are inferred until resolved.
-- **R4.9 — Ownership / Resource Semantics:** borrow/move/copy and resource acquisition/transfer/release where evidenced.
-- **R4.10 — Concurrency:** tasks/threads/channels/locks/atomics/synchronization and concurrent state interaction.
-- **R4.11 — Persistence / Recovery:** durable writes, transactions, logs/checkpoints/recovery and failure ordering where applicable.
-- **R4.12 — R4 Semantic Closure:** complete the declared Rust reference profile, deterministic normalization/exact-dedup policy, dynamic/unresolved closure, conflict-input preservation and reference-corpus acceptance.
+- **R4.9 — Ownership and Resource Semantics:** bootstrap materialized, closure remains open (see `.atlas/roadmap/SELF-BUILDING-R4-R8.md`, "R4.9"). `&`/`&mut` borrow sites are fully syntax-determined `BorrowShared`/`BorrowMut`; a bare-identifier by-value use is `MoveOrCopy`, since `Copy`-ness resolution is out of reach and never guessed.
+- **R4.10 — Concurrency Semantics:** bootstrap materialized, closure remains open (see `.atlas/roadmap/SELF-BUILDING-R4-R8.md`, "R4.10"). `.await` is dedicated, fully syntax-determined `Observed` evidence; a callee spelling ending in `spawn` is `Inferred` only, the same name-based risk class R4.8's panic-macro detection already accepts.
+- **R4.11 — Persistence and Recovery Semantics:** bootstrap materialized, closure remains open (see `.atlas/roadmap/SELF-BUILDING-R4-R8.md`, "R4.11"). No dedicated Rust syntax or resolved-API adapter exists for persistence, so every `Commit`/`Flush`/`Sync`/`Checkpoint`/`Snapshot` candidate is a textual callee-spelling guess, always `Inferred`, never `Observed`.
+- **R4.12 — R4 Semantic Closure:** complete the declared Rust reference profile, deterministic normalization/exact-dedup policy, dynamic/unresolved closure, conflict-input preservation and reference-corpus acceptance across all twelve dimensions -- genuinely open: 8 of 12 (CALL/CONTROL_FLOW/DATA_FLOW/STATE/EFFECT/OWNERSHIP/CONCURRENCY/PERSISTENCE) are `Partial` coverage today, none `Exhaustive`.
 
 R4 does not end census. Each R4 improvement MUST trigger recensus of affected donor/dependency scopes.
 

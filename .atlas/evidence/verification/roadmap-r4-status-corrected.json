@@ -1,0 +1,50 @@
+{
+  "schema": "atlas.self-build.generation-evidence.v1",
+  "wave": "DOCUMENTATION-TRACKS-IMPLEMENTATION -- ROADMAP.md understated R4 status by three whole dimensions",
+  "wave_title": "`.atlas/roadmap/ROADMAP.md`'s R4 summary line read 'Current materialized baseline is R4.8 bootstrap', and R4.9 (Ownership)/R4.10 (Concurrency)/R4.11 (Persistence) were listed with plain, unmarked descriptions implying not-yet-started -- while `adapter::semantic::rust::SUPPORTED_DIMENSIONS` has long included all twelve R4 dimensions, and real, substantial extractor files (ownership.rs, concurrency.rs, persistence.rs, 273-335 lines each, each explicitly self-labeled 'R4.9'/'R4.10'/'R4.11' in their own module doc comments) implement them. The repository's own more detailed status record, `.atlas/roadmap/SELF-BUILDING-R4-R8.md`, already correctly described all three as 'bootstrap materialized, closure remains open' -- ROADMAP.md's own summary table had simply not been kept in sync with it.",
+  "generation_model": {
+    "G_n": "0c1be97494 (test(security): verify symlink cycles inside the repo cannot hang the walker) -- stable generation this candidate was built and validated against",
+    "gap_discovered_by": "Direct inspection of the repository's own roadmap after three consecutive investigation-focused generations found no new mandatory code-level gap, per the standing loop's own instruction to check whether R4 has 'closed' before continuing rather than inventing further ad hoc bug hunts. Reading ROADMAP.md's R4 section literally (not from memory) surfaced the discrepancy: R4.4 through R4.8 each carry an explicit completion marker ('materialized:' or 'bootstrap materialized, closure open'), while R4.9/R4.10/R4.11 carried none at all -- read literally, this implies they had not started. Cross-checked directly against the real code (`SUPPORTED_DIMENSIONS`, `dimension_coverage`, and each extractor file's own module doc comment, which self-labels its own R-number) and against the OTHER canonical roadmap document (`SELF-BUILDING-R4-R8.md`), which already had the correct, detailed, accurate status for all three -- confirming ROADMAP.md specifically (not the underlying implementation or the other doc) was the stale artifact."
+  },
+  "priority_classification": "documentation-tracks-implementation (the standing loop's own explicit requirement: 'Documentation must track implementation in the same coherent change... never claim capabilities the code lacks'). This is the inverse direction of that same principle -- the code has capabilities the summary roadmap document did not credit it with -- which is just as much a documentation-integrity defect as overclaiming: a reader of ROADMAP.md alone (without also reading the more detailed SELF-BUILDING-R4-R8.md) would incorrectly believe three real, substantial, tested capabilities do not exist yet.",
+  "design_decisions": [
+    {
+      "question": "Mark R4.9/10/11 with the same unqualified 'materialized:' label used for R4.4-R4.7, or the more precise 'bootstrap materialized, closure remains open' label already used for R4.8?",
+      "decision": "'Bootstrap materialized, closure remains open' -- matching both R4.8's own existing label in this same document and, more importantly, matching `SELF-BUILDING-R4-R8.md`'s own already-correct, more detailed status for exactly these three items. Per the standing loop's own instruction to use existing repository vocabulary rather than inventing competing terms, and to distinguish specified/scaffolded/materialized/verified/closed precisely: R4.9/10/11 are real and typed (not mere stubs) but every one of them is `DimensionCoverage::Partial`, the identical completion class R4.8 is already labeled with -- using the plain, unqualified 'materialized:' label (implying a closure level equivalent to R4.4's declaration-level Exhaustive coverage) would overclaim in the other direction."
+    },
+    {
+      "question": "Rewrite SELF-BUILDING-R4-R8.md too, since it's the more detailed record?",
+      "decision": "No changes needed there -- it was already correct. This generation's fix is entirely to ROADMAP.md's own summary table and lead sentence, which is the one place found to disagree with both the real code and the repository's own more detailed status document."
+    }
+  ],
+  "stable_validator_law_compliance": {
+    "claim": "ROADMAP.md's R4 section now accurately reflects that R4.9 (Ownership), R4.10 (Concurrency), and R4.11 (Persistence) each have a real, typed, Census/Normalization-wired bootstrap extractor with well-documented Partial coverage -- matching both the real code and the repository's own more detailed SELF-BUILDING-R4-R8.md record -- while still correctly NOT claiming R4.12 (full closure across all twelve dimensions) is done, since 8 of 12 dimensions remain genuinely Partial.",
+    "self_written_evidence": "Documentation-only change; no new test was needed or possible for a docs-accuracy fix. The claim's correctness rests on direct citation of real, checkable production artifacts: `adapter::semantic::rust::SUPPORTED_DIMENSIONS` (all twelve dimensions), `dimension_coverage` (Ownership/Concurrency/Persistence all `Partial`), and each extractor file's own module doc comment (each self-labels its own R-number, e.g. ownership.rs's first line: 'R4.9: real borrow-site detection...').",
+    "independent_evidence_channel": "Cross-checked against `.atlas/roadmap/SELF-BUILDING-R4-R8.md`, an independently-maintained, more detailed status record that already correctly described all three items as 'bootstrap materialized, closure remains open' -- this generation's fix brings ROADMAP.md's summary INTO agreement with that already-correct, independent record, rather than asserting a new, unverified claim. `atlas-cli docs audit --root .atlas` re-run clean (gate_ready: true, zero hard violations) and `atlas-cli systemize --root .` re-run clean (coding_admission.allowed: true, zero blockers) -- zero regression.",
+    "no_circular_self_certification": true
+  },
+  "implementation": {
+    "docs_only": ".atlas/roadmap/ROADMAP.md -- R4 section's lead summary sentence and the R4.9/R4.10/R4.11 bullet items corrected to match both the real code and SELF-BUILDING-R4-R8.md's already-accurate status; R4.12's own bullet clarified to name exactly which 8 of 12 dimensions remain Partial"
+  },
+  "adversarial_and_falsification_coverage": [
+    "cross-checked against real production code (SUPPORTED_DIMENSIONS, dimension_coverage, each extractor's own self-labeled module doc comment) rather than trusting either document's prose alone",
+    "cross-checked against SELF-BUILDING-R4-R8.md as an independent, already-correct reference to confirm this generation's fix direction rather than asserting a new unverified claim",
+    "atlas-cli docs audit and systemize both re-run clean, confirming the edit introduced no frontmatter/structural/gate regression"
+  ],
+  "validation_this_generation": {
+    "commands": {
+      "cargo fmt --all --check": { "exit_code": 0 },
+      "cargo clippy --workspace --all-targets -- -D warnings": { "exit_code": 0, "warnings": 0 },
+      "cargo test --workspace": { "exit_code": 0, "totals": "459 passed, 0 failed -- unchanged, documentation-only change" },
+      "cargo run -q -p atlas-cli -- docs audit --root .atlas": { "exit_code": 0, "finding": "gate_ready: true, zero hard violations" },
+      "cargo run -q -p atlas-cli -- systemize --root .": { "finding": "coding_admission.allowed: true, zero blockers -- unchanged" }
+    }
+  },
+  "recensus_scope_after_promotion": [
+    "no prior CLOSED/EXTINCT conclusion depended on ROADMAP.md's stale R4.9-R4.11 status, so no external conclusion requires reopening -- if anything, this corrects a document a future generation or human reader might otherwise have trusted at face value, wrongly concluding three real capabilities needed to be built from scratch",
+    "R4.12 (full R4 semantic closure across all twelve dimensions) remains genuinely, correctly open -- not claimed done by this fix, which only corrects the R4.9-R4.11 bootstrap status, not the closure status",
+    "this generation is itself a direct instance of the standing loop's own 'do not stop at roadmap labels... update the roadmap itself based on evidence if it's insufficient' instruction, applied to the roadmap document's own accuracy rather than to code"
+  ],
+  "overall_verdict": "MATERIALIZED AND VERIFIED. ROADMAP.md's R4 section previously understated real, materialized, tested capability by three whole dimensions (R4.9 Ownership, R4.10 Concurrency, R4.11 Persistence), disagreeing with both the real production code and the repository's own more detailed, already-correct SELF-BUILDING-R4-R8.md record. Corrected to match both, using the repository's own existing status vocabulary rather than inventing new terms, and verified to introduce zero regression to any gate or test.",
+  "historical_evidence_retained": true
+}
