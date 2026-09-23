@@ -49,6 +49,28 @@ Before commit it must have, where applicable:
 - a rollback plan;
 - a declared recensus plan.
 
+## Embedded agent-host rule
+
+When Atlas runs inside a coding-agent host, the provider may have physical write access to the current checkout.
+
+Physical write access is not canonical mutation authority.
+
+The admitted parent revision remains the transaction base. Uncommitted edits, provider-created commits and candidate branches are inputs to CandidateChangeSet/admission, not automatically admitted state.
+
+Before accepting an embedded-host candidate Atlas MUST:
+
+- verify the exact expected parent;
+- freeze/hash the exact candidate tree used by verification;
+- reject concurrent/stale mutation that changes that tree;
+- rerun every gate invalidated by application context;
+- recensus the exact resulting tree;
+- compare expected versus observed semantic delta;
+- commit or publish only through the authorized transaction boundary.
+
+If the host cannot keep the candidate stable during final verification/seal, Atlas MUST snapshot/copy the candidate into a stable workspace or dispatch the transaction to a stronger backend.
+
+Provider co-location with AtlasCore does not allow the provider to mark its own mutation admitted.
+
 ## Atomicity
 
 Canonical mutation is fail-closed. Partial application must never be represented as an admitted revision.
