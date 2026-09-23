@@ -32,6 +32,30 @@ runtime profiling / PGO / auto-tuning
 evidence + recensus
 ```
 
+## Execution model — subsystem first, IDE later
+
+Atlas Core is designed to run as a tool/runtime subsystem inside the environment where engineering is already happening.
+
+A first-class target is an embedded coding-agent session:
+
+~~~text
+Claude Code / another coding agent
+        ↓ local MCP / API adapter
+Atlas Core in the same outer sandbox
+        ↓
+candidate workspaces + Census + verification + admission
+        ↓
+SEALED logical Atlas → canonical *.atlas
+~~~
+
+The cloud coding session may supply compute, checkout and an outer sandbox. Atlas still owns semantic identity, uncertainty/closure, candidate verification and admission. A mutable agent worktree is candidate state until admitted.
+
+MCP is an agent-facing adapter, not Atlas's canonical semantic protocol. The same Atlas Core is intended to serve CLI, CI/API integrations and a future Atlas Studio IDE without creating parallel truth systems.
+
+Ephemeral agent context is not project memory. Sealed Atlas artifacts and their evidence/lineage are the durable machine-readable engineering state that a later session can load and incrementally recensus.
+
+See .atlas/contracts/AGENT-HOST-EMBEDDED-RUNTIME.md.
+
 ## Core invariants
 
 - `.atlas/` is the repository control root; `*.atlas` is a dense binary engineering artifact.
