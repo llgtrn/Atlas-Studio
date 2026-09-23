@@ -4236,6 +4236,11 @@ pub fn commits_in_let_else_diverge(store: &mut Store, found: Option<u8>) {
     };
 }
 
+pub fn commits_in_if_let_scrutinee(store: &mut Store) {
+    if let Ok(_value) = store.commit() {
+    }
+}
+
 pub fn unrelated_business_logic(game: &mut Game) {
     game.commit();
 }
@@ -4328,6 +4333,21 @@ fn commit_call_is_recorded_as_an_inferred_candidate() {
 fn persistence_call_inside_a_let_else_diverge_block_is_recorded() {
     let batch = extract_all("src/lib.rs", PERSISTENCE_CORPUS);
     let caller = find_function_identity(&batch, &[], "commits_in_let_else_diverge").unwrap();
+    let ops = persistence_ops_for(&batch, caller);
+    assert_eq!(ops.len(), 1);
+    assert_eq!(ops[0].kind, PersistenceKind::Commit);
+}
+
+// --- a persistence-shaped call as an `if let PATTERN = SCRUTINEE` condition's scrutinee is still
+// walked -- `syn::Expr::Let` (the if-let/while-let condition form, distinct from the let-else
+// statement above) is handled identically (`self.walk_expr(&let_expr.expr)`) in all seven R4.5-
+// R4.11 walker files, and before this test no corpus anywhere in this suite contained `if let` or
+// `while let` syntax at all (confirmed by grepping every embedded corpus in this file) -----------
+
+#[test]
+fn persistence_call_as_an_if_let_scrutinee_is_recorded() {
+    let batch = extract_all("src/lib.rs", PERSISTENCE_CORPUS);
+    let caller = find_function_identity(&batch, &[], "commits_in_if_let_scrutinee").unwrap();
     let ops = persistence_ops_for(&batch, caller);
     assert_eq!(ops.len(), 1);
     assert_eq!(ops[0].kind, PersistenceKind::Commit);
