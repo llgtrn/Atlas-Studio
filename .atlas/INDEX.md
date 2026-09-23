@@ -10,57 +10,58 @@ Read in this order:
 
 1. `architecture/constitution/NORTH-STAR.md`
 2. `contracts/ATLAS-GENOME.md`
-3. `contracts/UNIVERSAL-GRAPH-CONTRACT.md`
-4. `contracts/SEMANTIC-FACTS.md`
-5. `contracts/SEMANTIC-EXTRACTION.md`
-6. `contracts/NORMALIZATION.md`
-7. `contracts/CENSUS-COMPLETENESS.md`
-8. `contracts/DEPENDENCY-CENSUS.md`
-9. `contracts/CENSUS-CERTIFICATE.md`
-10. `standards/CENSUS-SCOPE.md`
-11. `decisions/0001-one-normalized-semantic-path.md`
-12. `decisions/0002-epistemic-status-model.md`
-13. `architecture/CAPABILITY-ARCHITECTURE.md`
-14. `architecture/SYSTEM.md`
-15. `blueprints/PHYSICAL-REFOUNDATION.md`
-16. `roadmap/ROADMAP.md`
-17. `roadmap/SELF-BUILDING-R4-R8.md`
-18. `contracts/BLUEPRINT-EVOLUTION.md`
-19. `roadmap/DONOR-ABSORPTION-ROADMAP.md`
-20. `roadmap/DONOR-ABSORPTION-PLAN.toml`
-21. `references/deepwiki/DONOR-ARCHITECTURE-SYNTHESIS.md`
-22. `contracts/ATLAS-DEVELOPMENT-LANGUAGE.md`
-23. `contracts/HUMAN-AI-ADL-AUTHORING.md`
-24. `contracts/ADL-TO-ATLAS.md`
-25. `contracts/ATLAS-CREATION-PIPELINE.md`
-26. `contracts/EXTERNAL-PROVIDER-TRUST.md`
-27. `contracts/DONOR-TO-LANGUAGE-GENESIS.md`
-28. `contracts/ATLAS-FORMAT.md`
-29. `contracts/ATLAS-SEMANTIC-COMPACTION.md`
-30. `contracts/ATLAS-BINARY-WIRE-FORMAT.md`
-31. `contracts/ATLAS-SHARDING.md`
-32. `contracts/SELECTED-DESIGN.md`
-33. `contracts/ATLAS-TO-ATLASX.md`
-34. `contracts/ATLASX-FORMAT.md`
-35. `contracts/ATLASX-BINARY-WIRE-FORMAT.md`
-36. `contracts/COMPILER-IR-PIPELINE.md`
-37. `contracts/COMPILER-IR-SCHEMAS.md`
-38. `architecture/DIGITAL-ORGANISM.md`
-39. `contracts/ORGANISM-GENOME-v1.md`
-40. `contracts/ORGANISM-LIFECYCLE.md`
-41. `contracts/ORGANISM-MODEL-ADMISSION.md`
-42. `contracts/ORGANISM-HOMEOSTASIS-METABOLISM.md`
-43. `standards/ORGANISM-SPECIES.md`
-44. `blueprints/ORGANISM-COMPILATION.md`
-45. `contracts/COMPILER-PRODUCT.md`
-46. `standards/COMPILER-OPTIMIZATION.md`
-47. `architecture/INVENTION-PIPELINE.md`
-48. `blueprints/SYSTEM-BLUEPRINT.md`
-49. `blueprints/COMPILER-ROADMAP.md`
-50. `blueprints/RUST-PARITY-AND-SURPASS-ROADMAP.md`
-51. `blueprints/BULK-DONOR-ABSORPTION.md`
-52. `contracts/SYSTEM-CONTRACT.md`
-53. `guides/DEVELOPMENT.md`
+3. `contracts/ARCHITECTURAL-INTEGRITY.md`
+4. `contracts/UNIVERSAL-GRAPH-CONTRACT.md`
+5. `contracts/SEMANTIC-FACTS.md`
+6. `contracts/SEMANTIC-EXTRACTION.md`
+7. `contracts/NORMALIZATION.md`
+8. `contracts/CENSUS-COMPLETENESS.md`
+9. `contracts/DEPENDENCY-CENSUS.md`
+10. `contracts/CENSUS-CERTIFICATE.md`
+11. `standards/CENSUS-SCOPE.md`
+12. `decisions/0001-one-normalized-semantic-path.md`
+13. `decisions/0002-epistemic-status-model.md`
+14. `architecture/CAPABILITY-ARCHITECTURE.md`
+15. `architecture/SYSTEM.md`
+16. `blueprints/PHYSICAL-REFOUNDATION.md`
+17. `roadmap/ROADMAP.md`
+18. `roadmap/SELF-BUILDING-R4-R8.md`
+19. `contracts/BLUEPRINT-EVOLUTION.md`
+20. `roadmap/DONOR-ABSORPTION-ROADMAP.md`
+21. `roadmap/DONOR-ABSORPTION-PLAN.toml`
+22. `references/deepwiki/DONOR-ARCHITECTURE-SYNTHESIS.md`
+23. `contracts/ATLAS-DEVELOPMENT-LANGUAGE.md`
+24. `contracts/HUMAN-AI-ADL-AUTHORING.md`
+25. `contracts/ADL-TO-ATLAS.md`
+26. `contracts/ATLAS-CREATION-PIPELINE.md`
+27. `contracts/EXTERNAL-PROVIDER-TRUST.md`
+28. `contracts/DONOR-TO-LANGUAGE-GENESIS.md`
+29. `contracts/ATLAS-FORMAT.md`
+30. `contracts/ATLAS-SEMANTIC-COMPACTION.md`
+31. `contracts/ATLAS-BINARY-WIRE-FORMAT.md`
+32. `contracts/ATLAS-SHARDING.md`
+33. `contracts/SELECTED-DESIGN.md`
+34. `contracts/ATLAS-TO-ATLASX.md`
+35. `contracts/ATLASX-FORMAT.md`
+36. `contracts/ATLASX-BINARY-WIRE-FORMAT.md`
+37. `contracts/COMPILER-IR-PIPELINE.md`
+38. `contracts/COMPILER-IR-SCHEMAS.md`
+39. `architecture/DIGITAL-ORGANISM.md`
+40. `contracts/ORGANISM-GENOME-v1.md`
+41. `contracts/ORGANISM-LIFECYCLE.md`
+42. `contracts/ORGANISM-MODEL-ADMISSION.md`
+43. `contracts/ORGANISM-HOMEOSTASIS-METABOLISM.md`
+44. `standards/ORGANISM-SPECIES.md`
+45. `blueprints/ORGANISM-COMPILATION.md`
+46. `contracts/COMPILER-PRODUCT.md`
+47. `standards/COMPILER-OPTIMIZATION.md`
+48. `architecture/INVENTION-PIPELINE.md`
+49. `blueprints/SYSTEM-BLUEPRINT.md`
+50. `blueprints/COMPILER-ROADMAP.md`
+51. `blueprints/RUST-PARITY-AND-SURPASS-ROADMAP.md`
+52. `blueprints/BULK-DONOR-ABSORPTION.md`
+53. `contracts/SYSTEM-CONTRACT.md`
+54. `guides/DEVELOPMENT.md`
 
 Canonical chain:
 
@@ -79,6 +80,8 @@ Observed World / Technology Genomes
 Human intent / ADL / Studio
         ↓
 Genome + security + target ConstraintEnvelope
+        +
+pinned ArchitecturalIntegrityEnvelope
         ↓
 Atlas knowledge + admitted OSS + external research
         ↓
@@ -123,6 +126,7 @@ The universal graph/binding/evidence/temporal grammar remains invariant across c
 For implementation work between R4 and R8:
 
 - `roadmap/SELF-BUILDING-R4-R8.md` fixes the active self-building/census sequence;
+- `contracts/ARCHITECTURAL-INTEGRITY.md` fixes load-bearing classification, falsifiable architecture invariants, impact closure and collapse-prevention admission;
 - `contracts/BLUEPRINT-EVOLUTION.md` fixes how evidence may change that sequence/architecture;
 - `contracts/HUMAN-AI-ADL-AUTHORING.md` fixes Human+AI collaborative authoring semantics;
 - `contracts/ATLAS-CREATION-PIPELINE.md` fixes research→decision→synthesis→generated-code census→selection→seal order;

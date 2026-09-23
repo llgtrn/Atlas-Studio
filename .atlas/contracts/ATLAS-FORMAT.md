@@ -23,6 +23,8 @@ A logical Atlas may contain:
 - nodes/edges/bindings/interfaces/capabilities;
 - temporal facts/events;
 - constraints/invariants;
+- ArchitecturalIntegrityEnvelope, load-bearing classification and architecture falsification conditions;
+- exact ArchitecturalIntegrityReport/equivalence evidence used for candidate seal eligibility;
 - ownership/memory/concurrency semantics;
 - source observations and runtime/test evidence;
 - donor technology/research claims;
@@ -37,6 +39,8 @@ A logical Atlas may contain:
 - provenance/license/evidence roots;
 - cross-repository references;
 - CensusCertificate and completeness ledger.
+
+Architecture-integrity records are canonical engineering meaning, not optional review metadata. A sealed logical Atlas that depends on architecture-bearing semantics MUST retain enough envelope/report/evidence lineage to prove which load-bearing invariants were admitted and why.
 
 It MUST NOT merely be a zip of prose/Markdown/JSON summaries.
 

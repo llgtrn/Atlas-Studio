@@ -58,6 +58,8 @@ A materialization invocation MUST identify:
 - exact Genome identity/hash;
 - exact semantic schema set;
 - exact SelectedDesign identity;
+- exact ArchitecturalIntegrityEnvelope identity/hash applicable to the selected design;
+- exact eligible ArchitecturalIntegrityReport/evidence root from logical seal;
 - exact materializer identity/version;
 - materialization contract/schema version;
 - requested scope;
@@ -87,9 +89,11 @@ Before materialization:
 7. locate exactly one SelectedDesign identity;
 8. verify the SelectedDesign refers only to identities reachable from the pinned Atlas root or explicit admitted external boundaries;
 9. verify materialization-critical obligations are closed;
-10. reject contradictory selected-design state.
+10. reject contradictory selected-design state;
+11. load the exact pinned ArchitecturalIntegrityEnvelope and sealed integrity evidence;
+12. compute materialization-critical architectural impact from selected bindings/profile/closure expansion and fail closed if a HARD invariant would be violated.
 
-Materialization MUST fail closed on required integrity/schema/selection errors.
+Materialization MUST fail closed on required integrity/schema/selection errors. Architectural integrity is included in this fail-closed rule; materialization cannot use a profile or binding to bypass an invariant that was required at seal.
 
 ## Selection closure
 
@@ -484,6 +488,8 @@ An AtlasX validator MUST verify at least:
 - no unresolved required obligation is hidden;
 - semantic barriers are present;
 - requested profiles/bindings match manifest;
+- materialization-critical ArchitecturalIntegrityEnvelope invariants remain satisfied for the exact expanded closure;
+- no selected binding/profile introduces a forbidden dependency, authority path, state owner, failure path or lifecycle relation;
 - deterministic ordering constraints;
 - target/compiler contract compatibility.
 

@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://atlas.studio/schemas/architectural-integrity-report.schema.json",
+  "title": "ArchitecturalIntegrityReport",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version","report_id","candidate_ref","envelope_ref","observed_architecture_root","impact_closure","evaluations","hard_violation_count","required_unknown_count","load_bearing_equivalence_closed","verdict","evidence_refs"],
+  "properties": {
+    "schema_version":{"type":"string","minLength":1},
+    "report_id":{"type":"string","minLength":1},
+    "candidate_ref":{"type":"string","minLength":1},
+    "materialization_ref":{"type":["string","null"]},
+    "envelope_ref":{"type":"string","minLength":1},
+    "observed_architecture_root":{"type":"string","minLength":1},
+    "impact_closure":{
+      "type":"object","additionalProperties":false,
+      "required":["closed","affected_semantic_refs","affected_invariant_refs"],
+      "properties":{
+        "closed":{"type":"boolean"},
+        "affected_semantic_refs":{"type":"array","items":{"type":"string","minLength":1}},
+        "affected_invariant_refs":{"type":"array","items":{"type":"string","minLength":1}},
+        "closure_root":{"type":["string","null"]}
+      }
+    },
+    "evaluations":{
+      "type":"array",
+      "items":{
+        "type":"object","additionalProperties":false,
+        "required":["invariant_ref","status","evidence_refs"],
+        "properties":{
+          "invariant_ref":{"type":"string","minLength":1},
+          "status":{"type":"string","enum":["PASS","FAIL","UNKNOWN","CONFLICT","NOT_AFFECTED"]},
+          "evidence_refs":{"type":"array","items":{"type":"string","minLength":1}},
+          "diagnostic_codes":{"type":"array","items":{"type":"string","enum":["ARCHITECTURE_HARD_VIOLATION","ARCHITECTURE_REQUIRED_UNKNOWN","ARCHITECTURE_CONFLICT","ARCHITECTURE_IMPACT_CLOSURE_OPEN","ARCHITECTURE_EQUIVALENCE_UNPROVEN","ARCHITECTURE_UNSELECTED_REVISION","ARCHITECTURE_MATERIALIZATION_VIOLATION"]}},
+          "details":{"type":"string"}
+        }
+      }
+    },
+    "hard_violation_count":{"type":"integer","minimum":0},
+    "required_unknown_count":{"type":"integer","minimum":0},
+    "load_bearing_equivalence_closed":{"type":"boolean"},
+    "blueprint_revision_ref":{"type":["string","null"]},
+    "verdict":{"type":"string","enum":["ELIGIBLE","REJECTED","INCOMPLETE"]},
+    "evidence_refs":{"type":"array","minItems":1,"items":{"type":"string","minLength":1}}
+  }
+}

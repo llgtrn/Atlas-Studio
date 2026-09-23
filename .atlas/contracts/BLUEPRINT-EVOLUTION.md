@@ -112,6 +112,8 @@ Every material blueprint change MUST have a durable revision decision conforming
 - alternative designs considered;
 - declared objective(s);
 - correctness/invariant analysis;
+- affected ArchitecturalIntegrityEnvelope identity and added/removed/changed/superseded invariant identities;
+- load-bearing topology/equivalence impact;
 - performance/resource analysis where applicable;
 - affected native owners;
 - affected R-wave/W-wave sequencing;
@@ -271,6 +273,22 @@ If a proposed blueprint contradicts an active contract:
 
 A blueprint PR MUST NOT silently weaken a contract.
 
+## Architectural-integrity impact rule
+
+ARCHITECTURAL-INTEGRITY.md is the canonical collapse-prevention contract.
+
+A blueprint candidate that intentionally changes a HARD architectural invariant, load-bearing boundary, state owner, authority path, dependency direction, failure domain, persistence/concurrency boundary or lifecycle ordering MUST:
+
+1. identify the exact current invariant identities affected;
+2. state which invariants are preserved, added, changed or superseded;
+3. define falsification/equivalence evidence for the proposed replacement;
+4. update or replace the ArchitecturalIntegrityEnvelope only through the explicit revision decision;
+5. recensus/revalidate the affected semantic impact closure after selection.
+
+Before the BlueprintRevisionDecision reaches SELECTED, implementation that contradicts the current active envelope remains an architectural violation. Tests or performance gains do not authorize silent architecture mutation.
+
+An implementation agent MUST NOT edit the envelope merely to make an already-written candidate pass.
+
 ## Schema/identity-impact rule
 
 Blueprint changes affecting canonical identity or semantic schemas require explicit migration analysis.
@@ -339,7 +357,8 @@ At minimum consider:
 - Technology Genomes derived under old assumptions;
 - selected absorption decisions;
 - sealed Atlas/AtlasX compatibility;
-- compiler differential fixtures.
+- compiler differential fixtures;
+- ArchitecturalIntegrityEnvelope/report roots and every affected load-bearing invariant/equivalence obligation.
 
 A blueprint revision that invalidates prior evidence MUST mark the affected evidence/claims as superseded or requiring regeneration rather than silently carrying them forward.
 

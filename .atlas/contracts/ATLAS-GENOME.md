@@ -15,6 +15,7 @@ The human-auditable source is `.atlas/genome/atlas.genome.toml`. The intended co
 Genome MUST define:
 
 - universal identity/graph/binding/evidence/temporal grammar;
+- architectural load-bearing classification, falsifiable invariants, impact closure and collapse-prevention gates;
 - complete scope lattice and adaptive-depth rules;
 - inventory/function/semantic obligation closure;
 - UNKNOWN/UNSUPPORTED/conflict policy;
@@ -45,6 +46,26 @@ Critical scopes may require semantic-atom closure and UNKNOWN = 0 before SEALED.
 ## Optimization principle
 
 Optimization is allowed to change physical structure aggressively, including binding resolution, fusion, memory layout, scheduling and code generation, but may not silently change required graph, authority, temporal, evidence, transaction, safety, recovery or external-interface semantics.
+
+## Architectural integrity principle
+
+Genome MUST make architecture preservation an admission condition rather than an informal review preference.
+
+At minimum the active policy MUST be able to require:
+
+- a pinned ArchitecturalIntegrityEnvelope for material architecture-bearing candidates;
+- explicit LOAD_BEARING / STRUCTURAL / REPLACEABLE / DECORATIVE classification where architecture policy needs it;
+- at least one falsification condition for every HARD architecture invariant;
+- dependency-aware architectural impact closure after semantic change;
+- rejection on any observed HARD architectural violation;
+- UNKNOWN/CONFLICT to remain unresolved rather than being promoted to PASS;
+- load-bearing replacement equivalence evidence or an explicitly SELECTED BlueprintRevisionDecision;
+- exact ArchitecturalIntegrityReport evidence at logical seal;
+- materialization-time revalidation for invariants affected by binding/profile/closure expansion.
+
+Compile success, local tests and provider confidence MUST NOT override a HARD architectural violation.
+
+The normative contract is ARCHITECTURAL-INTEGRITY.md and the machine profiles are architectural-integrity-envelope.schema.json and architectural-integrity-report.schema.json.
 
 ## External intelligence principle
 
