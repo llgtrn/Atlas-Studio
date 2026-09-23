@@ -290,6 +290,25 @@ with zero dangling references and zero unsupported constructs. This is how the m
 `workspace.members` gap above was actually found and prioritized: 3 of the first 6 donors tested
 (`tree-sitter`/`wasmtime`/`zed`) hit `Partial` purely because of it, before that fix existed.
 
+**`identity_key()` cannot be tricked into colliding by a crafted package name.** `DependencyIdentity`/
+`DependencyEdge` encode identity as a `|`-joined string of their fields (the same unescaped-join
+pattern used safely everywhere else `identity_key()` appears in this codebase, because every other
+type's fields are extracted from real Rust source through `syn`'s own lexer, which guarantees no
+`|` can appear in a valid identifier). `name`/`version`/`consumer` are different: they are read by
+this bespoke static parser, which by design never validates them against crates.io's real charset
+rules ("ingestion is not execution" -- no external validator is consulted), so a hand-crafted,
+malformed/hostile `Cargo.lock` can contain a literal `|` in any of them. Before this fix, two
+genuinely different dependency identities (e.g. `name: "foo|1.0.0", version: "2.0.0"` and
+`name: "foo", version: "1.0.0|2.0.0"`) could encode to the identical `identity_key()` string,
+silently merging two distinct resolved instances -- most consequentially in
+`core::graph::add_dependency_closure`, which derives actual graph node identity from this key.
+Fixed: `name`/`version`/`consumer` are now escaped (`\` -> `\\`, `|` -> `\|`) before joining, proven
+collision-free by construction (escaping is injective, so the first unescaped `|` in a joined key
+is always the true field boundary). Found and fixed via falsification-first adversarial testing
+against this session's own recently-added graph-identity consumer, not merely inferred from reading
+the code: the regression test was run against the unfixed code and confirmed to fail with a real
+collision before the escaping fix was written.
+
 **Dynamic/build-time dependency obligations are declared, not implied away.** Every
 `DynamicDependencyObligation` class -- `BuildScript`/`ProcMacroExpansion`/`PkgConfig`/`NativeLinking`/
 `GeneratedSource`/`EnvironmentProbe`/`DynamicLoading`/`PluginDiscovery`/`ExternalCapability` -- is

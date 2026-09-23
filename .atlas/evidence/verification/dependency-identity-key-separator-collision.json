@@ -1,0 +1,60 @@
+{
+  "schema": "atlas.self-build.generation-evidence.v1",
+  "wave": "SEMANTIC PRESERVATION -- DependencyIdentity/DependencyEdge identity_key() could collide on a crafted package name",
+  "wave_title": "DependencyIdentity::identity_key() and DependencyEdge::identity_key() encode identity as a `|`-joined string of their fields with no escaping. name/version/consumer are read by a bespoke static Cargo.lock/Cargo.toml parser that never validates them against crates.io's real charset rules, so a hand-crafted, malformed/hostile Cargo.lock could contain a literal `|` in any of them, letting two genuinely different dependency identities encode to the identical identity_key() string -- most consequentially in core::graph::add_dependency_closure (added earlier this session), which derives actual graph node identity from this key, silently merging two distinct resolved package instances into one graph node.",
+  "generation_model": {
+    "G_n": "e1cd167888 (fix(security): refuse a declared root that is itself a symlink) -- stable generation this candidate was built and validated against",
+    "gap_discovered_by": "Direct adversarial review of this session's own dependency-closure graph-projection work (539f764d0e), asking: what could make `add_dependency_closure`'s node-identity derivation (`provider.identity_key()`) produce a wrong or colliding result? Noticed `identity_key()` is a pervasive, codebase-wide pattern (used by dozens of semantic types) built on a naive unescaped `|`-join. Recognized that pattern is provably safe for every OTHER type using it, because their fields are extracted from real Rust source through `syn`'s own lexer (a `|` cannot appear in a valid Rust identifier) -- but `DependencyIdentity.name`/`.version` and `DependencyEdge.consumer` come from this crate's own bespoke, deliberately-permissive static parser, which the project's own 'ingestion is not execution' principle means never validates package-name charset against crates.io's real rules. Proved the collision was real before fixing it: wrote a falsification test constructing two genuinely-different `DependencyIdentity` values (`name: \"foo|1.0.0\", version: \"2.0.0\"` vs `name: \"foo\", version: \"1.0.0|2.0.0\"`), ran it against the unfixed code, and confirmed it failed with `identity_key()` producing the identical string for both."
+  },
+  "priority_classification": "semantic preservation (priority 3) -- an identity mechanism that is supposed to distinguish genuinely different resolved dependency instances could, on adversarial input, conflate them. This is a data-integrity gap in exactly the census/graph correctness this session has spent most of its effort hardening, made more consequential (not merely latent) by this session's own recent addition of a real production consumer (`add_dependency_closure`) that derives graph node identity from this key.",
+  "design_decisions": [
+    {
+      "question": "Escape the separator in the free-form fields, or switch to a structurally unambiguous encoding (e.g. length-prefixing, or a struct-based Hash/Eq derive instead of a string key)?",
+      "decision": "Escape (`\\` -> `\\\\`, `|` -> `\\|`) before joining with the raw, unescaped `|`. This is the minimal change consistent with every other call site's existing expectation that `identity_key()` returns a single `String` (used as a map key, a `stable_id` hash input, and a display-adjacent identity string in several places) -- switching to a different representation would ripple through many unrelated call sites for no added correctness benefit, since escaping alone is provably sufficient: it is injective (each raw string maps to exactly one escaped string and vice versa via consistent unescaping), so no escaped free-form field can ever contain an unescaped `|`, making the first unescaped `|` in any joined key an unambiguous, unfakeable field boundary."
+    },
+    {
+      "question": "Escape every field, or only the ones proven reachable by hostile input?",
+      "decision": "Only `name`/`version` (on `DependencyIdentity`) and `consumer` (on `DependencyEdge`) -- the three fields this parser reads directly from untrusted manifest/lockfile text without validation. `ecosystem.as_str()`/`source_kind.as_str()` are fixed, closed-set enum strings (SCREAMING_SNAKE_CASE identifiers this codebase itself controls, never parser input) and cannot contain `|`; escaping them would be inert but also misleading (implying they are untrusted when they are not)."
+    }
+  ],
+  "stable_validator_law_compliance": {
+    "claim": "Two genuinely different `DependencyIdentity`/`DependencyEdge` values can never produce the same `identity_key()` string, even when a `name`/`version`/`consumer` field is deliberately crafted to contain the join separator; ordinary, non-adversarial identities (the overwhelming common case, including every real identity this repository's own workspace and its entire 15-donor real corpus produce) are completely unaffected -- their `identity_key()` output is unchanged in the ordinary case (no field contains `|`, so escaping is a no-op).",
+    "self_written_evidence": "Two new tests in core/src/census/dependency.rs: identity_key_does_not_collide_when_a_field_contains_the_join_separator (the `DependencyIdentity`-level collision, run against unfixed code first and confirmed to fail for the real claimed reason) and edge_identity_key_does_not_collide_when_consumer_contains_the_join_separator (a consumer string deliberately crafted to look like an entire other edge's fields). All pre-existing identity_key tests (identity_key_distinguishes_version/source_kind, identity_key_is_unaffected_by_source_locator_and_checksum, edge_identity_key_is_unaffected_by_role_activation_and_evidence_path/distinguishes_consumer) re-run unchanged.",
+    "independent_evidence_channel": "Re-ran the full real-world verification suite this session's own prior generations established: `real_census_of_every_cargo_based_donor_workspace_reaches_closed_state` (15 real, independently-authored Cargo workspaces, 26,748 real edges) and `candidate_parser_agrees_with_cargo_metadata_on_this_repositorys_real_resolved_edges`/`...on_resolved_package_identity` (the independent `cargo metadata` differential oracle) both re-run clean -- proving the escaping change produces byte-identical behavior for every real-world identity these suites exercise (none of which contain `|`, so escaping is a no-op for all of them, exactly as designed). `atlas-cli graph --root .` and `atlas-cli systemize --root .` against this repository's own real workspace: identical Dependency-node count (14) and dependency_closure.state (CLOSED) before and after.",
+    "no_circular_self_certification": true
+  },
+  "implementation": {
+    "core_census": "core/src/census/dependency.rs -- new fn escape_identity_field(&str) -> String; DependencyIdentity::identity_key() now escapes name/version before joining; DependencyEdge::identity_key() now escapes consumer before joining"
+  },
+  "adversarial_and_falsification_coverage": [
+    "identity_key_does_not_collide_when_a_field_contains_the_join_separator -- the exact DependencyIdentity-level collision, run against unfixed code first and proven to fail for the real claimed reason before the fix existed",
+    "edge_identity_key_does_not_collide_when_consumer_contains_the_join_separator -- a consumer string crafted to look like an entire other edge's provider fields",
+    "real 15-donor corpus sweep and independent cargo-metadata oracle both re-run clean -- zero behavioral change for any real-world identity",
+    "real self-census of this repository's own workspace via atlas-cli graph/systemize -- identical Dependency-node count and closure state before/after"
+  ],
+  "validation_this_generation": {
+    "commands": {
+      "cargo fmt --all --check": { "exit_code": 0 },
+      "cargo clippy --workspace --all-targets -- -D warnings": { "exit_code": 0, "warnings": 0 },
+      "cargo test --workspace": {
+        "exit_code": 0,
+        "totals": "235 adapter, 151 core (+2), 61 runtime -- 447 total, 0 failed, up from 445"
+      },
+      "regression-first falsification": {
+        "before_fix": "identity_key_does_not_collide_when_a_field_contains_the_join_separator FAILED: both crafted identities produced the identical identity_key string",
+        "after_fix": "both new tests pass; all pre-existing identity_key tests unchanged"
+      },
+      "cargo run -q -p atlas-cli -- graph --root . / systemize --root .": {
+        "finding": "14 Dependency nodes, dependency_closure.state CLOSED, coding_admission unchanged -- zero regression on this repository's own real, non-adversarial identities"
+      },
+      "cargo run -q -p atlas-cli -- docs audit --root .atlas": { "exit_code": 0 }
+    }
+  },
+  "recensus_scope_after_promotion": [
+    "no prior CLOSED/EXTINCT conclusion depended on identity_key() being collision-safe under adversarial input, so no external conclusion requires reopening",
+    "the same unescaped `|`-join pattern is used by dozens of other identity_key() implementations across core/src/semantic/*.rs, adapter/src/semantic/rust/*.rs -- all confirmed safe by construction (their fields are extracted from real Rust source through syn's own lexer, which cannot produce a `|`), not merely assumed safe; this generation specifically ruled that class out rather than re-auditing each one individually, since the safety argument applies uniformly to all of them",
+    "this is the second real, mandatory gap found this session by directly adversarially testing a capability added earlier in the SAME session (the symlink escape found by testing the manifest-path-traversal fix; this identity-collision found by testing the dependency-closure graph-projection feature) -- both are concrete instances of the standing loop's own 'when a generation gains new capability, generate scenarios that specifically exploit it' requirement being applied recursively to this session's own recent work, not only to inherited code"
+  ],
+  "overall_verdict": "MATERIALIZED AND VERIFIED. Closes a real semantic-preservation gap: DependencyIdentity/DependencyEdge's identity_key() could be tricked by a crafted package name into conflating two genuinely different dependency instances, most consequentially corrupting graph node identity in this session's own recently-added dependency-closure graph projection. Proven real falsification-first (the exploit test failed against unfixed code before the fix existed) and proven harmless for every real-world identity this project's extensive real-corpus verification suite exercises.",
+  "historical_evidence_retained": true
+}

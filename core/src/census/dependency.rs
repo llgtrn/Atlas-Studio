@@ -176,14 +176,27 @@ pub struct DependencyIdentity {
     pub checksum: Option<String>,
 }
 
+/// Escapes `\` and `|` so a `|`-joined identity key built from `value` can never be confused with
+/// one built from a different split of the same joined characters (e.g. `name: "a|b", version:
+/// "c"` vs `name: "a", version: "b|c"` would otherwise both encode to `...a|b|c...`). Needed only
+/// for fields this codebase cannot prove are free of the separator: unlike a Rust identifier
+/// (`syn`'s lexer guarantees no `|` can appear in one, which is why the same unescaped `|`-join
+/// pattern is safe for every other `identity_key()` in this codebase), a Cargo package `name`/
+/// `version` is read by a bespoke static parser that never validates it against crates.io's real
+/// charset rules -- "ingestion is not execution" means no external validator is consulted, so a
+/// hand-crafted, malformed/hostile `Cargo.lock` can contain a literal `|` in either field.
+fn escape_identity_field(value: &str) -> String {
+    value.replace('\\', "\\\\").replace('|', "\\|")
+}
+
 impl DependencyIdentity {
     /// Deterministic, order-independent encoding of this dependency instance's identity fields.
     pub fn identity_key(&self) -> String {
         format!(
             "{}|{}|{}|{}",
             self.ecosystem.as_str(),
-            self.name,
-            self.version,
+            escape_identity_field(&self.name),
+            escape_identity_field(&self.version),
             self.source_kind.as_str(),
         )
     }
@@ -219,7 +232,11 @@ impl DependencyEdge {
     /// already-identified edge, not part of what makes the edge itself distinct -- excluded here
     /// for the same reason `CallSiteIdentity` excludes `dispatch`/`callees`.
     pub fn identity_key(&self) -> String {
-        format!("{}|{}", self.consumer, self.provider.identity_key())
+        format!(
+            "{}|{}",
+            escape_identity_field(&self.consumer),
+            self.provider.identity_key()
+        )
     }
 }
 
@@ -439,6 +456,43 @@ mod tests {
     }
 
     #[test]
+    fn identity_key_does_not_collide_when_a_field_contains_the_join_separator() {
+        // The static Cargo.lock/Cargo.toml parser (`adapter::census_cargo_workspace`) never
+        // validates that `name = "..."` conforms to crates.io's real charset rules -- it extracts
+        // whatever string appears, by design ("ingestion is not execution": no external validator
+        // is consulted). A hand-crafted, malformed/hostile lockfile can therefore contain a `|`
+        // inside a package name, unlike identifiers extracted from real Rust source (`syn`'s own
+        // lexer guarantees no `|` can appear in a valid Rust identifier, which is why this same
+        // `identity_key()` pattern is safe everywhere else it is used in this codebase).
+        let a = DependencyIdentity {
+            ecosystem: DependencyEcosystem::Cargo,
+            name: "foo|1.0.0".into(),
+            version: "2.0.0".into(),
+            source_kind: DependencySourceKind::Registry,
+            source_locator: None,
+            checksum: None,
+        };
+        let b = DependencyIdentity {
+            ecosystem: DependencyEcosystem::Cargo,
+            name: "foo".into(),
+            version: "1.0.0|2.0.0".into(),
+            source_kind: DependencySourceKind::Registry,
+            source_locator: None,
+            checksum: None,
+        };
+        assert_ne!(
+            a, b,
+            "these are genuinely different DependencyIdentity values"
+        );
+        assert_ne!(
+            a.identity_key(),
+            b.identity_key(),
+            "two genuinely different dependency identities must never encode to the same \
+             identity_key, even when a field contains the join separator"
+        );
+    }
+
+    #[test]
     fn edge_identity_key_distinguishes_consumer() {
         let a = DependencyEdge {
             consumer: "adapter".into(),
@@ -452,6 +506,29 @@ mod tests {
             ..a.clone()
         };
         assert_ne!(a.identity_key(), b.identity_key());
+    }
+
+    #[test]
+    fn edge_identity_key_does_not_collide_when_consumer_contains_the_join_separator() {
+        let a = DependencyEdge {
+            consumer: "adapter|CARGO|foo|1.0.0|REGISTRY".into(),
+            provider: registry_package("bar", "2.0.0"),
+            role: None,
+            activation: DependencyActivation::ALWAYS,
+            evidence_path: "Cargo.lock".into(),
+        };
+        let b = DependencyEdge {
+            consumer: "adapter".into(),
+            provider: registry_package("foo", "1.0.0"),
+            role: None,
+            activation: DependencyActivation::ALWAYS,
+            evidence_path: "Cargo.lock".into(),
+        };
+        assert_ne!(
+            a.identity_key(),
+            b.identity_key(),
+            "a consumer string crafted to look like a whole other edge's fields must not collide"
+        );
     }
 
     fn base_report(state: DependencyClosureState) -> DependencyClosureReport {
