@@ -257,11 +257,12 @@ R4.8 closure still requires materializing/accounting:
 
 This is the minimum point at which many donor mechanisms become semantically useful for absorption because Atlas can connect implementation behavior to state change and external effect, but the closure claim remains profile-scoped and evidence-gated.
 
-### R4.9 — Ownership and Resource Semantics
+### R4.9 — Ownership and Resource Semantics — bootstrap materialized, closure remains open
 
-Materialize OWNERSHIP at the level required for reliable census:
+Canonical main now has a useful R4.9 bootstrap: `&`/`&mut` borrow-site detection (`OwnershipKind::BorrowShared`/`BorrowMut`, fully syntax-determined) and an honestly-ambiguous `MoveOrCopy` for a bare-identifier by-value use, since whether it moves or copies depends on `Copy`-ness this extractor cannot resolve. This is not R4.9 semantic closure.
 
-- borrow/move/copy behavior where evidenced;
+R4.9 closure still requires materializing/accounting:
+
 - allocation/free/resource acquisition/release;
 - resource ownership transfer;
 - lifetime/region facts only to the level supported by admitted evidence;
@@ -269,16 +270,16 @@ Materialize OWNERSHIP at the level required for reliable census:
 
 Do not claim rustc-equivalent borrow checking merely because ownership facts exist.
 
-### R4.10 — Concurrency Semantics
+### R4.10 — Concurrency Semantics — bootstrap materialized, closure remains open
 
-Materialize CONCURRENCY:
+Canonical main now has a useful R4.10 bootstrap: `Await` for every `.await` (dedicated syntax, fully syntax-determined) and `Spawn` for a callee spelling ending in `spawn` (the same name-based risk class R4.8's panic-macro detection already accepts). This is not R4.10 semantic closure.
 
-- threads/tasks;
-- channels;
+R4.10 closure still requires materializing/accounting:
+
 - locks/unlocks;
+- channels;
 - atomics;
-- synchronization;
-- ordering relationships;
+- synchronization/ordering relationships beyond `Await`/`Spawn`;
 - concurrent state interaction;
 - dynamic/unresolved concurrency obligations.
 
