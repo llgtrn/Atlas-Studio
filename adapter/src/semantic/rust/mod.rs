@@ -222,10 +222,10 @@ impl SemanticExtractor for RustSemanticExtractor {
 /// are siblings at the same bracket depth -- only by `;` or a new `fn`, approximating "next
 /// function") increments a third counter. The combined maximum is compared against one threshold.
 ///
-/// This is a coarse, syntax-unaware, pre-parse text scan (no exclusion for string/char literals or
-/// comments, no real keyword-boundary checking) that can only ever over-count real structural
-/// risk, never under-count -- so it can only be more conservative than strictly necessary, never
-/// miss one of these three specific, confirmed vectors. It is explicitly NOT claimed complete: a
+/// This is a coarse, syntax-unaware, pre-parse text scan (no real keyword-boundary checking, no
+/// char-literal or byte-string exclusion) that can only ever over-count real structural risk,
+/// never under-count -- so it can only be more conservative than strictly necessary, never miss
+/// one of these three specific, confirmed vectors. It is explicitly NOT claimed complete: a
 /// fourth, fifth, ... construct that drives the same class of parser/AST recursion through some
 /// other keyword or syntax shape may exist and would not necessarily be caught by this heuristic.
 /// A fully complete fix would require either patching `syn` itself to grow its own stack during
@@ -234,7 +234,59 @@ impl SemanticExtractor for RustSemanticExtractor {
 /// large undertaking, not attempted this wave). This repository's own entire real source corpus
 /// never nests brackets deeper than 13, never chains more than a handful of operators in a row,
 /// and has no `if`/`else` chain anywhere near this length.
+///
+/// `//` line comments and `"..."`/`r#"..."#`-style string literals ARE excluded from the scan
+/// (`skip_string_literal`): this repository's own common documentation style uses long dash/equals
+/// divider comments as section headers (`// --- 13. section name ----------------------------`),
+/// and at least one file embeds a raw-string test fixture containing similar runs -- both were
+/// found, by directly re-censusing this repository's own real source, to trip this guard despite
+/// having zero relation to real parser structure. Excluding them is still safe in the same
+/// direction as the rest of this heuristic (removing content can only ever LOWER a computed risk,
+/// never hide a real one, since no comment or string literal content is ever fed to `syn` as code
+/// either way) -- it does not weaken detection of any of the three confirmed vectors, all of which
+/// occur in genuine code structure, never inside a comment or string.
 const MAX_STRUCTURAL_RECURSION_RISK: usize = 64;
+
+/// If `bytes[start..]` begins a plain `"..."` (with `\"`/`\\` escape handling) or raw
+/// `r#"..."#`-style string literal, returns the index just past its closing delimiter. Returns
+/// `None` when `bytes[start]` does not open a recognized string literal, in which case the caller
+/// processes `bytes[start]` normally. An unterminated literal is treated as extending to end of
+/// input -- safe, since no chain-inducing content past that point can matter either way.
+fn skip_string_literal(bytes: &[u8], start: usize) -> Option<usize> {
+    if bytes[start] == b'"' {
+        let mut index = start + 1;
+        while index < bytes.len() {
+            match bytes[index] {
+                b'\\' => index = (index + 2).min(bytes.len()),
+                b'"' => return Some(index + 1),
+                _ => index += 1,
+            }
+        }
+        return Some(index);
+    }
+    if bytes[start] == b'r' && matches!(bytes.get(start + 1), Some(b'"') | Some(b'#')) {
+        let mut index = start + 1;
+        let mut hashes = 0usize;
+        while bytes.get(index) == Some(&b'#') {
+            hashes += 1;
+            index += 1;
+        }
+        if bytes.get(index) != Some(&b'"') {
+            return None;
+        }
+        index += 1;
+        loop {
+            if index >= bytes.len() {
+                return Some(index);
+            }
+            if bytes[index] == b'"' && bytes[index + 1..].starts_with(&b"#".repeat(hashes)[..]) {
+                return Some(index + 1 + hashes);
+            }
+            index += 1;
+        }
+    }
+    None
+}
 
 fn max_structural_recursion_risk(source: &str) -> usize {
     let bytes = source.as_bytes();
@@ -242,7 +294,19 @@ fn max_structural_recursion_risk(source: &str) -> usize {
     let mut chain_run: usize = 0;
     let mut else_run: usize = 0;
     let mut max_risk: usize = 0;
-    for (index, &byte) in bytes.iter().enumerate() {
+    let mut index = 0;
+    while index < bytes.len() {
+        let byte = bytes[index];
+        if byte == b'/' && bytes.get(index + 1) == Some(&b'/') {
+            while index < bytes.len() && bytes[index] != b'\n' {
+                index += 1;
+            }
+            continue;
+        }
+        if let Some(after) = skip_string_literal(bytes, index) {
+            index = after;
+            continue;
+        }
         match byte {
             b'(' | b'{' | b'[' => {
                 bracket_depth += 1;
@@ -254,9 +318,22 @@ fn max_structural_recursion_risk(source: &str) -> usize {
                 chain_run = 0;
             }
             b'+' | b'-' | b'*' | b'/' | b'%' | b'&' | b'|' | b'^' | b'<' | b'>' | b'=' | b'!'
-            | b'.' | b'?' | b',' => {
+            | b'.' | b'?' => {
                 chain_run += 1;
                 max_risk = max_risk.max(bracket_depth + chain_run);
+            }
+            // `,` always separates SIBLING list items (function-call/struct-literal/tuple/generic
+            // arguments) -- `syn` parses a `Punctuated<T, Comma>` list with a loop, not recursion,
+            // so additional comma-separated siblings never add parser stack depth the way a
+            // genuine chain (nested brackets, chained binary operators, if/else-if arms) does.
+            // Counting `,` toward `chain_run` made an ordinary long argument list or struct
+            // literal indistinguishable from a real recursive chain: this repository's own real
+            // source (e.g. large struct-literal-heavy files) tripped exactly this false positive.
+            // Resets `chain_run` only, not `else_run` -- a `,` can legitimately appear inside one
+            // arm of a real if/else-if chain (e.g. a function call argument list) without that
+            // arm's own commas being allowed to hide the chain's true length.
+            b',' => {
+                chain_run = 0;
             }
             b';' => {
                 chain_run = 0;
@@ -275,6 +352,7 @@ fn max_structural_recursion_risk(source: &str) -> usize {
         // otherwise trivially evade this guard by inserting a newline between every chained
         // operator or `else` arm, which drives the exact same parser recursion depth as an
         // unbroken line.
+        index += 1;
     }
     max_risk
 }

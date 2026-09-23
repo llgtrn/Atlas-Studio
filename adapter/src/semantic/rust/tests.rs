@@ -4740,3 +4740,90 @@ fn a_short_real_if_else_chain_still_extracts_normally() {
     let identity = find_function_identity(&batch, &[], "f").expect("function f");
     assert_eq!(identity.symbol.name, "f");
 }
+
+#[test]
+fn a_long_comma_separated_argument_list_does_not_trip_the_recursion_guard() {
+    // `,`-separated lists (function-call arguments, struct-literal fields, tuple elements) are
+    // parsed ITERATIVELY by `syn` (a loop collecting a `Punctuated<T, Comma>`), not recursively --
+    // each item's own complexity recurses independently, but the list itself adds no stack depth
+    // per additional sibling item, unlike the three confirmed vectors above (bracket nesting,
+    // chained binary operators, if/else-if arms), which all genuinely nest one AST level per
+    // occurrence. A long, ordinary argument list or struct literal must never trip this guard.
+    // This is not hypothetical: this repository's own real source (e.g. large `SemanticFact`/
+    // struct-literal-heavy files) trips exactly this false positive before the fix below.
+    let n = 200;
+    let args = (0..n)
+        .map(|i| format!("a{i}"))
+        .collect::<Vec<_>>()
+        .join(", ");
+    let source = format!("pub fn f() -> i32 {{ g({args}) }}\n");
+    let batch = extract_all("src/probe.rs", &source);
+    assert!(
+        !batch
+            .diagnostics
+            .iter()
+            .any(|diagnostic| diagnostic.code == DiagnosticCode::ResourceLimit),
+        "an ordinary long argument list must never be treated as a recursion-DoS risk: {:?}",
+        batch.diagnostics
+    );
+}
+
+#[test]
+fn a_long_decorative_comment_divider_does_not_trip_the_recursion_guard() {
+    // This codebase's own common style uses long dash-divider line comments as section headers
+    // (`// --- 13. section name ------------------------------------------`). The guard's
+    // underlying scan is a coarse, syntax-unaware byte scan with no comment exclusion, so a long
+    // run of `-` characters inside a `//` comment was indistinguishable from the same run
+    // appearing in real code -- this is not hypothetical: this exact pattern, at this exact
+    // frequency, is what caused several of this repository's own real files (including this very
+    // test file) to trip the guard and become invisible to Atlas's own semantic census.
+    let divider = "-".repeat(90);
+    let source = format!("pub fn f() -> i32 {{\n    // {divider}\n    1\n}}\n");
+    let batch = extract_all("src/probe.rs", &source);
+    assert!(
+        !batch
+            .diagnostics
+            .iter()
+            .any(|diagnostic| diagnostic.code == DiagnosticCode::ResourceLimit),
+        "a decorative comment divider must never be treated as a recursion-DoS risk: {:?}",
+        batch.diagnostics
+    );
+}
+
+#[test]
+fn a_raw_string_literal_containing_dashes_does_not_trip_the_recursion_guard() {
+    // A raw string literal (e.g. an embedded test fixture, like a Cargo.lock sample) can contain
+    // arbitrary characters, including long dash/equals runs, with zero relation to real parser
+    // structure -- the guard must not count characters inside string literal content.
+    let divider = "-".repeat(90);
+    let source = format!("pub const FIXTURE: &str = r#\"\n{divider}\n\"#;\n");
+    let batch = extract_all("src/probe.rs", &source);
+    assert!(
+        !batch
+            .diagnostics
+            .iter()
+            .any(|diagnostic| diagnostic.code == DiagnosticCode::ResourceLimit),
+        "dashes inside a raw string literal must never be treated as a recursion-DoS risk: {:?}",
+        batch.diagnostics
+    );
+}
+
+#[test]
+fn a_real_adversarial_chain_after_a_comment_still_trips_the_guard() {
+    // Regression guard: excluding comment/string content must not accidentally swallow real code
+    // that follows a comment on a later line -- the guard must still catch a genuine adversarial
+    // chain elsewhere in the same file.
+    let n = 5000;
+    let chain = std::iter::repeat_n("1", n).collect::<Vec<_>>().join("+");
+    let source = format!(
+        "// just an ordinary comment, nothing unusual here\npub fn f() -> i32 {{ {chain} }}\n"
+    );
+    let batch = extract_all("src/probe.rs", &source);
+    assert_eq!(
+        batch.diagnostics.len(),
+        1,
+        "a real adversarial chain elsewhere in the file must still be caught: {:?}",
+        batch.diagnostics
+    );
+    assert_eq!(batch.diagnostics[0].code, DiagnosticCode::ResourceLimit);
+}
