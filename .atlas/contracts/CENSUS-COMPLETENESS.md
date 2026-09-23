@@ -99,6 +99,22 @@ Repository claims Capability Y
 
 "None" requires proof that the relevant obligation set was exhaustively checked. Failure to find something is UNKNOWN, not verified absence.
 
+## Generational recensus closure
+
+A census fixed point is scoped to the Atlas observation capability that produced it.
+
+When a promoted generation can observe, represent, resolve or verify a previously invisible class, affected prior closure MUST be recensused in a new evidence/certificate lineage. This includes Atlas itself, invalidated dependencies, affected donor/provider scopes, prior negative-evidence claims and affected ABSORBED/EXTINCTION_READY conclusions.
+
+Old CLOSED/SEALED certificates remain historical evidence for their exact pinned inputs; they are not silently reinterpreted under a stronger generation.
+
+Normative generation/convergence semantics: `RECURSIVE-SELF-CENSUS.md`.
+
+## Scenario closure
+
+Where policy requires runtime/failure-world evidence, semantic closure binds a finite admitted scenario frontier. Required architecture-falsification, dependency-disappearance, security, concurrency, persistence/recovery or failure scenarios may not be silently skipped because static graph closure succeeded.
+
+Scenario growth MUST be bounded and linked to concrete obligations. "No random finding" is not verified absence.
+
 ## Seal formula
 
 A logical Atlas may be sealed only when required closure classes satisfy policy:
