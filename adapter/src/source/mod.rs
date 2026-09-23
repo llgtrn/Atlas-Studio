@@ -197,6 +197,53 @@ pub fn inventory_source(root: impl AsRef<Path>) -> io::Result<InventoryReport> {
     inventory_from_roots(root.clone(), vec![root])
 }
 
+/// Whether a manifest-declared root, taken as a standalone string, could ever resolve outside
+/// the repository root it is about to be joined against. Checked purely lexically, without
+/// touching the filesystem (the declared root may not exist yet, and must never be
+/// `canonicalize`d before this check -- that would itself follow symlinks/`..` on disk).
+///
+/// Rejects any absolute path: `Path::join` returns an absolute joinee verbatim, silently
+/// discarding the intended root entirely (`root.join("/etc")` == `/etc`). Also rejects any path
+/// whose `..` components would net-escape above where it started (e.g. `"../../etc"` against a
+/// shallow root). A `.atlas/repo.toml` manifest is not necessarily pre-admitted, trusted config:
+/// `ADL-TO-ATLAS.md`'s candidate reconciliation path and this session's own donor-corpus census
+/// sweeps can both point `inventory_declared_source` at externally-authored trees, so a hostile
+/// or careless `source_roots`/`frontend_roots`/`test_roots` entry must never cause a filesystem
+/// walk (and file-content read, via `looks_binary`) outside the intended repository boundary.
+fn declared_root_is_contained(declared: &str) -> bool {
+    let declared_path = Path::new(declared);
+    if declared_path.is_absolute() {
+        return false;
+    }
+    let mut depth: i64 = 0;
+    for component in declared_path.components() {
+        match component {
+            std::path::Component::Normal(_) => depth += 1,
+            std::path::Component::CurDir => {}
+            std::path::Component::ParentDir => {
+                depth -= 1;
+                if depth < 0 {
+                    return false;
+                }
+            }
+            std::path::Component::RootDir | std::path::Component::Prefix(_) => return false,
+        }
+    }
+    true
+}
+
+fn rejected_declared_root(declared: &str) -> ArtifactRecord {
+    ArtifactRecord {
+        id: artifact_id(declared),
+        path: declared.to_owned(),
+        kind: ArtifactKind::PolicyBoundary,
+        bytes: 0,
+        disposition: ArtifactDisposition::IgnoredByExplicitPolicy,
+        language: None,
+        reason: Some("declared-root-escapes-repository-boundary".into()),
+    }
+}
+
 pub fn inventory_declared_source(
     root: impl AsRef<Path>,
     manifest: &RepoManifest,
@@ -207,8 +254,27 @@ pub fn inventory_declared_source(
     declared.extend(manifest.test_roots.clone());
     declared.sort();
     declared.dedup();
-    let roots = declared.into_iter().map(|path| root.join(path)).collect();
-    inventory_from_roots(root, roots)
+
+    let mut rejected = BTreeMap::new();
+    let mut roots = Vec::new();
+    for path in &declared {
+        if declared_root_is_contained(path) {
+            roots.push(root.join(path));
+        } else {
+            let record = rejected_declared_root(path);
+            rejected.insert(record.path.clone(), record);
+        }
+    }
+
+    let report = inventory_from_roots(root, roots)?;
+    if rejected.is_empty() {
+        return Ok(report);
+    }
+    rejected.extend(report.artifacts.into_iter().map(|a| (a.path.clone(), a)));
+    Ok(InventoryReport::new(
+        report.root,
+        rejected.into_values().collect(),
+    ))
 }
 
 pub fn source_report_from_inventory(inventory: &InventoryReport) -> SourceReport {
@@ -285,6 +351,104 @@ mod tests {
         assert_eq!(report.dispositions.get("PARSED"), Some(&1));
         assert_eq!(report.dispositions.get("UNKNOWN"), Some(&1));
         assert_eq!(report.dispositions.get("UNSUPPORTED"), Some(&1));
+        assert!(report.is_closed());
+
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    fn manifest_with_declared_roots(source_roots: Vec<&str>) -> RepoManifest {
+        RepoManifest {
+            schema: "atlas.repo.v2".into(),
+            repo: "org/repo".into(),
+            system_kind: "SYSTEM_INVENTION_FORGE".into(),
+            backend_language: "rust".into(),
+            frontend_language: "typescript".into(),
+            coding_requires_docs_gate: true,
+            graph_before_code_required: true,
+            exact_base_sha_required: true,
+            single_repository_target_required: true,
+            knowledge_root: ".atlas".into(),
+            temporary_root: ".atlas/temporary".into(),
+            provenance_root: ".atlas/provenance".into(),
+            license_root: ".atlas/licenses".into(),
+            source_roots: source_roots.into_iter().map(String::from).collect(),
+            backend_roots: Vec::new(),
+            frontend_roots: Vec::new(),
+            test_roots: Vec::new(),
+        }
+    }
+
+    #[test]
+    fn a_declared_root_escaping_via_dotdot_is_rejected_not_walked() {
+        let root = scratch_root();
+        fs::create_dir_all(&root).unwrap();
+        // A sibling of `root` that a `../` escape would reach if it were ever walked.
+        let outside = root.parent().unwrap().join(format!(
+            "atlas-inventory-outside-{}",
+            root.file_name().unwrap().to_string_lossy()
+        ));
+        fs::create_dir_all(&outside).unwrap();
+        fs::write(outside.join("secret.rs"), "fn leaked() {}\n").unwrap();
+
+        let manifest = manifest_with_declared_roots(vec![&format!(
+            "../{}",
+            outside.file_name().unwrap().to_string_lossy()
+        )]);
+        let report = inventory_declared_source(&root, &manifest).unwrap();
+
+        assert!(
+            report
+                .artifacts
+                .iter()
+                .all(|artifact| !artifact.path.contains("secret.rs")),
+            "an escaping declared root must never be walked: {:?}",
+            report.artifacts
+        );
+        assert_eq!(
+            report.dispositions.get("IGNORED_BY_EXPLICIT_POLICY"),
+            Some(&1)
+        );
+        assert!(report.is_closed());
+
+        fs::remove_dir_all(&root).unwrap();
+        fs::remove_dir_all(&outside).unwrap();
+    }
+
+    #[test]
+    fn a_declared_root_that_is_an_absolute_path_is_rejected_not_walked() {
+        let root = scratch_root();
+        fs::create_dir_all(&root).unwrap();
+
+        let manifest = manifest_with_declared_roots(vec!["/etc"]);
+        let report = inventory_declared_source(&root, &manifest).unwrap();
+
+        assert_eq!(report.artifacts_total, 1);
+        assert_eq!(
+            report.artifacts[0].disposition,
+            ArtifactDisposition::IgnoredByExplicitPolicy
+        );
+        assert_eq!(report.artifacts[0].path, "/etc");
+        assert!(report.is_closed());
+
+        fs::remove_dir_all(&root).unwrap();
+    }
+
+    #[test]
+    fn an_ordinary_declared_root_is_still_walked_normally() {
+        let root = scratch_root();
+        let src = root.join("core");
+        fs::create_dir_all(&src).unwrap();
+        fs::write(src.join("ok.rs"), "fn main() {}\n").unwrap();
+
+        let manifest = manifest_with_declared_roots(vec!["core"]);
+        let report = inventory_declared_source(&root, &manifest).unwrap();
+
+        assert_eq!(report.dispositions.get("PARSED"), Some(&1));
+        assert!(
+            !report
+                .dispositions
+                .contains_key("IGNORED_BY_EXPLICIT_POLICY")
+        );
         assert!(report.is_closed());
 
         fs::remove_dir_all(root).unwrap();

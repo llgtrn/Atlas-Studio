@@ -201,6 +201,12 @@ Default deny:
 
 Grant only the role-specific capabilities required for the invocation.
 
+### Implementation status: manifest-declared roots cannot escape the workspace
+
+`.atlas/repo.toml`'s `source_roots`/`backend_roots`/`frontend_roots`/`test_roots` arrays are free-form strings that census/inventory join against the repository root before walking the filesystem. A declared root is admitted only when it is relative and its `..` components never net-escape above the root (checked purely lexically, without touching the filesystem, so a not-yet-existing declared root is judged the same way as an existing one). An absolute entry (which `Path::join` would otherwise return verbatim, silently discarding the intended root) or a net-upward-traversing entry is never walked — `core::constraint::validate_manifest` reports it as a `policy_violations` entry, and independently, `adapter::source::inventory_declared_source` (the actual filesystem-walk sink) refuses to walk it regardless of whether manifest validation ran or passed, recording it instead as an `IGNORED_BY_EXPLICIT_POLICY` artifact. Both layers enforce the same rule because `runtime::systemize`/`graph`/`code_analyze` build inventory directly from any successfully-*parsed* manifest, independent of whether it passed `policy_violations` — the sink-side check is the one that actually matters; the policy-side check exists so an escaping root is also visibly reported, not only silently filtered.
+
+This closes a real gap: `.atlas/repo.toml` is not necessarily pre-admitted, trusted config the way this repository's own copy is — this contract's own candidate-reconciliation path, and donor-corpus census sweeps against externally-authored trees, can both point census/inventory at a `.atlas/repo.toml` this session did not author. Before this fix, a hostile or careless declared root could cause a full filesystem walk (and file-content read) outside the intended repository boundary with no defense at either layer.
+
 ## Canonical-write prohibition
 
 An external provider MUST NOT directly mutate:
