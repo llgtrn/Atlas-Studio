@@ -48,9 +48,21 @@ fn visit_adl_sources(root: &Path, dir: &Path, out: &mut Vec<AdlSource>) -> io::R
             .unwrap_or(&path)
             .to_string_lossy()
             .replace('\\', "/");
+        // `runtime::census::extraction::extract_semantics` already establishes the right
+        // discipline for a per-artifact read/decode failure: account for it, never abort every
+        // other artifact's processing because of it (its own doc comment: "one artifact's read
+        // failure must not abort extraction of every artifact that comes after it"). A `.adl`
+        // file's bytes are not guaranteed to be valid UTF-8 (a hostile or merely corrupted
+        // encoding), and `AdlSource.text` requires a real `String` -- `from_utf8_lossy` is the
+        // same lossy-but-never-crashing decode `Path::to_string_lossy` already uses elsewhere in
+        // this codebase: the file remains present in `sources` (never silently dropped) and its
+        // valid portions stay byte-for-byte intact; only genuinely undecodable byte sequences
+        // become U+FFFD, which then naturally surfaces through `parse_adl_source`'s normal
+        // diagnostics (e.g. `ATLAS-E000`/`ATLAS-E010`) rather than aborting the whole read.
+        let text = String::from_utf8_lossy(&fs::read(&path)?).into_owned();
         out.push(AdlSource {
             path: relative,
-            text: fs::read_to_string(path)?,
+            text,
         });
     }
     Ok(())
@@ -188,7 +200,9 @@ pub fn audit_repository(root: impl AsRef<Path>) -> io::Result<RepoAudit> {
     let mut manifest = None;
     let mut policy_violations = Vec::new();
     if repo_manifest.is_file() {
-        let text = fs::read_to_string(&repo_manifest)?;
+        // Same discipline as `visit_adl_sources`/`visit_docs`: a manifest whose bytes are not
+        // valid UTF-8 must not abort the whole repository audit. Lossy-decoded, never dropped.
+        let text = String::from_utf8_lossy(&fs::read(&repo_manifest)?).into_owned();
         match parse_repo_manifest(&text) {
             Ok(parsed) => {
                 archetype = parsed.system_kind.clone();
@@ -416,7 +430,10 @@ fn visit_docs(
             continue;
         }
         *documents_total += 1;
-        let text = fs::read_to_string(&path)?;
+        // Same discipline as `visit_adl_sources`/`audit_repository`: a doc whose bytes are not
+        // valid UTF-8 must not abort auditing every other doc in the tree. Lossy-decoded, never
+        // dropped -- it still counts toward `documents_total` and gets a `DocumentFact` below.
+        let text = String::from_utf8_lossy(&fs::read(&path)?).into_owned();
         let relative = path
             .strip_prefix(root)
             .unwrap_or(&path)
@@ -480,6 +497,94 @@ mod tests {
         assert!(!report.gate_ready);
         assert_eq!(report.documents_total, 0);
         assert!(!report.required_control_docs_missing.is_empty());
+
+        std::fs::remove_dir_all(&root).unwrap();
+    }
+
+    // Falsification: `runtime::census::extraction::extract_semantics` already established the
+    // right discipline for exactly this class of input -- "never `?`-propagate [a file read
+    // failure]: one artifact's read failure must not abort extraction of every artifact that comes
+    // after it" (see its own doc comment) -- but `read_adl_sources` did not follow it: a single
+    // `.adl` file containing bytes that are not valid UTF-8 (a hostile or merely corrupted
+    // encoding, the same "malformed/hostile inputs" scenario class already exercised elsewhere
+    // this session) made `fs::read_to_string` return `Err`, propagated by `?` straight through
+    // `read_adl_sources` -> `systemize`/`code_analyze`/`check`/`parse`, aborting the ENTIRE run
+    // (every other file in the repository, ADL or otherwise) with no report at all -- confirmed
+    // against the unfixed code before writing the fix.
+    #[test]
+    fn a_non_utf8_adl_file_does_not_abort_reading_the_rest_of_the_declared_tree() {
+        let root = scratch_root();
+        let declared = root.join(".atlas").join("declared");
+        std::fs::create_dir_all(&declared).unwrap();
+        std::fs::write(
+            declared.join("valid.adl"),
+            "atlas 1\ncomponent Foo {\n  path = \"x\"\n}\n",
+        )
+        .unwrap();
+        // Not valid UTF-8: a lone continuation byte can never start a valid sequence.
+        std::fs::write(declared.join("corrupt.adl"), [b'a', b'\xff', b'\xfe', b'z']).unwrap();
+
+        let sources = read_adl_sources(&root)
+            .expect("a non-UTF-8 .adl file must not abort reading the rest of the declared tree");
+
+        assert_eq!(sources.len(), 2);
+        assert!(
+            sources
+                .iter()
+                .any(|source| source.path == ".atlas/declared/valid.adl"
+                    && source.text.contains("component Foo")),
+            "the well-formed sibling file must still be read intact"
+        );
+        assert!(
+            sources
+                .iter()
+                .any(|source| source.path == ".atlas/declared/corrupt.adl"),
+            "the corrupt file must still be accounted for, never silently dropped"
+        );
+
+        std::fs::remove_dir_all(&root).unwrap();
+    }
+
+    // Same defect, one layer up the stack: `.atlas/repo.toml` is read before `read_adl_sources`
+    // even runs, so a non-UTF-8 manifest previously aborted `audit_repository` -- and therefore
+    // every caller of it (`systemize`, `code_analyze`) -- before any report could be built at all.
+    #[test]
+    fn a_non_utf8_repo_manifest_does_not_abort_the_repository_audit() {
+        let root = scratch_root();
+        let atlas_root = root.join(".atlas");
+        std::fs::create_dir_all(&atlas_root).unwrap();
+        std::fs::write(atlas_root.join("repo.toml"), [b'a', b'\xff', b'\xfe', b'z']).unwrap();
+
+        let audit = audit_repository(&root)
+            .expect("a non-UTF-8 repo.toml must not abort the repository audit");
+        // The file exists (it was read, lossily, not crashed on) so it must never be reported
+        // via the "repository_manifest role missing" path -- that path is reserved for the file
+        // genuinely not existing at all, a distinct fact from "exists but fails to parse".
+        assert!(
+            !audit
+                .missing_required_roles
+                .iter()
+                .any(|role| role == "repository_manifest"),
+            "an existing-but-malformed manifest must be distinguished from a missing one, got: {:?}",
+            audit.missing_required_roles
+        );
+
+        std::fs::remove_dir_all(&root).unwrap();
+    }
+
+    // Same defect, in the docs walker: a single non-UTF-8 `.md` file previously aborted
+    // `audit_docs` for the whole `.atlas` tree, hiding every other document's real status.
+    #[test]
+    fn a_non_utf8_doc_does_not_abort_auditing_the_rest_of_the_tree() {
+        let root = scratch_root();
+        let docs_root = root.join(".atlas");
+        std::fs::create_dir_all(&docs_root).unwrap();
+        std::fs::write(docs_root.join("README.md"), "# ok\n").unwrap();
+        std::fs::write(docs_root.join("corrupt.md"), [b'a', b'\xff', b'\xfe', b'z']).unwrap();
+
+        let report = audit_docs(&docs_root)
+            .expect("a non-UTF-8 doc must not abort auditing the rest of the tree");
+        assert_eq!(report.documents_total, 2);
 
         std::fs::remove_dir_all(&root).unwrap();
     }
