@@ -90,49 +90,49 @@ forbidden_scope = ["CALL"]
 [[r_wave]]
 id = "R4.5"
 name = "call-semantics"
-status = "MATERIALIZED"
+status = "BOOTSTRAP_MATERIALIZED_CLOSURE_OPEN"
 semantic_dimensions = ["CALL"]
 
 [[r_wave]]
 id = "R4.6"
 name = "control-flow"
-status = "NEXT"
+status = "BOOTSTRAP_MATERIALIZED_CLOSURE_OPEN"
 semantic_dimensions = ["CONTROL_FLOW"]
 
 [[r_wave]]
 id = "R4.7"
 name = "data-flow"
-status = "PLANNED"
+status = "BOOTSTRAP_MATERIALIZED_CLOSURE_OPEN"
 semantic_dimensions = ["DATA_FLOW"]
 
 [[r_wave]]
 id = "R4.8"
 name = "state-effect"
-status = "PLANNED"
+status = "BOOTSTRAP_MATERIALIZED_CLOSURE_OPEN"
 semantic_dimensions = ["STATE", "EFFECT"]
 
 [[r_wave]]
 id = "R4.9"
 name = "ownership-resource"
-status = "PLANNED"
+status = "BOOTSTRAP_MATERIALIZED_CLOSURE_OPEN"
 semantic_dimensions = ["OWNERSHIP"]
 
 [[r_wave]]
 id = "R4.10"
 name = "concurrency"
-status = "PLANNED"
+status = "BOOTSTRAP_MATERIALIZED_CLOSURE_OPEN"
 semantic_dimensions = ["CONCURRENCY"]
 
 [[r_wave]]
 id = "R4.11"
 name = "persistence-recovery"
-status = "PLANNED"
+status = "BOOTSTRAP_MATERIALIZED_CLOSURE_OPEN"
 semantic_dimensions = ["PERSISTENCE"]
 
 [[r_wave]]
 id = "R4.12"
 name = "r4-semantic-closure"
-status = "PLANNED"
+status = "MATERIALIZED_NOT_FULLY_CLOSED"
 goal = "declared Rust profile closes all R4 semantic obligations and deterministic normalization/reference-corpus gates"
 
 [[r_wave]]
