@@ -122,12 +122,58 @@ fn classify_non_file(
     })
 }
 
+/// Records `dir` itself as an accounted, unwalked artifact instead of propagating the `io::Error`
+/// that made it unreadable (permission denial being the common real case -- but any `read_dir`
+/// failure is handled identically). `.atlas/contracts/DEPENDENCY-CENSUS.md`'s "ingestion is not
+/// execution" sibling principle applies here too: one unreadable subtree, anywhere in a real
+/// filesystem walk, must never abort accounting for every other artifact in the repository (the
+/// same discipline `runtime::census::extraction::extract_semantics` already documents and applies
+/// for a per-file read failure). `fs::symlink_metadata` only needs search permission on `dir`'s
+/// *parents* (already proven, since this directory's own entry was just read from there), not on
+/// `dir` itself, so it still succeeds even when `dir`'s own permissions are what blocked the
+/// `read_dir` above; a `bytes: 0` fallback covers the rarer case where `dir` disappeared between
+/// being listed and being stat'd.
+fn record_unreadable_directory(
+    root: &Path,
+    dir: &Path,
+    out: &mut BTreeMap<String, ArtifactRecord>,
+    error: &io::Error,
+) {
+    let relative_path = relative(root, dir);
+    let bytes = fs::symlink_metadata(dir)
+        .map(|meta| meta.len())
+        .unwrap_or(0);
+    let record = ArtifactRecord {
+        id: artifact_id(&relative_path),
+        path: relative_path,
+        kind: ArtifactKind::Special,
+        bytes,
+        disposition: ArtifactDisposition::Unknown,
+        language: None,
+        reason: Some(format!("directory-not-readable: {error}")),
+    };
+    out.insert(record.path.clone(), record);
+}
+
 fn visit_inventory(
     root: &Path,
     dir: &Path,
     out: &mut BTreeMap<String, ArtifactRecord>,
 ) -> io::Result<()> {
-    let mut entries: Vec<_> = fs::read_dir(dir)?.collect::<Result<_, _>>()?;
+    let read_dir = match fs::read_dir(dir) {
+        Ok(read_dir) => read_dir,
+        Err(error) => {
+            record_unreadable_directory(root, dir, out, &error);
+            return Ok(());
+        }
+    };
+    let mut entries: Vec<_> = match read_dir.collect::<Result<_, _>>() {
+        Ok(entries) => entries,
+        Err(error) => {
+            record_unreadable_directory(root, dir, out, &error);
+            return Ok(());
+        }
+    };
     entries.sort_by_key(|entry| entry.file_name());
 
     for entry in entries {
@@ -340,6 +386,8 @@ pub fn scan_declared_source(
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[cfg(unix)]
+    use std::os::unix::fs::PermissionsExt;
     use std::time::{SystemTime, UNIX_EPOCH};
 
     fn scratch_root() -> PathBuf {
@@ -540,6 +588,79 @@ mod tests {
         assert_eq!(symlink_artifacts, 1, "artifacts: {:?}", report.artifacts);
         assert!(report.is_closed());
 
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    // Whether this test process runs as root (uid 0). Root bypasses discretionary directory
+    // permission checks entirely on Linux, so a `chmod 000` directory remains fully readable to
+    // it and this test's crash-vs-graceful assertion cannot be exercised meaningfully -- reading
+    // `/proc/self/status` avoids adding a new dependency (e.g. `libc::geteuid`) for a single
+    // environment probe.
+    #[cfg(unix)]
+    fn running_as_root() -> bool {
+        fs::read_to_string("/proc/self/status")
+            .ok()
+            .and_then(|status| {
+                status
+                    .lines()
+                    .find_map(|line| line.strip_prefix("Uid:"))
+                    .and_then(|rest| rest.split_whitespace().next())
+                    .map(|uid| uid == "0")
+            })
+            .unwrap_or(false)
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn an_unreadable_subdirectory_is_recorded_not_walked_and_does_not_abort_the_rest_of_the_tree() {
+        // Falsification: confirmed against the unfixed code via a real, isolated, non-root
+        // process (`su ubuntu -c '.../atlas-systemizer code analyze --root ...'`) before writing
+        // this fix -- a permission-denied subdirectory anywhere in the source tree aborted the
+        // ENTIRE walk with "Permission denied (os error 13)" and zero output, exactly the same
+        // defect class `visit_adl_sources`/`audit_repository`/`visit_docs` had for a non-UTF-8
+        // file read (fixed earlier this session) -- just triggered by `fs::read_dir` failing
+        // instead of `fs::read_to_string`. This process itself typically runs as root in CI
+        // sandboxes, where root bypasses the permission check being tested (`fs::read_dir` on a
+        // `chmod 000` directory succeeds for root) -- skip rather than falsely pass in that case;
+        // the real-process verification above is the authoritative evidence for this fix.
+        if running_as_root() {
+            eprintln!(
+                "skipping an_unreadable_subdirectory_is_recorded_not_walked_and_does_not_abort_the_rest_of_the_tree: \
+                 running as root, which bypasses the permission check this test exercises"
+            );
+            return;
+        }
+
+        let root = scratch_root();
+        let src = root.join("src");
+        let locked = src.join("locked");
+        fs::create_dir_all(&locked).unwrap();
+        fs::write(src.join("ok.rs"), "fn main() {}\n").unwrap();
+        fs::write(locked.join("secret.rs"), "fn hidden() {}\n").unwrap();
+        fs::set_permissions(&locked, fs::Permissions::from_mode(0o000)).unwrap();
+
+        let report = inventory_source(&root).unwrap();
+
+        assert_eq!(
+            report.dispositions.get("PARSED"),
+            Some(&1),
+            "the readable sibling file must still be inventoried: {:?}",
+            report.artifacts
+        );
+        let locked_artifact = report
+            .artifacts
+            .iter()
+            .find(|artifact| artifact.path == "src/locked")
+            .unwrap_or_else(|| {
+                panic!(
+                    "locked directory must still be accounted for, never silently dropped: {:?}",
+                    report.artifacts
+                )
+            });
+        assert_eq!(locked_artifact.disposition, ArtifactDisposition::Unknown);
+        assert!(report.is_closed());
+
+        fs::set_permissions(&locked, fs::Permissions::from_mode(0o755)).unwrap();
         fs::remove_dir_all(root).unwrap();
     }
 }

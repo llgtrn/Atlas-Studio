@@ -32,7 +32,19 @@ pub fn read_adl_sources(root: impl AsRef<Path>) -> io::Result<Vec<AdlSource>> {
 }
 
 fn visit_adl_sources(root: &Path, dir: &Path, out: &mut Vec<AdlSource>) -> io::Result<()> {
-    let mut entries: Vec<_> = fs::read_dir(dir)?.collect::<Result<_, _>>()?;
+    // Same discipline as `adapter::source::visit_inventory`'s own `read_dir` hardening: a
+    // subdirectory this process cannot list (permission denial being the common real case) must
+    // not abort reading every other `.adl` file in the declared tree. There is no per-entry
+    // accounting channel for a *directory* here (unlike `visit_inventory`'s `ArtifactRecord`
+    // ledger), so this is a best-effort skip rather than a recorded fact -- still a strict
+    // improvement over aborting the whole read, and consistent with never silently corrupting
+    // (or fabricating) the `.adl` sources that *were* successfully read.
+    let Ok(read_dir) = fs::read_dir(dir) else {
+        return Ok(());
+    };
+    let Ok(mut entries) = read_dir.collect::<Result<Vec<_>, _>>() else {
+        return Ok(());
+    };
     entries.sort_by_key(|entry| entry.file_name());
     for entry in entries {
         let path = entry.path();
@@ -407,7 +419,15 @@ fn visit_docs(
     missing_frontmatter: &mut Vec<String>,
     documents: &mut Vec<DocumentFact>,
 ) -> io::Result<()> {
-    let mut entries: Vec<_> = fs::read_dir(dir)?.collect::<Result<_, _>>()?;
+    // Same discipline as `visit_adl_sources`/`adapter::source::visit_inventory`: a subdirectory
+    // this process cannot list must not abort auditing every other doc in the tree. Best-effort
+    // skip (no per-directory accounting channel exists here), never a crash.
+    let Ok(read_dir) = fs::read_dir(dir) else {
+        return Ok(());
+    };
+    let Ok(mut entries) = read_dir.collect::<Result<Vec<_>, _>>() else {
+        return Ok(());
+    };
     entries.sort_by_key(|e| e.file_name());
     for entry in entries {
         let path = entry.path();
