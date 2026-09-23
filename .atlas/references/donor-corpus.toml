@@ -1028,7 +1028,7 @@ census_status = "DEEP_CENSUSED"
 decision_status = "STUDY_FOR_BINARY_FORMAT_LANE_CONDITIONAL_CACHE_DEPENDENCY"
 native_replacement = "architecture study only -- not adopted as a runtime dependency; see census disposition table"
 runtime_dependency_status = "STUDY_ONLY_FOR_PORTABLE_FORMAT / POSSIBLE_FUTURE_CARGO_DEPENDENCY_FOR_INTERNAL_CACHING_ONLY"
-evidence = [".atlas/provenance/donors/rkyv.json", ".atlas/census/donors/rkyv.md"]
+evidence = [".atlas/provenance/donors/rkyv.json", ".atlas/census/donors/rkyv.md", ".atlas/genome/technology/rkyv-relative-pointer-archiving.md"]
 
 [[donor]]
 id = "agentir"
