@@ -11,6 +11,19 @@ fn json<T: serde::Serialize>(value: &T) -> Result<String, String> {
     serde_json::to_string_pretty(value).map_err(|e| e.to_string())
 }
 
+/// Writes `text` to `out`, creating its parent directory first. Shared by every subcommand that
+/// takes `--out` so the path-context fix below applies uniformly instead of needing to be
+/// remembered at each of the four call sites separately -- the exact failure mode this closes
+/// (`io::Error::to_string()` naming no path) is the same class already fixed for `--root` in
+/// every subcommand's `runtime::*` call, just for the output path instead of the input one.
+fn write_report_to_out(out: &str, text: &str) -> Result<(), String> {
+    let out_path = PathBuf::from(out);
+    if let Some(parent) = out_path.parent() {
+        fs::create_dir_all(parent).map_err(|e| format!("{out}: {e}"))?;
+    }
+    fs::write(&out_path, text).map_err(|e| format!("{out}: {e}"))
+}
+
 fn run(args: &[String]) -> Result<(), String> {
     match args {
         [cmd, rest @ ..] if cmd == "contract" => {
@@ -49,11 +62,7 @@ fn run(args: &[String]) -> Result<(), String> {
             let report = runtime::check(&root).map_err(|e| format!("{root}: {e}"))?;
             let text = json(&report)? + "\n";
             if let Some(out) = value(rest, "--out") {
-                let out = PathBuf::from(out);
-                if let Some(parent) = out.parent() {
-                    fs::create_dir_all(parent).map_err(|e| e.to_string())?;
-                }
-                fs::write(&out, &text).map_err(|e| e.to_string())?;
+                write_report_to_out(&out, &text)?;
             }
             print!("{text}");
             if !report.diagnostics.is_empty()
@@ -70,11 +79,7 @@ fn run(args: &[String]) -> Result<(), String> {
             let report = runtime::graph(&root).map_err(|e| format!("{root}: {e}"))?;
             let text = json(&report)? + "\n";
             if let Some(out) = value(rest, "--out") {
-                let out = PathBuf::from(out);
-                if let Some(parent) = out.parent() {
-                    fs::create_dir_all(parent).map_err(|e| e.to_string())?;
-                }
-                fs::write(&out, &text).map_err(|e| e.to_string())?;
+                write_report_to_out(&out, &text)?;
             }
             print!("{text}");
         }
@@ -83,11 +88,7 @@ fn run(args: &[String]) -> Result<(), String> {
             let out = value(rest, "--out").ok_or("systemize requires --out")?;
             let report = runtime::systemize(&root).map_err(|e| format!("{root}: {e}"))?;
             let text = json(&report)? + "\n";
-            let out = PathBuf::from(out);
-            if let Some(parent) = out.parent() {
-                fs::create_dir_all(parent).map_err(|e| e.to_string())?;
-            }
-            fs::write(&out, &text).map_err(|e| e.to_string())?;
+            write_report_to_out(&out, &text)?;
             print!("{text}");
         }
         [cmd, sub, rest @ ..] if cmd == "work" && sub == "prepare" => {
@@ -98,11 +99,7 @@ fn run(args: &[String]) -> Result<(), String> {
                 .map_err(|e| format!("{root}: {e}"))?;
             let text = json(&report)? + "\n";
             if let Some(out) = value(rest, "--out") {
-                let out = PathBuf::from(out);
-                if let Some(parent) = out.parent() {
-                    fs::create_dir_all(parent).map_err(|e| e.to_string())?;
-                }
-                fs::write(&out, &text).map_err(|e| e.to_string())?;
+                write_report_to_out(&out, &text)?;
             }
             print!("{text}");
             if !report.allowed {
@@ -159,5 +156,42 @@ mod tests {
             err.contains(root),
             "error message must name the offending root path, got: {err}"
         );
+    }
+
+    // Falsification: the same defect class as the `--root` fix above, in the output path instead
+    // of the input one. `write_report_to_out`'s two `fs::create_dir_all`/`fs::write` calls used
+    // `.map_err(|e| e.to_string())` (no path context) until this fix -- confirmed against the
+    // unfixed code with a real repository root (this repo itself, via `check`, the cheapest
+    // subcommand to run) and an `--out` path whose parent component is a real, existing FILE
+    // (`fs::create_dir_all` cannot create a directory through a file: `ENOTDIR`), producing "Not a
+    // directory (os error 20)" with no indication of which path was the problem.
+    #[test]
+    fn an_unwritable_out_path_error_names_the_offending_path() {
+        let nonce = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_nanos();
+        let blocking_file = std::env::temp_dir().join(format!("atlas-cli-tests-blocker-{nonce}"));
+        std::fs::write(&blocking_file, b"not a directory").unwrap();
+        let out = blocking_file
+            .join("nested")
+            .join("out.json")
+            .to_string_lossy()
+            .into_owned();
+
+        let err = run(&[
+            "check".to_owned(),
+            "--root".to_owned(),
+            ".".to_owned(),
+            "--out".to_owned(),
+            out.clone(),
+        ])
+        .expect_err("an --out path blocked by an existing file must not succeed");
+        assert!(
+            err.contains(&out),
+            "error message must name the offending --out path, got: {err}"
+        );
+
+        std::fs::remove_file(&blocking_file).unwrap();
     }
 }

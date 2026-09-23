@@ -1,0 +1,45 @@
+{
+  "schema": "atlas.self-build.generation-evidence.v1",
+  "wave": "CORRECTNESS -- the --root path-context fix (5c5a2340) never reached the --out path in the same four subcommand handlers",
+  "wave_title": "Commit `5c5a23404f` fixed every subcommand's `runtime::*(&root, ...)` call to attach `{root}: {e}` context to its `io::Error`, closing the class for the INPUT path. The four subcommands that also accept `--out` (`check`, `graph`, `systemize`, `work prepare`) each write the report via `fs::create_dir_all(parent).map_err(|e| e.to_string())?` / `fs::write(&out, &text).map_err(|e| e.to_string())?` -- the exact bare-`to_string()` pattern that fix eliminated for `--root`, left untouched for the OUTPUT path. A mistyped or blocked `--out` (e.g. a parent path component that is a real file, not a directory) produced a message with zero indication of which path was the problem -- \"Not a directory (os error 20)\" alone -- even though the report itself had already been computed successfully.",
+  "generation_model": {
+    "G_n": "0af477782d (fix(adapter): an unreadable .adl/.md/repo.toml file no longer aborts) -- stable generation this candidate was built and validated against",
+    "gap_discovered_by": "Direct grep of `apps/cli/src/main.rs` for every remaining `.map_err(|e| e.to_string())` call after the `--root` fix (`5c5a23404f`) had already replaced the ones taking `runtime::*` results with `{root}: {e}` -- found four identical, untouched instances guarding `fs::create_dir_all`/`fs::write` for `--out`. Falsified directly: ran the real rebuilt binary with a genuine `--out` path whose parent component collides with a real, pre-existing file (`fs::create_dir_all` cannot create a directory through a file -- a real, plausible operator mistake, e.g. reusing a report's own former single-file output path as a new nested output directory), reproducing \"atlas-systemizer: Not a directory (os error 20)\" with no path named, before writing any fix."
+  },
+  "priority_classification": "correctness / diagnostics quality (priority 1) -- the direct output-side sibling of the `--root` fix from several generations ago, the same defect class the CLI's own doc comment (`write_report_to_out`'s new doc comment) now explicitly ties back to.",
+  "design_decisions": [
+    {
+      "question": "Fix each of the four near-identical `fs::create_dir_all`/`fs::write` blocks in place, or factor them into one shared helper?",
+      "decision": "Factor into one shared `write_report_to_out(out: &str, text: &str) -> Result<(), String>`, used by all four subcommand handlers. The four blocks were already byte-for-byte identical (a `create_dir_all` on the parent, then a `write`) before this fix -- fixing each in place would have left four copies of the same fix to keep in sync, precisely the kind of duplication this session's own 'avoid duplicate semantic concepts' discipline flags. A future fifth `--out`-taking subcommand now gets the fix automatically rather than needing it re-applied by hand."
+    }
+  ],
+  "stable_validator_law_compliance": {
+    "claim": "Every subcommand that accepts `--out` (`check`, `graph`, `systemize`, `work prepare`) now names the offending `--out` path in its error message when the parent directory cannot be created or the file cannot be written, matching the `--root` path-naming fix from several generations ago.",
+    "self_written_evidence": "New falsification-first regression test `an_unwritable_out_path_error_names_the_offending_path` in `apps/cli/src/main.rs`, using a real file that blocks directory creation at the `--out` path's parent -- confirmed to fail against the unfixed code (bare 'Not a directory (os error 20)', no path) before the fix was written.",
+    "independent_evidence_channel": "Real, rebuilt `atlas-systemizer` binary invoked with a genuine blocked `--out` path: message is now `\"atlas-systemizer: /tmp/.../nested/out.json: Not a directory (os error 20)\"`. Full workspace re-run (`cargo fmt --all --check`, `cargo clippy --workspace --all-targets -- -D warnings`, `cargo test --workspace`) and a fresh `systemize` run against the real Atlas-Studio repository itself confirm zero regression to any existing gate, blocker, or test.",
+    "no_circular_self_certification": true
+  },
+  "implementation": {
+    "apps/cli/src/main.rs": "New `write_report_to_out` helper, replacing four near-identical inline `fs::create_dir_all`/`fs::write` blocks (in `check`/`graph`/`systemize`/`work prepare`) with a single call each; both internal `io::Error`s now formatted as `{out}: {e}`. New falsification-first regression test."
+  },
+  "adversarial_and_falsification_coverage": [
+    "an_unwritable_out_path_error_names_the_offending_path -- falsification-first: confirmed to fail against the unfixed code with the exact claimed missing-context defect before the fix was written",
+    "real CLI verification (rebuilt binary) with a genuine blocked --out path: message now names the path",
+    "full workspace re-run and a fresh systemize run against the real repository, confirming zero regression (coding_admission.allowed: true, zero blockers unchanged; 470 tests passing, up from 469)"
+  ],
+  "validation_this_generation": {
+    "commands": {
+      "cargo fmt --all --check": { "exit_code": 0 },
+      "cargo clippy --workspace --all-targets -- -D warnings": { "exit_code": 0, "warnings": 0 },
+      "cargo test --workspace": { "exit_code": 0, "totals": "251 adapter, 2 atlas-cli (+1), 156 core, 61 runtime -- 470 total, 0 failed, up from 469" },
+      "cargo run -q -p atlas-cli -- systemize --root .": { "finding": "coding_admission.allowed: true, zero blockers -- unchanged" }
+    }
+  },
+  "recensus_scope_after_promotion": [
+    "no prior CLOSED/EXTINCT conclusion depended on this message-quality gap, so no external conclusion requires reopening",
+    "this generation completes the `--root`/`--out` symmetry the CLI's own error-context discipline should always have had -- both the input path and the output path a user supplies are now named identically on failure",
+    "discovered by directly grepping for the exact `.map_err(|e| e.to_string())` pattern the earlier --root fix had already eliminated at other call sites -- a reusable technique: whenever a defect class is fixed at some call sites, grep the whole codebase for the literal pattern that was just removed to confirm no sibling instance was missed"
+  ],
+  "overall_verdict": "MATERIALIZED AND VERIFIED. The --root path-context fix from several generations ago never reached the --out path in the same four subcommand handlers -- a blocked or mistyped --out path produced a bare, path-less OS error even though the report itself had already been computed successfully. Fixed by factoring the four near-identical write blocks into one shared write_report_to_out helper with consistent path-naming, verified with a falsification-first regression test and a real rebuilt-binary run, with zero regression to the real repository's own state or any existing test.",
+  "historical_evidence_retained": true
+}
