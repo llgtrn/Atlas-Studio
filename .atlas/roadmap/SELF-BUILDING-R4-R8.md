@@ -564,6 +564,21 @@ Claude-oriented cloud AgentHost
 
 Names above are deployment examples, never required dependencies.
 
+
+## AI1 — Architectural Integrity / Collapse Prevention (cross-cutting R4→R8)
+
+AI1 is governed by ../contracts/ARCHITECTURAL-INTEGRITY.md. It is distinct from VP1: VP1 asks whether obligations/metrics are verified; AI1 asks whether the exact candidate still obeys the selected load-bearing system architecture.
+
+The implementation sequence is intentionally distributed across the existing R-waves rather than inventing a new maturity number:
+
+- **R4 observation substrate** — typed call/control/data/state/effect/ownership/concurrency/persistence semantics must be rich enough to observe architecture-relevant topology instead of guessing from folders or prose.
+- **R5 impact closure** — dependency-aware incremental invalidation must compute which architecture invariants can be affected by a semantic delta and prove when cached unaffected results are reusable.
+- **R6 reconciliation** — multi-observer evidence must reconcile architecture-relevant facts, preserve CONFLICT/UNKNOWN, and produce the observed-architecture root needed by an ArchitecturalIntegrityReport.
+- **R7 admission** — CandidateChangeSet/ACP transactions must be checked on isolated post-change candidate state against a pinned ArchitecturalIntegrityEnvelope. HARD violation rejects admission; intentional architecture change requires a SELECTED BlueprintRevisionDecision.
+- **R8 durable seal/materialization** — logical Atlas binds the exact envelope/report/equivalence evidence roots; AtlasX materialization revalidates invariants affected by selected bindings, profiles, partial closure or deterministic expansion.
+
+AI1 starts as CONTRACT now. No wave may claim the production capability merely because these docs/schemas exist.
+
 ## R7 — research, typed decision, synthesis, self-build control and admission
 
 R7 connects observed donor reality to research and Human+AI design decisions without allowing research/model claims to impersonate observation. R7 is also the first maturity level at which Atlas may run a complete bounded self-coding loop.
@@ -603,7 +618,8 @@ Normative contracts:
 - ../contracts/SELECTED-DESIGN.md;
 - ../contracts/SELF-BUILD-CONTROLLER.md;
 - ../contracts/ADMISSION-TRANSACTION.md;
-- ../contracts/VERIFICATION-METRICS-PERFORMANCE.md.
+- ../contracts/VERIFICATION-METRICS-PERFORMANCE.md;
+- ../contracts/ARCHITECTURAL-INTEGRITY.md.
 
 Primary donor lane: W5 — openrewrite, c2rust, crubit, py2many — plus explicitly admitted research/decision/synthesis/verification provider adapters.
 
@@ -639,9 +655,10 @@ Required capabilities:
 - selected implementation semantics and provider/candidate lineage complete before seal;
 - final exact-candidate seal-eligibility gate after candidate implementation census/verification;
 - logical Atlas seal that binds SelectedDesign + required obligation/evidence commitments;
+- logical Atlas seal binds the active ArchitecturalIntegrityEnvelope and exact eligible integrity/equivalence evidence roots;
 - canonical `*.atlas` publication only after seal;
 - deterministic provider-independent mechanical compaction after seal;
-- deterministic Atlas→AtlasX materialization under `../contracts/ATLAS-TO-ATLASX.md`;
+- deterministic Atlas→AtlasX materialization under `../contracts/ATLAS-TO-ATLASX.md`, including materialization-critical architectural revalidation;
 - canonical AtlasX object/manifest validation under `../contracts/ATLASX-FORMAT.md`;
 - canonical AtlasX v1 bytes/root hashing under `../contracts/ATLASX-BINARY-WIRE-FORMAT.md`;
 - parent/lineage retention;
@@ -1143,6 +1160,7 @@ R8 is not the end of census. It is the point where census-derived knowledge has 
 - **ASIR in-memory construction state** — a mutable, pre-seal typed graph distinct from today's per-dimension `SemanticObservation` records (which represent *extracted*, not *constructed*, semantics); does not exist yet.
 - **dialect registry** — a real, queryable registry of the `atlas.*` namespaces `ASIR-CONSTRUCTION-MODEL.md` reserves, with the dialect-qualified-name-to-HIR-node-kind mapping table encoded as data, not only prose.
 - **construction-operation verifier** — schema/type/semantic/security/obligation validation stages per `ASIR-CONSTRUCTION-MODEL.md`'s admission pipeline.
+- **architectural-integrity verifier** — isolated post-transaction observed-architecture derivation, impact closure, HARD-invariant falsification, load-bearing equivalence and `ArchitecturalIntegrityReport` production under `ARCHITECTURAL-INTEGRITY.md`; not implemented yet.
 - **typed effect/capability binding at construction time** — today's R4.8 EFFECT/STATE dimensions are extracted from existing source; construction-time proposals need the same typed effect/capability discipline enforced *before* admission, not only observed after the fact.
 - **obligation attachment at construction time** — extending `SemanticObligationRecord` lineage to construction-proposed operations, not only extraction obligations.
 - **evidence/provenance attachment at construction time** — wiring `ProviderReceipt`/evidence lineage through `AtlasConstructionOperation.evidence_refs`/`provider_receipt_ref` end to end.
