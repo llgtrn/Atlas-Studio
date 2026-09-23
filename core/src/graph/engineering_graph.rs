@@ -1423,7 +1423,7 @@ mod tests {
         use crate::identity::RepositoryId;
         use crate::provenance::provenance;
         use crate::semantic::{
-            CallDispatchKind, CallSiteIdentity, ExtractorIdentity, SemanticDimension,
+            CallDispatchKind, CallSiteIdentity, ExtractorIdentity, PlaceRef, SemanticDimension,
             SemanticRecordHeader, SemanticRecordId, SemanticScope,
         };
         use crate::temporal::RevisionRef;
@@ -1445,6 +1445,7 @@ mod tests {
             dispatch: CallDispatchKind::Unresolved,
             callees: Vec::new(),
             arguments: Vec::new(),
+            result: PlaceRef::Unresolved,
         };
         let record_id = SemanticRecordId::new(SemanticDimension::Call, &subject.identity_key());
         SemanticObservation::Call(SemanticRecordHeader {

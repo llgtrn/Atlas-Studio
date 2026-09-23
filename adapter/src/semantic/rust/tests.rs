@@ -299,6 +299,31 @@ impl Widget {
         self.value + extra
     }
 }
+
+pub fn caller_with_let_result(x: u64) -> u64 {
+    let y = helper(x);
+    y
+}
+
+pub fn caller_with_assign_result(x: u64) -> u64 {
+    let mut y = 0;
+    y = helper(x);
+    y
+}
+
+pub fn caller_with_call_inside_a_larger_expression(x: u64) -> u64 {
+    let y = helper(x) + 1;
+    y
+}
+
+pub fn two_args_tuple(a: u64, b: u64) -> (u64, u64) {
+    (a, b)
+}
+
+pub fn caller_with_destructured_result(x: u64) -> (u64, u64) {
+    let (a, b) = two_args_tuple(x, x);
+    (a, b)
+}
 "#;
 
 /// R4.6 CONTROL_FLOW corpus: straight-line, `if`/`if-else`/else-if chain, `while` (may-not-enter),
@@ -2176,6 +2201,128 @@ fn call_arguments_never_affect_the_call_sites_own_identity() {
         ..call.clone()
     };
     assert_eq!(call.identity_key(), without_arguments.identity_key());
+}
+
+// --- 40. R4.12: a call that IS the direct initializer of a simple `let` binding gets a `result`
+//     PlaceRef converging on the EXACT SAME record_id DATA_FLOW's own Definition carries ---------
+
+#[test]
+fn call_result_place_ref_converges_on_the_data_flows_own_definition_record_id() {
+    let batch = extract_all("src/lib.rs", CALL_CORPUS);
+    let caller = find_function_identity(&batch, &[], "caller_with_let_result")
+        .expect("caller_with_let_result");
+    let calls = calls_by_caller(&batch, caller);
+    assert_eq!(calls.len(), 1);
+
+    let PlaceRef::Resolved {
+        dimension,
+        record_id,
+    } = &calls[0].result
+    else {
+        panic!("a direct `let y = helper(x);` initializer must resolve its call's result");
+    };
+    assert_eq!(*dimension, SemanticDimension::DataFlow);
+
+    let values = data_flow_values_for(&batch, caller);
+    let y_definition = values
+        .iter()
+        .find(|v| v.role == ValueRole::Definition && v.name == "y")
+        .expect("DATA_FLOW's own Definition for `y`");
+    let expected = SemanticRecordId::new(SemanticDimension::DataFlow, &y_definition.identity_key());
+
+    assert_eq!(
+        record_id, &expected,
+        "the CALL result's PlaceRef must name the EXACT SAME node DATA_FLOW's own pass produced"
+    );
+}
+
+// --- 41. a call that IS the direct right-hand side of a plain assignment gets a `result` PlaceRef
+//     converging on DATA_FLOW's own Store record_id --------------------------------------------
+
+#[test]
+fn call_result_place_ref_converges_on_the_data_flows_own_store_record_id_for_assignment() {
+    let batch = extract_all("src/lib.rs", CALL_CORPUS);
+    let caller = find_function_identity(&batch, &[], "caller_with_assign_result")
+        .expect("caller_with_assign_result");
+    let calls = calls_by_caller(&batch, caller);
+    assert_eq!(calls.len(), 1);
+
+    let PlaceRef::Resolved {
+        dimension,
+        record_id,
+    } = &calls[0].result
+    else {
+        panic!("a direct `y = helper(x);` assignment must resolve its call's result");
+    };
+    assert_eq!(*dimension, SemanticDimension::DataFlow);
+
+    let values = data_flow_values_for(&batch, caller);
+    let y_store = values
+        .iter()
+        .find(|v| v.role == ValueRole::Store && v.name == "y")
+        .expect("DATA_FLOW's own Store for `y`");
+    let expected = SemanticRecordId::new(SemanticDimension::DataFlow, &y_store.identity_key());
+
+    assert_eq!(record_id, &expected);
+}
+
+// --- 42. a call buried inside a larger expression has no single value it "becomes" -- result
+//     stays Unresolved even though the OUTER let binding itself is a simple identifier ----------
+
+#[test]
+fn call_result_stays_unresolved_when_the_call_is_not_the_entire_initializer() {
+    let batch = extract_all("src/lib.rs", CALL_CORPUS);
+    let caller = find_function_identity(&batch, &[], "caller_with_call_inside_a_larger_expression")
+        .expect("caller_with_call_inside_a_larger_expression");
+    let calls = calls_by_caller(&batch, caller);
+    assert_eq!(calls.len(), 1);
+    assert_eq!(calls[0].result, PlaceRef::Unresolved);
+}
+
+// --- 43. a destructuring `let` pattern has no single identifier a call's result could
+//     unambiguously become -- result stays Unresolved even though DATA_FLOW itself now binds
+//     every sub-identifier (R4.12's destructuring fix) --------------------------------------------
+
+#[test]
+fn call_result_stays_unresolved_for_a_destructured_let_pattern() {
+    let batch = extract_all("src/lib.rs", CALL_CORPUS);
+    let caller = find_function_identity(&batch, &[], "caller_with_destructured_result")
+        .expect("caller_with_destructured_result");
+    let calls = calls_by_caller(&batch, caller);
+    assert_eq!(calls.len(), 1);
+    assert_eq!(calls[0].result, PlaceRef::Unresolved);
+}
+
+// --- 44. when DATA_FLOW is not part of the same requested-dimension set, CALL never fabricates a
+//     Resolved result reference either (mirrors test 38 for arguments) ---------------------------
+
+#[test]
+fn call_result_place_ref_stays_unresolved_when_data_flow_was_not_requested() {
+    let batch = extract(
+        "src/lib.rs",
+        CALL_CORPUS,
+        vec![SemanticDimension::Call, SemanticDimension::FunctionIdentity],
+    );
+    let caller = find_function_identity(&batch, &[], "caller_with_let_result")
+        .expect("caller_with_let_result");
+    let calls = calls_by_caller(&batch, caller);
+    assert_eq!(calls[0].result, PlaceRef::Unresolved);
+}
+
+// --- 45. result is content, not identity ----------------------------------------------------------
+
+#[test]
+fn call_result_never_affects_the_call_sites_own_identity() {
+    let batch = extract_all("src/lib.rs", CALL_CORPUS);
+    let caller = find_function_identity(&batch, &[], "caller_with_let_result")
+        .expect("caller_with_let_result");
+    let calls = calls_by_caller(&batch, caller);
+    let call = calls[0];
+    let without_result = CallSiteIdentity {
+        result: PlaceRef::Unresolved,
+        ..call.clone()
+    };
+    assert_eq!(call.identity_key(), without_result.identity_key());
 }
 
 // =================================================================================================

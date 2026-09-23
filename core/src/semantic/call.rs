@@ -41,7 +41,7 @@ impl CallDispatchKind {
 
 /// Identity of one call site, owned by exactly one function.
 ///
-/// `dispatch`/`callees`/`arguments` are deliberately NOT part of `identity_key()`: they are
+/// `dispatch`/`callees`/`arguments`/`result` are deliberately NOT part of `identity_key()`: they are
 /// RESOLUTION FACTS about an already-uniquely-identified call site (identified by which function
 /// makes it and at which source span), not part of the site's identity. Keeping them out of the
 /// identity means `record_id` stays stable if a later wave resolves a call this extractor could
@@ -69,6 +69,16 @@ pub struct CallSiteIdentity {
     /// independently invented one (see the extractor's `build_calls` doc comment for the
     /// convergence proof and the requested-dimension gating this relies on).
     pub arguments: Vec<PlaceRef>,
+    /// R4.12: a `PlaceRef` to the DATA_FLOW `Definition`/`Store` this call's return value directly
+    /// becomes, when the extractor can prove it -- `PlaceRef::Resolved { dimension: DataFlow,
+    /// record_id }` when this call expression is EXACTLY the direct initializer of a simple
+    /// (non-destructured) `let` binding or the direct right-hand side of a simple assignment
+    /// (`let y = helper(x);`, `y = helper(x);`), `PlaceRef::Unresolved` otherwise -- including when
+    /// the call's value is merely a SUBEXPRESSION of a larger one (`let y = helper(x) + 1;` has no
+    /// single value this call's result "becomes"). Computed the same way `arguments` is: reusing
+    /// `ValueIdentity::identity_key()` itself against the binding's own identifier/span, never a
+    /// hand-duplicated formula.
+    pub result: PlaceRef,
 }
 
 impl CallSiteIdentity {
@@ -108,6 +118,7 @@ mod tests {
             dispatch: CallDispatchKind::Unresolved,
             callees: Vec::new(),
             arguments: Vec::new(),
+            result: PlaceRef::Unresolved,
         }
     }
 
@@ -161,6 +172,18 @@ mod tests {
             ..base()
         };
         assert_eq!(base().identity_key(), with_arguments.identity_key());
+    }
+
+    #[test]
+    fn identity_key_is_unaffected_by_result() {
+        let with_result = CallSiteIdentity {
+            result: PlaceRef::Resolved {
+                dimension: SemanticDimension::DataFlow,
+                record_id: SemanticRecordId::new(SemanticDimension::DataFlow, "definition-key"),
+            },
+            ..base()
+        };
+        assert_eq!(base().identity_key(), with_result.identity_key());
     }
 
     #[test]

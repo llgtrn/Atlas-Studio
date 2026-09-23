@@ -384,6 +384,7 @@ mod tests {
             dispatch,
             callees,
             arguments: Vec::new(),
+            result: atlas_core::PlaceRef::Unresolved,
         };
         let record_id = SemanticRecordId::new(SemanticDimension::Call, &subject.identity_key());
         SemanticObservation::Call(SemanticRecordHeader {

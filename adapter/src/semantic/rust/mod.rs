@@ -523,35 +523,32 @@ impl<'a> ExtractionContext<'a> {
         self.observations.push(observation);
     }
 
-    /// The `PlaceRef` a CALL argument expression should carry: `Resolved` at the SAME DATA_FLOW
-    /// `Use` record_id `dataflow.rs`'s own walker would independently compute for this exact
-    /// (function, span) if it recognizes `arg` as a simple single-identifier expression, else
-    /// `Unresolved`.
-    ///
-    /// This reuses `ValueIdentity::identity_key()` itself (never a hand-duplicated copy of its
-    /// format string) so the two walkers cannot silently drift apart, and reuses
-    /// `spelling::simple_path_ident` (the same recognizer `dataflow.rs`'s own `Expr::Path` arm
-    /// calls) so "is this argument a recognized DATA_FLOW site" is answered identically by both.
-    /// Gated on `self.wants(SemanticDimension::DataFlow)`: a `Resolved` reference is only ever
-    /// constructed when DATA_FLOW is actually part of this same extraction request, so it never
-    /// names a record that (per this exact request) will not exist in this batch.
-    /// `resolution`/`resolved_definition`/`is_return_flow` are set to placeholder values below
-    /// because -- like `is_parameter` -- none of them affect `identity_key()`; only `function`,
-    /// `name`, `span` and `role` do.
-    fn place_ref_for_argument(&self, arg: &syn::Expr, caller: &SemanticRecordId) -> PlaceRef {
+    /// A `PlaceRef` at the SAME DATA_FLOW record_id `dataflow.rs`'s own walker would independently
+    /// compute for a value of role `role` named `name` at `span` inside `caller` -- reusing
+    /// `ValueIdentity::identity_key()` itself (never a hand-duplicated copy of its format string)
+    /// so the two walkers cannot silently drift apart. Gated on
+    /// `self.wants(SemanticDimension::DataFlow)`: a `Resolved` reference is only ever constructed
+    /// when DATA_FLOW is actually part of this same extraction request, so it never names a record
+    /// that (per this exact request) will not exist in this batch. `resolution`/
+    /// `resolved_definition`/`is_return_flow`/`is_parameter` are placeholder values below because
+    /// none of them affect `identity_key()`; only `function`, `name`, `span` and `role` do.
+    fn place_ref_for_value(
+        &self,
+        name: &str,
+        span: atlas_core::SourceSpan,
+        caller: &SemanticRecordId,
+        role: ValueRole,
+    ) -> PlaceRef {
         if !self.wants(SemanticDimension::DataFlow) {
             return PlaceRef::Unresolved;
         }
-        let Some(ident) = spelling::simple_path_ident(arg) else {
-            return PlaceRef::Unresolved;
-        };
         let subject = ValueIdentity {
             repository: self.input.repository.clone(),
             revision: self.input.revision.clone(),
             function: caller.clone(),
-            name: ident.to_string(),
-            span: self.span_of(arg),
-            role: ValueRole::Use,
+            name: name.to_owned(),
+            span,
+            role,
             is_parameter: false,
             is_return_flow: false,
             resolution: DataFlowResolution::Unresolved,
@@ -561,6 +558,121 @@ impl<'a> ExtractionContext<'a> {
             dimension: SemanticDimension::DataFlow,
             record_id: SemanticRecordId::new(SemanticDimension::DataFlow, &subject.identity_key()),
         }
+    }
+
+    /// The `PlaceRef` a CALL argument expression should carry: `Resolved` when `arg` is a simple
+    /// single-identifier expression (the same shape `dataflow.rs`'s own `Expr::Path` arm
+    /// recognizes, via the shared `spelling::simple_path_ident`), else `Unresolved`.
+    fn place_ref_for_argument(&self, arg: &syn::Expr, caller: &SemanticRecordId) -> PlaceRef {
+        let Some(ident) = spelling::simple_path_ident(arg) else {
+            return PlaceRef::Unresolved;
+        };
+        self.place_ref_for_value(
+            &ident.to_string(),
+            self.span_of(arg),
+            caller,
+            ValueRole::Use,
+        )
+    }
+
+    /// Emits and walks a `Call`/`MethodCall` expression (`call_like` MUST be one of those two
+    /// variants), carrying `result` as this call's own `CallSiteIdentity.result`. Shared by
+    /// `walk_expr` (which always passes `PlaceRef::Unresolved` -- an arbitrary call expression
+    /// buried in a larger one has no single well-defined "result" binding) and
+    /// `walk_value_position_expr` (which computes a real `result` for the narrow case where this
+    /// call IS the entire value a `let`/assignment target receives).
+    fn walk_call_like(
+        &mut self,
+        call_like: &syn::Expr,
+        scope: &SemanticScope,
+        caller: &SemanticRecordId,
+        result: PlaceRef,
+    ) {
+        match call_like {
+            syn::Expr::Call(call) => {
+                let span = self.span_of(call);
+                let summary = spelling::call_callee_spelling(&call.func);
+                let arguments = call
+                    .args
+                    .iter()
+                    .map(|arg| self.place_ref_for_argument(arg, caller))
+                    .collect();
+                self.emit_call(scope, caller.clone(), span, &summary, arguments, result);
+                self.walk_expr(&call.func, scope, caller);
+                for arg in &call.args {
+                    self.walk_expr(arg, scope, caller);
+                }
+            }
+            syn::Expr::MethodCall(method_call) => {
+                let span = self.span_of(method_call);
+                let summary = format!(".{}", method_call.method);
+                let arguments = method_call
+                    .args
+                    .iter()
+                    .map(|arg| self.place_ref_for_argument(arg, caller))
+                    .collect();
+                self.emit_call(scope, caller.clone(), span, &summary, arguments, result);
+                self.walk_expr(&method_call.receiver, scope, caller);
+                for arg in &method_call.args {
+                    self.walk_expr(arg, scope, caller);
+                }
+            }
+            other => unreachable!(
+                "walk_call_like called with a non-call expression: {:?}",
+                std::mem::discriminant(other)
+            ),
+        }
+    }
+
+    /// Walks `expr` in a position where its resulting value directly becomes `result` (a `let`
+    /// binding's Definition, or a plain assignment's Store) IF `expr` is exactly a `Call`/
+    /// `MethodCall` expression -- e.g. the direct initializer of `let y = helper(x);`, not a nested
+    /// subexpression like `helper(x) + 1` (which has no single value this call's result "becomes").
+    /// Delegates to the ordinary `walk_expr` (implying `PlaceRef::Unresolved`) for every other case.
+    fn walk_value_position_expr(
+        &mut self,
+        expr: &syn::Expr,
+        scope: &SemanticScope,
+        caller: &SemanticRecordId,
+        result: PlaceRef,
+    ) {
+        match expr {
+            syn::Expr::Call(_) | syn::Expr::MethodCall(_) => {
+                self.walk_call_like(expr, scope, caller, result);
+            }
+            other => self.walk_expr(other, scope, caller),
+        }
+    }
+
+    /// The `PlaceRef` a `let <simple ident> = <init>;` binding's result-position should carry, if
+    /// `pat` reduces to a single simple identifier (`spelling::simple_binding_ident` -- the SAME
+    /// recognizer that decided `dataflow.rs`'s own `Definition` used to bind for this exact
+    /// pattern, before R4.12's destructuring fix generalized `walk_binding_pat`; a destructuring
+    /// pattern has no single identifier a call's result could unambiguously "become", so it stays
+    /// `Unresolved` here even though DATA_FLOW itself now binds every sub-identifier).
+    fn place_ref_for_let_result(&self, pat: &syn::Pat, caller: &SemanticRecordId) -> PlaceRef {
+        let Some(ident) = spelling::simple_binding_ident(pat) else {
+            return PlaceRef::Unresolved;
+        };
+        self.place_ref_for_value(
+            &ident.to_string(),
+            self.span_of(ident),
+            caller,
+            ValueRole::Definition,
+        )
+    }
+
+    /// The `PlaceRef` a plain `<simple path> = <init>;` assignment's result-position should carry.
+    fn place_ref_for_assign_result(&self, lhs: &syn::Expr, caller: &SemanticRecordId) -> PlaceRef {
+        let Some(ident) = spelling::simple_path_ident(lhs) else {
+            return PlaceRef::Unresolved;
+        };
+        self.place_ref_for_value(
+            &ident.to_string(),
+            self.span_of(lhs),
+            caller,
+            ValueRole::Store,
+        )
     }
 
     /// Emits one CALL observation for a call site syntactically inside `caller`'s body.
@@ -574,6 +686,7 @@ impl<'a> ExtractionContext<'a> {
         span: atlas_core::SourceSpan,
         callee_summary: &str,
         arguments: Vec<PlaceRef>,
+        result: PlaceRef,
     ) {
         let dimension = SemanticDimension::Call;
         if !self.wants(dimension) {
@@ -587,6 +700,7 @@ impl<'a> ExtractionContext<'a> {
             dispatch: CallDispatchKind::Unresolved,
             callees: Vec::new(),
             arguments,
+            result,
         };
         let record_id = SemanticRecordId::new(dimension, &subject.identity_key());
         let evidence_id = EvidenceId::new(stable_id(
@@ -634,7 +748,8 @@ impl<'a> ExtractionContext<'a> {
         match stmt {
             syn::Stmt::Local(local) => {
                 if let Some(init) = &local.init {
-                    self.walk_expr(&init.expr, scope, caller);
+                    let result = self.place_ref_for_let_result(&local.pat, caller);
+                    self.walk_value_position_expr(&init.expr, scope, caller, result);
                     if let Some((_, diverge)) = &init.diverge {
                         self.walk_expr(diverge, scope, caller);
                     }
@@ -648,33 +763,8 @@ impl<'a> ExtractionContext<'a> {
 
     fn walk_expr(&mut self, expr: &syn::Expr, scope: &SemanticScope, caller: &SemanticRecordId) {
         match expr {
-            syn::Expr::Call(call) => {
-                let span = self.span_of(call);
-                let summary = spelling::call_callee_spelling(&call.func);
-                let arguments = call
-                    .args
-                    .iter()
-                    .map(|arg| self.place_ref_for_argument(arg, caller))
-                    .collect();
-                self.emit_call(scope, caller.clone(), span, &summary, arguments);
-                self.walk_expr(&call.func, scope, caller);
-                for arg in &call.args {
-                    self.walk_expr(arg, scope, caller);
-                }
-            }
-            syn::Expr::MethodCall(method_call) => {
-                let span = self.span_of(method_call);
-                let summary = format!(".{}", method_call.method);
-                let arguments = method_call
-                    .args
-                    .iter()
-                    .map(|arg| self.place_ref_for_argument(arg, caller))
-                    .collect();
-                self.emit_call(scope, caller.clone(), span, &summary, arguments);
-                self.walk_expr(&method_call.receiver, scope, caller);
-                for arg in &method_call.args {
-                    self.walk_expr(arg, scope, caller);
-                }
+            syn::Expr::Call(_) | syn::Expr::MethodCall(_) => {
+                self.walk_call_like(expr, scope, caller, PlaceRef::Unresolved);
             }
             syn::Expr::Binary(binary) => {
                 self.walk_expr(&binary.left, scope, caller);
@@ -729,7 +819,8 @@ impl<'a> ExtractionContext<'a> {
             }
             syn::Expr::Assign(assign) => {
                 self.walk_expr(&assign.left, scope, caller);
-                self.walk_expr(&assign.right, scope, caller);
+                let result = self.place_ref_for_assign_result(&assign.left, caller);
+                self.walk_value_position_expr(&assign.right, scope, caller, result);
             }
             syn::Expr::Try(try_expr) => self.walk_expr(&try_expr.expr, scope, caller),
             syn::Expr::Await(await_expr) => self.walk_expr(&await_expr.base, scope, caller),

@@ -207,6 +207,20 @@ pub fn pattern_spelling(pat: &syn::Pat) -> String {
     }
 }
 
+/// The identifier a `let`/parameter pattern binds, if it is (or wraps, via type ascription) a
+/// plain `syn::Pat::Ident` -- i.e. a SINGLE simple binding, not a tuple/struct/slice/... pattern
+/// that would bind more than one name (or none). Used where a caller needs to know "does this
+/// whole pattern reduce to exactly one identifier", distinct from `dataflow.rs`'s
+/// `walk_binding_pat`, which instead finds EVERY identifier a pattern binds (including inside a
+/// destructuring one).
+pub fn simple_binding_ident(pat: &syn::Pat) -> Option<&syn::Ident> {
+    match pat {
+        syn::Pat::Ident(pat_ident) => Some(&pat_ident.ident),
+        syn::Pat::Type(pat_type) => simple_binding_ident(&pat_type.pat),
+        _ => None,
+    }
+}
+
 /// The identifier `expr` names, if it is a bare, single-segment, unqualified path expression
 /// (`x`, not `x.field`, `Type::x`, `::x`, `(expr)`, or anything else). This is the exact structural
 /// shape `dataflow.rs`'s `Expr::Path` arm recognizes as a DATA_FLOW `Use`/`Store` site -- shared

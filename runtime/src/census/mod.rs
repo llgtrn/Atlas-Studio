@@ -868,7 +868,7 @@ mod tests {
         evidence_summary: &str,
     ) -> ExtractionBatch {
         use atlas_core::{
-            CallDispatchKind, CallSiteIdentity, Evidence, EvidenceId, RepositoryId,
+            CallDispatchKind, CallSiteIdentity, Evidence, EvidenceId, PlaceRef, RepositoryId,
             SemanticRecordHeader, SemanticRecordId, provenance,
         };
 
@@ -895,6 +895,7 @@ mod tests {
             dispatch: CallDispatchKind::Unresolved,
             callees: Vec::new(),
             arguments: Vec::new(),
+            result: PlaceRef::Unresolved,
         };
         let record_id = SemanticRecordId::new(SemanticDimension::Call, &subject.identity_key());
         let evidence_id = EvidenceId::new(evidence_id.to_owned());
