@@ -78,8 +78,25 @@ fn adl_constraint_violation_blocks(constraint_results: &[ConstraintResult]) -> b
     constraint_results.iter().any(|result| !result.passed)
 }
 
-pub fn systemize(root: impl AsRef<Path>) -> io::Result<SystemizeReport> {
-    let root = root.as_ref();
+/// Every input `systemize`/`graph`/`code_analyze` need before they can build their own
+/// entry-point-specific report: the repository snapshot/audit/inventory/source/docs, compiled ADL,
+/// and real `SemanticExtractor` output for the admitted inventory. Extracted as one shared
+/// pipeline stage so the three entry points -- each of which independently repeated this exact
+/// eight-statement sequence before this fix -- can never silently diverge in how they gather it
+/// (e.g. one adding a new admitted-source step the other two forget), the same "shared, not
+/// re-derived" discipline already applied to `resolve_repository_id`/`resolve_dependency_closure`
+/// above.
+struct CensusInputs {
+    snapshot: atlas_core::RepositorySnapshot,
+    repository: RepoAudit,
+    inventory: atlas_core::InventoryReport,
+    source: atlas_core::SourceReport,
+    docs: DocsReport,
+    adl: AdlCompileReport,
+    extraction_batches: Vec<adapter::ExtractionBatch>,
+}
+
+fn gather_census_inputs(root: &Path) -> io::Result<CensusInputs> {
     let snapshot = adapter::snapshot_git(root)?;
     let repository = adapter::audit_repository(root)?;
     let inventory = inventory::build_inventory(root, repository.manifest.as_ref())?;
@@ -87,6 +104,31 @@ pub fn systemize(root: impl AsRef<Path>) -> io::Result<SystemizeReport> {
     let docs = adapter::audit_docs(root.join(".atlas"))?;
     let adl_sources = adapter::read_adl_sources(root)?;
     let adl = compile_adl(&adl_sources, &source);
+    let repository_id = resolve_repository_id(&repository, root);
+    let extraction_batches =
+        census::extraction::extract_semantics(&inventory, repository_id, snapshot.revision());
+    Ok(CensusInputs {
+        snapshot,
+        repository,
+        inventory,
+        source,
+        docs,
+        adl,
+        extraction_batches,
+    })
+}
+
+pub fn systemize(root: impl AsRef<Path>) -> io::Result<SystemizeReport> {
+    let root = root.as_ref();
+    let CensusInputs {
+        snapshot,
+        repository,
+        inventory,
+        source,
+        docs,
+        adl,
+        extraction_batches,
+    } = gather_census_inputs(root)?;
 
     // R4.3.1: semantic extraction runs BEFORE census construction, and its results flow directly
     // into the canonical `CensusReport` that `normalize`/`graph` below then consume -- extraction
@@ -95,9 +137,6 @@ pub fn systemize(root: impl AsRef<Path>) -> io::Result<SystemizeReport> {
     // Graph" is the one normalized path). `extraction_accounting` and `census` are both built from
     // the exact same `extraction_batches`, so closure accounting and canonical census truth can
     // never disagree about what extraction produced.
-    let repository_id = resolve_repository_id(&repository, root);
-    let extraction_batches =
-        census::extraction::extract_semantics(&inventory, repository_id, snapshot.revision());
     let mut extraction_accounting = census::CensusExtractionAccounting::new();
     for batch in &extraction_batches {
         extraction_accounting.record_batch(batch);
@@ -218,16 +257,14 @@ pub fn check(root: impl AsRef<Path>) -> io::Result<AdlCompileReport> {
 
 pub fn graph(root: impl AsRef<Path>) -> io::Result<EngineeringGraph> {
     let root = root.as_ref();
-    let snapshot = adapter::snapshot_git(root)?;
-    let repository = adapter::audit_repository(root)?;
-    let inventory = inventory::build_inventory(root, repository.manifest.as_ref())?;
-    let source = adapter::source_report_from_inventory(&inventory);
-    let docs = adapter::audit_docs(root.join(".atlas"))?;
-    let adl_sources = adapter::read_adl_sources(root)?;
-    let adl = compile_adl(&adl_sources, &source);
-    let repository_id = resolve_repository_id(&repository, root);
-    let extraction_batches =
-        census::extraction::extract_semantics(&inventory, repository_id, snapshot.revision());
+    let CensusInputs {
+        inventory,
+        source,
+        docs,
+        adl,
+        extraction_batches,
+        ..
+    } = gather_census_inputs(root)?;
     let census = census::build_census(&inventory, &source, &adl, &extraction_batches);
     let normalization = normalize::normalize(&census);
     let mut graph = build_system_graph(&source, &docs, &normalization);
@@ -245,16 +282,14 @@ pub fn docs_audit(root: impl AsRef<Path>) -> io::Result<DocsReport> {
 
 pub fn code_analyze(root: impl AsRef<Path>) -> io::Result<serde_json::Value> {
     let root = root.as_ref();
-    let snapshot = adapter::snapshot_git(root)?;
-    let repository = adapter::audit_repository(root)?;
-    let inventory = inventory::build_inventory(root, repository.manifest.as_ref())?;
-    let source = adapter::source_report_from_inventory(&inventory);
-    let docs = adapter::audit_docs(root.join(".atlas"))?;
-    let adl_sources = adapter::read_adl_sources(root)?;
-    let adl = compile_adl(&adl_sources, &source);
-    let repository_id = resolve_repository_id(&repository, root);
-    let extraction_batches =
-        census::extraction::extract_semantics(&inventory, repository_id, snapshot.revision());
+    let CensusInputs {
+        inventory,
+        source,
+        docs,
+        adl,
+        extraction_batches,
+        ..
+    } = gather_census_inputs(root)?;
     let mut census = census::build_census(&inventory, &source, &adl, &extraction_batches);
     // Same promotion `systemize` applies (`.atlas/contracts/DEPENDENCY-CENSUS.md`): `BUILD`
     // starts life as a permanent `Unsupported` stub in `census::build_census` and must be

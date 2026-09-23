@@ -1,0 +1,47 @@
+{
+  "schema": "atlas.self-build.generation-evidence.v1",
+  "wave": "CORRECTNESS / ARCHITECTURAL INTEGRITY -- three-way duplicated census-gathering prelude across systemize/graph/code_analyze",
+  "wave_title": "runtime::{systemize, graph, code_analyze} each independently repeated the exact same eight-statement sequence (snapshot_git, audit_repository, build_inventory, source_report_from_inventory, audit_docs, read_adl_sources, compile_adl, resolve_repository_id + extract_semantics) before doing their own entry-point-specific work. Not caught by this session's own duplicate-function-body sweep, since the three functions diverge after the shared prefix -- this is a different, statement-sequence-prefix shape of the same underlying risk (independent copies of the same real logic, free to silently drift on a future edit to only one).",
+  "generation_model": {
+    "G_n": "8beb36cd38 (test(adapter): cover raw address-of walking) -- stable generation this candidate was built and validated against",
+    "gap_discovered_by": "Direct self-review of runtime/src/lib.rs's three main entry points while looking for the next actionable gap after exhausting the syntax-construct-coverage line of work for this pass. Noticed code_analyze's body opens with the exact same eight statements as systemize (already read closely this session for the required_verification fix) and graph, confirmed byte-for-byte identical across all three before refactoring."
+  },
+  "priority_classification": "correctness/architectural integrity (priority 1) -- three independent copies of 'how does Atlas gather its own census inputs' is exactly the kind of duplicated-logic risk this session has repeatedly found and fixed elsewhere (persistence.rs, cfg.rs/effect.rs, the cross-crate core/runtime duplication, ConcurrencyWalker/PersistenceWalker/StateWalker's walk_stmt) -- a future change to this pipeline (a new admitted-source step, a new required audit) applied to only one or two of the three copies would make systemize/graph/code_analyze silently disagree about what Atlas actually observed for the same repository.",
+  "design_decisions": [
+    {
+      "question": "Return a tuple, or a named struct, from the extracted helper?",
+      "decision": "A named struct (CensusInputs) with named fields, not a tuple -- seven fields is well past the point where positional tuple access becomes error-prone (a future reordering could silently swap two same-typed fields at a call site with no compiler error). Each of the three call sites destructures only the fields it actually uses (`..` for the rest), keeping each function's own variable list exactly as expressive as before the refactor."
+    }
+  ],
+  "stable_validator_law_compliance": {
+    "claim": "systemize/graph/code_analyze now gather their census inputs through one shared function; a future change to that pipeline cannot be applied to only one or two of the three entry points by omission.",
+    "self_written_evidence": "The refactor is a pure relocation: the extracted body is byte-for-byte the original eight statements, confirmed before refactoring, and each call site's post-prelude logic is untouched (only the variable-binding mechanism changed, from eight `let`s to one destructured `gather_census_inputs` call).",
+    "independent_evidence_channel": "cargo build --workspace clean on first attempt. Full cargo test --workspace: 484 total, 0 failed, identical count to the prior generation. Ran all three entry points end-to-end against this repository's own real source (`systemize --out`, `graph --out`, `code analyze`) and confirmed all three complete successfully and produce well-formed output. Re-ran the duplicate-function-body sweep test: still clean.",
+    "no_circular_self_certification": true
+  },
+  "implementation": {
+    "runtime_change": "runtime/src/lib.rs -- added CensusInputs struct and gather_census_inputs(root: &Path) -> io::Result<CensusInputs>, extracted unchanged from the eight-statement prelude systemize/graph/code_analyze each previously repeated independently; all three now call it and destructure only the fields they use."
+  },
+  "adversarial_and_falsification_coverage": [
+    "confirmed the pre-refactor prelude was byte-for-byte identical across all three functions before extracting it, not merely similar",
+    "exercised all three entry points end-to-end against this repository's own real source post-refactor, not just unit tests"
+  ],
+  "validation_this_generation": {
+    "commands": {
+      "cargo build --workspace": { "exit_code": 0 },
+      "cargo fmt --all --check": { "exit_code": 0 },
+      "cargo clippy --workspace --all-targets -- -D warnings": { "exit_code": 0, "warnings": 0 },
+      "cargo test --workspace": { "exit_code": 0, "totals": "484 total, 0 failed, unchanged from the prior generation" },
+      "cargo run -q -p atlas-cli -- systemize --root . --out ...": { "exit_code": 0 },
+      "cargo run -q -p atlas-cli -- graph --root . --out ...": { "exit_code": 0 },
+      "cargo run -q -p atlas-cli -- code analyze --root .": { "exit_code": 0 },
+      "cargo run -q -p atlas-cli -- docs audit --root .atlas": { "exit_code": 0, "gate_ready": true }
+    }
+  },
+  "recensus_scope_after_promotion": [
+    "no prior CLOSED/EXTINCT conclusion depended on the internal structure of systemize/graph/code_analyze, so no external conclusion requires reopening",
+    "closes the last known duplicated-logic instance found this session across runtime's three main entry points"
+  ],
+  "overall_verdict": "MATERIALIZED AND VERIFIED. Unified a real, three-way duplicated census-gathering prelude across runtime's three main entry points into one shared function, removing a genuine future-drift risk with zero observable behavior change, verified both by unit tests and by running all three entry points end-to-end against this repository's own real source.",
+  "historical_evidence_retained": true
+}
