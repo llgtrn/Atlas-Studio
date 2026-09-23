@@ -55,7 +55,32 @@ An EXTINCT scope MUST NOT retain its donor OSS source files under Atlas control.
 
 A donor retained locally as an explicit oracle/reference is not extinct.
 
+A scope that only removes imports but fails a clean donor-disappearance/rebuild probe is not EXTINCTION_READY.
+
 Historical Git objects are outside this active-tree deletion rule unless a separate history-scrubbing policy is adopted.
+
+## Recursive extinction sweeps
+
+After every material Atlas capability generation, recompute extinction readiness with the stronger observer.
+
+Before SOURCE_DELETED, run the isolated extinction probe from `../contracts/RECURSIVE-SELF-CENSUS.md`: donor source and Atlas-controlled substitutes unavailable, silent network re-fetch disabled, affected build/test/scenarios/recensus still pass.
+
+If stronger census later exposes a hidden dependency or semantic obligation, create corrective evidence and a new state lineage under this existing state machine. Do not invent a donor state and do not rewrite the old proof.
+
+The self-building target is retained donor source → 0 only through proven independence. Explicit REFERENCE_ONLY / EXTERNAL_BOUNDARY retention prevents the stronger "all donor source extinct" claim.
+
+### Corpus extinction accounting
+
+At each generation Atlas SHOULD report, separately:
+
+- source scopes still STAGED/COARSE_CENSUSED/DEEP_CENSUS_ACTIVE;
+- source scopes waiting on native implementation;
+- ABSORBED scopes not yet EXTINCTION_READY;
+- EXTINCTION_READY scopes waiting on destructive proof;
+- EXTINCT scopes;
+- explicit REFERENCE_ONLY / EXTERNAL_BOUNDARY exceptions.
+
+A decreasing donor-source count is progress evidence, not correctness evidence by itself.
 
 ## Dependency closure rule
 
