@@ -12,6 +12,7 @@
 //! populate them without a schema change.
 
 use super::SemanticRecordId;
+use super::place::PlaceRef;
 use crate::identity::RepositoryId;
 use crate::language::adl::SourceSpan;
 use crate::temporal::RevisionRef;
@@ -40,12 +41,12 @@ impl CallDispatchKind {
 
 /// Identity of one call site, owned by exactly one function.
 ///
-/// `dispatch`/`callees` are deliberately NOT part of `identity_key()`: they are a RESOLUTION FACT
-/// about an already-uniquely-identified call site (identified by which function makes it and at
-/// which source span), not part of the site's identity. Keeping them out of the identity means
-/// `record_id` stays stable if a later wave resolves a call this extractor could only mark
-/// `Unresolved` today -- re-extraction after a resolution improvement updates this record's
-/// content without orphaning any existing reference to it.
+/// `dispatch`/`callees`/`arguments`/`result` are deliberately NOT part of `identity_key()`: they are
+/// RESOLUTION FACTS about an already-uniquely-identified call site (identified by which function
+/// makes it and at which source span), not part of the site's identity. Keeping them out of the
+/// identity means `record_id` stays stable if a later wave resolves a call this extractor could
+/// only mark `Unresolved` today -- re-extraction after a resolution improvement updates this
+/// record's content without orphaning any existing reference to it.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct CallSiteIdentity {
     pub repository: RepositoryId,
@@ -58,6 +59,26 @@ pub struct CallSiteIdentity {
     /// Unresolved`; MAY be non-empty for `DynamicPartial`/`DynamicResolvedSet` (a candidate set)
     /// or hold exactly one entry for `StaticResolved`.
     pub callees: Vec<SemanticRecordId>,
+    /// R4.12: one `PlaceRef` per syntactic argument position, in source order, referencing the
+    /// DATA_FLOW `Use` this argument expression corresponds to when the extractor can prove it --
+    /// `PlaceRef::Resolved { dimension: DataFlow, record_id }` for a simple single-identifier
+    /// argument (`helper(x)`), `PlaceRef::Unresolved` for anything requiring deeper analysis
+    /// (`helper(w.get())`, a literal, a nested call, ...). Never derived from argument spelling
+    /// alone -- the `record_id` is computed via the SAME `ValueIdentity::identity_key()` formula
+    /// DATA_FLOW's own walker uses, so it names a record DATA_FLOW's own pass produces, not an
+    /// independently invented one (see the extractor's `build_calls` doc comment for the
+    /// convergence proof and the requested-dimension gating this relies on).
+    pub arguments: Vec<PlaceRef>,
+    /// R4.12: a `PlaceRef` to the DATA_FLOW `Definition`/`Store` this call's return value directly
+    /// becomes, when the extractor can prove it -- `PlaceRef::Resolved { dimension: DataFlow,
+    /// record_id }` when this call expression is EXACTLY the direct initializer of a simple
+    /// (non-destructured) `let` binding or the direct right-hand side of a simple assignment
+    /// (`let y = helper(x);`, `y = helper(x);`), `PlaceRef::Unresolved` otherwise -- including when
+    /// the call's value is merely a SUBEXPRESSION of a larger one (`let y = helper(x) + 1;` has no
+    /// single value this call's result "becomes"). Computed the same way `arguments` is: reusing
+    /// `ValueIdentity::identity_key()` itself against the binding's own identifier/span, never a
+    /// hand-duplicated formula.
+    pub result: PlaceRef,
 }
 
 impl CallSiteIdentity {
@@ -96,6 +117,8 @@ mod tests {
             },
             dispatch: CallDispatchKind::Unresolved,
             callees: Vec::new(),
+            arguments: Vec::new(),
+            result: PlaceRef::Unresolved,
         }
     }
 
@@ -135,6 +158,32 @@ mod tests {
             ..base()
         };
         assert_eq!(base().identity_key(), resolved.identity_key());
+    }
+
+    // --- R4.12: arguments are content, not identity -----------------------------------------------
+
+    #[test]
+    fn identity_key_is_unaffected_by_arguments() {
+        let with_arguments = CallSiteIdentity {
+            arguments: vec![PlaceRef::Resolved {
+                dimension: SemanticDimension::DataFlow,
+                record_id: SemanticRecordId::new(SemanticDimension::DataFlow, "value-key"),
+            }],
+            ..base()
+        };
+        assert_eq!(base().identity_key(), with_arguments.identity_key());
+    }
+
+    #[test]
+    fn identity_key_is_unaffected_by_result() {
+        let with_result = CallSiteIdentity {
+            result: PlaceRef::Resolved {
+                dimension: SemanticDimension::DataFlow,
+                record_id: SemanticRecordId::new(SemanticDimension::DataFlow, "definition-key"),
+            },
+            ..base()
+        };
+        assert_eq!(base().identity_key(), with_result.identity_key());
     }
 
     #[test]
