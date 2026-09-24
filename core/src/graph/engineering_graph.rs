@@ -1192,12 +1192,13 @@ fn summarize_engineering_graph(
     let mut language_nodes: Vec<_> = source.languages.keys().cloned().collect();
     language_nodes.sort();
     GraphSummary {
-        schema: "atlas.systemizer.engineering-graph-summary.v2".into(),
+        schema: "atlas.systemizer.engineering-graph-summary.v3".into(),
         semantic_grade: semantic_grade.into(),
         nodes_total: graph.nodes.len(),
         edges_total: graph.edges.len(),
         bindings_total: graph.bindings.len(),
         facts_total: graph.facts.len(),
+        evidence_total: graph.evidence.len(),
         language_nodes,
     }
 }
@@ -1294,6 +1295,40 @@ mod tests {
         let normalization = normalization_with(Vec::new(), Vec::new());
         let graph = build_system_graph(&source(), &docs(), &normalization);
         assert!(graph.evidence.is_empty());
+    }
+
+    // `GraphSummary` mirrors every other substantive `EngineeringGraph` vector with a `_total`
+    // counterpart (`nodes_total`, `edges_total`, `bindings_total`, `facts_total`) -- `evidence` was
+    // the one vector this session's own prior generation added to `EngineeringGraph`
+    // (`build-system-graph-carries-normalization-evidence-onto-the-graph`, above) without a matching
+    // update to its summary sibling, so a caller reading only `GraphSummary` (e.g.
+    // `SystemizeReport.graph`/`WorkPrepareReport.graph`) saw zero evidence signal even when the
+    // full graph behind it carried real evidence.
+    #[test]
+    fn summarize_system_graph_reports_the_real_evidence_total() {
+        let mut normalization = normalization_with(Vec::new(), Vec::new());
+        normalization.evidence = vec![
+            crate::Evidence {
+                id: "evidence:a".into(),
+                kind: "test".into(),
+                path: "core/src/lib.rs".into(),
+                summary: "test evidence a".into(),
+                revision: None,
+            },
+            crate::Evidence {
+                id: "evidence:b".into(),
+                kind: "test".into(),
+                path: "core/src/lib.rs".into(),
+                summary: "test evidence b".into(),
+                revision: None,
+            },
+        ];
+        let summary = summarize_system_graph(&source(), &docs(), &normalization);
+        assert_eq!(
+            summary.evidence_total, 2,
+            "GraphSummary.evidence_total must reflect the real evidence the underlying \
+             EngineeringGraph carries, not silently stay zero"
+        );
     }
 
     #[test]

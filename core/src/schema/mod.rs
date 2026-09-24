@@ -443,6 +443,7 @@ pub struct GraphSummary {
     pub edges_total: usize,
     pub bindings_total: usize,
     pub facts_total: usize,
+    pub evidence_total: usize,
     pub language_nodes: Vec<String>,
 }
 

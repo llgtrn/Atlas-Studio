@@ -1,0 +1,50 @@
+{
+  "schema": "atlas.self-build.generation-evidence.v1",
+  "wave": "CENSUS BLINDNESS -- GraphSummary silently omitted an evidence_total counterpart when EngineeringGraph.evidence was added earlier this session",
+  "wave_title": "A fifth delegated fresh-census investigation, asked specifically whether GraphSummary stayed in sync with EngineeringGraph after this session's own recent additions, found that GraphSummary mirrors nodes/edges/bindings/facts with a `_total` counterpart each, but has no `evidence_total` at all -- and its sole constructor, summarize_engineering_graph, never reads `graph.evidence`. This is this session's own regression: the prior generation that populated EngineeringGraph.evidence (engineering-graph-evidence-field-populated.json) updated the full graph and its full-graph consumers, but never touched the lighter-weight GraphSummary sibling that embeds into SystemizeReport.graph and WorkPrepareReport.graph.",
+  "priority_classification": "census blindness (priority 4) -- SystemizeReport.graph/WorkPrepareReport.graph (the summary embedded in the two most-consumed report types) carried zero evidence signal while the full EngineeringGraph behind them carried tens of thousands of real evidence records for this very workspace.",
+  "gap_discovered_by": "A delegated Explore-agent investigation, explicitly asked to check whether GraphSummary was updated when this session's own dependency-closure-projection and evidence-field features were added to EngineeringGraph. It compared GraphSummary's four existing `_total` fields against EngineeringGraph's five substantive vectors (nodes/edges/bindings/facts/evidence) and found evidence was the one vector with no summary counterpart, then confirmed reachability: `summarize_system_graph_with_dependencies` (the function that DOES populate graph.evidence before summarizing) feeds directly into `SystemizeReport.graph` and `WorkPrepareReport.graph`, the exact reports `atlas-cli systemize`/`work prepare` emit.",
+  "verification_before_acting": [
+    "Re-read `GraphSummary` (core/src/schema/mod.rs) and `summarize_engineering_graph` (core/src/graph/engineering_graph.rs) directly myself: confirmed the struct has no `evidence_total` field and the function's body never references `graph.evidence` anywhere.",
+    "Confirmed only one literal `GraphSummary { .. }` construction site exists in the whole workspace (grepped for it) -- so exactly one function needed updating, not several drifted copies.",
+    "Falsified the fix directly: temporarily hardcoded `evidence_total: 0` instead of `graph.evidence.len()`, re-ran the new regression test, watched it fail (`0 != 2`), then restored the real computation and re-ran to confirm it passes.",
+    "Ran the exact real pipeline (`atlas-cli systemize --root . --out ...`) against this repository's own real workspace: `GraphSummary.evidence_total` now reports 33,253 (a large, real, nonzero count proportional to `nodes_total: 38,695`), confirming the fix surfaces genuine data end-to-end through the actual production report type, not only in a synthetic unit test."
+  ],
+  "design_decisions": [
+    {
+      "question": "Bump the summary's own schema version string when adding a field to its shape?",
+      "decision": "Yes: `atlas.systemizer.engineering-graph-summary.v2` -> `.v3`, matching this codebase's own established convention of versioning a schema string when its serialized shape changes (e.g. `atlas.dependency-closure-report.v3` elsewhere in this workspace). Confirmed safe: grepped for any test or consumer hardcoding the `v2` string and found none."
+    }
+  ],
+  "stable_validator_law_compliance": {
+    "claim": "`GraphSummary.evidence_total` now reports the real `EngineeringGraph.evidence.len()` for whichever graph it summarizes, matching the existing `nodes_total`/`edges_total`/`bindings_total`/`facts_total` pattern exactly. A graph with no evidence (e.g. `build_source_graph`/`build_repository_graph`'s own lighter-weight variants, which never populate `.evidence` by design) correctly summarizes to `evidence_total: 0`, not a fabricated count.",
+    "self_written_evidence": "New test `summarize_system_graph_reports_the_real_evidence_total` in `core/src/graph/engineering_graph.rs`, placed directly after the existing `build_system_graph_carries_normalization_evidence_onto_the_graph` test it builds on. Independently confirmed the test fails without the fix (hardcoded `0`, re-ran, restored) before trusting it.",
+    "independent_evidence_channel": "cargo build --workspace clean (confirms no other construction site needed updating). cargo fmt --all --check clean. cargo clippy --workspace --all-targets -D warnings clean, zero warnings. Full cargo test --workspace: 289 adapter, 3 apps/cli, 165 core (+1 net), 73 runtime -- 530 total, 0 failed. Ran `atlas-cli systemize --root .` against this repository's own real workspace: `GraphSummary.evidence_total` reports 33,253, a real, large, nonzero count. `docs audit`: gate_ready true.",
+    "no_circular_self_certification": true
+  },
+  "implementation": {
+    "core_change": "core/src/schema/mod.rs -- new `pub evidence_total: usize` field on `GraphSummary`. core/src/graph/engineering_graph.rs -- `summarize_engineering_graph` now sets `evidence_total: graph.evidence.len()`; schema string bumped to `.v3`."
+  },
+  "adversarial_and_falsification_coverage": [
+    "confirmed the fix's own regression test genuinely fails without it (hardcoded 0, not just an assumption)",
+    "confirmed reachability all the way to the real production report types (SystemizeReport.graph, WorkPrepareReport.graph) via `atlas-cli systemize` against this repository's own real, large-scale self-census (33,253 real evidence records), not only a small synthetic fixture",
+    "confirmed no other `GraphSummary` construction site or hardcoded schema-string consumer existed that this fix could have silently missed"
+  ],
+  "validation_this_generation": {
+    "commands": {
+      "cargo build --workspace": { "exit_code": 0 },
+      "cargo fmt --all --check": { "exit_code": 0 },
+      "cargo clippy --workspace --all-targets -- -D warnings": { "exit_code": 0, "warnings": 0 },
+      "cargo test --workspace": { "exit_code": 0, "totals": "289 adapter, 3 apps/cli, 165 core (+1 net), 73 runtime -- 530 total, 0 failed" },
+      "cargo run -p atlas-cli --bin atlas-systemizer -- systemize --root . --out ... (real repo)": { "result": "GraphSummary.evidence_total: 33253, nodes_total: 38695" },
+      "cargo run -q -p atlas-cli -- docs audit --root .atlas": { "exit_code": 0, "gate_ready": true }
+    }
+  },
+  "recensus_scope_after_promotion": [
+    "no prior CLOSED/EXTINCT conclusion is affected",
+    "the same investigating agent also found and explicitly did NOT treat as its top finding a lower-confidence, currently-unexercised inconsistency in the docs-audit frontmatter pipeline (a doc that opens `---` frontmatter but never closes it would be counted toward canonical_frontmatter_total without any fields actually being parsed) -- confirmed no such file exists in this repository's own real `.atlas` tree today, named as a candidate for a future generation if that shape is ever demonstrated in real input, not acted on here",
+    "RepoAudit.ready's own derivation was checked and confirmed to correctly fold in every one of RepoAudit's sibling fields -- no gap found there"
+  ],
+  "overall_verdict": "MATERIALIZED AND VERIFIED. `GraphSummary.evidence_total` closes the exact regression this session's own earlier `EngineeringGraph.evidence` fix left behind: the lighter-weight summary type embedded in the two most-consumed report types (`SystemizeReport`, `WorkPrepareReport`) now carries a real evidence count instead of silently showing none. Confirmed the fix's own test genuinely fails without it, and confirmed real, large-scale data (33,253 records) flows through the actual production pipeline end-to-end. Full workspace suite (530 tests) passing, gate_ready true.",
+  "historical_evidence_retained": true
+}
