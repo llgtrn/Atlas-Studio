@@ -156,6 +156,19 @@ fn record_unreadable_artifact(
     out.insert(record.path.clone(), record);
 }
 
+/// A conservative ceiling on `visit_inventory`'s own recursion depth, empirically justified (not
+/// guessed): a real, debug-profile `cargo test` run walking a genuine ~2,000-level nested
+/// directory tree (the deepest reachable at all via this walker's own path-accumulating access
+/// pattern -- Linux's `PATH_MAX` rejects any single `fs::read_dir` call whose full path exceeds
+/// 4096 bytes, well before a legitimate directory-name-length tree could go deeper) reliably
+/// overflowed the default thread stack and aborted the whole process with `SIGABRT`, exactly the
+/// same failure signature `adapter::semantic::rust`'s own `MAX_STRUCTURAL_RECURSION_RISK` guard
+/// already documents and closes for `syn`'s AST recursion. `512` sits comfortably below every
+/// depth this walker could ever legitimately need for a real repository (this repository's own
+/// deepest real directory nesting is nowhere close) while leaving a wide safety margin under the
+/// empirically-confirmed crash depth.
+const MAX_DIRECTORY_NESTING_DEPTH: usize = 512;
+
 /// The classification outcome for one already-listed directory entry, kept separate from
 /// `visit_inventory`'s loop so every failure path -- `entry.file_type()`, `classify_file`,
 /// `classify_non_file` -- funnels through one `Result`, handled uniformly by the caller instead of
@@ -164,6 +177,7 @@ fn classify_entry(
     root: &Path,
     entry: &fs::DirEntry,
     out: &mut BTreeMap<String, ArtifactRecord>,
+    depth: usize,
 ) -> io::Result<Option<ArtifactRecord>> {
     let path = entry.path();
     let name = entry.file_name().to_string_lossy().into_owned();
@@ -172,8 +186,15 @@ fn classify_entry(
     if file_type.is_dir() {
         if ignored_directory(&name) {
             Ok(Some(policy_boundary(root, &path)))
+        } else if depth >= MAX_DIRECTORY_NESTING_DEPTH {
+            Ok(Some(classify_non_file(
+                root,
+                &path,
+                ArtifactKind::Special,
+                "resource-limit: directory nesting depth exceeded",
+            )?))
         } else {
-            visit_inventory(root, &path, out)?;
+            visit_inventory(root, &path, out, depth + 1)?;
             Ok(None)
         }
     } else if file_type.is_file() {
@@ -199,6 +220,7 @@ fn visit_inventory(
     root: &Path,
     dir: &Path,
     out: &mut BTreeMap<String, ArtifactRecord>,
+    depth: usize,
 ) -> io::Result<()> {
     let read_dir = match fs::read_dir(dir) {
         Ok(read_dir) => read_dir,
@@ -225,7 +247,7 @@ fn visit_inventory(
         // out of `visit_inventory`, exactly the same defect class, just one level of granularity
         // finer (one FILE, not one DIRECTORY). Same recovery: record it, never abort every other
         // artifact because of it.
-        match classify_entry(root, &entry, out) {
+        match classify_entry(root, &entry, out, depth) {
             Ok(Some(record)) => {
                 out.insert(record.path.clone(), record);
             }
@@ -260,7 +282,7 @@ fn inventory_from_roots(root: PathBuf, roots: Vec<PathBuf>) -> io::Result<Invent
                 classify_non_file(&root, &path, ArtifactKind::Symlink, "symlink-not-followed")?;
             artifacts.insert(record.path.clone(), record);
         } else if path.is_dir() {
-            visit_inventory(&root, &path, &mut artifacts)?;
+            visit_inventory(&root, &path, &mut artifacts, 0)?;
         } else if path.is_file() {
             let record = classify_file(&root, &path)?;
             artifacts.insert(record.path.clone(), record);
@@ -431,6 +453,44 @@ mod tests {
             .unwrap()
             .as_nanos();
         std::env::temp_dir().join(format!("atlas-inventory-{}-{nonce}", std::process::id()))
+    }
+
+    // PROBE ONLY -- not yet asserting a fixed outcome beyond "does not abort the process" and
+    // "the excess depth is recorded, not silently dropped". `MAX_DIRECTORY_NESTING_DEPTH`'s own
+    // doc comment names the exact falsification behind this test: a real, debug-profile walk of a
+    // ~2,000-level nested directory tree (this walker's own path-accumulating access pattern
+    // cannot reach much deeper than that before Linux's `PATH_MAX` rejects the path outright)
+    // reliably overflowed the default thread stack and aborted the whole process with `SIGABRT`,
+    // before this guard existed -- confirmed by hand, reverting the guard and re-running this
+    // exact construction with `--ignored`, matching this codebase's own established
+    // evidence-before-code discipline for the identical failure signature in
+    // `adapter::semantic::rust`'s `deeply_nested_parenthesized_expression_does_not_abort_the_process`.
+    #[test]
+    fn deeply_nested_directory_tree_does_not_abort_the_process() {
+        let base = scratch_root();
+        let _ = fs::remove_dir_all(&base);
+        fs::create_dir_all(&base).unwrap();
+        // Deliberately deeper than `MAX_DIRECTORY_NESTING_DEPTH` (512) so the guard is actually
+        // exercised, but well short of the ~2,000-level `PATH_MAX` ceiling, keeping the whole
+        // fixture fast and portable to build (a single-character name per level keeps the total
+        // path length far under 4096 bytes even at this depth).
+        let mut cursor = base.clone();
+        for _ in 0..600 {
+            cursor.push("d");
+            fs::create_dir(&cursor).unwrap();
+        }
+
+        let report = inventory_source(&base).expect("must not abort the process");
+        assert!(
+            report.artifacts.iter().any(|artifact| artifact
+                .reason
+                .as_deref()
+                .is_some_and(|reason| reason.contains("resource-limit"))),
+            "the directory at the depth limit must be recorded as a resource-limited artifact, \
+             not silently dropped from the report"
+        );
+
+        let _ = fs::remove_dir_all(&base);
     }
 
     #[test]
