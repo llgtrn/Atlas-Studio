@@ -316,6 +316,33 @@ fn dependency_section_role(header: &str) -> Option<(DependencyRole, bool)> {
     }
 }
 
+/// Classifies a dotted single-dependency table header (`[dependencies.serde]`,
+/// `[dev-dependencies.wasmtime]`, `[build-dependencies.cc]`) into its own `(crate_key,
+/// DependencyRole)`, the alternative TOML spelling of one `crate = { ... }` table-array entry.
+/// Real, not hypothetical: `.atlas/temporary/donors/wasmtime/Cargo.toml` declares
+/// `[dev-dependencies.wasmtime]` this way. Deliberately does not recognize the target-conditional
+/// combination (`[target.'cfg(...)'.dependencies.NAME]`) -- no real donor manifest in this
+/// repository's own corpus uses that combined form, and guessing its shape without evidence would
+/// risk fabricating a parse rule this bootstrap cannot verify; a future generation should add it
+/// if and when real input demonstrates the need, matching this file's own evidence-before-code
+/// discipline.
+fn dotted_dependency_header(header: &str) -> Option<(&str, DependencyRole)> {
+    for (prefix, role) in [
+        ("[dependencies.", DependencyRole::Runtime),
+        ("[dev-dependencies.", DependencyRole::Dev),
+        ("[build-dependencies.", DependencyRole::Build),
+    ] {
+        if let Some(key) = header
+            .strip_prefix(prefix)
+            .and_then(|rest| rest.strip_suffix(']'))
+            && !key.is_empty()
+        {
+            return Some((key, role));
+        }
+    }
+    None
+}
+
 /// `(crate_name, DependencyRole, DependencyActivation)` for every dependency this manifest text
 /// directly declares, across every recognized table. Role (which table) and activation
 /// (optional/target-conditional) are independently evidenced and never overwrite each other: a
@@ -329,15 +356,28 @@ fn manifest_dependency_roles(
 ) -> Vec<(String, DependencyRole, DependencyActivation)> {
     let mut result = Vec::new();
     for (header, body) in manifest_sections(manifest) {
-        let Some((role, target_conditional)) = dependency_section_role(header) else {
+        if let Some((role, target_conditional)) = dependency_section_role(header) {
+            for entry in manifest_dependency_entries(&body) {
+                let activation = DependencyActivation {
+                    optional: entry.optional,
+                    target_conditional,
+                };
+                result.push((entry.resolved_name, role, activation));
+            }
             continue;
-        };
-        for entry in manifest_dependency_entries(&body) {
-            let activation = DependencyActivation {
-                optional: entry.optional,
-                target_conditional,
-            };
-            result.push((entry.resolved_name, role, activation));
+        }
+        if let Some((key, role)) = dotted_dependency_header(header) {
+            let resolved_name =
+                quoted_field_anywhere(&body, "package").unwrap_or_else(|| key.to_owned());
+            let optional = bool_field_anywhere(&body, "optional").unwrap_or(false);
+            result.push((
+                resolved_name,
+                role,
+                DependencyActivation {
+                    optional,
+                    target_conditional: false,
+                },
+            ));
         }
     }
     result
@@ -415,6 +455,27 @@ pub fn census_cargo_workspace(root: &Path) -> io::Result<Option<DependencyClosur
                 );
                 evidence_by_consumer.insert(consumer_name, relative_manifest_path);
             }
+        }
+        // A workspace root manifest MAY also declare `[package]` itself -- a real, common "mixed"
+        // shape: the root crate IS one of the workspace's own binaries/libraries, and Cargo never
+        // lists the root in its own `workspace.members` array (it is an implicit member). Real,
+        // not hypothetical: `.atlas/temporary/donors/wasmtime/Cargo.toml` is exactly this shape
+        // (`[package] name = "wasmtime-cli"` plus a `[workspace] members = [...]` array that
+        // correctly never lists the root). Before this fix, such a root's own
+        // `[dependencies]`/`[dev-dependencies]`/`[build-dependencies]` tables were never attributed
+        // to any consumer at all -- every edge whose consumer is the root package silently fell
+        // back to `role: None`, `activation: ALWAYS`, `evidence_path: "Cargo.lock"`,
+        // indistinguishable from a genuine external-to-external edge this parser structurally
+        // cannot evidence, even though the manifest that DOES evidence it was already sitting in
+        // `root_manifest`, read moments earlier.
+        if root_manifest.lines().any(|line| line.trim() == "[package]")
+            && let Some(root_name) = root_manifest
+                .lines()
+                .find_map(|line| quoted_field(line.trim(), "name"))
+        {
+            workspace_member_names.insert(root_name.clone());
+            roles_by_consumer.insert(root_name.clone(), manifest_dependency_roles(&root_manifest));
+            evidence_by_consumer.insert(root_name, "Cargo.toml".to_owned());
         }
     }
 
@@ -731,6 +792,55 @@ cc = "1"
     }
 
     #[test]
+    fn dotted_single_dependency_table_is_recognized_with_its_own_role() {
+        // The alternative TOML spelling of one table-array entry: `[dev-dependencies.wasmtime]`
+        // means the exact same thing as `wasmtime = { ... }` inside a `[dev-dependencies]` table,
+        // just with the crate name in the header instead of as a body key. Real, not hypothetical:
+        // `.atlas/temporary/donors/wasmtime/Cargo.toml` declares `[dev-dependencies.wasmtime]` this
+        // way. Before this fix, `manifest_sections` still split it out as its own section (since it
+        // starts with `[`), but `dependency_section_role` never recognized the dotted header at
+        // all, so the whole entry -- including its own `optional`/`package` facts -- silently
+        // vanished from `manifest_dependency_roles`'s output.
+        let manifest = r#"
+[dependencies]
+serde = "1"
+
+[dev-dependencies.wasmtime-fuzz]
+workspace = true
+optional = true
+
+[build-dependencies.cc]
+version = "1"
+"#;
+        let roles = manifest_dependency_roles(manifest);
+        assert_eq!(
+            roles,
+            vec![
+                ("serde".to_owned(), DependencyRole::Runtime, ALWAYS),
+                (
+                    "wasmtime-fuzz".to_owned(),
+                    DependencyRole::Dev,
+                    DependencyActivation {
+                        optional: true,
+                        target_conditional: false
+                    }
+                ),
+                ("cc".to_owned(), DependencyRole::Build, ALWAYS),
+            ]
+        );
+    }
+
+    #[test]
+    fn dotted_single_dependency_table_honors_a_package_rename() {
+        let manifest = "[dependencies.renamed]\npackage = \"real-name\"\nversion = \"1\"\n";
+        let roles = manifest_dependency_roles(manifest);
+        assert_eq!(
+            roles,
+            vec![("real-name".to_owned(), DependencyRole::Runtime, ALWAYS)]
+        );
+    }
+
+    #[test]
     fn optional_true_preserves_role_and_sets_the_activation_flag_regardless_of_table() {
         // The exact regression this split type fixes: an optional dependency must keep its real
         // table role (Runtime/Dev/...), never collapse to a bare "it's optional" fact that
@@ -994,6 +1104,106 @@ checksum = "deadbeef"
             DependencySourceKind::Registry
         );
         assert_eq!(syn_edge.provider.checksum.as_deref(), Some("deadbeef"));
+
+        let _ = fs::remove_dir_all(&dir);
+    }
+
+    // --- a "mixed" root manifest (`[package]` AND `[workspace]` in the same Cargo.toml, the root
+    // crate is itself a workspace member Cargo never lists in its own `members` array) must still
+    // attribute the root's own declared dependency roles/activations, not silently fall back to
+    // `role: None`/`evidence_path: "Cargo.lock"` for every edge whose consumer is the root package.
+    // Real shape, not hypothetical: `.atlas/temporary/donors/wasmtime/Cargo.toml`.
+    #[test]
+    fn a_mixed_root_package_and_workspace_manifest_attributes_the_roots_own_dependency_roles() {
+        let dir = std::env::temp_dir().join(format!(
+            "atlas-dep-census-test-{}",
+            std::process::id().to_string() + "-mixed-root"
+        ));
+        let _ = fs::remove_dir_all(&dir);
+        write(
+            &dir.join("Cargo.toml"),
+            "[package]\nname = \"wasmtime-cli\"\nversion = \"1.0.0\"\n\n[workspace]\nmembers = [\"cranelift\"]\n\n[dependencies]\nwasmtime = { path = \"cranelift\" }\n\n[dev-dependencies]\ntempfile = \"3\"\n",
+        );
+        write(
+            &dir.join("Cargo.lock"),
+            r#"
+[[package]]
+name = "wasmtime-cli"
+version = "1.0.0"
+dependencies = [
+ "wasmtime",
+ "tempfile",
+]
+
+[[package]]
+name = "wasmtime"
+version = "1.0.0"
+
+[[package]]
+name = "tempfile"
+version = "3.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+"#,
+        );
+        write(
+            &dir.join("cranelift/Cargo.toml"),
+            "[package]\nname = \"wasmtime\"\n",
+        );
+
+        let report = census_cargo_workspace(&dir).unwrap().unwrap();
+        assert!(report.is_closed());
+        assert!(report.unsupported_constructs.is_empty());
+
+        let runtime_edge = report
+            .edges
+            .iter()
+            .find(|edge| edge.consumer == "wasmtime-cli" && edge.provider.name == "wasmtime")
+            .expect("the root package's own dependency edge must be present");
+        assert_eq!(
+            runtime_edge.role,
+            Some(DependencyRole::Runtime),
+            "the root manifest's own [dependencies] table must be attributed, not silently \
+             dropped just because the root crate is never listed in its own workspace.members"
+        );
+        assert_eq!(runtime_edge.evidence_path, "Cargo.toml");
+
+        let dev_edge = report
+            .edges
+            .iter()
+            .find(|edge| edge.consumer == "wasmtime-cli" && edge.provider.name == "tempfile")
+            .expect("the root package's own dev-dependency edge must be present");
+        assert_eq!(dev_edge.role, Some(DependencyRole::Dev));
+        assert_eq!(dev_edge.evidence_path, "Cargo.toml");
+
+        let _ = fs::remove_dir_all(&dir);
+    }
+
+    // --- a pure virtual workspace root (`[workspace]` with no `[package]` at all -- Atlas's own
+    // shape) must NOT invent a fake root package or attribute any dependency roles to one.
+    #[test]
+    fn a_pure_virtual_workspace_root_registers_no_root_package() {
+        let dir = std::env::temp_dir().join(format!(
+            "atlas-dep-census-test-{}",
+            std::process::id().to_string() + "-virtual-root"
+        ));
+        let _ = fs::remove_dir_all(&dir);
+        write(
+            &dir.join("Cargo.toml"),
+            "[workspace]\nmembers = [\"core\"]\n",
+        );
+        write(
+            &dir.join("Cargo.lock"),
+            "\n[[package]]\nname = \"core\"\nversion = \"0.1.0\"\n",
+        );
+        write(&dir.join("core/Cargo.toml"), "[package]\nname = \"core\"\n");
+
+        let report = census_cargo_workspace(&dir).unwrap().unwrap();
+        assert!(report.is_closed());
+        assert_eq!(
+            report.edges_total, 0,
+            "a virtual workspace root has no [package] of its own, no [dependencies] table to \
+             misattribute, and must not fabricate a root-package edge out of nothing"
+        );
 
         let _ = fs::remove_dir_all(&dir);
     }
@@ -1614,6 +1824,50 @@ version = "0.1.0"
             optional_and_target_conditional_count > 0,
             "expected at least one real edge that is BOTH optional and target-conditional -- the \
              exact combination the DependencyRole/DependencyActivation split exists to represent"
+        );
+    }
+
+    // --- 7. real-world verification of the mixed root-package-and-workspace fix ------------------
+
+    #[test]
+    fn real_wasmtime_donor_root_package_dependencies_are_evidenced_not_dropped() {
+        // `wasmtime`'s own root Cargo.toml declares BOTH `[package] name = "wasmtime-cli"` and
+        // `[workspace] members = [...]` (which, correctly, never lists the root itself -- Cargo
+        // treats it as an implicit member). Before the mixed-root-manifest fix, every one of
+        // `wasmtime-cli`'s own ~30 real `[dependencies]`/`[dev-dependencies]` entries silently fell
+        // back to `role: None`, `evidence_path: "Cargo.lock"` -- this test locks the fix in against
+        // this repository's own real, committed donor corpus, not only the synthetic fixture in
+        // `a_mixed_root_package_and_workspace_manifest_attributes_the_roots_own_dependency_roles`.
+        let root = Path::new(env!("CARGO_MANIFEST_DIR"))
+            .parent()
+            .expect("adapter/ has a parent directory")
+            .join(".atlas/temporary/donors/wasmtime");
+        let Ok(Some(report)) = census_cargo_workspace(&root) else {
+            // Tolerate donor-corpus reorganization the same way the other real-donor tests do --
+            // this test only strengthens the claim when wasmtime is present, it never requires it.
+            return;
+        };
+        let root_edges: Vec<_> = report
+            .edges
+            .iter()
+            .filter(|edge| edge.consumer == "wasmtime-cli")
+            .collect();
+        assert!(
+            !root_edges.is_empty(),
+            "expected wasmtime-cli's own Cargo.lock entry to produce dependency edges"
+        );
+        assert!(
+            root_edges.iter().any(|edge| edge.role.is_some()),
+            "wasmtime-cli's own root [dependencies]/[dev-dependencies] tables must be attributed \
+             a real role, not silently dropped just because the root crate is never listed in its \
+             own workspace.members array"
+        );
+        assert!(
+            root_edges
+                .iter()
+                .any(|edge| edge.evidence_path == "Cargo.toml"),
+            "an evidenced root-package edge must cite the root manifest itself, not fall back to \
+             the coarser Cargo.lock evidence path"
         );
     }
 }

@@ -1,0 +1,56 @@
+{
+  "schema": "atlas.self-build.generation-evidence.v1",
+  "wave": "SEMANTIC PRESERVATION -- two real dependency-role attribution gaps in census_cargo_workspace, found by a delegated fresh census and independently verified against real donor data",
+  "wave_title": "A delegated Explore-agent investigation, scoped to areas of the codebase this session had not yet mined heavily (normalize/mod.rs, inventory, the CLI, dependency census), reported one high-confidence defect (a 'mixed' root Cargo.toml -- both [package] and [workspace] -- never attributes the root's own declared dependency roles) and flagged a second, related but unverified candidate (dotted single-dependency table headers, e.g. [dev-dependencies.NAME]). I independently re-verified the first against the actual code and real donor data before acting, then investigated the second myself and found it was ALSO real and evidenced in the exact same donor manifest, so both are fixed together in this generation.",
+  "priority_classification": "semantic preservation (priority 3) -- real, already-computed evidence (a manifest's own declared dependency role) was silently discarded rather than attributed, for two distinct manifest shapes real donor Cargo.toml files actually use.",
+  "gap_discovered_by": "Delegated Explore-agent investigation launched specifically to find fresh gaps outside the areas this session had already exhaustively mined (the R4 Rust extractor, panic isolation, ADL recursion-DoS, CFG fallthrough sweep). The agent read `census_cargo_workspace`'s actual root-manifest handling (adapter/src/dependency/cargo.rs lines ~394-419 at the time) and confirmed, via real committed donor data (`.atlas/temporary/donors/wasmtime/Cargo.toml`), that a workspace root manifest declaring both `[package]` and `[workspace]` -- common and valid Cargo shape -- never has its own `[dependencies]`/`[dev-dependencies]`/`[build-dependencies]` tables attributed to any consumer, because the code only ever walks `workspace.members` (which, per Cargo semantics, never lists the root itself). The agent separately flagged, but did not verify, that `[dependencies.NAME]`-style dotted single-dependency tables might be missed the same way for any manifest.",
+  "verification_before_acting": [
+    "Re-read `census_cargo_workspace` directly myself (not trusting the subagent's line numbers alone) and confirmed: `roles_by_consumer`/`evidence_by_consumer`/`workspace_member_names` are populated only inside the `for member in members` loop; nothing anywhere registers the root manifest's own package name even when the root manifest itself declares `[package]`.",
+    "Confirmed the real donor shape directly: `.atlas/temporary/donors/wasmtime/Cargo.toml` has `[package] name = \"wasmtime-cli\"` as its first section and a `[workspace] members = [...]` array (checked directly) that does not include the root itself, with a real `[dependencies]` table (~5 entries) and `[dev-dependencies]` table.",
+    "Investigated the flagged-but-unverified second candidate (dotted single-dependency tables) myself: grepped the donor corpus for `^[dependencies.`/`^[dev-dependencies.`/`^[build-dependencies.` headers and found a real instance in the SAME wasmtime root manifest (`[dev-dependencies.wasmtime]` at line 156, with `workspace = true` and a `features` array) -- confirming `manifest_sections` already splits it into its own section, but `dependency_section_role` never recognizes the dotted-header shape, so the whole entry silently disappears from `manifest_dependency_roles`'s output.",
+    "For both fixes, confirmed FAILURE first: temporarily disabled each new code branch (`if false && ...`), re-ran the corresponding new test, watched it fail with the exact expected assertion mismatch, then restored the fix and re-ran to confirm it passes -- falsify-before-trust discipline applied to both changes, not just the more novel one."
+  ],
+  "design_decisions": [
+    {
+      "question": "How to detect whether a root manifest is a 'mixed' root worth attributing?",
+      "decision": "A simple textual check (`root_manifest.lines().any(|line| line.trim() == \"[package]\")`), matching this file's own existing hand-rolled-scanner discipline (never a real TOML parser). The root's own package name is then extracted with the exact same `quoted_field(line, \"name\")` line-scan already used for member manifests, for consistency."
+    },
+    {
+      "question": "Should the dotted-dependency fix also handle the target-conditional combination (`[target.'cfg(...)'.dependencies.NAME]`)?",
+      "decision": "No, explicitly deferred with a documented reason rather than guessed: grepped the entire donor corpus and found zero real manifests using that combined form. Adding unverified handling for a shape with no real evidence would risk fabricating a parse rule this bootstrap cannot verify -- the same evidence-before-code discipline this file already applies elsewhere (e.g. the target-selector-expression itself is documented as unparsed). `dotted_dependency_header`'s own doc comment names this as a future TARGET, not a silent gap."
+    }
+  ],
+  "stable_validator_law_compliance": {
+    "claim": "A workspace root manifest that also declares `[package]` now has its own dependency tables attributed to it exactly like any other workspace member; a dotted single-dependency table header (`[dependencies.NAME]`/`[dev-dependencies.NAME]`/`[build-dependencies.NAME]`) is now recognized with the same role/optional/package-rename handling as the equivalent `NAME = { ... }` table-array entry. Neither change alters behavior for any manifest that does not use these specific shapes.",
+    "self_written_evidence": "Four new unit tests (`a_mixed_root_package_and_workspace_manifest_attributes_the_roots_own_dependency_roles`, `a_pure_virtual_workspace_root_registers_no_root_package` as a regression guard against fabricating a root package where none exists, `dotted_single_dependency_table_is_recognized_with_its_own_role`, `dotted_single_dependency_table_honors_a_package_rename`) plus one new real-donor-corpus test (`real_wasmtime_donor_root_package_dependencies_are_evidenced_not_dropped`). Every one of the four fix-facing tests was confirmed to FAIL with the exact expected diagnostic before the corresponding fix, by temporarily disabling just that fix's own code branch and re-running -- not merely written and left green on the first try.",
+    "independent_evidence_channel": "cargo build --workspace clean. cargo fmt --all --check clean. cargo clippy --workspace --all-targets -D warnings clean, zero warnings. Full cargo test --workspace: 284 adapter (+5 net), 2 apps/cli, 161 core, 68 runtime -- 515 total, 0 failed. Real donor corpus tests (`real_census_of_every_cargo_based_donor_workspace_reaches_closed_state`, `real_donor_corpus_exercises_every_source_kind_role_and_activation_combination`, the independent `cargo_metadata`-subprocess oracle in `cargo_oracle.rs`) all still pass unchanged. `atlas-cli graph --root .` against this repository's own workspace (a pure virtual root, unaffected by either fix) still reports exactly 29 RESOLVES_DEPENDENCY edges, confirming no regression. `atlas-cli docs audit --root .atlas`: gate_ready true.",
+    "no_circular_self_certification": true
+  },
+  "implementation": {
+    "adapter_change": "adapter/src/dependency/cargo.rs -- `census_cargo_workspace` now also registers the root manifest's own package (name, dependency roles, evidence path \"Cargo.toml\") when the root Cargo.toml declares `[package]` in addition to `[workspace]`. New `dotted_dependency_header` helper recognizes `[dependencies.NAME]`/`[dev-dependencies.NAME]`/`[build-dependencies.NAME]` headers; `manifest_dependency_roles` now handles both the existing bracket-table shape and this dotted shape, reusing the existing `quoted_field_anywhere`/`bool_field_anywhere` helpers for the dotted body's `package`/`optional` fields."
+  },
+  "adversarial_and_falsification_coverage": [
+    "a_pure_virtual_workspace_root_registers_no_root_package -- regression guard: a root manifest with `[workspace]` but no `[package]` (Atlas's own shape) must not fabricate a root-package edge out of nothing",
+    "dotted_single_dependency_table_honors_a_package_rename -- the dotted shape's `package = \"...\"` rename field is still honored, matching the existing table-array entry behavior exactly",
+    "both fixes independently confirmed to fail without their own code (disabled via `if false &&`, re-ran, restored) before being trusted",
+    "re-ran the full real-donor-corpus test suite (not just the two new synthetic fixtures) to confirm neither fix regresses any of the ~15 already-verified Cargo-based donors' own Closed/dangling/unsupported-construct states"
+  ],
+  "validation_this_generation": {
+    "commands": {
+      "cargo build --workspace": { "exit_code": 0 },
+      "cargo fmt --all --check": { "exit_code": 0 },
+      "cargo clippy --workspace --all-targets -- -D warnings": { "exit_code": 0, "warnings": 0 },
+      "cargo test --workspace": { "exit_code": 0, "totals": "284 adapter (+5 net), 2 apps/cli, 161 core, 68 runtime -- 515 total, 0 failed" },
+      "cargo run -q -p atlas-cli -- graph --root . (before/after)": { "result": "29 RESOLVES_DEPENDENCY edges, unchanged -- Atlas's own workspace has no mixed root manifest" },
+      "cargo run -q -p atlas-cli -- docs audit --root .atlas": { "exit_code": 0, "gate_ready": true }
+    }
+  },
+  "recensus_scope_after_promotion": [
+    "no prior CLOSED/EXTINCT conclusion is affected",
+    "the target-conditional dotted-table combination ([target.'cfg(...)'.dependencies.NAME]) remains an explicit, documented, evidence-gated TARGET for a future generation -- not silently unhandled, and not guessed without real input to verify against",
+    "the broader resolution-context modeling gaps already named in prior generations (feature-selection activation, target-selector-expression parsing) remain open and are unaffected by this generation's narrower, evidenced fixes",
+    "this generation is a direct example of the standing loop's own delegation discipline: a subagent's report was independently re-verified against real code and real data before acting, and its own flagged-but-unverified follow-up candidate was investigated to completion rather than left as a dangling suggestion"
+  ],
+  "overall_verdict": "MATERIALIZED AND VERIFIED. Two real dependency-role attribution gaps in `census_cargo_workspace` -- a 'mixed' root package+workspace manifest, and dotted single-dependency table headers -- are now fixed, both confirmed against real, already-committed donor data (`.atlas/temporary/donors/wasmtime/Cargo.toml` exercises both shapes in its own root manifest) and both confirmed to genuinely fail without their fix before being trusted. Full workspace suite (515 tests) passing, gate_ready true.",
+  "historical_evidence_retained": true
+}
