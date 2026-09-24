@@ -1,0 +1,170 @@
+atlas 1
+system DeskOrganizerFoundry
+
+# Product Foundry fixture (ADR 0023): a 3D-printed desk organizer in two sizes. Every commercial
+# number below is an explicit ASSUMPTION with a declared range and source -- there are no supplier
+# quotes and no market evidence on record, so demand stays UNKNOWN and nothing here claims the
+# product is sellable or profitable.
+
+entity ProductHypothesis H1 {
+    problem = "cables, pens and small tools scatter across a home-office desk"
+    target_customer = "home-office workers"
+}
+
+entity Product Organizer {
+    hypothesis = H1
+    currency = USD
+    planned_volume = 200..1000
+}
+
+entity Variant Small {
+    product = Organizer
+}
+
+entity Variant Large {
+    product = Organizer
+}
+
+entity Sku OrgSmall {
+    variant = Small
+    code = ORG-S-BLK
+}
+
+entity Sku OrgLarge {
+    variant = Large
+    code = ORG-L-BLK
+}
+
+entity Part Body {
+    process = FDM_3D_PRINT
+}
+
+entity Material PLA {
+    price = 15..30 USD/kg
+    basis = ESTIMATED
+    source = "assumption: consumer PLA filament retail range; no quote on record"
+}
+
+entity Component Foot {
+    price = 0.02..0.05 USD
+    basis = ESTIMATED
+    source = "assumption: adhesive rubber bumper, per piece"
+}
+
+entity BomLine OrganizerBody {
+    parent = Organizer
+    item = Body
+    quantity = 1
+}
+
+entity BomLine BodyPlaSmall {
+    parent = Body
+    item = PLA
+    quantity = 85 g
+    variants = Small
+}
+
+entity BomLine BodyPlaLarge {
+    parent = Body
+    item = PLA
+    quantity = 140 g
+    variants = Large
+}
+
+entity BomLine OrganizerFeet {
+    parent = Organizer
+    item = Foot
+    quantity = 4
+}
+
+entity CostItem PrintTime {
+    product = Organizer
+    stage = factory
+    amount = 0.60..1.20 USD
+    basis = ESTIMATED
+    source = "assumption: machine time and electricity for a ~4 h print"
+}
+
+entity CostItem Packaging {
+    product = Organizer
+    stage = landing
+    amount = 0.40..0.80 USD
+    basis = ESTIMATED
+    source = "assumption: mailer box and paper fill"
+}
+
+entity CostItem Freight {
+    product = Organizer
+    stage = landing
+    amount = 0.50..1.50 USD
+    basis = ESTIMATED
+    source = "assumption: inbound freight share per unit"
+}
+
+entity CostItem Fulfillment {
+    product = Organizer
+    stage = channel
+    amount = 2.50..3.50 USD
+    basis = ESTIMATED
+    source = "assumption: pick, pack and ship per order"
+}
+
+entity CostItem ListingMedia {
+    product = Organizer
+    stage = fixed
+    amount = 50..150 USD
+    basis = ESTIMATED
+    source = "assumption: one-time product photography"
+}
+
+entity CostRate Scrap {
+    product = Organizer
+    kind = scrap
+    rate = 5..10%
+    basis = ESTIMATED
+    source = "assumption: failed prints"
+}
+
+entity CostRate PlatformFee {
+    product = Organizer
+    kind = platform_fee
+    rate = 12..15%
+    basis = ESTIMATED
+    source = "assumption: marketplace referral fee range"
+}
+
+entity CostRate Returns {
+    product = Organizer
+    kind = returns_reserve
+    rate = 3..8%
+    basis = ESTIMATED
+    source = "assumption: returns reserve"
+}
+
+entity Price SmallPrice {
+    variant = Small
+    amount = 24..29 USD
+    basis = HYPOTHESIZED
+    source = "price hypothesis to test; no elasticity evidence"
+}
+
+entity Price LargePrice {
+    variant = Large
+    amount = 32..39 USD
+    basis = HYPOTHESIZED
+    source = "price hypothesis to test; no elasticity evidence"
+}
+
+entity ProductRequirement LandedCostCap {
+    product = Organizer
+    metric = landed_cost
+    comparison = <=
+    limit = 15 USD
+}
+
+entity ProductRequirement MarginFloor {
+    product = Organizer
+    metric = gross_margin_ratio
+    comparison = >=
+    limit = 50%
+}

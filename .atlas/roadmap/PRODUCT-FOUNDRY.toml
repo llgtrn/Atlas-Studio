@@ -1,0 +1,21 @@
+schema = "atlas.product-foundry-ledger.v1"
+canonical = true
+contract = ".atlas/contracts/PRODUCT-FOUNDRY.md"
+
+# One entry per Product Foundry generation (directive section 43). Evidence levels:
+# ESTIMATED < QUOTED < PROTOTYPED < VALIDATED < PRODUCTION_MEASURED (HYPOTHESIZED below all).
+# Nothing here claims market fit, profitability, manufacturability or certification.
+
+[[product_generation]]
+generation = "G56"
+product_candidate = "desk organizer (FDM 3D print, PLA), variants Small / Large, SKUs ORG-S-BLK / ORG-L-BLK"
+fixture = "runtime/tests/fixtures/product/desk-organizer"
+market_evidence = "NONE: hypothesis H1 cites no MarketEvidence; demand UNKNOWN"
+engineering_state = "declared BOM (85 g / 140 g PLA per body, 4 feet); no geometry yet"
+bom_state = "variant-aware BOM exploded exactly; PLA 15..30 USD/kg and feet 0.02..0.05 USD are ESTIMATED assumptions"
+cost_state = "DERIVED intervals: Small landed 3.008..7.439 USD, Large 3.876..9.272 USD; weakest basis HYPOTHESIZED (price and volume)"
+manufacturing_state = "process declared FDM_3D_PRINT; print time is an ESTIMATED cost item, not a model"
+commercial_state = "price HYPOTHESIZED (Small 24..29, Large 32..39 USD); margin ratio Small 0.690..0.896; break-even Small 2.6..18.1 units of 50..150 USD fixed media cost -- under stated assumptions only"
+verification = "exact agreement with an independent Python Fraction oracle; 17 mutants killed"
+blockers = ["no geometry: material mass is declared, not derived", "no print-time model", "no quotes", "no market evidence"]
+next_action = "G57: native parametric CSG for the organizer (exact volume -> DERIVED mass -> material cost) with STL export, and a trapezoidal print-time estimate"

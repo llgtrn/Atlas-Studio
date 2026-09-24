@@ -66,14 +66,14 @@ performed_at = "2026-09-24"
 performed_in = "G53"
 
 [exact_counts]
-canonical_repositories = 147
-directive_named_repositories = 78
+canonical_repositories = 153
+directive_named_repositories = 84
 corpus_repositories = 57
 lane_only_repositories = 35
 lifecycle_admitted = 53
 lifecycle_admitted_remote = 1
 lifecycle_extinct = 3
-lifecycle_candidate = 78
+lifecycle_candidate = 84
 lifecycle_candidate_overlapping = 1
 lifecycle_external_oracle = 1
 lifecycle_external_provider_artifact = 8
@@ -81,7 +81,7 @@ lifecycle_rejected_unlicensed = 2
 working_set_materialized = 53
 working_set_remote_only = 1
 working_set_extinct = 3
-working_set_consumer_gated = 79
+working_set_consumer_gated = 85
 working_set_oracle_only = 1
 working_set_excluded = 10
 ecosystems = 6
@@ -90,7 +90,7 @@ non_repository_names = 18
 
 [reconciliation]
 reconstructed_named_total = 119
-repo_exact_total = 147
+repo_exact_total = 153
 named_total_reproducible_from_repository = false
 explanation = "the 119 was counted from project context outside this repository; the repo-exact total is computed from every named project the repository records. It differs because (a) ecosystem names (WebAssembly, Sigstore, OpenTelemetry, ROS 2, Higgsfield) expand to several repositories, (b) subtree names (MLIR, Cranelift, WASI) collapse into their parent repository, (c) investigation lanes recorded alternates and dependencies (e.g. nsjail, bubblewrap, stan-dev/math, urdfdom, OMCompiler) and rejected/provider repositories (higgsfield-ai/*, unlicensed clones), and (d) ISAs, formats and algorithms are named but are not repositories"
 unrecorded_names_action = "any of the 119 names absent from the entries below has no record in this repository; add it with a quote-backed source and a verified canonical_url"
@@ -2043,3 +2043,81 @@ lifecycle = "CANDIDATE"
 working_set = "CONSUMER_GATED"
 license = "GPL-3.0-or-later"
 verified_head = "d1191971d12cf0c40d6b032d5d46ab14a8b176e4"
+
+[[repository]]
+canonical_url = "https://github.com/openscad/openscad.git"
+names = ["OpenSCAD"]
+families = ["product_parametric_cad"]
+origins = ["DIRECTIVE", "LANE"]
+sources = ["directive:PRODUCT_FOUNDRY", ".atlas/evidence/verification/g56-product-foundry.json"]
+corpus_ids = []
+lifecycle = "CANDIDATE"
+working_set = "CONSUMER_GATED"
+license = "GPL-2.0-or-later WITH CGAL-linking-exception"
+verified_head = "28fe66bcaf3e89239153cd16c34499c541d2841e"
+notes = ["G56 lane: blobless depth-1 census, deleted after use; see evidence"]
+
+[[repository]]
+canonical_url = "https://github.com/Ultimaker/CuraEngine.git"
+names = ["CuraEngine", "Cura"]
+families = ["product_slicing"]
+origins = ["DIRECTIVE", "LANE"]
+sources = ["directive:PRODUCT_FOUNDRY", ".atlas/evidence/verification/g56-product-foundry.json"]
+corpus_ids = []
+lifecycle = "CANDIDATE"
+working_set = "CONSUMER_GATED"
+license = "AGPL-3.0-or-later"
+verified_head = "741be28fdfecd4428b84ab6046098e611e10dd60"
+notes = ["G56 lane: blobless depth-1 census, deleted after use; see evidence"]
+
+[[repository]]
+canonical_url = "https://github.com/prusa3d/PrusaSlicer.git"
+names = ["PrusaSlicer"]
+families = ["product_slicing"]
+origins = ["DIRECTIVE", "LANE"]
+sources = ["directive:PRODUCT_FOUNDRY", ".atlas/evidence/verification/g56-product-foundry.json"]
+corpus_ids = []
+lifecycle = "CANDIDATE"
+working_set = "CONSUMER_GATED"
+license = "AGPL-3.0-or-later"
+verified_head = "30ef59195e0f3ee6f270b185bb5f9fb5f349f81f"
+notes = ["G56 lane: blobless depth-1 census, deleted after use; see evidence"]
+
+[[repository]]
+canonical_url = "https://github.com/frappe/erpnext.git"
+names = ["ERPNext"]
+families = ["product_bom_costing"]
+origins = ["DIRECTIVE", "LANE"]
+sources = ["directive:PRODUCT_FOUNDRY", ".atlas/evidence/verification/g56-product-foundry.json"]
+corpus_ids = []
+lifecycle = "CANDIDATE"
+working_set = "CONSUMER_GATED"
+license = "GPL-3.0-or-later"
+verified_head = "b78c2bc5092a82edc7f9edf16161bc1480bcc171"
+notes = ["G56 lane: blobless depth-1 census, deleted after use; see evidence"]
+
+[[repository]]
+canonical_url = "https://github.com/medusajs/medusa.git"
+names = ["Medusa"]
+families = ["product_ecommerce"]
+origins = ["DIRECTIVE", "LANE"]
+sources = ["directive:PRODUCT_FOUNDRY", ".atlas/evidence/verification/g56-product-foundry.json"]
+corpus_ids = []
+lifecycle = "CANDIDATE"
+working_set = "CONSUMER_GATED"
+license = "MIT"
+verified_head = "08f73ec78e17a3a5b6db112290e28f8b3ed79ef6"
+notes = ["G56 lane: blobless depth-1 census, deleted after use; see evidence"]
+
+[[repository]]
+canonical_url = "https://github.com/saleor/saleor.git"
+names = ["Saleor"]
+families = ["product_ecommerce"]
+origins = ["DIRECTIVE", "LANE"]
+sources = ["directive:PRODUCT_FOUNDRY", ".atlas/evidence/verification/g56-product-foundry.json"]
+corpus_ids = []
+lifecycle = "CANDIDATE"
+working_set = "CONSUMER_GATED"
+license = "BSD-3-Clause"
+verified_head = "5ff56489737c78a9a5631d528f699303c953696a"
+notes = ["G56 lane: blobless depth-1 census, deleted after use; see evidence"]

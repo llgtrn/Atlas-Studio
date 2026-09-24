@@ -617,3 +617,413 @@ falsification = "units and identity checks on records"
 dependency_status = "none"
 next_action = "after sil"
 extinction_state = "n/a"
+
+# PRODUCT_FOUNDRY (G56, ADR 0023): need -> hypothesis -> requirements -> engineering -> BOM ->
+# cost -> manufacturing -> SKU -> market evidence -> next product. Evidence levels are
+# ESTIMATED / QUOTED / PROTOTYPED / VALIDATED / PRODUCTION_MEASURED; nothing is claimed above them.
+
+[[lane]]
+id = "product_ideation"
+family = "PRODUCT_FOUNDRY"
+capability = "product hypotheses generated from cited evidence (complaints, reviews, price gaps, new materials/processes)"
+state = "PARTIAL"
+atlas_implementation = "core::product (ADR 0023): ProductHypothesis entities (problem, target customer, cited MarketEvidence); status HYPOTHESIZED; market uncertainty UNKNOWN without evidence"
+donors = []
+blocking_question = "no evidence-ingestion path: hypotheses are declared, not generated"
+evidence_required = "a hypothesis whose cited evidence is ingested with provenance"
+falsification = "a hypothesis citing undeclared evidence is VIOLATED (tested)"
+dependency_status = "none"
+next_action = "ingestion of authorized review/complaint sources into MarketEvidence"
+extinction_state = "n/a"
+
+[[lane]]
+id = "market_evidence"
+family = "PRODUCT_FOUNDRY"
+capability = "typed market signals with provenance (reviews, searches, competitor listings, experiments)"
+state = "PARTIAL"
+atlas_implementation = "core::product (ADR 0023): MarketEvidence entities can be cited; existence checked; demand never asserted by citation"
+donors = []
+blocking_question = "no authorized market-data source is connected; no fabricated data allowed"
+evidence_required = "an ingested, attributed market signal"
+falsification = "citation alone never validates demand (tested)"
+dependency_status = "none"
+next_action = "define MarketEvidence schema fields (source, date, method, sample) when a real source is authorized"
+extinction_state = "n/a"
+
+[[lane]]
+id = "customer_problem"
+family = "PRODUCT_FOUNDRY"
+capability = "problem statements linked to evidence and requirements"
+state = "PARTIAL"
+atlas_implementation = "core::product (ADR 0023): ProductHypothesis.problem / target_customer"
+donors = []
+blocking_question = "problem->requirement trace not yet typed"
+evidence_required = "requirement nodes citing the hypothesis they serve"
+falsification = "trace query from requirement back to evidence"
+dependency_status = "none"
+next_action = "add `serves = <hypothesis>` on ProductRequirement"
+extinction_state = "n/a"
+
+[[lane]]
+id = "product_requirements"
+family = "PRODUCT_FOUNDRY"
+capability = "explicit, dimension-checked product requirements decided over uncertain values"
+state = "PARTIAL"
+atlas_implementation = "core::product (ADR 0023): ProductRequirement over derived commercial metrics (<=, >=) decided SATISFIED/VIOLATED/UNKNOWN across the whole interval; physical requirements via core::physical"
+donors = []
+blocking_question = "geometric/physical product requirements (weight, package size, print time) not yet linked to derived geometry"
+evidence_required = "requirements on parametric geometry and print estimates"
+falsification = "interval requirement mutants killed (G56)"
+dependency_status = "none"
+next_action = "G57: requirements on geometry-derived mass, volume, print time"
+extinction_state = "n/a"
+
+[[lane]]
+id = "product_architecture"
+family = "PRODUCT_FOUNDRY"
+capability = "product -> assembly -> part structure referencing physical entities"
+state = "PARTIAL"
+atlas_implementation = "core::product (ADR 0023): Product/Assembly/Part/BomLine graph with cycle refusal"
+donors = []
+blocking_question = "no link from Part to Physical Engineering geometry/material entities yet"
+evidence_required = "a Part whose mass/volume is DERIVED from declared geometry"
+falsification = "cycle and dimension mutants killed"
+dependency_status = "none"
+next_action = "G57: Part geometry via parametric construction"
+extinction_state = "n/a"
+
+[[lane]]
+id = "parametric_cad"
+family = "PRODUCT_FOUNDRY"
+capability = "requirements -> parameters -> constraints -> exact geometry and mesh export"
+state = "ABSENT"
+atlas_implementation = "none"
+donors = ["CadQuery (Apache-2.0: cq.py Workplane, occ_impl/exporters; 470 KB slice)", "OpenSCAD (GPL-2.0+ WITH CGAL exception: CSG tree, export_stl; principles only)", "FreeCAD (LGPL-2.1+, comparison only)", "OCCT (LGPL-2.1 WITH exception, comparison only)"]
+blocking_question = "no Atlas-native geometry kernel; which primitive set (boxes/pockets as exact CSG of axis-aligned solids) covers the first SKU"
+evidence_required = "exact volume of a parametric organizer body + STL whose volume matches"
+falsification = "mesh volume vs exact CSG volume; manifoldness"
+dependency_status = "none"
+next_action = "G57: native parametric CSG for the desk organizer (exact volume -> mass) with STL export"
+extinction_state = "n/a"
+
+[[lane]]
+id = "electronics"
+family = "PRODUCT_FOUNDRY"
+capability = "schematic/netlist/PCB graph, ERC/DRC"
+state = "ABSENT"
+atlas_implementation = "none"
+donors = ["KiCad (GPL-3.0+, principles only: BOM export, netlist graph, ERC/DRC engines; 445 KB slice)"]
+blocking_question = "no electronics product in scope until Product + Physical primitives mature (milestone 3)"
+evidence_required = "a netlist graph with an ERC rule decided"
+falsification = "ERC on a known-bad netlist"
+dependency_status = "none"
+next_action = "after the 3D-print and OEM milestones"
+extinction_state = "n/a"
+
+[[lane]]
+id = "firmware"
+family = "PRODUCT_FOUNDRY"
+capability = "firmware artifacts tied to product revisions"
+state = "ABSENT"
+atlas_implementation = "none"
+donors = []
+blocking_question = "no firmware-bearing product yet"
+evidence_required = "n/a"
+falsification = "n/a"
+dependency_status = "none"
+next_action = "after the OEM milestone"
+extinction_state = "n/a"
+
+[[lane]]
+id = "bom"
+family = "PRODUCT_FOUNDRY"
+capability = "variant-aware BOM graph with quantities, suppliers, substitutes, lifecycle"
+state = "PARTIAL"
+atlas_implementation = "core::product (ADR 0023): BomLine (parent, item, dimensioned quantity, variant scope) exploded exactly to priced Material/Component leaves; per-kg vs per-piece pricing dimension-checked"
+donors = ["ERPNext (GPL-3.0+: BOMCostingService, exploded items; reference, reimplemented natively)"]
+blocking_question = "no supplier/substitute/lifecycle fields; ERPNext byproduct netting not modelled (Atlas models scrap as yield loss)"
+evidence_required = "supplier-linked BOM lines with substitutes"
+falsification = "variant-scope, cycle, dimension, unknown-propagation mutants killed"
+dependency_status = "none"
+next_action = "supplier/substitute fields once RFQ semantics exist"
+extinction_state = "n/a"
+
+[[lane]]
+id = "costing"
+family = "PRODUCT_FOUNDRY"
+capability = "unit economics with provenance and uncertainty: factory, landed, margins, break-even"
+state = "PARTIAL"
+atlas_implementation = "core::product (ADR 0023): exact interval money, weakest-basis propagation, yield-loss scrap, amortization over a hypothesized volume, dependency-aware margin/contribution/ratio closed forms, break-even only when contribution > 0"
+donors = ["ERPNext (costing formulas, reference)"]
+blocking_question = "duty, warranty and payment fees are expressible only as generic CostItem/CostRate; no FX (never converted)"
+evidence_required = "oracle-exact economics (G56 desk organizer, Python Fraction oracle)"
+falsification = "17 mutants killed; oracle match exact"
+dependency_status = "none"
+next_action = "G57: material cost from DERIVED mass instead of declared grams"
+extinction_state = "n/a"
+
+[[lane]]
+id = "supplier"
+family = "PRODUCT_FOUNDRY"
+capability = "suppliers, RFQs, quotes with validity and incoterms"
+state = "PARTIAL"
+atlas_implementation = "core::product (ADR 0023): Quote entity required for any QUOTED value (existence checked); no quote fields yet"
+donors = []
+blocking_question = "no real supplier quotes exist; fabricated quotes are forbidden"
+evidence_required = "a real quote on record"
+falsification = "QUOTED without Quote is VIOLATED (tested)"
+dependency_status = "none"
+next_action = "Quote schema (supplier, date, validity, MOQ, incoterm, currency) when a real RFQ exists"
+extinction_state = "n/a"
+
+[[lane]]
+id = "oem"
+family = "PRODUCT_FOUNDRY"
+capability = "OEM modules as external components with supplier part numbers"
+state = "ABSENT"
+atlas_implementation = "none"
+donors = []
+blocking_question = "no OEM product yet (milestone 2)"
+evidence_required = "n/a"
+falsification = "n/a"
+dependency_status = "none"
+next_action = "milestone 2 model: OEMModule as EXTERNAL component"
+extinction_state = "n/a"
+
+[[lane]]
+id = "manufacturing"
+family = "PRODUCT_FOUNDRY"
+capability = "process models (3D print, CNC, molding, sheet metal, PCBA, manual)"
+state = "PARTIAL"
+atlas_implementation = "core::product (ADR 0023): Part.process declared (FDM_3D_PRINT); no process model"
+donors = ["CuraEngine (AGPL-3.0: TimeEstimateCalculator, principles only)", "PrusaSlicer (AGPL-3.0: TimeBlock trapezoid model, principles only)"]
+blocking_question = "no print-time model; both slicers use the same Marlin-derived per-move trapezoidal planner (cross-confirmed)"
+evidence_required = "print-time estimate from geometry with stated machine limits"
+falsification = "trapezoid time vs closed-form kinematics"
+dependency_status = "none"
+next_action = "G57: native trapezoidal time estimate over a declared toolpath abstraction"
+extinction_state = "n/a"
+
+[[lane]]
+id = "dfm"
+family = "PRODUCT_FOUNDRY"
+capability = "design-for-manufacturing rules that reject manufacturable-looking but invalid designs"
+state = "ABSENT"
+atlas_implementation = "none"
+donors = []
+blocking_question = "needs geometry (parametric_cad)"
+evidence_required = "a wall-thickness/overhang rule decided on geometry"
+falsification = "a design violating minimum wall is VIOLATED"
+dependency_status = "none"
+next_action = "after parametric_cad"
+extinction_state = "n/a"
+
+[[lane]]
+id = "dfa"
+family = "PRODUCT_FOUNDRY"
+capability = "design-for-assembly rules (part count, fastener count, access)"
+state = "ABSENT"
+atlas_implementation = "none"
+donors = []
+blocking_question = "needs assemblies with geometry"
+evidence_required = "n/a"
+falsification = "n/a"
+dependency_status = "none"
+next_action = "after parametric_cad"
+extinction_state = "n/a"
+
+[[lane]]
+id = "tooling"
+family = "PRODUCT_FOUNDRY"
+capability = "tooling cost and amortization"
+state = "PARTIAL"
+atlas_implementation = "core::product (ADR 0023): fixed CostItems amortized over planned_volume (HYPOTHESIZED)"
+donors = []
+blocking_question = "no tooling entity distinct from other fixed costs"
+evidence_required = "a quoted tooling cost"
+falsification = "amortization basis mutant killed"
+dependency_status = "none"
+next_action = "type tooling separately when a molded part exists"
+extinction_state = "n/a"
+
+[[lane]]
+id = "prototype"
+family = "PRODUCT_FOUNDRY"
+capability = "prototype revisions tied to design digest, BOM, tests"
+state = "ABSENT"
+atlas_implementation = "none"
+donors = []
+blocking_question = "no physical prototype exists; nothing may be marked PROTOTYPED without one"
+evidence_required = "n/a"
+falsification = "n/a"
+dependency_status = "none"
+next_action = "revision record schema when a prototype is built"
+extinction_state = "n/a"
+
+[[lane]]
+id = "inspection"
+family = "PRODUCT_FOUNDRY"
+capability = "inspection requirements, measurements, sample plans"
+state = "ABSENT"
+atlas_implementation = "none"
+donors = []
+blocking_question = "no physical parts"
+evidence_required = "n/a"
+falsification = "n/a"
+dependency_status = "none"
+next_action = "after prototype"
+extinction_state = "n/a"
+
+[[lane]]
+id = "quality"
+family = "PRODUCT_FOUNDRY"
+capability = "defects, root cause, corrective action"
+state = "ABSENT"
+atlas_implementation = "none"
+donors = []
+blocking_question = "no physical parts"
+evidence_required = "n/a"
+falsification = "n/a"
+dependency_status = "none"
+next_action = "after prototype"
+extinction_state = "n/a"
+
+[[lane]]
+id = "packaging"
+family = "PRODUCT_FOUNDRY"
+capability = "package dimensions, weight, protection, labels"
+state = "PARTIAL"
+atlas_implementation = "core::product (ADR 0023): packaging as a landing CostItem only"
+donors = []
+blocking_question = "no package geometry; ties to shipping cost/damage risk absent"
+evidence_required = "package dimensions derived from product geometry"
+falsification = "n/a"
+dependency_status = "none"
+next_action = "G57+: package entity from product bounding box"
+extinction_state = "n/a"
+
+[[lane]]
+id = "logistics"
+family = "PRODUCT_FOUNDRY"
+capability = "routes origin -> warehouse -> customer with costs and lead times"
+state = "PARTIAL"
+atlas_implementation = "core::product (ADR 0023): freight as a landing CostItem only"
+donors = []
+blocking_question = "no route model"
+evidence_required = "n/a"
+falsification = "n/a"
+dependency_status = "none"
+next_action = "route entity when a real route is declared"
+extinction_state = "n/a"
+
+[[lane]]
+id = "compliance"
+family = "PRODUCT_FOUNDRY"
+capability = "explicit compliance requirements; certification only as external evidence"
+state = "ABSENT"
+atlas_implementation = "none"
+donors = []
+blocking_question = "initial products are non-electrical desk accessories; certification is never claimed"
+evidence_required = "n/a"
+falsification = "n/a"
+dependency_status = "none"
+next_action = "compliance semantics before any electrical product"
+extinction_state = "n/a"
+
+[[lane]]
+id = "sku"
+family = "PRODUCT_FOUNDRY"
+capability = "product family / variant / SKU with variant-specific BOM and price"
+state = "PARTIAL"
+atlas_implementation = "core::product (ADR 0023): Variant and Sku entities; BOM lines, cost items and prices variant-scoped"
+donors = ["Medusa (MIT: product/variant/price-set link modules, reference)", "Saleor (BSD-3-Clause: direct-FK variant/stock, contrasting reference)"]
+blocking_question = "no option axes (size/color) typed"
+evidence_required = "option-typed variants"
+falsification = "variant-scope mutant killed"
+dependency_status = "none"
+next_action = "typed Option axes"
+extinction_state = "n/a"
+
+[[lane]]
+id = "pricing"
+family = "PRODUCT_FOUNDRY"
+capability = "price strategy as hypothesis tied to landed cost, margin and channel fees"
+state = "PARTIAL"
+atlas_implementation = "core::product (ADR 0023): Price entities (HYPOTHESIZED ranges); margins and ratio derived; never a market truth"
+donors = ["Medusa (rule-resolved PriceSets, reference)"]
+blocking_question = "no elasticity/competitor evidence"
+evidence_required = "an experiment-backed price posterior"
+falsification = "weakest-basis mutant killed"
+dependency_status = "none"
+next_action = "after sales_feedback"
+extinction_state = "n/a"
+
+[[lane]]
+id = "ecommerce"
+family = "PRODUCT_FOUNDRY"
+capability = "catalog, inventory, orders, fulfillment, returns semantics"
+state = "ABSENT"
+atlas_implementation = "none"
+donors = ["Medusa (MIT, reference)", "Saleor (BSD-3-Clause, reference)"]
+blocking_question = "no channel connected; Atlas stays framework-independent"
+evidence_required = "n/a"
+falsification = "n/a"
+dependency_status = "none"
+next_action = "catalog/inventory semantics when a channel is authorized"
+extinction_state = "n/a"
+
+[[lane]]
+id = "launch"
+family = "PRODUCT_FOUNDRY"
+capability = "listing assets derived from product state (Creator Fabric)"
+state = "ABSENT"
+atlas_implementation = "none"
+donors = []
+blocking_question = "needs Creator assets tied to product facts; marketing text may not invent specifications"
+evidence_required = "a listing whose every claim traces to product/physical state"
+falsification = "a listing claim without a trace is refused"
+dependency_status = "none"
+next_action = "after parametric_cad (render/spec table from geometry)"
+extinction_state = "n/a"
+
+[[lane]]
+id = "sales_feedback"
+family = "PRODUCT_FOUNDRY"
+capability = "experiments: prediction -> observed sales -> posterior"
+state = "ABSENT"
+atlas_implementation = "none"
+donors = []
+blocking_question = "no authorized sales data; conversion rates are never invented"
+evidence_required = "n/a"
+falsification = "n/a"
+dependency_status = "none"
+next_action = "experiment schema when real data is authorized"
+extinction_state = "n/a"
+
+[[lane]]
+id = "returns_feedback"
+family = "PRODUCT_FOUNDRY"
+capability = "reviews/returns/defects mapped to requirement gaps"
+state = "ABSENT"
+atlas_implementation = "none"
+donors = []
+blocking_question = "no returns data"
+evidence_required = "n/a"
+falsification = "n/a"
+dependency_status = "none"
+next_action = "after sales_feedback"
+extinction_state = "n/a"
+
+[[lane]]
+id = "product_nextgen"
+family = "PRODUCT_FOUNDRY"
+capability = "evidence-driven product revision into a new SKU"
+state = "ABSENT"
+atlas_implementation = "none"
+donors = []
+blocking_question = "needs feedback evidence"
+evidence_required = "a revision justified by recorded evidence"
+falsification = "n/a"
+dependency_status = "none"
+next_action = "milestone 4"
+extinction_state = "n/a"

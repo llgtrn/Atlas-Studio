@@ -155,6 +155,28 @@ fn run(args: &[String]) -> Result<(), String> {
                 return Err("PHYSICAL_REQUIREMENTS_NOT_SATISFIED".into());
             }
         }
+        [cmd, rest @ ..] if cmd == "product" => {
+            // Product Foundry (ADR 0023): declared products -> BOM, unit economics, requirements.
+            // Every number carries its evidence basis; nothing here asserts market truth.
+            let root = value(rest, "--root")?.ok_or("product requires --root")?;
+            let analysis =
+                runtime::product::analyze_root(&root).map_err(|e| format!("{root}: {e}"))?;
+            let text = json(&analysis.product)? + "\n";
+            if let Some(out) = value(rest, "--out")? {
+                write_report_to_out(&out, &text)?;
+            }
+            print!("{text}");
+            let undecided = !analysis.product.findings.is_empty()
+                || analysis
+                    .product
+                    .variants
+                    .iter()
+                    .flat_map(|v| &v.requirements)
+                    .any(|check| !check.verdict.admits());
+            if undecided {
+                return Err("PRODUCT_REQUIREMENTS_NOT_SATISFIED".into());
+            }
+        }
         [cmd, rest @ ..] if cmd == "genome" => {
             // ADR 0018: abstract design mechanisms from authorized reference fixtures.
             let references: Vec<std::path::PathBuf> = rest
@@ -424,7 +446,7 @@ fn run(args: &[String]) -> Result<(), String> {
         }
         _ => {
             return Err(
-                "usage: atlas-systemizer <contract|systemize|docs audit|code analyze|parse|check|graph|observe|genome|search|create|physical|donors working-set|work prepare> ..."
+                "usage: atlas-systemizer <contract|systemize|docs audit|code analyze|parse|check|graph|observe|genome|search|create|physical|product|donors working-set|work prepare> ..."
                     .into(),
             );
         }

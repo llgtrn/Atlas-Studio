@@ -13,7 +13,7 @@
 #       -> generation evidence -> G_n+1
 
 schema = "atlas.self-build.generation-ledger.v1"
-current_generation = "G55"
+current_generation = "G56"
 
 [[generation]]
 id = "G35"
@@ -593,6 +593,7 @@ base_commit = "dbbf5186f475e5586368b97a0da7e6d8062531c9"
 objective = "browser-engine-independent Creator instrument architecture: BrowserInstrument abstraction, Chromium preserved as reference, W3C WebDriver backend, cross-instrument differential evidence, Ladybird admission and promotion gate"
 writer = "coordinator (sole writer); read-only lanes: Chromium coupling audit, Ladybird feasibility + slice census"
 evidence = ".atlas/evidence/verification/g55-cross-instrument-differential.json"
+result_commits = ["f6bf0f2df5f5aa478dac70d920f8ccd5fad4a069"]
 
 [[generation.lane]]
 id = "chromium-coupling-audit"
@@ -618,3 +619,28 @@ falsification = "16 mutants killed; grid-column survivor closed by a new test; v
 
 [generation.next]
 objective = "G56: PRODUCT_FOUNDRY lanes and first native primitive"
+
+[[generation]]
+id = "G56"
+base_commit = "f6bf0f2df5f5aa478dac70d920f8ccd5fad4a069"
+objective = "open PRODUCT_FOUNDRY: 29 machine-readable lanes, repo-exact donor frontier, and the first native primitive (Product Semantic IR + evidence-typed unit economics)"
+writer = "coordinator (sole writer); read-only lane: Product Foundry donor verification (10 candidates, remote census)"
+evidence = ".atlas/evidence/verification/g56-product-foundry.json"
+
+[[generation.lane]]
+id = "product-donor-verification"
+objective = "URL/head/license/size and minimal mechanism slices for OpenSCAD, CadQuery, FreeCAD, OCCT, KiCad, CuraEngine, PrusaSlicer, ERPNext, Medusa, Saleor; deep reads of BOM costing, print-time model, variant/price linkage"
+result = "all verified; ERPNext total = operating + raw material - secondary items; CuraEngine and PrusaSlicer share a Marlin-derived trapezoidal time model; Medusa links variants to prices/inventory via link modules; recommendation: CadQuery parametric slice + trapezoidal time estimate next"
+
+[generation.join]
+selected_primitive = "core::product: Product Semantic IR over ADL + unit economics"
+reason = "every other lane (CAD, quotes, pricing, experiments) needs a typed, evidence-leveled, exact cost model to feed"
+donor_decisions = "ERPNext/Medusa/Saleor/OpenSCAD/KiCad/FreeCAD/OCCT REFERENCE_ONLY; CuraEngine/PrusaSlicer REFERENCE_ONLY (AGPL, principles only); CadQuery ABSORB_LATER (G57 target)"
+
+[generation.verification]
+falsification = "17/17 mutants killed; currency-mixing survivor closed with entry-point findings"
+oracle = "independent Python Fraction oracle: exact agreement on 7 metrics x 2 variants + break-even"
+honest_findings = "naive interval subtraction gave a margin ratio above 1; break-even double-counted amortized fixed costs; both fixed before commit"
+
+[generation.next]
+objective = "G57: native parametric CSG for the desk organizer (exact volume -> DERIVED mass -> material cost, STL export) + trapezoidal print-time estimate"

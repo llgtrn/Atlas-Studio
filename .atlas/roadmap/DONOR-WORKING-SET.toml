@@ -79,3 +79,27 @@ required_evidence = "a running WebDriver binary; four-fixture differential; prom
 dependencies = "Qt 6.9+ SYSTEM_BOUNDARY; gcc>=14/clang>=19 TOOLCHAIN; vcpkg ports SOURCE (built, not censused)"
 blocker = "toolchain and Qt prerequisites absent on this host; build footprint unmeasured, so admission cannot be decided"
 next_action = "run on a host with the prerequisites or a Ladybird binary; measure the build footprint before requesting a working-set slot"
+
+[[queue]]
+donor = "cadquery"
+capability_target = "product parametric_cad: requirements -> parameters -> exact geometry -> STL"
+priority_rationale = "G56 lane: smallest clean parametric slice (Apache-2.0, 12.2 MB repo, 470 KB slice); unblocks DERIVED mass, material cost, print estimate, DFM"
+estimated_source_bytes = 470_417
+estimated_build_bytes = 0
+materialization_mode = "FETCHED_FILE_SET (cq.py, occ_impl/exporters, assembly.py: reading, no execution)"
+required_evidence = "the Workplane stack-machine and export mechanisms, mapped to an Atlas-native exact CSG for axis-aligned solids"
+dependencies = "OCCT via OCP bindings: REFERENCE_ONLY (Atlas does not adopt a BRep kernel for the first SKU)"
+blocker = "none: fits the budget under PRESSURE (no donor in progress)"
+next_action = "G57: materialize the file set into .atlas/.cache/donors/cadquery, census, implement native parametric CSG, delete the slice"
+
+[[queue]]
+donor = "curaengine+prusaslicer (principles)"
+capability_target = "product manufacturing: print-time estimate"
+priority_rationale = "two independent slicers converge on the same Marlin-derived per-move trapezoidal model"
+estimated_source_bytes = 0
+estimated_build_bytes = 0
+materialization_mode = "REMOTE_METADATA (AGPL-3.0: principles only, no source copied; the model is textbook kinematics)"
+required_evidence = "closed-form trapezoid time per move vs Atlas-native implementation, tested against hand-derived kinematics"
+dependencies = "none"
+blocker = "none"
+next_action = "G57: native trapezoidal time estimate over a declared toolpath abstraction"

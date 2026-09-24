@@ -1,0 +1,601 @@
+{
+  "schema": "atlas.self-build.generation-evidence.v1",
+  "generation": "G56",
+  "claim": "Product Foundry first slice: a Product Semantic IR over declared ADL (variant-aware BOM, exact money intervals with an evidence basis on every value, unit economics to break-even, interval-decided requirements) computes the desk-organizer fixture exactly as an independent Python Fraction oracle written from the economic definitions",
+  "epistemic_status": "DERIVED from declared ESTIMATED/HYPOTHESIZED inputs; no QUOTED, PROTOTYPED or market-evidenced value exists",
+  "oracle": "/tmp/claude-0/-home-user-Atlas-Studio/28dd513f-e23d-5be4-99f7-a44e2b6ecf3b/scratchpad/g56oracle.py (Python fractions); exact rational agreement on 7 metrics x 2 variants and break-even",
+  "honest_findings": [
+    "the first oracle run exposed a gross-margin ratio upper bound above 1: naive interval subtraction treats one price as two independent intervals; replaced by dependency-aware closed forms (ratio = 1 - landed/price; contribution = price(1-rates) - variable_landed - channel items)",
+    "break-even initially divided fixed costs by a contribution that already contained amortized fixed costs (double count); contribution now excludes amortization",
+    "a EUR-priced input in a USD product silently became UNKNOWN; every entry point now emits a no-silent-conversion finding"
+  ],
+  "falsification": "17 mutants killed (point estimates allowed, quote not required, source not required, unknown as zero, cycle unchecked, dimension unchecked, variants ignored, scrap ignored, naive ratio, contribution with amortization, amortization basis too strong, optimistic requirement, currency mixing, break-even on negative contribution, evidence existence unchecked, rates ignored, weakest basis max)",
+  "donor_lane": {
+    "method": "Verified via git ls-remote (HEAD sha) + blobless depth-1 no-checkout clones (git clone --filter=blob:none --depth 1 --no-checkout). Paths via `git ls-tree -r --name-only HEAD` (free, local, no blob fetch). Full-repo `git ls-tree -r -l HEAD` (blob sizes) triggers a per-blob network fetch (~0.3-0.5s/object even with GitHub's own smart-HTTP negotiation via the proxy) which is only tractable for small repos. For repos with >1000 tracked files, total 'source bytes' is an ESTIMATE: an even-stride sample of ~150-220 paths was sized with `ls-tree -l`, averaged, and extrapolated by file count, after excluding obvious non-source outliers (locale .po files, chart-of-accounts JSON fixtures, generated docs sites, placeholder images/icons) that otherwise skew a small sample heavily. These are marked total_bytes_estimated=true. Mechanism-slice byte counts are always EXACT (targeted ls-tree -l on a short, named file list). Every clone was deleted immediately after use; peak per-repo disk footprint stayed under ~10MB.",
+    "candidates": [
+      {
+        "name": "OpenSCAD",
+        "url": "https://github.com/openscad/openscad.git",
+        "head_sha": "28fe66bcaf3e89239153cd16c34499c541d2841e",
+        "license_spdx": "GPL-2.0-or-later WITH CGAL-linking-exception (COPYING = GPLv2 text plus an explicit permission to link with CGAL and distribute the result)",
+        "total_tracked_files": 3749,
+        "total_bytes": 41097886,
+        "total_bytes_source_subset": null,
+        "total_bytes_estimated": true,
+        "notes": "Dual backend: legacy CGAL Nef-polyhedron boolean ops (src/geometry/cgal/*) and a newer Manifold-library backend (src/geometry/manifold/*). GeometryEvaluator walks the AbstractNode tree and dispatches per-node-type geometry generation; CSGTreeEvaluator builds a flattened CSG op tree consumed by the render/preview path. export_stl.cc writes ASCII or binary STL directly off a PolySet (triangulated mesh).",
+        "mechanism_slice": {
+          "description": "CSG tree construction/evaluation + geometry evaluator + STL export/import",
+          "total_bytes": 141855,
+          "files": [
+            {
+              "path": "src/core/CSGNode.cc",
+              "bytes": 10741
+            },
+            {
+              "path": "src/core/CSGNode.h",
+              "bytes": 4660
+            },
+            {
+              "path": "src/core/CSGTreeEvaluator.cc",
+              "bytes": 11207
+            },
+            {
+              "path": "src/core/CSGTreeEvaluator.h",
+              "bytes": 2591
+            },
+            {
+              "path": "src/core/CsgOpNode.cc",
+              "bytes": 3455
+            },
+            {
+              "path": "src/core/CsgOpNode.h",
+              "bytes": 388
+            },
+            {
+              "path": "src/geometry/Geometry.cc",
+              "bytes": 2022
+            },
+            {
+              "path": "src/geometry/Geometry.h",
+              "bytes": 3099
+            },
+            {
+              "path": "src/geometry/GeometryEvaluator.cc",
+              "bytes": 35333
+            },
+            {
+              "path": "src/geometry/GeometryEvaluator.h",
+              "bytes": 5408
+            },
+            {
+              "path": "src/geometry/PolySet.cc",
+              "bytes": 5238
+            },
+            {
+              "path": "src/geometry/PolySet.h",
+              "bytes": 2230
+            },
+            {
+              "path": "src/geometry/PolySetBuilder.cc",
+              "bytes": 7288
+            },
+            {
+              "path": "src/geometry/PolySetBuilder.h",
+              "bytes": 1586
+            },
+            {
+              "path": "src/geometry/boolean_utils.cc",
+              "bytes": 1544
+            },
+            {
+              "path": "src/geometry/boolean_utils.h",
+              "bytes": 151
+            },
+            {
+              "path": "src/io/export.cc",
+              "bytes": 12175
+            },
+            {
+              "path": "src/io/export.h",
+              "bytes": 16374
+            },
+            {
+              "path": "src/io/export_stl.cc",
+              "bytes": 9933
+            },
+            {
+              "path": "src/io/import_stl.cc",
+              "bytes": 6432
+            }
+          ]
+        }
+      },
+      {
+        "name": "CadQuery",
+        "url": "https://github.com/CadQuery/cadquery.git",
+        "head_sha": "c11b3f93278bb25053991f7071451f71664c90fc",
+        "license_spdx": "Apache-2.0",
+        "total_tracked_files": 219,
+        "total_bytes": 12174434,
+        "total_bytes_source_subset": null,
+        "total_bytes_estimated": false,
+        "notes": "cq.py implements the fluent Workplane API (chained parametric ops: box/extrude/fillet/pattern etc.) as a stack machine over occ_impl.shapes.Shape, a thin OCCT/OCP wrapper. assembly.py + occ_impl/assembly.py handle multi-part Assembly trees with placement constraints. occ_impl/exporters/ dispatches STL/STEP/AMF/3MF/SVG/DXF export from the underlying OCCT BRep. This is the highest-fidelity 'parametric geometry kernel with a scriptable Python API' donor candidate \u2014 smallest, cleanest, most directly reusable slice of the whole set.",
+        "mechanism_slice": {
+          "description": "Workplane/parametric fluent API, Assembly, OCC-backed shapes, and exporters",
+          "total_bytes": 470417,
+          "files": [
+            {
+              "path": "cadquery/cq.py",
+              "bytes": 171042
+            },
+            {
+              "path": "cadquery/assembly.py",
+              "bytes": 27099
+            },
+            {
+              "path": "cadquery/occ_impl/assembly.py",
+              "bytes": 27349
+            },
+            {
+              "path": "cadquery/occ_impl/shapes.py",
+              "bytes": 234336
+            },
+            {
+              "path": "cadquery/occ_impl/exporters/__init__.py",
+              "bytes": 4236
+            },
+            {
+              "path": "cadquery/occ_impl/exporters/amf.py",
+              "bytes": 1335
+            },
+            {
+              "path": "cadquery/occ_impl/exporters/threemf.py",
+              "bytes": 5020
+            }
+          ]
+        }
+      },
+      {
+        "name": "FreeCAD",
+        "url": "https://github.com/FreeCAD/FreeCAD.git",
+        "head_sha": "1b7d32fb7f24ea65e98d50d4194843089557e9fc",
+        "license_spdx": "LGPL-2.1-or-later (LICENSE file; individual workbenches/modules carry mixed GPL-2.0/GPL-3.0/LGPL notices)",
+        "total_tracked_files": 13398,
+        "total_bytes": 376533732,
+        "total_bytes_source_subset": null,
+        "total_bytes_estimated": true,
+        "notes": "No mechanism slice requested for FreeCAD in scope; included only for URL/sha/license/size comparison. Far larger and heavier (full parametric-history CAD kernel + GUI + many workbenches) than CadQuery for a scripted parametric-geometry absorption.",
+        "mechanism_slice": null
+      },
+      {
+        "name": "OCCT (Open CASCADE Technology)",
+        "url": "https://github.com/Open-Cascade-SAS/OCCT.git",
+        "head_sha": "3d097a0328e71b826377d4814ab05ec3c3d23871",
+        "license_spdx": "LGPL-2.1-only WITH OCCT-exception-1.0 (LICENSE_LGPL_21.txt + OCCT_LGPL_EXCEPTION.txt)",
+        "total_tracked_files": 34563,
+        "total_bytes": 144762914,
+        "total_bytes_source_subset": null,
+        "total_bytes_estimated": true,
+        "notes": "The C++ B-Rep kernel CadQuery itself wraps (via OCP/pythonocc bindings). No mechanism slice requested; included for comparison only. Absorbing OCCT directly (vs. via CadQuery's Python layer) would be a much heavier lift.",
+        "mechanism_slice": null
+      },
+      {
+        "name": "KiCad",
+        "url": "https://gitlab.com/kicad/code/kicad.git",
+        "head_sha": "d1191971d12cf0c40d6b032d5d46ab14a8b176e4",
+        "license_spdx": "GPL-3.0-or-later (main LICENSE; bundled third-party bits under LICENSE.3-CLAUSE-BSD/APACHE-2.0/BOOSTv1_0/CC-BY-SA-4.0/CC0/ISC/MIT per LICENSE.README)",
+        "total_tracked_files": 20405,
+        "total_bytes": null,
+        "total_bytes_source_subset": 109257399,
+        "total_bytes_estimated": true,
+        "notes": "BOM: eeschema/bom_plugins.cpp + dialog_bom.cpp drive pluggable BOM generators (Python scripts under eeschema/python_scripts/*.py, e.g. bom_csv_grouped_by_value.py) fed by common/jobs/job_export_bom.cpp for CLI use. Netlist: netlist_reader/netlist.cpp holds the in-memory component/net graph; per-target exporters (KiCad/Spice/Cadstar/Allegro/PADS/OrcadPCB2) subclass netlist_exporter_base.cpp. ERC (schematic rule check) and DRC (board rule check, pcbnew/drc/drc_engine.cpp + drc_rule.cpp, a declarative rule-condition parser) are two separate engines, not shared, each with their own item/report/exclusion model.",
+        "mechanism_slice": {
+          "description": "BOM generation, netlist graph construction/export, ERC and DRC rule model entry points",
+          "total_bytes": 444968,
+          "files": [
+            {
+              "path": "common/jobs/job_export_bom.cpp",
+              "bytes": 5908
+            },
+            {
+              "path": "common/jobs/job_export_bom.h",
+              "bytes": 2492
+            },
+            {
+              "path": "eeschema/bom_plugins.cpp",
+              "bytes": 6549
+            },
+            {
+              "path": "eeschema/bom_plugins.h",
+              "bytes": 4538
+            },
+            {
+              "path": "eeschema/dialogs/dialog_bom.cpp",
+              "bytes": 13022
+            },
+            {
+              "path": "eeschema/dialogs/dialog_bom.h",
+              "bytes": 2477
+            },
+            {
+              "path": "common/netlist_reader/netlist.cpp",
+              "bytes": 7491
+            },
+            {
+              "path": "common/netlist_reader/netlist.h",
+              "bytes": 13214
+            },
+            {
+              "path": "common/netlist_reader/netlist_reader.cpp",
+              "bytes": 6378
+            },
+            {
+              "path": "common/netlist_reader/netlist_reader.h",
+              "bytes": 8807
+            },
+            {
+              "path": "eeschema/netlist_exporters/netlist_exporter_base.cpp",
+              "bytes": 16842
+            },
+            {
+              "path": "eeschema/netlist_exporters/netlist_exporter_base.h",
+              "bytes": 8515
+            },
+            {
+              "path": "eeschema/netlist_exporters/netlist_exporter_kicad.cpp",
+              "bytes": 1779
+            },
+            {
+              "path": "eeschema/netlist_exporters/netlist_exporter_kicad.h",
+              "bytes": 2125
+            },
+            {
+              "path": "eeschema/erc/erc.cpp",
+              "bytes": 135398
+            },
+            {
+              "path": "eeschema/erc/erc.h",
+              "bytes": 7521
+            },
+            {
+              "path": "eeschema/erc/erc_settings.cpp",
+              "bytes": 20182
+            },
+            {
+              "path": "eeschema/erc/erc_settings.h",
+              "bytes": 13775
+            },
+            {
+              "path": "pcbnew/drc/drc_engine.cpp",
+              "bytes": 126490
+            },
+            {
+              "path": "pcbnew/drc/drc_engine.h",
+              "bytes": 14889
+            },
+            {
+              "path": "pcbnew/drc/drc_rule.cpp",
+              "bytes": 18070
+            },
+            {
+              "path": "pcbnew/drc/drc_rule.h",
+              "bytes": 8506
+            }
+          ]
+        }
+      },
+      {
+        "name": "CuraEngine",
+        "url": "https://github.com/Ultimaker/CuraEngine.git",
+        "head_sha": "741be28fdfecd4428b84ab6046098e611e10dd60",
+        "license_spdx": "AGPL-3.0-or-later",
+        "total_tracked_files": 653,
+        "total_bytes": 8187167,
+        "total_bytes_source_subset": null,
+        "total_bytes_estimated": false,
+        "notes": "TimeEstimateCalculator (timeEstimate.h/.cpp) is explicitly commented in-source as 'adapted from the Marlin sources': a per-move Block with accelerate_until/decelerate_after/nominal_feedrate/entry_speed/max_entry_speed plus per-axis jerk limits (max_xy_jerk, max_z_jerk, max_e_jerk) -- i.e. a full trapezoidal-velocity-profile planner simulation per G-code move, not a flat feedrate/distance division. TimeMaterialEstimates.h carries the per-feature-type (wall/skin/infill/travel/retraction) time+material rollup that LayerPlan/GCodeExport accumulate into. slicer.cpp/slicer.h is the actual mesh-to-layers slicing entry point (SlicerLayer per Z height), independent of and upstream from the time estimator.",
+        "mechanism_slice": {
+          "description": "Print time estimation (TimeEstimateCalculator, Marlin-derived), layer slicing entry point, per-move time/material estimate struct",
+          "total_bytes": 366399,
+          "files": [
+            {
+              "path": "include/timeEstimate.h",
+              "bytes": 3914
+            },
+            {
+              "path": "src/timeEstimate.cpp",
+              "bytes": 16325
+            },
+            {
+              "path": "include/pathPlanning/TimeMaterialEstimates.h",
+              "bytes": 4001
+            },
+            {
+              "path": "include/FffProcessor.h",
+              "bytes": 1343
+            },
+            {
+              "path": "src/FffProcessor.cpp",
+              "bytes": 301
+            },
+            {
+              "path": "include/slicer.h",
+              "bytes": 24396
+            },
+            {
+              "path": "src/slicer.cpp",
+              "bytes": 47122
+            },
+            {
+              "path": "include/layerPart.h",
+              "bytes": 1542
+            },
+            {
+              "path": "src/layerPart.cpp",
+              "bytes": 3998
+            },
+            {
+              "path": "include/LayerPlan.h",
+              "bytes": 69170
+            },
+            {
+              "path": "src/LayerPlan.cpp",
+              "bytes": 194287
+            }
+          ]
+        }
+      },
+      {
+        "name": "PrusaSlicer",
+        "url": "https://github.com/prusa3d/PrusaSlicer.git",
+        "head_sha": "30ef59195e0f3ee6f270b185bb5f9fb5f349f81f",
+        "license_spdx": "AGPL-3.0-or-later",
+        "total_tracked_files": 6096,
+        "total_bytes": null,
+        "total_bytes_source_subset": 99780987,
+        "total_bytes_estimated": true,
+        "notes": "IMPORTANT: this HEAD is a heavily modularized/refactored PrusaSlicer tree (src/libpgcode, src/slic3r-domain, src/slic3r-biz-* modules) very different from the classic monolithic 'src/libslic3r/GCode/GCodeProcessor.*' layout most public docs describe -- confirms this is genuinely live upstream, not a stale mirror. TimeBlock.{hpp,cpp} implements the identical physical model to CuraEngine (per-move Trapezoid: accelerate_until/decelerate_after/cruise_feedrate, closed-form kinematics: v^2=v0^2+2ad style formulas, entry/exit feedrate handed in per block) -- both slicers converged on the same Marlin-derived per-segment trapezoidal-acceleration time model, just organized differently. PrintStatistics.hpp (src/slic3r-domain) is the material/filament usage output: used_filament_per_extruder_{mm,cm3,g}, filament_cost_per_extruder, volumes_per_extruder/per_role, wipe-tower and flush volumes -- i.e. cost and mass, not just length.",
+        "mechanism_slice": {
+          "description": "Print time estimation (TimeBlock/TimeProcessor, same trapezoidal-planner family as CuraEngine but modularized into a standalone libpgcode library), slicing entry point (Print.cpp, TriangleMeshSlicer), filament/material usage stats",
+          "total_bytes": 250961,
+          "files": [
+            {
+              "path": "src/libpgcode/include/Slic3r/Biz/libpgcode/Processor.hpp",
+              "bytes": 875
+            },
+            {
+              "path": "src/libpgcode/src/Slic3r/Biz/libpgcode/Processor.cpp",
+              "bytes": 1377
+            },
+            {
+              "path": "src/libpgcode/src/Slic3r/Biz/libpgcode/TimeBlock.cpp",
+              "bytes": 2971
+            },
+            {
+              "path": "src/libpgcode/src/Slic3r/Biz/libpgcode/TimeBlock.hpp",
+              "bytes": 1861
+            },
+            {
+              "path": "src/libpgcode/src/Slic3r/Biz/libpgcode/TimeProcessor.cpp",
+              "bytes": 5438
+            },
+            {
+              "path": "src/libpgcode/src/Slic3r/Biz/libpgcode/TimeProcessor.hpp",
+              "bytes": 2264
+            },
+            {
+              "path": "src/libslic3r/include/libslic3r/PrintSteps.hpp",
+              "bytes": 1481
+            },
+            {
+              "path": "src/libslic3r/include/libslic3r/TriangleMeshSlicer.hpp",
+              "bytes": 6529
+            },
+            {
+              "path": "src/libslic3r/src/libslic3r/Print.cpp",
+              "bytes": 93543
+            },
+            {
+              "path": "src/libslic3r/src/libslic3r/TriangleMeshSlicer.cpp",
+              "bytes": 131627
+            },
+            {
+              "path": "src/slic3r-domain/include/Slic3r/Domain/PrintStatistics.hpp",
+              "bytes": 2995
+            }
+          ]
+        }
+      },
+      {
+        "name": "ERPNext",
+        "url": "https://github.com/frappe/erpnext.git",
+        "head_sha": "b78c2bc5092a82edc7f9edf16161bc1480bcc171",
+        "license_spdx": "GPL-3.0-or-later",
+        "total_tracked_files": 5637,
+        "total_bytes": null,
+        "total_bytes_source_subset": 22724486,
+        "total_bytes_estimated": true,
+        "notes": "This HEAD has already extracted BOM cost logic out of the historical monolithic bom.py into erpnext/manufacturing/doctype/bom/services/costing.py (BOMCostingService) + exploded_items.py (BOMExplodedItemsService); bom.py now keeps thin delegating stubs. Key formula (BOMCostingService.calculate_cost): total_cost = operating_cost + raw_material_cost - secondary_items_cost, with base_total_cost mirroring it in company currency. calculate_op_cost sums operation.operating_cost = hour_rate * time_in_mins/60 (or a flat fg_based_operating_cost = quantity * operating_cost_per_bom_quantity). calculate_rm_cost sums rate*qty over BOM items using get_rm_rate (valuation-rate / price-list / sub-assembly-BOM-unit-cost, selectable per BOM). calculate_secondary_items_costs replaces the old 'Scrap Items' concept: rows valued 'Valuation Rate' or 'Manual' are summed and subtracted first, and the remainder (raw_material_cost - own-valued secondary cost) is allocated pro-rata by cost_allocation_per % across the remaining secondary rows -- i.e. scrap/byproduct cost is netted OUT of raw_material_cost, not added. calculate_exploded_cost then re-rates the flattened BOM Explosion Item rows (get_rm_rate_map, walking child sub-assembly BOMs) so the exploded (fully-flattened) BOM view reprices consistently. work_order.py + services/required_items.py compute required raw-material quantities off qty_consumed_per_unit, and services/reservation.py handles stock reservation against a Work Order.",
+        "mechanism_slice": {
+          "description": "BOM doctype (cost rollup, exploded-items, operations cost) and Work Order",
+          "total_bytes": 238148,
+          "files": [
+            {
+              "path": "erpnext/manufacturing/doctype/bom/bom.py",
+              "bytes": 57403
+            },
+            {
+              "path": "erpnext/manufacturing/doctype/bom/bom.json",
+              "bytes": 19655
+            },
+            {
+              "path": "erpnext/manufacturing/doctype/bom/mapper.py",
+              "bytes": 6321
+            },
+            {
+              "path": "erpnext/manufacturing/doctype/bom/services/costing.py",
+              "bytes": 11741
+            },
+            {
+              "path": "erpnext/manufacturing/doctype/bom/services/exploded_items.py",
+              "bytes": 4178
+            },
+            {
+              "path": "erpnext/manufacturing/doctype/bom/services/operations_cost.py",
+              "bytes": 9607
+            },
+            {
+              "path": "erpnext/manufacturing/doctype/work_order/work_order.py",
+              "bytes": 37595
+            },
+            {
+              "path": "erpnext/manufacturing/doctype/work_order/work_order.json",
+              "bytes": 18874
+            },
+            {
+              "path": "erpnext/manufacturing/doctype/work_order/services/operations.py",
+              "bytes": 12634
+            },
+            {
+              "path": "erpnext/manufacturing/doctype/work_order/services/required_items.py",
+              "bytes": 16490
+            },
+            {
+              "path": "erpnext/manufacturing/doctype/work_order/services/reservation.py",
+              "bytes": 26292
+            },
+            {
+              "path": "erpnext/manufacturing/doctype/work_order/services/status.py",
+              "bytes": 17358
+            }
+          ]
+        }
+      },
+      {
+        "name": "Medusa",
+        "url": "https://github.com/medusajs/medusa.git",
+        "head_sha": "08f73ec78e17a3a5b6db112290e28f8b3ed79ef6",
+        "license_spdx": "MIT (core repository; a separate Enterprise Edition subset is under a proprietary commercial license per ENTERPRISE-LICENSE.md, not applicable to the modules examined here)",
+        "total_tracked_files": 24204,
+        "total_bytes": null,
+        "total_bytes_source_subset": 40986988,
+        "total_bytes_estimated": true,
+        "notes": "Medusa v2's modular architecture deliberately does NOT put price_set_id or inventory_item_id foreign keys on ProductVariant. Instead each module (Product, Pricing, Inventory) is a standalone, independently-schema'd package, and a separate 'link module' (packages/modules/link-modules) owns join tables: product_variant_price_set (pvps) and product_variant_inventory_item (pvitem, with its own extra field required_quantity for multi-part variants). These link definitions also declare computed field aliases back onto ProductVariant (e.g. variant.calculated_price resolves through price_set_link.price_set.calculated_price; variant.inventory resolves through inventory_items.inventory) so the cross-module join is transparent to API consumers via Medusa's remote-query layer. Price itself (models/price.ts) is currency_code + amount + min/max_quantity (quantity-tier pricing) belonging to a PriceSet, with PriceRule rows layered on for conditional pricing (e.g. by region/customer-group) and PriceList for list-based overrides -- i.e. price is NOT a flat variant.price column, it's a rule-evaluated PriceSet resolved at query time.",
+        "mechanism_slice": {
+          "description": "Product/variant module, Pricing module (PriceSet/Price/PriceRule/PriceList), Inventory module, and the cross-module link definitions that connect them",
+          "total_bytes": 240846,
+          "files": [
+            {
+              "path": "packages/modules/product/src/models/product.ts",
+              "bytes": 4278
+            },
+            {
+              "path": "packages/modules/product/src/models/product-variant.ts",
+              "bytes": 2520
+            },
+            {
+              "path": "packages/modules/product/src/services/product-module-service.ts",
+              "bytes": 130192
+            },
+            {
+              "path": "packages/modules/pricing/src/models/price.ts",
+              "bytes": 1107
+            },
+            {
+              "path": "packages/modules/pricing/src/models/price-set.ts",
+              "bytes": 328
+            },
+            {
+              "path": "packages/modules/pricing/src/models/price-rule.ts",
+              "bytes": 952
+            },
+            {
+              "path": "packages/modules/pricing/src/models/price-list.ts",
+              "bytes": 1074
+            },
+            {
+              "path": "packages/modules/pricing/src/services/pricing-module.ts",
+              "bytes": 57833
+            },
+            {
+              "path": "packages/modules/inventory/src/models/inventory-item.ts",
+              "bytes": 1489
+            },
+            {
+              "path": "packages/modules/inventory/src/models/inventory-level.ts",
+              "bytes": 1081
+            },
+            {
+              "path": "packages/modules/inventory/src/models/reservation-item.ts",
+              "bytes": 1153
+            },
+            {
+              "path": "packages/modules/inventory/src/services/inventory-module.ts",
+              "bytes": 34533
+            },
+            {
+              "path": "packages/modules/link-modules/src/definitions/product-variant-price-set.ts",
+              "bytes": 2031
+            },
+            {
+              "path": "packages/modules/link-modules/src/definitions/product-variant-inventory-item.ts",
+              "bytes": 2275
+            }
+          ]
+        }
+      },
+      {
+        "name": "Saleor",
+        "url": "https://github.com/saleor/saleor.git",
+        "head_sha": "5ff56489737c78a9a5631d528f699303c953696a",
+        "license_spdx": "BSD-3-Clause",
+        "total_tracked_files": 4674,
+        "total_bytes": 45635401,
+        "total_bytes_source_subset": null,
+        "total_bytes_estimated": true,
+        "notes": "Classic normalized Django relational model, the opposite architectural pole from Medusa: warehouse/models.py's Stock has direct ForeignKeys product_variant and warehouse plus integer quantity/quantity_allocated columns; Allocation FKs an order_line to a Stock with quantity_allocated, and AllocationQueryset.annotate_stock_available_quantity computes available = stock.quantity - sum(allocations.quantity_allocated) via a DB aggregate. No separate link-module indirection -- stock and variant are directly joined tables in one schema.",
+        "mechanism_slice": {
+          "description": "Product/variant models, Warehouse/Stock models, Discount (pricing rule) models",
+          "total_bytes": 73039,
+          "files": [
+            {
+              "path": "saleor/product/models.py",
+              "bytes": 24025
+            },
+            {
+              "path": "saleor/warehouse/models.py",
+              "bytes": 25647
+            },
+            {
+              "path": "saleor/discount/models.py",
+              "bytes": 23367
+            }
+          ]
+        }
+      }
+    ],
+    "cross_repo_readouts": {
+      "prusaslicer_time_model": "Per-move trapezoidal velocity profile (accelerate/cruise/decelerate segments) with closed-form kinematics (v^2 = v0^2 + 2*a*s), computed per TimeBlock (one per G1 move), with entry/exit feedrate continuity across the move sequence (junction speeds). Key functions: Trapezoid::acceleration_time/deceleration_time/cruise_time, TimeBlock::calculate_trapezoid, TimeBlock::time().",
+      "curaengine_time_model": "Same physical model, explicitly derived from Marlin firmware's stepper planner: TimeEstimateCalculator::Block with accelerate_until/decelerate_after/nominal_feedrate/entry_speed/max_entry_speed and per-axis jerk limits. Both slicers therefore model print time as a chain of trapezoidal-acceleration segments, not a flat distance/feedrate division -- meaningfully more accurate than 'volume / average flow rate' style estimates, and the two independent codebases corroborating the same model gives confidence it's the right level of physical fidelity to absorb.",
+      "erpnext_bom_cost_rollup": "total_cost = operating_cost + raw_material_cost - secondary_items_cost (BOMCostingService.calculate_cost, erpnext/manufacturing/doctype/bom/services/costing.py). raw_material_cost = sum(rate * qty) over BOM items, rate from valuation-rate/price-list/sub-assembly-unit-cost (calculate_rm_cost/get_rm_rate). operating_cost = sum(hour_rate * time_in_mins/60) per operation, or quantity * operating_cost_per_bom_quantity flat (calculate_op_cost). secondary_items_cost (the modern rename of 'scrap items') nets byproduct/scrap value OUT: rows valued directly (Valuation Rate/Manual) are summed first, the remainder of raw_material_cost is allocated pro-rata by % across the rest (calculate_secondary_items_costs / _set_own_cost_secondary_items). calculate_exploded_cost then re-rates the fully flattened (exploded) BOM tree by walking child sub-assembly BOMs via get_rm_rate_map.",
+      "medusa_variant_price_inventory_link": "ProductVariant carries no price or inventory FK. Cross-module 'link' tables (product_variant_price_set, product_variant_inventory_item) owned by packages/modules/link-modules join Product<->Pricing and Product<->Inventory, each with declared field aliases so variant.calculated_price / variant.inventory resolve transitively at query time through the link. Price rows are currency_code + amount + min/max_quantity under a PriceSet, with PriceRule for conditional (region/customer-group) pricing and PriceList for list overrides -- price is rule-resolved, not a flat column."
+    },
+    "recommendation": {
+      "highest_leverage_first_absorption": "CadQuery's workplane/parametric-geometry-and-export stack (cadquery/cq.py + occ_impl/shapes.py + occ_impl/exporters), paired with CuraEngine's or PrusaSlicer's TimeBlock/TimeEstimateCalculator print-time model, feeding ERPNext's BOM cost-rollup formula.",
+      "reasoning": "The milestone is: product hypothesis -> parametric geometry -> material/print estimate -> BOM -> unit economics -> SKU. That chain has a natural bottleneck and it is geometry-to-time-estimate, not any single donor in isolation. CadQuery is the cheapest, cleanest entry point for 'parametric geometry' because it is pure Python (12MB total, MIT-compatible Apache-2.0 license, no GUI to strip, no CGAL/OCCT-exception licensing wrinkle to reason about) and its Workplane API already returns a manifold BRep/mesh plus a working STL/3MF/STEP exporter -- i.e. it is a scriptable geometry kernel we can drive headlessly from a product-hypothesis parameter set with no UI absorption cost. OpenSCAD is a close second (also small) but its CSG-tree evaluator is coupled to a bespoke declarative language (.scad) and a dual CGAL/Manifold backend that adds absorption surface area for no corresponding product benefit if the goal is a parametric Python pipeline. FreeCAD and OCCT are both an order of magnitude to two orders of magnitude larger and mostly GUI/workbench weight we would not use. For material/print estimate, CuraEngine and PrusaSlicer converge independently on the same physical model (trapezoidal per-move acceleration time + per-role filament volume/weight/cost), which is the right fidelity for a real print-time and material-cost number per SKU; CuraEngine is the smaller, more self-contained codebase to lift the TimeEstimateCalculator out of (653 files, 8.2MB total vs. PrusaSlicer's much larger and more entangled slicing pipeline), though PrusaSlicer's PrintStatistics gives a cleaner already-separated cost/weight-per-extruder output shape to mirror. ERPNext's BOM cost-rollup formula (operating_cost + raw_material_cost - secondary_items_cost, with pro-rata scrap/byproduct netting and sub-assembly-aware exploded-cost re-rating) is a compact, already-battle-tested unit-economics formula we can reimplement natively in a few hundred lines rather than adopt wholesale -- ERPNext's own repo is a full Frappe framework app (5600+ files) we do not want to run just to get one costing formula. Medusa's and Saleor's product/variant/price/inventory models matter for the final 'SKU' step, but that is the last link in the chain and both are viable (Medusa if we want multi-currency/rule-based pricing and decoupled inventory later; Saleor if we want a simpler directly-joined relational model sooner) -- neither is the bottleneck, so neither should be the FIRST absorption. In short: CadQuery-style parametric geometry -> CuraEngine/PrusaSlicer-style trapezoidal time+material estimate is the one dependency edge that nothing else in Atlas can currently produce, and it directly unblocks 'material/print estimate' and therefore the BOM and unit-economics steps behind it; the commerce-side (BOM ledger math, SKU/variant/price modeling) can be built or absorbed afterward with much lower risk since ERPNext/Medusa/Saleor's relevant slices are all small, well-isolated formulas/models rather than deep physical or geometric subsystems."
+    }
+  },
+  "donor_decisions": {
+    "ERPNext": "REFERENCE_ONLY: BOM rollup reimplemented natively; its byproduct netting differs from Atlas yield-loss scrap",
+    "Medusa": "REFERENCE_ONLY: link-module price/inventory indirection noted for ecommerce lane",
+    "Saleor": "REFERENCE_ONLY: contrasting direct-FK model",
+    "CadQuery": "ABSORB_LATER (G57 target): parametric Workplane/export slice (Apache-2.0)",
+    "CuraEngine": "REFERENCE_ONLY (AGPL-3.0): Marlin-derived trapezoidal time model; principles only",
+    "PrusaSlicer": "REFERENCE_ONLY (AGPL-3.0): same trapezoid model, independent confirmation",
+    "OpenSCAD": "REFERENCE_ONLY (GPL-2.0+): CSG tree evaluation",
+    "KiCad": "REFERENCE_ONLY (GPL-3.0+): later electronics milestone",
+    "FreeCAD": "REFERENCE_ONLY: comparison",
+    "OCCT": "REFERENCE_ONLY: comparison"
+  },
+  "storage": "every donor censused remotely via blobless depth-1 clones in lane scratch, deleted after use; none materialized under an Atlas donor root"
+}
