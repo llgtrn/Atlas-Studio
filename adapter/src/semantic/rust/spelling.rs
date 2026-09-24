@@ -36,7 +36,20 @@ pub fn type_spelling(ty: &syn::Type) -> String {
                     .map(type_spelling)
                     .collect::<Vec<_>>()
                     .join(", ");
-                format!("({elems})")
+                if tuple.elems.len() == 1 {
+                    // `syn::TypeTuple.elems` holds only the element itself -- the trailing comma
+                    // that syntactically distinguishes a real 1-element tuple type (`(u64,)`) from
+                    // a merely-parenthesized type (`(u64)`, i.e. plain `u64`, handled by the
+                    // `Type::Paren` arm below) is not itself an element. Without restoring it here,
+                    // `(u64,)` and `(u64)` would render to the identical string `"(u64)"`, and
+                    // since `TypeIdentity.canonical` stays `None` throughout this extractor's scope
+                    // (this module's own doc comment), two genuinely different Rust types would
+                    // collide onto the exact same `TypeIdentity.identity_key()` -- the same graph
+                    // node for a real, observable type difference.
+                    format!("({elems},)")
+                } else {
+                    format!("({elems})")
+                }
             }
         }
         syn::Type::Array(array) => {

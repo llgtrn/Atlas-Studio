@@ -1471,6 +1471,25 @@ fn type_spelling_renders_common_shapes_cleanly() {
     assert_eq!(spelling::type_spelling(&parse("[u8; 4]")), "[u8; 4]");
 }
 
+#[test]
+fn a_one_element_tuple_type_is_never_spelled_the_same_as_its_parenthesized_element() {
+    // `(u64,)` (a real 1-element tuple type, accessed via `.0`) and `(u64)` (a merely-parenthesized
+    // `u64` -- exactly the same type as plain `u64`) are genuinely different Rust types. Since
+    // `TypeIdentity.canonical` stays `None` throughout this extractor's scope, `TypeIdentity`'s own
+    // `identity_key()` hashes on `name` alone -- so if both rendered to the same string, a real
+    // type difference (e.g. refactoring a field from `(u64,)` to `(u64)`) would silently collapse
+    // onto the same graph node instead of producing a distinct one.
+    let parse = |source: &str| -> syn::Type { syn::parse_str(source).unwrap() };
+    let one_element_tuple = spelling::type_spelling(&parse("(u64,)"));
+    let parenthesized = spelling::type_spelling(&parse("(u64)"));
+    assert_eq!(one_element_tuple, "(u64,)");
+    assert_eq!(parenthesized, "(u64)");
+    assert_ne!(
+        one_element_tuple, parenthesized,
+        "a real 1-tuple and a merely-parenthesized element type must never collide"
+    );
+}
+
 // =================================================================================================
 // R4.4 -- Function Identity Closure
 //
