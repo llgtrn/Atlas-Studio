@@ -19,7 +19,7 @@ The G42 lane proved that the substrate already exists in the container: Playwrig
 1. **`core::visual`** (pure):
    - `VisualObservationReport` is `OBSERVED`. Per viewport it records every element's structural path, box, text size and a fixed list of 18 computed-style properties.
    - `analyze` derives:
-     - `LayoutRelation`s: width/viewport, width/parent, aspect ratio, font-size/root, and gap/font-size. Each carries an uncertainty bound propagated from Chromium's 1/64 px layout resolution.
+     - `LayoutRelation`s: width/viewport, width/parent, aspect ratio, font-size/root, and gap/font-size. Each carries an uncertainty bound propagated from the instrument's declared layout resolution (Chromium: 1/64 px; ADR 0022 made this an instrument property rather than an engine constant in core).
      - `ResponsiveRule`s: flex-direction, grid-column count, sibling stacking and display changes, each stated as a width interval.
    - Everything derived is marked `DERIVED`.
 2. **`adapter::browser`** runs the instrument, which is an EXTERNAL_BOUNDARY recorded in every report:

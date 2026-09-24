@@ -16,6 +16,7 @@
 //!   change occurs -- never as an exact breakpoint the instrument did not measure.
 
 pub mod compose;
+pub mod differential;
 pub mod genome;
 pub mod search;
 
@@ -48,8 +49,15 @@ pub const OBSERVED_STYLE_PROPERTIES: [&str; 18] = [
     "visibility",
 ];
 
-/// Chromium lays out in 1/64 px units; every box edge is exact to that resolution.
-pub const LAYOUT_RESOLUTION_PX: f64 = 1.0 / 64.0;
+/// Chromium lays out in 1/64 px units (LayoutUnit); every box edge is exact to that resolution.
+/// An instrument property, not an Atlas semantic: each observation carries its instrument's own
+/// `layout_resolution_px`, and this value is only the default for records written before
+/// instruments declared it (all of which were Chromium).
+pub const CHROMIUM_LAYOUT_RESOLUTION_PX: f64 = 1.0 / 64.0;
+
+fn legacy_layout_resolution() -> f64 {
+    CHROMIUM_LAYOUT_RESOLUTION_PX
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct VisualSubject {
@@ -61,14 +69,26 @@ pub struct VisualSubject {
     pub authorization: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct ObservationInstrument {
     pub engine: String,
     pub engine_version: String,
     pub driver: String,
     pub driver_version: String,
-    /// Network policy in force: every request other than the subject itself is aborted.
+    /// Network policy in force, as the instrument itself enforced it (e.g.
+    /// `BLOCKED_EXCEPT_SUBJECT`, or `NOT_ENFORCED` when a backend cannot intercept requests).
     pub network: String,
+    /// The engine's layout resolution: box edges are exact to this many px. Propagated into
+    /// every derived ratio's uncertainty.
+    #[serde(default = "legacy_layout_resolution")]
+    pub layout_resolution_px: f64,
+}
+
+impl ObservationInstrument {
+    /// Whether every request other than the subject was blocked by the instrument.
+    pub fn network_isolated(&self) -> bool {
+        self.network == "BLOCKED_EXCEPT_SUBJECT"
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -173,16 +193,15 @@ fn px(value: Option<&String>) -> Option<f64> {
     value?.strip_suffix("px")?.trim().parse::<f64>().ok()
 }
 
-/// Error bound of `numerator / denominator` when each is exact only to `LAYOUT_RESOLUTION_PX`.
-fn ratio_uncertainty(numerator: f64, denominator: f64) -> f64 {
-    let e = LAYOUT_RESOLUTION_PX;
+/// Error bound of `numerator / denominator` when each is exact only to the resolution `e`.
+fn ratio_uncertainty(numerator: f64, denominator: f64, e: f64) -> f64 {
     ((numerator + e) / (denominator - e) - numerator / denominator)
         .abs()
         .max((numerator / denominator - (numerator - e) / (denominator + e)).abs())
 }
 
 /// Grid column count from a computed `grid-template-columns` value (`none` = no grid).
-fn grid_columns(value: &str) -> Option<usize> {
+pub(crate) fn grid_columns(value: &str) -> Option<usize> {
     if value == "none" || value.is_empty() {
         return None;
     }
@@ -223,6 +242,7 @@ fn is_rendered(element: &ElementObservation) -> bool {
 }
 
 fn push_ratio(
+    e: f64,
     relations: &mut Vec<LayoutRelation>,
     viewport_width: u32,
     element: &str,
@@ -230,20 +250,20 @@ fn push_ratio(
     numerator: f64,
     denominator: f64,
 ) {
-    if denominator > LAYOUT_RESOLUTION_PX {
+    if denominator > e {
         relations.push(LayoutRelation {
             element: element.to_owned(),
             viewport_width,
             relation,
             value: numerator / denominator,
-            uncertainty: ratio_uncertainty(numerator, denominator),
+            uncertainty: ratio_uncertainty(numerator, denominator, e),
             status: EpistemicStatus::Derived,
         });
     }
 }
 
 /// Relations for one viewport's rendered elements.
-fn relations_at(viewport: &ViewportObservation) -> Vec<LayoutRelation> {
+fn relations_at(viewport: &ViewportObservation, e: f64) -> Vec<LayoutRelation> {
     let by_path: BTreeMap<&str, &ElementObservation> = viewport
         .elements
         .iter()
@@ -252,6 +272,7 @@ fn relations_at(viewport: &ViewportObservation) -> Vec<LayoutRelation> {
     let mut relations = Vec::new();
     for element in viewport.elements.iter().filter(|e| is_rendered(e)) {
         push_ratio(
+            e,
             &mut relations,
             viewport.width,
             &element.path,
@@ -263,6 +284,7 @@ fn relations_at(viewport: &ViewportObservation) -> Vec<LayoutRelation> {
             && is_rendered(parent)
         {
             push_ratio(
+                e,
                 &mut relations,
                 viewport.width,
                 &element.path,
@@ -272,6 +294,7 @@ fn relations_at(viewport: &ViewportObservation) -> Vec<LayoutRelation> {
             );
         }
         push_ratio(
+            e,
             &mut relations,
             viewport.width,
             &element.path,
@@ -314,17 +337,20 @@ fn relations_at(viewport: &ViewportObservation) -> Vec<LayoutRelation> {
     relations
 }
 
-fn side_by_side(first: &ElementObservation, second: &ElementObservation) -> bool {
-    let e = LAYOUT_RESOLUTION_PX;
+fn side_by_side(first: &ElementObservation, second: &ElementObservation, e: f64) -> bool {
     second.x >= first.x + first.width - e && second.y < first.y + first.height - e
 }
 
-fn stacked(first: &ElementObservation, second: &ElementObservation) -> bool {
-    second.y >= first.y + first.height - LAYOUT_RESOLUTION_PX
+fn stacked(first: &ElementObservation, second: &ElementObservation, e: f64) -> bool {
+    second.y >= first.y + first.height - e
 }
 
 /// Structural changes between two viewports (`narrow.width < wide.width`).
-fn rules_between(narrow: &ViewportObservation, wide: &ViewportObservation) -> Vec<ResponsiveRule> {
+fn rules_between(
+    narrow: &ViewportObservation,
+    wide: &ViewportObservation,
+    e: f64,
+) -> Vec<ResponsiveRule> {
     let wide_by_path: BTreeMap<&str, &ElementObservation> = wide
         .elements
         .iter()
@@ -395,7 +421,7 @@ fn rules_between(narrow: &ViewportObservation, wide: &ViewportObservation) -> Ve
             ) else {
                 continue;
             };
-            if side_by_side(first_wide, second_wide) && stacked(pair[0], pair[1]) {
+            if side_by_side(first_wide, second_wide, e) && stacked(pair[0], pair[1], e) {
                 rule(
                     parent,
                     ResponsiveChange::SiblingsStack {
@@ -415,14 +441,15 @@ pub fn analyze(report: &VisualObservationReport) -> VisualAnalysis {
     let mut viewports: Vec<&ViewportObservation> = report.viewports.iter().collect();
     viewports.sort_by_key(|viewport| viewport.width);
     let mut analysis = VisualAnalysis::default();
+    let e = report.instrument.layout_resolution_px;
     for viewport in &viewports {
-        analysis.relations.extend(relations_at(viewport));
+        analysis.relations.extend(relations_at(viewport, e));
     }
     for pair in viewports.windows(2) {
         if pair[0].width < pair[1].width {
             analysis
                 .responsive_rules
-                .extend(rules_between(pair[0], pair[1]));
+                .extend(rules_between(pair[0], pair[1], e));
         }
     }
     analysis
@@ -895,6 +922,7 @@ pub(crate) mod tests {
                 driver: "playwright".into(),
                 driver_version: "test".into(),
                 network: "BLOCKED_EXCEPT_SUBJECT".into(),
+                layout_resolution_px: CHROMIUM_LAYOUT_RESOLUTION_PX,
             },
             viewports,
         }

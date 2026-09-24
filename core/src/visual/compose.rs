@@ -167,12 +167,11 @@ pub(crate) fn element<'a>(
         .find(|e| e.path == path)
 }
 
-fn ratio_check(intent: &str, expected: f64, measured: Option<(f64, f64)>) -> IntentCheck {
-    // `measured` = (numerator, denominator) in px; tolerance from the 1/64 px layout grid.
+fn ratio_check(intent: &str, expected: f64, measured: Option<(f64, f64)>, e: f64) -> IntentCheck {
+    // `measured` = (numerator, denominator) in px; tolerance from the instrument's layout grid.
     match measured {
         Some((num, den)) if den > 0.0 => {
             let value = num / den;
-            let e = super::LAYOUT_RESOLUTION_PX;
             let tolerance = ((num + e) / (den - e) - value).abs().max(1e-9);
             IntentCheck {
                 intent: intent.into(),
@@ -207,6 +206,7 @@ pub fn verify_intent(
     let first_item = "body>section:2>div:1";
     let hero = &intent.hero;
     let grid = &intent.grid;
+    let resolution = evidence.layout.instrument.layout_resolution_px;
     for width in [wide, narrow] {
         checks.push(ratio_check(
             &format!(
@@ -215,6 +215,7 @@ pub fn verify_intent(
             ),
             f64::from(hero.media_aspect.0) / f64::from(hero.media_aspect.1),
             element(evidence.layout, width, media).map(|e| (e.width, e.height)),
+            resolution,
         ));
         checks.push(ratio_check(
             &format!(
@@ -223,6 +224,7 @@ pub fn verify_intent(
             ),
             f64::from(grid.item_aspect.0) / f64::from(grid.item_aspect.1),
             element(evidence.layout, width, first_item).map(|e| (e.width, e.height)),
+            resolution,
         ));
     }
     checks.push(ratio_check(
@@ -231,6 +233,7 @@ pub fn verify_intent(
         element(evidence.layout, wide, media)
             .zip(element(evidence.layout, wide, copy))
             .map(|(m, c)| (m.width, m.width + c.width)),
+        resolution,
     ));
     let copy_font = element(evidence.layout, wide, copy).and_then(|e| {
         e.style
@@ -243,6 +246,7 @@ pub fn verify_intent(
         "copy font / root font",
         hero.copy_font_ratio,
         copy_font.map(|px| (px, f64::from(intent.root_font_px))),
+        resolution,
     ));
     let rule = |element: &str, change: &ResponsiveChange| {
         evidence

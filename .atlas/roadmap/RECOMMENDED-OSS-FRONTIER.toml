@@ -66,11 +66,12 @@ performed_at = "2026-09-24"
 performed_in = "G53"
 
 [exact_counts]
-canonical_repositories = 146
-directive_named_repositories = 77
-corpus_repositories = 56
+canonical_repositories = 147
+directive_named_repositories = 78
+corpus_repositories = 57
 lane_only_repositories = 35
 lifecycle_admitted = 53
+lifecycle_admitted_remote = 1
 lifecycle_extinct = 3
 lifecycle_candidate = 78
 lifecycle_candidate_overlapping = 1
@@ -78,6 +79,7 @@ lifecycle_external_oracle = 1
 lifecycle_external_provider_artifact = 8
 lifecycle_rejected_unlicensed = 2
 working_set_materialized = 53
+working_set_remote_only = 1
 working_set_extinct = 3
 working_set_consumer_gated = 79
 working_set_oracle_only = 1
@@ -88,7 +90,7 @@ non_repository_names = 18
 
 [reconciliation]
 reconstructed_named_total = 119
-repo_exact_total = 146
+repo_exact_total = 147
 named_total_reproducible_from_repository = false
 explanation = "the 119 was counted from project context outside this repository; the repo-exact total is computed from every named project the repository records. It differs because (a) ecosystem names (WebAssembly, Sigstore, OpenTelemetry, ROS 2, Higgsfield) expand to several repositories, (b) subtree names (MLIR, Cranelift, WASI) collapse into their parent repository, (c) investigation lanes recorded alternates and dependencies (e.g. nsjail, bubblewrap, stan-dev/math, urdfdom, OMCompiler) and rejected/provider repositories (higgsfield-ai/*, unlicensed clones), and (d) ISAs, formats and algorithms are named but are not repositories"
 unrecorded_names_action = "any of the 119 names absent from the entries below has no record in this repository; add it with a quote-backed source and a verified canonical_url"
@@ -1234,6 +1236,20 @@ lifecycle = "CANDIDATE"
 working_set = "CONSUMER_GATED"
 license = "MIT"
 verified_head = "aed5f6ebcfb0cdeff7ff6593fc4b90fb0360da39"
+
+[[repository]]
+canonical_url = "https://github.com/LadybirdBrowser/ladybird.git"
+names = ["Ladybird"]
+families = ["creator_browser", "browser_engine"]
+origins = ["CORPUS", "DIRECTIVE"]
+sources = [".atlas/references/donor-corpus.toml", "directive:BROWSER_INSTRUMENT"]
+corpus_ids = ["ladybird"]
+lifecycle = "ADMITTED_REMOTE"
+working_set = "REMOTE_ONLY"
+license = "BSD-2-Clause"
+license_evidence = ".atlas/licenses/donors/ladybird/LICENSE"
+verified_head = "1647fd9789ef06a6200d6a52b9aa5f3366c480b3"
+notes = ["G55: remote census; build blocked (gcc>=14/clang>=19, Qt 6.9+); see .atlas/census/ladybird.md"]
 
 [[repository]]
 canonical_url = "https://github.com/NixOS/nix.git"

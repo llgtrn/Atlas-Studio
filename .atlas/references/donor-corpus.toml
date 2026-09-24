@@ -1268,3 +1268,26 @@ next_action = "prerequisite: the first Atlas export/lowering path (ASIR or .atla
 native_replacement = "architecture study only -- not adopted as a runtime dependency; see census disposition table"
 runtime_dependency_status = "STUDY_ONLY_NOT_A_DEPENDENCY"
 evidence = [".atlas/provenance/donors/agentir.json", ".atlas/census/donors/agentir.md", ".atlas/genome/technology/agentir-lossy-lowering-disclosure.md"]
+
+[[donor]]
+id = "ladybird"
+name = "Ladybird"
+repository = "LadybirdBrowser/ladybird"
+resolved_url = "https://github.com/LadybirdBrowser/ladybird.git"
+commit_sha = "1647fd9789ef06a6200d6a52b9aa5f3366c480b3"
+default_branch = "master"
+retrieved_at = "2026-09-24T16:33:00Z"
+license = [".atlas/licenses/donors/ladybird/LICENSE"]
+technology_domains = ["browser_engine", "webdriver_automation", "creator_browser_instrument"]
+ingestion_status = "REMOTE_CENSUSED"
+storage_state = "SOURCE_DELETED"
+materialization_mode = "SPARSE_CHECKOUT"
+census_status = "COARSE_CENSUSED"
+decision_status = "EXTERNAL_BOUNDARY"
+blocking_question = "can a Ladybird WebDriver binary run on an Atlas host? Building one needs gcc>=14 or clang>=19 and Qt 6.9+ even for WebDriver (Services and UI share ENABLE_GUI_TARGETS; Qt is the only Linux GUI framework), none present here, and no prebuilt binary is published; mechanism decisions: WebDriver/headless EXTERNAL_BOUNDARY, LibWeb and process isolation REFERENCE_ONLY, resource-map substitution ABSORB_LATER"
+evidence_needed = "a host with a Ladybird WebDriver binary (ATLAS_LADYBIRD_WEBDRIVER), then the G55 promotion gate: layout, responsive, breakpoint, interaction and motion differential against chromium-playwright"
+cheapest_falsification = "run atlas-systemizer observe --differential chromium-playwright,ladybird on the four Creator fixtures once a binary exists"
+blocks_absorption = true
+native_replacement = "adapter::browser::WebDriverInstrument (W3C protocol, already native); engine itself stays an external instrument"
+runtime_dependency_status = "EXTERNAL_BOUNDARY_INSTRUMENT_WHEN_AVAILABLE"
+evidence = [".atlas/provenance/donors/ladybird.json", ".atlas/census/ladybird.md"]

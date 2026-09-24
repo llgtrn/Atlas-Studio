@@ -317,6 +317,60 @@ fn run(args: &[String]) -> Result<(), String> {
             // `--bisect`: locate every responsive change between the narrowest and widest
             // viewport to a single pixel by re-observation (INFERRED breakpoints).
             let fixture_path = std::path::Path::new(&fixture);
+            if let Some(pair) = value(rest, "--differential")? {
+                // ADR 0022: the same subject through two instruments, compared through the same
+                // Atlas semantics (layout + bisected breakpoints).
+                let (a, b) = pair
+                    .split_once(',')
+                    .ok_or("--differential expects INSTRUMENT_A,INSTRUMENT_B")?;
+                let resolve = |id: &str| {
+                    runtime::visual::instrument(id)
+                        .ok_or_else(|| format!("unknown instrument {id}"))
+                };
+                let (left, right) = (resolve(a)?, resolve(b)?);
+                let narrow = viewports.iter().map(|v| v.0).min().unwrap_or(375);
+                let wide = viewports.iter().map(|v| v.0).max().unwrap_or(1280);
+                let report = runtime::visual::cross_instrument_layout(
+                    left.as_ref(),
+                    right.as_ref(),
+                    fixture_path,
+                    narrow,
+                    wide,
+                    viewports[0].1,
+                )
+                .map_err(|e| format!("{fixture}: {e}"))?;
+                let mut report = report;
+                // Recorded investigations (CREATOR-INSTRUMENTS.toml), keyed by the fixture path
+                // as given; anything they do not cover stays UNCLASSIFIED.
+                runtime::visual::apply_recorded_classifications(
+                    &mut report.layout,
+                    std::path::Path::new("."),
+                    &fixture,
+                )
+                .map_err(|e| format!("{}: {e}", runtime::visual::INSTRUMENT_REGISTRY))?;
+                let text = json(&report)? + "\n";
+                if let Some(out) = value(rest, "--out")? {
+                    write_report_to_out(&out, &text)?;
+                }
+                print!("{text}");
+                return Ok(());
+            }
+            if let Some(id) = value(rest, "--instrument")? {
+                let instrument = runtime::visual::instrument(&id)
+                    .ok_or_else(|| format!("unknown instrument {id}"))?;
+                let report = runtime::visual::observe_fixture_with(
+                    instrument.as_ref(),
+                    fixture_path,
+                    &viewports,
+                )
+                .map_err(|e| format!("{fixture}: {e}"))?;
+                let text = json(&report)? + "\n";
+                if let Some(out) = value(rest, "--out")? {
+                    write_report_to_out(&out, &text)?;
+                }
+                print!("{text}");
+                return Ok(());
+            }
             if rest.iter().any(|arg| arg == "--motion") {
                 // ADR 0016: deterministic curve sampling + easing inference.
                 let report = runtime::visual::motion_fixture(fixture_path, viewports[0])

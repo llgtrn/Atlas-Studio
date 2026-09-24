@@ -65,3 +65,17 @@ remedy = "DELETE (git rm); BLOCKED_ON_USER"
 directory = "xz"
 classification = "DANGLING_GITLINK; one mode-160000 entry (74c3449d8b) with no .gitmodules, empty directory, 0 bytes"
 remedy = "DELETE (git rm --cached); BLOCKED_ON_USER"
+
+# Capability-driven queue: what the next generation may materialize, in priority order, with the
+# evidence each needs and the blocker that currently holds it. Remote discovery needs no slot.
+[[queue]]
+donor = "ladybird"
+capability_target = "creator_browser: an independent engine for cross-engine differential evidence"
+priority_rationale = "the only candidate independent engine with a W3C WebDriver server; Atlas's WebDriver harness is already verified"
+estimated_source_bytes = 174_566_061
+estimated_build_bytes = "UNMEASURED (vcpkg builds ~40 ports incl. skia/angle/ffmpeg/icu; no documented figure)"
+materialization_mode = "SHALLOW_CHECKOUT (execution required)"
+required_evidence = "a running WebDriver binary; four-fixture differential; promotion gate"
+dependencies = "Qt 6.9+ SYSTEM_BOUNDARY; gcc>=14/clang>=19 TOOLCHAIN; vcpkg ports SOURCE (built, not censused)"
+blocker = "toolchain and Qt prerequisites absent on this host; build footprint unmeasured, so admission cannot be decided"
+next_action = "run on a host with the prerequisites or a Ladybird binary; measure the build footprint before requesting a working-set slot"

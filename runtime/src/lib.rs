@@ -1293,6 +1293,12 @@ mod tests {
                         "donor `{}` claims CLONED but none of {paths:?} exists",
                         entry.id
                     ),
+                    // Censused remotely (ADR 0021): never materialized under an Atlas donor root.
+                    "REMOTE_CENSUSED" => assert!(
+                        present.is_empty(),
+                        "donor `{}` is REMOTE_CENSUSED but source exists at {present:?}",
+                        entry.id
+                    ),
                     other => panic!(
                         "donor `{}` has unrecognized ingestion_status `{other}`",
                         entry.id
@@ -1520,6 +1526,7 @@ mod tests {
                 let working_set = single(repository, "working_set");
                 let expected_working_set = match lifecycle.as_str() {
                     "ADMITTED" => "MATERIALIZED",
+                    "ADMITTED_REMOTE" => "REMOTE_ONLY",
                     "EXTINCT" => "EXTINCT",
                     "CANDIDATE" | "CANDIDATE_OVERLAPPING" => "CONSUMER_GATED",
                     "EXTERNAL_ORACLE" => "ORACLE_ONLY",
@@ -1573,10 +1580,10 @@ mod tests {
                     &key(url),
                     "corpus donor `{id}` resolves elsewhere"
                 );
-                let expected = if ingestion == "EXTINCT" {
-                    "EXTINCT"
-                } else {
-                    "ADMITTED"
+                let expected = match ingestion.as_str() {
+                    "EXTINCT" => "EXTINCT",
+                    "REMOTE_CENSUSED" => "ADMITTED_REMOTE",
+                    _ => "ADMITTED",
                 };
                 assert_eq!(lifecycle, expected, "corpus donor `{id}` lifecycle");
             }

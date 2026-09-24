@@ -190,6 +190,10 @@ async function motion(browser, viewport) {
     engine_version: browser.version(),
     driver: 'playwright',
     driver_version: driverVersion,
+    // Enforced by context.route below: every request other than the subject is aborted.
+    network: 'BLOCKED_EXCEPT_SUBJECT',
+    // Blink LayoutUnit: 1/64 px.
+    layout_resolution_px: 1 / 64,
     viewports: [],
   };
   if (process.env.ATLAS_OBSERVE_MODE === 'motion') {
@@ -210,48 +214,7 @@ async function motion(browser, viewport) {
       route.request().url() === url ? route.continue() : route.abort());
     const page = await context.newPage();
     await page.goto(url, { waitUntil: 'load', timeout: 15000 });
-    const measured = await page.evaluate(([props, limit]) => {
-      const skip = new Set(['script', 'style', 'noscript', 'template', 'link', 'meta']);
-      const pathOf = (el) => {
-        if (el === document.body) return 'body';
-        let index = 1;
-        for (let s = el.previousElementSibling; s; s = s.previousElementSibling) {
-          if (s.tagName === el.tagName) index += 1;
-        }
-        return pathOf(el.parentElement) + '>' + el.tagName.toLowerCase() + ':' + index;
-      };
-      const elements = [];
-      let truncated = false;
-      for (const el of [document.body, ...document.body.querySelectorAll('*')]) {
-        const tag = el.tagName.toLowerCase();
-        if (skip.has(tag)) continue;
-        if (elements.length >= limit) { truncated = true; break; }
-        const rect = el.getBoundingClientRect();
-        const computed = getComputedStyle(el);
-        const style = {};
-        for (const p of props) style[p] = computed.getPropertyValue(p);
-        let text = 0;
-        for (const node of el.childNodes) if (node.nodeType === 3) text += node.textContent.trim().length;
-        elements.push({
-          path: pathOf(el),
-          parent: el === document.body ? null : pathOf(el.parentElement),
-          tag,
-          x: rect.x + window.scrollX,
-          y: rect.y + window.scrollY,
-          width: rect.width,
-          height: rect.height,
-          style,
-          text_chars: text,
-        });
-      }
-      return {
-        document_width: document.documentElement.scrollWidth,
-        document_height: document.documentElement.scrollHeight,
-        root_font_size_px: parseFloat(getComputedStyle(document.documentElement).fontSize),
-        elements,
-        truncated,
-      };
-    }, [props, limit]);
+    const measured = await page.evaluate(atlasMeasureLayout, [props, limit]);
     result.viewports.push({ width: viewport.width, height: viewport.height, ...measured });
     await context.close();
   }

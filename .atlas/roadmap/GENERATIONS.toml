@@ -13,7 +13,7 @@
 #       -> generation evidence -> G_n+1
 
 schema = "atlas.self-build.generation-ledger.v1"
-current_generation = "G54"
+current_generation = "G55"
 
 [[generation]]
 id = "G35"
@@ -571,6 +571,7 @@ base_commit = "fd39dcd3d4a772873cc683ab642d1bb5e44ae011"
 objective = "replace clone-first donor ingestion with a bounded, measured donor working set: storage state orthogonal to decision, cheapest-sufficient materialization, disk watermarks + budget + cap gating, accounted-not-cloned dependencies, enforced storage integrity"
 writer = "coordinator (sole writer); read-only lanes: clone-first canonical-statement audit, Chromium coupling audit (for G55), Ladybird feasibility (G55), Product Foundry donor verification (G56)"
 evidence = ".atlas/decisions/0021-bounded-donor-working-set.md"
+result_commits = ["dbbf5186f475e5586368b97a0da7e6d8062531c9"]
 
 [[generation.lane]]
 id = "clone-first-audit"
@@ -585,3 +586,35 @@ unadmitted_checkouts = "7 classified in DONOR-WORKING-SET.toml; deletion remains
 
 [generation.next]
 objective = "G55: BrowserInstrument abstraction + Ladybird admission through the working-set gate; G56: PRODUCT_FOUNDRY lanes and first primitive"
+
+[[generation]]
+id = "G55"
+base_commit = "dbbf5186f475e5586368b97a0da7e6d8062531c9"
+objective = "browser-engine-independent Creator instrument architecture: BrowserInstrument abstraction, Chromium preserved as reference, W3C WebDriver backend, cross-instrument differential evidence, Ladybird admission and promotion gate"
+writer = "coordinator (sole writer); read-only lanes: Chromium coupling audit, Ladybird feasibility + slice census"
+evidence = ".atlas/evidence/verification/g55-cross-instrument-differential.json"
+
+[[generation.lane]]
+id = "chromium-coupling-audit"
+objective = "every engine/driver assumption in core/adapter/runtime/cli/ADRs"
+result = "one ENGINE_ASSUMPTION_IN_SEMANTICS (LAYOUT_RESOLUTION_PX in core analysis + construction verification); network policy hard-coded at parse; everything else contained in adapter::browser"
+
+[[generation.lane]]
+id = "ladybird-feasibility"
+objective = "Ladybird HEAD/license/size, build requirements vs host, automation surface, prebuilt binaries, mechanism slices"
+result = "BSD-2-Clause at 1647fd9789ef; 174.6 MB; W3C WebDriver + --headless present; no prebuilt binary; build needs gcc>=14/clang>=19 and Qt 6.9+ (Services and UI share ENABLE_GUI_TARGETS): BLOCKED here; no deny-by-default network control"
+
+[generation.join]
+browser_abstraction = "adapter::browser::BrowserInstrument; PlaywrightChromium (reference) + WebDriverInstrument (chromedriver | ladybird)"
+chromium_state = "VERIFIED; PREFERRED + REFERENCE_ORACLE + FALLBACK; not extinct"
+ladybird_state = "ADMITTED_REMOTE (REMOTE_CENSUSED, SOURCE_DELETED from lane scratch); instrument BLOCKED_BUILD_PREREQUISITES; layout resolution 1/64 px from source"
+capability_parity = "ladybird: NOT_EVALUATED on every gate item; chromium-webdriver: layout/responsive/breakpoints VERIFIED, interaction/motion ABSENT, network PARTIAL"
+differential_findings = "driver independence on 4 fixtures (383 layout + 5 breakpoint agreements); hermetic probe: 6 disagreements classified INSTRUMENT_LIMITATION; SAME_ENGINE_DIFFERENT_DRIVER, not cross-engine"
+promotion_decision = "NOT_PROMOTED"
+deferred_gaps = "cross-engine milestone unmet (no second engine runnable here); WebDriver interaction via W3C Actions; filtering proxy for WebDriver network isolation"
+
+[generation.verification]
+falsification = "16 mutants killed; grid-column survivor closed by a new test; viewport-fit race root-caused and fixed (6/6 clean)"
+
+[generation.next]
+objective = "G56: PRODUCT_FOUNDRY lanes and first native primitive"

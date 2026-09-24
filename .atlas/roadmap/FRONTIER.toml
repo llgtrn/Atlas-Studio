@@ -213,14 +213,14 @@ family = "CREATOR_FABRIC"
 # G43: PARTIAL -- core::visual + adapter::browser + atlas-systemizer observe (ADR 0011)
 capability = "sandboxed, reproducible observation of public/authorized pages: DOM, computed style, geometry, accessibility tree across viewports and interactions"
 state = "PARTIAL"
-atlas_implementation = "core::visual observation records + adapter::browser hermetic Playwright/Chromium instrument (every request but the subject aborted, fresh context per viewport) + runtime::visual::observe_fixture (subject digested before/after) + atlas-systemizer observe (ADR 0011); LOCAL_FIXTURE authorization only"
-donors = ["Playwright (Apache-2.0)", "rrweb (MIT)"]
-blocking_question = "layout, viewport bisection (ADR 0013) and interaction stimuli (ADR 0015) implemented; frame sampling for motion not yet; public-URL subjects need an explicit authorization record"
+atlas_implementation = "core::visual observation records + adapter::browser BrowserInstrument abstraction (ADR 0022): Playwright/Chromium (reference: hermetic, fresh context per viewport, interaction + motion) and a W3C WebDriver backend (chromedriver verified; Ladybird harness-ready) sharing one in-page measurement; instrument-declared layout resolution + network policy; core::visual::differential EngineDifferentialReport; atlas-systemizer observe --instrument/--differential; CREATOR-INSTRUMENTS.toml registry; LOCAL_FIXTURE authorization only"
+donors = ["Playwright (Apache-2.0)", "rrweb (MIT)", "Ladybird (BSD-2-Clause, REMOTE_CENSUSED, EXTERNAL_BOUNDARY instrument; build BLOCKED)"]
+blocking_question = "cross-ENGINE evidence needs a second engine: Ladybird cannot be built here (gcc>=14/clang>=19, Qt 6.9+ absent; no prebuilt binary); driver independence is established (4 fixtures, SAME_ENGINE_DIFFERENT_DRIVER); WebDriver lacks interaction/motion and network isolation; public-URL subjects need an explicit authorization record"
 evidence_required = "an atlas-systemizer observe command producing typed VisualObservation records over a local fixture"
 falsification = "re-observing the same fixture digest yields identical records; a changed fixture changes exactly the affected records"
 dependency_status = "Playwright/Chromium EXTERNAL_BOUNDARY (instrument), recorded as bootstrap"
-next_action = "interaction stimuli -> state graph (creator_interaction); frame sampling -> motion inference (creator_motion)"
-extinction_state = "n/a"
+next_action = "on a host with a Ladybird WebDriver binary: four-fixture differential + promotion gate; W3C Actions interaction in the WebDriver backend; filtering proxy for WebDriver network isolation"
+extinction_state = "n/a (Chromium stays REFERENCE_ORACLE + FALLBACK)"
 
 [[lane]]
 id = "creator_visual_ir"

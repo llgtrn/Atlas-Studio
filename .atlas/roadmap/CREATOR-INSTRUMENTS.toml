@@ -1,0 +1,89 @@
+schema = "atlas.creator-instruments.v1"
+canonical = true
+decision = ".atlas/decisions/0022-browser-instrument-abstraction.md"
+
+# Browser engines are replaceable measuring instruments (ADR 0022). Atlas owns the observation
+# schema and every semantic derived from it. Capability states: VERIFIED (exercised end-to-end
+# with recorded evidence), PARTIAL, ABSENT (the backend declares it unsupported and refuses it),
+# UNKNOWN (never exercised). Enforced against adapter::browser by
+# runtime::visual::tests::instrument_registry_matches_declared_capabilities.
+
+[[creator_instrument]]
+id = "chromium-playwright"
+engine_family = "blink"
+driver = "playwright"
+state = "VERIFIED"
+roles = ["PREFERRED", "REFERENCE_ORACLE", "FALLBACK"]
+preferred = true
+layout = "VERIFIED"
+responsive = "VERIFIED"
+breakpoint_bisection = "VERIFIED"
+interaction = "VERIFIED"
+motion_sampling = "VERIFIED"
+network_isolation = "VERIFIED"
+accessibility_tree = "ABSENT"
+public_url = "ABSENT"
+evidence = "G43-G52 (ADRs 0011, 0013, 0015, 0016); hermetic-probe keeps .probe at 100px"
+
+[[creator_instrument]]
+id = "chromium-webdriver"
+engine_family = "blink"
+driver = "webdriver:chromedriver"
+state = "PARTIAL"
+roles = ["DRIVER_INDEPENDENCE_CHECK", "WEBDRIVER_PATH_VERIFIER"]
+preferred = false
+layout = "VERIFIED"
+responsive = "VERIFIED"
+breakpoint_bisection = "VERIFIED"
+interaction = "ABSENT"
+motion_sampling = "ABSENT"
+network_isolation = "PARTIAL"
+accessibility_tree = "ABSENT"
+public_url = "ABSENT"
+evidence = ".atlas/evidence/verification/g55-cross-instrument-differential.json"
+note = "chromedriver 141.0.7390.37 + Chromium 141.0.7390.37 (scratch toolchain, ATLAS_CHROMEDRIVER). Same engine as chromium-playwright: agreement is driver independence, never cross-engine evidence. network: unresolvable hosts, but sibling local files load"
+
+[[creator_instrument]]
+id = "ladybird"
+engine_family = "libweb"
+driver = "webdriver:ladybird"
+state = "BLOCKED_BUILD_PREREQUISITES"
+roles = ["CANDIDATE_INDEPENDENT_ENGINE"]
+preferred = false
+layout = "UNKNOWN"
+responsive = "UNKNOWN"
+breakpoint_bisection = "UNKNOWN"
+interaction = "ABSENT"
+motion_sampling = "ABSENT"
+network_isolation = "ABSENT"
+accessibility_tree = "ABSENT"
+public_url = "ABSENT"
+evidence = ".atlas/census/ladybird.md"
+note = "no prebuilt binary; build needs gcc>=14/clang>=19 and Qt 6.9+ (absent here). Harness path (W3C endpoints only) verified via chromium-webdriver; layout resolution 1/64 px established from source"
+
+# Ladybird may become preferred only when every item is PASS (none may be skipped or assumed).
+[promotion_gate]
+instrument = "ladybird"
+layout = "NOT_EVALUATED"
+responsive = "NOT_EVALUATED"
+breakpoint_bisection = "NOT_EVALUATED"
+interaction = "NOT_EVALUATED"
+motion = "NOT_EVALUATED"
+no_silent_unsupported_feature = "NOT_EVALUATED"
+deterministic_repeated_runs = "NOT_EVALUATED"
+stable_subject_digest = "NOT_EVALUATED"
+no_unexpected_network_access = "NOT_EVALUATED"
+same_semantic_conclusions = "NOT_EVALUATED"
+known_differences_recorded = "NOT_EVALUATED"
+ci_runtime_story = "NOT_EVALUATED"
+decision = "NOT_PROMOTED"
+
+# Investigated differential disagreements (item prefix -> classification). Unlisted
+# disagreements stay UNCLASSIFIED.
+[[classified_difference]]
+fixture = "runtime/tests/fixtures/visual/hermetic-probe.html"
+instruments = ["chromium-playwright", "chromium-webdriver"]
+item_element = "body>div:1"
+class = "INSTRUMENT_LIMITATION"
+instrument = "chromium-webdriver"
+explanation = "the WebDriver backend cannot abort local-file requests, so hermetic-probe.css loads and widens .probe from 100px to 300px; Playwright aborts it. Not an engine difference (same Blink build)"

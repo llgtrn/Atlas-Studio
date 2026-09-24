@@ -1,0 +1,25 @@
+{
+  "schema": "atlas.donor-provenance.v1",
+  "id": "ladybird",
+  "name": "Ladybird",
+  "remote": "https://github.com/LadybirdBrowser/ladybird.git",
+  "commit_sha": "1647fd9789ef06a6200d6a52b9aa5f3366c480b3",
+  "default_branch": "master",
+  "retrieved_at": "2026-09-24T16:33:00Z",
+  "license_files": ["LICENSE"],
+  "license_spdx": "BSD-2-Clause",
+  "ingestion_status": "REMOTE_CENSUSED",
+  "storage_state": "SOURCE_DELETED",
+  "materialization": "G55 census lane: blobless depth-1 clone with sparse checkout, one top-level component at a time in lane scratch (peak 62,709,460 bytes), deleted by the lane after census; never materialized under an Atlas donor root",
+  "source_evidence": [
+    {"path": "Meta/Utils/find_compiler.py", "claim": "GCC_MINIMUM_VERSION = 14; CLANG_MINIMUM_VERSION = 19"},
+    {"path": "CMakeLists.txt", "claim": "Services (incl. WebDriver) and UI built under one ENABLE_GUI_TARGETS switch"},
+    {"path": "UI/cmake/GUIFramework.cmake", "claim": "Qt is the only GUI framework on Linux"},
+    {"path": "Services/WebDriver/main.cpp", "claim": "--headless option; resource-map substitution"},
+    {"path": "Services/WebDriver/Client.h", "claim": "W3C endpoints: new_session, navigate_to, execute_script, set_window_rect, get_element_rect, perform_actions, take_screenshot"},
+    {"path": "Libraries/LibCompositing/PixelUnits.h:69-70", "claim": "CSSPixels fractional_bits = 6 (1/64 px layout resolution)"}
+  ],
+  "total_source_bytes": 174566061,
+  "total_files": 31788,
+  "runtime_dependency_status": "EXTERNAL_BOUNDARY_INSTRUMENT_WHEN_AVAILABLE"
+}

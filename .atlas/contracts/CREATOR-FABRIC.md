@@ -88,6 +88,7 @@ Creator Fabric follows UNDERSTAND → ABSTRACT → RECOMBINE → CREATE, never S
 - **G50 (ADR 0018):** the design genome and recombination.
   - `genome` abstracts mechanisms with provenance.
   - `create --genome --recipe` enforces originality mechanically: at least 2 sources, and no mechanism reproduced wholesale. Every parameter records whether it was inherited, varied or defaulted.
+- **G55 (ADR 0022):** replaceable browser instruments. `BrowserInstrument` backends (Playwright/Chromium as reference; a W3C WebDriver backend) lower into one observation schema. Each observation carries its instrument's declared layout resolution and enforced network policy. `EngineDifferentialReport` compares instruments at the semantic level, never treats either as ground truth, and keeps same-engine comparisons separate from cross-engine evidence. Ladybird is admitted as an external instrument candidate, build-blocked, with no parity claimed.
 - **G52 (ADR 0020):** multi-candidate search.
   - `search` enumerates originality-valid recipes over a genome, creates and verifies each, and measures objectives with stated meanings.
   - Only verified, fully measured candidates compete, and the Pareto front is kept as a set.

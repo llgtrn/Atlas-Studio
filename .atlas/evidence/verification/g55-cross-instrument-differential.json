@@ -1,0 +1,153 @@
+{
+  "schema": "atlas.self-build.generation-evidence.v1",
+  "generation": "G55",
+  "claim": "Atlas visual semantics are driver-independent: the same fixtures observed through Playwright and through a standard W3C WebDriver backend lower into one observation schema and reach identical layout, responsive and breakpoint conclusions; the one real difference (hermetic probe) is an instrument network limitation, recorded and classified. NOT cross-engine evidence: both drive Blink 141.",
+  "epistemic_status": "OBSERVED",
+  "instruments": {
+    "chromium-playwright": {
+      "engine": "chromium",
+      "engine_version": "141.0.7390.37",
+      "driver": "playwright",
+      "driver_version": "1.56.1",
+      "network": "BLOCKED_EXCEPT_SUBJECT",
+      "layout_resolution_px": 0.015625
+    },
+    "chromium-webdriver": {
+      "engine": "chrome",
+      "engine_version": "141.0.7390.37",
+      "driver": "webdriver:chromedriver",
+      "driver_version": "141.0.7390.37",
+      "network": "HOSTS_BLOCKED_LOCAL_FILES_ALLOWED",
+      "layout_resolution_px": 0.015625
+    }
+  },
+  "fixtures": {
+    "responsive-editorial": {
+      "subject_digest": "blake3-256:9914dbf0b2bef637dc872a77e6bfce593a19ce61f152c994701b2be998266915",
+      "independence": "SAME_ENGINE_DIFFERENT_DRIVER",
+      "layout": {
+        "agreements": 137,
+        "disagreements": 0,
+        "unresolved": 0,
+        "classified": []
+      },
+      "breakpoints": {
+        "agreements": 5,
+        "disagreements": 0,
+        "located_by_webdriver": [
+          [
+            "body>section:1",
+            699,
+            700
+          ],
+          [
+            "body>section:2",
+            699,
+            700
+          ],
+          [
+            "body>section:1",
+            699,
+            700
+          ],
+          [
+            "body>section:2",
+            699,
+            700
+          ],
+          [
+            "body>section:2",
+            699,
+            700
+          ]
+        ]
+      },
+      "elapsed_ms": {
+        "chromium-playwright": 7923,
+        "chromium-webdriver": 8581
+      }
+    },
+    "hermetic-probe": {
+      "subject_digest": "blake3-256:f3efc3a347491ac43d3e87be37242534caddc16fe8fe708d365c8a19aa6a3d1c",
+      "independence": "SAME_ENGINE_DIFFERENT_DRIVER",
+      "layout": {
+        "agreements": 24,
+        "disagreements": 6,
+        "unresolved": 0,
+        "classified": [
+          "INSTRUMENT_LIMITATION"
+        ]
+      },
+      "breakpoints": {
+        "agreements": 0,
+        "disagreements": 0,
+        "located_by_webdriver": []
+      },
+      "elapsed_ms": {
+        "chromium-playwright": 733,
+        "chromium-webdriver": 1280
+      }
+    },
+    "interactive-mechanisms": {
+      "subject_digest": "blake3-256:812ad6e5af8e5846875c436212993330f5d13460a72d137fde0727afbba41be1",
+      "independence": "SAME_ENGINE_DIFFERENT_DRIVER",
+      "layout": {
+        "agreements": 128,
+        "disagreements": 0,
+        "unresolved": 0,
+        "classified": []
+      },
+      "breakpoints": {
+        "agreements": 0,
+        "disagreements": 0,
+        "located_by_webdriver": []
+      },
+      "elapsed_ms": {
+        "chromium-playwright": 770,
+        "chromium-webdriver": 1256
+      }
+    },
+    "motion-curves": {
+      "subject_digest": "blake3-256:e340f16a4ea31450e3521b590628b62223b55aa3f1cf50df27dca3643e242ea3",
+      "independence": "SAME_ENGINE_DIFFERENT_DRIVER",
+      "layout": {
+        "agreements": 94,
+        "disagreements": 0,
+        "unresolved": 0,
+        "classified": []
+      },
+      "breakpoints": {
+        "agreements": 0,
+        "disagreements": 0,
+        "located_by_webdriver": []
+      },
+      "elapsed_ms": {
+        "chromium-playwright": 737,
+        "chromium-webdriver": 1259
+      }
+    }
+  },
+  "ladybird": {
+    "state": "BLOCKED_BUILD_PREREQUISITES",
+    "head": "1647fd9789ef06a6200d6a52b9aa5f3366c480b3",
+    "license": "BSD-2-Clause",
+    "blockers": [
+      "gcc>=14 or clang>=19 required (Meta/Utils/find_compiler.py); host has gcc 13.3, clang 18.1",
+      "Qt 6.9+ required even for WebDriver (ENABLE_GUI_TARGETS gates Services and UI; Qt is the only Linux GUI framework); host has none",
+      "no published prebuilt binary"
+    ],
+    "layout_resolution_px_source": "Libraries/LibCompositing/PixelUnits.h:69-70 fractional_bits = 6",
+    "parity": "NOT_EVALUATED",
+    "promotion": "NOT_PROMOTED"
+  },
+  "toolchain": {
+    "chromedriver": "141.0.7390.37 from Chrome for Testing (sha256 of zip 84a21f5c25f2cbfdcfdba68bdfe33e9e816ef8af25d2f50bcef3345c7b84fe01), scratch only, TOOLCHAIN terminal, not donor source",
+    "chromium": "Playwright chromium-1194 = 141.0.7390.37"
+  },
+  "falsification": "16 mutants killed (tolerance exact/inflated, same-engine reported independent, classification ignored, breakpoints always agree, structure skipped, grid columns ignored, mechanism properties ignored, resolution hard-coded, subject check dropped, fixture filter dropped, WebDriver claiming isolation, registry: ladybird preferred / webdriver interaction VERIFIED / network overclaimed); first-battery survivor (grid columns) closed by a new test",
+  "honest_findings": [
+    "the first WebDriver viewport fit raced the asynchronous resize (intermittent width out of range); fixed by settling reads and bounding corrections, 6/6 stress runs clean",
+    "LAYOUT_RESOLUTION_PX (Chromium 1/64 px) was baked into engine-neutral core analysis; now each observation carries its instrument's declared resolution",
+    "the network policy was hard-coded as BLOCKED_EXCEPT_SUBJECT at parse time; now each backend reports the policy it actually enforced"
+  ]
+}

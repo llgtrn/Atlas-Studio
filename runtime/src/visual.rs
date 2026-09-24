@@ -74,6 +74,9 @@ struct RawObservation {
     engine_version: String,
     driver: String,
     driver_version: String,
+    /// Network policy the instrument itself enforced.
+    network: String,
+    layout_resolution_px: f64,
     viewports: Vec<RawViewport>,
 }
 
@@ -94,7 +97,8 @@ pub fn parse_observation(raw: &str, subject: VisualSubject) -> io::Result<Visual
             engine_version: raw.engine_version,
             driver: raw.driver,
             driver_version: raw.driver_version,
-            network: "BLOCKED_EXCEPT_SUBJECT".into(),
+            network: raw.network,
+            layout_resolution_px: raw.layout_resolution_px,
         },
         viewports: raw
             .viewports
@@ -130,8 +134,23 @@ pub fn parse_observation(raw: &str, subject: VisualSubject) -> io::Result<Visual
 /// responsive rules. The subject's bytes are digested before and after the browser loads them;
 /// if they differ, the observation is refused rather than attributed to either version.
 pub fn observe_fixture(fixture: &Path, viewports: &[(u32, u32)]) -> io::Result<VisualReport> {
+    observe_fixture_with(&PlaywrightChromium, fixture, viewports)
+}
+
+pub use adapter::browser::{
+    BrowserInstrument, PlaywrightChromium, WebDriverInstrument, instrument, instruments,
+};
+
+/// [`observe_fixture`] through any browser instrument (ADR 0022): every backend lowers into the
+/// same Atlas observation schema, carrying its own engine identity, network policy and layout
+/// resolution.
+pub fn observe_fixture_with(
+    instrument: &dyn BrowserInstrument,
+    fixture: &Path,
+    viewports: &[(u32, u32)],
+) -> io::Result<VisualReport> {
     let before = IntegrityDigest::of_bytes(&fs::read(fixture)?);
-    let raw = adapter::browser::observe_fixture_raw(fixture, viewports)?;
+    let raw = instrument.observe_layout(fixture, viewports)?;
     let after = IntegrityDigest::of_bytes(&fs::read(fixture)?);
     if before != after {
         return Err(io::Error::other(
@@ -156,7 +175,7 @@ pub fn observe_fixture(fixture: &Path, viewports: &[(u32, u32)]) -> io::Result<V
 }
 
 /// What `atlas-systemizer observe --interact` emits (ADR 0015).
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct InteractionReport {
     pub schema: String,
     pub subject: VisualSubject,
@@ -188,6 +207,9 @@ struct RawInteractionRun {
     engine_version: String,
     driver: String,
     driver_version: String,
+    /// Network policy the instrument itself enforced.
+    network: String,
+    layout_resolution_px: f64,
     interactions: Vec<RawInteraction>,
 }
 
@@ -240,7 +262,8 @@ pub fn interact_fixture(fixture: &Path, viewport: (u32, u32)) -> io::Result<Inte
             engine_version: run.engine_version,
             driver: run.driver,
             driver_version: run.driver_version,
-            network: "BLOCKED_EXCEPT_SUBJECT".into(),
+            network: run.network,
+            layout_resolution_px: run.layout_resolution_px,
         },
         viewport,
         observations,
@@ -281,6 +304,9 @@ struct RawMotionRun {
     engine_version: String,
     driver: String,
     driver_version: String,
+    /// Network policy the instrument itself enforced.
+    network: String,
+    layout_resolution_px: f64,
     motions: Vec<RawMotion>,
 }
 
@@ -330,7 +356,8 @@ pub fn motion_fixture(fixture: &Path, viewport: (u32, u32)) -> io::Result<Motion
             engine_version: run.engine_version,
             driver: run.driver,
             driver_version: run.driver_version,
-            network: "BLOCKED_EXCEPT_SUBJECT".into(),
+            network: run.network,
+            layout_resolution_px: run.layout_resolution_px,
         },
         observations,
         inferences,
@@ -560,8 +587,156 @@ pub fn search_designs(
     })
 }
 
+pub use atlas_core::visual::differential::{EngineDifferentialReport, Independence};
+
+/// One instrument's side of a cross-instrument run.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct InstrumentRun {
+    pub instrument: String,
+    /// Wall time of the bisection run (startup + every probe), ms. Evidence, not a gate.
+    pub elapsed_ms: u128,
+    pub report: VisualReport,
+}
+
+/// What `atlas-systemizer observe --differential A,B` emits (ADR 0022).
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct CrossInstrumentReport {
+    pub schema: String,
+    pub runs: Vec<InstrumentRun>,
+    pub layout: EngineDifferentialReport,
+    pub breakpoints: EngineDifferentialReport,
+}
+
+/// Observes and bisects `fixture` through two instruments, then compares both through the same
+/// Atlas semantics: layout relations/structure at `narrow` and `wide`, and every located
+/// breakpoint. Neither instrument is treated as ground truth.
+pub fn cross_instrument_layout(
+    left: &dyn BrowserInstrument,
+    right: &dyn BrowserInstrument,
+    fixture: &Path,
+    narrow: u32,
+    wide: u32,
+    height: u32,
+) -> io::Result<CrossInstrumentReport> {
+    use atlas_core::visual::differential::{compare_breakpoints, compare_layout};
+    let mut runs = Vec::new();
+    for instrument in [left, right] {
+        let started = std::time::Instant::now();
+        let report = bisect_breakpoints_with(instrument, fixture, narrow, wide, height)?;
+        runs.push(InstrumentRun {
+            instrument: instrument.id().to_owned(),
+            elapsed_ms: started.elapsed().as_millis(),
+            report,
+        });
+    }
+    let layout = compare_layout(&runs[0].report.observation, &runs[1].report.observation)
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+    let located = |run: &InstrumentRun| -> Vec<_> {
+        run.report
+            .breakpoints
+            .iter()
+            .map(|b| {
+                (
+                    b.element.clone(),
+                    b.change.clone(),
+                    b.narrow_width,
+                    b.wide_width,
+                )
+            })
+            .collect()
+    };
+    let breakpoints = compare_breakpoints(
+        layout.subject_digest.clone(),
+        layout.engines.clone(),
+        &located(&runs[0]),
+        &located(&runs[1]),
+    );
+    Ok(CrossInstrumentReport {
+        schema: "atlas.cross-instrument-report.v1".into(),
+        runs,
+        layout,
+        breakpoints,
+    })
+}
+
+/// The machine-readable Creator instrument registry (ADR 0022).
+pub const INSTRUMENT_REGISTRY: &str = ".atlas/roadmap/CREATOR-INSTRUMENTS.toml";
+
+/// `[[section]]` blocks of the registry as key -> raw value maps (hand-parsed, line-oriented).
+fn registry_blocks(text: &str, header: &str) -> Vec<BTreeMap<String, String>> {
+    let mut blocks = Vec::new();
+    let mut inside = false;
+    for line in text.lines().map(str::trim) {
+        if line.starts_with('[') {
+            inside = line == header;
+            if inside {
+                blocks.push(BTreeMap::new());
+            }
+            continue;
+        }
+        if inside
+            && !line.starts_with('#')
+            && let Some((key, value)) = line.split_once(" = ")
+        {
+            let value = value.trim();
+            let value = value
+                .strip_prefix('"')
+                .and_then(|v| v.strip_suffix('"'))
+                .unwrap_or(value);
+            blocks
+                .last_mut()
+                .expect("header pushed")
+                .insert(key.to_owned(), value.to_owned());
+        }
+    }
+    blocks
+}
+
+/// Attaches the registry's recorded classifications to `report` for `fixture` (a path relative
+/// to the workspace root). Disagreements no investigation covers stay `UNCLASSIFIED`.
+pub fn apply_recorded_classifications(
+    report: &mut EngineDifferentialReport,
+    root: &Path,
+    fixture: &str,
+) -> io::Result<()> {
+    use atlas_core::visual::differential::DifferenceClass;
+    let text = fs::read_to_string(root.join(INSTRUMENT_REGISTRY))?;
+    let mut recorded = BTreeMap::new();
+    for block in registry_blocks(&text, "[[classified_difference]]") {
+        if block.get("fixture").map(String::as_str) != Some(fixture) {
+            continue;
+        }
+        let class = match block.get("class").map(String::as_str) {
+            Some("INSTRUMENT_LIMITATION") => DifferenceClass::InstrumentLimitation {
+                instrument: block.get("instrument").cloned().unwrap_or_default(),
+            },
+            Some("ENGINE_LIMITATION") => DifferenceClass::EngineLimitation {
+                engine: block.get("engine").cloned().unwrap_or_default(),
+            },
+            Some("ENGINE_SPECIFIC") => DifferenceClass::EngineSpecific {
+                engine: block.get("engine").cloned().unwrap_or_default(),
+            },
+            Some("ATLAS_BUG") => DifferenceClass::AtlasBug,
+            Some("SPEC_AMBIGUITY") => DifferenceClass::SpecAmbiguity,
+            Some("MEASUREMENT_VARIANCE") => DifferenceClass::MeasurementVariance,
+            _ => DifferenceClass::Unknown,
+        };
+        let element = block.get("item_element").cloned().unwrap_or_default();
+        for disagreement in &report.disagreements {
+            if disagreement.item.contains(&format!(" {element} @"))
+                || disagreement.item.ends_with(&format!(" {element}"))
+            {
+                recorded.insert(disagreement.item.clone(), class.clone());
+            }
+        }
+    }
+    report.classify(&recorded);
+    Ok(())
+}
+
 /// Width-indexed single-viewport observations of one subject, all required to share its digest.
 struct Probes<'a> {
+    instrument: &'a dyn BrowserInstrument,
     fixture: &'a Path,
     height: u32,
     digest: Option<IntegrityDigest>,
@@ -574,7 +749,7 @@ impl Probes<'_> {
         if let Some(observed) = self.by_width.get(&width) {
             return Ok(observed.clone());
         }
-        let report = observe_fixture(self.fixture, &[(width, self.height)])?;
+        let report = observe_fixture_with(self.instrument, self.fixture, &[(width, self.height)])?;
         let digest = report.observation.subject.content_digest.clone();
         if *self.digest.get_or_insert(digest.clone()) != digest {
             return Err(io::Error::other(
@@ -609,14 +784,27 @@ pub fn bisect_breakpoints(
     wide: u32,
     height: u32,
 ) -> io::Result<VisualReport> {
+    bisect_breakpoints_with(&PlaywrightChromium, fixture, narrow, wide, height)
+}
+
+/// [`bisect_breakpoints`] through any browser instrument.
+pub fn bisect_breakpoints_with(
+    instrument: &dyn BrowserInstrument,
+    fixture: &Path,
+    narrow: u32,
+    wide: u32,
+    height: u32,
+) -> io::Result<VisualReport> {
     if narrow >= wide {
         return Err(io::Error::new(
             io::ErrorKind::InvalidInput,
             "bisection needs narrow < wide",
         ));
     }
-    let mut report = observe_fixture(fixture, &[(wide, height), (narrow, height)])?;
+    let mut report =
+        observe_fixture_with(instrument, fixture, &[(wide, height), (narrow, height)])?;
     let mut probes = Probes {
+        instrument,
         fixture,
         height,
         digest: Some(report.observation.subject.content_digest.clone()),
@@ -1088,6 +1276,179 @@ mod tests {
         // taller than candidate-2 -- a trade-off, so both are kept and neither is "best".
         assert_eq!(report.pareto_front, ["candidate-2", "candidate-3"]);
         let _ = fs::remove_dir_all(&dir);
+    }
+
+    /// Driver independence (ADR 0022): the editorial fixture observed through Playwright and
+    /// through the W3C WebDriver backend (chromedriver) reaches identical Atlas semantics and the
+    /// same one-pixel breakpoint. Both drive Blink, so this is recorded as
+    /// SAME_ENGINE_DIFFERENT_DRIVER -- never as cross-engine evidence.
+    #[test]
+    fn two_drivers_reach_the_same_atlas_semantics_and_say_so_honestly() {
+        let webdriver = WebDriverInstrument::chromedriver();
+        for (id, available) in [
+            ("chromium-playwright", PlaywrightChromium.availability()),
+            ("chromium-webdriver", webdriver.availability()),
+        ] {
+            if let Err(reason) = available {
+                eprintln!("SKIP: instrument `{id}` unavailable: {reason}");
+                return;
+            }
+        }
+        let report =
+            cross_instrument_layout(&PlaywrightChromium, &webdriver, &fixture(), 375, 1280, 800)
+                .unwrap();
+        assert_eq!(
+            report.layout.independence,
+            Independence::SameEngineDifferentDriver
+        );
+        assert!(
+            report.layout.semantic_agreement,
+            "{:#?}",
+            report.layout.disagreements
+        );
+        assert!(report.layout.agreements > 20);
+        assert!(
+            report.breakpoints.semantic_agreement,
+            "{:#?}",
+            report.breakpoints
+        );
+        // The fixture's `max-width: 699px` located identically through both drivers.
+        let webdriver_run = &report.runs[1].report;
+        assert!(
+            webdriver_run
+                .breakpoints
+                .iter()
+                .any(|b| b.narrow_width == 699 && b.wide_width == 700)
+        );
+        // Each backend records its own network policy; WebDriver cannot isolate local files.
+        assert!(
+            report.runs[0]
+                .report
+                .observation
+                .instrument
+                .network_isolated()
+        );
+        assert!(!webdriver_run.observation.instrument.network_isolated());
+    }
+
+    #[test]
+    fn an_unavailable_instrument_is_refused_explicitly_not_attempted() {
+        let ladybird = WebDriverInstrument {
+            kind: adapter::browser::WebDriverKind::Ladybird,
+            driver_binary: None,
+            browser_binary: None,
+            layout_resolution_px: None,
+        };
+        assert!(ladybird.availability().is_err());
+        let error = observe_fixture_with(&ladybird, &fixture(), &[(1280, 800)]).unwrap_err();
+        assert_eq!(error.kind(), io::ErrorKind::NotFound);
+        assert!(error.to_string().contains("unavailable"), "{error}");
+        let unsupported = ladybird
+            .observe_interactions(&fixture(), (1280, 800))
+            .unwrap_err();
+        assert_eq!(unsupported.kind(), io::ErrorKind::Unsupported);
+    }
+
+    fn workspace_root() -> std::path::PathBuf {
+        Path::new(env!("CARGO_MANIFEST_DIR"))
+            .parent()
+            .unwrap()
+            .to_path_buf()
+    }
+
+    /// The registry is machine-checked against what each backend declares: a capability the
+    /// backend refuses is ABSENT, never VERIFIED; exactly one instrument is preferred and it is
+    /// VERIFIED; Ladybird is preferred only if every promotion-gate item is PASS.
+    #[test]
+    fn instrument_registry_matches_declared_capabilities() {
+        let text = fs::read_to_string(workspace_root().join(INSTRUMENT_REGISTRY)).unwrap();
+        let blocks = registry_blocks(&text, "[[creator_instrument]]");
+        assert_eq!(blocks.len(), instruments().len());
+        let mut preferred = Vec::new();
+        for block in &blocks {
+            let id = &block["id"];
+            let declared = instrument(id)
+                .unwrap_or_else(|| panic!("registry instrument `{id}` has no backend"))
+                .capabilities();
+            for (key, supported) in [
+                ("interaction", declared.interaction),
+                ("motion_sampling", declared.motion_sampling),
+                ("layout", declared.layout),
+            ] {
+                let state = block[key].as_str();
+                assert!(
+                    ["VERIFIED", "PARTIAL", "ABSENT", "UNKNOWN"].contains(&state),
+                    "{id}.{key} = {state}"
+                );
+                assert_eq!(
+                    state == "ABSENT",
+                    !supported,
+                    "{id}.{key} vs declared {supported}"
+                );
+            }
+            if !declared.network_isolation {
+                assert_ne!(block["network_isolation"], "VERIFIED", "{id}");
+            }
+            if block["preferred"] == "true" {
+                preferred.push(id.clone());
+                assert_eq!(
+                    block["state"], "VERIFIED",
+                    "{id} preferred but not verified"
+                );
+            }
+        }
+        assert_eq!(preferred.len(), 1, "{preferred:?}");
+        let gate = registry_blocks(&text, "[promotion_gate]").remove(0);
+        let all_pass = gate
+            .iter()
+            .filter(|(k, _)| !["instrument", "decision"].contains(&k.as_str()))
+            .all(|(_, v)| v == "PASS");
+        let ladybird_preferred = preferred[0] == "ladybird";
+        assert_eq!(
+            ladybird_preferred,
+            all_pass && gate["decision"] == "PROMOTED"
+        );
+        assert!(!all_pass || gate["decision"] == "PROMOTED");
+    }
+
+    /// The hermetic probe is where the two drivers genuinely differ; every such disagreement is
+    /// covered by the recorded INSTRUMENT_LIMITATION investigation, and only those.
+    #[test]
+    fn recorded_classifications_cover_exactly_the_investigated_differences() {
+        let webdriver = WebDriverInstrument::chromedriver();
+        for (id, available) in [
+            ("chromium-playwright", PlaywrightChromium.availability()),
+            ("chromium-webdriver", webdriver.availability()),
+        ] {
+            if let Err(reason) = available {
+                eprintln!("SKIP: instrument `{id}` unavailable: {reason}");
+                return;
+            }
+        }
+        let relative = "runtime/tests/fixtures/visual/hermetic-probe.html";
+        let fixture = workspace_root().join(relative);
+        let mut report =
+            cross_instrument_layout(&PlaywrightChromium, &webdriver, &fixture, 375, 1280, 800)
+                .unwrap();
+        assert!(!report.layout.semantic_agreement);
+        assert_eq!(report.layout.unresolved, report.layout.disagreements.len());
+        apply_recorded_classifications(&mut report.layout, &workspace_root(), relative).unwrap();
+        assert_eq!(
+            report.layout.unresolved, 0,
+            "{:#?}",
+            report.layout.disagreements
+        );
+        assert!(
+            !report.layout.semantic_agreement,
+            "classification never becomes agreement"
+        );
+        // The recorded investigation does not leak onto a fixture it does not name.
+        let mut other =
+            cross_instrument_layout(&PlaywrightChromium, &webdriver, &fixture, 375, 1280, 800)
+                .unwrap()
+                .layout;
+        apply_recorded_classifications(&mut other, &workspace_root(), "elsewhere.html").unwrap();
+        assert_eq!(other.unresolved, other.disagreements.len());
     }
 
     #[test]
