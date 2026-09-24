@@ -628,6 +628,36 @@ pub fn parse_adl_source(source: &AdlSource) -> AdlProgram {
     }
 }
 
+/// A `name` shared across an `entity`/`capability` declaration silently collided in the graph
+/// layer before this check existed: `DeclaredNode.id` (`stable_id("declared-node", &name)`) and
+/// `engineering_graph::declared_node_id` are BOTH keyed purely by `name`, and `ensure_node` never
+/// overwrites a node that already has that id -- it silently keeps only the FIRST of two
+/// same-named declarations and drops the second entirely from the canonical engineering graph, no
+/// diagnostic anywhere. Before this fix, only entity-vs-entity duplicates were checked
+/// (`ATLAS-E020`); an entity colliding with a capability's own name, or two capabilities sharing a
+/// name, produced zero diagnostics while silently losing one declaration's own node_kind/attributes
+/// from the graph. `names` (this function's own shared map, already populated by every
+/// entity/capability regardless of kind) is exactly the right structure to check against -- it was
+/// simply never consulted from the Capability arm.
+fn diagnose_duplicate_name(
+    diagnostics: &mut Vec<AdlDiagnostic>,
+    names: &BTreeMap<String, SourceSpan>,
+    name: &str,
+    span: &SourceSpan,
+) {
+    if let Some(first) = names.get(name) {
+        diagnostics.push(AdlDiagnostic {
+            code: "ATLAS-E020".into(),
+            severity: "error".into(),
+            message: format!(
+                "duplicate declared name `{name}` first declared at {}:{}",
+                first.path, first.line
+            ),
+            span: span.clone(),
+        });
+    }
+}
+
 pub fn compile_adl(sources: &[AdlSource], observed: &SourceReport) -> AdlCompileReport {
     let mut diagnostics = Vec::new();
     let mut nodes = Vec::new();
@@ -651,17 +681,7 @@ pub fn compile_adl(sources: &[AdlSource], observed: &SourceReport) -> AdlCompile
         for decl in program.declarations {
             match decl {
                 AdlDeclaration::Entity(entity) => {
-                    if let Some(first) = names.get(&entity.name) {
-                        diagnostics.push(AdlDiagnostic {
-                            code: "ATLAS-E020".into(),
-                            severity: "error".into(),
-                            message: format!(
-                                "duplicate entity `{}` first declared at {}:{}",
-                                entity.name, first.path, first.line
-                            ),
-                            span: entity.span.clone(),
-                        });
-                    }
+                    diagnose_duplicate_name(&mut diagnostics, &names, &entity.name, &entity.span);
                     names.insert(entity.name.clone(), entity.span.clone());
                     nodes.push(DeclaredNode {
                         id: stable_id("declared-node", &entity.name),
@@ -673,6 +693,12 @@ pub fn compile_adl(sources: &[AdlSource], observed: &SourceReport) -> AdlCompile
                     });
                 }
                 AdlDeclaration::Capability(capability) => {
+                    diagnose_duplicate_name(
+                        &mut diagnostics,
+                        &names,
+                        &capability.name,
+                        &capability.span,
+                    );
                     names.insert(capability.name.clone(), capability.span.clone());
                     let mut attributes = capability.attributes;
                     if let Some(input) = capability.input {
@@ -1025,6 +1051,76 @@ constraint BackendIsRust {
         let program = parse_adl_source(&source);
         assert_eq!(program.version, 1);
         assert_eq!(program.system.as_deref(), Some("Example"));
+    }
+
+    fn empty_source_report() -> SourceReport {
+        SourceReport {
+            schema: "test".into(),
+            root: "/repo".into(),
+            files_total: 0,
+            languages: BTreeMap::new(),
+            files: Vec::new(),
+        }
+    }
+
+    // ATLAS-E020 previously fired only for entity-vs-entity duplicates. `names` (the shared map
+    // both entity and capability declarations populate, and the same map edges/bindings resolve
+    // against) makes every node-shaped declaration's name comparable regardless of kind -- the
+    // check just was not consulted from the Capability arm. This matters beyond a missing
+    // diagnostic: `DeclaredNode.id` and `engineering_graph::declared_node_id` are BOTH keyed purely
+    // by `name`, and graph construction's `ensure_node` silently keeps only the first of two
+    // same-named declarations -- an entity/capability name collision silently dropped one
+    // declaration's own node_kind/attributes from the canonical engineering graph before this fix,
+    // with zero diagnostic anywhere in the pipeline.
+
+    #[test]
+    fn duplicate_entity_names_are_still_diagnosed() {
+        let source = AdlSource {
+            path: "a.adl".into(),
+            text: "atlas 1\nsystem X\nentity Runtime Foo {\n    kind = backend\n}\nentity Runtime Foo {\n    kind = frontend\n}\n".into(),
+        };
+        let report = compile_adl(&[source], &empty_source_report());
+        assert!(
+            report
+                .diagnostics
+                .iter()
+                .any(|diagnostic| diagnostic.code == "ATLAS-E020"),
+            "a duplicate entity name must still be diagnosed exactly as before this generation"
+        );
+    }
+
+    #[test]
+    fn duplicate_capability_names_are_now_diagnosed() {
+        let source = AdlSource {
+            path: "a.adl".into(),
+            text: "atlas 1\nsystem X\ncapability Foo {\n    input = A\n}\ncapability Foo {\n    input = B\n}\n".into(),
+        };
+        let report = compile_adl(&[source], &empty_source_report());
+        assert!(
+            report
+                .diagnostics
+                .iter()
+                .any(|diagnostic| diagnostic.code == "ATLAS-E020"),
+            "two capabilities sharing a name must be diagnosed, not silently drop one from the \
+             graph with no diagnostic at all"
+        );
+    }
+
+    #[test]
+    fn an_entity_and_capability_sharing_a_name_are_now_diagnosed() {
+        let source = AdlSource {
+            path: "a.adl".into(),
+            text: "atlas 1\nsystem X\nentity Runtime Foo {\n    kind = backend\n}\ncapability Foo {\n    input = A\n}\n".into(),
+        };
+        let report = compile_adl(&[source], &empty_source_report());
+        assert!(
+            report
+                .diagnostics
+                .iter()
+                .any(|diagnostic| diagnostic.code == "ATLAS-E020"),
+            "an entity and a capability sharing a name is exactly the cross-kind collision this \
+             fix closes -- ATLAS-E020 previously only ever compared entities against entities"
+        );
     }
 
     #[test]

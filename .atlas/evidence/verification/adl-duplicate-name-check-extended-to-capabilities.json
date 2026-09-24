@@ -1,0 +1,60 @@
+{
+  "schema": "atlas.self-build.generation-evidence.v1",
+  "wave": "CORRECTNESS / ARCHITECTURAL INTEGRITY -- ATLAS-E020's duplicate-name check only ever compared entities against entities, so a capability colliding with any other declared name silently dropped a real node from the canonical engineering graph with zero diagnostic",
+  "wave_title": "Direct self-investigation of core::language::adl::compile_adl, prompted by the asymmetry between its Entity-declaration arm (checks `names` for a duplicate before inserting, emitting ATLAS-E020) and its Capability-declaration arm (inserts into the same shared `names` map with no check at all). Confirmed empirically, before implementing anything, that this asymmetry has a real, silent consequence beyond a missing diagnostic: it causes one of two same-named declarations to vanish entirely from the canonical engineering graph.",
+  "priority_classification": "correctness / architectural integrity (priority 1) -- a real, silent data-loss path in the canonical engineering graph (not merely a missing diagnostic), traced all the way from ADL parsing through graph construction before being fixed.",
+  "verification_before_acting": [
+    "Wrote a throwaway probe test (deleted after confirming) compiling ADL sources with (a) two capabilities sharing the name `Foo`, and (b) an entity and a capability both named `Foo`. Both produced ZERO diagnostics and BOTH declarations were still counted in `declared_nodes_total` (2 in each case) -- confirming the missing check exists exactly as suspected.",
+    "Traced the consequence past `compile_adl` itself: `DeclaredNode.id` is `stable_id(\"declared-node\", &name)` (core/src/language/adl/mod.rs) and `engineering_graph::declared_node_id` (core/src/graph/engineering_graph.rs:184) is ALSO keyed purely by `name` -- both keyed identically regardless of declaration kind. `ensure_node` (engineering_graph.rs:201-220) explicitly does `if graph.nodes.iter().any(|node| node.id == id) { return; }` before ever constructing a new `Node` -- so two same-named declarations produce the exact same graph node id, and the SECOND one is silently dropped from the canonical engineering graph entirely (its own node_kind/attributes never appear anywhere downstream), not merely duplicated or left undiagnosed.",
+    "Checked existing test coverage before concluding the fix's own scope: `grep`'d for any test referencing `ATLAS-E020` or `duplicate` in this file and found NONE -- the pre-existing entity-vs-entity check itself had zero regression coverage, meaning this whole area was previously unverified in either direction, not merely incompletely verified.",
+    "Checked `.atlas/contracts/` for any documented rule distinguishing entity-name uniqueness from capability-name uniqueness and found none -- both kinds populate and are validated against the SAME shared `names` map used by every downstream reference check (edges' `from`/`to`, bindings' `consumer`/`provider`/`capability`), confirming the intent was always a single shared namespace, not two independent ones.",
+    "Falsified the fix directly: temporarily removed just the new `diagnose_duplicate_name` call from the Capability arm, re-ran the two new tests exercising capability-vs-capability and entity-vs-capability collisions, watched both fail with the exact expected missing-diagnostic assertion, then restored the fix and re-ran to confirm both pass.",
+    "Verified against this repository's own real `.atlas/declared/*.adl` sources via `atlas-cli systemize --root .`: zero new ATLAS-E020 diagnostics, `docs audit` gate_ready unaffected -- confirming the fix introduces no regression on real, already-admitted input."
+  ],
+  "design_decisions": [
+    {
+      "question": "Extract a shared `diagnose_duplicate_name` helper both Entity and Capability arms call, or duplicate the check inline in the Capability arm to minimize the diff?",
+      "decision": "Extracted a shared helper. The check's logic (look up `name` in `names`, diagnose against the first span if found) is identical for both kinds by construction -- duplicating it inline would immediately reintroduce the exact class of asymmetry this generation is fixing the moment either copy drifted from the other in a future edit."
+    },
+    {
+      "question": "Should this fix also change the graph layer's collision behavior (e.g., give colliding declarations distinct node ids so both survive in the graph), or only add the missing diagnostic?",
+      "decision": "Only the diagnostic. `ensure_node`'s 'first declaration wins, silently' behavior already existed for entity-vs-entity duplicates before this generation and was an accepted (if not lossless) response to what `ATLAS-E020`'s own 'error' severity already treats as INVALID input requiring a fix by the ADL author -- extending the same, already-established diagnostic coverage to every declaration kind is the minimal, consistent fix. Redesigning the node-id collision-avoidance scheme itself (so two invalidly-named declarations could both survive in the graph) is a materially larger, separate architectural change or better solved by simply requiring the ADL author to rename one declaration once the diagnostic tells them to -- named as an explicit non-goal here, not silently out of scope."
+    },
+    {
+      "question": "Keep ATLAS-E020's message wording as \"duplicate entity\" (now inaccurate for a capability-vs-capability or cross-kind collision) or generalize it?",
+      "decision": "Generalized to \"duplicate declared name\", since the two colliding declarations can now be of different kinds (an entity colliding with a capability) -- the old wording would have been actively misleading for exactly the new cases this fix closes."
+    }
+  ],
+  "stable_validator_law_compliance": {
+    "claim": "Any two entity/capability declarations sharing a name -- entity-vs-entity, capability-vs-capability, or entity-vs-capability -- now produce an ATLAS-E020 diagnostic, closing the asymmetry where only entity-vs-entity was checked. The underlying graph-construction 'first declaration wins' behavior for a name collision is unchanged and remains explicitly out of scope for this fix (documented above, not silently left as a residual gap).",
+    "self_written_evidence": "Three new tests: `duplicate_entity_names_are_still_diagnosed` (regression guard proving the pre-existing behavior survives the refactor into a shared helper), `duplicate_capability_names_are_now_diagnosed`, and `an_entity_and_capability_sharing_a_name_are_now_diagnosed`. The two new-coverage tests were independently confirmed to fail without the fix (temporarily removed the Capability arm's call to the new helper, re-ran, restored) before being trusted.",
+    "independent_evidence_channel": "cargo build --workspace clean. cargo fmt --all --check clean. cargo clippy --workspace --all-targets -D warnings clean, zero warnings. Full cargo test --workspace: 289 adapter, 2 apps/cli, 164 core (+3 net), 73 runtime -- 528 total, 0 failed. `cargo run -q -p atlas-cli -- systemize --root .` against this repository's own real ADL declarations: zero new ATLAS-E020 diagnostics, coding_admission unaffected. `docs audit`: gate_ready true.",
+    "no_circular_self_certification": true
+  },
+  "implementation": {
+    "core_change": "core/src/language/adl/mod.rs -- new `diagnose_duplicate_name` helper, called from both the Entity and (newly) Capability arms of `compile_adl`'s declaration loop; ATLAS-E020's message generalized from \"duplicate entity\" to \"duplicate declared name\" to remain accurate for the newly-covered cross-kind and capability-vs-capability cases."
+  },
+  "adversarial_and_falsification_coverage": [
+    "confirmed the real, silent graph-level consequence (a dropped node, not merely a missing diagnostic) by tracing `DeclaredNode.id`/`declared_node_id`/`ensure_node` all the way through, before deciding this was worth fixing rather than a cosmetic diagnostic gap",
+    "confirmed the pre-existing entity-vs-entity check had zero regression coverage before this generation, so the new tests close both the missing-coverage gap AND the missing-capability-check gap in the same generation, rather than assuming the existing check was already safely locked in",
+    "both new-coverage tests were independently confirmed to fail without their fix, not merely written and left green"
+  ],
+  "validation_this_generation": {
+    "commands": {
+      "cargo build --workspace": { "exit_code": 0 },
+      "cargo fmt --all --check": { "exit_code": 0 },
+      "cargo clippy --workspace --all-targets -- -D warnings": { "exit_code": 0, "warnings": 0 },
+      "cargo test --workspace": { "exit_code": 0, "totals": "289 adapter, 2 apps/cli, 164 core (+3 net), 73 runtime -- 528 total, 0 failed" },
+      "cargo run -q -p atlas-cli -- systemize --root . (real repo)": { "result": "zero new ATLAS-E020 diagnostics, coding_admission unaffected" },
+      "cargo run -q -p atlas-cli -- docs audit --root .atlas": { "exit_code": 0, "gate_ready": true }
+    }
+  },
+  "recensus_scope_after_promotion": [
+    "no prior CLOSED/EXTINCT conclusion is affected",
+    "the graph-layer 'first declaration wins silently' response to a name collision (as opposed to both surviving under distinct ids) remains an explicit, documented non-goal of this fix, not a silently-left residual gap",
+    "the general lesson (a shared identity map populated by multiple declaration KINDS, where only one kind's own arm actually validates against it, is a real defect class -- the same shape as this session's earlier CONCURRENCY Call-vs-MethodCall asymmetry and EFFECT's deliberate-vs-accidental exclusions) is worth carrying into any future ADL declaration kind added to `compile_adl`'s match arms",
+    "ADL0's own broader incompleteness (it remains ADL0 until `ATLAS-DEVELOPMENT-LANGUAGE.md`'s readiness gates are satisfied) is unaffected -- this fix closes one concrete, evidenced defect within the current bootstrap, not a claim that ADL0 is now complete"
+  ],
+  "overall_verdict": "MATERIALIZED AND VERIFIED. ATLAS-E020's duplicate-name check now covers every declaration kind (entity, capability, and any combination), closing a real, silent data-loss path traced all the way from a missing diagnostic through to a dropped node in the canonical engineering graph. Confirmed the graph-level consequence empirically before fixing, confirmed the fix's own new tests genuinely fail without it, and confirmed zero regression against this repository's own real ADL declarations. Full workspace suite (528 tests) passing, gate_ready true.",
+  "historical_evidence_retained": true
+}
