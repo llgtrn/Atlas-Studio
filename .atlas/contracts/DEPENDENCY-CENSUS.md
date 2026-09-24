@@ -384,14 +384,24 @@ rounds). A non-converged fixed point keeps the report out of `Closed`. The resul
 not the admitted resolution-context matrix below, which remains TARGET. Manifest roles are attributed
 only to source-less lockfile entries (they had been handed, by name, to same-named registry crates).
 
+**Same-name-and-version packages from two sources, and literal-string members, are resolved.**
+Both were exposed by the first reachability recensus (G36), which reported lockfile packages no
+member reached. Cargo writes `"name version (source)"` when one name and version resolve from more
+than one source (real: rust-analyzer's in-tree and registry `la-arena 0.3.1`, `line-index`,
+`smol_str`, `text-size`; rust's `rustc_tools_util`); the suffix was ignored and the first
+version-match taken, so edges to the registry copy silently resolved to the in-tree one. Entries now
+narrow by version then source, an unsuffixed entry among several same-version candidates names the
+source-less one, and anything still ambiguous is a reported dangling reference, never a guess.
+Separately, wasm-tools declares all ten `workspace.members` as TOML literal strings (`'crates/c-api'`),
+which were read as nothing. With both fixed, every one of the 15 real donor workspaces is fully
+reached, and the real-donor census test now requires that.
+
 **Still TARGET, not silently claimed done**: other ecosystems (npm, pip, ...); full
 resolution-context modeling (feature-selection activation for `activation.optional` edges; parsing
 the actual target-selector expression for `activation.target_conditional` edges against an admitted
 target-context matrix -- this wave accounts every edge as unconditionally active, matching every
 real edge in this workspace today, since none carry either flag); `ProcMacro` `DependencyRole`
-emission (requires reading a dependency's own manifest, which this parser never does); the
-`"name version (source)"`
-lockfile form, needed only when the same name and version resolve from two different sources;
+emission (requires reading a dependency's own manifest, which this parser never does);
 non-Cargo build metadata (compiler/toolchain version, native/FFI links); a single non-workspace
 root crate (`[package]` with no `[workspace]` at all -- workspace-member discovery requires a
 `[workspace] members = [...]` array; Atlas's own self-census, the only real corpus this bootstrap

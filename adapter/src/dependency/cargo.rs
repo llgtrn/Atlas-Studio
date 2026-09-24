@@ -42,15 +42,17 @@ struct LockPackage {
 }
 
 /// One `Cargo.lock` `dependencies` array entry. Cargo emits a bare `"name"` when exactly one
-/// resolved version of that name exists in the lockfile, and disambiguates with a resolved
-/// version as `"name version"` (or `"name version (source)"`) whenever more than one does. The
-/// `(source)` suffix, needed only when the same name *and* version resolve from two different
-/// sources, is not parsed yet -- a named, documented, not-yet-exercised gap distinct from the
-/// version disambiguation this type exists to carry.
+/// resolved version of that name exists in the lockfile, disambiguates with a resolved version as
+/// `"name version"` whenever more than one does, and appends `"(source)"` when the same name AND
+/// version resolve from more than one source. That last case is real, not theoretical: rust-analyzer
+/// has both an in-tree and a registry `la-arena 0.3.1` (likewise `line-index`, `smol_str`,
+/// `text-size`); the registry copy is referenced as `"la-arena 0.3.1 (registry+...)"`, the in-tree
+/// one as bare `"la-arena 0.3.1"` (a path package has no source to write).
 #[derive(Debug, Clone, PartialEq, Eq)]
 struct LockDependencyRef {
     name: String,
     version: Option<String>,
+    source: Option<String>,
 }
 
 /// The value of `key = "..."` on `line`, if `line` is exactly that assignment.
@@ -64,19 +66,101 @@ fn quoted_field(line: &str, key: &str) -> Option<String> {
 /// The bare quoted string inside one `"value"` (or `"value",`) array-entry line, e.g. a
 /// `workspace.members` entry. Unlike `lock_dependency_ref`, this never strips a trailing token --
 /// a workspace member path has no lockfile-style version suffix to disambiguate.
+///
+/// Accepts a TOML basic string (`"..."`) or literal string (`'...'`, no escapes). Literal strings
+/// are real in this corpus: wasm-tools declares all ten of its `workspace.members` that way
+/// (`'crates/c-api'`), and reading only double quotes silently dropped every one of them -- their
+/// manifests were never read and everything reachable only through them looked unreached.
 fn quoted_array_string(line: &str) -> Option<String> {
-    let trimmed = line.trim().trim_end_matches(',');
-    let inner = trimmed.strip_prefix('"')?.strip_suffix('"')?;
+    let trimmed = line.trim().trim_end_matches(',').trim();
+    let inner = trimmed
+        .strip_prefix('"')
+        .and_then(|rest| rest.strip_suffix('"'))
+        .or_else(|| trimmed.strip_prefix('\'')?.strip_suffix('\''))?;
     Some(inner.to_owned())
 }
 
-/// One `"name"` or disambiguated `"name version"` lockfile dependency-array entry line.
+/// One `"name"`, `"name version"` or `"name version (source)"` lockfile dependency-array entry.
 fn lock_dependency_ref(line: &str) -> Option<LockDependencyRef> {
     let inner = quoted_array_string(line)?;
-    let mut tokens = inner.split_whitespace();
+    let (head, source) = match inner.find(" (") {
+        Some(open) if inner.ends_with(')') => (
+            &inner[..open],
+            Some(inner[open + 2..inner.len() - 1].to_owned()),
+        ),
+        _ => (inner.as_str(), None),
+    };
+    let mut tokens = head.split_whitespace();
     let name = tokens.next()?.to_owned();
     let version = tokens.next().map(str::to_owned);
-    Some(LockDependencyRef { name, version })
+    Some(LockDependencyRef {
+        name,
+        version,
+        source,
+    })
+}
+
+/// The one resolved package a dependency entry names, or why it names none. Narrows the same-name
+/// candidates by the entry's version, then by its source: an explicit `(source)` must match exactly,
+/// and an entry with no source among several same-version candidates names the source-less (path)
+/// one -- the only one Cargo writes without a source. Anything still not exactly one candidate is
+/// reported, never resolved by taking whichever candidate happens to come first in the lockfile.
+fn resolve_dependency_ref<'a>(
+    candidates: &[&'a LockPackage],
+    reference: &LockDependencyRef,
+) -> Result<&'a LockPackage, String> {
+    let by_version: Vec<&LockPackage> = candidates
+        .iter()
+        .copied()
+        .filter(|p| reference.version.as_ref().is_none_or(|v| &p.version == v))
+        .collect();
+    let narrowed: Vec<&LockPackage> = match &reference.source {
+        Some(source) => by_version
+            .into_iter()
+            .filter(|p| p.source.as_deref() == Some(source.as_str()))
+            .collect(),
+        None if by_version.len() > 1 => {
+            let source_less: Vec<&LockPackage> = by_version
+                .iter()
+                .copied()
+                .filter(|p| p.source.is_none())
+                .collect();
+            if source_less.is_empty() {
+                by_version
+            } else {
+                source_less
+            }
+        }
+        None => by_version,
+    };
+    let spelled = [
+        Some(reference.name.as_str()),
+        reference.version.as_deref(),
+        reference.source.as_deref(),
+    ]
+    .into_iter()
+    .flatten()
+    .collect::<Vec<_>>()
+    .join(" ");
+    match (narrowed.as_slice(), &reference.source) {
+        ([one], _) => Ok(one),
+        ([], None) => Err(format!(
+            "{spelled} (no matching resolved version among {} candidates)",
+            candidates.len()
+        )),
+        ([], Some(_)) => Err(format!(
+            "{spelled} (no resolved package from that source among {} candidates)",
+            candidates.len()
+        )),
+        (many, _) if reference.version.is_none() => Err(format!(
+            "{spelled} (ambiguous: {} candidates, no disambiguating version in lockfile entry)",
+            many.len()
+        )),
+        (many, _) => Err(format!(
+            "{spelled} (ambiguous: {} candidates, no disambiguating source in lockfile entry)",
+            many.len()
+        )),
+    }
 }
 
 fn parse_cargo_lock(text: &str) -> Vec<LockPackage> {
@@ -615,50 +699,10 @@ pub fn census_cargo_workspace(root: &Path) -> io::Result<Option<DependencyClosur
                 dangling_references.push(format!("{} -> {dependency_name}", package.name));
                 continue;
             };
-            let provider_package = match (candidates.as_slice(), &dependency_ref.version) {
-                ([single], None) => *single,
-                ([single], Some(version)) => {
-                    if &single.version == version {
-                        *single
-                    } else {
-                        // A single candidate exists but the lockfile's own dependency-array entry
-                        // names a disambiguating version that doesn't match it -- the same real
-                        // dangling reference the multi-candidate branch below reports, not a case
-                        // to silently accept the lone candidate as if it were unversioned.
-                        dangling_references.push(format!(
-                            "{} -> {dependency_name} {version} (no matching resolved version among {} candidates)",
-                            package.name,
-                            candidates.len()
-                        ));
-                        continue;
-                    }
-                }
-                (_, Some(version)) => {
-                    match candidates.iter().find(|p| &p.version == version) {
-                        Some(matched) => *matched,
-                        None => {
-                            // Cargo.lock's own disambiguated entry names a resolved version this
-                            // lockfile has no matching `[[package]]` block for -- a real dangling
-                            // reference, not an unresolved ambiguity.
-                            dangling_references.push(format!(
-                                "{} -> {dependency_name} {version} (no matching resolved version among {} candidates)",
-                                package.name,
-                                candidates.len()
-                            ));
-                            continue;
-                        }
-                    }
-                }
-                (_, None) => {
-                    // Multiple resolved versions share this name and the lockfile entry carries no
-                    // disambiguating version suffix -- real Cargo.lock output always disambiguates
-                    // in this situation, so this is an adversarial/malformed-input case, reported
-                    // rather than guessed.
-                    dangling_references.push(format!(
-                        "{} -> {dependency_name} (ambiguous: {} candidates, no disambiguating version in lockfile entry)",
-                        package.name,
-                        candidates.len()
-                    ));
+            let provider_package = match resolve_dependency_ref(candidates, dependency_ref) {
+                Ok(package) => package,
+                Err(reason) => {
+                    dangling_references.push(format!("{} -> {reason}", package.name));
                     continue;
                 }
             };
@@ -860,6 +904,7 @@ mod tests {
         LockDependencyRef {
             name: name.to_owned(),
             version: None,
+            source: None,
         }
     }
 
@@ -958,6 +1003,7 @@ dependencies = [
             vec![LockDependencyRef {
                 name: "syn".to_owned(),
                 version: Some("2.0.0".to_owned()),
+                source: None,
             }]
         );
     }
@@ -2316,6 +2362,16 @@ version = "0.1.0"
                 "donor `{name}`"
             );
             assert!(!reach.reached.is_empty(), "donor `{name}` reached nothing");
+            // Real Cargo output prunes packages no member reaches, so every real workspace must
+            // come out fully reached. This held only after two recensus-exposed fixes: the
+            // `"name version (source)"` suffix (rust-analyzer, rust) and TOML literal-string
+            // `workspace.members` entries (wasm-tools) -- a regression in either, or any new
+            // member-discovery gap, reappears here as unreached packages.
+            assert!(
+                reach.unreached_instances.is_empty(),
+                "donor `{name}` has unreached lockfile packages: {:?}",
+                reach.unreached_instances
+            );
         }
 
         assert!(
@@ -2798,5 +2854,111 @@ version = "0.1.0"
             vec![ReachOrigin::Runtime, ReachOrigin::Dev],
             "c is reached through both a (runtime) and b (dev), and the a<->c cycle terminates"
         );
+    }
+
+    #[test]
+    fn a_source_suffixed_lockfile_entry_parses_its_source() {
+        let reference = lock_dependency_ref(
+            " \"la-arena 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)\",",
+        )
+        .unwrap();
+        assert_eq!(reference.name, "la-arena");
+        assert_eq!(reference.version.as_deref(), Some("0.3.1"));
+        assert_eq!(
+            reference.source.as_deref(),
+            Some("registry+https://github.com/rust-lang/crates.io-index")
+        );
+    }
+
+    #[test]
+    fn same_name_and_version_from_two_sources_resolve_to_the_right_one() {
+        // rust-analyzer's real shape: an in-tree `la-arena 0.3.1` and the registry one. The
+        // registry copy is referenced with a `(source)` suffix, the in-tree copy without.
+        let report = reach_fixture(
+            "two-sources",
+            &[(
+                "app",
+                "[dependencies]\nla-arena = { path = \"../la-arena\" }\nuser = \"1\"\n",
+            )],
+            &[
+                ("app", "0.1.0", false, &["la-arena 0.3.1", "user"]),
+                ("la-arena", "0.3.1", false, &[]),
+                ("la-arena", "0.3.1", true, &["only-in-registry-copy"]),
+                (
+                    "user",
+                    "1.0.0",
+                    true,
+                    &[&format!("la-arena 0.3.1 ({REGISTRY})")],
+                ),
+                ("only-in-registry-copy", "1.0.0", true, &[]),
+            ],
+        );
+        assert!(report.is_closed(), "{:?}", report.dangling_references);
+        let reach = report.reachability.as_ref().unwrap();
+        assert!(
+            reach.unreached_instances.is_empty(),
+            "the registry la-arena (and its own dependency) must be reached through `user`: {:?}",
+            reach.unreached_instances
+        );
+        assert_eq!(
+            origins_of(&report, "only-in-registry-copy", "1.0.0"),
+            vec![ReachOrigin::Runtime]
+        );
+        let user_edge = report
+            .edges
+            .iter()
+            .find(|edge| edge.consumer == "user")
+            .unwrap();
+        assert_eq!(
+            user_edge.provider.source_kind,
+            DependencySourceKind::Registry
+        );
+        let app_edge = report
+            .edges
+            .iter()
+            .find(|edge| edge.consumer == "app" && edge.provider.name == "la-arena")
+            .unwrap();
+        assert_eq!(app_edge.provider.source_kind, DependencySourceKind::Path);
+    }
+
+    #[test]
+    fn an_unsuffixed_entry_between_two_registry_sources_is_ambiguous_not_guessed() {
+        let dir = std::env::temp_dir().join(format!(
+            "atlas-dep-reach-{}-two-registries",
+            std::process::id()
+        ));
+        let _ = fs::remove_dir_all(&dir);
+        write(
+            &dir.join("Cargo.toml"),
+            "[workspace]\nmembers = [\"app\"]\n",
+        );
+        write(&dir.join("app/Cargo.toml"), "[package]\nname = \"app\"\n");
+        write(
+            &dir.join("Cargo.lock"),
+            "\n[[package]]\nname = \"app\"\nversion = \"0.1.0\"\ndependencies = [\n \"dup 1.0.0\",\n]\n\n[[package]]\nname = \"dup\"\nversion = \"1.0.0\"\nsource = \"registry+https://one.example/index\"\n\n[[package]]\nname = \"dup\"\nversion = \"1.0.0\"\nsource = \"registry+https://two.example/index\"\n",
+        );
+        let report = census_cargo_workspace(&dir).unwrap().unwrap();
+        let _ = fs::remove_dir_all(&dir);
+        assert_eq!(report.state, DependencyClosureState::Partial);
+        assert_eq!(
+            report.dangling_references,
+            vec![
+                "app -> dup 1.0.0 (ambiguous: 2 candidates, no disambiguating source in lockfile entry)"
+                    .to_owned()
+            ]
+        );
+    }
+
+    #[test]
+    fn toml_literal_string_workspace_members_are_read() {
+        let (members, unsupported) =
+            workspace_members("[workspace]\nmembers = [\n  'crates/c-api',\n  \"crates/b\",\n]\n");
+        assert_eq!(
+            members,
+            vec!["crates/c-api".to_owned(), "crates/b".to_owned()]
+        );
+        assert!(!unsupported);
+        let (inline, _) = workspace_members("[workspace]\nmembers = ['a', 'b']\n");
+        assert_eq!(inline, vec!["a".to_owned(), "b".to_owned()]);
     }
 }
