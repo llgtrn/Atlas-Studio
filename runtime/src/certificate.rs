@@ -39,6 +39,7 @@ pub fn certificate(root: impl AsRef<Path>, passes: usize) -> io::Result<CensusCe
             genome_hash,
             pass_digests: &digests,
             atlas_root_hash: None,
+            atlas_root_sealed: false,
         },
     ))
 }
@@ -65,6 +66,7 @@ mod tests {
                 genome_hash: hash,
                 pass_digests: &digests,
                 atlas_root_hash: None,
+                atlas_root_sealed: false,
             },
         )
     }

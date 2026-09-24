@@ -777,6 +777,7 @@ objective = "authored depends_on reconciled against the dependency census; censu
 writer = "coordinator (sole writer)"
 evidence = ".atlas/evidence/census/G63/recensus.json"
 self_recensus = ".atlas/evidence/census/G63/recensus.json"
+result_commits = ["860fcc7903ff1bb2050546a0d39d243542a799c1", "b3e2ec75e2854a687c36cd5af094e62f90b0a472"]
 
 [generation.verification]
 pre_census = "clean-HEAD census of d6a13e07b5 = G62 post digest 7f875f3b... (74adaef3e9 adds only out-of-scope evidence)"
@@ -786,3 +787,23 @@ falsification = "18 bridge mutants: 17 killed, 1 equivalent (by_member holds eve
 
 [generation.next]
 objective = "G64 (P2): minimum .atlas writer/reader/validator over validated census state (exit criterion D)"
+
+[[generation]]
+id = "G64"
+base_commit = "b3e2ec75e2854a687c36cd5af094e62f90b0a472"
+priority = "P2"
+serves = "P2 ADL_ATLAS_ATLASX_END_TO_END: exit criterion D (minimum .atlas writer/reader/validator)"
+objective = "census state packaged into a verified, explicitly unsealed ATLAS wire v1 census container; the certificate records its root identity"
+writer = "coordinator (sole writer); a read-only lane surveyed the .atlas contracts and existing code"
+evidence = ".atlas/evidence/census/G64/recensus.json"
+self_recensus = ".atlas/evidence/census/G64/recensus.json"
+
+[generation.verification]
+pre_census = "clean-HEAD census of 860fcc7903 = G63 post digest 3faefec6... (b3e2ec75e2 adds only out-of-scope evidence)"
+proof = "PROVEN on the first run (post 5175ee41...)"
+falsification = "21/21 mutants killed after closing two first-battery survivors, both real test gaps: a wrong-wire-type case whose bytes were also an out-of-range string index, and no test of census facts collapsing under canonicalization. Every single-byte flip (except format_minor) and every truncation of a container is rejected; hash-consistent forgeries (resealed sections) are rejected by the commitment, ordering, count, kind and certificate-id checks"
+self_container = "the self-census packs into ~2.8 MB (11,887 facts, 1,296 obligations, 9 declared nodes, 12 edges), byte-identical on re-pack; `atlas verify --root` refuses it after any in-scope change; the certificate with --atlas carries the root hash and ATLAS_ROOT_UNSEALED instead of ATLAS_ROOT_ABSENT"
+incident = "during manual testing, `git checkout core/src/lib.rs` (reverting a probe edit) also reverted the uncommitted `pub mod atlas;` line; noticed immediately from the diff and restored before any gate ran"
+
+[generation.next]
+objective = "G65 (P2): minimum .atlasx deterministic materialization + validation from the .atlas root (exit criterion E)"

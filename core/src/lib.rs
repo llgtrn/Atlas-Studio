@@ -4,6 +4,7 @@
 //! filesystem, Git, provider, donor or UI work; those responsibilities live in `adapter`,
 //! `runtime`, or application crates.
 
+pub mod atlas;
 pub mod capability;
 pub mod census;
 pub mod certificate;

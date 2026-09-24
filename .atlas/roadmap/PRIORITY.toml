@@ -139,13 +139,14 @@ G60 = "SOURCE_INVENTORY_COMPLETE: apps/cli in scope; 4 of 4 source-backed worksp
 G61 = "SOURCE_INVENTORY_COMPLETE + LANGUAGE_EXTRACTION: 0 artifacts without a source frontend (html, css registered; 3 .in files classified rust-include-fragment by their observed include!); their 96 obligations are explicit UNSUPPORTED; provenance without extractor rises 132 -> 228 (unsupported-language batches carry no extractor identity)"
 G62 = "SOURCE_BACKED_PROVENANCE: OBSERVED -- every census fact carries the census revision and a named producer (0/0 gaps); RECONCILIATION_CERTIFICATE: self-scope RECONCILED"
 G63 = "ADL <- census: authored depends_on reconciled against the dependency census (4 SATISFIED; WebUI -> Runtime not censusable); census findings adapter -> core and the atlas-cli member derived into .atlas/declared/census.adl"
+G64 = "RECONCILIATION_CERTIFICATE: census state packages into a verified unsealed .atlas census container (ATLAS wire v1); the certificate records its root identity (ATLAS_ROOT_ABSENT -> ATLAS_ROOT_UNSEALED)"
 
 # Exit criteria of the first phase; broad expansion stays frozen until all are MET.
 [exit_criteria]
 A_self_recensus_mandatory_and_operational = "MET_G57 (enforced by generation_ledger_self_recensus_chain)"
 B_reconciliation_certificate = "MET_G59 (CensusCertificate v2 computed; self-scope CENSUSED with typed blockers; RECONCILED since G62)"
 C_adl_consumes_census_truth = "MET_G63 (minimum: member-level dependency architecture reconciled both ways and derived as .atlas/declared/census.adl; external packages, symbols, effects and state are not yet lowered to ADL)"
-D_atlas_writer_reader_validator = "OPEN"
+D_atlas_writer_reader_validator = "MET_G64 (minimum: ATLAS wire v1 unsealed census container -- writer, verifying reader, transactional publication, certificate root identity; sealing, compression and sharding deferred)"
 E_atlasx_production_validation = "OPEN"
 F_first_50_queue_canonical = "MET_G58 (FIRST-50-CAMPAIGN.toml, enforced by first_50_campaign_is_canonical_and_accounted)"
 G_first_50_sequential_lifecycle_substantial = "OPEN"
@@ -186,7 +187,7 @@ objective = "ADL <- census: dependency reconciliation + census-derived ADL (done
 [[planned_generation]]
 id = "G64"
 priority = "P2"
-objective = "minimum .atlas writer/reader/validator over validated census state"
+objective = "minimum .atlas writer/reader/validator over validated census state (done)"
 
 [[planned_generation]]
 id = "G65"

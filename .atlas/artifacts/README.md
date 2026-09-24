@@ -8,6 +8,8 @@ canonical: true
 
 Durable compiled artifact identities/manifests belong here when implemented.
 
+Implemented since G64 (ADR 0027): the unsealed census container. `atlas-systemizer atlas pack --root . --out <file>.atlas` rebuilds it deterministically from a commit. It is not a sealed `<system>.atlas`, so it is not stored here; each generation's evidence records its root identity.
+
 Expected classes:
 
 - `atlas-genome.atlas` — compiled hard-requirement Genome;

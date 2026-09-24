@@ -162,7 +162,7 @@ G59 (ADR 0025): `atlas_core::certificate::certify` and `atlas-systemizer census 
 Current limits:
 - replay fixed point: census passes are compared by census digest;
 - independent passes: counted per (artifact, dimension);
-- SEALED: impossible until a `.atlas` root exists (G62).
+- SEALED: impossible until a sealed `.atlas` root exists. Since G64, `census certificate --atlas F` verifies an unsealed census container against the fresh census and records its root identity, replacing ATLAS_ROOT_ABSENT with ATLAS_ROOT_UNSEALED (ADR 0027).
 
 The Atlas self-scope certificate is CENSUSED (see ADR 0025 for its blockers).
 

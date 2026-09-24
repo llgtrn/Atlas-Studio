@@ -159,6 +159,9 @@ pub struct CertificateInputs<'a> {
     pub pass_digests: &'a [String],
     /// Root hash of a packaged `.atlas` artifact for this census, when one exists.
     pub atlas_root_hash: Option<String>,
+    /// Whether that artifact passed a seal gate. An unsealed census container (G64) is a real
+    /// packaged root but never makes a certificate SEALED.
+    pub atlas_root_sealed: bool,
 }
 
 fn digest_lines(mut lines: Vec<String>) -> String {
@@ -491,17 +494,24 @@ pub fn certify(report: &SystemizeReport, inputs: &CertificateInputs<'_>) -> Cens
     });
     if atlas.is_none() {
         blockers.insert("ATLAS_ROOT_ABSENT: no packaged .atlas artifact for this census".into());
+    } else if !inputs.atlas_root_sealed {
+        blockers.insert(
+            "ATLAS_ROOT_UNSEALED: the packaged .atlas is an unsealed census container (no seal gate exists)"
+                .into(),
+        );
     }
 
     let blockers: Vec<String> = blockers.into_iter().collect();
-    let only_atlas_root = blockers.iter().all(|b| b.starts_with("ATLAS_ROOT_ABSENT"));
+    let only_atlas_root = blockers
+        .iter()
+        .all(|b| b.starts_with("ATLAS_ROOT_ABSENT") || b.starts_with("ATLAS_ROOT_UNSEALED"));
     let state = if !inventory.closed {
         CertificateState::Draft
     } else if !(reconciliation.complete && provenance_complete && fixed_point.converged) {
         CertificateState::Censused
     } else if !(only_atlas_root) {
         CertificateState::Reconciled
-    } else if atlas.is_none() {
+    } else if atlas.is_none() || !inputs.atlas_root_sealed {
         CertificateState::Closed
     } else {
         CertificateState::Sealed

@@ -200,8 +200,14 @@ fn run(args: &[String]) -> Result<(), String> {
             // ADR 0025: the CensusCertificate v2 of a root (two passes for the replay fixed
             // point). Exits CENSUS_NOT_CLOSED unless the state is CLOSED or SEALED.
             let root = value(rest, "--root")?.unwrap_or_else(|| ".".into());
-            let certificate =
-                runtime::certificate::certificate(&root, 2).map_err(|e| format!("{root}: {e}"))?;
+            // ADR 0027: with --atlas, the container must package exactly this census; its
+            // verified root identity then enters the certificate (unsealed: never SEALED).
+            let certificate = match value(rest, "--atlas")? {
+                Some(atlas) => runtime::atlas::certificate_with_atlas(&root, &atlas)
+                    .map_err(|e| format!("{atlas}: {e}"))?,
+                None => runtime::certificate::certificate(&root, 2)
+                    .map_err(|e| format!("{root}: {e}"))?,
+            };
             let text = json(&certificate)? + "\n";
             if let Some(out) = value(rest, "--out")? {
                 write_report_to_out(&out, &text)?;
@@ -210,6 +216,22 @@ fn run(args: &[String]) -> Result<(), String> {
             if certificate.state < runtime::certificate::CertificateState::Closed {
                 return Err("CENSUS_NOT_CLOSED".into());
             }
+        }
+        [cmd, sub, rest @ ..] if cmd == "atlas" && sub == "pack" => {
+            // ADR 0027: census -> validated semantic state -> unsealed .atlas census container,
+            // verified by decoding before an atomic publish.
+            let root = value(rest, "--root")?.unwrap_or_else(|| ".".into());
+            let out = value(rest, "--out")?.ok_or("atlas pack requires --out")?;
+            let packed = runtime::atlas::pack(&root, &out).map_err(|e| format!("{root}: {e}"))?;
+            println!("{}", json(&packed)?);
+        }
+        [cmd, sub, file, rest @ ..] if cmd == "atlas" && sub == "verify" => {
+            // ADR 0027: the reader's full verification; with --root, the container must also
+            // package that root's current census.
+            let root = value(rest, "--root")?;
+            let verified = runtime::atlas::verify(file, root.as_deref().map(std::path::Path::new))
+                .map_err(|e| format!("{file}: {e}"))?;
+            println!("{}", json(&verified)?);
         }
         [cmd, sub, rest @ ..] if cmd == "adl" && sub == "derive" => {
             // ADR 0026: census truth the authored ADL does not declare, as ADL text. `--check`
@@ -523,7 +545,7 @@ fn run(args: &[String]) -> Result<(), String> {
         }
         _ => {
             return Err(
-                "usage: atlas-systemizer <contract|systemize|docs audit|code analyze|parse|check|graph|observe|genome|search|create|physical|product|census certificate|adl derive|recensus snapshot|recensus prove|donors working-set|work prepare> ..."
+                "usage: atlas-systemizer <contract|systemize|docs audit|code analyze|parse|check|graph|observe|genome|search|create|physical|product|census certificate|adl derive|atlas pack|atlas verify|recensus snapshot|recensus prove|donors working-set|work prepare> ..."
                     .into(),
             );
         }

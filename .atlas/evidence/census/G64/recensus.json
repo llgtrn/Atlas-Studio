@@ -1,0 +1,158 @@
+{
+  "schema": "atlas.self-recensus-report.v1",
+  "generation": "G64",
+  "base_revision": "74adaef3e9a360989e9ff828d6192a58e9272a95",
+  "candidate_revision": "b3e2ec75e2854a687c36cd5af094e62f90b0a472",
+  "candidate_dirty": true,
+  "before_census_digest": "blake3-256:3faefec6d31d124995b9cf386b5688cff2b2a0fd5b97ea00a2509a717f6b78f1",
+  "after_census_digest": "blake3-256:5175ee410301ce70a97577eef1859c51bab7899f1ee5d1505b6607a262ebf111",
+  "replay_digest": "blake3-256:5175ee410301ce70a97577eef1859c51bab7899f1ee5d1505b6607a262ebf111",
+  "inventory_delta": {
+    "created": [
+      "core/src/atlas/mod.rs",
+      "core/src/atlas/tests.rs",
+      "runtime/src/atlas.rs"
+    ],
+    "modified": [
+      "apps/cli/src/main.rs",
+      "core/src/certificate/mod.rs",
+      "core/src/lib.rs",
+      "runtime/src/certificate.rs",
+      "runtime/src/lib.rs"
+    ],
+    "deleted": []
+  },
+  "semantic_delta": {
+    "changed": [
+      "apps/cli/src/main.rs",
+      "core/src/certificate/mod.rs",
+      "core/src/lib.rs",
+      "runtime/src/certificate.rs",
+      "runtime/src/lib.rs"
+    ],
+    "counts": {
+      "fact:FunctionIdentity|OBSERVED": 63,
+      "fact:FunctionSignature|OBSERVED": 63,
+      "fact:SemanticObligation|OBSERVED": 12,
+      "fact:SemanticObligation|UNKNOWN": 24,
+      "fact:SourceArtifact|OBSERVED": 6,
+      "fact:Symbol|OBSERVED": 178,
+      "fact:Type|OBSERVED": 130,
+      "record:CALL|OBSERVED": 619,
+      "record:CONTROL_FLOW|INFERRED": 1,
+      "record:CONTROL_FLOW|OBSERVED": 263,
+      "record:DATA_FLOW|OBSERVED": 1382,
+      "record:EFFECT|INFERRED": 9,
+      "record:FUNCTION_IDENTITY|OBSERVED": 63,
+      "record:FUNCTION_SIGNATURE|OBSERVED": 63,
+      "record:OWNERSHIP|OBSERVED": 458,
+      "record:PERSISTENCE|INFERRED": 2,
+      "record:STATE|OBSERVED": 6,
+      "record:SYMBOL|OBSERVED": 178,
+      "record:TYPE|OBSERVED": 130
+    }
+  },
+  "dependency_delta": {
+    "added": [],
+    "removed": []
+  },
+  "dependency_state": [
+    "Closed",
+    "Closed"
+  ],
+  "graph_delta": {
+    "graph_bindings": 3,
+    "graph_edges": 4644,
+    "graph_nodes": 3478
+  },
+  "obligation_delta": {
+    "obligation:CALL|UNKNOWN": 3,
+    "obligation:CONCURRENCY|UNKNOWN": 3,
+    "obligation:CONTROL_FLOW|UNKNOWN": 3,
+    "obligation:DATA_FLOW|UNKNOWN": 3,
+    "obligation:EFFECT|UNKNOWN": 3,
+    "obligation:FUNCTION_IDENTITY|OBSERVED": 3,
+    "obligation:FUNCTION_SIGNATURE|OBSERVED": 3,
+    "obligation:OWNERSHIP|UNKNOWN": 3,
+    "obligation:PERSISTENCE|UNKNOWN": 3,
+    "obligation:STATE|UNKNOWN": 3,
+    "obligation:SYMBOL|OBSERVED": 3,
+    "obligation:TYPE|OBSERVED": 3
+  },
+  "adl_delta": {
+    "added": [],
+    "removed": []
+  },
+  "coverage_delta": [],
+  "unknown_delta": {
+    "increased": [
+      "core/src/atlas/mod.rs: 0 -> 8",
+      "core/src/atlas/tests.rs: 0 -> 8",
+      "runtime/src/atlas.rs: 0 -> 8"
+    ],
+    "decreased": [],
+    "total_before": 916,
+    "total_after": 940
+  },
+  "intent": {
+    "objective": "P2 exit criterion D: minimum .atlas -- ATLAS wire v1 writer and verifying reader for an explicitly unsealed census container (facts, typed obligations, declared ADL graph, certificate), pinned encodings for what the wire contract leaves undefined, transactional publication, `atlas pack` / `atlas verify [--root]`, and the certificate records the verified root identity as ATLAS_ROOT_UNSEALED (never SEALED)",
+    "changed_paths": [
+      "apps/cli/src/main.rs",
+      "core/src/atlas/",
+      "core/src/certificate/mod.rs",
+      "core/src/lib.rs",
+      "runtime/src/atlas.rs",
+      "runtime/src/certificate.rs",
+      "runtime/src/lib.rs"
+    ],
+    "total_changes": [
+      "+artifacts",
+      "+diagnostic:IncompleteAnalysis",
+      "+docs",
+      "+evidence",
+      "+facts",
+      "+graph_bindings",
+      "+graph_edges",
+      "+graph_nodes",
+      "+normalized_facts",
+      "+obligations",
+      "+typed_records",
+      "+unknown_facts"
+    ],
+    "dependency_changes": [],
+    "adl_changes": [],
+    "coverage_changes": [],
+    "explained_unknowns": [
+      "core/src/atlas/mod.rs: a new Rust artifact carries the same explicit UNKNOWN obligations (CALL, CONTROL_FLOW, DATA_FLOW, STATE, EFFECT, OWNERSHIP, CONCURRENCY, PERSISTENCE) as every Rust artifact at baseline -- extractor coverage gap recorded in the certificate",
+      "core/src/atlas/tests.rs: a new Rust artifact carries the same explicit UNKNOWN obligations as every Rust artifact at baseline",
+      "runtime/src/atlas.rs: a new Rust artifact carries the same explicit UNKNOWN obligations as every Rust artifact at baseline"
+    ],
+    "accepted_unexpected": []
+  },
+  "intended_changes": [
+    "path apps/cli/src/main.rs",
+    "path core/src/atlas/mod.rs",
+    "path core/src/atlas/tests.rs",
+    "path core/src/certificate/mod.rs",
+    "path core/src/lib.rs",
+    "path runtime/src/atlas.rs",
+    "path runtime/src/certificate.rs",
+    "path runtime/src/lib.rs",
+    "total +artifacts",
+    "total +diagnostic:IncompleteAnalysis",
+    "total +docs",
+    "total +evidence",
+    "total +facts",
+    "total +graph_bindings",
+    "total +graph_edges",
+    "total +graph_nodes",
+    "total +normalized_facts",
+    "total +obligations",
+    "total +typed_records",
+    "total +unknown_facts"
+  ],
+  "intended_but_unobserved": [],
+  "unexpected_changes": [],
+  "regressions": [],
+  "verdict": "PROVEN"
+}

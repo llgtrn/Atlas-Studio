@@ -1,5 +1,6 @@
 //! Atlas runtime orchestration.
 
+pub mod atlas;
 pub mod census;
 pub mod certificate;
 pub mod donor_storage;

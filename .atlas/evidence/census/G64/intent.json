@@ -1,0 +1,31 @@
+{
+  "objective": "P2 exit criterion D: minimum .atlas -- ATLAS wire v1 writer and verifying reader for an explicitly unsealed census container (facts, typed obligations, declared ADL graph, certificate), pinned encodings for what the wire contract leaves undefined, transactional publication, `atlas pack` / `atlas verify [--root]`, and the certificate records the verified root identity as ATLAS_ROOT_UNSEALED (never SEALED)",
+  "changed_paths": [
+    "apps/cli/src/main.rs",
+    "core/src/atlas/",
+    "core/src/certificate/mod.rs",
+    "core/src/lib.rs",
+    "runtime/src/atlas.rs",
+    "runtime/src/certificate.rs",
+    "runtime/src/lib.rs"
+  ],
+  "total_changes": [
+    "+artifacts",
+    "+diagnostic:IncompleteAnalysis",
+    "+docs",
+    "+evidence",
+    "+facts",
+    "+graph_bindings",
+    "+graph_edges",
+    "+graph_nodes",
+    "+normalized_facts",
+    "+obligations",
+    "+typed_records",
+    "+unknown_facts"
+  ],
+  "explained_unknowns": [
+    "core/src/atlas/mod.rs: a new Rust artifact carries the same explicit UNKNOWN obligations (CALL, CONTROL_FLOW, DATA_FLOW, STATE, EFFECT, OWNERSHIP, CONCURRENCY, PERSISTENCE) as every Rust artifact at baseline -- extractor coverage gap recorded in the certificate",
+    "core/src/atlas/tests.rs: a new Rust artifact carries the same explicit UNKNOWN obligations as every Rust artifact at baseline",
+    "runtime/src/atlas.rs: a new Rust artifact carries the same explicit UNKNOWN obligations as every Rust artifact at baseline"
+  ]
+}

@@ -305,3 +305,20 @@ Old SEALED artifacts MUST remain either:
 
 - readable under the declared compatibility policy; or
 - explicitly rejected/migrated by version, never silently misread.
+
+## Implementation status (G64, ADR 0027)
+
+`atlas_core::atlas` writes and reads one shape of wire v1: the unsealed census container. It sets header flag bit 0 `UNSEALED` and the manifest seal `UNSEALED_CENSUS_CONTAINER`, and is never advertised as sealed.
+
+Its sections: ROOT_MANIFEST, STRING_TABLE, SEMANTIC_RECORDS, GRAPH_NODES, GRAPH_EDGES, OBLIGATIONS and CENSUS_CERTIFICATE.
+
+ADR 0027 pins what this contract leaves undefined:
+- minimal unsigned LEB128 varints;
+- AtlasX wire-type ids;
+- field flag bit 0 = REQUIRED;
+- `schema_id` = the first 8 bytes of BLAKE3(`atlas.wire.v1/<section>`);
+- root identity = BLAKE3 over the ROOT_MANIFEST content, which commits to every other section's type, schema id, content hash and record count;
+- canonical record order and exact file tiling, both enforced by the reader.
+
+Deferred: sealing, compression, sharding and FAT mode.
+
