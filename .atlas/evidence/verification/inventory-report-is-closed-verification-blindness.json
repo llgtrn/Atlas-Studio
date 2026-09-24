@@ -1,0 +1,55 @@
+{
+  "schema": "atlas.self-build.generation-evidence.v1",
+  "wave": "VERIFICATION BLINDNESS -- InventoryReport::is_closed() (core/src/census/mod.rs), the pure function that gates runtime::systemize's real INVENTORY_ACCOUNTING_NOT_CLOSED coding-admission blocker, had zero direct unit test coverage anywhere in the workspace. Its siblings CensusReport::is_closed() and NormalizationReport::is_closed() (core/src/schema/mod.rs) both carry dedicated positive AND negative closure tests; InventoryReport's had neither.",
+  "wave_title": "Twenty-fourth generation this cycle. After generations 20-23 closed out the unescaped-delimiter-join bug class, pivoted the investigative angle (per the standing priority order) back to verification blindness -- auditing whether existing accounting/closure invariants are actually exercised by tests, the same angle that found real gaps in generations 18-19. Surveyed every `is_closed()` implementation in the workspace (CensusReport, NormalizationReport, DependencyClosureReport, InventoryReport) and found InventoryReport's was the one outlier with no coverage at all.",
+  "priority_classification": "verification blindness -- not a live production bug (every real production constructor, InventoryReport::new, keeps artifacts_total/dispositions mutually consistent by construction, so is_closed() is always true on any report this codebase actually builds today), but a real gap in this project's own verification coverage: a regression that silently broke is_closed()'s logic (e.g. an accidental `true` literal, or comparing against the wrong field) would go completely undetected -- confirmed directly by grepping the whole workspace for INVENTORY_ACCOUNTING_NOT_CLOSED (appears exactly once, in the blocker that reads this check, never in a test) and for any call to InventoryReport::is_closed() outside its own implementation (none).",
+  "gap_discovered_by": "Self-directed audit, prompted by noticing core/src/census/mod.rs has no #[cfg(test)] module at all despite defining InventoryReport::is_closed() -- a function with the exact same shape and real-world stakes (gating a coding-admission blocker) as CensusReport::is_closed()/NormalizationReport::is_closed(), both of which DO have dedicated tests including negative cases that deliberately break the invariant post-construction.",
+  "key_finding": "core/src/census/mod.rs defines InventoryReport::new/accounted_total/is_closed with zero tests anywhere in the file or workspace. is_closed() == (accounted_total() == artifacts_total), where accounted_total() sums the dispositions map's values. Confirmed via grep that: (1) INVENTORY_ACCOUNTING_NOT_CLOSED, the blocker string this check gates in runtime::systemize, appears exactly once in the entire workspace -- in the blocker itself, never in a test; (2) no test anywhere calls InventoryReport::is_closed() directly. Since dispositions/artifacts_total are both pub fields, a value with a corrupted/stale relationship between them (e.g. round-tripped through a cached JSON file, or produced by a future code path that doesn't go through InventoryReport::new) is a real, constructible value of this type, not a hypothetical -- and nothing in the test suite would have caught a regression that made is_closed() vacuously true.",
+  "verification_before_acting": [
+    "Read InventoryReport's real, current implementation (new/accounted_total/is_closed) directly, confirming the exact invariant it checks and that its only real production callers (adapter::inventory_source, adapter::inventory_declared_source, via InventoryReport::new) always keep it self-consistent -- so this generation closes a verification gap, not a live defect.",
+    "Grepped the whole workspace for InventoryReport::is_closed and for the INVENTORY_ACCOUNTING_NOT_CLOSED blocker string, confirming zero test coverage exists for this specific check, in contrast to its siblings.",
+    "Read CensusReport::is_closed()/NormalizationReport::is_closed()'s existing test coverage (core/src/schema/mod.rs) to confirm the established, already-battle-tested pattern this generation mirrors: one positive (freshly-constructed) case, and at least one negative case that deliberately breaks the invariant after construction and confirms is_closed() catches it.",
+    "Falsified via the established inverted-direction technique (no live bug to revert-and-confirm against): temporarily replaced is_closed()'s real body with `true` (the exact regression class this test defends against), confirmed both new negative tests failed with the expected panic message, then restored the real implementation from a byte-for-byte backup and confirmed git diff --stat showed only the intended test addition."
+  ],
+  "design_decisions": [
+    {
+      "question": "Fix production code, or add tests?",
+      "decision": "Tests only. is_closed()'s current logic is correct (confirmed by reading it and by the falsification below); the gap is that nothing verifies it. Added a #[cfg(test)] module to core/src/census/mod.rs (the file's first) with three tests: the positive case (a freshly-built report is always closed), and two distinct negative cases (dispositions map corrupted independently of artifacts_total; artifacts_total corrupted independently of dispositions) -- covering both operands of the equality is_closed() checks, not just one."
+    }
+  ],
+  "stable_validator_law_compliance": {
+    "claim": "InventoryReport::is_closed() -- the real function gating runtime::systemize's INVENTORY_ACCOUNTING_NOT_CLOSED coding-admission blocker -- now has direct unit test coverage proving both that it holds for every real production construction path and that it correctly detects a broken invariant, closing a verification gap where a regression in this logic would previously have gone completely undetected.",
+    "self_written_evidence": "Added a_freshly_constructed_report_is_always_closed, a_report_whose_disposition_counts_disagree_with_its_artifacts_is_not_closed, and a_report_whose_artifacts_total_disagrees_with_its_artifact_list_is_not_closed. Falsified by temporarily replacing is_closed()'s body with a bare `true` literal (the exact class of regression this test defends against) and confirming both negative tests failed with their expected panic messages, then restoring the real implementation from a byte-for-byte backup (git diff --stat confirmed only the legitimate test addition remained) and confirming all three tests pass against the real, correct implementation.",
+    "independent_evidence_channel": "cargo fmt --all --check: clean. cargo clippy --workspace --all-targets -- -D warnings: clean, 0 warnings. cargo test --workspace: 574 total (296 adapter, 5 apps/cli, 190 core [+3], 83 runtime), 0 failed -- up from 571. docs audit --root .atlas: gate_ready true. cargo run -p atlas-cli -- systemize --root . (real self-census): coding_admission.blockers empty, exit 0.",
+    "no_circular_self_certification": true
+  },
+  "implementation": {
+    "code_change": "NONE to production code -- InventoryReport::is_closed()'s current logic was confirmed correct and left unchanged.",
+    "docs_change": "core/src/census/mod.rs -- added its first #[cfg(test)] module, with three tests covering InventoryReport::is_closed()'s positive and negative cases."
+  },
+  "adversarial_and_falsification_coverage": [
+    "temporarily injected the exact described regression class (is_closed() unconditionally true) into real production code and confirmed both new negative tests caught it with the expected panic messages, directly proving the verification gap was real",
+    "confirmed the tests pass cleanly against the real, correct implementation after restoring it from a byte-for-byte backup",
+    "covered both operands of the equality independently (a corrupted dispositions map with a correct artifacts_total, and a corrupted artifacts_total with a correct dispositions map) rather than a single combined case, so a regression that breaks either side alone is caught",
+    "confirmed the new tests do not regress any of the 571 other pre-existing tests across the whole workspace, and that this repository's own real self-census (which exercises the real, unmodified is_closed() against real inventory data) still reports zero blockers"
+  ],
+  "validation_this_generation": {
+    "commands": {
+      "cargo test -p core census::tests:: (real code)": { "result": "passed", "totals": "3 passed, 0 failed" },
+      "cargo test -p core census::tests:: (is_closed() replaced with `true`)": { "result": "FAILED as expected -- both negative tests caught the injected regression with their exact expected panic messages" },
+      "cargo test -p core census::tests:: (regression reverted, restored from backup)": { "result": "passed", "totals": "3 passed, 0 failed" },
+      "cargo fmt --all --check": { "exit_code": 0 },
+      "cargo clippy --workspace --all-targets -- -D warnings": { "exit_code": 0, "warnings": 0 },
+      "cargo test --workspace": { "exit_code": 0, "totals": "574 total, 0 failed (296 adapter, 5 apps/cli, 190 core [+3], 83 runtime) -- up from 571" },
+      "cargo run -q -p atlas-cli -- docs audit --root .atlas": { "exit_code": 0, "gate_ready": true },
+      "cargo run -p atlas-cli -- systemize --root . (real self-census)": { "exit_code": 0, "coding_admission_blockers": "[]" }
+    }
+  },
+  "recensus_scope_after_promotion": [
+    "no prior CLOSED/EXTINCT conclusion depended on this verification gap being unnoticed -- InventoryReport::is_closed()'s current behavior was already correct; this generation only makes a future regression in it detectable, which it previously would not have been",
+    "the other is_closed()/typed_semantics_closed() implementations surveyed this generation (CensusReport, NormalizationReport in core/src/schema/mod.rs; DependencyClosureReport in core/src/census/dependency.rs) were all confirmed to already carry adequate positive-and-negative test coverage -- genuinely sound, not a further gap",
+    "the broader question of whether other pure accounting/closure functions elsewhere in the codebase have similarly asymmetric test coverage (a well-tested sibling next to an untested one) was not exhaustively swept this generation -- flagged as a plausible next step for a future verification-blindness pass, not defaulted into now"
+  ],
+  "overall_verdict": "STRENGTHENED, FALSIFIED, AND VERIFIED. InventoryReport::is_closed() -- previously the one accounting-closure check in this codebase's is_closed() family with zero test coverage, despite gating a real coding-admission blocker -- now has direct positive and negative test coverage, added to core/src/census/mod.rs's first #[cfg(test)] module. No production code was changed, since none was found broken -- this generation strengthens the project's own defenses against a FUTURE regression, demonstrated by directly injecting and then reverting the exact described bug against real code. Full workspace suite green (574/574, up from 571).",
+  "historical_evidence_retained": true
+}

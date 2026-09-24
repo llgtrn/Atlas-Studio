@@ -91,3 +91,77 @@ impl InventoryReport {
         self.accounted_total() == self.artifacts_total
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn artifact(path: &str, disposition: ArtifactDisposition) -> ArtifactRecord {
+        ArtifactRecord {
+            id: ArtifactId::new(format!("artifact:{path}")),
+            path: path.into(),
+            kind: ArtifactKind::File,
+            bytes: 10,
+            disposition,
+            language: None,
+            reason: None,
+        }
+    }
+
+    #[test]
+    fn a_freshly_constructed_report_is_always_closed() {
+        let report = InventoryReport::new(
+            "/repo",
+            vec![
+                artifact("a.rs", ArtifactDisposition::Parsed),
+                artifact("b.bin", ArtifactDisposition::BinaryDescribed),
+            ],
+        );
+        assert_eq!(report.accounted_total(), 2);
+        assert!(report.is_closed());
+    }
+
+    // `INVENTORY_ACCOUNTING_NOT_CLOSED` (`runtime::systemize`) is this check's sole real-world
+    // consumer, and gates real coding admission -- but every production constructor
+    // (`InventoryReport::new`, the only one in real use) keeps `artifacts_total`/`dispositions`
+    // mutually consistent by construction, so `is_closed()` is always `true` on any report this
+    // codebase actually builds today. Before this test, nothing anywhere in the workspace directly
+    // exercised `is_closed()` at all (confirmed by grep: `INVENTORY_ACCOUNTING_NOT_CLOSED` appears
+    // exactly once, in the blocker that reads this check, never in a test) -- so a regression that
+    // silently made `is_closed()` unconditionally `true` (e.g. an accidental `true` literal, or a
+    // comparison against the wrong field) would have gone undetected indefinitely. `dispositions`
+    // is `pub`, so a corrupted report -- e.g. one round-tripped through a stale cached JSON file
+    // whose disposition counts no longer match its artifact list -- is a real, constructible value
+    // of this type, not merely a hypothetical.
+    #[test]
+    fn a_report_whose_disposition_counts_disagree_with_its_artifacts_is_not_closed() {
+        let mut report = InventoryReport::new(
+            "/repo",
+            vec![
+                artifact("a.rs", ArtifactDisposition::Parsed),
+                artifact("b.rs", ArtifactDisposition::Parsed),
+            ],
+        );
+        report.dispositions.insert("PARSED".into(), 1);
+        assert_eq!(
+            report.accounted_total(),
+            1,
+            "sanity: the corrupted dispositions map now disagrees with artifacts_total"
+        );
+        assert!(
+            !report.is_closed(),
+            "a disposition count that disagrees with the real artifact list must never read as closed"
+        );
+    }
+
+    #[test]
+    fn a_report_whose_artifacts_total_disagrees_with_its_artifact_list_is_not_closed() {
+        let mut report =
+            InventoryReport::new("/repo", vec![artifact("a.rs", ArtifactDisposition::Parsed)]);
+        report.artifacts_total = 5;
+        assert!(
+            !report.is_closed(),
+            "an artifacts_total that disagrees with the real disposition tally must never read as closed"
+        );
+    }
+}
