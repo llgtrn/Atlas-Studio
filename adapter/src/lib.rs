@@ -854,6 +854,29 @@ test_roots = ["core/tests", "runtime/tests", "adapter/tests", "apps/studio/src"]
 "#,
         )
         .unwrap();
+        // `validate_manifest` alone is a genuinely weaker property than this test's own name
+        // ("parses ... policy fields") promises: it never checks `manifest.repo` at all, and for
+        // `source_roots`/`backend_roots`/`frontend_roots`/`test_roots` it only checks that each
+        // declared path stays contained within the repository root -- never that the parsed value
+        // actually equals what the TOML declared. A real bug (e.g. `backend_roots` and
+        // `frontend_roots` accidentally swapped in `parse_repo_manifest`'s own field list -- an
+        // easy copy/paste slip since the four `array!` calls are visually identical) would still
+        // leave `validate_manifest` returning zero violations under this fixture, since both
+        // swapped values remain ordinary non-escaping relative paths. Asserting directly on the
+        // parsed struct's own fields closes that gap.
         assert!(validate_manifest(&manifest).is_empty());
+        assert_eq!(manifest.repo, "org/repo");
+        assert_eq!(manifest.source_roots, vec!["core".to_owned()]);
+        assert_eq!(manifest.backend_roots, vec!["core".to_owned()]);
+        assert_eq!(manifest.frontend_roots, vec!["apps/studio".to_owned()]);
+        assert_eq!(
+            manifest.test_roots,
+            vec![
+                "core/tests".to_owned(),
+                "runtime/tests".to_owned(),
+                "adapter/tests".to_owned(),
+                "apps/studio/src".to_owned(),
+            ]
+        );
     }
 }
