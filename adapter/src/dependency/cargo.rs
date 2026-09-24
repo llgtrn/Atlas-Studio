@@ -195,6 +195,13 @@ fn expand_glob_members(root: &Path, members: Vec<String>) -> Vec<String> {
             expanded.push(member);
             continue;
         };
+        // A root `Cargo.toml` is attacker-controlled input (a census target or donor-corpus
+        // manifest, never authored by this bootstrap itself): `members = ["../../../*"]` must not
+        // be allowed to walk and read directories outside `root`. Uses the same lexical
+        // containment predicate already relied on for manifest-declared source roots.
+        if !atlas_core::declared_root_is_contained(prefix) {
+            continue;
+        }
         let Ok(entries) = fs::read_dir(root.join(prefix)) else {
             continue;
         };
@@ -477,6 +484,15 @@ pub fn census_cargo_workspace(root: &Path) -> io::Result<Option<DependencyClosur
         }
         let members = expand_glob_members(root, members);
         for member in members {
+            // A plain (non-glob) `workspace.members` entry is the same attacker-controlled
+            // string as a glob prefix (e.g. `members = ["../../../some/other/project"]`) and gets
+            // joined onto `root` the same way -- must be rejected here too, not just for globs.
+            if !atlas_core::declared_root_is_contained(&member) {
+                unsupported_constructs.push(format!(
+                    "Cargo.toml: workspace member \"{member}\" escapes the repository root and was skipped"
+                ));
+                continue;
+            }
             let manifest_path = root.join(&member).join("Cargo.toml");
             let relative_manifest_path = format!("{member}/Cargo.toml");
             if let Some(member_manifest) = read_to_string(&manifest_path)? {
@@ -1135,6 +1151,30 @@ embed-resource = "1"
     }
 
     #[test]
+    fn a_glob_member_prefix_that_escapes_the_root_is_never_expanded() {
+        // A root Cargo.toml is attacker-controlled input (a census target or donor-corpus
+        // manifest, never authored by this bootstrap itself). `members = ["../outside/*"]` must
+        // not walk a real directory that happens to sit next to `root` on disk.
+        let base = std::env::temp_dir().join(format!(
+            "atlas-dep-census-test-{}-glob-escape",
+            std::process::id()
+        ));
+        let _ = fs::remove_dir_all(&base);
+        let outside = base.join("outside");
+        write(
+            &outside.join("evil/Cargo.toml"),
+            "[package]\nname = \"evil\"\n",
+        );
+        let root = base.join("root");
+        fs::create_dir_all(&root).unwrap();
+
+        let expanded = expand_glob_members(&root, vec!["../outside/*".to_owned()]);
+        assert!(expanded.is_empty());
+
+        let _ = fs::remove_dir_all(&base);
+    }
+
+    #[test]
     fn a_glob_shaped_workspace_member_attributes_dependency_roles_for_every_real_subcrate() {
         // The exact regression this fix closes: before `expand_glob_members` existed,
         // `census_cargo_workspace` treated `"crates/*"` as a literal, non-existent path, so every
@@ -1187,6 +1227,55 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
         assert_eq!(edge.evidence_path, "crates/a/Cargo.toml");
 
         let _ = fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn a_workspace_member_naming_a_path_outside_the_repository_root_is_rejected_not_walked() {
+        // A root Cargo.toml is attacker-controlled input (a census target or donor-corpus
+        // manifest, never authored by this bootstrap itself): `members = ["../outside/evil"]`
+        // must not let census_cargo_workspace read and fold in a real manifest that lives outside
+        // the declared repository root, e.g. a sibling checkout or the operator's own files.
+        let base = std::env::temp_dir().join(format!(
+            "atlas-dep-census-test-{}-member-escape",
+            std::process::id()
+        ));
+        let _ = fs::remove_dir_all(&base);
+        write(
+            &base.join("outside/evil/Cargo.toml"),
+            "[package]\nname = \"evil\"\n\n[dependencies]\nsecret-thing = \"1\"\n",
+        );
+        let dir = base.join("root");
+        write(
+            &dir.join("Cargo.toml"),
+            "[workspace]\nmembers = [\"../outside/evil\"]\n",
+        );
+        write(
+            &dir.join("Cargo.lock"),
+            r#"
+[[package]]
+name = "root"
+version = "0.1.0"
+"#,
+        );
+
+        let report = census_cargo_workspace(&dir).unwrap().unwrap();
+        assert!(
+            report
+                .edges
+                .iter()
+                .all(|edge| edge.consumer != "evil" && edge.provider.name != "secret-thing"),
+            "no edge attributed to the escaping member's manifest must ever appear"
+        );
+        assert_eq!(
+            report.unsupported_constructs,
+            vec![
+                "Cargo.toml: workspace member \"../outside/evil\" escapes the repository root \
+                 and was skipped"
+                    .to_owned()
+            ]
+        );
+
+        let _ = fs::remove_dir_all(&base);
     }
 
     // --- 4. end-to-end census against a synthetic workspace on disk ----------------------------
