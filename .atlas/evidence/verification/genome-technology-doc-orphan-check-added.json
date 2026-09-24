@@ -1,0 +1,42 @@
+{
+  "schema": "atlas.self-build.generation-evidence.v1",
+  "wave": "SELF-HOSTING -- close the reverse-direction blind spot the prior generation's own evidence record explicitly recorded as its next step",
+  "wave_title": "Direct follow-up to the prior generation's own recorded next step: 'extending this same permanent-check pattern to other hand-maintained .atlas/ reference files ... the reverse direction of what this generation checks'. The prior generation verified every donor's evidence path exists; this generation verifies every Technology Genome document that EXISTS is actually referenced by some donor -- catching an orphaned record nobody's evidence trail points back to, a real blind spot even though it currently finds nothing.",
+  "priority_classification": "self-hosting / verification blindness -- closes a genuine, previously-unchecked gap (no prior check existed in either direction before the immediately preceding generation, and this generation completes the pair) rather than manufacturing a new concern.",
+  "empirical_check_before_implementing": "before writing any permanent test, ran the equivalent check by hand (comparing the file list of .atlas/genome/technology/*.md against every path referenced in donor-corpus.toml's evidence arrays) to confirm what the new test would actually find -- result: clean, zero orphans and zero dangling references in either direction today. This generation's own value is not a currently-known defect but a durable guard against a FUTURE genome document being written and never linked back to a donor entry, stated explicitly rather than implying a defect was found where none was.",
+  "design_decisions": [
+    {
+      "question": "Add this as a new, separate test module, or extend the existing donor_corpus_integrity module from the prior generation?",
+      "decision": "Extended the existing module -- it already has the parsing/loading infrastructure (`load_entries`, the evidence-path extraction) this check reuses directly; a separate module would either duplicate that infrastructure or need to import it, neither better than adding one more #[test] fn to the module that already owns this exact file's parsing."
+    }
+  ],
+  "stable_validator_law_compliance": {
+    "claim": "Every `.atlas/genome/technology/*.md` file is referenced by at least one donor's evidence array in donor-corpus.toml; a future genome document that is written but never cross-referenced will be caught by this permanent test.",
+    "self_written_evidence": "Ran the check by hand first (shell comm/sort against the two file sets) to confirm what the automated version should find, then wrote the automated version and confirmed it agrees (clean, 0 orphans) -- cross-validating the new Rust test against an independent shell-based computation of the same fact, not trusting the new test's own first green result alone.",
+    "independent_evidence_channel": "cargo build --workspace clean. cargo fmt --all --check clean. cargo clippy --workspace --all-targets -D warnings clean. Full cargo test --workspace: 66 runtime (+1 net), 507 total workspace-wide, 0 failed. docs audit gate_ready: true.",
+    "no_circular_self_certification": true
+  },
+  "implementation": {
+    "runtime_change": "runtime/src/lib.rs -- added every_genome_technology_document_is_referenced_by_some_donor to the existing tests::donor_corpus_integrity module: lists every real .md file under .atlas/genome/technology/, collects every path under that same prefix referenced across all donors' evidence arrays, and asserts every real file is in the referenced set."
+  },
+  "adversarial_and_falsification_coverage": [
+    "verified the check's own baseline (a non-empty genome_files list) as an explicit assertion, so a path-resolution regression in a future refactor fails loudly (empty result) rather than vacuously passing an empty-set comparison",
+    "cross-checked the new Rust test's clean result against an independently-computed shell-based comm/sort of the same two file sets, rather than trusting a single implementation's own self-report"
+  ],
+  "validation_this_generation": {
+    "commands": {
+      "cargo build --workspace": { "exit_code": 0 },
+      "cargo fmt --all --check": { "exit_code": 0 },
+      "cargo clippy --workspace --all-targets -- -D warnings": { "exit_code": 0, "warnings": 0 },
+      "cargo test --workspace": { "exit_code": 0, "totals": "279 adapter, 2 apps/cli, 160 core, 66 runtime -- 507 total, 0 failed" },
+      "cargo run -q -p atlas-cli -- docs audit --root .atlas": { "exit_code": 0, "gate_ready": true }
+    }
+  },
+  "recensus_scope_after_promotion": [
+    "no prior CLOSED/EXTINCT conclusion is affected",
+    "donor-corpus.toml's own hand-maintained evidence trail is now checked in BOTH directions (every claimed reference is real; every real genome document is claimed) -- closing this specific pair of blind spots completely, not partially",
+    "the general lesson from this and the prior generation (a manual verification step repeated across several generations, or a check that exists in only one of two obviously-symmetric directions, is worth formalizing) remains available for other hand-maintained .atlas/ reference files not examined this generation"
+  ],
+  "overall_verdict": "FORMALIZED AND VERIFIED. Closed the reverse-direction blind spot the prior generation explicitly flagged: every Technology Genome document is now permanently checked against donor-corpus.toml's own evidence arrays, confirmed clean today via both the new Rust test and an independent shell-based cross-check. Full workspace suite (507 tests) passing.",
+  "historical_evidence_retained": true
+}

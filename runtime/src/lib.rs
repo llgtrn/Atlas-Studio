@@ -873,6 +873,53 @@ mod tests {
                 }
             }
         }
+
+        /// The reverse direction of the check above: every real, on-disk Technology Genome
+        /// document must be cited by at least one donor's own `evidence` array, or it is an
+        /// orphaned record no `donor-corpus.toml` entry actually points to -- invisible to anyone
+        /// reading a donor's own evidence trail, even though the file itself exists. Confirmed
+        /// clean today (this test was added, not because a defect was found, but because the
+        /// blind spot it closes is real: nothing previously checked this direction at all), so
+        /// this guards against a FUTURE genome document being written and never linked back, not
+        /// a currently-known problem.
+        #[test]
+        fn every_genome_technology_document_is_referenced_by_some_donor() {
+            let root = workspace_root();
+            let genome_dir = root.join(".atlas/genome/technology");
+            let entries = load_entries();
+            let mut referenced: std::collections::HashSet<String> =
+                std::collections::HashSet::new();
+            for entry in &entries {
+                for path in &entry.evidence {
+                    if let Some(name) = path.strip_prefix(".atlas/genome/technology/") {
+                        referenced.insert(name.to_owned());
+                    }
+                }
+            }
+
+            let mut genome_files: Vec<String> = std::fs::read_dir(&genome_dir)
+                .expect(".atlas/genome/technology must exist and be readable")
+                .filter_map(Result::ok)
+                .filter(|entry| entry.path().extension().is_some_and(|ext| ext == "md"))
+                .map(|entry| entry.file_name().to_string_lossy().into_owned())
+                .collect();
+            genome_files.sort();
+            assert!(
+                !genome_files.is_empty(),
+                "expected at least one Technology Genome document under .atlas/genome/technology \
+                 -- this session alone wrote several; an empty directory means this test's own \
+                 path resolution has drifted"
+            );
+
+            for file in &genome_files {
+                assert!(
+                    referenced.contains(file),
+                    "`.atlas/genome/technology/{file}` exists on disk but is not cited in any \
+                     donor's evidence array in donor-corpus.toml -- an orphaned genome record \
+                     nobody's evidence trail points back to"
+                );
+            }
+        }
     }
 
     fn constraint_result(name: &str, passed: bool) -> ConstraintResult {
