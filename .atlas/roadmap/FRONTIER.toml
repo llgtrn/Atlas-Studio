@@ -43,7 +43,7 @@ capability = "Atlas-owned multi-level IR: validated AtlasX -> HIR -> MIR -> LIR 
 state = "CONTRACT_ONLY"
 atlas_implementation = "AtlasIr is an architecture DeclaredGraph only (core/src/language/adl); no HIR/MIR/LIR types; HIR/MIR schemas have no arithmetic ops (COMPILER-IR-SCHEMAS.md)"
 donors = ["mlir", "xdsl", "llvm-project", "wasmtime (Cranelift)", "QBE (MISSING, MIT, ~1.8 MB)", "egglog"]
-blocking_question = "compiler input must be a validated AtlasX root (COMPILER-IR-PIPELINE.md:18) and no AtlasX producer exists; ASIR has no Rust type (ASIR-CONSTRUCTION-MODEL.md:52)"
+blocking_question = "compiler input must be a validated AtlasX root (COMPILER-IR-PIPELINE.md:20) and no .atlas/.atlasx reader or writer exists; G41 lane: the wire contracts leave undefined the varint encoding, flag bits (no unsealed/required bit), a schema_id registry, record kinds/field tags for declared nodes/edges, the .atlas root-identity formula and genome_hash; AtlasX sealing additionally needs SelectedDesign and seal types (none) and ASIR types (TARGET)"
 evidence_required = "an AtlasX root produced and validated by Atlas, or a BLUEPRINT-EVOLUTION amendment admitting a bounded non-product profile"
 falsification = "an IR round-trip / verifier test over every node kind in the closed schema"
 dependency_status = "no compiler dependency in production"
@@ -204,3 +204,415 @@ evidence_required = "an Atlas-constructed artifact independently verified"
 falsification = "rebuild-from-inputs digest equality"
 dependency_status = "cargo/rustc build Atlas (bootstrapping)"
 next_action = "not scheduled"
+
+# ---- CREATOR_FABRIC lanes (G42). Donor rows: .atlas/roadmap/frontier/creator-frontier-2026-09-24.tsv ----
+
+[[lane]]
+id = "creator_browser"
+family = "CREATOR_FABRIC"
+capability = "sandboxed, reproducible observation of public/authorized pages: DOM, computed style, geometry, accessibility tree across viewports and interactions"
+state = "ABSENT"
+atlas_implementation = "none; container has Playwright 1.56.1 + Chromium 141 (verified G42 lane: computed style + bounding boxes at 375/1280 px, ariaSnapshot)"
+donors = ["Playwright (Apache-2.0)", "rrweb (MIT)"]
+blocking_question = "none -- first Creator primitive to build: an observation session record with OBSERVED status and provenance (URL/fixture digest, viewport, browser build)"
+evidence_required = "an atlas-systemizer observe command producing typed VisualObservation records over a local fixture"
+falsification = "re-observing the same fixture digest yields identical records; a changed fixture changes exactly the affected records"
+dependency_status = "Playwright/Chromium EXTERNAL_BOUNDARY (instrument), recorded as bootstrap"
+next_action = "implement browser observation record + ratio-first layout relations over local fixtures (public/authorized only)"
+extinction_state = "n/a"
+
+[[lane]]
+id = "creator_visual_ir"
+family = "CREATOR_FABRIC"
+capability = "Visual Semantic IR (components, layout constraints, tokens, typography, interaction states, motion, scenes) with provenance and epistemic status"
+state = "ABSENT"
+atlas_implementation = "none"
+donors = ["kiwi (BSD-3, Cassowary)", "Radix (MIT)", "Three.js (MIT)", "PixiJS (MIT)"]
+blocking_question = "grow from the first consumer (browser observation); which records does the observation path produce first?"
+evidence_required = "typed records emitted by creator_browser"
+falsification = "records round-trip; unknown kinds rejected"
+dependency_status = "none"
+next_action = "derive the first record kinds from observation output"
+extinction_state = "n/a"
+
+[[lane]]
+id = "creator_layout"
+family = "CREATOR_FABRIC"
+capability = "ratio-first layout relations and responsive structural rules"
+state = "ABSENT"
+atlas_implementation = "none"
+donors = ["kiwi (BSD-3)", "Yoga (MIT, oracle only)", "browser (oracle)"]
+blocking_question = "which normalized relations are stable across viewports (width/viewport, gap/font-size, aspect ratio)?"
+evidence_required = "relations measured at >=2 viewports on fixtures with known CSS"
+falsification = "a fixture whose CSS encodes a known ratio must be recovered within measurement resolution"
+dependency_status = "none"
+next_action = "compute relations from observation records"
+extinction_state = "n/a"
+
+[[lane]]
+id = "creator_motion"
+family = "CREATOR_FABRIC"
+capability = "motion grammar: duration, easing, spring, inertia, scroll/pointer linkage"
+state = "ABSENT"
+atlas_implementation = "none"
+donors = ["Motion (MIT: motion-dom spring.ts, cubic-bezier.ts)"]
+blocking_question = "needs a frame-sequence observation first"
+evidence_required = "frame-timestamped geometry of a fixture with a known spring/easing"
+falsification = "inferred parameters recovered within stated uncertainty; recorded INFERRED, never OBSERVED"
+dependency_status = "none"
+next_action = "after creator_browser: frame sampling"
+extinction_state = "n/a"
+
+[[lane]]
+id = "creator_interaction"
+family = "CREATOR_FABRIC"
+capability = "interaction state graph (state x event -> state), focus/keyboard semantics"
+state = "ABSENT"
+atlas_implementation = "none"
+donors = ["Radix (MIT: presence use-state-machine.tsx)"]
+blocking_question = "needs event-driven observation (hover/click/keyboard)"
+evidence_required = "state transitions observed on fixtures"
+falsification = "replayed events reproduce the same state sequence"
+dependency_status = "none"
+next_action = "after creator_browser"
+extinction_state = "n/a"
+
+[[lane]]
+id = "creator_frontend"
+family = "CREATOR_FABRIC"
+capability = "lowering Visual IR to HTML/CSS/React"
+state = "ABSENT"
+atlas_implementation = "none"
+donors = ["shadcn/ui (MIT, registry pattern)", "Radix (MIT)"]
+blocking_question = "no Visual IR yet"
+evidence_required = "generated fixture renders and re-observes to the declared relations"
+falsification = "render -> observe -> compare against intent"
+dependency_status = "none"
+next_action = "after creator_visual_ir"
+extinction_state = "n/a"
+
+[[lane]]
+id = "creator_image"
+family = "CREATOR_FABRIC"
+capability = "image synthesis with provenance (model, weights license, seed, prompt, digest)"
+state = "ABSENT"
+atlas_implementation = "none"
+donors = ["Diffusers (Apache-2.0; model-weight licenses tracked separately)"]
+blocking_question = "no media provider configured; weights licenses are per-model"
+evidence_required = "a provider adapter producing a digest-identified asset with full provenance"
+falsification = "same seed+model+prompt reproduces the digest where the provider is deterministic"
+dependency_status = "external compute provider (EXTERNAL_BOUNDARY)"
+next_action = "after creator_media_provenance"
+extinction_state = "n/a"
+
+[[lane]]
+id = "creator_video"
+family = "CREATOR_FABRIC"
+capability = "frame generation, compositing, timelines, encoding"
+state = "ABSENT"
+atlas_implementation = "none"
+donors = ["FFmpeg (LGPL-2.1+/GPL build-dependent; container copy is a stripped LGPL Playwright build)"]
+blocking_question = "no media graph yet"
+evidence_required = "timeline -> frames -> encoded artifact with digest"
+falsification = "decode-and-compare frames"
+dependency_status = "EXTERNAL_BOUNDARY bootstrap"
+next_action = "after creator_media_provenance"
+extinction_state = "n/a"
+
+[[lane]]
+id = "creator_2d"
+family = "CREATOR_FABRIC"
+capability = "2D scene graph lowering (SVG/Canvas)"
+state = "ABSENT"
+atlas_implementation = "none"
+donors = ["PixiJS (MIT)"]
+blocking_question = "no scene IR consumer yet"
+evidence_required = "scene -> SVG render -> observe"
+falsification = "rendered geometry matches scene transforms"
+dependency_status = "none"
+next_action = "after creator_visual_ir"
+extinction_state = "n/a"
+
+[[lane]]
+id = "creator_3d"
+family = "CREATOR_FABRIC"
+capability = "3D scene graph (nodes, transforms, materials, cameras, lights)"
+state = "ABSENT"
+atlas_implementation = "none"
+donors = ["Three.js (MIT)", "Babylon.js (Apache-2.0, duplicate)"]
+blocking_question = "no scene IR consumer yet; shares frames/transforms with physical kinematics"
+evidence_required = "scene -> WebGL render -> observe"
+falsification = "projected positions match the scene math"
+dependency_status = "none"
+next_action = "share transform/frame primitive with physical kinematics"
+extinction_state = "n/a"
+
+[[lane]]
+id = "creator_visual_verify"
+family = "CREATOR_FABRIC"
+capability = "layout/overlap/overflow/legibility/accessibility/motion verification"
+state = "ABSENT"
+atlas_implementation = "none"
+donors = ["Playwright ariaSnapshot (Apache-2.0)", "pixelmatch (ISC)", "axe-core (MPL-2.0, principles only)"]
+blocking_question = "needs observation records"
+evidence_required = "verdicts Satisfied/Violated/Unknown (ADR 0007) over visual constraints"
+falsification = "a fixture with a known overflow must be VIOLATED"
+dependency_status = "none"
+next_action = "after creator_browser"
+extinction_state = "n/a"
+
+[[lane]]
+id = "creator_media_provenance"
+family = "CREATOR_FABRIC"
+capability = "media provenance: intent, provider, model+version, seed, transformations, source assets, licenses, digest, verification"
+state = "PARTIAL"
+atlas_implementation = "IntegrityDigest (BLAKE3, ADR 0005) exists for artifact digests; no media records"
+donors = ["ComfyUI (GPL-3.0, principles only: content-addressed node cache)", "Diffusers (Apache-2.0)"]
+blocking_question = "no generated media yet"
+evidence_required = "a media record type bound to an artifact digest"
+falsification = "altering one asset byte breaks the record's digest check"
+dependency_status = "none"
+next_action = "define with creator_image"
+extinction_state = "n/a"
+
+# Higgsfield: no open-source generation code exists (higgsfield-ai/higgsfield is an LLM training framework); treated as an EXTERNAL provider only, not a donor.
+
+# ---- PHYSICAL_ENGINEERING lanes (G42). Donor rows: .atlas/roadmap/frontier/physical-frontier-2026-09-24.tsv ----
+
+[[lane]]
+id = "units"
+family = "PHYSICAL_ENGINEERING"
+capability = "physical quantities, SI dimensions, exact unit conversion, dimensional validation"
+state = "NATIVE"
+atlas_implementation = "core::quantity (ADR 0010): exact rational quantities over 8 bases (angle separate), 13 prefixes, derived units; ADL quantity comparisons ==,>=,<=,>,< with Satisfied/Violated/Unknown; 75/75 units agree with pint 0.25.3"
+donors = ["uom (Apache-2.0/MIT, design reference)", "mp-units (MIT, quantity kinds)", "pint (BSD-3, oracle only)"]
+blocking_question = "quantity kinds (torque vs energy), tolerances and uncertainty are not represented"
+evidence_required = "a consumer needing tolerances (manufacturing) or kinds (mechanics)"
+falsification = "differential against pint; exactness property tests"
+dependency_status = "none (no donor dependency)"
+next_action = "add tolerance/uncertainty to Quantity when the first geometry/manufacturing consumer arrives"
+extinction_state = "n/a"
+
+[[lane]]
+id = "physical_ir"
+family = "PHYSICAL_ENGINEERING"
+capability = "Physical Semantic IR: system/component/body/joint/frame/sensor/actuator/rail..."
+state = "ABSENT"
+atlas_implementation = "none; ADL entities carry quantity-valued attributes (ADR 0010)"
+donors = ["Drake (BSD-3: systems/framework)", "Zephyr (Apache-2.0: devicetree)", "ros2_control (Apache-2.0)", "CadQuery (Apache-2.0: assembly.py)"]
+blocking_question = "grow from the first physical milestone (2-link arm): which records does it need?"
+evidence_required = "2-link arm declared in ADL with quantity attributes and evaluated constraints"
+falsification = "dimensional and constraint verdicts on the arm fixture"
+dependency_status = "none"
+next_action = "2-link arm milestone: frames + joints + kinematics"
+extinction_state = "n/a"
+
+[[lane]]
+id = "cad"
+family = "PHYSICAL_ENGINEERING"
+capability = "parametric geometry, constraints, BREP"
+state = "ABSENT"
+atlas_implementation = "none"
+donors = ["CadQuery (Apache-2.0)", "FreeCAD (LGPL-2.1, principles only)", "OCCT (LGPL-2.1+exception, principles only)"]
+blocking_question = "no geometry consumer yet"
+evidence_required = "plate-with-holes intent lowered to geometry"
+falsification = "geometric constraint verdicts; exported mesh measured"
+dependency_status = "OCCT-class kernels plausible EXTERNAL_BOUNDARY"
+next_action = "after kinematics frames"
+extinction_state = "n/a"
+
+[[lane]]
+id = "electronics"
+family = "PHYSICAL_ENGINEERING"
+capability = "schematic/net graph, ERC/DRC, BOM"
+state = "ABSENT"
+atlas_implementation = "none"
+donors = ["KiCad (GPL-3.0, principles only: eeschema/erc/erc.cpp, pcbnew/drc)"]
+blocking_question = "no electronics consumer yet"
+evidence_required = "net graph with quantity-typed pins/rails"
+falsification = "ERC-style verdicts on fixtures"
+dependency_status = "none"
+next_action = "after power model"
+extinction_state = "n/a"
+
+[[lane]]
+id = "power"
+family = "PHYSICAL_ENGINEERING"
+capability = "sources, sinks, rails, voltage ranges, current demand, efficiency"
+state = "ABSENT"
+atlas_implementation = "none (quantities available)"
+donors = ["ngspice (BSD-3 core; SourceForge master)"]
+blocking_question = "cross-domain milestone 2 (arm motors -> current -> rail)"
+evidence_required = "rail budget checks with worst-case quantities"
+falsification = "budget over rail capacity must be VIOLATED"
+dependency_status = "none"
+next_action = "milestone 2"
+extinction_state = "n/a"
+
+[[lane]]
+id = "embedded"
+family = "PHYSICAL_ENGINEERING"
+capability = "board/SoC/device model, devicetree, realtime deadlines"
+state = "ABSENT"
+atlas_implementation = "none"
+donors = ["Zephyr (Apache-2.0: scripts/dts python-devicetree, dts/bindings)"]
+blocking_question = "no firmware construction consumer"
+evidence_required = "device model -> config generation"
+falsification = "schema-validated device graph"
+dependency_status = "none"
+next_action = "after physical_ir"
+extinction_state = "n/a"
+
+[[lane]]
+id = "robotics"
+family = "PHYSICAL_ENGINEERING"
+capability = "node/QoS/lifecycle graph as an output ecosystem, not the IR"
+state = "ABSENT"
+atlas_implementation = "none"
+donors = ["ROS 2 tf2 (BSD-3)", "ros2_control (Apache-2.0)", "rclcpp (unjustified per G42 lane)"]
+blocking_question = "ROS is an output target; needs physical_ir first"
+evidence_required = "generated ROS graph from Atlas model"
+falsification = "graph consistency checks"
+dependency_status = "none"
+next_action = "after physical_ir"
+extinction_state = "n/a"
+
+[[lane]]
+id = "kinematics"
+family = "PHYSICAL_ENGINEERING"
+capability = "frames, joints, forward kinematics, Jacobians"
+state = "ABSENT"
+atlas_implementation = "none"
+donors = ["Pinocchio (BSD-2: include/pinocchio/src/...)", "Drake (BSD-3: math/rigid_transform.h, multibody/tree/frame.h)", "tf2 (BSD-3)"]
+blocking_question = "first physical milestone: 2-link arm forward kinematics with quantity-typed lengths/angles (rad)"
+evidence_required = "FK of a 2-link arm matches closed form"
+falsification = "FK against analytic solution; dimension checks on every parameter"
+dependency_status = "none"
+next_action = "implement frames + planar FK for the 2-link arm milestone"
+extinction_state = "n/a"
+
+[[lane]]
+id = "dynamics"
+family = "PHYSICAL_ENGINEERING"
+capability = "mass, inertia, forces, torques, inverse dynamics"
+state = "ABSENT"
+atlas_implementation = "none"
+donors = ["Pinocchio", "Drake"]
+blocking_question = "after kinematics"
+evidence_required = "payload torque estimate for the arm"
+falsification = "static torque = m*g*r closed form"
+dependency_status = "none"
+next_action = "after kinematics"
+extinction_state = "n/a"
+
+[[lane]]
+id = "control"
+family = "PHYSICAL_ENGINEERING"
+capability = "state/reference/error/controller/plant/sampling/saturation"
+state = "ABSENT"
+atlas_implementation = "none"
+donors = ["Drake", "PX4 (BSD-3, bounded)"]
+blocking_question = "needs a plant model"
+evidence_required = "closed-loop simulation of the arm joint"
+falsification = "step response within declared bounds; never promoted to hardware"
+dependency_status = "none"
+next_action = "after dynamics"
+extinction_state = "n/a"
+
+[[lane]]
+id = "simulation"
+family = "PHYSICAL_ENGINEERING"
+capability = "run identity (model, parameters, seed, scenario), integration"
+state = "ABSENT"
+atlas_implementation = "none"
+donors = ["MuJoCo (Apache-2.0: mjModel/mjData split)", "Drake (simulator_config, monte_carlo)"]
+blocking_question = "no simulated plant yet"
+evidence_required = "simulation record SIMULATED with run identity"
+falsification = "same run identity reproduces the trajectory"
+dependency_status = "none"
+next_action = "after control"
+extinction_state = "n/a"
+
+[[lane]]
+id = "multiphysics"
+family = "PHYSICAL_ENGINEERING"
+capability = "thermal/fluid fields, boundary conditions"
+state = "ABSENT"
+atlas_implementation = "none"
+donors = ["OpenFOAM (GPL-3.0, principles only)", "Project Chrono (BSD-3, overlaps Drake/MuJoCo)"]
+blocking_question = "no thermal consumer"
+evidence_required = "a cooling requirement"
+falsification = "analytic conduction cases"
+dependency_status = "none"
+next_action = "not scheduled"
+extinction_state = "n/a"
+
+[[lane]]
+id = "manufacturing"
+family = "PHYSICAL_ENGINEERING"
+capability = "stock, process, tool, toolpath, tolerance, inspection"
+state = "ABSENT"
+atlas_implementation = "none"
+donors = ["LinuxCNC (GPL-2.0, principles only)"]
+blocking_question = "no geometry yet"
+evidence_required = "plate manufacturability checks"
+falsification = "tool-access/tolerance verdicts"
+dependency_status = "none"
+next_action = "after cad"
+extinction_state = "n/a"
+
+[[lane]]
+id = "sil"
+family = "PHYSICAL_ENGINEERING"
+capability = "software-in-the-loop verification level with exact binary/model/params/scenario/seed"
+state = "ABSENT"
+atlas_implementation = "none"
+donors = ["PX4 SITL (BSD-3)", "Drake"]
+blocking_question = "needs controller + simulated plant"
+evidence_required = "SIL evidence record"
+falsification = "faults change verdicts as predicted"
+dependency_status = "none"
+next_action = "after simulation"
+extinction_state = "n/a"
+
+[[lane]]
+id = "hil"
+family = "PHYSICAL_ENGINEERING"
+capability = "hardware-in-the-loop (real controller hardware + simulated plant)"
+state = "ABSENT"
+atlas_implementation = "none"
+donors = []
+blocking_question = "no authorized hardware test environment exists; HIL is never simulated and labelled HIL"
+evidence_required = "an authorized controlled fixture"
+falsification = "n/a"
+dependency_status = "n/a"
+next_action = "blocked on authorized hardware"
+extinction_state = "n/a"
+
+[[lane]]
+id = "physical_safety"
+family = "PHYSICAL_ENGINEERING"
+capability = "safety state machine (Normal/Degraded/SafeStop/EmergencyStop/Fault/Recovery) and a hard boundary between candidate command and authorized execution"
+state = "ABSENT"
+atlas_implementation = "none; no Atlas code can actuate hardware"
+donors = ["PX4 commander (BSD-3: failsafe state machine)"]
+blocking_question = "no physical execution path exists (correct: none may exist without explicit authorization)"
+evidence_required = "a typed transition table with forbidden transitions tested"
+falsification = "forbidden transitions rejected"
+dependency_status = "none"
+next_action = "define with control"
+extinction_state = "n/a"
+
+[[lane]]
+id = "telemetry"
+family = "PHYSICAL_ENGINEERING"
+capability = "timestamped measurements with unit, uncertainty, device/firmware identity, calibration"
+state = "ABSENT"
+atlas_implementation = "quantities available (ADR 0010)"
+donors = []
+blocking_question = "no physical system to observe; MEASURED/CALIBRATED states need an ADR 0002 amendment"
+evidence_required = "first telemetry consumer (SIL output)"
+falsification = "units and identity checks on records"
+dependency_status = "none"
+next_action = "after sil"
+extinction_state = "n/a"

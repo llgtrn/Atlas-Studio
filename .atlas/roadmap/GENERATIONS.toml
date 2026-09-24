@@ -13,7 +13,7 @@
 #       -> generation evidence -> G_n+1
 
 schema = "atlas.self-build.generation-ledger.v1"
-current_generation = "G41"
+current_generation = "G42"
 
 [[generation]]
 id = "G35"
@@ -311,10 +311,46 @@ id = "G41"
 base_commit = "50638583f9e9e69d05fb3a0c87db348f4f8f61f8"
 objective = "measure recensus at corpus scale; select the next foundational unlock for the frontier directive"
 writer = "coordinator (sole production writer); lanes read-only"
+result_commits = ["e64ddbf2758d75e36aec0a4e7c9f02e3e5d9374e"]
 evidence = ".atlas/evidence/verification/r5-corpus-scale-recensus-measurement.json"
 
 [[generation.deferred]]
 id = "systemize-report-size-at-corpus-scale"
 class = "DEFERRED_GENERATION_CANDIDATE"
 summary = "rust-analyzer donor: 48.5 s release but a 2.47 GB report (541k graph nodes); self report 187 MB pretty = 115 MB compact = 61 MB compact without normalization's verbatim copy of census typed records/evidence/diagnostics/obligations; stdout also receives the whole report. Needs a schema decision (content-addressed section references or split artifacts) -- plausibly the binary .atlas format itself"
+
+[[generation]]
+id = "G42"
+base_commit = "e64ddbf2758d75e36aec0a4e7c9f02e3e5d9374e"
+objective = "open the CREATOR_FABRIC and PHYSICAL_ENGINEERING capability families (user directives): frontier inventory, machine-readable lanes, and the first foundational physical primitive (units/dimensions)"
+writer = "coordinator (sole production writer); lanes read-only"
+evidence = ".atlas/decisions/0010-physical-quantities-and-dimensional-constraints.md"
+
+[[generation.lane]]
+id = "atlasx-gap"
+objective = "what .atlas/.atlasx production requires and what exists"
+result = "no reader/writer exists; contracts leave varint encoding, flag bits, schema_id registry, root-identity formula and genome_hash undefined; only an UNSEALED noncanonical debug container is buildable and its only consumer would be itself -> compiler lane stays blocked on contract amendments (FRONTIER compiler_ir)"
+
+[[generation.lane]]
+id = "physical-frontier"
+objective = "verify 16 requested physical donors + units references"
+result = "none admitted; uom (Apache-2.0/MIT) best units reference, pint (BSD-3) oracle; Drake/MuJoCo/Pinocchio/tf2 permissive; KiCad/FreeCAD/OCCT/OpenFOAM/LinuxCNC/OpenModelica copyleft (principles only); several requested slice paths were stale and corrected (.atlas/roadmap/frontier/physical-frontier-2026-09-24.tsv)"
+
+[[generation.lane]]
+id = "creator-frontier"
+objective = "verify requested Creator donors, prove the browser substrate, resolve Higgsfield"
+result = "none admitted; Playwright 1.56.1 + Chromium 141 observation proven in-container (computed style + boxes at 375/1280 px, ariaSnapshot); Higgsfield has no open-source generation code (EXTERNAL provider only); container ffmpeg is a stripped LGPL build; slices in .atlas/roadmap/frontier/creator-frontier-2026-09-24.tsv"
+
+[generation.join]
+absorb_now_exists = false
+selected_action = "native foundational primitive: core::quantity + dimension-aware ADL quantity constraints (ADR 0010); donors uom/mp-units recorded as design references, pint as differential oracle only"
+decision_record = ".atlas/decisions/0010-physical-quantities-and-dimensional-constraints.md"
+
+[generation.verification]
+falsification = "11 mutants killed across core::quantity and the ADL comparison path"
+oracle = "pint 0.25.3 (scratch venv): 75/75 unit expressions agree on SI factor and base-dimension exponents; the first run found the mL defect, fixed before commit"
+tests = "workspace green; fmt; clippy -D warnings"
+
+[generation.next]
+objective = "G43: Creator browser observation record (atlas-systemizer observe over local/authorized fixtures -> OBSERVED visual records + ratio-first layout relations); then physical milestone 1 (2-link arm frames + forward kinematics with quantity-typed parameters)"
 

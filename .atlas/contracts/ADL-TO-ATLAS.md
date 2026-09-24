@@ -186,6 +186,12 @@ An ADL language-version change or Atlas semantic-schema change that alters meani
   - `UNKNOWN`: the result is undecidable — `ATLAS-E053` (no evaluable checks) or `ATLAS-E055` (the required attribute is not declared on a relevant node).
 
   Conjunction is strong Kleene. `passed` is kept and equals `verdict == SATISFIED`. `coding_admission` raises `ADL_CONSTRAINT_VIOLATED` and `ADL_CONSTRAINT_UNKNOWN` separately. Both block, and `UNKNOWN` is never promoted to a pass.
+- **Quantity comparisons (ADR 0010, `.atlas/decisions/0010-physical-quantities-and-dimensional-constraints.md`).** The operator in `require x.attr <op> value` is one of `==`, `>=`, `<=`, `>` or `<`. When both the declared and the required value are quantity-shaped (`<decimal> <unit>`, e.g. `120 mm`, `3.3 V`, `9.81 m/s^2`), `core::quantity` compares their dimension and exact SI value, so `0.12 m == 120 mm`. The outcomes are:
+  - different dimensions: `VIOLATED` (`ATLAS-E056`);
+  - a unit without an exact rational SI factor (`deg`, `rpm`, `degC`) or an exact-arithmetic overflow: `UNKNOWN` (`ATLAS-E057`);
+  - an ordering operator over a non-quantity: `UNKNOWN` (`ATLAS-E058`).
+
+  Plain strings and bare numbers keep literal `==` semantics.
 - `invariant` declarations are evaluated by the exact same pass as `constraint` declarations. They are not a documentation-only or declared-but-unchecked category.
 
 This closes a real gap: earlier revisions silently returned `passed: true` for unrecognized constraint syntax (an unchecked constraint reporting success), and separately never evaluated `invariant` blocks at all (parsed and recorded, but absent from `constraint_results` and therefore invisible to `atlas-cli check`'s readiness gate).

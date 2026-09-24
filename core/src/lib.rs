@@ -13,6 +13,7 @@ pub mod graph;
 pub mod identity;
 pub mod language;
 pub mod provenance;
+pub mod quantity;
 pub mod schema;
 pub mod semantic;
 pub mod state;
@@ -50,6 +51,7 @@ pub use language::adl::{
     RelationDecl, SourceSpan, TransformDecl, compile_adl, lex_adl, parse_adl_source,
 };
 pub use provenance::{Provenance, provenance};
+pub use quantity::{Dimension, Quantity, QuantityError, Rational};
 pub use schema::{
     CensusReport, ConflictCandidate, DocsReport, DocumentFact, EpistemicStatus,
     ExtractionCacheStats, FileFact, GraphSummary, NormalizationReport, RepoAudit, RepoManifest,

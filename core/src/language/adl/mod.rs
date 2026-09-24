@@ -106,10 +106,101 @@ pub enum ConstraintCheck {
         where_value: Option<String>,
         require_attr: String,
         require_value: String,
+        /// The required relation (ADR 0010). `==` on two quantity-shaped values compares
+        /// dimension and exact SI value; the orderings apply only to quantities.
+        #[serde(default)]
+        comparison: Comparison,
     },
     MaterializationExists {
         target: String,
     },
+}
+
+/// Relation a `require x.attr <op> value` clause demands.
+#[derive(Debug, Clone, Copy, Default, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+pub enum Comparison {
+    #[default]
+    Eq,
+    Lt,
+    Le,
+    Gt,
+    Ge,
+}
+
+impl Comparison {
+    /// Operators in match priority (two-character operators first).
+    const OPERATORS: [(&'static str, Self); 5] = [
+        ("==", Self::Eq),
+        (">=", Self::Ge),
+        ("<=", Self::Le),
+        (">", Self::Gt),
+        ("<", Self::Lt),
+    ];
+
+    pub fn symbol(self) -> &'static str {
+        match self {
+            Self::Eq => "==",
+            Self::Lt => "<",
+            Self::Le => "<=",
+            Self::Gt => ">",
+            Self::Ge => ">=",
+        }
+    }
+
+    fn holds(self, ordering: std::cmp::Ordering) -> bool {
+        use std::cmp::Ordering::*;
+        match self {
+            Self::Eq => ordering == Equal,
+            Self::Lt => ordering == Less,
+            Self::Le => ordering != Greater,
+            Self::Gt => ordering == Greater,
+            Self::Ge => ordering != Less,
+        }
+    }
+
+    fn split(clause: &str) -> Option<(&str, Self, &str)> {
+        Self::OPERATORS.iter().find_map(|(symbol, comparison)| {
+            clause
+                .split_once(symbol)
+                .map(|(left, right)| (left, *comparison, right))
+        })
+    }
+}
+
+/// One node's outcome for `declared <comparison> required` (ADR 0010):
+/// - both quantity-shaped: parsed with `core::quantity`; an unsupported unit or exact-arithmetic
+///   overflow is `Unknown` (`ATLAS-E057`), different dimensions are `Violated` (`ATLAS-E056`), and
+///   otherwise the exact ordering decides;
+/// - otherwise `==` keeps its literal string meaning, and an ordering over a non-quantity is
+///   `Unknown` (`ATLAS-E058`) -- never guessed.
+fn compare_attribute(
+    declared: &str,
+    comparison: Comparison,
+    required: &str,
+) -> Result<(), (ConstraintVerdict, &'static str, String)> {
+    use crate::quantity::{Quantity, QuantityError};
+    if Quantity::is_quantity_shaped(declared) && Quantity::is_quantity_shaped(required) {
+        let parsed = Quantity::parse(declared)
+            .and_then(|left| Quantity::parse(required).and_then(|right| left.checked_cmp(&right)));
+        return match parsed {
+            Ok(ordering) if comparison.holds(ordering) => Ok(()),
+            Ok(_) => Err((ConstraintVerdict::Violated, "ATLAS-E050", String::new())),
+            Err(error @ QuantityError::DimensionMismatch { .. }) => {
+                Err((ConstraintVerdict::Violated, "ATLAS-E056", error.to_string()))
+            }
+            Err(error) => Err((ConstraintVerdict::Unknown, "ATLAS-E057", error.to_string())),
+        };
+    }
+    match comparison {
+        Comparison::Eq if declared == required => Ok(()),
+        Comparison::Eq => Err((ConstraintVerdict::Violated, "ATLAS-E050", String::new())),
+        _ => Err((
+            ConstraintVerdict::Unknown,
+            "ATLAS-E058",
+            "ordering requires two quantities with units".into(),
+        )),
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
@@ -557,18 +648,19 @@ fn parse_constraint_check(lines: &[(usize, String)]) -> Result<Vec<ConstraintChe
     });
     let require_pair = require_index.and_then(|start| {
         let clause = words[start + 1..].join(" ");
-        let (left, right) = clause.split_once("==")?;
+        let (left, comparison, right) = Comparison::split(&clause)?;
         let attr = left.split('.').nth(1)?.trim().to_owned();
-        Some((attr, unquote(right)))
+        Some((attr, comparison, unquote(right)))
     });
     match (entity_kind, require_pair) {
-        (Some(entity_kind), Some((require_attr, require_value))) => {
+        (Some(entity_kind), Some((require_attr, comparison, require_value))) => {
             Ok(vec![ConstraintCheck::AttributeEquals {
                 entity_kind,
                 where_attr: where_pair.as_ref().map(|pair| pair.0.clone()),
                 where_value: where_pair.map(|pair| pair.1),
                 require_attr,
                 require_value,
+                comparison,
             }])
         }
         _ => Err(joined),
@@ -1032,6 +1124,7 @@ fn evaluate_constraints(declared: &DeclaredGraph) -> Vec<ConstraintResult> {
                         where_value,
                         require_attr,
                         require_value,
+                        comparison,
                     } => {
                         let mut supporting_node_names = Vec::new();
                         for node in declared
@@ -1066,13 +1159,26 @@ fn evaluate_constraints(declared: &DeclaredGraph) -> Vec<ConstraintResult> {
                                 ));
                                 continue;
                             };
-                            if declared_value != require_value {
-                                verdicts.push(ConstraintVerdict::Violated);
+                            if let Err((verdict, code, detail)) =
+                                compare_attribute(declared_value, *comparison, require_value)
+                            {
+                                verdicts.push(verdict);
+                                let detail = if detail.is_empty() {
+                                    String::new()
+                                } else {
+                                    format!(" ({detail})")
+                                };
                                 diagnostics.push(adl_diag(
-                                    "ATLAS-E050",
+                                    code,
                                     format!(
-                                        "constraint `{}` expected {}.{} == {}",
-                                        constraint.name, node.name, require_attr, require_value
+                                        "constraint `{}` expected {}.{} {} {}, declared {}{}",
+                                        constraint.name,
+                                        node.name,
+                                        require_attr,
+                                        comparison.symbol(),
+                                        require_value,
+                                        declared_value,
+                                        detail
                                     ),
                                     &node.span.path,
                                     node.span.line,
@@ -1566,6 +1672,7 @@ constraint BackendIsRust {
                 where_value: Some("true".into()),
                 require_attr: "language".into(),
                 require_value: "rust".into(),
+                comparison: Comparison::Eq,
             }]
         );
     }
@@ -1601,6 +1708,7 @@ constraint BackendIsRust {
                 where_value: Some("true".into()),
                 require_attr: "language".into(),
                 require_value: "rust".into(),
+                comparison: Comparison::Eq,
             }],
             "the where-filter naming an attribute that merely contains the word `where` must be \
              preserved, not silently dropped"
@@ -1677,6 +1785,122 @@ constraint BackendIsRust {
             .into_iter()
             .find(|result| result.name == name)
             .expect("constraint evaluated")
+    }
+
+    /// ADR 0010: evaluates one `forall p: Plate require p.<clause>` invariant against a single
+    /// declared plate with the given attribute lines.
+    fn plate_verdict(attributes: &str, require: &str) -> ConstraintResult {
+        let source = AdlSource {
+            path: ".atlas/declared/system.adl".into(),
+            text: format!(
+                "atlas 1\nsystem Bracket\nentity Plate Mount {{\n{attributes}}}\ninvariant PlateRule {{\n    forall p: Plate\n    require p.{require}\n}}\n"
+            ),
+        };
+        let observed = SourceReport {
+            schema: "test".into(),
+            root: "/repo".into(),
+            files_total: 0,
+            languages: BTreeMap::new(),
+            files: Vec::new(),
+        };
+        compile_adl(&[source], &observed)
+            .constraint_results
+            .into_iter()
+            .find(|result| result.name == "PlateRule")
+            .expect("invariant evaluated")
+    }
+
+    fn codes(result: &ConstraintResult) -> Vec<&str> {
+        result.diagnostics.iter().map(|d| d.code.as_str()).collect()
+    }
+
+    #[test]
+    fn quantity_constraints_compare_dimension_and_exact_value_across_units() {
+        use ConstraintVerdict::*;
+        for (declared, require, verdict, code) in [
+            ("width = 0.12 m", "width == 120 mm", Satisfied, None),
+            ("thickness = 3 mm", "thickness >= 2 mm", Satisfied, None),
+            ("thickness = 2 mm", "thickness >= 0.002 m", Satisfied, None),
+            (
+                "thickness = 1.5 mm",
+                "thickness >= 2 mm",
+                Violated,
+                Some("ATLAS-E050"),
+            ),
+            (
+                "thickness = 2 mm",
+                "thickness > 2 mm",
+                Violated,
+                Some("ATLAS-E050"),
+            ),
+            ("mass = 250 g", "mass <= 0.3 kg", Satisfied, None),
+            ("mass = 3 kg", "mass <= 2 V", Violated, Some("ATLAS-E056")),
+            ("width = 3 kg", "width == 3 V", Violated, Some("ATLAS-E056")),
+            (
+                "angle = 90 deg",
+                "angle <= 2 rad",
+                Unknown,
+                Some("ATLAS-E057"),
+            ),
+            (
+                "finish = anodized",
+                "finish >= 2 mm",
+                Unknown,
+                Some("ATLAS-E058"),
+            ),
+            ("finish = anodized", "finish == anodized", Satisfied, None),
+            (
+                "width = 120mm",
+                "width == 120 mm",
+                Violated,
+                Some("ATLAS-E050"),
+            ),
+        ] {
+            let result = plate_verdict(&format!("    {declared}\n"), require);
+            assert_eq!(
+                result.verdict, verdict,
+                "{declared} / {require}: {:?}",
+                result.diagnostics
+            );
+            match code {
+                Some(code) => assert!(
+                    codes(&result).contains(&code),
+                    "{declared} / {require}: {:?}",
+                    codes(&result)
+                ),
+                None => assert!(result.diagnostics.is_empty(), "{declared} / {require}"),
+            }
+        }
+    }
+
+    #[test]
+    fn a_comparison_operator_is_parsed_into_the_declared_check() {
+        let program = parse_adl_source(&AdlSource {
+            path: ".atlas/declared/system.adl".into(),
+            text: "atlas 1\nsystem S\ninvariant Thick {\n    forall p: Plate\n    require p.thickness >= 2 mm\n}\n".into(),
+        });
+        let checks: Vec<_> = program
+            .declarations
+            .iter()
+            .filter_map(|declaration| match declaration {
+                AdlDeclaration::Invariant(constraint) | AdlDeclaration::Constraint(constraint) => {
+                    Some(constraint.checks.clone())
+                }
+                _ => None,
+            })
+            .flatten()
+            .collect();
+        assert_eq!(
+            checks,
+            vec![ConstraintCheck::AttributeEquals {
+                entity_kind: "Plate".into(),
+                where_attr: None,
+                where_value: None,
+                require_attr: "thickness".into(),
+                require_value: "2 mm".into(),
+                comparison: Comparison::Ge,
+            }]
+        );
     }
 
     #[test]
