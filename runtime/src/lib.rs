@@ -619,6 +619,65 @@ mod tests {
         }
     }
 
+    // `.atlas/contracts/cli/atlas-systemizer-cli-v1.json` is a machine-readable JSON Schema
+    // describing this binary's own stable CLI surface -- but nothing in this workspace ever
+    // validated the real CLI against it, so it silently drifted: it named a `"fleet connect"`
+    // subcommand that has never existed in this codebase, was missing three real subcommands
+    // (`check`/`graph`/`parse`), and named the wrong `subsystem_kind` -- the exact inversion a
+    // "stable CLI contract" exists to prevent (a schema validator built against the stale file
+    // would reject real, working subcommands while accepting a phantom one). Corrected the file's
+    // content and added this permanent check so it can never drift unnoticed again.
+    #[test]
+    fn cli_contract_json_matches_the_real_contract_default() {
+        let contract_text = std::fs::read_to_string(
+            std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+                .join("../.atlas/contracts/cli/atlas-systemizer-cli-v1.json"),
+        )
+        .expect(".atlas/contracts/cli/atlas-systemizer-cli-v1.json must exist and be readable");
+        let schema: serde_json::Value =
+            serde_json::from_str(&contract_text).expect("the CLI contract must be valid JSON");
+
+        let real = Contract::default();
+
+        assert_eq!(
+            schema["properties"]["schema"]["const"].as_str(),
+            Some(real.schema.as_str())
+        );
+        assert_eq!(
+            schema["properties"]["binary"]["const"].as_str(),
+            Some(real.binary.as_str())
+        );
+        assert_eq!(
+            schema["properties"]["subsystem_kind"]["const"].as_str(),
+            Some(real.subsystem_kind.as_str()),
+            "the contract's declared subsystem_kind must match Contract::default()'s real value"
+        );
+        assert_eq!(
+            schema["properties"]["runtime_dependency_allowed"]["const"].as_bool(),
+            Some(real.runtime_dependency_allowed)
+        );
+
+        let declared_commands: std::collections::BTreeSet<String> =
+            schema["properties"]["commands"]["items"]["enum"]
+                .as_array()
+                .expect("commands.items.enum must be a JSON array")
+                .iter()
+                .map(|value| {
+                    value
+                        .as_str()
+                        .expect("every command must be a string")
+                        .to_owned()
+                })
+                .collect();
+        let real_commands: std::collections::BTreeSet<String> = real.commands.into_iter().collect();
+        assert_eq!(
+            declared_commands, real_commands,
+            "the CLI contract's declared command set must exactly match the real \
+             Contract::default() command set -- a subcommand present in one but not the other is \
+             exactly the drift this permanent check exists to catch"
+        );
+    }
+
     // `.atlas/evidence/verification/duplicate-classification-logic-swept-clean.json`: five
     // separate instances of the same defect class -- a small classification/helper function
     // copy-pasted into a second file (sometimes under a different name), with nothing to stop the

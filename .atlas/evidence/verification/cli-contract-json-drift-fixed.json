@@ -1,0 +1,49 @@
+{
+  "schema": "atlas.self-build.generation-evidence.v1",
+  "wave": "SELF-HOSTING / VERIFICATION BLINDNESS -- the machine-readable stable CLI contract had drifted from the real binary and nothing checked it",
+  "wave_title": "A seventh delegated fresh-census investigation, applying this session's own contract-vs-code cross-check technique to files not yet examined, found `.atlas/contracts/cli/atlas-systemizer-cli-v1.json` -- a JSON Schema titled 'Atlas Systemizer stable CLI v1 contract' -- claims the closed set of valid subcommands is `[\"contract\", \"systemize\", \"docs audit\", \"code analyze\", \"fleet connect\", \"work prepare\"]`. The real binary (`apps/cli/src/main.rs`) has never had a `fleet connect` subcommand at all, and is missing three real ones from that list: `check`, `graph`, `parse`. A schema validator built against this contract would reject three real, working subcommands while accepting a phantom one -- the exact inversion a stable CLI contract exists to prevent.",
+  "priority_classification": "self-hosting / verification blindness -- nothing in this workspace validated the real CLI against this contract (confirmed by grepping the whole workspace for the file's own `$id`/path: zero references from any Rust source, test, or CI script), which is exactly how the drift went unnoticed as `check`/`graph`/`parse` were added to the real binary over time without this file ever being updated alongside them.",
+  "verification_before_acting": [
+    "Re-read the actual JSON file directly myself and confirmed the exact mismatch the investigating agent described: `fleet connect` present in the enum with no corresponding code anywhere (grepped the whole Rust source tree for `fleet`: zero matches), `check`/`graph`/`parse` real and working in `apps/cli/src/main.rs` but absent from the enum.",
+    "Found a SECOND, independent mismatch while verifying: the contract's `subsystem_kind` const is `\"DEVELOPMENT_ENGINEERING_TOOL\"`, but the REAL, live Rust-level contract (`core::Contract::default()`, what `atlas-cli contract --format json` actually returns) sets `subsystem_kind: \"SYSTEM_INVENTION_FORGE\"` -- confirming this static JSON file had drifted on more than just its command list.",
+    "Confirmed `Contract::default()` itself (core/src/lib.rs) is ALREADY correct and complete (all 8 real subcommands, correct subsystem_kind) -- the live, Rust-level source of truth was never wrong; only the disconnected, unreferenced static JSON documentation artifact had drifted from it.",
+    "Falsified the fix directly: after writing both the JSON fix and its new regression test, temporarily reverted the JSON file's content back to the stale values (backed up first), re-ran the new test, confirmed it failed with the exact expected mismatch (`DEVELOPMENT_ENGINEERING_TOOL` vs `SYSTEM_INVENTION_FORGE`), then restored the corrected JSON from the backup and re-ran to confirm clean."
+  ],
+  "design_decisions": [
+    {
+      "question": "Fix only the JSON file's content, or also add permanent automated verification that it stays in sync with `Contract::default()`?",
+      "decision": "Both. The investigating agent's own root-cause analysis was that nothing ever validated this file, which is precisely why it drifted silently for as long as it did -- fixing the content alone would leave the exact same blind spot open for the next CLI change. Added `cli_contract_json_matches_the_real_contract_default` in `runtime/src/lib.rs`, parsing the real JSON file and asserting every field (`schema`, `binary`, `subsystem_kind`, `runtime_dependency_allowed`, and the full `commands` set) matches `Contract::default()` exactly, matching this session's own established self-hosting-pressure principle (the same pattern already applied to `required_verification_commands_cover_every_command_ci_runs`, `donor_corpus_integrity`, and the donor-quarantine script's own new regression tests)."
+    }
+  ],
+  "stable_validator_law_compliance": {
+    "claim": "`.atlas/contracts/cli/atlas-systemizer-cli-v1.json` now exactly matches `Contract::default()` -- the real, live value `atlas-cli contract --format json` actually returns -- for every field the schema declares, and `cargo test --workspace` now permanently fails if the two are ever allowed to drift apart again.",
+    "self_written_evidence": "New test `cli_contract_json_matches_the_real_contract_default`. Falsified directly: reverted the JSON file's content to its original stale values (backed up first), re-ran the test, confirmed it failed with the exact expected `subsystem_kind` mismatch, restored the corrected file from the backup, and confirmed `git status --short` afterward showed only the intended two files changed (no lingering artifact from the falsification step).",
+    "independent_evidence_channel": "cargo build --workspace clean. cargo fmt --all --check clean. cargo clippy --workspace --all-targets -D warnings clean, zero warnings. Full cargo test --workspace: 290 adapter, 3 apps/cli, 165 core, 78 runtime (+1 net) -- 536 total, 0 failed. `docs audit`: gate_ready true.",
+    "no_circular_self_certification": true
+  },
+  "implementation": {
+    "contracts_change": ".atlas/contracts/cli/atlas-systemizer-cli-v1.json -- `subsystem_kind` corrected to `SYSTEM_INVENTION_FORGE`; `commands.items.enum` corrected to the real 8-command set (`contract`, `systemize`, `docs audit`, `code analyze`, `work prepare`, `check`, `parse`, `graph`), removing the phantom `fleet connect`; `minItems` updated from 6 to 8 to match.",
+    "runtime_change": "runtime/src/lib.rs -- new test `cli_contract_json_matches_the_real_contract_default`, reading the real JSON file and asserting every field against `Contract::default()`."
+  },
+  "adversarial_and_falsification_coverage": [
+    "found a second, independent mismatch (subsystem_kind) beyond the investigating agent's own top-line command-list finding, by reading the whole file rather than stopping at the first confirmed discrepancy",
+    "confirmed the fix's own regression test genuinely fails without it, restoring from a real backup file (not re-typing the correction from memory) to guarantee an exact, verifiable round-trip",
+    "confirmed `Contract::default()` itself -- the actual source of truth this fix now pins the JSON file against -- was already correct before this generation, so the fix is purely a documentation/verification-blindness closure, not a change to real CLI behavior"
+  ],
+  "validation_this_generation": {
+    "commands": {
+      "cargo build --workspace": { "exit_code": 0 },
+      "cargo fmt --all --check": { "exit_code": 0 },
+      "cargo clippy --workspace --all-targets -- -D warnings": { "exit_code": 0, "warnings": 0 },
+      "cargo test --workspace": { "exit_code": 0, "totals": "290 adapter, 3 apps/cli, 165 core, 78 runtime (+1 net) -- 536 total, 0 failed" },
+      "cargo run -q -p atlas-cli -- docs audit --root .atlas": { "exit_code": 0, "gate_ready": true }
+    }
+  },
+  "recensus_scope_after_promotion": [
+    "no prior CLOSED/EXTINCT conclusion is affected",
+    "no other file under `.atlas/contracts/cli/` or similar machine-readable schema files exist in this workspace today (checked) -- this was the only file of this specific kind",
+    "the general lesson (a machine-readable contract file that nothing actually validates against is a real, recurring defect class in this codebase -- the same shape as `backend_roots`, the donor-quarantine script, and `GraphSummary.evidence_total`) is worth checking for any future machine-readable contract/schema file added without an accompanying consumer-side test"
+  ],
+  "overall_verdict": "MATERIALIZED AND VERIFIED. `.atlas/contracts/cli/atlas-systemizer-cli-v1.json`'s drift from the real CLI (a phantom `fleet connect` subcommand, three missing real ones, and a wrong `subsystem_kind`) is fixed, and a permanent regression test now pins this file against `Contract::default()` so it can never silently drift again. Confirmed the fix's own test genuinely fails without it via a real backup/restore/verify cycle. Full workspace suite (536 tests) passing, gate_ready true.",
+  "historical_evidence_retained": true
+}
