@@ -105,6 +105,13 @@ impl OwnershipIdentity {
     /// `resolution` is deliberately excluded -- like R4.8's `StateResolution` precedent, it is a
     /// resolution fact about an already-identified operation, not part of what makes the operation
     /// itself a distinct entity.
+    ///
+    /// `name` is escaped before joining: unlike a sibling dimension's bare-identifier `name`
+    /// (guaranteed `|`-free by `syn`'s own lexer), this one can also be a borrow referent's raw
+    /// token-stream spelling (`&(a | b)`, `&foo()`, ...) when the referent is not a single path --
+    /// text with no restrictive charset, exactly the case `escape_identity_field`'s own doc
+    /// comment names. Without escaping, a crafted `name` could absorb the literal `|path:line:col`
+    /// separators that follow it and collide with an unrelated site's identity.
     pub fn identity_key(&self) -> String {
         format!(
             "{}|{}:{}|{}|{}|{}:{}:{}|{}",
@@ -112,7 +119,7 @@ impl OwnershipIdentity {
             self.revision.kind,
             self.revision.value,
             self.function.as_str(),
-            self.name,
+            crate::identity::escape_identity_field(&self.name, '|'),
             self.span.path,
             self.span.line,
             self.span.column,
@@ -192,6 +199,49 @@ mod tests {
             ..base()
         };
         assert_eq!(base().identity_key(), other.identity_key());
+    }
+
+    #[test]
+    fn identity_key_does_not_collide_when_name_contains_the_join_separator() {
+        // `name` is not always a bare identifier: for a borrow whose referent is not a single
+        // path (`&(b | 1 < 2)`, `&foo()`, ...), `adapter::semantic::rust::ownership` sets `name`
+        // to that expression's raw token-stream spelling (`call_callee_spelling`), which is not
+        // filtered through any restrictive lexer and can genuinely contain `|` -- unlike a bare
+        // Rust identifier, which `syn` guarantees never can. Two structurally different sites (a
+        // borrow of a `|`-containing expression at one span, vs. a plain-named borrow whose name
+        // happens to embed another site's `path:line:col|kind` tail) must never collapse onto one
+        // identity merely because their unescaped joins render the same string.
+        let a = OwnershipIdentity {
+            name: "a".into(),
+            span: SourceSpan {
+                path: "b|1:2|BORROW_MUT".into(),
+                line: 3,
+                column: 4,
+            },
+            kind: OwnershipKind::BorrowShared,
+            ..base()
+        };
+        let b = OwnershipIdentity {
+            name: "a|b|1:2".into(),
+            span: SourceSpan {
+                path: "BORROW_MUT".into(),
+                line: 3,
+                column: 4,
+            },
+            kind: OwnershipKind::BorrowShared,
+            ..base()
+        };
+        assert_ne!(
+            a, b,
+            "sanity: these must be genuinely different OwnershipIdentity values"
+        );
+        assert_ne!(
+            a.identity_key(),
+            b.identity_key(),
+            "an unescaped `|`-join let two distinct ownership sites collapse onto one identity: {} == {}",
+            a.identity_key(),
+            b.identity_key(),
+        );
     }
 
     #[test]
