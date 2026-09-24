@@ -1975,10 +1975,14 @@ pub async unsafe extern "C" fn example<T>(x: Vec<T>, y: &mut usize) -> Result<T,
             .iter()
             .find(|fact| fact.kind == SemanticFactKind::FunctionSignature)
             .expect("compatibility FunctionSignature fact present");
-        // The compatibility projection is a lossy display summary: it never mentions the ABI or
-        // visibility at all (proving `facts` alone cannot answer "what is this function's ABI").
-        assert!(!signature_fact.object.contains("extern"));
-        assert!(!signature_fact.object.contains("pub"));
+        // The compatibility projection's display summary now DOES represent ABI/visibility (a
+        // real gap this session's own fix closed -- `FunctionSignature::summary()` previously
+        // silently dropped them). This test's real point survives regardless: the typed world
+        // below is never DERIVED from `facts`, so its correctness never depended on this string's
+        // completeness in the first place -- proven concretely by the `facts.clear()` step below,
+        // not by this string being incomplete.
+        assert!(signature_fact.object.contains("extern"));
+        assert!(signature_fact.object.contains("pub"));
 
         // The typed world retains everything, independently of `facts`.
         let signature = find_function_signature(&census.typed_semantic_records);

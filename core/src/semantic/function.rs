@@ -162,12 +162,21 @@ pub struct FunctionSignature {
 }
 
 impl FunctionSignature {
-    /// A source-spelling display summary (`"async unsafe fn(x: u8) -> Result<T, E>"`), never a
-    /// canonical/compiler-resolved signature -- built purely from each parameter/return type's own
-    /// `TypeIdentity.name`, which is exactly the source-syntax spelling this whole kernel commits to
-    /// (see this module's own doc comment). Shared canonical form for every caller that needs a
-    /// display/summary string for a signature -- previously duplicated, byte-for-byte identically,
-    /// as a private free function in both `core::graph::engineering_graph` and `runtime::census`.
+    /// A source-spelling display summary (`"pub async unsafe extern \"C\" fn<T>(x: u8) -> Result<T,
+    /// E>"`), never a canonical/compiler-resolved signature -- built purely from each
+    /// parameter/return type's own `TypeIdentity.name`, which is exactly the source-syntax spelling
+    /// this whole kernel commits to (see this module's own doc comment). Shared canonical form for
+    /// every caller that needs a display/summary string for a signature -- previously duplicated,
+    /// byte-for-byte identically, as a private free function in both `core::graph::engineering_graph`
+    /// and `runtime::census`.
+    ///
+    /// `.atlas/contracts/SEMANTIC-FACTS.md#functionsignature` requires this facet to "account for
+    /// parameters/order/types, return type, generics, ABI/calling convention, visibility/export
+    /// surface, async/coroutine form and language-specific safety/effect qualifiers" -- every one of
+    /// these is rendered here, not merely carried on the struct, because `runtime::census` uses this
+    /// summary as the ENTIRE `object` value of the compatibility `SemanticFact` for the
+    /// `function_signature` predicate (the sole content representing that claim for any consumer of
+    /// the compat subject/predicate/object envelope rather than the full typed record).
     pub fn summary(&self) -> String {
         let params = self
             .parameters
@@ -180,9 +189,32 @@ impl FunctionSignature {
             .as_ref()
             .map(|type_identity| type_identity.name.clone())
             .unwrap_or_else(|| "()".to_owned());
+        // "inherited" (`spelling::visibility_spelling`'s own name for no visibility keyword at
+        // all) renders as nothing, matching real Rust's own private-item source spelling -- every
+        // other value (`pub`, `pub(crate)`, ...) is a real keyword prefix.
+        let visibility = if self.visibility == "inherited" {
+            String::new()
+        } else {
+            format!("{} ", self.visibility)
+        };
         let asyncness = if self.is_async { "async " } else { "" };
         let unsafety = if self.is_unsafe { "unsafe " } else { "" };
-        format!("{asyncness}{unsafety}fn({params}) -> {return_type}")
+        let extern_abi = if self.is_extern {
+            match &self.abi {
+                Some(abi) => format!("extern \"{abi}\" "),
+                None => "extern ".to_owned(),
+            }
+        } else {
+            String::new()
+        };
+        let generics = if self.generics.is_empty() {
+            String::new()
+        } else {
+            format!("<{}>", self.generics.join(", "))
+        };
+        format!(
+            "{visibility}{asyncness}{unsafety}{extern_abi}fn{generics}({params}) -> {return_type}"
+        )
     }
 }
 
@@ -246,7 +278,7 @@ mod tests {
         };
         assert_eq!(
             signature.summary(),
-            "async unsafe fn(x: Vec<T>, y: &mut usize) -> Result<T, Error>"
+            "pub async unsafe fn(x: Vec<T>, y: &mut usize) -> Result<T, Error>"
         );
     }
 
@@ -258,12 +290,39 @@ mod tests {
             return_type: None,
             generics: Vec::new(),
             abi: None,
-            visibility: "pub".into(),
+            visibility: "inherited".into(),
             is_async: false,
             is_unsafe: false,
             is_extern: false,
         };
         assert_eq!(signature.summary(), "fn() -> ()");
+    }
+
+    #[test]
+    fn summary_renders_visibility_generics_and_extern_abi() {
+        // The exact scenario `.atlas/contracts/SEMANTIC-FACTS.md#functionsignature` requires this
+        // facet to account for: a real `pub(crate) unsafe extern "C" fn foo<T>(x: T) -> i32`. Every
+        // field is real, extractor-populated data this summary is the SOLE rendering of for any
+        // consumer of the compatibility `SemanticFact` envelope (`runtime::census`'s
+        // `function_signature` predicate uses this string as its entire `object` value).
+        let signature = FunctionSignature {
+            function: identity("widgets"),
+            parameters: vec![FunctionParameter {
+                name: "x".into(),
+                type_identity: type_identity("T"),
+            }],
+            return_type: Some(type_identity("i32")),
+            generics: vec!["T".into()],
+            abi: Some("C".into()),
+            visibility: "pub(crate)".into(),
+            is_async: false,
+            is_unsafe: true,
+            is_extern: true,
+        };
+        assert_eq!(
+            signature.summary(),
+            "pub(crate) unsafe extern \"C\" fn<T>(x: T) -> i32"
+        );
     }
 
     #[test]
