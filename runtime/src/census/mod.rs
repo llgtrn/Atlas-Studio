@@ -22,7 +22,7 @@ use atlas_core::{
     AdlCompileReport, ArtifactDisposition, ArtifactId, CensusReport, EpistemicStatus, Evidence,
     ExtractionDiagnostic, ExtractorIdentity, InventoryReport, Provenance, RevisionRef,
     SemanticDimension, SemanticFact, SemanticFactKind, SemanticObligationRecord,
-    SemanticObservation, SourceReport, TypedClosureAccounting, stable_id,
+    SemanticObservation, SourceReport, TypedClosureAccounting, escape_identity_field, stable_id,
 };
 use std::{collections::BTreeMap, path::Path};
 
@@ -257,11 +257,19 @@ pub fn build_census(
         });
     }
 
+    // `edge.from`/`.relation`/`.to` and `binding.consumer`/`.capability`/`.provider` are
+    // ADL-authored free text, extracted by `parse_relation`'s simple `split_once("->")`, not a
+    // restrictive lexer -- the same field set `core::language::adl::mod`'s own `DeclaredEdge.id`
+    // already escapes for this exact reason. Escaped here too before joining into `fact_id`'s
+    // seed, so two genuinely different declared relations/bindings can never collapse onto one
+    // `SemanticFact.id`.
     for edge in &adl.ir.declared.edges {
         facts.push(SemanticFact {
             id: fact_id(&format!(
                 "declared-edge:{}:{}:{}",
-                edge.from, edge.relation, edge.to
+                escape_identity_field(&edge.from, ':'),
+                escape_identity_field(&edge.relation, ':'),
+                escape_identity_field(&edge.to, ':'),
             )),
             kind: SemanticFactKind::DeclaredEdge,
             status: EpistemicStatus::Declared,
@@ -276,7 +284,9 @@ pub fn build_census(
         facts.push(SemanticFact {
             id: fact_id(&format!(
                 "binding:{}:{}:{}",
-                binding.consumer, binding.capability, binding.provider
+                escape_identity_field(&binding.consumer, ':'),
+                escape_identity_field(&binding.capability, ':'),
+                escape_identity_field(&binding.provider, ':'),
             )),
             kind: SemanticFactKind::Binding,
             status: EpistemicStatus::Declared,
@@ -582,8 +592,8 @@ pub fn build_census(
 mod tests {
     use super::*;
     use atlas_core::{
-        ArtifactId, ArtifactKind, ArtifactRecord, FileFact, InventoryReport, SemanticScope,
-        SourceReport, compile_adl,
+        ArtifactId, ArtifactKind, ArtifactRecord, BindingDecl, DeclaredEdge, FileFact,
+        InventoryReport, SemanticScope, SourceReport, SourceSpan, compile_adl,
     };
 
     #[test]
@@ -1531,6 +1541,91 @@ mod tests {
         };
         let adl = compile_adl(&[], &source);
         (inventory, source, adl)
+    }
+
+    fn span() -> SourceSpan {
+        SourceSpan {
+            path: "atlas.adl".into(),
+            line: 1,
+            column: 1,
+        }
+    }
+
+    #[test]
+    fn two_different_declared_edges_never_collapse_into_one_fact_via_an_unescaped_join() {
+        // `edge.from`/`edge.relation`/`edge.to` are ADL-authored free text, extracted by
+        // `parse_relation`'s simple `split_once("->")`, not a restrictive lexer -- the same field
+        // set `core::language::adl::mod`'s own `DeclaredEdge.id` already escapes for this exact
+        // reason. `fact_id` here joins them again, independently, with no escaping: two genuinely
+        // different declared relations must never collapse onto one `SemanticFact.id`.
+        let (inventory, source, mut adl) = single_rust_file_context();
+        adl.ir.declared.edges = vec![
+            DeclaredEdge {
+                id: "edge-a".into(),
+                from: "Foo:bar".into(),
+                relation: "baz".into(),
+                to: "X".into(),
+                origin: "declared".into(),
+                span: span(),
+            },
+            DeclaredEdge {
+                id: "edge-b".into(),
+                from: "Foo".into(),
+                relation: "bar:baz".into(),
+                to: "X".into(),
+                origin: "declared".into(),
+                span: span(),
+            },
+        ];
+        let census = build_census(&inventory, &source, &adl, &[]);
+        let ids: std::collections::BTreeSet<_> = census
+            .facts
+            .iter()
+            .filter(|fact| fact.kind == SemanticFactKind::DeclaredEdge)
+            .map(|fact| fact.id.clone())
+            .collect();
+        assert_eq!(
+            ids.len(),
+            2,
+            "two genuinely different declared edges must never collapse onto one fact id"
+        );
+    }
+
+    #[test]
+    fn two_different_bindings_never_collapse_into_one_fact_via_an_unescaped_join() {
+        // Same defect class as the DeclaredEdge case above, for `binding.consumer`/`.capability`/
+        // `.provider` feeding the `binds_to` fact's id (joined as `"{consumer}:{capability}:
+        // {provider}"`, so the crafted collision shifts the boundary between `consumer` and
+        // `capability`, holding `provider` fixed).
+        let (inventory, source, mut adl) = single_rust_file_context();
+        adl.ir.declared.bindings = vec![
+            BindingDecl {
+                name: "bind-a".into(),
+                consumer: "Foo:bar".into(),
+                capability: "baz".into(),
+                provider: "X".into(),
+                span: span(),
+            },
+            BindingDecl {
+                name: "bind-b".into(),
+                consumer: "Foo".into(),
+                capability: "bar:baz".into(),
+                provider: "X".into(),
+                span: span(),
+            },
+        ];
+        let census = build_census(&inventory, &source, &adl, &[]);
+        let ids: std::collections::BTreeSet<_> = census
+            .facts
+            .iter()
+            .filter(|fact| fact.kind == SemanticFactKind::Binding && fact.predicate == "binds_to")
+            .map(|fact| fact.id.clone())
+            .collect();
+        assert_eq!(
+            ids.len(),
+            2,
+            "two genuinely different bindings must never collapse onto one fact id"
+        );
     }
 
     #[test]

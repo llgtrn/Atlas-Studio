@@ -319,13 +319,21 @@ pub fn build_system_graph(
                     &fact.provenance,
                 );
             }
+            // `fact.subject`/`fact.predicate`/`fact.object` are ADL-authored free text (extracted
+            // by `parse_relation`'s simple `split_once("->")`, not a restrictive lexer -- see
+            // `core::language::adl::mod`'s own `DeclaredEdge.id` computation, which already
+            // escapes this identical field set for this identical reason, and the sibling
+            // `ConstraintResult | Diagnostic` arm below). Escaped before joining so two genuinely
+            // different declared relations/bindings can never collapse onto one edge/binding id.
             SemanticFactKind::DeclaredEdge => {
                 graph.edges.push(Edge {
                     id: stable_id(
                         "edge",
                         &format!(
                             "normalized:{}:{}:{}",
-                            fact.subject, fact.predicate, fact.object
+                            crate::identity::escape_identity_field(&fact.subject, ':'),
+                            crate::identity::escape_identity_field(&fact.predicate, ':'),
+                            crate::identity::escape_identity_field(&fact.object, ':'),
                         ),
                     ),
                     kind: fact.predicate.to_ascii_uppercase(),
@@ -339,10 +347,12 @@ pub fn build_system_graph(
             SemanticFactKind::Binding if fact.predicate == "binds_to" => {
                 let from = declared_node_id(&fact.subject);
                 let to = declared_node_id(&fact.object);
+                let escaped_subject = crate::identity::escape_identity_field(&fact.subject, ':');
+                let escaped_object = crate::identity::escape_identity_field(&fact.object, ':');
                 graph.bindings.push(Binding {
                     id: stable_id(
                         "binding",
-                        &format!("normalized:{}:{}", fact.subject, fact.object),
+                        &format!("normalized:{escaped_subject}:{escaped_object}"),
                     ),
                     source: from.clone(),
                     target: to.clone(),
@@ -354,7 +364,7 @@ pub fn build_system_graph(
                 graph.edges.push(Edge {
                     id: stable_id(
                         "edge",
-                        &format!("normalized:{}:BINDS_TO:{}", fact.subject, fact.object),
+                        &format!("normalized:{escaped_subject}:BINDS_TO:{escaped_object}"),
                     ),
                     kind: "BINDS_TO".into(),
                     from,
@@ -1520,6 +1530,114 @@ mod tests {
         assert_eq!(
             diagnostic_nodes, 2,
             "two genuinely different diagnostics must never collapse into one graph node"
+        );
+    }
+
+    #[test]
+    fn two_different_declared_edges_never_collapse_into_one_edge_via_an_unescaped_join() {
+        // Same defect class as the Diagnostic case above, in the sibling `DeclaredEdge` arm:
+        // `fact.subject`/`fact.predicate`/`fact.object` are ADL-authored free text (extracted by
+        // `parse_relation`'s simple `split_once("->")`, not a restrictive lexer -- see
+        // `core::language::adl::mod`'s own `DeclaredEdge.id` computation, which already escapes
+        // this identical field set for this identical reason). Two genuinely different declared
+        // relations must never collapse onto one edge id merely because their unescaped `:` join
+        // renders the same string.
+        let colliding_a = semantic(
+            "edge-a",
+            SemanticFactKind::DeclaredEdge,
+            EpistemicStatus::Declared,
+            "Foo:bar",
+            "baz",
+            "X",
+        );
+        let colliding_b = semantic(
+            "edge-b",
+            SemanticFactKind::DeclaredEdge,
+            EpistemicStatus::Declared,
+            "Foo",
+            "bar:baz",
+            "X",
+        );
+        let normalization = normalization_with(Vec::new(), vec![colliding_a, colliding_b]);
+        let graph = build_system_graph(&source(), &docs(), &normalization);
+
+        let edge_ids: std::collections::BTreeSet<_> = graph
+            .edges
+            .iter()
+            .filter(|edge| edge.kind == "BAZ" || edge.kind == "BAR:BAZ")
+            .map(|edge| edge.id.clone())
+            .collect();
+        assert_eq!(
+            edge_ids.len(),
+            2,
+            "two genuinely different declared edges must never collapse onto one edge id"
+        );
+    }
+
+    #[test]
+    fn two_different_bindings_never_collapse_into_one_binding_via_an_unescaped_join() {
+        // Same defect class, in the sibling `Binding` arm: `fact.subject`/`fact.object` feed both
+        // a `Binding` id (joined `"{subject}:{object}"`) and a `BINDS_TO` edge id (joined
+        // `"{subject}:BINDS_TO:{object}"`) via an unescaped `:` join. Each join shape needs its own
+        // crafted collision pair, since the fixed "BINDS_TO" literal in the edge-id format changes
+        // where a collision is constructible.
+        let binding_a = semantic(
+            "bind-a",
+            SemanticFactKind::Binding,
+            EpistemicStatus::Declared,
+            "Foo:bar",
+            "binds_to",
+            "X",
+        );
+        let binding_b = semantic(
+            "bind-b",
+            SemanticFactKind::Binding,
+            EpistemicStatus::Declared,
+            "Foo",
+            "binds_to",
+            "bar:X",
+        );
+        let normalization = normalization_with(Vec::new(), vec![binding_a, binding_b]);
+        let graph = build_system_graph(&source(), &docs(), &normalization);
+        let binding_ids: std::collections::BTreeSet<_> = graph
+            .bindings
+            .iter()
+            .map(|binding| binding.id.clone())
+            .collect();
+        assert_eq!(
+            binding_ids.len(),
+            2,
+            "two genuinely different bindings must never collapse onto one binding id"
+        );
+
+        let edge_a = semantic(
+            "bind-edge-a",
+            SemanticFactKind::Binding,
+            EpistemicStatus::Declared,
+            "Foo",
+            "binds_to",
+            "Bar:BINDS_TO:Baz",
+        );
+        let edge_b = semantic(
+            "bind-edge-b",
+            SemanticFactKind::Binding,
+            EpistemicStatus::Declared,
+            "Foo:BINDS_TO:Bar",
+            "binds_to",
+            "Baz",
+        );
+        let normalization = normalization_with(Vec::new(), vec![edge_a, edge_b]);
+        let graph = build_system_graph(&source(), &docs(), &normalization);
+        let edge_ids: std::collections::BTreeSet<_> = graph
+            .edges
+            .iter()
+            .filter(|edge| edge.kind == "BINDS_TO")
+            .map(|edge| edge.id.clone())
+            .collect();
+        assert_eq!(
+            edge_ids.len(),
+            2,
+            "two genuinely different bindings must never collapse onto one BINDS_TO edge id"
         );
     }
 
