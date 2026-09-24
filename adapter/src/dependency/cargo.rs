@@ -541,7 +541,23 @@ pub fn census_cargo_workspace(root: &Path) -> io::Result<Option<DependencyClosur
                 continue;
             };
             let provider_package = match (candidates.as_slice(), &dependency_ref.version) {
-                ([single], _) => *single,
+                ([single], None) => *single,
+                ([single], Some(version)) => {
+                    if &single.version == version {
+                        *single
+                    } else {
+                        // A single candidate exists but the lockfile's own dependency-array entry
+                        // names a disambiguating version that doesn't match it -- the same real
+                        // dangling reference the multi-candidate branch below reports, not a case
+                        // to silently accept the lone candidate as if it were unversioned.
+                        dangling_references.push(format!(
+                            "{} -> {dependency_name} {version} (no matching resolved version among {} candidates)",
+                            package.name,
+                            candidates.len()
+                        ));
+                        continue;
+                    }
+                }
                 (_, Some(version)) => {
                     match candidates.iter().find(|p| &p.version == version) {
                         Some(matched) => *matched,
@@ -1514,6 +1530,48 @@ version = "2.0.0"
             report.dangling_references,
             vec![
                 "adapter -> syn 3.0.0 (no matching resolved version among 2 candidates)".to_owned()
+            ]
+        );
+
+        let _ = fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn a_disambiguated_lockfile_entry_naming_a_version_with_only_one_mismatched_candidate_is_a_dangling_reference()
+     {
+        // A single `[[package]]` block for a name is not automatically the right provider: the
+        // lockfile's own dependency-array entry can still name a disambiguating version that
+        // doesn't match it (a hand-edited or merge-corrupted lockfile). This must be reported the
+        // same way the multi-candidate mismatch case above is, not silently accepted as if the
+        // lone candidate were unversioned.
+        let dir = std::env::temp_dir().join(format!(
+            "atlas-dep-census-test-{}",
+            std::process::id().to_string() + "-6b"
+        ));
+        let _ = fs::remove_dir_all(&dir);
+        write(
+            &dir.join("Cargo.lock"),
+            r#"
+[[package]]
+name = "adapter"
+version = "0.1.0"
+dependencies = [
+ "syn 1.5.0",
+]
+
+[[package]]
+name = "syn"
+version = "9.9.9"
+"#,
+        );
+
+        let report = census_cargo_workspace(&dir).unwrap().unwrap();
+        assert!(!report.is_closed());
+        assert_eq!(report.edges_total, 0);
+        assert_eq!(
+            report.dangling_references,
+            vec![
+                "adapter -> syn 1.5.0 (no matching resolved version among 1 candidates)".to_owned()
             ]
         );
 

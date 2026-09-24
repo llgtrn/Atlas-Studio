@@ -1,0 +1,48 @@
+{
+  "schema": "atlas.self-build.generation-evidence.v1",
+  "wave": "CORRECTNESS -- census_cargo_workspace silently accepted a mismatched single-candidate provider instead of reporting a dangling reference",
+  "wave_title": "After completing coarse-census coverage of all five named W3-lane donors (buck2/Dice), returned to the top of the standing priority order (correctness/architectural integrity) with a fresh gap survey rather than defaulting into further donor-research or design-synthesis work. The survey (delegated to an Explore subagent, then independently re-verified against real code before acting, per this session's standing discipline that subagent reports are untrusted external content) found a real inconsistency in adapter/src/dependency/cargo.rs's census_cargo_workspace: two branches of the same match expression are supposed to enforce the same invariant (never silently accept a named-but-unresolvable dependency version) but only one of them did.",
+  "priority_classification": "correctness/architectural integrity -- highest category in the standing priority order (correctness/architectural integrity > security > semantic preservation > ...). A real logic bug in already-shipped, tested code, not a style nit or hypothetical hardening.",
+  "gap_discovered_by": "Delegated an Explore subagent to survey core/adapter/runtime for a fresh, previously-unfixed correctness or architectural-integrity defect, scoped away from the ~18 generations of correctness work already done earlier this session. Its report (a single candidate, not multiple weak ones) was independently re-verified by reading the real current code at adapter/src/dependency/cargo.rs:543-573 directly -- not trusted from the subagent's description alone -- before any code change was made.",
+  "key_finding": "census_cargo_workspace's provider-resolution match expression has four logical cases: (candidates, version) = (single, None), (single, Some), (multiple, Some), (multiple, None). The (multiple, Some) and (multiple, None) branches both carefully report a dangling reference rather than guess when the lockfile's dependency-array entry can't be resolved to a specific candidate. But the pre-fix (single, _) branch accepted the lone candidate unconditionally, regardless of whether dependency_ref.version (when present) actually matched that candidate's own version -- silently fabricating a DependencyEdge to the wrong package version on a malformed/hand-edited/merge-corrupted lockfile (e.g. a `\"syn 1.5.0\"` dependency-array entry when the only `[[package]] name = \"syn\"` block present is at version `9.9.9`), instead of flagging it as a dangling reference the way the sibling multi-candidate branch does for the structurally identical situation.",
+  "verification_before_acting": [
+    "Read adapter/src/dependency/cargo.rs:490-589 directly (not from memory/summary) to confirm the match expression's real shape and that the single-candidate arm truly ignored dependency_ref.version.",
+    "Confirmed LockPackage.version is String and LockDependencyRef.version is Option<String>, so the same equality comparison already used in the multi-candidate branch (`&p.version == version`) is directly reusable in the single-candidate branch.",
+    "Grepped existing tests in this file (a_disambiguated_lockfile_entry_resolves_to_the_matching_version_not_an_ambiguity, a_disambiguated_lockfile_entry_naming_a_version_with_no_matching_package_is_a_dangling_reference, an_ambiguous_entry_with_no_disambiguating_version_is_reported_not_guessed) and confirmed none of them exercise the single-candidate + mismatched-version case -- this was a genuine, previously-uncovered gap, not an already-fixed/already-tested scenario."
+  ],
+  "design_decisions": [
+    {
+      "question": "Should the single-candidate branch's mismatch case be reported the same way as the multi-candidate mismatch case, or differently?",
+      "decision": "Identically -- same dangling_references message format (\"{consumer} -> {name} {version} (no matching resolved version among {n} candidates)\"), just with candidates.len() == 1. This preserves the existing invariant across all four match arms rather than introducing a third distinct reporting shape for what is semantically the same situation (a named version that resolves to no real package block)."
+    }
+  ],
+  "stable_validator_law_compliance": {
+    "claim": "The single-candidate provider-resolution branch in census_cargo_workspace now enforces the same never-silently-guess invariant as its sibling multi-candidate branch, verified via a falsifying test.",
+    "self_written_evidence": "Added test a_disambiguated_lockfile_entry_naming_a_version_with_only_one_mismatched_candidate_is_a_dangling_reference. Falsified per this session's standing discipline: reverted the fix (`([single], _) => *single`), ran the new test, confirmed it failed with the exact expected assertion failure (`assertion failed: !report.is_closed()` -- the buggy code produced a closed report with a fabricated edge instead of a dangling reference), then restored the fix and confirmed the test passes.",
+    "independent_evidence_channel": "cargo fmt --all --check: clean. cargo test --workspace: 537 total (291 adapter + 3 apps/cli + 165 core + 78 runtime), 0 failed -- exactly one more than the prior generation's 536, matching the one new test added.",
+    "no_circular_self_certification": true
+  },
+  "implementation": {
+    "code_change": "adapter/src/dependency/cargo.rs -- split the ([single], _) match arm into ([single], None) => *single and ([single], Some(version)) => { verify single.version == *version, else push a dangling_references entry identical in format to the multi-candidate mismatch case and continue }.",
+    "docs_change": "NONE -- this is a pure correctness fix to already-existing, already-documented behavior; no new architectural concept introduced."
+  },
+  "adversarial_and_falsification_coverage": [
+    "reverted the fix and confirmed the new test fails with the exact expected failure mode (report incorrectly closed with a fabricated edge) before trusting the fix",
+    "confirmed the fix does not change behavior for the two already-passing sibling scenarios (single-candidate-unversioned, single-candidate-version-matches) by running the full existing test suite for this file, all still passing",
+    "checked that the fix's new dangling-reference message format exactly matches the existing multi-candidate mismatch message format (byte-for-byte), preserving any downstream code/tests that pattern-match on dangling_references message shape"
+  ],
+  "validation_this_generation": {
+    "commands": {
+      "cargo fmt --all --check": { "exit_code": 0 },
+      "cargo test -p adapter a_disambiguated_lockfile_entry_naming_a_version_with_only_one_mismatched_candidate (fix reverted)": { "result": "FAILED as expected -- assertion failed: !report.is_closed()" },
+      "cargo test -p adapter a_disambiguated_lockfile_entry_naming_a_version_with_only_one_mismatched_candidate (fix restored)": { "result": "1 passed" },
+      "cargo test --workspace": { "exit_code": 0, "totals": "537 total, 0 failed (291 adapter, 3 apps/cli, 165 core, 78 runtime)" }
+    }
+  },
+  "recensus_scope_after_promotion": [
+    "the Explore subagent's survey also scanned core/src/identity, core/src/census/dependency.rs, core/src/language/adl, and the semantic extractors under adapter/src/semantic/rust/ without finding a second candidate clearing the bar -- not exhaustive, but no further immediately-actionable correctness gap is currently known in those areas",
+    "the same single-vs-multiple-candidate asymmetry pattern is worth a quick structural check in any other match/if-let sites in this codebase that resolve a name to one-of-many candidates by an optional disambiguator, as a class of bug rather than a one-off -- flagged as a possible future generation's starting point, not defaulted into now"
+  ],
+  "overall_verdict": "FIXED, FALSIFIED, AND VERIFIED. census_cargo_workspace's single-candidate provider-resolution branch now enforces the same never-silently-guess invariant its multi-candidate sibling already enforced, closing a real gap where a malformed/hand-edited lockfile with exactly one candidate package block could produce a silently-fabricated DependencyEdge to the wrong version instead of a reported dangling reference. Falsified via revert-confirm-restore. Full workspace test suite green (537/537).",
+  "historical_evidence_retained": true
+}
