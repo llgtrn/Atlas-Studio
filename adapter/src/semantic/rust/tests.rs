@@ -404,6 +404,15 @@ pub fn matches_on_value(x: u64) -> u64 {
 pub fn no_calls_no_branches() -> u64 {
     42
 }
+
+pub fn labeled_block_break(cond: bool) -> u8 {
+    'blk: {
+        if cond {
+            break 'blk;
+        }
+    }
+    1
+}
 "#;
 
 /// R4.7 DATA_FLOW corpus: simple def-use, shadowing, mutation (Store), block-scoped shadowing,
@@ -493,6 +502,27 @@ pub fn binds_with_at_pattern(x: u64) -> u64 {
 pub fn binds_via_or_pattern(x: Result<u64, u64>) -> u64 {
     match x {
         Ok(value) | Err(value) => value,
+    }
+}
+
+pub fn if_let_binds_pattern(x: Option<u64>) -> u64 {
+    if let Some(x) = x {
+        x
+    } else {
+        0
+    }
+}
+
+pub fn while_let_binds_pattern(mut it: std::vec::IntoIter<u64>) {
+    while let Some(v) = it.next() {
+        consume(v);
+    }
+}
+
+pub fn guard_uses_pattern_binding(x: Option<u64>) -> u64 {
+    match x {
+        Some(x) if x > 0 => x,
+        _ => 0,
     }
 }
 "#;
@@ -2603,6 +2633,49 @@ fn unmatched_labeled_break_is_explicitly_unresolved() {
     assert!(edge.target.is_none());
 }
 
+// --- 41b. `break 'lbl;` targeting a labeled PLAIN BLOCK (not a loop) resolves, never Unresolved --
+
+#[test]
+fn a_break_targeting_a_labeled_plain_block_resolves_to_its_continuation() {
+    // `'blk: { .. }` (stable since Rust 1.65) is a valid `break 'blk;` target, exactly like a
+    // labeled loop -- distinct from `unresolved_break`'s genuinely-unmatched label above.
+    let batch = extract_all("src/lib.rs", CFG_CORPUS);
+    let caller = find_function_identity(&batch, &[], "labeled_block_break").unwrap();
+    let blocks = control_flow_blocks_for(&batch, caller);
+
+    assert!(
+        blocks
+            .iter()
+            .all(|b| !edge_kinds(b).contains(&ControlFlowEdgeKind::Unresolved)),
+        "break 'blk; targeting a labeled plain block is valid, resolvable Rust -- it must never \
+         be reported as Unresolved: {blocks:#?}"
+    );
+
+    let break_block = blocks
+        .iter()
+        .find(|b| edge_kinds(b).contains(&ControlFlowEdgeKind::Break))
+        .expect("a Break edge for `break 'blk;`");
+    let break_edge = break_block
+        .successors
+        .iter()
+        .find(|e| e.kind == ControlFlowEdgeKind::Break)
+        .unwrap();
+    let target = break_edge.target.as_ref().expect("a resolved break target");
+
+    let target_block = blocks
+        .iter()
+        .find(|b| {
+            &SemanticRecordId::new(SemanticDimension::ControlFlow, &b.identity_key()) == target
+        })
+        .expect("the break target must be one of this function's own blocks");
+    assert_eq!(
+        edge_kinds(target_block),
+        vec![ControlFlowEdgeKind::Return],
+        "the break target must be the continuation holding the function's own trailing `1` -- \
+         the SAME target the labeled block's own natural fall-through would reach"
+    );
+}
+
 // --- 42. an unconditional panic-like macro produces a Panic edge, never fallthrough --------------
 
 #[test]
@@ -3123,6 +3196,143 @@ fn or_pattern_binds_the_shared_name_in_every_alternative() {
         .find(|v| v.role == ValueRole::Use && v.name == "value")
         .expect("the arm body's use of `value`");
     assert_eq!(value_use.resolution, DataFlowResolution::Resolved);
+}
+
+// --- 57e. `if let PAT = EXPR` binds PAT's names inside the then-branch, and only there ------------
+
+#[test]
+fn if_let_binds_its_pattern_in_the_then_branch() {
+    let batch = extract_all("src/lib.rs", DATA_FLOW_CORPUS);
+    let caller = find_function_identity(&batch, &[], "if_let_binds_pattern").unwrap();
+    let values = data_flow_values_for(&batch, caller);
+
+    let defs: Vec<_> = values
+        .iter()
+        .filter(|v| v.role == ValueRole::Definition && v.name == "x")
+        .collect();
+    assert_eq!(
+        defs.len(),
+        2,
+        "the parameter `x` and `Some(x)`'s own pattern binding must both be recorded"
+    );
+    let param_def = defs
+        .iter()
+        .find(|d| d.is_parameter)
+        .expect("the parameter's own Definition");
+    let pattern_def = defs
+        .iter()
+        .find(|d| !d.is_parameter)
+        .expect("Some(x)'s own pattern binding");
+    let param_def_id =
+        SemanticRecordId::new(SemanticDimension::DataFlow, &param_def.identity_key());
+    let pattern_def_id =
+        SemanticRecordId::new(SemanticDimension::DataFlow, &pattern_def.identity_key());
+
+    let uses: Vec<_> = values
+        .iter()
+        .filter(|v| v.role == ValueRole::Use && v.name == "x")
+        .collect();
+    assert_eq!(uses.len(), 2, "the scrutinee `x` and the branch's tail `x`");
+
+    let scrutinee_use = uses
+        .iter()
+        .find(|u| !u.is_return_flow)
+        .expect("the scrutinee `x` in `if let Some(x) = x`");
+    assert_eq!(
+        scrutinee_use.resolved_definition.as_ref(),
+        Some(&param_def_id),
+        "the scrutinee must resolve to the OUTER parameter, not the pattern's own new binding"
+    );
+
+    let tail_use = uses
+        .iter()
+        .find(|u| u.is_return_flow)
+        .expect("the then-branch's tail `x`");
+    assert_eq!(
+        tail_use.resolved_definition.as_ref(),
+        Some(&pattern_def_id),
+        "the then-branch body must see Some(x)'s own binding, shadowing the outer parameter -- \
+         before this fix, if-let/while-let never pushed a scope for their pattern's bindings at \
+         all, so this use either went Unresolved or silently resolved to the wrong (outer) \
+         definition"
+    );
+}
+
+// --- 57f. `while let PAT = EXPR` binds PAT's names inside the loop body ----------------------------
+
+#[test]
+fn while_let_binds_its_pattern_in_the_loop_body() {
+    let batch = extract_all("src/lib.rs", DATA_FLOW_CORPUS);
+    let caller = find_function_identity(&batch, &[], "while_let_binds_pattern").unwrap();
+    let values = data_flow_values_for(&batch, caller);
+
+    let v_def = values
+        .iter()
+        .find(|v| v.role == ValueRole::Definition && v.name == "v")
+        .expect("Some(v)'s own binding must be recorded as a Definition");
+    let v_def_id = SemanticRecordId::new(SemanticDimension::DataFlow, &v_def.identity_key());
+
+    let v_use = values
+        .iter()
+        .find(|v| v.role == ValueRole::Use && v.name == "v")
+        .expect("consume(v)'s read of v");
+    assert_eq!(
+        v_use.resolution,
+        DataFlowResolution::Resolved,
+        "v is bound by the while-let pattern; it must resolve, not go Unresolved"
+    );
+    assert_eq!(v_use.resolved_definition.as_ref(), Some(&v_def_id));
+}
+
+// --- 57g. a match guard can read its own arm's pattern binding, matching real Rust evaluation order
+
+#[test]
+fn match_guard_can_read_its_own_arm_pattern_binding() {
+    let batch = extract_all("src/lib.rs", DATA_FLOW_CORPUS);
+    let caller = find_function_identity(&batch, &[], "guard_uses_pattern_binding").unwrap();
+    let values = data_flow_values_for(&batch, caller);
+
+    let param_def = values
+        .iter()
+        .find(|v| v.role == ValueRole::Definition && v.name == "x" && v.is_parameter)
+        .expect("the parameter's own Definition");
+    let pattern_def = values
+        .iter()
+        .find(|v| v.role == ValueRole::Definition && v.name == "x" && !v.is_parameter)
+        .expect("Some(x)'s own pattern binding");
+    let param_def_id =
+        SemanticRecordId::new(SemanticDimension::DataFlow, &param_def.identity_key());
+    let pattern_def_id =
+        SemanticRecordId::new(SemanticDimension::DataFlow, &pattern_def.identity_key());
+
+    let uses: Vec<_> = values
+        .iter()
+        .filter(|v| v.role == ValueRole::Use && v.name == "x")
+        .collect();
+    assert_eq!(
+        uses.len(),
+        3,
+        "the match scrutinee, the guard's `x > 0`, and the arm body's `x`"
+    );
+
+    let resolved_to_param = uses
+        .iter()
+        .filter(|u| u.resolved_definition.as_ref() == Some(&param_def_id))
+        .count();
+    let resolved_to_pattern = uses
+        .iter()
+        .filter(|u| u.resolved_definition.as_ref() == Some(&pattern_def_id))
+        .count();
+    assert_eq!(
+        resolved_to_param, 1,
+        "only the match scrutinee reads the outer parameter"
+    );
+    assert_eq!(
+        resolved_to_pattern, 2,
+        "both the guard's `x > 0` and the arm body's `x` must resolve to Some(x)'s own binding -- \
+         before this fix, the guard was walked BEFORE the arm pattern's binding was pushed into \
+         scope, so the guard's read fell through to the outer definition instead"
+    );
 }
 
 // --- 58. every DataFlow observation satisfies dimension consistency, alongside CALL/CONTROL_FLOW -

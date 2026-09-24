@@ -276,9 +276,29 @@ impl<'ctx, 'a> DataFlowWalker<'ctx, 'a> {
                 }
             }
             syn::Expr::Block(block_expr) => self.walk_block(&block_expr.block, is_return_flow),
+            // `if let PAT = EXPR { .. }`: the scrutinee is walked in the OUTER scope (so a
+            // same-named referent on the right, e.g. `if let Some(x) = x`, still resolves to the
+            // pre-existing binding), then PAT's own names are pushed into a fresh scope covering
+            // only the then-branch -- mirrors ForLoop's own push_scope/walk_binding_pat/pop_scope
+            // shape below. A plain (non-`let`) condition is never a value/binding position, same
+            // as before this fix.
             syn::Expr::If(if_expr) => {
-                self.walk_expr(&if_expr.cond, false);
-                self.walk_block(&if_expr.then_branch, is_return_flow);
+                match if_expr.cond.as_ref() {
+                    syn::Expr::Let(let_expr) => {
+                        self.walk_expr(&let_expr.expr, false);
+                        self.push_scope();
+                        self.walk_binding_pat(&let_expr.pat, false);
+                        self.walk_block(&if_expr.then_branch, is_return_flow);
+                        self.pop_scope();
+                    }
+                    cond => {
+                        self.walk_expr(cond, false);
+                        self.walk_block(&if_expr.then_branch, is_return_flow);
+                    }
+                }
+                // The else branch never sees an `if let` pattern's bindings -- reaching it means
+                // the pattern did NOT match -- so it is always walked after the then-branch's
+                // scope (if any) has already been popped above.
                 if let Some((_, else_expr)) = &if_expr.else_branch {
                     self.walk_expr(else_expr, is_return_flow);
                 }
@@ -290,14 +310,18 @@ impl<'ctx, 'a> DataFlowWalker<'ctx, 'a> {
                     // Match guards are parsed into `arm.pat` as `Pat::Guard` in this `syn`
                     // version (see adapter/src/semantic/rust/mod.rs's walk_expr::Expr::Match
                     // arm for the same discovery).
-                    let bound_pat = match &arm.pat {
-                        syn::Pat::Guard(guard) => {
-                            self.walk_expr(&guard.guard, false);
-                            guard.pat.as_ref()
-                        }
-                        other => other,
+                    let (bound_pat, guard) = match &arm.pat {
+                        syn::Pat::Guard(guard) => (guard.pat.as_ref(), Some(&guard.guard)),
+                        other => (other, None),
                     };
+                    // The pattern's own bindings must be in scope BEFORE the guard is walked --
+                    // real Rust evaluates a guard with its arm's own pattern already bound
+                    // (`Some(x) if x > 0 => ..`); walking the guard first would read `x` before
+                    // it exists in this fresh scope.
                     self.walk_binding_pat(bound_pat, false);
+                    if let Some(guard) = guard {
+                        self.walk_expr(guard, false);
+                    }
                     self.walk_expr(&arm.body, is_return_flow);
                     self.pop_scope();
                 }
@@ -306,10 +330,21 @@ impl<'ctx, 'a> DataFlowWalker<'ctx, 'a> {
             // statement-position value (unit, absent a `break value`, which this wave does not
             // thread as return-flow either), never the enclosing function's return value.
             syn::Expr::Loop(loop_expr) => self.walk_block(&loop_expr.body, false),
-            syn::Expr::While(while_expr) => {
-                self.walk_expr(&while_expr.cond, false);
-                self.walk_block(&while_expr.body, false);
-            }
+            // `while let PAT = EXPR { .. }`: same reasoning as `if let` above, except the fresh
+            // scope covers the loop body instead of a then-branch.
+            syn::Expr::While(while_expr) => match while_expr.cond.as_ref() {
+                syn::Expr::Let(let_expr) => {
+                    self.walk_expr(&let_expr.expr, false);
+                    self.push_scope();
+                    self.walk_binding_pat(&let_expr.pat, false);
+                    self.walk_block(&while_expr.body, false);
+                    self.pop_scope();
+                }
+                cond => {
+                    self.walk_expr(cond, false);
+                    self.walk_block(&while_expr.body, false);
+                }
+            },
             syn::Expr::ForLoop(for_loop) => {
                 self.walk_expr(&for_loop.expr, false);
                 self.push_scope();
@@ -390,6 +425,13 @@ impl<'ctx, 'a> DataFlowWalker<'ctx, 'a> {
                     self.walk_expr(end, false);
                 }
             }
+            // Reached only when a `let PAT = EXPR` is NOT the direct condition of an `if`/`while`
+            // (the common cases, handled above with their pattern bound into a fresh scope) --
+            // e.g. one operand of a let-chain (`if let A = a && let B = b { .. }`). This walker
+            // does not thread let-chain bindings into scope; a name PAT binds in that position
+            // falls back to Unresolved or an outer definition, a known, narrower-scope gap this
+            // fix does not close (a genuinely rarer construct than the plain if-let/while-let
+            // case this fix targets).
             syn::Expr::Let(let_expr) => self.walk_expr(&let_expr.expr, false),
             // `unsafe { .. }`/`try { .. }` execute immediately as part of the same executable
             // region and may themselves be in return-flow (tail) position, exactly like a plain

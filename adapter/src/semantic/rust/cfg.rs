@@ -82,13 +82,19 @@ fn continuation_to_edge(cont: &Continuation) -> ControlFlowEdge {
     }
 }
 
-/// One loop (or labeled loop) currently enclosing the statement being lowered, used to resolve
-/// `break`/`continue` -- including labeled ones -- to a concrete edge.
+/// One loop, OR one labeled plain block (`'blk: { .. }`, stable since Rust 1.65) -- both are
+/// valid `break`/`break 'lbl value;` targets, and both need their label tracked for resolution --
+/// currently enclosing the statement being lowered, used to resolve `break`/`continue` to a
+/// concrete edge.
 struct LoopFrame {
     label: Option<String>,
-    /// Where a `continue` (or the loop body's own natural completion) goes: the loop body's entry.
-    repeat_target: SemanticRecordId,
-    /// Where a `break` goes: whatever this loop's own enclosing continuation was.
+    /// Where a `continue` (or the loop body's own natural completion) goes: the loop body's
+    /// entry. `None` for a labeled plain block: a plain block is a valid `break` target but never
+    /// a valid `continue` target (rustc rejects `continue 'blk;` even when 'blk' names the
+    /// nearest enclosing label) -- `resolve_continue` must treat a label match against a `None`
+    /// frame as unresolved, not fall through to search past it for an outer loop.
+    repeat_target: Option<SemanticRecordId>,
+    /// Where a `break` goes: whatever this loop's/block's own enclosing continuation was.
     after_loop: Continuation,
 }
 
@@ -163,6 +169,10 @@ impl<'ctx, 'a> CfgBuilder<'ctx, 'a> {
     fn resolve_continue(&self, label: Option<&syn::Lifetime>) -> ControlFlowEdge {
         let name = lifetime_name(label);
         let frame = match &name {
+            // The NEAREST enclosing label match, whether it names a loop or a labeled plain
+            // block -- matches real Rust's own resolution rule: `continue 'blk;` targeting a
+            // block's own label is rejected, it does NOT skip past that block to find some
+            // other, differently-labeled outer loop.
             Some(name) => self
                 .loop_stack
                 .iter()
@@ -170,10 +180,10 @@ impl<'ctx, 'a> CfgBuilder<'ctx, 'a> {
                 .find(|frame| frame.label.as_deref() == Some(name.as_str())),
             None => self.loop_stack.last(),
         };
-        match frame {
-            Some(frame) => ControlFlowEdge {
+        match frame.and_then(|frame| frame.repeat_target.clone()) {
+            Some(repeat_target) => ControlFlowEdge {
                 kind: ControlFlowEdgeKind::LoopRepeat,
-                target: Some(frame.repeat_target.clone()),
+                target: Some(repeat_target),
             },
             None => ControlFlowEdge {
                 kind: ControlFlowEdgeKind::Unresolved,
@@ -528,15 +538,31 @@ impl<'ctx, 'a> CfgBuilder<'ctx, 'a> {
             // `unsafe { .. }` is not itself a control-flow decision -- it grants permission for
             // certain operations, it does not change branch shape -- so it shares Block's own
             // handling and `ControlFlowBlockKind::NestedBlockExpr` rather than a dedicated kind.
+            // Only `Expr::Block` can carry a label (`syn::ExprUnsafe` has no `label` field --
+            // `unsafe 'blk: { .. }` is not valid syntax): a labeled plain block (`'blk: { .. }`,
+            // stable since Rust 1.65) is a valid `break 'blk;`/`break 'blk value;` target, exactly
+            // like a labeled loop, so it is pushed onto the SAME `loop_stack` `resolve_break`
+            // searches -- with `repeat_target: None`, since a plain block is never a valid
+            // `continue` target (see `LoopFrame`'s own doc comment).
             syn::Expr::Block(_) | syn::Expr::Unsafe(_) => {
-                let inner_block = match expr {
-                    syn::Expr::Block(block_expr) => &block_expr.block,
-                    syn::Expr::Unsafe(unsafe_expr) => &unsafe_expr.block,
+                let (inner_block, label) = match expr {
+                    syn::Expr::Block(block_expr) => {
+                        (&block_expr.block, label_name(block_expr.label.as_ref()))
+                    }
+                    syn::Expr::Unsafe(unsafe_expr) => (&unsafe_expr.block, None),
                     _ => unreachable!("matched above"),
                 };
                 let index = self.reserve_index();
                 let id = self.block_id_for(index);
                 let span = self.ctx.span_of(inner_block);
+                let has_label = label.is_some();
+                if has_label {
+                    self.loop_stack.push(LoopFrame {
+                        label,
+                        repeat_target: None,
+                        after_loop: join_cont.clone(),
+                    });
+                }
                 self.lower_stmts(
                     &inner_block.stmts,
                     join_cont,
@@ -546,6 +572,9 @@ impl<'ctx, 'a> CfgBuilder<'ctx, 'a> {
                     false,
                     span,
                 );
+                if has_label {
+                    self.loop_stack.pop();
+                }
                 vec![ControlFlowEdge {
                     kind: ControlFlowEdgeKind::Branch,
                     target: Some(id),
@@ -680,7 +709,7 @@ impl<'ctx, 'a> CfgBuilder<'ctx, 'a> {
         let body_id = self.block_id_for(body_index);
         self.loop_stack.push(LoopFrame {
             label: label_name(label),
-            repeat_target: body_id.clone(),
+            repeat_target: Some(body_id.clone()),
             after_loop: after_loop.clone(),
         });
         let span = self.ctx.span_of(body);
