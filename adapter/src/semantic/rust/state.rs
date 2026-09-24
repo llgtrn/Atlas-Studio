@@ -145,6 +145,23 @@ impl<'ctx, 'a> StateWalker<'ctx, 'a> {
             self.walk_expr(base);
         }
     }
+
+    /// Emits the Read+Write pair a compound-assignment operator's target always produces (see
+    /// the module doc comment) when `field` resolves to a named self.field chain -- shared by a
+    /// compound-assign directly targeting a field (`self.x += 1`) and one targeting an index
+    /// into a field (`self.data[i] += 1`, where `self.data` is the real RMW target: Rust always
+    /// reads the whole container to compute the compound op's new value at that index, then
+    /// writes it back).
+    fn emit_compound_assign_field(&mut self, field: &syn::ExprField) {
+        match self_field_path(field) {
+            Some(path) => {
+                let span = self.ctx.span_of(field);
+                self.emit_access(&path, span.clone(), StateAccessKind::Read);
+                self.emit_access(&path, span, StateAccessKind::Write);
+            }
+            None => self.walk_unresolved_field_base(&field.base),
+        }
+    }
 }
 
 impl<'ctx, 'a> StatementWalker for StateWalker<'ctx, 'a> {
@@ -204,14 +221,18 @@ impl<'ctx, 'a> StatementWalker for StateWalker<'ctx, 'a> {
             syn::Expr::Binary(binary) => {
                 if is_compound_assign_op(&binary.op) {
                     match binary.left.as_ref() {
-                        syn::Expr::Field(field) => match self_field_path(field) {
-                            Some(path) => {
-                                let span = self.ctx.span_of(field);
-                                self.emit_access(&path, span.clone(), StateAccessKind::Read);
-                                self.emit_access(&path, span, StateAccessKind::Write);
+                        syn::Expr::Field(field) => self.emit_compound_assign_field(field),
+                        // `self.data[i] += 1`: Rust's own grammar guarantees this reads then
+                        // writes the WHOLE indexed container `data`, unlike the method-call-
+                        // receiver case above -- no type resolution is needed to know this is
+                        // read-modify-write, only that the indexed base resolves to a field.
+                        syn::Expr::Index(index) => {
+                            match index.expr.as_ref() {
+                                syn::Expr::Field(field) => self.emit_compound_assign_field(field),
+                                other => self.walk_expr(other),
                             }
-                            None => self.walk_unresolved_field_base(&field.base),
-                        },
+                            self.walk_expr(&index.index);
+                        }
                         other => self.walk_expr(other),
                     }
                 } else {
@@ -253,8 +274,23 @@ impl<'ctx, 'a> StatementWalker for StateWalker<'ctx, 'a> {
                     self.walk_expr(arg);
                 }
             }
+            // A field used as a method-call receiver is taken as a PLACE for the call (either
+            // `&self` or `&mut self` -- this extractor cannot tell which without type
+            // resolution), never read as a VALUE the way a plain `self.field` expression
+            // elsewhere is -- exactly OWNERSHIP's own precedent for the identical gap ("A
+            // method call's receiver is never treated as a move-or-copy site... whether a
+            // method takes self/&self/&mut self cannot be told from the call site alone").
+            // Emitting a confident Read here would misrepresent a real Write (`self.list.push(x)`
+            // definitely mutates `list`), which this module's own "never fabricate" doctrine
+            // forbids -- so a resolvable field receiver produces NO access claim at all,
+            // mirroring `walk_unresolved_field_base`'s existing "an intermediate place is never
+            // itself a read/write event" reasoning. A non-Field receiver (a call, an index, ...)
+            // is still walked normally to find any self access nested within it.
             syn::Expr::MethodCall(method_call) => {
-                self.walk_expr(&method_call.receiver);
+                match method_call.receiver.as_ref() {
+                    syn::Expr::Field(field) => self.walk_unresolved_field_base(&field.base),
+                    other => self.walk_expr(other),
+                }
                 for arg in &method_call.args {
                     self.walk_expr(arg);
                 }

@@ -552,6 +552,8 @@ pub struct Inner {
 pub struct Counter {
     pub value: u64,
     pub inner: Inner,
+    pub items: Vec<u64>,
+    pub data: [u64; 4],
 }
 
 impl Counter {
@@ -581,6 +583,14 @@ impl Counter {
 
     pub fn compound_increment(&mut self) {
         self.value += 1;
+    }
+
+    pub fn push_item(&mut self, x: u64) {
+        self.items.push(x);
+    }
+
+    pub fn bump_indexed(&mut self, i: usize) {
+        self.data[i] += 1;
     }
 
     pub fn unsafe_wrapped(&mut self) {
@@ -3778,6 +3788,58 @@ fn compound_assignment_is_recorded_as_read_and_write() {
         1
     );
     assert!(accesses.iter().all(|access| access.name == "value"));
+}
+
+// --- 68b. a field used as a mutating method call's receiver is never claimed as a confident Read -
+
+#[test]
+fn a_field_used_as_a_method_call_receiver_is_not_recorded_as_a_state_read() {
+    // `self.items.push(x)` unambiguously mutates `items`, but this extractor cannot tell a
+    // `&mut self` method (`.push`) from a `&self` one (`.len()`) without type resolution --
+    // exactly OWNERSHIP's own precedent for the identical gap ("A method call's receiver is
+    // never treated as a move-or-copy site... whether a method takes self/&self/&mut self
+    // cannot be told from the call site alone"). Emitting a confident Read here would
+    // misrepresent a real Write, which this module's own doctrine forbids -- so the receiver
+    // must produce NO state-access claim at all, matching OWNERSHIP's own choice to stay
+    // silent rather than guess.
+    let batch = extract_all("src/lib.rs", STATE_EFFECT_CORPUS);
+    let caller = find_function_identity(&batch, &["impl:Counter"], "push_item").unwrap();
+    let accesses = state_accesses_for(&batch, caller);
+    assert!(
+        accesses.iter().all(|access| access.name != "items"),
+        "a method-call receiver field must never be claimed as a Read (or any other kind) \
+         without type resolution proving it: {accesses:#?}"
+    );
+}
+
+// --- 68c. a compound-assignment target through an index into a field is still read-modify-write --
+
+#[test]
+fn compound_assignment_through_an_index_is_recorded_as_read_and_write() {
+    // `self.data[i] += 1` is unambiguously read-modify-write of the WHOLE `data` container --
+    // unlike the method-call-receiver case above, this needs no type resolution: Rust's own
+    // grammar guarantees a compound-assignment operator always reads then writes its target,
+    // regardless of whether that target is a plain field or an indexed projection of one.
+    let batch = extract_all("src/lib.rs", STATE_EFFECT_CORPUS);
+    let caller = find_function_identity(&batch, &["impl:Counter"], "bump_indexed").unwrap();
+    let accesses = state_accesses_for(&batch, caller);
+    let data_accesses: Vec<_> = accesses.iter().filter(|a| a.name == "data").collect();
+    assert_eq!(
+        data_accesses
+            .iter()
+            .filter(|a| a.kind == StateAccessKind::Read)
+            .count(),
+        1,
+        "self.data[i] += 1 must read `data`: {accesses:#?}"
+    );
+    assert_eq!(
+        data_accesses
+            .iter()
+            .filter(|a| a.kind == StateAccessKind::Write)
+            .count(),
+        1,
+        "self.data[i] += 1 must write `data`, not merely read it: {accesses:#?}"
+    );
 }
 
 // --- 68a. macro spelling is evidence, not compiler-resolved truth -------------------------------
