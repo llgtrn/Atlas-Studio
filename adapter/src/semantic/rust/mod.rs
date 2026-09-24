@@ -643,7 +643,7 @@ impl<'a> ExtractionContext<'a> {
             provenance: self.provenance_for(Some(&span)),
         };
         let observation = SemanticObservation::Symbol(header);
-        debug_assert!(observation.is_dimension_consistent());
+        assert!(observation.is_dimension_consistent());
         self.observations.push(observation);
     }
 
@@ -695,7 +695,7 @@ impl<'a> ExtractionContext<'a> {
                     provenance: self.provenance_for(span.as_ref()),
                 };
                 let observation = SemanticObservation::Type(header);
-                debug_assert!(observation.is_dimension_consistent());
+                assert!(observation.is_dimension_consistent());
                 self.observations.push(observation);
             }
         }
@@ -768,7 +768,7 @@ impl<'a> ExtractionContext<'a> {
             subject: identity,
         };
         let observation = SemanticObservation::FunctionIdentity(Box::new(header));
-        debug_assert!(observation.is_dimension_consistent());
+        assert!(observation.is_dimension_consistent());
         self.observations.push(observation);
     }
 
@@ -814,7 +814,7 @@ impl<'a> ExtractionContext<'a> {
             subject: signature,
         };
         let observation = SemanticObservation::FunctionSignature(Box::new(header));
-        debug_assert!(observation.is_dimension_consistent());
+        assert!(observation.is_dimension_consistent());
         self.observations.push(observation);
     }
 
@@ -1025,7 +1025,7 @@ impl<'a> ExtractionContext<'a> {
             provenance: self.provenance_for(Some(&span)),
         };
         let observation = SemanticObservation::Call(header);
-        debug_assert!(observation.is_dimension_consistent());
+        assert!(observation.is_dimension_consistent());
         self.observations.push(observation);
     }
 

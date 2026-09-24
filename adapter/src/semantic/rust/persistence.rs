@@ -107,7 +107,7 @@ impl<'ctx, 'a> PersistenceWalker<'ctx, 'a> {
             provenance: self.ctx.provenance_for(Some(&span)),
         };
         let observation = SemanticObservation::Persistence(header);
-        debug_assert!(observation.is_dimension_consistent());
+        assert!(observation.is_dimension_consistent());
         self.ctx.observations.push(observation);
     }
 

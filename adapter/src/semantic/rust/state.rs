@@ -124,7 +124,7 @@ impl<'ctx, 'a> StateWalker<'ctx, 'a> {
             provenance: self.ctx.provenance_for(Some(&span)),
         };
         let observation = SemanticObservation::State(header);
-        debug_assert!(observation.is_dimension_consistent());
+        assert!(observation.is_dimension_consistent());
         self.ctx.observations.push(observation);
     }
 

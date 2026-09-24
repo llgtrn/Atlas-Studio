@@ -1,0 +1,57 @@
+{
+  "schema": "atlas.self-build.generation-evidence.v1",
+  "wave": "CORRECTNESS / ARCHITECTURAL INTEGRITY -- close the panic-isolation gap named as a prerequisite in a prior generation's own deferred investigation record",
+  "wave_title": "Direct follow-up to `.atlas/evidence/verification/rust-extractor-dimension-consistency-debug-assert-deferred.json`, which found 5 `debug_assert!(observation.is_dimension_consistent())` sites in `adapter/src/semantic/rust/mod.rs` that could not safely be promoted to a real, always-enforced `assert!` because this codebase had NO panic-isolation boundary anywhere around per-artifact extraction -- a bare `assert!` that fired would crash the entire census run for the whole repository, not just isolate the one bad observation, violating this pipeline's own established resilience principle (a failure on one artifact must never abort or erase the rest of the batch). This generation builds that missing prerequisite and then completes the promotion it was blocking.",
+  "priority_classification": "correctness / architectural integrity (priority 1) -- the standing loop's own top priority. Selected over further donor research or self-hosting work specifically because this generation extended the self-hosting priority for two consecutive prior generations already, and this gap sits squarely in the highest-priority category and was already investigated and explicitly named as a future target, not freshly manufactured.",
+  "key_finding": "The deferred record's own grep was scoped only to `adapter/src/semantic/rust/mod.rs` and found 5 sites. Re-grepping the whole `adapter/src/semantic/rust/` directory this generation found 7 MORE identical `debug_assert!(observation.is_dimension_consistent())` sites, one each in cfg.rs, concurrency.rs, dataflow.rs, effect.rs, ownership.rs, persistence.rs and state.rs (the per-dimension walker files) -- 12 total, not 5. The deferred record's own scope was itself incomplete; this generation closes the full gap, not just the partially-identified one.",
+  "design_decisions": [
+    {
+      "question": "Where should the panic-isolation boundary live -- inside each extractor's own `extract()`, or in the orchestration layer that calls extractors?",
+      "decision": "In the orchestration layer (`runtime::census::extraction::extract_semantics`), as a new private helper `extract_with_panic_isolation`. This matches the existing architecture exactly: the SAME layer already catches a filesystem read failure and converts it to `SemanticExtractor::unavailable(..)` with an `InvalidInput` diagnostic; a panic during `extract()` is symmetrically caught and converted to `unavailable(..)` with an `InternalExtractorFailure` diagnostic instead. Extractors themselves stay simple, deterministic, panic-on-bug code -- exactly what makes an `assert!` meaningful as a real invariant check in the first place; pushing `catch_unwind` into every extractor individually would blur that."
+    },
+    {
+      "question": "Reuse `SemanticExtractor::unavailable` for the panic-recovery batch, or hand-build a new closed-batch constructor?",
+      "decision": "Reuse `unavailable`. It already draws the exact distinction this case needs (a dimension the extractor supports goes UNKNOWN; a dimension it never supported stays UNSUPPORTED, regardless of source availability) and is already proven correct by existing tests. Building a second, parallel closed-batch constructor for panics would either duplicate that logic or risk it drifting out of sync with `unavailable`'s own supported/unsupported split."
+    },
+    {
+      "question": "Given the isolation boundary is now real, should ALL 12 `debug_assert!` sites be promoted to `assert!`, or only the originally-identified 5?",
+      "decision": "All 12. The isolation boundary protects the whole `extract()` call regardless of which internal function panics -- there is no reason to leave 7 of the 12 as release-mode no-ops once the prerequisite that makes promotion safe exists for the call site as a whole, and leaving them un-promoted would mean the same invariant is enforced in test builds for 5 emit sites and silently skipped for the other 7, an arbitrary and undocumented asymmetry."
+    },
+    {
+      "question": "Suppress the default panic hook's stderr output during the isolated `catch_unwind`, so a caught extractor panic doesn't print a 'thread panicked at ...' trace?",
+      "decision": "No. `std::panic::set_hook` is process-global mutable state, and this codebase runs no other panic-hook manipulation anywhere; installing and restoring one around every extraction call would add real complexity and a new global-state hazard for cosmetic benefit. The stderr trace remains valuable diagnostic signal for a real, previously-unreachable bug becoming reachable -- exactly the class of defect this generation now allows to surface safely instead of crashing the whole run. Not suppressing it is the smaller, more conservative change."
+    }
+  ],
+  "stable_validator_law_compliance": {
+    "claim": "An extractor-internal panic while extracting one artifact -- including any future occurrence of a currently-unreachable `assert!(observation.is_dimension_consistent())` failure at any of the (now) 12 emit sites across all 8 full-expression-tree walkers -- is caught at the orchestration layer and converted into a closed, diagnosed, UNKNOWN-obligation batch for that one (artifact, extractor) pair, never an unwind that aborts extraction of every other artifact in the same census run.",
+    "self_written_evidence": "Two new tests directly exercise `extract_with_panic_isolation` with fixture extractors that panic: one with a `&'static str` payload (the common case, `panic!(\"...\")`), one with a non-string payload (`std::panic::panic_any(42_u32)`, proving the message-extraction fallback path itself cannot panic a second time while describing the first panic). Both assert the resulting batch is closed over every requested dimension, a supported dimension goes UNKNOWN with an `InternalExtractorFailure` diagnostic carrying the real panic message (where available), and an unsupported dimension still correctly stays UNSUPPORTED regardless of the panic -- the same supported/unsupported split `unavailable` already guarantees for read failures.",
+    "independent_evidence_channel": "cargo build --workspace clean. cargo fmt --all --check clean. cargo clippy --workspace --all-targets -D warnings clean, zero warnings. Full cargo test --workspace: 279 adapter, 2 apps/cli, 160 core, 68 runtime (+2 net) -- 509 total, 0 failed, confirming the 12 promoted assert! sites did not regress a single one of the existing 279 adapter tests (none of which exercises a dimension-inconsistent path today, consistent with the deferred record's own finding that this defect is currently unreachable by construction). docs audit gate_ready: true.",
+    "no_circular_self_certification": true
+  },
+  "implementation": {
+    "runtime_change": "runtime/src/census/extraction.rs -- new private `extract_with_panic_isolation` helper wraps the production `extractor.extract(&input)` call site inside `extract_semantics` in `std::panic::catch_unwind(std::panic::AssertUnwindSafe(..))`; on `Err`, extracts a `&str` or `String` panic message (falling back to a fixed string for any other payload type) and converts it into an `ExtractionDiagnostic` (`DiagnosticCode::InternalExtractorFailure`) fed through the existing `SemanticExtractor::unavailable` default method, exactly mirroring the existing read-failure-isolation shape.",
+    "adapter_change": "adapter/src/semantic/rust/{mod.rs (5 sites), cfg.rs, concurrency.rs, dataflow.rs, effect.rs, ownership.rs, persistence.rs, state.rs} (1 site each) -- all 12 `debug_assert!(observation.is_dimension_consistent())` sites promoted to `assert!`, now real, always-enforced invariant checks in release builds too, safe now that a failure isolates to one artifact's one obligation instead of crashing the whole census run."
+  },
+  "adversarial_and_falsification_coverage": [
+    "re-grepped the whole `adapter/src/semantic/rust/` directory (not just mod.rs, where the prior generation's own investigation stopped) before promoting anything, and found the true count was 12, not 5 -- verified directly, not assumed from the prior record's own summary",
+    "the non-string-panic-payload test exists specifically to falsify the risk that the message-extraction fallback itself could panic (e.g. an unchecked downcast or unwrap) while trying to describe an already-in-flight panic, which would defeat the whole isolation boundary by turning one panic into an unrecoverable double-panic abort",
+    "confirmed the full existing adapter test suite (279 tests, unchanged) still passes after promoting all 12 debug_assert! sites to assert!, proving none of today's real extraction paths -- across every walker, not only the 5 originally identified -- actually trips the now-enforced invariant"
+  ],
+  "validation_this_generation": {
+    "commands": {
+      "cargo build --workspace": { "exit_code": 0 },
+      "cargo fmt --all --check": { "exit_code": 0 },
+      "cargo clippy --workspace --all-targets -- -D warnings": { "exit_code": 0, "warnings": 0 },
+      "cargo test --workspace": { "exit_code": 0, "totals": "279 adapter, 2 apps/cli, 160 core, 68 runtime (+2 net) -- 509 total, 0 failed" },
+      "cargo run -q -p atlas-cli -- docs audit --root .atlas": { "exit_code": 0, "gate_ready": true }
+    }
+  },
+  "recensus_scope_after_promotion": [
+    "no prior CLOSED/EXTINCT conclusion is affected",
+    "the deferred record's own two named alternative fixes (add the isolation boundary first, OR restructure each call site to be fallible/diagnosed directly without a general boundary) are now resolved in favor of the first option; this record supersedes that one's open question, though the deferred record itself is left in place as historical evidence rather than deleted",
+    "the general lesson (a deferred/investigated finding's own scope may itself be incomplete -- rechecking a prior generation's grep or search scope before acting on its conclusion can surface a larger version of the same gap) is worth carrying into future generations that pick up any other prior deferred/TARGET item",
+    "this generation counts as a real, evidenced closure of the priority-1 correctness/architectural-integrity gap named by the deferred record -- not a fresh, self-manufactured defect"
+  ],
+  "overall_verdict": "IMPLEMENTED AND VERIFIED. Added the panic-isolation boundary a prior generation's own investigation named as the prerequisite for safely enforcing dimension-consistency invariants in release builds, discovered the true gap was 12 sites (not the 5 previously identified) by re-scoping the search, promoted all 12 from `debug_assert!` to `assert!`, and proved the isolation boundary itself correct (including its own failure mode: a non-string panic payload) with two new tests. Full workspace suite (509 tests) passing, gate_ready true.",
+  "historical_evidence_retained": true
+}

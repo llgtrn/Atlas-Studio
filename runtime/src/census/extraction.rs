@@ -95,6 +95,56 @@ fn unsupported_language_batch(input: &ExtractionInput) -> ExtractionBatch {
     }
 }
 
+/// Runs one `SemanticExtractor::extract` call with a panic-isolation boundary around it: if the
+/// extractor panics part-way through analyzing this one artifact (a bug surfacing as an index
+/// panic, an `unwrap`, an arithmetic overflow, an explicit `panic!`, or a debug assertion such as
+/// `adapter::semantic::rust`'s own `debug_assert!(observation.is_dimension_consistent())` sites),
+/// the panic is caught here and converted into the same kind of explicit, closed, `UNKNOWN`-
+/// obligation batch a filesystem read failure already produces, rather than unwinding out of this
+/// module and aborting extraction of every artifact that comes after this one.
+///
+/// This is the prerequisite named in `.atlas/evidence/verification/
+/// rust-extractor-dimension-consistency-debug-assert-deferred.json`: before that record, this
+/// codebase had `assert!`-based invariant checks nowhere in production code and `debug_assert!`
+/// (a release-mode no-op) at the 5 dimension-consistency call sites specifically because promoting
+/// them to `assert!` without an isolation boundary would have turned a currently-unreachable defect
+/// into a whole-census-run availability outage the moment it ever *did* become reachable (e.g. via
+/// a future refactor). With this boundary in place, a panic from those sites -- or any other panic
+/// inside any extractor's `extract` -- now degrades to "this one artifact's results for this one
+/// extractor are UNKNOWN with a diagnosed cause", exactly like a read or parse failure, never a
+/// crash of the whole run.
+///
+/// Does not, and cannot, catch a stack overflow: `catch_unwind` only intercepts a panic that
+/// unwinds, and Rust's stack-overflow guard-page handler aborts the process directly without
+/// unwinding, on any thread (see `adapter::semantic::rust`'s own `EXTRACTION_STACK_SIZE` doc
+/// comment for that separate, already-mitigated risk class). This boundary is specifically for
+/// ordinary panics, not resource-exhaustion aborts.
+fn extract_with_panic_isolation(
+    extractor: &dyn adapter::SemanticExtractor,
+    input: &ExtractionInput,
+) -> ExtractionBatch {
+    match std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| extractor.extract(input))) {
+        Ok(batch) => batch,
+        Err(panic_payload) => {
+            let message = panic_payload
+                .downcast_ref::<&str>()
+                .map(|message| (*message).to_owned())
+                .or_else(|| panic_payload.downcast_ref::<String>().cloned())
+                .unwrap_or_else(|| "non-string panic payload".to_owned());
+            let diagnostic = ExtractionDiagnostic::new(
+                DiagnosticCode::InternalExtractorFailure,
+                None,
+                format!(
+                    "{} panicked while extracting {}: {message}",
+                    extractor.id(),
+                    input.artifact_path
+                ),
+            );
+            extractor.unavailable(input, diagnostic)
+        }
+    }
+}
+
 /// Every canonical R4 semantic dimension, requested uniformly so a production extraction call
 /// never silently narrows what it asks an extractor to account for
 /// (`.atlas/contracts/CENSUS-COMPLETENESS.md`). `pub` so `build_census`/`systemize` and tests share
@@ -118,9 +168,9 @@ pub const ALL_SEMANTIC_DIMENSIONS: [SemanticDimension; 12] = [
 /// (`ArtifactDisposition::Parsed`) artifact whose language has one, and returns every resulting
 /// `ExtractionBatch`. Never executes the artifact's content -- only reads and parses its text.
 ///
-/// Failure isolation: a read failure or a parse failure on one artifact never removes another
-/// artifact's results, and never aborts the remaining artifacts in this call. Each artifact is
-/// extracted independently:
+/// Failure isolation: a read failure, a parse failure, or an extractor-internal panic on one
+/// artifact never removes another artifact's results, and never aborts the remaining artifacts in
+/// this call. Each artifact is extracted independently:
 /// - a parser-level failure inside an extractor is accounted for as an explicit
 ///   `ExtractionDiagnostic` (`ParseFailure`) + `UNKNOWN` obligation by that extractor itself (see
 ///   `adapter::semantic::rust`);
@@ -128,7 +178,11 @@ pub const ALL_SEMANTIC_DIMENSIONS: [SemanticDimension; 12] = [
 ///   caught here, in this orchestration layer, and turned into an explicit `ExtractionDiagnostic`
 ///   (`InvalidInput`) + `UNKNOWN` obligation via `SemanticExtractor::unavailable` -- a distinct
 ///   diagnostic code from a parse failure, even though both share the `UNKNOWN` epistemic status,
-///   so the underlying cause is never lost.
+///   so the underlying cause is never lost;
+/// - an extractor implementation that panics while extracting one artifact (see
+///   `extract_with_panic_isolation`) is caught here too, and turned into an explicit
+///   `ExtractionDiagnostic` (`InternalExtractorFailure`) + `UNKNOWN` obligation, rather than
+///   unwinding out of this function and aborting extraction of every artifact that comes after it.
 ///
 /// Every dimension outside what an extractor supports stays `UNSUPPORTED` regardless of which of
 /// the above paths ran; nothing here upgrades UNSUPPORTED into UNKNOWN or vice versa.
@@ -189,7 +243,7 @@ pub fn extract_semantics(
                         scope_policy: None,
                         requested_dimensions: ALL_SEMANTIC_DIMENSIONS.to_vec(),
                     };
-                    batches.push(extractor.extract(&input));
+                    batches.push(extract_with_panic_isolation(*extractor, &input));
                 }
             }
             Err(read_error) => {
@@ -1146,6 +1200,25 @@ mod production_wiring_tests {
         accounting
     }
 
+    fn fixture_input(dimensions: Vec<SemanticDimension>) -> ExtractionInput {
+        ExtractionInput {
+            repository: RepositoryId::new("atlas-studio"),
+            revision: RevisionRef {
+                kind: "git".into(),
+                value: "abc123".into(),
+            },
+            artifact: ArtifactId::new("artifact:fixture.rs"),
+            artifact_path: "fixture.rs".into(),
+            source_text: String::new(),
+            content_fingerprint: None,
+            source_frontend_id: String::new(),
+            language: "fixture".into(),
+            build_profile: None,
+            scope_policy: None,
+            requested_dimensions: dimensions,
+        }
+    }
+
     #[test]
     fn production_wiring_extracts_real_rust_semantics_and_isolates_a_malformed_file() {
         let dir = scratch_dir();
@@ -1349,5 +1422,124 @@ mod production_wiring_tests {
         assert_eq!(b_persistence.obligation.status, EpistemicStatus::Unknown);
 
         fs::remove_dir_all(&dir).unwrap();
+    }
+
+    // --- Extractor-panic isolation --------------------------------------------------------------
+    //
+    // `extract_with_panic_isolation` is the prerequisite named in `.atlas/evidence/verification/
+    // rust-extractor-dimension-consistency-debug-assert-deferred.json`: with this boundary in
+    // place, an extractor-internal panic (including the dimension-consistency `assert!` sites in
+    // `adapter::semantic::rust`, promoted from `debug_assert!` in the same generation this test was
+    // added) degrades to an explicit, closed, UNKNOWN-obligation batch instead of unwinding out of
+    // `extract_semantics` and aborting extraction of every artifact that comes after it.
+
+    struct FixturePanickingExtractor;
+
+    impl adapter::SemanticExtractor for FixturePanickingExtractor {
+        fn id(&self) -> &'static str {
+            "atlas.test.fixture-panicking"
+        }
+
+        fn version(&self) -> &'static str {
+            "0.1.0"
+        }
+
+        fn supported_languages(&self) -> &'static [&'static str] {
+            &["fixture"]
+        }
+
+        fn supported_dimensions(&self) -> &'static [SemanticDimension] {
+            &[SemanticDimension::Symbol]
+        }
+
+        fn extract(&self, _input: &ExtractionInput) -> ExtractionBatch {
+            panic!("fixture extractor deliberately panicked mid-extraction");
+        }
+    }
+
+    #[test]
+    fn a_panicking_extractor_is_isolated_to_an_unknown_obligation_batch_not_a_crash() {
+        let requested = vec![SemanticDimension::Symbol, SemanticDimension::Type];
+        let batch = extract_with_panic_isolation(
+            &FixturePanickingExtractor,
+            &fixture_input(requested.clone()),
+        );
+
+        assert!(
+            batch.is_closed(&requested),
+            "a panic must not remove any requested dimension from accounting"
+        );
+        let symbol = batch.obligation_for(SemanticDimension::Symbol).unwrap();
+        assert_eq!(
+            symbol.status,
+            EpistemicStatus::Unknown,
+            "a supported dimension the extractor panicked before observing is UNKNOWN, never silently dropped"
+        );
+        let ty = batch.obligation_for(SemanticDimension::Type).unwrap();
+        assert_eq!(
+            ty.status,
+            EpistemicStatus::Unsupported,
+            "a dimension this fixture never supported stays UNSUPPORTED regardless of the panic"
+        );
+        assert_eq!(
+            batch.diagnostics.len(),
+            2,
+            "one INTERNAL_EXTRACTOR_FAILURE diagnostic for the panic itself, one \
+             UNSUPPORTED_SEMANTIC_DIMENSION diagnostic for the never-supported TYPE dimension"
+        );
+        assert!(
+            batch.diagnostics.iter().any(|diagnostic| {
+                diagnostic.code == DiagnosticCode::InternalExtractorFailure
+                    && diagnostic
+                        .message
+                        .contains("fixture extractor deliberately panicked mid-extraction")
+            }),
+            "the diagnostic must preserve the real panic message, not discard it"
+        );
+    }
+
+    #[test]
+    fn a_non_string_panic_payload_still_produces_a_diagnosed_batch() {
+        struct FixtureNonStringPanicExtractor;
+
+        impl adapter::SemanticExtractor for FixtureNonStringPanicExtractor {
+            fn id(&self) -> &'static str {
+                "atlas.test.fixture-non-string-panic"
+            }
+            fn version(&self) -> &'static str {
+                "0.1.0"
+            }
+            fn supported_languages(&self) -> &'static [&'static str] {
+                &["fixture"]
+            }
+            fn supported_dimensions(&self) -> &'static [SemanticDimension] {
+                &[SemanticDimension::Symbol]
+            }
+            fn extract(&self, _input: &ExtractionInput) -> ExtractionBatch {
+                std::panic::panic_any(42_u32);
+            }
+        }
+
+        let requested = vec![SemanticDimension::Symbol];
+        let batch = extract_with_panic_isolation(
+            &FixtureNonStringPanicExtractor,
+            &fixture_input(requested.clone()),
+        );
+        assert!(batch.is_closed(&requested));
+        assert_eq!(
+            batch
+                .obligation_for(SemanticDimension::Symbol)
+                .unwrap()
+                .status,
+            EpistemicStatus::Unknown
+        );
+        assert!(
+            batch
+                .diagnostics
+                .iter()
+                .any(|diagnostic| diagnostic.code == DiagnosticCode::InternalExtractorFailure),
+            "a panic payload that is neither &str nor String must still produce a diagnosed \
+             batch, not a second panic while trying to describe the first one"
+        );
     }
 }
