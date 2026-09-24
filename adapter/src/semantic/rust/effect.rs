@@ -7,22 +7,28 @@
 //! therefore emitted as EffectCategory::Panic with EpistemicStatus::Inferred, never OBSERVED.
 //!
 //! A free/path function call whose callee spelling has an `fs` module qualifier (`std::fs::read`,
-//! `fs::write`, `tokio::fs::read_dir`, ...) or is exactly `File::open`/`File::create` is, by the
+//! `fs::write`, `tokio::fs::read_dir`, ...), is exactly `File::open`/`File::create`, or is exactly
+//! `Command::new` (`std::process::Command::new`, `tokio::process::Command::new`, ...) is, by the
 //! identical textual-spelling-candidate discipline `persistence.rs` already established for R4.11,
-//! emitted as an INFERRED FilesystemRead/FilesystemWrite candidate -- see
-//! `filesystem_kind_for_free_call_spelling`'s own doc comment for the exact closed set and why
-//! method calls (`file.read_to_string(..)`, `socket.write_all(..)`) are deliberately excluded this
-//! wave: a bare method name carries no qualifying module/type the way a free/path call's spelling
-//! does, making it far more likely to collide with an unrelated type's own identically-named
-//! method (exactly the ambiguity `persistence.rs`'s own module doc comment already names for its
-//! own method-call spellings) -- an explicit, named scope boundary, not a silent omission.
+//! emitted as an INFERRED FilesystemRead/FilesystemWrite/ProcessSpawn candidate -- see
+//! `effect_kind_for_free_call_spelling`'s own doc comment for the exact closed set and why method
+//! calls (`file.read_to_string(..)`, `socket.write_all(..)`, a bare `.spawn(..)`) are deliberately
+//! excluded this wave: a bare method name carries no qualifying module/type the way a free/path
+//! call's spelling does, making it far more likely to collide with an unrelated type's own
+//! identically-named method (exactly the ambiguity `persistence.rs`'s own module doc comment
+//! already names for its own method-call spellings, and acutely so for a bare `.spawn(..)`, which
+//! is at least as commonly an async-runtime task spawn or a thread spawn as a process one) -- an
+//! explicit, named scope boundary, not a silent omission. `Command::new` alone does not PROVE a
+//! process is actually spawned (the builder could be constructed and discarded without ever
+//! calling `.spawn()`/`.output()`/`.status()`), which is exactly why this, like every other
+//! candidate here, is `Inferred`, never `Observed`.
 //!
-//! NetworkSend/NetworkReceive/ProcessSpawn/FfiCall/Persist/EmitEvent/AuthCheck/Alloc/Free/
-//! ExternalIo remain unmaterialized until deeper API/type resolution exists or a similarly
-//! conservative spelling-candidate scheme is designed for each. Unsafe/try/repeat/raw-address/
-//! yield expression containers are traversed; closures, async blocks, const blocks and macro token
-//! bodies remain explicit closure gaps, so the EFFECT obligation stays UNKNOWN even when useful
-//! effect observations are present.
+//! NetworkSend/NetworkReceive/FfiCall/Persist/EmitEvent/AuthCheck/Alloc/Free/ExternalIo remain
+//! unmaterialized until deeper API/type resolution exists or a similarly conservative spelling-
+//! candidate scheme is designed for each. Unsafe/try/repeat/raw-address/yield expression containers
+//! are traversed; closures, async blocks, const blocks and macro token bodies remain explicit
+//! closure gaps, so the EFFECT obligation stays UNKNOWN even when useful effect observations are
+//! present.
 
 use atlas_core::{
     EffectCategory, EffectIdentity, EpistemicStatus, EvidenceId, SemanticDimension,
@@ -32,17 +38,18 @@ use atlas_core::{
 use super::ExtractionContext;
 use super::spelling::{call_callee_spelling, is_panic_like_macro};
 
-/// If a free/path call's callee spelling has an `fs` module qualifier, or is exactly
-/// `File::open`/`File::create`/`File::create_new`, returns the effect category that specific,
-/// well-known spelling most directly implies. Checks the segment immediately before the final one
-/// for an EXACT match against `fs`/`File` (bounded by the `::` path separator on both sides, or at
-/// the start of the spelling) -- never a substring match, so a module merely containing the letters
-/// "fs" (`prefs`, `overlayfs`, `myfs`, ...) can never collide, the same word-boundary discipline
-/// `max_structural_recursion_risk`'s own `as`-keyword scan already established for an identical
-/// collision risk. Every match is equally uncertain (no type/name resolution proves the qualifier
-/// actually resolves to `std::fs`/`std::fs::File` rather than a same-named local module or type),
-/// so all map to `Inferred` alike, exactly like `persistence.rs`'s own closed spelling set.
-fn filesystem_kind_for_free_call_spelling(spelling: &str) -> Option<EffectCategory> {
+/// If a free/path call's callee spelling has an `fs` module qualifier, is exactly
+/// `File::open`/`File::create`/`File::create_new`, or is exactly `Command::new`, returns the
+/// effect category that specific, well-known spelling most directly implies. Checks the segment
+/// immediately before the final one for an EXACT match against `fs`/`File`/`Command` (bounded by
+/// the `::` path separator on both sides, or at the start of the spelling) -- never a substring
+/// match, so a module merely containing the letters "fs" (`prefs`, `overlayfs`, `myfs`, ...) can
+/// never collide, the same word-boundary discipline `max_structural_recursion_risk`'s own
+/// `as`-keyword scan already established for an identical collision risk. Every match is equally
+/// uncertain (no type/name resolution proves the qualifier actually resolves to
+/// `std::fs`/`std::fs::File`/`std::process::Command` rather than a same-named local module or
+/// type), so all map to `Inferred` alike, exactly like `persistence.rs`'s own closed spelling set.
+fn effect_kind_for_free_call_spelling(spelling: &str) -> Option<EffectCategory> {
     let segments: Vec<&str> = spelling.split("::").collect();
     let last = *segments.last()?;
     let qualifier = (segments.len() >= 2).then(|| segments[segments.len() - 2]);
@@ -60,6 +67,7 @@ fn filesystem_kind_for_free_call_spelling(spelling: &str) -> Option<EffectCatego
             "create" | "create_new" => Some(EffectCategory::FilesystemWrite),
             _ => None,
         },
+        Some("Command") if last == "new" => Some(EffectCategory::ProcessSpawn),
         _ => None,
     }
 }
@@ -230,7 +238,7 @@ impl<'ctx, 'a> EffectWalker<'ctx, 'a> {
             syn::Expr::Cast(cast) => self.walk_expr(&cast.expr),
             syn::Expr::Call(call) => {
                 if let Some(category) =
-                    filesystem_kind_for_free_call_spelling(&call_callee_spelling(&call.func))
+                    effect_kind_for_free_call_spelling(&call_callee_spelling(&call.func))
                 {
                     let span = self.ctx.span_of(call);
                     self.emit(span, category);

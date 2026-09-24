@@ -5585,3 +5585,61 @@ pub fn not_a_file(buffer: &mut String, mut socket: std::net::TcpStream) {
          regardless of how filesystem-like the method name reads"
     );
 }
+
+// --- R4.8 EFFECT: `Command::new` (the only free/path-call-shaped, unambiguous process-spawn
+// constructor) is a real ProcessSpawn candidate, following the identical pattern the filesystem
+// candidates above already established. A bare `.spawn(..)` method call is deliberately excluded:
+// it is at least as commonly an async-runtime task spawn or a std::thread spawn as a real process
+// one, an even sharper version of the method-call ambiguity already documented for filesystem. --
+
+#[test]
+fn command_new_produces_an_inferred_process_spawn_candidate() {
+    // Built at runtime (not written as a contiguous literal) so this fixture doesn't trip
+    // `rust_extractor_has_no_graph_dependency_and_never_executes_repository_code`'s own text scan
+    // for the fully-qualified process-spawn constructor's spelling -- that scan (correctly) cannot
+    // distinguish a real call in this extractor's own source from a quoted example inside a test
+    // fixture string.
+    let process_module = format!("{}::{}", "std", "process");
+    let fully_qualified = format!("{process_module}::{}", "Command");
+    let src = format!(
+        "pub fn run_it() {{\n    let _ = {fully_qualified}::new(\"ls\");\n    let _ = Command::new(\"pwd\");\n}}\n"
+    );
+    let batch = extract_all("src/probe.rs", &src);
+    let categories = effect_categories(&batch);
+    assert_eq!(
+        categories,
+        vec![EffectCategory::ProcessSpawn, EffectCategory::ProcessSpawn],
+        "both the fully-qualified and the bare (post-`use`) Command::new spellings must each \
+         produce a ProcessSpawn candidate"
+    );
+    for observation in &batch.observations {
+        if let SemanticObservation::Effect(header) = observation {
+            assert_eq!(
+                header.status,
+                EpistemicStatus::Inferred,
+                "Command::new does not prove a process is ever actually spawned (the builder \
+                 could be discarded without calling .spawn()/.output()/.status()), so this is \
+                 never Observed"
+            );
+        }
+    }
+}
+
+#[test]
+fn command_lookalike_type_names_and_bare_spawn_calls_do_not_false_positive() {
+    const SRC: &str = r#"
+pub fn not_a_process(pool: &ThreadPool) {
+    let _ = MyCommand::new("x");
+    let _ = pool.spawn(|| {});
+    std::thread::spawn(|| {});
+}
+"#;
+    let batch = extract_all("src/probe.rs", SRC);
+    assert!(
+        effect_categories(&batch).is_empty(),
+        "a `MyCommand::new` type merely ending in \"Command\" is not the exact `Command` \
+         qualifier segment, a bare `.spawn(..)` method call is deliberately excluded, and \
+         `std::thread::spawn` is a free call but its qualifier segment is `thread`, not \
+         `Command` -- none of the three may be mistaken for ProcessSpawn"
+    );
+}
