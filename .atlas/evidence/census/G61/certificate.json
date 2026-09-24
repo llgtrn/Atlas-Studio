@@ -1,12 +1,12 @@
 {
   "schema": "atlas.census-certificate.v2",
-  "certificate_id": "census-certificate:2ade516cfa5d16827e57f8498b29522881924f11b06055425554b567595f689d",
+  "certificate_id": "census-certificate:7cf92ca0f2349359dbd266daa4fa01c339e2c573c358302be2dbde8a21cf39de",
   "state": "CENSUSED",
   "corpus": {
     "corpus_id": "llgtrn/Atlas-Studio",
-    "root_hash": "blake3-256:8070f7225d0e93dc470e3899d190a2ca35820e5543f2ee0e14c25c1be623002a",
+    "root_hash": "blake3-256:6f77fd452aeca40c2dac2ed280c086c69983db029de8867676c600f55570dd05",
     "revisions": {
-      "llgtrn/Atlas-Studio": "fdc7a4c1acbacad5ad4bde633a2fd4d26cf9454b"
+      "llgtrn/Atlas-Studio": "00702832fdb57e53dfb6b016644fba6a4e01a9e6"
     }
   },
   "genome": {
@@ -69,7 +69,7 @@
     "equivalence_classes_total": 11218,
     "conflict_candidates_total": 0,
     "provenance_complete": false,
-    "root_hash": "blake3-256:a186ebf897cccd3152996a799c21256a95105483a086798d3fe56ebc8513a950"
+    "root_hash": "blake3-256:dd4f5e600d0e5377309bd06d729e1930c4788edcc286836c3158354b6d028eed"
   },
   "reconciliation": {
     "complete": true,
@@ -86,7 +86,7 @@
     "conflicts_total": 0
   },
   "evidence": {
-    "root_hash": "blake3-256:35b60cfe6753f461ad3aa224c29f67c1de0d3c37b589701af20c4398652761ab",
+    "root_hash": "blake3-256:2c515abdde98d97044e502acf0124844c85af2065d203ad03d426f6d0b0120bc",
     "provenance_complete": false
   },
   "blockers": [
@@ -102,7 +102,6 @@
     "DYNAMIC_DEPENDENCY_OBLIGATIONS: 9",
     "MULTI_ENGINE_RECONCILIATION_ABSENT: one extractor per dimension (Genome: multi_engine_reconciliation_required)",
     "PROVENANCE_INCOMPLETE: 242 facts without revision, 228 without extractor, 0 without source path",
-    "REVISION_DIRTY: the census input is not a pinned commit",
     "UNKNOWN_FACTS: 672",
     "UNSUPPORTED_FACTS: 228"
   ]
