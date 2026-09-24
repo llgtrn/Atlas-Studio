@@ -1,0 +1,50 @@
+schema = "atlas.recommended-oss-frontier.v1"
+canonical = true
+status = "RECONSTRUCTED_BASELINE"
+
+# Durable count baseline for the broader OSS frontier discussed for Atlas.
+# This is intentionally distinct from the admitted donor corpus.
+#
+# IMPORTANT:
+# - recommended_named_projects_total is a reconstructed count of named OSS/projects
+#   discussed/recommended across the Atlas project context.
+# - it is NOT yet a canonical count of unique Git repository URLs.
+# - monorepo/subtree/ecosystem names (for example MLIR/llvm-project, Cranelift/Wasmtime,
+#   ROS2 families, Sigstore/OpenTelemetry families) can change the repo-exact count
+#   after URL-level normalization.
+# - donor_corpus_records is the exact current count in donor-corpus.toml at this snapshot.
+
+recorded_base_commit = "f8f54f6b154c9dea339b88fae24bbe6d43c7596e"
+recorded_date = "2026-09-25"
+
+[counts]
+recommended_named_projects_total = 119
+donor_corpus_records = 57
+repos_with_absorbed_mechanisms = 5
+physically_extinct_donor_repos = 3
+
+[count_semantics]
+recommended_named_projects_total = "RECONSTRUCTED_NAMED_OSS_OR_PROJECT_FRONTIER"
+donor_corpus_records = "EXACT_DONOR_RECORDS_IN_DONOR_CORPUS_TOML_AT_RECORDED_BASE"
+repos_with_absorbed_mechanisms = "DONOR_RECORDS_WITH_ONE_OR_MORE_ABSORBED_MECHANISMS"
+physically_extinct_donor_repos = "DONOR_RECORDS_WITH_VERIFIED_PHYSICAL_SOURCE_EXTINCTION"
+
+[sources]
+donor_corpus = "../references/donor-corpus.toml"
+donor_absorption_plan = "DONOR-ABSORPTION-PLAN.toml"
+frontier = "FRONTIER.toml"
+generations = "GENERATIONS.toml"
+
+[normalization]
+repo_exact_inventory_complete = false
+canonical_key = "CANONICAL_GIT_REMOTE_URL"
+dedupe_required = true
+subtree_and_monorepo_aliases_must_be_reconciled = true
+ecosystem_names_must_not_be_silently_counted_as_single_repositories = true
+next_action = "materialize the 119-name reconstructed frontier into explicit entries with canonical remote URLs, aliases, family, license/provenance status, donor-corpus membership, and working-set priority; recompute the exact unique-repository total from those URLs"
+
+[policy]
+frontier_is_not_materialization_queue = true
+frontier_entry_does_not_imply_clone = true
+admission_requires_capability_reason = true
+bounded_working_set_materialization = true
