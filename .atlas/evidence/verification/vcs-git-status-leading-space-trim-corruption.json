@@ -1,0 +1,52 @@
+{
+  "schema": "atlas.self-build.generation-evidence.v1",
+  "wave": "CORRECTNESS -- the git VCS integration's shared subprocess-output helper applied a whole-string .trim() that silently stripped git status --porcelain=v1's meaningful leading-space status code, flipping an unstaged change into a falsely-staged one in the repository snapshot's own audit trail",
+  "wave_title": "Eleventh fix this generation cycle. Following up on a prior survey that flagged runtime/src/inventory/mod.rs and adapter/src/vcs/mod.rs but gave them only brief coverage while its detailed finding was elsewhere, ran a dedicated follow-up survey reading both files in full. inventory/mod.rs turned out to be a thin delegator with no bug-bearing logic of its own; vcs/mod.rs's finding was independently re-verified -- including reproducing the exact git output byte-for-byte against a real git repository -- before any change.",
+  "priority_classification": "correctness/architectural integrity -- highest category in the standing priority order. RepositorySnapshot.status_entries is the literal audit trail backing this project's own EXACT_BASE_SHA_REQUIRED invariant and work-prepare provenance; silently misreporting an unstaged change as staged corrupts that audit trail for the single most common real git state (edited a file, never staged it), not an edge case.",
+  "gap_discovered_by": "Delegated Explore subagent survey, explicitly asked for a full, dedicated read of adapter/src/vcs/mod.rs (previously only briefly touched by an earlier survey). Its finding was independently re-verified before any change: read the real, current git() helper and snapshot_git function directly, then independently reproduced the exact triggering git output against a REAL git repository on this host (git init, an unstaged-only modification, git status --porcelain=v1 | cat -A) to directly observe the literal leading space in real git's own output -- not merely trusting the subagent's description of git's porcelain format.",
+  "key_finding": "adapter/src/vcs/mod.rs's shared git() helper applied `String::from_utf8_lossy(&output.stdout).trim().to_owned()` to the ENTIRE raw subprocess output before any caller ever splits it into lines. `git status --porcelain=v1` encodes real repository state in a fixed two-column `XY` code at the START of each line, where a literal leading space is semantically meaningful: `\" M path\"` (index clean, worktree modified -- an UNSTAGED change) is the opposite git state from `\"M  path\"` (index has the staged modification, worktree clean). Because porcelain entries are emitted in path-sorted order, not grouped by status, whichever entry happens to sort first is exposed to this bug: if its status code begins with a space, the whole-string `.trim()` strips that leading space before `snapshot_git`'s `.lines()` ever sees it, permanently corrupting that one entry's recorded status from unstaged to (falsely) staged. Verified against real git: an unstaged-only file modification produces real stdout `\" M file.txt\\n\"` (confirmed via `cat -A` showing the literal leading space), which the unfixed code recorded as `\"M file.txt\"` in RepositorySnapshot.status_entries -- exactly backwards.",
+  "verification_before_acting": [
+    "Read the real, current git() helper and snapshot_git function directly in adapter/src/vcs/mod.rs, confirming the exact whole-string .trim() call and that its output feeds status_text before any line-splitting.",
+    "Independently reproduced the exact triggering scenario against a REAL git repository on this host (not a mocked/assumed git behavior): git init, a commit, then an unstaged-only file modification, then git status --porcelain=v1 | cat -A -- directly observed the literal leading space (` M file.txt$`) in real git's own output before writing any fix.",
+    "Confirmed via directory listing that adapter/src/vcs/ has no existing test file at all, and grepped the workspace for any other reference to status_entries/snapshot_git -- confirmed this parsing path had zero prior test coverage.",
+    "Confirmed the report's secondary claim (runtime/src/inventory/mod.rs is a thin delegator with no bug-bearing logic of its own) by independently reading that file -- correctly not treated as a second finding, avoiding a manufactured secondary fix."
+  ],
+  "design_decisions": [
+    {
+      "question": "Fix the shared git() helper, or only the status-specific call site?",
+      "decision": "Fix the shared git() helper (change .trim() to .trim_end()) rather than adding special-casing at the status call site. This is the narrower, more correct fix: rev-parse HEAD and branch --show-current output never has meaningful leading whitespace (a git SHA/branch name), so trim_end() behaves identically to the old trim() for those callers -- zero behavior change there -- while correctly stopping the leading-space corruption for status --porcelain=v1's output, the one caller where it mattered. A per-call-site special case would have left the shared helper's own contract silently unsafe for any future caller that also needs leading whitespace preserved."
+    }
+  ],
+  "stable_validator_law_compliance": {
+    "claim": "The shared git() subprocess-output helper no longer strips meaningful leading whitespace from any git command's stdout, closing a real corruption of git status --porcelain=v1's XY status codes in RepositorySnapshot.status_entries for whichever entry happens to sort first when its status begins with a space (the common unstaged-modification case).",
+    "self_written_evidence": "Added an_unstaged_only_modification_keeps_its_leading_space_status_code, the first test this file has ever had: creates a real git repository, commits a file, makes an unstaged-only modification, calls the real snapshot_git against it, and asserts status_entries is exactly [\" M file.txt\"] (with its real leading space) rather than the corrupted [\"M file.txt\"]. Falsified per this session's standing discipline: backed up the file, reverted the fix to the original whole-string .trim(), ran the new test, confirmed it failed with the exact expected corruption (left: [\"M file.txt\"], right: [\" M file.txt\"]), then restored the fix from backup (git diff --stat and a direct read of the restored file confirmed it exactly matched the fix) and confirmed the test passes.",
+    "independent_evidence_channel": "cargo fmt --all --check: clean. cargo test --workspace: 554 total (296 adapter, 5 apps/cli, 173 core, 80 runtime), 0 failed -- up from 553 (+1 new test). docs audit --root .atlas: gate_ready true.",
+    "no_circular_self_certification": true
+  },
+  "implementation": {
+    "code_change": "adapter/src/vcs/mod.rs -- the shared git() helper's output trimming changed from .trim() (strips leading and trailing whitespace from the whole blob) to .trim_end() (strips only trailing whitespace/newline), preserving any meaningful leading whitespace in a command's first line. Added a new #[cfg(test)] module (the file's first) with one falsifying test against a real git repository.",
+    "docs_change": "NONE -- this is a pure correctness fix to already-existing, already-shipped VCS integration behavior; no new architectural concept introduced."
+  },
+  "adversarial_and_falsification_coverage": [
+    "reverted the fix and confirmed the new test fails with the exact expected corruption (the leading space silently stripped, status code semantically flipped) before trusting the fix, using a full file backup/restore cycle (cp before revert, cp restore after, direct read confirming the restored file exactly matched the fix)",
+    "independently reproduced the real git porcelain output byte-for-byte against a live git repository on this host before writing the fix, rather than assuming the claimed format from the subagent's description alone",
+    "reasoned explicitly about why trim_end() is safe for the OTHER two existing callers of git() (rev-parse HEAD, branch --show-current) before applying the fix at the shared-helper level rather than only at the status call site, avoiding a narrower fix that would leave the helper's own contract unsafe for those or future callers",
+    "confirmed the fix does not regress any of the 295 pre-existing adapter tests"
+  ],
+  "validation_this_generation": {
+    "commands": {
+      "cargo fmt --all --check": { "exit_code": 0 },
+      "cargo test -p adapter (new test, fix reverted)": { "result": "FAILED as expected -- left: [\"M file.txt\"], right: [\" M file.txt\"]" },
+      "cargo test -p adapter (new test, fix restored)": { "result": "1 passed" },
+      "cargo test --workspace": { "exit_code": 0, "totals": "554 total, 0 failed (296 adapter, 5 apps/cli, 173 core, 80 runtime)" },
+      "cargo run -q -p atlas-cli -- docs audit --root .atlas": { "exit_code": 0, "gate_ready": true }
+    }
+  },
+  "recensus_scope_after_promotion": [
+    "no prior CLOSED/EXTINCT conclusion depended on this corruption being unnoticed, so no external conclusion requires reopening -- this only makes a previously-mislabeled git status entry correctly report its real state going forward",
+    "the same survey read runtime/src/inventory/mod.rs in full and correctly found no defect (a thin delegator to adapter::source with no logic of its own) -- not a gap, genuinely clean, consistent with this session's own discipline against manufacturing a second finding to pad the report",
+    "adapter/src/vcs/mod.rs now has its first-ever test; the rest of its surface (rev-parse HEAD's error path for a repository with zero commits, branch --show-current's behavior under a detached HEAD, canonicalize()'s error path for a nonexistent root) remains untested -- flagged as a plausible next step for a future generation, not defaulted into now given this generation's narrow, single-defect scope"
+  ],
+  "overall_verdict": "FIXED, FALSIFIED, AND VERIFIED. The shared git subprocess-output helper no longer strips meaningful leading whitespace, closing a real corruption of git status --porcelain=v1's status codes that silently misreported the single most common real git state (an unstaged-only modification) as staged in RepositorySnapshot's own audit trail. Falsified via full backup-revert-confirm-restore, with the underlying git behavior independently reproduced against a real repository before the fix was written. Full workspace test suite green (554/554).",
+  "historical_evidence_retained": true
+}
