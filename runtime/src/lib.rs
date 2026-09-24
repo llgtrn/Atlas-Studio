@@ -890,6 +890,7 @@ mod tests {
             license: Vec<String>,
             census_status: String,
             decision_status: String,
+            ingestion_status: String,
         }
 
         /// Hand-rolled, deliberately narrow parse: extracts only the first `id = "..."` line and
@@ -940,6 +941,7 @@ mod tests {
             let mut current_evidence: Vec<String> = Vec::new();
             let mut current_license: Vec<String> = Vec::new();
             let mut current_census_status = String::new();
+            let mut current_ingestion_status = String::new();
             let mut current_decision_status = String::new();
             let mut in_block = false;
 
@@ -954,6 +956,7 @@ mod tests {
                             evidence: std::mem::take(&mut current_evidence),
                             license: std::mem::take(&mut current_license),
                             census_status: std::mem::take(&mut current_census_status),
+                            ingestion_status: std::mem::take(&mut current_ingestion_status),
                             decision_status: std::mem::take(&mut current_decision_status),
                         });
                     }
@@ -970,6 +973,13 @@ mod tests {
                     && let Some(end) = rest.find('"')
                 {
                     current_id = Some(rest[..end].to_owned());
+                    i += 1;
+                    continue;
+                }
+                if let Some(rest) = trimmed.strip_prefix("ingestion_status = \"")
+                    && let Some(end) = rest.find('"')
+                {
+                    current_ingestion_status = rest[..end].to_owned();
                     i += 1;
                     continue;
                 }
@@ -1014,6 +1024,7 @@ mod tests {
                     evidence: current_evidence,
                     license: current_license,
                     census_status: current_census_status,
+                    ingestion_status: current_ingestion_status,
                     decision_status: current_decision_status,
                 });
             }
@@ -1162,6 +1173,122 @@ mod tests {
             }
         }
 
+        /// Every location a donor's source may be materialized at: the conventional
+        /// `.atlas/temporary/donors/<id>`, plus its provenance record's own `clone_path` when that
+        /// differs. Both are needed because 10 provenance records still carry the clone path from
+        /// before their checkout was moved (e.g. `.atlas/temporary/wasmtime`, `.../ide/zed`) --
+        /// recorded debt (`GENERATIONS.toml` deferred `stale-provenance-clone-paths`), not silently
+        /// rewritten here.
+        fn donor_clone_paths(root: &Path, id: &str) -> Vec<String> {
+            let mut paths = vec![format!(".atlas/temporary/donors/{id}")];
+            let provenance = root.join(format!(".atlas/provenance/donors/{id}.json"));
+            let recorded = std::fs::read_to_string(provenance).ok().and_then(|text| {
+                text.lines().find_map(|line| {
+                    let rest = line.trim().strip_prefix("\"clone_path\": \"")?;
+                    Some(rest[..rest.find('"')?].to_owned())
+                })
+            });
+            if let Some(recorded) = recorded
+                && !paths.contains(&recorded)
+            {
+                paths.push(recorded);
+            }
+            paths
+        }
+
+        /// Extinction is physical (`.atlas/roadmap/DONOR-ABSORPTION-PLAN.toml`:
+        /// `extinct_requires_source_path_absent = true`): an `EXTINCT` claim with the checkout still
+        /// on disk would be a status-field extinction, exactly what the donor lifecycle forbids. The
+        /// converse holds too: a `CLONED` claim with no checkout anywhere is a stale record.
+        #[test]
+        fn every_extinct_donor_checkout_is_absent_and_every_cloned_one_present() {
+            let root = workspace_root();
+            let entries = load_entries();
+            let mut extinct = 0;
+            for entry in &entries {
+                let paths = donor_clone_paths(&root, &entry.id);
+                let present: Vec<&String> = paths
+                    .iter()
+                    .filter(|path| root.join(path).exists())
+                    .collect();
+                match entry.ingestion_status.as_str() {
+                    "EXTINCT" => {
+                        extinct += 1;
+                        assert!(
+                            present.is_empty(),
+                            "donor `{}` is EXTINCT but its source still exists at {present:?}",
+                            entry.id
+                        );
+                    }
+                    "CLONED" => assert!(
+                        !present.is_empty(),
+                        "donor `{}` claims CLONED but none of {paths:?} exists",
+                        entry.id
+                    ),
+                    other => panic!(
+                        "donor `{}` has unrecognized ingestion_status `{other}`",
+                        entry.id
+                    ),
+                }
+            }
+            assert!(
+                extinct >= 2,
+                "expected at least souffle and datafrog to be EXTINCT"
+            );
+        }
+
+        /// Every materialized donor checkout must belong to an admitted donor-corpus entry, or be a
+        /// named, recorded debt. These checkouts carry no donor-corpus entry at all; they are open
+        /// frontier (`.atlas/roadmap/GENERATIONS.toml`, deferred `unadmitted-donor-checkouts`),
+        /// listed explicitly so the set can only shrink: a new unadmitted checkout fails this test,
+        /// and so does a listed one that has been admitted or deleted without updating the list.
+        const UNADMITTED_CHECKOUT_DEBT: &[&str] = &[
+            "borg",
+            "cdc-file-transfer",
+            "fastcdc-rs",
+            "git",
+            "lz4",
+            "restic",
+            "xz",
+        ];
+
+        #[test]
+        fn every_materialized_donor_checkout_is_admitted_or_recorded_debt() {
+            let root = workspace_root();
+            let admitted_top_level: std::collections::BTreeSet<String> = load_entries()
+                .iter()
+                .filter(|entry| entry.ingestion_status == "CLONED")
+                .flat_map(|entry| donor_clone_paths(&root, &entry.id))
+                .filter(|path| root.join(path).is_dir())
+                .filter_map(|path| {
+                    path.strip_prefix(".atlas/temporary/donors/")
+                        .and_then(|rest| rest.split('/').next())
+                        .map(str::to_owned)
+                })
+                .collect();
+            let mut on_disk: Vec<String> = std::fs::read_dir(root.join(".atlas/temporary/donors"))
+                .expect(".atlas/temporary/donors must exist")
+                .filter_map(Result::ok)
+                .filter(|entry| entry.path().is_dir())
+                .map(|entry| entry.file_name().to_string_lossy().into_owned())
+                .collect();
+            on_disk.sort();
+            for dir in &on_disk {
+                assert!(
+                    admitted_top_level.contains(dir)
+                        || UNADMITTED_CHECKOUT_DEBT.contains(&dir.as_str()),
+                    "`.atlas/temporary/donors/{dir}` is materialized donor source with no admitted \
+                     donor-corpus entry and no recorded debt: admit it, or delete it"
+                );
+            }
+            for debt in UNADMITTED_CHECKOUT_DEBT {
+                assert!(
+                    on_disk.iter().any(|dir| dir == debt) && !admitted_top_level.contains(*debt),
+                    "`{debt}` is listed as unadmitted debt but was admitted or removed; update the list"
+                );
+            }
+        }
+
         /// `.atlas/roadmap/GENERATIONS.toml` is the self-building loop's durable memory: the next
         /// generation reads it instead of any agent's recollection. A ledger that cites a missing
         /// evidence/decision path, or a base commit that is not a real 40-hex object name, would
@@ -1192,14 +1319,42 @@ mod tests {
                     "GENERATIONS.toml cites `{path}`, which does not exist"
                 );
             }
+            // Every recorded commit must be a full object name AND a real commit: a plausible-looking
+            // but invented hash is exactly the failure a memory-free loop cannot detect by rereading
+            // its own ledger (it happened once while this ledger was being written). Existence is
+            // skipped only when the checkout has no history beyond HEAD at all (CI's depth-1 clone).
+            // Merely being shallow is not enough to skip: this loop itself runs in a shallow clone,
+            // and ledger commits are always recent enough to resolve in one.
+            let has_history = std::process::Command::new("git")
+                .args(["-C", &root.to_string_lossy(), "rev-parse", "--verify", "-q"])
+                .arg("HEAD~1^{commit}")
+                .status()
+                .is_ok_and(|status| status.success());
             let mut generations = 0;
+            let mut shas = Vec::new();
             for line in text.lines() {
-                if let Some(rest) = line.trim().strip_prefix("base_commit = \"") {
+                let trimmed = line.trim();
+                if let Some(rest) = trimmed.strip_prefix("base_commit = \"") {
                     generations += 1;
-                    let sha = rest.trim_end_matches('"');
+                    shas.push(rest.trim_end_matches('"').to_owned());
+                } else if trimmed.starts_with("result_commits = [") {
+                    extract_quoted_strings(trimmed, &mut shas);
+                }
+            }
+            for sha in &shas {
+                assert!(
+                    sha.len() == 40 && sha.bytes().all(|b| b.is_ascii_hexdigit()),
+                    "ledger commit `{sha}` is not a full object name"
+                );
+                if has_history {
+                    let exists = std::process::Command::new("git")
+                        .args(["-C", &root.to_string_lossy(), "cat-file", "-e"])
+                        .arg(format!("{sha}^{{commit}}"))
+                        .status()
+                        .is_ok_and(|status| status.success());
                     assert!(
-                        sha.len() == 40 && sha.bytes().all(|b| b.is_ascii_hexdigit()),
-                        "base_commit `{sha}` is not a full object name"
+                        exists,
+                        "ledger commit `{sha}` is not a real commit in this repository"
                     );
                 }
             }

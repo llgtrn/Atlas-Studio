@@ -1,0 +1,55 @@
+{
+  "schema": "atlas.self-build.generation-evidence.v1",
+  "generation": "G35",
+  "wave": "EXTINCTION -- physical deletion of the datafrog donor checkout after its semi-naive fixed-point mechanism was absorbed natively (2f6b2525d21e48a26b4d238075baeecdf4554603, ADR 0004). Second real extinction; the first was souffle (565ddd1a96).",
+  "eligibility": {
+    "runtime_dependency": "none -- zero references in any Cargo.toml, Cargo.lock or build.rs (never was a dependency)",
+    "build_dependency": "none",
+    "test_dependency": "none -- no test, script or evidence array references the checkout (grep); datafrog has no Cargo.lock, so it is not in the real-donor census test list",
+    "transitive_or_shared": "none -- no other donor or mechanism consumes it",
+    "remaining_unabsorbed_mechanisms": "leapjoin/treefrog, antijoin, Relation merge/gallop storage, map helpers -- dispositioned REFERENCE_ONLY (no Atlas caller); knowledge retained in the genome record",
+    "retained_records": ".atlas/provenance/donors/datafrog.json, .atlas/licenses/datafrog/{LICENSE-APACHE,LICENSE-MIT}, .atlas/census/datafrog.md, .atlas/genome/technology/datafrog-semi-naive-fixpoint-evaluation.md, .atlas/census/discoveries/r5-semi-naive-dependency-closure.md, .atlas/decisions/0004-semi-naive-dependency-closure.md",
+    "historical_ingestion_records_left_as_is": "donor-clone-index.json / donor-workbench-inventory.json record the ingestion-time clone path, matching the souffle precedent; they are ingestion snapshots, not authoritative state (donor-corpus.toml is), and are consumed by no code"
+  },
+  "deletion": {
+    "command": "git rm -r .atlas/temporary/donors/datafrog",
+    "tracked_files_removed": 20,
+    "size": "164K",
+    "untracked_remnants": 0,
+    "path_absent_after": true
+  },
+  "post_delete_verification": {
+    "cargo build / cargo test --workspace": "622 passed, 0 failed (core 203, adapter 327, runtime 87, cli 5)",
+    "cargo fmt --all --check": "clean",
+    "cargo clippy --workspace --all-targets -- -D warnings": "0 findings",
+    "docs audit --root .atlas": "gate_ready true",
+    "verify-donor-quarantine.sh": "exit 0, clean",
+    "atlas-cli systemize --root . (absorbed capability re-run with donor absent)": "dependency_closure.reachability: 14 reached, 0 unreached, {iterations 5, converged true, delta_remaining 0}, ORIGIN_UPPER_BOUND, INFERRED; state CLOSED; schema v4; coding_admission.blockers []",
+    "pre_vs_post": "identical to the pre-deletion baseline recorded before the absorption commit (14 reached, 0 unreached, 5 rounds, converged)"
+  },
+  "guards_added": [
+    {
+      "test": "every_extinct_donor_checkout_is_absent_and_every_cloned_one_present",
+      "invariant": "EXTINCT implies no candidate checkout path exists; CLONED implies at least one does (candidates: conventional path plus provenance clone_path)",
+      "falsification": "restored the datafrog checkout with git checkout HEAD -- <path>: test failed naming datafrog; deleted again: passes"
+    },
+    {
+      "test": "every_materialized_donor_checkout_is_admitted_or_recorded_debt",
+      "invariant": "every top-level directory under .atlas/temporary/donors belongs to a CLONED donor or to the explicit UNADMITTED_CHECKOUT_DEBT list, which may only shrink",
+      "falsification": "planted .atlas/temporary/donors/zz-stray: test failed naming it; removed: passes"
+    },
+    {
+      "test": "generation_ledger_references_real_paths_and_real_base_commits (strengthened)",
+      "invariant": "every ledger commit is a full object name and, outside a shallow clone, a real commit",
+      "origin": "the coordinator itself wrote an invented-looking full hash for the absorption commit into the ledger and caught it by rereading git rev-parse output; the format-only check would never have caught it",
+      "falsification": "reintroduced the invented hash: first design skipped existence in any shallow clone and PASSED vacuously -- this loop's own checkout is shallow (380 commits), so the guard never ran here; redesigned to skip only when no history beyond HEAD exists (CI depth-1), after which the invented hash fails with 'not a real commit' and the real one passes"
+    }
+  ],
+  "recensus_discoveries_from_the_new_guards": [
+    "7 materialized checkouts carry no donor-corpus entry at all (borg, cdc-file-transfer 36,996 files/533M, fastcdc-rs, git 4,869 files/61M, lz4, restic 1,395 files/31M, xz) -- donor source retained without recorded reason; frontier item unadmitted-donor-checkouts",
+    "10 provenance records carry pre-move clone paths (zed ide/zed; zstd, blake3, rust, wasmtime, wasm-tools, object, regalloc2, mold, arrow at .atlas/temporary/<id>) -- deferred item stale-provenance-clone-paths",
+    "7 security donors are nested under .atlas/temporary/donors/security/<id> (their provenance clone_path is correct; the conventional-path assumption alone would have misreported them)"
+  ],
+  "overall_verdict": "EXTINCT. Physical deletion performed and verified by full gates and by re-running the absorbed capability through the real CLI with identical output. Extinction is now machine-checked in both directions by permanent, falsified guards.",
+  "historical_evidence_retained": true
+}

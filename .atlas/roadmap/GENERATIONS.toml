@@ -20,6 +20,7 @@ id = "G35"
 base_commit = "a53c52e76ccd00495812d9765853d30e80943c59"
 objective = "prove the donor absorption/extinction loop generalizes beyond souffle: resolve every open W3 (R5) donor blocking question with a parallel wave and absorb one mechanism if evidence supports it"
 writer = "coordinator (sole production writer); all lanes read-only"
+result_commits = ["2f6b2525d21e48a26b4d238075baeecdf4554603"]
 evidence = ".atlas/evidence/verification/r5-semi-naive-dependency-closure-absorption.json"
 
 [[generation.lane]]
@@ -83,6 +84,21 @@ recensus = "15 real donor workspaces all converge (5-12 rounds) and stay Closed;
 donor = "datafrog"
 eligible = true
 reason = "never a build/runtime/test dependency; absorbed mechanism needs no donor source; remaining mechanisms REFERENCE_ONLY with genome retained; no test/script/evidence array references the checkout"
+performed = true
+deleted = "datafrog checkout under .atlas/temporary/donors (20 tracked files, 164K; git rm -r); path now absent"
+post_delete_verification = "622 workspace tests, fmt, clippy -D warnings, docs audit, verify-donor-quarantine.sh, atlas-cli systemize reachability identical to pre-deletion baseline"
+guards_added = "EXTINCT implies every candidate checkout path absent / CLONED implies present; every materialized checkout admitted or recorded debt -- both falsified (restored datafrog checkout; planted stray dir)"
+evidence = ".atlas/evidence/verification/datafrog-donor-checkout-extinction.json"
+
+[[generation.deferred]]
+id = "unadmitted-donor-checkouts"
+class = "FRONTIER"
+summary = "7 materialized checkouts under .atlas/temporary/donors have no donor-corpus entry at all (borg, cdc-file-transfer 37k files/533M, fastcdc-rs, git 4.9k files, lz4, restic 1.4k files, xz): each must be admitted with provenance and censused, or deleted. Tracked by runtime UNADMITTED_CHECKOUT_DEBT, which may only shrink."
+
+[[generation.deferred]]
+id = "stale-provenance-clone-paths"
+class = "DEFERRED_GENERATION_CANDIDATE"
+summary = "10 provenance records carry pre-move clone_path values (zed ide/zed; zstd, blake3, rust, wasmtime, wasm-tools, object, regalloc2, mold, arrow at .atlas/temporary/<id>); the extinction guard checks both locations"
 
 [[generation.deferred]]
 id = "cargo-lock-source-suffix"
