@@ -1002,6 +1002,31 @@ constraint BackendIsRust {
         assert_eq!(program.declarations.len(), 6);
     }
 
+    // `.atlas/evidence/verification/large-stack-worker-mitigates-recursion-dos-residual-risk.json`
+    // named, as an explicitly open question for a future generation, whether the same
+    // recursion-depth-driven stack-overflow DoS class `adapter::semantic::rust`'s own
+    // `max_structural_recursion_risk`/`EXTRACTION_STACK_SIZE` mitigate for `syn::parse_file` also
+    // applies to this ADL parser. Code review shows `collect_block` tracks nesting with a flat
+    // `i32` depth counter incremented/decremented once per line via a substring count, never
+    // recursing per brace or per declaration -- structurally unlike `syn`'s recursive-descent
+    // `Expr`/`Item` parsing. This test confirms that empirically, not merely by inspection: 200,000
+    // nested braces (two orders of magnitude past the deepest confirmed `syn` crash vector, 3,000
+    // levels) on adjacent lines must not overflow the default test-thread stack or hang.
+    #[test]
+    fn parser_handles_adversarially_deep_brace_nesting_without_recursion_or_crash() {
+        let opens = "{".repeat(200_000);
+        let closes = "}".repeat(200_001);
+        let source = AdlSource {
+            path: "adversarial.adl".into(),
+            text: format!(
+                "atlas 1\nsystem Example\n\nentity Runtime Stress {{\n{opens}\n{closes}\n"
+            ),
+        };
+        let program = parse_adl_source(&source);
+        assert_eq!(program.version, 1);
+        assert_eq!(program.system.as_deref(), Some("Example"));
+    }
+
     #[test]
     fn semantics_reports_unknown_relation_target() {
         let source = AdlSource {
