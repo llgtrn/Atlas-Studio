@@ -23,7 +23,7 @@ This roadmap is about building **Atlas Studio itself**. Donor repositories are t
 
 ## State machine
 
-Canonical scope-level progression:
+Canonical scope-level progression. This is knowledge state. Storage state (`REMOTE_DISCOVERED` … `SOURCE_DELETED` / `SOURCE_NEVER_MATERIALIZED`) is orthogonal and is governed by `../contracts/DONOR-WORKING-SET.md`: `STAGED` means the donor entered the bounded working set, not that it was bulk-cloned. A donor censused remotely never reaches `SOURCE_DELETED`; it records `SOURCE_NEVER_MATERIALIZED`.
 
 ~~~text
 STAGED

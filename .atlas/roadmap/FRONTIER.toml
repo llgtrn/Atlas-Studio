@@ -11,7 +11,7 @@
 
 schema = "atlas.engineering-frontier.v1"
 recorded_at = "2026-09-24"
-admission_staging_default = "PARTIAL_SPARSE_SUBTREE for repositories above ~20 MB (precedent: mlir); FULL_SOURCE_TREE only for small repositories -- donor source is git-tracked in this repository (pack ~1 GB), so full trees of multi-GB donors are not admitted into main"
+admission_staging_default = "cheapest sufficient materialization mode inside the bounded working set (ADR 0021, contracts/DONOR-WORKING-SET.md): REMOTE_METADATA -> FETCHED_FILE_SET -> SPARSE_CHECKOUT -> SHALLOW_CHECKOUT -> FULL_CHECKOUT, into git-ignored .atlas/.cache/donors; the legacy git-tracked .atlas/temporary/donors is drained, never extended"
 
 [[lane]]
 id = "incremental_computation"

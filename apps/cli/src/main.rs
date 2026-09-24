@@ -174,6 +174,50 @@ fn run(args: &[String]) -> Result<(), String> {
             }
             print!("{text}");
         }
+        [cmd, sub, rest @ ..] if cmd == "donors" && sub == "working-set" => {
+            // ADR 0021: measure disk + local donor source, check storage integrity, and (with
+            // --request) decide whether a donor may be materialized now.
+            let root = value(rest, "--root")?.unwrap_or_else(|| ".".into());
+            let request = match value(rest, "--request")? {
+                None => None,
+                Some(donor) => {
+                    let mode = value(rest, "--mode")?.unwrap_or_else(|| "SPARSE_CHECKOUT".into());
+                    let mode: runtime::donor_storage::MaterializationMode =
+                        serde_json::from_str(&format!("\"{mode}\""))
+                            .map_err(|_| format!("--mode: unknown materialization mode {mode}"))?;
+                    let bytes = |flag: &str| -> Result<u64, String> {
+                        value(rest, flag)?.map_or(Ok(0), |v| {
+                            v.parse()
+                                .map_err(|_| format!("{flag} expects a byte count"))
+                        })
+                    };
+                    Some(runtime::donor_storage::AdmissionRequest {
+                        donor,
+                        mode,
+                        estimated_source_bytes: bytes("--source-bytes")?,
+                        estimated_build_bytes: bytes("--build-bytes")?,
+                    })
+                }
+            };
+            let measure = !rest.iter().any(|arg| arg == "--no-sizes");
+            let report = runtime::donor_storage::working_set_report(
+                std::path::Path::new(&root),
+                request.as_ref(),
+                measure,
+            )
+            .map_err(|e| format!("{root}: {e}"))?;
+            let text = json(&report)? + "\n";
+            if let Some(out) = value(rest, "--out")? {
+                write_report_to_out(&out, &text)?;
+            }
+            print!("{text}");
+            if !report.unrecorded_violations.is_empty() {
+                return Err("DONOR_STORAGE_INTEGRITY_VIOLATION".into());
+            }
+            if report.admission.as_ref().is_some_and(|a| !a.admitted()) {
+                return Err("DONOR_MATERIALIZATION_REFUSED".into());
+            }
+        }
         [cmd, rest @ ..] if cmd == "search" => {
             // ADR 0020: generate originality-valid candidates over a genome, create and verify
             // each, and keep the Pareto front of the verified ones (a set, not a winner).
@@ -326,7 +370,7 @@ fn run(args: &[String]) -> Result<(), String> {
         }
         _ => {
             return Err(
-                "usage: atlas-systemizer <contract|systemize|docs audit|code analyze|parse|check|graph|observe|genome|search|create|physical|work prepare> ..."
+                "usage: atlas-systemizer <contract|systemize|docs audit|code analyze|parse|check|graph|observe|genome|search|create|physical|donors working-set|work prepare> ..."
                     .into(),
             );
         }

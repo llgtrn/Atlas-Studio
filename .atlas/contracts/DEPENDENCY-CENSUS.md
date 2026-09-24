@@ -132,6 +132,8 @@ Source locations may include:
 
 Source location is not semantic identity.
 
+Source-backed means traceable to an exact revision, path and blob. It does not mean permanently cloned. A dependency must be **accounted** (it receives a terminal classification). It is **materialized** only when its source implements part of the mechanism under census (`SOURCE_REQUIRED`), and then inside the bounded working set (`DONOR-WORKING-SET.md`).
+
 ## Non-source terminal boundaries
 
 Some dependencies terminate at a boundary whose source is unavailable, intentionally external, or not admitted. Examples include an OS library, device driver, external SaaS capability, prebuilt SDK, container base, or proprietary binary.

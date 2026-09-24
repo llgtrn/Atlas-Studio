@@ -4,6 +4,15 @@ canonical = true
 self_building_roadmap = "SELF-BUILDING-R4-R8.md"
 donor_registry = "../references/donor-corpus.toml"
 source_root = ".atlas/temporary/donors"
+# ADR 0021: legacy tracked root above is drained, never extended; new materialization goes to
+# git-ignored scratch inside the bounded working set.
+scratch_source_root = ".atlas/.cache/donors"
+working_set = "DONOR-WORKING-SET.toml"
+working_set_contract = "../contracts/DONOR-WORKING-SET.md"
+bulk_clone_first = false
+materialization_requires_budget_admission = true
+dependency_accounted_is_not_dependency_cloned = true
+source_never_materialized_is_not_extinction = true
 
 r_wave_namespace = "ATLAS_MATURITY"
 w_wave_namespace = "DONOR_EXECUTION_LANE"

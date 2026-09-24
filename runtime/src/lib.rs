@@ -1,6 +1,7 @@
 //! Atlas runtime orchestration.
 
 pub mod census;
+pub mod donor_storage;
 pub mod inventory;
 pub mod normalize;
 pub mod physical;
@@ -1305,23 +1306,27 @@ mod tests {
         }
 
         /// Every materialized donor checkout must belong to an admitted donor-corpus entry, or be a
-        /// named, recorded debt. These checkouts carry no donor-corpus entry at all; they are open
-        /// frontier (`.atlas/roadmap/GENERATIONS.toml`, deferred `unadmitted-donor-checkouts`),
-        /// listed explicitly so the set can only shrink: a new unadmitted checkout fails this test,
-        /// and so does a listed one that has been admitted or deleted without updating the list.
-        const UNADMITTED_CHECKOUT_DEBT: &[&str] = &[
-            "borg",
-            "cdc-file-transfer",
-            "fastcdc-rs",
-            "git",
-            "lz4",
-            "restic",
-            "xz",
-        ];
+        /// named, recorded blocker. The blockers live in `.atlas/roadmap/DONOR-WORKING-SET.toml`
+        /// (`[[unadmitted_checkout]]`, ADR 0021) so the list has one source of truth and can only
+        /// shrink: a new unadmitted checkout fails this test, and so does a listed one that has been
+        /// admitted or deleted without updating the record.
+        fn unadmitted_checkout_debt() -> Vec<String> {
+            let text = std::fs::read_to_string(
+                workspace_root().join(".atlas/roadmap/DONOR-WORKING-SET.toml"),
+            )
+            .expect("DONOR-WORKING-SET.toml");
+            text.lines()
+                .filter_map(|line| {
+                    let rest = line.trim().strip_prefix("directory = \"")?;
+                    Some(rest[..rest.find('"')?].to_owned())
+                })
+                .collect()
+        }
 
         #[test]
         fn every_materialized_donor_checkout_is_admitted_or_recorded_debt() {
             let root = workspace_root();
+            let debt = unadmitted_checkout_debt();
             let admitted_top_level: std::collections::BTreeSet<String> = load_entries()
                 .iter()
                 .filter(|entry| entry.ingestion_status == "CLONED")
@@ -1342,15 +1347,15 @@ mod tests {
             on_disk.sort();
             for dir in &on_disk {
                 assert!(
-                    admitted_top_level.contains(dir)
-                        || UNADMITTED_CHECKOUT_DEBT.contains(&dir.as_str()),
+                    admitted_top_level.contains(dir) || debt.contains(dir),
                     "`.atlas/temporary/donors/{dir}` is materialized donor source with no admitted \
                      donor-corpus entry and no recorded debt: admit it, or delete it"
                 );
             }
-            for debt in UNADMITTED_CHECKOUT_DEBT {
+            assert!(!debt.is_empty(), "no recorded blocker parsed");
+            for debt in &debt {
                 assert!(
-                    on_disk.iter().any(|dir| dir == debt) && !admitted_top_level.contains(*debt),
+                    on_disk.iter().any(|dir| dir == debt) && !admitted_top_level.contains(debt),
                     "`{debt}` is listed as unadmitted debt but was admitted or removed; update the list"
                 );
             }

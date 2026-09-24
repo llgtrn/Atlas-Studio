@@ -1,0 +1,67 @@
+schema = "atlas.donor-working-set.v1"
+canonical = true
+contract = ".atlas/contracts/DONOR-WORKING-SET.md"
+decision = ".atlas/decisions/0021-bounded-donor-working-set.md"
+
+# DISCOVER MANY -> QUEUE MANY -> MATERIALIZE FEW -> UNDERSTAND DEEPLY -> ABSORB NATIVELY -> VERIFY
+# -> DELETE SOURCE -> RECYCLE STORAGE -> NEXT DONOR.
+# Read by runtime::donor_storage and `atlas-systemizer donors working-set`; the admission gate is
+# atlas_core::donor::decide_admission. Storage state lives on each donor-corpus record
+# (`storage_state`, `materialization_mode`), orthogonal to decision_status.
+
+[roots]
+# Every new materialization: untracked, git-ignored scratch (.gitignore: .atlas/.cache/).
+scratch = ".atlas/.cache/donors"
+# Pre-ADR-0021 tracked trees: drained by extinction, never extended.
+legacy_tracked = ".atlas/temporary/donors"
+
+# Ratios with absolute floors (permille / bytes); never one machine's numbers. Free fraction is
+# available / (used + available), the `df` Use% basis.
+[policy]
+healthy_min_free_permille = 400
+pressure_min_free_permille = 200
+high_pressure_min_free_permille = 100
+build_headroom_permille = 250
+build_headroom_min_bytes = 2_147_483_648
+safety_reserve_permille = 50
+safety_reserve_min_bytes = 1_073_741_824
+max_working_set_permille = 250
+large_donor_bytes = 268_435_456
+
+# Local donor directories with no donor-corpus record (storage integrity violations). Each is
+# recorded with its remedy; the integrity test fails on any violation not listed here and on any
+# listed one that no longer violates.
+[[unadmitted_checkout]]
+directory = "borg"
+classification = "UNADMITTED_TRACKED_CHECKOUT; 572 tracked files, 8.1 MB; no provenance, license record, census or consumer"
+remedy = "DELETE (git rm); BLOCKED_ON_USER: the session permission classifier denied this irreversible deletion (GENERATIONS.toml unadmitted-checkout-deletion-needs-user-authorization)"
+
+[[unadmitted_checkout]]
+directory = "cdc-file-transfer"
+classification = "UNADMITTED_TRACKED_CHECKOUT; 36996 tracked files, 441.8 MB (largest unowned); no provenance, license record, census or consumer"
+remedy = "DELETE (git rm); BLOCKED_ON_USER"
+
+[[unadmitted_checkout]]
+directory = "fastcdc-rs"
+classification = "UNADMITTED_TRACKED_CHECKOUT; 28 tracked files, 0.3 MB; no provenance, license record, census or consumer"
+remedy = "DELETE (git rm); BLOCKED_ON_USER"
+
+[[unadmitted_checkout]]
+directory = "git"
+classification = "UNADMITTED_TRACKED_CHECKOUT; 4869 tracked files, 49.4 MB; git/git is a CONSUMER_GATED frontier candidate (RECOMMENDED-OSS-FRONTIER.toml), not admitted"
+remedy = "DELETE (git rm); re-materialize as a scratch slice only when a content-addressing consumer exists; BLOCKED_ON_USER"
+
+[[unadmitted_checkout]]
+directory = "lz4"
+classification = "UNADMITTED_TRACKED_CHECKOUT; 210 tracked files, 1.7 MB; no provenance, license record, census or consumer"
+remedy = "DELETE (git rm); BLOCKED_ON_USER"
+
+[[unadmitted_checkout]]
+directory = "restic"
+classification = "UNADMITTED_TRACKED_CHECKOUT; 1395 tracked files, 27.5 MB; no provenance, license record, census or consumer"
+remedy = "DELETE (git rm); BLOCKED_ON_USER"
+
+[[unadmitted_checkout]]
+directory = "xz"
+classification = "DANGLING_GITLINK; one mode-160000 entry (74c3449d8b) with no .gitmodules, empty directory, 0 bytes"
+remedy = "DELETE (git rm --cached); BLOCKED_ON_USER"

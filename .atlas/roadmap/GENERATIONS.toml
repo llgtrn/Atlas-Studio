@@ -13,7 +13,7 @@
 #       -> generation evidence -> G_n+1
 
 schema = "atlas.self-build.generation-ledger.v1"
-current_generation = "G53"
+current_generation = "G54"
 
 [[generation]]
 id = "G35"
@@ -535,6 +535,7 @@ base_commit = "4f6f03e7ea58665261681b9483cacef37754b519"
 objective = "materialize the user-recorded RECOMMENDED-OSS-FRONTIER baseline into repo-exact entries keyed by canonical remote URL and recompute the exact unique-repository total"
 writer = "coordinator (sole writer); three read-only name-extraction lanes (FUTURIST; CREATOR+PHYSICAL; earlier directives), deterministic join by canonical URL"
 evidence = ".atlas/evidence/verification/g53-recommended-frontier-materialization.json"
+result_commits = ["fd39dcd3d4a772873cc683ab642d1bb5e44ae011"]
 
 [[generation.lane]]
 id = "extract-futurist"
@@ -563,3 +564,24 @@ remote_verification = "146/146 canonical remotes answered git ls-remote HEAD (QB
 
 [generation.next]
 objective = "G54: physical fault injection and safety state machine, or colour/contrast objective with front-steered ladders; select by leverage"
+
+[[generation]]
+id = "G54"
+base_commit = "fd39dcd3d4a772873cc683ab642d1bb5e44ae011"
+objective = "replace clone-first donor ingestion with a bounded, measured donor working set: storage state orthogonal to decision, cheapest-sufficient materialization, disk watermarks + budget + cap gating, accounted-not-cloned dependencies, enforced storage integrity"
+writer = "coordinator (sole writer); read-only lanes: clone-first canonical-statement audit, Chromium coupling audit (for G55), Ladybird feasibility (G55), Product Foundry donor verification (G56)"
+evidence = ".atlas/decisions/0021-bounded-donor-working-set.md"
+
+[[generation.lane]]
+id = "clone-first-audit"
+objective = "every canonical statement on donor cloning/staging/materialization/source-backed"
+result = "clone-first rule at blueprints/BULK-DONOR-ABSORPTION.md (rule + legacy compiler batch); compatible sparse precedent (mlir, FRONTIER admission_staging_default); source-backed defined in DEPENDENCY-CENSUS.md as availability; provenance ingestion_status stale for 3 extinct donors"
+
+[generation.verification]
+falsification = "17/17 scheduler mutants killed; real-tree falsification: orphan scratch dir, souffle re-marked MATERIALIZED_CHECKOUT, and a dropped recorded blocker each fail repository_donor_storage_has_no_unrecorded_violation"
+measurement = "capacity 39.78 GB, available 9.69 GB (243 permille, PRESSURE); donor budget 5.28 GB; cap 9.95 GB; legacy working set 4.82 GB over 54 donors; unowned 529 MB (7 recorded blockers)"
+extinct_donors_revalidated = "blake3, datafrog, souffle: SOURCE_DELETED, source absent"
+unadmitted_checkouts = "7 classified in DONOR-WORKING-SET.toml; deletion remains BLOCKED_ON_USER (permission boundary preserved)"
+
+[generation.next]
+objective = "G55: BrowserInstrument abstraction + Ladybird admission through the working-set gate; G56: PRODUCT_FOUNDRY lanes and first primitive"

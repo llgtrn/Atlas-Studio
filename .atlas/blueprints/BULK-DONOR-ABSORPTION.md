@@ -6,13 +6,15 @@ canonical: true
 ---
 # Bulk Donor Absorption
 
-Atlas defaults to bulk donor staging when a capability roadmap already identifies a bounded donor set.
+> **Superseded in part (ADR 0021).** Bulk clone-first staging is no longer canonical. Donors are discovered remotely, queued, and materialized a bounded working set at a time, inside a measured disk budget, into git-ignored scratch. Source is deleted after absorption and the storage is reclaimed before the next donor: `../contracts/DONOR-WORKING-SET.md`. The census, absorption and extinction discipline below still holds. Where this document says to clone or stage a batch, read: queue the batch, then materialize each donor when it enters the working set.
+
+Atlas identifies bounded donor sets from capability roadmaps and processes them through the bounded working set.
 
 The detailed R4→R8 self-building loop, discovery dispositions and pull-forward rules are canonical in `../roadmap/SELF-BUILDING-R4-R8.md`.
 
 ## Rule
 
-Do not clone donors one-by-one as implementation reaches them. Clone the approved batch up front into `.atlas/temporary/donors/<donor>/`, pin exact revision/license/provenance immediately, perform a cheap coarse census over the whole batch, then deep-census/deepfork according to the dependency roadmap.
+Discover the approved batch remotely and pin exact revision/license/provenance immediately (remote identity needs no clone). Queue every donor. Materialize only what fits the working-set budget, using the cheapest sufficient mode, into `.atlas/.cache/donors/<donor>/`. Census, decide, absorb, verify and delete it; reclaim the storage; then materialize the next donor. The superseded rule, which cloned the whole batch up front into tracked `.atlas/temporary/donors/`, produced the legacy tracked trees now being drained.
 
 ~~~text
 approved donor set
@@ -207,9 +209,9 @@ Do not report the entire donor repository EXTINCT while required donor source re
 
 `.atlas/temporary/donors/` is a workbench, not a vendor directory. Donor trees are required to disappear as extinction proceeds.
 
-## Current compiler-lane bulk batch
+## Current compiler-lane bulk batch (legacy, already tracked)
 
-Stage together:
+Staged together before ADR 0021 (legacy tracked trees; drained by extinction, never extended):
 
 - facebook/zstd
 - BLAKE3-team/BLAKE3
