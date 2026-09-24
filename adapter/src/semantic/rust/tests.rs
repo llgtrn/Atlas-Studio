@@ -6421,3 +6421,62 @@ pub fn outlives<'a, 'b: 'a>(x: &'b str) -> &'a str {
         "a lifetime parameter's own bound must be recorded, not silently dropped"
     );
 }
+
+// --- DATA_FLOW: a parenthesized assignment target -- `(y) = ..;` / `(y) += 1;` -- previously fell
+// through Expr::Assign's/the compound-assign arm's `None` case, which walks the LHS with the
+// ordinary value-read logic and fabricates a spurious `Use` of `y` while never emitting the
+// `Store` a bare `y = ..;` already gets -- a wrong claim, not merely a gap, flagged (but
+// deliberately not fixed, to avoid inverting a different divergence) in the CALL/PlaceRef
+// generation earlier this cycle and closed here on its own terms. --------------------------------
+
+#[test]
+fn parenthesized_assignment_target_is_a_store_not_a_spurious_use() {
+    const SRC: &str = r#"
+pub fn f(mut y: u64) -> u64 {
+    (y) = 5;
+    y
+}
+"#;
+    let batch = extract_all("src/probe.rs", SRC);
+    let caller = find_function_identity(&batch, &[], "f").unwrap();
+    let values = data_flow_values_for(&batch, caller);
+    assert!(
+        values
+            .iter()
+            .any(|v| v.role == ValueRole::Store && v.name == "y"),
+        "a parenthesized assignment target must still produce a Store for `y`"
+    );
+    assert!(
+        !values
+            .iter()
+            .any(|v| v.role == ValueRole::Use && v.span.line == 3),
+        "the parenthesized target itself must not ALSO be recorded as a spurious Use -- only the \
+         later `y` in the return-position line 4 is a real Use"
+    );
+}
+
+#[test]
+fn parenthesized_compound_assignment_target_is_a_use_and_a_store() {
+    const SRC: &str = r#"
+pub fn f(mut y: u64) -> u64 {
+    (y) += 1;
+    y
+}
+"#;
+    let batch = extract_all("src/probe.rs", SRC);
+    let caller = find_function_identity(&batch, &[], "f").unwrap();
+    let values = data_flow_values_for(&batch, caller);
+    let line_3: Vec<_> = values.iter().filter(|v| v.span.line == 3).collect();
+    assert!(
+        line_3
+            .iter()
+            .any(|v| v.role == ValueRole::Use && v.name == "y"),
+        "a parenthesized compound-assign target must still be read (RMW), same as a bare target"
+    );
+    assert!(
+        line_3
+            .iter()
+            .any(|v| v.role == ValueRole::Store && v.name == "y"),
+        "a parenthesized compound-assign target must still be written (RMW), same as a bare target"
+    );
+}

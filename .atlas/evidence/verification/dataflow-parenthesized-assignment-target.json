@@ -1,0 +1,61 @@
+{
+  "schema": "atlas.self-build.generation-evidence.v1",
+  "wave": "CORRECTNESS -- a parenthesized assignment target (`(y) = ..;` / `(y) += 1;`) fell through DATA_FLOW's Expr::Assign and compound-assign arms into their generic `None` case, which walks the left-hand side with the ordinary value-read logic and fabricates a spurious `Use` of `y` while emitting no `Store` at all -- a wrong claim about what happened, not merely a coverage gap, for a legal (if unusual) Rust assignment target.",
+  "wave_title": "Thirtieth generation this cycle. This exact gap was identified and independently confirmed real during the CALL/PlaceRef generation earlier this cycle, but was deliberately left unfixed there to avoid inverting a different divergence (making CALL's own result-binding more capable than DATA_FLOW's own current Store detection) -- explicitly named at the time as 'a real, separate, lower-priority gap in DATA_FLOW itself... a legitimate, bounded follow-up candidate.' This generation closes it on its own terms, directly in DATA_FLOW, with no such divergence risk.",
+  "priority_classification": "correctness -- a fabricated-claim-class defect (a definite, wrong Use claim plus a missing Store, not merely an unclaimed gap), reachable from a legal Rust assignment shape. Selected over spawning a fresh Explore survey because it was already a real, previously-verified, previously-recorded finding from this session's own evidence trail -- fixing an already-confirmed gap is cheaper and more certain than manufacturing a new one, and the standing loop's own priority order ranks correctness first regardless of how the gap was discovered.",
+  "gap_discovered_by": "Re-read this session's own prior evidence file (call-argument-result-place-ref-paren-reference-unwrap.json, generation 27), which explicitly flagged this exact gap as real but out of scope for that generation. Independently re-verified before acting in this generation: read dataflow.rs's current Expr::Assign and compound-assign arms directly, confirming both still call spelling::simple_path_ident(assign.left.as_ref()) / spelling::simple_path_ident(binary.left.as_ref()) with no Paren-unwrapping, and traced the None fallthrough (self.walk_expr(assign.left.as_ref(), false)) to Expr::Paren's own arm (self.walk_expr(&paren.expr, is_return_flow)) which recurses into Expr::Path's Use-emitting arm -- confirming the fabricated-Use, missing-Store failure mode by hand, not merely by re-trusting the prior generation's own note.",
+  "key_finding": "`(y) = 5;`: assign.left is Expr::Paren(Expr::Path(y)), not directly Expr::Path(y), so simple_path_ident(assign.left.as_ref()) returns None, falling to self.walk_expr(assign.left.as_ref(), false) which walks the Paren, recurses to the inner Path, and emits ValueRole::Use for y -- a Store that should have happened is entirely missing, and a Use that should never happen is fabricated. The identical failure mode applies to the compound-assign arm for `(y) += 1;`.",
+  "verification_before_acting": [
+    "Read dataflow.rs's real, unfixed Expr::Assign arm directly, confirming it calls simple_path_ident on assign.left.as_ref() with no unwrap step.",
+    "Read dataflow.rs's real, unfixed compound-assign arm directly, confirming the identical pattern on binary.left.as_ref().",
+    "Traced the None fallthrough by hand through Expr::Paren's own arm and into Expr::Path's Use-emitting arm, confirming the exact fabricated-Use/missing-Store outcome before writing any fix or test.",
+    "Confirmed spelling::unwrap_parens already exists (added in generation 27 for the CALL fix) and is explicitly documented as safe for assignment-target positions ('use unwrap_parens alone there, matching dataflow.rs's own Expr::Assign arm, which does not unwrap Expr::Reference on its left-hand side either') -- reused directly rather than writing a new helper.",
+    "Grepped tests.rs for any existing test covering a parenthesized assignment or compound-assignment target before writing new fixtures -- confirmed the shape was genuinely untested."
+  ],
+  "design_decisions": [
+    {
+      "question": "Unwrap Expr::Reference as well as Expr::Paren on the assignment target, matching CALL's own value-read unwrap_value_read helper?",
+      "decision": "No -- unwrap_parens only (Paren, not Reference), exactly as unwrap_parens's own doc comment specifies for this position. `&y = 5;` is not legal Rust (a reference is never an assignable place), so unwrapping a Reference here would be recognizing a shape that cannot occur in valid source, not closing a real gap."
+    },
+    {
+      "question": "Fix only the DATA_FLOW-internal Store/Use claim, or also revisit CALL's place_ref_for_assign_result (left deliberately unfixed in generation 27 to avoid inverting the divergence)?",
+      "decision": "DATA_FLOW only, this generation. Now that DATA_FLOW itself correctly produces a Store record_id for a parenthesized assignment target, a future generation extending CALL's place_ref_for_assign_result to also unwrap Paren would no longer invert any divergence -- but that is an independent, separately-falsifiable follow-up, not bundled into this fix, since CALL's own convergence claim was not what this generation set out to verify."
+    }
+  ],
+  "stable_validator_law_compliance": {
+    "claim": "A parenthesized assignment target -- `(y) = ..;` or `(y) += 1;` -- now produces the exact same Store (and, for compound assignment, Use+Store) DATA_FLOW already produces for a bare `y = ..;` / `y += 1;`, and no longer fabricates a spurious Use in its place.",
+    "self_written_evidence": "Added 2 new tests (parenthesized_assignment_target_is_a_store_not_a_spurious_use, parenthesized_compound_assignment_target_is_a_use_and_a_store), each against a small, self-contained local fixture. Both fixes (the Expr::Assign arm and the compound-assign arm) were independently, individually falsified: each was temporarily reverted on its own (the other left in place), the corresponding test re-run and confirmed to fail with the exact predicted mismatch (missing Store; missing Use+Store), then restored and re-confirmed to pass.",
+    "independent_evidence_channel": "cargo fmt --all --check: clean. cargo clippy --workspace --all-targets -- -D warnings: clean, 0 warnings. cargo test --workspace: 598 total (313 adapter [+2], 5 apps/cli, 197 core, 83 runtime), 0 failed -- up from 596. docs audit --root .atlas: gate_ready true. cargo run -p atlas-cli -- systemize --root . --out <file> (real self-census over the whole repository, including this generation's own uncommitted diff): coding_admission.blockers == [].",
+    "no_circular_self_certification": true
+  },
+  "implementation": {
+    "code_change": "adapter/src/semantic/rust/dataflow.rs -- Expr::Assign's and the compound-assign Expr::Binary arm's left-hand-side recognition now unwrap Expr::Paren via spelling::unwrap_parens (already existing, reused as-is) before checking simple_path_ident, so a parenthesized target converges on the same Store (or Use+Store) a bare identifier target already produces. Module doc comment's description of the plain-assignment case updated to note the parenthesized target is also recognized.",
+    "docs_change": "2 new tests appended to the end of tests.rs, following that file's established end-of-file convention (inline const SRC per test)."
+  },
+  "adversarial_and_falsification_coverage": [
+    "temporarily reverted the Expr::Assign fix alone (compound-assign fix left in place), re-ran its test, confirmed it failed with 'a parenthesized assignment target must still produce a Store for y' -- exactly the predicted mismatch -- then restored and reconfirmed passing",
+    "temporarily reverted the compound-assign fix alone (Expr::Assign fix left in place), re-ran its test, confirmed it failed with 'a parenthesized compound-assign target must still be written (RMW)' -- exactly the predicted mismatch -- then restored and reconfirmed passing",
+    "confirmed the full adapter test suite (225 tests, up from 223) and the whole workspace (598 tests) pass together with no regression, plus a clean clippy pass under -D warnings and a real, non-mocked self-census over the whole repository (including this generation's own uncommitted diff) with zero coding_admission blockers",
+    "this generation's own selection was itself an application of the standing loop's discipline against re-litigating already-settled scope: rather than re-opening whether CALL's place_ref_for_assign_result should also be extended (a decision generation 27 already made and recorded reasoning for), only the newly-safe-to-close DATA_FLOW-internal half of that earlier note was acted on"
+  ],
+  "validation_this_generation": {
+    "commands": {
+      "cargo test -p adapter --lib -- parenthesized_assignment_target_is_a_store_not_a_spurious_use (Expr::Assign fix reverted)": { "result": "FAILED as expected -- missing Store for y" },
+      "cargo test -p adapter --lib -- parenthesized_compound_assignment_target_is_a_use_and_a_store (compound-assign fix reverted)": { "result": "FAILED as expected -- missing Store for y (RMW)" },
+      "cargo test -p adapter --lib -- parenthesized_assignment_target_is_a_store_not_a_spurious_use parenthesized_compound_assignment_target_is_a_use_and_a_store (both fixes restored)": { "result": "passed", "totals": "2 passed, 0 failed" },
+      "cargo test -p adapter --lib semantic::rust:: (final)": { "result": "passed", "totals": "225 passed, 0 failed -- up from 223" },
+      "cargo fmt --all --check": { "exit_code": 0 },
+      "cargo clippy --workspace --all-targets -- -D warnings": { "exit_code": 0, "warnings": 0 },
+      "cargo test --workspace": { "exit_code": 0, "totals": "598 total, 0 failed (313 adapter [+2], 5 apps/cli, 197 core, 83 runtime) -- up from 596" },
+      "cargo run -q -p atlas-cli -- docs audit --root .atlas": { "exit_code": 0, "gate_ready": true },
+      "cargo run -p atlas-cli -- systemize --root . --out <file> (real self-census, whole repository, uncommitted diff included)": { "exit_code": 0, "coding_admission_blockers": "[]" }
+    }
+  },
+  "recensus_scope_after_promotion": [
+    "no prior CLOSED/EXTINCT conclusion depended on this gap going unnoticed -- this closes a real defect in DATA_FLOW's own assignment-target recognition, not a correction of a prior architectural claim",
+    "closes the exact follow-up candidate named in generation 27's own evidence file (call-argument-result-place-ref-paren-reference-unwrap.json), demonstrating this session's own recorded 'flagged, not fixed' notes are real backlog, not forgotten -- future generations should continue checking prior evidence files' recensus_scope_after_promotion / flagged-follow-up notes as a legitimate, cheap source of already-verified next actions before spawning a fresh survey",
+    "a new, narrower follow-up is now legitimately open (not fixed this generation): CALL's place_ref_for_assign_result could now safely be extended to also unwrap Paren on its own assignment-result recognition, since DATA_FLOW itself no longer lags behind on this exact shape -- named here as a bounded, low-priority candidate, not bundled into this fix"
+  ],
+  "overall_verdict": "FOUND (in a prior generation's own recorded follow-up note), RE-VERIFIED, FIXED, AND FALSIFIED. Closed a fabricated-claim-class defect (a parenthesized assignment or compound-assignment target claimed only a spurious Use, never the real Store) using an already-existing helper (unwrap_parens) built for exactly this purpose in an earlier generation. Both the plain-assignment and compound-assignment halves of the fix were independently falsified before being trusted. Full workspace suite green (598/598, up from 596), clippy clean, real self-census reports zero blockers.",
+  "historical_evidence_retained": true
+}

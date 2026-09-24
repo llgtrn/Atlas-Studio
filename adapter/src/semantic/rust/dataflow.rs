@@ -14,7 +14,8 @@
 //! `&`/`&mut`/parenthesized wrapping and `ident @ sub_pattern` bindings (R4.12: this previously
 //! bound nothing for any destructuring pattern, a documented, not fabricated, gap -- now closed for
 //! the pattern shapes Rust source actually uses). A plain `x = ..;` assignment
-//! (`syn::Expr::Assign`) with a simple identifier LHS is modeled as a `Store`. Compound-assignment
+//! (`syn::Expr::Assign`) with a simple (optionally `(..)`-parenthesized) identifier LHS is
+//! modeled as a `Store`. Compound-assignment
 //! operators (`x += 1`) are represented by this `syn` version as `syn::Expr::Binary` with a
 //! compound `BinOp` (`AddAssign`, ...), not a distinct assignment form -- but that `BinOp` variant
 //! is itself syntax-distinct from plain arithmetic (`AddAssign` vs `Add`, ...), so a compound
@@ -260,10 +261,18 @@ impl<'ctx, 'a> DataFlowWalker<'ctx, 'a> {
                 }
             }
             syn::Expr::Assign(assign) => {
-                match spelling::simple_path_ident(assign.left.as_ref()) {
+                // `(y) = ..;` is a legal, if unusual, assignment target -- unwrap `Expr::Paren`
+                // (never `Expr::Reference`: `&y = ..;` is not legal Rust) before recognizing a
+                // simple identifier, so a parenthesized target still resolves to the exact same
+                // Store this walker already emits for a bare `y = ..;`. Without this, the Paren
+                // fell through to the generic `None` arm below, which walks the LHS with the
+                // ordinary value-read logic and fabricates a spurious `Use` of `y` while emitting
+                // no `Store` at all -- not merely a gap, a wrong claim about what happened.
+                let target = spelling::unwrap_parens(assign.left.as_ref());
+                match spelling::simple_path_ident(target) {
                     Some(ident) => {
                         let name = ident.to_string();
-                        let span = self.ctx.span_of(assign.left.as_ref());
+                        let span = self.ctx.span_of(target);
                         self.emit_use_or_store(&name, span, ValueRole::Store, false);
                     }
                     None => self.walk_expr(assign.left.as_ref(), false),
@@ -354,11 +363,13 @@ impl<'ctx, 'a> DataFlowWalker<'ctx, 'a> {
             }
             syn::Expr::Binary(binary) if spelling::is_compound_assign_op(&binary.op) => {
                 // `x += 1` etc.: provably a read-modify-write of the left operand, not merely a
-                // read -- see `spelling::is_compound_assign_op`.
-                match spelling::simple_path_ident(binary.left.as_ref()) {
+                // read -- see `spelling::is_compound_assign_op`. Same `(x) += 1;` Paren-unwrap
+                // reasoning as the plain-`Expr::Assign` arm above.
+                let target = spelling::unwrap_parens(binary.left.as_ref());
+                match spelling::simple_path_ident(target) {
                     Some(ident) => {
                         let name = ident.to_string();
-                        let span = self.ctx.span_of(binary.left.as_ref());
+                        let span = self.ctx.span_of(target);
                         self.emit_use_or_store(&name, span.clone(), ValueRole::Use, false);
                         self.emit_use_or_store(&name, span, ValueRole::Store, false);
                     }
