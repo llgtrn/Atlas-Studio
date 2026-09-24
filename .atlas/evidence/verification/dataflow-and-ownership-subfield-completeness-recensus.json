@@ -1,0 +1,30 @@
+{
+  "schema": "atlas.self-build.generation-evidence.v1",
+  "wave": "RECENSUS -- check sub-field completeness (not just top-level Expr-arm presence) for the two walkers most likely to have a missed sub-expression",
+  "wave_title": "The prior generation's arm-completeness check only asked 'does this walker mention Expr::Xxx at all'. A subtler, unchecked defect class remains possible: a walker that DOES handle a compound expression (Index, Assign, Range, Repeat, Struct, ...) but visits only SOME of its sub-expression fields, silently dropping evidence nested in the missed one (e.g. `self.data[self.compute_index()]` -- if a walker only recursed into `.expr` and not `.index`, the nested call/read inside the index expression would be invisible). This generation checked the two walkers most likely to harbor such a gap: dataflow.rs (the most semantically complex dimension) and ownership.rs (the least mature, most recently bootstrapped dimension).",
+  "priority_classification": "correctness/architectural integrity (priority 1) -- a direct continuation of the same defect class the CFG let-else/`?`/unsafe gaps were, applied one level more granularly (sub-field completeness, not just top-level variant presence).",
+  "method": "read dataflow.rs's and ownership.rs's full walk_expr match bodies (not just grepped for variant names) and manually cross-checked every compound-expression arm against that variant's actual struct definition in syn 3.0.6 to confirm every Expr-typed field is visited (or its omission is deliberately reasoned about, e.g. Cast's `ty: Box<Type>` is not an Expr and correctly excluded).",
+  "findings": {
+    "dataflow_rs": "Every compound expression visits all of its Expr-typed sub-fields: Assign (left as store-or-recurse, right), If (cond+then+else), Match (expr, and per-arm: guard+pattern+body), ForLoop (expr+pat+body), Binary (left+right, both the compound-assign and plain arms), Index (expr AND index -- both fields, the exact shape a missed-field bug would most plausibly hide in), Call/MethodCall (func/receiver AND all args), Struct (all fields AND rest), Array/Tuple (all elems), Range (both start and end, each independently Optional), Repeat (expr AND len -- both fields), Break/Return/Yield (their Optional value). No gap found.",
+    "ownership_rs": "Same result, with additional care already present for move/copy value-position propagation (e.g. Struct/Array/Tuple/Repeat element expressions are explicitly walked with `is_value_position: true` since they are always consumed by value into the constructed value, independent of the literal's own position -- a distinction dataflow.rs does not need but ownership.rs correctly makes). Every compound expression's sub-fields are all visited. No gap found."
+  },
+  "stable_validator_law_compliance": {
+    "claim": "Neither dataflow.rs nor ownership.rs silently drops evidence nested inside an unvisited sub-field of a compound expression they otherwise handle.",
+    "self_written_evidence": "Cross-checked each compound-expression arm's visited fields against that expression's real struct definition (not assumed from the arm's own code alone) -- e.g. confirmed `syn::ExprIndex` has exactly two Expr-typed fields (`expr`, `index`) and both are visited in both walkers; confirmed `syn::ExprRepeat` has exactly two Expr-typed fields (`expr`, `len`) and both are visited.",
+    "independent_evidence_channel": "No code changed this generation, so the existing validation (491 tests, fmt/clippy clean) remains the current, unmodified baseline; re-confirmed still passing.",
+    "no_circular_self_certification": true
+  },
+  "implementation": {
+    "code_change": "NONE -- second consecutive generation with no actionable gap found, per this session's own loop rule against manufacturing a fix where none is needed."
+  },
+  "adversarial_and_falsification_coverage": [
+    "specifically targeted Index and Repeat as the two most plausible candidates for a missed second sub-field (each has exactly two Expr-typed fields where a hasty implementation might only visit one) -- both walkers correctly visit both",
+    "did not stop at 'the arm exists' -- verified against each expression type's actual field list from syn's own source, not from the walker's own code alone (which could not itself reveal an OMITTED field by definition)"
+  ],
+  "recensus_scope_after_promotion": [
+    "no prior CLOSED/EXTINCT conclusion is affected -- no code changed",
+    "this is the second consecutive clean generation (following adl-parser-and-walker-arm-completeness-recensus.json) toward the loop's 3-consecutive-clean-generation convergence criterion. A third genuine clean generation, investigating a still-different area rather than repeating this same sub-field-completeness check a third time, would satisfy that criterion -- repeating the identical check on a third file would risk exactly the narrowed-scenario-coverage the convergence criterion explicitly excludes as invalid evidence"
+  ],
+  "overall_verdict": "NO DEFECT FOUND. dataflow.rs and ownership.rs -- checked at the sub-field level, not just top-level Expr-arm presence -- correctly visit every Expr-typed field of every compound expression they handle. Second consecutive clean generation; the next generation should investigate a genuinely different area (not a third repetition of this exact check) to make the eventual 3-consecutive-clean-generation claim, if reached, honest rather than narrowed.",
+  "historical_evidence_retained": true
+}
