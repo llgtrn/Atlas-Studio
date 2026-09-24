@@ -11,13 +11,22 @@
 //! `let PAT = EXPR else { diverge }` is lowered as a real decision point exactly like `if`/`match`:
 //! `lower_stmts` intercepts a `syn::Stmt::Local` whose `init.diverge` is `Some` before falling
 //! through to `stmt_expr`'s (deliberate) `None` for every other `Stmt::Local`, splits the
-//! remaining statements into a join continuation (mirroring the `if`/`match`/loop `remaining`
-//! handling below exactly, including the empty-remaining case producing no synthesized block), and
-//! separately lowers the diverge block's own statements as a `ControlFlowBlockKind::LetElseDiverge`
-//! block -- found missing, then closed, by direct adversarial testing this session; see
+//! remaining statements into a join continuation via the shared `join_continuation` helper
+//! (including the empty-remaining case producing no synthesized block), and separately lowers the
+//! diverge block's own statements as a `ControlFlowBlockKind::LetElseDiverge` block -- found
+//! missing, then closed, by direct adversarial testing this session; see
 //! `let_else_diverge_block_is_a_real_cfg_branch_point`/`let_else_as_the_last_statement_does_not_
 //! synthesize_an_empty_continuation_block`/`let_else_diverge_continue_resolves_to_the_enclosing_
 //! loop` in `tests.rs`.
+//!
+//! A bare `expr?;` statement is likewise a real decision point, closed the same way in the same
+//! session: `?`'s two outcomes (fall through with the "continue" value, or return the "break"
+//! value from the enclosing function -- never just an enclosing loop/block) are exactly as
+//! syntax-determined as `if`/`match`/let-else and share the identical `join_continuation` helper.
+//! This is distinct from the already-documented statement-level-only scope exclusion (a construct
+//! nested INSIDE a larger expression, e.g. `let x = foo()?;`, still gets no CFG blocks of its
+//! own) -- a bare `foo()?;` statement's entire statement IS the Try expression. See
+//! `try_operator_statement_is_a_real_cfg_branch_point` and its sibling tests in `tests.rs`.
 
 use atlas_core::{
     ControlFlowBlockIdentity, ControlFlowBlockKind, ControlFlowEdge, ControlFlowEdgeKind,
@@ -227,6 +236,39 @@ impl<'ctx, 'a> CfgBuilder<'ctx, 'a> {
         self.ctx.observations.push(observation);
     }
 
+    /// Splits `stmts[i + 1..]` (the statements after the one at `i`, which is itself a decision
+    /// point -- `if`/`match`/loop/let-else/`?`) into a join continuation: if nothing remains, the
+    /// join continuation IS the enclosing `cont` directly (no synthesized empty Continuation
+    /// block); otherwise a fresh `Continuation` block is reserved, the remaining statements are
+    /// recursively lowered into it, and the join continuation is a `Fallthrough` to it. Shared by
+    /// every decision-point arm below so the empty-remaining-statements handling can never
+    /// silently drift between them.
+    fn join_continuation(
+        &mut self,
+        stmts: &[syn::Stmt],
+        i: usize,
+        cont: Continuation,
+    ) -> Continuation {
+        let remaining = &stmts[i + 1..];
+        if remaining.is_empty() {
+            cont
+        } else {
+            let join_index = self.reserve_index();
+            let join_id = self.block_id_for(join_index);
+            let join_span = self.ctx.span_of(&remaining[0]);
+            self.lower_stmts(
+                remaining,
+                cont,
+                join_id.clone(),
+                join_index,
+                ControlFlowBlockKind::Continuation,
+                false,
+                join_span,
+            );
+            Continuation::FallthroughTo(join_id)
+        }
+    }
+
     /// Lowers `stmts` into one or more CFG blocks, starting at the already-reserved
     /// `(entry_id, entry_index)`. `cont` is where control goes if this statement list completes
     /// without hitting an early exit or a divergent tail. Emits blocks as a side effect; the
@@ -276,27 +318,9 @@ impl<'ctx, 'a> CfgBuilder<'ctx, 'a> {
             {
                 // A `let PAT = EXPR else { diverge }` statement is a decision point exactly like
                 // `if`/`match`: the "success" (pattern matched) path continues into whatever
-                // follows this statement in the same list (the same join-continuation split
-                // `if`/`match`/loop already use below), and the "diverge" (pattern failed) path
-                // branches into the diverge block's own, separately lowered statements.
-                let remaining = &stmts[i + 1..];
-                let join_cont = if remaining.is_empty() {
-                    cont
-                } else {
-                    let join_index = self.reserve_index();
-                    let join_id = self.block_id_for(join_index);
-                    let join_span = self.ctx.span_of(&remaining[0]);
-                    self.lower_stmts(
-                        remaining,
-                        cont,
-                        join_id.clone(),
-                        join_index,
-                        ControlFlowBlockKind::Continuation,
-                        false,
-                        join_span,
-                    );
-                    Continuation::FallthroughTo(join_id)
-                };
+                // follows this statement in the same list, and the "diverge" (pattern failed)
+                // path branches into the diverge block's own, separately lowered statements.
+                let join_cont = self.join_continuation(stmts, i, cont);
                 let mut successors = vec![continuation_to_edge(&join_cont)];
                 // `syn`'s grammar only ever produces `Expr::Block` for a let-else diverge arm;
                 // anything else cannot occur from valid `syn` parsing, but untrusted input is
@@ -402,30 +426,41 @@ impl<'ctx, 'a> CfgBuilder<'ctx, 'a> {
                     );
                     return;
                 }
+                syn::Expr::Try(_) => {
+                    // `expr?` used as a statement is a real decision point, exactly as
+                    // syntax-determined as `if`/`match`/let-else: either the expression's
+                    // "continue" value is produced and execution falls through to whatever
+                    // follows, or its "break" value triggers an early return from the enclosing
+                    // function (never just the enclosing loop/block -- same target as an explicit
+                    // `return`). This is NOT the already-documented statement-level-only scope
+                    // exclusion: that excludes a construct nested INSIDE a larger expression
+                    // (`let x = foo()?;`), whereas here the entire statement IS the Try
+                    // expression, exactly like a bare `if cond { .. }` statement.
+                    let join_cont = self.join_continuation(stmts, i, cont);
+                    self.emit_block(
+                        entry_id,
+                        entry_index,
+                        entry_kind,
+                        is_entry,
+                        vec![
+                            continuation_to_edge(&join_cont),
+                            ControlFlowEdge {
+                                kind: ControlFlowEdgeKind::Return,
+                                target: None,
+                            },
+                        ],
+                        span,
+                        EpistemicStatus::Observed,
+                    );
+                    return;
+                }
                 syn::Expr::If(_)
                 | syn::Expr::Match(_)
                 | syn::Expr::Loop(_)
                 | syn::Expr::While(_)
                 | syn::Expr::ForLoop(_)
                 | syn::Expr::Block(_) => {
-                    let remaining = &stmts[i + 1..];
-                    let join_cont = if remaining.is_empty() {
-                        cont
-                    } else {
-                        let join_index = self.reserve_index();
-                        let join_id = self.block_id_for(join_index);
-                        let join_span = self.ctx.span_of(&remaining[0]);
-                        self.lower_stmts(
-                            remaining,
-                            cont,
-                            join_id.clone(),
-                            join_index,
-                            ControlFlowBlockKind::Continuation,
-                            false,
-                            join_span,
-                        );
-                        Continuation::FallthroughTo(join_id)
-                    };
+                    let join_cont = self.join_continuation(stmts, i, cont);
                     let successors = self.lower_divergent(expr, join_cont);
                     self.emit_block(
                         entry_id,

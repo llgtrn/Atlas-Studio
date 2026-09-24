@@ -111,8 +111,11 @@ pub enum ControlFlowEdgeKind {
     /// (implicit repeat) or an explicit `continue` was taken. Both share this kind because both
     /// have the identical target (the loop body's entry block) and effect.
     LoopRepeat,
-    /// Control leaves the function normally (an explicit `return`, or a block's implicit
-    /// completion at function-body top level). Always `target: None`.
+    /// Control leaves the function normally (an explicit `return`, the "break" outcome of a `?`
+    /// statement propagating its value out of the enclosing function, or a block's implicit
+    /// completion at function-body top level). Always `target: None`. All three share this kind
+    /// because all three share the identical target (function exit, no further modeled block)
+    /// and effect -- the same principle `LoopRepeat` already applies to its own two causes.
     Return,
     /// An explicit `break` (labeled or not), landing wherever the matched loop's own
     /// continuation leads. `target` is `Some` when that continuation is a concrete modeled

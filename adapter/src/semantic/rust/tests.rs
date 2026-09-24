@@ -5242,3 +5242,168 @@ pub fn skip_missing(items: &[Option<u8>]) -> u8 {
          lower_stmts call for the diverge block's own statements"
     );
 }
+
+// --- the `?` (try) operator used as a standalone statement is a real CFG decision point: syntax
+// alone determines that either the expression's "continue" value is produced and execution falls
+// through, or its "break" value triggers an early return from the enclosing function -- exactly
+// as syntax-determined as `if`/`match`/`let-else`, and NOT excluded by this wave's own documented
+// statement-level-only scope boundary (that boundary excludes a construct nested INSIDE a larger
+// expression, e.g. `let x = foo()?;`; a bare `foo()?;` statement's entire statement IS the Try
+// expression, exactly like a bare `if cond { .. }` statement is already handled). Before this fix,
+// `lower_stmts` had no arm for `syn::Expr::Try` at all, so it fell through the wildcard `_ =>
+// continue` exactly like an ordinary side-effect-only call -- silently dropping the early-return
+// possibility. A function whose only conditional exit is a `?` (extremely common in idiomatic
+// Rust, e.g. multi-step `Result`-returning functions) was therefore indistinguishable from one
+// with no conditional exit at all -- the identical defect class the let-else gap was.
+
+#[test]
+fn try_operator_statement_is_a_real_cfg_branch_point() {
+    const SRC: &str = r#"
+pub fn write_two(w: &mut dyn std::fmt::Write) -> std::fmt::Result {
+    w.write_str("a")?;
+    w.write_str("b")?;
+    Ok(())
+}
+"#;
+    let batch = extract_all("src/probe.rs", SRC);
+    let caller = find_function_identity(&batch, &[], "write_two").unwrap();
+    let blocks = control_flow_blocks_for(&batch, caller);
+    assert_eq!(
+        blocks.len(),
+        3,
+        "expected one entry block (the first `?`) and one Continuation block per subsequent `?` \
+         statement's success path, ending at the implicit `Ok(())` tail -- NOT a single \
+         straight-line block with no branches at all"
+    );
+
+    let entry = &blocks[0];
+    assert!(entry.is_entry);
+    assert_eq!(entry.successors.len(), 2);
+    assert_eq!(entry.successors[0].kind, ControlFlowEdgeKind::Fallthrough);
+    assert_eq!(
+        entry.successors[1],
+        ControlFlowEdge {
+            kind: ControlFlowEdgeKind::Return,
+            target: None,
+        },
+        "the first `?`'s failure path must be a real Return edge, not silently absent"
+    );
+    let second_id = entry.successors[0].target.clone().unwrap();
+
+    let second = blocks
+        .iter()
+        .find(|b| {
+            SemanticRecordId::new(SemanticDimension::ControlFlow, &b.identity_key()) == second_id
+        })
+        .expect("the entry block's Fallthrough target must be one of the emitted blocks");
+    assert_eq!(second.kind, ControlFlowBlockKind::Continuation);
+    assert_eq!(second.successors.len(), 2);
+    assert_eq!(second.successors[0].kind, ControlFlowEdgeKind::Fallthrough);
+    assert_eq!(
+        second.successors[1],
+        ControlFlowEdge {
+            kind: ControlFlowEdgeKind::Return,
+            target: None,
+        },
+        "the second `?`'s failure path must also be a real Return edge"
+    );
+
+    let tail_id = second.successors[0].target.clone().unwrap();
+    let tail = blocks
+        .iter()
+        .find(|b| {
+            SemanticRecordId::new(SemanticDimension::ControlFlow, &b.identity_key()) == tail_id
+        })
+        .expect("the second block's Fallthrough target must be one of the emitted blocks");
+    assert_eq!(tail.successors.len(), 1);
+    assert_eq!(
+        tail.successors[0].kind,
+        ControlFlowEdgeKind::Return,
+        "the implicit `Ok(())` tail expression returns normally"
+    );
+}
+
+// --- a `?` statement as the LAST statement in a block must not synthesize an empty Continuation
+// block, mirroring if/match/let-else's own no-remaining-statements handling exactly -------------
+
+#[test]
+fn try_operator_as_the_last_statement_does_not_synthesize_an_empty_continuation_block() {
+    const SRC: &str = r#"
+pub fn write_one(w: &mut dyn std::fmt::Write) -> std::fmt::Result {
+    w.write_str("a")?
+}
+"#;
+    let batch = extract_all("src/probe.rs", SRC);
+    let caller = find_function_identity(&batch, &[], "write_one").unwrap();
+    let blocks = control_flow_blocks_for(&batch, caller);
+    assert_eq!(
+        blocks.len(),
+        1,
+        "a `?` with nothing following it must fold both of its own successors' targets into the \
+         enclosing continuation directly -- no synthesized Continuation block"
+    );
+    let entry = &blocks[0];
+    assert_eq!(entry.successors.len(), 2);
+    assert_eq!(
+        entry.successors[0],
+        ControlFlowEdge {
+            kind: ControlFlowEdgeKind::Return,
+            target: None,
+        },
+        "with nothing following the `?`, the enclosing continuation IS the function-body top- \
+         level completion, so the success path's join_continuation collapses to Return directly \
+         (exactly like the let-else 'last statement' case) rather than a Fallthrough to nothing"
+    );
+    assert_eq!(
+        entry.successors[1],
+        ControlFlowEdge {
+            kind: ControlFlowEdgeKind::Return,
+            target: None,
+        },
+        "the failure path is unconditionally Return regardless of position -- both edges are \
+         legitimately identical here, honestly reflecting that both outcomes lead to the same \
+         place when `?` is the function's last statement"
+    );
+}
+
+// --- a `?` statement inside a loop body: its success-path Continuation block must still resolve
+// `continue`/loop-repeat correctly against the enclosing loop_stack -----------------------------
+
+#[test]
+fn try_operator_inside_a_loop_body_preserves_loop_stack_for_the_continuation() {
+    const SRC: &str = r#"
+pub fn write_all(w: &mut dyn std::fmt::Write, items: &[&str]) -> std::fmt::Result {
+    for item in items {
+        w.write_str(item)?;
+    }
+    Ok(())
+}
+"#;
+    let batch = extract_all("src/probe.rs", SRC);
+    let caller = find_function_identity(&batch, &[], "write_all").unwrap();
+    let blocks = control_flow_blocks_for(&batch, caller);
+    let for_loop_body = blocks
+        .iter()
+        .find(|b| b.kind == ControlFlowBlockKind::ForLoopBody)
+        .expect("the for-loop body must produce its own block");
+    assert_eq!(
+        for_loop_body.successors.len(),
+        2,
+        "the loop body's only statement is the `?`, so the loop body block itself is the decision \
+         point: Fallthrough to the loop repeat, or Return on failure"
+    );
+    assert_eq!(
+        for_loop_body.successors[0].kind,
+        ControlFlowEdgeKind::LoopRepeat,
+        "the `?` succeeding falls through into the loop body's own natural repeat, exactly like \
+         any other statement completing the loop body normally"
+    );
+    assert_eq!(
+        for_loop_body.successors[1],
+        ControlFlowEdge {
+            kind: ControlFlowEdgeKind::Return,
+            target: None,
+        },
+        "the `?` failing returns from the whole function, not just the loop"
+    );
+}
