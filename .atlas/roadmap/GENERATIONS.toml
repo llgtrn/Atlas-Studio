@@ -13,7 +13,7 @@
 #       -> generation evidence -> G_n+1
 
 schema = "atlas.self-build.generation-ledger.v1"
-current_generation = "G42"
+current_generation = "G43"
 
 [[generation]]
 id = "G35"
@@ -324,6 +324,7 @@ id = "G42"
 base_commit = "e64ddbf2758d75e36aec0a4e7c9f02e3e5d9374e"
 objective = "open the CREATOR_FABRIC and PHYSICAL_ENGINEERING capability families (user directives): frontier inventory, machine-readable lanes, and the first foundational physical primitive (units/dimensions)"
 writer = "coordinator (sole production writer); lanes read-only"
+result_commits = ["301adeda8d691d50b7fbd382ae159aa28f496ec2"]
 evidence = ".atlas/decisions/0010-physical-quantities-and-dimensional-constraints.md"
 
 [[generation.lane]]
@@ -353,4 +354,24 @@ tests = "workspace green; fmt; clippy -D warnings"
 
 [generation.next]
 objective = "G43: Creator browser observation record (atlas-systemizer observe over local/authorized fixtures -> OBSERVED visual records + ratio-first layout relations); then physical milestone 1 (2-link arm frames + forward kinematics with quantity-typed parameters)"
+
+[[generation]]
+id = "G43"
+base_commit = "301adeda8d691d50b7fbd382ae159aa28f496ec2"
+objective = "Creator Fabric first primitive: hermetic browser observation record + ratio-first layout semantics"
+writer = "coordinator (sole production writer)"
+evidence = ".atlas/decisions/0011-visual-observation-record.md"
+
+[generation.join]
+absorb_now_exists = false
+selected_action = "native primitive over an external instrument (Playwright/Chromium EXTERNAL_BOUNDARY): core::visual + adapter::browser + runtime::visual + atlas-systemizer observe; contracts/CREATOR-FABRIC.md"
+decision_record = ".atlas/decisions/0011-visual-observation-record.md"
+
+[generation.verification]
+falsification = "7 mutants killed (network opened, geometry corrupted, uncertainty zeroed, flex rule dropped, stacking inverted, grid brackets counted, hidden elements related)"
+production_path = "atlas-systemizer observe on the Atlas-original editorial fixture: every CSS-declared relation recovered within uncertainty; 3 viewports localize the 700 px breakpoint to (375, 768]; hermetic probe stays 100 px; reproducible"
+tests = "workspace green; browser tests skip loudly only without Playwright"
+
+[generation.next]
+objective = "G44: physical milestone 1 -- 2-link arm frames + planar forward kinematics with quantity-typed parameters and ADL constraints; then Creator breakpoint bisection (browser as instrument)"
 

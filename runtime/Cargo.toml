@@ -12,4 +12,5 @@ publish = false
 [dependencies]
 atlas_core = { package = "core", path = "../core" }
 adapter = { path = "../adapter" }
+serde.workspace = true
 serde_json.workspace = true

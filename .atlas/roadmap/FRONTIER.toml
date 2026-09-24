@@ -210,15 +210,16 @@ next_action = "not scheduled"
 [[lane]]
 id = "creator_browser"
 family = "CREATOR_FABRIC"
+# G43: PARTIAL -- core::visual + adapter::browser + atlas-systemizer observe (ADR 0011)
 capability = "sandboxed, reproducible observation of public/authorized pages: DOM, computed style, geometry, accessibility tree across viewports and interactions"
-state = "ABSENT"
-atlas_implementation = "none; container has Playwright 1.56.1 + Chromium 141 (verified G42 lane: computed style + bounding boxes at 375/1280 px, ariaSnapshot)"
+state = "PARTIAL"
+atlas_implementation = "core::visual observation records + adapter::browser hermetic Playwright/Chromium instrument (every request but the subject aborted, fresh context per viewport) + runtime::visual::observe_fixture (subject digested before/after) + atlas-systemizer observe (ADR 0011); LOCAL_FIXTURE authorization only"
 donors = ["Playwright (Apache-2.0)", "rrweb (MIT)"]
-blocking_question = "none -- first Creator primitive to build: an observation session record with OBSERVED status and provenance (URL/fixture digest, viewport, browser build)"
+blocking_question = "v1 observes static layout at chosen viewports; stimulus experiments (breakpoint bisection, hover/click/scroll, frame sampling) not yet implemented; public-URL subjects need an explicit authorization record"
 evidence_required = "an atlas-systemizer observe command producing typed VisualObservation records over a local fixture"
 falsification = "re-observing the same fixture digest yields identical records; a changed fixture changes exactly the affected records"
 dependency_status = "Playwright/Chromium EXTERNAL_BOUNDARY (instrument), recorded as bootstrap"
-next_action = "implement browser observation record + ratio-first layout relations over local fixtures (public/authorized only)"
+next_action = "browser as instrument: bisect viewport width to measure a responsive breakpoint (INFERRED point from DERIVED interval); then interaction stimuli"
 extinction_state = "n/a"
 
 [[lane]]
@@ -239,14 +240,14 @@ extinction_state = "n/a"
 id = "creator_layout"
 family = "CREATOR_FABRIC"
 capability = "ratio-first layout relations and responsive structural rules"
-state = "ABSENT"
-atlas_implementation = "none"
+state = "PARTIAL"
+atlas_implementation = "core::visual::analyze: width/viewport, width/parent, aspect ratio, font-size/root, gap/font-size with 1/64 px-propagated uncertainty; responsive rules (flex direction, grid columns, sibling stacking, display) as width intervals; recovered the editorial fixture's declared 16:9, 4:3, 2:1, 1.25 and gap/font=1 exactly"
 donors = ["kiwi (BSD-3)", "Yoga (MIT, oracle only)", "browser (oracle)"]
 blocking_question = "which normalized relations are stable across viewports (width/viewport, gap/font-size, aspect ratio)?"
 evidence_required = "relations measured at >=2 viewports on fixtures with known CSS"
 falsification = "a fixture whose CSS encodes a known ratio must be recovered within measurement resolution"
 dependency_status = "none"
-next_action = "compute relations from observation records"
+next_action = "breakpoint bisection; relative spacing relations (vertical gap / font size between siblings)"
 extinction_state = "n/a"
 
 [[lane]]

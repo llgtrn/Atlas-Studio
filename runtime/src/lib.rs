@@ -3,6 +3,7 @@
 pub mod census;
 pub mod inventory;
 pub mod normalize;
+pub mod visual;
 
 use atlas_core::{
     AdlCompileReport, AdlProgram, CLI_API, CodingAdmission, ConstraintResult, ConstraintVerdict,

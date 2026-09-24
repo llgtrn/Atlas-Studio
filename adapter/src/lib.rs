@@ -3,6 +3,7 @@
 use atlas_core::{AdlSource, DocsReport, DocumentFact, RepoAudit, RepoManifest, validate_manifest};
 use std::{collections::BTreeMap, fs, io, path::Path};
 
+pub mod browser;
 pub mod dependency;
 pub mod semantic;
 pub mod source;

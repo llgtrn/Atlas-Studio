@@ -131,6 +131,34 @@ fn run(args: &[String]) -> Result<(), String> {
                 return Err("CODING_ADMISSION_NOT_ALLOWED".into());
             }
         }
+        [cmd, rest @ ..] if cmd == "observe" => {
+            // Creator Fabric (ADR 0011): observe an authorized local fixture through the
+            // sandboxed browser instrument; one `--viewport WxH` per viewport (default 1280x800
+            // and 375x800).
+            let fixture = value(rest, "--fixture")?.ok_or("observe requires --fixture")?;
+            let mut viewports = Vec::new();
+            for (i, arg) in rest.iter().enumerate() {
+                if arg == "--viewport" {
+                    let spec = rest.get(i + 1).ok_or("--viewport requires a value")?;
+                    let parsed = spec
+                        .split_once('x')
+                        .and_then(|(w, h)| Some((w.parse().ok()?, h.parse().ok()?)))
+                        .ok_or_else(|| format!("--viewport expects WIDTHxHEIGHT, got {spec}"))?;
+                    viewports.push(parsed);
+                }
+            }
+            if viewports.is_empty() {
+                viewports = vec![(1280, 800), (375, 800)];
+            }
+            let report =
+                runtime::visual::observe_fixture(std::path::Path::new(&fixture), &viewports)
+                    .map_err(|e| format!("{fixture}: {e}"))?;
+            let text = json(&report)? + "\n";
+            if let Some(out) = value(rest, "--out")? {
+                write_report_to_out(&out, &text)?;
+            }
+            print!("{text}");
+        }
         [cmd, sub, rest @ ..] if cmd == "work" && sub == "prepare" => {
             let root = value(rest, "--root")?.ok_or("work prepare requires --root")?;
             let goal = value(rest, "--goal")?.ok_or("work prepare requires --goal")?;
@@ -148,7 +176,7 @@ fn run(args: &[String]) -> Result<(), String> {
         }
         _ => {
             return Err(
-                "usage: atlas-systemizer <contract|systemize|docs audit|code analyze|parse|check|graph|work prepare> ..."
+                "usage: atlas-systemizer <contract|systemize|docs audit|code analyze|parse|check|graph|observe|work prepare> ..."
                     .into(),
             );
         }

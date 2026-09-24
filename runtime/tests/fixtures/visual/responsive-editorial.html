@@ -1,0 +1,33 @@
+<!doctype html>
+<!-- Atlas-original test fixture (ADR 0011): an editorial hero with a 16:9 media block beside its
+     copy (2:1 flex split) and a three-column card grid, both restructured below 700px. No
+     third-party design, brand, copy or asset. -->
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  html { font-size: 16px; }
+  body { margin: 0; font-family: sans-serif; }
+  .hero { display: flex; flex-direction: row; column-gap: 24px; padding: 0 32px; }
+  .hero .media { flex: 2 1 0; aspect-ratio: 16 / 9; background: #345; }
+  .hero .copy { flex: 1 1 0; font-size: 20px; }
+  .cards { display: grid; grid-template-columns: repeat(3, 1fr); column-gap: 16px; padding: 32px; font-size: 16px; }
+  .card { aspect-ratio: 4 / 3; background: #ddd; border-radius: 12px; }
+  @media (max-width: 699px) {
+    .hero { flex-direction: column; }
+    .cards { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+  <section class="hero">
+    <div class="media"></div>
+    <div class="copy">Measured, not copied.</div>
+  </section>
+  <section class="cards">
+    <div class="card"></div>
+    <div class="card"></div>
+    <div class="card"></div>
+  </section>
+</body>
+</html>
