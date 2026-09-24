@@ -1,0 +1,55 @@
+{
+  "schema": "atlas.self-build.generation-evidence.v1",
+  "wave": "VERIFICATION BLINDNESS -- runtime::systemize computes 8 independent coding_admission.blockers conditions (REPO_GATE_NOT_READY, DOCS_GATE_NOT_READY, ADL_DIAGNOSTICS_PRESENT, ADL_CONSTRAINT_VIOLATED, INVENTORY_ACCOUNTING_NOT_CLOSED, CENSUS_ACCOUNTING_NOT_CLOSED, NORMALIZATION_ACCOUNTING_NOT_CLOSED, SEMANTIC_EXTRACTION_ACCOUNTING_NOT_CLOSED, DEPENDENCY_CLOSURE_NOT_CLOSED) and had zero direct unit test coverage anywhere in the runtime crate. The sole indirect test (in apps/cli) only asserted that CLI exit was an error, never which blockers fired.",
+  "wave_title": "Nineteenth generation this cycle. Continuing the verification-blindness angle opened in generation 18 (parse_repo_manifest), this generation audits runtime::systemize, the central report-building function invoked by every `atlas systemize` run.",
+  "priority_classification": "verification blindness -- not a live production bug (systemize's 8 blocker conditions are, as far as this generation independently confirmed, currently computed correctly), but a real gap in this project's own verification coverage: a plausible future regression (e.g. two blocker string literals swapped between adjacent if-blocks) would leave every existing test green.",
+  "gap_discovered_by": "Self-directed review of runtime/src/lib.rs (lines 160-284, systemize()) after grepping the whole workspace for `systemize(` and finding exactly one call site under test, in apps/cli/src/main.rs's a_repository_with_no_admitted_manifest_makes_systemize_exit_non_zero.",
+  "key_finding": "The only test touching systemize() asserted solely `assert_eq!(err, \"CODING_ADMISSION_NOT_ALLOWED\")` -- the CLI's own generic error code for admission refusal, identical regardless of which of the 8 independent blocker conditions actually fired, or how many. It never read back the `--out` report file, so it could not distinguish correct blocker computation from a swapped label, a wrongly-suppressed condition, or a wrongly-raised one. Since a bare git repository with no `.atlas/` directory at all guarantees at least one blocker fires (trivially, by construction of the test fixture), the assertion was satisfied by construction and exercised none of systemize's actual per-condition logic.",
+  "verification_before_acting": [
+    "Read runtime::systemize's full implementation (runtime/src/lib.rs:160-284) directly, confirming it computes each of the 8 blocker conditions independently and appends matching string-literal labels to a Vec in a fixed, hardcoded order.",
+    "Grepped the whole workspace for `systemize(` to confirm the apps/cli test is genuinely the only test exercising it end-to-end, and confirmed no direct unit test exists in the runtime crate itself.",
+    "Ran a real CLI reproduction against an actual bare git repository (no .atlas/repo.toml, no docs) to observe the REAL, current blockers list before hardcoding any assertion, rather than guessing or trusting a description: confirmed [\"REPO_GATE_NOT_READY\", \"DOCS_GATE_NOT_READY\"] is what a bare repo fixture actually produces today."
+  ],
+  "design_decisions": [
+    {
+      "question": "Fix production code, or strengthen the test?",
+      "decision": "Strengthen the test only. Direct reading of systemize's implementation confirmed the 8 blocker conditions are currently computed and labeled correctly; the gap is that no test would catch a regression in that logic, not that the logic is wrong today."
+    },
+    {
+      "question": "How to falsify a test-strengthening change with no live production bug to revert-and-confirm against?",
+      "decision": "Inverted falsification: backed up runtime/src/lib.rs, injected the exact plausible bug described (swapped the \"DOCS_GATE_NOT_READY\" and \"ADL_DIAGNOSTICS_PRESENT\" string literals between their two adjacent if-blocks), re-ran the strengthened test and confirmed it failed with the exact expected mismatch, then restored the file from backup and confirmed git diff --stat showed zero residual change."
+    }
+  ],
+  "stable_validator_law_compliance": {
+    "claim": "The strengthened test now reads back the systemize report's coding_admission.blockers array and asserts its exact contents for a real, minimal bare-repository fixture, closing a verification gap where the prior assertion (a generic CLI error code) could not distinguish correct per-condition blocker computation from a swapped, suppressed, or spuriously-raised condition.",
+    "self_written_evidence": "Added a serde_json read-back of the --out report file plus an exact-match assertion on coding_admission.blockers to apps/cli/src/main.rs's a_repository_with_no_admitted_manifest_makes_systemize_exit_non_zero. Falsified by temporarily swapping the DOCS_GATE_NOT_READY/ADL_DIAGNOSTICS_PRESENT string literals in runtime::systemize's real implementation, confirming the strengthened test failed with the exact expected mismatch (left: [...ADL_DIAGNOSTICS_PRESENT...], right: [...DOCS_GATE_NOT_READY...]), directly proving the old bare error-code assertion would not have caught this class of bug, then restoring the file from a byte-for-byte backup and confirming git diff --stat produced no output.",
+    "independent_evidence_channel": "cargo fmt --all --check: clean. cargo test --workspace: 560 total (296 adapter, 5 apps/cli, 178 core, 81 runtime), 0 failed -- unchanged count from before this generation (an existing test was strengthened, not a new one added). docs audit --root .atlas: gate_ready true.",
+    "no_circular_self_certification": true
+  },
+  "implementation": {
+    "code_change": "NONE to production code -- runtime::systemize's 8 blocker conditions were confirmed correctly computed and left unchanged.",
+    "docs_change": "apps/cli/src/main.rs -- a_repository_with_no_admitted_manifest_makes_systemize_exit_non_zero strengthened to read back the --out report JSON and assert coding_admission.blockers equals exactly [\"REPO_GATE_NOT_READY\", \"DOCS_GATE_NOT_READY\"] for this fixture, alongside its existing CODING_ADMISSION_NOT_ALLOWED error-code assertion (kept, since it does verify a real, separate property -- that admission was refused at all)."
+  },
+  "adversarial_and_falsification_coverage": [
+    "temporarily injected a label-swap bug (DOCS_GATE_NOT_READY <-> ADL_DIAGNOSTICS_PRESENT) into runtime::systemize's real implementation and confirmed the OLD test assertion (bare CODING_ADMISSION_NOT_ALLOWED error code) still passed, directly proving the verification gap was real",
+    "confirmed the NEW exact-blockers-list assertion catches the same injected bug with the precise expected mismatch, then restored the file from a byte-identical backup and confirmed git diff --stat showed zero residual change",
+    "confirmed via direct reproduction against the real CLI (not a guess) what the exact, correct blockers list for a bare-repository fixture actually is, before hardcoding the assertion",
+    "confirmed the strengthened test does not regress any of the 559 other pre-existing tests across the whole workspace"
+  ],
+  "validation_this_generation": {
+    "commands": {
+      "cargo test -p atlas-cli a_repository_with_no_admitted_manifest (real code)": { "result": "passed" },
+      "cargo test -p atlas-cli a_repository_with_no_admitted_manifest (label-swap bug injected in runtime/src/lib.rs)": { "result": "FAILED as expected -- exact blockers array mismatch on coding_admission.blockers; the old CODING_ADMISSION_NOT_ALLOWED assertion did NOT catch it" },
+      "cargo test -p atlas-cli a_repository_with_no_admitted_manifest (bug reverted via backup restore, git diff --stat empty)": { "result": "passed" },
+      "cargo fmt --all --check": { "exit_code": 0 },
+      "cargo test --workspace": { "exit_code": 0, "totals": "560 total, 0 failed (296 adapter, 5 apps/cli, 178 core, 81 runtime) -- unchanged count" },
+      "cargo run -q -p atlas-cli -- docs audit --root .atlas": { "exit_code": 0, "gate_ready": true }
+    }
+  },
+  "recensus_scope_after_promotion": [
+    "no prior CLOSED/EXTINCT conclusion depended on this verification gap being unnoticed -- systemize's current blocker computation was already correct; this generation only makes a future regression in it detectable, which it previously would not have been",
+    "systemize's other 6 blocker conditions (ADL_CONSTRAINT_VIOLATED, INVENTORY/CENSUS/NORMALIZATION/SEMANTIC_EXTRACTION_ACCOUNTING_NOT_CLOSED, DEPENDENCY_CLOSURE_NOT_CLOSED) remain untested by any fixture in this generation, since a bare git repository never reaches them (REPO_GATE_NOT_READY and DOCS_GATE_NOT_READY fire first and admission is refused before those checks are evaluated) -- flagged as a plausible next step for a future verification-blindness pass (would require a fixture with a passing repo/docs gate but a deliberately broken census/normalization/dependency state), not defaulted into now"
+  ],
+  "overall_verdict": "STRENGTHENED, FALSIFIED, AND VERIFIED. The sole test exercising runtime::systemize now directly verifies the exact blocker list its central report-building function computes for a real fixture, closing a verification-blindness gap where the prior assertion (a generic CLI error code) could not distinguish correct per-condition blocker computation from a swapped, suppressed, or spuriously-raised label. No production code was changed, since none was found broken -- this generation strengthens the project's own defenses against a FUTURE regression, demonstrated by directly injecting and then reverting the exact described bug against real code. Full workspace test suite green (560/560).",
+  "historical_evidence_retained": true
+}

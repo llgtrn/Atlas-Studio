@@ -255,7 +255,8 @@ mod tests {
         std::fs::write(dir.join("README.md"), "no atlas manifest here\n").unwrap();
         run_git(&["add", "."]);
         run_git(&["commit", "--quiet", "-m", "init"]);
-        let out = dir.join("out.json").to_string_lossy().into_owned();
+        let out_path = dir.join("out.json");
+        let out = out_path.to_string_lossy().into_owned();
 
         let err = run(&[
             "systemize".to_owned(),
@@ -266,6 +267,26 @@ mod tests {
         ])
         .expect_err("a repository with no admitted manifest must not exit successfully");
         assert_eq!(err, "CODING_ADMISSION_NOT_ALLOWED");
+
+        // `runtime::systemize` computes 8 independent blocker conditions
+        // (REPO_GATE_NOT_READY, DOCS_GATE_NOT_READY, ADL_DIAGNOSTICS_PRESENT,
+        // ADL_CONSTRAINT_VIOLATED, INVENTORY/CENSUS/NORMALIZATION/SEMANTIC_EXTRACTION_
+        // ACCOUNTING_NOT_CLOSED, DEPENDENCY_CLOSURE_NOT_CLOSED) and has zero direct unit test
+        // coverage anywhere in the runtime crate -- this was the only test exercising it at all,
+        // and its assertion above proves only that SOME blocker fired, which is trivially true
+        // here regardless of whether the other 7 conditions are computed correctly (this bare
+        // repository's missing `.atlas/repo.toml` alone guarantees `blockers` is non-empty). A
+        // bug swapping two blocker labels, or wrongly raising/suppressing an unrelated condition,
+        // would leave this test passing unchanged. Reading the report back and asserting the
+        // EXACT blocker list this real, minimal fixture produces closes that gap.
+        let report: serde_json::Value =
+            serde_json::from_str(&std::fs::read_to_string(&out_path).unwrap()).unwrap();
+        assert_eq!(
+            report["coding_admission"]["blockers"],
+            serde_json::json!(["REPO_GATE_NOT_READY", "DOCS_GATE_NOT_READY"]),
+            "exactly these two conditions -- no fewer, no more, no others -- must fire for a bare \
+             git repository with no .atlas/ directory at all: {report:#}"
+        );
 
         std::fs::remove_dir_all(&dir).unwrap();
     }
