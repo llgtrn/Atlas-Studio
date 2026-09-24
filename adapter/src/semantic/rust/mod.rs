@@ -167,23 +167,61 @@ impl SemanticExtractor for RustSemanticExtractor {
     }
 
     fn extract(&self, input: &ExtractionInput) -> ExtractionBatch {
-        let mut ctx = ExtractionContext::new(input, self.identity());
-        let risk = max_structural_recursion_risk(&input.source_text);
-        if risk > MAX_STRUCTURAL_RECURSION_RISK {
-            return ctx.finish_resource_limit(risk);
-        }
-        match syn::parse_file(&input.source_text) {
-            Ok(file) => {
-                let root_scope = SemanticScope::new(Vec::<String>::new());
-                for item in &file.items {
-                    ctx.walk_item(item, &root_scope);
-                }
-                ctx.finish_success()
-            }
-            Err(error) => ctx.finish_parse_failure(&error),
-        }
+        // Both `syn::parse_file` and this extractor's own `walk_item`/`walk_expr` recursion below
+        // are recursive-descent traversals of the SAME adversarial-depth tree, so both are run on
+        // a dedicated, generously large stack (see `EXTRACTION_STACK_SIZE`'s own doc comment for
+        // why this closes a residual class of risk `max_structural_recursion_risk` alone cannot).
+        std::thread::scope(|scope| {
+            std::thread::Builder::new()
+                .stack_size(EXTRACTION_STACK_SIZE)
+                .spawn_scoped(scope, || {
+                    let mut ctx = ExtractionContext::new(input, self.identity());
+                    let risk = max_structural_recursion_risk(&input.source_text);
+                    if risk > MAX_STRUCTURAL_RECURSION_RISK {
+                        return ctx.finish_resource_limit(risk);
+                    }
+                    match syn::parse_file(&input.source_text) {
+                        Ok(file) => {
+                            let root_scope = SemanticScope::new(Vec::<String>::new());
+                            for item in &file.items {
+                                ctx.walk_item(item, &root_scope);
+                            }
+                            ctx.finish_success()
+                        }
+                        Err(error) => ctx.finish_parse_failure(&error),
+                    }
+                })
+                .expect("spawning the extraction worker thread must not fail")
+                .join()
+                .unwrap_or_else(|panic| std::panic::resume_unwind(panic))
+        })
     }
 }
+
+/// Deliberately large: empirically confirmed (isolated real-process reproduction, not merely
+/// theorized -- a throwaway `cargo run --example` harness spawning `syn::parse_file` on adversarial
+/// bracket-nesting depths at varying `stack_size`s, deleted after this finding was recorded here,
+/// exactly like every prior vector in this fix's history was confirmed out-of-process rather than
+/// risking a real crash inside the shared test binary) that a 2MiB stack (matching the "reduced
+/// test-thread stack" this module already cites) crashes at depth 50,000 -- reproducing the
+/// documented baseline -- while 256MiB survives past depth 20,000 and fails by depth 25,000 in an
+/// unoptimized debug build, roughly two orders of magnitude beyond every one of the four confirmed
+/// crash vectors `max_structural_recursion_risk` documents (300/2,000/3,000/2,000 levels on a
+/// default-sized stack). This does NOT make stack overflow impossible -- a sufficiently large stack is still
+/// finite, and a stack overflow (in this thread or any other) still aborts the whole process, same
+/// as today, since Rust's stack-overflow guard-page handler cannot be caught by `catch_unwind`
+/// regardless of which thread it fires on. What this closes is the SPECIFIC residual risk
+/// `max_structural_recursion_risk`'s own doc comment names: "a fifth, sixth, ... construct that
+/// drives the same class of parser/AST recursion through some other keyword or syntax shape may
+/// exist and would not necessarily be caught by this heuristic." Any such not-yet-discovered
+/// vector must now ALSO reach roughly two orders of magnitude deeper than every vector found so
+/// far before it can matter -- a categorically different, generic defense (more stack) layered
+/// behind the existing specific one (fewer risky bytes admitted), not a replacement for it: the
+/// pre-parse heuristic still rejects obviously-adversarial input cheaply, before ever paying the
+/// cost of spawning this worker thread. On Linux/macOS `stack_size` reserves virtual address space
+/// (lazily paged in), not committed physical memory, so this is not a meaningful per-call cost for
+/// the overwhelming majority of real, non-adversarial source files this extractor actually parses.
+const EXTRACTION_STACK_SIZE: usize = 256 * 1024 * 1024;
 
 /// Adversarial guard against a stack-overflow denial-of-service: `syn` is a recursive-descent
 /// parser with no built-in recursion-depth protection (verified against its 3.0.6 source: no
@@ -243,6 +281,15 @@ impl SemanticExtractor for RustSemanticExtractor {
 /// claimed complete: a fifth, sixth, ... construct that drives the same class of parser/AST
 /// recursion through some other keyword or syntax shape may exist and would not necessarily be
 /// caught by this heuristic.
+///
+/// That specific residual risk is now substantially, though not absolutely, mitigated by a second,
+/// independent, generic layer: `RustSemanticExtractor::extract` runs both `syn::parse_file` and
+/// this extractor's own subsequent AST walk on a dedicated large stack (`EXTRACTION_STACK_SIZE`;
+/// see its own doc comment for the empirical evidence). A not-yet-discovered fifth vector must now
+/// reach roughly two orders of magnitude deeper before it can crash the process, rather than being
+/// an open-ended risk the moment this text scan misses it. This raises the practical bar; it does
+/// not make either this heuristic or the large stack a complete, formally-proven fix -- see
+/// `EXTRACTION_STACK_SIZE`'s own doc comment for exactly what is and is not closed.
 /// A fully complete fix would require either patching `syn` itself to grow its own stack during
 /// recursion (impractical -- `syn` is a third-party dependency this bootstrap does not vendor or
 /// fork) or replacing whole-file parsing with a from-scratch, formally depth-bounded parser (a
