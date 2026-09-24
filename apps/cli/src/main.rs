@@ -196,6 +196,21 @@ fn run(args: &[String]) -> Result<(), String> {
             }
             print!("{text}");
         }
+        [cmd, sub, rest @ ..] if cmd == "census" && sub == "certificate" => {
+            // ADR 0025: the CensusCertificate v2 of a root (two passes for the replay fixed
+            // point). Exits CENSUS_NOT_CLOSED unless the state is CLOSED or SEALED.
+            let root = value(rest, "--root")?.unwrap_or_else(|| ".".into());
+            let certificate =
+                runtime::certificate::certificate(&root, 2).map_err(|e| format!("{root}: {e}"))?;
+            let text = json(&certificate)? + "\n";
+            if let Some(out) = value(rest, "--out")? {
+                write_report_to_out(&out, &text)?;
+            }
+            print!("{text}");
+            if certificate.state < runtime::certificate::CertificateState::Closed {
+                return Err("CENSUS_NOT_CLOSED".into());
+            }
+        }
         [cmd, sub, rest @ ..] if cmd == "recensus" && sub == "snapshot" => {
             // ADR 0024: the revision-independent semantic state of a full self-census.
             let root = value(rest, "--root")?.unwrap_or_else(|| ".".into());
@@ -486,7 +501,7 @@ fn run(args: &[String]) -> Result<(), String> {
         }
         _ => {
             return Err(
-                "usage: atlas-systemizer <contract|systemize|docs audit|code analyze|parse|check|graph|observe|genome|search|create|physical|product|recensus snapshot|recensus prove|donors working-set|work prepare> ..."
+                "usage: atlas-systemizer <contract|systemize|docs audit|code analyze|parse|check|graph|observe|genome|search|create|physical|product|census certificate|recensus snapshot|recensus prove|donors working-set|work prepare> ..."
                     .into(),
             );
         }

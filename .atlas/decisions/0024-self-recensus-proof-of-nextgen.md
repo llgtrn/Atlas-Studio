@@ -58,3 +58,7 @@ Generations G43–G56 added real capabilities: Creator, Physical, browser instru
 - Typed-record projection is span-level.
 - Docs are counted, not content-identified.
 - No reconciliation certificate exists yet (G58).
+
+## Correction (G59)
+
+G57 accepted `+3 graph_bindings` as DocumentationBindings from this ADR and the SELF-RECENSUS contract. That reason was wrong. G59 checked the docs report: neither document has references. The bindings are MaterializationBindings. `engineering_graph.rs` binds every inventoried file under a declared ADL materialization path (`core`, `runtime`), so G57's three new source files each added one. The G57 verdict stands, because the change was real and a consequence of the intended files. Only the recorded explanation was incorrect. From G59 on, intents declare `+graph_bindings` for new files under materialized paths.

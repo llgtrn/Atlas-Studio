@@ -1,0 +1,140 @@
+{
+  "schema": "atlas.self-recensus-report.v1",
+  "generation": "G59",
+  "base_revision": "481c61fa224e010336d1fa2a581fb8a079edc628",
+  "candidate_revision": "f9ca9c4ed0b503a00f65f0fc01e7b87890e80c20",
+  "candidate_dirty": true,
+  "before_census_digest": "blake3-256:9f15a8853c5e431d9ffc77fbf766d587802a1055b396bfa91ea52604625ebeb8",
+  "after_census_digest": "blake3-256:ea05258329b03b884fc559fac97bacb27aae5ae6a48d06c8cfd42f00577e918a",
+  "replay_digest": "blake3-256:ea05258329b03b884fc559fac97bacb27aae5ae6a48d06c8cfd42f00577e918a",
+  "inventory_delta": {
+    "created": [
+      "core/src/certificate/mod.rs",
+      "runtime/src/certificate.rs"
+    ],
+    "modified": [
+      "core/src/lib.rs",
+      "runtime/src/lib.rs"
+    ],
+    "deleted": []
+  },
+  "semantic_delta": {
+    "changed": [
+      "core/src/lib.rs",
+      "runtime/src/lib.rs"
+    ],
+    "counts": {
+      "fact:FunctionIdentity|OBSERVED": 9,
+      "fact:FunctionSignature|OBSERVED": 9,
+      "fact:SemanticObligation|OBSERVED": 8,
+      "fact:SemanticObligation|UNKNOWN": 16,
+      "fact:SourceArtifact|OBSERVED": 4,
+      "fact:Symbol|OBSERVED": 99,
+      "fact:Type|OBSERVED": 57,
+      "record:CALL|OBSERVED": 144,
+      "record:CONTROL_FLOW|OBSERVED": 60,
+      "record:DATA_FLOW|OBSERVED": 330,
+      "record:EFFECT|INFERRED": 2,
+      "record:FUNCTION_IDENTITY|OBSERVED": 9,
+      "record:FUNCTION_SIGNATURE|OBSERVED": 9,
+      "record:OWNERSHIP|OBSERVED": 86,
+      "record:PERSISTENCE|INFERRED": 1,
+      "record:SYMBOL|OBSERVED": 99,
+      "record:TYPE|OBSERVED": 57
+    }
+  },
+  "dependency_delta": {
+    "added": [],
+    "removed": []
+  },
+  "dependency_state": [
+    "Closed",
+    "Closed"
+  ],
+  "graph_delta": {
+    "graph_bindings": 2,
+    "graph_edges": 1087,
+    "graph_nodes": 865
+  },
+  "obligation_delta": {
+    "obligation:CALL|UNKNOWN": 2,
+    "obligation:CONCURRENCY|UNKNOWN": 2,
+    "obligation:CONTROL_FLOW|UNKNOWN": 2,
+    "obligation:DATA_FLOW|UNKNOWN": 2,
+    "obligation:EFFECT|UNKNOWN": 2,
+    "obligation:FUNCTION_IDENTITY|OBSERVED": 2,
+    "obligation:FUNCTION_SIGNATURE|OBSERVED": 2,
+    "obligation:OWNERSHIP|UNKNOWN": 2,
+    "obligation:PERSISTENCE|UNKNOWN": 2,
+    "obligation:STATE|UNKNOWN": 2,
+    "obligation:SYMBOL|OBSERVED": 2,
+    "obligation:TYPE|OBSERVED": 2
+  },
+  "adl_delta": {
+    "added": [],
+    "removed": []
+  },
+  "coverage_delta": [],
+  "unknown_delta": {
+    "increased": [
+      "core/src/certificate/mod.rs: 0 -> 8",
+      "runtime/src/certificate.rs: 0 -> 8"
+    ],
+    "decreased": [],
+    "total_before": 776,
+    "total_after": 792
+  },
+  "intent": {
+    "objective": "P0: compute the CensusCertificate v2 from the census (core::certificate, runtime::certificate, census certificate CLI) so census closure is measured, never claimed; each new file under the declared core/runtime materializations adds one MaterializationBinding (engineering_graph.rs)",
+    "changed_paths": [
+      "core/src/certificate/",
+      "core/src/lib.rs",
+      "runtime/src/certificate.rs",
+      "runtime/src/lib.rs"
+    ],
+    "total_changes": [
+      "+artifacts",
+      "+facts",
+      "+typed_records",
+      "+obligations",
+      "+evidence",
+      "+graph_nodes",
+      "+graph_edges",
+      "+normalized_facts",
+      "+docs",
+      "+diagnostic:IncompleteAnalysis",
+      "+unknown_facts",
+      "+graph_bindings"
+    ],
+    "dependency_changes": [],
+    "adl_changes": [],
+    "coverage_changes": [],
+    "explained_unknowns": [
+      "core/src/certificate/: new Rust source carries the extractor's standard UNKNOWN obligations for dimensions it does not model (baseline coverage gap)",
+      "runtime/src/certificate.rs: same extractor coverage gap as every Rust file at baseline"
+    ],
+    "accepted_unexpected": []
+  },
+  "intended_changes": [
+    "path core/src/certificate/mod.rs",
+    "path core/src/lib.rs",
+    "path runtime/src/certificate.rs",
+    "path runtime/src/lib.rs",
+    "total +artifacts",
+    "total +diagnostic:IncompleteAnalysis",
+    "total +docs",
+    "total +evidence",
+    "total +facts",
+    "total +graph_bindings",
+    "total +graph_edges",
+    "total +graph_nodes",
+    "total +normalized_facts",
+    "total +obligations",
+    "total +typed_records",
+    "total +unknown_facts"
+  ],
+  "intended_but_unobserved": [],
+  "unexpected_changes": [],
+  "regressions": [],
+  "verdict": "PROVEN"
+}

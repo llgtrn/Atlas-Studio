@@ -154,3 +154,14 @@ The semantic content of a certificate is deterministic for pinned inputs and pol
 Only policy-eligible SEALED certificates may authorize production Atlas publication/materialization where Genome requires sealing.
 
 CensusCertificate records closure; it does not itself grant execution authority.
+
+## Implementation status
+
+G59 (ADR 0025): `atlas_core::certificate::certify` and `atlas-systemizer census certificate` produce v2 certificates, schema-conformant field for field and test-enforced. States follow typed blockers.
+
+Current limits:
+- replay fixed point: census passes are compared by census digest;
+- independent passes: counted per (artifact, dimension);
+- SEALED: impossible until a `.atlas` root exists (G62).
+
+The Atlas self-scope certificate is CENSUSED (see ADR 0025 for its blockers).

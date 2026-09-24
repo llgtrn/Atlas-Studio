@@ -1,0 +1,27 @@
+{
+  "objective": "P0: compute the CensusCertificate v2 from the census (core::certificate, runtime::certificate, census certificate CLI) so census closure is measured, never claimed; each new file under the declared core/runtime materializations adds one MaterializationBinding (engineering_graph.rs)",
+  "changed_paths": [
+    "core/src/certificate/",
+    "core/src/lib.rs",
+    "runtime/src/certificate.rs",
+    "runtime/src/lib.rs"
+  ],
+  "total_changes": [
+    "+artifacts",
+    "+facts",
+    "+typed_records",
+    "+obligations",
+    "+evidence",
+    "+graph_nodes",
+    "+graph_edges",
+    "+normalized_facts",
+    "+docs",
+    "+diagnostic:IncompleteAnalysis",
+    "+unknown_facts",
+    "+graph_bindings"
+  ],
+  "explained_unknowns": [
+    "core/src/certificate/: new Rust source carries the extractor's standard UNKNOWN obligations for dimensions it does not model (baseline coverage gap)",
+    "runtime/src/certificate.rs: same extractor coverage gap as every Rust file at baseline"
+  ]
+}

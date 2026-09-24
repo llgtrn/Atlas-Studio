@@ -13,7 +13,7 @@
 #       -> generation evidence -> G_n+1
 
 schema = "atlas.self-build.generation-ledger.v1"
-current_generation = "G58"
+current_generation = "G59"
 
 [[generation]]
 id = "G35"
@@ -678,6 +678,7 @@ objective = "make the first-50 donor campaign canonical, stable and machine-chec
 writer = "coordinator (sole writer)"
 evidence = ".atlas/roadmap/FIRST-50-CAMPAIGN.toml"
 self_recensus = ".atlas/evidence/census/G58/recensus.json"
+result_commits = ["f9ca9c4ed0b503a00f65f0fc01e7b87890e80c20"]
 
 [generation.verification]
 proof = "PROVEN on the second run: the first run was GENERATION_NOT_PROVEN because the intent declared only the changed file, not the facts/records/graph a new test function necessarily adds; the intent was completed and re-proven; pre digest == G57 post digest"
@@ -686,3 +687,22 @@ campaign = "50 entries: 5 HISTORICALLY_PROVEN (souffle, datafrog, blake3 TERMINA
 
 [generation.next]
 objective = "G59 (P0): reconciliation census certificate for the Atlas self-scope"
+
+[[generation]]
+id = "G59"
+base_commit = "f9ca9c4ed0b503a00f65f0fc01e7b87890e80c20"
+priority = "P0"
+serves = "P0 CENSUS_KERNEL_CLOSURE (exit criterion B: reconciliation certificate)"
+objective = "compute the CensusCertificate v2 from the census so closure is measured, never claimed"
+writer = "coordinator (sole writer)"
+evidence = ".atlas/decisions/0025-census-certificate.md"
+self_recensus = ".atlas/evidence/census/G59/recensus.json"
+
+[generation.verification]
+proof = "PROVEN on the second run: the first run flagged +2 graph_bindings as unexpected; investigation showed they are MaterializationBindings (one per new file under the declared core/runtime materializations), which also corrects G57's recorded reason (see correction below)"
+falsification = "10/10 certificate mutants killed; first-battery survivors (RECONCILED->CLOSED boundary, unasserted UNKNOWN_FACTS) closed with a provenance-repaired variant of the real report"
+self_scope_certificate = "CENSUSED: provenance incomplete (230 facts without revision, 120 without extractor), atlas-cli workspace member outside inventory (3 of 4 source-backed members censused), single-engine extraction, 8 UNKNOWN coverage dimensions, 672 UNKNOWN + 120 UNSUPPORTED facts, 9 dynamic dependency obligations, no .atlas root; replay fixed point converged; dependency closure closed"
+correction = "G57 accepted +3 graph_bindings as DocumentationBindings from ADR 0024; wrong -- the docs have no references; they were MaterializationBindings of G57's three new files. Recorded in ADR 0024 (Correction (G59)); the G57 evidence is left as recorded"
+
+[generation.next]
+objective = "G60 (P0): close the certificate's inventory blockers -- atlas-cli into census scope; source frontends or explicit policy for the UNKNOWN artifacts"
