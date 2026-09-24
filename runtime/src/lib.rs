@@ -7,9 +7,9 @@ pub mod normalize;
 use atlas_core::{
     AdlCompileReport, AdlProgram, CLI_API, CodingAdmission, ConstraintResult, Contract,
     DependencyClosureReport, DependencyClosureState, DependencyEcosystem, DocsReport,
-    EngineeringGraph, Evidence, RepoAudit, RepositoryId, RevisionRef, SystemizeReport,
-    WorkPrepareReport, WorkRequest, add_dependency_closure, build_system_graph, compile_adl,
-    parse_adl_source, summarize_system_graph_with_dependencies,
+    EngineeringGraph, Evidence, RepoAudit, RepoManifest, RepositoryId, RevisionRef,
+    SystemizeReport, WorkPrepareReport, WorkRequest, add_dependency_closure, build_system_graph,
+    compile_adl, parse_adl_source, summarize_system_graph_with_dependencies,
 };
 use std::{io, path::Path};
 
@@ -46,6 +46,45 @@ fn resolve_repository_id(repository: &RepoAudit, root: &Path) -> RepositoryId {
             .map(|manifest| manifest.repo.clone())
             .unwrap_or_else(|| root.to_string_lossy().into_owned()),
     )
+}
+
+/// `WorkRequest.allowed_paths`: every root a manifest declares across `source_roots`,
+/// `backend_roots`, `frontend_roots` and `test_roots` -- all four, per
+/// `.atlas/contracts/EXTERNAL-PROVIDER-TRUST.md#capability-minimum`'s own documented rule that
+/// these are "joined against the repository root before walking the filesystem" -- filtered
+/// through the same `declared_root_is_contained` predicate `adapter::inventory_declared_source`
+/// itself already enforces, sorted, and deduplicated. `backend_roots` was validated for
+/// path-escape by `core::constraint::validate_manifest` from the day that field existed, but was
+/// silently omitted from this list (and from `inventory_declared_source`'s own walk) until this
+/// fix: a manifest declaring a `backend_roots` entry not already covered by one of the other three
+/// fields produced zero artifacts for it and granted an external provider zero capability to touch
+/// it, even though it is legitimate, admitted repository source.
+///
+/// A manifest-declared root that escapes the repository boundary is already caught by
+/// `validate_manifest`/`repository.ready` (a `REPO_GATE_NOT_READY` blocker, which makes
+/// `prepare_work`'s own `allowed` field `false`) and is never walked by `inventory_declared_source`
+/// regardless. Filtered again here as defense in depth: `allowed_paths` is the literal
+/// capability-scoping data an external provider reads to know what it may touch, so it must never
+/// contain an escaping entry even if some future caller inspected this list without first checking
+/// `allowed`/`coding_admission`.
+///
+/// Extracted as a pure function (matching `resolve_dependency_closure`/
+/// `build_coverage_from_dependency_closure`'s own precedent) so this exact list-construction logic
+/// is directly, cheaply unit-testable without running the full `systemize` pipeline against a real
+/// on-disk repository -- the gap this function itself closes was previously invisible precisely
+/// because no test exercised it in isolation.
+fn work_allowed_paths(manifest: Option<&RepoManifest>) -> Vec<String> {
+    let Some(manifest) = manifest else {
+        return Vec::new();
+    };
+    let mut paths = manifest.source_roots.clone();
+    paths.extend(manifest.backend_roots.clone());
+    paths.extend(manifest.frontend_roots.clone());
+    paths.extend(manifest.test_roots.clone());
+    paths.retain(|path| atlas_core::declared_root_is_contained(path));
+    paths.sort();
+    paths.dedup();
+    paths
 }
 
 /// `BUILD` coverage promotion and coding-admission blocking, derived purely from a
@@ -373,28 +412,7 @@ pub fn prepare_work(
         base_revision: base_revision.clone(),
         goal: goal.into(),
         scope: vec!["single-repository".into()],
-        // A manifest-declared root that escapes the repository boundary is already caught by
-        // `validate_manifest`/`repository.ready` (a `REPO_GATE_NOT_READY` blocker, which makes
-        // `allowed` below `false`) and is never walked by `inventory_declared_source` regardless.
-        // Filtered again here as defense in depth: `allowed_paths` is the literal capability-
-        // scoping data an external provider reads to know what it may touch
-        // (`.atlas/contracts/EXTERNAL-PROVIDER-TRUST.md#capability-minimum`), so it must never
-        // contain an escaping entry even if some future caller inspected this list without first
-        // checking `allowed`/`coding_admission`.
-        allowed_paths: system
-            .repository
-            .manifest
-            .as_ref()
-            .map(|manifest| {
-                let mut paths = manifest.source_roots.clone();
-                paths.extend(manifest.frontend_roots.clone());
-                paths.extend(manifest.test_roots.clone());
-                paths.retain(|path| atlas_core::declared_root_is_contained(path));
-                paths.sort();
-                paths.dedup();
-                paths
-            })
-            .unwrap_or_default(),
+        allowed_paths: work_allowed_paths(system.repository.manifest.as_ref()),
         forbidden_paths: vec![
             ".atlas/temporary".into(),
             ".atlas/provenance".into(),
@@ -486,6 +504,86 @@ mod tests {
             not_applicable_blocks, closed_blocks,
             "neither blocks, but for different reasons"
         );
+    }
+
+    fn manifest_with_roots(
+        source_roots: Vec<&str>,
+        backend_roots: Vec<&str>,
+        frontend_roots: Vec<&str>,
+        test_roots: Vec<&str>,
+    ) -> RepoManifest {
+        RepoManifest {
+            schema: "atlas.repo.v2".into(),
+            repo: "org/repo".into(),
+            system_kind: "SYSTEM_INVENTION_FORGE".into(),
+            backend_language: "rust".into(),
+            frontend_language: "typescript".into(),
+            coding_requires_docs_gate: true,
+            graph_before_code_required: true,
+            exact_base_sha_required: true,
+            single_repository_target_required: true,
+            knowledge_root: ".atlas".into(),
+            temporary_root: ".atlas/temporary".into(),
+            provenance_root: ".atlas/provenance".into(),
+            license_root: ".atlas/licenses".into(),
+            source_roots: source_roots.into_iter().map(String::from).collect(),
+            backend_roots: backend_roots.into_iter().map(String::from).collect(),
+            frontend_roots: frontend_roots.into_iter().map(String::from).collect(),
+            test_roots: test_roots.into_iter().map(String::from).collect(),
+        }
+    }
+
+    #[test]
+    fn work_allowed_paths_includes_backend_roots_not_covered_by_any_other_field() {
+        // The exact regression this function's own extraction fixes: `backend_roots` was declared
+        // in the manifest schema, validated for path-escape, and documented
+        // (`.atlas/contracts/EXTERNAL-PROVIDER-TRUST.md#capability-minimum`) as one of the four
+        // fields joined into the filesystem walk / capability scope -- but silently never actually
+        // included here, so a `backend_roots` entry not already covered by `source_roots`/
+        // `frontend_roots`/`test_roots` granted an external provider zero capability to touch
+        // legitimate, admitted repository source.
+        let manifest = manifest_with_roots(vec!["shared"], vec!["services/api"], vec![], vec![]);
+        let paths = work_allowed_paths(Some(&manifest));
+        assert!(
+            paths.iter().any(|path| path == "services/api"),
+            "a backend_roots entry not covered by any other field must appear in allowed_paths: {paths:?}"
+        );
+    }
+
+    #[test]
+    fn work_allowed_paths_unions_all_four_fields_deduplicated_and_sorted() {
+        let manifest = manifest_with_roots(
+            vec!["core", "shared"],
+            vec!["shared"],
+            vec!["apps/web"],
+            vec!["core/tests"],
+        );
+        let paths = work_allowed_paths(Some(&manifest));
+        assert_eq!(
+            paths,
+            vec![
+                "apps/web".to_owned(),
+                "core".to_owned(),
+                "core/tests".to_owned(),
+                "shared".to_owned(),
+            ],
+            "a root declared in both source_roots and backend_roots must appear exactly once"
+        );
+    }
+
+    #[test]
+    fn work_allowed_paths_filters_an_escaping_backend_root() {
+        let manifest = manifest_with_roots(vec![], vec!["../outside"], vec![], vec![]);
+        let paths = work_allowed_paths(Some(&manifest));
+        assert!(
+            paths.is_empty(),
+            "an escaping backend_roots entry must never reach allowed_paths: {paths:?}"
+        );
+    }
+
+    #[test]
+    fn work_allowed_paths_with_no_manifest_is_empty() {
+        assert!(work_allowed_paths(None).is_empty());
     }
 
     // `.github/workflows/ci.yml` is the repository's real, authoritative CI gate. This is a

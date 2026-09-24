@@ -297,8 +297,9 @@ pub fn inventory_source(root: impl AsRef<Path>) -> io::Result<InventoryReport> {
 /// shallow root). A `.atlas/repo.toml` manifest is not necessarily pre-admitted, trusted config:
 /// `ADL-TO-ATLAS.md`'s candidate reconciliation path and this session's own donor-corpus census
 /// sweeps can both point `inventory_declared_source` at externally-authored trees, so a hostile
-/// or careless `source_roots`/`frontend_roots`/`test_roots` entry must never cause a filesystem
-/// walk (and file-content read, via `looks_binary`) outside the intended repository boundary.
+/// or careless `source_roots`/`backend_roots`/`frontend_roots`/`test_roots` entry must never cause
+/// a filesystem walk (and file-content read, via `looks_binary`) outside the intended repository
+/// boundary.
 fn declared_root_is_contained(declared: &str) -> bool {
     let declared_path = Path::new(declared);
     if declared_path.is_absolute() {
@@ -333,12 +334,21 @@ fn rejected_declared_root(declared: &str) -> ArtifactRecord {
     }
 }
 
+/// Walks every root a `.atlas/repo.toml` manifest declares -- `source_roots`, `backend_roots`,
+/// `frontend_roots`, and `test_roots` -- per `.atlas/contracts/EXTERNAL-PROVIDER-TRUST.md`'s own
+/// documented rule that all four are "joined against the repository root before walking the
+/// filesystem". `backend_roots` was validated for path-escape by `core::constraint::validate_manifest`
+/// from the day that field existed, but silently never actually joined here until this fix: a
+/// manifest declaring a `backend_roots` entry not already covered by one of the other three fields
+/// (a legitimate, schema-supported shape) produced zero artifacts for it and no diagnostic at
+/// all -- the declared root simply never appeared anywhere in `SourceReport`/`CensusReport`.
 pub fn inventory_declared_source(
     root: impl AsRef<Path>,
     manifest: &RepoManifest,
 ) -> io::Result<InventoryReport> {
     let root = root.as_ref().canonicalize()?;
     let mut declared = manifest.source_roots.clone();
+    declared.extend(manifest.backend_roots.clone());
     declared.extend(manifest.frontend_roots.clone());
     declared.extend(manifest.test_roots.clone());
     declared.sort();
@@ -541,6 +551,39 @@ mod tests {
                 .contains_key("IGNORED_BY_EXPLICIT_POLICY")
         );
         assert!(report.is_closed());
+
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    // `.atlas/contracts/EXTERNAL-PROVIDER-TRUST.md` documents all four manifest root fields
+    // (`source_roots`/`backend_roots`/`frontend_roots`/`test_roots`) as joined against the
+    // repository root before walking the filesystem. `backend_roots` was validated for
+    // path-escape by `core::constraint::validate_manifest` from the day that field existed, but
+    // was never actually joined here -- a manifest declaring a `backend_roots` entry not already
+    // covered by one of the other three fields (a legitimate, schema-supported shape) silently
+    // produced zero artifacts for it, with no diagnostic at all.
+    #[test]
+    fn a_backend_roots_only_entry_is_walked_not_silently_dropped() {
+        let root = scratch_root();
+        let backend = root.join("services/api");
+        fs::create_dir_all(&backend).unwrap();
+        fs::write(backend.join("server.rs"), "fn main() {}\n").unwrap();
+
+        let mut manifest = manifest_with_declared_roots(vec!["shared"]);
+        manifest.backend_roots = vec!["services/api".into()];
+        fs::create_dir_all(root.join("shared")).unwrap();
+        let report = inventory_declared_source(&root, &manifest).unwrap();
+
+        assert!(
+            report
+                .artifacts
+                .iter()
+                .any(|artifact| artifact.path.contains("server.rs")),
+            "a declared backend_roots entry not covered by source_roots/frontend_roots/test_roots \
+             must still be walked, not silently disappear from the inventory: {:?}",
+            report.artifacts
+        );
+        assert_eq!(report.dispositions.get("PARSED"), Some(&1));
 
         fs::remove_dir_all(root).unwrap();
     }
