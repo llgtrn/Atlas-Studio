@@ -1,10 +1,20 @@
 use std::{env, fs, path::PathBuf, process::ExitCode};
 
-fn value(args: &[String], name: &str) -> Option<String> {
-    args.iter()
-        .position(|x| x == name)
-        .and_then(|i| args.get(i + 1))
-        .cloned()
+/// `Ok(None)` when `name` is not present at all; `Ok(Some(v))` when present with a following
+/// value; `Err` when `name` is present but has no following argument (e.g. it is the last token,
+/// or immediately followed by another flag) -- a real shell-scripting failure mode (an unset/empty
+/// variable dropped by word-splitting: `--base-sha "$BASE_SHA"` with `$BASE_SHA` unset becomes
+/// `--base-sha` with nothing after it), never conflated with the flag being absent on purpose.
+/// Before this fix, a genuinely optional flag like `--base-sha` silently fell back to `None` in
+/// either case, defeating `EXACT_BASE_SHA_REQUIRED` on malformed input instead of failing loud.
+fn value(args: &[String], name: &str) -> Result<Option<String>, String> {
+    match args.iter().position(|x| x == name) {
+        None => Ok(None),
+        Some(i) => match args.get(i + 1) {
+            Some(v) => Ok(Some(v.clone())),
+            None => Err(format!("{name} requires a value")),
+        },
+    }
 }
 
 fn json<T: serde::Serialize>(value: &T) -> Result<String, String> {
@@ -27,13 +37,13 @@ fn write_report_to_out(out: &str, text: &str) -> Result<(), String> {
 fn run(args: &[String]) -> Result<(), String> {
     match args {
         [cmd, rest @ ..] if cmd == "contract" => {
-            if value(rest, "--format").as_deref() != Some("json") {
+            if value(rest, "--format")?.as_deref() != Some("json") {
                 return Err("contract requires --format json".into());
             }
             println!("{}", json(&runtime::contract())?);
         }
         [cmd, sub, rest @ ..] if cmd == "docs" && sub == "audit" => {
-            let root = value(rest, "--root").ok_or("docs audit requires --root")?;
+            let root = value(rest, "--root")?.ok_or("docs audit requires --root")?;
             let report = runtime::docs_audit(&root).map_err(|e| format!("{root}: {e}"))?;
             println!("{}", json(&report)?);
             if !report.gate_ready {
@@ -41,12 +51,12 @@ fn run(args: &[String]) -> Result<(), String> {
             }
         }
         [cmd, sub, rest @ ..] if cmd == "code" && sub == "analyze" => {
-            let root = value(rest, "--root").ok_or("code analyze requires --root")?;
+            let root = value(rest, "--root")?.ok_or("code analyze requires --root")?;
             let report = runtime::code_analyze(&root).map_err(|e| format!("{root}: {e}"))?;
             println!("{}", json(&report)?);
         }
         [cmd, rest @ ..] if cmd == "parse" => {
-            let root = value(rest, "--root").ok_or("parse requires --root")?;
+            let root = value(rest, "--root")?.ok_or("parse requires --root")?;
             let programs = runtime::parse(&root).map_err(|e| format!("{root}: {e}"))?;
             println!(
                 "{}",
@@ -58,10 +68,10 @@ fn run(args: &[String]) -> Result<(), String> {
             );
         }
         [cmd, rest @ ..] if cmd == "check" => {
-            let root = value(rest, "--root").ok_or("check requires --root")?;
+            let root = value(rest, "--root")?.ok_or("check requires --root")?;
             let report = runtime::check(&root).map_err(|e| format!("{root}: {e}"))?;
             let text = json(&report)? + "\n";
-            if let Some(out) = value(rest, "--out") {
+            if let Some(out) = value(rest, "--out")? {
                 write_report_to_out(&out, &text)?;
             }
             print!("{text}");
@@ -75,17 +85,17 @@ fn run(args: &[String]) -> Result<(), String> {
             }
         }
         [cmd, rest @ ..] if cmd == "graph" => {
-            let root = value(rest, "--root").ok_or("graph requires --root")?;
+            let root = value(rest, "--root")?.ok_or("graph requires --root")?;
             let report = runtime::graph(&root).map_err(|e| format!("{root}: {e}"))?;
             let text = json(&report)? + "\n";
-            if let Some(out) = value(rest, "--out") {
+            if let Some(out) = value(rest, "--out")? {
                 write_report_to_out(&out, &text)?;
             }
             print!("{text}");
         }
         [cmd, rest @ ..] if cmd == "systemize" => {
-            let root = value(rest, "--root").ok_or("systemize requires --root")?;
-            let out = value(rest, "--out").ok_or("systemize requires --out")?;
+            let root = value(rest, "--root")?.ok_or("systemize requires --root")?;
+            let out = value(rest, "--out")?.ok_or("systemize requires --out")?;
             let report = runtime::systemize(&root).map_err(|e| format!("{root}: {e}"))?;
             let text = json(&report)? + "\n";
             write_report_to_out(&out, &text)?;
@@ -107,13 +117,13 @@ fn run(args: &[String]) -> Result<(), String> {
             }
         }
         [cmd, sub, rest @ ..] if cmd == "work" && sub == "prepare" => {
-            let root = value(rest, "--root").ok_or("work prepare requires --root")?;
-            let goal = value(rest, "--goal").ok_or("work prepare requires --goal")?;
-            let expected_base_sha = value(rest, "--base-sha");
+            let root = value(rest, "--root")?.ok_or("work prepare requires --root")?;
+            let goal = value(rest, "--goal")?.ok_or("work prepare requires --goal")?;
+            let expected_base_sha = value(rest, "--base-sha")?;
             let report = runtime::prepare_work(&root, goal, expected_base_sha)
                 .map_err(|e| format!("{root}: {e}"))?;
             let text = json(&report)? + "\n";
-            if let Some(out) = value(rest, "--out") {
+            if let Some(out) = value(rest, "--out")? {
                 write_report_to_out(&out, &text)?;
             }
             print!("{text}");
@@ -258,5 +268,36 @@ mod tests {
         assert_eq!(err, "CODING_ADMISSION_NOT_ALLOWED");
 
         std::fs::remove_dir_all(&dir).unwrap();
+    }
+
+    // Falsification: `--base-sha` is genuinely optional (`Option<String>`), so before this fix
+    // `value()` returning `None` for "flag present but its value is missing" was silently
+    // indistinguishable from "flag never passed at all" -- exactly the shape a common
+    // shell-scripting mistake produces (`--base-sha "$BASE_SHA"` with `$BASE_SHA` unset/empty,
+    // dropped entirely by word-splitting). That would have silently skipped
+    // `EXACT_BASE_SHA_REQUIRED`'s drift check instead of failing loud on malformed invocation.
+    // Confirmed against the unfixed code before writing this fix.
+    #[test]
+    fn a_base_sha_flag_with_no_following_value_is_a_usage_error_not_a_silent_none() {
+        let err = run(&[
+            "work".to_owned(),
+            "prepare".to_owned(),
+            "--root".to_owned(),
+            ".".to_owned(),
+            "--goal".to_owned(),
+            "fix bug".to_owned(),
+            "--base-sha".to_owned(),
+        ])
+        .expect_err("a --base-sha flag with no following value must never succeed silently");
+        assert_eq!(err, "--base-sha requires a value");
+    }
+
+    // Same defect class, the required-flag side: `--root` present but with no following value
+    // must be reported as a malformed flag, not conflated with "--root was never passed".
+    #[test]
+    fn a_root_flag_with_no_following_value_is_a_usage_error() {
+        let err = run(&["check".to_owned(), "--root".to_owned()])
+            .expect_err("a --root flag with no following value must never succeed silently");
+        assert_eq!(err, "--root requires a value");
     }
 }
