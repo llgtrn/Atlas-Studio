@@ -14,6 +14,10 @@ It exists to prevent implementation agents from inventing their own sequencing, 
 
 This document does not replace the global phase meanings in `ROADMAP.md`, the dependency rules in `../contracts/DEPENDENCY-CENSUS.md`, or the donor state machine in `DONOR-ABSORPTION-ROADMAP.md`. It fixes how those contracts execute together from R4 through R8.
 
+## Canonical line of record
+
+`main` is the sole canonical line. A same-named branch, `claude/r4-semantic-materialization-jz2z44`, was merged into `main` once (PR #26) and has since re-diverged independently, accumulating 216 of its own commits with no unique capability over `main` -- every one of them either predates a refactor/hardening/gap-closure `main`'s line already performed, converged on content already identical on `main`, or is stale documentation contradicted by its own code (full per-file evidence: `.atlas/evidence/verification/main-vs-r4-semantic-materialization-branch-reconciliation.json`). That branch was intentionally left unmerged, undeleted and un-force-pushed; a future session reusing that branch name should reset it from the current `main` tip rather than building further on its old, fully-superseded tip.
+
 ## Scope
 
 The current construction target is **Atlas Studio itself**.

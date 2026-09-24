@@ -1,0 +1,207 @@
+{
+  "schema": "atlas.self-build.reconciliation-ledger.v1",
+  "finding": "Repository-level divergence between origin/main and origin/claude/r4-semantic-materialization-jz2z44, discovered while continuing routine R4 self-build work. Treated as a first-class Atlas construction finding per this session's own loop rules (a divergence is itself an obligation, not a distraction from one), investigated to capability-level resolution before any further semantic feature work resumed.",
+  "exact_graph_state": {
+    "main_head": "ce3f29fffa4214c52c2df423ca1f02689bb24a08",
+    "origin_main_head": "ce3f29fffa4214c52c2df423ca1f02689bb24a08",
+    "branch_head_local_and_origin": "42b383e2dc8f438aeb5e525392ff0507bcef5a3a",
+    "merge_base": "f9bdfd0b9d4326916abbff506fa62d164a68ddea",
+    "merge_base_identity": "Merge pull request #26 from llgtrn/claude/r4-semantic-materialization-jz2z44 -- this exact branch name was PREVIOUSLY merged into main once already. The branch inspected here is a later, independent re-use/recreation of the same branch name that diverged from main again after that merge, evolving in parallel with (not stacked on top of) main's subsequent 127 commits.",
+    "commits_unique_to_main": 127,
+    "commits_unique_to_branch": 216,
+    "ancestor_relationship": "neither is an ancestor of the other; true two-way divergence from the shared merge-base",
+    "note_on_initial_216_figure": "the '216 unique commits' figure reported before this investigation is CONFIRMED exact (git log --oneline main..branch | wc -l), not merely repeated on trust"
+  },
+  "methodology": {
+    "approach": "three-way per-path blob classification (base vs main vs branch), not commit-count or line-count comparison",
+    "classification_rule": "for every path that differs between main and branch: ONLY_MAIN_CHANGED if branch's blob == base's blob (branch never touched it); ONLY_BRANCH_CHANGED if main's blob == base's blob; BOTH_CHANGED otherwise (requires manual capability judgment)",
+    "tooling_defect_found_and_fixed": "the first implementation used `git rev-parse \"$REV:$PATH\" 2>/dev/null || echo MISSING`. For a path missing from a tree, `git rev-parse` prints the UNRESOLVED ARGUMENT ITSELF to stdout before exiting non-zero (a documented rev-parse quirk, not present in `git show`/`git cat-file`), so the `||` fallback still ran and both strings concatenated into the captured variable -- producing a unique, non-'MISSING' garbage string per missing path and silently misclassifying every file with a genuinely absent blob on any side as BOTH_CHANGED. Caught by manually re-verifying a handful of already-confirmed-absent paths (e.g. adapter/src/dependency/mod.rs) against the script's own output and finding a contradiction. Fixed by gating on `git cat-file -e` (silent existence check, no stdout) before calling `rev-parse`. This is itself recorded as an instance of this session's own falsification discipline applied to its OWN new tooling, not just to Atlas's semantic extraction.",
+    "corrected_result": "121 total differing paths: 103 ONLY_MAIN_CHANGED, 19 BOTH_CHANGED, 0 ONLY_BRANCH_CHANGED",
+    "significance_of_zero_only_branch_changed": "there is not one single file in the entire repository where the branch made an edit that main's independent line left untouched. Main's 127-commit line is a strict superset of the file-level activity surface the branch's 216 commits touched, plus 103 additional paths (mostly whole new files/subsystems) branch never touched at all."
+  },
+  "dependency_rs_specific_investigation": {
+    "question_from_task": "was core/src/census/dependency.rs (and adapter/src/dependency/{mod,cargo,cargo_oracle}.rs) deleted or restructured on the branch?",
+    "answer": "NEITHER. These paths do not exist, and never existed, at the merge-base (git show <merge-base>:core/src/census/dependency.rs fails with 'exists on disk, but not in <tree>'). They were added entirely on main's post-fork line by commit 42f12c98fb ('feat(census): materialize Cargo dependency closure, closing BUILD's permanent UNSUPPORTED stub'), part of main's 127 branch-unique commits. The branch's tree simply predates this feature; nothing was removed from a shared prior state.",
+    "capability_status": "PRESERVED -- exists only, and completely, on main. No branch-side equivalent, partial or otherwise, was found anywhere in the branch's 216 commits (confirmed: zero commits touching these paths in `git log main..branch -- adapter/src/dependency/ core/src/census/dependency.rs`)."
+  },
+  "consolidate_legacy_branch_history_commit_investigation": {
+    "commit": "42b383e2dc8f438aeb5e525392ff0507bcef5a3a (the branch's own tip)",
+    "shape": "an octopus merge with 9 parents (bb93b44c63 plus 8 others: 50f0f051b3, 19c2d4e9fd, 6740e41a36, a2557427ba, 70a8298714, 4efee7d0a6, b390c1e705, 38a4fe1da0)",
+    "tree_provenance": "the commit's own message states the mechanism directly: 'Preserve the current canonical tree while attaching all remaining divergent legacy branch histories as merge parents. Stale or unsafe legacy working-tree content is intentionally not resurrected; it remains reachable through history.' Confirmed empirically: the merge commit's tree is IDENTICAL to its first parent bb93b44c63's tree -- it is a connectivity-only merge (a common technique to fold stray branch tips into reachable history without altering the working tree), not a content merge.",
+    "conclusion": "this commit was never a deletion event against a shared state; it is the branch's own author intentionally NOT resurrecting several further-divergent legacy branches into ITS OWN tree. It has no bearing on the main/branch reconciliation question beyond being the branch's tip commit."
+  },
+  "the_19_genuinely_both_changed_files": {
+    "note": "every one of these 19 files was individually inspected (full diff or unique-line diff read directly), not sampled by line count alone",
+    "rust_source_files": [
+      {
+        "path": "adapter/src/semantic/rust/cfg.rs",
+        "finding": "branch's version is the PRE-let-else-fix state from earlier this session (still missing the LetElseDiverge branch-splitting this session's own generation ce3f29fffa implemented and verified). Zero unique branch content beyond that.",
+        "action": "KEEP_MAIN"
+      },
+      {
+        "path": "adapter/src/semantic/rust/persistence.rs",
+        "finding": "branch predates the persistence_kind_for_spelling/StatementWalker-trait deduplication refactor; branch still has the walk_stmt duplicated inline per-walker.",
+        "action": "KEEP_MAIN"
+      },
+      {
+        "path": "adapter/src/semantic/rust/state.rs",
+        "finding": "branch predates the is_compound_assign_op sharing with dataflow.rs and the StatementWalker trait; has its own now-superseded is_compound_assignment + inline walk_stmt.",
+        "action": "KEEP_MAIN"
+      },
+      {
+        "path": "adapter/src/semantic/rust/concurrency.rs",
+        "finding": "same StatementWalker-predates-refactor pattern as state.rs/persistence.rs.",
+        "action": "KEEP_MAIN"
+      },
+      {
+        "path": "adapter/src/semantic/rust/mod.rs",
+        "finding": "branch's version is a strict textual subset of main's (zero non-comment lines unique to branch) -- lacks the StatementWalker trait, the as-cast chain DoS-guard vector, and other hardening added on main after the fork.",
+        "action": "KEEP_MAIN"
+      },
+      {
+        "path": "adapter/src/semantic/rust/spelling.rs",
+        "finding": "strict textual subset of main's version; lacks is_panic_like_macro consolidation.",
+        "action": "KEEP_MAIN"
+      },
+      {
+        "path": "adapter/src/semantic/rust/tests.rs",
+        "finding": "189 #[test] functions on main vs 166 on branch. Directly diffed the full sorted test-name sets: zero test names exist on branch that do not also exist on main. Main's test suite is a strict superset.",
+        "action": "KEEP_MAIN"
+      },
+      {
+        "path": "core/src/graph/engineering_graph.rs",
+        "finding": "branch has its own now-duplicated scoped_identity/function_signature_identity free functions -- exactly the cross-crate duplication (vs runtime::census::mod) this session's own SemanticScope::scoped_name/FunctionSignature::summary refactor eliminated on main.",
+        "action": "KEEP_MAIN"
+      },
+      {
+        "path": "core/src/lib.rs",
+        "finding": "branch's re-export surface lacks the entire dependency-census public API (DependencyActivation, DependencyClosureReport, DependencyEdge, DependencyIdentity, ..., add_dependency_closure, declared_root_is_contained, escape_identity_field) -- consistent with dependency.rs never having existed on branch's line.",
+        "action": "KEEP_MAIN"
+      },
+      {
+        "path": "core/src/schema/mod.rs",
+        "finding": "strict textual subset of main's version.",
+        "action": "KEEP_MAIN"
+      },
+      {
+        "path": "core/src/semantic/control_flow.rs",
+        "finding": "branch lacks ControlFlowBlockKind::LetElseDiverge entirely (pre-dates this session's gap closure at ce3f29fffa).",
+        "action": "KEEP_MAIN"
+      },
+      {
+        "path": "core/src/semantic/mod.rs",
+        "finding": "branch lacks SemanticScope::scoped_name (same refactor as engineering_graph.rs above).",
+        "action": "KEEP_MAIN"
+      },
+      {
+        "path": "runtime/src/census/mod.rs",
+        "finding": "branch has its own duplicated scoped_name/function_signature_summary free functions -- the exact pre-refactor duplication engineering_graph.rs also shows.",
+        "action": "KEEP_MAIN"
+      },
+      {
+        "path": "runtime/src/census/extraction.rs",
+        "finding": "branch's module doc references a since-renamed/reorganized test and lacks the R4.3.4 unsupported-language-artifact-accounting hardening (main-only evidence: r4.3.4-unsupported-language-artifact-accounting.json).",
+        "action": "KEEP_MAIN"
+      }
+    ],
+    "docs_and_contracts": [
+      {
+        "path": ".atlas/roadmap/ROADMAP.md",
+        "finding": "branch's own R4 status table is STALE RELATIVE TO ITS OWN CODE: it describes R4.9/R4.10/R4.11 as not-yet-started ('bootstrap materialized' language absent, generic one-line placeholders) even though the branch's own tree already contains concurrency.rs/persistence.rs/effect.rs bootstrap implementations for exactly those dimensions. Main's ROADMAP.md accurately reflects bootstrap-materialized status for all of R4.6-R4.11 with named, evidenced gaps. This is a documentation-drift defect on the branch's own line, not a capability branch has that main lacks.",
+        "action": "KEEP_MAIN"
+      },
+      {
+        "path": ".atlas/roadmap/SELF-BUILDING-R4-R8.md",
+        "finding": "same documentation-drift pattern; main's version is current through this session's most recent generations (including the just-committed let-else closure), branch's is materially behind.",
+        "action": "KEEP_MAIN"
+      },
+      {
+        "path": ".atlas/contracts/ASIR-CONSTRUCTION-MODEL.md",
+        "finding": "zero non-comment lines unique to branch; main's version is a superset.",
+        "action": "KEEP_MAIN"
+      },
+      {
+        "path": ".atlas/contracts/ATLAS-CREATION-PIPELINE.md",
+        "finding": "exactly one unique branch line (a schema-reference bullet), most likely a formatting/ordering artifact rather than distinct intent; main's version is otherwise a superset.",
+        "action": "KEEP_MAIN (trivial, no distinct capability)"
+      },
+      {
+        "path": ".atlas/contracts/ATLAS-FORMAT.md",
+        "finding": "zero non-comment lines unique to branch.",
+        "action": "KEEP_MAIN"
+      },
+      {
+        "path": ".atlas/contracts/EXTERNAL-PROVIDER-TRUST.md",
+        "finding": "zero non-comment lines unique to branch.",
+        "action": "KEEP_MAIN"
+      }
+    ]
+  },
+  "multi_ai_construction_fabric_convergence": {
+    "observation": "branch's 216 commits include a coherent documentation arc ('docs(runtime): define multi-AI construction fabric', 'docs(asir): separate swarm orchestration from ACP semantics', 'docs(trust): harden multi-provider and subagent boundaries', etc.) that looked, before investigation, like the branch's strongest candidate for unique unmerged value.",
+    "finding": "main already contains, byte-identical in the case of .atlas/contracts/MULTI-AI-CONSTRUCTION-FABRIC.md, the same set of contract files covering this exact topic (AGENT-HOST-EMBEDDED-RUNTIME.md, ASIR-CONSTRUCTION-MODEL.md, ATLAS-CREATION-PIPELINE.md, EXTERNAL-PROVIDER-TRUST.md, MULTI-AI-CONSTRUCTION-FABRIC.md, SYSTEM-CONTRACT.md). Either this content was already present at/before the merge-base and both lines carried it forward with only cosmetic drift, or both lines independently converged on equivalent text for a well-specified topic. Either way there is no unique branch capability here.",
+    "action": "NO_ACTION -- content already present on main"
+  },
+  "donor_corpus_convergence": {
+    "path": ".atlas/references/donor-corpus.toml",
+    "finding": "large line-level diff (33 vs 15) is entirely reordering/reformatting of the donor array-of-tables; the SET of donor `id` values is byte-for-byte identical between main and branch (comm -23/-13 on sorted id lists both empty).",
+    "action": "KEEP_MAIN (no unique donors on either side)"
+  },
+  "index_md_convergence": {
+    "path": ".atlas/INDEX.md",
+    "finding": "the only doc-path references present on one side and not the other are 3 entries that exist only in main's version, corresponding exactly to real main-only files (ARCHITECTURAL-INTEGRITY.md, RECURSIVE-SELF-CENSUS.md, and an indexing-style difference for SELF-BUILD-CONTROLLER.md, which exists on both trees). Zero index entries reference anything unique to branch.",
+    "action": "KEEP_MAIN"
+  },
+  "capability_ledger_by_subsystem": [
+    {"capability_id": "semantic_model_core_types", "main_state": "superset (SemanticScope::scoped_name, FunctionSignature::summary added)", "branch_state": "pre-refactor, duplicated free functions", "action": "KEEP_MAIN"},
+    {"capability_id": "census_engine", "main_state": "superset (CensusInputs/gather_census_inputs prelude unification, R4.3.4 unsupported-language accounting)", "branch_state": "pre-refactor triplicated prelude", "action": "KEEP_MAIN"},
+    {"capability_id": "dependency_census", "main_state": "fully materialized (core/src/census/dependency.rs, adapter/src/dependency/{cargo,cargo_oracle,mod}.rs, ~15 evidence records)", "branch_state": "does not exist", "action": "KEEP_MAIN (PRESERVED, no branch equivalent to reconcile)"},
+    {"capability_id": "graph_construction", "main_state": "superset", "branch_state": "pre-refactor duplication", "action": "KEEP_MAIN"},
+    {"capability_id": "cfg_control_flow", "main_state": "let-else diverge-block gap closed (ce3f29fffa), StatementWalker-independent", "branch_state": "gap open, pre-fix", "action": "KEEP_MAIN"},
+    {"capability_id": "call_semantics", "main_state": "PlaceRef-based argument/result binding", "branch_state": "byte-identical implementation (core/src/semantic/call.rs hash matches exactly between main and branch)", "action": "IDENTICAL -- genuine convergent evolution, no reconciliation needed"},
+    {"capability_id": "data_flow", "main_state": "destructuring-pattern binding closed (R4.12), byte-identical dataflow.rs to branch", "branch_state": "byte-identical", "action": "IDENTICAL"},
+    {"capability_id": "effects_state", "main_state": "superset (compound-assignment sharing, StatementWalker)", "branch_state": "pre-refactor", "action": "KEEP_MAIN"},
+    {"capability_id": "ownership_resource", "main_state": "present, unmodified by this divergence (not in either's changed-file list)", "branch_state": "present, unmodified", "action": "IDENTICAL"},
+    {"capability_id": "concurrency", "main_state": "superset (StatementWalker)", "branch_state": "pre-refactor", "action": "KEEP_MAIN"},
+    {"capability_id": "persistence_recovery", "main_state": "superset (StatementWalker, spelling unification)", "branch_state": "pre-refactor", "action": "KEEP_MAIN"},
+    {"capability_id": "donor_census_registry", "main_state": "identical donor id set", "branch_state": "identical donor id set (reordered)", "action": "IDENTICAL"},
+    {"capability_id": "recursive_self_census_docs", "main_state": "has ARCHITECTURAL-INTEGRITY.md + RECURSIVE-SELF-CENSUS.md contracts and their JSON schemas", "branch_state": "does not have these files at all", "action": "KEEP_MAIN (PRESERVED)"},
+    {"capability_id": "construction_fabric_docs_multi_ai", "main_state": "present, byte-identical to branch on the shared contract file", "branch_state": "present, identical", "action": "IDENTICAL"},
+    {"capability_id": "atlas_subsystem_cli", "main_state": "superset (named path-context error hardening: cli-io-errors-name-the-offending-root-path, cli-out-path-errors-name-the-offending-path)", "branch_state": "pre-hardening, bare error-to-string mapping", "action": "KEEP_MAIN"},
+    {"capability_id": "filesystem_walk_robustness", "main_state": "superset (unreadable-file/-directory continuation, symlink-cycle termination, declared-root symlink-escape guard, non-UTF8 read tolerance)", "branch_state": "pre-hardening, more fragile to the same adversarial inputs main already closed", "action": "KEEP_MAIN -- branch is a real regression risk here, not neutral"},
+    {"capability_id": "dos_guards_structural_recursion", "main_state": "superset (bracket, operator-chain, else-chain, as-cast-chain vectors all closed)", "branch_state": "at most the earliest of these vectors; does not have the as-cast-chain fix", "action": "KEEP_MAIN -- branch is a real security regression risk here"},
+    {"capability_id": "docs_contracts_roadmap", "main_state": "superset and internally consistent with its own code", "branch_state": "internally stale (own roadmap undercounts its own bootstrapped dimensions)", "action": "KEEP_MAIN"},
+    {"capability_id": "tests", "main_state": "189 tests in adapter tests.rs alone (487 workspace-wide), confirmed superset", "branch_state": "166 tests in the same file, zero unique to branch", "action": "KEEP_MAIN"},
+    {"capability_id": "ci_gates", "main_state": "unchanged by this divergence", "branch_state": "unchanged by this divergence", "action": "NOT_AFFECTED"}
+  ],
+  "canonical_architecture_determination": {
+    "options_considered": ["A: main canonical, branch has capabilities to migrate", "B: branch is a deliberate newer architecture main should migrate onto", "C: both evolved complementary incompatible pieces needing a new reconciled state"],
+    "determination": "A, with the stronger-than-expected finding that branch contributes ZERO capabilities requiring migration: every one of its 216 commits either (a) predates a refactor/hardening/gap-closure main's independent line already performed, (b) converged on byte-identical content to what main independently produced (call.rs, dataflow.rs, MULTI-AI-CONSTRUCTION-FABRIC.md, the donor-corpus id set), or (c) is stale documentation contradicted by the branch's own code.",
+    "evidence_basis": "not decided by line count (per the task's own explicit instruction) -- decided by reading full diffs/unique-content for all 19 genuinely BOTH_CHANGED files, verifying the dependency.rs question directly against the merge-base tree, verifying the consolidation-commit's tree provenance, and a full test-name-set comparison."
+  },
+  "reconciliation_action_taken": {
+    "code_changes": "NONE -- no merge, no cherry-pick, no reset was needed or performed. Main required no modification to absorb branch's work because branch contributes no unabsorbed capability.",
+    "branch_disposition": "left untouched: not deleted, not force-pushed, not rewritten, per explicit instruction. Recorded here as ARCHIVAL/SUPERSEDED for any future session's reference so this investigation is not repeated from zero.",
+    "recommendation_for_future_sessions": "the branch name claude/r4-semantic-materialization-jz2z44 was already merged into main once (PR #26, merge-base f9bdfd0b) and has since re-diverged with no unique value. Per this repository's own stated policy for an already-merged designated branch ('restart your designated branch from the latest default branch, keep the same branch name'), any future work that must land on that branch name should first be reset to current main tip (ce3f29fffa or later), not built further on top of 42b383e2dc -- continuing to build on the old tip only grows an already-fully-superseded line."
+  },
+  "unknown_capability_loss_audit": {
+    "claim": "no UNKNOWN_CAPABILITY_LOSS remains",
+    "basis": [
+      "0 of 121 differing paths are ONLY_BRANCH_CHANGED (the one category that could hide unmerged branch-only work)",
+      "all 19 BOTH_CHANGED paths individually read and classified above, none KEEP_BRANCH or MERGE_SEMANTICS or CONFLICT",
+      "full test-name-set diff confirms 0 branch-unique tests",
+      "the two paths structurally deleted relative to main (dependency.rs and its adapter/src/dependency/ siblings) confirmed via merge-base lookup to never have existed on the branch's line at all -- not a loss, a difference in what was added post-fork",
+      "the consolidation merge commit confirmed (via tree-identity check) to be a connectivity-only octopus merge with no working-tree effect"
+    ]
+  },
+  "validation_performed": {
+    "commands": {
+      "git fetch origin main claude/r4-semantic-materialization-jz2z44": "confirmed exact refs before any comparison",
+      "three-way blob classification script (v2, cat-file -e gated)": "121 paths classified, cross-checked against direct git show/diff spot-checks for every non-trivial result",
+      "cargo test --workspace on main (post let-else commit ce3f29fffa, pre-existing this session)": "487 total, 0 failed -- unaffected by this investigation since no code changed"
+    },
+    "note": "no build/test/clippy re-run was required for THIS unit of work since it produced no code change to main; git status --short confirmed clean working tree throughout"
+  },
+  "overall_verdict": "RECONCILED WITHOUT MERGE. main (ce3f29fffa) is the sole canonical line. claude/r4-semantic-materialization-jz2z44 (42b383e2dc) is a superseded, independently-re-diverged copy of a branch already merged once before; every one of its 216 unique commits was individually traced to either pre-dating a main-side refactor/hardening/gap-closure, converging on content already identical on main, or being stale documentation contradicted by its own code. Zero capabilities require migration, zero unknown capability loss. Normal R4 semantic feature work may resume on main.",
+  "historical_evidence_retained": true
+}
