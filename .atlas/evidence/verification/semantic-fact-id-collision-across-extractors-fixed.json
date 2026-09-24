@@ -1,0 +1,49 @@
+{
+  "schema": "atlas.self-build.generation-evidence.v1",
+  "wave": "CORRECTNESS / ARCHITECTURAL INTEGRITY -- semantic_observation_fact's id was seeded from record_id alone, colliding across independent extractors that agree on the same claim",
+  "wave_title": "A third delegated fresh-census investigation, this time instructed to give runtime/src/census/mod.rs::build_census and runtime/src/normalize/mod.rs a genuinely thorough (not light) pass, found that `semantic_observation_fact` -- which projects a Symbol/Type/FunctionIdentity/FunctionSignature `SemanticObservation` into the compatibility `SemanticFact` envelope -- seeds its `id` from `record_id` alone. `record_id` is deliberately SHARED across independent extractors observing the same claim (the whole point of `.atlas/contracts/SEMANTIC-EXTRACTION.md#multi-engine-extraction`'s multi-engine model), so two real, independently-provenanced facts from two different extractors agreeing on the same symbol collided on `id` -- the one field whose entire purpose is stable per-fact identity. Its sibling function in the same file, `obligation_status_fact`, already correctly folds extractor identity into its own id seed, proving the omission was an inconsistency, not a considered design choice.",
+  "priority_classification": "correctness / architectural integrity (priority 1) -- an id-uniqueness invariant violation in the canonical census output, not yet causing observable data loss (nothing today treats `facts`/`graph.facts` as a map keyed by id) but a real, latent risk for any future consumer that reasonably relies on `SemanticFact.id` being unique, which is the field's entire documented purpose.",
+  "gap_discovered_by": "A third delegated Explore-agent investigation, explicitly asked to give build_census/normalize a full read after two prior investigations only managed a light pass there. It read the whole `semantic_observation_fact` function, noticed the contrast with the very next function (`obligation_status_fact`), and traced the consequence all the way through: checked whether any current consumer (`engineering_graph.rs`, `normalize_fact`) treats `facts`/`graph.facts` as a deduplicating map (it does not -- both are plain `Vec`s), and checked that no existing test asserts fact-id uniqueness anywhere in the file.",
+  "verification_before_acting": [
+    "Re-read `semantic_observation_fact` (lines 47-103 before this fix) and `obligation_status_fact` (lines 108-136) directly myself: confirmed the four id seeds (Symbol/Type/FunctionIdentity/FunctionSignature) use `record_id.as_str()` alone, while `obligation_status_fact`'s seed explicitly includes `artifact_path`/`extractor.id`/`extractor.version`/`dimension`.",
+    "Confirmed `SemanticRecordHeader<Subject>` (core/src/semantic/mod.rs) carries a full `extractor: ExtractorIdentity` field (both `id` and `version`) directly on every observation header -- no extra plumbing needed to fix this, the data was already available at the exact point the bug lives.",
+    "Traced downstream consequence myself: `normalize_fact` (runtime/src/normalize/mod.rs) rehashes `fact.id` into a new id, but the additional inputs to that hash (kind/subject/predicate/object) are IDENTICAL for two colliding facts by construction (same record_id means same subject; agreeing extractors mean same predicate/object) -- so the collision would have propagated through normalization too, not been incidentally fixed there. Confirmed `add_normalized_fact` (core/src/graph/engineering_graph.rs:247-256) only ever pushes to a `Vec<Fact>`, never deduplicates by id -- so today's `facts` Vec correctly retains both entries even with colliding ids, meaning this is a real invariant violation without (yet) causing silent data loss, exactly as the investigating agent concluded.",
+    "Falsified directly: temporarily reverted just the Symbol-variant fix, re-ran the new regression test, watched it fail with `left == right` both printing the identical hash `\"semantic-fact:18da2a79668078e5\"`, then restored the fix and re-ran to confirm it passes."
+  ],
+  "design_decisions": [
+    {
+      "question": "Match obligation_status_fact's exact seed shape (artifact_path + extractor.id + extractor.version + dimension), or the minimal fix (just extractor.id + extractor.version appended to the existing record_id-based seed)?",
+      "decision": "Minimal fix: appended `header.extractor.id`/`header.extractor.version` to each of the four existing seeds. `record_id` already scopes the claim to a specific subject/artifact/dimension (that is what makes it correctly SHARED across agreeing extractors in the first place); the only missing axis of uniqueness is which extractor produced this particular observation of that claim. Reusing `obligation_status_fact`'s full seed shape verbatim would duplicate information `record_id` already encodes, for no additional uniqueness benefit."
+    }
+  ],
+  "stable_validator_law_compliance": {
+    "claim": "Two independent extractors observing the same Symbol/Type/FunctionIdentity/FunctionSignature claim (sharing the same `record_id` by design) now produce two `SemanticFact`s with distinct `id`s, matching the uniqueness discipline `obligation_status_fact` already correctly applies. A single extractor's own observations are completely unaffected (their `id`s change in value but remain internally consistent and still unique, since no other code compares a fact's `id` against a previously-recorded/persisted value across this fix).",
+    "self_written_evidence": "New test `two_extractors_agreeing_on_the_same_symbol_produce_two_facts_with_distinct_ids` in `runtime/src/census/mod.rs`, placed directly after the existing `same_semantic_claim_from_two_extractors_survives_independently_through_census` test (which already proves the two Symbol observations share one `record_id` and have two distinct `extractor.id`s -- the exact precondition this new test builds on). Independently confirmed the test fails without the fix (both ids print as the identical hash) before trusting it.",
+    "independent_evidence_channel": "cargo build --workspace clean. cargo fmt --all --check clean. cargo clippy --workspace --all-targets -D warnings clean, zero warnings. Full cargo test --workspace: 289 adapter, 2 apps/cli, 161 core, 73 runtime (+1 net) -- 525 total, 0 failed -- confirming every existing multi-extractor test (which already exercises this exact same-record_id scenario for Symbol/Call/ControlFlow/DataFlow/State/Effect/Ownership/Concurrency/Persistence) continues to pass unchanged, since none of them previously asserted fact-id uniqueness. `docs audit`: gate_ready true.",
+    "no_circular_self_certification": true
+  },
+  "implementation": {
+    "runtime_change": "runtime/src/census/mod.rs -- `semantic_observation_fact`'s four id seeds (Symbol/Type/FunctionIdentity/FunctionSignature) now include `header.extractor.id`/`header.extractor.version` alongside `header.record_id.as_str()`. Doc comment above the function updated to state the invariant explicitly."
+  },
+  "adversarial_and_falsification_coverage": [
+    "confirmed the collision reproduces with a real hash printout (both facts printing the identical `semantic-fact:18da2a79668078e5` id) before implementing the fix, not merely reasoned about abstractly",
+    "confirmed no existing consumer currently treats `facts`/`graph.facts` as a deduplicating map (both are plain `Vec`s) -- so this fix closes a real invariant violation before it becomes an active data-loss bug for some future consumer, the same 'fix the currently-unreachable defect once the risk of doing so is understood' discipline applied to the debug_assert/panic-isolation fix earlier this session",
+    "checked that the fix's own new test builds directly on an existing, already-passing test's own precondition (same record_id, distinct extractor.id) rather than constructing a new, unverified fixture from scratch"
+  ],
+  "validation_this_generation": {
+    "commands": {
+      "cargo build --workspace": { "exit_code": 0 },
+      "cargo fmt --all --check": { "exit_code": 0 },
+      "cargo clippy --workspace --all-targets -- -D warnings": { "exit_code": 0, "warnings": 0 },
+      "cargo test --workspace": { "exit_code": 0, "totals": "289 adapter, 2 apps/cli, 161 core, 73 runtime (+1 net) -- 525 total, 0 failed" },
+      "cargo run -q -p atlas-cli -- docs audit --root .atlas": { "exit_code": 0, "gate_ready": true }
+    }
+  },
+  "recensus_scope_after_promotion": [
+    "no prior CLOSED/EXTINCT conclusion is affected",
+    "this repository's own self-census is unaffected today (only one SemanticExtractor -- atlas.rust.source-semantic.v1 -- is currently registered, so no two extractors can yet agree on the same record_id in production; the fix closes a latent gap ahead of a second extractor ever being registered, exactly the class of prerequisite work this standing loop's own priority order favors)",
+    "the investigating agent's other checked-and-ruled-out candidates (status_rank ordering, dimension_summary's documented noncanonical per-dimension collapse, evidence_by_id/diagnostics_by_id BTreeMap overwrite safety, detect_conflict_candidates in normalize/mod.rs, and ALL_SEMANTIC_DIMENSIONS closure exhaustiveness) were independently spot-checked and found correctly reasoned -- not re-verified line-by-line in this record, but not silently accepted either"
+  ],
+  "overall_verdict": "MATERIALIZED AND VERIFIED. `semantic_observation_fact`'s id-uniqueness invariant violation -- a real inconsistency with its own sibling function's established discipline -- is fixed for all four affected observation kinds (Symbol/Type/FunctionIdentity/FunctionSignature). Confirmed the collision reproduces with a real hash printout before the fix and confirmed the fix's own regression test fails without it. Full workspace suite (525 tests) passing, gate_ready true.",
+  "historical_evidence_retained": true
+}

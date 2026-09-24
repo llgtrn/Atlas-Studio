@@ -44,10 +44,24 @@ fn fact_id(seed: &str) -> String {
 /// compatibility envelope, not the only semantic type system"). `TypeIdentity.canonical` never
 /// participates here -- only source spelling ever reaches `object`, never a fabricated
 /// compiler-resolved identity.
+///
+/// Each variant's `id` seed folds in `header.extractor.id`/`header.extractor.version` alongside
+/// `record_id`, matching `obligation_status_fact`'s own established discipline (extractor identity
+/// must be part of a fact's `id`, never `record_id` alone): `record_id` is deliberately SHARED
+/// across independent extractors that observe the same semantic claim
+/// (`.atlas/contracts/SEMANTIC-EXTRACTION.md#multi-engine-extraction`), so two extractors agreeing
+/// on the same Symbol/Type/FunctionIdentity/FunctionSignature claim produce two real, independent
+/// `SemanticFact`s with different provenance -- they must never collide on `id`, the one field
+/// whose entire purpose is stable per-fact identity.
 fn semantic_observation_fact(observation: &SemanticObservation) -> Option<SemanticFact> {
     match observation {
         SemanticObservation::Symbol(header) => Some(SemanticFact {
-            id: fact_id(&format!("extraction:symbol:{}", header.record_id.as_str())),
+            id: fact_id(&format!(
+                "extraction:symbol:{}:{}:{}",
+                header.record_id.as_str(),
+                header.extractor.id,
+                header.extractor.version
+            )),
             kind: SemanticFactKind::Symbol,
             status: header.status,
             subject: header.record_id.as_str().to_owned(),
@@ -56,7 +70,12 @@ fn semantic_observation_fact(observation: &SemanticObservation) -> Option<Semant
             provenance: header.provenance.clone(),
         }),
         SemanticObservation::Type(header) => Some(SemanticFact {
-            id: fact_id(&format!("extraction:type:{}", header.record_id.as_str())),
+            id: fact_id(&format!(
+                "extraction:type:{}:{}:{}",
+                header.record_id.as_str(),
+                header.extractor.id,
+                header.extractor.version
+            )),
             kind: SemanticFactKind::Type,
             status: header.status,
             subject: header.record_id.as_str().to_owned(),
@@ -66,8 +85,10 @@ fn semantic_observation_fact(observation: &SemanticObservation) -> Option<Semant
         }),
         SemanticObservation::FunctionIdentity(header) => Some(SemanticFact {
             id: fact_id(&format!(
-                "extraction:function-identity:{}",
-                header.record_id.as_str()
+                "extraction:function-identity:{}:{}:{}",
+                header.record_id.as_str(),
+                header.extractor.id,
+                header.extractor.version
             )),
             kind: SemanticFactKind::FunctionIdentity,
             status: header.status,
@@ -81,8 +102,10 @@ fn semantic_observation_fact(observation: &SemanticObservation) -> Option<Semant
         }),
         SemanticObservation::FunctionSignature(header) => Some(SemanticFact {
             id: fact_id(&format!(
-                "extraction:function-signature:{}",
-                header.record_id.as_str()
+                "extraction:function-signature:{}:{}:{}",
+                header.record_id.as_str(),
+                header.extractor.id,
+                header.extractor.version
             )),
             kind: SemanticFactKind::FunctionSignature,
             status: header.status,
@@ -2739,6 +2762,35 @@ pub async unsafe extern "C" fn example<T>(x: Vec<T>, y: &mut usize) -> Result<T,
         assert_eq!(
             extractor_ids,
             std::collections::BTreeSet::from(["extractor-a", "extractor-b"])
+        );
+    }
+
+    // `record_id` is deliberately SHARED across independent extractors observing the same claim
+    // (the whole point of the assertion just above), so `semantic_observation_fact`'s own `id`
+    // seed must fold in extractor identity too -- otherwise two real, independently-provenanced
+    // `SemanticFact`s collide on the one field whose entire purpose is stable per-fact identity,
+    // exactly the discipline `obligation_status_fact` already correctly applies.
+    #[test]
+    fn two_extractors_agreeing_on_the_same_symbol_produce_two_facts_with_distinct_ids() {
+        let (inventory, source, adl) = single_rust_file_context();
+        let batches = two_extractor_symbol_batches();
+
+        let census = build_census(&inventory, &source, &adl, &batches);
+        let symbol_fact_ids: Vec<&str> = census
+            .facts
+            .iter()
+            .filter(|fact| fact.kind == SemanticFactKind::Symbol)
+            .map(|fact| fact.id.as_str())
+            .collect();
+        assert_eq!(
+            symbol_fact_ids.len(),
+            2,
+            "both extractors' Symbol facts must survive into the compatibility projection"
+        );
+        assert_ne!(
+            symbol_fact_ids[0], symbol_fact_ids[1],
+            "two facts with different provenance/extractor must never share an id, even when \
+             they agree on the same underlying claim (record_id)"
         );
     }
 
