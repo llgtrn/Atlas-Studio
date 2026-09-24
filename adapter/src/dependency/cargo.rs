@@ -202,7 +202,20 @@ fn expand_glob_members(root: &Path, members: Vec<String>) -> Vec<String> {
         if !atlas_core::declared_root_is_contained(prefix) {
             continue;
         }
-        let Ok(entries) = fs::read_dir(root.join(prefix)) else {
+        let full_prefix = root.join(prefix);
+        // Lexical containment alone cannot catch `members = ["vendor-link/*"]` where `vendor-link`
+        // is, on disk, a symlink pointing outside `root` -- the string is perfectly ordinary and
+        // contained; only the filesystem knows it is a symlink. Same reasoning and same
+        // `fs::symlink_metadata` (never follows the final path component) as
+        // `adapter::source::inventory_from_roots`'s own equivalent guard for manifest-declared
+        // source roots.
+        let is_symlink = fs::symlink_metadata(&full_prefix)
+            .map(|meta| meta.file_type().is_symlink())
+            .unwrap_or(false);
+        if is_symlink {
+            continue;
+        }
+        let Ok(entries) = fs::read_dir(&full_prefix) else {
             continue;
         };
         let mut children: Vec<String> = entries
@@ -493,7 +506,22 @@ pub fn census_cargo_workspace(root: &Path) -> io::Result<Option<DependencyClosur
                 ));
                 continue;
             }
-            let manifest_path = root.join(&member).join("Cargo.toml");
+            let member_path = root.join(&member);
+            // Same symlink-escape reasoning as `expand_glob_members`'s own guard above: a plain
+            // (non-glob) `workspace.members` entry, or a glob-expanded child, can itself be a
+            // symlink on disk pointing outside `root` -- lexical containment alone cannot see
+            // that. Checked here too, not just in `expand_glob_members`, since a literal
+            // (non-glob) member never passes through that function at all.
+            let is_symlink = fs::symlink_metadata(&member_path)
+                .map(|meta| meta.file_type().is_symlink())
+                .unwrap_or(false);
+            if is_symlink {
+                unsupported_constructs.push(format!(
+                    "Cargo.toml: workspace member \"{member}\" is a symlink and was not followed"
+                ));
+                continue;
+            }
+            let manifest_path = member_path.join("Cargo.toml");
             let relative_manifest_path = format!("{member}/Cargo.toml");
             if let Some(member_manifest) = read_to_string(&manifest_path)? {
                 // The consumer's own package name (from its `[package] name = "..."`), not its
@@ -1273,6 +1301,108 @@ version = "0.1.0"
                  and was skipped"
                     .to_owned()
             ]
+        );
+
+        let _ = fs::remove_dir_all(&base);
+    }
+
+    // --- 3b. a workspace member that is ITSELF, on disk, a symlink pointing outside the
+    //     repository root must not be followed -- unlike the `../` case above, the member string
+    //     here is lexically ordinary and contained; only the filesystem knows it escapes ----------
+
+    #[cfg(unix)]
+    #[test]
+    fn a_workspace_member_that_is_a_symlink_escaping_the_repository_root_is_not_followed() {
+        let base = std::env::temp_dir().join(format!(
+            "atlas-dep-census-test-{}-member-symlink-escape",
+            std::process::id()
+        ));
+        let _ = fs::remove_dir_all(&base);
+        write(
+            &base.join("outside/evil/Cargo.toml"),
+            "[package]\nname = \"evil\"\n\n[dependencies]\nsecret-thing = \"1\"\n",
+        );
+        let dir = base.join("root");
+        write(
+            &dir.join("Cargo.toml"),
+            "[workspace]\nmembers = [\"vendor-link\"]\n",
+        );
+        // `evil`/`secret-thing` are listed here too, as a real `cargo build` run against this
+        // maliciously-configured workspace would actually resolve them into Cargo.lock (the
+        // symlinked member is a genuine workspace member from Cargo's own point of view) -- this
+        // makes the edge below real, not vacuous: without it, `evil` would never appear in
+        // `packages` at all and the test would pass even with the bug still present, since edges
+        // are built by iterating Cargo.lock's own `[[package]]` list, never `roles_by_consumer`.
+        write(
+            &dir.join("Cargo.lock"),
+            "\n[[package]]\nname = \"root\"\nversion = \"0.1.0\"\n\n[[package]]\nname = \"evil\"\nversion = \"0.1.0\"\ndependencies = [\n \"secret-thing\",\n]\n\n[[package]]\nname = \"secret-thing\"\nversion = \"1.0.0\"\n",
+        );
+        std::os::unix::fs::symlink(base.join("outside/evil"), dir.join("vendor-link")).unwrap();
+
+        let report = census_cargo_workspace(&dir).unwrap().unwrap();
+        let evil_edge = report
+            .edges
+            .iter()
+            .find(|edge| edge.consumer == "evil" && edge.provider.name == "secret-thing")
+            .expect("Cargo.lock lists evil -> secret-thing as a resolved dependency regardless");
+        assert_eq!(
+            evil_edge.role, None,
+            "evil's own Cargo.toml -- which lives outside the repository root and is reachable \
+             only through the symlinked workspace member -- must never actually be read: its role \
+             must stay unevidenced (None, Cargo.lock-only attribution), not the manifest-derived \
+             role this parser would assign if it had followed the symlink and read that external \
+             file's own [dependencies] table"
+        );
+        assert_eq!(
+            report.unsupported_constructs,
+            vec![
+                "Cargo.toml: workspace member \"vendor-link\" is a symlink and was not followed"
+                    .to_owned()
+            ]
+        );
+
+        let _ = fs::remove_dir_all(&base);
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn a_glob_member_prefix_that_is_a_symlink_escaping_the_repository_root_is_not_expanded() {
+        let base = std::env::temp_dir().join(format!(
+            "atlas-dep-census-test-{}-glob-symlink-escape",
+            std::process::id()
+        ));
+        let _ = fs::remove_dir_all(&base);
+        write(
+            &base.join("outside/evil/Cargo.toml"),
+            "[package]\nname = \"evil\"\n\n[dependencies]\nsecret-thing = \"1\"\n",
+        );
+        let dir = base.join("root");
+        write(
+            &dir.join("Cargo.toml"),
+            "[workspace]\nmembers = [\"vendor-link/*\"]\n",
+        );
+        // As above: `evil`/`secret-thing` are listed in Cargo.lock too, matching what a real
+        // `cargo build` against this maliciously-configured workspace would actually resolve --
+        // without this, the edge assertion below would pass vacuously even with the bug present,
+        // since edges are built from Cargo.lock's own package list, never from what got globbed.
+        write(
+            &dir.join("Cargo.lock"),
+            "\n[[package]]\nname = \"root\"\nversion = \"0.1.0\"\n\n[[package]]\nname = \"evil\"\nversion = \"0.1.0\"\ndependencies = [\n \"secret-thing\",\n]\n\n[[package]]\nname = \"secret-thing\"\nversion = \"1.0.0\"\n",
+        );
+        std::os::unix::fs::symlink(base.join("outside"), dir.join("vendor-link")).unwrap();
+
+        let report = census_cargo_workspace(&dir).unwrap().unwrap();
+        let evil_edge = report
+            .edges
+            .iter()
+            .find(|edge| edge.consumer == "evil" && edge.provider.name == "secret-thing")
+            .expect("Cargo.lock lists evil -> secret-thing as a resolved dependency regardless");
+        assert_eq!(
+            evil_edge.role, None,
+            "a symlinked glob prefix must never be walked -- `fs::read_dir` through it would \
+             enumerate a child (`evil`) outside the repository root, and joining that child back \
+             onto `root` for a later read (an intermediate symlink component, not merely the \
+             glob prefix itself) must never happen either; role must stay unevidenced (None)"
         );
 
         let _ = fs::remove_dir_all(&base);
