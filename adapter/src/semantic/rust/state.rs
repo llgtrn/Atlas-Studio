@@ -1,24 +1,33 @@
 //! R4.8: real `self.field` read/write detection for one function/method body.
 //!
-//! See the module doc comment on `core::semantic::state` for the exact scope and rationale. Only a
-//! single-level `self.<field>` access is modeled: `self.a` is a Read (or, as the LHS of a plain
-//! `name = ..` assignment, a Write) attributed to the enclosing method and scoped to the owning
-//! `impl` (the same `scope` already threaded through `ExtractionContext::handle_function` for
-//! every other dimension -- no separate owner-name tracking is needed). A nested chain like
-//! `self.a.b` reports a Read of `self.a` only; the `.b` projection is not modeled as its own state
-//! access this wave. Module-level `static` reads/writes, and any access not rooted at a bare
-//! `self`, are not modeled this wave -- resolving them would require a source-unit-wide
-//! declaration pre-pass this extractor does not yet perform; a documented gap, not a silent one.
-//! Compound-assignment operators such as `self.field += 1` are represented by syn as
-//! `Expr::Binary` with an assignment BinOp. They are semantically read-modify-write, so this
-//! extractor emits both a Read and a Write at the same operation site, recognized via the same
-//! `spelling::is_compound_assign_op` R4.7's `dataflow.rs` already uses for its own Use+Store pair
-//! (previously a second, independently-maintained copy of the identical match existed here --
-//! unified so STATE and DATA_FLOW can never silently disagree about which operators are
-//! compound-assignment). Async/closure/const bodies
-//! remain separate attribution domains this syntax-only wave does not flatten into the enclosing
-//! function; the dimension obligation therefore remains UNKNOWN until those and other documented
-//! gaps are closed.
+//! See the module doc comment on `core::semantic::state` for the exact scope and rationale.
+//! `self.<field>` is a Read (or, as the LHS of a plain `name = ..` assignment, a Write) attributed
+//! to the enclosing method and scoped to the owning `impl` (the same `scope` already threaded
+//! through `ExtractionContext::handle_function` for every other dimension -- no separate owner-name
+//! tracking is needed). An arbitrarily deep chain of NAMED field accesses ultimately rooted at
+//! `self` (`self.a.b`, `self.a.b.c`, ...) is modeled as ONE compound state-access event against the
+//! `.`-joined path (`"a.b"`, `"a.b.c"`, ...), not decomposed into one event per level -- see
+//! `self_field_path`'s own doc comment for why (evaluating an intermediate place like `self.a`
+//! inside `self.a.b` is a pure place computation, never a value read, regardless of whether the
+//! whole chain is ultimately read from or written to; fabricating a spurious Read of the
+//! intermediate field would misrepresent Rust's own place-expression semantics). This closes a real
+//! defect an earlier, single-level-only version of this walker had: `self.a.b = 5;` used to report
+//! a spurious Read of `a` alone (the single-level check failed on the outer `.b` projection and
+//! fell back to walking `field.base`, which the general `Expr::Field` dispatch then reinterpreted
+//! as a READ of `self.a`) and never recorded the real write at all -- a fabricated fact, not merely
+//! a coverage gap. A tuple-index member anywhere in the chain (`self.0`, `self.a.0`) still bails
+//! the whole chain, matching the prior single-level behavior for that case exactly. Module-level
+//! `static` reads/writes, and any access not rooted at a bare `self`, are not modeled this wave --
+//! resolving them would require a source-unit-wide declaration pre-pass this extractor does not yet
+//! perform; a documented gap, not a silent one. Compound-assignment operators such as
+//! `self.field += 1` are represented by syn as `Expr::Binary` with an assignment BinOp. They are
+//! semantically read-modify-write, so this extractor emits both a Read and a Write at the same
+//! operation site, recognized via the same `spelling::is_compound_assign_op` R4.7's `dataflow.rs`
+//! already uses for its own Use+Store pair (previously a second, independently-maintained copy of
+//! the identical match existed here -- unified so STATE and DATA_FLOW can never silently disagree
+//! about which operators are compound-assignment). Async/closure/const bodies remain separate
+//! attribution domains this syntax-only wave does not flatten into the enclosing function; the
+//! dimension obligation therefore remains UNKNOWN until those and other documented gaps are closed.
 
 use atlas_core::{
     EpistemicStatus, EvidenceId, SemanticDimension, SemanticObservation, SemanticRecordHeader,
@@ -30,21 +39,30 @@ use super::ExtractionContext;
 use super::StatementWalker;
 use super::spelling::is_compound_assign_op;
 
-/// The field this expression accesses via a bare `self.<field>`, if it is exactly that shape
-/// (not a deeper chain like `self.a.b`, and not a tuple-index field like `self.0`).
-fn self_field_ident(field: &syn::ExprField) -> Option<syn::Ident> {
-    let syn::Expr::Path(path) = field.base.as_ref() else {
+/// The `.`-joined field path this expression accesses, if it is an arbitrarily deep chain of
+/// NAMED field accesses (`self.a`, `self.a.b`, `self.a.b.c`, ...) ultimately rooted at a bare
+/// `self` -- one compound state-access event for the whole chain, not one per level (see the
+/// module doc comment for why). Returns `None` the moment any level's member is unnamed (a
+/// tuple-index field like `self.0`/`self.a.0`) or the chain's base is anything other than another
+/// named-field `Expr::Field` or a bare `self` path (a local variable, a method call, an index
+/// expression, ...) -- the caller falls back to walking that base normally in every such case.
+fn self_field_path(field: &syn::ExprField) -> Option<String> {
+    let syn::Member::Named(ident) = &field.member else {
         return None;
     };
-    if path.path.leading_colon.is_some() || path.path.segments.len() != 1 {
-        return None;
-    }
-    if path.path.segments[0].ident != "self" {
-        return None;
-    }
-    match &field.member {
-        syn::Member::Named(ident) => Some(ident.clone()),
-        syn::Member::Unnamed(_) => None,
+    match field.base.as_ref() {
+        syn::Expr::Path(path)
+            if path.path.leading_colon.is_none()
+                && path.path.segments.len() == 1
+                && path.path.segments[0].ident == "self" =>
+        {
+            Some(ident.to_string())
+        }
+        syn::Expr::Field(base_field) => {
+            let base_path = self_field_path(base_field)?;
+            Some(format!("{base_path}.{ident}"))
+        }
+        _ => None,
     }
 }
 
@@ -115,25 +133,39 @@ impl<'ctx, 'a> StateWalker<'ctx, 'a> {
             self.walk_stmt(stmt);
         }
     }
+
+    /// Walks a field expression's base ONLY when it might itself hide an UNRELATED self-access
+    /// (e.g. `foo(self.y).z`) -- if the base is itself another `Expr::Field`, walking it would
+    /// just re-attempt (and, before this fix, wrongly partially succeed at) interpreting a
+    /// sub-chain that, as a whole, `self_field_path` already determined it cannot honestly name.
+    /// An intermediate place is never itself a read/write event (see the module doc comment), so
+    /// re-entering field-chain interpretation one level down must never fire here.
+    fn walk_unresolved_field_base(&mut self, base: &syn::Expr) {
+        if !matches!(base, syn::Expr::Field(_)) {
+            self.walk_expr(base);
+        }
+    }
 }
 
 impl<'ctx, 'a> StatementWalker for StateWalker<'ctx, 'a> {
     fn walk_expr(&mut self, expr: &syn::Expr) {
         match expr {
-            syn::Expr::Field(field) => match self_field_ident(field) {
-                Some(ident) => {
+            syn::Expr::Field(field) => match self_field_path(field) {
+                Some(path) => {
                     let span = self.ctx.span_of(field);
-                    self.emit_access(&ident.to_string(), span, StateAccessKind::Read);
+                    self.emit_access(&path, span, StateAccessKind::Read);
                 }
-                None => self.walk_expr(&field.base),
+                None => self.walk_unresolved_field_base(&field.base),
             },
             syn::Expr::Assign(assign) => {
                 match assign.left.as_ref() {
-                    syn::Expr::Field(field) if self_field_ident(field).is_some() => {
-                        let ident = self_field_ident(field).expect("matched above");
-                        let span = self.ctx.span_of(field);
-                        self.emit_access(&ident.to_string(), span, StateAccessKind::Write);
-                    }
+                    syn::Expr::Field(field) => match self_field_path(field) {
+                        Some(path) => {
+                            let span = self.ctx.span_of(field);
+                            self.emit_access(&path, span, StateAccessKind::Write);
+                        }
+                        None => self.walk_unresolved_field_base(&field.base),
+                    },
                     other => self.walk_expr(other),
                 }
                 self.walk_expr(&assign.right);
@@ -172,16 +204,14 @@ impl<'ctx, 'a> StatementWalker for StateWalker<'ctx, 'a> {
             syn::Expr::Binary(binary) => {
                 if is_compound_assign_op(&binary.op) {
                     match binary.left.as_ref() {
-                        syn::Expr::Field(field) if self_field_ident(field).is_some() => {
-                            let ident = self_field_ident(field).expect("matched above");
-                            let span = self.ctx.span_of(field);
-                            self.emit_access(
-                                &ident.to_string(),
-                                span.clone(),
-                                StateAccessKind::Read,
-                            );
-                            self.emit_access(&ident.to_string(), span, StateAccessKind::Write);
-                        }
+                        syn::Expr::Field(field) => match self_field_path(field) {
+                            Some(path) => {
+                                let span = self.ctx.span_of(field);
+                                self.emit_access(&path, span.clone(), StateAccessKind::Read);
+                                self.emit_access(&path, span, StateAccessKind::Write);
+                            }
+                            None => self.walk_unresolved_field_base(&field.base),
+                        },
                         other => self.walk_expr(other),
                     }
                 } else {

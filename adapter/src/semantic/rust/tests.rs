@@ -3249,20 +3249,139 @@ fn free_function_with_no_self_produces_no_state_observations() {
     assert!(state_accesses_for(&batch, caller).is_empty());
 }
 
-// --- 67. a nested field chain (`self.inner.value`) reports a Read of the outer field only -- the
-// documented gap, not a silent one ----------------------------------------------------------------
+// --- 67. a nested field chain (`self.inner.value`) is now a real, compound Read of the whole
+// `.`-joined path -- found missing (worse: fabricating a wrong Read of the outer field alone), then
+// closed, by direct adversarial testing this session; see the sibling tests below for the write,
+// deeper-chain and tuple-index-bailout cases -------------------------------------------------------
 
 #[test]
-fn nested_field_chain_reports_only_the_outer_field_as_a_documented_gap() {
+fn nested_field_chain_reports_a_read_of_the_full_joined_path() {
     let batch = extract_all("src/lib.rs", STATE_EFFECT_CORPUS);
     let caller = find_function_identity(&batch, &["impl:Counter"], "read_nested").unwrap();
     let accesses = state_accesses_for(&batch, caller);
     assert_eq!(accesses.len(), 1);
     assert_eq!(accesses[0].kind, StateAccessKind::Read);
     assert_eq!(
-        accesses[0].name, "inner",
-        "only the outer field is modeled this wave"
+        accesses[0].name, "inner.value",
+        "the whole chain is one compound state-access event against its joined path, not a Read \
+         of the outer field alone"
     );
+}
+
+// --- a nested field WRITE (`self.a.b = x`) used to fabricate a spurious Read of the outer field
+// alone and never record the real write at all -- a wrong fact, not merely a coverage gap. Confirmed
+// via direct extraction before the fix (probed and removed once the finding was recorded here). --
+
+#[test]
+fn nested_field_write_reports_a_write_of_the_full_joined_path_with_no_spurious_read() {
+    const SRC: &str = r#"
+pub struct Inner { b: u8 }
+pub struct Outer { a: Inner }
+impl Outer {
+    pub fn set(&mut self) {
+        self.a.b = 5;
+    }
+}
+"#;
+    let batch = extract_all("src/probe.rs", SRC);
+    let caller = find_function_identity(&batch, &["impl:Outer"], "set").unwrap();
+    let accesses = state_accesses_for(&batch, caller);
+    assert_eq!(
+        accesses.len(),
+        1,
+        "exactly one access: the real write to a.b, with no fabricated read of `a` alongside it"
+    );
+    assert_eq!(accesses[0].kind, StateAccessKind::Write);
+    assert_eq!(accesses[0].name, "a.b");
+}
+
+// --- a three-level chain (`self.a.b.c`) joins every level, not just the first two ----------------
+
+#[test]
+fn three_level_field_chain_joins_every_level() {
+    const SRC: &str = r#"
+pub struct Grand { c: u8 }
+pub struct Middle { b: Grand }
+pub struct Outer { a: Middle }
+impl Outer {
+    pub fn read(&self) -> u8 {
+        self.a.b.c
+    }
+}
+"#;
+    let batch = extract_all("src/probe.rs", SRC);
+    let caller = find_function_identity(&batch, &["impl:Outer"], "read").unwrap();
+    let accesses = state_accesses_for(&batch, caller);
+    assert_eq!(accesses.len(), 1);
+    assert_eq!(accesses[0].kind, StateAccessKind::Read);
+    assert_eq!(accesses[0].name, "a.b.c");
+}
+
+// --- a tuple-index member anywhere in the chain (`self.0.field`, `self.field.0`) still bails the
+// whole chain, matching the prior single-level `self.0` behavior exactly -- no partial/fabricated
+// path is ever emitted for a chain this extractor cannot fully name -------------------------------
+
+#[test]
+fn tuple_index_anywhere_in_a_field_chain_bails_the_whole_chain() {
+    const SRC: &str = r#"
+pub struct Outer(Inner);
+pub struct Inner { field: u8, also_tuple: (u8,) }
+impl Outer {
+    pub fn read_through_tuple_base(&self) -> u8 {
+        self.0.field
+    }
+    pub fn read_through_tuple_tail(&self) -> u8 {
+        self.field.0
+    }
+}
+"#;
+    let batch = extract_all("src/probe.rs", SRC);
+    let base_caller =
+        find_function_identity(&batch, &["impl:Outer"], "read_through_tuple_base").unwrap();
+    assert!(
+        state_accesses_for(&batch, base_caller).is_empty(),
+        "self.0.field must not fabricate a partial path when the chain's own base is a \
+         tuple-index field"
+    );
+    let tail_caller =
+        find_function_identity(&batch, &["impl:Outer"], "read_through_tuple_tail").unwrap();
+    assert!(
+        state_accesses_for(&batch, tail_caller).is_empty(),
+        "self.field.0 must not fabricate a partial path when the chain's own final member is a \
+         tuple-index field"
+    );
+}
+
+// --- an unresolvable field chain's base is still walked when it is NOT itself another field
+// projection (e.g. a call), so a genuinely unrelated nested self-access is still found ------------
+
+#[test]
+fn unresolvable_field_chain_still_finds_a_self_access_hidden_in_a_non_field_base() {
+    const SRC: &str = r#"
+pub struct Outer { value: u8 }
+pub struct Inner { z: u8 }
+impl Outer {
+    pub fn helper(&self, _v: u8) -> Inner { Inner { z: 0 } }
+    pub fn read(&self) -> u8 {
+        self.helper(self.value).z
+    }
+}
+"#;
+    let batch = extract_all("src/probe.rs", SRC);
+    let caller = find_function_identity(&batch, &["impl:Outer"], "read").unwrap();
+    let accesses = state_accesses_for(&batch, caller);
+    assert_eq!(
+        accesses.len(),
+        1,
+        "self.helper(self.value).z is not itself a self-rooted field chain (its base is a method \
+         call, not `self` or a named field), so `.z` is correctly not reported as any kind of \
+         self-field access -- but the call's own ARGUMENT (self.value) is a genuine, separate \
+         self-field read that must still be found, proving `walk_unresolved_field_base` does not \
+         over-suppress: it only skips re-entering FIELD-chain interpretation, never walking \
+         into a call/method-call base entirely"
+    );
+    assert_eq!(accesses[0].kind, StateAccessKind::Read);
+    assert_eq!(accesses[0].name, "value");
 }
 
 // --- 68. compound assignment is read-modify-write: one Read + one Write at the same site --------
