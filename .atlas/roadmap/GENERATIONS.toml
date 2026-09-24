@@ -13,7 +13,7 @@
 #       -> generation evidence -> G_n+1
 
 schema = "atlas.self-build.generation-ledger.v1"
-current_generation = "G47"
+current_generation = "G48"
 
 [[generation]]
 id = "G35"
@@ -434,6 +434,7 @@ id = "G47"
 base_commit = "dde9bdd101d87cd3e660f34b98bc2dbb2943861b"
 objective = "Creator interaction: stimuli -> observed state changes -> abstract interaction mechanisms and state graph"
 writer = "coordinator (sole production writer)"
+result_commits = ["5391310ac8437a78832a1c12791bcef316c39c0b"]
 evidence = ".atlas/decisions/0015-interaction-stimuli-and-mechanisms.md"
 
 [generation.join]
@@ -445,4 +446,19 @@ production_path = "atlas-systemizer observe --interact on the interactive fixtur
 
 [generation.next]
 objective = "G48: motion -- sample frames during a transition and infer duration/easing as INFERRED with alternatives; or physical dynamics along a trajectory"
+
+[[generation]]
+id = "G48"
+base_commit = "5391310ac8437a78832a1c12791bcef316c39c0b"
+objective = "Creator motion: deterministic curve sampling and easing inference validated against declared timing"
+writer = "coordinator (sole production writer)"
+evidence = ".atlas/decisions/0016-motion-curve-inference.md"
+
+[generation.verification]
+falsification = "6 mutants killed; 2 first survived (circular unit test) -> Chromium-sampled oracle and custom-curve test added"
+oracle = "Chromium 141 keyword easing values at 25, 50 and 75 percent match cubic_bezier to 1e-5"
+production_path = "atlas-systemizer observe --motion: 5/5 easings inferred from samples alone agree with declared timing; residuals <= 6e-7, runner-up >= 0.07"
+
+[generation.next]
+objective = "G49: first Creator construction loop -- synthesize an original composition from extracted relations+mechanisms, lower to HTML/CSS, render, re-observe, verify the intended relations (UNDERSTAND->ABSTRACT->RECOMBINE->CREATE->VERIFY)"
 
