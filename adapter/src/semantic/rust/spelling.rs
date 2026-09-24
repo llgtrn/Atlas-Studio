@@ -140,7 +140,18 @@ pub fn generic_param_spelling(param: &syn::GenericParam) -> String {
             spelling
         }
         syn::GenericParam::Lifetime(lifetime_param) => {
-            format!("'{}", lifetime_param.lifetime.ident)
+            let mut spelling = format!("'{}", lifetime_param.lifetime.ident);
+            if !lifetime_param.bounds.is_empty() {
+                let bounds = lifetime_param
+                    .bounds
+                    .iter()
+                    .map(|bound| format!("'{}", bound.ident))
+                    .collect::<Vec<_>>()
+                    .join(" + ");
+                spelling.push_str(": ");
+                spelling.push_str(&bounds);
+            }
+            spelling
         }
         syn::GenericParam::Const(const_param) => {
             format!(
@@ -156,13 +167,34 @@ pub fn visibility_spelling(vis: &syn::Visibility) -> String {
     match vis {
         syn::Visibility::Public(_) => "pub".to_owned(),
         syn::Visibility::Restricted(restricted) => {
-            format!(
-                "pub({})",
-                restricted.path.to_token_stream().to_string().trim()
-            )
+            let path = restricted.path.to_token_stream().to_string();
+            // `restricted.in_token` is `Some` only for `pub(in path::to::mod)` -- `pub(crate)`,
+            // `pub(super)`, and `pub(self)` have no `in` keyword and must not gain one, since
+            // `pub(in crate)` and `pub(crate)` are different, both-valid, differently-scoped
+            // restrictions in real Rust syntax.
+            if restricted.in_token.is_some() {
+                format!("pub(in {})", path.trim())
+            } else {
+                format!("pub({})", path.trim())
+            }
         }
         syn::Visibility::Inherited => "inherited".to_owned(),
     }
+}
+
+/// The spelling of every `where`-clause predicate on a generic item, one entry per predicate
+/// (e.g. `["where T: Clone", "where 'a: 'b"]`), appended alongside -- never merged into --
+/// `generic_param_spelling`'s own per-parameter entries: a predicate's `to_token_stream`
+/// rendering does not by itself say which earlier parameter it constrains, so keeping each
+/// predicate as its own distinct entry avoids fabricating that association. `syn::WherePredicate`
+/// is `#[non_exhaustive]`, so this deliberately renders the whole predicate via its token stream
+/// rather than matching its variants, staying correct if `syn` ever adds a new predicate kind.
+pub fn where_predicate_spelling(clause: &syn::WhereClause) -> Vec<String> {
+    clause
+        .predicates
+        .iter()
+        .map(|predicate| format!("where {}", predicate.to_token_stream()))
+        .collect()
 }
 
 pub fn abi_spelling(abi: &syn::Abi) -> String {

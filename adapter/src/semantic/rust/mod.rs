@@ -1228,12 +1228,15 @@ impl<'a> ExtractionContext<'a> {
     ) {
         self.emit_symbol(scope, name, role, span.clone());
 
-        let generics: Vec<String> = sig
+        let mut generics: Vec<String> = sig
             .generics
             .params
             .iter()
             .map(spelling::generic_param_spelling)
             .collect();
+        if let Some(where_clause) = &sig.generics.where_clause {
+            generics.extend(spelling::where_predicate_spelling(where_clause));
+        }
 
         let identity = self.function_identity(
             scope,
@@ -1408,13 +1411,26 @@ impl<'a> ExtractionContext<'a> {
         let nested = nested_scope(scope, &name);
         for variant in &item.variants {
             let variant_span = self.span_of(variant);
-            self.emit_symbol(
-                &nested,
-                &variant.ident.to_string(),
-                SymbolRole::Definition,
-                variant_span,
-            );
-            for field in &variant.fields {
+            let variant_name = variant.ident.to_string();
+            self.emit_symbol(&nested, &variant_name, SymbolRole::Definition, variant_span);
+            // Fields are scoped under the variant, not the enum itself: unlike a struct (one
+            // field namespace per declaration), two variants of the same enum can each declare a
+            // field with the same name (e.g. `Active { id: u64 }` / `Inactive { id: u64 }`), and
+            // enum-level scoping would silently collide them onto one Symbol identity.
+            let variant_scope = nested_scope(&nested, &variant_name);
+            for (index, field) in variant.fields.iter().enumerate() {
+                let field_name = field
+                    .ident
+                    .as_ref()
+                    .map(ToString::to_string)
+                    .unwrap_or_else(|| index.to_string());
+                let field_span = self.span_of(field);
+                self.emit_symbol(
+                    &variant_scope,
+                    &field_name,
+                    SymbolRole::Definition,
+                    field_span,
+                );
                 let type_name = spelling::type_spelling(&field.ty);
                 let type_span = self.span_of(&field.ty);
                 self.emit_type_identity(&nested, &type_name, Some(type_span));
@@ -1428,35 +1444,79 @@ impl<'a> ExtractionContext<'a> {
         self.emit_symbol(scope, &name, SymbolRole::Definition, span);
         let nested = nested_scope(scope, &format!("trait:{name}"));
         for trait_item in &item.items {
-            if let syn::TraitItem::Fn(method) = trait_item {
-                let (role, declaration_kind) = if method.default.is_some() {
-                    (
-                        SymbolRole::Definition,
-                        FunctionDeclarationKind::TraitDefaultMethod,
-                    )
-                } else {
-                    (
-                        SymbolRole::Declaration,
-                        FunctionDeclarationKind::TraitMethodDeclaration,
-                    )
-                };
-                let method_name = method.sig.ident.to_string();
-                let method_span = self.span_of(method);
-                let owner = FunctionOwner {
-                    target: None,
-                    trait_path: Some(name.clone()),
-                };
-                self.handle_function(
-                    &method_name,
-                    "inherited".to_owned(),
-                    &method.sig,
-                    method.default.as_ref(),
-                    &nested,
-                    method_span,
-                    role,
-                    declaration_kind,
-                    owner,
-                );
+            match trait_item {
+                syn::TraitItem::Fn(method) => {
+                    let (role, declaration_kind) = if method.default.is_some() {
+                        (
+                            SymbolRole::Definition,
+                            FunctionDeclarationKind::TraitDefaultMethod,
+                        )
+                    } else {
+                        (
+                            SymbolRole::Declaration,
+                            FunctionDeclarationKind::TraitMethodDeclaration,
+                        )
+                    };
+                    let method_name = method.sig.ident.to_string();
+                    let method_span = self.span_of(method);
+                    let owner = FunctionOwner {
+                        target: None,
+                        trait_path: Some(name.clone()),
+                    };
+                    self.handle_function(
+                        &method_name,
+                        "inherited".to_owned(),
+                        &method.sig,
+                        method.default.as_ref(),
+                        &nested,
+                        method_span,
+                        role,
+                        declaration_kind,
+                        owner,
+                    );
+                }
+                syn::TraitItem::Const(assoc_const) => {
+                    // A trait associated const always names a concrete declared type (`const
+                    // NAME: Type`), even without a default value, unlike an associated type.
+                    let role = if assoc_const.default.is_some() {
+                        SymbolRole::Definition
+                    } else {
+                        SymbolRole::Declaration
+                    };
+                    let const_span = self.span_of(assoc_const);
+                    self.emit_symbol(&nested, &assoc_const.ident.to_string(), role, const_span);
+                    let type_name = spelling::type_spelling(&assoc_const.ty);
+                    let type_span = self.span_of(&assoc_const.ty);
+                    self.emit_type_identity(&nested, &type_name, Some(type_span));
+                }
+                syn::TraitItem::Type(assoc_type) => {
+                    let type_span = self.span_of(assoc_type);
+                    match &assoc_type.default {
+                        Some((_, default_ty)) => {
+                            self.emit_symbol(
+                                &nested,
+                                &assoc_type.ident.to_string(),
+                                SymbolRole::Definition,
+                                type_span,
+                            );
+                            let type_name = spelling::type_spelling(default_ty);
+                            let default_span = self.span_of(default_ty);
+                            self.emit_type_identity(&nested, &type_name, Some(default_span));
+                        }
+                        // No default: only bounds are declared, never a concrete `Type` node --
+                        // emitting a TypeIdentity here would fabricate a type that isn't spelled
+                        // out anywhere in this declaration.
+                        None => {
+                            self.emit_symbol(
+                                &nested,
+                                &assoc_type.ident.to_string(),
+                                SymbolRole::Declaration,
+                                type_span,
+                            );
+                        }
+                    }
+                }
+                _ => {}
             }
         }
     }
@@ -1480,32 +1540,63 @@ impl<'a> ExtractionContext<'a> {
         let target = self.emit_type_identity(scope, &self_type, Some(target_span));
 
         for impl_item in &item.items {
-            if let syn::ImplItem::Fn(method) = impl_item {
-                let method_name = method.sig.ident.to_string();
-                let visibility = spelling::visibility_spelling(&method.vis);
-                let method_span = self.span_of(method);
-                let has_receiver =
-                    matches!(method.sig.inputs.first(), Some(syn::FnArg::Receiver(_)));
-                let declaration_kind = match (&trait_path, has_receiver) {
-                    (Some(_), _) => FunctionDeclarationKind::TraitImplementationMethod,
-                    (None, true) => FunctionDeclarationKind::InherentMethod,
-                    (None, false) => FunctionDeclarationKind::AssociatedFunction,
-                };
-                let owner = FunctionOwner {
-                    target: Some(target.clone()),
-                    trait_path: trait_path.clone(),
-                };
-                self.handle_function(
-                    &method_name,
-                    visibility,
-                    &method.sig,
-                    Some(&method.block),
-                    &nested,
-                    method_span,
-                    SymbolRole::Definition,
-                    declaration_kind,
-                    owner,
-                );
+            match impl_item {
+                syn::ImplItem::Fn(method) => {
+                    let method_name = method.sig.ident.to_string();
+                    let visibility = spelling::visibility_spelling(&method.vis);
+                    let method_span = self.span_of(method);
+                    let has_receiver =
+                        matches!(method.sig.inputs.first(), Some(syn::FnArg::Receiver(_)));
+                    let declaration_kind = match (&trait_path, has_receiver) {
+                        (Some(_), _) => FunctionDeclarationKind::TraitImplementationMethod,
+                        (None, true) => FunctionDeclarationKind::InherentMethod,
+                        (None, false) => FunctionDeclarationKind::AssociatedFunction,
+                    };
+                    let owner = FunctionOwner {
+                        target: Some(target.clone()),
+                        trait_path: trait_path.clone(),
+                    };
+                    self.handle_function(
+                        &method_name,
+                        visibility,
+                        &method.sig,
+                        Some(&method.block),
+                        &nested,
+                        method_span,
+                        SymbolRole::Definition,
+                        declaration_kind,
+                        owner,
+                    );
+                }
+                syn::ImplItem::Const(assoc_const) => {
+                    // An impl always supplies a concrete value, so this is always a Definition,
+                    // unlike a trait's own (possibly value-less) associated const declaration.
+                    let const_span = self.span_of(assoc_const);
+                    self.emit_symbol(
+                        &nested,
+                        &assoc_const.ident.to_string(),
+                        SymbolRole::Definition,
+                        const_span,
+                    );
+                    let type_name = spelling::type_spelling(&assoc_const.ty);
+                    let type_span = self.span_of(&assoc_const.ty);
+                    self.emit_type_identity(&nested, &type_name, Some(type_span));
+                }
+                syn::ImplItem::Type(assoc_type) => {
+                    // An impl's associated type always assigns a concrete `Type` (`type Foo =
+                    // Bar;`), unlike a trait's own (possibly default-less) associated type.
+                    let type_span = self.span_of(assoc_type);
+                    self.emit_symbol(
+                        &nested,
+                        &assoc_type.ident.to_string(),
+                        SymbolRole::Definition,
+                        type_span,
+                    );
+                    let type_name = spelling::type_spelling(&assoc_type.ty);
+                    let concrete_span = self.span_of(&assoc_type.ty);
+                    self.emit_type_identity(&nested, &type_name, Some(concrete_span));
+                }
+                _ => {}
             }
         }
     }

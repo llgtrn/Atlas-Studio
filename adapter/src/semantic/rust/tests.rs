@@ -6296,3 +6296,128 @@ pub fn run(pool: &ThreadPool) {
     let caller = find_function_identity(&batch, &[], "run").unwrap();
     assert!(concurrency_ops_for(&batch, caller).is_empty());
 }
+
+// --- SYMBOL/TYPE/FUNCTION_IDENTITY/FUNCTION_SIGNATURE: five real gaps found by a background
+// audit of the "Exhaustive"-coverage dimensions, each independently confirmed against the real,
+// unfixed source before being trusted -- a `where`-clause bound was silently dropped from a
+// generic function's own recorded `generics`; a trait/impl associated const or type produced zero
+// observations at all; an enum struct-variant's own named fields never got a Symbol (only their
+// types did); `pub(in path)` was mis-rendered as `pub(path)`, an invalid restriction; and a
+// lifetime parameter's own bounds (`'a: 'b`) were dropped from its spelling. -------------------
+
+#[test]
+fn where_clause_predicates_are_recorded_in_generics() {
+    const SRC: &str = r#"
+pub fn constrained<T>(value: T) -> T
+where
+    T: Clone,
+{
+    value
+}
+"#;
+    let batch = extract_all("src/probe.rs", SRC);
+    let signature = find_function_signature(&batch, &[], "constrained").unwrap();
+    assert_eq!(
+        signature.generics,
+        vec!["T".to_owned(), "where T : Clone".to_owned()],
+        "a where-clause predicate must survive into the recorded generics, distinct from the \
+         bare parameter entry -- it was previously silently dropped entirely"
+    );
+}
+
+#[test]
+fn trait_associated_const_and_type_produce_symbol_observations() {
+    const SRC: &str = r#"
+pub trait Limits {
+    const MAX: u64;
+    const MIN: u64 = 0;
+    type Item;
+    type Default = u64;
+}
+"#;
+    let batch = extract_all("src/probe.rs", SRC);
+    let max = find_symbol(&batch, &["trait:Limits"], "MAX").expect("MAX symbol");
+    assert_eq!(max.role, SymbolRole::Declaration, "no default value given");
+    let min = find_symbol(&batch, &["trait:Limits"], "MIN").expect("MIN symbol");
+    assert_eq!(min.role, SymbolRole::Definition, "default value given");
+    find_type(&batch, &["trait:Limits"], "u64").expect("MAX/MIN declared type u64");
+
+    let item = find_symbol(&batch, &["trait:Limits"], "Item").expect("Item symbol");
+    assert_eq!(item.role, SymbolRole::Declaration, "no default type given");
+    let default = find_symbol(&batch, &["trait:Limits"], "Default").expect("Default symbol");
+    assert_eq!(default.role, SymbolRole::Definition, "default type given");
+}
+
+#[test]
+fn impl_associated_const_and_type_produce_symbol_observations() {
+    const SRC: &str = r#"
+pub struct Config;
+
+impl Config {
+    const VERSION: u64 = 1;
+    type Alias = u64;
+}
+"#;
+    let batch = extract_all("src/probe.rs", SRC);
+    let version = find_symbol(&batch, &["impl:Config"], "VERSION").expect("VERSION symbol");
+    assert_eq!(version.role, SymbolRole::Definition);
+    find_type(&batch, &["impl:Config"], "u64").expect("VERSION/Alias concrete type u64");
+    let alias = find_symbol(&batch, &["impl:Config"], "Alias").expect("Alias symbol");
+    assert_eq!(alias.role, SymbolRole::Definition);
+}
+
+#[test]
+fn enum_struct_variant_named_fields_produce_symbol_observations() {
+    const SRC: &str = r#"
+pub enum Event {
+    Created { id: u64 },
+    Renamed { id: u64, name: String },
+}
+"#;
+    let batch = extract_all("src/probe.rs", SRC);
+    find_symbol(&batch, &["Event", "Created"], "id").expect("Created.id symbol");
+    find_symbol(&batch, &["Event", "Renamed"], "id").expect("Renamed.id symbol");
+    find_symbol(&batch, &["Event", "Renamed"], "name").expect("Renamed.name symbol");
+    // Field TypeIdentity keeps its pre-existing enum-level scope (already covered by
+    // `enum_variants_and_payload_types_are_observed`); only the missing Symbol is new here.
+    find_type(&batch, &["Event"], "u64").expect("field type u64 still recorded as before");
+}
+
+#[test]
+fn restricted_visibility_with_in_path_is_rendered_correctly() {
+    const SRC: &str = r#"
+pub mod outer {
+    pub mod inner {
+        pub(in crate::outer) fn scoped() {}
+        pub(super) fn parent_scoped() {}
+        pub(crate) fn crate_scoped() {}
+    }
+}
+"#;
+    let batch = extract_all("src/probe.rs", SRC);
+    let scoped = find_function_signature(&batch, &["outer", "inner"], "scoped").unwrap();
+    assert_eq!(
+        scoped.visibility, "pub(in crate :: outer)",
+        "`pub(in path)` must keep its `in` keyword -- `pub(crate::outer)` is not valid Rust syntax"
+    );
+    let parent = find_function_signature(&batch, &["outer", "inner"], "parent_scoped").unwrap();
+    assert_eq!(parent.visibility, "pub(super)");
+    let krate = find_function_signature(&batch, &["outer", "inner"], "crate_scoped").unwrap();
+    assert_eq!(krate.visibility, "pub(crate)");
+}
+
+#[test]
+fn lifetime_parameter_bounds_are_recorded() {
+    const SRC: &str = r#"
+pub fn outlives<'a, 'b: 'a>(x: &'b str) -> &'a str {
+    x
+}
+"#;
+    let batch = extract_all("src/probe.rs", SRC);
+    let signature = find_function_signature(&batch, &[], "outlives").unwrap();
+    assert_eq!(
+        signature.generics,
+        vec!["'a".to_owned(), "'b: 'a".to_owned()],
+        "a lifetime parameter's own bound must be recorded, not silently dropped"
+    );
+}
