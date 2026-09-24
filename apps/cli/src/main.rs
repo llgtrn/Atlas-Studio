@@ -174,9 +174,17 @@ fn run(args: &[String]) -> Result<(), String> {
             if viewports.is_empty() {
                 viewports = vec![(1280, 800), (375, 800)];
             }
-            let report =
-                runtime::visual::observe_fixture(std::path::Path::new(&fixture), &viewports)
-                    .map_err(|e| format!("{fixture}: {e}"))?;
+            // `--bisect`: locate every responsive change between the narrowest and widest
+            // viewport to a single pixel by re-observation (INFERRED breakpoints).
+            let fixture_path = std::path::Path::new(&fixture);
+            let report = if rest.iter().any(|arg| arg == "--bisect") {
+                let narrow = viewports.iter().map(|v| v.0).min().unwrap_or(375);
+                let wide = viewports.iter().map(|v| v.0).max().unwrap_or(1280);
+                runtime::visual::bisect_breakpoints(fixture_path, narrow, wide, viewports[0].1)
+            } else {
+                runtime::visual::observe_fixture(fixture_path, &viewports)
+            }
+            .map_err(|e| format!("{fixture}: {e}"))?;
             let text = json(&report)? + "\n";
             if let Some(out) = value(rest, "--out")? {
                 write_report_to_out(&out, &text)?;

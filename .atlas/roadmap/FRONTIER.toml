@@ -215,11 +215,11 @@ capability = "sandboxed, reproducible observation of public/authorized pages: DO
 state = "PARTIAL"
 atlas_implementation = "core::visual observation records + adapter::browser hermetic Playwright/Chromium instrument (every request but the subject aborted, fresh context per viewport) + runtime::visual::observe_fixture (subject digested before/after) + atlas-systemizer observe (ADR 0011); LOCAL_FIXTURE authorization only"
 donors = ["Playwright (Apache-2.0)", "rrweb (MIT)"]
-blocking_question = "v1 observes static layout at chosen viewports; stimulus experiments (breakpoint bisection, hover/click/scroll, frame sampling) not yet implemented; public-URL subjects need an explicit authorization record"
+blocking_question = "static layout + viewport-width stimulus (bisection, ADR 0013) implemented; interaction stimuli (hover/click/scroll/keyboard) and frame sampling not yet; public-URL subjects need an explicit authorization record"
 evidence_required = "an atlas-systemizer observe command producing typed VisualObservation records over a local fixture"
 falsification = "re-observing the same fixture digest yields identical records; a changed fixture changes exactly the affected records"
 dependency_status = "Playwright/Chromium EXTERNAL_BOUNDARY (instrument), recorded as bootstrap"
-next_action = "browser as instrument: bisect viewport width to measure a responsive breakpoint (INFERRED point from DERIVED interval); then interaction stimuli"
+next_action = "interaction stimuli -> state graph (creator_interaction); frame sampling -> motion inference (creator_motion)"
 extinction_state = "n/a"
 
 [[lane]]
@@ -247,7 +247,7 @@ blocking_question = "which normalized relations are stable across viewports (wid
 evidence_required = "relations measured at >=2 viewports on fixtures with known CSS"
 falsification = "a fixture whose CSS encodes a known ratio must be recovered within measurement resolution"
 dependency_status = "none"
-next_action = "breakpoint bisection; relative spacing relations (vertical gap / font size between siblings)"
+next_action = "relative spacing relations (vertical gap / font size between siblings); container-query breakpoints"
 extinction_state = "n/a"
 
 [[lane]]

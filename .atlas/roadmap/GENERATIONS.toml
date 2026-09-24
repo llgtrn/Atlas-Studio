@@ -13,7 +13,7 @@
 #       -> generation evidence -> G_n+1
 
 schema = "atlas.self-build.generation-ledger.v1"
-current_generation = "G44"
+current_generation = "G45"
 
 [[generation]]
 id = "G35"
@@ -381,6 +381,7 @@ id = "G44"
 base_commit = "cd9a15ba976ddea7cc034db8024cebbb6453b176"
 objective = "physical milestone 1: declared 2-link arm -> Physical IR -> kinematic model -> requirement verdicts (digital only)"
 writer = "coordinator (sole production writer)"
+result_commits = ["3ba7357e3eea2ec5ff2aae9f722fc3461d78f4f6"]
 evidence = ".atlas/decisions/0012-planar-arm-physical-model.md"
 
 [generation.join]
@@ -395,4 +396,18 @@ evidence_level = "SEMANTIC_MODEL"
 
 [generation.next]
 objective = "G45: Creator browser-as-instrument (breakpoint bisection -> INFERRED breakpoint); physical milestone 2 (motor + gear ratio + current + rail: cross-domain contradiction detection)"
+
+[[generation]]
+id = "G45"
+base_commit = "3ba7357e3eea2ec5ff2aae9f722fc3461d78f4f6"
+objective = "browser as a measuring instrument: locate responsive breakpoints by controlled re-observation"
+writer = "coordinator (sole production writer)"
+evidence = ".atlas/decisions/0013-browser-as-instrument-breakpoint-bisection.md"
+
+[generation.verification]
+falsification = "2 mutants killed (8 px stopping precision; inverted probe decision)"
+production_path = "atlas-systemizer observe --bisect on the editorial fixture: 5 rules at exactly (699, 700) in 10 probes; INFERRED with the monotone-transition assumption"
+
+[generation.next]
+objective = "G46: physical milestone 2 -- motor + gear ratio + current + power rail on the declared arm: cross-domain contradiction detection with exact quantities"
 

@@ -4,8 +4,9 @@
 use atlas_core::{
     EpistemicStatus, IntegrityDigest,
     visual::{
-        ElementObservation, ObservationInstrument, VISUAL_OBSERVATION_SCHEMA, ViewportObservation,
-        VisualAnalysis, VisualObservationReport, VisualSubject, analyze,
+        ElementObservation, ObservationInstrument, ResponsiveChange, ResponsiveRule,
+        VISUAL_OBSERVATION_SCHEMA, ViewportObservation, VisualAnalysis, VisualObservationReport,
+        VisualSubject, analyze,
     },
 };
 use serde::{Deserialize, Serialize};
@@ -17,6 +18,24 @@ pub struct VisualReport {
     pub schema: String,
     pub observation: VisualObservationReport,
     pub analysis: VisualAnalysis,
+    /// Present when breakpoints were measured by bisection (`observe --bisect`).
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub breakpoints: Vec<InferredBreakpoint>,
+}
+
+/// A responsive change located by controlled experiment: the instrument observed the narrow state
+/// at `narrow_width` and the wide state at `wide_width = narrow_width + 1`. `INFERRED`, because
+/// locating it assumes the change is a single monotone transition between the two bracketing
+/// widths (true of CSS media/container queries; stated, not presumed silently).
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct InferredBreakpoint {
+    pub element: String,
+    pub change: ResponsiveChange,
+    pub narrow_width: u32,
+    pub wide_width: u32,
+    pub probes: usize,
+    pub status: EpistemicStatus,
+    pub assumption: String,
 }
 
 #[derive(Deserialize)]
@@ -126,7 +145,95 @@ pub fn observe_fixture(fixture: &Path, viewports: &[(u32, u32)]) -> io::Result<V
         schema: "atlas.visual-report.v1".into(),
         observation,
         analysis,
+        breakpoints: Vec::new(),
     })
+}
+
+/// Width-indexed single-viewport observations of one subject, all required to share its digest.
+struct Probes<'a> {
+    fixture: &'a Path,
+    height: u32,
+    digest: Option<IntegrityDigest>,
+    by_width: BTreeMap<u32, ViewportObservation>,
+    base: Option<VisualObservationReport>,
+}
+
+impl Probes<'_> {
+    fn at(&mut self, width: u32) -> io::Result<ViewportObservation> {
+        if let Some(observed) = self.by_width.get(&width) {
+            return Ok(observed.clone());
+        }
+        let report = observe_fixture(self.fixture, &[(width, self.height)])?;
+        let digest = report.observation.subject.content_digest.clone();
+        if *self.digest.get_or_insert(digest.clone()) != digest {
+            return Err(io::Error::other(
+                "observation subject changed between bisection probes",
+            ));
+        }
+        let viewport = report.observation.viewports[0].clone();
+        self.base.get_or_insert(report.observation);
+        self.by_width.insert(width, viewport.clone());
+        Ok(viewport)
+    }
+
+    /// Whether `rule`'s change has already happened between `narrow` and `width`.
+    fn changed_by(&mut self, rule: &ResponsiveRule, width: u32) -> io::Result<bool> {
+        let narrow = self.at(rule.narrower)?;
+        let probe = self.at(width)?;
+        let mut pair = self.base.clone().expect("probed at least once");
+        pair.viewports = vec![narrow, probe];
+        Ok(analyze(&pair)
+            .responsive_rules
+            .iter()
+            .any(|candidate| candidate.element == rule.element && candidate.change == rule.change))
+    }
+}
+
+/// Observes `fixture` at `narrow` and `wide`, then locates every responsive change between them
+/// to a single pixel by bisection -- the browser as a measuring instrument: stimulus (viewport
+/// width) -> measurement (layout) -> inference (breakpoint).
+pub fn bisect_breakpoints(
+    fixture: &Path,
+    narrow: u32,
+    wide: u32,
+    height: u32,
+) -> io::Result<VisualReport> {
+    if narrow >= wide {
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidInput,
+            "bisection needs narrow < wide",
+        ));
+    }
+    let mut report = observe_fixture(fixture, &[(wide, height), (narrow, height)])?;
+    let mut probes = Probes {
+        fixture,
+        height,
+        digest: Some(report.observation.subject.content_digest.clone()),
+        by_width: BTreeMap::new(),
+        base: None,
+    };
+    for rule in report.analysis.responsive_rules.clone() {
+        let (mut lo, mut hi) = (rule.narrower, rule.wider);
+        let before = probes.by_width.len();
+        while hi - lo > 1 {
+            let mid = lo + (hi - lo) / 2;
+            if probes.changed_by(&rule, mid)? {
+                hi = mid;
+            } else {
+                lo = mid;
+            }
+        }
+        report.breakpoints.push(InferredBreakpoint {
+            element: rule.element.clone(),
+            change: rule.change.clone(),
+            narrow_width: lo,
+            wide_width: hi,
+            probes: probes.by_width.len() - before,
+            status: EpistemicStatus::Inferred,
+            assumption: "single monotone transition between the bracketing widths".into(),
+        });
+    }
+    Ok(report)
 }
 
 #[cfg(test)]
@@ -228,6 +335,29 @@ mod tests {
         assert_eq!(
             element.width, 100.0,
             "the sibling stylesheet (300px) must have been blocked"
+        );
+    }
+
+    #[test]
+    fn bisection_measures_the_fixture_breakpoint_to_the_pixel() {
+        if adapter::browser::playwright_module().is_none() {
+            eprintln!("SKIP: no Playwright browser instrument in this environment");
+            return;
+        }
+        // The fixture's CSS: `@media (max-width: 699px)` -> narrow state up to 699, wide from 700.
+        let report = bisect_breakpoints(&fixture(), 375, 1280, 800).unwrap();
+        assert!(report.breakpoints.len() >= 3, "{:?}", report.breakpoints);
+        for breakpoint in &report.breakpoints {
+            assert_eq!(
+                (breakpoint.narrow_width, breakpoint.wide_width),
+                (699, 700),
+                "{breakpoint:?}"
+            );
+            assert_eq!(breakpoint.status, EpistemicStatus::Inferred);
+        }
+        assert!(
+            report.breakpoints.iter().map(|b| b.probes).sum::<usize>() <= 12,
+            "probes are cached and shared across rules"
         );
     }
 
