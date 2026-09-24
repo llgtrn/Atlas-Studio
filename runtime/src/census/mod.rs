@@ -488,7 +488,15 @@ pub fn build_census(
                     .cmp(b.raw_observation_id().as_str())
             })
     });
-    typed_semantic_records.dedup_by(|a, b| a.raw_observation_id() == b.raw_observation_id());
+    // `raw_observation_id()` is a bare 64-bit FNV-1a hash of attacker-influenced content -- a
+    // non-cryptographic hash with no collision-resistance guarantee against a deliberately
+    // adversarial donor repository. Hash equality alone is a fast pre-filter, never sufficient
+    // proof of "genuinely identical" on its own: verifying full struct equality alongside it
+    // (`SemanticObservation` already derives `PartialEq`) makes this comparator strictly MORE
+    // conservative than before -- it can only prevent an unsound merge a hash collision would
+    // have caused, never merge two records the old hash-only check would not have.
+    typed_semantic_records
+        .dedup_by(|a, b| a.raw_observation_id() == b.raw_observation_id() && a == b);
     let evidence: Vec<Evidence> = evidence_by_id.into_values().collect();
     let diagnostics: Vec<ExtractionDiagnostic> = diagnostics_by_id.into_values().collect();
 

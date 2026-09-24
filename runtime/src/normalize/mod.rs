@@ -43,7 +43,18 @@ fn normalize_typed_records(records: &[SemanticObservation]) -> (Vec<SemanticObse
                     .cmp(b.raw_observation_id().as_str())
             })
     });
-    normalized.dedup_by(|a, b| a.raw_observation_id() == b.raw_observation_id());
+    // `raw_observation_id()` is a bare 64-bit FNV-1a hash of attacker-influenced content (a
+    // donor repository's own file paths, symbol names, and source text all feed it) -- a
+    // non-cryptographic hash with no collision-resistance guarantee against a deliberately
+    // adversarial input. Hash equality alone is a fast pre-filter, never sufficient proof of the
+    // "byte-identical raw observation" this function's own doc comment promises: two GENUINELY
+    // different observations that happen to collide would otherwise be silently merged here,
+    // losing one's evidence with no diagnostic -- exactly the "one extractor may not overwrite
+    // another" guarantee this dedup exists to protect. Verifying full struct equality alongside
+    // the hash (`SemanticObservation` already derives `PartialEq`) makes this comparator strictly
+    // MORE conservative than before -- it can only prevent an unsound merge a hash collision
+    // would have caused, never merge two records the old hash-only check would not have.
+    normalized.dedup_by(|a, b| a.raw_observation_id() == b.raw_observation_id() && a == b);
     let exact_duplicates_merged = input_len - normalized.len();
     (normalized, exact_duplicates_merged)
 }
@@ -205,6 +216,61 @@ mod tests {
         SemanticDimension, SemanticFact, SemanticFactKind, SemanticRecordHeader, SemanticRecordId,
         SemanticScope, SymbolIdentity, SymbolRole, provenance,
     };
+
+    #[test]
+    fn a_dedup_comparator_requiring_both_hash_and_full_equality_never_merges_a_hash_collision() {
+        // `normalize_typed_records`'s real dedup comparator is
+        // `a.raw_observation_id() == b.raw_observation_id() && a == b` -- `raw_observation_id()`
+        // is a bare, non-cryptographic 64-bit FNV-1a hash of attacker-influenced content (a
+        // donor repository's own file paths, symbol names, and source text all feed it), so hash
+        // equality alone is only a fast pre-filter, never proof of "byte-identical" on its own.
+        // Actually constructing two real `SemanticObservation`s with a genuine FNV-1a-64
+        // collision is computationally infeasible inside a fast unit test (a generic birthday
+        // attack needs on the order of 2^32 hash evaluations) -- that infeasibility for a CI test
+        // is exactly what makes it a real, if resource-intensive, concern for a deliberately
+        // adversarial donor repository rather than something accidentally reachable. This test
+        // instead falsifies the underlying dedup PATTERN the real fix mechanically applies to
+        // `SemanticObservation`, using a toy type with a deliberately forced hash collision.
+        #[derive(Clone, PartialEq, Debug)]
+        struct Item {
+            hash: u64,
+            content: &'static str,
+        }
+
+        let mut colliding = vec![
+            Item {
+                hash: 1,
+                content: "alpha",
+            },
+            Item {
+                hash: 1,
+                content: "beta",
+            }, // same hash, genuinely different content -- a simulated collision
+        ];
+        colliding.dedup_by(|a, b| a.hash == b.hash && a == b);
+        assert_eq!(
+            colliding.len(),
+            2,
+            "a hash collision between genuinely different content must never cause a merge"
+        );
+
+        let mut identical = vec![
+            Item {
+                hash: 1,
+                content: "alpha",
+            },
+            Item {
+                hash: 1,
+                content: "alpha",
+            },
+        ];
+        identical.dedup_by(|a, b| a.hash == b.hash && a == b);
+        assert_eq!(
+            identical.len(),
+            1,
+            "genuinely identical content must still collapse, exactly as before this fix"
+        );
+    }
 
     fn symbol_observation(
         name: &str,
