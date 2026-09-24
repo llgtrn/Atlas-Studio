@@ -1,0 +1,49 @@
+{
+  "schema": "atlas.self-build.generation-evidence.v1",
+  "wave": "SELF-HOSTING -- extend donor-corpus.toml's own hand-rolled integrity checks to license paths, the same dangling-reference discipline already applied to evidence paths",
+  "wave_title": "Direct self-investigation, prompted by noticing donor-corpus.toml has a `license = [...]` array field (73 real file-path entries across the corpus) that the existing `donor_corpus_integrity` test module's `DonorEntry` struct never parsed or verified at all -- an exact structural sibling of the `evidence` field this session already formalized a permanent check for, left unchecked.",
+  "priority_classification": "self-hosting / verification blindness -- `.atlas/licenses/` exists specifically to track real legal/provenance obligations for absorbed donor content; a dangling license-path reference would be an unverifiable legal claim of exactly the kind this repository's own donor-absorption discipline already forbids for evidence, just never enforced for licenses.",
+  "empirical_check_before_implementing": "Wrote a precise (non-regex-naive) Python script mirroring the donor-corpus.toml array-parsing shape to extract every array-form `license = [...]` path across the whole file (handling both single-line and the `zed` entry's own multi-line array) before writing any Rust code: found 73 real license-file-path references, zero missing. This repository's own `.atlas/licenses/` corpus is already complete and correct today -- this generation formalizes a permanent guard against future drift, not a currently-known defect.",
+  "design_decisions": [
+    {
+      "question": "donor-corpus.toml declares `license` two different ways: an array of real vendored file paths (most donors) or a bare SPDX identifier string (`license = \"MIT\"`, for donors recorded without vendored license files). How should the parser and the new test handle the string form?",
+      "decision": "The parser only recognizes and captures the array form (`license = [`); a bare string-form `license = \"...\"` line is left unhandled by design (falls through to the parser's own no-op line-skip), never misread as a path to check. The new test explicitly asserts `checked > 0` (at least one real file-path array was found) rather than asserting every donor has a non-empty `license` Vec -- unlike `evidence`, where every donor is required to cite at least one real file, a donor legitimately recorded via the SPDX-string shorthand has zero paths to verify, and that is not itself a defect this generation is scoped to fix."
+    },
+    {
+      "question": "Duplicate the `evidence` field's own multi-line-array-consuming loop for `license`, or extract a shared helper?",
+      "decision": "Extracted `parse_quoted_array(lines, i, rest)`, a shared helper both the `evidence` and `license` array-parsing branches now call. The two fields' array shapes are identical (single-line or multi-line, one quoted path per line, closed by a bare `]`); duplicating the loop a second time would have reintroduced the exact 'two copies drift apart' risk this session has fixed in other forms multiple times already (e.g. CONCURRENCY's Call-vs-MethodCall asymmetry)."
+    }
+  ],
+  "stable_validator_law_compliance": {
+    "claim": "Every donor's `license` field, when declared as a real file-path array, has every one of its paths verified to exist on disk, using the exact same dangling-reference discipline already proven correct for `evidence`. A donor using the bare-SPDX-string shorthand is correctly excluded from path verification, never misread or silently skipped by accident.",
+    "self_written_evidence": "New test `every_donor_license_path_that_is_a_file_reference_exists_on_disk` in `runtime/src/lib.rs`'s existing `donor_corpus_integrity` module. Falsified directly against the REAL data file (not a synthetic fixture): temporarily corrupted one real license path in `.atlas/references/donor-corpus.toml` (backed up first via `cp`), re-ran the test, confirmed it failed with the exact expected dangling-reference message naming the corrupted donor and path, then restored the file from the backup and confirmed via `git diff --stat` that it is byte-for-byte unchanged before re-running to confirm clean.",
+    "independent_evidence_channel": "cargo build --workspace clean. cargo fmt --all --check clean. cargo clippy --workspace --all-targets -D warnings clean, zero warnings. Full cargo test --workspace: 289 adapter, 3 apps/cli, 165 core, 77 runtime (+1 net) -- 534 total, 0 failed. `docs audit`: gate_ready true. `git status --short` after the falsification-and-restore cycle showed only the intended `runtime/src/lib.rs` change, confirming the temporary real-data-file edit left no trace.",
+    "no_circular_self_certification": true
+  },
+  "implementation": {
+    "runtime_change": "runtime/src/lib.rs -- `DonorEntry` gained a `license: Vec<String>` field; a new shared `parse_quoted_array` helper (extracted from the pre-existing `evidence`-parsing loop) is now used by both the `evidence = [` and new `license = [` array-parsing branches in `parse_donor_corpus`; `load_entries`'s own self-consistency assertion (parsed entry count vs. raw `[[donor]]` block count) is unaffected. New test `every_donor_license_path_that_is_a_file_reference_exists_on_disk`."
+  },
+  "adversarial_and_falsification_coverage": [
+    "verified the check empirically against real data via an independent Python script BEFORE writing any Rust code, cross-validating the eventual Rust test's own clean result rather than trusting a first green run alone",
+    "falsified directly against the REAL donor-corpus.toml (not a synthetic fixture), with an explicit backup/restore/diff-verify cycle to guarantee zero lasting change to real repository data from the falsification step itself",
+    "explicitly distinguished 'no paths to check' (a donor using the SPDX-string shorthand, correctly excluded) from 'a dangling path' (a real defect), avoiding both a false-negative (silently treating a string-form license as if it had zero required paths, which is correct) and a false-positive (misreading the string as a path)"
+  ],
+  "validation_this_generation": {
+    "commands": {
+      "cargo build --workspace": { "exit_code": 0 },
+      "cargo fmt --all --check": { "exit_code": 0 },
+      "cargo clippy --workspace --all-targets -- -D warnings": { "exit_code": 0, "warnings": 0 },
+      "cargo test --workspace": { "exit_code": 0, "totals": "289 adapter, 3 apps/cli, 165 core, 77 runtime (+1 net) -- 534 total, 0 failed" },
+      "independent Python script cross-check of donor-corpus.toml's own real license paths": { "result": "73 real paths, 0 missing" },
+      "cargo run -q -p atlas-cli -- docs audit --root .atlas": { "exit_code": 0, "gate_ready": true }
+    }
+  },
+  "recensus_scope_after_promotion": [
+    "no prior CLOSED/EXTINCT conclusion is affected",
+    "donor-corpus.toml's own hand-maintained evidence trail is now checked for BOTH `evidence` and `license` array-form paths -- closing this specific pair completely for the fields that use the file-path-array shape",
+    "the string-form `license = \"SPDX-id\"` shorthand itself (used by several later donors) is not verified against anything (there is no canonical SPDX-identifier validity list checked) -- named as a smaller, lower-priority candidate for a future generation, not acted on here since it would be a new kind of check, not an extension of the existing dangling-reference pattern this generation applies",
+    "the general lesson from this and several prior donor-corpus-integrity generations (a hand-maintained TOML reference file's own fields drift out of sync with what's actually verified one field at a time) remains available for any other unverified field on `[[donor]]` blocks not examined this generation"
+  ],
+  "overall_verdict": "FORMALIZED AND VERIFIED. donor-corpus.toml's `license` field (73 real file-path references across the corpus) now has the same permanent dangling-reference check `evidence` already had, closing a real structural asymmetry between two sibling fields. Confirmed clean today via an independent cross-check, and confirmed the new test's own falsification directly against the real data file with a verified no-trace restore. Full workspace suite (534 tests) passing, gate_ready true.",
+  "historical_evidence_retained": true
+}

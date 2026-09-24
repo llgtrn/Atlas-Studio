@@ -823,6 +823,7 @@ mod tests {
         struct DonorEntry {
             id: String,
             evidence: Vec<String>,
+            license: Vec<String>,
         }
 
         /// Hand-rolled, deliberately narrow parse: extracts only the first `id = "..."` line and
@@ -848,10 +849,30 @@ mod tests {
             }
         }
 
+        /// Consumes a `key = [...]` array starting at `lines[i]` (already confirmed to start with
+        /// `prefix`), which may be single-line (the common case) or span multiple lines -- one
+        /// quoted path per line, closed by a bare `]` -- like the `zed`/`evidence` and
+        /// `zed`/`license` entries' own arrays. Returns the parsed paths and the index of the line
+        /// after the array's close.
+        fn parse_quoted_array(lines: &[&str], i: usize, rest: &str) -> (Vec<String>, usize) {
+            let mut paths = Vec::new();
+            extract_quoted_strings(rest, &mut paths);
+            let mut closed = rest.contains(']');
+            let mut j = i;
+            while !closed && j + 1 < lines.len() {
+                j += 1;
+                let next = lines[j].trim();
+                extract_quoted_strings(next, &mut paths);
+                closed = next.contains(']');
+            }
+            (paths, j + 1)
+        }
+
         fn parse_donor_corpus(text: &str) -> Vec<DonorEntry> {
             let mut entries = Vec::new();
             let mut current_id: Option<String> = None;
             let mut current_evidence: Vec<String> = Vec::new();
+            let mut current_license: Vec<String> = Vec::new();
             let mut in_block = false;
 
             let lines: Vec<&str> = text.lines().collect();
@@ -863,6 +884,7 @@ mod tests {
                         entries.push(DonorEntry {
                             id,
                             evidence: std::mem::take(&mut current_evidence),
+                            license: std::mem::take(&mut current_license),
                         });
                     }
                     in_block = true;
@@ -881,23 +903,23 @@ mod tests {
                     i += 1;
                     continue;
                 }
-                // `evidence = [...]` may be single-line (the common case) or, like the `zed`
-                // entry's own array, span multiple lines -- one quoted path per line, closed by a
-                // bare `]`. Keep consuming lines until the closing bracket is seen, rather than
-                // assuming every array fits on its opening line.
                 if let Some(rest) = trimmed.strip_prefix("evidence = [") {
-                    let mut paths = Vec::new();
-                    extract_quoted_strings(rest, &mut paths);
-                    let mut closed = rest.contains(']');
-                    let mut j = i;
-                    while !closed && j + 1 < lines.len() {
-                        j += 1;
-                        let next = lines[j].trim();
-                        extract_quoted_strings(next, &mut paths);
-                        closed = next.contains(']');
-                    }
+                    let (paths, next_i) = parse_quoted_array(&lines, i, rest);
                     current_evidence = paths;
-                    i = j + 1;
+                    i = next_i;
+                    continue;
+                }
+                // `license` is declared two ways across this file: an array of real, vendored
+                // license-file paths (most donors, checked below), or a bare SPDX identifier
+                // string (`license = "MIT"`, a label only, no file to verify) for donors recorded
+                // without vendored license files. Only the array form is parsed here; the bare
+                // string form is intentionally left unhandled (it falls through to the final
+                // `i += 1` below) -- there is no path to check, and misreading it as a path list
+                // would fabricate evidence this parser cannot verify.
+                if let Some(rest) = trimmed.strip_prefix("license = [") {
+                    let (paths, next_i) = parse_quoted_array(&lines, i, rest);
+                    current_license = paths;
+                    i = next_i;
                     continue;
                 }
                 i += 1;
@@ -906,6 +928,7 @@ mod tests {
                 entries.push(DonorEntry {
                     id,
                     evidence: current_evidence,
+                    license: current_license,
                 });
             }
             entries
@@ -970,6 +993,40 @@ mod tests {
                     );
                 }
             }
+        }
+
+        /// The same dangling-reference discipline `every_donor_has_at_least_one_evidence_path_
+        /// and_every_path_exists` already applies to `evidence`, applied to `license` -- a
+        /// real, separate legal/provenance obligation (`.atlas/licenses/`), not previously checked
+        /// at all: `DonorEntry` had no `license` field until this generation. Only the array-of-
+        /// file-paths form is checked here (most donors); a bare SPDX-string `license = "MIT"`
+        /// entry has no file path to verify and is correctly excluded by the parser itself, not
+        /// silently skipped by this test. Confirmed clean today (73 real license paths, zero
+        /// dangling) -- this closes a real, previously-unverified blind spot, not a currently-known
+        /// defect.
+        #[test]
+        fn every_donor_license_path_that_is_a_file_reference_exists_on_disk() {
+            let root = workspace_root();
+            let entries = load_entries();
+            let mut checked = 0usize;
+            for entry in &entries {
+                for path in &entry.license {
+                    checked += 1;
+                    assert!(
+                        root.join(path).exists(),
+                        "donor `{}`'s license path `{}` does not exist on disk -- a dangling \
+                         license reference is exactly the kind of unverifiable legal/provenance \
+                         claim this repository's own donor-absorption discipline forbids",
+                        entry.id,
+                        path
+                    );
+                }
+            }
+            assert!(
+                checked > 0,
+                "expected at least one donor to declare its license as a real file-path array \
+                 (most donors do) -- zero checked means this test's own parsing has drifted"
+            );
         }
 
         /// The reverse direction of the check above: every real, on-disk Technology Genome
