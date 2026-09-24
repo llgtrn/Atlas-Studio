@@ -1,0 +1,48 @@
+{
+  "schema": "atlas.self-build.generation-evidence.v1",
+  "wave": "RECENSUS -- generalize the just-fixed CONCURRENCY defect into a systematic check: does any OTHER walker check a free/path Call for something its own MethodCall arm doesn't (or vice versa), absent a documented, principled reason?",
+  "wave_title": "The prior generation fixed a real bug in concurrency.rs: Spawn detection checked Expr::Call but not Expr::MethodCall, despite the module's own doc comment already claiming both were covered. This generation generalizes the check beyond that one exact doc-comment phrasing ('function or method') to the underlying STRUCTURAL question -- Call/MethodCall asymmetry -- across every remaining walker, to confirm the fix wasn't a one-off patch over a wider, unexamined pattern.",
+  "priority_classification": "correctness (priority 1) -- direct generalization of a just-confirmed real defect class to its full scope, rather than treating the single fixed instance as the whole of the investigation.",
+  "method": "for each walker, read the actual Call and MethodCall match arms side by side and asked: does either shape perform a check or emission the other does not, and if so, is that asymmetry EXPLICITLY reasoned about somewhere (a doc comment, this session's own evidence record), or merely present with no stated justification?",
+  "findings": [
+    {
+      "walker": "ownership.rs (R4.9)",
+      "result": "SYMMETRIC BY DESIGN, ALREADY VERIFIED -- neither Call nor MethodCall attempts any spelling-based classification at all; OWNERSHIP only cares about bare-identifier value positions and &/&mut sites, both orthogonal to call shape. No asymmetry possible here since neither arm does spelling-based work."
+    },
+    {
+      "walker": "persistence.rs (R4.11)",
+      "result": "ALREADY SYMMETRIC -- Expr::Call checks persistence_candidate_kind(&call.func) (a free/path spelling); Expr::MethodCall checks persistence_kind_for_spelling(&method_call.method.to_string()) (a bare method-name spelling) using the SAME shared closed spelling set (persistence_kind_for_spelling), explicitly factored out for exactly this reason per its own doc comment ('the SAME recognizer ... factored out to guarantee the two ... cannot silently drift apart', originally written for a different pair of walkers but the same discipline applies here to Call vs MethodCall). No gap found -- this was the correct reference example the CONCURRENCY fix should (and now does) match."
+    },
+    {
+      "walker": "effect.rs (R4.8)",
+      "result": "ASYMMETRIC, BUT DELIBERATE AND ALREADY DOCUMENTED -- Expr::Call checks effect_kind_for_free_call_spelling (fs/File/Command/TcpStream/TcpListener/UnixStream/UnixListener qualifiers); Expr::MethodCall performs no check at all. This asymmetry has an explicit, principled, already-recorded reason (this session's own prior evidence records): a bare method name carries no qualifying module/type, making it far more likely to collide with an unrelated type's own identically-named method, unlike a free/path call's explicit qualifier. Confirmed this reasoning is sound and was actually applied consistently (not merely asserted) by re-reading the module's own doc comment and the three prior evidence records that established it."
+    },
+    {
+      "walker": "mod.rs / CALL (R4.5)",
+      "result": "SYMMETRIC BY DESIGN -- CALL's own declared purpose is to record every call site regardless of shape; Expr::Call and Expr::MethodCall are explicitly grouped together (`syn::Expr::Call(_) | syn::Expr::MethodCall(_)`) at the two call sites that matter for its own bespoke logic (visibility-boundary tracking and dispatch-kind determination), confirming they are already treated as one shared case, not two independently-maintained ones."
+    },
+    {
+      "walker": "concurrency.rs (R4.10)",
+      "result": "FIXED LAST GENERATION -- the one real asymmetry found this sweep, already closed."
+    }
+  ],
+  "stable_validator_law_compliance": {
+    "claim": "No walker other than concurrency.rs (already fixed) has an unexplained Call-vs-MethodCall asymmetry.",
+    "self_written_evidence": "Read every walker's actual Call and MethodCall arms side by side, not inferred from architecture alone; for the one deliberate asymmetry found (EFFECT), traced it back to this session's own prior evidence records to confirm the stated reasoning was genuinely applied, not merely asserted after the fact.",
+    "independent_evidence_channel": "No code changed this generation, so the existing validation (504 tests, fmt/clippy clean, confirmed at commit bf001ce154) remains the current, unmodified baseline.",
+    "no_circular_self_certification": true
+  },
+  "implementation": {
+    "code_change": "NONE -- this generation's investigation confirmed the CONCURRENCY fix was the complete scope of this defect class across all seven walkers, not a symptom of a wider unaddressed pattern."
+  },
+  "adversarial_and_falsification_coverage": [
+    "checked every remaining walker, not a sample, for the generalized structural question rather than only the exact doc-comment phrasing that surfaced the original bug",
+    "for the one found asymmetry (EFFECT) that is NOT a bug, verified the justification against this session's own prior written record rather than accepting it on the current generation's own say-so"
+  ],
+  "recensus_scope_after_promotion": [
+    "no prior CLOSED/EXTINCT conclusion is affected -- no code changed",
+    "closes the prior generation's own recorded open question ('worth a future census ... whether any OTHER walker's doc comment makes a similar function-or-method claim') more thoroughly than originally scoped, by checking the underlying structural pattern rather than only the exact phrase"
+  ],
+  "overall_verdict": "NO FURTHER DEFECT FOUND. The Call-vs-MethodCall asymmetry defect class is now confirmed fully closed across all seven Rust semantic walkers: one real instance (CONCURRENCY) found and fixed the prior generation; every other walker's own asymmetry (or lack thereof) is either structurally impossible (OWNERSHIP), already symmetric by an explicitly shared recognizer (PERSISTENCE, CALL), or deliberate and independently verified against this session's own prior reasoning (EFFECT).",
+  "historical_evidence_retained": true
+}
