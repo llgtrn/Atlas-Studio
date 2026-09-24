@@ -1,0 +1,1494 @@
+{
+  "schema": "atlas.self-build.generation-evidence.v1",
+  "generation": "G53",
+  "base_commit": "4f6f03e7ea58665261681b9483cacef37754b519",
+  "claim": "RECOMMENDED-OSS-FRONTIER.toml materializes every named project recorded in this repository as one [[repository]] per canonical remote URL (146), with ecosystems, subtree aliases and non-repository names kept separate",
+  "epistemic_status": "OBSERVED (remote heads, upstream license files) + DERIVED (normalization, counts)",
+  "method": {
+    "name_extraction": "three parallel read-only lanes extracted every explicitly named project, each backed by an exact quote, from the user directives in the generation history (FUTURIST; CREATOR+PHYSICAL; earlier semantic-language and W3 directives)",
+    "repository_sources": [
+      ".atlas/references/donor-corpus.toml",
+      ".atlas/roadmap/frontier/requested-frontier-2026-09-24.tsv",
+      ".atlas/roadmap/frontier/creator-frontier-2026-09-24.tsv",
+      ".atlas/roadmap/frontier/physical-frontier-2026-09-24.tsv"
+    ],
+    "verification": "git ls-remote <canonical_url> HEAD for every repository on 2026-09-24; licenses of the two repositories with none recorded (moby, cargo) read from upstream license files"
+  },
+  "honest_findings": [
+    "the reconstructed 119 is not reproducible from repository evidence; the repo-exact total is 146 (see [reconciliation])",
+    "QBE canonical git:// remote does not answer; https://c9x.me/git/qbe.git does (same head as the GitHub mirror)",
+    "mlir and llvm-project are two corpus records over one repository",
+    "8 higgsfield-ai repositories and 2 unlicensed community clones were investigated but are EXCLUDED, never donors"
+  ],
+  "falsification": "11 mutants of the frontier file killed by recommended_frontier_is_repo_exact_and_counted: duplicate-by-case URL, short head, dropped corpus id, extinct marked admitted, lifecycle count off, total off (119), unlisted ecosystem member, working_set inconsistent with lifecycle, dropped repository, lane-only count off, non-https remote",
+  "extraction": {
+    "futurist": [
+      {
+        "name": "LLVM",
+        "joined_with": [
+          "MLIR"
+        ],
+        "section": "4. UNIVERSAL IR / COMPILER / LOWERING LANE",
+        "stated_role": "admit/census",
+        "quote": "LLVM / MLIR"
+      },
+      {
+        "name": "MLIR",
+        "joined_with": [
+          "LLVM"
+        ],
+        "section": "4. UNIVERSAL IR / COMPILER / LOWERING LANE",
+        "stated_role": "admit/census",
+        "quote": "LLVM / MLIR"
+      },
+      {
+        "name": "Cranelift",
+        "section": "4. UNIVERSAL IR / COMPILER / LOWERING LANE",
+        "stated_role": "admit/census",
+        "quote": "Cranelift"
+      },
+      {
+        "name": "QBE",
+        "section": "4. UNIVERSAL IR / COMPILER / LOWERING LANE",
+        "stated_role": "admit/census",
+        "quote": "QBE or similarly compact compiler backends"
+      },
+      {
+        "name": "WebAssembly",
+        "section": "4. UNIVERSAL IR / COMPILER / LOWERING LANE",
+        "stated_role": "already present",
+        "quote": "WebAssembly specifications / runtimes already present"
+      },
+      {
+        "name": "Tree-sitter",
+        "section": "5. MULTI-LANGUAGE FRONT-END LANE",
+        "stated_role": "admit/census",
+        "quote": "Tree-sitter"
+      },
+      {
+        "name": "rust-analyzer",
+        "section": "5. MULTI-LANGUAGE FRONT-END LANE",
+        "stated_role": "already present",
+        "quote": "rust-analyzer"
+      },
+      {
+        "name": "Z3",
+        "section": "6. FORMAL LOGIC / PROOF / CONSTRAINT LANE",
+        "stated_role": "admit/census",
+        "quote": "Z3"
+      },
+      {
+        "name": "cvc5",
+        "section": "6. FORMAL LOGIC / PROOF / CONSTRAINT LANE",
+        "stated_role": "contrasting reference",
+        "quote": "Use as an independent contrasting solver donor/reference."
+      },
+      {
+        "name": "Lean",
+        "section": "6. FORMAL LOGIC / PROOF / CONSTRAINT LANE",
+        "stated_role": "admit/census",
+        "quote": "Lean"
+      },
+      {
+        "name": "Coq",
+        "joined_with": [
+          "Rocq"
+        ],
+        "section": "6. FORMAL LOGIC / PROOF / CONSTRAINT LANE",
+        "stated_role": "admit/census",
+        "quote": "Coq / Rocq"
+      },
+      {
+        "name": "Rocq",
+        "joined_with": [
+          "Coq"
+        ],
+        "section": "6. FORMAL LOGIC / PROOF / CONSTRAINT LANE",
+        "stated_role": "admit/census",
+        "quote": "Coq / Rocq"
+      },
+      {
+        "name": "TLA+",
+        "joined_with": [
+          "TLC",
+          "Apalache"
+        ],
+        "section": "6. FORMAL LOGIC / PROOF / CONSTRAINT LANE",
+        "stated_role": "admit/census",
+        "quote": "TLA+ / TLC / Apalache"
+      },
+      {
+        "name": "TLC",
+        "joined_with": [
+          "TLA+",
+          "Apalache"
+        ],
+        "section": "6. FORMAL LOGIC / PROOF / CONSTRAINT LANE",
+        "stated_role": "admit/census",
+        "quote": "TLA+ / TLC / Apalache"
+      },
+      {
+        "name": "Apalache",
+        "joined_with": [
+          "TLA+",
+          "TLC"
+        ],
+        "section": "6. FORMAL LOGIC / PROOF / CONSTRAINT LANE",
+        "stated_role": "admit/census",
+        "quote": "TLA+ / TLC / Apalache"
+      },
+      {
+        "name": "Nix",
+        "section": "7. HERMETIC CONSTRUCTION / REPRODUCIBLE BUILD LANE",
+        "stated_role": "admit/census",
+        "quote": "Nix"
+      },
+      {
+        "name": "Bazel",
+        "section": "7. HERMETIC CONSTRUCTION / REPRODUCIBLE BUILD LANE",
+        "stated_role": "admit/census",
+        "quote": "Bazel"
+      },
+      {
+        "name": "Buck2",
+        "section": "7. HERMETIC CONSTRUCTION / REPRODUCIBLE BUILD LANE",
+        "stated_role": "already present",
+        "quote": "Already in W3 if present."
+      },
+      {
+        "name": "Git",
+        "section": "7. HERMETIC CONSTRUCTION / REPRODUCIBLE BUILD LANE",
+        "stated_role": "admit/census",
+        "quote": "Git internals"
+      },
+      {
+        "name": "Firecracker",
+        "section": "8. SANDBOX / ISOLATION LANE",
+        "stated_role": "admit/census",
+        "quote": "Firecracker"
+      },
+      {
+        "name": "Docker",
+        "section": "8. SANDBOX / ISOLATION LANE",
+        "stated_role": "contrasting reference",
+        "quote": "Study mechanisms rather than assuming Docker itself is the final architecture."
+      },
+      {
+        "name": "Wasmtime",
+        "joined_with": [
+          "WASI"
+        ],
+        "section": "8. SANDBOX / ISOLATION LANE",
+        "stated_role": "already present",
+        "quote": "Wasmtime / WASI"
+      },
+      {
+        "name": "WASI",
+        "joined_with": [
+          "Wasmtime"
+        ],
+        "section": "8. SANDBOX / ISOLATION LANE",
+        "stated_role": "already present",
+        "quote": "Wasmtime / WASI"
+      },
+      {
+        "name": "in-toto",
+        "section": "9. PROVENANCE / SUPPLY-CHAIN LANE",
+        "stated_role": "admit/census",
+        "quote": "in-toto"
+      },
+      {
+        "name": "SLSA",
+        "section": "9. PROVENANCE / SUPPLY-CHAIN LANE",
+        "stated_role": "admit/census",
+        "quote": "SLSA concepts/reference implementations"
+      },
+      {
+        "name": "Sigstore",
+        "section": "9. PROVENANCE / SUPPLY-CHAIN LANE",
+        "stated_role": "admit/census",
+        "quote": "Sigstore ecosystem where relevant"
+      },
+      {
+        "name": "OpenTelemetry",
+        "section": "10. OBSERVABILITY / SELF-MEASUREMENT LANE",
+        "stated_role": "admit/census",
+        "quote": "OpenTelemetry"
+      },
+      {
+        "name": "Stan",
+        "section": "11. PROBABILISTIC INTELLIGENCE / FUTURES LANE",
+        "stated_role": "admit/census",
+        "quote": "Stan"
+      },
+      {
+        "name": "Pyro",
+        "joined_with": [
+          "NumPyro"
+        ],
+        "section": "11. PROBABILISTIC INTELLIGENCE / FUTURES LANE",
+        "stated_role": "admit/census",
+        "quote": "Pyro / NumPyro"
+      },
+      {
+        "name": "NumPyro",
+        "joined_with": [
+          "Pyro"
+        ],
+        "section": "11. PROBABILISTIC INTELLIGENCE / FUTURES LANE",
+        "stated_role": "admit/census",
+        "quote": "Pyro / NumPyro"
+      },
+      {
+        "name": "BoTorch",
+        "section": "11. PROBABILISTIC INTELLIGENCE / FUTURES LANE",
+        "stated_role": "admit/census",
+        "quote": "BoTorch"
+      },
+      {
+        "name": "Ax",
+        "section": "11. PROBABILISTIC INTELLIGENCE / FUTURES LANE",
+        "stated_role": "admit/census",
+        "quote": "Ax"
+      },
+      {
+        "name": "pymoo",
+        "section": "11. PROBABILISTIC INTELLIGENCE / FUTURES LANE",
+        "stated_role": "example",
+        "quote": "- pymoo"
+      },
+      {
+        "name": "DEAP",
+        "section": "11. PROBABILISTIC INTELLIGENCE / FUTURES LANE",
+        "stated_role": "example",
+        "quote": "- DEAP or comparable systems"
+      },
+      {
+        "name": "MAP-Elites",
+        "section": "11. PROBABILISTIC INTELLIGENCE / FUTURES LANE",
+        "stated_role": "example",
+        "quote": "MAP-Elites-like search"
+      },
+      {
+        "name": "MiroFish",
+        "joined_with": [
+          "BettaFish"
+        ],
+        "section": "13. MULTI-AGENT FUTURES / SCENARIO SIMULATION LANE",
+        "stated_role": "admit/census",
+        "quote": "Admit/census MiroFish and BettaFish if their actual repositories and licenses justify inclusion."
+      },
+      {
+        "name": "BettaFish",
+        "joined_with": [
+          "MiroFish"
+        ],
+        "section": "13. MULTI-AGENT FUTURES / SCENARIO SIMULATION LANE",
+        "stated_role": "admit/census",
+        "quote": "Admit/census MiroFish and BettaFish if their actual repositories and licenses justify inclusion."
+      },
+      {
+        "name": "ROS 2",
+        "section": "14. PHYSICAL / ROBOTICS ENGINEERING LANE",
+        "stated_role": "admit/census",
+        "quote": "ROS 2"
+      },
+      {
+        "name": "ros2_control",
+        "section": "14. PHYSICAL / ROBOTICS ENGINEERING LANE",
+        "stated_role": "admit/census",
+        "quote": "ros2_control"
+      },
+      {
+        "name": "Drake",
+        "section": "14. PHYSICAL / ROBOTICS ENGINEERING LANE",
+        "stated_role": "admit/census",
+        "quote": "Drake"
+      },
+      {
+        "name": "Pinocchio",
+        "section": "14. PHYSICAL / ROBOTICS ENGINEERING LANE",
+        "stated_role": "admit/census",
+        "quote": "Pinocchio"
+      },
+      {
+        "name": "MuJoCo",
+        "section": "14. PHYSICAL / ROBOTICS ENGINEERING LANE",
+        "stated_role": "admit/census",
+        "quote": "MuJoCo"
+      },
+      {
+        "name": "Gazebo",
+        "section": "14. PHYSICAL / ROBOTICS ENGINEERING LANE",
+        "stated_role": "admit/census",
+        "quote": "Gazebo"
+      },
+      {
+        "name": "MoveIt",
+        "section": "14. PHYSICAL / ROBOTICS ENGINEERING LANE",
+        "stated_role": "admit/census",
+        "quote": "MoveIt"
+      },
+      {
+        "name": "PX4",
+        "joined_with": [
+          "ArduPilot"
+        ],
+        "section": "14. PHYSICAL / ROBOTICS ENGINEERING LANE",
+        "stated_role": "admit/census",
+        "quote": "PX4 and/or ArduPilot"
+      },
+      {
+        "name": "ArduPilot",
+        "joined_with": [
+          "PX4"
+        ],
+        "section": "14. PHYSICAL / ROBOTICS ENGINEERING LANE",
+        "stated_role": "admit/census",
+        "quote": "PX4 and/or ArduPilot"
+      },
+      {
+        "name": "Zephyr",
+        "section": "14. PHYSICAL / ROBOTICS ENGINEERING LANE",
+        "stated_role": "admit/census",
+        "quote": "Zephyr"
+      },
+      {
+        "name": "RISC-V",
+        "joined_with": [
+          "x86-64",
+          "ARM"
+        ],
+        "section": "22. FIRST MACHINE TARGET",
+        "stated_role": "example",
+        "quote": "Do not try x86-64 + ARM + RISC-V simultaneously."
+      },
+      {
+        "name": "x86-64",
+        "joined_with": [
+          "ARM",
+          "RISC-V"
+        ],
+        "section": "22. FIRST MACHINE TARGET",
+        "stated_role": "example",
+        "quote": "Do not try x86-64 + ARM + RISC-V simultaneously."
+      },
+      {
+        "name": "ARM",
+        "joined_with": [
+          "x86-64",
+          "RISC-V"
+        ],
+        "section": "22. FIRST MACHINE TARGET",
+        "stated_role": "example",
+        "quote": "Do not try x86-64 + ARM + RISC-V simultaneously."
+      },
+      {
+        "name": "WebAssembly",
+        "section": "22. FIRST MACHINE TARGET",
+        "stated_role": "example",
+        "quote": "A clean target such as a constrained Wasm subset or a simple RISC-V subset may be useful during bootstrap."
+      },
+      {
+        "name": "RISC-V",
+        "section": "22. FIRST MACHINE TARGET",
+        "stated_role": "example",
+        "quote": "A clean target such as a constrained Wasm subset or a simple RISC-V subset may be useful during bootstrap."
+      },
+      {
+        "name": "MLIR",
+        "section": "27. SUPERSET SYNTHESIS",
+        "stated_role": "example",
+        "quote": "MLIR dialect legality"
+      },
+      {
+        "name": "Soufflé",
+        "section": "27. SUPERSET SYNTHESIS",
+        "stated_role": "example",
+        "quote": "Soufflé provenance"
+      },
+      {
+        "name": "datafrog",
+        "section": "27. SUPERSET SYNTHESIS",
+        "stated_role": "example",
+        "quote": "datafrog delta iteration"
+      },
+      {
+        "name": "Z3",
+        "section": "27. SUPERSET SYNTHESIS",
+        "stated_role": "example",
+        "quote": "Z3 constraints"
+      },
+      {
+        "name": "Nix",
+        "section": "27. SUPERSET SYNTHESIS",
+        "stated_role": "example",
+        "quote": "Nix action identity"
+      },
+      {
+        "name": "in-toto",
+        "section": "27. SUPERSET SYNTHESIS",
+        "stated_role": "example",
+        "quote": "in-toto provenance"
+      },
+      {
+        "name": "LLVM",
+        "section": "31. BOOTSTRAPPING",
+        "stated_role": "oracle",
+        "quote": "uses LLVM as oracle"
+      }
+    ],
+    "creator_physical": [
+      {
+        "name": "Playwright",
+        "directive": "CREATOR",
+        "section": "3. Browser observation substrate",
+        "stated_role": "admit/census",
+        "quote": "Playwright"
+      },
+      {
+        "name": "rrweb",
+        "directive": "CREATOR",
+        "section": "3. Browser observation substrate",
+        "stated_role": "admit/census",
+        "quote": "rrweb"
+      },
+      {
+        "name": "shadcn/ui",
+        "directive": "CREATOR",
+        "section": "9. Frontend donor frontier",
+        "stated_role": "admit/census",
+        "quote": "shadcn/ui"
+      },
+      {
+        "name": "Radix Primitives",
+        "directive": "CREATOR",
+        "section": "9. Frontend donor frontier",
+        "stated_role": "admit/census",
+        "quote": "Radix Primitives"
+      },
+      {
+        "name": "Motion",
+        "directive": "CREATOR",
+        "section": "9. Frontend donor frontier",
+        "stated_role": "admit/census",
+        "quote": "Motion"
+      },
+      {
+        "name": "Three.js",
+        "directive": "CREATOR",
+        "section": "9. Frontend donor frontier",
+        "stated_role": "admit/census",
+        "quote": "Three.js"
+      },
+      {
+        "name": "PixiJS",
+        "directive": "CREATOR",
+        "section": "9. Frontend donor frontier",
+        "stated_role": "admit/census",
+        "quote": "PixiJS"
+      },
+      {
+        "name": "Babylon.js",
+        "directive": "CREATOR",
+        "section": "9. Frontend donor frontier",
+        "stated_role": "admit/census",
+        "quote": "Babylon.js"
+      },
+      {
+        "name": "screenshot-to-code",
+        "directive": "CREATOR",
+        "section": "9. Frontend donor frontier",
+        "stated_role": "example",
+        "quote": "screenshot-to-code"
+      },
+      {
+        "name": "Diffusers",
+        "directive": "CREATOR",
+        "section": "12. Image/media generation lane",
+        "stated_role": "admit/census",
+        "quote": "Diffusers"
+      },
+      {
+        "name": "ComfyUI",
+        "directive": "CREATOR",
+        "section": "12. Image/media generation lane",
+        "stated_role": "admit/census",
+        "quote": "ComfyUI-like node graph systems"
+      },
+      {
+        "name": "FFmpeg",
+        "directive": "CREATOR",
+        "section": "13. Video lane",
+        "stated_role": "admit/census",
+        "quote": "Admit/census FFmpeg carefully."
+      },
+      {
+        "name": "React",
+        "directive": "CREATOR",
+        "section": "15. Multi-target visual lowering",
+        "stated_role": "example",
+        "quote": "React"
+      },
+      {
+        "name": "HTML",
+        "directive": "CREATOR",
+        "section": "15. Multi-target visual lowering",
+        "stated_role": "example",
+        "quote": "HTML/CSS"
+      },
+      {
+        "name": "CSS",
+        "directive": "CREATOR",
+        "section": "15. Multi-target visual lowering",
+        "stated_role": "example",
+        "quote": "HTML/CSS"
+      },
+      {
+        "name": "SVG",
+        "directive": "CREATOR",
+        "section": "15. Multi-target visual lowering",
+        "stated_role": "example",
+        "quote": "SVG"
+      },
+      {
+        "name": "Canvas",
+        "directive": "CREATOR",
+        "section": "15. Multi-target visual lowering",
+        "stated_role": "example",
+        "quote": "Canvas"
+      },
+      {
+        "name": "WebGL",
+        "directive": "CREATOR",
+        "section": "9. Frontend donor frontier",
+        "stated_role": "example",
+        "quote": "WebGL/WebGPU abstraction"
+      },
+      {
+        "name": "WebGPU",
+        "directive": "CREATOR",
+        "section": "9. Frontend donor frontier",
+        "stated_role": "example",
+        "quote": "WebGL/WebGPU abstraction"
+      },
+      {
+        "name": "Higgsfield",
+        "directive": "CREATOR",
+        "section": "26. Higgsfield treatment",
+        "stated_role": "external provider",
+        "quote": "Inspect whether any actual Higgsfield OSS repository with a compatible license exists."
+      },
+      {
+        "name": "Soufflé",
+        "directive": "CREATOR",
+        "section": "39. Execution rules",
+        "stated_role": "principles only",
+        "quote": "Use the same discipline already proven by Soufflé/datafrog:"
+      },
+      {
+        "name": "datafrog",
+        "directive": "CREATOR",
+        "section": "39. Execution rules",
+        "stated_role": "principles only",
+        "quote": "Use the same discipline already proven by Soufflé/datafrog:"
+      },
+      {
+        "name": "FreeCAD",
+        "directive": "PHYSICAL",
+        "section": "6. Mechanical CAD lane",
+        "stated_role": "admit/census",
+        "quote": "FreeCAD"
+      },
+      {
+        "name": "CadQuery",
+        "directive": "PHYSICAL",
+        "section": "6. Mechanical CAD lane",
+        "stated_role": "admit/census",
+        "quote": "CadQuery"
+      },
+      {
+        "name": "OpenCascade",
+        "directive": "PHYSICAL",
+        "section": "6. Mechanical CAD lane",
+        "stated_role": "admit/census",
+        "quote": "OpenCascade"
+      },
+      {
+        "name": "KiCad",
+        "directive": "PHYSICAL",
+        "section": "8. Electronics engineering lane",
+        "stated_role": "admit/census",
+        "quote": "KiCad"
+      },
+      {
+        "name": "ngspice",
+        "directive": "PHYSICAL",
+        "section": "8. Electronics engineering lane",
+        "stated_role": "admit/census",
+        "quote": "ngspice"
+      },
+      {
+        "name": "Zephyr",
+        "directive": "PHYSICAL",
+        "section": "10. Embedded / RTOS lane",
+        "stated_role": "admit/census",
+        "quote": "Zephyr"
+      },
+      {
+        "name": "ROS 2",
+        "directive": "PHYSICAL",
+        "section": "11. Robotics middleware lane",
+        "stated_role": "admit/census",
+        "quote": "ROS 2"
+      },
+      {
+        "name": "ros2_control",
+        "directive": "PHYSICAL",
+        "section": "11. Robotics middleware lane",
+        "stated_role": "admit/census",
+        "quote": "ros2_control"
+      },
+      {
+        "name": "Pinocchio",
+        "directive": "PHYSICAL",
+        "section": "12. Kinematics / rigid-body dynamics lane",
+        "stated_role": "admit/census",
+        "quote": "Pinocchio"
+      },
+      {
+        "name": "Drake",
+        "directive": "PHYSICAL",
+        "section": "12. Kinematics / rigid-body dynamics lane",
+        "stated_role": "admit/census",
+        "quote": "Drake"
+      },
+      {
+        "name": "MuJoCo",
+        "directive": "PHYSICAL",
+        "section": "13. Physical simulation lane",
+        "stated_role": "admit/census",
+        "quote": "MuJoCo"
+      },
+      {
+        "name": "Project Chrono",
+        "directive": "PHYSICAL",
+        "section": "13. Physical simulation lane",
+        "stated_role": "admit/census",
+        "quote": "Project Chrono"
+      },
+      {
+        "name": "OpenModelica",
+        "directive": "PHYSICAL",
+        "section": "14. System-level physical modeling",
+        "stated_role": "admit/census",
+        "quote": "OpenModelica"
+      },
+      {
+        "name": "OpenFOAM",
+        "directive": "PHYSICAL",
+        "section": "15. Thermal/fluid/multiphysics lane",
+        "stated_role": "admit/census",
+        "quote": "OpenFOAM"
+      },
+      {
+        "name": "PX4",
+        "directive": "PHYSICAL",
+        "section": "18. PX4 / flight-control lane",
+        "stated_role": "admit/census",
+        "quote": "Admit/census PX4 if license/provenance review permits."
+      },
+      {
+        "name": "LinuxCNC",
+        "directive": "PHYSICAL",
+        "section": "20. LinuxCNC lane",
+        "stated_role": "admit/census",
+        "quote": "LinuxCNC"
+      },
+      {
+        "name": "OpenROAD",
+        "directive": "PHYSICAL",
+        "section": "40. OpenROAD / silicon lane",
+        "stated_role": "admit/census (optional/conditional)",
+        "quote": "If admitted, study OpenROAD-class mechanisms for:"
+      },
+      {
+        "name": "STEP",
+        "directive": "PHYSICAL",
+        "section": "37. Real-world construction artifacts",
+        "stated_role": "example",
+        "quote": "STEP"
+      },
+      {
+        "name": "STL",
+        "directive": "PHYSICAL",
+        "section": "37. Real-world construction artifacts",
+        "stated_role": "example",
+        "quote": "STL"
+      },
+      {
+        "name": "3MF",
+        "directive": "PHYSICAL",
+        "section": "37. Real-world construction artifacts",
+        "stated_role": "example",
+        "quote": "3MF"
+      },
+      {
+        "name": "Gerber",
+        "directive": "PHYSICAL",
+        "section": "37. Real-world construction artifacts",
+        "stated_role": "example",
+        "quote": "Gerber"
+      },
+      {
+        "name": "IPC",
+        "directive": "PHYSICAL",
+        "section": "37. Real-world construction artifacts",
+        "stated_role": "example",
+        "quote": "IPC/netlist-like data"
+      },
+      {
+        "name": "URDF",
+        "directive": "PHYSICAL",
+        "section": "37. Real-world construction artifacts",
+        "stated_role": "example",
+        "quote": "URDF/SDF-like robot models"
+      },
+      {
+        "name": "SDF",
+        "directive": "PHYSICAL",
+        "section": "37. Real-world construction artifacts",
+        "stated_role": "example",
+        "quote": "URDF/SDF-like robot models"
+      }
+    ],
+    "earlier": [
+      {
+        "name": "IRIS",
+        "url_given": "git@github.com:boj/iris.git",
+        "source_file": "directive23.txt",
+        "stated_role": "primary census candidate donor: SemanticGraph/content-addressed graph/self-hosting compiler",
+        "quote": "git@github.com:boj/iris.git"
+      },
+      {
+        "name": "SIGIL",
+        "url_given": "git@github.com:pzalutski-pixel/sigil-lang.git",
+        "source_file": "directive23.txt",
+        "stated_role": "primary census candidate donor: topology/graph-first language, content-addressed behavior identity",
+        "quote": "git@github.com:pzalutski-pixel/sigil-lang.git"
+      },
+      {
+        "name": "DUUMBI",
+        "url_given": "git@github.com:hgahub/duumbi.git",
+        "source_file": "directive23.txt",
+        "stated_role": "primary census candidate donor: graph-native program representation, JSON-LD semantic graph, Cranelift lowering",
+        "quote": "git@github.com:hgahub/duumbi.git"
+      },
+      {
+        "name": "CLEF / COMPOSER",
+        "url_given": "git@github.com:FidelityFramework/Composer.git",
+        "source_file": "directive23.txt",
+        "stated_role": "primary census candidate donor: Program Semantic Graph, nanopass architecture, PSG -> MLIR lowering",
+        "quote": "git@github.com:FidelityFramework/Composer.git"
+      },
+      {
+        "name": "CLEF COMPILER / CCS",
+        "url_given": "git@github.com:FidelityFramework/clef.git",
+        "source_file": "directive23.txt",
+        "stated_role": "primary census candidate donor: front-end/compiler-service side feeding the Program Semantic Graph",
+        "quote": "git@github.com:FidelityFramework/clef.git"
+      },
+      {
+        "name": "LLVM / MLIR / IRDL",
+        "url_given": "https://github.com/llvm/llvm-project",
+        "source_file": "directive26.txt",
+        "stated_role": "core semantic representation donor: Operation/Value/SSA/Block/Region/Dialect/IRDL/bytecode model",
+        "quote": "https://github.com/llvm/llvm-project"
+      },
+      {
+        "name": "xDSL",
+        "url_given": "https://github.com/xdslproject/xdsl",
+        "source_file": "directive26.txt",
+        "stated_role": "core semantic representation donor: lightweight Operation/SSAValue/Block/Region/IRDL implementation",
+        "quote": "https://github.com/xdslproject/xdsl"
+      },
+      {
+        "name": "egglog",
+        "url_given": "https://github.com/egraphs-good/egglog",
+        "source_file": "directive26.txt",
+        "stated_role": "donor for structural exploration/decision/optimization semantics (e-graphs, equality saturation, Datalog)",
+        "quote": "https://github.com/egraphs-good/egglog"
+      },
+      {
+        "name": "WebAssembly Component Model / WIT",
+        "url_given": "https://github.com/WebAssembly/component-model",
+        "source_file": "directive26.txt",
+        "stated_role": "donor for atlas.interface/atlas.component/atlas.capability and FFI/boundary semantics",
+        "quote": "https://github.com/WebAssembly/component-model"
+      },
+      {
+        "name": "Cap'n Proto",
+        "url_given": "https://github.com/capnproto/capnproto",
+        "source_file": "directive26.txt",
+        "stated_role": "binary/canonical encoding donor: schema model, zero/low-copy access, deterministic serialization",
+        "quote": "https://github.com/capnproto/capnproto"
+      },
+      {
+        "name": "AgentIR",
+        "url_given": "https://github.com/WhitzardAgent/agentir",
+        "source_file": "directive26.txt",
+        "stated_role": "supporting donor: canonical agent trajectory IR / parsing-canonicalization-verification pipeline",
+        "quote": "https://github.com/WhitzardAgent/agentir"
+      },
+      {
+        "name": "FlatBuffers",
+        "url_given": "https://github.com/google/flatbuffers",
+        "source_file": "directive26.txt",
+        "stated_role": "supporting donor: schema evolution, direct serialized access, binary layout lessons for .atlas",
+        "quote": "https://github.com/google/flatbuffers"
+      },
+      {
+        "name": "rkyv",
+        "url_given": "https://github.com/rkyv/rkyv",
+        "source_file": "directive26.txt",
+        "stated_role": "supporting donor: Rust-native zero-copy/archive model, bytecheck/validation",
+        "quote": "https://github.com/rkyv/rkyv"
+      },
+      {
+        "name": "WebAssembly spec",
+        "url_given": "https://github.com/WebAssembly/spec",
+        "source_file": "directive26.txt",
+        "stated_role": "supporting donor: opcode model, validation, sectioned binary format (format/validation donor only)",
+        "quote": "https://github.com/WebAssembly/spec"
+      },
+      {
+        "name": "Salsa",
+        "source_file": "directive83.txt",
+        "stated_role": "remaining W3 donor lane to census/absorb (incremental computation)",
+        "quote": "- Salsa"
+      },
+      {
+        "name": "datafrog",
+        "source_file": "directive83.txt",
+        "stated_role": "remaining W3 donor lane to census/absorb (Datalog-style evaluation)",
+        "quote": "- datafrog"
+      },
+      {
+        "name": "differential-dataflow",
+        "source_file": "directive83.txt",
+        "stated_role": "remaining W3 donor lane to census/absorb (incremental dataflow)",
+        "quote": "- differential-dataflow"
+      },
+      {
+        "name": "Buck2/Dice",
+        "source_file": "directive83.txt",
+        "stated_role": "remaining W3 donor lane to census/absorb (build system / incremental computation engine)",
+        "quote": "- Buck2/Dice"
+      },
+      {
+        "name": "Soufflé",
+        "source_files": [
+          "directive83.txt",
+          "directive87.txt"
+        ],
+        "stated_role": "already-absorbed donor (provenance-backed constraint derivation), cited as proof-of-cycle precedent",
+        "quote": "The repository has already completed one real donor cycle with Soufflé:"
+      },
+      {
+        "name": "Cargo",
+        "source_files": [
+          "directive37.txt",
+          "directive39.txt"
+        ],
+        "stated_role": "independent verification oracle for differential dependency-census comparison (not a semantic-language donor)",
+        "quote": "A. differential comparison against Cargo-native resolved metadata in a sandboxed verification path;"
+      }
+    ]
+  },
+  "remote_heads": [
+    {
+      "url": "https://c9x.me/git/qbe.git",
+      "head": "e786f06032fefa2e3790d6b1c9e31ed138f475a6"
+    },
+    {
+      "url": "https://git.code.sf.net/p/ngspice/ngspice",
+      "head": "a9950f0e8ca7f3ea7a7ae00c4e93944a30c2c1b4"
+    },
+    {
+      "url": "https://github.com/666ghj/BettaFish.git",
+      "head": "c4ca6360489b53c38d3d41d213a67b50d2fcb883"
+    },
+    {
+      "url": "https://github.com/666ghj/MiroFish.git",
+      "head": "39d849138ef254f6c737ab4c4705e5545dbe31d4"
+    },
+    {
+      "url": "https://github.com/abi/screenshot-to-code.git",
+      "head": "d026163f586dfa8c5c10d28c36edd59a9d3b0e88"
+    },
+    {
+      "url": "https://github.com/anyoptimization/pymoo.git",
+      "head": "23110c155aa8f31b5f1b86928227fb3931ba7f00"
+    },
+    {
+      "url": "https://github.com/apache/arrow.git",
+      "head": "1f789ffd70f96907698e93ef99f4e034caf0788b"
+    },
+    {
+      "url": "https://github.com/apalache-mc/apalache.git",
+      "head": "1371658a2c7377b43882b82764ea7720ec689e21"
+    },
+    {
+      "url": "https://github.com/ArduPilot/ardupilot.git",
+      "head": "4965c4e84a7f5cb48a437ad20ba2c967b034ac0d"
+    },
+    {
+      "url": "https://github.com/ast-grep/ast-grep.git",
+      "head": "cf48ff457aa0963ea4133c75a511bcd8d2c2ea56"
+    },
+    {
+      "url": "https://github.com/BabylonJS/Babylon.js.git",
+      "head": "0520900e8d7afcb7b7923bb9bad913e49b6cf919"
+    },
+    {
+      "url": "https://github.com/bazelbuild/bazel.git",
+      "head": "33548fb14304a703ec713a45a656a6e27dfbcdbb"
+    },
+    {
+      "url": "https://github.com/BLAKE3-team/BLAKE3.git",
+      "head": "6aab490a26124663329dfd3961b8469f8fdb158b"
+    },
+    {
+      "url": "https://github.com/boj/iris.git",
+      "head": "743491588edf21ace27a1c331f6ff8e3b75d492d"
+    },
+    {
+      "url": "https://github.com/boostorg/units.git",
+      "head": "f39b667d7803a6428d869c0087d92128b1212685"
+    },
+    {
+      "url": "https://github.com/bytecodealliance/regalloc2.git",
+      "head": "2fe490bc9dda433f70c54f90f7633ed929f693d9"
+    },
+    {
+      "url": "https://github.com/bytecodealliance/wasm-tools.git",
+      "head": "cf7962455a2d58e32b8c1f92da017fe4ed7d4b85"
+    },
+    {
+      "url": "https://github.com/bytecodealliance/wasmtime.git",
+      "head": "944bb6bc4ce80ee9fe614f7fef33e342afb2c5fd"
+    },
+    {
+      "url": "https://github.com/CadQuery/cadquery.git",
+      "head": "c11b3f93278bb25053991f7071451f71664c90fc"
+    },
+    {
+      "url": "https://github.com/capnproto/capnproto.git",
+      "head": "fda9aecf8120d92f2085c9625330ffd9ddca7c24"
+    },
+    {
+      "url": "https://github.com/ClabstreamTeam/Open-Higgsfield-AI.git",
+      "head": "44788b5ae32dd396f51daa6c7ffca6fde86e0378"
+    },
+    {
+      "url": "https://github.com/CoatiSoftware/Sourcetrail.git",
+      "head": "4b1b0e4fd19c4af235fef12b0564c05348f5f6d3"
+    },
+    {
+      "url": "https://github.com/Comfy-Org/ComfyUI.git",
+      "head": "1568e6cfd04586a4b3c4e1817ea7dde09b1bf9e7"
+    },
+    {
+      "url": "https://github.com/containers/bubblewrap.git",
+      "head": "f8e1e5077eb8613ca559bac0d422282a910015d6"
+    },
+    {
+      "url": "https://github.com/containers/image.git",
+      "head": "df7e80d2d19872b61f352a8a182ec934dc0c2346"
+    },
+    {
+      "url": "https://github.com/containers/podman.git",
+      "head": "5866b09c1f064775ab5e049c120ffe51c1cf1623"
+    },
+    {
+      "url": "https://github.com/cvc5/cvc5.git",
+      "head": "504043a215a99e73b56f564e0bb83a44d92ea843"
+    },
+    {
+      "url": "https://github.com/cytoscape/cytoscape.js.git",
+      "head": "7ba634095d8954089ee5dc09ada0030f2dca134c"
+    },
+    {
+      "url": "https://github.com/DEAP/deap.git",
+      "head": "8a96fd3a75026f7b30e835f595a5199c75634ddf"
+    },
+    {
+      "url": "https://github.com/dequelabs/axe-core.git",
+      "head": "eb854ed3e7498f1c1c6bd941b44181455a8e4866"
+    },
+    {
+      "url": "https://github.com/egraphs-good/egglog.git",
+      "head": "90635860397ce710f8c0a4eeb04154a8ebc3ac05"
+    },
+    {
+      "url": "https://github.com/facebook/Ax.git",
+      "head": "57efa05aefce2a93d4d93227a4acbe2da0150aed"
+    },
+    {
+      "url": "https://github.com/facebook/buck2.git",
+      "head": "b32ed8ac7d6e935fed7d667e22adaa6a43f359fd"
+    },
+    {
+      "url": "https://github.com/facebook/yoga.git",
+      "head": "a8b4817143940e2717f60148ec418cf95b789628"
+    },
+    {
+      "url": "https://github.com/facebook/zstd.git",
+      "head": "01b7154f1172432f8abe9b3bb9909e14a1176b7d"
+    },
+    {
+      "url": "https://github.com/facebookincubator/Glean.git",
+      "head": "e32e6d0d1643eb32227d7544c5d8a06449f78e06"
+    },
+    {
+      "url": "https://github.com/FFmpeg/FFmpeg.git",
+      "head": "9cee5ae719d6f82356d12782611b4a1d5866d251"
+    },
+    {
+      "url": "https://github.com/FidelityFramework/clef.git",
+      "head": "e94fa905f7f13c2b8216b355e9d84b17dceef5c8"
+    },
+    {
+      "url": "https://github.com/FidelityFramework/Composer.git",
+      "head": "c46485096c38dc2c9fef9db4ae60caa1905ca1a3"
+    },
+    {
+      "url": "https://github.com/firecracker-microvm/firecracker.git",
+      "head": "8ff4940e6a723c541331e74c92cc2caeb26b6e31"
+    },
+    {
+      "url": "https://github.com/FreeCAD/FreeCAD.git",
+      "head": "1b7d32fb7f24ea65e98d50d4194843089557e9fc"
+    },
+    {
+      "url": "https://github.com/gazebosim/gz-sim.git",
+      "head": "ec2a672be4249d5bafe25b0285e88ef3bbdff689"
+    },
+    {
+      "url": "https://github.com/gimli-rs/object.git",
+      "head": "dce50f05c9de3f461fb0b76c9e48cab67a256de4"
+    },
+    {
+      "url": "https://github.com/git/git.git",
+      "head": "0f8e75abebff0877cae681a3d5ff31ac47f54220"
+    },
+    {
+      "url": "https://github.com/google-deepmind/mujoco.git",
+      "head": "c0d845b93c463993eeb7abe1547b45c89dac6f10"
+    },
+    {
+      "url": "https://github.com/google/crubit.git",
+      "head": "0695a5130e0e40936cfce0997c770cf578a6b524"
+    },
+    {
+      "url": "https://github.com/google/flatbuffers.git",
+      "head": "b8431fbcd7a5c71817f314e18b332c0648554efa"
+    },
+    {
+      "url": "https://github.com/google/nsjail.git",
+      "head": "f100fd917c6d3ed0fd15d868528b735cb5fb1a1a"
+    },
+    {
+      "url": "https://github.com/hgahub/duumbi.git",
+      "head": "ab4c8776f795052d3669774a7ff12bdd3231fd02"
+    },
+    {
+      "url": "https://github.com/hgrecco/pint.git",
+      "head": "e4042bbe5c6647e1d6ef5d242228d2e1462df7db"
+    },
+    {
+      "url": "https://github.com/higgsfield-ai/cli.git",
+      "head": "dc7e2d2eac0b1fdad255de24d87552d1ba479037"
+    },
+    {
+      "url": "https://github.com/higgsfield-ai/cursor-plugin.git",
+      "head": "c9215059e409dc81c69ff0fe77ea2740c5fc6249"
+    },
+    {
+      "url": "https://github.com/higgsfield-ai/higgsfield-client.git",
+      "head": "aefd1ca677929762b9f69a7a7ea530a4a695d6a8"
+    },
+    {
+      "url": "https://github.com/higgsfield-ai/higgsfield-js.git",
+      "head": "e3f274249962417e21f6566d4eecec6d8491d11c"
+    },
+    {
+      "url": "https://github.com/higgsfield-ai/higgsfield.git",
+      "head": "d12a36e66024a93d33ec61826a77d5a346c16869"
+    },
+    {
+      "url": "https://github.com/higgsfield-ai/homebrew-tap.git",
+      "head": "7d356a8bca3f08ab2dba402cf64c72cc5eee8561"
+    },
+    {
+      "url": "https://github.com/higgsfield-ai/omagotchi.git",
+      "head": "f9e6f422429c3c0d66ed37a7603c62d27fc4d81c"
+    },
+    {
+      "url": "https://github.com/higgsfield-ai/skills.git",
+      "head": "d071406147a37b835bed09543d85ab3e9bd85c7d"
+    },
+    {
+      "url": "https://github.com/huggingface/diffusers.git",
+      "head": "e0118ade2f60234c41bacf40330a7e2f61108849"
+    },
+    {
+      "url": "https://github.com/icaros-usc/pyribs.git",
+      "head": "7bd723cf9863d480c8f2fec5ba9aa36f3b68c083"
+    },
+    {
+      "url": "https://github.com/iliekturtles/uom.git",
+      "head": "a465bcc2b3bf67f9f12fc0b133d371762d9d8fe4"
+    },
+    {
+      "url": "https://github.com/immunant/c2rust.git",
+      "head": "7fe0cf95d0ff1414b6aa93b17ca328f56b4c450f"
+    },
+    {
+      "url": "https://github.com/in-toto/attestation.git",
+      "head": "fd2609c16bcb0ac53443e2b4612977f997e8f9a5"
+    },
+    {
+      "url": "https://github.com/in-toto/in-toto-rs.git",
+      "head": "48e57fd04624d30d081fae1dddf56caaa4a5b81e"
+    },
+    {
+      "url": "https://github.com/in-toto/in-toto.git",
+      "head": "e352b43ad7cb8915d84c36d791aa61346152a0a3"
+    },
+    {
+      "url": "https://github.com/joernio/joern.git",
+      "head": "b895fe47518d61408fb891dd890dd705597b4ac1"
+    },
+    {
+      "url": "https://github.com/keycloak/keycloak.git",
+      "head": "08f960d0dd5e99912253d7a7aeba4772ae174e86"
+    },
+    {
+      "url": "https://github.com/keylime/keylime.git",
+      "head": "3476366881d7931407154597d88577895f2f818e"
+    },
+    {
+      "url": "https://github.com/kieler/elkjs.git",
+      "head": "722f1a3f63016e64f534a8b445283d4d31a88d0e"
+    },
+    {
+      "url": "https://github.com/kythe/kythe.git",
+      "head": "69141f022689a611e8a4a1d9b08a3783a2e8a9ed"
+    },
+    {
+      "url": "https://github.com/leanprover/lean4.git",
+      "head": "dd8693c1c9d8cd3fc8102e3b2beded261cfb7b24"
+    },
+    {
+      "url": "https://github.com/LinuxCNC/linuxcnc.git",
+      "head": "f218ffbf0d182c2c438ffaaaa2743f33ad75e6ff"
+    },
+    {
+      "url": "https://github.com/llvm/llvm-project.git",
+      "head": "591f2e73fd4b81298d847ff0e39fe7e01985d8d6"
+    },
+    {
+      "url": "https://github.com/mapbox/pixelmatch.git",
+      "head": "b2800051f2b79d18cf27e51cd240cafd38cfb0ba"
+    },
+    {
+      "url": "https://github.com/meta-pytorch/botorch.git",
+      "head": "a1b1ad847b8c93e6a938f742ab0c71f936736111"
+    },
+    {
+      "url": "https://github.com/microsoft/playwright.git",
+      "head": "0c0594d4d377eeb99c22b5da00a5a71d814f46be"
+    },
+    {
+      "url": "https://github.com/moby/moby.git",
+      "head": "8bc88f10b9be3086d85fb1f8f515fd1c39f03fc4"
+    },
+    {
+      "url": "https://github.com/model-checking/kani.git",
+      "head": "c610df629e04ce7e09e503f4a917a7dcbebb5f36"
+    },
+    {
+      "url": "https://github.com/motiondivision/motion.git",
+      "head": "33f6e72d17ebd3e23a2bfb53f3d4c36ce7c11343"
+    },
+    {
+      "url": "https://github.com/moveit/moveit2.git",
+      "head": "b222baf2272980e758b90727fa90177d556fb5fa"
+    },
+    {
+      "url": "https://github.com/mpusz/mp-units.git",
+      "head": "bbf20c832028d8f7e49ac4940a26a86e293630a8"
+    },
+    {
+      "url": "https://github.com/mrdoob/three.js.git",
+      "head": "aed5f6ebcfb0cdeff7ff6593fc4b90fb0360da39"
+    },
+    {
+      "url": "https://github.com/NixOS/nix.git",
+      "head": "8f7ed1c1d1246bfa98cefd152c87d1ea26a3d463"
+    },
+    {
+      "url": "https://github.com/nucleic/kiwi.git",
+      "head": "4df2f39c016e90a5ffb3c6e71470146077100200"
+    },
+    {
+      "url": "https://github.com/Open-Cascade-SAS/OCCT.git",
+      "head": "3d097a0328e71b826377d4814ab05ec3c3d23871"
+    },
+    {
+      "url": "https://github.com/open-telemetry/opentelemetry-rust.git",
+      "head": "844df52c4cff4d462bf013a0ceb0692d538ca6f6"
+    },
+    {
+      "url": "https://github.com/open-telemetry/opentelemetry-specification.git",
+      "head": "cac5b81ebcfdecb272bb4e2d31f885b7142207d9"
+    },
+    {
+      "url": "https://github.com/OpenFOAM/OpenFOAM-dev.git",
+      "head": "0ae4d61b7fa7075d13b74e2ddc6f81a3a19d7284"
+    },
+    {
+      "url": "https://github.com/OpenModelica/OMCompiler.git",
+      "head": "5dc61f678fe0ed388fc811fe2cea14c54a0a0b29"
+    },
+    {
+      "url": "https://github.com/OpenModelica/OpenModelica.git",
+      "head": "c8d6649d7fd0974d596781173c817f2e9893a52e"
+    },
+    {
+      "url": "https://github.com/openrewrite/rewrite.git",
+      "head": "3d834b41cd18c94bef285e0e9d77b37656d3ccd5"
+    },
+    {
+      "url": "https://github.com/OpenSCAP/openscap.git",
+      "head": "6942b59fc861ad77ebcea93e70f32832d88e20f9"
+    },
+    {
+      "url": "https://github.com/paholg/dimensioned.git",
+      "head": "615c908ae5735435077a73e74d0e996c49d46015"
+    },
+    {
+      "url": "https://github.com/pixijs/pixijs.git",
+      "head": "ecd3797cf9b57766b045f3eea8388db9677744f8"
+    },
+    {
+      "url": "https://github.com/projectchrono/chrono.git",
+      "head": "aa3922df4ad18cc8571cb71b7fb274fd7e1612fa"
+    },
+    {
+      "url": "https://github.com/PX4/PX4-Autopilot.git",
+      "head": "86716507be65ac348645d35dd483dda1ff92144e"
+    },
+    {
+      "url": "https://github.com/py-why/causal-learn.git",
+      "head": "0dacacf36390e3084704636bc3c36e82e35ee0cc"
+    },
+    {
+      "url": "https://github.com/py-why/dowhy.git",
+      "head": "cc23521127ba21ade40514539ae7b91db27ca54a"
+    },
+    {
+      "url": "https://github.com/py2many/py2many.git",
+      "head": "a3c39224e71430bf99057f473c4b4542971daa9d"
+    },
+    {
+      "url": "https://github.com/pyro-ppl/numpyro.git",
+      "head": "a39b7ae6a6502e02f158a60136d4e19bc37f3d9f"
+    },
+    {
+      "url": "https://github.com/pyro-ppl/pyro.git",
+      "head": "ae65fa4b3dc0eaa243c1a5c29f0710e667c68ece"
+    },
+    {
+      "url": "https://github.com/pzalutski-pixel/sigil-lang.git",
+      "head": "9c7de956d926fba2f9d5c0598b35c57fb6399f7f"
+    },
+    {
+      "url": "https://github.com/quay/clair.git",
+      "head": "c9ac9a0aa5651670a690854fc2c12adfc951243f"
+    },
+    {
+      "url": "https://github.com/radix-ui/primitives.git",
+      "head": "f7ecd5ab16f5e1e820eb5786a1419a98a2d594ae"
+    },
+    {
+      "url": "https://github.com/rkyv/rkyv.git",
+      "head": "4845668ae9730a3987966769f6872d86b822dc41"
+    },
+    {
+      "url": "https://github.com/RobotLocomotion/drake.git",
+      "head": "53fc1b45a465310673be2ef498e41741eff0c53c"
+    },
+    {
+      "url": "https://github.com/rocq-prover/rocq.git",
+      "head": "295beaf5197294e24862e42adfc651ef40b7a472"
+    },
+    {
+      "url": "https://github.com/ros-controls/ros2_control.git",
+      "head": "b0c14b5edca8d17fc2996be1909815e8fcb587c6"
+    },
+    {
+      "url": "https://github.com/ros/urdfdom.git",
+      "head": "c3def983918a8bb28dc7c94e63ff8c2d0e6e2f43"
+    },
+    {
+      "url": "https://github.com/ros2/geometry2.git",
+      "head": "77f7559fd41311dd248168fb0249fdd272ca23cb"
+    },
+    {
+      "url": "https://github.com/ros2/rclcpp.git",
+      "head": "29de98cf1bc2e736ec1a5f7ad4c74e98c3fd3b17"
+    },
+    {
+      "url": "https://github.com/rrweb-io/rrweb.git",
+      "head": "5b08843faf9cb21c836613489ffd93d455f38181"
+    },
+    {
+      "url": "https://github.com/rui314/mold.git",
+      "head": "6fc6e1916f383ea3ea319e12d3df4daee33267d9"
+    },
+    {
+      "url": "https://github.com/rust-lang/cargo.git",
+      "head": "694054f34bcb04025b16d0eaf075038c0e58a15d"
+    },
+    {
+      "url": "https://github.com/rust-lang/datafrog.git",
+      "head": "edd7cfc0f5ad3b93ce5bbe6a17848db9376b13c0"
+    },
+    {
+      "url": "https://github.com/rust-lang/miri.git",
+      "head": "2812a59145bf4c4aa3f015bf5dda863828ce5975"
+    },
+    {
+      "url": "https://github.com/rust-lang/rust-analyzer.git",
+      "head": "230fe0a6d7b4a7b70587aa306ac068bda14a675e"
+    },
+    {
+      "url": "https://github.com/rust-lang/rust.git",
+      "head": "2350b22a89d30fe814a299a73c9ab83c72cafaf3"
+    },
+    {
+      "url": "https://github.com/salsa-rs/salsa.git",
+      "head": "687bfce0418aa717561b83cb90b732549703f144"
+    },
+    {
+      "url": "https://github.com/SELinuxProject/selinux.git",
+      "head": "98aefb43b002ad5ebc39d21e50e344dac5dc3c10"
+    },
+    {
+      "url": "https://github.com/semgrep/semgrep.git",
+      "head": "56e04ee9581f76a2a1cfcdd806dd2d276851a39f"
+    },
+    {
+      "url": "https://github.com/shadcn-ui/ui.git",
+      "head": "98a1fe67b439324ddc857f47fbdce056600a4329"
+    },
+    {
+      "url": "https://github.com/sigstore/rekor.git",
+      "head": "904bbccce4df5e63c30209d7b7a00d9dda5400d6"
+    },
+    {
+      "url": "https://github.com/sigstore/sigstore-rs.git",
+      "head": "038e36aefac21dd4ae608cda33736a494250fd1f"
+    },
+    {
+      "url": "https://github.com/slsa-framework/slsa.git",
+      "head": "618f5b2192aad8417a8ee8ccb9e3f27d05c0e9b6"
+    },
+    {
+      "url": "https://github.com/souffle-lang/souffle.git",
+      "head": "a1303be3c0166400dee3d1f36f0d96abe03e6901"
+    },
+    {
+      "url": "https://github.com/sourcegraph/scip.git",
+      "head": "db62094c7f9d464d0a6d9fd7815fcf3c9214b4c2"
+    },
+    {
+      "url": "https://github.com/stack-of-tasks/pinocchio.git",
+      "head": "c50ac0f904ff18d3e222f26d1f09107cf799f9cc"
+    },
+    {
+      "url": "https://github.com/stan-dev/math.git",
+      "head": "d43cb82a51874d9bcb40e6689a699582a2c709df"
+    },
+    {
+      "url": "https://github.com/stan-dev/stan.git",
+      "head": "a3afc41011583251b6b2ae76ede5b53a35dda284"
+    },
+    {
+      "url": "https://github.com/The-OpenROAD-Project/OpenROAD.git",
+      "head": "196fc50266871c04a7235278c150fd28132e47d7"
+    },
+    {
+      "url": "https://github.com/TimelyDataflow/differential-dataflow.git",
+      "head": "aa8745f93ea8abe131104fc7885ba4fd47e63902"
+    },
+    {
+      "url": "https://github.com/tlaplus/tlaplus.git",
+      "head": "4260e471245fce04ad5610bae7125bdc9ef7eec6"
+    },
+    {
+      "url": "https://github.com/tree-sitter/tree-sitter.git",
+      "head": "dcdc8cc55e5dfedfc858080835f153999a29ec40"
+    },
+    {
+      "url": "https://github.com/verus-lang/verus.git",
+      "head": "b9416fad06904c6023d93ba79fcf2d06dd7db4fe"
+    },
+    {
+      "url": "https://github.com/vustudio/opendesign.git",
+      "head": "b4e69ac61b50576298f9f564603e5a4beb27417f"
+    },
+    {
+      "url": "https://github.com/WebAssembly/component-model.git",
+      "head": "06e3db039e38588e2643a9417bf5d03100feafde"
+    },
+    {
+      "url": "https://github.com/WebAssembly/spec.git",
+      "head": "608711107b7f1edb13efd57b7d79b49477462d36"
+    },
+    {
+      "url": "https://github.com/WhitzardAgent/agentir.git",
+      "head": "68d991160ad579d2b4514da01684249a2a0bf629"
+    },
+    {
+      "url": "https://github.com/wide-trace/open-higgsfield.git",
+      "head": "b16a0efe4d7e2707b56f8ccb02387fd2a9d2eddf"
+    },
+    {
+      "url": "https://github.com/xdslproject/xdsl.git",
+      "head": "c94a32286238c40e12eab91770daf6cf84cab7ea"
+    },
+    {
+      "url": "https://github.com/xyflow/xyflow.git",
+      "head": "3d35b57317576b0916c0bfeaaedd573aaacc2839"
+    },
+    {
+      "url": "https://github.com/Z3Prover/z3.git",
+      "head": "fccce195c8d735ae415c994b935955390b75ff6f"
+    },
+    {
+      "url": "https://github.com/zed-industries/zed",
+      "head": "2c4bc2d7b2c5b7832ad964f39840d823d961cb0e"
+    },
+    {
+      "url": "https://github.com/zephyrproject-rtos/zephyr.git",
+      "head": "0d3ec1aeccd3ab713d2e007d689cac4a28157f37"
+    },
+    {
+      "url": "https://gitlab.com/kicad/code/kicad.git",
+      "head": "d1191971d12cf0c40d6b032d5d46ab14a8b176e4"
+    }
+  ]
+}

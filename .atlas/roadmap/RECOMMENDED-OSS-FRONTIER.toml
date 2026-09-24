@@ -36,15 +36,1994 @@ frontier = "FRONTIER.toml"
 generations = "GENERATIONS.toml"
 
 [normalization]
-repo_exact_inventory_complete = false
+repo_exact_inventory_complete = true
+repo_exact_inventory_scope = "every named project recorded in this repository (donor corpus, frontier lane TSVs, user directives in the generation history); see [reconciliation]"
 canonical_key = "CANONICAL_GIT_REMOTE_URL"
 dedupe_required = true
 subtree_and_monorepo_aliases_must_be_reconciled = true
 ecosystem_names_must_not_be_silently_counted_as_single_repositories = true
-next_action = "materialize the 119-name reconstructed frontier into explicit entries with canonical remote URLs, aliases, family, license/provenance status, donor-corpus membership, and working-set priority; recompute the exact unique-repository total from those URLs"
+materialized_in = "G53"
+next_action = "admit CONSUMER_GATED repositories only as mechanism slices when a native consumer exists; add any unrecorded name from the reconstructed 119 with a quote-backed source and a verified canonical_url"
 
 [policy]
 frontier_is_not_materialization_queue = true
 frontier_entry_does_not_imply_clone = true
 admission_requires_capability_reason = true
 bounded_working_set_materialization = true
+
+# ---------------------------------------------------------------------------
+# G53 materialization: one [[repository]] per canonical remote URL.
+# Sources: donor-corpus.toml, roadmap/frontier/*.tsv (lane evidence), and the named
+# projects of the user directives recorded in this repository's generation history
+# (quote-backed extraction; see GENERATIONS.toml G53). Every verified_head was read with
+# `git ls-remote <canonical_url> HEAD` on the verification date below.
+# Enforced by runtime test recommended_frontier_is_repo_exact_and_counted.
+# ---------------------------------------------------------------------------
+
+[verification]
+method = "git ls-remote <canonical_url> HEAD"
+performed_at = "2026-09-24"
+performed_in = "G53"
+
+[exact_counts]
+canonical_repositories = 146
+directive_named_repositories = 77
+corpus_repositories = 56
+lane_only_repositories = 35
+lifecycle_admitted = 53
+lifecycle_extinct = 3
+lifecycle_candidate = 78
+lifecycle_candidate_overlapping = 1
+lifecycle_external_oracle = 1
+lifecycle_external_provider_artifact = 8
+lifecycle_rejected_unlicensed = 2
+working_set_materialized = 53
+working_set_extinct = 3
+working_set_consumer_gated = 79
+working_set_oracle_only = 1
+working_set_excluded = 10
+ecosystems = 6
+subtree_aliases = 3
+non_repository_names = 18
+
+[reconciliation]
+reconstructed_named_total = 119
+repo_exact_total = 146
+named_total_reproducible_from_repository = false
+explanation = "the 119 was counted from project context outside this repository; the repo-exact total is computed from every named project the repository records. It differs because (a) ecosystem names (WebAssembly, Sigstore, OpenTelemetry, ROS 2, Higgsfield) expand to several repositories, (b) subtree names (MLIR, Cranelift, WASI) collapse into their parent repository, (c) investigation lanes recorded alternates and dependencies (e.g. nsjail, bubblewrap, stan-dev/math, urdfdom, OMCompiler) and rejected/provider repositories (higgsfield-ai/*, unlicensed clones), and (d) ISAs, formats and algorithms are named but are not repositories"
+unrecorded_names_action = "any of the 119 names absent from the entries below has no record in this repository; add it with a quote-backed source and a verified canonical_url"
+
+[[ecosystem]]
+name = "WebAssembly"
+kind = "ECOSYSTEM"
+aliases = ["WebAssembly spec/runtimes", "WebAssembly"]
+members = ["https://github.com/WebAssembly/spec.git", "https://github.com/bytecodealliance/wasmtime.git", "https://github.com/bytecodealliance/wasm-tools.git", "https://github.com/WebAssembly/component-model.git"]
+
+[[ecosystem]]
+name = "Linux namespace/seccomp/container primitives"
+kind = "CATEGORY"
+aliases = ["Linux namespaces/seccomp"]
+members = ["https://github.com/containers/podman.git"]
+
+[[ecosystem]]
+name = "Sigstore"
+kind = "ECOSYSTEM"
+aliases = ["Sigstore"]
+members = ["https://github.com/containers/image.git", "https://github.com/sigstore/rekor.git", "https://github.com/sigstore/sigstore-rs.git"]
+
+[[ecosystem]]
+name = "OpenTelemetry"
+kind = "ECOSYSTEM"
+aliases = ["OpenTelemetry"]
+members = ["https://github.com/open-telemetry/opentelemetry-specification.git", "https://github.com/open-telemetry/opentelemetry-rust.git"]
+
+[[ecosystem]]
+name = "ROS 2"
+kind = "ECOSYSTEM"
+aliases = ["ROS 2"]
+members = ["https://github.com/ros2/rclcpp.git", "https://github.com/ros2/geometry2.git", "https://github.com/ros-controls/ros2_control.git", "https://github.com/moveit/moveit2.git", "https://github.com/ros/urdfdom.git"]
+
+[[ecosystem]]
+name = "Higgsfield"
+kind = "EXTERNAL_PROVIDER"
+aliases = ["Higgsfield"]
+members = ["https://github.com/higgsfield-ai/higgsfield.git", "https://github.com/higgsfield-ai/cli.git", "https://github.com/higgsfield-ai/skills.git", "https://github.com/higgsfield-ai/higgsfield-client.git", "https://github.com/higgsfield-ai/higgsfield-js.git", "https://github.com/higgsfield-ai/cursor-plugin.git", "https://github.com/higgsfield-ai/omagotchi.git", "https://github.com/higgsfield-ai/homebrew-tap.git"]
+
+[[subtree_alias]]
+name = "MLIR"
+parent = "https://github.com/llvm/llvm-project.git"
+path = "mlir/"
+
+[[subtree_alias]]
+name = "Cranelift"
+parent = "https://github.com/bytecodealliance/wasmtime.git"
+path = "cranelift/"
+
+[[subtree_alias]]
+name = "Wasmtime/WASI"
+parent = "https://github.com/bytecodealliance/wasmtime.git"
+path = "crates/wasi*"
+
+[[non_repository_name]]
+name = "RISC-V"
+reason = "machine target (ISA), not a repository"
+
+[[non_repository_name]]
+name = "x86-64"
+reason = "machine target (ISA), not a repository"
+
+[[non_repository_name]]
+name = "ARM"
+reason = "machine target (ISA), not a repository"
+
+[[non_repository_name]]
+name = "MAP-Elites"
+reason = "algorithm (implemented by pyribs), not a repository"
+
+[[non_repository_name]]
+name = "React"
+reason = "lowering target named as output, not a donor"
+
+[[non_repository_name]]
+name = "HTML"
+reason = "lowering target named as output, not a donor"
+
+[[non_repository_name]]
+name = "CSS"
+reason = "lowering target named as output, not a donor"
+
+[[non_repository_name]]
+name = "SVG"
+reason = "lowering target named as output, not a donor"
+
+[[non_repository_name]]
+name = "Canvas"
+reason = "lowering target named as output, not a donor"
+
+[[non_repository_name]]
+name = "WebGL"
+reason = "lowering target named as output, not a donor"
+
+[[non_repository_name]]
+name = "WebGPU"
+reason = "lowering target named as output, not a donor"
+
+[[non_repository_name]]
+name = "STEP"
+reason = "export format named as output, not a donor"
+
+[[non_repository_name]]
+name = "STL"
+reason = "export format named as output, not a donor"
+
+[[non_repository_name]]
+name = "3MF"
+reason = "export format named as output, not a donor"
+
+[[non_repository_name]]
+name = "Gerber"
+reason = "export format named as output, not a donor"
+
+[[non_repository_name]]
+name = "IPC"
+reason = "export format named as output, not a donor"
+
+[[non_repository_name]]
+name = "URDF"
+reason = "export format named as output, not a donor"
+
+[[non_repository_name]]
+name = "SDF"
+reason = "export format named as output, not a donor"
+
+[[repository]]
+canonical_url = "https://c9x.me/git/qbe.git"
+names = ["QBE"]
+families = ["compiler/IR"]
+origins = ["DIRECTIVE", "LANE"]
+corpus_ids = []
+sources = [".atlas/roadmap/frontier/requested-frontier-2026-09-24.tsv", "directive:FUTURIST"]
+lifecycle = "CANDIDATE"
+working_set = "CONSUMER_GATED"
+license = "MIT"
+verified_head = "e786f06032fefa2e3790d6b1c9e31ed138f475a6"
+
+[[repository]]
+canonical_url = "https://git.code.sf.net/p/ngspice/ngspice"
+names = ["ngspice"]
+families = ["EDA"]
+origins = ["DIRECTIVE", "LANE"]
+corpus_ids = []
+sources = [".atlas/roadmap/frontier/physical-frontier-2026-09-24.tsv", "directive:PHYSICAL"]
+lifecycle = "CANDIDATE"
+working_set = "CONSUMER_GATED"
+license = "BSD-3-Clause"
+verified_head = "a9950f0e8ca7f3ea7a7ae00c4e93944a30c2c1b4"
+
+[[repository]]
+canonical_url = "https://github.com/666ghj/BettaFish.git"
+names = ["BettaFish"]
+families = ["multi-agent"]
+origins = ["DIRECTIVE", "LANE"]
+corpus_ids = []
+sources = [".atlas/roadmap/frontier/requested-frontier-2026-09-24.tsv", "directive:FUTURIST"]
+lifecycle = "CANDIDATE"
+working_set = "CONSUMER_GATED"
+license = "GPL-2.0"
+verified_head = "c4ca6360489b53c38d3d41d213a67b50d2fcb883"
+
+[[repository]]
+canonical_url = "https://github.com/666ghj/MiroFish.git"
+names = ["MiroFish"]
+families = ["multi-agent"]
+origins = ["DIRECTIVE", "LANE"]
+corpus_ids = []
+sources = [".atlas/roadmap/frontier/requested-frontier-2026-09-24.tsv", "directive:FUTURIST"]
+lifecycle = "CANDIDATE"
+working_set = "CONSUMER_GATED"
+license = "AGPL-3.0"
+verified_head = "39d849138ef254f6c737ab4c4705e5545dbe31d4"
+
+[[repository]]
+canonical_url = "https://github.com/abi/screenshot-to-code.git"
+names = ["screenshot-to-code"]
+families = ["media_codegen"]
+origins = ["DIRECTIVE", "LANE"]
+corpus_ids = []
+sources = [".atlas/roadmap/frontier/creator-frontier-2026-09-24.tsv", "directive:CREATOR"]
+lifecycle = "CANDIDATE"
+working_set = "CONSUMER_GATED"
+license = "MIT"
+verified_head = "d026163f586dfa8c5c10d28c36edd59a9d3b0e88"
+
+[[repository]]
+canonical_url = "https://github.com/anyoptimization/pymoo.git"
+names = ["pymoo"]
+families = ["probabilistic"]
+origins = ["DIRECTIVE", "LANE"]
+corpus_ids = []
+sources = [".atlas/roadmap/frontier/requested-frontier-2026-09-24.tsv", "directive:FUTURIST"]
+lifecycle = "CANDIDATE"
+working_set = "CONSUMER_GATED"
+license = "Apache-2.0"
+verified_head = "23110c155aa8f31b5f1b86928227fb3931ba7f00"
+
+[[repository]]
+canonical_url = "https://github.com/apache/arrow.git"
+names = ["Apache Arrow"]
+families = ["columnar_memory", "ipc"]
+origins = ["CORPUS"]
+corpus_ids = ["arrow"]
+sources = [".atlas/references/donor-corpus.toml"]
+lifecycle = "ADMITTED"
+working_set = "MATERIALIZED"
+license = "RECORDED_FILES"
+license_evidence = ".atlas/licenses/donors/arrow/LICENSE.txt"
+verified_head = "1f789ffd70f96907698e93ef99f4e034caf0788b"
+
+[[repository]]
+canonical_url = "https://github.com/apalache-mc/apalache.git"
+names = ["Apalache"]
+families = ["formal"]
+origins = ["DIRECTIVE", "LANE"]
+corpus_ids = []
+sources = [".atlas/roadmap/frontier/requested-frontier-2026-09-24.tsv", "directive:FUTURIST"]
+lifecycle = "CANDIDATE"
+working_set = "CONSUMER_GATED"
+license = "Apache-2.0"
+verified_head = "1371658a2c7377b43882b82764ea7720ec689e21"
+
+[[repository]]
+canonical_url = "https://github.com/ArduPilot/ardupilot.git"
+names = ["ArduPilot"]
+families = ["robotics"]
+origins = ["DIRECTIVE", "LANE"]
+corpus_ids = []
+sources = [".atlas/roadmap/frontier/requested-frontier-2026-09-24.tsv", "directive:FUTURIST"]
+lifecycle = "CANDIDATE"
+working_set = "CONSUMER_GATED"
+license = "GPL-3.0"
+verified_head = "4965c4e84a7f5cb48a437ad20ba2c967b034ac0d"
+
+[[repository]]
+canonical_url = "https://github.com/ast-grep/ast-grep.git"
+names = ["ast-grep"]
+families = ["structural_search", "structural_rewrite"]
+origins = ["CORPUS"]
+corpus_ids = ["ast-grep"]
+sources = [".atlas/references/donor-corpus.toml"]
+lifecycle = "ADMITTED"
+working_set = "MATERIALIZED"
+license = "RECORDED_FILES"
+license_evidence = ".atlas/licenses/ast-grep/LICENSE"
+verified_head = "cf48ff457aa0963ea4133c75a511bcd8d2c2ea56"
+
+[[repository]]
+canonical_url = "https://github.com/BabylonJS/Babylon.js.git"
+names = ["Babylon.js"]
+families = ["scene_graph"]
+origins = ["DIRECTIVE", "LANE"]
+corpus_ids = []
+sources = [".atlas/roadmap/frontier/creator-frontier-2026-09-24.tsv", "directive:CREATOR"]
+lifecycle = "CANDIDATE"
+working_set = "CONSUMER_GATED"
+license = "Apache-2.0"
+verified_head = "0520900e8d7afcb7b7923bb9bad913e49b6cf919"
+
+[[repository]]
+canonical_url = "https://github.com/bazelbuild/bazel.git"
+names = ["Bazel"]
+families = ["construction"]
+origins = ["DIRECTIVE", "LANE"]
+corpus_ids = []
+sources = [".atlas/roadmap/frontier/requested-frontier-2026-09-24.tsv", "directive:FUTURIST"]
+lifecycle = "CANDIDATE_OVERLAPPING"
+working_set = "CONSUMER_GATED"
+license = "Apache-2.0"
+verified_head = "33548fb14304a703ec713a45a656a6e27dfbcdbb"
+
+[[repository]]
+canonical_url = "https://github.com/BLAKE3-team/BLAKE3.git"
+names = ["BLAKE3"]
+families = ["hashing", "content_addressing"]
+origins = ["CORPUS"]
+corpus_ids = ["blake3"]
+sources = [".atlas/references/donor-corpus.toml"]
+lifecycle = "EXTINCT"
+working_set = "EXTINCT"
+license = "RECORDED_FILES"
+license_evidence = ".atlas/licenses/donors/blake3/LICENSE_A2"
+verified_head = "6aab490a26124663329dfd3961b8469f8fdb158b"
+
+[[repository]]
+canonical_url = "https://github.com/boj/iris.git"
+names = ["IRIS"]
+families = ["semantic_graph", "content_addressing"]
+origins = ["CORPUS", "DIRECTIVE"]
+corpus_ids = ["iris"]
+sources = [".atlas/references/donor-corpus.toml", "directive:EARLIER"]
+lifecycle = "ADMITTED"
+working_set = "MATERIALIZED"
+license = "RECORDED_FILES"
+license_evidence = ".atlas/licenses/donors/iris/LICENSE"
+verified_head = "743491588edf21ace27a1c331f6ff8e3b75d492d"
+
+[[repository]]
+canonical_url = "https://github.com/boostorg/units.git"
+names = ["Boost.Units"]
+families = ["units"]
+origins = ["LANE"]
+corpus_ids = []
+sources = [".atlas/roadmap/frontier/physical-frontier-2026-09-24.tsv"]
+lifecycle = "CANDIDATE"
+working_set = "CONSUMER_GATED"
+license = "BSL-1.0"
+verified_head = "f39b667d7803a6428d869c0087d92128b1212685"
+
+[[repository]]
+canonical_url = "https://github.com/bytecodealliance/regalloc2.git"
+names = ["regalloc2"]
+families = ["register_allocation", "compiler_backend"]
+origins = ["CORPUS"]
+corpus_ids = ["regalloc2"]
+sources = [".atlas/references/donor-corpus.toml"]
+lifecycle = "ADMITTED"
+working_set = "MATERIALIZED"
+license = "RECORDED_FILES"
+license_evidence = ".atlas/licenses/donors/regalloc2/LICENSE"
+verified_head = "2fe490bc9dda433f70c54f90f7633ed929f693d9"
+
+[[repository]]
+canonical_url = "https://github.com/bytecodealliance/wasm-tools.git"
+names = ["Wasm Tools"]
+families = ["wasm", "component_model"]
+origins = ["CORPUS"]
+corpus_ids = ["wasm-tools"]
+sources = [".atlas/references/donor-corpus.toml"]
+lifecycle = "ADMITTED"
+working_set = "MATERIALIZED"
+license = "RECORDED_FILES"
+license_evidence = ".atlas/licenses/donors/wasm-tools/LICENSE-APACHE"
+verified_head = "cf7962455a2d58e32b8c1f92da017fe4ed7d4b85"
+
+[[repository]]
+canonical_url = "https://github.com/bytecodealliance/wasmtime.git"
+names = ["Wasmtime", "Cranelift", "Wasmtime/WASI", "WASI"]
+families = ["wasm_runtime", "sandboxing"]
+origins = ["CORPUS", "DIRECTIVE"]
+corpus_ids = ["wasmtime"]
+sources = [".atlas/references/donor-corpus.toml", ".atlas/roadmap/frontier/requested-frontier-2026-09-24.tsv", "directive:FUTURIST"]
+lifecycle = "ADMITTED"
+working_set = "MATERIALIZED"
+license = "RECORDED_FILES"
+license_evidence = ".atlas/licenses/donors/wasmtime/LICENSE"
+verified_head = "944bb6bc4ce80ee9fe614f7fef33e342afb2c5fd"
+notes = ["Cranelift = subtree cranelift/", "Wasmtime/WASI = subtree crates/wasi*"]
+
+[[repository]]
+canonical_url = "https://github.com/CadQuery/cadquery.git"
+names = ["CadQuery"]
+families = ["CAD"]
+origins = ["DIRECTIVE", "LANE"]
+corpus_ids = []
+sources = [".atlas/roadmap/frontier/physical-frontier-2026-09-24.tsv", "directive:PHYSICAL"]
+lifecycle = "CANDIDATE"
+working_set = "CONSUMER_GATED"
+license = "Apache-2.0"
+verified_head = "c11b3f93278bb25053991f7071451f71664c90fc"
+
+[[repository]]
+canonical_url = "https://github.com/capnproto/capnproto.git"
+names = ["Cap'n Proto"]
+families = ["binary_encoding", "canonical_serialization"]
+origins = ["CORPUS", "DIRECTIVE"]
+corpus_ids = ["capnproto"]
+sources = [".atlas/references/donor-corpus.toml", "directive:EARLIER"]
+lifecycle = "ADMITTED"
+working_set = "MATERIALIZED"
+license = "MIT"
+verified_head = "fda9aecf8120d92f2085c9625330ffd9ddca7c24"
+
+[[repository]]
+canonical_url = "https://github.com/ClabstreamTeam/Open-Higgsfield-AI.git"
+names = ["community 'open-higgsfield' clones"]
+families = ["higgsfield"]
+origins = ["LANE"]
+corpus_ids = []
+sources = [".atlas/roadmap/frontier/creator-frontier-2026-09-24.tsv"]
+lifecycle = "REJECTED_UNLICENSED"
+working_set = "EXCLUDED"
+license = "none"
+verified_head = "44788b5ae32dd396f51daa6c7ffca6fde86e0378"
+
+[[repository]]
+canonical_url = "https://github.com/CoatiSoftware/Sourcetrail.git"
+names = ["Sourcetrail"]
+families = ["source_graph_visualization", "symbol_navigation"]
+origins = ["CORPUS"]
+corpus_ids = ["sourcetrail"]
+sources = [".atlas/references/donor-corpus.toml"]
+lifecycle = "ADMITTED"
+working_set = "MATERIALIZED"
+license = "RECORDED_FILES"
+license_evidence = ".atlas/licenses/sourcetrail/LICENSE.txt"
+verified_head = "4b1b0e4fd19c4af235fef12b0564c05348f5f6d3"
+
+[[repository]]
+canonical_url = "https://github.com/Comfy-Org/ComfyUI.git"
+names = ["ComfyUI"]
+families = ["media_workflow"]
+origins = ["DIRECTIVE", "LANE"]
+corpus_ids = []
+sources = [".atlas/roadmap/frontier/creator-frontier-2026-09-24.tsv", "directive:CREATOR"]
+lifecycle = "CANDIDATE"
+working_set = "CONSUMER_GATED"
+license = "GPL-3.0-only"
+verified_head = "1568e6cfd04586a4b3c4e1817ea7dde09b1bf9e7"
+
+[[repository]]
+canonical_url = "https://github.com/containers/bubblewrap.git"
+names = ["bubblewrap (alt)"]
+families = ["sandbox"]
+origins = ["LANE"]
+corpus_ids = []
+sources = [".atlas/roadmap/frontier/requested-frontier-2026-09-24.tsv"]
+lifecycle = "CANDIDATE"
+working_set = "CONSUMER_GATED"
+license = "LGPL-2.0-or-later"
+verified_head = "f8e1e5077eb8613ca559bac0d422282a910015d6"
+
+[[repository]]
+canonical_url = "https://github.com/containers/image.git"
+names = ["containers/image"]
+families = ["security", "trust"]
+origins = ["CORPUS"]
+corpus_ids = ["containers-image"]
+sources = [".atlas/references/donor-corpus.toml"]
+lifecycle = "ADMITTED"
+working_set = "MATERIALIZED"
+license = "RECORDED_FILES"
+license_evidence = ".atlas/licenses/donors/containers-image/LICENSE"
+verified_head = "df7e80d2d19872b61f352a8a182ec934dc0c2346"
+
+[[repository]]
+canonical_url = "https://github.com/containers/podman.git"
+names = ["Podman"]
+families = ["security", "trust"]
+origins = ["CORPUS"]
+corpus_ids = ["podman"]
+sources = [".atlas/references/donor-corpus.toml"]
+lifecycle = "ADMITTED"
+working_set = "MATERIALIZED"
+license = "RECORDED_FILES"
+license_evidence = ".atlas/licenses/donors/podman/LICENSE"
+verified_head = "5866b09c1f064775ab5e049c120ffe51c1cf1623"
+
+[[repository]]
+canonical_url = "https://github.com/cvc5/cvc5.git"
+names = ["cvc5"]
+families = ["formal"]
+origins = ["DIRECTIVE", "LANE"]
+corpus_ids = []
+sources = [".atlas/roadmap/frontier/requested-frontier-2026-09-24.tsv", "directive:FUTURIST"]
+lifecycle = "CANDIDATE"
+working_set = "CONSUMER_GATED"
+license = "BSD-3-Clause"
+verified_head = "504043a215a99e73b56f564e0bb83a44d92ea843"
+
+[[repository]]
+canonical_url = "https://github.com/cytoscape/cytoscape.js.git"
+names = ["Cytoscape.js"]
+families = ["graph_rendering", "large_graph_interaction"]
+origins = ["CORPUS"]
+corpus_ids = ["cytoscape-js"]
+sources = [".atlas/references/donor-corpus.toml"]
+lifecycle = "ADMITTED"
+working_set = "MATERIALIZED"
+license = "RECORDED_FILES"
+license_evidence = ".atlas/licenses/cytoscape-js/LICENSE"
+verified_head = "7ba634095d8954089ee5dc09ada0030f2dca134c"
+
+[[repository]]
+canonical_url = "https://github.com/DEAP/deap.git"
+names = ["DEAP"]
+families = ["probabilistic"]
+origins = ["DIRECTIVE", "LANE"]
+corpus_ids = []
+sources = [".atlas/roadmap/frontier/requested-frontier-2026-09-24.tsv", "directive:FUTURIST"]
+lifecycle = "CANDIDATE"
+working_set = "CONSUMER_GATED"
+license = "LGPL-3.0"
+verified_head = "8a96fd3a75026f7b30e835f595a5199c75634ddf"
+
+[[repository]]
+canonical_url = "https://github.com/dequelabs/axe-core.git"
+names = ["axe-core"]
+families = ["accessibility"]
+origins = ["LANE"]
+corpus_ids = []
+sources = [".atlas/roadmap/frontier/creator-frontier-2026-09-24.tsv"]
+lifecycle = "CANDIDATE"
+working_set = "CONSUMER_GATED"
+license = "MPL-2.0"
+verified_head = "eb854ed3e7498f1c1c6bd941b44181455a8e4866"
+
+[[repository]]
+canonical_url = "https://github.com/egraphs-good/egglog.git"
+names = ["egglog"]
+families = ["equality_saturation", "e_graph_equivalence_classes"]
+origins = ["CORPUS", "DIRECTIVE"]
+corpus_ids = ["egglog"]
+sources = [".atlas/references/donor-corpus.toml", "directive:EARLIER"]
+lifecycle = "ADMITTED"
+working_set = "MATERIALIZED"
+license = "RECORDED_FILES"
+license_evidence = ".atlas/licenses/donors/egglog/LICENSE"
+verified_head = "90635860397ce710f8c0a4eeb04154a8ebc3ac05"
+
+[[repository]]
+canonical_url = "https://github.com/facebook/Ax.git"
+names = ["Ax"]
+families = ["probabilistic"]
+origins = ["DIRECTIVE", "LANE"]
+corpus_ids = []
+sources = [".atlas/roadmap/frontier/requested-frontier-2026-09-24.tsv", "directive:FUTURIST"]
+lifecycle = "CANDIDATE"
+working_set = "CONSUMER_GATED"
+license = "MIT"
+verified_head = "57efa05aefce2a93d4d93227a4acbe2da0150aed"
+
+[[repository]]
+canonical_url = "https://github.com/facebook/buck2.git"
+names = ["Buck2", "Buck2/Dice"]
+families = ["build_graph", "target_identity", "construction"]
+origins = ["CORPUS", "DIRECTIVE", "LANE"]
+corpus_ids = ["buck2"]
+sources = [".atlas/references/donor-corpus.toml", ".atlas/roadmap/frontier/requested-frontier-2026-09-24.tsv", "directive:FUTURIST", "directive:EARLIER"]
+lifecycle = "ADMITTED"
+working_set = "MATERIALIZED"
+license = "MIT OR Apache-2.0"
+license_evidence = ".atlas/licenses/buck2/LICENSE-APACHE"
+verified_head = "b32ed8ac7d6e935fed7d667e22adaa6a43f359fd"
+
+[[repository]]
+canonical_url = "https://github.com/facebook/yoga.git"
+names = ["Yoga"]
+families = ["layout_constraints"]
+origins = ["LANE"]
+corpus_ids = []
+sources = [".atlas/roadmap/frontier/creator-frontier-2026-09-24.tsv"]
+lifecycle = "CANDIDATE"
+working_set = "CONSUMER_GATED"
+license = "MIT"
+verified_head = "a8b4817143940e2717f60148ec418cf95b789628"
+
+[[repository]]
+canonical_url = "https://github.com/facebook/zstd.git"
+names = ["Zstandard"]
+families = ["compression", "binary_payloads"]
+origins = ["CORPUS"]
+corpus_ids = ["zstd"]
+sources = [".atlas/references/donor-corpus.toml"]
+lifecycle = "ADMITTED"
+working_set = "MATERIALIZED"
+license = "RECORDED_FILES"
+license_evidence = ".atlas/licenses/donors/zstd/COPYING"
+verified_head = "01b7154f1172432f8abe9b3bb9909e14a1176b7d"
+
+[[repository]]
+canonical_url = "https://github.com/facebookincubator/Glean.git"
+names = ["Glean"]
+families = ["source_facts", "cross_reference"]
+origins = ["CORPUS"]
+corpus_ids = ["glean"]
+sources = [".atlas/references/donor-corpus.toml"]
+lifecycle = "ADMITTED"
+working_set = "MATERIALIZED"
+license = "RECORDED_FILES"
+license_evidence = ".atlas/licenses/glean/LICENSE"
+verified_head = "e32e6d0d1643eb32227d7544c5d8a06449f78e06"
+
+[[repository]]
+canonical_url = "https://github.com/FFmpeg/FFmpeg.git"
+names = ["FFmpeg"]
+families = ["media_workflow"]
+origins = ["DIRECTIVE", "LANE"]
+corpus_ids = []
+sources = [".atlas/roadmap/frontier/creator-frontier-2026-09-24.tsv", "directive:CREATOR"]
+lifecycle = "CANDIDATE"
+working_set = "CONSUMER_GATED"
+license = "LGPL-2.1-or-later"
+verified_head = "9cee5ae719d6f82356d12782611b4a1d5866d251"
+
+[[repository]]
+canonical_url = "https://github.com/FidelityFramework/clef.git"
+names = ["Clef Compiler / CCS", "CLEF COMPILER / CCS"]
+families = ["compiler_frontend", "type_resolution"]
+origins = ["CORPUS", "DIRECTIVE"]
+corpus_ids = ["clef"]
+sources = [".atlas/references/donor-corpus.toml", "directive:EARLIER"]
+lifecycle = "ADMITTED"
+working_set = "MATERIALIZED"
+license = "RECORDED_FILES"
+license_evidence = ".atlas/licenses/donors/clef/LICENSE"
+verified_head = "e94fa905f7f13c2b8216b355e9d84b17dceef5c8"
+
+[[repository]]
+canonical_url = "https://github.com/FidelityFramework/Composer.git"
+names = ["Clef / Composer", "CLEF / COMPOSER"]
+families = ["program_semantic_graph", "nanopass_compiler"]
+origins = ["CORPUS", "DIRECTIVE"]
+corpus_ids = ["composer"]
+sources = [".atlas/references/donor-corpus.toml", "directive:EARLIER"]
+lifecycle = "ADMITTED"
+working_set = "MATERIALIZED"
+license = "RECORDED_FILES"
+license_evidence = ".atlas/licenses/donors/composer/LICENSE"
+verified_head = "c46485096c38dc2c9fef9db4ae60caa1905ca1a3"
+
+[[repository]]
+canonical_url = "https://github.com/firecracker-microvm/firecracker.git"
+names = ["Firecracker"]
+families = ["sandbox"]
+origins = ["DIRECTIVE", "LANE"]
+corpus_ids = []
+sources = [".atlas/roadmap/frontier/requested-frontier-2026-09-24.tsv", "directive:FUTURIST"]
+lifecycle = "CANDIDATE"
+working_set = "CONSUMER_GATED"
+license = "Apache-2.0"
+verified_head = "8ff4940e6a723c541331e74c92cc2caeb26b6e31"
+
+[[repository]]
+canonical_url = "https://github.com/FreeCAD/FreeCAD.git"
+names = ["FreeCAD"]
+families = ["CAD"]
+origins = ["DIRECTIVE", "LANE"]
+corpus_ids = []
+sources = [".atlas/roadmap/frontier/physical-frontier-2026-09-24.tsv", "directive:PHYSICAL"]
+lifecycle = "CANDIDATE"
+working_set = "CONSUMER_GATED"
+license = "LGPL-2.1-or-later"
+verified_head = "1b7d32fb7f24ea65e98d50d4194843089557e9fc"
+
+[[repository]]
+canonical_url = "https://github.com/gazebosim/gz-sim.git"
+names = ["Gazebo gz-sim", "Gazebo"]
+families = ["robotics"]
+origins = ["DIRECTIVE", "LANE"]
+corpus_ids = []
+sources = [".atlas/roadmap/frontier/requested-frontier-2026-09-24.tsv", "directive:FUTURIST"]
+lifecycle = "CANDIDATE"
+working_set = "CONSUMER_GATED"
+license = "Apache-2.0"
+verified_head = "ec2a672be4249d5bafe25b0285e88ef3bbdff689"
+
+[[repository]]
+canonical_url = "https://github.com/gimli-rs/object.git"
+names = ["object"]
+families = ["object_files", "elf"]
+origins = ["CORPUS"]
+corpus_ids = ["object"]
+sources = [".atlas/references/donor-corpus.toml"]
+lifecycle = "ADMITTED"
+working_set = "MATERIALIZED"
+license = "RECORDED_FILES"
+license_evidence = ".atlas/licenses/donors/object/LICENSE-APACHE"
+verified_head = "dce50f05c9de3f461fb0b76c9e48cab67a256de4"
+
+[[repository]]
+canonical_url = "https://github.com/git/git.git"
+names = ["Git"]
+families = ["construction"]
+origins = ["DIRECTIVE", "LANE"]
+corpus_ids = []
+sources = [".atlas/roadmap/frontier/requested-frontier-2026-09-24.tsv", "directive:FUTURIST"]
+lifecycle = "CANDIDATE"
+working_set = "CONSUMER_GATED"
+license = "GPL-2.0-only"
+verified_head = "0f8e75abebff0877cae681a3d5ff31ac47f54220"
+notes = ["an unadmitted checkout exists (.atlas/temporary/donors/git); deletion BLOCKED_ON_USER (GENERATIONS.toml)"]
+
+[[repository]]
+canonical_url = "https://github.com/google-deepmind/mujoco.git"
+names = ["MuJoCo"]
+families = ["robotics"]
+origins = ["DIRECTIVE", "LANE"]
+corpus_ids = []
+sources = [".atlas/roadmap/frontier/requested-frontier-2026-09-24.tsv", ".atlas/roadmap/frontier/physical-frontier-2026-09-24.tsv", "directive:FUTURIST", "directive:PHYSICAL"]
+lifecycle = "CANDIDATE"
+working_set = "CONSUMER_GATED"
+license = "Apache-2.0"
+verified_head = "c0d845b93c463993eeb7abe1547b45c89dac6f10"
+
+[[repository]]
+canonical_url = "https://github.com/google/crubit.git"
+names = ["Crubit"]
+families = ["cxx_rust_interop", "source_translation"]
+origins = ["CORPUS"]
+corpus_ids = ["crubit"]
+sources = [".atlas/references/donor-corpus.toml"]
+lifecycle = "ADMITTED"
+working_set = "MATERIALIZED"
+license = "RECORDED_FILES"
+license_evidence = ".atlas/licenses/crubit/LICENSE"
+verified_head = "0695a5130e0e40936cfce0997c770cf578a6b524"
+
+[[repository]]
+canonical_url = "https://github.com/google/flatbuffers.git"
+names = ["FlatBuffers"]
+families = ["schema", "serialization"]
+origins = ["CORPUS", "DIRECTIVE"]
+corpus_ids = ["flatbuffers"]
+sources = [".atlas/references/donor-corpus.toml", "directive:EARLIER"]
+lifecycle = "ADMITTED"
+working_set = "MATERIALIZED"
+license = "RECORDED_FILES"
+license_evidence = ".atlas/licenses/donors/flatbuffers/LICENSE"
+verified_head = "b8431fbcd7a5c71817f314e18b332c0648554efa"
+
+[[repository]]
+canonical_url = "https://github.com/google/nsjail.git"
+names = ["nsjail (compact ns/seccomp ref)"]
+families = ["sandbox"]
+origins = ["LANE"]
+corpus_ids = []
+sources = [".atlas/roadmap/frontier/requested-frontier-2026-09-24.tsv"]
+lifecycle = "CANDIDATE"
+working_set = "CONSUMER_GATED"
+license = "Apache-2.0"
+verified_head = "f100fd917c6d3ed0fd15d868528b735cb5fb1a1a"
+
+[[repository]]
+canonical_url = "https://github.com/hgahub/duumbi.git"
+names = ["DUUMBI"]
+families = ["graph_native_language", "cranelift_lowering"]
+origins = ["CORPUS", "DIRECTIVE"]
+corpus_ids = ["duumbi"]
+sources = [".atlas/references/donor-corpus.toml", "directive:EARLIER"]
+lifecycle = "ADMITTED"
+working_set = "MATERIALIZED"
+license = "RECORDED_FILES"
+license_evidence = ".atlas/licenses/donors/duumbi/LICENSE"
+verified_head = "ab4c8776f795052d3669774a7ff12bdd3231fd02"
+
+[[repository]]
+canonical_url = "https://github.com/hgrecco/pint.git"
+names = ["pint"]
+families = ["units"]
+origins = ["LANE"]
+corpus_ids = []
+sources = [".atlas/roadmap/frontier/physical-frontier-2026-09-24.tsv"]
+lifecycle = "CANDIDATE"
+working_set = "CONSUMER_GATED"
+license = "BSD-3-Clause"
+verified_head = "e4042bbe5c6647e1d6ef5d242228d2e1462df7db"
+notes = ["differential oracle for core::quantity (75/75, G46); never a runtime dependency"]
+
+[[repository]]
+canonical_url = "https://github.com/higgsfield-ai/cli.git"
+names = ["Higgsfield CLI"]
+families = ["higgsfield"]
+origins = ["LANE"]
+corpus_ids = []
+sources = [".atlas/roadmap/frontier/creator-frontier-2026-09-24.tsv"]
+lifecycle = "EXTERNAL_PROVIDER_ARTIFACT"
+working_set = "EXCLUDED"
+license = "MIT"
+verified_head = "dc7e2d2eac0b1fdad255de24d87552d1ba479037"
+
+[[repository]]
+canonical_url = "https://github.com/higgsfield-ai/cursor-plugin.git"
+names = ["other higgsfield-ai repos"]
+families = ["higgsfield"]
+origins = ["LANE"]
+corpus_ids = []
+sources = [".atlas/roadmap/frontier/creator-frontier-2026-09-24.tsv"]
+lifecycle = "EXTERNAL_PROVIDER_ARTIFACT"
+working_set = "EXCLUDED"
+license = "MIT / MIT / none"
+verified_head = "c9215059e409dc81c69ff0fe77ea2740c5fc6249"
+
+[[repository]]
+canonical_url = "https://github.com/higgsfield-ai/higgsfield-client.git"
+names = ["higgsfield-client (Python SDK)"]
+families = ["higgsfield"]
+origins = ["LANE"]
+corpus_ids = []
+sources = [".atlas/roadmap/frontier/creator-frontier-2026-09-24.tsv"]
+lifecycle = "EXTERNAL_PROVIDER_ARTIFACT"
+working_set = "EXCLUDED"
+license = "Apache-2.0"
+verified_head = "aefd1ca677929762b9f69a7a7ea530a4a695d6a8"
+
+[[repository]]
+canonical_url = "https://github.com/higgsfield-ai/higgsfield-js.git"
+names = ["higgsfield-js (Node SDK)"]
+families = ["higgsfield"]
+origins = ["LANE"]
+corpus_ids = []
+sources = [".atlas/roadmap/frontier/creator-frontier-2026-09-24.tsv"]
+lifecycle = "EXTERNAL_PROVIDER_ARTIFACT"
+working_set = "EXCLUDED"
+license = "MIT"
+verified_head = "e3f274249962417e21f6566d4eecec6d8491d11c"
+
+[[repository]]
+canonical_url = "https://github.com/higgsfield-ai/higgsfield.git"
+names = ["higgsfield (GPU training framework)"]
+families = ["higgsfield"]
+origins = ["LANE"]
+corpus_ids = []
+sources = [".atlas/roadmap/frontier/creator-frontier-2026-09-24.tsv"]
+lifecycle = "EXTERNAL_PROVIDER_ARTIFACT"
+working_set = "EXCLUDED"
+license = "Apache-2.0"
+verified_head = "d12a36e66024a93d33ec61826a77d5a346c16869"
+
+[[repository]]
+canonical_url = "https://github.com/higgsfield-ai/homebrew-tap.git"
+names = ["other higgsfield-ai repos"]
+families = ["higgsfield"]
+origins = ["LANE"]
+corpus_ids = []
+sources = [".atlas/roadmap/frontier/creator-frontier-2026-09-24.tsv"]
+lifecycle = "EXTERNAL_PROVIDER_ARTIFACT"
+working_set = "EXCLUDED"
+license = "MIT / MIT / none"
+verified_head = "7d356a8bca3f08ab2dba402cf64c72cc5eee8561"
+
+[[repository]]
+canonical_url = "https://github.com/higgsfield-ai/omagotchi.git"
+names = ["other higgsfield-ai repos"]
+families = ["higgsfield"]
+origins = ["LANE"]
+corpus_ids = []
+sources = [".atlas/roadmap/frontier/creator-frontier-2026-09-24.tsv"]
+lifecycle = "EXTERNAL_PROVIDER_ARTIFACT"
+working_set = "EXCLUDED"
+license = "MIT / MIT / none"
+verified_head = "f9e6f422429c3c0d66ed37a7603c62d27fc4d81c"
+
+[[repository]]
+canonical_url = "https://github.com/higgsfield-ai/skills.git"
+names = ["Higgsfield skills"]
+families = ["higgsfield"]
+origins = ["LANE"]
+corpus_ids = []
+sources = [".atlas/roadmap/frontier/creator-frontier-2026-09-24.tsv"]
+lifecycle = "EXTERNAL_PROVIDER_ARTIFACT"
+working_set = "EXCLUDED"
+license = "MIT"
+verified_head = "d071406147a37b835bed09543d85ab3e9bd85c7d"
+
+[[repository]]
+canonical_url = "https://github.com/huggingface/diffusers.git"
+names = ["Diffusers"]
+families = ["media_workflow"]
+origins = ["DIRECTIVE", "LANE"]
+corpus_ids = []
+sources = [".atlas/roadmap/frontier/creator-frontier-2026-09-24.tsv", "directive:CREATOR"]
+lifecycle = "CANDIDATE"
+working_set = "CONSUMER_GATED"
+license = "Apache-2.0"
+verified_head = "e0118ade2f60234c41bacf40330a7e2f61108849"
+
+[[repository]]
+canonical_url = "https://github.com/icaros-usc/pyribs.git"
+names = ["pyribs (QD)"]
+families = ["probabilistic"]
+origins = ["LANE"]
+corpus_ids = []
+sources = [".atlas/roadmap/frontier/requested-frontier-2026-09-24.tsv"]
+lifecycle = "CANDIDATE"
+working_set = "CONSUMER_GATED"
+license = "MIT"
+verified_head = "7bd723cf9863d480c8f2fec5ba9aa36f3b68c083"
+
+[[repository]]
+canonical_url = "https://github.com/iliekturtles/uom.git"
+names = ["uom"]
+families = ["units"]
+origins = ["LANE"]
+corpus_ids = []
+sources = [".atlas/roadmap/frontier/physical-frontier-2026-09-24.tsv"]
+lifecycle = "CANDIDATE"
+working_set = "CONSUMER_GATED"
+license = "Apache-2.0 OR MIT"
+verified_head = "a465bcc2b3bf67f9f12fc0b133d371762d9d8fe4"
+
+[[repository]]
+canonical_url = "https://github.com/immunant/c2rust.git"
+names = ["C2Rust"]
+families = ["source_translation", "migration_ir"]
+origins = ["CORPUS"]
+corpus_ids = ["c2rust"]
+sources = [".atlas/references/donor-corpus.toml"]
+lifecycle = "ADMITTED"
+working_set = "MATERIALIZED"
+license = "RECORDED_FILES"
+license_evidence = ".atlas/licenses/c2rust/LICENSE"
+verified_head = "7fe0cf95d0ff1414b6aa93b17ca328f56b4c450f"
+
+[[repository]]
+canonical_url = "https://github.com/in-toto/attestation.git"
+names = ["in-toto attestation"]
+families = ["provenance"]
+origins = ["LANE"]
+corpus_ids = []
+sources = [".atlas/roadmap/frontier/requested-frontier-2026-09-24.tsv"]
+lifecycle = "CANDIDATE"
+working_set = "CONSUMER_GATED"
+license = "Apache-2.0"
+verified_head = "fd2609c16bcb0ac53443e2b4612977f997e8f9a5"
+
+[[repository]]
+canonical_url = "https://github.com/in-toto/in-toto-rs.git"
+names = ["in-toto-rs (smallest impl)"]
+families = ["provenance"]
+origins = ["LANE"]
+corpus_ids = []
+sources = [".atlas/roadmap/frontier/requested-frontier-2026-09-24.tsv"]
+lifecycle = "CANDIDATE"
+working_set = "CONSUMER_GATED"
+license = "MIT"
+verified_head = "48e57fd04624d30d081fae1dddf56caaa4a5b81e"
+
+[[repository]]
+canonical_url = "https://github.com/in-toto/in-toto.git"
+names = ["in-toto"]
+families = ["provenance"]
+origins = ["DIRECTIVE", "LANE"]
+corpus_ids = []
+sources = [".atlas/roadmap/frontier/requested-frontier-2026-09-24.tsv", "directive:FUTURIST"]
+lifecycle = "CANDIDATE"
+working_set = "CONSUMER_GATED"
+license = "Apache-2.0"
+verified_head = "e352b43ad7cb8915d84c36d791aa61346152a0a3"
+
+[[repository]]
+canonical_url = "https://github.com/joernio/joern.git"
+names = ["Joern"]
+families = ["code_property_graph", "data_flow"]
+origins = ["CORPUS"]
+corpus_ids = ["joern"]
+sources = [".atlas/references/donor-corpus.toml"]
+lifecycle = "ADMITTED"
+working_set = "MATERIALIZED"
+license = "RECORDED_FILES"
+license_evidence = ".atlas/licenses/joern/LICENSE"
+verified_head = "b895fe47518d61408fb891dd890dd705597b4ac1"
+
+[[repository]]
+canonical_url = "https://github.com/keycloak/keycloak.git"
+names = ["Keycloak"]
+families = ["security", "identity"]
+origins = ["CORPUS"]
+corpus_ids = ["keycloak"]
+sources = [".atlas/references/donor-corpus.toml"]
+lifecycle = "ADMITTED"
+working_set = "MATERIALIZED"
+license = "RECORDED_FILES"
+license_evidence = ".atlas/licenses/donors/keycloak/LICENSE.txt"
+verified_head = "08f960d0dd5e99912253d7a7aeba4772ae174e86"
+
+[[repository]]
+canonical_url = "https://github.com/keylime/keylime.git"
+names = ["Keylime"]
+families = ["security", "trust"]
+origins = ["CORPUS"]
+corpus_ids = ["keylime"]
+sources = [".atlas/references/donor-corpus.toml"]
+lifecycle = "ADMITTED"
+working_set = "MATERIALIZED"
+license = "RECORDED_FILES"
+license_evidence = ".atlas/licenses/donors/keylime/LICENSE"
+verified_head = "3476366881d7931407154597d88577895f2f818e"
+
+[[repository]]
+canonical_url = "https://github.com/kieler/elkjs.git"
+names = ["ELK.js"]
+families = ["graph_layout", "automatic_layout"]
+origins = ["CORPUS"]
+corpus_ids = ["elkjs"]
+sources = [".atlas/references/donor-corpus.toml"]
+lifecycle = "ADMITTED"
+working_set = "MATERIALIZED"
+license = "RECORDED_FILES"
+license_evidence = ".atlas/licenses/elkjs/LICENSE.md"
+verified_head = "722f1a3f63016e64f534a8b445283d4d31a88d0e"
+
+[[repository]]
+canonical_url = "https://github.com/kythe/kythe.git"
+names = ["Kythe"]
+families = ["semantic_cross_reference", "schema_indexing"]
+origins = ["CORPUS"]
+corpus_ids = ["kythe"]
+sources = [".atlas/references/donor-corpus.toml"]
+lifecycle = "ADMITTED"
+working_set = "MATERIALIZED"
+license = "RECORDED_FILES"
+license_evidence = ".atlas/licenses/kythe/LICENSE"
+verified_head = "69141f022689a611e8a4a1d9b08a3783a2e8a9ed"
+
+[[repository]]
+canonical_url = "https://github.com/leanprover/lean4.git"
+names = ["Lean 4", "Lean"]
+families = ["formal"]
+origins = ["DIRECTIVE", "LANE"]
+corpus_ids = []
+sources = [".atlas/roadmap/frontier/requested-frontier-2026-09-24.tsv", "directive:FUTURIST"]
+lifecycle = "CANDIDATE"
+working_set = "CONSUMER_GATED"
+license = "Apache-2.0"
+verified_head = "dd8693c1c9d8cd3fc8102e3b2beded261cfb7b24"
+
+[[repository]]
+canonical_url = "https://github.com/LinuxCNC/linuxcnc.git"
+names = ["LinuxCNC"]
+families = ["CNC"]
+origins = ["DIRECTIVE", "LANE"]
+corpus_ids = []
+sources = [".atlas/roadmap/frontier/physical-frontier-2026-09-24.tsv", "directive:PHYSICAL"]
+lifecycle = "CANDIDATE"
+working_set = "CONSUMER_GATED"
+license = "GPL-2.0"
+verified_head = "f218ffbf0d182c2c438ffaaaa2743f33ad75e6ff"
+
+[[repository]]
+canonical_url = "https://github.com/llvm/llvm-project.git"
+names = ["LLVM Project", "MLIR (llvm-project subtree)", "LLVM", "MLIR", "LLVM / MLIR / IRDL"]
+families = ["compiler_backend", "ir", "ir_design", "dialect_definition", "compiler/IR"]
+origins = ["CORPUS", "DIRECTIVE", "LANE"]
+corpus_ids = ["llvm-project", "mlir"]
+sources = [".atlas/references/donor-corpus.toml", ".atlas/roadmap/frontier/requested-frontier-2026-09-24.tsv", "directive:FUTURIST", "directive:EARLIER"]
+lifecycle = "ADMITTED"
+working_set = "MATERIALIZED"
+license = "Apache-2.0 WITH LLVM-exception"
+license_evidence = ".atlas/licenses/donors/llvm-project/LICENSE.TXT"
+verified_head = "591f2e73fd4b81298d847ff0e39fe7e01985d8d6"
+notes = ["MLIR = subtree mlir/"]
+
+[[repository]]
+canonical_url = "https://github.com/mapbox/pixelmatch.git"
+names = ["pixelmatch"]
+families = ["visual_diff"]
+origins = ["LANE"]
+corpus_ids = []
+sources = [".atlas/roadmap/frontier/creator-frontier-2026-09-24.tsv"]
+lifecycle = "CANDIDATE"
+working_set = "CONSUMER_GATED"
+license = "ISC"
+verified_head = "b2800051f2b79d18cf27e51cd240cafd38cfb0ba"
+
+[[repository]]
+canonical_url = "https://github.com/meta-pytorch/botorch.git"
+names = ["BoTorch"]
+families = ["probabilistic"]
+origins = ["DIRECTIVE", "LANE"]
+corpus_ids = []
+sources = [".atlas/roadmap/frontier/requested-frontier-2026-09-24.tsv", "directive:FUTURIST"]
+lifecycle = "CANDIDATE"
+working_set = "CONSUMER_GATED"
+license = "MIT"
+verified_head = "a1b1ad847b8c93e6a938f742ab0c71f936736111"
+
+[[repository]]
+canonical_url = "https://github.com/microsoft/playwright.git"
+names = ["Playwright"]
+families = ["browser_observation"]
+origins = ["DIRECTIVE", "LANE"]
+corpus_ids = []
+sources = [".atlas/roadmap/frontier/creator-frontier-2026-09-24.tsv", "directive:CREATOR"]
+lifecycle = "CANDIDATE"
+working_set = "CONSUMER_GATED"
+license = "Apache-2.0"
+verified_head = "0c0594d4d377eeb99c22b5da00a5a71d814f46be"
+notes = ["browser instrument (EXTERNAL_BOUNDARY, installed v1.56.1), not admitted source"]
+
+[[repository]]
+canonical_url = "https://github.com/moby/moby.git"
+names = ["Docker"]
+families = []
+origins = ["DIRECTIVE"]
+corpus_ids = []
+sources = ["directive:FUTURIST"]
+lifecycle = "CANDIDATE"
+working_set = "CONSUMER_GATED"
+license = "Apache-2.0"
+verified_head = "8bc88f10b9be3086d85fb1f8f515fd1c39f03fc4"
+notes = ["named as a contrasting sandbox reference (Docker)"]
+
+[[repository]]
+canonical_url = "https://github.com/model-checking/kani.git"
+names = ["Kani"]
+families = ["model_checking", "proof_constraints"]
+origins = ["CORPUS"]
+corpus_ids = ["kani"]
+sources = [".atlas/references/donor-corpus.toml"]
+lifecycle = "ADMITTED"
+working_set = "MATERIALIZED"
+license = "RECORDED_FILES"
+license_evidence = ".atlas/licenses/kani/LICENSE-APACHE"
+verified_head = "c610df629e04ce7e09e503f4a917a7dcbebb5f36"
+
+[[repository]]
+canonical_url = "https://github.com/motiondivision/motion.git"
+names = ["Motion (framer-motion)", "Motion"]
+families = ["motion"]
+origins = ["DIRECTIVE", "LANE"]
+corpus_ids = []
+sources = [".atlas/roadmap/frontier/creator-frontier-2026-09-24.tsv", "directive:CREATOR"]
+lifecycle = "CANDIDATE"
+working_set = "CONSUMER_GATED"
+license = "MIT"
+verified_head = "33f6e72d17ebd3e23a2bfb53f3d4c36ce7c11343"
+
+[[repository]]
+canonical_url = "https://github.com/moveit/moveit2.git"
+names = ["MoveIt 2", "MoveIt"]
+families = ["robotics"]
+origins = ["DIRECTIVE", "LANE"]
+corpus_ids = []
+sources = [".atlas/roadmap/frontier/requested-frontier-2026-09-24.tsv", "directive:FUTURIST"]
+lifecycle = "CANDIDATE"
+working_set = "CONSUMER_GATED"
+license = "BSD-3-Clause"
+verified_head = "b222baf2272980e758b90727fa90177d556fb5fa"
+
+[[repository]]
+canonical_url = "https://github.com/mpusz/mp-units.git"
+names = ["mp-units"]
+families = ["units"]
+origins = ["LANE"]
+corpus_ids = []
+sources = [".atlas/roadmap/frontier/physical-frontier-2026-09-24.tsv"]
+lifecycle = "CANDIDATE"
+working_set = "CONSUMER_GATED"
+license = "MIT"
+verified_head = "bbf20c832028d8f7e49ac4940a26a86e293630a8"
+
+[[repository]]
+canonical_url = "https://github.com/mrdoob/three.js.git"
+names = ["Three.js"]
+families = ["scene_graph"]
+origins = ["DIRECTIVE", "LANE"]
+corpus_ids = []
+sources = [".atlas/roadmap/frontier/creator-frontier-2026-09-24.tsv", "directive:CREATOR"]
+lifecycle = "CANDIDATE"
+working_set = "CONSUMER_GATED"
+license = "MIT"
+verified_head = "aed5f6ebcfb0cdeff7ff6593fc4b90fb0360da39"
+
+[[repository]]
+canonical_url = "https://github.com/NixOS/nix.git"
+names = ["Nix"]
+families = ["construction"]
+origins = ["DIRECTIVE", "LANE"]
+corpus_ids = []
+sources = [".atlas/roadmap/frontier/requested-frontier-2026-09-24.tsv", "directive:FUTURIST"]
+lifecycle = "CANDIDATE"
+working_set = "CONSUMER_GATED"
+license = "LGPL-2.1"
+verified_head = "8f7ed1c1d1246bfa98cefd152c87d1ea26a3d463"
+
+[[repository]]
+canonical_url = "https://github.com/nucleic/kiwi.git"
+names = ["kiwi (Cassowary)"]
+families = ["layout_constraints"]
+origins = ["LANE"]
+corpus_ids = []
+sources = [".atlas/roadmap/frontier/creator-frontier-2026-09-24.tsv"]
+lifecycle = "CANDIDATE"
+working_set = "CONSUMER_GATED"
+license = "BSD-3-Clause"
+verified_head = "4df2f39c016e90a5ffb3c6e71470146077100200"
+
+[[repository]]
+canonical_url = "https://github.com/Open-Cascade-SAS/OCCT.git"
+names = ["OpenCascade OCCT", "OpenCascade"]
+families = ["CAD"]
+origins = ["DIRECTIVE", "LANE"]
+corpus_ids = []
+sources = [".atlas/roadmap/frontier/physical-frontier-2026-09-24.tsv", "directive:PHYSICAL"]
+lifecycle = "CANDIDATE"
+working_set = "CONSUMER_GATED"
+license = "LGPL-2.1-only WITH OCCT-exception-1.0"
+verified_head = "3d097a0328e71b826377d4814ab05ec3c3d23871"
+
+[[repository]]
+canonical_url = "https://github.com/open-telemetry/opentelemetry-rust.git"
+names = ["opentelemetry-rust"]
+families = ["observability"]
+origins = ["LANE"]
+corpus_ids = []
+sources = [".atlas/roadmap/frontier/requested-frontier-2026-09-24.tsv"]
+lifecycle = "CANDIDATE"
+working_set = "CONSUMER_GATED"
+license = "Apache-2.0"
+verified_head = "844df52c4cff4d462bf013a0ceb0692d538ca6f6"
+
+[[repository]]
+canonical_url = "https://github.com/open-telemetry/opentelemetry-specification.git"
+names = ["OpenTelemetry spec"]
+families = ["observability"]
+origins = ["LANE"]
+corpus_ids = []
+sources = [".atlas/roadmap/frontier/requested-frontier-2026-09-24.tsv"]
+lifecycle = "CANDIDATE"
+working_set = "CONSUMER_GATED"
+license = "Apache-2.0"
+verified_head = "cac5b81ebcfdecb272bb4e2d31f885b7142207d9"
+
+[[repository]]
+canonical_url = "https://github.com/OpenFOAM/OpenFOAM-dev.git"
+names = ["OpenFOAM-dev", "OpenFOAM"]
+families = ["CFD"]
+origins = ["DIRECTIVE", "LANE"]
+corpus_ids = []
+sources = [".atlas/roadmap/frontier/physical-frontier-2026-09-24.tsv", "directive:PHYSICAL"]
+lifecycle = "CANDIDATE"
+working_set = "CONSUMER_GATED"
+license = "GPL-3.0-or-later"
+verified_head = "0ae4d61b7fa7075d13b74e2ddc6f81a3a19d7284"
+
+[[repository]]
+canonical_url = "https://github.com/OpenModelica/OMCompiler.git"
+names = ["OMCompiler (standalone)"]
+families = ["modelica"]
+origins = ["LANE"]
+corpus_ids = []
+sources = [".atlas/roadmap/frontier/physical-frontier-2026-09-24.tsv"]
+lifecycle = "CANDIDATE"
+working_set = "CONSUMER_GATED"
+license = "OSMC-PL"
+verified_head = "5dc61f678fe0ed388fc811fe2cea14c54a0a0b29"
+
+[[repository]]
+canonical_url = "https://github.com/OpenModelica/OpenModelica.git"
+names = ["OpenModelica"]
+families = ["modelica"]
+origins = ["DIRECTIVE", "LANE"]
+corpus_ids = []
+sources = [".atlas/roadmap/frontier/physical-frontier-2026-09-24.tsv", "directive:PHYSICAL"]
+lifecycle = "CANDIDATE"
+working_set = "CONSUMER_GATED"
+license = "OSMC-PL-1.x"
+verified_head = "c8d6649d7fd0974d596781173c817f2e9893a52e"
+
+[[repository]]
+canonical_url = "https://github.com/openrewrite/rewrite.git"
+names = ["OpenRewrite"]
+families = ["semantic_recipes", "large_scale_migration"]
+origins = ["CORPUS"]
+corpus_ids = ["openrewrite"]
+sources = [".atlas/references/donor-corpus.toml"]
+lifecycle = "ADMITTED"
+working_set = "MATERIALIZED"
+license = "RECORDED_FILES"
+license_evidence = ".atlas/licenses/openrewrite/LICENSE"
+verified_head = "3d834b41cd18c94bef285e0e9d77b37656d3ccd5"
+
+[[repository]]
+canonical_url = "https://github.com/OpenSCAP/openscap.git"
+names = ["OpenSCAP"]
+families = ["security", "trust"]
+origins = ["CORPUS"]
+corpus_ids = ["openscap"]
+sources = [".atlas/references/donor-corpus.toml"]
+lifecycle = "ADMITTED"
+working_set = "MATERIALIZED"
+license = "RECORDED_FILES"
+license_evidence = ".atlas/licenses/donors/openscap/COPYING"
+verified_head = "6942b59fc861ad77ebcea93e70f32832d88e20f9"
+
+[[repository]]
+canonical_url = "https://github.com/paholg/dimensioned.git"
+names = ["dimensioned"]
+families = ["units"]
+origins = ["LANE"]
+corpus_ids = []
+sources = [".atlas/roadmap/frontier/physical-frontier-2026-09-24.tsv"]
+lifecycle = "CANDIDATE"
+working_set = "CONSUMER_GATED"
+license = "MIT"
+verified_head = "615c908ae5735435077a73e74d0e996c49d46015"
+
+[[repository]]
+canonical_url = "https://github.com/pixijs/pixijs.git"
+names = ["PixiJS"]
+families = ["scene_graph"]
+origins = ["DIRECTIVE", "LANE"]
+corpus_ids = []
+sources = [".atlas/roadmap/frontier/creator-frontier-2026-09-24.tsv", "directive:CREATOR"]
+lifecycle = "CANDIDATE"
+working_set = "CONSUMER_GATED"
+license = "MIT"
+verified_head = "ecd3797cf9b57766b045f3eea8388db9677744f8"
+
+[[repository]]
+canonical_url = "https://github.com/projectchrono/chrono.git"
+names = ["Project Chrono"]
+families = ["multibody"]
+origins = ["DIRECTIVE", "LANE"]
+corpus_ids = []
+sources = [".atlas/roadmap/frontier/physical-frontier-2026-09-24.tsv", "directive:PHYSICAL"]
+lifecycle = "CANDIDATE"
+working_set = "CONSUMER_GATED"
+license = "BSD-3-Clause"
+verified_head = "aa3922df4ad18cc8571cb71b7fb274fd7e1612fa"
+
+[[repository]]
+canonical_url = "https://github.com/PX4/PX4-Autopilot.git"
+names = ["PX4"]
+families = ["robotics"]
+origins = ["DIRECTIVE", "LANE"]
+corpus_ids = []
+sources = [".atlas/roadmap/frontier/requested-frontier-2026-09-24.tsv", ".atlas/roadmap/frontier/physical-frontier-2026-09-24.tsv", "directive:FUTURIST", "directive:PHYSICAL"]
+lifecycle = "CANDIDATE"
+working_set = "CONSUMER_GATED"
+license = "BSD-3-Clause"
+verified_head = "86716507be65ac348645d35dd483dda1ff92144e"
+
+[[repository]]
+canonical_url = "https://github.com/py-why/causal-learn.git"
+names = ["causal-learn"]
+families = ["causal"]
+origins = ["LANE"]
+corpus_ids = []
+sources = [".atlas/roadmap/frontier/requested-frontier-2026-09-24.tsv"]
+lifecycle = "CANDIDATE"
+working_set = "CONSUMER_GATED"
+license = "MIT"
+verified_head = "0dacacf36390e3084704636bc3c36e82e35ee0cc"
+
+[[repository]]
+canonical_url = "https://github.com/py-why/dowhy.git"
+names = ["DoWhy"]
+families = ["causal"]
+origins = ["LANE"]
+corpus_ids = []
+sources = [".atlas/roadmap/frontier/requested-frontier-2026-09-24.tsv"]
+lifecycle = "CANDIDATE"
+working_set = "CONSUMER_GATED"
+license = "MIT"
+verified_head = "cc23521127ba21ade40514539ae7b91db27ca54a"
+
+[[repository]]
+canonical_url = "https://github.com/py2many/py2many.git"
+names = ["py2many"]
+families = ["source_translation", "language_conversion"]
+origins = ["CORPUS"]
+corpus_ids = ["py2many"]
+sources = [".atlas/references/donor-corpus.toml"]
+lifecycle = "ADMITTED"
+working_set = "MATERIALIZED"
+license = "RECORDED_FILES"
+license_evidence = ".atlas/licenses/py2many/LICENSE"
+verified_head = "a3c39224e71430bf99057f473c4b4542971daa9d"
+
+[[repository]]
+canonical_url = "https://github.com/pyro-ppl/numpyro.git"
+names = ["NumPyro"]
+families = ["probabilistic"]
+origins = ["DIRECTIVE", "LANE"]
+corpus_ids = []
+sources = [".atlas/roadmap/frontier/requested-frontier-2026-09-24.tsv", "directive:FUTURIST"]
+lifecycle = "CANDIDATE"
+working_set = "CONSUMER_GATED"
+license = "Apache-2.0"
+verified_head = "a39b7ae6a6502e02f158a60136d4e19bc37f3d9f"
+
+[[repository]]
+canonical_url = "https://github.com/pyro-ppl/pyro.git"
+names = ["Pyro"]
+families = ["probabilistic"]
+origins = ["DIRECTIVE", "LANE"]
+corpus_ids = []
+sources = [".atlas/roadmap/frontier/requested-frontier-2026-09-24.tsv", "directive:FUTURIST"]
+lifecycle = "CANDIDATE"
+working_set = "CONSUMER_GATED"
+license = "Apache-2.0"
+verified_head = "ae65fa4b3dc0eaa243c1a5c29f0710e667c68ece"
+
+[[repository]]
+canonical_url = "https://github.com/pzalutski-pixel/sigil-lang.git"
+names = ["Sigil", "SIGIL"]
+families = ["graph_native_language", "content_addressing"]
+origins = ["CORPUS", "DIRECTIVE"]
+corpus_ids = ["sigil-lang"]
+sources = [".atlas/references/donor-corpus.toml", "directive:EARLIER"]
+lifecycle = "ADMITTED"
+working_set = "MATERIALIZED"
+license = "RECORDED_FILES"
+license_evidence = ".atlas/licenses/donors/sigil-lang/LICENSE"
+verified_head = "9c7de956d926fba2f9d5c0598b35c57fb6399f7f"
+
+[[repository]]
+canonical_url = "https://github.com/quay/clair.git"
+names = ["Clair"]
+families = ["security", "supply_chain"]
+origins = ["CORPUS"]
+corpus_ids = ["clair"]
+sources = [".atlas/references/donor-corpus.toml"]
+lifecycle = "ADMITTED"
+working_set = "MATERIALIZED"
+license = "RECORDED_FILES"
+license_evidence = ".atlas/licenses/donors/clair/LICENSE"
+verified_head = "c9ac9a0aa5651670a690854fc2c12adfc951243f"
+
+[[repository]]
+canonical_url = "https://github.com/radix-ui/primitives.git"
+names = ["Radix Primitives"]
+families = ["interaction_state"]
+origins = ["DIRECTIVE", "LANE"]
+corpus_ids = []
+sources = [".atlas/roadmap/frontier/creator-frontier-2026-09-24.tsv", "directive:CREATOR"]
+lifecycle = "CANDIDATE"
+working_set = "CONSUMER_GATED"
+license = "MIT"
+verified_head = "f7ecd5ab16f5e1e820eb5786a1419a98a2d594ae"
+
+[[repository]]
+canonical_url = "https://github.com/rkyv/rkyv.git"
+names = ["rkyv"]
+families = ["binary_encoding", "zero_copy_archive"]
+origins = ["CORPUS", "DIRECTIVE"]
+corpus_ids = ["rkyv"]
+sources = [".atlas/references/donor-corpus.toml", "directive:EARLIER"]
+lifecycle = "ADMITTED"
+working_set = "MATERIALIZED"
+license = "MIT"
+verified_head = "4845668ae9730a3987966769f6872d86b822dc41"
+
+[[repository]]
+canonical_url = "https://github.com/RobotLocomotion/drake.git"
+names = ["Drake"]
+families = ["robotics"]
+origins = ["DIRECTIVE", "LANE"]
+corpus_ids = []
+sources = [".atlas/roadmap/frontier/requested-frontier-2026-09-24.tsv", ".atlas/roadmap/frontier/physical-frontier-2026-09-24.tsv", "directive:FUTURIST", "directive:PHYSICAL"]
+lifecycle = "CANDIDATE"
+working_set = "CONSUMER_GATED"
+license = "BSD-3-Clause"
+verified_head = "53fc1b45a465310673be2ef498e41741eff0c53c"
+
+[[repository]]
+canonical_url = "https://github.com/rocq-prover/rocq.git"
+names = ["Rocq/Coq", "Coq", "Rocq"]
+families = ["formal"]
+origins = ["DIRECTIVE", "LANE"]
+corpus_ids = []
+sources = [".atlas/roadmap/frontier/requested-frontier-2026-09-24.tsv", "directive:FUTURIST"]
+lifecycle = "CANDIDATE"
+working_set = "CONSUMER_GATED"
+license = "LGPL-2.1"
+verified_head = "295beaf5197294e24862e42adfc651ef40b7a472"
+
+[[repository]]
+canonical_url = "https://github.com/ros-controls/ros2_control.git"
+names = ["ros2_control"]
+families = ["robotics"]
+origins = ["DIRECTIVE", "LANE"]
+corpus_ids = []
+sources = [".atlas/roadmap/frontier/requested-frontier-2026-09-24.tsv", ".atlas/roadmap/frontier/physical-frontier-2026-09-24.tsv", "directive:FUTURIST", "directive:PHYSICAL"]
+lifecycle = "CANDIDATE"
+working_set = "CONSUMER_GATED"
+license = "Apache-2.0"
+verified_head = "b0c14b5edca8d17fc2996be1909815e8fcb587c6"
+
+[[repository]]
+canonical_url = "https://github.com/ros/urdfdom.git"
+names = ["URDF (urdfdom)"]
+families = ["robotics"]
+origins = ["LANE"]
+corpus_ids = []
+sources = [".atlas/roadmap/frontier/physical-frontier-2026-09-24.tsv"]
+lifecycle = "CANDIDATE"
+working_set = "CONSUMER_GATED"
+license = "BSD-3-Clause"
+verified_head = "c3def983918a8bb28dc7c94e63ff8c2d0e6e2f43"
+
+[[repository]]
+canonical_url = "https://github.com/ros2/geometry2.git"
+names = ["ROS 2 tf2"]
+families = ["robotics"]
+origins = ["LANE"]
+corpus_ids = []
+sources = [".atlas/roadmap/frontier/physical-frontier-2026-09-24.tsv"]
+lifecycle = "CANDIDATE"
+working_set = "CONSUMER_GATED"
+license = "BSD-3-Clause"
+verified_head = "77f7559fd41311dd248168fb0249fdd272ca23cb"
+
+[[repository]]
+canonical_url = "https://github.com/ros2/rclcpp.git"
+names = ["ROS 2 rclcpp"]
+families = ["robotics"]
+origins = ["LANE"]
+corpus_ids = []
+sources = [".atlas/roadmap/frontier/requested-frontier-2026-09-24.tsv", ".atlas/roadmap/frontier/physical-frontier-2026-09-24.tsv"]
+lifecycle = "CANDIDATE"
+working_set = "CONSUMER_GATED"
+license = "Apache-2.0"
+verified_head = "29de98cf1bc2e736ec1a5f7ad4c74e98c3fd3b17"
+
+[[repository]]
+canonical_url = "https://github.com/rrweb-io/rrweb.git"
+names = ["rrweb"]
+families = ["browser_observation"]
+origins = ["DIRECTIVE", "LANE"]
+corpus_ids = []
+sources = [".atlas/roadmap/frontier/creator-frontier-2026-09-24.tsv", "directive:CREATOR"]
+lifecycle = "CANDIDATE"
+working_set = "CONSUMER_GATED"
+license = "MIT"
+verified_head = "5b08843faf9cb21c836613489ffd93d455f38181"
+
+[[repository]]
+canonical_url = "https://github.com/rui314/mold.git"
+names = ["mold"]
+families = ["linker", "elf"]
+origins = ["CORPUS"]
+corpus_ids = ["mold"]
+sources = [".atlas/references/donor-corpus.toml"]
+lifecycle = "ADMITTED"
+working_set = "MATERIALIZED"
+license = "RECORDED_FILES"
+license_evidence = ".atlas/licenses/donors/mold/LICENSE"
+verified_head = "6fc6e1916f383ea3ea319e12d3df4daee33267d9"
+
+[[repository]]
+canonical_url = "https://github.com/rust-lang/cargo.git"
+names = ["Cargo"]
+families = []
+origins = ["DIRECTIVE"]
+corpus_ids = []
+sources = ["directive:EARLIER"]
+lifecycle = "EXTERNAL_ORACLE"
+working_set = "ORACLE_ONLY"
+license = "MIT OR Apache-2.0"
+verified_head = "694054f34bcb04025b16d0eaf075038c0e58a15d"
+notes = ["independent oracle for dependency-census verification"]
+
+[[repository]]
+canonical_url = "https://github.com/rust-lang/datafrog.git"
+names = ["Datafrog", "datafrog"]
+families = ["relational_inference", "fixed_point"]
+origins = ["CORPUS", "DIRECTIVE"]
+corpus_ids = ["datafrog"]
+sources = [".atlas/references/donor-corpus.toml", "directive:FUTURIST", "directive:CREATOR", "directive:EARLIER"]
+lifecycle = "EXTINCT"
+working_set = "EXTINCT"
+license = "RECORDED_FILES"
+license_evidence = ".atlas/licenses/datafrog/LICENSE-APACHE"
+verified_head = "edd7cfc0f5ad3b93ce5bbe6a17848db9376b13c0"
+
+[[repository]]
+canonical_url = "https://github.com/rust-lang/miri.git"
+names = ["Miri"]
+families = ["undefined_behavior_detection", "rust_execution_semantics"]
+origins = ["CORPUS"]
+corpus_ids = ["miri"]
+sources = [".atlas/references/donor-corpus.toml"]
+lifecycle = "ADMITTED"
+working_set = "MATERIALIZED"
+license = "RECORDED_FILES"
+license_evidence = ".atlas/licenses/miri/LICENSE-APACHE"
+verified_head = "2812a59145bf4c4aa3f015bf5dda863828ce5975"
+
+[[repository]]
+canonical_url = "https://github.com/rust-lang/rust-analyzer.git"
+names = ["rust-analyzer"]
+families = ["rust_semantics", "incremental_analysis", "front-end"]
+origins = ["CORPUS", "DIRECTIVE", "LANE"]
+corpus_ids = ["rust-analyzer"]
+sources = [".atlas/references/donor-corpus.toml", ".atlas/roadmap/frontier/requested-frontier-2026-09-24.tsv", "directive:FUTURIST"]
+lifecycle = "ADMITTED"
+working_set = "MATERIALIZED"
+license = "MIT OR Apache-2.0"
+license_evidence = ".atlas/licenses/rust-analyzer/LICENSE-APACHE"
+verified_head = "230fe0a6d7b4a7b70587aa306ac068bda14a675e"
+
+[[repository]]
+canonical_url = "https://github.com/rust-lang/rust.git"
+names = ["Rust"]
+families = ["compiler", "borrow_checker"]
+origins = ["CORPUS"]
+corpus_ids = ["rust"]
+sources = [".atlas/references/donor-corpus.toml"]
+lifecycle = "ADMITTED"
+working_set = "MATERIALIZED"
+license = "RECORDED_FILES"
+license_evidence = ".atlas/licenses/donors/rust/COPYRIGHT"
+verified_head = "2350b22a89d30fe814a299a73c9ab83c72cafaf3"
+
+[[repository]]
+canonical_url = "https://github.com/salsa-rs/salsa.git"
+names = ["Salsa"]
+families = ["incremental_queries", "dependency_invalidation"]
+origins = ["CORPUS", "DIRECTIVE"]
+corpus_ids = ["salsa"]
+sources = [".atlas/references/donor-corpus.toml", "directive:EARLIER"]
+lifecycle = "ADMITTED"
+working_set = "MATERIALIZED"
+license = "RECORDED_FILES"
+license_evidence = ".atlas/licenses/salsa/LICENSE-APACHE"
+verified_head = "687bfce0418aa717561b83cb90b732549703f144"
+
+[[repository]]
+canonical_url = "https://github.com/SELinuxProject/selinux.git"
+names = ["SELinux"]
+families = ["security", "trust"]
+origins = ["CORPUS"]
+corpus_ids = ["selinux"]
+sources = [".atlas/references/donor-corpus.toml"]
+lifecycle = "ADMITTED"
+working_set = "MATERIALIZED"
+license = "RECORDED_FILES"
+license_evidence = ".atlas/licenses/donors/selinux/LICENSE"
+verified_head = "98aefb43b002ad5ebc39d21e50e344dac5dc3c10"
+
+[[repository]]
+canonical_url = "https://github.com/semgrep/semgrep.git"
+names = ["Semgrep"]
+families = ["semantic_search", "pattern_matching"]
+origins = ["CORPUS"]
+corpus_ids = ["semgrep"]
+sources = [".atlas/references/donor-corpus.toml"]
+lifecycle = "ADMITTED"
+working_set = "MATERIALIZED"
+license = "RECORDED_FILES"
+license_evidence = ".atlas/licenses/semgrep/LICENSE"
+verified_head = "56e04ee9581f76a2a1cfcdd806dd2d276851a39f"
+
+[[repository]]
+canonical_url = "https://github.com/shadcn-ui/ui.git"
+names = ["shadcn/ui"]
+families = ["interaction_state"]
+origins = ["DIRECTIVE", "LANE"]
+corpus_ids = []
+sources = [".atlas/roadmap/frontier/creator-frontier-2026-09-24.tsv", "directive:CREATOR"]
+lifecycle = "CANDIDATE"
+working_set = "CONSUMER_GATED"
+license = "MIT"
+verified_head = "98a1fe67b439324ddc857f47fbdce056600a4329"
+
+[[repository]]
+canonical_url = "https://github.com/sigstore/rekor.git"
+names = ["Sigstore rekor"]
+families = ["provenance"]
+origins = ["LANE"]
+corpus_ids = []
+sources = [".atlas/roadmap/frontier/requested-frontier-2026-09-24.tsv"]
+lifecycle = "CANDIDATE"
+working_set = "CONSUMER_GATED"
+license = "Apache-2.0"
+verified_head = "904bbccce4df5e63c30209d7b7a00d9dda5400d6"
+
+[[repository]]
+canonical_url = "https://github.com/sigstore/sigstore-rs.git"
+names = ["sigstore-rs"]
+families = ["provenance"]
+origins = ["LANE"]
+corpus_ids = []
+sources = [".atlas/roadmap/frontier/requested-frontier-2026-09-24.tsv"]
+lifecycle = "CANDIDATE"
+working_set = "CONSUMER_GATED"
+license = "Apache-2.0"
+verified_head = "038e36aefac21dd4ae608cda33736a494250fd1f"
+
+[[repository]]
+canonical_url = "https://github.com/slsa-framework/slsa.git"
+names = ["SLSA"]
+families = ["provenance"]
+origins = ["DIRECTIVE", "LANE"]
+corpus_ids = []
+sources = [".atlas/roadmap/frontier/requested-frontier-2026-09-24.tsv", "directive:FUTURIST"]
+lifecycle = "CANDIDATE"
+working_set = "CONSUMER_GATED"
+license = "Community-Spec-1.0"
+verified_head = "618f5b2192aad8417a8ee8ccb9e3f27d05c0e9b6"
+
+[[repository]]
+canonical_url = "https://github.com/souffle-lang/souffle.git"
+names = ["Souffle", "Soufflé"]
+families = ["datalog", "static_analysis"]
+origins = ["CORPUS", "DIRECTIVE"]
+corpus_ids = ["souffle"]
+sources = [".atlas/references/donor-corpus.toml", "directive:FUTURIST", "directive:CREATOR", "directive:EARLIER"]
+lifecycle = "EXTINCT"
+working_set = "EXTINCT"
+license = "RECORDED_FILES"
+license_evidence = ".atlas/licenses/souffle/LICENSE"
+verified_head = "a1303be3c0166400dee3d1f36f0d96abe03e6901"
+
+[[repository]]
+canonical_url = "https://github.com/sourcegraph/scip.git"
+names = ["SCIP"]
+families = ["semantic_index_exchange", "symbol_identity"]
+origins = ["CORPUS"]
+corpus_ids = ["scip"]
+sources = [".atlas/references/donor-corpus.toml"]
+lifecycle = "ADMITTED"
+working_set = "MATERIALIZED"
+license = "RECORDED_FILES"
+license_evidence = ".atlas/licenses/scip/LICENSE"
+verified_head = "db62094c7f9d464d0a6d9fd7815fcf3c9214b4c2"
+
+[[repository]]
+canonical_url = "https://github.com/stack-of-tasks/pinocchio.git"
+names = ["Pinocchio"]
+families = ["robotics"]
+origins = ["DIRECTIVE", "LANE"]
+corpus_ids = []
+sources = [".atlas/roadmap/frontier/requested-frontier-2026-09-24.tsv", ".atlas/roadmap/frontier/physical-frontier-2026-09-24.tsv", "directive:FUTURIST", "directive:PHYSICAL"]
+lifecycle = "CANDIDATE"
+working_set = "CONSUMER_GATED"
+license = "BSD-2-Clause"
+verified_head = "c50ac0f904ff18d3e222f26d1f09107cf799f9cc"
+
+[[repository]]
+canonical_url = "https://github.com/stan-dev/math.git"
+names = ["Stan Math (dep)"]
+families = ["probabilistic"]
+origins = ["LANE"]
+corpus_ids = []
+sources = [".atlas/roadmap/frontier/requested-frontier-2026-09-24.tsv"]
+lifecycle = "CANDIDATE"
+working_set = "CONSUMER_GATED"
+license = "BSD-3-Clause"
+verified_head = "d43cb82a51874d9bcb40e6689a699582a2c709df"
+
+[[repository]]
+canonical_url = "https://github.com/stan-dev/stan.git"
+names = ["Stan"]
+families = ["probabilistic"]
+origins = ["DIRECTIVE", "LANE"]
+corpus_ids = []
+sources = [".atlas/roadmap/frontier/requested-frontier-2026-09-24.tsv", "directive:FUTURIST"]
+lifecycle = "CANDIDATE"
+working_set = "CONSUMER_GATED"
+license = "BSD-3-Clause"
+verified_head = "a3afc41011583251b6b2ae76ede5b53a35dda284"
+
+[[repository]]
+canonical_url = "https://github.com/The-OpenROAD-Project/OpenROAD.git"
+names = ["OpenROAD"]
+families = ["EDA"]
+origins = ["DIRECTIVE", "LANE"]
+corpus_ids = []
+sources = [".atlas/roadmap/frontier/physical-frontier-2026-09-24.tsv", "directive:PHYSICAL"]
+lifecycle = "CANDIDATE"
+working_set = "CONSUMER_GATED"
+license = "BSD-3-Clause"
+verified_head = "196fc50266871c04a7235278c150fd28132e47d7"
+
+[[repository]]
+canonical_url = "https://github.com/TimelyDataflow/differential-dataflow.git"
+names = ["Differential Dataflow", "differential-dataflow"]
+families = ["differential_computation", "incremental_graph_derivation"]
+origins = ["CORPUS", "DIRECTIVE"]
+corpus_ids = ["differential-dataflow"]
+sources = [".atlas/references/donor-corpus.toml", "directive:EARLIER"]
+lifecycle = "ADMITTED"
+working_set = "MATERIALIZED"
+license = "RECORDED_FILES"
+license_evidence = ".atlas/licenses/differential-dataflow/LICENSE"
+verified_head = "aa8745f93ea8abe131104fc7885ba4fd47e63902"
+
+[[repository]]
+canonical_url = "https://github.com/tlaplus/tlaplus.git"
+names = ["TLA+ tools", "TLA+", "TLC"]
+families = ["formal"]
+origins = ["DIRECTIVE", "LANE"]
+corpus_ids = []
+sources = [".atlas/roadmap/frontier/requested-frontier-2026-09-24.tsv", "directive:FUTURIST"]
+lifecycle = "CANDIDATE"
+working_set = "CONSUMER_GATED"
+license = "MIT"
+verified_head = "4260e471245fce04ad5610bae7125bdc9ef7eec6"
+
+[[repository]]
+canonical_url = "https://github.com/tree-sitter/tree-sitter.git"
+names = ["Tree-sitter", "tree-sitter"]
+families = ["incremental_parsing", "syntax_trees", "front-end"]
+origins = ["CORPUS", "DIRECTIVE", "LANE"]
+corpus_ids = ["tree-sitter"]
+sources = [".atlas/references/donor-corpus.toml", ".atlas/roadmap/frontier/requested-frontier-2026-09-24.tsv", "directive:FUTURIST"]
+lifecycle = "ADMITTED"
+working_set = "MATERIALIZED"
+license = "MIT"
+license_evidence = ".atlas/licenses/tree-sitter/LICENSE"
+verified_head = "dcdc8cc55e5dfedfc858080835f153999a29ec40"
+
+[[repository]]
+canonical_url = "https://github.com/verus-lang/verus.git"
+names = ["Verus"]
+families = ["formal_verification", "proof_oriented_constraints"]
+origins = ["CORPUS"]
+corpus_ids = ["verus"]
+sources = [".atlas/references/donor-corpus.toml"]
+lifecycle = "ADMITTED"
+working_set = "MATERIALIZED"
+license = "RECORDED_FILES"
+license_evidence = ".atlas/licenses/verus/LICENSE"
+verified_head = "b9416fad06904c6023d93ba79fcf2d06dd7db4fe"
+
+[[repository]]
+canonical_url = "https://github.com/vustudio/opendesign.git"
+names = ["OpenDesign"]
+families = ["design_authoring", "visual_system"]
+origins = ["CORPUS"]
+corpus_ids = ["opendesign"]
+sources = [".atlas/references/donor-corpus.toml"]
+lifecycle = "ADMITTED"
+working_set = "MATERIALIZED"
+license = "RECORDED_FILES"
+license_evidence = ".atlas/licenses/donors/opendesign/LICENSE"
+verified_head = "b4e69ac61b50576298f9f564603e5a4beb27417f"
+
+[[repository]]
+canonical_url = "https://github.com/WebAssembly/component-model.git"
+names = ["WebAssembly Component Model", "WebAssembly Component Model / WIT"]
+families = ["interface_definition_language", "component_boundary"]
+origins = ["CORPUS", "DIRECTIVE"]
+corpus_ids = ["wasm-component-model"]
+sources = [".atlas/references/donor-corpus.toml", "directive:EARLIER"]
+lifecycle = "ADMITTED"
+working_set = "MATERIALIZED"
+license = "RECORDED_FILES"
+license_evidence = ".atlas/licenses/donors/wasm-component-model/LICENSE"
+verified_head = "06e3db039e38588e2643a9417bf5d03100feafde"
+
+[[repository]]
+canonical_url = "https://github.com/WebAssembly/spec.git"
+names = ["WebAssembly spec"]
+families = ["instruction_validation_algorithm", "stack_machine_type_checking"]
+origins = ["CORPUS", "DIRECTIVE"]
+corpus_ids = ["wasm-spec"]
+sources = [".atlas/references/donor-corpus.toml", "directive:EARLIER"]
+lifecycle = "ADMITTED"
+working_set = "MATERIALIZED"
+license = "RECORDED_FILES"
+license_evidence = ".atlas/licenses/donors/wasm-spec/LICENSE"
+verified_head = "608711107b7f1edb13efd57b7d79b49477462d36"
+
+[[repository]]
+canonical_url = "https://github.com/WhitzardAgent/agentir.git"
+names = ["AgentIR"]
+families = ["construction_pipeline_process", "trace_ir_process_pattern"]
+origins = ["CORPUS", "DIRECTIVE"]
+corpus_ids = ["agentir"]
+sources = [".atlas/references/donor-corpus.toml", "directive:EARLIER"]
+lifecycle = "ADMITTED"
+working_set = "MATERIALIZED"
+license = "Apache-2.0"
+verified_head = "68d991160ad579d2b4514da01684249a2a0bf629"
+
+[[repository]]
+canonical_url = "https://github.com/wide-trace/open-higgsfield.git"
+names = ["community 'open-higgsfield' clones"]
+families = ["higgsfield"]
+origins = ["LANE"]
+corpus_ids = []
+sources = [".atlas/roadmap/frontier/creator-frontier-2026-09-24.tsv"]
+lifecycle = "REJECTED_UNLICENSED"
+working_set = "EXCLUDED"
+license = "none"
+verified_head = "b16a0efe4d7e2707b56f8ccb02387fd2a9d2eddf"
+
+[[repository]]
+canonical_url = "https://github.com/xdslproject/xdsl.git"
+names = ["xDSL"]
+families = ["ir_design", "dialect_definition"]
+origins = ["CORPUS", "DIRECTIVE"]
+corpus_ids = ["xdsl"]
+sources = [".atlas/references/donor-corpus.toml", "directive:EARLIER"]
+lifecycle = "ADMITTED"
+working_set = "MATERIALIZED"
+license = "RECORDED_FILES"
+license_evidence = ".atlas/licenses/donors/xdsl/LICENSE"
+verified_head = "c94a32286238c40e12eab91770daf6cf84cab7ea"
+
+[[repository]]
+canonical_url = "https://github.com/xyflow/xyflow.git"
+names = ["xyflow"]
+families = ["node_editor", "graph_interaction"]
+origins = ["CORPUS"]
+corpus_ids = ["xyflow"]
+sources = [".atlas/references/donor-corpus.toml"]
+lifecycle = "ADMITTED"
+working_set = "MATERIALIZED"
+license = "RECORDED_FILES"
+license_evidence = ".atlas/licenses/xyflow/LICENSE"
+verified_head = "3d35b57317576b0916c0bfeaaedd573aaacc2839"
+
+[[repository]]
+canonical_url = "https://github.com/Z3Prover/z3.git"
+names = ["Z3"]
+families = ["formal"]
+origins = ["DIRECTIVE", "LANE"]
+corpus_ids = []
+sources = [".atlas/roadmap/frontier/requested-frontier-2026-09-24.tsv", "directive:FUTURIST"]
+lifecycle = "CANDIDATE"
+working_set = "CONSUMER_GATED"
+license = "MIT"
+verified_head = "fccce195c8d735ae415c994b935955390b75ff6f"
+
+[[repository]]
+canonical_url = "https://github.com/zed-industries/zed"
+names = ["Zed"]
+families = ["ide", "editor"]
+origins = ["CORPUS"]
+corpus_ids = ["zed"]
+sources = [".atlas/references/donor-corpus.toml"]
+lifecycle = "ADMITTED"
+working_set = "MATERIALIZED"
+license = "RECORDED_FILES"
+license_evidence = ".atlas/licenses/donors/zed/LICENSE-APACHE"
+verified_head = "2c4bc2d7b2c5b7832ad964f39840d823d961cb0e"
+
+[[repository]]
+canonical_url = "https://github.com/zephyrproject-rtos/zephyr.git"
+names = ["Zephyr"]
+families = ["robotics", "embedded"]
+origins = ["DIRECTIVE", "LANE"]
+corpus_ids = []
+sources = [".atlas/roadmap/frontier/requested-frontier-2026-09-24.tsv", ".atlas/roadmap/frontier/physical-frontier-2026-09-24.tsv", "directive:FUTURIST", "directive:PHYSICAL"]
+lifecycle = "CANDIDATE"
+working_set = "CONSUMER_GATED"
+license = "Apache-2.0"
+verified_head = "0d3ec1aeccd3ab713d2e007d689cac4a28157f37"
+
+[[repository]]
+canonical_url = "https://gitlab.com/kicad/code/kicad.git"
+names = ["KiCad"]
+families = ["EDA"]
+origins = ["DIRECTIVE", "LANE"]
+corpus_ids = []
+sources = [".atlas/roadmap/frontier/physical-frontier-2026-09-24.tsv", "directive:PHYSICAL"]
+lifecycle = "CANDIDATE"
+working_set = "CONSUMER_GATED"
+license = "GPL-3.0-or-later"
+verified_head = "d1191971d12cf0c40d6b032d5d46ab14a8b176e4"

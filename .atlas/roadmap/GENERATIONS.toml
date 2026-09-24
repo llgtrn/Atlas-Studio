@@ -13,7 +13,7 @@
 #       -> generation evidence -> G_n+1
 
 schema = "atlas.self-build.generation-ledger.v1"
-current_generation = "G52"
+current_generation = "G53"
 
 [[generation]]
 id = "G35"
@@ -517,6 +517,7 @@ base_commit = "f8f54f6b154c9dea339b88fae24bbe6d43c7596e"
 objective = "Futures x Creator: multi-candidate design search with measured objectives and verified-only Pareto preservation"
 writer = "coordinator (sole production writer)"
 evidence = ".atlas/decisions/0020-design-search-and-pareto-preservation.md"
+result_commits = ["4f6f03e7ea58665261681b9483cacef37754b519"]
 
 [generation.verification]
 falsification = "11 mutants killed; a first-battery survivor (dedupe disabled) proved the dedupe was dead code -> removed, whole-cube distinctness test added"
@@ -527,3 +528,38 @@ evidence_level = "OBSERVED measurements; objectives are stated proxies"
 
 [generation.next]
 objective = "G53: physical fault injection and safety state machine, or colour/contrast objective with front-steered ladders; select by leverage"
+
+[[generation]]
+id = "G53"
+base_commit = "4f6f03e7ea58665261681b9483cacef37754b519"
+objective = "materialize the user-recorded RECOMMENDED-OSS-FRONTIER baseline into repo-exact entries keyed by canonical remote URL and recompute the exact unique-repository total"
+writer = "coordinator (sole writer); three read-only name-extraction lanes (FUTURIST; CREATOR+PHYSICAL; earlier directives), deterministic join by canonical URL"
+evidence = ".atlas/evidence/verification/g53-recommended-frontier-materialization.json"
+
+[[generation.lane]]
+id = "extract-futurist"
+objective = "every named project in the FUTURIST directive, quote-backed"
+result = "59 named entries; ISAs and MAP-Elites classified non-repository; Docker newly mapped to moby/moby"
+
+[[generation.lane]]
+id = "extract-creator-physical"
+objective = "every named project in the CREATOR and PHYSICAL directives, quote-backed"
+result = "46 named entries; all donors already in lane TSVs; 14 formats/targets classified non-repository"
+
+[[generation.lane]]
+id = "extract-earlier"
+objective = "every named project in the earlier human directives"
+result = "20 entries; all corpus members except Cargo (independent oracle -> rust-lang/cargo, EXTERNAL_ORACLE)"
+
+[generation.join]
+repo_exact_total = 146
+reconstructed_named_total = 119
+reconciled = "not reproducible from repository evidence; differences explained by ecosystems, subtrees, lane alternates/rejections and non-repository names ([reconciliation])"
+enforcement = "runtime test recommended_frontier_is_repo_exact_and_counted"
+
+[generation.verification]
+falsification = "11 frontier-file mutants killed"
+remote_verification = "146/146 canonical remotes answered git ls-remote HEAD (QBE only via https)"
+
+[generation.next]
+objective = "G54: physical fault injection and safety state machine, or colour/contrast objective with front-steered ladders; select by leverage"

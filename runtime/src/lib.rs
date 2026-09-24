@@ -1428,6 +1428,222 @@ mod tests {
             assert!(generations > 0, "ledger records no generation");
         }
 
+        /// `.atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml` (G53) is the repo-exact OSS frontier:
+        /// one `[[repository]]` per canonical remote URL, so a monorepo subtree (MLIR), an
+        /// ecosystem (ROS 2) or an alias can never be silently counted as a repository. Every
+        /// head must be a full object name read from the live remote, every donor-corpus record
+        /// must resolve to exactly the repository that carries its id with a matching lifecycle,
+        /// and every recorded count must equal the count recomputed from the entries.
+        #[test]
+        fn recommended_frontier_is_repo_exact_and_counted() {
+            use std::collections::{BTreeMap, BTreeSet};
+            let root = workspace_root();
+            let text =
+                std::fs::read_to_string(root.join(".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml"))
+                    .expect("RECOMMENDED-OSS-FRONTIER.toml must exist and be readable");
+            let mut tables: Vec<(String, BTreeMap<String, String>)> =
+                vec![(String::new(), BTreeMap::new())];
+            for line in text.lines().map(str::trim) {
+                if line.is_empty() || line.starts_with('#') {
+                    continue;
+                }
+                if line.starts_with('[') {
+                    tables.push((line.to_owned(), BTreeMap::new()));
+                } else if let Some((key, value)) = line.split_once(" = ") {
+                    let table = &mut tables.last_mut().expect("root table").1;
+                    table.insert(key.to_owned(), value.to_owned());
+                }
+            }
+            let quoted = |value: &str| {
+                let mut out = Vec::new();
+                extract_quoted_strings(value, &mut out);
+                out
+            };
+            let single = |table: &BTreeMap<String, String>, key: &str| {
+                quoted(table.get(key).map_or("", String::as_str))
+                    .into_iter()
+                    .next()
+                    .unwrap_or_default()
+            };
+            let of = |header: &str| -> Vec<&BTreeMap<String, String>> {
+                tables
+                    .iter()
+                    .filter(|(h, _)| h == header)
+                    .map(|(_, t)| t)
+                    .collect()
+            };
+            let counts = of("[exact_counts]")
+                .first()
+                .copied()
+                .expect("[exact_counts] missing");
+            let count = |key: &str| -> usize {
+                counts
+                    .get(key)
+                    .unwrap_or_else(|| panic!("exact_counts.{key} missing"))
+                    .parse()
+                    .unwrap_or_else(|_| panic!("exact_counts.{key} is not a count"))
+            };
+            let key = |url: &str| url.to_ascii_lowercase().trim_end_matches(".git").to_owned();
+
+            let repositories = of("[[repository]]");
+            let mut urls = BTreeSet::new();
+            let mut lifecycles: BTreeMap<String, usize> = BTreeMap::new();
+            let mut working_sets: BTreeMap<String, usize> = BTreeMap::new();
+            let mut by_corpus_id: BTreeMap<String, (String, String)> = BTreeMap::new();
+            let (mut directive, mut corpus, mut lane_only) = (0, 0, 0);
+            for repository in &repositories {
+                let url = single(repository, "canonical_url");
+                assert!(
+                    url.starts_with("https://") && url.len() > "https://".len(),
+                    "`{url}` is not a canonical https remote"
+                );
+                assert!(urls.insert(key(&url)), "`{url}` is listed twice");
+                let head = single(repository, "verified_head");
+                assert!(
+                    head.len() == 40 && head.bytes().all(|b| b.is_ascii_hexdigit()),
+                    "`{url}` has no full verified_head"
+                );
+                assert!(
+                    !quoted(&repository["names"]).is_empty(),
+                    "`{url}` records no name"
+                );
+                assert!(
+                    !single(repository, "license").is_empty(),
+                    "`{url}` records no license"
+                );
+                let lifecycle = single(repository, "lifecycle");
+                let working_set = single(repository, "working_set");
+                let expected_working_set = match lifecycle.as_str() {
+                    "ADMITTED" => "MATERIALIZED",
+                    "EXTINCT" => "EXTINCT",
+                    "CANDIDATE" | "CANDIDATE_OVERLAPPING" => "CONSUMER_GATED",
+                    "EXTERNAL_ORACLE" => "ORACLE_ONLY",
+                    "EXTERNAL_PROVIDER_ARTIFACT" | "REJECTED_UNLICENSED" => "EXCLUDED",
+                    other => panic!("`{url}` has unknown lifecycle `{other}`"),
+                };
+                assert_eq!(working_set, expected_working_set, "`{url}` working_set");
+                let origins = quoted(&repository["origins"]);
+                assert!(!origins.is_empty(), "`{url}` records no origin");
+                directive += usize::from(origins.iter().any(|o| o == "DIRECTIVE"));
+                corpus += usize::from(origins.iter().any(|o| o == "CORPUS"));
+                lane_only += usize::from(origins == ["LANE"]);
+                let ids = quoted(&repository["corpus_ids"]);
+                assert_eq!(
+                    ids.is_empty(),
+                    !origins.iter().any(|o| o == "CORPUS"),
+                    "`{url}`: corpus_ids and the CORPUS origin must agree"
+                );
+                for id in ids {
+                    by_corpus_id.insert(id, (key(&url), lifecycle.clone()));
+                }
+                *lifecycles.entry(lifecycle).or_default() += 1;
+                *working_sets.entry(working_set).or_default() += 1;
+            }
+
+            // Every donor-corpus record resolves to the repository carrying its id.
+            let corpus_text =
+                std::fs::read_to_string(root.join(".atlas/references/donor-corpus.toml"))
+                    .expect("donor-corpus.toml");
+            let mut donors = Vec::new();
+            for block in corpus_text.split("[[donor]]").skip(1) {
+                let field = |name: &str| {
+                    block.lines().find_map(|line| {
+                        let rest = line.trim().strip_prefix(name)?.strip_prefix(" = \"")?;
+                        Some(rest[..rest.find('"')?].to_owned())
+                    })
+                };
+                donors.push((
+                    field("id").expect("donor id"),
+                    field("resolved_url").expect("donor resolved_url"),
+                    field("ingestion_status").expect("donor ingestion_status"),
+                ));
+            }
+            assert!(!donors.is_empty(), "no donor parsed");
+            for (id, url, ingestion) in &donors {
+                let (repository, lifecycle) = by_corpus_id
+                    .get(id)
+                    .unwrap_or_else(|| panic!("corpus donor `{id}` has no frontier repository"));
+                assert_eq!(
+                    repository,
+                    &key(url),
+                    "corpus donor `{id}` resolves elsewhere"
+                );
+                let expected = if ingestion == "EXTINCT" {
+                    "EXTINCT"
+                } else {
+                    "ADMITTED"
+                };
+                assert_eq!(lifecycle, expected, "corpus donor `{id}` lifecycle");
+            }
+            assert_eq!(
+                by_corpus_id.len(),
+                donors.len(),
+                "a frontier corpus_id names no corpus donor"
+            );
+
+            // Ecosystems and subtrees are names over repositories, never repositories themselves.
+            let ecosystems = of("[[ecosystem]]");
+            for ecosystem in &ecosystems {
+                let members = quoted(&ecosystem["members"]);
+                assert!(!members.is_empty(), "an ecosystem has no member");
+                for member in members {
+                    assert!(
+                        urls.contains(&key(&member)),
+                        "ecosystem member `{member}` unlisted"
+                    );
+                }
+            }
+            let subtrees = of("[[subtree_alias]]");
+            for subtree in &subtrees {
+                let parent = single(subtree, "parent");
+                assert!(
+                    urls.contains(&key(&parent)),
+                    "subtree parent `{parent}` unlisted"
+                );
+            }
+
+            assert_eq!(count("canonical_repositories"), repositories.len());
+            assert_eq!(count("directive_named_repositories"), directive);
+            assert_eq!(count("corpus_repositories"), corpus);
+            assert_eq!(count("lane_only_repositories"), lane_only);
+            assert_eq!(count("ecosystems"), ecosystems.len());
+            assert_eq!(count("subtree_aliases"), subtrees.len());
+            assert_eq!(
+                count("non_repository_names"),
+                of("[[non_repository_name]]").len()
+            );
+            for (lifecycle, n) in &lifecycles {
+                assert_eq!(
+                    count(&format!("lifecycle_{}", lifecycle.to_ascii_lowercase())),
+                    *n
+                );
+            }
+            for (working_set, n) in &working_sets {
+                assert_eq!(
+                    count(&format!("working_set_{}", working_set.to_ascii_lowercase())),
+                    *n
+                );
+            }
+            let recorded: usize = counts
+                .iter()
+                .filter(|(k, _)| k.starts_with("lifecycle_"))
+                .map(|(_, v)| v.parse::<usize>().unwrap())
+                .sum();
+            assert_eq!(
+                recorded,
+                repositories.len(),
+                "a lifecycle count has no entries"
+            );
+            let reconciliation = of("[reconciliation]")
+                .first()
+                .copied()
+                .expect("[reconciliation]");
+            assert_eq!(
+                reconciliation["repo_exact_total"].parse::<usize>().ok(),
+                Some(repositories.len())
+            );
+        }
+
         /// A `decision_status` of bare `"PENDING"` is only an honest claim when the donor's own
         /// `census_status` says census depth genuinely never reached the point a decision could be
         /// made (`SKELETON`, or `PENDING_DEEP_CENSUS`). This session found 8 donors that violated
