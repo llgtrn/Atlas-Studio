@@ -29,11 +29,11 @@ retrieved_at = "2026-09-20T12:08:55.4960343Z"
 license = [".atlas/licenses/buck2/LICENSE-APACHE", ".atlas/licenses/buck2/LICENSE-MIT", ".atlas/licenses/buck2/NOTICE"]
 technology_domains = ["build_graph", "target_identity", "dependency_scheduling"]
 ingestion_status = "CLONED"
-census_status = "SKELETON"
+census_status = "COARSE_CENSUSED"
 decision_status = "PENDING"
 native_replacement = "adapter/build and runtime build graph"
 runtime_dependency_status = "REFERENCE_ONLY"
-evidence = [".atlas/provenance/donors/buck2.json", ".atlas/census/buck2.md"]
+evidence = [".atlas/provenance/donors/buck2.json", ".atlas/census/buck2.md", ".atlas/genome/technology/buck2-dice-branching-incrementality.md"]
 
 [[donor]]
 id = "c2rust"
