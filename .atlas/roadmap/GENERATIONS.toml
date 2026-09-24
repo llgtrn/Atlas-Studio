@@ -797,6 +797,7 @@ objective = "census state packaged into a verified, explicitly unsealed ATLAS wi
 writer = "coordinator (sole writer); a read-only lane surveyed the .atlas contracts and existing code"
 evidence = ".atlas/evidence/census/G64/recensus.json"
 self_recensus = ".atlas/evidence/census/G64/recensus.json"
+result_commits = ["b0a8d9cdf9cfb5bf700528b83f8d7c4e806a14c5", "7e4e88e76e1d097ee44d1143cb555b44ec285c82"]
 
 [generation.verification]
 pre_census = "clean-HEAD census of 860fcc7903 = G63 post digest 3faefec6... (b3e2ec75e2 adds only out-of-scope evidence)"
@@ -807,3 +808,25 @@ incident = "during manual testing, `git checkout core/src/lib.rs` (reverting a p
 
 [generation.next]
 objective = "G65 (P2): minimum .atlasx deterministic materialization + validation from the .atlas root (exit criterion E)"
+
+[[generation]]
+id = "G65"
+base_commit = "7e4e88e76e1d097ee44d1143cb555b44ec285c82"
+priority = "P3"
+serves = "P3 FIRST_50_DONOR_CAMPAIGN: donor #6 tree-sitter to a terminal state (and P4 input from its measurement)"
+objective = "falsify tree-sitter's incremental parsing by measurement, decide every mechanism, physically extinct the checkout, and verify Atlas unchanged with the donor absent"
+writer = "coordinator (sole writer); a read-only lane surveyed the AtlasX contracts first"
+evidence = ".atlas/evidence/campaign/06-tree-sitter.json"
+self_recensus = ".atlas/evidence/census/G65/recensus.json"
+
+[generation.verification]
+pre_census = "clean-HEAD census of b0a8d9cdf9 = G64 post digest 5175ee41... (7e4e88e76e adds only out-of-scope evidence)"
+p2_exit_e = "the AtlasX contract survey found canonical .atlasx requires a SEALED parent root, a SelectedDesign and an integrity envelope, with no permitted unsealed profile; producing one now would violate the contracts, so exit criterion E is BLOCKED_ON_PREREQUISITES (PRIORITY.toml) and the campaign proceeds"
+falsification = "cold 10.0 s (89 misses), warm 5.9-7.1 s (89 hits), warm after one edit to the largest non-test file 6.4-7.2 s (1 miss): whole-file re-extraction is noise-level; incremental parsing FALSIFIED -> REFERENCE_ONLY"
+extinction = "618 tracked files deleted with git rm (recoverable from history, as for souffle/datafrog/blake3); no build, runtime, test, transitive or shared use; donor storage integrity tests pass with the source absent; the post-census equals the pre-census except the campaign test itself"
+proof = "PROVEN on the second run: the first proof was PROVEN, but the full test run then failed on two records the extinction must move -- the pinned SourceDeleted list in the donor storage test and the frontier lifecycle/working-set counters; both updated and runtime/src/donor_storage.rs added to the intent"
+campaign_falsification = "8/8 record mutations fail the campaign test (completed_in not in the ledger, missing evidence, non-terminal, four dashboard counters, corpus decision mismatch)"
+campaign_test = "CAMPAIGN_PROVEN status added: terminal, completed_in a ledger generation, evidence file present, corpus EXTINCT with the same decision; dashboard campaign_terminal/reference_only/extinct/deep_censused are now recomputed, not just recorded"
+
+[generation.next]
+objective = "G66 (P3): first-50 #7 scip -- stable symbol descriptors for revision-independent record identity"

@@ -1,0 +1,13 @@
+{
+  "objective": "P3 first-50 #6 tree-sitter: incremental parsing falsified by measurement, every mechanism REFERENCE_ONLY, tracked checkout physically deleted; the campaign test gains the CAMPAIGN_PROVEN status and recomputes the dashboard. The census must be otherwise unchanged with the donor absent.",
+  "changed_paths": [
+    "runtime/src/donor_storage.rs",
+    "runtime/src/lib.rs"
+  ],
+  "total_changes": [
+    "+evidence",
+    "+graph_edges",
+    "+graph_nodes",
+    "+typed_records"
+  ]
+}

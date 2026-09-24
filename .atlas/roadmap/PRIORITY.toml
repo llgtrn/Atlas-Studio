@@ -140,6 +140,7 @@ G61 = "SOURCE_INVENTORY_COMPLETE + LANGUAGE_EXTRACTION: 0 artifacts without a so
 G62 = "SOURCE_BACKED_PROVENANCE: OBSERVED -- every census fact carries the census revision and a named producer (0/0 gaps); RECONCILIATION_CERTIFICATE: self-scope RECONCILED"
 G63 = "ADL <- census: authored depends_on reconciled against the dependency census (4 SATISFIED; WebUI -> Runtime not censusable); census findings adapter -> core and the atlas-cli member derived into .atlas/declared/census.adl"
 G64 = "RECONCILIATION_CERTIFICATE: census state packages into a verified unsealed .atlas census container (ATLAS wire v1); the certificate records its root identity (ATLAS_ROOT_ABSENT -> ATLAS_ROOT_UNSEALED)"
+G65 = "P4 input from the tree-sitter cycle: a warm self-recensus spends ~6 s outside parsing/extraction (extraction of all 89 Rust artifacts is ~3-4 s cold and cached per artifact) -- incremental recensus must target inventory digesting, census build, normalization and graph, not parsing"
 
 # Exit criteria of the first phase; broad expansion stays frozen until all are MET.
 [exit_criteria]
@@ -147,9 +148,9 @@ A_self_recensus_mandatory_and_operational = "MET_G57 (enforced by generation_led
 B_reconciliation_certificate = "MET_G59 (CensusCertificate v2 computed; self-scope CENSUSED with typed blockers; RECONCILED since G62)"
 C_adl_consumes_census_truth = "MET_G63 (minimum: member-level dependency architecture reconciled both ways and derived as .atlas/declared/census.adl; external packages, symbols, effects and state are not yet lowered to ADL)"
 D_atlas_writer_reader_validator = "MET_G64 (minimum: ATLAS wire v1 unsealed census container -- writer, verifying reader, transactional publication, certificate root identity; sealing, compression and sharding deferred)"
-E_atlasx_production_validation = "OPEN"
+E_atlasx_production_validation = "BLOCKED_ON_PREREQUISITES (G65 contract survey): canonical AtlasX requires a SEALED parent .atlas root, a SelectedDesign in state SELECTED (never selected merely because one candidate exists) and an ArchitecturalIntegrityEnvelope (ATLAS-TO-ATLASX.md L11/L55-96, SELECTED-DESIGN.md L427-443, genome [atlasx_format]); no AtlasX contract permits an unsealed/candidate profile. Next P2 step when unblocked: seal gate + SelectedDesign, then the AtlasX precondition gate, wire codec and validator"
 F_first_50_queue_canonical = "MET_G58 (FIRST-50-CAMPAIGN.toml, enforced by first_50_campaign_is_canonical_and_accounted)"
-G_first_50_sequential_lifecycle_substantial = "OPEN"
+G_first_50_sequential_lifecycle_substantial = "OPEN: 3 historic terminals + 1 campaign terminal (tree-sitter #6, G65, REFERENCE_ONLY, extinct); next scip (#7)"
 H_incremental_recensus_with_oracle = "OPEN"
 I_extinction_reclaim_under_bounded_storage = "PARTIAL: working set exists (G54); no post-extinction recensus yet"
 
@@ -191,10 +192,10 @@ objective = "minimum .atlas writer/reader/validator over validated census state 
 
 [[planned_generation]]
 id = "G65"
-priority = "P2"
-objective = "minimum .atlasx deterministic materialization + validation"
+priority = "P3"
+objective = "first-50 #6 tree-sitter: falsify incremental parsing by measurement, decide per mechanism, physically extinct (done: REFERENCE_ONLY); AtlasX (exit E) recorded BLOCKED_ON_PREREQUISITES"
 
 [[planned_generation]]
 id = "G66+"
 priority = "P3"
-objective = "first-50 donor campaign from #6 tree-sitter, sequential, interleaving only census improvements exposed by real donors"
+objective = "first-50 campaign continues sequentially from #7 scip, interleaving only census improvements exposed by real donors; P2 resumes with a seal gate + SelectedDesign design when a donor or the census exposes the path"

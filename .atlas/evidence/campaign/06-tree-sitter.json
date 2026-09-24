@@ -1,0 +1,35 @@
+{
+  "schema": "atlas.campaign-donor-decision.v1",
+  "ordinal": 6,
+  "donor": "tree-sitter",
+  "commit_sha": "5b951eff4f8b1431e933ed0fe45e48fcd4036a38",
+  "generation": "G65",
+  "base_commit": "7e4e88e76e",
+  "blocking_question_recorded": "no incremental reparse consumer exists: Atlas re-parses every admitted file with syn on every run (no derivation is cached -- see salsa), and no performance problem motivates incremental parsing",
+  "blocking_question_status": "STALE on its first clause: ADR 0008's per-artifact ExtractionCache (systemize --cache) already restricts re-extraction to changed artifacts; the second clause is the falsification below",
+  "falsification": {
+    "claim": "sub-file incremental reparsing (ts_tree_edit / get_changed_ranges) would materially reduce Atlas's recensus cost",
+    "method": "release atlas-systemizer systemize --root . --cache <dir> on the clean tree at 7e4e88e76e: one cold run, three warm runs, then three warm runs each after appending one function to the largest non-test Rust file (core/src/graph/engineering_graph.rs, 4,324 lines); wall time by perf_counter",
+    "cold": {"seconds": 10.02, "cache_hits": 0, "cache_misses": 89},
+    "warm_unchanged": {"seconds": [7.14, 6.22, 5.88], "cache_hits": 89, "cache_misses": 0},
+    "warm_one_edit": {"seconds": [6.55, 7.18, 6.36], "cache_hits": 88, "cache_misses": 1},
+    "result": "FALSIFIED: re-extracting the whole edited file is indistinguishable from run-to-run noise (cold minus warm = ~3-4 s for 89 artifacts, ~40 ms per artifact on average for parse AND semantic extraction); sub-file reparsing could save at most part of one file's parse, well under 1% of a ~6 s warm run, while adding a stale-state failure class"
+  },
+  "mechanisms": [
+    {"mechanism": "incremental parsing with edit ranges and subtree reuse", "decision": "REFERENCE_ONLY", "reason": "falsified above; whole-file reparse behind the per-artifact cache is sufficient"},
+    {"mechanism": "grammar-modular multi-language parsing (generated LR/GLR tables per language)", "decision": "REFERENCE_ONLY", "reason": "the modular-frontend principle is already Atlas-native (adapter::source::SourceFrontend registry: 10 frontends); running third-party grammars would be a runtime dependency, not absorption, and needs the parser sandbox/resource-limit admission path that does not exist; each grammar is its own donor when a language is admitted"},
+    {"mechanism": "error-recovering parse (ERROR/MISSING nodes localize failures)", "decision": "REFERENCE_ONLY", "reason": "Atlas records a whole-file parse failure as explicit UNKNOWN obligations with a ParseFailure diagnostic; localizing it is a precision improvement with no current consumer -- recorded as a future census-precision idea, not absorbed"},
+    {"mechanism": "tree query language (S-expression patterns)", "decision": "REFERENCE_ONLY", "reason": "structural search belongs to the ast-grep (#12) and semgrep (#11) cycles"}
+  ],
+  "terminal_state": "REFERENCE_ONLY",
+  "extinction": {
+    "runtime_dependency": "none (no Cargo edge, no FFI, no vendored code)",
+    "build_dependency": "none",
+    "test_dependency": "none (no test or fixture reads .atlas/temporary/donors/tree-sitter)",
+    "transitive_or_shared": "none: grammar repositories were never materialized",
+    "remaining_unabsorbed_mechanisms": "all four are REFERENCE_ONLY; the pinned commit, license and provenance stay recorded, so any re-read re-materializes by sha",
+    "action": "git rm -r .atlas/temporary/donors/tree-sitter (618 tracked files, 6.5 MB); recoverable from history, like the souffle/datafrog/blake3 extinctions",
+    "post_delete_verification": "workspace tests (donor storage integrity included), self-recensus of the tree with the donor absent (G65 recensus: census unchanged -- donors are outside census scope)"
+  },
+  "census_improvement_exposed": "P4 input: ~6 s of a warm self-recensus is spent outside parsing/extraction (inventory digesting, census build, normalization, graph); incremental dependency-aware recensus must target those stages, not parsing"
+}

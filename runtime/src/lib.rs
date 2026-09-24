@@ -1542,6 +1542,9 @@ mod tests {
             let mut ordinals = Vec::new();
             let mut queued = std::collections::BTreeSet::new();
             let (mut absorbed, mut terminal_historic, mut remaining) = (0, 0, 0);
+            let (mut terminal_campaign, mut reference_only, mut extinct, mut deep) = (0, 0, 0, 0);
+            let ledger = std::fs::read_to_string(root.join(".atlas/roadmap/GENERATIONS.toml"))
+                .expect("GENERATIONS.toml");
             let mut first_pending = None;
             for block in text.split("[[donor]]").skip(1) {
                 let block = block.split("[[outside_first_50]]").next().unwrap();
@@ -1561,9 +1564,52 @@ mod tests {
                     "{repository}: {url} not in the repo-exact frontier"
                 );
                 assert!(
-                    ["HISTORICALLY_PROVEN", "CURRENTLY_PENDING"].contains(&status.as_str()),
+                    [
+                        "HISTORICALLY_PROVEN",
+                        "CURRENTLY_PENDING",
+                        "CAMPAIGN_PROVEN"
+                    ]
+                    .contains(&status.as_str()),
                     "{repository}: {status}"
                 );
+                // A donor completed inside the campaign names its generation and evidence, is
+                // terminal, and its corpus record agrees (a deleted source is EXTINCT).
+                if status == "CAMPAIGN_PROVEN" {
+                    terminal_campaign += 1;
+                    assert_eq!(
+                        lifecycle, "TERMINAL",
+                        "{repository}: CAMPAIGN_PROVEN not terminal"
+                    );
+                    let generation = field(block, "completed_in")
+                        .unwrap_or_else(|| panic!("{repository}: no completed_in"));
+                    assert!(
+                        ledger.contains(&format!("id = \"{generation}\"")),
+                        "{repository}: completed_in {generation} is not in the ledger"
+                    );
+                    let evidence = field(block, "evidence")
+                        .unwrap_or_else(|| panic!("{repository}: no evidence"));
+                    assert!(
+                        root.join(&evidence).is_file(),
+                        "{repository}: {evidence} missing"
+                    );
+                    let (ingestion, decision) = corpus.get(&repository).unwrap_or_else(|| {
+                        panic!("{repository}: campaign proof outside the corpus")
+                    });
+                    assert_eq!(ingestion, "EXTINCT", "{repository}: source not extinct");
+                    assert_eq!(decision, &terminal, "{repository}: corpus decision differs");
+                }
+                if terminal == "REFERENCE_ONLY" {
+                    reference_only += 1;
+                }
+                if lifecycle == "DEEP_CENSUSED" {
+                    deep += 1;
+                }
+                if corpus
+                    .get(&repository)
+                    .is_some_and(|(ingestion, _)| ingestion == "EXTINCT")
+                {
+                    extinct += 1;
+                }
                 if lifecycle == "TERMINAL" {
                     assert!(
                         !terminal.is_empty(),
@@ -1626,6 +1672,10 @@ mod tests {
             assert_eq!(count("first_50_total"), 50);
             assert_eq!(count("absorbed"), absorbed);
             assert_eq!(count("historic_terminal"), terminal_historic);
+            assert_eq!(count("campaign_terminal"), terminal_campaign);
+            assert_eq!(count("reference_only"), reference_only);
+            assert_eq!(count("extinct"), extinct);
+            assert_eq!(count("deep_censused"), deep);
             assert_eq!(count("remaining"), remaining);
             assert_eq!(field(dashboard, "next_donor"), first_pending);
         }

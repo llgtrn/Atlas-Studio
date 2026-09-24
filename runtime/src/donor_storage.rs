@@ -444,7 +444,10 @@ mod tests {
             .map(|d| d.id)
             .collect();
         deleted.sort();
-        assert_eq!(deleted, ["blake3", "datafrog", "ladybird", "souffle"]);
+        assert_eq!(
+            deleted,
+            ["blake3", "datafrog", "ladybird", "souffle", "tree-sitter"]
+        );
     }
 
     #[test]

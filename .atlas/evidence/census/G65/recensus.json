@@ -1,0 +1,85 @@
+{
+  "schema": "atlas.self-recensus-report.v1",
+  "generation": "G65",
+  "base_revision": "b3e2ec75e2854a687c36cd5af094e62f90b0a472",
+  "candidate_revision": "7e4e88e76e1d097ee44d1143cb555b44ec285c82",
+  "candidate_dirty": true,
+  "before_census_digest": "blake3-256:5175ee410301ce70a97577eef1859c51bab7899f1ee5d1505b6607a262ebf111",
+  "after_census_digest": "blake3-256:abe4d0d5c0d98c6431726dfe6f2bb31000d8ca09e4d855cafd6de8d99827fbfe",
+  "replay_digest": "blake3-256:abe4d0d5c0d98c6431726dfe6f2bb31000d8ca09e4d855cafd6de8d99827fbfe",
+  "inventory_delta": {
+    "created": [],
+    "modified": [
+      "runtime/src/donor_storage.rs",
+      "runtime/src/lib.rs"
+    ],
+    "deleted": []
+  },
+  "semantic_delta": {
+    "changed": [
+      "runtime/src/donor_storage.rs",
+      "runtime/src/lib.rs"
+    ],
+    "counts": {
+      "record:CALL|OBSERVED": 6,
+      "record:CONTROL_FLOW|OBSERVED": 8,
+      "record:DATA_FLOW|OBSERVED": 29,
+      "record:EFFECT|INFERRED": 1,
+      "record:OWNERSHIP|OBSERVED": 4
+    }
+  },
+  "dependency_delta": {
+    "added": [],
+    "removed": []
+  },
+  "dependency_state": [
+    "Closed",
+    "Closed"
+  ],
+  "graph_delta": {
+    "graph_edges": 88,
+    "graph_nodes": 49
+  },
+  "obligation_delta": {},
+  "adl_delta": {
+    "added": [],
+    "removed": []
+  },
+  "coverage_delta": [],
+  "unknown_delta": {
+    "increased": [],
+    "decreased": [],
+    "total_before": 940,
+    "total_after": 940
+  },
+  "intent": {
+    "objective": "P3 first-50 #6 tree-sitter: incremental parsing falsified by measurement, every mechanism REFERENCE_ONLY, tracked checkout physically deleted; the campaign test gains the CAMPAIGN_PROVEN status and recomputes the dashboard. The census must be otherwise unchanged with the donor absent.",
+    "changed_paths": [
+      "runtime/src/donor_storage.rs",
+      "runtime/src/lib.rs"
+    ],
+    "total_changes": [
+      "+evidence",
+      "+graph_edges",
+      "+graph_nodes",
+      "+typed_records"
+    ],
+    "dependency_changes": [],
+    "adl_changes": [],
+    "coverage_changes": [],
+    "explained_unknowns": [],
+    "accepted_unexpected": []
+  },
+  "intended_changes": [
+    "path runtime/src/donor_storage.rs",
+    "path runtime/src/lib.rs",
+    "total +evidence",
+    "total +graph_edges",
+    "total +graph_nodes",
+    "total +typed_records"
+  ],
+  "intended_but_unobserved": [],
+  "unexpected_changes": [],
+  "regressions": [],
+  "verdict": "PROVEN"
+}

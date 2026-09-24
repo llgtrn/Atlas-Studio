@@ -15,18 +15,19 @@ decision = ".atlas/decisions/0024-self-recensus-proof-of-nextgen.md"
 [dashboard]
 first_50_total = 50
 historic_terminal = 3
+campaign_terminal = 1
 historically_proven = 5
 currently_censusing = 0
-deep_censused = 12
+deep_censused = 11
 absorbed = 3
-reference_only = 0
+reference_only = 1
 external_boundary = 0
 rejected = 0
 deferred = 0
-extinct = 3
-remaining = 47
-next_donor = "tree-sitter"
-next_step = "after G58-G62 (P0/P2 per PRIORITY.toml): materialize the cheapest sufficient slice under the working-set budget, deep-census, decide, prove any induced Atlas change by self-recensus"
+extinct = 4
+remaining = 46
+next_donor = "scip"
+next_step = "scip (#7): materialize the cheapest sufficient slice under the working-set budget, deep-census, decide, prove any induced Atlas change by self-recensus"
 
 [[donor]]
 ordinal = 1
@@ -112,11 +113,13 @@ target_capability = "multi-language source extraction"
 mechanism_hypothesis = "grammar-modular incremental parsing to close UNKNOWN/UNSUPPORTED languages in census scope"
 materialization_mode = "SPARSE_CHECKOUT (lib/src, cli/generate)"
 dependency_expectation = "grammar repos are separate: account each as REFERENCE_ONLY until a language is admitted"
-current_status = "CURRENTLY_PENDING"
-lifecycle = "DEEP_CENSUSED"
-terminal_state = ""
+current_status = "CAMPAIGN_PROVEN"
+lifecycle = "TERMINAL"
+terminal_state = "REFERENCE_ONLY"
 terminal_goal = "ABSORB or REFERENCE_ONLY per mechanism"
-note = "census DEEP_CENSUSED, decision TARGET_MAPPED"
+completed_in = "G65"
+evidence = ".atlas/evidence/campaign/06-tree-sitter.json"
+note = "incremental parsing falsified by measurement (whole-file re-extraction behind the per-artifact cache is noise-level); grammar runtime, error recovery and query language REFERENCE_ONLY; source physically deleted"
 
 [[donor]]
 ordinal = 7
