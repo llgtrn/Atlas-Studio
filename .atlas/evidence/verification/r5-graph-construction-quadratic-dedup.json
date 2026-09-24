@@ -1,0 +1,17 @@
+{
+  "schema": "atlas.self-build.generation-evidence.v1",
+  "generation": "G40",
+  "wave": "NATIVE FIX of the measured recensus cost centre (ADR 0009); no donor",
+  "defect": "ensure_node linear-scan dedup => quadratic build_system_graph (145 s for 47,176 nodes / 60,333 edges, debug)",
+  "differential": {
+    "graph_json_old_vs_new": "byte-identical (cmp)",
+    "systemize_report_old_vs_new": "identical (parsed JSON equality)",
+    "old_binary": "built from HEAD 14cc307b9d via git stash"
+  },
+  "timings_debug_seconds": {"systemize": {"before": 187.4, "after": 12.9}, "graph": {"before": 195.6, "after": 9.9}},
+  "post_fix_profile_debug_seconds": {"snapshot_git": 1.63, "inventory": 0.11, "extraction": 2.35, "build_census": 1.04, "normalize": 0.91, "dependency_closure": 0.0, "graph": 0.75, "blockers_accounting": 0.48, "report_serialization_and_output_remainder": 6.1, "total": 13.45},
+  "extraction_cache_after_fix": {"plain": 12.66, "cold": 14.95, "warm": 11.79, "warm2": 12.01, "reports_identical": true, "note": "~6% warm gain, near noise"},
+  "tests_added": ["node_id_index_agrees_with_a_linear_scan_under_random_appends", "node_id_index_rebuilds_when_nodes_shrink", "rewriting_an_indexed_position_is_caught_in_debug_builds", "ensure_node_stays_linear_at_one_hundred_thousand_nodes"],
+  "property_test_finding": "the first property test (random truncate+regrow) found that an index keyed only on length goes stale when indexed positions are rewritten; production never does that, so the contract was made explicit (append-only), shrink triggers rebuild, and a debug sentinel catches rewrites",
+  "falsification": {"killed": 3, "mutants": ["linear_scan_restored (scaling guard)", "index_never_catches_up", "no_shrink_rebuild"]}
+}

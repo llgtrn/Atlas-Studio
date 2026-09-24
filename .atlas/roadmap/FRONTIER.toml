@@ -17,13 +17,13 @@ admission_staging_default = "PARTIAL_SPARSE_SUBTREE for repositories above ~20 M
 id = "incremental_computation"
 capability = "R5 incremental query and fixed point"
 state = "PARTIAL"
-atlas_implementation = "core::closure semi-naive fixed point (ADR 0004); core::identity::blake3 content identity (ADR 0005); core::census::delta inventory change detection + systemize --previous (ADR 0006)"
+atlas_implementation = "core::closure semi-naive fixed point (ADR 0004); core::identity::blake3 content identity (ADR 0005); core::census::delta inventory change detection + systemize --previous (ADR 0006); content-keyed extraction cache systemize --cache (ADR 0008); graph construction de-quadratified, systemize 187 s -> 12.9 s debug (ADR 0009)"
 donors = ["salsa", "differential-dataflow", "buck2"]
-blocking_question = "no derivation is cached yet: which per-file derivation is cached first, keyed on content_digest + extractor identity, and does it reproduce full recompute exactly?"
+blocking_question = "recompute of this repository is ~13 s debug and extraction caching is exact but yields ~6%; does any real corpus (the 15 donor workspaces) make recensus cost-dominated by a derivation that dependency-tracked invalidation would skip?"
 evidence_required = "parsed bytes equal digested bytes; extractor version bumped on behaviour change; cache hit output byte-identical to recompute on this repository and on real donor workspaces"
 falsification = "mutate one file, run cached and uncached systemize, compare every report byte"
 dependency_status = "no donor runtime dependency"
-next_action = "cache semantic extraction per artifact behind systemize --previous"
+next_action = "measure systemize stage costs on the largest admitted donor workspaces (rust, zed, wasmtime) before any Salsa/differential-dataflow invalidation work"
 
 [[lane]]
 id = "formal_reasoning"

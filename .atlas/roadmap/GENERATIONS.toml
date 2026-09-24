@@ -13,7 +13,7 @@
 #       -> generation evidence -> G_n+1
 
 schema = "atlas.self-build.generation-ledger.v1"
-current_generation = "G39"
+current_generation = "G40"
 
 [[generation]]
 id = "G35"
@@ -263,6 +263,7 @@ id = "G39"
 base_commit = "229c543ffa2a45fc469c0aaa42390b57cdd8bb5f"
 objective = "R5 cached derivation: salsa's cheapest falsification -- cache one derivation, prove it reproduces recompute, measure it"
 writer = "coordinator (sole production writer)"
+result_commits = ["14cc307b9d235a4a90f3d04d18938dd0273dd6f3"]
 evidence = ".atlas/evidence/verification/r5-extraction-derivation-cache.json"
 
 [generation.join]
@@ -278,9 +279,29 @@ measurement = "graph summarization 165.9 s of ~172 s debug systemize; extraction
 
 [[generation.deferred]]
 id = "graph-summarization-cost"
-class = "NEXT_GENERATION_TARGET"
+class = "RESOLVED_G40"
 summary = "summarize_system_graph_with_dependencies is ~95% of recensus wall time on this repository; characterize (algorithmic vs inherent) before any Salsa/differential-dataflow invalidation work"
 
 [generation.next]
 objective = "G40: profile and fix engineering-graph summarization cost natively; then re-measure edit-to-recensus"
+
+[[generation]]
+id = "G40"
+base_commit = "14cc307b9d235a4a90f3d04d18938dd0273dd6f3"
+objective = "fix the measured recensus cost centre: engineering-graph construction (~95% of systemize)"
+writer = "coordinator (sole production writer)"
+evidence = ".atlas/evidence/verification/r5-graph-construction-quadratic-dedup.json"
+
+[generation.join]
+absorb_now_exists = false
+selected_action = "native algorithmic fix (no donor): incremental node-id index for ensure_node (ADR 0009)"
+decision_record = ".atlas/decisions/0009-indexed-graph-node-dedup.md"
+
+[generation.verification]
+falsification = "3 mutants killed; the property test itself found an index staleness case outside the append-only contract, now explicit + debug sentinel"
+tests = "workspace green; fmt; clippy -D warnings"
+production_path = "old vs new binary: graph JSON byte-identical, systemize identical; systemize 187 s -> 12.9 s, graph 196 s -> 9.9 s (debug)"
+
+[generation.next]
+objective = "G41: with recompute at ~13 s, re-aim salsa/differential-dataflow at corpus scale (real donor workspaces) and resume the frontier: donor admission for the formal/provenance lanes when a consumer exists"
 

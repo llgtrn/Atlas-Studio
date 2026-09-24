@@ -90,6 +90,7 @@ pub fn build_source_graph(source: &SourceReport) -> EngineeringGraph {
         bindings: Vec::new(),
         facts,
         evidence: Vec::new(),
+        node_index: Default::default(),
     }
 }
 
@@ -217,7 +218,7 @@ fn ensure_node(
     attributes: BTreeMap<String, String>,
     provenance: &Provenance,
 ) {
-    if graph.nodes.iter().any(|node| node.id == id) {
+    if graph.node_index.contains(&graph.nodes, &id) {
         return;
     }
     graph.nodes.push(Node {
@@ -1462,6 +1463,111 @@ fn summarize_engineering_graph(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    fn bare_node(id: &str) -> Node {
+        Node {
+            id: id.into(),
+            kind: "K".into(),
+            identity: id.into(),
+            attributes: BTreeMap::new(),
+            provenance: crate::provenance::provenance("p", "test"),
+            revision: None,
+        }
+    }
+
+    /// ADR 0009: the id index must answer exactly what the old linear scan answered, for any
+    /// interleaving of indexed lookups, direct pushes that bypass the index, and duplicate ids.
+    #[test]
+    fn node_id_index_agrees_with_a_linear_scan_under_random_appends() {
+        let mut state = 0x243F_6A88_85A3_08D3_u64;
+        let mut next = move || {
+            state ^= state << 13;
+            state ^= state >> 7;
+            state ^= state << 17;
+            state
+        };
+        for _ in 0..50 {
+            let mut nodes: Vec<Node> = Vec::new();
+            let mut index = crate::graph::NodeIdIndex::default();
+            for _ in 0..300 {
+                let id = format!("n{}", next() % 40);
+                if next() % 3 == 0 {
+                    nodes.push(bare_node(&id));
+                } else {
+                    let expected = nodes.iter().any(|node| node.id == id);
+                    assert_eq!(index.contains(&nodes, &id), expected, "{id}");
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn node_id_index_rebuilds_when_nodes_shrink() {
+        let mut nodes = vec![bare_node("a"), bare_node("b"), bare_node("c")];
+        let mut index = crate::graph::NodeIdIndex::default();
+        assert!(index.contains(&nodes, "c"));
+        nodes.truncate(1);
+        assert!(
+            !index.contains(&nodes, "c"),
+            "a removed node is not reported present"
+        );
+        assert!(index.contains(&nodes, "a"));
+    }
+
+    #[test]
+    #[should_panic(expected = "append-only")]
+    fn rewriting_an_indexed_position_is_caught_in_debug_builds() {
+        let mut nodes = vec![bare_node("a"), bare_node("b")];
+        let mut index = crate::graph::NodeIdIndex::default();
+        index.contains(&nodes, "a");
+        nodes.truncate(1);
+        nodes.push(bare_node("z"));
+        index.contains(&nodes, "z");
+    }
+
+    #[test]
+    fn ensure_node_stays_linear_at_one_hundred_thousand_nodes() {
+        // The linear-scan dedup made this ~5e9 string comparisons (minutes in a debug build);
+        // indexed, it is well under a second. The bound is generous against machine noise.
+        let started = std::time::Instant::now();
+        let mut graph = build_source_graph(&SourceReport {
+            schema: "test".into(),
+            root: "/repo".into(),
+            files_total: 0,
+            languages: BTreeMap::new(),
+            files: Vec::new(),
+        });
+        let provenance = crate::provenance::provenance("p", "test");
+        for i in 0..100_000 {
+            let id = format!("node-{i}");
+            ensure_node(
+                &mut graph,
+                id.clone(),
+                "K".into(),
+                id,
+                BTreeMap::new(),
+                &provenance,
+            );
+        }
+        ensure_node(
+            &mut graph,
+            "node-7".into(),
+            "K".into(),
+            "dup".into(),
+            BTreeMap::new(),
+            &provenance,
+        );
+        assert_eq!(
+            graph.nodes.len(),
+            100_000 + 1,
+            "one Repository node + 100k, duplicate ignored"
+        );
+        assert!(
+            started.elapsed() < std::time::Duration::from_secs(30),
+            "took {:?}",
+            started.elapsed()
+        );
+    }
     use crate::{
         DocumentFact, EpistemicStatus, NormalizationReport, Provenance, SemanticFact,
         SemanticFactKind, TypedClosureAccounting,
