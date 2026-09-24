@@ -1,0 +1,50 @@
+{
+  "schema": "atlas.self-build.generation-evidence.v1",
+  "wave": "SEMANTIC PRESERVATION -- extend the proven free/path-constructor spelling-candidate pattern to EffectCategory::NetworkSend/NetworkReceive",
+  "wave_title": "Third and (for this slice) final application of the pattern established for FilesystemRead/Write and extended to ProcessSpawn: materializes NetworkSend via TcpStream::connect/UnixStream::connect and NetworkReceive via TcpListener::bind/UnixListener::bind, following the immediately preceding generation's own recorded next step exactly.",
+  "priority_classification": "semantic preservation (priority 3) -- continuing the same R4.8 closure work, using the now three-times-proven architecture.",
+  "design_decisions": [
+    {
+      "question": "Which specific std::net/std::os::unix::net constructors map to which direction, given the enum only distinguishes Send vs Receive, not connection-setup vs data-transfer?",
+      "decision": "connect() (TcpStream, UnixStream) is the CLIENT/initiating role, reaching out to an already-listening address -> mapped to NetworkSend. bind() on a *Listener (TcpListener, UnixListener) is the SERVER/accepting role, waiting for an external connection to reach in -> mapped to NetworkReceive. This is an honest, explicitly-justified, bounded-precision interpretation (client role vs server role), not a literal claim that the call itself transfers a byte -- exactly parallel to how Command::new doesn't literally spawn a process yet is still the most useful signal this enum's granularity supports."
+    },
+    {
+      "question": "What about UdpSocket::bind?",
+      "decision": "Deliberately excluded. Unlike the four connect/bind constructors chosen, UDP is connectionless: the identical `UdpSocket::bind` call is used equally by code that will subsequently only send, only receive, or both. There is no honest client/server (Send/Receive) role to assign to `bind` alone here, unlike the other four -- and the whole point of this extractor's epistemic discipline is to abstain rather than force an unjustified label. Verified by a dedicated negative test asserting zero effect observations for `UdpSocket::bind`, not merely omitted from the positive test's coverage."
+    }
+  ],
+  "stable_validator_law_compliance": {
+    "claim": "TcpStream::connect/UnixStream::connect produce NetworkSend; TcpListener::bind/UnixListener::bind produce NetworkReceive; UdpSocket::bind, a lookalike type name, and a bare method call all produce nothing.",
+    "self_written_evidence": "Positive test covers both Tcp and Unix variants of both connect and bind (4 spellings, both fully- and partially-qualified forms), asserting the exact expected multiset of categories, all Inferred. Negative test covers three distinct cases in one assertion: UdpSocket::bind (the genuinely ambiguous case, not merely an oversight), FakeTcpListener::bind (qualifier segment is exactly `FakeTcpListener`, not `TcpListener` -- proving the exact-match discipline holds for a realistic near-miss name, not just a wildly different one), and a bare `.connect(..)` method call.",
+    "independent_evidence_channel": "cargo build --workspace clean. cargo fmt --all --check clean. cargo clippy --workspace --all-targets -D warnings clean. Full cargo test --workspace: 273 adapter (+2 net), 2 apps/cli, 160 core, 63 runtime -- 498 total, 0 failed on the FIRST run this generation (the lesson from the immediately preceding generation's near-miss -- avoid contiguous literal spellings the extractor's own security self-check scans for -- was checked and confirmed not applicable here, since that scan only names the graph-dependency and process-spawn spellings, not TcpStream/TcpListener). docs audit gate_ready: true. systemize against this repository's own real source: exit 0.",
+    "no_circular_self_certification": true
+  },
+  "implementation": {
+    "core_change": "NONE -- EffectCategory::NetworkSend/NetworkReceive already existed.",
+    "adapter_change": "adapter/src/semantic/rust/effect.rs -- extended effect_kind_for_free_call_spelling with two new match arms (TcpStream/UnixStream::connect -> NetworkSend; TcpListener/UnixListener::bind -> NetworkReceive); updated both the function's own and the module's doc comments to name the new categories and their exact rationale, including why UdpSocket::bind is excluded.",
+    "roadmap_change": ".atlas/roadmap/SELF-BUILDING-R4-R8.md R4.8 section -- documented the new capability and its exact, honestly-bounded interpretation.",
+    "test_change": "adapter/src/semantic/rust/tests.rs -- added 2 new tests (4-spelling positive case; 3-case negative case)."
+  },
+  "adversarial_and_falsification_coverage": [
+    "positive test exercises both fully- and partially-qualified spellings for all 4 constructors, not a single representative",
+    "negative test specifically includes the one genuinely ambiguous real API (UdpSocket::bind) rather than only easy strawman negatives, proving the exclusion is a deliberate design decision that was actually tested, not an oversight that happens to look intentional after the fact",
+    "negative test's lookalike type name (FakeTcpListener) is a REALISTIC near-miss (a plausible test-double/mock type name a real codebase might actually have), not a maximally-different string, giving the exact-segment-match discipline a meaningful adversarial case",
+    "explicitly checked this generation's own fixtures against the exact scope of the existing security self-check (which spellings it scans for) before writing them, applying the lesson from the immediately preceding generation's near-miss proactively rather than discovering it again by accident"
+  ],
+  "validation_this_generation": {
+    "commands": {
+      "cargo build --workspace": { "exit_code": 0 },
+      "cargo fmt --all --check": { "exit_code": 0 },
+      "cargo clippy --workspace --all-targets -- -D warnings": { "exit_code": 0, "warnings": 0 },
+      "cargo test --workspace": { "exit_code": 0, "totals": "273 adapter, 2 apps/cli, 160 core, 63 runtime -- 498 total, 0 failed" },
+      "cargo run -q -p atlas-cli -- docs audit --root .atlas": { "exit_code": 0, "gate_ready": true },
+      "cargo run -q -p atlas-cli -- systemize --root .": { "exit_code": 0 }
+    }
+  },
+  "recensus_scope_after_promotion": [
+    "R4.8's own closure status remains 'bootstrap materialized, closure remains open' -- FfiCall/Persist/EmitEvent/AuthCheck/Alloc/Free/ExternalIo remain unmaterialized, and this generation does not claim NetworkSend/NetworkReceive are exhaustively covered (e.g. reqwest/hyper/tonic-shaped HTTP client construction, or async-runtime equivalents like tokio::net::TcpStream::connect, share the SAME qualifier-name shape and would already be caught by this exact match logic since it doesn't care about the module path BEFORE the qualifier segment -- worth explicitly confirming with a test in a future generation rather than merely assumed)",
+    "this now completes the three network/filesystem/process constructor-call categories flagged across the last three generations; a natural checkpoint to pause this specific expansion thread and let the next census pick freely among remaining R4.8 categories, other dimensions' own closure requirements, or a different roadmap wave entirely, rather than continuing to mine EffectCategory indefinitely"
+  ],
+  "overall_verdict": "MATERIALIZED, IMPLEMENTED, AND VERIFIED. R4.8 EFFECT now emits NetworkSend/NetworkReceive candidates for the client/server-role-distinguishing subset of std::net/std::os::unix::net constructors, with UdpSocket::bind honestly excluded as genuinely ambiguous rather than forced into either category. Full workspace suite (498 tests) passing on the first run, having proactively applied the lesson from the immediately preceding generation's security-self-check near-miss.",
+  "historical_evidence_retained": true
+}

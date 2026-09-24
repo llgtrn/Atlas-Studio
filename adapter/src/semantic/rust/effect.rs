@@ -7,28 +7,27 @@
 //! therefore emitted as EffectCategory::Panic with EpistemicStatus::Inferred, never OBSERVED.
 //!
 //! A free/path function call whose callee spelling has an `fs` module qualifier (`std::fs::read`,
-//! `fs::write`, `tokio::fs::read_dir`, ...), is exactly `File::open`/`File::create`, or is exactly
-//! `Command::new` (`std::process::Command::new`, `tokio::process::Command::new`, ...) is, by the
-//! identical textual-spelling-candidate discipline `persistence.rs` already established for R4.11,
-//! emitted as an INFERRED FilesystemRead/FilesystemWrite/ProcessSpawn candidate -- see
-//! `effect_kind_for_free_call_spelling`'s own doc comment for the exact closed set and why method
-//! calls (`file.read_to_string(..)`, `socket.write_all(..)`, a bare `.spawn(..)`) are deliberately
-//! excluded this wave: a bare method name carries no qualifying module/type the way a free/path
-//! call's spelling does, making it far more likely to collide with an unrelated type's own
-//! identically-named method (exactly the ambiguity `persistence.rs`'s own module doc comment
-//! already names for its own method-call spellings, and acutely so for a bare `.spawn(..)`, which
-//! is at least as commonly an async-runtime task spawn or a thread spawn as a process one) -- an
-//! explicit, named scope boundary, not a silent omission. `Command::new` alone does not PROVE a
-//! process is actually spawned (the builder could be constructed and discarded without ever
-//! calling `.spawn()`/`.output()`/`.status()`), which is exactly why this, like every other
-//! candidate here, is `Inferred`, never `Observed`.
+//! `fs::write`, `tokio::fs::read_dir`, ...), is exactly `File::open`/`File::create`, is exactly
+//! `Command::new`, or is exactly `TcpStream::connect`/`TcpListener::bind`/`UnixStream::connect`/
+//! `UnixListener::bind` is, by the identical textual-spelling-candidate discipline `persistence.rs`
+//! already established for R4.11, emitted as an INFERRED FilesystemRead/FilesystemWrite/
+//! ProcessSpawn/NetworkSend/NetworkReceive candidate -- see `effect_kind_for_free_call_spelling`'s
+//! own doc comment for the exact closed set and why method calls (`file.read_to_string(..)`,
+//! `socket.write_all(..)`, a bare `.spawn(..)`) are deliberately excluded this wave: a bare method
+//! name carries no qualifying module/type the way a free/path call's spelling does, making it far
+//! more likely to collide with an unrelated type's own identically-named method (exactly the
+//! ambiguity `persistence.rs`'s own module doc comment already names for its own method-call
+//! spellings, and acutely so for a bare `.spawn(..)`, which is at least as commonly an
+//! async-runtime task spawn or a thread spawn as a process one) -- an explicit, named scope
+//! boundary, not a silent omission. None of these free-call spellings PROVE their effect actually
+//! occurs (a `Command`/socket could be constructed and never used), which is exactly why every
+//! candidate here is `Inferred`, never `Observed`.
 //!
-//! NetworkSend/NetworkReceive/FfiCall/Persist/EmitEvent/AuthCheck/Alloc/Free/ExternalIo remain
-//! unmaterialized until deeper API/type resolution exists or a similarly conservative spelling-
-//! candidate scheme is designed for each. Unsafe/try/repeat/raw-address/yield expression containers
-//! are traversed; closures, async blocks, const blocks and macro token bodies remain explicit
-//! closure gaps, so the EFFECT obligation stays UNKNOWN even when useful effect observations are
-//! present.
+//! FfiCall/Persist/EmitEvent/AuthCheck/Alloc/Free/ExternalIo remain unmaterialized until deeper
+//! API/type resolution exists or a similarly conservative spelling-candidate scheme is designed for
+//! each. Unsafe/try/repeat/raw-address/yield expression containers are traversed; closures, async
+//! blocks, const blocks and macro token bodies remain explicit closure gaps, so the EFFECT
+//! obligation stays UNKNOWN even when useful effect observations are present.
 
 use atlas_core::{
     EffectCategory, EffectIdentity, EpistemicStatus, EvidenceId, SemanticDimension,
@@ -39,16 +38,18 @@ use super::ExtractionContext;
 use super::spelling::{call_callee_spelling, is_panic_like_macro};
 
 /// If a free/path call's callee spelling has an `fs` module qualifier, is exactly
-/// `File::open`/`File::create`/`File::create_new`, or is exactly `Command::new`, returns the
+/// `File::open`/`File::create`/`File::create_new`, is exactly `Command::new`, or is exactly
+/// `TcpStream::connect`/`TcpListener::bind`/`UnixStream::connect`/`UnixListener::bind`, returns the
 /// effect category that specific, well-known spelling most directly implies. Checks the segment
-/// immediately before the final one for an EXACT match against `fs`/`File`/`Command` (bounded by
+/// immediately before the final one for an EXACT match against the relevant qualifier (bounded by
 /// the `::` path separator on both sides, or at the start of the spelling) -- never a substring
 /// match, so a module merely containing the letters "fs" (`prefs`, `overlayfs`, `myfs`, ...) can
 /// never collide, the same word-boundary discipline `max_structural_recursion_risk`'s own
 /// `as`-keyword scan already established for an identical collision risk. Every match is equally
-/// uncertain (no type/name resolution proves the qualifier actually resolves to
-/// `std::fs`/`std::fs::File`/`std::process::Command` rather than a same-named local module or
-/// type), so all map to `Inferred` alike, exactly like `persistence.rs`'s own closed spelling set.
+/// uncertain (no type/name resolution proves the qualifier actually resolves to the real
+/// `std::fs`/`std::fs::File`/`std::process::Command`/`std::net`/`std::os::unix::net` type rather
+/// than a same-named local module or type), so all map to `Inferred` alike, exactly like
+/// `persistence.rs`'s own closed spelling set.
 fn effect_kind_for_free_call_spelling(spelling: &str) -> Option<EffectCategory> {
     let segments: Vec<&str> = spelling.split("::").collect();
     let last = *segments.last()?;
@@ -68,6 +69,23 @@ fn effect_kind_for_free_call_spelling(spelling: &str) -> Option<EffectCategory> 
             _ => None,
         },
         Some("Command") if last == "new" => Some(EffectCategory::ProcessSpawn),
+        // `TcpStream::connect`/`UnixStream::connect` reach OUT to an already-listening external
+        // address (the client/initiating role); `TcpListener::bind`/`UnixListener::bind` wait to
+        // accept a connection reaching IN (the server/accepting role) -- a real, well-defined
+        // client-vs-server distinction for these four specific constructors. Neither literally
+        // sends or receives a byte at the call site named here -- like `Command::new`, this is a
+        // connection SETUP site, not proof data ever crossed it -- but NetworkSend/NetworkReceive
+        // are the closest-fitting categories this enum declares for "which side of the wire this
+        // call sets this function up to be", the same bounded-precision tolerance
+        // `PersistenceKind`'s own Commit/Flush/Sync/Checkpoint/Snapshot split already accepts for
+        // its own related-but-distinct operations. `UdpSocket::bind` is deliberately NOT included:
+        // unlike the other four, UDP is connectionless and `bind` alone establishes no client/
+        // server role at all (the same local call is equally used before sending or before
+        // receiving), so neither category would be honest here.
+        Some("TcpStream" | "UnixStream") if last == "connect" => Some(EffectCategory::NetworkSend),
+        Some("TcpListener" | "UnixListener") if last == "bind" => {
+            Some(EffectCategory::NetworkReceive)
+        }
         _ => None,
     }
 }

@@ -5643,3 +5643,60 @@ pub fn not_a_process(pool: &ThreadPool) {
          `Command` -- none of the three may be mistaken for ProcessSpawn"
     );
 }
+
+// --- R4.8 EFFECT: `TcpStream::connect`/`UnixStream::connect` (client role) and
+// `TcpListener::bind`/`UnixListener::bind` (server role) are real NetworkSend/NetworkReceive
+// candidates -- the same free/path-constructor pattern as File::open/Command::new, deliberately
+// NOT extended to `UdpSocket::bind`, which establishes no client/server role at all. -------------
+
+#[test]
+fn stream_connect_and_listener_bind_produce_the_expected_network_direction() {
+    const SRC: &str = r#"
+pub fn open_channels() -> std::io::Result<()> {
+    let _ = std::net::TcpStream::connect("example.com:80")?;
+    let _ = TcpListener::bind("0.0.0.0:8080")?;
+    let _ = std::os::unix::net::UnixStream::connect("/tmp/a.sock")?;
+    let _ = UnixListener::bind("/tmp/b.sock")?;
+    Ok(())
+}
+"#;
+    let batch = extract_all("src/probe.rs", SRC);
+    let mut categories = effect_categories(&batch);
+    categories.sort_by_key(|c| c.as_str());
+    let mut expected = vec![
+        EffectCategory::NetworkSend,    // TcpStream::connect
+        EffectCategory::NetworkReceive, // TcpListener::bind
+        EffectCategory::NetworkSend,    // UnixStream::connect
+        EffectCategory::NetworkReceive, // UnixListener::bind
+    ];
+    expected.sort_by_key(|c| c.as_str());
+    assert_eq!(
+        categories, expected,
+        "connect (the client/initiating role) must produce NetworkSend and bind on a listener \
+         (the server/accepting role) must produce NetworkReceive, for both the Tcp and Unix \
+         variants"
+    );
+    for observation in &batch.observations {
+        if let SemanticObservation::Effect(header) = observation {
+            assert_eq!(header.status, EpistemicStatus::Inferred);
+        }
+    }
+}
+
+#[test]
+fn udp_socket_bind_and_lookalike_types_do_not_false_positive() {
+    const SRC: &str = r#"
+pub fn not_a_role(sock: &FakeTcpStream) {
+    let _ = std::net::UdpSocket::bind("0.0.0.0:0");
+    let _ = FakeTcpListener::bind("0.0.0.0:0");
+    let _ = sock.connect("x");
+}
+"#;
+    let batch = extract_all("src/probe.rs", SRC);
+    assert!(
+        effect_categories(&batch).is_empty(),
+        "UdpSocket::bind establishes no client/server role and must not be classified either way; \
+         FakeTcpListener's qualifier segment is `FakeTcpListener`, not exactly `TcpListener`; and \
+         a bare `.connect(..)` method call is excluded the same way every other method call is"
+    );
+}
