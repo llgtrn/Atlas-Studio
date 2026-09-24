@@ -15,9 +15,25 @@ canonical: true
 
 ## Census State
 
-Status: SKELETON. Source is cloned and pinned; implementation inspection still needs to classify modules, algorithms, storage, execution, query, incremental behavior, tests, benchmarks, assumptions, accepted ideas, rejected ideas, and Atlas-native replacement gaps.
+Status: COARSE_CENSUSED (advanced from SKELETON). Two essential conceptual generalizations are now
+understood and evidenced -- see
+`.atlas/genome/technology/differential-dataflow-algebraic-retraction-and-lattice-time.md`:
+
+- diffs as elements of an Abelian group (Semigroup/Monoid/Abelian, `src/difference.rs`), not
+  hardcoded signed counts -- enabling true retraction, not just monotone insertion (the gap
+  identified against datafrog's own insertion-only model);
+- time as a lattice (`src/trace/mod.rs`), not a scalar counter -- unifying Salsa's revision-scalar
+  and datafrog's round-scalar into one representation general enough for both nested fixed-point
+  iteration and streaming incremental updates together.
+
+This donor is far larger than Salsa or datafrog (207 Rust files, built on the separate
+`timely-dataflow` framework). Still needing classification, substantially more so than the other two
+W3 donors given the size difference: the operator library (`src/operators/`), the
+arrangement/index system, `timely-dataflow` itself, distributed execution, and fault tolerance.
 
 ## Native Replacement
 
-runtime incremental graph maintenance
+runtime incremental graph maintenance -- with all three of Salsa/datafrog/differential-dataflow now
+having at least one real mechanism record, an actual R5 design synthesis (not a further donor
+deep-dive) is now plausibly the highest-value next step in this thread.
 

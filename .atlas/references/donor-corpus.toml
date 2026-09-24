@@ -114,11 +114,11 @@ retrieved_at = "2026-09-20T12:08:55.4960343Z"
 license = [".atlas/licenses/differential-dataflow/LICENSE"]
 technology_domains = ["differential_computation", "incremental_graph_derivation"]
 ingestion_status = "CLONED"
-census_status = "SKELETON"
+census_status = "COARSE_CENSUSED"
 decision_status = "PENDING"
 native_replacement = "runtime incremental graph maintenance"
 runtime_dependency_status = "REFERENCE_ONLY"
-evidence = [".atlas/provenance/donors/differential-dataflow.json", ".atlas/census/differential-dataflow.md"]
+evidence = [".atlas/provenance/donors/differential-dataflow.json", ".atlas/census/differential-dataflow.md", ".atlas/genome/technology/differential-dataflow-algebraic-retraction-and-lattice-time.md"]
 
 [[donor]]
 id = "elkjs"

@@ -1,0 +1,38 @@
+{
+  "schema": "atlas.self-build.generation-evidence.v1",
+  "wave": "DONOR RESEARCH -- deep-census differential-dataflow's core algebraic-retraction and lattice-time mechanisms, the third W3 donor for R5, closing the gap identified between Salsa and datafrog",
+  "wave_title": "Direct continuation of the W3 donor lane, following the prior generation's own explicit conclusion that differential-dataflow 'exists specifically to close the gap' between Salsa's demand-driven single-invalidation model and datafrog's monotone bottom-up closure model. This is the third and largest donor in the lane (207 Rust files, built on the separate timely-dataflow framework), deliberately scoped to the two conceptual generalizations that actually close the identified gap, not the donor's full operational surface.",
+  "priority_classification": "semantic preservation / roadmap advancement -- completing real, evidenced coverage of all three primary W3 mechanisms R5 names before any implementation design begins.",
+  "key_finding": "differential-dataflow generalizes both prior donors' central abstractions in two specific ways: (1) 'diff' becomes an arbitrary Abelian group element (Semigroup -> Monoid -> Abelian trait hierarchy) rather than a signed integer count, making retraction (a fact that used to hold and no longer does) a first-class, uniformly-handled case instead of requiring recomputation from scratch -- directly closing datafrog's own insertion-only limitation; (2) 'time' becomes a lattice (a partial order with joins), not a scalar counter, unifying Salsa's single Revision scalar and datafrog's single round-counter scalar into one representation expressive enough for BOTH nested fixed-point iteration and streaming incremental updates simultaneously (via product lattices). With this record, all three W3 mechanisms named in R5's own roadmap text now have at least one real, evidenced mechanism record.",
+  "method": "read lib.rs's own module doc comment and worked example in full (147 lines); read difference.rs in full (the trait hierarchy is compact and the whole point of this record); read trace/mod.rs's module doc comment and TraceReader's opening type signature (not the full 200-file surface -- explicitly scoped to the (key,val,time,diff) shape and the Lattice/Antichain imports that confirm the generalization, not the arrangement/index implementation details).",
+  "stable_validator_law_compliance": {
+    "claim": "differential-dataflow's two essential generalizations (algebraic diffs, lattice-valued time) are now genuinely understood and evidenced from real source, confirmed to be exactly the mechanism that closes the gap the prior datafrog record identified between Salsa and datafrog.",
+    "self_written_evidence": "Every mechanism claim cites specific files/lines read directly this generation. The connection to the prior two donors' own records is not asserted loosely -- it traces the SPECIFIC limitation each prior record identified (Salsa: single scalar revision; datafrog: insertion-only, scalar round counter) and shows exactly which trait/type in this donor generalizes each one, verified by reading the actual trait definitions and their own doc comments, not inferred from the donor's marketing description alone.",
+    "independent_evidence_channel": "python3 tomllib parse of donor-corpus.toml: succeeds, 57 donors preserved. cargo run -q -p atlas-cli -- docs audit --root .atlas: gate_ready true. Full cargo test --workspace: 504 total, 0 failed, unchanged (no Rust code touched).",
+    "no_circular_self_certification": true
+  },
+  "implementation": {
+    "code_change": "NONE -- donor research preceding R5 implementation.",
+    "docs_change": ".atlas/genome/technology/differential-dataflow-algebraic-retraction-and-lattice-time.md (new). .atlas/census/differential-dataflow.md -- updated from SKELETON, explicitly naming the much larger remaining uncensused surface proportional to this donor's greater size (operators, arrangements, timely-dataflow itself, distributed execution, fault tolerance). .atlas/references/donor-corpus.toml -- census_status SKELETON -> COARSE_CENSUSED, evidence array extended."
+  },
+  "adversarial_and_falsification_coverage": [
+    "explicitly scoped this record to the two mechanisms that answer the specific gap identified previously, rather than attempting a shallow pass over this donor's much larger 207-file surface -- a deliberate depth-over-breadth choice justified by what the record actually needed to answer",
+    "named the required invariant (diff addition must be truly commutative/associative, IsZero must never false-positive) the mechanism depends on but cannot itself verify, consistent with this session's treatment of every other donor's own unverifiable assumptions",
+    "explicitly separated the ESSENTIAL conceptual generalization (lattice time + Abelian diffs) from the ACCIDENTAL implementation vehicle (the timely-dataflow distributed execution substrate), recommending REWRITE-against-Atlas's-own-types rather than adopting the donor's own disproportionate distributed-systems architecture"
+  ],
+  "validation_this_generation": {
+    "commands": {
+      "python3 tomllib parse of donor-corpus.toml": { "result": "valid, 57 donors" },
+      "cargo run -q -p atlas-cli -- docs audit --root .atlas": { "exit_code": 0, "gate_ready": true },
+      "cargo test --workspace": { "exit_code": 0, "totals": "504 total, 0 failed, unchanged" }
+    }
+  },
+  "recensus_scope_after_promotion": [
+    "differential-dataflow's decision_status remains PENDING -- correctly, no absorption decision follows from conceptual understanding alone",
+    "the vast majority of this donor's own surface (operators, arrangements, timely-dataflow, distributed execution, fault tolerance) remains explicitly, substantially uncensused -- more so proportionally than for Salsa or datafrog given this donor's much greater size",
+    "souffle and buck2 remain entirely untouched in the W3 lane",
+    "this record's own Decision section identifies a genuine fork in the road for the next generation: continue censusing donors (souffle/buck2, or deepen the three already started) versus attempt an actual R5 design synthesis now that all three primary mechanisms have at least one real record -- flagged explicitly as a decision point, not defaulted"
+  ],
+  "overall_verdict": "RESEARCHED, EVIDENCED, AND RECORDED. differential-dataflow's algebraic-retraction and lattice-time generalizations are now understood and confirmed to be exactly the mechanism closing the gap identified between Salsa and datafrog in the prior generation. All three primary W3 mechanisms R5's own roadmap names now have real, evidenced coverage. No code changed.",
+  "historical_evidence_retained": true
+}
