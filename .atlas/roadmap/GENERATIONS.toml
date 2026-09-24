@@ -13,7 +13,7 @@
 #       -> generation evidence -> G_n+1
 
 schema = "atlas.self-build.generation-ledger.v1"
-current_generation = "G50"
+current_generation = "G51"
 
 [[generation]]
 id = "G35"
@@ -483,6 +483,7 @@ id = "G50"
 base_commit = "e9b56e15a74757ab1fcb853b585ced4bdb0d5e8f"
 objective = "design genome: abstract mechanisms with provenance from observed references; originality-enforced recombination into verified originals"
 writer = "coordinator (sole production writer)"
+result_commits = ["b98fe2bc0648cfb374e31045376bcffd621a18a4"]
 evidence = ".atlas/decisions/0018-design-genome-and-recombination.md"
 
 [generation.verification]
@@ -491,4 +492,21 @@ production_path = "atlas-systemizer genome over two Atlas-original references re
 
 [generation.next]
 objective = "G51: multi-candidate recombination with measured objectives and Pareto preservation (Futures x Creator); or physical dynamics along a trajectory"
+
+[[generation]]
+id = "G51"
+base_commit = "b98fe2bc0648cfb374e31045376bcffd621a18a4"
+objective = "physical milestone 3: arm dynamics, declared trajectories, simulation with run identity (SIMULATED)"
+writer = "coordinator (sole production writer)"
+evidence = ".atlas/decisions/0019-arm-dynamics-and-simulation.md"
+
+[generation.verification]
+falsification = "7 mutants killed; rod-inertia mutant first survived energy conservation (self-consistent model) -> discretized kinetic-energy oracle added"
+oracles = "exact static torques (1e-12); discretized-rod kinetic energy (1e-6); energy conservation; ideal inverse-dynamics demand; step convergence of tracking error"
+production_path = "atlas-systemizer physical: 0.8 s move SATISFIED (6.27 of 12 N*m); 0.25 s move VIOLATED (22.38 N*m required) despite every static check passing"
+honest_findings = "first controller (PD gains as torques) diverged to ~1e280; fixed with computed-torque control"
+evidence_level = "SIMULATED"
+
+[generation.next]
+objective = "G52: multi-candidate Creator recombination with Pareto preservation, or physical fault injection; select by leverage"
 

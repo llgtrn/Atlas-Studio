@@ -16,6 +16,8 @@
 //! needs trigonometry, so it is evaluated in `f64` and verified against closed form. Nothing here
 //! is simulated, measured or actuated: this is the SEMANTIC_MODEL evidence level.
 
+pub mod dynamics;
+
 use crate::{
     ConstraintVerdict, EpistemicStatus,
     language::adl::DeclaredNode,
@@ -96,7 +98,7 @@ pub struct RequirementCheck {
     pub detail: String,
 }
 
-#[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq)]
 pub struct PhysicalReport {
     pub schema: String,
     pub evidence_level: String,
@@ -104,6 +106,17 @@ pub struct PhysicalReport {
     pub derived: Vec<DerivedQuantity>,
     pub requirements: Vec<RequirementCheck>,
     pub findings: Vec<PhysicalFinding>,
+    /// Trajectory simulations (ADR 0019); their results are `SIMULATED`.
+    #[serde(default)]
+    pub simulations: Vec<SimulationRecord>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct SimulationRecord {
+    pub trajectory: String,
+    pub arm: String,
+    pub config: dynamics::SimulationConfig,
+    pub run: dynamics::SimulationRun,
 }
 
 fn quantity_of(
@@ -700,6 +713,186 @@ fn analyze_drivetrains(
     }
 }
 
+const TIME: Dimension = Dimension {
+    exponents: [0, 0, 1, 0, 0, 0, 0, 0],
+};
+
+/// Controller gains and integration settings used for every trajectory simulation (recorded in
+/// each run's configuration and identity).
+/// Computed-torque gains: natural frequency 30 rad/s, critical damping (Kp = w^2, Kd = 2*zeta*w).
+const SIM_KP: [f64; 2] = [900.0, 900.0];
+const SIM_KD: [f64; 2] = [60.0, 60.0];
+const SIM_STEP_S: f64 = 1e-3;
+const SIM_HOLD_S: f64 = 0.3;
+
+/// Actuator torque available at a joint: rated motor torque x gear ratio x efficiency.
+fn joint_torque_limit(nodes: &[DeclaredNode], joint: &str) -> Option<f64> {
+    let motor = nodes.iter().find(|node| {
+        node.node_kind == "Motor" && node.attributes.get("joint").map(String::as_str) == Some(joint)
+    })?;
+    let mut scratch = Vec::new();
+    let rated = quantity_of(motor, "rated_torque", TORQUE, &mut scratch)?;
+    let ratio = ratio_of(motor, "gear_ratio", &mut scratch)?;
+    let efficiency = ratio_of(motor, "efficiency", &mut scratch)?;
+    Some(rated.si_value.to_f64() * ratio.si_value.to_f64() * efficiency.si_value.to_f64())
+}
+
+/// Physical milestone 3 (ADR 0019): simulate every declared `Trajectory` of an assembled 2-link
+/// arm and decide its dynamic requirements from `SIMULATED` evidence.
+fn simulate_trajectories(
+    nodes: &[DeclaredNode],
+    arms: &[PlanarArm],
+    requirements: &mut Vec<RequirementCheck>,
+    findings: &mut Vec<PhysicalFinding>,
+) -> Vec<SimulationRecord> {
+    let mut records = Vec::new();
+    for trajectory in nodes.iter().filter(|node| node.node_kind == "Trajectory") {
+        let Some(arm_name) = trajectory.attributes.get("arm") else {
+            findings.push(PhysicalFinding {
+                subject: trajectory.name.clone(),
+                verdict: ConstraintVerdict::Unknown,
+                message: "`arm` is not declared".into(),
+            });
+            continue;
+        };
+        let Some(arm) = arms.iter().find(|arm| &arm.name == arm_name) else {
+            findings.push(PhysicalFinding {
+                subject: trajectory.name.clone(),
+                verdict: ConstraintVerdict::Unknown,
+                message: format!("arm `{arm_name}` was not assembled"),
+            });
+            continue;
+        };
+        let before = findings.len();
+        let angle = |name: &str, findings: &mut Vec<PhysicalFinding>| {
+            quantity_of(trajectory, name, ANGLE, findings).map(|q| q.si_value.to_f64())
+        };
+        let from = [
+            angle("shoulder_from", findings),
+            angle("elbow_from", findings),
+        ];
+        let to = [angle("shoulder_to", findings), angle("elbow_to", findings)];
+        let duration = quantity_of(trajectory, "duration", TIME, findings);
+        let tolerance = quantity_of(trajectory, "tracking_tolerance", ANGLE, findings);
+        let limits = [
+            arm.joints
+                .first()
+                .and_then(|j| joint_torque_limit(nodes, &j.name)),
+            arm.joints
+                .get(1)
+                .and_then(|j| joint_torque_limit(nodes, &j.name)),
+        ];
+        let (
+            [Some(f0), Some(f1)],
+            [Some(t0), Some(t1)],
+            Some(duration),
+            Some(tolerance),
+            [Some(limit0), Some(limit1)],
+            Some(dynamics),
+        ) = (
+            from,
+            to,
+            duration,
+            tolerance,
+            limits,
+            dynamics::ArmDynamics::from_arm(arm),
+        )
+        else {
+            if findings.len() == before {
+                findings.push(PhysicalFinding {
+                    subject: trajectory.name.clone(),
+                    verdict: ConstraintVerdict::Unknown,
+                    message: "simulation needs a 2-link arm with a motor on every joint".into(),
+                });
+            }
+            continue;
+        };
+        if findings.len() != before {
+            continue;
+        }
+        let within = arm.within_limits(&[f0, f1]) && arm.within_limits(&[t0, t1]);
+        requirements.push(RequirementCheck {
+            subject: trajectory.name.clone(),
+            requirement: "trajectory within joint limits".into(),
+            verdict: if within {
+                ConstraintVerdict::Satisfied
+            } else {
+                ConstraintVerdict::Violated
+            },
+            detail: "minimum-jerk moves are monotone per joint, so the endpoints bound the path"
+                .into(),
+        });
+        let config = dynamics::SimulationConfig {
+            dynamics,
+            trajectory: dynamics::JointMove {
+                from: [f0, f1],
+                to: [t0, t1],
+                duration_s: duration.si_value.to_f64(),
+            },
+            torque_limits: [limit0, limit1],
+            kp: SIM_KP,
+            kd: SIM_KD,
+            step_s: SIM_STEP_S,
+            hold_s: SIM_HOLD_S,
+            integrator: "rk4".into(),
+        };
+        let run = dynamics::simulate(&config);
+        if run.diverged {
+            requirements.push(RequirementCheck {
+                subject: trajectory.name.clone(),
+                requirement: "simulation converged".into(),
+                verdict: ConstraintVerdict::Unknown,
+                detail: "the integration diverged; no dynamic requirement can be decided from it"
+                    .into(),
+            });
+            records.push(SimulationRecord {
+                trajectory: trajectory.name.clone(),
+                arm: arm.name.clone(),
+                config,
+                run,
+            });
+            continue;
+        }
+        for (joint, index) in arm.joints.iter().zip(0..2) {
+            let (required, limit) = (run.ideal_peak[index], config.torque_limits[index]);
+            requirements.push(RequirementCheck {
+                subject: trajectory.name.clone(),
+                requirement: format!("{} dynamic torque within actuator capability", joint.name),
+                verdict: if required <= limit {
+                    ConstraintVerdict::Satisfied
+                } else {
+                    ConstraintVerdict::Violated
+                },
+                detail: format!(
+                    "DERIVED peak torque the trajectory requires (inverse dynamics) {required:.4} N*m vs {limit:.4} N*m available (rated x gear x efficiency); SIMULATED controller peak {:.4} N*m, {} saturated steps",
+                    run.peak_demand[index], run.saturated_steps[index]
+                ),
+            });
+        }
+        let tolerance = tolerance.si_value.to_f64();
+        requirements.push(RequirementCheck {
+            subject: trajectory.name.clone(),
+            requirement: format!("tracking error <= {tolerance} rad"),
+            verdict: if run.max_tracking_error_rad <= tolerance {
+                ConstraintVerdict::Satisfied
+            } else {
+                ConstraintVerdict::Violated
+            },
+            detail: format!(
+                "SIMULATED max tracking error {:.6} rad, final error {:.6} rad",
+                run.max_tracking_error_rad, run.final_error_rad
+            ),
+        });
+        records.push(SimulationRecord {
+            trajectory: trajectory.name.clone(),
+            arm: arm.name.clone(),
+            config,
+            run,
+        });
+    }
+    records
+}
+
 /// Physical milestone 1: assemble every declared arm, derive its exact reach, inner radius and
 /// worst-case static shoulder torque, and check the arm's declared requirements
 /// (`required_reach` against reach, `shoulder_torque_limit` against the derived torque).
@@ -790,13 +983,19 @@ pub fn analyze_physical(nodes: &[DeclaredNode]) -> PhysicalReport {
         ));
     }
     analyze_drivetrains(nodes, &arms, &mut derived, &mut requirements, &mut findings);
+    let simulations = simulate_trajectories(nodes, &arms, &mut requirements, &mut findings);
     PhysicalReport {
         schema: "atlas.physical-report.v1".into(),
-        evidence_level: "SEMANTIC_MODEL".into(),
+        evidence_level: if simulations.is_empty() {
+            "SEMANTIC_MODEL".into()
+        } else {
+            "SIMULATED".into()
+        },
         arms,
         derived,
         requirements,
         findings,
+        simulations,
     }
 }
 
@@ -1150,6 +1349,123 @@ mod tests {
                 .any(|f| f.subject == "ElbowMotor" && f.verdict == ConstraintVerdict::Violated)
         );
         assert!(report.derived.iter().all(|d| d.subject != "ElbowMotor"));
+    }
+
+    fn with_trajectory(duration: &str) -> Vec<DeclaredNode> {
+        let mut nodes = with_drivetrain("0.5 kg", "5 A");
+        nodes.push(node(
+            "Trajectory",
+            "Reach1",
+            &[
+                ("arm", "A"),
+                ("shoulder_from", "0 rad"),
+                ("elbow_from", "0 rad"),
+                ("shoulder_to", "1.2 rad"),
+                ("elbow_to", "-0.8 rad"),
+                ("duration", duration),
+                ("tracking_tolerance", "0.02 rad"),
+            ],
+        ));
+        nodes
+    }
+
+    fn check<'a>(report: &'a PhysicalReport, requirement: &str) -> &'a RequirementCheck {
+        report
+            .requirements
+            .iter()
+            .find(|r| r.subject == "Reach1" && r.requirement.starts_with(requirement))
+            .unwrap_or_else(|| panic!("{requirement}: {:#?}", report.requirements))
+    }
+
+    #[test]
+    fn a_slow_move_satisfies_its_dynamic_requirements_in_simulation() {
+        let report = analyze_physical(&with_trajectory("0.8 s"));
+        assert!(report.findings.is_empty(), "{:?}", report.findings);
+        assert_eq!(report.evidence_level, "SIMULATED");
+        assert_eq!(report.simulations.len(), 1);
+        assert_eq!(report.simulations[0].run.status, EpistemicStatus::Simulated);
+        for requirement in [
+            "trajectory within joint limits",
+            "Shoulder dynamic",
+            "Elbow dynamic",
+            "tracking error",
+        ] {
+            assert_eq!(
+                check(&report, requirement).verdict,
+                ConstraintVerdict::Satisfied,
+                "{requirement}: {:?}",
+                check(&report, requirement)
+            );
+        }
+        // Available torque: 0.3 N*m x 50 x 0.8 = 12 N*m at the shoulder, 0.2 x 30 x 0.8 = 4.8 at the elbow.
+        assert!((report.simulations[0].config.torque_limits[0] - 12.0).abs() < 1e-12);
+        assert!((report.simulations[0].config.torque_limits[1] - 4.8).abs() < 1e-12);
+    }
+
+    #[test]
+    fn a_fast_move_that_passes_every_static_check_is_caught_by_simulation() {
+        let report = analyze_physical(&with_trajectory("0.25 s"));
+        // Every static requirement still holds...
+        assert!(
+            report
+                .requirements
+                .iter()
+                .filter(|r| r.subject != "Reach1")
+                .all(|r| r.verdict == ConstraintVerdict::Satisfied)
+        );
+        // ...but the dynamic demand exceeds what the shoulder actuator can deliver.
+        assert_eq!(
+            check(&report, "Shoulder dynamic").verdict,
+            ConstraintVerdict::Violated
+        );
+        assert!(report.simulations[0].run.saturated_steps[0] > 0);
+    }
+
+    #[test]
+    fn run_identity_is_deterministic_and_sensitive_to_every_parameter() {
+        let first = analyze_physical(&with_trajectory("0.8 s"));
+        let again = analyze_physical(&with_trajectory("0.8 s"));
+        assert_eq!(
+            first.simulations[0].run, again.simulations[0].run,
+            "identical config -> identical run"
+        );
+        let other = analyze_physical(&with_trajectory("0.81 s"));
+        assert_ne!(
+            first.simulations[0].run.run_identity,
+            other.simulations[0].run.run_identity
+        );
+        let mut config = first.simulations[0].config.clone();
+        config.kd[1] += 1e-12;
+        assert_ne!(config.run_identity(), first.simulations[0].run.run_identity);
+    }
+
+    #[test]
+    fn a_trajectory_outside_joint_limits_or_with_wrong_units_is_not_simulated_as_valid() {
+        let mut nodes = with_trajectory("0.8 s");
+        nodes
+            .last_mut()
+            .unwrap()
+            .attributes
+            .insert("shoulder_to".into(), "1.6 rad".into());
+        let report = analyze_physical(&nodes);
+        assert_eq!(
+            check(&report, "trajectory within joint limits").verdict,
+            ConstraintVerdict::Violated
+        );
+        let mut nodes = with_trajectory("0.8 s");
+        nodes
+            .last_mut()
+            .unwrap()
+            .attributes
+            .insert("duration".into(), "0.8 m".into());
+        let report = analyze_physical(&nodes);
+        assert!(report.simulations.is_empty());
+        assert!(
+            report
+                .findings
+                .iter()
+                .any(|f| f.subject == "Reach1" && f.verdict == ConstraintVerdict::Violated)
+        );
     }
 
     #[test]

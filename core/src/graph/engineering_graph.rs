@@ -206,7 +206,8 @@ fn confidence(status: &EpistemicStatus) -> Option<f32> {
         | EpistemicStatus::Conflict
         | EpistemicStatus::Unsupported
         | EpistemicStatus::Unknown
-        | EpistemicStatus::Ignored => None,
+        | EpistemicStatus::Ignored
+        | EpistemicStatus::Simulated => None,
     }
 }
 

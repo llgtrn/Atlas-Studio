@@ -173,7 +173,8 @@ fn status_rank(status: EpistemicStatus) -> u8 {
         | EpistemicStatus::Declared
         | EpistemicStatus::Derived
         | EpistemicStatus::Inferred
-        | EpistemicStatus::Hypothesis => 4,
+        | EpistemicStatus::Hypothesis
+        | EpistemicStatus::Simulated => 4,
     }
 }
 

@@ -61,6 +61,16 @@ entity Rail Main {
     max_current = 5 A
 }
 
+entity Trajectory Reach1 {
+    arm = Arm1
+    shoulder_from = 0 rad
+    elbow_from = 0 rad
+    shoulder_to = 1.2 rad
+    elbow_to = -0.8 rad
+    duration = 0.8 s
+    tracking_tolerance = 0.02 rad
+}
+
 invariant LinksAreLight {
     forall l: Link
     require l.mass <= 0.5 kg

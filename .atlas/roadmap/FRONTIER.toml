@@ -172,14 +172,14 @@ next_action = "not scheduled"
 [[lane]]
 id = "simulation"
 capability = "digital twin, Monte Carlo, fault injection before physical execution"
-state = "ABSENT"
-atlas_implementation = "none"
+state = "PARTIAL"
+atlas_implementation = "deterministic RK4 simulation with exact BLAKE3 run identity, divergence guard, SIMULATED status (ADR 0002 amendment, ADR 0019)"
 donors = ["MuJoCo", "Drake", "Gazebo gz-sim"]
-blocking_question = "depends on physical_engineering"
+blocking_question = "no scenario variation, Monte Carlo or fault injection yet"
 evidence_required = "a physical_engineering model to simulate"
 falsification = "analytic closed-form cases"
 dependency_status = "none"
-next_action = "not scheduled"
+next_action = "fault injection (sensor bias/dropout, stuck actuator) with verdict deltas"
 
 [[lane]]
 id = "embedded"
@@ -497,27 +497,27 @@ id = "dynamics"
 family = "PHYSICAL_ENGINEERING"
 capability = "mass, inertia, forces, torques, inverse dynamics"
 state = "PARTIAL"
-atlas_implementation = "exact worst-case static torque about every joint (static_joint_torques), assumptions stated (ADR 0012/0014)"
+atlas_implementation = "core::physical::dynamics: closed-form 2R Lagrangian M/c/g, inverse/forward dynamics, energy; oracles: exact static torques (1e-12), discretized-rod kinetic energy (1e-6), energy conservation (ADR 0019)"
 donors = ["Pinocchio", "Drake"]
-blocking_question = "after kinematics"
+blocking_question = "planar 2-link only; no friction/motor dynamics"
 evidence_required = "payload torque estimate for the arm"
 falsification = "static torque = m*g*r closed form"
 dependency_status = "none"
-next_action = "inertia and acceleration torque for a trajectory"
+next_action = "general serial chains (recursive Newton-Euler) when a 3+ link consumer exists"
 extinction_state = "n/a"
 
 [[lane]]
 id = "control"
 family = "PHYSICAL_ENGINEERING"
 capability = "state/reference/error/controller/plant/sampling/saturation"
-state = "ABSENT"
-atlas_implementation = "none"
+state = "PARTIAL"
+atlas_implementation = "computed-torque control with saturation at actuator capability; tracking verdicts on SIMULATED evidence (ADR 0019)"
 donors = ["Drake", "PX4 (BSD-3, bounded)"]
-blocking_question = "needs a plant model"
+blocking_question = "controller is Atlas-internal math, not a lowered binary; no estimator"
 evidence_required = "closed-loop simulation of the arm joint"
 falsification = "step response within declared bounds; never promoted to hardware"
 dependency_status = "none"
-next_action = "after dynamics"
+next_action = "SIL once a controller binary is produced; estimator with measurement noise"
 extinction_state = "n/a"
 
 [[lane]]

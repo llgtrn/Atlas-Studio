@@ -121,6 +121,9 @@ pub enum EpistemicStatus {
     Unknown,
     Unsupported,
     Ignored,
+    /// Produced by executing a model (simulation), never by observing the modelled system
+    /// (ADR 0002 amendment, 2026-09-24). A simulated result is not reality.
+    Simulated,
 }
 
 impl EpistemicStatus {
@@ -135,6 +138,7 @@ impl EpistemicStatus {
             Self::Unknown => "UNKNOWN",
             Self::Unsupported => "UNSUPPORTED",
             Self::Ignored => "IGNORED",
+            Self::Simulated => "SIMULATED",
         }
     }
 }

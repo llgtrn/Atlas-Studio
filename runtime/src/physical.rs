@@ -8,7 +8,7 @@ use atlas_core::{
 use serde::{Deserialize, Serialize};
 use std::{collections::BTreeMap, io, path::Path};
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct PhysicalAnalysis {
     pub physical: PhysicalReport,
     /// The ADL compile the model was assembled from, including its constraint verdicts.
@@ -42,7 +42,9 @@ mod tests {
         let report = &analysis.physical;
         assert!(report.findings.is_empty(), "{:?}", report.findings);
         assert_eq!(report.arms.len(), 1);
-        assert_eq!(report.evidence_level, "SEMANTIC_MODEL");
+        // The fixture declares a trajectory, so its dynamic verdicts rest on simulation.
+        assert_eq!(report.evidence_level, "SIMULATED");
+        assert_eq!(report.simulations.len(), 1);
         let reach = report.derived.iter().find(|d| d.name == "reach").unwrap();
         let rail = report
             .derived

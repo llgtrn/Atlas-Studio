@@ -36,7 +36,8 @@ Every physical report states its level, and a report never claims a level above 
 
 - Declared parameters are `DECLARED`.
 - Algebraic consequences are `DERIVED`, with their rule and modelling assumptions stated (e.g. "uniform-density links", "static, horizontal worst case", "standard gravity 9.80665 m/s²").
-- `SIMULATED`, `MEASURED` and `CALIBRATED` states require an ADR 0002 amendment before any record may carry them. A sensor reading is not automatically ground truth.
+- `SIMULATED` was added by an ADR 0002 amendment on 2026-09-24. It marks the result of executing a model, and every simulation run carries a BLAKE3 run identity over its exact configuration.
+- `MEASURED` and `CALIBRATED` still require an amendment before any record may carry them. A sensor reading is not automatically ground truth.
 
 ## Physical execution boundary (MUST)
 
@@ -68,3 +69,9 @@ Every physical report states its level, and a report never claims a level above 
   - planar forward kinematics verified against closed form.
 
   Exposed as `atlas-systemizer physical --root R [--out O]`.
+- **G51 (ADR 0019):** milestone 3, at level `SIMULATED`. It covers:
+  - 2R Lagrangian dynamics;
+  - declared minimum-jerk `Trajectory` entities;
+  - computed-torque RK4 simulation saturated at actuator capability;
+  - a divergence guard;
+  - joint-limit, actuator-capability and tracking verdicts.

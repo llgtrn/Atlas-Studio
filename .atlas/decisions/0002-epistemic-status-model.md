@@ -86,3 +86,13 @@ EvidenceKind identifies the source/mechanism of support. Evidence type does not 
 ## Compatibility
 
 Existing bootstrap records using the old six runtime values remain semantically compatible. INFERRED, HYPOTHESIS and CONFLICT extend the enum without redefining OBSERVED, DECLARED, DERIVED, UNKNOWN, UNSUPPORTED or IGNORED.
+
+## Amendment (2026-09-24, G51): SIMULATED
+
+`SIMULATED` is added, extending the enum without redefining any existing state. It marks a result produced by **executing a model** — for example, numerically integrating a physical plant under a controller — never by observing the modelled system.
+
+- A simulated result is not reality. It is never promoted to `OBSERVED` or to any `MEASURED`, `CALIBRATED` or `VERIFIED` evidence without a separate evidence path.
+- The Physical Engineering contract's evidence levels treat it as `SIMULATED`, which is below `SIL_VERIFIED`, `HIL_VERIFIED` and any physical level.
+- A simulation run must carry a run identity: a digest over its full model, parameters, integrator, step and scenario. That makes the run reproducible and lets a result be tied to exactly what produced it.
+- `MEASURED` and `CALIBRATED` are deliberately not added yet. They wait for their first consumer, which is telemetry.
+
