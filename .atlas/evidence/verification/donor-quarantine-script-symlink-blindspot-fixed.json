@@ -1,0 +1,64 @@
+{
+  "schema": "atlas.self-build.generation-evidence.v1",
+  "wave": "SECURITY -- .atlas/scripts/verify-donor-quarantine.sh's find -type d/-type f checks were blind to symlinks, letting a live agent-tooling-shaped path escape quarantine detection",
+  "wave_title": "A sixth delegated investigation, using the contract-vs-code cross-check technique that previously found the backend_roots bug, read .atlas/contracts/DONOR-WORKBENCH-ISOLATION.md's claim that the verification script scans for 'any live (non-quarantined) match' under donors and found the actual find invocations use -type d/-type f, which classify a symlink by its OWN type (l), never by what it resolves to -- so a path named exactly .claude/CLAUDE.md/etc. that is a SYMLINK to a real directory/file was invisible to every one of the script's three checks, reported as clean.",
+  "priority_classification": "security (priority 2) -- this is the canonical enforcement mechanism for a real trust boundary: donor content is census-visible but must never be repository or agent authority, and the exact live-agent-tooling-configuration shape this script exists to catch could reach the working tree via a symlink undetected.",
+  "gap_discovered_by": "A delegated Explore-agent investigation applying the 'read a contract's specific factual claim, verify it against actual code' technique to fresh contract files not yet checked this session. It confirmed the symlink blindness directly against the real `find` binary in this environment using an ALREADY-PRESENT donor symlink (capnproto's `c++/ekam-provider/c++header -> ../src`, an unrelated but structurally identical shape), read-only, without creating any new files, and confirmed no live quarantine violation currently exists in this repository's own donor corpus (so this closes a real, evidenced latent gap, not an active breach).",
+  "verification_before_acting": [
+    "Re-read the actual script (.atlas/scripts/verify-donor-quarantine.sh) directly myself and confirmed all three `find` invocations used `-type d`/`-type f` exactly as the investigating agent described.",
+    "Confirmed this repository's own donor corpus has zero CURRENT live violations reachable via a symlink today: `find .atlas/temporary/donors -type l \\( -iname \".claude\" -o ... \\)` returned nothing.",
+    "Reproduced the exact `find` blindness empirically myself in an isolated /tmp fixture (a `.claude` symlink to a real directory): `find ... -type d -iname \".claude\"` found nothing; the same command without `-type d` found it. Confirmed the FIX shape (name-match then `[ -d ]`/`[ -f ]` stat test, which DOES follow symlinks) correctly detects it without requiring `find -L` (which would risk making `find` traverse OUT of the donors_root boundary through a symlink pointing elsewhere, e.g. to `/`).",
+    "Checked whether this script is wired into CI or any Rust code path and found it is not (grepped .github/workflows and the whole Rust source tree) -- it is a standalone manual tool the contract's own text says to run 'before merging'. Still a real, live security control worth fixing regardless of automation status.",
+    "Parameterized the script (an overridable `donors_root` argument, defaulting to the real path when omitted) specifically to make it testable against a scratch fixture without ever touching this repository's own real donor corpus during a test run -- confirmed the real invocation (no argument) still scans `.atlas/temporary/donors` and reports clean, unchanged from before this fix.",
+    "Falsified the fix directly: temporarily reverted just the two fixed `find` blocks back to `-type d`/`-type f`, re-ran the three new Rust regression tests, watched the two symlink-detection tests fail (while the clean-tree test still passed, confirming the revert didn't break the script's baseline behavior), then restored the fix and re-ran to confirm all three pass."
+  ],
+  "design_decisions": [
+    {
+      "question": "Add `-L`/`-follow` to the `find` invocations (simplest textual fix), or match by name then stat each candidate?",
+      "decision": "Name-then-stat (`find ... -iname ... ` with no `-type` filter, then `[ -d \"$path\" ]`/`[ -f \"$path\" ]` per candidate). `find -L` follows EVERY symlink encountered during its recursive traversal, not just ones matching the target names -- if any donor directory contains a symlink pointing outside `donors_root` (even accidentally, to something like `/` or a large sibling tree), `-L` would make `find` recurse into it, a real boundary-escape and potential-hang risk this hand-picked, narrower approach avoids entirely: it only ever resolves the type of a leaf entry that ALREADY matched the target name, never changes how `find` walks the tree."
+    },
+    {
+      "question": "Also fix the third check (nested `.github/instructions/*.instructions.md`) for a symlinked INTERMEDIATE directory (`.github` or `instructions` itself being a symlink), not just a symlinked leaf file?",
+      "decision": "No -- applied the same leaf-level name-then-stat fix (a symlinked `*.instructions.md` FILE itself is now caught), but explicitly left the intermediate-directory-symlink case unfixed and documented as a deliberate, evidence-gated scope boundary: checked this repository's own donor corpus for any `.github` symlink and found none, and fixing that specific sub-case would require `find -L`'s full traversal-following behavior, reintroducing the same boundary-escape risk this generation's own design decision above rejects. Matches this session's established discipline of not guessing a fix for a shape no real input demonstrates."
+    },
+    {
+      "question": "How to add permanent regression coverage for a standalone bash script outside the Rust workspace's own test harness?",
+      "decision": "Parameterized the script with an overridable donors-root argument and added a new `runtime::tests::donor_quarantine_script_symlink_detection` module that invokes the REAL script as a subprocess against scratch fixtures -- never against this repository's own real donor corpus -- so `cargo test --workspace` now exercises this security control automatically going forward, matching this session's own established self-hosting-pressure principle (converting one-off manual verification into permanent, re-running test machinery, the same pattern already applied to `donor_corpus_integrity`)."
+    }
+  ],
+  "stable_validator_law_compliance": {
+    "claim": "verify-donor-quarantine.sh now detects a `.claude`/`.codex`/`.cursor`-named symlink to a real directory, and a `CLAUDE.md`/`AGENTS.md`/`.mcp.json`/`copilot-instructions.md`-named symlink to a real file, exactly as it already detected the literal (non-symlink) shapes -- without changing `find`'s own traversal behavior in a way that could escape the `donors_root` boundary. An ordinary donor tree with no quarantine violations, symlinked or otherwise, is completely unaffected.",
+    "self_written_evidence": "Three new tests in `runtime/src/lib.rs`'s new `donor_quarantine_script_symlink_detection` module, each invoking the real script as a subprocess against an isolated scratch fixture: `a_symlinked_dot_claude_directory_is_detected_not_silently_missed`, `a_symlinked_claude_md_file_is_detected_not_silently_missed`, and `a_donor_tree_with_no_quarantine_violations_still_scans_clean` (a regression guard against the fix over-triggering). The two symlink-detection tests were independently confirmed to fail without the fix (temporarily reverted to `-type d`/`-type f`, re-ran, restored) before being trusted; the clean-tree test's continued pass during that same revert confirms the fix doesn't merely make the script always fail.",
+    "independent_evidence_channel": "Ran the real script directly against this repository's own real `.atlas/temporary/donors` both before and after the fix: clean (exit 0) in both cases, confirming zero regression on real data. Ran the real script against an isolated /tmp fixture with a real symlinked `.claude` directory: exit 1, correctly flagged, both via direct shell invocation and via the new Rust test suite. cargo build --workspace clean. cargo fmt --all --check clean. cargo clippy --workspace --all-targets -D warnings clean, zero warnings. Full cargo test --workspace: 289 adapter, 3 apps/cli, 165 core, 76 runtime (+3 net) -- 533 total, 0 failed. docs audit gate_ready: true.",
+    "no_circular_self_certification": true
+  },
+  "implementation": {
+    "script_change": ".atlas/scripts/verify-donor-quarantine.sh -- the two flat-name `find` checks (directories, files) now match by `-iname` only (no `-type` filter) and resolve each candidate's real type via `[ -d ]`/`[ -f ]` (which follow symlinks); the third, nested-path check gets the same leaf-level fix for a symlinked `*.instructions.md` file, with the intermediate-directory-symlink sub-case explicitly documented as deferred, evidence-gated scope. Added an overridable `donors_root` positional argument (defaults to the real path) for testability.",
+    "runtime_change": "runtime/src/lib.rs -- new `#[cfg(unix)] mod donor_quarantine_script_symlink_detection` test module (3 tests) invoking the real script as a subprocess against isolated scratch fixtures."
+  },
+  "adversarial_and_falsification_coverage": [
+    "confirmed the original defect empirically against the real `find` binary using an already-present, unrelated donor symlink before writing any fix, not merely reasoning about `find`'s documented behavior abstractly",
+    "confirmed the fix's own two symlink-detection tests genuinely fail without it, while the clean-tree regression guard test continues to pass during that same revert -- ruling out a fix that merely makes the script always report a violation",
+    "explicitly considered and rejected the more sweeping `-L` fix on real, articulated security grounds (traversal boundary escape) rather than defaulting to the textually simplest option",
+    "verified zero regression against this repository's own real, currently-clean donor corpus both before and after the fix"
+  ],
+  "validation_this_generation": {
+    "commands": {
+      "cargo build --workspace": { "exit_code": 0 },
+      "cargo fmt --all --check": { "exit_code": 0 },
+      "cargo clippy --workspace --all-targets -- -D warnings": { "exit_code": 0, "warnings": 0 },
+      "cargo test --workspace": { "exit_code": 0, "totals": "289 adapter, 3 apps/cli, 165 core, 76 runtime (+3 net) -- 533 total, 0 failed" },
+      ".atlas/scripts/verify-donor-quarantine.sh (real repo, before and after)": { "result": "clean, exit 0, unchanged" },
+      ".atlas/scripts/verify-donor-quarantine.sh (isolated /tmp fixture with a real .claude symlink)": { "result": "FAILED, exit 1, correctly flagged" },
+      "cargo run -q -p atlas-cli -- docs audit --root .atlas": { "exit_code": 0, "gate_ready": true }
+    }
+  },
+  "recensus_scope_after_promotion": [
+    "no prior CLOSED/EXTINCT conclusion is affected",
+    "the intermediate-directory-symlink sub-case for the nested `.github/instructions/*.instructions.md` check remains an explicit, documented, evidence-gated TARGET -- no donor in this corpus currently uses that shape",
+    "this script is still not wired into automated CI -- that remains a separate, not-yet-addressed gap (the contract's own text already frames it as a manual pre-merge check); this generation fixes the tool's own correctness, not its automation status",
+    "the general lesson (a shell-level security/verification tool living outside the Rust workspace's own test harness can still drift silently -- the same 'declared but not fully enforced' shape as several Rust-level findings this session) is worth checking for any other `.atlas/scripts/*.sh` file added in the future"
+  ],
+  "overall_verdict": "MATERIALIZED AND VERIFIED. `verify-donor-quarantine.sh`'s symlink blindness -- a real gap between its own contract's claim ('any live match') and its actual `find -type d`/`-type f` implementation -- is fixed for the two flat-name checks and the nested check's own leaf file, without introducing a traversal-boundary-escape risk. Confirmed the original defect and the fix's own falsification empirically, added permanent Rust-level regression coverage for a previously-untested standalone security tool, and confirmed zero regression against this repository's own real donor corpus. Full workspace suite (533 tests) passing, gate_ready true.",
+  "historical_evidence_retained": true
+}

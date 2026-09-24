@@ -1020,6 +1020,101 @@ mod tests {
         }
     }
 
+    /// `.atlas/scripts/verify-donor-quarantine.sh` enforces `.atlas/contracts/
+    /// DONOR-WORKBENCH-ISOLATION.md`'s invariant (no live agent-tooling-shaped path under donors).
+    /// A delegated contract-vs-code cross-check found it used `find -type d`/`-type f`, which
+    /// classify a symlink by its OWN type, never by what it resolves to -- so a `.claude`/
+    /// `CLAUDE.md`-named SYMLINK to a real directory/file was invisible to every check, even though
+    /// it is exactly as live and discoverable as a literal one. This module runs the real script
+    /// (accepting an overridable donors-root argument added specifically for this test) against a
+    /// scratch fixture, never against this repository's own real donor corpus, so it is a genuine
+    /// permanent regression test rather than a one-off manual verification.
+    #[cfg(unix)]
+    mod donor_quarantine_script_symlink_detection {
+        use std::{fs, os::unix::fs::symlink, path::PathBuf, process::Command};
+
+        fn workspace_root() -> PathBuf {
+            std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+                .join("..")
+                .canonicalize()
+                .expect("workspace root must exist")
+        }
+
+        fn scratch_dir(name: &str) -> PathBuf {
+            std::env::temp_dir().join(format!(
+                "atlas-donor-quarantine-test-{name}-{}",
+                std::process::id()
+            ))
+        }
+
+        fn run_quarantine_script(donors_root: &std::path::Path) -> std::process::Output {
+            Command::new(workspace_root().join(".atlas/scripts/verify-donor-quarantine.sh"))
+                .arg(donors_root)
+                .output()
+                .expect("verify-donor-quarantine.sh must be runnable")
+        }
+
+        #[test]
+        fn a_symlinked_dot_claude_directory_is_detected_not_silently_missed() {
+            let dir = scratch_dir("symlinked-dir");
+            let _ = fs::remove_dir_all(&dir);
+            fs::create_dir_all(dir.join("some-donor/real-target")).unwrap();
+            symlink(
+                dir.join("some-donor/real-target"),
+                dir.join("some-donor/.claude"),
+            )
+            .unwrap();
+
+            let output = run_quarantine_script(&dir);
+            assert!(
+                !output.status.success(),
+                "a .claude directory that is a symlink to a real directory must be flagged, not \
+                 silently treated as clean"
+            );
+
+            fs::remove_dir_all(&dir).unwrap();
+        }
+
+        #[test]
+        fn a_symlinked_claude_md_file_is_detected_not_silently_missed() {
+            let dir = scratch_dir("symlinked-file");
+            let _ = fs::remove_dir_all(&dir);
+            fs::create_dir_all(dir.join("some-donor")).unwrap();
+            fs::write(dir.join("some-donor/real-instructions.md"), "content\n").unwrap();
+            symlink(
+                dir.join("some-donor/real-instructions.md"),
+                dir.join("some-donor/CLAUDE.md"),
+            )
+            .unwrap();
+
+            let output = run_quarantine_script(&dir);
+            assert!(
+                !output.status.success(),
+                "a CLAUDE.md that is a symlink to a real file must be flagged, not silently \
+                 treated as clean"
+            );
+
+            fs::remove_dir_all(&dir).unwrap();
+        }
+
+        #[test]
+        fn a_donor_tree_with_no_quarantine_violations_still_scans_clean() {
+            let dir = scratch_dir("clean");
+            let _ = fs::remove_dir_all(&dir);
+            fs::create_dir_all(dir.join("some-donor/src")).unwrap();
+            fs::write(dir.join("some-donor/src/lib.rs"), "fn main() {}\n").unwrap();
+
+            let output = run_quarantine_script(&dir);
+            assert!(
+                output.status.success(),
+                "an ordinary donor tree with no agent-tooling-shaped paths must scan clean: {:?}",
+                String::from_utf8_lossy(&output.stdout)
+            );
+
+            fs::remove_dir_all(&dir).unwrap();
+        }
+    }
+
     fn constraint_result(name: &str, passed: bool) -> ConstraintResult {
         ConstraintResult {
             name: name.into(),
