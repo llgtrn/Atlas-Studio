@@ -13,14 +13,14 @@
 #       -> generation evidence -> G_n+1
 
 schema = "atlas.self-build.generation-ledger.v1"
-current_generation = "G35"
+current_generation = "G36"
 
 [[generation]]
 id = "G35"
 base_commit = "a53c52e76ccd00495812d9765853d30e80943c59"
 objective = "prove the donor absorption/extinction loop generalizes beyond souffle: resolve every open W3 (R5) donor blocking question with a parallel wave and absorb one mechanism if evidence supports it"
 writer = "coordinator (sole production writer); all lanes read-only"
-result_commits = ["2f6b2525d21e48a26b4d238075baeecdf4554603"]
+result_commits = ["2f6b2525d21e48a26b4d238075baeecdf4554603", "511105266d94607e795bacbc7ebb763b722480f5"]
 evidence = ".atlas/evidence/verification/r5-semi-naive-dependency-closure-absorption.json"
 
 [[generation.lane]]
@@ -102,12 +102,12 @@ summary = "10 provenance records carry pre-move clone_path values (zed ide/zed; 
 
 [[generation.deferred]]
 id = "cargo-lock-source-suffix"
-class = "DEFERRED_GENERATION_CANDIDATE"
+class = "RESOLVED_G36"
 summary = "Cargo.lock 'name version (source)' disambiguation is not parsed; an edge to a registry crate sharing name+version with an in-tree package resolves to the in-tree one (real: rust-analyzer la-arena/line-index/smol_str/text-size, rust rustc_tools_util). Exposed by G35 reachability recensus."
 
 [[generation.deferred]]
 id = "wasm-tools-unrecognized-members"
-class = "DEFERRED_GENERATION_CANDIDATE"
+class = "RESOLVED_G36"
 summary = "39 wasm-tools lockfile packages unreached, including source-less path packages (component, dl) never recognized as workspace members"
 
 [[generation.deferred]]
@@ -127,3 +127,65 @@ summary = "RUST_SEMANTIC_EXTRACTOR_VERSION unchanged at 0.1.0 across 61 commits;
 
 [generation.next]
 objective = "G36: open with the source-suffix defect G35's recensus exposed (it corrupts the very edges reachability runs over), then attack salsa's narrowed blocker with content-addressed inventory change detection"
+
+[[generation]]
+id = "G36"
+base_commit = "511105266d94607e795bacbc7ebb763b722480f5"
+objective = "fix the defect G35's recensus exposed in the edges reachability runs over, then attack salsa's narrowed blocker: give every inventoried artifact a content identity"
+writer = "coordinator (sole production writer); all lanes read-only"
+result_commits = ["6f08313a3a560f70b5fe306d45ca10c87ab319f9", "ce5ed2d612d704adae93f8aaf4245fd8ea99fa0d"]
+evidence = ".atlas/evidence/verification/r5-native-blake3-content-digest-absorption.json"
+
+[[generation.lane]]
+id = "frontier-classification"
+objective = "classify every non-terminal donor with a concrete blocking question or terminal disposition; flag stale records"
+result = "52 donors classified; one CANDIDATE_ABSORB_NOW (rust-analyzer crates/vfs change stream, which presupposes a per-file content identity Atlas lacked); 13 stale-record flag classes (see deferred frontier-record-staleness)"
+
+[[generation.lane]]
+id = "adversarial-security"
+objective = "try to refute a native BLAKE3 port against the genome record's rejection"
+result = "JUSTIFIED_WITH_CONDITIONS: hash mode only with a self-scan guard; crate as dev-only differential oracle; single-handle fstat-verified bounded reads with a cap, None means changed; parsed-equals-digested before any cache reuse; validated digest mapping to wire id 1; supersession ADR keeping the original reasoning"
+
+[[generation.lane]]
+id = "unadmitted-checkouts"
+objective = "decide admit-or-delete for the 7 checkouts carrying no donor-corpus entry"
+result = "DELETE recommended for all 7 (fastcdc-rs only if a contract ever names CDC; xz is an orphan gitlink); not yet applied"
+
+[generation.join]
+absorb_now_exists = true
+maps_to_contract_gap = "R5 incremental recensus of changed source; ATLAS-BINARY-WIRE-FORMAT digest id 1 (explicitly permits Atlas-native implementations)"
+survived_falsification = "yes -- every security-lane condition implemented or recorded as the first cache consumer's prerequisite"
+blocking_architecture_issue = false
+selected_absorption = "blake3: unkeyed-hash-mode -> core::identity::blake3 + IntegrityDigest + ArtifactRecord.content_digest"
+decision_record = ".atlas/decisions/0005-native-blake3-content-digest.md"
+discovery_record = ".atlas/census/discoveries/r5-content-digest-change-identity.md"
+
+[generation.verification]
+falsification = "24 mutants killed (13 hash core, 11 wiring/parser; one survivor exposed a weak fixture, strengthened, then killed)"
+tests = "642 workspace tests green (+20 incl. G36 unit 1); fmt; clippy -D warnings; docs audit gate_ready"
+production_path = "atlas-cli systemize --root . emits inventory v2 with 69/69 files digested, zero admission blockers, wall time unchanged"
+recensus = "G36 unit 1 (6f08313a3a): Cargo.lock '(source)' suffixes and literal-string members resolved; all 15 real donor workspaces reach every lockfile package (0 unreached)"
+
+[generation.extinction]
+donor = "blake3"
+eligible = true
+reason = "never a build/runtime/test dependency; all official vectors pinned in-tree before deletion; oracle comes from crates.io; remaining surface EXTERNAL_BOUNDARY/REFERENCE_ONLY with genome retained"
+performed = true
+deleted = "blake3 checkout under .atlas/temporary/donors (104 tracked files, 2.1M; git rm -r); path now absent"
+post_delete_verification = "642 workspace tests, fmt, clippy, docs audit, verify-donor-quarantine.sh, systemize digests byte-identical to a same-tree baseline with the checkout restored"
+guards_added = "none new; the G35 EXTINCT/CLONED guard falsified again in both directions on blake3"
+evidence = ".atlas/evidence/verification/blake3-donor-checkout-extinction.json"
+
+[[generation.deferred]]
+id = "frontier-record-staleness"
+class = "DEFERRED_GENERATION_CANDIDATE"
+summary = "frontier lane flags: TARGET_MAPPED donors (glean, joern, kythe, scip, rust-analyzer) lacking blocking_question; genome-vs-corpus status drift (flatbuffers, rkyv, capnproto, agentir, mlir, xdsl); license files only inside checkouts for mlir, xdsl, egglog, wasm-component-model, wasm-spec; census docs citing pre-move .atlas/temporary/<id> paths; DONOR-ABSORPTION-PLAN R5 still PLANNED; 13 donors without a wave; apps/ui targets that do not exist"
+
+[[generation.deferred]]
+id = "parsed-bytes-equal-digested-bytes"
+class = "ABSORB_LATER_PREREQUISITE"
+summary = "the semantic extractor re-reads files after inventory digests them; before any cache reuses a derivation keyed on content_digest, the parsed bytes must be the digested bytes and the key must include extractor identity/version (see extractor-version-stale)"
+
+[generation.next]
+objective = "G37: build inventory change detection on content_digest (diff two InventoryReports into Created/Modified/Deleted, None counts as changed; rust-analyzer vfs state transitions are the candidate mechanism), then apply the unadmitted-checkout deletions and the frontier record fixes"
+

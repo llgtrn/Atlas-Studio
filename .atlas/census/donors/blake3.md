@@ -6,6 +6,11 @@ canonical: true
 ---
 # Donor Census: BLAKE3
 
+> **Status (2026-09-24, G36):** unkeyed hash mode `ABSORBED` as `core::identity::blake3`
+> (ADR 0005, `.atlas/decisions/0005-native-blake3-content-digest.md`); donor checkout physically
+> `EXTINCT` (`.atlas/evidence/verification/blake3-donor-checkout-extinction.json`). Source paths cited
+> below are historical: they name files in the pinned commit, no longer present in this repository.
+
 ## Source
 
 - Remote: https://github.com/BLAKE3-team/BLAKE3.git

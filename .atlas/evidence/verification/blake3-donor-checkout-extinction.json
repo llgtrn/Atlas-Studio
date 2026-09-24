@@ -1,0 +1,37 @@
+{
+  "schema": "atlas.self-build.generation-evidence.v1",
+  "generation": "G36",
+  "wave": "EXTINCTION -- physical deletion of the blake3 donor checkout after its unkeyed hash mode was absorbed natively (ce5ed2d612d704adae93f8aaf4245fd8ea99fa0d, ADR 0005). Third real extinction (souffle 565ddd1a96, datafrog 511105266d).",
+  "eligibility": {
+    "runtime_dependency": "none -- the donor source tree was never referenced by any Cargo.toml, Cargo.lock or build.rs; the crates.io blake3 crate is a pinned dev-dependency of core used only as a differential oracle and is not the donor checkout",
+    "build_dependency": "none",
+    "test_dependency": "none -- all 35 official test vectors (hash and 131-byte XOF) were pinned in-tree (core/src/identity/blake3_vectors.in, blake3_xof_vectors.in) in the absorption commit, before deletion; no test, script or evidence array reads the checkout (grep); blake3 has no Cargo.lock, so it is not a DC1 real-donor census corpus",
+    "transitive_or_shared": "none -- no other donor or mechanism consumes the checkout",
+    "remaining_unabsorbed_mechanisms": "keyed_hash/derive_key -- EXTERNAL_BOUNDARY; SIMD backends, platform.rs, rayon, hazmat, C implementation, b3sum -- REFERENCE_ONLY; knowledge retained in the genome and census records",
+    "retained_records": ".atlas/provenance/donors/blake3.json, .atlas/licenses/donors/blake3/{LICENSE_A2,LICENSE_A2LLVM,LICENSE_CC0}, .atlas/census/donors/blake3.md, .atlas/genome/technology/blake3-content-addressing.md, .atlas/census/discoveries/r5-content-digest-change-identity.md, .atlas/decisions/0005-native-blake3-content-digest.md",
+    "historical_ingestion_records_left_as_is": "provenance clone_path (.atlas/temporary/blake3, a pre-move path; deferred item stale-provenance-clone-paths) and donor-workbench-inventory.json are ingestion snapshots consumed by no code, matching the souffle and datafrog precedent"
+  },
+  "deletion": {
+    "command": "git rm -r .atlas/temporary/donors/blake3",
+    "tracked_files_removed": 104,
+    "size": "2.1M",
+    "untracked_remnants": 0,
+    "ignored_remnants": 0,
+    "path_absent_after": true
+  },
+  "post_delete_verification": {
+    "cargo test --workspace": "642 passed, 0 failed (core 213, adapter 337, runtime 87, cli 5)",
+    "cargo fmt --all --check": "clean",
+    "cargo clippy --workspace --all-targets -- -D warnings": "0 findings",
+    "docs audit --root .atlas": "gate_ready true",
+    "verify-donor-quarantine.sh": "exit 0",
+    "atlas-cli systemize --root . (absorbed capability re-run with donor absent)": "69 inventoried artifacts, every content_digest and content_digest_withheld byte-identical to a baseline taken at the same tree with the checkout restored; dependency fixed point {iterations 5, converged true, delta_remaining 0} identical; coding_admission.blockers [] both runs",
+    "incidental_observation": "a first comparison against an older snapshot differed in exactly the four core/src/identity files edited between the two runs -- the new digest detected precisely the changed files and nothing else; the comparison was then re-baselined at the same tree"
+  },
+  "guard_falsification": {
+    "EXTINCT_with_checkout_restored": "git checkout HEAD -- .atlas/temporary/donors/blake3: every_extinct_donor_checkout_is_absent_and_every_cloned_one_present FAILED naming blake3; deleted again: passes",
+    "CLONED_with_checkout_absent": "ingestion_status temporarily set back to CLONED: same test FAILED ('donor `blake3` claims CLONED but none of [...] exists'); restored: passes"
+  },
+  "overall_verdict": "EXTINCT. Physical deletion performed, verified by full gates and by re-running the absorbed capability through the real CLI with identical output, and machine-checked by the permanent guards in both directions.",
+  "historical_evidence_retained": true
+}
