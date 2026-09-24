@@ -584,17 +584,79 @@ fn add_typed_semantic_nodes(
                 }
             }
             SemanticObservation::FunctionSignature(header) => {
+                let signature_node_id = stable_id(
+                    "node",
+                    &format!("function-signature:{}", header.record_id.as_str()),
+                );
+                let mut attributes = BTreeMap::from([
+                    ("origin".into(), "semantic-extraction".into()),
+                    ("visibility".into(), header.subject.visibility.clone()),
+                    ("is_async".into(), header.subject.is_async.to_string()),
+                    ("is_unsafe".into(), header.subject.is_unsafe.to_string()),
+                    ("is_extern".into(), header.subject.is_extern.to_string()),
+                ]);
+                if let Some(abi) = &header.subject.abi {
+                    attributes.insert("abi".into(), abi.clone());
+                }
                 ensure_node(
                     graph,
-                    stable_id(
-                        "node",
-                        &format!("function-signature:{}", header.record_id.as_str()),
-                    ),
+                    signature_node_id.clone(),
                     "FunctionSignature".into(),
                     header.subject.summary(),
-                    BTreeMap::from([("origin".into(), "semantic-extraction".into())]),
+                    attributes,
                     &header.provenance,
                 );
+                // Each parameter's and the return type's `TypeIdentity` is produced by the SAME
+                // `emit_type_identity` call TYPE's own observations use (see the analogous
+                // `owner.target` convergence above), so recomputing their record ids here reaches
+                // those already-existing Type nodes rather than inventing new ones.
+                for (position, parameter) in header.subject.parameters.iter().enumerate() {
+                    let type_record_id = SemanticRecordId::new(
+                        SemanticDimension::Type,
+                        &parameter.type_identity.identity_key(),
+                    );
+                    let type_node_id =
+                        stable_id("node", &format!("type:{}", type_record_id.as_str()));
+                    graph.edges.push(Edge {
+                        id: stable_id(
+                            "edge",
+                            &format!(
+                                "{signature_node_id}:HAS_PARAMETER_TYPE:{position}:{type_node_id}"
+                            ),
+                        ),
+                        kind: "HAS_PARAMETER_TYPE".into(),
+                        from: signature_node_id.clone(),
+                        to: type_node_id,
+                        attributes: BTreeMap::from([
+                            ("origin".into(), "semantic-extraction".into()),
+                            ("position".into(), position.to_string()),
+                            ("name".into(), parameter.name.clone()),
+                        ]),
+                        provenance: header.provenance.clone(),
+                        revision: header.provenance.source_revision.clone(),
+                    });
+                }
+                if let Some(return_type) = &header.subject.return_type {
+                    let type_record_id =
+                        SemanticRecordId::new(SemanticDimension::Type, &return_type.identity_key());
+                    let type_node_id =
+                        stable_id("node", &format!("type:{}", type_record_id.as_str()));
+                    graph.edges.push(Edge {
+                        id: stable_id(
+                            "edge",
+                            &format!("{signature_node_id}:HAS_RETURN_TYPE:{type_node_id}"),
+                        ),
+                        kind: "HAS_RETURN_TYPE".into(),
+                        from: signature_node_id,
+                        to: type_node_id,
+                        attributes: BTreeMap::from([(
+                            "origin".into(),
+                            "semantic-extraction".into(),
+                        )]),
+                        provenance: header.provenance.clone(),
+                        revision: header.provenance.source_revision.clone(),
+                    });
+                }
             }
             // R4.5: one lightweight CallSite node per Call observation, plus a MAKES_CALL edge
             // from the caller's FunctionIdentity node. Never an edge to a callee: every
@@ -2463,6 +2525,199 @@ mod tests {
         assert!(
             graph.edges.iter().all(|edge| edge.kind != "IMPLEMENTED_ON"),
             "a free function has no owner type and must never produce an IMPLEMENTED_ON edge"
+        );
+    }
+
+    /// A `FunctionSignature` observation for a function taking one parameter of type `param_type`
+    /// and returning `return_type` (or no return type at all, when `None`), letting a test exercise
+    /// both the HAS_PARAMETER_TYPE and HAS_RETURN_TYPE edges independently.
+    fn function_signature_observation(
+        param_type: &str,
+        return_type: Option<&str>,
+    ) -> crate::semantic::SemanticObservation {
+        use crate::identity::RepositoryId;
+        use crate::provenance::provenance;
+        use crate::semantic::{
+            ExtractorIdentity, FunctionDeclarationKind, FunctionIdentity, FunctionOwner,
+            FunctionParameter, FunctionSignature, SemanticDimension, SemanticRecordHeader,
+            SemanticRecordId, SemanticScope, SymbolIdentity, SymbolRole, TypeIdentity,
+        };
+        use crate::temporal::RevisionRef;
+
+        let repository = RepositoryId::new("atlas-studio");
+        let revision = RevisionRef {
+            kind: "git".into(),
+            value: "abc123".into(),
+        };
+        let scope = SemanticScope::new(Vec::<String>::new());
+        let type_identity = |name: &str| TypeIdentity {
+            repository: repository.clone(),
+            revision: revision.clone(),
+            scope: scope.clone(),
+            name: name.to_owned(),
+            canonical: None,
+        };
+        let function = FunctionIdentity {
+            repository: repository.clone(),
+            revision: revision.clone(),
+            language: "rust".into(),
+            scope: scope.clone(),
+            symbol: SymbolIdentity {
+                repository: repository.clone(),
+                revision: revision.clone(),
+                scope: scope.clone(),
+                name: "helper".into(),
+                role: SymbolRole::Definition,
+            },
+            span: crate::language::adl::SourceSpan {
+                path: "src/lib.rs".into(),
+                line: 1,
+                column: 1,
+            },
+            generated: false,
+            declaration_kind: FunctionDeclarationKind::FreeFunction,
+            owner: FunctionOwner::none(),
+            generics: Vec::new(),
+        };
+        let subject = FunctionSignature {
+            function,
+            parameters: vec![FunctionParameter {
+                name: "x".into(),
+                type_identity: type_identity(param_type),
+            }],
+            return_type: return_type.map(type_identity),
+            generics: Vec::new(),
+            abi: Some("C".into()),
+            visibility: "pub".into(),
+            is_async: true,
+            is_unsafe: false,
+            is_extern: true,
+        };
+        let record_id = SemanticRecordId::new(
+            SemanticDimension::FunctionSignature,
+            &format!("{param_type}:{return_type:?}"),
+        );
+        crate::semantic::SemanticObservation::FunctionSignature(Box::new(SemanticRecordHeader {
+            record_id,
+            dimension: SemanticDimension::FunctionSignature,
+            status: EpistemicStatus::Observed,
+            subject,
+            scope,
+            repository,
+            revision,
+            extractor: ExtractorIdentity {
+                id: "atlas.test".into(),
+                version: "0.1.0".into(),
+            },
+            evidence_refs: Vec::new(),
+            provenance: provenance("src/lib.rs", "atlas.test"),
+        }))
+    }
+
+    #[test]
+    fn a_function_signature_projects_its_scalar_attributes_and_parameter_return_type_edges() {
+        // Proves cross-dimension identity convergence for FUNCTION_SIGNATURE the same way it was
+        // already proven for CALL/PERSISTENCE/FunctionIdentity.owner: a signature's own parameter
+        // and return `TypeIdentity`s draw edges at the SAME nodes TYPE's own observations of those
+        // spellings would produce, never independently-invented targets.
+        let signature = function_signature_observation("Vec<T>", Some("Result<T, Error>"));
+        let normalization = normalization_with(vec![signature], Vec::new());
+        let graph = build_system_graph(&source(), &docs(), &normalization);
+
+        let signature_node = graph
+            .nodes
+            .iter()
+            .find(|node| node.kind == "FunctionSignature")
+            .expect("a FunctionSignature node must exist");
+        assert_eq!(
+            signature_node
+                .attributes
+                .get("visibility")
+                .map(String::as_str),
+            Some("pub")
+        );
+        assert_eq!(
+            signature_node
+                .attributes
+                .get("is_async")
+                .map(String::as_str),
+            Some("true")
+        );
+        assert_eq!(
+            signature_node
+                .attributes
+                .get("is_unsafe")
+                .map(String::as_str),
+            Some("false")
+        );
+        assert_eq!(
+            signature_node
+                .attributes
+                .get("is_extern")
+                .map(String::as_str),
+            Some("true")
+        );
+        assert_eq!(
+            signature_node.attributes.get("abi").map(String::as_str),
+            Some("C")
+        );
+
+        use crate::semantic::{SemanticDimension, SemanticRecordId, TypeIdentity};
+        let type_node_id_for = |name: &str| {
+            let repository = crate::identity::RepositoryId::new("atlas-studio");
+            let revision = crate::temporal::RevisionRef {
+                kind: "git".into(),
+                value: "abc123".into(),
+            };
+            let type_identity = TypeIdentity {
+                repository,
+                revision,
+                scope: crate::semantic::SemanticScope::new(Vec::<String>::new()),
+                name: name.to_owned(),
+                canonical: None,
+            };
+            let record_id =
+                SemanticRecordId::new(SemanticDimension::Type, &type_identity.identity_key());
+            stable_id("node", &format!("type:{}", record_id.as_str()))
+        };
+
+        let parameter_edge = graph
+            .edges
+            .iter()
+            .find(|edge| edge.kind == "HAS_PARAMETER_TYPE")
+            .expect("a HAS_PARAMETER_TYPE edge must exist for a real parameter");
+        assert_eq!(parameter_edge.to, type_node_id_for("Vec<T>"));
+        assert_eq!(
+            parameter_edge.attributes.get("name").map(String::as_str),
+            Some("x")
+        );
+        assert_eq!(
+            parameter_edge
+                .attributes
+                .get("position")
+                .map(String::as_str),
+            Some("0")
+        );
+
+        let return_edge = graph
+            .edges
+            .iter()
+            .find(|edge| edge.kind == "HAS_RETURN_TYPE")
+            .expect("a HAS_RETURN_TYPE edge must exist for a resolved return type");
+        assert_eq!(return_edge.to, type_node_id_for("Result<T, Error>"));
+    }
+
+    #[test]
+    fn a_function_signature_with_no_return_type_never_produces_a_has_return_type_edge() {
+        let signature = function_signature_observation("u8", None);
+        let normalization = normalization_with(vec![signature], Vec::new());
+        let graph = build_system_graph(&source(), &docs(), &normalization);
+        assert!(
+            graph
+                .edges
+                .iter()
+                .all(|edge| edge.kind != "HAS_RETURN_TYPE"),
+            "a signature with no declared return type must never produce a HAS_RETURN_TYPE edge"
         );
     }
 
