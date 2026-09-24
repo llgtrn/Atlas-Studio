@@ -167,7 +167,7 @@ fn record_unreadable_artifact(
 /// depth this walker could ever legitimately need for a real repository (this repository's own
 /// deepest real directory nesting is nowhere close) while leaving a wide safety margin under the
 /// empirically-confirmed crash depth.
-const MAX_DIRECTORY_NESTING_DEPTH: usize = 512;
+pub(crate) const MAX_DIRECTORY_NESTING_DEPTH: usize = 512;
 
 /// The classification outcome for one already-listed directory entry, kept separate from
 /// `visit_inventory`'s loop so every failure path -- `entry.file_type()`, `classify_file`,

@@ -25,13 +25,18 @@ pub fn read_adl_sources(root: impl AsRef<Path>) -> io::Result<Vec<AdlSource>> {
     let declared = root.join(".atlas").join("declared");
     let mut sources = Vec::new();
     if declared.is_dir() {
-        visit_adl_sources(&root, &declared, &mut sources)?;
+        visit_adl_sources(&root, &declared, &mut sources, 0)?;
     }
     sources.sort_by(|a, b| a.path.cmp(&b.path));
     Ok(sources)
 }
 
-fn visit_adl_sources(root: &Path, dir: &Path, out: &mut Vec<AdlSource>) -> io::Result<()> {
+fn visit_adl_sources(
+    root: &Path,
+    dir: &Path,
+    out: &mut Vec<AdlSource>,
+    depth: usize,
+) -> io::Result<()> {
     // Same discipline as `adapter::source::visit_inventory`'s own `read_dir` hardening: a
     // subdirectory this process cannot list (permission denial being the common real case) must
     // not abort reading every other `.adl` file in the declared tree. There is no per-entry
@@ -55,7 +60,16 @@ fn visit_adl_sources(root: &Path, dir: &Path, out: &mut Vec<AdlSource>) -> io::R
             continue;
         };
         if file_type.is_dir() {
-            visit_adl_sources(root, &path, out)?;
+            // Same empirically-justified guard as `adapter::source::visit_inventory`'s own
+            // `MAX_DIRECTORY_NESTING_DEPTH` (see its doc comment): unbounded recursion here is the
+            // identical stack-overflow-in-debug-profile risk, just on the `.atlas/declared` tree
+            // instead of a repository's own source tree. Best-effort skip past the limit (no
+            // per-directory accounting channel exists here, matching this function's own existing
+            // best-effort-skip discipline for every other directory failure mode).
+            if depth >= source::MAX_DIRECTORY_NESTING_DEPTH {
+                continue;
+            }
+            visit_adl_sources(root, &path, out, depth + 1)?;
             continue;
         }
         if path.extension().and_then(|value| value.to_str()) != Some("adl") {
@@ -343,6 +357,7 @@ pub fn audit_docs(root: impl AsRef<Path>) -> io::Result<DocsReport> {
         &mut canonical_frontmatter_total,
         &mut missing_frontmatter,
         &mut documents,
+        0,
     )?;
     let hard_violations_total = required_control_docs_missing.len() + missing_frontmatter.len();
     Ok(DocsReport {
@@ -460,6 +475,7 @@ fn visit_docs(
     canonical_frontmatter_total: &mut usize,
     missing_frontmatter: &mut Vec<String>,
     documents: &mut Vec<DocumentFact>,
+    depth: usize,
 ) -> io::Result<()> {
     // Same discipline as `visit_adl_sources`/`adapter::source::visit_inventory`: a subdirectory
     // this process cannot list must not abort auditing every other doc in the tree. Best-effort
@@ -483,6 +499,14 @@ fn visit_docs(
             if matches!(name.as_str(), "temporary" | "provenance" | "licenses") {
                 continue;
             }
+            // Same empirically-justified guard as `adapter::source::visit_inventory`'s own
+            // `MAX_DIRECTORY_NESTING_DEPTH` (see its doc comment) -- unbounded recursion here is
+            // the identical stack-overflow-in-debug-profile risk, just walking `.atlas/`'s own
+            // docs tree. Best-effort skip past the limit, matching this function's own existing
+            // best-effort-skip discipline for every other directory failure mode.
+            if depth >= source::MAX_DIRECTORY_NESTING_DEPTH {
+                continue;
+            }
             visit_docs(
                 root,
                 &path,
@@ -490,6 +514,7 @@ fn visit_docs(
                 canonical_frontmatter_total,
                 missing_frontmatter,
                 documents,
+                depth + 1,
             )?;
             continue;
         }
@@ -878,5 +903,65 @@ test_roots = ["core/tests", "runtime/tests", "adapter/tests", "apps/studio/src"]
                 "apps/studio/src".to_owned(),
             ]
         );
+    }
+
+    // `visit_docs` shares `visit_inventory`'s exact unbounded-mutual-recursion shape (see
+    // `adapter::source::tests::deeply_nested_directory_tree_does_not_abort_the_process` for the
+    // full empirical history of that sibling bug) -- independently falsified here too, not merely
+    // assumed fixed by association. Confirmed real, not theoretical: with this guard temporarily
+    // disabled, walking a real on-disk tree at the maximum depth this walker's own path-
+    // accumulating access pattern can even reach (`fs::read_dir` rejects a longer path outright
+    // once it exceeds Linux's `PATH_MAX`) reliably reproduced the same `SIGABRT`/stack-overflow
+    // crash `visit_inventory` had. This test's own fixture uses a shallower, cheaper-to-build 600
+    // levels (well past the 512 guard, so it still exercises the guard triggering) rather than
+    // that full ~2,000-level reproduction depth.
+    #[test]
+    fn deeply_nested_docs_tree_does_not_abort_the_process() {
+        let base = scratch_root();
+        let _ = fs::remove_dir_all(&base);
+        fs::create_dir_all(&base).unwrap();
+        let mut cursor = base.clone();
+        for _ in 0..600 {
+            cursor.push("d");
+            fs::create_dir(&cursor).unwrap();
+        }
+
+        let report = audit_docs(&base).expect("must not abort the process");
+        // `visit_docs` has no per-directory accounting channel (unlike `visit_inventory`'s
+        // `ArtifactRecord` ledger) -- the depth limit is a best-effort skip, so the only
+        // observable proof available is that the call returned at all rather than aborting the
+        // whole process. `report` is deliberately unused beyond that.
+        let _ = report;
+
+        let _ = fs::remove_dir_all(&base);
+    }
+
+    // Unlike `visit_docs`/`visit_inventory` above, `visit_adl_sources`'s crash was NOT
+    // reproducible: with this guard temporarily disabled, walking a real on-disk tree at the
+    // maximum depth reachable at all (~2,000 levels, the same `PATH_MAX` ceiling as above) did
+    // NOT overflow the stack -- this function's own per-frame stack usage is evidently small
+    // enough that the filesystem's own path-length limit bounds it safely first. The guard is
+    // still added here as deliberate, honest defense-in-depth (consistency with its two sibling
+    // walkers, and safety against a future change to this function's own stack usage or a
+    // filesystem/OS without the same `PATH_MAX` ceiling), not because a crash was proven -- see
+    // this generation's own evidence record for the full, honest distinction.
+    #[test]
+    fn deeply_nested_adl_declared_tree_does_not_abort_the_process() {
+        let base = scratch_root();
+        let _ = fs::remove_dir_all(&base);
+        let declared = base.join(".atlas").join("declared");
+        fs::create_dir_all(&declared).unwrap();
+        let mut cursor = declared.clone();
+        for _ in 0..600 {
+            cursor.push("d");
+            fs::create_dir(&cursor).unwrap();
+        }
+
+        let sources = read_adl_sources(&base).expect("must not abort the process");
+        // Same best-effort-skip discipline as `visit_docs` above -- no per-directory accounting
+        // channel exists here either, so the load-bearing proof is that this call returned.
+        let _ = sources;
+
+        let _ = fs::remove_dir_all(&base);
     }
 }
