@@ -28,7 +28,9 @@ pub use census::{
     diff_inventories,
 };
 pub use closure::{DeltaRelation, FixedPointRecord, semi_naive_fixed_point};
-pub use constraint::{CodingAdmission, declared_root_is_contained, validate_manifest};
+pub use constraint::{
+    CodingAdmission, ConstraintVerdict, declared_root_is_contained, validate_manifest,
+};
 pub use evidence::Evidence;
 pub use graph::{
     Binding, Edge, EngineeringGraph, Fact, Node, add_constraint_derivations,

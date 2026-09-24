@@ -1,4 +1,5 @@
 use crate::{
+    constraint::ConstraintVerdict,
     identity::{escape_identity_field, stable_id},
     schema::{FileFact, SourceReport},
 };
@@ -216,7 +217,11 @@ pub struct ConstraintCheckDerivation {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct ConstraintResult {
     pub name: String,
+    /// `verdict.admits()`: kept for existing consumers; `verdict` carries the distinction between
+    /// a definite violation and a constraint that could not be evaluated.
     pub passed: bool,
+    #[serde(default)]
+    pub verdict: ConstraintVerdict,
     pub diagnostics: Vec<AdlDiagnostic>,
     pub derivation: Vec<ConstraintCheckDerivation>,
 }
@@ -963,6 +968,7 @@ pub fn compile_adl(sources: &[AdlSource], observed: &SourceReport) -> AdlCompile
         constraint_results.push(ConstraintResult {
             name: format!("ObservedMaterialization:{}", delta.subject),
             passed: false,
+            verdict: ConstraintVerdict::Violated,
             diagnostics: vec![adl_diag(code, &delta.message, ".atlas/declared", 1, 1)],
             derivation: vec![ConstraintCheckDerivation {
                 rule: ConstraintCheckKind::ObservedMaterializationDelta,
@@ -998,7 +1004,9 @@ fn evaluate_constraints(declared: &DeclaredGraph) -> Vec<ConstraintResult> {
         .chain(declared.invariants.iter())
         .map(|constraint| {
             let mut diagnostics = Vec::new();
+            let mut verdicts = Vec::new();
             if constraint.checks.is_empty() {
+                verdicts.push(ConstraintVerdict::Unknown);
                 // A required constraint/invariant that was never successfully
                 // parsed into an evaluable check must never report as
                 // trivially passed: `.atlas/contracts/ARCHITECTURAL-INTEGRITY.md`
@@ -1041,7 +1049,25 @@ fn evaluate_constraints(declared: &DeclaredGraph) -> Vec<ConstraintResult> {
                             // derivation must still name every fact consulted to reach that
                             // verdict, not only the ones that satisfied the rule.
                             supporting_node_names.push(node.name.clone());
-                            if node.attributes.get(require_attr) != Some(require_value) {
+                            let Some(declared_value) = node.attributes.get(require_attr) else {
+                                // Nothing declares this attribute for this node: neither a
+                                // counterexample nor a confirmation exists, so this node's
+                                // outcome is undecided -- never silently a violation or a pass.
+                                verdicts.push(ConstraintVerdict::Unknown);
+                                diagnostics.push(adl_diag(
+                                    "ATLAS-E055",
+                                    format!(
+                                        "constraint `{}` cannot be evaluated for {}: `{}` is not declared",
+                                        constraint.name, node.name, require_attr
+                                    ),
+                                    &node.span.path,
+                                    node.span.line,
+                                    node.span.column,
+                                ));
+                                continue;
+                            };
+                            if declared_value != require_value {
+                                verdicts.push(ConstraintVerdict::Violated);
                                 diagnostics.push(adl_diag(
                                     "ATLAS-E050",
                                     format!(
@@ -1066,6 +1092,7 @@ fn evaluate_constraints(declared: &DeclaredGraph) -> Vec<ConstraintResult> {
                             .iter()
                             .any(|materialization| &materialization.target == target)
                         {
+                            verdicts.push(ConstraintVerdict::Violated);
                             diagnostics.push(adl_diag(
                                 "ATLAS-E051",
                                 format!("`{target}` has no materialization"),
@@ -1082,9 +1109,11 @@ fn evaluate_constraints(declared: &DeclaredGraph) -> Vec<ConstraintResult> {
                     }
                 }
             }
+            let verdict = ConstraintVerdict::all(verdicts);
             ConstraintResult {
                 name: constraint.name.clone(),
-                passed: diagnostics.is_empty(),
+                passed: verdict.admits(),
+                verdict,
                 diagnostics,
                 derivation,
             }
@@ -1629,6 +1658,60 @@ constraint BackendIsRust {
         );
     }
 
+    fn verdict_of(entities: &str, name: &str) -> ConstraintResult {
+        let source = AdlSource {
+            path: ".atlas/declared/system.adl".into(),
+            text: format!(
+                "atlas 1\nsystem Example\n{entities}invariant BackendMustBeRust {{\n    forall x: Runtime\n        where x.kind == backend\n    require x.language == rust\n}}\n"
+            ),
+        };
+        let observed = SourceReport {
+            schema: "test".into(),
+            root: "/repo".into(),
+            files_total: 0,
+            languages: BTreeMap::new(),
+            files: Vec::new(),
+        };
+        compile_adl(&[source], &observed)
+            .constraint_results
+            .into_iter()
+            .find(|result| result.name == name)
+            .expect("constraint evaluated")
+    }
+
+    #[test]
+    fn an_undeclared_required_attribute_is_unknown_not_violated_and_never_passes() {
+        let result = verdict_of(
+            "entity Runtime Compiler {\n    kind = backend\n}\n",
+            "BackendMustBeRust",
+        );
+        assert_eq!(result.verdict, ConstraintVerdict::Unknown);
+        assert!(!result.passed);
+        assert!(result.diagnostics.iter().any(|d| d.code == "ATLAS-E055"));
+        assert!(!result.diagnostics.iter().any(|d| d.code == "ATLAS-E050"));
+    }
+
+    #[test]
+    fn one_counterexample_decides_violated_even_beside_an_undecidable_node() {
+        let result = verdict_of(
+            "entity Runtime A {\n    kind = backend\n}\nentity Runtime B {\n    kind = backend\n    language = python\n}\n",
+            "BackendMustBeRust",
+        );
+        assert_eq!(result.verdict, ConstraintVerdict::Violated);
+        assert!(result.diagnostics.iter().any(|d| d.code == "ATLAS-E055"));
+        assert!(result.diagnostics.iter().any(|d| d.code == "ATLAS-E050"));
+    }
+
+    #[test]
+    fn every_relevant_node_declaring_the_required_value_is_satisfied() {
+        let result = verdict_of(
+            "entity Runtime A {\n    kind = backend\n    language = rust\n}\nentity Runtime Ui {\n    kind = frontend\n}\n",
+            "BackendMustBeRust",
+        );
+        assert_eq!(result.verdict, ConstraintVerdict::Satisfied);
+        assert!(result.passed);
+    }
+
     #[test]
     fn invariants_are_evaluated_just_like_constraints_not_silently_skipped() {
         let source = AdlSource {
@@ -1768,6 +1851,9 @@ constraint CompilerIsMaterialized {
             !result.passed,
             "no `materialize` declaration exists for `Compiler` in this fixture"
         );
+        // The declared graph is closed-world for materializations: no declaration is a definite
+        // counterexample, not an undecidable claim.
+        assert_eq!(result.verdict, ConstraintVerdict::Violated);
         assert_eq!(result.derivation.len(), 1);
         assert_eq!(
             result.derivation[0].rule,

@@ -180,6 +180,12 @@ An ADL language-version change or Atlas semantic-schema change that alters meani
 
 - A constraint/invariant body that does not match a recognized check syntax (including an empty body) is diagnosed with `ATLAS-E052` at parse time. The declaration is still recorded (for provenance — Atlas observed that a constraint/invariant named X was declared), but it carries zero checks.
 - A declaration with zero checks NEVER reports `passed: true`. Per `ARCHITECTURAL-INTEGRITY.md`'s rule that an invariant Atlas cannot evaluate is UNKNOWN/INCOMPLETE, not PASS, `evaluate_constraints` emits a defense-in-depth `ATLAS-E053` diagnostic and reports `passed: false` for any declaration with no evaluable checks, regardless of how it reached that state.
+- Every result carries a three-valued `verdict` (ADR 0007, `.atlas/decisions/0007-three-valued-constraint-verdict.md`). The verdicts are:
+  - `SATISFIED`: every relevant fact was evaluated and no counterexample was found.
+  - `VIOLATED`: a definite counterexample exists — `ATLAS-E050` (declared value differs), `ATLAS-E051` (no materialization), or an observed-materialization delta.
+  - `UNKNOWN`: the result is undecidable — `ATLAS-E053` (no evaluable checks) or `ATLAS-E055` (the required attribute is not declared on a relevant node).
+
+  Conjunction is strong Kleene. `passed` is kept and equals `verdict == SATISFIED`. `coding_admission` raises `ADL_CONSTRAINT_VIOLATED` and `ADL_CONSTRAINT_UNKNOWN` separately. Both block, and `UNKNOWN` is never promoted to a pass.
 - `invariant` declarations are evaluated by the exact same pass as `constraint` declarations. They are not a documentation-only or declared-but-unchecked category.
 
 This closes a real gap: earlier revisions silently returned `passed: true` for unrecognized constraint syntax (an unchecked constraint reporting success), and separately never evaluated `invariant` blocks at all (parsed and recorded, but absent from `constraint_results` and therefore invisible to `atlas-cli check`'s readiness gate).

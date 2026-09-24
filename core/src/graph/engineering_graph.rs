@@ -1400,6 +1400,7 @@ pub fn add_constraint_derivations(graph: &mut EngineeringGraph, results: &[Const
             .collect();
         let mut attributes = BTreeMap::from([
             ("passed".into(), result.passed.to_string()),
+            ("verdict".into(), result.verdict.as_str().into()),
             ("checks_total".into(), result.derivation.len().to_string()),
         ]);
         if !materialization_targets.is_empty() {
@@ -3984,6 +3985,11 @@ mod tests {
         ConstraintResult {
             name: name.into(),
             passed,
+            verdict: if passed {
+                crate::ConstraintVerdict::Satisfied
+            } else {
+                crate::ConstraintVerdict::Violated
+            },
             diagnostics: Vec::new(),
             derivation,
         }

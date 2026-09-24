@@ -13,7 +13,7 @@
 #       -> generation evidence -> G_n+1
 
 schema = "atlas.self-build.generation-ledger.v1"
-current_generation = "G37"
+current_generation = "G38"
 
 [[generation]]
 id = "G35"
@@ -194,6 +194,7 @@ id = "G37"
 base_commit = "afabae80de6f1772b19fa09fafab5e816d42fca9"
 objective = "inventory change detection on content_digest (R5 'changed source'); apply unadmitted-checkout deletions; stale frontier records"
 writer = "coordinator (sole production writer); all lanes read-only"
+result_commits = ["d9a6f643fbc28649e5558dc6d41c73a34aca4bb2", "3cdfccbddcb75b07d09fbfd418421a0b7583038c"]
 evidence = ".atlas/evidence/verification/r5-inventory-change-detection-absorption.json"
 
 [[generation.lane]]
@@ -204,7 +205,7 @@ result = "taxonomy + decision rule ABSORB; merge table, FxHasher, FileId, loader
 [[generation.lane]]
 id = "frontier-record-fixes"
 objective = "prepare (not apply) a patch adding blocking_question/evidence/falsification/next_action to stale TARGET_MAPPED/STUDY_* donors, durable license copies, census path fixes"
-result = "running at commit time"
+result = "patch applied by the coordinator in 3cdfccbddc: 20 donors given concrete blockers, 5 donors durable licenses, 347 census paths corrected"
 
 [generation.join]
 absorb_now_exists = true
@@ -227,4 +228,32 @@ performed = false
 id = "unadmitted-checkout-deletion-needs-user-authorization"
 class = "BLOCKED_ON_USER"
 summary = "git rm of the 7 unadmitted checkouts (borg, cdc-file-transfer, fastcdc-rs, git, lz4, restic, xz) was denied by the session permission classifier as irreversible local destruction; not retried. They have no provenance/license/census records and no references; git history keeps them (import commits 91488c4bd1, 06aa530fd4, daba3565da). Needs explicit user authorization."
+
+[[generation]]
+id = "G38"
+base_commit = "3cdfccbddcb75b07d09fbfd418421a0b7583038c"
+objective = "user frontier directive (intent -> logic -> verified binary; donor superset): Phase A inventory of the requested frontier, architecture join, and the one foundational primitive with a real production consumer"
+writer = "coordinator (sole production writer); all lanes read-only"
+evidence = ".atlas/roadmap/FRONTIER.toml"
+
+[[generation.lane]]
+id = "frontier-inventory"
+objective = "requested donor frontier vs admitted corpus: status, HEAD sha, SPDX license, size, mechanism dirs"
+result = "8 ALREADY_ADMITTED, 3 OVERLAPPING, 43 MISSING (.atlas/roadmap/frontier/requested-frontier-2026-09-24.tsv); leverage ranking Z3 > Nix > in-toto attestation > QBE > BoTorch; robotics family has no link to a current primitive; MiroFish (AGPL-3.0) and BettaFish (GPL-2.0) exist but expose no foundational primitive"
+
+[[generation.lane]]
+id = "logic-to-binary-architecture"
+objective = "which foundational absorption has a real production consumer under the canonical contracts"
+result = "formal three-valued verdict: the only candidate with a consumer (coding_admission); compiler/logic-binary blocked by the validated-AtlasX input rule; epistemic futures states need an ADR 0002 amendment; no SAT consumer exists yet; x86-64 ELF has a full oracle in this container, RISC-V none"
+
+[generation.join]
+absorb_now_exists = false
+selected_action = "native foundational primitive (no donor absorption): core::constraint::ConstraintVerdict wired into ADL evaluation and admission (ADR 0007)"
+donor_admission = "deferred per lane until a consumer exists; staging default PARTIAL_SPARSE_SUBTREE (FRONTIER.toml admission_staging_default)"
+decision_record = ".atlas/decisions/0007-three-valued-constraint-verdict.md"
+
+[generation.verification]
+falsification = "8 mutants killed (Kleene order, admits, default, undeclared-attribute rule x2, zero-check rule, materialization rule, UNKNOWN blocker); one survivor exposed an unpinned materialization verdict, test added"
+tests = "workspace green; fmt; clippy -D warnings; docs audit gate_ready"
+production_path = "systemize --root . --previous: 4/4 declared constraints SATISFIED, admission unchanged; delta names exactly the 5 touched files"
 

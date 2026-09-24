@@ -5,8 +5,8 @@ pub mod inventory;
 pub mod normalize;
 
 use atlas_core::{
-    AdlCompileReport, AdlProgram, CLI_API, CodingAdmission, ConstraintResult, Contract,
-    DependencyClosureReport, DependencyClosureState, DependencyEcosystem, DocsReport,
+    AdlCompileReport, AdlProgram, CLI_API, CodingAdmission, ConstraintResult, ConstraintVerdict,
+    Contract, DependencyClosureReport, DependencyClosureState, DependencyEcosystem, DocsReport,
     EngineeringGraph, Evidence, InventoryReport, RepoAudit, RepoManifest, RepositoryId,
     RevisionRef, SystemizeReport, WorkPrepareReport, WorkRequest, add_constraint_derivations,
     add_dependency_closure, build_system_graph, compile_adl, diff_inventories, parse_adl_source,
@@ -116,7 +116,18 @@ fn build_coverage_from_dependency_closure(
 /// or materialization could fail while `coding_admission.allowed` stayed `true` -- is directly,
 /// cheaply falsifiable without running the full `systemize` pipeline.
 fn adl_constraint_violation_blocks(constraint_results: &[ConstraintResult]) -> bool {
-    constraint_results.iter().any(|result| !result.passed)
+    constraint_results
+        .iter()
+        .any(|result| result.verdict == ConstraintVerdict::Violated)
+}
+
+/// Whether any constraint/invariant could not be evaluated (ADR 0007). Blocks admission exactly
+/// like a violation -- `Unknown` is never promoted to a pass -- but under its own blocker, so a
+/// report distinguishes "a counterexample exists" from "Atlas cannot decide".
+fn adl_constraint_unknown_blocks(constraint_results: &[ConstraintResult]) -> bool {
+    constraint_results
+        .iter()
+        .any(|result| result.verdict == ConstraintVerdict::Unknown)
 }
 
 /// Every input `systemize`/`graph`/`code_analyze` need before they can build their own
@@ -257,6 +268,9 @@ pub fn systemize_since(
     }
     if adl_constraint_violation_blocks(&adl.constraint_results) {
         blockers.push("ADL_CONSTRAINT_VIOLATED".to_owned());
+    }
+    if adl_constraint_unknown_blocks(&adl.constraint_results) {
+        blockers.push("ADL_CONSTRAINT_UNKNOWN".to_owned());
     }
     if !inventory.is_closed() {
         blockers.push("INVENTORY_ACCOUNTING_NOT_CLOSED".to_owned());
@@ -1529,12 +1543,37 @@ mod tests {
     }
 
     fn constraint_result(name: &str, passed: bool) -> ConstraintResult {
+        verdict_result(
+            name,
+            if passed {
+                ConstraintVerdict::Satisfied
+            } else {
+                ConstraintVerdict::Violated
+            },
+        )
+    }
+
+    fn verdict_result(name: &str, verdict: ConstraintVerdict) -> ConstraintResult {
         ConstraintResult {
             name: name.into(),
-            passed,
+            passed: verdict.admits(),
+            verdict,
             diagnostics: Vec::new(),
             derivation: Vec::new(),
         }
+    }
+
+    #[test]
+    fn an_unknown_constraint_blocks_under_its_own_label_never_as_a_violation_or_a_pass() {
+        let results = [
+            verdict_result("A", ConstraintVerdict::Satisfied),
+            verdict_result("Undecidable", ConstraintVerdict::Unknown),
+        ];
+        assert!(adl_constraint_unknown_blocks(&results));
+        assert!(!adl_constraint_violation_blocks(&results));
+        let violated = [verdict_result("B", ConstraintVerdict::Violated)];
+        assert!(!adl_constraint_unknown_blocks(&violated));
+        assert!(adl_constraint_violation_blocks(&violated));
     }
 
     #[test]

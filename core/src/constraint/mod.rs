@@ -11,6 +11,55 @@ pub struct CodingAdmission {
     pub blockers: Vec<String>,
 }
 
+/// Three-valued outcome of evaluating one constraint or invariant (ADR 0007).
+///
+/// `.atlas/contracts/ARCHITECTURAL-INTEGRITY.md`: "If Atlas cannot evaluate a required hard
+/// invariant, the result is UNKNOWN/INCOMPLETE, not PASS." A boolean cannot carry that third
+/// state -- it previously folded "could not be evaluated" into "failed", so a report could not say
+/// whether a counterexample exists. `Unknown` never admits, and is never promoted to `Satisfied`.
+#[derive(
+    Debug, Clone, Copy, Default, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Hash,
+)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+pub enum ConstraintVerdict {
+    /// Evaluated over every relevant fact; no counterexample.
+    Satisfied,
+    /// At least one definite counterexample exists.
+    Violated,
+    /// Not decidable from the available facts, and no counterexample was found.
+    #[default]
+    Unknown,
+}
+
+impl ConstraintVerdict {
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::Satisfied => "SATISFIED",
+            Self::Violated => "VIOLATED",
+            Self::Unknown => "UNKNOWN",
+        }
+    }
+
+    /// Only a fully evaluated, counterexample-free result admits.
+    pub fn admits(self) -> bool {
+        self == Self::Satisfied
+    }
+
+    /// Strong Kleene conjunction: a definite counterexample decides the conjunction even when
+    /// another conjunct is undecidable; otherwise any undecidable conjunct leaves it undecided.
+    pub fn and(self, other: Self) -> Self {
+        match (self, other) {
+            (Self::Violated, _) | (_, Self::Violated) => Self::Violated,
+            (Self::Unknown, _) | (_, Self::Unknown) => Self::Unknown,
+            (Self::Satisfied, Self::Satisfied) => Self::Satisfied,
+        }
+    }
+
+    pub fn all(verdicts: impl IntoIterator<Item = Self>) -> Self {
+        verdicts.into_iter().fold(Self::Satisfied, Self::and)
+    }
+}
+
 pub fn validate_manifest(manifest: &RepoManifest) -> Vec<String> {
     let mut violations = Vec::new();
     let expected = [
@@ -180,5 +229,40 @@ mod tests {
     fn validate_manifest_accepts_ordinary_relative_roots() {
         let manifest = manifest_with_roots(vec!["core", "core/tests"]);
         assert!(validate_manifest(&manifest).is_empty());
+    }
+}
+
+#[cfg(test)]
+mod verdict_tests {
+    use super::ConstraintVerdict::{self, *};
+
+    const ALL: [ConstraintVerdict; 3] = [Satisfied, Violated, Unknown];
+
+    #[test]
+    fn conjunction_is_strong_kleene_over_the_full_truth_table() {
+        // Oracle: Kleene's K3 with Satisfied=1, Unknown=1/2, Violated=0 and AND = min.
+        let rank = |v: ConstraintVerdict| match v {
+            Violated => 0,
+            Unknown => 1,
+            Satisfied => 2,
+        };
+        for a in ALL {
+            for b in ALL {
+                assert_eq!(rank(a.and(b)), rank(a).min(rank(b)), "{a:?} and {b:?}");
+                assert_eq!(a.and(b), b.and(a));
+                for c in ALL {
+                    assert_eq!(a.and(b).and(c), a.and(b.and(c)));
+                }
+            }
+        }
+        assert_eq!(ConstraintVerdict::all([]), Satisfied, "empty conjunction");
+    }
+
+    #[test]
+    fn only_satisfied_admits_and_the_default_is_never_a_pass() {
+        assert!(Satisfied.admits());
+        assert!(!Violated.admits());
+        assert!(!Unknown.admits());
+        assert_eq!(ConstraintVerdict::default(), Unknown);
     }
 }

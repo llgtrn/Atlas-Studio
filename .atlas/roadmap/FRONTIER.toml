@@ -1,0 +1,206 @@
+# Machine-readable engineering frontier: one [[lane]] per long-horizon capability lane.
+#
+# State vocabulary (per lane): ABSENT (no native code), CONTRACT_ONLY (canonical contract, no code),
+# PARTIAL (some native code wired into production), NATIVE (capability owned and verified).
+# Names like "logic-to-binary" or "self-hosted" describe TARGET directions; a lane's `state` is
+# promoted only by executable evidence cited in `atlas_implementation`.
+#
+# The requested-donor inventory behind the `donors` fields (status, HEAD sha, SPDX license, size,
+# mechanism directories) is .atlas/roadmap/frontier/requested-frontier-2026-09-24.tsv. A donor listed
+# here is a frontier CANDIDATE; it enters .atlas/references/donor-corpus.toml only when admitted.
+
+schema = "atlas.engineering-frontier.v1"
+recorded_at = "2026-09-24"
+admission_staging_default = "PARTIAL_SPARSE_SUBTREE for repositories above ~20 MB (precedent: mlir); FULL_SOURCE_TREE only for small repositories -- donor source is git-tracked in this repository (pack ~1 GB), so full trees of multi-GB donors are not admitted into main"
+
+[[lane]]
+id = "incremental_computation"
+capability = "R5 incremental query and fixed point"
+state = "PARTIAL"
+atlas_implementation = "core::closure semi-naive fixed point (ADR 0004); core::identity::blake3 content identity (ADR 0005); core::census::delta inventory change detection + systemize --previous (ADR 0006)"
+donors = ["salsa", "differential-dataflow", "buck2"]
+blocking_question = "no derivation is cached yet: which per-file derivation is cached first, keyed on content_digest + extractor identity, and does it reproduce full recompute exactly?"
+evidence_required = "parsed bytes equal digested bytes; extractor version bumped on behaviour change; cache hit output byte-identical to recompute on this repository and on real donor workspaces"
+falsification = "mutate one file, run cached and uncached systemize, compare every report byte"
+dependency_status = "no donor runtime dependency"
+next_action = "cache semantic extraction per artifact behind systemize --previous"
+
+[[lane]]
+id = "formal_reasoning"
+capability = "constraint verdicts SAT/UNSAT/UNKNOWN; proofs; state-space exploration"
+state = "PARTIAL"
+atlas_implementation = "core::constraint::ConstraintVerdict three-valued verdict on every ADL constraint result, admission blocks VIOLATED and UNKNOWN separately (ADR 0007); no search-based solver"
+donors = ["Z3 (MISSING, MIT)", "cvc5 (MISSING, BSD-3-Clause)", "Lean 4 (MISSING, Apache-2.0)", "Rocq (MISSING, LGPL-2.1, principles only)", "TLA+ tools (MISSING, MIT)", "Apalache (MISSING, redundant once Z3+TLA+)", "egglog (admitted)", "souffle (EXTINCT)"]
+blocking_question = "no current consumer needs search: every ADL check is ground evaluation over finite declared facts. Which consumer arrives first -- ADL constraints with disjunction/implication, DecisionProposal.hard_constraint, or joint-satisfiability of declared constraints?"
+evidence_required = "a canonical contract clause or ADL feature-admission (ATLAS-DEVELOPMENT-LANGUAGE.md 9-point gate) that introduces a non-ground constraint"
+falsification = "exhaustive truth-table enumeration is an exact oracle for small instances; UNKNOWN on budget exhaustion must never become SATISFIED"
+dependency_status = "no solver dependency; none installed in the build container"
+next_action = "admit Z3 as PARTIAL_SPARSE_SUBTREE (src/sat, src/api/z3_api.h push/pop/check) for CDCL census when the first non-ground constraint consumer is admitted"
+
+[[lane]]
+id = "compiler_ir"
+capability = "Atlas-owned multi-level IR: validated AtlasX -> HIR -> MIR -> LIR -> Machine IR (COMPILER-IR-PIPELINE.md)"
+state = "CONTRACT_ONLY"
+atlas_implementation = "AtlasIr is an architecture DeclaredGraph only (core/src/language/adl); no HIR/MIR/LIR types; HIR/MIR schemas have no arithmetic ops (COMPILER-IR-SCHEMAS.md)"
+donors = ["mlir", "xdsl", "llvm-project", "wasmtime (Cranelift)", "QBE (MISSING, MIT, ~1.8 MB)", "egglog"]
+blocking_question = "compiler input must be a validated AtlasX root (COMPILER-IR-PIPELINE.md:18) and no AtlasX producer exists; ASIR has no Rust type (ASIR-CONSTRUCTION-MODEL.md:52)"
+evidence_required = "an AtlasX root produced and validated by Atlas, or a BLUEPRINT-EVOLUTION amendment admitting a bounded non-product profile"
+falsification = "an IR round-trip / verifier test over every node kind in the closed schema"
+dependency_status = "no compiler dependency in production"
+next_action = "ASIR/HIR Rust types for the closed node set, validated against COMPILER-IR-SCHEMAS.md"
+
+[[lane]]
+id = "logic_binary"
+capability = "L0..L8: Atlas logic lowered to a runnable binary without an external compiler for a bounded subset"
+state = "ABSENT"
+atlas_implementation = "none: no executable semantics for any Atlas construct (no evaluator/interpreter); ADL0 is declarations-only"
+donors = ["QBE (MISSING)", "wasmtime (Cranelift, admitted)", "object", "regalloc2", "mold", "wasm-spec", "wasm-tools"]
+blocking_question = "L1 needs a computational subset: ADL0 has no numeric literals or operators; adding one must pass the ADL feature-admission gate and COMPILER-IR-SCHEMAS needs a versioned arithmetic extension"
+evidence_required = "first target chosen from evidence: x86-64 ELF has a full oracle in this container (gcc, clang, as, ld, objdump, native execution); wasm has node v22; RISC-V has no execution oracle here"
+falsification = "differential execution against an Atlas reference interpreter and against gcc-compiled equivalents; objdump/readelf structural checks"
+dependency_status = "external toolchains may serve only as oracles (bootstrapping, recorded)"
+next_action = "after compiler_ir provides HIR types: a reference interpreter for the admitted pure subset (L1 oracle)"
+
+[[lane]]
+id = "construction"
+capability = "hermetic, content-addressed construction: declared inputs -> deterministic action -> artifact digest -> provenance"
+state = "PARTIAL"
+atlas_implementation = "content digests for every inventoried file (ADR 0005); inventory deltas (ADR 0006); no action graph or action identity"
+donors = ["buck2 (admitted)", "Nix (MISSING, LGPL-2.1, principles only)", "Bazel (OVERLAPPING buck2)", "Git (MISSING, GPL-2.0; an unadmitted checkout exists)"]
+blocking_question = "no Atlas construction action exists to identify: systemize is analysis, not construction"
+evidence_required = "a first Atlas-executed construction action (e.g. materializing a derived artifact) whose inputs are content-addressed"
+falsification = "same declared inputs -> byte-identical output digest across two runs and two directories"
+dependency_status = "cargo is the construction tool of record (bootstrapping)"
+next_action = "action identity = digest(action kind, input digests, tool identity) once the first construction action exists"
+
+[[lane]]
+id = "sandbox"
+capability = "bounded execution of provider-generated construction with explicit capabilities"
+state = "CONTRACT_ONLY"
+atlas_implementation = "none (AGENT-HOST-EMBEDDED-RUNTIME.md, EXTERNAL-PROVIDER-TRUST.md define the boundary)"
+donors = ["wasmtime/WASI (admitted)", "podman (admitted)", "Firecracker (MISSING, Apache-2.0)", "nsjail (MISSING, Apache-2.0, compact)"]
+blocking_question = "no Atlas code executes provider output yet"
+evidence_required = "the first provider-output execution path"
+falsification = "a capability not granted must fail closed"
+dependency_status = "EXTERNAL_BOUNDARY for kernel isolation primitives"
+next_action = "none until a provider-execution consumer exists"
+
+[[lane]]
+id = "provenance"
+capability = "artifact -> transformations -> inputs traceability, attestations"
+state = "PARTIAL"
+atlas_implementation = "Provenance on facts; constraint derivation lineage (ADR 0003); content digests (ADR 0005)"
+donors = ["in-toto/attestation (MISSING, Apache-2.0, 2.5 MB)", "in-toto-rs (MISSING, MIT)", "SLSA (MISSING, spec)", "containers-image (admitted; sigstore)"]
+blocking_question = "does a systemize report need a detached attestation binding it to its input digests, and who verifies it?"
+evidence_required = "a consumer that verifies a report against its inputs (e.g. work prepare trusting a prior systemize)"
+falsification = "altering one input byte must fail attestation verification"
+dependency_status = "none"
+next_action = "census in-toto Statement/ResourceDescriptor/DigestSet against IntegrityDigest"
+
+[[lane]]
+id = "observability"
+capability = "self-measurement of construction, generations, providers, tests"
+state = "ABSENT"
+atlas_implementation = "none beyond generation evidence JSON files"
+donors = ["OpenTelemetry spec (MISSING, Apache-2.0)", "opentelemetry-rust (MISSING, Apache-2.0)"]
+blocking_question = "which measured quantity drives a decision first (e.g. R5 edit-to-recensus cost for the differential-dataflow question)?"
+evidence_required = "a decision that consumes a measurement"
+falsification = "measurement reproducibility across identical runs"
+dependency_status = "none"
+next_action = "time and count systemize stages to answer differential-dataflow's workload question"
+
+[[lane]]
+id = "probabilistic_futures"
+capability = "hypotheses with priors/posteriors, uncertainty, experiment selection"
+state = "ABSENT"
+atlas_implementation = "EpistemicStatus has HYPOTHESIS/INFERRED (ADR 0002); no prior/posterior/uncertainty types; SIMULATED/PREDICTED/COUNTERFACTUAL would need an ADR 0002 amendment (HYPOTHESIZED/VERIFIED/FALSIFIED conflict with existing vocabulary)"
+donors = ["BoTorch (MISSING, MIT)", "Ax (MISSING, MIT)", "Stan (MISSING, BSD-3-Clause)", "Pyro (MISSING, Apache-2.0)", "NumPyro (duplicates Pyro)", "pymoo (MISSING, Apache-2.0)", "DEAP (duplicates pymoo, LGPL)", "pyribs (MISSING, MIT)"]
+blocking_question = "no Atlas decision is made under uncertainty with a measurable outcome yet; the R7 ResearchClaim requirement is PLANNED"
+evidence_required = "a decision consumer (DecisionProposal has only a schema) and an ADR 0002 amendment for SIMULATED/PREDICTED/COUNTERFACTUAL"
+falsification = "calibration: predicted probabilities vs observed outcome frequencies"
+dependency_status = "none"
+next_action = "ADR 0002 amendment proposal once a DecisionProposal caller exists"
+
+[[lane]]
+id = "causal_reasoning"
+capability = "structural causal models, interventions, identifiability"
+state = "ABSENT"
+atlas_implementation = "none"
+donors = ["DoWhy (MISSING, MIT)", "causal-learn (MISSING, MIT)"]
+blocking_question = "no Atlas decision distinguishes correlation from intervention yet"
+evidence_required = "a telemetry-backed decision (depends on observability)"
+falsification = "known-ground-truth synthetic SCMs"
+dependency_status = "none"
+next_action = "blocked on observability"
+
+[[lane]]
+id = "multi_agent_futures"
+capability = "scenario branching with preserved assumptions/evidence/uncertainty"
+state = "ABSENT"
+atlas_implementation = "none"
+donors = ["MiroFish (MISSING, AGPL-3.0, principles only)", "BettaFish (MISSING, GPL-2.0, principles only)"]
+blocking_question = "neither donor exposes a foundational primitive (G37 inventory lane); earlier mirofish code in Chronica was removed for lack of a requirement"
+evidence_required = "a scenario-branching requirement from a real workload (Chronica)"
+falsification = "branch replay determinism"
+dependency_status = "none"
+next_action = "REFERENCE_ONLY candidates until a workload requires scenario branching"
+
+[[lane]]
+id = "physical_engineering"
+capability = "units, geometry, mass, electrical, timing, safety in the engineering graph"
+state = "ABSENT"
+atlas_implementation = "none"
+donors = ["Drake (MISSING)", "Pinocchio (MISSING)", "MuJoCo (MISSING)"]
+blocking_question = "no physical-domain requirement exists in any admitted repository or contract"
+evidence_required = "a physical-domain workload"
+falsification = "dimensional analysis rejects unit-inconsistent expressions"
+dependency_status = "none"
+next_action = "not scheduled"
+
+[[lane]]
+id = "robotics"
+capability = "component lifecycle, control interfaces, motion planning"
+state = "ABSENT"
+atlas_implementation = "none"
+donors = ["ROS 2 rclcpp", "ros2_control", "MoveIt 2", "Gazebo gz-sim", "PX4", "ArduPilot (GPL-3.0, duplicates PX4)"]
+blocking_question = "no link to any current foundational primitive (G37 inventory lane); admission unjustified until a robotics workload exists"
+evidence_required = "a robotics workload"
+falsification = "simulation-only; no physical actuation as a census test"
+dependency_status = "none"
+next_action = "not scheduled"
+
+[[lane]]
+id = "simulation"
+capability = "digital twin, Monte Carlo, fault injection before physical execution"
+state = "ABSENT"
+atlas_implementation = "none"
+donors = ["MuJoCo", "Drake", "Gazebo gz-sim"]
+blocking_question = "depends on physical_engineering"
+evidence_required = "a physical_engineering model to simulate"
+falsification = "analytic closed-form cases"
+dependency_status = "none"
+next_action = "not scheduled"
+
+[[lane]]
+id = "embedded"
+capability = "RTOS, device model, MCU targets"
+state = "ABSENT"
+atlas_implementation = "none"
+donors = ["Zephyr (MISSING, Apache-2.0, 960 MB -> sparse only)"]
+blocking_question = "depends on logic_binary reaching a bare-metal target"
+evidence_required = "logic_binary L5+"
+falsification = "emulated target execution"
+dependency_status = "none"
+next_action = "not scheduled"
+
+[[lane]]
+id = "self_hosting"
+capability = "Atlas constructs a bounded part of itself"
+state = "PARTIAL"
+atlas_implementation = "stage 1 only: Atlas analyzes its own source (systemize --root . with inventory digests, dependency closure, change detection); no Atlas-constructed artifact"
+donors = []
+blocking_question = "depends on construction and logic_binary"
+evidence_required = "an Atlas-constructed artifact independently verified"
+falsification = "rebuild-from-inputs digest equality"
+dependency_status = "cargo/rustc build Atlas (bootstrapping)"
+next_action = "not scheduled"
