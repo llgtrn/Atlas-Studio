@@ -27,6 +27,14 @@
 //! nested INSIDE a larger expression, e.g. `let x = foo()?;`, still gets no CFG blocks of its
 //! own) -- a bare `foo()?;` statement's entire statement IS the Try expression. See
 //! `try_operator_statement_is_a_real_cfg_branch_point` and its sibling tests in `tests.rs`.
+//!
+//! `unsafe { .. }` used as a statement shares `Expr::Block`'s own handling: `unsafe` grants
+//! permission for certain operations, it is not itself a branch shape, but its own statements
+//! (which may contain a `return`/`?`/`if`/`match`/panic -- anything) still need to be lowered like
+//! any other nested block. Before this fix, `lower_stmts` had no arm for `syn::Expr::Unsafe` at
+//! all (unlike every other R4 walker, which already recurses into it), so its entire contents fell
+//! through the same wildcard `_ => continue` the `?` gap did. See
+//! `unsafe_block_statement_contents_are_not_invisible_to_cfg` in `tests.rs`.
 
 use atlas_core::{
     ControlFlowBlockIdentity, ControlFlowBlockKind, ControlFlowEdge, ControlFlowEdgeKind,
@@ -459,7 +467,8 @@ impl<'ctx, 'a> CfgBuilder<'ctx, 'a> {
                 | syn::Expr::Loop(_)
                 | syn::Expr::While(_)
                 | syn::Expr::ForLoop(_)
-                | syn::Expr::Block(_) => {
+                | syn::Expr::Block(_)
+                | syn::Expr::Unsafe(_) => {
                     let join_cont = self.join_continuation(stmts, i, cont);
                     let successors = self.lower_divergent(expr, join_cont);
                     self.emit_block(
@@ -516,12 +525,20 @@ impl<'ctx, 'a> CfgBuilder<'ctx, 'a> {
                 ControlFlowBlockKind::ForLoopBody,
                 true,
             ),
-            syn::Expr::Block(block_expr) => {
+            // `unsafe { .. }` is not itself a control-flow decision -- it grants permission for
+            // certain operations, it does not change branch shape -- so it shares Block's own
+            // handling and `ControlFlowBlockKind::NestedBlockExpr` rather than a dedicated kind.
+            syn::Expr::Block(_) | syn::Expr::Unsafe(_) => {
+                let inner_block = match expr {
+                    syn::Expr::Block(block_expr) => &block_expr.block,
+                    syn::Expr::Unsafe(unsafe_expr) => &unsafe_expr.block,
+                    _ => unreachable!("matched above"),
+                };
                 let index = self.reserve_index();
                 let id = self.block_id_for(index);
-                let span = self.ctx.span_of(&block_expr.block);
+                let span = self.ctx.span_of(inner_block);
                 self.lower_stmts(
-                    &block_expr.block.stmts,
+                    &inner_block.stmts,
                     join_cont,
                     id.clone(),
                     index,
@@ -535,7 +552,9 @@ impl<'ctx, 'a> CfgBuilder<'ctx, 'a> {
                 }]
             }
             _ => {
-                unreachable!("lower_divergent is only called for If/Match/Loop/While/ForLoop/Block")
+                unreachable!(
+                    "lower_divergent is only called for If/Match/Loop/While/ForLoop/Block/Unsafe"
+                )
             }
         }
     }

@@ -1,0 +1,55 @@
+{
+  "schema": "atlas.self-build.generation-evidence.v1",
+  "wave": "CORRECTNESS/ARCHITECTURAL INTEGRITY -- close CFG's `unsafe { .. }` statement gap, direct answer to the previous generation's own recorded open question",
+  "wave_title": "The previous generation's evidence record (cfg-try-operator-gap-closed.json) explicitly recorded an open question for the next census: 'does the same wildcard `_ => continue` fallthrough in lower_stmts hide any OTHER syntax-determined branch point besides `?`?'. This generation answers it: yes -- `syn::Expr::Unsafe` has no arm at all, unlike every other R4 walker, which already recurses into `unsafe { .. }` blocks.",
+  "generation_model": {
+    "G_n": "89191c35d1 (fix(adapter,core): close CFG's `?` (try) operator statement gap) -- stable generation this candidate was built and validated against",
+    "gap_discovered_by": "direct follow-up to the prior generation's own recorded open question: grepped every other R4 walker (concurrency/dataflow/effect/mod.rs-call/ownership/persistence/state) for `Expr::Unsafe` handling, found all seven already have an explicit arm recursing into `unsafe_expr.block`; grepped cfg.rs for the same and found zero matches, the identical signal pattern that flagged the `?` gap one generation earlier."
+  },
+  "priority_classification": "correctness / architectural integrity (priority 1) -- strictly more severe than the `?` gap it follows: an `unsafe` block's own statements can contain ANY other construct (a nested `if`, `match`, `return`, `?`, `panic!`, another `unsafe` block, ...), and before this fix all of it was uniformly invisible to CFG the moment it was wrapped in `unsafe { .. }`, not just one specific branch shape.",
+  "why_not_the_previously_guessed_expression_nested_cfg_task": "unchanged from the prior generation's reasoning: expression-nested CFG remains a DELIBERATE, already-documented scope boundary, not a found defect. This gap, like `?`, is squarely inside the already-declared statement-level scope -- `unsafe { .. }` used as a bare statement IS the statement, and its own inner statements are themselves ordinary statement-level constructs needing the exact same lowering any other block's statements get.",
+  "design_decisions": [
+    {
+      "question": "Does `unsafe` warrant its own `ControlFlowBlockKind` variant, the way `LetElseDiverge` did?",
+      "decision": "No -- reuse `ControlFlowBlockKind::NestedBlockExpr`, the same kind a bare `{ .. }` block already uses. `LetElseDiverge` was justified as a new variant because reusing `IfElse` would conflate two GENUINELY DIFFERENT syntactic origins with different branch semantics (a pattern-match failure arm vs. an if's else arm). `unsafe` has no analogous distinction: it changes what operations are PERMITTED inside the block, not the block's control-flow SHAPE -- structurally it is exactly a nested block expression, confirmed by every other walker already treating it identically to `Expr::Block` for their own purposes. Adding a dedicated kind here would be exactly the premature enum proliferation this session's engineering-quality principles argue against."
+    },
+    {
+      "question": "How to share code between the `Expr::Block` and `Expr::Unsafe` arms in `lower_divergent` without duplicating the block-lowering logic?",
+      "decision": "Combined them into one match arm (`syn::Expr::Block(_) | syn::Expr::Unsafe(_)`), extracting just the `&syn::Block` reference via a small inner match (`block_expr.block` vs. `unsafe_expr.block`) before the shared lowering logic runs once. Avoids a third near-duplicate copy of the reserve/lower_stmts/Branch-edge pattern."
+    }
+  ],
+  "stable_validator_law_compliance": {
+    "claim": "An `unsafe { .. }` block used as a statement is no longer opaque to CFG: its own statements are lowered exactly like a bare block expression's would be, so any real decision point written inside it (an `if`, in this test's case, containing an early `return`) produces real, connected CFG structure.",
+    "self_written_evidence": "Wrote one adversarial test (`unsafe { if cond { return 1; } } 0`) BEFORE the fix and confirmed it failed exactly as predicted (`left: 1, right: 4` -- the whole function collapsed to a single opaque block, hiding the nested if/return entirely). Two of the test's own initial sub-assertions were themselves wrong on the first attempt (expected the unsafe block to have 1 successor; the bare `if` with no `else` inside it actually produces 2 -- a Branch to the if-then block and a Fallthrough for the no-else path, discovered by re-reading `lower_if`'s own existing no-else handling rather than assuming), caught and fixed in the test, not the implementation, before accepting the result.",
+    "independent_evidence_channel": "cargo build --workspace clean. cargo fmt --all --check clean. cargo clippy --workspace --all-targets -D warnings clean. Full cargo test --workspace: 491 total workspace-wide (266 adapter [+1 net vs. the prior generation], 2 apps/cli, 160 core, 63 runtime), 0 failed -- every pre-existing CFG test unchanged and passing. docs audit gate_ready: true.",
+    "no_circular_self_certification": true
+  },
+  "implementation": {
+    "core_change": "core/src/semantic/control_flow.rs -- ControlFlowBlockKind::NestedBlockExpr's doc comment updated to name `unsafe { .. }` as an explicit second case it covers, with the rationale (permission modifier, not a distinct control-flow shape).",
+    "adapter_change": "adapter/src/semantic/rust/cfg.rs -- added syn::Expr::Unsafe to the shared decision-point match arm alongside If/Match/Loop/While/ForLoop/Block; combined the Block/Unsafe handling in lower_divergent into one arm extracting the inner &syn::Block once; updated the module doc comment and the unreachable!() message.",
+    "roadmap_change": ".atlas/roadmap/SELF-BUILDING-R4-R8.md R4.6 section -- added a fifth-gap paragraph, explicitly framed as answering the prior generation's own recorded open question.",
+    "test_change": "adapter/src/semantic/rust/tests.rs -- added unsafe_block_statement_contents_are_not_invisible_to_cfg."
+  },
+  "adversarial_and_falsification_coverage": [
+    "confirmed the new test fails against the pre-fix code (left: 1, right: 4 -- total opacity) before confirming it passes against the fix",
+    "the test's own scenario nests a REAL decision point (an `if` with an early `return`) inside the unsafe block specifically to prove the fix doesn't just add a pass-through block -- it must make the nested branch's own Return edge real and discoverable",
+    "explicitly checked (grep) that this gap does not exist in any of the other seven R4 walkers -- confirms this was cfg.rs's own isolated oversight, not a systemic pattern requiring a wider sweep",
+    "full pre-existing CFG test suite (if/match/loop/break/continue/panic-macro/let-else/`?`) re-run unchanged and confirmed passing, proving no regression"
+  ],
+  "validation_this_generation": {
+    "commands": {
+      "cargo build --workspace": { "exit_code": 0 },
+      "cargo fmt --all --check": { "exit_code": 0 },
+      "cargo clippy --workspace --all-targets -- -D warnings": { "exit_code": 0, "warnings": 0 },
+      "cargo test --workspace": { "exit_code": 0, "totals": "266 adapter, 2 apps/cli, 160 core, 63 runtime -- 491 total, 0 failed" },
+      "cargo run -q -p atlas-cli -- docs audit --root .atlas": { "exit_code": 0, "gate_ready": true }
+    }
+  },
+  "recensus_scope_after_promotion": [
+    "no prior CLOSED/EXTINCT conclusion depended on CFG's unsafe-block handling, so no external conclusion requires reopening",
+    "R4.6's own closure status remains 'bootstrap materialized, closure remains open' -- this is the third in-scope defect (after let-else and `?`) closed with real implementation in three consecutive generations, directly progressing the loop's own 3-consecutive-clean-generation convergence criterion",
+    "actually re-enumerated syn 3.0.6's full Expr definition (39 variants, read directly from the vendored crate source, not from memory) against cfg.rs's arms after this fix, variant by variant, rather than asserting completeness without evidence: Array/Assign/Binary/Cast/Field/Index/Infer/Lit/MethodCall/Paren/Path/Range/RawAddr/Reference/Repeat/Struct/Tuple/Unary/Verbatim correctly fall to the wildcard (none has syntax-determined divergence of its own -- a possible runtime panic, e.g. an out-of-bounds Index, is not statically determined the way `panic!()`'s textual spelling or `?`'s guaranteed propagation is). Closure/Async/Const are already-documented exclusions (separate attribution domains, matching STATE/EFFECT's identical documented gap) -- Async and Const specifically re-confirmed as belonging to that same documented class, not silently missed. `Expr::Let` (the `let PAT = EXPR` sub-expression form used only inside `if`/`while` conditions, distinct from `Stmt::Local`) cannot appear at statement level in valid syn output at all, so it is not a statement-level gap. `Expr::Group` (invisible-delimiter wrapper) is a proc-macro-construction artifact this extractor's own `syn::parse_file`-on-real-source-text pipeline does not produce. Two variants are real but DELIBERATELY NOT closed this generation and are recorded here rather than silently skipped: `Expr::TryBlock` (`try { .. }`, an unstable Rust feature with its own non-trivial `?`-retargeting semantics -- a nested `?` inside a try block should target the try block's own boundary, not the whole function, which is not what this generation's `?` fix does) and `Expr::Yield` (an unstable generators-feature construct) -- both gated behind unstable Rust features with negligible real-world prevalence in stable code (including zero occurrences in this repository's own source), explicitly lower priority than any currently-open, stable-language gap."
+  ],
+  "overall_verdict": "MATERIALIZED, IMPLEMENTED, AND VERIFIED. Closed a real, in-scope, strictly-more-severe-than-`?` CFG gap, found by directly answering the prior generation's own recorded open question rather than inventing a new one. `unsafe` blocks' own contents are now real, connected CFG structure. Re-audited the full syn::Expr enum against cfg.rs's arms afterward and found no further hidden branch point this generation.",
+  "historical_evidence_retained": true
+}

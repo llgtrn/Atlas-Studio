@@ -66,7 +66,9 @@ pub enum ControlFlowBlockKind {
     /// One `match` arm's body.
     MatchArm,
     /// A `{ .. }` used as an expression (e.g. `let x = { .. };`) or a bare statement block, not
-    /// introduced by any of the constructs above.
+    /// introduced by any of the constructs above. Also covers `unsafe { .. }`: `unsafe` grants
+    /// permission for certain operations, it is not itself a distinct control-flow shape, so it
+    /// shares this kind rather than a dedicated one.
     NestedBlockExpr,
     /// The statements following a branch/loop within the same enclosing statement list -- the
     /// "join" segment every non-diverging branch converges back into. Not backed by its own

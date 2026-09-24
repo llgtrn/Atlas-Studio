@@ -5407,3 +5407,77 @@ pub fn write_all(w: &mut dyn std::fmt::Write, items: &[&str]) -> std::fmt::Resul
         "the `?` failing returns from the whole function, not just the loop"
     );
 }
+
+// --- an `unsafe { .. }` block used as a statement is NOT itself a branch, but its own STATEMENTS
+// must still be lowered like any other nested block -- before this fix, `lower_stmts` had no arm
+// for `syn::Expr::Unsafe` at all (unlike every other R4 walker, which already recurses into it),
+// so it fell through the same wildcard `_ => continue` the `?` gap did, making anything written
+// directly inside an `unsafe` block -- an early `return`, a `?`, an `if`, a `panic!` -- completely
+// invisible to CFG. `unsafe` is treated as a permission modifier with no control-flow shape of its
+// own (unlike `if`/`match`/loop/`?`/let-else, which ARE decision points), so it reuses
+// `ControlFlowBlockKind::NestedBlockExpr` -- the same kind a bare `{ .. }` block already uses --
+// rather than a new dedicated kind.
+
+#[test]
+fn unsafe_block_statement_contents_are_not_invisible_to_cfg() {
+    const SRC: &str = r#"
+pub fn maybe(cond: bool) -> u8 {
+    unsafe {
+        if cond {
+            return 1;
+        }
+    }
+    0
+}
+"#;
+    let batch = extract_all("src/probe.rs", SRC);
+    let caller = find_function_identity(&batch, &[], "maybe").unwrap();
+    let blocks = control_flow_blocks_for(&batch, caller);
+    assert_eq!(
+        blocks.len(),
+        4,
+        "expected: function entry (branches into the unsafe block), the unsafe block's own \
+         NestedBlockExpr block (branches into the if), the if-then block (`return 1;`), and the \
+         Continuation block for the `0` tail expression after the unsafe block -- NOT a single \
+         straight-line block that swallows the nested `if`/`return` entirely"
+    );
+
+    let entry = &blocks[0];
+    assert!(entry.is_entry);
+    assert_eq!(entry.successors.len(), 1);
+    assert_eq!(entry.successors[0].kind, ControlFlowEdgeKind::Branch);
+    let unsafe_block_id = entry.successors[0].target.clone().unwrap();
+
+    let unsafe_block = blocks
+        .iter()
+        .find(|b| {
+            SemanticRecordId::new(SemanticDimension::ControlFlow, &b.identity_key())
+                == unsafe_block_id
+        })
+        .expect("the entry block's Branch target must be one of the emitted blocks");
+    assert_eq!(unsafe_block.kind, ControlFlowBlockKind::NestedBlockExpr);
+    assert_eq!(
+        unsafe_block.successors.len(),
+        2,
+        "the unsafe block's own only statement is a bare `if` with no `else`: one Branch edge \
+         into the if-then block, one edge falling through to whatever follows the unsafe block \
+         (mirroring a bare block-expression containing the same `if` exactly)"
+    );
+    assert_eq!(unsafe_block.successors[0].kind, ControlFlowEdgeKind::Branch);
+    assert_eq!(
+        unsafe_block.successors[1].kind,
+        ControlFlowEdgeKind::Fallthrough,
+        "the no-else fallback path falls through to the `0` tail expression after the unsafe block"
+    );
+
+    assert!(
+        blocks.iter().any(|b| b.kind == ControlFlowBlockKind::IfThen
+            && b.successors
+                == vec![ControlFlowEdge {
+                    kind: ControlFlowEdgeKind::Return,
+                    target: None,
+                }]),
+        "the `return 1;` written directly inside the unsafe block must still produce a real \
+         IfThen block with a Return edge -- proof it is not silently swallowed"
+    );
+}
