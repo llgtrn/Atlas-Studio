@@ -38,10 +38,146 @@
 
 use adapter::{DiagnosticCode, ExtractionBatch, ExtractionDiagnostic, ExtractionInput};
 use atlas_core::{
-    ArtifactDisposition, ArtifactId, ContentFingerprint, EvidenceId, ExtractorIdentity,
-    InventoryReport, RepositoryId, RevisionRef, SemanticDimension, SemanticRecordId, stable_id,
+    ArtifactDisposition, ArtifactId, ContentFingerprint, EvidenceId, ExtractionCacheStats,
+    ExtractorIdentity, IntegrityDigest, InventoryReport, RepositoryId, RevisionRef,
+    SemanticDimension, SemanticRecordId, blake3, stable_id,
 };
-use std::{collections::BTreeMap, fs, path::Path};
+use std::{
+    collections::BTreeMap,
+    fs, io,
+    path::{Path, PathBuf},
+};
+
+/// A persisted memo of per-artifact `ExtractionBatch`es (ADR 0008) -- the first Atlas derivation
+/// that is reused instead of recomputed (salsa's memoized query, reduced to what a whole-run
+/// snapshot pipeline needs: no dependency tracking inside one run, because each batch is a pure
+/// function of its key).
+///
+/// Key = BLAKE3 over, length-prefixed: a key-schema tag; the canonical JSON of the full
+/// `ExtractionInput` with its source text removed (repository, revision, artifact id and path,
+/// frontend, language, requested dimensions, the FNV content label); the BLAKE3 digest of the exact
+/// bytes read; the extractor id and version; and `adapter::EXTRACTOR_BUILD_DIGEST`, which changes
+/// with any extractor/core source or `Cargo.lock` change. The revision is in the key because
+/// batches embed it: the cache pays off within one revision (the uncommitted edit loop), never by
+/// relabelling an older batch.
+///
+/// Trust boundary: the cache directory is trusted local state, like `target/`; an entry that fails
+/// to parse is a miss, never an error.
+pub struct ExtractionCache {
+    dir: PathBuf,
+    build_digest: String,
+    stats: ExtractionCacheStats,
+}
+
+const EXTRACTION_CACHE_KEY_SCHEMA: &str = "atlas.extraction-cache-key.v1";
+
+impl ExtractionCache {
+    pub fn open(dir: impl Into<PathBuf>) -> io::Result<Self> {
+        Self::open_for_build(dir, adapter::EXTRACTOR_BUILD_DIGEST)
+    }
+
+    /// `open` with an explicit build identity -- tests use it to prove a new build misses.
+    pub fn open_for_build(dir: impl Into<PathBuf>, build_digest: &str) -> io::Result<Self> {
+        let dir = dir.into();
+        fs::create_dir_all(&dir)?;
+        Ok(Self {
+            dir,
+            build_digest: build_digest.to_owned(),
+            stats: ExtractionCacheStats::default(),
+        })
+    }
+
+    pub fn stats(&self) -> &ExtractionCacheStats {
+        &self.stats
+    }
+
+    fn key(
+        &self,
+        input: &ExtractionInput,
+        extractor: &dyn adapter::SemanticExtractor,
+        source_digest: &IntegrityDigest,
+    ) -> String {
+        let mut without_text = input.clone();
+        without_text.source_text = String::new();
+        let canonical_input = serde_json::to_vec(&without_text).unwrap_or_default();
+        let mut hasher = blake3::Hasher::new();
+        for field in [
+            EXTRACTION_CACHE_KEY_SCHEMA.as_bytes(),
+            &canonical_input,
+            source_digest.as_str().as_bytes(),
+            extractor.id().as_bytes(),
+            extractor.version().as_bytes(),
+            self.build_digest.as_bytes(),
+        ] {
+            hasher.update(&(field.len() as u64).to_le_bytes());
+            hasher.update(field);
+        }
+        hasher
+            .finalize()
+            .iter()
+            .map(|byte| format!("{byte:02x}"))
+            .collect()
+    }
+
+    fn entry(&self, key: &str) -> PathBuf {
+        self.dir.join(format!("{key}.json"))
+    }
+
+    fn get(&self, key: &str) -> Option<ExtractionBatch> {
+        let text = fs::read_to_string(self.entry(key)).ok()?;
+        serde_json::from_str(&text).ok()
+    }
+
+    /// Write-then-rename, so a reader never sees a torn entry.
+    fn put(&mut self, key: &str, batch: &ExtractionBatch) {
+        let written = serde_json::to_vec(batch)
+            .map_err(io::Error::other)
+            .and_then(|bytes| {
+                let staging = self.dir.join(format!("{key}.{}.tmp", std::process::id()));
+                fs::write(&staging, bytes)?;
+                fs::rename(&staging, self.entry(key))
+            });
+        if written.is_err() {
+            self.stats.write_failures += 1;
+        }
+    }
+}
+
+/// One extractor over one artifact whose bytes were read successfully, through the cache when one
+/// is supplied. The cache is consulted only when the bytes read are exactly the bytes the inventory
+/// digested (`ADR 0005`'s parsed-equals-digested prerequisite); otherwise the file changed between
+/// inventory and extraction, and the batch is computed and neither read from nor written to the
+/// cache. A batch from a panicking extractor is never cached.
+fn extract_through_cache(
+    extractor: &dyn adapter::SemanticExtractor,
+    input: &ExtractionInput,
+    inventoried: Option<&IntegrityDigest>,
+    read: &IntegrityDigest,
+    cache: Option<&mut ExtractionCache>,
+) -> ExtractionBatch {
+    let Some(cache) = cache else {
+        return extract_with_panic_isolation(extractor, input);
+    };
+    if inventoried != Some(read) {
+        cache.stats.bypassed += 1;
+        return extract_with_panic_isolation(extractor, input);
+    }
+    let key = cache.key(input, extractor, read);
+    if let Some(batch) = cache.get(&key) {
+        cache.stats.hits += 1;
+        return batch;
+    }
+    cache.stats.misses += 1;
+    let batch = extract_with_panic_isolation(extractor, input);
+    if !batch
+        .diagnostics
+        .iter()
+        .any(|diagnostic| diagnostic.code == DiagnosticCode::InternalExtractorFailure)
+    {
+        cache.put(&key, &batch);
+    }
+    batch
+}
 
 /// Sentinel `ExtractorIdentity` for `unsupported_language_batch` below: no real
 /// `SemanticExtractor` instance exists to attribute this batch to, since none is registered for
@@ -191,6 +327,17 @@ pub fn extract_semantics(
     repository: RepositoryId,
     revision: RevisionRef,
 ) -> Vec<ExtractionBatch> {
+    extract_semantics_cached(inventory, repository, revision, None)
+}
+
+/// `extract_semantics`, reusing and recording per-artifact batches in `cache` (ADR 0008). The
+/// returned batches are identical to `extract_semantics`'s for the same inputs.
+pub fn extract_semantics_cached(
+    inventory: &InventoryReport,
+    repository: RepositoryId,
+    revision: RevisionRef,
+    mut cache: Option<&mut ExtractionCache>,
+) -> Vec<ExtractionBatch> {
     let mut batches = Vec::new();
     let root = Path::new(&inventory.root);
 
@@ -227,6 +374,7 @@ pub fn extract_semantics(
 
         match fs::read_to_string(root.join(&artifact.path)) {
             Ok(source_text) => {
+                let read_digest = IntegrityDigest::of_bytes(source_text.as_bytes());
                 let content_fingerprint =
                     Some(ContentFingerprint(stable_id("content", &source_text)));
                 for extractor in &extractors {
@@ -243,7 +391,13 @@ pub fn extract_semantics(
                         scope_policy: None,
                         requested_dimensions: ALL_SEMANTIC_DIMENSIONS.to_vec(),
                     };
-                    batches.push(extract_with_panic_isolation(*extractor, &input));
+                    batches.push(extract_through_cache(
+                        *extractor,
+                        &input,
+                        artifact.content_digest.as_ref(),
+                        &read_digest,
+                        cache.as_deref_mut(),
+                    ));
                 }
             }
             Err(read_error) => {
@@ -1545,5 +1699,209 @@ mod production_wiring_tests {
             "a panic payload that is neither &str nor String must still produce a diagnosed \
              batch, not a second panic while trying to describe the first one"
         );
+    }
+}
+
+/// ADR 0008: the extraction cache must be invisible in its results -- every cached run returns
+/// exactly the batches a from-scratch run returns -- and must reuse only what provably has not
+/// changed.
+#[cfg(test)]
+mod cache_tests {
+    use super::*;
+    use std::time::{SystemTime, UNIX_EPOCH};
+
+    fn scratch(tag: &str) -> PathBuf {
+        let nonce = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_nanos();
+        std::env::temp_dir().join(format!(
+            "atlas-extraction-cache-{tag}-{}-{nonce}",
+            std::process::id()
+        ))
+    }
+
+    fn revision(value: &str) -> RevisionRef {
+        RevisionRef {
+            kind: "git".into(),
+            value: value.into(),
+        }
+    }
+
+    fn fixture() -> (PathBuf, PathBuf) {
+        let base = scratch("fixture");
+        let repo = base.join("repo");
+        fs::create_dir_all(repo.join("src")).unwrap();
+        fs::write(repo.join("src/a.rs"), "pub fn a() -> u8 { 1 }\n").unwrap();
+        fs::write(
+            repo.join("src/b.rs"),
+            "pub struct B;\nimpl B { pub fn b(&self) {} }\n",
+        )
+        .unwrap();
+        fs::write(repo.join("src/broken.rs"), "pub fn broken( {\n").unwrap();
+        (base.clone(), repo)
+    }
+
+    fn run(
+        repo: &Path,
+        rev: &str,
+        cache: Option<&mut ExtractionCache>,
+    ) -> (InventoryReport, Vec<ExtractionBatch>) {
+        let inventory = adapter::inventory_source(repo).unwrap();
+        let batches =
+            extract_semantics_cached(&inventory, RepositoryId::new("r"), revision(rev), cache);
+        (inventory, batches)
+    }
+
+    #[test]
+    fn a_warm_cache_reproduces_a_cold_run_exactly_and_recomputes_only_the_edited_file() {
+        let (base, repo) = fixture();
+        let (inventory, uncached) = run(&repo, "rev1", None);
+        let extracted = uncached
+            .iter()
+            .filter(|batch| !batch.extractor.id.is_empty())
+            .count();
+        assert!(
+            extracted >= 3,
+            "every .rs artifact has a real extractor batch"
+        );
+
+        let mut cache = ExtractionCache::open_for_build(base.join("cache"), "build-1").unwrap();
+        let cold = extract_semantics_cached(
+            &inventory,
+            RepositoryId::new("r"),
+            revision("rev1"),
+            Some(&mut cache),
+        );
+        assert_eq!(cold, uncached);
+        assert_eq!((cache.stats().hits, cache.stats().misses), (0, extracted));
+
+        let mut cache = ExtractionCache::open_for_build(base.join("cache"), "build-1").unwrap();
+        let (_, warm) = run(&repo, "rev1", Some(&mut cache));
+        assert_eq!(
+            warm, uncached,
+            "a hit must return exactly the recomputed batch"
+        );
+        assert_eq!((cache.stats().hits, cache.stats().misses), (extracted, 0));
+
+        fs::write(repo.join("src/a.rs"), "pub fn a() -> u8 { 2 }\n").unwrap();
+        let (_, fresh) = run(&repo, "rev1", None);
+        let mut cache = ExtractionCache::open_for_build(base.join("cache"), "build-1").unwrap();
+        let (_, edited) = run(&repo, "rev1", Some(&mut cache));
+        assert_eq!(edited, fresh);
+        let per_file = extracted / 3;
+        assert_eq!(
+            (cache.stats().hits, cache.stats().misses),
+            (extracted - per_file, per_file),
+            "only the edited file's batches are recomputed"
+        );
+
+        let _ = fs::remove_dir_all(&base);
+    }
+
+    #[test]
+    fn a_new_build_or_a_new_revision_never_reuses_an_entry() {
+        let (base, repo) = fixture();
+        let mut cache = ExtractionCache::open_for_build(base.join("cache"), "build-1").unwrap();
+        let (_, first) = run(&repo, "rev1", Some(&mut cache));
+        let recorded = cache.stats().misses;
+
+        let mut rebuilt = ExtractionCache::open_for_build(base.join("cache"), "build-2").unwrap();
+        run(&repo, "rev1", Some(&mut rebuilt));
+        assert_eq!(
+            (rebuilt.stats().hits, rebuilt.stats().misses),
+            (0, recorded)
+        );
+
+        let mut cache = ExtractionCache::open_for_build(base.join("cache"), "build-1").unwrap();
+        let (_, next_revision) = run(&repo, "rev2", Some(&mut cache));
+        assert_eq!(cache.stats().hits, 0, "batches embed the revision");
+        assert!(
+            next_revision
+                .iter()
+                .all(|batch| batch.revision.value == "rev2")
+        );
+        assert!(first.iter().all(|batch| batch.revision.value == "rev1"));
+
+        let _ = fs::remove_dir_all(&base);
+    }
+
+    #[test]
+    fn bytes_that_differ_from_the_inventoried_digest_bypass_the_cache_entirely() {
+        let (base, repo) = fixture();
+        let inventory = adapter::inventory_source(&repo).unwrap();
+        // The file changes between inventory and extraction.
+        fs::write(repo.join("src/a.rs"), "pub fn a() -> u8 { 3 }\n").unwrap();
+        let cache_dir = base.join("cache");
+        let mut cache = ExtractionCache::open_for_build(&cache_dir, "build-1").unwrap();
+        let batches = extract_semantics_cached(
+            &inventory,
+            RepositoryId::new("r"),
+            revision("rev1"),
+            Some(&mut cache),
+        );
+        let uncached = extract_semantics(&inventory, RepositoryId::new("r"), revision("rev1"));
+        assert_eq!(batches, uncached);
+        let bypassed = cache.stats().bypassed;
+        assert!(bypassed >= 1);
+        let entries = fs::read_dir(&cache_dir).unwrap().count();
+        assert_eq!(
+            entries,
+            cache.stats().misses,
+            "a bypassed batch is never recorded"
+        );
+
+        let _ = fs::remove_dir_all(&base);
+    }
+
+    #[test]
+    fn the_key_depends_on_the_blake3_digest_of_the_bytes_not_only_on_the_fnv_label() {
+        // Two different byte sequences can share an FNV-1a label (collisions are constructible),
+        // so the key must separate them through the collision-resistant digest alone.
+        let base = scratch("key");
+        let cache = ExtractionCache::open_for_build(base.join("cache"), "build-1").unwrap();
+        let extractor = adapter::extractors_for_language("rust")[0];
+        let input = ExtractionInput {
+            repository: RepositoryId::new("r"),
+            revision: revision("rev1"),
+            artifact: ArtifactId::new("artifact:a.rs"),
+            artifact_path: "a.rs".into(),
+            source_text: String::new(),
+            content_fingerprint: Some(ContentFingerprint("content:same-label".into())),
+            source_frontend_id: "rust".into(),
+            language: "rust".into(),
+            build_profile: None,
+            scope_policy: None,
+            requested_dimensions: ALL_SEMANTIC_DIMENSIONS.to_vec(),
+        };
+        let one = cache.key(&input, extractor, &IntegrityDigest::of_bytes(b"one"));
+        let two = cache.key(&input, extractor, &IntegrityDigest::of_bytes(b"two"));
+        assert_ne!(one, two);
+        assert_eq!(
+            one,
+            cache.key(&input, extractor, &IntegrityDigest::of_bytes(b"one")),
+            "the key is deterministic"
+        );
+        let _ = fs::remove_dir_all(&base);
+    }
+
+    #[test]
+    fn a_corrupt_entry_is_a_miss_and_is_rewritten() {
+        let (base, repo) = fixture();
+        let cache_dir = base.join("cache");
+        let mut cache = ExtractionCache::open_for_build(&cache_dir, "build-1").unwrap();
+        let (_, expected) = run(&repo, "rev1", Some(&mut cache));
+        for entry in fs::read_dir(&cache_dir).unwrap() {
+            fs::write(entry.unwrap().path(), b"{ not json").unwrap();
+        }
+        let mut cache = ExtractionCache::open_for_build(&cache_dir, "build-1").unwrap();
+        let (_, again) = run(&repo, "rev1", Some(&mut cache));
+        assert_eq!(again, expected);
+        assert_eq!(cache.stats().hits, 0);
+        let mut cache = ExtractionCache::open_for_build(&cache_dir, "build-1").unwrap();
+        run(&repo, "rev1", Some(&mut cache));
+        assert_eq!(cache.stats().misses, 0, "rewritten entries hit");
+
+        let _ = fs::remove_dir_all(&base);
     }
 }

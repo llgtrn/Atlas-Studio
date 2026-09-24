@@ -1,0 +1,27 @@
+{
+  "schema": "atlas.self-build.generation-evidence.v1",
+  "generation": "G39",
+  "wave": "ABSORPTION + MEASUREMENT -- salsa memoized-derivation reuse as a content-keyed extraction cache (ADR 0008); the measurement falsified the premise that extraction dominates recensus cost",
+  "tests_added": ["cache_tests::a_warm_cache_reproduces_a_cold_run_exactly_and_recomputes_only_the_edited_file", "cache_tests::a_new_build_or_a_new_revision_never_reuses_an_entry", "cache_tests::bytes_that_differ_from_the_inventoried_digest_bypass_the_cache_entirely", "cache_tests::the_key_depends_on_the_blake3_digest_of_the_bytes_not_only_on_the_fnv_label", "cache_tests::a_corrupt_entry_is_a_miss_and_is_rewritten"],
+  "falsification": {
+    "killed": 5,
+    "mutants": ["key_without_build", "key_without_input", "key_without_source (SURVIVED first: the FNV label inside the input masked it -- the exact reliance the G36 security lane forbade; direct key test added, then KILLED)", "no_bypass", "get_never_hits"]
+  },
+  "production_path": {
+    "commands": "atlas-systemizer systemize --root . --out plain.json; --cache DIR (cold); --cache DIR (warm)",
+    "stats": {"cold": {"hits": 0, "misses": 62}, "warm": {"hits": 62, "misses": 0}},
+    "reports_identical_to_uncached_excluding_extraction_cache": true,
+    "wall_time_debug_seconds": {"uncached": 189.8, "cold": 165.5, "warm": 176.8}
+  },
+  "stage_profile_debug_seconds": {
+    "method": "temporary eprintln! Instant checkpoints in runtime::systemize (scratch only, reverted before commit)",
+    "snapshot_git": 1.70,
+    "inventory": 0.12,
+    "docs_audit": 0.03,
+    "extraction_census_normalization": 4.40,
+    "dependency_closure": 0.00,
+    "summarize_system_graph_with_dependencies": 165.89
+  },
+  "conclusion": "the cache is correct and closes two recorded prerequisites (parsed==digested; extractor build identity), but engineering-graph summarization is ~95% of recensus wall time on this repository; it is the next R5 target",
+  "resolved_deferred": ["extractor-version-stale (for cache keying: EXTRACTOR_BUILD_DIGEST)", "parsed-bytes-equal-digested-bytes"]
+}

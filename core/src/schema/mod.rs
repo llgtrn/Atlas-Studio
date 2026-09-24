@@ -472,7 +472,23 @@ pub struct SystemizeReport {
     /// (ADR 0006). A first observation has no baseline and therefore no delta.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub inventory_delta: Option<crate::census::InventoryDelta>,
+    /// Present only when an extraction cache was supplied (`systemize --cache`, ADR 0008).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub extraction_cache: Option<ExtractionCacheStats>,
     pub invariants: Vec<String>,
+}
+
+/// How per-artifact semantic extraction was served by the extraction cache (ADR 0008).
+#[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq, Eq)]
+pub struct ExtractionCacheStats {
+    /// Batches reused from the cache.
+    pub hits: usize,
+    /// Batches computed and recorded.
+    pub misses: usize,
+    /// Batches computed without touching the cache because the bytes read differed from the
+    /// inventoried digest (the file changed between inventory and extraction).
+    pub bypassed: usize,
+    pub write_failures: usize,
 }
 
 #[cfg(test)]

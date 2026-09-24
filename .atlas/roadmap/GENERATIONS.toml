@@ -13,7 +13,7 @@
 #       -> generation evidence -> G_n+1
 
 schema = "atlas.self-build.generation-ledger.v1"
-current_generation = "G38"
+current_generation = "G39"
 
 [[generation]]
 id = "G35"
@@ -234,6 +234,7 @@ id = "G38"
 base_commit = "3cdfccbddcb75b07d09fbfd418421a0b7583038c"
 objective = "user frontier directive (intent -> logic -> verified binary; donor superset): Phase A inventory of the requested frontier, architecture join, and the one foundational primitive with a real production consumer"
 writer = "coordinator (sole production writer); all lanes read-only"
+result_commits = ["229c543ffa2a45fc469c0aaa42390b57cdd8bb5f"]
 evidence = ".atlas/roadmap/FRONTIER.toml"
 
 [[generation.lane]]
@@ -256,4 +257,30 @@ decision_record = ".atlas/decisions/0007-three-valued-constraint-verdict.md"
 falsification = "8 mutants killed (Kleene order, admits, default, undeclared-attribute rule x2, zero-check rule, materialization rule, UNKNOWN blocker); one survivor exposed an unpinned materialization verdict, test added"
 tests = "workspace green; fmt; clippy -D warnings; docs audit gate_ready"
 production_path = "systemize --root . --previous: 4/4 declared constraints SATISFIED, admission unchanged; delta names exactly the 5 touched files"
+
+[[generation]]
+id = "G39"
+base_commit = "229c543ffa2a45fc469c0aaa42390b57cdd8bb5f"
+objective = "R5 cached derivation: salsa's cheapest falsification -- cache one derivation, prove it reproduces recompute, measure it"
+writer = "coordinator (sole production writer)"
+evidence = ".atlas/evidence/verification/r5-extraction-derivation-cache.json"
+
+[generation.join]
+absorb_now_exists = true
+selected_absorption = "salsa: memoized-derivation-reuse -> runtime::census::extraction::ExtractionCache + adapter build digest + systemize --cache"
+decision_record = ".atlas/decisions/0008-extraction-derivation-cache.md"
+
+[generation.verification]
+falsification = "5 mutants killed; one survivor exposed reliance on the FNV label, fixed with a direct key test"
+tests = "workspace green; fmt; clippy -D warnings"
+production_path = "cold/warm cached systemize reports byte-identical to uncached (62 misses -> 62 hits)"
+measurement = "graph summarization 165.9 s of ~172 s debug systemize; extraction+census+normalization 4.4 s -- caching extraction does not reduce wall time here"
+
+[[generation.deferred]]
+id = "graph-summarization-cost"
+class = "NEXT_GENERATION_TARGET"
+summary = "summarize_system_graph_with_dependencies is ~95% of recensus wall time on this repository; characterize (algorithmic vs inherent) before any Salsa/differential-dataflow invalidation work"
+
+[generation.next]
+objective = "G40: profile and fix engineering-graph summarization cost natively; then re-measure edit-to-recensus"
 

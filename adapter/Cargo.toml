@@ -22,6 +22,10 @@ syn = { version = "3.0.6", features = ["full"] }
 quote = "1.0.47"
 proc-macro2 = { version = "1.0.107", features = ["span-locations"] }
 
+[build-dependencies]
+# build.rs digests the extractor sources with Atlas's own BLAKE3 (ADR 0008).
+atlas_core = { package = "core", path = "../core" }
+
 [dev-dependencies]
 # Verification-only: parses `cargo metadata`'s JSON output for the independent dependency-census
 # differential oracle (`src/dependency/cargo_oracle.rs`). Never a production dependency -- kept out

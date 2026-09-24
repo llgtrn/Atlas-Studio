@@ -51,9 +51,9 @@ pub use language::adl::{
 };
 pub use provenance::{Provenance, provenance};
 pub use schema::{
-    CensusReport, ConflictCandidate, DocsReport, DocumentFact, EpistemicStatus, FileFact,
-    GraphSummary, NormalizationReport, RepoAudit, RepoManifest, SemanticFact, SemanticFactKind,
-    SourceReport, SystemizeReport, TypedClosureAccounting,
+    CensusReport, ConflictCandidate, DocsReport, DocumentFact, EpistemicStatus,
+    ExtractionCacheStats, FileFact, GraphSummary, NormalizationReport, RepoAudit, RepoManifest,
+    SemanticFact, SemanticFactKind, SourceReport, SystemizeReport, TypedClosureAccounting,
 };
 pub use semantic::{
     CallDispatchKind, CallSiteIdentity, ConcurrencyIdentity, ConcurrencyKind,

@@ -20,6 +20,10 @@ pub use source::{
 };
 pub use vcs::snapshot_git;
 
+/// BLAKE3 digest of every source file the semantic extractors are built from, plus `Cargo.lock`
+/// (computed by `build.rs`, ADR 0008). Any code or pinned-dependency change changes it.
+pub const EXTRACTOR_BUILD_DIGEST: &str = env!("ATLAS_EXTRACTOR_BUILD_DIGEST");
+
 pub fn read_adl_sources(root: impl AsRef<Path>) -> io::Result<Vec<AdlSource>> {
     let root = root.as_ref().canonicalize()?;
     let declared = root.join(".atlas").join("declared");

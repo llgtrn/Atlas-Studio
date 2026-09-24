@@ -103,7 +103,14 @@ fn run(args: &[String]) -> Result<(), String> {
                     runtime::read_previous_inventory(&path).map_err(|e| format!("{path}: {e}"))
                 })
                 .transpose()?;
-            let report = runtime::systemize_since(&root, previous.as_ref())
+            // `--cache <dir>`: reuse per-artifact semantic extraction across runs (ADR 0008).
+            let mut cache = value(rest, "--cache")?
+                .map(|dir| {
+                    runtime::census::extraction::ExtractionCache::open(&dir)
+                        .map_err(|e| format!("{dir}: {e}"))
+                })
+                .transpose()?;
+            let report = runtime::systemize_with(&root, previous.as_ref(), cache.as_mut())
                 .map_err(|e| format!("{root}: {e}"))?;
             let text = json(&report)? + "\n";
             write_report_to_out(&out, &text)?;

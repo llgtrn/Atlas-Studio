@@ -148,7 +148,10 @@ struct CensusInputs {
     extraction_batches: Vec<adapter::ExtractionBatch>,
 }
 
-fn gather_census_inputs(root: &Path) -> io::Result<CensusInputs> {
+fn gather_census_inputs(
+    root: &Path,
+    cache: Option<&mut census::extraction::ExtractionCache>,
+) -> io::Result<CensusInputs> {
     let snapshot = adapter::snapshot_git(root)?;
     let repository = adapter::audit_repository(root)?;
     let inventory = inventory::build_inventory(root, repository.manifest.as_ref())?;
@@ -157,8 +160,12 @@ fn gather_census_inputs(root: &Path) -> io::Result<CensusInputs> {
     let adl_sources = adapter::read_adl_sources(root)?;
     let adl = compile_adl(&adl_sources, &source);
     let repository_id = resolve_repository_id(&repository, root);
-    let extraction_batches =
-        census::extraction::extract_semantics(&inventory, repository_id, snapshot.revision());
+    let extraction_batches = census::extraction::extract_semantics_cached(
+        &inventory,
+        repository_id,
+        snapshot.revision(),
+        cache,
+    );
     Ok(CensusInputs {
         snapshot,
         repository,
@@ -194,6 +201,16 @@ pub fn systemize_since(
     root: impl AsRef<Path>,
     previous: Option<&InventoryReport>,
 ) -> io::Result<SystemizeReport> {
+    systemize_with(root, previous, None)
+}
+
+/// `systemize_since`, serving per-artifact semantic extraction through `cache` when supplied
+/// (ADR 0008). The report is identical to an uncached run's except for `extraction_cache`.
+pub fn systemize_with(
+    root: impl AsRef<Path>,
+    previous: Option<&InventoryReport>,
+    mut cache: Option<&mut census::extraction::ExtractionCache>,
+) -> io::Result<SystemizeReport> {
     let root = root.as_ref();
     let CensusInputs {
         snapshot,
@@ -203,7 +220,7 @@ pub fn systemize_since(
         docs,
         adl,
         extraction_batches,
-    } = gather_census_inputs(root)?;
+    } = gather_census_inputs(root, cache.as_deref_mut())?;
 
     // R4.3.1: semantic extraction runs BEFORE census construction, and its results flow directly
     // into the canonical `CensusReport` that `normalize`/`graph` below then consume -- extraction
@@ -292,7 +309,7 @@ pub fn systemize_since(
     }
 
     Ok(SystemizeReport {
-        schema: "atlas.systemizer.systemize-report.v13".into(),
+        schema: "atlas.systemizer.systemize-report.v14".into(),
         cli_api: CLI_API.into(),
         root: root.canonicalize()?.to_string_lossy().into_owned(),
         snapshot,
@@ -312,6 +329,7 @@ pub fn systemize_since(
         graph,
         dependency_closure,
         inventory_delta,
+        extraction_cache: cache.map(|cache| cache.stats().clone()),
         invariants: vec![
             "CANONICAL_REPOSITORY_KNOWLEDGE_IS_IN_ATLAS_ROOT".into(),
             "FACTS_COMPILE_TO_ONE_ENGINEERING_GRAPH".into(),
@@ -353,7 +371,7 @@ pub fn graph(root: impl AsRef<Path>) -> io::Result<EngineeringGraph> {
         adl,
         extraction_batches,
         ..
-    } = gather_census_inputs(root)?;
+    } = gather_census_inputs(root, None)?;
     let census = census::build_census(&inventory, &source, &adl, &extraction_batches);
     let normalization = normalize::normalize(&census);
     let mut graph = build_system_graph(&source, &docs, &normalization);
@@ -379,7 +397,7 @@ pub fn code_analyze(root: impl AsRef<Path>) -> io::Result<serde_json::Value> {
         adl,
         extraction_batches,
         ..
-    } = gather_census_inputs(root)?;
+    } = gather_census_inputs(root, None)?;
     let mut census = census::build_census(&inventory, &source, &adl, &extraction_batches);
     // Same promotion `systemize` applies (`.atlas/contracts/DEPENDENCY-CENSUS.md`): `BUILD`
     // starts life as a permanent `Unsupported` stub in `census::build_census` and must be
