@@ -736,6 +736,7 @@ objective = "register html and css source frontends; classify include!-spliced f
 writer = "coordinator (sole writer)"
 evidence = ".atlas/evidence/census/G61/recensus.json"
 self_recensus = ".atlas/evidence/census/G61/recensus.json"
+result_commits = ["00702832fdb57e53dfb6b016644fba6a4e01a9e6", "e9ee3a0874b04493170feeb5da3a503830e57763"]
 
 [generation.verification]
 pre_census = "clean-HEAD census of fdc7a4c1ac = G60 post digest 96f70a84... (chain holds)"
@@ -746,3 +747,22 @@ certificate_delta = "ARTIFACTS_WITHOUT_SOURCE_FRONTEND removed (8 -> 0); UNKNOWN
 
 [generation.next]
 objective = "G62 (P0): provenance completeness -- extractor identity for extraction-accounting facts and revision for ADL-derived facts, until the self-scope certificate reaches RECONCILED"
+
+[[generation]]
+id = "G62"
+base_commit = "e9ee3a0874b04493170feeb5da3a503830e57763"
+priority = "P0"
+serves = "P0 CENSUS_KERNEL_CLOSURE: closes certificate blocker PROVENANCE_INCOMPLETE; the self-scope certificate advances CENSUSED -> RECONCILED"
+objective = "every census fact carries the census revision and a named producer; independent engines count only evaluated obligations"
+writer = "coordinator (sole writer)"
+evidence = ".atlas/evidence/census/G62/recensus.json"
+self_recensus = ".atlas/evidence/census/G62/recensus.json"
+
+[generation.verification]
+pre_census = "clean-HEAD census of 00702832fd = G61 post digest 2a3a5fa1... (chain holds; e9ee3a0874 adds only out-of-scope evidence)"
+proof = "PROVEN on the first run (post 7f875f3b...): the 19 unsupported-language artifacts change only in obligation attribution (unknowns unchanged 12 -> 12), declared with that reason"
+falsification = "9/9 mutants killed (source, ADL, constraint-result and delta revisions; accounting identity blanked, per unit and self-scope; engine filter removed and inverted; production revision wiring). First-battery survivor: the wiring of graph() and code_analyze() was untested duplication -- collapsed into one CensusInputs::census helper, and the self-scope test now asserts each fact carries the census's own revision, not merely some revision"
+certificate_delta = "PROVENANCE_INCOMPLETE removed (242 facts without revision, 228 without extractor -> 0/0); state CENSUSED -> RECONCILED; remaining blockers: 8 COVERAGE_UNKNOWN dimensions, DYNAMIC_DEPENDENCY_OBLIGATIONS 9, MULTI_ENGINE_RECONCILIATION_ABSENT, UNKNOWN_FACTS 672, UNSUPPORTED_FACTS 228, ATLAS_ROOT_ABSENT"
+
+[generation.next]
+objective = "G63 (P2): ADL <- census -- typed census facts become ADL declarations/constraints (exit criterion C)"

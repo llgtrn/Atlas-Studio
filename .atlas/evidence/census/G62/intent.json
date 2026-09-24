@@ -1,0 +1,33 @@
+{
+  "objective": "P0: close the certificate blocker PROVENANCE_INCOMPLETE -- census-level (artifact disposition/language) and ADL-derived facts carry the census revision through one CensusInputs::census helper used by every entry point; unsupported-language obligations are attributed to the dispatch identity atlas.extraction.unsupported-language instead of an empty extractor (the semantic change of every unsupported-language artifact below is that attribution only); an independent engine is an extractor that evaluated an obligation, never an UNSUPPORTED assertion; the self-scope certificate reaches RECONCILED",
+  "changed_paths": [
+    "core/src/certificate/mod.rs",
+    "runtime/src/census/extraction.rs",
+    "runtime/src/census/mod.rs",
+    "runtime/src/certificate.rs",
+    "runtime/src/lib.rs",
+    "adapter/Cargo.toml",
+    "adapter/src/browser/measure_layout.js",
+    "adapter/src/browser/observe.js",
+    "adapter/src/browser/webdriver.js",
+    "apps/cli/Cargo.toml",
+    "apps/studio/README.md",
+    "apps/studio/design/tokens.json",
+    "apps/studio/package.json",
+    "core/Cargo.toml",
+    "core/src/identity/blake3_high_counter.in",
+    "core/src/identity/blake3_vectors.in",
+    "core/src/identity/blake3_xof_vectors.in",
+    "runtime/Cargo.toml",
+    "runtime/tests/fixtures/creator/original-intent.json",
+    "runtime/tests/fixtures/visual/"
+  ],
+  "total_changes": [
+    "+evidence",
+    "+facts",
+    "+graph_edges",
+    "+graph_nodes",
+    "+normalized_facts",
+    "+typed_records"
+  ]
+}

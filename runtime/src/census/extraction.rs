@@ -179,14 +179,20 @@ fn extract_through_cache(
     batch
 }
 
-/// Sentinel `ExtractorIdentity` for `unsupported_language_batch` below: no real
-/// `SemanticExtractor` instance exists to attribute this batch to, since none is registered for
-/// the artifact's language at all. Never a real extractor's own id/version, so it can never be
-/// confused with one in `CensusExtractionAccounting`/`SemanticObligationRecord` lineage.
-const NO_EXTRACTOR: ExtractorIdentity = ExtractorIdentity {
-    id: String::new(),
-    version: String::new(),
-};
+/// The identity `unsupported_language_batch` below attributes its batch to: Atlas's own extraction
+/// dispatch, which is what asserts "no registered `SemanticExtractor` supports this language". It
+/// is not a `SemanticExtractor` and evaluates nothing; it is named (G62) so the UNSUPPORTED
+/// obligations it produces carry source-backed provenance instead of an empty extractor. Its id
+/// is outside the `atlas.<language>.*` extractor namespace, so it cannot be confused with a real
+/// extractor in `CensusExtractionAccounting`/`SemanticObligationRecord` lineage.
+pub const UNSUPPORTED_LANGUAGE_ACCOUNTING: &str = "atlas.extraction.unsupported-language";
+
+fn unsupported_language_accounting() -> ExtractorIdentity {
+    ExtractorIdentity {
+        id: UNSUPPORTED_LANGUAGE_ACCOUNTING.into(),
+        version: "1".into(),
+    }
+}
 
 /// The closed `ExtractionBatch` for a `Parsed`, language-tagged artifact whose language has no
 /// registered `SemanticExtractor` at all (`adapter::extractors_for_language` returned empty).
@@ -219,11 +225,11 @@ fn unsupported_language_batch(input: &ExtractionInput) -> ExtractionBatch {
         .map(|&dimension| adapter::ObligationResult::unsupported(dimension, diagnostic.id.clone()))
         .collect();
     ExtractionBatch {
-        extractor: NO_EXTRACTOR,
+        extractor: unsupported_language_accounting(),
         repository: input.repository.clone(),
         revision: input.revision.clone(),
         artifact: input.artifact.clone(),
-        input_fingerprint: input.identity_key(&NO_EXTRACTOR),
+        input_fingerprint: input.identity_key(&unsupported_language_accounting()),
         observations: Vec::new(),
         evidence: Vec::new(),
         obligations,
@@ -1476,6 +1482,8 @@ mod production_wiring_tests {
             assert_eq!(obligation.status, EpistemicStatus::Unsupported);
             assert!(!obligation.diagnostics.is_empty());
         }
+        // Attributed to the dispatch that asserted it, never to an empty extractor (G62).
+        assert_eq!(batch.extractor.id, UNSUPPORTED_LANGUAGE_ACCOUNTING);
         assert_eq!(batch.diagnostics.len(), 1);
         assert_eq!(
             batch.diagnostics[0].code,

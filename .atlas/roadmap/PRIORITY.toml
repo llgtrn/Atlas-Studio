@@ -137,11 +137,12 @@ verdict = "NOT_CLOSED"
 [census_closure.progress]
 G60 = "SOURCE_INVENTORY_COMPLETE: apps/cli in scope; 4 of 4 source-backed workspace members censused"
 G61 = "SOURCE_INVENTORY_COMPLETE + LANGUAGE_EXTRACTION: 0 artifacts without a source frontend (html, css registered; 3 .in files classified rust-include-fragment by their observed include!); their 96 obligations are explicit UNSUPPORTED; provenance without extractor rises 132 -> 228 (unsupported-language batches carry no extractor identity)"
+G62 = "SOURCE_BACKED_PROVENANCE: OBSERVED -- every census fact carries the census revision and a named producer (0/0 gaps); RECONCILIATION_CERTIFICATE: self-scope RECONCILED"
 
 # Exit criteria of the first phase; broad expansion stays frozen until all are MET.
 [exit_criteria]
 A_self_recensus_mandatory_and_operational = "MET_G57 (enforced by generation_ledger_self_recensus_chain)"
-B_reconciliation_certificate = "MET_G59 (CensusCertificate v2 computed; self-scope CENSUSED with typed blockers)"
+B_reconciliation_certificate = "MET_G59 (CensusCertificate v2 computed; self-scope CENSUSED with typed blockers; RECONCILED since G62)"
 C_adl_consumes_census_truth = "OPEN"
 D_atlas_writer_reader_validator = "OPEN"
 E_atlasx_production_validation = "OPEN"
@@ -174,7 +175,7 @@ objective = "source frontends for the UNKNOWN artifacts (done)"
 [[planned_generation]]
 id = "G62"
 priority = "P0"
-objective = "provenance completeness: extractor identity for extraction-accounting facts, revision for ADL-derived facts; the certificate must reach RECONCILED"
+objective = "provenance completeness; the certificate reaches RECONCILED (done)"
 
 [[planned_generation]]
 id = "G63"

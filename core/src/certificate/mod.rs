@@ -4,7 +4,7 @@
 //! normalization, reconciliation and replay conditions actually hold -- it never manufactures
 //! completeness. Every unmet condition is a typed blocker; the state follows from the blockers.
 
-use crate::{SystemizeReport, identity::IntegrityDigest};
+use crate::{EpistemicStatus, SystemizeReport, identity::IntegrityDigest};
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
 
@@ -443,11 +443,12 @@ pub fn certify(report: &SystemizeReport, inputs: &CertificateInputs<'_>) -> Cens
     }
 
     // Independent engines: one extractor per dimension today.
-    // Independence is per (artifact, dimension): distinct named extractors that evaluated the
-    // same obligation. Different extractors on different artifacts are not independent passes.
+    // Independence is per (artifact, dimension): distinct extractors that evaluated the same
+    // obligation. Different extractors on different artifacts are not independent passes, and an
+    // UNSUPPORTED obligation was not evaluated at all -- whoever asserted it is not an engine.
     let mut engines: BTreeMap<(String, String), BTreeSet<String>> = BTreeMap::new();
     for obligation in &census.typed_obligations {
-        if obligation.extractor.id.is_empty() {
+        if obligation.status == EpistemicStatus::Unsupported {
             continue;
         }
         engines

@@ -70,7 +70,8 @@ mod tests {
     }
 
     /// The certificate of Atlas's own scope reports exactly what the census knows, including the
-    /// gaps: UNKNOWN coverage dimensions, single-engine extraction and no .atlas artifact.
+    /// gaps that keep it RECONCILED rather than CLOSED: UNKNOWN coverage dimensions, single-engine
+    /// extraction and no .atlas artifact.
     /// Mutated copies of the same real report prove each condition moves state and blockers.
     #[test]
     fn the_self_scope_certificate_is_honest_and_every_condition_is_load_bearing() {
@@ -81,9 +82,19 @@ mod tests {
         assert!(cert.inventory.closed);
         assert!(cert.fixed_point.converged && cert.fixed_point.delta_at_exit == 0);
         assert!(cert.dependency.closed);
-        // Found by this certificate (G59): obligation facts for artifacts no extractor covers
-        // carry no extractor, and ADL-derived facts carry no revision.
-        assert!(!cert.normalization.provenance_complete);
+        // Closed in G62 (found by this certificate in G59): census-level and ADL-derived facts
+        // carry the census revision, and unsupported-language obligations name the dispatch that
+        // asserted them.
+        assert!(cert.normalization.provenance_complete);
+        let revision = report.snapshot.revision();
+        assert!(
+            report
+                .census
+                .facts
+                .iter()
+                .all(|f| f.provenance.source_revision.as_ref() == Some(&revision)),
+            "every fact carries the census's own revision, not merely some revision"
+        );
         let has = |prefix: &str| cert.blockers.iter().any(|b| b.starts_with(prefix));
         // Closed in G60: every workspace member is inside the census scope.
         assert!(
@@ -174,8 +185,15 @@ mod tests {
             reopened.dependency.source_censused_total + 1,
             reopened.dependency.source_backed_total
         );
-        // Provenance is incomplete, so the scope cannot even be RECONCILED; never CLOSED.
-        assert_eq!(cert.state, CertificateState::Censused);
+        // Inventory, provenance, reconciliation and replay hold, so the scope is RECONCILED (G62);
+        // never CLOSED while any other blocker remains (the state follows the blockers).
+        assert!(!has("PROVENANCE_INCOMPLETE"), "{:#?}", cert.blockers);
+        assert_eq!(
+            cert.state,
+            CertificateState::Reconciled,
+            "{:#?}",
+            cert.blockers
+        );
 
         // Replay divergence and a single pass both fail the fixed point.
         let diverged = certify_with(&report, &[&pass, "blake3-256:other"]);
@@ -200,50 +218,70 @@ mod tests {
                 .any(|b| b.starts_with("INVENTORY_NOT_ACCOUNTED"))
         );
 
-        // Provenance accounting is exact: one more fact without a revision is counted.
-        let missing = |c: &CensusCertificate| -> usize {
-            c.blockers
-                .iter()
-                .find_map(|b| b.strip_prefix("PROVENANCE_INCOMPLETE: "))
-                .and_then(|rest| rest.split(' ').next()?.parse().ok())
-                .unwrap_or(0)
-        };
+        // Provenance accounting is exact and load-bearing: one fact without a revision, or one
+        // without an extractor, is counted and drops the scope back to CENSUSED.
         let mut orphan = report.clone();
-        let index = orphan
-            .census
-            .facts
-            .iter()
-            .position(|f| f.provenance.source_revision.is_some())
-            .unwrap();
-        orphan.census.facts[index].provenance.source_revision = None;
+        orphan.census.facts[0].provenance.source_revision = None;
         let orphaned = certify_with(&orphan, &[&pass, &pass]);
-        assert_eq!(missing(&orphaned), missing(&cert) + 1);
+        assert!(
+            orphaned
+                .blockers
+                .iter()
+                .any(|b| b.starts_with("PROVENANCE_INCOMPLETE: 1 facts without revision, 0 ")),
+            "{:#?}",
+            orphaned.blockers
+        );
         assert!(!orphaned.evidence.provenance_complete);
+        assert_eq!(orphaned.state, CertificateState::Censused);
+        let mut anonymous = report.clone();
+        let last = anonymous.census.facts.len() - 1;
+        anonymous.census.facts[last].provenance.extractor.clear();
+        let anonymized = certify_with(&anonymous, &[&pass, &pass]);
+        assert!(
+            anonymized
+                .blockers
+                .iter()
+                .any(|b| b.ends_with(" 1 without extractor, 0 without source path")),
+            "{:#?}",
+            anonymized.blockers
+        );
+        assert_eq!(anonymized.state, CertificateState::Censused);
 
         assert!(has("UNKNOWN_FACTS"));
         assert!(has("UNSUPPORTED_FACTS"));
 
-        // With provenance repaired the scope reaches RECONCILED -- and still not CLOSED, because
-        // every other blocker remains (the state follows the blockers, never the other way).
-        let mut repaired = report.clone();
-        let revision = repaired.census.facts[index]
-            .provenance
-            .source_revision
+        // An engine is an extractor that evaluated the obligation: a second identity that only
+        // asserts UNSUPPORTED for the same (artifact, dimension) is not an independent pass; one
+        // that evaluated it is.
+        assert_eq!(cert.independent_passes.passes_total, 1);
+        let evaluated = report
+            .census
+            .typed_obligations
+            .iter()
+            .find(|o| o.status != atlas_core::EpistemicStatus::Unsupported)
+            .unwrap()
             .clone();
-        for fact in &mut repaired.census.facts {
-            fact.provenance.source_revision =
-                fact.provenance.source_revision.clone().or(revision.clone());
-            if fact.provenance.extractor.is_empty() {
-                fact.provenance.extractor = "test".into();
-            }
-        }
-        let reconciled = certify_with(&repaired, &[&pass, &pass]);
-        assert!(reconciled.normalization.provenance_complete);
+        let mut asserted_only = report.clone();
+        let mut second = evaluated.clone();
+        second.extractor.id = "atlas.test.second-engine".into();
+        second.status = atlas_core::EpistemicStatus::Unsupported;
+        asserted_only.census.typed_obligations.push(second.clone());
         assert_eq!(
-            reconciled.state,
-            CertificateState::Reconciled,
-            "{:#?}",
-            reconciled.blockers
+            certify_with(&asserted_only, &[&pass, &pass])
+                .independent_passes
+                .passes_total,
+            1
+        );
+        let mut two_engines = report.clone();
+        second.status = evaluated.status;
+        two_engines.census.typed_obligations.push(second);
+        let doubled = certify_with(&two_engines, &[&pass, &pass]);
+        assert_eq!(doubled.independent_passes.passes_total, 2);
+        assert!(
+            !doubled
+                .blockers
+                .iter()
+                .any(|b| b.starts_with("MULTI_ENGINE_RECONCILIATION_ABSENT"))
         );
 
         // A dirty input is not a pinned revision.

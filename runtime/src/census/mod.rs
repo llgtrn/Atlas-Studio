@@ -178,24 +178,24 @@ fn status_rank(status: EpistemicStatus) -> u8 {
     }
 }
 
-fn source_provenance(path: &str, language: Option<&str>) -> Provenance {
+fn source_provenance(path: &str, language: Option<&str>, revision: &RevisionRef) -> Provenance {
     let extractor = adapter::resolve_source_frontend(Path::new(path))
         .or_else(|| language.and_then(adapter::source_frontend_for_language))
         .map(|matched| matched.frontend_id.to_owned())
         .unwrap_or_else(|| "atlas.inventory.v1".to_owned());
     Provenance {
         source_path: path.to_owned(),
-        source_revision: None,
+        source_revision: Some(revision.clone()),
         extractor,
         content_hash: None,
         span: None,
     }
 }
 
-fn adl_provenance(path: &str, line: usize, column: usize) -> Provenance {
+fn adl_provenance(path: &str, line: usize, column: usize, revision: &RevisionRef) -> Provenance {
     Provenance {
         source_path: path.to_owned(),
-        source_revision: None,
+        source_revision: Some(revision.clone()),
         extractor: "atlas.adl.compiler.v1".into(),
         content_hash: None,
         span: Some(format!("{line}:{column}")),
@@ -219,6 +219,7 @@ pub fn build_census(
     source: &SourceReport,
     adl: &AdlCompileReport,
     extraction_batches: &[ExtractionBatch],
+    revision: &RevisionRef,
 ) -> CensusReport {
     let mut facts = Vec::new();
 
@@ -231,7 +232,7 @@ pub fn build_census(
             subject: subject.clone(),
             predicate: "disposition".into(),
             object: artifact.disposition.as_str().into(),
-            provenance: source_provenance(&artifact.path, artifact.language.as_deref()),
+            provenance: source_provenance(&artifact.path, artifact.language.as_deref(), revision),
         });
 
         if let Some(language) = &artifact.language {
@@ -242,7 +243,11 @@ pub fn build_census(
                 subject,
                 predicate: "language".into(),
                 object: language.clone(),
-                provenance: source_provenance(&artifact.path, artifact.language.as_deref()),
+                provenance: source_provenance(
+                    &artifact.path,
+                    artifact.language.as_deref(),
+                    revision,
+                ),
             });
         }
     }
@@ -255,7 +260,7 @@ pub fn build_census(
             subject: node.name.clone(),
             predicate: "node_kind".into(),
             object: node.node_kind.clone(),
-            provenance: adl_provenance(&node.span.path, node.span.line, node.span.column),
+            provenance: adl_provenance(&node.span.path, node.span.line, node.span.column, revision),
         });
     }
 
@@ -278,7 +283,7 @@ pub fn build_census(
             subject: edge.from.clone(),
             predicate: edge.relation.clone(),
             object: edge.to.clone(),
-            provenance: adl_provenance(&edge.span.path, edge.span.line, edge.span.column),
+            provenance: adl_provenance(&edge.span.path, edge.span.line, edge.span.column, revision),
         });
     }
 
@@ -295,7 +300,12 @@ pub fn build_census(
             subject: binding.consumer.clone(),
             predicate: "binds_to".into(),
             object: binding.provider.clone(),
-            provenance: adl_provenance(&binding.span.path, binding.span.line, binding.span.column),
+            provenance: adl_provenance(
+                &binding.span.path,
+                binding.span.line,
+                binding.span.column,
+                revision,
+            ),
         });
         facts.push(SemanticFact {
             id: fact_id(&format!("binding:{}:capability", binding.name)),
@@ -304,7 +314,12 @@ pub fn build_census(
             subject: binding.name.clone(),
             predicate: "capability".into(),
             object: binding.capability.clone(),
-            provenance: adl_provenance(&binding.span.path, binding.span.line, binding.span.column),
+            provenance: adl_provenance(
+                &binding.span.path,
+                binding.span.line,
+                binding.span.column,
+                revision,
+            ),
         });
     }
 
@@ -320,6 +335,7 @@ pub fn build_census(
                 &constraint.span.path,
                 constraint.span.line,
                 constraint.span.column,
+                revision,
             ),
         });
     }
@@ -336,6 +352,7 @@ pub fn build_census(
                 &invariant.span.path,
                 invariant.span.line,
                 invariant.span.column,
+                revision,
             ),
         });
     }
@@ -353,7 +370,7 @@ pub fn build_census(
             object: result.passed.to_string(),
             provenance: Provenance {
                 source_path: ".atlas/declared".into(),
-                source_revision: None,
+                source_revision: Some(revision.clone()),
                 extractor: "atlas.adl.constraint-evaluator.v1".into(),
                 content_hash: None,
                 span: None,
@@ -371,7 +388,7 @@ pub fn build_census(
             object: delta.message.clone(),
             provenance: Provenance {
                 source_path: ".atlas/declared".into(),
-                source_revision: None,
+                source_revision: Some(revision.clone()),
                 extractor: "atlas.adl.delta.v1".into(),
                 content_hash: None,
                 span: None,
@@ -391,6 +408,7 @@ pub fn build_census(
                 &transform.span.path,
                 transform.span.line,
                 transform.span.column,
+                revision,
             ),
         });
     }
@@ -410,6 +428,7 @@ pub fn build_census(
                 &materialization.span.path,
                 materialization.span.line,
                 materialization.span.column,
+                revision,
             ),
         });
     }
@@ -593,10 +612,85 @@ pub fn build_census(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    fn test_revision() -> RevisionRef {
+        RevisionRef {
+            kind: "git".into(),
+            value: "abc123".into(),
+        }
+    }
     use atlas_core::{
         ArtifactId, ArtifactKind, ArtifactRecord, BindingDecl, DeclaredEdge, FileFact,
         InventoryReport, SemanticScope, SourceReport, SourceSpan, compile_adl,
     };
+
+    /// Every census-level fact -- artifact disposition/language, every ADL declaration, constraint
+    /// result and declared/observed delta -- carries the census revision and a named extractor
+    /// (G62). Before, all of them were revision-less, so no census could be RECONCILED.
+    #[test]
+    fn every_census_level_fact_carries_the_census_revision() {
+        let inventory = InventoryReport::new(
+            "/repo",
+            vec![ArtifactRecord {
+                id: ArtifactId::new("artifact:rs"),
+                path: "src/lib.rs".into(),
+                kind: ArtifactKind::File,
+                bytes: 10,
+                disposition: ArtifactDisposition::Parsed,
+                language: Some("rust".into()),
+                reason: None,
+                content_digest: None,
+                content_digest_withheld: None,
+            }],
+        );
+        let source = SourceReport {
+            schema: "test".into(),
+            root: "/repo".into(),
+            files_total: 1,
+            languages: BTreeMap::from([("rust".into(), 1)]),
+            files: vec![FileFact {
+                path: "src/lib.rs".into(),
+                language: "rust".into(),
+                bytes: 10,
+            }],
+        };
+        let adl = compile_adl(
+            &[atlas_core::AdlSource {
+                path: ".atlas/declared/system.adl".into(),
+                text: "atlas 1\nsystem Example\n\nentity Runtime Compiler {\n    kind = backend\n    language = rust\n}\n\ncapability CompileGraph {\n    input = AST\n    output = SystemGraph\n}\n\nCompiler ->provides-> CompileGraph\n\nbinding CompilerBinding {\n    consumer = Compiler\n    provider = Compiler\n    capability = CompileGraph\n}\n\nmaterialize Compiler {\n    path = \"core\"\n    language = rust\n}\n\nconstraint BackendIsRust {\n    forall x: Runtime\n        where x.kind == backend\n\n    require x.language == rust\n}\n".into(),
+            }],
+            &source,
+        );
+        assert!(
+            !adl.deltas.is_empty(),
+            "`core` is declared but not observed"
+        );
+        assert!(!adl.constraint_results.is_empty());
+        let report = build_census(&inventory, &source, &adl, &[], &test_revision());
+        for kind in [
+            SemanticFactKind::SourceArtifact,
+            SemanticFactKind::DeclaredNode,
+            SemanticFactKind::DeclaredEdge,
+            SemanticFactKind::Binding,
+            SemanticFactKind::Materialization,
+            SemanticFactKind::Constraint,
+            SemanticFactKind::ConstraintResult,
+            SemanticFactKind::Diagnostic,
+        ] {
+            assert!(
+                report.facts.iter().any(|f| f.kind == kind),
+                "fixture produces a {kind:?} fact"
+            );
+        }
+        for fact in &report.facts {
+            assert_eq!(
+                fact.provenance.source_revision,
+                Some(test_revision()),
+                "{fact:#?}"
+            );
+            assert!(!fact.provenance.extractor.is_empty(), "{fact:#?}");
+        }
+    }
 
     #[test]
     fn census_accounts_for_every_inventory_artifact() {
@@ -639,7 +733,7 @@ mod tests {
             }],
         };
         let adl = compile_adl(&[], &source);
-        let report = build_census(&inventory, &source, &adl, &[]);
+        let report = build_census(&inventory, &source, &adl, &[], &test_revision());
 
         assert!(report.is_closed());
         assert_eq!(report.artifacts_accounted_total, 2);
@@ -1585,7 +1679,7 @@ mod tests {
                 span: span(),
             },
         ];
-        let census = build_census(&inventory, &source, &adl, &[]);
+        let census = build_census(&inventory, &source, &adl, &[], &test_revision());
         let ids: std::collections::BTreeSet<_> = census
             .facts
             .iter()
@@ -1622,7 +1716,7 @@ mod tests {
                 span: span(),
             },
         ];
-        let census = build_census(&inventory, &source, &adl, &[]);
+        let census = build_census(&inventory, &source, &adl, &[], &test_revision());
         let ids: std::collections::BTreeSet<_> = census
             .facts
             .iter()
@@ -1642,7 +1736,7 @@ mod tests {
         let batch = extraction_batch_with_one_symbol("src/lib.rs");
         let batches = [batch];
 
-        let census = build_census(&inventory, &source, &adl, &batches);
+        let census = build_census(&inventory, &source, &adl, &batches, &test_revision());
 
         // 1. Present in the canonical census itself, tagged with the real record identity.
         let symbol_fact = census
@@ -1705,8 +1799,8 @@ mod tests {
         let (inventory, source, adl) = single_rust_file_context();
         let batches = [extraction_batch_with_one_symbol("src/lib.rs")];
 
-        let a = build_census(&inventory, &source, &adl, &batches);
-        let b = build_census(&inventory, &source, &adl, &batches);
+        let a = build_census(&inventory, &source, &adl, &batches, &test_revision());
+        let b = build_census(&inventory, &source, &adl, &batches, &test_revision());
         assert_eq!(a, b);
     }
 
@@ -1739,7 +1833,7 @@ mod tests {
             diagnostics: Vec::new(),
         };
 
-        let census = build_census(&inventory, &source, &adl, &[batch]);
+        let census = build_census(&inventory, &source, &adl, &[batch], &test_revision());
 
         let symbol_obligation_fact = census
             .facts
@@ -1839,7 +1933,7 @@ pub async unsafe extern "C" fn example<T>(x: Vec<T>, y: &mut usize) -> Result<T,
         let batch = function_signature_fixture_batch();
         let batches = [batch];
 
-        let census = build_census(&inventory, &source, &adl, &batches);
+        let census = build_census(&inventory, &source, &adl, &batches, &test_revision());
         let signature = find_function_signature(&census.typed_semantic_records);
 
         assert_eq!(signature.function.symbol.name, "example");
@@ -1890,7 +1984,7 @@ pub async unsafe extern "C" fn example<T>(x: Vec<T>, y: &mut usize) -> Result<T,
         let batch = extraction_batch_with_one_symbol("src/lib.rs");
         let batches = [batch];
 
-        let census = build_census(&inventory, &source, &adl, &batches);
+        let census = build_census(&inventory, &source, &adl, &batches, &test_revision());
         let symbol_header = census
             .typed_semantic_records
             .iter()
@@ -1935,7 +2029,7 @@ pub async unsafe extern "C" fn example<T>(x: Vec<T>, y: &mut usize) -> Result<T,
         let batch = extraction_batch_with_one_symbol("src/lib.rs");
         let batches = [batch];
 
-        let census = build_census(&inventory, &source, &adl, &batches);
+        let census = build_census(&inventory, &source, &adl, &batches, &test_revision());
         let SemanticObservation::Symbol(header) = census
             .typed_semantic_records
             .iter()
@@ -2019,7 +2113,7 @@ pub async unsafe extern "C" fn example<T>(x: Vec<T>, y: &mut usize) -> Result<T,
         let read_failure_batch = extractor_impl.unavailable(&read_input, read_diagnostic);
 
         let batches = [parse_failure_batch, read_failure_batch];
-        let census = build_census(&inventory, &source, &adl, &batches);
+        let census = build_census(&inventory, &source, &adl, &batches, &test_revision());
 
         let parse_diag = census
             .diagnostics
@@ -2079,7 +2173,7 @@ pub async unsafe extern "C" fn example<T>(x: Vec<T>, y: &mut usize) -> Result<T,
         let (inventory, source, adl) = single_rust_file_context();
         let batch = function_signature_fixture_batch();
         let batches = [batch];
-        let census = build_census(&inventory, &source, &adl, &batches);
+        let census = build_census(&inventory, &source, &adl, &batches, &test_revision());
 
         let signature_fact = census
             .facts
@@ -2129,7 +2223,7 @@ pub async unsafe extern "C" fn example<T>(x: Vec<T>, y: &mut usize) -> Result<T,
             extraction_batch_with_one_symbol("src/lib.rs"),
         ];
 
-        let census = build_census(&inventory, &source, &adl, &batches);
+        let census = build_census(&inventory, &source, &adl, &batches, &test_revision());
         let symbol_records: Vec<_> = census
             .typed_semantic_records
             .iter()
@@ -2200,7 +2294,7 @@ pub async unsafe extern "C" fn example<T>(x: Vec<T>, y: &mut usize) -> Result<T,
             ),
         ];
 
-        let census = build_census(&inventory, &source, &adl, &batches);
+        let census = build_census(&inventory, &source, &adl, &batches, &test_revision());
         let function_identities: Vec<_> = census
             .typed_semantic_records
             .iter()
@@ -2280,7 +2374,7 @@ pub async unsafe extern "C" fn example<T>(x: Vec<T>, y: &mut usize) -> Result<T,
             ),
         ];
 
-        let census = build_census(&inventory, &source, &adl, &batches);
+        let census = build_census(&inventory, &source, &adl, &batches, &test_revision());
         let calls: Vec<_> = census
             .typed_semantic_records
             .iter()
@@ -2355,7 +2449,7 @@ pub async unsafe extern "C" fn example<T>(x: Vec<T>, y: &mut usize) -> Result<T,
             ),
         ];
 
-        let census = build_census(&inventory, &source, &adl, &batches);
+        let census = build_census(&inventory, &source, &adl, &batches, &test_revision());
         let blocks: Vec<_> = census
             .typed_semantic_records
             .iter()
@@ -2430,7 +2524,7 @@ pub async unsafe extern "C" fn example<T>(x: Vec<T>, y: &mut usize) -> Result<T,
             ),
         ];
 
-        let census = build_census(&inventory, &source, &adl, &batches);
+        let census = build_census(&inventory, &source, &adl, &batches, &test_revision());
         let values: Vec<_> = census
             .typed_semantic_records
             .iter()
@@ -2505,7 +2599,7 @@ pub async unsafe extern "C" fn example<T>(x: Vec<T>, y: &mut usize) -> Result<T,
             ),
         ];
 
-        let census = build_census(&inventory, &source, &adl, &batches);
+        let census = build_census(&inventory, &source, &adl, &batches, &test_revision());
         let accesses: Vec<_> = census
             .typed_semantic_records
             .iter()
@@ -2574,7 +2668,7 @@ pub async unsafe extern "C" fn example<T>(x: Vec<T>, y: &mut usize) -> Result<T,
             ),
         ];
 
-        let census = build_census(&inventory, &source, &adl, &batches);
+        let census = build_census(&inventory, &source, &adl, &batches, &test_revision());
         let effects: Vec<_> = census
             .typed_semantic_records
             .iter()
@@ -2649,7 +2743,7 @@ pub async unsafe extern "C" fn example<T>(x: Vec<T>, y: &mut usize) -> Result<T,
             ),
         ];
 
-        let census = build_census(&inventory, &source, &adl, &batches);
+        let census = build_census(&inventory, &source, &adl, &batches, &test_revision());
         let ops: Vec<_> = census
             .typed_semantic_records
             .iter()
@@ -2724,7 +2818,7 @@ pub async unsafe extern "C" fn example<T>(x: Vec<T>, y: &mut usize) -> Result<T,
             ),
         ];
 
-        let census = build_census(&inventory, &source, &adl, &batches);
+        let census = build_census(&inventory, &source, &adl, &batches, &test_revision());
         let ops: Vec<_> = census
             .typed_semantic_records
             .iter()
@@ -2797,7 +2891,7 @@ pub async unsafe extern "C" fn example<T>(x: Vec<T>, y: &mut usize) -> Result<T,
             ),
         ];
 
-        let census = build_census(&inventory, &source, &adl, &batches);
+        let census = build_census(&inventory, &source, &adl, &batches, &test_revision());
         let ops: Vec<_> = census
             .typed_semantic_records
             .iter()
@@ -2855,7 +2949,7 @@ pub async unsafe extern "C" fn example<T>(x: Vec<T>, y: &mut usize) -> Result<T,
         let (inventory, source, adl) = single_rust_file_context();
         let batches = two_extractor_symbol_batches();
 
-        let census = build_census(&inventory, &source, &adl, &batches);
+        let census = build_census(&inventory, &source, &adl, &batches, &test_revision());
         let symbol_records: Vec<_> = census
             .typed_semantic_records
             .iter()
@@ -2904,7 +2998,7 @@ pub async unsafe extern "C" fn example<T>(x: Vec<T>, y: &mut usize) -> Result<T,
         let (inventory, source, adl) = single_rust_file_context();
         let batches = two_extractor_symbol_batches();
 
-        let census = build_census(&inventory, &source, &adl, &batches);
+        let census = build_census(&inventory, &source, &adl, &batches, &test_revision());
         let symbol_fact_ids: Vec<&str> = census
             .facts
             .iter()
@@ -2930,7 +3024,7 @@ pub async unsafe extern "C" fn example<T>(x: Vec<T>, y: &mut usize) -> Result<T,
         let (inventory, source, adl) = single_rust_file_context();
         let batches = two_extractor_symbol_batches();
 
-        let census = build_census(&inventory, &source, &adl, &batches);
+        let census = build_census(&inventory, &source, &adl, &batches, &test_revision());
         let normalization = crate::normalize::normalize(&census);
         let symbol_records: Vec<_> = normalization
             .typed_semantic_records
@@ -2964,7 +3058,7 @@ pub async unsafe extern "C" fn example<T>(x: Vec<T>, y: &mut usize) -> Result<T,
         let (inventory, source, adl) = single_rust_file_context();
         let batches = two_extractor_symbol_batches();
 
-        let census = build_census(&inventory, &source, &adl, &batches);
+        let census = build_census(&inventory, &source, &adl, &batches, &test_revision());
         assert!(census.evidence.iter().any(|item| item.id == "evidence:a"));
         assert!(census.evidence.iter().any(|item| item.id == "evidence:b"));
 
@@ -2991,7 +3085,7 @@ pub async unsafe extern "C" fn example<T>(x: Vec<T>, y: &mut usize) -> Result<T,
         let batch = extraction_batch_with_one_symbol("src/lib.rs");
         let batches = [batch];
 
-        let census = build_census(&inventory, &source, &adl, &batches);
+        let census = build_census(&inventory, &source, &adl, &batches, &test_revision());
         let obligation = census
             .typed_obligations
             .iter()
@@ -3092,7 +3186,7 @@ pub async unsafe extern "C" fn example<T>(x: Vec<T>, y: &mut usize) -> Result<T,
         let read_failure_batch = extractor_impl.unavailable(&read_input, read_diagnostic);
 
         let batches = [parse_failure_batch, read_failure_batch];
-        let census = build_census(&inventory, &source, &adl, &batches);
+        let census = build_census(&inventory, &source, &adl, &batches, &test_revision());
 
         // Using ONLY the canonical, serializable Census fields (typed_obligations + diagnostics)
         // -- never `runtime::census::CensusExtractionAccounting` -- prove the two artifacts'
@@ -3150,7 +3244,7 @@ pub async unsafe extern "C" fn example<T>(x: Vec<T>, y: &mut usize) -> Result<T,
         let (inventory, source, adl) = single_rust_file_context();
         let batch = extraction_batch_with_one_symbol("src/lib.rs");
         let batches = [batch];
-        let census = build_census(&inventory, &source, &adl, &batches);
+        let census = build_census(&inventory, &source, &adl, &batches, &test_revision());
 
         // `CensusReport`/`NormalizationReport` are direct fields of `SystemizeReport`, so a
         // lossless serde round trip here proves the same for the full serialized report.
@@ -3192,7 +3286,7 @@ pub async unsafe extern "C" fn example<T>(x: Vec<T>, y: &mut usize) -> Result<T,
         let (inventory, source, adl) = single_rust_file_context();
         let batches = two_extractor_symbol_batches();
 
-        let census = build_census(&inventory, &source, &adl, &batches);
+        let census = build_census(&inventory, &source, &adl, &batches, &test_revision());
         let mut accounting = CensusExtractionAccounting::new();
         for batch in &batches {
             accounting.record_batch(batch);
@@ -3331,7 +3425,7 @@ pub fn commits_a_store(store: &mut Store) {
         let batch = extract_reference_profile();
         assert!(batch.is_closed(&ALL_SEMANTIC_DIMENSIONS));
 
-        let census = build_census(&inventory, &source, &adl, &[batch]);
+        let census = build_census(&inventory, &source, &adl, &[batch], &test_revision());
         assert!(census.is_closed());
         for &dimension in &ALL_SEMANTIC_DIMENSIONS {
             assert_ne!(
@@ -3430,8 +3524,9 @@ pub fn commits_a_store(store: &mut Store) {
             unknown_batch.clone(),
         ];
 
-        let sandwiched_census = build_census(&inventory, &source, &adl, &sandwiched);
-        let adjacent_census = build_census(&inventory, &source, &adl, &adjacent);
+        let sandwiched_census =
+            build_census(&inventory, &source, &adl, &sandwiched, &test_revision());
+        let adjacent_census = build_census(&inventory, &source, &adl, &adjacent, &test_revision());
 
         assert_eq!(
             sandwiched_census.typed_obligations.len(),

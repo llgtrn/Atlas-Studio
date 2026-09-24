@@ -154,6 +154,21 @@ struct CensusInputs {
     extraction_batches: Vec<adapter::ExtractionBatch>,
 }
 
+impl CensusInputs {
+    /// The one place a census is built from gathered inputs: every entry point (`systemize`,
+    /// `graph`, `code_analyze`) stamps census-level and ADL facts with the same snapshot revision
+    /// its extraction batches carry (G62).
+    fn census(&self) -> atlas_core::CensusReport {
+        census::build_census(
+            &self.inventory,
+            &self.source,
+            &self.adl,
+            &self.extraction_batches,
+            &self.snapshot.revision(),
+        )
+    }
+}
+
 fn gather_census_inputs(
     root: &Path,
     cache: Option<&mut census::extraction::ExtractionCache>,
@@ -218,6 +233,8 @@ pub fn systemize_with(
     mut cache: Option<&mut census::extraction::ExtractionCache>,
 ) -> io::Result<SystemizeReport> {
     let root = root.as_ref();
+    let inputs = gather_census_inputs(root, cache.as_deref_mut())?;
+    let mut census = inputs.census();
     let CensusInputs {
         snapshot,
         repository,
@@ -226,7 +243,7 @@ pub fn systemize_with(
         docs,
         adl,
         extraction_batches,
-    } = gather_census_inputs(root, cache.as_deref_mut())?;
+    } = inputs;
 
     // R4.3.1: semantic extraction runs BEFORE census construction, and its results flow directly
     // into the canonical `CensusReport` that `normalize`/`graph` below then consume -- extraction
@@ -234,13 +251,12 @@ pub fn systemize_with(
     // (`.atlas/contracts/SEMANTIC-EXTRACTION.md`: "Census -> Normalize -> Reconcile -> Engineering
     // Graph" is the one normalized path). `extraction_accounting` and `census` are both built from
     // the exact same `extraction_batches`, so closure accounting and canonical census truth can
-    // never disagree about what extraction produced.
+    // never disagree about what extraction produced (`census` is `CensusInputs::census` above).
     let mut extraction_accounting = census::CensusExtractionAccounting::new();
     for batch in &extraction_batches {
         extraction_accounting.record_batch(batch);
     }
 
-    let mut census = census::build_census(&inventory, &source, &adl, &extraction_batches);
     let normalization = normalize::normalize(&census);
 
     // `.atlas/contracts/DEPENDENCY-CENSUS.md`: census does not stop at the repository boundary.
@@ -370,15 +386,11 @@ pub fn check(root: impl AsRef<Path>) -> io::Result<AdlCompileReport> {
 
 pub fn graph(root: impl AsRef<Path>) -> io::Result<EngineeringGraph> {
     let root = root.as_ref();
+    let inputs = gather_census_inputs(root, None)?;
+    let census = inputs.census();
     let CensusInputs {
-        inventory,
-        source,
-        docs,
-        adl,
-        extraction_batches,
-        ..
-    } = gather_census_inputs(root, None)?;
-    let census = census::build_census(&inventory, &source, &adl, &extraction_batches);
+        source, docs, adl, ..
+    } = inputs;
     let normalization = normalize::normalize(&census);
     let mut graph = build_system_graph(&source, &docs, &normalization);
     add_constraint_derivations(&mut graph, &adl.constraint_results);
@@ -396,15 +408,15 @@ pub fn docs_audit(root: impl AsRef<Path>) -> io::Result<DocsReport> {
 
 pub fn code_analyze(root: impl AsRef<Path>) -> io::Result<serde_json::Value> {
     let root = root.as_ref();
+    let inputs = gather_census_inputs(root, None)?;
+    let mut census = inputs.census();
     let CensusInputs {
         inventory,
         source,
         docs,
         adl,
-        extraction_batches,
         ..
-    } = gather_census_inputs(root, None)?;
-    let mut census = census::build_census(&inventory, &source, &adl, &extraction_batches);
+    } = inputs;
     // Same promotion `systemize` applies (`.atlas/contracts/DEPENDENCY-CENSUS.md`): `BUILD`
     // starts life as a permanent `Unsupported` stub in `census::build_census` and must be
     // promoted to real evidence once a real, closed Cargo dependency closure exists -- otherwise
