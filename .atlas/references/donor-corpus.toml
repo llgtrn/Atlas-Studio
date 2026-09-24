@@ -350,11 +350,11 @@ retrieved_at = "2026-09-20T12:08:55.4960343Z"
 license = [".atlas/licenses/souffle/LICENSE"]
 technology_domains = ["datalog", "static_analysis", "fixed_point"]
 ingestion_status = "CLONED"
-census_status = "SKELETON"
+census_status = "COARSE_CENSUSED"
 decision_status = "PENDING"
 native_replacement = "runtime rule/inference substrate"
 runtime_dependency_status = "REFERENCE_ONLY"
-evidence = [".atlas/provenance/donors/souffle.json", ".atlas/census/souffle.md"]
+evidence = [".atlas/provenance/donors/souffle.json", ".atlas/census/souffle.md", ".atlas/genome/technology/souffle-provenance-backed-derivation.md"]
 
 [[donor]]
 id = "sourcetrail"
