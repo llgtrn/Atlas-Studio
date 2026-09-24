@@ -131,6 +131,30 @@ fn run(args: &[String]) -> Result<(), String> {
                 return Err("CODING_ADMISSION_NOT_ALLOWED".into());
             }
         }
+        [cmd, rest @ ..] if cmd == "physical" => {
+            // Physical Engineering milestone 1 (ADR 0012): digital-only model of declared arms.
+            let root = value(rest, "--root")?.ok_or("physical requires --root")?;
+            let analysis =
+                runtime::physical::analyze_root(&root).map_err(|e| format!("{root}: {e}"))?;
+            let text = json(&analysis)? + "\n";
+            if let Some(out) = value(rest, "--out")? {
+                write_report_to_out(&out, &text)?;
+            }
+            print!("{text}");
+            let undecided = analysis
+                .physical
+                .findings
+                .iter()
+                .any(|f| !f.verdict.admits())
+                || analysis
+                    .physical
+                    .requirements
+                    .iter()
+                    .any(|check| !check.verdict.admits());
+            if undecided {
+                return Err("PHYSICAL_REQUIREMENTS_NOT_SATISFIED".into());
+            }
+        }
         [cmd, rest @ ..] if cmd == "observe" => {
             // Creator Fabric (ADR 0011): observe an authorized local fixture through the
             // sandboxed browser instrument; one `--viewport WxH` per viewport (default 1280x800
@@ -176,7 +200,7 @@ fn run(args: &[String]) -> Result<(), String> {
         }
         _ => {
             return Err(
-                "usage: atlas-systemizer <contract|systemize|docs audit|code analyze|parse|check|graph|observe|work prepare> ..."
+                "usage: atlas-systemizer <contract|systemize|docs audit|code analyze|parse|check|graph|observe|physical|work prepare> ..."
                     .into(),
             );
         }

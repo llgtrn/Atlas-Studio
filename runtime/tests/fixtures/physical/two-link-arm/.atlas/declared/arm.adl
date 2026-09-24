@@ -1,0 +1,41 @@
+atlas 1
+system TwoLinkArm
+
+entity Arm Arm1 {
+    payload = 0.5 kg
+    required_reach = 500 mm
+    shoulder_torque_limit = 5 N*m
+}
+
+entity Link Upper {
+    arm = Arm1
+    index = 1
+    length = 300 mm
+    mass = 0.4 kg
+}
+
+entity Link Fore {
+    arm = Arm1
+    index = 2
+    length = 0.25 m
+    mass = 300 g
+}
+
+entity Joint Shoulder {
+    arm = Arm1
+    index = 1
+    lower = -1.5 rad
+    upper = 1.5 rad
+}
+
+entity Joint Elbow {
+    arm = Arm1
+    index = 2
+    lower = -2 rad
+    upper = 2 rad
+}
+
+invariant LinksAreLight {
+    forall l: Link
+    require l.mass <= 0.5 kg
+}

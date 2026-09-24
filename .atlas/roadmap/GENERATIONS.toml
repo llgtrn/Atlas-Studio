@@ -13,7 +13,7 @@
 #       -> generation evidence -> G_n+1
 
 schema = "atlas.self-build.generation-ledger.v1"
-current_generation = "G43"
+current_generation = "G44"
 
 [[generation]]
 id = "G35"
@@ -360,6 +360,7 @@ id = "G43"
 base_commit = "301adeda8d691d50b7fbd382ae159aa28f496ec2"
 objective = "Creator Fabric first primitive: hermetic browser observation record + ratio-first layout semantics"
 writer = "coordinator (sole production writer)"
+result_commits = ["cd9a15ba976ddea7cc034db8024cebbb6453b176"]
 evidence = ".atlas/decisions/0011-visual-observation-record.md"
 
 [generation.join]
@@ -374,4 +375,24 @@ tests = "workspace green; browser tests skip loudly only without Playwright"
 
 [generation.next]
 objective = "G44: physical milestone 1 -- 2-link arm frames + planar forward kinematics with quantity-typed parameters and ADL constraints; then Creator breakpoint bisection (browser as instrument)"
+
+[[generation]]
+id = "G44"
+base_commit = "cd9a15ba976ddea7cc034db8024cebbb6453b176"
+objective = "physical milestone 1: declared 2-link arm -> Physical IR -> kinematic model -> requirement verdicts (digital only)"
+writer = "coordinator (sole production writer)"
+evidence = ".atlas/decisions/0012-planar-arm-physical-model.md"
+
+[generation.join]
+absorb_now_exists = false
+selected_action = "native: core::physical::PlanarArm + runtime::physical + atlas-systemizer physical; contracts/PHYSICAL-ENGINEERING.md (evidence levels, units-first, execution boundary)"
+decision_record = ".atlas/decisions/0012-planar-arm-physical-model.md"
+
+[generation.verification]
+falsification = "7 mutants killed (centre of mass, payload, dimension check, joint-limit order, boundary equality, cumulative FK angles, gravity rounded)"
+production_path = "atlas-systemizer physical on the ADL arm fixture: reach exactly 550 mm, torque exactly 4.535575625 N*m, requirements SATISFIED, ADL invariant l.mass <= 0.5 kg SATISFIED; a 3 N*m limit exits 2"
+evidence_level = "SEMANTIC_MODEL"
+
+[generation.next]
+objective = "G45: Creator browser-as-instrument (breakpoint bisection -> INFERRED breakpoint); physical milestone 2 (motor + gear ratio + current + rail: cross-domain contradiction detection)"
 

@@ -12,6 +12,7 @@ pub mod evidence;
 pub mod graph;
 pub mod identity;
 pub mod language;
+pub mod physical;
 pub mod provenance;
 pub mod quantity;
 pub mod schema;

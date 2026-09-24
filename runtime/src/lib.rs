@@ -3,6 +3,7 @@
 pub mod census;
 pub mod inventory;
 pub mod normalize;
+pub mod physical;
 pub mod visual;
 
 use atlas_core::{
