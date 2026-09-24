@@ -2,12 +2,13 @@
 //! instrument and derive its visual semantics (ADR 0011).
 
 use atlas_core::{
-    EpistemicStatus, IntegrityDigest,
+    ConstraintVerdict, EpistemicStatus, IntegrityDigest,
     visual::{
         DeclaredTiming, ElementObservation, InteractionAnalysis, InteractionObservation,
         MotionInference, MotionObservation, ObservationInstrument, ObservedChange,
         ResponsiveChange, ResponsiveRule, Stimulus, VISUAL_OBSERVATION_SCHEMA, ViewportObservation,
         VisualAnalysis, VisualObservationReport, VisualSubject, analyze, analyze_interactions,
+        compose::{DesignIntent, IntentCheck, RenderedEvidence, lower_to_html, verify_intent},
         infer_motion,
     },
 };
@@ -333,6 +334,84 @@ pub fn motion_fixture(fixture: &Path, viewport: (u32, u32)) -> io::Result<Motion
     })
 }
 
+pub use atlas_core::visual::compose::DesignIntent as CreatorIntent;
+
+/// What `atlas-systemizer create` emits (ADR 0017): the intent, the constructed artifact's
+/// identity, and every intended relation checked against the re-observed render.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct CreationReport {
+    pub schema: String,
+    pub intent: DesignIntent,
+    pub artifact_path: String,
+    pub artifact_digest: IntegrityDigest,
+    pub checks: Vec<IntentCheck>,
+    /// Strong-Kleene conjunction of every check.
+    pub verdict: ConstraintVerdict,
+}
+
+/// Observes an artifact through every instrument mode and checks it against `intent`.
+pub fn verify_artifact(
+    intent: &DesignIntent,
+    artifact: &Path,
+    wide: u32,
+    narrow: u32,
+) -> io::Result<CreationReport> {
+    let height = 800;
+    let layout = observe_fixture(artifact, &[(wide, height), (narrow, height)])?;
+    let bisected = bisect_breakpoints(artifact, narrow, wide, height)?;
+    let interactions = interact_fixture(artifact, (wide, height))?;
+    let motion = motion_fixture(artifact, (wide, height))?;
+    let breakpoints: Vec<_> = bisected
+        .breakpoints
+        .iter()
+        .map(|b| {
+            (
+                b.element.clone(),
+                b.change.clone(),
+                b.narrow_width,
+                b.wide_width,
+            )
+        })
+        .collect();
+    let checks = verify_intent(
+        intent,
+        &RenderedEvidence {
+            layout: &layout.observation,
+            breakpoints: &breakpoints,
+            interactions: &interactions.analysis,
+            motion: &motion.inferences,
+        },
+        wide,
+        narrow,
+    );
+    let verdict = ConstraintVerdict::all(checks.iter().map(|check| check.verdict));
+    Ok(CreationReport {
+        schema: "atlas.creation-report.v1".into(),
+        intent: intent.clone(),
+        artifact_path: artifact.to_string_lossy().into_owned(),
+        artifact_digest: layout.observation.subject.content_digest,
+        checks,
+        verdict,
+    })
+}
+
+/// CREATE -> LOWER -> RENDER -> RE-OBSERVE -> VERIFY: lowers `intent` to `out`, then verifies the
+/// written artifact through the instrument at viewports either side of its breakpoint.
+pub fn create_and_verify(intent: &DesignIntent, out: &Path) -> io::Result<CreationReport> {
+    intent
+        .validate()
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+    if let Some(parent) = out.parent() {
+        fs::create_dir_all(parent)?;
+    }
+    fs::write(out, lower_to_html(intent))?;
+    let wide = (intent.breakpoint_px * 2).max(1280);
+    let narrow = (intent.breakpoint_px / 2)
+        .max(320)
+        .min(intent.breakpoint_px - 1);
+    verify_artifact(intent, out, wide, narrow)
+}
+
 /// Width-indexed single-viewport observations of one subject, all required to share its digest.
 struct Probes<'a> {
     fixture: &'a Path,
@@ -650,6 +729,94 @@ mod tests {
             100.0,
             "sampling starts after the delay"
         );
+    }
+
+    fn original_intent() -> DesignIntent {
+        use atlas_core::visual::compose::{GridIntent, HeroIntent};
+        // Deliberately unlike every reference fixture: 3:2 media, 3:2 share, a 4-column square
+        // grid, an 820 px breakpoint, and a 200 ms ease-in-out lift.
+        DesignIntent {
+            name: "g49-original".into(),
+            root_font_px: 16,
+            breakpoint_px: 820,
+            hero: HeroIntent {
+                media_aspect: (3, 2),
+                share: (3, 2),
+                gap_em: 1.5,
+                copy_font_ratio: 1.5,
+            },
+            grid: GridIntent {
+                columns: 4,
+                items: 4,
+                item_aspect: (1, 1),
+                gap_em: 1.0,
+                hover_lift_px: 6,
+                hover_easing: "ease-in-out".into(),
+                hover_duration_ms: 200,
+            },
+        }
+    }
+
+    #[test]
+    fn a_created_composition_verifies_against_its_intent_and_a_tampered_one_does_not() {
+        if adapter::browser::playwright_module().is_none() {
+            eprintln!("SKIP: no Playwright browser instrument in this environment");
+            return;
+        }
+        let dir = std::env::temp_dir().join(format!("atlas-create-{}", std::process::id()));
+        let intent = original_intent();
+        let report = create_and_verify(&intent, &dir.join("page.html")).unwrap();
+        assert_eq!(
+            report.verdict,
+            ConstraintVerdict::Satisfied,
+            "{:#?}",
+            report.checks
+        );
+        assert!(report.checks.len() >= 10);
+
+        // Falsification: the same intent against an artifact whose grid items are 4:3 and whose
+        // easing is linear must fail exactly those checks.
+        let tampered = lower_to_html(&intent)
+            .replace("aspect-ratio: 1 / 1", "aspect-ratio: 4 / 3")
+            .replace("200ms ease-in-out", "200ms linear")
+            .replace("max-width: 819px", "max-width: 799px");
+        let tampered_path = dir.join("tampered.html");
+        fs::write(&tampered_path, tampered).unwrap();
+        let check = verify_artifact(&intent, &tampered_path, 1640, 410).unwrap();
+        assert_eq!(check.verdict, ConstraintVerdict::Violated);
+        let violated: Vec<&str> = check
+            .checks
+            .iter()
+            .filter(|c| c.verdict == ConstraintVerdict::Violated)
+            .map(|c| c.intent.as_str())
+            .collect();
+        assert!(
+            violated.iter().any(|i| i.starts_with("grid item aspect")),
+            "{violated:?}"
+        );
+        assert!(
+            violated
+                .iter()
+                .any(|i| i.starts_with("hover motion easing")),
+            "{violated:?}"
+        );
+        assert!(
+            violated.iter().any(|i| i.starts_with("grid collapses")),
+            "{violated:?}"
+        );
+        // The tampered media query moves the shared breakpoint, so the hero stacking check fails
+        // too; the hero's own ratios were untouched and must still hold.
+        assert!(
+            violated.iter().any(|i| i.starts_with("hero stacks")),
+            "{violated:?}"
+        );
+        assert!(
+            !violated
+                .iter()
+                .any(|i| i.starts_with("hero media aspect") || i.starts_with("hero share")),
+            "untouched relations still hold: {violated:?}"
+        );
+        let _ = fs::remove_dir_all(&dir);
     }
 
     #[test]

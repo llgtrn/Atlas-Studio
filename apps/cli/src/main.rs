@@ -155,6 +155,26 @@ fn run(args: &[String]) -> Result<(), String> {
                 return Err("PHYSICAL_REQUIREMENTS_NOT_SATISFIED".into());
             }
         }
+        [cmd, rest @ ..] if cmd == "create" => {
+            // Creator construction loop (ADR 0017): intent -> HTML/CSS -> render -> re-observe ->
+            // verify every intended relation.
+            let intent_path = value(rest, "--intent")?.ok_or("create requires --intent")?;
+            let out = value(rest, "--out")?.ok_or("create requires --out (the page to write)")?;
+            let text =
+                fs::read_to_string(&intent_path).map_err(|e| format!("{intent_path}: {e}"))?;
+            let intent: runtime::visual::CreatorIntent =
+                serde_json::from_str(&text).map_err(|e| format!("{intent_path}: {e}"))?;
+            let report = runtime::visual::create_and_verify(&intent, std::path::Path::new(&out))
+                .map_err(|e| format!("{out}: {e}"))?;
+            let text = json(&report)? + "\n";
+            if let Some(report_out) = value(rest, "--report")? {
+                write_report_to_out(&report_out, &text)?;
+            }
+            print!("{text}");
+            if !report.verdict.admits() {
+                return Err("CREATION_NOT_VERIFIED".into());
+            }
+        }
         [cmd, rest @ ..] if cmd == "observe" => {
             // Creator Fabric (ADR 0011): observe an authorized local fixture through the
             // sandboxed browser instrument; one `--viewport WxH` per viewport (default 1280x800
@@ -230,7 +250,7 @@ fn run(args: &[String]) -> Result<(), String> {
         }
         _ => {
             return Err(
-                "usage: atlas-systemizer <contract|systemize|docs audit|code analyze|parse|check|graph|observe|physical|work prepare> ..."
+                "usage: atlas-systemizer <contract|systemize|docs audit|code analyze|parse|check|graph|observe|create|physical|work prepare> ..."
                     .into(),
             );
         }

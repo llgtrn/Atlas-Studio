@@ -1,0 +1,15 @@
+{
+  "name": "g49-original",
+  "root_font_px": 16,
+  "breakpoint_px": 820,
+  "hero": { "media_aspect": [3, 2], "share": [3, 2], "gap_em": 1.5, "copy_font_ratio": 1.5 },
+  "grid": {
+    "columns": 4,
+    "items": 4,
+    "item_aspect": [1, 1],
+    "gap_em": 1.0,
+    "hover_lift_px": 6,
+    "hover_easing": "ease-in-out",
+    "hover_duration_ms": 200
+  }
+}

@@ -80,4 +80,9 @@ Creator Fabric follows UNDERSTAND → ABSTRACT → RECOMBINE → CREATE, never S
   - `adapter::browser`: the hermetic instrument.
   - `runtime::visual::observe_fixture`.
   - `atlas-systemizer observe --fixture F [--viewport WxH]... [--out O]`.
-- Motion, interaction, synthesis, construction and media lanes are not yet implemented.
+- **G45–G49 (ADRs 0013, 0015, 0016, 0017):**
+  - breakpoint bisection (`observe --bisect`);
+  - interaction stimuli and mechanisms (`observe --interact`);
+  - motion curve sampling and validated easing inference (`observe --motion`);
+  - the construction loop (`create`): a ratio-first `DesignIntent` is lowered to placeholder-only HTML/CSS, rendered, re-observed and verified relation by relation.
+- The design genome, recombination, multi-candidate search, and the media lanes (image, video, 2D, 3D) are not yet implemented.

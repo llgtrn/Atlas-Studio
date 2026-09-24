@@ -13,7 +13,7 @@
 #       -> generation evidence -> G_n+1
 
 schema = "atlas.self-build.generation-ledger.v1"
-current_generation = "G48"
+current_generation = "G49"
 
 [[generation]]
 id = "G35"
@@ -452,6 +452,7 @@ id = "G48"
 base_commit = "5391310ac8437a78832a1c12791bcef316c39c0b"
 objective = "Creator motion: deterministic curve sampling and easing inference validated against declared timing"
 writer = "coordinator (sole production writer)"
+result_commits = ["1ca0056e0c3df920f5e0030f676fb8b80d1be497", "4ff9ce86cb2f4fe1cea6f8f4b297a4465cd3e7ed"]
 evidence = ".atlas/decisions/0016-motion-curve-inference.md"
 
 [generation.verification]
@@ -461,4 +462,18 @@ production_path = "atlas-systemizer observe --motion: 5/5 easings inferred from 
 
 [generation.next]
 objective = "G49: first Creator construction loop -- synthesize an original composition from extracted relations+mechanisms, lower to HTML/CSS, render, re-observe, verify the intended relations (UNDERSTAND->ABSTRACT->RECOMBINE->CREATE->VERIFY)"
+
+[[generation]]
+id = "G49"
+base_commit = "4ff9ce86cb2f4fe1cea6f8f4b297a4465cd3e7ed"
+objective = "first Creator construction loop: original intent -> HTML/CSS -> render -> re-observe -> verify every intended relation"
+writer = "coordinator (sole production writer)"
+evidence = ".atlas/decisions/0017-creator-construction-loop.md"
+
+[generation.verification]
+falsification = "4 mutants killed; a tampered artifact fails exactly its tampered relations; one mutant first survived because a reflowed test line made an edit silently no-op -- assertion added"
+production_path = "atlas-systemizer create on original-intent.json: 10/10 checks SATISFIED on the real render"
+
+[generation.next]
+objective = "G50: design genome -- extract mechanisms with provenance from observed references and recombine them into new verified intents; or physical dynamics along a trajectory"
 

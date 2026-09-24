@@ -15,6 +15,8 @@
 //!   grid column count, siblings stacking, display), stated as the width interval in which the
 //!   change occurs -- never as an exact breakpoint the instrument did not measure.
 
+pub mod compose;
+
 use crate::{EpistemicStatus, IntegrityDigest};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
