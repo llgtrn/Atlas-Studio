@@ -90,6 +90,21 @@ fn run(args: &[String]) -> Result<(), String> {
             let text = json(&report)? + "\n";
             write_report_to_out(&out, &text)?;
             print!("{text}");
+            // Every sibling subcommand whose report carries a readiness gate enforces it here
+            // (`docs audit` -> DOCS_GATE_NOT_READY, `check` -> ADL_CHECK_NOT_READY, `work prepare`
+            // -> WORK_PREPARE_NOT_ALLOWED) so a blocked repository makes the process exit non-zero,
+            // not just print a report a caller must remember to re-parse. `systemize` carries the
+            // single most consequential gate of all -- `coding_admission.allowed`, derived from
+            // every blocker this pipeline can raise (REPO_GATE_NOT_READY, DOCS_GATE_NOT_READY,
+            // ADL_DIAGNOSTICS_PRESENT, ADL_CONSTRAINT_VIOLATED, and every *_ACCOUNTING_NOT_CLOSED/
+            // DEPENDENCY_CLOSURE_NOT_CLOSED coverage gap) -- yet this was the one handler that
+            // silently dropped the check its three siblings all have: `.atlas/repo.toml`'s own
+            // `compile` command invokes exactly this subcommand, so any orchestration step gating
+            // on this process's exit code (rather than re-parsing the JSON body itself) previously
+            // treated a blocked repository as a successful compile.
+            if !report.coding_admission.allowed {
+                return Err("CODING_ADMISSION_NOT_ALLOWED".into());
+            }
         }
         [cmd, sub, rest @ ..] if cmd == "work" && sub == "prepare" => {
             let root = value(rest, "--root").ok_or("work prepare requires --root")?;
@@ -193,5 +208,55 @@ mod tests {
         );
 
         std::fs::remove_file(&blocking_file).unwrap();
+    }
+
+    // Falsification: `docs audit`, `check`, and `work prepare` each enforce their own report's
+    // readiness field with a distinct error (`DOCS_GATE_NOT_READY`/`ADL_CHECK_NOT_READY`/
+    // `WORK_PREPARE_NOT_ALLOWED`) so a blocked repository makes the process exit non-zero.
+    // `systemize` -- the one subcommand `.atlas/repo.toml`'s own `compile` command invokes --
+    // silently dropped this check: no branch in its handler could ever return `Err`, so a
+    // repository with `coding_admission.allowed == false` (e.g. no admitted `.atlas/repo.toml` at
+    // all, `REPO_GATE_NOT_READY`) still exited 0. Confirmed against the unfixed code before
+    // writing this fix.
+    #[test]
+    fn a_repository_with_no_admitted_manifest_makes_systemize_exit_non_zero() {
+        let dir = std::env::temp_dir().join(format!(
+            "atlas-cli-tests-no-manifest-{}",
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_nanos()
+        ));
+        std::fs::create_dir_all(&dir).unwrap();
+        // `runtime::systemize` requires a real git repository (it pins identity via
+        // `git rev-parse HEAD`) -- this scratch repo has a commit but deliberately no
+        // `.atlas/repo.toml` at all, the exact `REPO_GATE_NOT_READY` shape.
+        let run_git = |args: &[&str]| {
+            let status = std::process::Command::new("git")
+                .args(args)
+                .current_dir(&dir)
+                .status()
+                .unwrap();
+            assert!(status.success(), "git {args:?} failed");
+        };
+        run_git(&["init", "--quiet"]);
+        run_git(&["config", "user.email", "test@example.com"]);
+        run_git(&["config", "user.name", "test"]);
+        std::fs::write(dir.join("README.md"), "no atlas manifest here\n").unwrap();
+        run_git(&["add", "."]);
+        run_git(&["commit", "--quiet", "-m", "init"]);
+        let out = dir.join("out.json").to_string_lossy().into_owned();
+
+        let err = run(&[
+            "systemize".to_owned(),
+            "--root".to_owned(),
+            dir.to_string_lossy().into_owned(),
+            "--out".to_owned(),
+            out,
+        ])
+        .expect_err("a repository with no admitted manifest must not exit successfully");
+        assert_eq!(err, "CODING_ADMISSION_NOT_ALLOWED");
+
+        std::fs::remove_dir_all(&dir).unwrap();
     }
 }

@@ -1,0 +1,52 @@
+{
+  "schema": "atlas.self-build.generation-evidence.v1",
+  "wave": "CORRECTNESS / ARCHITECTURAL INTEGRITY -- the systemize CLI subcommand never enforced coding_admission.allowed, so it always exited 0 regardless of whether the repository was blocked",
+  "wave_title": "A fourth delegated fresh-census investigation, given a full read of apps/cli/src/main.rs, found that the `systemize` subcommand handler is the only one of four report-carrying subcommands that never checks its own report's readiness field before returning. `docs audit` checks `report.gate_ready`, `check` checks `report.diagnostics`/`report.constraint_results`, `work prepare` checks `report.allowed` -- each returning a distinct `Err` (mapping to a non-zero process exit code) when its own gate is not satisfied. `systemize` computes `report.coding_admission.allowed` (the single most consequential readiness gate in the whole system) but never reads it back after computing it.",
+  "priority_classification": "correctness / architectural integrity (priority 1) -- `.atlas/repo.toml`'s own `compile` command is defined as exactly this CLI invocation (`systemize --root . --out .atlas/.cache/systemize-report.json`); any orchestration step that gates on this process's exit code, rather than re-parsing the JSON body itself, previously treated a blocked repository as a successful compile.",
+  "gap_discovered_by": "A delegated Explore-agent investigation, explicitly given `apps/cli/src/main.rs` for a full read (a prior investigation had only checked its admission/blocker logic narrowly). It compared all four report-carrying subcommand handlers side by side and found `systemize`'s handler has no branch that can ever return `Err` -- confirmed by running it against this repository's own real, currently-clean workspace and observing exit code 0 with `coding_admission.allowed: true` printed in the output, then confirming by code inspection (not by constructing a live blocked-repo repro, since the investigating agent's own task was read-only) that no code path exists to make it exit non-zero for any repository state, however many blockers accumulate.",
+  "verification_before_acting": [
+    "Re-read the whole `run` function in `apps/cli/src/main.rs` directly myself: confirmed the four report-carrying subcommands' exact enforcement shapes (`docs audit` -> `DOCS_GATE_NOT_READY` on `!report.gate_ready`; `check` -> `ADL_CHECK_NOT_READY` on non-empty diagnostics/failed constraint_results; `work prepare` -> `WORK_PREPARE_NOT_ALLOWED` on `!report.allowed`) and confirmed `systemize`'s handler has none of this.",
+    "Confirmed `SystemizeReport.coding_admission: CodingAdmission` (core/src/schema/mod.rs) and `CodingAdmission { allowed: bool, blockers: Vec<String>, .. }` (core/src/constraint/mod.rs) -- the exact field this fix needed was already computed and present on the report, just never read back by the CLI handler.",
+    "Read `.atlas/contracts/ADL-TO-ATLAS.md`'s own documented history: a prior generation found and fixed a REPORT-CONTENT disagreement (`check` correctly flagged `ADL_CHECK_NOT_READY` for a stale materialization path while `coding_admission.allowed` simultaneously read `true` for the same repository state) by aligning the two reports' own underlying facts -- but that fix never added exit-code enforcement to `systemize` itself, confirming this generation closes a genuinely separate, still-open gap at the CLI dispatch layer, not a re-opened prior fix.",
+    "Built a real scratch git repository with NO `.atlas/repo.toml` at all (the `REPO_GATE_NOT_READY` shape) and ran the real CLI `run()` function against it: confirmed `coding_admission.allowed` is `false` for this repository state and, before the fix, `run()` still returned `Ok(())`.",
+    "Falsified the fix directly: temporarily replaced the new `if !report.coding_admission.allowed` condition with `if false`, re-ran the new test, watched it fail (the `.expect_err()` call panicked because `run()` returned `Ok`), then restored the real condition and re-ran to confirm it passes.",
+    "Ran the exact real invocation `.atlas/repo.toml`'s own `compile` command specifies (`systemize --root . --out .atlas/.cache/systemize-report.json`, via `cargo run -p atlas-cli --bin atlas-systemizer`) against this repository's own current, clean state: exit code 0, confirming zero regression for the currently-admitted repository."
+  ],
+  "design_decisions": [
+    {
+      "question": "Should the new error string embed the actual blocker list (e.g. `format!(\"CODING_ADMISSION_NOT_ALLOWED: {:?}\", blockers)`), or stay a bare fixed string?",
+      "decision": "Bare fixed string (`\"CODING_ADMISSION_NOT_ALLOWED\"`), matching every sibling subcommand's own convention exactly (`DOCS_GATE_NOT_READY`, `ADL_CHECK_NOT_READY`, `WORK_PREPARE_NOT_ALLOWED` -- none of them embed dynamic detail in the error string). The actual blocker list is already present in the JSON report this handler already printed to stdout and wrote to `--out` moments earlier; duplicating it into the stderr error string would be redundant and break the established one-fixed-string-per-gate pattern the other three handlers already establish."
+    }
+  ],
+  "stable_validator_law_compliance": {
+    "claim": "`atlas-cli systemize` now exits non-zero (`CODING_ADMISSION_NOT_ALLOWED`) whenever `report.coding_admission.allowed` is `false`, for any reason (`REPO_GATE_NOT_READY`, `DOCS_GATE_NOT_READY`, `ADL_DIAGNOSTICS_PRESENT`, `ADL_CONSTRAINT_VIOLATED`, or any `*_ACCOUNTING_NOT_CLOSED`/`DEPENDENCY_CLOSURE_NOT_CLOSED` coverage gap), matching the enforcement discipline its three sibling subcommands already had. A repository whose coding admission is already allowed (this repository's own current state) is completely unaffected.",
+    "self_written_evidence": "New test `a_repository_with_no_admitted_manifest_makes_systemize_exit_non_zero`: builds a real, minimal git repository (via real `git init`/`commit`, not a mocked filesystem) with deliberately no `.atlas/repo.toml` at all, runs the real CLI `run()` function against it, and asserts it returns `Err(\"CODING_ADMISSION_NOT_ALLOWED\")`. Independently confirmed this test fails without the fix (temporarily replaced the real condition with `if false`, re-ran, restored) before trusting it.",
+    "independent_evidence_channel": "cargo build --workspace clean. cargo fmt --all --check clean. cargo clippy --workspace --all-targets -D warnings clean, zero warnings. Full cargo test --workspace: 289 adapter, 3 apps/cli (+1 net), 164 core, 73 runtime -- 529 total, 0 failed. Ran the exact real command `.atlas/repo.toml`'s own `compile` entry specifies against this repository's own current state: exit code 0, confirming zero regression. `docs audit`: gate_ready true.",
+    "no_circular_self_certification": true
+  },
+  "implementation": {
+    "apps_cli_change": "apps/cli/src/main.rs -- `systemize`'s handler now returns `Err(\"CODING_ADMISSION_NOT_ALLOWED\".into())` when `!report.coding_admission.allowed`, mirroring the exact shape of its three sibling subcommands' own readiness-gate enforcement, placed after the report is printed/written (so the caller always has the full report available even on the blocked path, matching the other three handlers' own ordering)."
+  },
+  "adversarial_and_falsification_coverage": [
+    "the new test builds a REAL git repository via real `git init`/`commit` subprocess calls, not a mocked or synthetic `RepoAudit`/`SystemizeReport` -- exercising the actual end-to-end `runtime::systemize` -> CLI dispatch path this fix lives in, the same discipline `an_unwritable_out_path_error_names_the_offending_path` (the pre-existing sibling test in the same file) already applies",
+    "confirmed the fix's own regression test genuinely fails without the fix, not merely written and left green",
+    "confirmed zero regression against this repository's own real, currently-admitted state by running the exact literal command `.atlas/repo.toml`'s own `compile` field specifies, not merely a synthetic invocation"
+  ],
+  "validation_this_generation": {
+    "commands": {
+      "cargo build --workspace": { "exit_code": 0 },
+      "cargo fmt --all --check": { "exit_code": 0 },
+      "cargo clippy --workspace --all-targets -- -D warnings": { "exit_code": 0, "warnings": 0 },
+      "cargo test --workspace": { "exit_code": 0, "totals": "289 adapter, 3 apps/cli (+1 net), 164 core, 73 runtime -- 529 total, 0 failed" },
+      "cargo run -p atlas-cli --bin atlas-systemizer -- systemize --root . --out .atlas/.cache/systemize-report.json (real repo.toml compile command)": { "exit_code": 0 },
+      "cargo run -q -p atlas-cli -- docs audit --root .atlas": { "exit_code": 0, "gate_ready": true }
+    }
+  },
+  "recensus_scope_after_promotion": [
+    "no prior CLOSED/EXTINCT conclusion is affected -- this closes a gap `.atlas/contracts/ADL-TO-ATLAS.md`'s own prior fix explicitly left open (it aligned report CONTENTS, never added this exit-code enforcement)",
+    "the `graph` subcommand handler still enforces nothing after printing its report -- checked and confirmed this is NOT the same defect class: `GraphSummary` (its report type) carries no readiness/allowed-shaped field at all, so there is nothing analogous to enforce there; not a residual gap of this same kind",
+    "if a future orchestration step or CI job is added that invokes `atlas-cli systemize` directly and previously relied on it always exiting 0 regardless of repository state, this fix would change that step's own observed behavior -- checked `.github/workflows/*.yml` and confirmed no such step currently exists in this repository"
+  ],
+  "overall_verdict": "MATERIALIZED AND VERIFIED. `atlas-cli systemize` -- the exact subcommand `.atlas/repo.toml`'s own `compile` entry invokes -- now enforces `coding_admission.allowed` with the same non-zero-exit discipline its three sibling subcommands already had, closing a real gap a prior generation's own fix explicitly left open. Confirmed with a real end-to-end git-repository test (not a mock), confirmed the test genuinely fails without the fix, and confirmed zero regression against this repository's own real, currently-admitted state. Full workspace suite (529 tests) passing, gate_ready true.",
+  "historical_evidence_retained": true
+}
