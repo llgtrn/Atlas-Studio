@@ -325,6 +325,23 @@ pub fn caller_with_destructured_result(x: u64) -> (u64, u64) {
     let (a, b) = two_args_tuple(x, x);
     (a, b)
 }
+
+pub fn caller_with_parenthesized_argument(x: u64) -> u64 {
+    helper((x))
+}
+
+pub fn caller_with_reference_argument(x: u64) -> u64 {
+    reference_helper(&x)
+}
+
+pub fn reference_helper(x: &u64) -> u64 {
+    *x
+}
+
+pub fn caller_with_parenthesized_let_result(x: u64) -> u64 {
+    let y = (helper(x));
+    y
+}
 "#;
 
 /// R4.6 CONTROL_FLOW corpus: straight-line, `if`/`if-else`/else-if chain, `while` (may-not-enter),
@@ -2154,6 +2171,74 @@ fn call_argument_place_ref_converges_on_the_data_flow_uses_own_record_id() {
     );
 }
 
+// --- 34b. R4.12: a PARENTHESIZED simple-identifier argument converges identically to a bare one --
+
+#[test]
+fn a_parenthesized_call_argument_still_converges_on_the_data_flow_uses_record_id() {
+    // `(x)` is semantically identical to `x` in every position -- DATA_FLOW's own `Expr::Paren`
+    // arm transparently descends to the same `Use` record `helper(x)` would produce (confirmed
+    // directly against dataflow.rs). CALL's own argument-binding recognizer must find the same
+    // record, not silently regress to Unresolved merely because of the parentheses.
+    let batch = extract_all("src/lib.rs", CALL_CORPUS);
+    let caller = find_function_identity(&batch, &[], "caller_with_parenthesized_argument")
+        .expect("caller_with_parenthesized_argument");
+    let calls = calls_by_caller(&batch, caller);
+    assert_eq!(calls.len(), 1);
+    assert_eq!(calls[0].arguments.len(), 1);
+
+    let PlaceRef::Resolved {
+        dimension,
+        record_id,
+    } = &calls[0].arguments[0]
+    else {
+        panic!(
+            "a parenthesized simple-identifier argument must still resolve, exactly like a bare one"
+        );
+    };
+    assert_eq!(*dimension, SemanticDimension::DataFlow);
+
+    let values = data_flow_values_for(&batch, caller);
+    let x_use = values
+        .iter()
+        .find(|v| v.role == ValueRole::Use && v.name == "x")
+        .expect("DATA_FLOW's own Use observation for the `x` argument");
+    let x_use_record_id = SemanticRecordId::new(SemanticDimension::DataFlow, &x_use.identity_key());
+    assert_eq!(record_id, &x_use_record_id);
+}
+
+// --- 34c. R4.12: a `&x` REFERENCE argument converges identically to a bare `x` one ----------------
+
+#[test]
+fn a_reference_call_argument_still_converges_on_the_data_flow_uses_record_id() {
+    // `&x` is the single most common way a non-trivial local gets passed by name in idiomatic
+    // Rust. DATA_FLOW's own `Expr::Reference` arm transparently descends to the same `Use` record
+    // a bare `x` argument would produce (confirmed directly against dataflow.rs). CALL's own
+    // argument-binding recognizer must find the same record.
+    let batch = extract_all("src/lib.rs", CALL_CORPUS);
+    let caller = find_function_identity(&batch, &[], "caller_with_reference_argument")
+        .expect("caller_with_reference_argument");
+    let calls = calls_by_caller(&batch, caller);
+    assert_eq!(calls.len(), 1);
+    assert_eq!(calls[0].arguments.len(), 1);
+
+    let PlaceRef::Resolved {
+        dimension,
+        record_id,
+    } = &calls[0].arguments[0]
+    else {
+        panic!("a `&x` reference argument must still resolve to the referent's own Use record");
+    };
+    assert_eq!(*dimension, SemanticDimension::DataFlow);
+
+    let values = data_flow_values_for(&batch, caller);
+    let x_use = values
+        .iter()
+        .find(|v| v.role == ValueRole::Use && v.name == "x")
+        .expect("DATA_FLOW's own Use observation for the referenced `x`");
+    let x_use_record_id = SemanticRecordId::new(SemanticDimension::DataFlow, &x_use.identity_key());
+    assert_eq!(record_id, &x_use_record_id);
+}
+
 // --- 35. multiple arguments each get their own PlaceRef, in source order ------------------------
 
 #[test]
@@ -2302,6 +2387,41 @@ fn call_result_place_ref_converges_on_the_data_flows_own_definition_record_id() 
         record_id, &expected,
         "the CALL result's PlaceRef must name the EXACT SAME node DATA_FLOW's own pass produced"
     );
+}
+
+// --- 40b. R4.12: a call PARENTHESIZED as a `let` initializer (`let y = (helper(x));`) still gets
+//     a resolved `result` PlaceRef, not a silent regression to Unresolved ------------------------
+
+#[test]
+fn a_parenthesized_let_initializer_call_still_resolves_its_result() {
+    // `(helper(x))` is still, structurally, the entire value `y` receives -- DATA_FLOW's own
+    // `Stmt::Local` arm creates `y`'s Definition unconditionally from the pattern, independent of
+    // how the initializer expression is wrapped. CALL's own "is this initializer literally a
+    // call" recognizer must see through the parentheses to find it too.
+    let batch = extract_all("src/lib.rs", CALL_CORPUS);
+    let caller = find_function_identity(&batch, &[], "caller_with_parenthesized_let_result")
+        .expect("caller_with_parenthesized_let_result");
+    let calls = calls_by_caller(&batch, caller);
+    assert_eq!(calls.len(), 1);
+
+    let PlaceRef::Resolved {
+        dimension,
+        record_id,
+    } = &calls[0].result
+    else {
+        panic!(
+            "`let y = (helper(x));` must still resolve its call's result, exactly like the unparenthesized form"
+        );
+    };
+    assert_eq!(*dimension, SemanticDimension::DataFlow);
+
+    let values = data_flow_values_for(&batch, caller);
+    let y_definition = values
+        .iter()
+        .find(|v| v.role == ValueRole::Definition && v.name == "y")
+        .expect("DATA_FLOW's own Definition for `y`");
+    let expected = SemanticRecordId::new(SemanticDimension::DataFlow, &y_definition.identity_key());
+    assert_eq!(record_id, &expected);
 }
 
 // --- 41. a call that IS the direct right-hand side of a plain assignment gets a `result` PlaceRef

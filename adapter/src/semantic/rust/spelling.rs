@@ -243,10 +243,16 @@ pub fn simple_binding_ident(pat: &syn::Pat) -> Option<&syn::Ident> {
 }
 
 /// The identifier `expr` names, if it is a bare, single-segment, unqualified path expression
-/// (`x`, not `x.field`, `Type::x`, `::x`, `(expr)`, or anything else). This is the exact structural
-/// shape `dataflow.rs`'s `Expr::Path` arm recognizes as a DATA_FLOW `Use`/`Store` site -- shared
-/// here so R4.12's CALL argument binding (`mod.rs`'s `build_calls`) can recognize the identical
-/// shape without duplicating (and risking silently drifting from) DATA_FLOW's own recognition rule.
+/// (`x`, not `x.field`, `Type::x`, `::x`, `(expr)`, or anything else). This is the exact shape
+/// `dataflow.rs`'s `Expr::Path` arm itself matches -- but NOT, on its own, every shape that
+/// ultimately REACHES that arm: `dataflow.rs`'s own recursive `walk_expr` transparently descends
+/// through `Expr::Paren`/`Expr::Reference` wrapping BEFORE reaching it (its `Expr::Paren`/
+/// `Expr::Reference` arms), so `(x)` and `&x` both still produce a real `Use`/`Store` record for
+/// `x`. A caller that needs to recognize a WRAPPED shape identically to how it will ultimately
+/// resolve in DATA_FLOW must unwrap first, with `unwrap_parens` (place OR value position -- a
+/// parenthesized expression is always semantically identical to what it wraps) or
+/// `unwrap_value_read` (value-read position only -- `&expr` is never a legal assignment target,
+/// so it must never be unwrapped when recognizing a Store/assignment place).
 pub fn simple_path_ident(expr: &syn::Expr) -> Option<&syn::Ident> {
     match expr {
         syn::Expr::Path(path)
@@ -255,6 +261,31 @@ pub fn simple_path_ident(expr: &syn::Expr) -> Option<&syn::Ident> {
             Some(&path.path.segments[0].ident)
         }
         _ => None,
+    }
+}
+
+/// Recursively strips `(expr)` wrapping to find the underlying expression -- always safe in any
+/// position (a value read OR an assignable place): a parenthesized expression is semantically
+/// identical to what it wraps.
+pub fn unwrap_parens(expr: &syn::Expr) -> &syn::Expr {
+    match expr {
+        syn::Expr::Paren(paren) => unwrap_parens(&paren.expr),
+        _ => expr,
+    }
+}
+
+/// Recursively strips `(expr)` and `&expr`/`&mut expr` wrapping to find the underlying place a
+/// READ of `expr` ultimately reads -- the same transparent unwrapping `dataflow.rs`'s own
+/// recursive `walk_expr` performs (its `Expr::Paren`/`Expr::Reference` arms) before ever reaching
+/// a `Use`-emitting `Expr::Path`. Only valid for a value-read position: `&expr` is never a legal
+/// assignment target, so this must never be used to recognize a Store/assignment place (use
+/// `unwrap_parens` alone there, matching `dataflow.rs`'s own `Expr::Assign` arm, which does not
+/// unwrap `Expr::Reference` on its left-hand side either).
+pub fn unwrap_value_read(expr: &syn::Expr) -> &syn::Expr {
+    match expr {
+        syn::Expr::Paren(paren) => unwrap_value_read(&paren.expr),
+        syn::Expr::Reference(reference) => unwrap_value_read(&reference.expr),
+        _ => expr,
     }
 }
 

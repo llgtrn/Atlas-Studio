@@ -855,16 +855,20 @@ impl<'a> ExtractionContext<'a> {
         }
     }
 
-    /// The `PlaceRef` a CALL argument expression should carry: `Resolved` when `arg` is a simple
-    /// single-identifier expression (the same shape `dataflow.rs`'s own `Expr::Path` arm
-    /// recognizes, via the shared `spelling::simple_path_ident`), else `Unresolved`.
+    /// The `PlaceRef` a CALL argument expression should carry: `Resolved` when `arg`, after
+    /// stripping any `(..)`/`&`/`&mut` wrapping, is a simple single-identifier expression (the
+    /// same shape `dataflow.rs`'s own recursive walk ultimately reaches its `Expr::Path` arm
+    /// through, via `spelling::unwrap_value_read` + `spelling::simple_path_ident`), else
+    /// `Unresolved`. An argument position is always a value READ, so `&x` is safe to unwrap here
+    /// -- unlike `place_ref_for_assign_result`'s place position, where it would not be.
     fn place_ref_for_argument(&self, arg: &syn::Expr, caller: &SemanticRecordId) -> PlaceRef {
-        let Some(ident) = spelling::simple_path_ident(arg) else {
+        let inner = spelling::unwrap_value_read(arg);
+        let Some(ident) = spelling::simple_path_ident(inner) else {
             return PlaceRef::Unresolved;
         };
         self.place_ref_for_value(
             &ident.to_string(),
-            self.span_of(arg),
+            self.span_of(inner),
             caller,
             ValueRole::Use,
         )
@@ -920,10 +924,13 @@ impl<'a> ExtractionContext<'a> {
     }
 
     /// Walks `expr` in a position where its resulting value directly becomes `result` (a `let`
-    /// binding's Definition, or a plain assignment's Store) IF `expr` is exactly a `Call`/
-    /// `MethodCall` expression -- e.g. the direct initializer of `let y = helper(x);`, not a nested
-    /// subexpression like `helper(x) + 1` (which has no single value this call's result "becomes").
-    /// Delegates to the ordinary `walk_expr` (implying `PlaceRef::Unresolved`) for every other case.
+    /// binding's Definition, or a plain assignment's Store) IF `expr`, after stripping any `(..)`
+    /// wrapping, is exactly a `Call`/`MethodCall` expression -- e.g. the direct initializer of
+    /// `let y = helper(x);` OR `let y = (helper(x));` (parentheses are transparent here, matching
+    /// `dataflow.rs`'s own `Stmt::Local` arm, which creates `y`'s Definition unconditionally from
+    /// the pattern regardless of how the initializer is wrapped) -- never a nested subexpression
+    /// like `helper(x) + 1` (which has no single value this call's result "becomes"). Delegates to
+    /// the ordinary `walk_expr` (implying `PlaceRef::Unresolved`) for every other case.
     fn walk_value_position_expr(
         &mut self,
         expr: &syn::Expr,
@@ -931,11 +938,11 @@ impl<'a> ExtractionContext<'a> {
         caller: &SemanticRecordId,
         result: PlaceRef,
     ) {
-        match expr {
-            syn::Expr::Call(_) | syn::Expr::MethodCall(_) => {
-                self.walk_call_like(expr, scope, caller, result);
+        match spelling::unwrap_parens(expr) {
+            call_like @ (syn::Expr::Call(_) | syn::Expr::MethodCall(_)) => {
+                self.walk_call_like(call_like, scope, caller, result);
             }
-            other => self.walk_expr(other, scope, caller),
+            _ => self.walk_expr(expr, scope, caller),
         }
     }
 
