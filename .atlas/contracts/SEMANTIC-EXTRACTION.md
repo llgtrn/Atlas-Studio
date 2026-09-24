@@ -10,6 +10,10 @@ canonical: true
 
 **SourceFrontend** owns structural source recognition. A semantic extractor owns evidence-producing analysis behind that frontend. Neither owns canonical truth.
 
+Registered frontends (`adapter/src/source/frontend.rs`) recognize rust, typescript, javascript, markdown, toml, json, yaml, html and css by extension. A tenth, `rust-include-fragment` (G61), is never recognized by path. A file gets that language only when a `.rs` file in the same directory calls `include!("<its name>")`, observed at token level. `include_str!` and `include_bytes!` targets are data, not Rust tokens.
+
+Recognition is not analysis. A recognized language with no registered SemanticExtractor gets an explicit UNSUPPORTED batch for every dimension. An unrecognized file stays UNKNOWN; it is never guessed.
+
 R4 extraction converts a pinned admitted artifact into typed raw observations and explicit unresolved obligations. It does not normalize identities globally, reconcile conflicts, invent facts, or write the engineering graph directly.
 
 ## Canonical path

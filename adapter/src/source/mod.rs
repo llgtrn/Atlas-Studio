@@ -6,7 +6,8 @@ use atlas_core::{
 pub mod frontend;
 
 pub use frontend::{
-    SourceFrontend, SourceFrontendMatch, resolve_source_frontend, source_frontends,
+    IncludedFragment, SourceFrontend, SourceFrontendMatch, resolve_included_fragment,
+    resolve_source_frontend, source_frontend_for_language, source_frontends,
 };
 use std::{
     collections::BTreeMap,
@@ -149,9 +150,14 @@ fn classify_file(root: &Path, path: &Path) -> io::Result<ArtifactRecord> {
     }
     let content = read_file_content(path, &listed)?;
     let bytes = listed.len();
-    let frontend = resolve_source_frontend(path);
-    let language = frontend.map(|matched| matched.language.to_owned());
     let binary = content.binary;
+    let frontend = resolve_source_frontend(path).or_else(|| {
+        (!binary)
+            .then(|| resolve_included_fragment(path, MAX_SEMANTIC_BYTES))
+            .flatten()
+            .map(|fragment| fragment.matched)
+    });
+    let language = frontend.map(|matched| matched.language.to_owned());
 
     let (disposition, reason) = if binary {
         (

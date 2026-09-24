@@ -1,0 +1,36 @@
+{
+  "objective": "P0: close the certificate blocker ARTIFACTS_WITHOUT_SOURCE_FRONTEND -- register html and css source frontends, and classify files spliced in by an observed token-level include! call as rust-include-fragment (never by path); recognition is not analysis, so every dimension of these artifacts is explicitly UNSUPPORTED; census provenance recovers the frontend from the recorded language; the certificate test asserts the closed blocker and reopens it on a mutated copy",
+  "changed_paths": [
+    "adapter/src/lib.rs",
+    "adapter/src/source/",
+    "runtime/src/census/mod.rs",
+    "runtime/src/certificate.rs",
+    "core/src/identity/blake3_high_counter.in",
+    "core/src/identity/blake3_vectors.in",
+    "core/src/identity/blake3_xof_vectors.in",
+    "runtime/tests/fixtures/visual/"
+  ],
+  "total_changes": [
+    "+diagnostic:UnsupportedLanguageOrProfile",
+    "+evidence",
+    "+facts",
+    "+graph_bindings",
+    "+graph_edges",
+    "+graph_nodes",
+    "+normalized_facts",
+    "+obligations",
+    "+typed_records",
+    "-unknown_facts",
+    "+unsupported_facts"
+  ],
+  "explained_unknowns": [
+    "core/src/identity/blake3_high_counter.in: one UNKNOWN disposition fact becomes twelve explicit UNSUPPORTED obligations -- rust-include-fragment is recognized but no SemanticExtractor analyzes expression-position include! fragments",
+    "core/src/identity/blake3_vectors.in: one UNKNOWN disposition fact becomes twelve explicit UNSUPPORTED obligations -- rust-include-fragment is recognized but no SemanticExtractor analyzes expression-position include! fragments",
+    "core/src/identity/blake3_xof_vectors.in: one UNKNOWN disposition fact becomes twelve explicit UNSUPPORTED obligations -- rust-include-fragment is recognized but no SemanticExtractor analyzes expression-position include! fragments",
+    "runtime/tests/fixtures/visual/hermetic-probe.css: one UNKNOWN disposition fact becomes twelve explicit UNSUPPORTED obligations -- css is recognized but has no registered SemanticExtractor",
+    "runtime/tests/fixtures/visual/hermetic-probe.html: one UNKNOWN disposition fact becomes twelve explicit UNSUPPORTED obligations -- html is recognized but has no registered SemanticExtractor",
+    "runtime/tests/fixtures/visual/interactive-mechanisms.html: one UNKNOWN disposition fact becomes twelve explicit UNSUPPORTED obligations -- html is recognized but has no registered SemanticExtractor",
+    "runtime/tests/fixtures/visual/motion-curves.html: one UNKNOWN disposition fact becomes twelve explicit UNSUPPORTED obligations -- html is recognized but has no registered SemanticExtractor",
+    "runtime/tests/fixtures/visual/responsive-editorial.html: one UNKNOWN disposition fact becomes twelve explicit UNSUPPORTED obligations -- html is recognized but has no registered SemanticExtractor"
+  ]
+}

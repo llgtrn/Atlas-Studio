@@ -1,0 +1,181 @@
+{
+  "schema": "atlas.self-recensus-report.v1",
+  "generation": "G61",
+  "base_revision": "f706c44784bb17bcfd7a6b10b51a2e61a6e4f297",
+  "candidate_revision": "fdc7a4c1acbacad5ad4bde633a2fd4d26cf9454b",
+  "candidate_dirty": true,
+  "before_census_digest": "blake3-256:96f70a84618c17c813bd92ca907004da45a723cd604977604efd1e18ee282a39",
+  "after_census_digest": "blake3-256:2a3a5fa1c645d0caf963c564e0f563f9fd65e1d5cc6b73ad29e896381250a3d2",
+  "replay_digest": "blake3-256:2a3a5fa1c645d0caf963c564e0f563f9fd65e1d5cc6b73ad29e896381250a3d2",
+  "inventory_delta": {
+    "created": [],
+    "modified": [
+      "adapter/src/lib.rs",
+      "adapter/src/source/frontend.rs",
+      "adapter/src/source/mod.rs",
+      "core/src/identity/blake3_high_counter.in",
+      "core/src/identity/blake3_vectors.in",
+      "core/src/identity/blake3_xof_vectors.in",
+      "runtime/src/census/mod.rs",
+      "runtime/src/certificate.rs",
+      "runtime/tests/fixtures/visual/hermetic-probe.css",
+      "runtime/tests/fixtures/visual/hermetic-probe.html",
+      "runtime/tests/fixtures/visual/interactive-mechanisms.html",
+      "runtime/tests/fixtures/visual/motion-curves.html",
+      "runtime/tests/fixtures/visual/responsive-editorial.html"
+    ],
+    "deleted": []
+  },
+  "semantic_delta": {
+    "changed": [
+      "adapter/src/source/frontend.rs",
+      "adapter/src/source/mod.rs",
+      "core/src/identity/blake3_high_counter.in",
+      "core/src/identity/blake3_vectors.in",
+      "core/src/identity/blake3_xof_vectors.in",
+      "runtime/src/census/mod.rs",
+      "runtime/src/certificate.rs",
+      "runtime/tests/fixtures/visual/hermetic-probe.css",
+      "runtime/tests/fixtures/visual/hermetic-probe.html",
+      "runtime/tests/fixtures/visual/interactive-mechanisms.html",
+      "runtime/tests/fixtures/visual/motion-curves.html",
+      "runtime/tests/fixtures/visual/responsive-editorial.html"
+    ],
+    "counts": {
+      "fact:FunctionIdentity|OBSERVED": 8,
+      "fact:FunctionSignature|OBSERVED": 8,
+      "fact:SemanticObligation|UNSUPPORTED": 96,
+      "fact:SourceArtifact|OBSERVED": 16,
+      "fact:SourceArtifact|UNKNOWN": -8,
+      "fact:Symbol|OBSERVED": 14,
+      "fact:Type|OBSERVED": 12,
+      "record:CALL|OBSERVED": 36,
+      "record:CONTROL_FLOW|OBSERVED": 18,
+      "record:DATA_FLOW|OBSERVED": 72,
+      "record:EFFECT|INFERRED": 5,
+      "record:FUNCTION_IDENTITY|OBSERVED": 8,
+      "record:FUNCTION_SIGNATURE|OBSERVED": 8,
+      "record:OWNERSHIP|OBSERVED": 11,
+      "record:STATE|OBSERVED": 2,
+      "record:SYMBOL|OBSERVED": 14,
+      "record:TYPE|OBSERVED": 12
+    }
+  },
+  "dependency_delta": {
+    "added": [],
+    "removed": []
+  },
+  "dependency_state": [
+    "Closed",
+    "Closed"
+  ],
+  "graph_delta": {
+    "graph_bindings": 11,
+    "graph_edges": 252,
+    "graph_nodes": 193
+  },
+  "obligation_delta": {
+    "obligation:CALL|UNSUPPORTED": 8,
+    "obligation:CONCURRENCY|UNSUPPORTED": 8,
+    "obligation:CONTROL_FLOW|UNSUPPORTED": 8,
+    "obligation:DATA_FLOW|UNSUPPORTED": 8,
+    "obligation:EFFECT|UNSUPPORTED": 8,
+    "obligation:FUNCTION_IDENTITY|UNSUPPORTED": 8,
+    "obligation:FUNCTION_SIGNATURE|UNSUPPORTED": 8,
+    "obligation:OWNERSHIP|UNSUPPORTED": 8,
+    "obligation:PERSISTENCE|UNSUPPORTED": 8,
+    "obligation:STATE|UNSUPPORTED": 8,
+    "obligation:SYMBOL|UNSUPPORTED": 8,
+    "obligation:TYPE|UNSUPPORTED": 8
+  },
+  "adl_delta": {
+    "added": [],
+    "removed": []
+  },
+  "coverage_delta": [],
+  "unknown_delta": {
+    "increased": [
+      "core/src/identity/blake3_high_counter.in: 1 -> 12",
+      "core/src/identity/blake3_vectors.in: 1 -> 12",
+      "core/src/identity/blake3_xof_vectors.in: 1 -> 12",
+      "runtime/tests/fixtures/visual/hermetic-probe.css: 1 -> 12",
+      "runtime/tests/fixtures/visual/hermetic-probe.html: 1 -> 12",
+      "runtime/tests/fixtures/visual/interactive-mechanisms.html: 1 -> 12",
+      "runtime/tests/fixtures/visual/motion-curves.html: 1 -> 12",
+      "runtime/tests/fixtures/visual/responsive-editorial.html: 1 -> 12"
+    ],
+    "decreased": [],
+    "total_before": 812,
+    "total_after": 900
+  },
+  "intent": {
+    "objective": "P0: close the certificate blocker ARTIFACTS_WITHOUT_SOURCE_FRONTEND -- register html and css source frontends, and classify files spliced in by an observed token-level include! call as rust-include-fragment (never by path); recognition is not analysis, so every dimension of these artifacts is explicitly UNSUPPORTED; census provenance recovers the frontend from the recorded language; the certificate test asserts the closed blocker and reopens it on a mutated copy",
+    "changed_paths": [
+      "adapter/src/lib.rs",
+      "adapter/src/source/",
+      "runtime/src/census/mod.rs",
+      "runtime/src/certificate.rs",
+      "core/src/identity/blake3_high_counter.in",
+      "core/src/identity/blake3_vectors.in",
+      "core/src/identity/blake3_xof_vectors.in",
+      "runtime/tests/fixtures/visual/"
+    ],
+    "total_changes": [
+      "+diagnostic:UnsupportedLanguageOrProfile",
+      "+evidence",
+      "+facts",
+      "+graph_bindings",
+      "+graph_edges",
+      "+graph_nodes",
+      "+normalized_facts",
+      "+obligations",
+      "+typed_records",
+      "-unknown_facts",
+      "+unsupported_facts"
+    ],
+    "dependency_changes": [],
+    "adl_changes": [],
+    "coverage_changes": [],
+    "explained_unknowns": [
+      "core/src/identity/blake3_high_counter.in: one UNKNOWN disposition fact becomes twelve explicit UNSUPPORTED obligations -- rust-include-fragment is recognized but no SemanticExtractor analyzes expression-position include! fragments",
+      "core/src/identity/blake3_vectors.in: one UNKNOWN disposition fact becomes twelve explicit UNSUPPORTED obligations -- rust-include-fragment is recognized but no SemanticExtractor analyzes expression-position include! fragments",
+      "core/src/identity/blake3_xof_vectors.in: one UNKNOWN disposition fact becomes twelve explicit UNSUPPORTED obligations -- rust-include-fragment is recognized but no SemanticExtractor analyzes expression-position include! fragments",
+      "runtime/tests/fixtures/visual/hermetic-probe.css: one UNKNOWN disposition fact becomes twelve explicit UNSUPPORTED obligations -- css is recognized but has no registered SemanticExtractor",
+      "runtime/tests/fixtures/visual/hermetic-probe.html: one UNKNOWN disposition fact becomes twelve explicit UNSUPPORTED obligations -- html is recognized but has no registered SemanticExtractor",
+      "runtime/tests/fixtures/visual/interactive-mechanisms.html: one UNKNOWN disposition fact becomes twelve explicit UNSUPPORTED obligations -- html is recognized but has no registered SemanticExtractor",
+      "runtime/tests/fixtures/visual/motion-curves.html: one UNKNOWN disposition fact becomes twelve explicit UNSUPPORTED obligations -- html is recognized but has no registered SemanticExtractor",
+      "runtime/tests/fixtures/visual/responsive-editorial.html: one UNKNOWN disposition fact becomes twelve explicit UNSUPPORTED obligations -- html is recognized but has no registered SemanticExtractor"
+    ],
+    "accepted_unexpected": []
+  },
+  "intended_changes": [
+    "path adapter/src/lib.rs",
+    "path adapter/src/source/frontend.rs",
+    "path adapter/src/source/mod.rs",
+    "path core/src/identity/blake3_high_counter.in",
+    "path core/src/identity/blake3_vectors.in",
+    "path core/src/identity/blake3_xof_vectors.in",
+    "path runtime/src/census/mod.rs",
+    "path runtime/src/certificate.rs",
+    "path runtime/tests/fixtures/visual/hermetic-probe.css",
+    "path runtime/tests/fixtures/visual/hermetic-probe.html",
+    "path runtime/tests/fixtures/visual/interactive-mechanisms.html",
+    "path runtime/tests/fixtures/visual/motion-curves.html",
+    "path runtime/tests/fixtures/visual/responsive-editorial.html",
+    "total +diagnostic:UnsupportedLanguageOrProfile",
+    "total +evidence",
+    "total +facts",
+    "total +graph_bindings",
+    "total +graph_edges",
+    "total +graph_nodes",
+    "total +normalized_facts",
+    "total +obligations",
+    "total +typed_records",
+    "total -unknown_facts",
+    "total +unsupported_facts"
+  ],
+  "intended_but_unobserved": [],
+  "unexpected_changes": [],
+  "regressions": [],
+  "verdict": "PROVEN"
+}

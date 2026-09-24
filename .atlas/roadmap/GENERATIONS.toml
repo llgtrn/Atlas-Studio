@@ -717,6 +717,7 @@ objective = "bring the atlas-systemizer crate (apps/cli, a workspace member) int
 writer = "coordinator (sole writer)"
 evidence = ".atlas/evidence/census/G60/recensus.json"
 self_recensus = ".atlas/evidence/census/G60/recensus.json"
+result_commits = ["fdc7a4c1acbacad5ad4bde633a2fd4d26cf9454b"]
 
 [generation.verification]
 proof = "PROVEN on the third run: (1) first run flagged +diagnostic:UnsupportedLanguageOrProfile (the new apps/cli/Cargo.toml, like every non-Rust artifact, has no semantic extractor) as under-declared; (2) the G59 certificate test encoded the now-closed blocker and failed the workspace tests, so it was rewritten to assert closure and keep detection falsifiable (runtime/src/certificate.rs added to the intent); re-proven"
@@ -725,3 +726,23 @@ self_recensus_scope_note = "G57-G59 changed apps/cli/src/main.rs without the cen
 
 [generation.next]
 objective = "G61 (P0): the 8 ARTIFACTS_WITHOUT_SOURCE_FRONTEND (html/css fixtures, .in test vectors) -- registered frontends or an explicit scope policy, proven by recensus"
+
+[[generation]]
+id = "G61"
+base_commit = "fdc7a4c1acbacad5ad4bde633a2fd4d26cf9454b"
+priority = "P0"
+serves = "P0 CENSUS_KERNEL_CLOSURE: closes certificate blocker ARTIFACTS_WITHOUT_SOURCE_FRONTEND"
+objective = "register html and css source frontends; classify include!-spliced files as rust-include-fragment by observation, never by path"
+writer = "coordinator (sole writer)"
+evidence = ".atlas/evidence/census/G61/recensus.json"
+self_recensus = ".atlas/evidence/census/G61/recensus.json"
+
+[generation.verification]
+pre_census = "clean-HEAD census of fdc7a4c1ac = G60 post digest 96f70a84... (chain holds)"
+proof = "PROVEN on the third run: (1) first run was GENERATION_NOT_PROVEN -- 8 artifacts' unknowns rose 1 -> 12 (the per-artifact unknown count includes UNSUPPORTED obligations) without explanation; each was explained (recognized language, no SemanticExtractor); (2) PROVEN; (3) the mutation battery changed tests after the post-census, so the candidate was re-proven (post 2a3a5fa1...)"
+falsification = "12/12 mutants killed (include ident, bang, group recursion, literal compare, path-recognized guard, .rs includer filter, read bound, html/css registration, fragment language, inventory wiring, provenance language fallback); the first battery's survivor (bang check) was a real test gap -- a one-token gap `include > (\"x\")` now distinguishes it"
+equivalent_mutant = "the `!binary` guard before include! resolution is an optimization: a binary artifact is BINARY_DESCRIBED whatever its language"
+certificate_delta = "ARTIFACTS_WITHOUT_SOURCE_FRONTEND removed (8 -> 0); UNKNOWN facts 680 -> 672; UNSUPPORTED facts 132 -> 228; provenance gaps 234/132 -> 242/228 (each new artifact adds a revision-less language fact; the unsupported-language batch has no extractor identity) -- the next blocker, targeted by G62"
+
+[generation.next]
+objective = "G62 (P0): provenance completeness -- extractor identity for extraction-accounting facts and revision for ADL-derived facts, until the self-scope certificate reaches RECONCILED"

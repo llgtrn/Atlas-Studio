@@ -133,6 +133,11 @@ DETERMINISTIC_REPLAY = "OBSERVED: two censuses of 4fcb0d6819 give census digest 
 RECONCILIATION_CERTIFICATE = "PRESENT_G59: state CENSUSED (see ADR 0025 blockers)"
 verdict = "NOT_CLOSED"
 
+# Element changes since the G57 snapshot, each proven by self-recensus (evidence/census/G<n>).
+[census_closure.progress]
+G60 = "SOURCE_INVENTORY_COMPLETE: apps/cli in scope; 4 of 4 source-backed workspace members censused"
+G61 = "SOURCE_INVENTORY_COMPLETE + LANGUAGE_EXTRACTION: 0 artifacts without a source frontend (html, css registered; 3 .in files classified rust-include-fragment by their observed include!); their 96 obligations are explicit UNSUPPORTED; provenance without extractor rises 132 -> 228 (unsupported-language batches carry no extractor identity)"
+
 # Exit criteria of the first phase; broad expansion stays frozen until all are MET.
 [exit_criteria]
 A_self_recensus_mandatory_and_operational = "MET_G57 (enforced by generation_ledger_self_recensus_chain)"
@@ -159,24 +164,34 @@ objective = "reconciliation census certificate for the Atlas self-scope"
 [[planned_generation]]
 id = "G60"
 priority = "P0"
-objective = "close the self-scope inventory gaps the certificate reports (atlas-systemizer crate outside scope; UNKNOWN artifacts)"
+objective = "atlas-systemizer crate into census scope (done)"
 
 [[planned_generation]]
 id = "G61"
-priority = "P2"
-objective = "ADL <- census: typed census facts become ADL declarations/constraints"
+priority = "P0"
+objective = "source frontends for the UNKNOWN artifacts (done)"
 
 [[planned_generation]]
 id = "G62"
-priority = "P2"
-objective = "minimum .atlas writer/reader/validator over validated census state"
+priority = "P0"
+objective = "provenance completeness: extractor identity for extraction-accounting facts, revision for ADL-derived facts; the certificate must reach RECONCILED"
 
 [[planned_generation]]
 id = "G63"
 priority = "P2"
+objective = "ADL <- census: typed census facts become ADL declarations/constraints"
+
+[[planned_generation]]
+id = "G64"
+priority = "P2"
+objective = "minimum .atlas writer/reader/validator over validated census state"
+
+[[planned_generation]]
+id = "G65"
+priority = "P2"
 objective = "minimum .atlasx deterministic materialization + validation"
 
 [[planned_generation]]
-id = "G64+"
+id = "G66+"
 priority = "P3"
 objective = "first-50 donor campaign from #6 tree-sitter, sequential, interleaving only census improvements exposed by real donors"

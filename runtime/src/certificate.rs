@@ -70,8 +70,7 @@ mod tests {
     }
 
     /// The certificate of Atlas's own scope reports exactly what the census knows, including the
-    /// gaps: the atlas-cli workspace member outside the inventory, artifacts without a source
-    /// frontend, UNKNOWN coverage dimensions, single-engine extraction and no .atlas artifact.
+    /// gaps: UNKNOWN coverage dimensions, single-engine extraction and no .atlas artifact.
     /// Mutated copies of the same real report prove each condition moves state and blockers.
     #[test]
     fn the_self_scope_certificate_is_honest_and_every_condition_is_load_bearing() {
@@ -107,7 +106,63 @@ mod tests {
             "{:#?}",
             reopened.blockers
         );
-        assert!(has("ARTIFACTS_WITHOUT_SOURCE_FRONTEND"));
+        // Closed in G61: html/css fixtures have registered frontends and the BLAKE3 vector files
+        // are classified by their observed `include!` call.
+        assert!(
+            !has("ARTIFACTS_WITHOUT_SOURCE_FRONTEND"),
+            "{:#?}",
+            cert.blockers
+        );
+        for fragment in [
+            "core/src/identity/blake3_vectors.in",
+            "core/src/identity/blake3_xof_vectors.in",
+            "core/src/identity/blake3_high_counter.in",
+        ] {
+            let artifact = report
+                .inventory
+                .artifacts
+                .iter()
+                .find(|a| a.path == fragment)
+                .unwrap();
+            assert_eq!(artifact.language.as_deref(), Some("rust-include-fragment"));
+            // Census provenance names the frontend that classified it, recovered from the
+            // recorded language because the path alone resolves none.
+            let disposition = report
+                .census
+                .facts
+                .iter()
+                .find(|f| f.provenance.source_path == fragment && f.object == "PARSED")
+                .unwrap();
+            assert_eq!(
+                disposition.provenance.extractor,
+                "atlas.source.rust-include-fragment.bootstrap.v1"
+            );
+        }
+        // Detection still works: an artifact with no frontend reopens it, counted exactly.
+        let mut unrecognized = report.clone();
+        let css = unrecognized
+            .inventory
+            .artifacts
+            .iter_mut()
+            .find(|a| a.path.ends_with("hermetic-probe.css"))
+            .unwrap();
+        css.disposition = atlas_core::ArtifactDisposition::Unknown;
+        css.language = None;
+        *unrecognized
+            .inventory
+            .dispositions
+            .get_mut("PARSED")
+            .unwrap() -= 1;
+        unrecognized
+            .inventory
+            .dispositions
+            .insert("UNKNOWN".into(), 1);
+        assert!(
+            certify_with(&unrecognized, &[&pass, &pass])
+                .blockers
+                .iter()
+                .any(|b| b == "ARTIFACTS_WITHOUT_SOURCE_FRONTEND: 1"),
+        );
         assert!(has("COVERAGE_UNKNOWN: CALL"));
         assert!(has("MULTI_ENGINE_RECONCILIATION_ABSENT"));
         assert!(has("ATLAS_ROOT_ABSENT"));

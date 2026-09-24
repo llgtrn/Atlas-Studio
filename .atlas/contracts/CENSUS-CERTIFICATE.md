@@ -165,3 +165,7 @@ Current limits:
 - SEALED: impossible until a `.atlas` root exists (G62).
 
 The Atlas self-scope certificate is CENSUSED (see ADR 0025 for its blockers).
+
+Blockers closed since then, each proven by self-recensus:
+- G60: WORKSPACE_MEMBER_OUTSIDE_INVENTORY (`apps/cli` brought into scope);
+- G61: ARTIFACTS_WITHOUT_SOURCE_FRONTEND. The html and css fixtures now have registered frontends. The three BLAKE3 vector files are classified as `rust-include-fragment` through their observed `include!`. None of these languages has an extractor, so their semantics are explicitly UNSUPPORTED, not UNKNOWN.

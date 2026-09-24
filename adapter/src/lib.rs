@@ -15,9 +15,9 @@ pub use semantic::{
     SemanticExtractor, StaticUnsupportedExtractor, extractors_for_language, semantic_extractors,
 };
 pub use source::{
-    SourceFrontend, SourceFrontendMatch, inventory_declared_source, inventory_source,
-    resolve_source_frontend, scan_declared_source, scan_source, source_frontends,
-    source_report_from_inventory,
+    IncludedFragment, SourceFrontend, SourceFrontendMatch, inventory_declared_source,
+    inventory_source, resolve_included_fragment, resolve_source_frontend, scan_declared_source,
+    scan_source, source_frontend_for_language, source_frontends, source_report_from_inventory,
 };
 pub use vcs::snapshot_git;
 

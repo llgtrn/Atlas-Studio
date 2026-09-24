@@ -178,8 +178,9 @@ fn status_rank(status: EpistemicStatus) -> u8 {
     }
 }
 
-fn source_provenance(path: &str) -> Provenance {
+fn source_provenance(path: &str, language: Option<&str>) -> Provenance {
     let extractor = adapter::resolve_source_frontend(Path::new(path))
+        .or_else(|| language.and_then(adapter::source_frontend_for_language))
         .map(|matched| matched.frontend_id.to_owned())
         .unwrap_or_else(|| "atlas.inventory.v1".to_owned());
     Provenance {
@@ -230,7 +231,7 @@ pub fn build_census(
             subject: subject.clone(),
             predicate: "disposition".into(),
             object: artifact.disposition.as_str().into(),
-            provenance: source_provenance(&artifact.path),
+            provenance: source_provenance(&artifact.path, artifact.language.as_deref()),
         });
 
         if let Some(language) = &artifact.language {
@@ -241,7 +242,7 @@ pub fn build_census(
                 subject,
                 predicate: "language".into(),
                 object: language.clone(),
-                provenance: source_provenance(&artifact.path),
+                provenance: source_provenance(&artifact.path, artifact.language.as_deref()),
             });
         }
     }
