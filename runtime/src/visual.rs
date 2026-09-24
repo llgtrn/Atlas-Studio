@@ -4,9 +4,10 @@
 use atlas_core::{
     EpistemicStatus, IntegrityDigest,
     visual::{
-        ElementObservation, ObservationInstrument, ResponsiveChange, ResponsiveRule,
-        VISUAL_OBSERVATION_SCHEMA, ViewportObservation, VisualAnalysis, VisualObservationReport,
-        VisualSubject, analyze,
+        ElementObservation, InteractionAnalysis, InteractionObservation, ObservationInstrument,
+        ObservedChange, ResponsiveChange, ResponsiveRule, Stimulus, VISUAL_OBSERVATION_SCHEMA,
+        ViewportObservation, VisualAnalysis, VisualObservationReport, VisualSubject, analyze,
+        analyze_interactions,
     },
 };
 use serde::{Deserialize, Serialize};
@@ -146,6 +147,99 @@ pub fn observe_fixture(fixture: &Path, viewports: &[(u32, u32)]) -> io::Result<V
         observation,
         analysis,
         breakpoints: Vec::new(),
+    })
+}
+
+/// What `atlas-systemizer observe --interact` emits (ADR 0015).
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct InteractionReport {
+    pub schema: String,
+    pub subject: VisualSubject,
+    pub instrument: ObservationInstrument,
+    pub viewport: (u32, u32),
+    pub observations: Vec<InteractionObservation>,
+    pub analysis: InteractionAnalysis,
+}
+
+#[derive(Deserialize)]
+struct RawChange {
+    element: String,
+    property: String,
+    before: Option<String>,
+    after: String,
+}
+
+#[derive(Deserialize)]
+struct RawInteraction {
+    target: String,
+    stimulus: Stimulus,
+    animations: usize,
+    changes: Vec<RawChange>,
+}
+
+#[derive(Deserialize)]
+struct RawInteractionRun {
+    engine: String,
+    engine_version: String,
+    driver: String,
+    driver_version: String,
+    interactions: Vec<RawInteraction>,
+}
+
+/// Applies the instrument's stimuli to every interactive candidate of a local fixture and
+/// derives its interaction mechanisms and state graph. The subject is digested before and after.
+pub fn interact_fixture(fixture: &Path, viewport: (u32, u32)) -> io::Result<InteractionReport> {
+    let before = IntegrityDigest::of_bytes(&fs::read(fixture)?);
+    let raw = adapter::browser::interact_fixture_raw(fixture, viewport)?;
+    if IntegrityDigest::of_bytes(&fs::read(fixture)?) != before {
+        return Err(io::Error::other(
+            "observation subject changed while it was being observed",
+        ));
+    }
+    let run: RawInteractionRun = serde_json::from_str(&raw).map_err(|e| {
+        io::Error::new(
+            io::ErrorKind::InvalidData,
+            format!("instrument output: {e}"),
+        )
+    })?;
+    let observations: Vec<InteractionObservation> = run
+        .interactions
+        .into_iter()
+        .map(|raw| InteractionObservation {
+            target: raw.target,
+            stimulus: raw.stimulus,
+            animations: raw.animations,
+            changes: raw
+                .changes
+                .into_iter()
+                .map(|c| ObservedChange {
+                    element: c.element,
+                    property: c.property,
+                    before: c.before,
+                    after: c.after,
+                })
+                .collect(),
+            status: EpistemicStatus::Observed,
+        })
+        .collect();
+    let analysis = analyze_interactions(&observations);
+    Ok(InteractionReport {
+        schema: "atlas.interaction-report.v1".into(),
+        subject: VisualSubject {
+            locator: fixture.to_string_lossy().into_owned(),
+            content_digest: before,
+            authorization: "LOCAL_FIXTURE".into(),
+        },
+        instrument: ObservationInstrument {
+            engine: run.engine,
+            engine_version: run.engine_version,
+            driver: run.driver,
+            driver_version: run.driver_version,
+            network: "BLOCKED_EXCEPT_SUBJECT".into(),
+        },
+        viewport,
+        observations,
+        analysis,
     })
 }
 
@@ -358,6 +452,72 @@ mod tests {
         assert!(
             report.breakpoints.iter().map(|b| b.probes).sum::<usize>() <= 12,
             "probes are cached and shared across rules"
+        );
+    }
+
+    #[test]
+    fn stimuli_recover_the_fixture_interaction_mechanisms() {
+        use atlas_core::visual::InteractionMechanism;
+        if adapter::browser::playwright_module().is_none() {
+            eprintln!("SKIP: no Playwright browser instrument in this environment");
+            return;
+        }
+        let fixture = Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("tests/fixtures/visual/interactive-mechanisms.html");
+        let report = interact_fixture(&fixture, (1024, 768)).unwrap();
+        let mechanisms = &report.analysis.mechanisms;
+        let tile = "body>div:1";
+        let button = "body>button:1";
+        let panel = "body>div:2";
+        let summary = "body>details:1>summary:1";
+        assert!(
+            mechanisms.iter().any(|m| matches!(m,
+                InteractionMechanism::HoverAffordance { target, properties }
+                    if target == tile && properties.contains(&"transform".to_owned())
+                        && properties.contains(&"box-shadow".to_owned()))),
+            "{mechanisms:#?}"
+        );
+        assert!(
+            mechanisms.contains(&InteractionMechanism::Disclosure {
+                target: button.into(),
+                controlled: vec![panel.into()]
+            }),
+            "{mechanisms:#?}"
+        );
+        assert!(mechanisms.contains(&InteractionMechanism::Toggle {
+            target: button.into()
+        }));
+        assert!(
+            mechanisms.contains(&InteractionMechanism::Disclosure {
+                target: summary.into(),
+                controlled: vec!["body>details:1".into()]
+            }),
+            "{mechanisms:#?}"
+        );
+        assert!(mechanisms.contains(&InteractionMechanism::Toggle {
+            target: summary.into()
+        }));
+        assert!(
+            !mechanisms.iter().any(|m| matches!(m,
+                InteractionMechanism::HoverAffordance { target, .. }
+                    | InteractionMechanism::Disclosure { target, .. } if target.starts_with("body>p"))),
+            "the static paragraph has no mechanism"
+        );
+        let hover = report
+            .observations
+            .iter()
+            .find(|o| o.target == tile && o.stimulus == Stimulus::Hover)
+            .unwrap();
+        assert!(
+            hover.animations >= 1,
+            "the 150 ms transition was awaited, not sampled mid-flight"
+        );
+        assert!(
+            hover
+                .changes
+                .iter()
+                .any(|c| c.property == "transform" && c.after == "matrix(1, 0, 0, 1, 0, -4)"),
+            "settled end state"
         );
     }
 

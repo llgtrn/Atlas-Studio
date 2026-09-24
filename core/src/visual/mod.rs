@@ -439,6 +439,241 @@ impl VisualAnalysis {
     }
 }
 
+/// A stimulus the instrument applies to one element (ADR 0015).
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+pub enum Stimulus {
+    Hover,
+    Click,
+    ClickTwice,
+    Focus,
+}
+
+/// One property of one element that differed from the pre-stimulus baseline after the page
+/// settled (all animations finished). `before` is `None` when the property was absent.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord)]
+pub struct ObservedChange {
+    pub element: String,
+    pub property: String,
+    pub before: Option<String>,
+    pub after: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct InteractionObservation {
+    pub target: String,
+    pub stimulus: Stimulus,
+    /// Animations that were running and awaited before measuring.
+    pub animations: usize,
+    pub changes: Vec<ObservedChange>,
+    pub status: EpistemicStatus,
+}
+
+/// An abstract interaction mechanism classified from observed changes under a named rule --
+/// what the element does, never how its source implements it.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE", tag = "mechanism")]
+pub enum InteractionMechanism {
+    /// Hover changes the target's own presentation (transform, shadow, colour, opacity).
+    HoverAffordance {
+        target: String,
+        properties: Vec<String>,
+    },
+    /// Click shows/hides or opens/expands elements (`controlled`).
+    Disclosure {
+        target: String,
+        controlled: Vec<String>,
+    },
+    /// A second click returns every non-focus property to the baseline.
+    Toggle { target: String },
+    /// Keyboard focus changes the target's presentation beyond focus itself.
+    FocusIndicator {
+        target: String,
+        properties: Vec<String>,
+    },
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct InteractionState {
+    pub id: String,
+    /// Non-focus changes relative to the baseline state `S0`.
+    pub changes: Vec<ObservedChange>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct InteractionTransition {
+    pub from: String,
+    pub target: String,
+    pub stimulus: Stimulus,
+    pub to: String,
+}
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq, Eq)]
+pub struct InteractionAnalysis {
+    pub mechanisms: Vec<InteractionMechanism>,
+    pub states: Vec<InteractionState>,
+    pub transitions: Vec<InteractionTransition>,
+    pub status: Option<EpistemicStatus>,
+}
+
+const PRESENTATION: [&str; 5] = [
+    "transform",
+    "box-shadow",
+    "background-color",
+    "color",
+    "opacity",
+];
+const VISIBILITY: [&str; 5] = [
+    "display",
+    "visibility",
+    "height",
+    "attr:open",
+    "attr:aria-hidden",
+];
+
+fn within(element: &str, target: &str) -> bool {
+    element == target || element.starts_with(&format!("{target}>"))
+}
+
+fn meaningful(changes: &[ObservedChange]) -> Vec<ObservedChange> {
+    let mut kept: Vec<ObservedChange> = changes
+        .iter()
+        .filter(|change| change.property != "focused")
+        .cloned()
+        .collect();
+    kept.sort();
+    kept
+}
+
+/// Classifies mechanisms and builds the interaction state graph (`S0` = baseline; one state per
+/// distinct settled change-set). Everything here is `DERIVED` from `OBSERVED` changes.
+pub fn analyze_interactions(observations: &[InteractionObservation]) -> InteractionAnalysis {
+    let mut analysis = InteractionAnalysis {
+        states: vec![InteractionState {
+            id: "S0".into(),
+            changes: Vec::new(),
+        }],
+        status: Some(EpistemicStatus::Derived),
+        ..Default::default()
+    };
+    let state_of = |changes: Vec<ObservedChange>, states: &mut Vec<InteractionState>| {
+        if let Some(existing) = states.iter().find(|state| state.changes == changes) {
+            return existing.id.clone();
+        }
+        let id = format!("S{}", states.len());
+        states.push(InteractionState {
+            id: id.clone(),
+            changes,
+        });
+        id
+    };
+    let observation = |target: &str, stimulus| {
+        observations
+            .iter()
+            .find(|o| o.target == target && o.stimulus == stimulus)
+    };
+    let mut targets: Vec<&str> = observations.iter().map(|o| o.target.as_str()).collect();
+    targets.sort();
+    targets.dedup();
+    for target in targets {
+        if let Some(hover) = observation(target, Stimulus::Hover) {
+            let mut properties: Vec<String> = hover
+                .changes
+                .iter()
+                .filter(|c| {
+                    within(&c.element, target) && PRESENTATION.contains(&c.property.as_str())
+                })
+                .map(|c| c.property.clone())
+                .collect();
+            properties.sort();
+            properties.dedup();
+            if !properties.is_empty() {
+                analysis
+                    .mechanisms
+                    .push(InteractionMechanism::HoverAffordance {
+                        target: target.into(),
+                        properties,
+                    });
+            }
+        }
+        if let Some(click) = observation(target, Stimulus::Click) {
+            let changes = meaningful(&click.changes);
+            let mut candidates: BTreeMap<&str, Vec<&str>> = BTreeMap::new();
+            for c in changes
+                .iter()
+                .filter(|c| VISIBILITY.contains(&c.property.as_str()) && c.element != target)
+            {
+                candidates
+                    .entry(c.element.as_str())
+                    .or_default()
+                    .push(c.property.as_str());
+            }
+            // An ancestor whose only change is its height is reflow caused by a controlled
+            // descendant appearing, not a controlled element itself (observed on real pages:
+            // `body` grows when a panel is disclosed).
+            let controlled: Vec<String> = candidates
+                .iter()
+                .filter(|(element, properties)| {
+                    let reflow_only = properties.iter().all(|p| *p == "height");
+                    let is_ancestor = candidates
+                        .keys()
+                        .any(|other| other != *element && within(other, element));
+                    !(reflow_only && is_ancestor)
+                })
+                .map(|(element, _)| (*element).to_owned())
+                .collect();
+            let expands = changes
+                .iter()
+                .any(|c| c.element == target && c.property == "attr:aria-expanded");
+            if !controlled.is_empty() || expands {
+                analysis.mechanisms.push(InteractionMechanism::Disclosure {
+                    target: target.into(),
+                    controlled,
+                });
+            }
+            if !changes.is_empty() {
+                let to = state_of(changes, &mut analysis.states);
+                analysis.transitions.push(InteractionTransition {
+                    from: "S0".into(),
+                    target: target.into(),
+                    stimulus: Stimulus::Click,
+                    to: to.clone(),
+                });
+                if let Some(twice) = observation(target, Stimulus::ClickTwice)
+                    && meaningful(&twice.changes).is_empty()
+                {
+                    analysis.mechanisms.push(InteractionMechanism::Toggle {
+                        target: target.into(),
+                    });
+                    analysis.transitions.push(InteractionTransition {
+                        from: to,
+                        target: target.into(),
+                        stimulus: Stimulus::Click,
+                        to: "S0".into(),
+                    });
+                }
+            }
+        }
+        if let Some(focus) = observation(target, Stimulus::Focus) {
+            let mut properties: Vec<String> = meaningful(&focus.changes)
+                .into_iter()
+                .filter(|c| c.element == target)
+                .map(|c| c.property)
+                .collect();
+            properties.dedup();
+            if !properties.is_empty() {
+                analysis
+                    .mechanisms
+                    .push(InteractionMechanism::FocusIndicator {
+                        target: target.into(),
+                        properties,
+                    });
+            }
+        }
+    }
+    analysis
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -633,6 +868,163 @@ mod tests {
             &rule.change,
             ResponsiveChange::Display { wide, .. } if wide == "none"
         )));
+    }
+
+    fn change(element: &str, property: &str, before: &str, after: &str) -> ObservedChange {
+        ObservedChange {
+            element: element.into(),
+            property: property.into(),
+            before: Some(before.into()),
+            after: after.into(),
+        }
+    }
+
+    fn observed(
+        target: &str,
+        stimulus: Stimulus,
+        changes: Vec<ObservedChange>,
+    ) -> InteractionObservation {
+        InteractionObservation {
+            target: target.into(),
+            stimulus,
+            animations: 0,
+            changes,
+            status: EpistemicStatus::Observed,
+        }
+    }
+
+    #[test]
+    fn interaction_mechanisms_and_state_graph_are_derived_from_observed_changes() {
+        let button = "body>button:1";
+        let panel = "body>div:1";
+        let tile = "body>div:2";
+        let observations = vec![
+            observed(
+                tile,
+                Stimulus::Hover,
+                vec![change(
+                    tile,
+                    "transform",
+                    "none",
+                    "matrix(1, 0, 0, 1, 0, -4)",
+                )],
+            ),
+            observed(tile, Stimulus::Click, vec![]),
+            observed(button, Stimulus::Hover, vec![]),
+            observed(
+                button,
+                Stimulus::Click,
+                vec![
+                    change(button, "attr:aria-expanded", "false", "true"),
+                    change(panel, "display", "none", "block"),
+                    change(button, "focused", "false", "true"),
+                ],
+            ),
+            observed(
+                button,
+                Stimulus::ClickTwice,
+                vec![change(button, "focused", "false", "true")],
+            ),
+            observed(
+                button,
+                Stimulus::Focus,
+                vec![change(button, "focused", "false", "true")],
+            ),
+        ];
+        let analysis = analyze_interactions(&observations);
+        assert!(
+            analysis
+                .mechanisms
+                .contains(&InteractionMechanism::HoverAffordance {
+                    target: tile.into(),
+                    properties: vec!["transform".into()]
+                })
+        );
+        assert!(
+            analysis
+                .mechanisms
+                .contains(&InteractionMechanism::Disclosure {
+                    target: button.into(),
+                    controlled: vec![panel.into()]
+                })
+        );
+        assert!(analysis.mechanisms.contains(&InteractionMechanism::Toggle {
+            target: button.into()
+        }));
+        assert!(
+            !analysis
+                .mechanisms
+                .iter()
+                .any(|m| matches!(m, InteractionMechanism::FocusIndicator { .. })),
+            "focus alone is not a focus indicator"
+        );
+        assert_eq!(analysis.states.len(), 2);
+        assert_eq!(analysis.transitions.len(), 2);
+        assert_eq!(
+            analysis.transitions[1].to, "S0",
+            "the toggle returns to the baseline"
+        );
+        assert_eq!(analysis.status, Some(EpistemicStatus::Derived));
+    }
+
+    #[test]
+    fn an_ancestor_that_only_reflows_is_not_controlled() {
+        let button = "body>button:1";
+        let observations = vec![observed(
+            button,
+            Stimulus::Click,
+            vec![
+                change("body", "height", "300", "340"),
+                change("body>div:1", "display", "none", "block"),
+                change("body>div:1", "height", "0", "40"),
+            ],
+        )];
+        assert!(analyze_interactions(&observations).mechanisms.contains(
+            &InteractionMechanism::Disclosure {
+                target: button.into(),
+                controlled: vec!["body>div:1".into()]
+            }
+        ));
+    }
+
+    #[test]
+    fn a_hover_that_only_changes_another_element_is_not_the_targets_affordance() {
+        let observations = vec![observed(
+            "body>a:1",
+            Stimulus::Hover,
+            vec![change("body>div:9", "opacity", "1", "0.5")],
+        )];
+        assert!(analyze_interactions(&observations).mechanisms.is_empty());
+    }
+
+    #[test]
+    fn a_click_that_does_not_return_is_not_a_toggle() {
+        let button = "body>button:1";
+        let observations = vec![
+            observed(
+                button,
+                Stimulus::Click,
+                vec![change("body>p:1", "display", "none", "block")],
+            ),
+            observed(
+                button,
+                Stimulus::ClickTwice,
+                vec![change("body>p:1", "display", "none", "block")],
+            ),
+        ];
+        let analysis = analyze_interactions(&observations);
+        assert!(
+            !analysis
+                .mechanisms
+                .iter()
+                .any(|m| matches!(m, InteractionMechanism::Toggle { .. }))
+        );
+        assert!(
+            analysis
+                .mechanisms
+                .iter()
+                .any(|m| matches!(m, InteractionMechanism::Disclosure { .. }))
+        );
     }
 
     #[test]

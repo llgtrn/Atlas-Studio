@@ -35,6 +35,17 @@ pub fn playwright_module() -> Option<PathBuf> {
 /// Observes `fixture` (a regular local file) at each `(width, height)` viewport and returns the
 /// instrument's JSON document.
 pub fn observe_fixture_raw(fixture: &Path, viewports: &[(u32, u32)]) -> io::Result<String> {
+    run_instrument(fixture, viewports, "layout")
+}
+
+/// Applies stimuli (hover, click, click twice, keyboard focus) to every interactive candidate of
+/// `fixture` at one viewport, each in a fresh context, and returns the observed state changes
+/// after all animations settle (ADR 0015).
+pub fn interact_fixture_raw(fixture: &Path, viewport: (u32, u32)) -> io::Result<String> {
+    run_instrument(fixture, &[viewport], "interact")
+}
+
+fn run_instrument(fixture: &Path, viewports: &[(u32, u32)], mode: &str) -> io::Result<String> {
     let fixture = fixture.canonicalize()?;
     if !fs_is_regular_file(&fixture) {
         return Err(io::Error::new(
@@ -73,6 +84,7 @@ pub fn observe_fixture_raw(fixture: &Path, viewports: &[(u32, u32)]) -> io::Resu
         .arg(OBSERVATION_SCRIPT)
         .env("ATLAS_PLAYWRIGHT_MODULE", &module)
         .env("ATLAS_OBSERVE_URL", &url)
+        .env("ATLAS_OBSERVE_MODE", mode)
         .env("ATLAS_OBSERVE_VIEWPORTS", viewport_list)
         .env("ATLAS_OBSERVE_PROPERTIES", properties)
         .env(

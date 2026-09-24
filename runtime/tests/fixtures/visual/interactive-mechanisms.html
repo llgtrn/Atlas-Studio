@@ -1,0 +1,26 @@
+<!doctype html>
+<!-- Atlas-original interaction fixture (ADR 0015): a lifting tile (hover affordance with a
+     150 ms transition), a menu button that discloses a panel and toggles aria-expanded, a native
+     details/summary disclosure, and a static paragraph. No third-party design or copy. -->
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  body { margin: 0; padding: 24px; font-family: sans-serif; }
+  .tile { width: 200px; height: 120px; background: #eee; cursor: pointer;
+          transition: transform 150ms ease-out, box-shadow 150ms ease-out; }
+  .tile:hover { transform: translateY(-4px); box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2); }
+  #panel[hidden] { display: none; }
+</style>
+</head>
+<body>
+  <div class="tile"></div>
+  <button id="menu" aria-expanded="false" onclick="
+    const open = this.getAttribute('aria-expanded') === 'true';
+    this.setAttribute('aria-expanded', String(!open));
+    document.getElementById('panel').hidden = open;">Menu</button>
+  <div id="panel" hidden>Panel</div>
+  <details><summary>More</summary><p>Details body</p></details>
+  <p>Static text.</p>
+</body>
+</html>

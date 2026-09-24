@@ -177,6 +177,17 @@ fn run(args: &[String]) -> Result<(), String> {
             // `--bisect`: locate every responsive change between the narrowest and widest
             // viewport to a single pixel by re-observation (INFERRED breakpoints).
             let fixture_path = std::path::Path::new(&fixture);
+            if rest.iter().any(|arg| arg == "--interact") {
+                // ADR 0015: hover/click/click-twice/focus stimuli at the first viewport.
+                let report = runtime::visual::interact_fixture(fixture_path, viewports[0])
+                    .map_err(|e| format!("{fixture}: {e}"))?;
+                let text = json(&report)? + "\n";
+                if let Some(out) = value(rest, "--out")? {
+                    write_report_to_out(&out, &text)?;
+                }
+                print!("{text}");
+                return Ok(());
+            }
             let report = if rest.iter().any(|arg| arg == "--bisect") {
                 let narrow = viewports.iter().map(|v| v.0).min().unwrap_or(375);
                 let wide = viewports.iter().map(|v| v.0).max().unwrap_or(1280);

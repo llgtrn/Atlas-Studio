@@ -215,7 +215,7 @@ capability = "sandboxed, reproducible observation of public/authorized pages: DO
 state = "PARTIAL"
 atlas_implementation = "core::visual observation records + adapter::browser hermetic Playwright/Chromium instrument (every request but the subject aborted, fresh context per viewport) + runtime::visual::observe_fixture (subject digested before/after) + atlas-systemizer observe (ADR 0011); LOCAL_FIXTURE authorization only"
 donors = ["Playwright (Apache-2.0)", "rrweb (MIT)"]
-blocking_question = "static layout + viewport-width stimulus (bisection, ADR 0013) implemented; interaction stimuli (hover/click/scroll/keyboard) and frame sampling not yet; public-URL subjects need an explicit authorization record"
+blocking_question = "layout, viewport bisection (ADR 0013) and interaction stimuli (ADR 0015) implemented; frame sampling for motion not yet; public-URL subjects need an explicit authorization record"
 evidence_required = "an atlas-systemizer observe command producing typed VisualObservation records over a local fixture"
 falsification = "re-observing the same fixture digest yields identical records; a changed fixture changes exactly the affected records"
 dependency_status = "Playwright/Chromium EXTERNAL_BOUNDARY (instrument), recorded as bootstrap"
@@ -268,14 +268,14 @@ extinction_state = "n/a"
 id = "creator_interaction"
 family = "CREATOR_FABRIC"
 capability = "interaction state graph (state x event -> state), focus/keyboard semantics"
-state = "ABSENT"
-atlas_implementation = "none"
+state = "PARTIAL"
+atlas_implementation = "observe --interact (ADR 0015): hover/click/click-twice/focus stimuli, animation-settled diffs -> HOVER_AFFORDANCE, DISCLOSURE (controlled elements, reflow ancestors excluded), TOGGLE, FOCUS_INDICATOR, state graph with toggle returns"
 donors = ["Radix (MIT: presence use-state-machine.tsx)"]
-blocking_question = "needs event-driven observation (hover/click/keyboard)"
+blocking_question = "keyboard sequences, drag and scroll stimuli not yet applied; mechanisms are classified per target, not composed across targets"
 evidence_required = "state transitions observed on fixtures"
 falsification = "replayed events reproduce the same state sequence"
 dependency_status = "none"
-next_action = "after creator_browser"
+next_action = "frame sampling during transitions (creator_motion); keyboard/scroll stimuli"
 extinction_state = "n/a"
 
 [[lane]]

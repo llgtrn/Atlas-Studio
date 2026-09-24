@@ -13,7 +13,7 @@
 #       -> generation evidence -> G_n+1
 
 schema = "atlas.self-build.generation-ledger.v1"
-current_generation = "G46"
+current_generation = "G47"
 
 [[generation]]
 id = "G35"
@@ -417,6 +417,7 @@ id = "G46"
 base_commit = "ac515b340101b464dfa9e95d583bfd556c7da600"
 objective = "physical milestone 2: cross-domain drivetrain/power contradiction detection"
 writer = "coordinator (sole production writer)"
+result_commits = ["dde9bdd101d87cd3e660f34b98bc2dbb2943861b"]
 evidence = ".atlas/decisions/0014-cross-domain-drivetrain-power.md"
 
 [generation.verification]
@@ -427,4 +428,21 @@ evidence_level = "SEMANTIC_MODEL"
 
 [generation.next]
 objective = "G47: Creator interaction stimuli (hover/click -> observed state transitions) or physical dynamics along a trajectory; select by leverage"
+
+[[generation]]
+id = "G47"
+base_commit = "dde9bdd101d87cd3e660f34b98bc2dbb2943861b"
+objective = "Creator interaction: stimuli -> observed state changes -> abstract interaction mechanisms and state graph"
+writer = "coordinator (sole production writer)"
+evidence = ".atlas/decisions/0015-interaction-stimuli-and-mechanisms.md"
+
+[generation.join]
+selection_reason = "unlocks creator_interaction, creator_motion (transition settling/frames) and creator_visual_verify (reachability) vs dynamics unlocking one lane"
+
+[generation.verification]
+falsification = "5 mutants killed (one first survived -> test added); the real browser falsified the first disclosure rule (reflow ancestor), refined before commit"
+production_path = "atlas-systemizer observe --interact on the interactive fixture: 7 mechanisms, 3 states, 4 transitions, static paragraph inert"
+
+[generation.next]
+objective = "G48: motion -- sample frames during a transition and infer duration/easing as INFERRED with alternatives; or physical dynamics along a trajectory"
 
