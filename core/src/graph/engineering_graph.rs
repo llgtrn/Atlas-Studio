@@ -597,11 +597,65 @@ fn add_typed_semantic_nodes(
                     ),
                     kind: "MAKES_CALL".into(),
                     from: caller_node_id,
-                    to: call_site_id,
+                    to: call_site_id.clone(),
                     attributes: BTreeMap::from([("origin".into(), "semantic-extraction".into())]),
                     provenance: header.provenance.clone(),
                     revision: header.provenance.source_revision.clone(),
                 });
+                // R4.12: project each resolved argument/result `PlaceRef` the same way PERSISTENCE
+                // projects its own `place` field below -- pointing at DATA_FLOW's already-existing
+                // node via `place_node_id_for`, never inventing a new one. An `Unresolved` entry
+                // (argument requiring deeper analysis, or a call whose result is merely a
+                // subexpression) correctly produces no edge, exactly like PERSISTENCE's own
+                // `place: PlaceRef::Unresolved` case.
+                for (position, argument) in header.subject.arguments.iter().enumerate() {
+                    if let crate::semantic::PlaceRef::Resolved {
+                        dimension,
+                        record_id,
+                    } = argument
+                    {
+                        let place_node_id = place_node_id_for(*dimension, record_id);
+                        graph.edges.push(Edge {
+                            id: stable_id(
+                                "edge",
+                                &format!(
+                                    "{call_site_id}:BINDS_ARGUMENT:{position}:{place_node_id}"
+                                ),
+                            ),
+                            kind: "BINDS_ARGUMENT".into(),
+                            from: call_site_id.clone(),
+                            to: place_node_id,
+                            attributes: BTreeMap::from([
+                                ("origin".into(), "semantic-extraction".into()),
+                                ("position".into(), position.to_string()),
+                            ]),
+                            provenance: header.provenance.clone(),
+                            revision: header.provenance.source_revision.clone(),
+                        });
+                    }
+                }
+                if let crate::semantic::PlaceRef::Resolved {
+                    dimension,
+                    record_id,
+                } = &header.subject.result
+                {
+                    let place_node_id = place_node_id_for(*dimension, record_id);
+                    graph.edges.push(Edge {
+                        id: stable_id(
+                            "edge",
+                            &format!("{call_site_id}:BINDS_RESULT:{place_node_id}"),
+                        ),
+                        kind: "BINDS_RESULT".into(),
+                        from: call_site_id,
+                        to: place_node_id,
+                        attributes: BTreeMap::from([(
+                            "origin".into(),
+                            "semantic-extraction".into(),
+                        )]),
+                        provenance: header.provenance.clone(),
+                        revision: header.provenance.source_revision.clone(),
+                    });
+                }
             }
             // R4.6: one ControlFlowBlock node per block observation, a HAS_BLOCK edge from the
             // owning function's FunctionIdentity node (present for every block, not only the
@@ -1642,6 +1696,59 @@ mod tests {
         })
     }
 
+    /// Like `call_observation`, but lets a test set `arguments`/`result` explicitly -- needed to
+    /// exercise R4.12's argument/result binding edges, which `call_observation` itself always
+    /// leaves empty/`Unresolved`.
+    fn call_observation_with_bindings(
+        caller: &crate::semantic::SemanticRecordId,
+        arguments: Vec<crate::semantic::PlaceRef>,
+        result: crate::semantic::PlaceRef,
+    ) -> SemanticObservation {
+        use crate::identity::RepositoryId;
+        use crate::provenance::provenance;
+        use crate::semantic::{
+            CallDispatchKind, CallSiteIdentity, ExtractorIdentity, SemanticDimension,
+            SemanticRecordHeader, SemanticRecordId, SemanticScope,
+        };
+        use crate::temporal::RevisionRef;
+
+        let repository = RepositoryId::new("atlas-studio");
+        let revision = RevisionRef {
+            kind: "git".into(),
+            value: "abc123".into(),
+        };
+        let subject = CallSiteIdentity {
+            repository: repository.clone(),
+            revision: revision.clone(),
+            function: caller.clone(),
+            span: crate::language::adl::SourceSpan {
+                path: "src/lib.rs".into(),
+                line: 5,
+                column: 4,
+            },
+            dispatch: CallDispatchKind::Unresolved,
+            callees: Vec::new(),
+            arguments,
+            result,
+        };
+        let record_id = SemanticRecordId::new(SemanticDimension::Call, &subject.identity_key());
+        SemanticObservation::Call(SemanticRecordHeader {
+            record_id,
+            dimension: SemanticDimension::Call,
+            status: EpistemicStatus::Observed,
+            subject,
+            scope: SemanticScope::new(["impl:owner"]),
+            repository,
+            revision,
+            extractor: ExtractorIdentity {
+                id: "atlas.test".into(),
+                version: "0.1.0".into(),
+            },
+            evidence_refs: Vec::new(),
+            provenance: provenance("src/lib.rs", "atlas.test"),
+        })
+    }
+
     /// R4.6: one ControlFlow block observation, letting a test construct exactly the shape it
     /// needs (entry/not, kind, successors) while sharing repository/revision/`function` with a
     /// `function_identity_observation`/other blocks in the same test batch.
@@ -2241,6 +2348,93 @@ mod tests {
         let normalization = normalization_with(vec![caller, call], Vec::new());
         let graph = build_system_graph(&source(), &docs(), &normalization);
         assert!(graph.edges.iter().all(|edge| edge.kind != "CALLS"));
+    }
+
+    #[test]
+    fn an_unresolved_call_never_produces_a_binds_argument_or_binds_result_edge() {
+        let caller = function_identity_observation("Foo");
+        let call = call_observation(&caller.record_id().clone());
+        let normalization = normalization_with(vec![caller, call], Vec::new());
+        let graph = build_system_graph(&source(), &docs(), &normalization);
+        assert!(
+            graph
+                .edges
+                .iter()
+                .all(|edge| edge.kind != "BINDS_ARGUMENT" && edge.kind != "BINDS_RESULT"),
+            "an Unresolved argument/result must never produce a binding edge"
+        );
+    }
+
+    #[test]
+    fn resolved_call_argument_and_result_converge_on_the_existing_data_flow_nodes() {
+        // R4.12: proves cross-dimension identity convergence for CALL the same way
+        // `resolved_persistence_place_converges_on_the_existing_state_access_node` already proves
+        // it for PERSISTENCE -- a Call's `arguments`/`result` PlaceRefs draw edges at the SAME
+        // graph nodes DATA_FLOW's own observations produced, never independently-invented targets.
+        let caller = function_identity_observation("Foo");
+        let caller_record_id = caller.record_id().clone();
+        let argument_value = data_flow_value_observation(
+            &caller_record_id,
+            "x",
+            10,
+            crate::semantic::ValueRole::Use,
+            false,
+            false,
+            None,
+        );
+        let argument_record_id = argument_value.record_id().clone();
+        let result_value = data_flow_value_observation(
+            &caller_record_id,
+            "y",
+            11,
+            crate::semantic::ValueRole::Definition,
+            false,
+            false,
+            None,
+        );
+        let result_record_id = result_value.record_id().clone();
+        let call = call_observation_with_bindings(
+            &caller_record_id,
+            vec![crate::semantic::PlaceRef::Resolved {
+                dimension: crate::semantic::SemanticDimension::DataFlow,
+                record_id: argument_record_id.clone(),
+            }],
+            crate::semantic::PlaceRef::Resolved {
+                dimension: crate::semantic::SemanticDimension::DataFlow,
+                record_id: result_record_id.clone(),
+            },
+        );
+
+        let normalization =
+            normalization_with(vec![caller, argument_value, result_value, call], Vec::new());
+        let graph = build_system_graph(&source(), &docs(), &normalization);
+
+        let expected_argument_node_id = place_node_id_for(
+            crate::semantic::SemanticDimension::DataFlow,
+            &argument_record_id,
+        );
+        let expected_result_node_id = place_node_id_for(
+            crate::semantic::SemanticDimension::DataFlow,
+            &result_record_id,
+        );
+
+        let argument_edge = graph
+            .edges
+            .iter()
+            .find(|edge| edge.kind == "BINDS_ARGUMENT")
+            .expect("a BINDS_ARGUMENT edge must exist for a Resolved argument");
+        assert_eq!(argument_edge.to, expected_argument_node_id);
+        assert_eq!(
+            argument_edge.attributes.get("position").map(String::as_str),
+            Some("0")
+        );
+
+        let result_edge = graph
+            .edges
+            .iter()
+            .find(|edge| edge.kind == "BINDS_RESULT")
+            .expect("a BINDS_RESULT edge must exist for a Resolved result");
+        assert_eq!(result_edge.to, expected_result_node_id);
     }
 
     // --- R4.6: CONTROL_FLOW observations produce ControlFlowBlock nodes and structural edges ------
