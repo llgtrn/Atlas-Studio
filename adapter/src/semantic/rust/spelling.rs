@@ -12,7 +12,15 @@ use quote::ToTokens;
 
 pub fn type_spelling(ty: &syn::Type) -> String {
     match ty {
-        syn::Type::Path(type_path) => path_spelling(&type_path.path),
+        // A qualified path (`<A as Container>::Item`) stores its qualifying type in `qself`, NOT
+        // as a path segment: `type_path.path.segments` alone is just `["Container", "Item"]"
+        // regardless of whether the qself type is `A`, `B`, or anything else, so reading only
+        // `.path` here would collide two genuinely different types (`<A as Container>::Item` and
+        // `<B as Container>::Item`) onto the identical spelling -- the same class of collision
+        // already fixed for 1-element tuples. Rather than hand-reimplement `syn`'s own qself/path
+        // splitting logic (trait-vs-rest segment position, optional `as Trait`), fall back to the
+        // raw token stream here, matching this function's own documented policy for rarer shapes.
+        syn::Type::Path(type_path) if type_path.qself.is_none() => path_spelling(&type_path.path),
         syn::Type::Reference(reference) => {
             let lifetime = reference
                 .lifetime

@@ -1490,6 +1490,24 @@ fn a_one_element_tuple_type_is_never_spelled_the_same_as_its_parenthesized_eleme
     );
 }
 
+#[test]
+fn two_qualified_paths_with_different_qself_types_never_collide() {
+    // `<A as Container>::Item` and `<B as Container>::Item` are genuinely different types (the
+    // same associated type projected through two different implementations). The qualifying type
+    // (`A`/`B`) lives in `syn::TypePath.qself`, never as a `path` segment -- `type_path.path` alone
+    // is `Container::Item` for BOTH, regardless of the qself type. Reading only `.path` here would
+    // collide two structurally different types onto the identical `TypeIdentity.name`, since
+    // `TypeIdentity.canonical` stays `None` throughout this extractor's scope and `identity_key()`
+    // hashes on `name` alone.
+    let parse = |source: &str| -> syn::Type { syn::parse_str(source).unwrap() };
+    let via_a = spelling::type_spelling(&parse("<A as Container>::Item"));
+    let via_b = spelling::type_spelling(&parse("<B as Container>::Item"));
+    assert_ne!(
+        via_a, via_b,
+        "two qualified paths with different qself types must never collide"
+    );
+}
+
 // =================================================================================================
 // R4.4 -- Function Identity Closure
 //
