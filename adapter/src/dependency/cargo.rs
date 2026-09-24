@@ -172,6 +172,44 @@ fn workspace_members(root_manifest: &str) -> (Vec<String>, bool) {
     (Vec::new(), false)
 }
 
+/// Expands any workspace member entry shaped like `"prefix/*"` (Cargo's own single-level
+/// directory-glob member shorthand) into one entry per real subdirectory of `root.join(prefix)`
+/// that contains its own `Cargo.toml` -- sorted for determinism. A non-glob entry passes through
+/// unchanged. Real, common Cargo idiom: this repository's own donor corpus has multiple manifests
+/// declaring a member this way (e.g. `.atlas/temporary/donors/object/Cargo.toml`'s
+/// `members = ["crates/*"]`, `mold`'s `members = ["cli", "arch/*", "tests"]`). Before this fix,
+/// such an entry was treated as a literal, non-existent path (`root.join("crates/*").join(
+/// "Cargo.toml")` never exists on any real filesystem), silently discarding every real crate
+/// underneath: no diagnostic, no `unsupported_constructs` entry, no dangling reference -- the
+/// member was simply skipped when `read_to_string` returned `None`, so every dependency edge whose
+/// consumer is one of those crates silently fell back to `role: None`.
+///
+/// Cargo itself supports arbitrarily nested glob segments and multiple `*` per pattern; this scope
+/// is deliberately narrower -- exactly the single-trailing-`/*`-component shape real donor
+/// manifests in this corpus use -- broadened only if real input ever demonstrates the need,
+/// matching this file's evidence-before-code discipline.
+fn expand_glob_members(root: &Path, members: Vec<String>) -> Vec<String> {
+    let mut expanded = Vec::new();
+    for member in members {
+        let Some(prefix) = member.strip_suffix("/*") else {
+            expanded.push(member);
+            continue;
+        };
+        let Ok(entries) = fs::read_dir(root.join(prefix)) else {
+            continue;
+        };
+        let mut children: Vec<String> = entries
+            .filter_map(Result::ok)
+            .filter(|entry| entry.path().join("Cargo.toml").is_file())
+            .filter_map(|entry| entry.file_name().into_string().ok())
+            .map(|name| format!("{prefix}/{name}"))
+            .collect();
+        children.sort();
+        expanded.extend(children);
+    }
+    expanded
+}
+
 /// One `[dependencies]`-shaped table entry: the resolved crate name it actually names (the key
 /// itself, unless the entry renames via `package = "..."`, e.g. `atlas_core = { package = "core",
 /// path = "../core" }` names the crate `core`, not `atlas_core`) and whether it declares
@@ -437,6 +475,7 @@ pub fn census_cargo_workspace(root: &Path) -> io::Result<Option<DependencyClosur
             unsupported_constructs
                 .push("Cargo.toml: multi-line workspace.members array is not parsed".to_owned());
         }
+        let members = expand_glob_members(root, members);
         for member in members {
             let manifest_path = root.join(&member).join("Cargo.toml");
             let relative_manifest_path = format!("{member}/Cargo.toml");
@@ -1026,6 +1065,112 @@ embed-resource = "1"
     fn absent_workspace_members_is_not_flagged_unsupported() {
         let manifest = "[package]\nname = \"solo\"\n";
         assert_eq!(workspace_members(manifest), (Vec::new(), false));
+    }
+
+    // --- glob-shaped workspace members (`"crates/*"`), Cargo's own single-level directory-glob
+    // member shorthand. Real, common idiom: this repository's own donor corpus has multiple
+    // manifests using it (e.g. object's `members = ["crates/*"]`, mold's
+    // `members = ["cli", "arch/*", "tests"]`).
+
+    #[test]
+    fn a_glob_member_expands_to_its_real_subdirectories_containing_a_cargo_toml() {
+        let dir = std::env::temp_dir().join(format!(
+            "atlas-dep-census-test-{}-glob-members",
+            std::process::id()
+        ));
+        let _ = fs::remove_dir_all(&dir);
+        write(
+            &dir.join("crates/a/Cargo.toml"),
+            "[package]\nname = \"a\"\n",
+        );
+        write(
+            &dir.join("crates/b/Cargo.toml"),
+            "[package]\nname = \"b\"\n",
+        );
+        // A subdirectory with no Cargo.toml of its own must never be treated as a member.
+        fs::create_dir_all(dir.join("crates/not-a-crate")).unwrap();
+        // A non-member file sitting directly under the glob prefix must be ignored, not crash.
+        write(&dir.join("crates/README.md"), "not a crate\n");
+
+        let expanded = expand_glob_members(&dir, vec!["crates/*".to_owned(), "xtask".to_owned()]);
+        assert_eq!(
+            expanded,
+            vec![
+                "crates/a".to_owned(),
+                "crates/b".to_owned(),
+                "xtask".to_owned(),
+            ]
+        );
+
+        let _ = fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn a_glob_member_with_no_matching_directory_expands_to_nothing_not_a_crash() {
+        let dir = std::env::temp_dir().join(format!(
+            "atlas-dep-census-test-{}-glob-members-missing",
+            std::process::id()
+        ));
+        let _ = fs::remove_dir_all(&dir);
+        fs::create_dir_all(&dir).unwrap();
+        let expanded = expand_glob_members(&dir, vec!["crates/*".to_owned()]);
+        assert!(expanded.is_empty());
+        let _ = fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn a_glob_shaped_workspace_member_attributes_dependency_roles_for_every_real_subcrate() {
+        // The exact regression this fix closes: before `expand_glob_members` existed,
+        // `census_cargo_workspace` treated `"crates/*"` as a literal, non-existent path, so every
+        // dependency edge whose consumer was one of the real crates underneath silently fell back
+        // to `role: None`, `evidence_path: "Cargo.lock"`.
+        let dir = std::env::temp_dir().join(format!(
+            "atlas-dep-census-test-{}-glob-e2e",
+            std::process::id()
+        ));
+        let _ = fs::remove_dir_all(&dir);
+        write(
+            &dir.join("Cargo.toml"),
+            "[workspace]\nmembers = [\"crates/*\"]\n",
+        );
+        write(
+            &dir.join("Cargo.lock"),
+            r#"
+[[package]]
+name = "a"
+version = "0.1.0"
+dependencies = [
+ "serde",
+]
+
+[[package]]
+name = "serde"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+"#,
+        );
+        write(
+            &dir.join("crates/a/Cargo.toml"),
+            "[package]\nname = \"a\"\n\n[dependencies]\nserde = \"1\"\n",
+        );
+
+        let report = census_cargo_workspace(&dir).unwrap().unwrap();
+        assert!(report.unsupported_constructs.is_empty());
+        let edge = report
+            .edges
+            .iter()
+            .find(|edge| edge.consumer == "a" && edge.provider.name == "serde")
+            .expect("the glob-discovered crate's own dependency edge must be present");
+        assert_eq!(
+            edge.role,
+            Some(DependencyRole::Runtime),
+            "a glob-discovered workspace member's own declared dependency role must be \
+             attributed, not silently dropped just because its manifest path was never literal \
+             in workspace.members"
+        );
+        assert_eq!(edge.evidence_path, "crates/a/Cargo.toml");
+
+        let _ = fs::remove_dir_all(&dir);
     }
 
     // --- 4. end-to-end census against a synthetic workspace on disk ----------------------------
@@ -1868,6 +2013,36 @@ version = "0.1.0"
                 .any(|edge| edge.evidence_path == "Cargo.toml"),
             "an evidenced root-package edge must cite the root manifest itself, not fall back to \
              the coarser Cargo.lock evidence path"
+        );
+    }
+
+    // --- 8. real-world verification of the glob-shaped workspace member fix -----------------------
+
+    #[test]
+    fn real_object_donor_glob_members_are_evidenced_not_dropped() {
+        // `object`'s own root Cargo.toml declares `[workspace] members = ["crates/*"]` -- Cargo's
+        // single-level directory-glob member shorthand. Before the glob-expansion fix, every real
+        // crate under `crates/` was invisible to `workspace_members` (a literal, non-existent
+        // `crates/*/Cargo.toml` path), so every dependency edge whose consumer was one of those
+        // crates silently fell back to `role: None`.
+        let root = Path::new(env!("CARGO_MANIFEST_DIR"))
+            .parent()
+            .expect("adapter/ has a parent directory")
+            .join(".atlas/temporary/donors/object");
+        let Ok(Some(report)) = census_cargo_workspace(&root) else {
+            // Tolerate donor-corpus reorganization the same way the other real-donor tests do.
+            return;
+        };
+        assert!(
+            report.unsupported_constructs.is_empty(),
+            "expected the glob member array to parse cleanly: {:?}",
+            report.unsupported_constructs
+        );
+        let evidenced_edges = report.edges.iter().filter(|e| e.role.is_some()).count();
+        assert!(
+            evidenced_edges > 10,
+            "expected substantial evidenced-role coverage now that crates/* is expanded to its \
+             real subcrates, not just the handful of top-level (non-glob) members; got {evidenced_edges}"
         );
     }
 }

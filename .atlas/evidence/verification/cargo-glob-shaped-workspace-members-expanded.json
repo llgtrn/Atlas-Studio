@@ -1,0 +1,58 @@
+{
+  "schema": "atlas.self-build.generation-evidence.v1",
+  "wave": "SEMANTIC PRESERVATION -- glob-shaped workspace members (`members = [\"crates/*\"]`) were never expanded, silently dropping dependency-role evidence for the large majority of consumers in exactly this shape of workspace",
+  "wave_title": "The same second delegated fresh-census investigation that found the backend_roots omission (fixed in the immediately preceding generation) also flagged, as its highest-confidence finding, that `workspace_members` treats a Cargo directory-glob member entry (`\"crates/*\"`) as a literal string, never expanding it to the real subdirectories underneath. Verified independently against this repository's own committed donor corpus before acting.",
+  "priority_classification": "semantic preservation (priority 3) -- real, already-computed dependency evidence (a manifest's own declared role for a workspace-member crate) was silently discarded for a very common real-world Cargo idiom, not a rare edge case.",
+  "gap_discovered_by": "Delegated Explore-agent investigation. Confirmed the shape is real and common by grepping the donor corpus: `.atlas/temporary/donors/{ast-grep,mold,object,rust-analyzer}/Cargo.toml` all declare a workspace member this way (e.g. `object`'s `members = [\"crates/*\"]`, `mold`'s `members = [\"cli\", \"arch/*\", \"tests\"]`).",
+  "verification_before_acting": [
+    "Independently confirmed the real donor shape myself: `.atlas/temporary/donors/object/Cargo.toml` line 127 is `members = [\"crates/*\"]`, and `.atlas/temporary/donors/object/crates/` really contains subdirectories (`examples`, `rewrite`, and others) with their own `Cargo.toml` files.",
+    "Wrote a throwaway probe test (deleted after confirming) that ran `census_cargo_workspace` against the real `object` donor and printed its own edge/role counts BEFORE implementing any fix: 61 total edges, only 7 with an evidenced role -- confirming the vast majority of this donor's real consumers had zero role coverage, exactly the predicted consequence of the glob never expanding.",
+    "Grepped the whole donor corpus for every member-array glob pattern actually used (`crates/*`, `arch/*`, `lib/*`) to confirm the scope of the fix (a single trailing `/*` component) matches real evidence -- ruled out supporting a bare `\"*\"` or multi-`*` nested patterns, since no real donor manifest uses either shape.",
+    "Falsified the fix directly: temporarily removed the one `expand_glob_members` call site, re-ran the new end-to-end regression test, confirmed it failed with the exact expected `role: None` mismatch, then restored the fix and re-ran to confirm it passes."
+  ],
+  "design_decisions": [
+    {
+      "question": "Expand glob members inside `workspace_members` itself, or as a separate post-processing step?",
+      "decision": "Separate `expand_glob_members(root: &Path, members: Vec<String>) -> Vec<String>` function, called once in `census_cargo_workspace` right after `workspace_members` returns. `workspace_members` itself stays a pure, filesystem-free string parser (matching its own existing unit-testability and the file's established separation of parsing from filesystem I/O); glob expansion inherently requires `fs::read_dir`, so it belongs at the orchestration layer, not inside the pure parser."
+    },
+    {
+      "question": "How to decide whether a discovered subdirectory is really a workspace member?",
+      "decision": "Only a subdirectory containing its own `Cargo.toml` is treated as an expanded member -- matching Cargo's own real behavior (a glob member with no manifest would be a Cargo error, not a silently-included non-crate directory) and consistent with this parser's own graceful-degradation style elsewhere (a nonexistent member manifest is already silently skipped, never fabricated)."
+    },
+    {
+      "question": "Support the general Cargo glob grammar (nested `*`, multiple `*` per pattern, bare `\"*\"`), or only what real donor input demonstrates?",
+      "decision": "Deliberately narrower: only a single trailing `/*` component, matching every real instance found in this repository's own 57-donor corpus. Documented explicitly in `expand_glob_members`'s own doc comment as a scope boundary to broaden only with real evidence, matching this file's established evidence-before-code discipline (the same discipline that deferred the target-conditional dotted-dependency-table combination in the immediately preceding generation)."
+    }
+  ],
+  "stable_validator_law_compliance": {
+    "claim": "A workspace member declared as `\"prefix/*\"` now expands to every real subdirectory of `prefix` that has its own `Cargo.toml`, each treated exactly like an ordinary literal member (its own declared dependency roles attributed, its own manifest path recorded as evidence). A non-glob member, or a glob prefix with no matching subdirectories, is unaffected or expands to nothing -- never fabricates a member that does not exist on disk.",
+    "self_written_evidence": "Three new unit tests (`a_glob_member_expands_to_its_real_subdirectories_containing_a_cargo_toml`, `a_glob_member_with_no_matching_directory_expands_to_nothing_not_a_crash`, `a_glob_shaped_workspace_member_attributes_dependency_roles_for_every_real_subcrate`) plus one new real-donor-corpus test (`real_object_donor_glob_members_are_evidenced_not_dropped`, asserting substantial evidenced-role coverage now that `crates/*` expands). The end-to-end synthetic test was confirmed to FAIL with the exact expected `role: None` mismatch before the fix, by temporarily removing the one `expand_glob_members` call site and re-running.",
+    "independent_evidence_channel": "cargo build --workspace clean. cargo fmt --all --check clean. cargo clippy --workspace --all-targets -D warnings clean, zero warnings. Full cargo test --workspace: 289 adapter (+4 net), 2 apps/cli, 161 core, 72 runtime -- 524 total, 0 failed. A throwaway probe run against the real `object` donor before implementing anything (7 of 61 edges evidenced) contrasted with the same donor's own new permanent regression test after the fix (`evidenced_edges > 10`, comfortably passing). `docs audit`: gate_ready true.",
+    "no_circular_self_certification": true
+  },
+  "implementation": {
+    "adapter_change": "adapter/src/dependency/cargo.rs -- new `expand_glob_members(root, members)` function, called once in `census_cargo_workspace` immediately after `workspace_members` returns, before the member-manifest-reading loop."
+  },
+  "adversarial_and_falsification_coverage": [
+    "a_glob_member_expands_to_its_real_subdirectories_containing_a_cargo_toml also covers two adjacent false-positive risks in one test: a subdirectory with no Cargo.toml (must not be treated as a member) and a non-directory file sitting under the glob prefix (must not crash the scan)",
+    "the end-to-end synthetic test was independently confirmed to fail without the fix (not merely written and left green), the same discipline applied to both fixes in the immediately preceding generation",
+    "quantified real-world impact BEFORE implementing (a throwaway probe against the real `object` donor: 7/61 edges evidenced) rather than assuming the fix mattered from code review alone -- this is the second generation in a row where a throwaway empirical probe preceded the fix, not just the test"
+  ],
+  "validation_this_generation": {
+    "commands": {
+      "cargo build --workspace": { "exit_code": 0 },
+      "cargo fmt --all --check": { "exit_code": 0 },
+      "cargo clippy --workspace --all-targets -- -D warnings": { "exit_code": 0, "warnings": 0 },
+      "cargo test --workspace": { "exit_code": 0, "totals": "289 adapter (+4 net), 2 apps/cli, 161 core, 72 runtime -- 524 total, 0 failed" },
+      "cargo run -q -p atlas-cli -- docs audit --root .atlas": { "exit_code": 0, "gate_ready": true }
+    }
+  },
+  "recensus_scope_after_promotion": [
+    "no prior CLOSED/EXTINCT conclusion is affected",
+    "this repository's own workspace is unaffected -- Atlas's own `.atlas/repo.toml`/root Cargo.toml uses only literal, non-glob members",
+    "the general lesson from this and the two immediately preceding generations (real donor Cargo.toml files repeatedly exercise a Cargo manifest shape this hand-rolled parser's own narrow, evidence-scoped design had not yet covered: mixed root+workspace manifests, dotted single-dependency tables, and now glob-shaped members) suggests a future generation could do one more targeted sweep of the donor corpus for any remaining unhandled manifest shape before moving to a different area entirely -- flagged as a candidate, not undertaken this generation",
+    "the general Cargo glob grammar (nested `*`, multiple `*` per pattern, bare `\"*\"`) remains an explicit, evidence-gated TARGET, not silently unhandled"
+  ],
+  "overall_verdict": "MATERIALIZED AND VERIFIED. Glob-shaped workspace members (`\"crates/*\"`), a real and common Cargo idiom used by multiple donors in this repository's own corpus, are now expanded to their real subdirectories before dependency-role attribution runs. Quantified real-world impact before and after (`object` donor: 7/61 evidenced edges before, comfortably >10 after) and confirmed the fix's own regression test genuinely fails without it. Full workspace suite (524 tests) passing, gate_ready true.",
+  "historical_evidence_retained": true
+}
