@@ -144,7 +144,9 @@ constraint here (see Decision).
 
 ## Rejected alternatives (for this pass)
 
-- **Reimplementing BLAKE3's compression function natively in `core`** — considered and explicitly
+- **Reimplementing BLAKE3's compression function natively in `core`** — *(superseded for the
+  unkeyed hash mode by ADR 0005, 2026-09-24; still governs keyed/derive-key modes — see Decision
+  update below)* considered and explicitly
   rejected, not merely deferred. This is the one place in this record where `ABSORB_LATER` means
   "absorb the mechanism as *dependency justification*, never as *dependency elimination*." Hand
   reimplementing a cryptographic primitive is a recognized, serious security anti-pattern
@@ -196,3 +198,24 @@ prevent.
 one mechanism — content-addressing/hashing — not BLAKE3's full surface: the `b3sum` CLI, the C
 bindings, and the SIMD platform-detection machinery in `platform.rs` remain uncensused at this
 depth), with this genome record added as new evidence.
+
+## Decision update (2026-09-24, G36) — superseded for the unkeyed hash mode
+
+`.atlas/decisions/0005-native-blake3-content-digest.md` supersedes the native-reimplementation
+rejection above **for the unkeyed hash mode only**; the text above is kept as the original reasoning.
+The trigger arrived earlier than the binary-format wave: R5 incremental recensus needs a
+collision-resistant content identity per artifact, and Atlas had none (`stable_id` FNV-1a is a label,
+never a change detector).
+
+- The timing-side-channel objection concerns secret inputs. Keyed-hash and derive-key modes stay
+  `EXTERNAL_BOUNDARY`; `core::identity::blake3` contains no keyed/derive machinery, enforced by a
+  self-scan test.
+- The "cannot be caught by unit tests" objection concerns constant-time and cryptanalytic
+  properties, not functional correctness of a deterministic public function. Correctness is pinned
+  by all 35 official vectors (hash and 131-byte XOF, every update split), differential equality
+  against the upstream crate (dev-dependency only), and a >2^32 chunk counter via the crate's
+  `hazmat` API.
+- `stable_id` is unchanged, as this record's Decision required.
+
+Donor disposition after absorption: hash mode `ABSORBED`; keyed/derive `EXTERNAL_BOUNDARY`; SIMD,
+`platform.rs`, rayon, C implementation and `b3sum` `REFERENCE_ONLY`.

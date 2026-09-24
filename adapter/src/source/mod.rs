@@ -1,6 +1,6 @@
 use atlas_core::{
-    ArtifactDisposition, ArtifactId, ArtifactKind, ArtifactRecord, FileFact, InventoryReport,
-    RepoManifest, SourceReport, stable_id,
+    ArtifactDisposition, ArtifactId, ArtifactKind, ArtifactRecord, FileFact, IntegrityDigest,
+    InventoryReport, RepoManifest, SourceReport, blake3, stable_id,
 };
 
 pub mod frontend;
@@ -17,6 +17,8 @@ use std::{
 
 const MAX_SEMANTIC_BYTES: u64 = 4 * 1024 * 1024;
 const BINARY_SAMPLE_BYTES: usize = 8 * 1024;
+/// Files above this size are inventoried and sniffed but not content-digested (ADR 0005).
+const MAX_DIGEST_BYTES: u64 = 256 * 1024 * 1024;
 
 fn ignored_directory(name: &str) -> bool {
     matches!(
@@ -44,13 +46,6 @@ fn artifact_id(path: &str) -> ArtifactId {
     ArtifactId::new(stable_id("artifact", path))
 }
 
-fn looks_binary(path: &Path) -> io::Result<bool> {
-    let mut file = File::open(path)?;
-    let mut sample = [0_u8; BINARY_SAMPLE_BYTES];
-    let read = file.read(&mut sample)?;
-    Ok(sample[..read].contains(&0))
-}
-
 fn policy_boundary(root: &Path, path: &Path) -> ArtifactRecord {
     let path = relative(root, path);
     ArtifactRecord {
@@ -61,15 +56,102 @@ fn policy_boundary(root: &Path, path: &Path) -> ArtifactRecord {
         disposition: ArtifactDisposition::IgnoredByExplicitPolicy,
         language: None,
         reason: Some("generated-or-external-directory-boundary".into()),
+        content_digest: None,
+        content_digest_withheld: None,
     }
+}
+
+/// What one bounded read of a regular file observed: whether the leading sample contains a NUL
+/// byte, and the BLAKE3-256 of every byte read -- or why no digest can be vouched for.
+struct FileContent {
+    binary: bool,
+    digest: Result<IntegrityDigest, String>,
+}
+
+/// Reads `path` through ONE handle (ADR 0005): the handle's own `fstat` must still describe a
+/// regular file and, on Unix, the very inode the walker's `lstat` listed (a symlink or other file
+/// swapped in after listing is refused, not followed); files larger than `MAX_DIGEST_BYTES` are
+/// sampled but not digested; and the read is bounded by `take(listed + 1)`, so a file that grows,
+/// shrinks or is replaced mid-read yields no digest. A `None` digest means "treat as changed".
+fn read_file_content(path: &Path, listed: &fs::Metadata) -> io::Result<FileContent> {
+    let file = File::open(path)?;
+    let opened = file.metadata()?;
+    if !opened.is_file() || !same_inode(listed, &opened) {
+        return Ok(FileContent {
+            binary: false,
+            digest: Err(
+                "content-digest-withheld: artifact replaced between listing and open".into(),
+            ),
+        });
+    }
+    let expected = opened.len();
+    let digest_wanted = expected <= MAX_DIGEST_BYTES;
+    let mut reader = file.take(if digest_wanted {
+        expected + 1
+    } else {
+        BINARY_SAMPLE_BYTES as u64
+    });
+    let mut hasher = blake3::Hasher::new();
+    let mut buffer = vec![0_u8; 64 * 1024];
+    let mut sample_seen = 0_usize;
+    let mut binary = false;
+    let mut total = 0_u64;
+    loop {
+        let read = match reader.read(&mut buffer) {
+            Ok(0) => break,
+            Ok(read) => read,
+            Err(error) if error.kind() == io::ErrorKind::Interrupted => continue,
+            Err(error) => return Err(error),
+        };
+        if sample_seen < BINARY_SAMPLE_BYTES {
+            let sample = read.min(BINARY_SAMPLE_BYTES - sample_seen);
+            binary |= buffer[..sample].contains(&0);
+            sample_seen += sample;
+        }
+        hasher.update(&buffer[..read]);
+        total += read as u64;
+    }
+    let digest = if !digest_wanted {
+        Err(format!(
+            "content-digest-withheld: size-limit:{expected}>{MAX_DIGEST_BYTES}"
+        ))
+    } else if total != expected {
+        Err(format!(
+            "content-digest-withheld: length changed during read ({expected} listed, {total} read)"
+        ))
+    } else {
+        Ok(IntegrityDigest::blake3_256(&hasher.finalize()))
+    };
+    Ok(FileContent { binary, digest })
+}
+
+#[cfg(unix)]
+fn same_inode(listed: &fs::Metadata, opened: &fs::Metadata) -> bool {
+    use std::os::unix::fs::MetadataExt;
+    listed.dev() == opened.dev() && listed.ino() == opened.ino()
+}
+
+#[cfg(not(unix))]
+fn same_inode(_listed: &fs::Metadata, _opened: &fs::Metadata) -> bool {
+    true
 }
 
 fn classify_file(root: &Path, path: &Path) -> io::Result<ArtifactRecord> {
     let relative_path = relative(root, path);
-    let bytes = fs::metadata(path)?.len();
+    let listed = fs::symlink_metadata(path)?;
+    if !listed.is_file() {
+        return classify_non_file(
+            root,
+            path,
+            ArtifactKind::Special,
+            "artifact replaced between listing and classification",
+        );
+    }
+    let content = read_file_content(path, &listed)?;
+    let bytes = listed.len();
     let frontend = resolve_source_frontend(path);
     let language = frontend.map(|matched| matched.language.to_owned());
-    let binary = looks_binary(path)?;
+    let binary = content.binary;
 
     let (disposition, reason) = if binary {
         (
@@ -92,6 +174,10 @@ fn classify_file(root: &Path, path: &Path) -> io::Result<ArtifactRecord> {
             Some("no-registered-source-frontend".into()),
         )
     };
+    let (content_digest, content_digest_withheld) = match content.digest {
+        Ok(digest) => (Some(digest), None),
+        Err(reason) => (None, Some(reason)),
+    };
 
     Ok(ArtifactRecord {
         id: artifact_id(&relative_path),
@@ -101,6 +187,8 @@ fn classify_file(root: &Path, path: &Path) -> io::Result<ArtifactRecord> {
         disposition,
         language,
         reason,
+        content_digest,
+        content_digest_withheld,
     })
 }
 
@@ -119,6 +207,8 @@ fn classify_non_file(
         disposition: ArtifactDisposition::Unsupported,
         language: None,
         reason: Some(reason.into()),
+        content_digest: None,
+        content_digest_withheld: None,
     })
 }
 
@@ -152,6 +242,8 @@ fn record_unreadable_artifact(
         disposition: ArtifactDisposition::Unknown,
         language: None,
         reason: Some(format!("artifact-not-accessible: {error}")),
+        content_digest: None,
+        content_digest_withheld: None,
     };
     out.insert(record.path.clone(), record);
 }
@@ -172,12 +264,14 @@ pub(crate) const MAX_DIRECTORY_NESTING_DEPTH: usize = 512;
 /// The classification outcome for one already-listed directory entry, kept separate from
 /// `visit_inventory`'s loop so every failure path -- `entry.file_type()`, `classify_file`,
 /// `classify_non_file` -- funnels through one `Result`, handled uniformly by the caller instead of
-/// each needing its own bespoke recovery.
+/// each needing its own bespoke recovery. It never recurses itself: a directory to walk is handed
+/// back as `Ok(None)` with `descend` set, so no `ArtifactRecord` temporary of this frame stays live
+/// on the stack across the recursion (per-level stack cost must not grow with the record type).
 fn classify_entry(
     root: &Path,
     entry: &fs::DirEntry,
-    out: &mut BTreeMap<String, ArtifactRecord>,
     depth: usize,
+    descend: &mut Option<PathBuf>,
 ) -> io::Result<Option<ArtifactRecord>> {
     let path = entry.path();
     let name = entry.file_name().to_string_lossy().into_owned();
@@ -194,7 +288,7 @@ fn classify_entry(
                 "resource-limit: directory nesting depth exceeded",
             )?))
         } else {
-            visit_inventory(root, &path, out, depth + 1)?;
+            *descend = Some(path);
             Ok(None)
         }
     } else if file_type.is_file() {
@@ -214,6 +308,35 @@ fn classify_entry(
             "special-file-not-parsed",
         )?))
     }
+}
+
+/// Classifies and records one entry, returning the directory to descend into, if any. A separate,
+/// non-recursive frame: everything record-sized it touches is gone before `visit_inventory`
+/// recurses.
+fn record_entry(
+    root: &Path,
+    entry: &fs::DirEntry,
+    out: &mut BTreeMap<String, ArtifactRecord>,
+    depth: usize,
+) -> Option<PathBuf> {
+    // Falsification: confirmed a real, non-root `chmod 000` FILE (distinct from the
+    // already-fixed unreadable-DIRECTORY case) still aborted the whole walk here -- `?`
+    // propagated `entry.file_type()`/`classify_file`/`classify_non_file`'s `io::Error` (e.g.
+    // `fs::metadata`/`File::open` failing on a permission-denied or vanished file) straight
+    // out of `visit_inventory`, exactly the same defect class, just one level of granularity
+    // finer (one FILE, not one DIRECTORY). Same recovery: record it, never abort every other
+    // artifact because of it.
+    let mut descend = None;
+    match classify_entry(root, entry, depth, &mut descend) {
+        Ok(Some(record)) => {
+            out.insert(record.path.clone(), record);
+        }
+        Ok(None) => {}
+        Err(error) => {
+            record_unreadable_artifact(root, &entry.path(), out, &error);
+        }
+    }
+    descend
 }
 
 fn visit_inventory(
@@ -239,22 +362,10 @@ fn visit_inventory(
     entries.sort_by_key(|entry| entry.file_name());
 
     for entry in entries {
-        let path = entry.path();
-        // Falsification: confirmed a real, non-root `chmod 000` FILE (distinct from the
-        // already-fixed unreadable-DIRECTORY case) still aborted the whole walk here -- `?`
-        // propagated `entry.file_type()`/`classify_file`/`classify_non_file`'s `io::Error` (e.g.
-        // `fs::metadata`/`File::open` failing on a permission-denied or vanished file) straight
-        // out of `visit_inventory`, exactly the same defect class, just one level of granularity
-        // finer (one FILE, not one DIRECTORY). Same recovery: record it, never abort every other
-        // artifact because of it.
-        match classify_entry(root, &entry, out, depth) {
-            Ok(Some(record)) => {
-                out.insert(record.path.clone(), record);
-            }
-            Ok(None) => {}
-            Err(error) => {
-                record_unreadable_artifact(root, &path, out, &error);
-            }
+        if let Some(subdirectory) = record_entry(root, &entry, out, depth)
+            && let Err(error) = visit_inventory(root, &subdirectory, out, depth + 1)
+        {
+            record_unreadable_artifact(root, &subdirectory, out, &error);
         }
     }
     Ok(())
@@ -353,6 +464,8 @@ fn rejected_declared_root(declared: &str) -> ArtifactRecord {
         disposition: ArtifactDisposition::IgnoredByExplicitPolicy,
         language: None,
         reason: Some("declared-root-escapes-repository-boundary".into()),
+        content_digest: None,
+        content_digest_withheld: None,
     }
 }
 
@@ -491,6 +604,163 @@ mod tests {
         );
 
         let _ = fs::remove_dir_all(&base);
+    }
+
+    fn digest_of<'a>(report: &'a InventoryReport, path: &str) -> &'a ArtifactRecord {
+        report
+            .artifacts
+            .iter()
+            .find(|artifact| artifact.path == path)
+            .unwrap_or_else(|| panic!("{path} inventoried"))
+    }
+
+    #[test]
+    fn inventory_digests_exactly_the_file_bytes_through_the_production_walk() {
+        let root = scratch_root();
+        fs::create_dir_all(root.join("src")).unwrap();
+        let source = b"fn main() { println!(\"atlas\"); }\n".to_vec();
+        // Straddles the 64 KiB read buffer and several BLAKE3 chunks, with a NUL past the sniff.
+        let mut large: Vec<u8> = (0..200_000_u32).map(|i| (i % 251) as u8 | 1).collect();
+        large[20_000] = 0;
+        fs::write(root.join("src/main.rs"), &source).unwrap();
+        fs::write(root.join("large.bin"), &large).unwrap();
+        fs::write(root.join("empty.txt"), b"").unwrap();
+
+        let report = inventory_source(&root).unwrap();
+        for (path, bytes) in [
+            ("src/main.rs", &source[..]),
+            ("large.bin", &large[..]),
+            ("empty.txt", &[][..]),
+        ] {
+            let record = digest_of(&report, path);
+            assert_eq!(
+                record.content_digest,
+                Some(IntegrityDigest::of_bytes(bytes)),
+                "{path}"
+            );
+            assert_eq!(record.content_digest_withheld, None, "{path}");
+        }
+        // The sniff sees only the leading 8 KiB sample, even though the NUL at 20,000 arrives in the
+        // very first 64 KiB read buffer: the file is not "binary".
+        assert_eq!(
+            digest_of(&report, "large.bin").disposition,
+            ArtifactDisposition::Unknown
+        );
+
+        let _ = fs::remove_dir_all(&root);
+    }
+
+    #[test]
+    fn a_one_byte_edit_or_append_changes_the_inventory_digest() {
+        let root = scratch_root();
+        fs::create_dir_all(&root).unwrap();
+        let original: Vec<u8> = (0..5_000_u32).map(|i| (i % 97) as u8 + 1).collect();
+        fs::write(root.join("a.txt"), &original).unwrap();
+        let before = digest_of(&inventory_source(&root).unwrap(), "a.txt").clone();
+
+        let mut edited = original.clone();
+        edited[4_321] ^= 1;
+        fs::write(root.join("a.txt"), &edited).unwrap();
+        let after_edit = digest_of(&inventory_source(&root).unwrap(), "a.txt").clone();
+
+        let mut appended = original.clone();
+        appended.push(b'x');
+        fs::write(root.join("a.txt"), &appended).unwrap();
+        let after_append = digest_of(&inventory_source(&root).unwrap(), "a.txt").clone();
+
+        fs::write(root.join("a.txt"), &original).unwrap();
+        let restored = digest_of(&inventory_source(&root).unwrap(), "a.txt").clone();
+
+        assert!(before.content_digest.is_some());
+        assert_ne!(before.content_digest, after_edit.content_digest);
+        assert_ne!(before.content_digest, after_append.content_digest);
+        assert_ne!(after_edit.content_digest, after_append.content_digest);
+        assert_eq!(before.content_digest, restored.content_digest);
+
+        let _ = fs::remove_dir_all(&root);
+    }
+
+    #[test]
+    fn an_over_cap_file_is_sampled_but_never_digested() {
+        let root = scratch_root();
+        fs::create_dir_all(&root).unwrap();
+        // Sparse: allocates no data blocks, and the bounded read only touches the 8 KiB sample.
+        let file = File::create(root.join("huge.img")).unwrap();
+        file.set_len(MAX_DIGEST_BYTES + 1).unwrap();
+        drop(file);
+
+        let record = digest_of(&inventory_source(&root).unwrap(), "huge.img").clone();
+        assert_eq!(record.content_digest, None);
+        assert!(
+            record
+                .content_digest_withheld
+                .as_deref()
+                .is_some_and(|reason| reason.contains("size-limit")),
+            "{record:?}"
+        );
+        assert_eq!(record.disposition, ArtifactDisposition::BinaryDescribed);
+
+        let _ = fs::remove_dir_all(&root);
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn symlinks_and_fifos_are_never_followed_or_digested_and_never_block() {
+        let root = scratch_root();
+        fs::create_dir_all(&root).unwrap();
+        fs::write(root.join("target.txt"), b"secret-ish").unwrap();
+        std::os::unix::fs::symlink(root.join("target.txt"), root.join("link.txt")).unwrap();
+        let fifo = std::process::Command::new("mkfifo")
+            .arg(root.join("pipe"))
+            .status()
+            .is_ok_and(|status| status.success());
+
+        let report = inventory_source(&root).unwrap();
+        let link = digest_of(&report, "link.txt");
+        assert_eq!(link.kind, ArtifactKind::Symlink);
+        assert_eq!(link.content_digest, None);
+        if fifo {
+            let pipe = digest_of(&report, "pipe");
+            assert_eq!(pipe.kind, ArtifactKind::Special);
+            assert_eq!(pipe.content_digest, None);
+        }
+
+        // A symlink swapped in after the walker listed a regular file: classification re-checks
+        // with lstat and refuses to follow it.
+        let swapped = classify_file(&root, &root.join("link.txt")).unwrap();
+        assert_eq!(swapped.kind, ArtifactKind::Special);
+        assert_eq!(swapped.content_digest, None);
+
+        let _ = fs::remove_dir_all(&root);
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn a_handle_whose_inode_differs_from_the_listed_one_yields_no_digest() {
+        let root = scratch_root();
+        fs::create_dir_all(&root).unwrap();
+        fs::write(root.join("listed.txt"), b"listed").unwrap();
+        fs::write(root.join("opened.txt"), b"opened").unwrap();
+        let listed = fs::symlink_metadata(root.join("listed.txt")).unwrap();
+
+        let content = read_file_content(&root.join("opened.txt"), &listed).unwrap();
+        assert!(content.digest.is_err());
+
+        let _ = fs::remove_dir_all(&root);
+    }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn a_file_whose_read_length_differs_from_its_stat_length_yields_no_digest() {
+        // procfs reports size 0 for files that yield bytes: the same observable as a file that
+        // grew between fstat and read. The bytes read cannot be vouched for, so no digest.
+        let path = Path::new("/proc/self/status");
+        let listed = fs::symlink_metadata(path).unwrap();
+        let content = read_file_content(path, &listed).unwrap();
+        let reason = content
+            .digest
+            .expect_err("length mismatch must withhold the digest");
+        assert!(reason.contains("length changed during read"), "{reason}");
     }
 
     #[test]

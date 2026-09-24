@@ -1,4 +1,4 @@
-use crate::ArtifactId;
+use crate::{ArtifactId, IntegrityDigest};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
@@ -55,6 +55,15 @@ pub struct ArtifactRecord {
     pub disposition: ArtifactDisposition,
     pub language: Option<String>,
     pub reason: Option<String>,
+    /// BLAKE3-256 of exactly the bytes read for this regular file (ADR 0005). `None` whenever the
+    /// digest could not be taken over a stable, bounded read -- a non-file, an over-cap file, a
+    /// file that changed while being read -- and a consumer comparing inventories must then
+    /// treat the artifact as changed, never as unchanged.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub content_digest: Option<IntegrityDigest>,
+    /// Why `content_digest` is absent for a regular file.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub content_digest_withheld: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
@@ -76,7 +85,7 @@ impl InventoryReport {
                 .or_insert(0) += 1;
         }
         Self {
-            schema: "atlas.inventory-report.v1".into(),
+            schema: "atlas.inventory-report.v2".into(),
             root: root.into(),
             artifacts_total: artifacts.len(),
             dispositions,
@@ -106,6 +115,8 @@ mod tests {
             disposition,
             language: None,
             reason: None,
+            content_digest: None,
+            content_digest_withheld: None,
         }
     }
 

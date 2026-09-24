@@ -1,0 +1,71 @@
+{
+  "schema": "atlas.self-build.generation-evidence.v1",
+  "generation": "G36",
+  "wave": "ABSORPTION -- BLAKE3 unkeyed hash mode absorbed natively as core::identity::blake3 and wired into inventory as ArtifactRecord.content_digest (ADR 0005). Third real absorption (souffle, datafrog before it); first prerequisite of R5 incremental recensus and of salsa's narrowed blocking question.",
+  "base_commit": "6f08313a3a",
+  "selection": {
+    "capability_gap": "R5 'incremental recensus of changed source': ArtifactRecord carried no content identity; IntegrityDigest type existed but was never constructed; FNV stable_id is a label and must never be a change detector",
+    "why_this_donor": "frontier-classification lane ranked rust-analyzer vfs change stream CANDIDATE_ABSORB_NOW, but its state transitions (Created/Modified/Deleted) presuppose a per-file content identity that did not exist; the digest is the strict prerequisite, and blake3 is the admitted donor for wire digest id 1",
+    "superseded_rejection": ".atlas/genome/technology/blake3-content-addressing.md Rejected alternatives -- superseded for the unkeyed mode only; original text retained with a Decision update"
+  },
+  "security_lane": {
+    "verdict": "JUSTIFIED_WITH_CONDITIONS",
+    "conditions": [
+      {"condition": "hash mode only; no keyed/derive machinery; secret-input use stays EXTERNAL_BOUNDARY", "implemented_by": "core::identity::blake3 contains no KEYED_HASH/DERIVE_KEY flags, key words or constructors; test production_source_carries_no_keyed_or_derive_key_machinery"},
+      {"condition": "vetted crate as dev-dependency-only differential oracle, never [dependencies]", "implemented_by": "core/Cargo.toml [dev-dependencies] blake3 = \"=1.8.7\"; tests differential_against_the_vetted_blake3_crate (42 cases: boundary lengths, 24 random lengths up to 1 MiB, 4 patterns, random update splits, 32-byte hash + 200-byte XOF) and a_chunk_beyond_two_to_the_32_matches_the_vetted_crate (hazmat set_input_offset)"},
+      {"condition": "single-handle, fstat-verified, length-bounded reads with a size cap; None digest means changed", "implemented_by": "adapter::source::read_file_content: lstat pre-check in classify_file, fstat is_file + same dev/inode post-open, take(len+1), MAX_DIGEST_BYTES = 256 MiB; over-cap / replaced / length-mismatch => content_digest None + content_digest_withheld reason"},
+      {"condition": "parsed bytes must equal digested bytes before any cache reuse; cache key must include extractor identity", "implemented_by": "DEFERRED to the first cache consumer -- recorded on salsa's blocking_question and in ADR 0005 Consequences; no cache exists yet"},
+      {"condition": "typed, validated digest mapping one-to-one onto wire id 1", "implemented_by": "IntegrityDigest private field; parse/TryFrom<String> (serde try_from) accept only blake3-256: + 64 lowercase hex; wire_algorithm_id() == 1"},
+      {"condition": "supersession record keeping the original reasoning", "implemented_by": ".atlas/decisions/0005-native-blake3-content-digest.md; genome record Decision update"}
+    ],
+    "residual": "a FIFO swapped in between the walker's lstat and open would block the open (std offers no portable O_NONBLOCK/O_NOFOLLOW without a libc dependency); this requires a concurrent local writer inside the censused tree, pre-exists this change (the old binary sniff opened the same way), and the fstat inode check guarantees no wrong digest is ever emitted"
+  },
+  "tests_added": {
+    "core::identity::blake3": ["official_test_vectors_match (all 35)", "extended_output_matches_every_official_131_byte_vector (all 35)", "every_update_split_equals_the_one_shot_hash", "every_official_vector_survives_every_update_split (1,63,64,65,1023,1024,1025,4096,65536)", "compress_uses_the_high_counter_word", "differential_against_the_vetted_blake3_crate", "a_chunk_beyond_two_to_the_32_matches_the_vetted_crate", "production_source_carries_no_keyed_or_derive_key_machinery"],
+    "core::identity": ["integrity_digest_round_trips_and_names_its_wire_algorithm", "integrity_digest_rejects_every_non_canonical_spelling"],
+    "adapter::source": ["inventory_digests_exactly_the_file_bytes_through_the_production_walk", "a_one_byte_edit_or_append_changes_the_inventory_digest", "an_over_cap_file_is_sampled_but_never_digested (sparse 256 MiB + 1)", "symlinks_and_fifos_are_never_followed_or_digested_and_never_block", "a_handle_whose_inode_differs_from_the_listed_one_yields_no_digest", "a_file_whose_read_length_differs_from_its_stat_length_yields_no_digest (procfs)"]
+  },
+  "falsification": {
+    "hash_core_mutants": {
+      "killed": 13,
+      "survived": 0,
+      "mutants": ["iv0", "rot16", "six_rounds", "no_feedforward", "chunk_start0", "chunk_end0", "root0", "parent0", "counter_high0", "perm_swap", "merge_rule", "xof_counter1", "big_endian"]
+    },
+    "wiring_and_parser_mutants": {
+      "killed": 11,
+      "survived_then_fixed": 1,
+      "results": {
+        "digest_dropped": "KILLED by inventory_digests_exactly_the_file_bytes_through_the_production_walk, a_one_byte_edit_or_append_changes_the_inventory_digest",
+        "no_length_check": "KILLED by a_file_whose_read_length_differs_from_its_stat_length_yields_no_digest",
+        "no_inode_check": "KILLED by a_handle_whose_inode_differs_from_the_listed_one_yields_no_digest",
+        "no_lstat_precheck": "KILLED by symlinks_and_fifos_are_never_followed_or_digested_and_never_block",
+        "take_exact (take(len) instead of take(len+1))": "KILLED by the procfs length test",
+        "no_size_cap": "KILLED by an_over_cap_file_is_sampled_but_never_digested",
+        "sniff_everything": "SURVIVED first run (fixture NUL at byte 150,000 fell outside the first 64 KiB buffer); fixture moved to byte 20,000 (inside the first buffer, past the 8 KiB sample); then KILLED",
+        "hash_sample_only": "KILLED by the production-walk test",
+        "parse_uppercase": "KILLED by integrity_digest_rejects_every_non_canonical_spelling",
+        "parse_any_prefix": "KILLED by integrity_digest_rejects_every_non_canonical_spelling",
+        "keyed_flag_added": "KILLED by production_source_carries_no_keyed_or_derive_key_machinery"
+      }
+    },
+    "restoration": "every mutant restored by the scratch driver; git diff after the battery showed only the intended change set"
+  },
+  "blocker_fixed_in_scope": {
+    "classification": "BLOCKS_CURRENT_ABSORPTION",
+    "finding": "adding the two digest fields to ArtifactRecord made the existing 600-level deeply_nested_directory_tree_does_not_abort_the_process test overflow the 2 MiB test-thread stack: classify_entry held ArtifactRecord temporaries in the frame that recursed into visit_inventory, so per-level stack cost scaled with the record type",
+    "fix": "classify_entry no longer recurses; record_entry classifies/records in its own non-recursive frame and hands back the subdirectory; visit_inventory's recursive frame holds only an Option<PathBuf>",
+    "verified": "the deep-nesting test passes again; all 18 source tests pass"
+  },
+  "production_path": {
+    "command": "cargo run -q -p atlas-cli -- systemize --root . --out <file>",
+    "result": "inventory schema atlas.inventory-report.v2; 69 FILE artifacts, 69 digested, 0 withheld; e.g. adapter/Cargo.toml blake3-256:9cf3dee4...; coding_admission.blockers []",
+    "wall_time": "1m58s (debug), unchanged from before the absorption"
+  },
+  "throughput": "release, 64 MiB input: native ~450 MiB/s vs upstream SIMD crate ~4 GiB/s single-threaded; outputs asserted equal in the benchmark",
+  "gates": {
+    "cargo test --workspace": "all green (core 213, adapter 337, runtime 87, cli 5)",
+    "cargo fmt --all --check": "clean",
+    "cargo clippy --workspace --all-targets -- -D warnings": "0 findings"
+  },
+  "overall_verdict": "ABSORBED (mechanism level: unkeyed hash mode). Remaining donor surface dispositioned: keyed/derive EXTERNAL_BOUNDARY; SIMD/platform/rayon/hazmat/C/b3sum REFERENCE_ONLY. Extinction evaluated as a separate unit."
+}

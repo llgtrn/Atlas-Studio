@@ -1,6 +1,8 @@
 use serde::{Deserialize, Serialize};
 use std::fmt;
 
+pub mod blake3;
+
 pub fn stable_id(prefix: &str, identity: &str) -> String {
     let mut hash = 0xcbf29ce484222325_u64;
     for byte in identity.as_bytes() {
@@ -96,8 +98,82 @@ typed_id!(SemanticObligationId);
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct ContentFingerprint(pub String);
 
+/// A collision-resistant content digest. The algorithm is spelled into the value itself
+/// (`"blake3-256:<64 hex>"`), matching `.atlas/contracts/ATLAS-BINARY-WIRE-FORMAT.md`'s rule that
+/// the exact algorithm is explicit on the artifact (wire id `1 = BLAKE3_256`).
+///
+/// Validated on construction and on deserialization: the only accepted spelling is the prefix
+/// followed by exactly 64 lowercase hex digits, so one digest has exactly one textual form and
+/// maps one-to-one onto the wire `digest_algorithm` id.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct IntegrityDigest(pub String);
+#[serde(try_from = "String", into = "String")]
+pub struct IntegrityDigest(String);
+
+impl IntegrityDigest {
+    pub const BLAKE3_256_PREFIX: &'static str = "blake3-256:";
+    /// `ATLAS-BINARY-WIRE-FORMAT.md` digest algorithm id for BLAKE3-256.
+    pub const BLAKE3_256_WIRE_ID: u8 = 1;
+
+    pub fn parse(value: &str) -> Result<Self, String> {
+        let Some(hex) = value.strip_prefix(Self::BLAKE3_256_PREFIX) else {
+            return Err(format!(
+                "integrity digest `{value}` does not start with `blake3-256:`"
+            ));
+        };
+        if hex.len() != 64
+            || !hex
+                .bytes()
+                .all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b))
+        {
+            return Err(format!(
+                "integrity digest `{value}` must carry exactly 64 lowercase hex digits"
+            ));
+        }
+        Ok(Self(value.to_owned()))
+    }
+
+    pub fn as_str(&self) -> &str {
+        &self.0
+    }
+
+    pub fn wire_algorithm_id(&self) -> u8 {
+        Self::BLAKE3_256_WIRE_ID
+    }
+
+    pub fn blake3_256(digest: &[u8; 32]) -> Self {
+        let mut value = String::with_capacity(Self::BLAKE3_256_PREFIX.len() + 64);
+        value.push_str(Self::BLAKE3_256_PREFIX);
+        for byte in digest {
+            value.push_str(&format!("{byte:02x}"));
+        }
+        Self(value)
+    }
+
+    /// The BLAKE3-256 digest of `bytes`, computed by Atlas's own `identity::blake3`.
+    pub fn of_bytes(bytes: &[u8]) -> Self {
+        Self::blake3_256(&blake3::hash(bytes))
+    }
+}
+
+impl TryFrom<String> for IntegrityDigest {
+    type Error = String;
+
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        Self::parse(&value)
+    }
+}
+
+impl From<IntegrityDigest> for String {
+    fn from(digest: IntegrityDigest) -> Self {
+        digest.0
+    }
+}
+
+impl fmt::Display for IntegrityDigest {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(&self.0)
+    }
+}
 
 #[cfg(test)]
 mod tests {
@@ -138,6 +214,39 @@ mod tests {
             escape_identity_field("\\bar", separator),
         );
         assert_ne!(a, b);
+    }
+
+    #[test]
+    fn integrity_digest_round_trips_and_names_its_wire_algorithm() {
+        let digest = IntegrityDigest::of_bytes(b"");
+        assert_eq!(
+            digest.as_str(),
+            "blake3-256:af1349b9f5f9a1a6a0404dea36dcc9499bcb25c9adc112b7cc9a93cae41f3262"
+        );
+        assert_eq!(IntegrityDigest::parse(digest.as_str()), Ok(digest.clone()));
+        assert_eq!(digest.wire_algorithm_id(), 1);
+        assert_ne!(
+            IntegrityDigest::of_bytes(b"a"),
+            IntegrityDigest::of_bytes(b"b")
+        );
+    }
+
+    #[test]
+    fn integrity_digest_rejects_every_non_canonical_spelling() {
+        let hex = "af1349b9f5f9a1a6a0404dea36dcc9499bcb25c9adc112b7cc9a93cae41f3262";
+        for bad in [
+            String::new(),
+            hex.to_owned(),
+            format!("BLAKE3-256:{hex}"),
+            format!("sha256:{hex}"),
+            format!("blake3-256:{}", hex.to_uppercase()),
+            format!("blake3-256:{}", &hex[..63]),
+            format!("blake3-256:{hex}0"),
+            format!("blake3-256:{}g", &hex[..63]),
+            format!("blake3-256: {}", &hex[..63]),
+        ] {
+            assert!(IntegrityDigest::parse(&bad).is_err(), "accepted `{bad}`");
+        }
     }
 
     #[test]

@@ -11,3 +11,8 @@ publish = false
 
 [dependencies]
 serde.workspace = true
+
+# Test-only differential oracle for the native `identity::blake3` port (ADR 0005). Never a
+# production dependency: Atlas computes every digest with its own implementation.
+[dev-dependencies]
+blake3 = "=1.8.7"

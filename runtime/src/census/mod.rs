@@ -609,6 +609,8 @@ mod tests {
                     disposition: ArtifactDisposition::Parsed,
                     language: Some("rust".into()),
                     reason: None,
+                    content_digest: None,
+                    content_digest_withheld: None,
                 },
                 ArtifactRecord {
                     id: ArtifactId::new("artifact:unknown"),
@@ -618,6 +620,8 @@ mod tests {
                     disposition: ArtifactDisposition::Unknown,
                     language: None,
                     reason: Some("no-registered-source-frontend".into()),
+                    content_digest: None,
+                    content_digest_withheld: None,
                 },
             ],
         );
@@ -1526,6 +1530,8 @@ mod tests {
                 disposition: ArtifactDisposition::Parsed,
                 language: Some("rust".into()),
                 reason: None,
+                content_digest: None,
+                content_digest_withheld: None,
             }],
         );
         let source = SourceReport {

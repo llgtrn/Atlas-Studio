@@ -1189,6 +1189,8 @@ mod production_wiring_tests {
             disposition: ArtifactDisposition::Parsed,
             language: Some("rust".into()),
             reason: None,
+            content_digest: None,
+            content_digest_withheld: None,
         }
     }
 
@@ -1295,6 +1297,8 @@ mod production_wiring_tests {
                 disposition: ArtifactDisposition::Parsed,
                 language: Some("markdown".into()),
                 reason: None,
+                content_digest: None,
+                content_digest_withheld: None,
             }],
         );
 
