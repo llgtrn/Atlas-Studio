@@ -39,14 +39,15 @@ pub struct SymbolIdentity {
 }
 
 impl SymbolIdentity {
-    /// Deterministic, order-independent encoding of this symbol's identity fields.
+    /// Deterministic, order-independent encoding of this symbol's identity fields. `scope` is
+    /// escaped before joining -- see `SemanticScope::identity_key()`'s doc comment.
     pub fn identity_key(&self) -> String {
         format!(
             "{}|{}:{}|{}|{}|{}",
             self.repository.as_str(),
             self.revision.kind,
             self.revision.value,
-            self.scope.join(),
+            self.scope.identity_key(),
             self.name,
             self.role.as_str(),
         )

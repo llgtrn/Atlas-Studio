@@ -87,13 +87,16 @@ impl FunctionOwner {
     }
 
     fn identity_key(&self) -> String {
+        // `trait_path` is a source-syntax path spelling (`path_spelling`), not restricted to a
+        // bare identifier -- it can carry generic arguments and so, like `TypeIdentity.name`,
+        // isn't provably free of the `|` this format uses as a delimiter.
         format!(
             "target={}|trait={}",
             self.target
                 .as_ref()
                 .map(TypeIdentity::identity_key)
                 .unwrap_or_default(),
-            self.trait_path.as_deref().unwrap_or(""),
+            crate::identity::escape_identity_field(self.trait_path.as_deref().unwrap_or(""), '|'),
         )
     }
 }
@@ -121,14 +124,28 @@ pub struct FunctionIdentity {
 
 impl FunctionIdentity {
     /// Deterministic, order-independent encoding of this function's identity fields.
+    ///
+    /// `scope` and `generics` are escaped before joining: a scope segment is not always a bare
+    /// module-path identifier (`adapter::semantic::rust`'s `handle_impl` pushes a segment like
+    /// `"impl:Trait<Nested::Path> for Type"`), and a generic param's spelling is not always a bare
+    /// identifier either (`syn`'s bound rendering falls back to raw token-stream text for a bound
+    /// like `From<(A, B)>`) -- both can contain the literal character their own join uses as a
+    /// delimiter, which would otherwise let two structurally different functions collapse onto one
+    /// identity. See `SemanticScope::identity_key()`'s doc comment for the same reasoning.
     pub fn identity_key(&self) -> String {
+        let generics = self
+            .generics
+            .iter()
+            .map(|generic| crate::identity::escape_identity_field(generic, ','))
+            .collect::<Vec<_>>()
+            .join(",");
         format!(
             "{}|{}:{}|{}|{}|{}|{}:{}:{}|{}|kind={}|{}|generics=[{}]",
             self.repository.as_str(),
             self.revision.kind,
             self.revision.value,
             self.language,
-            self.scope.join(),
+            self.scope.identity_key(),
             self.symbol.identity_key(),
             self.span.path,
             self.span.line,
@@ -136,7 +153,7 @@ impl FunctionIdentity {
             self.generated,
             self.declaration_kind.as_str(),
             self.owner.identity_key(),
-            self.generics.join(","),
+            generics,
         )
     }
 }
@@ -463,5 +480,56 @@ mod tests {
         let a = identity("widgets");
         let b = identity("widgets");
         assert_eq!(a.identity_key(), b.identity_key());
+    }
+
+    #[test]
+    fn identity_key_does_not_collide_across_a_different_scope_segment_split() {
+        // A scope segment is not always a bare module-path identifier: `adapter::semantic::rust`'s
+        // `handle_impl` pushes a segment like `"impl:Trait<Nested::Path> for Type"`, built from
+        // unrestricted type/trait spellings that can themselves contain `:`. Two structurally
+        // different scopes must never collapse onto one `FunctionIdentity` merely because their
+        // segments happen to concatenate to the same "::"-joined string.
+        let a = FunctionIdentity {
+            scope: SemanticScope::new(["a::b", "c"]),
+            ..identity("unused")
+        };
+        let b = FunctionIdentity {
+            scope: SemanticScope::new(["a", "b::c"]),
+            ..identity("unused")
+        };
+        assert_ne!(a.scope, b.scope, "sanity: genuinely different scopes");
+        assert_ne!(
+            a.identity_key(),
+            b.identity_key(),
+            "an unescaped scope join let two distinct scopes collapse onto one identity: {} == {}",
+            a.identity_key(),
+            b.identity_key(),
+        );
+    }
+
+    #[test]
+    fn identity_key_does_not_collide_across_a_different_generics_split() {
+        // A generic param's spelling is not always a bare identifier: `syn`'s bound rendering
+        // falls back to raw token-stream text for a bound like `From<(A, B)>`, which can contain a
+        // literal `,` -- the same character `generics.join(",")` uses as its own delimiter.
+        let a = FunctionIdentity {
+            generics: vec!["T: From<(A, B)>".into()],
+            ..identity("widgets")
+        };
+        let b = FunctionIdentity {
+            generics: vec!["T: From<(A".into(), " B)>".into()],
+            ..identity("widgets")
+        };
+        assert_ne!(
+            a.generics, b.generics,
+            "sanity: genuinely different generics lists"
+        );
+        assert_ne!(
+            a.identity_key(),
+            b.identity_key(),
+            "an unescaped generics join let two distinct generics lists collapse onto one identity: {} == {}",
+            a.identity_key(),
+            b.identity_key(),
+        );
     }
 }

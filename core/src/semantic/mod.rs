@@ -135,6 +135,24 @@ impl SemanticScope {
             format!("{}::{}", self.join(), name)
         }
     }
+
+    /// Collision-safe encoding of this scope's segments for use inside an `identity_key()`
+    /// composite string -- unlike `join()` (a human-readable display form, kept as-is for that
+    /// purpose), this escapes each segment before joining so a segment is never confused, after
+    /// joining, with a different split of the same characters across more/fewer segments. Needed
+    /// because a scope segment is not always a bare module-path identifier: the Rust extractor's
+    /// `handle_impl` (`adapter::semantic::rust::mod`) pushes a segment like
+    /// `"impl:std::collections::HashMap<K, V> for MyType"` for an `impl` block, built from
+    /// unrestricted type/trait spellings that can themselves contain `:` (nested paths, or a
+    /// const-generic array-length expression such as `[u8; A | B]` — no restrictive lexer bounds
+    /// this text, exactly the field class `escape_identity_field`'s own doc comment names).
+    pub fn identity_key(&self) -> String {
+        self.segments
+            .iter()
+            .map(|segment| crate::identity::escape_identity_field(segment, ':'))
+            .collect::<Vec<_>>()
+            .join("::")
+    }
 }
 
 /// Identity and implementation version of the extractor that produced a semantic record.
@@ -178,6 +196,36 @@ mod tests {
     fn scoped_name_joins_segments_before_the_name() {
         let scope = SemanticScope::new(["core", "widgets"]);
         assert_eq!(scope.scoped_name("run"), "core::widgets::run");
+    }
+
+    #[test]
+    fn plain_join_can_collide_across_a_different_segment_split() {
+        // Demonstrates the defect `identity_key()` exists to close: `join()` is a bare "::"
+        // concatenation with no escaping, so two scopes with genuinely different segment lists
+        // (different structural nesting) can render to the identical string when a segment
+        // itself contains "::" -- exactly what a real `impl:Trait<Nested::Path> for Type` scope
+        // segment can (see `identity_key()`'s own doc comment).
+        let a = SemanticScope::new(["a::b", "c"]);
+        let b = SemanticScope::new(["a", "b::c"]);
+        assert_ne!(a, b, "sanity: these are genuinely different scopes");
+        assert_eq!(
+            a.join(),
+            b.join(),
+            "join() is documented as display-only precisely because it can collide like this"
+        );
+    }
+
+    #[test]
+    fn identity_key_does_not_collide_across_a_different_segment_split() {
+        let a = SemanticScope::new(["a::b", "c"]);
+        let b = SemanticScope::new(["a", "b::c"]);
+        assert_ne!(
+            a.identity_key(),
+            b.identity_key(),
+            "escaping each segment before joining must prevent the join() collision: {} == {}",
+            a.identity_key(),
+            b.identity_key(),
+        );
     }
 
     fn extractor() -> ExtractorIdentity {

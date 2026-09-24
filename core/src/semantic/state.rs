@@ -83,7 +83,9 @@ impl StateAccessIdentity {
     /// Deterministic, order-independent encoding of this state access's identity fields.
     /// `resolution` is deliberately excluded -- like R4.7's `DataFlowResolution`, it is a
     /// resolution fact about an already-identified access event, not part of what makes the event
-    /// itself a distinct entity.
+    /// itself a distinct entity. `scope` is escaped before joining -- see
+    /// `SemanticScope::identity_key()`'s doc comment (this struct's own doc comment gives the
+    /// exact example: `impl:Owner` for a field).
     pub fn identity_key(&self) -> String {
         format!(
             "{}|{}:{}|{}|{}|{}|{}:{}:{}|{}",
@@ -91,7 +93,7 @@ impl StateAccessIdentity {
             self.revision.kind,
             self.revision.value,
             self.function.as_str(),
-            self.scope.join(),
+            self.scope.identity_key(),
             self.name,
             self.span.path,
             self.span.line,

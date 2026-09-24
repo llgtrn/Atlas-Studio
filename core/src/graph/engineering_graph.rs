@@ -947,7 +947,7 @@ fn add_typed_semantic_nodes(
                     "node",
                     &format!(
                         "state-entity:{}:{}",
-                        header.subject.scope.join(),
+                        header.subject.scope.identity_key(),
                         header.subject.name
                     ),
                 );
