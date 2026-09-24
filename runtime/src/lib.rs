@@ -702,6 +702,179 @@ mod tests {
         }
     }
 
+    // `.atlas/references/donor-corpus.toml` is this repository's own canonical donor tracker
+    // (57 donors as of this writing), consulted and hand-edited repeatedly across this session's
+    // donor-research generations. Every edit was verified ad hoc with a one-off
+    // `python3 -c "import tomllib; ..."` shell command re-run by hand each time -- exactly the
+    // "self-hosting pressure" this repository's own roadmap names: a script that runs once and is
+    // discarded, per `.atlas/contracts/RECURSIVE-SELF-CENSUS.md`'s preference for durable,
+    // machine-readable, permanently-rerunning evidence instead. This formalizes that check as a
+    // real, permanent regression test, hand-parsed (no `toml` crate dependency exists anywhere in
+    // this workspace, matching `adapter::dependency::cargo`'s own hand-rolled parsing precedent
+    // rather than adding a new dependency for test-only use) rather than pulled in fresh.
+    mod donor_corpus_integrity {
+        use std::path::{Path, PathBuf};
+
+        fn workspace_root() -> PathBuf {
+            Path::new(env!("CARGO_MANIFEST_DIR"))
+                .join("..")
+                .canonicalize()
+                .expect("workspace root must exist")
+        }
+
+        struct DonorEntry {
+            id: String,
+            evidence: Vec<String>,
+        }
+
+        /// Hand-rolled, deliberately narrow parse: extracts only the first `id = "..."` line and
+        /// the `evidence = [...]` line (confirmed single-line for every one of this file's current
+        /// 57 entries) within each `[[donor]]` block. Does not attempt to parse TOML in general --
+        /// exactly the same scope discipline `adapter::dependency::cargo`'s own hand-rolled parser
+        /// already applies to `Cargo.lock`/`Cargo.toml`.
+        /// Appends every `"..."` quoted substring found in `s` to `out`.
+        fn extract_quoted_strings(s: &str, out: &mut Vec<String>) {
+            let bytes = s.as_bytes();
+            let mut index = 0;
+            while index < bytes.len() {
+                if bytes[index] == b'"' {
+                    if let Some(end) = s[index + 1..].find('"') {
+                        out.push(s[index + 1..index + 1 + end].to_owned());
+                        index = index + 1 + end + 1;
+                    } else {
+                        break;
+                    }
+                } else {
+                    index += 1;
+                }
+            }
+        }
+
+        fn parse_donor_corpus(text: &str) -> Vec<DonorEntry> {
+            let mut entries = Vec::new();
+            let mut current_id: Option<String> = None;
+            let mut current_evidence: Vec<String> = Vec::new();
+            let mut in_block = false;
+
+            let lines: Vec<&str> = text.lines().collect();
+            let mut i = 0;
+            while i < lines.len() {
+                let trimmed = lines[i].trim();
+                if trimmed == "[[donor]]" {
+                    if let Some(id) = current_id.take() {
+                        entries.push(DonorEntry {
+                            id,
+                            evidence: std::mem::take(&mut current_evidence),
+                        });
+                    }
+                    in_block = true;
+                    i += 1;
+                    continue;
+                }
+                if !in_block {
+                    i += 1;
+                    continue;
+                }
+                if current_id.is_none()
+                    && let Some(rest) = trimmed.strip_prefix("id = \"")
+                    && let Some(end) = rest.find('"')
+                {
+                    current_id = Some(rest[..end].to_owned());
+                    i += 1;
+                    continue;
+                }
+                // `evidence = [...]` may be single-line (the common case) or, like the `zed`
+                // entry's own array, span multiple lines -- one quoted path per line, closed by a
+                // bare `]`. Keep consuming lines until the closing bracket is seen, rather than
+                // assuming every array fits on its opening line.
+                if let Some(rest) = trimmed.strip_prefix("evidence = [") {
+                    let mut paths = Vec::new();
+                    extract_quoted_strings(rest, &mut paths);
+                    let mut closed = rest.contains(']');
+                    let mut j = i;
+                    while !closed && j + 1 < lines.len() {
+                        j += 1;
+                        let next = lines[j].trim();
+                        extract_quoted_strings(next, &mut paths);
+                        closed = next.contains(']');
+                    }
+                    current_evidence = paths;
+                    i = j + 1;
+                    continue;
+                }
+                i += 1;
+            }
+            if let Some(id) = current_id.take() {
+                entries.push(DonorEntry {
+                    id,
+                    evidence: current_evidence,
+                });
+            }
+            entries
+        }
+
+        fn load_entries() -> Vec<DonorEntry> {
+            let root = workspace_root();
+            let text = std::fs::read_to_string(root.join(".atlas/references/donor-corpus.toml"))
+                .expect("donor-corpus.toml must exist and be readable");
+            let block_count = text
+                .lines()
+                .filter(|line| line.trim() == "[[donor]]")
+                .count();
+            let entries = parse_donor_corpus(&text);
+            assert_eq!(
+                entries.len(),
+                block_count,
+                "parser found {} DonorEntry values but the file has {} [[donor]] blocks -- the \
+                 hand-rolled parser above has drifted from the file's actual format",
+                entries.len(),
+                block_count
+            );
+            entries
+        }
+
+        #[test]
+        fn every_donor_has_a_unique_id() {
+            let entries = load_entries();
+            let mut seen = std::collections::HashSet::new();
+            for entry in &entries {
+                assert!(
+                    !entry.id.is_empty(),
+                    "a [[donor]] block has an empty or missing id"
+                );
+                assert!(
+                    seen.insert(entry.id.clone()),
+                    "duplicate donor id `{}` in donor-corpus.toml",
+                    entry.id
+                );
+            }
+        }
+
+        #[test]
+        fn every_donor_has_at_least_one_evidence_path_and_every_path_exists() {
+            let root = workspace_root();
+            let entries = load_entries();
+            for entry in &entries {
+                assert!(
+                    !entry.evidence.is_empty(),
+                    "donor `{}` has no evidence array -- every donor must cite at least one real \
+                     evidence file (a census/provenance/genome record), never bare assertion",
+                    entry.id
+                );
+                for path in &entry.evidence {
+                    assert!(
+                        root.join(path).exists(),
+                        "donor `{}`'s evidence path `{}` does not exist on disk -- a dangling \
+                         evidence reference is exactly the kind of unverifiable claim this \
+                         repository's own donor-absorption discipline forbids",
+                        entry.id,
+                        path
+                    );
+                }
+            }
+        }
+    }
+
     fn constraint_result(name: &str, passed: bool) -> ConstraintResult {
         ConstraintResult {
             name: name.into(),

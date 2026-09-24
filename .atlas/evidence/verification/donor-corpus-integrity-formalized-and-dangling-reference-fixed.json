@@ -1,0 +1,52 @@
+{
+  "schema": "atlas.self-build.generation-evidence.v1",
+  "wave": "SELF-HOSTING -- formalize this session's own repeated manual donor-corpus.toml verification into permanent Atlas machinery, per the standing loop's own self-hosting-pressure principle",
+  "wave_title": "After four consecutive donor-research generations (Salsa x2, datafrog, differential-dataflow), each verified with a one-off `python3 -c \"import tomllib; ...\"` shell command re-run by hand, this generation asked the question the loop's own standing rules require: is this ad-hoc verification itself a self-hosting gap? Confirmed yes -- no Rust code anywhere in this workspace parses or validates donor-corpus.toml at all, despite it being consulted and hand-edited repeatedly as canonical evidence throughout this session.",
+  "priority_classification": "self-hosting (continuously reduce external/manual machinery needed to build Atlas) with a genuine correctness payoff: the new permanent check found and led to fixing a real dangling evidence reference on its very first run, exactly the kind of finding this session's own duplicate_function_body_sweep precedent (a one-off script formalized into a permanent regression test) already established as valuable.",
+  "why_this_and_not_more_donor_research_or_an_r5_design_doc": "the prior generation's own evidence record explicitly flagged a genuine decision point (donor breadth, donor depth, or an R5 design synthesis) rather than defaulting to one. This generation chose a fourth, more foundational option that was itself becoming visible from the PATTERN of repeated manual verification across the four donor-research generations -- formalizing verification machinery is squarely 'self-hosting pressure' (priority 7, ahead of donor independence at priority 8), and, unlike a speculative R5 design document, is a small, bounded, immediately falsifiable unit of real code with a concrete correctness payoff.",
+  "design_decisions": [
+    {
+      "question": "Add a `toml` crate dependency to parse donor-corpus.toml properly, or hand-roll a narrow parser?",
+      "decision": "Hand-rolled, narrow parser -- no `toml` crate dependency exists anywhere in this workspace (confirmed by grep before writing any code), and `adapter::dependency::cargo` already establishes the precedent of hand-parsing TOML-shaped files rather than adding a dependency, specifically for files this codebase's own tooling needs to read. Matching that precedent avoids a dependency whose only consumer would be a test."
+    },
+    {
+      "question": "Assume the file's `evidence` arrays are single-line, based on grepping how many lines START with `evidence = [`?",
+      "decision": "Initially assumed yes (confirmed 57 lines start with `evidence = [`, matching the 57 [[donor]] blocks) -- and this assumption was WRONG, caught immediately by the new test's own first run: the `zed` entry's evidence array spans multiple lines (opens with `evidence = [`, one quoted path per subsequent line, closes with a bare `]`). Fixed by rewriting the parser to consume additional lines until a closing `]` is actually seen, rather than assuming the array closes on its opening line -- a direct instance of this session's own falsify-before-trusting discipline applied to its own new test code, not just to Atlas's semantic extraction."
+    }
+  ],
+  "stable_validator_law_compliance": {
+    "claim": "donor-corpus.toml now has permanent, automated verification that every donor has a unique, non-empty id and at least one evidence path that actually exists on disk -- replacing repeated manual python3 tomllib checks with durable, re-running Rust tests.",
+    "self_written_evidence": "The parser's own self-consistency is checked directly (parsed entry count must equal a raw count of `[[donor]]` occurrences, catching future parser drift loudly rather than silently under/over-counting). The multi-line-array bug was caught by the test's OWN first run failing with a real, investigated finding (zed's evidence array), not a contrived scenario -- and the SECOND bug (the actual dangling reference) was also caught by the same test's second run, both fixed within this same generation.",
+    "independent_evidence_channel": "cargo build --workspace clean. cargo fmt --all --check clean. cargo clippy --workspace --all-targets -D warnings clean. Full cargo test --workspace: 65 runtime (+2 net), 506 total workspace-wide, 0 failed. python3 tomllib parse of donor-corpus.toml (the exact independent channel this generation's own new Rust tests replace for future donor-research generations): succeeds, 57 donors. docs audit gate_ready: true.",
+    "no_circular_self_certification": true
+  },
+  "implementation": {
+    "core_change": "NONE.",
+    "runtime_change": "runtime/src/lib.rs -- new `tests::donor_corpus_integrity` module: a hand-rolled, narrowly-scoped parser (extracts only `id`/`evidence` per `[[donor]]` block, matching `adapter::dependency::cargo`'s own scope discipline) and two permanent tests (unique non-empty ids; every evidence path exists on disk).",
+    "data_fix": ".atlas/references/donor-corpus.toml -- removed a genuinely dangling evidence reference from the `zed` donor entry (`.atlas/provenance/donors/zed/zed.json`, which does not exist -- almost certainly a copy/typo duplicate of the real, existing `.atlas/provenance/donors/zed.json`), found by the new test's own first real run against this repository's actual data, not a synthetic test case."
+  },
+  "adversarial_and_falsification_coverage": [
+    "the parser's assumption (single-line evidence arrays) was checked against real data via a grep BEFORE writing code, that grep's own limitation was then exposed by the test's real first run, and the parser was fixed to handle the general case -- not patched narrowly to skip the one file that broke it",
+    "the dangling-reference finding was independently verified by hand (ls/find on the actual filesystem) before editing donor-corpus.toml, confirming the missing file really does not exist and the sibling paths in the same array (the flat .json, the license-map.json, the census .md) all do, before concluding the fix should remove the one bad entry rather than create a new file",
+    "the parser's own internal consistency (entry count vs. raw [[donor]] block count) is itself an ongoing falsification check against future format drift, not just a one-time correctness proof"
+  ],
+  "validation_this_generation": {
+    "commands": {
+      "cargo build --workspace": { "exit_code": 0 },
+      "cargo fmt --all --check": { "exit_code": 0 },
+      "cargo clippy --workspace --all-targets -- -D warnings": { "exit_code": 0, "warnings": 0 },
+      "cargo test --workspace (before parser fix)": { "exit_code": 1, "note": "1 failed: zed reported as having no evidence array at all -- a parser bug (multi-line array unhandled), found and fixed within this generation" },
+      "cargo test --workspace (after parser fix, before data fix)": { "exit_code": 1, "note": "1 failed: zed's `.atlas/provenance/donors/zed/zed.json` evidence path does not exist -- a real, confirmed dangling reference in donor-corpus.toml itself, fixed within this generation" },
+      "cargo test --workspace (final)": { "exit_code": 0, "totals": "279 adapter, 2 apps/cli, 160 core, 65 runtime -- 506 total, 0 failed" },
+      "python3 tomllib parse of donor-corpus.toml": { "result": "valid, 57 donors" },
+      "cargo run -q -p atlas-cli -- docs audit --root .atlas": { "exit_code": 0, "gate_ready": true }
+    }
+  },
+  "recensus_scope_after_promotion": [
+    "no prior CLOSED/EXTINCT conclusion is affected -- this generation added verification machinery and fixed one data defect, it did not change any donor's own census/decision status",
+    "worth a future generation, explicitly not undertaken this one: extending this same permanent-check pattern to other hand-maintained `.atlas/` reference files this session touched repeatedly without automated verification (e.g. cross-checking that every `.atlas/genome/technology/*.md` file referenced from some donor's evidence array actually has a corresponding donor-corpus.toml entry, the reverse direction of what this generation checks)",
+    "this generation's own existence is itself evidence that the four preceding donor-research generations' repeated manual verification WAS a real, if minor, self-hosting gap -- worth noting as a general pattern: any manual verification step repeated three or more times across a session's own generations is a candidate for this same treatment, not merely donor-corpus.toml specifically"
+  ],
+  "overall_verdict": "FORMALIZED, IMPLEMENTED, AND VERIFIED, with two real findings caught and fixed within the same generation. This session's own repeated manual donor-corpus.toml verification is now permanent, re-running Rust test machinery (matching the duplicate_function_body_sweep precedent), which on its very first real runs caught both a genuine parser-assumption bug (multi-line evidence arrays) and a genuine data defect (a dangling evidence reference in the zed donor entry) -- concrete proof the new check is doing real work, not merely passing vacuously. Full workspace suite (506 tests) passing.",
+  "historical_evidence_retained": true
+}
