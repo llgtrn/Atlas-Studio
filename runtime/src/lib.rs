@@ -887,6 +887,8 @@ mod tests {
             id: String,
             evidence: Vec<String>,
             license: Vec<String>,
+            census_status: String,
+            decision_status: String,
         }
 
         /// Hand-rolled, deliberately narrow parse: extracts only the first `id = "..."` line and
@@ -936,6 +938,8 @@ mod tests {
             let mut current_id: Option<String> = None;
             let mut current_evidence: Vec<String> = Vec::new();
             let mut current_license: Vec<String> = Vec::new();
+            let mut current_census_status = String::new();
+            let mut current_decision_status = String::new();
             let mut in_block = false;
 
             let lines: Vec<&str> = text.lines().collect();
@@ -948,6 +952,8 @@ mod tests {
                             id,
                             evidence: std::mem::take(&mut current_evidence),
                             license: std::mem::take(&mut current_license),
+                            census_status: std::mem::take(&mut current_census_status),
+                            decision_status: std::mem::take(&mut current_decision_status),
                         });
                     }
                     in_block = true;
@@ -963,6 +969,20 @@ mod tests {
                     && let Some(end) = rest.find('"')
                 {
                     current_id = Some(rest[..end].to_owned());
+                    i += 1;
+                    continue;
+                }
+                if let Some(rest) = trimmed.strip_prefix("census_status = \"")
+                    && let Some(end) = rest.find('"')
+                {
+                    current_census_status = rest[..end].to_owned();
+                    i += 1;
+                    continue;
+                }
+                if let Some(rest) = trimmed.strip_prefix("decision_status = \"")
+                    && let Some(end) = rest.find('"')
+                {
+                    current_decision_status = rest[..end].to_owned();
                     i += 1;
                     continue;
                 }
@@ -992,6 +1012,8 @@ mod tests {
                     id,
                     evidence: current_evidence,
                     license: current_license,
+                    census_status: current_census_status,
+                    decision_status: current_decision_status,
                 });
             }
             entries
@@ -1137,6 +1159,44 @@ mod tests {
                      nobody's evidence trail points back to"
                 );
             }
+        }
+
+        /// A `decision_status` of bare `"PENDING"` is only an honest claim when the donor's own
+        /// `census_status` says census depth genuinely never reached the point a decision could be
+        /// made (`SKELETON`, or `PENDING_DEEP_CENSUS`). This session found 8 donors that violated
+        /// that: their `census_status` already showed a completed (or lane-level-concluded) census
+        /// -- each with a real, dated, per-mechanism disposition already recorded in its own
+        /// census document (and, for the semantic-graph-language-lane donors, in a shared lane
+        /// synthesis document's own `## Decision` section) -- yet `decision_status` still read the
+        /// literal placeholder `"PENDING"`, silently misrepresenting an already-resolved judgment
+        /// as still-open. One donor's own census doc (`duumbi.md`) explicitly names the missing
+        /// step: "A coordinator must merge applicable Discoveries/target_owners into ...
+        /// donor-corpus.toml separately" -- that merge was never done. This formalizes the
+        /// invariant those 8 corrections restored, so a future census-complete donor can never
+        /// again go unsynced silently.
+        #[test]
+        fn pending_decision_status_only_appears_on_a_genuinely_uncensused_donor() {
+            const HONEST_PENDING_CENSUS_STATUSES: &[&str] = &["SKELETON", "PENDING_DEEP_CENSUS"];
+            let entries = load_entries();
+            let mut violations = Vec::new();
+            for entry in &entries {
+                if entry.decision_status == "PENDING"
+                    && !HONEST_PENDING_CENSUS_STATUSES.contains(&entry.census_status.as_str())
+                {
+                    violations.push(format!(
+                        "donor `{}` has decision_status = \"PENDING\" but census_status = \"{}\" \
+                         -- census depth beyond {:?} means a real decision should already be \
+                         recorded (in the donor's own census doc or a lane synthesis doc) and \
+                         mirrored into decision_status, not left as an unsynced placeholder",
+                        entry.id, entry.census_status, HONEST_PENDING_CENSUS_STATUSES
+                    ));
+                }
+            }
+            assert!(
+                violations.is_empty(),
+                "found donor-corpus.toml entries with a stale, unsynced PENDING decision_status:\n\n{}",
+                violations.join("\n")
+            );
         }
     }
 
