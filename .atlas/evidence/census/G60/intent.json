@@ -1,0 +1,24 @@
+{
+  "objective": "P0: close the certificate blocker WORKSPACE_MEMBER_OUTSIDE_INVENTORY -- bring the atlas-systemizer crate (apps/cli, a Cargo workspace member) into the census scope via the repository manifest's source/backend roots; the certificate test now asserts the closed blocker and keeps detection falsifiable by removing the CLI from a copy of the report",
+  "changed_paths": [
+    "apps/cli/",
+    "runtime/src/certificate.rs"
+  ],
+  "total_changes": [
+    "+artifacts",
+    "+facts",
+    "+typed_records",
+    "+obligations",
+    "+evidence",
+    "+graph_nodes",
+    "+graph_edges",
+    "+normalized_facts",
+    "+diagnostic:IncompleteAnalysis",
+    "+unknown_facts",
+    "+unsupported_facts",
+    "+diagnostic:UnsupportedLanguageOrProfile"
+  ],
+  "explained_unknowns": [
+    "apps/cli/: newly censused source carries the same explicit UNKNOWN/UNSUPPORTED obligations as every Rust and Cargo.toml artifact at baseline (extractor coverage gap, recorded in the certificate)"
+  ]
+}

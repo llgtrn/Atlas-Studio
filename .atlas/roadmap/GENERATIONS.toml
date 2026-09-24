@@ -13,7 +13,7 @@
 #       -> generation evidence -> G_n+1
 
 schema = "atlas.self-build.generation-ledger.v1"
-current_generation = "G59"
+current_generation = "G60"
 
 [[generation]]
 id = "G35"
@@ -697,6 +697,7 @@ objective = "compute the CensusCertificate v2 from the census so closure is meas
 writer = "coordinator (sole writer)"
 evidence = ".atlas/decisions/0025-census-certificate.md"
 self_recensus = ".atlas/evidence/census/G59/recensus.json"
+result_commits = ["4f85fcfce6dac089cc064ed3a62f314aef4f8c16", "f706c44784bb17bcfd7a6b10b51a2e61a6e4f297"]
 
 [generation.verification]
 proof = "PROVEN on the second run: the first run flagged +2 graph_bindings as unexpected; investigation showed they are MaterializationBindings (one per new file under the declared core/runtime materializations), which also corrects G57's recorded reason (see correction below)"
@@ -706,3 +707,21 @@ correction = "G57 accepted +3 graph_bindings as DocumentationBindings from ADR 0
 
 [generation.next]
 objective = "G60 (P0): close the certificate's inventory blockers -- atlas-cli into census scope; source frontends or explicit policy for the UNKNOWN artifacts"
+
+[[generation]]
+id = "G60"
+base_commit = "f706c44784bb17bcfd7a6b10b51a2e61a6e4f297"
+priority = "P0"
+serves = "P0 CENSUS_KERNEL_CLOSURE: closes certificate blocker WORKSPACE_MEMBER_OUTSIDE_INVENTORY"
+objective = "bring the atlas-systemizer crate (apps/cli, a workspace member) into the census scope"
+writer = "coordinator (sole writer)"
+evidence = ".atlas/evidence/census/G60/recensus.json"
+self_recensus = ".atlas/evidence/census/G60/recensus.json"
+
+[generation.verification]
+proof = "PROVEN on the third run: (1) first run flagged +diagnostic:UnsupportedLanguageOrProfile (the new apps/cli/Cargo.toml, like every non-Rust artifact, has no semantic extractor) as under-declared; (2) the G59 certificate test encoded the now-closed blocker and failed the workspace tests, so it was rewritten to assert closure and keep detection falsifiable (runtime/src/certificate.rs added to the intent); re-proven"
+certificate_delta = "WORKSPACE_MEMBER_OUTSIDE_INVENTORY removed; source-backed members censused 3 -> 4 of 4; newly visible CLI source truthfully raises UNKNOWN 672 -> 680, UNSUPPORTED 120 -> 132, provenance gaps 230/120 -> 234/132"
+self_recensus_scope_note = "G57-G59 changed apps/cli/src/main.rs without the census seeing it; from G60 every CLI change is observed"
+
+[generation.next]
+objective = "G61 (P0): the 8 ARTIFACTS_WITHOUT_SOURCE_FRONTEND (html/css fixtures, .in test vectors) -- registered frontends or an explicit scope policy, proven by recensus"

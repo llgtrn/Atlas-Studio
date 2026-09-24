@@ -1,0 +1,146 @@
+{
+  "schema": "atlas.self-recensus-report.v1",
+  "generation": "G60",
+  "base_revision": "f9ca9c4ed0b503a00f65f0fc01e7b87890e80c20",
+  "candidate_revision": "f706c44784bb17bcfd7a6b10b51a2e61a6e4f297",
+  "candidate_dirty": true,
+  "before_census_digest": "blake3-256:ea05258329b03b884fc559fac97bacb27aae5ae6a48d06c8cfd42f00577e918a",
+  "after_census_digest": "blake3-256:96f70a84618c17c813bd92ca907004da45a723cd604977604efd1e18ee282a39",
+  "replay_digest": "blake3-256:96f70a84618c17c813bd92ca907004da45a723cd604977604efd1e18ee282a39",
+  "inventory_delta": {
+    "created": [
+      "apps/cli/Cargo.toml",
+      "apps/cli/src/main.rs"
+    ],
+    "modified": [
+      "runtime/src/certificate.rs"
+    ],
+    "deleted": []
+  },
+  "semantic_delta": {
+    "changed": [
+      "runtime/src/certificate.rs"
+    ],
+    "counts": {
+      "fact:FunctionIdentity|OBSERVED": 11,
+      "fact:FunctionSignature|OBSERVED": 11,
+      "fact:SemanticObligation|OBSERVED": 4,
+      "fact:SemanticObligation|UNKNOWN": 8,
+      "fact:SemanticObligation|UNSUPPORTED": 12,
+      "fact:SourceArtifact|OBSERVED": 4,
+      "fact:Symbol|OBSERVED": 12,
+      "fact:Type|OBSERVED": 7,
+      "record:CALL|OBSERVED": 322,
+      "record:CONTROL_FLOW|OBSERVED": 112,
+      "record:DATA_FLOW|OBSERVED": 672,
+      "record:EFFECT|INFERRED": 23,
+      "record:FUNCTION_IDENTITY|OBSERVED": 11,
+      "record:FUNCTION_SIGNATURE|OBSERVED": 11,
+      "record:OWNERSHIP|OBSERVED": 226,
+      "record:PERSISTENCE|INFERRED": 1,
+      "record:SYMBOL|OBSERVED": 12,
+      "record:TYPE|OBSERVED": 7
+    }
+  },
+  "dependency_delta": {
+    "added": [],
+    "removed": []
+  },
+  "dependency_state": [
+    "Closed",
+    "Closed"
+  ],
+  "graph_delta": {
+    "graph_edges": 2205,
+    "graph_nodes": 1481
+  },
+  "obligation_delta": {
+    "obligation:CALL|UNKNOWN": 1,
+    "obligation:CALL|UNSUPPORTED": 1,
+    "obligation:CONCURRENCY|UNKNOWN": 1,
+    "obligation:CONCURRENCY|UNSUPPORTED": 1,
+    "obligation:CONTROL_FLOW|UNKNOWN": 1,
+    "obligation:CONTROL_FLOW|UNSUPPORTED": 1,
+    "obligation:DATA_FLOW|UNKNOWN": 1,
+    "obligation:DATA_FLOW|UNSUPPORTED": 1,
+    "obligation:EFFECT|UNKNOWN": 1,
+    "obligation:EFFECT|UNSUPPORTED": 1,
+    "obligation:FUNCTION_IDENTITY|OBSERVED": 1,
+    "obligation:FUNCTION_IDENTITY|UNSUPPORTED": 1,
+    "obligation:FUNCTION_SIGNATURE|OBSERVED": 1,
+    "obligation:FUNCTION_SIGNATURE|UNSUPPORTED": 1,
+    "obligation:OWNERSHIP|UNKNOWN": 1,
+    "obligation:OWNERSHIP|UNSUPPORTED": 1,
+    "obligation:PERSISTENCE|UNKNOWN": 1,
+    "obligation:PERSISTENCE|UNSUPPORTED": 1,
+    "obligation:STATE|UNKNOWN": 1,
+    "obligation:STATE|UNSUPPORTED": 1,
+    "obligation:SYMBOL|OBSERVED": 1,
+    "obligation:SYMBOL|UNSUPPORTED": 1,
+    "obligation:TYPE|OBSERVED": 1,
+    "obligation:TYPE|UNSUPPORTED": 1
+  },
+  "adl_delta": {
+    "added": [],
+    "removed": []
+  },
+  "coverage_delta": [],
+  "unknown_delta": {
+    "increased": [
+      "apps/cli/Cargo.toml: 0 -> 12",
+      "apps/cli/src/main.rs: 0 -> 8"
+    ],
+    "decreased": [],
+    "total_before": 792,
+    "total_after": 812
+  },
+  "intent": {
+    "objective": "P0: close the certificate blocker WORKSPACE_MEMBER_OUTSIDE_INVENTORY -- bring the atlas-systemizer crate (apps/cli, a Cargo workspace member) into the census scope via the repository manifest's source/backend roots; the certificate test now asserts the closed blocker and keeps detection falsifiable by removing the CLI from a copy of the report",
+    "changed_paths": [
+      "apps/cli/",
+      "runtime/src/certificate.rs"
+    ],
+    "total_changes": [
+      "+artifacts",
+      "+facts",
+      "+typed_records",
+      "+obligations",
+      "+evidence",
+      "+graph_nodes",
+      "+graph_edges",
+      "+normalized_facts",
+      "+diagnostic:IncompleteAnalysis",
+      "+unknown_facts",
+      "+unsupported_facts",
+      "+diagnostic:UnsupportedLanguageOrProfile"
+    ],
+    "dependency_changes": [],
+    "adl_changes": [],
+    "coverage_changes": [],
+    "explained_unknowns": [
+      "apps/cli/: newly censused source carries the same explicit UNKNOWN/UNSUPPORTED obligations as every Rust and Cargo.toml artifact at baseline (extractor coverage gap, recorded in the certificate)"
+    ],
+    "accepted_unexpected": []
+  },
+  "intended_changes": [
+    "path apps/cli/Cargo.toml",
+    "path apps/cli/src/main.rs",
+    "path runtime/src/certificate.rs",
+    "total +artifacts",
+    "total +diagnostic:IncompleteAnalysis",
+    "total +diagnostic:UnsupportedLanguageOrProfile",
+    "total +evidence",
+    "total +facts",
+    "total +graph_edges",
+    "total +graph_nodes",
+    "total +normalized_facts",
+    "total +obligations",
+    "total +typed_records",
+    "total +unknown_facts",
+    "total +unsupported_facts"
+  ],
+  "intended_but_unobserved": [],
+  "unexpected_changes": [],
+  "regressions": [],
+  "verdict": "PROVEN"
+}

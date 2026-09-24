@@ -86,19 +86,38 @@ mod tests {
         // carry no extractor, and ADL-derived facts carry no revision.
         assert!(!cert.normalization.provenance_complete);
         let has = |prefix: &str| cert.blockers.iter().any(|b| b.starts_with(prefix));
+        // Closed in G60: every workspace member is inside the census scope.
         assert!(
-            has("WORKSPACE_MEMBER_OUTSIDE_INVENTORY: atlas-cli (apps/cli)"),
+            !has("WORKSPACE_MEMBER_OUTSIDE_INVENTORY"),
             "{:#?}",
             cert.blockers
+        );
+        // Detection still works: drop the CLI's artifacts from the inventory and it reappears.
+        let mut without_cli = report.clone();
+        without_cli
+            .inventory
+            .artifacts
+            .retain(|a| !a.path.starts_with("apps/cli/"));
+        let reopened = certify_with(&without_cli, &[&pass, &pass]);
+        assert!(
+            reopened
+                .blockers
+                .iter()
+                .any(|b| b == "WORKSPACE_MEMBER_OUTSIDE_INVENTORY: atlas-cli (apps/cli)"),
+            "{:#?}",
+            reopened.blockers
         );
         assert!(has("ARTIFACTS_WITHOUT_SOURCE_FRONTEND"));
         assert!(has("COVERAGE_UNKNOWN: CALL"));
         assert!(has("MULTI_ENGINE_RECONCILIATION_ABSENT"));
         assert!(has("ATLAS_ROOT_ABSENT"));
         assert_eq!(
-            cert.dependency.source_backed_total,
-            cert.dependency.source_censused_total + 1,
-            "exactly one member (atlas-cli) is outside the census"
+            cert.dependency.source_backed_total, cert.dependency.source_censused_total,
+            "every source-backed workspace member is censused (G60)"
+        );
+        assert_eq!(
+            reopened.dependency.source_censused_total + 1,
+            reopened.dependency.source_backed_total
         );
         // Provenance is incomplete, so the scope cannot even be RECONCILED; never CLOSED.
         assert_eq!(cert.state, CertificateState::Censused);

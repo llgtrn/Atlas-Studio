@@ -84,4 +84,4 @@ Evidence JSON and ledger TOML are outside census scope, so writing them after th
 
 - The semantic projection of a typed record is `dimension | status | scope | span | extractor`. A payload change at the same span and scope is detected through the content digest, not through the projection.
 - `.atlas` markdown docs are counted, not content-identified.
-- The `atlas-systemizer` crate (`apps/cli`) is outside the manifest's source roots, so changes to it are not yet observed. This is the G59 target.
+- Closed in G60: the `atlas-systemizer` crate (`apps/cli`) was outside the manifest's source roots, so G57–G59's CLI changes were invisible to their proofs. It is now censused: 4 of 4 workspace members.

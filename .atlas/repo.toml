@@ -60,8 +60,8 @@ required_primitives = [
 ]
 
 [code]
-source_roots = ["core", "runtime", "adapter"]
-backend_roots = ["core", "runtime", "adapter"]
+source_roots = ["core", "runtime", "adapter", "apps/cli"]
+backend_roots = ["core", "runtime", "adapter", "apps/cli"]
 frontend_roots = ["apps/studio"]
 test_roots = ["core/tests", "runtime/tests", "adapter/tests", "apps/studio/src"]
 
