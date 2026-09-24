@@ -82,7 +82,25 @@ fn normalize_typed_obligations(
     obligations: &[SemanticObligationRecord],
 ) -> Vec<SemanticObligationRecord> {
     let mut normalized = obligations.to_vec();
-    normalized.sort_by(|a, b| a.obligation_id.as_str().cmp(b.obligation_id.as_str()));
+    // Sorting by `obligation_id` alone is a COARSER key than the full-equality `dedup_by`
+    // comparator below: `Vec::dedup_by` only ever compares an element to the immediately
+    // preceding one it kept, never a full pairwise scan within a key-group. If the "same
+    // obligation_id always carries identical content" invariant this file's own module doc
+    // comment names is ever violated (exactly the multi-census-run-merge scenario this function
+    // exists to handle) and a third, content-differing record sits between two equal ones in
+    // input order, the equal pair can fail to end up adjacent after a stable sort on the coarser
+    // key alone -- silently under-deduplicating, and doing so differently depending on incidental
+    // input order, contradicting this module's own "deterministic" contract. Tie-breaking on the
+    // full derived `Debug` representation (every field, in declaration order, no custom/lossy
+    // impls anywhere in this crate) makes the sort key exactly as fine as the equality comparator,
+    // the same discipline `normalize_typed_records` above already applies via its
+    // `(record_id, raw_observation_id)` compound key.
+    normalized.sort_by(|a, b| {
+        a.obligation_id
+            .as_str()
+            .cmp(b.obligation_id.as_str())
+            .then_with(|| format!("{a:?}").cmp(&format!("{b:?}")))
+    });
     normalized.dedup_by(|a, b| a == b);
     normalized
 }
@@ -475,5 +493,64 @@ mod tests {
         assert_eq!(report.typed_semantic_records.len(), 2);
         assert!(report.conflict_candidates.is_empty());
         assert!(report.typed_semantics_closed());
+    }
+
+    fn obligation_record(status: EpistemicStatus) -> SemanticObligationRecord {
+        SemanticObligationRecord::new(
+            atlas_core::ArtifactId::new("artifact:src/lib.rs"),
+            RepositoryId::new("atlas-studio"),
+            RevisionRef {
+                kind: "git".into(),
+                value: "abc123".into(),
+            },
+            ExtractorIdentity {
+                id: "atlas.rust.source-semantic.v1".into(),
+                version: "0.1.0".into(),
+            },
+            SemanticDimension::Symbol,
+            status,
+            Vec::new(),
+            Vec::new(),
+            Vec::new(),
+        )
+    }
+
+    #[test]
+    fn obligation_dedup_is_order_independent_even_when_the_same_key_carries_differing_content() {
+        // `a` and `c` are byte-identical; `b` genuinely differs (a different status) but shares
+        // the SAME `obligation_id` as `a`/`c` (identical repository/revision/artifact/extractor/
+        // dimension coordinate) -- exactly the "coordinate-identity invariant violated" scenario
+        // `normalize_typed_obligations`'s own doc comment names as the reason this function
+        // exists at all (a caller merging obligations from more than one census run). Sorting by
+        // `obligation_id` alone is coarser than the full-equality `dedup_by` comparator, and
+        // `Vec::dedup_by` only ever compares an element to the immediately preceding one it kept
+        // -- never a full pairwise scan -- so whether the equal pair (a, c) ends up adjacent after
+        // a stable sort depends on where the differing record (b) happened to sit in the ORIGINAL
+        // input order, silently changing the deduplicated count/content for the same logical
+        // multiset of obligations.
+        let a = obligation_record(EpistemicStatus::Observed);
+        let b = obligation_record(EpistemicStatus::Unknown);
+        let c = a.clone();
+        assert_eq!(
+            a.obligation_id, b.obligation_id,
+            "b must share a's obligation_id to exercise the collision this test targets"
+        );
+        assert_eq!(a, c, "a and c must be genuinely byte-identical");
+        assert_ne!(a, b, "b must genuinely differ in content from a/c");
+
+        let sandwiched = normalize_typed_obligations(&[a.clone(), b.clone(), c.clone()]);
+        let adjacent = normalize_typed_obligations(&[a.clone(), c.clone(), b.clone()]);
+
+        assert_eq!(
+            sandwiched.len(),
+            2,
+            "a and c are identical and must collapse to one record, leaving b distinct: {sandwiched:?}"
+        );
+        assert_eq!(
+            sandwiched.len(),
+            adjacent.len(),
+            "the same logical multiset of obligations must dedup to the same count regardless of \
+             input order: sandwiched={sandwiched:?}, adjacent={adjacent:?}"
+        );
     }
 }

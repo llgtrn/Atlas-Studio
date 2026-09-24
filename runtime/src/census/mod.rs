@@ -496,8 +496,22 @@ pub fn build_census(
     // `obligation_id` is a coordinate identity (artifact/extractor/dimension), unique by
     // construction, so a genuine duplicate key always carries identical content; dedup_by full
     // equality still never silently drops a content-differing collision if that invariant is ever
-    // violated.
-    typed_obligations.sort_by(|a, b| a.obligation_id.as_str().cmp(b.obligation_id.as_str()));
+    // violated. But sorting by `obligation_id` ALONE is coarser than the full-equality `dedup_by`
+    // comparator, and `Vec::dedup_by` only ever compares an element to the immediately preceding
+    // one it kept, never a full pairwise scan within a key-group -- so if that invariant IS ever
+    // violated (a caller merging obligations from more than one census run, exactly the scenario
+    // this pipeline supports) and a third, content-differing record separates two equal ones in
+    // input order, the equal pair can fail to land adjacent after a stable sort, silently
+    // under-deduplicating in an input-order-dependent way. Tie-breaking on the full derived
+    // `Debug` representation (every field, in declaration order, no custom/lossy impls anywhere in
+    // this crate) makes the sort key exactly as fine as the equality comparator, mirroring
+    // `typed_semantic_records`' own `(record_id, raw_observation_id)` compound key above.
+    typed_obligations.sort_by(|a, b| {
+        a.obligation_id
+            .as_str()
+            .cmp(b.obligation_id.as_str())
+            .then_with(|| format!("{a:?}").cmp(&format!("{b:?}")))
+    });
     typed_obligations.dedup_by(|a, b| a == b);
 
     // The compatibility `SemanticFact` projection is derived FROM `typed_semantic_records` (never
@@ -3232,6 +3246,92 @@ pub fn commits_a_store(store: &mut Store) {
             normalization.conflict_candidates.is_empty(),
             "a single extractor disagreeing with itself would be a real bug, not the \
              multi-extractor scenario conflict detection exists for"
+        );
+    }
+
+    #[test]
+    fn build_census_obligation_dedup_is_order_independent_even_when_the_same_key_carries_differing_content()
+     {
+        // `obligation_id` is a coordinate identity (repository/revision/artifact/extractor/
+        // dimension), so three batches sharing that coordinate but reporting DIFFERENT obligation
+        // content for the same dimension is exactly the "coordinate-identity invariant violated"
+        // scenario this dedup exists to handle (a caller merging results from more than one
+        // extraction run for the same artifact/extractor pair). The first and third batches report
+        // byte-identical `ObligationResult::observed(Symbol, [], [])`; the second (sandwiched
+        // between them) reports a genuinely different `unknown` result for the SAME dimension.
+        // Sorting by `obligation_id` alone is coarser than the full-equality `dedup_by`
+        // comparator, so whether the equal pair ends up adjacent after a stable sort -- and thus
+        // whether it collapses -- must not depend on which of two equivalent input orderings this
+        // function happens to receive.
+        let (inventory, source, adl) = single_rust_file_context();
+        let repository = atlas_core::RepositoryId::new("atlas-studio");
+        let revision = atlas_core::RevisionRef {
+            kind: "git".into(),
+            value: "abc123".into(),
+        };
+        let extractor = ExtractorIdentity {
+            id: "atlas.rust.source-semantic.v1".into(),
+            version: "0.1.0".into(),
+        };
+        let artifact = ArtifactId::new("artifact:src/lib.rs");
+        let observed_batch = ExtractionBatch {
+            extractor: extractor.clone(),
+            repository: repository.clone(),
+            revision: revision.clone(),
+            artifact: artifact.clone(),
+            input_fingerprint: "test:src/lib.rs:observed".into(),
+            observations: Vec::new(),
+            evidence: Vec::new(),
+            obligations: vec![ObligationResult::observed(
+                SemanticDimension::Symbol,
+                Vec::new(),
+                Vec::new(),
+            )],
+            diagnostics: Vec::new(),
+        };
+        let unknown_batch = ExtractionBatch {
+            extractor: extractor.clone(),
+            repository: repository.clone(),
+            revision: revision.clone(),
+            artifact: artifact.clone(),
+            input_fingerprint: "test:src/lib.rs:unknown".into(),
+            observations: Vec::new(),
+            evidence: Vec::new(),
+            obligations: vec![ObligationResult::unknown(
+                SemanticDimension::Symbol,
+                "test-diagnostic",
+            )],
+            diagnostics: Vec::new(),
+        };
+
+        let sandwiched = [
+            observed_batch.clone(),
+            unknown_batch.clone(),
+            observed_batch.clone(),
+        ];
+        let adjacent = [
+            observed_batch.clone(),
+            observed_batch.clone(),
+            unknown_batch.clone(),
+        ];
+
+        let sandwiched_census = build_census(&inventory, &source, &adl, &sandwiched);
+        let adjacent_census = build_census(&inventory, &source, &adl, &adjacent);
+
+        assert_eq!(
+            sandwiched_census.typed_obligations.len(),
+            2,
+            "the two byte-identical `observed` obligations must collapse to one, leaving the \
+             `unknown` one distinct: {:?}",
+            sandwiched_census.typed_obligations
+        );
+        assert_eq!(
+            sandwiched_census.typed_obligations.len(),
+            adjacent_census.typed_obligations.len(),
+            "the same logical multiset of obligations must dedup to the same count regardless \
+             of input order: sandwiched={:?}, adjacent={:?}",
+            sandwiched_census.typed_obligations,
+            adjacent_census.typed_obligations
         );
     }
 }
