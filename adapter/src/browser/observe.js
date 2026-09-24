@@ -117,6 +117,72 @@ async function interact(browser, viewport) {
   return observations;
 }
 
+// Motion (ADR 0016): hover each candidate, then pause every running animation and seek it to
+// SAMPLES+1 evenly spaced times across its active interval, reading the animated property at each
+// -- deterministic sampling, no wall-clock jitter. The Web Animations timing is recorded as the
+// declared (OBSERVED) ground truth the curve inference is validated against.
+const SAMPLES = 20;
+async function motion(browser, viewport) {
+  const probe = await freshPage(browser, viewport);
+  const targets = await probe.page.evaluate(() => {
+    const pathOf = (el) => {
+      if (el === document.body) return 'body';
+      let index = 1;
+      for (let s = el.previousElementSibling; s; s = s.previousElementSibling) {
+        if (s.tagName === el.tagName) index += 1;
+      }
+      return pathOf(el.parentElement) + '>' + el.tagName.toLowerCase() + ':' + index;
+    };
+    return [...document.body.querySelectorAll('*')]
+      .filter((el) => getComputedStyle(el).cursor === 'pointer'
+        || el.matches('a[href], button, summary, [role=button]'))
+      .map(pathOf).sort();
+  });
+  await probe.context.close();
+  const toSelector = (path) => path.split('>').map((part) => {
+    const [tag, index] = part.split(':');
+    return index ? `${tag}:nth-of-type(${index})` : tag;
+  }).join(' > ');
+  const motions = [];
+  for (const target of targets) {
+    const { context, page } = await freshPage(browser, viewport);
+    await page.mouse.move(0, 0);
+    await page.locator(toSelector(target)).first().hover();
+    const sampled = await page.evaluate((samples) => {
+      const pathOf = (el) => {
+        if (el === document.body) return 'body';
+        let index = 1;
+        for (let s = el.previousElementSibling; s; s = s.previousElementSibling) {
+          if (s.tagName === el.tagName) index += 1;
+        }
+        return pathOf(el.parentElement) + '>' + el.tagName.toLowerCase() + ':' + index;
+      };
+      return document.getAnimations().map((animation) => {
+        animation.pause();
+        const timing = animation.effect.getTiming();
+        const element = animation.effect.target;
+        const property = animation.transitionProperty || null;
+        const points = [];
+        for (let k = 0; k <= samples; k += 1) {
+          const time = timing.delay + (timing.duration * k) / samples;
+          animation.currentTime = time;
+          points.push([time, property ? getComputedStyle(element).getPropertyValue(property) : '']);
+        }
+        return {
+          element: pathOf(element),
+          property,
+          kind: animation.constructor.name,
+          declared: { duration_ms: timing.duration, delay_ms: timing.delay, easing: timing.easing },
+          samples: points,
+        };
+      });
+    }, SAMPLES);
+    for (const m of sampled) motions.push({ target, stimulus: 'HOVER', ...m });
+    await context.close();
+  }
+  return motions;
+}
+
 (async () => {
   const browser = await chromium.launch();
   const result = {
@@ -126,6 +192,12 @@ async function interact(browser, viewport) {
     driver_version: driverVersion,
     viewports: [],
   };
+  if (process.env.ATLAS_OBSERVE_MODE === 'motion') {
+    result.motions = await motion(browser, viewports[0]);
+    await browser.close();
+    process.stdout.write(JSON.stringify(result));
+    return;
+  }
   if (process.env.ATLAS_OBSERVE_MODE === 'interact') {
     result.interactions = await interact(browser, viewports[0]);
     await browser.close();

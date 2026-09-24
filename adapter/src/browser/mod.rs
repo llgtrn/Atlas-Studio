@@ -45,6 +45,12 @@ pub fn interact_fixture_raw(fixture: &Path, viewport: (u32, u32)) -> io::Result<
     run_instrument(fixture, &[viewport], "interact")
 }
 
+/// Hovers every interactive candidate of `fixture` and deterministically samples each resulting
+/// animation's property curve (ADR 0016).
+pub fn motion_fixture_raw(fixture: &Path, viewport: (u32, u32)) -> io::Result<String> {
+    run_instrument(fixture, &[viewport], "motion")
+}
+
 fn run_instrument(fixture: &Path, viewports: &[(u32, u32)], mode: &str) -> io::Result<String> {
     let fixture = fixture.canonicalize()?;
     if !fs_is_regular_file(&fixture) {

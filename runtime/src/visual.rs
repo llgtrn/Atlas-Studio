@@ -4,10 +4,11 @@
 use atlas_core::{
     EpistemicStatus, IntegrityDigest,
     visual::{
-        ElementObservation, InteractionAnalysis, InteractionObservation, ObservationInstrument,
-        ObservedChange, ResponsiveChange, ResponsiveRule, Stimulus, VISUAL_OBSERVATION_SCHEMA,
-        ViewportObservation, VisualAnalysis, VisualObservationReport, VisualSubject, analyze,
-        analyze_interactions,
+        DeclaredTiming, ElementObservation, InteractionAnalysis, InteractionObservation,
+        MotionInference, MotionObservation, ObservationInstrument, ObservedChange,
+        ResponsiveChange, ResponsiveRule, Stimulus, VISUAL_OBSERVATION_SCHEMA, ViewportObservation,
+        VisualAnalysis, VisualObservationReport, VisualSubject, analyze, analyze_interactions,
+        infer_motion,
     },
 };
 use serde::{Deserialize, Serialize};
@@ -240,6 +241,95 @@ pub fn interact_fixture(fixture: &Path, viewport: (u32, u32)) -> io::Result<Inte
         viewport,
         observations,
         analysis,
+    })
+}
+
+/// What `atlas-systemizer observe --motion` emits (ADR 0016).
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct MotionReport {
+    pub schema: String,
+    pub subject: VisualSubject,
+    pub instrument: ObservationInstrument,
+    pub observations: Vec<MotionObservation>,
+    pub inferences: Vec<MotionInference>,
+}
+
+#[derive(Deserialize)]
+struct RawDeclaredTiming {
+    duration_ms: f64,
+    delay_ms: f64,
+    easing: String,
+}
+
+#[derive(Deserialize)]
+struct RawMotion {
+    target: String,
+    stimulus: Stimulus,
+    element: String,
+    property: Option<String>,
+    declared: RawDeclaredTiming,
+    samples: Vec<(f64, String)>,
+}
+
+#[derive(Deserialize)]
+struct RawMotionRun {
+    engine: String,
+    engine_version: String,
+    driver: String,
+    driver_version: String,
+    motions: Vec<RawMotion>,
+}
+
+/// Hovers every interactive candidate, samples each resulting animation deterministically, and
+/// infers its easing from the curve alone (validated against the declared timing).
+pub fn motion_fixture(fixture: &Path, viewport: (u32, u32)) -> io::Result<MotionReport> {
+    let before = IntegrityDigest::of_bytes(&fs::read(fixture)?);
+    let raw = adapter::browser::motion_fixture_raw(fixture, viewport)?;
+    if IntegrityDigest::of_bytes(&fs::read(fixture)?) != before {
+        return Err(io::Error::other(
+            "observation subject changed while it was being observed",
+        ));
+    }
+    let run: RawMotionRun = serde_json::from_str(&raw).map_err(|e| {
+        io::Error::new(
+            io::ErrorKind::InvalidData,
+            format!("instrument output: {e}"),
+        )
+    })?;
+    let observations: Vec<MotionObservation> = run
+        .motions
+        .into_iter()
+        .map(|m| MotionObservation {
+            target: m.target,
+            stimulus: m.stimulus,
+            element: m.element,
+            property: m.property,
+            declared: DeclaredTiming {
+                duration_ms: m.declared.duration_ms,
+                delay_ms: m.declared.delay_ms,
+                easing: m.declared.easing,
+            },
+            samples: m.samples,
+            status: EpistemicStatus::Observed,
+        })
+        .collect();
+    let inferences = infer_motion(&observations);
+    Ok(MotionReport {
+        schema: "atlas.motion-report.v1".into(),
+        subject: VisualSubject {
+            locator: fixture.to_string_lossy().into_owned(),
+            content_digest: before,
+            authorization: "LOCAL_FIXTURE".into(),
+        },
+        instrument: ObservationInstrument {
+            engine: run.engine,
+            engine_version: run.engine_version,
+            driver: run.driver,
+            driver_version: run.driver_version,
+            network: "BLOCKED_EXCEPT_SUBJECT".into(),
+        },
+        observations,
+        inferences,
     })
 }
 
@@ -518,6 +608,47 @@ mod tests {
                 .iter()
                 .any(|c| c.property == "transform" && c.after == "matrix(1, 0, 0, 1, 0, -4)"),
             "settled end state"
+        );
+    }
+
+    #[test]
+    fn easing_inferred_from_sampled_curves_agrees_with_every_declared_easing() {
+        if adapter::browser::playwright_module().is_none() {
+            eprintln!("SKIP: no Playwright browser instrument in this environment");
+            return;
+        }
+        let fixture =
+            Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/visual/motion-curves.html");
+        let report = motion_fixture(&fixture, (1024, 768)).unwrap();
+        assert_eq!(report.inferences.len(), 5, "{:#?}", report.inferences);
+        let mut inferred: Vec<String> = Vec::new();
+        for inference in &report.inferences {
+            assert_eq!(
+                inference.agrees_with_declared,
+                Some(true),
+                "curve-only inference must match the declared easing: {inference:#?}"
+            );
+            assert!(!inference.overshoot);
+            inferred.push(inference.inferred_easing.clone().unwrap());
+        }
+        inferred.sort();
+        assert_eq!(
+            inferred,
+            ["ease", "ease-in", "ease-in-out", "ease-out", "linear"]
+        );
+        let delayed = report
+            .observations
+            .iter()
+            .find(|o| o.declared.easing == "ease-in")
+            .unwrap();
+        assert_eq!(
+            (delayed.declared.delay_ms, delayed.declared.duration_ms),
+            (100.0, 400.0)
+        );
+        assert_eq!(
+            delayed.samples.first().unwrap().0,
+            100.0,
+            "sampling starts after the delay"
         );
     }
 

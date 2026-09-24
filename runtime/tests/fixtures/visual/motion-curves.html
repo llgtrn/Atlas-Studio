@@ -1,0 +1,26 @@
+<!doctype html>
+<!-- Atlas-original motion fixture (ADR 0016): five hover transitions, one per CSS keyword easing,
+     on transform and opacity, with different durations and one delay. -->
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  body { margin: 0; padding: 20px; }
+  .m { width: 120px; height: 60px; margin: 10px; background: #ccd; cursor: pointer; }
+  .linear      { transition: transform 300ms linear; }
+  .ease        { transition: transform 500ms ease; }
+  .ease-in     { transition: opacity 400ms ease-in 100ms; }
+  .ease-out    { transition: transform 250ms ease-out; }
+  .ease-in-out { transition: transform 600ms ease-in-out; }
+  .linear:hover, .ease:hover, .ease-out:hover, .ease-in-out:hover { transform: translateX(40px); }
+  .ease-in:hover { opacity: 0.2; }
+</style>
+</head>
+<body>
+  <div class="m linear"></div>
+  <div class="m ease"></div>
+  <div class="m ease-in"></div>
+  <div class="m ease-out"></div>
+  <div class="m ease-in-out"></div>
+</body>
+</html>

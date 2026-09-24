@@ -674,6 +674,163 @@ pub fn analyze_interactions(observations: &[InteractionObservation]) -> Interact
     analysis
 }
 
+/// The Web Animations timing the engine reports for an animation -- declared by the page,
+/// `OBSERVED` by the instrument, and used as ground truth to validate curve inference.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct DeclaredTiming {
+    pub duration_ms: f64,
+    pub delay_ms: f64,
+    pub easing: String,
+}
+
+/// One animation's property curve sampled at deterministic seek times (ADR 0016).
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct MotionObservation {
+    pub target: String,
+    pub stimulus: Stimulus,
+    pub element: String,
+    pub property: Option<String>,
+    pub declared: DeclaredTiming,
+    /// `(time_ms, computed value)` pairs across the active interval.
+    pub samples: Vec<(f64, String)>,
+    pub status: EpistemicStatus,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct EasingCandidate {
+    pub name: String,
+    pub control_points: [f64; 4],
+    /// Root-mean-square distance between the sampled progress and this curve.
+    pub rms_error: f64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct MotionInference {
+    pub element: String,
+    pub property: Option<String>,
+    /// Active duration spanned by the samples.
+    pub duration_ms: f64,
+    /// The best-fitting candidate; `None` when the curve fits none within tolerance.
+    pub inferred_easing: Option<String>,
+    /// Every candidate, best first -- the alternatives are part of the inference.
+    pub candidates: Vec<EasingCandidate>,
+    /// Progress left [0, 1] at some sample: a spring or elastic curve no cubic keyword can model.
+    pub overshoot: bool,
+    /// Whether the inference matches the declared easing, when one is declared.
+    pub agrees_with_declared: Option<bool>,
+    pub status: EpistemicStatus,
+}
+
+/// The CSS keyword easings (CSS Easing Functions Level 1).
+pub const KEYWORD_EASINGS: [(&str, [f64; 4]); 5] = [
+    ("linear", [0.0, 0.0, 1.0, 1.0]),
+    ("ease", [0.25, 0.1, 0.25, 1.0]),
+    ("ease-in", [0.42, 0.0, 1.0, 1.0]),
+    ("ease-out", [0.0, 0.0, 0.58, 1.0]),
+    ("ease-in-out", [0.42, 0.0, 0.58, 1.0]),
+];
+
+/// Maximum RMS progress error for a candidate to be accepted as the inferred easing.
+pub const EASING_TOLERANCE: f64 = 0.01;
+
+/// `y` of the cubic Bezier through (0,0), (x1,y1), (x2,y2), (1,1) at abscissa `x`, found by
+/// bisection on the monotone `x(t)` (x1, x2 in [0, 1]).
+pub fn cubic_bezier(control: [f64; 4], x: f64) -> f64 {
+    let [x1, y1, x2, y2] = control;
+    let coordinate = |a: f64, b: f64, t: f64| {
+        let u = 1.0 - t;
+        3.0 * u * u * t * a + 3.0 * u * t * t * b + t * t * t
+    };
+    let (mut lo, mut hi) = (0.0_f64, 1.0_f64);
+    for _ in 0..60 {
+        let mid = (lo + hi) / 2.0;
+        if coordinate(x1, x2, mid) < x {
+            lo = mid;
+        } else {
+            hi = mid;
+        }
+    }
+    coordinate(y1, y2, (lo + hi) / 2.0)
+}
+
+fn numbers(value: &str) -> Vec<f64> {
+    value
+        .split(|c: char| !(c.is_ascii_digit() || c == '.' || c == '-' || c == 'e'))
+        .filter_map(|token| token.parse::<f64>().ok())
+        .collect()
+}
+
+/// Normalized progress per sample of the numeric component that moves the most.
+fn progress(samples: &[(f64, String)]) -> Option<Vec<f64>> {
+    let vectors: Vec<Vec<f64>> = samples.iter().map(|(_, v)| numbers(v)).collect();
+    let width = vectors.first()?.len();
+    if width == 0 || vectors.iter().any(|v| v.len() != width) {
+        return None;
+    }
+    let (first, last) = (vectors.first()?, vectors.last()?);
+    let component = (0..width).max_by(|a, b| {
+        (last[*a] - first[*a])
+            .abs()
+            .total_cmp(&(last[*b] - first[*b]).abs())
+    })?;
+    let span = last[component] - first[component];
+    if span.abs() < 1e-9 {
+        return None;
+    }
+    Some(
+        vectors
+            .iter()
+            .map(|v| (v[component] - first[component]) / span)
+            .collect(),
+    )
+}
+
+/// Infers each sampled animation's easing from its curve alone and ranks every keyword
+/// candidate; `INFERRED`, with the declared easing (when present) as validation.
+pub fn infer_motion(observations: &[MotionObservation]) -> Vec<MotionInference> {
+    observations
+        .iter()
+        .filter_map(|observation| {
+            let progress = progress(&observation.samples)?;
+            let steps = (progress.len() - 1) as f64;
+            let mut candidates: Vec<EasingCandidate> = KEYWORD_EASINGS
+                .iter()
+                .map(|(name, control)| {
+                    let squared: f64 = progress
+                        .iter()
+                        .enumerate()
+                        .map(|(k, p)| (p - cubic_bezier(*control, k as f64 / steps)).powi(2))
+                        .sum();
+                    EasingCandidate {
+                        name: (*name).into(),
+                        control_points: *control,
+                        rms_error: (squared / progress.len() as f64).sqrt(),
+                    }
+                })
+                .collect();
+            candidates.sort_by(|a, b| a.rms_error.total_cmp(&b.rms_error));
+            let overshoot = progress.iter().any(|p| *p < -1e-6 || *p > 1.0 + 1e-6);
+            let inferred_easing = candidates
+                .first()
+                .filter(|best| best.rms_error <= EASING_TOLERANCE && !overshoot)
+                .map(|best| best.name.clone());
+            let (first, last) = (observation.samples.first()?, observation.samples.last()?);
+            Some(MotionInference {
+                element: observation.element.clone(),
+                property: observation.property.clone(),
+                duration_ms: last.0 - first.0,
+                agrees_with_declared: inferred_easing
+                    .as_ref()
+                    .map(|easing| *easing == observation.declared.easing),
+                inferred_easing,
+                candidates,
+                overshoot,
+                status: EpistemicStatus::Inferred,
+            })
+        })
+        .collect()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1025,6 +1182,104 @@ mod tests {
                 .iter()
                 .any(|m| matches!(m, InteractionMechanism::Disclosure { .. }))
         );
+    }
+
+    fn sampled(control: [f64; 4], transform: impl Fn(f64) -> f64) -> MotionObservation {
+        MotionObservation {
+            target: "t".into(),
+            stimulus: Stimulus::Hover,
+            element: "e".into(),
+            property: Some("transform".into()),
+            declared: DeclaredTiming {
+                duration_ms: 400.0,
+                delay_ms: 0.0,
+                easing: "ease-out".into(),
+            },
+            samples: (0..=20)
+                .map(|k| {
+                    let x = f64::from(k) / 20.0;
+                    (
+                        400.0 * x,
+                        format!(
+                            "matrix(1, 0, 0, 1, 0, {})",
+                            transform(cubic_bezier(control, x)) * -20.0
+                        ),
+                    )
+                })
+                .collect(),
+            status: EpistemicStatus::Observed,
+        }
+    }
+
+    #[test]
+    fn cubic_bezier_matches_known_points() {
+        assert!((cubic_bezier([0.0, 0.0, 1.0, 1.0], 0.3) - 0.3).abs() < 1e-12);
+        assert!(
+            (cubic_bezier([0.42, 0.0, 0.58, 1.0], 0.5) - 0.5).abs() < 1e-9,
+            "ease-in-out is symmetric"
+        );
+        // Chromium sampled ease-out at 25% as 7.56276/20 = 0.378138.
+        assert!((cubic_bezier([0.0, 0.0, 0.58, 1.0], 0.25) - 0.378138).abs() < 1e-5);
+    }
+
+    #[test]
+    fn keyword_curves_match_chromium_sampled_values() {
+        // Independent oracle: Chromium 141's own easing evaluation (opacity 0 -> 1 animation,
+        // paused and seeked to 25/50/75%), recorded 2026-09-24 (ADR 0016).
+        let chromium: [(&str, [f64; 3]); 5] = [
+            ("linear", [0.25, 0.5, 0.75]),
+            ("ease", [0.408511, 0.802403, 0.960459]),
+            ("ease-in", [0.0934647, 0.315357, 0.621862]),
+            ("ease-out", [0.378138, 0.684643, 0.906535]),
+            ("ease-in-out", [0.129162, 0.5, 0.870838]),
+        ];
+        for ((name, control), (oracle_name, values)) in KEYWORD_EASINGS.iter().zip(chromium) {
+            assert_eq!(*name, oracle_name);
+            for (x, expected) in [0.25, 0.5, 0.75].into_iter().zip(values) {
+                assert!(
+                    (cubic_bezier(*control, x) - expected).abs() < 1e-5,
+                    "{name} at {x}: {} vs Chromium {expected}",
+                    cubic_bezier(*control, x)
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn a_custom_curve_matching_no_keyword_is_not_forced_into_one() {
+        // cubic-bezier(0.9, 0.1, 0.1, 0.9); Chromium samples it as 0.0609247 / 0.5 / 0.939075.
+        let custom = [0.9, 0.1, 0.1, 0.9];
+        assert!((cubic_bezier(custom, 0.25) - 0.0609247).abs() < 1e-5);
+        let inference = &infer_motion(&[sampled(custom, |p| p)])[0];
+        assert!(!inference.overshoot);
+        assert_eq!(inference.inferred_easing, None, "{inference:?}");
+        assert!(inference.candidates[0].rms_error > EASING_TOLERANCE);
+        assert_eq!(inference.candidates.len(), 5, "alternatives still reported");
+    }
+
+    #[test]
+    fn each_keyword_curve_is_recovered_from_samples_alone() {
+        for (name, control) in KEYWORD_EASINGS {
+            let inference = &infer_motion(&[sampled(control, |p| p)])[0];
+            assert_eq!(
+                inference.inferred_easing.as_deref(),
+                Some(name),
+                "{inference:?}"
+            );
+            assert_eq!(inference.status, EpistemicStatus::Inferred);
+            assert_eq!(inference.candidates.len(), 5, "alternatives are kept");
+            assert!(inference.candidates[1].rms_error > inference.candidates[0].rms_error);
+        }
+    }
+
+    #[test]
+    fn an_overshooting_curve_is_flagged_and_matches_no_keyword() {
+        // Damped oscillation 1 - e^(-6p) cos(10p): overshoots to ~1.06 near p = 0.4.
+        let spring = |p: f64| 1.0 - (-6.0 * p).exp() * (10.0 * p).cos();
+        let inference = &infer_motion(&[sampled([0.0, 0.0, 1.0, 1.0], spring)])[0];
+        assert!(inference.overshoot);
+        assert_eq!(inference.inferred_easing, None);
+        assert_eq!(inference.agrees_with_declared, None);
     }
 
     #[test]

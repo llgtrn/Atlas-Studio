@@ -254,14 +254,14 @@ extinction_state = "n/a"
 id = "creator_motion"
 family = "CREATOR_FABRIC"
 capability = "motion grammar: duration, easing, spring, inertia, scroll/pointer linkage"
-state = "ABSENT"
-atlas_implementation = "none"
+state = "PARTIAL"
+atlas_implementation = "observe --motion (ADR 0016): deterministic paused/seeked sampling of hover animations; DeclaredTiming OBSERVED; easing INFERRED from curve alone vs 5 CSS keywords with residual-ranked alternatives and overshoot flag; 5/5 agree with declared timing; cubic_bezier matches Chromium to 1e-5"
 donors = ["Motion (MIT: motion-dom spring.ts, cubic-bezier.ts)"]
-blocking_question = "needs a frame-sequence observation first"
+blocking_question = "JS/rAF-driven motion has no declared timing: needs virtual-time sampling; spring parameters not yet fitted"
 evidence_required = "frame-timestamped geometry of a fixture with a known spring/easing"
 falsification = "inferred parameters recovered within stated uncertainty; recorded INFERRED, never OBSERVED"
 dependency_status = "none"
-next_action = "after creator_browser: frame sampling"
+next_action = "Playwright clock virtual-time sampling for rAF motion; spring fit for overshooting curves"
 extinction_state = "n/a"
 
 [[lane]]
