@@ -331,17 +331,83 @@ fn parse_assignments(lines: &[(usize, String)]) -> BTreeMap<String, String> {
     attrs
 }
 
+/// Splits `content` into whitespace-delimited tokens, treating a `"..."`-quoted span as one
+/// token regardless of internal whitespace -- shared logic every `key = value`/`key = "value"`
+/// attribute in this DSL relies on.
+fn quote_aware_tokens(content: &str) -> Vec<String> {
+    let mut tokens = Vec::new();
+    let mut current = String::new();
+    let mut in_quotes = false;
+    for ch in content.chars() {
+        if ch == '"' {
+            in_quotes = !in_quotes;
+            current.push(ch);
+        } else if ch.is_whitespace() && !in_quotes {
+            if !current.is_empty() {
+                tokens.push(std::mem::take(&mut current));
+            }
+        } else {
+            current.push(ch);
+        }
+    }
+    if !current.is_empty() {
+        tokens.push(current);
+    }
+    tokens
+}
+
+/// Recovers zero or more `"key = value"` lines from `content`, a single-line block's inline text
+/// (between its opening `{` and closing `}`, e.g. `path = "core" language = rust`). Every
+/// attribute value in this DSL is exactly one whitespace-delimited token (a bareword identifier
+/// or a `"..."`-quoted string), so a `(key, "=", value)` token triple, repeated, recovers every
+/// assignment regardless of how many share the line -- the same shape `parse_assignments` already
+/// expects one-per-line for a multi-line block body.
+fn split_inline_assignments(content: &str) -> Vec<String> {
+    let tokens = quote_aware_tokens(content);
+    let mut assignments = Vec::new();
+    let mut index = 0;
+    while index + 2 < tokens.len() {
+        if tokens[index + 1] == "=" {
+            assignments.push(format!("{} = {}", tokens[index], tokens[index + 2]));
+            index += 3;
+        } else {
+            index += 1;
+        }
+    }
+    assignments
+}
+
 fn collect_block(lines: &[(usize, String)], start: usize) -> (Vec<(usize, String)>, usize) {
     let mut body = Vec::new();
     let mut depth = 0_i32;
     let mut index = start;
     while index < lines.len() {
-        let clean = strip_comment(&lines[index].1);
-        depth += clean.matches('{').count() as i32;
-        depth -= clean.matches('}').count() as i32;
-        if index > start {
+        let (line_no, raw) = &lines[index];
+        let clean = strip_comment(raw);
+        if index == start {
+            // A single-line block (`capability Foo { input = A }`, or `materialize Compiler {
+            // path = "core" language = rust }`) carries its real content on the SAME line as its
+            // opening (and possibly closing) brace -- legal-looking ADL syntax with no grammar
+            // rule forbidding it. Extract whatever sits between the FIRST `{` and the LAST `}`
+            // (or end of line, if the block continues past this one) as inline assignments,
+            // instead of unconditionally discarding the header line the way this function used to
+            // -- which silently dropped every field of a single-line declaration with zero
+            // diagnostic.
+            if let Some(open_pos) = clean.find('{') {
+                let after_open = &clean[open_pos + 1..];
+                let inline = match after_open.rfind('}') {
+                    Some(close_pos) => &after_open[..close_pos],
+                    None => after_open,
+                };
+                for assignment in split_inline_assignments(inline) {
+                    body.push((*line_no, assignment));
+                }
+            }
+        } else {
             body.push(lines[index].clone());
         }
+        depth += clean.matches('{').count() as i32;
+        depth -= clean.matches('}').count() as i32;
         index += 1;
         if depth <= 0 {
             break;
@@ -1037,6 +1103,58 @@ constraint BackendIsRust {
         assert_eq!(program.version, 1);
         assert_eq!(program.system.as_deref(), Some("Example"));
         assert_eq!(program.declarations.len(), 6);
+    }
+
+    #[test]
+    fn a_single_line_capability_block_does_not_silently_drop_its_attribute() {
+        // `collect_block` used to unconditionally skip the header line (`if index > start`), so a
+        // block whose opening AND closing brace both sit on the same line as the keyword --
+        // legal-looking ADL syntax with no grammar rule forbidding it -- had its entire content
+        // silently discarded: `body` came back empty, with zero diagnostic anywhere.
+        let source = AdlSource {
+            path: ".atlas/declared/system.adl".into(),
+            text: "atlas 1\nsystem Example\ncapability Foo { input = A }\n".into(),
+        };
+        let program = parse_adl_source(&source);
+        assert!(program.diagnostics.is_empty());
+        let capability = program
+            .declarations
+            .iter()
+            .find_map(|decl| match decl {
+                AdlDeclaration::Capability(c) if c.name == "Foo" => Some(c),
+                _ => None,
+            })
+            .expect("capability declaration is recorded");
+        assert_eq!(
+            capability.input.as_deref(),
+            Some("A"),
+            "a single-line block's own attribute must not be silently dropped"
+        );
+    }
+
+    #[test]
+    fn a_single_line_materialize_block_with_multiple_attributes_keeps_every_one() {
+        // Same defect, worse consequence: a one-line `materialize` block with TWO attributes on
+        // it. Before the fix, `path` silently defaulted to "" (`unwrap_or_default()`), which can
+        // flip a real `check`/`systemize` MISSING_MATERIALIZATION result based on a parser
+        // artifact rather than the actual repository state.
+        let source = AdlSource {
+            path: ".atlas/declared/system.adl".into(),
+            text: "atlas 1\nsystem Example\nmaterialize Compiler { path = \"core\" language = rust }\n"
+                .into(),
+        };
+        let program = parse_adl_source(&source);
+        assert!(program.diagnostics.is_empty());
+        let materialization = program
+            .declarations
+            .iter()
+            .find_map(|decl| match decl {
+                AdlDeclaration::Materialization(m) if m.target == "Compiler" => Some(m),
+                _ => None,
+            })
+            .expect("materialize declaration is recorded");
+        assert_eq!(materialization.path, "core");
+        assert_eq!(materialization.source_language.as_deref(), Some("rust"));
     }
 
     // `.atlas/evidence/verification/large-stack-worker-mitigates-recursion-dos-residual-risk.json`
