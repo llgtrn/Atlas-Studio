@@ -309,8 +309,24 @@ pub fn lex_adl(path: &str, text: &str) -> Vec<AdlToken> {
     tokens
 }
 
+/// Strips a trailing `#`-comment, but never one that starts inside a `"..."`-quoted attribute
+/// value: a naive `split('#')` here would truncate `description = "See issue #42 for details"`
+/// (a wholly ordinary quoted value) right after `#42`, discarding the value's own closing quote
+/// AND, when this line is also a block's opening/closing header, the brace `collect_block`'s own
+/// depth counter needs to terminate that block correctly -- corrupting the counter and causing
+/// the block to silently swallow every subsequent line until something else happens to
+/// rebalance it. `unquote`/`quote_aware_tokens` elsewhere in this file already treat `#` inside a
+/// quoted string as literal text, not a comment marker; this function must agree with them.
 fn strip_comment(line: &str) -> &str {
-    line.split('#').next().unwrap_or_default().trim()
+    let mut in_quotes = false;
+    for (index, ch) in line.char_indices() {
+        match ch {
+            '"' => in_quotes = !in_quotes,
+            '#' if !in_quotes => return line[..index].trim(),
+            _ => {}
+        }
+    }
+    line.trim()
 }
 
 fn unquote(value: &str) -> String {
@@ -1155,6 +1171,47 @@ constraint BackendIsRust {
             .expect("materialize declaration is recorded");
         assert_eq!(materialization.path, "core");
         assert_eq!(materialization.source_language.as_deref(), Some("rust"));
+    }
+
+    #[test]
+    fn a_hash_inside_a_quoted_attribute_value_is_never_treated_as_a_comment() {
+        // `strip_comment` used to naively `split('#')` with no notion of `"..."` quoting, so a
+        // wholly ordinary quoted value like `"See issue #42 for details"` had everything from
+        // `#42` onward silently discarded -- including the value's own closing quote AND, since
+        // `collect_block` computes its brace-depth counter from this same comment-stripped text,
+        // this line's closing `}` too. A single-line block's own header/footer line losing its
+        // closing brace corrupts `collect_block`'s depth counter, causing it to swallow every
+        // subsequent declaration until something else happens to rebalance it -- `Bar` below must
+        // never be silently absorbed into `Foo`'s body.
+        let source = AdlSource {
+            path: ".atlas/declared/system.adl".into(),
+            text: "atlas 1\nsystem Example\ncapability Foo { description = \"See issue #42 for details\" }\ncapability Bar {\n    input = X\n}\n"
+                .into(),
+        };
+        let program = parse_adl_source(&source);
+        assert!(program.diagnostics.is_empty());
+        let foo = program
+            .declarations
+            .iter()
+            .find_map(|decl| match decl {
+                AdlDeclaration::Capability(c) if c.name == "Foo" => Some(c),
+                _ => None,
+            })
+            .expect("Foo capability declaration is recorded");
+        assert_eq!(
+            foo.attributes.get("description").map(String::as_str),
+            Some("See issue #42 for details"),
+            "a `#` inside a quoted value must never truncate that value"
+        );
+        let bar = program
+            .declarations
+            .iter()
+            .find_map(|decl| match decl {
+                AdlDeclaration::Capability(c) if c.name == "Bar" => Some(c),
+                _ => None,
+            })
+            .expect("Bar must be its own distinct declaration, never absorbed into Foo's body");
+        assert_eq!(bar.attributes.get("input").map(String::as_str), Some("X"));
     }
 
     // `.atlas/evidence/verification/large-stack-worker-mitigates-recursion-dos-residual-risk.json`
