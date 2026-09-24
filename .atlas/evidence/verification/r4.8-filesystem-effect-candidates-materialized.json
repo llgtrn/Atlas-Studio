@@ -1,0 +1,60 @@
+{
+  "schema": "atlas.self-build.generation-evidence.v1",
+  "wave": "SEMANTIC PRESERVATION -- materialize R4.8's first EffectCategory beyond Panic, after the CFG/security/dependency-census recensus cycle found no further actionable correctness/security defect",
+  "wave_title": "Three consecutive generations of this cycle's recensus (CFG arm-completeness, dependency-census cross-check, walker sub-field completeness) found no further defect via three genuinely distinct methods. Per the session's own explicit note that the next generation should move to a different subsystem or wave, this generation turned to EffectCategory's own declared-but-unmaterialized variants: FilesystemRead/FilesystemWrite/NetworkSend/NetworkReceive/ProcessSpawn/FfiCall/Persist/EmitEvent/AuthCheck/Alloc/Free/ExternalIo have existed in core::semantic::effect::EffectCategory since its introduction, but only Panic was ever emitted by the Rust extractor -- an explicit, honestly-acknowledged R4.8 closure requirement ('externally observable effects; filesystem/network/process/FFI/build/runtime interactions where applicable'), not a hidden gap.",
+  "priority_classification": "semantic preservation (priority 3) -- new capability materialization within an already-declared, already-scoped-open dimension, following an established, already-proven pattern (persistence.rs's identical spelling-candidate discipline) rather than a novel design.",
+  "why_this_and_not_a_fourth_recensus_pass": "the user's own instruction to advance per the canonical roadmap once a dimension's own recensus comes back clean, rather than manufacturing a fourth narrow defect-hunt in the same already-thoroughly-checked area (CFG/dependency-census). R4.8's own roadmap section explicitly lists filesystem/network/process/FFI effects as still-open, materializable work -- this is advancing the roadmap, not inventing new scope.",
+  "design_decisions": [
+    {
+      "question": "Free/path calls, method calls, or both?",
+      "decision": "Free/path calls ONLY this wave. A free/path call's callee spelling explicitly names its qualifying module/type (`fs::read`, `File::open`), giving a real, checkable signal. A method call's spelling (`method_call.method.to_string()`) carries NO qualifying information about the receiver's type at all -- `socket.read_to_string(..)` and a real `File`'s `.read_to_string(..)` are textually identical, and this extractor cannot tell them apart without type resolution it doesn't have. Persistence.rs's own module doc comment already names this exact ambiguity for its own method-call spellings ('game.commit(), ui.flush(), cache.sync() ... exactly as persistence-shaped by spelling as a real durable API call'); rather than accepting the same ambiguity for filesystem detection, this wave excludes method calls entirely as an explicit, documented scope boundary, verified by a dedicated negative test."
+    },
+    {
+      "question": "How to avoid the 'fs' substring collision risk (prefs::, myfs::, overlayfs::, ...)?",
+      "decision": "Split the spelling on `::` and require the segment immediately before the final one to be EXACTLY `fs` (or `File`) -- never a substring match. This is the identical word-boundary discipline `max_structural_recursion_risk`'s own `as`-keyword scan already established for an identical collision risk (`task`/`class`/`database`/`phase` all contain \"as\" as a substring but must never trigger that guard). Verified directly by `filesystem_lookalike_module_names_do_not_false_positive`."
+    },
+    {
+      "question": "Which specific fs/File spellings to recognize, and why not attempt an exhaustive catalog?",
+      "decision": "A deliberately bounded, well-known initial set (fs::read/read_to_string/read_to_end/read_dir/read_link/metadata/symlink_metadata/canonicalize -> Read; fs::write/create_dir/create_dir_all/remove_file/remove_dir/remove_dir_all/rename/copy/hard_link/symlink/set_permissions -> Write; File::open -> Read; File::create/create_new -> Write) -- comparable in size and restraint to persistence.rs's own 5-entry set, not an attempt to enumerate every std::fs function or every async-runtime fs module's full surface in one generation. Network/process/FFI/persist/event/auth/alloc/free/external-IO categories remain explicitly unmaterialized, left for future generations."
+    },
+    {
+      "question": "Refactor emit_panic into a general emit(), or duplicate the emission logic for the new categories?",
+      "decision": "Refactored `emit_panic(mac)` into `emit(span, category)` (parameterized, called by both the Panic call site and the new filesystem call site) -- avoiding a second near-duplicate copy of the identical evidence/observation-emission logic, consistent with this session's own repeated architecture-quality discipline (StatementWalker, join_continuation, persistence_kind_for_spelling, ...)."
+    }
+  ],
+  "stable_validator_law_compliance": {
+    "claim": "A free/path call spelling with an fs/File module qualifier now produces a real, Inferred FilesystemRead/FilesystemWrite Effect candidate; a lookalike module name or a bare method call of the same name does not.",
+    "self_written_evidence": "Three new tests: (1) a function calling std::fs::read, fs::read_to_string, fs::read_dir, fs::write, fs::create_dir_all, fs::remove_file, File::open, File::create -- asserts the exact expected multiset of categories, all Inferred; (2) prefs::read/myfs::write/overlayfs::read_dir -- asserts zero effect observations, proving the word-boundary discipline; (3) a real method call (socket.read_to_string(buffer)) with a filesystem-sounding name -- asserts zero effect observations, proving the documented method-call exclusion.",
+    "independent_evidence_channel": "cargo build --workspace clean. cargo fmt --all --check clean (one reformat applied and re-verified). cargo clippy --workspace --all-targets -D warnings clean. Full cargo test --workspace: 269 adapter (+3 net), 2 apps/cli, 160 core, 63 runtime -- 494 total, 0 failed, every pre-existing EFFECT/Panic test unchanged and passing. docs audit gate_ready: true. cargo run -p atlas-cli -- systemize --root . against this repository's own real source (which contains real fs::read_dir/fs::read calls in adapter/src/lib.rs, confirmed present by direct grep before trusting the mechanism would have real material to fire on): exit 0.",
+    "no_circular_self_certification": true
+  },
+  "implementation": {
+    "core_change": "NONE -- EffectCategory::FilesystemRead/FilesystemWrite already existed in core::semantic::effect; only the adapter-side extractor needed to start emitting them.",
+    "adapter_change": "adapter/src/semantic/rust/effect.rs -- added filesystem_kind_for_free_call_spelling (the closed, word-boundary-checked spelling set); refactored emit_panic into a general emit(span, category); added a syn::Expr::Call arm checking the new function before recursing into the call's own sub-expressions (which were already visited unconditionally, unchanged); updated the module doc comment.",
+    "roadmap_change": ".atlas/roadmap/SELF-BUILDING-R4-R8.md R4.8 section -- documented the new capability, its exact scope, and what remains deliberately unmaterialized.",
+    "test_change": "adapter/src/semantic/rust/tests.rs -- added effect_categories helper and 3 new tests (positive multi-spelling case, lookalike-module negative case, method-call-exclusion negative case)."
+  },
+  "adversarial_and_falsification_coverage": [
+    "positive test covers both `std::fs::` (fully qualified) and bare `fs::` (post-`use`) spellings, plus both File::open and File::create, not just one representative spelling",
+    "explicit negative test for the exact substring-collision risk this session already knows how to construct (prefs::/myfs::/overlayfs::), not merely asserted safe by inspection",
+    "explicit negative test for the documented method-call exclusion, proving the scope boundary is real and enforced, not merely stated in a comment",
+    "confirmed real, exact-matching material already exists in this repository's own source (adapter/src/lib.rs's fs::read_dir/fs::read calls) before treating the synthetic unit tests as sufficient -- the mechanism is not merely theoretically exercised",
+    "every new Effect observation asserted Inferred, never Observed, matching the epistemic discipline this whole extractor is built on"
+  ],
+  "validation_this_generation": {
+    "commands": {
+      "cargo build --workspace": { "exit_code": 0 },
+      "cargo fmt --all --check": { "exit_code": 0 },
+      "cargo clippy --workspace --all-targets -- -D warnings": { "exit_code": 0, "warnings": 0 },
+      "cargo test --workspace": { "exit_code": 0, "totals": "269 adapter, 2 apps/cli, 160 core, 63 runtime -- 494 total, 0 failed" },
+      "cargo run -q -p atlas-cli -- docs audit --root .atlas": { "exit_code": 0, "gate_ready": true },
+      "cargo run -q -p atlas-cli -- systemize --root .": { "exit_code": 0 }
+    }
+  },
+  "recensus_scope_after_promotion": [
+    "R4.8's own closure status remains 'bootstrap materialized, closure remains open' -- Network/process/FFI/persist/event/auth/alloc/free/external-IO categories, and STATE's own remaining gaps (multi-level self.a.b access, local/static variable state, closures/async/const attribution), all remain open and are not claimed closed by this generation",
+    "worth a future generation, explicitly not undertaken this one: the same free/path-call spelling-candidate pattern applied to ProcessSpawn (std::process::Command::new) and NetworkSend/NetworkReceive (std::net::TcpStream::connect, reqwest/hyper-shaped spellings) -- recorded as the natural next slice of the same already-proven pattern, not attempted here to keep this generation's own verification bounded and reviewable"
+  ],
+  "overall_verdict": "MATERIALIZED, IMPLEMENTED, AND VERIFIED. R4.8 EFFECT now emits its first EffectCategory beyond Panic: a real, conservative, word-boundary-checked FilesystemRead/FilesystemWrite candidate for fs::-qualified free calls and File::open/File::create, following persistence.rs's already-proven textual-spelling discipline exactly. Verified against real spellings (including both fully- and partially-qualified forms), an explicit substring-collision negative case, and an explicit method-call-exclusion negative case, with confirmed real material for the mechanism to fire on already present in this repository's own source. Full workspace suite (494 tests) unchanged and passing.",
+  "historical_evidence_retained": true
+}

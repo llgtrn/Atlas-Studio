@@ -5481,3 +5481,107 @@ pub fn maybe(cond: bool) -> u8 {
          IfThen block with a Return edge -- proof it is not silently swallowed"
     );
 }
+
+// --- R4.8 EFFECT: a free/path call with an `fs` module qualifier or `File::open`/`File::create`
+// spelling is a real FilesystemRead/FilesystemWrite candidate, the first EffectCategory beyond
+// Panic this extractor ever emits -- closing part of R4.8's own long-declared-but-unmaterialized
+// scope ("filesystem/network/process/FFI/build/runtime interactions where applicable"). Always
+// Inferred, exactly like `persistence.rs`'s identical textual-spelling discipline: no type/name
+// resolution proves the qualifier actually resolves to `std::fs`/`std::fs::File`. -------------
+
+fn effect_categories(batch: &ExtractionBatch) -> Vec<EffectCategory> {
+    batch
+        .observations
+        .iter()
+        .filter_map(|observation| match observation {
+            SemanticObservation::Effect(header) => Some(header.subject.category),
+            _ => None,
+        })
+        .collect()
+}
+
+#[test]
+fn filesystem_shaped_free_call_spellings_produce_inferred_effect_candidates() {
+    const SRC: &str = r#"
+pub fn touch_disk() -> std::io::Result<()> {
+    let _ = std::fs::read("a")?;
+    let _ = fs::read_to_string("b")?;
+    let _ = fs::read_dir("c")?;
+    fs::write("d", "x")?;
+    fs::create_dir_all("e")?;
+    fs::remove_file("f")?;
+    let _ = File::open("g")?;
+    let _ = File::create("h")?;
+    Ok(())
+}
+"#;
+    let batch = extract_all("src/probe.rs", SRC);
+    let mut categories = effect_categories(&batch);
+    categories.sort_by_key(|c| c.as_str());
+    let mut expected = vec![
+        EffectCategory::FilesystemRead,  // std::fs::read
+        EffectCategory::FilesystemRead,  // fs::read_to_string
+        EffectCategory::FilesystemRead,  // fs::read_dir
+        EffectCategory::FilesystemWrite, // fs::write
+        EffectCategory::FilesystemWrite, // fs::create_dir_all
+        EffectCategory::FilesystemWrite, // fs::remove_file
+        EffectCategory::FilesystemRead,  // File::open
+        EffectCategory::FilesystemWrite, // File::create
+    ];
+    expected.sort_by_key(|c| c.as_str());
+    assert_eq!(
+        categories, expected,
+        "every fs-qualified free call and File::open/File::create must produce exactly the \
+         expected Read/Write category, with std::fs:: and bare fs:: (post-`use`) spellings both \
+         recognized"
+    );
+    for observation in &batch.observations {
+        if let SemanticObservation::Effect(header) = observation {
+            assert_eq!(
+                header.status,
+                EpistemicStatus::Inferred,
+                "a filesystem-shaped spelling is never Observed -- no type resolution proves the \
+                 qualifier actually resolves to std::fs/std::fs::File"
+            );
+        }
+    }
+}
+
+#[test]
+fn filesystem_lookalike_module_names_do_not_false_positive() {
+    // `prefs`/`myfs`/`overlayfs` all contain the letters "fs" as a SUBSTRING but are not the `fs`
+    // segment itself -- the word-boundary discipline must reject all three, the same collision
+    // risk `max_structural_recursion_risk`'s own `as`-keyword scan already had to guard against.
+    const SRC: &str = r#"
+pub fn not_filesystem() {
+    prefs::read("a");
+    myfs::write("b");
+    overlayfs::read_dir("c");
+}
+"#;
+    let batch = extract_all("src/probe.rs", SRC);
+    assert!(
+        effect_categories(&batch).is_empty(),
+        "prefs::/myfs::/overlayfs:: must never be mistaken for the real `fs` module merely \
+         because their spelling contains the letters \"fs\""
+    );
+}
+
+#[test]
+fn bare_method_calls_named_like_filesystem_functions_do_not_produce_a_filesystem_effect() {
+    // A method call's spelling carries no qualifying module/type the way a free/path call's does
+    // -- `buffer.write(..)`/`socket.read_to_string(..)` are exactly as filesystem-shaped by bare
+    // method name as a real `File` call, and this extractor cannot tell them apart without
+    // resolving the receiver's type. Deliberately excluded this wave (see the module doc comment).
+    const SRC: &str = r#"
+pub fn not_a_file(buffer: &mut String, mut socket: std::net::TcpStream) {
+    let _ = socket.read_to_string(buffer);
+}
+"#;
+    let batch = extract_all("src/probe.rs", SRC);
+    assert!(
+        effect_categories(&batch).is_empty(),
+        "bare method-call spellings must never be treated as filesystem-shaped this wave, \
+         regardless of how filesystem-like the method name reads"
+    );
+}

@@ -1,13 +1,28 @@
-//! R4.8: conservative panic-like effect-site candidates for one function/method body.
+//! R4.8: conservative panic-like and filesystem effect-site candidates for one function/method
+//! body.
 //!
 //! A textual macro name panic!/unreachable!/todo!/unimplemented! is useful evidence but is not
 //! sufficient to prove the invoked macro resolves to Rust's standard panic behavior: macro
 //! bindings may be shadowed and this extractor performs no macro/name resolution. Such sites are
 //! therefore emitted as EffectCategory::Panic with EpistemicStatus::Inferred, never OBSERVED.
-//! Other effect categories remain unmaterialized until deeper API/type resolution exists.
-//! Unsafe/try/repeat/raw-address/yield expression containers are traversed; closures, async blocks,
-//! const blocks and macro token bodies remain explicit closure gaps, so the EFFECT obligation stays
-//! UNKNOWN even when useful effect observations are present.
+//!
+//! A free/path function call whose callee spelling has an `fs` module qualifier (`std::fs::read`,
+//! `fs::write`, `tokio::fs::read_dir`, ...) or is exactly `File::open`/`File::create` is, by the
+//! identical textual-spelling-candidate discipline `persistence.rs` already established for R4.11,
+//! emitted as an INFERRED FilesystemRead/FilesystemWrite candidate -- see
+//! `filesystem_kind_for_free_call_spelling`'s own doc comment for the exact closed set and why
+//! method calls (`file.read_to_string(..)`, `socket.write_all(..)`) are deliberately excluded this
+//! wave: a bare method name carries no qualifying module/type the way a free/path call's spelling
+//! does, making it far more likely to collide with an unrelated type's own identically-named
+//! method (exactly the ambiguity `persistence.rs`'s own module doc comment already names for its
+//! own method-call spellings) -- an explicit, named scope boundary, not a silent omission.
+//!
+//! NetworkSend/NetworkReceive/ProcessSpawn/FfiCall/Persist/EmitEvent/AuthCheck/Alloc/Free/
+//! ExternalIo remain unmaterialized until deeper API/type resolution exists or a similarly
+//! conservative spelling-candidate scheme is designed for each. Unsafe/try/repeat/raw-address/
+//! yield expression containers are traversed; closures, async blocks, const blocks and macro token
+//! bodies remain explicit closure gaps, so the EFFECT obligation stays UNKNOWN even when useful
+//! effect observations are present.
 
 use atlas_core::{
     EffectCategory, EffectIdentity, EpistemicStatus, EvidenceId, SemanticDimension,
@@ -15,7 +30,39 @@ use atlas_core::{
 };
 
 use super::ExtractionContext;
-use super::spelling::is_panic_like_macro;
+use super::spelling::{call_callee_spelling, is_panic_like_macro};
+
+/// If a free/path call's callee spelling has an `fs` module qualifier, or is exactly
+/// `File::open`/`File::create`/`File::create_new`, returns the effect category that specific,
+/// well-known spelling most directly implies. Checks the segment immediately before the final one
+/// for an EXACT match against `fs`/`File` (bounded by the `::` path separator on both sides, or at
+/// the start of the spelling) -- never a substring match, so a module merely containing the letters
+/// "fs" (`prefs`, `overlayfs`, `myfs`, ...) can never collide, the same word-boundary discipline
+/// `max_structural_recursion_risk`'s own `as`-keyword scan already established for an identical
+/// collision risk. Every match is equally uncertain (no type/name resolution proves the qualifier
+/// actually resolves to `std::fs`/`std::fs::File` rather than a same-named local module or type),
+/// so all map to `Inferred` alike, exactly like `persistence.rs`'s own closed spelling set.
+fn filesystem_kind_for_free_call_spelling(spelling: &str) -> Option<EffectCategory> {
+    let segments: Vec<&str> = spelling.split("::").collect();
+    let last = *segments.last()?;
+    let qualifier = (segments.len() >= 2).then(|| segments[segments.len() - 2]);
+    match qualifier {
+        Some("fs") => match last {
+            "read" | "read_to_string" | "read_to_end" | "read_dir" | "read_link" | "metadata"
+            | "symlink_metadata" | "canonicalize" => Some(EffectCategory::FilesystemRead),
+            "write" | "create_dir" | "create_dir_all" | "remove_file" | "remove_dir"
+            | "remove_dir_all" | "rename" | "copy" | "hard_link" | "symlink"
+            | "set_permissions" => Some(EffectCategory::FilesystemWrite),
+            _ => None,
+        },
+        Some("File") => match last {
+            "open" => Some(EffectCategory::FilesystemRead),
+            "create" | "create_new" => Some(EffectCategory::FilesystemWrite),
+            _ => None,
+        },
+        _ => None,
+    }
+}
 
 struct EffectWalker<'ctx, 'a> {
     ctx: &'ctx mut ExtractionContext<'a>,
@@ -24,13 +71,12 @@ struct EffectWalker<'ctx, 'a> {
 }
 
 impl<'ctx, 'a> EffectWalker<'ctx, 'a> {
-    fn emit_panic(&mut self, mac: &syn::Macro) {
-        let span = self.ctx.span_of(mac);
+    fn emit(&mut self, span: atlas_core::SourceSpan, category: EffectCategory) {
         let subject = EffectIdentity {
             repository: self.ctx.input.repository.clone(),
             revision: self.ctx.input.revision.clone(),
             function: self.function.clone(),
-            category: EffectCategory::Panic,
+            category,
             span: span.clone(),
         };
         let record_id = SemanticRecordId::new(SemanticDimension::Effect, &subject.identity_key());
@@ -52,7 +98,7 @@ impl<'ctx, 'a> EffectWalker<'ctx, 'a> {
         self.ctx.push_evidence(
             &evidence_id,
             format!(
-                "parsed panic-like macro candidate {} at {}:{}:{}",
+                "parsed effect candidate {} at {}:{}:{}",
                 subject.category.as_str(),
                 span.path,
                 span.line,
@@ -74,6 +120,11 @@ impl<'ctx, 'a> EffectWalker<'ctx, 'a> {
         let observation = SemanticObservation::Effect(header);
         debug_assert!(observation.is_dimension_consistent());
         self.ctx.observations.push(observation);
+    }
+
+    fn emit_panic(&mut self, mac: &syn::Macro) {
+        let span = self.ctx.span_of(mac);
+        self.emit(span, EffectCategory::Panic);
     }
 
     fn walk_block(&mut self, block: &syn::Block) {
@@ -178,6 +229,12 @@ impl<'ctx, 'a> EffectWalker<'ctx, 'a> {
             syn::Expr::Await(await_expr) => self.walk_expr(&await_expr.base),
             syn::Expr::Cast(cast) => self.walk_expr(&cast.expr),
             syn::Expr::Call(call) => {
+                if let Some(category) =
+                    filesystem_kind_for_free_call_spelling(&call_callee_spelling(&call.func))
+                {
+                    let span = self.ctx.span_of(call);
+                    self.emit(span, category);
+                }
                 self.walk_expr(&call.func);
                 for arg in &call.args {
                     self.walk_expr(arg);
