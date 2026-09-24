@@ -1,0 +1,55 @@
+{
+  "schema": "atlas.self-build.generation-evidence.v1",
+  "wave": "SECURITY / SEMANTIC PRESERVATION -- core::graph::engineering_graph::build_repository_graph's DocumentSection node id joined `document.path` and a raw markdown heading with a bare, unescaped `:`. A markdown heading is unrestricted free text (`adapter::markdown_headings` just trims leading `#` markers and whitespace), and a `Heading: Subtitle` style heading containing a literal `:` is ordinary markdown, not a hostile edge case.",
+  "wave_title": "Twenty-third generation this cycle, closing out a candidate explicitly flagged (but not fixed, pending its own verification) in generation 22's evidence record: the background survey that found the DeclaredEdge/Binding collisions also flagged this DocumentSection join as a real but lower-confidence instance of the same class, needing a less common trigger. Independently re-verified and confirmed it as a genuine, constructible collision before fixing it.",
+  "priority_classification": "security / semantic preservation -- a live defect, independently confirmed by constructing a concrete collision and running it against the real, unfixed code before any change. Reachable from ordinary repository content: two documents whose (path, heading) pairs differ but whose unescaped `:`-joined concatenation happens to coincide -- most plausibly triggered by a heading that itself contains a `:` (very common in real docs, e.g. \"## Setup: Prerequisites\") combined with an unusual but legal document path.",
+  "gap_discovered_by": "Generation 22's background Explore survey flagged this as \"Finding 2 (MEDIUM confidence, MEDIUM severity)\" while focusing its main fix effort on the higher-confidence DeclaredEdge/Binding collisions. This generation independently re-verified the finding by reading the real, unfixed code directly, constructing a concrete collision pair, and running it against the real code before deciding whether and how to fix it -- rather than accepting the prior generation's confidence rating at face value.",
+  "key_finding": "`build_repository_graph` (core/src/graph/engineering_graph.rs) computes each `DocumentSection` node's id as `stable_id(\"node\", &format!(\"document-section:{}:{heading}\", document.path))` -- `document.path` and `heading` joined with a bare `:`, no escaping. Two structurally different documents -- `{path: \"docs/a.md\", heading: \"b.md:Overview\"}` and `{path: \"docs/a.md:b.md\", heading: \"Overview\"}` -- render to the byte-identical join `\"docs/a.md:b.md:Overview\"`, confirmed by direct execution against the real, unfixed implementation: both collapsed onto a single `DocumentSection` node instead of two. `heading` is raw markdown heading text (`adapter::markdown_headings`: `line.trim_start_matches('#').trim()`, no charset restriction) and `document.path` is a real filesystem path (Unix permits `:` in filenames, and this extractor never validates against that).",
+  "verification_before_acting": [
+    "Read core::graph::engineering_graph.rs's real DocumentSection construction directly (build_repository_graph, the `for heading in &document.headings` loop), confirming the unescaped `:` join, independent of the prior generation's survey description.",
+    "Read adapter::markdown_headings directly, confirming heading text has no charset restriction and a colon-containing heading (a very common real markdown style) is ordinary output, not a contrived edge case.",
+    "Constructed a concrete collision pair by hand and ran it against the real, unfixed implementation via a new test, confirming both documents' distinct (path, heading) pairs produced exactly one DocumentSection node instead of two -- directly observed, not assumed from the prior survey's description.",
+    "Re-ran this repository's own real self-census (cargo run -p atlas-cli -- systemize --root .) after the fix, confirming coding_admission.blockers is still empty -- no behavioral regression on real, non-adversarial source."
+  ],
+  "design_decisions": [
+    {
+      "question": "Fix this lower-confidence finding now, or leave it flagged for a future generation as generation 22 did?",
+      "decision": "Fix it now, after independently confirming it is a genuine, constructible collision (not merely plausible-sounding) -- generation 22 deferred it only to keep that generation's scope to its two highest-confidence findings, not because this one was judged unreal. The fix is the identical, already-established escape_identity_field pattern used for every sibling join in this same file (DeclaredEdge, Binding, Diagnostic), so there is no new design risk in applying it here too."
+    }
+  ],
+  "stable_validator_law_compliance": {
+    "claim": "build_repository_graph's DocumentSection node id now escapes document.path and heading before joining, closing a confirmed identity collision that would silently merge two distinct documents' sections into one graph node.",
+    "self_written_evidence": "Added two_different_document_sections_never_collapse_into_one_node_via_an_unescaped_join, using a hand-constructed collision pair. Ran it against the real unfixed code first: FAILED (left: 1, right: 2) -- both documents' sections collapsed onto one node id, directly proving the collision was real. Applied the escape_identity_field fix on both document.path and heading, then confirmed the same test passes alongside all 45 pre-existing tests in the same module.",
+    "independent_evidence_channel": "cargo fmt --all --check: clean. cargo clippy --workspace --all-targets -- -D warnings: clean, 0 warnings. cargo test --workspace: 571 total (296 adapter, 5 apps/cli, 187 core [+1], 83 runtime), 0 failed -- up from 570. docs audit --root .atlas: gate_ready true. cargo run -p atlas-cli -- systemize --root . (real self-census): coding_admission.blockers empty, exit 0.",
+    "no_circular_self_certification": true
+  },
+  "implementation": {
+    "code_change": "core/src/graph/engineering_graph.rs -- build_repository_graph's DocumentSection node-id construction now escapes both document.path and heading via crate::identity::escape_identity_field before joining, matching the identical pattern already used for DeclaredEdge/Binding/Diagnostic in the same file.",
+    "docs_change": "Added two_different_document_sections_never_collapse_into_one_node_via_an_unescaped_join, a concrete hand-constructed collision test, plus the DocumentFact import needed to build it."
+  },
+  "adversarial_and_falsification_coverage": [
+    "constructed a concrete, byte-identical collision pair for two structurally distinct documents and ran it against the real, unfixed production code, confirming both collapsed onto a single DocumentSection node -- not merely a plausible-sounding scenario inherited from the prior generation's survey, a directly observed failure",
+    "confirmed the fix (escaping both document.path and heading) makes the same test pass",
+    "re-ran this repository's own real self-census after the fix, confirming zero behavioral regression on this project's own real documentation set (no real heading/path in .atlas/ triggers the collision, so nothing here changes identity for legitimate content)",
+    "confirmed the full engineering_graph test module (46 tests, up from 45) and the whole workspace (571 tests) pass together with no regression, plus a clean clippy pass under -D warnings"
+  ],
+  "validation_this_generation": {
+    "commands": {
+      "cargo test -p core --lib document_sections_never_collapse (before fix, collision test added)": { "result": "FAILED as expected -- left: 1, right: 2 -- both documents' sections collapsed onto one node id" },
+      "cargo test -p core --lib document_sections_never_collapse (after fix)": { "result": "passed" },
+      "cargo test -p core graph::engineering_graph::": { "result": "passed", "totals": "46 passed, 0 failed -- up from 45" },
+      "cargo fmt --all --check": { "exit_code": 0 },
+      "cargo clippy --workspace --all-targets -- -D warnings": { "exit_code": 0, "warnings": 0 },
+      "cargo test --workspace": { "exit_code": 0, "totals": "571 total, 0 failed (296 adapter, 5 apps/cli, 187 core [+1], 83 runtime) -- up from 570" },
+      "cargo run -q -p atlas-cli -- docs audit --root .atlas": { "exit_code": 0, "gate_ready": true },
+      "cargo run -p atlas-cli -- systemize --root . (real self-census)": { "exit_code": 0, "coding_admission_blockers": "[]" }
+    }
+  },
+  "recensus_scope_after_promotion": [
+    "no prior CLOSED/EXTINCT conclusion depended on this collision going unnoticed; the real self-census of this repository's own documentation set re-ran clean with zero behavioral change",
+    "this closes the last candidate explicitly flagged (but deferred) by generation 22's survey -- the remaining two deferred items from that generation (the DeclaredNode fact_id join and the node_ids_by_identity map) were both independently re-examined and confirmed NOT to need a fix: DeclaredNode's id field has a fixed, hash-anchored shape that makes its join provably injective regardless of node_kind's content, and node_ids_by_identity's only reachable lookups are structurally bounded to File-node-shaped paths by the current reference-extraction whitelist -- both remain correctly unfixed, not overlooked",
+    "with this fix, every identity/hash-computing join found across core::semantic, core::graph::engineering_graph, and runtime::census::build_census this session (generations 20-23) now escapes its free-text fields; no further candidate in this specific bug class remains flagged or suspected in this codebase as of this generation"
+  ],
+  "overall_verdict": "FOUND, FALSIFIED, FIXED, AND VERIFIED. Closed the last flagged-but-deferred candidate from generation 22's survey after independently re-confirming it as a genuine, constructible collision (not merely accepting the prior confidence rating). Fixed with the same established escape_identity_field pattern used for every sibling join in this file. Full workspace suite green (571/571, up from 570), clippy clean, and this repository's own real self-census re-ran with zero behavioral regression. This closes out the unescaped-delimiter-join bug class swept across generations 20-23.",
+  "historical_evidence_retained": true
+}

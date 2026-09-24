@@ -128,9 +128,19 @@ pub fn build_repository_graph(source: &SourceReport, docs: &DocsReport) -> Engin
         node_ids_by_identity.insert(document.path.clone(), document_id.clone());
 
         for heading in &document.headings {
+            // `document.path` and `heading` are both unrestricted free text (a raw markdown
+            // heading, `adapter::markdown_headings`, is just trimmed `#` markers -- no charset
+            // restriction, and a `Heading: Text` style heading containing `:` is ordinary
+            // markdown) -- escaped before joining so two different documents' sections can never
+            // collapse onto one node id, matching the same fix applied to the DeclaredEdge/
+            // Binding/Diagnostic joins elsewhere in this module.
             let section_id = stable_id(
                 "node",
-                &format!("document-section:{}:{heading}", document.path),
+                &format!(
+                    "document-section:{}:{}",
+                    crate::identity::escape_identity_field(&document.path, ':'),
+                    crate::identity::escape_identity_field(heading, ':'),
+                ),
             );
             graph.nodes.push(Node {
                 id: section_id.clone(),
@@ -1369,8 +1379,8 @@ fn summarize_engineering_graph(
 mod tests {
     use super::*;
     use crate::{
-        EpistemicStatus, NormalizationReport, Provenance, SemanticFact, SemanticFactKind,
-        TypedClosureAccounting,
+        DocumentFact, EpistemicStatus, NormalizationReport, Provenance, SemanticFact,
+        SemanticFactKind, TypedClosureAccounting,
     };
 
     fn source() -> SourceReport {
@@ -1530,6 +1540,51 @@ mod tests {
         assert_eq!(
             diagnostic_nodes, 2,
             "two genuinely different diagnostics must never collapse into one graph node"
+        );
+    }
+
+    #[test]
+    fn two_different_document_sections_never_collapse_into_one_node_via_an_unescaped_join() {
+        // Same defect class as the DeclaredEdge/Binding/Diagnostic cases: a `DocumentSection` node
+        // id joins `document.path` and a raw markdown heading (`adapter::markdown_headings`, just
+        // `line.trim_start_matches('#').trim()` -- no charset restriction, and a `Heading: Text`
+        // style heading containing `:` is ordinary markdown) with an unescaped `:`. Two documents
+        // with different (path, heading) pairs must never collapse onto one section node id merely
+        // because their unescaped join renders the same string.
+        let mut docs = docs();
+        docs.documents = vec![
+            DocumentFact {
+                path: "docs/a.md".into(),
+                id: None,
+                kind: None,
+                status: None,
+                canonical: true,
+                title: None,
+                headings: vec!["b.md:Overview".into()],
+                references: Vec::new(),
+            },
+            DocumentFact {
+                path: "docs/a.md:b.md".into(),
+                id: None,
+                kind: None,
+                status: None,
+                canonical: true,
+                title: None,
+                headings: vec!["Overview".into()],
+                references: Vec::new(),
+            },
+        ];
+        let graph = build_repository_graph(&source(), &docs);
+        let section_ids: std::collections::BTreeSet<_> = graph
+            .nodes
+            .iter()
+            .filter(|node| node.kind == "DocumentSection")
+            .map(|node| node.id.clone())
+            .collect();
+        assert_eq!(
+            section_ids.len(),
+            2,
+            "two genuinely different document sections must never collapse onto one node id"
         );
     }
 
