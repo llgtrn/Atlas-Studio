@@ -33,7 +33,7 @@ census_status = "COARSE_CENSUSED"
 decision_status = "PENDING"
 native_replacement = "adapter/build and runtime build graph"
 runtime_dependency_status = "REFERENCE_ONLY"
-evidence = [".atlas/provenance/donors/buck2.json", ".atlas/census/buck2.md", ".atlas/genome/technology/buck2-dice-branching-incrementality.md"]
+evidence = [".atlas/provenance/donors/buck2.json", ".atlas/census/buck2.md", ".atlas/genome/technology/buck2-dice-branching-incrementality.md", ".atlas/genome/technology/r5-incremental-computation-design-synthesis.md"]
 
 [[donor]]
 id = "c2rust"
@@ -101,7 +101,7 @@ census_status = "COARSE_CENSUSED"
 decision_status = "PENDING"
 native_replacement = "runtime inference engine"
 runtime_dependency_status = "REFERENCE_ONLY"
-evidence = [".atlas/provenance/donors/datafrog.json", ".atlas/census/datafrog.md", ".atlas/genome/technology/datafrog-semi-naive-fixpoint-evaluation.md"]
+evidence = [".atlas/provenance/donors/datafrog.json", ".atlas/census/datafrog.md", ".atlas/genome/technology/datafrog-semi-naive-fixpoint-evaluation.md", ".atlas/genome/technology/r5-incremental-computation-design-synthesis.md"]
 
 [[donor]]
 id = "differential-dataflow"
@@ -118,7 +118,7 @@ census_status = "COARSE_CENSUSED"
 decision_status = "PENDING"
 native_replacement = "runtime incremental graph maintenance"
 runtime_dependency_status = "REFERENCE_ONLY"
-evidence = [".atlas/provenance/donors/differential-dataflow.json", ".atlas/census/differential-dataflow.md", ".atlas/genome/technology/differential-dataflow-algebraic-retraction-and-lattice-time.md"]
+evidence = [".atlas/provenance/donors/differential-dataflow.json", ".atlas/census/differential-dataflow.md", ".atlas/genome/technology/differential-dataflow-algebraic-retraction-and-lattice-time.md", ".atlas/genome/technology/r5-incremental-computation-design-synthesis.md"]
 
 [[donor]]
 id = "elkjs"
@@ -300,7 +300,7 @@ census_status = "COARSE_CENSUSED"
 decision_status = "PENDING"
 native_replacement = "runtime incremental query cache"
 runtime_dependency_status = "REFERENCE_ONLY"
-evidence = [".atlas/provenance/donors/salsa.json", ".atlas/census/salsa.md", ".atlas/genome/technology/salsa-durability-gated-incremental-verification.md", ".atlas/genome/technology/salsa-fixpoint-cycle-iteration.md"]
+evidence = [".atlas/provenance/donors/salsa.json", ".atlas/census/salsa.md", ".atlas/genome/technology/salsa-durability-gated-incremental-verification.md", ".atlas/genome/technology/salsa-fixpoint-cycle-iteration.md", ".atlas/genome/technology/r5-incremental-computation-design-synthesis.md"]
 
 [[donor]]
 id = "scip"
@@ -354,7 +354,7 @@ census_status = "COARSE_CENSUSED"
 decision_status = "PENDING"
 native_replacement = "runtime rule/inference substrate"
 runtime_dependency_status = "REFERENCE_ONLY"
-evidence = [".atlas/provenance/donors/souffle.json", ".atlas/census/souffle.md", ".atlas/genome/technology/souffle-provenance-backed-derivation.md"]
+evidence = [".atlas/provenance/donors/souffle.json", ".atlas/census/souffle.md", ".atlas/genome/technology/souffle-provenance-backed-derivation.md", ".atlas/genome/technology/r5-incremental-computation-design-synthesis.md"]
 
 [[donor]]
 id = "sourcetrail"
