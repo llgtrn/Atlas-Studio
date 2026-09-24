@@ -174,6 +174,35 @@ fn run(args: &[String]) -> Result<(), String> {
             }
             print!("{text}");
         }
+        [cmd, rest @ ..] if cmd == "search" => {
+            // ADR 0020: generate originality-valid candidates over a genome, create and verify
+            // each, and keep the Pareto front of the verified ones (a set, not a winner).
+            let genome_path = value(rest, "--genome")?.ok_or("search requires --genome")?;
+            let out_dir = value(rest, "--out-dir")?.ok_or("search requires --out-dir")?;
+            let count = match value(rest, "--count")? {
+                Some(n) => n
+                    .parse::<usize>()
+                    .ok()
+                    .filter(|n| *n > 0)
+                    .ok_or_else(|| format!("--count expects a positive integer, got {n}"))?,
+                None => 3,
+            };
+            let text =
+                fs::read_to_string(&genome_path).map_err(|e| format!("{genome_path}: {e}"))?;
+            let genome: runtime::visual::DesignGenome =
+                serde_json::from_str(&text).map_err(|e| format!("{genome_path}: {e}"))?;
+            let report =
+                runtime::visual::search_designs(&genome, count, std::path::Path::new(&out_dir))
+                    .map_err(|e| format!("{out_dir}: {e}"))?;
+            let text = json(&report)? + "\n";
+            if let Some(out) = value(rest, "--out")? {
+                write_report_to_out(&out, &text)?;
+            }
+            print!("{text}");
+            if report.pareto_front.is_empty() {
+                return Err("NO_VERIFIED_CANDIDATE".into());
+            }
+        }
         [cmd, rest @ ..] if cmd == "create" => {
             // Creator construction loop (ADR 0017): intent -> HTML/CSS -> render -> re-observe ->
             // verify every intended relation.
@@ -297,7 +326,7 @@ fn run(args: &[String]) -> Result<(), String> {
         }
         _ => {
             return Err(
-                "usage: atlas-systemizer <contract|systemize|docs audit|code analyze|parse|check|graph|observe|genome|create|physical|work prepare> ..."
+                "usage: atlas-systemizer <contract|systemize|docs audit|code analyze|parse|check|graph|observe|genome|search|create|physical|work prepare> ..."
                     .into(),
             );
         }

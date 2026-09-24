@@ -17,6 +17,7 @@
 
 pub mod compose;
 pub mod genome;
+pub mod search;
 
 use crate::{EpistemicStatus, IntegrityDigest};
 use serde::{Deserialize, Serialize};
@@ -835,10 +836,10 @@ pub fn infer_motion(observations: &[MotionObservation]) -> Vec<MotionInference> 
 }
 
 #[cfg(test)]
-mod tests {
+pub(crate) mod tests {
     use super::*;
 
-    fn element(
+    pub(crate) fn element(
         path: &str,
         parent: Option<&str>,
         rect: [f64; 4],
@@ -867,7 +868,7 @@ mod tests {
         }
     }
 
-    fn viewport(width: u32, elements: Vec<ElementObservation>) -> ViewportObservation {
+    pub(crate) fn viewport(width: u32, elements: Vec<ElementObservation>) -> ViewportObservation {
         ViewportObservation {
             width,
             height: 800,
@@ -879,7 +880,7 @@ mod tests {
         }
     }
 
-    fn report(viewports: Vec<ViewportObservation>) -> VisualObservationReport {
+    pub(crate) fn report(viewports: Vec<ViewportObservation>) -> VisualObservationReport {
         VisualObservationReport {
             schema: VISUAL_OBSERVATION_SCHEMA.into(),
             status: EpistemicStatus::Observed,

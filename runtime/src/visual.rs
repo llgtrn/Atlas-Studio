@@ -10,6 +10,9 @@ use atlas_core::{
         VisualAnalysis, VisualObservationReport, VisualSubject, analyze, analyze_interactions,
         compose::{DesignIntent, IntentCheck, RenderedEvidence, lower_to_html, verify_intent},
         infer_motion,
+        search::{
+            CandidateMeasurements, Objective, design_objectives, measure, score, verified_front,
+        },
     },
 };
 use serde::{Deserialize, Serialize};
@@ -347,6 +350,8 @@ pub struct CreationReport {
     pub checks: Vec<IntentCheck>,
     /// Strong-Kleene conjunction of every check.
     pub verdict: ConstraintVerdict,
+    /// Objective measurements of the render (ADR 0020); never part of the verdict.
+    pub measurements: CandidateMeasurements,
 }
 
 /// Observes an artifact through every instrument mode and checks it against `intent`.
@@ -385,13 +390,15 @@ pub fn verify_artifact(
         narrow,
     );
     let verdict = ConstraintVerdict::all(checks.iter().map(|check| check.verdict));
+    let measurements = measure(&layout.observation, wide, narrow);
     Ok(CreationReport {
-        schema: "atlas.creation-report.v1".into(),
+        schema: "atlas.creation-report.v2".into(),
         intent: intent.clone(),
         artifact_path: artifact.to_string_lossy().into_owned(),
         artifact_digest: layout.observation.subject.content_digest,
         checks,
         verdict,
+        measurements,
     })
 }
 
@@ -471,6 +478,85 @@ pub fn recombine_and_create(
         schema: "atlas.recombination-report.v1".into(),
         recombined,
         creation,
+    })
+}
+
+/// One search candidate: a generated recipe, what became of it, and its scores.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct SearchCandidate {
+    pub recipe: Recombination,
+    /// `HYPOTHESIS` until its creation verifies `Satisfied`, then `DERIVED`.
+    pub status: EpistemicStatus,
+    /// Scores in `objectives` order; absent when unverified or unmeasured.
+    pub scores: Option<Vec<f64>>,
+    pub report: Option<RecombinationReport>,
+    /// Why the recipe was refused before creation, if it was.
+    pub refusal: Option<String>,
+}
+
+/// What `atlas-systemizer search` emits (ADR 0020).
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct SearchReport {
+    pub schema: String,
+    pub objectives: Vec<Objective>,
+    pub candidates: Vec<SearchCandidate>,
+    /// Names of the non-dominated verified candidates: a set of trade-offs, not a ranking.
+    pub pareto_front: Vec<String>,
+}
+
+/// GENERATE -> RECOMBINE -> CREATE -> VERIFY -> MEASURE -> SELECT: creates up to `count`
+/// generated candidates into `out_dir` and keeps the Pareto front of the verified ones.
+pub fn search_designs(
+    genome: &DesignGenome,
+    count: usize,
+    out_dir: &Path,
+) -> io::Result<SearchReport> {
+    let objectives = design_objectives();
+    let mut candidates = Vec::new();
+    for recipe in atlas_core::visual::search::generate_recipes(genome, count) {
+        let out = out_dir.join(format!("{}.html", recipe.name));
+        let (report, refusal) = match recombine_and_create(genome, &recipe, &out) {
+            Ok(report) => (Some(report), None),
+            Err(e) if e.kind() == io::ErrorKind::InvalidInput => (None, Some(e.to_string())),
+            Err(e) => return Err(e),
+        };
+        let verified = report.as_ref().is_some_and(|r| r.creation.verdict.admits());
+        let scores = report
+            .as_ref()
+            .filter(|_| verified)
+            .and_then(|r| score(genome, &recipe, &r.creation.measurements));
+        candidates.push(SearchCandidate {
+            recipe,
+            status: if verified {
+                EpistemicStatus::Derived
+            } else {
+                EpistemicStatus::Hypothesis
+            },
+            scores,
+            report,
+            refusal,
+        });
+    }
+    let entries: Vec<_> = candidates
+        .iter()
+        .map(|c| {
+            (
+                c.report
+                    .as_ref()
+                    .map_or(ConstraintVerdict::Unknown, |r| r.creation.verdict),
+                c.scores.clone(),
+            )
+        })
+        .collect();
+    let pareto_front = verified_front(&entries, &objectives)
+        .into_iter()
+        .map(|i| candidates[i].recipe.name.clone())
+        .collect();
+    Ok(SearchReport {
+        schema: "atlas.design-search-report.v1".into(),
+        objectives,
+        candidates,
+        pareto_front,
     })
 }
 
@@ -953,6 +1039,54 @@ mod tests {
         assert_eq!(origin("grid.item_aspect"), format!("inherited:{}", grid.id));
         assert_eq!(origin("lift.easing"), format!("inherited:{}", lift.id));
         assert_eq!(origin("hero.media_aspect"), "varied:g50-recombined");
+        let _ = fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn a_search_keeps_the_verified_trade_offs_of_its_generated_candidates() {
+        if adapter::browser::playwright_module().is_none() {
+            eprintln!("SKIP: no Playwright browser instrument in this environment");
+            return;
+        }
+        let editorial = fixture();
+        let interactive = Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("tests/fixtures/visual/interactive-mechanisms.html");
+        let genome = extract_genome(&[&editorial, &interactive]).unwrap();
+        let dir = std::env::temp_dir().join(format!("atlas-search-{}", std::process::id()));
+        let report = search_designs(&genome, 3, &dir).unwrap();
+        assert_eq!(report.candidates.len(), 3);
+        for candidate in &report.candidates {
+            let creation = &candidate.report.as_ref().unwrap().creation;
+            assert_eq!(
+                creation.verdict,
+                ConstraintVerdict::Satisfied,
+                "{}: {:#?}",
+                candidate.recipe.name,
+                creation.checks
+            );
+            assert_eq!(candidate.status, EpistemicStatus::Derived);
+            let scores = candidate.scores.as_ref().unwrap();
+            assert_eq!(scores.len(), report.objectives.len());
+            assert!(scores[0] > 0.0, "every candidate varies its sources");
+            assert!(creation.measurements.copy_chars_per_line.unwrap() > 0.0);
+            assert!(creation.measurements.narrow_content_height_px.unwrap() > 0.0);
+        }
+        // The front is exactly the non-dominated subset of the measured scores.
+        let scores: Vec<_> = report
+            .candidates
+            .iter()
+            .map(|c| c.scores.clone().unwrap())
+            .collect();
+        let expected: Vec<_> =
+            atlas_core::visual::search::pareto_front(&scores, &report.objectives)
+                .into_iter()
+                .map(|i| report.candidates[i].recipe.name.clone())
+                .collect();
+        assert_eq!(report.pareto_front, expected);
+        // Measured in Chromium: candidate-2 (21:9 media) is as long-lined as candidate-1 but more
+        // novel and shorter, so it dominates it; candidate-3 (1:1 share, ~66 chars per line) is
+        // taller than candidate-2 -- a trade-off, so both are kept and neither is "best".
+        assert_eq!(report.pareto_front, ["candidate-2", "candidate-3"]);
         let _ = fs::remove_dir_all(&dir);
     }
 

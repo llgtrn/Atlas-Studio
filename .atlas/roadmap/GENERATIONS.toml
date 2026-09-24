@@ -13,7 +13,7 @@
 #       -> generation evidence -> G_n+1
 
 schema = "atlas.self-build.generation-ledger.v1"
-current_generation = "G51"
+current_generation = "G52"
 
 [[generation]]
 id = "G35"
@@ -499,6 +499,7 @@ base_commit = "b98fe2bc0648cfb374e31045376bcffd621a18a4"
 objective = "physical milestone 3: arm dynamics, declared trajectories, simulation with run identity (SIMULATED)"
 writer = "coordinator (sole production writer)"
 evidence = ".atlas/decisions/0019-arm-dynamics-and-simulation.md"
+result_commits = ["f8f54f6b154c9dea339b88fae24bbe6d43c7596e"]
 
 [generation.verification]
 falsification = "7 mutants killed; rod-inertia mutant first survived energy conservation (self-consistent model) -> discretized kinetic-energy oracle added"
@@ -510,3 +511,19 @@ evidence_level = "SIMULATED"
 [generation.next]
 objective = "G52: multi-candidate Creator recombination with Pareto preservation, or physical fault injection; select by leverage"
 
+[[generation]]
+id = "G52"
+base_commit = "f8f54f6b154c9dea339b88fae24bbe6d43c7596e"
+objective = "Futures x Creator: multi-candidate design search with measured objectives and verified-only Pareto preservation"
+writer = "coordinator (sole production writer)"
+evidence = ".atlas/decisions/0020-design-search-and-pareto-preservation.md"
+
+[generation.verification]
+falsification = "11 mutants killed; a first-battery survivor (dedupe disabled) proved the dedupe was dead code -> removed, whole-cube distinctness test added"
+oracles = "hand-computed scores from synthetic observations; pareto_front recomputed independently over the measured scores; pinned Chromium front"
+production_path = "atlas-systemizer search --count 4: 4 candidates verified SATISFIED; front {candidate-2, candidate-3, candidate-4}; candidate-1 dominated"
+honest_findings = "scrollHeight is floored at the viewport height (short pages all measured 800 px) -> content extent used instead; novelty double-counts grid.items"
+evidence_level = "OBSERVED measurements; objectives are stated proxies"
+
+[generation.next]
+objective = "G53: physical fault injection and safety state machine, or colour/contrast objective with front-steered ladders; select by leverage"

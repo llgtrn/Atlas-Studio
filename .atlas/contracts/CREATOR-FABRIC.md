@@ -88,4 +88,7 @@ Creator Fabric follows UNDERSTAND → ABSTRACT → RECOMBINE → CREATE, never S
 - **G50 (ADR 0018):** the design genome and recombination.
   - `genome` abstracts mechanisms with provenance.
   - `create --genome --recipe` enforces originality mechanically: at least 2 sources, and no mechanism reproduced wholesale. Every parameter records whether it was inherited, varied or defaulted.
-- Multi-candidate search and the media lanes (image, video, 2D, 3D) are not yet implemented.
+- **G52 (ADR 0020):** multi-candidate search.
+  - `search` enumerates originality-valid recipes over a genome, creates and verifies each, and measures objectives with stated meanings.
+  - Only verified, fully measured candidates compete, and the Pareto front is kept as a set.
+- The media lanes (image, video, 2D, 3D) and self-improvement are not yet implemented.

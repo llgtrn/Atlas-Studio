@@ -153,7 +153,7 @@ pub struct RenderedEvidence<'a> {
     pub motion: &'a [MotionInference],
 }
 
-fn element<'a>(
+pub(crate) fn element<'a>(
     report: &'a VisualObservationReport,
     viewport_width: u32,
     path: &str,
