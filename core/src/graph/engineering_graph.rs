@@ -535,17 +535,53 @@ fn add_typed_semantic_nodes(
                 );
             }
             SemanticObservation::FunctionIdentity(header) => {
+                let function_node_id = stable_id(
+                    "node",
+                    &format!("function-identity:{}", header.record_id.as_str()),
+                );
                 ensure_node(
                     graph,
-                    stable_id(
-                        "node",
-                        &format!("function-identity:{}", header.record_id.as_str()),
-                    ),
+                    function_node_id.clone(),
                     "FunctionIdentity".into(),
                     header.scope.scoped_name(&header.subject.symbol.name),
-                    BTreeMap::from([("origin".into(), "semantic-extraction".into())]),
+                    BTreeMap::from([
+                        ("origin".into(), "semantic-extraction".into()),
+                        (
+                            "declaration_kind".into(),
+                            header.subject.declaration_kind.as_str().into(),
+                        ),
+                    ]),
                     &header.provenance,
                 );
+                // The enclosing `impl` block's self type, when this function is a method/
+                // associated function (see `FunctionOwner`). Projected the same way CALL's
+                // resolved `PlaceRef`s converge on DATA_FLOW's own node: `owner.target` is the
+                // SAME `TypeIdentity` `emit_type_identity` used to produce TYPE's own record, so
+                // recomputing its record id here reaches that already-existing Type node rather
+                // than inventing a new one.
+                if let Some(target) = &header.subject.owner.target {
+                    let type_record_id =
+                        SemanticRecordId::new(SemanticDimension::Type, &target.identity_key());
+                    let type_node_id =
+                        stable_id("node", &format!("type:{}", type_record_id.as_str()));
+                    let mut attributes =
+                        BTreeMap::from([("origin".into(), "semantic-extraction".into())]);
+                    if let Some(trait_path) = &header.subject.owner.trait_path {
+                        attributes.insert("trait_path".into(), trait_path.clone());
+                    }
+                    graph.edges.push(Edge {
+                        id: stable_id(
+                            "edge",
+                            &format!("{function_node_id}:IMPLEMENTED_ON:{type_node_id}"),
+                        ),
+                        kind: "IMPLEMENTED_ON".into(),
+                        from: function_node_id,
+                        to: type_node_id,
+                        attributes,
+                        provenance: header.provenance.clone(),
+                        revision: header.provenance.source_revision.clone(),
+                    });
+                }
             }
             SemanticObservation::FunctionSignature(header) => {
                 ensure_node(
@@ -2274,6 +2310,160 @@ mod tests {
         assert_eq!(graph_without.nodes, graph_with.nodes);
         assert_eq!(graph_without.edges, graph_with.edges);
         assert_eq!(graph_without.bindings, graph_with.bindings);
+    }
+
+    #[test]
+    fn a_method_projects_its_declaration_kind_and_an_implemented_on_edge_to_the_owner_type() {
+        // `function_identity_observation("Foo")` already sets `owner.target` to a real
+        // `TypeIdentity{name: "Foo", ...}` -- proves cross-dimension identity convergence the same
+        // way `resolved_persistence_place_converges_on_the_existing_state_access_node`/
+        // `resolved_call_argument_and_result_converge_on_the_existing_data_flow_nodes` already
+        // prove it for their own dimensions: an `impl Foo`'s method must draw its IMPLEMENTED_ON
+        // edge at the SAME node TYPE's own observation of `Foo` produces, never an independently
+        // invented target.
+        use crate::identity::RepositoryId;
+        use crate::provenance::provenance;
+        use crate::semantic::{
+            ExtractorIdentity, SemanticDimension, SemanticRecordHeader, SemanticRecordId,
+            SemanticScope, TypeIdentity,
+        };
+        use crate::temporal::RevisionRef;
+
+        let method = function_identity_observation("Foo");
+        let repository = RepositoryId::new("atlas-studio");
+        let revision = RevisionRef {
+            kind: "git".into(),
+            value: "abc123".into(),
+        };
+        let type_subject = TypeIdentity {
+            repository: repository.clone(),
+            revision: revision.clone(),
+            scope: SemanticScope::new(Vec::<String>::new()),
+            name: "Foo".into(),
+            canonical: None,
+        };
+        let type_record_id =
+            SemanticRecordId::new(SemanticDimension::Type, &type_subject.identity_key());
+        let type_observation = SemanticObservation::Type(SemanticRecordHeader {
+            record_id: type_record_id.clone(),
+            dimension: SemanticDimension::Type,
+            status: EpistemicStatus::Observed,
+            subject: type_subject,
+            scope: SemanticScope::new(Vec::<String>::new()),
+            repository,
+            revision,
+            extractor: ExtractorIdentity {
+                id: "atlas.test".into(),
+                version: "0.1.0".into(),
+            },
+            evidence_refs: Vec::new(),
+            provenance: provenance("src/lib.rs", "atlas.test"),
+        });
+
+        let normalization = normalization_with(vec![method, type_observation], Vec::new());
+        let graph = build_system_graph(&source(), &docs(), &normalization);
+
+        let function_node = graph
+            .nodes
+            .iter()
+            .find(|node| node.kind == "FunctionIdentity")
+            .expect("a FunctionIdentity node must exist");
+        assert_eq!(
+            function_node
+                .attributes
+                .get("declaration_kind")
+                .map(String::as_str),
+            Some("INHERENT_METHOD")
+        );
+
+        let expected_type_node_id = stable_id("node", &format!("type:{}", type_record_id.as_str()));
+        let implemented_on_edge = graph
+            .edges
+            .iter()
+            .find(|edge| edge.kind == "IMPLEMENTED_ON")
+            .expect("an IMPLEMENTED_ON edge must exist for a method with a resolved owner type");
+        assert_eq!(implemented_on_edge.from, function_node.id);
+        assert_eq!(implemented_on_edge.to, expected_type_node_id);
+    }
+
+    #[test]
+    fn a_free_function_never_produces_an_implemented_on_edge() {
+        use crate::identity::RepositoryId;
+        use crate::provenance::provenance;
+        use crate::semantic::{
+            ExtractorIdentity, FunctionDeclarationKind, FunctionIdentity, FunctionOwner,
+            SemanticDimension, SemanticRecordHeader, SemanticRecordId, SemanticScope,
+            SymbolIdentity, SymbolRole,
+        };
+        use crate::temporal::RevisionRef;
+
+        let repository = RepositoryId::new("atlas-studio");
+        let revision = RevisionRef {
+            kind: "git".into(),
+            value: "abc123".into(),
+        };
+        let scope = SemanticScope::new(Vec::<String>::new());
+        let identity = FunctionIdentity {
+            repository: repository.clone(),
+            revision: revision.clone(),
+            language: "rust".into(),
+            scope: scope.clone(),
+            symbol: SymbolIdentity {
+                repository: repository.clone(),
+                revision: revision.clone(),
+                scope: scope.clone(),
+                name: "helper".into(),
+                role: SymbolRole::Definition,
+            },
+            span: crate::language::adl::SourceSpan {
+                path: "src/lib.rs".into(),
+                line: 1,
+                column: 1,
+            },
+            generated: false,
+            declaration_kind: FunctionDeclarationKind::FreeFunction,
+            owner: FunctionOwner::none(),
+            generics: Vec::new(),
+        };
+        let record_id = SemanticRecordId::new(
+            SemanticDimension::FunctionIdentity,
+            &identity.identity_key(),
+        );
+        let free_function = SemanticObservation::FunctionIdentity(Box::new(SemanticRecordHeader {
+            record_id,
+            dimension: SemanticDimension::FunctionIdentity,
+            status: EpistemicStatus::Observed,
+            subject: identity,
+            scope,
+            repository,
+            revision,
+            extractor: ExtractorIdentity {
+                id: "atlas.test".into(),
+                version: "0.1.0".into(),
+            },
+            evidence_refs: Vec::new(),
+            provenance: provenance("src/lib.rs", "atlas.test"),
+        }));
+
+        let normalization = normalization_with(vec![free_function], Vec::new());
+        let graph = build_system_graph(&source(), &docs(), &normalization);
+
+        let function_node = graph
+            .nodes
+            .iter()
+            .find(|node| node.kind == "FunctionIdentity")
+            .expect("a FunctionIdentity node must exist");
+        assert_eq!(
+            function_node
+                .attributes
+                .get("declaration_kind")
+                .map(String::as_str),
+            Some("FREE_FUNCTION")
+        );
+        assert!(
+            graph.edges.iter().all(|edge| edge.kind != "IMPLEMENTED_ON"),
+            "a free function has no owner type and must never produce an IMPLEMENTED_ON edge"
+        );
     }
 
     // --- R4.5: CALL observations produce a CallSite node and a MAKES_CALL edge -------------------
