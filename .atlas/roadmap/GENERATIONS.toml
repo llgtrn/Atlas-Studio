@@ -13,7 +13,7 @@
 #       -> generation evidence -> G_n+1
 
 schema = "atlas.self-build.generation-ledger.v1"
-current_generation = "G40"
+current_generation = "G41"
 
 [[generation]]
 id = "G35"
@@ -290,6 +290,7 @@ id = "G40"
 base_commit = "14cc307b9d235a4a90f3d04d18938dd0273dd6f3"
 objective = "fix the measured recensus cost centre: engineering-graph construction (~95% of systemize)"
 writer = "coordinator (sole production writer)"
+result_commits = ["50638583f9e9e69d05fb3a0c87db348f4f8f61f8"]
 evidence = ".atlas/evidence/verification/r5-graph-construction-quadratic-dedup.json"
 
 [generation.join]
@@ -304,4 +305,16 @@ production_path = "old vs new binary: graph JSON byte-identical, systemize ident
 
 [generation.next]
 objective = "G41: with recompute at ~13 s, re-aim salsa/differential-dataflow at corpus scale (real donor workspaces) and resume the frontier: donor admission for the formal/provenance lanes when a consumer exists"
+
+[[generation]]
+id = "G41"
+base_commit = "50638583f9e9e69d05fb3a0c87db348f4f8f61f8"
+objective = "measure recensus at corpus scale; select the next foundational unlock for the frontier directive"
+writer = "coordinator (sole production writer); lanes read-only"
+evidence = ".atlas/evidence/verification/r5-corpus-scale-recensus-measurement.json"
+
+[[generation.deferred]]
+id = "systemize-report-size-at-corpus-scale"
+class = "DEFERRED_GENERATION_CANDIDATE"
+summary = "rust-analyzer donor: 48.5 s release but a 2.47 GB report (541k graph nodes); self report 187 MB pretty = 115 MB compact = 61 MB compact without normalization's verbatim copy of census typed records/evidence/diagnostics/obligations; stdout also receives the whole report. Needs a schema decision (content-addressed section references or split artifacts) -- plausibly the binary .atlas format itself"
 

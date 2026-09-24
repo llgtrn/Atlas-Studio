@@ -1,0 +1,26 @@
+{
+  "schema": "atlas.self-build.generation-evidence.v1",
+  "generation": "G41",
+  "wave": "MEASUREMENT at corpus scale (release build) after ADR 0009",
+  "rust_analyzer_donor": {
+    "command": "atlas-systemizer (release) systemize --root .atlas/temporary/donors/rust-analyzer",
+    "rs_files": 1485,
+    "wall_seconds": 48.5,
+    "inventory_artifacts": 2345,
+    "graph_nodes": 541082,
+    "graph_edges": 699394,
+    "report_bytes": 2472558946,
+    "admission_blockers": ["REPO_GATE_NOT_READY", "DOCS_GATE_NOT_READY"],
+    "note": "blockers are expected: a donor has no .atlas/repo.toml or Atlas docs"
+  },
+  "self_report_composition_mb": {
+    "pretty_total": 187.3,
+    "compact_total": 115.5,
+    "compact_without_normalization_passthrough": 61.0,
+    "census": 87.8,
+    "normalization": 87.8,
+    "identical_sections": ["typed_semantic_records (41,077)", "evidence (41,094)", "diagnostics", "typed_obligations"]
+  },
+  "finding": "systemize output scales at ~1.7 MB per Rust source file (pretty JSON) and serializes the census typed payload twice (NormalizationReport preserves it verbatim by contract) and prints it to stdout as well; the 38,852-file rust donor would need tens of GB. The report format, not computation, now limits corpus-scale recensus.",
+  "decision": "DEFERRED (contract-level): report dedup changes the systemize-report schema and graph construction consumes normalization's copy; compact output changes a user-visible CLI behaviour"
+}
