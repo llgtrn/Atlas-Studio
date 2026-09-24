@@ -140,7 +140,7 @@ B_reconciliation_certificate = "OPEN"
 C_adl_consumes_census_truth = "OPEN"
 D_atlas_writer_reader_validator = "OPEN"
 E_atlasx_production_validation = "OPEN"
-F_first_50_queue_canonical = "OPEN"
+F_first_50_queue_canonical = "MET_G58 (FIRST-50-CAMPAIGN.toml, enforced by first_50_campaign_is_canonical_and_accounted)"
 G_first_50_sequential_lifecycle_substantial = "OPEN"
 H_incremental_recensus_with_oracle = "OPEN"
 I_extinction_reclaim_under_bounded_storage = "PARTIAL: working set exists (G54); no post-extinction recensus yet"
@@ -148,30 +148,35 @@ I_extinction_reclaim_under_bounded_storage = "PARTIAL: working set exists (G54);
 # Planned trajectory (adapted to HEAD); each item one bounded, self-recensus-proven generation.
 [[planned_generation]]
 id = "G58"
-priority = "P0"
-objective = "reconciliation census certificate for the Atlas self-scope"
+priority = "P3"
+objective = "canonical first-50 donor campaign (done)"
 
 [[planned_generation]]
 id = "G59"
 priority = "P0"
-objective = "close the self-scope inventory gaps the certificate reports (atlas-systemizer crate outside scope; UNKNOWN artifacts)"
+objective = "reconciliation census certificate for the Atlas self-scope"
 
 [[planned_generation]]
 id = "G60"
-priority = "P2"
-objective = "ADL <- census: typed census facts become ADL declarations/constraints"
+priority = "P0"
+objective = "close the self-scope inventory gaps the certificate reports (atlas-systemizer crate outside scope; UNKNOWN artifacts)"
 
 [[planned_generation]]
 id = "G61"
 priority = "P2"
-objective = "minimum .atlas writer/reader/validator over validated census state"
+objective = "ADL <- census: typed census facts become ADL declarations/constraints"
 
 [[planned_generation]]
 id = "G62"
 priority = "P2"
+objective = "minimum .atlas writer/reader/validator over validated census state"
+
+[[planned_generation]]
+id = "G63"
+priority = "P2"
 objective = "minimum .atlasx deterministic materialization + validation"
 
 [[planned_generation]]
-id = "G63+"
+id = "G64+"
 priority = "P3"
-objective = "first-50 donor campaign, sequential, interleaving only census improvements exposed by real donors"
+objective = "first-50 donor campaign from #6 tree-sitter, sequential, interleaving only census improvements exposed by real donors"

@@ -1441,6 +1441,125 @@ mod tests {
             assert!(generations > 0, "ledger records no generation");
         }
 
+        /// `.atlas/roadmap/FIRST-50-CAMPAIGN.toml` (P3) is the canonical donor execution order:
+        /// ordinals 1..=50 exactly once, every admitted donor either queued or excluded with a
+        /// reason (never silently dropped), every entry in the repo-exact frontier, historical
+        /// proofs consistent with the donor corpus, and a dashboard recomputable from the entries.
+        #[test]
+        fn first_50_campaign_is_canonical_and_accounted() {
+            let root = workspace_root();
+            let text = std::fs::read_to_string(root.join(".atlas/roadmap/FIRST-50-CAMPAIGN.toml"))
+                .expect("FIRST-50-CAMPAIGN.toml");
+            let field = |block: &str, name: &str| {
+                block.lines().find_map(|line| {
+                    let rest = line.trim().strip_prefix(name)?.strip_prefix(" = ")?;
+                    Some(rest.trim().trim_matches('"').to_owned())
+                })
+            };
+            let frontier =
+                std::fs::read_to_string(root.join(".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml"))
+                    .expect("frontier")
+                    .to_ascii_lowercase();
+            let corpus: std::collections::BTreeMap<String, (String, String)> = load_entries()
+                .into_iter()
+                .map(|e| {
+                    (
+                        e.id.clone(),
+                        (e.ingestion_status.clone(), e.decision_status.clone()),
+                    )
+                })
+                .collect();
+            let mut ordinals = Vec::new();
+            let mut queued = std::collections::BTreeSet::new();
+            let (mut absorbed, mut terminal_historic, mut remaining) = (0, 0, 0);
+            let mut first_pending = None;
+            for block in text.split("[[donor]]").skip(1) {
+                let block = block.split("[[outside_first_50]]").next().unwrap();
+                let ordinal: usize = field(block, "ordinal").unwrap().parse().unwrap();
+                let repository = field(block, "repository").unwrap();
+                let url = field(block, "canonical_url").unwrap();
+                let status = field(block, "current_status").unwrap();
+                let lifecycle = field(block, "lifecycle").unwrap();
+                let terminal = field(block, "terminal_state").unwrap();
+                ordinals.push(ordinal);
+                assert!(
+                    queued.insert(repository.clone()),
+                    "{repository} queued twice"
+                );
+                assert!(
+                    frontier.contains(&format!("canonical_url = \"{}\"", url.to_ascii_lowercase())),
+                    "{repository}: {url} not in the repo-exact frontier"
+                );
+                assert!(
+                    ["HISTORICALLY_PROVEN", "CURRENTLY_PENDING"].contains(&status.as_str()),
+                    "{repository}: {status}"
+                );
+                if lifecycle == "TERMINAL" {
+                    assert!(
+                        !terminal.is_empty(),
+                        "{repository}: TERMINAL without a terminal state"
+                    );
+                } else {
+                    remaining += 1;
+                    if status == "CURRENTLY_PENDING" && first_pending.is_none() {
+                        first_pending = Some(repository.clone());
+                    }
+                }
+                if terminal == "ABSORBED" {
+                    absorbed += 1;
+                }
+                if status == "HISTORICALLY_PROVEN" {
+                    let (ingestion, _) = corpus.get(&repository).unwrap_or_else(|| {
+                        panic!("{repository}: historical proof outside the corpus")
+                    });
+                    if lifecycle == "TERMINAL" {
+                        terminal_historic += 1;
+                        assert_eq!(
+                            ingestion, "EXTINCT",
+                            "{repository}: terminal history must be extinct"
+                        );
+                    }
+                }
+            }
+            assert_eq!(
+                ordinals,
+                (1..=50).collect::<Vec<_>>(),
+                "ordinals must be 1..=50 in order"
+            );
+            let mut outside = std::collections::BTreeSet::new();
+            for block in text.split("[[outside_first_50]]").skip(1) {
+                let repository = field(block, "repository").unwrap();
+                assert!(
+                    !field(block, "reason").unwrap_or_default().is_empty(),
+                    "{repository}: no reason"
+                );
+                assert!(outside.insert(repository.clone()));
+                assert!(
+                    !queued.contains(&repository),
+                    "{repository} both queued and excluded"
+                );
+            }
+            for id in corpus.keys() {
+                assert!(
+                    queued.contains(id) || outside.contains(id),
+                    "admitted donor `{id}` is neither in the first-50 nor excluded with a reason"
+                );
+            }
+            let dashboard = text
+                .split("[dashboard]")
+                .nth(1)
+                .unwrap()
+                .split("[[donor]]")
+                .next()
+                .unwrap();
+            let count = |k: &str| -> usize { field(dashboard, k).unwrap().parse().unwrap() };
+            assert_eq!(count("first_50_total"), 50);
+            assert_eq!(count("absorbed"), absorbed);
+            assert_eq!(count("historic_terminal"), terminal_historic);
+            assert_eq!(count("remaining"), remaining);
+            assert_eq!(field(dashboard, "next_donor"), first_pending);
+        }
+
         /// ADR 0024: from G57, NEXTGEN is proven by self-recensus. Every generation records its
         /// priority (P0-P6, or a P7 workload naming the P0-P6 proof it serves) and a PROVEN
         /// self-recensus report whose before/after digests match its recorded pre/post snapshots;

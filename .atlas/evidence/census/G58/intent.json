@@ -1,0 +1,14 @@
+{
+  "objective": "P3: make the first-50 donor campaign canonical and machine-checked (FIRST-50-CAMPAIGN.toml + first_50_campaign_is_canonical_and_accounted)",
+  "changed_paths": [
+    "runtime/src/lib.rs"
+  ],
+  "total_changes": [
+    "+facts",
+    "+typed_records",
+    "+evidence",
+    "+graph_nodes",
+    "+graph_edges",
+    "+normalized_facts"
+  ]
+}

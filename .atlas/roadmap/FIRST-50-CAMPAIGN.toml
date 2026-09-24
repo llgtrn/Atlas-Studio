@@ -1,0 +1,831 @@
+schema = "atlas.first-50-campaign.v1"
+canonical = true
+established_in = "G57"
+priority = "P3"
+decision = ".atlas/decisions/0024-self-recensus-proof-of-nextgen.md"
+
+# The canonical first-50 donor campaign (P3). The 146-repository frontier is the global universe;
+# this is the execution order. Ordering is stable: a reorder requires a [[reorder]] record with
+# evidence. Lifecycle: QUEUED -> MATERIALIZED -> COARSE_CENSUSED -> DEEP_CENSUSED -> DECIDED ->
+# VERIFIED -> EXTINCTION_ELIGIBLE -> SOURCE_DELETED -> POST_DELETE_RECENSUS -> TERMINAL.
+# Terminals: ABSORBED, REFERENCE_ONLY, EXTERNAL_BOUNDARY, REJECTED, DEFERRED_WITH_CONCRETE_BLOCKER.
+# One donor cycle at a time within the bounded working set (ADR 0021); every Atlas change a
+# donor induces is a self-recensus-proven generation (ADR 0024).
+
+[dashboard]
+first_50_total = 50
+historic_terminal = 3
+historically_proven = 5
+currently_censusing = 0
+deep_censused = 12
+absorbed = 3
+reference_only = 0
+external_boundary = 0
+rejected = 0
+deferred = 0
+extinct = 3
+remaining = 47
+next_donor = "tree-sitter"
+next_step = "after G58-G62 (P0/P2 per PRIORITY.toml): materialize the cheapest sufficient slice under the working-set budget, deep-census, decide, prove any induced Atlas change by self-recensus"
+
+[[donor]]
+ordinal = 1
+repository = "souffle"
+canonical_url = "https://github.com/souffle-lang/souffle.git"
+serves = "P0"
+target_capability = "constraint derivation with provenance"
+mechanism_hypothesis = "provenance-backed Datalog derivation (absorbed: constraint-derivation-provenance)"
+materialization_mode = "n/a (source deleted)"
+dependency_expectation = "none remaining"
+current_status = "HISTORICALLY_PROVEN"
+lifecycle = "TERMINAL"
+terminal_state = "ABSORBED"
+terminal_goal = "ABSORBED + EXTINCT"
+note = "absorbed ['constraint-derivation-provenance']; source deleted and tests re-run before G57 (no G57-style self-recensus proof; a post-delete recensus proof is pending for the chain)"
+
+[[donor]]
+ordinal = 2
+repository = "datafrog"
+canonical_url = "https://github.com/rust-lang/datafrog.git"
+serves = "P0"
+target_capability = "dependency-closure fixed point"
+mechanism_hypothesis = "semi-naive delta fixed point (absorbed: core::closure)"
+materialization_mode = "n/a (source deleted)"
+dependency_expectation = "none remaining"
+current_status = "HISTORICALLY_PROVEN"
+lifecycle = "TERMINAL"
+terminal_state = "ABSORBED"
+terminal_goal = "ABSORBED + EXTINCT"
+note = "absorbed ['semi-naive-delta-fixed-point']; source deleted and tests re-run before G57 (no G57-style self-recensus proof; a post-delete recensus proof is pending for the chain)"
+
+[[donor]]
+ordinal = 3
+repository = "blake3"
+canonical_url = "https://github.com/BLAKE3-team/BLAKE3.git"
+serves = "P0"
+target_capability = "content identity"
+mechanism_hypothesis = "BLAKE3 unkeyed hash mode (absorbed: core::identity::blake3)"
+materialization_mode = "n/a (source deleted)"
+dependency_expectation = "none remaining"
+current_status = "HISTORICALLY_PROVEN"
+lifecycle = "TERMINAL"
+terminal_state = "ABSORBED"
+terminal_goal = "ABSORBED + EXTINCT"
+note = "absorbed ['unkeyed-hash-mode']; source deleted and tests re-run before G57 (no G57-style self-recensus proof; a post-delete recensus proof is pending for the chain)"
+
+[[donor]]
+ordinal = 4
+repository = "rust-analyzer"
+canonical_url = "https://github.com/rust-lang/rust-analyzer.git"
+serves = "P4"
+target_capability = "incremental semantic analysis"
+mechanism_hypothesis = "vfs change taxonomy absorbed; name resolution / type inference for CALL coverage still open"
+materialization_mode = "SPARSE_CHECKOUT (hir, ide-db slices)"
+dependency_expectation = "salsa (queued #05), chalk/rustc_* crates REFERENCE_ONLY"
+current_status = "HISTORICALLY_PROVEN"
+lifecycle = "DECIDED"
+terminal_state = ""
+terminal_goal = "ABSORBED (vfs) ; remaining: DECIDED"
+note = "absorbed ['vfs-change-taxonomy'] (partial); remaining mechanisms pending; source still materialized"
+
+[[donor]]
+ordinal = 5
+repository = "salsa"
+canonical_url = "https://github.com/salsa-rs/salsa.git"
+serves = "P4"
+target_capability = "incremental dependency-tracked recensus"
+mechanism_hypothesis = "memoized derivation reuse absorbed; revision-based invalidation open until an incremental workload exists (P4)"
+materialization_mode = "SPARSE_CHECKOUT (src/function, src/zalsa)"
+dependency_expectation = "none beyond std"
+current_status = "HISTORICALLY_PROVEN"
+lifecycle = "DECIDED"
+terminal_state = ""
+terminal_goal = "ABSORBED (memo) ; invalidation: ABSORB_LATER with P4 workload"
+note = "absorbed ['memoized-derivation-reuse'] (partial); remaining mechanisms pending; source still materialized"
+
+[[donor]]
+ordinal = 6
+repository = "tree-sitter"
+canonical_url = "https://github.com/tree-sitter/tree-sitter.git"
+serves = "P0"
+target_capability = "multi-language source extraction"
+mechanism_hypothesis = "grammar-modular incremental parsing to close UNKNOWN/UNSUPPORTED languages in census scope"
+materialization_mode = "SPARSE_CHECKOUT (lib/src, cli/generate)"
+dependency_expectation = "grammar repos are separate: account each as REFERENCE_ONLY until a language is admitted"
+current_status = "CURRENTLY_PENDING"
+lifecycle = "DEEP_CENSUSED"
+terminal_state = ""
+terminal_goal = "ABSORB or REFERENCE_ONLY per mechanism"
+note = "census DEEP_CENSUSED, decision TARGET_MAPPED"
+
+[[donor]]
+ordinal = 7
+repository = "scip"
+canonical_url = "https://github.com/sourcegraph/scip.git"
+serves = "P0"
+target_capability = "symbol identity across revisions"
+mechanism_hypothesis = "stable symbol descriptors (monikers) for revision-independent record identity"
+materialization_mode = "FETCHED_FILE_SET (scip.proto, docs)"
+dependency_expectation = "protobuf: TOOLCHAIN"
+current_status = "CURRENTLY_PENDING"
+lifecycle = "DEEP_CENSUSED"
+terminal_state = ""
+terminal_goal = "ABSORB or REFERENCE_ONLY"
+note = "census DEEP_CENSUSED, decision TARGET_MAPPED"
+
+[[donor]]
+ordinal = 8
+repository = "kythe"
+canonical_url = "https://github.com/kythe/kythe.git"
+serves = "P0"
+target_capability = "semantic cross-reference graph"
+mechanism_hypothesis = "VName identity + fact/edge schema for cross-file semantic identity"
+materialization_mode = "SPARSE_CHECKOUT (kythe/data, schema docs)"
+dependency_expectation = "bazel: TOOLCHAIN"
+current_status = "CURRENTLY_PENDING"
+lifecycle = "DEEP_CENSUSED"
+terminal_state = ""
+terminal_goal = "REFERENCE_ONLY expected (schema ideas)"
+note = "census DEEP_CENSUSED, decision TARGET_MAPPED"
+
+[[donor]]
+ordinal = 9
+repository = "glean"
+canonical_url = "https://github.com/facebookincubator/Glean.git"
+serves = "P0"
+target_capability = "fact database with derived predicates"
+mechanism_hypothesis = "typed fact schemas + derived predicates over census facts"
+materialization_mode = "SPARSE_CHECKOUT (glean/schema, angle)"
+dependency_expectation = "haskell toolchain: TOOLCHAIN"
+current_status = "CURRENTLY_PENDING"
+lifecycle = "DEEP_CENSUSED"
+terminal_state = ""
+terminal_goal = "DECIDED"
+note = "census DEEP_CENSUSED, decision TARGET_MAPPED"
+
+[[donor]]
+ordinal = 10
+repository = "joern"
+canonical_url = "https://github.com/joernio/joern.git"
+serves = "P0"
+target_capability = "call / data-flow / control-flow semantics"
+mechanism_hypothesis = "code property graph layers to close CALL/CONTROL_FLOW/DATA_FLOW coverage UNKNOWN"
+materialization_mode = "SPARSE_CHECKOUT (semanticcpg, dataflowengineoss)"
+dependency_expectation = "scala/jvm: TOOLCHAIN"
+current_status = "CURRENTLY_PENDING"
+lifecycle = "DEEP_CENSUSED"
+terminal_state = ""
+terminal_goal = "DECIDED"
+note = "census DEEP_CENSUSED, decision TARGET_MAPPED"
+
+[[donor]]
+ordinal = 11
+repository = "semgrep"
+canonical_url = "https://github.com/semgrep/semgrep.git"
+serves = "P0"
+target_capability = "semantic pattern search"
+mechanism_hypothesis = "generic AST pattern matching across languages"
+materialization_mode = "SPARSE_CHECKOUT (semgrep-core/src/matching)"
+dependency_expectation = "ocaml: TOOLCHAIN; tree-sitter grammars"
+current_status = "CURRENTLY_PENDING"
+lifecycle = "MATERIALIZED"
+terminal_state = ""
+terminal_goal = "DECIDED"
+note = "census SKELETON, decision PENDING"
+
+[[donor]]
+ordinal = 12
+repository = "ast-grep"
+canonical_url = "https://github.com/ast-grep/ast-grep.git"
+serves = "P0"
+target_capability = "structural search/rewrite"
+mechanism_hypothesis = "tree-sitter-backed structural patterns in Rust"
+materialization_mode = "SHALLOW_CHECKOUT (crates/core)"
+dependency_expectation = "tree-sitter (#06)"
+current_status = "CURRENTLY_PENDING"
+lifecycle = "MATERIALIZED"
+terminal_state = ""
+terminal_goal = "DECIDED"
+note = "census SKELETON, decision PENDING"
+
+[[donor]]
+ordinal = 13
+repository = "sourcetrail"
+canonical_url = "https://github.com/CoatiSoftware/Sourcetrail.git"
+serves = "P0"
+target_capability = "symbol navigation index"
+mechanism_hypothesis = "indexer storage model for symbols/references"
+materialization_mode = "SPARSE_CHECKOUT (src/lib/data)"
+dependency_expectation = "clang/java indexers: EXTERNAL_BOUNDARY"
+current_status = "CURRENTLY_PENDING"
+lifecycle = "MATERIALIZED"
+terminal_state = ""
+terminal_goal = "REFERENCE_ONLY expected"
+note = "census SKELETON, decision PENDING"
+
+[[donor]]
+ordinal = 14
+repository = "rust"
+canonical_url = "https://github.com/rust-lang/rust.git"
+serves = "P0"
+target_capability = "authoritative Rust semantics"
+mechanism_hypothesis = "name resolution / type checking / borrow checking as census oracle for Rust facts"
+materialization_mode = "SPARSE_CHECKOUT (compiler/rustc_resolve, rustc_hir_typeck)"
+dependency_expectation = "llvm: accounted, not cloned"
+current_status = "CURRENTLY_PENDING"
+lifecycle = "COARSE_CENSUSED"
+terminal_state = ""
+terminal_goal = "EXTERNAL_BOUNDARY (oracle) + REFERENCE_ONLY"
+note = "census COARSE_CENSUSED, decision APPROVED_COMPILER_BINARY_LANE"
+
+[[donor]]
+ordinal = 15
+repository = "miri"
+canonical_url = "https://github.com/rust-lang/miri.git"
+serves = "P0"
+target_capability = "execution semantics evidence"
+mechanism_hypothesis = "interpreter-backed UB/effect evidence for EFFECT/STATE semantics"
+materialization_mode = "SPARSE_CHECKOUT (src/shims, src/machine.rs)"
+dependency_expectation = "rustc: TOOLCHAIN"
+current_status = "CURRENTLY_PENDING"
+lifecycle = "MATERIALIZED"
+terminal_state = ""
+terminal_goal = "DECIDED"
+note = "census SKELETON, decision PENDING"
+
+[[donor]]
+ordinal = 16
+repository = "clef"
+canonical_url = "https://github.com/FidelityFramework/clef.git"
+serves = "P0"
+target_capability = "compiler frontend type resolution"
+mechanism_hypothesis = "language-service style resolution for semantic depth"
+materialization_mode = "already materialized"
+dependency_expectation = "dotnet: TOOLCHAIN"
+current_status = "CURRENTLY_PENDING"
+lifecycle = "COARSE_CENSUSED"
+terminal_state = ""
+terminal_goal = "DECIDED"
+note = "census COARSE_CENSUSED_PLUS_TARGETED_DEEP_CENSUS, decision STUDY_FOR_SEMANTIC_GRAPH_LANGUAGE_LANE"
+
+[[donor]]
+ordinal = 17
+repository = "differential-dataflow"
+canonical_url = "https://github.com/TimelyDataflow/differential-dataflow.git"
+serves = "P4"
+target_capability = "incremental recensus"
+mechanism_hypothesis = "differential updates of derived graph relations"
+materialization_mode = "SPARSE_CHECKOUT (src/operators)"
+dependency_expectation = "timely-dataflow: SOURCE_REQUIRED if absorbed"
+current_status = "CURRENTLY_PENDING"
+lifecycle = "COARSE_CENSUSED"
+terminal_state = ""
+terminal_goal = "ABSORB_LATER with P4 workload"
+note = "census COARSE_CENSUSED, decision ABSORB_LATER"
+
+[[donor]]
+ordinal = 18
+repository = "buck2"
+canonical_url = "https://github.com/facebook/buck2.git"
+serves = "P4"
+target_capability = "build-graph incrementality"
+mechanism_hypothesis = "DICE keyed computation graph and invalidation"
+materialization_mode = "SPARSE_CHECKOUT (dice/)"
+dependency_expectation = "none beyond workspace"
+current_status = "CURRENTLY_PENDING"
+lifecycle = "COARSE_CENSUSED"
+terminal_state = ""
+terminal_goal = "DEFERRED_WITH_CONCRETE_BLOCKER (AIF1)"
+note = "census COARSE_CENSUSED, decision ABSORB_LATER"
+
+[[donor]]
+ordinal = 19
+repository = "egglog"
+canonical_url = "https://github.com/egraphs-good/egglog.git"
+serves = "P0"
+target_capability = "equivalence of derived facts"
+mechanism_hypothesis = "e-graph equivalence for normalization conflicts"
+materialization_mode = "already materialized"
+dependency_expectation = "none"
+current_status = "CURRENTLY_PENDING"
+lifecycle = "DEEP_CENSUSED"
+terminal_state = ""
+terminal_goal = "DECIDED"
+note = "census CENSUSED, decision STUDY_FOR_DECISION_LAYER_LANE"
+
+[[donor]]
+ordinal = 20
+repository = "capnproto"
+canonical_url = "https://github.com/capnproto/capnproto.git"
+serves = "P2"
+target_capability = "binary .atlas encoding"
+mechanism_hypothesis = "canonical serialization + packed encoding"
+materialization_mode = "already materialized"
+dependency_expectation = "none"
+current_status = "CURRENTLY_PENDING"
+lifecycle = "DEEP_CENSUSED"
+terminal_state = ""
+terminal_goal = "DECIDED"
+note = "census DEEP_CENSUSED, decision STUDY_FOR_BINARY_FORMAT_LANE"
+
+[[donor]]
+ordinal = 21
+repository = "rkyv"
+canonical_url = "https://github.com/rkyv/rkyv.git"
+serves = "P2"
+target_capability = "zero-copy .atlas archive"
+mechanism_hypothesis = "archived layout + validation (bytecheck)"
+materialization_mode = "already materialized"
+dependency_expectation = "bytecheck: SOURCE_REQUIRED if absorbed"
+current_status = "CURRENTLY_PENDING"
+lifecycle = "DEEP_CENSUSED"
+terminal_state = ""
+terminal_goal = "DECIDED"
+note = "census DEEP_CENSUSED, decision STUDY_FOR_BINARY_FORMAT_LANE_CONDITIONAL_CACHE_DEPENDENCY"
+
+[[donor]]
+ordinal = 22
+repository = "flatbuffers"
+canonical_url = "https://github.com/google/flatbuffers.git"
+serves = "P2"
+target_capability = "schema-evolved binary format"
+mechanism_hypothesis = "vtable-based schema evolution"
+materialization_mode = "already materialized"
+dependency_expectation = "none"
+current_status = "CURRENTLY_PENDING"
+lifecycle = "DEEP_CENSUSED"
+terminal_state = ""
+terminal_goal = "DECIDED"
+note = "census DEEP_CENSUSED, decision APPROVED_COMPILER_BINARY_LANE"
+
+[[donor]]
+ordinal = 23
+repository = "zstd"
+canonical_url = "https://github.com/facebook/zstd.git"
+serves = "P2"
+target_capability = "artifact compression"
+mechanism_hypothesis = "frame format for compressed .atlas payloads"
+materialization_mode = "already materialized"
+dependency_expectation = "none"
+current_status = "CURRENTLY_PENDING"
+lifecycle = "COARSE_CENSUSED"
+terminal_state = ""
+terminal_goal = "DECIDED"
+note = "census COARSE_CENSUSED, decision APPROVED_COMPILER_BINARY_LANE"
+
+[[donor]]
+ordinal = 24
+repository = "arrow"
+canonical_url = "https://github.com/apache/arrow.git"
+serves = "P2"
+target_capability = "columnar fact storage"
+mechanism_hypothesis = "IPC columnar layout for large fact tables"
+materialization_mode = "already materialized"
+dependency_expectation = "flatbuffers (#22)"
+current_status = "CURRENTLY_PENDING"
+lifecycle = "COARSE_CENSUSED"
+terminal_state = ""
+terminal_goal = "DECIDED"
+note = "census COARSE_CENSUSED, decision APPROVED_COMPILER_BINARY_LANE"
+
+[[donor]]
+ordinal = 25
+repository = "mlir"
+canonical_url = "https://github.com/llvm/llvm-project.git"
+serves = "P6"
+target_capability = "multi-level IR"
+mechanism_hypothesis = "dialects, regions, progressive lowering, verification"
+materialization_mode = "MATERIALIZED_SLICE (mlir/)"
+dependency_expectation = "llvm-project (#32): shared tree"
+current_status = "CURRENTLY_PENDING"
+lifecycle = "COARSE_CENSUSED"
+terminal_state = ""
+terminal_goal = "DECIDED"
+note = "census DEEP_CENSUS_ACTIVE, decision PENDING_COORDINATOR_REVIEW"
+
+[[donor]]
+ordinal = 26
+repository = "xdsl"
+canonical_url = "https://github.com/xdslproject/xdsl.git"
+serves = "P6"
+target_capability = "declarative IR definitions"
+mechanism_hypothesis = "IRDL-style op definitions in Python"
+materialization_mode = "already materialized"
+dependency_expectation = "none"
+current_status = "CURRENTLY_PENDING"
+lifecycle = "COARSE_CENSUSED"
+terminal_state = ""
+terminal_goal = "DECIDED"
+note = "census DEEP_CENSUS_ACTIVE, decision PENDING_COORDINATOR_REVIEW"
+
+[[donor]]
+ordinal = 27
+repository = "iris"
+canonical_url = "https://github.com/boj/iris.git"
+serves = "P6"
+target_capability = "semantic graph language"
+mechanism_hypothesis = "content-addressed semantic graph compiler"
+materialization_mode = "already materialized"
+dependency_expectation = "none"
+current_status = "CURRENTLY_PENDING"
+lifecycle = "COARSE_CENSUSED"
+terminal_state = ""
+terminal_goal = "DECIDED"
+note = "census DEEP_CENSUS_ACTIVE, decision STUDY_FOR_SEMANTIC_GRAPH_LANGUAGE_LANE"
+
+[[donor]]
+ordinal = 28
+repository = "sigil-lang"
+canonical_url = "https://github.com/pzalutski-pixel/sigil-lang.git"
+serves = "P6"
+target_capability = "graph-native language"
+mechanism_hypothesis = "content-addressed contract-verified graph"
+materialization_mode = "already materialized"
+dependency_expectation = "none"
+current_status = "CURRENTLY_PENDING"
+lifecycle = "COARSE_CENSUSED"
+terminal_state = ""
+terminal_goal = "DECIDED"
+note = "census DEEP_CENSUS_ACTIVE, decision STUDY_FOR_SEMANTIC_GRAPH_LANGUAGE_LANE"
+
+[[donor]]
+ordinal = 29
+repository = "duumbi"
+canonical_url = "https://github.com/hgahub/duumbi.git"
+serves = "P6"
+target_capability = "graph -> Cranelift lowering"
+mechanism_hypothesis = "AI-mutable JSON-LD graph lowered to Cranelift"
+materialization_mode = "already materialized"
+dependency_expectation = "cranelift via wasmtime (#36)"
+current_status = "CURRENTLY_PENDING"
+lifecycle = "COARSE_CENSUSED"
+terminal_state = ""
+terminal_goal = "DECIDED"
+note = "census COARSE_CENSUSED_AND_TARGETED_DEEP_CENSUSED, decision STUDY_FOR_SEMANTIC_GRAPH_LANGUAGE_LANE"
+
+[[donor]]
+ordinal = 30
+repository = "composer"
+canonical_url = "https://github.com/FidelityFramework/Composer.git"
+serves = "P6"
+target_capability = "program semantic graph -> MLIR"
+mechanism_hypothesis = "nanopass PSG lowering"
+materialization_mode = "already materialized"
+dependency_expectation = "mlir (#25)"
+current_status = "CURRENTLY_PENDING"
+lifecycle = "COARSE_CENSUSED"
+terminal_state = ""
+terminal_goal = "DECIDED"
+note = "census COARSE_CENSUSED_PLUS_TARGETED_DEEP_CENSUS, decision STUDY_FOR_SEMANTIC_GRAPH_LANGUAGE_LANE"
+
+[[donor]]
+ordinal = 31
+repository = "agentir"
+canonical_url = "https://github.com/WhitzardAgent/agentir.git"
+serves = "P6"
+target_capability = "construction pipeline staging"
+mechanism_hypothesis = "trace-IR staged construction process"
+materialization_mode = "already materialized"
+dependency_expectation = "none"
+current_status = "CURRENTLY_PENDING"
+lifecycle = "DEEP_CENSUSED"
+terminal_state = ""
+terminal_goal = "DECIDED"
+note = "census DEEP_CENSUSED, decision STUDY_FOR_PIPELINE_STAGING_DISCIPLINE"
+
+[[donor]]
+ordinal = 32
+repository = "llvm-project"
+canonical_url = "https://github.com/llvm/llvm-project.git"
+serves = "P6"
+target_capability = "native code generation"
+mechanism_hypothesis = "IR -> machine code boundary"
+materialization_mode = "SPARSE_CHECKOUT (llvm/lib/CodeGen)"
+dependency_expectation = "huge: progressive slices only"
+current_status = "CURRENTLY_PENDING"
+lifecycle = "COARSE_CENSUSED"
+terminal_state = ""
+terminal_goal = "EXTERNAL_BOUNDARY (backend) + REFERENCE_ONLY"
+note = "census COARSE_CENSUSED, decision APPROVED_COMPILER_BINARY_LANE"
+
+[[donor]]
+ordinal = 33
+repository = "wasm-spec"
+canonical_url = "https://github.com/WebAssembly/spec.git"
+serves = "P6"
+target_capability = "verify-then-encode"
+mechanism_hypothesis = "instruction validation algorithm"
+materialization_mode = "already materialized"
+dependency_expectation = "none"
+current_status = "CURRENTLY_PENDING"
+lifecycle = "DEEP_CENSUSED"
+terminal_state = ""
+terminal_goal = "DECIDED"
+note = "census CENSUSED, decision STUDY_FOR_VERIFY_THEN_ENCODE_LANE"
+
+[[donor]]
+ordinal = 34
+repository = "wasm-component-model"
+canonical_url = "https://github.com/WebAssembly/component-model.git"
+serves = "P6"
+target_capability = "interface boundaries"
+mechanism_hypothesis = "WIT interface definitions / canonical ABI"
+materialization_mode = "already materialized"
+dependency_expectation = "none"
+current_status = "CURRENTLY_PENDING"
+lifecycle = "DEEP_CENSUSED"
+terminal_state = ""
+terminal_goal = "DECIDED"
+note = "census CENSUSED, decision STUDY_FOR_INTERFACE_BOUNDARY_LANE"
+
+[[donor]]
+ordinal = 35
+repository = "wasm-tools"
+canonical_url = "https://github.com/bytecodealliance/wasm-tools.git"
+serves = "P6"
+target_capability = "binary validation tooling"
+mechanism_hypothesis = "wasmparser validation"
+materialization_mode = "already materialized"
+dependency_expectation = "none"
+current_status = "CURRENTLY_PENDING"
+lifecycle = "COARSE_CENSUSED"
+terminal_state = ""
+terminal_goal = "DECIDED"
+note = "census COARSE_CENSUSED, decision APPROVED_COMPILER_BINARY_LANE"
+
+[[donor]]
+ordinal = 36
+repository = "wasmtime"
+canonical_url = "https://github.com/bytecodealliance/wasmtime.git"
+serves = "P6"
+target_capability = "sandboxed execution + Cranelift"
+mechanism_hypothesis = "cranelift lowering, WASI capability sandbox"
+materialization_mode = "already materialized"
+dependency_expectation = "cranelift sub-crates: same tree"
+current_status = "CURRENTLY_PENDING"
+lifecycle = "COARSE_CENSUSED"
+terminal_state = ""
+terminal_goal = "DECIDED"
+note = "census COARSE_CENSUSED, decision APPROVED_COMPILER_BINARY_LANE"
+
+[[donor]]
+ordinal = 37
+repository = "object"
+canonical_url = "https://github.com/gimli-rs/object.git"
+serves = "P6"
+target_capability = "object file emission"
+mechanism_hypothesis = "ELF/COFF/Mach-O writer"
+materialization_mode = "already materialized"
+dependency_expectation = "none"
+current_status = "CURRENTLY_PENDING"
+lifecycle = "COARSE_CENSUSED"
+terminal_state = ""
+terminal_goal = "DECIDED"
+note = "census COARSE_CENSUSED, decision APPROVED_COMPILER_BINARY_LANE"
+
+[[donor]]
+ordinal = 38
+repository = "regalloc2"
+canonical_url = "https://github.com/bytecodealliance/regalloc2.git"
+serves = "P6"
+target_capability = "register allocation"
+mechanism_hypothesis = "SSA-based allocator boundary"
+materialization_mode = "already materialized"
+dependency_expectation = "none"
+current_status = "CURRENTLY_PENDING"
+lifecycle = "COARSE_CENSUSED"
+terminal_state = ""
+terminal_goal = "DECIDED"
+note = "census COARSE_CENSUSED, decision APPROVED_COMPILER_BINARY_LANE"
+
+[[donor]]
+ordinal = 39
+repository = "mold"
+canonical_url = "https://github.com/rui314/mold.git"
+serves = "P6"
+target_capability = "linking"
+mechanism_hypothesis = "parallel ELF linker layout"
+materialization_mode = "already materialized"
+dependency_expectation = "none"
+current_status = "CURRENTLY_PENDING"
+lifecycle = "COARSE_CENSUSED"
+terminal_state = ""
+terminal_goal = "REFERENCE_ONLY expected"
+note = "census COARSE_CENSUSED, decision APPROVED_COMPILER_BINARY_LANE"
+
+[[donor]]
+ordinal = 40
+repository = "kani"
+canonical_url = "https://github.com/model-checking/kani.git"
+serves = "P0"
+target_capability = "bounded model checking"
+mechanism_hypothesis = "harness-driven proofs as constraint evidence"
+materialization_mode = "SPARSE_CHECKOUT (kani-compiler)"
+dependency_expectation = "cbmc: EXTERNAL_BOUNDARY"
+current_status = "CURRENTLY_PENDING"
+lifecycle = "MATERIALIZED"
+terminal_state = ""
+terminal_goal = "DECIDED"
+note = "census SKELETON, decision PENDING"
+
+[[donor]]
+ordinal = 41
+repository = "verus"
+canonical_url = "https://github.com/verus-lang/verus.git"
+serves = "P0"
+target_capability = "proof-oriented constraints"
+mechanism_hypothesis = "specification + proof obligations over Rust"
+materialization_mode = "SPARSE_CHECKOUT (source/vir)"
+dependency_expectation = "z3: EXTERNAL_BOUNDARY"
+current_status = "CURRENTLY_PENDING"
+lifecycle = "MATERIALIZED"
+terminal_state = ""
+terminal_goal = "DECIDED"
+note = "census SKELETON, decision PENDING"
+
+[[donor]]
+ordinal = 42
+repository = "podman"
+canonical_url = "https://github.com/containers/podman.git"
+serves = "P6"
+target_capability = "sandboxed construction"
+mechanism_hypothesis = "rootless isolation for construction actions"
+materialization_mode = "already materialized"
+dependency_expectation = "runc/crun: SYSTEM_BOUNDARY"
+current_status = "CURRENTLY_PENDING"
+lifecycle = "MATERIALIZED"
+terminal_state = ""
+terminal_goal = "DECIDED"
+note = "census PENDING_DEEP_CENSUS, decision APPROVED_SECURITY_LANE"
+
+[[donor]]
+ordinal = 43
+repository = "containers-image"
+canonical_url = "https://github.com/containers/image.git"
+serves = "P5"
+target_capability = "signed provenance"
+mechanism_hypothesis = "sigstore signature/rekor verification"
+materialization_mode = "already materialized"
+dependency_expectation = "sigstore services: SERVICE"
+current_status = "CURRENTLY_PENDING"
+lifecycle = "MATERIALIZED"
+terminal_state = ""
+terminal_goal = "DECIDED"
+note = "census PENDING_DEEP_CENSUS, decision APPROVED_SECURITY_LANE"
+
+[[donor]]
+ordinal = 44
+repository = "z3"
+canonical_url = "https://github.com/Z3Prover/z3.git"
+serves = "P0"
+target_capability = "SAT/UNSAT/UNKNOWN constraints"
+mechanism_hypothesis = "incremental SMT (push/pop) for non-ground constraints"
+materialization_mode = "SPARSE_CHECKOUT (src/sat, src/api)"
+dependency_expectation = "none"
+current_status = "CURRENTLY_PENDING"
+lifecycle = "QUEUED"
+terminal_state = ""
+terminal_goal = "DECIDED"
+note = "remote-discovered only (RECOMMENDED-OSS-FRONTIER.toml); not admitted"
+
+[[donor]]
+ordinal = 45
+repository = "in-toto"
+canonical_url = "https://github.com/in-toto/in-toto.git"
+serves = "P5"
+target_capability = "supply-chain provenance"
+mechanism_hypothesis = "layout/link attestation of construction steps"
+materialization_mode = "FETCHED_FILE_SET (spec, in_toto/models)"
+dependency_expectation = "none"
+current_status = "CURRENTLY_PENDING"
+lifecycle = "QUEUED"
+terminal_state = ""
+terminal_goal = "DECIDED"
+note = "remote-discovered only (RECOMMENDED-OSS-FRONTIER.toml); not admitted"
+
+[[donor]]
+ordinal = 46
+repository = "git"
+canonical_url = "https://github.com/git/git.git"
+serves = "P5"
+target_capability = "content-addressed objects"
+mechanism_hypothesis = "object model / pack representation for census storage identity"
+materialization_mode = "SPARSE_CHECKOUT (object-file.c, packfile.c) -- replaces the unadmitted tracked checkout"
+dependency_expectation = "none"
+current_status = "CURRENTLY_PENDING"
+lifecycle = "QUEUED"
+terminal_state = ""
+terminal_goal = "DECIDED"
+note = "remote-discovered only (RECOMMENDED-OSS-FRONTIER.toml); not admitted"
+
+[[donor]]
+ordinal = 47
+repository = "nix"
+canonical_url = "https://github.com/NixOS/nix.git"
+serves = "P6"
+target_capability = "hermetic derivations"
+mechanism_hypothesis = "derivation identity + closure of construction inputs"
+materialization_mode = "SPARSE_CHECKOUT (src/libstore/derivations)"
+dependency_expectation = "none"
+current_status = "CURRENTLY_PENDING"
+lifecycle = "QUEUED"
+terminal_state = ""
+terminal_goal = "DECIDED"
+note = "remote-discovered only (RECOMMENDED-OSS-FRONTIER.toml); not admitted"
+
+[[donor]]
+ordinal = 48
+repository = "tlaplus"
+canonical_url = "https://github.com/tlaplus/tlaplus.git"
+serves = "P0"
+target_capability = "state-space exploration"
+mechanism_hypothesis = "TLC exploration + counterexample traces for invariants"
+materialization_mode = "SPARSE_CHECKOUT (tlatools/org.lamport.tlatools/src/tlc2)"
+dependency_expectation = "jvm: TOOLCHAIN"
+current_status = "CURRENTLY_PENDING"
+lifecycle = "QUEUED"
+terminal_state = ""
+terminal_goal = "DECIDED"
+note = "remote-discovered only (RECOMMENDED-OSS-FRONTIER.toml); not admitted"
+
+[[donor]]
+ordinal = 49
+repository = "openrewrite"
+canonical_url = "https://github.com/openrewrite/rewrite.git"
+serves = "P2"
+target_capability = "census -> declared change"
+mechanism_hypothesis = "lossless semantic trees + recipes as census-driven transforms"
+materialization_mode = "already materialized"
+dependency_expectation = "jvm: TOOLCHAIN"
+current_status = "CURRENTLY_PENDING"
+lifecycle = "MATERIALIZED"
+terminal_state = ""
+terminal_goal = "DECIDED"
+note = "census SKELETON, decision PENDING"
+
+[[donor]]
+ordinal = 50
+repository = "c2rust"
+canonical_url = "https://github.com/immunant/c2rust.git"
+serves = "P6"
+target_capability = "translation IR"
+mechanism_hypothesis = "C -> Rust translation with provenance"
+materialization_mode = "already materialized"
+dependency_expectation = "clang: EXTERNAL_BOUNDARY"
+current_status = "CURRENTLY_PENDING"
+lifecycle = "MATERIALIZED"
+terminal_state = ""
+terminal_goal = "REFERENCE_ONLY expected"
+note = "census SKELETON, decision PENDING"
+
+[[outside_first_50]]
+repository = "cytoscape-js"
+reason = "graph rendering UI: not a census primitive"
+
+[[outside_first_50]]
+repository = "elkjs"
+reason = "graph layout UI: not a census primitive"
+
+[[outside_first_50]]
+repository = "xyflow"
+reason = "node-editor UI: not a census primitive"
+
+[[outside_first_50]]
+repository = "opendesign"
+reason = "design authoring: Creator workload (frozen)"
+
+[[outside_first_50]]
+repository = "selinux"
+reason = "access control policy: security lane, not first-phase census"
+
+[[outside_first_50]]
+repository = "openscap"
+reason = "compliance policy: security lane"
+
+[[outside_first_50]]
+repository = "keycloak"
+reason = "identity provider: external service boundary"
+
+[[outside_first_50]]
+repository = "keylime"
+reason = "remote attestation: after in-toto (#45)"
+
+[[outside_first_50]]
+repository = "clair"
+reason = "vulnerability intelligence: security lane"
+
+[[outside_first_50]]
+repository = "zed"
+reason = "IDE runtime: reference only for UI"
+
+[[outside_first_50]]
+repository = "crubit"
+reason = "C++/Rust interop: not first-phase"
+
+[[outside_first_50]]
+repository = "py2many"
+reason = "language translation: covered by c2rust (#50) reference"
+
+[[outside_first_50]]
+repository = "ladybird"
+reason = "browser engine: EXTERNAL_BOUNDARY, deferred (PRIORITY.toml)"

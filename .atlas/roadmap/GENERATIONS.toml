@@ -13,7 +13,7 @@
 #       -> generation evidence -> G_n+1
 
 schema = "atlas.self-build.generation-ledger.v1"
-current_generation = "G57"
+current_generation = "G58"
 
 [[generation]]
 id = "G35"
@@ -658,6 +658,7 @@ objective = "priority reset; make self-recensus the mandatory, chained proof of 
 writer = "coordinator (sole writer)"
 evidence = ".atlas/decisions/0024-self-recensus-proof-of-nextgen.md"
 self_recensus = ".atlas/evidence/census/G57/recensus.json"
+result_commits = ["481c61fa224e010336d1fa2a581fb8a079edc628"]
 
 [generation.verification]
 baseline = "4fcb0d6819: census digest blake3-256:81c7931c53cd... identical across two runs; 98 artifacts, 10482 facts, 54229 typed records, 1056 obligations, 61739 graph nodes, closure CLOSED, 752 explicit unknowns; census closure NOT_CLOSED (PRIORITY.toml)"
@@ -667,3 +668,21 @@ exposed_gap = "the atlas-systemizer crate (apps/cli) is outside census scope: G5
 
 [generation.next]
 objective = "G58 (P0): reconciliation census certificate for the Atlas self-scope"
+
+[[generation]]
+id = "G58"
+base_commit = "481c61fa224e010336d1fa2a581fb8a079edc628"
+priority = "P3"
+serves = "P3 FIRST_50_DONOR_CAMPAIGN (exit criterion F)"
+objective = "make the first-50 donor campaign canonical, stable and machine-checked; reconcile historical proofs"
+writer = "coordinator (sole writer)"
+evidence = ".atlas/roadmap/FIRST-50-CAMPAIGN.toml"
+self_recensus = ".atlas/evidence/census/G58/recensus.json"
+
+[generation.verification]
+proof = "PROVEN on the second run: the first run was GENERATION_NOT_PROVEN because the intent declared only the changed file, not the facts/records/graph a new test function necessarily adds; the intent was completed and re-proven; pre digest == G57 post digest"
+falsification = "campaign test caught swapped ordinals, a dropped exclusion (zed) and a wrong dashboard count"
+campaign = "50 entries: 5 HISTORICALLY_PROVEN (souffle, datafrog, blake3 TERMINAL ABSORBED+EXTINCT; rust-analyzer, salsa partially absorbed), 45 CURRENTLY_PENDING; 45 admitted + 5 frontier (z3, in-toto, git, nix, tlaplus); 13 admitted donors excluded with reasons; next donor: tree-sitter (#6)"
+
+[generation.next]
+objective = "G59 (P0): reconciliation census certificate for the Atlas self-scope"
