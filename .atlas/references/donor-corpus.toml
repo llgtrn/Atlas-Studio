@@ -300,7 +300,7 @@ census_status = "COARSE_CENSUSED"
 decision_status = "PENDING"
 native_replacement = "runtime incremental query cache"
 runtime_dependency_status = "REFERENCE_ONLY"
-evidence = [".atlas/provenance/donors/salsa.json", ".atlas/census/salsa.md", ".atlas/genome/technology/salsa-durability-gated-incremental-verification.md"]
+evidence = [".atlas/provenance/donors/salsa.json", ".atlas/census/salsa.md", ".atlas/genome/technology/salsa-durability-gated-incremental-verification.md", ".atlas/genome/technology/salsa-fixpoint-cycle-iteration.md"]
 
 [[donor]]
 id = "scip"

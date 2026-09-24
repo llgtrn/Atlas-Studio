@@ -1,0 +1,37 @@
+{
+  "schema": "atlas.self-build.generation-evidence.v1",
+  "wave": "DONOR RESEARCH -- deep-census Salsa's fixed-point cycle-iteration mechanism, the flagged next slice from the prior generation",
+  "wave_title": "Direct follow-up to the prior generation's own recorded next step: 'cycle detection / fixed-point resolution (cycle.rs) -- likely the concrete mechanism behind R5's own fixed-point naming ... flagged as the natural next slice of THIS donor's own census'. Confirmed correct on inspection: cycle.rs opens with a module doc comment explicitly titled around fixed-point iteration, read in full before any other claim was made.",
+  "priority_classification": "semantic preservation / roadmap advancement -- continuing the same donor-research thread the prior generation opened, following its own explicitly recorded next step rather than starting a new, unrelated investigation.",
+  "key_finding": "Salsa's cycle handling is a real Kleene-style fixed-point iteration with two subtleties easy to miss: (1) convergence requires BOTH the computed value AND its revision metadata (durability) to stabilize (execute.rs:792, `this_converged = value_converged && metadata_converged`) -- checking value equality alone, the obvious naive design, would be unsound against the companion genome record's own shallow-verification optimization; (2) finality propagates LAZILY, not eagerly -- only the cycle head is marked final the moment it converges; every other query in the cycle keeps its provisional status until the NEXT time it is actually read, at which point the reader checks whether all of ITS OWN cycle heads are now final. A hard MAX_ITERATIONS=200 safety bound (cycle.rs:52) acknowledges the mechanism cannot itself prove a user-supplied recovery function is well-behaved.",
+  "method": "read cycle.rs's module doc comment in full (lines 1-42) before reading any code, confirming the hypothesis from the prior generation before investigating further; then read the actual convergence-checking code in function/execute.rs (lines 215-295, 764-833) to verify the doc comment's own prose claims against the real implementation, not accepting the doc comment alone as sufficient evidence (the same discipline this session applies to its own R4 walker doc comments, applied here to a donor's documentation instead).",
+  "stable_validator_law_compliance": {
+    "claim": "Salsa's fixed-point cycle-iteration mechanism -- cycle-head-managed Kleene iteration, dual value+metadata convergence, lazy finality propagation, and a hard iteration bound -- is now genuinely understood and evidenced from real source, confirming it as the concrete mechanism behind R5's 'fixed-point closure' roadmap naming.",
+    "self_written_evidence": "Every claim in the new genome record cites a specific file and line range read directly this generation. The two subtleties (dual convergence condition, lazy propagation) were verified against the ACTUAL CODE (execute.rs's real convergence check), not merely restated from the donor's own doc comment, since a doc comment can itself be stale or aspirational relative to the code -- the same principle this session applied when it found concurrency.rs's own doc comment claimed more than its code delivered.",
+    "independent_evidence_channel": "python3 tomllib parse of donor-corpus.toml: succeeds, 57 donors preserved. cargo run -q -p atlas-cli -- docs audit --root .atlas: gate_ready true. Full cargo test --workspace: 504 total, 0 failed, unchanged (no Rust code touched -- pure research/documentation generation).",
+    "no_circular_self_certification": true
+  },
+  "implementation": {
+    "code_change": "NONE -- donor research preceding R5 implementation, consistent with the prior generation.",
+    "docs_change": ".atlas/genome/technology/salsa-fixpoint-cycle-iteration.md (new) -- the full deep-census-grade mechanism record, cross-referencing the companion durability/verification record. .atlas/census/salsa.md -- updated to list both mechanism records now understood and to keep the still-uncensused subsystem list accurate (tracked structs, accumulators, macro system, parallel execution, storage/persistence, benchmarks, tests). .atlas/references/donor-corpus.toml -- evidence array extended with the new genome record; census_status correctly left at COARSE_CENSUSED, not advanced to DEEP_CENSUSED, since the remaining subsystems are real and substantial, not merely formal."
+  },
+  "adversarial_and_falsification_coverage": [
+    "verified the doc comment's own prose claims against the real convergence-checking code rather than trusting documentation alone -- found the dual value+metadata convergence condition specifically by reading execute.rs directly, a detail the module doc comment's own prose does not spell out as explicitly",
+    "explicitly named the required invariant (query-author-supplied recovery functions must be monotone over a well-founded lattice) that Salsa itself cannot verify, rather than presenting the mechanism as unconditionally safe",
+    "recorded an open design question (whether Atlas's own R5 use cases are acyclic by construction, making general fixed-point iteration unnecessary for the first concrete use case) rather than assuming the mechanism must be absorbed wholesale"
+  ],
+  "validation_this_generation": {
+    "commands": {
+      "python3 tomllib parse of donor-corpus.toml": { "result": "valid, 57 donors" },
+      "cargo run -q -p atlas-cli -- docs audit --root .atlas": { "exit_code": 0, "gate_ready": true },
+      "cargo test --workspace": { "exit_code": 0, "totals": "504 total, 0 failed, unchanged" }
+    }
+  },
+  "recensus_scope_after_promotion": [
+    "Salsa's decision_status remains PENDING -- correctly, no absorption decision follows from deeper mechanism understanding alone",
+    "Salsa's own remaining uncensused subsystems (tracked structs, accumulators, macro-generated ingredient system, parallel execution) remain explicitly flagged, not silently assumed covered",
+    "the other W3 donors (datafrog, differential-dataflow, souffle, buck2) remain untouched -- this and the prior generation have now given Salsa specifically two solid, cross-referenced mechanism records; a future generation should decide whether to continue deepening Salsa's own census (tracked structs next, most likely) or move to a different W3 donor"
+  ],
+  "overall_verdict": "RESEARCHED, EVIDENCED, AND RECORDED. Confirmed the prior generation's own hypothesis (cycle.rs is the concrete mechanism behind R5's 'fixed-point closure' naming) and captured its two most easily-missed subtleties (dual convergence condition, lazy finality propagation) with real source evidence, verifying the donor's own documentation against its actual code rather than trusting it at face value. No code changed.",
+  "historical_evidence_retained": true
+}

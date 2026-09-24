@@ -15,18 +15,23 @@ canonical: true
 
 ## Census State
 
-Status: COARSE_CENSUSED (advanced from SKELETON). The core incremental-verification algorithm
-(global monotonic revision counter, per-input-class durability, per-memo verified_at/changed_at
-split, shallow-then-deep two-tier dependency check) is now understood and evidenced from real
-source -- see `.atlas/genome/technology/salsa-durability-gated-incremental-verification.md` for the
-full deep-census-grade mechanism record, read directly from `src/revision.rs`, `src/durability.rs`,
-`src/zalsa_local.rs`, and `src/function/{memo.rs,maybe_changed_after.rs}`.
+Status: COARSE_CENSUSED. Two core mechanisms are now understood and evidenced from real source:
 
-Still needing classification (explicitly not yet censused, not silently assumed absent): cycle
-detection / fixed-point resolution (`src/cycle.rs` -- likely the concrete mechanism R5's own
-"fixed-point closure" naming refers to), tracked structs (`src/tracked_struct.rs`), accumulators
-(`src/accumulator.rs`), the macro-generated ingredient/ID system (`components/salsa-macros`),
-parallel execution (`src/sync.rs`), storage/persistence, benchmarks, and test suite structure.
+- the incremental-verification algorithm (global monotonic revision counter, per-input-class
+  durability, per-memo verified_at/changed_at split, shallow-then-deep two-tier dependency check)
+  -- see `.atlas/genome/technology/salsa-durability-gated-incremental-verification.md`, read from
+  `src/revision.rs`, `src/durability.rs`, `src/zalsa_local.rs`, and
+  `src/function/{memo.rs,maybe_changed_after.rs}`.
+- the fixed-point cycle-iteration mechanism (cycle-head-managed Kleene iteration, provisional
+  values, dual value+metadata convergence, lazy finality propagation, a hard 200-iteration safety
+  bound) -- confirmed as the concrete mechanism behind R5's own "fixed-point closure" roadmap
+  naming -- see `.atlas/genome/technology/salsa-fixpoint-cycle-iteration.md`, read from
+  `src/cycle.rs` and `src/function/execute.rs`.
+
+Still needing classification (explicitly not yet censused, not silently assumed absent): tracked
+structs (`src/tracked_struct.rs`), accumulators (`src/accumulator.rs`), the macro-generated
+ingredient/ID system (`components/salsa-macros`), parallel execution (`src/sync.rs`),
+storage/persistence, benchmarks, and test suite structure.
 
 ## Native Replacement
 
