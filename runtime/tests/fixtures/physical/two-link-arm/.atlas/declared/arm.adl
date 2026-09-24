@@ -35,6 +35,32 @@ entity Joint Elbow {
     upper = 2 rad
 }
 
+entity Motor ShoulderMotor {
+    joint = Shoulder
+    gear_ratio = 50
+    efficiency = 0.8
+    torque_constant = 0.05 N*m/A
+    rated_torque = 0.3 N*m
+    max_current = 6 A
+    winding_resistance = 2 ohm
+    rail = Main
+}
+
+entity Motor ElbowMotor {
+    joint = Elbow
+    gear_ratio = 30
+    efficiency = 0.8
+    torque_constant = 50 mN*m/A
+    rated_torque = 0.2 N*m
+    max_current = 4 A
+    rail = Main
+}
+
+entity Rail Main {
+    voltage = 12 V
+    max_current = 5 A
+}
+
 invariant LinksAreLight {
     forall l: Link
     require l.mass <= 0.5 kg

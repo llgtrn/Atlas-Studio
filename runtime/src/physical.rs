@@ -44,6 +44,19 @@ mod tests {
         assert_eq!(report.arms.len(), 1);
         assert_eq!(report.evidence_level, "SEMANTIC_MODEL");
         let reach = report.derived.iter().find(|d| d.name == "reach").unwrap();
+        let rail = report
+            .derived
+            .iter()
+            .find(|d| d.subject == "Main" && d.name == "total_current")
+            .unwrap();
+        assert_eq!(
+            rail.value.si_value,
+            atlas_core::quantity::Rational::new(7256921, 3200000)
+                .unwrap()
+                .checked_add(atlas_core::quantity::Rational::new(2549729, 1920000).unwrap())
+                .unwrap(),
+            "shoulder + elbow holding currents, exact"
+        );
         assert_eq!(reach.value, Quantity::parse("0.55 m").unwrap());
         assert!(
             report

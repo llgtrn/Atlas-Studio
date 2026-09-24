@@ -13,7 +13,7 @@
 #       -> generation evidence -> G_n+1
 
 schema = "atlas.self-build.generation-ledger.v1"
-current_generation = "G45"
+current_generation = "G46"
 
 [[generation]]
 id = "G35"
@@ -402,6 +402,7 @@ id = "G45"
 base_commit = "3ba7357e3eea2ec5ff2aae9f722fc3461d78f4f6"
 objective = "browser as a measuring instrument: locate responsive breakpoints by controlled re-observation"
 writer = "coordinator (sole production writer)"
+result_commits = ["ac515b340101b464dfa9e95d583bfd556c7da600"]
 evidence = ".atlas/decisions/0013-browser-as-instrument-breakpoint-bisection.md"
 
 [generation.verification]
@@ -410,4 +411,20 @@ production_path = "atlas-systemizer observe --bisect on the editorial fixture: 5
 
 [generation.next]
 objective = "G46: physical milestone 2 -- motor + gear ratio + current + power rail on the declared arm: cross-domain contradiction detection with exact quantities"
+
+[[generation]]
+id = "G46"
+base_commit = "ac515b340101b464dfa9e95d583bfd556c7da600"
+objective = "physical milestone 2: cross-domain drivetrain/power contradiction detection"
+writer = "coordinator (sole production writer)"
+evidence = ".atlas/decisions/0014-cross-domain-drivetrain-power.md"
+
+[generation.verification]
+falsification = "5 mutants killed; 1 equivalent (current-dimension filter unreachable while torque_constant is typed), recorded"
+oracle = "python fractions reproduce every chain value exactly"
+production_path = "atlas-systemizer physical prints joint torque -> motor torque -> current -> heat -> rail total/power with resolvable provenance; heavier payload: reach SATISFIED, rail VIOLATED (8.34 A > 5 A)"
+evidence_level = "SEMANTIC_MODEL"
+
+[generation.next]
+objective = "G47: Creator interaction stimuli (hover/click -> observed state transitions) or physical dynamics along a trajectory; select by leverage"
 

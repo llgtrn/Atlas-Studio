@@ -82,6 +82,10 @@ pub struct DerivedQuantity {
     pub status: EpistemicStatus,
     pub rule: String,
     pub assumptions: Vec<String>,
+    /// The declared parameters and derived quantities this value was computed from
+    /// (`Entity.attribute` or `Entity.derived_name`) -- the answer to "why does this value exist".
+    #[serde(default)]
+    pub inputs: Vec<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
@@ -282,27 +286,40 @@ impl PlanarArm {
         }
     }
 
-    /// Worst-case static torque about the first joint: arm fully extended horizontally, uniform
-    /// links (centre of mass at mid-length), point payload at the tip, standard gravity. Exact.
-    pub fn static_shoulder_torque(&self) -> Option<Quantity> {
+    /// Worst-case static torque about each joint (base first): arm fully extended horizontally,
+    /// uniform links (centre of mass at mid-length), point payload at the tip, standard gravity.
+    /// The torque about joint `i` sums the weights of links `i..` and the payload times their
+    /// horizontal distance from joint `i`. Exact.
+    pub fn static_joint_torques(&self) -> Option<Vec<Quantity>> {
         let gravity = standard_gravity();
         let half = Quantity::new(Rational::new(1, 2)?, Dimension::DIMENSIONLESS);
-        let mut offset = Quantity::new(Rational::ZERO, LENGTH);
-        let mut moment = Quantity::new(Rational::ZERO, TORQUE);
-        for link in &self.links {
-            let centre = offset
-                .checked_add(&link.length.checked_mul(&half).ok()?)
-                .ok()?;
-            let weight = link.mass.checked_mul(&gravity).ok()?;
-            moment = moment
-                .checked_add(&weight.checked_mul(&centre).ok()?)
-                .ok()?;
-            offset = offset.checked_add(&link.length).ok()?;
+        let mut torques = Vec::new();
+        for joint in 0..self.links.len() {
+            let mut offset = Quantity::new(Rational::ZERO, LENGTH);
+            let mut moment = Quantity::new(Rational::ZERO, TORQUE);
+            for link in &self.links[joint..] {
+                let centre = offset
+                    .checked_add(&link.length.checked_mul(&half).ok()?)
+                    .ok()?;
+                let weight = link.mass.checked_mul(&gravity).ok()?;
+                moment = moment
+                    .checked_add(&weight.checked_mul(&centre).ok()?)
+                    .ok()?;
+                offset = offset.checked_add(&link.length).ok()?;
+            }
+            let payload_weight = self.payload.checked_mul(&gravity).ok()?;
+            torques.push(
+                moment
+                    .checked_add(&payload_weight.checked_mul(&offset).ok()?)
+                    .ok()?,
+            );
         }
-        let payload_weight = self.payload.checked_mul(&gravity).ok()?;
-        moment
-            .checked_add(&payload_weight.checked_mul(&offset).ok()?)
-            .ok()
+        Some(torques)
+    }
+
+    /// `static_joint_torques()[0]`.
+    pub fn static_shoulder_torque(&self) -> Option<Quantity> {
+        self.static_joint_torques()?.into_iter().next()
     }
 
     /// Planar forward kinematics: tip position in metres for joint angles in radians (f64: the
@@ -367,6 +384,322 @@ fn requirement(
     })
 }
 
+const CURRENT: Dimension = Dimension {
+    exponents: [0, 0, 0, 1, 0, 0, 0, 0],
+};
+const VOLTAGE: Dimension = Dimension {
+    exponents: [2, 1, -3, -1, 0, 0, 0, 0],
+};
+const RESISTANCE: Dimension = Dimension {
+    exponents: [2, 1, -3, -2, 0, 0, 0, 0],
+};
+const TORQUE_CONSTANT: Dimension = Dimension {
+    exponents: [2, 1, -2, -1, 0, 0, 0, 0],
+};
+
+/// A dimensionless parameter written as a bare decimal (`gear_ratio = 60`, `efficiency = 0.8`).
+fn ratio_of(
+    node: &DeclaredNode,
+    attribute: &str,
+    findings: &mut Vec<PhysicalFinding>,
+) -> Option<Quantity> {
+    let finding = |verdict, message: String| PhysicalFinding {
+        subject: node.name.clone(),
+        verdict,
+        message,
+    };
+    let Some(text) = node.attributes.get(attribute) else {
+        findings.push(finding(
+            ConstraintVerdict::Unknown,
+            format!("`{attribute}` is not declared"),
+        ));
+        return None;
+    };
+    match Rational::parse_decimal(text.trim()) {
+        Some(value) if value.checked_cmp(Rational::ZERO) == Some(Ordering::Greater) => {
+            Some(Quantity::new(value, Dimension::DIMENSIONLESS))
+        }
+        Some(_) => {
+            findings.push(finding(
+                ConstraintVerdict::Violated,
+                format!("`{attribute} = {text}` must be positive"),
+            ));
+            None
+        }
+        None => {
+            findings.push(finding(
+                ConstraintVerdict::Unknown,
+                format!("`{attribute} = {text}` is not a dimensionless number"),
+            ));
+            None
+        }
+    }
+}
+
+#[allow(clippy::too_many_arguments)]
+fn derive(
+    derived: &mut Vec<DerivedQuantity>,
+    subject: &str,
+    name: &str,
+    value: &Quantity,
+    unit: &str,
+    rule: &str,
+    assumptions: &[&str],
+    inputs: Vec<String>,
+) {
+    derived.push(DerivedQuantity {
+        subject: subject.into(),
+        name: name.into(),
+        display: display(value, unit),
+        value: *value,
+        status: EpistemicStatus::Derived,
+        rule: rule.into(),
+        assumptions: assumptions.iter().map(|a| (*a).into()).collect(),
+        inputs,
+    });
+}
+
+/// `capacity >= demand`, as a requirement check named after `attribute`.
+fn capacity_check(
+    node: &DeclaredNode,
+    attribute: &str,
+    capacity: &Quantity,
+    demand: &Quantity,
+    demand_name: &str,
+) -> RequirementCheck {
+    let subject = node.name.as_str();
+    let declared = node
+        .attributes
+        .get(attribute)
+        .map(String::as_str)
+        .unwrap_or("");
+    let (verdict, relation) = match demand.checked_cmp(capacity) {
+        Ok(Ordering::Greater) => (ConstraintVerdict::Violated, "exceeds"),
+        Ok(_) => (ConstraintVerdict::Satisfied, "within"),
+        Err(_) => (ConstraintVerdict::Unknown, "not comparable with"),
+    };
+    RequirementCheck {
+        subject: subject.into(),
+        requirement: format!("{attribute} = {declared}"),
+        verdict,
+        detail: format!("{demand_name} {demand} {relation} {attribute} {declared}"),
+    }
+}
+
+/// Physical milestone 2 (ADR 0014): cross-domain drivetrain and power analysis.
+///
+/// For every `Motor` driving a joint of an assembled arm (`joint = <Joint name>`):
+/// - motor torque = static joint torque / (gear_ratio x efficiency)   [mechanics -> drivetrain]
+/// - holding current = motor torque / torque_constant                 [drivetrain -> electrical]
+/// - holding heat = current^2 x winding_resistance (if declared)      [electrical -> thermal]
+///
+/// checked against the motor's `rated_torque` and `max_current`. For every `Rail`, the currents of
+/// the motors it feeds (`rail = <Rail name>`) are summed and checked against its `max_current`,
+/// and its electrical power V x I is derived. Every step is exact and dimension-checked.
+fn analyze_drivetrains(
+    nodes: &[DeclaredNode],
+    arms: &[PlanarArm],
+    derived: &mut Vec<DerivedQuantity>,
+    requirements: &mut Vec<RequirementCheck>,
+    findings: &mut Vec<PhysicalFinding>,
+) {
+    let mut rail_currents: Vec<(String, Quantity, String)> = Vec::new();
+    for arm in arms {
+        let Some(joint_torques) = arm.static_joint_torques() else {
+            continue;
+        };
+        for (index, (joint, joint_torque)) in arm.joints.iter().zip(&joint_torques).enumerate() {
+            let mut torque_inputs: Vec<String> = arm.links[index..]
+                .iter()
+                .flat_map(|link| {
+                    [
+                        format!("{}.length", link.name),
+                        format!("{}.mass", link.name),
+                    ]
+                })
+                .collect();
+            torque_inputs.push(format!("{}.payload", arm.name));
+            for motor in nodes.iter().filter(|node| {
+                node.node_kind == "Motor"
+                    && node.attributes.get("joint").map(String::as_str) == Some(joint.name.as_str())
+            }) {
+                let before = findings.len();
+                let ratio = ratio_of(motor, "gear_ratio", findings);
+                let efficiency = ratio_of(motor, "efficiency", findings);
+                let constant = quantity_of(motor, "torque_constant", TORQUE_CONSTANT, findings);
+                let rated = quantity_of(motor, "rated_torque", TORQUE, findings);
+                let max_current = quantity_of(motor, "max_current", CURRENT, findings);
+                if let Some(efficiency) = &efficiency
+                    && efficiency.si_value.checked_cmp(Rational::ONE) == Some(Ordering::Greater)
+                {
+                    findings.push(PhysicalFinding {
+                        subject: motor.name.clone(),
+                        verdict: ConstraintVerdict::Violated,
+                        message: "efficiency above 1 violates energy conservation".into(),
+                    });
+                }
+                let (Some(ratio), Some(efficiency), Some(constant), Some(rated), Some(max_current)) =
+                    (ratio, efficiency, constant, rated, max_current)
+                else {
+                    continue;
+                };
+                if findings.len() != before {
+                    continue;
+                }
+                let Some(motor_torque) = ratio
+                    .checked_mul(&efficiency)
+                    .ok()
+                    .and_then(|reduction| joint_torque.checked_div(&reduction).ok())
+                else {
+                    continue;
+                };
+                let Some(current) = motor_torque
+                    .checked_div(&constant)
+                    .ok()
+                    // Unreachable while torque_constant is dimension-checked (N*m/A); kept as
+                    // defense in depth (G46 mutation: equivalent).
+                    .filter(|current| current.dimension == CURRENT)
+                else {
+                    continue;
+                };
+                let torque_source = format!("{}.static_joint_torque", joint.name);
+                derive(
+                    derived,
+                    &joint.name,
+                    "static_joint_torque",
+                    joint_torque,
+                    "N*m",
+                    "sum of m*g*r of links and payload beyond this joint, fully extended",
+                    &[
+                        "static",
+                        "uniform-density links",
+                        "point payload",
+                        "standard gravity",
+                    ],
+                    torque_inputs.clone(),
+                );
+                derive(
+                    derived,
+                    &motor.name,
+                    "motor_torque",
+                    &motor_torque,
+                    "N*m",
+                    "joint torque / (gear_ratio x efficiency)",
+                    &["efficiency constant at holding torque"],
+                    vec![
+                        torque_source,
+                        format!("{}.gear_ratio", motor.name),
+                        format!("{}.efficiency", motor.name),
+                    ],
+                );
+                derive(
+                    derived,
+                    &motor.name,
+                    "holding_current",
+                    &current,
+                    "A",
+                    "motor torque / torque_constant",
+                    &["linear torque-current relation"],
+                    vec![
+                        format!("{}.motor_torque", motor.name),
+                        format!("{}.torque_constant", motor.name),
+                    ],
+                );
+                if let Some(resistance) = motor
+                    .attributes
+                    .get("winding_resistance")
+                    .and_then(|_| quantity_of(motor, "winding_resistance", RESISTANCE, findings))
+                    && let Ok(heat) = current
+                        .checked_mul(&current)
+                        .and_then(|square| square.checked_mul(&resistance))
+                {
+                    derive(
+                        derived,
+                        &motor.name,
+                        "holding_heat",
+                        &heat,
+                        "W",
+                        "current^2 x winding_resistance",
+                        &["DC holding, resistance at declared temperature"],
+                        vec![
+                            format!("{}.holding_current", motor.name),
+                            format!("{}.winding_resistance", motor.name),
+                        ],
+                    );
+                }
+                requirements.push(capacity_check(
+                    motor,
+                    "rated_torque",
+                    &rated,
+                    &motor_torque,
+                    "motor_torque",
+                ));
+                requirements.push(capacity_check(
+                    motor,
+                    "max_current",
+                    &max_current,
+                    &current,
+                    "holding_current",
+                ));
+                if let Some(rail) = motor.attributes.get("rail") {
+                    rail_currents.push((rail.clone(), current, motor.name.clone()));
+                }
+            }
+        }
+    }
+    for rail in nodes.iter().filter(|node| node.node_kind == "Rail") {
+        let feeds: Vec<&(String, Quantity, String)> = rail_currents
+            .iter()
+            .filter(|(name, _, _)| *name == rail.name)
+            .collect();
+        let voltage = quantity_of(rail, "voltage", VOLTAGE, findings);
+        let capacity = quantity_of(rail, "max_current", CURRENT, findings);
+        let Some(total) = sum(feeds.iter().map(|(_, current, _)| *current), CURRENT) else {
+            continue;
+        };
+        let inputs: Vec<String> = feeds
+            .iter()
+            .map(|(_, _, motor)| format!("{motor}.holding_current"))
+            .collect();
+        derive(
+            derived,
+            &rail.name,
+            "total_current",
+            &total,
+            "A",
+            "sum of holding currents of the motors on this rail",
+            &["all joints hold the worst-case static load simultaneously"],
+            inputs,
+        );
+        if let Some(voltage) = voltage
+            && let Ok(power) = voltage.checked_mul(&total)
+        {
+            derive(
+                derived,
+                &rail.name,
+                "electrical_power",
+                &power,
+                "W",
+                "voltage x total_current",
+                &["nominal rail voltage"],
+                vec![
+                    format!("{}.voltage", rail.name),
+                    format!("{}.total_current", rail.name),
+                ],
+            );
+        }
+        if let Some(capacity) = capacity {
+            requirements.push(capacity_check(
+                rail,
+                "max_current",
+                &capacity,
+                &total,
+                "total_current",
+            ));
+        }
+    }
+}
+
 /// Physical milestone 1: assemble every declared arm, derive its exact reach, inner radius and
 /// worst-case static shoulder torque, and check the arm's declared requirements
 /// (`required_reach` against reach, `shoulder_torque_limit` against the derived torque).
@@ -377,26 +710,40 @@ pub fn analyze_physical(nodes: &[DeclaredNode]) -> PhysicalReport {
     for arm in &arms {
         let reach = arm.reach();
         let torque = arm.static_shoulder_torque();
-        let mut push =
-            |name: &str, value: Option<Quantity>, unit: &str, rule: &str, assumptions: &[&str]| {
-                if let Some(value) = value {
-                    derived.push(DerivedQuantity {
-                        subject: arm.name.clone(),
-                        name: name.into(),
-                        display: display(&value, unit),
-                        value,
-                        status: EpistemicStatus::Derived,
-                        rule: rule.into(),
-                        assumptions: assumptions.iter().map(|a| (*a).into()).collect(),
-                    });
-                }
-            };
+        let link_inputs = |attributes: &[&str]| -> Vec<String> {
+            arm.links
+                .iter()
+                .flat_map(|link| attributes.iter().map(move |a| format!("{}.{a}", link.name)))
+                .collect()
+        };
+        let mut torque_inputs = link_inputs(&["length", "mass"]);
+        torque_inputs.push(format!("{}.payload", arm.name));
+        let mut push = |name: &str,
+                        value: Option<Quantity>,
+                        unit: &str,
+                        rule: &str,
+                        assumptions: &[&str],
+                        inputs: Vec<String>| {
+            if let Some(value) = value {
+                derived.push(DerivedQuantity {
+                    subject: arm.name.clone(),
+                    name: name.into(),
+                    display: display(&value, unit),
+                    value,
+                    status: EpistemicStatus::Derived,
+                    rule: rule.into(),
+                    assumptions: assumptions.iter().map(|a| (*a).into()).collect(),
+                    inputs,
+                });
+            }
+        };
         push(
             "reach",
             reach,
             "mm",
             "sum of link lengths",
             &["rigid links", "serial chain"],
+            link_inputs(&["length"]),
         );
         push(
             "inner_radius",
@@ -404,6 +751,7 @@ pub fn analyze_physical(nodes: &[DeclaredNode]) -> PhysicalReport {
             "mm",
             "|l1 - l2| for a 2-link arm",
             &["elbow can fold to +/-pi (not checked against joint limits)"],
+            link_inputs(&["length"]),
         );
         push(
             "static_shoulder_torque",
@@ -416,6 +764,7 @@ pub fn analyze_physical(nodes: &[DeclaredNode]) -> PhysicalReport {
                 "point payload at the tip",
                 "standard gravity 9.80665 m/s^2",
             ],
+            torque_inputs.clone(),
         );
         let declared = nodes
             .iter()
@@ -440,6 +789,7 @@ pub fn analyze_physical(nodes: &[DeclaredNode]) -> PhysicalReport {
             &mut findings,
         ));
     }
+    analyze_drivetrains(nodes, &arms, &mut derived, &mut requirements, &mut findings);
     PhysicalReport {
         schema: "atlas.physical-report.v1".into(),
         evidence_level: "SEMANTIC_MODEL".into(),
@@ -621,6 +971,185 @@ mod tests {
 
         let report = analyze_physical(&arm(&[("shoulder_torque_limit", "3 kg")]));
         assert_eq!(report.requirements[0].verdict, ConstraintVerdict::Unknown);
+    }
+
+    fn with_drivetrain(payload: &str, rail_capacity: &str) -> Vec<DeclaredNode> {
+        let mut nodes = arm(&[]);
+        nodes[0].attributes.insert("payload".into(), payload.into());
+        nodes.push(node(
+            "Motor",
+            "ShoulderMotor",
+            &[
+                ("joint", "Shoulder"),
+                ("gear_ratio", "50"),
+                ("efficiency", "0.8"),
+                ("torque_constant", "0.05 N*m/A"),
+                ("rated_torque", "0.3 N*m"),
+                ("max_current", "6 A"),
+                ("winding_resistance", "2 ohm"),
+                ("rail", "Main"),
+            ],
+        ));
+        nodes.push(node(
+            "Motor",
+            "ElbowMotor",
+            &[
+                ("joint", "Elbow"),
+                ("gear_ratio", "30"),
+                ("efficiency", "0.8"),
+                ("torque_constant", "50 mN*m/A"),
+                ("rated_torque", "0.2 N*m"),
+                ("max_current", "4000 mA"),
+                ("rail", "Main"),
+            ],
+        ));
+        nodes.push(node(
+            "Rail",
+            "Main",
+            &[("voltage", "12 V"), ("max_current", rail_capacity)],
+        ));
+        nodes
+    }
+
+    fn value<'a>(report: &'a PhysicalReport, subject: &str, name: &str) -> &'a DerivedQuantity {
+        report
+            .derived
+            .iter()
+            .find(|d| d.subject == subject && d.name == name)
+            .unwrap_or_else(|| panic!("{subject}.{name}"))
+    }
+
+    #[test]
+    fn drivetrain_and_power_chain_is_exact_across_domains() {
+        let report = analyze_physical(&with_drivetrain("0.5 kg", "5 A"));
+        assert!(report.findings.is_empty(), "{:?}", report.findings);
+        // Shoulder: 4.535575625 N*m / (50 * 0.8) = 0.113389390625 N*m -> / 0.05 = 2.2677878125 A.
+        assert_eq!(
+            value(&report, "ShoulderMotor", "motor_torque").value,
+            Quantity::parse("0.113389390625 N*m").unwrap()
+        );
+        assert_eq!(
+            value(&report, "ShoulderMotor", "holding_current").value,
+            Quantity::parse("2.2677878125 A").unwrap()
+        );
+        // I^2 R = 2.2677878125^2 * 2 W, exact.
+        let heat = Rational::new(22677878125, 10_000_000_000).unwrap();
+        let heat = heat
+            .checked_mul(heat)
+            .unwrap()
+            .checked_mul(Rational::integer(2))
+            .unwrap();
+        assert_eq!(
+            value(&report, "ShoulderMotor", "holding_heat")
+                .value
+                .si_value,
+            heat
+        );
+        // Elbow: g*(0.3*0.125 + 0.5*0.25) = 1.593580625 N*m; / (30*0.8) / 0.05 = 1593580625/1200000000 A.
+        assert_eq!(
+            value(&report, "Elbow", "static_joint_torque").value,
+            Quantity::parse("1.593580625 N*m").unwrap()
+        );
+        let elbow_current = Rational::new(1_593_580_625, 1_200_000_000).unwrap();
+        assert_eq!(
+            value(&report, "ElbowMotor", "holding_current")
+                .value
+                .si_value,
+            elbow_current
+        );
+        let total = Rational::new(22677878125, 10_000_000_000)
+            .unwrap()
+            .checked_add(elbow_current)
+            .unwrap();
+        assert_eq!(
+            value(&report, "Main", "total_current").value.si_value,
+            total
+        );
+        assert_eq!(
+            value(&report, "Main", "electrical_power").value.si_value,
+            total.checked_mul(Rational::integer(12)).unwrap()
+        );
+        assert!(
+            report
+                .requirements
+                .iter()
+                .all(|r| r.verdict == ConstraintVerdict::Satisfied),
+            "{:?}",
+            report.requirements
+        );
+        // Provenance: the rail total names both motor currents; the elbow torque names only the
+        // links beyond the elbow.
+        assert_eq!(
+            value(&report, "Main", "total_current").inputs,
+            [
+                "ShoulderMotor.holding_current",
+                "ElbowMotor.holding_current"
+            ]
+        );
+        assert_eq!(
+            value(&report, "Elbow", "static_joint_torque").inputs,
+            ["Fore.length", "Fore.mass", "A.payload"]
+        );
+    }
+
+    #[test]
+    fn a_heavier_payload_breaks_the_power_rail_while_reach_still_holds() {
+        let mut nodes = with_drivetrain("1.5 kg", "5 A");
+        nodes[0]
+            .attributes
+            .insert("required_reach".into(), "500 mm".into());
+        let report = analyze_physical(&nodes);
+        let verdict = |subject: &str, attribute: &str| {
+            report
+                .requirements
+                .iter()
+                .find(|r| r.subject == subject && r.requirement.starts_with(attribute))
+                .unwrap()
+                .verdict
+        };
+        assert_eq!(
+            verdict("A", "required_reach"),
+            ConstraintVerdict::Satisfied,
+            "mechanics alone looks fine"
+        );
+        assert_eq!(
+            verdict("Main", "max_current"),
+            ConstraintVerdict::Violated,
+            "the power domain disagrees"
+        );
+        assert_eq!(
+            verdict("ShoulderMotor", "rated_torque"),
+            ConstraintVerdict::Satisfied
+        );
+    }
+
+    #[test]
+    fn invalid_drivetrain_parameters_are_findings_not_values() {
+        let mut nodes = with_drivetrain("0.5 kg", "5 A");
+        nodes[5]
+            .attributes
+            .insert("efficiency".into(), "1.2".into());
+        let report = analyze_physical(&nodes);
+        assert!(
+            report
+                .findings
+                .iter()
+                .any(|f| f.subject == "ShoulderMotor" && f.verdict == ConstraintVerdict::Violated)
+        );
+        assert!(report.derived.iter().all(|d| d.subject != "ShoulderMotor"));
+
+        let mut nodes = with_drivetrain("0.5 kg", "5 A");
+        nodes[6]
+            .attributes
+            .insert("torque_constant".into(), "0.05 N*m".into());
+        let report = analyze_physical(&nodes);
+        assert!(
+            report
+                .findings
+                .iter()
+                .any(|f| f.subject == "ElbowMotor" && f.verdict == ConstraintVerdict::Violated)
+        );
+        assert!(report.derived.iter().all(|d| d.subject != "ElbowMotor"));
     }
 
     #[test]
