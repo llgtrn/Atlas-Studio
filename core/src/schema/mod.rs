@@ -467,6 +467,11 @@ pub struct SystemizeReport {
     /// filesystem access `CensusReport`'s own per-artifact semantic census does not have), not a
     /// `CensusReport` field.
     pub dependency_closure: crate::census::DependencyClosureReport,
+    /// Present only when a previous inventory of the same root was supplied (`systemize
+    /// --previous`): which artifacts were created, modified or deleted since that snapshot
+    /// (ADR 0006). A first observation has no baseline and therefore no delta.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub inventory_delta: Option<crate::census::InventoryDelta>,
     pub invariants: Vec<String>,
 }
 

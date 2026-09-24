@@ -96,7 +96,15 @@ fn run(args: &[String]) -> Result<(), String> {
         [cmd, rest @ ..] if cmd == "systemize" => {
             let root = value(rest, "--root")?.ok_or("systemize requires --root")?;
             let out = value(rest, "--out")?.ok_or("systemize requires --out")?;
-            let report = runtime::systemize(&root).map_err(|e| format!("{root}: {e}"))?;
+            // `--previous <earlier systemize --out report>`: diff this run's inventory against
+            // that report's `inventory` (ADR 0006) and emit `inventory_delta`.
+            let previous = value(rest, "--previous")?
+                .map(|path| {
+                    runtime::read_previous_inventory(&path).map_err(|e| format!("{path}: {e}"))
+                })
+                .transpose()?;
+            let report = runtime::systemize_since(&root, previous.as_ref())
+                .map_err(|e| format!("{root}: {e}"))?;
             let text = json(&report)? + "\n";
             write_report_to_out(&out, &text)?;
             print!("{text}");
@@ -289,6 +297,88 @@ mod tests {
         );
 
         std::fs::remove_dir_all(&dir).unwrap();
+    }
+
+    #[test]
+    fn systemize_previous_reports_exactly_the_changed_artifacts_and_refuses_a_foreign_baseline() {
+        let nonce = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_nanos();
+        let base = std::env::temp_dir().join(format!("atlas-cli-tests-delta-{nonce}"));
+        let dir = base.join("repo");
+        std::fs::create_dir_all(&dir).unwrap();
+        let run_git = |args: &[&str]| {
+            let status = std::process::Command::new("git")
+                .args(args)
+                .current_dir(&dir)
+                .status()
+                .unwrap();
+            assert!(status.success(), "git {args:?} failed");
+        };
+        run_git(&["init", "--quiet"]);
+        run_git(&["config", "user.email", "test@example.com"]);
+        run_git(&["config", "user.name", "test"]);
+        std::fs::write(dir.join("README.md"), "first\n").unwrap();
+        std::fs::write(dir.join("stable.txt"), "unchanged\n").unwrap();
+        std::fs::write(dir.join("doomed.txt"), "to be deleted\n").unwrap();
+        run_git(&["add", "."]);
+        run_git(&["commit", "--quiet", "-m", "init"]);
+        let root = dir.to_string_lossy().into_owned();
+        // Reports live outside the scanned root so they never appear in its inventory.
+        let first = base.join("first.json").to_string_lossy().into_owned();
+        let second = base.join("second.json").to_string_lossy().into_owned();
+        let systemize = |extra: &[&str], out: &str| {
+            let mut args = vec!["systemize", "--root", &root, "--out", out];
+            args.extend_from_slice(extra);
+            run(&args.iter().map(|a| (*a).to_owned()).collect::<Vec<_>>())
+        };
+        // Not admitted (no .atlas/repo.toml), but the report is still written.
+        let _ = systemize(&[], &first);
+        let baseline: serde_json::Value =
+            serde_json::from_str(&std::fs::read_to_string(&first).unwrap()).unwrap();
+        assert!(
+            baseline.get("inventory_delta").is_none(),
+            "a first run has no baseline"
+        );
+
+        std::fs::write(dir.join("README.md"), "second\n").unwrap();
+        std::fs::write(dir.join("stable.txt"), "unchanged\n").unwrap(); // rewritten, same bytes
+        std::fs::remove_file(dir.join("doomed.txt")).unwrap();
+        std::fs::write(dir.join("new.txt"), "hello\n").unwrap();
+        let _ = systemize(&["--previous", &first], &second);
+        let report: serde_json::Value =
+            serde_json::from_str(&std::fs::read_to_string(&second).unwrap()).unwrap();
+        let delta = &report["inventory_delta"];
+        let changes: Vec<(String, String, String)> = delta["changes"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|c| {
+                (
+                    c["path"].as_str().unwrap().to_owned(),
+                    c["change"].as_str().unwrap().to_owned(),
+                    c["cause"].as_str().unwrap().to_owned(),
+                )
+            })
+            .collect();
+        let expected = [
+            ("README.md", "MODIFIED", "CONTENT_DIGEST_DIFFERS"),
+            ("doomed.txt", "DELETED", "DISAPPEARED"),
+            ("new.txt", "CREATED", "APPEARED"),
+        ]
+        .map(|(p, k, c)| (p.to_owned(), k.to_owned(), c.to_owned()));
+        assert_eq!(changes, expected, "{delta:#}");
+
+        let mut foreign = baseline.clone();
+        foreign["inventory"]["root"] = serde_json::json!("/somewhere/else");
+        let foreign_path = base.join("foreign.json").to_string_lossy().into_owned();
+        std::fs::write(&foreign_path, foreign.to_string()).unwrap();
+        let err = systemize(&["--previous", &foreign_path], &second)
+            .expect_err("a baseline from another root must be refused");
+        assert!(err.contains("inventory roots differ"), "{err}");
+
+        std::fs::remove_dir_all(&base).unwrap();
     }
 
     // Falsification: `--base-sha` is genuinely optional (`Option<String>`), so before this fix

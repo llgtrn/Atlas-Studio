@@ -13,7 +13,7 @@
 #       -> generation evidence -> G_n+1
 
 schema = "atlas.self-build.generation-ledger.v1"
-current_generation = "G36"
+current_generation = "G37"
 
 [[generation]]
 id = "G35"
@@ -133,7 +133,7 @@ id = "G36"
 base_commit = "511105266d94607e795bacbc7ebb763b722480f5"
 objective = "fix the defect G35's recensus exposed in the edges reachability runs over, then attack salsa's narrowed blocker: give every inventoried artifact a content identity"
 writer = "coordinator (sole production writer); all lanes read-only"
-result_commits = ["6f08313a3a560f70b5fe306d45ca10c87ab319f9", "ce5ed2d612d704adae93f8aaf4245fd8ea99fa0d"]
+result_commits = ["6f08313a3a560f70b5fe306d45ca10c87ab319f9", "ce5ed2d612d704adae93f8aaf4245fd8ea99fa0d", "afabae80de6f1772b19fa09fafab5e816d42fca9"]
 evidence = ".atlas/evidence/verification/r5-native-blake3-content-digest-absorption.json"
 
 [[generation.lane]]
@@ -188,4 +188,43 @@ summary = "the semantic extractor re-reads files after inventory digests them; b
 
 [generation.next]
 objective = "G37: build inventory change detection on content_digest (diff two InventoryReports into Created/Modified/Deleted, None counts as changed; rust-analyzer vfs state transitions are the candidate mechanism), then apply the unadmitted-checkout deletions and the frontier record fixes"
+
+[[generation]]
+id = "G37"
+base_commit = "afabae80de6f1772b19fa09fafab5e816d42fca9"
+objective = "inventory change detection on content_digest (R5 'changed source'); apply unadmitted-checkout deletions; stale frontier records"
+writer = "coordinator (sole production writer); all lanes read-only"
+evidence = ".atlas/evidence/verification/r5-inventory-change-detection-absorption.json"
+
+[[generation.lane]]
+id = "rust-analyzer-vfs"
+objective = "exact vfs change state machine, invariants, dispositions, edge cases, checkout test role"
+result = "taxonomy + decision rule ABSORB; merge table, FxHasher, FileId, loader, FileSet REJECT; Excluded REFERENCE_ONLY; genome record had 3 factual errors (corrected); checkout is a DC1 corpus so not extinct-eligible"
+
+[[generation.lane]]
+id = "frontier-record-fixes"
+objective = "prepare (not apply) a patch adding blocking_question/evidence/falsification/next_action to stale TARGET_MAPPED/STUDY_* donors, durable license copies, census path fixes"
+result = "running at commit time"
+
+[generation.join]
+absorb_now_exists = true
+selected_absorption = "rust-analyzer: vfs-change-taxonomy -> core::census::delta + systemize --previous"
+decision_record = ".atlas/decisions/0006-inventory-change-detection.md"
+discovery_record = ".atlas/census/discoveries/r5-inventory-change-detection.md"
+
+[generation.verification]
+falsification = "10 mutants killed (diff rules, refusals, runtime->CLI wiring)"
+tests = "654 workspace tests green; fmt; clippy -D warnings; docs audit gate_ready"
+production_path = "systemize --previous on this repository reported exactly the 5 files the change had touched, 65 unchanged"
+
+[generation.extinction]
+donor = "rust-analyzer"
+eligible = false
+reason = "DC1 real-donor dependency-census corpus; HIR/name-resolution surface unabsorbed"
+performed = false
+
+[[generation.deferred]]
+id = "unadmitted-checkout-deletion-needs-user-authorization"
+class = "BLOCKED_ON_USER"
+summary = "git rm of the 7 unadmitted checkouts (borg, cdc-file-transfer, fastcdc-rs, git, lz4, restic, xz) was denied by the session permission classifier as irreversible local destruction; not retried. They have no provenance/license/census records and no references; git history keeps them (import commits 91488c4bd1, 06aa530fd4, daba3565da). Needs explicit user authorization."
 

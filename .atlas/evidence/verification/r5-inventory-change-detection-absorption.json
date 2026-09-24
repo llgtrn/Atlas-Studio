@@ -1,0 +1,28 @@
+{
+  "schema": "atlas.self-build.generation-evidence.v1",
+  "generation": "G37",
+  "wave": "ABSORPTION -- rust-analyzer vfs change taxonomy absorbed as core::census::delta; systemize --previous emits inventory_delta (ADR 0006). Fourth real absorption.",
+  "base_commit": "afabae80de",
+  "lanes": {
+    "rust-analyzer-vfs": "read-only; cited every claim against crates/vfs at aaddfb73; found 3 errors in the genome record (take_changes type, FileState variants, rename claim) -- corrected; found vfs has no tests of its own change semantics",
+    "frontier-record-fixes": "read-only patch preparation for stale donor-corpus records (still running at commit time)",
+    "unadmitted-checkouts": "deletion of the 7 unadmitted checkouts was attempted and denied by the session's permission classifier; left for the user, not retried"
+  },
+  "tests_added": {
+    "core::census::delta": ["identical_snapshots_have_an_empty_delta", "created_modified_deleted_and_unchanged_are_each_classified", "a_missing_digest_on_either_side_is_never_unchanged", "a_kind_change_is_a_modification_of_the_same_path", "symlinks_and_special_files_carry_no_content_identity_so_they_always_count_as_modified", "a_policy_boundary_present_on_both_sides_is_unchanged", "a_move_is_a_delete_plus_a_create_never_a_rename", "case_only_path_differences_are_distinct_identities", "unchanged_content_with_new_classification_is_drift_not_a_change", "mismatched_roots_schemas_or_duplicate_paths_are_refused", "replaying_the_delta_onto_the_previous_snapshot_reproduces_the_current_one (200 random edit scripts; exact changed-set size; reverse-diff symmetry)"],
+    "atlas-cli": ["systemize_previous_reports_exactly_the_changed_artifacts_and_refuses_a_foreign_baseline (real git repo: modify, same-bytes rewrite, delete, create; foreign-root baseline refused)"]
+  },
+  "falsification": {
+    "killed": 10,
+    "survived": 0,
+    "mutants": ["no_equal_shortcut", "none_equals_none", "no_kind_check", "no_policy_boundary_rule", "no_deletions", "no_duplicate_check", "no_root_check", "no_schema_check", "drift_ignored", "delta_not_wired (runtime -> CLI)"],
+    "test_oracle_defect_found": "first run of the replay property failed because the test's own oracle double-counted paths present on both sides; fixed the oracle (set union), the diff was correct"
+  },
+  "production_path": {
+    "command": "atlas-cli systemize --root . --out <new> --previous <post-G36 report>",
+    "result": "report schema v13; inventory_delta: created 1 (core/src/census/delta.rs), modified 4 (core/src/census/mod.rs, core/src/lib.rs, core/src/schema/mod.rs, runtime/src/lib.rs) -- exactly the files this change had touched at that moment -- deleted 0, unchanged 65, no drift; coding_admission.blockers []"
+  },
+  "gates": "see commit: cargo test --workspace, fmt --check, clippy -D warnings, docs audit",
+  "extinction": "NOT eligible: rust-analyzer checkout is a DC1 real-donor dependency-census corpus and its HIR/name-resolution surface is unabsorbed",
+  "overall_verdict": "ABSORBED (mechanism level: vfs change taxonomy)."
+}

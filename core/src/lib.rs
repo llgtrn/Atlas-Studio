@@ -20,11 +20,12 @@ pub mod temporal;
 
 pub use capability::{WorkPrepareReport, WorkRequest};
 pub use census::{
-    ArtifactDisposition, ArtifactKind, ArtifactRecord, DependencyActivation,
-    DependencyClosureReport, DependencyClosureState, DependencyEcosystem, DependencyEdge,
-    DependencyIdentity, DependencyReachability, DependencyRole, DependencySourceKind,
-    DynamicDependencyObligation, InventoryReport, ReachOrigin, ReachabilityApproximation,
-    ReachedInstance,
+    ArtifactChange, ArtifactChangeCause, ArtifactChangeKind, ArtifactDisposition, ArtifactKind,
+    ArtifactRecord, DependencyActivation, DependencyClosureReport, DependencyClosureState,
+    DependencyEcosystem, DependencyEdge, DependencyIdentity, DependencyReachability,
+    DependencyRole, DependencySourceKind, DynamicDependencyObligation, InventoryDelta,
+    InventoryDiffRefusal, InventoryReport, ReachOrigin, ReachabilityApproximation, ReachedInstance,
+    diff_inventories,
 };
 pub use closure::{DeltaRelation, FixedPointRecord, semi_naive_fixed_point};
 pub use constraint::{CodingAdmission, declared_root_is_contained, validate_manifest};

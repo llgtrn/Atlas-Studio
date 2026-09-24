@@ -2,8 +2,13 @@ use crate::{ArtifactId, IntegrityDigest};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
+pub mod delta;
 pub mod dependency;
 
+pub use delta::{
+    ArtifactChange, ArtifactChangeCause, ArtifactChangeKind, InventoryDelta, InventoryDiffRefusal,
+    diff_inventories,
+};
 pub use dependency::{
     DependencyActivation, DependencyClosureReport, DependencyClosureState, DependencyEcosystem,
     DependencyEdge, DependencyIdentity, DependencyReachability, DependencyRole,

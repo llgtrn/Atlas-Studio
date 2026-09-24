@@ -7,9 +7,9 @@ pub mod normalize;
 use atlas_core::{
     AdlCompileReport, AdlProgram, CLI_API, CodingAdmission, ConstraintResult, Contract,
     DependencyClosureReport, DependencyClosureState, DependencyEcosystem, DocsReport,
-    EngineeringGraph, Evidence, RepoAudit, RepoManifest, RepositoryId, RevisionRef,
-    SystemizeReport, WorkPrepareReport, WorkRequest, add_constraint_derivations,
-    add_dependency_closure, build_system_graph, compile_adl, parse_adl_source,
+    EngineeringGraph, Evidence, InventoryReport, RepoAudit, RepoManifest, RepositoryId,
+    RevisionRef, SystemizeReport, WorkPrepareReport, WorkRequest, add_constraint_derivations,
+    add_dependency_closure, build_system_graph, compile_adl, diff_inventories, parse_adl_source,
     summarize_system_graph_with_dependencies,
 };
 use std::{io, path::Path};
@@ -160,6 +160,29 @@ fn gather_census_inputs(root: &Path) -> io::Result<CensusInputs> {
 }
 
 pub fn systemize(root: impl AsRef<Path>) -> io::Result<SystemizeReport> {
+    systemize_since(root, None)
+}
+
+/// The `inventory` of an earlier `systemize --out` report, the baseline for `systemize_since`.
+pub fn read_previous_inventory(path: impl AsRef<Path>) -> io::Result<InventoryReport> {
+    let invalid = |message: String| io::Error::new(io::ErrorKind::InvalidData, message);
+    let text = std::fs::read_to_string(path)?;
+    let mut report: serde_json::Value =
+        serde_json::from_str(&text).map_err(|e| invalid(e.to_string()))?;
+    let inventory = report
+        .get_mut("inventory")
+        .map(serde_json::Value::take)
+        .ok_or_else(|| invalid("not a systemize report (no `inventory`)".into()))?;
+    serde_json::from_value(inventory).map_err(|e| invalid(format!("inventory: {e}")))
+}
+
+/// `systemize`, plus inventory change detection against `previous` -- the inventory of an earlier
+/// systemize run over the same root (ADR 0006). A baseline that cannot be diffed (another root,
+/// another inventory schema, duplicate paths) is an error, never a silently empty delta.
+pub fn systemize_since(
+    root: impl AsRef<Path>,
+    previous: Option<&InventoryReport>,
+) -> io::Result<SystemizeReport> {
     let root = root.as_ref();
     let CensusInputs {
         snapshot,
@@ -194,6 +217,15 @@ pub fn systemize(root: impl AsRef<Path>) -> io::Result<SystemizeReport> {
     // (`DEPENDENCY-CENSUS.md`: "the dependency graph is part of canonical census truth... feeds
     // query, graph, security..." -- previously `dependency_closure` reached only this report's own
     // sibling field, never `EngineeringGraph` itself).
+    let inventory_delta = previous
+        .map(|previous| diff_inventories(previous, &inventory))
+        .transpose()
+        .map_err(|refusal| {
+            io::Error::new(
+                io::ErrorKind::InvalidInput,
+                format!("previous inventory: {refusal}"),
+            )
+        })?;
     let dependency_closure = resolve_dependency_closure(root)?;
     let graph = summarize_system_graph_with_dependencies(
         &source,
@@ -246,7 +278,7 @@ pub fn systemize(root: impl AsRef<Path>) -> io::Result<SystemizeReport> {
     }
 
     Ok(SystemizeReport {
-        schema: "atlas.systemizer.systemize-report.v12".into(),
+        schema: "atlas.systemizer.systemize-report.v13".into(),
         cli_api: CLI_API.into(),
         root: root.canonicalize()?.to_string_lossy().into_owned(),
         snapshot,
@@ -265,6 +297,7 @@ pub fn systemize(root: impl AsRef<Path>) -> io::Result<SystemizeReport> {
         normalization,
         graph,
         dependency_closure,
+        inventory_delta,
         invariants: vec![
             "CANONICAL_REPOSITORY_KNOWLEDGE_IS_IN_ATLAS_ROOT".into(),
             "FACTS_COMPILE_TO_ONE_ENGINEERING_GRAPH".into(),

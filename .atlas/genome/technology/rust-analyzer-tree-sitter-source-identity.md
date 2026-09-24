@@ -25,11 +25,18 @@ sub-file structural unit) a stable identity that:
 ## Semantic mechanism (as observed in the donors)
 
 - **rust-analyzer** (`crates/vfs/src/lib.rs`): `FileId(u32)` is an *interned* identity assigned by
-  a `Vfs` on first observation, stable for the process lifetime; `Vfs::take_changes()` yields a
-  `Vec<ChangedFile>`, each carrying `file_id`, its new `FileState` (`Modified`/`Deleted`), and the
-  new content. Downstream salsa queries key off `FileId`, not off the path string, so a rename is
-  representable as one identity keeping its content while a *different* mapping table associates
-  it with a new path — path and identity are deliberately decoupled.
+  a `Vfs` on first observation (`path_interner.rs`: an `IndexSet<VfsPath>` whose insertion index is
+  the id; ids are never freed), stable for the process lifetime. Content state is kept beside it as
+  `FileState::{Exists(u64 hash), Deleted, Excluded}` (lib.rs:98-106). `set_file_contents`
+  (lib.rs:216-235) turns (stored state, new contents) into `Change::{Create, Modify, Delete}`
+  (lib.rs:150-157), short-circuiting when the new `FxHasher` hash equals the stored one; an unseen
+  path defaults to `Deleted`, so its first contents are a `Create`. Pending changes are merged per
+  file between drains (lib.rs:245-278) and `take_changes()` returns an `IndexMap<FileId,
+  ChangedFile>` (lib.rs:284). **There is no rename**: a move is `Delete(old id)` + `Create(new id)`
+  with nothing linking them. *(Corrected 2026-09-24, G37: this bullet previously claimed
+  `take_changes` returns a `Vec`, named the states `Modified`/`Deleted`, and said a rename is
+  representable as one identity -- all three wrong against the pinned source.)* The taxonomy and
+  decision rule are absorbed as `core::census::delta` (ADR 0006).
 - **Tree-sitter** (`lib/src/tree.c`, `lib/src/get_changed_ranges.c`): `ts_tree_edit` shifts existing
   node byte/point ranges by a described edit instead of re-parsing from scratch, and
   `get_changed_ranges` diffs an old and a new tree to report only the byte ranges that actually
