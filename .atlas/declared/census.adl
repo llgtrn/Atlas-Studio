@@ -1,0 +1,26 @@
+atlas 1
+
+# Census-derived architecture (atlas.adl.census-derivation.v1). Generated -- do not edit.
+# Regenerate: atlas-systemizer adl derive --root . --out .atlas/declared/census.adl
+# Declares only what the dependency census observes and the authored ADL does not; every later
+# census re-checks it (ADL-TO-ATLAS.md).
+
+# census: workspace member `atlas-cli` (apps/cli/Cargo.toml)
+entity Package AtlasCli {
+    origin = census
+    package = "atlas-cli"
+}
+
+materialize AtlasCli {
+    path = "apps/cli"
+    language = rust
+}
+
+constraint AtlasCliIsMaterialized {
+    require materialized AtlasCli
+}
+
+# census: `adapter` -> `core` (RUNTIME, adapter/Cargo.toml)
+Adapter ->depends_on-> Core
+# census: `atlas-cli` -> `runtime` (RUNTIME, apps/cli/Cargo.toml)
+AtlasCli ->depends_on-> Runtime

@@ -757,6 +757,7 @@ objective = "every census fact carries the census revision and a named producer;
 writer = "coordinator (sole writer)"
 evidence = ".atlas/evidence/census/G62/recensus.json"
 self_recensus = ".atlas/evidence/census/G62/recensus.json"
+result_commits = ["d6a13e07b59d4659ec56addd5578ada5dbae04e6", "74adaef3e9a360989e9ff828d6192a58e9272a95"]
 
 [generation.verification]
 pre_census = "clean-HEAD census of 00702832fd = G61 post digest 2a3a5fa1... (chain holds; e9ee3a0874 adds only out-of-scope evidence)"
@@ -766,3 +767,22 @@ certificate_delta = "PROVENANCE_INCOMPLETE removed (242 facts without revision, 
 
 [generation.next]
 objective = "G63 (P2): ADL <- census -- typed census facts become ADL declarations/constraints (exit criterion C)"
+
+[[generation]]
+id = "G63"
+base_commit = "74adaef3e9a360989e9ff828d6192a58e9272a95"
+priority = "P2"
+serves = "P2 ADL_ATLAS_ATLASX_END_TO_END: exit criterion C (ADL consumes census truth)"
+objective = "authored depends_on reconciled against the dependency census; census truth the authored ADL lacks derived into .atlas/declared/census.adl"
+writer = "coordinator (sole writer)"
+evidence = ".atlas/evidence/census/G63/recensus.json"
+self_recensus = ".atlas/evidence/census/G63/recensus.json"
+
+[generation.verification]
+pre_census = "clean-HEAD census of d6a13e07b5 = G62 post digest 7f875f3b... (74adaef3e9 adds only out-of-scope evidence)"
+census_findings = "the dependency census observes adapter -> core and the atlas-cli workspace member; authored system.adl declared neither. Without census.adl, admission is blocked by ATLAS-E061 x2 and ATLAS-E062; with it, 4 declared dependencies are SATISFIED and WebUI -> Runtime (apps/studio is not a Cargo member) is an explicit DECLARED_DEPENDENCY_NOT_CENSUSABLE delta"
+proof = "PROVEN on the first run; re-proven after a test-only change (post 3faefec6...). The pre-prove dry run exposed a proof-instrument defect: ADL facts (.atlas/declared is outside the inventory) counted as unattributed semantics, a forbidden regression for any ADL growth. Fixed in the same generation (snapshot v2 attributes them to AdlState.sources, 34 -> 0 unattributed); the v1 -> v2 schema change is an observed change accepted with that reason"
+falsification = "18 bridge mutants: 17 killed, 1 equivalent (by_member holds every observed member, so the None branch of the undeclared-member filter is unreachable); 4/4 snapshot mutants killed (ADL attribution, source-change detection, schema-change detection, canonical source lines); a masking fixture edge (a contains relation duplicating a depends_on pair) was replaced before the battery"
+
+[generation.next]
+objective = "G64 (P2): minimum .atlas writer/reader/validator over validated census state (exit criterion D)"

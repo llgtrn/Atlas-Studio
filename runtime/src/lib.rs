@@ -152,6 +152,7 @@ struct CensusInputs {
     docs: DocsReport,
     adl: AdlCompileReport,
     extraction_batches: Vec<adapter::ExtractionBatch>,
+    dependency_closure: DependencyClosureReport,
 }
 
 impl CensusInputs {
@@ -179,7 +180,9 @@ fn gather_census_inputs(
     let source = adapter::source_report_from_inventory(&inventory);
     let docs = adapter::audit_docs(root.join(".atlas"))?;
     let adl_sources = adapter::read_adl_sources(root)?;
-    let adl = compile_adl(&adl_sources, &source);
+    let mut adl = compile_adl(&adl_sources, &source);
+    let dependency_closure = resolve_dependency_closure(root)?;
+    reconcile_adl_with_dependency_census(&mut adl, &dependency_closure);
     let repository_id = resolve_repository_id(&repository, root);
     let extraction_batches = census::extraction::extract_semantics_cached(
         &inventory,
@@ -195,7 +198,56 @@ fn gather_census_inputs(
         docs,
         adl,
         extraction_batches,
+        dependency_closure,
     })
+}
+
+/// ADL consumes census truth (G63, ADR 0026): authored `depends_on` declarations are reconciled
+/// against the observed workspace-member dependencies, and the typed results join the ADL's own
+/// constraint results -- so a disagreement blocks coding admission exactly like any other failed
+/// constraint. Only a CLOSED closure is authoritative: a partial census could omit a real edge
+/// and manufacture a declared-not-observed violation, and it already raises its own blocker.
+fn reconcile_adl_with_dependency_census(
+    adl: &mut AdlCompileReport,
+    closure: &DependencyClosureReport,
+) {
+    if !closure.is_closed() {
+        return;
+    }
+    let observed = atlas_core::ObservedArchitecture::from_closure(closure);
+    let reconciliation = atlas_core::reconcile_dependencies(&adl.ir.declared, &observed);
+    adl.constraint_results
+        .extend(reconciliation.constraint_results());
+    adl.deltas.extend(reconciliation.deltas());
+}
+
+pub use atlas_core::CENSUS_ADL_PATH;
+
+/// The census-derived ADL for `root` (G63): what the dependency census observes that the
+/// authored ADL -- every `.atlas/declared` source except `atlas_core::CENSUS_ADL_PATH` itself --
+/// does not declare. Regenerating it is a fixed point; `adl derive --check` and the
+/// `census_adl_is_current` test fail when the committed file has drifted from census truth.
+pub fn derive_census_adl(root: impl AsRef<Path>) -> io::Result<String> {
+    let root = root.as_ref();
+    let repository = adapter::audit_repository(root)?;
+    let inventory = inventory::build_inventory(root, repository.manifest.as_ref())?;
+    let source = adapter::source_report_from_inventory(&inventory);
+    let authored: Vec<atlas_core::AdlSource> = adapter::read_adl_sources(root)?
+        .into_iter()
+        .filter(|adl| adl.path != atlas_core::CENSUS_ADL_PATH)
+        .collect();
+    let closure = resolve_dependency_closure(root)?;
+    if !closure.is_closed() {
+        return Err(io::Error::other(format!(
+            "dependency census is {:?}, not CLOSED: census truth is incomplete, nothing is derived",
+            closure.state
+        )));
+    }
+    Ok(atlas_core::derive_census_adl(
+        &compile_adl(&authored, &source).ir.declared,
+        &atlas_core::ObservedArchitecture::from_closure(&closure),
+        &source,
+    ))
 }
 
 pub fn systemize(root: impl AsRef<Path>) -> io::Result<SystemizeReport> {
@@ -243,6 +295,7 @@ pub fn systemize_with(
         docs,
         adl,
         extraction_batches,
+        dependency_closure,
     } = inputs;
 
     // R4.3.1: semantic extraction runs BEFORE census construction, and its results flow directly
@@ -276,7 +329,6 @@ pub fn systemize_with(
                 format!("previous inventory: {refusal}"),
             )
         })?;
-    let dependency_closure = resolve_dependency_closure(root)?;
     let graph = summarize_system_graph_with_dependencies(
         &source,
         &docs,
@@ -389,12 +441,16 @@ pub fn graph(root: impl AsRef<Path>) -> io::Result<EngineeringGraph> {
     let inputs = gather_census_inputs(root, None)?;
     let census = inputs.census();
     let CensusInputs {
-        source, docs, adl, ..
+        source,
+        docs,
+        adl,
+        dependency_closure,
+        ..
     } = inputs;
     let normalization = normalize::normalize(&census);
     let mut graph = build_system_graph(&source, &docs, &normalization);
     add_constraint_derivations(&mut graph, &adl.constraint_results);
-    add_dependency_closure(&mut graph, &resolve_dependency_closure(root)?);
+    add_dependency_closure(&mut graph, &dependency_closure);
     Ok(graph)
 }
 
@@ -415,6 +471,7 @@ pub fn code_analyze(root: impl AsRef<Path>) -> io::Result<serde_json::Value> {
         source,
         docs,
         adl,
+        dependency_closure,
         ..
     } = inputs;
     // Same promotion `systemize` applies (`.atlas/contracts/DEPENDENCY-CENSUS.md`): `BUILD`
@@ -422,7 +479,6 @@ pub fn code_analyze(root: impl AsRef<Path>) -> io::Result<serde_json::Value> {
     // promoted to real evidence once a real, closed Cargo dependency closure exists -- otherwise
     // `code_analyze`'s own `census.coverage.BUILD` silently disagrees with the `dependency_closure`
     // this same response reports two fields below, contradicting real, observed state.
-    let dependency_closure = resolve_dependency_closure(root)?;
     let (build_status, _) = build_coverage_from_dependency_closure(dependency_closure.state);
     if let Some(status) = build_status {
         census.coverage.insert("BUILD".into(), status);
@@ -2067,5 +2123,108 @@ mod tests {
             constraint_result("A", true),
             constraint_result("ObservedMaterialization:WebUI", false),
         ]));
+    }
+
+    /// G63 (ADR 0026): the committed census-derived ADL equals what the current census derives
+    /// -- a new or removed workspace dependency fails here until `adl derive` is re-run and the
+    /// change is declared in the generation's self-recensus intent.
+    #[test]
+    fn census_adl_is_current() {
+        let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("..");
+        let committed = std::fs::read_to_string(root.join(CENSUS_ADL_PATH)).unwrap();
+        assert_eq!(
+            committed,
+            derive_census_adl(&root).unwrap(),
+            "regenerate with `atlas-systemizer adl derive --out {CENSUS_ADL_PATH}`"
+        );
+    }
+
+    /// Every entry point reconciles the authored ADL against the dependency census: on this
+    /// repository every observed member dependency is declared and SATISFIED, and the declared
+    /// WebUI -> Runtime (not a Cargo member) is accounted as not censusable, never passed.
+    #[test]
+    fn systemize_reconciles_declared_dependencies_against_the_census() {
+        let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("..");
+        let report = systemize(&root).unwrap();
+        let reconciled: Vec<(&str, atlas_core::ConstraintVerdict)> = report
+            .adl
+            .constraint_results
+            .iter()
+            .filter(|c| {
+                c.derivation.first().map(|d| d.rule)
+                    == Some(atlas_core::language::adl::ConstraintCheckKind::ObservedDependency)
+            })
+            .map(|c| (c.name.as_str(), c.verdict))
+            .collect();
+        let satisfied = atlas_core::ConstraintVerdict::Satisfied;
+        assert_eq!(
+            reconciled,
+            [
+                ("DeclaredDependency:Adapter->Core", satisfied),
+                ("DeclaredDependency:AtlasCli->Runtime", satisfied),
+                ("DeclaredDependency:Runtime->Adapter", satisfied),
+                ("DeclaredDependency:Runtime->Core", satisfied),
+            ]
+        );
+        assert!(report.adl.deltas.iter().any(
+            |d| d.code == "DECLARED_DEPENDENCY_NOT_CENSUSABLE" && d.subject == "WebUI->Runtime"
+        ));
+        assert!(
+            report.coding_admission.allowed,
+            "{:?}",
+            report.coding_admission.blockers
+        );
+
+        // The self-recensus snapshot attributes every ADL fact to its ADL source (v2): nothing is
+        // unattributed, and census.adl is a tracked ADL source of its own.
+        let snapshot = atlas_core::recensus::CensusSnapshot::from_report(&report);
+        assert_eq!(snapshot.totals.get("unattributed_semantics"), Some(&0));
+        assert!(snapshot.totals.get("adl_semantics").is_some_and(|n| *n > 0));
+        assert!(snapshot.adl.sources.contains_key(CENSUS_ADL_PATH));
+        assert!(
+            snapshot
+                .adl
+                .sources
+                .contains_key(".atlas/declared/system.adl")
+        );
+    }
+
+    /// Only a CLOSED dependency census is authoritative for reconciliation.
+    #[test]
+    fn an_unclosed_dependency_census_is_never_reconciled_against() {
+        let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("..");
+        let mut closure = resolve_dependency_closure(&root).unwrap();
+        let source = atlas_core::SourceReport {
+            schema: "test".into(),
+            root: "/repo".into(),
+            files_total: 0,
+            languages: Default::default(),
+            files: Vec::new(),
+        };
+        let authored = [atlas_core::AdlSource {
+            path: ".atlas/declared/system.adl".into(),
+            text: "atlas 1\nsystem T\nentity Runtime A {}\nentity Runtime B {}\n\
+                   A ->depends_on-> B\nmaterialize A {\n    path = \"core\"\n}\n\
+                   materialize B {\n    path = \"runtime\"\n}\n"
+                .into(),
+        }];
+        let mut adl = compile_adl(&authored, &source);
+        let before = adl.constraint_results.len();
+        reconcile_adl_with_dependency_census(&mut adl, &closure);
+        assert!(
+            adl.constraint_results
+                .iter()
+                .any(|c| c.name == "DeclaredDependency:A->B" && !c.passed),
+            "core does not depend on runtime"
+        );
+        closure.state = DependencyClosureState::Partial;
+        let mut adl = compile_adl(&authored, &source);
+        reconcile_adl_with_dependency_census(&mut adl, &closure);
+        assert_eq!(adl.constraint_results.len(), before);
+        assert!(
+            adl.deltas
+                .iter()
+                .all(|d| !d.code.starts_with("DECLARED_DEPENDENCY"))
+        );
     }
 }

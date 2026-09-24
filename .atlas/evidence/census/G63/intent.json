@@ -1,0 +1,46 @@
+{
+  "objective": "P2 exit criterion C: ADL consumes census truth -- authored depends_on declarations are reconciled against the Cargo dependency census by materialization path (typed SATISFIED/VIOLATED ConstraintResults gating coding admission; uncheckable relations are explicit deltas), and census truth the authored ADL lacks is derived into .atlas/declared/census.adl (adl derive, drift-gated). The self-recensus snapshot (v2) attributes ADL facts to their ADL source instead of counting them unattributed, which the new ADL semantics exposed.",
+  "changed_paths": [
+    "apps/cli/src/main.rs",
+    "core/src/language/adl/",
+    "core/src/lib.rs",
+    "core/src/recensus/",
+    "runtime/src/lib.rs"
+  ],
+  "total_changes": [
+    "+adl_semantics",
+    "+artifacts",
+    "+diagnostic:IncompleteAnalysis",
+    "+docs",
+    "+evidence",
+    "+facts",
+    "+graph_bindings",
+    "+graph_edges",
+    "+graph_nodes",
+    "+normalized_facts",
+    "+obligations",
+    "+typed_records",
+    "-unattributed_semantics",
+    "+unknown_facts"
+  ],
+  "adl_changes": [
+    "+node Package:AtlasCli",
+    "+edge Adapter -depends_on-> Core",
+    "+edge AtlasCli -depends_on-> Runtime",
+    "+constraint AtlasCliIsMaterialized SATISFIED",
+    "+constraint DeclaredDependency:Adapter->Core SATISFIED",
+    "+constraint DeclaredDependency:AtlasCli->Runtime SATISFIED",
+    "+constraint DeclaredDependency:Runtime->Adapter SATISFIED",
+    "+constraint DeclaredDependency:Runtime->Core SATISFIED",
+    "source .atlas/declared",
+    "source .atlas/declared/census.adl",
+    "source .atlas/declared/system.adl"
+  ],
+  "explained_unknowns": [
+    "core/src/language/adl/census.rs: a new Rust artifact carries the same explicit UNKNOWN obligations (CALL, CONTROL_FLOW, DATA_FLOW, STATE, EFFECT, OWNERSHIP, CONCURRENCY, PERSISTENCE) as every Rust artifact at baseline -- extractor coverage gap recorded in the certificate",
+    "core/src/language/adl/census/tests.rs: a new Rust artifact carries the same explicit UNKNOWN obligations as every Rust artifact at baseline"
+  ],
+  "accepted_unexpected": [
+    "schema atlas.census-snapshot.v1 -> atlas.census-snapshot.v2: the snapshot projection now attributes facts under .atlas/declared to AdlState.sources; v1 counted them as unattributed, so any ADL growth read as a forbidden regression"
+  ]
+}

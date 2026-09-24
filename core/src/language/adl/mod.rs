@@ -1,8 +1,11 @@
+pub mod census;
+
 use crate::{
     constraint::ConstraintVerdict,
     identity::{escape_identity_field, stable_id},
     schema::{FileFact, SourceReport},
 };
+
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
@@ -271,6 +274,10 @@ pub enum ConstraintCheckKind {
     /// files), not by an authored `ConstraintCheck` -- see the `ObservedMaterialization:*` results
     /// built from `compare_declared_observed`'s deltas, below.
     ObservedMaterializationDelta,
+    /// Synthesized by reconciling authored `depends_on` declarations against the dependency
+    /// census (`census::reconcile_dependencies`); `supporting_node_names` are the two declared
+    /// entities, empty when the census observed a dependency nothing declares.
+    ObservedDependency,
 }
 
 impl ConstraintCheckKind {
@@ -279,6 +286,7 @@ impl ConstraintCheckKind {
             Self::AttributeEquals => "ATTRIBUTE_EQUALS",
             Self::MaterializationExists => "MATERIALIZATION_EXISTS",
             Self::ObservedMaterializationDelta => "OBSERVED_MATERIALIZATION_DELTA",
+            Self::ObservedDependency => "OBSERVED_DEPENDENCY",
         }
     }
 }

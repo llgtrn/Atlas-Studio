@@ -209,3 +209,17 @@ This was not a hypothetical: this repository's own real `.atlas/declared/system.
 ## Implementation status: declared-edge identity cannot be tricked into colliding
 
 `parse_relation` extracts a relation's `from`/`relation`/`to` from raw ADL source text via simple `split_once("->")`, not through a restrictive lexer — any of the three can contain a literal `:`. `compile_adl` previously joined them unescaped (`format!("{}:{}:{}", from, relation, to)`) to compute the declared edge's `stable_id`, so two genuinely different relations (e.g. `A ->r:B-> C` and `A ->r-> B:C`, both joining to `"A:r:B:C"`) could compute the identical edge id. Fixed: each field is now escaped (`core::identity::escape_identity_field`) before joining, the same fix applied to `core::census::dependency`'s `identity_key()` (`DEPENDENCY-CENSUS.md#implementation-status`) and `core::graph::engineering_graph`'s `Diagnostic` node id (`UNIVERSAL-GRAPH-CONTRACT.md#implementation-status`) — all three are the same collision class, closed the same way, in fields this codebase cannot prove are free of the separator because they come from a permissive parser rather than a real lexer. Found via falsification-first testing: the regression test was run against the unfixed code and confirmed to fail with a real id collision before the fix was written.
+
+## Implementation status: ADL consumes census truth (G63, ADR 0026)
+
+Authored `depends_on` declarations are reconciled against the Cargo dependency census, at the level of workspace members. An entity corresponds to a member only through its `materialize` path, never through its name.
+
+Agreement is a SATISFIED `ConstraintResult`. Disagreement is VIOLATED:
+- ATLAS-E060: declared, not observed;
+- ATLAS-E061: observed, not declared;
+- ATLAS-E062: a member with no declared entity.
+
+A relation no census can check is a `DECLARED_DEPENDENCY_NOT_CENSUSABLE` delta, never a pass.
+
+Census truth the authored ADL lacks is derived as `.atlas/declared/census.adl` (`atlas-systemizer adl derive`). Each declaration cites its census evidence. Drift fails a test, `adl derive --check`, and reconciliation itself.
+

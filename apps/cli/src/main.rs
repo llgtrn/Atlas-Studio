@@ -211,6 +211,28 @@ fn run(args: &[String]) -> Result<(), String> {
                 return Err("CENSUS_NOT_CLOSED".into());
             }
         }
+        [cmd, sub, rest @ ..] if cmd == "adl" && sub == "derive" => {
+            // ADR 0026: census truth the authored ADL does not declare, as ADL text. `--check`
+            // exits ADL_CENSUS_DRIFT when the committed census.adl differs from it.
+            let root = value(rest, "--root")?.unwrap_or_else(|| ".".into());
+            let derived = runtime::derive_census_adl(&root).map_err(|e| format!("{root}: {e}"))?;
+            if rest.iter().any(|arg| arg == "--check") {
+                let path = std::path::Path::new(&root).join(runtime::CENSUS_ADL_PATH);
+                let committed = fs::read_to_string(&path).unwrap_or_default();
+                if committed != derived {
+                    return Err(format!(
+                        "ADL_CENSUS_DRIFT: {} differs from census truth; regenerate with \
+                         `atlas-systemizer adl derive --out {}`",
+                        path.display(),
+                        runtime::CENSUS_ADL_PATH
+                    ));
+                }
+            }
+            if let Some(out) = value(rest, "--out")? {
+                write_report_to_out(&out, &derived)?;
+            }
+            print!("{derived}");
+        }
         [cmd, sub, rest @ ..] if cmd == "recensus" && sub == "snapshot" => {
             // ADR 0024: the revision-independent semantic state of a full self-census.
             let root = value(rest, "--root")?.unwrap_or_else(|| ".".into());
@@ -501,7 +523,7 @@ fn run(args: &[String]) -> Result<(), String> {
         }
         _ => {
             return Err(
-                "usage: atlas-systemizer <contract|systemize|docs audit|code analyze|parse|check|graph|observe|genome|search|create|physical|product|census certificate|recensus snapshot|recensus prove|donors working-set|work prepare> ..."
+                "usage: atlas-systemizer <contract|systemize|docs audit|code analyze|parse|check|graph|observe|genome|search|create|physical|product|census certificate|adl derive|recensus snapshot|recensus prove|donors working-set|work prepare> ..."
                     .into(),
             );
         }

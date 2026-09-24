@@ -14,7 +14,11 @@ use crate::{DocsReport, SystemizeReport, identity::IntegrityDigest};
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
 
-pub const SNAPSHOT_SCHEMA: &str = "atlas.census-snapshot.v1";
+/// v2 (G63): facts from ADL sources are attributed to the ADL surface (`AdlState::sources`)
+/// instead of counting as unattributed semantics.
+pub const SNAPSHOT_SCHEMA: &str = "atlas.census-snapshot.v2";
+/// Facts whose provenance lies under this root are ADL semantics, not inventoried artifacts.
+const ADL_ROOT: &str = ".atlas/declared";
 pub const RECENSUS_SCHEMA: &str = "atlas.self-recensus-report.v1";
 
 /// One artifact's census state, free of revision-dependent identifiers.
@@ -55,6 +59,11 @@ pub struct AdlState {
     pub diagnostics: usize,
     /// constraint name -> verdict.
     pub constraints: BTreeMap<String, String>,
+    /// ADL source path (or `.atlas/declared` for compiler-level results) -> BLAKE3 over the
+    /// projections of every fact attributed to it (v2). Any change to a source's semantics --
+    /// bindings, materializations and spans included -- changes its digest.
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub sources: BTreeMap<String, String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
@@ -119,10 +128,29 @@ impl CensusSnapshot {
             .collect();
         let mut projections: BTreeMap<String, Vec<String>> = BTreeMap::new();
         let mut unattributed = 0usize;
+        let mut adl_semantics = 0usize;
+        let mut adl_projections: BTreeMap<String, Vec<String>> = BTreeMap::new();
         for fact in &census.facts {
             let status = fact.status.as_str();
             let kind = format!("{:?}", fact.kind);
             let path = &fact.provenance.source_path;
+            if !artifacts.contains_key(path)
+                && (path == ADL_ROOT || path.starts_with(&format!("{ADL_ROOT}/")))
+            {
+                adl_semantics += 1;
+                adl_projections
+                    .entry(path.clone())
+                    .or_default()
+                    .push(format!(
+                        "F|{kind}|{status}|{}|{}|{}|{}|{}",
+                        fact.subject,
+                        fact.predicate,
+                        fact.object,
+                        fact.provenance.span.as_deref().unwrap_or(""),
+                        fact.provenance.extractor
+                    ));
+                continue;
+            }
             match artifacts.get_mut(path) {
                 Some(artifact) => {
                     bump(&mut artifact.facts, key(&kind, status));
@@ -191,6 +219,7 @@ impl CensusSnapshot {
         totals.insert("obligations".into(), census.typed_obligations.len());
         totals.insert("evidence".into(), census.evidence.len());
         totals.insert("unattributed_semantics".into(), unattributed);
+        totals.insert("adl_semantics".into(), adl_semantics);
         for diagnostic in &census.diagnostics {
             bump(&mut totals, format!("diagnostic:{:?}", diagnostic.code));
         }
@@ -271,6 +300,14 @@ impl CensusSnapshot {
                 .constraint_results
                 .iter()
                 .map(|c| (c.name.clone(), c.verdict.as_str().to_owned()))
+                .collect(),
+            sources: adl_projections
+                .into_iter()
+                .map(|(path, mut lines)| {
+                    lines.sort();
+                    let digest = IntegrityDigest::of_bytes(lines.join("\n").as_bytes());
+                    (path, digest.as_str().to_owned())
+                })
                 .collect(),
         };
         let mut admission_blockers: Vec<String> = report
@@ -356,6 +393,10 @@ impl CensusSnapshot {
         out.push(format!("adl diagnostics {}", self.adl.diagnostics));
         for (k, v) in &self.adl.constraints {
             out.push(format!("adl constraint {k} {v}"));
+        }
+        // Emitted only when present, so v1 snapshots keep their recorded digests.
+        for (path, digest) in &self.adl.sources {
+            out.push(format!("adl source {path} {digest}"));
         }
         out.push(format!("admission {}", self.admission_allowed));
         for b in &self.admission_blockers {
@@ -755,6 +796,20 @@ pub fn prove(
     }
     for e in &adl_delta.removed {
         observed_changes.push(format!("adl -{e}"));
+    }
+    let adl_source_paths: BTreeSet<&String> = before
+        .adl
+        .sources
+        .keys()
+        .chain(after.adl.sources.keys())
+        .collect();
+    for path in adl_source_paths {
+        if before.adl.sources.get(path) != after.adl.sources.get(path) {
+            observed_changes.push(format!("adl source {path}"));
+        }
+    }
+    if before.schema != after.schema {
+        observed_changes.push(format!("schema {} -> {}", before.schema, after.schema));
     }
     for c in &coverage_delta {
         observed_changes.push(format!("coverage {c}"));

@@ -50,6 +50,10 @@ pub use identity::{
     RawObservationId, RepositoryId, RevisionId, SemanticObligationId, SymbolId, TechnologyId,
     blake3, escape_identity_field, stable_id,
 };
+pub use language::adl::census::{
+    CENSUS_ADL_PATH, CENSUS_DERIVATION_ID, DependencyReconciliation, ObservedArchitecture,
+    ObservedMember, ObservedMemberDependency, derive_census_adl, reconcile_dependencies,
+};
 pub use language::adl::{
     AdlCompileReport, AdlDeclaration, AdlDiagnostic, AdlProgram, AdlSource, AdlToken, AtlasIr,
     BindingDecl, CapabilityDecl, ConstraintCheck, ConstraintDecl, ConstraintResult, DeclaredEdge,

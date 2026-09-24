@@ -290,3 +290,68 @@ fn intended_coverage_improvement_is_observed_and_downgrades_need_intent() {
         Verdict::Proven
     );
 }
+
+#[test]
+fn a_change_to_adl_semantics_must_be_declared_as_an_adl_source_change() {
+    let mut before = base();
+    before
+        .adl
+        .sources
+        .insert(".atlas/declared/system.adl".into(), "blake3-256:aa".into());
+    let before = reseal(before);
+    let mut after = before.clone();
+    after
+        .adl
+        .sources
+        .insert(".atlas/declared/system.adl".into(), "blake3-256:bb".into());
+    after
+        .adl
+        .sources
+        .insert(".atlas/declared/census.adl".into(), "blake3-256:cc".into());
+    let after = reseal(after);
+    assert_ne!(before.census_digest, after.census_digest);
+    let mut i = intent("declare census truth", &[], &[]);
+    let report = prove("G1", &before, &after, &after, &i);
+    assert_eq!(report.verdict, Verdict::GenerationNotProven);
+    assert_eq!(
+        report.unexpected_changes,
+        [
+            "adl source .atlas/declared/census.adl",
+            "adl source .atlas/declared/system.adl"
+        ]
+    );
+    i.adl_changes = vec![
+        "source .atlas/declared/census.adl".into(),
+        "source .atlas/declared/system.adl".into(),
+    ];
+    assert_eq!(
+        prove("G1", &before, &after, &after, &i).verdict,
+        Verdict::Proven
+    );
+}
+
+#[test]
+fn a_snapshot_schema_change_is_observed_and_needs_a_reasoned_acceptance() {
+    let before = reseal(CensusSnapshot {
+        schema: "atlas.census-snapshot.v1".into(),
+        ..base()
+    });
+    let after = base();
+    let change = format!("schema atlas.census-snapshot.v1 -> {SNAPSHOT_SCHEMA}");
+    let mut i = intent("upgrade the projection", &[], &[]);
+    let report = prove("G1", &before, &after, &after, &i);
+    assert_eq!(report.unexpected_changes, std::slice::from_ref(&change));
+    i.accepted_unexpected = vec![format!("{change}: ADL facts are attributed")];
+    assert_eq!(
+        prove("G1", &before, &after, &after, &i).verdict,
+        Verdict::Proven
+    );
+}
+
+#[test]
+fn a_v1_snapshot_without_adl_sources_keeps_its_canonical_text() {
+    let s = base();
+    assert!(s.adl.sources.is_empty());
+    assert!(!s.canonical_text().contains("adl source"));
+    assert!(s.verify_digest());
+}
