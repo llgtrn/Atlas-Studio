@@ -21,9 +21,9 @@ adaptive galloping-vs-linear deduplication) is now understood and evidenced from
 `.atlas/genome/technology/datafrog-semi-naive-fixpoint-evaluation.md`, read directly from `src/lib.rs`,
 `src/iteration.rs`, and `src/variable.rs` (read in full).
 
-Still needing classification: the treefrog/leaper "worst-case optimal join" machinery
-(`src/treefrog.rs`, the crate's single largest file at 795 lines), and the `join.rs`/`merge.rs`/
-`map.rs` operator implementations.
+Classified 2026-09-24 (ADR 0004): the semi-naive delta mechanism is ABSORBED as `core::closure`; the
+treefrog/leaper "worst-case optimal join" machinery (`src/treefrog.rs`, 795 lines) and the
+`join.rs`/`merge.rs`/`map.rs` operator implementations are REFERENCE_ONLY (no Atlas caller exists).
 
 ## Native Replacement
 

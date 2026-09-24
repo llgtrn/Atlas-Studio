@@ -337,6 +337,83 @@ impl DynamicDependencyObligation {
     ];
 }
 
+/// The root dependency table (in some workspace member's own manifest) whose entry made a
+/// resolved package transitively reachable. This is an ORIGIN label, deliberately not called a
+/// "resolution context": the admitted context matrix (features, target selectors) that
+/// `.atlas/contracts/DEPENDENCY-CENSUS.md#resolution-context` requires is still TARGET work. One
+/// package may carry several origins. `Unattributed` is a member-originated edge whose manifest
+/// declaration was not evidenced (`DependencyEdge::role == None`) -- reported, never dropped and
+/// never guessed as `Runtime`. `ProcMacro` exists only to mirror `DependencyRole` one-to-one; no
+/// census emits that role yet, so no package ever carries this origin today.
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+pub enum ReachOrigin {
+    Runtime,
+    Dev,
+    Build,
+    ProcMacro,
+    Unattributed,
+}
+
+impl ReachOrigin {
+    pub const fn from_role(role: DependencyRole) -> Self {
+        match role {
+            DependencyRole::Runtime => Self::Runtime,
+            DependencyRole::Dev => Self::Dev,
+            DependencyRole::Build => Self::Build,
+            DependencyRole::ProcMacro => Self::ProcMacro,
+        }
+    }
+}
+
+/// How far `DependencyReachability` may be trusted. The only value today is an explicit upper
+/// bound: every edge is treated as active regardless of `optional`/target-selector activation
+/// (both still TARGET work, `DEPENDENCY-CENSUS.md#implementation-status`); an external package's
+/// own build-dependencies are not distinguishable in `Cargo.lock` and inherit its origin; and a
+/// source-less path package that is not a declared workspace member has no manifest read, so its
+/// own dev-dependency edges cannot be excluded and are followed.
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+pub enum ReachabilityApproximation {
+    OriginUpperBound,
+    /// The closure itself is `Partial`: a dangling/ambiguous reference or an unsupported manifest
+    /// construct means some edges were never resolved, so the result is an upper bound over the
+    /// edges that WERE resolved and may still miss packages reachable only through unresolved ones.
+    IncompleteGraph,
+}
+
+/// One resolved package and every origin it is transitively reachable through.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct ReachedInstance {
+    /// `DependencyIdentity::identity_key()` form -- name AND version, never name alone
+    /// (`DEPENDENCY-CENSUS.md`: de-duplicate only by stable dependency identity).
+    pub identity_key: String,
+    pub origins: Vec<ReachOrigin>,
+}
+
+/// Transitive closure of the resolved dependency graph from every workspace member, labelled by
+/// origin, computed by semi-naive fixed-point evaluation (`crate::closure`, ADR 0004) over exact
+/// lockfile package identities. A dependency's own dev-dependencies are never followed (Cargo never
+/// activates them), which is also what makes the real, dev-edge-mediated cycles in real lockfiles
+/// (e.g. a member dev-depending on a test utility that depends back on it) irrelevant to the
+/// closure rather than infinite.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct DependencyReachability {
+    pub approximation: ReachabilityApproximation,
+    /// Reachability itself is DERIVED from lockfile facts, but origin labels crossing role-less
+    /// edges are inherited by rule, not evidenced (ADR 0002), so the record as a whole is INFERRED.
+    pub epistemic_status: crate::schema::EpistemicStatus,
+    /// Sorted by `identity_key`. A workspace member appears only if another member depends on it.
+    pub reached: Vec<ReachedInstance>,
+    /// Non-member lockfile packages reachable through no origin from any workspace member. Real
+    /// Cargo output prunes such packages, so a non-empty list is itself evidence worth recensus.
+    pub unreached_instances: Vec<String>,
+    /// `CENSUS-CERTIFICATE.md`'s "whether dependency closure reached fixed point" (not its
+    /// census-wide reconciliation fixed point). `converged == false` keeps the report out of
+    /// `Closed`; `converged` holds exactly when `delta_remaining == 0`.
+    pub dependency_fixed_point: crate::closure::FixedPointRecord,
+}
+
 /// The resolved dependency closure for one ecosystem within one repository root
 /// (`.atlas/contracts/DEPENDENCY-CENSUS.md#closure`).
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
@@ -364,6 +441,10 @@ pub struct DependencyClosureReport {
     /// whenever `state != NotApplicable`, empty otherwise (no ecosystem was found to have dynamic
     /// obligations about).
     pub dynamic_obligations: Vec<DynamicDependencyObligation>,
+    /// `None` whenever no resolved package graph exists to close over (`NotApplicable`,
+    /// `Blocked`) -- never a fabricated "converged in zero rounds" record for a census that did
+    /// not happen.
+    pub reachability: Option<DependencyReachability>,
 }
 
 impl DependencyClosureReport {
@@ -536,6 +617,7 @@ mod tests {
             dangling_references: Vec::new(),
             unsupported_constructs: Vec::new(),
             dynamic_obligations: Vec::new(),
+            reachability: None,
         }
     }
 

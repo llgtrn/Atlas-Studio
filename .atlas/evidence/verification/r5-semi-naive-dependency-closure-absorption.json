@@ -1,0 +1,86 @@
+{
+  "schema": "atlas.self-build.generation-evidence.v1",
+  "generation": "G35",
+  "base_commit": "a53c52e76ccd00495812d9765853d30e80943c59",
+  "wave": "ABSORPTION -- second real donor absorption, proving the souffle cycle generalizes. datafrog's semi-naive delta-driven fixed-point evaluation absorbed natively as core::closure, computing origin-labelled transitive dependency reachability inside adapter::census_cargo_workspace (DependencyClosureReport.reachability, schema v4).",
+  "priority_classification": "absorption (R5 'recursive/fixed-point semantic derivation'), selected by a deterministic join over a parallel lane wave per the standing multi-generation directive; unrelated hardening explicitly excluded (anti-hardening-trap rule).",
+  "parallel_wave": {
+    "lanes_dispatched": 7,
+    "lanes": [
+      {"id": "salsa", "kind": "donor", "result": "revision counter composes additively beside RevisionRef; no caller exists; ABSORB_LATER with narrowed blocker"},
+      {"id": "datafrog", "kind": "donor", "result": "concluded REJECT; overturned in the join (did not read DEPENDENCY-CENSUS.md; acyclicity premise falsified by SCC evidence)"},
+      {"id": "differential-dataflow", "kind": "donor", "result": "genuine sequencing block confirmed: nothing incremental exists to measure; ABSORB_LATER"},
+      {"id": "buck2-dice", "kind": "donor", "result": "AIF1 sequencing block confirmed directly by coordinator (R6-R8 PLANNED); ABSORB_LATER"},
+      {"id": "r5-capability-gap", "kind": "capability", "result": "#6 real; #1-#4 zero code; #5 partial"},
+      {"id": "adversarial-falsification", "kind": "falsification", "result": "SURVIVES_WITH_CONDITIONS (7 conditions, all implemented)"},
+      {"id": "architecture-contract", "kind": "architecture", "result": "no layering violation; 10 follow-through items, all applied"}
+    ],
+    "extinction_eligibility_check": "coordinator grep: none of salsa/datafrog/differential-dataflow/buck2 appears in any Cargo.toml, Cargo.lock or build.rs"
+  },
+  "join": {
+    "conflict_resolved": "two lanes (datafrog, r5-capability-gap) independently concluded no cyclic/multi-round derivation exists. The coordinator found .atlas/contracts/DEPENDENCY-CENSUS.md requires transitive accounting per build/runtime mode and 'no new dependency nodes on another closure iteration', with zero native code, then tested the recorded premise ('acyclic by Cargo.lock's own DAG guarantee') executably.",
+    "executable_evidence": "Tarjan SCC over every Cargo.lock in the repository. A first pass keyed by name only reported cycles in 7 workspaces including buck2/miri/rust (getrandom<->rand_core); these were artifacts of collapsing distinct versions and were discarded. At exact (name, version) granularity genuine cycles remain in 5 of 15: crubit (6 SCCs incl. dyn_format self-loop), rust-analyzer (cfg self-loop), wasm-tools (wasm-encoder/wasmparser/wasmprinter/wast/wat), wasmtime (wasmtime/wasmtime-internal-component-macro/wasmtime-test-util), zed (gpui family). The adversarial lane independently confirmed every one runs through a member dev-dependency.",
+    "selected": "datafrog semi-naive-delta-fixed-point",
+    "not_selected": {
+      "salsa": "no consumer for cached derivation exists; building a counter now would be speculative infrastructure",
+      "differential-dataflow": "workload unmeasurable until change detection exists",
+      "buck2": "AIF1 sequencing"
+    }
+  },
+  "provenance_trace": {
+    "donor_evidence": "rust-lang/datafrog@edd7cfc0f5ad3b93ce5bbe6a17848db9376b13c0 src/variable.rs VariableTrait::changed (stable/recent/to_add lifecycle, dedup against stable, returns !recent.is_empty()); src/iteration.rs Iteration::changed (round counter)",
+    "census": ".atlas/census/datafrog.md",
+    "genome": ".atlas/genome/technology/datafrog-semi-naive-fixpoint-evaluation.md",
+    "requirement": ".atlas/contracts/DEPENDENCY-CENSUS.md; .atlas/roadmap/SELF-BUILDING-R4-R8.md R5",
+    "design_decision": ".atlas/decisions/0004-semi-naive-dependency-closure.md",
+    "native_implementation": "core/src/closure/mod.rs; adapter/src/dependency/cargo.rs dependency_reachability; core/src/census/dependency.rs DependencyReachability",
+    "verification": "this file"
+  },
+  "semantic_compression": "datafrog's Variable (Rc<RefCell> shared batches, geometric merge, galloping dedup) and Iteration (dyn VariableTrait registry, debug stats) compressed to one BTreeSet-backed DeltaRelation and one semi_naive_fixed_point function returning a FixedPointRecord; the invariant kept is delta-only expansion with dedup against stable plus round accounting.",
+  "blocker_fixed_in_same_change": {
+    "classification": "BLOCKS_CURRENT_ABSORPTION",
+    "defect": "roles_by_consumer/evidence_by_consumer were keyed by bare package name, handing a workspace member's manifest roles and evidence path to any registry crate sharing its name (real: rust-analyzer line-index/lsp-server/smol_str, zed zed_extension_api); this would have seeded false origins",
+    "fix": "roles/evidence apply only to source-less lockfile entries"
+  },
+  "falsification": [
+    {"hypothesis": "semi-naive dedup against stable is what makes the driver terminate on cycles and expand each tuple once", "mutation": "drop the !stable.contains filter in DeltaRelation::changed", "expected": "cycle, dedup and two-depth tests fail", "observed": "3 tests failed", "restored": "6/6 pass"},
+    {"hypothesis": "a weak test was hiding: the original equal-length diamond test PASSED under that mutation (dedup happened within one round's to_add set)", "mutation": "same", "action": "rewrote it with unequal path lengths so the second derivation lands in a later round", "observed": "now fails under the mutation"},
+    {"hypothesis": "intermediate members' dev edges must not propagate", "mutation": "M1 follow all edges", "observed": "an_intermediate_members_dev_dependencies_never_leak... failed"},
+    {"hypothesis": "every declared role seeds an origin", "mutation": "M2 first role only", "observed": "a_dependency_declared_in_two_tables_carries_both_origins failed"},
+    {"hypothesis": "manifest roles belong only to source-less entries", "mutation": "M3 name-keyed roles", "observed": "a_member_named_like_a_registry_crate_does_not_donate... failed"},
+    {"hypothesis": "reachability is transitive, not just seeds", "mutation": "M4 no propagation", "observed": "5 tests failed"},
+    {"hypothesis": "versions never merge", "mutation": "M5 propagate through every same-named package", "observed": "two_versions_of_one_crate_never_merge_their_dependencies failed"},
+    {"hypothesis": "the ledger guard detects dangling citations", "mutation": "ledger cited this file before it existed", "observed": "generation_ledger_references_real_paths_and_real_base_commits failed", "restored": "passes once written"}
+  ],
+  "test_expectation_corrections": [
+    "engine in the dev-leak fixture carries [Runtime, Dev], not [Runtime]: it is genuinely needed in its own dev context because its dev-dependency depends back on it; the load-bearing assertion (test-util never Runtime) held throughout",
+    "a 3-level chain takes 3 rounds, not 4: seeds start at the member's direct dependency"
+  ],
+  "recensus_with_improved_atlas": {
+    "workspaces": 16,
+    "all_converged": true,
+    "rounds_range": "5-12",
+    "states": "all Closed, unchanged",
+    "newly_observable": "unreached lockfile packages: rust-analyzer 5, rust 1, wasm-tools 39 -- the previous Atlas had no way to observe these",
+    "new_discovery": "rust-analyzer lockfile contains same name+version entries from two sources (in-tree la-arena 0.3.1 and registry la-arena 0.3.1; also line-index, smol_str, text-size); rust has rustc_tools_util likewise. Cargo disambiguates with a '(source)' suffix the parser ignores, so edges to the registry copy resolve to the in-tree copy. Deferred to G36 (not caused by this absorption; reported honestly as unreached rather than hidden)."
+  },
+  "validation": {
+    "cargo fmt --all --check": "clean",
+    "cargo clippy --workspace --all-targets -- -D warnings": "clean",
+    "cargo test --workspace": "620 passed, 0 failed (core 203 [+6], adapter 327 [+9], runtime 85 [+1], cli 5)",
+    "docs audit --root .atlas": "gate_ready true, 0 hard violations",
+    "atlas-cli systemize --root . (real production path, uncommitted diff included)": "dependency_closure.reachability present, ORIGIN_UPPER_BOUND, INFERRED, converged in 5 rounds, 0 unreached, coding_admission.blockers []"
+  },
+  "absorbed_gate": {
+    "native_production_implementation": true,
+    "wired_into_real_runtime_path": "census_cargo_workspace <- runtime resolve_dependency_closure <- systemize/graph/code_analyze",
+    "semantic_and_provenance_survive": "exact name+version+source identity; epistemic_status INFERRED; approximation explicit",
+    "positive_tests": true,
+    "adversarial_tests": true,
+    "falsified": true,
+    "full_gates_green": true,
+    "donor_runtime_dependency": "none (never was)",
+    "remaining_mechanisms_not_falsely_claimed": "leapjoin/treefrog, antijoin, merge/gallop storage, map: REFERENCE_ONLY"
+  },
+  "historical_evidence_retained": true
+}

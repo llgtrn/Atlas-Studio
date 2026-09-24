@@ -21,8 +21,9 @@
 
 use atlas_core::{
     DependencyActivation, DependencyClosureReport, DependencyClosureState, DependencyEcosystem,
-    DependencyEdge, DependencyIdentity, DependencyRole, DependencySourceKind,
-    DynamicDependencyObligation,
+    DependencyEdge, DependencyIdentity, DependencyReachability, DependencyRole,
+    DependencySourceKind, DynamicDependencyObligation, EpistemicStatus, ReachOrigin,
+    ReachabilityApproximation, ReachedInstance, semi_naive_fixed_point,
 };
 use std::{
     collections::{BTreeMap, BTreeSet},
@@ -570,12 +571,42 @@ pub fn census_cargo_workspace(root: &Path) -> io::Result<Option<DependencyClosur
             .push(package);
     }
 
+    let index_of: BTreeMap<(&str, &str, Option<&str>), usize> = packages
+        .iter()
+        .enumerate()
+        .map(|(index, package)| {
+            (
+                (
+                    package.name.as_str(),
+                    package.version.as_str(),
+                    package.source.as_deref(),
+                ),
+                index,
+            )
+        })
+        .collect();
+    // Exact (consumer index, provider index, every declared role) triples: the graph the
+    // reachability closure below runs over. Keyed by lockfile package, never by bare name --
+    // `DependencyEdge::consumer` is name-only, and two resolved versions of one crate routinely
+    // have different dependencies.
+    let mut lock_edges: Vec<(usize, usize, BTreeSet<DependencyRole>)> = Vec::new();
+
     let mut edges = Vec::new();
     let mut dangling_references = Vec::new();
-    for package in &packages {
-        let consumer_roles = roles_by_consumer.get(&package.name);
+    for (consumer_index, package) in packages.iter().enumerate() {
+        // Manifest roles belong to the workspace member that declared them, which is always a
+        // source-less lockfile entry. Keying only by name also handed a member's roles and
+        // manifest evidence path to any REGISTRY package that happened to share its name (real in
+        // this corpus: rust-analyzer's `line-index`/`lsp-server`/`smol_str`, zed's
+        // `zed_extension_api` 0.1.0 and 0.7.0), fabricating a manifest-evidenced role for an
+        // external crate whose manifest was never read.
+        let owns_manifest = package.source.is_none();
+        let consumer_roles = roles_by_consumer
+            .get(&package.name)
+            .filter(|_| owns_manifest);
         let consumer_evidence = evidence_by_consumer
             .get(&package.name)
+            .filter(|_| owns_manifest)
             .cloned()
             .unwrap_or_else(|| "Cargo.lock".to_owned());
         for dependency_ref in &package.dependencies {
@@ -638,6 +669,18 @@ pub fn census_cargo_workspace(root: &Path) -> io::Result<Option<DependencyClosur
             let declared = consumer_roles
                 .and_then(|declared| declared.iter().find(|(name, _, _)| name == dependency_name));
             let role = declared.map(|(_, role, _)| *role);
+            let declared_roles: BTreeSet<DependencyRole> = consumer_roles
+                .into_iter()
+                .flatten()
+                .filter(|(name, _, _)| name == dependency_name)
+                .map(|(_, role, _)| *role)
+                .collect();
+            let provider_index = index_of[&(
+                provider_package.name.as_str(),
+                provider_package.version.as_str(),
+                provider_package.source.as_deref(),
+            )];
+            lock_edges.push((consumer_index, provider_index, declared_roles));
             let activation = declared.map_or(DependencyActivation::ALWAYS, |(_, _, activation)| {
                 *activation
             });
@@ -678,16 +721,29 @@ pub fn census_cargo_workspace(root: &Path) -> io::Result<Option<DependencyClosur
     // verified empty project -- real Cargo output always lists at least the workspace's own
     // member packages. Distinct from `Closed` with zero edges (real packages, genuinely no
     // dependencies), which this state model treats as a real, verified answer.
+    let graph_incomplete = !dangling_references.is_empty() || !unsupported_constructs.is_empty();
+    let reachability = (!packages.is_empty()).then(|| {
+        dependency_reachability(
+            &packages,
+            &workspace_member_names,
+            &lock_edges,
+            graph_incomplete,
+        )
+    });
     let state = if packages.is_empty() {
         DependencyClosureState::Blocked
-    } else if !dangling_references.is_empty() || !unsupported_constructs.is_empty() {
+    } else if graph_incomplete
+        || reachability
+            .as_ref()
+            .is_some_and(|reach| !reach.dependency_fixed_point.converged)
+    {
         DependencyClosureState::Partial
     } else {
         DependencyClosureState::Closed
     };
 
     Ok(Some(DependencyClosureReport {
-        schema: "atlas.dependency-closure-report.v3".into(),
+        schema: "atlas.dependency-closure-report.v4".into(),
         ecosystem: DependencyEcosystem::Cargo,
         root: root.to_string_lossy().into_owned(),
         state,
@@ -697,7 +753,103 @@ pub fn census_cargo_workspace(root: &Path) -> io::Result<Option<DependencyClosur
         dangling_references,
         unsupported_constructs,
         dynamic_obligations: DynamicDependencyObligation::ALL.to_vec(),
+        reachability,
     }))
+}
+
+/// Origin-labelled transitive closure from every workspace member, by semi-naive fixed-point
+/// evaluation (`atlas_core::closure`, ADR 0004).
+///
+/// Seeds: for every edge a workspace member declares, one tuple per declared role (a dependency
+/// listed in both `[dependencies]` and `[dev-dependencies]` seeds BOTH origins), or
+/// `Unattributed` when no declaration was evidenced. Propagation: a reached package's resolved
+/// edges carry its origin forward -- except a workspace member's dev-only edges, which Cargo never
+/// activates for a package used as a dependency. That exclusion is what the real cycles in this
+/// corpus's lockfiles all run through (e.g. `wasmtime` dev-depends on `wasmtime-test-util`, which
+/// depends on `wasmtime`); the semi-naive loop terminates on them regardless.
+fn dependency_reachability(
+    packages: &[LockPackage],
+    workspace_member_names: &BTreeSet<String>,
+    lock_edges: &[(usize, usize, BTreeSet<DependencyRole>)],
+    graph_incomplete: bool,
+) -> DependencyReachability {
+    let is_member = |index: usize| {
+        packages[index].source.is_none() && workspace_member_names.contains(&packages[index].name)
+    };
+    let identity_key = |index: usize| {
+        let package = &packages[index];
+        DependencyIdentity {
+            ecosystem: DependencyEcosystem::Cargo,
+            name: package.name.clone(),
+            version: package.version.clone(),
+            source_kind: classify_source_kind(package.source.as_deref(), is_member(index)),
+            source_locator: package.source.clone(),
+            checksum: package.checksum.clone(),
+        }
+        .identity_key()
+    };
+
+    let mut seeds = Vec::new();
+    let mut successors: BTreeMap<usize, Vec<usize>> = BTreeMap::new();
+    for (consumer, provider, roles) in lock_edges {
+        if is_member(*consumer) {
+            if roles.is_empty() {
+                seeds.push((*provider, ReachOrigin::Unattributed));
+            }
+            for role in roles {
+                seeds.push((*provider, ReachOrigin::from_role(*role)));
+            }
+        }
+        let dev_only = !roles.is_empty() && roles.iter().all(|role| *role == DependencyRole::Dev);
+        if !(is_member(*consumer) && dev_only) {
+            successors.entry(*consumer).or_default().push(*provider);
+        }
+    }
+
+    // Every continuing round adds at least one tuple not already stable, and there are at most
+    // `packages x origins` distinct tuples, so this bound is never the real exit on finite input.
+    let max_rounds = packages.len() * 5 + 1;
+    let (tuples, dependency_fixed_point) =
+        semi_naive_fixed_point(seeds, max_rounds, |delta, emit| {
+            for (package, origin) in delta {
+                for next in successors.get(package).into_iter().flatten() {
+                    emit((*next, *origin));
+                }
+            }
+        });
+
+    let mut origins_by_package: BTreeMap<usize, BTreeSet<ReachOrigin>> = BTreeMap::new();
+    for (package, origin) in tuples {
+        origins_by_package
+            .entry(package)
+            .or_default()
+            .insert(origin);
+    }
+    let mut reached: Vec<ReachedInstance> = origins_by_package
+        .iter()
+        .map(|(package, origins)| ReachedInstance {
+            identity_key: identity_key(*package),
+            origins: origins.iter().copied().collect(),
+        })
+        .collect();
+    reached.sort_by(|a, b| a.identity_key.cmp(&b.identity_key));
+    let mut unreached_instances: Vec<String> = (0..packages.len())
+        .filter(|index| !is_member(*index) && !origins_by_package.contains_key(index))
+        .map(identity_key)
+        .collect();
+    unreached_instances.sort();
+
+    DependencyReachability {
+        approximation: if graph_incomplete {
+            ReachabilityApproximation::IncompleteGraph
+        } else {
+            ReachabilityApproximation::OriginUpperBound
+        },
+        epistemic_status: EpistemicStatus::Inferred,
+        reached,
+        unreached_instances,
+        dependency_fixed_point,
+    }
 }
 
 #[cfg(test)]
@@ -2141,6 +2293,29 @@ version = "0.1.0"
             );
             assert!(report.dangling_references.is_empty(), "donor `{name}`");
             assert!(report.unsupported_constructs.is_empty(), "donor `{name}`");
+            // ADR 0004: every real workspace -- five of which (crubit, rust-analyzer, wasm-tools,
+            // wasmtime, zed) contain genuine dependency cycles through member dev-dependencies --
+            // must reach a checked fixed point, far inside the defensive round bound.
+            let reach = report
+                .reachability
+                .as_ref()
+                .unwrap_or_else(|| panic!("donor `{name}` has no reachability"));
+            assert!(reach.dependency_fixed_point.converged, "donor `{name}`");
+            assert_eq!(
+                reach.dependency_fixed_point.delta_remaining, 0,
+                "donor `{name}`"
+            );
+            assert!(
+                reach.dependency_fixed_point.iterations <= report.instances_total + 1,
+                "donor `{name}`: {:?}",
+                reach.dependency_fixed_point
+            );
+            assert_eq!(
+                reach.approximation,
+                ReachabilityApproximation::OriginUpperBound,
+                "donor `{name}`"
+            );
+            assert!(!reach.reached.is_empty(), "donor `{name}` reached nothing");
         }
 
         assert!(
@@ -2320,6 +2495,308 @@ version = "0.1.0"
             evidenced_edges > 10,
             "expected substantial evidenced-role coverage now that crates/* is expanded to its \
              real subcrates, not just the handful of top-level (non-glob) members; got {evidenced_edges}"
+        );
+    }
+
+    // --- R5 capability "recursive/fixed-point semantic derivation" (ADR 0004): origin-labelled
+    //     transitive dependency reachability by semi-naive fixed-point evaluation. Each test below
+    //     is one condition the generation's adversarial-falsification lane required. -------------
+
+    const REGISTRY: &str = "registry+https://github.com/rust-lang/crates.io-index";
+
+    /// Builds a throwaway workspace: root manifest, per-member manifests, and a Cargo.lock whose
+    /// `[[package]]` blocks are given as `(name, version, registry_source, dependencies)`.
+    fn reach_fixture(
+        tag: &str,
+        members: &[(&str, &str)],
+        lock: &[(&str, &str, bool, &[&str])],
+    ) -> DependencyClosureReport {
+        let dir =
+            std::env::temp_dir().join(format!("atlas-dep-reach-{}-{tag}", std::process::id()));
+        let _ = fs::remove_dir_all(&dir);
+        let member_list = members
+            .iter()
+            .map(|(name, _)| format!("\"{name}\""))
+            .collect::<Vec<_>>()
+            .join(", ");
+        write(
+            &dir.join("Cargo.toml"),
+            &format!("[workspace]\nmembers = [{member_list}]\n"),
+        );
+        for (name, body) in members {
+            write(
+                &dir.join(name).join("Cargo.toml"),
+                &format!("[package]\nname = \"{name}\"\n\n{body}"),
+            );
+        }
+        let mut lockfile = String::new();
+        for (name, version, registry, deps) in lock {
+            lockfile.push_str(&format!(
+                "\n[[package]]\nname = \"{name}\"\nversion = \"{version}\"\n"
+            ));
+            if *registry {
+                lockfile.push_str(&format!("source = \"{REGISTRY}\"\n"));
+            }
+            if !deps.is_empty() {
+                lockfile.push_str("dependencies = [\n");
+                for dep in *deps {
+                    lockfile.push_str(&format!(" \"{dep}\",\n"));
+                }
+                lockfile.push_str("]\n");
+            }
+        }
+        write(&dir.join("Cargo.lock"), &lockfile);
+        let report = census_cargo_workspace(&dir).unwrap().unwrap();
+        let _ = fs::remove_dir_all(&dir);
+        report
+    }
+
+    fn origins_of(report: &DependencyClosureReport, name: &str, version: &str) -> Vec<ReachOrigin> {
+        let reach = report.reachability.as_ref().expect("reachability computed");
+        reach
+            .reached
+            .iter()
+            .find(|instance| {
+                let fields: Vec<&str> = instance.identity_key.split('|').collect();
+                fields[1] == name && fields[2] == version
+            })
+            .map(|instance| instance.origins.clone())
+            .unwrap_or_default()
+    }
+
+    #[test]
+    fn transitive_reachability_follows_the_whole_chain_with_the_root_origin() {
+        let report = reach_fixture(
+            "chain",
+            &[("app", "[dependencies]\nserde = \"1\"\n")],
+            &[
+                ("app", "0.1.0", false, &["serde"]),
+                ("serde", "1.0.0", true, &["serde_derive"]),
+                ("serde_derive", "1.0.0", true, &["syn"]),
+                ("syn", "2.0.0", true, &[]),
+            ],
+        );
+        assert!(report.is_closed());
+        assert_eq!(
+            origins_of(&report, "syn", "2.0.0"),
+            vec![ReachOrigin::Runtime]
+        );
+        let reach = report.reachability.as_ref().unwrap();
+        assert_eq!(
+            reach.approximation,
+            ReachabilityApproximation::OriginUpperBound
+        );
+        assert_eq!(reach.epistemic_status, EpistemicStatus::Inferred);
+        assert!(reach.unreached_instances.is_empty());
+        assert!(reach.dependency_fixed_point.converged);
+        assert_eq!(reach.dependency_fixed_point.delta_remaining, 0);
+        assert_eq!(
+            reach.dependency_fixed_point.iterations, 3,
+            "one delta round per reached level (serde, serde_derive, syn); the last derives nothing"
+        );
+    }
+
+    #[test]
+    fn a_dev_only_self_loop_terminates_and_adds_no_runtime_origin() {
+        // crubit's `dyn_format` / rust-analyzer's `cfg` shape: a member listing itself in its own
+        // `[dev-dependencies]` -- a real cycle in real Cargo.lock output.
+        let report = reach_fixture(
+            "self-loop",
+            &[("cfg", "[dev-dependencies]\ncfg = { path = \".\" }\n")],
+            &[("cfg", "0.0.0", false, &["cfg"])],
+        );
+        assert!(report.is_closed());
+        assert_eq!(origins_of(&report, "cfg", "0.0.0"), vec![ReachOrigin::Dev]);
+        assert!(
+            report
+                .reachability
+                .unwrap()
+                .dependency_fixed_point
+                .converged
+        );
+    }
+
+    #[test]
+    fn an_intermediate_members_dev_dependencies_never_leak_into_a_dependents_runtime_origin() {
+        // wasmtime's real shape: `wasmtime` dev-depends on `wasmtime-test-util`, which depends on
+        // `wasmtime`. A downstream member using `wasmtime` at runtime must not thereby "reach"
+        // the test utility at runtime -- Cargo never activates a dependency's dev-dependencies.
+        let report = reach_fixture(
+            "dev-leak",
+            &[
+                ("cli", "[dependencies]\nengine = { path = \"../engine\" }\n"),
+                (
+                    "engine",
+                    "[dev-dependencies]\ntest-util = { path = \"../test-util\" }\n",
+                ),
+                (
+                    "test-util",
+                    "[dependencies]\nengine = { path = \"../engine\" }\n",
+                ),
+            ],
+            &[
+                ("cli", "0.1.0", false, &["engine"]),
+                ("engine", "0.1.0", false, &["test-util"]),
+                ("test-util", "0.1.0", false, &["engine"]),
+            ],
+        );
+        assert!(report.is_closed());
+        assert_eq!(
+            origins_of(&report, "test-util", "0.1.0"),
+            vec![ReachOrigin::Dev],
+            "test-util is reachable only through engine's own [dev-dependencies]"
+        );
+        assert_eq!(
+            origins_of(&report, "engine", "0.1.0"),
+            vec![ReachOrigin::Runtime, ReachOrigin::Dev],
+            "engine is a runtime dependency of cli, AND is genuinely needed in its own dev context \
+             (its dev-dependency test-util depends back on it) -- the cycle yields that fact and \
+             then terminates, instead of looping"
+        );
+    }
+
+    #[test]
+    fn a_dependency_declared_in_two_tables_carries_both_origins() {
+        let report = reach_fixture(
+            "two-tables",
+            &[(
+                "app",
+                "[dependencies]\ncc = \"1\"\n\n[build-dependencies]\ncc = \"1\"\n",
+            )],
+            &[
+                ("app", "0.1.0", false, &["cc"]),
+                ("cc", "1.0.0", true, &["shlex"]),
+                ("shlex", "1.0.0", true, &[]),
+            ],
+        );
+        assert_eq!(
+            origins_of(&report, "shlex", "1.0.0"),
+            vec![ReachOrigin::Runtime, ReachOrigin::Build],
+            "every declared role seeds its own origin, not just the first match"
+        );
+    }
+
+    #[test]
+    fn two_versions_of_one_crate_never_merge_their_dependencies() {
+        let report = reach_fixture(
+            "versions",
+            &[("app", "[dependencies]\nsyn = \"1\"\n")],
+            &[
+                ("app", "0.1.0", false, &["syn 1.0.0"]),
+                ("syn", "1.0.0", true, &["quote"]),
+                ("syn", "2.0.0", true, &["unicode-ident"]),
+                ("quote", "1.0.0", true, &[]),
+                ("unicode-ident", "1.0.0", true, &[]),
+                ("other", "0.1.0", true, &["syn 2.0.0"]),
+            ],
+        );
+        assert_eq!(
+            origins_of(&report, "quote", "1.0.0"),
+            vec![ReachOrigin::Runtime]
+        );
+        assert!(
+            origins_of(&report, "unicode-ident", "1.0.0").is_empty(),
+            "reaching syn 1.0.0 must not reach syn 2.0.0's own dependencies"
+        );
+        let unreached = &report.reachability.as_ref().unwrap().unreached_instances;
+        assert!(unreached.iter().any(|key| key.contains("|unicode-ident|")));
+        assert!(unreached.iter().any(|key| key.contains("|syn|2.0.0|")));
+    }
+
+    #[test]
+    fn a_member_named_like_a_registry_crate_does_not_donate_its_roles_to_it() {
+        // rust-analyzer's real shape: an in-tree member `line-index` and the registry crate of
+        // the same name. The member's manifest roles and evidence path belong to it alone.
+        let report = reach_fixture(
+            "name-clash",
+            &[("line-index", "[dev-dependencies]\nexpect = \"1\"\n")],
+            &[
+                ("line-index", "0.1.3", false, &["expect"]),
+                ("line-index", "0.1.2", true, &["expect"]),
+                ("expect", "1.0.0", true, &[]),
+            ],
+        );
+        let registry_edge = report
+            .edges
+            .iter()
+            .find(|edge| edge.consumer == "line-index" && edge.role.is_none())
+            .expect("the registry crate's own edge carries no fabricated manifest role");
+        assert_eq!(registry_edge.evidence_path, "Cargo.lock");
+        assert!(
+            report
+                .edges
+                .iter()
+                .any(|edge| edge.consumer == "line-index" && edge.role == Some(DependencyRole::Dev)),
+            "the member's own evidenced dev edge is kept"
+        );
+    }
+
+    #[test]
+    fn an_undeclared_member_edge_is_reported_unattributed_never_guessed_runtime() {
+        let report = reach_fixture(
+            "unattributed",
+            &[("app", "")],
+            &[
+                ("app", "0.1.0", false, &["mystery"]),
+                ("mystery", "1.0.0", true, &[]),
+            ],
+        );
+        assert_eq!(
+            origins_of(&report, "mystery", "1.0.0"),
+            vec![ReachOrigin::Unattributed]
+        );
+    }
+
+    #[test]
+    fn a_dangling_reference_is_excluded_from_reach_and_labels_the_graph_incomplete() {
+        let report = reach_fixture(
+            "dangling",
+            &[("app", "[dependencies]\ngone = \"1\"\nok = \"1\"\n")],
+            &[
+                ("app", "0.1.0", false, &["gone", "ok"]),
+                ("ok", "1.0.0", true, &[]),
+            ],
+        );
+        assert_eq!(report.state, DependencyClosureState::Partial);
+        let reach = report.reachability.as_ref().unwrap();
+        assert_eq!(
+            reach.approximation,
+            ReachabilityApproximation::IncompleteGraph
+        );
+        assert_eq!(
+            origins_of(&report, "ok", "1.0.0"),
+            vec![ReachOrigin::Runtime]
+        );
+        assert!(
+            reach
+                .reached
+                .iter()
+                .all(|i| !i.identity_key.contains("|gone|"))
+        );
+    }
+
+    #[test]
+    fn reachability_is_identical_across_lockfile_package_order() {
+        let members = [(
+            "app",
+            "[dependencies]\na = \"1\"\n\n[dev-dependencies]\nb = \"1\"\n",
+        )];
+        let forward: [(&str, &str, bool, &[&str]); 5] = [
+            ("app", "0.1.0", false, &["a", "b"]),
+            ("a", "1.0.0", true, &["c"]),
+            ("b", "1.0.0", true, &["c", "d"]),
+            ("c", "1.0.0", true, &["a"]),
+            ("d", "1.0.0", true, &[]),
+        ];
+        let mut backward = forward;
+        backward.reverse();
+        let one = reach_fixture("order-a", &members, &forward);
+        let two = reach_fixture("order-b", &members, &backward);
+        assert_eq!(one.reachability, two.reachability);
+        assert_eq!(
+            origins_of(&one, "c", "1.0.0"),
+            vec![ReachOrigin::Runtime, ReachOrigin::Dev],
+            "c is reached through both a (runtime) and b (dev), and the a<->c cycle terminates"
         );
     }
 }

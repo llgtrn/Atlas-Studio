@@ -6,8 +6,9 @@ pub mod dependency;
 
 pub use dependency::{
     DependencyActivation, DependencyClosureReport, DependencyClosureState, DependencyEcosystem,
-    DependencyEdge, DependencyIdentity, DependencyRole, DependencySourceKind,
-    DynamicDependencyObligation,
+    DependencyEdge, DependencyIdentity, DependencyReachability, DependencyRole,
+    DependencySourceKind, DynamicDependencyObligation, ReachOrigin, ReachabilityApproximation,
+    ReachedInstance,
 };
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]

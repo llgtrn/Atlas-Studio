@@ -62,7 +62,8 @@ This is a bounded slice, not R5's full incremental engine. It does not introduce
 revision/generation counter, a durability classification, a verified-at/changed-at split, a retraction
 primitive, or any evaluation-strategy choice among Salsa/datafrog/differential-dataflow — those remain
 `ABSORB_LATER` in `.atlas/references/donor-corpus.toml`, each with an explicit, still-unresolved
-blocking question recorded there (not a vague `PENDING`). This decision closes exactly the one R5
+blocking question recorded there (not a vague `PENDING`). (datafrog's blocking question was later
+resolved and its semi-naive mechanism absorbed: see ADR 0004.) This decision closes exactly the one R5
 sub-capability ("evidence/provenance lineage through derived facts") for which sufficient evidence,
 a bounded scope, and a credible verification path already existed.
 

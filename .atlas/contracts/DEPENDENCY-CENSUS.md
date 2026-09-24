@@ -369,6 +369,21 @@ resolved build dependency) under one indistinguishable edge kind. `runtime::grap
 building/summarizing the graph and project it in, via a single shared `resolve_dependency_closure`
 helper so all three entry points can never disagree about which closure a given root resolves to.
 
+**Transitive closure is computed, per origin, to a checked fixed point** (ADR 0004). Before this, the
+report was a flat lockfile edge list: transitive edges carry `role: None`, so which packages were
+reachable from the workspace, and through which root dependency table, was never derived.
+`DependencyClosureReport.reachability` (schema v4) now records every resolved package reachable from a
+workspace member with its `ReachOrigin`s (`Runtime`/`Dev`/`Build`/`ProcMacro`, or `Unattributed` when
+the member's declaration was not evidenced), the non-member packages reachable through no origin, and
+the dependency fixed point itself (`iterations`, `converged`, `delta_remaining`), computed by semi-naive
+evaluation (`core::closure`) over exact lockfile identities (name + version + source). A dependency's
+own dev-dependencies are never followed, matching Cargo. Real lockfiles are NOT acyclic: 5 of the 15
+real donor workspaces contain genuine cycles through member dev-dependencies; all 15 converge (5-12
+rounds). A non-converged fixed point keeps the report out of `Closed`. The result is labelled an
+`OriginUpperBound` (`IncompleteGraph` when `Partial`) with `epistemic_status: INFERRED`: origins are
+not the admitted resolution-context matrix below, which remains TARGET. Manifest roles are attributed
+only to source-less lockfile entries (they had been handed, by name, to same-named registry crates).
+
 **Still TARGET, not silently claimed done**: other ecosystems (npm, pip, ...); full
 resolution-context modeling (feature-selection activation for `activation.optional` edges; parsing
 the actual target-selector expression for `activation.target_conditional` edges against an admitted

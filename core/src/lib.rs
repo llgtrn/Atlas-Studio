@@ -6,6 +6,7 @@
 
 pub mod capability;
 pub mod census;
+pub mod closure;
 pub mod constraint;
 pub mod evidence;
 pub mod graph;
@@ -21,9 +22,11 @@ pub use capability::{WorkPrepareReport, WorkRequest};
 pub use census::{
     ArtifactDisposition, ArtifactKind, ArtifactRecord, DependencyActivation,
     DependencyClosureReport, DependencyClosureState, DependencyEcosystem, DependencyEdge,
-    DependencyIdentity, DependencyRole, DependencySourceKind, DynamicDependencyObligation,
-    InventoryReport,
+    DependencyIdentity, DependencyReachability, DependencyRole, DependencySourceKind,
+    DynamicDependencyObligation, InventoryReport, ReachOrigin, ReachabilityApproximation,
+    ReachedInstance,
 };
+pub use closure::{DeltaRelation, FixedPointRecord, semi_naive_fixed_point};
 pub use constraint::{CodingAdmission, declared_root_is_contained, validate_manifest};
 pub use evidence::Evidence;
 pub use graph::{

@@ -137,7 +137,7 @@ Pure Rust, no FFI surface; not relevant.
 - `.atlas/temporary/donors/datafrog/src/variable.rs` (read in full, 428 lines: `Variable`'s own
   module doc comment at lines 22-38 for the three-stage lifecycle; `changed()` implementation at
   lines 340-390 for the geometric merge at 340-356 and adaptive galloping deduplication at 365-378)
-- `.atlas/census/donors/datafrog.md` (existing SKELETON census, superseded by this record for the
+- `.atlas/census/datafrog.md` (existing SKELETON census, superseded by this record for the
   core evaluation-strategy mechanism specifically)
 - `.atlas/genome/technology/salsa-durability-gated-incremental-verification.md` and
   `salsa-fixpoint-cycle-iteration.md` (the companion records this donor is explicitly contrasted
@@ -176,7 +176,7 @@ not independently re-verified in this record (out of scope; license files not re
 
 ## Dependency/extinction status
 
-`PENDING` per `donor-corpus.toml`, unchanged by this record.
+Originally `PENDING`. Superseded -- see "Decision update (2026-09-24)" below.
 
 ## Decision
 
@@ -197,3 +197,16 @@ this record's own finding rather than merely because the roadmap lists it.
 optimal join" machinery in `treefrog.rs` -- the crate's single largest file at 795 lines -- and the
 `join.rs`/`merge.rs`/`map.rs` operator implementations remain explicitly uncensused).
 `decision_status` remains `PENDING`.
+
+## Decision update (2026-09-24)
+
+The "no absorption decision yet" above is superseded. The semi-naive delta mechanism described in this
+record (three-stage tuple lifecycle; `changed()` folding `recent` into `stable` and promoting only
+not-yet-stable tuples) is **absorbed** as `core::closure` and drives origin-labelled transitive
+dependency reachability in `adapter::census_cargo_workspace` -- `.atlas/decisions/0004-semi-naive-
+dependency-closure.md`, discovery record `.atlas/census/discoveries/r5-semi-naive-dependency-closure.md`.
+The absorbed invariant is the delta discipline and round accounting only; the geometric batch-merge
+layout and galloping deduplication are storage optimisations that `BTreeSet` replaces, and the
+treefrog/leaper join plus `join.rs`/`merge.rs`/`map.rs` operators are dispositioned `REFERENCE_ONLY`
+(no Atlas caller). This record's own point (2) -- that Salsa and datafrog are complementary, not
+substitutable -- still stands: only the closure half is absorbed.

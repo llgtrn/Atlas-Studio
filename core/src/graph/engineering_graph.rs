@@ -3928,6 +3928,7 @@ mod tests {
             dangling_references: Vec::new(),
             unsupported_constructs: Vec::new(),
             dynamic_obligations: Vec::new(),
+            reachability: None,
         }
     }
 

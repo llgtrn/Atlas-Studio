@@ -463,9 +463,17 @@ more than the evidence supports):
    recursively (transitive dependency closure, foreseeably others) remain acyclic by construction the
    way `DependencyClosureReport` currently is? Flagged as open by `salsa-fixpoint-cycle-iteration.md`
    itself and not resolved by this record's own read of `dependency.rs`.
+   **Resolved 2026-09-24 (ADR 0004):** yes. The premise "acyclic by construction" is false on real
+   input -- genuine dependency cycles exist in 5 of the 15 real donor workspaces (all through member
+   dev-dependencies) -- and `DEPENDENCY-CENSUS.md` already requires the recursive per-mode closure.
+   datafrog's semi-naive mechanism was absorbed as `core::closure` for it.
 3. **What granularity should an Atlas-internal revision/generation counter actually have** — per
    source-file edit, per whole census run, per something finer or coarser? Not decided; §(b).2 only
    establishes that `RevisionRef` (git-SHA-shaped) cannot itself serve this role unmodified.
+   **Partly resolved 2026-09-24:** a counter composes additively beside `RevisionRef` without
+   redefining it (re-verified against `core/src/temporal/mod.rs` and its single production
+   construction site). Granularity stays open only because no incremental consumer exists yet; see the
+   salsa donor entry's updated `cheapest_falsification`.
 4. **Does retraction need full Abelian-group generality, or does a single `RETRACTED`-style
    `EpistemicStatus` addition suffice for Atlas's actual needs?** §(b).3 leans toward the narrower
    option being sufficient for what has actually been evidenced (discrete typed records, not numeric

@@ -1,0 +1,113 @@
+# Machine-readable self-building generation ledger.
+#
+# The repository, not any agent's conversation memory, holds loop state. Every generation appends one
+# [[generation]] table: its base commit, the parallel lanes dispatched and what each resolved, the
+# deterministic join, the selected action, falsification/verification/extinction results, deferred
+# candidates, and the next objective. A generation's own resulting commits are recorded by the
+# following commit (a commit cannot name its own hash). Detailed evidence lives in the referenced
+# files; runtime's generation_ledger_integrity test requires every referenced .atlas path to exist.
+#
+# Lifecycle per generation:
+#   G_n -> parallel observe/census/falsify -> deterministic join -> decide -> absorb -> falsify
+#       -> verify -> extinction evaluation -> physical extinction if eligible -> recensus
+#       -> generation evidence -> G_n+1
+
+schema = "atlas.self-build.generation-ledger.v1"
+current_generation = "G35"
+
+[[generation]]
+id = "G35"
+base_commit = "a53c52e76ccd00495812d9765853d30e80943c59"
+objective = "prove the donor absorption/extinction loop generalizes beyond souffle: resolve every open W3 (R5) donor blocking question with a parallel wave and absorb one mechanism if evidence supports it"
+writer = "coordinator (sole production writer); all lanes read-only"
+evidence = ".atlas/evidence/verification/r5-semi-naive-dependency-closure-absorption.json"
+
+[[generation.lane]]
+id = "salsa"
+objective = "perform the recorded cheapest_falsification: does an Atlas-internal revision counter compose with RevisionRef?"
+result = "RESOLVED_DESIGN: an additive Generation counter composes beside RevisionRef without redefining it; no caller exists yet"
+decision = "ABSORB_LATER"
+blocking_question = "no code path reuses a cached derivation yet; next: content-addressed inventory change detection"
+
+[[generation.lane]]
+id = "datafrog"
+objective = "is any Atlas derivation genuinely cyclic/multi-round?"
+result = "lane concluded REJECT (no cyclic code found); OVERTURNED by coordinator join -- lane did not read DEPENDENCY-CENSUS.md, and executable SCC evidence falsified the acyclicity premise"
+decision = "ABSORB_NOW"
+
+[[generation.lane]]
+id = "differential-dataflow"
+objective = "characterize Atlas's edit-to-recensus workload"
+result = "CONFIRMED_SEQUENCING_BLOCK: no incremental recensus path exists to measure; every run recomputes from scratch"
+decision = "ABSORB_LATER"
+blocking_question = "needs R5 change detection + shallow invalidation to exist before workload can be measured"
+
+[[generation.lane]]
+id = "buck2-dice"
+objective = "re-confirm the AIF1 sequencing block against current roadmap text"
+result = "CONFIRMED: Dice branching maps to AIF1 (cross-cutting R6->R8); R5-R8 all PLANNED"
+decision = "ABSORB_LATER"
+blocking_question = "no Atlas-native branching concept exists until AIF1 design work begins"
+
+[[generation.lane]]
+id = "r5-capability-gap"
+objective = "inventory native code for each of R5's six capabilities"
+result = "#6 provenance REAL (ADR 0003); #1 invalidation, #2 cached derivation, #3 fixed point, #4 incremental recensus ZERO_CODE; #5 determinism PARTIAL"
+
+[[generation.lane]]
+id = "adversarial-falsification"
+objective = "try to prove the datafrog ABSORB_NOW unnecessary, mismatched, unsound or premature"
+result = "SURVIVES_WITH_CONDITIONS: compute on lock-level name+version keys; seed all declared roles; fix member/registry same-name role leak; never follow intermediate members' dev edges; compact per-instance representation; label an upper bound"
+
+[[generation.lane]]
+id = "architecture-contract"
+objective = "check the proposal against layering, identity, epistemic, donor-lifecycle and security contracts"
+result = "NO_LAYERING_VIOLATION; required: Option (no fabricated NotApplicable record), INFERRED status, not named resolution context, cite dependency-closure (not census-wide) fixed point, schema v4, stale genome/census/ADR records"
+
+[generation.join]
+absorb_now_exists = true
+maps_to_contract_gap = "DEPENDENCY-CENSUS.md (transitive per mode; no new nodes on another closure iteration); R5 recursive/fixed-point derivation"
+survived_falsification = "yes, with every lane condition implemented and tested"
+blocking_architecture_issue = false
+selected_absorption = "datafrog: semi-naive-delta-fixed-point -> core::closure + adapter dependency_reachability"
+decision_record = ".atlas/decisions/0004-semi-naive-dependency-closure.md"
+discovery_record = ".atlas/census/discoveries/r5-semi-naive-dependency-closure.md"
+
+[generation.verification]
+falsification = "core: removing dedup-against-stable killed by 3 tests; adapter: 5 independent mutations each killed by its targeted test"
+tests = "619 workspace tests green (+15); fmt; clippy -D warnings; docs audit gate_ready"
+production_path = "atlas-cli systemize --root . emits dependency_closure.reachability, converged in 5 rounds, zero admission blockers"
+recensus = "15 real donor workspaces all converge (5-12 rounds) and stay Closed; unreached packages newly observable in rust-analyzer (5), rust (1), wasm-tools (39)"
+
+[generation.extinction]
+donor = "datafrog"
+eligible = true
+reason = "never a build/runtime/test dependency; absorbed mechanism needs no donor source; remaining mechanisms REFERENCE_ONLY with genome retained; no test/script/evidence array references the checkout"
+
+[[generation.deferred]]
+id = "cargo-lock-source-suffix"
+class = "DEFERRED_GENERATION_CANDIDATE"
+summary = "Cargo.lock 'name version (source)' disambiguation is not parsed; an edge to a registry crate sharing name+version with an in-tree package resolves to the in-tree one (real: rust-analyzer la-arena/line-index/smol_str/text-size, rust rustc_tools_util). Exposed by G35 reachability recensus."
+
+[[generation.deferred]]
+id = "wasm-tools-unrecognized-members"
+class = "DEFERRED_GENERATION_CANDIDATE"
+summary = "39 wasm-tools lockfile packages unreached, including source-less path packages (component, dl) never recognized as workspace members"
+
+[[generation.deferred]]
+id = "edge-role-first-match-only"
+class = "DEFERRED_GENERATION_CANDIDATE"
+summary = "DependencyEdge.role records only the first matching manifest declaration (zed: 591 deps declared Runtime+Dev); reachability now seeds all roles, the edge field does not"
+
+[[generation.deferred]]
+id = "determinism-oracle"
+class = "DEFERRED_GENERATION_CANDIDATE"
+summary = "R5 #5: no end-to-end determinism test for systemize/graph/code_analyze; IntegrityDigest exported but never constructed (NORMALIZATION.md deterministic output hash)"
+
+[[generation.deferred]]
+id = "extractor-version-stale"
+class = "DEFERRED_GENERATION_CANDIDATE"
+summary = "RUST_SEMANTIC_EXTRACTOR_VERSION unchanged at 0.1.0 across 61 commits; any future cache keyed on it would serve stale results"
+
+[generation.next]
+objective = "G36: open with the source-suffix defect G35's recensus exposed (it corrupts the very edges reachability runs over), then attack salsa's narrowed blocker with content-addressed inventory change detection"

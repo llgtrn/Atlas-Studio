@@ -22,7 +22,7 @@ use std::{io, path::Path};
 fn resolve_dependency_closure(root: &Path) -> io::Result<DependencyClosureReport> {
     Ok(
         adapter::census_cargo_workspace(root)?.unwrap_or_else(|| DependencyClosureReport {
-            schema: "atlas.dependency-closure-report.v3".into(),
+            schema: "atlas.dependency-closure-report.v4".into(),
             ecosystem: DependencyEcosystem::Cargo,
             root: root.to_string_lossy().into_owned(),
             state: DependencyClosureState::NotApplicable,
@@ -32,6 +32,7 @@ fn resolve_dependency_closure(root: &Path) -> io::Result<DependencyClosureReport
             dangling_references: Vec::new(),
             unsupported_constructs: Vec::new(),
             dynamic_obligations: Vec::new(),
+            reachability: None,
         }),
     )
 }
@@ -1159,6 +1160,50 @@ mod tests {
                      nobody's evidence trail points back to"
                 );
             }
+        }
+
+        /// `.atlas/roadmap/GENERATIONS.toml` is the self-building loop's durable memory: the next
+        /// generation reads it instead of any agent's recollection. A ledger that cites a missing
+        /// evidence/decision path, or a base commit that is not a real 40-hex object name, would
+        /// silently corrupt that memory, so both are enforced here (hand-parsed, matching this
+        /// module's no-toml-crate discipline).
+        #[test]
+        fn generation_ledger_references_real_paths_and_real_base_commits() {
+            let root = workspace_root();
+            let text = std::fs::read_to_string(root.join(".atlas/roadmap/GENERATIONS.toml"))
+                .expect("GENERATIONS.toml must exist and be readable");
+            assert!(
+                text.lines()
+                    .any(|line| line.trim() == "schema = \"atlas.self-build.generation-ledger.v1\""),
+                "ledger schema line missing"
+            );
+            let mut quoted = Vec::new();
+            for line in text
+                .lines()
+                .filter(|line| !line.trim_start().starts_with('#'))
+            {
+                extract_quoted_strings(line, &mut quoted);
+            }
+            let paths: Vec<&String> = quoted.iter().filter(|q| q.starts_with(".atlas/")).collect();
+            assert!(!paths.is_empty(), "ledger cites no evidence at all");
+            for path in paths {
+                assert!(
+                    root.join(path).exists(),
+                    "GENERATIONS.toml cites `{path}`, which does not exist"
+                );
+            }
+            let mut generations = 0;
+            for line in text.lines() {
+                if let Some(rest) = line.trim().strip_prefix("base_commit = \"") {
+                    generations += 1;
+                    let sha = rest.trim_end_matches('"');
+                    assert!(
+                        sha.len() == 40 && sha.bytes().all(|b| b.is_ascii_hexdigit()),
+                        "base_commit `{sha}` is not a full object name"
+                    );
+                }
+            }
+            assert!(generations > 0, "ledger records no generation");
         }
 
         /// A `decision_status` of bare `"PENDING"` is only an honest claim when the donor's own
