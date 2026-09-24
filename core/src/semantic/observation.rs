@@ -111,10 +111,19 @@ impl SemanticObservation {
             record_id: &SemanticRecordId,
             header: &SemanticRecordHeader<Subject>,
         ) -> String {
-            let evidence_refs: Vec<&str> = header
+            // `EvidenceId` has no charset restriction (`typed_id!`'s constructor accepts any
+            // `impl Into<String>`) -- every current production call site happens to construct one
+            // via `stable_id(...)`, whose fixed `"{prefix}:{hash:016x}"` shape never contains a
+            // `,`, but this function's own contract above ("only an observation identical in
+            // every field... shares this id") must hold unconditionally, not merely for today's
+            // callers. Escaping each ref before joining (the same `escape_identity_field` pattern
+            // already used for `DependencyIdentity`/`DependencyEdge`'s own composite keys) prevents
+            // one evidence ref containing a literal `,` from becoming indistinguishable, after
+            // joining, from two separate refs split at that same character.
+            let evidence_refs: Vec<String> = header
                 .evidence_refs
                 .iter()
-                .map(EvidenceId::as_str)
+                .map(|id| crate::identity::escape_identity_field(id.as_str(), ','))
                 .collect();
             format!(
                 "{}|{}:{}|{}|evidence=[{}]|provenance={}:{}:{}:{}|payload={:?}",
@@ -393,6 +402,33 @@ mod tests {
 
         assert_eq!(a.record_id(), b.record_id());
         assert_ne!(a.raw_observation_id(), b.raw_observation_id());
+    }
+
+    #[test]
+    fn an_evidence_ref_containing_a_comma_never_collides_with_a_differently_split_evidence_list() {
+        // `EvidenceId` has no charset restriction -- nothing stops one evidence ref from
+        // containing a literal `,`. Before escaping, joining `evidence_refs` with `,` made a
+        // single ref `"ev,idence"` indistinguishable, once joined, from two separate refs `"ev"`
+        // and `"idence"` -- a real violation of this method's own documented contract ("only an
+        // observation identical in every field... shares this id"), reachable via the public
+        // `EvidenceId::new` constructor alone, with no extractor-specific assumption needed.
+        let mut header_a = symbol_header(SemanticDimension::Symbol);
+        header_a.evidence_refs = vec![crate::identity::EvidenceId::new("ev,idence")];
+        let mut header_b = header_a.clone();
+        header_b.evidence_refs = vec![
+            crate::identity::EvidenceId::new("ev"),
+            crate::identity::EvidenceId::new("idence"),
+        ];
+
+        let a = SemanticObservation::Symbol(header_a);
+        let b = SemanticObservation::Symbol(header_b);
+
+        assert_ne!(
+            a.raw_observation_id(),
+            b.raw_observation_id(),
+            "one evidence ref containing a comma must never collide with two refs split at that \
+             same character"
+        );
     }
 
     #[test]
