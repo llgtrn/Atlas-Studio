@@ -138,7 +138,10 @@ goal = "declared Rust profile closes all R4 semantic obligations and determinist
 [[r_wave]]
 id = "R5"
 name = "incremental-query-fixed-point"
-status = "PLANNED"
+# G35-G37: fixed point (ADR 0004), constraint derivation provenance (ADR 0003), content identity
+# (ADR 0005) and inventory change detection (ADR 0006) are native; invalidation, cached derivation
+# and incremental recensus of affected dependents are not yet built.
+status = "PARTIALLY_MATERIALIZED"
 primary_donor_waves = ["W3"]
 
 [[r_wave]]

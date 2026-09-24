@@ -29,55 +29,55 @@ Full source tree staged with nested .git removed.
 
 ## Build Systems Detected
 
-- .atlas/temporary/zstd/CMakeLists.txt
-- .atlas/temporary/zstd/Makefile
-- .atlas/temporary/zstd/build/cmake/CMakeLists.txt
-- .atlas/temporary/zstd/build/cmake/contrib/CMakeLists.txt
-- .atlas/temporary/zstd/build/cmake/contrib/gen_html/CMakeLists.txt
-- .atlas/temporary/zstd/build/cmake/contrib/pzstd/CMakeLists.txt
-- .atlas/temporary/zstd/build/cmake/lib/CMakeLists.txt
-- .atlas/temporary/zstd/build/cmake/programs/CMakeLists.txt
-- .atlas/temporary/zstd/build/cmake/tests/CMakeLists.txt
-- .atlas/temporary/zstd/build/meson/meson.build
-- .atlas/temporary/zstd/build/meson/contrib/meson.build
-- .atlas/temporary/zstd/build/meson/contrib/gen_html/meson.build
-- .atlas/temporary/zstd/build/meson/contrib/pzstd/meson.build
-- .atlas/temporary/zstd/build/meson/lib/meson.build
-- .atlas/temporary/zstd/build/meson/programs/meson.build
-- .atlas/temporary/zstd/build/meson/tests/meson.build
-- .atlas/temporary/zstd/contrib/diagnose_corruption/Makefile
-- .atlas/temporary/zstd/contrib/externalSequenceProducer/Makefile
-- .atlas/temporary/zstd/contrib/gen_html/Makefile
-- .atlas/temporary/zstd/contrib/largeNbDicts/Makefile
-- .atlas/temporary/zstd/contrib/linux-kernel/Makefile
-- .atlas/temporary/zstd/contrib/linux-kernel/test/Makefile
-- .atlas/temporary/zstd/contrib/pzstd/Makefile
-- .atlas/temporary/zstd/contrib/recovery/Makefile
-- .atlas/temporary/zstd/contrib/seekable_format/examples/Makefile
-- .atlas/temporary/zstd/contrib/seekable_format/tests/Makefile
-- .atlas/temporary/zstd/contrib/seqBench/Makefile
-- .atlas/temporary/zstd/doc/educational_decoder/Makefile
-- .atlas/temporary/zstd/examples/Makefile
-- .atlas/temporary/zstd/lib/Makefile
-- .atlas/temporary/zstd/lib/dll/example/Makefile
-- .atlas/temporary/zstd/programs/Makefile
-- .atlas/temporary/zstd/tests/Makefile
-- .atlas/temporary/zstd/tests/fuzz/Makefile
-- .atlas/temporary/zstd/tests/fuzz/seq_prod_fuzz_example/Makefile
-- .atlas/temporary/zstd/tests/gzip/Makefile
-- .atlas/temporary/zstd/tests/regression/Makefile
-- .atlas/temporary/zstd/zlibWrapper/Makefile
+- .atlas/temporary/donors/zstd/CMakeLists.txt
+- .atlas/temporary/donors/zstd/Makefile
+- .atlas/temporary/donors/zstd/build/cmake/CMakeLists.txt
+- .atlas/temporary/donors/zstd/build/cmake/contrib/CMakeLists.txt
+- .atlas/temporary/donors/zstd/build/cmake/contrib/gen_html/CMakeLists.txt
+- .atlas/temporary/donors/zstd/build/cmake/contrib/pzstd/CMakeLists.txt
+- .atlas/temporary/donors/zstd/build/cmake/lib/CMakeLists.txt
+- .atlas/temporary/donors/zstd/build/cmake/programs/CMakeLists.txt
+- .atlas/temporary/donors/zstd/build/cmake/tests/CMakeLists.txt
+- .atlas/temporary/donors/zstd/build/meson/meson.build
+- .atlas/temporary/donors/zstd/build/meson/contrib/meson.build
+- .atlas/temporary/donors/zstd/build/meson/contrib/gen_html/meson.build
+- .atlas/temporary/donors/zstd/build/meson/contrib/pzstd/meson.build
+- .atlas/temporary/donors/zstd/build/meson/lib/meson.build
+- .atlas/temporary/donors/zstd/build/meson/programs/meson.build
+- .atlas/temporary/donors/zstd/build/meson/tests/meson.build
+- .atlas/temporary/donors/zstd/contrib/diagnose_corruption/Makefile
+- .atlas/temporary/donors/zstd/contrib/externalSequenceProducer/Makefile
+- .atlas/temporary/donors/zstd/contrib/gen_html/Makefile
+- .atlas/temporary/donors/zstd/contrib/largeNbDicts/Makefile
+- .atlas/temporary/donors/zstd/contrib/linux-kernel/Makefile
+- .atlas/temporary/donors/zstd/contrib/linux-kernel/test/Makefile
+- .atlas/temporary/donors/zstd/contrib/pzstd/Makefile
+- .atlas/temporary/donors/zstd/contrib/recovery/Makefile
+- .atlas/temporary/donors/zstd/contrib/seekable_format/examples/Makefile
+- .atlas/temporary/donors/zstd/contrib/seekable_format/tests/Makefile
+- .atlas/temporary/donors/zstd/contrib/seqBench/Makefile
+- .atlas/temporary/donors/zstd/doc/educational_decoder/Makefile
+- .atlas/temporary/donors/zstd/examples/Makefile
+- .atlas/temporary/donors/zstd/lib/Makefile
+- .atlas/temporary/donors/zstd/lib/dll/example/Makefile
+- .atlas/temporary/donors/zstd/programs/Makefile
+- .atlas/temporary/donors/zstd/tests/Makefile
+- .atlas/temporary/donors/zstd/tests/fuzz/Makefile
+- .atlas/temporary/donors/zstd/tests/fuzz/seq_prod_fuzz_example/Makefile
+- .atlas/temporary/donors/zstd/tests/gzip/Makefile
+- .atlas/temporary/donors/zstd/tests/regression/Makefile
+- .atlas/temporary/donors/zstd/zlibWrapper/Makefile
 
 ## Test / Benchmark Roots Detected
 
-- .atlas/temporary/zstd/tests
-- .atlas/temporary/zstd/build/cmake/tests
-- .atlas/temporary/zstd/build/meson/tests
-- .atlas/temporary/zstd/contrib/linux-kernel/test
-- .atlas/temporary/zstd/contrib/pzstd/test
-- .atlas/temporary/zstd/contrib/pzstd/utils/test
-- .atlas/temporary/zstd/contrib/seekable_format/tests
-- .atlas/temporary/zstd/tests/fuzz
+- .atlas/temporary/donors/zstd/tests
+- .atlas/temporary/donors/zstd/build/cmake/tests
+- .atlas/temporary/donors/zstd/build/meson/tests
+- .atlas/temporary/donors/zstd/contrib/linux-kernel/test
+- .atlas/temporary/donors/zstd/contrib/pzstd/test
+- .atlas/temporary/donors/zstd/contrib/pzstd/utils/test
+- .atlas/temporary/donors/zstd/contrib/seekable_format/tests
+- .atlas/temporary/donors/zstd/tests/fuzz
 
 ## Major Subsystem Roots
 

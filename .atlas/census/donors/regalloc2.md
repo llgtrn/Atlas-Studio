@@ -29,13 +29,13 @@ Full source tree staged with nested .git removed.
 
 ## Build Systems Detected
 
-- .atlas/temporary/regalloc2/Cargo.toml
-- .atlas/temporary/regalloc2/fuzz/Cargo.toml
-- .atlas/temporary/regalloc2/regalloc2-tool/Cargo.toml
+- .atlas/temporary/donors/regalloc2/Cargo.toml
+- .atlas/temporary/donors/regalloc2/fuzz/Cargo.toml
+- .atlas/temporary/donors/regalloc2/regalloc2-tool/Cargo.toml
 
 ## Test / Benchmark Roots Detected
 
-- .atlas/temporary/regalloc2/fuzz
+- .atlas/temporary/donors/regalloc2/fuzz
 
 ## Major Subsystem Roots
 

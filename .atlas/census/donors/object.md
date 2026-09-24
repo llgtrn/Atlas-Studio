@@ -29,16 +29,16 @@ Full source tree staged with nested .git removed.
 
 ## Build Systems Detected
 
-- .atlas/temporary/object/Cargo.toml
-- .atlas/temporary/object/crates/examples/Cargo.toml
-- .atlas/temporary/object/crates/rewrite/Cargo.toml
-- .atlas/temporary/object/xtask/Cargo.toml
+- .atlas/temporary/donors/object/Cargo.toml
+- .atlas/temporary/donors/object/crates/examples/Cargo.toml
+- .atlas/temporary/donors/object/crates/rewrite/Cargo.toml
+- .atlas/temporary/donors/object/xtask/Cargo.toml
 
 ## Test / Benchmark Roots Detected
 
-- .atlas/temporary/object/tests
-- .atlas/temporary/object/crates/examples/tests
-- .atlas/temporary/object/crates/rewrite/tests
+- .atlas/temporary/donors/object/tests
+- .atlas/temporary/donors/object/crates/examples/tests
+- .atlas/temporary/donors/object/crates/rewrite/tests
 
 ## Major Subsystem Roots
 

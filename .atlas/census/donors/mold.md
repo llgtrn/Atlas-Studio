@@ -29,33 +29,33 @@ Full source tree staged with nested .git removed.
 
 ## Build Systems Detected
 
-- .atlas/temporary/mold/Cargo.toml
-- .atlas/temporary/mold/arch/arm32/Cargo.toml
-- .atlas/temporary/mold/arch/arm32be/Cargo.toml
-- .atlas/temporary/mold/arch/arm64/Cargo.toml
-- .atlas/temporary/mold/arch/arm64be/Cargo.toml
-- .atlas/temporary/mold/arch/i386/Cargo.toml
-- .atlas/temporary/mold/arch/loongarch32/Cargo.toml
-- .atlas/temporary/mold/arch/loongarch64/Cargo.toml
-- .atlas/temporary/mold/arch/m68k/Cargo.toml
-- .atlas/temporary/mold/arch/ppc32/Cargo.toml
-- .atlas/temporary/mold/arch/ppc64v1/Cargo.toml
-- .atlas/temporary/mold/arch/ppc64v2/Cargo.toml
-- .atlas/temporary/mold/arch/riscv32/Cargo.toml
-- .atlas/temporary/mold/arch/riscv32be/Cargo.toml
-- .atlas/temporary/mold/arch/riscv64/Cargo.toml
-- .atlas/temporary/mold/arch/riscv64be/Cargo.toml
-- .atlas/temporary/mold/arch/s390x/Cargo.toml
-- .atlas/temporary/mold/arch/sh4/Cargo.toml
-- .atlas/temporary/mold/arch/sh4be/Cargo.toml
-- .atlas/temporary/mold/arch/sparc64/Cargo.toml
-- .atlas/temporary/mold/arch/x86_64/Cargo.toml
-- .atlas/temporary/mold/cli/Cargo.toml
-- .atlas/temporary/mold/tests/Cargo.toml
+- .atlas/temporary/donors/mold/Cargo.toml
+- .atlas/temporary/donors/mold/arch/arm32/Cargo.toml
+- .atlas/temporary/donors/mold/arch/arm32be/Cargo.toml
+- .atlas/temporary/donors/mold/arch/arm64/Cargo.toml
+- .atlas/temporary/donors/mold/arch/arm64be/Cargo.toml
+- .atlas/temporary/donors/mold/arch/i386/Cargo.toml
+- .atlas/temporary/donors/mold/arch/loongarch32/Cargo.toml
+- .atlas/temporary/donors/mold/arch/loongarch64/Cargo.toml
+- .atlas/temporary/donors/mold/arch/m68k/Cargo.toml
+- .atlas/temporary/donors/mold/arch/ppc32/Cargo.toml
+- .atlas/temporary/donors/mold/arch/ppc64v1/Cargo.toml
+- .atlas/temporary/donors/mold/arch/ppc64v2/Cargo.toml
+- .atlas/temporary/donors/mold/arch/riscv32/Cargo.toml
+- .atlas/temporary/donors/mold/arch/riscv32be/Cargo.toml
+- .atlas/temporary/donors/mold/arch/riscv64/Cargo.toml
+- .atlas/temporary/donors/mold/arch/riscv64be/Cargo.toml
+- .atlas/temporary/donors/mold/arch/s390x/Cargo.toml
+- .atlas/temporary/donors/mold/arch/sh4/Cargo.toml
+- .atlas/temporary/donors/mold/arch/sh4be/Cargo.toml
+- .atlas/temporary/donors/mold/arch/sparc64/Cargo.toml
+- .atlas/temporary/donors/mold/arch/x86_64/Cargo.toml
+- .atlas/temporary/donors/mold/cli/Cargo.toml
+- .atlas/temporary/donors/mold/tests/Cargo.toml
 
 ## Test / Benchmark Roots Detected
 
-- .atlas/temporary/mold/tests
+- .atlas/temporary/donors/mold/tests
 
 ## Major Subsystem Roots
 
