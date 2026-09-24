@@ -16,6 +16,7 @@
 //!   change occurs -- never as an exact breakpoint the instrument did not measure.
 
 pub mod compose;
+pub mod genome;
 
 use crate::{EpistemicStatus, IntegrityDigest};
 use serde::{Deserialize, Serialize};

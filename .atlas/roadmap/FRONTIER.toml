@@ -226,14 +226,14 @@ extinction_state = "n/a"
 id = "creator_visual_ir"
 family = "CREATOR_FABRIC"
 capability = "Visual Semantic IR (components, layout constraints, tokens, typography, interaction states, motion, scenes) with provenance and epistemic status"
-state = "ABSENT"
-atlas_implementation = "none"
+state = "PARTIAL"
+atlas_implementation = "core::visual: observations, layout relations, responsive rules, interaction mechanisms, motion inferences, DesignIntent, DesignGenome/DesignMechanism with provenance (ADRs 0011-0018)"
 donors = ["kiwi (BSD-3, Cassowary)", "Radix (MIT)", "Three.js (MIT)", "PixiJS (MIT)"]
 blocking_question = "grow from the first consumer (browser observation); which records does the observation path produce first?"
 evidence_required = "typed records emitted by creator_browser"
 falsification = "records round-trip; unknown kinds rejected"
 dependency_status = "none"
-next_action = "derive the first record kinds from observation output"
+next_action = "scene graph records shared with physical kinematics frames (creator_2d/creator_3d)"
 extinction_state = "n/a"
 
 [[lane]]
@@ -285,11 +285,11 @@ capability = "lowering Visual IR to HTML/CSS/React"
 state = "PARTIAL"
 atlas_implementation = "core::visual::compose: ratio-first DesignIntent -> deterministic placeholder-only HTML/CSS (hero split + grid + breakpoint + hover lift) -> atlas-systemizer create (ADR 0017)"
 donors = ["shadcn/ui (MIT, registry pattern)", "Radix (MIT)"]
-blocking_question = "one layout family; intents hand-authored, not yet synthesized from an extracted genome"
+blocking_question = "one layout family; recipes' variations are authored, not yet searched"
 evidence_required = "generated fixture renders and re-observes to the declared relations"
 falsification = "render -> observe -> compare against intent"
 dependency_status = "none"
-next_action = "design genome from observed references (with provenance) -> recombined intents -> multi-candidate Pareto selection"
+next_action = "multi-candidate recombination with measured objectives and Pareto preservation (Futures x Creator)"
 extinction_state = "n/a"
 
 [[lane]]

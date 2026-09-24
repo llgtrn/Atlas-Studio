@@ -412,6 +412,68 @@ pub fn create_and_verify(intent: &DesignIntent, out: &Path) -> io::Result<Creati
     verify_artifact(intent, out, wide, narrow)
 }
 
+pub use atlas_core::visual::genome::{DesignGenome, Recombination, RecombinedIntent};
+
+/// ABSTRACT: observes each reference through every instrument mode and extracts its design
+/// mechanisms with provenance (ADR 0018).
+pub fn extract_genome(references: &[&Path]) -> io::Result<DesignGenome> {
+    use atlas_core::visual::genome::{ReferenceEvidence, extract_mechanisms};
+    let mut mechanisms = Vec::new();
+    for reference in references {
+        let bisected = bisect_breakpoints(reference, 375, 1280, 800)?;
+        let interactions = interact_fixture(reference, (1280, 800))?;
+        let motion = motion_fixture(reference, (1280, 800))?;
+        let breakpoints: Vec<_> = bisected
+            .breakpoints
+            .iter()
+            .map(|b| {
+                (
+                    b.element.clone(),
+                    b.change.clone(),
+                    b.narrow_width,
+                    b.wide_width,
+                )
+            })
+            .collect();
+        mechanisms.extend(extract_mechanisms(&ReferenceEvidence {
+            observation: &bisected.observation,
+            analysis: &bisected.analysis,
+            breakpoints: &breakpoints,
+            interactions: &interactions.analysis,
+            interaction_observations: &interactions.observations,
+            motion: &motion.inferences,
+        }));
+    }
+    Ok(DesignGenome {
+        schema: "atlas.design-genome.v1".into(),
+        mechanisms,
+    })
+}
+
+/// A recombined, created and verified design (ADR 0018).
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct RecombinationReport {
+    pub schema: String,
+    pub recombined: RecombinedIntent,
+    pub creation: CreationReport,
+}
+
+/// RECOMBINE -> CREATE -> VERIFY.
+pub fn recombine_and_create(
+    genome: &DesignGenome,
+    recipe: &Recombination,
+    out: &Path,
+) -> io::Result<RecombinationReport> {
+    let recombined = atlas_core::visual::genome::recombine(genome, recipe)
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+    let creation = create_and_verify(&recombined.intent, out)?;
+    Ok(RecombinationReport {
+        schema: "atlas.recombination-report.v1".into(),
+        recombined,
+        creation,
+    })
+}
+
 /// Width-indexed single-viewport observations of one subject, all required to share its digest.
 struct Probes<'a> {
     fixture: &'a Path,
@@ -816,6 +878,81 @@ mod tests {
                 .any(|i| i.starts_with("hero media aspect") || i.starts_with("hero share")),
             "untouched relations still hold: {violated:?}"
         );
+        let _ = fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn mechanisms_abstracted_from_two_references_recombine_into_a_verified_original() {
+        use atlas_core::visual::genome::MechanismKind;
+        if adapter::browser::playwright_module().is_none() {
+            eprintln!("SKIP: no Playwright browser instrument in this environment");
+            return;
+        }
+        let editorial = fixture();
+        let interactive = Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("tests/fixtures/visual/interactive-mechanisms.html");
+        let genome = extract_genome(&[&editorial, &interactive]).unwrap();
+        let find = |kind: MechanismKind| {
+            genome
+                .mechanisms
+                .iter()
+                .find(|m| m.kind == kind)
+                .unwrap_or_else(|| panic!("{kind:?} in {genome:#?}"))
+        };
+        let hero = find(MechanismKind::SplitHero);
+        let grid = find(MechanismKind::CollapsingGrid);
+        let lift = find(MechanismKind::HoverLift);
+        // The editorial fixture's CSS: 16:9 media, flex 2:1, 4:3 cards in 3 columns, 700 px.
+        assert_eq!(hero.parameters["media_aspect"], "16:9");
+        assert_eq!(hero.parameters["share"], "2:1");
+        assert_eq!(hero.parameters["breakpoint_px"], "700");
+        assert_eq!(grid.parameters["item_aspect"], "4:3");
+        assert_eq!(grid.parameters["columns"], "3");
+        // The interactive fixture's tile: translateY(-4px) over 150 ms ease-out.
+        assert_eq!(lift.parameters["lift_px"], "4");
+        assert_eq!(lift.parameters["easing"], "ease-out");
+        assert_eq!(lift.parameters["duration_ms"], "150");
+        assert_eq!(lift.status, EpistemicStatus::Inferred);
+        assert_ne!(hero.source.subject_digest, lift.source.subject_digest);
+
+        let recipe = Recombination {
+            name: "g50-recombined".into(),
+            hero: hero.id.clone(),
+            grid: grid.id.clone(),
+            lift: lift.id.clone(),
+            variations: [
+                ("hero.media_aspect", "3:2"),
+                ("hero.breakpoint_px", "760"),
+                ("grid.columns", "4"),
+                ("grid.items", "4"),
+                ("lift.duration_ms", "240"),
+            ]
+            .into_iter()
+            .map(|(k, v)| (k.to_owned(), v.to_owned()))
+            .collect(),
+        };
+        let dir = std::env::temp_dir().join(format!("atlas-recombine-{}", std::process::id()));
+        let report = recombine_and_create(&genome, &recipe, &dir.join("page.html")).unwrap();
+        assert_eq!(report.recombined.distinct_sources, 2);
+        assert_eq!(
+            report.creation.verdict,
+            ConstraintVerdict::Satisfied,
+            "{:#?}",
+            report.creation.checks
+        );
+        let origin = |p: &str| {
+            report
+                .recombined
+                .provenance
+                .iter()
+                .find(|x| x.parameter == p)
+                .unwrap()
+                .origin
+                .clone()
+        };
+        assert_eq!(origin("grid.item_aspect"), format!("inherited:{}", grid.id));
+        assert_eq!(origin("lift.easing"), format!("inherited:{}", lift.id));
+        assert_eq!(origin("hero.media_aspect"), "varied:g50-recombined");
         let _ = fs::remove_dir_all(&dir);
     }
 

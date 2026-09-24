@@ -155,11 +155,58 @@ fn run(args: &[String]) -> Result<(), String> {
                 return Err("PHYSICAL_REQUIREMENTS_NOT_SATISFIED".into());
             }
         }
+        [cmd, rest @ ..] if cmd == "genome" => {
+            // ADR 0018: abstract design mechanisms from authorized reference fixtures.
+            let references: Vec<std::path::PathBuf> = rest
+                .iter()
+                .enumerate()
+                .filter(|(_, arg)| *arg == "--fixture")
+                .filter_map(|(i, _)| rest.get(i + 1).map(std::path::PathBuf::from))
+                .collect();
+            if references.is_empty() {
+                return Err("genome requires at least one --fixture".into());
+            }
+            let refs: Vec<&std::path::Path> = references.iter().map(|p| p.as_path()).collect();
+            let genome = runtime::visual::extract_genome(&refs).map_err(|e| e.to_string())?;
+            let text = json(&genome)? + "\n";
+            if let Some(out) = value(rest, "--out")? {
+                write_report_to_out(&out, &text)?;
+            }
+            print!("{text}");
+        }
         [cmd, rest @ ..] if cmd == "create" => {
             // Creator construction loop (ADR 0017): intent -> HTML/CSS -> render -> re-observe ->
             // verify every intended relation.
-            let intent_path = value(rest, "--intent")?.ok_or("create requires --intent")?;
             let out = value(rest, "--out")?.ok_or("create requires --out (the page to write)")?;
+            if let Some(genome_path) = value(rest, "--genome")? {
+                // ADR 0018: RECOMBINE -> CREATE -> VERIFY from a genome and a recipe.
+                let recipe_path = value(rest, "--recipe")?.ok_or("--genome requires --recipe")?;
+                let read =
+                    |path: &str| fs::read_to_string(path).map_err(|e| format!("{path}: {e}"));
+                let genome: runtime::visual::DesignGenome =
+                    serde_json::from_str(&read(&genome_path)?)
+                        .map_err(|e| format!("{genome_path}: {e}"))?;
+                let recipe: runtime::visual::Recombination =
+                    serde_json::from_str(&read(&recipe_path)?)
+                        .map_err(|e| format!("{recipe_path}: {e}"))?;
+                let report = runtime::visual::recombine_and_create(
+                    &genome,
+                    &recipe,
+                    std::path::Path::new(&out),
+                )
+                .map_err(|e| format!("{out}: {e}"))?;
+                let text = json(&report)? + "\n";
+                if let Some(report_out) = value(rest, "--report")? {
+                    write_report_to_out(&report_out, &text)?;
+                }
+                print!("{text}");
+                if !report.creation.verdict.admits() {
+                    return Err("CREATION_NOT_VERIFIED".into());
+                }
+                return Ok(());
+            }
+            let intent_path =
+                value(rest, "--intent")?.ok_or("create requires --intent or --genome")?;
             let text =
                 fs::read_to_string(&intent_path).map_err(|e| format!("{intent_path}: {e}"))?;
             let intent: runtime::visual::CreatorIntent =
@@ -250,7 +297,7 @@ fn run(args: &[String]) -> Result<(), String> {
         }
         _ => {
             return Err(
-                "usage: atlas-systemizer <contract|systemize|docs audit|code analyze|parse|check|graph|observe|create|physical|work prepare> ..."
+                "usage: atlas-systemizer <contract|systemize|docs audit|code analyze|parse|check|graph|observe|genome|create|physical|work prepare> ..."
                     .into(),
             );
         }

@@ -85,4 +85,7 @@ Creator Fabric follows UNDERSTAND → ABSTRACT → RECOMBINE → CREATE, never S
   - interaction stimuli and mechanisms (`observe --interact`);
   - motion curve sampling and validated easing inference (`observe --motion`);
   - the construction loop (`create`): a ratio-first `DesignIntent` is lowered to placeholder-only HTML/CSS, rendered, re-observed and verified relation by relation.
-- The design genome, recombination, multi-candidate search, and the media lanes (image, video, 2D, 3D) are not yet implemented.
+- **G50 (ADR 0018):** the design genome and recombination.
+  - `genome` abstracts mechanisms with provenance.
+  - `create --genome --recipe` enforces originality mechanically: at least 2 sources, and no mechanism reproduced wholesale. Every parameter records whether it was inherited, varied or defaulted.
+- Multi-candidate search and the media lanes (image, video, 2D, 3D) are not yet implemented.
