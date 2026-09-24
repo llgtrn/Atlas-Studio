@@ -363,20 +363,42 @@ fn has_frontmatter(text: &str) -> bool {
     text.starts_with("---\n") || text.starts_with("---\r\n")
 }
 
-fn frontmatter(text: &str) -> BTreeMap<String, String> {
+/// The text between a WELL-FORMED frontmatter block's opening and closing `---` delimiters, or
+/// `None` if either is missing. Deliberately distinct from `has_frontmatter` (which only checks
+/// the opening delimiter): a doc that opens frontmatter but never closes it must not be treated as
+/// having real, parseable frontmatter just because it starts with `---`.
+fn closed_frontmatter_body(text: &str) -> Option<&str> {
     if !has_frontmatter(text) {
-        return BTreeMap::new();
+        return None;
     }
     let body = if let Some(rest) = text.strip_prefix("---\r\n") {
         rest
     } else {
         text.strip_prefix("---\n").unwrap_or(text)
     };
-    let Some(end) = body.find("\n---") else {
+    let end = body.find("\n---")?;
+    Some(&body[..end])
+}
+
+/// Whether `text` contains a well-formed frontmatter block (both delimiters present), regardless
+/// of how many real fields it then parses to -- an empty-but-closed block (`---\n---\n`) is still
+/// well-formed markup, distinct from an unclosed one. `canonical_frontmatter_total`/
+/// `missing_frontmatter` classify by this, not by `has_frontmatter` alone: before this fix, a doc
+/// that opened frontmatter but never closed it silently counted toward `canonical_frontmatter_total`
+/// (and was excluded from `missing_frontmatter`) even though `frontmatter()` parses zero real
+/// fields from it -- silently passing `docs_audit`'s own `gate_ready` computation
+/// (`hard_violations_total = required_control_docs_missing.len() + missing_frontmatter.len()`) for
+/// genuinely malformed markup.
+fn has_closed_frontmatter(text: &str) -> bool {
+    closed_frontmatter_body(text).is_some()
+}
+
+fn frontmatter(text: &str) -> BTreeMap<String, String> {
+    let Some(body) = closed_frontmatter_body(text) else {
         return BTreeMap::new();
     };
     let mut fields = BTreeMap::new();
-    for line in body[..end].lines() {
+    for line in body.lines() {
         if let Some((key, value)) = line.split_once(':') {
             fields.insert(
                 key.trim().to_owned(),
@@ -491,7 +513,7 @@ fn visit_docs(
             .to_string_lossy()
             .replace('\\', "/");
         let meta = frontmatter(&text);
-        if has_frontmatter(&text) {
+        if has_closed_frontmatter(&text) {
             *canonical_frontmatter_total += 1;
         } else {
             missing_frontmatter.push(relative.clone());
@@ -767,6 +789,43 @@ mod tests {
         );
 
         std::fs::set_permissions(&locked, std::fs::Permissions::from_mode(0o644)).unwrap();
+        std::fs::remove_dir_all(&root).unwrap();
+    }
+
+    // `has_frontmatter` only checks the OPENING `---` delimiter. A doc that opens frontmatter but
+    // never closes it previously counted toward `canonical_frontmatter_total` (and was excluded
+    // from `missing_frontmatter`) even though `frontmatter()` itself parses zero real fields from
+    // it -- silently passing `docs_audit`'s own `gate_ready` computation for malformed markup.
+    #[test]
+    fn a_doc_with_unclosed_frontmatter_is_not_counted_as_canonical() {
+        let root = scratch_root();
+        let docs_root = root.join(".atlas");
+        std::fs::create_dir_all(&docs_root).unwrap();
+        std::fs::write(
+            docs_root.join("broken.md"),
+            "---\nid: atlas.broken\nstatus: active\n\n# Broken\n\nNo closing delimiter above.\n",
+        )
+        .unwrap();
+
+        let report = audit_docs(&docs_root).unwrap();
+        assert_eq!(report.documents_total, 1);
+        assert_eq!(
+            report.canonical_frontmatter_total, 0,
+            "unclosed frontmatter must never be counted as canonical -- zero real fields were \
+             actually parsed from it"
+        );
+        assert_eq!(
+            report.missing_frontmatter,
+            vec!["broken.md".to_owned()],
+            "unclosed frontmatter must be treated the same as no frontmatter at all: a hard \
+             violation, not a silently-passing gate"
+        );
+        let doc = &report.documents[0];
+        assert_eq!(
+            doc.id, None,
+            "no field can be honestly parsed from an unclosed frontmatter block"
+        );
+
         std::fs::remove_dir_all(&root).unwrap();
     }
 

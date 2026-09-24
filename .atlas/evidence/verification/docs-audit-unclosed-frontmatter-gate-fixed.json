@@ -1,0 +1,52 @@
+{
+  "schema": "atlas.self-build.generation-evidence.v1",
+  "wave": "CORRECTNESS / CENSUS BLINDNESS -- a doc that opens frontmatter but never closes it silently counted as canonical and passed docs_audit's own gate_ready computation",
+  "wave_title": "Picked up a specific, already-scoped finding an earlier delegated investigation flagged but did not treat as its top finding (deferred because no such file currently exists in this repository's own real `.atlas` tree). Confirmed the defect is real by direct code reading: `has_frontmatter` only checks the OPENING `---` delimiter; `canonical_frontmatter_total`/`missing_frontmatter` classified every doc by `has_frontmatter` alone, so a doc that opens frontmatter but never closes it was counted toward `canonical_frontmatter_total` and excluded from `missing_frontmatter`, even though `frontmatter()` itself parses zero real fields from it -- silently passing `docs_audit`'s own `gate_ready` computation (`hard_violations_total = required_control_docs_missing.len() + missing_frontmatter.len()`) for genuinely malformed markup.",
+  "priority_classification": "correctness / census blindness -- `gate_ready` is the canonical readiness gate several other checks depend on (`DOCS_GATE_NOT_READY` in `runtime::systemize`'s own blocker list); a malformed doc silently passing it is a real gap in a central admission gate, not a cosmetic count discrepancy.",
+  "verification_before_acting": [
+    "Re-read `has_frontmatter`/`frontmatter`/their call site in `visit_docs` (adapter/src/lib.rs) directly myself and confirmed `frontmatter(&text)` is already computed (correctly returning an empty map for unclosed frontmatter, since it separately checks for the closing `\\n---`), but the classification of `canonical_frontmatter_total` vs `missing_frontmatter` uses `has_frontmatter(&text)` -- the OPENING-delimiter-only check -- not whether `frontmatter()` actually found a closing delimiter.",
+    "Confirmed the per-document `DocumentFact.canonical` field is UNAFFECTED (correctly derived from `meta.get(\"canonical\")`, which is empty for an unclosed block) -- only the AGGREGATE gate computation has the bug, narrowing the fix's own scope precisely to where the defect actually lives.",
+    "Confirmed this repository's own real `.atlas` docs tree has zero unclosed-frontmatter files today (146/146 documents have well-formed, closed frontmatter both before and after the fix) -- this closes a real, evidenced latent gap in the gate computation, not a currently-failing admission.",
+    "Falsified the fix directly: temporarily reverted the one call-site line back to `has_frontmatter(&text)`, re-ran the new regression test, watched it fail (`canonical_frontmatter_total` read 1 instead of 0), then restored the fix and re-ran to confirm it passes."
+  ],
+  "design_decisions": [
+    {
+      "question": "Should an empty-but-CLOSED frontmatter block (`---\\n---\\n`, zero real fields) also count as non-canonical, the same as an unclosed one?",
+      "decision": "No -- kept as canonical. The defect is specifically about the CLOSING delimiter being missing (malformed markup), not about field count. A closed-but-empty block is well-formed frontmatter markup that simply declares no fields; `frontmatter()` already correctly returns an empty map for it, and every downstream `DocumentFact` field derived from `meta.get(...)` is already correctly `None`/false in that case. Conflating 'well-formed but sparse' with 'malformed and unparseable' would have been a different, broader change than the evidenced defect calls for."
+    },
+    {
+      "question": "Refactor `frontmatter()`'s own body-extraction logic, or add a second, parallel closing-delimiter check?",
+      "decision": "Refactored: extracted `closed_frontmatter_body(text) -> Option<&str>` as the single source of truth for 'does this doc have a well-formed frontmatter block, and if so what is its body', used by both the new `has_closed_frontmatter` predicate and `frontmatter()` itself. A parallel, independently-written closing check would have risked exactly the kind of 'two implementations of the same rule silently drift apart' defect class this session has already found and fixed multiple times (e.g. the two `declared_root_is_contained` copies, checked and confirmed NOT drifted, versus e.g. `EXTERNAL-PROVIDER-TRUST.md`'s `backend_roots` omission, which WAS a drift)."
+    }
+  ],
+  "stable_validator_law_compliance": {
+    "claim": "A document that opens a frontmatter block (`---`) but never closes it is now classified identically to a document with no frontmatter at all: excluded from `canonical_frontmatter_total`, included in `missing_frontmatter`, and therefore counted as a real `hard_violations_total` entry that can make `gate_ready` false. A document with well-formed (open AND closed) frontmatter, empty or not, is completely unaffected.",
+    "self_written_evidence": "New test `a_doc_with_unclosed_frontmatter_is_not_counted_as_canonical` in `adapter/src/lib.rs`, asserting all three affected surfaces in one fixture: `canonical_frontmatter_total == 0`, `missing_frontmatter` contains the doc's relative path, and the per-document `id` field is correctly `None`. Independently confirmed the test fails without the fix (temporarily reverted the one call-site line, re-ran, restored) before trusting it.",
+    "independent_evidence_channel": "cargo build --workspace clean. cargo fmt --all --check clean. cargo clippy --workspace --all-targets -D warnings clean, zero warnings. Full cargo test --workspace: 290 adapter (+1 net), 3 apps/cli, 165 core, 77 runtime -- 535 total, 0 failed. Ran `atlas-cli docs audit --root .atlas` against this repository's own real docs tree before and after the fix: `gate_ready: true`, `canonical_frontmatter_total: 146`, `documents_total: 146`, `missing_frontmatter: []` -- byte-identical, confirming zero regression.",
+    "no_circular_self_certification": true
+  },
+  "implementation": {
+    "adapter_change": "adapter/src/lib.rs -- extracted `closed_frontmatter_body(text) -> Option<&str>` as the shared well-formedness/body-extraction logic; added `has_closed_frontmatter(text) -> bool` built on it; `frontmatter()` now delegates to the same helper instead of duplicating the delimiter-parsing logic; the `canonical_frontmatter_total`/`missing_frontmatter` classification site in `visit_docs` now calls `has_closed_frontmatter` instead of `has_frontmatter`."
+  },
+  "adversarial_and_falsification_coverage": [
+    "confirmed the fix's own regression test genuinely fails without it, not merely written and left green",
+    "explicitly distinguished the (unaffected) per-document `DocumentFact.canonical` field from the (fixed) aggregate `canonical_frontmatter_total`/`missing_frontmatter` counts, narrowing the fix precisely to where the real defect lives rather than touching correct code",
+    "verified zero regression against this repository's own real 146-document `.atlas` docs tree, not only a synthetic fixture"
+  ],
+  "validation_this_generation": {
+    "commands": {
+      "cargo build --workspace": { "exit_code": 0 },
+      "cargo fmt --all --check": { "exit_code": 0 },
+      "cargo clippy --workspace --all-targets -- -D warnings": { "exit_code": 0, "warnings": 0 },
+      "cargo test --workspace": { "exit_code": 0, "totals": "290 adapter (+1 net), 3 apps/cli, 165 core, 77 runtime -- 535 total, 0 failed" },
+      "cargo run -q -p atlas-cli -- docs audit --root .atlas (real repo, before and after)": { "result": "gate_ready true, canonical_frontmatter_total 146, documents_total 146, missing_frontmatter [] -- unchanged" }
+    }
+  },
+  "recensus_scope_after_promotion": [
+    "no prior CLOSED/EXTINCT conclusion is affected",
+    "this closes the specific finding an earlier delegated investigation flagged and explicitly deferred (no real file currently exercises it) -- confirmed here it is a real defect in the gate computation regardless of whether any current file triggers it, and fixed ahead of one ever being introduced",
+    "the same investigation's own top finding (GraphSummary.evidence_total) was already fixed in a prior generation this session; this closes its secondary, lower-confidence finding from the same report"
+  ],
+  "overall_verdict": "MATERIALIZED AND VERIFIED. `docs_audit`'s `canonical_frontmatter_total`/`missing_frontmatter`/`gate_ready` computation now correctly requires a well-formed (opened AND closed) frontmatter block, not merely an opening delimiter -- closing a real gap in a central admission gate. Confirmed the fix's own test genuinely fails without it, and confirmed zero regression against this repository's own real 146-document docs tree. Full workspace suite (535 tests) passing, gate_ready true.",
+  "historical_evidence_retained": true
+}
