@@ -1,0 +1,29 @@
+{
+  "schema": "atlas.self-build.generation-evidence.v1",
+  "wave": "RECENSUS -- close the immediately preceding generation's own recorded open question: is the fallback-misattribution defect class found twice in STATE present in any other walker?",
+  "wave_title": "The prior generation (state-multi-level-field-access-fabrication-fixed.json) found the identical fabrication bug shape twice in the same function and explicitly recorded as an open question: 'whether OWNERSHIP (R4.7) or DATA_FLOW (R4.9) have any structurally similar fallback re-enters a sibling arm and fabricates a partial fact defect class'. This generation answers it directly by reading every other walker's own Expr::Field handling, not by inference.",
+  "priority_classification": "correctness / architectural integrity (priority 1) -- direct, evidence-based follow-up to a recorded open question from the immediately preceding generation, the same discipline applied throughout this session's CFG work (each gap-closure generation's own open question became the next generation's starting point).",
+  "method": "grepped Expr::Field in every walker adjacent to state.rs (dataflow.rs, ownership.rs, persistence.rs, concurrency.rs, effect.rs, mod.rs's CALL walker) and read each match arm in full.",
+  "finding": "All six other walkers use the IDENTICAL, unconditional pattern: `syn::Expr::Field(field) => self.walk_expr(&field.base, ...)` -- always recurse into the base, with NO attempt to match a specific field-access SHAPE (no `self_field_ident`-equivalent function, no branching on whether the field resolves to something specific). STATE was the ONLY walker whose Expr::Field arm tried to recognize a shape (`self.<field>`) and branch on whether that shape matched, falling back to `walk_expr(&field.base)` only in the failure case. The specific defect class found in STATE -- an ALMOST-matching shape failing, then a fallback that re-enters a SIBLING arm which partially matches and fabricates a wrong fact -- structurally REQUIRES this 'try to match a specific named entity, fall back on failure' pattern to exist at all. The other six walkers do not have this pattern: they treat every Expr::Field identically regardless of its shape, so there is no 'almost matches' case to fall back from incorrectly.",
+  "why_this_is_architecturally_expected_not_coincidental": "STATE is the only one of the seven walkers whose entire purpose is to identify WHICH named entity (field name) was accessed -- DATA_FLOW/OWNERSHIP/PERSISTENCE/CONCURRENCY/EFFECT/CALL only care about finding nested calls/borrows/awaits/spawns/panics/persistence-spellings/etc. buried ANYWHERE inside an expression tree, never about naming the specific field a Field expression denotes. A walker that never tries to extract an identity from a shape cannot have a defect class built on failing to extract that identity.",
+  "stable_validator_law_compliance": {
+    "claim": "No walker other than STATE (already fixed) has the fallback-misattribution defect class the prior generation found and closed.",
+    "self_written_evidence": "Read the full Expr::Field match arm in all six other walker files directly, not inferred from their general architecture or from memory of having read them before.",
+    "independent_evidence_channel": "No code changed this generation, so the existing validation (502 tests, fmt/clippy clean, confirmed at commit cd484a7dec) remains the current, unmodified baseline.",
+    "no_circular_self_certification": true
+  },
+  "implementation": {
+    "code_change": "NONE -- this generation's own investigation returned a definitive negative result, closing the prior generation's recorded open question rather than manufacturing a fix where the pattern does not exist."
+  },
+  "adversarial_and_falsification_coverage": [
+    "checked ALL SIX other walkers, not a sample, and quoted the exact match arm from each rather than summarizing from memory",
+    "explicitly reasoned through WHY the pattern is architecturally confined to STATE (not merely observed to be absent elsewhere by coincidence), so a future reader can predict whether a NEW walker added later would need the same scrutiny (yes, if and only if it attempts to extract a specific named-entity identity from an expression shape with a fallback on failure)"
+  ],
+  "recensus_scope_after_promotion": [
+    "no prior CLOSED/EXTINCT conclusion is affected -- no code changed",
+    "closes the last explicitly recorded open question from this session's recent STATE/EFFECT expansion thread; no further dangling 'worth checking later' items remain from that thread",
+    "the general lesson (a match-then-fallback pattern that tries to extract a specific identity and falls back to a sibling/general-purpose handler on failure is a defect-prone shape worth extra adversarial scrutiny at ITS OWN failure boundary, not just its success case) is worth carrying forward to any future extractor code with this shape, not specific to STATE"
+  ],
+  "overall_verdict": "NO DEFECT FOUND ELSEWHERE. The fallback-misattribution defect class found and fixed twice in STATE this session is architecturally confined to STATE alone: it is the only walker whose Expr::Field handling attempts to extract a specific field-name identity with a match-then-fallback structure. All six other walkers use an unconditional walk-into-base pattern with no such failure mode possible. This closes the prior generation's own recorded open question with a definitive, evidenced answer.",
+  "historical_evidence_retained": true
+}
