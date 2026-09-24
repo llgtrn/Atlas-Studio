@@ -97,11 +97,11 @@ retrieved_at = "2026-09-20T12:08:55.4960343Z"
 license = [".atlas/licenses/datafrog/LICENSE-APACHE", ".atlas/licenses/datafrog/LICENSE-MIT"]
 technology_domains = ["relational_inference", "fixed_point"]
 ingestion_status = "CLONED"
-census_status = "SKELETON"
+census_status = "COARSE_CENSUSED"
 decision_status = "PENDING"
 native_replacement = "runtime inference engine"
 runtime_dependency_status = "REFERENCE_ONLY"
-evidence = [".atlas/provenance/donors/datafrog.json", ".atlas/census/datafrog.md"]
+evidence = [".atlas/provenance/donors/datafrog.json", ".atlas/census/datafrog.md", ".atlas/genome/technology/datafrog-semi-naive-fixpoint-evaluation.md"]
 
 [[donor]]
 id = "differential-dataflow"

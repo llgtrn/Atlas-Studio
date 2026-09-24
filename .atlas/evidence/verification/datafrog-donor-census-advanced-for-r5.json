@@ -1,0 +1,38 @@
+{
+  "schema": "atlas.self-build.generation-evidence.v1",
+  "wave": "DONOR RESEARCH -- deep-census datafrog's core semi-naive fixed-point evaluation mechanism, the second W3 donor for R5",
+  "wave_title": "Direct continuation of the two prior generations' Salsa research, but a deliberate decision point rather than a default continuation: with Salsa's two most R5-central mechanisms now covered, this generation chose breadth (the next W3 donor) over depth (Salsa's own peripheral subsystems), reasoning that R5's roadmap explicitly names five donors in this lane and datafrog occupies a genuinely different, complementary point in the design space rather than overlapping Salsa's own coverage.",
+  "priority_classification": "semantic preservation / roadmap advancement -- continuing the W3 donor lane R5 itself requires.",
+  "key_finding": "datafrog implements semi-naive bottom-up Datalog evaluation, architecturally distinct from and complementary to Salsa's top-down demand-driven memoization: a three-stage tuple lifecycle (to_add -> recent -> stable) ensures each round's joins only consider genuinely NEW combinations, never re-deriving from already-stable facts; a geometric/doubling batch-merge strategy keeps the stable set at O(log n) separately-sorted batches rather than requiring a full re-sort each round; and an adaptive galloping-vs-linear algorithm choice for deduplication is selected based on the relative size of the batches being compared. Critically, this record identifies that neither Salsa nor datafrog alone answers both of R5's needs (react to one changed input vs. compute a full closure) -- differential-dataflow, the third W3 donor, exists specifically to combine both, making it the clear next-highest-value census target, a conclusion this record reaches from its own analysis rather than merely because the roadmap lists it third.",
+  "method": "read lib.rs and iteration.rs in full (small files), then variable.rs (428 lines, the crate's actual core mechanism) in full rather than sampled, with particular attention to the exact merge/deduplication algorithm since the module's own doc comment states the lifecycle concept but not the specific batching/galloping implementation techniques -- those were found only by reading the actual changed() function body.",
+  "stable_validator_law_compliance": {
+    "claim": "datafrog's semi-naive evaluation strategy, including its two most valuable non-obvious engineering techniques (geometric batch merging, adaptive galloping deduplication), is now genuinely understood and evidenced from real source, and is confirmed to be a materially different mechanism from Salsa's own rather than redundant coverage.",
+    "self_written_evidence": "Every mechanism claim in the genome record cites specific line ranges read directly this generation. The comparison to Salsa is not a vague gesture -- it identifies the SPECIFIC capability gap (datafrog cannot react to a single incremental change without re-running the whole computation; Salsa cannot compute a from-scratch closure the way datafrog does) that motivates R5 needing multiple donors in the first place, verified by re-reading both donors' own mechanisms side by side rather than asserted from their reputations.",
+    "independent_evidence_channel": "python3 tomllib parse of donor-corpus.toml: succeeds, 57 donors preserved. cargo run -q -p atlas-cli -- docs audit --root .atlas: gate_ready true. Full cargo test --workspace: 504 total, 0 failed, unchanged (no Rust code touched).",
+    "no_circular_self_certification": true
+  },
+  "implementation": {
+    "code_change": "NONE -- donor research preceding R5 implementation.",
+    "docs_change": ".atlas/genome/technology/datafrog-semi-naive-fixpoint-evaluation.md (new). .atlas/census/datafrog.md -- updated from SKELETON, naming both what is now understood and what remains uncensused (treefrog.rs's worst-case-optimal-join machinery specifically, the crate's largest file). .atlas/references/donor-corpus.toml -- census_status SKELETON -> COARSE_CENSUSED, evidence array extended."
+  },
+  "adversarial_and_falsification_coverage": [
+    "did not stop at restating the module doc comment's own stated concept (three-stage lifecycle) -- read the actual changed() function body to find the two non-obvious techniques (geometric merging, adaptive galloping) the doc comment does not mention at all",
+    "explicitly identified a real gap in datafrog relative to Salsa (no termination safety net, unlike Salsa's MAX_ITERATIONS) rather than presenting the donor uncritically",
+    "reasoned concretely about WHY R5 needs multiple donors (a genuine capability gap between the two mechanisms already censused) rather than treating 'the roadmap lists five donors' as sufficient justification on its own"
+  ],
+  "validation_this_generation": {
+    "commands": {
+      "python3 tomllib parse of donor-corpus.toml": { "result": "valid, 57 donors" },
+      "cargo run -q -p atlas-cli -- docs audit --root .atlas": { "exit_code": 0, "gate_ready": true },
+      "cargo test --workspace": { "exit_code": 0, "totals": "504 total, 0 failed, unchanged" }
+    }
+  },
+  "recensus_scope_after_promotion": [
+    "datafrog's decision_status remains PENDING -- correctly, no absorption decision follows from mechanism understanding alone",
+    "datafrog's own treefrog.rs (worst-case optimal join, 795 lines, the crate's largest file) remains explicitly uncensused",
+    "differential-dataflow identified as the clear next W3 donor to census, by this record's own reasoning (it exists specifically to close the gap between Salsa's and datafrog's mechanisms), not merely by roadmap ordering",
+    "souffle and buck2 remain entirely untouched in this W3 lane"
+  ],
+  "overall_verdict": "RESEARCHED, EVIDENCED, AND RECORDED. datafrog's semi-naive bottom-up evaluation mechanism is now genuinely understood, confirmed as architecturally complementary to (not redundant with) Salsa's own mechanism, with a concrete, self-derived rationale for why R5 needs multiple donors and which one to census next. No code changed.",
+  "historical_evidence_retained": true
+}

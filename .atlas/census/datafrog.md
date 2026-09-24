@@ -15,9 +15,21 @@ canonical: true
 
 ## Census State
 
-Status: SKELETON. Source is cloned and pinned; implementation inspection still needs to classify modules, algorithms, storage, execution, query, incremental behavior, tests, benchmarks, assumptions, accepted ideas, rejected ideas, and Atlas-native replacement gaps.
+Status: COARSE_CENSUSED (advanced from SKELETON). The core semi-naive bottom-up Datalog evaluation
+strategy (three-stage tuple lifecycle: to_add -> recent -> stable; geometric/doubling batch merging;
+adaptive galloping-vs-linear deduplication) is now understood and evidenced from real source -- see
+`.atlas/genome/technology/datafrog-semi-naive-fixpoint-evaluation.md`, read directly from `src/lib.rs`,
+`src/iteration.rs`, and `src/variable.rs` (read in full).
+
+Still needing classification: the treefrog/leaper "worst-case optimal join" machinery
+(`src/treefrog.rs`, the crate's single largest file at 795 lines), and the `join.rs`/`merge.rs`/
+`map.rs` operator implementations.
 
 ## Native Replacement
 
-runtime inference engine
+runtime inference engine -- explicitly complementary to, not redundant with, Salsa's own mechanism
+(see the genome record above): Salsa answers "what does one changed input invalidate", datafrog
+answers "what is the full closure of a fixed fact set". R5's own requirements plausibly need both,
+composed. `differential-dataflow` (the third W3 donor) is flagged as the natural next census target,
+since it exists specifically to combine the two.
 
