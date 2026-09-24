@@ -167,11 +167,58 @@ pub struct DeclaredEdge {
     pub span: SourceSpan,
 }
 
+/// Which `ConstraintCheck` rule a `ConstraintCheckDerivation` records the evaluation of. Mirrors
+/// the check's own discriminant so a derivation trace names its rule without requiring a reader
+/// to cross-reference the declaring `ConstraintDecl` separately.
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+pub enum ConstraintCheckKind {
+    AttributeEquals,
+    MaterializationExists,
+    /// Synthesized by comparing a declared materialization against `SourceReport` (real observed
+    /// files), not by an authored `ConstraintCheck` -- see the `ObservedMaterialization:*` results
+    /// built from `compare_declared_observed`'s deltas, below.
+    ObservedMaterializationDelta,
+}
+
+impl ConstraintCheckKind {
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            Self::AttributeEquals => "ATTRIBUTE_EQUALS",
+            Self::MaterializationExists => "MATERIALIZATION_EXISTS",
+            Self::ObservedMaterializationDelta => "OBSERVED_MATERIALIZATION_DELTA",
+        }
+    }
+}
+
+/// Provenance for one `ConstraintCheck`'s evaluation: which rule ran and which declared facts it
+/// actually consulted to reach its verdict. One entry per `ConstraintDecl.checks` entry, in the
+/// same order -- `result.derivation.len() == the declaring constraint's checks.len()` always.
+///
+/// This is the R5 "evidence/provenance lineage through derived facts" requirement
+/// (`.atlas/roadmap/SELF-BUILDING-R4-R8.md`), absorbed from Souffle's provenance pattern
+/// (`.atlas/genome/technology/souffle-provenance-backed-derivation.md`): auxiliary metadata
+/// layered onto the EXISTING `evaluate_constraints` evaluator, additive to `passed`/
+/// `diagnostics` -- it changes what is RECORDED about a derivation, never what is computed. See
+/// `.atlas/decisions/0003-constraint-derivation-provenance.md`.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct ConstraintCheckDerivation {
+    pub rule: ConstraintCheckKind,
+    /// `DeclaredNode.name` values this `AttributeEquals` check actually read (whether or not each
+    /// one satisfied the rule) -- every node of the matching `entity_kind` (and, when a `where`
+    /// clause is present, that also matched it). Empty for `MaterializationExists`.
+    pub supporting_node_names: Vec<String>,
+    /// The `MaterializationDecl.target` this `MaterializationExists` check consulted. `None` for
+    /// `AttributeEquals`.
+    pub materialization_target: Option<String>,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct ConstraintResult {
     pub name: String,
     pub passed: bool,
     pub diagnostics: Vec<AdlDiagnostic>,
+    pub derivation: Vec<ConstraintCheckDerivation>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
@@ -917,6 +964,11 @@ pub fn compile_adl(sources: &[AdlSource], observed: &SourceReport) -> AdlCompile
             name: format!("ObservedMaterialization:{}", delta.subject),
             passed: false,
             diagnostics: vec![adl_diag(code, &delta.message, ".atlas/declared", 1, 1)],
+            derivation: vec![ConstraintCheckDerivation {
+                rule: ConstraintCheckKind::ObservedMaterializationDelta,
+                supporting_node_names: Vec::new(),
+                materialization_target: Some(delta.subject.clone()),
+            }],
         });
     }
     let ir = AtlasIr {
@@ -963,6 +1015,7 @@ fn evaluate_constraints(declared: &DeclaredGraph) -> Vec<ConstraintResult> {
                     constraint.span.column,
                 ));
             }
+            let mut derivation = Vec::new();
             for check in &constraint.checks {
                 match check {
                     ConstraintCheck::AttributeEquals {
@@ -972,6 +1025,7 @@ fn evaluate_constraints(declared: &DeclaredGraph) -> Vec<ConstraintResult> {
                         require_attr,
                         require_value,
                     } => {
+                        let mut supporting_node_names = Vec::new();
                         for node in declared
                             .nodes
                             .iter()
@@ -982,6 +1036,11 @@ fn evaluate_constraints(declared: &DeclaredGraph) -> Vec<ConstraintResult> {
                             {
                                 continue;
                             }
+                            // This node is a real supporting fact for this check's verdict
+                            // regardless of whether it individually passes: a `passed=false`
+                            // derivation must still name every fact consulted to reach that
+                            // verdict, not only the ones that satisfied the rule.
+                            supporting_node_names.push(node.name.clone());
                             if node.attributes.get(require_attr) != Some(require_value) {
                                 diagnostics.push(adl_diag(
                                     "ATLAS-E050",
@@ -995,6 +1054,11 @@ fn evaluate_constraints(declared: &DeclaredGraph) -> Vec<ConstraintResult> {
                                 ));
                             }
                         }
+                        derivation.push(ConstraintCheckDerivation {
+                            rule: ConstraintCheckKind::AttributeEquals,
+                            supporting_node_names,
+                            materialization_target: None,
+                        });
                     }
                     ConstraintCheck::MaterializationExists { target } => {
                         if !declared
@@ -1010,6 +1074,11 @@ fn evaluate_constraints(declared: &DeclaredGraph) -> Vec<ConstraintResult> {
                                 constraint.span.column,
                             ));
                         }
+                        derivation.push(ConstraintCheckDerivation {
+                            rule: ConstraintCheckKind::MaterializationExists,
+                            supporting_node_names: Vec::new(),
+                            materialization_target: Some(target.clone()),
+                        });
                     }
                 }
             }
@@ -1017,6 +1086,7 @@ fn evaluate_constraints(declared: &DeclaredGraph) -> Vec<ConstraintResult> {
                 name: constraint.name.clone(),
                 passed: diagnostics.is_empty(),
                 diagnostics,
+                derivation,
             }
         })
         .collect()
@@ -1604,6 +1674,151 @@ invariant BackendMustBeRust {
                 .diagnostics
                 .iter()
                 .any(|diagnostic| diagnostic.code == "ATLAS-E050")
+        );
+        // Souffle-provenance-shaped derivation (`.atlas/decisions/0003-...`): a FAILED verdict
+        // must still name every fact consulted to reach it, not only the passing ones -- the
+        // whole point of recording provenance is explaining why a derivation failed.
+        assert_eq!(
+            result.derivation.len(),
+            1,
+            "one derivation entry per evaluated check"
+        );
+        assert_eq!(
+            result.derivation[0].rule,
+            ConstraintCheckKind::AttributeEquals
+        );
+        assert_eq!(
+            result.derivation[0].supporting_node_names,
+            vec!["Compiler".to_owned()],
+            "the node consulted (and found violating) must be named even though the check failed"
+        );
+        assert_eq!(result.derivation[0].materialization_target, None);
+    }
+
+    #[test]
+    fn attribute_equals_derivation_names_every_supporting_node_when_the_check_passes() {
+        let source = AdlSource {
+            path: ".atlas/declared/system.adl".into(),
+            text: r#"atlas 1
+system Example
+entity Runtime Compiler {
+    kind = backend
+    language = rust
+}
+constraint BackendIsRust {
+    forall x: Runtime
+        where x.kind == backend
+    require x.language == rust
+}
+"#
+            .into(),
+        };
+        let observed = SourceReport {
+            schema: "test".into(),
+            root: "/repo".into(),
+            files_total: 0,
+            languages: BTreeMap::new(),
+            files: Vec::new(),
+        };
+        let report = compile_adl(&[source], &observed);
+        let result = report
+            .constraint_results
+            .iter()
+            .find(|result| result.name == "BackendIsRust")
+            .expect("constraint must produce a result");
+        assert!(result.passed);
+        assert_eq!(result.derivation.len(), 1);
+        assert_eq!(
+            result.derivation[0].rule,
+            ConstraintCheckKind::AttributeEquals
+        );
+        assert_eq!(
+            result.derivation[0].supporting_node_names,
+            vec!["Compiler".to_owned()],
+            "a passing check must still record the fact it consulted to reach that verdict"
+        );
+    }
+
+    #[test]
+    fn materialization_exists_derivation_names_its_target() {
+        let source = AdlSource {
+            path: ".atlas/declared/system.adl".into(),
+            text: r#"atlas 1
+system Example
+constraint CompilerIsMaterialized {
+    require materialized Compiler
+}
+"#
+            .into(),
+        };
+        let observed = SourceReport {
+            schema: "test".into(),
+            root: "/repo".into(),
+            files_total: 0,
+            languages: BTreeMap::new(),
+            files: Vec::new(),
+        };
+        let report = compile_adl(&[source], &observed);
+        let result = report
+            .constraint_results
+            .iter()
+            .find(|result| result.name == "CompilerIsMaterialized")
+            .expect("constraint must produce a result");
+        assert!(
+            !result.passed,
+            "no `materialize` declaration exists for `Compiler` in this fixture"
+        );
+        assert_eq!(result.derivation.len(), 1);
+        assert_eq!(
+            result.derivation[0].rule,
+            ConstraintCheckKind::MaterializationExists
+        );
+        assert!(result.derivation[0].supporting_node_names.is_empty());
+        assert_eq!(
+            result.derivation[0].materialization_target,
+            Some("Compiler".to_owned()),
+            "the derivation must name which materialization target the check consulted"
+        );
+    }
+
+    #[test]
+    fn a_synthesized_observed_materialization_delta_result_carries_its_own_derivation() {
+        // The ConstraintResult synthesized from compare_declared_observed's deltas (a
+        // structurally different code path from evaluate_constraints -- see the
+        // ObservedMaterialization: name prefix) must carry derivation too, not just the two
+        // authored-constraint code paths.
+        let source = AdlSource {
+            path: ".atlas/declared/system.adl".into(),
+            text: r#"atlas 1
+system Example
+materialize Compiler {
+    path = "core"
+    language = rust
+}
+"#
+            .into(),
+        };
+        let observed = SourceReport {
+            schema: "test".into(),
+            root: "/repo".into(),
+            files_total: 0,
+            languages: BTreeMap::new(),
+            files: Vec::new(),
+        };
+        let report = compile_adl(&[source], &observed);
+        let result = report
+            .constraint_results
+            .iter()
+            .find(|result| result.name == "ObservedMaterialization:Compiler")
+            .expect("a missing observed materialization must synthesize a constraint result");
+        assert_eq!(result.derivation.len(), 1);
+        assert_eq!(
+            result.derivation[0].rule,
+            ConstraintCheckKind::ObservedMaterializationDelta
+        );
+        assert_eq!(
+            result.derivation[0].materialization_target,
+            Some("Compiler".to_owned())
         );
     }
 

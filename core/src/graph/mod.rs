@@ -9,8 +9,8 @@ use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
 pub use engineering_graph::{
-    add_dependency_closure, build_repository_graph, build_source_graph, build_system_graph,
-    summarize_graph, summarize_repository_graph, summarize_system_graph,
+    add_constraint_derivations, add_dependency_closure, build_repository_graph, build_source_graph,
+    build_system_graph, summarize_graph, summarize_repository_graph, summarize_system_graph,
     summarize_system_graph_with_dependencies,
 };
 

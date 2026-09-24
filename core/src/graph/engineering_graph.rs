@@ -1,7 +1,8 @@
 use super::{Binding, Edge, EngineeringGraph, Fact, Node};
 use crate::{
     census::{DependencyClosureReport, DependencyIdentity},
-    identity::stable_id,
+    identity::{escape_identity_field, stable_id},
+    language::adl::ConstraintResult,
     provenance::{Provenance, provenance},
     schema::{
         DocsReport, EpistemicStatus, GraphSummary, NormalizationReport, SemanticFact,
@@ -1264,16 +1265,19 @@ pub fn summarize_system_graph(
     summarize_engineering_graph(&graph, source, "NORMALIZED_SEMANTIC_GRAPH")
 }
 
-/// Same as `summarize_system_graph`, but also projects `dependency_closure` into the graph before
-/// summarizing (`add_dependency_closure`) -- so `nodes_total`/`edges_total` account for resolved
-/// dependency edges too, not only source/declared/normalized-semantic facts.
+/// Same as `summarize_system_graph`, but also projects `dependency_closure` and `constraint_results`
+/// into the graph before summarizing (`add_dependency_closure`, `add_constraint_derivations`) -- so
+/// `nodes_total`/`edges_total` account for resolved dependency edges and constraint-derivation
+/// provenance too, not only source/declared/normalized-semantic facts.
 pub fn summarize_system_graph_with_dependencies(
     source: &SourceReport,
     docs: &DocsReport,
     normalization: &NormalizationReport,
     dependency_closure: &DependencyClosureReport,
+    constraint_results: &[ConstraintResult],
 ) -> GraphSummary {
     let mut graph = build_system_graph(source, docs, normalization);
+    add_constraint_derivations(&mut graph, constraint_results);
     add_dependency_closure(&mut graph, dependency_closure);
     summarize_engineering_graph(&graph, source, "NORMALIZED_SEMANTIC_GRAPH")
 }
@@ -1356,6 +1360,85 @@ pub fn add_dependency_closure(graph: &mut EngineeringGraph, closure: &Dependency
     }
 }
 
+fn constraint_result_node_id(name: &str) -> String {
+    stable_id(
+        "node",
+        &format!("constraint-result:{}", escape_identity_field(name, ':')),
+    )
+}
+
+/// Projects a `ConstraintResult`'s Souffle-provenance-shaped `derivation` (which declared facts
+/// each evaluated check actually consulted -- see `core::language::adl::ConstraintCheckDerivation`)
+/// into `graph`: one `ConstraintResult` node per result, and a `SUPPORTED_BY` edge to every
+/// `DeclaredNode` graph node an `AttributeEquals` check consulted. This is Atlas's absorption of
+/// R5's "evidence/provenance lineage through derived facts" requirement
+/// (`.atlas/roadmap/SELF-BUILDING-R4-R8.md`) from Souffle's subproof pattern
+/// (`.atlas/genome/technology/souffle-provenance-backed-derivation.md`;
+/// `.atlas/decisions/0003-constraint-derivation-provenance.md`). Additive and idempotent
+/// (`ensure_node` dedups by id) -- safe to call on an already-built graph, mirroring
+/// `add_dependency_closure`'s shape and calling convention.
+///
+/// `MaterializationExists`/`ObservedMaterializationDelta` derivations have no supporting
+/// `DeclaredNode` (they consult a materialization target, a concept this graph does not yet
+/// project its own node kind for) -- their targets are recorded as a `ConstraintResult` node
+/// attribute instead of a fabricated edge to a node kind that does not exist.
+///
+/// Must be called on a graph that already has `DeclaredNode` facts projected (every real caller
+/// -- `runtime::systemize`/`graph`/`code_analyze` -- builds the base graph from the same
+/// `AdlCompileReport`'s declared nodes first): a `SUPPORTED_BY` edge's target id is computed via
+/// the same `declared_node_id` scheme `SemanticFactKind::DeclaredNode`'s own projection arm uses,
+/// so the two converge onto the same node rather than diverging into a duplicate.
+pub fn add_constraint_derivations(graph: &mut EngineeringGraph, results: &[ConstraintResult]) {
+    for result in results {
+        let result_id = constraint_result_node_id(&result.name);
+        let prov = provenance(".atlas/declared", "atlas.constraint-derivation.v1");
+        let materialization_targets: Vec<String> = result
+            .derivation
+            .iter()
+            .filter_map(|derivation| derivation.materialization_target.as_deref())
+            .map(|target| escape_identity_field(target, ','))
+            .collect();
+        let mut attributes = BTreeMap::from([
+            ("passed".into(), result.passed.to_string()),
+            ("checks_total".into(), result.derivation.len().to_string()),
+        ]);
+        if !materialization_targets.is_empty() {
+            attributes.insert(
+                "materialization_targets_consulted".into(),
+                materialization_targets.join(","),
+            );
+        }
+        ensure_node(
+            graph,
+            result_id.clone(),
+            "ConstraintResult".into(),
+            result.name.clone(),
+            attributes,
+            &prov,
+        );
+        for derivation in &result.derivation {
+            for node_name in &derivation.supporting_node_names {
+                let target_id = declared_node_id(node_name);
+                graph.edges.push(Edge {
+                    id: stable_id(
+                        "edge",
+                        &format!(
+                            "{result_id}:SUPPORTED_BY:{target_id}:{}",
+                            derivation.rule.as_str()
+                        ),
+                    ),
+                    kind: "SUPPORTED_BY".into(),
+                    from: result_id.clone(),
+                    to: target_id,
+                    attributes: BTreeMap::from([("rule".into(), derivation.rule.as_str().into())]),
+                    provenance: prov.clone(),
+                    revision: None,
+                });
+            }
+        }
+    }
+}
+
 fn summarize_engineering_graph(
     graph: &EngineeringGraph,
     source: &SourceReport,
@@ -1381,6 +1464,7 @@ mod tests {
     use crate::{
         DocumentFact, EpistemicStatus, NormalizationReport, Provenance, SemanticFact,
         SemanticFactKind, TypedClosureAccounting,
+        language::adl::{ConstraintCheckDerivation, ConstraintCheckKind},
     };
 
     fn source() -> SourceReport {
@@ -3891,6 +3975,162 @@ mod tests {
         assert_eq!(graph.edges.len(), edges_before);
     }
 
+    fn constraint_result(
+        name: &str,
+        passed: bool,
+        derivation: Vec<ConstraintCheckDerivation>,
+    ) -> ConstraintResult {
+        ConstraintResult {
+            name: name.into(),
+            passed,
+            diagnostics: Vec::new(),
+            derivation,
+        }
+    }
+
+    #[test]
+    fn constraint_derivation_projects_a_supported_by_edge_to_the_consulted_declared_node() {
+        // R5's "evidence/provenance lineage through derived facts" requirement
+        // (`.atlas/roadmap/SELF-BUILDING-R4-R8.md`), absorbed from Souffle's subproof pattern:
+        // a ConstraintResult's derivation must reach the engineering graph as a real edge to the
+        // exact DeclaredNode node its check consulted, not merely sit as inert report data.
+        let mut graph = build_source_graph(&source());
+        // The DeclaredNode fact projection this function's own doc comment says must run first
+        // -- mirrors real production ordering (build_system_graph always projects DeclaredNode
+        // facts before add_constraint_derivations is called).
+        ensure_node(
+            &mut graph,
+            declared_node_id("Compiler"),
+            "Entity".into(),
+            "Compiler".into(),
+            BTreeMap::new(),
+            &provenance(".atlas/declared", "test"),
+        );
+
+        let results = vec![constraint_result(
+            "BackendIsRust",
+            true,
+            vec![ConstraintCheckDerivation {
+                rule: ConstraintCheckKind::AttributeEquals,
+                supporting_node_names: vec!["Compiler".into()],
+                materialization_target: None,
+            }],
+        )];
+        add_constraint_derivations(&mut graph, &results);
+
+        let result_node = graph
+            .nodes
+            .iter()
+            .find(|node| node.kind == "ConstraintResult" && node.identity == "BackendIsRust")
+            .expect("a ConstraintResult node must exist");
+        assert_eq!(
+            result_node.attributes.get("passed"),
+            Some(&"true".to_string())
+        );
+
+        let edge = graph
+            .edges
+            .iter()
+            .find(|edge| edge.kind == "SUPPORTED_BY")
+            .expect("a SUPPORTED_BY edge must exist");
+        assert_eq!(edge.from, result_node.id);
+        assert_eq!(
+            edge.to,
+            declared_node_id("Compiler"),
+            "the edge must point at the SAME DeclaredNode graph node the DeclaredNode fact \
+             projection creates, not a diverging duplicate id"
+        );
+        assert_eq!(
+            edge.attributes.get("rule"),
+            Some(&"ATTRIBUTE_EQUALS".to_string())
+        );
+    }
+
+    #[test]
+    fn a_failed_constraint_derivation_still_projects_its_supporting_node_edge() {
+        // Provenance's whole point is explaining a FAILED verdict -- a rejected check must still
+        // name (as a real graph edge) every fact it consulted to reach that verdict.
+        let mut graph = build_source_graph(&source());
+        ensure_node(
+            &mut graph,
+            declared_node_id("Compiler"),
+            "Entity".into(),
+            "Compiler".into(),
+            BTreeMap::new(),
+            &provenance(".atlas/declared", "test"),
+        );
+        let results = vec![constraint_result(
+            "BackendMustBeRust",
+            false,
+            vec![ConstraintCheckDerivation {
+                rule: ConstraintCheckKind::AttributeEquals,
+                supporting_node_names: vec!["Compiler".into()],
+                materialization_target: None,
+            }],
+        )];
+        add_constraint_derivations(&mut graph, &results);
+
+        let result_node = graph
+            .nodes
+            .iter()
+            .find(|node| node.kind == "ConstraintResult" && node.identity == "BackendMustBeRust")
+            .expect("a ConstraintResult node must exist even for a failed verdict");
+        assert_eq!(
+            result_node.attributes.get("passed"),
+            Some(&"false".to_string())
+        );
+        assert!(
+            graph
+                .edges
+                .iter()
+                .any(|edge| edge.kind == "SUPPORTED_BY" && edge.from == result_node.id),
+            "the consulted node must still be linked even though the check failed"
+        );
+    }
+
+    #[test]
+    fn a_materialization_exists_derivation_records_its_target_as_a_node_attribute() {
+        let mut graph = build_source_graph(&source());
+        let results = vec![constraint_result(
+            "CompilerIsMaterialized",
+            false,
+            vec![ConstraintCheckDerivation {
+                rule: ConstraintCheckKind::MaterializationExists,
+                supporting_node_names: Vec::new(),
+                materialization_target: Some("Compiler".into()),
+            }],
+        )];
+        add_constraint_derivations(&mut graph, &results);
+
+        let result_node = graph
+            .nodes
+            .iter()
+            .find(|node| {
+                node.kind == "ConstraintResult" && node.identity == "CompilerIsMaterialized"
+            })
+            .expect("a ConstraintResult node must exist");
+        assert_eq!(
+            result_node
+                .attributes
+                .get("materialization_targets_consulted"),
+            Some(&"Compiler".to_string())
+        );
+        assert!(
+            !graph.edges.iter().any(|edge| edge.kind == "SUPPORTED_BY"),
+            "no DeclaredNode was consulted for a MaterializationExists check"
+        );
+    }
+
+    #[test]
+    fn constraint_derivations_with_no_results_is_a_no_op() {
+        let mut graph = build_source_graph(&source());
+        let nodes_before = graph.nodes.len();
+        let edges_before = graph.edges.len();
+        add_constraint_derivations(&mut graph, &[]);
+        assert_eq!(graph.nodes.len(), nodes_before);
+        assert_eq!(graph.edges.len(), edges_before);
+    }
+
     #[test]
     fn two_edges_sharing_the_same_provider_do_not_duplicate_the_provider_node() {
         let mut graph = build_source_graph(&source());
@@ -3957,8 +4197,13 @@ mod tests {
             crate::census::DependencyActivation::ALWAYS,
         )]);
         let without = summarize_system_graph(&source(), &docs(), &normalization);
-        let with =
-            summarize_system_graph_with_dependencies(&source(), &docs(), &normalization, &closure);
+        let with = summarize_system_graph_with_dependencies(
+            &source(),
+            &docs(),
+            &normalization,
+            &closure,
+            &[],
+        );
         assert_eq!(with.nodes_total, without.nodes_total + 2);
         assert_eq!(with.edges_total, without.edges_total + 1);
     }

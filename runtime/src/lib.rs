@@ -8,8 +8,9 @@ use atlas_core::{
     AdlCompileReport, AdlProgram, CLI_API, CodingAdmission, ConstraintResult, Contract,
     DependencyClosureReport, DependencyClosureState, DependencyEcosystem, DocsReport,
     EngineeringGraph, Evidence, RepoAudit, RepoManifest, RepositoryId, RevisionRef,
-    SystemizeReport, WorkPrepareReport, WorkRequest, add_dependency_closure, build_system_graph,
-    compile_adl, parse_adl_source, summarize_system_graph_with_dependencies,
+    SystemizeReport, WorkPrepareReport, WorkRequest, add_constraint_derivations,
+    add_dependency_closure, build_system_graph, compile_adl, parse_adl_source,
+    summarize_system_graph_with_dependencies,
 };
 use std::{io, path::Path};
 
@@ -198,6 +199,7 @@ pub fn systemize(root: impl AsRef<Path>) -> io::Result<SystemizeReport> {
         &docs,
         &normalization,
         &dependency_closure,
+        &adl.constraint_results,
     );
     // `NotApplicable` (no Cargo.lock at all -- e.g. a non-Rust admitted repository) is not a
     // failure and leaves `BUILD` at whatever `census::build_census` already set (`Unsupported`):
@@ -307,6 +309,7 @@ pub fn graph(root: impl AsRef<Path>) -> io::Result<EngineeringGraph> {
     let census = census::build_census(&inventory, &source, &adl, &extraction_batches);
     let normalization = normalize::normalize(&census);
     let mut graph = build_system_graph(&source, &docs, &normalization);
+    add_constraint_derivations(&mut graph, &adl.constraint_results);
     add_dependency_closure(&mut graph, &resolve_dependency_closure(root)?);
     Ok(graph)
 }
@@ -346,6 +349,7 @@ pub fn code_analyze(root: impl AsRef<Path>) -> io::Result<serde_json::Value> {
         &docs,
         &normalization,
         &dependency_closure,
+        &adl.constraint_results,
     );
 
     Ok(serde_json::json!({
@@ -1236,6 +1240,7 @@ mod tests {
             name: name.into(),
             passed,
             diagnostics: Vec::new(),
+            derivation: Vec::new(),
         }
     }
 
