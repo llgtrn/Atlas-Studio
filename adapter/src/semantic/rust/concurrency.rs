@@ -3,12 +3,17 @@
 //! See the module doc comment on `core::semantic::concurrency` for the exact scope and rationale.
 //! `expr.await` is dedicated `syn::Expr::Await` syntax -- fully syntax-determined, cannot be
 //! shadowed or overloaded, so it is recorded as `EpistemicStatus::Observed`. A call whose callee
-//! spelling ends in the segment `spawn` is only a textual candidate, the same risk/precision class
+//! spelling ends in the segment `spawn` -- a free/path call (`thread::spawn(..)`) OR a bare method
+//! call (`pool.spawn(..)`, `Builder::new().spawn(..)`, both extremely common real-world thread/
+//! task-spawning idioms, found missing when this generation noticed the free-call-only
+//! implementation did not actually match this module's own long-standing "a function OR METHOD
+//! merely named spawn" framing) -- is only a textual candidate, the same risk/precision class
 //! R4.8's `is_panic_like_macro` already accepts for macro names: a function or method merely named
-//! `spawn` (`fn spawn() { .. }`, `game::spawn(enemy)`) is not evidence of real concurrency, and this
-//! extractor has no call-target resolution to tell the two apart. A spelling match is therefore
-//! recorded as `EpistemicStatus::Inferred`, never `Observed` -- only a resolved/admitted concurrency
-//! API would justify `Observed` here, and this extractor does not yet have one. Every other
+//! `spawn` (`fn spawn() { .. }`, `game::spawn(enemy)`, `ui.spawn(widget)`) is not evidence of real
+//! concurrency, and this extractor has no call-target resolution to tell the two apart. A spelling
+//! match is therefore recorded as `EpistemicStatus::Inferred`, never `Observed` -- only a
+//! resolved/admitted concurrency API would justify `Observed` here, and this extractor does not yet
+//! have one. Every other
 //! `ConcurrencyKind` (`Lock`/`Unlock`/`ChannelCreate`/
 //! `ChannelSend`/`ChannelReceive`/`AtomicOp`) would require resolving a method/function call to a
 //! specific known API, which this extractor cannot do without fabricating semantics, so none of
@@ -177,6 +182,10 @@ impl<'ctx, 'a> StatementWalker for ConcurrencyWalker<'ctx, 'a> {
             syn::Expr::Try(try_expr) => self.walk_expr(&try_expr.expr),
             syn::Expr::Cast(cast) => self.walk_expr(&cast.expr),
             syn::Expr::MethodCall(method_call) => {
+                if method_call.method == "spawn" {
+                    let span = self.ctx.span_of(method_call);
+                    self.emit(span, ConcurrencyKind::Spawn, EpistemicStatus::Inferred);
+                }
                 self.walk_expr(&method_call.receiver);
                 for arg in &method_call.args {
                     self.walk_expr(arg);

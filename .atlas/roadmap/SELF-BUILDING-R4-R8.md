@@ -352,6 +352,8 @@ Do not claim rustc-equivalent borrow checking merely because ownership facts exi
 
 Canonical main now has a useful R4.10 bootstrap: `Await` for every `.await` (dedicated syntax, fully syntax-determined) and `Spawn` for a callee spelling ending in `spawn` (the same name-based risk class R4.8's panic-macro detection already accepts). This is not R4.10 semantic closure.
 
+A real implementation gap was found and closed the same generation: this module's own doc comment already framed the accepted spawn-detection risk as "a function OR METHOD merely named spawn", but the code only ever checked `Expr::Call` (free/path calls) -- a bare `.spawn(..)` METHOD call (`pool.spawn(..)`, `Builder::new().spawn(..)`, extremely common real-world thread/task-spawning idioms) was completely invisible, a documentation-vs-implementation mismatch found by taking the doc comment's own stated scope at face value and checking the code against it, not by inventing new scope. `Expr::MethodCall` now also checks `method_call.method == "spawn"` and emits the identical `Inferred` `Spawn` candidate the free-call case already does -- no new risk class introduced, just closing the gap between what was already documented and what was actually implemented. Verified against a bare `.spawn(..)` method call (recorded) and a differently-named method call (correctly not recorded).
+
 R4.10 closure still requires materializing/accounting:
 
 - locks/unlocks;

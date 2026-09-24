@@ -1,0 +1,47 @@
+{
+  "schema": "atlas.self-build.generation-evidence.v1",
+  "wave": "CORRECTNESS/SEMANTIC PRESERVATION -- close a documentation-vs-implementation mismatch in R4.10 CONCURRENCY's Spawn detection",
+  "wave_title": "Pivoting to a genuinely fresh area per the prior generation's own note (R4.9 OWNERSHIP was checked first: its unemitted variants are explicitly labeled 'Reserved; never emitted this wave', a deliberate, already-made scope decision, not an oversight -- correctly left alone). R4.10 CONCURRENCY's own module doc comment, by contrast, explicitly frames the accepted spawn-detection risk as covering 'a function OR METHOD merely named spawn', but reading the actual code found only the free/path-call case (Expr::Call) was ever implemented -- a real gap between documented scope and actual behavior, not an intentional exclusion.",
+  "priority_classification": "correctness (priority 1, since the doc comment already claimed a scope the code did not fulfill) / semantic preservation (priority 3, since this also expands real, useful coverage) -- a genuine documentation-vs-implementation mismatch is itself a correctness concern per this session's own 'do not leave docs claiming capabilities the code does not possess' principle.",
+  "how_the_gap_was_found": "Read concurrency.rs's own module doc comment closely rather than only its code: 'a function or method merely named spawn (fn spawn() { .. }, game::spawn(enemy)) is not evidence of real concurrency' -- explicitly naming BOTH functions and methods as the accepted risk class. Then checked is_spawn_call's actual call sites and found it was only ever invoked from the Expr::Call arm; the Expr::MethodCall arm existed (to recurse into receiver/args) but never checked the method name at all. Confirmed via a failing test before writing the fix: pool.spawn(|| {}) produced zero Concurrency observations (left: 0, right: 1).",
+  "why_this_is_a_bug_not_a_deliberate_exclusion": "Unlike EFFECT's filesystem/process/network work (which deliberately excluded method calls because a BARE method name carries no qualifying module/type, making it far more ambiguous than a free/path call's own explicit qualifier), CONCURRENCY's spawn detection ALREADY accepts the identical bare-name ambiguity for the free-call case (its own doc comment cites `game::spawn(enemy)` as an accepted false-positive risk). There is no principled reason a bare `pool.spawn(..)` method call carries MORE risk than a bare `spawn(..)` free call already accepted -- excluding one while accepting the other was an implementation gap, not a considered boundary (confirmed by the doc comment's own pre-existing 'function OR method' framing predating this fix).",
+  "design_decisions": [
+    {
+      "question": "Reuse is_spawn_call (which calls call_callee_spelling, designed for free/path Expr::Call callees) for the method-call case too?",
+      "decision": "No -- `method_call.method` is already a plain `syn::Ident`, so `method_call.method == \"spawn\"` is a direct, simpler check with no need to route through `call_callee_spelling` (which exists specifically to handle the more complex free/path-call callee-expression shape). Reusing the free-call helper would have added indirection without benefit."
+    }
+  ],
+  "stable_validator_law_compliance": {
+    "claim": "A bare `.spawn(..)` method call now produces the identical Inferred Spawn candidate a free `spawn(..)` call already does; a method call with a different name does not.",
+    "self_written_evidence": "Confirmed the new test (method_call_spawn_is_recorded_as_a_spawn_site) fails against the pre-fix code (left: 0, right: 1) before confirming it passes against the fix. Added a negative test (a differently-named method call produces nothing) alongside it.",
+    "independent_evidence_channel": "cargo build --workspace clean. cargo fmt --all --check clean. cargo clippy --workspace --all-targets -D warnings clean. Full cargo test --workspace: 279 adapter (+2 net), 2 apps/cli, 160 core, 63 runtime -- 504 total, 0 failed, every pre-existing CONCURRENCY test (Await, free-call Spawn, non-spawn negative, if/else branches, loop body) unchanged and passing. docs audit gate_ready: true. systemize against this repository's own real source: exit 0.",
+    "no_circular_self_certification": true
+  },
+  "implementation": {
+    "core_change": "NONE -- ConcurrencyKind::Spawn already existed and was already emitted for the free-call case.",
+    "adapter_change": "adapter/src/semantic/rust/concurrency.rs -- Expr::MethodCall arm now checks `method_call.method == \"spawn\"` and emits the identical Inferred Spawn candidate before recursing into the receiver/args (unchanged); updated the module doc comment to name the method-call case explicitly and record that this generation found it missing relative to the doc comment's own pre-existing framing.",
+    "roadmap_change": ".atlas/roadmap/SELF-BUILDING-R4-R8.md R4.10 section -- documented the gap, why it was a real bug (not a considered boundary, unlike EFFECT's method-call exclusion), and the fix.",
+    "test_change": "adapter/src/semantic/rust/tests.rs -- added method_call_spawn_is_recorded_as_a_spawn_site and method_call_not_named_spawn_produces_no_concurrency_observation."
+  },
+  "adversarial_and_falsification_coverage": [
+    "confirmed the new positive test fails against the pre-fix code before confirming it passes",
+    "explicitly distinguished this fix from EFFECT's deliberate method-call exclusion (checked the actual reasoning behind each, rather than assuming 'this session excludes method calls' as a blanket rule -- the two cases have opposite correct answers for a principled reason, not an inconsistency)",
+    "checked OWNERSHIP's own reserved-but-unemitted variants FIRST and correctly declined to touch them (explicitly, deliberately reserved, unlike CONCURRENCY's doc-vs-code mismatch), demonstrating the distinction between 'a documented future placeholder' and 'a documentation claim the code does not fulfill' was actually applied, not just stated"
+  ],
+  "validation_this_generation": {
+    "commands": {
+      "cargo build --workspace": { "exit_code": 0 },
+      "cargo fmt --all --check": { "exit_code": 0 },
+      "cargo clippy --workspace --all-targets -- -D warnings": { "exit_code": 0, "warnings": 0 },
+      "cargo test --workspace": { "exit_code": 0, "totals": "279 adapter, 2 apps/cli, 160 core, 63 runtime -- 504 total, 0 failed" },
+      "cargo run -q -p atlas-cli -- docs audit --root .atlas": { "exit_code": 0, "gate_ready": true },
+      "cargo run -q -p atlas-cli -- systemize --root .": { "exit_code": 0 }
+    }
+  },
+  "recensus_scope_after_promotion": [
+    "R4.10's own closure status remains 'bootstrap materialized, closure remains open' -- Lock/Unlock/ChannelCreate/ChannelSend/ChannelReceive/AtomicOp remain unmaterialized, requiring resolving specific known APIs this extractor cannot yet do without fabricating semantics",
+    "worth a future census, explicitly not undertaken this generation: whether any OTHER walker's doc comment makes a similar 'function or method' (or otherwise dual-shape) claim that its own code only fulfills for one of the two shapes -- this generation found exactly one such mismatch by reading one doc comment closely; a systematic sweep of every walker's own doc-comment claims against its actual code was not performed"
+  ],
+  "overall_verdict": "FIXED, IMPLEMENTED, AND VERIFIED. Closed a real documentation-vs-implementation mismatch in R4.10 CONCURRENCY: the module's own doc comment already claimed method-call spawn detection as accepted scope, but the code never implemented it. Fixed with a direct, minimal check, verified against both a positive and negative case with the positive case confirmed to fail before the fix. Full workspace suite (504 tests) passing.",
+  "historical_evidence_retained": true
+}

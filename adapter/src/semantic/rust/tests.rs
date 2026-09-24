@@ -5819,3 +5819,51 @@ pub fn not_a_role(sock: &FakeTcpStream) {
          a bare `.connect(..)` method call is excluded the same way every other method call is"
     );
 }
+
+// --- R4.10 CONCURRENCY: this module's own doc comment already frames the accepted risk as "a
+// function OR METHOD merely named spawn", but the code only ever checked Expr::Call (free/path
+// calls) -- a bare `.spawn(..)` METHOD call (`pool.spawn(..)`, `Builder::new().spawn(..)`,
+// extremely common real-world thread/task-spawning idioms) was completely invisible, a real
+// implementation gap the module's own documentation never claimed did not exist. -----------------
+
+#[test]
+fn method_call_spawn_is_recorded_as_a_spawn_site() {
+    const SRC: &str = r#"
+pub fn run(pool: &ThreadPool) {
+    pool.spawn(|| {});
+}
+"#;
+    let batch = extract_all("src/probe.rs", SRC);
+    let caller = find_function_identity(&batch, &[], "run").unwrap();
+    let ops = concurrency_ops_for(&batch, caller);
+    assert_eq!(
+        ops.len(),
+        1,
+        "a bare `.spawn(..)` method call must be recorded exactly like a free `spawn(..)` call \
+         already is -- the module's own doc comment already accepts this exact risk class for \
+         both shapes equally"
+    );
+    assert_eq!(ops[0].kind, ConcurrencyKind::Spawn);
+    for observation in &batch.observations {
+        if let SemanticObservation::Concurrency(header) = observation {
+            assert_eq!(
+                header.status,
+                EpistemicStatus::Inferred,
+                "a bare method name is never Observed, the same discipline the free-call case \
+                 already follows"
+            );
+        }
+    }
+}
+
+#[test]
+fn method_call_not_named_spawn_produces_no_concurrency_observation() {
+    const SRC: &str = r#"
+pub fn run(pool: &ThreadPool) {
+    pool.execute(|| {});
+}
+"#;
+    let batch = extract_all("src/probe.rs", SRC);
+    let caller = find_function_identity(&batch, &[], "run").unwrap();
+    assert!(concurrency_ops_for(&batch, caller).is_empty());
+}
