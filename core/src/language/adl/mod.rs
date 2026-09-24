@@ -391,28 +391,39 @@ fn parse_constraint_check(lines: &[(usize, String)]) -> Result<Vec<ConstraintChe
         .filter(|line| !line.is_empty())
         .collect::<Vec<_>>()
         .join(" ");
-    if let Some(target) = joined
-        .split("require materialized")
-        .nth(1)
-        .and_then(|tail| tail.split_whitespace().next())
+    let words = joined.split_whitespace().collect::<Vec<_>>();
+    // Every keyword below is located by exact whole-word match against `words`, never a substring
+    // search on `joined` itself: an ADL attribute name that merely CONTAINS a keyword as a
+    // substring (`elsewhere`, `requires_review`, `required_by`) is a real, plausible declared
+    // attribute name, not an adversarial input, and previously collided with `str::split("where")`/
+    // `str::split("require")` -- corrupting or silently dropping the clause built around it.
+    if let Some(index) = words
+        .windows(2)
+        .position(|pair| pair[0] == "require" && pair[1] == "materialized")
+        && let Some(target) = words.get(index + 2)
     {
         return Ok(vec![ConstraintCheck::MaterializationExists {
-            target: target.trim().into(),
+            target: (*target).into(),
         }]);
     }
-    let words = joined.split_whitespace().collect::<Vec<_>>();
     let entity_kind = words
         .windows(3)
         .find(|window| window[0] == "forall" && window[1].ends_with(':'))
         .map(|window| window[2].to_owned());
-    let where_pair = joined.split("where").nth(1).and_then(|tail| {
-        let before_require = tail.split("require").next()?.trim();
-        let (left, right) = before_require.split_once("==")?;
+    let where_index = words.iter().position(|word| *word == "where");
+    let require_index = words.iter().position(|word| *word == "require");
+    let where_pair = where_index.and_then(|start| {
+        let end = require_index
+            .filter(|&require_index| require_index > start)
+            .unwrap_or(words.len());
+        let clause = words[start + 1..end].join(" ");
+        let (left, right) = clause.split_once("==")?;
         let attr = left.split('.').nth(1)?.trim().to_owned();
         Some((attr, unquote(right)))
     });
-    let require_pair = joined.split("require").nth(1).and_then(|tail| {
-        let (left, right) = tail.split_once("==")?;
+    let require_pair = require_index.and_then(|start| {
+        let clause = words[start + 1..].join(" ");
+        let (left, right) = clause.split_once("==")?;
         let attr = left.split('.').nth(1)?.trim().to_owned();
         Some((attr, unquote(right)))
     });
@@ -1241,6 +1252,84 @@ constraint BackendIsRust {
         assert!(
             constraint.checks.is_empty(),
             "unrecognized syntax must not fabricate a check"
+        );
+    }
+
+    #[test]
+    fn a_require_clause_attribute_name_containing_require_as_a_substring_still_parses() {
+        // `requires_review` is an ordinary, plausible declared attribute name that CONTAINS
+        // "require" as a substring. A naive `joined.split("require")` splits inside it as well as
+        // at the real `require` keyword, corrupting the clause and rejecting an otherwise valid
+        // constraint as unrecognized syntax.
+        let source = AdlSource {
+            path: ".atlas/declared/substring.adl".into(),
+            text: "atlas 1\nsystem Example\nconstraint C {\n    forall x: Runtime\n        \
+                   where x.requires_review == true\n    require x.language == rust\n}\n"
+                .into(),
+        };
+        let program = parse_adl_source(&source);
+        assert!(
+            !program
+                .diagnostics
+                .iter()
+                .any(|diagnostic| diagnostic.code == "ATLAS-E052"),
+            "a where-attribute merely containing the word `require` must not corrupt parsing: {:?}",
+            program.diagnostics
+        );
+        let constraint = program
+            .declarations
+            .iter()
+            .find_map(|decl| match decl {
+                AdlDeclaration::Constraint(c) if c.name == "C" => Some(c),
+                _ => None,
+            })
+            .expect("constraint declaration is recorded");
+        assert_eq!(
+            constraint.checks,
+            vec![ConstraintCheck::AttributeEquals {
+                entity_kind: "Runtime".into(),
+                where_attr: Some("requires_review".into()),
+                where_value: Some("true".into()),
+                require_attr: "language".into(),
+                require_value: "rust".into(),
+            }]
+        );
+    }
+
+    #[test]
+    fn a_where_clause_attribute_name_containing_where_as_a_substring_is_not_silently_dropped() {
+        // `elsewhere` is an ordinary, plausible declared attribute name that CONTAINS "where" as a
+        // substring. A naive `joined.split("where")` matches inside it too, silently resolving the
+        // where-filter to `None` -- with no diagnostic anywhere -- which corrupts the constraint's
+        // real meaning from "Runtime nodes where elsewhere == true must have language == rust" to
+        // "ALL Runtime nodes must have language == rust", a silent semantic change that can flip a
+        // real `check`/`systemize` pass/fail outcome.
+        let source = AdlSource {
+            path: ".atlas/declared/substring.adl".into(),
+            text: "atlas 1\nsystem Example\nconstraint C {\n    forall x: Runtime\n        \
+                   where x.elsewhere == true\n    require x.language == rust\n}\n"
+                .into(),
+        };
+        let program = parse_adl_source(&source);
+        let constraint = program
+            .declarations
+            .iter()
+            .find_map(|decl| match decl {
+                AdlDeclaration::Constraint(c) if c.name == "C" => Some(c),
+                _ => None,
+            })
+            .expect("constraint declaration is recorded");
+        assert_eq!(
+            constraint.checks,
+            vec![ConstraintCheck::AttributeEquals {
+                entity_kind: "Runtime".into(),
+                where_attr: Some("elsewhere".into()),
+                where_value: Some("true".into()),
+                require_attr: "language".into(),
+                require_value: "rust".into(),
+            }],
+            "the where-filter naming an attribute that merely contains the word `where` must be \
+             preserved, not silently dropped"
         );
     }
 
