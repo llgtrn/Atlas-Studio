@@ -1,0 +1,30 @@
+{
+  "objective": "P1: make self-recensus the mandatory proof of every generation -- core::recensus (revision-independent CensusSnapshot + prove), runtime::recensus, ledger chain test, priority reset records",
+  "changed_paths": [
+    "core/src/recensus/",
+    "core/src/lib.rs",
+    "core/src/semantic/observation.rs",
+    "runtime/src/recensus.rs",
+    "runtime/src/lib.rs"
+  ],
+  "total_changes": [
+    "+artifacts",
+    "+facts",
+    "+typed_records",
+    "+obligations",
+    "+evidence",
+    "+graph_nodes",
+    "+graph_edges",
+    "+normalized_facts",
+    "+docs",
+    "+diagnostic:IncompleteAnalysis",
+    "+unknown_facts"
+  ],
+  "explained_unknowns": [
+    "core/src/recensus/: new Rust source carries the extractor's standard UNKNOWN obligations for dimensions it does not model (CALL/CONTROL_FLOW/DATA_FLOW/STATE/EFFECT/OWNERSHIP/CONCURRENCY/PERSISTENCE coverage is UNKNOWN at baseline)",
+    "runtime/src/recensus.rs: same extractor coverage gap as every Rust file at baseline"
+  ],
+  "accepted_unexpected": [
+    "total +graph_bindings: not anticipated in the first proof run; verified to be DocumentationBindings created by the new ADR 0024 / SELF-RECENSUS contract referencing the new source paths (engineering_graph.rs document-reference binding rule)"
+  ]
+}

@@ -17,6 +17,7 @@ pub mod physical;
 pub mod product;
 pub mod provenance;
 pub mod quantity;
+pub mod recensus;
 pub mod schema;
 pub mod semantic;
 pub mod state;

@@ -6,6 +6,7 @@ pub mod inventory;
 pub mod normalize;
 pub mod physical;
 pub mod product;
+pub mod recensus;
 pub mod visual;
 
 use atlas_core::{
@@ -1438,6 +1439,93 @@ mod tests {
                 }
             }
             assert!(generations > 0, "ledger records no generation");
+        }
+
+        /// ADR 0024: from G57, NEXTGEN is proven by self-recensus. Every generation records its
+        /// priority (P0-P6, or a P7 workload naming the P0-P6 proof it serves) and a PROVEN
+        /// self-recensus report whose before/after digests match its recorded pre/post snapshots;
+        /// and each generation's pre-change census equals the previous generation's post-change
+        /// census, so the chain of Atlases is auditable end to end.
+        #[test]
+        fn generation_ledger_self_recensus_chain() {
+            use crate::recensus::{SelfRecensusReport, Verdict, read_snapshot};
+            let root = workspace_root();
+            let text = std::fs::read_to_string(root.join(".atlas/roadmap/GENERATIONS.toml"))
+                .expect("GENERATIONS.toml");
+            let field = |block: &str, name: &str| {
+                block.lines().find_map(|line| {
+                    let rest = line.trim().strip_prefix(name)?.strip_prefix(" = \"")?;
+                    Some(rest[..rest.find('"')?].to_owned())
+                })
+            };
+            let mut previous_post: Option<(String, String)> = None;
+            let mut proven = 0;
+            for block in text.split("\n[[generation]]").skip(1) {
+                let id = field(block, "id").expect("generation id");
+                let number: u32 = id.trim_start_matches('G').parse().unwrap_or(0);
+                if number < 57 {
+                    continue;
+                }
+                let priority = field(block, "priority")
+                    .unwrap_or_else(|| panic!("{id}: no priority (PRIORITY.toml)"));
+                let serves = field(block, "serves").unwrap_or_default();
+                assert!(
+                    ["P0", "P1", "P2", "P3", "P4", "P5", "P6"].contains(&priority.as_str())
+                        || (priority == "P7"
+                            && ["P0", "P1", "P2", "P3", "P4", "P5", "P6"]
+                                .iter()
+                                .any(|p| serves.contains(p))),
+                    "{id}: priority `{priority}` must be P0-P6, or P7 serving a P0-P6 proof"
+                );
+                assert!(
+                    !serves.trim().is_empty(),
+                    "{id}: `serves` must state the proof it serves"
+                );
+                let report_path = field(block, "self_recensus").unwrap_or_else(|| {
+                    panic!("{id}: no self_recensus report: GENERATION_NOT_PROVEN")
+                });
+                let dir = std::path::Path::new(&report_path)
+                    .parent()
+                    .expect("report directory")
+                    .to_path_buf();
+                let report: SelfRecensusReport = serde_json::from_str(
+                    &std::fs::read_to_string(root.join(&report_path))
+                        .unwrap_or_else(|e| panic!("{id}: {report_path}: {e}")),
+                )
+                .unwrap_or_else(|e| panic!("{id}: {report_path}: {e}"));
+                assert_eq!(report.generation, id);
+                assert_eq!(
+                    report.verdict,
+                    Verdict::Proven,
+                    "{id}: {:?}",
+                    report.regressions
+                );
+                let pre = read_snapshot(root.join(dir.join("pre.json")))
+                    .unwrap_or_else(|e| panic!("{id}: pre snapshot: {e}"));
+                let post = read_snapshot(root.join(dir.join("post.json")))
+                    .unwrap_or_else(|e| panic!("{id}: post snapshot: {e}"));
+                assert_eq!(
+                    pre.census_digest, report.before_census_digest,
+                    "{id}: pre digest"
+                );
+                assert_eq!(
+                    post.census_digest, report.after_census_digest,
+                    "{id}: post digest"
+                );
+                assert_eq!(
+                    report.after_census_digest, report.replay_digest,
+                    "{id}: replay"
+                );
+                if let Some((previous_id, previous_digest)) = &previous_post {
+                    assert_eq!(
+                        &pre.census_digest, previous_digest,
+                        "{id}: pre-change census must equal {previous_id}'s post-change census"
+                    );
+                }
+                previous_post = Some((id.clone(), post.census_digest.clone()));
+                proven += 1;
+            }
+            assert!(proven >= 1, "no self-recensus-proven generation recorded");
         }
 
         /// `.atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml` (G53) is the repo-exact OSS frontier:

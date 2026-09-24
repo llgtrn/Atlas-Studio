@@ -1,0 +1,177 @@
+schema = "atlas.priority.v1"
+canonical = true
+decision = ".atlas/decisions/0024-self-recensus-proof-of-nextgen.md"
+established_in = "G57"
+base_commit = "4fcb0d68198c58860106cf9d79c573c18637864d"
+
+# PRIORITY RESET (G57). NEXTGEN is proven by self-recensus, not by generation numbering:
+#   Atlas_N -> self census -> donor census -> gap -> absorb/implement -> Atlas_N+1
+#   -> self recensus -> semantic diff -> falsify/verify -> donor terminal -> extinct/reclaim.
+# Every generation from G57 declares one priority and what it serves; enforced by
+# runtime tests (generation_ledger_*).
+
+[[priority]]
+id = "P0"
+name = "CENSUS_KERNEL_CLOSURE"
+status = "OPEN"
+meaning = "a selected scope is censused to closure (see [census_closure]) and certified"
+
+[[priority]]
+id = "P1"
+name = "SELF_RECENSUS_N_TO_N_PLUS_1"
+status = "OPERATIONAL_FROM_G57"
+meaning = "every production generation proves itself by pre-census, change, post-census, semantic diff, replay, verdict"
+
+[[priority]]
+id = "P2"
+name = "ADL_ATLAS_ATLASX_END_TO_END"
+status = "OPEN"
+meaning = "census truth -> ADL -> validated .atlas -> deterministic .atlasx -> recensus"
+
+[[priority]]
+id = "P3"
+name = "FIRST_50_DONOR_CAMPAIGN"
+status = "OPEN"
+meaning = "the canonical first-50 queue (FIRST-50-CAMPAIGN.toml) processed sequentially to terminal states"
+
+[[priority]]
+id = "P4"
+name = "INCREMENTAL_DEPENDENCY_AWARE_RECENSUS"
+status = "OPEN"
+meaning = "edit -> affected facts -> recompute affected closure -> equals full-census oracle"
+
+[[priority]]
+id = "P5"
+name = "ABSORPTION_EXTINCTION_STORAGE_RECYCLING"
+status = "PARTIAL"
+meaning = "absorb -> verify -> delete donor source -> post-delete recensus -> reclaim (ADR 0021 working set exists)"
+
+[[priority]]
+id = "P6"
+name = "CONSTRUCTION_COMPILER_SUBSTRATE"
+status = "OPEN"
+meaning = "semantic state -> constructed artifacts, with rustc/cargo as explicit bootstrap boundaries"
+
+# P7+: secondary workloads. Not deleted; used only as census test workloads. A generation may
+# work on them only when its `serves` names the P0-P6 proof it produces evidence for.
+[[secondary_workload]]
+family = "CREATOR_FABRIC"
+state = "FROZEN_SECONDARY_WORKLOAD"
+census_role = "web behaviour -> census -> typed DOM/CSS/layout/interaction/motion semantics -> recensus after modification"
+
+[[secondary_workload]]
+family = "PHYSICAL_ENGINEERING"
+state = "FROZEN_SECONDARY_WORKLOAD"
+census_role = "units, constraints, dynamics and simulation evidence as census semantics"
+
+[[secondary_workload]]
+family = "PRODUCT_FOUNDRY"
+state = "FROZEN_SECONDARY_WORKLOAD"
+census_role = "BOM, economics and variants as census semantics; resumes after P0 + P2 + P3 underway"
+
+[[secondary_workload]]
+family = "FUTURES"
+state = "FROZEN_SECONDARY_WORKLOAD"
+census_role = "design search / hypotheses only as census evidence"
+
+[[secondary_workload]]
+family = "LADYBIRD_MIGRATION"
+state = "DEFERRED"
+census_role = "only if Chromium-only observation causes an epistemic census gap that needs an independent engine to falsify"
+
+[[secondary_workload]]
+family = "MEDIA_ROBOTICS_COMMERCE"
+state = "FROZEN_SECONDARY_WORKLOAD"
+census_role = "none on the critical path"
+
+# Asked machine-readably before choosing any objective; all false => DEFER.
+[selection_rule]
+questions = [
+  "does it directly improve census closure?",
+  "does it directly improve the self-recensus proof?",
+  "does it directly improve ADL/.atlas/.atlasx production?",
+  "does it directly advance the first-50 donor campaign?",
+  "does it directly improve incremental recensus?",
+  "does it directly improve extinction/storage recycling?",
+  "does it directly improve the construction substrate?",
+]
+all_false = "DEFER"
+frontier_expansion_frozen = true
+frontier_addition_requires = "a first-50 dependency needs it, or a missing foundational mechanism has no representative donor; recorded explicitly"
+
+# What a closed census of a selected scope requires. FULL_CENSUS_CLOSED is never claimed without
+# every element; the reconciliation certificate (P0) is what asserts it.
+[census_closure]
+required_elements = [
+  "SOURCE_INVENTORY_COMPLETE",
+  "ARTIFACT_CONTENT_IDENTITY",
+  "LANGUAGE_EXTRACTION",
+  "TYPED_SEMANTIC_FACTS",
+  "CONTROL_DATA_STATE_EFFECT_SEMANTICS",
+  "DEPENDENCY_CLOSURE",
+  "SOURCE_BACKED_PROVENANCE",
+  "EXPLICIT_UNKNOWNS",
+  "NORMALIZATION",
+  "ENGINEERING_GRAPH",
+  "DETERMINISTIC_REPLAY",
+  "RECONCILIATION_CERTIFICATE",
+]
+
+# Atlas self-scope at the G57 baseline (4fcb0d6819), from its own census.
+[census_closure.self_scope_g57]
+SOURCE_INVENTORY_COMPLETE = "PARTIAL: 98 artifacts; apps/cli (the atlas-systemizer crate) is outside the manifest's source roots and is not censused; 8 artifacts UNKNOWN (HTML/CSS fixtures, .in vector files)"
+ARTIFACT_CONTENT_IDENTITY = "OBSERVED: BLAKE3 per inventoried artifact; .atlas markdown docs are counted but not content-identified"
+LANGUAGE_EXTRACTION = "PARTIAL: rust semantic extractor; javascript/json/toml/markdown parsed only; html/css/.in unsupported"
+TYPED_SEMANTIC_FACTS = "PARTIAL: SYMBOL, TYPE, FUNCTION_IDENTITY, FUNCTION_SIGNATURE OBSERVED"
+CONTROL_DATA_STATE_EFFECT_SEMANTICS = "UNKNOWN: CALL, CONTROL_FLOW, DATA_FLOW, STATE, EFFECT, OWNERSHIP, CONCURRENCY, PERSISTENCE coverage UNKNOWN; 624 INCOMPLETE_ANALYSIS diagnostics"
+DEPENDENCY_CLOSURE = "OBSERVED: cargo closure CLOSED (39 edges, 23 instances, 0 dangling, 9 dynamic obligations)"
+SOURCE_BACKED_PROVENANCE = "OBSERVED: every fact carries path, revision, extractor, span"
+EXPLICIT_UNKNOWNS = "OBSERVED: 632 UNKNOWN + 120 UNSUPPORTED facts represented"
+NORMALIZATION = "OBSERVED: 10482 -> 10482 normalized, 0 conflicts"
+ENGINEERING_GRAPH = "OBSERVED: 61739 nodes, 78759 edges, 139 bindings"
+DETERMINISTIC_REPLAY = "OBSERVED: two censuses of 4fcb0d6819 give census digest 81c7931c53cd... (G57)"
+RECONCILIATION_CERTIFICATE = "ABSENT"
+verdict = "NOT_CLOSED"
+
+# Exit criteria of the first phase; broad expansion stays frozen until all are MET.
+[exit_criteria]
+A_self_recensus_mandatory_and_operational = "MET_G57 (enforced by generation_ledger_self_recensus_chain)"
+B_reconciliation_certificate = "OPEN"
+C_adl_consumes_census_truth = "OPEN"
+D_atlas_writer_reader_validator = "OPEN"
+E_atlasx_production_validation = "OPEN"
+F_first_50_queue_canonical = "OPEN"
+G_first_50_sequential_lifecycle_substantial = "OPEN"
+H_incremental_recensus_with_oracle = "OPEN"
+I_extinction_reclaim_under_bounded_storage = "PARTIAL: working set exists (G54); no post-extinction recensus yet"
+
+# Planned trajectory (adapted to HEAD); each item one bounded, self-recensus-proven generation.
+[[planned_generation]]
+id = "G58"
+priority = "P0"
+objective = "reconciliation census certificate for the Atlas self-scope"
+
+[[planned_generation]]
+id = "G59"
+priority = "P0"
+objective = "close the self-scope inventory gaps the certificate reports (atlas-systemizer crate outside scope; UNKNOWN artifacts)"
+
+[[planned_generation]]
+id = "G60"
+priority = "P2"
+objective = "ADL <- census: typed census facts become ADL declarations/constraints"
+
+[[planned_generation]]
+id = "G61"
+priority = "P2"
+objective = "minimum .atlas writer/reader/validator over validated census state"
+
+[[planned_generation]]
+id = "G62"
+priority = "P2"
+objective = "minimum .atlasx deterministic materialization + validation"
+
+[[planned_generation]]
+id = "G63+"
+priority = "P3"
+objective = "first-50 donor campaign, sequential, interleaving only census improvements exposed by real donors"

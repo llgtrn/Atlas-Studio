@@ -71,6 +71,57 @@ impl SemanticObservation {
         }
     }
 
+    pub fn status(&self) -> crate::EpistemicStatus {
+        match self {
+            Self::FunctionIdentity(header) => header.status,
+            Self::FunctionSignature(header) => header.status,
+            Self::Symbol(header) => header.status,
+            Self::Type(header) => header.status,
+            Self::Call(header) => header.status,
+            Self::ControlFlow(header) => header.status,
+            Self::DataFlow(header) => header.status,
+            Self::State(header) => header.status,
+            Self::Effect(header) => header.status,
+            Self::Ownership(header) => header.status,
+            Self::Concurrency(header) => header.status,
+            Self::Persistence(header) => header.status,
+        }
+    }
+
+    pub fn scope(&self) -> &super::SemanticScope {
+        match self {
+            Self::FunctionIdentity(header) => &header.scope,
+            Self::FunctionSignature(header) => &header.scope,
+            Self::Symbol(header) => &header.scope,
+            Self::Type(header) => &header.scope,
+            Self::Call(header) => &header.scope,
+            Self::ControlFlow(header) => &header.scope,
+            Self::DataFlow(header) => &header.scope,
+            Self::State(header) => &header.scope,
+            Self::Effect(header) => &header.scope,
+            Self::Ownership(header) => &header.scope,
+            Self::Concurrency(header) => &header.scope,
+            Self::Persistence(header) => &header.scope,
+        }
+    }
+
+    pub fn provenance(&self) -> &crate::Provenance {
+        match self {
+            Self::FunctionIdentity(header) => &header.provenance,
+            Self::FunctionSignature(header) => &header.provenance,
+            Self::Symbol(header) => &header.provenance,
+            Self::Type(header) => &header.provenance,
+            Self::Call(header) => &header.provenance,
+            Self::ControlFlow(header) => &header.provenance,
+            Self::DataFlow(header) => &header.provenance,
+            Self::State(header) => &header.provenance,
+            Self::Effect(header) => &header.provenance,
+            Self::Ownership(header) => &header.provenance,
+            Self::Concurrency(header) => &header.provenance,
+            Self::Persistence(header) => &header.provenance,
+        }
+    }
+
     pub fn evidence_refs(&self) -> &[EvidenceId] {
         match self {
             Self::FunctionIdentity(header) => &header.evidence_refs,

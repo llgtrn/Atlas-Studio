@@ -13,7 +13,7 @@
 #       -> generation evidence -> G_n+1
 
 schema = "atlas.self-build.generation-ledger.v1"
-current_generation = "G56"
+current_generation = "G57"
 
 [[generation]]
 id = "G35"
@@ -626,6 +626,7 @@ base_commit = "f6bf0f2df5f5aa478dac70d920f8ccd5fad4a069"
 objective = "open PRODUCT_FOUNDRY: 29 machine-readable lanes, repo-exact donor frontier, and the first native primitive (Product Semantic IR + evidence-typed unit economics)"
 writer = "coordinator (sole writer); read-only lane: Product Foundry donor verification (10 candidates, remote census)"
 evidence = ".atlas/evidence/verification/g56-product-foundry.json"
+result_commits = ["4fcb0d68198c58860106cf9d79c573c18637864d"]
 
 [[generation.lane]]
 id = "product-donor-verification"
@@ -644,3 +645,25 @@ honest_findings = "naive interval subtraction gave a margin ratio above 1; break
 
 [generation.next]
 objective = "G57: native parametric CSG for the desk organizer (exact volume -> DERIVED mass -> material cost, STL export) + trapezoidal print-time estimate"
+
+# PRIORITY RESET (ADR 0024, PRIORITY.toml): from G57 every generation declares a priority, what
+# it serves, and a PROVEN self-recensus chained to the previous generation's post-change census.
+
+[[generation]]
+id = "G57"
+base_commit = "4fcb0d68198c58860106cf9d79c573c18637864d"
+priority = "P1"
+serves = "P1 SELF_RECENSUS_N_TO_N_PLUS_1 (and the P0 baseline it measures)"
+objective = "priority reset; make self-recensus the mandatory, chained proof of every generation; record the Atlas self-census baseline"
+writer = "coordinator (sole writer)"
+evidence = ".atlas/decisions/0024-self-recensus-proof-of-nextgen.md"
+self_recensus = ".atlas/evidence/census/G57/recensus.json"
+
+[generation.verification]
+baseline = "4fcb0d6819: census digest blake3-256:81c7931c53cd... identical across two runs; 98 artifacts, 10482 facts, 54229 typed records, 1056 obligations, 61739 graph nodes, closure CLOSED, 752 explicit unknowns; census closure NOT_CLOSED (PRIORITY.toml)"
+proof = "PROVEN: 3 artifacts created, 3 modified, all intended; replay identical; no regression; +24 unknowns explained (extractor coverage gap); +3 graph bindings accepted after verification (DocumentationBindings from ADR 0024 / SELF-RECENSUS contract)"
+falsification = "14/14 recensus mutants killed (replay ignored, digest unverified, revision in digest, unexpected allowed, unobserved allowed, empty acceptance reason, coverage downgrade, closure left, dangling, admission, unknowns unchecked, objective optional, modification undetected, semantic change undetected)"
+exposed_gap = "the atlas-systemizer crate (apps/cli) is outside census scope: G57's own CLI change is invisible to the proof"
+
+[generation.next]
+objective = "G58 (P0): reconciliation census certificate for the Atlas self-scope"

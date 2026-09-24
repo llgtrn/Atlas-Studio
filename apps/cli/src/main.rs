@@ -196,6 +196,46 @@ fn run(args: &[String]) -> Result<(), String> {
             }
             print!("{text}");
         }
+        [cmd, sub, rest @ ..] if cmd == "recensus" && sub == "snapshot" => {
+            // ADR 0024: the revision-independent semantic state of a full self-census.
+            let root = value(rest, "--root")?.unwrap_or_else(|| ".".into());
+            let out = value(rest, "--out")?.ok_or("recensus snapshot requires --out")?;
+            let snapshot =
+                runtime::recensus::snapshot(&root).map_err(|e| format!("{root}: {e}"))?;
+            write_report_to_out(&out, &(json(&snapshot)? + "\n"))?;
+            println!("{} {}", snapshot.census_digest, snapshot.revision);
+        }
+        [cmd, sub, rest @ ..] if cmd == "recensus" && sub == "prove" => {
+            // ADR 0024: census the candidate twice, diff it against the pre-change census, and
+            // decide the generation. Exits GENERATION_NOT_PROVEN unless every observed change is
+            // intended (or accepted with a reason), every intention is observed, the replay is
+            // identical and no forbidden regression remains.
+            let root = value(rest, "--root")?.unwrap_or_else(|| ".".into());
+            let generation =
+                value(rest, "--generation")?.ok_or("recensus prove requires --generation")?;
+            let before_path = value(rest, "--before")?.ok_or("recensus prove requires --before")?;
+            let intent_path = value(rest, "--intent")?.ok_or("recensus prove requires --intent")?;
+            let before =
+                runtime::recensus::read_snapshot(&before_path).map_err(|e| e.to_string())?;
+            let intent_text =
+                fs::read_to_string(&intent_path).map_err(|e| format!("{intent_path}: {e}"))?;
+            let intent: runtime::recensus::RecensusIntent =
+                serde_json::from_str(&intent_text).map_err(|e| format!("{intent_path}: {e}"))?;
+            let (report, after) =
+                runtime::recensus::prove_candidate(&root, &generation, &before, &intent)
+                    .map_err(|e| format!("{root}: {e}"))?;
+            if let Some(after_out) = value(rest, "--after-out")? {
+                write_report_to_out(&after_out, &(json(&after)? + "\n"))?;
+            }
+            let text = json(&report)? + "\n";
+            if let Some(out) = value(rest, "--out")? {
+                write_report_to_out(&out, &text)?;
+            }
+            print!("{text}");
+            if report.verdict != runtime::recensus::Verdict::Proven {
+                return Err("GENERATION_NOT_PROVEN".into());
+            }
+        }
         [cmd, sub, rest @ ..] if cmd == "donors" && sub == "working-set" => {
             // ADR 0021: measure disk + local donor source, check storage integrity, and (with
             // --request) decide whether a donor may be materialized now.
@@ -446,7 +486,7 @@ fn run(args: &[String]) -> Result<(), String> {
         }
         _ => {
             return Err(
-                "usage: atlas-systemizer <contract|systemize|docs audit|code analyze|parse|check|graph|observe|genome|search|create|physical|product|donors working-set|work prepare> ..."
+                "usage: atlas-systemizer <contract|systemize|docs audit|code analyze|parse|check|graph|observe|genome|search|create|physical|product|recensus snapshot|recensus prove|donors working-set|work prepare> ..."
                     .into(),
             );
         }

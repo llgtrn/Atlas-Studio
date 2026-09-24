@@ -1,0 +1,149 @@
+{
+  "schema": "atlas.self-recensus-report.v1",
+  "generation": "G57",
+  "base_revision": "4fcb0d68198c58860106cf9d79c573c18637864d",
+  "candidate_revision": "4fcb0d68198c58860106cf9d79c573c18637864d",
+  "candidate_dirty": true,
+  "before_census_digest": "blake3-256:81c7931c53cd39c86a9b2bb4fe706c972a3a4a6c4b6564d81c12c680309b7996",
+  "after_census_digest": "blake3-256:5f54677ed5dbc4c5445347eec76fd7c6c2570d448c241525f1df81b714efe362",
+  "replay_digest": "blake3-256:5f54677ed5dbc4c5445347eec76fd7c6c2570d448c241525f1df81b714efe362",
+  "inventory_delta": {
+    "created": [
+      "core/src/recensus/mod.rs",
+      "core/src/recensus/tests.rs",
+      "runtime/src/recensus.rs"
+    ],
+    "modified": [
+      "core/src/lib.rs",
+      "core/src/semantic/observation.rs",
+      "runtime/src/lib.rs"
+    ],
+    "deleted": []
+  },
+  "semantic_delta": {
+    "changed": [
+      "core/src/lib.rs",
+      "core/src/semantic/observation.rs",
+      "runtime/src/lib.rs"
+    ],
+    "counts": {
+      "fact:FunctionIdentity|OBSERVED": 35,
+      "fact:FunctionSignature|OBSERVED": 35,
+      "fact:SemanticObligation|OBSERVED": 12,
+      "fact:SemanticObligation|UNKNOWN": 24,
+      "fact:SourceArtifact|OBSERVED": 6,
+      "fact:Symbol|OBSERVED": 127,
+      "fact:Type|OBSERVED": 77,
+      "record:CALL|OBSERVED": 391,
+      "record:CONTROL_FLOW|OBSERVED": 211,
+      "record:DATA_FLOW|OBSERVED": 887,
+      "record:EFFECT|INFERRED": 3,
+      "record:FUNCTION_IDENTITY|OBSERVED": 35,
+      "record:FUNCTION_SIGNATURE|OBSERVED": 35,
+      "record:OWNERSHIP|OBSERVED": 235,
+      "record:PERSISTENCE|INFERRED": 3,
+      "record:STATE|OBSERVED": 11,
+      "record:SYMBOL|OBSERVED": 127,
+      "record:TYPE|OBSERVED": 77
+    }
+  },
+  "dependency_delta": {
+    "added": [],
+    "removed": []
+  },
+  "dependency_state": [
+    "Closed",
+    "Closed"
+  ],
+  "graph_delta": {
+    "graph_bindings": 3,
+    "graph_edges": 3032,
+    "graph_nodes": 2209
+  },
+  "obligation_delta": {
+    "obligation:CALL|UNKNOWN": 3,
+    "obligation:CONCURRENCY|UNKNOWN": 3,
+    "obligation:CONTROL_FLOW|UNKNOWN": 3,
+    "obligation:DATA_FLOW|UNKNOWN": 3,
+    "obligation:EFFECT|UNKNOWN": 3,
+    "obligation:FUNCTION_IDENTITY|OBSERVED": 3,
+    "obligation:FUNCTION_SIGNATURE|OBSERVED": 3,
+    "obligation:OWNERSHIP|UNKNOWN": 3,
+    "obligation:PERSISTENCE|UNKNOWN": 3,
+    "obligation:STATE|UNKNOWN": 3,
+    "obligation:SYMBOL|OBSERVED": 3,
+    "obligation:TYPE|OBSERVED": 3
+  },
+  "adl_delta": {
+    "added": [],
+    "removed": []
+  },
+  "coverage_delta": [],
+  "unknown_delta": {
+    "increased": [
+      "core/src/recensus/mod.rs: 0 -> 8",
+      "core/src/recensus/tests.rs: 0 -> 8",
+      "runtime/src/recensus.rs: 0 -> 8"
+    ],
+    "decreased": [],
+    "total_before": 752,
+    "total_after": 776
+  },
+  "intent": {
+    "objective": "P1: make self-recensus the mandatory proof of every generation -- core::recensus (revision-independent CensusSnapshot + prove), runtime::recensus, ledger chain test, priority reset records",
+    "changed_paths": [
+      "core/src/recensus/",
+      "core/src/lib.rs",
+      "core/src/semantic/observation.rs",
+      "runtime/src/recensus.rs",
+      "runtime/src/lib.rs"
+    ],
+    "total_changes": [
+      "+artifacts",
+      "+facts",
+      "+typed_records",
+      "+obligations",
+      "+evidence",
+      "+graph_nodes",
+      "+graph_edges",
+      "+normalized_facts",
+      "+docs",
+      "+diagnostic:IncompleteAnalysis",
+      "+unknown_facts"
+    ],
+    "dependency_changes": [],
+    "adl_changes": [],
+    "coverage_changes": [],
+    "explained_unknowns": [
+      "core/src/recensus/: new Rust source carries the extractor's standard UNKNOWN obligations for dimensions it does not model (CALL/CONTROL_FLOW/DATA_FLOW/STATE/EFFECT/OWNERSHIP/CONCURRENCY/PERSISTENCE coverage is UNKNOWN at baseline)",
+      "runtime/src/recensus.rs: same extractor coverage gap as every Rust file at baseline"
+    ],
+    "accepted_unexpected": [
+      "total +graph_bindings: not anticipated in the first proof run; verified to be DocumentationBindings created by the new ADR 0024 / SELF-RECENSUS contract referencing the new source paths (engineering_graph.rs document-reference binding rule)"
+    ]
+  },
+  "intended_changes": [
+    "path core/src/lib.rs",
+    "path core/src/recensus/mod.rs",
+    "path core/src/recensus/tests.rs",
+    "path core/src/semantic/observation.rs",
+    "path runtime/src/lib.rs",
+    "path runtime/src/recensus.rs",
+    "total +artifacts",
+    "total +diagnostic:IncompleteAnalysis",
+    "total +docs",
+    "total +evidence",
+    "total +facts",
+    "total +graph_bindings (accepted)",
+    "total +graph_edges",
+    "total +graph_nodes",
+    "total +normalized_facts",
+    "total +obligations",
+    "total +typed_records",
+    "total +unknown_facts"
+  ],
+  "intended_but_unobserved": [],
+  "unexpected_changes": [],
+  "regressions": [],
+  "verdict": "PROVEN"
+}

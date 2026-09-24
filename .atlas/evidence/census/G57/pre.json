@@ -1,0 +1,3700 @@
+{
+  "schema": "atlas.census-snapshot.v1",
+  "revision": "4fcb0d68198c58860106cf9d79c573c18637864d",
+  "dirty": false,
+  "census_digest": "blake3-256:81c7931c53cd39c86a9b2bb4fe706c972a3a4a6c4b6564d81c12c680309b7996",
+  "artifacts": [
+    {
+      "path": "adapter/Cargo.toml",
+      "disposition": "Parsed",
+      "language": "toml",
+      "content_digest": "blake3-256:323690697fff965748af79f92cc656ac444d29fb034119d5a2aab09090e22596",
+      "facts": {
+        "SemanticObligation|UNSUPPORTED": 12,
+        "SourceArtifact|OBSERVED": 2
+      },
+      "records": {},
+      "obligations": {
+        "CALL|UNSUPPORTED": 1,
+        "CONCURRENCY|UNSUPPORTED": 1,
+        "CONTROL_FLOW|UNSUPPORTED": 1,
+        "DATA_FLOW|UNSUPPORTED": 1,
+        "EFFECT|UNSUPPORTED": 1,
+        "FUNCTION_IDENTITY|UNSUPPORTED": 1,
+        "FUNCTION_SIGNATURE|UNSUPPORTED": 1,
+        "OWNERSHIP|UNSUPPORTED": 1,
+        "PERSISTENCE|UNSUPPORTED": 1,
+        "STATE|UNSUPPORTED": 1,
+        "SYMBOL|UNSUPPORTED": 1,
+        "TYPE|UNSUPPORTED": 1
+      },
+      "unknowns": 12,
+      "semantic_digest": "blake3-256:29c52cd890ffda596e6aaaf7fde3f705c55ed504c1ab8e6e9adf19916fdded48"
+    },
+    {
+      "path": "adapter/build.rs",
+      "disposition": "Parsed",
+      "language": "rust",
+      "content_digest": "blake3-256:989cfece1ef97d037381a91a21a70f6aa9ad08103789bd5ad6fd1b708b9a173e",
+      "facts": {
+        "FunctionIdentity|OBSERVED": 2,
+        "FunctionSignature|OBSERVED": 2,
+        "SemanticObligation|OBSERVED": 4,
+        "SemanticObligation|UNKNOWN": 8,
+        "SourceArtifact|OBSERVED": 2,
+        "Symbol|OBSERVED": 2,
+        "Type|OBSERVED": 2
+      },
+      "records": {
+        "CALL|OBSERVED": 28,
+        "CONTROL_FLOW|OBSERVED": 13,
+        "DATA_FLOW|OBSERVED": 53,
+        "EFFECT|INFERRED": 2,
+        "FUNCTION_IDENTITY|OBSERVED": 2,
+        "FUNCTION_SIGNATURE|OBSERVED": 2,
+        "OWNERSHIP|OBSERVED": 16,
+        "SYMBOL|OBSERVED": 2,
+        "TYPE|OBSERVED": 2
+      },
+      "obligations": {
+        "CALL|UNKNOWN": 1,
+        "CONCURRENCY|UNKNOWN": 1,
+        "CONTROL_FLOW|UNKNOWN": 1,
+        "DATA_FLOW|UNKNOWN": 1,
+        "EFFECT|UNKNOWN": 1,
+        "FUNCTION_IDENTITY|OBSERVED": 1,
+        "FUNCTION_SIGNATURE|OBSERVED": 1,
+        "OWNERSHIP|UNKNOWN": 1,
+        "PERSISTENCE|UNKNOWN": 1,
+        "STATE|UNKNOWN": 1,
+        "SYMBOL|OBSERVED": 1,
+        "TYPE|OBSERVED": 1
+      },
+      "unknowns": 8,
+      "semantic_digest": "blake3-256:747cee2d487f3ccc8355f0cfafb7ae835b027c9dcf446d45fb8b3aec0060c4c7"
+    },
+    {
+      "path": "adapter/src/browser/measure_layout.js",
+      "disposition": "Parsed",
+      "language": "javascript",
+      "content_digest": "blake3-256:00dda17ed40ade4f4e3ac5abb3ca100c9b4a656228d67716371ae749195de39a",
+      "facts": {
+        "SemanticObligation|UNSUPPORTED": 12,
+        "SourceArtifact|OBSERVED": 2
+      },
+      "records": {},
+      "obligations": {
+        "CALL|UNSUPPORTED": 1,
+        "CONCURRENCY|UNSUPPORTED": 1,
+        "CONTROL_FLOW|UNSUPPORTED": 1,
+        "DATA_FLOW|UNSUPPORTED": 1,
+        "EFFECT|UNSUPPORTED": 1,
+        "FUNCTION_IDENTITY|UNSUPPORTED": 1,
+        "FUNCTION_SIGNATURE|UNSUPPORTED": 1,
+        "OWNERSHIP|UNSUPPORTED": 1,
+        "PERSISTENCE|UNSUPPORTED": 1,
+        "STATE|UNSUPPORTED": 1,
+        "SYMBOL|UNSUPPORTED": 1,
+        "TYPE|UNSUPPORTED": 1
+      },
+      "unknowns": 12,
+      "semantic_digest": "blake3-256:4408f76bb8fae770ec540caf39d90bbcf6cfde811c58a06d9206438b3e669337"
+    },
+    {
+      "path": "adapter/src/browser/mod.rs",
+      "disposition": "Parsed",
+      "language": "rust",
+      "content_digest": "blake3-256:638d9d7e985c0fba70ed64a4a461f5f3cc94e391d117e679bcd6ba50c6dd479d",
+      "facts": {
+        "FunctionIdentity|OBSERVED": 32,
+        "FunctionSignature|OBSERVED": 32,
+        "SemanticObligation|OBSERVED": 4,
+        "SemanticObligation|UNKNOWN": 8,
+        "SourceArtifact|OBSERVED": 2,
+        "Symbol|OBSERVED": 54,
+        "Type|OBSERVED": 45
+      },
+      "records": {
+        "CALL|OBSERVED": 78,
+        "CONTROL_FLOW|OBSERVED": 46,
+        "DATA_FLOW|OBSERVED": 189,
+        "EFFECT|INFERRED": 6,
+        "FUNCTION_IDENTITY|OBSERVED": 32,
+        "FUNCTION_SIGNATURE|OBSERVED": 32,
+        "OWNERSHIP|OBSERVED": 57,
+        "STATE|OBSERVED": 4,
+        "SYMBOL|OBSERVED": 54,
+        "TYPE|OBSERVED": 45
+      },
+      "obligations": {
+        "CALL|UNKNOWN": 1,
+        "CONCURRENCY|UNKNOWN": 1,
+        "CONTROL_FLOW|UNKNOWN": 1,
+        "DATA_FLOW|UNKNOWN": 1,
+        "EFFECT|UNKNOWN": 1,
+        "FUNCTION_IDENTITY|OBSERVED": 1,
+        "FUNCTION_SIGNATURE|OBSERVED": 1,
+        "OWNERSHIP|UNKNOWN": 1,
+        "PERSISTENCE|UNKNOWN": 1,
+        "STATE|UNKNOWN": 1,
+        "SYMBOL|OBSERVED": 1,
+        "TYPE|OBSERVED": 1
+      },
+      "unknowns": 8,
+      "semantic_digest": "blake3-256:18f08a57b5ded1bd8d020d47a14e928961b87ddb1e893c3e0dab643f33dba105"
+    },
+    {
+      "path": "adapter/src/browser/observe.js",
+      "disposition": "Parsed",
+      "language": "javascript",
+      "content_digest": "blake3-256:ecc9068ab39a2e301cce73fc67d35e56513c3ee25462229d7593038c5a62c5ad",
+      "facts": {
+        "SemanticObligation|UNSUPPORTED": 12,
+        "SourceArtifact|OBSERVED": 2
+      },
+      "records": {},
+      "obligations": {
+        "CALL|UNSUPPORTED": 1,
+        "CONCURRENCY|UNSUPPORTED": 1,
+        "CONTROL_FLOW|UNSUPPORTED": 1,
+        "DATA_FLOW|UNSUPPORTED": 1,
+        "EFFECT|UNSUPPORTED": 1,
+        "FUNCTION_IDENTITY|UNSUPPORTED": 1,
+        "FUNCTION_SIGNATURE|UNSUPPORTED": 1,
+        "OWNERSHIP|UNSUPPORTED": 1,
+        "PERSISTENCE|UNSUPPORTED": 1,
+        "STATE|UNSUPPORTED": 1,
+        "SYMBOL|UNSUPPORTED": 1,
+        "TYPE|UNSUPPORTED": 1
+      },
+      "unknowns": 12,
+      "semantic_digest": "blake3-256:4408f76bb8fae770ec540caf39d90bbcf6cfde811c58a06d9206438b3e669337"
+    },
+    {
+      "path": "adapter/src/browser/webdriver.js",
+      "disposition": "Parsed",
+      "language": "javascript",
+      "content_digest": "blake3-256:24e9382c117bfe9b6228fe4a7836248526a68f151927cf1ae36e9ace18922983",
+      "facts": {
+        "SemanticObligation|UNSUPPORTED": 12,
+        "SourceArtifact|OBSERVED": 2
+      },
+      "records": {},
+      "obligations": {
+        "CALL|UNSUPPORTED": 1,
+        "CONCURRENCY|UNSUPPORTED": 1,
+        "CONTROL_FLOW|UNSUPPORTED": 1,
+        "DATA_FLOW|UNSUPPORTED": 1,
+        "EFFECT|UNSUPPORTED": 1,
+        "FUNCTION_IDENTITY|UNSUPPORTED": 1,
+        "FUNCTION_SIGNATURE|UNSUPPORTED": 1,
+        "OWNERSHIP|UNSUPPORTED": 1,
+        "PERSISTENCE|UNSUPPORTED": 1,
+        "STATE|UNSUPPORTED": 1,
+        "SYMBOL|UNSUPPORTED": 1,
+        "TYPE|UNSUPPORTED": 1
+      },
+      "unknowns": 12,
+      "semantic_digest": "blake3-256:4408f76bb8fae770ec540caf39d90bbcf6cfde811c58a06d9206438b3e669337"
+    },
+    {
+      "path": "adapter/src/dependency/cargo.rs",
+      "disposition": "Parsed",
+      "language": "rust",
+      "content_digest": "blake3-256:d15de93297f0102477ea68587b013a5a7ea017d98ab3dd85338923b50f6229d1",
+      "facts": {
+        "FunctionIdentity|OBSERVED": 88,
+        "FunctionSignature|OBSERVED": 88,
+        "SemanticObligation|OBSERVED": 4,
+        "SemanticObligation|UNKNOWN": 8,
+        "SourceArtifact|OBSERVED": 2,
+        "Symbol|OBSERVED": 107,
+        "Type|OBSERVED": 42
+      },
+      "records": {
+        "CALL|OBSERVED": 574,
+        "CONTROL_FLOW|OBSERVED": 245,
+        "DATA_FLOW|OBSERVED": 1152,
+        "EFFECT|INFERRED": 64,
+        "FUNCTION_IDENTITY|OBSERVED": 88,
+        "FUNCTION_SIGNATURE|OBSERVED": 88,
+        "OWNERSHIP|OBSERVED": 357,
+        "SYMBOL|OBSERVED": 107,
+        "TYPE|OBSERVED": 42
+      },
+      "obligations": {
+        "CALL|UNKNOWN": 1,
+        "CONCURRENCY|UNKNOWN": 1,
+        "CONTROL_FLOW|UNKNOWN": 1,
+        "DATA_FLOW|UNKNOWN": 1,
+        "EFFECT|UNKNOWN": 1,
+        "FUNCTION_IDENTITY|OBSERVED": 1,
+        "FUNCTION_SIGNATURE|OBSERVED": 1,
+        "OWNERSHIP|UNKNOWN": 1,
+        "PERSISTENCE|UNKNOWN": 1,
+        "STATE|UNKNOWN": 1,
+        "SYMBOL|OBSERVED": 1,
+        "TYPE|OBSERVED": 1
+      },
+      "unknowns": 8,
+      "semantic_digest": "blake3-256:759eb1d769368c7a2804197a94e81d42f038dcff6f543930c76709a20aff870c"
+    },
+    {
+      "path": "adapter/src/dependency/cargo_oracle.rs",
+      "disposition": "Parsed",
+      "language": "rust",
+      "content_digest": "blake3-256:3288fc2617716d2b25bbd3f79f5cb28c49a9e5ae434df7be2895fce79fbcb26b",
+      "facts": {
+        "FunctionIdentity|OBSERVED": 5,
+        "FunctionSignature|OBSERVED": 5,
+        "SemanticObligation|OBSERVED": 4,
+        "SemanticObligation|UNKNOWN": 8,
+        "SourceArtifact|OBSERVED": 2,
+        "Symbol|OBSERVED": 6,
+        "Type|OBSERVED": 5
+      },
+      "records": {
+        "CALL|OBSERVED": 23,
+        "CONTROL_FLOW|OBSERVED": 8,
+        "DATA_FLOW|OBSERVED": 55,
+        "EFFECT|INFERRED": 1,
+        "FUNCTION_IDENTITY|OBSERVED": 5,
+        "FUNCTION_SIGNATURE|OBSERVED": 5,
+        "OWNERSHIP|OBSERVED": 10,
+        "SYMBOL|OBSERVED": 6,
+        "TYPE|OBSERVED": 5
+      },
+      "obligations": {
+        "CALL|UNKNOWN": 1,
+        "CONCURRENCY|UNKNOWN": 1,
+        "CONTROL_FLOW|UNKNOWN": 1,
+        "DATA_FLOW|UNKNOWN": 1,
+        "EFFECT|UNKNOWN": 1,
+        "FUNCTION_IDENTITY|OBSERVED": 1,
+        "FUNCTION_SIGNATURE|OBSERVED": 1,
+        "OWNERSHIP|UNKNOWN": 1,
+        "PERSISTENCE|UNKNOWN": 1,
+        "STATE|UNKNOWN": 1,
+        "SYMBOL|OBSERVED": 1,
+        "TYPE|OBSERVED": 1
+      },
+      "unknowns": 8,
+      "semantic_digest": "blake3-256:b06745d97c07badf1befb9a25c472eb1d97fb94353741675dd0263195fcb5004"
+    },
+    {
+      "path": "adapter/src/dependency/mod.rs",
+      "disposition": "Parsed",
+      "language": "rust",
+      "content_digest": "blake3-256:78b77c48e85371f0ea982f21bfbc25ba2939d129cd1ad8ef25d2f1d49fad74c5",
+      "facts": {
+        "SemanticObligation|OBSERVED": 4,
+        "SemanticObligation|UNKNOWN": 8,
+        "SourceArtifact|OBSERVED": 2,
+        "Symbol|OBSERVED": 2
+      },
+      "records": {
+        "SYMBOL|OBSERVED": 2
+      },
+      "obligations": {
+        "CALL|UNKNOWN": 1,
+        "CONCURRENCY|UNKNOWN": 1,
+        "CONTROL_FLOW|UNKNOWN": 1,
+        "DATA_FLOW|UNKNOWN": 1,
+        "EFFECT|UNKNOWN": 1,
+        "FUNCTION_IDENTITY|OBSERVED": 1,
+        "FUNCTION_SIGNATURE|OBSERVED": 1,
+        "OWNERSHIP|UNKNOWN": 1,
+        "PERSISTENCE|UNKNOWN": 1,
+        "STATE|UNKNOWN": 1,
+        "SYMBOL|OBSERVED": 1,
+        "TYPE|OBSERVED": 1
+      },
+      "unknowns": 8,
+      "semantic_digest": "blake3-256:0a3497166eeabdd678286cff30cb39cc1d711a723e9acf6b0bf29eed64fa0c25"
+    },
+    {
+      "path": "adapter/src/lib.rs",
+      "disposition": "Parsed",
+      "language": "rust",
+      "content_digest": "blake3-256:2d9d638aa607be7f0442c28c85d891e15bf3aeb636e060ab26b870ac3216c0ee",
+      "facts": {
+        "FunctionIdentity|OBSERVED": 29,
+        "FunctionSignature|OBSERVED": 29,
+        "SemanticObligation|OBSERVED": 4,
+        "SemanticObligation|UNKNOWN": 8,
+        "SourceArtifact|OBSERVED": 2,
+        "Symbol|OBSERVED": 37,
+        "Type|OBSERVED": 23
+      },
+      "records": {
+        "CALL|OBSERVED": 249,
+        "CONTROL_FLOW|OBSERVED": 115,
+        "DATA_FLOW|OBSERVED": 452,
+        "EFFECT|INFERRED": 47,
+        "FUNCTION_IDENTITY|OBSERVED": 29,
+        "FUNCTION_SIGNATURE|OBSERVED": 29,
+        "OWNERSHIP|OBSERVED": 127,
+        "SYMBOL|OBSERVED": 37,
+        "TYPE|OBSERVED": 23
+      },
+      "obligations": {
+        "CALL|UNKNOWN": 1,
+        "CONCURRENCY|UNKNOWN": 1,
+        "CONTROL_FLOW|UNKNOWN": 1,
+        "DATA_FLOW|UNKNOWN": 1,
+        "EFFECT|UNKNOWN": 1,
+        "FUNCTION_IDENTITY|OBSERVED": 1,
+        "FUNCTION_SIGNATURE|OBSERVED": 1,
+        "OWNERSHIP|UNKNOWN": 1,
+        "PERSISTENCE|UNKNOWN": 1,
+        "STATE|UNKNOWN": 1,
+        "SYMBOL|OBSERVED": 1,
+        "TYPE|OBSERVED": 1
+      },
+      "unknowns": 8,
+      "semantic_digest": "blake3-256:7c4536809f6e83f921fa3e12bdb12fb4d7470fb3dfe642e110640575caca8af5"
+    },
+    {
+      "path": "adapter/src/semantic/batch.rs",
+      "disposition": "Parsed",
+      "language": "rust",
+      "content_digest": "blake3-256:7998020ba2611a52b936db99b6cff2db5f06fd1d7c5a75d73bef92f49b97cdcc",
+      "facts": {
+        "FunctionIdentity|OBSERVED": 6,
+        "FunctionSignature|OBSERVED": 6,
+        "SemanticObligation|OBSERVED": 4,
+        "SemanticObligation|UNKNOWN": 8,
+        "SourceArtifact|OBSERVED": 2,
+        "Symbol|OBSERVED": 22,
+        "Type|OBSERVED": 26
+      },
+      "records": {
+        "CALL|OBSERVED": 9,
+        "CONTROL_FLOW|OBSERVED": 8,
+        "DATA_FLOW|OBSERVED": 27,
+        "FUNCTION_IDENTITY|OBSERVED": 6,
+        "FUNCTION_SIGNATURE|OBSERVED": 6,
+        "OWNERSHIP|OBSERVED": 8,
+        "SYMBOL|OBSERVED": 22,
+        "TYPE|OBSERVED": 26
+      },
+      "obligations": {
+        "CALL|UNKNOWN": 1,
+        "CONCURRENCY|UNKNOWN": 1,
+        "CONTROL_FLOW|UNKNOWN": 1,
+        "DATA_FLOW|UNKNOWN": 1,
+        "EFFECT|UNKNOWN": 1,
+        "FUNCTION_IDENTITY|OBSERVED": 1,
+        "FUNCTION_SIGNATURE|OBSERVED": 1,
+        "OWNERSHIP|UNKNOWN": 1,
+        "PERSISTENCE|UNKNOWN": 1,
+        "STATE|UNKNOWN": 1,
+        "SYMBOL|OBSERVED": 1,
+        "TYPE|OBSERVED": 1
+      },
+      "unknowns": 8,
+      "semantic_digest": "blake3-256:b5a1c9866069adb797a7421c59f50194c034b65a55307f0af068e69c2d8fad68"
+    },
+    {
+      "path": "adapter/src/semantic/boundary_tests.rs",
+      "disposition": "Parsed",
+      "language": "rust",
+      "content_digest": "blake3-256:f6c20b9001bbc392f60eb333b39541b4d4e0beacafd5b9ab9a41f80a2ed1f05e",
+      "facts": {
+        "FunctionIdentity|OBSERVED": 23,
+        "FunctionSignature|OBSERVED": 23,
+        "SemanticObligation|OBSERVED": 4,
+        "SemanticObligation|UNKNOWN": 8,
+        "SourceArtifact|OBSERVED": 2,
+        "Symbol|OBSERVED": 29,
+        "Type|OBSERVED": 18
+      },
+      "records": {
+        "CALL|OBSERVED": 115,
+        "CONTROL_FLOW|INFERRED": 3,
+        "CONTROL_FLOW|OBSERVED": 38,
+        "DATA_FLOW|OBSERVED": 195,
+        "EFFECT|INFERRED": 3,
+        "FUNCTION_IDENTITY|OBSERVED": 23,
+        "FUNCTION_SIGNATURE|OBSERVED": 23,
+        "OWNERSHIP|OBSERVED": 57,
+        "STATE|OBSERVED": 2,
+        "SYMBOL|OBSERVED": 29,
+        "TYPE|OBSERVED": 18
+      },
+      "obligations": {
+        "CALL|UNKNOWN": 1,
+        "CONCURRENCY|UNKNOWN": 1,
+        "CONTROL_FLOW|UNKNOWN": 1,
+        "DATA_FLOW|UNKNOWN": 1,
+        "EFFECT|UNKNOWN": 1,
+        "FUNCTION_IDENTITY|OBSERVED": 1,
+        "FUNCTION_SIGNATURE|OBSERVED": 1,
+        "OWNERSHIP|UNKNOWN": 1,
+        "PERSISTENCE|UNKNOWN": 1,
+        "STATE|UNKNOWN": 1,
+        "SYMBOL|OBSERVED": 1,
+        "TYPE|OBSERVED": 1
+      },
+      "unknowns": 8,
+      "semantic_digest": "blake3-256:85283dbba9a8efb0dfe5c5b4703252d29713e190e78e1050f60b9c7a9a4722e2"
+    },
+    {
+      "path": "adapter/src/semantic/extractor.rs",
+      "disposition": "Parsed",
+      "language": "rust",
+      "content_digest": "blake3-256:0cef7094f998b26b65f056546638007d1da0fcccd40f672e5db8a9e9ed21ef64",
+      "facts": {
+        "FunctionIdentity|OBSERVED": 9,
+        "FunctionSignature|OBSERVED": 9,
+        "SemanticObligation|OBSERVED": 4,
+        "SemanticObligation|UNKNOWN": 8,
+        "SourceArtifact|OBSERVED": 2,
+        "Symbol|OBSERVED": 22,
+        "Type|OBSERVED": 21
+      },
+      "records": {
+        "CALL|OBSERVED": 25,
+        "CONTROL_FLOW|OBSERVED": 8,
+        "DATA_FLOW|OBSERVED": 45,
+        "FUNCTION_IDENTITY|OBSERVED": 9,
+        "FUNCTION_SIGNATURE|OBSERVED": 9,
+        "OWNERSHIP|OBSERVED": 12,
+        "SYMBOL|OBSERVED": 22,
+        "TYPE|OBSERVED": 21
+      },
+      "obligations": {
+        "CALL|UNKNOWN": 1,
+        "CONCURRENCY|UNKNOWN": 1,
+        "CONTROL_FLOW|UNKNOWN": 1,
+        "DATA_FLOW|UNKNOWN": 1,
+        "EFFECT|UNKNOWN": 1,
+        "FUNCTION_IDENTITY|OBSERVED": 1,
+        "FUNCTION_SIGNATURE|OBSERVED": 1,
+        "OWNERSHIP|UNKNOWN": 1,
+        "PERSISTENCE|UNKNOWN": 1,
+        "STATE|UNKNOWN": 1,
+        "SYMBOL|OBSERVED": 1,
+        "TYPE|OBSERVED": 1
+      },
+      "unknowns": 8,
+      "semantic_digest": "blake3-256:d5344e0080a3270210d7476f04f7e4ce1d3de8b5746655db2e526c272ebdaa7f"
+    },
+    {
+      "path": "adapter/src/semantic/mod.rs",
+      "disposition": "Parsed",
+      "language": "rust",
+      "content_digest": "blake3-256:c487a5ef768be638b2d645ee66401342d04608fc0f0ba35d191a8a747ac14286",
+      "facts": {
+        "SemanticObligation|OBSERVED": 4,
+        "SemanticObligation|UNKNOWN": 8,
+        "SourceArtifact|OBSERVED": 2,
+        "Symbol|OBSERVED": 5
+      },
+      "records": {
+        "SYMBOL|OBSERVED": 5
+      },
+      "obligations": {
+        "CALL|UNKNOWN": 1,
+        "CONCURRENCY|UNKNOWN": 1,
+        "CONTROL_FLOW|UNKNOWN": 1,
+        "DATA_FLOW|UNKNOWN": 1,
+        "EFFECT|UNKNOWN": 1,
+        "FUNCTION_IDENTITY|OBSERVED": 1,
+        "FUNCTION_SIGNATURE|OBSERVED": 1,
+        "OWNERSHIP|UNKNOWN": 1,
+        "PERSISTENCE|UNKNOWN": 1,
+        "STATE|UNKNOWN": 1,
+        "SYMBOL|OBSERVED": 1,
+        "TYPE|OBSERVED": 1
+      },
+      "unknowns": 8,
+      "semantic_digest": "blake3-256:02f72579b49e4d5620d0f9ab71855d4894f2e1dd7abda8f1f369ff3124c8d28b"
+    },
+    {
+      "path": "adapter/src/semantic/registry.rs",
+      "disposition": "Parsed",
+      "language": "rust",
+      "content_digest": "blake3-256:c1b75fc8d82967a479d5d2c3b5654a087207e59fbab39d905d21b998872f0193",
+      "facts": {
+        "FunctionIdentity|OBSERVED": 11,
+        "FunctionSignature|OBSERVED": 11,
+        "SemanticObligation|OBSERVED": 4,
+        "SemanticObligation|UNKNOWN": 8,
+        "SourceArtifact|OBSERVED": 2,
+        "Symbol|OBSERVED": 18,
+        "Type|OBSERVED": 17
+      },
+      "records": {
+        "CALL|OBSERVED": 20,
+        "CONTROL_FLOW|OBSERVED": 13,
+        "DATA_FLOW|OBSERVED": 49,
+        "FUNCTION_IDENTITY|OBSERVED": 11,
+        "FUNCTION_SIGNATURE|OBSERVED": 11,
+        "OWNERSHIP|OBSERVED": 14,
+        "STATE|OBSERVED": 3,
+        "SYMBOL|OBSERVED": 18,
+        "TYPE|OBSERVED": 17
+      },
+      "obligations": {
+        "CALL|UNKNOWN": 1,
+        "CONCURRENCY|UNKNOWN": 1,
+        "CONTROL_FLOW|UNKNOWN": 1,
+        "DATA_FLOW|UNKNOWN": 1,
+        "EFFECT|UNKNOWN": 1,
+        "FUNCTION_IDENTITY|OBSERVED": 1,
+        "FUNCTION_SIGNATURE|OBSERVED": 1,
+        "OWNERSHIP|UNKNOWN": 1,
+        "PERSISTENCE|UNKNOWN": 1,
+        "STATE|UNKNOWN": 1,
+        "SYMBOL|OBSERVED": 1,
+        "TYPE|OBSERVED": 1
+      },
+      "unknowns": 8,
+      "semantic_digest": "blake3-256:93b5b57d42d428e4b297c673715c8d847ebc3bb1f7cbda4764ed8b0e9d8c760b"
+    },
+    {
+      "path": "adapter/src/semantic/rust/cfg.rs",
+      "disposition": "Parsed",
+      "language": "rust",
+      "content_digest": "blake3-256:1ad7efa0a9b38dad7ff06c3e29ec4a6cd8a1baffd11d6cf99f15dfa97421cedc",
+      "facts": {
+        "FunctionIdentity|OBSERVED": 17,
+        "FunctionSignature|OBSERVED": 17,
+        "SemanticObligation|OBSERVED": 4,
+        "SemanticObligation|UNKNOWN": 8,
+        "SourceArtifact|OBSERVED": 2,
+        "Symbol|OBSERVED": 33,
+        "Type|OBSERVED": 41
+      },
+      "records": {
+        "CALL|OBSERVED": 160,
+        "CONTROL_FLOW|INFERRED": 1,
+        "CONTROL_FLOW|OBSERVED": 77,
+        "DATA_FLOW|OBSERVED": 471,
+        "EFFECT|INFERRED": 2,
+        "FUNCTION_IDENTITY|OBSERVED": 17,
+        "FUNCTION_SIGNATURE|OBSERVED": 17,
+        "OWNERSHIP|OBSERVED": 172,
+        "STATE|OBSERVED": 3,
+        "SYMBOL|OBSERVED": 33,
+        "TYPE|OBSERVED": 41
+      },
+      "obligations": {
+        "CALL|UNKNOWN": 1,
+        "CONCURRENCY|UNKNOWN": 1,
+        "CONTROL_FLOW|UNKNOWN": 1,
+        "DATA_FLOW|UNKNOWN": 1,
+        "EFFECT|UNKNOWN": 1,
+        "FUNCTION_IDENTITY|OBSERVED": 1,
+        "FUNCTION_SIGNATURE|OBSERVED": 1,
+        "OWNERSHIP|UNKNOWN": 1,
+        "PERSISTENCE|UNKNOWN": 1,
+        "STATE|UNKNOWN": 1,
+        "SYMBOL|OBSERVED": 1,
+        "TYPE|OBSERVED": 1
+      },
+      "unknowns": 8,
+      "semantic_digest": "blake3-256:ef91ba1f30c4ae2878b9c690bbf55ba820fc5101e808f8776ba192bc78159778"
+    },
+    {
+      "path": "adapter/src/semantic/rust/concurrency.rs",
+      "disposition": "Parsed",
+      "language": "rust",
+      "content_digest": "blake3-256:f53fbe1c6a15827aa005c0e60e442a172f5e080d7144708d6bd32bf5cf9afd59",
+      "facts": {
+        "FunctionIdentity|OBSERVED": 5,
+        "FunctionSignature|OBSERVED": 5,
+        "SemanticObligation|OBSERVED": 4,
+        "SemanticObligation|UNKNOWN": 8,
+        "SourceArtifact|OBSERVED": 2,
+        "Symbol|OBSERVED": 9,
+        "Type|OBSERVED": 18
+      },
+      "records": {
+        "CALL|OBSERVED": 80,
+        "CONTROL_FLOW|OBSERVED": 64,
+        "DATA_FLOW|OBSERVED": 227,
+        "FUNCTION_IDENTITY|OBSERVED": 5,
+        "FUNCTION_SIGNATURE|OBSERVED": 5,
+        "OWNERSHIP|OBSERVED": 81,
+        "SYMBOL|OBSERVED": 9,
+        "TYPE|OBSERVED": 18
+      },
+      "obligations": {
+        "CALL|UNKNOWN": 1,
+        "CONCURRENCY|UNKNOWN": 1,
+        "CONTROL_FLOW|UNKNOWN": 1,
+        "DATA_FLOW|UNKNOWN": 1,
+        "EFFECT|UNKNOWN": 1,
+        "FUNCTION_IDENTITY|OBSERVED": 1,
+        "FUNCTION_SIGNATURE|OBSERVED": 1,
+        "OWNERSHIP|UNKNOWN": 1,
+        "PERSISTENCE|UNKNOWN": 1,
+        "STATE|UNKNOWN": 1,
+        "SYMBOL|OBSERVED": 1,
+        "TYPE|OBSERVED": 1
+      },
+      "unknowns": 8,
+      "semantic_digest": "blake3-256:871ffefcad8119a612741aca59967a8fb9a5c84a0e7bad4ad0209386396e9193"
+    },
+    {
+      "path": "adapter/src/semantic/rust/dataflow.rs",
+      "disposition": "Parsed",
+      "language": "rust",
+      "content_digest": "blake3-256:ee8341bcd005df92d9a36451866051f2d224b8b4b7ce12ccf298d81c90eebbca",
+      "facts": {
+        "FunctionIdentity|OBSERVED": 12,
+        "FunctionSignature|OBSERVED": 12,
+        "SemanticObligation|OBSERVED": 4,
+        "SemanticObligation|UNKNOWN": 8,
+        "SourceArtifact|OBSERVED": 2,
+        "Symbol|OBSERVED": 17,
+        "Type|OBSERVED": 24
+      },
+      "records": {
+        "CALL|OBSERVED": 159,
+        "CONTROL_FLOW|OBSERVED": 110,
+        "DATA_FLOW|OBSERVED": 463,
+        "FUNCTION_IDENTITY|OBSERVED": 12,
+        "FUNCTION_SIGNATURE|OBSERVED": 12,
+        "OWNERSHIP|OBSERVED": 162,
+        "SYMBOL|OBSERVED": 17,
+        "TYPE|OBSERVED": 24
+      },
+      "obligations": {
+        "CALL|UNKNOWN": 1,
+        "CONCURRENCY|UNKNOWN": 1,
+        "CONTROL_FLOW|UNKNOWN": 1,
+        "DATA_FLOW|UNKNOWN": 1,
+        "EFFECT|UNKNOWN": 1,
+        "FUNCTION_IDENTITY|OBSERVED": 1,
+        "FUNCTION_SIGNATURE|OBSERVED": 1,
+        "OWNERSHIP|UNKNOWN": 1,
+        "PERSISTENCE|UNKNOWN": 1,
+        "STATE|UNKNOWN": 1,
+        "SYMBOL|OBSERVED": 1,
+        "TYPE|OBSERVED": 1
+      },
+      "unknowns": 8,
+      "semantic_digest": "blake3-256:1b3a5ec8b3ba6e37ea76f7a176dbb54477d91f8901a07a13720b8446c60298d4"
+    },
+    {
+      "path": "adapter/src/semantic/rust/effect.rs",
+      "disposition": "Parsed",
+      "language": "rust",
+      "content_digest": "blake3-256:564ab63d68e0d45d626aedc8c5aaa94605547eee2f2c7fcd09ab93953ad7a2ee",
+      "facts": {
+        "FunctionIdentity|OBSERVED": 7,
+        "FunctionSignature|OBSERVED": 7,
+        "SemanticObligation|OBSERVED": 4,
+        "SemanticObligation|UNKNOWN": 8,
+        "SourceArtifact|OBSERVED": 2,
+        "Symbol|OBSERVED": 11,
+        "Type|OBSERVED": 18
+      },
+      "records": {
+        "CALL|OBSERVED": 95,
+        "CONTROL_FLOW|OBSERVED": 85,
+        "DATA_FLOW|OBSERVED": 266,
+        "FUNCTION_IDENTITY|OBSERVED": 7,
+        "FUNCTION_SIGNATURE|OBSERVED": 7,
+        "OWNERSHIP|OBSERVED": 90,
+        "SYMBOL|OBSERVED": 11,
+        "TYPE|OBSERVED": 18
+      },
+      "obligations": {
+        "CALL|UNKNOWN": 1,
+        "CONCURRENCY|UNKNOWN": 1,
+        "CONTROL_FLOW|UNKNOWN": 1,
+        "DATA_FLOW|UNKNOWN": 1,
+        "EFFECT|UNKNOWN": 1,
+        "FUNCTION_IDENTITY|OBSERVED": 1,
+        "FUNCTION_SIGNATURE|OBSERVED": 1,
+        "OWNERSHIP|UNKNOWN": 1,
+        "PERSISTENCE|UNKNOWN": 1,
+        "STATE|UNKNOWN": 1,
+        "SYMBOL|OBSERVED": 1,
+        "TYPE|OBSERVED": 1
+      },
+      "unknowns": 8,
+      "semantic_digest": "blake3-256:d05975e7f7dd5dce6b792a0e9da602bf1ad14970d87ff87da4bf5b95d8ddc177"
+    },
+    {
+      "path": "adapter/src/semantic/rust/mod.rs",
+      "disposition": "Parsed",
+      "language": "rust",
+      "content_digest": "blake3-256:49f9cee7a8f1a090647873eb32d12d94dc3f320a80cb7dc2c6dcd3167c4a65f5",
+      "facts": {
+        "FunctionIdentity|OBSERVED": 45,
+        "FunctionSignature|OBSERVED": 45,
+        "SemanticObligation|OBSERVED": 4,
+        "SemanticObligation|UNKNOWN": 8,
+        "SourceArtifact|OBSERVED": 2,
+        "Symbol|OBSERVED": 73,
+        "Type|OBSERVED": 77
+      },
+      "records": {
+        "CALL|OBSERVED": 506,
+        "CONTROL_FLOW|INFERRED": 1,
+        "CONTROL_FLOW|OBSERVED": 238,
+        "DATA_FLOW|OBSERVED": 1504,
+        "EFFECT|INFERRED": 1,
+        "FUNCTION_IDENTITY|OBSERVED": 45,
+        "FUNCTION_SIGNATURE|OBSERVED": 45,
+        "OWNERSHIP|OBSERVED": 609,
+        "STATE|OBSERVED": 12,
+        "SYMBOL|OBSERVED": 73,
+        "TYPE|OBSERVED": 77
+      },
+      "obligations": {
+        "CALL|UNKNOWN": 1,
+        "CONCURRENCY|UNKNOWN": 1,
+        "CONTROL_FLOW|UNKNOWN": 1,
+        "DATA_FLOW|UNKNOWN": 1,
+        "EFFECT|UNKNOWN": 1,
+        "FUNCTION_IDENTITY|OBSERVED": 1,
+        "FUNCTION_SIGNATURE|OBSERVED": 1,
+        "OWNERSHIP|UNKNOWN": 1,
+        "PERSISTENCE|UNKNOWN": 1,
+        "STATE|UNKNOWN": 1,
+        "SYMBOL|OBSERVED": 1,
+        "TYPE|OBSERVED": 1
+      },
+      "unknowns": 8,
+      "semantic_digest": "blake3-256:3a85f7e4c90bcd58051bb7676da2f2423f0f3cab269d6bc3707dc4b9dab3ec21"
+    },
+    {
+      "path": "adapter/src/semantic/rust/ownership.rs",
+      "disposition": "Parsed",
+      "language": "rust",
+      "content_digest": "blake3-256:3e1ab5787ba7961f3a6ac359405cfd6201ac9235fd703096afeba3ac23b9aad4",
+      "facts": {
+        "FunctionIdentity|OBSERVED": 6,
+        "FunctionSignature|OBSERVED": 6,
+        "SemanticObligation|OBSERVED": 4,
+        "SemanticObligation|UNKNOWN": 8,
+        "SourceArtifact|OBSERVED": 2,
+        "Symbol|OBSERVED": 10,
+        "Type|OBSERVED": 20
+      },
+      "records": {
+        "CALL|OBSERVED": 87,
+        "CONTROL_FLOW|OBSERVED": 67,
+        "DATA_FLOW|OBSERVED": 272,
+        "FUNCTION_IDENTITY|OBSERVED": 6,
+        "FUNCTION_SIGNATURE|OBSERVED": 6,
+        "OWNERSHIP|OBSERVED": 98,
+        "SYMBOL|OBSERVED": 10,
+        "TYPE|OBSERVED": 20
+      },
+      "obligations": {
+        "CALL|UNKNOWN": 1,
+        "CONCURRENCY|UNKNOWN": 1,
+        "CONTROL_FLOW|UNKNOWN": 1,
+        "DATA_FLOW|UNKNOWN": 1,
+        "EFFECT|UNKNOWN": 1,
+        "FUNCTION_IDENTITY|OBSERVED": 1,
+        "FUNCTION_SIGNATURE|OBSERVED": 1,
+        "OWNERSHIP|UNKNOWN": 1,
+        "PERSISTENCE|UNKNOWN": 1,
+        "STATE|UNKNOWN": 1,
+        "SYMBOL|OBSERVED": 1,
+        "TYPE|OBSERVED": 1
+      },
+      "unknowns": 8,
+      "semantic_digest": "blake3-256:1d290f3d73c91409166d63376997eb7f8f6efc2ab4929d0e07f00048a46494aa"
+    },
+    {
+      "path": "adapter/src/semantic/rust/persistence.rs",
+      "disposition": "Parsed",
+      "language": "rust",
+      "content_digest": "blake3-256:e5f93c8cc0fa88ae844b621ccc9b32fae4cbca9430153bdb7a813aff384fb6c7",
+      "facts": {
+        "FunctionIdentity|OBSERVED": 6,
+        "FunctionSignature|OBSERVED": 6,
+        "SemanticObligation|OBSERVED": 4,
+        "SemanticObligation|UNKNOWN": 8,
+        "SourceArtifact|OBSERVED": 2,
+        "Symbol|OBSERVED": 10,
+        "Type|OBSERVED": 18
+      },
+      "records": {
+        "CALL|OBSERVED": 87,
+        "CONTROL_FLOW|OBSERVED": 71,
+        "DATA_FLOW|OBSERVED": 241,
+        "FUNCTION_IDENTITY|OBSERVED": 6,
+        "FUNCTION_SIGNATURE|OBSERVED": 6,
+        "OWNERSHIP|OBSERVED": 84,
+        "SYMBOL|OBSERVED": 10,
+        "TYPE|OBSERVED": 18
+      },
+      "obligations": {
+        "CALL|UNKNOWN": 1,
+        "CONCURRENCY|UNKNOWN": 1,
+        "CONTROL_FLOW|UNKNOWN": 1,
+        "DATA_FLOW|UNKNOWN": 1,
+        "EFFECT|UNKNOWN": 1,
+        "FUNCTION_IDENTITY|OBSERVED": 1,
+        "FUNCTION_SIGNATURE|OBSERVED": 1,
+        "OWNERSHIP|UNKNOWN": 1,
+        "PERSISTENCE|UNKNOWN": 1,
+        "STATE|UNKNOWN": 1,
+        "SYMBOL|OBSERVED": 1,
+        "TYPE|OBSERVED": 1
+      },
+      "unknowns": 8,
+      "semantic_digest": "blake3-256:0ed61cd695a70ca3c8edd07e76441c8be7df68b81be645a7638ef545205589be"
+    },
+    {
+      "path": "adapter/src/semantic/rust/spelling.rs",
+      "disposition": "Parsed",
+      "language": "rust",
+      "content_digest": "blake3-256:19537c7de68d38106d9b4bd5400d367813e0d0aa955269367fa319fc57347f94",
+      "facts": {
+        "FunctionIdentity|OBSERVED": 17,
+        "FunctionSignature|OBSERVED": 17,
+        "SemanticObligation|OBSERVED": 4,
+        "SemanticObligation|UNKNOWN": 8,
+        "SourceArtifact|OBSERVED": 2,
+        "Symbol|OBSERVED": 17,
+        "Type|OBSERVED": 16
+      },
+      "records": {
+        "CALL|OBSERVED": 67,
+        "CONTROL_FLOW|OBSERVED": 78,
+        "DATA_FLOW|OBSERVED": 158,
+        "FUNCTION_IDENTITY|OBSERVED": 17,
+        "FUNCTION_SIGNATURE|OBSERVED": 17,
+        "OWNERSHIP|OBSERVED": 27,
+        "SYMBOL|OBSERVED": 17,
+        "TYPE|OBSERVED": 16
+      },
+      "obligations": {
+        "CALL|UNKNOWN": 1,
+        "CONCURRENCY|UNKNOWN": 1,
+        "CONTROL_FLOW|UNKNOWN": 1,
+        "DATA_FLOW|UNKNOWN": 1,
+        "EFFECT|UNKNOWN": 1,
+        "FUNCTION_IDENTITY|OBSERVED": 1,
+        "FUNCTION_SIGNATURE|OBSERVED": 1,
+        "OWNERSHIP|UNKNOWN": 1,
+        "PERSISTENCE|UNKNOWN": 1,
+        "STATE|UNKNOWN": 1,
+        "SYMBOL|OBSERVED": 1,
+        "TYPE|OBSERVED": 1
+      },
+      "unknowns": 8,
+      "semantic_digest": "blake3-256:c073a94daef9d3ec05177514cf6bd325738670e8bb5a62a82c833532f78e937f"
+    },
+    {
+      "path": "adapter/src/semantic/rust/state.rs",
+      "disposition": "Parsed",
+      "language": "rust",
+      "content_digest": "blake3-256:a50b77e633d6301b39e075dcecc48f7c152dfe4b4b8ae1a8abbacd2140792820",
+      "facts": {
+        "FunctionIdentity|OBSERVED": 7,
+        "FunctionSignature|OBSERVED": 7,
+        "SemanticObligation|OBSERVED": 4,
+        "SemanticObligation|UNKNOWN": 8,
+        "SourceArtifact|OBSERVED": 2,
+        "Symbol|OBSERVED": 11,
+        "Type|OBSERVED": 20
+      },
+      "records": {
+        "CALL|OBSERVED": 105,
+        "CONTROL_FLOW|OBSERVED": 89,
+        "DATA_FLOW|OBSERVED": 291,
+        "FUNCTION_IDENTITY|OBSERVED": 7,
+        "FUNCTION_SIGNATURE|OBSERVED": 7,
+        "OWNERSHIP|OBSERVED": 98,
+        "SYMBOL|OBSERVED": 11,
+        "TYPE|OBSERVED": 20
+      },
+      "obligations": {
+        "CALL|UNKNOWN": 1,
+        "CONCURRENCY|UNKNOWN": 1,
+        "CONTROL_FLOW|UNKNOWN": 1,
+        "DATA_FLOW|UNKNOWN": 1,
+        "EFFECT|UNKNOWN": 1,
+        "FUNCTION_IDENTITY|OBSERVED": 1,
+        "FUNCTION_SIGNATURE|OBSERVED": 1,
+        "OWNERSHIP|UNKNOWN": 1,
+        "PERSISTENCE|UNKNOWN": 1,
+        "STATE|UNKNOWN": 1,
+        "SYMBOL|OBSERVED": 1,
+        "TYPE|OBSERVED": 1
+      },
+      "unknowns": 8,
+      "semantic_digest": "blake3-256:97a4b0d31417043a316d0ce356aa1896f72ccb416f9af4a4ebbd77be5231dd64"
+    },
+    {
+      "path": "adapter/src/semantic/rust/tests.rs",
+      "disposition": "Parsed",
+      "language": "rust",
+      "content_digest": "blake3-256:e7498a2883229e2cbca68114bd83b2ae22febde810105669b0b8438a627a53b7",
+      "facts": {
+        "FunctionIdentity|OBSERVED": 254,
+        "FunctionSignature|OBSERVED": 254,
+        "SemanticObligation|OBSERVED": 4,
+        "SemanticObligation|UNKNOWN": 8,
+        "SourceArtifact|OBSERVED": 2,
+        "Symbol|OBSERVED": 271,
+        "Type|OBSERVED": 37
+      },
+      "records": {
+        "CALL|OBSERVED": 923,
+        "CONTROL_FLOW|INFERRED": 8,
+        "CONTROL_FLOW|OBSERVED": 345,
+        "DATA_FLOW|OBSERVED": 2614,
+        "EFFECT|INFERRED": 8,
+        "FUNCTION_IDENTITY|OBSERVED": 254,
+        "FUNCTION_SIGNATURE|OBSERVED": 254,
+        "OWNERSHIP|OBSERVED": 1067,
+        "SYMBOL|OBSERVED": 271,
+        "TYPE|OBSERVED": 37
+      },
+      "obligations": {
+        "CALL|UNKNOWN": 1,
+        "CONCURRENCY|UNKNOWN": 1,
+        "CONTROL_FLOW|UNKNOWN": 1,
+        "DATA_FLOW|UNKNOWN": 1,
+        "EFFECT|UNKNOWN": 1,
+        "FUNCTION_IDENTITY|OBSERVED": 1,
+        "FUNCTION_SIGNATURE|OBSERVED": 1,
+        "OWNERSHIP|UNKNOWN": 1,
+        "PERSISTENCE|UNKNOWN": 1,
+        "STATE|UNKNOWN": 1,
+        "SYMBOL|OBSERVED": 1,
+        "TYPE|OBSERVED": 1
+      },
+      "unknowns": 8,
+      "semantic_digest": "blake3-256:e432d3b1cb91dd747211eacd83fb786c94d263b411fc1c7a03650b3c3222016c"
+    },
+    {
+      "path": "adapter/src/source/frontend.rs",
+      "disposition": "Parsed",
+      "language": "rust",
+      "content_digest": "blake3-256:15f6c2570e6fc1da43f0f9683547904abbdeb7d2fccc87686a0eb01ab8eda7f3",
+      "facts": {
+        "FunctionIdentity|OBSERVED": 12,
+        "FunctionSignature|OBSERVED": 12,
+        "SemanticObligation|OBSERVED": 4,
+        "SemanticObligation|UNKNOWN": 8,
+        "SourceArtifact|OBSERVED": 2,
+        "Symbol|OBSERVED": 29,
+        "Type|OBSERVED": 17
+      },
+      "records": {
+        "CALL|OBSERVED": 11,
+        "CONTROL_FLOW|OBSERVED": 11,
+        "DATA_FLOW|OBSERVED": 26,
+        "FUNCTION_IDENTITY|OBSERVED": 12,
+        "FUNCTION_SIGNATURE|OBSERVED": 12,
+        "OWNERSHIP|OBSERVED": 2,
+        "STATE|OBSERVED": 3,
+        "SYMBOL|OBSERVED": 29,
+        "TYPE|OBSERVED": 17
+      },
+      "obligations": {
+        "CALL|UNKNOWN": 1,
+        "CONCURRENCY|UNKNOWN": 1,
+        "CONTROL_FLOW|UNKNOWN": 1,
+        "DATA_FLOW|UNKNOWN": 1,
+        "EFFECT|UNKNOWN": 1,
+        "FUNCTION_IDENTITY|OBSERVED": 1,
+        "FUNCTION_SIGNATURE|OBSERVED": 1,
+        "OWNERSHIP|UNKNOWN": 1,
+        "PERSISTENCE|UNKNOWN": 1,
+        "STATE|UNKNOWN": 1,
+        "SYMBOL|OBSERVED": 1,
+        "TYPE|OBSERVED": 1
+      },
+      "unknowns": 8,
+      "semantic_digest": "blake3-256:199eeb260d73df6cbe9b5b9651da0e4d318e8bb9c74de656c6484e10d29f995e"
+    },
+    {
+      "path": "adapter/src/source/mod.rs",
+      "disposition": "Parsed",
+      "language": "rust",
+      "content_digest": "blake3-256:9ab305778d564770b12ed8dbddf55ace95f20dffc6c60ed1369247379a07de55",
+      "facts": {
+        "FunctionIdentity|OBSERVED": 41,
+        "FunctionSignature|OBSERVED": 41,
+        "SemanticObligation|OBSERVED": 4,
+        "SemanticObligation|UNKNOWN": 8,
+        "SourceArtifact|OBSERVED": 2,
+        "Symbol|OBSERVED": 49,
+        "Type|OBSERVED": 36
+      },
+      "records": {
+        "CALL|OBSERVED": 371,
+        "CONTROL_FLOW|OBSERVED": 96,
+        "DATA_FLOW|OBSERVED": 713,
+        "EFFECT|INFERRED": 77,
+        "FUNCTION_IDENTITY|OBSERVED": 41,
+        "FUNCTION_SIGNATURE|OBSERVED": 41,
+        "OWNERSHIP|OBSERVED": 234,
+        "SYMBOL|OBSERVED": 49,
+        "TYPE|OBSERVED": 36
+      },
+      "obligations": {
+        "CALL|UNKNOWN": 1,
+        "CONCURRENCY|UNKNOWN": 1,
+        "CONTROL_FLOW|UNKNOWN": 1,
+        "DATA_FLOW|UNKNOWN": 1,
+        "EFFECT|UNKNOWN": 1,
+        "FUNCTION_IDENTITY|OBSERVED": 1,
+        "FUNCTION_SIGNATURE|OBSERVED": 1,
+        "OWNERSHIP|UNKNOWN": 1,
+        "PERSISTENCE|UNKNOWN": 1,
+        "STATE|UNKNOWN": 1,
+        "SYMBOL|OBSERVED": 1,
+        "TYPE|OBSERVED": 1
+      },
+      "unknowns": 8,
+      "semantic_digest": "blake3-256:9d9fbfc0733847e9732e4f50f2849b03062933efc5ba7e0ab6f4d173ea87ca5a"
+    },
+    {
+      "path": "adapter/src/vcs/mod.rs",
+      "disposition": "Parsed",
+      "language": "rust",
+      "content_digest": "blake3-256:11df01c3230a730a0b6a7a1e75e056a93fa91839f466ac2bf14685710f1ad79c",
+      "facts": {
+        "FunctionIdentity|OBSERVED": 4,
+        "FunctionSignature|OBSERVED": 4,
+        "SemanticObligation|OBSERVED": 4,
+        "SemanticObligation|UNKNOWN": 8,
+        "SourceArtifact|OBSERVED": 2,
+        "Symbol|OBSERVED": 5,
+        "Type|OBSERVED": 7
+      },
+      "records": {
+        "CALL|OBSERVED": 30,
+        "CONTROL_FLOW|OBSERVED": 6,
+        "DATA_FLOW|OBSERVED": 54,
+        "EFFECT|INFERRED": 6,
+        "FUNCTION_IDENTITY|OBSERVED": 4,
+        "FUNCTION_SIGNATURE|OBSERVED": 4,
+        "OWNERSHIP|OBSERVED": 28,
+        "SYMBOL|OBSERVED": 5,
+        "TYPE|OBSERVED": 7
+      },
+      "obligations": {
+        "CALL|UNKNOWN": 1,
+        "CONCURRENCY|UNKNOWN": 1,
+        "CONTROL_FLOW|UNKNOWN": 1,
+        "DATA_FLOW|UNKNOWN": 1,
+        "EFFECT|UNKNOWN": 1,
+        "FUNCTION_IDENTITY|OBSERVED": 1,
+        "FUNCTION_SIGNATURE|OBSERVED": 1,
+        "OWNERSHIP|UNKNOWN": 1,
+        "PERSISTENCE|UNKNOWN": 1,
+        "STATE|UNKNOWN": 1,
+        "SYMBOL|OBSERVED": 1,
+        "TYPE|OBSERVED": 1
+      },
+      "unknowns": 8,
+      "semantic_digest": "blake3-256:e220bfe27fd5bb26721bb692202d6b25718a4eebe79e431b797d7c5d950e0d0b"
+    },
+    {
+      "path": "apps/studio/README.md",
+      "disposition": "Parsed",
+      "language": "markdown",
+      "content_digest": "blake3-256:eebb36fcb2e6ad154b2b26e667027de7b5aed9f0ac0412289e469b47e9d23987",
+      "facts": {
+        "SemanticObligation|UNSUPPORTED": 12,
+        "SourceArtifact|OBSERVED": 2
+      },
+      "records": {},
+      "obligations": {
+        "CALL|UNSUPPORTED": 1,
+        "CONCURRENCY|UNSUPPORTED": 1,
+        "CONTROL_FLOW|UNSUPPORTED": 1,
+        "DATA_FLOW|UNSUPPORTED": 1,
+        "EFFECT|UNSUPPORTED": 1,
+        "FUNCTION_IDENTITY|UNSUPPORTED": 1,
+        "FUNCTION_SIGNATURE|UNSUPPORTED": 1,
+        "OWNERSHIP|UNSUPPORTED": 1,
+        "PERSISTENCE|UNSUPPORTED": 1,
+        "STATE|UNSUPPORTED": 1,
+        "SYMBOL|UNSUPPORTED": 1,
+        "TYPE|UNSUPPORTED": 1
+      },
+      "unknowns": 12,
+      "semantic_digest": "blake3-256:054dbd0cc1edd3986304c65940a1e3cc63641928ffe3640add22df5c813d8f89"
+    },
+    {
+      "path": "apps/studio/design/tokens.json",
+      "disposition": "Parsed",
+      "language": "json",
+      "content_digest": "blake3-256:7f698ad4dae66585a921aa13a2bde51e584a36d35832d0a8892529997a56a648",
+      "facts": {
+        "SemanticObligation|UNSUPPORTED": 12,
+        "SourceArtifact|OBSERVED": 2
+      },
+      "records": {},
+      "obligations": {
+        "CALL|UNSUPPORTED": 1,
+        "CONCURRENCY|UNSUPPORTED": 1,
+        "CONTROL_FLOW|UNSUPPORTED": 1,
+        "DATA_FLOW|UNSUPPORTED": 1,
+        "EFFECT|UNSUPPORTED": 1,
+        "FUNCTION_IDENTITY|UNSUPPORTED": 1,
+        "FUNCTION_SIGNATURE|UNSUPPORTED": 1,
+        "OWNERSHIP|UNSUPPORTED": 1,
+        "PERSISTENCE|UNSUPPORTED": 1,
+        "STATE|UNSUPPORTED": 1,
+        "SYMBOL|UNSUPPORTED": 1,
+        "TYPE|UNSUPPORTED": 1
+      },
+      "unknowns": 12,
+      "semantic_digest": "blake3-256:c2967da84102517e8f1ef685c22461fae64660fba15a0d98e356c8237415e795"
+    },
+    {
+      "path": "apps/studio/package.json",
+      "disposition": "Parsed",
+      "language": "json",
+      "content_digest": "blake3-256:f2c26b9e0e0bf30f4a5f4034a708cfb7a581779bad21d721c7e50345b6d60f5e",
+      "facts": {
+        "SemanticObligation|UNSUPPORTED": 12,
+        "SourceArtifact|OBSERVED": 2
+      },
+      "records": {},
+      "obligations": {
+        "CALL|UNSUPPORTED": 1,
+        "CONCURRENCY|UNSUPPORTED": 1,
+        "CONTROL_FLOW|UNSUPPORTED": 1,
+        "DATA_FLOW|UNSUPPORTED": 1,
+        "EFFECT|UNSUPPORTED": 1,
+        "FUNCTION_IDENTITY|UNSUPPORTED": 1,
+        "FUNCTION_SIGNATURE|UNSUPPORTED": 1,
+        "OWNERSHIP|UNSUPPORTED": 1,
+        "PERSISTENCE|UNSUPPORTED": 1,
+        "STATE|UNSUPPORTED": 1,
+        "SYMBOL|UNSUPPORTED": 1,
+        "TYPE|UNSUPPORTED": 1
+      },
+      "unknowns": 12,
+      "semantic_digest": "blake3-256:c2967da84102517e8f1ef685c22461fae64660fba15a0d98e356c8237415e795"
+    },
+    {
+      "path": "core/Cargo.toml",
+      "disposition": "Parsed",
+      "language": "toml",
+      "content_digest": "blake3-256:974d6f257f8e9eef8d2048859a395fc14f7ecd02901a0e340d4afc7d776ff672",
+      "facts": {
+        "SemanticObligation|UNSUPPORTED": 12,
+        "SourceArtifact|OBSERVED": 2
+      },
+      "records": {},
+      "obligations": {
+        "CALL|UNSUPPORTED": 1,
+        "CONCURRENCY|UNSUPPORTED": 1,
+        "CONTROL_FLOW|UNSUPPORTED": 1,
+        "DATA_FLOW|UNSUPPORTED": 1,
+        "EFFECT|UNSUPPORTED": 1,
+        "FUNCTION_IDENTITY|UNSUPPORTED": 1,
+        "FUNCTION_SIGNATURE|UNSUPPORTED": 1,
+        "OWNERSHIP|UNSUPPORTED": 1,
+        "PERSISTENCE|UNSUPPORTED": 1,
+        "STATE|UNSUPPORTED": 1,
+        "SYMBOL|UNSUPPORTED": 1,
+        "TYPE|UNSUPPORTED": 1
+      },
+      "unknowns": 12,
+      "semantic_digest": "blake3-256:29c52cd890ffda596e6aaaf7fde3f705c55ed504c1ab8e6e9adf19916fdded48"
+    },
+    {
+      "path": "core/src/capability/mod.rs",
+      "disposition": "Parsed",
+      "language": "rust",
+      "content_digest": "blake3-256:ab4f5d52a629b9ce077889c01fbddcd7aae9eb34b91f9203042fffe762a05203",
+      "facts": {
+        "SemanticObligation|OBSERVED": 4,
+        "SemanticObligation|UNKNOWN": 8,
+        "SourceArtifact|OBSERVED": 2,
+        "Symbol|OBSERVED": 19,
+        "Type|OBSERVED": 12
+      },
+      "records": {
+        "SYMBOL|OBSERVED": 19,
+        "TYPE|OBSERVED": 12
+      },
+      "obligations": {
+        "CALL|UNKNOWN": 1,
+        "CONCURRENCY|UNKNOWN": 1,
+        "CONTROL_FLOW|UNKNOWN": 1,
+        "DATA_FLOW|UNKNOWN": 1,
+        "EFFECT|UNKNOWN": 1,
+        "FUNCTION_IDENTITY|OBSERVED": 1,
+        "FUNCTION_SIGNATURE|OBSERVED": 1,
+        "OWNERSHIP|UNKNOWN": 1,
+        "PERSISTENCE|UNKNOWN": 1,
+        "STATE|UNKNOWN": 1,
+        "SYMBOL|OBSERVED": 1,
+        "TYPE|OBSERVED": 1
+      },
+      "unknowns": 8,
+      "semantic_digest": "blake3-256:fd214734270b69e9412fb407eb02f44cd285d27aa581a3665084ad72c9472077"
+    },
+    {
+      "path": "core/src/census/delta.rs",
+      "disposition": "Parsed",
+      "language": "rust",
+      "content_digest": "blake3-256:5e294be670620a6508f55739f118acfbe1dbca51e7d7ef2f619a2e43d49b58c8",
+      "facts": {
+        "FunctionIdentity|OBSERVED": 21,
+        "FunctionSignature|OBSERVED": 21,
+        "SemanticObligation|OBSERVED": 4,
+        "SemanticObligation|UNKNOWN": 8,
+        "SourceArtifact|OBSERVED": 2,
+        "Symbol|OBSERVED": 58,
+        "Type|OBSERVED": 35
+      },
+      "records": {
+        "CALL|OBSERVED": 120,
+        "CONTROL_FLOW|OBSERVED": 55,
+        "DATA_FLOW|OBSERVED": 277,
+        "FUNCTION_IDENTITY|OBSERVED": 21,
+        "FUNCTION_SIGNATURE|OBSERVED": 21,
+        "OWNERSHIP|OBSERVED": 61,
+        "PERSISTENCE|INFERRED": 2,
+        "SYMBOL|OBSERVED": 58,
+        "TYPE|OBSERVED": 35
+      },
+      "obligations": {
+        "CALL|UNKNOWN": 1,
+        "CONCURRENCY|UNKNOWN": 1,
+        "CONTROL_FLOW|UNKNOWN": 1,
+        "DATA_FLOW|UNKNOWN": 1,
+        "EFFECT|UNKNOWN": 1,
+        "FUNCTION_IDENTITY|OBSERVED": 1,
+        "FUNCTION_SIGNATURE|OBSERVED": 1,
+        "OWNERSHIP|UNKNOWN": 1,
+        "PERSISTENCE|UNKNOWN": 1,
+        "STATE|UNKNOWN": 1,
+        "SYMBOL|OBSERVED": 1,
+        "TYPE|OBSERVED": 1
+      },
+      "unknowns": 8,
+      "semantic_digest": "blake3-256:8f90c7ca6dc53353a5ebbc4e1aeb51ec5d0aea3480fcdf6880b8a7735aa0fcfc"
+    },
+    {
+      "path": "core/src/census/dependency.rs",
+      "disposition": "Parsed",
+      "language": "rust",
+      "content_digest": "blake3-256:4afb1a023ee2baa92db061cea9952e8ec30178eebae9086b568f13816fa58cca",
+      "facts": {
+        "FunctionIdentity|OBSERVED": 30,
+        "FunctionSignature|OBSERVED": 30,
+        "SemanticObligation|OBSERVED": 4,
+        "SemanticObligation|UNKNOWN": 8,
+        "SourceArtifact|OBSERVED": 2,
+        "Symbol|OBSERVED": 107,
+        "Type|OBSERVED": 60
+      },
+      "records": {
+        "CALL|OBSERVED": 60,
+        "CONTROL_FLOW|OBSERVED": 58,
+        "DATA_FLOW|OBSERVED": 95,
+        "FUNCTION_IDENTITY|OBSERVED": 30,
+        "FUNCTION_SIGNATURE|OBSERVED": 30,
+        "OWNERSHIP|OBSERVED": 12,
+        "STATE|OBSERVED": 3,
+        "SYMBOL|OBSERVED": 107,
+        "TYPE|OBSERVED": 60
+      },
+      "obligations": {
+        "CALL|UNKNOWN": 1,
+        "CONCURRENCY|UNKNOWN": 1,
+        "CONTROL_FLOW|UNKNOWN": 1,
+        "DATA_FLOW|UNKNOWN": 1,
+        "EFFECT|UNKNOWN": 1,
+        "FUNCTION_IDENTITY|OBSERVED": 1,
+        "FUNCTION_SIGNATURE|OBSERVED": 1,
+        "OWNERSHIP|UNKNOWN": 1,
+        "PERSISTENCE|UNKNOWN": 1,
+        "STATE|UNKNOWN": 1,
+        "SYMBOL|OBSERVED": 1,
+        "TYPE|OBSERVED": 1
+      },
+      "unknowns": 8,
+      "semantic_digest": "blake3-256:c10ca07708ba9e6ff3366654b033f220c05019eea6d1a9d20b6246f4d0d6c4bf"
+    },
+    {
+      "path": "core/src/census/mod.rs",
+      "disposition": "Parsed",
+      "language": "rust",
+      "content_digest": "blake3-256:50f9719463e856a975e5af8f81ca2fc6c1461cb048337865e1333e6f74177eed",
+      "facts": {
+        "FunctionIdentity|OBSERVED": 8,
+        "FunctionSignature|OBSERVED": 8,
+        "SemanticObligation|OBSERVED": 4,
+        "SemanticObligation|UNKNOWN": 8,
+        "SourceArtifact|OBSERVED": 2,
+        "Symbol|OBSERVED": 40,
+        "Type|OBSERVED": 24
+      },
+      "records": {
+        "CALL|OBSERVED": 16,
+        "CONTROL_FLOW|OBSERVED": 17,
+        "DATA_FLOW|OBSERVED": 32,
+        "FUNCTION_IDENTITY|OBSERVED": 8,
+        "FUNCTION_SIGNATURE|OBSERVED": 8,
+        "OWNERSHIP|OBSERVED": 8,
+        "STATE|OBSERVED": 1,
+        "SYMBOL|OBSERVED": 40,
+        "TYPE|OBSERVED": 24
+      },
+      "obligations": {
+        "CALL|UNKNOWN": 1,
+        "CONCURRENCY|UNKNOWN": 1,
+        "CONTROL_FLOW|UNKNOWN": 1,
+        "DATA_FLOW|UNKNOWN": 1,
+        "EFFECT|UNKNOWN": 1,
+        "FUNCTION_IDENTITY|OBSERVED": 1,
+        "FUNCTION_SIGNATURE|OBSERVED": 1,
+        "OWNERSHIP|UNKNOWN": 1,
+        "PERSISTENCE|UNKNOWN": 1,
+        "STATE|UNKNOWN": 1,
+        "SYMBOL|OBSERVED": 1,
+        "TYPE|OBSERVED": 1
+      },
+      "unknowns": 8,
+      "semantic_digest": "blake3-256:b5ce5f0c260a97b0a28aa89c2f8c167d76f52957fe11ef45d1ed4510201764d9"
+    },
+    {
+      "path": "core/src/closure/mod.rs",
+      "disposition": "Parsed",
+      "language": "rust",
+      "content_digest": "blake3-256:2ba2a96de241fb779dd83cf97f5ea3fa1f008ca33ca471f7a8c402a29e50e68e",
+      "facts": {
+        "FunctionIdentity|OBSERVED": 17,
+        "FunctionSignature|OBSERVED": 17,
+        "SemanticObligation|OBSERVED": 4,
+        "SemanticObligation|UNKNOWN": 8,
+        "SourceArtifact|OBSERVED": 2,
+        "Symbol|OBSERVED": 26,
+        "Type|OBSERVED": 20
+      },
+      "records": {
+        "CALL|OBSERVED": 40,
+        "CONTROL_FLOW|OBSERVED": 26,
+        "DATA_FLOW|OBSERVED": 92,
+        "FUNCTION_IDENTITY|OBSERVED": 17,
+        "FUNCTION_SIGNATURE|OBSERVED": 17,
+        "OWNERSHIP|OBSERVED": 24,
+        "STATE|OBSERVED": 8,
+        "SYMBOL|OBSERVED": 26,
+        "TYPE|OBSERVED": 20
+      },
+      "obligations": {
+        "CALL|UNKNOWN": 1,
+        "CONCURRENCY|UNKNOWN": 1,
+        "CONTROL_FLOW|UNKNOWN": 1,
+        "DATA_FLOW|UNKNOWN": 1,
+        "EFFECT|UNKNOWN": 1,
+        "FUNCTION_IDENTITY|OBSERVED": 1,
+        "FUNCTION_SIGNATURE|OBSERVED": 1,
+        "OWNERSHIP|UNKNOWN": 1,
+        "PERSISTENCE|UNKNOWN": 1,
+        "STATE|UNKNOWN": 1,
+        "SYMBOL|OBSERVED": 1,
+        "TYPE|OBSERVED": 1
+      },
+      "unknowns": 8,
+      "semantic_digest": "blake3-256:97faef89d4ba82111246ec19eaf8f6680a118a6719d64d0d8801d48377a3e53f"
+    },
+    {
+      "path": "core/src/constraint/mod.rs",
+      "disposition": "Parsed",
+      "language": "rust",
+      "content_digest": "blake3-256:707911b18488df3a767c570332f6eb9c8eaa2cdaeda7e6a9e11e13ff20e8a8e3",
+      "facts": {
+        "FunctionIdentity|OBSERVED": 14,
+        "FunctionSignature|OBSERVED": 14,
+        "SemanticObligation|OBSERVED": 4,
+        "SemanticObligation|UNKNOWN": 8,
+        "SourceArtifact|OBSERVED": 2,
+        "Symbol|OBSERVED": 26,
+        "Type|OBSERVED": 15
+      },
+      "records": {
+        "CALL|OBSERVED": 25,
+        "CONTROL_FLOW|OBSERVED": 43,
+        "DATA_FLOW|OBSERVED": 79,
+        "FUNCTION_IDENTITY|OBSERVED": 14,
+        "FUNCTION_SIGNATURE|OBSERVED": 14,
+        "OWNERSHIP|OBSERVED": 18,
+        "SYMBOL|OBSERVED": 26,
+        "TYPE|OBSERVED": 15
+      },
+      "obligations": {
+        "CALL|UNKNOWN": 1,
+        "CONCURRENCY|UNKNOWN": 1,
+        "CONTROL_FLOW|UNKNOWN": 1,
+        "DATA_FLOW|UNKNOWN": 1,
+        "EFFECT|UNKNOWN": 1,
+        "FUNCTION_IDENTITY|OBSERVED": 1,
+        "FUNCTION_SIGNATURE|OBSERVED": 1,
+        "OWNERSHIP|UNKNOWN": 1,
+        "PERSISTENCE|UNKNOWN": 1,
+        "STATE|UNKNOWN": 1,
+        "SYMBOL|OBSERVED": 1,
+        "TYPE|OBSERVED": 1
+      },
+      "unknowns": 8,
+      "semantic_digest": "blake3-256:a3e1352217e1a1ae34008cd23bf042649311689b3f3570bf4081f4fbad2fd008"
+    },
+    {
+      "path": "core/src/donor/mod.rs",
+      "disposition": "Parsed",
+      "language": "rust",
+      "content_digest": "blake3-256:da6ccbd9c7e212ed1f3410a45a62168d46d94573d7e1b5cddccd1619d1c94d38",
+      "facts": {
+        "FunctionIdentity|OBSERVED": 35,
+        "FunctionSignature|OBSERVED": 35,
+        "SemanticObligation|OBSERVED": 4,
+        "SemanticObligation|UNKNOWN": 8,
+        "SourceArtifact|OBSERVED": 2,
+        "Symbol|OBSERVED": 134,
+        "Type|OBSERVED": 69
+      },
+      "records": {
+        "CALL|OBSERVED": 93,
+        "CONTROL_FLOW|OBSERVED": 89,
+        "DATA_FLOW|OBSERVED": 280,
+        "FUNCTION_IDENTITY|OBSERVED": 35,
+        "FUNCTION_SIGNATURE|OBSERVED": 35,
+        "OWNERSHIP|OBSERVED": 69,
+        "STATE|OBSERVED": 20,
+        "SYMBOL|OBSERVED": 134,
+        "TYPE|OBSERVED": 69
+      },
+      "obligations": {
+        "CALL|UNKNOWN": 1,
+        "CONCURRENCY|UNKNOWN": 1,
+        "CONTROL_FLOW|UNKNOWN": 1,
+        "DATA_FLOW|UNKNOWN": 1,
+        "EFFECT|UNKNOWN": 1,
+        "FUNCTION_IDENTITY|OBSERVED": 1,
+        "FUNCTION_SIGNATURE|OBSERVED": 1,
+        "OWNERSHIP|UNKNOWN": 1,
+        "PERSISTENCE|UNKNOWN": 1,
+        "STATE|UNKNOWN": 1,
+        "SYMBOL|OBSERVED": 1,
+        "TYPE|OBSERVED": 1
+      },
+      "unknowns": 8,
+      "semantic_digest": "blake3-256:1f4bff829a1eaf684d6a9a336502a26650cd78007ae244e29c87886b657e4623"
+    },
+    {
+      "path": "core/src/evidence/mod.rs",
+      "disposition": "Parsed",
+      "language": "rust",
+      "content_digest": "blake3-256:64480885acd1976fcda8ccb5f0ba6df43152e57bc7418282abe7c53bb7b138ae",
+      "facts": {
+        "SemanticObligation|OBSERVED": 4,
+        "SemanticObligation|UNKNOWN": 8,
+        "SourceArtifact|OBSERVED": 2,
+        "Symbol|OBSERVED": 6,
+        "Type|OBSERVED": 2
+      },
+      "records": {
+        "SYMBOL|OBSERVED": 6,
+        "TYPE|OBSERVED": 2
+      },
+      "obligations": {
+        "CALL|UNKNOWN": 1,
+        "CONCURRENCY|UNKNOWN": 1,
+        "CONTROL_FLOW|UNKNOWN": 1,
+        "DATA_FLOW|UNKNOWN": 1,
+        "EFFECT|UNKNOWN": 1,
+        "FUNCTION_IDENTITY|OBSERVED": 1,
+        "FUNCTION_SIGNATURE|OBSERVED": 1,
+        "OWNERSHIP|UNKNOWN": 1,
+        "PERSISTENCE|UNKNOWN": 1,
+        "STATE|UNKNOWN": 1,
+        "SYMBOL|OBSERVED": 1,
+        "TYPE|OBSERVED": 1
+      },
+      "unknowns": 8,
+      "semantic_digest": "blake3-256:f85b5ab8838a3bdc01f6796c7efcfefacefe2b36073e80403429328b56f1c14e"
+    },
+    {
+      "path": "core/src/graph/engineering_graph.rs",
+      "disposition": "Parsed",
+      "language": "rust",
+      "content_digest": "blake3-256:d7cdb433bd42e404b07d80e07525d0d278f330628324366946d4fbe60d9f8ac2",
+      "facts": {
+        "FunctionIdentity|OBSERVED": 93,
+        "FunctionSignature|OBSERVED": 93,
+        "SemanticObligation|OBSERVED": 4,
+        "SemanticObligation|UNKNOWN": 8,
+        "SourceArtifact|OBSERVED": 2,
+        "Symbol|OBSERVED": 94,
+        "Type|OBSERVED": 53
+      },
+      "records": {
+        "CALL|OBSERVED": 1470,
+        "CONTROL_FLOW|OBSERVED": 180,
+        "DATA_FLOW|OBSERVED": 1952,
+        "EFFECT|INFERRED": 1,
+        "FUNCTION_IDENTITY|OBSERVED": 93,
+        "FUNCTION_SIGNATURE|OBSERVED": 93,
+        "OWNERSHIP|OBSERVED": 623,
+        "SYMBOL|OBSERVED": 94,
+        "TYPE|OBSERVED": 53
+      },
+      "obligations": {
+        "CALL|UNKNOWN": 1,
+        "CONCURRENCY|UNKNOWN": 1,
+        "CONTROL_FLOW|UNKNOWN": 1,
+        "DATA_FLOW|UNKNOWN": 1,
+        "EFFECT|UNKNOWN": 1,
+        "FUNCTION_IDENTITY|OBSERVED": 1,
+        "FUNCTION_SIGNATURE|OBSERVED": 1,
+        "OWNERSHIP|UNKNOWN": 1,
+        "PERSISTENCE|UNKNOWN": 1,
+        "STATE|UNKNOWN": 1,
+        "SYMBOL|OBSERVED": 1,
+        "TYPE|OBSERVED": 1
+      },
+      "unknowns": 8,
+      "semantic_digest": "blake3-256:ebc220fb4309148037b491371662fc9c457ad976fe896eb78e8aee6ec459905f"
+    },
+    {
+      "path": "core/src/graph/mod.rs",
+      "disposition": "Parsed",
+      "language": "rust",
+      "content_digest": "blake3-256:803e94d6230f6c87d21216e78e7b63f511a9f61be1eddbde723c2011f5c9b525",
+      "facts": {
+        "FunctionIdentity|OBSERVED": 2,
+        "FunctionSignature|OBSERVED": 2,
+        "SemanticObligation|OBSERVED": 4,
+        "SemanticObligation|UNKNOWN": 8,
+        "SourceArtifact|OBSERVED": 2,
+        "Symbol|OBSERVED": 45,
+        "Type|OBSERVED": 32
+      },
+      "records": {
+        "CALL|OBSERVED": 7,
+        "CONTROL_FLOW|OBSERVED": 6,
+        "DATA_FLOW|OBSERVED": 19,
+        "FUNCTION_IDENTITY|OBSERVED": 2,
+        "FUNCTION_SIGNATURE|OBSERVED": 2,
+        "OWNERSHIP|OBSERVED": 2,
+        "STATE|OBSERVED": 4,
+        "SYMBOL|OBSERVED": 45,
+        "TYPE|OBSERVED": 32
+      },
+      "obligations": {
+        "CALL|UNKNOWN": 1,
+        "CONCURRENCY|UNKNOWN": 1,
+        "CONTROL_FLOW|UNKNOWN": 1,
+        "DATA_FLOW|UNKNOWN": 1,
+        "EFFECT|UNKNOWN": 1,
+        "FUNCTION_IDENTITY|OBSERVED": 1,
+        "FUNCTION_SIGNATURE|OBSERVED": 1,
+        "OWNERSHIP|UNKNOWN": 1,
+        "PERSISTENCE|UNKNOWN": 1,
+        "STATE|UNKNOWN": 1,
+        "SYMBOL|OBSERVED": 1,
+        "TYPE|OBSERVED": 1
+      },
+      "unknowns": 8,
+      "semantic_digest": "blake3-256:9fd7c10c65f0ad5747a7e8144f9489d2460a0cea09822e02754111d00c0e1a6e"
+    },
+    {
+      "path": "core/src/identity/blake3.rs",
+      "disposition": "Parsed",
+      "language": "rust",
+      "content_digest": "blake3-256:6ce5060c4f15779af80c9a51ccd879d90719a6a9cb0470580ed7bd3aa02c1c88",
+      "facts": {
+        "FunctionIdentity|OBSERVED": 35,
+        "FunctionSignature|OBSERVED": 35,
+        "SemanticObligation|OBSERVED": 4,
+        "SemanticObligation|UNKNOWN": 8,
+        "SourceArtifact|OBSERVED": 2,
+        "Symbol|OBSERVED": 66,
+        "Type|OBSERVED": 57
+      },
+      "records": {
+        "CALL|OBSERVED": 106,
+        "CONTROL_FLOW|OBSERVED": 72,
+        "DATA_FLOW|OBSERVED": 448,
+        "FUNCTION_IDENTITY|OBSERVED": 35,
+        "FUNCTION_SIGNATURE|OBSERVED": 35,
+        "OWNERSHIP|OBSERVED": 88,
+        "STATE|OBSERVED": 42,
+        "SYMBOL|OBSERVED": 66,
+        "TYPE|OBSERVED": 57
+      },
+      "obligations": {
+        "CALL|UNKNOWN": 1,
+        "CONCURRENCY|UNKNOWN": 1,
+        "CONTROL_FLOW|UNKNOWN": 1,
+        "DATA_FLOW|UNKNOWN": 1,
+        "EFFECT|UNKNOWN": 1,
+        "FUNCTION_IDENTITY|OBSERVED": 1,
+        "FUNCTION_SIGNATURE|OBSERVED": 1,
+        "OWNERSHIP|UNKNOWN": 1,
+        "PERSISTENCE|UNKNOWN": 1,
+        "STATE|UNKNOWN": 1,
+        "SYMBOL|OBSERVED": 1,
+        "TYPE|OBSERVED": 1
+      },
+      "unknowns": 8,
+      "semantic_digest": "blake3-256:79a18a963cbe33879797d6d67d53e995b9c9b2675b36477148b37f80f90ae19a"
+    },
+    {
+      "path": "core/src/identity/blake3_high_counter.in",
+      "disposition": "Unknown",
+      "language": null,
+      "content_digest": "blake3-256:3d0fcf244e04a74fc6cb8fe27a0be169e6e63b480a21e246350d114e644f7412",
+      "facts": {
+        "SourceArtifact|UNKNOWN": 1
+      },
+      "records": {},
+      "obligations": {},
+      "unknowns": 1,
+      "semantic_digest": "blake3-256:1e53a49c0bae06781e97f8a5136c2f1ff46dd27566bc9005481b7e4838198c5c"
+    },
+    {
+      "path": "core/src/identity/blake3_vectors.in",
+      "disposition": "Unknown",
+      "language": null,
+      "content_digest": "blake3-256:c17214b90aec7bfb21a03a7acf0587dbf748fc4279215d215690a4fa76e725f0",
+      "facts": {
+        "SourceArtifact|UNKNOWN": 1
+      },
+      "records": {},
+      "obligations": {},
+      "unknowns": 1,
+      "semantic_digest": "blake3-256:1e53a49c0bae06781e97f8a5136c2f1ff46dd27566bc9005481b7e4838198c5c"
+    },
+    {
+      "path": "core/src/identity/blake3_xof_vectors.in",
+      "disposition": "Unknown",
+      "language": null,
+      "content_digest": "blake3-256:dc648058f4b184a61ec1238e1bf15609a0ed364c13a523274061cf43e2455fc7",
+      "facts": {
+        "SourceArtifact|UNKNOWN": 1
+      },
+      "records": {},
+      "obligations": {},
+      "unknowns": 1,
+      "semantic_digest": "blake3-256:1e53a49c0bae06781e97f8a5136c2f1ff46dd27566bc9005481b7e4838198c5c"
+    },
+    {
+      "path": "core/src/identity/mod.rs",
+      "disposition": "Parsed",
+      "language": "rust",
+      "content_digest": "blake3-256:d1acbf494da28d3a59564f7362333bfb6b92594282ac48fd82ebb3e7fc150c93",
+      "facts": {
+        "FunctionIdentity|OBSERVED": 15,
+        "FunctionSignature|OBSERVED": 15,
+        "SemanticObligation|OBSERVED": 4,
+        "SemanticObligation|UNKNOWN": 8,
+        "SourceArtifact|OBSERVED": 2,
+        "Symbol|OBSERVED": 24,
+        "Type|OBSERVED": 21
+      },
+      "records": {
+        "CALL|OBSERVED": 28,
+        "CONTROL_FLOW|OBSERVED": 28,
+        "DATA_FLOW|OBSERVED": 64,
+        "FUNCTION_IDENTITY|OBSERVED": 15,
+        "FUNCTION_SIGNATURE|OBSERVED": 15,
+        "OWNERSHIP|OBSERVED": 9,
+        "SYMBOL|OBSERVED": 24,
+        "TYPE|OBSERVED": 21
+      },
+      "obligations": {
+        "CALL|UNKNOWN": 1,
+        "CONCURRENCY|UNKNOWN": 1,
+        "CONTROL_FLOW|UNKNOWN": 1,
+        "DATA_FLOW|UNKNOWN": 1,
+        "EFFECT|UNKNOWN": 1,
+        "FUNCTION_IDENTITY|OBSERVED": 1,
+        "FUNCTION_SIGNATURE|OBSERVED": 1,
+        "OWNERSHIP|UNKNOWN": 1,
+        "PERSISTENCE|UNKNOWN": 1,
+        "STATE|UNKNOWN": 1,
+        "SYMBOL|OBSERVED": 1,
+        "TYPE|OBSERVED": 1
+      },
+      "unknowns": 8,
+      "semantic_digest": "blake3-256:a5f3c38e8aed473953966cbfe04cab4a0cfc2dad1b5a6f7213a4c086d7848a68"
+    },
+    {
+      "path": "core/src/language/adl/mod.rs",
+      "disposition": "Parsed",
+      "language": "rust",
+      "content_digest": "blake3-256:76332995efbe7eba9cdb16a8e35eeabd7041d09dfb00284a9583cce4d56e2262",
+      "facts": {
+        "FunctionIdentity|OBSERVED": 53,
+        "FunctionSignature|OBSERVED": 53,
+        "SemanticObligation|OBSERVED": 4,
+        "SemanticObligation|UNKNOWN": 8,
+        "SourceArtifact|OBSERVED": 2,
+        "Symbol|OBSERVED": 202,
+        "Type|OBSERVED": 114
+      },
+      "records": {
+        "CALL|OBSERVED": 437,
+        "CONTROL_FLOW|OBSERVED": 195,
+        "DATA_FLOW|OBSERVED": 897,
+        "FUNCTION_IDENTITY|OBSERVED": 53,
+        "FUNCTION_SIGNATURE|OBSERVED": 53,
+        "OWNERSHIP|OBSERVED": 231,
+        "SYMBOL|OBSERVED": 202,
+        "TYPE|OBSERVED": 114
+      },
+      "obligations": {
+        "CALL|UNKNOWN": 1,
+        "CONCURRENCY|UNKNOWN": 1,
+        "CONTROL_FLOW|UNKNOWN": 1,
+        "DATA_FLOW|UNKNOWN": 1,
+        "EFFECT|UNKNOWN": 1,
+        "FUNCTION_IDENTITY|OBSERVED": 1,
+        "FUNCTION_SIGNATURE|OBSERVED": 1,
+        "OWNERSHIP|UNKNOWN": 1,
+        "PERSISTENCE|UNKNOWN": 1,
+        "STATE|UNKNOWN": 1,
+        "SYMBOL|OBSERVED": 1,
+        "TYPE|OBSERVED": 1
+      },
+      "unknowns": 8,
+      "semantic_digest": "blake3-256:0d13e637898103a10e1992bc187f336c2b692ea21e3f96db1de8b59f338c6175"
+    },
+    {
+      "path": "core/src/language/mod.rs",
+      "disposition": "Parsed",
+      "language": "rust",
+      "content_digest": "blake3-256:b71a3d62fd3c440407763776d631870ca5b3a57aaaf9f582df476aed2bfb9bc1",
+      "facts": {
+        "SemanticObligation|OBSERVED": 4,
+        "SemanticObligation|UNKNOWN": 8,
+        "SourceArtifact|OBSERVED": 2,
+        "Symbol|OBSERVED": 1
+      },
+      "records": {
+        "SYMBOL|OBSERVED": 1
+      },
+      "obligations": {
+        "CALL|UNKNOWN": 1,
+        "CONCURRENCY|UNKNOWN": 1,
+        "CONTROL_FLOW|UNKNOWN": 1,
+        "DATA_FLOW|UNKNOWN": 1,
+        "EFFECT|UNKNOWN": 1,
+        "FUNCTION_IDENTITY|OBSERVED": 1,
+        "FUNCTION_SIGNATURE|OBSERVED": 1,
+        "OWNERSHIP|UNKNOWN": 1,
+        "PERSISTENCE|UNKNOWN": 1,
+        "STATE|UNKNOWN": 1,
+        "SYMBOL|OBSERVED": 1,
+        "TYPE|OBSERVED": 1
+      },
+      "unknowns": 8,
+      "semantic_digest": "blake3-256:4deb9b3293bdfe36ce86cc1ef67c6fb8c23a6cd290f5db161f351085ad18d8fc"
+    },
+    {
+      "path": "core/src/lib.rs",
+      "disposition": "Parsed",
+      "language": "rust",
+      "content_digest": "blake3-256:4f0c752fb472d698c29acbf39f0006bc3ee0a5b53c63d89577eea656746425df",
+      "facts": {
+        "FunctionIdentity|OBSERVED": 1,
+        "FunctionSignature|OBSERVED": 1,
+        "SemanticObligation|OBSERVED": 4,
+        "SemanticObligation|UNKNOWN": 8,
+        "SourceArtifact|OBSERVED": 2,
+        "Symbol|OBSERVED": 27,
+        "Type|OBSERVED": 6
+      },
+      "records": {
+        "CALL|OBSERVED": 3,
+        "CONTROL_FLOW|OBSERVED": 1,
+        "DATA_FLOW|OBSERVED": 2,
+        "FUNCTION_IDENTITY|OBSERVED": 1,
+        "FUNCTION_SIGNATURE|OBSERVED": 1,
+        "SYMBOL|OBSERVED": 27,
+        "TYPE|OBSERVED": 6
+      },
+      "obligations": {
+        "CALL|UNKNOWN": 1,
+        "CONCURRENCY|UNKNOWN": 1,
+        "CONTROL_FLOW|UNKNOWN": 1,
+        "DATA_FLOW|UNKNOWN": 1,
+        "EFFECT|UNKNOWN": 1,
+        "FUNCTION_IDENTITY|OBSERVED": 1,
+        "FUNCTION_SIGNATURE|OBSERVED": 1,
+        "OWNERSHIP|UNKNOWN": 1,
+        "PERSISTENCE|UNKNOWN": 1,
+        "STATE|UNKNOWN": 1,
+        "SYMBOL|OBSERVED": 1,
+        "TYPE|OBSERVED": 1
+      },
+      "unknowns": 8,
+      "semantic_digest": "blake3-256:0d067d070bc353747f3fb14396f4cb373478bfaff03f9379308a8d4bb326408d"
+    },
+    {
+      "path": "core/src/physical/dynamics.rs",
+      "disposition": "Parsed",
+      "language": "rust",
+      "content_digest": "blake3-256:64d3ed44c9f1bf9619e645ca0518f22cbb735eb5f68e24d4004624408fbc85cd",
+      "facts": {
+        "FunctionIdentity|OBSERVED": 22,
+        "FunctionSignature|OBSERVED": 22,
+        "SemanticObligation|OBSERVED": 4,
+        "SemanticObligation|UNKNOWN": 8,
+        "SourceArtifact|OBSERVED": 2,
+        "Symbol|OBSERVED": 53,
+        "Type|OBSERVED": 39
+      },
+      "records": {
+        "CALL|OBSERVED": 120,
+        "CONTROL_FLOW|OBSERVED": 46,
+        "DATA_FLOW|OBSERVED": 605,
+        "FUNCTION_IDENTITY|OBSERVED": 22,
+        "FUNCTION_SIGNATURE|OBSERVED": 22,
+        "OWNERSHIP|OBSERVED": 100,
+        "STATE|OBSERVED": 47,
+        "SYMBOL|OBSERVED": 53,
+        "TYPE|OBSERVED": 39
+      },
+      "obligations": {
+        "CALL|UNKNOWN": 1,
+        "CONCURRENCY|UNKNOWN": 1,
+        "CONTROL_FLOW|UNKNOWN": 1,
+        "DATA_FLOW|UNKNOWN": 1,
+        "EFFECT|UNKNOWN": 1,
+        "FUNCTION_IDENTITY|OBSERVED": 1,
+        "FUNCTION_SIGNATURE|OBSERVED": 1,
+        "OWNERSHIP|UNKNOWN": 1,
+        "PERSISTENCE|UNKNOWN": 1,
+        "STATE|UNKNOWN": 1,
+        "SYMBOL|OBSERVED": 1,
+        "TYPE|OBSERVED": 1
+      },
+      "unknowns": 8,
+      "semantic_digest": "blake3-256:c9f889a260cfd649529fb35ce00bfa0b88f7e7d31b2e4c9e2842a81123da925b"
+    },
+    {
+      "path": "core/src/physical/mod.rs",
+      "disposition": "Parsed",
+      "language": "rust",
+      "content_digest": "blake3-256:e8a36b966b6d36ec996ee89cc3461b6127040e8d40b1196319dd3036347c5150",
+      "facts": {
+        "FunctionIdentity|OBSERVED": 38,
+        "FunctionSignature|OBSERVED": 38,
+        "SemanticObligation|OBSERVED": 4,
+        "SemanticObligation|UNKNOWN": 8,
+        "SourceArtifact|OBSERVED": 2,
+        "Symbol|OBSERVED": 97,
+        "Type|OBSERVED": 65
+      },
+      "records": {
+        "CALL|OBSERVED": 339,
+        "CONTROL_FLOW|OBSERVED": 115,
+        "DATA_FLOW|OBSERVED": 790,
+        "FUNCTION_IDENTITY|OBSERVED": 38,
+        "FUNCTION_SIGNATURE|OBSERVED": 38,
+        "OWNERSHIP|OBSERVED": 255,
+        "STATE|OBSERVED": 1,
+        "SYMBOL|OBSERVED": 97,
+        "TYPE|OBSERVED": 65
+      },
+      "obligations": {
+        "CALL|UNKNOWN": 1,
+        "CONCURRENCY|UNKNOWN": 1,
+        "CONTROL_FLOW|UNKNOWN": 1,
+        "DATA_FLOW|UNKNOWN": 1,
+        "EFFECT|UNKNOWN": 1,
+        "FUNCTION_IDENTITY|OBSERVED": 1,
+        "FUNCTION_SIGNATURE|OBSERVED": 1,
+        "OWNERSHIP|UNKNOWN": 1,
+        "PERSISTENCE|UNKNOWN": 1,
+        "STATE|UNKNOWN": 1,
+        "SYMBOL|OBSERVED": 1,
+        "TYPE|OBSERVED": 1
+      },
+      "unknowns": 8,
+      "semantic_digest": "blake3-256:b100e901ef4a853b2c7415d51993e2f91d7299692fac6297fdbea0862d9002fb"
+    },
+    {
+      "path": "core/src/product/mod.rs",
+      "disposition": "Parsed",
+      "language": "rust",
+      "content_digest": "blake3-256:7b057ed94ecb398f65353a8b1f1fb4b83423723cba710263155b53a179c52b36",
+      "facts": {
+        "FunctionIdentity|OBSERVED": 24,
+        "FunctionSignature|OBSERVED": 24,
+        "SemanticObligation|OBSERVED": 4,
+        "SemanticObligation|UNKNOWN": 8,
+        "SourceArtifact|OBSERVED": 2,
+        "Symbol|OBSERVED": 87,
+        "Type|OBSERVED": 73
+      },
+      "records": {
+        "CALL|OBSERVED": 281,
+        "CONTROL_FLOW|OBSERVED": 98,
+        "DATA_FLOW|OBSERVED": 681,
+        "FUNCTION_IDENTITY|OBSERVED": 24,
+        "FUNCTION_SIGNATURE|OBSERVED": 24,
+        "OWNERSHIP|OBSERVED": 163,
+        "SYMBOL|OBSERVED": 87,
+        "TYPE|OBSERVED": 73
+      },
+      "obligations": {
+        "CALL|UNKNOWN": 1,
+        "CONCURRENCY|UNKNOWN": 1,
+        "CONTROL_FLOW|UNKNOWN": 1,
+        "DATA_FLOW|UNKNOWN": 1,
+        "EFFECT|UNKNOWN": 1,
+        "FUNCTION_IDENTITY|OBSERVED": 1,
+        "FUNCTION_SIGNATURE|OBSERVED": 1,
+        "OWNERSHIP|UNKNOWN": 1,
+        "PERSISTENCE|UNKNOWN": 1,
+        "STATE|UNKNOWN": 1,
+        "SYMBOL|OBSERVED": 1,
+        "TYPE|OBSERVED": 1
+      },
+      "unknowns": 8,
+      "semantic_digest": "blake3-256:730814402692382da22eae462227fcd9e104aa6d197d7e782e2bf93fd56cf373"
+    },
+    {
+      "path": "core/src/product/tests.rs",
+      "disposition": "Parsed",
+      "language": "rust",
+      "content_digest": "blake3-256:dc9a30e8f048a9b7752201bc0a70c7e952345ce8de6ed5b9360d5b7eb13dc14d",
+      "facts": {
+        "FunctionIdentity|OBSERVED": 18,
+        "FunctionSignature|OBSERVED": 18,
+        "SemanticObligation|OBSERVED": 4,
+        "SemanticObligation|UNKNOWN": 8,
+        "SourceArtifact|OBSERVED": 2,
+        "Symbol|OBSERVED": 18,
+        "Type|OBSERVED": 7
+      },
+      "records": {
+        "CALL|OBSERVED": 87,
+        "CONTROL_FLOW|OBSERVED": 25,
+        "DATA_FLOW|OBSERVED": 139,
+        "FUNCTION_IDENTITY|OBSERVED": 18,
+        "FUNCTION_SIGNATURE|OBSERVED": 18,
+        "OWNERSHIP|OBSERVED": 31,
+        "SYMBOL|OBSERVED": 18,
+        "TYPE|OBSERVED": 7
+      },
+      "obligations": {
+        "CALL|UNKNOWN": 1,
+        "CONCURRENCY|UNKNOWN": 1,
+        "CONTROL_FLOW|UNKNOWN": 1,
+        "DATA_FLOW|UNKNOWN": 1,
+        "EFFECT|UNKNOWN": 1,
+        "FUNCTION_IDENTITY|OBSERVED": 1,
+        "FUNCTION_SIGNATURE|OBSERVED": 1,
+        "OWNERSHIP|UNKNOWN": 1,
+        "PERSISTENCE|UNKNOWN": 1,
+        "STATE|UNKNOWN": 1,
+        "SYMBOL|OBSERVED": 1,
+        "TYPE|OBSERVED": 1
+      },
+      "unknowns": 8,
+      "semantic_digest": "blake3-256:91e5f6596c4c852d57997284495033c847a2ac96b6557445cf9c59e8735792de"
+    },
+    {
+      "path": "core/src/provenance/mod.rs",
+      "disposition": "Parsed",
+      "language": "rust",
+      "content_digest": "blake3-256:e1deafb971b87edee5b3efef76c43d8b4304e9165e8b8255b37f361273c475e4",
+      "facts": {
+        "FunctionIdentity|OBSERVED": 1,
+        "FunctionSignature|OBSERVED": 1,
+        "SemanticObligation|OBSERVED": 4,
+        "SemanticObligation|UNKNOWN": 8,
+        "SourceArtifact|OBSERVED": 2,
+        "Symbol|OBSERVED": 7,
+        "Type|OBSERVED": 5
+      },
+      "records": {
+        "CALL|OBSERVED": 2,
+        "CONTROL_FLOW|OBSERVED": 1,
+        "DATA_FLOW|OBSERVED": 7,
+        "FUNCTION_IDENTITY|OBSERVED": 1,
+        "FUNCTION_SIGNATURE|OBSERVED": 1,
+        "OWNERSHIP|OBSERVED": 3,
+        "SYMBOL|OBSERVED": 7,
+        "TYPE|OBSERVED": 5
+      },
+      "obligations": {
+        "CALL|UNKNOWN": 1,
+        "CONCURRENCY|UNKNOWN": 1,
+        "CONTROL_FLOW|UNKNOWN": 1,
+        "DATA_FLOW|UNKNOWN": 1,
+        "EFFECT|UNKNOWN": 1,
+        "FUNCTION_IDENTITY|OBSERVED": 1,
+        "FUNCTION_SIGNATURE|OBSERVED": 1,
+        "OWNERSHIP|UNKNOWN": 1,
+        "PERSISTENCE|UNKNOWN": 1,
+        "STATE|UNKNOWN": 1,
+        "SYMBOL|OBSERVED": 1,
+        "TYPE|OBSERVED": 1
+      },
+      "unknowns": 8,
+      "semantic_digest": "blake3-256:42d8e91fa6bba85304e274facce6f81f6dadc0fecc4193445956a1495f25412c"
+    },
+    {
+      "path": "core/src/quantity/mod.rs",
+      "disposition": "Parsed",
+      "language": "rust",
+      "content_digest": "blake3-256:f621509eb4b4dd75d905cdf1506b2874b84dfbd4191412c4bccade3460f17010",
+      "facts": {
+        "FunctionIdentity|OBSERVED": 43,
+        "FunctionSignature|OBSERVED": 43,
+        "SemanticObligation|OBSERVED": 4,
+        "SemanticObligation|UNKNOWN": 8,
+        "SourceArtifact|OBSERVED": 2,
+        "Symbol|OBSERVED": 65,
+        "Type|OBSERVED": 50
+      },
+      "records": {
+        "CALL|OBSERVED": 173,
+        "CONTROL_FLOW|OBSERVED": 109,
+        "DATA_FLOW|OBSERVED": 422,
+        "FUNCTION_IDENTITY|OBSERVED": 43,
+        "FUNCTION_SIGNATURE|OBSERVED": 43,
+        "OWNERSHIP|OBSERVED": 77,
+        "PERSISTENCE|INFERRED": 2,
+        "STATE|OBSERVED": 19,
+        "SYMBOL|OBSERVED": 65,
+        "TYPE|OBSERVED": 50
+      },
+      "obligations": {
+        "CALL|UNKNOWN": 1,
+        "CONCURRENCY|UNKNOWN": 1,
+        "CONTROL_FLOW|UNKNOWN": 1,
+        "DATA_FLOW|UNKNOWN": 1,
+        "EFFECT|UNKNOWN": 1,
+        "FUNCTION_IDENTITY|OBSERVED": 1,
+        "FUNCTION_SIGNATURE|OBSERVED": 1,
+        "OWNERSHIP|UNKNOWN": 1,
+        "PERSISTENCE|UNKNOWN": 1,
+        "STATE|UNKNOWN": 1,
+        "SYMBOL|OBSERVED": 1,
+        "TYPE|OBSERVED": 1
+      },
+      "unknowns": 8,
+      "semantic_digest": "blake3-256:306386281490650102b948fb37878b16c178aebfe2d9e2339933cb602c94aade"
+    },
+    {
+      "path": "core/src/schema/mod.rs",
+      "disposition": "Parsed",
+      "language": "rust",
+      "content_digest": "blake3-256:d998a8e41e5c0f2c7f2932aadeff966d35563acdd79e4682acc83f0956e08044",
+      "facts": {
+        "FunctionIdentity|OBSERVED": 25,
+        "FunctionSignature|OBSERVED": 25,
+        "SemanticObligation|OBSERVED": 4,
+        "SemanticObligation|UNKNOWN": 8,
+        "SourceArtifact|OBSERVED": 2,
+        "Symbol|OBSERVED": 184,
+        "Type|OBSERVED": 98
+      },
+      "records": {
+        "CALL|OBSERVED": 83,
+        "CONTROL_FLOW|OBSERVED": 50,
+        "DATA_FLOW|OBSERVED": 139,
+        "FUNCTION_IDENTITY|OBSERVED": 25,
+        "FUNCTION_SIGNATURE|OBSERVED": 25,
+        "OWNERSHIP|OBSERVED": 21,
+        "STATE|OBSERVED": 23,
+        "SYMBOL|OBSERVED": 184,
+        "TYPE|OBSERVED": 98
+      },
+      "obligations": {
+        "CALL|UNKNOWN": 1,
+        "CONCURRENCY|UNKNOWN": 1,
+        "CONTROL_FLOW|UNKNOWN": 1,
+        "DATA_FLOW|UNKNOWN": 1,
+        "EFFECT|UNKNOWN": 1,
+        "FUNCTION_IDENTITY|OBSERVED": 1,
+        "FUNCTION_SIGNATURE|OBSERVED": 1,
+        "OWNERSHIP|UNKNOWN": 1,
+        "PERSISTENCE|UNKNOWN": 1,
+        "STATE|UNKNOWN": 1,
+        "SYMBOL|OBSERVED": 1,
+        "TYPE|OBSERVED": 1
+      },
+      "unknowns": 8,
+      "semantic_digest": "blake3-256:75e3fb3975691f334198e7a20c2734b0ced0116157095647ec28770c20c34fdf"
+    },
+    {
+      "path": "core/src/semantic/call.rs",
+      "disposition": "Parsed",
+      "language": "rust",
+      "content_digest": "blake3-256:e28713a12243804f134de4a1694cfb7d649639d1af374c2b244efa8c1894c7b5",
+      "facts": {
+        "FunctionIdentity|OBSERVED": 9,
+        "FunctionSignature|OBSERVED": 9,
+        "SemanticObligation|OBSERVED": 4,
+        "SemanticObligation|UNKNOWN": 8,
+        "SourceArtifact|OBSERVED": 2,
+        "Symbol|OBSERVED": 24,
+        "Type|OBSERVED": 15
+      },
+      "records": {
+        "CALL|OBSERVED": 15,
+        "CONTROL_FLOW|OBSERVED": 13,
+        "DATA_FLOW|OBSERVED": 14,
+        "FUNCTION_IDENTITY|OBSERVED": 9,
+        "FUNCTION_SIGNATURE|OBSERVED": 9,
+        "SYMBOL|OBSERVED": 24,
+        "TYPE|OBSERVED": 15
+      },
+      "obligations": {
+        "CALL|UNKNOWN": 1,
+        "CONCURRENCY|UNKNOWN": 1,
+        "CONTROL_FLOW|UNKNOWN": 1,
+        "DATA_FLOW|UNKNOWN": 1,
+        "EFFECT|UNKNOWN": 1,
+        "FUNCTION_IDENTITY|OBSERVED": 1,
+        "FUNCTION_SIGNATURE|OBSERVED": 1,
+        "OWNERSHIP|UNKNOWN": 1,
+        "PERSISTENCE|UNKNOWN": 1,
+        "STATE|UNKNOWN": 1,
+        "SYMBOL|OBSERVED": 1,
+        "TYPE|OBSERVED": 1
+      },
+      "unknowns": 8,
+      "semantic_digest": "blake3-256:fc6b3a655257401dc49f04159e3bff4564e5ff2dd38747a476e2b822103d68c0"
+    },
+    {
+      "path": "core/src/semantic/concurrency.rs",
+      "disposition": "Parsed",
+      "language": "rust",
+      "content_digest": "blake3-256:c15c7f37d8d84fb411092620c7438f57448623a76c2a3c2719a1651d03cd98b3",
+      "facts": {
+        "FunctionIdentity|OBSERVED": 7,
+        "FunctionSignature|OBSERVED": 7,
+        "SemanticObligation|OBSERVED": 4,
+        "SemanticObligation|UNKNOWN": 8,
+        "SourceArtifact|OBSERVED": 2,
+        "Symbol|OBSERVED": 23,
+        "Type|OBSERVED": 12
+      },
+      "records": {
+        "CALL|OBSERVED": 10,
+        "CONTROL_FLOW|OBSERVED": 15,
+        "DATA_FLOW|OBSERVED": 9,
+        "FUNCTION_IDENTITY|OBSERVED": 7,
+        "FUNCTION_SIGNATURE|OBSERVED": 7,
+        "SYMBOL|OBSERVED": 23,
+        "TYPE|OBSERVED": 12
+      },
+      "obligations": {
+        "CALL|UNKNOWN": 1,
+        "CONCURRENCY|UNKNOWN": 1,
+        "CONTROL_FLOW|UNKNOWN": 1,
+        "DATA_FLOW|UNKNOWN": 1,
+        "EFFECT|UNKNOWN": 1,
+        "FUNCTION_IDENTITY|OBSERVED": 1,
+        "FUNCTION_SIGNATURE|OBSERVED": 1,
+        "OWNERSHIP|UNKNOWN": 1,
+        "PERSISTENCE|UNKNOWN": 1,
+        "STATE|UNKNOWN": 1,
+        "SYMBOL|OBSERVED": 1,
+        "TYPE|OBSERVED": 1
+      },
+      "unknowns": 8,
+      "semantic_digest": "blake3-256:3bc9282cb9bf4e32eb4ac524964f59dd9ebf72e66e1d0b3c7da5947707c5c254"
+    },
+    {
+      "path": "core/src/semantic/control_flow.rs",
+      "disposition": "Parsed",
+      "language": "rust",
+      "content_digest": "blake3-256:9bbb443ba7f3eec8da3b7b8c6bb608d8bc8cf36f37d40bd2bba4ebebf8508019",
+      "facts": {
+        "FunctionIdentity|OBSERVED": 9,
+        "FunctionSignature|OBSERVED": 9,
+        "SemanticObligation|OBSERVED": 4,
+        "SemanticObligation|UNKNOWN": 8,
+        "SourceArtifact|OBSERVED": 2,
+        "Symbol|OBSERVED": 40,
+        "Type|OBSERVED": 19
+      },
+      "records": {
+        "CALL|OBSERVED": 9,
+        "CONTROL_FLOW|OBSERVED": 26,
+        "DATA_FLOW|OBSERVED": 11,
+        "FUNCTION_IDENTITY|OBSERVED": 9,
+        "FUNCTION_SIGNATURE|OBSERVED": 9,
+        "SYMBOL|OBSERVED": 40,
+        "TYPE|OBSERVED": 19
+      },
+      "obligations": {
+        "CALL|UNKNOWN": 1,
+        "CONCURRENCY|UNKNOWN": 1,
+        "CONTROL_FLOW|UNKNOWN": 1,
+        "DATA_FLOW|UNKNOWN": 1,
+        "EFFECT|UNKNOWN": 1,
+        "FUNCTION_IDENTITY|OBSERVED": 1,
+        "FUNCTION_SIGNATURE|OBSERVED": 1,
+        "OWNERSHIP|UNKNOWN": 1,
+        "PERSISTENCE|UNKNOWN": 1,
+        "STATE|UNKNOWN": 1,
+        "SYMBOL|OBSERVED": 1,
+        "TYPE|OBSERVED": 1
+      },
+      "unknowns": 8,
+      "semantic_digest": "blake3-256:f57dee0bca6997769adc3ad31e9101da9c5318dda821c8dab9c2abd38ce1b83d"
+    },
+    {
+      "path": "core/src/semantic/data_flow.rs",
+      "disposition": "Parsed",
+      "language": "rust",
+      "content_digest": "blake3-256:bfa50cee8ad6bdea8b995577e32d9c739aa5aa10915eff28741ab23fd201b2bb",
+      "facts": {
+        "FunctionIdentity|OBSERVED": 11,
+        "FunctionSignature|OBSERVED": 11,
+        "SemanticObligation|OBSERVED": 4,
+        "SemanticObligation|UNKNOWN": 8,
+        "SourceArtifact|OBSERVED": 2,
+        "Symbol|OBSERVED": 30,
+        "Type|OBSERVED": 19
+      },
+      "records": {
+        "CALL|OBSERVED": 17,
+        "CONTROL_FLOW|OBSERVED": 16,
+        "DATA_FLOW|OBSERVED": 20,
+        "FUNCTION_IDENTITY|OBSERVED": 11,
+        "FUNCTION_SIGNATURE|OBSERVED": 11,
+        "OWNERSHIP|OBSERVED": 1,
+        "SYMBOL|OBSERVED": 30,
+        "TYPE|OBSERVED": 19
+      },
+      "obligations": {
+        "CALL|UNKNOWN": 1,
+        "CONCURRENCY|UNKNOWN": 1,
+        "CONTROL_FLOW|UNKNOWN": 1,
+        "DATA_FLOW|UNKNOWN": 1,
+        "EFFECT|UNKNOWN": 1,
+        "FUNCTION_IDENTITY|OBSERVED": 1,
+        "FUNCTION_SIGNATURE|OBSERVED": 1,
+        "OWNERSHIP|UNKNOWN": 1,
+        "PERSISTENCE|UNKNOWN": 1,
+        "STATE|UNKNOWN": 1,
+        "SYMBOL|OBSERVED": 1,
+        "TYPE|OBSERVED": 1
+      },
+      "unknowns": 8,
+      "semantic_digest": "blake3-256:f38637cf26ac83f0d80a7d56f5cb1aa4a407bee8d1dfc7b58591f7f338b834d6"
+    },
+    {
+      "path": "core/src/semantic/diagnostic.rs",
+      "disposition": "Parsed",
+      "language": "rust",
+      "content_digest": "blake3-256:f7c5ff9ddddd3cd24af731dfed451cc2f782a986dae6e3dbce533ebbb8a0f735",
+      "facts": {
+        "FunctionIdentity|OBSERVED": 2,
+        "FunctionSignature|OBSERVED": 2,
+        "SemanticObligation|OBSERVED": 4,
+        "SemanticObligation|UNKNOWN": 8,
+        "SourceArtifact|OBSERVED": 2,
+        "Symbol|OBSERVED": 16,
+        "Type|OBSERVED": 11
+      },
+      "records": {
+        "CALL|OBSERVED": 2,
+        "CONTROL_FLOW|OBSERVED": 10,
+        "DATA_FLOW|OBSERVED": 13,
+        "FUNCTION_IDENTITY|OBSERVED": 2,
+        "FUNCTION_SIGNATURE|OBSERVED": 2,
+        "OWNERSHIP|OBSERVED": 4,
+        "SYMBOL|OBSERVED": 16,
+        "TYPE|OBSERVED": 11
+      },
+      "obligations": {
+        "CALL|UNKNOWN": 1,
+        "CONCURRENCY|UNKNOWN": 1,
+        "CONTROL_FLOW|UNKNOWN": 1,
+        "DATA_FLOW|UNKNOWN": 1,
+        "EFFECT|UNKNOWN": 1,
+        "FUNCTION_IDENTITY|OBSERVED": 1,
+        "FUNCTION_SIGNATURE|OBSERVED": 1,
+        "OWNERSHIP|UNKNOWN": 1,
+        "PERSISTENCE|UNKNOWN": 1,
+        "STATE|UNKNOWN": 1,
+        "SYMBOL|OBSERVED": 1,
+        "TYPE|OBSERVED": 1
+      },
+      "unknowns": 8,
+      "semantic_digest": "blake3-256:fa1386ead1235275d39095a193e64500a5bbfb48857541b23eb0cfeb41cd524d"
+    },
+    {
+      "path": "core/src/semantic/effect.rs",
+      "disposition": "Parsed",
+      "language": "rust",
+      "content_digest": "blake3-256:3b584bcb56b92b9ed397b113179f1624b01a44d08810b1c46b5f19b69b49b01c",
+      "facts": {
+        "FunctionIdentity|OBSERVED": 4,
+        "FunctionSignature|OBSERVED": 4,
+        "SemanticObligation|OBSERVED": 4,
+        "SemanticObligation|UNKNOWN": 8,
+        "SourceArtifact|OBSERVED": 2,
+        "Symbol|OBSERVED": 25,
+        "Type|OBSERVED": 12
+      },
+      "records": {
+        "CALL|OBSERVED": 6,
+        "CONTROL_FLOW|OBSERVED": 17,
+        "DATA_FLOW|OBSERVED": 5,
+        "FUNCTION_IDENTITY|OBSERVED": 4,
+        "FUNCTION_SIGNATURE|OBSERVED": 4,
+        "SYMBOL|OBSERVED": 25,
+        "TYPE|OBSERVED": 12
+      },
+      "obligations": {
+        "CALL|UNKNOWN": 1,
+        "CONCURRENCY|UNKNOWN": 1,
+        "CONTROL_FLOW|UNKNOWN": 1,
+        "DATA_FLOW|UNKNOWN": 1,
+        "EFFECT|UNKNOWN": 1,
+        "FUNCTION_IDENTITY|OBSERVED": 1,
+        "FUNCTION_SIGNATURE|OBSERVED": 1,
+        "OWNERSHIP|UNKNOWN": 1,
+        "PERSISTENCE|UNKNOWN": 1,
+        "STATE|UNKNOWN": 1,
+        "SYMBOL|OBSERVED": 1,
+        "TYPE|OBSERVED": 1
+      },
+      "unknowns": 8,
+      "semantic_digest": "blake3-256:f746a0273194aad56fb89041d384e5902967927cfa4a08c0b3fc7679fb3f683b"
+    },
+    {
+      "path": "core/src/semantic/function.rs",
+      "disposition": "Parsed",
+      "language": "rust",
+      "content_digest": "blake3-256:a4613df53f3462f21199543cbf4d439baadb99d32694d96b638c6e11a328337a",
+      "facts": {
+        "FunctionIdentity|OBSERVED": 21,
+        "FunctionSignature|OBSERVED": 21,
+        "SemanticObligation|OBSERVED": 4,
+        "SemanticObligation|UNKNOWN": 8,
+        "SourceArtifact|OBSERVED": 2,
+        "Symbol|OBSERVED": 56,
+        "Type|OBSERVED": 37
+      },
+      "records": {
+        "CALL|OBSERVED": 90,
+        "CONTROL_FLOW|OBSERVED": 27,
+        "DATA_FLOW|OBSERVED": 127,
+        "FUNCTION_IDENTITY|OBSERVED": 21,
+        "FUNCTION_SIGNATURE|OBSERVED": 21,
+        "OWNERSHIP|OBSERVED": 14,
+        "STATE|OBSERVED": 5,
+        "SYMBOL|OBSERVED": 56,
+        "TYPE|OBSERVED": 37
+      },
+      "obligations": {
+        "CALL|UNKNOWN": 1,
+        "CONCURRENCY|UNKNOWN": 1,
+        "CONTROL_FLOW|UNKNOWN": 1,
+        "DATA_FLOW|UNKNOWN": 1,
+        "EFFECT|UNKNOWN": 1,
+        "FUNCTION_IDENTITY|OBSERVED": 1,
+        "FUNCTION_SIGNATURE|OBSERVED": 1,
+        "OWNERSHIP|UNKNOWN": 1,
+        "PERSISTENCE|UNKNOWN": 1,
+        "STATE|UNKNOWN": 1,
+        "SYMBOL|OBSERVED": 1,
+        "TYPE|OBSERVED": 1
+      },
+      "unknowns": 8,
+      "semantic_digest": "blake3-256:77a3f0a626d6e01d4c2db30d0cd806d0e233ac41f5a91a1baa8b9bcde7064740"
+    },
+    {
+      "path": "core/src/semantic/mod.rs",
+      "disposition": "Parsed",
+      "language": "rust",
+      "content_digest": "blake3-256:b353e74e5bb74c16fd2786d2b2c11779c48ee8a0fc7e018d2cbd2f3991a0f964",
+      "facts": {
+        "FunctionIdentity|OBSERVED": 16,
+        "FunctionSignature|OBSERVED": 16,
+        "SemanticObligation|OBSERVED": 4,
+        "SemanticObligation|UNKNOWN": 8,
+        "SourceArtifact|OBSERVED": 2,
+        "Symbol|OBSERVED": 63,
+        "Type|OBSERVED": 30
+      },
+      "records": {
+        "CALL|OBSERVED": 33,
+        "CONTROL_FLOW|OBSERVED": 30,
+        "DATA_FLOW|OBSERVED": 35,
+        "FUNCTION_IDENTITY|OBSERVED": 16,
+        "FUNCTION_SIGNATURE|OBSERVED": 16,
+        "OWNERSHIP|OBSERVED": 3,
+        "SYMBOL|OBSERVED": 63,
+        "TYPE|OBSERVED": 30
+      },
+      "obligations": {
+        "CALL|UNKNOWN": 1,
+        "CONCURRENCY|UNKNOWN": 1,
+        "CONTROL_FLOW|UNKNOWN": 1,
+        "DATA_FLOW|UNKNOWN": 1,
+        "EFFECT|UNKNOWN": 1,
+        "FUNCTION_IDENTITY|OBSERVED": 1,
+        "FUNCTION_SIGNATURE|OBSERVED": 1,
+        "OWNERSHIP|UNKNOWN": 1,
+        "PERSISTENCE|UNKNOWN": 1,
+        "STATE|UNKNOWN": 1,
+        "SYMBOL|OBSERVED": 1,
+        "TYPE|OBSERVED": 1
+      },
+      "unknowns": 8,
+      "semantic_digest": "blake3-256:4631bf69dfc80f2b5d126643a98e34d60b4a7665958d42a691b399b6374f7f83"
+    },
+    {
+      "path": "core/src/semantic/obligation.rs",
+      "disposition": "Parsed",
+      "language": "rust",
+      "content_digest": "blake3-256:73c87436952c5df87f92d7285f6ed95fcaa08a216b6caa8b2f6ab6c600a302ca",
+      "facts": {
+        "FunctionIdentity|OBSERVED": 5,
+        "FunctionSignature|OBSERVED": 5,
+        "SemanticObligation|OBSERVED": 4,
+        "SemanticObligation|UNKNOWN": 8,
+        "SourceArtifact|OBSERVED": 2,
+        "Symbol|OBSERVED": 17,
+        "Type|OBSERVED": 24
+      },
+      "records": {
+        "CALL|OBSERVED": 18,
+        "CONTROL_FLOW|OBSERVED": 5,
+        "DATA_FLOW|OBSERVED": 37,
+        "FUNCTION_IDENTITY|OBSERVED": 5,
+        "FUNCTION_SIGNATURE|OBSERVED": 5,
+        "OWNERSHIP|OBSERVED": 13,
+        "SYMBOL|OBSERVED": 17,
+        "TYPE|OBSERVED": 24
+      },
+      "obligations": {
+        "CALL|UNKNOWN": 1,
+        "CONCURRENCY|UNKNOWN": 1,
+        "CONTROL_FLOW|UNKNOWN": 1,
+        "DATA_FLOW|UNKNOWN": 1,
+        "EFFECT|UNKNOWN": 1,
+        "FUNCTION_IDENTITY|OBSERVED": 1,
+        "FUNCTION_SIGNATURE|OBSERVED": 1,
+        "OWNERSHIP|UNKNOWN": 1,
+        "PERSISTENCE|UNKNOWN": 1,
+        "STATE|UNKNOWN": 1,
+        "SYMBOL|OBSERVED": 1,
+        "TYPE|OBSERVED": 1
+      },
+      "unknowns": 8,
+      "semantic_digest": "blake3-256:a25d88e15d520beda7a493a01701578fd7ecf81ea556b20e81346d4168d38b4f"
+    },
+    {
+      "path": "core/src/semantic/observation.rs",
+      "disposition": "Parsed",
+      "language": "rust",
+      "content_digest": "blake3-256:aebae23068c190239ac75ad6897571d0c85bedd250150b651003233bb32c0dad",
+      "facts": {
+        "FunctionIdentity|OBSERVED": 20,
+        "FunctionSignature|OBSERVED": 20,
+        "SemanticObligation|OBSERVED": 4,
+        "SemanticObligation|UNKNOWN": 8,
+        "SourceArtifact|OBSERVED": 2,
+        "Symbol|OBSERVED": 46,
+        "Type|OBSERVED": 24
+      },
+      "records": {
+        "CALL|OBSERVED": 92,
+        "CONTROL_FLOW|OBSERVED": 80,
+        "DATA_FLOW|OBSERVED": 214,
+        "FUNCTION_IDENTITY|OBSERVED": 20,
+        "FUNCTION_SIGNATURE|OBSERVED": 20,
+        "OWNERSHIP|OBSERVED": 59,
+        "SYMBOL|OBSERVED": 46,
+        "TYPE|OBSERVED": 24
+      },
+      "obligations": {
+        "CALL|UNKNOWN": 1,
+        "CONCURRENCY|UNKNOWN": 1,
+        "CONTROL_FLOW|UNKNOWN": 1,
+        "DATA_FLOW|UNKNOWN": 1,
+        "EFFECT|UNKNOWN": 1,
+        "FUNCTION_IDENTITY|OBSERVED": 1,
+        "FUNCTION_SIGNATURE|OBSERVED": 1,
+        "OWNERSHIP|UNKNOWN": 1,
+        "PERSISTENCE|UNKNOWN": 1,
+        "STATE|UNKNOWN": 1,
+        "SYMBOL|OBSERVED": 1,
+        "TYPE|OBSERVED": 1
+      },
+      "unknowns": 8,
+      "semantic_digest": "blake3-256:cd34360b6ff1c8f865f46203e1e6ab864bd47b98ed94fb4ffed2a86b6476111c"
+    },
+    {
+      "path": "core/src/semantic/ownership.rs",
+      "disposition": "Parsed",
+      "language": "rust",
+      "content_digest": "blake3-256:82ff320935fa1e2804b9c357ee1320c3944dbc9b7cc0337316c29bd891e6f65e",
+      "facts": {
+        "FunctionIdentity|OBSERVED": 12,
+        "FunctionSignature|OBSERVED": 12,
+        "SemanticObligation|OBSERVED": 4,
+        "SemanticObligation|UNKNOWN": 8,
+        "SourceArtifact|OBSERVED": 2,
+        "Symbol|OBSERVED": 32,
+        "Type|OBSERVED": 17
+      },
+      "records": {
+        "CALL|OBSERVED": 20,
+        "CONTROL_FLOW|OBSERVED": 21,
+        "DATA_FLOW|OBSERVED": 19,
+        "FUNCTION_IDENTITY|OBSERVED": 12,
+        "FUNCTION_SIGNATURE|OBSERVED": 12,
+        "SYMBOL|OBSERVED": 32,
+        "TYPE|OBSERVED": 17
+      },
+      "obligations": {
+        "CALL|UNKNOWN": 1,
+        "CONCURRENCY|UNKNOWN": 1,
+        "CONTROL_FLOW|UNKNOWN": 1,
+        "DATA_FLOW|UNKNOWN": 1,
+        "EFFECT|UNKNOWN": 1,
+        "FUNCTION_IDENTITY|OBSERVED": 1,
+        "FUNCTION_SIGNATURE|OBSERVED": 1,
+        "OWNERSHIP|UNKNOWN": 1,
+        "PERSISTENCE|UNKNOWN": 1,
+        "STATE|UNKNOWN": 1,
+        "SYMBOL|OBSERVED": 1,
+        "TYPE|OBSERVED": 1
+      },
+      "unknowns": 8,
+      "semantic_digest": "blake3-256:b7f428b87782f4df0f990fd5b7fdddacfff95a373d5404a6c24d126693c5a35c"
+    },
+    {
+      "path": "core/src/semantic/persistence.rs",
+      "disposition": "Parsed",
+      "language": "rust",
+      "content_digest": "blake3-256:ba6049a70f7f48b46a75f18e47ea5500499aa749013fc650cb6b8e3cbc076981",
+      "facts": {
+        "FunctionIdentity|OBSERVED": 11,
+        "FunctionSignature|OBSERVED": 11,
+        "SemanticObligation|OBSERVED": 4,
+        "SemanticObligation|UNKNOWN": 8,
+        "SourceArtifact|OBSERVED": 2,
+        "Symbol|OBSERVED": 36,
+        "Type|OBSERVED": 17
+      },
+      "records": {
+        "CALL|OBSERVED": 15,
+        "CONTROL_FLOW|OBSERVED": 25,
+        "DATA_FLOW|OBSERVED": 19,
+        "FUNCTION_IDENTITY|OBSERVED": 11,
+        "FUNCTION_SIGNATURE|OBSERVED": 11,
+        "SYMBOL|OBSERVED": 36,
+        "TYPE|OBSERVED": 17
+      },
+      "obligations": {
+        "CALL|UNKNOWN": 1,
+        "CONCURRENCY|UNKNOWN": 1,
+        "CONTROL_FLOW|UNKNOWN": 1,
+        "DATA_FLOW|UNKNOWN": 1,
+        "EFFECT|UNKNOWN": 1,
+        "FUNCTION_IDENTITY|OBSERVED": 1,
+        "FUNCTION_SIGNATURE|OBSERVED": 1,
+        "OWNERSHIP|UNKNOWN": 1,
+        "PERSISTENCE|UNKNOWN": 1,
+        "STATE|UNKNOWN": 1,
+        "SYMBOL|OBSERVED": 1,
+        "TYPE|OBSERVED": 1
+      },
+      "unknowns": 8,
+      "semantic_digest": "blake3-256:80ce996c05064a2c8707d94bd12945a3cfba321edbe4411818adae256e2b9332"
+    },
+    {
+      "path": "core/src/semantic/place.rs",
+      "disposition": "Parsed",
+      "language": "rust",
+      "content_digest": "blake3-256:5893fc186731ab845396da4ad5a25990ef130ceda075d418022cc113ff3931cc",
+      "facts": {
+        "SemanticObligation|OBSERVED": 4,
+        "SemanticObligation|UNKNOWN": 8,
+        "SourceArtifact|OBSERVED": 2,
+        "Symbol|OBSERVED": 5,
+        "Type|OBSERVED": 2
+      },
+      "records": {
+        "SYMBOL|OBSERVED": 5,
+        "TYPE|OBSERVED": 2
+      },
+      "obligations": {
+        "CALL|UNKNOWN": 1,
+        "CONCURRENCY|UNKNOWN": 1,
+        "CONTROL_FLOW|UNKNOWN": 1,
+        "DATA_FLOW|UNKNOWN": 1,
+        "EFFECT|UNKNOWN": 1,
+        "FUNCTION_IDENTITY|OBSERVED": 1,
+        "FUNCTION_SIGNATURE|OBSERVED": 1,
+        "OWNERSHIP|UNKNOWN": 1,
+        "PERSISTENCE|UNKNOWN": 1,
+        "STATE|UNKNOWN": 1,
+        "SYMBOL|OBSERVED": 1,
+        "TYPE|OBSERVED": 1
+      },
+      "unknowns": 8,
+      "semantic_digest": "blake3-256:29e75383121f52aa3df0f8ce3f5677d0d474350b59c61a86ddd6217126451f19"
+    },
+    {
+      "path": "core/src/semantic/state.rs",
+      "disposition": "Parsed",
+      "language": "rust",
+      "content_digest": "blake3-256:eb6cb4a4b3bf1d440a7bd02e07374cdc9e96a115a50869069aa290e073ac2a75",
+      "facts": {
+        "FunctionIdentity|OBSERVED": 12,
+        "FunctionSignature|OBSERVED": 12,
+        "SemanticObligation|OBSERVED": 4,
+        "SemanticObligation|UNKNOWN": 8,
+        "SourceArtifact|OBSERVED": 2,
+        "Symbol|OBSERVED": 31,
+        "Type|OBSERVED": 18
+      },
+      "records": {
+        "CALL|OBSERVED": 17,
+        "CONTROL_FLOW|OBSERVED": 19,
+        "DATA_FLOW|OBSERVED": 17,
+        "FUNCTION_IDENTITY|OBSERVED": 12,
+        "FUNCTION_SIGNATURE|OBSERVED": 12,
+        "SYMBOL|OBSERVED": 31,
+        "TYPE|OBSERVED": 18
+      },
+      "obligations": {
+        "CALL|UNKNOWN": 1,
+        "CONCURRENCY|UNKNOWN": 1,
+        "CONTROL_FLOW|UNKNOWN": 1,
+        "DATA_FLOW|UNKNOWN": 1,
+        "EFFECT|UNKNOWN": 1,
+        "FUNCTION_IDENTITY|OBSERVED": 1,
+        "FUNCTION_SIGNATURE|OBSERVED": 1,
+        "OWNERSHIP|UNKNOWN": 1,
+        "PERSISTENCE|UNKNOWN": 1,
+        "STATE|UNKNOWN": 1,
+        "SYMBOL|OBSERVED": 1,
+        "TYPE|OBSERVED": 1
+      },
+      "unknowns": 8,
+      "semantic_digest": "blake3-256:6d6436fc2b80a39adba1b816cf4adbb5e7493d77e1cabd14aa056b158f31886c"
+    },
+    {
+      "path": "core/src/semantic/symbol.rs",
+      "disposition": "Parsed",
+      "language": "rust",
+      "content_digest": "blake3-256:28c50d6201df86288ca02416d7e56e8c15844de94da433c6a31bbbe17cb1c2b9",
+      "facts": {
+        "FunctionIdentity|OBSERVED": 7,
+        "FunctionSignature|OBSERVED": 7,
+        "SemanticObligation|OBSERVED": 4,
+        "SemanticObligation|UNKNOWN": 8,
+        "SourceArtifact|OBSERVED": 2,
+        "Symbol|OBSERVED": 19,
+        "Type|OBSERVED": 13
+      },
+      "records": {
+        "CALL|OBSERVED": 19,
+        "CONTROL_FLOW|OBSERVED": 11,
+        "DATA_FLOW|OBSERVED": 18,
+        "FUNCTION_IDENTITY|OBSERVED": 7,
+        "FUNCTION_SIGNATURE|OBSERVED": 7,
+        "SYMBOL|OBSERVED": 19,
+        "TYPE|OBSERVED": 13
+      },
+      "obligations": {
+        "CALL|UNKNOWN": 1,
+        "CONCURRENCY|UNKNOWN": 1,
+        "CONTROL_FLOW|UNKNOWN": 1,
+        "DATA_FLOW|UNKNOWN": 1,
+        "EFFECT|UNKNOWN": 1,
+        "FUNCTION_IDENTITY|OBSERVED": 1,
+        "FUNCTION_SIGNATURE|OBSERVED": 1,
+        "OWNERSHIP|UNKNOWN": 1,
+        "PERSISTENCE|UNKNOWN": 1,
+        "STATE|UNKNOWN": 1,
+        "SYMBOL|OBSERVED": 1,
+        "TYPE|OBSERVED": 1
+      },
+      "unknowns": 8,
+      "semantic_digest": "blake3-256:98985f17fe3e0f0dd789278bd612a5714f40eefd80ec3209e61b3db00eeb4f2b"
+    },
+    {
+      "path": "core/src/semantic/types.rs",
+      "disposition": "Parsed",
+      "language": "rust",
+      "content_digest": "blake3-256:41335254932844a954cace48af65bf11463fa73c7899b2c90f901538c15f5724",
+      "facts": {
+        "FunctionIdentity|OBSERVED": 5,
+        "FunctionSignature|OBSERVED": 5,
+        "SemanticObligation|OBSERVED": 4,
+        "SemanticObligation|UNKNOWN": 8,
+        "SourceArtifact|OBSERVED": 2,
+        "Symbol|OBSERVED": 12,
+        "Type|OBSERVED": 9
+      },
+      "records": {
+        "CALL|OBSERVED": 18,
+        "CONTROL_FLOW|OBSERVED": 5,
+        "DATA_FLOW|OBSERVED": 13,
+        "FUNCTION_IDENTITY|OBSERVED": 5,
+        "FUNCTION_SIGNATURE|OBSERVED": 5,
+        "OWNERSHIP|OBSERVED": 1,
+        "SYMBOL|OBSERVED": 12,
+        "TYPE|OBSERVED": 9
+      },
+      "obligations": {
+        "CALL|UNKNOWN": 1,
+        "CONCURRENCY|UNKNOWN": 1,
+        "CONTROL_FLOW|UNKNOWN": 1,
+        "DATA_FLOW|UNKNOWN": 1,
+        "EFFECT|UNKNOWN": 1,
+        "FUNCTION_IDENTITY|OBSERVED": 1,
+        "FUNCTION_SIGNATURE|OBSERVED": 1,
+        "OWNERSHIP|UNKNOWN": 1,
+        "PERSISTENCE|UNKNOWN": 1,
+        "STATE|UNKNOWN": 1,
+        "SYMBOL|OBSERVED": 1,
+        "TYPE|OBSERVED": 1
+      },
+      "unknowns": 8,
+      "semantic_digest": "blake3-256:eabde683ec1afee15106a21b1b135b6f5550fcba854fd310c3863dae94079038"
+    },
+    {
+      "path": "core/src/state/mod.rs",
+      "disposition": "Parsed",
+      "language": "rust",
+      "content_digest": "blake3-256:64ac145ea01ef87b1ffa1dfeb7503ab540c79892490e94808c15bdd3038fe68b",
+      "facts": {
+        "FunctionIdentity|OBSERVED": 1,
+        "FunctionSignature|OBSERVED": 1,
+        "SemanticObligation|OBSERVED": 4,
+        "SemanticObligation|UNKNOWN": 8,
+        "SourceArtifact|OBSERVED": 2,
+        "Symbol|OBSERVED": 8,
+        "Type|OBSERVED": 7
+      },
+      "records": {
+        "CALL|OBSERVED": 2,
+        "CONTROL_FLOW|OBSERVED": 1,
+        "DATA_FLOW|OBSERVED": 2,
+        "FUNCTION_IDENTITY|OBSERVED": 1,
+        "FUNCTION_SIGNATURE|OBSERVED": 1,
+        "SYMBOL|OBSERVED": 8,
+        "TYPE|OBSERVED": 7
+      },
+      "obligations": {
+        "CALL|UNKNOWN": 1,
+        "CONCURRENCY|UNKNOWN": 1,
+        "CONTROL_FLOW|UNKNOWN": 1,
+        "DATA_FLOW|UNKNOWN": 1,
+        "EFFECT|UNKNOWN": 1,
+        "FUNCTION_IDENTITY|OBSERVED": 1,
+        "FUNCTION_SIGNATURE|OBSERVED": 1,
+        "OWNERSHIP|UNKNOWN": 1,
+        "PERSISTENCE|UNKNOWN": 1,
+        "STATE|UNKNOWN": 1,
+        "SYMBOL|OBSERVED": 1,
+        "TYPE|OBSERVED": 1
+      },
+      "unknowns": 8,
+      "semantic_digest": "blake3-256:30697824814e216bb87f721291bec3f448ff93aabf775b9f7bcc65d7101a04d8"
+    },
+    {
+      "path": "core/src/temporal/mod.rs",
+      "disposition": "Parsed",
+      "language": "rust",
+      "content_digest": "blake3-256:6e1083e3f82f7e7ecc35a02225d63bd2d5fc40e8376cfc97954e5d06a9d493f4",
+      "facts": {
+        "SemanticObligation|OBSERVED": 4,
+        "SemanticObligation|UNKNOWN": 8,
+        "SourceArtifact|OBSERVED": 2,
+        "Symbol|OBSERVED": 3,
+        "Type|OBSERVED": 1
+      },
+      "records": {
+        "SYMBOL|OBSERVED": 3,
+        "TYPE|OBSERVED": 1
+      },
+      "obligations": {
+        "CALL|UNKNOWN": 1,
+        "CONCURRENCY|UNKNOWN": 1,
+        "CONTROL_FLOW|UNKNOWN": 1,
+        "DATA_FLOW|UNKNOWN": 1,
+        "EFFECT|UNKNOWN": 1,
+        "FUNCTION_IDENTITY|OBSERVED": 1,
+        "FUNCTION_SIGNATURE|OBSERVED": 1,
+        "OWNERSHIP|UNKNOWN": 1,
+        "PERSISTENCE|UNKNOWN": 1,
+        "STATE|UNKNOWN": 1,
+        "SYMBOL|OBSERVED": 1,
+        "TYPE|OBSERVED": 1
+      },
+      "unknowns": 8,
+      "semantic_digest": "blake3-256:75a9c27a445f5375ee75b2486d0dcfc0ec063e84c21fe7101abf40b752e62a45"
+    },
+    {
+      "path": "core/src/visual/compose.rs",
+      "disposition": "Parsed",
+      "language": "rust",
+      "content_digest": "blake3-256:7eecc48ad2a7551882a3e800a4e5ec706ee83427f0435a98f2bda59cc172c5d7",
+      "facts": {
+        "FunctionIdentity|OBSERVED": 8,
+        "FunctionSignature|OBSERVED": 8,
+        "SemanticObligation|OBSERVED": 4,
+        "SemanticObligation|UNKNOWN": 8,
+        "SourceArtifact|OBSERVED": 2,
+        "Symbol|OBSERVED": 39,
+        "Type|OBSERVED": 32
+      },
+      "records": {
+        "CALL|OBSERVED": 69,
+        "CONTROL_FLOW|OBSERVED": 24,
+        "DATA_FLOW|OBSERVED": 167,
+        "FUNCTION_IDENTITY|OBSERVED": 8,
+        "FUNCTION_SIGNATURE|OBSERVED": 8,
+        "OWNERSHIP|OBSERVED": 31,
+        "STATE|OBSERVED": 8,
+        "SYMBOL|OBSERVED": 39,
+        "TYPE|OBSERVED": 32
+      },
+      "obligations": {
+        "CALL|UNKNOWN": 1,
+        "CONCURRENCY|UNKNOWN": 1,
+        "CONTROL_FLOW|UNKNOWN": 1,
+        "DATA_FLOW|UNKNOWN": 1,
+        "EFFECT|UNKNOWN": 1,
+        "FUNCTION_IDENTITY|OBSERVED": 1,
+        "FUNCTION_SIGNATURE|OBSERVED": 1,
+        "OWNERSHIP|UNKNOWN": 1,
+        "PERSISTENCE|UNKNOWN": 1,
+        "STATE|UNKNOWN": 1,
+        "SYMBOL|OBSERVED": 1,
+        "TYPE|OBSERVED": 1
+      },
+      "unknowns": 8,
+      "semantic_digest": "blake3-256:a09ed1758bad97887d4b6f8258ae969153202e3b30db1816f48de9c5b27f8b03"
+    },
+    {
+      "path": "core/src/visual/differential.rs",
+      "disposition": "Parsed",
+      "language": "rust",
+      "content_digest": "blake3-256:13dcb20b1af5d8b8d2fa358dd0bdde1527915741822851de6b520043e9e27cce",
+      "facts": {
+        "FunctionIdentity|OBSERVED": 22,
+        "FunctionSignature|OBSERVED": 22,
+        "SemanticObligation|OBSERVED": 4,
+        "SemanticObligation|UNKNOWN": 8,
+        "SourceArtifact|OBSERVED": 2,
+        "Symbol|OBSERVED": 66,
+        "Type|OBSERVED": 48
+      },
+      "records": {
+        "CALL|OBSERVED": 120,
+        "CONTROL_FLOW|OBSERVED": 47,
+        "DATA_FLOW|OBSERVED": 267,
+        "FUNCTION_IDENTITY|OBSERVED": 22,
+        "FUNCTION_SIGNATURE|OBSERVED": 22,
+        "OWNERSHIP|OBSERVED": 70,
+        "STATE|OBSERVED": 4,
+        "SYMBOL|OBSERVED": 66,
+        "TYPE|OBSERVED": 48
+      },
+      "obligations": {
+        "CALL|UNKNOWN": 1,
+        "CONCURRENCY|UNKNOWN": 1,
+        "CONTROL_FLOW|UNKNOWN": 1,
+        "DATA_FLOW|UNKNOWN": 1,
+        "EFFECT|UNKNOWN": 1,
+        "FUNCTION_IDENTITY|OBSERVED": 1,
+        "FUNCTION_SIGNATURE|OBSERVED": 1,
+        "OWNERSHIP|UNKNOWN": 1,
+        "PERSISTENCE|UNKNOWN": 1,
+        "STATE|UNKNOWN": 1,
+        "SYMBOL|OBSERVED": 1,
+        "TYPE|OBSERVED": 1
+      },
+      "unknowns": 8,
+      "semantic_digest": "blake3-256:930cdfe889f7db57b600666a64fea2d792c070a096dfcbf1a0c8c653935d867e"
+    },
+    {
+      "path": "core/src/visual/genome.rs",
+      "disposition": "Parsed",
+      "language": "rust",
+      "content_digest": "blake3-256:2d8d24e2f6e316a01ec2577382134a14b8c96e1d5a1e0452d0afe9e994bebea4",
+      "facts": {
+        "FunctionIdentity|OBSERVED": 14,
+        "FunctionSignature|OBSERVED": 14,
+        "SemanticObligation|OBSERVED": 4,
+        "SemanticObligation|UNKNOWN": 8,
+        "SourceArtifact|OBSERVED": 2,
+        "Symbol|OBSERVED": 55,
+        "Type|OBSERVED": 45
+      },
+      "records": {
+        "CALL|OBSERVED": 106,
+        "CONTROL_FLOW|OBSERVED": 50,
+        "DATA_FLOW|OBSERVED": 225,
+        "FUNCTION_IDENTITY|OBSERVED": 14,
+        "FUNCTION_SIGNATURE|OBSERVED": 14,
+        "OWNERSHIP|OBSERVED": 71,
+        "SYMBOL|OBSERVED": 55,
+        "TYPE|OBSERVED": 45
+      },
+      "obligations": {
+        "CALL|UNKNOWN": 1,
+        "CONCURRENCY|UNKNOWN": 1,
+        "CONTROL_FLOW|UNKNOWN": 1,
+        "DATA_FLOW|UNKNOWN": 1,
+        "EFFECT|UNKNOWN": 1,
+        "FUNCTION_IDENTITY|OBSERVED": 1,
+        "FUNCTION_SIGNATURE|OBSERVED": 1,
+        "OWNERSHIP|UNKNOWN": 1,
+        "PERSISTENCE|UNKNOWN": 1,
+        "STATE|UNKNOWN": 1,
+        "SYMBOL|OBSERVED": 1,
+        "TYPE|OBSERVED": 1
+      },
+      "unknowns": 8,
+      "semantic_digest": "blake3-256:810ad848f4bef542a89390177d5574ddecd61a61bffeb9671b0d15b398d9db5a"
+    },
+    {
+      "path": "core/src/visual/mod.rs",
+      "disposition": "Parsed",
+      "language": "rust",
+      "content_digest": "blake3-256:616aea0891e8426b20d8bd26924785d30656e8549b3a100b708539b634f8446c",
+      "facts": {
+        "FunctionIdentity|OBSERVED": 40,
+        "FunctionSignature|OBSERVED": 40,
+        "SemanticObligation|OBSERVED": 4,
+        "SemanticObligation|UNKNOWN": 8,
+        "SourceArtifact|OBSERVED": 2,
+        "Symbol|OBSERVED": 188,
+        "Type|OBSERVED": 118
+      },
+      "records": {
+        "CALL|OBSERVED": 181,
+        "CONTROL_FLOW|OBSERVED": 112,
+        "DATA_FLOW|OBSERVED": 498,
+        "FUNCTION_IDENTITY|OBSERVED": 40,
+        "FUNCTION_SIGNATURE|OBSERVED": 40,
+        "OWNERSHIP|OBSERVED": 101,
+        "STATE|OBSERVED": 1,
+        "SYMBOL|OBSERVED": 188,
+        "TYPE|OBSERVED": 118
+      },
+      "obligations": {
+        "CALL|UNKNOWN": 1,
+        "CONCURRENCY|UNKNOWN": 1,
+        "CONTROL_FLOW|UNKNOWN": 1,
+        "DATA_FLOW|UNKNOWN": 1,
+        "EFFECT|UNKNOWN": 1,
+        "FUNCTION_IDENTITY|OBSERVED": 1,
+        "FUNCTION_SIGNATURE|OBSERVED": 1,
+        "OWNERSHIP|UNKNOWN": 1,
+        "PERSISTENCE|UNKNOWN": 1,
+        "STATE|UNKNOWN": 1,
+        "SYMBOL|OBSERVED": 1,
+        "TYPE|OBSERVED": 1
+      },
+      "unknowns": 8,
+      "semantic_digest": "blake3-256:98ed0a1e1f4f24262deefaa657adb57d470079a1412dbc920ae2a93fffb207d1"
+    },
+    {
+      "path": "core/src/visual/search.rs",
+      "disposition": "Parsed",
+      "language": "rust",
+      "content_digest": "blake3-256:6c20818504624850e96a4a19cb881b3c4bbd81e92fd30483366ed6c65b8a328c",
+      "facts": {
+        "FunctionIdentity|OBSERVED": 15,
+        "FunctionSignature|OBSERVED": 15,
+        "SemanticObligation|OBSERVED": 4,
+        "SemanticObligation|UNKNOWN": 8,
+        "SourceArtifact|OBSERVED": 2,
+        "Symbol|OBSERVED": 28,
+        "Type|OBSERVED": 22
+      },
+      "records": {
+        "CALL|OBSERVED": 52,
+        "CONTROL_FLOW|OBSERVED": 32,
+        "DATA_FLOW|OBSERVED": 157,
+        "FUNCTION_IDENTITY|OBSERVED": 15,
+        "FUNCTION_SIGNATURE|OBSERVED": 15,
+        "OWNERSHIP|OBSERVED": 24,
+        "SYMBOL|OBSERVED": 28,
+        "TYPE|OBSERVED": 22
+      },
+      "obligations": {
+        "CALL|UNKNOWN": 1,
+        "CONCURRENCY|UNKNOWN": 1,
+        "CONTROL_FLOW|UNKNOWN": 1,
+        "DATA_FLOW|UNKNOWN": 1,
+        "EFFECT|UNKNOWN": 1,
+        "FUNCTION_IDENTITY|OBSERVED": 1,
+        "FUNCTION_SIGNATURE|OBSERVED": 1,
+        "OWNERSHIP|UNKNOWN": 1,
+        "PERSISTENCE|UNKNOWN": 1,
+        "STATE|UNKNOWN": 1,
+        "SYMBOL|OBSERVED": 1,
+        "TYPE|OBSERVED": 1
+      },
+      "unknowns": 8,
+      "semantic_digest": "blake3-256:ec3a050e5a6d2094f428a6b150e8f727a4a49debfaa93125ad5d157f0be475d6"
+    },
+    {
+      "path": "runtime/Cargo.toml",
+      "disposition": "Parsed",
+      "language": "toml",
+      "content_digest": "blake3-256:6988cca0acb167142def94e6abab967b141d591930edc1e04d16f3bbb86c87b9",
+      "facts": {
+        "SemanticObligation|UNSUPPORTED": 12,
+        "SourceArtifact|OBSERVED": 2
+      },
+      "records": {},
+      "obligations": {
+        "CALL|UNSUPPORTED": 1,
+        "CONCURRENCY|UNSUPPORTED": 1,
+        "CONTROL_FLOW|UNSUPPORTED": 1,
+        "DATA_FLOW|UNSUPPORTED": 1,
+        "EFFECT|UNSUPPORTED": 1,
+        "FUNCTION_IDENTITY|UNSUPPORTED": 1,
+        "FUNCTION_SIGNATURE|UNSUPPORTED": 1,
+        "OWNERSHIP|UNSUPPORTED": 1,
+        "PERSISTENCE|UNSUPPORTED": 1,
+        "STATE|UNSUPPORTED": 1,
+        "SYMBOL|UNSUPPORTED": 1,
+        "TYPE|UNSUPPORTED": 1
+      },
+      "unknowns": 12,
+      "semantic_digest": "blake3-256:29c52cd890ffda596e6aaaf7fde3f705c55ed504c1ab8e6e9adf19916fdded48"
+    },
+    {
+      "path": "runtime/src/census/extraction.rs",
+      "disposition": "Parsed",
+      "language": "rust",
+      "content_digest": "blake3-256:43548c397298660c977bd19080b0e81a16412c517c4b0c43bd706f1ba764c19c",
+      "facts": {
+        "FunctionIdentity|OBSERVED": 74,
+        "FunctionSignature|OBSERVED": 74,
+        "SemanticObligation|OBSERVED": 4,
+        "SemanticObligation|UNKNOWN": 8,
+        "SourceArtifact|OBSERVED": 2,
+        "Symbol|OBSERVED": 94,
+        "Type|OBSERVED": 86
+      },
+      "records": {
+        "CALL|OBSERVED": 504,
+        "CONTROL_FLOW|INFERRED": 1,
+        "CONTROL_FLOW|OBSERVED": 115,
+        "DATA_FLOW|OBSERVED": 777,
+        "EFFECT|INFERRED": 29,
+        "FUNCTION_IDENTITY|OBSERVED": 74,
+        "FUNCTION_SIGNATURE|OBSERVED": 74,
+        "OWNERSHIP|OBSERVED": 209,
+        "STATE|OBSERVED": 4,
+        "SYMBOL|OBSERVED": 94,
+        "TYPE|OBSERVED": 86
+      },
+      "obligations": {
+        "CALL|UNKNOWN": 1,
+        "CONCURRENCY|UNKNOWN": 1,
+        "CONTROL_FLOW|UNKNOWN": 1,
+        "DATA_FLOW|UNKNOWN": 1,
+        "EFFECT|UNKNOWN": 1,
+        "FUNCTION_IDENTITY|OBSERVED": 1,
+        "FUNCTION_SIGNATURE|OBSERVED": 1,
+        "OWNERSHIP|UNKNOWN": 1,
+        "PERSISTENCE|UNKNOWN": 1,
+        "STATE|UNKNOWN": 1,
+        "SYMBOL|OBSERVED": 1,
+        "TYPE|OBSERVED": 1
+      },
+      "unknowns": 8,
+      "semantic_digest": "blake3-256:1ebdf33697378569bad4189dc60cf006d501dff08eecd93af3382c725cc591d4"
+    },
+    {
+      "path": "runtime/src/census/mod.rs",
+      "disposition": "Parsed",
+      "language": "rust",
+      "content_digest": "blake3-256:640bdae3a4ff62a9f098f0d7548941fab8b474ff8a3ad60155e05b7f9daa467f",
+      "facts": {
+        "FunctionIdentity|OBSERVED": 56,
+        "FunctionSignature|OBSERVED": 56,
+        "SemanticObligation|OBSERVED": 4,
+        "SemanticObligation|UNKNOWN": 8,
+        "SourceArtifact|OBSERVED": 2,
+        "Symbol|OBSERVED": 60,
+        "Type|OBSERVED": 26
+      },
+      "records": {
+        "CALL|OBSERVED": 789,
+        "CONTROL_FLOW|INFERRED": 2,
+        "CONTROL_FLOW|OBSERVED": 124,
+        "DATA_FLOW|OBSERVED": 1416,
+        "EFFECT|INFERRED": 2,
+        "FUNCTION_IDENTITY|OBSERVED": 56,
+        "FUNCTION_SIGNATURE|OBSERVED": 56,
+        "OWNERSHIP|OBSERVED": 407,
+        "SYMBOL|OBSERVED": 60,
+        "TYPE|OBSERVED": 26
+      },
+      "obligations": {
+        "CALL|UNKNOWN": 1,
+        "CONCURRENCY|UNKNOWN": 1,
+        "CONTROL_FLOW|UNKNOWN": 1,
+        "DATA_FLOW|UNKNOWN": 1,
+        "EFFECT|UNKNOWN": 1,
+        "FUNCTION_IDENTITY|OBSERVED": 1,
+        "FUNCTION_SIGNATURE|OBSERVED": 1,
+        "OWNERSHIP|UNKNOWN": 1,
+        "PERSISTENCE|UNKNOWN": 1,
+        "STATE|UNKNOWN": 1,
+        "SYMBOL|OBSERVED": 1,
+        "TYPE|OBSERVED": 1
+      },
+      "unknowns": 8,
+      "semantic_digest": "blake3-256:813e4a0c7a0faa91a53bee1a28683ef4cfab8e96f3b94f0bd66e05e8ae27fbcd"
+    },
+    {
+      "path": "runtime/src/donor_storage.rs",
+      "disposition": "Parsed",
+      "language": "rust",
+      "content_digest": "blake3-256:bfd5dba08d6f02e1a77ffb9b79fb3b0583d6e3ad1047e7a6733694c6f36bba69",
+      "facts": {
+        "FunctionIdentity|OBSERVED": 14,
+        "FunctionSignature|OBSERVED": 14,
+        "SemanticObligation|OBSERVED": 4,
+        "SemanticObligation|UNKNOWN": 8,
+        "SourceArtifact|OBSERVED": 2,
+        "Symbol|OBSERVED": 43,
+        "Type|OBSERVED": 25
+      },
+      "records": {
+        "CALL|OBSERVED": 134,
+        "CONTROL_FLOW|OBSERVED": 65,
+        "DATA_FLOW|OBSERVED": 275,
+        "EFFECT|INFERRED": 6,
+        "FUNCTION_IDENTITY|OBSERVED": 14,
+        "FUNCTION_SIGNATURE|OBSERVED": 14,
+        "OWNERSHIP|OBSERVED": 64,
+        "SYMBOL|OBSERVED": 43,
+        "TYPE|OBSERVED": 25
+      },
+      "obligations": {
+        "CALL|UNKNOWN": 1,
+        "CONCURRENCY|UNKNOWN": 1,
+        "CONTROL_FLOW|UNKNOWN": 1,
+        "DATA_FLOW|UNKNOWN": 1,
+        "EFFECT|UNKNOWN": 1,
+        "FUNCTION_IDENTITY|OBSERVED": 1,
+        "FUNCTION_SIGNATURE|OBSERVED": 1,
+        "OWNERSHIP|UNKNOWN": 1,
+        "PERSISTENCE|UNKNOWN": 1,
+        "STATE|UNKNOWN": 1,
+        "SYMBOL|OBSERVED": 1,
+        "TYPE|OBSERVED": 1
+      },
+      "unknowns": 8,
+      "semantic_digest": "blake3-256:98130752f9048406cfdfeaee2a9d2bd7516a079f1c46a9f72579ebd7a8f53423"
+    },
+    {
+      "path": "runtime/src/inventory/mod.rs",
+      "disposition": "Parsed",
+      "language": "rust",
+      "content_digest": "blake3-256:a6c4e1e0103bb10d5f76477766b4c7cdcf3d79e7f372a042eb5e40d3a55e4079",
+      "facts": {
+        "FunctionIdentity|OBSERVED": 1,
+        "FunctionSignature|OBSERVED": 1,
+        "SemanticObligation|OBSERVED": 4,
+        "SemanticObligation|UNKNOWN": 8,
+        "SourceArtifact|OBSERVED": 2,
+        "Symbol|OBSERVED": 1,
+        "Type|OBSERVED": 3
+      },
+      "records": {
+        "CALL|OBSERVED": 2,
+        "CONTROL_FLOW|OBSERVED": 3,
+        "DATA_FLOW|OBSERVED": 8,
+        "FUNCTION_IDENTITY|OBSERVED": 1,
+        "FUNCTION_SIGNATURE|OBSERVED": 1,
+        "OWNERSHIP|OBSERVED": 3,
+        "SYMBOL|OBSERVED": 1,
+        "TYPE|OBSERVED": 3
+      },
+      "obligations": {
+        "CALL|UNKNOWN": 1,
+        "CONCURRENCY|UNKNOWN": 1,
+        "CONTROL_FLOW|UNKNOWN": 1,
+        "DATA_FLOW|UNKNOWN": 1,
+        "EFFECT|UNKNOWN": 1,
+        "FUNCTION_IDENTITY|OBSERVED": 1,
+        "FUNCTION_SIGNATURE|OBSERVED": 1,
+        "OWNERSHIP|UNKNOWN": 1,
+        "PERSISTENCE|UNKNOWN": 1,
+        "STATE|UNKNOWN": 1,
+        "SYMBOL|OBSERVED": 1,
+        "TYPE|OBSERVED": 1
+      },
+      "unknowns": 8,
+      "semantic_digest": "blake3-256:2ce821613eb1797a7d1e1752caecf162a4c5a5d50284df4ea8eaa3375ad17987"
+    },
+    {
+      "path": "runtime/src/lib.rs",
+      "disposition": "Parsed",
+      "language": "rust",
+      "content_digest": "blake3-256:1cbb520a06d644d76ad586efee169dd7026a5d17c99d7beacf4e5aae001fe7ad",
+      "facts": {
+        "FunctionIdentity|OBSERVED": 63,
+        "FunctionSignature|OBSERVED": 63,
+        "SemanticObligation|OBSERVED": 4,
+        "SemanticObligation|UNKNOWN": 8,
+        "SourceArtifact|OBSERVED": 2,
+        "Symbol|OBSERVED": 91,
+        "Type|OBSERVED": 59
+      },
+      "records": {
+        "CALL|OBSERVED": 422,
+        "CONTROL_FLOW|INFERRED": 1,
+        "CONTROL_FLOW|OBSERVED": 224,
+        "DATA_FLOW|OBSERVED": 949,
+        "EFFECT|INFERRED": 29,
+        "FUNCTION_IDENTITY|OBSERVED": 63,
+        "FUNCTION_SIGNATURE|OBSERVED": 63,
+        "OWNERSHIP|OBSERVED": 228,
+        "SYMBOL|OBSERVED": 91,
+        "TYPE|OBSERVED": 59
+      },
+      "obligations": {
+        "CALL|UNKNOWN": 1,
+        "CONCURRENCY|UNKNOWN": 1,
+        "CONTROL_FLOW|UNKNOWN": 1,
+        "DATA_FLOW|UNKNOWN": 1,
+        "EFFECT|UNKNOWN": 1,
+        "FUNCTION_IDENTITY|OBSERVED": 1,
+        "FUNCTION_SIGNATURE|OBSERVED": 1,
+        "OWNERSHIP|UNKNOWN": 1,
+        "PERSISTENCE|UNKNOWN": 1,
+        "STATE|UNKNOWN": 1,
+        "SYMBOL|OBSERVED": 1,
+        "TYPE|OBSERVED": 1
+      },
+      "unknowns": 8,
+      "semantic_digest": "blake3-256:381003edf782b994c21dbfc51f1e265040fd3e7f132098485f2d16e546cab9d4"
+    },
+    {
+      "path": "runtime/src/normalize/mod.rs",
+      "disposition": "Parsed",
+      "language": "rust",
+      "content_digest": "blake3-256:e1fe5fe625a11a39f35e5d92c2320fdab5c655568d4c15e022ac2fb3d85a36fa",
+      "facts": {
+        "FunctionIdentity|OBSERVED": 20,
+        "FunctionSignature|OBSERVED": 20,
+        "SemanticObligation|OBSERVED": 4,
+        "SemanticObligation|UNKNOWN": 8,
+        "SourceArtifact|OBSERVED": 2,
+        "Symbol|OBSERVED": 24,
+        "Type|OBSERVED": 27
+      },
+      "records": {
+        "CALL|OBSERVED": 142,
+        "CONTROL_FLOW|OBSERVED": 36,
+        "DATA_FLOW|OBSERVED": 240,
+        "FUNCTION_IDENTITY|OBSERVED": 20,
+        "FUNCTION_SIGNATURE|OBSERVED": 20,
+        "OWNERSHIP|OBSERVED": 57,
+        "SYMBOL|OBSERVED": 24,
+        "TYPE|OBSERVED": 27
+      },
+      "obligations": {
+        "CALL|UNKNOWN": 1,
+        "CONCURRENCY|UNKNOWN": 1,
+        "CONTROL_FLOW|UNKNOWN": 1,
+        "DATA_FLOW|UNKNOWN": 1,
+        "EFFECT|UNKNOWN": 1,
+        "FUNCTION_IDENTITY|OBSERVED": 1,
+        "FUNCTION_SIGNATURE|OBSERVED": 1,
+        "OWNERSHIP|UNKNOWN": 1,
+        "PERSISTENCE|UNKNOWN": 1,
+        "STATE|UNKNOWN": 1,
+        "SYMBOL|OBSERVED": 1,
+        "TYPE|OBSERVED": 1
+      },
+      "unknowns": 8,
+      "semantic_digest": "blake3-256:c5ff3aded69a0ab52a2e635177a12af842b40e6ac35e7a5c534c99ea49e0a7a2"
+    },
+    {
+      "path": "runtime/src/physical.rs",
+      "disposition": "Parsed",
+      "language": "rust",
+      "content_digest": "blake3-256:b6019cb4abfc9938ac253f9f7257ce4b100e25a506e57af011f9d3738d941d0f",
+      "facts": {
+        "FunctionIdentity|OBSERVED": 2,
+        "FunctionSignature|OBSERVED": 2,
+        "SemanticObligation|OBSERVED": 4,
+        "SemanticObligation|UNKNOWN": 8,
+        "SourceArtifact|OBSERVED": 2,
+        "Symbol|OBSERVED": 6,
+        "Type|OBSERVED": 4
+      },
+      "records": {
+        "CALL|OBSERVED": 13,
+        "CONTROL_FLOW|OBSERVED": 2,
+        "DATA_FLOW|OBSERVED": 26,
+        "FUNCTION_IDENTITY|OBSERVED": 2,
+        "FUNCTION_SIGNATURE|OBSERVED": 2,
+        "OWNERSHIP|OBSERVED": 8,
+        "SYMBOL|OBSERVED": 6,
+        "TYPE|OBSERVED": 4
+      },
+      "obligations": {
+        "CALL|UNKNOWN": 1,
+        "CONCURRENCY|UNKNOWN": 1,
+        "CONTROL_FLOW|UNKNOWN": 1,
+        "DATA_FLOW|UNKNOWN": 1,
+        "EFFECT|UNKNOWN": 1,
+        "FUNCTION_IDENTITY|OBSERVED": 1,
+        "FUNCTION_SIGNATURE|OBSERVED": 1,
+        "OWNERSHIP|UNKNOWN": 1,
+        "PERSISTENCE|UNKNOWN": 1,
+        "STATE|UNKNOWN": 1,
+        "SYMBOL|OBSERVED": 1,
+        "TYPE|OBSERVED": 1
+      },
+      "unknowns": 8,
+      "semantic_digest": "blake3-256:02f608e1f8c1c1e787db7239e5bfb464f874931095cfcfcd63c3331b485cd10c"
+    },
+    {
+      "path": "runtime/src/product.rs",
+      "disposition": "Parsed",
+      "language": "rust",
+      "content_digest": "blake3-256:db92443fe47c2da49530346727c7392ffb8dcc4e3a91da9832c699bc066158fa",
+      "facts": {
+        "FunctionIdentity|OBSERVED": 5,
+        "FunctionSignature|OBSERVED": 5,
+        "SemanticObligation|OBSERVED": 4,
+        "SemanticObligation|UNKNOWN": 8,
+        "SourceArtifact|OBSERVED": 2,
+        "Symbol|OBSERVED": 11,
+        "Type|OBSERVED": 12
+      },
+      "records": {
+        "CALL|OBSERVED": 15,
+        "CONTROL_FLOW|OBSERVED": 10,
+        "DATA_FLOW|OBSERVED": 43,
+        "FUNCTION_IDENTITY|OBSERVED": 5,
+        "FUNCTION_SIGNATURE|OBSERVED": 5,
+        "OWNERSHIP|OBSERVED": 11,
+        "SYMBOL|OBSERVED": 11,
+        "TYPE|OBSERVED": 12
+      },
+      "obligations": {
+        "CALL|UNKNOWN": 1,
+        "CONCURRENCY|UNKNOWN": 1,
+        "CONTROL_FLOW|UNKNOWN": 1,
+        "DATA_FLOW|UNKNOWN": 1,
+        "EFFECT|UNKNOWN": 1,
+        "FUNCTION_IDENTITY|OBSERVED": 1,
+        "FUNCTION_SIGNATURE|OBSERVED": 1,
+        "OWNERSHIP|UNKNOWN": 1,
+        "PERSISTENCE|UNKNOWN": 1,
+        "STATE|UNKNOWN": 1,
+        "SYMBOL|OBSERVED": 1,
+        "TYPE|OBSERVED": 1
+      },
+      "unknowns": 8,
+      "semantic_digest": "blake3-256:5111f95f380f26298583c7bd4461059ef99b41e54432a133d153f9fcc5632988"
+    },
+    {
+      "path": "runtime/src/visual.rs",
+      "disposition": "Parsed",
+      "language": "rust",
+      "content_digest": "blake3-256:cec38f720bf9b29c10dc9e717bac2f9fbc3e26e78845d38f2056506613caf33a",
+      "facts": {
+        "FunctionIdentity|OBSERVED": 33,
+        "FunctionSignature|OBSERVED": 33,
+        "SemanticObligation|OBSERVED": 4,
+        "SemanticObligation|UNKNOWN": 8,
+        "SourceArtifact|OBSERVED": 2,
+        "Symbol|OBSERVED": 163,
+        "Type|OBSERVED": 113
+      },
+      "records": {
+        "CALL|OBSERVED": 281,
+        "CONTROL_FLOW|OBSERVED": 109,
+        "DATA_FLOW|OBSERVED": 678,
+        "EFFECT|INFERRED": 14,
+        "FUNCTION_IDENTITY|OBSERVED": 33,
+        "FUNCTION_SIGNATURE|OBSERVED": 33,
+        "OWNERSHIP|OBSERVED": 240,
+        "STATE|OBSERVED": 3,
+        "SYMBOL|OBSERVED": 163,
+        "TYPE|OBSERVED": 113
+      },
+      "obligations": {
+        "CALL|UNKNOWN": 1,
+        "CONCURRENCY|UNKNOWN": 1,
+        "CONTROL_FLOW|UNKNOWN": 1,
+        "DATA_FLOW|UNKNOWN": 1,
+        "EFFECT|UNKNOWN": 1,
+        "FUNCTION_IDENTITY|OBSERVED": 1,
+        "FUNCTION_SIGNATURE|OBSERVED": 1,
+        "OWNERSHIP|UNKNOWN": 1,
+        "PERSISTENCE|UNKNOWN": 1,
+        "STATE|UNKNOWN": 1,
+        "SYMBOL|OBSERVED": 1,
+        "TYPE|OBSERVED": 1
+      },
+      "unknowns": 8,
+      "semantic_digest": "blake3-256:961e0e49748f35ac427d6ca0cd23f4facf6e552131fdfe0128ca00cdc3df64b8"
+    },
+    {
+      "path": "runtime/tests/fixtures/creator/original-intent.json",
+      "disposition": "Parsed",
+      "language": "json",
+      "content_digest": "blake3-256:30d975782628cc5f77fa4d7c7e46ac4f5a79de73a481bcca2b43f6208d58abd8",
+      "facts": {
+        "SemanticObligation|UNSUPPORTED": 12,
+        "SourceArtifact|OBSERVED": 2
+      },
+      "records": {},
+      "obligations": {
+        "CALL|UNSUPPORTED": 1,
+        "CONCURRENCY|UNSUPPORTED": 1,
+        "CONTROL_FLOW|UNSUPPORTED": 1,
+        "DATA_FLOW|UNSUPPORTED": 1,
+        "EFFECT|UNSUPPORTED": 1,
+        "FUNCTION_IDENTITY|UNSUPPORTED": 1,
+        "FUNCTION_SIGNATURE|UNSUPPORTED": 1,
+        "OWNERSHIP|UNSUPPORTED": 1,
+        "PERSISTENCE|UNSUPPORTED": 1,
+        "STATE|UNSUPPORTED": 1,
+        "SYMBOL|UNSUPPORTED": 1,
+        "TYPE|UNSUPPORTED": 1
+      },
+      "unknowns": 12,
+      "semantic_digest": "blake3-256:c2967da84102517e8f1ef685c22461fae64660fba15a0d98e356c8237415e795"
+    },
+    {
+      "path": "runtime/tests/fixtures/physical/two-link-arm/.atlas",
+      "disposition": "IgnoredByExplicitPolicy",
+      "language": null,
+      "content_digest": null,
+      "facts": {
+        "SourceArtifact|IGNORED": 1
+      },
+      "records": {},
+      "obligations": {},
+      "unknowns": 0,
+      "semantic_digest": "blake3-256:612b1900d0b73877432b8d65e65a0723400eb642443d28a7630e905117d7a3df"
+    },
+    {
+      "path": "runtime/tests/fixtures/product/desk-organizer/.atlas",
+      "disposition": "IgnoredByExplicitPolicy",
+      "language": null,
+      "content_digest": null,
+      "facts": {
+        "SourceArtifact|IGNORED": 1
+      },
+      "records": {},
+      "obligations": {},
+      "unknowns": 0,
+      "semantic_digest": "blake3-256:612b1900d0b73877432b8d65e65a0723400eb642443d28a7630e905117d7a3df"
+    },
+    {
+      "path": "runtime/tests/fixtures/visual/hermetic-probe.css",
+      "disposition": "Unknown",
+      "language": null,
+      "content_digest": "blake3-256:df5c61ab94f1a454b522f389049ac43c34b74127bb9f80b7a532fff2fb90fb3e",
+      "facts": {
+        "SourceArtifact|UNKNOWN": 1
+      },
+      "records": {},
+      "obligations": {},
+      "unknowns": 1,
+      "semantic_digest": "blake3-256:1e53a49c0bae06781e97f8a5136c2f1ff46dd27566bc9005481b7e4838198c5c"
+    },
+    {
+      "path": "runtime/tests/fixtures/visual/hermetic-probe.html",
+      "disposition": "Unknown",
+      "language": null,
+      "content_digest": "blake3-256:f3efc3a347491ac43d3e87be37242534caddc16fe8fe708d365c8a19aa6a3d1c",
+      "facts": {
+        "SourceArtifact|UNKNOWN": 1
+      },
+      "records": {},
+      "obligations": {},
+      "unknowns": 1,
+      "semantic_digest": "blake3-256:1e53a49c0bae06781e97f8a5136c2f1ff46dd27566bc9005481b7e4838198c5c"
+    },
+    {
+      "path": "runtime/tests/fixtures/visual/interactive-mechanisms.html",
+      "disposition": "Unknown",
+      "language": null,
+      "content_digest": "blake3-256:812ad6e5af8e5846875c436212993330f5d13460a72d137fde0727afbba41be1",
+      "facts": {
+        "SourceArtifact|UNKNOWN": 1
+      },
+      "records": {},
+      "obligations": {},
+      "unknowns": 1,
+      "semantic_digest": "blake3-256:1e53a49c0bae06781e97f8a5136c2f1ff46dd27566bc9005481b7e4838198c5c"
+    },
+    {
+      "path": "runtime/tests/fixtures/visual/motion-curves.html",
+      "disposition": "Unknown",
+      "language": null,
+      "content_digest": "blake3-256:e340f16a4ea31450e3521b590628b62223b55aa3f1cf50df27dca3643e242ea3",
+      "facts": {
+        "SourceArtifact|UNKNOWN": 1
+      },
+      "records": {},
+      "obligations": {},
+      "unknowns": 1,
+      "semantic_digest": "blake3-256:1e53a49c0bae06781e97f8a5136c2f1ff46dd27566bc9005481b7e4838198c5c"
+    },
+    {
+      "path": "runtime/tests/fixtures/visual/responsive-editorial.html",
+      "disposition": "Unknown",
+      "language": null,
+      "content_digest": "blake3-256:9914dbf0b2bef637dc872a77e6bfce593a19ce61f152c994701b2be998266915",
+      "facts": {
+        "SourceArtifact|UNKNOWN": 1
+      },
+      "records": {},
+      "obligations": {},
+      "unknowns": 1,
+      "semantic_digest": "blake3-256:1e53a49c0bae06781e97f8a5136c2f1ff46dd27566bc9005481b7e4838198c5c"
+    }
+  ],
+  "coverage": {
+    "BUILD": "OBSERVED",
+    "CALL": "UNKNOWN",
+    "CONCURRENCY": "UNKNOWN",
+    "CONTROL_FLOW": "UNKNOWN",
+    "DATA_FLOW": "UNKNOWN",
+    "DECLARED_ADL": "DECLARED",
+    "EFFECT": "UNKNOWN",
+    "FUNCTION_IDENTITY": "OBSERVED",
+    "FUNCTION_SIGNATURE": "OBSERVED",
+    "OWNERSHIP": "UNKNOWN",
+    "PERSISTENCE": "UNKNOWN",
+    "SOURCE_ARTIFACT": "OBSERVED",
+    "STATE": "UNKNOWN",
+    "SYMBOL": "OBSERVED",
+    "TYPE": "OBSERVED"
+  },
+  "totals": {
+    "artifacts": 98,
+    "diagnostic:IncompleteAnalysis": 624,
+    "diagnostic:UnsupportedLanguageOrProfile": 10,
+    "docs": 179,
+    "docs_hard_violations": 0,
+    "evidence": 54246,
+    "facts": 10482,
+    "graph_bindings": 139,
+    "graph_edges": 78759,
+    "graph_nodes": 61739,
+    "normalization_conflicts": 0,
+    "normalized_facts": 10482,
+    "obligations": 1056,
+    "typed_records": 54229,
+    "unattributed_semantics": 34,
+    "unknown_facts": 632,
+    "unsupported_facts": 120
+  },
+  "dependency": {
+    "state": "Closed",
+    "edges": [
+      "adapter -> core@0.1.0 (WorkspaceMember) [Some(Runtime)]",
+      "adapter -> proc-macro2@1.0.107 (Registry) [Some(Runtime)]",
+      "adapter -> quote@1.0.47 (Registry) [Some(Runtime)]",
+      "adapter -> serde@1.0.229 (Registry) [Some(Runtime)]",
+      "adapter -> serde_json@1.0.151 (Registry) [Some(Dev)]",
+      "adapter -> syn@3.0.6 (Registry) [Some(Runtime)]",
+      "atlas-cli -> runtime@0.1.0 (WorkspaceMember) [Some(Runtime)]",
+      "atlas-cli -> serde@1.0.229 (Registry) [Some(Runtime)]",
+      "atlas-cli -> serde_json@1.0.151 (Registry) [Some(Runtime)]",
+      "blake3 -> arrayvec@0.7.8 (Registry) [None]",
+      "blake3 -> cc@1.4.7 (Registry) [None]",
+      "blake3 -> cfg-if@1.0.5 (Registry) [None]",
+      "blake3 -> constant_time_eq@0.4.2 (Registry) [None]",
+      "blake3 -> cpufeatures@0.3.1 (Registry) [None]",
+      "cc -> find-msvc-tools@0.1.13 (Registry) [None]",
+      "cc -> shlex@2.0.1 (Registry) [None]",
+      "core -> blake3@1.8.7 (Registry) [Some(Dev)]",
+      "core -> serde@1.0.229 (Registry) [Some(Runtime)]",
+      "cpufeatures -> libc@0.2.189 (Registry) [None]",
+      "proc-macro2 -> unicode-ident@1.0.26 (Registry) [None]",
+      "quote -> proc-macro2@1.0.107 (Registry) [None]",
+      "runtime -> adapter@0.1.0 (WorkspaceMember) [Some(Runtime)]",
+      "runtime -> core@0.1.0 (WorkspaceMember) [Some(Runtime)]",
+      "runtime -> serde@1.0.229 (Registry) [Some(Runtime)]",
+      "runtime -> serde_json@1.0.151 (Registry) [Some(Runtime)]",
+      "serde -> serde_core@1.0.229 (Registry) [None]",
+      "serde -> serde_derive@1.0.229 (Registry) [None]",
+      "serde_core -> serde_derive@1.0.229 (Registry) [None]",
+      "serde_derive -> proc-macro2@1.0.107 (Registry) [None]",
+      "serde_derive -> quote@1.0.47 (Registry) [None]",
+      "serde_derive -> syn@3.0.6 (Registry) [None]",
+      "serde_json -> itoa@1.0.18 (Registry) [None]",
+      "serde_json -> memchr@2.8.3 (Registry) [None]",
+      "serde_json -> serde@1.0.229 (Registry) [None]",
+      "serde_json -> serde_core@1.0.229 (Registry) [None]",
+      "serde_json -> zmij@1.0.23 (Registry) [None]",
+      "syn -> proc-macro2@1.0.107 (Registry) [None]",
+      "syn -> quote@1.0.47 (Registry) [None]",
+      "syn -> unicode-ident@1.0.26 (Registry) [None]"
+    ],
+    "dangling": [],
+    "unsupported": [],
+    "dynamic_obligations": 9
+  },
+  "adl": {
+    "nodes": [
+      "Capability:CompileGraph",
+      "Capability:ObserveRepository",
+      "Capability:ParseAtlas",
+      "Repository:AtlasStudio",
+      "Runtime:Adapter",
+      "Runtime:Core",
+      "Runtime:Runtime",
+      "Runtime:WebUI"
+    ],
+    "edges": [
+      "Adapter -provides-> ObserveRepository",
+      "AtlasStudio -contains-> Adapter",
+      "AtlasStudio -contains-> Core",
+      "AtlasStudio -contains-> Runtime",
+      "AtlasStudio -contains-> WebUI",
+      "Core -provides-> CompileGraph",
+      "Core -provides-> ParseAtlas",
+      "Runtime -depends_on-> Adapter",
+      "Runtime -depends_on-> Core",
+      "WebUI -depends_on-> Runtime"
+    ],
+    "diagnostics": 0,
+    "constraints": {
+      "AdapterIsMaterialized": "SATISFIED",
+      "BackendIsRust": "SATISFIED",
+      "CoreIsMaterialized": "SATISFIED",
+      "RuntimeIsMaterialized": "SATISFIED"
+    }
+  },
+  "admission_allowed": true,
+  "admission_blockers": [],
+  "docs_gate_ready": true,
+  "typed_semantics_closed": true
+}
