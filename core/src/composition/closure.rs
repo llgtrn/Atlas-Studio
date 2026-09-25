@@ -275,8 +275,16 @@ pub fn impact_closure(
         .cloned()
         .collect();
 
+    // An invariant the change introduces (a newly written field's INV-STATE) exists only after
+    // it; the same seed-derived rule decides it (G136, found on the datafrog donor).
+    let before_invariants: BTreeSet<&str> =
+        before.invariants.iter().map(|i| i.id.as_str()).collect();
+    let introduced = after
+        .invariants
+        .iter()
+        .filter(|i| !before_invariants.contains(i.id.as_str()));
     let mut invariants: BTreeSet<String> = BTreeSet::new();
-    for invariant in &before.invariants {
+    for invariant in before.invariants.iter().chain(introduced) {
         let scoped = |set: &BTreeSet<String>| invariant.scope.iter().any(|s| set.contains(s));
         let hit = global
             // A declared invariant compares the declared architecture with the file set; a

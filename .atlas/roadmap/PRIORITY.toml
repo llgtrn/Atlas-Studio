@@ -580,7 +580,7 @@ objective = "native attack queue head (pressure map, primary-debt dependency ord
 [[planned_generation]]
 id = "G136"
 priority = "P0"
-objective = "AGENT_MISSION: the fourth mission through the agent interface (cadence: within five generations of G132)"
+objective = "AGENT_MISSION: the fourth mission through the agent interface (cadence: within five generations of G132) (done: mission M4, the first donor Gundam proof -- revalidation R2 of datafrog; the impact closure run over 94 donor changes found and fixed two soundness defects; 3 mutants killed)"
 
 [[planned_generation]]
 id = "G137"

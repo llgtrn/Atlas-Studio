@@ -1,0 +1,201 @@
+{
+  "schema": "atlas.self-recensus-report.v1",
+  "generation": "G136",
+  "base_revision": "dddbc9dcd1fcbbd340206e8d5a8eb6bf3553a8b2",
+  "candidate_revision": "994b949b299d805e1ad50ede317f38c96d1a28d8",
+  "candidate_dirty": true,
+  "before_census_digest": "blake3-256:8f306655890cce008d33724b7d5a8dc9a91f8828ead71a74391f79409bbacdfb",
+  "after_census_digest": "blake3-256:d7ccc38b6815d4f6693125dd401b8e92c449f32c2609912c3ae006af06a4022c",
+  "replay_digest": "blake3-256:d7ccc38b6815d4f6693125dd401b8e92c449f32c2609912c3ae006af06a4022c",
+  "inventory_delta": {
+    "created": [],
+    "modified": [
+      "core/src/composition/closure.rs",
+      "runtime/src/agent.rs",
+      "runtime/src/lib.rs"
+    ],
+    "deleted": []
+  },
+  "semantic_delta": {
+    "changed": [
+      "core/src/composition/closure.rs",
+      "runtime/src/agent.rs",
+      "runtime/src/lib.rs"
+    ],
+    "counts": {
+      "fact:FunctionIdentity|OBSERVED": 6,
+      "fact:FunctionSignature|OBSERVED": 1,
+      "fact:Symbol|OBSERVED": 6,
+      "record:CALL|DERIVED": 2,
+      "record:CALL|OBSERVED": 52,
+      "record:CONTROL_FLOW|INFERRED": 5,
+      "record:CONTROL_FLOW|OBSERVED": 6,
+      "record:DATA_FLOW|OBSERVED": 36,
+      "record:EFFECT|DERIVED": 7,
+      "record:EFFECT|INFERRED": 12,
+      "record:FUNCTION_IDENTITY|OBSERVED": 6,
+      "record:FUNCTION_SIGNATURE|OBSERVED": 1,
+      "record:OWNERSHIP|OBSERVED": 13,
+      "record:PERSISTENCE|DERIVED": 2,
+      "record:SYMBOL|OBSERVED": 6
+    }
+  },
+  "dependency_delta": {
+    "added": [],
+    "removed": []
+  },
+  "dependency_state": [
+    "Closed",
+    "Closed"
+  ],
+  "graph_delta": {
+    "graph_edges": 184,
+    "graph_nodes": 158
+  },
+  "obligation_delta": {},
+  "adl_delta": {
+    "added": [],
+    "removed": []
+  },
+  "entity_delta": [
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core composition/closure/impact_closure()."
+      ],
+      "after": [
+        "core composition/closure/impact_closure()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "runtime agent/changed_paths()."
+      ],
+      "after": [
+        "runtime agent/changed_paths()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "runtime agent/tests/the_impact_closure_holds_every_difference_of_the_full_recompute()."
+      ],
+      "after": [
+        "runtime agent/tests/the_impact_closure_holds_every_difference_of_the_full_recompute()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "runtime tests/essential_complexity/historical_donor_revalidation_triggers_are_capability_based()."
+      ],
+      "after": [
+        "runtime tests/essential_complexity/historical_donor_revalidation_triggers_are_capability_based()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime agent/tests/a_rename_changes_both_its_paths()."
+      ],
+      "evidence": ""
+    }
+  ],
+  "coverage_delta": [],
+  "unknown_delta": {
+    "increased": [],
+    "decreased": [],
+    "total_before": 1560,
+    "total_after": 1560
+  },
+  "intent": {
+    "objective": "agent mission M4 (donor Gundam proof, revalidation R2 of datafrog): the G129 impact closure run on 94 donor changes found two soundness defects -- a rename reported by its new path only, and invariants introduced by a change never named -- both fixed; the revalidation ledger test accepts a pre-campaign donor's provenance pin and a mission that carries a revalidation",
+    "changed_paths": [
+      "core/src/composition/closure.rs",
+      "runtime/src/agent.rs",
+      "runtime/src/lib.rs"
+    ],
+    "total_changes": [
+      "+composed:function_behavior",
+      "+composed:function_purpose:DECLARED",
+      "+composed:function_purpose:UNKNOWN",
+      "+composed:relation",
+      "+composed:relation:INVOKES",
+      "+composed:relation:SUPPLIES_DATA",
+      "+entities",
+      "+evidence",
+      "+facts",
+      "+graph_edges",
+      "+graph_nodes",
+      "+normalized_facts",
+      "+records:CALL|atlas.resolution.rust-paths",
+      "+records:CALL|atlas.rust.source-semantic.v1",
+      "+records:CONTROL_FLOW|atlas.rust.source-semantic.v1",
+      "+records:DATA_FLOW|atlas.rust.source-semantic.v1",
+      "+records:EFFECT|atlas.resolution.rust-paths",
+      "+records:EFFECT|atlas.rust.source-semantic.v1",
+      "+records:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1",
+      "+records:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1",
+      "+records:OWNERSHIP|atlas.rust.source-semantic.v1",
+      "+records:PERSISTENCE|atlas.resolution.rust-paths",
+      "+records:SYMBOL|atlas.rust.source-semantic.v1",
+      "+typed_records"
+    ],
+    "dependency_changes": [],
+    "adl_changes": [],
+    "coverage_changes": [],
+    "explained_unknowns": [],
+    "accepted_unexpected": [],
+    "entity_changes": [
+      "CHANGED core composition/closure/impact_closure().",
+      "CHANGED runtime agent/changed_paths().",
+      "CHANGED runtime agent/tests/the_impact_closure_holds_every_difference_of_the_full_recompute().",
+      "CHANGED runtime tests/essential_complexity/historical_donor_revalidation_triggers_are_capability_based().",
+      "CREATED runtime agent/tests/a_rename_changes_both_its_paths()."
+    ]
+  },
+  "intended_changes": [
+    "path core/src/composition/closure.rs",
+    "path runtime/src/agent.rs",
+    "path runtime/src/lib.rs",
+    "total +composed:function_behavior",
+    "total +composed:function_purpose:DECLARED",
+    "total +composed:function_purpose:UNKNOWN",
+    "total +composed:relation",
+    "total +composed:relation:INVOKES",
+    "total +composed:relation:SUPPLIES_DATA",
+    "total +entities",
+    "total +evidence",
+    "total +facts",
+    "total +graph_edges",
+    "total +graph_nodes",
+    "total +normalized_facts",
+    "total +records:CALL|atlas.resolution.rust-paths",
+    "total +records:CALL|atlas.rust.source-semantic.v1",
+    "total +records:CONTROL_FLOW|atlas.rust.source-semantic.v1",
+    "total +records:DATA_FLOW|atlas.rust.source-semantic.v1",
+    "total +records:EFFECT|atlas.resolution.rust-paths",
+    "total +records:EFFECT|atlas.rust.source-semantic.v1",
+    "total +records:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1",
+    "total +records:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1",
+    "total +records:OWNERSHIP|atlas.rust.source-semantic.v1",
+    "total +records:PERSISTENCE|atlas.resolution.rust-paths",
+    "total +records:SYMBOL|atlas.rust.source-semantic.v1",
+    "total +typed_records",
+    "entity CHANGED core composition/closure/impact_closure().",
+    "entity CHANGED runtime agent/changed_paths().",
+    "entity CHANGED runtime agent/tests/the_impact_closure_holds_every_difference_of_the_full_recompute().",
+    "entity CHANGED runtime tests/essential_complexity/historical_donor_revalidation_triggers_are_capability_based().",
+    "entity CREATED runtime agent/tests/a_rename_changes_both_its_paths()."
+  ],
+  "intended_but_unobserved": [],
+  "unexpected_changes": [],
+  "regressions": [],
+  "verdict": "PROVEN"
+}

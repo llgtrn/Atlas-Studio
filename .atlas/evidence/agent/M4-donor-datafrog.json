@@ -1,0 +1,119 @@
+{
+  "schema": "atlas.agent.mission.v1",
+  "id": "M4",
+  "generation": "G136",
+  "mission": "donor Gundam proof: understand an extinct donor (datafrog) through Atlas's agent interface, answer its revalidation question (R2), and turn Atlas's newest capability -- the G129 impact closure and its oracle -- on the donor's own history",
+  "pilot": "coding agent (the AI); Atlas as the worn semantic body, worn on foreign source",
+  "base_commit": "994b949b299d805e1ad50ede317f38c96d1a28d8",
+  "atlas_first_sequence": [
+    {
+      "op": "model",
+      "target": "root .atlas/temporary/donors/datafrog",
+      "answered": "17 components, 191 functions (71 closure regions), 113 relations; 5 components with DECLARED purpose from their own //! documentation; gap sizes named (124 undocumented functions, 6 unresolved-callee candidates)"
+    },
+    {
+      "op": "explain",
+      "target": "fn:Iteration::changed",
+      "answered": "the fixed-point driver: DECLARED purpose, OBSERVED read and write of Iteration.round; its call to each variable's changed is unresolved"
+    },
+    {
+      "op": "explain",
+      "target": "fn:Relation::merge",
+      "answered": "resolved call to merge_unique (DECLARED 'merging sorted lists'): the stable-batch merge path"
+    },
+    {
+      "op": "trace",
+      "target": "fn:Iteration::changed -> fn:merge_unique",
+      "answered": "UNKNOWN, not 'no path': the origin has 3 unresolved call sites, so absence is not established"
+    },
+    {
+      "op": "explain",
+      "target": "fn:impact_closure (Atlas itself)",
+      "answered": "no resolved callee and a worklist (pop/push) among its callee names: one-hop rules plus a reachability walk, no join"
+    },
+    {
+      "op": "closure",
+      "target": "94 donor commits (git parent..commit)",
+      "answered": "87 SOUND, 7 UNSOUND with every miss named: the oracle located two defect classes in Atlas without a source read"
+    }
+  ],
+  "atlas_knew": [
+    "the donor's shape and size, and which modules state their purpose",
+    "the driver's state (Iteration.round) and the resolved merge path",
+    "that its trace answer was UNKNOWN rather than an absence",
+    "that Atlas's own impact closure performs no multi-way join (the revalidation answer)",
+    "exactly which donor changes the closure missed, and what it missed (paths, functions, invariants)"
+  ],
+  "unknown": [
+    "the stage rotation itself: to_add -> recent -> stable are written through RefCell::borrow_mut, which is not a STATE access (DEBT-STATE known unsoundness, confirmed on the mechanism that matters)",
+    "the dispatch from Iteration::changed to each Variable::changed through Box<dyn VariableTrait> (DEBT-CALL, trait objects)",
+    "why semi-naive evaluation is cheaper than naive (GAP-RESOURCE: no cost model)",
+    "the purpose of variable.rs, iteration.rs and relation.rs (no module documentation)"
+  ],
+  "manual_source_reads": [
+    {
+      "what": "core/src/composition/closure.rs impact_closure body (about 230 lines)",
+      "reason": "IMPLEMENTATION_DETAIL: the oracle named the misses; the rules that produced them are bodies"
+    },
+    {
+      "what": "runtime/src/agent.rs changed_paths and the closure test fixture (about 120 lines)",
+      "reason": "IMPLEMENTATION_DETAIL: the edit targets"
+    },
+    {
+      "what": "core/src/composition/mod.rs state-invariant construction (about 30 lines)",
+      "reason": "FALSIFICATION: confirm an INV-STATE exists only for written state, so an introduced field yields an introduced invariant"
+    },
+    {
+      "what": "git diff --name-status -M of the seven UNSOUND donor commits",
+      "reason": "UNKNOWN: the model carries paths, not the rename relation between them"
+    }
+  ],
+  "manual_reads_summary": {
+    "reads": 4,
+    "implementation_detail": 2,
+    "unknown": 1,
+    "falsification": 1,
+    "donor_source_reads": 0,
+    "lines_read": "about 380 Atlas lines in 3 files, 0 donor source lines, 7 git name-status listings"
+  },
+  "gaps": [
+    {
+      "id": "GAP-IMPACT-CLOSURE-RENAMES",
+      "status": "CLOSED",
+      "fix": "changed_paths passes --no-renames: a rename is both its paths",
+      "debt": "DEBT-IMPACT_CLOSURE"
+    },
+    {
+      "id": "GAP-IMPACT-CLOSURE-INTRODUCED-INVARIANTS",
+      "status": "CLOSED",
+      "fix": "invariants that exist only after the change are decided by the same seed-derived rules",
+      "debt": "DEBT-IMPACT_CLOSURE"
+    },
+    {
+      "id": "GAP-INTERIOR-MUTABILITY",
+      "status": "CONFIRMED ON DONOR (already recorded)",
+      "debt": "DEBT-STATE",
+      "note": "the semi-naive stage rotation is invisible to STATE"
+    },
+    {
+      "id": "GAP-TRAIT-OBJECT-DISPATCH",
+      "status": "CONFIRMED ON DONOR (already recorded)",
+      "debt": "DEBT-CALL",
+      "note": "Iteration::changed -> Variable::changed through dyn VariableTrait"
+    }
+  ],
+  "measured": {
+    "donor_changes_checked": 94,
+    "sound_before_fix": 87,
+    "sound_after_fix": 94,
+    "function_precision": "2,906 changed / 5,101 affected; the closure covers 5,101 of 11,483 function-revisions",
+    "manual_reads": "M1 7, M2 8, M3 4, M4 4 (0 donor source lines)"
+  },
+  "challenge": "which functions does datafrog commit 12f0d57 ('Add Variable statistics') affect, and which invariants? G129 answered without the two new state invariants and its oracle said UNSOUND; G136 names them",
+  "falsification": [
+    "MF1 rename detection restored: killed",
+    "MF2 introduced invariants dropped: killed",
+    "MF3 introduced invariants included wholesale: killed"
+  ],
+  "revalidation": ".atlas/evidence/revalidation/R2-datafrog.json"
+}

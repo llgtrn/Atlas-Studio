@@ -1,7 +1,7 @@
 schema = "atlas.recursive-donor-revalidation.v1"
 canonical = true
 established_in = "G121"
-evaluated_at = "G135"
+evaluated_at = "G136"
 contract = ".atlas/contracts/ESSENTIAL-COMPLEXITY.md"
 decision = ".atlas/decisions/0043-recursive-donor-revalidation.md"
 donor_audit = ".atlas/roadmap/DONOR-CAPABILITY-AUDIT.toml"
@@ -204,15 +204,15 @@ first_50_ordinal = 2
 language = "rust"
 language_verified = false
 historical_decision_generation = "G35"
-last_materialized_generation = "G35"
-last_deep_census_generation = "G35"
+last_materialized_generation = "G136"
+last_deep_census_generation = "G136"
 capabilities_examined = ["DEBT-DEPENDENCY", "DEBT-IMPACT_CLOSURE"]
 capabilities_available_then = []
-semantic_delta = ["IMPACT_CLOSURE_WITH_ORACLE"]
-status = "REVALIDATION_REQUIRED"
-reason = "its decision depended on DEBT-IMPACT_CLOSURE, materially advanced since its last census, and the donor is Rust source the new capability can observe"
-priority = 100
-rank = 3
+semantic_delta = []
+status = "REVALIDATED"
+reason = "revalidated with every capability gained since its decision"
+priority = 0
+rank = 0
 
 [[donor]]
 donor = "blake3"
@@ -243,7 +243,7 @@ capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOC
 semantic_delta = ["SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY", "CALL_MACRO_ARGUMENTS", "CLOSURE_REGIONS"]
 status = "REVALIDATION_REQUIRED"
 reason = "its decision depended on DEBT-CALL, DEBT-TYPE, materially advanced since its last census, and the donor is Rust source the new capability can observe"
-priority = 400
+priority = 404
 rank = 1
 
 [[donor]]
@@ -259,8 +259,8 @@ capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOC
 semantic_delta = ["IMPACT_CLOSURE_WITH_ORACLE"]
 status = "REVALIDATION_REQUIRED"
 reason = "its decision depended on DEBT-IMPACT_CLOSURE, materially advanced since its last census, and the donor is Rust source the new capability can observe"
-priority = 100
-rank = 7
+priority = 101
+rank = 6
 
 [[donor]]
 donor = "tree-sitter"
@@ -403,8 +403,8 @@ capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOC
 semantic_delta = ["CLOSURE_REGIONS"]
 status = "REVALIDATION_REQUIRED"
 reason = "its decision depended on DEBT-CALL, materially advanced since its last census, and the donor is Rust source the new capability can observe"
-priority = 100
-rank = 6
+priority = 101
+rank = 5
 
 [[donor]]
 donor = "miri"
@@ -419,7 +419,7 @@ capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOC
 semantic_delta = ["RESOLVED_CONCURRENCY", "ROLE_AWARE_MACRO_ARGUMENTS", "CLOSURE_REGIONS"]
 status = "REVALIDATION_REQUIRED"
 reason = "its decision depended on DEBT-CONCURRENCY, DEBT-OWNERSHIP, materially advanced since its last census, and the donor is Rust source the new capability can observe"
-priority = 300
+priority = 303
 rank = 2
 
 [[donor]]
@@ -451,8 +451,8 @@ capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOC
 semantic_delta = ["IMPACT_CLOSURE_WITH_ORACLE"]
 status = "REVALIDATION_REQUIRED"
 reason = "its decision depended on DEBT-IMPACT_CLOSURE, materially advanced since its last census, and the donor is Rust source the new capability can observe"
-priority = 100
-rank = 4
+priority = 101
+rank = 3
 
 [[donor]]
 donor = "buck2"
@@ -483,8 +483,8 @@ capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOC
 semantic_delta = ["CANONICAL_TYPE_IDENTITY"]
 status = "REVALIDATION_REQUIRED"
 reason = "its decision depended on DEBT-TYPE, materially advanced since its last census, and the donor is Rust source the new capability can observe"
-priority = 100
-rank = 5
+priority = 101
+rank = 4
 
 [[donor]]
 donor = "capnproto"
@@ -835,8 +835,8 @@ capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOC
 semantic_delta = ["CENSUS_QUANTIFIED_INVARIANTS"]
 status = "REVALIDATION_REQUIRED"
 reason = "its decision depended on DEBT-CONSTRAINT_REASONING, materially advanced since its last census, and the donor is Rust source the new capability can observe"
-priority = 97
-rank = 8
+priority = 98
+rank = 7
 
 [[donor]]
 donor = "podman"
@@ -1207,3 +1207,21 @@ evidence = ".atlas/evidence/revalidation/R1-rust.json"
 outcome = "REVALIDATED"
 finding = "verdict holds for a corrected reason: the resolution core is bounded, but the implementation is inseparable from rustc's type inference; the G73-era engine was blind to a quarter of the method module's call sites"
 follow_up = "NA-CALL-TYPE-RESIDUAL"
+
+[[revalidation]]
+id = "R2"
+donor = "datafrog"
+generation = "G136"
+debt = "DEBT-IMPACT_CLOSURE"
+capabilities = ["IMPACT_CLOSURE_WITH_ORACLE"]
+question = "does the G129 impact closure give datafrog's REFERENCE_ONLY part (multi-way leapjoin, antijoin, gallop) an Atlas caller, and can Atlas now observe the donor's own mechanism?"
+remote = "https://github.com/rust-lang/datafrog.git"
+pinned_commit = "edd7cfc0f5ad3b93ce5bbe6a17848db9376b13c0"
+materialization_mode = "FULL_CLONE"
+materialization_scope = "whole repository with history (the closure runs over the donor commits)"
+source_path = ".atlas/temporary/donors/datafrog"
+status = "COMPLETE"
+evidence = ".atlas/evidence/revalidation/R2-datafrog.json"
+outcome = "REVALIDATED"
+finding = "verdict holds: the impact closure is one-hop rules plus a reachability walk, no multi-way join, so the REFERENCE_ONLY part still has no caller; run over the donor history the closure was unsound on seven of its changes, exposing two defects fixed in the same generation; the stage rotation stays invisible (interior mutability) and its dispatch unresolved (trait objects)"
+follow_up = "NA-CLOSURE-CONSUMER"

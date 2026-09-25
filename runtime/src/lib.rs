@@ -2847,6 +2847,14 @@ mod tests {
                             .ends_with(&format!("-{donor}.json"))
                     })
                     .map(|e| std::fs::read_to_string(e.path()).unwrap())
+                    // A donor decided before the First-50 campaign (souffle, datafrog, blake3)
+                    // has its historical pin in its provenance record instead.
+                    .or_else(|| {
+                        std::fs::read_to_string(
+                            root().join(format!(".atlas/provenance/donors/{donor}.json")),
+                        )
+                        .ok()
+                    })
                     .unwrap_or_else(|| panic!("{id}: no historical campaign evidence for {donor}"));
                 let historical: serde_json::Value = serde_json::from_str(&historical).unwrap();
                 assert_eq!(
@@ -2890,7 +2898,11 @@ mod tests {
                     .into_iter()
                     .find(|(g, _)| *g == generation_id)
                     .unwrap_or_else(|| panic!("{id}: {generation_id} not in the ledger"));
-                assert_eq!(text(&block, "kind"), "REVALIDATION", "{id}");
+                // A donor Gundam proof is an agent mission that carries a revalidation (G136).
+                assert!(
+                    ["REVALIDATION", "AGENT_MISSION"].contains(&text(&block, "kind").as_str()),
+                    "{id}"
+                );
                 let follow_up = text(r, "follow_up");
                 assert!(
                     queue.contains(&follow_up) || debts.contains_key(&follow_up),

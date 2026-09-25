@@ -13,7 +13,7 @@
 #       -> generation evidence -> G_n+1
 
 schema = "atlas.self-build.generation-ledger.v1"
-current_generation = "G135"
+current_generation = "G136"
 
 [[generation]]
 id = "G35"
@@ -2726,3 +2726,43 @@ after = 23314
 key = "composed:function_behavior"
 before = 4893
 after = 4906
+
+[[generation]]
+id = "G136"
+kind = "AGENT_MISSION"
+base_commit = "994b949b299d805e1ad50ede317f38c96d1a28d8"
+priority = "P0"
+serves = "DEBT-SEMANTIC-COMPOSITION (ADR 0044): the fourth agent mission (cadence: within five generations of G132) and the first donor Gundam proof -- Atlas worn on foreign source -- as revalidation R2 of datafrog (DEBT-IMPACT_CLOSURE advanced at G129)"
+objective = "mission M4: materialize datafrog at its pinned commit, understand it through the agent interface, answer R2, and run the G129 impact closure with its oracle over the donor's own history"
+writer = "coordinator (sole writer)"
+mission = ".atlas/evidence/agent/M4-donor-datafrog.json"
+evidence = ".atlas/evidence/revalidation/R2-datafrog.json"
+self_recensus = ".atlas/evidence/census/G136/recensus.json"
+
+[generation.verification]
+pre_census = "clean-HEAD census of a27b8d8417 = G135 post digest (the evidence commit 994b949b29 adds only out-of-scope evidence)"
+atlas_first = "agent model on the donor root (17 components, 191 functions, 113 relations); explain(Iteration::changed) and explain(Relation::merge) located the fixed-point driver and the stable-batch merge; trace(Iteration::changed -> merge_unique) answered UNKNOWN, not an absence; explain(impact_closure) on Atlas showed one-hop rules and a reachability walk with no join (the R2 answer); agent closure over 94 donor commits named every miss"
+donor = "datafrog at edd7cfc0 (the historical pin): full clone (20 tracked files, 98,198 source bytes, 148 commits); historical G35 engine 2,480 records and 0 resolved calls, current engine 3,405 records and 63 resolved calls; checkout and historical-engine worktree deleted after the mission"
+change = "runtime::agent::changed_paths passes --no-renames (a rename is both its paths); core::composition::closure decides invariants that exist only after the change by the same seed-derived rules; ADR 0049 amended"
+manual_reads = "4 (2 implementation detail, 1 falsification, 1 unknown: rename relations are not in the model); 0 donor source lines read"
+gaps = "closed: GAP-IMPACT-CLOSURE-RENAMES, GAP-IMPACT-CLOSURE-INTRODUCED-INVARIANTS; confirmed on the donor's mechanism: interior mutability (DEBT-STATE) and trait-object dispatch (DEBT-CALL)"
+closure_on_donor = "94 changes: 87 SOUND and 7 UNSOUND before (2 renames, 5 introduced INV-STATE invariants), 94 SOUND after; 2,906 changed of 5,101 affected function-revisions"
+revalidation = "R2 datafrog REVALIDATED: semi-naive fixed point stays ABSORBED (core::closure); leapjoin, antijoin and gallop stay REFERENCE_ONLY (no Atlas caller: the impact closure performs no multi-way join)"
+falsification = "3 mutants killed: rename detection restored; introduced invariants dropped; introduced invariants included wholesale"
+debts = "DEBT-IMPACT_CLOSURE last advance G136 (two soundness defects fixed; stays OPEN: no consumer, NA-CLOSURE-CONSUMER queued)"
+proof = "PROVEN (post d7ccc38b...): no new UNKNOWN obligation"
+
+[[generation.metric]]
+key = "typed_records"
+before = 141075
+after = 141223
+
+[[generation.metric]]
+key = "facts"
+before = 23314
+after = 23327
+
+[[generation.metric]]
+key = "composed:function_behavior"
+before = 4906
+after = 4912

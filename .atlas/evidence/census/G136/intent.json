@@ -1,0 +1,42 @@
+{
+  "objective": "agent mission M4 (donor Gundam proof, revalidation R2 of datafrog): the G129 impact closure run on 94 donor changes found two soundness defects -- a rename reported by its new path only, and invariants introduced by a change never named -- both fixed; the revalidation ledger test accepts a pre-campaign donor's provenance pin and a mission that carries a revalidation",
+  "changed_paths": [
+    "core/src/composition/closure.rs",
+    "runtime/src/agent.rs",
+    "runtime/src/lib.rs"
+  ],
+  "total_changes": [
+    "+composed:function_behavior",
+    "+composed:function_purpose:DECLARED",
+    "+composed:function_purpose:UNKNOWN",
+    "+composed:relation",
+    "+composed:relation:INVOKES",
+    "+composed:relation:SUPPLIES_DATA",
+    "+entities",
+    "+evidence",
+    "+facts",
+    "+graph_edges",
+    "+graph_nodes",
+    "+normalized_facts",
+    "+records:CALL|atlas.resolution.rust-paths",
+    "+records:CALL|atlas.rust.source-semantic.v1",
+    "+records:CONTROL_FLOW|atlas.rust.source-semantic.v1",
+    "+records:DATA_FLOW|atlas.rust.source-semantic.v1",
+    "+records:EFFECT|atlas.resolution.rust-paths",
+    "+records:EFFECT|atlas.rust.source-semantic.v1",
+    "+records:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1",
+    "+records:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1",
+    "+records:OWNERSHIP|atlas.rust.source-semantic.v1",
+    "+records:PERSISTENCE|atlas.resolution.rust-paths",
+    "+records:SYMBOL|atlas.rust.source-semantic.v1",
+    "+typed_records"
+  ],
+  "entity_changes": [
+    "CHANGED core composition/closure/impact_closure().",
+    "CHANGED runtime agent/changed_paths().",
+    "CHANGED runtime agent/tests/the_impact_closure_holds_every_difference_of_the_full_recompute().",
+    "CHANGED runtime tests/essential_complexity/historical_donor_revalidation_triggers_are_capability_based().",
+    "CREATED runtime agent/tests/a_rename_changes_both_its_paths()."
+  ],
+  "adl_changes": []
+}

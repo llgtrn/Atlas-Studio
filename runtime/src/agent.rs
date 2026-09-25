@@ -103,11 +103,12 @@ pub fn impact_closure(
     (result, oracle)
 }
 
-/// The paths a git range changes (`git diff --name-only <from> <to>` in `root`): the input of an
-/// impact closure (G129).
+/// The paths a git range changes (`git diff --name-only --no-renames <from> <to>` in `root`): the
+/// input of an impact closure (G129). A rename is both its paths (G136): rename detection would
+/// report only the new one, and the old path's functions would leave the model unseen.
 pub fn changed_paths(root: impl AsRef<Path>, from: &str, to: &str) -> io::Result<Vec<String>> {
     let output = std::process::Command::new("git")
-        .args(["diff", "--name-only", from, to])
+        .args(["diff", "--name-only", "--no-renames", from, to])
         .current_dir(root)
         .output()?;
     if !output.status.success() {
@@ -871,7 +872,10 @@ fn run(s: &core::store::Store) { s.save(); }
                 "std::fs::write(\"out\", self.count.to_string()).unwrap();",
                 "std::fs::write(\"out\", crate::helper(self.count).to_string()).unwrap();",
             )
-            + "pub fn extra() -> u64 { 1 }\n";
+            + "pub fn extra() -> u64 { 1 }\n"
+            // G136 (mission M4, found on the datafrog donor): a field the change introduces and
+            // writes has an invariant only after the change.
+            + "pub struct Extra { n: u64 }\nimpl Extra { pub fn set(&mut self) { self.n = 1; } }\n";
         assert_ne!(changed_store, STORE);
         let model = |name: &str, store: &str| {
             let dir = fixture_with(
@@ -911,6 +915,18 @@ fn run(s: &core::store::Store) { s.save(); }
             );
             assert!(result.rules.contains_key(rule), "{rule}");
         }
+        assert!(
+            !before
+                .invariants
+                .iter()
+                .any(|i| i.id == "INV-STATE:Extra.n")
+        );
+        assert!(
+            result
+                .affected_invariants
+                .contains(&"INV-STATE:Extra.n".to_owned()),
+            "an invariant the change introduces is inside the closure"
+        );
         // Precision: `run` calls `save`, which keeps its identity, so `run` is only a frontier.
         assert!(!result.affected_functions.contains(&id(&before, "run")));
         assert!(result.transitive_dependents >= 1);
@@ -921,7 +937,11 @@ fn run(s: &core::store::Store) { s.save(); }
         let global = closure::impact_closure(&before, &after, &["core/Cargo.toml".to_owned()]);
         assert!(global.global);
         assert_eq!(global.affected_functions.len(), before.functions.len());
-        assert_eq!(global.affected_invariants.len(), before.invariants.len());
+        // Every invariant before the change, and the one it introduces.
+        assert_eq!(
+            global.affected_invariants.len(),
+            before.invariants.len() + 1
+        );
         // A fixture's manifest nested inside a subsystem is not the workspace's.
         let nested = closure::impact_closure(
             &before,
@@ -929,12 +949,48 @@ fn run(s: &core::store::Store) { s.save(); }
             &["core/tests/fixtures/x/Cargo.toml".to_owned()],
         );
         assert!(!nested.global);
+        // An introduced invariant enters by the rule, never wholesale.
+        assert!(
+            !nested
+                .affected_invariants
+                .contains(&"INV-STATE:Extra.n".to_owned())
+        );
         // An empty change affects nothing, and the oracle names what it then misses.
         let empty = closure::impact_closure(&before, &after, &[]);
         assert!(empty.affected_functions.is_empty());
         let missed = closure::oracle(&empty, &before, &after);
         assert_eq!(missed.verdict, "UNSOUND");
         assert_eq!(missed.functions.missed.len(), missed.functions.changed);
+    }
+
+    /// G136 (mission M4, found on the datafrog donor): a renamed file is two changed paths -- the
+    /// old path's functions leave the model as surely as the new path's enter it.
+    #[test]
+    fn a_rename_changes_both_its_paths() {
+        let dir = std::env::temp_dir().join(format!("atlas-rename-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(dir.join("src/bin")).unwrap();
+        std::fs::write(dir.join("src/bin/tool.rs"), "fn main() {}\n").unwrap();
+        let git = |args: &[&str]| {
+            assert!(
+                Command::new("git")
+                    .args(["-c", "user.name=a", "-c", "user.email=a@b"])
+                    .args(args)
+                    .current_dir(&dir)
+                    .status()
+                    .unwrap()
+                    .success()
+            );
+        };
+        git(&["init", "--quiet"]);
+        git(&["add", "-A"]);
+        git(&["commit", "--quiet", "-m", "before"]);
+        std::fs::create_dir_all(dir.join("examples")).unwrap();
+        git(&["mv", "src/bin/tool.rs", "examples/tool.rs"]);
+        git(&["commit", "--quiet", "-m", "after"]);
+        let paths = changed_paths(&dir, "HEAD~1", "HEAD").unwrap();
+        std::fs::remove_dir_all(&dir).unwrap();
+        assert_eq!(paths, vec!["examples/tool.rs", "src/bin/tool.rs"]);
     }
 
     /// G130 (NA-CONSTRAINT-NONGROUND): invariants quantified over census truth are decided over
