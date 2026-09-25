@@ -124,3 +124,7 @@ Pass 11 (`verify`, in `docs/PASSES.md`) runs a fixed default check set (unique e
 - `MANIFEST.md`'s "does not include src/tests" claim, contradicted by this clone's actual contents, was flagged above but not root-caused (e.g. whether it's leftover boilerplate from a documentation-only release process) — noted as a provenance oddity, not resolved.
 - The DSL subsystem (`src/agentir/dsl/`, 14 dedicated DSL docs) was inventoried but not deep-censused — it may contain additional interoperability-envelope lessons (declarative format definition) not captured here.
 - No independent verification that AgentIR's own test suite actually passes at this pin — per the hard no-execution rule, nothing was run; the "174 tests passed" figure is a README claim carried through as provenance context only.
+
+## G95 — terminal REFERENCE_ONLY; source extinct
+
+The recorded falsification finds no loss-disclosure consumer. The SemanticFact projection is lossy but downstream: typed records are never derived from it, and a test proves removing it erases nothing. The one real narrowing export, the `.atlas` census container (facts and obligations, typed records deferred per ADR 0027), has no consumer beyond Atlas's own root-identity checks. The mechanism is held by `agentir-lossy-lowering-disclosure.md` for the first external export. The checkout was physically deleted. Evidence: `../../evidence/campaign/31-agentir.json`.

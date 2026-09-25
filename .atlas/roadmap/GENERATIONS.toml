@@ -1435,6 +1435,7 @@ objective = "execute the recorded hyperedge falsification on the real system gra
 writer = "coordinator (sole writer)"
 evidence = ".atlas/evidence/campaign/30-composer.json"
 self_recensus = ".atlas/evidence/census/G94/recensus.json"
+result_commits = ["415e1c268bee43b4fc0a2ef444e08972890bf87e", "618dab027312db0580e210c50a967ca4b690c491"]
 
 [generation.verification]
 pre_census = "clean-HEAD census of d867333a93 = G93 post digest 1d7b86ea... (51b1499ab6 adds only out-of-scope evidence)"
@@ -1445,3 +1446,23 @@ proof = "PROVEN on the first run (post 316faa22...)"
 
 [generation.next]
 objective = "G95 (P3): first-50 #31 agentir (trace-IR staged construction process, P6)"
+
+[[generation]]
+id = "G95"
+base_commit = "618dab027312db0580e210c50a967ca4b690c491"
+priority = "P3"
+serves = "P3 FIRST_50_DONOR_CAMPAIGN: donor #31 agentir to a terminal state (P6 pipeline-staging lane)"
+objective = "run the recorded loss-disclosure falsification against the fact projection and the .atlas container, decide the terminal state, physically extinct the checkout"
+writer = "coordinator (sole writer)"
+evidence = ".atlas/evidence/campaign/31-agentir.json"
+self_recensus = ".atlas/evidence/census/G95/recensus.json"
+
+[generation.verification]
+pre_census = "clean-HEAD census of 415e1c268b = G94 post digest 316faa22... (618dab0273 adds only out-of-scope evidence)"
+falsification = "the SemanticFact projection is lossy but downstream (a test proves typed records are never derived from it); the .atlas census container is the one real narrowing export (typed records deferred, ADR 0027) and has no consumer beyond Atlas's own root-identity checks -- no loss-disclosure consumer exists"
+no_code_change = "no AgentIR mechanism absorbed; typed loss disclosure is held by the genome record for the first external export; the only in-scope census change is the pinned deleted-donor list"
+extinction = "git rm -r .atlas/temporary/donors/agentir (2.1 MB); no build, runtime or test reference"
+proof = "PROVEN on the first run (post d4a28808...)"
+
+[generation.next]
+objective = "G96 (P3): first-50 #32 llvm-project (IR -> machine code boundary, P6; the mlir slice is already extinct)"

@@ -168,3 +168,7 @@ treating a donor's ADAPT verdict as still-open work is itself a necessary step, 
 this genome record is added as new evidence, covering the lossy-lowering-disclosure mechanism
 specifically. The multi-level-IR, typed-pass-system, two-tier-verification, and detect-then-parse
 mechanisms the existing census also identified remain queued, not genome-captured, in this pass.
+
+## G95 update
+
+The campaign cycle (first-50 #31) ran this record's falsification. No consumer relies on the lossy fact projection. The `.atlas` census container, the one real narrowing export, has no external consumer. The donor is REFERENCE_ONLY and its checkout is physically deleted, so this record is now the reference for the first external export. Its commit is pinned at `68d991160ad579d2b4514da01684249a2a0bf629`.

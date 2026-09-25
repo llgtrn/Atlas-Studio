@@ -15,19 +15,19 @@ decision = ".atlas/decisions/0024-self-recensus-proof-of-nextgen.md"
 [dashboard]
 first_50_total = 50
 historic_terminal = 3
-campaign_terminal = 26
+campaign_terminal = 27
 historically_proven = 4
 currently_censusing = 0
-deep_censused = 3
+deep_censused = 2
 absorbed = 9
-reference_only = 18
+reference_only = 19
 external_boundary = 1
 rejected = 0
 deferred = 1
-extinct = 29
-remaining = 21
-next_donor = "agentir"
-next_step = "G95 (P3): agentir (#31) -- trace-IR staged construction process (P6)"
+extinct = 30
+remaining = 20
+next_donor = "llvm-project"
+next_step = "G96 (P3): llvm-project (#32) -- IR -> machine code boundary (P6; the mlir slice is already extinct)"
 
 [[donor]]
 ordinal = 1
@@ -538,13 +538,15 @@ canonical_url = "https://github.com/WhitzardAgent/agentir.git"
 serves = "P6"
 target_capability = "construction pipeline staging"
 mechanism_hypothesis = "trace-IR staged construction process"
-materialization_mode = "already materialized"
+materialization_mode = "n/a (source deleted)"
 dependency_expectation = "none"
-current_status = "CURRENTLY_PENDING"
-lifecycle = "DEEP_CENSUSED"
-terminal_state = ""
+current_status = "CAMPAIGN_PROVEN"
+lifecycle = "TERMINAL"
+terminal_state = "REFERENCE_ONLY"
 terminal_goal = "DECIDED"
-note = "census DEEP_CENSUSED, decision STUDY_FOR_PIPELINE_STAGING_DISCIPLINE"
+completed_in = "G95"
+evidence = ".atlas/evidence/campaign/31-agentir.json"
+note = "no loss-disclosure consumer: the fact projection is downstream of typed records, and the one narrowing export (the .atlas census container, typed records deferred) has no consumer; typed loss disclosure held by the genome record for the first external export; source physically deleted"
 
 [[donor]]
 ordinal = 32

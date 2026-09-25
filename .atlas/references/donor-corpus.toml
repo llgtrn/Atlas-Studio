@@ -1304,18 +1304,19 @@ default_branch = "main"
 retrieved_at = "2026-09-22T15:53:06Z"
 license = "Apache-2.0"
 technology_domains = ["construction_pipeline_process", "trace_ir_process_pattern"]
-ingestion_status = "CLONED"
-storage_state = "MATERIALIZED_CHECKOUT"
+ingestion_status = "EXTINCT"
+storage_state = "SOURCE_DELETED"
 materialization_mode = "SHALLOW_CHECKOUT"
 census_status = "DEEP_CENSUSED"
-decision_status = "STUDY_FOR_PIPELINE_STAGING_DISCIPLINE"
-blocking_question = "no Atlas stage converts a richer representation into a narrower external target format, so LossReport/LossItem-style typed loss disclosure has no consumer; the most plausible trigger is an .atlas/ASIR export to a less expressive interchange format. The census is documentation-driven: the shipped Python pass manager was not located or read."
-evidence_needed = "a real lowering/export path in Atlas, or evidence that an existing internal projection -- the typed-observation to SemanticFact compatibility projection that core/src/schema/mod.rs and runtime/src/census/mod.rs themselves describe as lossy -- needs typed loss disclosure"
-cheapest_falsification = "inspect the existing lossy SemanticFact compatibility projection: if it silently drops typed fields a consumer relies on, a loss-disclosure consumer exists now; if it is a non-canonical view no consumer treats as complete, the trigger remains an external export and this stays deferred"
-next_action = "prerequisite: the first Atlas export/lowering path (ASIR or .atlas export); owners core/pipeline, docs/process (provenance target_owners), reusing core::semantic::diagnostic codes; coordinator decides disposition"
+decision_status = "REFERENCE_ONLY"
+blocking_question = "resolved G95: the recorded falsification finds no loss-disclosure consumer. The SemanticFact compatibility projection is lossy but downstream (removing_the_compatibility_fact_projection_would_not_erase_typed_semantic_truth: typed records are never derived from facts, and no consumer treats facts as complete). The .atlas census container is the one real narrowing export -- facts and obligations only, typed records deferred (ADR 0027) -- but it has no consumer (a gitignored local cache, G87/G88) and the certificate reads only its root identity. The trigger stays an external export; the mechanism (typed Exact/Lossy/Partial/Unsupported status computed from a per-field loss list, reusing DiagnosticCode) is held by the genome record, which needs no donor source"
+evidence_needed = "none outstanding (.atlas/evidence/campaign/31-agentir.json)"
+cheapest_falsification = "performed G95: the compatibility projection's consumers and the .atlas census container's consumers inspected"
+next_action = "none: TERMINAL REFERENCE_ONLY; source physically deleted; the first external export of a narrower format applies agentir-lossy-lowering-disclosure.md"
+implementation_status = "REFERENCE_ONLY"
 native_replacement = "architecture study only -- not adopted as a runtime dependency; see census disposition table"
 runtime_dependency_status = "STUDY_ONLY_NOT_A_DEPENDENCY"
-evidence = [".atlas/provenance/donors/agentir.json", ".atlas/census/donors/agentir.md", ".atlas/genome/technology/agentir-lossy-lowering-disclosure.md"]
+evidence = [".atlas/evidence/campaign/31-agentir.json", ".atlas/provenance/donors/agentir.json", ".atlas/census/donors/agentir.md", ".atlas/genome/technology/agentir-lossy-lowering-disclosure.md"]
 
 [[donor]]
 id = "ladybird"

@@ -1,0 +1,25 @@
+{
+ "schema": "atlas.campaign-donor-decision.v1",
+ "ordinal": 31,
+ "donor": "agentir",
+ "commit_sha": "68d991160ad579d2b4514da01684249a2a0bf629",
+ "generation": "G95",
+ "base_commit": "618dab0273",
+ "hypothesis": "trace-IR staged construction process (P6)",
+ "blocking_question": "no Atlas stage converts a richer representation into a narrower external target, so LossReport/LossItem-style typed loss disclosure has no consumer; cheapest falsification: inspect the lossy SemanticFact compatibility projection -- if a consumer relies on it as complete, a consumer exists now",
+ "measurement": {
+  "fact_projection": "core/src/schema/mod.rs and runtime/src/census/mod.rs describe `facts` as a lossy derived compatibility projection of typed_semantic_records; the test removing_the_compatibility_fact_projection_would_not_erase_typed_semantic_truth proves typed records are never derived from facts; no consumer treats facts as the complete semantic world",
+  "atlas_container": "the .atlas census container is a real narrowing export: it packages 15,155 facts and 1,683 obligations but not the 81k typed records (ADR 0027 'Deferred: typed semantic records beyond facts'), disclosed in the ADR, not in the artifact. Its only consumers are Atlas's own verify and certificate paths, which read its root identity; the container is a gitignored local cache, never committed or transmitted (G87, G88)",
+  "verdict": "no consumer needs typed loss disclosure yet; the trigger remains the first external export of a narrower format"
+ },
+ "decision": {
+  "REFERENCE_ONLY": ["lossy-lowering disclosure (LossReport/LossItem; typed Exact/Lossy/Partial/Unsupported status) -- held by .atlas/genome/technology/agentir-lossy-lowering-disclosure.md", "multi-level trace IR", "typed pass system", "two-tier verification", "detect-then-parse"]
+ },
+ "terminal_state": "REFERENCE_ONLY",
+ "extinction": {
+  "runtime_dependency": "none (STUDY_ONLY_NOT_A_DEPENDENCY)",
+  "build_dependency": "none",
+  "test_dependency": "none (no code or test references the checkout; not a DC1 Cargo donor)",
+  "action": "git rm -r .atlas/temporary/donors/agentir"
+ }
+}

@@ -447,6 +447,7 @@ mod tests {
         assert_eq!(
             deleted,
             [
+                "agentir",
                 "arrow",
                 "ast-grep",
                 "blake3",
