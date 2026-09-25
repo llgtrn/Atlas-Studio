@@ -530,14 +530,19 @@ default_branch = "main"
 retrieved_at = "2026-09-20T12:08:55.4960343Z"
 license = [".atlas/licenses/verus/LICENSE"]
 technology_domains = ["formal_verification", "proof_oriented_constraints"]
-ingestion_status = "CLONED"
-storage_state = "MATERIALIZED_CHECKOUT"
+ingestion_status = "EXTINCT"
+storage_state = "SOURCE_DELETED"
 materialization_mode = "SHALLOW_CHECKOUT"
 census_status = "SKELETON"
-decision_status = "PENDING"
+decision_status = "EXTERNAL_BOUNDARY"
+blocking_question = "resolved G105 (bounded census over a SKELETON record): Verus verifies Rust annotated with spec/proof/exec modes by lowering rustc HIR through VIR -> SST -> AIR to SMT queries discharged by Z3 (source/vir, source/air), and reports results with --output-json. Its P0 role, proof obligations over Rust as constraint evidence, needs the same missing consumer as Kani (G104): no VerificationEvidence/obligation code exists and the contract's class vocabulary lacks a proof class. Verus is a verifier with its own rustc fork and Z3 boundary; Atlas's census obligations (per-dimension extraction closure) are a different notion from Verus's proof obligations"
+evidence_needed = "none outstanding (.atlas/evidence/campaign/41-verus.json)"
+cheapest_falsification = "performed G105: Verus's pipeline and output surface read; Atlas's obligation and evidence code compared (none consumes proof results)"
+next_action = "none: TERMINAL EXTERNAL_BOUNDARY (Verus + Z3 as an external verifier via --output-json) + REFERENCE_ONLY (modes, triggers, pruning, SMT encoding); source physically deleted"
+implementation_status = "EXTERNAL_BOUNDARY"
 native_replacement = "core constraint/proof model"
 runtime_dependency_status = "REFERENCE_ONLY"
-evidence = [".atlas/provenance/donors/verus.json", ".atlas/census/verus.md"]
+evidence = [".atlas/evidence/campaign/41-verus.json", ".atlas/provenance/donors/verus.json", ".atlas/census/verus.md"]
 
 [[donor]]
 id = "xyflow"

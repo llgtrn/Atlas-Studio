@@ -1652,6 +1652,7 @@ objective = "run a bounded census over the SKELETON record, test the P0 'proofs 
 writer = "coordinator (sole writer)"
 evidence = ".atlas/evidence/campaign/40-kani.json"
 self_recensus = ".atlas/evidence/census/G104/recensus.json"
+result_commits = ["a934a5d43bbd741be3e0dd423362f0ab2fdb18c1", "6ec019729bd56c8dd5afc80fe620117065b67af5"]
 
 [generation.verification]
 pre_census = "clean-HEAD census of 36594a9d37 = G103 post digest d9386c3e... (87aa8f1d67 adds only out-of-scope evidence)"
@@ -1662,3 +1663,23 @@ proof = "PROVEN on the first run (post 81e1ee33...)"
 
 [generation.next]
 objective = "G105 (P3): first-50 #41 verus (specification + proof obligations over Rust, P0)"
+
+[[generation]]
+id = "G105"
+base_commit = "6ec019729bd56c8dd5afc80fe620117065b67af5"
+priority = "P3"
+serves = "P3 FIRST_50_DONOR_CAMPAIGN: donor #41 verus to a terminal state (P0 proof obligations)"
+objective = "run a bounded census over the SKELETON record, test the P0 role against Atlas's obligation and evidence code, physically extinct the checkout"
+writer = "coordinator (sole writer)"
+evidence = ".atlas/evidence/campaign/41-verus.json"
+self_recensus = ".atlas/evidence/census/G105/recensus.json"
+
+[generation.verification]
+pre_census = "clean-HEAD census of a934a5d43b = G104 post digest 81e1ee33... (6ec019729b adds only out-of-scope evidence)"
+falsification = "Verus lowers rustc HIR -> VIR -> SST -> AIR -> SMT (Z3) and reports via --output-json; no Atlas code consumes proof results (VerificationEvidence is contract text, no proof class), and Atlas's per-dimension census obligations are a different notion from proof obligations; nothing was executed"
+no_code_change = "no Verus mechanism absorbed (EXTERNAL_BOUNDARY; VIR design REFERENCE_ONLY); the only in-scope census change is the pinned deleted-donor list"
+extinction = "git rm -r .atlas/temporary/donors/verus (1,456 files, 33 MB)"
+proof = "PROVEN on the first run (post ea6bec09...)"
+
+[generation.next]
+objective = "G106 (P3): first-50 #42 podman (rootless isolation for construction actions, P6)"

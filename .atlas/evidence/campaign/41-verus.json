@@ -1,0 +1,27 @@
+{
+ "schema": "atlas.campaign-donor-decision.v1",
+ "ordinal": 41,
+ "donor": "verus",
+ "commit_sha": "5f0930a0b820425aa857269070362ddcf7c29672",
+ "generation": "G105",
+ "base_commit": "6ec019729b",
+ "hypothesis": "specification + proof obligations over Rust (P0)",
+ "blocking_question": "none recorded; census SKELETON, decision PENDING -- this generation performed a bounded census",
+ "measurement": {
+  "pipeline": "rust_verify drives a forked rustc front end; rustc HIR -> VIR (source/vir: modes.rs spec/proof/exec, triggers.rs, prune.rs, recursion.rs, sst_to_air.rs) -> AIR (source/air) -> SMT queries discharged by Z3; vstd is the verified standard library",
+  "results": "per-function verification results, --output-json for machine-readable output",
+  "atlas_consumer": "none: no VerificationEvidence/obligation code (contract text only) and no proof class in the contract's vocabulary, as recorded for kani (G104); Atlas's SemanticObligation records are per-dimension extraction-closure obligations, a different notion from Verus's proof obligations",
+  "environment": "no verus or z3 binary is used here; nothing was executed and no verification result is claimed"
+ },
+ "decision": {
+  "EXTERNAL_BOUNDARY": ["Verus + Z3 as an external verifier reporting via --output-json"],
+  "REFERENCE_ONLY": ["spec/proof/exec modes and ghost erasure", "trigger selection", "context pruning", "termination checking", "VIR -> AIR -> SMT encoding", "vstd"]
+ },
+ "terminal_state": "EXTERNAL_BOUNDARY",
+ "extinction": {
+  "runtime_dependency": "none",
+  "build_dependency": "none",
+  "test_dependency": "none (no code or test references the checkout)",
+  "action": "git rm -r .atlas/temporary/donors/verus (1,456 files)"
+ }
+}

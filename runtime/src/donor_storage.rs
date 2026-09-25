@@ -481,6 +481,7 @@ mod tests {
                 "souffle",
                 "sourcetrail",
                 "tree-sitter",
+                "verus",
                 "wasm-component-model",
                 "wasm-spec",
                 "wasm-tools",

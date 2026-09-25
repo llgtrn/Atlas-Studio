@@ -1,4 +1,0 @@
-/.github/CODEOWNERS @parno @Chris-Hawblitzel @tjhance
-/source/cargo-verus/** @mkovaxx
-/source/cargo-verus-toolchains/** @mkovaxx
-/.zed/** @mkovaxx

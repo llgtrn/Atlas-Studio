@@ -21,3 +21,9 @@ Status: SKELETON. Source is cloned and pinned; implementation inspection still n
 
 core constraint/proof model
 
+
+## G105 — bounded census; terminal EXTERNAL_BOUNDARY (+ REFERENCE_ONLY); source extinct
+
+Verus lowers rustc HIR through VIR, SST and AIR to SMT queries that Z3 discharges. Its main design points are spec/proof/exec modes, triggers, context pruning and termination checks, and it reports results through `--output-json`.
+
+Its P0 role has the same missing consumer as Kani (G104): no VerificationEvidence code exists, and the contract has no proof class. Atlas's census obligations are extraction-closure obligations, a different notion. No verification result is claimed. The VIR design stays REFERENCE_ONLY. The checkout was physically deleted. Evidence: `../evidence/campaign/41-verus.json`.

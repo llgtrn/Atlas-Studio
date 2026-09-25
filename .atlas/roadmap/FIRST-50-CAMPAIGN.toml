@@ -15,19 +15,19 @@ decision = ".atlas/decisions/0024-self-recensus-proof-of-nextgen.md"
 [dashboard]
 first_50_total = 50
 historic_terminal = 3
-campaign_terminal = 36
+campaign_terminal = 37
 historically_proven = 4
 currently_censusing = 0
 deep_censused = 0
 absorbed = 9
 reference_only = 24
-external_boundary = 5
+external_boundary = 6
 rejected = 0
 deferred = 1
-extinct = 39
-remaining = 11
-next_donor = "verus"
-next_step = "G105 (P3): verus (#41) -- specification + proof obligations over Rust (P0)"
+extinct = 40
+remaining = 10
+next_donor = "podman"
+next_step = "G106 (P3): podman (#42) -- rootless isolation for construction actions (P6)"
 
 [[donor]]
 ordinal = 1
@@ -708,13 +708,15 @@ canonical_url = "https://github.com/verus-lang/verus.git"
 serves = "P0"
 target_capability = "proof-oriented constraints"
 mechanism_hypothesis = "specification + proof obligations over Rust"
-materialization_mode = "SPARSE_CHECKOUT (source/vir)"
+materialization_mode = "n/a (source deleted; the checkout was the full tree)"
 dependency_expectation = "z3: EXTERNAL_BOUNDARY"
-current_status = "CURRENTLY_PENDING"
-lifecycle = "MATERIALIZED"
-terminal_state = ""
+current_status = "CAMPAIGN_PROVEN"
+lifecycle = "TERMINAL"
+terminal_state = "EXTERNAL_BOUNDARY"
 terminal_goal = "DECIDED"
-note = "census SKELETON, decision PENDING"
+completed_in = "G105"
+evidence = ".atlas/evidence/campaign/41-verus.json"
+note = "external verifier (rustc fork + Z3) reporting via --output-json; no proof-evidence consumer in code (as for kani, G104); VIR design REFERENCE_ONLY; source physically deleted"
 
 [[donor]]
 ordinal = 42
