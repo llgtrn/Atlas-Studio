@@ -1,0 +1,350 @@
+{
+  "schema": "atlas.self-recensus-report.v1",
+  "generation": "G129",
+  "base_revision": "dda507e66024e8dc0333d05aa4ef86d228d32836",
+  "candidate_revision": "160579e51386be457629993324bb2436e9d24fbb",
+  "candidate_dirty": true,
+  "before_census_digest": "blake3-256:5a3eba1a73949984518c236d464cc75a4c8b031bb5998182f1b4b08958087b93",
+  "after_census_digest": "blake3-256:a59ed37474a7d6d603543dca28d717a23410435377c69ff2203c9fdedaf6d607",
+  "replay_digest": "blake3-256:a59ed37474a7d6d603543dca28d717a23410435377c69ff2203c9fdedaf6d607",
+  "inventory_delta": {
+    "created": [
+      "core/src/composition/closure.rs"
+    ],
+    "modified": [
+      "apps/cli/src/main.rs",
+      "core/src/composition/mod.rs",
+      "runtime/src/agent.rs"
+    ],
+    "deleted": []
+  },
+  "semantic_delta": {
+    "changed": [
+      "apps/cli/src/main.rs",
+      "core/src/composition/mod.rs",
+      "runtime/src/agent.rs"
+    ],
+    "counts": {
+      "fact:FunctionIdentity|OBSERVED": 12,
+      "fact:FunctionSignature|OBSERVED": 12,
+      "fact:SemanticObligation|OBSERVED": 5,
+      "fact:SemanticObligation|UNKNOWN": 12,
+      "fact:SourceArtifact|OBSERVED": 2,
+      "fact:Symbol|OBSERVED": 41,
+      "fact:Type|DERIVED": 19,
+      "fact:Type|OBSERVED": 29,
+      "record:CALL|DERIVED": 36,
+      "record:CALL|OBSERVED": 302,
+      "record:CONTROL_FLOW|INFERRED": 18,
+      "record:CONTROL_FLOW|OBSERVED": 58,
+      "record:DATA_FLOW|OBSERVED": 437,
+      "record:EFFECT|INFERRED": 19,
+      "record:FUNCTION_IDENTITY|OBSERVED": 12,
+      "record:FUNCTION_SIGNATURE|OBSERVED": 12,
+      "record:OWNERSHIP|OBSERVED": 138,
+      "record:SYMBOL|OBSERVED": 41,
+      "record:TYPE|DERIVED": 19,
+      "record:TYPE|OBSERVED": 29
+    }
+  },
+  "dependency_delta": {
+    "added": [],
+    "removed": []
+  },
+  "dependency_state": [
+    "Closed",
+    "Closed"
+  ],
+  "graph_delta": {
+    "graph_bindings": 1,
+    "graph_edges": 1668,
+    "graph_nodes": 1172
+  },
+  "obligation_delta": {
+    "obligation:CALL|OBSERVED": 1,
+    "obligation:CALL|UNKNOWN": 1,
+    "obligation:CONCURRENCY|UNKNOWN": 2,
+    "obligation:CONTROL_FLOW|UNKNOWN": 1,
+    "obligation:DATA_FLOW|UNKNOWN": 1,
+    "obligation:EFFECT|UNKNOWN": 2,
+    "obligation:FUNCTION_IDENTITY|OBSERVED": 1,
+    "obligation:FUNCTION_SIGNATURE|OBSERVED": 1,
+    "obligation:OWNERSHIP|UNKNOWN": 1,
+    "obligation:PERSISTENCE|UNKNOWN": 2,
+    "obligation:STATE|UNKNOWN": 1,
+    "obligation:SYMBOL|OBSERVED": 1,
+    "obligation:TYPE|OBSERVED": 1,
+    "obligation:TYPE|UNKNOWN": 1
+  },
+  "adl_delta": {
+    "added": [],
+    "removed": []
+  },
+  "entity_delta": [
+    {
+      "kind": "CHANGED",
+      "before": [
+        "`apps/cli` run()."
+      ],
+      "after": [
+        "`apps/cli` run()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core composition/closure/check()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core composition/closure/differing()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core composition/closure/impact_closure()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core composition/closure/is_global_path()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core composition/closure/oracle()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core composition/closure/refs()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime agent/changed_paths()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime agent/impact_closure()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime agent/normalize()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime agent/normalize_value()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime agent/stable_keys()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime agent/tests/the_impact_closure_holds_every_difference_of_the_full_recompute()."
+      ],
+      "evidence": ""
+    }
+  ],
+  "coverage_delta": [],
+  "unknown_delta": {
+    "increased": [
+      "core/src/composition/closure.rs: 0 -> 12"
+    ],
+    "decreased": [],
+    "total_before": 1514,
+    "total_after": 1526
+  },
+  "intent": {
+    "objective": "NA-IMPACT-CLOSURE: affected-impact closure of a change (seed, callees, callers of removed functions, name candidates of added ones; workspace manifests and the system ADL global) checked by a full-recompute oracle over revision-normalized world models (ADR 0049); the G116 debt-review batch fell due and was reviewed",
+    "changed_paths": [
+      "apps/cli/src/main.rs",
+      "core/src/composition/closure.rs",
+      "core/src/composition/mod.rs",
+      "runtime/src/agent.rs"
+    ],
+    "total_changes": [
+      "+artifacts",
+      "+composed:component_behavior",
+      "+composed:function_behavior",
+      "+composed:purpose:DECLARED",
+      "+composed:relation",
+      "+composed:relation:INVOKES",
+      "+composed:relation:SUPPLIES_DATA",
+      "+diagnostic:IncompleteAnalysis",
+      "+docs",
+      "+entities",
+      "+evidence",
+      "+facts",
+      "+graph_bindings",
+      "+graph_edges",
+      "+graph_nodes",
+      "+normalized_facts",
+      "+obligations",
+      "+obligations:CALL|atlas.resolution.rust-paths|UNKNOWN",
+      "+obligations:CALL|atlas.rust.source-semantic.v1|OBSERVED",
+      "+obligations:CONCURRENCY|atlas.resolution.rust-paths|UNKNOWN",
+      "+obligations:CONCURRENCY|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:CONTROL_FLOW|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:DATA_FLOW|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:EFFECT|atlas.resolution.rust-paths|UNKNOWN",
+      "+obligations:EFFECT|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1|OBSERVED",
+      "+obligations:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1|OBSERVED",
+      "+obligations:OWNERSHIP|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:PERSISTENCE|atlas.resolution.rust-paths|UNKNOWN",
+      "+obligations:PERSISTENCE|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:STATE|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:SYMBOL|atlas.rust.source-semantic.v1|OBSERVED",
+      "+obligations:TYPE|atlas.resolution.rust-paths|UNKNOWN",
+      "+obligations:TYPE|atlas.rust.source-semantic.v1|OBSERVED",
+      "+records:CALL|atlas.resolution.rust-paths",
+      "+records:CALL|atlas.rust.source-semantic.v1",
+      "+records:CONTROL_FLOW|atlas.rust.source-semantic.v1",
+      "+records:DATA_FLOW|atlas.rust.source-semantic.v1",
+      "+records:EFFECT|atlas.rust.source-semantic.v1",
+      "+records:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1",
+      "+records:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1",
+      "+records:OWNERSHIP|atlas.rust.source-semantic.v1",
+      "+records:SYMBOL|atlas.rust.source-semantic.v1",
+      "+records:TYPE|atlas.resolution.rust-paths",
+      "+records:TYPE|atlas.rust.source-semantic.v1",
+      "+typed_records",
+      "+unknown_facts"
+    ],
+    "dependency_changes": [],
+    "adl_changes": [],
+    "coverage_changes": [],
+    "explained_unknowns": [
+      "core/src/composition/closure.rs: new source file carrying the workspace's standing per-file UNKNOWN obligations"
+    ],
+    "accepted_unexpected": [],
+    "entity_changes": [
+      "CHANGED `apps/cli` run().",
+      "CREATED core composition/closure/check().",
+      "CREATED core composition/closure/differing().",
+      "CREATED core composition/closure/impact_closure().",
+      "CREATED core composition/closure/is_global_path().",
+      "CREATED core composition/closure/oracle().",
+      "CREATED core composition/closure/refs().",
+      "CREATED runtime agent/changed_paths().",
+      "CREATED runtime agent/impact_closure().",
+      "CREATED runtime agent/normalize().",
+      "CREATED runtime agent/normalize_value().",
+      "CREATED runtime agent/stable_keys().",
+      "CREATED runtime agent/tests/the_impact_closure_holds_every_difference_of_the_full_recompute()."
+    ]
+  },
+  "intended_changes": [
+    "path apps/cli/src/main.rs",
+    "path core/src/composition/closure.rs",
+    "path core/src/composition/mod.rs",
+    "path runtime/src/agent.rs",
+    "total +artifacts",
+    "total +composed:component_behavior",
+    "total +composed:function_behavior",
+    "total +composed:purpose:DECLARED",
+    "total +composed:relation",
+    "total +composed:relation:INVOKES",
+    "total +composed:relation:SUPPLIES_DATA",
+    "total +diagnostic:IncompleteAnalysis",
+    "total +docs",
+    "total +entities",
+    "total +evidence",
+    "total +facts",
+    "total +graph_bindings",
+    "total +graph_edges",
+    "total +graph_nodes",
+    "total +normalized_facts",
+    "total +obligations",
+    "total +obligations:CALL|atlas.resolution.rust-paths|UNKNOWN",
+    "total +obligations:CALL|atlas.rust.source-semantic.v1|OBSERVED",
+    "total +obligations:CONCURRENCY|atlas.resolution.rust-paths|UNKNOWN",
+    "total +obligations:CONCURRENCY|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:CONTROL_FLOW|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:DATA_FLOW|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:EFFECT|atlas.resolution.rust-paths|UNKNOWN",
+    "total +obligations:EFFECT|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1|OBSERVED",
+    "total +obligations:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1|OBSERVED",
+    "total +obligations:OWNERSHIP|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:PERSISTENCE|atlas.resolution.rust-paths|UNKNOWN",
+    "total +obligations:PERSISTENCE|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:STATE|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:SYMBOL|atlas.rust.source-semantic.v1|OBSERVED",
+    "total +obligations:TYPE|atlas.resolution.rust-paths|UNKNOWN",
+    "total +obligations:TYPE|atlas.rust.source-semantic.v1|OBSERVED",
+    "total +records:CALL|atlas.resolution.rust-paths",
+    "total +records:CALL|atlas.rust.source-semantic.v1",
+    "total +records:CONTROL_FLOW|atlas.rust.source-semantic.v1",
+    "total +records:DATA_FLOW|atlas.rust.source-semantic.v1",
+    "total +records:EFFECT|atlas.rust.source-semantic.v1",
+    "total +records:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1",
+    "total +records:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1",
+    "total +records:OWNERSHIP|atlas.rust.source-semantic.v1",
+    "total +records:SYMBOL|atlas.rust.source-semantic.v1",
+    "total +records:TYPE|atlas.resolution.rust-paths",
+    "total +records:TYPE|atlas.rust.source-semantic.v1",
+    "total +typed_records",
+    "total +unknown_facts",
+    "entity CHANGED `apps/cli` run().",
+    "entity CREATED core composition/closure/check().",
+    "entity CREATED core composition/closure/differing().",
+    "entity CREATED core composition/closure/impact_closure().",
+    "entity CREATED core composition/closure/is_global_path().",
+    "entity CREATED core composition/closure/oracle().",
+    "entity CREATED core composition/closure/refs().",
+    "entity CREATED runtime agent/changed_paths().",
+    "entity CREATED runtime agent/impact_closure().",
+    "entity CREATED runtime agent/normalize().",
+    "entity CREATED runtime agent/normalize_value().",
+    "entity CREATED runtime agent/stable_keys().",
+    "entity CREATED runtime agent/tests/the_impact_closure_holds_every_difference_of_the_full_recompute()."
+  ],
+  "intended_but_unobserved": [],
+  "unexpected_changes": [],
+  "regressions": [],
+  "verdict": "PROVEN"
+}

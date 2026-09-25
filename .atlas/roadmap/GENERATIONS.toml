@@ -13,7 +13,7 @@
 #       -> generation evidence -> G_n+1
 
 schema = "atlas.self-build.generation-ledger.v1"
-current_generation = "G128"
+current_generation = "G129"
 
 [[generation]]
 id = "G35"
@@ -2459,3 +2459,45 @@ after = 35
 key = "composed:understanding_gap"
 before = 7
 after = 8
+
+[[generation]]
+id = "G129"
+kind = "NATIVE_ATTACK"
+base_commit = "160579e51386be457629993324bb2436e9d24fbb"
+priority = "P4"
+serves = "P4 native attack queue head NA-IMPACT-CLOSURE (DEBT-IMPACT_CLOSURE, stale since G40)"
+objective = "the affected-impact closure of a change, checked against the full-recompute diff by an oracle over revision-normalized world models"
+writer = "coordinator (sole writer)"
+evidence = ".atlas/evidence/census/G129/impact-closure-oracle.json"
+self_recensus = ".atlas/evidence/census/G129/recensus.json"
+
+[generation.verification]
+pre_census = "clean-HEAD census of 08f25daf25 = G128 post digest 5a3eba1a... (160579e513 adds only out-of-scope evidence)"
+atlas_first = "the contract is canonical text Atlas does not compose (ARCHITECTURAL-INTEGRITY.md, impact closure section, read directly); the propagation rules were derived from the composition's own construction (a function's behavior is local to its records and resolved call edges) and G123's callee spelling; the closure is itself an Atlas operation over the world model"
+semantics = "R1 seed (functions in changed paths), R2 callees, R3 callers of removed functions, R4 name candidates of added functions; invariants by kind; workspace manifests, root lockfile and the system ADL global; oracle SOUND when every full-recompute difference lies inside the closure"
+normalization = "record ids carry the revision: function ids become path#scope#name, other record ids their dimension, id-ordered lists re-sorted; the same code at two revisions normalizes equal"
+oracle = "seven changes (G123 to G128 main commits and this generation's own) composed before and after by the same Atlas: all SOUND, no miss at any level; function precision from 38/60 to 325/855; a fixture ADL wrongly made G124 global and the global rule was narrowed to the workspace's declarations (2,200 to 728 affected functions, still sound)"
+falsification = "7 mutants killed: no callee propagation; no callers of removed functions; no name candidates; manifests not global; function ids not normalized; oracle blind to function differences; closure reading the whole after model"
+debts = "last advance G129 for DEBT-IMPACT_CLOSURE (M1 -> M3); stays OPEN: no consumer skips work outside the closure, re-export and mod-item edges a named blind spot"
+review = "evidence/census/G129/debt-review.json: the 25 debts last reviewed at G116 fell due; 21 confirmed, 4 corrected (DEBT-TRANSFORMATION next step, DEBT-SYMBOL revision-bound record ids and type use sites, DEBT-EPISTEMIC_UNIFICATION new status carriers, DEBT-INTEGRITY_ENVELOPE impact-closure input)"
+proof = "PROVEN (post a59ed374...): one new source file explained as carrying the standing per-file UNKNOWN obligations; the decision record counted in docs"
+
+[[generation.metric]]
+key = "typed_records"
+before = 115248
+after = 116369
+
+[[generation.metric]]
+key = "facts"
+before = 17729
+after = 17861
+
+[[generation.metric]]
+key = "composed:function_behavior"
+before = 2250
+after = 2262
+
+[[generation.metric]]
+key = "composed:component_behavior"
+before = 124
+after = 125

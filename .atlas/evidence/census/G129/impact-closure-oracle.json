@@ -1,0 +1,374 @@
+{
+ "schema": "atlas.impact-closure-oracle.v1",
+ "generation": "G129",
+ "question": "does the affected-impact closure of a change contain every difference of the full recompute?",
+ "method": "for each change: compose the world model of the tree before and after with the same Atlas (atlas-systemizer agent model on a detached worktree), normalize both (function ids to path#scope#name, other record ids to their dimension, id-ordered lists re-sorted), compute the closure from the before model and the changed paths' part of the after model, and diff the two full models level by level (agent closure)",
+ "atlas": "atlas-systemizer built from the G129 tree",
+ "runs": [
+  {
+   "change": "G123 main commit",
+   "before": "281445a4e287dd48db17d3481bda976f88e2fed8",
+   "after": "7e90a0e91edddf340644fe693d8c9ce182563d02",
+   "changed_paths": 21,
+   "changed_paths_from": "git diff --name-only before after",
+   "global": false,
+   "file_set_changed": [],
+   "seed_functions": 315,
+   "rules": {
+    "R1_SEED": 315,
+    "R2_CALLEE": 69,
+    "R4_NAME_CANDIDATE": 137
+   },
+   "transitive_dependents": 21,
+   "levels": {
+    "functions": {
+     "changed": 199,
+     "affected": 521,
+     "missed": 0
+    },
+    "components": {
+     "changed": 6,
+     "affected": 71,
+     "missed": 0
+    },
+    "subsystems": {
+     "changed": 4,
+     "affected": 4,
+     "missed": 0
+    },
+    "state": {
+     "changed": 0,
+     "affected": 15,
+     "missed": 0
+    },
+    "relations": {
+     "changed": 37,
+     "affected": 37,
+     "missed": 0
+    },
+    "invariants": {
+     "changed": 22,
+     "affected": 46,
+     "missed": 0
+    }
+   },
+   "verdict": "SOUND"
+  },
+  {
+   "change": "G124 main commit",
+   "before": "71b0ddf0d16d19c9b67924d12914c733fcfb0302",
+   "after": "db3a71e8b20c5f4e4ea0321d88080ebbf45ccc03",
+   "changed_paths": 21,
+   "changed_paths_from": "git diff --name-only before after",
+   "global": false,
+   "file_set_changed": [],
+   "seed_functions": 450,
+   "rules": {
+    "R1_SEED": 450,
+    "R2_CALLEE": 32,
+    "R4_NAME_CANDIDATE": 246
+   },
+   "transitive_dependents": 46,
+   "levels": {
+    "functions": {
+     "changed": 346,
+     "affected": 728,
+     "missed": 0
+    },
+    "components": {
+     "changed": 8,
+     "affected": 95,
+     "missed": 0
+    },
+    "subsystems": {
+     "changed": 2,
+     "affected": 4,
+     "missed": 0
+    },
+    "state": {
+     "changed": 5,
+     "affected": 33,
+     "missed": 0
+    },
+    "relations": {
+     "changed": 79,
+     "affected": 79,
+     "missed": 0
+    },
+    "invariants": {
+     "changed": 12,
+     "affected": 40,
+     "missed": 0
+    }
+   },
+   "verdict": "SOUND"
+  },
+  {
+   "change": "G125 main commit",
+   "before": "be291db2f634f49dbbe4dc6e3076e7a5cd735792",
+   "after": "9fffcbda69b140d0932ec5942e91575fcad86c6e",
+   "changed_paths": 18,
+   "changed_paths_from": "git diff --name-only before after",
+   "global": false,
+   "file_set_changed": [],
+   "seed_functions": 45,
+   "rules": {
+    "R1_SEED": 45,
+    "R2_CALLEE": 15
+   },
+   "transitive_dependents": 399,
+   "levels": {
+    "functions": {
+     "changed": 38,
+     "affected": 60,
+     "missed": 0
+    },
+    "components": {
+     "changed": 9,
+     "affected": 31,
+     "missed": 0
+    },
+    "subsystems": {
+     "changed": 2,
+     "affected": 3,
+     "missed": 0
+    },
+    "state": {
+     "changed": 0,
+     "affected": 5,
+     "missed": 0
+    },
+    "relations": {
+     "changed": 21,
+     "affected": 21,
+     "missed": 0
+    },
+    "invariants": {
+     "changed": 12,
+     "affected": 25,
+     "missed": 0
+    }
+   },
+   "verdict": "SOUND"
+  },
+  {
+   "change": "G126 main commit",
+   "before": "63f1ed91c10104f83afcae73da151524c6de24cf",
+   "after": "791021fe8217174b37d8bf984a6022ec5353eb0d",
+   "changed_paths": 17,
+   "changed_paths_from": "git diff --name-only before after",
+   "global": false,
+   "file_set_changed": [
+    "core/src/sandbox/mod.rs",
+    "runtime/src/sandbox.rs"
+   ],
+   "seed_functions": 155,
+   "rules": {
+    "R1_SEED": 155,
+    "R2_CALLEE": 68,
+    "R4_NAME_CANDIDATE": 158
+   },
+   "transitive_dependents": 20,
+   "levels": {
+    "functions": {
+     "changed": 153,
+     "affected": 381,
+     "missed": 0
+    },
+    "components": {
+     "changed": 4,
+     "affected": 88,
+     "missed": 0
+    },
+    "subsystems": {
+     "changed": 3,
+     "affected": 4,
+     "missed": 0
+    },
+    "state": {
+     "changed": 0,
+     "affected": 5,
+     "missed": 0
+    },
+    "relations": {
+     "changed": 61,
+     "affected": 61,
+     "missed": 0
+    },
+    "invariants": {
+     "changed": 29,
+     "affected": 50,
+     "missed": 0
+    }
+   },
+   "verdict": "SOUND"
+  },
+  {
+   "change": "G127 main commit",
+   "before": "7e91ae9c25a27a8e3fc74c293f7175f8a31904e7",
+   "after": "52aaa0fcaf39f60ea61c119dfe66a09df8a7a1ea",
+   "changed_paths": 17,
+   "changed_paths_from": "git diff --name-only before after",
+   "global": false,
+   "file_set_changed": [
+    "core/src/verification/mod.rs",
+    "runtime/src/verification.rs"
+   ],
+   "seed_functions": 150,
+   "rules": {
+    "R1_SEED": 150,
+    "R2_CALLEE": 69,
+    "R4_NAME_CANDIDATE": 167
+   },
+   "transitive_dependents": 20,
+   "levels": {
+    "functions": {
+     "changed": 149,
+     "affected": 386,
+     "missed": 0
+    },
+    "components": {
+     "changed": 5,
+     "affected": 90,
+     "missed": 0
+    },
+    "subsystems": {
+     "changed": 3,
+     "affected": 4,
+     "missed": 0
+    },
+    "state": {
+     "changed": 0,
+     "affected": 5,
+     "missed": 0
+    },
+    "relations": {
+     "changed": 43,
+     "affected": 43,
+     "missed": 0
+    },
+    "invariants": {
+     "changed": 29,
+     "affected": 50,
+     "missed": 0
+    }
+   },
+   "verdict": "SOUND"
+  },
+  {
+   "change": "G128 main commit",
+   "before": "dda507e66024e8dc0333d05aa4ef86d228d32836",
+   "after": "08f25daf25ebc54bc85a5a8b9f2860f7273d7031",
+   "changed_paths": 31,
+   "changed_paths_from": "git diff --name-only before after",
+   "global": false,
+   "file_set_changed": [],
+   "seed_functions": 825,
+   "rules": {
+    "R1_SEED": 825,
+    "R2_CALLEE": 30
+   },
+   "transitive_dependents": 130,
+   "levels": {
+    "functions": {
+     "changed": 325,
+     "affected": 855,
+     "missed": 0
+    },
+    "components": {
+     "changed": 6,
+     "affected": 54,
+     "missed": 0
+    },
+    "subsystems": {
+     "changed": 3,
+     "affected": 3,
+     "missed": 0
+    },
+    "state": {
+     "changed": 1,
+     "affected": 74,
+     "missed": 0
+    },
+    "relations": {
+     "changed": 36,
+     "affected": 36,
+     "missed": 0
+    },
+    "invariants": {
+     "changed": 17,
+     "affected": 38,
+     "missed": 0
+    }
+   },
+   "verdict": "SOUND"
+  },
+  {
+   "change": "G129 (this generation, self-application)",
+   "before": "160579e51386be457629993324bb2436e9d24fbb",
+   "after": "working tree of the G129 change",
+   "changed_paths": 4,
+   "changed_paths_from": "git diff --name-only HEAD plus the new closure.rs",
+   "global": false,
+   "file_set_changed": [
+    "core/src/composition/closure.rs"
+   ],
+   "seed_functions": 58,
+   "rules": {
+    "R1_SEED": 58,
+    "R2_CALLEE": 53,
+    "R4_NAME_CANDIDATE": 31
+   },
+   "transitive_dependents": 16,
+   "levels": {
+    "functions": {
+     "changed": 55,
+     "affected": 142,
+     "missed": 0
+    },
+    "components": {
+     "changed": 3,
+     "affected": 24,
+     "missed": 0
+    },
+    "subsystems": {
+     "changed": 3,
+     "affected": 4,
+     "missed": 0
+    },
+    "state": {
+     "changed": 0,
+     "affected": 0,
+     "missed": 0
+    },
+    "relations": {
+     "changed": 37,
+     "affected": 37,
+     "missed": 0
+    },
+    "invariants": {
+     "changed": 28,
+     "affected": 50,
+     "missed": 0
+    }
+   },
+   "verdict": "SOUND"
+  }
+ ],
+ "summary": {
+  "changes": 7,
+  "sound": 7,
+  "missed_total": 0,
+  "function_precision": [
+   "199/521",
+   "346/728",
+   "38/60",
+   "153/381",
+   "149/386",
+   "325/855",
+   "55/142"
+  ]
+ },
+ "refinement_found": "the first run made G124 global because a test fixture's ADL changed (runtime/tests/fixtures/physical/two-link-arm/.atlas/declared/arm.adl); only the system's .atlas/declared ADL, the root lockfile and workspace manifests are global now: G124's affected functions fell from 2,200 to 728, still with no miss",
+ "blind_spot": "a changed pub use re-export or mod item can re-route path resolution in unchanged files by a name the model does not carry. Such changes occurred in these runs (G127 added pub mod verification to core and runtime; G128 re-exported Documentation from core) without a miss, but no rule covers them: soundness there is observed, not derived"
+}

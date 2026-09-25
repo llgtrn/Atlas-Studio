@@ -3,8 +3,9 @@
 //! pure (`atlas_core::composition`); this module only runs the census and fixes digests.
 
 use atlas_core::IntegrityDigest;
-pub use atlas_core::composition::lens;
 use atlas_core::composition::{WorldModel, compose, lens::MissionContext};
+pub use atlas_core::composition::{closure, lens};
+use std::collections::BTreeMap;
 use std::{io, path::Path};
 
 /// Census `root` and compose it.
@@ -15,6 +16,109 @@ pub fn world_model(root: impl AsRef<Path>) -> io::Result<WorldModel> {
 pub fn read_world_model(path: impl AsRef<Path>) -> io::Result<WorldModel> {
     let text = std::fs::read_to_string(path)?;
     serde_json::from_str(&text).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+}
+
+/// A function's identity across revisions: record ids carry the revision, so two revisions of an
+/// unchanged function have different ids. `path#scope#name`, with `@line` only to separate two
+/// functions that would otherwise share a key.
+fn stable_keys(model: &WorldModel) -> BTreeMap<String, String> {
+    let mut count: BTreeMap<String, usize> = BTreeMap::new();
+    let key = |f: &atlas_core::composition::FunctionBehavior| {
+        format!("{}#{}#{}", f.path, f.scope, f.name)
+    };
+    for f in &model.functions {
+        *count.entry(key(f)).or_default() += 1;
+    }
+    model
+        .functions
+        .iter()
+        .map(|f| {
+            let k = key(f);
+            let k = if count[&k] > 1 {
+                format!("{k}@{}", f.line)
+            } else {
+                k
+            };
+            (f.id.clone(), k)
+        })
+        .collect()
+}
+
+fn normalize_value(value: &mut serde_json::Value, keys: &BTreeMap<String, String>) {
+    match value {
+        serde_json::Value::String(s) => {
+            if let Some(k) = keys.get(s.as_str()) {
+                *s = k.clone();
+            } else if let Some(rest) = s.strip_prefix("semantic:") {
+                // Any other record id: keep its dimension, drop its revision-bound hash.
+                if let Some((dimension, _)) = rest.split_once(':') {
+                    *s = format!("semantic:{dimension}");
+                }
+            }
+        }
+        serde_json::Value::Array(items) => {
+            for item in items.iter_mut() {
+                normalize_value(item, keys);
+            }
+            if items.iter().all(|i| i.is_string()) {
+                items.sort_by(|a, b| a.as_str().cmp(&b.as_str()));
+            }
+        }
+        serde_json::Value::Object(map) => {
+            for item in map.values_mut() {
+                normalize_value(item, keys);
+            }
+        }
+        _ => {}
+    }
+}
+
+/// `model` with every function id replaced by its stable key, every other record id reduced to
+/// its dimension and every list of names sorted: two revisions of the same code normalize equal.
+pub fn normalize(model: &WorldModel) -> WorldModel {
+    let keys = stable_keys(model);
+    let mut value = serde_json::to_value(model).expect("a WorldModel always serializes");
+    value["revision"] = serde_json::Value::String(String::new());
+    normalize_value(&mut value, &keys);
+    let mut model: WorldModel =
+        serde_json::from_value(value).expect("normalizing keeps the WorldModel shape");
+    // Lists ordered by record id are re-ordered by the stable keys.
+    model.functions.sort_by(|a, b| a.id.cmp(&b.id));
+    model
+        .relations
+        .sort_by(|a, b| (a.kind, &a.from, &a.to).cmp(&(b.kind, &b.from, &b.to)));
+    model
+}
+
+/// The impact closure of `changed` between two models and its check against their full-recompute
+/// diff (G129), both over the normalized models.
+pub fn impact_closure(
+    before: &WorldModel,
+    after: &WorldModel,
+    changed: &[String],
+) -> (closure::ImpactClosure, closure::ClosureOracle) {
+    let (before, after) = (normalize(before), normalize(after));
+    let result = closure::impact_closure(&before, &after, changed);
+    let oracle = closure::oracle(&result, &before, &after);
+    (result, oracle)
+}
+
+/// The paths a git range changes (`git diff --name-only <from> <to>` in `root`): the input of an
+/// impact closure (G129).
+pub fn changed_paths(root: impl AsRef<Path>, from: &str, to: &str) -> io::Result<Vec<String>> {
+    let output = std::process::Command::new("git")
+        .args(["diff", "--name-only", from, to])
+        .current_dir(root)
+        .output()?;
+    if !output.status.success() {
+        return Err(io::Error::other(
+            String::from_utf8_lossy(&output.stderr).trim().to_owned(),
+        ));
+    }
+    Ok(String::from_utf8_lossy(&output.stdout)
+        .lines()
+        .map(str::to_owned)
+        .collect())
 }
 
 /// Digest of a MissionContext without the agent's mission text: two missions over the same target
@@ -702,6 +806,85 @@ fn run(s: &core::store::Store) { s.save(); }
                 .any(|i| i.starts_with("INV-AUTHORITY:") && i.ends_with(":ENVIRONMENT_READ"))
         );
         assert_eq!(lens::verify(&before, &before).verdict, "HELD");
+    }
+
+    /// G129 (NA-IMPACT-CLOSURE): the closure of a change to `core/src/store.rs` holds every
+    /// difference of the full recompute -- a caller of a removed function (R3), a callee that
+    /// gains a caller (R2), and a call in an unchanged file that an added function now resolves
+    /// (R4) -- and no more than it must: a caller of an unchanged function stays outside.
+    #[test]
+    fn the_impact_closure_holds_every_difference_of_the_full_recompute() {
+        let core_lib = format!("{CORE_LIB}pub fn uses_extra() -> u64 {{ store::extra() }}\n");
+        let changed_store = STORE
+            .replace("    pub fn new() -> Self { Store { count: 0 } }\n", "")
+            .replace(
+                "std::fs::write(\"out\", self.count.to_string()).unwrap();",
+                "std::fs::write(\"out\", crate::helper(self.count).to_string()).unwrap();",
+            )
+            + "pub fn extra() -> u64 { 1 }\n";
+        assert_ne!(changed_store, STORE);
+        let model = |name: &str, store: &str| {
+            let dir = fixture_with(
+                name,
+                ADL,
+                &core_lib,
+                store,
+                BASE_LIB,
+                BASE_MANIFEST,
+                BASE_LOCK,
+            );
+            let model = world_model(&dir).unwrap();
+            std::fs::remove_dir_all(&dir).unwrap();
+            model
+        };
+        // Record ids carry the revision: the closure works over the normalized models.
+        let before = normalize(&model("closure-before", STORE));
+        let after = normalize(&model("closure-after", &changed_store));
+        // Normalizing is what makes two revisions comparable: the same code in another commit.
+        let again = model("closure-again", STORE);
+        assert_ne!(again.revision, before.revision);
+        assert_eq!(normalize(&again), before);
+        let changed = vec!["core/src/store.rs".to_owned()];
+        let result = closure::impact_closure(&before, &after, &changed);
+        let oracle = closure::oracle(&result, &before, &after);
+        assert_eq!(oracle.verdict, "SOUND", "{oracle:#?}");
+        assert!(!result.global);
+        let id = |model: &WorldModel, name: &str| function(model, name).id.clone();
+        for (name, rule) in [
+            ("main", "R3_CALLER_OF_REMOVED"),
+            ("helper", "R2_CALLEE"),
+            ("uses_extra", "R4_NAME_CANDIDATE"),
+        ] {
+            assert!(
+                result.affected_functions.contains(&id(&before, name)),
+                "{name} by {rule}"
+            );
+            assert!(result.rules.contains_key(rule), "{rule}");
+        }
+        // Precision: `run` calls `save`, which keeps its identity, so `run` is only a frontier.
+        assert!(!result.affected_functions.contains(&id(&before, "run")));
+        assert!(result.transitive_dependents >= 1);
+        // Every level of the full recompute changed, and every change is inside the closure.
+        assert!(oracle.functions.changed >= 5 && oracle.functions.missed.is_empty());
+        assert!(oracle.components.changed >= 2);
+        // A manifest makes the closure global.
+        let global = closure::impact_closure(&before, &after, &["core/Cargo.toml".to_owned()]);
+        assert!(global.global);
+        assert_eq!(global.affected_functions.len(), before.functions.len());
+        assert_eq!(global.affected_invariants.len(), before.invariants.len());
+        // A fixture's manifest nested inside a subsystem is not the workspace's.
+        let nested = closure::impact_closure(
+            &before,
+            &after,
+            &["core/tests/fixtures/x/Cargo.toml".to_owned()],
+        );
+        assert!(!nested.global);
+        // An empty change affects nothing, and the oracle names what it then misses.
+        let empty = closure::impact_closure(&before, &after, &[]);
+        assert!(empty.affected_functions.is_empty());
+        let missed = closure::oracle(&empty, &before, &after);
+        assert_eq!(missed.verdict, "UNSOUND");
+        assert_eq!(missed.functions.missed.len(), missed.functions.changed);
     }
 
     /// G128: a module file's own `//!` documentation outranks the `///` on its `mod` item.

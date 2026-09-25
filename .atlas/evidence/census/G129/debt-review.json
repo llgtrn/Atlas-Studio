@@ -1,0 +1,171 @@
+{
+ "schema": "atlas.debt-review.v1",
+ "generation": "G129",
+ "trigger": "review cadence: every OPEN debt stale for at least review_at (13) generations must have been reviewed within review_at; the 25 debts last reviewed at G116 fell due together",
+ "method": "each debt re-read against what G117-G129 changed (composition and agent missions, quantity kinds, persistence, sandbox, verification evidence, module documentation, impact closure); its state, blockers and next attack confirmed or corrected",
+ "reviews": [
+  {
+   "debt": "DEBT-TYPE",
+   "verdict": "CONFIRMED",
+   "finding": "the composed impact residual (G122-G123) is dominated by receiver types; NA-CALL-TYPE-RESIDUAL still owns it",
+   "correction": null
+  },
+  {
+   "debt": "DEBT-SYMBOL",
+   "verdict": "CORRECTED",
+   "finding": "missions M1 and M2 hit type use sites (GAP-TYPE-USE-SITES); G129 found record ids revision-bound (identity keys carry the revision), so cross-revision identity is path#scope#name",
+   "correction": {
+    "unknowns": "macro-generated items (declared OUT_OF_PROFILE); certificate MULTI_ENGINE_RECONCILIATION_ABSENT; type use sites (construction and match sites, GAP-TYPE-USE-SITES, hit by missions M1 and M2); record ids are revision-bound, cross-revision identity is path#scope#name (G129)"
+   }
+  },
+  {
+   "debt": "DEBT-DEPENDENCY",
+   "verdict": "CONFIRMED",
+   "finding": "the certificate still carries the same dynamic dependency obligations",
+   "correction": null
+  },
+  {
+   "debt": "DEBT-PROVENANCE",
+   "verdict": "CONFIRMED",
+   "finding": "no constructed artifact exists yet",
+   "correction": null
+  },
+  {
+   "debt": "DEBT-MULTILANGUAGE",
+   "verdict": "CONFIRMED",
+   "finding": "composition, purpose and closure are Rust-only; no second extractor",
+   "correction": null
+  },
+  {
+   "debt": "DEBT-EPISTEMIC_UNIFICATION",
+   "verdict": "CORRECTED",
+   "finding": "G126-G129 added status carriers outside the vocabulary map: verification ObligationState and EvidenceResult, sandbox Enforcement, the closure oracle verdict",
+   "correction": {
+    "unknowns": "whether PREDICTED, COUNTERFACTUAL and FALSIFIED are statuses or record types; MEASURED/CALIBRATED wait for telemetry; the carriers added since G126 (verification ObligationState and EvidenceResult, sandbox Enforcement, the impact-closure oracle verdict) are not yet mapped to the vocabulary"
+   }
+  },
+  {
+   "debt": "DEBT-CONSTRAINT_REASONING",
+   "verdict": "CONFIRMED",
+   "finding": "selected as the next native attack (G130)",
+   "correction": null
+  },
+  {
+   "debt": "DEBT-ATLAS_COMPLETENESS",
+   "verdict": "CONFIRMED",
+   "finding": "since G127 the sole blocker of the seal gate and SelectedDesign",
+   "correction": null
+  },
+  {
+   "debt": "DEBT-SEAL_GATE",
+   "verdict": "CONFIRMED",
+   "finding": "blocked only by DEBT-ATLAS_COMPLETENESS since G127; the verification report (G127) is its future input",
+   "correction": null
+  },
+  {
+   "debt": "DEBT-INTEGRITY_ENVELOPE",
+   "verdict": "CORRECTED",
+   "finding": "the impact closure the envelope requires exists since G129 (sound on recorded changes, no consumer)",
+   "correction": {
+    "unknowns": "first HARD invariant set beyond dependencies; the impact closure it needs exists since G129 (ADR 0049) but is not yet bound to an envelope"
+   }
+  },
+  {
+   "debt": "DEBT-SELECTED_DESIGN",
+   "verdict": "CONFIRMED",
+   "finding": "blocked only by DEBT-ATLAS_COMPLETENESS since G127",
+   "correction": null
+  },
+  {
+   "debt": "DEBT-ATLASX",
+   "verdict": "CONFIRMED",
+   "finding": "its three blockers are all open",
+   "correction": null
+  },
+  {
+   "debt": "DEBT-CONSTRUCTION_IR",
+   "verdict": "CONFIRMED",
+   "finding": "blocked by DEBT-ATLASX",
+   "correction": null
+  },
+  {
+   "debt": "DEBT-COMPILER_LOWERING",
+   "verdict": "CONFIRMED",
+   "finding": "blocked by DEBT-ATLASX",
+   "correction": null
+  },
+  {
+   "debt": "DEBT-BACKEND_ADAPTER",
+   "verdict": "CONFIRMED",
+   "finding": "blocked by DEBT-COMPILER_LOWERING",
+   "correction": null
+  },
+  {
+   "debt": "DEBT-ARTIFACT_IDENTITY",
+   "verdict": "CONFIRMED",
+   "finding": "no constructed artifact exists yet",
+   "correction": null
+  },
+  {
+   "debt": "DEBT-TRANSFORMATION",
+   "verdict": "CORRECTED",
+   "finding": "its next-step text still named DEBT-VERIFICATION_EVIDENCE, which stopped blocking it at G127",
+   "correction": {
+    "nxt": "blocked by DEBT-SANDBOXED_EXECUTION (filesystem confinement UNENFORCED since G126; verification evidence exists since G127); then NA-TRANSFORMATION"
+   }
+  },
+  {
+   "debt": "DEBT-ADL_BEYOND_DEPENDENCIES",
+   "verdict": "CONFIRMED",
+   "finding": "G124 added one declared-attribute check (quantity kinds, ATLAS-E059); declared behavior beyond dependencies stays unexpressed",
+   "correction": null
+  },
+  {
+   "debt": "DEBT-CAUSALITY",
+   "verdict": "CONFIRMED",
+   "finding": "the composition routes GAP-CAUSALITY to it (G122); blocked by DEBT-EPISTEMIC_UNIFICATION",
+   "correction": null
+  },
+  {
+   "debt": "DEBT-DISTRIBUTED_SEMANTICS",
+   "verdict": "CONFIRMED",
+   "finding": "CONCURRENCY (G117) and PERSISTENCE (G125) advanced but stay open",
+   "correction": null
+  },
+  {
+   "debt": "DEBT-IDENTITY_AUTHORITY",
+   "verdict": "CONFIRMED",
+   "finding": "moves with NA-SELECTED-DESIGN",
+   "correction": null
+  },
+  {
+   "debt": "DEBT-DESIGN_GENERATION",
+   "verdict": "CONFIRMED",
+   "finding": "blocked by DEBT-SELECTED_DESIGN",
+   "correction": null
+  },
+  {
+   "debt": "DEBT-REAL_WORLD_OBSERVATION",
+   "verdict": "CONFIRMED",
+   "finding": "blocked by DEBT-ARTIFACT_IDENTITY",
+   "correction": null
+  },
+  {
+   "debt": "DEBT-SIMULATION",
+   "verdict": "CONFIRMED",
+   "finding": "DEBT-QUANTITY_UNITS advanced at G124 (kinds, intervals) and stays open",
+   "correction": null
+  },
+  {
+   "debt": "DEBT-PHYSICAL_ONTOLOGY",
+   "verdict": "CONFIRMED",
+   "finding": "frozen until its unfreeze gate",
+   "correction": null
+  }
+ ],
+ "summary": {
+  "reviewed": 25,
+  "confirmed": 21,
+  "corrected": 4
+ }
+}

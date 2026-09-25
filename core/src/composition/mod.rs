@@ -12,6 +12,7 @@
 //! Pure: it reads a `SystemizeReport` and returns a `WorldModel`; the agent-facing operations over
 //! the model live in `lens`. See `.atlas/contracts/AGENT-WORN-ATLAS.md`.
 
+pub mod closure;
 pub mod lens;
 
 use crate::language::adl::ConstraintCheckKind;

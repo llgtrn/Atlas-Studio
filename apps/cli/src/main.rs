@@ -645,6 +645,29 @@ fn run(args: &[String]) -> Result<(), String> {
                         .map_err(|e| format!("{cases}: {e}"))?;
                     json(&runtime::agent::run_benchmark(&model, &cases))?
                 }
+                "closure" => {
+                    // G129 (NA-IMPACT-CLOSURE): the affected-impact closure of a change, checked
+                    // against the full-recompute diff of the two models.
+                    let before =
+                        value(rest, "--before")?.ok_or("agent closure requires --before")?;
+                    let before = runtime::agent::read_world_model(&before)
+                        .map_err(|e| format!("{before}: {e}"))?;
+                    let changed: Vec<String> = match value(rest, "--changed")? {
+                        Some(list) => list.split(',').map(str::to_owned).collect(),
+                        None => {
+                            let range = value(rest, "--git")?
+                                .ok_or("agent closure requires --changed or --git <from>..<to>")?;
+                            let (from, to) =
+                                range.split_once("..").ok_or("--git takes <from>..<to>")?;
+                            let root = value(rest, "--root")?.unwrap_or_else(|| ".".into());
+                            runtime::agent::changed_paths(&root, from, to)
+                                .map_err(|e| format!("{range}: {e}"))?
+                        }
+                    };
+                    let (result, oracle) =
+                        runtime::agent::impact_closure(&before, &model, &changed);
+                    json(&serde_json::json!({ "closure": result, "oracle": oracle }))?
+                }
                 "verify" => {
                     let before =
                         value(rest, "--before")?.ok_or("agent verify requires --before")?;
