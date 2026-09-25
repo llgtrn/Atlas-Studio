@@ -1,0 +1,61 @@
+{
+  "objective": "NA-TYPED-RELATIONS: EdgeKind is the closed, wire-compatible set of graph relations with category, cardinality and ownership; an untyped ADL relation is rejected (ATLAS-E065); no kind is causal (ADR 0054)",
+  "changed_paths": [
+    "core/src/graph/engineering_graph.rs",
+    "core/src/graph/mod.rs",
+    "core/src/language/adl/mod.rs"
+  ],
+  "total_changes": [
+    "+composed:function_behavior",
+    "+composed:function_purpose:DECLARED",
+    "+composed:function_purpose:UNKNOWN",
+    "+composed:relation",
+    "+composed:relation:INVOKES",
+    "+composed:relation:SUPPLIES_DATA",
+    "+diagnostic:IncompleteAnalysis",
+    "+docs",
+    "+entities",
+    "+evidence",
+    "+facts",
+    "+graph_edges",
+    "+graph_nodes",
+    "+normalized_facts",
+    "-obligations:CALL|atlas.rust.source-semantic.v1|OBSERVED",
+    "+obligations:CALL|atlas.rust.source-semantic.v1|UNKNOWN",
+    "+records:CALL|atlas.resolution.rust-paths",
+    "+records:CALL|atlas.rust.source-semantic.v1",
+    "+records:CONTROL_FLOW|atlas.rust.source-semantic.v1",
+    "+records:DATA_FLOW|atlas.rust.source-semantic.v1",
+    "+records:EFFECT|atlas.rust.source-semantic.v1",
+    "+records:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1",
+    "+records:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1",
+    "+records:OWNERSHIP|atlas.rust.source-semantic.v1",
+    "+records:SYMBOL|atlas.rust.source-semantic.v1",
+    "-records:TYPE|atlas.resolution.rust-paths",
+    "+records:TYPE|atlas.rust.source-semantic.v1",
+    "+typed_records",
+    "+unknown_facts"
+  ],
+  "entity_changes": [
+    "CHANGED core graph/engineering_graph/add_constraint_derivations().",
+    "CHANGED core graph/engineering_graph/add_dependency_closure().",
+    "CHANGED core graph/engineering_graph/add_typed_semantic_nodes().",
+    "CHANGED core graph/engineering_graph/build_repository_graph().",
+    "CHANGED core graph/engineering_graph/build_source_graph().",
+    "CHANGED core graph/engineering_graph/build_system_graph().",
+    "CHANGED core graph/engineering_graph/tests/two_different_declared_edges_never_collapse_into_one_edge_via_an_unescaped_join().",
+    "CHANGED core language/adl/compile_adl().",
+    "CREATED core graph/`impl:EdgeKind`/cardinality().",
+    "CREATED core graph/`impl:EdgeKind`/category().",
+    "CREATED core graph/`impl:EdgeKind`/causal().",
+    "CREATED core graph/`impl:EdgeKind`/control_flow().",
+    "CREATED core graph/`impl:EdgeKind`/declared().",
+    "CREATED core graph/`impl:EdgeKind`/owns().",
+    "CREATED core graph/edge_kind_tests/every_edge_kind_is_typed_with_its_schema().",
+    "CREATED core language/adl/tests/an_untyped_relation_is_rejected()."
+  ],
+  "adl_changes": [],
+  "explained_unknowns": [
+    "core/src/graph/mod.rs: changed files carry their standing obligations"
+  ]
+}

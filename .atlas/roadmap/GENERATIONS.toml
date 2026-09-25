@@ -13,7 +13,7 @@
 #       -> generation evidence -> G_n+1
 
 schema = "atlas.self-build.generation-ledger.v1"
-current_generation = "G134"
+current_generation = "G135"
 
 [[generation]]
 id = "G35"
@@ -2692,3 +2692,37 @@ after = 4893
 key = "composed:component_behavior"
 before = 126
 after = 127
+
+[[generation]]
+id = "G135"
+kind = "NATIVE_ATTACK"
+base_commit = "dddbc9dcd1fcbbd340206e8d5a8eb6bf3553a8b2"
+priority = "P0"
+serves = "P0 native attack queue head NA-TYPED-RELATIONS (DEBT-CAUSALITY, unblocked at G134)"
+objective = "every graph relation a closed kind with category, cardinality and ownership; an untyped relation rejected; causation decided"
+writer = "coordinator (sole writer)"
+evidence = ".atlas/decisions/0054-typed-relations.md"
+self_recensus = ".atlas/evidence/census/G135/recensus.json"
+
+[generation.verification]
+pre_census = "clean-HEAD census of 00b8871985 = G134 post digest 3ec82608... (the evidence commit adds only out-of-scope evidence)"
+atlas_first = "the graph builder's edge constructions were enumerated syntactically (29 literal kinds, one control-flow mapping, one declared-relation projection); the ADL relation names in use were enumerated across declared ADL, fixtures, tests and contracts (depends_on, provides, contains)"
+change = "core::graph::EdgeKind (35 kinds, vocabulary_enum!, wire-compatible) with category, cardinality, owns and causal; EdgeKind::declared and control_flow; ADL ATLAS-E065 for an untyped relation; the graph states no edge for one; contracts updated"
+falsification = "5 mutants killed: any name declares an edge; untyped relations not diagnosed; an untyped relation still becomes an edge; containment does not own; a branch mapped to a fallthrough"
+debts = "last advance G135 for DEBT-CAUSALITY (M0 -> M2); stays OPEN: causal kinds wait for a counterfactual record (NA-COUNTERFACTUAL-RECORD queued)"
+proof = "PROVEN (post 8f306655...): one changed file's new UNKNOWN obligation explained in the intent"
+
+[[generation.metric]]
+key = "typed_records"
+before = 140821
+after = 141075
+
+[[generation.metric]]
+key = "facts"
+before = 23269
+after = 23314
+
+[[generation.metric]]
+key = "composed:function_behavior"
+before = 4893
+after = 4906

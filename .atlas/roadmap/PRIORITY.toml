@@ -103,7 +103,7 @@ hard_stop = ".atlas/roadmap/FOUNDATIONAL-ATLAS-READY.toml (donor progression and
 rule_a = "do not implement complexity without evidence: every mechanism is falsified before it is absorbed"
 rule_b = "do not defer essential complexity once necessity is established: an escalated or skip-budget debt is queued before any donor"
 debt_ledger = ".atlas/roadmap/ESSENTIAL-COMPLEXITY-DEBT.toml"
-next_native_attack = "NA-TYPED-RELATIONS"
+next_native_attack = "NA-ADL-BEYOND-DEPENDENCIES"
 # G122 (ADR 0044, contracts/AGENT-WORN-ATLAS.md): generation classes and their ordering.
 [agent_worn]
 contract = ".atlas/contracts/AGENT-WORN-ATLAS.md"
@@ -575,9 +575,19 @@ objective = "native attack queue head (pressure map, primary-debt dependency ord
 [[planned_generation]]
 id = "G135"
 priority = "P0"
-objective = "native attack queue head (pressure map, primary-debt dependency order): NA-TYPED-RELATIONS; an AGENT_MISSION is due by G137"
+objective = "native attack queue head (pressure map, primary-debt dependency order): NA-TYPED-RELATIONS (done: every graph relation a closed kind with its schema; untyped relations rejected; causation decided; 5 mutants killed)"
 
 [[planned_generation]]
-id = "G136+"
+id = "G136"
+priority = "P0"
+objective = "AGENT_MISSION: the fourth mission through the agent interface (cadence: within five generations of G132)"
+
+[[planned_generation]]
+id = "G137"
+priority = "P2"
+objective = "native attack queue head (pressure map, primary-debt dependency order): NA-ADL-BEYOND-DEPENDENCIES"
+
+[[planned_generation]]
+id = "G138+"
 priority = "P0"
 objective = "the native_attack_queue in order (ESSENTIAL-COMPLEXITY-DEBT.toml) interleaved with an AGENT_MISSION at least every five generations; frontier expansion stays frozen until FOUNDATIONAL_ATLAS_READY"

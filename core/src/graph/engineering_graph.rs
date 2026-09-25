@@ -1,4 +1,4 @@
-use super::{Binding, Edge, EngineeringGraph, Fact, Node};
+use super::{Binding, Edge, EdgeKind, EngineeringGraph, Fact, Node};
 use crate::{
     census::{DependencyClosureReport, DependencyIdentity},
     identity::{escape_identity_field, stable_id},
@@ -55,7 +55,7 @@ pub fn build_source_graph(source: &SourceReport) -> EngineeringGraph {
         });
         edges.push(Edge {
             id: stable_id("edge", &format!("{repo_id}:CONTAINS:{file_id}")),
-            kind: "CONTAINS".into(),
+            kind: EdgeKind::Contains,
             from: repo_id.clone(),
             to: file_id.clone(),
             attributes: BTreeMap::new(),
@@ -65,7 +65,7 @@ pub fn build_source_graph(source: &SourceReport) -> EngineeringGraph {
         if let Some(language_id) = language_ids.get(&file.language) {
             edges.push(Edge {
                 id: stable_id("edge", &format!("{file_id}:USES:{language_id}")),
-                kind: "USES".into(),
+                kind: EdgeKind::Uses,
                 from: file_id.clone(),
                 to: language_id.clone(),
                 attributes: BTreeMap::new(),
@@ -154,7 +154,7 @@ pub fn build_repository_graph(source: &SourceReport, docs: &DocsReport) -> Engin
             });
             graph.edges.push(Edge {
                 id: stable_id("edge", &format!("{document_id}:CONTAINS:{section_id}")),
-                kind: "CONTAINS".into(),
+                kind: EdgeKind::Contains,
                 from: document_id.clone(),
                 to: section_id,
                 attributes: BTreeMap::new(),
@@ -167,7 +167,7 @@ pub fn build_repository_graph(source: &SourceReport, docs: &DocsReport) -> Engin
             if let Some(target_id) = node_ids_by_identity.get(reference) {
                 graph.edges.push(Edge {
                     id: stable_id("edge", &format!("{document_id}:DOCUMENTS:{target_id}")),
-                    kind: "DOCUMENTS".into(),
+                    kind: EdgeKind::Documents,
                     from: document_id.clone(),
                     to: target_id.clone(),
                     attributes: BTreeMap::from([("reference".into(), reference.clone())]),
@@ -301,7 +301,7 @@ pub fn build_system_graph(
                 );
                 graph.edges.push(Edge {
                     id: stable_id("edge", &format!("{repo_id}:CONTAINS:{artifact_id}")),
-                    kind: "CONTAINS".into(),
+                    kind: EdgeKind::Contains,
                     from: repo_id.clone(),
                     to: artifact_id,
                     attributes: BTreeMap::new(),
@@ -342,7 +342,7 @@ pub fn build_system_graph(
                 );
                 graph.edges.push(Edge {
                     id: stable_id("edge", &format!("quantity:{subject}:{attribute}")),
-                    kind: "HAS_QUANTITY".into(),
+                    kind: EdgeKind::HasQuantity,
                     from: owner,
                     to: quantity_id,
                     attributes: BTreeMap::new(),
@@ -356,7 +356,12 @@ pub fn build_system_graph(
             // escapes this identical field set for this identical reason, and the sibling
             // `ConstraintResult | Diagnostic` arm below). Escaped before joining so two genuinely
             // different declared relations/bindings can never collapse onto one edge/binding id.
+            // G135: only a typed relation becomes an edge; the ADL compiler has already
+            // diagnosed an untyped one (ATLAS-E065), which blocks admission.
             SemanticFactKind::DeclaredEdge => {
+                let Some(kind) = EdgeKind::declared(&fact.predicate) else {
+                    continue;
+                };
                 graph.edges.push(Edge {
                     id: stable_id(
                         "edge",
@@ -367,7 +372,7 @@ pub fn build_system_graph(
                             crate::identity::escape_identity_field(&fact.object, ':'),
                         ),
                     ),
-                    kind: fact.predicate.to_ascii_uppercase(),
+                    kind,
                     from: declared_node_id(&fact.subject),
                     to: declared_node_id(&fact.object),
                     attributes: BTreeMap::from([("origin".into(), "normalized-declared".into())]),
@@ -397,7 +402,7 @@ pub fn build_system_graph(
                         "edge",
                         &format!("normalized:{escaped_subject}:BINDS_TO:{escaped_object}"),
                     ),
-                    kind: "BINDS_TO".into(),
+                    kind: EdgeKind::BindsTo,
                     from,
                     to,
                     attributes: BTreeMap::from([("origin".into(), "normalized-declared".into())]),
@@ -471,7 +476,7 @@ pub fn build_system_graph(
                         "edge",
                         &format!("normalized:{}:MATERIALIZES:{}", fact.subject, fact.object),
                     ),
-                    kind: "MATERIALIZES".into(),
+                    kind: EdgeKind::Materializes,
                     from: declared_node_id(&fact.subject),
                     to: materialization_id.clone(),
                     attributes: BTreeMap::from([("origin".into(), "normalized-declared".into())]),
@@ -491,7 +496,7 @@ pub fn build_system_graph(
                                 "edge",
                                 &format!("{materialization_id}:MATERIALIZES_AS:{file_id}"),
                             ),
-                            kind: "MATERIALIZES_AS".into(),
+                            kind: EdgeKind::MaterializesAs,
                             from: materialization_id.clone(),
                             to: file_id.clone(),
                             attributes: BTreeMap::from([("path".into(), path.clone())]),
@@ -615,7 +620,7 @@ fn add_typed_semantic_nodes(
                             "edge",
                             &format!("{function_node_id}:IMPLEMENTED_ON:{type_node_id}"),
                         ),
-                        kind: "IMPLEMENTED_ON".into(),
+                        kind: EdgeKind::ImplementedOn,
                         from: function_node_id,
                         to: type_node_id,
                         attributes,
@@ -665,7 +670,7 @@ fn add_typed_semantic_nodes(
                                 "{signature_node_id}:HAS_PARAMETER_TYPE:{position}:{type_node_id}"
                             ),
                         ),
-                        kind: "HAS_PARAMETER_TYPE".into(),
+                        kind: EdgeKind::HasParameterType,
                         from: signature_node_id.clone(),
                         to: type_node_id,
                         attributes: BTreeMap::from([
@@ -687,7 +692,7 @@ fn add_typed_semantic_nodes(
                             "edge",
                             &format!("{signature_node_id}:HAS_RETURN_TYPE:{type_node_id}"),
                         ),
-                        kind: "HAS_RETURN_TYPE".into(),
+                        kind: EdgeKind::HasReturnType,
                         from: signature_node_id,
                         to: type_node_id,
                         attributes: BTreeMap::from([(
@@ -714,7 +719,7 @@ fn add_typed_semantic_nodes(
                         stable_id("node", &format!("function-identity:{}", callee.as_str()));
                     graph.edges.push(Edge {
                         id: stable_id("edge", &format!("{call_site_id}:CALLS:{callee_node_id}")),
-                        kind: "CALLS".into(),
+                        kind: EdgeKind::Calls,
                         from: call_site_id.clone(),
                         to: callee_node_id,
                         attributes: BTreeMap::from([
@@ -754,7 +759,7 @@ fn add_typed_semantic_nodes(
                         "edge",
                         &format!("{caller_node_id}:MAKES_CALL:{call_site_id}"),
                     ),
-                    kind: "MAKES_CALL".into(),
+                    kind: EdgeKind::MakesCall,
                     from: caller_node_id,
                     to: call_site_id.clone(),
                     attributes: BTreeMap::from([("origin".into(), "semantic-extraction".into())]),
@@ -781,7 +786,7 @@ fn add_typed_semantic_nodes(
                                     "{call_site_id}:BINDS_ARGUMENT:{position}:{place_node_id}"
                                 ),
                             ),
-                            kind: "BINDS_ARGUMENT".into(),
+                            kind: EdgeKind::BindsArgument,
                             from: call_site_id.clone(),
                             to: place_node_id,
                             attributes: BTreeMap::from([
@@ -804,7 +809,7 @@ fn add_typed_semantic_nodes(
                             "edge",
                             &format!("{call_site_id}:BINDS_RESULT:{place_node_id}"),
                         ),
-                        kind: "BINDS_RESULT".into(),
+                        kind: EdgeKind::BindsResult,
                         from: call_site_id,
                         to: place_node_id,
                         attributes: BTreeMap::from([(
@@ -854,7 +859,7 @@ fn add_typed_semantic_nodes(
                         "edge",
                         &format!("{caller_node_id}:HAS_BLOCK:{block_node_id}"),
                     ),
-                    kind: "HAS_BLOCK".into(),
+                    kind: EdgeKind::HasBlock,
                     from: caller_node_id,
                     to: block_node_id.clone(),
                     attributes: BTreeMap::from([("origin".into(), "semantic-extraction".into())]),
@@ -867,13 +872,14 @@ fn add_typed_semantic_nodes(
                     };
                     let target_node_id =
                         stable_id("node", &format!("control-flow-block:{}", target.as_str()));
-                    let edge_kind = successor.kind.as_str();
+                    let kind = EdgeKind::control_flow(successor.kind);
+                    let edge_kind = kind.as_str();
                     graph.edges.push(Edge {
                         id: stable_id(
                             "edge",
                             &format!("{block_node_id}:{edge_kind}:{target_node_id}"),
                         ),
-                        kind: edge_kind.into(),
+                        kind,
                         from: block_node_id.clone(),
                         to: target_node_id,
                         attributes: BTreeMap::from([(
@@ -933,7 +939,7 @@ fn add_typed_semantic_nodes(
                         "edge",
                         &format!("{caller_node_id}:HAS_VALUE:{value_node_id}"),
                     ),
-                    kind: "HAS_VALUE".into(),
+                    kind: EdgeKind::HasValue,
                     from: caller_node_id,
                     to: value_node_id.clone(),
                     attributes: BTreeMap::from([("origin".into(), "semantic-extraction".into())]),
@@ -948,7 +954,7 @@ fn add_typed_semantic_nodes(
                             "edge",
                             &format!("{value_node_id}:RESOLVES_TO:{def_node_id}"),
                         ),
-                        kind: "RESOLVES_TO".into(),
+                        kind: EdgeKind::ResolvesTo,
                         from: value_node_id,
                         to: def_node_id,
                         attributes: BTreeMap::from([(
@@ -997,7 +1003,7 @@ fn add_typed_semantic_nodes(
                         "edge",
                         &format!("{caller_node_id}:HAS_ACCESS:{access_node_id}"),
                     ),
-                    kind: "HAS_ACCESS".into(),
+                    kind: EdgeKind::HasAccess,
                     from: caller_node_id,
                     to: access_node_id.clone(),
                     attributes: BTreeMap::from([("origin".into(), "semantic-extraction".into())]),
@@ -1025,7 +1031,7 @@ fn add_typed_semantic_nodes(
                         "edge",
                         &format!("{access_node_id}:TARGETS:{entity_node_id}"),
                     ),
-                    kind: "TARGETS".into(),
+                    kind: EdgeKind::Targets,
                     from: access_node_id,
                     to: entity_node_id,
                     attributes: BTreeMap::from([("origin".into(), "semantic-extraction".into())]),
@@ -1067,7 +1073,7 @@ fn add_typed_semantic_nodes(
                         "edge",
                         &format!("{caller_node_id}:PRODUCES_EFFECT:{effect_node_id}"),
                     ),
-                    kind: "PRODUCES_EFFECT".into(),
+                    kind: EdgeKind::ProducesEffect,
                     from: caller_node_id,
                     to: effect_node_id,
                     attributes: BTreeMap::from([("origin".into(), "semantic-extraction".into())]),
@@ -1116,7 +1122,7 @@ fn add_typed_semantic_nodes(
                         "edge",
                         &format!("{caller_node_id}:HAS_OPERATION:{op_node_id}"),
                     ),
-                    kind: "HAS_OPERATION".into(),
+                    kind: EdgeKind::HasOperation,
                     from: caller_node_id,
                     to: op_node_id.clone(),
                     attributes: BTreeMap::from([("origin".into(), "semantic-extraction".into())]),
@@ -1153,7 +1159,7 @@ fn add_typed_semantic_nodes(
                 );
                 graph.edges.push(Edge {
                     id: stable_id("edge", &format!("{op_node_id}:TARGETS:{target_node_id}")),
-                    kind: "TARGETS".into(),
+                    kind: EdgeKind::Targets,
                     from: op_node_id,
                     to: target_node_id,
                     attributes: BTreeMap::from([("origin".into(), "semantic-extraction".into())]),
@@ -1197,7 +1203,7 @@ fn add_typed_semantic_nodes(
                         "edge",
                         &format!("{caller_node_id}:PRODUCES_CONCURRENCY_OP:{op_node_id}"),
                     ),
-                    kind: "PRODUCES_CONCURRENCY_OP".into(),
+                    kind: EdgeKind::ProducesConcurrencyOp,
                     from: caller_node_id,
                     to: op_node_id,
                     attributes: BTreeMap::from([("origin".into(), "semantic-extraction".into())]),
@@ -1252,7 +1258,7 @@ fn add_typed_semantic_nodes(
                         "edge",
                         &format!("{caller_node_id}:PRODUCES_PERSISTENCE_OP:{op_node_id}"),
                     ),
-                    kind: "PRODUCES_PERSISTENCE_OP".into(),
+                    kind: EdgeKind::ProducesPersistenceOp,
                     from: caller_node_id,
                     to: op_node_id.clone(),
                     attributes: BTreeMap::from([("origin".into(), "semantic-extraction".into())]),
@@ -1270,7 +1276,7 @@ fn add_typed_semantic_nodes(
                             "edge",
                             &format!("{op_node_id}:REFERS_TO_PLACE:{place_node_id}"),
                         ),
-                        kind: "REFERS_TO_PLACE".into(),
+                        kind: EdgeKind::RefersToPlace,
                         from: op_node_id,
                         to: place_node_id,
                         attributes: BTreeMap::from([(
@@ -1390,7 +1396,7 @@ pub fn add_dependency_closure(graph: &mut EngineeringGraph, closure: &Dependency
         }
         graph.edges.push(Edge {
             id: stable_id("edge", &format!("dependency:{}", edge.identity_key())),
-            kind: "RESOLVES_DEPENDENCY".into(),
+            kind: EdgeKind::ResolvesDependency,
             from: consumer_id,
             to: provider_id,
             attributes: edge_attributes,
@@ -1468,7 +1474,7 @@ pub fn add_constraint_derivations(graph: &mut EngineeringGraph, results: &[Const
                             derivation.rule.as_str()
                         ),
                     ),
-                    kind: "SUPPORTED_BY".into(),
+                    kind: EdgeKind::SupportedBy,
                     from: result_id.clone(),
                     to: target_id,
                     attributes: BTreeMap::from([("rule".into(), derivation.rule.as_str().into())]),
@@ -1827,35 +1833,55 @@ mod tests {
         // this identical field set for this identical reason). Two genuinely different declared
         // relations must never collapse onto one edge id merely because their unescaped `:` join
         // renders the same string.
+        // G135: the relation is typed now, so the colliding pair is built from subject and
+        // object text: `A:depends_on:B -depends_on-> C` and `A -depends_on-> B:depends_on:C`
+        // join to the same unescaped string.
         let colliding_a = semantic(
             "edge-a",
             SemanticFactKind::DeclaredEdge,
             EpistemicStatus::Declared,
-            "Foo:bar",
-            "baz",
-            "X",
+            "A:depends_on:B",
+            "depends_on",
+            "C",
         );
         let colliding_b = semantic(
             "edge-b",
             SemanticFactKind::DeclaredEdge,
             EpistemicStatus::Declared,
-            "Foo",
-            "bar:baz",
-            "X",
+            "A",
+            "depends_on",
+            "B:depends_on:C",
         );
-        let normalization = normalization_with(Vec::new(), vec![colliding_a, colliding_b]);
+        let untyped = semantic(
+            "edge-c",
+            SemanticFactKind::DeclaredEdge,
+            EpistemicStatus::Declared,
+            "A",
+            "causes",
+            "C",
+        );
+        let normalization = normalization_with(Vec::new(), vec![colliding_a, colliding_b, untyped]);
         let graph = build_system_graph(&source(), &docs(), &normalization);
 
         let edge_ids: std::collections::BTreeSet<_> = graph
             .edges
             .iter()
-            .filter(|edge| edge.kind == "BAZ" || edge.kind == "BAR:BAZ")
+            .filter(|edge| edge.kind == EdgeKind::DependsOn)
             .map(|edge| edge.id.clone())
             .collect();
         assert_eq!(
             edge_ids.len(),
             2,
             "two genuinely different declared edges must never collapse onto one edge id"
+        );
+        // G135: an untyped relation (`causes`) states no edge at all.
+        assert!(
+            graph
+                .edges
+                .iter()
+                .all(|edge| edge.attributes.get("origin").map(String::as_str)
+                    != Some("normalized-declared")
+                    || edge.kind == EdgeKind::DependsOn)
         );
     }
 

@@ -38,6 +38,16 @@ A Node is an identifiable thing.
 
 An Edge states a typed relation.
 
+**Implementation (G135, ADR 0054).** `Edge.kind` is a closed `EdgeKind`, serialized to the same names the free string used. Each kind declares:
+
+- its category: structural, declared, semantic or control flow;
+- its cardinality;
+- whether the source owns the target.
+
+A declared ADL relation is one of `depends_on`, `provides` or `contains`. Any other name is an untyped relation: the ADL compiler rejects it (`ATLAS-E065`, which blocks admission), and it states no edge.
+
+No kind is causal. A call is an invocation and an effect site is where an effect is performed, never a cause. A causal relation needs a counterfactual record, which Atlas does not yet have.
+
 A Binding states an explicit connection/realization between endpoints, including interface/capability/schema/protocol compatibility and constraints. Binding is not merely a generic edge.
 
 Evidence supports or contradicts claims.

@@ -1056,6 +1056,25 @@ pub fn compile_adl(sources: &[AdlSource], observed: &SourceReport) -> AdlCompile
     }
 
     for edge in &edges {
+        // G135 (NA-TYPED-RELATIONS): a relation states a typed graph edge; a name outside the
+        // declared kinds is an untyped relation, rejected rather than turned into a free string.
+        if crate::graph::EdgeKind::declared(&edge.relation).is_none() {
+            let known: Vec<&str> = crate::graph::EdgeKind::DECLARED
+                .iter()
+                .map(|(name, _)| *name)
+                .collect();
+            diagnostics.push(adl_diag(
+                "ATLAS-E065",
+                format!(
+                    "untyped relation `{}`: a declared relation is one of {}",
+                    edge.relation,
+                    known.join(", ")
+                ),
+                &edge.span.path,
+                edge.span.line,
+                edge.span.column,
+            ));
+        }
         if !names.contains_key(&edge.from) {
             diagnostics.push(adl_diag(
                 "ATLAS-E021",
@@ -1705,6 +1724,34 @@ constraint BackendIsRust {
         assert!(report.diagnostics.is_empty());
         assert!(report.deltas.is_empty());
         assert!(report.constraint_results.iter().all(|result| result.passed));
+    }
+
+    /// G135 (NA-TYPED-RELATIONS): a relation outside the declared kinds is an untyped relation,
+    /// diagnosed (ATLAS-E065) rather than admitted as a free string.
+    #[test]
+    fn an_untyped_relation_is_rejected() {
+        let source = AdlSource {
+            path: ".atlas/declared/system.adl".into(),
+            text: "atlas 1\nsystem Example\nentity Runtime A {\n    kind = backend\n}\n\
+                   entity Runtime B {\n    kind = backend\n}\nA ->depends_on-> B\nA ->causes-> B\n"
+                .into(),
+        };
+        let observed = SourceReport {
+            schema: "test".into(),
+            root: "/repo".into(),
+            files_total: 0,
+            languages: BTreeMap::new(),
+            files: Vec::new(),
+        };
+        let report = compile_adl(&[source], &observed);
+        let untyped: Vec<&AdlDiagnostic> = report
+            .diagnostics
+            .iter()
+            .filter(|d| d.code == "ATLAS-E065")
+            .collect();
+        assert_eq!(untyped.len(), 1, "{:?}", report.diagnostics);
+        assert!(untyped[0].message.contains("`causes`"));
+        assert!(untyped[0].message.contains("depends_on"));
     }
 
     /// G130: the census-quantified forms parse into `CensusForbid`; a malformed one is ATLAS-E052,

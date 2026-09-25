@@ -220,6 +220,10 @@ This was not a hypothetical: this repository's own real `.atlas/declared/system.
 
 `parse_relation` extracts a relation's `from`/`relation`/`to` from raw ADL source text via simple `split_once("->")`, not through a restrictive lexer — any of the three can contain a literal `:`. `compile_adl` previously joined them unescaped (`format!("{}:{}:{}", from, relation, to)`) to compute the declared edge's `stable_id`, so two genuinely different relations (e.g. `A ->r:B-> C` and `A ->r-> B:C`, both joining to `"A:r:B:C"`) could compute the identical edge id. Fixed: each field is now escaped (`core::identity::escape_identity_field`) before joining, the same fix applied to `core::census::dependency`'s `identity_key()` (`DEPENDENCY-CENSUS.md#implementation-status`) and `core::graph::engineering_graph`'s `Diagnostic` node id (`UNIVERSAL-GRAPH-CONTRACT.md#implementation-status`) — all three are the same collision class, closed the same way, in fields this codebase cannot prove are free of the separator because they come from a permissive parser rather than a real lexer. Found via falsification-first testing: the regression test was run against the unfixed code and confirmed to fail with a real id collision before the fix was written.
 
+## Implementation status: typed relations (G135, ADR 0054)
+
+A relation `A ->name-> B` declares a typed graph edge. `name` is one of `depends_on`, `provides` or `contains`. Any other name is an untyped relation: `ATLAS-E065` is a compile diagnostic, which blocks admission, and the relation states no edge.
+
 ## Implementation status: ADL consumes census truth (G63, ADR 0026)
 
 Authored `depends_on` declarations are reconciled against the Cargo dependency census, at the level of workspace members. An entity corresponds to a member only through its `materialize` path, never through its name.
