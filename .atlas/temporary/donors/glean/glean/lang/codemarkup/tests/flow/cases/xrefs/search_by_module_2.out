@@ -1,9 +1,0 @@
-[
-  "@generated",
-  {
-    "key": {
-      "name": "imports",
-      "module": { "key": { "file": { "key": "imports.js" } } }
-    }
-  }
-]

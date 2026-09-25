@@ -1,3 +1,0 @@
-query: glass.FileInfo _
-perf: true
-transform: [gensort, []]

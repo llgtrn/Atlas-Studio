@@ -1,3 +1,0 @@
-query: symbolid.cxx.LookupNamespaceDefinition _
-perf: true
-transform: [gensort, []]

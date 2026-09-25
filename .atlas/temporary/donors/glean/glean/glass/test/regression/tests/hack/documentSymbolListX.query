@@ -1,2 +1,0 @@
-action: documentSymbolListX
-args: {"include_refs":true,"filepath":"www/RefClass.php","repository":"test"}

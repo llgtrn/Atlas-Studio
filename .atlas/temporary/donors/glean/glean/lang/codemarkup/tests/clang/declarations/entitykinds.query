@@ -1,2 +1,0 @@
-query: codemarkup.cxx.CxxDeclKind _
-transform: [gensort, []]

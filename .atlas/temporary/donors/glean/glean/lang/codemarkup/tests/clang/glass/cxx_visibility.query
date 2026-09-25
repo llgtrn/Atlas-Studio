@@ -1,3 +1,0 @@
-query: |
-  V where V = codemarkup.cxx.CxxVisibility { entity = E }; { decl = _ } | { defn = _ } = E
-transform: [gensort, []]

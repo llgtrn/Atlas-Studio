@@ -1,3 +1,0 @@
-query: search.code.SearchByNameKindAndLanguage { name = "f1_go", language = Rust }
-perf: True
-transform: [gensort, []]

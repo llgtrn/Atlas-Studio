@@ -1,9 +1,0 @@
-[
-  "@generated",
-  {
-    "key": {
-      "displayName": { "key": "Prefix" },
-      "symbol": { "key": "rust-analyzer cargo relative_path 0.0.0 Prefix#" }
-    }
-  }
-]

@@ -1,3 +1,0 @@
-query: symbolid.cxx.LookupFunctionSignatureDeclaration _
-perf: true
-transform: [gensort, []]

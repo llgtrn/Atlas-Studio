@@ -1,3 +1,0 @@
-query: codemarkup.FileEntityXRefLocations { file = "main.py" }
-transform: [normord, []]
-perf: true

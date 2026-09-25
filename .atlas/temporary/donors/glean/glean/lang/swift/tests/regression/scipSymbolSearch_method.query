@@ -1,4 +1,0 @@
-query: |
-    scip.SearchByNameKindLanguage { name = "init(coder:)" }
-perf: True
-transform: [gensort, []]

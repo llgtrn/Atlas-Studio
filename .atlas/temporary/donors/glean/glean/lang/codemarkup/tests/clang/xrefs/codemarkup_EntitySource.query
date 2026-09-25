@@ -1,3 +1,0 @@
-query: codemarkup.EntitySource { target = { cxx = { defn = _ } } }
-perf: true
-transform: [gensort, []]

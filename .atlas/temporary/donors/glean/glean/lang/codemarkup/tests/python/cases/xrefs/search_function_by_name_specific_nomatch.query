@@ -1,3 +1,0 @@
-query: python.SearchFunctionByName { name = "all" }
-perf: true
-transform: [gensort, []]

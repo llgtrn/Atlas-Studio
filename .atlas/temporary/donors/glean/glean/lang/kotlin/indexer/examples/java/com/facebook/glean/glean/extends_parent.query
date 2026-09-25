@@ -1,3 +1,0 @@
-query: codemarkup.kotlin.KotlinExtendsParentEntity _
-perf: True
-transform: [gensort, []]

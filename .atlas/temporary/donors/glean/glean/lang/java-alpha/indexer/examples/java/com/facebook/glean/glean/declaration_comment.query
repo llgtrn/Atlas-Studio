@@ -1,2 +1,0 @@
-query: java.alpha.DeclarationComment _
-transform: [gensort, []]

@@ -1,3 +1,0 @@
-query: python.MethodOverriden _
-transform: [normord, []]
-perf: true

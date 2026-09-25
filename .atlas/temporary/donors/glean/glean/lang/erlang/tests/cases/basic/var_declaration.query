@@ -1,3 +1,0 @@
-query: erlang.VarDeclaration _
-perf: True
-transform: [gensort, []]

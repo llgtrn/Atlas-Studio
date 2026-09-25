@@ -1,2 +1,0 @@
-action: documentSymbolIndex
-args: {"include_refs":true,"filepath":"lib.thrift","repository":"test"}

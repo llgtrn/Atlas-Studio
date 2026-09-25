@@ -1,3 +1,0 @@
-query: python.SearchMethodByName { name = "method" }
-perf: true
-transform: [gensort, []]

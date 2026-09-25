@@ -1,5 +1,0 @@
-{
-  "@generated": null,
-  "facts_searched": { "flow.Module.3": 3 },
-  "full_scans": [ "flow.StringToFileModule.3", "src.File.1" ]
-}

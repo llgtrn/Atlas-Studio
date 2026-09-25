@@ -1,2 +1,0 @@
-query: cxx1.RecordStructLowerCase _
-transform: [gensort, []]

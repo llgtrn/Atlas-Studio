@@ -1,3 +1,0 @@
-query: hack.SearchTypedefByName { name = _ }
-transform: [normord, []]
-perf: true

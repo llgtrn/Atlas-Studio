@@ -1,3 +1,0 @@
-query: erlang.AppInfo _
-perf: True
-transform: [gensort, []]

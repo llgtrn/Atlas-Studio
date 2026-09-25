@@ -1,3 +1,0 @@
-query: codemarkup.search.SearchByName { name = "not a match", kind = { just = Module }, searchcase = Sensitive }
-perf: true
-transform: [gensort, []]

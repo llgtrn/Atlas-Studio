@@ -1,3 +1,0 @@
-query: hack.SearchClassByLowerCaseName { name_lowercase = "sourceclass" }
-transform: [normord, []]
-perf: true

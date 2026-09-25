@@ -1,3 +1,0 @@
-query: search.kind.cxx.SearchClass { name = _ }
-perf: true
-transform: [gensort, []]

@@ -862,6 +862,7 @@ objective = "test Kythe's recorded absorption condition on the real census, abso
 writer = "coordinator (sole writer)"
 evidence = ".atlas/evidence/campaign/08-kythe.json"
 self_recensus = ".atlas/evidence/census/G67/recensus.json"
+result_commits = ["ecf74a3a6c22183ef2a37c6140940c74b312b34f", "dd703cd509b032202d3f2fdf70f5b99639fea2c2"]
 
 [generation.verification]
 pre_census = "clean-HEAD census of d28f18f691 = G66 post digest 3ce4fb6a... (a23ae6607f adds only out-of-scope evidence)"
@@ -872,3 +873,23 @@ falsification = "7/7 mutants killed after closing one real test gap (the symbol 
 
 [generation.next]
 objective = "G68 (P3): first-50 #9 glean -- typed fact schemas + derived predicates, measured against Atlas's census"
+
+[[generation]]
+id = "G68"
+base_commit = "dd703cd509b032202d3f2fdf70f5b99639fea2c2"
+priority = "P3"
+serves = "P3 FIRST_50_DONOR_CAMPAIGN: donor #9 glean to a terminal state; P2 .atlas artifact integrity (wire evolution rule)"
+objective = "run Glean's recorded falsification against the G64 codec, absorb definition-derived schema identity, physically extinct the checkout"
+writer = "coordinator (sole writer)"
+evidence = ".atlas/evidence/campaign/09-glean.json"
+self_recensus = ".atlas/evidence/census/G68/recensus.json"
+
+[generation.verification]
+pre_census = "clean-HEAD census of ecf74a3a6c = G67 post digest 97978cfc... (dd703cd509 adds only out-of-scope evidence)"
+falsification_first = "a lockstep tag-repurposing version (fact subject/predicate) packed the self-census and the current reader ACCEPTED it (silent misread); after the change the same emulation is REJECTED (unknown schema id), and pre-G68 containers are refused explicitly"
+found_during = "the byte-flip sweep caught a reader panic introduced mid-refactor (schema_id of a hostile section type); fixed by rejecting unknown section types first"
+incident = "a scripted test rewrite truncated the codec test file (the forgery tests after the replaced test); noticed from the missing helper and restored from HEAD before any gate"
+falsification = "12 mutants: 11 killed, 1 equivalent (expect_kind guards every read position before the table lookup)"
+
+[generation.next]
+objective = "G69 (P3): first-50 #10 joern -- code property graph, measured against Atlas's census"

@@ -1,3 +1,0 @@
-query: codemarkup.pp.PPEntityLocation _
-perf: true
-transform: [gensort, []]

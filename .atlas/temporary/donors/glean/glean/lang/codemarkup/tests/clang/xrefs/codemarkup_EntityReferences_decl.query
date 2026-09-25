@@ -1,4 +1,0 @@
-query: |
-  cxx1.Declarations Ds;  D = Ds[..]; codemarkup.EntityReferences { target = { cxx = { decl = D } } }
-perf: true
-transform: [gensort, []]

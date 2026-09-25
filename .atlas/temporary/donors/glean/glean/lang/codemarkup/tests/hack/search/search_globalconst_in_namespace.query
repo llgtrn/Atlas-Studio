@@ -1,3 +1,0 @@
-query: search.hack.SearchGlobalConstInNamespace _
-transform: [normord, []]
-perf: true

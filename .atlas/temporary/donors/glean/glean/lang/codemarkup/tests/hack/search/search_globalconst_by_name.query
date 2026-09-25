@@ -1,3 +1,0 @@
-query: hack.SearchGlobalConstByName { name = "WALDO" }
-transform: [normord, []]
-perf: true

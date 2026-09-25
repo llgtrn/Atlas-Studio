@@ -1,2 +1,0 @@
-query: python.FunctionBySName K -> V; {K, V}
-transform: [normord, []]

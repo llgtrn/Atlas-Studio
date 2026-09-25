@@ -316,7 +316,7 @@ ADR 0027 pins what this contract leaves undefined:
 - minimal unsigned LEB128 varints;
 - AtlasX wire-type ids;
 - field flag bit 0 = REQUIRED;
-- `schema_id` = the first 8 bytes of BLAKE3(`atlas.wire.v1/<section>`);
+- `schema_id` = the first 8 bytes of BLAKE3 over the section's declared definition text: record kinds; fields by name, tag, wire type and requiredness; and the hashes of the sections it depends on (G68, ADR 0030; G64 hashed only the section name). The reader refuses any undeclared identity, so a breaking change can never be silently misread;
 - root identity = BLAKE3 over the ROOT_MANIFEST content, which commits to every other section's type, schema id, content hash and record count;
 - canonical record order and exact file tiling, both enforced by the reader.
 

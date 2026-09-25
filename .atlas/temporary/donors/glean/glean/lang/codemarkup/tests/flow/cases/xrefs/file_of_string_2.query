@@ -1,2 +1,0 @@
-query: flow.FileOfStringModule _
-transform: [gensort, []]

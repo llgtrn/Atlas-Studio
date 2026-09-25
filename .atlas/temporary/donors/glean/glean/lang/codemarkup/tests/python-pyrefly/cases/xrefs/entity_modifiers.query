@@ -1,5 +1,0 @@
-query: |
-    python.DeclarationLocation { declaration = Decl };
-    codemarkup.EntityModifiers { entity = { python = { decl = Decl } } }
-perf: true
-transform: [normord, []]

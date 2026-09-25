@@ -1,2 +1,0 @@
-query: python.ImportStarsByFile _
-transform: [normord, []]

@@ -1,3 +1,0 @@
-query: lsif.SearchByExactLocationAndName _
-perf: True
-transform: [gensort, []]

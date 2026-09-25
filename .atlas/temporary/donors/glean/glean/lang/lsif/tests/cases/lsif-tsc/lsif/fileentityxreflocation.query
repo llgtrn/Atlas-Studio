@@ -1,3 +1,0 @@
-query: lsif.FileEntityXRefLocation _
-perf: True
-transform: [gensort, []]

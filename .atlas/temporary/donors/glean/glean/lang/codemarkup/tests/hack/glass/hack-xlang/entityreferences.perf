@@ -1,5 +1,0 @@
-{
-  "@generated": null,
-  "facts_searched": { "hack.TargetUses.6": 45, "hack.ThriftToHack.6": 46 },
-  "full_scans": [ "hack.ThriftToHack.6" ]
-}

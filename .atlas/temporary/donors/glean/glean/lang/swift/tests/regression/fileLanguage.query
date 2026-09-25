@@ -1,3 +1,0 @@
-query: scip.FileLanguage _
-perf: True
-transform: [gensort, []]

@@ -1,4 +1,0 @@
-query: scip.ReferenceTarget _
-perf: True
-transform: [gensort, []]
-

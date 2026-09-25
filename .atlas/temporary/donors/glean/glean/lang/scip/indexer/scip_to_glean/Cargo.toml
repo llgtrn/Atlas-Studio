@@ -1,7 +1,0 @@
-[workspace]
-members = [
-    "cli",
-    "scip_symbol",
-    "scip_symbol_parse",
-]
-resolver = "2"

@@ -1,2 +1,0 @@
-query: cxx1.DeclarationComment _
-transform: [gensort, []]

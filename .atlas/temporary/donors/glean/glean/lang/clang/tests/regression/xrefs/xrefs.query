@@ -1,2 +1,0 @@
-query: cxx1.FileXRefs _
-transform: [xrefs, null, gensort, []]

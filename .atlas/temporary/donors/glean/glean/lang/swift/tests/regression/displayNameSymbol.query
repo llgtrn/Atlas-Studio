@@ -1,3 +1,0 @@
-query: scip.DisplayNameSymbol { displayName = "CGPoint" }
-perf: True
-transform: [gensort, []]

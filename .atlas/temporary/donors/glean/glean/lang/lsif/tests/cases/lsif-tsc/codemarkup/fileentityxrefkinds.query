@@ -1,4 +1,0 @@
-query: codemarkup.FileEntityXRefKinds _
-perf: True
-transform: [gensort, []]
-

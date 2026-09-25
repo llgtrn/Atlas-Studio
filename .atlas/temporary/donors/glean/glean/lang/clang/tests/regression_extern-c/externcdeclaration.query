@@ -1,3 +1,0 @@
-query: cxx1.ExternCDeclaration _
-perf: true
-transform: [gensort, []]

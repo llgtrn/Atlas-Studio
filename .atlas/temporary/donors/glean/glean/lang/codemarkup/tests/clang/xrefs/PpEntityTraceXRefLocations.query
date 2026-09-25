@@ -1,3 +1,0 @@
-query: codemarkup.pp.PpEntityTraceXRefLocations _
-perf: true
-transform: [gensort, []]

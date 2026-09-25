@@ -1,3 +1,0 @@
-query: codemarkup.search.SearchByScope { name = "foo", scope = ["some"], searchcase = Sensitive, language = Python }
-perf: true
-transform: [normord, []]

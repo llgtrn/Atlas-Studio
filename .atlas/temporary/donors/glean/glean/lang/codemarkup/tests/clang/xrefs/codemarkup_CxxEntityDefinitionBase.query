@@ -1,3 +1,0 @@
-query: codemarkup.cxx.CxxEntityDefinitionBase { _, _ }
-perf: true
-transform: [gensort, []]

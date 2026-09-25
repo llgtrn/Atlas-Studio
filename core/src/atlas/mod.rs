@@ -20,6 +20,8 @@
 //! Identity never depends on local table positions leaking across artifacts: record contents are
 //! strings, and the root identity covers decoded content only.
 
+pub mod schema;
+
 use crate::identity::{IntegrityDigest, blake3};
 use std::collections::BTreeMap;
 
@@ -49,22 +51,12 @@ const WIRE_UTF8: u8 = 6;
 const WIRE_HASH32: u8 = 7;
 const WIRE_LOCAL_INDEX: u8 = 9;
 
-fn section_name(section: u16) -> &'static str {
-    match section {
-        ROOT_MANIFEST => "root-manifest",
-        STRING_TABLE => "string-table",
-        SEMANTIC_RECORDS => "census-facts",
-        GRAPH_NODES => "declared-nodes",
-        GRAPH_EDGES => "declared-edges",
-        OBLIGATIONS => "semantic-obligations",
-        CENSUS_CERTIFICATE => "census-certificate",
-        _ => "unknown",
-    }
-}
-
-/// The pinned schema id of a section this module writes.
+/// A section's schema id: the first 8 bytes (little-endian) of the hash of its declared
+/// definition and dependencies (`schema::schema_hash`, G68). Any change to a field's tag, name,
+/// wire type or requiredness moves it.
 pub fn schema_id(section: u16) -> u64 {
-    let digest = blake3::hash(format!("atlas.wire.v1/{}", section_name(section)).as_bytes());
+    let def = schema::section(section).expect("a section this module writes");
+    let digest = schema::schema_hash(def);
     u64::from_le_bytes(digest[..8].try_into().expect("8 bytes"))
 }
 
@@ -202,31 +194,99 @@ fn uvarint(mut value: u64, out: &mut Vec<u8>) {
 
 struct Record {
     kind: u16,
-    payload: Vec<u8>,
+    /// The declared schema of a table-driven record; `None` for a raw record (tests build
+    /// hostile containers with raw tags).
+    def: Option<&'static schema::RecordDef>,
+    fields: Vec<(u16, Vec<u8>)>,
 }
 
 impl Record {
     fn new(kind: u16) -> Self {
         Self {
             kind,
-            payload: Vec::new(),
+            def: None,
+            fields: Vec::new(),
+        }
+    }
+
+    /// A record of `section`'s declared kind: its fields are written by name, and their tags,
+    /// wire types and required flags come from the table only.
+    fn of(section: u16, kind: u16) -> Self {
+        Self {
+            def: Some(schema::record(section, kind).expect("declared record kind")),
+            ..Self::new(kind)
         }
     }
 
     fn field(mut self, tag: u16, wire: u8, flags: u8, bytes: &[u8]) -> Self {
-        self.payload.extend_from_slice(&tag.to_le_bytes());
-        self.payload.push(wire);
-        self.payload.push(flags);
-        self.payload
-            .extend_from_slice(&(bytes.len() as u32).to_le_bytes());
-        self.payload.extend_from_slice(bytes);
+        let mut encoded = Vec::with_capacity(8 + bytes.len());
+        encoded.extend_from_slice(&tag.to_le_bytes());
+        encoded.push(wire);
+        encoded.push(flags);
+        encoded.extend_from_slice(&(bytes.len() as u32).to_le_bytes());
+        encoded.extend_from_slice(bytes);
+        self.fields.push((tag, encoded));
         self
     }
 
-    fn utf8(self, tag: u16, value: &str) -> Self {
-        self.field(tag, WIRE_UTF8, REQUIRED, value.as_bytes())
+    fn put(self, name: &str, wire: u8, bytes: &[u8]) -> Self {
+        let def = self.def.expect("a table-driven record").field(name);
+        assert_eq!(
+            def.wire, wire,
+            "field `{name}` is declared with another wire type"
+        );
+        let flags = if def.required { REQUIRED } else { 0 };
+        self.field(def.tag, wire, flags, bytes)
     }
 
+    fn text(self, name: &str, value: &str) -> Self {
+        self.put(name, WIRE_UTF8, value.as_bytes())
+    }
+
+    fn number(self, name: &str, value: u64) -> Self {
+        let mut bytes = Vec::new();
+        uvarint(value, &mut bytes);
+        self.put(name, WIRE_UVARINT, &bytes)
+    }
+
+    fn digest(self, name: &str, value: &[u8; 32]) -> Self {
+        self.put(name, WIRE_HASH32, value)
+    }
+
+    fn string(self, name: &str, strings: &Strings, value: &str) -> Self {
+        let mut bytes = Vec::new();
+        uvarint(strings.index(value), &mut bytes);
+        self.put(name, WIRE_LOCAL_INDEX, &bytes)
+    }
+
+    fn optional_string(self, name: &str, strings: &Strings, value: Option<&str>) -> Self {
+        match value {
+            Some(value) => self.string(name, strings, value),
+            None => self,
+        }
+    }
+
+    fn encode(mut self, out: &mut Vec<u8>) {
+        // A table-driven record emits in ascending tag order whatever the call order; a raw one
+        // keeps its order so tests can build non-canonical framing.
+        if self.def.is_some() {
+            self.fields.sort_by_key(|(tag, _)| *tag);
+        }
+        let payload: Vec<u8> = self
+            .fields
+            .into_iter()
+            .flat_map(|(_, bytes)| bytes)
+            .collect();
+        out.extend_from_slice(&self.kind.to_le_bytes());
+        out.extend_from_slice(&RECORD_SCHEMA_VERSION.to_le_bytes());
+        out.extend_from_slice(&(payload.len() as u32).to_le_bytes());
+        out.extend_from_slice(&payload);
+    }
+}
+
+/// Raw builders: tests forge containers with arbitrary tags and wire types.
+#[cfg(test)]
+impl Record {
     fn uvarint(self, tag: u16, value: u64) -> Self {
         let mut bytes = Vec::new();
         uvarint(value, &mut bytes);
@@ -235,19 +295,6 @@ impl Record {
 
     fn hash(self, tag: u16, value: &[u8; 32]) -> Self {
         self.field(tag, WIRE_HASH32, REQUIRED, value)
-    }
-
-    fn index(self, tag: u16, strings: &Strings, value: &str, flags: u8) -> Self {
-        let mut bytes = Vec::new();
-        uvarint(strings.index(value), &mut bytes);
-        self.field(tag, WIRE_LOCAL_INDEX, flags, &bytes)
-    }
-
-    fn encode(self, out: &mut Vec<u8>) {
-        out.extend_from_slice(&self.kind.to_le_bytes());
-        out.extend_from_slice(&RECORD_SCHEMA_VERSION.to_le_bytes());
-        out.extend_from_slice(&(self.payload.len() as u32).to_le_bytes());
-        out.extend_from_slice(&self.payload);
     }
 }
 
@@ -353,7 +400,7 @@ fn encode(atlas: &CensusAtlas) -> Vec<u8> {
             strings
                 .0
                 .keys()
-                .map(|s| Record::new(1).utf8(1, s))
+                .map(|s| Record::of(STRING_TABLE, 1).text("value", s))
                 .collect(),
         ),
         section(
@@ -362,22 +409,17 @@ fn encode(atlas: &CensusAtlas) -> Vec<u8> {
                 .facts
                 .iter()
                 .map(|f| {
-                    let mut r = Record::new(1)
-                        .index(1, &strings, &f.id, REQUIRED)
-                        .index(2, &strings, &f.kind, REQUIRED)
-                        .index(3, &strings, &f.status, REQUIRED)
-                        .index(4, &strings, &f.subject, REQUIRED)
-                        .index(5, &strings, &f.predicate, REQUIRED)
-                        .index(6, &strings, &f.object, REQUIRED)
-                        .index(7, &strings, &f.source_path, REQUIRED);
-                    if let Some(revision) = f.revision.as_deref() {
-                        r = r.index(8, &strings, revision, 0);
-                    }
-                    r = r.index(9, &strings, &f.extractor, REQUIRED);
-                    if let Some(span) = f.span.as_deref() {
-                        r = r.index(10, &strings, span, 0);
-                    }
-                    r
+                    Record::of(SEMANTIC_RECORDS, 1)
+                        .string("id", &strings, &f.id)
+                        .string("kind", &strings, &f.kind)
+                        .string("status", &strings, &f.status)
+                        .string("subject", &strings, &f.subject)
+                        .string("predicate", &strings, &f.predicate)
+                        .string("object", &strings, &f.object)
+                        .string("source_path", &strings, &f.source_path)
+                        .optional_string("revision", &strings, f.revision.as_deref())
+                        .string("extractor", &strings, &f.extractor)
+                        .optional_string("span", &strings, f.span.as_deref())
                 })
                 .collect(),
         ),
@@ -387,10 +429,10 @@ fn encode(atlas: &CensusAtlas) -> Vec<u8> {
                 .nodes
                 .iter()
                 .map(|n| {
-                    Record::new(1)
-                        .index(1, &strings, &n.name, REQUIRED)
-                        .index(2, &strings, &n.kind, REQUIRED)
-                        .index(3, &strings, &n.origin, REQUIRED)
+                    Record::of(GRAPH_NODES, 1)
+                        .string("name", &strings, &n.name)
+                        .string("kind", &strings, &n.kind)
+                        .string("origin", &strings, &n.origin)
                 })
                 .collect(),
         ),
@@ -400,10 +442,10 @@ fn encode(atlas: &CensusAtlas) -> Vec<u8> {
                 .edges
                 .iter()
                 .map(|e| {
-                    Record::new(1)
-                        .index(1, &strings, &e.from, REQUIRED)
-                        .index(2, &strings, &e.relation, REQUIRED)
-                        .index(3, &strings, &e.to, REQUIRED)
+                    Record::of(GRAPH_EDGES, 1)
+                        .string("from", &strings, &e.from)
+                        .string("relation", &strings, &e.relation)
+                        .string("to", &strings, &e.to)
                 })
                 .collect(),
         ),
@@ -413,52 +455,56 @@ fn encode(atlas: &CensusAtlas) -> Vec<u8> {
                 .obligations
                 .iter()
                 .map(|o| {
-                    Record::new(1)
-                        .index(1, &strings, &o.artifact, REQUIRED)
-                        .index(2, &strings, &o.dimension, REQUIRED)
-                        .index(3, &strings, &o.extractor, REQUIRED)
-                        .index(4, &strings, &o.extractor_version, REQUIRED)
-                        .index(5, &strings, &o.status, REQUIRED)
+                    Record::of(OBLIGATIONS, 1)
+                        .string("artifact", &strings, &o.artifact)
+                        .string("dimension", &strings, &o.dimension)
+                        .string("extractor", &strings, &o.extractor)
+                        .string("extractor_version", &strings, &o.extractor_version)
+                        .string("status", &strings, &o.status)
                 })
                 .collect(),
         ),
         section(
             CENSUS_CERTIFICATE,
             std::iter::once(
-                Record::new(1)
-                    .index(1, &strings, &atlas.certificate.certificate_id, REQUIRED)
-                    .index(2, &strings, &atlas.certificate.state, REQUIRED),
+                Record::of(CENSUS_CERTIFICATE, 1)
+                    .string(
+                        "certificate_id",
+                        &strings,
+                        &atlas.certificate.certificate_id,
+                    )
+                    .string("state", &strings, &atlas.certificate.state),
             )
             .chain(
                 atlas
                     .certificate
                     .blockers
                     .iter()
-                    .map(|b| Record::new(2).index(1, &strings, b, REQUIRED)),
+                    .map(|b| Record::of(CENSUS_CERTIFICATE, 2).string("text", &strings, b)),
             )
             .collect(),
         ),
     ];
     let m = &atlas.manifest;
     let mut manifest = vec![
-        Record::new(1)
-            .uvarint(1, u64::from(FORMAT_MAJOR))
-            .utf8(2, &m.genome_schema)
-            .hash(3, &m.genome_hash)
-            .hash(4, &m.census_digest)
-            .utf8(5, &m.revision)
-            .utf8(6, &m.certificate_id)
-            .utf8(7, &m.seal)
-            .utf8(8, &m.tool)
-            .utf8(9, &m.mode),
+        Record::of(ROOT_MANIFEST, 1)
+            .number("wire_version", u64::from(FORMAT_MAJOR))
+            .text("genome_schema", &m.genome_schema)
+            .digest("genome_hash", &m.genome_hash)
+            .digest("census_digest", &m.census_digest)
+            .text("revision", &m.revision)
+            .text("certificate_id", &m.certificate_id)
+            .text("seal", &m.seal)
+            .text("tool", &m.tool)
+            .text("mode", &m.mode),
     ];
     for s in &body {
         manifest.push(
-            Record::new(2)
-                .uvarint(1, u64::from(s.kind))
-                .uvarint(2, schema_id(s.kind))
-                .hash(3, &blake3::hash(&s.content))
-                .uvarint(4, s.records),
+            Record::of(ROOT_MANIFEST, 2)
+                .number("section_type", u64::from(s.kind))
+                .number("schema_id", schema_id(s.kind))
+                .digest("content_hash", &blake3::hash(&s.content))
+                .number("record_count", s.records),
         );
     }
     let mut sections = vec![section(ROOT_MANIFEST, manifest)];
@@ -599,22 +645,26 @@ fn parse_records(content: &[u8], section: u16) -> Result<Vec<ParsedRecord<'_>>, 
     Ok(records)
 }
 
-/// Typed access to one record's fields: every known tag is checked for its wire type, missing
-/// required fields and unknown required fields reject, unknown optional fields are skipped.
+/// Typed access to one record's fields through its declared schema: the record kind must be
+/// declared for the section, every field is read by name with the declared tag and wire type,
+/// missing required fields and unknown required fields reject, unknown optional fields are
+/// skipped.
 struct Fields<'a, 'r> {
     record: &'r ParsedRecord<'a>,
-    known: &'static [u16],
+    def: &'static schema::RecordDef,
     section: u16,
 }
 
 impl<'a> Fields<'a, '_> {
-    fn new<'r>(
-        record: &'r ParsedRecord<'a>,
-        known: &'static [u16],
-        section: u16,
-    ) -> Result<Fields<'a, 'r>, AtlasError> {
+    fn new<'r>(record: &'r ParsedRecord<'a>, section: u16) -> Result<Fields<'a, 'r>, AtlasError> {
+        let Some(def) = schema::record(section, record.kind) else {
+            return reject(format!(
+                "section {section}: unknown record kind {}",
+                record.kind
+            ));
+        };
         for field in &record.fields {
-            if !known.contains(&field.tag) && field.flags & REQUIRED != 0 {
+            if !def.fields.iter().any(|d| d.tag == field.tag) && field.flags & REQUIRED != 0 {
                 return reject(format!(
                     "section {section}: unknown required field {}",
                     field.tag
@@ -623,69 +673,71 @@ impl<'a> Fields<'a, '_> {
         }
         Ok(Fields {
             record,
-            known,
+            def,
             section,
         })
     }
 
-    fn raw(&self, tag: u16, wire: u8) -> Result<Option<&'a [u8]>, AtlasError> {
-        debug_assert!(self.known.contains(&tag));
-        match self.record.fields.iter().find(|f| f.tag == tag) {
+    /// The bytes of field `name`, checked against its declared wire type; `None` when an
+    /// optional field is absent.
+    fn raw(&self, name: &str, wire: u8) -> Result<Option<&'a [u8]>, AtlasError> {
+        let def = self.def.field(name);
+        assert_eq!(
+            def.wire, wire,
+            "field `{name}` is declared with another wire type"
+        );
+        match self.record.fields.iter().find(|f| f.tag == def.tag) {
+            None if def.required => reject(format!(
+                "section {}: missing required field {} ({name})",
+                self.section, def.tag
+            )),
             None => Ok(None),
             Some(f) if f.wire != wire => reject(format!(
-                "section {}: field {tag} has wire type {}, expected {wire}",
-                self.section, f.wire
+                "section {}: field {} has wire type {}, expected {wire}",
+                self.section, def.tag, f.wire
             )),
             Some(f) => Ok(Some(f.bytes)),
         }
     }
 
-    fn required(&self, tag: u16, wire: u8) -> Result<&'a [u8], AtlasError> {
-        match self.raw(tag, wire)? {
-            Some(bytes) => Ok(bytes),
-            None => reject(format!(
-                "section {}: missing required field {tag}",
-                self.section
-            )),
-        }
-    }
-
-    fn utf8(&self, tag: u16) -> Result<String, AtlasError> {
-        String::from_utf8(self.required(tag, WIRE_UTF8)?.to_vec()).or_else(|_| {
-            reject(format!(
-                "section {}: field {tag} is not UTF-8",
-                self.section
-            ))
-        })
-    }
-
-    fn uvarint(&self, tag: u16) -> Result<u64, AtlasError> {
-        read_uvarint(self.required(tag, WIRE_UVARINT)?)
-    }
-
-    fn hash(&self, tag: u16) -> Result<[u8; 32], AtlasError> {
-        self.required(tag, WIRE_HASH32)?.try_into().or_else(|_| {
-            reject(format!(
-                "section {}: field {tag} is not 32 bytes",
-                self.section
-            ))
-        })
-    }
-
-    fn string(&self, tag: u16, strings: &[String]) -> Result<String, AtlasError> {
-        self.optional_string(tag, strings)?.map_or_else(
-            || {
-                reject(format!(
-                    "section {}: missing required field {tag}",
-                    self.section
-                ))
-            },
+    fn required(&self, name: &str, wire: u8) -> Result<&'a [u8], AtlasError> {
+        self.raw(name, wire)?.map_or_else(
+            || reject(format!("section {}: `{name}` absent", self.section)),
             Ok,
         )
     }
 
-    fn optional_string(&self, tag: u16, strings: &[String]) -> Result<Option<String>, AtlasError> {
-        let Some(bytes) = self.raw(tag, WIRE_LOCAL_INDEX)? else {
+    fn utf8(&self, name: &str) -> Result<String, AtlasError> {
+        String::from_utf8(self.required(name, WIRE_UTF8)?.to_vec())
+            .or_else(|_| reject(format!("section {}: `{name}` is not UTF-8", self.section)))
+    }
+
+    fn uvarint(&self, name: &str) -> Result<u64, AtlasError> {
+        read_uvarint(self.required(name, WIRE_UVARINT)?)
+    }
+
+    fn hash(&self, name: &str) -> Result<[u8; 32], AtlasError> {
+        self.required(name, WIRE_HASH32)?.try_into().or_else(|_| {
+            reject(format!(
+                "section {}: `{name}` is not 32 bytes",
+                self.section
+            ))
+        })
+    }
+
+    fn string(&self, name: &str, strings: &[String]) -> Result<String, AtlasError> {
+        self.optional_string(name, strings)?.map_or_else(
+            || reject(format!("section {}: `{name}` absent", self.section)),
+            Ok,
+        )
+    }
+
+    fn optional_string(
+        &self,
+        name: &str,
+        strings: &[String],
+    ) -> Result<Option<String>, AtlasError> {
+        let Some(bytes) = self.raw(name, WIRE_LOCAL_INDEX)? else {
             return Ok(None);
         };
         let index = read_uvarint(bytes)?;
@@ -699,8 +751,9 @@ impl<'a> Fields<'a, '_> {
     }
 }
 
-fn expect_kind(record: &ParsedRecord, kinds: &[u16], section: u16) -> Result<(), AtlasError> {
-    if kinds.contains(&record.kind) {
+/// A record must be of `kind` at this position of its section (e.g. the manifest head).
+fn expect_kind(record: &ParsedRecord, kind: u16, section: u16) -> Result<(), AtlasError> {
+    if record.kind == kind {
         Ok(())
     } else {
         reject(format!(
@@ -826,6 +879,9 @@ pub fn read(bytes: &[u8]) -> Result<(CensusAtlas, IntegrityDigest), AtlasError> 
         if blake3::hash(content(e)) != e.hash {
             return reject(format!("section {} content hash mismatch", e.kind));
         }
+        if schema::section(e.kind).is_none() {
+            return reject(format!("unknown section type {}", e.kind));
+        }
         if e.schema != schema_id(e.kind) {
             return reject(format!("section {} has an unknown schema id", e.kind));
         }
@@ -846,20 +902,20 @@ pub fn read(bytes: &[u8]) -> Result<(CensusAtlas, IntegrityDigest), AtlasError> 
     let Some((head, commitments)) = manifest_records.split_first() else {
         return reject("empty root manifest");
     };
-    expect_kind(head, &[1], ROOT_MANIFEST)?;
-    let f = Fields::new(head, &[1, 2, 3, 4, 5, 6, 7, 8, 9], ROOT_MANIFEST)?;
-    if f.uvarint(1)? != u64::from(FORMAT_MAJOR) {
+    expect_kind(head, 1, ROOT_MANIFEST)?;
+    let f = Fields::new(head, ROOT_MANIFEST)?;
+    if f.uvarint("wire_version")? != u64::from(FORMAT_MAJOR) {
         return reject("root manifest wire version mismatch");
     }
     let manifest = RootManifest {
-        genome_schema: f.utf8(2)?,
-        genome_hash: f.hash(3)?,
-        census_digest: f.hash(4)?,
-        revision: f.utf8(5)?,
-        certificate_id: f.utf8(6)?,
-        seal: f.utf8(7)?,
-        tool: f.utf8(8)?,
-        mode: f.utf8(9)?,
+        genome_schema: f.utf8("genome_schema")?,
+        genome_hash: f.hash("genome_hash")?,
+        census_digest: f.hash("census_digest")?,
+        revision: f.utf8("revision")?,
+        certificate_id: f.utf8("certificate_id")?,
+        seal: f.utf8("seal")?,
+        tool: f.utf8("tool")?,
+        mode: f.utf8("mode")?,
     };
     // 6. Genome/schema compatibility and the seal marker.
     if manifest.genome_hash != genome_hash {
@@ -871,9 +927,14 @@ pub fn read(bytes: &[u8]) -> Result<(CensusAtlas, IntegrityDigest), AtlasError> 
     // The manifest commits to exactly the other sections.
     let mut committed = Vec::new();
     for record in commitments {
-        expect_kind(record, &[2], ROOT_MANIFEST)?;
-        let c = Fields::new(record, &[1, 2, 3, 4], ROOT_MANIFEST)?;
-        committed.push((c.uvarint(1)?, c.uvarint(2)?, c.hash(3)?, c.uvarint(4)?));
+        expect_kind(record, 2, ROOT_MANIFEST)?;
+        let c = Fields::new(record, ROOT_MANIFEST)?;
+        committed.push((
+            c.uvarint("section_type")?,
+            c.uvarint("schema_id")?,
+            c.hash("content_hash")?,
+            c.uvarint("record_count")?,
+        ));
     }
     let actual: Vec<(u64, u64, [u8; 32], u64)> = entries
         .iter()
@@ -894,77 +955,77 @@ pub fn read(bytes: &[u8]) -> Result<(CensusAtlas, IntegrityDigest), AtlasError> 
     };
     let mut strings = Vec::new();
     for r in records_of(STRING_TABLE)? {
-        expect_kind(&r, &[1], STRING_TABLE)?;
-        strings.push(Fields::new(&r, &[1], STRING_TABLE)?.utf8(1)?);
+        expect_kind(&r, 1, STRING_TABLE)?;
+        strings.push(Fields::new(&r, STRING_TABLE)?.utf8("value")?);
     }
     if !strictly_sorted(&strings) {
         return reject("string table is not sorted and unique");
     }
     let mut facts = Vec::new();
     for r in records_of(SEMANTIC_RECORDS)? {
-        expect_kind(&r, &[1], SEMANTIC_RECORDS)?;
-        let f = Fields::new(&r, &[1, 2, 3, 4, 5, 6, 7, 8, 9, 10], SEMANTIC_RECORDS)?;
+        expect_kind(&r, 1, SEMANTIC_RECORDS)?;
+        let f = Fields::new(&r, SEMANTIC_RECORDS)?;
         facts.push(CensusFact {
-            id: f.string(1, &strings)?,
-            kind: f.string(2, &strings)?,
-            status: f.string(3, &strings)?,
-            subject: f.string(4, &strings)?,
-            predicate: f.string(5, &strings)?,
-            object: f.string(6, &strings)?,
-            source_path: f.string(7, &strings)?,
-            revision: f.optional_string(8, &strings)?,
-            extractor: f.string(9, &strings)?,
-            span: f.optional_string(10, &strings)?,
+            id: f.string("id", &strings)?,
+            kind: f.string("kind", &strings)?,
+            status: f.string("status", &strings)?,
+            subject: f.string("subject", &strings)?,
+            predicate: f.string("predicate", &strings)?,
+            object: f.string("object", &strings)?,
+            source_path: f.string("source_path", &strings)?,
+            revision: f.optional_string("revision", &strings)?,
+            extractor: f.string("extractor", &strings)?,
+            span: f.optional_string("span", &strings)?,
         });
     }
     let mut nodes = Vec::new();
     for r in records_of(GRAPH_NODES)? {
-        expect_kind(&r, &[1], GRAPH_NODES)?;
-        let f = Fields::new(&r, &[1, 2, 3], GRAPH_NODES)?;
+        expect_kind(&r, 1, GRAPH_NODES)?;
+        let f = Fields::new(&r, GRAPH_NODES)?;
         nodes.push(DeclaredNodeRecord {
-            name: f.string(1, &strings)?,
-            kind: f.string(2, &strings)?,
-            origin: f.string(3, &strings)?,
+            name: f.string("name", &strings)?,
+            kind: f.string("kind", &strings)?,
+            origin: f.string("origin", &strings)?,
         });
     }
     let mut edges = Vec::new();
     for r in records_of(GRAPH_EDGES)? {
-        expect_kind(&r, &[1], GRAPH_EDGES)?;
-        let f = Fields::new(&r, &[1, 2, 3], GRAPH_EDGES)?;
+        expect_kind(&r, 1, GRAPH_EDGES)?;
+        let f = Fields::new(&r, GRAPH_EDGES)?;
         edges.push(DeclaredEdgeRecord {
-            from: f.string(1, &strings)?,
-            relation: f.string(2, &strings)?,
-            to: f.string(3, &strings)?,
+            from: f.string("from", &strings)?,
+            relation: f.string("relation", &strings)?,
+            to: f.string("to", &strings)?,
         });
     }
     let mut obligations = Vec::new();
     for r in records_of(OBLIGATIONS)? {
-        expect_kind(&r, &[1], OBLIGATIONS)?;
-        let f = Fields::new(&r, &[1, 2, 3, 4, 5], OBLIGATIONS)?;
+        expect_kind(&r, 1, OBLIGATIONS)?;
+        let f = Fields::new(&r, OBLIGATIONS)?;
         obligations.push(CensusObligation {
-            artifact: f.string(1, &strings)?,
-            dimension: f.string(2, &strings)?,
-            extractor: f.string(3, &strings)?,
-            extractor_version: f.string(4, &strings)?,
-            status: f.string(5, &strings)?,
+            artifact: f.string("artifact", &strings)?,
+            dimension: f.string("dimension", &strings)?,
+            extractor: f.string("extractor", &strings)?,
+            extractor_version: f.string("extractor_version", &strings)?,
+            status: f.string("status", &strings)?,
         });
     }
     let certificate_records = records_of(CENSUS_CERTIFICATE)?;
     let Some((cert_head, blocker_records)) = certificate_records.split_first() else {
         return reject("empty certificate section");
     };
-    expect_kind(cert_head, &[1], CENSUS_CERTIFICATE)?;
-    let c = Fields::new(cert_head, &[1, 2], CENSUS_CERTIFICATE)?;
+    expect_kind(cert_head, 1, CENSUS_CERTIFICATE)?;
+    let c = Fields::new(cert_head, CENSUS_CERTIFICATE)?;
     let mut certificate = CertificateRecord {
-        certificate_id: c.string(1, &strings)?,
-        state: c.string(2, &strings)?,
+        certificate_id: c.string("certificate_id", &strings)?,
+        state: c.string("state", &strings)?,
         blockers: Vec::new(),
     };
     for r in blocker_records {
-        expect_kind(r, &[2], CENSUS_CERTIFICATE)?;
+        expect_kind(r, 2, CENSUS_CERTIFICATE)?;
         certificate
             .blockers
-            .push(Fields::new(r, &[1], CENSUS_CERTIFICATE)?.string(1, &strings)?);
+            .push(Fields::new(r, CENSUS_CERTIFICATE)?.string("text", &strings)?);
     }
     if certificate.certificate_id != manifest.certificate_id {
         return reject("certificate section differs from the root manifest's certificate id");

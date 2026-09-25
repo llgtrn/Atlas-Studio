@@ -1,3 +1,0 @@
-query: search.code.SearchByLowerCaseScope { name = "t", scope = ["SourceClass"] }
-transform: [normord, []]
-perf: true

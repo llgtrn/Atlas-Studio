@@ -1,2 +1,0 @@
-query: cxx1.DeclToFamily _
-transform: [normord, []]

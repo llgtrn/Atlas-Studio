@@ -1,3 +1,0 @@
-action: documentSymbolListX
-args: {"include_refs":true,"filepath":"all.py","repository":"test"}
-

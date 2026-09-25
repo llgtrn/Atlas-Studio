@@ -1,2 +1,0 @@
-action: searchSymbol
-args: {"name": "HelperClass", "repo_name": "test", "language": [7], "kinds": [7], "options": {"detailedResults": false, "exactMatch": true, "ignoreCase": false, "namespaceSearch": false } }

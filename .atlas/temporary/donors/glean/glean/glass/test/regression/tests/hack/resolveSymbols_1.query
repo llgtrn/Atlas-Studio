@@ -1,2 +1,0 @@
-action: resolveSymbols
-args: {"symbols" : ["test/php/ns/NS"]}

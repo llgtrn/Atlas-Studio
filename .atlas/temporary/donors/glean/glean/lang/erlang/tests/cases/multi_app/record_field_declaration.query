@@ -1,3 +1,0 @@
-query: erlang.RecordFieldDeclaration _
-perf: True
-transform: [gensort, []]

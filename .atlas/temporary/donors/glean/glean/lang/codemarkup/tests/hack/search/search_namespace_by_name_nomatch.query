@@ -1,3 +1,0 @@
-query: hack.SearchNamespaceByName { name = "does not match" }
-transform: [normord, []]
-perf: true

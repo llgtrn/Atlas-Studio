@@ -1,3 +1,0 @@
-query: erlang.MacroDefinition _
-perf: True
-transform: [gensort, []]

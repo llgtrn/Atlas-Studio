@@ -1,3 +1,0 @@
-query: erlang.ModuleDeclaration _
-perf: True
-transform: [gensort, []]

@@ -1,3 +1,0 @@
-query: lsif.MonikerId _
-perf: True
-transform: [gensort, []]

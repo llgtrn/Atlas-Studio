@@ -1,3 +1,0 @@
-query: flow.SearchDeclarationByLowerCaseName { name = "bazclass" }
-perf: True
-transform: [gensort, []]

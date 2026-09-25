@@ -1,3 +1,0 @@
-query: kotlin.alpha.ClassMember _
-perf: True
-transform: [gensort, []]

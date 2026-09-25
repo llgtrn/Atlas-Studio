@@ -1,3 +1,0 @@
-query: flow.SearchTypeDeclarationByLowerCaseName { name = "does not match" }
-perf: True
-transform: [gensort, []]

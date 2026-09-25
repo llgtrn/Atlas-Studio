@@ -1,0 +1,29 @@
+{
+  "objective": "P3 first-50 #9 glean + P2 artifact integrity: .atlas schema_id derived from declared record schemas (fields by name/tag/wire/requiredness + dependencies) that writer and reader address by name, so a tag-repurposing version is refused instead of silently misread; glean checkout physically extinct",
+  "changed_paths": [
+    "core/src/atlas/",
+    "runtime/src/donor_storage.rs"
+  ],
+  "total_changes": [
+    "+artifacts",
+    "+diagnostic:IncompleteAnalysis",
+    "+docs",
+    "+entities",
+    "+evidence",
+    "+facts",
+    "+graph_bindings",
+    "+graph_edges",
+    "+graph_nodes",
+    "+normalized_facts",
+    "+obligations",
+    "+typed_records",
+    "+unknown_facts"
+  ],
+  "entity_changes": [
+    "* core atlas/*",
+    "CHANGED runtime donor_storage/tests/repository_donor_storage_has_no_unrecorded_violation()."
+  ],
+  "explained_unknowns": [
+    "core/src/atlas/schema.rs: a new Rust artifact carries the same explicit UNKNOWN obligations (CALL, CONTROL_FLOW, DATA_FLOW, STATE, EFFECT, OWNERSHIP, CONCURRENCY, PERSISTENCE) as every Rust artifact at baseline -- extractor coverage gap recorded in the certificate"
+  ]
+}

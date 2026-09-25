@@ -1,2 +1,0 @@
-query: codemarkup.kotlin.KotlinEntityKind _
-transform: [gensort, []]

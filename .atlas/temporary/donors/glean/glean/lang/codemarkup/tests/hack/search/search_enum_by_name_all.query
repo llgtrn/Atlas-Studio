@@ -1,3 +1,0 @@
-query: hack.SearchEnumByName { name = _ }
-transform: [normord, []]
-perf: true

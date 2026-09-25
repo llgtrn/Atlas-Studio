@@ -1,3 +1,0 @@
-query: codemarkup.FileXRefsGenericEntities { file = "all.py" }
-perf: true
-transform: [normord, []]

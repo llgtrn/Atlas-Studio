@@ -1,3 +1,0 @@
-query: hack.SearchModuleByLowerCaseName { name_lowercase = "glean.test" }
-transform: [normord, []]
-perf: true

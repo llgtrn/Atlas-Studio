@@ -1,3 +1,0 @@
-query: python.SearchFunctionByName { name = "big_func" }
-perf: true
-transform: [gensort, []]

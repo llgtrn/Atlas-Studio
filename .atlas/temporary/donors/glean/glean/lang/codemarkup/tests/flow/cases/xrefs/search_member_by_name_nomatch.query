@@ -1,3 +1,0 @@
-query: flow.SearchMemberDeclarationByName { name = "does not match" }
-perf: True
-transform: [gensort, []]

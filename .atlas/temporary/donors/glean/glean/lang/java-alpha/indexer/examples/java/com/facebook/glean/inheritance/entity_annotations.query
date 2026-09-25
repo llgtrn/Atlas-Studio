@@ -1,2 +1,0 @@
-query: codemarkup.EntityToAnnotations { entity = { java = _ } }
-transform: [gensort, []]

@@ -1,3 +1,0 @@
-query: codemarkup.EntitySource{ target = { hack = { decl = { function_ = { name = { name = "corge" }}}}}}
-perf: true
-transform: [gensort, []]

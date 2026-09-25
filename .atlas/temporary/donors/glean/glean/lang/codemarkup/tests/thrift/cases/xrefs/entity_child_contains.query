@@ -1,2 +1,0 @@
-query: codemarkup.ContainsChildEntity { parent = { fbthrift = _ }, child = { fbthrift = _ } }
-transform: [normord, []]

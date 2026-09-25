@@ -1,3 +1,0 @@
-query: codemarkup.cxx.CxxFileEntityXMapVariableXRefDeclLocations _
-perf: true
-transform: [gensort, []]

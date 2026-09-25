@@ -1,3 +1,0 @@
-query: hack.SearchTypeConstByName { name = "T" }
-transform: [normord, []]
-perf: true

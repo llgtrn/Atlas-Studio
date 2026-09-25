@@ -1,3 +1,0 @@
-query: |
-  N where codemarkup.cxx.CxxFileEntityXMapFixedXRefLocations { entity = { defn = { function_ = { declaration = { name = { name = N } } } } } }
-transform: [gensort, []]

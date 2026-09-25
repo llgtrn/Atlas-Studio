@@ -1,2 +1,0 @@
-action: searchSymbol
-args: {"name": "cjs_exports.x", "repo_name": "test", "language": [], "kinds": [], "options": {"detailedResults": false, "exactMatch": true, "ignoreCase": false, "namespaceSearch": true } }

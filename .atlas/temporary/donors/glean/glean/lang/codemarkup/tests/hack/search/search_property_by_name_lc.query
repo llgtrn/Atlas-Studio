@@ -1,3 +1,0 @@
-query: hack.SearchPropertyByLowerCaseName { name_lowercase = "raz" }
-transform: [normord, []]
-perf: true

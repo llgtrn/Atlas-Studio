@@ -1,6 +1,0 @@
-[
-{
-    "predicate":  { "name" : "glean.test.Expr", "version": 6 },
-    "facts" : [ { "wrong": 3 } ]
-}
-]

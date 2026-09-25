@@ -1,3 +1,0 @@
-query: flow.SearchByModuleName { name = "cjs_exports" }
-perf: True
-transform: [gensort, []]

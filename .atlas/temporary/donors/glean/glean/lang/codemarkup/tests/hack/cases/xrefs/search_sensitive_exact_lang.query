@@ -1,3 +1,0 @@
-query: codemarkup.search.SearchByName { searchcase = Sensitive, name = "SourceClass", language = Hack }
-perf: true
-transform: [gensort, []]

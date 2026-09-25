@@ -1,3 +1,0 @@
-query: codemarkup.search.SearchByScope { name = "BAZ", scope = ["NS","SourceClass"], language = Hack, searchcase = Sensitive }
-transform: [normord, []]
-perf: true

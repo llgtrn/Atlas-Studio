@@ -1,2 +1,0 @@
-query: cxx1.TypeAliasLowerCase _
-transform: [gensort, []]

@@ -1,3 +1,0 @@
-query: erlang.DeclarationComment _
-perf: True
-transform: [gensort, []]

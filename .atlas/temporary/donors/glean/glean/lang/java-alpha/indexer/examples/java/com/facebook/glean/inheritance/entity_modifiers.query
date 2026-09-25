@@ -1,2 +1,0 @@
-query: codemarkup.java.JavaModifiers _
-transform: [gensort, []]

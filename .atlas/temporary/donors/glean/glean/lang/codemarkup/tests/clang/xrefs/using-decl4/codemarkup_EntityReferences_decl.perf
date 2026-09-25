@@ -1,9 +1,0 @@
-{
-  "@generated": null,
-  "facts_searched": {
-    "cxx1.DeclToFamily.5": 9,
-    "cxx1.Declarations.5": 8,
-    "cxx1.TargetUses.5": 18
-  },
-  "full_scans": [ "cxx1.Declarations.5" ]
-}

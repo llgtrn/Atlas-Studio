@@ -1,3 +1,0 @@
-query: scip.FileRange _
-perf: True
-transform: [gensort, []]

@@ -1,3 +1,0 @@
-action: findReferenceRanges
-args: "test/js/imports/C"
-

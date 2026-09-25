@@ -1,3 +1,0 @@
-query: hack.SearchEnumByName { name = "Position" }
-transform: [normord, []]
-perf: true

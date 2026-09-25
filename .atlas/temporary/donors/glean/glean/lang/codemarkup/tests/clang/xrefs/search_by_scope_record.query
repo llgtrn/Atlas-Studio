@@ -1,3 +1,0 @@
-query: codemarkup.search.SearchByScope { searchcase = Sensitive, scope = ["Bar"], language = Cpp }
-perf: true
-transform: [gensort, []]

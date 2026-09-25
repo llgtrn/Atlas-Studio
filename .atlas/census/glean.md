@@ -27,3 +27,11 @@ Decision: TARGET_MAPPED. Glean principles feed `core/model` typed facts and futu
 
 core facts and durable fact store
 
+## Campaign decision (G68, first-50 #9)
+
+The recorded cheapest falsification became executable once G64 wrote `.atlas` sections. G64's name-derived `schema_id` let a version that repurposed fact field tags be silently misread by the current reader (measured: `atlas verify` exit 0).
+
+Absorbed Glean's definition-derived schema identity as `core::atlas::schema`: declared tables that writer and reader address by name, and a `schema_id` hashed from the definition and its dependencies. The same emulation is now refused. REFERENCE_ONLY: Angle, derived predicates, the fact database and the query IR.
+
+Terminal: ABSORBED. The checkout (15,358 files, 152 MB) was physically deleted. Evidence: `../evidence/campaign/09-glean.json`.
+

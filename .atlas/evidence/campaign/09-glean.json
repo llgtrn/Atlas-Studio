@@ -1,0 +1,37 @@
+{
+ "schema": "atlas.campaign-donor-decision.v1",
+ "ordinal": 9,
+ "donor": "glean",
+ "commit_sha": "2a48dea4cddb316d3b8bd65b54965cb9a7855c52",
+ "generation": "G68",
+ "base_commit": "dd703cd509",
+ "blocking_question_recorded": "no consumer for transitive structural schema identity; the nearest candidate was ATLAS-BINARY-WIRE-FORMAT's schema_id, not yet designed",
+ "trigger": "G64 designed schema_id as BLAKE3 of the section NAME (a manual registry); the recorded cheapest falsification (does a manual registry satisfy the wire evolution rule that a breaking change gets a new incompatible schema identity?) became executable",
+ "falsification": {
+  "method": "emulate a future version that repurposes fact field tags 4/5 (subject/predicate) in writer and reader together; pack the self-census with it; restore; `atlas verify` with the current reader",
+  "before": "ACCEPTED (exit 0): the current reader would decode every fact with subject and predicate swapped -- the manual registry does not enforce the rule",
+  "after": "REJECTED: 'section 6 has an unknown schema id'; the G67 container (name-derived ids) is also refused explicitly rather than misread"
+ },
+ "glean_mechanism_censused": {
+  "identity": "glean/angle/Glean/Angle/Types.hs: TypeId/PredicateId = (human ref, structural Hash); equality over the hash",
+  "derivation": "glean/db/Glean/Database/Schema/ComputeIds.hs: hashBinary (showRef ref, definition) per type/predicate, dependencies folded in, strongly-connected groups through one cycleHash (L117-170, L270-273)"
+ },
+ "decision": {
+  "ABSORBED": "schema identity derived from the declared definition and its dependencies: core::atlas::schema tables (record kinds; fields by name, tag, wire type, requiredness; section dependencies) are the only place a field name meets a tag; writer and reader address fields by name through them; schema_id = first 8 bytes of BLAKE3(definition text incl. dependency hashes)",
+  "NOT_NEEDED": "Glean's cycle folding (the section dependency graph is acyclic: sections depend at most on the string table)",
+  "REFERENCE_ONLY": [
+   "Angle derived predicates / query language (constraint derivation already absorbed from souffle; no query consumer)",
+   "the fact database and its storage engine",
+   "typed query IR (no census-query consumer)"
+  ]
+ },
+ "found_during": "the byte-flip sweep caught a real reader bug introduced mid-refactor: schema_id() on a hostile section type panicked; the reader now rejects unknown section types first",
+ "falsification_of_fix": "12 mutants: 11 killed, 1 equivalent (unknown record kind accepted by Fields::new: every read path calls expect_kind for its position first, so the table lookup can never see an undeclared kind)",
+ "terminal_state": "ABSORBED",
+ "extinction": {
+  "runtime_dependency": "none",
+  "build_dependency": "none",
+  "test_dependency": "none",
+  "action": "git rm -r .atlas/temporary/donors/glean (15,358 tracked files, 152 MB)"
+ }
+}

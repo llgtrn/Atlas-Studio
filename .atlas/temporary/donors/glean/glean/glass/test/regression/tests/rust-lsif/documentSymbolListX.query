@@ -1,3 +1,0 @@
-action: documentSymbolListX
-args: {"include_refs":true,"filepath":"src/lib.rs","repository":"test"}
-

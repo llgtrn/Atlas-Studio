@@ -1,2 +1,0 @@
-action: searchSymbol
-args: {"name": "ALL.F", "repo_name": "test", "language": [7], "kinds": [], "options": {"detailedResults": false, "exactMatch": false, "ignoreCase": true, "namespaceSearch": true } }

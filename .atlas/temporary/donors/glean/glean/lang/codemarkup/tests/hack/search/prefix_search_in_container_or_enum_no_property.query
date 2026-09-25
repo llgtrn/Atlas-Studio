@@ -1,5 +1,0 @@
-query: |
-  D where
-  search.hack.SearchInContainerOrEnumNoProperty { name = "".., contextName = "SourceClass", contextNamespace = nothing, decl = D }
-transform: [normord, []]
-perf: true

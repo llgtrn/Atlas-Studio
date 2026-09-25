@@ -1,3 +1,0 @@
-query: erlang.XRefsByFile _
-perf: True
-transform: [gensort, []]

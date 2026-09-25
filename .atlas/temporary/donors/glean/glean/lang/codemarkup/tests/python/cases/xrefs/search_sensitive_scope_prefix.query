@@ -1,3 +1,0 @@
-query: codemarkup.search.SearchByScope { name = "H".. , searchcase = Sensitive, scope = ["lib"] , language = Python }
-perf: true
-transform: [gensort, []]

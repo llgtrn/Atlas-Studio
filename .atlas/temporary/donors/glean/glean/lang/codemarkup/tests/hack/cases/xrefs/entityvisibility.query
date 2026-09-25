@@ -1,3 +1,0 @@
-query: codemarkup.EntityVisibility _
-perf: true
-transform: [gensort, []]

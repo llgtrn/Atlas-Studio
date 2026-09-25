@@ -1,3 +1,0 @@
-query: codemarkup.EntityModifiers { entity = { cxx = { decl = _ } | { defn = _ } } }
-perf: true
-transform: [gensort, []]

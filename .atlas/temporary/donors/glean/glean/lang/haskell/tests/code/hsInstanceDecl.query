@@ -1,3 +1,0 @@
-# ValBinds that have a signature
-query: hs.InstDecl _
-transform: [normord, []]

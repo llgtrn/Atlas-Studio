@@ -1,3 +1,0 @@
-query: scip.Documentation _
-perf: True
-transform: [gensort,[]]

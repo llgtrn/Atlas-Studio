@@ -1,2 +1,0 @@
-query: codemarkup.java.JavaContainsParentEntity _
-transform: [gensort, []]

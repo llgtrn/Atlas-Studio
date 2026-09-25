@@ -1,3 +1,0 @@
-query: search.kind.cxx.SearchNamespace { name = "DoesNotExist" }
-perf: true
-transform: [gensort, []]

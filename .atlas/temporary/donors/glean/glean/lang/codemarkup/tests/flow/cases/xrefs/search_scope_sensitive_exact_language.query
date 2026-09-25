@@ -1,3 +1,0 @@
-query: codemarkup.search.SearchByScope { searchcase = Insensitive, name = "".., language = JavaScript }
-perf: true
-transform: [gensort, []]

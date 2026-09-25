@@ -1,3 +1,0 @@
-query: cxx1.FunctionAttribute _
-perf: true
-transform: [gensort, []]

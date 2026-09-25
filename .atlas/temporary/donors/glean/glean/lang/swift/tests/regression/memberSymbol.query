@@ -1,3 +1,0 @@
-query: swift.MemberSymbol { M, S }; scip.Reference { S, R }; { member = M, ref = R }
-perf: True
-transform: [gensort, []]

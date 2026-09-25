@@ -1,3 +1,0 @@
-query: flow.DeclarationSignature _
-perf: true
-transform: [gensort, []]

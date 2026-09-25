@@ -1,3 +1,0 @@
-query: scip.IsImplementation _
-perf: True
-transform: [gensort, []]

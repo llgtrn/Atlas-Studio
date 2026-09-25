@@ -1,3 +1,0 @@
-query: cxx1.FileXRefs _
-perf: true
-transform: [gensort, []]

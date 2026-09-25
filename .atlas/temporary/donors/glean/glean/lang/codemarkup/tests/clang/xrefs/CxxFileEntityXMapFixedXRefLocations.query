@@ -1,3 +1,0 @@
-query: codemarkup.cxx.CxxFileEntityXMapFixedXRefLocations _
-perf: true
-transform: [gensort, []]

@@ -1,2 +1,0 @@
-query: codemarkup.EntityReferences _
-transform: [gensort, []]

@@ -1,2 +1,0 @@
-action: searchSymbol
-args: {"name": "SourceClass::BA", "repo_name": "test", "language": [3], "kinds": [], "options": {"detailedResults": false, "exactMatch": false, "ignoreCase": false, "namespaceSearch": true } }

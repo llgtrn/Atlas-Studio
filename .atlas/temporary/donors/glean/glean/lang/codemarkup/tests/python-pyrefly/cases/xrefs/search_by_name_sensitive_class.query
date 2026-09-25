@@ -1,3 +1,0 @@
-query: codemarkup.search.SearchByName { name = "LocalClass", kind = { just = Class_ }, searchcase = Sensitive }
-perf: true
-transform: [gensort, []]

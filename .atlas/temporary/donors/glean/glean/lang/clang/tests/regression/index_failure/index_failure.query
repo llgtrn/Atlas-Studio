@@ -1,2 +1,0 @@
-query: src.IndexFailure _
-transform: [gensort, []]

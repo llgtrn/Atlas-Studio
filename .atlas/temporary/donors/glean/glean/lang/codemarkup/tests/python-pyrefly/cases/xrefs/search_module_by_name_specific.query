@@ -1,3 +1,0 @@
-query: python.SearchModuleByName { name = "relative" }
-perf: true
-transform: [gensort, []]

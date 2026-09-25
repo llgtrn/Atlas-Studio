@@ -1,4 +1,0 @@
-query: search.code.LsifSearchByName _
-perf: True
-transform: [gensort, []]
-

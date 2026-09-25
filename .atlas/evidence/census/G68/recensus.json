@@ -1,0 +1,529 @@
+{
+  "schema": "atlas.self-recensus-report.v1",
+  "generation": "G68",
+  "base_revision": "a23ae6607feb08663c3e852b96e701b14a06380f",
+  "candidate_revision": "dd703cd509b032202d3f2fdf70f5b99639fea2c2",
+  "candidate_dirty": true,
+  "before_census_digest": "blake3-256:97978cfce72da0f0f5931dfe44d52d71f6f49f109dd70f04abae11793c373c0f",
+  "after_census_digest": "blake3-256:748b64e4de5adce7e468c05ec9b31c6dfc0b49ab32e384ea2434bc05ac6be73d",
+  "replay_digest": "blake3-256:748b64e4de5adce7e468c05ec9b31c6dfc0b49ab32e384ea2434bc05ac6be73d",
+  "inventory_delta": {
+    "created": [
+      "core/src/atlas/schema.rs"
+    ],
+    "modified": [
+      "core/src/atlas/mod.rs",
+      "core/src/atlas/tests.rs",
+      "runtime/src/donor_storage.rs"
+    ],
+    "deleted": []
+  },
+  "semantic_delta": {
+    "changed": [
+      "core/src/atlas/mod.rs",
+      "core/src/atlas/tests.rs",
+      "runtime/src/donor_storage.rs"
+    ],
+    "counts": {
+      "fact:FunctionIdentity|OBSERVED": 14,
+      "fact:FunctionSignature|OBSERVED": 14,
+      "fact:SemanticObligation|OBSERVED": 4,
+      "fact:SemanticObligation|UNKNOWN": 8,
+      "fact:SourceArtifact|OBSERVED": 2,
+      "fact:Symbol|OBSERVED": 31,
+      "fact:Type|OBSERVED": 25,
+      "record:CALL|OBSERVED": 55,
+      "record:CONTROL_FLOW|OBSERVED": 22,
+      "record:DATA_FLOW|OBSERVED": 154,
+      "record:FUNCTION_IDENTITY|OBSERVED": 14,
+      "record:FUNCTION_SIGNATURE|OBSERVED": 14,
+      "record:OWNERSHIP|OBSERVED": 39,
+      "record:STATE|OBSERVED": -1,
+      "record:SYMBOL|OBSERVED": 31,
+      "record:TYPE|OBSERVED": 25
+    }
+  },
+  "dependency_delta": {
+    "added": [],
+    "removed": []
+  },
+  "dependency_state": [
+    "Closed",
+    "Closed"
+  ],
+  "graph_delta": {
+    "graph_bindings": 1,
+    "graph_edges": 492,
+    "graph_nodes": 388
+  },
+  "obligation_delta": {
+    "obligation:CALL|UNKNOWN": 1,
+    "obligation:CONCURRENCY|UNKNOWN": 1,
+    "obligation:CONTROL_FLOW|UNKNOWN": 1,
+    "obligation:DATA_FLOW|UNKNOWN": 1,
+    "obligation:EFFECT|UNKNOWN": 1,
+    "obligation:FUNCTION_IDENTITY|OBSERVED": 1,
+    "obligation:FUNCTION_SIGNATURE|OBSERVED": 1,
+    "obligation:OWNERSHIP|UNKNOWN": 1,
+    "obligation:PERSISTENCE|UNKNOWN": 1,
+    "obligation:STATE|UNKNOWN": 1,
+    "obligation:SYMBOL|OBSERVED": 1,
+    "obligation:TYPE|OBSERVED": 1
+  },
+  "adl_delta": {
+    "added": [],
+    "removed": []
+  },
+  "entity_delta": [
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core atlas/`impl:Fields<'a, '_>`/hash()."
+      ],
+      "after": [
+        "core atlas/`impl:Fields<'a, '_>`/hash()."
+      ],
+      "evidence": "signature,body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core atlas/`impl:Fields<'a, '_>`/new()."
+      ],
+      "after": [
+        "core atlas/`impl:Fields<'a, '_>`/new()."
+      ],
+      "evidence": "signature,body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core atlas/`impl:Fields<'a, '_>`/optional_string()."
+      ],
+      "after": [
+        "core atlas/`impl:Fields<'a, '_>`/optional_string()."
+      ],
+      "evidence": "signature,body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core atlas/`impl:Fields<'a, '_>`/raw()."
+      ],
+      "after": [
+        "core atlas/`impl:Fields<'a, '_>`/raw()."
+      ],
+      "evidence": "signature,body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core atlas/`impl:Fields<'a, '_>`/required()."
+      ],
+      "after": [
+        "core atlas/`impl:Fields<'a, '_>`/required()."
+      ],
+      "evidence": "signature,body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core atlas/`impl:Fields<'a, '_>`/string()."
+      ],
+      "after": [
+        "core atlas/`impl:Fields<'a, '_>`/string()."
+      ],
+      "evidence": "signature,body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core atlas/`impl:Fields<'a, '_>`/utf8()."
+      ],
+      "after": [
+        "core atlas/`impl:Fields<'a, '_>`/utf8()."
+      ],
+      "evidence": "signature,body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core atlas/`impl:Fields<'a, '_>`/uvarint()."
+      ],
+      "after": [
+        "core atlas/`impl:Fields<'a, '_>`/uvarint()."
+      ],
+      "evidence": "signature,body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core atlas/`impl:Record`/encode()."
+      ],
+      "after": [
+        "core atlas/`impl:Record`/encode()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core atlas/`impl:Record`/field()."
+      ],
+      "after": [
+        "core atlas/`impl:Record`/field()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core atlas/`impl:Record`/new()."
+      ],
+      "after": [
+        "core atlas/`impl:Record`/new()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core atlas/encode()."
+      ],
+      "after": [
+        "core atlas/encode()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core atlas/expect_kind()."
+      ],
+      "after": [
+        "core atlas/expect_kind()."
+      ],
+      "evidence": "signature,body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core atlas/read()."
+      ],
+      "after": [
+        "core atlas/read()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core atlas/schema_id()."
+      ],
+      "after": [
+        "core atlas/schema_id()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core atlas/tests/field_framing_skips_unknown_optional_fields_and_rejects_unknown_required_ones()."
+      ],
+      "after": [
+        "core atlas/tests/field_framing_skips_unknown_optional_fields_and_rejects_unknown_required_ones()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "runtime donor_storage/tests/repository_donor_storage_has_no_unrecorded_violation()."
+      ],
+      "after": [
+        "runtime donor_storage/tests/repository_donor_storage_has_no_unrecorded_violation()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "DELETED",
+      "before": [
+        "core atlas/`impl:Record`/index()."
+      ],
+      "after": [],
+      "evidence": ""
+    },
+    {
+      "kind": "DELETED",
+      "before": [
+        "core atlas/`impl:Record`/utf8()."
+      ],
+      "after": [],
+      "evidence": ""
+    },
+    {
+      "kind": "DELETED",
+      "before": [
+        "core atlas/section_name()."
+      ],
+      "after": [],
+      "evidence": ""
+    },
+    {
+      "kind": "DELETED",
+      "before": [
+        "core atlas/tests/schema_ids_are_pinned_and_distinct()."
+      ],
+      "after": [],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlas/`impl:Record`/digest()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlas/`impl:Record`/number()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlas/`impl:Record`/of()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlas/`impl:Record`/optional_string()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlas/`impl:Record`/put()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlas/`impl:Record`/string()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlas/`impl:Record`/text()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlas/schema/`impl:RecordDef`/field()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlas/schema/definition_text()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlas/schema/opt()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlas/schema/record()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlas/schema/req()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlas/schema/schema_hash()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlas/schema/section()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlas/tests/a_container_from_another_schema_definition_is_refused()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlas/tests/every_definition_change_moves_the_schema_identity()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlas/tests/schema_ids_are_derived_from_definitions_and_distinct()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlas/tests/table_driven_records_follow_their_declaration_on_the_wire()."
+      ],
+      "evidence": ""
+    }
+  ],
+  "coverage_delta": [],
+  "unknown_delta": {
+    "increased": [
+      "core/src/atlas/schema.rs: 0 -> 8"
+    ],
+    "decreased": [],
+    "total_before": 956,
+    "total_after": 964
+  },
+  "intent": {
+    "objective": "P3 first-50 #9 glean + P2 artifact integrity: .atlas schema_id derived from declared record schemas (fields by name/tag/wire/requiredness + dependencies) that writer and reader address by name, so a tag-repurposing version is refused instead of silently misread; glean checkout physically extinct",
+    "changed_paths": [
+      "core/src/atlas/",
+      "runtime/src/donor_storage.rs"
+    ],
+    "total_changes": [
+      "+artifacts",
+      "+diagnostic:IncompleteAnalysis",
+      "+docs",
+      "+entities",
+      "+evidence",
+      "+facts",
+      "+graph_bindings",
+      "+graph_edges",
+      "+graph_nodes",
+      "+normalized_facts",
+      "+obligations",
+      "+typed_records",
+      "+unknown_facts"
+    ],
+    "dependency_changes": [],
+    "adl_changes": [],
+    "coverage_changes": [],
+    "explained_unknowns": [
+      "core/src/atlas/schema.rs: a new Rust artifact carries the same explicit UNKNOWN obligations (CALL, CONTROL_FLOW, DATA_FLOW, STATE, EFFECT, OWNERSHIP, CONCURRENCY, PERSISTENCE) as every Rust artifact at baseline -- extractor coverage gap recorded in the certificate"
+    ],
+    "accepted_unexpected": [],
+    "entity_changes": [
+      "* core atlas/*",
+      "CHANGED runtime donor_storage/tests/repository_donor_storage_has_no_unrecorded_violation()."
+    ]
+  },
+  "intended_changes": [
+    "path core/src/atlas/mod.rs",
+    "path core/src/atlas/schema.rs",
+    "path core/src/atlas/tests.rs",
+    "path runtime/src/donor_storage.rs",
+    "total +artifacts",
+    "total +diagnostic:IncompleteAnalysis",
+    "total +docs",
+    "total +entities",
+    "total +evidence",
+    "total +facts",
+    "total +graph_bindings",
+    "total +graph_edges",
+    "total +graph_nodes",
+    "total +normalized_facts",
+    "total +obligations",
+    "total +typed_records",
+    "total +unknown_facts",
+    "entity CHANGED core atlas/`impl:Fields<'a, '_>`/hash().",
+    "entity CHANGED core atlas/`impl:Fields<'a, '_>`/new().",
+    "entity CHANGED core atlas/`impl:Fields<'a, '_>`/optional_string().",
+    "entity CHANGED core atlas/`impl:Fields<'a, '_>`/raw().",
+    "entity CHANGED core atlas/`impl:Fields<'a, '_>`/required().",
+    "entity CHANGED core atlas/`impl:Fields<'a, '_>`/string().",
+    "entity CHANGED core atlas/`impl:Fields<'a, '_>`/utf8().",
+    "entity CHANGED core atlas/`impl:Fields<'a, '_>`/uvarint().",
+    "entity CHANGED core atlas/`impl:Record`/encode().",
+    "entity CHANGED core atlas/`impl:Record`/field().",
+    "entity CHANGED core atlas/`impl:Record`/new().",
+    "entity CHANGED core atlas/encode().",
+    "entity CHANGED core atlas/expect_kind().",
+    "entity CHANGED core atlas/read().",
+    "entity CHANGED core atlas/schema_id().",
+    "entity CHANGED core atlas/tests/field_framing_skips_unknown_optional_fields_and_rejects_unknown_required_ones().",
+    "entity CHANGED runtime donor_storage/tests/repository_donor_storage_has_no_unrecorded_violation().",
+    "entity DELETED core atlas/`impl:Record`/index().",
+    "entity DELETED core atlas/`impl:Record`/utf8().",
+    "entity DELETED core atlas/section_name().",
+    "entity DELETED core atlas/tests/schema_ids_are_pinned_and_distinct().",
+    "entity CREATED core atlas/`impl:Record`/digest().",
+    "entity CREATED core atlas/`impl:Record`/number().",
+    "entity CREATED core atlas/`impl:Record`/of().",
+    "entity CREATED core atlas/`impl:Record`/optional_string().",
+    "entity CREATED core atlas/`impl:Record`/put().",
+    "entity CREATED core atlas/`impl:Record`/string().",
+    "entity CREATED core atlas/`impl:Record`/text().",
+    "entity CREATED core atlas/schema/`impl:RecordDef`/field().",
+    "entity CREATED core atlas/schema/definition_text().",
+    "entity CREATED core atlas/schema/opt().",
+    "entity CREATED core atlas/schema/record().",
+    "entity CREATED core atlas/schema/req().",
+    "entity CREATED core atlas/schema/schema_hash().",
+    "entity CREATED core atlas/schema/section().",
+    "entity CREATED core atlas/tests/a_container_from_another_schema_definition_is_refused().",
+    "entity CREATED core atlas/tests/every_definition_change_moves_the_schema_identity().",
+    "entity CREATED core atlas/tests/schema_ids_are_derived_from_definitions_and_distinct().",
+    "entity CREATED core atlas/tests/table_driven_records_follow_their_declaration_on_the_wire()."
+  ],
+  "intended_but_unobserved": [],
+  "unexpected_changes": [],
+  "regressions": [],
+  "verdict": "PROVEN"
+}

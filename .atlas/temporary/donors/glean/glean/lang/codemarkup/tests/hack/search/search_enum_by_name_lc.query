@@ -1,3 +1,0 @@
-query: hack.SearchEnumByLowerCaseName { name_lowercase = "position" }
-transform: [normord, []]
-perf: true

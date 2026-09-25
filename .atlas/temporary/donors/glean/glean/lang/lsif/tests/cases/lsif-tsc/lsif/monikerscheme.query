@@ -1,3 +1,0 @@
-query: lsif.MonikerScheme _
-perf: True
-transform: [gensort, []]

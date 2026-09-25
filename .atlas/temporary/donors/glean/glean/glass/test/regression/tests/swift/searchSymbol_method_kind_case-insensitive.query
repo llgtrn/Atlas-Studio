@@ -1,2 +1,0 @@
-action: searchSymbol
-args: {"name":"init(Coder","kind":[8],"repo_name":"test","options":{"detailedResults":false,"ignoreCase":true}}

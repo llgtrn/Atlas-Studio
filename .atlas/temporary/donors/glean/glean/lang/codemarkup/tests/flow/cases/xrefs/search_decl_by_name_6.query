@@ -1,3 +1,0 @@
-query: flow.SearchDeclarationByName { name = "foo" }
-perf: True
-transform: [gensort, []]

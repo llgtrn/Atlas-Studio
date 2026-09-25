@@ -1,3 +1,0 @@
-query: codemarkup.search.SearchByName { name = "_inner", kind = { just = Module }, searchcase = Sensitive }
-perf: true
-transform: [gensort, []]

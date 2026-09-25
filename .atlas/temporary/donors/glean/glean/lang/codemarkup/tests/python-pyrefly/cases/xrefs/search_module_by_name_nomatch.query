@@ -1,3 +1,0 @@
-query: python.SearchModuleByName { name = "does not exist" }
-perf: true
-transform: [gensort, []]

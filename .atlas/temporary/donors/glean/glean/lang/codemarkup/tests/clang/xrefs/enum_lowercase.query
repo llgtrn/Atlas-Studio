@@ -1,2 +1,0 @@
-query: cxx1.EnumLowerCase _
-transform: [gensort, []]

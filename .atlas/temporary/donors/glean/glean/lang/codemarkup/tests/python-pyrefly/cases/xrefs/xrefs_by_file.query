@@ -1,3 +1,0 @@
-query: codemarkup.FileEntityXRefLocations { file = "glean/lang/codemarkup/tests/python-pyrefly/cases/xrefs/all.py" }
-perf: true
-transform: [normord, []]

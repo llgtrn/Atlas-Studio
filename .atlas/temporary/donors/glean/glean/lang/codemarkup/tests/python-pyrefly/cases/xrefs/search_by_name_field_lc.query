@@ -1,3 +1,0 @@
-query: python.SearchFieldByLowerCaseName { name_lowercase = _ }
-perf: true
-transform: [gensort, []]

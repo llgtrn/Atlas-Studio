@@ -1,2 +1,0 @@
-action: findReferenceRanges
-args: "test/thrift/lib.thrift/ReferenceRangeSymbolX"

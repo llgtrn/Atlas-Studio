@@ -1,9 +1,0 @@
-{
-  "@generated": null,
-  "facts_searched": {
-    "cxx1.NamespaceDeclaration.5": 8,
-    "cxx1.NamespaceDefinition.5": 8,
-    "cxx1.NamespaceQName.5": 8
-  },
-  "full_scans": [ "cxx1.NamespaceQName.5" ]
-}

@@ -1,3 +1,0 @@
-query: codemarkup.FileEntityXRefLocations { file = "www/test.php" }
-perf: true
-transform: [gensort, []]

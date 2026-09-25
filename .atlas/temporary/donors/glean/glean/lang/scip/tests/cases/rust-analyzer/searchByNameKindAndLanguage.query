@@ -1,3 +1,0 @@
-query: search.code.SearchByNameKindAndLanguage { name = "Prefix", kinds = { just = Enum_ }, language = Rust }
-perf: True
-transform: [gensort, []]

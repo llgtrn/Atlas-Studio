@@ -1,3 +1,0 @@
-query: codemarkup.FileEntityLocations { file = _ }
-perf: true
-transform: [normord, []]

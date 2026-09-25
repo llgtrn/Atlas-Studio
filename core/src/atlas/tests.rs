@@ -209,8 +209,8 @@ fn field_framing_skips_unknown_optional_fields_and_rejects_unknown_required_ones
             .field(99, WIRE_UTF8, 0, b"future"),
     );
     let records = parse_records(&optional_extra, 7).unwrap();
-    let f = Fields::new(&records[0], &[1], 7).unwrap();
-    assert_eq!(f.string(1, &strings).unwrap(), "b");
+    let f = Fields::new(&records[0], GRAPH_NODES).unwrap();
+    assert_eq!(f.string("name", &strings).unwrap(), "b");
 
     let required_extra = one_record(
         1,
@@ -219,7 +219,7 @@ fn field_framing_skips_unknown_optional_fields_and_rejects_unknown_required_ones
             .field(99, WIRE_UTF8, REQUIRED, b"future"),
     );
     let records = parse_records(&required_extra, 7).unwrap();
-    assert!(Fields::new(&records[0], &[1], 7).is_err());
+    assert!(Fields::new(&records[0], GRAPH_NODES).is_err());
 
     let descending = one_record(
         1,
@@ -233,26 +233,26 @@ fn field_framing_skips_unknown_optional_fields_and_rejects_unknown_required_ones
     let wrong_wire = one_record(1, Record::new(1).field(1, WIRE_UVARINT, REQUIRED, &[1]));
     let records = parse_records(&wrong_wire, 7).unwrap();
     assert!(
-        Fields::new(&records[0], &[1], 7)
+        Fields::new(&records[0], GRAPH_NODES)
             .unwrap()
-            .string(1, &strings)
+            .string("name", &strings)
             .is_err()
     );
 
     let out_of_table = one_record(1, Record::new(1).field(1, WIRE_LOCAL_INDEX, REQUIRED, &[2]));
     let records = parse_records(&out_of_table, 7).unwrap();
     assert!(
-        Fields::new(&records[0], &[1], 7)
+        Fields::new(&records[0], GRAPH_NODES)
             .unwrap()
-            .string(1, &strings)
+            .string("name", &strings)
             .is_err()
     );
     let missing = one_record(1, Record::new(1));
     let records = parse_records(&missing, 7).unwrap();
     assert!(
-        Fields::new(&records[0], &[1], 7)
+        Fields::new(&records[0], GRAPH_NODES)
             .unwrap()
-            .string(1, &strings)
+            .string("name", &strings)
             .is_err()
     );
 }
@@ -275,25 +275,103 @@ fn uvarints_are_minimal_bounded_and_exact() {
 }
 
 #[test]
-fn schema_ids_are_pinned_and_distinct() {
-    let ids: std::collections::BTreeSet<u64> = [
-        ROOT_MANIFEST,
-        STRING_TABLE,
-        SEMANTIC_RECORDS,
-        GRAPH_NODES,
-        GRAPH_EDGES,
-        OBLIGATIONS,
-        CENSUS_CERTIFICATE,
-    ]
-    .into_iter()
-    .map(schema_id)
-    .collect();
-    assert_eq!(ids.len(), 7);
-    let expected = blake3::hash(b"atlas.wire.v1/root-manifest");
+fn schema_ids_are_derived_from_definitions_and_distinct() {
+    let ids: std::collections::BTreeSet<u64> = schema::SECTIONS
+        .iter()
+        .map(|def| schema_id(def.section))
+        .collect();
+    assert_eq!(ids.len(), schema::SECTIONS.len());
+    // The id is the hash of the declared definition, dependencies included.
+    let facts = schema::section(SEMANTIC_RECORDS).unwrap();
+    let text = schema::definition_text(facts);
+    assert!(text.starts_with("atlas.wire.v1/census-facts\n"));
+    assert!(text.contains("field 4 subject 9 required\n"));
+    assert!(text.contains("field 8 revision 9 optional\n"));
+    assert!(text.contains("depends string-table "));
+    let digest = blake3::hash(text.as_bytes());
     assert_eq!(
-        schema_id(ROOT_MANIFEST),
-        u64::from_le_bytes(expected[..8].try_into().unwrap())
+        schema_id(SEMANTIC_RECORDS),
+        u64::from_le_bytes(digest[..8].try_into().unwrap())
     );
+}
+
+/// G68 (Glean): any change to a declared field -- a repurposed tag, a rename, another wire type,
+/// requiredness -- or to a dependency's definition is a different schema identity.
+#[test]
+fn every_definition_change_moves_the_schema_identity() {
+    let facts = *schema::section(SEMANTIC_RECORDS).unwrap();
+    let base = schema::schema_hash(&facts);
+    let fields = facts.records[0].fields;
+    let with = |edit: &dyn Fn(&mut Vec<schema::FieldDef>)| {
+        let mut changed = fields.to_vec();
+        edit(&mut changed);
+        let leaked: &'static [schema::FieldDef] = Box::leak(changed.into_boxed_slice());
+        let record: &'static [schema::RecordDef] = Box::leak(Box::new([schema::RecordDef {
+            fields: leaked,
+            ..facts.records[0]
+        }]));
+        schema::schema_hash(&schema::SectionDef {
+            records: record,
+            ..facts
+        })
+    };
+    let swap_subject_predicate = |f: &mut Vec<schema::FieldDef>| {
+        let (s, p) = (f[3].tag, f[4].tag);
+        f[3].tag = p;
+        f[4].tag = s;
+    };
+    for (edit, why) in [
+        (
+            &swap_subject_predicate as &dyn Fn(&mut Vec<schema::FieldDef>),
+            "tags repurposed",
+        ),
+        (
+            &|f: &mut Vec<schema::FieldDef>| f[5].name = "value",
+            "field renamed",
+        ),
+        (
+            &|f: &mut Vec<schema::FieldDef>| f[5].wire = WIRE_UTF8,
+            "wire type",
+        ),
+        (
+            &|f: &mut Vec<schema::FieldDef>| f[7].required = true,
+            "requiredness",
+        ),
+        (
+            &|f: &mut Vec<schema::FieldDef>| f.pop().map(|_| ()).unwrap(),
+            "field removed",
+        ),
+    ] {
+        assert_ne!(with(edit), base, "{why}");
+    }
+    assert_eq!(
+        with(&|_| {}),
+        base,
+        "an unchanged definition keeps its identity"
+    );
+    // A dependency's definition is part of the identity.
+    let without_dependency = schema::schema_hash(&schema::SectionDef {
+        depends_on: &[],
+        ..facts
+    });
+    assert_ne!(without_dependency, base);
+}
+
+/// A container written under another definition of a section is refused, not misread: its
+/// schema id no longer matches this reader's.
+#[test]
+fn a_container_from_another_schema_definition_is_refused() {
+    let bytes = write(&sample()).unwrap();
+    let dir = u64_at(&bytes, 52) as usize;
+    let count = u64_at(&bytes, 60) as usize / DIRECTORY_ENTRY_LEN;
+    let facts_entry = (0..count)
+        .map(|i| dir + i * DIRECTORY_ENTRY_LEN)
+        .find(|at| u16_at(&bytes, *at) == SEMANTIC_RECORDS)
+        .unwrap();
+    let mut other = bytes.clone();
+    let foreign = schema_id(SEMANTIC_RECORDS) ^ 1;
+    other[facts_entry + 8..facts_entry + 16].copy_from_slice(&foreign.to_le_bytes());
+    assert_eq!(rejected(&other), "section 6 has an unknown schema id");
 }
 
 /// Rebuilds a container after `edit` changes one section's content: the directory hash and
@@ -431,4 +509,25 @@ fn hash_consistent_forgeries_are_rejected_by_the_semantic_checks() {
         rejected(&encode(&unordered)),
         "records are not in canonical order"
     );
+}
+
+/// Table-driven records carry the declared REQUIRED flag per field (so an older reader can skip a
+/// newer optional field) and are emitted in ascending tag order whatever the call order.
+#[test]
+fn table_driven_records_follow_their_declaration_on_the_wire() {
+    let strings = Strings(
+        [("a".to_owned(), 0), ("b".to_owned(), 1)]
+            .into_iter()
+            .collect(),
+    );
+    let mut content = Vec::new();
+    Record::of(SEMANTIC_RECORDS, 1)
+        .optional_string("span", &strings, Some("a"))
+        .string("subject", &strings, "b")
+        .optional_string("revision", &strings, None)
+        .string("id", &strings, "a")
+        .encode(&mut content);
+    let records = parse_records(&content, SEMANTIC_RECORDS).unwrap();
+    let fields: Vec<(u16, u8)> = records[0].fields.iter().map(|f| (f.tag, f.flags)).collect();
+    assert_eq!(fields, [(1, REQUIRED), (4, REQUIRED), (10, 0)]);
 }

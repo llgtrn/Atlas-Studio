@@ -1,3 +1,0 @@
-query: lsif.EntityUses { target = { typescript = _ } }
-perf: True
-transform: [gensort, []]

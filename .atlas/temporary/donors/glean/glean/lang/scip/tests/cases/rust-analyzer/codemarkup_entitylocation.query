@@ -1,4 +1,0 @@
-query: codemarkup.scip.ScipEntityLocation { entity = { rust = { defn = _ } } }
-perf: True
-transform: [gensort, []]
-

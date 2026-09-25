@@ -1,3 +1,0 @@
-query: hack.SearchPropertyByName { name = "raz" }
-transform: [normord, []]
-perf: true

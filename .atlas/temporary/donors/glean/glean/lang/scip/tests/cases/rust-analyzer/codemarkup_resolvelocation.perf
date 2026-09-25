@@ -1,9 +1,0 @@
-{
-  "@generated": null,
-  "facts_searched": {
-    "scip.DefinitionLocation.1": 920,
-    "scip.FileLanguage.1": 13,
-    "scip.SymbolName.1": 920
-  },
-  "full_scans": [ "scip.FileLanguage.1" ]
-}

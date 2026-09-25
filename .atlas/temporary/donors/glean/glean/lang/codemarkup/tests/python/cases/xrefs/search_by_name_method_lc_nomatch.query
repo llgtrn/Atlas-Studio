@@ -1,3 +1,0 @@
-query: python.SearchMethodByLowerCaseName { name_lowercase = "does not match" }
-perf: true
-transform: [gensort, []]

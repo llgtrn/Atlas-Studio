@@ -1,3 +1,0 @@
-query: erlang.ThriftToErlang _
-perf: True
-transform: [gensort, []]

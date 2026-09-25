@@ -1,4 +1,0 @@
-query: code.Entity { scip = { typescript = { defn = _ } } }
-perf: True
-transform: [gensort, []]
-

@@ -1,2 +1,0 @@
-query: codemarkup.java.JavaEntityUses _
-transform: [gensort, []]

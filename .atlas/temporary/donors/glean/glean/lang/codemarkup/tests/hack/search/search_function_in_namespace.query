@@ -1,3 +1,0 @@
-query: search.hack.SearchFunctionInNamespace _
-transform: [normord, []]
-perf: true

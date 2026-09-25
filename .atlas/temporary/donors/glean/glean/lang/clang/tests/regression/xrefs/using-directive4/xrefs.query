@@ -1,2 +1,0 @@
-query: cxx1.FileXRefMap { file = "test.cpp" }
-transform: [gensort, []]

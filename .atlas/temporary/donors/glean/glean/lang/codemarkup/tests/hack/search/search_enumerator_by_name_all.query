@@ -1,3 +1,0 @@
-query: hack.SearchEnumeratorByName { name = _ }
-transform: [normord, []]
-perf: true

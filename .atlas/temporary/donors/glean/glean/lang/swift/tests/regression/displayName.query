@@ -1,3 +1,0 @@
-query: scip.DisplayName _
-perf: True
-transform: [gensort, []]

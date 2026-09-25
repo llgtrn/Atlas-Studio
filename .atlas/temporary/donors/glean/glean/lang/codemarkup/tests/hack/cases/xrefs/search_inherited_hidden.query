@@ -1,3 +1,0 @@
-query: codemarkup.hack.HackExtendsParentEntityConcise { child = { decl = { container = { class_ = { name = { name = "RefClass" } } } } }, parent = { decl = _ } }
-perf: true
-transform: [gensort, []]

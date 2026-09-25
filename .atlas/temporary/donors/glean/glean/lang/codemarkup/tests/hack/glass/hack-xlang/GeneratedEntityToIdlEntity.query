@@ -1,3 +1,0 @@
-query: codemarkup.GeneratedEntityToIdlEntity _
-perf: true
-transform: [gensort, []]

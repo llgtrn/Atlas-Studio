@@ -1,3 +1,0 @@
-query: python.SearchFieldByName { name = "old_style_class_var" }
-perf: true
-transform: [gensort, []]

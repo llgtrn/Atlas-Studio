@@ -1,2 +1,0 @@
-action: searchSymbol
-args: {"name": "foo", "repo_name": "test", "language": [], "kinds": [], "options": {"detailedResults": false, "exactMatch": true, "ignoreCase": false, "namespaceSearch": false } }

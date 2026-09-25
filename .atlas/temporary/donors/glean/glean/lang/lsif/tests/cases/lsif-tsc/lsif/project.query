@@ -1,3 +1,0 @@
-query: lsif.Project _
-perf: True
-transform: [gensort, []]

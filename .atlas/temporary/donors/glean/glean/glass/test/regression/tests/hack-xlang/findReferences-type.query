@@ -1,2 +1,0 @@
-action: findReferenceRanges
-args: "test-xlang/thrift/www/test.thrift/GetNavigationRequest"

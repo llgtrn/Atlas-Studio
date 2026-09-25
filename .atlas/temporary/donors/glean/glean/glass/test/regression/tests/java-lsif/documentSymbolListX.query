@@ -1,3 +1,0 @@
-action: documentSymbolListX
-args: {"include_refs":true,"filepath":"src/main/java/com/glean/app/App.java","repository":"test"}
-

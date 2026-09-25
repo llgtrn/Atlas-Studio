@@ -1,3 +1,0 @@
-query: codemarkup.FileEntityXRefLocations { file = "www/RefClass.php" }
-perf: true
-transform: [gensort, []]

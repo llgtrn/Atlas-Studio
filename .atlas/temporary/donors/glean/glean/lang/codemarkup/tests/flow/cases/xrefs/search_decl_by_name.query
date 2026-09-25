@@ -1,3 +1,0 @@
-query: flow.SearchDeclarationByName { name = "BazClass" }
-perf: True
-transform: [gensort, []]

@@ -1,3 +1,0 @@
-query: hack.SearchTypeConstByLowerCaseName { name_lowercase = "t" }
-transform: [normord, []]
-perf: true

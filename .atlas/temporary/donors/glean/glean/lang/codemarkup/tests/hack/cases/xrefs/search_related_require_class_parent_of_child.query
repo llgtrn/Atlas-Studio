@@ -1,3 +1,0 @@
-query: codemarkup.SearchRelatedEntities { query = RequireClassParentOfChild, style = ShowAll }
-perf: true
-transform: [gensort, []]

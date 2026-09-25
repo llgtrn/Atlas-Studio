@@ -1,3 +1,0 @@
-query: codemarkup.search.SearchByName { name = "var", kind = { just = Variable }, searchcase = Sensitive }
-perf: true
-transform: [gensort, []]

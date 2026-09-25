@@ -1,3 +1,0 @@
-query: lsif.Metadata _
-perf: True
-transform: [gensort, []]

@@ -1,3 +1,0 @@
-query: hack.SearchTraitByName { name = "SourceTrait" }
-transform: [normord, []]
-perf: true

@@ -1,3 +1,0 @@
-query: search.code.RustSearchByNameAndKind { name = "f1_go" }
-perf: True
-transform: [gensort, []]

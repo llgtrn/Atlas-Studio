@@ -1,3 +1,0 @@
-query: codemarkup.EntityComments { entity = { erlang = _ } }
-perf: true
-transform: [normord, []]

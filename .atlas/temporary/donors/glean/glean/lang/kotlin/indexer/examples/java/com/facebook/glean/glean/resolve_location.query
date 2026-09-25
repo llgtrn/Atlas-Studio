@@ -1,2 +1,0 @@
-query: codemarkup.kotlin.KotlinResolveLocation _
-transform: [gensort, []]

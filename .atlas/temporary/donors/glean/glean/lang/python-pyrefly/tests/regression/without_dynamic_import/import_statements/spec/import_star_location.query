@@ -1,2 +1,0 @@
-query: python.ImportStarLocation _
-transform: [normord, []]

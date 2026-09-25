@@ -1,3 +1,0 @@
-query: codemarkup.EntityToAnnotations { entity = {python = _ }}
-transform: [gensort, []]
-perf: true

@@ -1,3 +1,0 @@
-query: swift.SymbolUSR { _, "c:".. }
-perf: True
-transform: [gensort, []]

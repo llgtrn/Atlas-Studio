@@ -1,3 +1,0 @@
-query: hack.SearchInterfaceByName { name = "SourceInterface" }
-transform: [normord, []]
-perf: true

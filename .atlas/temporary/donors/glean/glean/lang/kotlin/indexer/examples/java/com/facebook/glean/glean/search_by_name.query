@@ -1,2 +1,0 @@
-query: codemarkup.search.SearchByName { searchcase = Sensitive, language = Kotlin }
-transform: [gensort, []]

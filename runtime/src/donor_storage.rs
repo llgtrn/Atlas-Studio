@@ -449,6 +449,7 @@ mod tests {
             [
                 "blake3",
                 "datafrog",
+                "glean",
                 "kythe",
                 "ladybird",
                 "scip",

@@ -1,3 +1,0 @@
-query: python.IsAbstract _
-transform: [normord, []]
-perf: true

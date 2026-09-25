@@ -1,3 +1,0 @@
-query: flow.TypeDeclaration _
-perf: True
-transform: [gensort, []]

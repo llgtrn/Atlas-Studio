@@ -1,3 +1,0 @@
-query: lsif.Range _
-perf: True
-transform: [gensort, []]

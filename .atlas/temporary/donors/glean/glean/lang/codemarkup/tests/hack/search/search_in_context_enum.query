@@ -1,3 +1,0 @@
-query: codemarkup.search.SearchByScope { name = "Right", scope = ["Position"], language = Hack, searchcase = Sensitive }
-transform: [normord, []]
-perf: true

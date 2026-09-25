@@ -1,3 +1,0 @@
-query: scip.Reference { symbol = "c".. }
-perf: True
-transform: [gensort, []]

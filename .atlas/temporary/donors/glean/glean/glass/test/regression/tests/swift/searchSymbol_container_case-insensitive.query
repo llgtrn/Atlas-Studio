@@ -1,2 +1,0 @@
-action: searchSymbol
-args: {"name":"cibcanvasB","repo_name":"test","options":{"detailedResults":false,"ignoreCase":true}}

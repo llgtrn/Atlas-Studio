@@ -1,8 +1,0 @@
-query: |
-  E where
-    codemarkup.ResolveLocation {
-       location = { location = _ },
-       entity = E
-    };
-perf: true
-transform: [normord, []]

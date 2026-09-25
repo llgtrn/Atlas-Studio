@@ -1,3 +1,0 @@
-query: codemarkup.cxx.CxxAnnotation _
-perf: true
-transform: [gensort, []]

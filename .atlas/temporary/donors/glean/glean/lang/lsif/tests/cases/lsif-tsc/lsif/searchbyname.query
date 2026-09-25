@@ -1,3 +1,0 @@
-query: lsif.SearchByName _
-perf: True
-transform: [gensort, []]

@@ -1,3 +1,0 @@
-query: symbolid.cxx.LookupEnumerator _
-perf: true
-transform: [gensort, []]

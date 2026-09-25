@@ -1,3 +1,0 @@
-query: hack.SearchFunctionByLowerCaseName { name_lowercase = "corge" }
-transform: [normord, []]
-perf: true

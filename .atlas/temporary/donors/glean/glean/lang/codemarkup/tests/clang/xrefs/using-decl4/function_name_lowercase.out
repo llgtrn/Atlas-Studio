@@ -1,7 +1,0 @@
-[
-  "@generated",
-  { "key": { "name_lowercase": "bar", "name": "bar" } },
-  { "key": { "name_lowercase": "callme", "name": "callme" } },
-  { "key": { "name_lowercase": "funfoo", "name": "funfoo" } },
-  { "key": { "name_lowercase": "standalone", "name": "standalone" } }
-]

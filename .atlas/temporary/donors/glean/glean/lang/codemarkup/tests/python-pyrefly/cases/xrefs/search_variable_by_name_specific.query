@@ -1,3 +1,0 @@
-query: python.SearchVariableByName { name = "big_var" }
-perf: true
-transform: [gensort, []]

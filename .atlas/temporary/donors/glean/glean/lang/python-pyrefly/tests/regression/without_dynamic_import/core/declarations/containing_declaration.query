@@ -1,2 +1,0 @@
-query: python.ContainingTopLevelDeclaration _
-transform: [normord, []]

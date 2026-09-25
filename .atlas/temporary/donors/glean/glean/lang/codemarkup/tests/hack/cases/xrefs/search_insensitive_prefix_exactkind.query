@@ -1,3 +1,0 @@
-query: codemarkup.search.SearchByName { searchcase = Insensitive, name = "sourcecl".., kind = { just = Class_ } }
-perf: true
-transform: [gensort, []]

@@ -1,3 +1,0 @@
-query: codemarkup.search.SearchByName { name = "prop1", language = JavaScript, searchcase = Sensitive, kind = { just = Property } }
-perf: true
-transform: [normord, []]

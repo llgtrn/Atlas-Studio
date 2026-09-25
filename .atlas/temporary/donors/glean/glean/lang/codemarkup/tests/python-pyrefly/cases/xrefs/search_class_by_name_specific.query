@@ -1,3 +1,0 @@
-query: python.SearchClassByName { name = "BaseClass" }
-perf: true
-transform: [gensort, []]

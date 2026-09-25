@@ -1,3 +1,0 @@
-query: python.SearchVariableByName { name = "does not exist" }
-perf: true
-transform: [gensort, []]

@@ -1,3 +1,0 @@
-query: search.code.SearchByNameKindAndLanguage { name = "e_".., language = Cpp, kinds = { just = Class_ } }
-perf: true
-transform: [gensort, []]

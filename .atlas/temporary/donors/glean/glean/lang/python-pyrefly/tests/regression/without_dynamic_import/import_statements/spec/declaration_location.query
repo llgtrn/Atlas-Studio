@@ -1,2 +1,0 @@
-query: python.DeclarationLocation _
-transform: [normord, []]

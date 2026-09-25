@@ -1,5 +1,0 @@
-{
-  "@generated": null,
-  "facts_searched": { "cxx1.RecordDefinition.5": 2 },
-  "full_scans": [ "cxx1.FunctionDeclaration.5", "cxx1.RecordDefinition.5" ]
-}

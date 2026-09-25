@@ -1,3 +1,0 @@
-query: erlang.DeclarationLocation _
-perf: True
-transform: [gensort, []]

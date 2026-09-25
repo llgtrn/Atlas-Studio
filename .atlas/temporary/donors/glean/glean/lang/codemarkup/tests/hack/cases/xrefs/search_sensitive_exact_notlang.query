@@ -1,3 +1,0 @@
-query: codemarkup.search.SearchByName { searchcase = Sensitive, name = "SourceClass", language = JavaScript }
-perf: true
-transform: [gensort, []]

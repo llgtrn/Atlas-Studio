@@ -1,2 +1,0 @@
-action: searchSymbol
-args: {"name": "glean.test.thing", "repo_name": "test", "language": [3], "kinds": [], "options": {"detailedResults": false, "exactMatch": true, "ignoreCase": true, "namespaceSearch": true, "feelingLucky": true } }

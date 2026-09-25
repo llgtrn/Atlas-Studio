@@ -1,3 +1,0 @@
-query: hack.SearchNamespaceByName { name = "NS" }
-transform: [normord, []]
-perf: true

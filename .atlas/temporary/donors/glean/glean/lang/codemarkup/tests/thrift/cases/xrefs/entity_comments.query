@@ -1,2 +1,0 @@
-query: codemarkup.EntityComments { entity = { fbthrift = _ } }
-transform: [normord, []]

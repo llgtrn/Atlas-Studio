@@ -1,3 +1,0 @@
-query: codemarkup.ContainsChildEntity _
-perf: true
-transform: [gensort, []]

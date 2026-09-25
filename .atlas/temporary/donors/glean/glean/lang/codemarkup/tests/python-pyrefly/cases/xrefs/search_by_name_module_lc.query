@@ -1,3 +1,0 @@
-query: python.SearchModuleByLowerCaseName { name_lowercase = _ }
-perf: true
-transform: [gensort, []]

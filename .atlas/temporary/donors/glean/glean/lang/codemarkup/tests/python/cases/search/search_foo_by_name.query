@@ -1,3 +1,0 @@
-query: codemarkup.search.SearchByName { name = "foo",searchcase = Sensitive, language = Python }
-perf: true
-transform: [normord, []]
