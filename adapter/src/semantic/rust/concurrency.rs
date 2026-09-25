@@ -109,8 +109,15 @@ impl<'ctx, 'a> ConcurrencyWalker<'ctx, 'a> {
 }
 
 impl<'ctx, 'a> StatementWalker for ConcurrencyWalker<'ctx, 'a> {
+    /// G120: `walk_macro` keeps the trait default -- a recovered standard macro's arguments are
+    /// evaluated in the caller, so an `.await` or spawn written inside them is the caller's site.
+    fn shadowed_macros(&self) -> &std::collections::BTreeSet<String> {
+        &self.ctx.shadowed_macros
+    }
+
     fn walk_expr(&mut self, expr: &syn::Expr) {
         match expr {
+            syn::Expr::Macro(expr_macro) => self.walk_macro(&expr_macro.mac),
             syn::Expr::Await(await_expr) => {
                 let span = self.ctx.span_of(expr);
                 self.emit(span, ConcurrencyKind::Await, EpistemicStatus::Observed);

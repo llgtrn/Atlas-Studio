@@ -1,0 +1,21 @@
+{
+  "schema": "atlas.g119.call-metric-reconciliation.v1",
+  "reconciled_in": "G120",
+  "method": "release systemize of git worktrees: the G118 commit f8868daab02a465beb2cc248467732bf396ef2fe and the G119 commit af0f89e626; extractors built from each commit; syntactic CALL records counted per extractor identity",
+  "a_g118_extractor_on_g118_tree": 18001,
+  "b_g118_extractor_on_g119_tree": 18199,
+  "c_g119_extractor_on_g119_tree": 22562,
+  "g119_call_record_delta": 4561,
+  "g119_new_code_call_sites": 198,
+  "g119_macro_argument_call_sites": 4363,
+  "resolution_call_records": {
+    "a": 4553,
+    "b": 4579,
+    "c": 4579
+  },
+  "superseded_claims": {
+    "17768 -> 22562 (+4794)": "compared the G117 tree (17,768, measured at the start of G118) with the G119 tree: it spans G118's test code as well",
+    "+4745 call sites": "compared the G117 tree with an intermediate G119 working tree before G119's tests were final"
+  },
+  "rule": "from G120 the census snapshot carries records:<DIMENSION>|<engine> and obligations:<DIMENSION>|<engine>|<STATUS> totals; a generation's metrics are generation.metric entries checked against its pre/post snapshots (runtime test generation_metrics_are_derived_from_snapshots)"
+}

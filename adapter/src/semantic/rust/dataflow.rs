@@ -247,12 +247,32 @@ impl<'ctx, 'a> DataFlowWalker<'ctx, 'a> {
                 self.walk_binding_pat(&local.pat, false);
             }
             syn::Stmt::Expr(expr, _) => self.walk_expr(expr, is_tail),
-            syn::Stmt::Item(_) | syn::Stmt::Macro(_) => {}
+            syn::Stmt::Macro(stmt_macro) => self.walk_macro(&stmt_macro.mac),
+            syn::Stmt::Item(_) => {}
+        }
+    }
+
+    /// G120: every argument of a recovered standard macro is evaluated by its expansion, so its
+    /// values are Uses of the caller whatever the role (a format argument is read through a
+    /// reference; a `write!` target is used as the `write_fmt` receiver). An implicit format
+    /// capture (`{x}`, `{:w$}`) is a Use of the captured binding at its exact position. Opaque
+    /// macros stay opaque; nothing here is ever return-flow.
+    fn walk_macro(&mut self, mac: &syn::Macro) {
+        let Some(recovered) = super::macros::recover(mac, &self.ctx.shadowed_macros) else {
+            return;
+        };
+        for (argument, _) in &recovered.arguments {
+            self.walk_expr(argument, false);
+        }
+        for (name, at) in &recovered.captures {
+            let span = self.ctx.span_at_position(*at);
+            self.emit_use_or_store(name, span, ValueRole::Use, false);
         }
     }
 
     fn walk_expr(&mut self, expr: &syn::Expr, is_return_flow: bool) {
         match expr {
+            syn::Expr::Macro(expr_macro) => self.walk_macro(&expr_macro.mac),
             syn::Expr::Path(_) => {
                 if let Some(ident) = spelling::simple_path_ident(expr) {
                     let name = ident.to_string();

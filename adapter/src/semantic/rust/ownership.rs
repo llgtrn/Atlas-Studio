@@ -129,12 +129,28 @@ impl<'ctx, 'a> OwnershipWalker<'ctx, 'a> {
                 }
             }
             syn::Stmt::Expr(expr, _) => self.walk_expr(expr, is_tail_value_position),
-            syn::Stmt::Item(_) | syn::Stmt::Macro(_) => {}
+            syn::Stmt::Macro(stmt_macro) => self.walk_macro(&stmt_macro.mac),
+            syn::Stmt::Item(_) => {}
+        }
+    }
+
+    /// G120: an `Evaluated` argument of a recovered standard macro is moved or copied into the
+    /// expansion (a value position). A format argument or an `assert_eq!` operand is taken by
+    /// shared reference and a `write!` target is an auto-referenced method receiver: none of them
+    /// is a move, and the implicit borrow is not claimed (implicit auto-ref stays a recorded
+    /// blind spot) -- only their nested subexpressions are walked.
+    fn walk_macro(&mut self, mac: &syn::Macro) {
+        let Some(recovered) = super::macros::recover(mac, &self.ctx.shadowed_macros) else {
+            return;
+        };
+        for (argument, role) in &recovered.arguments {
+            self.walk_expr(argument, *role == super::macros::ArgumentRole::Evaluated);
         }
     }
 
     fn walk_expr(&mut self, expr: &syn::Expr, is_value_position: bool) {
         match expr {
+            syn::Expr::Macro(expr_macro) => self.walk_macro(&expr_macro.mac),
             syn::Expr::Reference(reference) => {
                 let kind = if reference.mutability.is_some() {
                     OwnershipKind::BorrowMut

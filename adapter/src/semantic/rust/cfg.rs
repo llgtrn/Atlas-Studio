@@ -304,6 +304,37 @@ impl<'ctx, 'a> CfgBuilder<'ctx, 'a> {
         span: atlas_core::SourceSpan,
     ) {
         for (i, stmt) in stmts.iter().enumerate() {
+            // G120: an `assert*!(..);` statement is a statement-level decision point exactly like
+            // `expr?;`: either its condition holds and execution falls through to whatever
+            // follows, or it panics. INFERRED like every spelling-classified macro (the name is
+            // shadowable across files); a locally shadowed `assert` is never recovered.
+            let statement_macro = match stmt {
+                syn::Stmt::Macro(stmt_macro) => Some(&stmt_macro.mac),
+                syn::Stmt::Expr(syn::Expr::Macro(expr_macro), _) => Some(&expr_macro.mac),
+                _ => None,
+            };
+            if let Some(mac) = statement_macro
+                && super::macros::recover(mac, &self.ctx.shadowed_macros)
+                    .is_some_and(|r| super::macros::ASSERT_MACROS.contains(&r.name.as_str()))
+            {
+                let join_cont = self.join_continuation(stmts, i, cont);
+                self.emit_block(
+                    entry_id,
+                    entry_index,
+                    entry_kind,
+                    is_entry,
+                    vec![
+                        continuation_to_edge(&join_cont),
+                        ControlFlowEdge {
+                            kind: ControlFlowEdgeKind::Panic,
+                            target: None,
+                        },
+                    ],
+                    span,
+                    EpistemicStatus::Inferred,
+                );
+                return;
+            }
             if let syn::Stmt::Macro(stmt_macro) = stmt {
                 if is_panic_like_macro(&stmt_macro.mac) {
                     self.emit_block(

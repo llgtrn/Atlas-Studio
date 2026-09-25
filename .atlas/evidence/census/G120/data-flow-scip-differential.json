@@ -1,0 +1,19 @@
+{
+  "schema": "atlas.g120.data-flow-scip-differential.v1",
+  "oracle": "rust-analyzer 1.90.0 (1159e78 2025-09-14) scip, macro-expanding; run offline (not a census engine)",
+  "data_flow_records_before_g119_extractor": 32084,
+  "data_flow_records_after_g120_extractor": 38954,
+  "new_records": 6870,
+  "lost_records": 0,
+  "new_at_scip_local_reference": 4719,
+  "new_at_scip_nonlocal_occurrence": 1196,
+  "new_implicit_captures_verified_in_source": 951,
+  "new_on_non_ascii_lines_column_units_differ": 4,
+  "new_unexplained": 0,
+  "unexplained_samples": [],
+  "scip_local_references_total": 25222,
+  "recall_before": 16623,
+  "recall_after": 21342,
+  "note": "SCIP emits no occurrence for implicit format captures ({x}); captures are verified against the literal source text instead. Non-local occurrences are callee paths the DATA_FLOW walker already records outside macros (unchanged semantics).",
+  "measured_tree": "G120 working tree with the final walker semantics, before the last G120 tests and the StatementWalker deduplication (semantics unchanged by either); record counts therefore differ slightly from G120 post.json, whose totals are the generation.metric entries"
+}

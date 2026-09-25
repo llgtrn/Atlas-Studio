@@ -165,8 +165,28 @@ impl<'ctx, 'a> StateWalker<'ctx, 'a> {
 }
 
 impl<'ctx, 'a> StatementWalker for StateWalker<'ctx, 'a> {
+    /// G120: arguments a recovered standard macro evaluates are walked like any expression of
+    /// the caller (a `self.field` format argument is a Read). A `write!`/`writeln!` target is the
+    /// `&mut` receiver of `write_fmt`: whether that mutates the field depends on the resolved
+    /// `Write` impl, so it is not walked and stays an open STATE obligation.
+    fn shadowed_macros(&self) -> &std::collections::BTreeSet<String> {
+        &self.ctx.shadowed_macros
+    }
+
+    fn walk_macro(&mut self, mac: &syn::Macro) {
+        let Some(recovered) = super::macros::recover(mac, &self.ctx.shadowed_macros) else {
+            return;
+        };
+        for (argument, role) in &recovered.arguments {
+            if *role != super::macros::ArgumentRole::WriteTarget {
+                self.walk_expr(argument);
+            }
+        }
+    }
+
     fn walk_expr(&mut self, expr: &syn::Expr) {
         match expr {
+            syn::Expr::Macro(expr_macro) => self.walk_macro(&expr_macro.mac),
             syn::Expr::Field(field) => match self_field_path(field) {
                 Some(path) => {
                     let span = self.ctx.span_of(field);

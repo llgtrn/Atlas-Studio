@@ -533,6 +533,21 @@ fn function_signature_identity_key(signature: &FunctionSignature) -> String {
 trait StatementWalker {
     fn walk_expr(&mut self, expr: &syn::Expr);
 
+    /// The standard macro names the walked file shadows with its own `macro_rules!` (G119).
+    fn shadowed_macros(&self) -> &BTreeSet<String>;
+
+    /// G120: a statement- or expression-position macro invocation. By default every argument of
+    /// a recovered standard macro is evaluated in the caller and walked like any expression; an
+    /// opaque macro stays opaque. A walker whose dimension gives some role a different meaning
+    /// overrides this.
+    fn walk_macro(&mut self, mac: &syn::Macro) {
+        let arguments =
+            macros::recovered_arguments(mac, self.shadowed_macros()).unwrap_or_default();
+        for argument in &arguments {
+            self.walk_expr(argument);
+        }
+    }
+
     fn walk_stmt(&mut self, stmt: &syn::Stmt) {
         match stmt {
             syn::Stmt::Local(local) => {
@@ -544,7 +559,8 @@ trait StatementWalker {
                 }
             }
             syn::Stmt::Expr(expr, _) => self.walk_expr(expr),
-            syn::Stmt::Item(_) | syn::Stmt::Macro(_) => {}
+            syn::Stmt::Macro(stmt_macro) => self.walk_macro(&stmt_macro.mac),
+            syn::Stmt::Item(_) => {}
         }
     }
 }
@@ -597,6 +613,15 @@ impl<'a> ExtractionContext<'a> {
 
     fn span_of<T: Spanned>(&self, node: &T) -> atlas_core::SourceSpan {
         self.span_at(node.span())
+    }
+
+    /// The source span at an exact position inside a token (G120: implicit format captures).
+    fn span_at_position(&self, at: proc_macro2::LineColumn) -> atlas_core::SourceSpan {
+        atlas_core::SourceSpan {
+            path: self.input.artifact_path.clone(),
+            line: at.line,
+            column: at.column,
+        }
     }
 
     fn span_at(&self, span: proc_macro2::Span) -> atlas_core::SourceSpan {
@@ -1735,10 +1760,12 @@ impl<'a> ExtractionContext<'a> {
                         DiagnosticCode::IncompleteAnalysis,
                         Some(dimension),
                         format!(
-                            "{} currently has partial {} coverage for {}; emitted observations are valid, but absence of unmodeled forms is not proven",
+                            "{} currently has partial {} coverage for {}; emitted observations are valid, but absence of unmodeled forms is not proven; opaque macro/attribute sites in profile: {}",
                             RUST_SEMANTIC_EXTRACTOR_ID,
                             dimension.as_str(),
-                            self.input.artifact_path
+                            self.input.artifact_path,
+                            self.opaque_macro_sites
+                                .map_or_else(|| "not evaluated".to_owned(), |n| n.to_string())
                         ),
                     );
                     let diagnostic_id = diagnostic.id.clone();

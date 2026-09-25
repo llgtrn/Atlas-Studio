@@ -119,8 +119,15 @@ impl<'ctx, 'a> PersistenceWalker<'ctx, 'a> {
 }
 
 impl<'ctx, 'a> StatementWalker for PersistenceWalker<'ctx, 'a> {
+    /// G120: `walk_macro` keeps the trait default -- a persistence candidate written inside a
+    /// recovered standard macro's arguments is the caller's (still a spelling candidate, INFERRED).
+    fn shadowed_macros(&self) -> &std::collections::BTreeSet<String> {
+        &self.ctx.shadowed_macros
+    }
+
     fn walk_expr(&mut self, expr: &syn::Expr) {
         match expr {
+            syn::Expr::Macro(expr_macro) => self.walk_macro(&expr_macro.mac),
             syn::Expr::Call(call) => {
                 if let Some(kind) = persistence_candidate_kind(&call.func) {
                     let span = self.ctx.span_of(call);

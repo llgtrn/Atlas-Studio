@@ -2572,6 +2572,80 @@ mod tests {
             }
         }
 
+        /// G120: a generation's semantic metrics are derived from its own pre/post census
+        /// snapshots, never hand-maintained. Every `[[generation.metric]]` names a snapshot total;
+        /// `after` must equal the post-change total, and `before` the pre-change total (omitted only
+        /// when the pre snapshot predates that total's existence). From G120 every NATIVE_ATTACK
+        /// generation carries metrics, and a completed attack's result states no free numbers.
+        #[test]
+        fn generation_metrics_are_derived_from_snapshots() {
+            let snapshot = |path: &str| -> serde_json::Value {
+                serde_json::from_str(&read(path)).unwrap_or_else(|e| panic!("{path}: {e}"))
+            };
+            for (id, block) in ledger_generations() {
+                let metrics = blocks(&block, "generation.metric");
+                if generation(&id) >= 120 && text(&block, "kind") == "NATIVE_ATTACK" {
+                    assert!(
+                        !metrics.is_empty(),
+                        "{id}: a native attack states derived metrics"
+                    );
+                }
+                if metrics.is_empty() {
+                    continue;
+                }
+                let report = text(&block, "self_recensus");
+                let dir = &report[..report.rfind('/').unwrap()];
+                let pre = snapshot(&format!("{dir}/pre.json"));
+                let post = snapshot(&format!("{dir}/post.json"));
+                for metric in metrics {
+                    let key = text(metric, "key");
+                    let after = post["totals"][&key]
+                        .as_i64()
+                        .unwrap_or_else(|| panic!("{id}: post.json has no total `{key}`"));
+                    assert_eq!(number(metric, "after"), after, "{id}: {key} after");
+                    match pre["totals"][&key].as_i64() {
+                        Some(before) => {
+                            assert_eq!(number(metric, "before"), before, "{id}: {key} before")
+                        }
+                        None => assert!(
+                            raw(metric, "before").is_none(),
+                            "{id}: {key} has no pre-change total to derive `before` from"
+                        ),
+                    }
+                }
+            }
+            let ledger = Ledger::load();
+            for done in blocks(&ledger.text, "native_attack_done") {
+                if generation(&text(done, "generation")) >= 120 {
+                    assert!(
+                        !text(done, "result").chars().any(|c| c.is_ascii_digit()),
+                        "{}: numbers belong in generation.metric entries",
+                        text(done, "id")
+                    );
+                }
+            }
+            // The G119 metric correction stays backed by its reproducible evidence.
+            let reconciliation: serde_json::Value = serde_json::from_str(&read(
+                ".atlas/evidence/census/G119/call-metric-reconciliation.json",
+            ))
+            .unwrap();
+            let delta = reconciliation["g119_call_record_delta"].as_i64().unwrap();
+            let parts = reconciliation["g119_new_code_call_sites"].as_i64().unwrap()
+                + reconciliation["g119_macro_argument_call_sites"]
+                    .as_i64()
+                    .unwrap();
+            assert_eq!(delta, parts, "the G119 decomposition adds up");
+            assert_eq!(
+                delta,
+                reconciliation["c_g119_extractor_on_g119_tree"]
+                    .as_i64()
+                    .unwrap()
+                    - reconciliation["a_g118_extractor_on_g118_tree"]
+                        .as_i64()
+                        .unwrap()
+            );
+        }
+
         #[test]
         fn essential_debt_has_explicit_next_attack() {
             let ledger = Ledger::load();
@@ -2675,10 +2749,27 @@ mod tests {
                 string(head, "id"),
                 "PRIORITY.toml next_native_attack must be the queue head"
             );
-            assert_eq!(
-                text(head, "planned_generation"),
-                format!("G{}", current_generation() + 1),
-                "the queue head is planned for the next generation"
+            // Rule B: the head is the next generation -- or the one after it when PRIORITY.toml
+            // plans exactly the next one as a HISTORICAL_DONOR_REVALIDATION generation (G121+).
+            let current = current_generation();
+            let planned = generation(&text(head, "planned_generation"));
+            let revalidation_next = blocks(&priority, "planned_generation").iter().any(|b| {
+                string(b, "id") == Some(format!("G{}", current + 1))
+                    && string(b, "objective")
+                        .is_some_and(|o| o.starts_with("HISTORICAL_DONOR_REVALIDATION"))
+            });
+            assert!(
+                planned == current + 1 || (planned == current + 2 && revalidation_next),
+                "the queue head is planned for the next native generation (G{planned} at G{current})"
+            );
+            // Dependency order before pressure: the selected head has a debt no open debt blocks.
+            assert!(
+                list(head, "debts")
+                    .iter()
+                    .any(|d| debts
+                        .get(d)
+                        .is_some_and(|b| list(b, "blocked_by").is_empty())),
+                "the queue head waits on a missing prerequisite"
             );
         }
 
@@ -3361,6 +3452,34 @@ mod tests {
                     id
                 })
                 .collect();
+            // G120: counts of census dimensions are derived from the head post-change snapshot.
+            let head = format!("G{}", current_generation());
+            let post: serde_json::Value =
+                serde_json::from_str(&read(&format!(".atlas/evidence/census/{head}/post.json")))
+                    .unwrap();
+            let totals = post["totals"].as_object().unwrap();
+            for block in blocks(&ledger.text, "dimension") {
+                let id = text(block, "id");
+                let prefix = format!("obligations:{id}|");
+                if !totals.keys().any(|k| k.starts_with(&prefix)) {
+                    continue;
+                }
+                for (field, status) in [
+                    ("unknown_count", "|UNKNOWN"),
+                    ("unsupported_count", "|UNSUPPORTED"),
+                ] {
+                    let derived: i64 = totals
+                        .iter()
+                        .filter(|(k, _)| k.starts_with(&prefix) && k.ends_with(status))
+                        .map(|(_, v)| v.as_i64().unwrap())
+                        .sum();
+                    assert_eq!(
+                        number(block, field),
+                        derived,
+                        "{id}: {field} from {head} post.json"
+                    );
+                }
+            }
             let expected = [
                 "SYMBOL",
                 "TYPE",

@@ -34,8 +34,8 @@ use atlas_core::{
     SemanticObservation, SemanticRecordHeader, SemanticRecordId, SemanticScope, stable_id,
 };
 
-use super::ExtractionContext;
 use super::spelling::{call_callee_spelling, is_panic_like_macro};
+use super::{ExtractionContext, StatementWalker};
 
 /// If a free/path call's callee spelling has an `fs` module qualifier, is exactly
 /// `File::open`/`File::create`/`File::create_new`, is exactly `Command::new`, or is exactly
@@ -155,37 +155,31 @@ impl<'ctx, 'a> EffectWalker<'ctx, 'a> {
 
     fn walk_block(&mut self, block: &syn::Block) {
         for stmt in &block.stmts {
-            self.walk_stmt(stmt);
+            StatementWalker::walk_stmt(self, stmt);
         }
     }
 
-    fn walk_stmt(&mut self, stmt: &syn::Stmt) {
-        match stmt {
-            syn::Stmt::Local(local) => {
-                if let Some(init) = &local.init {
-                    self.walk_expr(&init.expr);
-                    if let Some((_, diverge)) = &init.diverge {
-                        self.walk_expr(diverge);
-                    }
-                }
-            }
-            syn::Stmt::Expr(expr, _) => self.walk_expr(expr),
-            syn::Stmt::Macro(stmt_macro) => {
-                if is_panic_like_macro(&stmt_macro.mac) {
-                    self.emit_panic(&stmt_macro.mac);
-                }
-            }
-            syn::Stmt::Item(_) => {}
+    /// A panic-like macro is a PANIC site (INFERRED: the name could be shadowed across files).
+    /// G120: a recovered `assert*!`/`debug_assert*!` panics when its condition fails -- also a
+    /// PANIC site of the caller (INFERRED by the same spelling evidence; debug variants only in
+    /// debug builds); and every recovered argument is evaluated in the caller, so effects
+    /// written inside the arguments are the caller's.
+    fn walk_macro(&mut self, mac: &syn::Macro) {
+        let recovered = super::macros::recover(mac, &self.ctx.shadowed_macros);
+        let is_assert = recovered
+            .as_ref()
+            .is_some_and(|r| super::macros::ASSERT_MACROS.contains(&r.name.as_str()));
+        if is_panic_like_macro(mac) || is_assert {
+            self.emit_panic(mac);
+        }
+        for (argument, _) in recovered.iter().flat_map(|r| r.arguments.iter()) {
+            self.walk_expr(argument);
         }
     }
 
     fn walk_expr(&mut self, expr: &syn::Expr) {
         match expr {
-            syn::Expr::Macro(expr_macro) => {
-                if is_panic_like_macro(&expr_macro.mac) {
-                    self.emit_panic(&expr_macro.mac);
-                }
-            }
+            syn::Expr::Macro(expr_macro) => self.walk_macro(&expr_macro.mac),
             syn::Expr::Block(block_expr) => self.walk_block(&block_expr.block),
             syn::Expr::If(if_expr) => {
                 self.walk_expr(&if_expr.cond);
@@ -305,6 +299,22 @@ impl<'ctx, 'a> EffectWalker<'ctx, 'a> {
             syn::Expr::Closure(_) | syn::Expr::Async(_) | syn::Expr::Const(_) => {}
             _ => {}
         }
+    }
+}
+
+/// EFFECT shares the statement traversal (`StatementWalker::walk_stmt`); its expression walk and
+/// its macro semantics (panic and assert sites, then the arguments) are its own.
+impl<'ctx, 'a> StatementWalker for EffectWalker<'ctx, 'a> {
+    fn walk_expr(&mut self, expr: &syn::Expr) {
+        EffectWalker::walk_expr(self, expr);
+    }
+
+    fn shadowed_macros(&self) -> &std::collections::BTreeSet<String> {
+        &self.ctx.shadowed_macros
+    }
+
+    fn walk_macro(&mut self, mac: &syn::Macro) {
+        EffectWalker::walk_macro(self, mac);
     }
 }
 

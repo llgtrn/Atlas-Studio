@@ -289,6 +289,29 @@ impl CensusSnapshot {
         for diagnostic in &census.diagnostics {
             bump(&mut totals, format!("diagnostic:{:?}", diagnostic.code));
         }
+        // G120: per-dimension, per-engine record and obligation counts, so a generation's claimed
+        // semantic delta is derived from its pre/post snapshots, never hand-maintained.
+        for record in &census.typed_semantic_records {
+            bump(
+                &mut totals,
+                format!(
+                    "records:{}|{}",
+                    record.dimension().as_str(),
+                    record.provenance().extractor
+                ),
+            );
+        }
+        for obligation in &census.typed_obligations {
+            bump(
+                &mut totals,
+                format!(
+                    "obligations:{}|{}|{}",
+                    obligation.dimension.as_str(),
+                    obligation.extractor.id,
+                    obligation.status.as_str()
+                ),
+            );
+        }
         totals.insert("graph_nodes".into(), report.graph.nodes_total);
         totals.insert("graph_edges".into(), report.graph.edges_total);
         totals.insert("graph_bindings".into(), report.graph.bindings_total);

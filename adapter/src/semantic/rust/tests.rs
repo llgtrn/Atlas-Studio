@@ -6994,3 +6994,194 @@ fn opaque_macros_and_attribute_macros_keep_call_coverage_unknown() {
         assert_eq!(call.status, EpistemicStatus::Unknown, "{source}");
     }
 }
+
+// --- G120: recovered standard macro arguments carry each dimension's own semantics -------------
+
+/// DATA_FLOW: every argument is a Use; an implicit capture (`{x}`, `{:>w$}`) is a Use of the
+/// captured binding at its exact column; an explicit named argument (`y = 1`) is not a capture.
+#[test]
+fn g120_data_flow_reads_macro_arguments_and_implicit_captures_at_exact_positions() {
+    let source =
+        "fn run(a: u8, x: u8, w: u8) {\n    println!(\"{} {x} {:>w$} {y}\", a, y = 1);\n}\n";
+    let batch = extract("src/lib.rs", source, vec![SemanticDimension::DataFlow]);
+    let mut uses: Vec<(String, usize)> = all_data_flow_values(&batch)
+        .iter()
+        .filter(|v| v.role == ValueRole::Use)
+        .map(|v| (v.name.clone(), v.span.column))
+        .collect();
+    uses.sort();
+    let line = source.lines().nth(1).unwrap();
+    let column = |needle: &str| line.find(needle).unwrap();
+    assert_eq!(
+        uses,
+        [
+            ("a".to_owned(), column(", a,") + 2),
+            ("w".to_owned(), column("w$")),
+            ("x".to_owned(), column("x}")),
+        ],
+        "captures at their own columns, y is a named argument"
+    );
+}
+
+/// OWNERSHIP: an evaluated argument (`vec![t]`) is a value position; a format argument and an
+/// `assert_eq!` operand are taken by reference and are never reported as moves.
+#[test]
+fn g120_ownership_never_reports_format_or_compared_arguments_as_moves() {
+    let source = "fn run(s: String, t: String, u: String) {\n    println!(\"{}\", s);\n    assert_eq!(u, u);\n    let _v = vec![t];\n}\n";
+    let batch = extract("src/lib.rs", source, vec![SemanticDimension::Ownership]);
+    let moved: Vec<String> = all_ownership_ops(&batch)
+        .iter()
+        .filter(|o| o.kind == OwnershipKind::MoveOrCopy)
+        .map(|o| o.name.clone())
+        .collect();
+    assert!(moved.contains(&"t".to_owned()), "{moved:?}");
+    assert!(
+        !moved.contains(&"s".to_owned()),
+        "a format argument is borrowed: {moved:?}"
+    );
+    assert!(
+        !moved.contains(&"u".to_owned()),
+        "assert_eq! compares by reference: {moved:?}"
+    );
+}
+
+/// STATE: a `self.field` format argument is a Read; a `write!` target is not claimed (its
+/// mutation depends on the resolved `Write` impl) and stays an open obligation.
+#[test]
+fn g120_state_reads_format_arguments_but_never_claims_the_write_target() {
+    let source = "struct S { a: u8, out: String }\nimpl S {\n    fn run(&mut self) {\n        println!(\"{}\", self.a);\n        let _ = write!(self.out, \"{}\", 1);\n    }\n}\n";
+    let batch = extract("src/lib.rs", source, vec![SemanticDimension::State]);
+    let names: Vec<(String, StateAccessKind)> = all_state_accesses(&batch)
+        .iter()
+        .map(|s| (s.name.clone(), s.kind))
+        .collect();
+    assert!(
+        names
+            .iter()
+            .any(|(n, k)| n.ends_with('a') && *k == StateAccessKind::Read),
+        "{names:?}"
+    );
+    assert!(!names.iter().any(|(n, _)| n.ends_with("out")), "{names:?}");
+    let state = batch.obligation_for(SemanticDimension::State).unwrap();
+    assert_eq!(state.status, EpistemicStatus::Unknown);
+}
+
+/// EFFECT: `assert!` is a conditional PANIC site of the caller, and a panic written inside
+/// another macro's arguments is the caller's too; a locally shadowed `assert` is not.
+#[test]
+fn g120_effect_records_assert_panics_and_effects_inside_arguments() {
+    let source = "fn run(x: bool) {\n    assert!(x);\n    println!(\"{}\", todo!());\n}\n";
+    let batch = extract("src/lib.rs", source, vec![SemanticDimension::Effect]);
+    let mut panics: Vec<usize> = all_effects(&batch)
+        .iter()
+        .filter(|e| e.category == EffectCategory::Panic)
+        .map(|e| e.span.line)
+        .collect();
+    panics.sort();
+    assert_eq!(panics, [2, 3]);
+    let shadowed =
+        "macro_rules! assert { ($e:expr) => {} }\nfn run(x: bool) {\n    assert!(x);\n}\n";
+    let batch = extract("src/lib.rs", shadowed, vec![SemanticDimension::Effect]);
+    assert!(
+        all_effects(&batch).is_empty(),
+        "a shadowed assert is not the std macro"
+    );
+}
+
+/// CONCURRENCY and PERSISTENCE: sites inside recovered arguments belong to the caller; inside an
+/// unknown macro they stay invisible (opaque, never guessed).
+#[test]
+fn g120_concurrency_and_persistence_see_inside_recovered_arguments_only() {
+    let source = "async fn run(tx: T) {\n    println!(\"{:?} {:?}\", fut().await, tx.commit());\n    my_macro!(other().await, tx.flush());\n}\n";
+    let batch = extract(
+        "src/lib.rs",
+        source,
+        vec![
+            SemanticDimension::Concurrency,
+            SemanticDimension::Persistence,
+        ],
+    );
+    let awaits: Vec<usize> = all_concurrency_ops(&batch)
+        .iter()
+        .filter(|c| c.kind == ConcurrencyKind::Await)
+        .map(|c| c.span.line)
+        .collect();
+    assert_eq!(awaits, [2]);
+    let persisted: Vec<(PersistenceKind, usize)> = all_persistence_ops(&batch)
+        .iter()
+        .map(|p| (p.kind, p.span.line))
+        .collect();
+    assert_eq!(persisted, [(PersistenceKind::Commit, 2)]);
+}
+
+/// CONTROL_FLOW: an `assert!(..);` statement is a statement-level decision point: fall through
+/// or PANIC (INFERRED); a shadowed `assert` is not one.
+#[test]
+fn g120_control_flow_models_an_assert_statement_as_a_panic_decision_point() {
+    let source = "fn run(x: bool) {\n    assert!(x);\n    done();\n}\n";
+    let batch = extract("src/lib.rs", source, vec![SemanticDimension::ControlFlow]);
+    let decision = all_control_flow_blocks(&batch)
+        .into_iter()
+        .find(|b| {
+            b.successors
+                .iter()
+                .any(|e| e.kind == ControlFlowEdgeKind::Panic)
+        })
+        .expect("an assert decision block");
+    assert_eq!(decision.successors.len(), 2, "{:?}", decision.successors);
+    let status = batch
+        .observations
+        .iter()
+        .find_map(|o| match o {
+            SemanticObservation::ControlFlow(h)
+                if h.subject.block_index == decision.block_index =>
+            {
+                Some(h.status)
+            }
+            _ => None,
+        })
+        .unwrap();
+    assert_eq!(status, EpistemicStatus::Inferred);
+    let shadowed = "macro_rules! assert { ($e:expr) => {} }\nfn run(x: bool) {\n    assert!(x);\n    done();\n}\n";
+    let batch = extract("src/lib.rs", shadowed, vec![SemanticDimension::ControlFlow]);
+    assert!(!all_control_flow_blocks(&batch).iter().any(|b| {
+        b.successors
+            .iter()
+            .any(|e| e.kind == ControlFlowEdgeKind::Panic)
+    }));
+}
+
+/// Opaque stays opaque: nothing is recovered from an unknown macro, and every partial dimension
+/// names the file's opaque residual in its UNKNOWN diagnostic.
+#[test]
+fn g120_opaque_macros_stay_opaque_with_an_explicit_residual_in_every_dimension() {
+    let source = "fn run(x: u8, s: String) {\n    my_macro!(x, s, todo!());\n}\n";
+    let batch = extract_all("src/lib.rs", source);
+    assert!(
+        all_data_flow_values(&batch)
+            .iter()
+            .all(|v| v.role != ValueRole::Use || v.name != "x")
+    );
+    assert!(all_effects(&batch).is_empty());
+    for dimension in [
+        SemanticDimension::ControlFlow,
+        SemanticDimension::DataFlow,
+        SemanticDimension::State,
+        SemanticDimension::Effect,
+        SemanticDimension::Ownership,
+        SemanticDimension::Concurrency,
+        SemanticDimension::Persistence,
+        SemanticDimension::Call,
+    ] {
+        let obligation = batch.obligation_for(dimension).unwrap();
+        assert_eq!(obligation.status, EpistemicStatus::Unknown, "{dimension:?}");
+        let named = obligation.diagnostics.iter().any(|id| {
+            batch.diagnostics.iter().any(|d| {
+                &d.id == id
+                    && d.message
+                        .ends_with("opaque macro/attribute sites in profile: 1")
+            })
+        });
+        assert!(named, "{dimension:?}: the opaque residual is named");
+    }
+}

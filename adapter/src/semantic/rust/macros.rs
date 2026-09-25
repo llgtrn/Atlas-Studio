@@ -136,18 +136,56 @@ pub(super) fn local_macro_names(file: &syn::File) -> BTreeSet<String> {
     definitions.0
 }
 
-/// The evaluated expressions of a recovered standard macro, or `None` when the invocation stays
-/// opaque (not a standard macro, shadowed locally, or not parseable as its documented input).
-pub(super) fn recovered_arguments(
-    mac: &syn::Macro,
-    shadowed: &BTreeSet<String>,
-) -> Option<Vec<syn::Expr>> {
+/// How a recovered macro argument is used by the standard macro's documented expansion (G120).
+/// Each walker applies its own dimension's semantics to the role; the role never invents one.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(super) enum ArgumentRole {
+    /// Evaluated by value: `assert!` conditions, `dbg!`/`vec!` elements, a non-literal `panic!`
+    /// payload (moved or copied).
+    Evaluated,
+    /// A format argument: `format_args!` takes it by shared reference (a read, never a move).
+    Formatted,
+    /// An `assert_eq!`/`assert_ne!` operand: compared through a shared reference.
+    Compared,
+    /// The destination of `write!`/`writeln!`: the receiver of `.write_fmt(..)`, auto-referenced
+    /// mutably by method-call syntax.
+    WriteTarget,
+    /// The format string itself (a literal, or an expression such as `concat!(..)`).
+    FormatString,
+}
+
+/// A recovered standard macro invocation: its arguments with their roles, and the implicit
+/// captures (`{x}`, `{:width$}`) its format string reads, each at its exact source position.
+pub(super) struct Recovered {
+    pub(super) name: String,
+    pub(super) arguments: Vec<(syn::Expr, ArgumentRole)>,
+    pub(super) captures: Vec<(String, proc_macro2::LineColumn)>,
+}
+
+/// The standard macros that panic when a condition fails (a conditional panic, never an
+/// unconditional one -- `panic!`/`unreachable!`/`todo!`/`unimplemented!` are those).
+pub(super) const ASSERT_MACROS: &[&str] = &[
+    "assert",
+    "assert_eq",
+    "assert_ne",
+    "debug_assert",
+    "debug_assert_eq",
+    "debug_assert_ne",
+];
+
+/// The recovered structure of a standard macro invocation, or `None` when it stays opaque (not a
+/// standard macro, shadowed locally, or not parseable as its documented input).
+pub(super) fn recover(mac: &syn::Macro, shadowed: &BTreeSet<String>) -> Option<Recovered> {
     let name = std_macro_name(mac)?;
     if shadowed.contains(&name) {
         return None;
     }
     if INERT_MACROS.contains(&name.as_str()) {
-        return Some(Vec::new());
+        return Some(Recovered {
+            name,
+            arguments: Vec::new(),
+            captures: Vec::new(),
+        });
     }
     if !EXPRESSION_MACROS.contains(&name.as_str()) {
         return None;
@@ -160,23 +198,185 @@ pub(super) fn recovered_arguments(
             Ok((element, length))
         })
     {
-        return Some(vec![element, length]);
+        return Some(Recovered {
+            name,
+            arguments: vec![
+                (element, ArgumentRole::Evaluated),
+                (length, ArgumentRole::Evaluated),
+            ],
+            captures: Vec::new(),
+        });
     }
-    let arguments = mac
+    let parsed: Vec<syn::Expr> = mac
         .parse_body_with(Punctuated::<syn::Expr, syn::Token![,]>::parse_terminated)
-        .ok()?;
-    Some(
-        arguments
-            .into_iter()
-            .map(|argument| match argument {
-                // `format!("{x}", x = value)`: a named argument contributes its value.
-                syn::Expr::Assign(assign) if matches!(*assign.left, syn::Expr::Path(_)) => {
-                    *assign.right
-                }
-                other => other,
+        .ok()?
+        .into_iter()
+        .collect();
+    let is_literal = |e: &syn::Expr| {
+        matches!(
+            e,
+            syn::Expr::Lit(syn::ExprLit {
+                lit: syn::Lit::Str(_),
+                ..
             })
-            .collect(),
-    )
+        )
+    };
+    // Position of the format string in the documented input, if the macro has one.
+    let format_at = match name.as_str() {
+        "format" | "format_args" | "print" | "println" | "eprint" | "eprintln" => Some(0),
+        "write" | "writeln" => Some(1),
+        // A 2018-style `panic!(payload)` with a non-literal single argument moves the payload.
+        "panic" | "todo" | "unimplemented" | "unreachable" => {
+            (parsed.len() != 1 || is_literal(&parsed[0])).then_some(0)
+        }
+        "assert" | "debug_assert" => Some(1),
+        "assert_eq" | "assert_ne" | "debug_assert_eq" | "debug_assert_ne" => Some(2),
+        _ => None, // dbg, vec: every argument is evaluated by value
+    };
+    let mut named = BTreeSet::new();
+    let mut arguments = Vec::with_capacity(parsed.len());
+    let mut format_literal = None;
+    for (index, argument) in parsed.into_iter().enumerate() {
+        let role = match (name.as_str(), format_at) {
+            ("write" | "writeln", _) if index == 0 => ArgumentRole::WriteTarget,
+            ("assert_eq" | "assert_ne" | "debug_assert_eq" | "debug_assert_ne", _) if index < 2 => {
+                ArgumentRole::Compared
+            }
+            ("assert" | "debug_assert", _) if index == 0 => ArgumentRole::Evaluated,
+            (_, Some(at)) if index == at => ArgumentRole::FormatString,
+            (_, Some(at)) if index > at => ArgumentRole::Formatted,
+            _ => ArgumentRole::Evaluated,
+        };
+        let argument = match argument {
+            // `format!("{x}", x = value)`: a named argument contributes its value.
+            syn::Expr::Assign(assign)
+                if role == ArgumentRole::Formatted
+                    && matches!(*assign.left, syn::Expr::Path(_)) =>
+            {
+                if let syn::Expr::Path(path) = assign.left.as_ref()
+                    && let Some(ident) = path.path.get_ident()
+                {
+                    named.insert(ident.to_string());
+                }
+                *assign.right
+            }
+            other => other,
+        };
+        if role == ArgumentRole::FormatString
+            && let syn::Expr::Lit(syn::ExprLit {
+                lit: syn::Lit::Str(literal),
+                ..
+            }) = &argument
+        {
+            format_literal = Some(literal.clone());
+        }
+        arguments.push((argument, role));
+    }
+    let captures = format_literal
+        .map(|literal| implicit_captures(&literal, &named))
+        .unwrap_or_default();
+    Some(Recovered {
+        name,
+        arguments,
+        captures,
+    })
+}
+
+/// The evaluated expressions of a recovered standard macro (every role), for CALL (G119).
+pub(super) fn recovered_arguments(
+    mac: &syn::Macro,
+    shadowed: &BTreeSet<String>,
+) -> Option<Vec<syn::Expr>> {
+    recover(mac, shadowed).map(|r| r.arguments.into_iter().map(|(e, _)| e).collect())
+}
+
+/// The identifiers a format string captures implicitly (`{x}`, `{x:?}`, `{:w$}`, `{:.p$}`) that
+/// are not explicit named arguments, each at the exact source position of the identifier. The
+/// std format grammar is applied to the literal's SOURCE text, so positions are exact; braces
+/// are never backslash-escaped in Rust, and `\u{..}` escapes are skipped.
+fn implicit_captures(
+    literal: &syn::LitStr,
+    named: &BTreeSet<String>,
+) -> Vec<(String, proc_macro2::LineColumn)> {
+    let source = literal.token().to_string();
+    let start = literal.span().start();
+    // Skip the opening delimiter: `"`, or `r"` / `r#..#"` for raw strings.
+    let raw = source.starts_with('r');
+    let open = source.find('"').unwrap_or(0) + 1;
+    let chars: Vec<char> = source.chars().collect();
+    let (mut line, mut column) = (start.line, start.column);
+    for c in &chars[..open] {
+        if *c == '\n' {
+            line += 1;
+            column = 0;
+        } else {
+            column += 1;
+        }
+    }
+    let mut positions = Vec::with_capacity(chars.len());
+    for c in &chars[open..] {
+        positions.push(proc_macro2::LineColumn { line, column });
+        if *c == '\n' {
+            line += 1;
+            column = 0;
+        } else {
+            column += 1;
+        }
+    }
+    let body = &chars[open..];
+    let mut captures = Vec::new();
+    let mut i = 0;
+    let identifier = |from: usize| -> (String, usize) {
+        let mut end = from;
+        while end < body.len() && (body[end].is_alphanumeric() || body[end] == '_') {
+            end += 1;
+        }
+        (body[from..end].iter().collect(), end)
+    };
+    let is_name = |s: &str| {
+        s.chars()
+            .next()
+            .is_some_and(|c| c.is_alphabetic() || c == '_')
+            && s != "_"
+    };
+    while i < body.len() {
+        match body[i] {
+            '\\' if !raw => {
+                // `\u{..}` contains braces that are not format syntax.
+                if body.get(i + 1) == Some(&'u') && body.get(i + 2) == Some(&'{') {
+                    while i < body.len() && body[i] != '}' {
+                        i += 1;
+                    }
+                }
+                i += 2;
+            }
+            '{' if body.get(i + 1) == Some(&'{') => i += 2,
+            '{' => {
+                let (argument, mut j) = identifier(i + 1);
+                if is_name(&argument) && !named.contains(&argument) {
+                    captures.push((argument, positions[i + 1]));
+                }
+                // Width/precision parameters (`{:w$}`, `{:.p$}`) inside the spec.
+                while j < body.len() && body[j] != '}' {
+                    if body[j].is_alphabetic() || body[j] == '_' {
+                        let (parameter, end) = identifier(j);
+                        if body.get(end) == Some(&'$')
+                            && is_name(&parameter)
+                            && !named.contains(&parameter)
+                        {
+                            captures.push((parameter, positions[j]));
+                        }
+                        j = end.max(j + 1);
+                    } else {
+                        j += 1;
+                    }
+                }
+                i = j + 1;
+            }
+            _ => i += 1,
+        }
+    }
+    captures
 }
 
 fn is_builtin_attribute(attribute: &syn::Attribute) -> bool {

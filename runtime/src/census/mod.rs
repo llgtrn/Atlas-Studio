@@ -919,6 +919,113 @@ mod tests {
         );
     }
 
+    /// G120: the scope-coverage rule holds for EVERY semantic dimension, adversarially: one good
+    /// artifact never covers the scope, one good engine never hides another artifact's UNKNOWN,
+    /// and UNSUPPORTED never outranks UNKNOWN or OBSERVED (nor is it lowered to by them).
+    #[test]
+    fn scope_coverage_rule_holds_adversarially_for_every_dimension() {
+        let artifact = |path: &str| ArtifactRecord {
+            id: ArtifactId::new(format!("artifact:{path}")),
+            path: path.into(),
+            kind: ArtifactKind::File,
+            bytes: 10,
+            disposition: ArtifactDisposition::Parsed,
+            language: Some("rust".into()),
+            reason: None,
+            content_digest: None,
+            content_digest_withheld: None,
+        };
+        let inventory = InventoryReport::new(
+            "/repo",
+            vec![
+                artifact("src/a.rs"),
+                artifact("src/b.rs"),
+                artifact("src/c.css"),
+            ],
+        );
+        let source = SourceReport {
+            schema: "test".into(),
+            root: "/repo".into(),
+            files_total: 3,
+            languages: BTreeMap::from([("rust".into(), 2)]),
+            files: Vec::new(),
+        };
+        let adl = compile_adl(&[], &source);
+        let batch = |path: &str, engine: &str, obligation: ObligationResult| {
+            let mut batch = extraction_batch_with_symbol_from(
+                path,
+                engine,
+                &format!("evidence:{engine}:{path}"),
+                "adversarial fixture",
+            );
+            batch.observations.clear();
+            batch.obligations = vec![obligation];
+            batch
+        };
+        for &dimension in &ALL_SEMANTIC_DIMENSIONS {
+            let key = dimension.as_str();
+            let observed = || {
+                ObligationResult::observed(
+                    dimension,
+                    Vec::new(),
+                    vec![atlas_core::EvidenceId::new("evidence:e".to_owned())],
+                )
+            };
+            let unknown = || ObligationResult::unknown(dimension, "diagnostic:open");
+            let unsupported = || ObligationResult::unsupported(dimension, "diagnostic:unsupported");
+            let coverage = |batches: &[ExtractionBatch]| {
+                build_census(&inventory, &source, &adl, batches, &test_revision())
+                    .coverage
+                    .get(key)
+                    .copied()
+            };
+            let good_a = batch("src/a.rs", "engine.one", observed());
+            let open_b = batch("src/b.rs", "engine.one", unknown());
+            let good_a_second = batch("src/a.rs", "engine.two", observed());
+            let good_b_second = batch("src/b.rs", "engine.two", observed());
+            let css = batch("src/c.css", "engine.none", unsupported());
+            // One good file cannot make the scope OBSERVED.
+            assert_eq!(
+                coverage(&[good_a.clone(), open_b.clone()]),
+                Some(EpistemicStatus::Unknown),
+                "{key}"
+            );
+            // One good engine (twice, on the SAME artifact) cannot hide another artifact's UNKNOWN.
+            assert_eq!(
+                coverage(&[good_a.clone(), good_a_second, open_b.clone()]),
+                Some(EpistemicStatus::Unknown),
+                "{key}"
+            );
+            // A second engine covering the open artifact covers it.
+            assert_eq!(
+                coverage(&[good_a.clone(), open_b.clone(), good_b_second]),
+                Some(EpistemicStatus::Observed),
+                "{key}"
+            );
+            // UNSUPPORTED neither outranks nor drags down supported artifacts.
+            assert_eq!(
+                coverage(&[good_a.clone(), css.clone()]),
+                Some(EpistemicStatus::Observed),
+                "{key}"
+            );
+            assert_eq!(
+                coverage(&[open_b, css.clone()]),
+                Some(EpistemicStatus::Unknown),
+                "{key}"
+            );
+            assert_eq!(
+                coverage(&[css]),
+                Some(EpistemicStatus::Unsupported),
+                "{key}"
+            );
+            assert_eq!(
+                coverage(&[good_a]),
+                Some(EpistemicStatus::Observed),
+                "{key}"
+            );
+        }
+    }
+
     /// Like `extraction_batch_with_one_symbol`, but with a caller-chosen extractor identity and
     /// evidence id, so two batches can report the SAME semantic claim (same `SymbolIdentity`,
     /// hence same `record_id`) while differing in exactly the fields that make them independent

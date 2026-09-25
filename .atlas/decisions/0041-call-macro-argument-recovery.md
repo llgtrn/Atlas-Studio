@@ -49,3 +49,17 @@ All eight expression walkers shared one permanent gap: a macro's arguments are a
   - the PlaceRef gate removed, which produced a real dangling reference at `adapter/src/browser/mod.rs:249`;
   - best-of scope aggregation restored.
 - **Not done.** The other seven walkers need macro-specific semantics: format arguments are borrows, and implicit `{x}` captures are reads. They remain queued as `NA-MACRO-ARGUMENTS-WALKERS`.
+
+## Correction (G120)
+
+The record counts above compared the G117 tree (17,768) with the G119 tree, so they span G118's test code too. The "+4,745 call sites" figure also came from an intermediate working tree.
+
+Extractors rebuilt from each commit give the exact G119 delta:
+
+| Measurement | Syntactic CALL records |
+| --- | --- |
+| G118 extractor on the G118 tree | 18,001 |
+| G118 extractor on the G119 tree | 18,199 (+198 in G119's new code) |
+| G119 extractor on the G119 tree | 22,562 (+4,363 inside recovered macro arguments) |
+
+That is +4,561 records in total (`../evidence/census/G119/call-metric-reconciliation.json`). From G120 on, such metrics are derived from census snapshots and checked by tests (ADR 0042).

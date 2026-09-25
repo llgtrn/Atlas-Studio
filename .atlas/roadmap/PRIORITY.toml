@@ -103,7 +103,7 @@ hard_stop = ".atlas/roadmap/FOUNDATIONAL-ATLAS-READY.toml (donor progression and
 rule_a = "do not implement complexity without evidence: every mechanism is falsified before it is absorbed"
 rule_b = "do not defer essential complexity once necessity is established: an escalated or skip-budget debt is queued before any donor"
 debt_ledger = ".atlas/roadmap/ESSENTIAL-COMPLEXITY-DEBT.toml"
-next_native_attack = "NA-MACRO-ARGUMENTS-WALKERS"
+next_native_attack = "NA-QUANTITY-IN-CORE"
 frontier_addition_requires = "a first-50 dependency needs it, or a missing foundational mechanism has no representative donor; recorded explicitly"
 
 # What a closed census of a selected scope requires. FULL_CENSUS_CLOSED is never claimed without
@@ -490,9 +490,19 @@ objective = "mandatory native attack after the audit, selected by the pressure m
 [[planned_generation]]
 id = "G120"
 priority = "P0"
-objective = "native attack queue head NA-MACRO-ARGUMENTS-WALKERS (selected by the pressure map): recovered std macro arguments into the other seven expression walkers with macro-specific semantics"
+objective = "native attack queue head NA-MACRO-ARGUMENTS-WALKERS (selected by the pressure map): recovered std macro arguments into the other seven expression walkers with macro-specific semantics (done: role-aware semantics per dimension, implicit captures, assert decision points; metrics in the G120 ledger entry)"
 
 [[planned_generation]]
-id = "G121+"
+id = "G121"
+priority = "P0"
+objective = "HISTORICAL_DONOR_REVALIDATION: recursive donor revalidation mechanism; re-materialize the highest-ranked REVALIDATION_REQUIRED extinct donor at its pinned commit, census it with current Atlas, record the historical-vs-current delta and outcome, delete it again, post-delete self-recensus"
+
+[[planned_generation]]
+id = "G122"
+priority = "P0"
+objective = "native attack queue head (pressure map with dependency order): NA-QUANTITY-IN-CORE"
+
+[[planned_generation]]
+id = "G123+"
 priority = "P0"
 objective = "the native_attack_queue in order (ESSENTIAL-COMPLEXITY-DEBT.toml); frontier expansion stays frozen until FOUNDATIONAL_ATLAS_READY"

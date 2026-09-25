@@ -13,7 +13,7 @@
 #       -> generation evidence -> G_n+1
 
 schema = "atlas.self-build.generation-ledger.v1"
-current_generation = "G119"
+current_generation = "G120"
 
 [[generation]]
 id = "G35"
@@ -1986,6 +1986,8 @@ objective = "close CALL's only in-profile gap: recover the arguments of standard
 writer = "coordinator (sole writer)"
 evidence = ".atlas/decisions/0041-call-macro-argument-recovery.md"
 self_recensus = ".atlas/evidence/census/G119/recensus.json"
+result_commits = ["af0f89e626b4f70d885dedca53b226739155d5e2", "95319c4f61b33019c9d7e0e69ef1ec161a5e6696"]
+correction = "G120: the CALL metric was measured against the G117 tree; exact G119 delta is +4,561 syntactic CALL records (18,001 -> 22,562), of which 4,363 inside recovered macro arguments and 198 in G119 new code (evidence/census/G119/call-metric-reconciliation.json)"
 
 [generation.verification]
 pre_census = "clean-HEAD census of f8868daab0 = G118 post digest cf5f0733... (8811492701 adds only out-of-scope evidence)"
@@ -1999,4 +2001,74 @@ proof = "PROVEN on the first run with the new artifact explained (post 0b7c784c.
 
 [generation.next]
 objective = "G120 (P0): native attack queue head NA-MACRO-ARGUMENTS-WALKERS"
+
+[[generation]]
+id = "G120"
+kind = "NATIVE_ATTACK"
+base_commit = "95319c4f61b33019c9d7e0e69ef1ec161a5e6696"
+priority = "P0"
+serves = "P0 census closure: native attack queue head NA-MACRO-ARGUMENTS-WALKERS (DEBT-CONTROL_FLOW, DEBT-DATA_FLOW, DEBT-STATE, DEBT-EFFECT, DEBT-OWNERSHIP, DEBT-CONCURRENCY, DEBT-PERSISTENCE)"
+objective = "carry G119's recovered standard macro arguments into the seven non-CALL walkers with each dimension's own semantics, keep opaque macros opaque with an explicit residual, and derive generation metrics from census snapshots"
+writer = "coordinator (sole writer)"
+evidence = ".atlas/decisions/0042-role-aware-macro-arguments.md"
+self_recensus = ".atlas/evidence/census/G120/recensus.json"
+
+[generation.verification]
+pre_census = "clean-HEAD census of af0f89e626b4f70d885dedca53b226739155d5e2 = G119 post digest 0b7c784c... (95319c4f61b33019c9d7e0e69ef1ec161a5e6696 adds only out-of-scope evidence)"
+semantics = "roles per documented expansion: Evaluated (by value), Formatted (by reference), Compared (assert_eq!/ne! by reference), WriteTarget (&mut write_fmt receiver), FormatString; DATA_FLOW: every role a Use + implicit captures at exact columns; OWNERSHIP: only Evaluated is a value position; STATE: WriteTarget not claimed; EFFECT: assert family a PANIC site (INFERRED) + argument effects; CONTROL_FLOW: assert statement a panic decision point (INFERRED); CONCURRENCY/PERSISTENCE: arguments walked"
+oracle = "DATA_FLOW differential against rust-analyzer 1.90.0 SCIP local references (offline): every new record explained -- at a SCIP local reference, at a callee path, an implicit capture verified in source (SCIP emits none for captures), or on a non-ASCII line; recall of SCIP local references in evidence/census/G120/data-flow-scip-differential.json. No independent oracle exists yet for CONTROL_FLOW, STATE, EFFECT, OWNERSHIP, CONCURRENCY, PERSISTENCE -- recorded as oracle debt, no second engine claimed"
+coverage = "no dimension flips to OBSERVED: the seven keep UNKNOWN obligations whose diagnostics now name the file's opaque macro/attribute residual; scope aggregation (best engine per artifact, worst artifact) holds adversarially for every dimension"
+falsification = "14 mutants killed (the two argument-walk mutants re-run on the StatementWalker default after the refactor, plus EFFECT delegation): captures dropped; format arguments as moves; write! target claimed as STATE; assert not a panic effect; assert decision point removed; CONCURRENCY and PERSISTENCE ignoring arguments; named arguments captured; UNSUPPORTED ranked as a status; shadowing ignored; residual not named; capture positions off by one"
+metric_reconciliation = "G119 CALL metric corrected (see G119 correction); snapshot totals now carry records:<DIM>|<engine> and obligations:<DIM>|<engine>|<STATUS>; generation.metric entries are checked against pre/post snapshots"
+debts = "last advance G120 for CONTROL_FLOW, DATA_FLOW, STATE, EFFECT, OWNERSHIP (measured deltas); CONCURRENCY and PERSISTENCE not materially advanced on the workspace; no debt closed"
+proof = "PROVEN (post b6438faf...; re-proven after the duplicate-body refactor moved the shared macro walk into the StatementWalker default)"
+
+[[generation.metric]]
+key = "records:CALL|atlas.rust.source-semantic.v1"
+after = 22850
+
+[[generation.metric]]
+key = "records:CONTROL_FLOW|atlas.rust.source-semantic.v1"
+after = 8108
+
+[[generation.metric]]
+key = "records:DATA_FLOW|atlas.rust.source-semantic.v1"
+after = 39058
+
+[[generation.metric]]
+key = "records:STATE|atlas.rust.source-semantic.v1"
+after = 445
+
+[[generation.metric]]
+key = "records:EFFECT|atlas.rust.source-semantic.v1"
+after = 3164
+
+[[generation.metric]]
+key = "records:OWNERSHIP|atlas.rust.source-semantic.v1"
+after = 10809
+
+[[generation.metric]]
+key = "records:PERSISTENCE|atlas.rust.source-semantic.v1"
+after = 15
+
+[[generation.metric]]
+key = "records:CONCURRENCY|atlas.resolution.rust-paths"
+after = 2
+
+[[generation.metric]]
+key = "obligations:CALL|atlas.rust.source-semantic.v1|OBSERVED"
+after = 75
+
+[[generation.metric]]
+key = "typed_records"
+before = 89070
+after = 103185
+
+[[generation.metric]]
+key = "unknown_facts"
+before = 1101
+after = 1101
+
+[generation.next]
+objective = "G121: HISTORICAL_DONOR_REVALIDATION (recursive donor revalidation), then G122 native attack NA-QUANTITY-IN-CORE"
 
