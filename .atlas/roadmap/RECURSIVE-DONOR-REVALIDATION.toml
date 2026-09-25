@@ -1,7 +1,7 @@
 schema = "atlas.recursive-donor-revalidation.v1"
 canonical = true
 established_in = "G121"
-evaluated_at = "G129"
+evaluated_at = "G130"
 contract = ".atlas/contracts/ESSENTIAL-COMPLEXITY.md"
 decision = ".atlas/decisions/0043-recursive-donor-revalidation.md"
 donor_audit = ".atlas/roadmap/DONOR-CAPABILITY-AUDIT.toml"
@@ -111,6 +111,14 @@ observes = "each dimension's semantics inside standard macro arguments, implicit
 evidence = ".atlas/decisions/0042-role-aware-macro-arguments.md"
 
 [[capability_milestone]]
+id = "CENSUS_QUANTIFIED_INVARIANTS"
+generation = "G130"
+debts = ["DEBT-CONSTRAINT_REASONING"]
+languages = ["rust"]
+observes = "ADL invariants quantified over census truth, decided with three-valued verdicts over the composed census"
+evidence = ".atlas/decisions/0050-census-quantified-invariants.md"
+
+[[capability_milestone]]
 id = "IMPACT_CLOSURE_WITH_ORACLE"
 generation = "G129"
 debts = ["DEBT-IMPACT_CLOSURE"]
@@ -152,9 +160,9 @@ last_materialized_generation = "pre-G57"
 last_deep_census_generation = ""
 capabilities_examined = ["DEBT-CONSTRAINT_REASONING"]
 capabilities_available_then = []
-semantic_delta = []
-status = "CURRENT"
-reason = "no capability its decision depended on has materially advanced since its last census"
+semantic_delta = ["CENSUS_QUANTIFIED_INVARIANTS"]
+status = "CAPABILITY_NOT_APPLICABLE"
+reason = "the advanced capabilities are Rust semantic engines; a cpp source exposes nothing new to them (condition 3 fails)"
 priority = 0
 rank = 0
 
@@ -171,7 +179,7 @@ capabilities_available_then = []
 semantic_delta = ["IMPACT_CLOSURE_WITH_ORACLE"]
 status = "REVALIDATION_REQUIRED"
 reason = "its decision depended on DEBT-IMPACT_CLOSURE, materially advanced since its last census, and the donor is Rust source the new capability can observe"
-priority = 94
+priority = 95
 rank = 3
 
 [[donor]]
@@ -203,7 +211,7 @@ capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOC
 semantic_delta = ["SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY", "CALL_MACRO_ARGUMENTS"]
 status = "REVALIDATION_REQUIRED"
 reason = "its decision depended on DEBT-CALL, DEBT-TYPE, materially advanced since its last census, and the donor is Rust source the new capability can observe"
-priority = 282
+priority = 285
 rank = 1
 
 [[donor]]
@@ -219,7 +227,7 @@ capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOC
 semantic_delta = ["IMPACT_CLOSURE_WITH_ORACLE"]
 status = "REVALIDATION_REQUIRED"
 reason = "its decision depended on DEBT-IMPACT_CLOSURE, materially advanced since its last census, and the donor is Rust source the new capability can observe"
-priority = 94
+priority = 95
 rank = 6
 
 [[donor]]
@@ -312,9 +320,9 @@ last_materialized_generation = "G70"
 last_deep_census_generation = "G70"
 capabilities_examined = ["DEBT-CONSTRAINT_REASONING"]
 capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION"]
-semantic_delta = []
-status = "CURRENT"
-reason = "no capability its decision depended on has materially advanced since its last census"
+semantic_delta = ["CENSUS_QUANTIFIED_INVARIANTS"]
+status = "CAPABILITY_NOT_APPLICABLE"
+reason = "the advanced capabilities are Rust semantic engines; a ocaml source exposes nothing new to them (condition 3 fails)"
 priority = 0
 rank = 0
 
@@ -379,7 +387,7 @@ capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOC
 semantic_delta = ["RESOLVED_CONCURRENCY", "ROLE_AWARE_MACRO_ARGUMENTS"]
 status = "REVALIDATION_REQUIRED"
 reason = "its decision depended on DEBT-CONCURRENCY, DEBT-OWNERSHIP, materially advanced since its last census, and the donor is Rust source the new capability can observe"
-priority = 188
+priority = 190
 rank = 2
 
 [[donor]]
@@ -411,7 +419,7 @@ capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOC
 semantic_delta = ["IMPACT_CLOSURE_WITH_ORACLE"]
 status = "REVALIDATION_REQUIRED"
 reason = "its decision depended on DEBT-IMPACT_CLOSURE, materially advanced since its last census, and the donor is Rust source the new capability can observe"
-priority = 94
+priority = 95
 rank = 4
 
 [[donor]]
@@ -443,7 +451,7 @@ capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOC
 semantic_delta = ["CANONICAL_TYPE_IDENTITY"]
 status = "REVALIDATION_REQUIRED"
 reason = "its decision depended on DEBT-TYPE, materially advanced since its last census, and the donor is Rust source the new capability can observe"
-priority = 94
+priority = 95
 rank = 5
 
 [[donor]]
@@ -792,11 +800,11 @@ last_materialized_generation = "G105"
 last_deep_census_generation = "G105"
 capabilities_examined = ["DEBT-VERIFICATION_EVIDENCE", "DEBT-CONSTRAINT_REASONING"]
 capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS", "SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY", "AMBIENT_INPUT_EFFECTS"]
-semantic_delta = []
-status = "CURRENT"
-reason = "no capability its decision depended on has materially advanced since its last census"
-priority = 0
-rank = 0
+semantic_delta = ["CENSUS_QUANTIFIED_INVARIANTS"]
+status = "REVALIDATION_REQUIRED"
+reason = "its decision depended on DEBT-CONSTRAINT_REASONING, materially advanced since its last census, and the donor is Rust source the new capability can observe"
+priority = 92
+rank = 7
 
 [[donor]]
 donor = "podman"
@@ -840,9 +848,9 @@ last_materialized_generation = ""
 last_deep_census_generation = "G108"
 capabilities_examined = ["DEBT-CONSTRAINT_REASONING"]
 capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS", "SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY", "AMBIENT_INPUT_EFFECTS"]
-semantic_delta = []
-status = "CURRENT"
-reason = "no capability its decision depended on has materially advanced since its last census"
+semantic_delta = ["CENSUS_QUANTIFIED_INVARIANTS"]
+status = "CAPABILITY_NOT_APPLICABLE"
+reason = "the advanced capabilities are Rust semantic engines; a cpp source exposes nothing new to them (condition 3 fails)"
 priority = 0
 rank = 0
 

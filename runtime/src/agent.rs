@@ -887,6 +887,156 @@ fn run(s: &core::store::Store) { s.save(); }
         assert_eq!(missed.functions.missed.len(), missed.functions.changed);
     }
 
+    /// G130 (NA-CONSTRAINT-NONGROUND): invariants quantified over census truth are decided over
+    /// the composed census with three values, identically by every entry point.
+    #[test]
+    fn census_quantified_invariants_are_decided_with_three_values() {
+        let adl = format!(
+            "{ADL}\ninvariant CoreNeverCallsApp {{\n    forall f: function in Core forbid call to App\n}}\n\
+             invariant AppNeverCallsCore {{\n    forall f: function in App forbid call to Core\n}}\n\
+             invariant CoreWritesNoFiles {{\n    forall f: function in Core forbid effect FILESYSTEM_WRITE\n}}\n\
+             invariant AppSpawnsNothing {{\n    forall f: function in App forbid effect PROCESS_SPAWN\n}}\n\
+             invariant NoSuchSubsystem {{\n    forall f: function in Ghost forbid call to Core\n}}\n\
+             invariant BaseSpawnsNothing {{\n    forall f: function in Base forbid effect PROCESS_SPAWN\n}}\n\
+             invariant CoreNeverCallsBase {{\n    forall f: function in Core forbid call to Base\n}}\n\
+             invariant AppNeverCallsBase {{\n    forall f: function in App forbid call to Base\n}}\n\
+             entity Runtime Base {{\n    kind = backend\n    language = rust\n}}\n\n\
+             materialize Base {{\n    path = \"base\"\n    language = rust\n    glob = \"src/**/*.rs\"\n}}\n"
+        );
+        // Base also defines `bump`: App's unresolved `s.bump()` may reach it by name.
+        let dir = fixture_with(
+            "quantified",
+            &adl,
+            CORE_LIB,
+            STORE,
+            "pub fn zero() -> u64 { 0 }\npub fn bump() {}\n",
+            BASE_MANIFEST,
+            BASE_LOCK,
+        );
+        let report = crate::systemize(&dir).unwrap();
+        let compiled = crate::check(&dir).unwrap();
+        let analysis = crate::code_analyze(&dir).unwrap();
+        std::fs::remove_dir_all(&dir).unwrap();
+        use atlas_core::constraint::ConstraintVerdict::{Satisfied, Unknown, Violated};
+        let census_invariants = [
+            ("CoreNeverCallsApp", Satisfied),
+            ("CoreNeverCallsBase", Satisfied),
+            ("AppNeverCallsCore", Violated),
+            ("CoreWritesNoFiles", Violated),
+            ("AppSpawnsNothing", Unknown),
+            ("BaseSpawnsNothing", Unknown),
+            ("NoSuchSubsystem", Unknown),
+            ("AppNeverCallsBase", Unknown),
+        ];
+        let result = |name: &str| {
+            report
+                .adl
+                .constraint_results
+                .iter()
+                .find(|r| r.name == name)
+                .unwrap()
+        };
+        for (name, verdict) in census_invariants {
+            let r = result(name);
+            assert_eq!(r.verdict, verdict, "{name}: {r:?}");
+            assert_eq!(r.passed, verdict == Satisfied);
+            // The ADL compiler alone cannot decide it: UNKNOWN, never a pass.
+            let alone = compiled
+                .constraint_results
+                .iter()
+                .find(|r| r.name == name)
+                .unwrap();
+            assert_eq!(alone.verdict, Unknown, "{name}");
+            assert!(alone.diagnostics.iter().any(|d| d.code == "ATLAS-E063"));
+            // Every entry point decides it the same way.
+            let analyzed = analysis["adl"]["constraint_results"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .find(|r| r["name"] == name)
+                .unwrap();
+            assert_eq!(analyzed["verdict"], serde_json::to_value(verdict).unwrap());
+        }
+        // A violation names its counterexample; SATISFIED and UNKNOWN name what they rest on.
+        assert!(
+            result("AppNeverCallsCore")
+                .diagnostics
+                .iter()
+                .any(|d| d.code == "ATLAS-E064"
+                    && d.message.contains("main@app/src/main.rs")
+                    && d.message.contains("new@core/src/store.rs"))
+        );
+        assert!(
+            result("CoreWritesNoFiles").diagnostics[0]
+                .message
+                .contains("save@core/src/store.rs")
+        );
+        assert!(
+            result("CoreNeverCallsApp").derivation[0].basis[0].contains("no Cargo dependency path")
+        );
+        assert!(result("CoreNeverCallsBase").derivation[0].basis[0].contains("CALL is OBSERVED"));
+        assert!(result("BaseSpawnsNothing").derivation[0].basis[0].contains("EFFECT not OBSERVED"));
+        assert!(
+            result("AppNeverCallsBase").derivation[0]
+                .basis
+                .iter()
+                .any(|b| b.contains("spelled with the name of a function of Base")),
+            "{:?}",
+            result("AppNeverCallsBase")
+        );
+        // Admission reads the decided verdicts.
+        let blockers = &report.coding_admission.blockers;
+        assert!(blockers.contains(&"ADL_CONSTRAINT_VIOLATED".to_owned()));
+        assert!(blockers.contains(&"ADL_CONSTRAINT_UNKNOWN".to_owned()));
+        // The world model carries them as invariants.
+        let model = compose(&report);
+        let status = |id: &str| model.invariants.iter().find(|i| i.id == id).unwrap().status;
+        assert_eq!(
+            status("INV-ADL:CoreNeverCallsApp"),
+            EpistemicStatus::Derived
+        );
+        assert_eq!(
+            status("INV-ADL:AppNeverCallsCore"),
+            EpistemicStatus::Conflict
+        );
+        assert_eq!(
+            status("INV-ADL:BaseSpawnsNothing"),
+            EpistemicStatus::Unknown
+        );
+        let kind = |id: &str| model.invariants.iter().find(|i| i.id == id).unwrap().kind;
+        assert_eq!(kind("INV-ADL:AppNeverCallsCore"), InvariantKind::Dependency);
+        assert_eq!(kind("INV-ADL:CoreWritesNoFiles"), InvariantKind::Authority);
+        // A change to App's code can change a verdict over App's calls: the impact closure holds it.
+        let normalized = normalize(&model);
+        let closure =
+            closure::impact_closure(&normalized, &normalized, &["app/src/main.rs".to_owned()]);
+        assert!(
+            closure
+                .affected_invariants
+                .contains(&"INV-ADL:AppNeverCallsCore".to_owned())
+        );
+        // Counterfactual: were EFFECT OBSERVED on Base's source, the same census would decide it.
+        let mut observed = model.clone();
+        for c in observed
+            .components
+            .iter_mut()
+            .filter(|c| c.path == "base/src/lib.rs")
+        {
+            c.coverage
+                .insert("EFFECT".into(), EpistemicStatus::Observed);
+        }
+        use atlas_core::composition::quantified;
+        use atlas_core::language::adl::CensusForbidden;
+        let spawn = CensusForbidden::Effect {
+            category: "PROCESS_SPAWN".into(),
+        };
+        assert_eq!(quantified::decide(&model, "Base", &spawn).verdict, Unknown);
+        assert_eq!(
+            quantified::decide(&observed, "Base", &spawn).verdict,
+            Satisfied
+        );
+    }
+
     /// G128: a module file's own `//!` documentation outranks the `///` on its `mod` item.
     #[test]
     fn a_module_file_s_own_documentation_outranks_its_declaration() {

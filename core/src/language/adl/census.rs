@@ -235,6 +235,7 @@ fn dependency_result(
             rule: ConstraintCheckKind::ObservedDependency,
             supporting_node_names: nodes,
             materialization_target: None,
+            basis: Vec::new(),
         }],
     }
 }

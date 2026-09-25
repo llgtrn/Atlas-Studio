@@ -4238,6 +4238,7 @@ mod tests {
                 rule: ConstraintCheckKind::AttributeEquals,
                 supporting_node_names: vec!["Compiler".into()],
                 materialization_target: None,
+                basis: Vec::new(),
             }],
         )];
         add_constraint_derivations(&mut graph, &results);
@@ -4290,6 +4291,7 @@ mod tests {
                 rule: ConstraintCheckKind::AttributeEquals,
                 supporting_node_names: vec!["Compiler".into()],
                 materialization_target: None,
+                basis: Vec::new(),
             }],
         )];
         add_constraint_derivations(&mut graph, &results);
@@ -4322,6 +4324,7 @@ mod tests {
                 rule: ConstraintCheckKind::MaterializationExists,
                 supporting_node_names: Vec::new(),
                 materialization_target: Some("Compiler".into()),
+                basis: Vec::new(),
             }],
         )];
         add_constraint_derivations(&mut graph, &results);

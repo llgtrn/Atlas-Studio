@@ -13,7 +13,7 @@
 #       -> generation evidence -> G_n+1
 
 schema = "atlas.self-build.generation-ledger.v1"
-current_generation = "G129"
+current_generation = "G130"
 
 [[generation]]
 id = "G35"
@@ -2501,3 +2501,30 @@ after = 2262
 key = "composed:component_behavior"
 before = 124
 after = 125
+
+[[generation]]
+id = "G130"
+kind = "NATIVE_ATTACK"
+base_commit = "ebc0b5f49d766690376fd4701db58db8a98bb32e"
+priority = "P2"
+serves = "P2 native attack queue head NA-CONSTRAINT-NONGROUND (DEBT-CONSTRAINT_REASONING, stale since G42)"
+objective = "the first invariants quantified over census truth, decided with three-valued verdicts, and Atlas's own layering declared with them"
+writer = "coordinator (sole writer)"
+evidence = ".atlas/decisions/0050-census-quantified-invariants.md"
+self_recensus = ".atlas/evidence/census/G130/recensus.json"
+
+[generation.verification]
+pre_census = "clean-HEAD census of e7b2a2d806 = G129 post digest a59ed374... (ebc0b5f49d adds only out-of-scope evidence)"
+atlas_first = "understand(path:core/src/language/adl) bounded the ADL compiler (public surface compile_adl, the dependency reconciliation) and showed the ADL module undocumented (purpose UNKNOWN, M2); the composed world model already carried what a decision needs (per-function effects and calls, subsystem coverage, OBSERVED dependency invariants), so the decision is an Atlas operation over it"
+semantics = "forall f: function in <Entity> forbid effect <C> / forbid call to <Entity>; compiler alone UNKNOWN (ATLAS-E063); decided over the composed census: VIOLATED with named counterexamples (ATLAS-E064), SATISFIED only through the Cargo closure or exhaustive observation, UNKNOWN naming the residual; data and configuration files exempt from coverage"
+integration = "compose_input over parts; runtime decide_census_invariants shared by systemize, graph and code analyze before admission; INV-ADL kinds DEPENDENCY or AUTHORITY; the impact closure's INV-ADL rule widened (the G129 rule was unsound for invariants that read calls)"
+self_declared = "six layering invariants in system.adl (Core calls no Adapter, Runtime or CLI; Adapter calls no Runtime or CLI; Runtime calls no CLI): all SATISFIED from the Cargo closure; admission allowed"
+falsification = "9 mutants killed: parser drops the form; compiler passes it; Cargo shortcut dropped; effect residual ignored; call residual ignored; decisions never applied; counterexamples read in the wrong direction; census invariants typed CONSTRUCTION; closure reads INV-ADL from the file set only"
+debts = "last advance G130 for DEBT-CONSTRAINT_REASONING (M2 -> M3); stays OPEN: one quantifier form, effect invariants UNKNOWN while EFFECT is partial, no independent oracle"
+review = "evidence/census/G130/debt-review.json: DEBT-CONCURRENCY fell due; the nine debts due through G133 reviewed together: 5 confirmed, 4 corrected (CONCURRENCY, CALL and STATE next steps named finished attacks; EFFECT gains the G130 consequence)"
+proof = "PROVEN (post b30ce162...): one new source file explained as carrying the standing per-file UNKNOWN obligations; six ADL constraints and the declared source intended"
+
+[[generation.metric]]
+key = "composed:invariant:DEPENDENCY|DERIVED"
+before = 4
+after = 10

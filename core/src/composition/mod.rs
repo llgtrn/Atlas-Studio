@@ -14,6 +14,7 @@
 
 pub mod closure;
 pub mod lens;
+pub mod quantified;
 
 use crate::language::adl::ConstraintCheckKind;
 use crate::semantic::call::callee_name;
@@ -445,8 +446,31 @@ fn push_unique(list: &mut Vec<String>, value: &str) {
 /// Compose a census report into a `WorldModel`. Deterministic: the same report gives the same
 /// model, field for field.
 pub fn compose(report: &SystemizeReport) -> WorldModel {
-    let census = &report.census;
-    let declared = &report.adl.ir.declared;
+    compose_input(CompositionInput {
+        census: &report.census,
+        inventory: &report.inventory,
+        adl: &report.adl,
+        dependency_closure: &report.dependency_closure,
+        revision: &report.snapshot.head_sha,
+    })
+}
+
+/// What composition reads: the census, the inventory, the compiled ADL, the dependency closure and
+/// the revision
+/// (G130: `systemize` composes from these before its report exists, to decide census-quantified
+/// invariants).
+pub struct CompositionInput<'a> {
+    pub census: &'a crate::schema::CensusReport,
+    pub inventory: &'a crate::census::InventoryReport,
+    pub adl: &'a crate::language::adl::AdlCompileReport,
+    pub dependency_closure: &'a crate::census::DependencyClosureReport,
+    pub revision: &'a str,
+}
+
+/// `compose` over its inputs.
+pub fn compose_input(input: CompositionInput<'_>) -> WorldModel {
+    let census = &input.census;
+    let declared = &input.adl.ir.declared;
     let mut accounting = CompositionAccounting::default();
 
     // Subsystems are declared: an ADL entity with a materialization path.
@@ -467,7 +491,7 @@ pub fn compose(report: &SystemizeReport) -> WorldModel {
         + declared.edges.len()
         + declared.bindings.len()
         + declared.materializations.len()
-        + report.adl.constraint_results.len();
+        + input.adl.constraint_results.len();
 
     // Level 1: functions.
     let mut functions: BTreeMap<String, FunctionBehavior> = BTreeMap::new();
@@ -792,7 +816,7 @@ pub fn compose(report: &SystemizeReport) -> WorldModel {
     }
 
     // Level 2: components.
-    let artifact_paths: BTreeMap<&str, &crate::census::ArtifactRecord> = report
+    let artifact_paths: BTreeMap<&str, &crate::census::ArtifactRecord> = input
         .inventory
         .artifacts
         .iter()
@@ -801,7 +825,7 @@ pub fn compose(report: &SystemizeReport) -> WorldModel {
     let mut components: BTreeMap<String, ComponentBehavior> = BTreeMap::new();
     // Workspace members whose manifest was read have an evidenced directory; a member seen only
     // as a provider stays unplaced (`ObservedArchitecture`), never placed by its name.
-    let observed = crate::ObservedArchitecture::from_closure(&report.dependency_closure);
+    let observed = crate::ObservedArchitecture::from_closure(input.dependency_closure);
     let crate_names: BTreeMap<String, String> = observed
         .members
         .iter()
@@ -1140,7 +1164,7 @@ pub fn compose(report: &SystemizeReport) -> WorldModel {
     };
     let mut cargo_edges: BTreeSet<(String, String)> = BTreeSet::new();
     let mut cargo_evidence: BTreeMap<String, String> = BTreeMap::new();
-    for edge in &report.dependency_closure.edges {
+    for edge in &input.dependency_closure.edges {
         let Some(consumer_dir) = dir_of_package.get(edge.consumer.as_str()) else {
             continue;
         };
@@ -1276,9 +1300,19 @@ pub fn compose(report: &SystemizeReport) -> WorldModel {
         }
     }
     // Declared constraints, as checked by the ADL compiler.
-    for result in &report.adl.constraint_results {
-        let kind = match result.derivation.first().map(|d| d.rule) {
-            Some(ConstraintCheckKind::ObservedDependency) => InvariantKind::Dependency,
+    for result in &input.adl.constraint_results {
+        let kind = match result.derivation.first() {
+            Some(d) if d.rule == ConstraintCheckKind::ObservedDependency => {
+                InvariantKind::Dependency
+            }
+            // G130: a census-quantified `forbid call to` names two entities; `forbid effect` one.
+            Some(d) if d.rule == ConstraintCheckKind::CensusQuantified => {
+                if d.supporting_node_names.len() == 2 {
+                    InvariantKind::Dependency
+                } else {
+                    InvariantKind::Authority
+                }
+            }
             _ => InvariantKind::Construction,
         };
         let status = match result.verdict {
@@ -1530,8 +1564,8 @@ pub fn compose(report: &SystemizeReport) -> WorldModel {
     }
     WorldModel {
         schema: WORLD_MODEL_SCHEMA.into(),
-        revision: report.snapshot.head_sha.clone(),
-        system: report.adl.ir.system.clone(),
+        revision: input.revision.to_owned(),
+        system: input.adl.ir.system.clone(),
         functions,
         components,
         subsystems,

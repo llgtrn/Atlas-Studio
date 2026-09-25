@@ -140,6 +140,24 @@ fn adl_constraint_unknown_blocks(constraint_results: &[ConstraintResult]) -> boo
         .any(|result| result.verdict == ConstraintVerdict::Unknown)
 }
 
+/// G130 (ADR 0050): decide every census-quantified invariant over the composed census. The ADL
+/// compiler alone leaves them UNKNOWN; every entry point that reads `adl.constraint_results`
+/// calls this first, so none of them can disagree about a verdict.
+fn decide_census_invariants(inputs: &mut CensusInputs, census: &atlas_core::CensusReport) {
+    use atlas_core::composition::{CompositionInput, compose_input, quantified};
+    if !quantified::has_census_checks(&inputs.adl) {
+        return;
+    }
+    let model = compose_input(CompositionInput {
+        census,
+        inventory: &inputs.inventory,
+        adl: &inputs.adl,
+        dependency_closure: &inputs.dependency_closure,
+        revision: &inputs.snapshot.head_sha,
+    });
+    quantified::apply(&model, &mut inputs.adl);
+}
+
 /// Every input `systemize`/`graph`/`code_analyze` need before they can build their own
 /// entry-point-specific report: the repository snapshot/audit/inventory/source/docs, compiled ADL,
 /// and real `SemanticExtractor` output for the admitted inventory. Extracted as one shared
@@ -293,8 +311,9 @@ pub fn systemize_with(
     mut cache: Option<&mut census::extraction::ExtractionCache>,
 ) -> io::Result<SystemizeReport> {
     let root = root.as_ref();
-    let inputs = gather_census_inputs(root, cache.as_deref_mut())?;
+    let mut inputs = gather_census_inputs(root, cache.as_deref_mut())?;
     let mut census = inputs.census();
+    decide_census_invariants(&mut inputs, &census);
     let CensusInputs {
         snapshot,
         repository,
@@ -446,8 +465,9 @@ pub fn check(root: impl AsRef<Path>) -> io::Result<AdlCompileReport> {
 
 pub fn graph(root: impl AsRef<Path>) -> io::Result<EngineeringGraph> {
     let root = root.as_ref();
-    let inputs = gather_census_inputs(root, None)?;
+    let mut inputs = gather_census_inputs(root, None)?;
     let census = inputs.census();
+    decide_census_invariants(&mut inputs, &census);
     let CensusInputs {
         source,
         docs,
@@ -472,8 +492,9 @@ pub fn docs_audit(root: impl AsRef<Path>) -> io::Result<DocsReport> {
 
 pub fn code_analyze(root: impl AsRef<Path>) -> io::Result<serde_json::Value> {
     let root = root.as_ref();
-    let inputs = gather_census_inputs(root, None)?;
+    let mut inputs = gather_census_inputs(root, None)?;
     let mut census = inputs.census();
+    decide_census_invariants(&mut inputs, &census);
     let CensusInputs {
         inventory,
         source,

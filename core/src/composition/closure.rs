@@ -271,6 +271,13 @@ pub fn impact_closure(
     for invariant in &before.invariants {
         let scoped = |set: &BTreeSet<String>| invariant.scope.iter().any(|s| set.contains(s));
         let hit = global
+            // A declared invariant compares the declared architecture with the file set; a
+            // census-quantified one (G130) also reads the calls, effects and coverage of the
+            // entities it names.
+            || (invariant.id.starts_with("INV-ADL:")
+                && (!file_set_changed.is_empty()
+                    || scoped(&changed_subsystems)
+                    || scoped(&caller_subsystems)))
             || match invariant.kind {
                 InvariantKind::Dependency if invariant.id.starts_with("INV-DEPENDENCY:") => {
                     invariant
@@ -293,8 +300,7 @@ pub fn impact_closure(
                         .is_some_and(|key| state.contains(key))
                         || scoped(&changed_subsystems)
                 }
-                // Declared constraints compare the declared architecture with the file set.
-                _ => !file_set_changed.is_empty(),
+                _ => false,
             };
         if hit {
             invariants.insert(invariant.id.clone());

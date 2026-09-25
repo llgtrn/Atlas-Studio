@@ -1,0 +1,75 @@
+{
+ "schema": "atlas.debt-review.v1",
+ "generation": "G130",
+ "trigger": "review cadence: DEBT-CONCURRENCY (last reviewed G117) fell due at G130; the debts falling due through G133 are reviewed in the same batch",
+ "method": "each debt re-read against G117-G130 (macro-argument walkers, persistence engine, composition, impact closure, census-quantified invariants); its next attack confirmed or corrected",
+ "reviews": [
+  {
+   "debt": "DEBT-CONCURRENCY",
+   "verdict": "CORRECTED",
+   "finding": "its next step still named NA-MACRO-ARGUMENTS, done at G119-G120; the scoped spawns still live in closure bodies",
+   "correction": {
+    "nxt": "NA-CLOSURE-REGIONS (the scoped spawns and joins live in thread::scope closures)"
+   }
+  },
+  {
+   "debt": "DEBT-RESOURCE",
+   "verdict": "CONFIRMED",
+   "finding": "the composition routes GAP-RESOURCE to it (G122); NA-RESOURCE-DIMENSION stays queued",
+   "correction": null
+  },
+  {
+   "debt": "DEBT-CONSTRUCTION_TRANSACTION",
+   "verdict": "CONFIRMED",
+   "finding": "blocked by DEBT-ATLASX",
+   "correction": null
+  },
+  {
+   "debt": "DEBT-CALL",
+   "verdict": "CORRECTED",
+   "finding": "its next step still named NA-MACRO-ARGUMENTS-WALKERS, done at G120; G123 added callee spelling; the unnamed and name-candidate residual now decides the impact closure's R4 rule (G129) and keeps census-quantified call invariants UNKNOWN (G130)",
+   "correction": {
+    "nxt": "NA-CALL-TYPE-RESIDUAL, then NA-CLOSURE-REGIONS for calls inside closure bodies"
+   }
+  },
+  {
+   "debt": "DEBT-CONTROL_FLOW",
+   "verdict": "CONFIRMED",
+   "finding": "statement-level CFG and a single engine; NA-CLOSURE-REGIONS then NA-SECOND-ENGINE",
+   "correction": null
+  },
+  {
+   "debt": "DEBT-DATA_FLOW",
+   "verdict": "CONFIRMED",
+   "finding": "closures and no reconciled second engine; NA-CLOSURE-REGIONS then NA-SECOND-ENGINE",
+   "correction": null
+  },
+  {
+   "debt": "DEBT-STATE",
+   "verdict": "CORRECTED",
+   "finding": "its next step still named NA-PERSISTENCE-RESOLVED, done at G125",
+   "correction": {
+    "nxt": "NA-SECOND-ENGINE (interior mutability and write! targets need resolution)"
+   }
+  },
+  {
+   "debt": "DEBT-EFFECT",
+   "verdict": "CORRECTED",
+   "finding": "G130 showed the consequence of EFFECT being partial on every file: a census-quantified effect invariant can be VIOLATED or UNKNOWN, never SATISFIED",
+   "correction": {
+    "unknowns": "<appended: EFFECT is partial on every file by construction, so no census-quantified effect invariant can be SATISFIED (G130)>"
+   }
+  },
+  {
+   "debt": "DEBT-OWNERSHIP",
+   "verdict": "CONFIRMED",
+   "finding": "no oracle integrated; NA-SECOND-ENGINE",
+   "correction": null
+  }
+ ],
+ "summary": {
+  "reviewed": 9,
+  "confirmed": 5,
+  "corrected": 4
+ }
+}

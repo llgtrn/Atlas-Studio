@@ -193,6 +193,15 @@ An ADL language-version change or Atlas semantic-schema change that alters meani
   - an ordering operator over a non-quantity: `UNKNOWN` (`ATLAS-E058`).
 
   Plain strings and bare numbers keep literal `==` semantics.
+- **Census-quantified invariants (G130, ADR 0050).** `forall f: function in <Entity> forbid effect <CATEGORY>` and `forall f: function in <Entity> forbid call to <Entity>` quantify over census truth — every censused function of a declared, materialized entity — not over declared nodes.
+  - **At compile time.** The ADL compiler cannot decide them: alone, it reports `UNKNOWN` (`ATLAS-E063`), never a pass.
+  - **In systemize.** `systemize` (and `graph` and `code analyze`, through one shared step) decides them over the composed census before admission reads them:
+    - `VIOLATED` (`ATLAS-E064`): a definite counterexample, named. For an effect, this is an `OBSERVED` or `DERIVED` effect site in one of the entity's functions. For a call, it is a resolved call into the other entity.
+    - `SATISFIED`: nothing that could be a counterexample is left unexamined. For a call, either no Cargo dependency path exists at all, which no call can cross, or `CALL` is `OBSERVED` on every code-bearing file of the entity and no call site resolves to, or is spelled with, a function of the other entity. For an effect, `EFFECT` must be `OBSERVED` on every code-bearing file and no guessed (`INFERRED`) site of the category may exist.
+    - `UNKNOWN` (`ATLAS-E063`): otherwise, with the residual that kept it undecided.
+  - **Scope of `forbid effect`.** It concerns the entity's own direct effect sites.
+  - **Current limit.** `EFFECT` is partial on every Rust file today (unmodeled forms), so an effect invariant is `VIOLATED` or `UNKNOWN`, never `SATISFIED`, until `DEBT-EFFECT` closes.
+  - **Where it appears.** The decision's basis is recorded in `ConstraintCheckDerivation.basis`, and the world model carries it as `INV-ADL:<name>`.
 - `invariant` declarations are evaluated by the exact same pass as `constraint` declarations. They are not a documentation-only or declared-but-unchecked category.
 
 This closes a real gap: earlier revisions silently returned `passed: true` for unrecognized constraint syntax (an unchecked constraint reporting success), and separately never evaluated `invariant` blocks at all (parsed and recorded, but absent from `constraint_results` and therefore invisible to `atlas-cli check`'s readiness gate).

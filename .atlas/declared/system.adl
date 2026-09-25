@@ -109,3 +109,29 @@ constraint AdapterIsMaterialized {
 constraint RuntimeIsMaterialized {
     require materialized Runtime
 }
+
+# G130 (ADR 0050): the load-bearing layering, quantified over census truth and decided by
+# systemize over the composed census: no function of a lower layer calls a higher one.
+invariant CoreCallsNoAdapter {
+    forall f: function in Core forbid call to Adapter
+}
+
+invariant CoreCallsNoRuntime {
+    forall f: function in Core forbid call to Runtime
+}
+
+invariant CoreCallsNoCli {
+    forall f: function in Core forbid call to AtlasCli
+}
+
+invariant AdapterCallsNoRuntime {
+    forall f: function in Adapter forbid call to Runtime
+}
+
+invariant AdapterCallsNoCli {
+    forall f: function in Adapter forbid call to AtlasCli
+}
+
+invariant RuntimeCallsNoCli {
+    forall f: function in Runtime forbid call to AtlasCli
+}

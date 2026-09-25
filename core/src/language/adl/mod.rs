@@ -117,6 +117,25 @@ pub enum ConstraintCheck {
     MaterializationExists {
         target: String,
     },
+    /// G130 (ADR 0050): a universally quantified invariant over census truth -- for every function
+    /// of the declared entity `subsystem`, `forbidden` does not happen. Written
+    /// `forall f: function in <Subsystem> forbid effect <CATEGORY>` or
+    /// `forall f: function in <Subsystem> forbid call to <Subsystem>`. The ADL compiler cannot
+    /// decide it (UNKNOWN, `ATLAS-E063`); `systemize` decides it over the composed census.
+    CensusForbid {
+        subsystem: String,
+        forbidden: CensusForbidden,
+    },
+}
+
+/// What a census-quantified invariant forbids of every function of its subsystem.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(tag = "forbid", rename_all = "SCREAMING_SNAKE_CASE")]
+pub enum CensusForbidden {
+    /// A direct effect site of this category (`FILESYSTEM_WRITE`, `PROCESS_SPAWN`, ...).
+    Effect { category: String },
+    /// A call reaching a function of this declared entity.
+    CallTo { subsystem: String },
 }
 
 /// Relation a `require x.attr <op> value` clause demands.
@@ -283,6 +302,8 @@ pub enum ConstraintCheckKind {
     /// census (`census::reconcile_dependencies`); `supporting_node_names` are the two declared
     /// entities, empty when the census observed a dependency nothing declares.
     ObservedDependency,
+    /// G130: a `CensusForbid` check, decided over the composed census.
+    CensusQuantified,
 }
 
 impl ConstraintCheckKind {
@@ -292,6 +313,7 @@ impl ConstraintCheckKind {
             Self::MaterializationExists => "MATERIALIZATION_EXISTS",
             Self::ObservedMaterializationDelta => "OBSERVED_MATERIALIZATION_DELTA",
             Self::ObservedDependency => "OBSERVED_DEPENDENCY",
+            Self::CensusQuantified => "CENSUS_QUANTIFIED",
         }
     }
 }
@@ -316,6 +338,10 @@ pub struct ConstraintCheckDerivation {
     /// The `MaterializationDecl.target` this `MaterializationExists` check consulted. `None` for
     /// `AttributeEquals`.
     pub materialization_target: Option<String>,
+    /// G130: what a census-quantified verdict rests on (the Cargo closure, the calls it resolved,
+    /// the residual that kept it UNKNOWN). Empty for the declared-only rules.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub basis: Vec<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
@@ -643,6 +669,37 @@ fn parse_constraint_check(lines: &[(usize, String)]) -> Result<Vec<ConstraintChe
         return Ok(vec![ConstraintCheck::MaterializationExists {
             target: (*target).into(),
         }]);
+    }
+    // G130: `forall f: function in <Subsystem> forbid effect <CATEGORY>` and
+    // `forall f: function in <Subsystem> forbid call to <Subsystem>`.
+    if let [
+        "forall",
+        binder,
+        "function",
+        "in",
+        subsystem,
+        "forbid",
+        rest @ ..,
+    ] = words.as_slice()
+        && binder.ends_with(':')
+    {
+        let forbidden = match rest {
+            ["effect", category] => Some(CensusForbidden::Effect {
+                category: (*category).into(),
+            }),
+            ["call", "to", target] => Some(CensusForbidden::CallTo {
+                subsystem: (*target).into(),
+            }),
+            _ => None,
+        };
+        return forbidden
+            .map(|forbidden| {
+                vec![ConstraintCheck::CensusForbid {
+                    subsystem: (*subsystem).into(),
+                    forbidden,
+                }]
+            })
+            .ok_or(joined);
     }
     let entity_kind = words
         .windows(3)
@@ -1079,6 +1136,7 @@ pub fn compile_adl(sources: &[AdlSource], observed: &SourceReport) -> AdlCompile
                 rule: ConstraintCheckKind::ObservedMaterializationDelta,
                 supporting_node_names: Vec::new(),
                 materialization_target: Some(delta.subject.clone()),
+                basis: Vec::new(),
             }],
         });
     }
@@ -1203,6 +1261,7 @@ fn evaluate_constraints(declared: &DeclaredGraph) -> Vec<ConstraintResult> {
                             rule: ConstraintCheckKind::AttributeEquals,
                             supporting_node_names,
                             materialization_target: None,
+                            basis: Vec::new(),
                         });
                     }
                     ConstraintCheck::MaterializationExists { target } => {
@@ -1224,6 +1283,36 @@ fn evaluate_constraints(declared: &DeclaredGraph) -> Vec<ConstraintResult> {
                             rule: ConstraintCheckKind::MaterializationExists,
                             supporting_node_names: Vec::new(),
                             materialization_target: Some(target.clone()),
+                            basis: Vec::new(),
+                        });
+                    }
+                    ConstraintCheck::CensusForbid {
+                        subsystem,
+                        forbidden,
+                    } => {
+                        // Quantified over census truth the ADL compiler does not have: never a
+                        // pass here. `systemize` replaces this result with the decided one.
+                        verdicts.push(ConstraintVerdict::Unknown);
+                        diagnostics.push(adl_diag(
+                            "ATLAS-E063",
+                            format!(
+                                "invariant `{}` quantifies over the census; it is decided by \
+                                 systemize over the composed census, not by the ADL compiler",
+                                constraint.name
+                            ),
+                            &constraint.span.path,
+                            constraint.span.line,
+                            constraint.span.column,
+                        ));
+                        let mut supporting_node_names = vec![subsystem.clone()];
+                        if let CensusForbidden::CallTo { subsystem } = forbidden {
+                            supporting_node_names.push(subsystem.clone());
+                        }
+                        derivation.push(ConstraintCheckDerivation {
+                            rule: ConstraintCheckKind::CensusQuantified,
+                            supporting_node_names,
+                            materialization_target: None,
+                            basis: Vec::new(),
                         });
                     }
                 }
@@ -1616,6 +1705,87 @@ constraint BackendIsRust {
         assert!(report.diagnostics.is_empty());
         assert!(report.deltas.is_empty());
         assert!(report.constraint_results.iter().all(|result| result.passed));
+    }
+
+    /// G130: the census-quantified forms parse into `CensusForbid`; a malformed one is ATLAS-E052,
+    /// never a check that admits anything; the compiler alone leaves them UNKNOWN (ATLAS-E063).
+    #[test]
+    fn census_quantified_invariants_parse_and_stay_unknown_without_the_census() {
+        let source = AdlSource {
+            path: ".atlas/declared/system.adl".into(),
+            text: "atlas 1\nsystem Example\n\
+                   invariant NoSpawn {\n    forall f: function in Core forbid effect PROCESS_SPAWN\n}\n\
+                   invariant Layered {\n    forall f: function in Core\n        forbid call to Runtime\n}\n\
+                   invariant Broken {\n    forall f: function in Core forbid effect\n}\n\
+                   invariant Unbound {\n    forall function in Core forbid call to Runtime\n}\n"
+                .into(),
+        };
+        let program = parse_adl_source(&source);
+        let checks = |name: &str| {
+            program
+                .declarations
+                .iter()
+                .find_map(|decl| match decl {
+                    AdlDeclaration::Invariant(c) | AdlDeclaration::Constraint(c)
+                        if c.name == name =>
+                    {
+                        Some(c.checks.clone())
+                    }
+                    _ => None,
+                })
+                .unwrap()
+        };
+        assert_eq!(
+            checks("NoSpawn"),
+            vec![ConstraintCheck::CensusForbid {
+                subsystem: "Core".into(),
+                forbidden: CensusForbidden::Effect {
+                    category: "PROCESS_SPAWN".into()
+                },
+            }]
+        );
+        assert_eq!(
+            checks("Layered"),
+            vec![ConstraintCheck::CensusForbid {
+                subsystem: "Core".into(),
+                forbidden: CensusForbidden::CallTo {
+                    subsystem: "Runtime".into()
+                },
+            }]
+        );
+        for malformed in ["Broken", "Unbound"] {
+            assert!(checks(malformed).is_empty(), "{malformed}");
+        }
+        assert_eq!(
+            program
+                .diagnostics
+                .iter()
+                .filter(|d| d.code == "ATLAS-E052")
+                .count(),
+            2
+        );
+        let observed = SourceReport {
+            schema: "test".into(),
+            root: "/repo".into(),
+            files_total: 0,
+            languages: BTreeMap::new(),
+            files: Vec::new(),
+        };
+        let report = compile_adl(&[source], &observed);
+        for name in ["NoSpawn", "Layered"] {
+            let result = report
+                .constraint_results
+                .iter()
+                .find(|r| r.name == name)
+                .unwrap();
+            assert_eq!(result.verdict, ConstraintVerdict::Unknown);
+            assert!(!result.passed);
+            assert!(result.diagnostics.iter().any(|d| d.code == "ATLAS-E063"));
+            assert_eq!(
+                result.derivation[0].rule,
+                ConstraintCheckKind::CensusQuantified
+            );
+        }
     }
 
     #[test]

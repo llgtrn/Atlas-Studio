@@ -1,0 +1,503 @@
+{
+  "schema": "atlas.self-recensus-report.v1",
+  "generation": "G130",
+  "base_revision": "160579e51386be457629993324bb2436e9d24fbb",
+  "candidate_revision": "ebc0b5f49d766690376fd4701db58db8a98bb32e",
+  "candidate_dirty": true,
+  "before_census_digest": "blake3-256:a59ed37474a7d6d603543dca28d717a23410435377c69ff2203c9fdedaf6d607",
+  "after_census_digest": "blake3-256:b30ce16201151c6732938fa1f7452f5944cb2ee627fc6c5206e767714af7a538",
+  "replay_digest": "blake3-256:b30ce16201151c6732938fa1f7452f5944cb2ee627fc6c5206e767714af7a538",
+  "inventory_delta": {
+    "created": [
+      "core/src/composition/quantified.rs"
+    ],
+    "modified": [
+      "core/src/composition/closure.rs",
+      "core/src/composition/mod.rs",
+      "core/src/graph/engineering_graph.rs",
+      "core/src/language/adl/census.rs",
+      "core/src/language/adl/mod.rs",
+      "runtime/src/agent.rs",
+      "runtime/src/lib.rs"
+    ],
+    "deleted": []
+  },
+  "semantic_delta": {
+    "changed": [
+      "core/src/composition/closure.rs",
+      "core/src/composition/mod.rs",
+      "core/src/graph/engineering_graph.rs",
+      "core/src/language/adl/census.rs",
+      "core/src/language/adl/mod.rs",
+      "runtime/src/agent.rs",
+      "runtime/src/lib.rs"
+    ],
+    "counts": {
+      "fact:FunctionIdentity|OBSERVED": 8,
+      "fact:FunctionSignature|OBSERVED": 8,
+      "fact:SemanticObligation|OBSERVED": 5,
+      "fact:SemanticObligation|UNKNOWN": 12,
+      "fact:SourceArtifact|OBSERVED": 2,
+      "fact:Symbol|OBSERVED": 32,
+      "fact:Type|DERIVED": 19,
+      "fact:Type|OBSERVED": 21,
+      "record:CALL|DERIVED": 20,
+      "record:CALL|OBSERVED": 204,
+      "record:CONTROL_FLOW|INFERRED": 29,
+      "record:CONTROL_FLOW|OBSERVED": 62,
+      "record:DATA_FLOW|OBSERVED": 338,
+      "record:EFFECT|DERIVED": 1,
+      "record:EFFECT|INFERRED": 30,
+      "record:FUNCTION_IDENTITY|OBSERVED": 8,
+      "record:FUNCTION_SIGNATURE|OBSERVED": 8,
+      "record:OWNERSHIP|OBSERVED": 83,
+      "record:SYMBOL|OBSERVED": 32,
+      "record:TYPE|DERIVED": 19,
+      "record:TYPE|OBSERVED": 21
+    }
+  },
+  "dependency_delta": {
+    "added": [],
+    "removed": []
+  },
+  "dependency_state": [
+    "Closed",
+    "Closed"
+  ],
+  "graph_delta": {
+    "graph_bindings": 1,
+    "graph_edges": 1274,
+    "graph_nodes": 909
+  },
+  "obligation_delta": {
+    "obligation:CALL|OBSERVED": 1,
+    "obligation:CALL|UNKNOWN": 1,
+    "obligation:CONCURRENCY|UNKNOWN": 2,
+    "obligation:CONTROL_FLOW|UNKNOWN": 1,
+    "obligation:DATA_FLOW|UNKNOWN": 1,
+    "obligation:EFFECT|UNKNOWN": 2,
+    "obligation:FUNCTION_IDENTITY|OBSERVED": 1,
+    "obligation:FUNCTION_SIGNATURE|OBSERVED": 1,
+    "obligation:OWNERSHIP|UNKNOWN": 1,
+    "obligation:PERSISTENCE|UNKNOWN": 2,
+    "obligation:STATE|UNKNOWN": 1,
+    "obligation:SYMBOL|OBSERVED": 1,
+    "obligation:TYPE|OBSERVED": 1,
+    "obligation:TYPE|UNKNOWN": 1
+  },
+  "adl_delta": {
+    "added": [
+      "constraint AdapterCallsNoCli SATISFIED",
+      "constraint AdapterCallsNoRuntime SATISFIED",
+      "constraint CoreCallsNoAdapter SATISFIED",
+      "constraint CoreCallsNoCli SATISFIED",
+      "constraint CoreCallsNoRuntime SATISFIED",
+      "constraint RuntimeCallsNoCli SATISFIED"
+    ],
+    "removed": []
+  },
+  "entity_delta": [
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core composition/closure/impact_closure()."
+      ],
+      "after": [
+        "core composition/closure/impact_closure()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core composition/compose()."
+      ],
+      "after": [
+        "core composition/compose()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core graph/engineering_graph/tests/a_failed_constraint_derivation_still_projects_its_supporting_node_edge()."
+      ],
+      "after": [
+        "core graph/engineering_graph/tests/a_failed_constraint_derivation_still_projects_its_supporting_node_edge()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core graph/engineering_graph/tests/a_materialization_exists_derivation_records_its_target_as_a_node_attribute()."
+      ],
+      "after": [
+        "core graph/engineering_graph/tests/a_materialization_exists_derivation_records_its_target_as_a_node_attribute()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core graph/engineering_graph/tests/constraint_derivation_projects_a_supported_by_edge_to_the_consulted_declared_node()."
+      ],
+      "after": [
+        "core graph/engineering_graph/tests/constraint_derivation_projects_a_supported_by_edge_to_the_consulted_declared_node()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core language/adl/`impl:ConstraintCheckKind`/as_str()."
+      ],
+      "after": [
+        "core language/adl/`impl:ConstraintCheckKind`/as_str()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core language/adl/census/dependency_result()."
+      ],
+      "after": [
+        "core language/adl/census/dependency_result()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core language/adl/compile_adl()."
+      ],
+      "after": [
+        "core language/adl/compile_adl()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core language/adl/evaluate_constraints()."
+      ],
+      "after": [
+        "core language/adl/evaluate_constraints()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core language/adl/parse_constraint_check()."
+      ],
+      "after": [
+        "core language/adl/parse_constraint_check()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "runtime code_analyze()."
+      ],
+      "after": [
+        "runtime code_analyze()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "runtime graph()."
+      ],
+      "after": [
+        "runtime graph()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "runtime systemize_with()."
+      ],
+      "after": [
+        "runtime systemize_with()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core composition/compose_input()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core composition/quantified/apply()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core composition/quantified/decide()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core composition/quantified/has_census_checks()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core composition/quantified/unobserved_files()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core language/adl/tests/census_quantified_invariants_parse_and_stay_unknown_without_the_census()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime agent/tests/census_quantified_invariants_are_decided_with_three_values()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime decide_census_invariants()."
+      ],
+      "evidence": ""
+    }
+  ],
+  "coverage_delta": [],
+  "unknown_delta": {
+    "increased": [
+      "core/src/composition/quantified.rs: 0 -> 12"
+    ],
+    "decreased": [],
+    "total_before": 1526,
+    "total_after": 1538
+  },
+  "intent": {
+    "objective": "NA-CONSTRAINT-NONGROUND: ADL invariants quantified over census truth (forbid effect / forbid call to) decided with three-valued verdicts over the composed census in one step shared by every entry point; Atlas declares its six-rule layering (ADR 0050)",
+    "changed_paths": [
+      "core/src/composition/closure.rs",
+      "core/src/composition/mod.rs",
+      "core/src/composition/quantified.rs",
+      "core/src/graph/engineering_graph.rs",
+      "core/src/language/adl/census.rs",
+      "core/src/language/adl/mod.rs",
+      "runtime/src/agent.rs",
+      "runtime/src/lib.rs"
+    ],
+    "total_changes": [
+      "+adl_semantics",
+      "+artifacts",
+      "+composed:component_behavior",
+      "+composed:function_behavior",
+      "+composed:invariant",
+      "+composed:invariant:DEPENDENCY|DERIVED",
+      "+composed:purpose:DECLARED",
+      "+composed:relation",
+      "+composed:relation:INVOKES",
+      "+composed:relation:SUPPLIES_DATA",
+      "+diagnostic:IncompleteAnalysis",
+      "+docs",
+      "+entities",
+      "+evidence",
+      "+facts",
+      "+graph_bindings",
+      "+graph_edges",
+      "+graph_nodes",
+      "+normalized_facts",
+      "+obligations",
+      "+obligations:CALL|atlas.resolution.rust-paths|UNKNOWN",
+      "+obligations:CALL|atlas.rust.source-semantic.v1|OBSERVED",
+      "+obligations:CONCURRENCY|atlas.resolution.rust-paths|UNKNOWN",
+      "+obligations:CONCURRENCY|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:CONTROL_FLOW|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:DATA_FLOW|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:EFFECT|atlas.resolution.rust-paths|UNKNOWN",
+      "+obligations:EFFECT|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1|OBSERVED",
+      "+obligations:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1|OBSERVED",
+      "+obligations:OWNERSHIP|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:PERSISTENCE|atlas.resolution.rust-paths|UNKNOWN",
+      "+obligations:PERSISTENCE|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:STATE|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:SYMBOL|atlas.rust.source-semantic.v1|OBSERVED",
+      "+obligations:TYPE|atlas.resolution.rust-paths|UNKNOWN",
+      "+obligations:TYPE|atlas.rust.source-semantic.v1|OBSERVED",
+      "+records:CALL|atlas.resolution.rust-paths",
+      "+records:CALL|atlas.rust.source-semantic.v1",
+      "+records:CONTROL_FLOW|atlas.rust.source-semantic.v1",
+      "+records:DATA_FLOW|atlas.rust.source-semantic.v1",
+      "+records:EFFECT|atlas.resolution.rust-paths",
+      "+records:EFFECT|atlas.rust.source-semantic.v1",
+      "+records:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1",
+      "+records:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1",
+      "+records:OWNERSHIP|atlas.rust.source-semantic.v1",
+      "+records:SYMBOL|atlas.rust.source-semantic.v1",
+      "+records:TYPE|atlas.resolution.rust-paths",
+      "+records:TYPE|atlas.rust.source-semantic.v1",
+      "+typed_records",
+      "+unknown_facts"
+    ],
+    "dependency_changes": [],
+    "adl_changes": [
+      "+constraint AdapterCallsNoCli SATISFIED",
+      "+constraint AdapterCallsNoRuntime SATISFIED",
+      "+constraint CoreCallsNoAdapter SATISFIED",
+      "+constraint CoreCallsNoCli SATISFIED",
+      "+constraint CoreCallsNoRuntime SATISFIED",
+      "+constraint RuntimeCallsNoCli SATISFIED",
+      "source .atlas/declared",
+      "source .atlas/declared/system.adl"
+    ],
+    "coverage_changes": [],
+    "explained_unknowns": [
+      "core/src/composition/quantified.rs: new source file carrying the workspace's standing per-file UNKNOWN obligations"
+    ],
+    "accepted_unexpected": [],
+    "entity_changes": [
+      "CHANGED core composition/closure/impact_closure().",
+      "CHANGED core composition/compose().",
+      "CHANGED core graph/engineering_graph/tests/a_failed_constraint_derivation_still_projects_its_supporting_node_edge().",
+      "CHANGED core graph/engineering_graph/tests/a_materialization_exists_derivation_records_its_target_as_a_node_attribute().",
+      "CHANGED core graph/engineering_graph/tests/constraint_derivation_projects_a_supported_by_edge_to_the_consulted_declared_node().",
+      "CHANGED core language/adl/`impl:ConstraintCheckKind`/as_str().",
+      "CHANGED core language/adl/census/dependency_result().",
+      "CHANGED core language/adl/compile_adl().",
+      "CHANGED core language/adl/evaluate_constraints().",
+      "CHANGED core language/adl/parse_constraint_check().",
+      "CHANGED runtime code_analyze().",
+      "CHANGED runtime graph().",
+      "CHANGED runtime systemize_with().",
+      "CREATED core composition/compose_input().",
+      "CREATED core composition/quantified/apply().",
+      "CREATED core composition/quantified/decide().",
+      "CREATED core composition/quantified/has_census_checks().",
+      "CREATED core composition/quantified/unobserved_files().",
+      "CREATED core language/adl/tests/census_quantified_invariants_parse_and_stay_unknown_without_the_census().",
+      "CREATED runtime agent/tests/census_quantified_invariants_are_decided_with_three_values().",
+      "CREATED runtime decide_census_invariants()."
+    ]
+  },
+  "intended_changes": [
+    "path core/src/composition/closure.rs",
+    "path core/src/composition/mod.rs",
+    "path core/src/composition/quantified.rs",
+    "path core/src/graph/engineering_graph.rs",
+    "path core/src/language/adl/census.rs",
+    "path core/src/language/adl/mod.rs",
+    "path runtime/src/agent.rs",
+    "path runtime/src/lib.rs",
+    "total +adl_semantics",
+    "total +artifacts",
+    "total +composed:component_behavior",
+    "total +composed:function_behavior",
+    "total +composed:invariant",
+    "total +composed:invariant:DEPENDENCY|DERIVED",
+    "total +composed:purpose:DECLARED",
+    "total +composed:relation",
+    "total +composed:relation:INVOKES",
+    "total +composed:relation:SUPPLIES_DATA",
+    "total +diagnostic:IncompleteAnalysis",
+    "total +docs",
+    "total +entities",
+    "total +evidence",
+    "total +facts",
+    "total +graph_bindings",
+    "total +graph_edges",
+    "total +graph_nodes",
+    "total +normalized_facts",
+    "total +obligations",
+    "total +obligations:CALL|atlas.resolution.rust-paths|UNKNOWN",
+    "total +obligations:CALL|atlas.rust.source-semantic.v1|OBSERVED",
+    "total +obligations:CONCURRENCY|atlas.resolution.rust-paths|UNKNOWN",
+    "total +obligations:CONCURRENCY|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:CONTROL_FLOW|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:DATA_FLOW|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:EFFECT|atlas.resolution.rust-paths|UNKNOWN",
+    "total +obligations:EFFECT|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1|OBSERVED",
+    "total +obligations:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1|OBSERVED",
+    "total +obligations:OWNERSHIP|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:PERSISTENCE|atlas.resolution.rust-paths|UNKNOWN",
+    "total +obligations:PERSISTENCE|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:STATE|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:SYMBOL|atlas.rust.source-semantic.v1|OBSERVED",
+    "total +obligations:TYPE|atlas.resolution.rust-paths|UNKNOWN",
+    "total +obligations:TYPE|atlas.rust.source-semantic.v1|OBSERVED",
+    "total +records:CALL|atlas.resolution.rust-paths",
+    "total +records:CALL|atlas.rust.source-semantic.v1",
+    "total +records:CONTROL_FLOW|atlas.rust.source-semantic.v1",
+    "total +records:DATA_FLOW|atlas.rust.source-semantic.v1",
+    "total +records:EFFECT|atlas.resolution.rust-paths",
+    "total +records:EFFECT|atlas.rust.source-semantic.v1",
+    "total +records:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1",
+    "total +records:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1",
+    "total +records:OWNERSHIP|atlas.rust.source-semantic.v1",
+    "total +records:SYMBOL|atlas.rust.source-semantic.v1",
+    "total +records:TYPE|atlas.resolution.rust-paths",
+    "total +records:TYPE|atlas.rust.source-semantic.v1",
+    "total +typed_records",
+    "total +unknown_facts",
+    "adl +constraint AdapterCallsNoCli SATISFIED",
+    "adl +constraint AdapterCallsNoRuntime SATISFIED",
+    "adl +constraint CoreCallsNoAdapter SATISFIED",
+    "adl +constraint CoreCallsNoCli SATISFIED",
+    "adl +constraint CoreCallsNoRuntime SATISFIED",
+    "adl +constraint RuntimeCallsNoCli SATISFIED",
+    "adl source .atlas/declared",
+    "adl source .atlas/declared/system.adl",
+    "entity CHANGED core composition/closure/impact_closure().",
+    "entity CHANGED core composition/compose().",
+    "entity CHANGED core graph/engineering_graph/tests/a_failed_constraint_derivation_still_projects_its_supporting_node_edge().",
+    "entity CHANGED core graph/engineering_graph/tests/a_materialization_exists_derivation_records_its_target_as_a_node_attribute().",
+    "entity CHANGED core graph/engineering_graph/tests/constraint_derivation_projects_a_supported_by_edge_to_the_consulted_declared_node().",
+    "entity CHANGED core language/adl/`impl:ConstraintCheckKind`/as_str().",
+    "entity CHANGED core language/adl/census/dependency_result().",
+    "entity CHANGED core language/adl/compile_adl().",
+    "entity CHANGED core language/adl/evaluate_constraints().",
+    "entity CHANGED core language/adl/parse_constraint_check().",
+    "entity CHANGED runtime code_analyze().",
+    "entity CHANGED runtime graph().",
+    "entity CHANGED runtime systemize_with().",
+    "entity CREATED core composition/compose_input().",
+    "entity CREATED core composition/quantified/apply().",
+    "entity CREATED core composition/quantified/decide().",
+    "entity CREATED core composition/quantified/has_census_checks().",
+    "entity CREATED core composition/quantified/unobserved_files().",
+    "entity CREATED core language/adl/tests/census_quantified_invariants_parse_and_stay_unknown_without_the_census().",
+    "entity CREATED runtime agent/tests/census_quantified_invariants_are_decided_with_three_values().",
+    "entity CREATED runtime decide_census_invariants()."
+  ],
+  "intended_but_unobserved": [],
+  "unexpected_changes": [],
+  "regressions": [],
+  "verdict": "PROVEN"
+}
