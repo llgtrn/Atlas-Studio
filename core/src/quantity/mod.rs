@@ -11,8 +11,16 @@
 //! `UnsupportedUnit` -- reported, never approximated. Arithmetic that overflows the exact
 //! representation reports `Overflow` rather than rounding.
 //!
-//! Known, recorded limitation of any exponent-vector model: dimensionally equal but physically
-//! distinct quantities (torque N*m vs energy J; frequency Hz vs becquerel) are not distinguished.
+//! An exponent vector cannot tell dimensionally equal but physically distinct quantities apart
+//! (torque N*m vs energy J; frequency Hz vs becquerel). A `QuantityKind` does (G124, ADR 0045): a
+//! kind is named by its unit (`J`, `Hz`, `Bq`) or declared (`5 N*m torque`), and two quantities of
+//! different declared kinds never add, subtract or compare. A kind that was never declared is
+//! `Unspecified` and joins any kind of its dimension.
+//!
+//! Uncertainty is an exact interval (`120 ± 0.5 mm`): `uncertainty` bounds the true value in SI
+//! units, and every operation propagates exact interval bounds, so a derived interval always
+//! contains the exact result of any operands inside their intervals. Comparing overlapping
+//! intervals is `Undecided`, never guessed.
 
 use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
@@ -83,6 +91,81 @@ impl fmt::Display for Dimension {
             f.write_str(&parts.join("*"))
         }
     }
+}
+
+/// What a quantity is beyond its dimension. `Unspecified` joins any kind of its dimension; two
+/// different declared kinds never combine.
+#[derive(
+    Debug, Clone, Copy, Default, Serialize, Deserialize, PartialEq, Eq, Hash, PartialOrd, Ord,
+)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+pub enum QuantityKind {
+    #[default]
+    Unspecified,
+    Energy,
+    Torque,
+    Frequency,
+    Activity,
+}
+
+impl QuantityKind {
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            Self::Unspecified => "UNSPECIFIED",
+            Self::Energy => "ENERGY",
+            Self::Torque => "TORQUE",
+            Self::Frequency => "FREQUENCY",
+            Self::Activity => "ACTIVITY",
+        }
+    }
+
+    fn declared(word: &str) -> Option<Self> {
+        Some(match word {
+            "energy" => Self::Energy,
+            "torque" => Self::Torque,
+            "frequency" => Self::Frequency,
+            "activity" => Self::Activity,
+            _ => return None,
+        })
+    }
+
+    /// The dimension a declared kind requires.
+    pub const fn dimension(self) -> Option<Dimension> {
+        match self {
+            Self::Unspecified => None,
+            Self::Energy | Self::Torque => Some(Dimension {
+                exponents: [2, 1, -2, 0, 0, 0, 0, 0],
+            }),
+            Self::Frequency | Self::Activity => Some(Dimension {
+                exponents: [0, 0, -1, 0, 0, 0, 0, 0],
+            }),
+        }
+    }
+
+    /// The kind two operands share, or `None` when they are different declared kinds.
+    pub fn join(self, other: Self) -> Option<Self> {
+        match (self, other) {
+            (a, b) if a == b => Some(a),
+            (Self::Unspecified, b) => Some(b),
+            (a, Self::Unspecified) => Some(a),
+            _ => None,
+        }
+    }
+}
+
+/// Exact bounds `[low, high]`, in SI units, that contain the true value.
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hash)]
+pub struct Interval {
+    pub low: Rational,
+    pub high: Rational,
+}
+
+/// An `f64` stand-in for an exact rational, marked with whether it is exact (G124): a value that
+/// leaves exact arithmetic says so.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct Approximation {
+    pub value: f64,
+    pub exact: bool,
 }
 
 /// An exact rational `numerator / denominator`, always normalized: denominator > 0, lowest terms.
@@ -191,9 +274,35 @@ impl Rational {
         Some(left.cmp(&right))
     }
 
-    /// Nearest `f64`, for display and non-exact consumers only.
+    /// Nearest `f64`, for display and non-exact consumers only; `approximate` marks exactness.
     pub fn to_f64(self) -> f64 {
         self.numerator as f64 / self.denominator as f64
+    }
+
+    /// The nearest `f64` and whether it is exact: only a dyadic rational whose numerator fits the
+    /// 53-bit significand survives the conversion unchanged.
+    pub fn approximate(self) -> Approximation {
+        let dyadic = self.denominator & (self.denominator - 1) == 0;
+        let exact =
+            dyadic && self.numerator.unsigned_abs() <= 1 << 53 && self.denominator <= 1 << 60;
+        Approximation {
+            value: self.to_f64(),
+            exact,
+        }
+    }
+
+    fn min_max(values: &[Self]) -> Option<(Self, Self)> {
+        let mut low = *values.first()?;
+        let mut high = low;
+        for v in &values[1..] {
+            if v.checked_cmp(low)? == Ordering::Less {
+                low = *v;
+            }
+            if v.checked_cmp(high)? == Ordering::Greater {
+                high = *v;
+            }
+        }
+        Some((low, high))
     }
 
     /// Parses a decimal literal exactly: optional sign, digits, optional fraction, optional
@@ -260,6 +369,22 @@ pub enum QuantityError {
     DimensionMismatch { left: Dimension, right: Dimension },
     /// The exact result does not fit the rational representation.
     Overflow,
+    /// Two different declared kinds of one dimension were combined (torque + energy).
+    KindMismatch {
+        left: QuantityKind,
+        right: QuantityKind,
+    },
+    /// A declared kind whose dimension is not the quantity's (`3 kg torque`).
+    KindDimensionMismatch {
+        kind: QuantityKind,
+        dimension: Dimension,
+    },
+    /// Two uncertain quantities whose intervals overlap: their order is not decided.
+    Undecided,
+    /// A divisor whose interval contains zero.
+    UncertainDivisor,
+    /// A tolerance that is negative, or bounds that do not contain the value.
+    InvalidUncertainty,
 }
 
 impl fmt::Display for QuantityError {
@@ -271,15 +396,33 @@ impl fmt::Display for QuantityError {
                 write!(f, "dimension mismatch: {left} vs {right}")
             }
             Self::Overflow => f.write_str("exact arithmetic overflow"),
+            Self::KindMismatch { left, right } => {
+                write!(f, "kind mismatch: {} vs {}", left.as_str(), right.as_str())
+            }
+            Self::KindDimensionMismatch { kind, dimension } => {
+                write!(
+                    f,
+                    "kind {} cannot have dimension {dimension}",
+                    kind.as_str()
+                )
+            }
+            Self::Undecided => f.write_str("uncertain quantities overlap: order undecided"),
+            Self::UncertainDivisor => f.write_str("divisor interval contains zero"),
+            Self::InvalidUncertainty => f.write_str("invalid uncertainty"),
         }
     }
 }
 
-/// A value in coherent SI base units with its dimension.
+/// A value in coherent SI base units with its dimension, kind and uncertainty.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Quantity {
     pub si_value: Rational,
     pub dimension: Dimension,
+    #[serde(default)]
+    pub kind: QuantityKind,
+    /// Exact bounds containing the true value; `None` for an exact quantity.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub uncertainty: Option<Interval>,
 }
 
 /// (symbol, SI factor as numerator/denominator, dimension) for every admitted unprefixed unit.
@@ -298,7 +441,7 @@ fn named_unit(symbol: &str) -> Option<(Rational, Dimension)> {
         "min" => (r(60, 1), Dimension::base(2)),
         "h" => (r(3600, 1), Dimension::base(2)),
         "L" => (r(1, 1000), d([3, 0, 0, 0, 0, 0, 0, 0])),
-        "Hz" => (Rational::ONE, d([0, 0, -1, 0, 0, 0, 0, 0])),
+        "Hz" | "Bq" => (Rational::ONE, d([0, 0, -1, 0, 0, 0, 0, 0])),
         "N" => (Rational::ONE, d([1, 1, -2, 0, 0, 0, 0, 0])),
         "Pa" => (Rational::ONE, d([-1, 1, -2, 0, 0, 0, 0, 0])),
         "J" => (Rational::ONE, d([2, 1, -2, 0, 0, 0, 0, 0])),
@@ -366,6 +509,28 @@ fn unit_symbol(symbol: &str) -> Result<(Rational, Dimension), QuantityError> {
     })
 }
 
+/// The kind a single unit symbol names: the joule names energy, the hertz frequency, the
+/// becquerel activity (any SI prefix). Compound expressions (`N*m`, `s^-1`) name no kind.
+fn unit_kind(unit: &str) -> QuantityKind {
+    let named = |symbol: &str| match symbol {
+        "J" => Some(QuantityKind::Energy),
+        "Hz" => Some(QuantityKind::Frequency),
+        "Bq" => Some(QuantityKind::Activity),
+        _ => None,
+    };
+    if let Some(kind) = named(unit) {
+        return kind;
+    }
+    unit.char_indices()
+        .map(|(at, _)| at)
+        .skip(1)
+        .find_map(|at| {
+            let (prefix, rest) = unit.split_at(at);
+            prefix_factor(prefix).and(named(rest))
+        })
+        .unwrap_or_default()
+}
+
 /// Parses a unit expression: unit terms joined by `*`, `·` or `/`, each with an optional integer
 /// power `^n` (`m/s^2`, `N*m`, `kg*m^2`, `V/A`). Division applies to the single following term.
 pub fn parse_unit_expression(text: &str) -> Result<(Rational, Dimension), QuantityError> {
@@ -424,42 +589,131 @@ pub fn parse_unit_expression(text: &str) -> Result<(Rational, Dimension), Quanti
 }
 
 impl Quantity {
+    /// An exact quantity of no declared kind.
     pub fn new(si_value: Rational, dimension: Dimension) -> Self {
         Self {
             si_value,
             dimension,
+            kind: QuantityKind::Unspecified,
+            uncertainty: None,
         }
     }
 
-    /// Parses `<decimal> <unit expression>` separated by whitespace, e.g. `120 mm`, `3.3 V`,
-    /// `9.81 m/s^2`. A bare number is `NotAQuantity`: a quantity always states its unit.
+    /// The same quantity with a declared kind, refused when the kind's dimension differs or the
+    /// quantity already declares another kind (an energy never becomes a torque).
+    pub fn with_kind(self, kind: QuantityKind) -> Result<Self, QuantityError> {
+        let kind = self.kind.join(kind).ok_or(QuantityError::KindMismatch {
+            left: self.kind,
+            right: kind,
+        })?;
+        match kind.dimension() {
+            Some(required) if required != self.dimension => {
+                Err(QuantityError::KindDimensionMismatch {
+                    kind,
+                    dimension: self.dimension,
+                })
+            }
+            _ => Ok(Self { kind, ..self }),
+        }
+    }
+
+    /// The same quantity bounded by `[low, high]`, which must contain the value.
+    pub fn with_bounds(self, low: Rational, high: Rational) -> Result<Self, QuantityError> {
+        let contains = low
+            .checked_cmp(self.si_value)
+            .ok_or(QuantityError::Overflow)?
+            != Ordering::Greater
+            && self
+                .si_value
+                .checked_cmp(high)
+                .ok_or(QuantityError::Overflow)?
+                != Ordering::Greater;
+        if !contains {
+            return Err(QuantityError::InvalidUncertainty);
+        }
+        let uncertainty = (low != high || low != self.si_value).then_some(Interval { low, high });
+        Ok(Self {
+            uncertainty,
+            ..self
+        })
+    }
+
+    /// The exact bounds of the true value: the interval, or the value itself when exact.
+    pub fn bounds(&self) -> (Rational, Rational) {
+        self.uncertainty
+            .map_or((self.si_value, self.si_value), |i| (i.low, i.high))
+    }
+
+    /// Parses `<decimal> [± <decimal>] <unit expression> [<kind>]`, e.g. `120 mm`, `3.3 V`,
+    /// `9.81 m/s^2`, `120 ± 0.5 mm`, `5 N*m torque`. A bare number is `NotAQuantity`: a quantity
+    /// always states its unit. The tolerance is in the same unit as the value.
     pub fn parse(text: &str) -> Result<Self, QuantityError> {
-        let text = text.trim();
-        let Some((number, unit)) = text.split_once(char::is_whitespace) else {
-            return Err(QuantityError::NotAQuantity);
+        let tokens: Vec<&str> = text.split_whitespace().collect();
+        let (number, tolerance, unit, declared) = match tokens.as_slice() {
+            [number, unit] => (*number, None, *unit, None),
+            [number, sign, tolerance, unit] if matches!(*sign, "±" | "+/-") => {
+                (*number, Some(*tolerance), *unit, None)
+            }
+            [number, unit, kind] => (*number, None, *unit, Some(*kind)),
+            [number, sign, tolerance, unit, kind] if matches!(*sign, "±" | "+/-") => {
+                (*number, Some(*tolerance), *unit, Some(*kind))
+            }
+            _ => return Err(QuantityError::NotAQuantity),
         };
         let value = Rational::parse_decimal(number).ok_or(QuantityError::NotAQuantity)?;
         let (factor, dimension) = parse_unit_expression(unit)?;
         let si_value = value.checked_mul(factor).ok_or(QuantityError::Overflow)?;
-        Ok(Self::new(si_value, dimension))
+        let named = unit_kind(unit);
+        let kind = match declared {
+            None => named,
+            Some(word) => {
+                let declared = QuantityKind::declared(word).ok_or(QuantityError::NotAQuantity)?;
+                named.join(declared).ok_or(QuantityError::KindMismatch {
+                    left: named,
+                    right: declared,
+                })?
+            }
+        };
+        let mut quantity = Self::new(si_value, dimension).with_kind(kind)?;
+        if let Some(tolerance) = tolerance {
+            let tolerance = Rational::parse_decimal(tolerance)
+                .ok_or(QuantityError::NotAQuantity)?
+                .checked_mul(factor)
+                .ok_or(QuantityError::Overflow)?;
+            if tolerance.checked_cmp(Rational::ZERO) == Some(Ordering::Less) {
+                return Err(QuantityError::InvalidUncertainty);
+            }
+            let low = si_value
+                .checked_add(tolerance.checked_neg().ok_or(QuantityError::Overflow)?)
+                .ok_or(QuantityError::Overflow)?;
+            let high = si_value
+                .checked_add(tolerance)
+                .ok_or(QuantityError::Overflow)?;
+            quantity = quantity.with_bounds(low, high)?;
+        }
+        Ok(quantity)
     }
 
-    /// `true` when `text` has the shape of a quantity -- a decimal literal followed by a unit
-    /// token -- whether or not the unit is admitted. Plain words (`backend`) and bare numbers
-    /// (`1`) are not quantity-shaped.
+    /// `true` when `text` has the shape of a quantity -- a decimal literal (optionally `± <decimal>`)
+    /// followed by a unit token -- whether or not the unit is admitted. Plain words (`backend`) and
+    /// bare numbers (`1`) are not quantity-shaped.
     pub fn is_quantity_shaped(text: &str) -> bool {
-        let text = text.trim();
-        match text.split_once(char::is_whitespace) {
-            Some((number, unit)) => {
-                Rational::parse_decimal(number).is_some()
-                    && unit
-                        .trim()
-                        .chars()
-                        .next()
-                        .is_some_and(|c| c.is_alphabetic() || c == 'Ω' || c == 'µ')
+        let tokens: Vec<&str> = text.split_whitespace().collect();
+        let unit = match tokens.as_slice() {
+            [number, sign, tolerance, rest @ ..] if matches!(*sign, "±" | "+/-") => {
+                (Rational::parse_decimal(number).is_some()
+                    && Rational::parse_decimal(tolerance).is_some())
+                .then(|| rest.first())
+                .flatten()
             }
-            None => false,
-        }
+            [number, rest @ ..] => Rational::parse_decimal(number)
+                .is_some()
+                .then(|| rest.first())
+                .flatten(),
+            [] => None,
+        };
+        unit.and_then(|u| u.chars().next())
+            .is_some_and(|c| c.is_alphabetic() || c == 'Ω' || c == 'µ')
     }
 
     fn same_dimension(&self, other: &Self) -> Result<(), QuantityError> {
@@ -473,57 +727,138 @@ impl Quantity {
         }
     }
 
+    fn shared_kind(&self, other: &Self) -> Result<QuantityKind, QuantityError> {
+        self.kind
+            .join(other.kind)
+            .ok_or(QuantityError::KindMismatch {
+                left: self.kind,
+                right: other.kind,
+            })
+    }
+
+    /// `value` with the interval spanning `corners` when either operand is uncertain.
+    fn derived(
+        &self,
+        other: &Self,
+        value: Rational,
+        dimension: Dimension,
+        kind: QuantityKind,
+        corners: &[Rational],
+    ) -> Result<Self, QuantityError> {
+        let quantity = Self {
+            si_value: value,
+            dimension,
+            kind,
+            uncertainty: None,
+        };
+        if self.uncertainty.is_none() && other.uncertainty.is_none() {
+            return Ok(quantity);
+        }
+        let (low, high) = Rational::min_max(corners).ok_or(QuantityError::Overflow)?;
+        quantity.with_bounds(low, high)
+    }
+
     pub fn checked_add(&self, other: &Self) -> Result<Self, QuantityError> {
         self.same_dimension(other)?;
-        let value = self
-            .si_value
-            .checked_add(other.si_value)
-            .ok_or(QuantityError::Overflow)?;
-        Ok(Self::new(value, self.dimension))
+        let kind = self.shared_kind(other)?;
+        let add = |a: Rational, b: Rational| a.checked_add(b).ok_or(QuantityError::Overflow);
+        let ((l1, h1), (l2, h2)) = (self.bounds(), other.bounds());
+        let value = add(self.si_value, other.si_value)?;
+        self.derived(
+            other,
+            value,
+            self.dimension,
+            kind,
+            &[add(l1, l2)?, add(h1, h2)?],
+        )
     }
 
     pub fn checked_sub(&self, other: &Self) -> Result<Self, QuantityError> {
-        let negated = other
-            .si_value
-            .checked_neg()
-            .ok_or(QuantityError::Overflow)?;
-        self.checked_add(&Self::new(negated, other.dimension))
+        self.same_dimension(other)?;
+        let kind = self.shared_kind(other)?;
+        let sub = |a: Rational, b: Rational| {
+            a.checked_add(b.checked_neg().ok_or(QuantityError::Overflow)?)
+                .ok_or(QuantityError::Overflow)
+        };
+        let ((l1, h1), (l2, h2)) = (self.bounds(), other.bounds());
+        let value = sub(self.si_value, other.si_value)?;
+        self.derived(
+            other,
+            value,
+            self.dimension,
+            kind,
+            &[sub(l1, h2)?, sub(h1, l2)?],
+        )
     }
 
+    /// A product has no declared kind: torque times angle is not a torque.
     pub fn checked_mul(&self, other: &Self) -> Result<Self, QuantityError> {
-        Ok(Self::new(
-            self.si_value
-                .checked_mul(other.si_value)
-                .ok_or(QuantityError::Overflow)?,
-            self.dimension
-                .combine(other.dimension, 1)
-                .ok_or(QuantityError::Overflow)?,
-        ))
+        let mul = |a: Rational, b: Rational| a.checked_mul(b).ok_or(QuantityError::Overflow);
+        let ((l1, h1), (l2, h2)) = (self.bounds(), other.bounds());
+        let dimension = self
+            .dimension
+            .combine(other.dimension, 1)
+            .ok_or(QuantityError::Overflow)?;
+        let value = mul(self.si_value, other.si_value)?;
+        let corners = [mul(l1, l2)?, mul(l1, h2)?, mul(h1, l2)?, mul(h1, h2)?];
+        self.derived(other, value, dimension, QuantityKind::Unspecified, &corners)
     }
 
     pub fn checked_div(&self, other: &Self) -> Result<Self, QuantityError> {
-        Ok(Self::new(
-            self.si_value
-                .checked_div(other.si_value)
-                .ok_or(QuantityError::Overflow)?,
-            self.dimension
-                .combine(other.dimension, -1)
-                .ok_or(QuantityError::Overflow)?,
-        ))
+        let (l2, h2) = other.bounds();
+        if other.uncertainty.is_some()
+            && l2.checked_cmp(Rational::ZERO) != Some(Ordering::Greater)
+            && h2.checked_cmp(Rational::ZERO) != Some(Ordering::Less)
+        {
+            return Err(QuantityError::UncertainDivisor);
+        }
+        let div = |a: Rational, b: Rational| a.checked_div(b).ok_or(QuantityError::Overflow);
+        let (l1, h1) = self.bounds();
+        let dimension = self
+            .dimension
+            .combine(other.dimension, -1)
+            .ok_or(QuantityError::Overflow)?;
+        let value = div(self.si_value, other.si_value)?;
+        let corners = [div(l1, l2)?, div(l1, h2)?, div(h1, l2)?, div(h1, h2)?];
+        self.derived(other, value, dimension, QuantityKind::Unspecified, &corners)
     }
 
-    /// Exact ordering of two quantities of the same dimension.
+    /// Exact ordering of two quantities of one dimension and compatible kinds. Uncertain
+    /// quantities are ordered only when their intervals are disjoint; overlap is `Undecided`.
     pub fn checked_cmp(&self, other: &Self) -> Result<Ordering, QuantityError> {
         self.same_dimension(other)?;
-        self.si_value
-            .checked_cmp(other.si_value)
-            .ok_or(QuantityError::Overflow)
+        self.shared_kind(other)?;
+        let cmp = |a: Rational, b: Rational| a.checked_cmp(b).ok_or(QuantityError::Overflow);
+        if self.uncertainty.is_none() && other.uncertainty.is_none() {
+            return cmp(self.si_value, other.si_value);
+        }
+        let ((l1, h1), (l2, h2)) = (self.bounds(), other.bounds());
+        if cmp(h1, l2)? == Ordering::Less {
+            Ok(Ordering::Less)
+        } else if cmp(l1, h2)? == Ordering::Greater {
+            Ok(Ordering::Greater)
+        } else {
+            Err(QuantityError::Undecided)
+        }
+    }
+
+    /// The SI value as `f64`, marked exact or approximate.
+    pub fn approximate(&self) -> Approximation {
+        self.si_value.approximate()
     }
 }
 
 impl fmt::Display for Quantity {
+    /// `<SI value> <dimension>`, then ` in [low, high]` when uncertain and the declared kind.
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{} {}", self.si_value, self.dimension)
+        write!(f, "{} {}", self.si_value, self.dimension)?;
+        if let Some(Interval { low, high }) = self.uncertainty {
+            write!(f, " in [{low}, {high}]")?;
+        }
+        if self.kind != QuantityKind::Unspecified {
+            write!(f, " {}", self.kind.as_str().to_ascii_lowercase())?;
+        }
+        Ok(())
     }
 }
 
@@ -533,6 +868,155 @@ mod tests {
 
     fn q(text: &str) -> Quantity {
         Quantity::parse(text).unwrap_or_else(|e| panic!("{text}: {e}"))
+    }
+
+    /// G124: torque and energy share a dimension but are different kinds; so are frequency and
+    /// activity. A kind that was never declared joins either.
+    #[test]
+    fn torque_and_energy_are_distinct_kinds() {
+        let energy = q("1 J");
+        let torque = q("1 N*m torque");
+        let unspecified = q("1 N*m");
+        assert_eq!(energy.kind, QuantityKind::Energy, "the joule names energy");
+        assert_eq!(q("2 kJ").kind, QuantityKind::Energy, "under any prefix");
+        assert_eq!(torque.kind, QuantityKind::Torque);
+        assert_eq!(unspecified.kind, QuantityKind::Unspecified);
+        assert_ne!(energy, torque, "torque never compares equal to energy");
+        let mismatch = QuantityError::KindMismatch {
+            left: QuantityKind::Energy,
+            right: QuantityKind::Torque,
+        };
+        assert_eq!(energy.checked_cmp(&torque), Err(mismatch.clone()));
+        assert_eq!(energy.checked_add(&torque), Err(mismatch));
+        assert!(torque.checked_sub(&energy).is_err());
+        assert_eq!(energy.checked_cmp(&unspecified), Ok(Ordering::Equal));
+        assert_eq!(
+            unspecified.checked_add(&torque).unwrap().kind,
+            QuantityKind::Torque
+        );
+        assert!(
+            q("1 Hz").checked_cmp(&q("1 Bq")).is_err(),
+            "frequency is not activity"
+        );
+        assert_eq!(q("1 Hz").checked_cmp(&q("1 s^-1")), Ok(Ordering::Equal));
+        assert_eq!(
+            Quantity::parse("5 J torque"),
+            Err(QuantityError::KindMismatch {
+                left: QuantityKind::Energy,
+                right: QuantityKind::Torque
+            }),
+            "the joule declares energy"
+        );
+        assert!(matches!(
+            Quantity::parse("3 kg torque"),
+            Err(QuantityError::KindDimensionMismatch { .. })
+        ));
+        assert_eq!(
+            Quantity::parse("3 kg heavy"),
+            Err(QuantityError::NotAQuantity)
+        );
+        let rotated = torque.checked_mul(&q("2 rad")).unwrap();
+        assert_eq!(
+            rotated.kind,
+            QuantityKind::Unspecified,
+            "a product declares no kind"
+        );
+    }
+
+    /// G124: exact interval arithmetic -- the derived interval of every operation contains the
+    /// exact result for every operand drawn from the operands' intervals (checked at the bounds and
+    /// the nominal values, where these monotone operations take their extremes).
+    #[test]
+    fn a_derived_interval_contains_every_exact_result() {
+        let operands = [
+            "12 ± 0.5 mm",
+            "-3 ± 2 mm",
+            "0.25 mm",
+            "7 +/- 0.125 mm",
+            "-0.5 ± 0.25 mm",
+        ];
+        let points = |x: &Quantity| {
+            let (low, high) = x.bounds();
+            [low, x.si_value, high]
+        };
+        let within = |value: Rational, result: &Quantity| {
+            let (low, high) = result.bounds();
+            low.checked_cmp(value) != Some(Ordering::Greater)
+                && value.checked_cmp(high) != Some(Ordering::Greater)
+        };
+        for a in operands {
+            for b in operands {
+                let (x, y) = (q(a), q(b));
+                type Op = fn(&Quantity, &Quantity) -> Result<Quantity, QuantityError>;
+                type Exact = fn(Rational, Rational) -> Option<Rational>;
+                let ops: [(Op, Exact); 4] = [
+                    (Quantity::checked_add, Rational::checked_add),
+                    (Quantity::checked_sub, |u, v| {
+                        u.checked_add(v.checked_neg()?)
+                    }),
+                    (Quantity::checked_mul, Rational::checked_mul),
+                    (Quantity::checked_div, Rational::checked_div),
+                ];
+                for (op, exact) in ops {
+                    let Ok(result) = op(&x, &y) else {
+                        assert!(
+                            y.bounds().0.checked_cmp(Rational::ZERO) != Some(Ordering::Greater),
+                            "{a} op {b}: only a divisor interval reaching zero is refused"
+                        );
+                        continue;
+                    };
+                    assert!(within(result.si_value, &result), "{a} op {b}: nominal");
+                    for u in points(&x) {
+                        for v in points(&y) {
+                            let value = exact(u, v).unwrap();
+                            assert!(within(value, &result), "{a} op {b}: {value} escapes");
+                        }
+                    }
+                }
+            }
+        }
+        let widened = q("12 ± 0.5 mm").checked_add(&q("3 ± 0.25 mm")).unwrap();
+        assert_eq!(
+            widened.bounds(),
+            (q("14.25 mm").si_value, q("15.75 mm").si_value)
+        );
+        assert_eq!(
+            q("2 mm").checked_add(&q("3 mm")).unwrap().uncertainty,
+            None,
+            "exact stays exact"
+        );
+    }
+
+    #[test]
+    fn overlapping_intervals_are_undecided_never_guessed() {
+        assert_eq!(
+            q("10 ± 1 mm").checked_cmp(&q("10.5 mm")),
+            Err(QuantityError::Undecided)
+        );
+        assert_eq!(q("10 ± 1 mm").checked_cmp(&q("12 mm")), Ok(Ordering::Less));
+        assert_eq!(
+            q("10 ± 1 mm").checked_cmp(&q("8.5 ± 0.25 mm")),
+            Ok(Ordering::Greater)
+        );
+        assert_eq!(
+            q("1 m").checked_div(&q("0 ± 1 m")),
+            Err(QuantityError::UncertainDivisor)
+        );
+        assert_eq!(
+            Quantity::parse("1 ± -1 m"),
+            Err(QuantityError::InvalidUncertainty)
+        );
+        assert!(Quantity::is_quantity_shaped("120 ± 0.5 mm"));
+        assert!(Quantity::is_quantity_shaped("5 N*m torque"));
+        assert!(!Quantity::is_quantity_shaped("± 5 mm"));
+    }
+
+    #[test]
+    fn leaving_exact_arithmetic_is_marked() {
+        assert!(q("0.5 m").approximate().exact);
+        assert!(q("3 m").approximate().exact);
+        assert!(!q("0.1 m").approximate().exact, "1/10 has no exact f64");
+        assert_eq!(q("0.1 m").approximate().value, 0.1);
     }
 
     #[test]
@@ -547,8 +1031,6 @@ mod tests {
             ("2 min", "120 s"),
             ("1 kN", "1000 kg*m/s^2"),
             ("1 W", "1 V*A"),
-            ("1 J", "1 N*m"),
-            ("1 Hz", "1 s^-1"),
             ("1 L", "0.001 m^3"),
             ("250 mL", "0.25 L"),
             ("1e-3 m", "1 mm"),

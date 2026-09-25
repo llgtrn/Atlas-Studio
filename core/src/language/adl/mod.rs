@@ -192,6 +192,11 @@ fn compare_attribute(
             Err(error @ QuantityError::DimensionMismatch { .. }) => {
                 Err((ConstraintVerdict::Violated, "ATLAS-E056", error.to_string()))
             }
+            // G124: a declared energy never satisfies a torque requirement, whatever its value.
+            Err(
+                error @ (QuantityError::KindMismatch { .. }
+                | QuantityError::KindDimensionMismatch { .. }),
+            ) => Err((ConstraintVerdict::Violated, "ATLAS-E059", error.to_string())),
             Err(error) => Err((ConstraintVerdict::Unknown, "ATLAS-E057", error.to_string())),
         };
     }
@@ -1857,6 +1862,20 @@ constraint BackendIsRust {
                 Some("ATLAS-E058"),
             ),
             ("finish = anodized", "finish == anodized", Satisfied, None),
+            (
+                "stored = 3 J",
+                "stored <= 5 N*m torque",
+                Violated,
+                Some("ATLAS-E059"),
+            ),
+            ("stored = 3 N*m", "stored <= 5 N*m torque", Satisfied, None),
+            (
+                "width = 10 ± 1 mm",
+                "width <= 10.5 mm",
+                Unknown,
+                Some("ATLAS-E057"),
+            ),
+            ("width = 10 ± 1 mm", "width <= 12 mm", Satisfied, None),
             (
                 "width = 120mm",
                 "width == 120 mm",

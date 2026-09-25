@@ -3012,15 +3012,37 @@ mod tests {
                 planned == current + 1 || (planned == current + 2 && interleaving_next),
                 "the queue head is planned for the next native generation (G{planned} at G{current})"
             );
-            // Dependency order before pressure: the selected head has a debt no open debt blocks.
-            assert!(
-                list(head, "debts")
-                    .iter()
-                    .any(|d| debts
+            // Dependency order before pressure (tightened G124): the head's primary debt is not
+            // blocked by another open debt, and among such bounded attacks the head carries the
+            // largest summed stale_generations.
+            let unblocked_primary = |attack: &str| {
+                list(attack, "debts").first().is_some_and(|d| {
+                    debts
                         .get(d)
-                        .is_some_and(|b| list(b, "blocked_by").is_empty())),
+                        .is_some_and(|b| list(b, "blocked_by").is_empty())
+                })
+            };
+            let pressure = |attack: &str| -> i64 {
+                list(attack, "debts")
+                    .iter()
+                    .filter_map(|d| debts.get(d))
+                    .map(|b| number(b, "stale_generations"))
+                    .sum()
+            };
+            assert!(
+                unblocked_primary(head),
                 "the queue head waits on a missing prerequisite"
             );
+            for attack in &attacks {
+                if flag(attack, "bounded") && unblocked_primary(attack) {
+                    assert!(
+                        pressure(attack) <= pressure(head),
+                        "{} outweighs the queue head {}",
+                        text(attack, "id"),
+                        text(head, "id")
+                    );
+                }
+            }
         }
 
         /// ADR 0044: interleaving generations never starve the native queue, and once the

@@ -332,6 +332,37 @@ pub fn build_system_graph(
                     &fact.provenance,
                 );
             }
+            // G124 (ADR 0045): a declared quantity is its own typed node -- canonical SI value,
+            // dimension, kind and interval -- linked from the declared entity that states it.
+            SemanticFactKind::Quantity => {
+                let subject = crate::identity::escape_identity_field(&fact.subject, ':');
+                let attribute = crate::identity::escape_identity_field(&fact.predicate, ':');
+                let quantity_id = stable_id("node", &format!("quantity:{subject}:{attribute}"));
+                // The owner node comes from the entity's own DECLARED_NODE fact, as for declared
+                // edges; it is never created here with a guessed kind.
+                let owner = declared_node_id(&fact.subject);
+                ensure_node(
+                    &mut graph,
+                    quantity_id.clone(),
+                    "Quantity".into(),
+                    format!("{}.{}", fact.subject, fact.predicate),
+                    BTreeMap::from([
+                        ("attribute".into(), fact.predicate.clone()),
+                        ("value".into(), fact.object.clone()),
+                        ("status".into(), fact.status.as_str().into()),
+                    ]),
+                    &fact.provenance,
+                );
+                graph.edges.push(Edge {
+                    id: stable_id("edge", &format!("quantity:{subject}:{attribute}")),
+                    kind: "HAS_QUANTITY".into(),
+                    from: owner,
+                    to: quantity_id,
+                    attributes: BTreeMap::new(),
+                    provenance: fact.provenance.clone(),
+                    revision: fact.provenance.source_revision.clone(),
+                });
+            }
             // `fact.subject`/`fact.predicate`/`fact.object` are ADL-authored free text (extracted
             // by `parse_relation`'s simple `split_once("->")`, not a restrictive lexer -- see
             // `core::language::adl::mod`'s own `DeclaredEdge.id` computation, which already

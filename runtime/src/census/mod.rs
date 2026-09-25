@@ -265,6 +265,39 @@ pub fn build_census(
         });
     }
 
+    // G124 (ADR 0045): every quantity-shaped declared attribute enters the census as a typed
+    // quantity -- DECLARED with its canonical SI form, kind and interval, or UNSUPPORTED with the
+    // reason it is not admitted (never dropped, never approximated).
+    for node in &adl.ir.declared.nodes {
+        for (attribute, value) in &node.attributes {
+            if !atlas_core::quantity::Quantity::is_quantity_shaped(value) {
+                continue;
+            }
+            let (status, object) = match atlas_core::quantity::Quantity::parse(value) {
+                Ok(quantity) => (EpistemicStatus::Declared, quantity.to_string()),
+                Err(error) => (EpistemicStatus::Unsupported, format!("{value}: {error}")),
+            };
+            facts.push(SemanticFact {
+                id: fact_id(&format!(
+                    "declared-quantity:{}:{}",
+                    node.id,
+                    escape_identity_field(attribute, ':')
+                )),
+                kind: SemanticFactKind::Quantity,
+                status,
+                subject: node.name.clone(),
+                predicate: attribute.clone(),
+                object,
+                provenance: adl_provenance(
+                    &node.span.path,
+                    node.span.line,
+                    node.span.column,
+                    revision,
+                ),
+            });
+        }
+    }
+
     // `edge.from`/`.relation`/`.to` and `binding.consumer`/`.capability`/`.provider` are
     // ADL-authored free text, extracted by `parse_relation`'s simple `split_once("->")`, not a
     // restrictive lexer -- the same field set `core::language::adl::mod`'s own `DeclaredEdge.id`
@@ -1854,6 +1887,84 @@ mod tests {
         };
         let adl = compile_adl(&[], &source);
         (inventory, source, adl)
+    }
+
+    /// G124 (ADR 0045): declared physical quantities reach the census as typed QUANTITY facts --
+    /// kind and interval included, an unadmitted unit UNSUPPORTED, a bare number untouched -- and
+    /// the engineering graph as Quantity nodes linked from their entity.
+    #[test]
+    fn declared_quantities_reach_census_and_graph_with_kind_and_interval() {
+        let (inventory, source, _) = single_rust_file_context();
+        let text = "atlas 1\nsystem Rig\n\nentity Motor M1 {\n    rated_torque = 0.3 N*m torque\n    \
+                    shaft = 12 ± 0.5 mm\n    stored = 2 kJ\n    sweep = 90 deg\n    gear_ratio = 50\n}\n";
+        let adl = compile_adl(
+            &[atlas_core::AdlSource {
+                path: ".atlas/declared/rig.adl".into(),
+                text: text.into(),
+            }],
+            &source,
+        );
+        let census = build_census(&inventory, &source, &adl, &[], &test_revision());
+        let quantities: BTreeMap<String, (EpistemicStatus, String)> = census
+            .facts
+            .iter()
+            .filter(|f| f.kind == SemanticFactKind::Quantity)
+            .map(|f| (f.predicate.clone(), (f.status, f.object.clone())))
+            .collect();
+        assert_eq!(
+            quantities.len(),
+            4,
+            "gear_ratio is a bare number: {quantities:?}"
+        );
+        let (status, torque) = &quantities["rated_torque"];
+        assert_eq!(*status, EpistemicStatus::Declared);
+        assert!(torque.ends_with(" torque"), "{torque}");
+        assert!(
+            quantities["stored"].1.ends_with(" energy"),
+            "the joule names energy"
+        );
+        assert!(
+            quantities["shaft"].1.contains(" in [23/2000, 1/80]"),
+            "{:?}",
+            quantities["shaft"]
+        );
+        let (status, sweep) = &quantities["sweep"];
+        assert_eq!(
+            *status,
+            EpistemicStatus::Unsupported,
+            "never approximated: {sweep}"
+        );
+        let normalization = crate::normalize::normalize(&census);
+        let docs = atlas_core::DocsReport {
+            schema: "test".into(),
+            standard: "test".into(),
+            root: "/repo".into(),
+            gate_ready: true,
+            hard_violations_total: 0,
+            documents_total: 0,
+            canonical_frontmatter_total: 0,
+            required_control_docs_missing: Vec::new(),
+            missing_frontmatter: Vec::new(),
+            documents: Vec::new(),
+        };
+        let graph = atlas_core::build_system_graph(&source, &docs, &normalization);
+        let node = graph
+            .nodes
+            .iter()
+            .find(|n| n.kind == "Quantity" && n.identity == "M1.rated_torque")
+            .expect("a Quantity node for the declared torque");
+        assert!(node.attributes["value"].ends_with(" torque"));
+        let owner = graph
+            .nodes
+            .iter()
+            .find(|n| n.identity == "M1" && n.kind == "Motor")
+            .expect("the declared entity keeps its own kind");
+        assert!(
+            graph
+                .edges
+                .iter()
+                .any(|e| e.kind == "HAS_QUANTITY" && e.from == owner.id && e.to == node.id)
+        );
     }
 
     fn span() -> SourceSpan {

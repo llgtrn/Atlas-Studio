@@ -103,7 +103,7 @@ hard_stop = ".atlas/roadmap/FOUNDATIONAL-ATLAS-READY.toml (donor progression and
 rule_a = "do not implement complexity without evidence: every mechanism is falsified before it is absorbed"
 rule_b = "do not defer essential complexity once necessity is established: an escalated or skip-budget debt is queued before any donor"
 debt_ledger = ".atlas/roadmap/ESSENTIAL-COMPLEXITY-DEBT.toml"
-next_native_attack = "NA-QUANTITY-IN-CORE"
+next_native_attack = "NA-PERSISTENCE-RESOLVED"
 # G122 (ADR 0044, contracts/AGENT-WORN-ATLAS.md): generation classes and their ordering.
 [agent_worn]
 contract = ".atlas/contracts/AGENT-WORN-ATLAS.md"
@@ -520,9 +520,14 @@ objective = "AGENT_MISSION: the first mission on Atlas itself worked through the
 [[planned_generation]]
 id = "G124"
 priority = "P0"
-objective = "native attack queue head (pressure map with dependency order): NA-QUANTITY-IN-CORE"
+objective = "native attack queue head (pressure map with dependency order): NA-QUANTITY-IN-CORE (done: quantity kinds, exact intervals, QUANTITY census facts and graph nodes; 8 mutants killed)"
 
 [[planned_generation]]
-id = "G125+"
+id = "G125"
+priority = "P0"
+objective = "native attack queue head (pressure map, primary-debt dependency order): NA-PERSISTENCE-RESOLVED"
+
+[[planned_generation]]
+id = "G126+"
 priority = "P0"
 objective = "the native_attack_queue in order (ESSENTIAL-COMPLEXITY-DEBT.toml) interleaved with an AGENT_MISSION at least every five generations; frontier expansion stays frozen until FOUNDATIONAL_ATLAS_READY"

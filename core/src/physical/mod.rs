@@ -21,7 +21,7 @@ pub mod dynamics;
 use crate::{
     ConstraintVerdict, EpistemicStatus,
     language::adl::DeclaredNode,
-    quantity::{Dimension, Quantity, Rational},
+    quantity::{Dimension, Quantity, QuantityKind, Rational},
 };
 use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
@@ -138,6 +138,20 @@ fn quantity_of(
         return None;
     };
     match Quantity::parse(text) {
+        // G124: every TORQUE-dimension attribute of the physical model is a torque; a declared
+        // energy (`0.3 J`) has the dimension but is refused as a torque.
+        Ok(quantity) if quantity.dimension == dimension && dimension == TORQUE => {
+            match quantity.with_kind(QuantityKind::Torque) {
+                Ok(torque) => Some(torque),
+                Err(error) => {
+                    findings.push(finding(
+                        ConstraintVerdict::Violated,
+                        format!("`{attribute} = {text}` is not a torque: {error}"),
+                    ));
+                    None
+                }
+            }
+        }
         Ok(quantity) if quantity.dimension == dimension => Some(quantity),
         Ok(quantity) => {
             findings.push(finding(
@@ -309,7 +323,9 @@ impl PlanarArm {
         let mut torques = Vec::new();
         for joint in 0..self.links.len() {
             let mut offset = Quantity::new(Rational::ZERO, LENGTH);
-            let mut moment = Quantity::new(Rational::ZERO, TORQUE);
+            let mut moment = Quantity::new(Rational::ZERO, TORQUE)
+                .with_kind(QuantityKind::Torque)
+                .ok()?;
             for link in &self.links[joint..] {
                 let centre = offset
                     .checked_add(&link.length.checked_mul(&half).ok()?)
@@ -1090,7 +1106,7 @@ mod tests {
         // tau = g * (0.4*0.15 + 0.3*(0.3+0.125) + 0.5*0.55) = 9.80665 * 0.4625 = 4.535575625 N*m
         assert_eq!(
             derived(&report, "static_shoulder_torque").value,
-            Quantity::parse("4.535575625 N*m").unwrap()
+            Quantity::parse("4.535575625 N*m torque").unwrap()
         );
         assert!(
             report
@@ -1170,6 +1186,28 @@ mod tests {
 
         let report = analyze_physical(&arm(&[("shoulder_torque_limit", "3 kg")]));
         assert_eq!(report.requirements[0].verdict, ConstraintVerdict::Unknown);
+
+        // G124: a torque limit declared in joules has the torque dimension but is an energy.
+        let report = analyze_physical(&arm(&[("shoulder_torque_limit", "3 J")]));
+        assert!(report.findings.iter().any(
+            |f| f.verdict == ConstraintVerdict::Violated && f.message.contains("not a torque")
+        ));
+        let declared = analyze_physical(&arm(&[("shoulder_torque_limit", "3 N*m torque")]));
+        assert!(
+            !declared
+                .findings
+                .iter()
+                .any(|f| f.message.contains("not a torque"))
+        );
+        let unspecified = analyze_physical(&arm(&[("shoulder_torque_limit", "3 N*m")]));
+        let verdicts = |r: &PhysicalReport| -> Vec<ConstraintVerdict> {
+            r.requirements.iter().map(|c| c.verdict).collect()
+        };
+        assert_eq!(
+            verdicts(&declared),
+            verdicts(&unspecified),
+            "an undeclared N*m joins the torque kind"
+        );
     }
 
     fn with_drivetrain(payload: &str, rail_capacity: &str) -> Vec<DeclaredNode> {
@@ -1247,7 +1285,7 @@ mod tests {
         // Elbow: g*(0.3*0.125 + 0.5*0.25) = 1.593580625 N*m; / (30*0.8) / 0.05 = 1593580625/1200000000 A.
         assert_eq!(
             value(&report, "Elbow", "static_joint_torque").value,
-            Quantity::parse("1.593580625 N*m").unwrap()
+            Quantity::parse("1.593580625 N*m torque").unwrap()
         );
         let elbow_current = Rational::new(1_593_580_625, 1_200_000_000).unwrap();
         assert_eq!(

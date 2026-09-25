@@ -1,0 +1,620 @@
+{
+  "schema": "atlas.self-recensus-report.v1",
+  "generation": "G124",
+  "base_revision": "281445a4e287dd48db17d3481bda976f88e2fed8",
+  "candidate_revision": "71b0ddf0d16d19c9b67924d12914c733fcfb0302",
+  "candidate_dirty": true,
+  "before_census_digest": "blake3-256:83633b5c8f5df609f73b74f2ab97f98a74038c07409082295f02d408abd41970",
+  "after_census_digest": "blake3-256:0b562ef280da8c0c3972c8b4045702ac8b49e9240db953be0540b7df42dd0870",
+  "replay_digest": "blake3-256:0b562ef280da8c0c3972c8b4045702ac8b49e9240db953be0540b7df42dd0870",
+  "inventory_delta": {
+    "created": [],
+    "modified": [
+      "core/src/graph/engineering_graph.rs",
+      "core/src/language/adl/mod.rs",
+      "core/src/physical/mod.rs",
+      "core/src/quantity/mod.rs",
+      "core/src/schema/mod.rs",
+      "runtime/src/census/mod.rs",
+      "runtime/src/lib.rs"
+    ],
+    "deleted": []
+  },
+  "semantic_delta": {
+    "changed": [
+      "core/src/graph/engineering_graph.rs",
+      "core/src/language/adl/mod.rs",
+      "core/src/physical/mod.rs",
+      "core/src/quantity/mod.rs",
+      "core/src/schema/mod.rs",
+      "runtime/src/census/mod.rs",
+      "runtime/src/lib.rs"
+    ],
+    "counts": {
+      "fact:FunctionIdentity|OBSERVED": 18,
+      "fact:FunctionSignature|OBSERVED": 18,
+      "fact:Symbol|OBSERVED": 44,
+      "fact:Type|DERIVED": 10,
+      "fact:Type|OBSERVED": 23,
+      "record:CALL|DERIVED": 46,
+      "record:CALL|OBSERVED": 280,
+      "record:CONTROL_FLOW|INFERRED": 45,
+      "record:CONTROL_FLOW|OBSERVED": 76,
+      "record:DATA_FLOW|OBSERVED": 628,
+      "record:EFFECT|INFERRED": 45,
+      "record:FUNCTION_IDENTITY|OBSERVED": 18,
+      "record:FUNCTION_SIGNATURE|OBSERVED": 18,
+      "record:OWNERSHIP|OBSERVED": 182,
+      "record:STATE|OBSERVED": 19,
+      "record:SYMBOL|OBSERVED": 44,
+      "record:TYPE|DERIVED": 10,
+      "record:TYPE|OBSERVED": 23
+    }
+  },
+  "dependency_delta": {
+    "added": [],
+    "removed": []
+  },
+  "dependency_state": [
+    "Closed",
+    "Closed"
+  ],
+  "graph_delta": {
+    "graph_edges": 2163,
+    "graph_nodes": 1526
+  },
+  "obligation_delta": {},
+  "adl_delta": {
+    "added": [],
+    "removed": []
+  },
+  "entity_delta": [
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core graph/engineering_graph/build_system_graph()."
+      ],
+      "after": [
+        "core graph/engineering_graph/build_system_graph()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core language/adl/compare_attribute()."
+      ],
+      "after": [
+        "core language/adl/compare_attribute()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core language/adl/tests/quantity_constraints_compare_dimension_and_exact_value_across_units()."
+      ],
+      "after": [
+        "core language/adl/tests/quantity_constraints_compare_dimension_and_exact_value_across_units()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core physical/`impl:PlanarArm`/static_joint_torques()."
+      ],
+      "after": [
+        "core physical/`impl:PlanarArm`/static_joint_torques()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core physical/quantity_of()."
+      ],
+      "after": [
+        "core physical/quantity_of()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core physical/tests/dimensionally_wrong_or_missing_parameters_yield_findings_and_no_model()."
+      ],
+      "after": [
+        "core physical/tests/dimensionally_wrong_or_missing_parameters_yield_findings_and_no_model()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core physical/tests/drivetrain_and_power_chain_is_exact_across_domains()."
+      ],
+      "after": [
+        "core physical/tests/drivetrain_and_power_chain_is_exact_across_domains()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core physical/tests/exact_reach_inner_radius_and_static_torque_from_mixed_units()."
+      ],
+      "after": [
+        "core physical/tests/exact_reach_inner_radius_and_static_torque_from_mixed_units()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core quantity/`impl:Quantity`/checked_add()."
+      ],
+      "after": [
+        "core quantity/`impl:Quantity`/checked_add()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core quantity/`impl:Quantity`/checked_cmp()."
+      ],
+      "after": [
+        "core quantity/`impl:Quantity`/checked_cmp()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core quantity/`impl:Quantity`/checked_div()."
+      ],
+      "after": [
+        "core quantity/`impl:Quantity`/checked_div()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core quantity/`impl:Quantity`/checked_mul()."
+      ],
+      "after": [
+        "core quantity/`impl:Quantity`/checked_mul()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core quantity/`impl:Quantity`/checked_sub()."
+      ],
+      "after": [
+        "core quantity/`impl:Quantity`/checked_sub()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core quantity/`impl:Quantity`/is_quantity_shaped()."
+      ],
+      "after": [
+        "core quantity/`impl:Quantity`/is_quantity_shaped()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core quantity/`impl:Quantity`/new()."
+      ],
+      "after": [
+        "core quantity/`impl:Quantity`/new()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core quantity/`impl:Quantity`/parse()."
+      ],
+      "after": [
+        "core quantity/`impl:Quantity`/parse()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core quantity/`impl:fmt::Display for QuantityError`/fmt()."
+      ],
+      "after": [
+        "core quantity/`impl:fmt::Display for QuantityError`/fmt()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core quantity/`impl:fmt::Display for Quantity`/fmt()."
+      ],
+      "after": [
+        "core quantity/`impl:fmt::Display for Quantity`/fmt()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core quantity/named_unit()."
+      ],
+      "after": [
+        "core quantity/named_unit()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core quantity/tests/equal_quantities_in_different_units_are_exactly_equal()."
+      ],
+      "after": [
+        "core quantity/tests/equal_quantities_in_different_units_are_exactly_equal()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core schema/`impl:SemanticFactKind`/as_str()."
+      ],
+      "after": [
+        "core schema/`impl:SemanticFactKind`/as_str()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "runtime census/build_census()."
+      ],
+      "after": [
+        "runtime census/build_census()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "runtime tests/essential_complexity/native_attack_queue_is_ordered_and_heads_selection()."
+      ],
+      "after": [
+        "runtime tests/essential_complexity/native_attack_queue_is_ordered_and_heads_selection()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core quantity/`impl:QuantityKind`/as_str()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core quantity/`impl:QuantityKind`/declared()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core quantity/`impl:QuantityKind`/dimension()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core quantity/`impl:QuantityKind`/join()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core quantity/`impl:Quantity`/approximate()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core quantity/`impl:Quantity`/bounds()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core quantity/`impl:Quantity`/derived()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core quantity/`impl:Quantity`/shared_kind()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core quantity/`impl:Quantity`/with_bounds()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core quantity/`impl:Quantity`/with_kind()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core quantity/`impl:Rational`/approximate()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core quantity/`impl:Rational`/min_max()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core quantity/tests/a_derived_interval_contains_every_exact_result()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core quantity/tests/leaving_exact_arithmetic_is_marked()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core quantity/tests/overlapping_intervals_are_undecided_never_guessed()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core quantity/tests/torque_and_energy_are_distinct_kinds()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core quantity/unit_kind()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime census/tests/declared_quantities_reach_census_and_graph_with_kind_and_interval()."
+      ],
+      "evidence": ""
+    }
+  ],
+  "coverage_delta": [],
+  "unknown_delta": {
+    "increased": [],
+    "decreased": [],
+    "total_before": 1363,
+    "total_after": 1363
+  },
+  "intent": {
+    "objective": "NA-QUANTITY-IN-CORE (ADR 0045): quantity kinds, exact interval uncertainty, QUANTITY census facts and graph Quantity nodes, typed physical torques; queue selection tightened to primary-debt dependency order",
+    "changed_paths": [
+      "core/src/graph/engineering_graph.rs",
+      "core/src/language/adl/mod.rs",
+      "core/src/physical/mod.rs",
+      "core/src/quantity/mod.rs",
+      "core/src/schema/mod.rs",
+      "runtime/src/census/mod.rs",
+      "runtime/src/lib.rs"
+    ],
+    "total_changes": [
+      "+composed:function_behavior",
+      "+composed:relation",
+      "+composed:relation:INVOKES",
+      "+composed:relation:SUPPLIES_DATA",
+      "+composed:state_variable",
+      "+docs",
+      "+entities",
+      "+evidence",
+      "+facts",
+      "+graph_edges",
+      "+graph_nodes",
+      "+normalized_facts",
+      "+records:CALL|atlas.resolution.rust-paths",
+      "+records:CALL|atlas.rust.source-semantic.v1",
+      "+records:CONTROL_FLOW|atlas.rust.source-semantic.v1",
+      "+records:DATA_FLOW|atlas.rust.source-semantic.v1",
+      "+records:EFFECT|atlas.rust.source-semantic.v1",
+      "+records:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1",
+      "+records:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1",
+      "+records:OWNERSHIP|atlas.rust.source-semantic.v1",
+      "+records:STATE|atlas.rust.source-semantic.v1",
+      "+records:SYMBOL|atlas.rust.source-semantic.v1",
+      "+records:TYPE|atlas.resolution.rust-paths",
+      "+records:TYPE|atlas.rust.source-semantic.v1",
+      "+typed_records"
+    ],
+    "dependency_changes": [],
+    "adl_changes": [],
+    "coverage_changes": [],
+    "explained_unknowns": [],
+    "accepted_unexpected": [],
+    "entity_changes": [
+      "CHANGED core graph/engineering_graph/build_system_graph().",
+      "CHANGED core language/adl/compare_attribute().",
+      "CHANGED core language/adl/tests/quantity_constraints_compare_dimension_and_exact_value_across_units().",
+      "CHANGED core physical/`impl:PlanarArm`/static_joint_torques().",
+      "CHANGED core physical/quantity_of().",
+      "CHANGED core physical/tests/dimensionally_wrong_or_missing_parameters_yield_findings_and_no_model().",
+      "CHANGED core physical/tests/drivetrain_and_power_chain_is_exact_across_domains().",
+      "CHANGED core physical/tests/exact_reach_inner_radius_and_static_torque_from_mixed_units().",
+      "CHANGED core quantity/`impl:Quantity`/checked_add().",
+      "CHANGED core quantity/`impl:Quantity`/checked_cmp().",
+      "CHANGED core quantity/`impl:Quantity`/checked_div().",
+      "CHANGED core quantity/`impl:Quantity`/checked_mul().",
+      "CHANGED core quantity/`impl:Quantity`/checked_sub().",
+      "CHANGED core quantity/`impl:Quantity`/is_quantity_shaped().",
+      "CHANGED core quantity/`impl:Quantity`/new().",
+      "CHANGED core quantity/`impl:Quantity`/parse().",
+      "CHANGED core quantity/`impl:fmt::Display for QuantityError`/fmt().",
+      "CHANGED core quantity/`impl:fmt::Display for Quantity`/fmt().",
+      "CHANGED core quantity/named_unit().",
+      "CHANGED core quantity/tests/equal_quantities_in_different_units_are_exactly_equal().",
+      "CHANGED core schema/`impl:SemanticFactKind`/as_str().",
+      "CHANGED runtime census/build_census().",
+      "CHANGED runtime tests/essential_complexity/native_attack_queue_is_ordered_and_heads_selection().",
+      "CREATED core quantity/`impl:QuantityKind`/as_str().",
+      "CREATED core quantity/`impl:QuantityKind`/declared().",
+      "CREATED core quantity/`impl:QuantityKind`/dimension().",
+      "CREATED core quantity/`impl:QuantityKind`/join().",
+      "CREATED core quantity/`impl:Quantity`/approximate().",
+      "CREATED core quantity/`impl:Quantity`/bounds().",
+      "CREATED core quantity/`impl:Quantity`/derived().",
+      "CREATED core quantity/`impl:Quantity`/shared_kind().",
+      "CREATED core quantity/`impl:Quantity`/with_bounds().",
+      "CREATED core quantity/`impl:Quantity`/with_kind().",
+      "CREATED core quantity/`impl:Rational`/approximate().",
+      "CREATED core quantity/`impl:Rational`/min_max().",
+      "CREATED core quantity/tests/a_derived_interval_contains_every_exact_result().",
+      "CREATED core quantity/tests/leaving_exact_arithmetic_is_marked().",
+      "CREATED core quantity/tests/overlapping_intervals_are_undecided_never_guessed().",
+      "CREATED core quantity/tests/torque_and_energy_are_distinct_kinds().",
+      "CREATED core quantity/unit_kind().",
+      "CREATED runtime census/tests/declared_quantities_reach_census_and_graph_with_kind_and_interval()."
+    ]
+  },
+  "intended_changes": [
+    "path core/src/graph/engineering_graph.rs",
+    "path core/src/language/adl/mod.rs",
+    "path core/src/physical/mod.rs",
+    "path core/src/quantity/mod.rs",
+    "path core/src/schema/mod.rs",
+    "path runtime/src/census/mod.rs",
+    "path runtime/src/lib.rs",
+    "total +composed:function_behavior",
+    "total +composed:relation",
+    "total +composed:relation:INVOKES",
+    "total +composed:relation:SUPPLIES_DATA",
+    "total +composed:state_variable",
+    "total +docs",
+    "total +entities",
+    "total +evidence",
+    "total +facts",
+    "total +graph_edges",
+    "total +graph_nodes",
+    "total +normalized_facts",
+    "total +records:CALL|atlas.resolution.rust-paths",
+    "total +records:CALL|atlas.rust.source-semantic.v1",
+    "total +records:CONTROL_FLOW|atlas.rust.source-semantic.v1",
+    "total +records:DATA_FLOW|atlas.rust.source-semantic.v1",
+    "total +records:EFFECT|atlas.rust.source-semantic.v1",
+    "total +records:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1",
+    "total +records:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1",
+    "total +records:OWNERSHIP|atlas.rust.source-semantic.v1",
+    "total +records:STATE|atlas.rust.source-semantic.v1",
+    "total +records:SYMBOL|atlas.rust.source-semantic.v1",
+    "total +records:TYPE|atlas.resolution.rust-paths",
+    "total +records:TYPE|atlas.rust.source-semantic.v1",
+    "total +typed_records",
+    "entity CHANGED core graph/engineering_graph/build_system_graph().",
+    "entity CHANGED core language/adl/compare_attribute().",
+    "entity CHANGED core language/adl/tests/quantity_constraints_compare_dimension_and_exact_value_across_units().",
+    "entity CHANGED core physical/`impl:PlanarArm`/static_joint_torques().",
+    "entity CHANGED core physical/quantity_of().",
+    "entity CHANGED core physical/tests/dimensionally_wrong_or_missing_parameters_yield_findings_and_no_model().",
+    "entity CHANGED core physical/tests/drivetrain_and_power_chain_is_exact_across_domains().",
+    "entity CHANGED core physical/tests/exact_reach_inner_radius_and_static_torque_from_mixed_units().",
+    "entity CHANGED core quantity/`impl:Quantity`/checked_add().",
+    "entity CHANGED core quantity/`impl:Quantity`/checked_cmp().",
+    "entity CHANGED core quantity/`impl:Quantity`/checked_div().",
+    "entity CHANGED core quantity/`impl:Quantity`/checked_mul().",
+    "entity CHANGED core quantity/`impl:Quantity`/checked_sub().",
+    "entity CHANGED core quantity/`impl:Quantity`/is_quantity_shaped().",
+    "entity CHANGED core quantity/`impl:Quantity`/new().",
+    "entity CHANGED core quantity/`impl:Quantity`/parse().",
+    "entity CHANGED core quantity/`impl:fmt::Display for QuantityError`/fmt().",
+    "entity CHANGED core quantity/`impl:fmt::Display for Quantity`/fmt().",
+    "entity CHANGED core quantity/named_unit().",
+    "entity CHANGED core quantity/tests/equal_quantities_in_different_units_are_exactly_equal().",
+    "entity CHANGED core schema/`impl:SemanticFactKind`/as_str().",
+    "entity CHANGED runtime census/build_census().",
+    "entity CHANGED runtime tests/essential_complexity/native_attack_queue_is_ordered_and_heads_selection().",
+    "entity CREATED core quantity/`impl:QuantityKind`/as_str().",
+    "entity CREATED core quantity/`impl:QuantityKind`/declared().",
+    "entity CREATED core quantity/`impl:QuantityKind`/dimension().",
+    "entity CREATED core quantity/`impl:QuantityKind`/join().",
+    "entity CREATED core quantity/`impl:Quantity`/approximate().",
+    "entity CREATED core quantity/`impl:Quantity`/bounds().",
+    "entity CREATED core quantity/`impl:Quantity`/derived().",
+    "entity CREATED core quantity/`impl:Quantity`/shared_kind().",
+    "entity CREATED core quantity/`impl:Quantity`/with_bounds().",
+    "entity CREATED core quantity/`impl:Quantity`/with_kind().",
+    "entity CREATED core quantity/`impl:Rational`/approximate().",
+    "entity CREATED core quantity/`impl:Rational`/min_max().",
+    "entity CREATED core quantity/tests/a_derived_interval_contains_every_exact_result().",
+    "entity CREATED core quantity/tests/leaving_exact_arithmetic_is_marked().",
+    "entity CREATED core quantity/tests/overlapping_intervals_are_undecided_never_guessed().",
+    "entity CREATED core quantity/tests/torque_and_energy_are_distinct_kinds().",
+    "entity CREATED core quantity/unit_kind().",
+    "entity CREATED runtime census/tests/declared_quantities_reach_census_and_graph_with_kind_and_interval()."
+  ],
+  "intended_but_unobserved": [],
+  "unexpected_changes": [],
+  "regressions": [],
+  "verdict": "PROVEN"
+}

@@ -85,6 +85,10 @@ pub enum SemanticFactKind {
     /// dimension's status visible *per artifact* in the canonical census, not only as a single
     /// repository-wide summary (see `CensusReport.coverage`'s own doc comment).
     SemanticObligation,
+    /// G124 (ADR 0045): a quantity-valued declared attribute, parsed into an exact `Quantity`
+    /// with its kind and uncertainty (object: its canonical SI form); UNSUPPORTED with the parse
+    /// error when the value is quantity-shaped but not admitted.
+    Quantity,
 }
 
 impl SemanticFactKind {
@@ -105,6 +109,7 @@ impl SemanticFactKind {
             Self::FunctionIdentity => "FUNCTION_IDENTITY",
             Self::FunctionSignature => "FUNCTION_SIGNATURE",
             Self::SemanticObligation => "SEMANTIC_OBLIGATION",
+            Self::Quantity => "QUANTITY",
         }
     }
 }

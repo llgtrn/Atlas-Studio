@@ -1,7 +1,7 @@
 schema = "atlas.recursive-donor-revalidation.v1"
 canonical = true
 established_in = "G121"
-evaluated_at = "G123"
+evaluated_at = "G124"
 contract = ".atlas/contracts/ESSENTIAL-COMPLEXITY.md"
 decision = ".atlas/decisions/0043-recursive-donor-revalidation.md"
 donor_audit = ".atlas/roadmap/DONOR-CAPABILITY-AUDIT.toml"
@@ -111,6 +111,14 @@ observes = "each dimension's semantics inside standard macro arguments, implicit
 evidence = ".atlas/decisions/0042-role-aware-macro-arguments.md"
 
 [[capability_milestone]]
+id = "QUANTITY_KINDS_AND_INTERVALS"
+generation = "G124"
+debts = ["DEBT-QUANTITY_UNITS", "DEBT-UNCERTAINTY"]
+languages = ["rust"]
+observes = "quantity kinds that never combine across kinds; exact interval uncertainty; declared quantities as census facts and graph nodes"
+evidence = ".atlas/decisions/0045-quantity-kinds-and-intervals-in-core.md"
+
+[[capability_milestone]]
 id = "SEMANTIC_COMPOSITION"
 generation = "G122"
 debts = ["DEBT-SEMANTIC-COMPOSITION"]
@@ -179,7 +187,7 @@ capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOC
 semantic_delta = ["SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY", "CALL_MACRO_ARGUMENTS"]
 status = "REVALIDATION_REQUIRED"
 reason = "its decision depended on DEBT-CALL, DEBT-TYPE, materially advanced since its last census, and the donor is Rust source the new capability can observe"
-priority = 264
+priority = 267
 rank = 1
 
 [[donor]]
@@ -355,7 +363,7 @@ capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOC
 semantic_delta = ["RESOLVED_CONCURRENCY", "ROLE_AWARE_MACRO_ARGUMENTS"]
 status = "REVALIDATION_REQUIRED"
 reason = "its decision depended on DEBT-CONCURRENCY, DEBT-OWNERSHIP, materially advanced since its last census, and the donor is Rust source the new capability can observe"
-priority = 176
+priority = 178
 rank = 2
 
 [[donor]]
@@ -419,7 +427,7 @@ capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOC
 semantic_delta = ["CANONICAL_TYPE_IDENTITY"]
 status = "REVALIDATION_REQUIRED"
 reason = "its decision depended on DEBT-TYPE, materially advanced since its last census, and the donor is Rust source the new capability can observe"
-priority = 88
+priority = 89
 rank = 3
 
 [[donor]]

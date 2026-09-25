@@ -4,7 +4,7 @@ system TwoLinkArm
 entity Arm Arm1 {
     payload = 0.5 kg
     required_reach = 500 mm
-    shoulder_torque_limit = 5 N*m
+    shoulder_torque_limit = 5 N*m torque
 }
 
 entity Link Upper {
@@ -40,7 +40,7 @@ entity Motor ShoulderMotor {
     gear_ratio = 50
     efficiency = 0.8
     torque_constant = 0.05 N*m/A
-    rated_torque = 0.3 N*m
+    rated_torque = 0.3 N*m torque
     max_current = 6 A
     winding_resistance = 2 ohm
     rail = Main
@@ -51,7 +51,7 @@ entity Motor ElbowMotor {
     gear_ratio = 30
     efficiency = 0.8
     torque_constant = 50 mN*m/A
-    rated_torque = 0.2 N*m
+    rated_torque = 0.2 N*m torque
     max_current = 4 A
     rail = Main
 }

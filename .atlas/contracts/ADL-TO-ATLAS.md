@@ -186,9 +186,10 @@ An ADL language-version change or Atlas semantic-schema change that alters meani
   - `UNKNOWN`: the result is undecidable — `ATLAS-E053` (no evaluable checks) or `ATLAS-E055` (the required attribute is not declared on a relevant node).
 
   Conjunction is strong Kleene. `passed` is kept and equals `verdict == SATISFIED`. `coding_admission` raises `ADL_CONSTRAINT_VIOLATED` and `ADL_CONSTRAINT_UNKNOWN` separately. Both block, and `UNKNOWN` is never promoted to a pass.
-- **Quantity comparisons (ADR 0010, `.atlas/decisions/0010-physical-quantities-and-dimensional-constraints.md`).** The operator in `require x.attr <op> value` is one of `==`, `>=`, `<=`, `>` or `<`. When both the declared and the required value are quantity-shaped (`<decimal> <unit>`, e.g. `120 mm`, `3.3 V`, `9.81 m/s^2`), `core::quantity` compares their dimension and exact SI value, so `0.12 m == 120 mm`. The outcomes are:
+- **Quantity comparisons (ADR 0010, `.atlas/decisions/0010-physical-quantities-and-dimensional-constraints.md`).** The operator in `require x.attr <op> value` is one of `==`, `>=`, `<=`, `>` or `<`. When both the declared and the required value are quantity-shaped (`<decimal> [± <decimal>] <unit> [<kind>]`, e.g. `120 mm`, `3.3 V`, `9.81 m/s^2`, `120 ± 0.5 mm`, `5 N*m torque`), `core::quantity` compares their dimension and exact SI value, so `0.12 m == 120 mm`. The outcomes are:
   - different dimensions: `VIOLATED` (`ATLAS-E056`);
-  - a unit without an exact rational SI factor (`deg`, `rpm`, `degC`) or an exact-arithmetic overflow: `UNKNOWN` (`ATLAS-E057`);
+  - different declared kinds of one dimension, such as an energy (`3 J`) against a torque (`5 N*m torque`), or a kind whose dimension is not the value's: `VIOLATED` (`ATLAS-E059`, ADR 0045). A kind is named by the unit (`J`, `Hz`, `Bq`) or declared by a trailing word (`torque`, `energy`, `frequency`, `activity`). An undeclared kind (`N*m`) joins either;
+  - a unit without an exact rational SI factor (`deg`, `rpm`, `degC`), an exact-arithmetic overflow, or two uncertain values whose intervals overlap (`10 ± 1 mm` against `10.5 mm`, ADR 0045): `UNKNOWN` (`ATLAS-E057`);
   - an ordering operator over a non-quantity: `UNKNOWN` (`ATLAS-E058`).
 
   Plain strings and bare numbers keep literal `==` semantics.

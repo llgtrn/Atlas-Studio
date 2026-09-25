@@ -13,7 +13,7 @@
 #       -> generation evidence -> G_n+1
 
 schema = "atlas.self-build.generation-ledger.v1"
-current_generation = "G123"
+current_generation = "G124"
 
 [[generation]]
 id = "G35"
@@ -2196,6 +2196,7 @@ writer = "coordinator (sole writer)"
 mission = ".atlas/evidence/agent/M1-callee-spelling.json"
 evidence = ".atlas/evidence/agent/benchmark.json"
 self_recensus = ".atlas/evidence/census/G123/recensus.json"
+result_commits = ["7e90a0e91edddf340644fe693d8c9ce182563d02", "71b0ddf0d16d19c9b67924d12914c733fcfb0302"]
 
 [generation.verification]
 atlas_first = "understand(path:adapter/src/semantic/rust) surfaced spelling::call_callee_spelling; explain led to ExtractionContext::walk_call_like and its callee emit_call, whose signature already carries the spelling: the edit point found without reading the 15,735-line scope"
@@ -2229,3 +2230,49 @@ after = 7
 key = "composed:function_behavior"
 before = 2172
 after = 2182
+
+[generation.next]
+objective = "G124 (P0): native attack queue head NA-QUANTITY-IN-CORE, worked through the agent interface"
+
+[[generation]]
+id = "G124"
+kind = "NATIVE_ATTACK"
+base_commit = "71b0ddf0d16d19c9b67924d12914c733fcfb0302"
+priority = "P0"
+serves = "P0 native attack queue head NA-QUANTITY-IN-CORE (DEBT-QUANTITY_UNITS, DEBT-UNCERTAINTY)"
+objective = "quantity kinds that never combine across kinds, exact interval uncertainty through arithmetic, and declared quantities carried by census facts and graph nodes"
+writer = "coordinator (sole writer)"
+evidence = ".atlas/decisions/0045-quantity-kinds-and-intervals-in-core.md"
+self_recensus = ".atlas/evidence/census/G124/recensus.json"
+
+[generation.verification]
+pre_census = "clean-HEAD census of 7e90a0e91edddf340644fe693d8c9ce182563d02 = G123 post digest 83633b5c... (71b0ddf0d1 adds only out-of-scope evidence)"
+atlas_first = "agent understand path:core/src/quantity named the consumers (physical 16 calls, product 6, ADL compare_attribute 3) and the impact frontier; explain located compare_attribute, quantity_of and static_joint_torques; manual reads: the quantity module itself (the edit target) and the census fact builder and graph projection arms (bodies are not in the model); agent verify HELD and the benchmark stayed 14 of 14"
+kinds = "QuantityKind named by unit (J energy, Hz frequency, Bq activity) or declared (5 N*m torque); KindMismatch for different declared kinds; undeclared N*m joins either; products declare no kind; ADL ATLAS-E059"
+uncertainty = "exact interval bounds (120 ± 0.5 mm) through add, sub, mul, div with a containment property over bounds and nominal values; overlapping comparisons UNDECIDED (ADL UNKNOWN); a divisor interval containing zero refused; Approximation marks an f64 drop"
+census_graph = "every quantity-shaped declared attribute is a QUANTITY fact (DECLARED with canonical SI form, interval and kind; UNSUPPORTED with its reason) and a graph Quantity node linked HAS_QUANTITY from its entity; the two-link-arm fixture declares its torques; the physical model refuses a declared energy as a torque"
+falsification = "8 mutants killed: kinds never conflict; interval add pairs wrong bounds; overlap ordered by nominal; every approximation exact; unadmitted quantities dropped (first run was a malformed test command, re-run killed); physical ignores torque kind; with_kind overrides a declared kind; ADL kind mismatch downgraded to UNKNOWN"
+debts = "last advance G124 for DEBT-QUANTITY_UNITS (success condition met: torque and energy distinct, a physical fact reaches the graph; side reports still outside) and DEBT-UNCERTAINTY (interval arithmetic propagates; predictions and simulation carriers open); neither closed; DEBT-SIMULATION stays blocked by DEBT-QUANTITY_UNITS"
+selection = "tightened (dependency order before pressure): an attack is selectable only when its primary debt is unblocked; the ledger regenerated at G124 would otherwise have selected NA-SELECTED-DESIGN, whose primary debt waits on typed .atlas sections and verification evidence; the enforcing test now recomputes the whole selection; next head NA-PERSISTENCE-RESOLVED"
+proof = "PROVEN (post 0b562ef2...; re-proven after the selection test was tightened): the self-census delta is the new source (Atlas's own ADL declares no quantity); the quantity semantics are proven by the census, graph, ADL and physical tests and the eight mutants"
+
+
+[[generation.metric]]
+key = "typed_records"
+before = 110595
+after = 112029
+
+[[generation.metric]]
+key = "facts"
+before = 16851
+after = 16964
+
+[[generation.metric]]
+key = "graph_nodes"
+before = 116522
+after = 118048
+
+[[generation.metric]]
+key = "composed:function_behavior"
+before = 2182
+after = 2200
