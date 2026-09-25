@@ -492,6 +492,7 @@ mod tests {
             callees,
             arguments: Vec::new(),
             result: atlas_core::PlaceRef::Unresolved,
+            callee_spelling: None,
         };
         let record_id = SemanticRecordId::new(SemanticDimension::Call, &subject.identity_key());
         SemanticObservation::Call(SemanticRecordHeader {

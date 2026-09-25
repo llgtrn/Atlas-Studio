@@ -13,7 +13,7 @@
 #       -> generation evidence -> G_n+1
 
 schema = "atlas.self-build.generation-ledger.v1"
-current_generation = "G122"
+current_generation = "G123"
 
 [[generation]]
 id = "G35"
@@ -2110,6 +2110,7 @@ objective = "compose the census into function, component, subsystem, capability 
 writer = "coordinator (sole writer)"
 evidence = ".atlas/decisions/0044-agent-worn-atlas-semantic-composition.md"
 self_recensus = ".atlas/evidence/census/G122/recensus.json"
+result_commits = ["a498df2e747f9eb545c1d9cf8bf7365f37618bf5", "281445a4e287dd48db17d3481bda976f88e2fed8"]
 
 [generation.verification]
 pre_census = "clean-HEAD census of f5aaff6e5b4710d2150f94578a189f839278f8bf = G121 post digest 932b3fd4... (c111cd90f06d7542196d57605afcfa55990e4d18 adds only out-of-scope evidence)"
@@ -2180,3 +2181,51 @@ after = 6
 key = "typed_records"
 before = 103737
 after = 109767
+
+[generation.next]
+objective = "G123 AGENT_MISSION: the first mission on Atlas itself through the agent interface; then G124 NA-QUANTITY-IN-CORE (queue head)"
+
+[[generation]]
+id = "G123"
+kind = "AGENT_MISSION"
+base_commit = "281445a4e287dd48db17d3481bda976f88e2fed8"
+priority = "P0"
+serves = "DEBT-SEMANTIC-COMPOSITION (ADR 0044): the first agent mission worked through Atlas, closing the gap the G122 composition routed (GAP-UNRESOLVED-CALLEE) and measuring what Atlas knew, what stayed UNKNOWN and what source was read by hand"
+objective = "mission M1: record the callee spelling on every call site so impact residuals narrow; understand -> explain -> impact -> change -> verify -> benchmark -> recensus"
+writer = "coordinator (sole writer)"
+mission = ".atlas/evidence/agent/M1-callee-spelling.json"
+evidence = ".atlas/evidence/agent/benchmark.json"
+self_recensus = ".atlas/evidence/census/G123/recensus.json"
+
+[generation.verification]
+atlas_first = "understand(path:adapter/src/semantic/rust) surfaced spelling::call_callee_spelling; explain led to ExtractionContext::walk_call_like and its callee emit_call, whose signature already carries the spelling: the edit point found without reading the 15,735-line scope"
+change = "CallSiteIdentity.callee_spelling (OBSERVED syntax, outside identity_key, cloned by the resolution engine); composition keeps unresolved callee names per function; impact lists INFERRED candidate callers apart from resolved ones; invokes hypotheses decidable by spelling; state keyed by the impl self type"
+manual_reads = "7 (3 implementation detail, 2 UNKNOWN: type use sites, 2 falsification: state walker contract, closure-body calls)"
+gaps = "fixed in mission: generic owner selector, model schema evolution without false narrowing, state owner identity; narrowed: GAP-UNRESOLVED-CALLEE; opened: GAP-TYPE-USE-SITES (DEBT-SYMBOL); measured: closure-body calls invisible (NA-CLOSURE-REGIONS)"
+challenge = "which tests exercise walk_call_like: Atlas answers a declared lower bound (trait-object dispatch and test identity are gaps), never zero"
+verify = "REGRESSED by design and named: 18 INV-STATE ids re-keyed to self types (two pairs merged); no dependency change, no new authority, no CONFLICT"
+benchmark = "evidence/agent/benchmark.json: 14 falsifiable cases (ownership, dependency, state, effect, data influence, impact, minimal source set, purpose, invariant, 4 unknown-honesty) answered from the model, asserted in CI"
+falsification = "5 mutants killed: no callee spelling recorded; unattributed sites read from the defaulted counter; spelling candidates presented as resolved callers (the first form of this mutant was ineffective and was strengthened); state keyed by impl scope; capability realization claimed from its providers"
+debts = "DEBT-SEMANTIC-COMPOSITION last advance G123 (NA-CALLEE-SPELLING done); DEBT-CALL not advanced (resolution and coverage unchanged)"
+proof = "PROVEN on the first run (post 83633b5c...)"
+
+
+[[generation.metric]]
+key = "composed:state_variable"
+before = 258
+after = 249
+
+[[generation.metric]]
+key = "composed:invariant:STATE|INFERRED"
+before = 18
+after = 16
+
+[[generation.metric]]
+key = "composed:understanding_gap"
+before = 6
+after = 7
+
+[[generation.metric]]
+key = "composed:function_behavior"
+before = 2172
+after = 2182

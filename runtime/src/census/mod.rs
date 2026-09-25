@@ -1239,6 +1239,7 @@ mod tests {
             callees: Vec::new(),
             arguments: Vec::new(),
             result: PlaceRef::Unresolved,
+            callee_spelling: None,
         };
         let record_id = SemanticRecordId::new(SemanticDimension::Call, &subject.identity_key());
         let evidence_id = EvidenceId::new(evidence_id.to_owned());

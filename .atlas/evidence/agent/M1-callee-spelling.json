@@ -1,0 +1,303 @@
+{
+  "schema": "atlas.agent.mission.v1",
+  "id": "M1",
+  "generation": "G123",
+  "mission": "record the callee spelling on every call site so impact residuals narrow (GAP-UNRESOLVED-CALLEE, routed to DEBT-CALL / DEBT-SEMANTIC-COMPOSITION in G122)",
+  "pilot": "coding agent (the AI); Atlas as the worn semantic body",
+  "base_commit": "281445a4e287dd48db17d3481bda976f88e2fed8",
+  "atlas_first_sequence": [
+    {
+      "op": "understand",
+      "target": "path:adapter/src/semantic/rust",
+      "answered": "scope of 544 functions in 13 components, entry points, 19 public-surface functions (12 shown) including spelling::call_callee_spelling, outgoing calls into core::semantic, effects, 3,398 unresolved call sites in scope",
+      "compression": {
+        "composed_objects": 91,
+        "ratio": 265,
+        "raw_obligations": 156,
+        "raw_records": 23916
+      }
+    },
+    {
+      "op": "explain",
+      "target": "fn:call_callee_spelling",
+      "answered": "signature (expr: &syn::Expr) -> String; five resolved callers including ExtractionContext::walk_call_like: the spelling already existed and was not recorded"
+    },
+    {
+      "op": "explain",
+      "target": "fn:ExtractionContext::walk_call_like",
+      "answered": "FAILED first: the selector could not name a generic owner (ExtractionContext<'a>); fixed in the mission; then: callees emit_call, call_callee_spelling, call_anchor; 10 resolved transitive callers, all in Adapter"
+    },
+    {
+      "op": "explain",
+      "target": "fn:ExtractionContext::emit_call",
+      "answered": "signature carries callee_summary: &str; sole caller walk_call_like: the edit point"
+    },
+    {
+      "op": "understand",
+      "target": "path:core/src/semantic/call.rs",
+      "answered": "public surface CallSiteIdentity::identity_key; construction sites of the type are not censused"
+    },
+    {
+      "op": "impact",
+      "target": "fn:ExtractionContext::walk_call_like",
+      "answered": "10 resolved callers (Adapter); invariants at risk: the dependency invariants of Adapter"
+    },
+    {
+      "op": "verify",
+      "target": "world model before vs after",
+      "answered": "REGRESSED by design: 18 INV-STATE ids renamed to self-type keys (two pairs merged into one field each); no dependency change, no new authority, no CONFLICT"
+    },
+    {
+      "op": "benchmark",
+      "target": ".atlas/evidence/agent/benchmark.json",
+      "answered": "14 of 14 cases correct; the 4 unknown-honesty cases declined with the owning gap"
+    }
+  ],
+  "atlas_knew": [
+    "where the callee spelling is computed (call_callee_spelling) and who uses it",
+    "the CALL emitter (emit_call) and that it already receives the spelling",
+    "the Adapter-only impact frontier of the change",
+    "that no dependency or authority invariant changes (verify)"
+  ],
+  "unknown": [
+    "every construction site of CallSiteIdentity: type use sites are not censused (GAP-TYPE-USE-SITES, DEBT-SYMBOL)",
+    "calls inside closure bodies: 8 of the 13 textual `.label(` calls of lens.rs are invisible (NA-CLOSURE-REGIONS)",
+    "which tests exercise walk_call_like: tests reach it through trait-object dispatch (extractor.extract), so the resolved frontier finds no test; Atlas reports a LOWER BOUND, not zero (GAP-TEST-IDENTITY)"
+  ],
+  "manual_source_reads": [
+    {
+      "what": "adapter/src/semantic/rust/mod.rs emit_call body (about 50 lines)",
+      "reason": "IMPLEMENTATION_DETAIL: the edit target; Atlas carries signatures and relations, not bodies"
+    },
+    {
+      "what": "adapter/src/semantic/rust/mod.rs walk_call_like body (about 45 lines)",
+      "reason": "IMPLEMENTATION_DETAIL: the spelling formats passed to emit_call"
+    },
+    {
+      "what": "adapter/src/semantic/rust/spelling.rs call_callee_spelling (about 10 lines)",
+      "reason": "IMPLEMENTATION_DETAIL: string format of a spelling"
+    },
+    {
+      "what": "grep `CallSiteIdentity {` across the workspace",
+      "reason": "UNKNOWN: construction sites not censused (GAP-TYPE-USE-SITES)"
+    },
+    {
+      "what": "grep `callees` in runtime/src/census/resolution.rs (3 lines)",
+      "reason": "UNKNOWN: whether the resolution engine clones the syntactic subject"
+    },
+    {
+      "what": "adapter/src/semantic/rust/state.rs module documentation (about 60 lines)",
+      "reason": "FALSIFICATION: composition's state-owner assumption checked against the STATE walker's contract"
+    },
+    {
+      "what": "grep `index.label` in core/src/composition/lens.rs",
+      "reason": "FALSIFICATION: Atlas saw 5 call sites of Index::label, the source has 13 (closure bodies)"
+    }
+  ],
+  "manual_reads_summary": {
+    "reads": 7,
+    "implementation_detail": 3,
+    "unknown": 2,
+    "falsification": 2,
+    "lines_read": "about 180 lines in 4 files plus 3 greps",
+    "scope_source_lines": 15735
+  },
+  "gaps": [
+    {
+      "id": "GAP-GENERIC-OWNER-SELECTOR",
+      "status": "FIXED_IN_MISSION",
+      "fix": "fn:Owner::name matches an owner spelled Owner<'a, T>"
+    },
+    {
+      "id": "GAP-MODEL-SCHEMA-EVOLUTION",
+      "status": "FIXED_IN_MISSION",
+      "fix": "new model fields default; unattributed call sites are derived (unresolved minus named) so an old model claims no narrowing"
+    },
+    {
+      "id": "GAP-STATE-OWNER-IDENTITY",
+      "status": "FIXED_IN_MISSION",
+      "fix": "state keyed by the impl self type: a field touched by an inherent and a trait impl is one piece of state"
+    },
+    {
+      "id": "GAP-UNRESOLVED-CALLEE",
+      "status": "NARROWED",
+      "fix": "callee spelling on every CALL record; impact lists INFERRED candidate callers by name; the residual that may reach anything fell from every unresolved site to the unnamed ones"
+    },
+    {
+      "id": "GAP-TYPE-USE-SITES",
+      "status": "OPEN",
+      "debt": "DEBT-SYMBOL"
+    },
+    {
+      "id": "NA-CLOSURE-REGIONS",
+      "status": "OPEN (measured in this mission)",
+      "debt": "DEBT-CALL"
+    }
+  ],
+  "measured": {
+    "impact_residual_before": "19,802 unresolved call sites may reach any function (G122 model)",
+    "impact_residual_after": "9 unresolved call sites with a non-name callee may reach anything; named ones become INFERRED candidates per target",
+    "example": "Index::label: before 0 resolved callers + 19,802 unknown; after 0 resolved + 5 candidate sites in 4 functions + 9 unattributed (+ closure-body calls, not censused)",
+    "hypotheses_now_decidable": "invokes:A:B is FALSIFIED when A has no unresolved site spelled with B's name, no unnamed site and OBSERVED CALL coverage"
+  },
+  "challenge": {
+    "question": "which tests exercise ExtractionContext::walk_call_like?",
+    "atlas_answer": "no test reached (INFERRED) with a LOWER BOUND residual naming unnamed sites and closure bodies",
+    "truth": "adapter tests reach it through the extractor trait object",
+    "verdict": "no invented confidence: a declared lower bound; the question class is GAP-TEST-IDENTITY plus trait dispatch"
+  },
+  "benchmark": [
+    {
+      "id": "B01",
+      "class": "OWNERSHIP",
+      "correct": true,
+      "answer": [
+        "Core"
+      ],
+      "evidence": 1,
+      "honest_unknown": null
+    },
+    {
+      "id": "B02",
+      "class": "DEPENDENCY",
+      "correct": true,
+      "answer": [
+        "VALIDATED"
+      ],
+      "evidence": 1,
+      "honest_unknown": null
+    },
+    {
+      "id": "B03",
+      "class": "DEPENDENCY",
+      "correct": true,
+      "answer": [
+        "TRANSITIVE_VIA_REEXPORT",
+        "DERIVED"
+      ],
+      "evidence": 19,
+      "honest_unknown": null
+    },
+    {
+      "id": "B04",
+      "class": "STATE",
+      "correct": true,
+      "answer": [
+        "push_stack",
+        "pop_stack",
+        "INFERRED"
+      ],
+      "evidence": 2,
+      "honest_unknown": null
+    },
+    {
+      "id": "B05",
+      "class": "EFFECT",
+      "correct": true,
+      "answer": [
+        "VALIDATED"
+      ],
+      "evidence": 2,
+      "honest_unknown": null
+    },
+    {
+      "id": "B06",
+      "class": "DATA_INFLUENCE",
+      "correct": true,
+      "answer": [
+        "PATH_OBSERVED"
+      ],
+      "evidence": 1,
+      "honest_unknown": null
+    },
+    {
+      "id": "B07",
+      "class": "IMPACT",
+      "correct": true,
+      "answer": [
+        "candidates:true",
+        "GAP-UNRESOLVED-CALLEE",
+        "NA-CLOSURE-REGIONS"
+      ],
+      "evidence": 5,
+      "honest_unknown": null
+    },
+    {
+      "id": "B08",
+      "class": "MINIMAL_SOURCE_SET",
+      "correct": true,
+      "answer": [
+        "components:1",
+        "snapshot",
+        "read_snapshot",
+        "prove_candidate"
+      ],
+      "evidence": 87,
+      "honest_unknown": null
+    },
+    {
+      "id": "B09",
+      "class": "UNKNOWN_HONESTY",
+      "correct": true,
+      "answer": [
+        "UNKNOWN"
+      ],
+      "evidence": 0,
+      "honest_unknown": true
+    },
+    {
+      "id": "B10",
+      "class": "UNKNOWN_HONESTY",
+      "correct": true,
+      "answer": [
+        "GAP-RESOURCE",
+        "DEBT-RESOURCE"
+      ],
+      "evidence": 0,
+      "honest_unknown": true
+    },
+    {
+      "id": "B11",
+      "class": "UNKNOWN_HONESTY",
+      "correct": true,
+      "answer": [
+        "GAP-CAUSALITY",
+        "DEBT-CAUSALITY"
+      ],
+      "evidence": 0,
+      "honest_unknown": true
+    },
+    {
+      "id": "B12",
+      "class": "UNKNOWN_HONESTY",
+      "correct": true,
+      "answer": [
+        "UNKNOWN"
+      ],
+      "evidence": 0,
+      "honest_unknown": true
+    },
+    {
+      "id": "B13",
+      "class": "PURPOSE",
+      "correct": true,
+      "answer": [
+        "repository_observation",
+        "DECLARED"
+      ],
+      "evidence": 1,
+      "honest_unknown": null
+    },
+    {
+      "id": "B14",
+      "class": "INVARIANT",
+      "correct": true,
+      "answer": [
+        "INV-ADL:DeclaredDependency:Adapter->Core|DERIVED",
+        "INV-DEPENDENCY:Core->Adapter|OBSERVED"
+      ],
+      "evidence": 13,
+      "honest_unknown": null
+    }
+  ]
+}

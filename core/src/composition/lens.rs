@@ -154,7 +154,13 @@ impl<'m> Index<'m> {
                             .iter()
                             .filter(|f| {
                                 f.name == name
-                                    && owner.is_none_or(|o| f.owner_type.as_deref() == Some(o))
+                                    && owner.is_none_or(|o| {
+                                        f.owner_type.as_deref().is_some_and(|t| {
+                                            // `Owner` names `Owner<'a, T>`; the full spelling
+                                            // matches too.
+                                            t == o || t.split('<').next() == Some(o)
+                                        })
+                                    })
                             })
                             .map(|f| f.id.clone()),
                     );
@@ -171,7 +177,7 @@ impl<'m> Index<'m> {
             }
             "state" => {
                 let var = model.state.iter().find(|v| v.key == value).ok_or_else(|| {
-                    format!("no state `{value}` (keys are `<owner scope>.<field>`)")
+                    format!("no state `{value}` (keys are `<self type>.<field>`)")
                 })?;
                 functions.extend(var.writers.iter().chain(&var.readers).cloned());
                 components.extend(
@@ -339,6 +345,12 @@ pub struct ImpactFrontier {
     pub nearest: Bounded<FunctionRef>,
     pub tests_reached_inferred: usize,
     pub status: EpistemicStatus,
+    /// Functions with an unresolved call site spelled with the name of a function in the seed:
+    /// INFERRED candidates (spelling, not resolution), one hop.
+    pub candidate_callers: Bounded<FunctionRef>,
+    pub candidate_sites: usize,
+    /// Unresolved call sites anywhere whose callee is not a name: they may reach anything.
+    pub unnamed_sites: usize,
     pub residual: String,
 }
 
@@ -469,6 +481,14 @@ fn invariants_for<'m>(index: &Index<'m>, scope: &Scope) -> Vec<&'m Invariant> {
     out
 }
 
+/// Unresolved call sites of `f` without a recorded callee name: they may reach any function.
+/// Derived as unresolved minus named, never read from a counter, so a model written before
+/// callee names were recorded (G123) claims no narrowing it cannot support.
+pub fn unattributed_calls(f: &FunctionBehavior) -> usize {
+    f.unresolved_calls
+        .saturating_sub(f.unresolved_callee_names.values().sum::<usize>())
+}
+
 /// Impact frontier of a function set: resolved transitive callers outside it.
 pub fn frontier(index: &Index, seed: &BTreeSet<String>) -> ImpactFrontier {
     let closure = index.callers_closure(seed);
@@ -485,12 +505,27 @@ pub fn frontier(index: &Index, seed: &BTreeSet<String>) -> ImpactFrontier {
         nearest.push((*depth, id.clone()));
     }
     nearest.sort();
-    let unresolved: usize = index
-        .model
-        .functions
+    let names: BTreeSet<&str> = seed
         .iter()
-        .map(|f| f.unresolved_calls)
-        .sum();
+        .filter_map(|id| index.function(id))
+        .map(|f| f.name.as_str())
+        .collect();
+    let mut candidates: Vec<(usize, String)> = Vec::new();
+    for f in &index.model.functions {
+        if seed.contains(&f.id) {
+            continue;
+        }
+        let sites: usize = names
+            .iter()
+            .filter_map(|n| f.unresolved_callee_names.get(*n))
+            .sum();
+        if sites > 0 {
+            candidates.push((sites, f.id.clone()));
+        }
+    }
+    candidates.sort_by(|a, b| b.0.cmp(&a.0).then(a.1.cmp(&b.1)));
+    let candidate_sites: usize = candidates.iter().map(|c| c.0).sum();
+    let unnamed: usize = index.model.functions.iter().map(unattributed_calls).sum();
     ImpactFrontier {
         callers: closure.len(),
         by_subsystem,
@@ -502,9 +537,19 @@ pub fn frontier(index: &Index, seed: &BTreeSet<String>) -> ImpactFrontier {
         ),
         tests_reached_inferred: tests,
         status: EpistemicStatus::Derived,
+        candidate_callers: bounded(
+            candidates
+                .into_iter()
+                .map(|(sites, id)| function_ref(index, &id, sites))
+                .collect(),
+        ),
+        candidate_sites,
+        unnamed_sites: unnamed,
         residual: format!(
-            "LOWER BOUND: {unresolved} unresolved call sites in the workspace may also reach the \
-             scope (GAP-UNRESOLVED-CALLEE); trait-object and closure dispatch are not resolved"
+            "LOWER BOUND: resolved callers only; {candidate_sites} unresolved call sites spelled \
+             with a scope function's name are INFERRED candidates; {unnamed} unresolved call sites \
+             with a non-name callee may reach anything (GAP-UNRESOLVED-CALLEE); calls inside \
+             closure bodies are not censused at all (NA-CLOSURE-REGIONS)"
         ),
     }
 }
@@ -1482,11 +1527,25 @@ pub fn hypothesis(model: &WorldModel, text: &str) -> Result<HypothesisCheck, Str
             if !hits.is_empty() {
                 return Ok(check("VALIDATED", hits, String::new()));
             }
+            // Only an unresolved site spelled with the callee's name, or one with a non-name
+            // callee, can hide the call (G123).
+            let callee_names: BTreeSet<&str> = sb
+                .functions
+                .iter()
+                .filter_map(|f| index.function(f))
+                .map(|f| f.name.as_str())
+                .collect();
             let unresolved: usize = sa
                 .functions
                 .iter()
                 .filter_map(|f| index.function(f))
-                .map(|f| f.unresolved_calls)
+                .map(|f| {
+                    unattributed_calls(f)
+                        + callee_names
+                            .iter()
+                            .filter_map(|n| f.unresolved_callee_names.get(*n))
+                            .sum::<usize>()
+                })
                 .sum();
             let coverage_observed = sa.components.iter().all(|p| {
                 model
@@ -1509,7 +1568,9 @@ pub fn hypothesis(model: &WorldModel, text: &str) -> Result<HypothesisCheck, Str
                 Ok(check(
                     "STILL_HYPOTHESIZED",
                     Vec::new(),
-                    format!("{unresolved} unresolved call sites in the caller"),
+                    format!(
+                        "{unresolved} unresolved call sites in the caller are spelled with the callee's name or have a non-name callee"
+                    ),
                 ))
             }
         }

@@ -32,6 +32,199 @@ pub fn model_digest(model: &WorldModel) -> String {
     IntegrityDigest::of_bytes(&bytes).as_str().to_owned()
 }
 
+/// One Agent-Utility benchmark case (`.atlas/evidence/agent/benchmark.json`): a question an agent
+/// asks while working, the Atlas operation that answers it, and the answer the case expects.
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, PartialEq, Eq)]
+pub struct BenchmarkCase {
+    pub id: String,
+    pub class: String,
+    pub question: String,
+    pub op: String,
+    pub args: Vec<String>,
+    pub expect: Vec<String>,
+    /// What the agent would otherwise have to read or run by hand.
+    pub manual_alternative: String,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, PartialEq, Eq)]
+pub struct BenchmarkResult {
+    pub id: String,
+    pub class: String,
+    pub correct: bool,
+    pub answer: Vec<String>,
+    /// Evidence items behind the answer (record ids, spans, calls); 0 for a gap answer.
+    pub evidence: usize,
+    /// For an UNKNOWN_HONESTY case: whether Atlas declined instead of inventing an answer.
+    pub honest_unknown: Option<bool>,
+}
+
+fn find<'m, T>(items: &'m [T], key: impl Fn(&T) -> bool, what: &str) -> Result<&'m T, String> {
+    items
+        .iter()
+        .find(|i| key(i))
+        .ok_or(format!("no such {what}"))
+}
+
+/// Answer one case from the model: a list of strings and the evidence count behind it.
+pub fn answer(model: &WorldModel, case: &BenchmarkCase) -> Result<(Vec<String>, usize), String> {
+    let arg = |i: usize| {
+        case.args
+            .get(i)
+            .map(String::as_str)
+            .ok_or_else(|| format!("{}: missing argument {i}", case.id))
+    };
+    let index = lens::Index::new(model);
+    Ok(match case.op.as_str() {
+        "fn_subsystem" => {
+            let scope = index.resolve(arg(0)?)?;
+            (
+                scope.subsystems.into_iter().collect(),
+                scope.functions.len(),
+            )
+        }
+        "hypothesis" => {
+            let check = lens::hypothesis(model, arg(0)?)?;
+            (vec![check.outcome], check.evidence.len())
+        }
+        "dependency_verdict" => {
+            let (from, to) = (arg(0)?, arg(1)?);
+            let edge = find(
+                &model.architecture.dependencies,
+                |d| d.from == from && d.to == to,
+                "dependency edge",
+            )?;
+            (
+                vec![edge.verdict.clone(), edge.status.as_str().to_owned()],
+                edge.resolved_calls,
+            )
+        }
+        "state_writers" => {
+            let key = arg(0)?;
+            let var = find(&model.state, |v| v.key == key, "state")?;
+            let invariant = find(
+                &model.invariants,
+                |i| i.id == format!("INV-STATE:{key}"),
+                "state invariant",
+            )?;
+            let mut answer: Vec<String> = var
+                .writers
+                .iter()
+                .filter_map(|w| index.function(w).map(|f| f.name.clone()))
+                .collect();
+            answer.push(invariant.status.as_str().to_owned());
+            (answer, var.writers.len())
+        }
+        "trace" => {
+            let trace = lens::trace(model, arg(0)?, arg(1)?)?;
+            (vec![trace.verdict], trace.steps.len())
+        }
+        "impact_candidates" => {
+            let frontier = lens::impact(model, &[arg(0)?])?.frontier;
+            let mut answer = vec![format!("candidates:{}", frontier.candidate_sites > 0)];
+            answer.extend(
+                frontier
+                    .residual
+                    .split(|c: char| c.is_whitespace() || c == '(' || c == ')')
+                    .filter(|w| w.starts_with("NA-") || w.starts_with("GAP-"))
+                    .map(str::to_owned),
+            );
+            (answer, frontier.candidate_sites + frontier.callers)
+        }
+        "understand_scope" => {
+            let context = lens::understand(model, arg(0)?, &case.question)?;
+            let components = context.scope.components;
+            let mut answer = vec![format!(
+                "components:{}",
+                components.items.len() + components.omitted
+            )];
+            answer.extend(
+                context
+                    .entry_points
+                    .items
+                    .iter()
+                    .map(|e| e.label.split('@').next().unwrap_or_default().to_owned()),
+            );
+            (answer, context.compression.raw_records)
+        }
+        "capability_realization" => {
+            let name = arg(0)?;
+            let capability = find(&model.capabilities, |c| c.name == name, "capability")?;
+            let realized = &capability.realized_by;
+            (
+                vec![realized.status.as_str().to_owned()],
+                realized.evidence.len(),
+            )
+        }
+        "gap" => {
+            let gap = lens::unanswerable(model, arg(0)?).ok_or("no such gap")?;
+            (vec![gap.id, gap.debt], 0)
+        }
+        "component_purpose" => {
+            let path = arg(0)?;
+            let component = find(&model.components, |c| c.path == path, "component")?;
+            let purpose = &component.purpose;
+            (
+                vec![purpose.status.as_str().to_owned()],
+                purpose.evidence.len(),
+            )
+        }
+        "subsystem_responsibility" => {
+            let name = arg(0)?;
+            let subsystem = find(&model.subsystems, |s| s.name == name, "subsystem")?;
+            let r = &subsystem.responsibility;
+            (
+                vec![
+                    r.value.clone().unwrap_or_default(),
+                    r.status.as_str().to_owned(),
+                ],
+                r.evidence.len(),
+            )
+        }
+        "why" => {
+            let why = lens::why(model, arg(0)?, arg(1)?)?;
+            let answer = why
+                .invariants
+                .iter()
+                .map(|i| format!("{}|{}", i.id, i.status.as_str()))
+                .collect();
+            (answer, why.dependencies.len() + why.relations.items.len())
+        }
+        other => return Err(format!("unknown benchmark op `{other}`")),
+    })
+}
+
+/// Run every case. A case is correct when each expectation holds: `x` must equal an answer item,
+/// `contains:x` must be a substring of one.
+pub fn run_benchmark(model: &WorldModel, cases: &[BenchmarkCase]) -> Vec<BenchmarkResult> {
+    cases
+        .iter()
+        .map(|case| {
+            let (answer, evidence) =
+                answer(model, case).unwrap_or_else(|e| (vec![format!("ERROR: {e}")], 0));
+            let correct = case
+                .expect
+                .iter()
+                .all(|x| match x.strip_prefix("contains:") {
+                    Some(part) => answer.iter().any(|a| a.contains(part)),
+                    None => answer.contains(x),
+                });
+            BenchmarkResult {
+                id: case.id.clone(),
+                class: case.class.clone(),
+                correct,
+                honest_unknown: (case.class == "UNKNOWN_HONESTY").then_some(correct),
+                answer,
+                evidence,
+            }
+        })
+        .collect()
+}
+
+pub fn read_benchmark(path: impl AsRef<Path>) -> io::Result<Vec<BenchmarkCase>> {
+    let text = std::fs::read_to_string(path)?;
+    serde_json::from_str(&text).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -218,11 +411,7 @@ fn run(s: &core::store::Store) { s.save(); }
             "the stronger engine's status"
         );
         let get = function(&model, "get");
-        let count = model
-            .state
-            .iter()
-            .find(|v| v.key == "impl:Store.count")
-            .unwrap();
+        let count = model.state.iter().find(|v| v.key == "Store.count").unwrap();
         assert_eq!(count.writers, vec![bump.id.clone()]);
         assert!(count.readers.contains(&get.id));
         // Level 2: components and their dependencies.
@@ -245,7 +434,7 @@ fn run(s: &core::store::Store) { s.save(); }
         assert_eq!(core.responsibility.status, EpistemicStatus::Declared);
         assert_eq!(core.capabilities, vec!["Persist".to_owned()]);
         assert!(core.interface.contains(&new.id));
-        assert!(core.state_owned.contains(&"impl:Store.count".to_owned()));
+        assert!(core.state_owned.contains(&"Store.count".to_owned()));
         // Level 4: the capability is declared; its realization is not claimed.
         let persist = &model.capabilities[0];
         assert_eq!(persist.provided_by, vec!["Core".to_owned()]);
@@ -293,7 +482,7 @@ fn run(s: &core::store::Store) { s.save(); }
         let state = model
             .invariants
             .iter()
-            .find(|i| i.id == "INV-STATE:impl:Store.count")
+            .find(|i| i.id == "INV-STATE:Store.count")
             .unwrap();
         assert_ne!(state.status, EpistemicStatus::Observed);
         if state.status == EpistemicStatus::Inferred {
@@ -399,9 +588,21 @@ fn run(s: &core::store::Store) { s.save(); }
         assert_eq!(check("never-invokes:Core:App"), "VALIDATED");
         assert_eq!(check("invokes:main:run"), "VALIDATED");
         assert_eq!(check("effect:save:FILESYSTEM_WRITE"), "VALIDATED");
-        assert_eq!(check("writes-only:impl:Store.count:new"), "FALSIFIED");
-        assert_ne!(check("writes-only:impl:Store.count:bump"), "FALSIFIED");
-        assert_eq!(check("invokes:main:helper"), "STILL_HYPOTHESIZED");
+        assert_eq!(check("writes-only:Store.count:new"), "FALSIFIED");
+        assert_ne!(check("writes-only:Store.count:bump"), "FALSIFIED");
+        assert_eq!(
+            check("invokes:main:helper"),
+            "FALSIFIED",
+            "main's only unresolved site is spelled `.bump`, and its CALL coverage is OBSERVED"
+        );
+        assert_eq!(check("invokes:main:bump"), "STILL_HYPOTHESIZED");
+        // G123: an unresolved `.bump()` makes main an INFERRED candidate caller of bump, never
+        // a resolved one.
+        let main = function(&model, "main");
+        assert_eq!(main.unresolved_callee_names.get("bump"), Some(&1));
+        let bump = lens::impact(&model, &["fn:Store::bump"]).unwrap().frontier;
+        assert!(bump.candidate_callers.items.iter().any(|c| c.id == main.id));
+        assert!(!bump.nearest.items.iter().any(|c| c.id == main.id));
         assert!(
             lens::understand(&model, "subsystem:Cor", "").is_err(),
             "no fuzzy selectors"
@@ -532,6 +733,30 @@ fn run(s: &core::store::Store) { s.save(); }
         assert!(!invariant.evidence.is_empty());
     }
 
+    /// A world model written before callee names existed (G122) claims no narrowing: every
+    /// unresolved site without a recorded name may reach anything.
+    #[test]
+    fn a_model_without_callee_names_never_narrows_impact() {
+        let model = model_of("oldmodel", ADL, CORE_LIB);
+        let mut json = serde_json::to_value(&model).unwrap();
+        for f in json["functions"].as_array_mut().unwrap() {
+            let f = f.as_object_mut().unwrap();
+            f.remove("unresolved_callee_names");
+            f.remove("unnamed_unresolved_calls");
+        }
+        let old: WorldModel = serde_json::from_value(json).unwrap();
+        let unresolved: usize = old.functions.iter().map(|f| f.unresolved_calls).sum();
+        let frontier = lens::impact(&old, &["fn:Store::bump"]).unwrap().frontier;
+        assert_eq!(frontier.unnamed_sites, unresolved);
+        assert_eq!(frontier.candidate_sites, 0);
+        assert_eq!(
+            lens::hypothesis(&old, "invokes:main:helper")
+                .unwrap()
+                .outcome,
+            "STILL_HYPOTHESIZED"
+        );
+    }
+
     /// Atlas composed from its own census: every join lands, the declared architecture reconciles
     /// with Cargo and resolved calls, and composition is deterministic.
     #[test]
@@ -642,12 +867,45 @@ fn run(s: &core::store::Store) { s.save(); }
             s.responsibility.status,
             EpistemicStatus::Declared | EpistemicStatus::Unknown
         )));
+        // G123: every unresolved call site is named or counted as unnamed; the gap is the
+        // unnamed remainder, and most unresolved sites are named.
+        for f in &model.functions {
+            assert_eq!(
+                f.unresolved_calls,
+                f.unnamed_unresolved_calls + f.unresolved_callee_names.values().sum::<usize>(),
+                "{}",
+                f.name
+            );
+        }
+        let unnamed: usize = model
+            .functions
+            .iter()
+            .map(|f| f.unnamed_unresolved_calls)
+            .sum();
         let unresolved: usize = model.functions.iter().map(|f| f.unresolved_calls).sum();
         let gap = model
             .gaps
             .iter()
             .find(|g| g.id == "GAP-UNRESOLVED-CALLEE")
             .unwrap();
-        assert_eq!(gap.magnitude, unresolved);
+        assert_eq!(gap.magnitude, unnamed);
+        assert!(
+            unnamed * 10 < unresolved,
+            "{unnamed} of {unresolved} unnamed"
+        );
+        // The Agent-Utility benchmark: every case answered correctly from the model, and every
+        // positive answer carries evidence.
+        let cases = read_benchmark(root.join(".atlas/evidence/agent/benchmark.json")).unwrap();
+        assert!(cases.len() >= 12);
+        for result in run_benchmark(&model, &cases) {
+            assert!(result.correct, "{}: {:?}", result.id, result.answer);
+            if result.class != "UNKNOWN_HONESTY" {
+                assert!(
+                    result.evidence > 0,
+                    "{}: an answer without evidence",
+                    result.id
+                );
+            }
+        }
     }
 }

@@ -1083,6 +1083,7 @@ impl<'a> ExtractionContext<'a> {
             callees: Vec::new(),
             arguments,
             result,
+            callee_spelling: Some(callee_summary.to_owned()),
         };
         let record_id = SemanticRecordId::new(dimension, &subject.identity_key());
         let evidence_id = EvidenceId::new(stable_id(

@@ -15,6 +15,7 @@
 pub mod lens;
 
 use crate::language::adl::ConstraintCheckKind;
+use crate::semantic::call::callee_name;
 use crate::semantic::{
     ControlFlowEdgeKind, PlaceRef, SemanticDimension, SemanticObservation, SemanticRecordId,
     StateAccessKind,
@@ -167,6 +168,15 @@ pub struct FunctionBehavior {
     pub calls: Vec<String>,
     /// Call sites no engine resolved: their callee is UNKNOWN.
     pub unresolved_calls: usize,
+    /// The unresolved call sites by the name their callee is spelled with (OBSERVED syntax): a
+    /// site spelled `.bump()` may reach any function named `bump` (G123). Defaulted so a model
+    /// written by an earlier Atlas stays readable (`verify` compares across versions).
+    #[serde(default)]
+    pub unresolved_callee_names: BTreeMap<String, usize>,
+    /// Unresolved call sites whose callee is not a path or method name (closures, function
+    /// pointers): they may reach any function.
+    #[serde(default)]
+    pub unnamed_unresolved_calls: usize,
     /// Functions whose resolved calls reach this one.
     pub callers: Vec<String>,
     pub effects: Vec<Site>,
@@ -257,7 +267,7 @@ pub struct CapabilityModel {
 /// A piece of state: a field of an owner type, with who writes and reads it.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct StateVariable {
-    /// `<owner scope>.<field>`, e.g. `impl:Store.count`.
+    /// `<self type>.<field>`, e.g. `Store.count` (G123: keyed by the impl's self type).
     pub key: String,
     pub owner: String,
     pub field: String,
@@ -370,6 +380,31 @@ impl CompositionAccounting {
     }
 }
 
+/// The self type a `self.field` access belongs to, from the owning impl scope: `impl:Store`,
+/// `impl:Visit<'ast> for Opaque<'_>` and `impl:Opaque<'_>` name `Store`, `Opaque`, `Opaque` (G123:
+/// one field is one piece of state whichever impl block touches it). Same-named types of different
+/// modules share a key: state identity is by spelling (see AGENT-WORN-ATLAS.md).
+pub fn self_type_of(scope: &str) -> String {
+    let last = scope.rsplit("::").next().unwrap_or(scope);
+    let impl_target = last.strip_prefix("impl:").unwrap_or(last);
+    let self_type = match impl_target.rsplit_once(" for ") {
+        Some((_, target)) => target,
+        None => impl_target,
+    };
+    let mut depth = 0usize;
+    let mut base = String::new();
+    for c in self_type.chars() {
+        match c {
+            '<' => depth += 1,
+            '>' => depth = depth.saturating_sub(1),
+            c if depth == 0 => base.push(c),
+            _ => {}
+        }
+    }
+    let base = base.trim().trim_start_matches('&').trim();
+    base.rsplit("::").next().unwrap_or(base).to_owned()
+}
+
 /// The module path of a Rust source file under a crate root (`core/src/census/delta.rs` under
 /// `core` -> `core::census::delta`).
 fn module_of(path: &str, root: &str, crate_name: &str) -> Option<String> {
@@ -466,6 +501,8 @@ pub fn compose(report: &SystemizeReport) -> WorldModel {
                     test_scope,
                     calls: Vec::new(),
                     unresolved_calls: 0,
+                    unresolved_callee_names: BTreeMap::new(),
+                    unnamed_unresolved_calls: 0,
                     callers: Vec::new(),
                     effects: Vec::new(),
                     state: Vec::new(),
@@ -485,6 +522,7 @@ pub fn compose(report: &SystemizeReport) -> WorldModel {
     #[derive(Default)]
     struct CallSite {
         function: String,
+        spelling: Option<String>,
         callees: BTreeSet<String>,
         supplies: bool,
         returns: bool,
@@ -525,6 +563,9 @@ pub fn compose(report: &SystemizeReport) -> WorldModel {
                     .or_default();
                 site.function = c.function.as_str().to_owned();
                 site.records += 1;
+                if site.spelling.is_none() {
+                    site.spelling = c.callee_spelling.clone();
+                }
                 if !c.callees.is_empty() {
                     site.callees
                         .extend(c.callees.iter().map(|id| id.as_str().to_owned()));
@@ -553,7 +594,7 @@ pub fn compose(report: &SystemizeReport) -> WorldModel {
             }
             SemanticObservation::State(header) => {
                 let s = &header.subject;
-                let owner = s.scope.join();
+                let owner = self_type_of(&s.scope.join());
                 let key = format!("{owner}.{}", s.name);
                 let var = state_vars
                     .entry(key.clone())
@@ -685,6 +726,14 @@ pub fn compose(report: &SystemizeReport) -> WorldModel {
         if site.callees.is_empty() {
             if let Some(f) = functions.get_mut(&site.function) {
                 f.unresolved_calls += 1;
+                match site.spelling.as_deref().and_then(callee_name) {
+                    Some(name) => {
+                        *f.unresolved_callee_names
+                            .entry(name.to_owned())
+                            .or_default() += 1
+                    }
+                    None => f.unnamed_unresolved_calls += 1,
+                }
                 f.records += site.records;
             }
             continue;
@@ -1325,8 +1374,9 @@ pub fn compose(report: &SystemizeReport) -> WorldModel {
     invariants.sort_by(|a, b| a.id.cmp(&b.id));
 
     // Understanding gaps: what an agent will ask that this model cannot answer.
-    let unresolved_total: usize = functions.values().map(|f| f.unresolved_calls).sum();
+    let unnamed_total: usize = functions.values().map(|f| f.unnamed_unresolved_calls).sum();
     let tests_inferred = functions.values().filter(|f| f.test_scope).count();
+    let symbol_definitions = accounting.records.get("SYMBOL").copied().unwrap_or(0);
     let gaps = vec![
         UnderstandingGap {
             id: "GAP-COMPONENT-PURPOSE".into(),
@@ -1340,10 +1390,11 @@ pub fn compose(report: &SystemizeReport) -> WorldModel {
         UnderstandingGap {
             id: "GAP-UNRESOLVED-CALLEE".into(),
             question_class: "what else reaches this function?".into(),
-            missing: "an unresolved call site records no callee spelling, so an impact residual \
-                      cannot be narrowed to candidate call sites"
+            missing: "an unresolved call site whose callee is not a path or method name (a \
+                      closure, a function pointer) cannot be narrowed to candidate callees; named \
+                      ones narrow by spelling (G123)"
                 .into(),
-            magnitude: unresolved_total,
+            magnitude: unnamed_total,
             debt: "DEBT-CALL".into(),
         },
         UnderstandingGap {
@@ -1369,6 +1420,16 @@ pub fn compose(report: &SystemizeReport) -> WorldModel {
             missing: "declared capabilities are not mapped to realizing functions".into(),
             magnitude: capabilities.len(),
             debt: "DEBT-SEMANTIC-COMPOSITION".into(),
+        },
+        UnderstandingGap {
+            id: "GAP-TYPE-USE-SITES".into(),
+            question_class: "where is this type constructed or used?".into(),
+            missing:
+                "SYMBOL records definitions and declarations only (no REFERENCE role), so the \
+                      construction and use sites of a type are not censused (G123 mission)"
+                    .into(),
+            magnitude: symbol_definitions,
+            debt: "DEBT-SYMBOL".into(),
         },
         UnderstandingGap {
             id: "GAP-TEST-IDENTITY".into(),
@@ -1457,6 +1518,19 @@ mod tests {
             None,
             "a prefix must end at a separator"
         );
+    }
+
+    #[test]
+    fn state_belongs_to_the_impl_self_type() {
+        assert_eq!(self_type_of("impl:Store"), "Store");
+        assert_eq!(self_type_of("impl:Opaque<'_>"), "Opaque");
+        assert_eq!(self_type_of("impl:Visit<'ast> for Opaque<'_>"), "Opaque");
+        assert_eq!(
+            self_type_of("impl:syn::visit::Visit<'ast> for IndependentCallSites"),
+            "IndependentCallSites"
+        );
+        assert_eq!(self_type_of("impl:CfgBuilder<'ctx, 'a>"), "CfgBuilder");
+        assert_eq!(self_type_of("outer::impl:crate::a::Wrapper<T>"), "Wrapper");
     }
 
     #[test]

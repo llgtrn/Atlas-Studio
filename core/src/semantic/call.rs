@@ -85,6 +85,42 @@ pub struct CallSiteIdentity {
     /// `ValueIdentity::identity_key()` itself against the binding's own identifier/span, never a
     /// hand-duplicated formula.
     pub result: PlaceRef,
+    /// G123 (GAP-UNRESOLVED-CALLEE): the callee as written -- `foo`, `Type::method`, `.method`, or
+    /// a token summary of a non-path callee expression. OBSERVED syntax, never a resolution, and
+    /// not part of `identity_key()`. `None` for engines that do not read call syntax.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub callee_spelling: Option<String>,
+}
+
+/// The name an unresolved call site's spelling calls by: `.method` -> `method`, `a::b::<T>` ->
+/// `b`, `foo` -> `foo`. `None` when the callee is not a path or a method (a closure, a function
+/// pointer expression, a parenthesized call): such a site may reach any function.
+pub fn callee_name(spelling: &str) -> Option<String> {
+    let spelling = spelling.trim();
+    let path = spelling.strip_prefix('.').unwrap_or(spelling);
+    // The path with its generic argument groups (`::<u8>`, `<T as Trait>`) removed.
+    let mut depth = 0usize;
+    let mut plain = String::new();
+    for c in path.chars() {
+        match c {
+            '<' => depth += 1,
+            '>' => depth = depth.checked_sub(1)?,
+            c if depth == 0 => plain.push(c),
+            _ => {}
+        }
+    }
+    if depth != 0
+        || !plain
+            .chars()
+            .all(|c| c.is_alphanumeric() || c == '_' || c == ':')
+    {
+        return None;
+    }
+    let last = plain.trim_end_matches(':').rsplit("::").next()?;
+    if last.is_empty() || last.starts_with(|c: char| c.is_ascii_digit()) || last.contains(':') {
+        return None;
+    }
+    Some(last.to_owned())
 }
 
 impl CallSiteIdentity {
@@ -108,6 +144,30 @@ mod tests {
     use super::super::SemanticDimension;
     use super::*;
 
+    #[test]
+    fn callee_names_come_from_paths_and_methods_only() {
+        assert_eq!(callee_name(".bump").as_deref(), Some("bump"));
+        assert_eq!(callee_name("helper").as_deref(), Some("helper"));
+        assert_eq!(
+            callee_name("crate::store::Store::new").as_deref(),
+            Some("new")
+        );
+        assert_eq!(
+            callee_name("Vec::<u8>::with_capacity").as_deref(),
+            Some("with_capacity")
+        );
+        assert_eq!(callee_name("parse::<u32>").as_deref(), Some("parse"));
+        assert_eq!(callee_name("<T as Trait>::m").as_deref(), Some("m"));
+        assert_eq!(callee_name("(get_fn())"), None, "a non-path callee");
+        assert_eq!(
+            callee_name("self . handler"),
+            None,
+            "a field holding a function"
+        );
+        assert_eq!(callee_name("closures [0]"), None);
+        assert_eq!(callee_name(""), None);
+    }
+
     fn base() -> CallSiteIdentity {
         CallSiteIdentity {
             repository: RepositoryId::new("atlas-studio"),
@@ -125,6 +185,7 @@ mod tests {
             callees: Vec::new(),
             arguments: Vec::new(),
             result: PlaceRef::Unresolved,
+            callee_spelling: None,
         }
     }
 

@@ -2162,6 +2162,7 @@ mod tests {
             callees: Vec::new(),
             arguments: Vec::new(),
             result: PlaceRef::Unresolved,
+            callee_spelling: None,
         };
         let record_id = SemanticRecordId::new(SemanticDimension::Call, &subject.identity_key());
         SemanticObservation::Call(SemanticRecordHeader {
@@ -2215,6 +2216,7 @@ mod tests {
             callees: Vec::new(),
             arguments,
             result,
+            callee_spelling: None,
         };
         let record_id = SemanticRecordId::new(SemanticDimension::Call, &subject.identity_key());
         SemanticObservation::Call(SemanticRecordHeader {

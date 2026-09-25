@@ -515,7 +515,7 @@ objective = "COMPOSITION_ATTACK (ADR 0044): DEBT-SEMANTIC-COMPOSITION opened and
 [[planned_generation]]
 id = "G123"
 priority = "P0"
-objective = "AGENT_MISSION: the first mission on Atlas itself worked through the agent interface (understand -> MissionContext -> change -> impact -> verify -> recensus), recording what Atlas knew, what stayed UNKNOWN and what source was read manually; the agent-utility benchmark"
+objective = "AGENT_MISSION: the first mission on Atlas itself worked through the agent interface (understand -> MissionContext -> change -> impact -> verify -> recensus), recording what Atlas knew, what stayed UNKNOWN and what source was read manually; the agent-utility benchmark (done: M1 callee spelling, 7 manual reads, 14 of 14 benchmark cases)"
 
 [[planned_generation]]
 id = "G124"

@@ -604,6 +604,13 @@ fn run(args: &[String]) -> Result<(), String> {
                         value(rest, "--claim")?.ok_or("agent hypothesis requires --claim")?;
                     json(&lens::hypothesis(&model, &claim)?)?
                 }
+                "benchmark" => {
+                    let cases = value(rest, "--cases")?
+                        .unwrap_or_else(|| ".atlas/evidence/agent/benchmark.json".into());
+                    let cases = runtime::agent::read_benchmark(&cases)
+                        .map_err(|e| format!("{cases}: {e}"))?;
+                    json(&runtime::agent::run_benchmark(&model, &cases))?
+                }
                 "verify" => {
                     let before =
                         value(rest, "--before")?.ok_or("agent verify requires --before")?;
@@ -620,7 +627,7 @@ fn run(args: &[String]) -> Result<(), String> {
                 }
                 other => {
                     return Err(format!(
-                        "unknown agent operation `{other}`: model|understand|explain|impact|trace|why|compare|invariants|unknowns|effects|state|dependencies|capabilities|resources|causal|plan|hypothesis|verify"
+                        "unknown agent operation `{other}`: model|understand|explain|impact|trace|why|compare|invariants|unknowns|effects|state|dependencies|capabilities|resources|causal|plan|hypothesis|benchmark|verify"
                     ));
                 }
             } + "\n";

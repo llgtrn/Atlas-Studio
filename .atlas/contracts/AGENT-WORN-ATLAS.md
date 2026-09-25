@@ -42,6 +42,10 @@ Around these levels sit:
 3. **Universal claims.** A claim such as "written only by" or "originates only in" is `DERIVED` only when the dimension it ranges over is `OBSERVED` on every artifact in scope. Otherwise it is `INFERRED`, and its residual names the files with unproven coverage and the unresolved call sites.
 4. **Dependency invariants.** "A cannot invoke B" is `OBSERVED` from the Cargo closure only when no dependency path exists. Any resolved call from A to B turns it into `CONFLICT`, with that call as evidence.
 5. **Absence.** "No path observed" or "no effect observed" is `UNKNOWN` while unresolved call sites exist. It is never reported as absence.
+   - **Callee spelling (G123).** Every CALL record carries its callee as written (OBSERVED syntax). An unresolved site spelled with a function's name makes its caller an `INFERRED` candidate, listed apart from resolved callers and never merged with them.
+   - **Unattributed sites.** An unresolved site without a name (a closure, a function pointer) may reach anything. It is counted as unresolved minus named, never read from a stored counter, so a model written before spellings existed claims no narrowing.
+   - **Closure bodies.** Calls inside closure bodies are not censused at all (`NA-CLOSURE-REGIONS`), and every impact residual says so.
+   - **State identity.** State is `<self type>.<field>`: a `self.field` touched by an inherent and a trait impl is one piece of state. Identity is by spelling, so same-named types of different modules share a key.
 6. **Determinism.** Composition is deterministic and independent of record order. Its totals (`composed:*`) are part of the census snapshot, so a change in composed understanding is a census change that `recensus prove` must see intended.
 
 ## Operations (`atlas-systemizer agent <op>`)
@@ -58,10 +62,11 @@ Around these levels sit:
 | `compare --from A --to B` | two targets side by side |
 | `plan --target T` | a `DERIVED` checklist: what to preserve, re-verify and resolve first; the design stays the agent's |
 | `hypothesis --claim C` | an agent hypothesis checked: `VALIDATED`, `FALSIFIED` or `STILL_HYPOTHESIZED` |
+| `benchmark [--cases <json>]` | the Agent-Utility benchmark (`evidence/agent/benchmark.json`): each case's answer, correctness, evidence count and, for unknown-honesty cases, whether Atlas declined |
 | `verify --before <model.json>` | invariant regressions, new authority and dependency changes; exits non-zero on regression |
 | `model` | the whole `WorldModel` (`--model` reuses one) |
 
-**Targets.** Targets are exact structural selectors: `subsystem:<Name>`, `path:<file or directory>`, `fn:<name>` or `fn:<Owner>::<name>`, `state:<owner scope>.<field>`, and `capability:<Name>`. An unknown selector is an error, never a fuzzy match. A path prefix matches only at a separator.
+**Targets.** Targets are exact structural selectors: `subsystem:<Name>`, `path:<file or directory>`, `fn:<name>` or `fn:<Owner>::<name>`, `state:<self type>.<field>`, and `capability:<Name>`. An unknown selector is an error, never a fuzzy match. A path prefix matches only at a separator.
 
 ## MissionContext
 
@@ -112,3 +117,17 @@ None of these is Agent-Worn Atlas:
 - RAG over files;
 - calling census after the agent has already finished;
 - calling generic graph nodes a "world model".
+
+## Missions
+
+An `AGENT_MISSION` generation records `evidence/agent/M<n>-*.json`:
+
+- the Atlas-first sequence of operations, and what each one answered;
+- what Atlas knew, and what stayed `UNKNOWN`;
+- every manual source read, with its reason: `IMPLEMENTATION_DETAIL`, `UNKNOWN` or `FALSIFICATION`;
+- the gaps found, and whether each was fixed in the mission or routed to a debt;
+- a challenge question Atlas was expected to fail, answered without invented confidence;
+- the benchmark result.
+
+A `verify` regression caused by an intended identity change (for example, re-keyed state invariants) is named in the record, never hidden.
+
