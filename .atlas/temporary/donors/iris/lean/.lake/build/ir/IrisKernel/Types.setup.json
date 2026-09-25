@@ -1,7 +1,0 @@
-{"plugins": [],
- "package": "iris-kernel",
- "options": {"autoImplicit": false},
- "name": "IrisKernel.Types",
- "isModule": false,
- "importArts": {},
- "dynlibs": []}

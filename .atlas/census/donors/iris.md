@@ -188,3 +188,9 @@ None. No mechanism found in IRIS rises to the level of falsifiable, materially-b
 ## Census State
 
 DEEP_CENSUS_ACTIVE. Targeted deep census was performed on all mechanisms named in the assignment (SemanticGraph node/edge/identity model, content-address derivation, graph codec, bootstrap/stage0 boundary, compiler passes, evolution engine, verification/proof-kernel boundary, self-modification admission), each read from actual source with explicit verified-vs-unverifiable attribution, rather than trusting README claims at face value.
+
+## G91 — terminal ABSORBED (ambient-input effect categories); source extinct
+
+The first recensus requirement above fired: EFFECT has been a real dimension since G77. IRIS's effect tags separate ambient inputs (`EnvGet`, `ClockNs`, `Timestamp`) from host I/O. That is exactly the gap ADR 0032 recorded: environment and time reads had no category, so Atlas could not observe them without mislabeling. The distinction is absorbed natively as `ENVIRONMENT_READ` and `CLOCK_READ` (ADR 0036), with no code copied (AGPL).
+
+The declared std-path table now turns the workspace's 59 resolved `std::env`/`std::time` path calls into DERIVED effect sites, all confirmed by SCIP. Every other mechanism stays REFERENCE_ONLY. The checkout was physically deleted. Evidence: `../../evidence/campaign/27-iris.json`.

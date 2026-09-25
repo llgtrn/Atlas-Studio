@@ -458,6 +458,7 @@ mod tests {
                 "egglog",
                 "flatbuffers",
                 "glean",
+                "iris",
                 "joern",
                 "kythe",
                 "ladybird",

@@ -1,0 +1,40 @@
+{
+  "objective": "P3 first-50 #27 iris: ABSORBED ambient-input effect categories -- ENVIRONMENT_READ and CLOCK_READ join EffectCategory and the declared std-path effect table, so the 59 resolved std::env / std::time path calls ADR 0032 left unobserved (14 artifacts) become DERIVED effect sites of their callers (all SCIP-confirmed); checkout physically extinct",
+  "changed_paths": [
+    "adapter/build.rs",
+    "adapter/src/browser/mod.rs",
+    "adapter/src/dependency/cargo.rs",
+    "adapter/src/lib.rs",
+    "adapter/src/source/frontend.rs",
+    "adapter/src/source/mod.rs",
+    "adapter/src/vcs/mod.rs",
+    "apps/cli/src/main.rs",
+    "core/src/graph/engineering_graph.rs",
+    "core/src/semantic/effect.rs",
+    "runtime/src/atlas.rs",
+    "runtime/src/census/extraction.rs",
+    "runtime/src/census/resolution/tests.rs",
+    "runtime/src/donor_storage.rs",
+    "runtime/src/lib.rs",
+    "runtime/src/visual.rs"
+  ],
+  "total_changes": [
+    "+docs",
+    "+entities",
+    "+evidence",
+    "+facts",
+    "+graph_edges",
+    "+graph_nodes",
+    "+normalized_facts",
+    "+typed_records"
+  ],
+  "entity_changes": [
+    "CHANGED core semantic/effect/`impl:EffectCategory`/as_str().",
+    "CHANGED core semantic/effect/tests/the_std_path_effect_table_is_sorted_unique_and_looked_up_exactly().",
+    "CHANGED runtime census/resolution/tests/a_resolution_without_a_syntactic_claim_is_a_diagnosed_disagreement().",
+    "CHANGED runtime census/resolution/tests/resolved_standard_library_paths_are_effect_sites_of_the_caller().",
+    "CHANGED runtime census/resolution/tests/workspace().",
+    "CHANGED runtime donor_storage/tests/repository_donor_storage_has_no_unrecorded_violation().",
+    "CREATED core semantic/effect/tests/the_ambient_input_categories_carry_their_contract_names()."
+  ]
+}

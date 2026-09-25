@@ -12,8 +12,9 @@
 //! prove closure over these cases.
 //!
 //! G77: a call a name-resolution engine resolves to a standard-library path is an effect site when
-//! [`std_path_effects`] declares that path's effects -- the declared std-path effect table, today
-//! the filesystem entry points of `std::fs` and the platform `symlink` functions.
+//! [`std_path_effects`] declares that path's effects -- the declared std-path effect table: the
+//! filesystem entry points of `std::fs` and the platform `symlink` functions, and (G91) the
+//! process-environment and clock reads of `std::env` and `std::time`.
 
 use super::SemanticRecordId;
 use crate::identity::RepositoryId;
@@ -39,6 +40,13 @@ pub enum EffectCategory {
     Free,
     Panic,
     ExternalIo,
+    /// A read of the process environment: variables, arguments, working and well-known
+    /// directories (G91). An ambient input, not I/O: the same code reads different values in
+    /// different processes (IRIS's `EnvGet` effect tag).
+    EnvironmentRead,
+    /// A read of a clock (G91): an ambient input whose value differs on every call (IRIS's
+    /// `ClockNs`/`Timestamp` effect tags).
+    ClockRead,
 }
 
 impl EffectCategory {
@@ -57,17 +65,32 @@ impl EffectCategory {
             Self::Free => "FREE",
             Self::Panic => "PANIC",
             Self::ExternalIo => "EXTERNAL_IO",
+            Self::EnvironmentRead => "ENVIRONMENT_READ",
+            Self::ClockRead => "CLOCK_READ",
         }
     }
 }
 
 /// The declared std-path effect table (G77), sorted by path: the standard-library functions whose
-/// call is a filesystem effect by their documented contract. A path is the canonical spelling
-/// through imports (`std::fs::File::open`); re-exports and method calls are not covered, and a
-/// path absent here declares nothing (never "no effect").
+/// call is a filesystem effect, or (G91) a read of the process environment or of a clock, by
+/// their documented contract. A path is the canonical spelling through imports
+/// (`std::fs::File::open`); re-exports and method calls are not covered, and a path absent here
+/// declares nothing (never "no effect") -- environment writes (`set_var`, `set_current_dir`) and
+/// `current_exe` (a filesystem lookup on most platforms) among them.
 const STD_PATH_EFFECTS: &[(&str, &[EffectCategory])] = {
-    use EffectCategory::{FilesystemRead as R, FilesystemWrite as W};
+    use EffectCategory::{
+        ClockRead as C, EnvironmentRead as E, FilesystemRead as R, FilesystemWrite as W,
+    };
     &[
+        ("std::env::args", &[E]),
+        ("std::env::args_os", &[E]),
+        ("std::env::current_dir", &[E]),
+        ("std::env::home_dir", &[E]),
+        ("std::env::temp_dir", &[E]),
+        ("std::env::var", &[E]),
+        ("std::env::var_os", &[E]),
+        ("std::env::vars", &[E]),
+        ("std::env::vars_os", &[E]),
         ("std::fs::File::create", &[W]),
         ("std::fs::File::create_new", &[W]),
         ("std::fs::File::open", &[R]),
@@ -93,6 +116,8 @@ const STD_PATH_EFFECTS: &[(&str, &[EffectCategory])] = {
         ("std::os::unix::fs::symlink", &[W]),
         ("std::os::windows::fs::symlink_dir", &[W]),
         ("std::os::windows::fs::symlink_file", &[W]),
+        ("std::time::Instant::now", &[C]),
+        ("std::time::SystemTime::now", &[C]),
     ]
 };
 
@@ -156,9 +181,40 @@ mod tests {
             std_path_effects("std::fs::File::open"),
             [EffectCategory::FilesystemRead]
         );
-        for undeclared in ["std::fs", "std::fs::writ", "std::env::var", "fs::write", ""] {
+        assert_eq!(
+            std_path_effects("std::env::var"),
+            [EffectCategory::EnvironmentRead]
+        );
+        assert_eq!(
+            std_path_effects("std::env::temp_dir"),
+            [EffectCategory::EnvironmentRead]
+        );
+        assert_eq!(
+            std_path_effects("std::time::Instant::now"),
+            [EffectCategory::ClockRead]
+        );
+        assert_eq!(
+            std_path_effects("std::time::SystemTime::now"),
+            [EffectCategory::ClockRead]
+        );
+        for undeclared in [
+            "std::fs",
+            "std::fs::writ",
+            "std::env::set_var",
+            "std::env::current_exe",
+            "std::time::Instant",
+            "std::time::Instant::elapsed",
+            "fs::write",
+            "",
+        ] {
             assert!(std_path_effects(undeclared).is_empty(), "{undeclared}");
         }
+    }
+
+    #[test]
+    fn the_ambient_input_categories_carry_their_contract_names() {
+        assert_eq!(EffectCategory::EnvironmentRead.as_str(), "ENVIRONMENT_READ");
+        assert_eq!(EffectCategory::ClockRead.as_str(), "CLOCK_READ");
     }
 
     fn base() -> EffectIdentity {

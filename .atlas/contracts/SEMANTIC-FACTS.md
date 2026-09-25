@@ -157,6 +157,8 @@ Represents READ, WRITE, TRANSITION, CREATE or DELETE against a typed state ident
 
 Represents observable effects including filesystem, network, process, FFI, persistence, event emission, authorization checks, allocation and panic/failure behavior.
 
+Reads of ambient inputs are effects of their own kind, not I/O: `ENVIRONMENT_READ` covers process environment variables, arguments and the working and well-known directories, and `CLOCK_READ` covers reads of a clock. The same code reads different values in different processes or at different times, and neither is honestly `EXTERNAL_IO` (G91, ADR 0036).
+
 ### OwnershipFact
 
 Represents ownership/borrow/move/copy/allocation/free/escape behavior where the source language/runtime exposes it.

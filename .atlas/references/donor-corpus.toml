@@ -1017,14 +1017,20 @@ default_branch = "main"
 retrieved_at = "2026-09-22T14:05:07.919309095Z"
 license = [".atlas/licenses/donors/iris/LICENSE"]
 technology_domains = ["semantic_graph", "content_addressing", "compiler", "self_evolution", "formal_verification", "bytecode_vm"]
-ingestion_status = "CLONED"
-storage_state = "MATERIALIZED_CHECKOUT"
+ingestion_status = "EXTINCT"
+storage_state = "SOURCE_DELETED"
 materialization_mode = "SHALLOW_CHECKOUT"
 census_status = "DEEP_CENSUS_ACTIVE"
-decision_status = "STUDY_FOR_SEMANTIC_GRAPH_LANGUAGE_LANE"
-native_replacement = "none selected -- REFERENCE_ONLY across every censused mechanism, see lane synthesis"
+decision_status = "ABSORBED"
+blocking_question = "resolved G91: the census's first recensus requirement fired (Atlas's EFFECT dimension is real since G77); IRIS's effect tags separate ambient inputs (EnvGet, ClockNs, Timestamp) from I/O, which is exactly the gap ADR 0032 recorded -- environment and time reads had no EffectCategory, so 59 resolved std calls stayed unobserved"
+evidence_needed = "none outstanding (.atlas/evidence/campaign/27-iris.json)"
+cheapest_falsification = "performed G91: every resolved std::env / std::time path call of the workspace enumerated (59: env 50, time 9), shown unobservable without mislabeling, and confirmed against rust-analyzer SCIP at the same anchors (59/59)"
+next_action = "none: TERMINAL ABSORBED (ambient-input effect categories); every other mechanism REFERENCE_ONLY; source physically deleted"
+implementation_status = "ABSORBED"
+absorbed_mechanisms = ["ambient-input-effect-categories"]
+native_replacement = "atlas_core::EffectCategory::{EnvironmentRead, ClockRead} and the declared std-path effect table (core/src/semantic/effect.rs); no IRIS code copied (AGPL-3.0-or-later)"
 runtime_dependency_status = "REFERENCE_ONLY"
-evidence = [".atlas/provenance/donors/iris.json", ".atlas/census/donors/iris.md", ".atlas/census/donors/semantic-graph-language-lane-2026-09-22.md"]
+evidence = [".atlas/evidence/campaign/27-iris.json", ".atlas/decisions/0036-ambient-input-effects.md", ".atlas/provenance/donors/iris.json", ".atlas/census/donors/iris.md", ".atlas/census/donors/semantic-graph-language-lane-2026-09-22.md"]
 
 [[donor]]
 id = "sigil-lang"

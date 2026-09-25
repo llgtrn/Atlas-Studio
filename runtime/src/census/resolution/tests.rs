@@ -97,7 +97,7 @@ fn workspace() -> (std::path::PathBuf, InventoryReport) {
     .unwrap();
     fs::write(
         dir.join("core/src/io.rs"),
-        "use std::fs;\nuse std::fs::File;\npub fn save() {\n    fs::write(\"a\", \"b\");\n    File::open(\"a\");\n    fs::copy(\"a\", \"b\");\n    std::env::var(\"X\");\n    std::mem::size_of::<u128>();\n}\npub struct Status;\npub fn typed<T>(a: Status, b: crate::io::Status, c: Vec<Status>, d: File, e: T) {}\npub struct Other;\npub fn plain(o: Other) {}\npub fn shadow<Other>(o: Other) {}\n",
+        "use std::fs;\nuse std::fs::File;\npub fn save() {\n    fs::write(\"a\", \"b\");\n    File::open(\"a\");\n    fs::copy(\"a\", \"b\");\n    std::env::var(\"X\"); std::time::Instant::now();\n    std::mem::size_of::<u128>();\n}\npub struct Status;\npub fn typed<T>(a: Status, b: crate::io::Status, c: Vec<Status>, d: File, e: T) {}\npub struct Other;\npub fn plain(o: Other) {}\npub fn shadow<Other>(o: Other) {}\n",
     )
     .unwrap();
     fs::write(dir.join("core/src/a.rs"), "pub fn g() {}\n").unwrap();
@@ -261,7 +261,7 @@ fn a_resolution_without_a_syntactic_claim_is_a_diagnosed_disagreement() {
             _ => None,
         })
         .collect();
-    assert_eq!(effect_lines, [5, 6, 6]);
+    assert_eq!(effect_lines, [5, 6, 6, 7, 7]);
     assert!(
         io.diagnostics
             .iter()
@@ -289,7 +289,8 @@ fn resolved_standard_library_paths_are_effect_sites_of_the_caller() {
             _ => None,
         })
         .collect();
-    // fs::write, File::open, fs::copy (read and write); never std::env::var (not declared).
+    // fs::write, File::open, fs::copy (read and write), std::env::var and Instant::now (G91);
+    // never std::mem::size_of (not declared).
     assert_eq!(
         effects,
         [
@@ -297,6 +298,8 @@ fn resolved_standard_library_paths_are_effect_sites_of_the_caller() {
             (5, "FILESYSTEM_READ"),
             (6, "FILESYSTEM_READ"),
             (6, "FILESYSTEM_WRITE"),
+            (7, "ENVIRONMENT_READ"),
+            (7, "CLOCK_READ"),
         ]
     );
     let save = batches
@@ -321,7 +324,7 @@ fn resolved_standard_library_paths_are_effect_sites_of_the_caller() {
         .iter()
         .find(|o| o.dimension == SemanticDimension::Effect)
         .unwrap();
-    assert_eq!(effect.observation_ids.len(), 4);
+    assert_eq!(effect.observation_ids.len(), 6);
     fs::remove_dir_all(&dir).unwrap();
 }
 

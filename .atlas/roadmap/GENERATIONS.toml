@@ -1347,6 +1347,7 @@ objective = "settle both recorded forks (dispatch default; eager vs checkpoint v
 writer = "coordinator (sole writer)"
 evidence = ".atlas/evidence/campaign/26-xdsl.json"
 self_recensus = ".atlas/evidence/census/G90/recensus.json"
+result_commits = ["03910f4e3d9ba23186effe37858017447c407827", "c42a68376f8e6f13a65a8969b16db0cb2d486efd"]
 
 [generation.verification]
 pre_census = "clean-HEAD census of fb26f9d7d2 = G89 post digest ac173439... (4050e8e390 adds only out-of-scope evidence)"
@@ -1357,3 +1358,26 @@ proof = "PROVEN on the first run (post 2a26f726...)"
 
 [generation.next]
 objective = "G91 (P3): first-50 #27 iris (content-addressed semantic graph compiler, P6)"
+
+[[generation]]
+id = "G91"
+base_commit = "c42a68376f8e6f13a65a8969b16db0cb2d486efd"
+priority = "P3"
+serves = "P3 FIRST_50_DONOR_CAMPAIGN: donor #27 iris to a terminal state; P0 input: EFFECT vocabulary (ADR 0032's recorded gap)"
+objective = "execute the census's fired recensus requirement (IRIS's effect taxonomy against the now-real EFFECT dimension), absorb the smallest missing mechanism, physically extinct the checkout"
+writer = "coordinator (sole writer)"
+evidence = ".atlas/decisions/0036-ambient-input-effects.md"
+self_recensus = ".atlas/evidence/census/G91/recensus.json"
+
+[generation.verification]
+pre_census = "clean-HEAD census of 03910f4e3d = G90 post digest 2a26f726... (c42a68376f adds only out-of-scope evidence)"
+falsification = "the G75 resolver names 59 ambient-input std path calls (env 50: temp_dir 42, var_os 6, var 1, args 1; time 9: SystemTime::now 7, Instant::now 2); no existing EffectCategory fits them without mislabeling; IRIS's EnvGet/ClockNs/Timestamp tags (and miri's env/time shim groups, G76) separate them from I/O"
+change = "EffectCategory gains ENVIRONMENT_READ and CLOCK_READ (SEMANTIC-FACTS.md#effectfact); the declared std-path effect table declares std::env reads and Instant::now/SystemTime::now; environment writes and current_exe stay undeclared; the resolution engine is unchanged"
+result = "EFFECT|DERIVED 324 -> 383 (+59) across 14 artifacts; all 59 anchors agree with rust-analyzer 1.90.0 SCIP, 0 disagreements"
+mutation_battery = "6/6 killed (drop env::var; clock as environment; wrong contract name; declare current_exe; drop SystemTime::now; temp_dir as filesystem read)"
+decision = "ABSORBED ambient-input-effect-categories (no code copied, AGPL); graph model, content addressing, Lean kernel, evolution engine, clcu backend REFERENCE_ONLY"
+extinction = "git rm -r .atlas/temporary/donors/iris (30 MB) plus its untracked .iris-daemon state files; no build, runtime or test reference"
+proof = "PROVEN on the first run (post 1a41235c...)"
+
+[generation.next]
+objective = "G92 (P3): first-50 #28 sigil-lang (content-addressed contract-verified graph, P6)"

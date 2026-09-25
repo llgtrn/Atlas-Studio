@@ -1,0 +1,35 @@
+{
+ "schema": "atlas.campaign-donor-decision.v1",
+ "ordinal": 27,
+ "donor": "iris",
+ "commit_sha": "743491588edf21ace27a1c331f6ff8e3b75d492d",
+ "generation": "G91",
+ "base_commit": "c42a68376f",
+ "hypothesis": "content-addressed semantic graph compiler (P6)",
+ "blocking_question": "the census recorded no open ABSORB_LATER item; its first recensus requirement reads: re-examine IRIS's control-flow/data-flow/effect node kinds and its 44-tag capability-guarded effect system once Atlas's CONTROL_FLOW/DATA_FLOW/EFFECT dimensions become real extractors -- EFFECT has been real since G77",
+ "measurement": {
+  "iris_effect_tags": "src/iris-programs/exec/effects_dispatch.iris: Print, ReadLine, HttpGet/Post, FileRead/Write, DbQuery/Execute, Sleep, Timestamp, Random, Log, Send/RecvMessage, FfiCall; raw Tcp*/File*/DirList, EnvGet, ClockNs, RandomBytes, SleepMs; Thread*/Atomic*/RwLock*; MmapExec, CallNative. Timestamp/Random are 'modelable' (supplied as a value), distinct from host I/O",
+  "atlas_gap": "ADR 0032: 'environment and time reads have no EffectCategory' -- the EffectCategory enum had filesystem/network/process/FFI/persist/event/auth/alloc/free/panic/external-io only",
+  "workspace_sites": "the G75 resolver names 59 path calls to ambient-input std functions: std::env::temp_dir 42, var_os 6, var 1, args 1 (env 50, matching G76's count); std::time::SystemTime::now 7, Instant::now 2 (the other 8 of G76's 17 time sites are method calls, outside the path engine)",
+  "mislabel_check": "none of the existing categories fits: reading TMPDIR or a clock is not EXTERNAL_IO, FILESYSTEM_READ or PERSIST",
+  "oracle": "all 59 anchors agree with rust-analyzer 1.90.0 SCIP (symbol under std, same module and function), 0 disagreements, 0 missing"
+ },
+ "absorbed_mechanism": {
+  "name": "ambient-input-effect-categories",
+  "native_owner": "atlas_core::EffectCategory::{EnvironmentRead, ClockRead} + the declared std-path effect table (core/src/semantic/effect.rs); SEMANTIC-FACTS.md#effectfact",
+  "result": "EFFECT|DERIVED 324 -> 383 (+59), each a DERIVED effect site of the calling function anchored at the call",
+  "verification": "table lookups and undeclared negatives (set_var, current_exe, Instant::elapsed); the end-to-end engine fixture derives ENVIRONMENT_READ and CLOCK_READ; mutation battery 6/6 killed",
+  "license": "no IRIS code copied (AGPL-3.0-or-later); only the vocabulary distinction, re-derived"
+ },
+ "decision": {
+  "ABSORBED": ["ambient-input effect categories (EnvGet/ClockNs split from I/O)"],
+  "REFERENCE_ONLY": ["SemanticGraph node/edge/identity model", "truncated BLAKE3 content addressing", "Lean 4 proof kernel", "self-modification admission gate", "evolution engine", "iris-clcu backend", "capability-guarded effect dispatch (runtime sandboxing -- Atlas executes no census subject)"]
+ },
+ "terminal_state": "ABSORBED",
+ "extinction": {
+  "runtime_dependency": "none (native code)",
+  "build_dependency": "none",
+  "test_dependency": "none (no code or test references the checkout; not a DC1 Cargo donor)",
+  "action": "git rm -r .atlas/temporary/donors/iris"
+ }
+}
