@@ -1498,6 +1498,7 @@ objective = "check the census's ADAPT dispositions against Atlas, pin what the w
 writer = "coordinator (sole writer)"
 evidence = ".atlas/evidence/campaign/33-wasm-spec.json"
 self_recensus = ".atlas/evidence/census/G97/recensus.json"
+result_commits = ["85b171270f1c7bfd261fe08a5db41920a9123287", "c2eec7e27eed5b339104a66359046d892e4703c4"]
 
 [generation.verification]
 pre_census = "clean-HEAD census of 1ec85570b7 = G96 post digest a14c705d... (80c74308b8 adds only out-of-scope evidence)"
@@ -1510,3 +1511,24 @@ proof = "PROVEN on the first run (post 9a314e77...)"
 
 [generation.next]
 objective = "G98 (P3): first-50 #34 wasm-component-model (WIT interface definitions / canonical ABI, P6)"
+
+[[generation]]
+id = "G98"
+base_commit = "c2eec7e27eed5b339104a66359046d892e4703c4"
+priority = "P3"
+serves = "P3 FIRST_50_DONOR_CAMPAIGN: donor #34 wasm-component-model to a terminal state (P6 interface boundary)"
+objective = "check whether a capability boundary exists to test the recorded owned-vs-borrowed question, keep the question alive in the contract, physically extinct the checkout"
+writer = "coordinator (sole writer)"
+evidence = ".atlas/evidence/campaign/34-wasm-component-model.json"
+self_recensus = ".atlas/evidence/census/G98/recensus.json"
+
+[generation.verification]
+pre_census = "clean-HEAD census of 85b171270f = G97 post digest 9a314e77... (c2eec7e27e adds only out-of-scope evidence)"
+falsification = "no capability boundary exists (core/src/capability is work admission; atlas.interface.*/atlas.cap.* construction is TARGET), so the recorded falsification cannot run; it is an Atlas construction-design question, not a donor-source question; Rust-derived interfaces already carry move-vs-borrow in OWNERSHIP facts"
+change = "ASIR-CONSTRUCTION-MODEL.md records the own/borrow question, its falsification and the ADAPT target vocabulary [TARGET]"
+no_code_change = "no component-model mechanism absorbed; the only in-scope census change is the pinned deleted-donor list"
+extinction = "git rm -r .atlas/temporary/donors/wasm-component-model (2.7 MB); no build, runtime or test reference"
+proof = "PROVEN on the first run (post b8f4e305...)"
+
+[generation.next]
+objective = "G99 (P3): first-50 #35 wasm-tools (wasmparser validation, P6) -- a DC1 real-donor Cargo test input: re-base that test before its extinction"

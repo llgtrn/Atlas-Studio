@@ -1219,18 +1219,19 @@ default_branch = "main"
 retrieved_at = "2026-09-22T15:51:30Z"
 license = [".atlas/licenses/donors/wasm-component-model/LICENSE", ".atlas/licenses/donors/wasm-component-model/LICENSE-APACHE"]
 technology_domains = ["interface_definition_language", "component_boundary", "canonical_abi", "type_constructors", "world_and_interface_composition"]
-ingestion_status = "CLONED"
-storage_state = "MATERIALIZED_CHECKOUT"
+ingestion_status = "EXTINCT"
+storage_state = "SOURCE_DELETED"
 materialization_mode = "SHALLOW_CHECKOUT"
 census_status = "CENSUSED"
-decision_status = "STUDY_FOR_INTERFACE_BOUNDARY_LANE"
-blocking_question = "ASIR-CONSTRUCTION-MODEL.md now reserves WIT-informed atlas.interface.* and atlas.component.* dialect namespaces, but no interface/component/capability boundary type or construction code exists. The census's key open item is whether Atlas capabilities genuinely need WIT's owned-vs-borrowed resource handle distinction (STUDY: verify the need before adopting)."
-evidence_needed = "a concrete Atlas capability-boundary case (atlas.cap.* / atlas.interface.* construction) that needs ownership transfer distinguished from a temporary loan; Concurrency.md and Binary.md stay un-deep-read unless an async contract or component wire encoding is required"
-cheapest_falsification = "when the first atlas.interface.*/atlas.cap.* construction is proposed, model it with and without an owned/borrowed split; if no case needs the loan distinction, resource handles stay REFERENCE_ONLY and only the ADAPT items (world as complete contract, record/variant/enum/flags/result shapes, namespace:package@version naming) remain"
-next_action = "prerequisite: atlas.interface.*/atlas.component.* construction work under ASIR-CONSTRUCTION-MODEL.md; owners architecture/interface-boundary, architecture/component-model (provenance target_owners); coordinator decides disposition"
+decision_status = "REFERENCE_ONLY"
+blocking_question = "resolved G98: the owned-vs-borrowed question is an Atlas construction-design decision, not a donor-source question -- no capability boundary exists to test it (core/src/capability holds work-request contracts, not resource handles; atlas.interface.*/atlas.cap.* construction is TARGET). It is recorded in ASIR-CONSTRUCTION-MODEL.md with its falsification (model the first construction with and without the split; a Rust-derived interface already carries move-vs-borrow in its OWNERSHIP facts) and the census's ADAPT shapes as target vocabulary; the WIT specification stays pinned"
+evidence_needed = "none outstanding (.atlas/evidence/campaign/34-wasm-component-model.json)"
+cheapest_falsification = "carried by ASIR-CONSTRUCTION-MODEL.md to the first atlas.interface.*/atlas.cap.* construction (G98)"
+next_action = "none: TERMINAL REFERENCE_ONLY; source physically deleted"
+implementation_status = "REFERENCE_ONLY"
 native_replacement = "architecture study only -- not adopted as a runtime dependency; see census disposition table"
 runtime_dependency_status = "NOT_ADOPTED_AS_RUNTIME_DEPENDENCY"
-evidence = [".atlas/provenance/donors/wasm-component-model.json", ".atlas/census/donors/wasm-component-model.md"]
+evidence = [".atlas/evidence/campaign/34-wasm-component-model.json", ".atlas/provenance/donors/wasm-component-model.json", ".atlas/census/donors/wasm-component-model.md"]
 
 [[donor]]
 id = "wasm-spec"

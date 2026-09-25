@@ -214,3 +214,7 @@ CENSUSED. Targeted mechanism census complete for WIT worlds/interfaces/imports-e
 (`resource`/`record`/`variant`/`result`/`flags`/`enum`), component boundary invariants, and Canonical ABI
 lift/lower/options concepts, all read from real source under `design/mvp/WIT.md`, `design/mvp/CanonicalABI.md`, and
 `design/mvp/Explainer.md`, explicitly scoped to Atlas's interface/component/capability/FFI-boundary donor gap.
+
+## G98 — terminal REFERENCE_ONLY; source extinct
+
+No capability boundary exists to test the owned-vs-borrowed question. `core/src/capability` holds work-admission contracts, and `atlas.interface.*` construction is TARGET. The question is an Atlas construction-design decision, so it moved into ASIR-CONSTRUCTION-MODEL.md together with its falsification and the ADAPT shapes as target vocabulary. A Rust-derived interface already carries move-vs-borrow in its OWNERSHIP facts. The checkout was physically deleted. Evidence: `../../evidence/campaign/34-wasm-component-model.json`.

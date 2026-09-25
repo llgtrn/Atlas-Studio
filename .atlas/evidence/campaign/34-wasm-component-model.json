@@ -1,0 +1,26 @@
+{
+ "schema": "atlas.campaign-donor-decision.v1",
+ "ordinal": 34,
+ "donor": "wasm-component-model",
+ "commit_sha": "5b724da8c634c4f2b2d2b3f6a4e9e13b4eb01596",
+ "generation": "G98",
+ "base_commit": "c2eec7e27e",
+ "hypothesis": "WIT interface definitions / canonical ABI (P6)",
+ "blocking_question": "do Atlas capabilities genuinely need WIT's owned-vs-borrowed resource handle distinction? (cheapest falsification: model the first atlas.interface.*/atlas.cap.* construction with and without the split)",
+ "measurement": {
+  "capability_boundary": "none exists: core/src/capability holds WorkRequest/WorkPrepareReport contracts (work admission), not resource handles; ASIR-CONSTRUCTION-MODEL.md reserves atlas.interface.*/atlas.component.* as TARGET with no construction code",
+  "ownership_evidence": "Atlas's OWNERSHIP dimension already observes move vs borrow at Rust boundaries (9,005 OwnershipOperation nodes in the G94 graph), so an interface derived from Rust carries the distinction in its own facts",
+  "where_the_question_lives": "an Atlas construction-design decision whose falsification needs Atlas construction traffic, not the donor source; the WIT specification stays available at the pinned commit"
+ },
+ "change": "ASIR-CONSTRUCTION-MODEL.md records the open own/borrow question, its falsification and the census's ADAPT target vocabulary (world as complete contract; record/variant/enum/flags; result<T,E> as a value; namespace:package@version naming) [TARGET]",
+ "decision": {
+  "REFERENCE_ONLY": ["world / interface composition", "type constructors", "resource handles (own/borrow)", "canonical ABI and CanonicalOptions", "lockdown-after-trap", "flattening", "async / streams / futures", "component binary encoding"]
+ },
+ "terminal_state": "REFERENCE_ONLY",
+ "extinction": {
+  "runtime_dependency": "none",
+  "build_dependency": "none",
+  "test_dependency": "none (no code or test references the checkout)",
+  "action": "git rm -r .atlas/temporary/donors/wasm-component-model"
+ }
+}

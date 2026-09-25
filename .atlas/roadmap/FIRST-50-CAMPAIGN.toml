@@ -15,19 +15,19 @@ decision = ".atlas/decisions/0024-self-recensus-proof-of-nextgen.md"
 [dashboard]
 first_50_total = 50
 historic_terminal = 3
-campaign_terminal = 29
+campaign_terminal = 30
 historically_proven = 4
 currently_censusing = 0
-deep_censused = 1
+deep_censused = 0
 absorbed = 9
-reference_only = 20
+reference_only = 21
 external_boundary = 2
 rejected = 0
 deferred = 1
-extinct = 32
-remaining = 18
-next_donor = "wasm-component-model"
-next_step = "G98 (P3): wasm-component-model (#34) -- WIT interface definitions / canonical ABI (P6)"
+extinct = 33
+remaining = 17
+next_donor = "wasm-tools"
+next_step = "G99 (P3): wasm-tools (#35) -- wasmparser validation (P6; a DC1 real-donor Cargo test input: re-base that test before extinction)"
 
 [[donor]]
 ordinal = 1
@@ -589,13 +589,15 @@ canonical_url = "https://github.com/WebAssembly/component-model.git"
 serves = "P6"
 target_capability = "interface boundaries"
 mechanism_hypothesis = "WIT interface definitions / canonical ABI"
-materialization_mode = "already materialized"
+materialization_mode = "n/a (source deleted)"
 dependency_expectation = "none"
-current_status = "CURRENTLY_PENDING"
-lifecycle = "DEEP_CENSUSED"
-terminal_state = ""
+current_status = "CAMPAIGN_PROVEN"
+lifecycle = "TERMINAL"
+terminal_state = "REFERENCE_ONLY"
 terminal_goal = "DECIDED"
-note = "census CENSUSED, decision STUDY_FOR_INTERFACE_BOUNDARY_LANE"
+completed_in = "G98"
+evidence = ".atlas/evidence/campaign/34-wasm-component-model.json"
+note = "no capability boundary exists to test owned-vs-borrowed handles; the question, its falsification and the ADAPT vocabulary move into ASIR-CONSTRUCTION-MODEL.md for the first atlas.interface.* construction; source physically deleted"
 
 [[donor]]
 ordinal = 35

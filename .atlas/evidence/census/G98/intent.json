@@ -1,0 +1,13 @@
+{
+  "objective": "P3 first-50 #34 wasm-component-model: no capability boundary exists to test owned-vs-borrowed handles; the question, its falsification and the ADAPT vocabulary move into ASIR-CONSTRUCTION-MODEL.md; REFERENCE_ONLY; checkout physically extinct; census unchanged except the pinned deleted-donor list",
+  "changed_paths": [
+    "runtime/src/donor_storage.rs"
+  ],
+  "total_changes": [
+    "+graph_edges",
+    "+graph_nodes"
+  ],
+  "entity_changes": [
+    "CHANGED runtime donor_storage/tests/repository_donor_storage_has_no_unrecorded_violation()."
+  ]
+}

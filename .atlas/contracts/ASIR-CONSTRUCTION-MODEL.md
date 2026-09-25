@@ -103,6 +103,8 @@ atlas.component.*     component composition
 atlas.ffi.*            foreign-function/external-boundary operations
 ```
 
+`atlas.interface.*` carries one open design question into construction work (G98, the component-model census; the donor source is extinct and pinned at `5b724da8c634`). Should capability handles distinguish ownership transfer from a temporary loan, as WIT's `own`/`borrow` resource handles do? Decide it when the first `atlas.interface.*`/`atlas.cap.*` construction is modeled: model it with and without the split, and adopt the split only if a case needs the loan. A Rust-derived interface already carries move-vs-borrow in its own OWNERSHIP facts. The census's ADAPT shapes are the target vocabulary: `world` as a component's complete import/export contract, `record`/`variant`/`enum`/`flags`, `result<T,E>` as a value, and `namespace:package@version` names. [TARGET]
+
 Numeric opcode encoding is explicitly deferred: `.atlas`'s physical binary wire format already interns strings/symbols (`ATLAS-BINARY-WIRE-FORMAT.md`), so a dialect-qualified name can be encoded as an interned symbol reference without needing a separately-assigned numeric opcode space at this stage. Locking numeric opcode ranges before the dialect set has evidence from real construction traffic would risk exactly the "arbitrary opcode numbers" trap this contract is instructed to avoid. [CONTRACT — naming locked; numeric encoding explicitly TARGET/deferred.]
 
 ## Relationship to the multi-AI construction fabric
