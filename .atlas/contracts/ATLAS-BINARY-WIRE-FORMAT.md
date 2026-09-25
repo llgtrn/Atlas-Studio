@@ -277,6 +277,8 @@ Readers may support noncanonical physical ordering for migration/debug artifacts
 
 SEALED publication MUST use canonical ordering, schema/version pins and integrity rules so equivalent semantic inputs have reproducible logical identities.
 
+Unknown optional fields break that reproducibility. Readers skip them for forward compatibility, so a container carrying one decodes to the same content as its canonical encoding, yet its root identity differs: the root commits to section bytes. A SEALED encoder MUST NOT emit fields its schema does not declare, and a reader verifying a SEALED root MUST reject them. Unsealed containers may carry them, and their identity is then that of their physical bytes (G84, measured against the minimum reader of ADR 0027).
+
 ## Evolution
 
 New semantic record kinds/fields use schema versions and compatibility rules. Existing field tags are never repurposed with different meaning.

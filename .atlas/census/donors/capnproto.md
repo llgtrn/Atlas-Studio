@@ -142,3 +142,16 @@ Directly relevant to any Atlas reader that must accept `.atlas`/`.atlasx` bytes 
 - The C++ reference-implementation source (`c++/src/capnp/*.c++`) was not read in detail; all encoding/canonicalization claims are sourced from the normative `doc/encoding.md`/`doc/language.md` spec text, which is Cap'n Proto's own documented contract, not independently verified against the implementation's actual behavior (no code was executed, per the hard no-execution rule).
 - No Rust binding exists in this repository (`capnproto-rust` is a separate project not donated here), so no Rust-specific implementation lessons could be drawn from this donor — the FlatBuffers and rkyv donors carry that responsibility for this batch.
 - Field-offset computation ("Field offsets are computed by the Cap'n Proto compiler. The precise algorithm is too complicated to describe here") is explicitly left unspecified by the donor's own documentation; a from-scratch Atlas implementation of an equivalent layout algorithm would need to derive it independently or study the compiler source directly, which this census did not do.
+
+## G84 — terminal REFERENCE_ONLY; source extinct
+
+The recorded question asked which checklist items the wire contracts leave unstated. It was answered by executing the comparison against the G64/G68 reader and writer. These items are stated and enforced by tests:
+- minimal varints;
+- ascending tags;
+- canonical record and directory order;
+- deterministic, byte-identical re-encoding;
+- fail-closed rejection of every corruption and every truncation.
+
+One item was unstated. The reader skips unknown optional fields for forward compatibility, so such a container decodes to the canonical content under a different root. ATLAS-BINARY-WIRE-FORMAT.md now requires SEALED encoders never to emit undeclared fields, and SEALED-verifying readers to reject them; this is enforced once the seal gate exists.
+
+Pointer and segment encoding and packing do not apply to the flat, length-delimited `.atlas` wire. The checkout was physically deleted. Evidence: `../../evidence/campaign/20-capnproto.json`.

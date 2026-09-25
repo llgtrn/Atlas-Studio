@@ -450,6 +450,7 @@ mod tests {
                 "ast-grep",
                 "blake3",
                 "buck2",
+                "capnproto",
                 "clef",
                 "datafrog",
                 "differential-dataflow",

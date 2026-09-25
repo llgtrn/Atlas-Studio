@@ -1,0 +1,28 @@
+{
+ "schema": "atlas.campaign-donor-decision.v1",
+ "ordinal": 20,
+ "donor": "capnproto",
+ "commit_sha": "7fff7b6482a19bdedb18884d13f66a1a4f5e5650",
+ "generation": "G84",
+ "base_commit": "c36416d25d",
+ "hypothesis": "canonical serialization + packed encoding for binary .atlas (P2)",
+ "blocking_question": "which items of the canonicalization / untrusted-reader checklist are not already stated by ATLAS-BINARY-WIRE-FORMAT.md and ATLASX-BINARY-WIRE-FORMAT.md?",
+ "measurement": {
+  "method": "clause-by-clause comparison against the contracts, executed against the G64/G68 reader and writer and their tests rather than on paper",
+  "byte_for_byte_canonical_form": "stated (minimal LEB128 varints, ascending field tags, canonical record and directory order, deterministic publication) and enforced: the reader rejects non-minimal, truncated, overlong and trailing varints (uvarints_are_minimal_bounded_and_exact), non-canonical record and directory order, and undeclared schema identities; the writer refuses non-canonical content; decode-then-re-encode is byte-identical (a_census_container_round_trips_exactly_and_deterministically)",
+  "unstated_item": "unknown optional fields: the reader skips them for forward compatibility (field_framing_skips_unknown_optional_fields_and_rejects_unknown_required_ones), and the root identity is the hash of the manifest, which commits to section bytes -- so a container carrying one decodes to the same content as its canonical encoding under a different root. No contract said what SEALED publication does with them",
+  "optimizations_checked_against_canonical_form": "no packing or compression exists in wire v1; the compression clause (deterministic, or identity over decoded canonical content) already covers the first one",
+  "untrusted_reader_limits": "Cap'n Proto's traversal-limit and pointer-amplification concerns are specific to pointer-based formats; .atlas records are flat and length-delimited, and every single-byte corruption and every truncation/extension is rejected (every_single_byte_corruption_is_rejected, every_truncation_and_extension_is_rejected)"
+ },
+ "decision": {
+  "contract_amendment": "ATLAS-BINARY-WIRE-FORMAT.md, canonical publication: a SEALED encoder must not emit undeclared fields and a SEALED-verifying reader must reject them; unsealed containers may carry them with physical-byte identity. Code waits for the seal gate (exit criterion E)",
+  "REFERENCE_ONLY": ["segment/pointer wire format, packing, schema compiler, RPC (the .atlas wire is flat and length-delimited; no packing in v1)"]
+ },
+ "terminal_state": "REFERENCE_ONLY",
+ "extinction": {
+  "runtime_dependency": "none",
+  "build_dependency": "none",
+  "test_dependency": "none (no code or test references the checkout; not a DC1 Cargo donor)",
+  "action": "git rm -r .atlas/temporary/donors/capnproto (509 tracked files, 12 MB)"
+ }
+}

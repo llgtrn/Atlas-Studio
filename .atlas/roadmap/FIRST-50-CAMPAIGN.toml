@@ -15,19 +15,19 @@ decision = ".atlas/decisions/0024-self-recensus-proof-of-nextgen.md"
 [dashboard]
 first_50_total = 50
 historic_terminal = 3
-campaign_terminal = 15
+campaign_terminal = 16
 historically_proven = 4
 currently_censusing = 0
-deep_censused = 6
+deep_censused = 5
 absorbed = 7
-reference_only = 9
+reference_only = 10
 external_boundary = 1
 rejected = 0
 deferred = 1
-extinct = 18
-remaining = 32
-next_donor = "capnproto"
-next_step = "G84 (P3): capnproto (#20) -- canonical serialization + packed encoding for binary .atlas (P2)"
+extinct = 19
+remaining = 31
+next_donor = "rkyv"
+next_step = "G85 (P3): rkyv (#21) -- zero-copy archived layout + validation for .atlas (P2)"
 
 [[donor]]
 ordinal = 1
@@ -351,13 +351,15 @@ canonical_url = "https://github.com/capnproto/capnproto.git"
 serves = "P2"
 target_capability = "binary .atlas encoding"
 mechanism_hypothesis = "canonical serialization + packed encoding"
-materialization_mode = "already materialized"
+materialization_mode = "n/a (source deleted)"
 dependency_expectation = "none"
-current_status = "CURRENTLY_PENDING"
-lifecycle = "DEEP_CENSUSED"
-terminal_state = ""
+current_status = "CAMPAIGN_PROVEN"
+lifecycle = "TERMINAL"
+terminal_state = "REFERENCE_ONLY"
 terminal_goal = "DECIDED"
-note = "census DEEP_CENSUSED, decision STUDY_FOR_BINARY_FORMAT_LANE"
+completed_in = "G84"
+evidence = ".atlas/evidence/campaign/20-capnproto.json"
+note = "checklist compared against the executing reader/writer: canonical form and fail-closed framing stated and enforced; the unstated item (unknown optional fields under a different root) became a SEALED-publication clause; pointer/packing machinery REFERENCE_ONLY; source physically deleted"
 
 [[donor]]
 ordinal = 21

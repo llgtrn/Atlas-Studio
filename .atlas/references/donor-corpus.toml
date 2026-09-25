@@ -1233,18 +1233,19 @@ default_branch = "master"
 retrieved_at = "2026-09-22T15:53:06Z"
 license = "MIT"
 technology_domains = ["binary_encoding", "canonical_serialization", "zero_copy_wire_format", "schema_evolution"]
-ingestion_status = "CLONED"
-storage_state = "MATERIALIZED_CHECKOUT"
+ingestion_status = "EXTINCT"
+storage_state = "SOURCE_DELETED"
 materialization_mode = "SHALLOW_CHECKOUT"
 census_status = "DEEP_CENSUSED"
-decision_status = "STUDY_FOR_BINARY_FORMAT_LANE"
-blocking_question = "this record's three-item checklist (canonical form precise enough that conforming encoders agree byte-for-byte; every format optimization checked against it first; traversal-limit and nesting-depth caps failing closed for untrusted readers) was written without citing the already-locked wire contracts: ATLAS-BINARY-WIRE-FORMAT.md already mandates ascending-tag field order, canonical ordering for SEALED publication and pre-decompression length limits, and ATLASX-BINARY-WIRE-FORMAT.md already mandates nested-record depth bounds checks. Which checklist items remain unstated?"
-evidence_needed = "a clause-by-clause comparison of the genome checklist against both wire contracts, noting that the traversal-limit amplification concern is specific to pointer-based formats while .atlas records are length-delimited"
-cheapest_falsification = "do the comparison now (documents only): items already stated leave this donor as covered-by-contract; any gap (e.g. an explicit byte-for-byte conforming-encoder requirement) becomes a contract amendment proposal or the sole ABSORB_LATER item for the first section writer"
-next_action = "coordinator runs the contract comparison; any code waits for the first .atlas section writer/reader (R8/W6); owners core/atlas-format, runtime/binary (provenance target_owners); coordinator decides disposition"
+decision_status = "REFERENCE_ONLY"
+blocking_question = "resolved G84 by executing the comparison against the G64/G68 reader: byte-for-byte canonical form, fail-closed framing and bounds are stated and enforced; the one unstated item -- unknown optional fields accepted by the reader under a different root -- became a SEALED-publication clause in ATLAS-BINARY-WIRE-FORMAT.md"
+evidence_needed = "none outstanding (.atlas/evidence/campaign/20-capnproto.json)"
+cheapest_falsification = "performed G84: clause-by-clause comparison executed against the reader, writer and their tests"
+next_action = "none: TERMINAL REFERENCE_ONLY; the SEALED unknown-field clause is enforced when the seal gate exists (exit criterion E); source physically deleted"
+implementation_status = "REFERENCE_ONLY"
 native_replacement = "architecture study only -- not adopted as a runtime dependency; see census disposition table"
 runtime_dependency_status = "STUDY_ONLY_NOT_A_DEPENDENCY"
-evidence = [".atlas/provenance/donors/capnproto.json", ".atlas/census/donors/capnproto.md", ".atlas/genome/technology/capnproto-canonicalization-and-untrusted-reader-safety.md"]
+evidence = [".atlas/evidence/campaign/20-capnproto.json", ".atlas/provenance/donors/capnproto.json", ".atlas/census/donors/capnproto.md", ".atlas/genome/technology/capnproto-canonicalization-and-untrusted-reader-safety.md"]
 
 [[donor]]
 id = "rkyv"

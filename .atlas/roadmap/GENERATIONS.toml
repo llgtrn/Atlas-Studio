@@ -1194,6 +1194,7 @@ objective = "canonical type identity through native name resolution, bottom-up, 
 writer = "coordinator (sole writer)"
 evidence = ".atlas/decisions/0034-canonical-type-identity.md"
 self_recensus = ".atlas/evidence/census/G83/recensus.json"
+result_commits = ["fbc4858f29588c460ca8aaf7954cf9103b6e16e5", "c36416d25dd1d9b9fc9355cadac84c552323ec76"]
 
 [generation.verification]
 pre_census = "clean-HEAD census of 592409a9d5 = G82 post digest d2dcfbac... (1f5fc69eb7 adds only out-of-scope evidence)"
@@ -1205,3 +1206,23 @@ proof = "PROVEN (post f6354d45...); a first PROVEN run (post c969e4d0...) preced
 
 [generation.next]
 objective = "G84 (P3): first-50 #20 capnproto"
+
+[[generation]]
+id = "G84"
+base_commit = "c36416d25dd1d9b9fc9355cadac84c552323ec76"
+priority = "P3"
+serves = "P3 FIRST_50_DONOR_CAMPAIGN: donor #20 capnproto to a terminal state (P2 wire question)"
+objective = "answer the recorded clause-by-clause question against the executing .atlas reader/writer, decide the terminal state, physically extinct the checkout"
+writer = "coordinator (sole writer)"
+evidence = ".atlas/evidence/campaign/20-capnproto.json"
+self_recensus = ".atlas/evidence/census/G84/recensus.json"
+
+[generation.verification]
+pre_census = "clean-HEAD census of fbc4858f29 = G83 post digest f6354d45... (c36416d25d adds only out-of-scope evidence)"
+falsification = "each checklist item checked against code and tests, not only text: minimal varints, ascending tags, canonical record/directory order, byte-identical re-encoding and fail-closed corruption/truncation handling are stated and enforced; pointer-amplification limits do not apply to flat length-delimited records. Unstated: the reader skips unknown optional fields (forward compatibility) while the root commits to section bytes, so equal content can carry two roots"
+change = "ATLAS-BINARY-WIRE-FORMAT.md canonical publication: SEALED encoders never emit undeclared fields and SEALED-verifying readers reject them; unsealed containers may carry them with physical-byte identity (enforced with the seal gate, exit criterion E)"
+no_code_change = "no Cap'n Proto mechanism absorbed; the only in-scope census change is the pinned deleted-donor list"
+proof = "PROVEN on the first run (post 47ccbf20...)"
+
+[generation.next]
+objective = "G85 (P3): first-50 #21 rkyv (zero-copy archived layout + validation, P2)"
