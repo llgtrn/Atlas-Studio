@@ -958,18 +958,19 @@ retrieved_at = "2026-09-21T03:00:34.9575636Z"
 staging_mode = "FULL_SOURCE_TREE"
 license = [".atlas/licenses/donors/regalloc2/LICENSE"]
 technology_domains = ["register_allocation", "compiler_backend", "machine_ir"]
-ingestion_status = "CLONED"
-storage_state = "MATERIALIZED_CHECKOUT"
+ingestion_status = "EXTINCT"
+storage_state = "SOURCE_DELETED"
 materialization_mode = "SHALLOW_CHECKOUT"
 census_status = "COARSE_CENSUSED"
-decision_status = "APPROVED_COMPILER_BINARY_LANE"
-blocking_question = "register allocation and spilling are Machine IR passes in COMPILER-IR-PIPELINE.md, for which no compiler code exists; this donor's census is an admission-stage inventory only (no algorithm or invariant classified)."
-evidence_needed = "a Machine IR stage being scheduled, and the deep census the census record requires before absorption"
-cheapest_falsification = "none available before the compiler's Machine IR stage is scheduled -- this is a genuine sequencing block, not a missing-evidence block"
-next_action = "prerequisite: compiler Machine IR stage (R8/W6) and a W6 deep census; owners compiler, runtime/binary, core/atlas-format (provenance target_owners); coordinator decides disposition"
+decision_status = "REFERENCE_ONLY"
+blocking_question = "resolved G102: no consumer -- register allocation and spilling are Machine IR passes (COMPILER-IR-PIPELINE.md), and no LIR or Machine IR code exists; a native backend adapter (Cranelift or LLVM, both EXTERNAL_BOUNDARY: G96, G100) allocates registers itself. A native Machine IR stage would evaluate the regalloc2 crate as a dependency or re-derive its SSA-based allocator then; holding the checkout serves neither"
+evidence_needed = "none outstanding (.atlas/evidence/campaign/38-regalloc2.json)"
+cheapest_falsification = "performed G102: Machine IR / register-allocation code searched (none); no Atlas test or build references the checkout"
+next_action = "none: TERMINAL REFERENCE_ONLY; source physically deleted"
+implementation_status = "REFERENCE_ONLY"
 native_replacement = "native backend register allocation and spill strategy reference"
 runtime_dependency_status = "REFERENCE_ONLY"
-evidence = [".atlas/provenance/donors/regalloc2.json", ".atlas/census/donors/regalloc2.md"]
+evidence = [".atlas/evidence/campaign/38-regalloc2.json", ".atlas/provenance/donors/regalloc2.json", ".atlas/census/donors/regalloc2.md"]
 
 [[donor]]
 id = "mold"

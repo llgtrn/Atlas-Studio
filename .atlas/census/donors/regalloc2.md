@@ -52,3 +52,7 @@ Status: COARSE_CENSUSED. This is an admission-stage inventory only. Deep census 
 ## Native Replacement
 
 native backend register allocation and spill strategy reference
+
+## G102 — terminal REFERENCE_ONLY; source extinct
+
+No LIR or Machine IR stage exists. The external native backends (G96 LLVM, G100 Cranelift) allocate registers inside their own boundary. A future native Machine IR stage would evaluate the `regalloc2` crate as a dependency, or re-derive its allocator, at that time. The checkout was physically deleted. Evidence: `../../evidence/campaign/38-regalloc2.json`.

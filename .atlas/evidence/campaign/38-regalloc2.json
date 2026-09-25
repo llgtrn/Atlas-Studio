@@ -1,0 +1,25 @@
+{
+ "schema": "atlas.campaign-donor-decision.v1",
+ "ordinal": 38,
+ "donor": "regalloc2",
+ "commit_sha": "2fe490bc9dda433f70c54f90f7633ed929f693d9",
+ "generation": "G102",
+ "base_commit": "43e8f1f8c4",
+ "hypothesis": "SSA-based allocator boundary (P6)",
+ "blocking_question": "register allocation and spilling are Machine IR passes, for which no compiler code exists; recorded as a sequencing block",
+ "measurement": {
+  "consumer": "none: core/src has no LIR or Machine IR module and no register-allocation code; no manifest names regalloc2",
+  "backend_boundary": "the external native backends (llvm-project G96, wasmtime/Cranelift G100) allocate registers inside their own boundary; only a native Atlas Machine IR stage would need an allocator, and that stage would evaluate the regalloc2 crate as a dependency or re-derive its allocator then",
+  "tests": "no Atlas test or build reads the checkout (not a DC1 Cargo test input)"
+ },
+ "decision": {
+  "REFERENCE_ONLY": ["ion backtracking allocator", "SSA input contract (Function trait, operand constraints)", "move resolution and spill slots", "fastalloc"]
+ },
+ "terminal_state": "REFERENCE_ONLY",
+ "extinction": {
+  "runtime_dependency": "none",
+  "build_dependency": "none",
+  "test_dependency": "none",
+  "action": "git rm -r .atlas/temporary/donors/regalloc2"
+ }
+}

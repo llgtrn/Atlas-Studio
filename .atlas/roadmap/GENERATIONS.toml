@@ -1588,6 +1588,7 @@ objective = "decide object against the pipeline's object stage, move its dedicat
 writer = "coordinator (sole writer)"
 evidence = ".atlas/evidence/campaign/37-object.json"
 self_recensus = ".atlas/evidence/census/G101/recensus.json"
+result_commits = ["941537e735b9917b3af8028dd86f0b93c8bed037", "43e8f1f8c4431b0d3e7ad985391b01bafe956096"]
 
 [generation.verification]
 pre_census = "clean-HEAD census of c91098e811 = G100 post digest f32ceab6... (86b157a9cf adds only out-of-scope evidence)"
@@ -1599,3 +1600,23 @@ proof = "PROVEN on the first run (post 62f1d524...)"
 
 [generation.next]
 objective = "G102 (P3): first-50 #38 regalloc2 (SSA-based allocator boundary, P6)"
+
+[[generation]]
+id = "G102"
+base_commit = "43e8f1f8c4431b0d3e7ad985391b01bafe956096"
+priority = "P3"
+serves = "P3 FIRST_50_DONOR_CAMPAIGN: donor #38 regalloc2 to a terminal state (P6 register allocation)"
+objective = "decide regalloc2 against the pipeline's Machine IR stage and the external backend boundaries, physically extinct the checkout"
+writer = "coordinator (sole writer)"
+evidence = ".atlas/evidence/campaign/38-regalloc2.json"
+self_recensus = ".atlas/evidence/census/G102/recensus.json"
+
+[generation.verification]
+pre_census = "clean-HEAD census of 941537e735 = G101 post digest 62f1d524... (43e8f1f8c4 adds only out-of-scope evidence)"
+falsification = "no LIR/Machine IR or register-allocation code exists; the external native backends (G96, G100) allocate registers inside their boundary; no test or build reads the checkout"
+no_code_change = "no regalloc2 mechanism absorbed; the only in-scope census change is the pinned deleted-donor list"
+extinction = "git rm -r .atlas/temporary/donors/regalloc2 (780 KB)"
+proof = "PROVEN on the first run (post 6d24bac4...)"
+
+[generation.next]
+objective = "G103 (P3): first-50 #39 mold (parallel ELF linker layout, P6)"

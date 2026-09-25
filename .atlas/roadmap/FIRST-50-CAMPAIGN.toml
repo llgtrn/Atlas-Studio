@@ -15,19 +15,19 @@ decision = ".atlas/decisions/0024-self-recensus-proof-of-nextgen.md"
 [dashboard]
 first_50_total = 50
 historic_terminal = 3
-campaign_terminal = 33
+campaign_terminal = 34
 historically_proven = 4
 currently_censusing = 0
 deep_censused = 0
 absorbed = 9
-reference_only = 23
+reference_only = 24
 external_boundary = 3
 rejected = 0
 deferred = 1
-extinct = 36
-remaining = 14
-next_donor = "regalloc2"
-next_step = "G102 (P3): regalloc2 (#38) -- SSA-based allocator boundary (P6)"
+extinct = 37
+remaining = 13
+next_donor = "mold"
+next_step = "G103 (P3): mold (#39) -- parallel ELF linker layout (P6)"
 
 [[donor]]
 ordinal = 1
@@ -657,13 +657,15 @@ canonical_url = "https://github.com/bytecodealliance/regalloc2.git"
 serves = "P6"
 target_capability = "register allocation"
 mechanism_hypothesis = "SSA-based allocator boundary"
-materialization_mode = "already materialized"
+materialization_mode = "n/a (source deleted)"
 dependency_expectation = "none"
-current_status = "CURRENTLY_PENDING"
-lifecycle = "COARSE_CENSUSED"
-terminal_state = ""
+current_status = "CAMPAIGN_PROVEN"
+lifecycle = "TERMINAL"
+terminal_state = "REFERENCE_ONLY"
 terminal_goal = "DECIDED"
-note = "census COARSE_CENSUSED, decision APPROVED_COMPILER_BINARY_LANE"
+completed_in = "G102"
+evidence = ".atlas/evidence/campaign/38-regalloc2.json"
+note = "no LIR or Machine IR stage exists; external backends (G96, G100) allocate registers themselves; a native stage would evaluate the crate then; source physically deleted"
 
 [[donor]]
 ordinal = 39

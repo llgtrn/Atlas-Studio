@@ -469,6 +469,7 @@ mod tests {
                 "miri",
                 "mlir",
                 "object",
+                "regalloc2",
                 "rkyv",
                 "rust",
                 "rust-analyzer",
