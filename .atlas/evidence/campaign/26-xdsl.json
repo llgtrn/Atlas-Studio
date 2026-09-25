@@ -1,0 +1,26 @@
+{
+ "schema": "atlas.campaign-donor-decision.v1",
+ "ordinal": 26,
+ "donor": "xdsl",
+ "commit_sha": "00703508e37a2b4ef06687b3bbbe4cd78c41c740",
+ "generation": "G90",
+ "base_commit": "4050e8e390",
+ "hypothesis": "IRDL-style op definitions in Python (P6)",
+ "blocking_question": "(1) the merged trait+interface dispatch default has no consumer (same trigger as mlir); (2) eager construction-time verification (xDSL) vs deferred checkpoint verification (MLIR) is an explicit fork for whoever designs ASIR verification",
+ "measurement": {
+  "fork_1": "settled by G89: neither precondition of an external-model registry holds in Atlas (a Rust trait impl attaches capabilities statically; no code loads at runtime; ACP attach_capability is data), so the merged model is ordinary Rust traits, with no registry and no TypeId map",
+  "fork_2": "settled by ASIR-CONSTRUCTION-MODEL.md (CONTRACT): an ACP transaction is a batch verified as an isolated post-transaction candidate through schema, type, semantic, architectural, security and obligation validation before 'apply transaction', and the graph is verified again at 'verify + normalize + canonicalize + seal'. Value-level checks (xDSL's attribute __post_init__ verify) are the schema/type stages, run eagerly per payload; structural checks (MLIR's OperationVerifier) run at the transaction checkpoint. States inside a transaction are never observable, so neither pure form is needed",
+  "asir_state": "ASIR is CONTRACT/TARGET; no op/attribute Rust types exist"
+ },
+ "decision": {
+  "REFERENCE_ONLY": ["IRDL (Python-native op definitions)", "Operation/Block/Region dataclasses", "properties vs attributes", "def-use Use records", "linear-scan dialect registry", "merged trait hierarchy", "pattern rewriter and GreedyRewritePatternApplier", "parser/printer split", "pyrdl <-> irdl conversion"],
+  "design_references_retained": "the census's ADAPT dispositions and xdsl-merged-trait-interface-dispatch.md hold the design lessons for the TARGET ASIR; re-derive in Rust, never copy"
+ },
+ "terminal_state": "REFERENCE_ONLY",
+ "extinction": {
+  "runtime_dependency": "none",
+  "build_dependency": "none",
+  "test_dependency": "none (no code or test references the checkout; Python, not a DC1 Cargo donor)",
+  "action": "git rm -r .atlas/temporary/donors/xdsl"
+ }
+}

@@ -1324,6 +1324,7 @@ objective = "answer the recorded external-model registry question against Rust, 
 writer = "coordinator (sole writer)"
 evidence = ".atlas/evidence/campaign/25-mlir.json"
 self_recensus = ".atlas/evidence/census/G89/recensus.json"
+result_commits = ["fb26f9d7d2b5822c831db58ac14f128008e86c55", "4050e8e3904890d87e9b7a22f32c66853bbbc3ff"]
 
 [generation.verification]
 pre_census = "clean-HEAD census of d7c1205e4a = G88 post digest 8a35d361... (91600c97ce adds only out-of-scope evidence)"
@@ -1336,3 +1337,23 @@ proof = "PROVEN on the first run (post ac173439...)"
 
 [generation.next]
 objective = "G90 (P3): first-50 #26 xdsl (IRDL-style op definitions in Python, P6)"
+
+[[generation]]
+id = "G90"
+base_commit = "4050e8e3904890d87e9b7a22f32c66853bbbc3ff"
+priority = "P3"
+serves = "P3 FIRST_50_DONOR_CAMPAIGN: donor #26 xdsl to a terminal state (P6 dialect-definition question)"
+objective = "settle both recorded forks (dispatch default; eager vs checkpoint verification) against G89 and the ASIR contract, decide the terminal state, physically extinct the checkout"
+writer = "coordinator (sole writer)"
+evidence = ".atlas/evidence/campaign/26-xdsl.json"
+self_recensus = ".atlas/evidence/census/G90/recensus.json"
+
+[generation.verification]
+pre_census = "clean-HEAD census of fb26f9d7d2 = G89 post digest ac173439... (4050e8e390 adds only out-of-scope evidence)"
+falsification = "fork 1: G89 showed no registry precondition holds, so the merged model is plain Rust traits; fork 2: ASIR-CONSTRUCTION-MODEL.md verifies each ACP transaction as an isolated post-transaction candidate before apply and again at seal -- value checks eager at the schema/type stages (xDSL), structure at the transaction checkpoint (MLIR); states inside a transaction are never observable"
+no_code_change = "no xDSL mechanism absorbed; the only in-scope census change is the pinned deleted-donor list"
+extinction = "git rm -r .atlas/temporary/donors/xdsl (18 MB); no build, runtime or test reference"
+proof = "PROVEN on the first run (post 2a26f726...)"
+
+[generation.next]
+objective = "G91 (P3): first-50 #27 iris (content-addressed semantic graph compiler, P6)"

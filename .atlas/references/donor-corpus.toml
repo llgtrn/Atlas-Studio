@@ -1149,18 +1149,19 @@ default_branch = "main"
 retrieved_at = "2026-09-22T15:50:00Z"
 license = [".atlas/licenses/donors/xdsl/LICENSE"]
 technology_domains = ["ir_design", "dialect_definition", "pattern_rewriting", "declarative_operation_definition", "parser_printer_design"]
-ingestion_status = "CLONED"
-storage_state = "MATERIALIZED_CHECKOUT"
+ingestion_status = "EXTINCT"
+storage_state = "SOURCE_DELETED"
 materialization_mode = "SHALLOW_CHECKOUT"
 census_status = "DEEP_CENSUS_ACTIVE"
-decision_status = "PENDING_COORDINATOR_REVIEW"
-blocking_question = "same trigger as mlir: no ASIR dialect/extensibility design has started, so the merged trait+interface dispatch default (Vec<Box<dyn OpTrait>> per op kind, or a small TypeId-keyed map) has no consumer. The census also leaves an explicit fork unresolved for whoever designs ASIR verification: eager construction-time attribute verification (xDSL) vs deferred checkpoint verification (MLIR)."
-evidence_needed = "ASIR dialect-registration and verification-pass design starting; declarative_assembly_format, transforms, interpreters and backend/targets remain un-censused and matter only if that design needs them"
-cheapest_falsification = "none available before ASIR dialect-registration work begins -- this is a genuine sequencing block, not a missing-evidence block"
-next_action = "prerequisite: ASIR/ACP dialect-registration implementation (compiler-IR work, R7/R8); owners core/asir, core/asir/dialect, compiler (provenance target_owners); coordinator review is still pending"
+decision_status = "REFERENCE_ONLY"
+blocking_question = "resolved G90: (1) the dispatch default needs no registry -- G89 showed neither registry precondition holds in Rust/ACP, so the merged trait model is plain Rust traits; (2) the verification fork is already settled by ASIR-CONSTRUCTION-MODEL.md (CONTRACT): every ACP transaction is verified as an isolated post-transaction candidate (schema, type, semantic, architectural, security, obligation stages) before it applies, and again at seal -- value-level checks run eagerly at the schema stage (xDSL), structural and semantic checks at the transaction checkpoint (MLIR); intermediate states inside a transaction are never observable, so neither pure form is needed"
+evidence_needed = "none outstanding (.atlas/evidence/campaign/26-xdsl.json)"
+cheapest_falsification = "performed G90: both recorded forks checked against the G89 finding and the ASIR admission pipeline"
+next_action = "none: TERMINAL REFERENCE_ONLY; source physically deleted"
+implementation_status = "REFERENCE_ONLY"
 native_replacement = "architecture study only -- not adopted as a runtime dependency; see census disposition table"
 runtime_dependency_status = "REFERENCE_ONLY"
-evidence = [".atlas/provenance/donors/xdsl.json", ".atlas/census/donors/xdsl.md", ".atlas/genome/technology/xdsl-merged-trait-interface-dispatch.md"]
+evidence = [".atlas/evidence/campaign/26-xdsl.json", ".atlas/provenance/donors/xdsl.json", ".atlas/census/donors/xdsl.md", ".atlas/genome/technology/xdsl-merged-trait-interface-dispatch.md"]
 
 [[donor]]
 id = "egglog"

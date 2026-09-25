@@ -206,3 +206,7 @@ This record does not change `xdsl`'s `census_status`; the donor's own census rem
 `DEEP_CENSUS_ACTIVE`, with this genome record added as new evidence covering its census's own
 strongest-named comparison finding, deliberately paired with the MLIR genome record to make the
 cross-donor decision rule explicit rather than leaving it implicit across two separate documents.
+
+## G90 update
+
+The campaign cycle (first-50 #26) resolved this record's open conditions. The merged model needs no registry (G89), and the verification fork is settled by the ASIR admission pipeline. The donor is REFERENCE_ONLY and its checkout is physically deleted, so `.atlas/temporary/donors/xdsl` paths above now name the pinned commit `00703508e37a2b4ef06687b3bbbe4cd78c41c740`.

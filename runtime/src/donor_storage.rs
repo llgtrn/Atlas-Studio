@@ -471,6 +471,7 @@ mod tests {
                 "souffle",
                 "sourcetrail",
                 "tree-sitter",
+                "xdsl",
                 "zstd"
             ]
         );

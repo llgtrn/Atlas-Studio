@@ -15,19 +15,19 @@ decision = ".atlas/decisions/0024-self-recensus-proof-of-nextgen.md"
 [dashboard]
 first_50_total = 50
 historic_terminal = 3
-campaign_terminal = 21
+campaign_terminal = 22
 historically_proven = 4
 currently_censusing = 0
 deep_censused = 3
 absorbed = 8
-reference_only = 14
+reference_only = 15
 external_boundary = 1
 rejected = 0
 deferred = 1
-extinct = 24
-remaining = 26
-next_donor = "xdsl"
-next_step = "G90 (P3): xdsl (#26) -- IRDL-style op definitions in Python (P6)"
+extinct = 25
+remaining = 25
+next_donor = "iris"
+next_step = "G91 (P3): iris (#27) -- content-addressed semantic graph compiler (P6)"
 
 [[donor]]
 ordinal = 1
@@ -453,13 +453,15 @@ canonical_url = "https://github.com/xdslproject/xdsl.git"
 serves = "P6"
 target_capability = "declarative IR definitions"
 mechanism_hypothesis = "IRDL-style op definitions in Python"
-materialization_mode = "already materialized"
+materialization_mode = "n/a (source deleted)"
 dependency_expectation = "none"
-current_status = "CURRENTLY_PENDING"
-lifecycle = "COARSE_CENSUSED"
-terminal_state = ""
+current_status = "CAMPAIGN_PROVEN"
+lifecycle = "TERMINAL"
+terminal_state = "REFERENCE_ONLY"
 terminal_goal = "DECIDED"
-note = "census DEEP_CENSUS_ACTIVE, decision PENDING_COORDINATOR_REVIEW"
+completed_in = "G90"
+evidence = ".atlas/evidence/campaign/26-xdsl.json"
+note = "the merged dispatch default is plain Rust traits (no registry, G89); the eager-vs-checkpoint verification fork is settled by the ASIR admission pipeline (value checks eager at the schema stage, structure at the transaction checkpoint and at seal); source physically deleted"
 
 [[donor]]
 ordinal = 27

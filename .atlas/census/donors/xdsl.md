@@ -145,3 +145,12 @@ Operation-level verification in xDSL is a method the generated `IRDLOperation` m
 - Did not read `xdsl/irdl/declarative_assembly_format.py`/`declarative_assembly_format_parser.py` (xDSL's declarative custom-assembly-syntax mechanism, an MLIR-ODS-assembly-format analog) beyond noting their existence — this is a real gap since custom textual syntax declaration is closely related to ODS/IRDL and was called out as in-scope territory; flagged for a follow-up pass, not covered above.
 - Did not run or execute any xDSL code (including its own test suite) — per the donor-workbench isolation contract, this census is 100% static reading.
 - `xdsl/irdl/constraints.py` and `xdsl/irdl/attributes.py` (the actual `AttrConstraint`/`RangeConstraint` implementations underlying IRDL's type-constraint expressiveness) were referenced via imports but not read in depth — only their role, not their internals, is characterized above.
+
+## G90 — terminal REFERENCE_ONLY; source extinct
+
+Both recorded forks are settled.
+
+- **Dispatch default.** G89 showed neither registry precondition holds in Atlas, so the merged trait model is ordinary Rust traits, with no registry.
+- **Verification timing.** The ASIR admission pipeline (ASIR-CONSTRUCTION-MODEL.md, CONTRACT) verifies every ACP transaction as an isolated post-transaction candidate before it applies, and again at seal. Value-level checks (xDSL's attribute self-verification) are its schema and type stages, run eagerly per payload. Structural checks (MLIR's verifier walk) run at the transaction checkpoint. States inside a transaction are never observable.
+
+The ADAPT dispositions above remain design references for the TARGET ASIR. The checkout was physically deleted. Evidence: `../../evidence/campaign/26-xdsl.json`.
