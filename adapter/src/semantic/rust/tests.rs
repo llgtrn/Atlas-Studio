@@ -6599,3 +6599,100 @@ fn identities_are_scoped_to_their_source_artifact() {
         .collect();
     assert_eq!(embedded, ["core/src/visual/mod.rs"]);
 }
+
+// --- G74 CALL site identity: every call of a chain is its own call site ------------------------------
+// A call site was anchored at its expression's first token, which every call of a chain shares
+// (`a.b().c()` and `a.b()` both start at `a`), so a chain collapsed into one CALL record and the
+// rest were silently erased (3,888 of this repository's 18,035 syntactic call sites). The anchor is
+// now the callee-name token, or the argument list's `(` for a callee that is not a path.
+
+#[test]
+fn every_call_of_a_chain_is_its_own_call_site_anchored_at_the_callee_name() {
+    const CORPUS: &str = "pub fn chains(a: A) {\n    a.b().c().d();\n    Foo::new().bar();\n    make()();\n    (a.f)(1);\n}\n";
+    let batch = extract_all("src/lib.rs", CORPUS);
+    let caller = find_function_identity(&batch, &[], "chains").unwrap();
+    let mut anchors: Vec<(usize, usize)> = calls_by_caller(&batch, caller)
+        .iter()
+        .map(|call| (call.span.line, call.span.column))
+        .collect();
+    anchors.sort_unstable();
+    assert_eq!(
+        anchors,
+        [
+            (2, 6),  // .b
+            (2, 10), // .c
+            (2, 14), // .d
+            (3, 9),  // Foo::new
+            (3, 15), // .bar
+            (4, 4),  // make
+            (4, 10), // make()(): not a path callee, anchored at its own `(`
+            (5, 9),  // (a.f)(1)
+        ]
+    );
+}
+
+/// An enumeration of call sites independent of the extractor's hand-written walker: `syn::visit`
+/// reaches every expression, and this visitor applies only the CALL profile's documented
+/// exclusions (closure and `async` bodies are deferred executable regions; `const`/`static`
+/// initializers have no calling function; macro arguments are opaque tokens to both).
+#[derive(Default)]
+struct IndependentCallSites(Vec<(usize, usize)>);
+
+impl<'ast> syn::visit::Visit<'ast> for IndependentCallSites {
+    fn visit_expr_call(&mut self, call: &'ast syn::ExprCall) {
+        let anchor = match &*call.func {
+            syn::Expr::Path(path) => path.path.segments.last().unwrap().ident.span(),
+            _ => call.paren_token.span.open(),
+        };
+        self.0.push((anchor.start().line, anchor.start().column));
+        syn::visit::visit_expr_call(self, call);
+    }
+    fn visit_expr_method_call(&mut self, call: &'ast syn::ExprMethodCall) {
+        let anchor = call.method.span().start();
+        self.0.push((anchor.line, anchor.column));
+        syn::visit::visit_expr_method_call(self, call);
+    }
+    fn visit_expr_closure(&mut self, _: &'ast syn::ExprClosure) {}
+    fn visit_expr_async(&mut self, _: &'ast syn::ExprAsync) {}
+    fn visit_item_const(&mut self, _: &'ast syn::ItemConst) {}
+    fn visit_item_static(&mut self, _: &'ast syn::ItemStatic) {}
+    fn visit_impl_item_const(&mut self, _: &'ast syn::ImplItemConst) {}
+    fn visit_trait_item_const(&mut self, _: &'ast syn::TraitItemConst) {}
+}
+
+#[test]
+fn call_sites_equal_an_independent_syntax_enumeration_on_real_sources() {
+    for (path, source) in [
+        ("adapter/src/semantic/rust/mod.rs", include_str!("mod.rs")),
+        ("adapter/src/semantic/rust/cfg.rs", include_str!("cfg.rs")),
+        (
+            "adapter/src/semantic/rust/dataflow.rs",
+            include_str!("dataflow.rs"),
+        ),
+        (
+            "adapter/src/semantic/rust/tests.rs",
+            include_str!("tests.rs"),
+        ),
+    ] {
+        let mut expected = IndependentCallSites::default();
+        syn::visit::Visit::visit_file(&mut expected, &syn::parse_file(source).unwrap());
+        let mut expected = expected.0;
+        expected.sort_unstable();
+        let total = expected.len();
+        expected.dedup();
+        assert_eq!(
+            expected.len(),
+            total,
+            "{path}: two call sites share an anchor"
+        );
+
+        let batch = extract("src/lib.rs", source, vec![SemanticDimension::Call]);
+        let mut observed: Vec<(usize, usize)> = all_calls(&batch)
+            .iter()
+            .map(|call| (call.span.line, call.span.column))
+            .collect();
+        observed.sort_unstable();
+        assert!(total > 100, "{path}: {total}");
+        assert_eq!(observed, expected, "{path}");
+    }
+}

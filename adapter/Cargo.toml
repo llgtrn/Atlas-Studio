@@ -32,3 +32,7 @@ atlas_core = { package = "core", path = "../core" }
 # of `[dependencies]` so `census_cargo_workspace` itself cannot reach it, matching the "ingestion is
 # not execution" security boundary this oracle deliberately sits outside of.
 serde_json = { workspace = true }
+# Verification-only: `syn::visit` walks every expression independently of the extractor's own
+# hand-written walker, the differential oracle for CALL site completeness (G74, `rust/tests.rs`).
+# Resolver 2 keeps this feature out of every production build.
+syn = { version = "3.0.6", features = ["full", "visit"] }

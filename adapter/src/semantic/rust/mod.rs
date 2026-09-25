@@ -146,6 +146,33 @@ fn dimension_coverage(dimension: SemanticDimension) -> DimensionCoverage {
     }
 }
 
+/// The token a call site is anchored at (its `CallSiteIdentity.span`): the callee's name -- a
+/// method call's method identifier, a path call's last path segment -- or, for a callee that is
+/// not a path (`(self.f)(x)`, `make()()`), the argument list's opening parenthesis. Each of these
+/// tokens belongs to exactly one call expression, so two call sites of one function can never
+/// share an identity. The expression's start cannot serve: every call of a chain
+/// (`a.b().c()`, `Foo::new().bar()`) starts at the same token, and anchoring there collapsed a
+/// chain into one CALL record, silently erasing the others (measured G74: 3,888 of 18,035
+/// syntactic call sites of this repository). The name token is also where a compiler-grade index
+/// (SCIP, LSIF) anchors the reference to the callee, so an independent engine observing the same
+/// call names the same claim.
+fn call_anchor(call_like: &syn::Expr) -> proc_macro2::Span {
+    match call_like {
+        syn::Expr::MethodCall(method_call) => method_call.method.span(),
+        syn::Expr::Call(call) => match &*call.func {
+            syn::Expr::Path(path) => path.path.segments.last().map_or_else(
+                || call.paren_token.span.open(),
+                |segment| segment.ident.span(),
+            ),
+            _ => call.paren_token.span.open(),
+        },
+        other => unreachable!(
+            "call_anchor called with a non-call expression: {:?}",
+            std::mem::discriminant(other)
+        ),
+    }
+}
+
 #[derive(Debug, Default)]
 pub struct RustSemanticExtractor;
 
@@ -548,7 +575,11 @@ impl<'a> ExtractionContext<'a> {
     }
 
     fn span_of<T: Spanned>(&self, node: &T) -> atlas_core::SourceSpan {
-        let start = node.span().start();
+        self.span_at(node.span())
+    }
+
+    fn span_at(&self, span: proc_macro2::Span) -> atlas_core::SourceSpan {
+        let start = span.start();
         atlas_core::SourceSpan {
             path: self.input.artifact_path.clone(),
             line: start.line,
@@ -892,7 +923,7 @@ impl<'a> ExtractionContext<'a> {
     ) {
         match call_like {
             syn::Expr::Call(call) => {
-                let span = self.span_of(call);
+                let span = self.span_at(call_anchor(call_like));
                 let summary = spelling::call_callee_spelling(&call.func);
                 let arguments = call
                     .args
@@ -906,7 +937,7 @@ impl<'a> ExtractionContext<'a> {
                 }
             }
             syn::Expr::MethodCall(method_call) => {
-                let span = self.span_of(method_call);
+                let span = self.span_at(call_anchor(call_like));
                 let summary = format!(".{}", method_call.method);
                 let arguments = method_call
                     .args

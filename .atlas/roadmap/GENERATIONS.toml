@@ -984,6 +984,7 @@ objective = "measure compiler-grade resolution against Atlas's CALL coverage, de
 writer = "coordinator (sole writer)"
 evidence = ".atlas/evidence/campaign/14-rust.json"
 self_recensus = ".atlas/evidence/census/G73/recensus.json"
+result_commits = ["25c6b907a8669131744841ad3e3b018f8fef8bfa", "ecbb3d8f14ede4a9b0973783e7a004a5f8cb6d3b"]
 
 [generation.verification]
 pre_census = "clean-HEAD census of 36191e45d0 = G72 post digest a00c50bb... (e7f1b2ee76 adds only out-of-scope evidence)"
@@ -993,3 +994,25 @@ proof = "PROVEN on the first run (post fb6583ea...)"
 
 [generation.next]
 objective = "G74 (P0): import the rust-analyzer SCIP oracle into the census -- resolve CALL records to function descriptors as a second independent engine with a pinned tool identity, a content-keyed cache and an absent tool recorded as an absent engine"
+
+[[generation]]
+id = "G74"
+base_commit = "ecbb3d8f14ede4a9b0973783e7a004a5f8cb6d3b"
+priority = "P0"
+serves = "P0 CENSUS_KERNEL_CLOSURE: CALL site identity (the prerequisite for any callee resolution or second CALL engine)"
+objective = "anchor every CALL site at a token that belongs to exactly one call expression, so no call is erased by an identity collision"
+writer = "coordinator (sole writer)"
+evidence = ".atlas/evidence/census/G74/recensus.json"
+self_recensus = ".atlas/evidence/census/G74/recensus.json"
+
+[generation.verification]
+pre_census = "clean-HEAD census of 25c6b907a8 = G73 post digest fb6583ea... (ecbb3d8f14 adds only out-of-scope evidence)"
+falsification = "the planned G74 (SCIP oracle as a census engine) was measured first: joining the oracle to CALL records at exact positions showed 18,035 syntactic call sites but only 14,147 distinct expression-start positions -- a chain (a.b().c(), Foo::new().bar()) shares its first token, so its calls shared one identity_key and all but one were silently dropped (3,888 calls, 22%); a further 1,476 sit in closure/async bodies (documented profile exclusion) and 38 in a const initializer (no caller). An oracle engine could not name the same claim as the native extractor while the anchor was ambiguous, and CI's pinned toolchain has no rust-analyzer (rust-toolchain.toml components: rustfmt, clippy), so an oracle-backed census would differ by environment"
+change = "CallSiteIdentity.span is the callee-name token (method identifier / last path segment) or the argument list's '(' for a non-path callee; SEMANTIC-FACTS CallFact states the anchor"
+result = "CALL records 12,671 -> 16,072, equal to an independent syn::visit enumeration of the 16,110 profile call sites minus the 38 const-initializer calls; in the 82 unedited artifacts the only change is +2,761 CALL records (content digests identical, no record decreased, every other dimension unchanged)"
+mutation_battery = "8/8 killed: expression-start anchor (call, method), func-start anchor for non-path callee, first path segment, paren-only anchor, recursion into closures, skipped receiver walk, skipped callee walk"
+proof = "PROVEN on the first run (post e25aea9a...)"
+deferred = ["calls in const/static initializers have no caller identity (38, core/src/atlas/schema.rs)", "closure/async bodies need an executable-region identity before their calls can be attributed"]
+
+[generation.next]
+objective = "G75 (P0, rust-analyzer #4): absorb hir-def's name-resolution core natively -- module tree, items and use-imports (globs included) to a fixed point, then resolve path calls to workspace function descriptors; the pinned rust-analyzer SCIP output is the differential verification oracle, never a census input"

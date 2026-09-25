@@ -53,6 +53,11 @@ pub struct CallSiteIdentity {
     pub revision: RevisionRef,
     /// The CALLER: the `FunctionIdentity` record_id of the function this call site is inside.
     pub function: SemanticRecordId,
+    /// The call's anchor token: the callee's name (a method call's method identifier, a path
+    /// call's last path segment), or the argument list's opening parenthesis when the callee is
+    /// not a path. Each token belongs to exactly one call expression, so the calls of a chain
+    /// (`a.b().c()`, which all START at `a`) stay distinct call sites (G74), and an independent
+    /// engine that anchors references at the name (SCIP, LSIF) names the same claim.
     pub span: SourceSpan,
     pub dispatch: CallDispatchKind,
     /// Candidate/resolved callee `FunctionIdentity` record_ids. Empty whenever `dispatch ==

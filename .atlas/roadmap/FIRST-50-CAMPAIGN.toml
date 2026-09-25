@@ -27,7 +27,7 @@ deferred = 0
 extinct = 12
 remaining = 38
 next_donor = "miri"
-next_step = "G74 (P0) first: integrate the rust-analyzer SCIP oracle (CALL resolution + second engine); then miri (#15)"
+next_step = "G75 (P0): rust-analyzer #4 name resolution absorbed natively for path calls (SCIP output as differential oracle); then miri (#15)"
 
 [[donor]]
 ordinal = 1
@@ -255,7 +255,7 @@ terminal_state = "EXTERNAL_BOUNDARY"
 terminal_goal = "EXTERNAL_BOUNDARY (oracle) + REFERENCE_ONLY"
 completed_in = "G73"
 evidence = ".atlas/evidence/campaign/14-rust.json"
-note = "Atlas resolves 0 of 12,671 calls; pinned rust-analyzer (SCIP) resolves ~89%: EXTERNAL_BOUNDARY oracle, integrated in G74; rustc internals REFERENCE_ONLY; source physically deleted"
+note = "Atlas resolves 0 of 12,671 calls; pinned rust-analyzer (SCIP) resolves ~89%: EXTERNAL_BOUNDARY oracle (verification oracle of native resolution, not a census input: CI has no rust-analyzer); rustc internals REFERENCE_ONLY; source physically deleted"
 
 [[donor]]
 ordinal = 15
