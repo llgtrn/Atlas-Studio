@@ -1,0 +1,35 @@
+{
+ "schema": "atlas.campaign-donor-decision.v1",
+ "ordinal": 45,
+ "donor": "in-toto",
+ "canonical_url": "https://github.com/in-toto/in-toto.git",
+ "verified_head": "e352b43ad7cb8915d84c36d791aa61346152a0a3",
+ "generation": "G109",
+ "base_commit": "bcd21f45c4",
+ "hypothesis": "layout/link attestation of construction steps (P5)",
+ "source_read": {
+  "document": "https://raw.githubusercontent.com/in-toto/docs/master/in-toto-spec.md",
+  "sha256": "dc5cdd7086397efd402262ee966035d9ff0854f777dfa3b925e635c179898340",
+  "mode": "transient scratch fetch, deleted after reading; the donor was never admitted to the working set",
+  "cited": "§4.3.3.2 MATCH rule behavior: 'used to tie different steps together, by means of their materials and products ... force products to match with products of previous steps'"
+ },
+ "measurement": {
+  "atlas_chain": "each generation is a step: materials = pre.json, product = post.json; generation_ledger_self_recensus_chain already matched materials (pre == previous post)",
+  "gap": "the product was never matched against the committed tree: the clean-HEAD atlas.json (an inspection re-deriving the product) was recorded but unchecked",
+  "data": "44 of 44 generations with atlas.json match their post-change census; G57-G63 and G65 predate atlas pack evidence"
+ },
+ "absorbed_mechanism": {
+  "name": "generation-product-match",
+  "native_owner": "runtime tests::generation_ledger_self_recensus_chain",
+  "rule": "atlas.json census_digest == post.json census_digest for every generation with evidence; atlas.json required for all but G57-G63, G65 and the newest generation",
+  "verification": "tampered G100 digest fails; removed G90 atlas.json fails; restored"
+ },
+ "decision": {
+  "ABSORBED": ["MATCH rule on step products (generation-product-match)"],
+  "REFERENCE_ONLY": ["layouts and sublayouts", "signed link metadata", "functionary keys and thresholds", "inspections as commands", "DISALLOW/REQUIRE/CREATE/DELETE artifact rules"]
+ },
+ "terminal_state": "ABSORBED",
+ "extinction": {
+  "action": "none: never materialized; the scratch fetch was deleted; the frontier keeps in-toto CANDIDATE / CONSUMER_GATED"
+ }
+}

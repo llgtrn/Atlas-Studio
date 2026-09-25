@@ -1736,6 +1736,7 @@ objective = "decide the consumer-gated z3 without admitting it, and let the camp
 writer = "coordinator (sole writer)"
 evidence = ".atlas/evidence/campaign/44-z3.json"
 self_recensus = ".atlas/evidence/census/G108/recensus.json"
+result_commits = ["307e474c0e927e9155dd1a976f1f8269b5eedf65", "bcd21f45c4227263f0014b2f8da5f083263067d1"]
 
 [generation.verification]
 pre_census = "clean-HEAD census of 9ee10e9051 = G107 post digest 3e27884e... (478803367b adds only out-of-scope evidence)"
@@ -1748,3 +1749,25 @@ proof = "PROVEN on the first run (post 9e9b1c7e...)"
 
 [generation.next]
 objective = "G109 (P3): first-50 #45 in-toto (layout/link attestation of construction steps, P5)"
+
+[[generation]]
+id = "G109"
+base_commit = "bcd21f45c4227263f0014b2f8da5f083263067d1"
+priority = "P3"
+serves = "P3 FIRST_50_DONOR_CAMPAIGN: donor #45 in-toto to a terminal state; P1 SELF_RECENSUS: the generation chain's product rule"
+objective = "test in-toto's step-attestation mechanisms against Atlas's own construction chain and absorb the smallest missing one"
+writer = "coordinator (sole writer)"
+evidence = ".atlas/decisions/0037-generation-product-match.md"
+self_recensus = ".atlas/evidence/census/G109/recensus.json"
+
+[generation.verification]
+pre_census = "clean-HEAD census of 307e474c0e = G108 post digest 9e9b1c7e... (bcd21f45c4 adds only out-of-scope evidence)"
+falsification = "the chain test already matched materials (pre == previous post) but never matched a generation's product (post.json) against the committed tree's census (clean-HEAD atlas.json, an inspection); all 44 generations with atlas.json match, so the property held unenforced"
+change = "generation_ledger_self_recensus_chain requires atlas.json census_digest == post.json census_digest, and atlas.json for every generation except G57-G63, G65 and the newest"
+mutation_battery = "2/2 killed (tampered G100 committed digest; removed G90 atlas.json)"
+decision = "ABSORBED generation-product-match (in-toto spec section 4.3.3.2, read from a transient scratch fetch pinned by sha256; never admitted); layouts, signed links and functionary keys REFERENCE_ONLY"
+extinction = "none: never materialized; the scratch copy was deleted"
+proof = "PROVEN on the first run (post 05977220...)"
+
+[generation.next]
+objective = "G110 (P3): first-50 #46 git (object model / pack representation for census storage identity, P5) -- the tracked unadmitted git checkout stays BLOCKED_ON_USER"

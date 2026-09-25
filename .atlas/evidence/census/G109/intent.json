@@ -1,0 +1,16 @@
+{
+  "objective": "P3 first-50 #45 in-toto: ABSORBED the MATCH rule on products into the self-recensus chain (a generation's proven post-change census must equal its committed tree's census, recorded by clean-HEAD atlas.json); never admitted",
+  "changed_paths": [
+    "runtime/src/lib.rs"
+  ],
+  "total_changes": [
+    "+docs",
+    "+evidence",
+    "+graph_edges",
+    "+graph_nodes",
+    "+typed_records"
+  ],
+  "entity_changes": [
+    "CHANGED runtime tests/donor_corpus_integrity/generation_ledger_self_recensus_chain()."
+  ]
+}

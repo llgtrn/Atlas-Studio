@@ -1,0 +1,100 @@
+{
+  "schema": "atlas.self-recensus-report.v1",
+  "generation": "G109",
+  "base_revision": "478803367b8aa412fb8c3eff5de06f75edf64607",
+  "candidate_revision": "bcd21f45c4227263f0014b2f8da5f083263067d1",
+  "candidate_dirty": true,
+  "before_census_digest": "blake3-256:9e9b1c7e7f19881feb924c51f1898243e26d815ac2e25ffbecd2afe00ecd19cf",
+  "after_census_digest": "blake3-256:05977220efa1feb8e9bca4195cacc9b795557b6371997f2314bccaf055aa0092",
+  "replay_digest": "blake3-256:05977220efa1feb8e9bca4195cacc9b795557b6371997f2314bccaf055aa0092",
+  "inventory_delta": {
+    "created": [],
+    "modified": [
+      "runtime/src/lib.rs"
+    ],
+    "deleted": []
+  },
+  "semantic_delta": {
+    "changed": [
+      "runtime/src/lib.rs"
+    ],
+    "counts": {
+      "record:CALL|OBSERVED": 12,
+      "record:CONTROL_FLOW|OBSERVED": 4,
+      "record:DATA_FLOW|OBSERVED": 14,
+      "record:EFFECT|DERIVED": 1,
+      "record:EFFECT|INFERRED": 1,
+      "record:OWNERSHIP|OBSERVED": 3
+    }
+  },
+  "dependency_delta": {
+    "added": [],
+    "removed": []
+  },
+  "dependency_state": [
+    "Closed",
+    "Closed"
+  ],
+  "graph_delta": {
+    "graph_edges": 61,
+    "graph_nodes": 43
+  },
+  "obligation_delta": {},
+  "adl_delta": {
+    "added": [],
+    "removed": []
+  },
+  "entity_delta": [
+    {
+      "kind": "CHANGED",
+      "before": [
+        "runtime tests/donor_corpus_integrity/generation_ledger_self_recensus_chain()."
+      ],
+      "after": [
+        "runtime tests/donor_corpus_integrity/generation_ledger_self_recensus_chain()."
+      ],
+      "evidence": "body"
+    }
+  ],
+  "coverage_delta": [],
+  "unknown_delta": {
+    "increased": [],
+    "decreased": [],
+    "total_before": 1295,
+    "total_after": 1295
+  },
+  "intent": {
+    "objective": "P3 first-50 #45 in-toto: ABSORBED the MATCH rule on products into the self-recensus chain (a generation's proven post-change census must equal its committed tree's census, recorded by clean-HEAD atlas.json); never admitted",
+    "changed_paths": [
+      "runtime/src/lib.rs"
+    ],
+    "total_changes": [
+      "+docs",
+      "+evidence",
+      "+graph_edges",
+      "+graph_nodes",
+      "+typed_records"
+    ],
+    "dependency_changes": [],
+    "adl_changes": [],
+    "coverage_changes": [],
+    "explained_unknowns": [],
+    "accepted_unexpected": [],
+    "entity_changes": [
+      "CHANGED runtime tests/donor_corpus_integrity/generation_ledger_self_recensus_chain()."
+    ]
+  },
+  "intended_changes": [
+    "path runtime/src/lib.rs",
+    "total +docs",
+    "total +evidence",
+    "total +graph_edges",
+    "total +graph_nodes",
+    "total +typed_records",
+    "entity CHANGED runtime tests/donor_corpus_integrity/generation_ledger_self_recensus_chain()."
+  ],
+  "intended_but_unobserved": [],
+  "unexpected_changes": [],
+  "regressions": [],
+  "verdict": "PROVEN"
+}

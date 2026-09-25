@@ -15,19 +15,19 @@ decision = ".atlas/decisions/0024-self-recensus-proof-of-nextgen.md"
 [dashboard]
 first_50_total = 50
 historic_terminal = 3
-campaign_terminal = 40
+campaign_terminal = 41
 historically_proven = 4
 currently_censusing = 0
 deep_censused = 0
-absorbed = 9
+absorbed = 10
 reference_only = 25
 external_boundary = 8
 rejected = 0
 deferred = 1
 extinct = 42
-remaining = 7
-next_donor = "in-toto"
-next_step = "G109 (P3): in-toto (#45) -- layout/link attestation of construction steps (P5)"
+remaining = 6
+next_donor = "git"
+next_step = "G110 (P3): git (#46) -- object model / pack representation for census storage identity (P5); the tracked unadmitted git checkout stays BLOCKED_ON_USER"
 
 [[donor]]
 ordinal = 1
@@ -776,13 +776,15 @@ canonical_url = "https://github.com/in-toto/in-toto.git"
 serves = "P5"
 target_capability = "supply-chain provenance"
 mechanism_hypothesis = "layout/link attestation of construction steps"
-materialization_mode = "FETCHED_FILE_SET (spec, in_toto/models)"
+materialization_mode = "never materialized (the published specification read from a transient scratch fetch, sha256 recorded)"
 dependency_expectation = "none"
-current_status = "CURRENTLY_PENDING"
-lifecycle = "QUEUED"
-terminal_state = ""
+current_status = "CAMPAIGN_PROVEN"
+lifecycle = "TERMINAL"
+terminal_state = "ABSORBED"
 terminal_goal = "DECIDED"
-note = "remote-discovered only (RECOMMENDED-OSS-FRONTIER.toml); not admitted"
+completed_in = "G109"
+evidence = ".atlas/evidence/campaign/45-in-toto.json"
+note = "the MATCH rule on products absorbed into the self-recensus chain: a generation's proven post-change census must equal the committed tree's census (its clean-HEAD atlas.json inspection), 44/44 generations with evidence match; layouts, signed link metadata and functionary keys REFERENCE_ONLY; never admitted"
 
 [[donor]]
 ordinal = 46

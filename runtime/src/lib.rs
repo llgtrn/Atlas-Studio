@@ -1604,9 +1604,10 @@ mod tests {
                                 "{repository}: corpus decision differs"
                             );
                         }
-                        // Decided at the consumer gate (G108): a donor with no consumer is never
-                        // admitted, so there is no corpus record and no source to extinguish --
-                        // allowed only while the frontier still records it as never admitted.
+                        // Decided without admission (G108): a donor settled at the consumer gate,
+                        // or whose mechanism was absorbed from its published specification alone
+                        // (G109), has no corpus record and no source to extinguish -- allowed only
+                        // while the frontier still records it as never admitted.
                         None => {
                             let url = url.to_ascii_lowercase();
                             let record = frontier
@@ -1722,6 +1723,7 @@ mod tests {
                 })
             };
             let mut previous_post: Option<(String, String)> = None;
+            let mut without_committed_census = Vec::new();
             let mut proven = 0;
             for block in text.split("\n[[generation]]").skip(1) {
                 let id = field(block, "id").expect("generation id");
@@ -1785,10 +1787,37 @@ mod tests {
                         "{id}: pre-change census must equal {previous_id}'s post-change census"
                     );
                 }
+                // in-toto's MATCH rule on products (G109): the post-change census a generation
+                // proves must be the census of the tree it committed, which the clean-HEAD
+                // `atlas pack` evidence (`atlas.json`) records -- an inspection re-deriving the
+                // step's product. The newest generation's evidence lands in the commit after it.
+                let committed = root.join(dir.join("atlas.json"));
+                if committed.is_file() {
+                    let atlas: serde_json::Value =
+                        serde_json::from_str(&std::fs::read_to_string(&committed).unwrap())
+                            .unwrap_or_else(|e| panic!("{id}: atlas.json: {e}"));
+                    assert_eq!(
+                        atlas["census_digest"].as_str(),
+                        Some(post.census_digest.as_str()),
+                        "{id}: the committed tree's census differs from the proven post-change census"
+                    );
+                } else {
+                    without_committed_census.push(id.clone());
+                }
                 previous_post = Some((id.clone(), post.census_digest.clone()));
                 proven += 1;
             }
             assert!(proven >= 1, "no self-recensus-proven generation recorded");
+            // Generations before `atlas pack` existed (G57-G63) and G65 recorded no clean-HEAD
+            // container; any other gap is a missing inspection.
+            let newest = previous_post.map(|(id, _)| id).unwrap_or_default();
+            let before_pack = ["G57", "G58", "G59", "G60", "G61", "G62", "G63", "G65"];
+            for id in &without_committed_census {
+                assert!(
+                    *id == newest || before_pack.contains(&id.as_str()),
+                    "{id}: no clean-HEAD atlas.json evidence of the committed census"
+                );
+            }
         }
 
         /// `.atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml` (G53) is the repo-exact OSS frontier:
