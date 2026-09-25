@@ -794,14 +794,16 @@ retrieved_at = "2026-09-21T03:00:34.9575636Z"
 staging_mode = "FULL_SOURCE_TREE"
 license = [".atlas/licenses/donors/rust/COPYRIGHT", ".atlas/licenses/donors/rust/LICENSE-APACHE", ".atlas/licenses/donors/rust/license-metadata.json", ".atlas/licenses/donors/rust/LICENSE-MIT"]
 technology_domains = ["compiler", "borrow_checker", "codegen", "standard_toolchain"]
-ingestion_status = "CLONED"
-storage_state = "MATERIALIZED_CHECKOUT"
+ingestion_status = "EXTINCT"
+storage_state = "SOURCE_DELETED"
 materialization_mode = "SHALLOW_CHECKOUT"
-census_status = "COARSE_CENSUSED"
-decision_status = "APPROVED_COMPILER_BINARY_LANE"
+census_status = "DEEP_CENSUSED"
+decision_status = "EXTERNAL_BOUNDARY"
 native_replacement = "compiler roadmap rust parity oracle and AtlasX bootstrap reference"
-runtime_dependency_status = "REFERENCE_ONLY"
-evidence = [".atlas/provenance/donors/rust.json", ".atlas/census/donors/rust.md"]
+runtime_dependency_status = "EXTERNAL_BOUNDARY_ORACLE"
+blocking_question = "resolved G73: Atlas resolves 0 of 12,671 call sites; the pinned toolchain rust-analyzer resolves ~89% (SCIP); compiler-grade resolution is an oracle boundary, integrated in G74"
+implementation_status = "EXTERNAL_BOUNDARY_ORACLE"
+evidence = [".atlas/evidence/campaign/14-rust.json", ".atlas/provenance/donors/rust.json", ".atlas/census/donors/rust.md"]
 
 [[donor]]
 id = "flatbuffers"

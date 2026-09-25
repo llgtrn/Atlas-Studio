@@ -15,19 +15,19 @@ decision = ".atlas/decisions/0024-self-recensus-proof-of-nextgen.md"
 [dashboard]
 first_50_total = 50
 historic_terminal = 3
-campaign_terminal = 8
+campaign_terminal = 9
 historically_proven = 5
 currently_censusing = 0
 deep_censused = 7
 absorbed = 6
 reference_only = 5
-external_boundary = 0
+external_boundary = 1
 rejected = 0
 deferred = 0
-extinct = 11
-remaining = 39
-next_donor = "rust"
-next_step = "rust (#14): materialize the cheapest sufficient slice under the working-set budget, deep-census, falsify its hypothesis against Atlas measurements, decide, prove any induced Atlas change by self-recensus"
+extinct = 12
+remaining = 38
+next_donor = "miri"
+next_step = "G74 (P0) first: integrate the rust-analyzer SCIP oracle (CALL resolution + second engine); then miri (#15)"
 
 [[donor]]
 ordinal = 1
@@ -249,11 +249,13 @@ target_capability = "authoritative Rust semantics"
 mechanism_hypothesis = "name resolution / type checking / borrow checking as census oracle for Rust facts"
 materialization_mode = "SPARSE_CHECKOUT (compiler/rustc_resolve, rustc_hir_typeck)"
 dependency_expectation = "llvm: accounted, not cloned"
-current_status = "CURRENTLY_PENDING"
-lifecycle = "COARSE_CENSUSED"
-terminal_state = ""
+current_status = "CAMPAIGN_PROVEN"
+lifecycle = "TERMINAL"
+terminal_state = "EXTERNAL_BOUNDARY"
 terminal_goal = "EXTERNAL_BOUNDARY (oracle) + REFERENCE_ONLY"
-note = "census COARSE_CENSUSED, decision APPROVED_COMPILER_BINARY_LANE"
+completed_in = "G73"
+evidence = ".atlas/evidence/campaign/14-rust.json"
+note = "Atlas resolves 0 of 12,671 calls; pinned rust-analyzer (SCIP) resolves ~89%: EXTERNAL_BOUNDARY oracle, integrated in G74; rustc internals REFERENCE_ONLY; source physically deleted"
 
 [[donor]]
 ordinal = 15

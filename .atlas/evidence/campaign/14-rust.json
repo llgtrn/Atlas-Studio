@@ -1,0 +1,39 @@
+{
+ "schema": "atlas.campaign-donor-decision.v1",
+ "ordinal": 14,
+ "donor": "rust",
+ "commit_sha": "d287eb7a292caa8abbe12051dce2ee707fe03200",
+ "generation": "G73",
+ "base_commit": "e7f1b2ee76",
+ "hypothesis": "name resolution / type checking / borrow checking as census oracle for Rust facts",
+ "measurement": {
+  "atlas_call_records": 12671,
+  "atlas_resolved_callees": 0,
+  "oracle": "rust-analyzer 1.90.0 (official toolchain component, same distribution as rustc 1.90.0; `rustup component add rust-analyzer`), `rust-analyzer scip .` over the workspace: 92 documents, 99,321 occurrences, 53 s, 9.2 MB",
+  "oracle_resolved_same_line": 11305,
+  "oracle_unresolved": 1366,
+  "method": "minimal SCIP protobuf decoder (measurement only); a CALL site counts as oracle-resolvable when a non-local, non-definition callable occurrence (descriptor ending '().') lies on its line at or after its column -- a same-line heuristic, not a proof of the exact callee",
+  "examples": [
+   "`.into()` -> core convert/impl#[T][`Into<U>`]into().",
+   "`BTreeMap::from` -> alloc collections/btree/map/impl#[`BTreeMap<K, V>`][`From<[(K, V); N]>`]from().",
+   "`energy()` -> Atlas's own core physical/dynamics/impl#[ArmDynamics]energy()."
+  ],
+  "stable_rustc_outputs": "no machine-readable name-resolution output on stable rustc 1.90 (-Zunpretty and save-analysis are nightly-only or removed)"
+ },
+ "finding": "P0 CALL coverage is 100% unresolved in Atlas and ~89% resolvable by compiler-grade resolution; the SCIP symbols rust-analyzer emits share the descriptor shape Atlas absorbed in G66 (`rust-analyzer cargo core 0.1.0 atlas/write().` vs Atlas `core atlas/write().`)",
+ "decision": {
+  "EXTERNAL_BOUNDARY": "compiler-grade Rust resolution through the pinned toolchain's rust-analyzer as an oracle / independent engine (a bootstrap boundary, never a hidden runtime dependency: absent tool -> engine absent, recorded)",
+  "REFERENCE_ONLY": [
+   "rustc_resolve / rustc_hir_typeck / borrow checker internals (far too large to absorb; the oracle exposes their results)"
+  ],
+  "next": "G74 (P0): import the SCIP oracle into the census -- resolve CALL records and add a second independent engine, with version pinning and a content-keyed cache"
+ },
+ "terminal_state": "EXTERNAL_BOUNDARY",
+ "extinction": {
+  "runtime_dependency": "none (the oracle is the installed toolchain, not this source)",
+  "build_dependency": "none",
+  "test_dependency": "none",
+  "llvm": "accounted, never cloned",
+  "action": "git rm -r .atlas/temporary/donors/rust (62,925 tracked files, 426 MB)"
+ }
+}

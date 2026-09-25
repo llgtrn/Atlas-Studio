@@ -964,6 +964,7 @@ objective = "deep-census sourcetrail's storage slice, test the element/occurrenc
 writer = "coordinator (sole writer)"
 evidence = ".atlas/evidence/campaign/13-sourcetrail.json"
 self_recensus = ".atlas/evidence/census/G72/recensus.json"
+result_commits = ["36191e45d03b2c9b705c558e612b5ec9a40772e4", "e7f1b2ee762a3019edd1803d60a6807223bc09b4"]
 
 [generation.verification]
 pre_census = "clean-HEAD census of 964526c060 = G71 post digest f472b3dd... (a4c31293ad adds only out-of-scope evidence)"
@@ -973,3 +974,22 @@ proof = "PROVEN on the first run (post a00c50bb...)"
 
 [generation.next]
 objective = "G73 (P3): first-50 #14 rust -- the compiler as the resolution mechanism behind CALL/DATA_FLOW coverage (the P0 input from G69/G70)"
+
+[[generation]]
+id = "G73"
+base_commit = "e7f1b2ee762a3019edd1803d60a6807223bc09b4"
+priority = "P3"
+serves = "P3 FIRST_50_DONOR_CAMPAIGN: donor #14 rust to a terminal state"
+objective = "measure compiler-grade resolution against Atlas's CALL coverage, decide the terminal state of the rust checkout, physically extinct it"
+writer = "coordinator (sole writer)"
+evidence = ".atlas/evidence/campaign/14-rust.json"
+self_recensus = ".atlas/evidence/census/G73/recensus.json"
+
+[generation.verification]
+pre_census = "clean-HEAD census of 36191e45d0 = G72 post digest a00c50bb... (e7f1b2ee76 adds only out-of-scope evidence)"
+falsification = "12,671 Atlas CALL records, 0 resolved; rust-analyzer 1.90.0 SCIP (the pinned toolchain's component) resolves ~11,305 (~89%) by a same-line heuristic; stable rustc exposes no machine-readable resolution; rustc_resolve/hir_typeck are far too large to absorb natively"
+no_code_change = "EXTERNAL_BOUNDARY: the oracle is the installed toolchain, never this source; the only in-scope change is the pinned deleted-donor list"
+proof = "PROVEN on the first run (post fb6583ea...)"
+
+[generation.next]
+objective = "G74 (P0): import the rust-analyzer SCIP oracle into the census -- resolve CALL records to function descriptors as a second independent engine with a pinned tool identity, a content-keyed cache and an absent tool recorded as an absent engine"

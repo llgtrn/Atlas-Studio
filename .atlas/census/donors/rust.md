@@ -131,3 +131,12 @@ Status: COARSE_CENSUSED. This is an admission-stage inventory only. Deep census 
 ## Native Replacement
 
 compiler roadmap rust parity oracle and AtlasX bootstrap reference
+
+## Campaign decision (G73, first-50 #14)
+
+Measured: Atlas resolves **0 of 12,671** call sites. The pinned toolchain's `rust-analyzer scip` (1.90.0, same distribution as rustc) resolves a callable on the call's line for about **89%** of them. Stable rustc exposes no machine-readable resolution.
+
+Terminal: **EXTERNAL_BOUNDARY**. Compiler-grade resolution comes from the toolchain oracle; it is never a hidden runtime dependency, and an absent tool means an absent engine, recorded as such. rustc resolver, typeck and borrowck internals are REFERENCE_ONLY. Integration is G74 (P0).
+
+The checkout (62,925 files, 426 MB) was physically deleted; LLVM was accounted, never cloned. Evidence: `../../evidence/campaign/14-rust.json`.
+

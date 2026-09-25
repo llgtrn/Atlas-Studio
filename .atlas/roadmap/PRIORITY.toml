@@ -145,6 +145,7 @@ G66 = "P1 precision + P4 input from the scip cycle: self-recensus now proves ent
 G67 = "P0 census correctness from the kythe cycle: symbol/type identity carries its source artifact; 203 cross-file conflated ids -> 0; 609 graph nodes the census had silently dropped are restored"
 G68 = "P2 artifact integrity from the glean cycle: .atlas schema_id derived from declared record schemas; a tag-repurposing version is refused instead of silently misread"
 G69 = "P0 input from the joern cycle: CALL/DATA_FLOW/... UNKNOWN is a resolution gap (Joern itself resolves Rust through an external rust_ast_gen and falls back to Any); a graph layer cannot close it -- compiler-grade resolution can (rust #15, miri #16; rust-analyzer #4 DECIDED partial). Graph is 650-4,500x below columnar scale"
+G73 = "P0 measured: Atlas resolves 0 of 12,671 call sites; the pinned toolchain rust-analyzer (SCIP) resolves ~89% -- compiler-grade resolution is the EXTERNAL_BOUNDARY oracle that can close CALL coverage and MULTI_ENGINE_RECONCILIATION_ABSENT (G74)"
 
 # Exit criteria of the first phase; broad expansion stays frozen until all are MET.
 [exit_criteria]
@@ -154,7 +155,7 @@ C_adl_consumes_census_truth = "MET_G63 (minimum: member-level dependency archite
 D_atlas_writer_reader_validator = "MET_G64 (minimum: ATLAS wire v1 unsealed census container -- writer, verifying reader, transactional publication, certificate root identity; sealing, compression and sharding deferred)"
 E_atlasx_production_validation = "BLOCKED_ON_PREREQUISITES (G65 contract survey): canonical AtlasX requires a SEALED parent .atlas root, a SelectedDesign in state SELECTED (never selected merely because one candidate exists) and an ArchitecturalIntegrityEnvelope (ATLAS-TO-ATLASX.md L11/L55-96, SELECTED-DESIGN.md L427-443, genome [atlasx_format]); no AtlasX contract permits an unsealed/candidate profile. Next P2 step when unblocked: seal gate + SelectedDesign, then the AtlasX precondition gate, wire codec and validator"
 F_first_50_queue_canonical = "MET_G58 (FIRST-50-CAMPAIGN.toml, enforced by first_50_campaign_is_canonical_and_accounted)"
-G_first_50_sequential_lifecycle_substantial = "OPEN: 3 historic terminals + 8 campaign terminals (tree-sitter #6 G65 REFERENCE_ONLY; scip #7 G66 ABSORBED; kythe #8 G67 ABSORBED; glean #9 G68 ABSORBED; joern #10 G69 REFERENCE_ONLY; semgrep #11 G70 REFERENCE_ONLY; ast-grep #12 G71 REFERENCE_ONLY; sourcetrail #13 G72 REFERENCE_ONLY), all extinct; next rust (#14)"
+G_first_50_sequential_lifecycle_substantial = "OPEN: 3 historic terminals + 9 campaign terminals (tree-sitter #6 G65 REFERENCE_ONLY; scip #7 G66 ABSORBED; kythe #8 G67 ABSORBED; glean #9 G68 ABSORBED; joern #10 G69 REFERENCE_ONLY; semgrep #11 G70 REFERENCE_ONLY; ast-grep #12 G71 REFERENCE_ONLY; sourcetrail #13 G72 REFERENCE_ONLY; rust #14 G73 EXTERNAL_BOUNDARY), all extinct; next G74 P0 oracle integration, then miri (#15)"
 H_incremental_recensus_with_oracle = "OPEN"
 I_extinction_reclaim_under_bounded_storage = "PARTIAL: working set exists (G54); no post-extinction recensus yet"
 
@@ -235,6 +236,16 @@ priority = "P3"
 objective = "first-50 #13 sourcetrail: element/occurrence model already native (done: REFERENCE_ONLY, extinct)"
 
 [[planned_generation]]
-id = "G73+"
+id = "G73"
 priority = "P3"
-objective = "first-50 campaign continues sequentially from #14 rust, interleaving only census improvements exposed by real donors; P2 resumes with a seal gate + SelectedDesign design when a donor or the census exposes the path"
+objective = "first-50 #14 rust: resolution gap measured; compiler-grade resolution decided EXTERNAL_BOUNDARY (done, extinct)"
+
+[[planned_generation]]
+id = "G74"
+priority = "P0"
+objective = "import the rust-analyzer SCIP oracle into the census: resolve CALL records to function descriptors, add a second independent CALL engine, pinned tool identity, content-keyed cache, absent tool recorded"
+
+[[planned_generation]]
+id = "G75+"
+priority = "P3"
+objective = "first-50 campaign continues from #15 miri"

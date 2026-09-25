@@ -1,0 +1,13 @@
+{
+  "objective": "P3 first-50 #14 rust: rustc is the language's own compiler; its name-resolution/type-check mechanism is only reachable as an external oracle (rust-analyzer SCIP resolves ~89% of Atlas's 12,671 unresolved CALL records); EXTERNAL_BOUNDARY; checkout physically extinct; census unchanged except the pinned deleted-donor list",
+  "changed_paths": [
+    "runtime/src/donor_storage.rs"
+  ],
+  "total_changes": [
+    "+graph_edges",
+    "+graph_nodes"
+  ],
+  "entity_changes": [
+    "CHANGED runtime donor_storage/tests/repository_donor_storage_has_no_unrecorded_violation()."
+  ]
+}

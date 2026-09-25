@@ -454,6 +454,7 @@ mod tests {
                 "joern",
                 "kythe",
                 "ladybird",
+                "rust",
                 "scip",
                 "semgrep",
                 "souffle",
