@@ -1,0 +1,23 @@
+{
+ "schema": "atlas.campaign-donor-decision.v1",
+ "ordinal": 48,
+ "donor": "tlaplus",
+ "canonical_url": "https://github.com/tlaplus/tlaplus.git",
+ "verified_head": "4260e471245fce04ad5610bae7125bdc9ef7eec6",
+ "generation": "G112",
+ "base_commit": "2c61cee72c",
+ "hypothesis": "TLC exploration + counterexample traces for invariants (P0)",
+ "blocking_question": "tlaplus is QUEUED and CONSUMER_GATED: is there a TLA+ specification or a model-checking evidence consumer in Atlas?",
+ "measurement": {
+  "specifications": "no .tla/.cfg files outside donor checkouts; no contract mentions TLA+, TLC or state-space exploration",
+  "evidence_consumer": "none: VerificationEvidence is contract text only and its class vocabulary lacks a proof/model-checking class (recorded at G104 kani and G105 verus)",
+  "boundary": "TLC is a Java model checker (Java is installed here; TLC is not) and would run as an external verifier whose counterexample traces become VerificationFailure evidence once that model exists; nothing was executed"
+ },
+ "decision": {
+  "EXTERNAL_BOUNDARY": ["TLC as an external model checker, admitted only when a specification and an evidence consumer exist"]
+ },
+ "terminal_state": "EXTERNAL_BOUNDARY",
+ "extinction": {
+  "action": "none: never materialized; the frontier keeps tlaplus CANDIDATE / CONSUMER_GATED"
+ }
+}

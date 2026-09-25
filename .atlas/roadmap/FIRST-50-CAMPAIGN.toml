@@ -15,19 +15,19 @@ decision = ".atlas/decisions/0024-self-recensus-proof-of-nextgen.md"
 [dashboard]
 first_50_total = 50
 historic_terminal = 3
-campaign_terminal = 43
+campaign_terminal = 44
 historically_proven = 4
 currently_censusing = 0
 deep_censused = 0
 absorbed = 10
 reference_only = 26
-external_boundary = 9
+external_boundary = 10
 rejected = 0
 deferred = 1
 extinct = 42
-remaining = 4
-next_donor = "tlaplus"
-next_step = "G112 (P3): tlaplus (#48) -- TLC exploration + counterexample traces for invariants (P0)"
+remaining = 3
+next_donor = "openrewrite"
+next_step = "G113 (P3): openrewrite (#49) -- lossless semantic trees + recipes as census-driven transforms (P2)"
 
 [[donor]]
 ordinal = 1
@@ -827,13 +827,15 @@ canonical_url = "https://github.com/tlaplus/tlaplus.git"
 serves = "P0"
 target_capability = "state-space exploration"
 mechanism_hypothesis = "TLC exploration + counterexample traces for invariants"
-materialization_mode = "SPARSE_CHECKOUT (tlatools/org.lamport.tlatools/src/tlc2)"
+materialization_mode = "never materialized (decided at the consumer gate)"
 dependency_expectation = "jvm: TOOLCHAIN"
-current_status = "CURRENTLY_PENDING"
-lifecycle = "QUEUED"
-terminal_state = ""
+current_status = "CAMPAIGN_PROVEN"
+lifecycle = "TERMINAL"
+terminal_state = "EXTERNAL_BOUNDARY"
 terminal_goal = "DECIDED"
-note = "remote-discovered only (RECOMMENDED-OSS-FRONTIER.toml); not admitted"
+completed_in = "G112"
+evidence = ".atlas/evidence/campaign/48-tlaplus.json"
+note = "no TLA+ specification and no model-checking consumer exist (VerificationEvidence is contract text without a proof/model-checking class, as recorded at G104/G105); TLC would be an external verifier producing counterexample traces; never admitted"
 
 [[donor]]
 ordinal = 49

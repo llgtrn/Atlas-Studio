@@ -1803,6 +1803,7 @@ objective = "test Nix's input-closure derivation identity against Atlas's extrac
 writer = "coordinator (sole writer)"
 evidence = ".atlas/evidence/campaign/47-nix.json"
 self_recensus = ".atlas/evidence/census/G111/recensus.json"
+result_commits = ["61fb39f983b8d579d834ae9a306abf299666aa93", "2c61cee72cd15326f672accbb79cc0aab6dc168d"]
 
 [generation.verification]
 pre_census = "clean-HEAD census of 46ceab8154 = G110 post digest 05977220... (788767fc10 adds only out-of-scope evidence)"
@@ -1813,3 +1814,23 @@ proof = "PROVEN on the first run with an empty intent (post 05977220..., equal t
 
 [generation.next]
 objective = "G112 (P3): first-50 #48 tlaplus (TLC exploration + counterexample traces for invariants, P0)"
+
+[[generation]]
+id = "G112"
+base_commit = "2c61cee72cd15326f672accbb79cc0aab6dc168d"
+priority = "P3"
+serves = "P3 FIRST_50_DONOR_CAMPAIGN: donor #48 tlaplus to a terminal state (P0 state-space exploration)"
+objective = "decide the consumer-gated tlaplus without admission"
+writer = "coordinator (sole writer)"
+evidence = ".atlas/evidence/campaign/48-tlaplus.json"
+self_recensus = ".atlas/evidence/census/G112/recensus.json"
+
+[generation.verification]
+pre_census = "clean-HEAD census of 61fb39f983 = G111 post digest 05977220... (2c61cee72c adds only out-of-scope evidence)"
+falsification = "no TLA+ specification exists and no contract names TLA+/TLC; VerificationEvidence is contract text without a model-checking class (G104, G105); TLC would run as an external Java verifier; nothing was executed"
+no_code_change = "no in-scope census change (decision records only)"
+decision = "EXTERNAL_BOUNDARY, decided at the consumer gate"
+proof = "PROVEN on the first run with an empty intent (post 05977220..., equal to the pre-change census)"
+
+[generation.next]
+objective = "G113 (P3): first-50 #49 openrewrite (lossless semantic trees + recipes as census-driven transforms, P2)"

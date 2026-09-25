@@ -1,0 +1,6 @@
+{
+  "objective": "P3 first-50 #48 tlaplus: decided at the consumer gate without admission -- no TLA+ specification and no model-checking evidence consumer exist; TLC is an external verifier; EXTERNAL_BOUNDARY; no in-scope census change",
+  "changed_paths": [],
+  "total_changes": [],
+  "entity_changes": []
+}
