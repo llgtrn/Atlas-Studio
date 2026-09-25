@@ -1903,8 +1903,11 @@ mod tests {
                 ));
             }
             assert!(!donors.is_empty(), "no donor parsed");
+            // A repository several corpus donors slice (mlir and llvm-project) is extinct only
+            // once every slice is; until then it carries the lifecycle of its live slices.
+            let mut slices: BTreeMap<String, BTreeSet<&str>> = BTreeMap::new();
             for (id, url, ingestion) in &donors {
-                let (repository, lifecycle) = by_corpus_id
+                let (repository, _) = by_corpus_id
                     .get(id)
                     .unwrap_or_else(|| panic!("corpus donor `{id}` has no frontier repository"));
                 assert_eq!(
@@ -1916,6 +1919,23 @@ mod tests {
                     "EXTINCT" => "EXTINCT",
                     "REMOTE_CENSUSED" => "ADMITTED_REMOTE",
                     _ => "ADMITTED",
+                };
+                slices
+                    .entry(repository.clone())
+                    .or_default()
+                    .insert(expected);
+            }
+            for (id, _, _) in &donors {
+                let (repository, lifecycle) = &by_corpus_id[id];
+                let live: Vec<&str> = slices[repository]
+                    .iter()
+                    .copied()
+                    .filter(|expected| *expected != "EXTINCT")
+                    .collect();
+                let expected = match live.as_slice() {
+                    [] => "EXTINCT",
+                    [one] => one,
+                    _ => panic!("`{repository}`: its live slices disagree: {live:?}"),
                 };
                 assert_eq!(lifecycle, expected, "corpus donor `{id}` lifecycle");
             }

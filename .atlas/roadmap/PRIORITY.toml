@@ -164,7 +164,7 @@ C_adl_consumes_census_truth = "MET_G63 (minimum: member-level dependency archite
 D_atlas_writer_reader_validator = "MET_G64 (minimum: ATLAS wire v1 unsealed census container -- writer, verifying reader, transactional publication, certificate root identity; sealing, compression and sharding deferred)"
 E_atlasx_production_validation = "BLOCKED_ON_PREREQUISITES (G65 contract survey): canonical AtlasX requires a SEALED parent .atlas root, a SelectedDesign in state SELECTED (never selected merely because one candidate exists) and an ArchitecturalIntegrityEnvelope (ATLAS-TO-ATLASX.md L11/L55-96, SELECTED-DESIGN.md L427-443, genome [atlasx_format]); no AtlasX contract permits an unsealed/candidate profile. Next P2 step when unblocked: seal gate + SelectedDesign, then the AtlasX precondition gate, wire codec and validator"
 F_first_50_queue_canonical = "MET_G58 (FIRST-50-CAMPAIGN.toml, enforced by first_50_campaign_is_canonical_and_accounted)"
-G_first_50_sequential_lifecycle_substantial = "OPEN: 3 historic terminals + 20 campaign terminals (arrow #24 G88 REFERENCE_ONLY; zstd #23 G87 REFERENCE_ONLY; flatbuffers #22 G86 ABSORBED; rkyv #21 G85 REFERENCE_ONLY; capnproto #20 G84 REFERENCE_ONLY; egglog #19 G82 REFERENCE_ONLY; buck2 #18 G81 DEFERRED to AIF1; differential-dataflow #17 G80 REFERENCE_ONLY; clef #16 G78 REFERENCE_ONLY; miri #15 G76 REFERENCE_ONLY; rust-analyzer #4 G75 ABSORBED; tree-sitter #6 G65 REFERENCE_ONLY; scip #7 G66 ABSORBED; kythe #8 G67 ABSORBED; glean #9 G68 ABSORBED; joern #10 G69 REFERENCE_ONLY; semgrep #11 G70 REFERENCE_ONLY; ast-grep #12 G71 REFERENCE_ONLY; sourcetrail #13 G72 REFERENCE_ONLY; rust #14 G73 EXTERNAL_BOUNDARY), all extinct; G74 P0 CALL identity; rust-analyzer #4 G75 ABSORBED (path resolution); miri #15 G76 REFERENCE_ONLY; G77 P0 EFFECT done; clef #16 G78 REFERENCE_ONLY; G79 P0 self.m() done; differential-dataflow #17 G80 REFERENCE_ONLY; buck2 #18 G81 DEFERRED (AIF1); egglog #19 G82 REFERENCE_ONLY; G83 P0 canonical types done; capnproto #20 G84 REFERENCE_ONLY (+ SEALED unknown-field clause); rkyv #21 G85 REFERENCE_ONLY; flatbuffers #22 G86 ABSORBED (schema-evolution conformance); zstd #23 G87 REFERENCE_ONLY (+ bounded ZSTD section profile); arrow #24 G88 REFERENCE_ONLY (codec before columnar); next mlir (#25)"
+G_first_50_sequential_lifecycle_substantial = "OPEN: 3 historic terminals + 21 campaign terminals (mlir #25 G89 REFERENCE_ONLY; arrow #24 G88 REFERENCE_ONLY; zstd #23 G87 REFERENCE_ONLY; flatbuffers #22 G86 ABSORBED; rkyv #21 G85 REFERENCE_ONLY; capnproto #20 G84 REFERENCE_ONLY; egglog #19 G82 REFERENCE_ONLY; buck2 #18 G81 DEFERRED to AIF1; differential-dataflow #17 G80 REFERENCE_ONLY; clef #16 G78 REFERENCE_ONLY; miri #15 G76 REFERENCE_ONLY; rust-analyzer #4 G75 ABSORBED; tree-sitter #6 G65 REFERENCE_ONLY; scip #7 G66 ABSORBED; kythe #8 G67 ABSORBED; glean #9 G68 ABSORBED; joern #10 G69 REFERENCE_ONLY; semgrep #11 G70 REFERENCE_ONLY; ast-grep #12 G71 REFERENCE_ONLY; sourcetrail #13 G72 REFERENCE_ONLY; rust #14 G73 EXTERNAL_BOUNDARY), all extinct; G74 P0 CALL identity; rust-analyzer #4 G75 ABSORBED (path resolution); miri #15 G76 REFERENCE_ONLY; G77 P0 EFFECT done; clef #16 G78 REFERENCE_ONLY; G79 P0 self.m() done; differential-dataflow #17 G80 REFERENCE_ONLY; buck2 #18 G81 DEFERRED (AIF1); egglog #19 G82 REFERENCE_ONLY; G83 P0 canonical types done; capnproto #20 G84 REFERENCE_ONLY (+ SEALED unknown-field clause); rkyv #21 G85 REFERENCE_ONLY; flatbuffers #22 G86 ABSORBED (schema-evolution conformance); zstd #23 G87 REFERENCE_ONLY (+ bounded ZSTD section profile); arrow #24 G88 REFERENCE_ONLY (codec before columnar); mlir #25 G89 REFERENCE_ONLY (slice extinct, llvm-project stays); next xdsl (#26)"
 H_incremental_recensus_with_oracle = "OPEN"
 I_extinction_reclaim_under_bounded_storage = "PARTIAL: working set exists (G54); no post-extinction recensus yet"
 
@@ -325,6 +325,11 @@ priority = "P3"
 objective = "first-50 #24 arrow: columnar 1.4x after compression, no consumer (done: REFERENCE_ONLY, extinct)"
 
 [[planned_generation]]
-id = "G89+"
+id = "G89"
 priority = "P3"
-objective = "first-50 campaign continues from #25 mlir"
+objective = "first-50 #25 mlir: no registry precondition holds in Rust/ACP; shared-repository extinction rule (done: REFERENCE_ONLY, slice extinct)"
+
+[[planned_generation]]
+id = "G90+"
+priority = "P3"
+objective = "first-50 campaign continues from #26 xdsl"

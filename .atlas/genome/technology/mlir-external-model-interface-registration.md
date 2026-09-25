@@ -207,3 +207,7 @@ started -- there is no current ASIR consumer for this mechanism, the same reason
 This record does not change `mlir`'s `census_status`; the donor's own census remains honestly
 `DEEP_CENSUS_ACTIVE`, with this genome record added as new evidence covering its single
 highest-cited mechanism.
+
+## G89 update
+
+The campaign cycle (first-50 #25) resolved this record's open condition. The registry answers two constraints Atlas does not have: post-definition interface attachment, which a Rust trait impl provides statically, and runtime-loaded dialects, which Atlas never loads. ACP's `attach_capability` is a data operation. The donor is REFERENCE_ONLY and its slice is physically deleted, so the `.atlas/temporary/donors/mlir` paths above now name the pinned commit `4790b21292d10b2cab1037ebef100e7f595e4209`, not a local checkout.

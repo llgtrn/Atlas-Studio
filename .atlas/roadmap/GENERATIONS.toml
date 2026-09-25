@@ -1302,6 +1302,7 @@ objective = "answer the recorded columnar-volume question by measuring the real 
 writer = "coordinator (sole writer)"
 evidence = ".atlas/evidence/campaign/24-arrow.json"
 self_recensus = ".atlas/evidence/census/G88/recensus.json"
+result_commits = ["d7c1205e4a15058412a778ef4bc3b4d19313dc59", "91600c97ceae88351ba30316be826cf56af1d9d0"]
 
 [generation.verification]
 pre_census = "clean-HEAD census of cf706daea4 = G87 post digest b0b781e5... (dc53c36f4c adds only out-of-scope evidence)"
@@ -1313,3 +1314,25 @@ proof = "PROVEN on the first run (post 8a35d361...)"
 
 [generation.next]
 objective = "G89 (P3): first-50 #25 mlir (dialects, regions, progressive lowering, verification; P6, shares the llvm-project tree with #32)"
+
+[[generation]]
+id = "G89"
+base_commit = "91600c97ceae88351ba30316be826cf56af1d9d0"
+priority = "P3"
+serves = "P3 FIRST_50_DONOR_CAMPAIGN: donor #25 mlir to a terminal state (P6 dialect-extensibility question)"
+objective = "answer the recorded external-model registry question against Rust, Cargo.lock and the ACP contract, decide the terminal state, physically extinct the mlir slice without touching the shared llvm-project slice"
+writer = "coordinator (sole writer)"
+evidence = ".atlas/evidence/campaign/25-mlir.json"
+self_recensus = ".atlas/evidence/census/G89/recensus.json"
+
+[generation.verification]
+pre_census = "clean-HEAD census of d7c1205e4a = G88 post digest 8a35d361... (91600c97ce adds only out-of-scope evidence)"
+falsification = "MLIR's registry needs (a) interfaces a class cannot gain after its definition and (b) runtime-loaded dialects; in Atlas a Rust trait impl in the capability-owning crate attaches statically, Cargo.lock has no libloading/dlopen and the workspace no dyn Any/TypeId registry, and ACP's attach_capability is a data operation over dialect-qualified opcodes mapped onto the closed HIR vocabulary"
+change = "the frontier integrity test (recommended_frontier_is_repo_exact_and_counted) mapped each corpus donor one-to-one onto its repository's lifecycle, which a repository sliced by two donors (llvm/llvm-project: mlir, llvm-project) cannot satisfy once one slice is extinct; a shared repository is now EXTINCT only once every slice is, and otherwise carries its live slices' lifecycle (dependency-recursive extinction)"
+mutation_battery = "2/2 killed: the old per-donor rule fails on mlir; an any-slice-extinct rule fails on llvm-project"
+decision = "REFERENCE_ONLY; the census's ADAPT dispositions stay design references for the TARGET ASIR"
+extinction = "git rm -r .atlas/temporary/donors/mlir (98 MB slice); the frontier repository stays ADMITTED/MATERIALIZED for the llvm-project slice (#32); composer (#30), which lists mlir as a dependency, needs no MLIR source for its recorded questions"
+proof = "PROVEN on the first run (post ac173439...)"
+
+[generation.next]
+objective = "G90 (P3): first-50 #26 xdsl (IRDL-style op definitions in Python, P6)"

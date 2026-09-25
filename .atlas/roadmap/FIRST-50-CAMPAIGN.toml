@@ -15,19 +15,19 @@ decision = ".atlas/decisions/0024-self-recensus-proof-of-nextgen.md"
 [dashboard]
 first_50_total = 50
 historic_terminal = 3
-campaign_terminal = 20
+campaign_terminal = 21
 historically_proven = 4
 currently_censusing = 0
 deep_censused = 3
 absorbed = 8
-reference_only = 13
+reference_only = 14
 external_boundary = 1
 rejected = 0
 deferred = 1
-extinct = 23
-remaining = 27
-next_donor = "mlir"
-next_step = "G89 (P3): mlir (#25) -- dialects, regions, progressive lowering, verification (P6; shares the llvm-project tree with #32)"
+extinct = 24
+remaining = 26
+next_donor = "xdsl"
+next_step = "G90 (P3): xdsl (#26) -- IRDL-style op definitions in Python (P6)"
 
 [[donor]]
 ordinal = 1
@@ -436,13 +436,15 @@ canonical_url = "https://github.com/llvm/llvm-project.git"
 serves = "P6"
 target_capability = "multi-level IR"
 mechanism_hypothesis = "dialects, regions, progressive lowering, verification"
-materialization_mode = "MATERIALIZED_SLICE (mlir/)"
+materialization_mode = "n/a (slice deleted; the llvm-project slice #32 remains)"
 dependency_expectation = "llvm-project (#32): shared tree"
-current_status = "CURRENTLY_PENDING"
-lifecycle = "COARSE_CENSUSED"
-terminal_state = ""
+current_status = "CAMPAIGN_PROVEN"
+lifecycle = "TERMINAL"
+terminal_state = "REFERENCE_ONLY"
 terminal_goal = "DECIDED"
-note = "census DEEP_CENSUS_ACTIVE, decision PENDING_COORDINATOR_REVIEW"
+completed_in = "G89"
+evidence = ".atlas/evidence/campaign/25-mlir.json"
+note = "the external-model registry answers two C++/dynamic-loading constraints Atlas does not have (Rust trait impls attach statically; no runtime code loading; ACP attach_capability is data); ADAPT dispositions stay design references for the TARGET ASIR; the mlir slice physically deleted, the shared llvm-project repository stays materialized for #32"
 
 [[donor]]
 ordinal = 26

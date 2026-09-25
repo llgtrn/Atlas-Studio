@@ -1125,18 +1125,19 @@ default_branch = "main"
 retrieved_at = "2026-09-22T15:50:00Z"
 license = [".atlas/licenses/donors/mlir/LICENSE.TXT"]
 technology_domains = ["ir_design", "dialect_definition", "bytecode_serialization", "pattern_rewriting", "compiler_pass_infrastructure", "verifier_infrastructure"]
-ingestion_status = "CLONED"
-storage_state = "MATERIALIZED_SLICE"
+ingestion_status = "EXTINCT"
+storage_state = "SOURCE_DELETED"
 materialization_mode = "SPARSE_CHECKOUT"
 census_status = "DEEP_CENSUS_ACTIVE"
-decision_status = "PENDING_COORDINATOR_REVIEW"
-blocking_question = "no ASIR dialect/extensibility code exists, and ASIR-CONSTRUCTION-MODEL.md reuses COMPILER-IR-SCHEMAS.md's closed node-kind vocabulary with dialect-qualified opcode names instead of a new op/region/block object model. The external-model TypeId-keyed capability registry is needed only if a concrete requirement appears for code that does not own an op/type to attach a capability to it; the xdsl genome's decision rule defaults to the simpler merged model until then."
-evidence_needed = "a named requirement for cross-compilation-unit capability attachment (e.g. a plugin/external dialect attaching behavior to a core ASIR op it does not define) arising from real ACP construction traffic; the census's open gaps (ODS/TableGen backend, DialectConversion, bytecode reader/writer) matter only if that requirement appears"
-cheapest_falsification = "none available before ASIR dialect-registration work begins -- this is a genuine sequencing block, not a missing-evidence block"
-next_action = "prerequisite: ASIR/ACP dialect-registration implementation (compiler-IR work, R7/R8); owners core/asir, core/asir/dialect, core/asir/bytecode, compiler (provenance target_owners); coordinator review is still pending"
+decision_status = "REFERENCE_ONLY"
+blocking_question = "resolved G89: the external-model TypeId registry exists because a C++ class cannot gain an interface after its definition and dialects load at runtime. Atlas has neither constraint: a Rust trait impl in the capability-owning crate attaches behavior to a type it does not own, statically; Atlas loads no code at runtime (no libloading/dlopen in Cargo.lock); and ACP already models capability attachment as an explicit data operation (attach_capability) over dialect-qualified opcode names mapped onto the closed HIR vocabulary. The per-concept ADAPT dispositions are design references for the unimplemented (TARGET) ASIR, held by this census, its genome record and ASIR-CONSTRUCTION-MODEL.md"
+evidence_needed = "none outstanding (.atlas/evidence/campaign/25-mlir.json); ASIR implementation re-reads the pinned commit if the census record is insufficient"
+cheapest_falsification = "performed G89: the registry's two preconditions (post-definition interface attachment impossible in the host language; runtime-loaded dialects) checked against Rust, Cargo.lock and the ACP contract -- neither holds"
+next_action = "none: TERMINAL REFERENCE_ONLY; the mlir slice physically deleted (the llvm-project slice, #32, is a separate checkout and stays until its own cycle)"
+implementation_status = "REFERENCE_ONLY"
 native_replacement = "architecture study only -- not adopted as a runtime dependency; see census disposition table"
 runtime_dependency_status = "REFERENCE_ONLY"
-evidence = [".atlas/provenance/donors/mlir.json", ".atlas/census/donors/mlir.md", ".atlas/genome/technology/mlir-external-model-interface-registration.md"]
+evidence = [".atlas/evidence/campaign/25-mlir.json", ".atlas/provenance/donors/mlir.json", ".atlas/census/donors/mlir.md", ".atlas/genome/technology/mlir-external-model-interface-registration.md"]
 
 [[donor]]
 id = "xdsl"

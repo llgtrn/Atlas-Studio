@@ -165,3 +165,13 @@ Already covered under Core IR Object Model — `Location` is a mandatory, unique
 - Did not census the Python bindings (`python/`) or the C API (`lib/CAPI`) surfaces.
 - Did not run or build any MLIR code — this census is 100% static reading, per the donor-workbench isolation contract; some runtime behavior claims above (e.g. exact greedy-driver fixpoint semantics) are taken from `docs/*.md` design documentation cross-checked against the matching source files, not from execution traces.
 - Bytecode `Reader`/`Writer` implementation directories (`lib/Bytecode/Reader`, `lib/Bytecode/Writer`) were located but not read line-by-line; findings on the wire format come from `docs/BytecodeFormat.md` plus the interface header `BytecodeImplementation.h`, not the full reader/writer implementation.
+
+## G89 — terminal REFERENCE_ONLY; slice extinct
+
+The recorded question was whether a TypeId-keyed external-model registry is needed. MLIR registers external models at runtime for two reasons: a C++ class cannot gain an interface after its definition, and dialects load dynamically. Neither holds for Atlas:
+- a Rust trait impl in the capability-owning crate attaches behavior to a type it does not own, statically;
+- no code is loaded at runtime (no libloading or dlopen, no `dyn Any` registry).
+
+ACP already models capability attachment as the data operation `attach_capability`, over dialect-qualified opcode names mapped onto the closed HIR vocabulary.
+
+The ADAPT dispositions above remain design references for the TARGET ASIR, to be re-derived in Rust. The mlir slice was physically deleted. The llvm-project slice (#32) is a separate checkout of the same repository and stays until its own cycle. Evidence: `../../evidence/campaign/25-mlir.json`.

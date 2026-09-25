@@ -1,0 +1,17 @@
+{
+  "objective": "P3 first-50 #25 mlir: the external-model registry answers two constraints Atlas does not have (post-definition interface attachment; runtime-loaded dialects), and ACP attach_capability is data; REFERENCE_ONLY; the mlir slice physically extinct while the shared llvm-project repository stays materialized for #32, so the frontier integrity test now makes a shared repository extinct only once every slice is",
+  "changed_paths": [
+    "runtime/src/donor_storage.rs",
+    "runtime/src/lib.rs"
+  ],
+  "total_changes": [
+    "+evidence",
+    "+graph_edges",
+    "+graph_nodes",
+    "+typed_records"
+  ],
+  "entity_changes": [
+    "CHANGED runtime donor_storage/tests/repository_donor_storage_has_no_unrecorded_violation().",
+    "CHANGED runtime tests/donor_corpus_integrity/recommended_frontier_is_repo_exact_and_counted()."
+  ]
+}

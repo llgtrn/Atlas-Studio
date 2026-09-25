@@ -1,0 +1,30 @@
+{
+ "schema": "atlas.campaign-donor-decision.v1",
+ "ordinal": 25,
+ "donor": "mlir",
+ "commit_sha": "4790b21292d10b2cab1037ebef100e7f595e4209",
+ "generation": "G89",
+ "base_commit": "91600c97ce",
+ "hypothesis": "dialects, regions, progressive lowering, verification (P6)",
+ "blocking_question": "The external-model TypeId-keyed capability registry is needed only if code that does not own an op/type must attach a capability to it; is there such a requirement? (recorded as sequencing-blocked on ASIR dialect registration)",
+ "measurement": {
+  "registry_preconditions": "MLIR registers external models at runtime because (a) a C++ class cannot gain an interface after its definition, and (b) dialects are loaded dynamically into a context",
+  "precondition_a_in_atlas": "does not hold: Atlas is Rust; a trait impl in the crate that owns the capability trait attaches it to a type that crate does not own, statically checked (the orphan rule needs only the trait to be local)",
+  "precondition_b_in_atlas": "does not hold: Cargo.lock has no libloading/dlopen; the workspace has no dyn Any / std::any::TypeId registry; no code is loaded at runtime",
+  "acp_contract": "ASIR-CONSTRUCTION-MODEL.md already models capability attachment as an explicit construction operation (attach_capability) and operations as data: dialect-qualified opcode names mapped by an explicit table onto the closed HIR node-kind vocabulary -- attaching behavior to a data opcode is a table entry, not a type-erased registry",
+  "asir_state": "ASIR is CONTRACT/TARGET: no op/region/block Rust types exist (core/src has no asir module)"
+ },
+ "decision": {
+  "REFERENCE_ONLY": ["external-model interface registry", "op/value/block/region object model and its memory layout", "traits/interfaces", "verifier and pass infrastructure", "pattern rewriting and canonicalization", "ODS/TableGen", "IRDL", "bytecode and dialect versioning", "Location"],
+  "design_references_retained": "the census's per-concept ADAPT dispositions, the genome record mlir-external-model-interface-registration.md and ASIR-CONSTRUCTION-MODEL.md hold the design lessons for the TARGET ASIR; ADAPT means re-derive in Rust, never copy"
+ },
+ "terminal_state": "REFERENCE_ONLY",
+ "extinction": {
+  "scope": "the mlir sparse slice only; the frontier repository llvm/llvm-project (corpus ids llvm-project and mlir) stays ADMITTED/MATERIALIZED because the separate llvm-project slice (llvm/lib/CodeGen, #32) is undecided",
+  "runtime_dependency": "none",
+  "build_dependency": "none",
+  "test_dependency": "none (no code or test references the slice; not a DC1 Cargo donor)",
+  "dependents": "composer (#30) lists mlir as a dependency; its recorded questions (thin middle end after HIR->MIR lowering; PHG hyperedges) need no MLIR source",
+  "action": "git rm -r .atlas/temporary/donors/mlir"
+ }
+}
