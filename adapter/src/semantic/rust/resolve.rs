@@ -21,7 +21,12 @@
 //!   ambiguous, never a pick;
 //! - a path through a trait (`Trait::f(x)`, `Self::f()` inside a trait) is dynamic dispatch.
 //!
-//! Method calls need the receiver's type and are not resolved here at all.
+//! Method calls need the receiver's type, with one exception (G79): `self.m()` inside an impl
+//! method, whose receiver has the impl's self type. The method probe's first step tries that type
+//! by value, inherent methods before trait methods, so the unique inherent method whose receiver
+//! form (`self`/`&self`/`&mut self`) equals the caller's is the one called, when its impl is
+//! shaped (generics, self-type arguments) exactly like the caller's. Every other method call is
+//! left to type inference.
 
 use std::collections::{BTreeMap, BTreeSet};
 
@@ -265,8 +270,54 @@ struct ImplDef {
     self_path: Vec<String>,
     self_leading_colon: bool,
     is_trait_impl: bool,
-    fns: Vec<(String, FnTarget)>,
+    fns: Vec<ImplFn>,
     self_type: Option<TypeId>,
+    /// The impl's generics, where clause and self-type arguments as spelled: two impls of one
+    /// type are interchangeable for method lookup only when these are identical.
+    shape: String,
+}
+
+#[derive(Debug, Clone)]
+struct ImplFn {
+    name: String,
+    target: FnTarget,
+    receiver: Option<Receiver>,
+}
+
+/// A method's `self` parameter: by value, `&self` or `&mut self`. A typed receiver
+/// (`self: Box<Self>`) is not modeled.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum Receiver {
+    Value,
+    Ref,
+    RefMut,
+}
+
+fn receiver_of(sig: &syn::Signature) -> Option<Receiver> {
+    match &sig.receiver()?.kind {
+        syn::ReceiverKind::Value => Some(Receiver::Value),
+        syn::ReceiverKind::Reference(_, _, None) => Some(Receiver::Ref),
+        syn::ReceiverKind::Reference(_, _, Some(_)) => Some(Receiver::RefMut),
+        _ => None,
+    }
+}
+
+fn impl_shape(item: &syn::ItemImpl) -> String {
+    use quote::ToTokens;
+    let arguments = match item.self_ty.as_ref() {
+        syn::Type::Path(path) => path
+            .path
+            .segments
+            .last()
+            .map(|segment| segment.arguments.to_token_stream().to_string())
+            .unwrap_or_default(),
+        other => other.to_token_stream().to_string(),
+    };
+    format!(
+        "{} {} | {arguments}",
+        item.generics.to_token_stream(),
+        item.generics.where_clause.to_token_stream()
+    )
 }
 
 #[derive(Default)]
@@ -637,15 +688,16 @@ impl DefMap {
             if let syn::ImplItem::Fn(method) = impl_item {
                 let (line, column) = start(method.span());
                 let name = method.sig.ident.to_string();
-                fns.push((
-                    name.clone(),
-                    FnTarget {
+                fns.push(ImplFn {
+                    name: name.clone(),
+                    target: FnTarget {
                         path: file.to_owned(),
                         line,
                         column,
                         name,
                     },
-                ));
+                    receiver: receiver_of(&method.sig),
+                });
                 self.collect_block(scope, file, &method.block);
             }
         }
@@ -656,6 +708,7 @@ impl DefMap {
             is_trait_impl: item.trait_.is_some(),
             fns,
             self_type: None,
+            shape: impl_shape(item),
         });
     }
 
@@ -1083,8 +1136,8 @@ impl DefMap {
                 .iter()
                 .filter(|imp| imp.self_type == Some(ty) && imp.is_trait_impl == trait_impl)
                 .flat_map(|imp| imp.fns.iter())
-                .filter(|(fn_name, _)| fn_name == name)
-                .map(|(_, target)| target)
+                .filter(|f| f.name == name)
+                .map(|f| &f.target)
                 .collect()
         };
         match candidates(false).as_slice() {
@@ -1096,6 +1149,37 @@ impl DefMap {
             [one] => Ok((*one).clone()),
             [] => Err("associated-not-found"),
             _ => Err("ambiguous-associated"),
+        }
+    }
+}
+
+impl DefMap {
+    /// `self.name(..)` in a method with receiver `form` of an impl of `ty` shaped `shape`. The
+    /// method probe's first step tries the receiver's own type by value, inherent methods before
+    /// trait methods; an inherent method whose receiver form equals the caller's is therefore
+    /// chosen there, ahead of every trait. Anything else is left to type inference.
+    fn method_on_self(
+        &self,
+        ty: TypeId,
+        shape: &str,
+        name: &str,
+        form: Receiver,
+    ) -> PathCallOutcome {
+        let candidates: Vec<(&ImplDef, &ImplFn)> = self
+            .impls
+            .iter()
+            .filter(|imp| imp.self_type == Some(ty) && !imp.is_trait_impl)
+            .flat_map(|imp| imp.fns.iter().map(move |f| (imp, f)))
+            .filter(|(_, f)| f.name == name && f.receiver.is_some())
+            .collect();
+        match candidates.as_slice() {
+            [] => PathCallOutcome::Unresolved("method-not-inherent"),
+            [(imp, _)] if imp.shape != shape => PathCallOutcome::Unresolved("generic-impl"),
+            [(_, f)] if f.receiver != Some(form) => {
+                PathCallOutcome::Unresolved("receiver-form-differs")
+            }
+            [(_, f)] => PathCallOutcome::Resolved(f.target.clone()),
+            _ => PathCallOutcome::Unresolved("ambiguous-associated"),
         }
     }
 }
@@ -1182,6 +1266,14 @@ fn flatten_use(
 struct FnCtx {
     locals: BTreeSet<String>,
     generics: BTreeSet<String>,
+    receiver: Option<Receiver>,
+}
+
+/// The impl a method body sits in.
+struct ImplCtx {
+    ty: Option<TypeId>,
+    generics: BTreeSet<String>,
+    shape: String,
 }
 
 struct CallWalker<'a> {
@@ -1190,7 +1282,7 @@ struct CallWalker<'a> {
     file: &'a str,
     scopes: Vec<ModId>,
     /// The enclosing impl's self type (`None` inside a trait or an impl of a non-path type).
-    impl_self: Vec<Option<(Option<TypeId>, BTreeSet<String>)>>,
+    impl_self: Vec<Option<ImplCtx>>,
     fn_ctx: Vec<FnCtx>,
     out: &'a mut Vec<PathCallResolution>,
 }
@@ -1230,12 +1322,13 @@ impl CallWalker<'_> {
         }
         bindings.visit_block(block);
         let mut generics = generic_names(&sig.generics);
-        if let Some(Some((_, outer))) = self.impl_self.last() {
-            generics.extend(outer.iter().cloned());
+        if let Some(Some(outer)) = self.impl_self.last() {
+            generics.extend(outer.generics.iter().cloned());
         }
         self.fn_ctx.push(FnCtx {
             locals: bindings.0,
             generics,
+            receiver: receiver_of(sig),
         });
     }
 
@@ -1277,11 +1370,13 @@ impl CallWalker<'_> {
                 return PathCallOutcome::Unresolved("associated-path");
             }
             return match self.impl_self.last() {
-                Some(Some((Some(ty), _))) => match self.map.associated(*ty, last) {
+                Some(Some(ImplCtx { ty: Some(ty), .. })) => match self.map.associated(*ty, last) {
                     Ok(target) => PathCallOutcome::Resolved(target),
                     Err(reason) => PathCallOutcome::Unresolved(reason),
                 },
-                Some(Some((None, _))) => PathCallOutcome::Unresolved("unresolved-self-type"),
+                Some(Some(ImplCtx { ty: None, .. })) => {
+                    PathCallOutcome::Unresolved("unresolved-self-type")
+                }
                 _ => PathCallOutcome::Unresolved("trait-method"),
             };
         }
@@ -1400,8 +1495,11 @@ impl<'ast> Visit<'ast> for CallWalker<'_> {
             }
             _ => None,
         };
-        self.impl_self
-            .push(Some((resolved, generic_names(&item.generics))));
+        self.impl_self.push(Some(ImplCtx {
+            ty: resolved,
+            generics: generic_names(&item.generics),
+            shape: impl_shape(item),
+        }));
         for impl_item in &item.items {
             if let syn::ImplItem::Fn(method) = impl_item {
                 self.enter_fn(&method.sig, &method.block);
@@ -1464,6 +1562,33 @@ impl<'ast> Visit<'ast> for CallWalker<'_> {
             });
         }
         syn::visit::visit_expr_call(self, call);
+    }
+
+    /// `self.m(..)` inside an impl method (G79): the receiver's type is the impl's self type.
+    fn visit_expr_method_call(&mut self, call: &'ast syn::ExprMethodCall) {
+        if let syn::Expr::Path(receiver) = call.receiver.as_ref()
+            && receiver.path.is_ident("self")
+            && let Some(FnCtx {
+                receiver: Some(form),
+                ..
+            }) = self.fn_ctx.last()
+            && let Some(Some(ImplCtx {
+                ty: Some(ty),
+                shape,
+                ..
+            })) = self.impl_self.last()
+        {
+            let (line, column) = start(call.method.span());
+            let name = call.method.to_string();
+            self.out.push(PathCallResolution {
+                path: self.file.to_owned(),
+                line,
+                column,
+                callee: format!("self.{name}"),
+                outcome: self.map.method_on_self(*ty, shape, &name, *form),
+            });
+        }
+        syn::visit::visit_expr_method_call(self, call);
     }
 
     // The CALL profile's exclusions: deferred executable regions and initializers with no caller.

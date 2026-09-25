@@ -338,3 +338,39 @@ fn standard_library_paths_are_spelled_canonically_through_imports() {
         ]
     );
 }
+
+#[test]
+fn self_method_calls_resolve_only_at_the_method_probes_first_step() {
+    // `self.m()` in an impl method: the inherent method of the impl's self type with the SAME
+    // receiver form wins the probe's first step. A different receiver form, a differently shaped
+    // generic impl, a trait-only method, a typed receiver, two candidates, or a trait default
+    // body are never claimed.
+    let lib = "pub struct S;\nimpl S {\n    fn by_ref(&self) {}\n    fn by_mut(&mut self) {}\n    fn by_value(self) {}\n    fn caller(&self) {\n        self.by_ref();\n        self.by_mut();\n        self.by_value();\n        self.from_trait();\n        self.twice();\n        let other = S;\n        other.by_ref();\n    }\n    fn caller_mut(&mut self) {\n        self.by_mut();\n    }\n    fn caller_boxed(self: Box<Self>) {\n        self.by_ref();\n    }\n    fn twice(&self) {}\n}\nimpl S {\n    #[cfg(unix)]\n    fn twice(&self) {}\n}\npub trait Tr {\n    fn from_trait(&self) {}\n    fn default_body(&self) {\n        self.from_trait();\n    }\n}\nimpl Tr for S {\n    fn from_trait(&self) {\n        self.by_ref();\n    }\n}\npub struct G<T>(T);\nimpl G<u8> {\n    fn only_u8(&self) {}\n}\nimpl G<u16> {\n    fn caller(&self) {\n        self.only_u8();\n    }\n}\n";
+    let results = resolve(&[("src/lib.rs", lib)], "src/lib.rs");
+    assert_eq!(
+        outcomes(&results, "src/lib.rs"),
+        [
+            ("self.by_ref".into(), "src/lib.rs:3:by_ref".into()),
+            (
+                "self.by_mut".into(),
+                "unresolved:receiver-form-differs".into()
+            ),
+            (
+                "self.by_value".into(),
+                "unresolved:receiver-form-differs".into()
+            ),
+            (
+                "self.from_trait".into(),
+                "unresolved:method-not-inherent".into()
+            ),
+            (
+                "self.twice".into(),
+                "unresolved:ambiguous-associated".into()
+            ),
+            ("self.by_mut".into(), "src/lib.rs:4:by_mut".into()),
+            ("self.by_ref".into(), "src/lib.rs:3:by_ref".into()),
+            ("self.only_u8".into(), "unresolved:generic-impl".into()),
+            // `other.by_ref()`: a receiver other than `self` needs its type inferred.
+        ]
+    );
+}

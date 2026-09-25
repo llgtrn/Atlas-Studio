@@ -10,7 +10,7 @@
 //! the syntactic extractor's own FunctionIdentity record for the definition the resolver found,
 //! never a re-derived one.
 //!
-//! The engine evaluates CALL for path calls, and (G77) EFFECT for path calls it resolves to a
+//! The engine evaluates CALL for path calls and (G79) `self.m()` method calls, and (G77) EFFECT for path calls it resolves to a
 //! standard-library path the declared std-path effect table (`atlas_core::std_path_effects`)
 //! names -- an effect site of the calling function, anchored at the call. Both obligations are
 //! UNKNOWN (method calls, closure bodies, macro arguments and every other effect source are
@@ -336,7 +336,7 @@ pub fn resolve_rust_path_calls(
         let (call_scope, effect_scope) = if reached {
             (
                 format!(
-                    "{RUST_PATH_RESOLUTION_ID} resolves path calls only ({path}); method calls, closure bodies and macro arguments are outside it"
+                    "{RUST_PATH_RESOLUTION_ID} resolves path calls and `self.m()` calls decided by the method probe's first step ({path}); other method calls, closure bodies and macro arguments are outside it"
                 ),
                 format!(
                     "{RUST_PATH_RESOLUTION_ID} derives effects only for path calls resolved to a standard-library path the declared std-path effect table names ({path}); method calls and every other effect source are outside it"

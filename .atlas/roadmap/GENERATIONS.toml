@@ -1092,6 +1092,7 @@ objective = "falsify language-service type resolution against Atlas's residual C
 writer = "coordinator (sole writer)"
 evidence = ".atlas/evidence/campaign/16-clef.json"
 self_recensus = ".atlas/evidence/census/G78/recensus.json"
+result_commits = ["e9db35b54462a5ea8e6b53430b4f60266afe73ed", "f5e40ddc3127580d643615a206a53b573b8c8b18"]
 
 [generation.verification]
 pre_census = "clean-HEAD census of 0bf29e010e = G77 post digest 824c81d1... (b2f5175fc2 adds only out-of-scope evidence)"
@@ -1102,3 +1103,23 @@ proof = "PROVEN on the first run (post add04efc...)"
 
 [generation.next]
 objective = "G79 (P0): resolve self.m() method calls to the unique inherent method of the impl's self type when receiver forms match exactly, verified against SCIP; then differential-dataflow (#17)"
+
+[[generation]]
+id = "G79"
+base_commit = "f5e40ddc3127580d643615a206a53b573b8c8b18"
+priority = "P0"
+serves = "P0 CENSUS_KERNEL_CLOSURE: CALL method-call resolution (input from the clef cycle, G78)"
+objective = "resolve self.m() method calls natively by the method probe's first step"
+writer = "coordinator (sole writer)"
+evidence = ".atlas/decisions/0033-self-receiver-method-resolution.md"
+self_recensus = ".atlas/evidence/census/G79/recensus.json"
+
+[generation.verification]
+pre_census = "clean-HEAD census of e9db35b544 = G78 post digest add04efc... (f5e40ddc31 adds only out-of-scope evidence)"
+falsification = "the probe's first step tries the receiver type by value, inherent before trait; a self.m() whose unique inherent method has the caller's receiver form and an identically shaped impl is decided there. On this repository 496 self.m() calls resolve, 496/496 agreeing with rust-analyzer 1.90.0 SCIP at the method anchor; 85 oracle-resolvable ones are refused soundly (73 receiver-form differs -- a blanket trait could win the first step; 6 differently shaped generic impls; 6 unseen methods)"
+change = "impl index records each method's receiver form and each impl's shape; CallWalker resolves self.m() (method anchor) through method_on_self; runtime scope diagnostic updated"
+mutation_battery = "7/7 killed"
+proof = "PROVEN on the first run (post 8dc45df9...)"
+
+[generation.next]
+objective = "G80 (P3): first-50 #17 differential-dataflow"

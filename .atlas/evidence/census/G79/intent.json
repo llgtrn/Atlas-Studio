@@ -1,0 +1,52 @@
+{
+  "objective": "P0 CALL (clef-cycle input): self.m() method calls resolved to the unique inherent method of the impl's self type when receiver forms and impl shape match (the method probe's first step); 496 calls, all confirmed by the pinned SCIP oracle",
+  "changed_paths": [
+    "adapter/src/semantic/rust/cfg.rs",
+    "adapter/src/semantic/rust/concurrency.rs",
+    "adapter/src/semantic/rust/dataflow.rs",
+    "adapter/src/semantic/rust/effect.rs",
+    "adapter/src/semantic/rust/mod.rs",
+    "adapter/src/semantic/rust/ownership.rs",
+    "adapter/src/semantic/rust/persistence.rs",
+    "adapter/src/semantic/rust/resolve.rs",
+    "adapter/src/semantic/rust/resolve/tests.rs",
+    "adapter/src/semantic/rust/state.rs",
+    "core/src/atlas/mod.rs",
+    "core/src/census/mod.rs",
+    "core/src/donor/mod.rs",
+    "core/src/identity/blake3.rs",
+    "core/src/physical/dynamics.rs",
+    "core/src/physical/mod.rs",
+    "core/src/product/mod.rs",
+    "core/src/quantity/mod.rs",
+    "core/src/recensus/mod.rs",
+    "core/src/schema/mod.rs",
+    "core/src/semantic/observation.rs",
+    "runtime/src/census/extraction.rs",
+    "runtime/src/census/resolution.rs",
+    "runtime/src/visual.rs"
+  ],
+  "total_changes": [
+    "+docs",
+    "+entities",
+    "+evidence",
+    "+facts",
+    "+graph_edges",
+    "+graph_nodes",
+    "+normalized_facts",
+    "+typed_records"
+  ],
+  "entity_changes": [
+    "CHANGED adapter semantic/rust/resolve/`impl:CallWalker<'_>`/enter_fn().",
+    "CHANGED adapter semantic/rust/resolve/`impl:CallWalker<'_>`/resolve_call().",
+    "CHANGED adapter semantic/rust/resolve/`impl:DefMap`/associated().",
+    "CHANGED adapter semantic/rust/resolve/`impl:DefMap`/collect_impl().",
+    "CHANGED adapter semantic/rust/resolve/`impl:Visit<'ast> for CallWalker<'_>`/visit_item_impl().",
+    "CHANGED runtime census/resolution/resolve_rust_path_calls().",
+    "CREATED adapter semantic/rust/resolve/`impl:DefMap`/method_on_self().",
+    "CREATED adapter semantic/rust/resolve/`impl:Visit<'ast> for CallWalker<'_>`/visit_expr_method_call().",
+    "CREATED adapter semantic/rust/resolve/impl_shape().",
+    "CREATED adapter semantic/rust/resolve/receiver_of().",
+    "CREATED adapter semantic/rust/resolve/tests/self_method_calls_resolve_only_at_the_method_probes_first_step()."
+  ]
+}

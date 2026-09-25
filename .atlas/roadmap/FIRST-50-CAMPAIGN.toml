@@ -27,7 +27,7 @@ deferred = 0
 extinct = 15
 remaining = 35
 next_donor = "differential-dataflow"
-next_step = "G79 (P0): resolve self.m() method calls by the method probe's first step (clef-cycle input); then differential-dataflow (#17)"
+next_step = "G80 (P3): differential-dataflow (#17)"
 
 [[donor]]
 ordinal = 1
