@@ -382,6 +382,35 @@ fn self_method_calls_resolve_only_at_the_method_probes_first_step() {
     );
 }
 
+#[test]
+fn typed_local_method_calls_resolve_at_the_method_probes_first_step() {
+    // G139 (NA-CALL-TYPE-RESIDUAL): a parameter or top-level `let` whose declared type is a plain
+    // workspace type (`T`, `&T`, `&mut T`, or `Self` of a plain impl), bound once in the whole
+    // function, decides `x.m()` exactly like `self.m()` does. Untyped, rebound, generic,
+    // not-yet-bound and generic-typed receivers are never claimed.
+    let lib = "pub struct S;\nimpl S {\n    fn by_ref(&self) {}\n    fn by_mut(&mut self) {}\n    fn by_value(self) {}\n    fn with_other(&self, other: &Self) {\n        other.by_ref();\n    }\n}\npub trait Tr {\n    fn from_trait(&self) {}\n}\nimpl Tr for S {}\npub struct G<T>(T);\nimpl G<u8> {\n    fn only_u8(&self) {}\n}\nfn params(r: &S, m: &mut S, v: S, g: &G<u8>) {\n    r.by_ref();\n    m.by_mut();\n    r.by_mut();\n    r.from_trait();\n    g.only_u8();\n    let f = || r.by_ref();\n    v.by_value();\n}\nfn shadowed(r: &S) {\n    let r = S;\n    r.by_ref();\n}\nfn closure_shadow(r: &S) {\n    let f = |r: &S| r.by_ref();\n}\nfn lets(owned: S) {\n    early.by_ref();\n    let early: &S = &owned;\n    early.by_ref();\n    let untyped = &owned;\n    untyped.by_ref();\n}\nfn generic<T: Tr>(t: &T) {\n    t.from_trait();\n}\n";
+    let results = resolve(&[("src/lib.rs", lib)], "src/lib.rs");
+    assert_eq!(
+        outcomes(&results, "src/lib.rs"),
+        [
+            ("other.by_ref".into(), "src/lib.rs:3:by_ref".into()),
+            ("r.by_ref".into(), "src/lib.rs:3:by_ref".into()),
+            ("m.by_mut".into(), "src/lib.rs:4:by_mut".into()),
+            ("r.by_mut".into(), "unresolved:receiver-form-differs".into()),
+            (
+                "r.from_trait".into(),
+                "unresolved:method-not-inherent".into()
+            ),
+            // `g: &G<u8>` has generic arguments: its method is left to inference, unclaimed.
+            ("r.by_ref".into(), "src/lib.rs:3:by_ref".into()),
+            ("v.by_value".into(), "src/lib.rs:5:by_value".into()),
+            // `shadowed`, `closure_shadow`: `r` is bound twice; `early` before its `let`;
+            // `untyped` has no declared type; `t: &T` is generic -- none claimed.
+            ("early.by_ref".into(), "src/lib.rs:3:by_ref".into()),
+        ]
+    );
+}
+
 /// `spelling -> canonical` for every type occurrence in `path` (first occurrence per spelling).
 fn canonical_types(files: &[(&str, &str)], root: &str, path: &str) -> BTreeMap<String, String> {
     let mut out = BTreeMap::new();

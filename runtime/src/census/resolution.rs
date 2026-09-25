@@ -11,8 +11,8 @@
 //! never a re-derived one.
 //!
 //! The engine evaluates TYPE (G83: a spelling whose every occurrence in an artifact resolves to
-//! one canonical type is claimed as denoting it), CALL for path calls and (G79) `self.m()`
-//! method calls, and (G77) EFFECT for path calls it resolves to a
+//! one canonical type is claimed as denoting it), CALL for path calls, (G79) `self.m()` and
+//! (G139) typed-local `x.m()` method calls, and (G77) EFFECT for path calls it resolves to a
 //! standard-library path the declared std-path effect table (`atlas_core::std_path_effects`)
 //! names -- an effect site of the calling function, anchored at the call -- and (G117)
 //! CONCURRENCY for path calls resolved to a std path the declared std-path concurrency table
@@ -537,7 +537,7 @@ pub fn resolve_rust_path_calls(
         let (call_scope, effect_scope, type_scope) = if reached {
             (
                 format!(
-                    "{RUST_PATH_RESOLUTION_ID} resolves path calls and `self.m()` calls decided by the method probe's first step ({path}); other method calls, `async` blocks and macro arguments are outside it"
+                    "{RUST_PATH_RESOLUTION_ID} resolves path calls, and `self.m()` and `x.m()` calls on a local whose declared type is a plain workspace type (G139), decided by the method probe's first step ({path}); other method calls, `async` blocks and macro arguments are outside it"
                 ),
                 format!(
                     "{RUST_PATH_RESOLUTION_ID} derives effects only for path calls resolved to a standard-library path the declared std-path effect table names ({path}); method calls and every other effect source are outside it"

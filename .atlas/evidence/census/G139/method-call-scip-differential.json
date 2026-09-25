@@ -1,0 +1,77 @@
+{
+  "schema": "atlas.evidence.method-call-scip-differential.v1",
+  "generation": "G139",
+  "oracle": "rust-analyzer SCIP (rust-analyzer scip, offline, the G139 working tree)",
+  "method": "every CALL record the resolution engine newly derives for a typed-local method call (x.m() with x a parameter or top-level let whose declared type is a plain workspace type, bound once) compared at its anchor (line, 0-based column of the method name) with the SCIP occurrence there: the SCIP symbol's definition must fall inside the function Atlas names as the callee",
+  "new_resolutions": 61,
+  "lost_resolutions": 0,
+  "agree": 61,
+  "disagree": [],
+  "resolved_call_records": {
+    "g138_engine_on_g139_tree": 5387,
+    "g139_engine_on_g139_tree": 5448,
+    "note": "same tree, two engines: the 61 are exactly the typed-local rule's; the G138 post snapshot's 5,382 is the G138 tree"
+  },
+  "sample": [
+    {
+      "anchor": "runtime/src/census/extraction.rs:107:26",
+      "receiver": "source_digest",
+      "callee": "core/src/identity/mod.rs:135:as_str",
+      "scip_symbol": "rust-analyzer cargo core 0.1.0 identity/impl#[IntegrityDigest]as_str()."
+    },
+    {
+      "anchor": "adapter/src/semantic/rust/resolve.rs:919:29",
+      "receiver": "into",
+      "callee": "adapter/src/semantic/rust/resolve.rs:242:insert",
+      "scip_symbol": "rust-analyzer cargo adapter 0.1.0 semantic/rust/resolve/impl#[Scope]insert()."
+    },
+    {
+      "anchor": "core/src/language/adl/census.rs:406:20",
+      "receiver": "observed",
+      "callee": "core/src/language/adl/census.rs:110:member_dir",
+      "scip_symbol": "rust-analyzer cargo core 0.1.0 language/adl/census/impl#[ObservedArchitecture]member_dir()."
+    },
+    {
+      "anchor": "adapter/src/semantic/rust/tests.rs:997:75",
+      "receiver": "caller",
+      "callee": "core/src/semantic/function.rs:131:identity_key",
+      "scip_symbol": "rust-analyzer cargo core 0.1.0 semantic/function/impl#[FunctionIdentity]identity_key()."
+    },
+    {
+      "anchor": "core/src/quantity/mod.rs:848:31",
+      "receiver": "other",
+      "callee": "core/src/quantity/mod.rs:961:interval",
+      "scip_symbol": "rust-analyzer cargo core 0.1.0 quantity/impl#[Quantity]interval()."
+    },
+    {
+      "anchor": "runtime/src/lib.rs:241:16",
+      "receiver": "closure",
+      "callee": "core/src/census/dependency.rs:451:is_closed",
+      "scip_symbol": "rust-analyzer cargo core 0.1.0 census/dependency/impl#[DependencyClosureReport]is_closed()."
+    },
+    {
+      "anchor": "core/src/quantity/mod.rs:904:29",
+      "receiver": "other",
+      "callee": "core/src/quantity/mod.rs:719:bounds",
+      "scip_symbol": "rust-analyzer cargo core 0.1.0 quantity/impl#[Quantity]bounds()."
+    },
+    {
+      "anchor": "adapter/src/semantic/extractor.rs:135:38",
+      "receiver": "input",
+      "callee": "adapter/src/semantic/extractor.rs:52:identity_key",
+      "scip_symbol": "rust-analyzer cargo adapter 0.1.0 semantic/extractor/impl#[ExtractionInput]identity_key()."
+    },
+    {
+      "anchor": "core/src/recensus/mod.rs:788:18",
+      "receiver": "after",
+      "callee": "core/src/recensus/mod.rs:562:artifact",
+      "scip_symbol": "rust-analyzer cargo core 0.1.0 recensus/impl#[CensusSnapshot]artifact()."
+    },
+    {
+      "anchor": "core/src/quantity/mod.rs:931:57",
+      "receiver": "other",
+      "callee": "core/src/quantity/mod.rs:719:bounds",
+      "scip_symbol": "rust-analyzer cargo core 0.1.0 quantity/impl#[Quantity]bounds()."
+    }
+  ]
+}

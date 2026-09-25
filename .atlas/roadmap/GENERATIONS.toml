@@ -13,7 +13,7 @@
 #       -> generation evidence -> G_n+1
 
 schema = "atlas.self-build.generation-ledger.v1"
-current_generation = "G138"
+current_generation = "G139"
 
 [[generation]]
 id = "G35"
@@ -2836,3 +2836,48 @@ after = 23716
 key = "composed:function_behavior"
 before = 4937
 after = 4993
+
+[[generation]]
+id = "G139"
+kind = "NATIVE_ATTACK"
+base_commit = "61d2bfae5998f55ec0055fc9037e90d45f3ab458"
+priority = "P0"
+serves = "native attack queue head NA-CALL-TYPE-RESIDUAL (DEBT-CALL, DEBT-TYPE, DEBT-PERSISTENCE), first step"
+objective = "method calls on locals whose type is declared, decided by the method probe's first step like self.m() (G79)"
+writer = "coordinator (sole writer)"
+evidence = ".atlas/evidence/census/G139/method-call-scip-differential.json"
+self_recensus = ".atlas/evidence/census/G139/recensus.json"
+
+[generation.verification]
+pre_census = "clean-HEAD census of 80a7ce3588 = G138 post digest (the evidence commit 61d2bfae59 adds only out-of-scope evidence)"
+atlas_first = "the composed model sized the residual (25,245 unresolved call sites, 3,825 resolved edges) and located the edit point by purpose: visit_expr_method_call ('self.m(..) inside an impl method (G79)') and method_on_self (the probe's first step); read the two bodies and the local-binding machinery"
+change = "adapter resolve.rs: FnCtx.typed (TypedLocal: type, receiver form, in-scope position), BindingCounts, typed_locals and declared_receiver_type (T, &T, &mut T, Self of a plain impl; no generic arguments; bound once; top-level lets after their position), visit_expr_method_call's typed-local branch through method_on_self with PLAIN_IMPL_SHAPE; closures inherit typed locals; resolution scope text; ADR 0057"
+oracle = "61 new resolved calls on the self census (5,387 -> 5,448), none lost; all 61 agree with rust-analyzer SCIP (the referenced symbol is defined inside the callee Atlas names)"
+falsification = "5 mutants killed: the bound-once check dropped; the binding position ignored; generic arguments accepted; the declared form ignored; closures losing typed locals"
+debts = "DEBT-CALL last advance G139; NA-CALL-TYPE-RESIDUAL stays queued for inferred receivers (untyped lets, fields, chains, trait objects); revalidation milestone TYPED_LOCAL_METHODS"
+proof = "PROVEN (post 2ffa8d85...): no new UNKNOWN obligation; 25 files gain resolved calls"
+
+[[generation.metric]]
+key = "typed_records"
+before = 143703
+after = 144119
+
+[[generation.metric]]
+key = "facts"
+before = 23716
+after = 23760
+
+[[generation.metric]]
+key = "composed:function_behavior"
+before = 4993
+after = 5001
+
+[[generation.metric]]
+key = "records:CALL|atlas.resolution.rust-paths"
+before = 5382
+after = 5448
+
+[[generation.metric]]
+key = "composed:relation:INVOKES"
+before = 3825
+after = 3874

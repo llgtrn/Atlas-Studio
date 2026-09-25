@@ -1416,6 +1416,34 @@ struct FnCtx {
     locals: BTreeSet<String>,
     generics: BTreeSet<String>,
     receiver: Option<Receiver>,
+    /// G139: locals whose type is declared (`x: T`, `x: &T`, `x: &mut T` for a workspace type
+    /// without generic arguments) and bound exactly once in the function, with the position
+    /// from which the binding is in scope (a parameter's is the start of the function).
+    typed: BTreeMap<String, TypedLocal>,
+}
+
+/// A local whose declared type decides a method call on it (G139).
+#[derive(Clone, Copy)]
+struct TypedLocal {
+    ty: TypeId,
+    form: Receiver,
+    from: (usize, usize),
+}
+
+/// `impl_shape` of an impl without generics or a where clause, of a type without arguments.
+const PLAIN_IMPL_SHAPE: &str = "  | ";
+
+/// How many times each identifier is bound in a function body, closures included (G139): a name
+/// bound once is the same local wherever it is used.
+#[derive(Default)]
+struct BindingCounts(BTreeMap<String, usize>);
+
+impl<'ast> Visit<'ast> for BindingCounts {
+    fn visit_pat_ident(&mut self, pat: &'ast syn::PatIdent) {
+        *self.0.entry(pat.ident.to_string()).or_default() += 1;
+        syn::visit::visit_pat_ident(self, pat);
+    }
+    fn visit_item(&mut self, _: &'ast syn::Item) {}
 }
 
 /// The impl a method body sits in.
@@ -1619,11 +1647,125 @@ impl CallWalker<'_> {
         if let Some(Some(outer)) = self.impl_self.last() {
             generics.extend(outer.generics.iter().cloned());
         }
+        let typed = self.typed_locals(sig, block, &generics);
         self.fn_ctx.push(FnCtx {
             locals: bindings.0,
             generics,
             receiver: receiver_of(sig),
+            typed,
         });
+    }
+
+    /// G139: the parameters and top-level `let` bindings of a function whose declared type
+    /// decides a method call on them -- bound exactly once in the whole body, closures included.
+    fn typed_locals(
+        &self,
+        sig: &syn::Signature,
+        block: &syn::Block,
+        generics: &BTreeSet<String>,
+    ) -> BTreeMap<String, TypedLocal> {
+        let mut counts = BindingCounts::default();
+        for input in &sig.inputs {
+            counts.visit_fn_arg(input);
+        }
+        counts.visit_block(block);
+        let mut declared: Vec<(&syn::Pat, &syn::Type, (usize, usize))> = sig
+            .inputs
+            .iter()
+            .filter_map(|input| match input {
+                syn::FnArg::Typed(arg) => Some((arg.pat.as_ref(), arg.ty.as_ref(), (0, 0))),
+                syn::FnArg::Receiver(_) => None,
+            })
+            .collect();
+        for stmt in &block.stmts {
+            if let syn::Stmt::Local(local) = stmt
+                && let syn::Pat::Type(typed) = &local.pat
+            {
+                declared.push((
+                    typed.pat.as_ref(),
+                    typed.ty.as_ref(),
+                    start(local.let_token.span),
+                ));
+            }
+        }
+        let mut typed = BTreeMap::new();
+        for (pat, ty, from) in declared {
+            let syn::Pat::Ident(ident) = pat else {
+                continue;
+            };
+            if ident.by_ref.is_some() || ident.subpat.is_some() {
+                continue;
+            }
+            let name = ident.ident.to_string();
+            if counts.0.get(&name) != Some(&1) {
+                continue;
+            }
+            if let Some((ty, form)) = self.declared_receiver_type(ty, generics) {
+                typed.insert(name, TypedLocal { ty, form, from });
+            }
+        }
+        typed
+    }
+
+    /// `T`, `&T` or `&mut T` for a workspace type `T` spelled without generic arguments (or
+    /// `Self` in an impl of such a type), with the receiver form the spelling gives.
+    fn declared_receiver_type(
+        &self,
+        ty: &syn::Type,
+        generics: &BTreeSet<String>,
+    ) -> Option<(TypeId, Receiver)> {
+        let (form, inner) = match ty {
+            syn::Type::Reference(reference) => (
+                if reference.mutability.is_some() {
+                    Receiver::RefMut
+                } else {
+                    Receiver::Ref
+                },
+                reference.elem.as_ref(),
+            ),
+            other => (Receiver::Value, other),
+        };
+        let syn::Type::Path(path) = inner else {
+            return None;
+        };
+        if path.qself.is_some()
+            || path
+                .path
+                .segments
+                .iter()
+                .any(|s| !matches!(s.arguments, syn::PathArguments::None))
+        {
+            return None;
+        }
+        let segments: Vec<String> = path
+            .path
+            .segments
+            .iter()
+            .map(|s| s.ident.to_string())
+            .collect();
+        if let [only] = segments.as_slice() {
+            if generics.contains(only) {
+                return None;
+            }
+            if only == "Self" {
+                return match self.impl_self.last() {
+                    Some(Some(ImplCtx {
+                        ty: Some(ty),
+                        shape,
+                        ..
+                    })) if shape == PLAIN_IMPL_SHAPE => Some((*ty, form)),
+                    _ => None,
+                };
+            }
+        }
+        let ty = self.map.resolve_type_path(
+            self.crates,
+            self.scope(),
+            &segments,
+            path.path.leading_colon.is_some(),
+            0,
+        )?;
+        Some((ty, form))
     }
 
     fn resolve_call(&self, path: &syn::ExprPath) -> PathCallOutcome {
@@ -1943,6 +2085,28 @@ impl<'ast> Visit<'ast> for CallWalker<'_> {
                 callee: format!("self.{name}"),
                 outcome: self.map.method_on_self(*ty, shape, &name, *form),
             });
+        } else if let syn::Expr::Path(receiver) = call.receiver.as_ref()
+            && receiver.qself.is_none()
+            && let Some(local) = receiver.path.get_ident()
+            && let Some(ctx) = self.fn_ctx.last()
+            && let Some(typed) = ctx.typed.get(&local.to_string())
+        {
+            // G139 (NA-CALL-TYPE-RESIDUAL): a local whose declared type is a plain workspace
+            // type. The probe's first step is the same as for `self`: the inherent method whose
+            // receiver form equals the local's declared form wins, ahead of every trait.
+            let (line, column) = start(call.method.span());
+            if (line, column) > typed.from {
+                let name = call.method.to_string();
+                self.out.push(PathCallResolution {
+                    path: self.file.to_owned(),
+                    line,
+                    column,
+                    callee: format!("{local}.{name}"),
+                    outcome: self
+                        .map
+                        .method_on_self(typed.ty, PLAIN_IMPL_SHAPE, &name, typed.form),
+                });
+            }
         }
         syn::visit::visit_expr_method_call(self, call);
     }
@@ -1963,6 +2127,8 @@ impl<'ast> Visit<'ast> for CallWalker<'_> {
             locals: bindings.0,
             generics: enclosing.generics.clone(),
             receiver: enclosing.receiver,
+            // Bound once in the whole function, closures included: the same local here.
+            typed: enclosing.typed.clone(),
         };
         self.fn_ctx.push(ctx);
         for input in &closure.inputs {

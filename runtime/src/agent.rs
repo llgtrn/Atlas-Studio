@@ -524,9 +524,14 @@ fn run(s: &core::store::Store) { s.save(); }
         let new = function(&model, "new");
         let run = function(&model, "run");
         assert!(main.calls.contains(&new.id) && main.calls.contains(&run.id));
-        assert_eq!(main.unresolved_calls, 1, "s.bump() needs a receiver type");
-        assert_eq!(run.unresolved_calls, 1, "s.save() needs a receiver type");
+        assert_eq!(
+            main.unresolved_calls, 1,
+            "s.bump() on an untyped `let` needs an inferred receiver type"
+        );
+        // G139: `s: &core::store::Store` declares the receiver type, so `s.save()` resolves.
         let save = function(&model, "save");
+        assert_eq!(run.unresolved_calls, 0);
+        assert!(run.calls.contains(&save.id));
         let writes: Vec<_> = save
             .effects
             .iter()

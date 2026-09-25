@@ -595,9 +595,19 @@ objective = "native attack queue head (pressure map, primary-debt dependency ord
 [[planned_generation]]
 id = "G139"
 priority = "P0"
-objective = "native attack queue head (pressure map, primary-debt dependency order): NA-CALL-TYPE-RESIDUAL"
+objective = "native attack queue head (pressure map, primary-debt dependency order): NA-CALL-TYPE-RESIDUAL (first step done: method calls on typed locals decided by the probe's first step; 61 new resolutions, all agreeing with SCIP; 5 mutants killed)"
 
 [[planned_generation]]
-id = "G140+"
+id = "G140"
+priority = "P0"
+objective = "native attack queue head: NA-CALL-TYPE-RESIDUAL second step (receiver types of untyped lets bound by a constructor of a plain workspace type)"
+
+[[planned_generation]]
+id = "G141"
+priority = "P0"
+objective = "AGENT_MISSION: the fifth mission through the agent interface (cadence: within five generations of G136)"
+
+[[planned_generation]]
+id = "G142+"
 priority = "P0"
 objective = "the native_attack_queue in order (ESSENTIAL-COMPLEXITY-DEBT.toml) interleaved with an AGENT_MISSION at least every five generations; frontier expansion stays frozen until FOUNDATIONAL_ATLAS_READY"
