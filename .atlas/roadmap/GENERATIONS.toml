@@ -13,7 +13,7 @@
 #       -> generation evidence -> G_n+1
 
 schema = "atlas.self-build.generation-ledger.v1"
-current_generation = "G126"
+current_generation = "G127"
 
 [[generation]]
 id = "G35"
@@ -2334,6 +2334,7 @@ objective = "a restricted-subprocess sandbox backend that records every isolatio
 writer = "coordinator (sole writer)"
 evidence = ".atlas/decisions/0047-restricted-subprocess-sandbox.md"
 self_recensus = ".atlas/evidence/census/G126/recensus.json"
+result_commits = ["791021fe8217174b37d8bf984a6022ec5353eb0d", "7e91ae9c25a27a8e3fc74c293f7175f8a31904e7"]
 
 [generation.verification]
 pre_census = "clean-HEAD census of 9fffcbda69b140d0932ec5942e91575fcad86c6e = G125 post digest 8d732e2d... (63f1ed91c1 adds only out-of-scope evidence)"
@@ -2365,3 +2366,47 @@ after = 122
 key = "facts"
 before = 17084
 after = 17338
+
+[generation.next]
+objective = "G127 (P2): native attack queue head NA-VERIFICATION-EVIDENCE (construction node M2); G128 AGENT_MISSION"
+
+[[generation]]
+id = "G127"
+kind = "NATIVE_ATTACK"
+base_commit = "7e91ae9c25a27a8e3fc74c293f7175f8a31904e7"
+priority = "P2"
+serves = "P2 native attack queue head NA-VERIFICATION-EVIDENCE (DEBT-VERIFICATION_EVIDENCE, construction node M2)"
+objective = "typed verification obligations, evidence and reports with state computed only from evidence admissible for the exact candidate, and the self scope evaluated"
+writer = "coordinator (sole writer)"
+evidence = ".atlas/decisions/0048-verification-obligations-and-evidence.md"
+self_recensus = ".atlas/evidence/census/G127/recensus.json"
+
+[generation.verification]
+pre_census = "clean-HEAD census of 791021fe8217174b37d8bf984a6022ec5353eb0d = G126 post digest 8dd30de7... (7e91ae9c25a27a8e3fc74c293f7175f8a31904e7 adds only out-of-scope evidence)"
+atlas_first = "the contract is canonical text Atlas does not compose (read directly, VERIFICATION-METRICS-PERFORMANCE.md lines 132-146 and 324-328); agent understand of path:core/src/constraint bounded the existing three-valued ConstraintResult the vocabulary sits beside"
+semantics = "state from the admissible evidence set: none -> UNVERIFIED, any VIOLATED -> FAILED (typed failure with counterexample), all SATISFIED -> SATISFIED, else UNRESOLVED; admissible = OBSERVED and naming the exact candidate; a required class without an obligation blocks"
+self_scope = "candidate = census digest; SEMANTIC from the generation's recensus report (admissible only for the tree it proved), UNIT from cargo test --workspace, COMPATIBILITY from the .atlas schema-history tests; command evidence records ambient authority; report in evidence/verification/G127-self-scope.json"
+construction = "M2 EXISTS; DEBT-SELECTED_DESIGN and DEBT-SEAL_GATE now blocked only by DEBT-ATLAS_COMPLETENESS (M1); DEBT-TRANSFORMATION only by DEBT-SANDBOXED_EXECUTION"
+falsification = "6 mutants killed: no evidence satisfied; any candidate admitted; violations ignored; missing class not blocking; hypothetical evidence admitted; recensus evidence bound to the predecessor"
+debts = "last advance G127 for DEBT-VERIFICATION_EVIDENCE (M1 -> M2); stays OPEN: no consumer until the seal gate, verification outside the sandbox"
+proof = "PROVEN (post 4c711fd9...): one new source file explained as carrying the standing per-file UNKNOWN obligations"
+
+[[generation.metric]]
+key = "typed_records"
+before = 113666
+after = 114677
+
+[[generation.metric]]
+key = "facts"
+before = 17338
+after = 17614
+
+[[generation.metric]]
+key = "composed:function_behavior"
+before = 2227
+after = 2246
+
+[[generation.metric]]
+key = "composed:component_behavior"
+before = 122
+after = 124

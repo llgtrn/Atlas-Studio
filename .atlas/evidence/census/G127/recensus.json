@@ -1,0 +1,434 @@
+{
+  "schema": "atlas.self-recensus-report.v1",
+  "generation": "G127",
+  "base_revision": "63f1ed91c10104f83afcae73da151524c6de24cf",
+  "candidate_revision": "7e91ae9c25a27a8e3fc74c293f7175f8a31904e7",
+  "candidate_dirty": true,
+  "before_census_digest": "blake3-256:8dd30de7e92fd7e32b26a87295ae69bfb34735ccab6f02ddf33e1983d3d2888d",
+  "after_census_digest": "blake3-256:4c711fd96cee1157e0d537179b0f0314d53172ed06df48e28f0dd07d6c03ebea",
+  "replay_digest": "blake3-256:4c711fd96cee1157e0d537179b0f0314d53172ed06df48e28f0dd07d6c03ebea",
+  "inventory_delta": {
+    "created": [
+      "core/src/verification/mod.rs",
+      "runtime/src/verification.rs"
+    ],
+    "modified": [
+      "apps/cli/src/main.rs",
+      "core/src/lib.rs",
+      "runtime/src/lib.rs"
+    ],
+    "deleted": []
+  },
+  "semantic_delta": {
+    "changed": [
+      "apps/cli/src/main.rs",
+      "core/src/lib.rs",
+      "runtime/src/lib.rs"
+    ],
+    "counts": {
+      "fact:FunctionIdentity|OBSERVED": 19,
+      "fact:FunctionSignature|OBSERVED": 19,
+      "fact:SemanticObligation|OBSERVED": 9,
+      "fact:SemanticObligation|UNKNOWN": 25,
+      "fact:SourceArtifact|OBSERVED": 4,
+      "fact:Symbol|OBSERVED": 103,
+      "fact:Type|DERIVED": 36,
+      "fact:Type|OBSERVED": 61,
+      "record:CALL|DERIVED": 36,
+      "record:CALL|OBSERVED": 216,
+      "record:CONTROL_FLOW|INFERRED": 21,
+      "record:CONTROL_FLOW|OBSERVED": 50,
+      "record:DATA_FLOW|OBSERVED": 320,
+      "record:EFFECT|DERIVED": 6,
+      "record:EFFECT|INFERRED": 27,
+      "record:FUNCTION_IDENTITY|OBSERVED": 19,
+      "record:FUNCTION_SIGNATURE|OBSERVED": 19,
+      "record:OWNERSHIP|OBSERVED": 94,
+      "record:PERSISTENCE|DERIVED": 2,
+      "record:PERSISTENCE|INFERRED": 1,
+      "record:SYMBOL|OBSERVED": 103,
+      "record:TYPE|DERIVED": 36,
+      "record:TYPE|OBSERVED": 61
+    }
+  },
+  "dependency_delta": {
+    "added": [],
+    "removed": []
+  },
+  "dependency_state": [
+    "Closed",
+    "Closed"
+  ],
+  "graph_delta": {
+    "graph_bindings": 2,
+    "graph_edges": 1226,
+    "graph_nodes": 1040
+  },
+  "obligation_delta": {
+    "obligation:CALL|OBSERVED": 1,
+    "obligation:CALL|UNKNOWN": 3,
+    "obligation:CONCURRENCY|UNKNOWN": 4,
+    "obligation:CONTROL_FLOW|UNKNOWN": 2,
+    "obligation:DATA_FLOW|UNKNOWN": 2,
+    "obligation:EFFECT|UNKNOWN": 4,
+    "obligation:FUNCTION_IDENTITY|OBSERVED": 2,
+    "obligation:FUNCTION_SIGNATURE|OBSERVED": 2,
+    "obligation:OWNERSHIP|UNKNOWN": 2,
+    "obligation:PERSISTENCE|UNKNOWN": 4,
+    "obligation:STATE|UNKNOWN": 2,
+    "obligation:SYMBOL|OBSERVED": 2,
+    "obligation:TYPE|OBSERVED": 2,
+    "obligation:TYPE|UNKNOWN": 2
+  },
+  "adl_delta": {
+    "added": [],
+    "removed": []
+  },
+  "entity_delta": [
+    {
+      "kind": "CHANGED",
+      "before": [
+        "`apps/cli` run()."
+      ],
+      "after": [
+        "`apps/cli` run()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core verification/`impl:ObligationState`/as_str()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core verification/`impl:VerificationClass`/as_str()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core verification/`impl:VerificationPolicy`/library_package()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core verification/evaluate()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core verification/evaluate_obligation()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core verification/tests/a_required_class_without_an_obligation_blocks_and_all_satisfied_admits()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core verification/tests/evidence()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core verification/tests/nothing_is_satisfied_without_admissible_evidence()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core verification/tests/obligation()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core verification/tests/plan()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core verification/tests/state_is_a_function_of_the_admissible_evidence_set()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime verification/command_evidence()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime verification/digest()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime verification/recensus_evidence()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime verification/self_scope_plan()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime verification/tests/command_evidence_records_its_result_and_that_it_was_not_sandboxed()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime verification/tests/report()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime verification/tests/semantic_evidence_counts_only_for_the_tree_it_proved()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime verification/verify_self()."
+      ],
+      "evidence": ""
+    }
+  ],
+  "coverage_delta": [],
+  "unknown_delta": {
+    "increased": [
+      "core/src/verification/mod.rs: 0 -> 12",
+      "runtime/src/verification.rs: 0 -> 13"
+    ],
+    "decreased": [],
+    "total_before": 1489,
+    "total_after": 1514
+  },
+  "intent": {
+    "objective": "NA-VERIFICATION-EVIDENCE (ADR 0048): typed verification obligations, evidence, reports; self scope evaluated; construction node M2",
+    "changed_paths": [
+      "apps/cli/src/main.rs",
+      "core/src/lib.rs",
+      "core/src/verification/mod.rs",
+      "runtime/src/lib.rs",
+      "runtime/src/verification.rs"
+    ],
+    "total_changes": [
+      "+artifacts",
+      "+composed:component_behavior",
+      "+composed:function_behavior",
+      "+composed:relation",
+      "+composed:relation:INVOKES",
+      "+composed:relation:SUPPLIES_DATA",
+      "+diagnostic:IncompleteAnalysis",
+      "+docs",
+      "+entities",
+      "+evidence",
+      "+facts",
+      "+graph_bindings",
+      "+graph_edges",
+      "+graph_nodes",
+      "+normalized_facts",
+      "+obligations",
+      "+obligations:CALL|atlas.resolution.rust-paths|UNKNOWN",
+      "+obligations:CALL|atlas.rust.source-semantic.v1|OBSERVED",
+      "+obligations:CALL|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:CONCURRENCY|atlas.resolution.rust-paths|UNKNOWN",
+      "+obligations:CONCURRENCY|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:CONTROL_FLOW|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:DATA_FLOW|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:EFFECT|atlas.resolution.rust-paths|UNKNOWN",
+      "+obligations:EFFECT|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1|OBSERVED",
+      "+obligations:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1|OBSERVED",
+      "+obligations:OWNERSHIP|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:PERSISTENCE|atlas.resolution.rust-paths|UNKNOWN",
+      "+obligations:PERSISTENCE|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:STATE|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:SYMBOL|atlas.rust.source-semantic.v1|OBSERVED",
+      "+obligations:TYPE|atlas.resolution.rust-paths|UNKNOWN",
+      "+obligations:TYPE|atlas.rust.source-semantic.v1|OBSERVED",
+      "+records:CALL|atlas.resolution.rust-paths",
+      "+records:CALL|atlas.rust.source-semantic.v1",
+      "+records:CONTROL_FLOW|atlas.rust.source-semantic.v1",
+      "+records:DATA_FLOW|atlas.rust.source-semantic.v1",
+      "+records:EFFECT|atlas.resolution.rust-paths",
+      "+records:EFFECT|atlas.rust.source-semantic.v1",
+      "+records:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1",
+      "+records:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1",
+      "+records:OWNERSHIP|atlas.rust.source-semantic.v1",
+      "+records:PERSISTENCE|atlas.resolution.rust-paths",
+      "+records:PERSISTENCE|atlas.rust.source-semantic.v1",
+      "+records:SYMBOL|atlas.rust.source-semantic.v1",
+      "+records:TYPE|atlas.resolution.rust-paths",
+      "+records:TYPE|atlas.rust.source-semantic.v1",
+      "+typed_records",
+      "+unknown_facts"
+    ],
+    "dependency_changes": [],
+    "adl_changes": [],
+    "coverage_changes": [],
+    "explained_unknowns": [
+      "core/src/verification/mod.rs: new source file carrying the workspace's standing per-file UNKNOWN obligations",
+      "runtime/src/verification.rs: new source file carrying the workspace's standing per-file UNKNOWN obligations"
+    ],
+    "accepted_unexpected": [],
+    "entity_changes": [
+      "CHANGED `apps/cli` run().",
+      "CREATED core verification/`impl:ObligationState`/as_str().",
+      "CREATED core verification/`impl:VerificationClass`/as_str().",
+      "CREATED core verification/`impl:VerificationPolicy`/library_package().",
+      "CREATED core verification/evaluate().",
+      "CREATED core verification/evaluate_obligation().",
+      "CREATED core verification/tests/a_required_class_without_an_obligation_blocks_and_all_satisfied_admits().",
+      "CREATED core verification/tests/evidence().",
+      "CREATED core verification/tests/nothing_is_satisfied_without_admissible_evidence().",
+      "CREATED core verification/tests/obligation().",
+      "CREATED core verification/tests/plan().",
+      "CREATED core verification/tests/state_is_a_function_of_the_admissible_evidence_set().",
+      "CREATED runtime verification/command_evidence().",
+      "CREATED runtime verification/digest().",
+      "CREATED runtime verification/recensus_evidence().",
+      "CREATED runtime verification/self_scope_plan().",
+      "CREATED runtime verification/tests/command_evidence_records_its_result_and_that_it_was_not_sandboxed().",
+      "CREATED runtime verification/tests/report().",
+      "CREATED runtime verification/tests/semantic_evidence_counts_only_for_the_tree_it_proved().",
+      "CREATED runtime verification/verify_self()."
+    ]
+  },
+  "intended_changes": [
+    "path apps/cli/src/main.rs",
+    "path core/src/lib.rs",
+    "path core/src/verification/mod.rs",
+    "path runtime/src/lib.rs",
+    "path runtime/src/verification.rs",
+    "total +artifacts",
+    "total +composed:component_behavior",
+    "total +composed:function_behavior",
+    "total +composed:relation",
+    "total +composed:relation:INVOKES",
+    "total +composed:relation:SUPPLIES_DATA",
+    "total +diagnostic:IncompleteAnalysis",
+    "total +docs",
+    "total +entities",
+    "total +evidence",
+    "total +facts",
+    "total +graph_bindings",
+    "total +graph_edges",
+    "total +graph_nodes",
+    "total +normalized_facts",
+    "total +obligations",
+    "total +obligations:CALL|atlas.resolution.rust-paths|UNKNOWN",
+    "total +obligations:CALL|atlas.rust.source-semantic.v1|OBSERVED",
+    "total +obligations:CALL|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:CONCURRENCY|atlas.resolution.rust-paths|UNKNOWN",
+    "total +obligations:CONCURRENCY|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:CONTROL_FLOW|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:DATA_FLOW|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:EFFECT|atlas.resolution.rust-paths|UNKNOWN",
+    "total +obligations:EFFECT|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1|OBSERVED",
+    "total +obligations:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1|OBSERVED",
+    "total +obligations:OWNERSHIP|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:PERSISTENCE|atlas.resolution.rust-paths|UNKNOWN",
+    "total +obligations:PERSISTENCE|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:STATE|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:SYMBOL|atlas.rust.source-semantic.v1|OBSERVED",
+    "total +obligations:TYPE|atlas.resolution.rust-paths|UNKNOWN",
+    "total +obligations:TYPE|atlas.rust.source-semantic.v1|OBSERVED",
+    "total +records:CALL|atlas.resolution.rust-paths",
+    "total +records:CALL|atlas.rust.source-semantic.v1",
+    "total +records:CONTROL_FLOW|atlas.rust.source-semantic.v1",
+    "total +records:DATA_FLOW|atlas.rust.source-semantic.v1",
+    "total +records:EFFECT|atlas.resolution.rust-paths",
+    "total +records:EFFECT|atlas.rust.source-semantic.v1",
+    "total +records:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1",
+    "total +records:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1",
+    "total +records:OWNERSHIP|atlas.rust.source-semantic.v1",
+    "total +records:PERSISTENCE|atlas.resolution.rust-paths",
+    "total +records:PERSISTENCE|atlas.rust.source-semantic.v1",
+    "total +records:SYMBOL|atlas.rust.source-semantic.v1",
+    "total +records:TYPE|atlas.resolution.rust-paths",
+    "total +records:TYPE|atlas.rust.source-semantic.v1",
+    "total +typed_records",
+    "total +unknown_facts",
+    "entity CHANGED `apps/cli` run().",
+    "entity CREATED core verification/`impl:ObligationState`/as_str().",
+    "entity CREATED core verification/`impl:VerificationClass`/as_str().",
+    "entity CREATED core verification/`impl:VerificationPolicy`/library_package().",
+    "entity CREATED core verification/evaluate().",
+    "entity CREATED core verification/evaluate_obligation().",
+    "entity CREATED core verification/tests/a_required_class_without_an_obligation_blocks_and_all_satisfied_admits().",
+    "entity CREATED core verification/tests/evidence().",
+    "entity CREATED core verification/tests/nothing_is_satisfied_without_admissible_evidence().",
+    "entity CREATED core verification/tests/obligation().",
+    "entity CREATED core verification/tests/plan().",
+    "entity CREATED core verification/tests/state_is_a_function_of_the_admissible_evidence_set().",
+    "entity CREATED runtime verification/command_evidence().",
+    "entity CREATED runtime verification/digest().",
+    "entity CREATED runtime verification/recensus_evidence().",
+    "entity CREATED runtime verification/self_scope_plan().",
+    "entity CREATED runtime verification/tests/command_evidence_records_its_result_and_that_it_was_not_sandboxed().",
+    "entity CREATED runtime verification/tests/report().",
+    "entity CREATED runtime verification/tests/semantic_evidence_counts_only_for_the_tree_it_proved().",
+    "entity CREATED runtime verification/verify_self()."
+  ],
+  "intended_but_unobserved": [],
+  "unexpected_changes": [],
+  "regressions": [],
+  "verdict": "PROVEN"
+}

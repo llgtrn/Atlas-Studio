@@ -543,6 +543,29 @@ fn run(args: &[String]) -> Result<(), String> {
                 return Err("WORK_PREPARE_NOT_ALLOWED".into());
             }
         }
+        [cmd, sub, rest @ ..] if cmd == "verification" && sub == "self" => {
+            // G127 (ADR 0048): the self scope's SEMANTIC/UNIT/COMPATIBILITY obligations evaluated
+            // against evidence bound to the candidate's census digest.
+            let root = value(rest, "--root")?.unwrap_or_else(|| ".".into());
+            let recensus =
+                value(rest, "--recensus")?.ok_or("verification self requires --recensus")?;
+            let (report, evidence) = runtime::verification::verify_self(
+                std::path::Path::new(&root),
+                std::path::Path::new(&recensus),
+            )
+            .map_err(|e| format!("{root}: {e}"))?;
+            let text = json(&serde_json::json!({"report": report, "evidence": evidence}))? + "\n";
+            match value(rest, "--out")? {
+                Some(out) => write_report_to_out(&out, &text)?,
+                None => print!("{text}"),
+            }
+            if report.verdict != "ADMISSIBLE" {
+                return Err(format!(
+                    "VERIFICATION_BLOCKED: {}",
+                    report.blockers.join("; ")
+                ));
+            }
+        }
         [cmd, sub, ..] if cmd == "sandbox" && sub == "probe" => {
             // G126 (ADR 0047): the isolation the restricted-subprocess backend can enforce here.
             let network = runtime::sandbox::network_isolation_available();
@@ -649,7 +672,7 @@ fn run(args: &[String]) -> Result<(), String> {
         }
         _ => {
             return Err(
-                "usage: atlas-systemizer <contract|systemize|docs audit|code analyze|parse|check|graph|observe|genome|search|create|physical|product|census certificate|adl derive|atlas pack|atlas verify|recensus snapshot|recensus prove|donors working-set|work prepare|agent|sandbox probe> ..."
+                "usage: atlas-systemizer <contract|systemize|docs audit|code analyze|parse|check|graph|observe|genome|search|create|physical|product|census certificate|adl derive|atlas pack|atlas verify|recensus snapshot|recensus prove|donors working-set|work prepare|agent|sandbox probe|verification self> ..."
                     .into(),
             );
         }
