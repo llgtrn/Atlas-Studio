@@ -1,0 +1,154 @@
+{
+  "schema": "atlas.self-recensus-report.v1",
+  "generation": "G121",
+  "base_revision": "95319c4f61b33019c9d7e0e69ef1ec161a5e6696",
+  "candidate_revision": "b61e0c4e49f4c19d76395b468fc8bff36add5351",
+  "candidate_dirty": true,
+  "before_census_digest": "blake3-256:b6438faf5595d877a6f8d155792441dab47ba6a188d9ea486f8d75aa88e70c1e",
+  "after_census_digest": "blake3-256:932b3fd43ef5e1a3efdedc865d31ae164b639a33be2e9694659170dec85e175b",
+  "replay_digest": "blake3-256:932b3fd43ef5e1a3efdedc865d31ae164b639a33be2e9694659170dec85e175b",
+  "inventory_delta": {
+    "created": [],
+    "modified": [
+      "runtime/src/lib.rs"
+    ],
+    "deleted": []
+  },
+  "semantic_delta": {
+    "changed": [
+      "runtime/src/lib.rs"
+    ],
+    "counts": {
+      "fact:FunctionIdentity|OBSERVED": 2,
+      "fact:FunctionSignature|OBSERVED": 2,
+      "fact:Symbol|OBSERVED": 3,
+      "record:CALL|DERIVED": 34,
+      "record:CALL|OBSERVED": 149,
+      "record:CONTROL_FLOW|INFERRED": 29,
+      "record:CONTROL_FLOW|OBSERVED": 11,
+      "record:DATA_FLOW|OBSERVED": 235,
+      "record:EFFECT|DERIVED": 1,
+      "record:EFFECT|INFERRED": 30,
+      "record:FUNCTION_IDENTITY|OBSERVED": 2,
+      "record:FUNCTION_SIGNATURE|OBSERVED": 2,
+      "record:OWNERSHIP|OBSERVED": 56,
+      "record:SYMBOL|OBSERVED": 3
+    }
+  },
+  "dependency_delta": {
+    "added": [],
+    "removed": []
+  },
+  "dependency_state": [
+    "Closed",
+    "Closed"
+  ],
+  "graph_delta": {
+    "graph_edges": 846,
+    "graph_nodes": 548
+  },
+  "obligation_delta": {},
+  "adl_delta": {
+    "added": [],
+    "removed": []
+  },
+  "entity_delta": [
+    {
+      "kind": "CHANGED",
+      "before": [
+        "runtime tests/essential_complexity/remaining_donor_corpus_progress_blocked_until_audit_complete()."
+      ],
+      "after": [
+        "runtime tests/essential_complexity/remaining_donor_corpus_progress_blocked_until_audit_complete()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime tests/essential_complexity/historical_donor_revalidation_triggers_are_capability_based()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime tests/essential_complexity/in_progress_revalidation_paths()."
+      ],
+      "evidence": ""
+    }
+  ],
+  "coverage_delta": [],
+  "unknown_delta": {
+    "increased": [],
+    "decreased": [],
+    "total_before": 1329,
+    "total_after": 1329
+  },
+  "intent": {
+    "objective": "HISTORICAL_DONOR_REVALIDATION R1: rust re-materialized at its exact pin d287eb7a (sparse compiler/rustc_hir_typeck), censused by the G73-era and current Atlas, REVALIDATED with a corrected reason, deleted again; post-delete self-recensus; only runtime tests, roadmap and docs change",
+    "changed_paths": [
+      "runtime/src/lib.rs"
+    ],
+    "total_changes": [
+      "+docs",
+      "+entities",
+      "+evidence",
+      "+facts",
+      "+graph_edges",
+      "+graph_nodes",
+      "+normalized_facts",
+      "+records:CALL|atlas.resolution.rust-paths",
+      "+records:CALL|atlas.rust.source-semantic.v1",
+      "+records:CONTROL_FLOW|atlas.rust.source-semantic.v1",
+      "+records:DATA_FLOW|atlas.rust.source-semantic.v1",
+      "+records:EFFECT|atlas.resolution.rust-paths",
+      "+records:EFFECT|atlas.rust.source-semantic.v1",
+      "+records:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1",
+      "+records:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1",
+      "+records:OWNERSHIP|atlas.rust.source-semantic.v1",
+      "+records:SYMBOL|atlas.rust.source-semantic.v1",
+      "+typed_records"
+    ],
+    "dependency_changes": [],
+    "adl_changes": [],
+    "coverage_changes": [],
+    "explained_unknowns": [],
+    "accepted_unexpected": [],
+    "entity_changes": [
+      "CHANGED runtime tests/essential_complexity/remaining_donor_corpus_progress_blocked_until_audit_complete().",
+      "CREATED runtime tests/essential_complexity/historical_donor_revalidation_triggers_are_capability_based().",
+      "CREATED runtime tests/essential_complexity/in_progress_revalidation_paths()."
+    ]
+  },
+  "intended_changes": [
+    "path runtime/src/lib.rs",
+    "total +docs",
+    "total +entities",
+    "total +evidence",
+    "total +facts",
+    "total +graph_edges",
+    "total +graph_nodes",
+    "total +normalized_facts",
+    "total +records:CALL|atlas.resolution.rust-paths",
+    "total +records:CALL|atlas.rust.source-semantic.v1",
+    "total +records:CONTROL_FLOW|atlas.rust.source-semantic.v1",
+    "total +records:DATA_FLOW|atlas.rust.source-semantic.v1",
+    "total +records:EFFECT|atlas.resolution.rust-paths",
+    "total +records:EFFECT|atlas.rust.source-semantic.v1",
+    "total +records:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1",
+    "total +records:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1",
+    "total +records:OWNERSHIP|atlas.rust.source-semantic.v1",
+    "total +records:SYMBOL|atlas.rust.source-semantic.v1",
+    "total +typed_records",
+    "entity CHANGED runtime tests/essential_complexity/remaining_donor_corpus_progress_blocked_until_audit_complete().",
+    "entity CREATED runtime tests/essential_complexity/historical_donor_revalidation_triggers_are_capability_based().",
+    "entity CREATED runtime tests/essential_complexity/in_progress_revalidation_paths()."
+  ],
+  "intended_but_unobserved": [],
+  "unexpected_changes": [],
+  "regressions": [],
+  "verdict": "PROVEN"
+}

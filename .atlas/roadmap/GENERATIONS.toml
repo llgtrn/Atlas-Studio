@@ -13,7 +13,7 @@
 #       -> generation evidence -> G_n+1
 
 schema = "atlas.self-build.generation-ledger.v1"
-current_generation = "G120"
+current_generation = "G121"
 
 [[generation]]
 id = "G35"
@@ -2012,6 +2012,7 @@ objective = "carry G119's recovered standard macro arguments into the seven non-
 writer = "coordinator (sole writer)"
 evidence = ".atlas/decisions/0042-role-aware-macro-arguments.md"
 self_recensus = ".atlas/evidence/census/G120/recensus.json"
+result_commits = ["4bcabe62fd374df7b383da37560d2dbd504e6254", "b61e0c4e49f4c19d76395b468fc8bff36add5351"]
 
 [generation.verification]
 pre_census = "clean-HEAD census of af0f89e626b4f70d885dedca53b226739155d5e2 = G119 post digest 0b7c784c... (95319c4f61b33019c9d7e0e69ef1ec161a5e6696 adds only out-of-scope evidence)"
@@ -2071,4 +2072,30 @@ after = 1101
 
 [generation.next]
 objective = "G121: HISTORICAL_DONOR_REVALIDATION (recursive donor revalidation), then G122 native attack NA-QUANTITY-IN-CORE"
+
+[[generation]]
+id = "G121"
+kind = "REVALIDATION"
+base_commit = "b61e0c4e49f4c19d76395b468fc8bff36add5351"
+priority = "P0"
+serves = "P0 census closure through recursive epistemic verification: DEBT-CALL's historical donor evidence (rust, G73) re-examined with the capabilities gained since (ADR 0043); NEW_DONOR_PROGRESSION stays BLOCKED"
+objective = "establish HISTORICAL_DONOR_REVALIDATION (capability-based triggers for every audited donor) and prove it on one real extinct donor: re-materialize at its pinned commit, census with the historical and the current engine, decide, delete again"
+writer = "coordinator (sole writer)"
+evidence = ".atlas/evidence/revalidation/R1-rust.json"
+self_recensus = ".atlas/evidence/census/G121/recensus.json"
+
+[generation.verification]
+pre_census = "clean-HEAD census of 4bcabe62fd374df7b383da37560d2dbd504e6254 = G120 post digest b6438faf... (b61e0c4e49f4c19d76395b468fc8bff36add5351 adds only out-of-scope evidence)"
+triggers = "all 63 audited donors evaluated against 11 capability milestones: REVALIDATION_REQUIRED rust-analyzer, miri, egglog (ranked by debt age x delta); rust REVALIDATED; 41 CURRENT; 3 CAPABILITY_NOT_APPLICABLE; 2 LANGUAGE_UNDETERMINED; 13 not historical decisions"
+selection = "rust ranked first before revalidation (DEBT-CALL and DEBT-TYPE advanced by 5 milestones since G73); its G73 verdict judged rustc_hir_typeck 'far too large to absorb' without censusing it"
+materialization = "exact pin d287eb7a292caa8abbe12051dce2ee707fe03200, partial clone depth 1, blob filter, sparse cone compiler/rustc_hir_typeck: 40 files, 3.5 MB source, 11 MB git metadata, into .atlas/temporary/donors/rust"
+census = "the same source censused by Atlas rebuilt at the G73 commit and by current Atlas (evidence R1-rust.json): the historical engine missed a quarter of the method module's call sites (macro arguments) and resolved none; current Atlas resolves in-crate calls and types"
+outcome = "REVALIDATED with a corrected reason: rustc's method-resolution core is bounded, but inseparable from type inference (most method-module functions are methods of FnCtxt, ProbeContext, ConfirmContext); EXTERNAL_BOUNDARY (ORACLE) and REFERENCE_ONLY for the implementation stand; DEBT-CALL stays OPEN and NA-CALL-TYPE-RESIDUAL a native attack over declared receiver types"
+extinction = "rm -rf of the literal checkout path; physically absent; no Atlas source references it; post-delete self-recensus below"
+enforcement = "historical_donor_revalidation_triggers_are_capability_based recomputes every trigger, delta, priority and rank; REVALIDATION generations need their record; transient checkouts only while IN_PROGRESS; completed ones must be absent; the pin must equal the historical campaign commit"
+falsification = "3 mutants killed by historical_donor_revalidation_triggers_are_capability_based: R1 pin off by one digit (not the exact historical pin); an empty .atlas/temporary/donors/rust left behind for a COMPLETE revalidation (also caught by the hard-stop test); rust-analyzer relabelled CURRENT despite capability milestones after its verdict (recomputed trigger disagrees)"
+proof = "PROVEN on the first run after deletion (post 932b3fd4...): the self-recensus ran with the rust checkout physically absent; only runtime tests change in the census scope"
+
+[generation.next]
+objective = "G122 (P0): native attack queue head NA-QUANTITY-IN-CORE; next revalidation candidate rust-analyzer after a further capability milestone"
 

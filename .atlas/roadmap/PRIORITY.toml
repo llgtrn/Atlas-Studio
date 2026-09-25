@@ -495,7 +495,7 @@ objective = "native attack queue head NA-MACRO-ARGUMENTS-WALKERS (selected by th
 [[planned_generation]]
 id = "G121"
 priority = "P0"
-objective = "HISTORICAL_DONOR_REVALIDATION: recursive donor revalidation mechanism; re-materialize the highest-ranked REVALIDATION_REQUIRED extinct donor at its pinned commit, census it with current Atlas, record the historical-vs-current delta and outcome, delete it again, post-delete self-recensus"
+objective = "HISTORICAL_DONOR_REVALIDATION: recursive donor revalidation mechanism; re-materialize the highest-ranked REVALIDATION_REQUIRED extinct donor at its pinned commit, census it with current Atlas, record the historical-vs-current delta and outcome, delete it again, post-delete self-recensus (done: R1 rust REVALIDATED with a corrected reason)"
 
 [[planned_generation]]
 id = "G122"

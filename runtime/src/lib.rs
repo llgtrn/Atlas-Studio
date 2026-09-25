@@ -2119,6 +2119,7 @@ mod tests {
         const AUDIT: &str = ".atlas/roadmap/DONOR-CAPABILITY-AUDIT.toml";
         const GATE: &str = ".atlas/roadmap/FOUNDATIONAL-ATLAS-READY.toml";
         const PRESSURE: &str = ".atlas/roadmap/ARCHITECTURE-PRESSURE-MAP.toml";
+        const REVALIDATION: &str = ".atlas/roadmap/RECURSIVE-DONOR-REVALIDATION.toml";
         const TERMINAL: [&str; 5] = [
             "ABSORBED",
             "REFERENCE_ONLY",
@@ -2365,6 +2366,16 @@ mod tests {
                 streak = if advanced { 0 } else { streak + 1 };
             }
             streak
+        }
+
+        /// Source paths of revalidations still IN_PROGRESS (their transient checkout may exist).
+        fn in_progress_revalidation_paths() -> Vec<String> {
+            let revalidation = read(REVALIDATION);
+            blocks(&revalidation, "revalidation")
+                .into_iter()
+                .filter(|r| text(r, "status") == "IN_PROGRESS")
+                .map(|r| text(r, "source_path"))
+                .collect()
         }
 
         fn escalation(stale: i64, header: &str) -> &'static str {
@@ -2644,6 +2655,232 @@ mod tests {
                         .as_i64()
                         .unwrap()
             );
+        }
+
+        /// G121 (ADR 0043): a historical donor verdict is valid only for the capabilities that
+        /// produced it. The trigger status of every audited donor is recomputed here from the
+        /// capability milestones -- never from generation age -- and every executed revalidation
+        /// must name its debt and question, pin the exact historical commit, carry its
+        /// historical-vs-current evidence, end in a defined outcome, and leave no donor source.
+        #[test]
+        fn historical_donor_revalidation_triggers_are_capability_based() {
+            let text_all = read(REVALIDATION);
+            let header = text_all.split("\n[[").next().unwrap();
+            assert!(
+                text(header, "rule").starts_with(
+                    "A historical donor verdict is valid evidence only for the semantic capabilities available at the time it was produced."
+                ),
+                "the hard rule for old OSS evidence is canonical"
+            );
+            let ledger = Ledger::load();
+            let debts = ledger.debts();
+            assert_eq!(
+                text(header, "evaluated_at"),
+                text(&ledger.header, "ages_as_of"),
+                "priorities use the ledger's ages"
+            );
+            let generations: BTreeSet<String> =
+                ledger_generations().into_iter().map(|(id, _)| id).collect();
+            let milestones: Vec<(String, i64, Vec<String>, Vec<String>)> =
+                blocks(&text_all, "capability_milestone")
+                    .into_iter()
+                    .map(|b| {
+                        let id = text(b, "id");
+                        let at = text(b, "generation");
+                        assert!(
+                            generations.contains(&at),
+                            "{id}: {at} is not a ledger generation"
+                        );
+                        let named = list(b, "debts");
+                        for debt in &named {
+                            assert!(debts.contains_key(debt), "{id}: {debt}");
+                        }
+                        text(b, "evidence");
+                        (id, generation(&at), named, list(b, "languages"))
+                    })
+                    .collect();
+            let revalidations = blocks(&text_all, "revalidation");
+            let audited: BTreeMap<String, String> =
+                donors().into_iter().map(|d| (d.name, d.block)).collect();
+            let entries = blocks(&text_all, "donor");
+            assert_eq!(
+                entries.len(),
+                audited.len(),
+                "every audited donor is evaluated"
+            );
+            let mut required: Vec<(i64, String, i64)> = Vec::new();
+            for entry in &entries {
+                let donor = text(entry, "donor");
+                let audit = audited
+                    .get(&donor)
+                    .unwrap_or_else(|| panic!("{donor}: not an audited donor"));
+                let donor_debts = list(audit, "debts");
+                assert_eq!(list(entry, "capabilities_examined"), donor_debts, "{donor}");
+                let decided = generation(&text(audit, "decided_in"));
+                let revalidated_at = revalidations
+                    .iter()
+                    .filter(|r| text(r, "donor") == donor)
+                    .map(|r| generation(&text(r, "generation")))
+                    .max();
+                let last_census = decided.max(revalidated_at.unwrap_or(0));
+                let language = text(entry, "language");
+                let candidate: Vec<&(String, i64, Vec<String>, Vec<String>)> = milestones
+                    .iter()
+                    .filter(|(_, at, named, _)| {
+                        *at > last_census && named.iter().any(|d| donor_debts.contains(d))
+                    })
+                    .collect();
+                let observable = candidate
+                    .iter()
+                    .any(|(_, _, _, languages)| languages.contains(&language));
+                let (status, delta): (&str, Vec<String>) = if number(audit, "first_50_ordinal") == 0
+                {
+                    ("NOT_A_HISTORICAL_DECISION", Vec::new())
+                } else if candidate.is_empty() {
+                    (
+                        if revalidated_at.is_some() {
+                            "REVALIDATED"
+                        } else {
+                            "CURRENT"
+                        },
+                        Vec::new(),
+                    )
+                } else {
+                    let ids: Vec<String> = candidate.iter().map(|m| m.0.clone()).collect();
+                    if language == "undetermined" {
+                        ("LANGUAGE_UNDETERMINED", ids)
+                    } else if !observable {
+                        ("CAPABILITY_NOT_APPLICABLE", ids)
+                    } else {
+                        ("REVALIDATION_REQUIRED", ids)
+                    }
+                };
+                assert_eq!(text(entry, "status"), status, "{donor}: trigger status");
+                assert_eq!(
+                    list(entry, "semantic_delta"),
+                    delta,
+                    "{donor}: semantic delta"
+                );
+                text(entry, "reason");
+                if status == "REVALIDATION_REQUIRED" {
+                    let priority: i64 = candidate
+                        .iter()
+                        .map(|(_, _, named, _)| {
+                            named
+                                .iter()
+                                .filter(|d| donor_debts.contains(d))
+                                .map(|d| number(debts[d.as_str()], "age_generations"))
+                                .sum::<i64>()
+                        })
+                        .sum();
+                    assert_eq!(number(entry, "priority"), priority, "{donor}: priority");
+                    required.push((-priority, donor.clone(), number(entry, "rank")));
+                } else {
+                    assert_eq!(number(entry, "rank"), 0, "{donor}");
+                }
+            }
+            required.sort();
+            for (index, (_, donor, rank)) in required.iter().enumerate() {
+                assert_eq!(*rank, index as i64 + 1, "{donor}: rank by priority");
+            }
+            // Executed revalidations: a new decision layer, never a rewritten history.
+            let queue = ledger.attack_ids();
+            for r in &revalidations {
+                let id = text(r, "id");
+                let donor = text(r, "donor");
+                let audit = &audited[&donor];
+                assert!(
+                    number(audit, "first_50_ordinal") > 0,
+                    "{id}: not a historical donor"
+                );
+                let debt = text(r, "debt");
+                assert!(
+                    list(audit, "debts").contains(&debt),
+                    "{id}: {debt} is not what the verdict depended on"
+                );
+                // Every capability cited must advance a debt the historical verdict depended on.
+                let depended = list(audit, "debts");
+                for capability in list(r, "capabilities") {
+                    assert!(
+                        milestones
+                            .iter()
+                            .any(|m| m.0 == capability && m.2.iter().any(|d| depended.contains(d))),
+                        "{id}: {capability} advances no debt the verdict depended on"
+                    );
+                }
+                text(r, "question");
+                let pinned = text(r, "pinned_commit");
+                assert_eq!(pinned.len(), 40, "{id}: a full commit id");
+                let historical = std::fs::read_dir(root().join(".atlas/evidence/campaign"))
+                    .unwrap()
+                    .filter_map(|e| e.ok())
+                    .find(|e| {
+                        e.file_name()
+                            .to_string_lossy()
+                            .ends_with(&format!("-{donor}.json"))
+                    })
+                    .map(|e| std::fs::read_to_string(e.path()).unwrap())
+                    .unwrap_or_else(|| panic!("{id}: no historical campaign evidence for {donor}"));
+                let historical: serde_json::Value = serde_json::from_str(&historical).unwrap();
+                assert_eq!(
+                    historical["commit_sha"].as_str(),
+                    Some(pinned.as_str()),
+                    "{id}: the EXACT historical pin"
+                );
+                let outcome = text(r, "outcome");
+                assert!(
+                    ["REVALIDATED", "MECHANISM_FOUND", "DEBT_REOPENED"].contains(&outcome.as_str()),
+                    "{id}: outcome {outcome}"
+                );
+                let evidence: serde_json::Value =
+                    serde_json::from_str(&read(&text(r, "evidence"))).unwrap();
+                assert_eq!(evidence["donor"].as_str(), Some(donor.as_str()), "{id}");
+                assert_eq!(evidence["outcome"].as_str(), Some(outcome.as_str()), "{id}");
+                assert_eq!(
+                    evidence["materialization"]["pinned_commit"].as_str(),
+                    Some(pinned.as_str()),
+                    "{id}"
+                );
+                assert_eq!(
+                    evidence["engines"]["same_source"].as_bool(),
+                    Some(true),
+                    "{id}: one source, both engines"
+                );
+                assert!(
+                    evidence["crate_census"]["historical_records"].is_object(),
+                    "{id}: historical census"
+                );
+                assert!(
+                    evidence["crate_census"]["current_records"].is_object(),
+                    "{id}: current census"
+                );
+                assert_eq!(
+                    evidence["decision_layer"]["historical_record_rewritten"].as_bool(),
+                    Some(false)
+                );
+                let generation_id = text(r, "generation");
+                let (_, block) = ledger_generations()
+                    .into_iter()
+                    .find(|(g, _)| *g == generation_id)
+                    .unwrap_or_else(|| panic!("{id}: {generation_id} not in the ledger"));
+                assert_eq!(text(&block, "kind"), "REVALIDATION", "{id}");
+                let follow_up = text(r, "follow_up");
+                assert!(
+                    queue.contains(&follow_up) || debts.contains_key(&follow_up),
+                    "{id}: follow-up {follow_up} is neither a native attack nor a debt"
+                );
+                if outcome == "DEBT_REOPENED" {
+                    assert_eq!(text(debts[debt.as_str()], "current_state"), "OPEN", "{id}");
+                }
+                match text(r, "status").as_str() {
+                    "COMPLETE" => assert!(
+                        !root().join(text(r, "source_path")).exists(),
+                        "{id}: the donor source must be physically deleted again"
+                    ),
+                    "IN_PROGRESS" => {}
+                    other => panic!("{id}: status {other}"),
+                }
+            }
         }
 
         #[test]
@@ -3220,8 +3457,13 @@ mod tests {
             if donors_dir.is_dir() {
                 for entry in std::fs::read_dir(&donors_dir).unwrap() {
                     let name = entry.unwrap().file_name().to_string_lossy().into_owned();
+                    // HISTORICAL_DONOR_REVALIDATION (G121) may hold one transient checkout while its
+                    // revalidation is IN_PROGRESS; a completed one is physically deleted again.
+                    let transient = in_progress_revalidation_paths()
+                        .iter()
+                        .any(|p| p.ends_with(&format!("/{name}")));
                     assert!(
-                        pinned.contains(&name),
+                        pinned.contains(&name) || transient,
                         "donor checkout `{name}` materialized while BLOCKED"
                     );
                 }
@@ -3234,9 +3476,24 @@ mod tests {
                 }
                 let kind = text(&block, "kind");
                 assert!(
-                    ["AUDIT", "NATIVE_ATTACK", "DONOR"].contains(&kind.as_str()),
+                    ["AUDIT", "NATIVE_ATTACK", "DONOR", "REVALIDATION"].contains(&kind.as_str()),
                     "{id}: kind {kind}"
                 );
+                // A REVALIDATION generation is historical recensus, never new-donor progression:
+                // it must execute a triggered [[revalidation]] of a historical First-50 donor.
+                if kind == "REVALIDATION" {
+                    let revalidation = read(REVALIDATION);
+                    assert!(
+                        blocks(&revalidation, "revalidation")
+                            .iter()
+                            .any(|r| text(r, "generation") == id),
+                        "{id}: a REVALIDATION generation without its revalidation record"
+                    );
+                    assert_eq!(
+                        text(table(&gate, "historical_revalidation"), "status"),
+                        "ALLOWED_WHEN_TRIGGERED"
+                    );
+                }
                 if generation(&id) >= audit_generation {
                     assert_ne!(
                         kind, "DONOR",

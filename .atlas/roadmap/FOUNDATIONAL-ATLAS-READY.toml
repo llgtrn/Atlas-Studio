@@ -84,6 +84,14 @@ blocking_debts = ["DEBT-PERSISTENCE", "DEBT-TYPE", "DEBT-SYMBOL", "DEBT-MULTILAN
 reason = "hard stop until the audit is COMPLETE, then while any OPEN essential debt is at BLOCK_NEW_DONOR_PROGRESS or past its skip budget"
 materialized_checkouts = ["borg", "cdc-file-transfer", "crubit", "cytoscape-js", "elkjs", "fastcdc-rs", "git", "lz4", "opendesign", "py2many", "restic", "security", "xyflow", "xz", "zed"]
 
+# NEW_DONOR_PROGRESSION (above) and HISTORICAL_DONOR_REVALIDATION are distinct (G121). Revalidation
+# re-censuses a historical First-50 donor with current Atlas only when a capability-based trigger in
+# RECURSIVE-DONOR-REVALIDATION.toml fires; it is never new-donor progression and never frontier growth.
+[historical_revalidation]
+status = "ALLOWED_WHEN_TRIGGERED"
+distinct_from = "NEW_DONOR_PROGRESSION"
+ledger = ".atlas/roadmap/RECURSIVE-DONOR-REVALIDATION.toml"
+
 [frontier_expansion]
 status = "BLOCKED"
 pinned_repositories = 153

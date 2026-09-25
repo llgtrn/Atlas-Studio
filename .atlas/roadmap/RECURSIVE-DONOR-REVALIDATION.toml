@@ -1,0 +1,1137 @@
+schema = "atlas.recursive-donor-revalidation.v1"
+canonical = true
+established_in = "G121"
+evaluated_at = "G121"
+contract = ".atlas/contracts/ESSENTIAL-COMPLEXITY.md"
+decision = ".atlas/decisions/0043-recursive-donor-revalidation.md"
+donor_audit = ".atlas/roadmap/DONOR-CAPABILITY-AUDIT.toml"
+debt_ledger = ".atlas/roadmap/ESSENTIAL-COMPLEXITY-DEBT.toml"
+rule = "A historical donor verdict is valid evidence only for the semantic capabilities available at the time it was produced. When Atlas gains a materially stronger capability that could change that verdict, the verdict becomes REVALIDATION_REQUIRED for uses depending on that capability."
+
+# Recursive epistemic verification, not new-donor progression (FOUNDATIONAL-ATLAS-READY.toml keeps
+# NEW_DONOR_PROGRESSION BLOCKED; HISTORICAL_DONOR_REVALIDATION is allowed only when triggered here).
+# A historical First-50 donor is REVALIDATION_REQUIRED when all three hold, recomputed by runtime test
+# essential_complexity::historical_donor_revalidation_triggers_are_capability_based:
+#   1. its decision depended on capability X (its debts in DONOR-CAPABILITY-AUDIT.toml);
+#   2. a [[capability_milestone]] for X landed after its last deep census (generation age alone never
+#      triggers);
+#   3. the milestone can observe the donor: its languages include the donor language.
+# SOURCE_EXTINCT is not EVIDENCE_ETERNALLY_CURRENT; REFERENCE_ONLY_AT_Gx is not REFERENCE_ONLY_AT_Gy;
+# ABSORBED_AT_Gx is not NO_FURTHER_MECHANISM. A revalidation adds a decision layer ([[revalidation]]);
+# the historical decision stays recorded. priority = sum over the delta of the age of each debt the
+# milestone advanced and the donor depended on (essential debt pressure x capability delta x relevance).
+# language is recorded knowledge unless language_verified (established by a materialization).
+
+[[capability_milestone]]
+id = "REVISION_STABLE_IDENTITY"
+generation = "G66"
+debts = ["DEBT-SYMBOL"]
+languages = ["rust"]
+observes = "position-free, revision-stable function identity"
+evidence = ".atlas/decisions/0028-revision-stable-function-identity.md"
+
+[[capability_milestone]]
+id = "IDENTITY_CARRIES_LOCATION"
+generation = "G67"
+debts = ["DEBT-SYMBOL"]
+languages = ["rust"]
+observes = "definition identity carries its file"
+evidence = ".atlas/decisions/0029-identity-carries-location.md"
+
+[[capability_milestone]]
+id = "CALL_ANCHOR_IDENTITY"
+generation = "G74"
+debts = ["DEBT-CALL"]
+languages = ["rust"]
+observes = "every call of a chain is its own call site, anchored at the callee name"
+evidence = ".atlas/roadmap/GENERATIONS.toml"
+
+[[capability_milestone]]
+id = "NATIVE_PATH_RESOLUTION"
+generation = "G75"
+debts = ["DEBT-CALL"]
+languages = ["rust"]
+observes = "path calls resolved to their callee identity"
+evidence = ".atlas/decisions/0031-native-rust-path-resolution.md"
+
+[[capability_milestone]]
+id = "STD_PATH_EFFECTS"
+generation = "G77"
+debts = ["DEBT-EFFECT"]
+languages = ["rust"]
+observes = "filesystem effects from resolved std paths"
+evidence = ".atlas/decisions/0032-effects-from-resolved-std-paths.md"
+
+[[capability_milestone]]
+id = "SELF_RECEIVER_METHODS"
+generation = "G79"
+debts = ["DEBT-CALL"]
+languages = ["rust"]
+observes = "self.m() resolved by the method probe's first step"
+evidence = ".atlas/decisions/0033-self-receiver-method-resolution.md"
+
+[[capability_milestone]]
+id = "CANONICAL_TYPE_IDENTITY"
+generation = "G83"
+debts = ["DEBT-TYPE"]
+languages = ["rust"]
+observes = "type spellings united under canonical identities"
+evidence = ".atlas/decisions/0034-canonical-type-identity.md"
+
+[[capability_milestone]]
+id = "AMBIENT_INPUT_EFFECTS"
+generation = "G91"
+debts = ["DEBT-EFFECT"]
+languages = ["rust"]
+observes = "environment and clock reads"
+evidence = ".atlas/decisions/0036-ambient-input-effects.md"
+
+[[capability_milestone]]
+id = "RESOLVED_CONCURRENCY"
+generation = "G117"
+debts = ["DEBT-CONCURRENCY"]
+languages = ["rust"]
+observes = "thread scopes, spawns and channels from resolved std paths"
+evidence = ".atlas/decisions/0039-concurrency-from-resolved-std-paths.md"
+
+[[capability_milestone]]
+id = "CALL_MACRO_ARGUMENTS"
+generation = "G119"
+debts = ["DEBT-CALL"]
+languages = ["rust"]
+observes = "calls inside standard macro arguments, per-file CALL coverage"
+evidence = ".atlas/decisions/0041-call-macro-argument-recovery.md"
+
+[[capability_milestone]]
+id = "ROLE_AWARE_MACRO_ARGUMENTS"
+generation = "G120"
+debts = ["DEBT-DATA_FLOW", "DEBT-CONTROL_FLOW", "DEBT-STATE", "DEBT-EFFECT", "DEBT-OWNERSHIP"]
+languages = ["rust"]
+observes = "each dimension's semantics inside standard macro arguments, implicit format captures"
+evidence = ".atlas/decisions/0042-role-aware-macro-arguments.md"
+
+[[donor]]
+donor = "souffle"
+first_50_ordinal = 1
+language = "cpp"
+language_verified = false
+historical_decision_generation = "pre-G57"
+last_materialized_generation = "pre-G57"
+last_deep_census_generation = ""
+capabilities_examined = ["DEBT-CONSTRAINT_REASONING"]
+capabilities_available_then = []
+semantic_delta = []
+status = "CURRENT"
+reason = "no capability its decision depended on has materially advanced since its last census"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "datafrog"
+first_50_ordinal = 2
+language = "rust"
+language_verified = false
+historical_decision_generation = "G35"
+last_materialized_generation = "G35"
+last_deep_census_generation = "G35"
+capabilities_examined = ["DEBT-DEPENDENCY", "DEBT-IMPACT_CLOSURE"]
+capabilities_available_then = []
+semantic_delta = []
+status = "CURRENT"
+reason = "no capability its decision depended on has materially advanced since its last census"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "blake3"
+first_50_ordinal = 3
+language = "rust"
+language_verified = false
+historical_decision_generation = "G36"
+last_materialized_generation = "G36"
+last_deep_census_generation = "G36"
+capabilities_examined = ["DEBT-ARTIFACT_IDENTITY"]
+capabilities_available_then = []
+semantic_delta = []
+status = "CURRENT"
+reason = "no capability its decision depended on has materially advanced since its last census"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "rust-analyzer"
+first_50_ordinal = 4
+language = "rust"
+language_verified = false
+historical_decision_generation = "G75"
+last_materialized_generation = "G75"
+last_deep_census_generation = "G75"
+capabilities_examined = ["DEBT-CALL", "DEBT-TYPE"]
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION"]
+semantic_delta = ["SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY", "CALL_MACRO_ARGUMENTS"]
+status = "REVALIDATION_REQUIRED"
+reason = "its decision depended on DEBT-CALL, DEBT-TYPE, materially advanced since its last census, and the donor is Rust source the new capability can observe"
+priority = 258
+rank = 1
+
+[[donor]]
+donor = "salsa"
+first_50_ordinal = 5
+language = "rust"
+language_verified = false
+historical_decision_generation = "G115"
+last_materialized_generation = "G115"
+last_deep_census_generation = "G115"
+capabilities_examined = ["DEBT-IMPACT_CLOSURE", "SCALE-INCREMENTAL_RECOMPUTE"]
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS", "SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY", "AMBIENT_INPUT_EFFECTS"]
+semantic_delta = []
+status = "CURRENT"
+reason = "no capability its decision depended on has materially advanced since its last census"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "tree-sitter"
+first_50_ordinal = 6
+language = "c"
+language_verified = false
+historical_decision_generation = "G65"
+last_materialized_generation = "G65"
+last_deep_census_generation = "G65"
+capabilities_examined = ["DEBT-MULTILANGUAGE"]
+capabilities_available_then = []
+semantic_delta = []
+status = "CURRENT"
+reason = "no capability its decision depended on has materially advanced since its last census"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "scip"
+first_50_ordinal = 7
+language = "go"
+language_verified = false
+historical_decision_generation = "G66"
+last_materialized_generation = "G66"
+last_deep_census_generation = "G66"
+capabilities_examined = ["DEBT-SYMBOL"]
+capabilities_available_then = ["REVISION_STABLE_IDENTITY"]
+semantic_delta = ["IDENTITY_CARRIES_LOCATION"]
+status = "CAPABILITY_NOT_APPLICABLE"
+reason = "the advanced capabilities are Rust semantic engines; a go source exposes nothing new to them (condition 3 fails)"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "kythe"
+first_50_ordinal = 8
+language = "cpp"
+language_verified = false
+historical_decision_generation = "G67"
+last_materialized_generation = "G67"
+last_deep_census_generation = "G67"
+capabilities_examined = ["DEBT-SYMBOL", "DEBT-TYPE"]
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION"]
+semantic_delta = ["CANONICAL_TYPE_IDENTITY"]
+status = "CAPABILITY_NOT_APPLICABLE"
+reason = "the advanced capabilities are Rust semantic engines; a cpp source exposes nothing new to them (condition 3 fails)"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "glean"
+first_50_ordinal = 9
+language = "haskell"
+language_verified = false
+historical_decision_generation = "G68"
+last_materialized_generation = "G68"
+last_deep_census_generation = "G68"
+capabilities_examined = ["DEBT-ATLAS_COMPLETENESS"]
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION"]
+semantic_delta = []
+status = "CURRENT"
+reason = "no capability its decision depended on has materially advanced since its last census"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "joern"
+first_50_ordinal = 10
+language = "scala"
+language_verified = false
+historical_decision_generation = "G69"
+last_materialized_generation = "G69"
+last_deep_census_generation = "G69"
+capabilities_examined = ["DEBT-DATA_FLOW", "DEBT-CONTROL_FLOW", "DEBT-CALL"]
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION"]
+semantic_delta = ["CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "SELF_RECEIVER_METHODS", "CALL_MACRO_ARGUMENTS", "ROLE_AWARE_MACRO_ARGUMENTS"]
+status = "CAPABILITY_NOT_APPLICABLE"
+reason = "the advanced capabilities are Rust semantic engines; a scala source exposes nothing new to them (condition 3 fails)"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "semgrep"
+first_50_ordinal = 11
+language = "ocaml"
+language_verified = false
+historical_decision_generation = "G70"
+last_materialized_generation = "G70"
+last_deep_census_generation = "G70"
+capabilities_examined = ["DEBT-CONSTRAINT_REASONING"]
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION"]
+semantic_delta = []
+status = "CURRENT"
+reason = "no capability its decision depended on has materially advanced since its last census"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "ast-grep"
+first_50_ordinal = 12
+language = "rust"
+language_verified = false
+historical_decision_generation = "G71"
+last_materialized_generation = "G71"
+last_deep_census_generation = "G71"
+capabilities_examined = ["DEBT-TRANSFORMATION"]
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION"]
+semantic_delta = []
+status = "CURRENT"
+reason = "no capability its decision depended on has materially advanced since its last census"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "sourcetrail"
+first_50_ordinal = 13
+language = "cpp"
+language_verified = false
+historical_decision_generation = "G72"
+last_materialized_generation = "G72"
+last_deep_census_generation = "G72"
+capabilities_examined = []
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION"]
+semantic_delta = []
+status = "CURRENT"
+reason = "no capability its decision depended on has materially advanced since its last census"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "rust"
+first_50_ordinal = 14
+language = "rust"
+language_verified = true
+historical_decision_generation = "G73"
+last_materialized_generation = "G121"
+last_deep_census_generation = "G121"
+capabilities_examined = ["DEBT-CALL", "DEBT-TYPE"]
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION"]
+semantic_delta = []
+status = "REVALIDATED"
+reason = "revalidated with every capability gained since its decision"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "miri"
+first_50_ordinal = 15
+language = "rust"
+language_verified = false
+historical_decision_generation = "G76"
+last_materialized_generation = "G76"
+last_deep_census_generation = "G76"
+capabilities_examined = ["DEBT-VERIFICATION_EVIDENCE", "DEBT-OWNERSHIP", "DEBT-CONCURRENCY"]
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION"]
+semantic_delta = ["RESOLVED_CONCURRENCY", "ROLE_AWARE_MACRO_ARGUMENTS"]
+status = "REVALIDATION_REQUIRED"
+reason = "its decision depended on DEBT-CONCURRENCY, DEBT-OWNERSHIP, materially advanced since its last census, and the donor is Rust source the new capability can observe"
+priority = 172
+rank = 2
+
+[[donor]]
+donor = "clef"
+first_50_ordinal = 16
+language = "undetermined"
+language_verified = false
+historical_decision_generation = "G78"
+last_materialized_generation = "G78"
+last_deep_census_generation = "G78"
+capabilities_examined = ["DEBT-CALL", "DEBT-MULTILANGUAGE"]
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS"]
+semantic_delta = ["SELF_RECEIVER_METHODS", "CALL_MACRO_ARGUMENTS"]
+status = "LANGUAGE_UNDETERMINED"
+reason = "capabilities advanced, but the donor language is not established: condition 3 (the new capability can observe the donor) is undecided until a tree listing of the pinned commit establishes it"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "differential-dataflow"
+first_50_ordinal = 17
+language = "rust"
+language_verified = false
+historical_decision_generation = "G80"
+last_materialized_generation = "G80"
+last_deep_census_generation = "G80"
+capabilities_examined = ["SCALE-INCREMENTAL_RECOMPUTE", "DEBT-IMPACT_CLOSURE"]
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS", "SELF_RECEIVER_METHODS"]
+semantic_delta = []
+status = "CURRENT"
+reason = "no capability its decision depended on has materially advanced since its last census"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "buck2"
+first_50_ordinal = 18
+language = "rust"
+language_verified = false
+historical_decision_generation = "G81"
+last_materialized_generation = "G81"
+last_deep_census_generation = "G81"
+capabilities_examined = ["SCALE-BRANCHING", "SCALE-INCREMENTAL_RECOMPUTE"]
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS", "SELF_RECEIVER_METHODS"]
+semantic_delta = []
+status = "CURRENT"
+reason = "no capability its decision depended on has materially advanced since its last census"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "egglog"
+first_50_ordinal = 19
+language = "rust"
+language_verified = false
+historical_decision_generation = "G82"
+last_materialized_generation = "G82"
+last_deep_census_generation = "G82"
+capabilities_examined = ["DEBT-TYPE", "DEBT-DESIGN_GENERATION"]
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS", "SELF_RECEIVER_METHODS"]
+semantic_delta = ["CANONICAL_TYPE_IDENTITY"]
+status = "REVALIDATION_REQUIRED"
+reason = "its decision depended on DEBT-TYPE, materially advanced since its last census, and the donor is Rust source the new capability can observe"
+priority = 86
+rank = 3
+
+[[donor]]
+donor = "capnproto"
+first_50_ordinal = 20
+language = "cpp"
+language_verified = false
+historical_decision_generation = "G84"
+last_materialized_generation = "G84"
+last_deep_census_generation = "G84"
+capabilities_examined = ["DEBT-SEAL_GATE", "DEBT-ATLAS_COMPLETENESS"]
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS", "SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY"]
+semantic_delta = []
+status = "CURRENT"
+reason = "no capability its decision depended on has materially advanced since its last census"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "rkyv"
+first_50_ordinal = 21
+language = "rust"
+language_verified = false
+historical_decision_generation = "G85"
+last_materialized_generation = "G85"
+last_deep_census_generation = "G85"
+capabilities_examined = ["SCALE-ZERO_COPY"]
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS", "SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY"]
+semantic_delta = []
+status = "CURRENT"
+reason = "no capability its decision depended on has materially advanced since its last census"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "flatbuffers"
+first_50_ordinal = 22
+language = "cpp"
+language_verified = false
+historical_decision_generation = "G86"
+last_materialized_generation = "G86"
+last_deep_census_generation = "G86"
+capabilities_examined = ["DEBT-ATLAS_COMPLETENESS"]
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS", "SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY"]
+semantic_delta = []
+status = "CURRENT"
+reason = "no capability its decision depended on has materially advanced since its last census"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "zstd"
+first_50_ordinal = 23
+language = "c"
+language_verified = false
+historical_decision_generation = "G87"
+last_materialized_generation = "G87"
+last_deep_census_generation = "G87"
+capabilities_examined = ["SCALE-COMPRESSION"]
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS", "SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY"]
+semantic_delta = []
+status = "CURRENT"
+reason = "no capability its decision depended on has materially advanced since its last census"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "arrow"
+first_50_ordinal = 24
+language = "cpp"
+language_verified = false
+historical_decision_generation = "G88"
+last_materialized_generation = "G88"
+last_deep_census_generation = "G88"
+capabilities_examined = ["SCALE-COLUMNAR"]
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS", "SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY"]
+semantic_delta = []
+status = "CURRENT"
+reason = "no capability its decision depended on has materially advanced since its last census"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "mlir"
+first_50_ordinal = 25
+language = "cpp"
+language_verified = false
+historical_decision_generation = "G89"
+last_materialized_generation = "G89"
+last_deep_census_generation = "G89"
+capabilities_examined = ["DEBT-CONSTRUCTION_IR"]
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS", "SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY"]
+semantic_delta = []
+status = "CURRENT"
+reason = "no capability its decision depended on has materially advanced since its last census"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "xdsl"
+first_50_ordinal = 26
+language = "python"
+language_verified = false
+historical_decision_generation = "G90"
+last_materialized_generation = "G90"
+last_deep_census_generation = "G90"
+capabilities_examined = ["DEBT-CONSTRUCTION_IR", "DEBT-VERIFICATION_EVIDENCE"]
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS", "SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY"]
+semantic_delta = []
+status = "CURRENT"
+reason = "no capability its decision depended on has materially advanced since its last census"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "iris"
+first_50_ordinal = 27
+language = "undetermined"
+language_verified = false
+historical_decision_generation = "G91"
+last_materialized_generation = "G91"
+last_deep_census_generation = "G91"
+capabilities_examined = ["DEBT-EFFECT"]
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS", "SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY", "AMBIENT_INPUT_EFFECTS"]
+semantic_delta = ["ROLE_AWARE_MACRO_ARGUMENTS"]
+status = "LANGUAGE_UNDETERMINED"
+reason = "capabilities advanced, but the donor language is not established: condition 3 (the new capability can observe the donor) is undecided until a tree listing of the pinned commit establishes it"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "sigil-lang"
+first_50_ordinal = 28
+language = "undetermined"
+language_verified = false
+historical_decision_generation = "G92"
+last_materialized_generation = "G92"
+last_deep_census_generation = "G92"
+capabilities_examined = ["DEBT-VERIFICATION_EVIDENCE", "DEBT-COMPILER_LOWERING"]
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS", "SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY", "AMBIENT_INPUT_EFFECTS"]
+semantic_delta = []
+status = "CURRENT"
+reason = "no capability its decision depended on has materially advanced since its last census"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "duumbi"
+first_50_ordinal = 29
+language = "undetermined"
+language_verified = false
+historical_decision_generation = "G93"
+last_materialized_generation = "G93"
+last_deep_census_generation = "G93"
+capabilities_examined = ["DEBT-CONSTRUCTION_IR", "DEBT-TRANSFORMATION"]
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS", "SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY", "AMBIENT_INPUT_EFFECTS"]
+semantic_delta = []
+status = "CURRENT"
+reason = "no capability its decision depended on has materially advanced since its last census"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "composer"
+first_50_ordinal = 30
+language = "undetermined"
+language_verified = false
+historical_decision_generation = "G94"
+last_materialized_generation = "G94"
+last_deep_census_generation = "G94"
+capabilities_examined = ["DEBT-COMPILER_LOWERING"]
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS", "SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY", "AMBIENT_INPUT_EFFECTS"]
+semantic_delta = []
+status = "CURRENT"
+reason = "no capability its decision depended on has materially advanced since its last census"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "agentir"
+first_50_ordinal = 31
+language = "undetermined"
+language_verified = false
+historical_decision_generation = "G95"
+last_materialized_generation = "G95"
+last_deep_census_generation = "G95"
+capabilities_examined = ["DEBT-ATLAS_COMPLETENESS"]
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS", "SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY", "AMBIENT_INPUT_EFFECTS"]
+semantic_delta = []
+status = "CURRENT"
+reason = "no capability its decision depended on has materially advanced since its last census"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "llvm-project"
+first_50_ordinal = 32
+language = "cpp"
+language_verified = false
+historical_decision_generation = "G96"
+last_materialized_generation = "G96"
+last_deep_census_generation = "G96"
+capabilities_examined = ["DEBT-BACKEND_ADAPTER", "DEBT-COMPILER_LOWERING"]
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS", "SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY", "AMBIENT_INPUT_EFFECTS"]
+semantic_delta = []
+status = "CURRENT"
+reason = "no capability its decision depended on has materially advanced since its last census"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "wasm-spec"
+first_50_ordinal = 33
+language = "ocaml"
+language_verified = false
+historical_decision_generation = "G97"
+last_materialized_generation = "G97"
+last_deep_census_generation = "G97"
+capabilities_examined = ["DEBT-CONSTRUCTION_IR", "DEBT-SEAL_GATE"]
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS", "SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY", "AMBIENT_INPUT_EFFECTS"]
+semantic_delta = []
+status = "CURRENT"
+reason = "no capability its decision depended on has materially advanced since its last census"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "wasm-component-model"
+first_50_ordinal = 34
+language = "specification"
+language_verified = false
+historical_decision_generation = "G98"
+last_materialized_generation = "G98"
+last_deep_census_generation = "G98"
+capabilities_examined = ["DEBT-CONSTRUCTION_IR", "DEBT-IDENTITY_AUTHORITY"]
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS", "SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY", "AMBIENT_INPUT_EFFECTS"]
+semantic_delta = []
+status = "CURRENT"
+reason = "no capability its decision depended on has materially advanced since its last census"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "wasm-tools"
+first_50_ordinal = 35
+language = "rust"
+language_verified = false
+historical_decision_generation = "G99"
+last_materialized_generation = "G99"
+last_deep_census_generation = "G99"
+capabilities_examined = ["DEBT-BACKEND_ADAPTER", "DEBT-SANDBOXED_EXECUTION"]
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS", "SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY", "AMBIENT_INPUT_EFFECTS"]
+semantic_delta = []
+status = "CURRENT"
+reason = "no capability its decision depended on has materially advanced since its last census"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "wasmtime"
+first_50_ordinal = 36
+language = "rust"
+language_verified = false
+historical_decision_generation = "G100"
+last_materialized_generation = "G100"
+last_deep_census_generation = "G100"
+capabilities_examined = ["DEBT-SANDBOXED_EXECUTION", "DEBT-BACKEND_ADAPTER"]
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS", "SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY", "AMBIENT_INPUT_EFFECTS"]
+semantic_delta = []
+status = "CURRENT"
+reason = "no capability its decision depended on has materially advanced since its last census"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "object"
+first_50_ordinal = 37
+language = "rust"
+language_verified = false
+historical_decision_generation = "G101"
+last_materialized_generation = "G101"
+last_deep_census_generation = "G101"
+capabilities_examined = ["DEBT-BACKEND_ADAPTER", "DEBT-ARTIFACT_IDENTITY"]
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS", "SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY", "AMBIENT_INPUT_EFFECTS"]
+semantic_delta = []
+status = "CURRENT"
+reason = "no capability its decision depended on has materially advanced since its last census"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "regalloc2"
+first_50_ordinal = 38
+language = "rust"
+language_verified = false
+historical_decision_generation = "G102"
+last_materialized_generation = "G102"
+last_deep_census_generation = "G102"
+capabilities_examined = ["DEBT-COMPILER_LOWERING"]
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS", "SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY", "AMBIENT_INPUT_EFFECTS"]
+semantic_delta = []
+status = "CURRENT"
+reason = "no capability its decision depended on has materially advanced since its last census"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "mold"
+first_50_ordinal = 39
+language = "cpp"
+language_verified = false
+historical_decision_generation = "G103"
+last_materialized_generation = "G103"
+last_deep_census_generation = "G103"
+capabilities_examined = ["DEBT-COMPILER_LOWERING"]
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS", "SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY", "AMBIENT_INPUT_EFFECTS"]
+semantic_delta = []
+status = "CURRENT"
+reason = "no capability its decision depended on has materially advanced since its last census"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "kani"
+first_50_ordinal = 40
+language = "rust"
+language_verified = false
+historical_decision_generation = "G104"
+last_materialized_generation = "G104"
+last_deep_census_generation = "G104"
+capabilities_examined = ["DEBT-VERIFICATION_EVIDENCE"]
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS", "SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY", "AMBIENT_INPUT_EFFECTS"]
+semantic_delta = []
+status = "CURRENT"
+reason = "no capability its decision depended on has materially advanced since its last census"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "verus"
+first_50_ordinal = 41
+language = "rust"
+language_verified = false
+historical_decision_generation = "G105"
+last_materialized_generation = "G105"
+last_deep_census_generation = "G105"
+capabilities_examined = ["DEBT-VERIFICATION_EVIDENCE", "DEBT-CONSTRAINT_REASONING"]
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS", "SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY", "AMBIENT_INPUT_EFFECTS"]
+semantic_delta = []
+status = "CURRENT"
+reason = "no capability its decision depended on has materially advanced since its last census"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "podman"
+first_50_ordinal = 42
+language = "go"
+language_verified = false
+historical_decision_generation = "G106"
+last_materialized_generation = "G106"
+last_deep_census_generation = "G106"
+capabilities_examined = ["DEBT-SANDBOXED_EXECUTION"]
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS", "SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY", "AMBIENT_INPUT_EFFECTS"]
+semantic_delta = []
+status = "CURRENT"
+reason = "no capability its decision depended on has materially advanced since its last census"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "containers-image"
+first_50_ordinal = 43
+language = "go"
+language_verified = false
+historical_decision_generation = "G107"
+last_materialized_generation = "G107"
+last_deep_census_generation = "G107"
+capabilities_examined = ["DEBT-SEAL_GATE", "DEBT-ARTIFACT_IDENTITY"]
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS", "SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY", "AMBIENT_INPUT_EFFECTS"]
+semantic_delta = []
+status = "CURRENT"
+reason = "no capability its decision depended on has materially advanced since its last census"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "z3"
+first_50_ordinal = 44
+language = "cpp"
+language_verified = false
+historical_decision_generation = "G108"
+last_materialized_generation = ""
+last_deep_census_generation = "G108"
+capabilities_examined = ["DEBT-CONSTRAINT_REASONING"]
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS", "SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY", "AMBIENT_INPUT_EFFECTS"]
+semantic_delta = []
+status = "CURRENT"
+reason = "no capability its decision depended on has materially advanced since its last census"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "in-toto"
+first_50_ordinal = 45
+language = "python"
+language_verified = false
+historical_decision_generation = "G109"
+last_materialized_generation = ""
+last_deep_census_generation = "G109"
+capabilities_examined = ["DEBT-ARTIFACT_IDENTITY"]
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS", "SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY", "AMBIENT_INPUT_EFFECTS"]
+semantic_delta = []
+status = "CURRENT"
+reason = "no capability its decision depended on has materially advanced since its last census"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "git"
+first_50_ordinal = 46
+language = "c"
+language_verified = false
+historical_decision_generation = "G110"
+last_materialized_generation = ""
+last_deep_census_generation = "G110"
+capabilities_examined = ["DEBT-ARTIFACT_IDENTITY"]
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS", "SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY", "AMBIENT_INPUT_EFFECTS"]
+semantic_delta = []
+status = "CURRENT"
+reason = "no capability its decision depended on has materially advanced since its last census"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "nix"
+first_50_ordinal = 47
+language = "cpp"
+language_verified = false
+historical_decision_generation = "G111"
+last_materialized_generation = ""
+last_deep_census_generation = "G111"
+capabilities_examined = ["DEBT-SANDBOXED_EXECUTION", "DEBT-ARTIFACT_IDENTITY"]
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS", "SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY", "AMBIENT_INPUT_EFFECTS"]
+semantic_delta = []
+status = "CURRENT"
+reason = "no capability its decision depended on has materially advanced since its last census"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "tlaplus"
+first_50_ordinal = 48
+language = "java"
+language_verified = false
+historical_decision_generation = "G112"
+last_materialized_generation = ""
+last_deep_census_generation = "G112"
+capabilities_examined = ["DEBT-VERIFICATION_EVIDENCE"]
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS", "SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY", "AMBIENT_INPUT_EFFECTS"]
+semantic_delta = []
+status = "CURRENT"
+reason = "no capability its decision depended on has materially advanced since its last census"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "openrewrite"
+first_50_ordinal = 49
+language = "java"
+language_verified = false
+historical_decision_generation = "G113"
+last_materialized_generation = "G113"
+last_deep_census_generation = "G113"
+capabilities_examined = ["DEBT-TRANSFORMATION"]
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS", "SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY", "AMBIENT_INPUT_EFFECTS"]
+semantic_delta = []
+status = "CURRENT"
+reason = "no capability its decision depended on has materially advanced since its last census"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "c2rust"
+first_50_ordinal = 50
+language = "rust"
+language_verified = false
+historical_decision_generation = "G114"
+last_materialized_generation = "G114"
+last_deep_census_generation = "G114"
+capabilities_examined = ["DEBT-MULTILANGUAGE", "DEBT-TRANSFORMATION"]
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS", "SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY", "AMBIENT_INPUT_EFFECTS"]
+semantic_delta = []
+status = "CURRENT"
+reason = "no capability its decision depended on has materially advanced since its last census"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "crubit"
+first_50_ordinal = 0
+language = "rust"
+language_verified = false
+historical_decision_generation = "G118"
+last_materialized_generation = ""
+last_deep_census_generation = "G118"
+capabilities_examined = ["DEBT-TRANSFORMATION", "DEBT-MULTILANGUAGE"]
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS", "SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY", "AMBIENT_INPUT_EFFECTS", "RESOLVED_CONCURRENCY"]
+semantic_delta = []
+status = "NOT_A_HISTORICAL_DECISION"
+reason = "no First-50 decision: its deep census is new-donor progression, BLOCKED by the hard stop"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "cytoscape-js"
+first_50_ordinal = 0
+language = "javascript"
+language_verified = false
+historical_decision_generation = "G118"
+last_materialized_generation = ""
+last_deep_census_generation = "G118"
+capabilities_examined = []
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS", "SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY", "AMBIENT_INPUT_EFFECTS", "RESOLVED_CONCURRENCY"]
+semantic_delta = []
+status = "NOT_A_HISTORICAL_DECISION"
+reason = "no First-50 decision: its deep census is new-donor progression, BLOCKED by the hard stop"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "elkjs"
+first_50_ordinal = 0
+language = "javascript"
+language_verified = false
+historical_decision_generation = "G118"
+last_materialized_generation = ""
+last_deep_census_generation = "G118"
+capabilities_examined = []
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS", "SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY", "AMBIENT_INPUT_EFFECTS", "RESOLVED_CONCURRENCY"]
+semantic_delta = []
+status = "NOT_A_HISTORICAL_DECISION"
+reason = "no First-50 decision: its deep census is new-donor progression, BLOCKED by the hard stop"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "py2many"
+first_50_ordinal = 0
+language = "python"
+language_verified = false
+historical_decision_generation = "G118"
+last_materialized_generation = ""
+last_deep_census_generation = "G118"
+capabilities_examined = ["DEBT-TRANSFORMATION", "DEBT-MULTILANGUAGE"]
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS", "SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY", "AMBIENT_INPUT_EFFECTS", "RESOLVED_CONCURRENCY"]
+semantic_delta = []
+status = "NOT_A_HISTORICAL_DECISION"
+reason = "no First-50 decision: its deep census is new-donor progression, BLOCKED by the hard stop"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "xyflow"
+first_50_ordinal = 0
+language = "typescript"
+language_verified = false
+historical_decision_generation = "G118"
+last_materialized_generation = ""
+last_deep_census_generation = "G118"
+capabilities_examined = []
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS", "SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY", "AMBIENT_INPUT_EFFECTS", "RESOLVED_CONCURRENCY"]
+semantic_delta = []
+status = "NOT_A_HISTORICAL_DECISION"
+reason = "no First-50 decision: its deep census is new-donor progression, BLOCKED by the hard stop"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "opendesign"
+first_50_ordinal = 0
+language = "undetermined"
+language_verified = false
+historical_decision_generation = "G118"
+last_materialized_generation = ""
+last_deep_census_generation = "G118"
+capabilities_examined = []
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS", "SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY", "AMBIENT_INPUT_EFFECTS", "RESOLVED_CONCURRENCY"]
+semantic_delta = []
+status = "NOT_A_HISTORICAL_DECISION"
+reason = "no First-50 decision: its deep census is new-donor progression, BLOCKED by the hard stop"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "selinux"
+first_50_ordinal = 0
+language = "c"
+language_verified = false
+historical_decision_generation = "G118"
+last_materialized_generation = ""
+last_deep_census_generation = "G118"
+capabilities_examined = ["DEBT-SANDBOXED_EXECUTION"]
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS", "SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY", "AMBIENT_INPUT_EFFECTS", "RESOLVED_CONCURRENCY"]
+semantic_delta = []
+status = "NOT_A_HISTORICAL_DECISION"
+reason = "no First-50 decision: its deep census is new-donor progression, BLOCKED by the hard stop"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "openscap"
+first_50_ordinal = 0
+language = "c"
+language_verified = false
+historical_decision_generation = "G118"
+last_materialized_generation = ""
+last_deep_census_generation = "G118"
+capabilities_examined = ["DEBT-CONSTRAINT_REASONING"]
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS", "SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY", "AMBIENT_INPUT_EFFECTS", "RESOLVED_CONCURRENCY"]
+semantic_delta = []
+status = "NOT_A_HISTORICAL_DECISION"
+reason = "no First-50 decision: its deep census is new-donor progression, BLOCKED by the hard stop"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "keycloak"
+first_50_ordinal = 0
+language = "java"
+language_verified = false
+historical_decision_generation = "G118"
+last_materialized_generation = ""
+last_deep_census_generation = "G118"
+capabilities_examined = ["DEBT-IDENTITY_AUTHORITY"]
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS", "SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY", "AMBIENT_INPUT_EFFECTS", "RESOLVED_CONCURRENCY"]
+semantic_delta = []
+status = "NOT_A_HISTORICAL_DECISION"
+reason = "no First-50 decision: its deep census is new-donor progression, BLOCKED by the hard stop"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "keylime"
+first_50_ordinal = 0
+language = "python"
+language_verified = false
+historical_decision_generation = "G118"
+last_materialized_generation = ""
+last_deep_census_generation = "G118"
+capabilities_examined = ["DEBT-ARTIFACT_IDENTITY"]
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS", "SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY", "AMBIENT_INPUT_EFFECTS", "RESOLVED_CONCURRENCY"]
+semantic_delta = []
+status = "NOT_A_HISTORICAL_DECISION"
+reason = "no First-50 decision: its deep census is new-donor progression, BLOCKED by the hard stop"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "clair"
+first_50_ordinal = 0
+language = "go"
+language_verified = false
+historical_decision_generation = "G118"
+last_materialized_generation = ""
+last_deep_census_generation = "G118"
+capabilities_examined = ["DEBT-PROVENANCE"]
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS", "SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY", "AMBIENT_INPUT_EFFECTS", "RESOLVED_CONCURRENCY"]
+semantic_delta = []
+status = "NOT_A_HISTORICAL_DECISION"
+reason = "no First-50 decision: its deep census is new-donor progression, BLOCKED by the hard stop"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "zed"
+first_50_ordinal = 0
+language = "rust"
+language_verified = false
+historical_decision_generation = "G118"
+last_materialized_generation = ""
+last_deep_census_generation = "G118"
+capabilities_examined = []
+capabilities_available_then = ["REVISION_STABLE_IDENTITY", "IDENTITY_CARRIES_LOCATION", "CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "STD_PATH_EFFECTS", "SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY", "AMBIENT_INPUT_EFFECTS", "RESOLVED_CONCURRENCY"]
+semantic_delta = []
+status = "NOT_A_HISTORICAL_DECISION"
+reason = "no First-50 decision: its deep census is new-donor progression, BLOCKED by the hard stop"
+priority = 0
+rank = 0
+
+[[donor]]
+donor = "ladybird"
+first_50_ordinal = 0
+language = "cpp"
+language_verified = false
+historical_decision_generation = "G55"
+last_materialized_generation = ""
+last_deep_census_generation = "G55"
+capabilities_examined = ["DEBT-REAL_WORLD_OBSERVATION"]
+capabilities_available_then = []
+semantic_delta = []
+status = "NOT_A_HISTORICAL_DECISION"
+reason = "no First-50 decision: its deep census is new-donor progression, BLOCKED by the hard stop"
+priority = 0
+rank = 0
+
+[[revalidation]]
+id = "R1"
+donor = "rust"
+generation = "G121"
+debt = "DEBT-CALL"
+capabilities = ["CALL_ANCHOR_IDENTITY", "NATIVE_PATH_RESOLUTION", "SELF_RECEIVER_METHODS", "CANONICAL_TYPE_IDENTITY", "CALL_MACRO_ARGUMENTS"]
+question = "is rustc's method-resolution mechanism too large to absorb (the G73 reason), or bounded but inseparable from type inference -- and does either change NA-CALL-TYPE-RESIDUAL?"
+remote = "https://github.com/rust-lang/rust.git"
+pinned_commit = "d287eb7a292caa8abbe12051dce2ee707fe03200"
+materialization_mode = "SPARSE_SHALLOW"
+materialization_scope = "compiler/rustc_hir_typeck"
+source_path = ".atlas/temporary/donors/rust"
+status = "COMPLETE"
+evidence = ".atlas/evidence/revalidation/R1-rust.json"
+outcome = "REVALIDATED"
+finding = "verdict holds for a corrected reason: the resolution core is bounded, but the implementation is inseparable from rustc's type inference; the G73-era engine was blind to a quarter of the method module's call sites"
+follow_up = "NA-CALL-TYPE-RESIDUAL"

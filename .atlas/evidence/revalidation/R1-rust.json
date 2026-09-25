@@ -1,0 +1,210 @@
+{
+  "schema": "atlas.historical-donor-revalidation.v1",
+  "revalidation": "R1",
+  "generation": "G121",
+  "donor": "rust",
+  "historical_decision": {
+    "generation": "G73",
+    "terminal_state": "EXTERNAL_BOUNDARY",
+    "boundary_type": "ORACLE",
+    "reference_only_part": "rustc_resolve / rustc_hir_typeck / borrow checker internals (far too large to absorb; the oracle exposes their results)",
+    "evidence": ".atlas/evidence/campaign/14-rust.json",
+    "historical_semantic_census_of_donor": "none: G73 measured Atlas's own CALL coverage against SCIP; the donor's internals were judged, not censused"
+  },
+  "trigger": {
+    "debt": "DEBT-CALL",
+    "capabilities_gained_since": [
+      "G74 call-site anchor identity",
+      "G75 native path resolution",
+      "G79 self.m() method-probe first step",
+      "G83 canonical type identity",
+      "G119 CALL macro-argument recovery"
+    ],
+    "not_cited": "G120 role-aware macro arguments advance DATA_FLOW/CONTROL_FLOW/STATE/EFFECT/OWNERSHIP, none of which the G73 verdict depended on; G120 is only the engine version used for the current census",
+    "question": "is rustc's method-resolution mechanism too large to absorb (G73's stated reason), or is it bounded but inseparable from type inference -- and does either change DEBT-CALL's next attack NA-CALL-TYPE-RESIDUAL?"
+  },
+  "materialization": {
+    "remote": "https://github.com/rust-lang/rust.git",
+    "pinned_commit": "d287eb7a292caa8abbe12051dce2ee707fe03200",
+    "mode": "partial clone --depth 1 --filter=blob:none, sparse cone compiler/rustc_hir_typeck (+ root files)",
+    "path": ".atlas/temporary/donors/rust",
+    "tracked_files": 62950,
+    "source_bytes": 3438540,
+    "git_metadata_bytes": 10945441,
+    "rust_sources": 39
+  },
+  "engines": {
+    "historical": "Atlas built from 25c6b907a8669131744841ad3e3b018f8fef8bfa (the G73 commit that recorded the verdict)",
+    "current": "Atlas built from 4bcabe62fd (G120)",
+    "same_source": true
+  },
+  "crate_census": {
+    "historical_records": {
+      "CALL|atlas.rust.source-semantic.v1|OBSERVED": 9656,
+      "CONTROL_FLOW|atlas.rust.source-semantic.v1|INFERRED": 19,
+      "CONTROL_FLOW|atlas.rust.source-semantic.v1|OBSERVED": 5697,
+      "DATA_FLOW|atlas.rust.source-semantic.v1|OBSERVED": 30619,
+      "EFFECT|atlas.rust.source-semantic.v1|INFERRED": 28,
+      "FUNCTION_IDENTITY|atlas.rust.source-semantic.v1|OBSERVED": 1040,
+      "FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1|OBSERVED": 1040,
+      "OWNERSHIP|atlas.rust.source-semantic.v1|OBSERVED": 8436,
+      "STATE|atlas.rust.source-semantic.v1|OBSERVED": 973,
+      "SYMBOL|atlas.rust.source-semantic.v1|OBSERVED": 2203,
+      "TYPE|atlas.rust.source-semantic.v1|OBSERVED": 2248
+    },
+    "current_records": {
+      "CALL|atlas.resolution.rust-paths|DERIVED": 1640,
+      "CALL|atlas.rust.source-semantic.v1|OBSERVED": 12391,
+      "CONTROL_FLOW|atlas.rust.source-semantic.v1|INFERRED": 118,
+      "CONTROL_FLOW|atlas.rust.source-semantic.v1|OBSERVED": 5692,
+      "DATA_FLOW|atlas.rust.source-semantic.v1|OBSERVED": 31837,
+      "EFFECT|atlas.rust.source-semantic.v1|INFERRED": 135,
+      "FUNCTION_IDENTITY|atlas.rust.source-semantic.v1|OBSERVED": 1040,
+      "FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1|OBSERVED": 1040,
+      "OWNERSHIP|atlas.rust.source-semantic.v1|OBSERVED": 8561,
+      "STATE|atlas.rust.source-semantic.v1|OBSERVED": 1009,
+      "SYMBOL|atlas.rust.source-semantic.v1|OBSERVED": 2203,
+      "TYPE|atlas.resolution.rust-paths|DERIVED": 304,
+      "TYPE|atlas.rust.source-semantic.v1|OBSERVED": 2248
+    },
+    "historical_obligations": {
+      "CALL|atlas.extraction.unsupported-language|UNSUPPORTED": 17,
+      "CALL|atlas.rust.source-semantic.v1|UNKNOWN": 39,
+      "CONCURRENCY|atlas.extraction.unsupported-language|UNSUPPORTED": 17,
+      "CONCURRENCY|atlas.rust.source-semantic.v1|UNKNOWN": 39,
+      "CONTROL_FLOW|atlas.extraction.unsupported-language|UNSUPPORTED": 17,
+      "CONTROL_FLOW|atlas.rust.source-semantic.v1|UNKNOWN": 39,
+      "DATA_FLOW|atlas.extraction.unsupported-language|UNSUPPORTED": 17,
+      "DATA_FLOW|atlas.rust.source-semantic.v1|UNKNOWN": 39,
+      "EFFECT|atlas.extraction.unsupported-language|UNSUPPORTED": 17,
+      "EFFECT|atlas.rust.source-semantic.v1|UNKNOWN": 39,
+      "FUNCTION_IDENTITY|atlas.extraction.unsupported-language|UNSUPPORTED": 17,
+      "FUNCTION_IDENTITY|atlas.rust.source-semantic.v1|OBSERVED": 39,
+      "FUNCTION_SIGNATURE|atlas.extraction.unsupported-language|UNSUPPORTED": 17,
+      "FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1|OBSERVED": 39,
+      "OWNERSHIP|atlas.extraction.unsupported-language|UNSUPPORTED": 17,
+      "OWNERSHIP|atlas.rust.source-semantic.v1|UNKNOWN": 39,
+      "PERSISTENCE|atlas.extraction.unsupported-language|UNSUPPORTED": 17,
+      "PERSISTENCE|atlas.rust.source-semantic.v1|UNKNOWN": 39,
+      "STATE|atlas.extraction.unsupported-language|UNSUPPORTED": 17,
+      "STATE|atlas.rust.source-semantic.v1|UNKNOWN": 39,
+      "SYMBOL|atlas.extraction.unsupported-language|UNSUPPORTED": 17,
+      "SYMBOL|atlas.rust.source-semantic.v1|OBSERVED": 39,
+      "TYPE|atlas.extraction.unsupported-language|UNSUPPORTED": 17,
+      "TYPE|atlas.rust.source-semantic.v1|OBSERVED": 39
+    },
+    "current_obligations": {
+      "CALL|atlas.extraction.unsupported-language|UNSUPPORTED": 17,
+      "CALL|atlas.resolution.rust-paths|UNKNOWN": 39,
+      "CALL|atlas.rust.source-semantic.v1|OBSERVED": 3,
+      "CALL|atlas.rust.source-semantic.v1|UNKNOWN": 36,
+      "CONCURRENCY|atlas.extraction.unsupported-language|UNSUPPORTED": 17,
+      "CONCURRENCY|atlas.resolution.rust-paths|UNKNOWN": 39,
+      "CONCURRENCY|atlas.rust.source-semantic.v1|UNKNOWN": 39,
+      "CONTROL_FLOW|atlas.extraction.unsupported-language|UNSUPPORTED": 17,
+      "CONTROL_FLOW|atlas.rust.source-semantic.v1|UNKNOWN": 39,
+      "DATA_FLOW|atlas.extraction.unsupported-language|UNSUPPORTED": 17,
+      "DATA_FLOW|atlas.rust.source-semantic.v1|UNKNOWN": 39,
+      "EFFECT|atlas.extraction.unsupported-language|UNSUPPORTED": 17,
+      "EFFECT|atlas.resolution.rust-paths|UNKNOWN": 39,
+      "EFFECT|atlas.rust.source-semantic.v1|UNKNOWN": 39,
+      "FUNCTION_IDENTITY|atlas.extraction.unsupported-language|UNSUPPORTED": 17,
+      "FUNCTION_IDENTITY|atlas.rust.source-semantic.v1|OBSERVED": 39,
+      "FUNCTION_SIGNATURE|atlas.extraction.unsupported-language|UNSUPPORTED": 17,
+      "FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1|OBSERVED": 39,
+      "OWNERSHIP|atlas.extraction.unsupported-language|UNSUPPORTED": 17,
+      "OWNERSHIP|atlas.rust.source-semantic.v1|UNKNOWN": 39,
+      "PERSISTENCE|atlas.extraction.unsupported-language|UNSUPPORTED": 17,
+      "PERSISTENCE|atlas.rust.source-semantic.v1|UNKNOWN": 39,
+      "STATE|atlas.extraction.unsupported-language|UNSUPPORTED": 17,
+      "STATE|atlas.rust.source-semantic.v1|UNKNOWN": 39,
+      "SYMBOL|atlas.extraction.unsupported-language|UNSUPPORTED": 17,
+      "SYMBOL|atlas.rust.source-semantic.v1|OBSERVED": 39,
+      "TYPE|atlas.extraction.unsupported-language|UNSUPPORTED": 17,
+      "TYPE|atlas.resolution.rust-paths|UNKNOWN": 39,
+      "TYPE|atlas.rust.source-semantic.v1|OBSERVED": 39
+    }
+  },
+  "method_module": {
+    "path": "compiler/rustc_hir_typeck/src/method/",
+    "functions": 153,
+    "functions_on_inference_contexts": 127,
+    "owners": {
+      "FnCtxt<'a, 'tcx>": 67,
+      "ProbeContext<'a, 'tcx>": 43,
+      "ConfirmContext<'a, 'tcx>": 17,
+      "<free>": 5,
+      "TraitBoundDuplicateTracker": 4,
+      "GenericArgsCtxt<'a, 'tcx>": 3,
+      "LetVisitor<'a, 'tcx>": 2,
+      "PickConstraintsForShadowed": 2,
+      "LetVisitor<'_, '_>": 2,
+      "Pick<'tcx>": 2,
+      "Candidate<'tcx>": 1,
+      "AutorefOrPtrAdjustment": 1,
+      "ItemMaybeBeAddedToStd<'b, 'tcx>": 1,
+      "AmbiguousTraitAssocFunc<'b, 'fnctx, 'tcx>": 1,
+      "AmbiguousTraitMethod<'c, 'tcx, 'fnctx>": 1,
+      "AmbiguousTraitMethodCall<'b, 'tcx>": 1
+    },
+    "per_file": {
+      "confirm.rs": {
+        "functions": 22,
+        "call_sites_current": 179,
+        "call_sites_historical_engine": 144,
+        "resolved_calls_current": 11
+      },
+      "mod.rs": {
+        "functions": 9,
+        "call_sites_current": 105,
+        "call_sites_historical_engine": 87,
+        "resolved_calls_current": 14
+      },
+      "prelude_edition_lints.rs": {
+        "functions": 8,
+        "call_sites_current": 99,
+        "call_sites_historical_engine": 68,
+        "resolved_calls_current": 1
+      },
+      "probe.rs": {
+        "functions": 55,
+        "call_sites_current": 413,
+        "call_sites_historical_engine": 304,
+        "resolved_calls_current": 38
+      },
+      "suggest.rs": {
+        "functions": 59,
+        "call_sites_current": 1351,
+        "call_sites_historical_engine": 1010,
+        "resolved_calls_current": 100
+      }
+    },
+    "call_sites_current": 2147,
+    "call_sites_historical_engine": 1613,
+    "resolution_core": {
+      "files": [
+        "probe.rs",
+        "confirm.rs",
+        "mod.rs"
+      ],
+      "functions": 86,
+      "call_sites": 697
+    }
+  },
+  "semantic_delta": {
+    "calls_invisible_to_historical_engine": 534,
+    "resolved_calls_historical": 0,
+    "resolved_calls_current": 164
+  },
+  "outcome": "REVALIDATED",
+  "decision_layer": {
+    "mechanism_decision": "EXTERNAL_BOUNDARY (ORACLE) for resolution results; REFERENCE_ONLY for the rustc_hir_typeck implementation -- unchanged",
+    "reason_corrected": "not size: the resolution core is bounded (probe.rs + confirm.rs + mod.rs); the implementation is inseparable from type inference -- most method-module functions are methods of FnCtxt / ProbeContext / ConfirmContext over 'tcx, and most call sites are method calls into rustc's type system",
+    "capability_decision": "DEBT-CALL stays OPEN; NA-CALL-TYPE-RESIDUAL stays a native attack: the probe's step structure (autoderef chain, by-value / autoref candidates, inherent before trait, first applicable step) over receiver types Atlas can declare or derive, never rustc's inference",
+    "historical_record_rewritten": false
+  },
+  "extinction": {
+    "deleted_after_revalidation": true,
+    "implementation_depends_on_donor_path": false
+  }
+}

@@ -162,3 +162,31 @@ While blocked, the runtime tests fail on any change to a pinned donor-corpus rec
 ## Frontier
 
 `../roadmap/FRONTIER-CAPABILITY-CLUSTERS.toml` maps every family in the repository-exact frontier to a capability cluster. It maps every cluster to the debts it could attack, or marks it `OPTIONAL`. The frontier is a set of routes into debts, not a flat list of interesting repositories.
+
+## Historical donor evidence
+
+~~~text
+A historical donor verdict is valid evidence only for the semantic capabilities available at the
+time it was produced. When Atlas gains a materially stronger capability that could change that
+verdict, the verdict becomes REVALIDATION_REQUIRED for uses depending on that capability.
+~~~
+
+- SOURCE_EXTINCT does not imply EVIDENCE_ETERNALLY_CURRENT.
+- REFERENCE_ONLY at one generation does not imply REFERENCE_ONLY at a later one.
+- ABSORBED at one generation does not imply that no further mechanism can be discovered.
+
+`../roadmap/RECURSIVE-DONOR-REVALIDATION.toml` evaluates every audited donor against capability milestones. A historical First-50 donor becomes `REVALIDATION_REQUIRED` only when all three conditions hold. Generation age alone never triggers it.
+
+1. Its decision depended on capability X.
+2. A milestone for X landed after its last deep census.
+3. That milestone can observe the donor's language.
+
+Revalidation is **historical recensus**, not new-donor progression. `NEW_DONOR_PROGRESSION` stays blocked, and `HISTORICAL_DONOR_REVALIDATION` is allowed only when triggered. A revalidation:
+
+1. re-materializes the exact pinned commit, cheapest sufficient scope first;
+2. censuses it with current Atlas, next to the historical engine where one can be rebuilt;
+3. records a machine-readable semantic delta and one outcome: `REVALIDATED`, `MECHANISM_FOUND` or `DEBT_REOPENED`;
+4. deletes the source again, then proves a post-delete self-recensus.
+
+It adds a decision layer and never rewrites the historical decision. It is not a way to postpone native attacks: at most one revalidation generation may sit between two native attacks, and a found mechanism must be resolved in a bounded follow-up (native implementation, permanent boundary or proven alternative).
+

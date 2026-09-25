@@ -1,0 +1,31 @@
+{
+  "objective": "HISTORICAL_DONOR_REVALIDATION R1: rust re-materialized at its exact pin d287eb7a (sparse compiler/rustc_hir_typeck), censused by the G73-era and current Atlas, REVALIDATED with a corrected reason, deleted again; post-delete self-recensus; only runtime tests, roadmap and docs change",
+  "changed_paths": [
+    "runtime/src/lib.rs"
+  ],
+  "total_changes": [
+    "+docs",
+    "+entities",
+    "+evidence",
+    "+facts",
+    "+graph_edges",
+    "+graph_nodes",
+    "+normalized_facts",
+    "+records:CALL|atlas.resolution.rust-paths",
+    "+records:CALL|atlas.rust.source-semantic.v1",
+    "+records:CONTROL_FLOW|atlas.rust.source-semantic.v1",
+    "+records:DATA_FLOW|atlas.rust.source-semantic.v1",
+    "+records:EFFECT|atlas.resolution.rust-paths",
+    "+records:EFFECT|atlas.rust.source-semantic.v1",
+    "+records:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1",
+    "+records:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1",
+    "+records:OWNERSHIP|atlas.rust.source-semantic.v1",
+    "+records:SYMBOL|atlas.rust.source-semantic.v1",
+    "+typed_records"
+  ],
+  "entity_changes": [
+    "CHANGED runtime tests/essential_complexity/remaining_donor_corpus_progress_blocked_until_audit_complete().",
+    "CREATED runtime tests/essential_complexity/historical_donor_revalidation_triggers_are_capability_based().",
+    "CREATED runtime tests/essential_complexity/in_progress_revalidation_paths()."
+  ]
+}
