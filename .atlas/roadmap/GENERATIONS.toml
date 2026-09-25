@@ -904,6 +904,7 @@ objective = "falsify joern's coverage and layout hypotheses, decide REFERENCE_ON
 writer = "coordinator (sole writer)"
 evidence = ".atlas/evidence/campaign/10-joern.json"
 self_recensus = ".atlas/evidence/census/G69/recensus.json"
+result_commits = ["a3f1ea4553b969f6630b02d0234094717f1e88b6", "2cc753f354c1a3c8b5f211e01a088a2f957a22f2"]
 
 [generation.verification]
 pre_census = "clean-HEAD census of 87162e0f9e = G68 post digest 748b64e4... (d131527e3e adds only out-of-scope evidence)"
@@ -913,3 +914,22 @@ proof = "PROVEN on the second run: the first run was GENERATION_NOT_PROVEN becau
 
 [generation.next]
 objective = "G70 (P3): first-50 #11 semgrep -- pattern/rule mechanisms measured against Atlas's constraint and query needs"
+
+[[generation]]
+id = "G70"
+base_commit = "2cc753f354c1a3c8b5f211e01a088a2f957a22f2"
+priority = "P3"
+serves = "P3 FIRST_50_DONOR_CAMPAIGN: donor #11 semgrep to a terminal state"
+objective = "deep-census semgrep's matching slice, falsify the pattern-matching hypothesis against Atlas's effect-spelling consumer, decide REFERENCE_ONLY, physically extinct the checkout"
+writer = "coordinator (sole writer)"
+evidence = ".atlas/evidence/campaign/11-semgrep.json"
+self_recensus = ".atlas/evidence/census/G70/recensus.json"
+
+[generation.verification]
+pre_census = "clean-HEAD census of a3f1ea4553 = G69 post digest 689ebecb... (2cc753f354 adds only out-of-scope evidence)"
+falsification = "workspace scan: 0 std fs functions imported by name, 0 aliases, 0 shadowing Command/File/TcpStream types, 320 qualified calls already matched; the 70 bare write/read_to_string calls are Atlas functions a resolution-free pattern would misflag -- import-aware pattern matching (Pattern_vs_code.ml try_alternate_names) changes nothing"
+no_code_change = "no Atlas mechanism justified; the only in-scope change is the pinned deleted-donor list"
+storage = "589 MB donor source reclaimed; scratch reports reclaimed (6 GB) after disk reached 95%"
+
+[generation.next]
+objective = "G71 (P3): first-50 #12 ast-grep -- structural search/rewrite measured against Atlas's needs"

@@ -15,19 +15,19 @@ decision = ".atlas/decisions/0024-self-recensus-proof-of-nextgen.md"
 [dashboard]
 first_50_total = 50
 historic_terminal = 3
-campaign_terminal = 5
+campaign_terminal = 6
 historically_proven = 5
 currently_censusing = 0
 deep_censused = 7
 absorbed = 6
-reference_only = 2
+reference_only = 3
 external_boundary = 0
 rejected = 0
 deferred = 0
-extinct = 8
-remaining = 42
-next_donor = "semgrep"
-next_step = "semgrep (#11): materialize the cheapest sufficient slice under the working-set budget, deep-census, falsify its hypothesis against Atlas measurements, decide, prove any induced Atlas change by self-recensus"
+extinct = 9
+remaining = 41
+next_donor = "ast-grep"
+next_step = "ast-grep (#12): materialize the cheapest sufficient slice under the working-set budget, deep-census, falsify its hypothesis against Atlas measurements, decide, prove any induced Atlas change by self-recensus"
 
 [[donor]]
 ordinal = 1
@@ -198,11 +198,13 @@ target_capability = "semantic pattern search"
 mechanism_hypothesis = "generic AST pattern matching across languages"
 materialization_mode = "SPARSE_CHECKOUT (semgrep-core/src/matching)"
 dependency_expectation = "ocaml: TOOLCHAIN; tree-sitter grammars"
-current_status = "CURRENTLY_PENDING"
-lifecycle = "MATERIALIZED"
-terminal_state = ""
+current_status = "CAMPAIGN_PROVEN"
+lifecycle = "TERMINAL"
+terminal_state = "REFERENCE_ONLY"
 terminal_goal = "DECIDED"
-note = "census SKELETON, decision PENDING"
+completed_in = "G70"
+evidence = ".atlas/evidence/campaign/11-semgrep.json"
+note = "import-aware pattern matching changes zero effect classifications in Atlas (measured); no rule-as-data consumer; REFERENCE_ONLY; source physically deleted"
 
 [[donor]]
 ordinal = 12

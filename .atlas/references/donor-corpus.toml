@@ -419,14 +419,16 @@ default_branch = "develop"
 retrieved_at = "2026-09-20T12:08:55.4960343Z"
 license = [".atlas/licenses/semgrep/LICENSE"]
 technology_domains = ["semantic_search", "pattern_matching", "static_analysis"]
-ingestion_status = "CLONED"
-storage_state = "MATERIALIZED_CHECKOUT"
+ingestion_status = "EXTINCT"
+storage_state = "SOURCE_DELETED"
 materialization_mode = "SHALLOW_CHECKOUT"
-census_status = "SKELETON"
-decision_status = "PENDING"
+census_status = "DEEP_CENSUSED"
+decision_status = "REFERENCE_ONLY"
 native_replacement = "runtime/query semantic pattern projection"
 runtime_dependency_status = "REFERENCE_ONLY"
-evidence = [".atlas/provenance/donors/semgrep.json", ".atlas/census/semgrep.md"]
+blocking_question = "resolved G70: import-aware pattern matching changes zero effect classifications in Atlas (0 std::fs functions imported by name, 0 aliases, 0 shadowing types; 320 qualified calls already matched); no rule-as-data consumer exists"
+implementation_status = "NOT_ABSORBED_REFERENCE_ONLY"
+evidence = [".atlas/evidence/campaign/11-semgrep.json", ".atlas/provenance/donors/semgrep.json", ".atlas/census/semgrep.md"]
 
 [[donor]]
 id = "souffle"

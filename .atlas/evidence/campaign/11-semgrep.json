@@ -1,0 +1,40 @@
+{
+ "schema": "atlas.campaign-donor-decision.v1",
+ "ordinal": 11,
+ "donor": "semgrep",
+ "commit_sha": "0516c0f23a3dceac5c8f5ff3fecd402af4450182",
+ "generation": "G70",
+ "base_commit": "2cc753f354",
+ "census": "SKELETON before G70; deep-censused only the mechanism slice the hypothesis needs: src/matching (Pattern_vs_code.ml, Matching_generic.ml, Normalize_generic.ml) and languages/rust (tree-sitter CST -> AST_generic via Parse_rust_tree_sitter.ml)",
+ "hypothesis": "generic AST pattern matching across languages for semantic pattern search",
+ "mechanisms_censused": {
+  "pattern_matching": "Pattern_vs_code.ml matches a pattern AST against code AST_generic with metavariables; try_alternate_names (L391-442) also matches through id_resolved GlobalName canonical names -- file-local import/name resolution (Naming_AST), not types",
+  "rust_frontend": "tree-sitter-rust CST converted to AST_generic (languages/rust/generic/Parse_rust_tree_sitter.ml, 4,699 lines); no compiler type resolution"
+ },
+ "consumer_search": "Atlas's only source-pattern consumer is effect/persistence spelling recognition (adapter/src/semantic/rust/effect.rs): a closed, hand-coded set of qualified spellings emitted INFERRED; bare method calls excluded for lack of resolution",
+ "falsification": {
+  "method": "scan every workspace Rust file for the cases import-aware matching would change",
+  "std_fs_functions_imported_by_name": 0,
+  "fs_or_process_aliases": 0,
+  "non_std_Command_File_TcpStream_types": 0,
+  "fs_qualified_calls_matched_today": 320,
+  "bare_fs_named_calls": "70 (write/read_to_string) -- all Atlas's own functions (atlas codec write, cargo parser helpers): a pattern rule without resolution would falsely match them; the closed set correctly does not",
+  "verdict": "FALSIFIED for the current scope: import-aware pattern matching changes zero effect classifications in Atlas; a rule-as-data surface has no consumer (no runtime/query exists); resolution, not pattern syntax, is what the remaining UNKNOWN needs (same finding as joern G69)"
+ },
+ "decision": {
+  "REFERENCE_ONLY": [
+   "generic AST + pattern language with metavariables (re-evaluate when Atlas grows a user-facing semantic query/rule surface)",
+   "import-aware name resolution for matching (re-evaluate when a censused donor shows import-dependent effect spellings)",
+   "semantic equivalences / constant propagation in matching",
+   "tree-sitter grammar frontends (tree-sitter #6 already REFERENCE_ONLY)"
+  ],
+  "ABSORBED": []
+ },
+ "terminal_state": "REFERENCE_ONLY",
+ "extinction": {
+  "runtime_dependency": "none",
+  "build_dependency": "none",
+  "test_dependency": "none",
+  "action": "git rm -r .atlas/temporary/donors/semgrep (10,792 tracked files, 589 MB)"
+ }
+}

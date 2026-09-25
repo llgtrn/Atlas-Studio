@@ -454,6 +454,7 @@ mod tests {
                 "kythe",
                 "ladybird",
                 "scip",
+                "semgrep",
                 "souffle",
                 "tree-sitter"
             ]
