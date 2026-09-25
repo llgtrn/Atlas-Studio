@@ -3196,11 +3196,15 @@ mod tests {
                 }
                 other => panic!("audit status {other}"),
             }
-            let pressure = read(PRESSURE);
-            assert_eq!(
-                text(table(&pressure, "selection"), "selected_attack"),
-                selected
-            );
+            // While pending, the pressure map's selection is the attack the audit must run; once
+            // complete, the map has moved on to the next selection.
+            if status == "NATIVE_ATTACK_PENDING" {
+                let pressure = read(PRESSURE);
+                assert_eq!(
+                    text(table(&pressure, "selection"), "selected_attack"),
+                    selected
+                );
+            }
         }
 
         #[test]

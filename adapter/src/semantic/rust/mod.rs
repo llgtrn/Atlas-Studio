@@ -50,6 +50,7 @@ mod cfg;
 mod concurrency;
 mod dataflow;
 mod effect;
+mod macros;
 mod ownership;
 mod persistence;
 pub mod resolve;
@@ -137,7 +138,10 @@ fn dimension_coverage(dimension: SemanticDimension) -> DimensionCoverage {
         // states this). PERSISTENCE additionally has no dedicated syntax at all (unlike
         // CONCURRENCY's `.await`) and no resolved-API adapter, so every candidate it emits is a
         // textual spelling guess -- see `persistence.rs`. None of the eight may claim a
-        // zero-observation result as verified absence.
+        // zero-observation result as verified absence -- except CALL since G119 (ADR 0041): its
+        // walker recovers standard macro arguments (`macros::recovered_arguments`), so a file with
+        // no opaque macro or body-rewriting attribute (`macros::opaque_sites` == 0) is exhaustively
+        // walked and `finish_success` claims its CALL coverage per file.
         SemanticDimension::Call
         | SemanticDimension::ControlFlow
         | SemanticDimension::DataFlow
@@ -212,6 +216,9 @@ impl SemanticExtractor for RustSemanticExtractor {
                     }
                     match syn::parse_file(&input.source_text) {
                         Ok(file) => {
+                            ctx.shadowed_macros = macros::local_macro_names(&file);
+                            ctx.opaque_macro_sites =
+                                Some(macros::opaque_sites(&file, &ctx.shadowed_macros));
                             let root_scope = SemanticScope::new(Vec::<String>::new());
                             for item in &file.items {
                                 ctx.walk_item(item, &root_scope);
@@ -556,6 +563,14 @@ struct ExtractionContext<'a> {
     /// so one set suffices across all four dimensions. The same type/symbol referenced from many
     /// call sites in one file (e.g. `u64` used in ten signatures) is recorded once, not ten times.
     seen_record_ids: BTreeSet<String>,
+    /// G119: the standard macro names this file shadows with its own `macro_rules!`.
+    shadowed_macros: BTreeSet<String>,
+    /// G119: macro invocations and body-rewriting attributes the walkers cannot see through
+    /// (`macros::opaque_sites`); `None` until the file parsed.
+    opaque_macro_sites: Option<usize>,
+    /// G119: depth of recovered macro arguments being walked. DATA_FLOW does not walk macro
+    /// arguments, so CALL never builds a `Resolved` DATA_FLOW `PlaceRef` inside them.
+    macro_argument_depth: usize,
 }
 
 impl<'a> ExtractionContext<'a> {
@@ -570,6 +585,9 @@ impl<'a> ExtractionContext<'a> {
             diagnostics: Vec::new(),
             dimension_records: BTreeMap::new(),
             seen_record_ids: BTreeSet::new(),
+            shadowed_macros: BTreeSet::new(),
+            opaque_macro_sites: None,
+            macro_argument_depth: 0,
         }
     }
 
@@ -871,7 +889,7 @@ impl<'a> ExtractionContext<'a> {
         caller: &SemanticRecordId,
         role: ValueRole,
     ) -> PlaceRef {
-        if !self.wants(SemanticDimension::DataFlow) {
+        if !self.wants(SemanticDimension::DataFlow) || self.macro_argument_depth > 0 {
             return PlaceRef::Unresolved;
         }
         let subject = ValueIdentity {
@@ -1096,7 +1114,26 @@ impl<'a> ExtractionContext<'a> {
             }
             syn::Stmt::Expr(expr, _) => self.walk_expr(expr, scope, caller),
             syn::Stmt::Item(item) => self.walk_item(item, scope),
-            syn::Stmt::Macro(_) => {}
+            syn::Stmt::Macro(stmt_macro) => {
+                self.walk_macro_arguments(&stmt_macro.mac, scope, caller)
+            }
+        }
+    }
+
+    /// G119: the evaluated arguments of a recovered standard macro are walked like any other
+    /// expression of the caller (`macros::recovered_arguments`); any other macro stays opaque.
+    fn walk_macro_arguments(
+        &mut self,
+        mac: &syn::Macro,
+        scope: &SemanticScope,
+        caller: &SemanticRecordId,
+    ) {
+        if let Some(arguments) = macros::recovered_arguments(mac, &self.shadowed_macros) {
+            self.macro_argument_depth += 1;
+            for argument in &arguments {
+                self.walk_expr(argument, scope, caller);
+            }
+            self.macro_argument_depth -= 1;
         }
     }
 
@@ -1240,12 +1277,16 @@ impl<'a> ExtractionContext<'a> {
                     self.walk_expr(value, scope, caller);
                 }
             }
-            // A bare macro invocation used as an expression (`Expr::Macro`) is opaque token-stream
-            // input this extractor never re-parses as expressions without macro expansion, which
-            // it never performs (`.atlas/contracts/SEMANTIC-EXTRACTION.md`) -- a call written only
-            // inside a macro invocation's arguments is a real, permanent, out-of-profile gap (see
-            // `dimension_coverage`), not a silently-omitted one. Literals, bare paths, `continue`,
-            // and any other/future `syn::Expr` shape structurally cannot contain a nested call.
+            // G119: a standard macro whose documented input is a list of expressions is re-parsed
+            // and its arguments walked (`macros::recovered_arguments`); any other macro invocation
+            // stays opaque token-stream input this extractor never expands
+            // (`.atlas/contracts/SEMANTIC-EXTRACTION.md`), counted by `macros::opaque_sites` so the
+            // file cannot claim CALL coverage.
+            syn::Expr::Macro(expr_macro) => {
+                self.walk_macro_arguments(&expr_macro.mac, scope, caller);
+            }
+            // Literals, bare paths, `continue`, and any other/future `syn::Expr` shape structurally
+            // cannot contain a nested call.
             _ => {}
         }
     }
@@ -1683,7 +1724,13 @@ impl<'a> ExtractionContext<'a> {
         for &dimension in &self.input.requested_dimensions {
             if SUPPORTED_DIMENSIONS.contains(&dimension) {
                 let records = self.dimension_records.remove(&dimension);
-                if dimension_coverage(dimension) == DimensionCoverage::Partial {
+                // G119: CALL's only in-profile gap is opaque macro input; a file whose every macro
+                // invocation and attribute is recovered or built-in is exhaustively walked.
+                let call_exhaustive_here =
+                    dimension == SemanticDimension::Call && self.opaque_macro_sites == Some(0);
+                if dimension_coverage(dimension) == DimensionCoverage::Partial
+                    && !call_exhaustive_here
+                {
                     let diagnostic = ExtractionDiagnostic::new(
                         DiagnosticCode::IncompleteAnalysis,
                         Some(dimension),

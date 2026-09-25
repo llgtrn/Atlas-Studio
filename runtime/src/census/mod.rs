@@ -447,7 +447,9 @@ pub fn build_census(
         .iter()
         .map(|artifact| (artifact.id.as_str(), artifact.path.as_str()))
         .collect();
-    let mut dimension_summary: BTreeMap<SemanticDimension, EpistemicStatus> = BTreeMap::new();
+    // G119: per (dimension, artifact), the best status any engine reports for that artifact.
+    let mut artifact_coverage: BTreeMap<(SemanticDimension, String), EpistemicStatus> =
+        BTreeMap::new();
     let mut typed_semantic_records: Vec<SemanticObservation> = Vec::new();
     let mut evidence_by_id: BTreeMap<String, Evidence> = BTreeMap::new();
     let mut diagnostics_by_id: BTreeMap<String, ExtractionDiagnostic> = BTreeMap::new();
@@ -492,11 +494,11 @@ pub fn build_census(
                 obligation.diagnostics.clone(),
             ));
 
-            let summary = dimension_summary
-                .entry(obligation.dimension)
+            let best = artifact_coverage
+                .entry((obligation.dimension, batch.artifact.as_str().to_owned()))
                 .or_insert(obligation.status);
-            if status_rank(obligation.status) > status_rank(*summary) {
-                *summary = obligation.status;
+            if status_rank(obligation.status) > status_rank(*best) {
+                *best = obligation.status;
             }
         }
     }
@@ -559,6 +561,22 @@ pub fn build_census(
     for observation in &typed_semantic_records {
         if let Some(fact) = semantic_observation_fact(observation) {
             facts.push(fact);
+        }
+    }
+
+    // G119: a dimension's scope coverage is the WORST per-artifact coverage among the artifacts
+    // some engine can evaluate for it (per artifact, the best engine: one engine exhaustively
+    // covering an artifact covers it). One covered artifact never makes the scope covered; an
+    // UNSUPPORTED artifact (no extractor for its language) is accounted separately
+    // (UNSUPPORTED_FACTS) and is the scope summary only when no artifact is supported at all.
+    let mut dimension_summary: BTreeMap<SemanticDimension, EpistemicStatus> = BTreeMap::new();
+    for ((dimension, _), status) in &artifact_coverage {
+        let summary = dimension_summary.entry(*dimension).or_insert(*status);
+        let supported = |s: EpistemicStatus| s != EpistemicStatus::Unsupported;
+        if !supported(*summary)
+            || (supported(*status) && status_rank(*status) < status_rank(*summary))
+        {
+            *summary = *status;
         }
     }
 
@@ -819,6 +837,86 @@ mod tests {
             )],
             diagnostics: Vec::new(),
         }
+    }
+
+    /// G119: a dimension's scope coverage is the worst per-artifact coverage, where an artifact is
+    /// covered when any engine covers it. One covered artifact never covers the scope (the rule was
+    /// best-of-all-obligations before G119, which would have reported CALL OBSERVED at 75 of 98).
+    #[test]
+    fn scope_coverage_is_the_worst_artifact_and_the_best_engine_per_artifact() {
+        let artifact = |id: &str, path: &str| ArtifactRecord {
+            id: ArtifactId::new(id),
+            path: path.into(),
+            kind: ArtifactKind::File,
+            bytes: 10,
+            disposition: ArtifactDisposition::Parsed,
+            language: Some("rust".into()),
+            reason: None,
+            content_digest: None,
+            content_digest_withheld: None,
+        };
+        let inventory = InventoryReport::new(
+            "/repo",
+            vec![
+                artifact("artifact:src/a.rs", "src/a.rs"),
+                artifact("artifact:src/b.rs", "src/b.rs"),
+            ],
+        );
+        let source = SourceReport {
+            schema: "test".into(),
+            root: "/repo".into(),
+            files_total: 2,
+            languages: BTreeMap::from([("rust".into(), 2)]),
+            files: Vec::new(),
+        };
+        let adl = compile_adl(&[], &source);
+        let covered = extraction_batch_with_one_symbol("src/a.rs");
+        let mut open = extraction_batch_with_one_symbol("src/b.rs");
+        let diagnostic = atlas_core::ExtractionDiagnostic::new(
+            atlas_core::DiagnosticCode::IncompleteAnalysis,
+            Some(SemanticDimension::Symbol),
+            "test: not exhaustive",
+        );
+        open.obligations = vec![ObligationResult::unknown_with_observations(
+            SemanticDimension::Symbol,
+            open.observations
+                .iter()
+                .map(|o| o.record_id().clone())
+                .collect(),
+            Vec::new(),
+            diagnostic.id.clone(),
+        )];
+        open.diagnostics = vec![diagnostic];
+        let report = build_census(
+            &inventory,
+            &source,
+            &adl,
+            &[covered.clone(), open.clone()],
+            &test_revision(),
+        );
+        assert_eq!(
+            report.coverage.get("SYMBOL"),
+            Some(&EpistemicStatus::Unknown),
+            "one uncovered artifact keeps the scope UNKNOWN"
+        );
+        // A second engine that covers b.rs covers it: the scope is then covered.
+        let second = extraction_batch_with_symbol_from(
+            "src/b.rs",
+            "test.second-engine",
+            "evidence:second",
+            "second engine",
+        );
+        let report = build_census(
+            &inventory,
+            &source,
+            &adl,
+            &[covered, open, second],
+            &test_revision(),
+        );
+        assert_eq!(
+            report.coverage.get("SYMBOL"),
+            Some(&EpistemicStatus::Observed)
+        );
     }
 
     /// Like `extraction_batch_with_one_symbol`, but with a caller-chosen extractor identity and

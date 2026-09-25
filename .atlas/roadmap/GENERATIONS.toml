@@ -13,7 +13,7 @@
 #       -> generation evidence -> G_n+1
 
 schema = "atlas.self-build.generation-ledger.v1"
-current_generation = "G118"
+current_generation = "G119"
 
 [[generation]]
 id = "G35"
@@ -1962,6 +1962,7 @@ objective = "audit all 63 donors (58 corpus records + 5 First-50 donors never ad
 writer = "coordinator (sole writer)"
 evidence = ".atlas/roadmap/FOUNDATIONAL-ATLAS-READY.toml"
 self_recensus = ".atlas/evidence/census/G118/recensus.json"
+result_commits = ["f8868daab02a465beb2cc248467732bf396ef2fe", "88114927018f3d9494682dbfa922c46e42087258"]
 
 [generation.verification]
 pre_census = "clean-HEAD census of 028788bb19 = G117 post digest e0fb415f... (19256e7d0f adds only out-of-scope evidence)"
@@ -1974,3 +1975,28 @@ proof = "PROVEN on the first run (post cf5f0733...)"
 
 [generation.next]
 objective = "G119 (P0): mandatory native attack NA-MACRO-ARGUMENTS (CALL slice)"
+
+[[generation]]
+id = "G119"
+kind = "NATIVE_ATTACK"
+base_commit = "88114927018f3d9494682dbfa922c46e42087258"
+priority = "P0"
+serves = "P0 census closure: the mandatory native attack after the G118 hard-stop audit, selected by the pressure map (NA-MACRO-ARGUMENTS, CALL slice; DEBT-CALL)"
+objective = "close CALL's only in-profile gap: recover the arguments of standard expression macros, claim per-file CALL coverage only where nothing is opaque, and prove it against an independent enumeration of every workspace source"
+writer = "coordinator (sole writer)"
+evidence = ".atlas/decisions/0041-call-macro-argument-recovery.md"
+self_recensus = ".atlas/evidence/census/G119/recensus.json"
+
+[generation.verification]
+pre_census = "clean-HEAD census of f8868daab0 = G118 post digest cf5f0733... (8811492701 adds only out-of-scope evidence)"
+change = "adapter::semantic::rust::macros: 20 std expression macros re-parsed (vec repeat form, named format arguments by value), 12 inert macros, local macro_rules! shadowing, opaque-site count (other macros, body-rewriting attributes) outside the CALL profile exclusions; CALL walker walks recovered arguments; per-file CALL coverage when opaque = 0; CALL builds no DATA_FLOW PlaceRef inside macro arguments (DATA_FLOW does not walk them)"
+census = "syntactic CALL obligations 97 UNKNOWN -> 75 OBSERVED + 23 UNKNOWN (98 Rust artifacts); syntactic CALL records 17,768 -> 22,562; scope CALL coverage stays UNKNOWN"
+finding = "scope coverage aggregated the BEST obligation status (one covered artifact covered the scope); now per artifact the best engine, across artifacts the worst -- the self-scope certificate test caught the false flip"
+oracle = "call_sites_equal_an_independent_syntax_enumeration_on_real_sources: every workspace source (not 4 files), independent re-parse of macro arguments, exact equality of call sites, coverage OBSERVED iff nothing opaque, every resolved PlaceRef names an existing DATA_FLOW record"
+falsification = "8 mutants killed: macro arguments not walked; opaque sites never counted; shadowing ignored; attribute macros treated as built-in; stringify! parsed as expressions; coverage claimed whenever parsed; DATA_FLOW PlaceRef gate removed (dangling reference at adapter/src/browser/mod.rs:249); best-of scope aggregation restored"
+audit = "FOUNDATIONAL-ATLAS-READY.toml [audit] COMPLETE; donor progression stays BLOCKED (33 debts at BLOCK or past the skip budget); frontier expansion BLOCKED"
+proof = "PROVEN on the first run with the new artifact explained (post 0b7c784c...); census unknown facts 1,164 -> 1,101"
+
+[generation.next]
+objective = "G120 (P0): native attack queue head NA-MACRO-ARGUMENTS-WALKERS"
+

@@ -4386,9 +4386,12 @@ pub fn compound_local() -> u64 {
 // =====================================================================================================
 // R4.4-R4.10 reconciliation pass: every full-expression-tree dimension shares the same real,
 // permanent macro-invocation-argument opacity gap (see `dimension_coverage`'s doc comment), so
-// CALL/CONTROL_FLOW/DATA_FLOW/OWNERSHIP/CONCURRENCY must never claim verified absence, exactly like
-// STATE/EFFECT already correctly refuse to. This section falsifies that for all five dimensions,
-// and adds regression coverage for the CFG panic-epistemics and Spawn-epistemics fixes.
+// CONTROL_FLOW/DATA_FLOW/OWNERSHIP/CONCURRENCY must never claim verified absence, exactly like
+// STATE/EFFECT already correctly refuse to. G119 (ADR 0041) closed that gap for CALL only: its
+// walker recovers standard macro arguments, and a file with nothing opaque claims CALL coverage --
+// proven on every workspace source by `call_sites_equal_an_independent_syntax_enumeration_on_real_sources`.
+// This section falsifies both, and adds regression coverage for the CFG panic-epistemics and
+// Spawn-epistemics fixes.
 // =====================================================================================================
 
 // --- 96. every full-expression-tree dimension's obligation stays UNKNOWN for an empty file, never
@@ -4397,8 +4400,15 @@ pub fn compound_local() -> u64 {
 #[test]
 fn partial_closure_dimensions_never_claim_verified_absence_for_an_empty_file() {
     let batch = extract("src/empty.rs", "", ALL_DIMENSIONS.to_vec());
+    // G119: nothing is opaque in an empty file, so CALL's absence is verified, with evidence.
+    let call = batch.obligation_for(SemanticDimension::Call).unwrap();
+    assert_eq!(call.status, EpistemicStatus::Observed);
+    assert!(call.observation_ids.is_empty());
+    assert!(
+        !call.evidence_refs.is_empty(),
+        "verified absence carries its evidence"
+    );
     for &dimension in &[
-        SemanticDimension::Call,
         SemanticDimension::ControlFlow,
         SemanticDimension::DataFlow,
         SemanticDimension::State,
@@ -4436,8 +4446,11 @@ fn called(_value: u64) {}
 #[test]
 fn partial_closure_dimensions_remain_unknown_even_with_real_observations() {
     let batch = extract_all("src/lib.rs", R4_10_RECONCILIATION_CORPUS);
+    // G119: no macro or attribute is opaque here, so CALL claims coverage and keeps its records.
+    let call = batch.obligation_for(SemanticDimension::Call).unwrap();
+    assert_eq!(call.status, EpistemicStatus::Observed);
+    assert!(!call.observation_ids.is_empty());
     for &dimension in &[
-        SemanticDimension::Call,
         SemanticDimension::ControlFlow,
         SemanticDimension::DataFlow,
         SemanticDimension::Ownership,
@@ -6634,9 +6647,62 @@ fn every_call_of_a_chain_is_its_own_call_site_anchored_at_the_callee_name() {
 /// An enumeration of call sites independent of the extractor's hand-written walker: `syn::visit`
 /// reaches every expression, and this visitor applies only the CALL profile's documented
 /// exclusions (closure and `async` bodies are deferred executable regions; `const`/`static`
-/// initializers have no calling function; macro arguments are opaque tokens to both).
+/// initializers have no calling function). G119: the arguments of the standard expression macros
+/// are re-parsed here by an implementation of its own (only the macro name lists, which are the
+/// specification, are shared); every other macro invocation, and every attribute that is not
+/// built-in or a tool attribute on a function, impl, trait or module, is counted as opaque.
 #[derive(Default)]
-struct IndependentCallSites(Vec<(usize, usize)>);
+struct IndependentCallSites {
+    sites: Vec<(usize, usize)>,
+    opaque: usize,
+    shadowed: std::collections::BTreeSet<String>,
+}
+
+impl IndependentCallSites {
+    fn attributes(&mut self, attributes: &[syn::Attribute]) {
+        for attribute in attributes {
+            let path = attribute.path();
+            let first = path.segments.first().map(|s| s.ident.to_string());
+            let builtin = match (path.segments.len(), first.as_deref()) {
+                (1, Some(name)) => [
+                    "allow",
+                    "automatically_derived",
+                    "cfg",
+                    "cfg_attr",
+                    "cold",
+                    "deny",
+                    "deprecated",
+                    "derive",
+                    "doc",
+                    "expect",
+                    "export_name",
+                    "forbid",
+                    "ignore",
+                    "inline",
+                    "link_section",
+                    "macro_export",
+                    "macro_use",
+                    "must_use",
+                    "no_mangle",
+                    "non_exhaustive",
+                    "path",
+                    "repr",
+                    "should_panic",
+                    "target_feature",
+                    "test",
+                    "track_caller",
+                    "warn",
+                ]
+                .contains(&name),
+                (_, Some(root)) => ["clippy", "diagnostic", "rustfmt"].contains(&root),
+                _ => false,
+            };
+            if !builtin {
+                self.opaque += 1;
+            }
+        }
+    }
+}
 
 impl<'ast> syn::visit::Visit<'ast> for IndependentCallSites {
     fn visit_expr_call(&mut self, call: &'ast syn::ExprCall) {
@@ -6644,13 +6710,103 @@ impl<'ast> syn::visit::Visit<'ast> for IndependentCallSites {
             syn::Expr::Path(path) => path.path.segments.last().unwrap().ident.span(),
             _ => call.paren_token.span.open(),
         };
-        self.0.push((anchor.start().line, anchor.start().column));
+        self.sites
+            .push((anchor.start().line, anchor.start().column));
         syn::visit::visit_expr_call(self, call);
     }
     fn visit_expr_method_call(&mut self, call: &'ast syn::ExprMethodCall) {
         let anchor = call.method.span().start();
-        self.0.push((anchor.line, anchor.column));
+        self.sites.push((anchor.line, anchor.column));
         syn::visit::visit_expr_method_call(self, call);
+    }
+    fn visit_macro(&mut self, mac: &'ast syn::Macro) {
+        let segments: Vec<String> = mac
+            .path
+            .segments
+            .iter()
+            .map(|s| s.ident.to_string())
+            .collect();
+        let name = match segments.as_slice() {
+            [name] => Some(name.as_str()),
+            [root, name] if ["std", "core", "alloc"].contains(&root.as_str()) => {
+                Some(name.as_str())
+            }
+            _ => None,
+        };
+        let name = name.filter(|n| !self.shadowed.contains(*n));
+        match name {
+            Some(n) if super::macros::INERT_MACROS.contains(&n) => {}
+            Some(n) if super::macros::EXPRESSION_MACROS.contains(&n) => {
+                use syn::parse::Parser;
+                let repeat = |input: syn::parse::ParseStream| {
+                    let element: syn::Expr = input.parse()?;
+                    input.parse::<syn::Token![;]>()?;
+                    let length: syn::Expr = input.parse()?;
+                    Ok(vec![element, length])
+                };
+                let list = |input: syn::parse::ParseStream| {
+                    let parsed =
+                        syn::punctuated::Punctuated::<syn::Expr, syn::Token![,]>::parse_terminated(
+                            input,
+                        )?;
+                    Ok(parsed.into_iter().collect::<Vec<_>>())
+                };
+                let arguments = if n == "vec" {
+                    repeat
+                        .parse2(mac.tokens.clone())
+                        .or_else(|_| list.parse2(mac.tokens.clone()))
+                } else {
+                    list.parse2(mac.tokens.clone())
+                };
+                match arguments {
+                    Ok(arguments) => {
+                        for argument in &arguments {
+                            match argument {
+                                syn::Expr::Assign(named)
+                                    if matches!(*named.left, syn::Expr::Path(_)) =>
+                                {
+                                    self.visit_expr(&named.right)
+                                }
+                                other => self.visit_expr(other),
+                            }
+                        }
+                    }
+                    Err(_) => self.opaque += 1,
+                }
+            }
+            _ => self.opaque += 1,
+        }
+    }
+    fn visit_item_macro(&mut self, item: &'ast syn::ItemMacro) {
+        if let Some(ident) = &item.ident {
+            self.shadowed.insert(ident.to_string());
+        } else {
+            syn::visit::visit_item_macro(self, item);
+        }
+    }
+    fn visit_item_fn(&mut self, item: &'ast syn::ItemFn) {
+        self.attributes(&item.attrs);
+        syn::visit::visit_item_fn(self, item);
+    }
+    fn visit_impl_item_fn(&mut self, item: &'ast syn::ImplItemFn) {
+        self.attributes(&item.attrs);
+        syn::visit::visit_impl_item_fn(self, item);
+    }
+    fn visit_trait_item_fn(&mut self, item: &'ast syn::TraitItemFn) {
+        self.attributes(&item.attrs);
+        syn::visit::visit_trait_item_fn(self, item);
+    }
+    fn visit_item_impl(&mut self, item: &'ast syn::ItemImpl) {
+        self.attributes(&item.attrs);
+        syn::visit::visit_item_impl(self, item);
+    }
+    fn visit_item_trait(&mut self, item: &'ast syn::ItemTrait) {
+        self.attributes(&item.attrs);
+        syn::visit::visit_item_trait(self, item);
+    }
+    fn visit_item_mod(&mut self, item: &'ast syn::ItemMod) {
+        self.attributes(&item.attrs);
+        syn::visit::visit_item_mod(self, item);
     }
     fn visit_expr_closure(&mut self, _: &'ast syn::ExprClosure) {}
     fn visit_expr_async(&mut self, _: &'ast syn::ExprAsync) {}
@@ -6660,23 +6816,60 @@ impl<'ast> syn::visit::Visit<'ast> for IndependentCallSites {
     fn visit_trait_item_const(&mut self, _: &'ast syn::TraitItemConst) {}
 }
 
+/// Runs the independent enumeration over one file (a first pass collects the file's own
+/// `macro_rules!` names, which shadow the standard macros there).
+fn independent_call_sites(file: &syn::File) -> IndependentCallSites {
+    let mut names = IndependentCallSites::default();
+    syn::visit::Visit::visit_file(&mut names, file);
+    let mut enumeration = IndependentCallSites {
+        shadowed: names.shadowed,
+        ..IndependentCallSites::default()
+    };
+    syn::visit::Visit::visit_file(&mut enumeration, file);
+    enumeration
+}
+
+/// Every Rust source of the workspace's crates, read from disk.
+fn workspace_rust_sources() -> Vec<(String, String)> {
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("..");
+    let mut pending: Vec<std::path::PathBuf> =
+        ["core/src", "runtime/src", "adapter/src", "apps/cli/src"]
+            .iter()
+            .map(|dir| root.join(dir))
+            .collect();
+    let mut sources = Vec::new();
+    while let Some(dir) = pending.pop() {
+        for entry in std::fs::read_dir(&dir).unwrap() {
+            let path = entry.unwrap().path();
+            if path.is_dir() {
+                pending.push(path);
+            } else if path.extension().is_some_and(|e| e == "rs") {
+                let relative = path
+                    .strip_prefix(&root)
+                    .unwrap()
+                    .to_string_lossy()
+                    .into_owned();
+                sources.push((relative, std::fs::read_to_string(&path).unwrap()));
+            }
+        }
+    }
+    sources.sort();
+    sources
+}
+
+/// G74 + G119: on every Rust source of the workspace, the CALL walker records exactly the call
+/// sites the independent enumeration finds, including those inside recovered standard macro
+/// arguments; and a file claims OBSERVED CALL coverage exactly when the independent enumeration
+/// finds nothing opaque in it -- the per-file exhaustiveness claim is proven, never assumed.
 #[test]
 fn call_sites_equal_an_independent_syntax_enumeration_on_real_sources() {
-    for (path, source) in [
-        ("adapter/src/semantic/rust/mod.rs", include_str!("mod.rs")),
-        ("adapter/src/semantic/rust/cfg.rs", include_str!("cfg.rs")),
-        (
-            "adapter/src/semantic/rust/dataflow.rs",
-            include_str!("dataflow.rs"),
-        ),
-        (
-            "adapter/src/semantic/rust/tests.rs",
-            include_str!("tests.rs"),
-        ),
-    ] {
-        let mut expected = IndependentCallSites::default();
-        syn::visit::Visit::visit_file(&mut expected, &syn::parse_file(source).unwrap());
-        let mut expected = expected.0;
+    let sources = workspace_rust_sources();
+    assert!(sources.len() >= 90, "{} sources", sources.len());
+    let (mut covered, mut sites) = (0, 0);
+    for (path, source) in &sources {
+        let file = syn::parse_file(source).unwrap_or_else(|e| panic!("{path}: {e}"));
+        let enumeration = independent_call_sites(&file);
+        let mut expected = enumeration.sites.clone();
         expected.sort_unstable();
         let total = expected.len();
         expected.dedup();
@@ -6686,13 +6879,118 @@ fn call_sites_equal_an_independent_syntax_enumeration_on_real_sources() {
             "{path}: two call sites share an anchor"
         );
 
-        let batch = extract("src/lib.rs", source, vec![SemanticDimension::Call]);
+        let batch = extract(
+            "src/lib.rs",
+            source,
+            vec![SemanticDimension::Call, SemanticDimension::DataFlow],
+        );
+        // Every DATA_FLOW place a CALL record resolves names a record of the same batch.
+        let data_flow: std::collections::BTreeSet<String> = batch
+            .observations
+            .iter()
+            .filter(|o| o.dimension() == SemanticDimension::DataFlow)
+            .map(|o| o.record_id().as_str().to_owned())
+            .collect();
+        for call in all_calls(&batch) {
+            for place in call.arguments.iter().chain(std::iter::once(&call.result)) {
+                if let PlaceRef::Resolved { record_id, .. } = place {
+                    assert!(
+                        data_flow.contains(record_id.as_str()),
+                        "{path}: CALL at {}:{} names a missing DATA_FLOW record",
+                        call.span.line,
+                        call.span.column
+                    );
+                }
+            }
+        }
         let mut observed: Vec<(usize, usize)> = all_calls(&batch)
             .iter()
             .map(|call| (call.span.line, call.span.column))
             .collect();
         observed.sort_unstable();
-        assert!(total > 100, "{path}: {total}");
         assert_eq!(observed, expected, "{path}");
+
+        let obligation = batch
+            .obligations
+            .iter()
+            .find(|o| o.dimension == SemanticDimension::Call)
+            .expect("CALL obligation");
+        let claimed = obligation.status == EpistemicStatus::Observed;
+        assert_eq!(
+            claimed,
+            enumeration.opaque == 0,
+            "{path}: CALL coverage OBSERVED iff nothing is opaque ({} opaque)",
+            enumeration.opaque
+        );
+        covered += usize::from(claimed);
+
+        sites += total;
+    }
+    assert!(covered >= 1, "no file reaches CALL coverage");
+    assert!(sites > 10_000, "{sites}");
+}
+
+/// The identifier at each CALL record's anchor (the callee name token).
+fn anchored_names(source: &str, batch: &ExtractionBatch) -> Vec<String> {
+    let lines: Vec<&str> = source.lines().collect();
+    all_calls(batch)
+        .iter()
+        .map(|call| {
+            lines[call.span.line - 1][call.span.column..]
+                .chars()
+                .take_while(|c| c.is_alphanumeric() || *c == '_')
+                .collect()
+        })
+        .collect()
+}
+
+/// G119: calls inside the arguments of standard expression macros are call sites of the
+/// enclosing function, and a file with nothing opaque claims OBSERVED CALL coverage.
+#[test]
+fn calls_inside_standard_macro_arguments_are_recorded_and_close_file_coverage() {
+    let source = "fn run(w: &mut String) {\n    println!(\"{} {x}\", a(), x = b());\n    assert_eq!(c(), d(), \"{}\", e());\n    let _ = vec![f(); g()];\n    let _ = std::format!(\"{}\", h().i());\n    let _ = stringify!(not_a_call());\n    writeln!(w, \"{}\", j()).ok();\n}\n";
+    let batch = extract("src/lib.rs", source, vec![SemanticDimension::Call]);
+    let mut names = anchored_names(source, &batch);
+    names.sort();
+    assert_eq!(
+        names,
+        ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "ok"],
+        "every evaluated macro argument's call; stringify! evaluates nothing"
+    );
+    let call = batch
+        .obligations
+        .iter()
+        .find(|o| o.dimension == SemanticDimension::Call)
+        .unwrap();
+    assert_eq!(call.status, EpistemicStatus::Observed);
+}
+
+/// G119 negatives: an unknown macro, a locally shadowed standard macro, a pattern macro and an
+/// attribute macro stay opaque -- nothing is guessed from them and the file stays UNKNOWN.
+#[test]
+fn opaque_macros_and_attribute_macros_keep_call_coverage_unknown() {
+    for (source, hidden) in [
+        ("fn run() {\n    my_macro!(hidden());\n}\n", "hidden"),
+        (
+            "macro_rules! println { ($($t:tt)*) => {} }\nfn run() {\n    println!(\"{}\", hidden());\n}\n",
+            "hidden",
+        ),
+        (
+            "fn run(x: u8) {\n    let _ = matches!(x, 1 if hidden());\n}\n",
+            "hidden",
+        ),
+        ("#[tokio::main]\nfn run() {\n    visible();\n}\n", ""),
+    ] {
+        let batch = extract("src/lib.rs", source, vec![SemanticDimension::Call]);
+        let names = anchored_names(source, &batch);
+        if !hidden.is_empty() {
+            assert!(!names.contains(&hidden.to_owned()), "{source}: {names:?}");
+        }
+        let call = batch
+            .obligations
+            .iter()
+            .find(|o| o.dimension == SemanticDimension::Call)
+            .unwrap();
+        assert_eq!(call.status, EpistemicStatus::Unknown, "{source}");
     }
 }
