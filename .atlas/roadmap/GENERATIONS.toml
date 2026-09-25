@@ -1216,6 +1216,7 @@ objective = "answer the recorded clause-by-clause question against the executing
 writer = "coordinator (sole writer)"
 evidence = ".atlas/evidence/campaign/20-capnproto.json"
 self_recensus = ".atlas/evidence/census/G84/recensus.json"
+result_commits = ["95aff9e47de40a9617a542f737dcda0b676e7545", "72c5cb88d667d0a77d11f25d21f807720a0f51d9"]
 
 [generation.verification]
 pre_census = "clean-HEAD census of fbc4858f29 = G83 post digest f6354d45... (c36416d25d adds only out-of-scope evidence)"
@@ -1226,3 +1227,22 @@ proof = "PROVEN on the first run (post 47ccbf20...)"
 
 [generation.next]
 objective = "G85 (P3): first-50 #21 rkyv (zero-copy archived layout + validation, P2)"
+
+[[generation]]
+id = "G85"
+base_commit = "72c5cb88d667d0a77d11f25d21f807720a0f51d9"
+priority = "P3"
+serves = "P3 FIRST_50_DONOR_CAMPAIGN: donor #21 rkyv to a terminal state (P2 wire / cache question)"
+objective = "answer both recorded questions (self-relative pointers; the conditional cache dependency, now that a cache exists) by comparison and benchmark, decide the terminal state, physically extinct the checkout"
+writer = "coordinator (sole writer)"
+evidence = ".atlas/evidence/campaign/21-rkyv.json"
+self_recensus = ".atlas/evidence/census/G85/recensus.json"
+
+[generation.verification]
+pre_census = "clean-HEAD census of 95aff9e47d = G84 post digest 47ccbf20... (72c5cb88d6 adds only out-of-scope evidence)"
+falsification = "(1) the .atlas wire is flat and length-delimited with bounds-checked file-start offsets -- no internal pointers to relativize; (2) the ADR 0008 extraction cache (96 entries, 96 MB, 73,174 observations) deserializes into owned batches in 0.34-0.37 s (release, 3 rounds), ~5% of a 7.3 s warm systemize -- the most zero-copy could save, against new production crates"
+no_code_change = "no rkyv mechanism absorbed; the only in-scope census change is the pinned deleted-donor list"
+proof = "PROVEN (post c76171cc...); the first PROVEN run (post def12cb6...) had rkyv out of sort order in the pinned deleted-donor list, which the donor-storage gate caught; re-proved after the fix"
+
+[generation.next]
+objective = "G86 (P3): first-50 #22 flatbuffers (vtable-based schema evolution, P2)"

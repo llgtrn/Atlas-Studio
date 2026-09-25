@@ -127,3 +127,11 @@ rkyv's own maintainers state, in their own comparison table, that rkyv has **no 
 - **No `CHANGELOG.md` exists in this repository at this pin** — the "weaker versioning story" conclusion is supported by rkyv's own feature-comparison self-rating ("Schema evolution: no"), the pre-1.0 version number, and the `[patch.crates-io]` pin of `bytecheck` to an unreleased git commit, but **could not be cross-checked against a documented list of actual past breaking changes**, because no such document is present in this clone. This is a real gap in census depth, not a claim that was verified against concrete historical diffs — flagged explicitly per the task's instruction to report what was actually found rather than assert more than was verified.
 - `rkyv_dyn` (trait-object support) was not censused in depth since it is not part of the active workspace build at this pin.
 - The core `rkyv/src/` Rust source (the actual trait implementations) was not read line-by-line; this census relies on the maintainers' own book documentation (`book_src/`) as the authoritative description of the architecture, cross-checked against `Cargo.toml` manifests for dependency/version facts. A future deeper pass should read `rkyv/src/rel_ptr.rs` (or equivalent) directly to verify the relative-pointer implementation matches the book's description.
+
+## G85 — terminal REFERENCE_ONLY; source extinct
+
+Both parts of the recorded question are answered:
+- **Self-relative pointers:** the `.atlas` wire is flat and length-delimited, addressed by bounds-checked file-start offsets. No record points into another, so there is nothing for a self-relative pointer to address.
+- **The conditional cache dependency:** the consumer now exists (ADR 0008's per-artifact extraction cache). Its JSON encoding of 96 entries (96 MB, 73,174 observations) deserializes into owned batches in about 0.35 s of a 7.3 s warm run. Zero-copy access could save at most that, and the pipeline consumes owned values, so the exception lapses.
+
+The checkout was physically deleted, including one ignored editor-config file. Evidence: `../../evidence/campaign/21-rkyv.json`.

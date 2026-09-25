@@ -1,0 +1,28 @@
+{
+ "schema": "atlas.campaign-donor-decision.v1",
+ "ordinal": 21,
+ "donor": "rkyv",
+ "commit_sha": "4845668ae9730a3987966769f6872d86b822dc41",
+ "generation": "G85",
+ "base_commit": "72c5cb88d6",
+ "hypothesis": "zero-copy .atlas archive: archived layout + validation (bytecheck)",
+ "blocking_question": "(1) does any .atlas structure need rkyv-style self-relative pointers given file-start absolute offsets with bounds/overlap rules? (2) the conditional exception -- rkyv as a real Cargo dependency for an internal cache -- had no consumer",
+ "measurement": {
+  "relative_pointers": ".atlas wire v1 records are flat and length-delimited; the section directory addresses payloads by absolute offsets from the file start with bounds checks and overlap rejection (ATLAS-BINARY-WIRE-FORMAT.md, G64 reader), which is already position-independent under mmap; no record points into another, so there is nothing for a self-relative pointer to address",
+  "cache_consumer": "the consumer now exists: ADR 0008's per-artifact extraction cache, keyed on content digest, extractor identity and build digest (96/96 hits on a warm run, G80). Its JSON encoding: 96 entries, 96 MB, 73,174 observations, fully deserialized into owned ExtractionBatch values in 0.34-0.37 s (release build, 3 rounds) -- about 5% of a 7.3 s warm systemize",
+  "zero_copy_bound": "zero-copy access could remove at most those ~0.35 s, and less in practice: the census pipeline consumes owned batches, so archived access would still deserialize or require rewriting every consumer",
+  "dependency_cost": "rkyv plus its validation and pointer-metadata support crates would enter the production runtime to save ~0.35 s -- against the zero-runtime-dependency discipline",
+  "method": "document comparison against the wire contract and reader; scratch release harness deserializing the real cache directory with the workspace's own ExtractionBatch type"
+ },
+ "finding": "neither part needs rkyv: the wire has no internal pointers, and the one real cache loads fast enough from its hand-rolled (serde JSON) encoding that the conditional-dependency exception lapses",
+ "decision": {
+  "REFERENCE_ONLY": ["self-relative pointer archiving, bytecheck validation, archived layouts (no pointers in the .atlas wire; cache load ~0.35 s)"]
+ },
+ "terminal_state": "REFERENCE_ONLY",
+ "extinction": {
+  "runtime_dependency": "none",
+  "build_dependency": "none",
+  "test_dependency": "none (no code or test references the checkout; not a DC1 Cargo donor)",
+  "action": "git rm -r .atlas/temporary/donors/rkyv (230 tracked files) and its one ignored editor-config file (.vscode/settings.json, inert donor content)"
+ }
+}

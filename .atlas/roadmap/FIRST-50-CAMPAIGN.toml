@@ -15,19 +15,19 @@ decision = ".atlas/decisions/0024-self-recensus-proof-of-nextgen.md"
 [dashboard]
 first_50_total = 50
 historic_terminal = 3
-campaign_terminal = 16
+campaign_terminal = 17
 historically_proven = 4
 currently_censusing = 0
-deep_censused = 5
+deep_censused = 4
 absorbed = 7
-reference_only = 10
+reference_only = 11
 external_boundary = 1
 rejected = 0
 deferred = 1
-extinct = 19
-remaining = 31
-next_donor = "rkyv"
-next_step = "G85 (P3): rkyv (#21) -- zero-copy archived layout + validation for .atlas (P2)"
+extinct = 20
+remaining = 30
+next_donor = "flatbuffers"
+next_step = "G86 (P3): flatbuffers (#22) -- vtable-based schema evolution (P2)"
 
 [[donor]]
 ordinal = 1
@@ -368,13 +368,15 @@ canonical_url = "https://github.com/rkyv/rkyv.git"
 serves = "P2"
 target_capability = "zero-copy .atlas archive"
 mechanism_hypothesis = "archived layout + validation (bytecheck)"
-materialization_mode = "already materialized"
+materialization_mode = "n/a (source deleted)"
 dependency_expectation = "bytecheck: SOURCE_REQUIRED if absorbed"
-current_status = "CURRENTLY_PENDING"
-lifecycle = "DEEP_CENSUSED"
-terminal_state = ""
+current_status = "CAMPAIGN_PROVEN"
+lifecycle = "TERMINAL"
+terminal_state = "REFERENCE_ONLY"
 terminal_goal = "DECIDED"
-note = "census DEEP_CENSUSED, decision STUDY_FOR_BINARY_FORMAT_LANE_CONDITIONAL_CACHE_DEPENDENCY"
+completed_in = "G85"
+evidence = ".atlas/evidence/campaign/21-rkyv.json"
+note = "the .atlas wire has no internal pointers (file-start offsets, flat records); the real extraction cache (ADR 0008) loads its 96 MB JSON in ~0.35 s of a 7.3 s run, so the conditional rkyv dependency lapses; source physically deleted"
 
 [[donor]]
 ordinal = 22

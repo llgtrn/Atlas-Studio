@@ -460,6 +460,7 @@ mod tests {
                 "kythe",
                 "ladybird",
                 "miri",
+                "rkyv",
                 "rust",
                 "rust-analyzer",
                 "scip",
