@@ -15,19 +15,19 @@ decision = ".atlas/decisions/0024-self-recensus-proof-of-nextgen.md"
 [dashboard]
 first_50_total = 50
 historic_terminal = 3
-campaign_terminal = 12
+campaign_terminal = 13
 historically_proven = 4
 currently_censusing = 0
 deep_censused = 7
 absorbed = 7
-reference_only = 7
+reference_only = 8
 external_boundary = 1
 rejected = 0
 deferred = 0
-extinct = 15
-remaining = 35
-next_donor = "differential-dataflow"
-next_step = "G80 (P3): differential-dataflow (#17)"
+extinct = 16
+remaining = 34
+next_donor = "buck2"
+next_step = "G81 (P3): buck2 (#18) -- DICE keyed computation graph and invalidation (P4)"
 
 [[donor]]
 ordinal = 1
@@ -300,13 +300,15 @@ canonical_url = "https://github.com/TimelyDataflow/differential-dataflow.git"
 serves = "P4"
 target_capability = "incremental recensus"
 mechanism_hypothesis = "differential updates of derived graph relations"
-materialization_mode = "SPARSE_CHECKOUT (src/operators)"
+materialization_mode = "n/a (source deleted)"
 dependency_expectation = "timely-dataflow: SOURCE_REQUIRED if absorbed"
-current_status = "CURRENTLY_PENDING"
-lifecycle = "COARSE_CENSUSED"
-terminal_state = ""
-terminal_goal = "ABSORB_LATER with P4 workload"
-note = "census COARSE_CENSUSED, decision ABSORB_LATER"
+current_status = "CAMPAIGN_PROVEN"
+lifecycle = "TERMINAL"
+terminal_state = "REFERENCE_ONLY"
+terminal_goal = "DECIDED"
+completed_in = "G80"
+evidence = ".atlas/evidence/campaign/17-differential-dataflow.json"
+note = "edit-to-recensus workload measured over G57-G79 (median 3 of ~117 artifacts per generation; full recompute ~7.8 s; analyzer changes invalidate everything): shallow invalidation plus recompute suffices; P4 input: extraction cache unused by self-recensus; source physically deleted"
 
 [[donor]]
 ordinal = 18

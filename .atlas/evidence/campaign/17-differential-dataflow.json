@@ -1,0 +1,29 @@
+{
+ "schema": "atlas.campaign-donor-decision.v1",
+ "ordinal": 17,
+ "donor": "differential-dataflow",
+ "commit_sha": "aa8745f93ea8abe131104fc7885ba4fd47e63902",
+ "generation": "G80",
+ "base_commit": "83448ab3a0",
+ "hypothesis": "differential updates of derived graph relations for incremental recensus (P4)",
+ "blocking_question": "does Atlas's actual edit-to-recensus workload need genuine incremental view maintenance across many small edits to an already-large derivation graph, or does shallow invalidation plus from-scratch recompute suffice?",
+ "measurement": {
+  "workload": "23 proven self-recensus generations (G57-G79): files edited per generation 1-19 of 101-117 artifacts (median 3); artifacts semantically changed equal the edited files except in the 5 generations that changed Atlas's own analyzer (G62 24, G74 85, G75 92, G77 96, G79 23) -- a changed derivation program invalidates all derived output, which differential dataflow cannot incrementalize either (it maintains views under data change, not program change)",
+  "cost_self_scale": "warm full self-recensus 7.7-8.0 s (117 artifacts, 83k graph nodes, 78k typed records); a one-file edit costs the same 7.9 s because the recensus path does not use the per-artifact extraction cache; cold vs warm `systemize --cache` differs by 3.8 s (11.1 -> 7.3 s, 96/96 cache hits), the extraction share",
+  "cost_corpus_scale": "G41: full systemize of the 1,485-file rust-analyzer donor in 48.5 s; the report format, not computation, limited corpus scale (.atlas/evidence/verification/r5-corpus-scale-recensus-measurement.json)",
+  "derivation_shape": "per-artifact extraction (pure, content-keyed memo, ADR 0008), one workspace-wide name-resolution fixpoint (~0.4 s), a 27-node dependency-closure fixpoint, and linear census/normalization/graph passes -- no large recursive derived relation whose incremental maintenance would need arrangements, traces or lattice-timed updates",
+  "method": "recensus.json/post.json of G57-G79; wall-clock timing of recensus snapshot and cached systemize on the G79 tree"
+ },
+ "finding": "shallow invalidation plus from-scratch recompute suffices: edits are small, the derivations are memoizable per artifact or cheap and linear, and the large invalidations come from analyzer changes no view-maintenance engine can avoid",
+ "decision": {
+  "REFERENCE_ONLY": ["collections/arrangements/traces, lattice-timed updates and iterative incremental joins (no Atlas derivation needs them at measured scale)"],
+  "p4_input": "the self-recensus path runs without the per-artifact extraction cache (ADR 0008): wiring it would save ~3.8 s of ~7.8 s on repeated runs at one revision; cross-revision reuse still needs revision-independent batch keys (G66 P4 note)"
+ },
+ "terminal_state": "REFERENCE_ONLY",
+ "extinction": {
+  "runtime_dependency": "none",
+  "build_dependency": "none",
+  "test_dependency": "none (no code or test references the checkout; not one of the DC1 real-donor Cargo workspaces)",
+  "action": "git rm -r .atlas/temporary/donors/differential-dataflow (360 tracked files, 8.5 MB)"
+ }
+}

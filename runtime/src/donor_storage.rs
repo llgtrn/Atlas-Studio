@@ -451,6 +451,7 @@ mod tests {
                 "blake3",
                 "clef",
                 "datafrog",
+                "differential-dataflow",
                 "glean",
                 "joern",
                 "kythe",

@@ -1113,6 +1113,7 @@ objective = "resolve self.m() method calls natively by the method probe's first 
 writer = "coordinator (sole writer)"
 evidence = ".atlas/decisions/0033-self-receiver-method-resolution.md"
 self_recensus = ".atlas/evidence/census/G79/recensus.json"
+result_commits = ["f61b6dd134929865031784dd1b24ca2d247c56bb", "83448ab3a09c9b9ac8f486696d036dbef9aca2f4"]
 
 [generation.verification]
 pre_census = "clean-HEAD census of e9db35b544 = G78 post digest add04efc... (f5e40ddc31 adds only out-of-scope evidence)"
@@ -1123,3 +1124,22 @@ proof = "PROVEN on the first run (post 8dc45df9...)"
 
 [generation.next]
 objective = "G80 (P3): first-50 #17 differential-dataflow"
+
+[[generation]]
+id = "G80"
+base_commit = "83448ab3a09c9b9ac8f486696d036dbef9aca2f4"
+priority = "P3"
+serves = "P3 FIRST_50_DONOR_CAMPAIGN: donor #17 differential-dataflow to a terminal state (P4 question)"
+objective = "answer the recorded question (does Atlas's edit-to-recensus workload need incremental view maintenance?) by measurement, decide the terminal state, physically extinct the checkout"
+writer = "coordinator (sole writer)"
+evidence = ".atlas/evidence/campaign/17-differential-dataflow.json"
+self_recensus = ".atlas/evidence/census/G80/recensus.json"
+
+[generation.verification]
+pre_census = "clean-HEAD census of f61b6dd134 = G79 post digest 8dc45df9... (83448ab3a0 adds only out-of-scope evidence)"
+falsification = "the proof chain G57-G79 is the workload: 1-19 of ~117 artifacts edited per generation (median 3); semantic change beyond the edited files only when Atlas's analyzer itself changed (a program change no view-maintenance engine incrementalizes); warm self-recensus 7.7-8.0 s with a one-file edit costing the same (no extraction cache on that path); cached systemize cold/warm 11.1/7.3 s (extraction ~3.8 s); corpus scale report-limited (G41)"
+no_code_change = "no differential-dataflow mechanism justified; the only in-scope change is the pinned deleted-donor list; P4 input recorded (extraction cache unused by self-recensus)"
+proof = "PROVEN on the first run (post 466a6145...)"
+
+[generation.next]
+objective = "G81 (P3): first-50 #18 buck2 (DICE keyed computation graph and invalidation, P4)"

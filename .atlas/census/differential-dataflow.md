@@ -37,3 +37,13 @@ runtime incremental graph maintenance -- with all three of Salsa/datafrog/differ
 having at least one real mechanism record, an actual R5 design synthesis (not a further donor
 deep-dive) is now plausibly the highest-value next step in this thread.
 
+
+## G80 — terminal REFERENCE_ONLY; source extinct
+
+The recorded question asked whether Atlas's edit-to-recensus workload needs incremental view maintenance. The self-recensus proof chain now answers it. Across 23 proven generations (G57–G79):
+- **Edits are small:** 1–19 of about 117 artifacts per generation (median 3).
+- **Full recompute is cheap:** about 7.8 s at self scale, of which extraction is about 3.8 s and is memoizable per artifact (ADR 0008). The rest is linear passes plus a 0.4 s name-resolution fixpoint.
+- **Large invalidations are program changes:** they happen only when Atlas's own analyzer changes, and differential dataflow cannot incrementalize a program change either.
+- **Corpus scale was report-limited** (G41).
+
+Collections, arrangements, traces and lattice time stay REFERENCE_ONLY. The P4 input is that self-recensus does not use the extraction cache. The checkout (360 files) was physically deleted. Evidence: `../evidence/campaign/17-differential-dataflow.json`.
