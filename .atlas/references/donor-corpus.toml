@@ -611,14 +611,19 @@ default_branch = "main"
 retrieved_at = "2026-09-20T13:57:44.7350501Z"
 license = [".atlas/licenses/donors/podman/LICENSE"]
 technology_domains = ["security", "trust", "sandboxing", "rootless_isolation"]
-ingestion_status = "CLONED"
-storage_state = "MATERIALIZED_CHECKOUT"
+ingestion_status = "EXTINCT"
+storage_state = "SOURCE_DELETED"
 materialization_mode = "SHALLOW_CHECKOUT"
 census_status = "PENDING_DEEP_CENSUS"
-decision_status = "APPROVED_SECURITY_LANE"
+decision_status = "EXTERNAL_BOUNDARY"
+blocking_question = "resolved G106: podman is one environment-dependent SandboxBackend implementation (AGENT-HOST-EMBEDDED-RUNTIME.md), invoked as an external container runtime, never absorbed. That contract forbids assuming the OuterSandbox permits user namespaces or nested containers, so rootless podman can only be a probed, optional backend. This host happens to allow unprivileged user namespaces (unshare --user --map-root-user succeeds; max_user_namespaces 64313) and ships a docker client, but that is environment evidence, not a guarantee. No SandboxBackend code exists and Atlas runs no candidate build/test job today, so there is no consumer; the rootless mechanics (user-namespace ID mapping, rootless networking, cgroup v2 delegation) stay REFERENCE_ONLY"
+evidence_needed = "none outstanding (.atlas/evidence/campaign/42-podman.json)"
+cheapest_falsification = "performed G106: SandboxBackend code searched (none); the host-runtime contract's OuterSandbox clause read; the host's user-namespace and container tooling probed"
+next_action = "none: TERMINAL EXTERNAL_BOUNDARY (a probed, optional SandboxBackend) + REFERENCE_ONLY (rootless mechanics); source physically deleted"
+implementation_status = "EXTERNAL_BOUNDARY"
 native_replacement = "adapter/security sandbox and runtime/security isolation policy"
 runtime_dependency_status = "REFERENCE_ONLY"
-evidence = [".atlas/provenance/donors/podman.json"]
+evidence = [".atlas/evidence/campaign/42-podman.json", ".atlas/provenance/donors/podman.json"]
 
 [[donor]]
 id = "selinux"

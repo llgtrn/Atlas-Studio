@@ -1,0 +1,10 @@
+{
+  "objective": "P3 first-50 #42 podman: one probed, optional SandboxBackend (the host-runtime contract forbids assuming user namespaces or nested containers), with no SandboxBackend code to consume it; EXTERNAL_BOUNDARY; checkout physically extinct; census unchanged except the pinned deleted-donor list",
+  "changed_paths": [
+    "runtime/src/donor_storage.rs"
+  ],
+  "total_changes": [],
+  "entity_changes": [
+    "CHANGED runtime donor_storage/tests/repository_donor_storage_has_no_unrecorded_violation()."
+  ]
+}

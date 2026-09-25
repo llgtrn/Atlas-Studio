@@ -1673,6 +1673,7 @@ objective = "run a bounded census over the SKELETON record, test the P0 role aga
 writer = "coordinator (sole writer)"
 evidence = ".atlas/evidence/campaign/41-verus.json"
 self_recensus = ".atlas/evidence/census/G105/recensus.json"
+result_commits = ["e85eaf96c529214d67d4db58b3ee5166e890041e", "06c69c4a5162940cbc2acc1cdb559888c06a2d0b"]
 
 [generation.verification]
 pre_census = "clean-HEAD census of a934a5d43b = G104 post digest 81e1ee33... (6ec019729b adds only out-of-scope evidence)"
@@ -1683,3 +1684,23 @@ proof = "PROVEN on the first run (post ea6bec09...)"
 
 [generation.next]
 objective = "G106 (P3): first-50 #42 podman (rootless isolation for construction actions, P6)"
+
+[[generation]]
+id = "G106"
+base_commit = "06c69c4a5162940cbc2acc1cdb559888c06a2d0b"
+priority = "P3"
+serves = "P3 FIRST_50_DONOR_CAMPAIGN: donor #42 podman to a terminal state (P6 sandboxed construction)"
+objective = "decide podman against the host-runtime contract's SandboxBackend and OuterSandbox clauses, physically extinct the checkout"
+writer = "coordinator (sole writer)"
+evidence = ".atlas/evidence/campaign/42-podman.json"
+self_recensus = ".atlas/evidence/census/G106/recensus.json"
+
+[generation.verification]
+pre_census = "clean-HEAD census of e85eaf96c5 = G105 post digest ea6bec09... (06c69c4a51 adds only out-of-scope evidence)"
+falsification = "no SandboxBackend code exists and no candidate job runs; the contract forbids assuming user namespaces or nested containers, so rootless podman can only be a probed, optional external backend; this host allows unprivileged user namespaces and has a docker client (environment evidence only), podman is not installed"
+no_code_change = "no podman mechanism absorbed (EXTERNAL_BOUNDARY; rootless mechanics REFERENCE_ONLY); the only in-scope census change is the pinned deleted-donor list"
+extinction = "git rm -r .atlas/temporary/donors/security/podman (10,238 files, 122 MB); the security/ grouping directory stays owned by six other donors"
+proof = "PROVEN (post 1cc9412f...); the first run was GENERATION_NOT_PROVEN because the intent, copied from an earlier pinned-list generation, declared +graph_edges/+graph_nodes that this edit did not produce -- the proof refused the unobserved claim, and the corrected intent declares no total change"
+
+[generation.next]
+objective = "G107 (P3): first-50 #43 containers-image (sigstore signature/rekor verification, P5)"

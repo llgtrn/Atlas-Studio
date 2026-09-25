@@ -1,0 +1,28 @@
+{
+ "schema": "atlas.campaign-donor-decision.v1",
+ "ordinal": 42,
+ "donor": "podman",
+ "commit_sha": "0d12a23e7bc94460f7986c01c79636b63ab6cd36",
+ "generation": "G106",
+ "base_commit": "06c69c4a51",
+ "hypothesis": "rootless isolation for construction actions (P6)",
+ "blocking_question": "none recorded (census PENDING_DEEP_CENSUS, decision APPROVED_SECURITY_LANE); corpus role 'adapter/security sandbox and runtime/security isolation policy'",
+ "measurement": {
+  "contract": "AGENT-HOST-EMBEDDED-RUNTIME.md: a SandboxBackend isolates candidate build/test/benchmark/failure jobs, backend strength is environment-dependent, and Atlas MUST NOT assume the OuterSandbox permits nested Docker, privileged containers, KVM, user namespaces or mount namespaces",
+  "consumer": "none: no SandboxBackend code exists and Atlas runs no candidate job today",
+  "host_probe": "environment evidence only, not a guarantee: `unshare --user --map-root-user id` succeeds (uid 0 inside), /proc/sys/user/max_user_namespaces = 64313, a Docker 29.3.1 client is installed; podman itself is not installed",
+  "shape": "podman can only be a probed, optional backend invoked as an external runtime; its source is never needed to use it"
+ },
+ "decision": {
+  "EXTERNAL_BOUNDARY": ["podman as an optional, capability-probed SandboxBackend"],
+  "REFERENCE_ONLY": ["rootless user-namespace ID mapping", "rootless networking", "cgroup v2 delegation", "libpod container lifecycle"]
+ },
+ "terminal_state": "EXTERNAL_BOUNDARY",
+ "extinction": {
+  "runtime_dependency": "none",
+  "build_dependency": "none",
+  "test_dependency": "none (no code or test references the checkout)",
+  "grouping": "the checkout lives under the security/ grouping directory; the other security donors (clair, containers-image, keycloak, keylime, openscap, selinux) keep the directory owned",
+  "action": "git rm -r .atlas/temporary/donors/security/podman (10,238 files, 122 MB)"
+ }
+}

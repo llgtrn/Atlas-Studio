@@ -471,6 +471,7 @@ mod tests {
                 "mlir",
                 "mold",
                 "object",
+                "podman",
                 "regalloc2",
                 "rkyv",
                 "rust",

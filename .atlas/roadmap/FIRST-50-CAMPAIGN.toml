@@ -15,19 +15,19 @@ decision = ".atlas/decisions/0024-self-recensus-proof-of-nextgen.md"
 [dashboard]
 first_50_total = 50
 historic_terminal = 3
-campaign_terminal = 37
+campaign_terminal = 38
 historically_proven = 4
 currently_censusing = 0
 deep_censused = 0
 absorbed = 9
 reference_only = 24
-external_boundary = 6
+external_boundary = 7
 rejected = 0
 deferred = 1
-extinct = 40
-remaining = 10
-next_donor = "podman"
-next_step = "G106 (P3): podman (#42) -- rootless isolation for construction actions (P6)"
+extinct = 41
+remaining = 9
+next_donor = "containers-image"
+next_step = "G107 (P3): containers-image (#43) -- sigstore signature/rekor verification (P5)"
 
 [[donor]]
 ordinal = 1
@@ -725,13 +725,15 @@ canonical_url = "https://github.com/containers/podman.git"
 serves = "P6"
 target_capability = "sandboxed construction"
 mechanism_hypothesis = "rootless isolation for construction actions"
-materialization_mode = "already materialized"
+materialization_mode = "n/a (source deleted)"
 dependency_expectation = "runc/crun: SYSTEM_BOUNDARY"
-current_status = "CURRENTLY_PENDING"
-lifecycle = "MATERIALIZED"
-terminal_state = ""
+current_status = "CAMPAIGN_PROVEN"
+lifecycle = "TERMINAL"
+terminal_state = "EXTERNAL_BOUNDARY"
 terminal_goal = "DECIDED"
-note = "census PENDING_DEEP_CENSUS, decision APPROVED_SECURITY_LANE"
+completed_in = "G106"
+evidence = ".atlas/evidence/campaign/42-podman.json"
+note = "one probed, optional SandboxBackend (the host-runtime contract forbids assuming user namespaces or nested containers); no SandboxBackend code exists; rootless mechanics REFERENCE_ONLY; source physically deleted"
 
 [[donor]]
 ordinal = 43
