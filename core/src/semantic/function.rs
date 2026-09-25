@@ -176,6 +176,11 @@ pub struct FunctionSignature {
     pub is_async: bool,
     pub is_unsafe: bool,
     pub is_extern: bool,
+    /// BLAKE3 of the function body's token stream (G66): position-free, whitespace- and
+    /// comment-insensitive, literal-sensitive. Content evidence for cross-revision correspondence,
+    /// never part of any identity key. `None` for a declaration without a body.
+    #[serde(default)]
+    pub body_fingerprint: Option<String>,
 }
 
 impl FunctionSignature {
@@ -292,6 +297,7 @@ mod tests {
             is_async: true,
             is_unsafe: true,
             is_extern: false,
+            body_fingerprint: None,
         };
         assert_eq!(
             signature.summary(),
@@ -311,6 +317,7 @@ mod tests {
             is_async: false,
             is_unsafe: false,
             is_extern: false,
+            body_fingerprint: None,
         };
         assert_eq!(signature.summary(), "fn() -> ()");
     }
@@ -335,6 +342,7 @@ mod tests {
             is_async: false,
             is_unsafe: true,
             is_extern: true,
+            body_fingerprint: None,
         };
         assert_eq!(
             signature.summary(),

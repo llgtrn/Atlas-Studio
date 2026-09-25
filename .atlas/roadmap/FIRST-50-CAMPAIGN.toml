@@ -15,19 +15,19 @@ decision = ".atlas/decisions/0024-self-recensus-proof-of-nextgen.md"
 [dashboard]
 first_50_total = 50
 historic_terminal = 3
-campaign_terminal = 1
+campaign_terminal = 2
 historically_proven = 5
 currently_censusing = 0
-deep_censused = 11
-absorbed = 3
+deep_censused = 10
+absorbed = 4
 reference_only = 1
 external_boundary = 0
 rejected = 0
 deferred = 0
-extinct = 4
-remaining = 46
-next_donor = "scip"
-next_step = "scip (#7): materialize the cheapest sufficient slice under the working-set budget, deep-census, decide, prove any induced Atlas change by self-recensus"
+extinct = 5
+remaining = 45
+next_donor = "kythe"
+next_step = "kythe (#8): materialize the cheapest sufficient slice under the working-set budget, deep-census, falsify its hypothesis against Atlas measurements, decide, prove any induced Atlas change by self-recensus"
 
 [[donor]]
 ordinal = 1
@@ -130,11 +130,13 @@ target_capability = "symbol identity across revisions"
 mechanism_hypothesis = "stable symbol descriptors (monikers) for revision-independent record identity"
 materialization_mode = "FETCHED_FILE_SET (scip.proto, docs)"
 dependency_expectation = "protobuf: TOOLCHAIN"
-current_status = "CURRENTLY_PENDING"
-lifecycle = "DEEP_CENSUSED"
-terminal_state = ""
+current_status = "CAMPAIGN_PROVEN"
+lifecycle = "TERMINAL"
+terminal_state = "ABSORBED"
 terminal_goal = "ABSORB or REFERENCE_ONLY"
-note = "census DEEP_CENSUSED, decision TARGET_MAPPED"
+completed_in = "G66"
+evidence = ".atlas/evidence/campaign/07-scip.json"
+note = "measured identity loss (line shifts, every commit, file-granular recensus); absorbed position-free descriptor identity natively (core::recensus::entity) with Atlas-native correspondence; occurrences/roles/relationships/exchange format REFERENCE_ONLY; source physically deleted"
 
 [[donor]]
 ordinal = 8

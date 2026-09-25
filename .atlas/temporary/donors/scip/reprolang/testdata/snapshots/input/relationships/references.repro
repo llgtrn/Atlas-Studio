@@ -1,2 +1,0 @@
-definition local sym1
-definition local sym2 references local sym1

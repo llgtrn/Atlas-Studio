@@ -446,7 +446,14 @@ mod tests {
         deleted.sort();
         assert_eq!(
             deleted,
-            ["blake3", "datafrog", "ladybird", "souffle", "tree-sitter"]
+            [
+                "blake3",
+                "datafrog",
+                "ladybird",
+                "scip",
+                "souffle",
+                "tree-sitter"
+            ]
         );
     }
 

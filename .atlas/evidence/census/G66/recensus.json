@@ -1,0 +1,171 @@
+{
+  "schema": "atlas.self-recensus-report.v1",
+  "generation": "G66",
+  "base_revision": "7e4e88e76e1d097ee44d1143cb555b44ec285c82",
+  "candidate_revision": "65bacafbd8997e07e8fcbe776115cc5730073655",
+  "candidate_dirty": true,
+  "before_census_digest": "blake3-256:abe4d0d5c0d98c6431726dfe6f2bb31000d8ca09e4d855cafd6de8d99827fbfe",
+  "after_census_digest": "blake3-256:3ce4fb6ac29a1f6baddf5386f6d3a5e4ac88106440f07bed0362a4a57897d60b",
+  "replay_digest": "blake3-256:3ce4fb6ac29a1f6baddf5386f6d3a5e4ac88106440f07bed0362a4a57897d60b",
+  "inventory_delta": {
+    "created": [
+      "core/src/recensus/entity.rs",
+      "core/src/recensus/entity/tests.rs"
+    ],
+    "modified": [
+      "adapter/src/semantic/rust/mod.rs",
+      "adapter/src/semantic/rust/tests.rs",
+      "core/src/graph/engineering_graph.rs",
+      "core/src/recensus/mod.rs",
+      "core/src/recensus/tests.rs",
+      "core/src/semantic/function.rs",
+      "runtime/src/donor_storage.rs",
+      "runtime/src/lib.rs"
+    ],
+    "deleted": []
+  },
+  "semantic_delta": {
+    "changed": [
+      "adapter/src/semantic/rust/mod.rs",
+      "adapter/src/semantic/rust/tests.rs",
+      "core/src/graph/engineering_graph.rs",
+      "core/src/recensus/mod.rs",
+      "core/src/recensus/tests.rs",
+      "core/src/semantic/function.rs",
+      "runtime/src/donor_storage.rs",
+      "runtime/src/lib.rs"
+    ],
+    "counts": {
+      "fact:FunctionIdentity|OBSERVED": 34,
+      "fact:FunctionSignature|OBSERVED": 34,
+      "fact:SemanticObligation|OBSERVED": 8,
+      "fact:SemanticObligation|UNKNOWN": 16,
+      "fact:SourceArtifact|OBSERVED": 4,
+      "fact:Symbol|OBSERVED": 60,
+      "fact:Type|OBSERVED": 35,
+      "record:CALL|OBSERVED": 237,
+      "record:CONTROL_FLOW|INFERRED": 1,
+      "record:CONTROL_FLOW|OBSERVED": 118,
+      "record:DATA_FLOW|OBSERVED": 506,
+      "record:EFFECT|INFERRED": 1,
+      "record:FUNCTION_IDENTITY|OBSERVED": 34,
+      "record:FUNCTION_SIGNATURE|OBSERVED": 34,
+      "record:OWNERSHIP|OBSERVED": 118,
+      "record:STATE|OBSERVED": 1,
+      "record:SYMBOL|OBSERVED": 60,
+      "record:TYPE|OBSERVED": 35
+    }
+  },
+  "dependency_delta": {
+    "added": [],
+    "removed": []
+  },
+  "dependency_state": [
+    "Closed",
+    "Closed"
+  ],
+  "graph_delta": {
+    "graph_bindings": 2,
+    "graph_edges": 1637,
+    "graph_nodes": 1240
+  },
+  "obligation_delta": {
+    "obligation:CALL|UNKNOWN": 2,
+    "obligation:CONCURRENCY|UNKNOWN": 2,
+    "obligation:CONTROL_FLOW|UNKNOWN": 2,
+    "obligation:DATA_FLOW|UNKNOWN": 2,
+    "obligation:EFFECT|UNKNOWN": 2,
+    "obligation:FUNCTION_IDENTITY|OBSERVED": 2,
+    "obligation:FUNCTION_SIGNATURE|OBSERVED": 2,
+    "obligation:OWNERSHIP|UNKNOWN": 2,
+    "obligation:PERSISTENCE|UNKNOWN": 2,
+    "obligation:STATE|UNKNOWN": 2,
+    "obligation:SYMBOL|OBSERVED": 2,
+    "obligation:TYPE|OBSERVED": 2
+  },
+  "adl_delta": {
+    "added": [],
+    "removed": []
+  },
+  "entity_delta": [],
+  "coverage_delta": [],
+  "unknown_delta": {
+    "increased": [
+      "core/src/recensus/entity.rs: 0 -> 8",
+      "core/src/recensus/entity/tests.rs: 0 -> 8"
+    ],
+    "decreased": [],
+    "total_before": 940,
+    "total_after": 956
+  },
+  "intent": {
+    "objective": "P3 first-50 #7 scip + P1 precision: position-free, revision-free function descriptors (SCIP symbol identity, absorbed natively) with signature/body token fingerprints and Atlas-native correspondence; self-recensus snapshot v3 makes entity-level changes part of the proof; SCIP checkout physically extinct",
+    "changed_paths": [
+      "adapter/src/semantic/rust/mod.rs",
+      "adapter/src/semantic/rust/tests.rs",
+      "core/src/graph/engineering_graph.rs",
+      "core/src/recensus/",
+      "core/src/semantic/function.rs",
+      "runtime/src/donor_storage.rs",
+      "runtime/src/lib.rs"
+    ],
+    "total_changes": [
+      "+artifacts",
+      "+diagnostic:IncompleteAnalysis",
+      "+docs",
+      "+entities",
+      "+entity_duplicate_descriptors",
+      "+evidence",
+      "+facts",
+      "+graph_bindings",
+      "+graph_edges",
+      "+graph_nodes",
+      "+normalized_facts",
+      "+obligations",
+      "+typed_records",
+      "+unknown_facts"
+    ],
+    "dependency_changes": [],
+    "adl_changes": [],
+    "coverage_changes": [],
+    "explained_unknowns": [
+      "core/src/recensus/entity.rs: a new Rust artifact carries the same explicit UNKNOWN obligations (CALL, CONTROL_FLOW, DATA_FLOW, STATE, EFFECT, OWNERSHIP, CONCURRENCY, PERSISTENCE) as every Rust artifact at baseline -- extractor coverage gap recorded in the certificate",
+      "core/src/recensus/entity/tests.rs: a new Rust artifact carries the same explicit UNKNOWN obligations as every Rust artifact at baseline"
+    ],
+    "accepted_unexpected": [
+      "schema atlas.census-snapshot.v2 -> atlas.census-snapshot.v3: the snapshot gains the entity layer (revision-stable function descriptors); entity correspondence starts from G67, whose pre-census is this v3 post-census"
+    ],
+    "entity_changes": []
+  },
+  "intended_changes": [
+    "path adapter/src/semantic/rust/mod.rs",
+    "path adapter/src/semantic/rust/tests.rs",
+    "path core/src/graph/engineering_graph.rs",
+    "path core/src/recensus/entity.rs",
+    "path core/src/recensus/entity/tests.rs",
+    "path core/src/recensus/mod.rs",
+    "path core/src/recensus/tests.rs",
+    "path core/src/semantic/function.rs",
+    "path runtime/src/donor_storage.rs",
+    "path runtime/src/lib.rs",
+    "total +artifacts",
+    "total +diagnostic:IncompleteAnalysis",
+    "total +docs",
+    "total +entities",
+    "total +entity_duplicate_descriptors",
+    "total +evidence",
+    "total +facts",
+    "total +graph_bindings",
+    "total +graph_edges",
+    "total +graph_nodes",
+    "total +normalized_facts",
+    "total +obligations",
+    "total +typed_records",
+    "total +unknown_facts",
+    "schema atlas.census-snapshot.v2 -> atlas.census-snapshot.v3 (accepted)"
+  ],
+  "intended_but_unobserved": [],
+  "unexpected_changes": [],
+  "regressions": [],
+  "verdict": "PROVEN"
+}

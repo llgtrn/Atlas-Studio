@@ -6480,3 +6480,78 @@ pub fn f(mut y: u64) -> u64 {
         "a parenthesized compound-assign target must still be written (RMW), same as a bare target"
     );
 }
+
+/// G66: the body fingerprint is position-free and formatting-free but token-exact -- it survives a
+/// move, reindentation and comments, and changes with a literal, a local name or the structure.
+#[test]
+fn body_fingerprints_ignore_position_and_formatting_but_not_tokens() {
+    let fingerprint = |source: &str, name: &str| {
+        let batch = extract_all("src/lib.rs", source);
+        batch
+            .observations
+            .iter()
+            .find_map(|observation| match observation {
+                SemanticObservation::FunctionSignature(header)
+                    if header.subject.function.symbol.name == name =>
+                {
+                    Some(header.subject.body_fingerprint.clone())
+                }
+                _ => None,
+            })
+            .unwrap_or_else(|| panic!("no signature for {name} in {source}"))
+    };
+    let base = fingerprint(
+        "fn f(x: u8) -> u8 {\n    let y = x + 1;\n    y * 2\n}\n",
+        "f",
+    );
+    assert!(
+        base.as_deref()
+            .is_some_and(|f| f.starts_with("blake3-256:"))
+    );
+    for (same, why) in [
+        (
+            "\n\n\nfn f(x: u8) -> u8 {\n    let y = x + 1;\n    y * 2\n}\n",
+            "moved down",
+        ),
+        ("fn f(x: u8) -> u8 { let y = x + 1; y * 2 }", "reformatted"),
+        (
+            "fn f(x: u8) -> u8 {\n    // why\n    let y = x + 1; /* note */\n    y * 2\n}\n",
+            "comments",
+        ),
+        (
+            "fn f(z: u8) -> u8 {\n    let y = x + 1;\n    y * 2\n}\n",
+            "the body alone is fingerprinted",
+        ),
+    ] {
+        assert_eq!(fingerprint(same, "f"), base, "{why}");
+    }
+    for (different, why) in [
+        (
+            "fn f(x: u8) -> u8 {\n    let y = x + 2;\n    y * 2\n}\n",
+            "a literal",
+        ),
+        (
+            "fn f(x: u8) -> u8 {\n    let w = x + 1;\n    w * 2\n}\n",
+            "a local name",
+        ),
+        (
+            "fn f(x: u8) -> u8 {\n    let y = x + 1;\n    y\n}\n",
+            "the structure",
+        ),
+    ] {
+        assert_ne!(fingerprint(different, "f"), base, "{why}");
+    }
+    // A renamed or moved function keeps its body fingerprint.
+    assert_eq!(
+        fingerprint(
+            "fn g(x: u8) -> u8 {\n    let y = x + 1;\n    y * 2\n}\n",
+            "g"
+        ),
+        base
+    );
+    // A declaration without a body has none.
+    assert_eq!(
+        fingerprint("trait T { fn f(&self); }", "f").map(|_| ()),
+        None
+    );
+}

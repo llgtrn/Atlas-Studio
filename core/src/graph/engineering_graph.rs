@@ -2957,6 +2957,7 @@ mod tests {
             is_async: true,
             is_unsafe: false,
             is_extern: true,
+            body_fingerprint: None,
         };
         let record_id = SemanticRecordId::new(
             SemanticDimension::FunctionSignature,

@@ -818,6 +818,7 @@ objective = "falsify tree-sitter's incremental parsing by measurement, decide ev
 writer = "coordinator (sole writer); a read-only lane surveyed the AtlasX contracts first"
 evidence = ".atlas/evidence/campaign/06-tree-sitter.json"
 self_recensus = ".atlas/evidence/census/G65/recensus.json"
+result_commits = ["65bacafbd8997e07e8fcbe776115cc5730073655"]
 
 [generation.verification]
 pre_census = "clean-HEAD census of b0a8d9cdf9 = G64 post digest 5175ee41... (7e4e88e76e adds only out-of-scope evidence)"
@@ -830,3 +831,23 @@ campaign_test = "CAMPAIGN_PROVEN status added: terminal, completed_in a ledger g
 
 [generation.next]
 objective = "G66 (P3): first-50 #7 scip -- stable symbol descriptors for revision-independent record identity"
+
+[[generation]]
+id = "G66"
+base_commit = "65bacafbd8997e07e8fcbe776115cc5730073655"
+priority = "P3"
+serves = "P3 FIRST_50_DONOR_CAMPAIGN: donor #7 scip to a terminal state; P1 SELF_RECENSUS precision (entity-level proof)"
+objective = "measure revision identity loss, absorb SCIP's position-free descriptor identity natively with Atlas-native correspondence, prove entity-level recensus, physically extinct the checkout"
+writer = "coordinator (sole writer)"
+evidence = ".atlas/evidence/campaign/07-scip.json"
+self_recensus = ".atlas/evidence/census/G66/recensus.json"
+
+[generation.verification]
+pre_census = "clean-HEAD census of 65bacafbd8 = G65 post digest abe4d0d5... (chain holds)"
+falsification_first = "before any code: 9 edit cases on real Atlas source measured identity loss (A2: 5 spurious identity losses for one inserted line; C/D/E/H: delete+create; A1/F: invisible); span-free keys collide 39x across 103 files; every commit re-identifies all 1,811 functions; an offline simulation of descriptor identity matched ground truth except literal-only edits and visibility-changing moves, which set the body/visibility design"
+after = "the same cases through Atlas_N+1 recensus prove report ground truth (A2 one CHANGED; C RENAMED; D none; E MOVED; F signature; G CHANGED+CREATED; H MOVED_RENAMED; comment-only none); an undeclared collateral change in a declared file is GENERATION_NOT_PROVEN"
+falsification = "23/23 production mutants killed (descriptor namespaces, escaping, module layout, package dir, CHANGED evidence, rename/move classification, bodiless matching, forced ties, duplicate descriptors, sort, signature name/span/param-type sensitivity, schema gate, observation, wildcard prefix/kind, unobserved intents, canonical lines, body fingerprint presence and position-freedom); the runtime self-scope test also kills the module-path collision mutant"
+certificate_note = "recomputed after commit (evidence/census/G66/certificate.json)"
+
+[generation.next]
+objective = "G67 (P3): first-50 #8 kythe -- VName identity and fact/edge schema, measured against the G66 entity layer"

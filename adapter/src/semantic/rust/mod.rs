@@ -1315,6 +1315,7 @@ impl<'a> ExtractionContext<'a> {
             is_async: sig.asyncness.is_some(),
             is_unsafe: matches!(sig.safety, syn::Safety::Unsafe(_)),
             is_extern,
+            body_fingerprint: body.map(body_fingerprint),
         };
         self.emit_function_signature(signature);
     }
@@ -1802,6 +1803,17 @@ impl<'a> ExtractionContext<'a> {
             diagnostics: self.diagnostics,
         }
     }
+}
+
+/// The G66 body fingerprint: BLAKE3 over the block's token stream as `proc_macro2` renders it.
+/// Rendering is canonical (source whitespace and comments are not tokens, and no span is printed),
+/// so the fingerprint survives moves and reformatting but changes with any token, literals
+/// included.
+fn body_fingerprint(body: &syn::Block) -> String {
+    use quote::ToTokens;
+    atlas_core::IntegrityDigest::of_bytes(body.to_token_stream().to_string().as_bytes())
+        .as_str()
+        .to_owned()
 }
 
 #[cfg(test)]

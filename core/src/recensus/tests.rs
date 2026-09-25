@@ -44,6 +44,7 @@ fn snapshot(revision: &str, artifacts: Vec<ArtifactState>) -> CensusSnapshot {
         admission_blockers: vec![],
         docs_gate_ready: true,
         typed_semantics_closed: true,
+        entities: Vec::new(),
     };
     s.census_digest = s.compute_digest().as_str().to_owned();
     s
@@ -354,4 +355,103 @@ fn a_v1_snapshot_without_adl_sources_keeps_its_canonical_text() {
     assert!(s.adl.sources.is_empty());
     assert!(!s.canonical_text().contains("adl source"));
     assert!(s.verify_digest());
+}
+
+fn entity(descriptor: &str, body: &str) -> EntityState {
+    EntityState {
+        descriptor: descriptor.into(),
+        path: "core/src/a.rs".into(),
+        signature: "s".into(),
+        body: body.into(),
+        visibility: "pub".into(),
+    }
+}
+
+fn with_entities(entities: Vec<EntityState>) -> CensusSnapshot {
+    reseal(CensusSnapshot { entities, ..base() })
+}
+
+#[test]
+fn a_collateral_entity_change_inside_a_declared_path_is_unexpected() {
+    let before = with_entities(vec![
+        entity("core a/f().", "b1"),
+        entity("core a/g().", "b1"),
+    ]);
+    let after = with_entities(vec![
+        entity("core a/f().", "b2"),
+        entity("core a/g().", "b2"),
+    ]);
+    let mut i = intent("change f", &[], &[]);
+    i.entity_changes = vec!["CHANGED core a/f().".into()];
+    let report = prove("G1", &before, &after, &after, &i);
+    assert_eq!(report.verdict, Verdict::GenerationNotProven);
+    assert_eq!(report.unexpected_changes, ["entity CHANGED core a/g()."]);
+    assert_eq!(report.entity_delta.len(), 2);
+
+    // A module-prefix wildcard covers both; a kind-restricted one covers only its kind.
+    i.entity_changes = vec!["* core a/*".into()];
+    assert_eq!(
+        prove("G1", &before, &after, &after, &i).verdict,
+        Verdict::Proven
+    );
+    i.entity_changes = vec!["RENAMED core a/*".into()];
+    let report = prove("G1", &before, &after, &after, &i);
+    assert_eq!(report.unexpected_changes.len(), 2);
+    assert_eq!(report.intended_but_unobserved, ["entity RENAMED core a/*"]);
+    // A wildcard never reaches outside its prefix.
+    i.entity_changes = vec!["* core b/*".into()];
+    assert_eq!(
+        prove("G1", &before, &after, &after, &i)
+            .unexpected_changes
+            .len(),
+        2
+    );
+}
+
+#[test]
+fn an_intended_entity_change_that_did_not_happen_is_not_proven() {
+    let before = with_entities(vec![entity("core a/f().", "b1")]);
+    let mut i = intent("rename f", &[], &[]);
+    i.entity_changes = vec!["RENAMED core a/f(). -> core a/g().".into()];
+    let report = prove("G1", &before, &before, &before, &i);
+    assert_eq!(report.verdict, Verdict::GenerationNotProven);
+    assert_eq!(
+        report.intended_but_unobserved,
+        ["entity RENAMED core a/f(). -> core a/g()."]
+    );
+    // Observed as intended: proven.
+    let after = with_entities(vec![entity("core a/g().", "b1")]);
+    assert_eq!(
+        prove("G1", &before, &after, &after, &i).verdict,
+        Verdict::Proven
+    );
+}
+
+#[test]
+fn entity_correspondence_needs_the_v3_layer_on_both_sides() {
+    let before = reseal(CensusSnapshot {
+        schema: "atlas.census-snapshot.v2".into(),
+        entities: vec![entity("core a/f().", "b1")],
+        ..base()
+    });
+    let after = with_entities(vec![entity("core a/g().", "b9")]);
+    let report = prove("G1", &before, &after, &after, &intent("upgrade", &[], &[]));
+    assert!(report.entity_delta.is_empty());
+    assert!(
+        report
+            .unexpected_changes
+            .iter()
+            .any(|c| c.starts_with("schema atlas.census-snapshot.v2 -> "))
+    );
+}
+
+#[test]
+fn the_entity_layer_is_part_of_the_digest() {
+    let a = with_entities(vec![entity("core a/f().", "b1")]);
+    let b = with_entities(vec![entity("core a/f().", "b2")]);
+    assert_ne!(a.census_digest, b.census_digest);
+    assert!(
+        a.canonical_text()
+            .contains("entity core a/f(). core/src/a.rs sig=s body=b1 vis=pub")
+    );
 }

@@ -27,3 +27,14 @@ Decision: TARGET_MAPPED. SCIP principles feed `adapter/exchange/source_index`, `
 
 adapter/source-index exchange boundary
 
+## Campaign decision (G66, first-50 #7)
+
+The hypothesis was measured on real Atlas source before and after (`../evidence/campaign/07-scip.json`):
+
+- **Before.** Function identity embedded the revision and the span. One inserted line gave 5 unchanged functions new identities. A rename or a move was a delete plus a create, and literal or signature edits were invisible at entity level. The span-free key collided 39 times across files. Self-recensus was file-granular.
+- **Absorbed.** SCIP's position-free descriptor identity (package + namespaces + scope + name + method suffix), implemented natively as `core::recensus::entity`, with no SCIP code or dependency.
+- **Atlas-native, not from SCIP.** Cross-revision correspondence from equal descriptors or equal (signature, body) token fingerprints. It never forces an ambiguous match.
+- **REFERENCE_ONLY.** Occurrences, the role bitset and position encoding, relationships, the protobuf exchange format, and version-in-identity.
+
+Terminal: ABSORBED. The checkout (226 files) was physically deleted; the commit sha, license and provenance remain recorded.
+

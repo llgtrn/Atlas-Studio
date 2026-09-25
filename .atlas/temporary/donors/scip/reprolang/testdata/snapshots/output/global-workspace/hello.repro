@@ -1,4 +1,0 @@
- definition hello().
-#           ^^^^^^^^ definition hello.repro/hello().
-#                    documentation
-#                    > signature of hello().

@@ -10,13 +10,19 @@
 //! revision has an identical projection. [`prove`] compares two snapshots against declared
 //! intentions and decides `PROVEN` or `NOT_PROVEN` -- never by Git diff, always by census state.
 
+pub mod entity;
+
+pub use entity::{Correspondence, EntityChange, EntityState};
+
 use crate::{DocsReport, SystemizeReport, identity::IntegrityDigest};
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
 
 /// v2 (G63): facts from ADL sources are attributed to the ADL surface (`AdlState::sources`)
 /// instead of counting as unattributed semantics.
-pub const SNAPSHOT_SCHEMA: &str = "atlas.census-snapshot.v2";
+/// v3 (G66): every function carries a revision-stable descriptor (`entities`), and the proof
+/// classifies entity correspondence between revisions.
+pub const SNAPSHOT_SCHEMA: &str = "atlas.census-snapshot.v3";
 /// Facts whose provenance lies under this root are ADL semantics, not inventoried artifacts.
 const ADL_ROOT: &str = ".atlas/declared";
 pub const RECENSUS_SCHEMA: &str = "atlas.self-recensus-report.v1";
@@ -85,6 +91,56 @@ pub struct CensusSnapshot {
     pub admission_blockers: Vec<String>,
     pub docs_gate_ready: bool,
     pub typed_semantics_closed: bool,
+    /// Every function/method with its revision-stable descriptor (v3), sorted. Absent in v1/v2
+    /// snapshots, which keep their recorded digests.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub entities: Vec<EntityState>,
+}
+
+/// The v3 entity layer of `report`: one `EntityState` per `FunctionSignature` record.
+fn entities_of(report: &SystemizeReport) -> Vec<EntityState> {
+    let manifests: BTreeSet<String> = report
+        .inventory
+        .artifacts
+        .iter()
+        .filter_map(|a| {
+            if a.path == "Cargo.toml" {
+                Some(String::new())
+            } else {
+                a.path.strip_suffix("/Cargo.toml").map(str::to_owned)
+            }
+        })
+        .collect();
+    let mut entities: Vec<EntityState> = report
+        .census
+        .typed_semantic_records
+        .iter()
+        .filter_map(|record| match record {
+            crate::semantic::SemanticObservation::FunctionSignature(header) => {
+                Some(&header.subject)
+            }
+            _ => None,
+        })
+        .map(|sig| {
+            let function = &sig.function;
+            let path = &function.span.path;
+            let package = entity::package_dir(path, &manifests).unwrap_or("");
+            EntityState {
+                descriptor: entity::descriptor(
+                    package,
+                    path,
+                    &function.scope.segments,
+                    &function.symbol.name,
+                ),
+                path: path.clone(),
+                signature: entity::signature_fingerprint(sig),
+                body: sig.body_fingerprint.clone().unwrap_or_else(|| "-".into()),
+                visibility: sig.visibility.clone(),
+            }
+        })
+        .collect();
+    entities.sort();
+    entities
 }
 
 fn key(a: &str, b: &str) -> String {
@@ -220,6 +276,16 @@ impl CensusSnapshot {
         totals.insert("evidence".into(), census.evidence.len());
         totals.insert("unattributed_semantics".into(), unattributed);
         totals.insert("adl_semantics".into(), adl_semantics);
+        let entities = entities_of(report);
+        let mut descriptors = BTreeMap::new();
+        for e in &entities {
+            *descriptors.entry(e.descriptor.as_str()).or_insert(0usize) += 1;
+        }
+        totals.insert("entities".into(), entities.len());
+        totals.insert(
+            "entity_duplicate_descriptors".into(),
+            descriptors.values().filter(|n| **n > 1).count(),
+        );
         for diagnostic in &census.diagnostics {
             bump(&mut totals, format!("diagnostic:{:?}", diagnostic.code));
         }
@@ -336,6 +402,7 @@ impl CensusSnapshot {
             admission_blockers,
             docs_gate_ready: report.docs.gate_ready,
             typed_semantics_closed: census.typed_semantics_closed(),
+            entities,
         };
         snapshot.census_digest = snapshot.compute_digest().as_str().to_owned();
         snapshot
@@ -407,6 +474,13 @@ impl CensusSnapshot {
             "typed_semantics_closed {}",
             self.typed_semantics_closed
         ));
+        // Emitted only when present, so v1/v2 snapshots keep their recorded digests.
+        for e in &self.entities {
+            out.push(format!(
+                "entity {} {} sig={} body={} vis={}",
+                e.descriptor, e.path, e.signature, e.body, e.visibility
+            ));
+        }
         out.join("\n")
     }
 
@@ -458,6 +532,11 @@ pub struct RecensusIntent {
     /// Observed changes accepted although not the objective (`item: reason`).
     #[serde(default)]
     pub accepted_unexpected: Vec<String>,
+    /// Entity correspondences expected between revisions (v3): an exact `EntityChange::item`
+    /// (`CHANGED core language/adl/census/f().`), or `<KIND|*> <descriptor prefix>*` covering
+    /// every such change whose descriptors all start with the prefix.
+    #[serde(default)]
+    pub entity_changes: Vec<String>,
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq, Eq)]
@@ -515,6 +594,9 @@ pub struct SelfRecensusReport {
     pub graph_delta: BTreeMap<String, i64>,
     pub obligation_delta: BTreeMap<String, i64>,
     pub adl_delta: SetDelta,
+    /// Function-level correspondence (v3 on both sides); SAME entities are omitted.
+    #[serde(default)]
+    pub entity_delta: Vec<EntityChange>,
     pub coverage_delta: Vec<String>,
     pub unknown_delta: UnknownDelta,
     pub intent: RecensusIntent,
@@ -533,6 +615,27 @@ fn coverage_rank(status: &str) -> u8 {
         "UNKNOWN" | "UNSUPPORTED" | "IGNORED" => 1,
         _ => 0,
     }
+}
+
+/// Whether one `entity_changes` declaration covers an observed entity item: exactly, or as
+/// `<KIND|*> <descriptor prefix>*` when every descriptor in the item starts with the prefix.
+fn entity_declaration_covers(declaration: &str, item: &str) -> bool {
+    if declaration == item {
+        return true;
+    }
+    let Some(pattern) = declaration.strip_suffix('*') else {
+        return false;
+    };
+    let (Some((kind, prefix)), Some((item_kind, rest))) =
+        (pattern.split_once(' '), item.split_once(' '))
+    else {
+        return false;
+    };
+    (kind == "*" || kind == item_kind)
+        && rest
+            .split(" -> ")
+            .flat_map(|side| side.split(" | "))
+            .all(|descriptor| descriptor.starts_with(prefix))
 }
 
 fn path_intended(intent: &RecensusIntent, path: &str) -> bool {
@@ -691,6 +794,13 @@ pub fn prove(
             .collect()
     };
     let adl_delta = set_delta(&adl_items(before), &adl_items(after));
+    // Entity correspondence needs the v3 layer on both sides; a schema change is itself an
+    // observed change that must be accepted with a reason.
+    let entity_delta = if before.schema == SNAPSHOT_SCHEMA && after.schema == SNAPSHOT_SCHEMA {
+        entity::correspond(&before.entities, &after.entities)
+    } else {
+        Vec::new()
+    };
     let dims: BTreeSet<&String> = before
         .coverage
         .keys()
@@ -808,6 +918,9 @@ pub fn prove(
             observed_changes.push(format!("adl source {path}"));
         }
     }
+    for change in &entity_delta {
+        observed_changes.push(format!("entity {}", change.item()));
+    }
     if before.schema != after.schema {
         observed_changes.push(format!("schema {} -> {}", before.schema, after.schema));
     }
@@ -823,6 +936,10 @@ pub fn prove(
             "total" => intent.total_changes.iter().any(|t| t == item),
             "dependency" => intent.dependency_changes.iter().any(|d| d == item),
             "adl" => intent.adl_changes.iter().any(|d| d == item),
+            "entity" => intent
+                .entity_changes
+                .iter()
+                .any(|d| entity_declaration_covers(d, item)),
             "coverage" => {
                 let (dim, transition) = item.split_once(": ").unwrap_or((item, ""));
                 let to = transition.rsplit(" -> ").next().unwrap_or("");
@@ -868,6 +985,15 @@ pub fn prove(
             intended_but_unobserved.push(format!("adl {d}"));
         }
     }
+    for d in &intent.entity_changes {
+        let seen = observed_changes.iter().any(|c| {
+            c.strip_prefix("entity ")
+                .is_some_and(|item| entity_declaration_covers(d, item))
+        });
+        if !seen {
+            intended_but_unobserved.push(format!("entity {d}"));
+        }
+    }
     for c in &intent.coverage_changes {
         let (dim, to) = c.split_once('=').unwrap_or((c, ""));
         if after.coverage.get(dim).map(String::as_str) != Some(to) {
@@ -901,6 +1027,7 @@ pub fn prove(
         graph_delta,
         obligation_delta,
         adl_delta,
+        entity_delta,
         coverage_delta,
         unknown_delta: unknown,
         intent: intent.clone(),

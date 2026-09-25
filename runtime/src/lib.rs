@@ -2238,6 +2238,30 @@ mod tests {
                 .sources
                 .contains_key(".atlas/declared/system.adl")
         );
+
+        // G66: every function has a revision-stable descriptor, and descriptors never collide
+        // across files (the span-free key had 39 cross-file collisions); a duplicate can only be
+        // same-file alternatives, which correspondence reports as AMBIGUOUS.
+        let signatures = report
+            .census
+            .typed_semantic_records
+            .iter()
+            .filter(|r| matches!(r, atlas_core::SemanticObservation::FunctionSignature(_)))
+            .count();
+        assert_eq!(snapshot.entities.len(), signatures);
+        let mut files: std::collections::BTreeMap<&str, std::collections::BTreeSet<&str>> =
+            Default::default();
+        for e in &snapshot.entities {
+            files.entry(&e.descriptor).or_default().insert(&e.path);
+        }
+        let cross_file: Vec<_> = files.iter().filter(|(_, paths)| paths.len() > 1).collect();
+        assert!(cross_file.is_empty(), "{cross_file:?}");
+        assert!(
+            snapshot
+                .entities
+                .iter()
+                .all(|e| e.body.starts_with("blake3-256:") || e.body == "-")
+        );
     }
 
     /// Only a CLOSED dependency census is authoritative for reconciliation.

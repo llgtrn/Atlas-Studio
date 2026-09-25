@@ -1,0 +1,35 @@
+{
+  "objective": "P3 first-50 #7 scip + P1 precision: position-free, revision-free function descriptors (SCIP symbol identity, absorbed natively) with signature/body token fingerprints and Atlas-native correspondence; self-recensus snapshot v3 makes entity-level changes part of the proof; SCIP checkout physically extinct",
+  "changed_paths": [
+    "adapter/src/semantic/rust/mod.rs",
+    "adapter/src/semantic/rust/tests.rs",
+    "core/src/graph/engineering_graph.rs",
+    "core/src/recensus/",
+    "core/src/semantic/function.rs",
+    "runtime/src/donor_storage.rs",
+    "runtime/src/lib.rs"
+  ],
+  "total_changes": [
+    "+artifacts",
+    "+diagnostic:IncompleteAnalysis",
+    "+docs",
+    "+entities",
+    "+entity_duplicate_descriptors",
+    "+evidence",
+    "+facts",
+    "+graph_bindings",
+    "+graph_edges",
+    "+graph_nodes",
+    "+normalized_facts",
+    "+obligations",
+    "+typed_records",
+    "+unknown_facts"
+  ],
+  "explained_unknowns": [
+    "core/src/recensus/entity.rs: a new Rust artifact carries the same explicit UNKNOWN obligations (CALL, CONTROL_FLOW, DATA_FLOW, STATE, EFFECT, OWNERSHIP, CONCURRENCY, PERSISTENCE) as every Rust artifact at baseline -- extractor coverage gap recorded in the certificate",
+    "core/src/recensus/entity/tests.rs: a new Rust artifact carries the same explicit UNKNOWN obligations as every Rust artifact at baseline"
+  ],
+  "accepted_unexpected": [
+    "schema atlas.census-snapshot.v2 -> atlas.census-snapshot.v3: the snapshot gains the entity layer (revision-stable function descriptors); entity correspondence starts from G67, whose pre-census is this v3 post-census"
+  ]
+}

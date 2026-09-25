@@ -1,0 +1,287 @@
+{
+ "schema": "atlas.campaign-donor-decision.v1",
+ "ordinal": 7,
+ "donor": "scip",
+ "commit_sha": "4f50fbbd0ed945405cd8a4196af6477ea2a9f8b5",
+ "generation": "G66",
+ "base_commit": "65bacafbd8",
+ "hypothesis_tested": "Atlas compares revisions but its semantic entities do not keep a stable identity across source edits",
+ "blocking_question_recorded": "no SymbolOccurrence consumer / occurrence import not scheduled (a sequencing block)",
+ "blocking_question_status": "superseded: the hypothesis was falsifiable by measurement without any occurrence import",
+ "phase_1_current_atlas": {
+  "identity_construction": "FunctionIdentity::identity_key = repository|revision|language|scope|symbol|span.path:line:column|...; SymbolIdentity key has no span but its scope carries no module path; self-recensus diffs per file",
+  "method": "cases applied to real Atlas source (core/src/language/adl/census.rs, 62 functions in the two subject files), release systemize, FUNCTION_IDENTITY record ids compared, tree restored",
+  "cases": {
+   "A1 body edit, same line count": {
+    "truth": "1 CHANGED",
+    "persisted": 62,
+    "removed": 0,
+    "added": 0,
+    "failure": "change invisible at entity level"
+   },
+   "A2 body edit, +1 line early in file": {
+    "truth": "1 CHANGED",
+    "persisted": 57,
+    "removed": 5,
+    "added": 5,
+    "failure": "5 unchanged functions lost identity (line shift); the edited one invisible"
+   },
+   "B rename local variable": {
+    "truth": "1 CHANGED (semantically equal)",
+    "persisted": 62,
+    "removed": 0,
+    "added": 0,
+    "failure": "invisible"
+   },
+   "C rename function": {
+    "truth": "1 RENAMED",
+    "persisted": 61,
+    "removed": 1,
+    "added": 1,
+    "failure": "delete + unrelated create"
+   },
+   "D move within file": {
+    "truth": "no semantic change",
+    "persisted": 60,
+    "removed": 2,
+    "added": 2,
+    "failure": "moved and one shifted function lost identity"
+   },
+   "E move to another module": {
+    "truth": "1 MOVED",
+    "persisted": 60,
+    "removed": 2,
+    "added": 2,
+    "failure": "delete + create, plus one spurious loss"
+   },
+   "F change signature": {
+    "truth": "1 CHANGED signature + caller",
+    "persisted": 62,
+    "removed": 0,
+    "added": 0,
+    "failure": "invisible"
+   },
+   "G split function": {
+    "truth": "1 CHANGED + 1 CREATED",
+    "persisted": 61,
+    "removed": 1,
+    "added": 2,
+    "failure": "one spurious loss"
+   },
+   "H delete + recreate under new name elsewhere": {
+    "truth": "1 MOVED_RENAMED",
+    "persisted": 60,
+    "removed": 2,
+    "added": 2,
+    "failure": "delete + create"
+   }
+  },
+  "across_commits": "all 1,811 function record ids change on every commit (revision in the key); the per-artifact extraction cache is keyed by revision and never reuses a batch across a commit",
+  "span_free_collisions": "removing the span from the function key collides 39 keys across 103 files (main, root, snapshot, same-named test helpers); SymbolIdentity definition keys collide 49 times across files -- a module path is required",
+  "downstream_cost": [
+   "self-recensus is file-granular: an unintended change to another function inside a declared path is accepted silently",
+   "graph/provenance continuity: no cross-revision entity relation exists (every record id is revision-bound)",
+   "cache reuse: none across commits (P4)"
+  ]
+ },
+ "scip_mechanisms_censused": {
+  "symbol_identity": "scip.proto L150-188: <scheme> <manager> <package> <version> <descriptor>+; descriptors namespace '/', type '#', term '.', method '(<disambiguator>).', local symbols document-scoped; no position and no file path in identity",
+  "occurrences": "scip.proto L692+: ranges and a SymbolRole bitset (L524-546) live on occurrences, never in identity",
+  "documents": "Document.relative_path owns occurrences and defined symbols (L76-121)",
+  "package_identity": "Package{manager,name,version} is part of every global symbol: SCIP symbols are version-specific by design",
+  "revision_behavior": "none: DESIGN.md lists code-modification use cases as a non-goal; file-level incrementality is an indexer property, not cross-revision correspondence",
+  "collision_assumption": "descriptors must form a fully qualified name unique across the package; overloads use the method disambiguator"
+ },
+ "decision": {
+  "ABSORBED": "position-free, revision-free descriptor identity (package + module namespaces + lexical scope + name + method suffix, SCIP escaping) with positions kept out of identity -- native in core::recensus::entity, no SCIP code or dependency",
+  "ATLAS_NATIVE_NOT_FROM_SCIP": "cross-revision correspondence (SAME/CHANGED/RENAMED/MOVED/MOVED_RENAMED/DELETED/CREATED/AMBIGUOUS) from equal descriptors or equal (signature, body) token fingerprints; ties and duplicated descriptors AMBIGUOUS, never forced",
+  "REFERENCE_ONLY": [
+   "occurrence role bitset and typed position encoding (no occurrence consumer)",
+   "Relationship (implementation/type-definition edges)",
+   "the protobuf exchange format and version-in-identity (Atlas identity must be revision-free)",
+   "method disambiguator ordinals (order-dependent; Atlas reports duplicates as AMBIGUOUS instead)"
+  ]
+ },
+ "phase_2_atlas_n_plus_1": {
+  "method": "same cases through atlas-systemizer recensus prove against a v3 baseline, intent declaring only the edited paths",
+  "entity_delta": {
+   "A1 body edit, same lines": [
+    {
+     "kind": "CHANGED",
+     "before": [
+      "core language/adl/census/entity_name()."
+     ],
+     "after": [
+      "core language/adl/census/entity_name()."
+     ],
+     "evidence": "body"
+    }
+   ],
+   "A2 body edit, +1 line early in file": [
+    {
+     "kind": "CHANGED",
+     "before": [
+      "core language/adl/census/reconcile_dependencies()."
+     ],
+     "after": [
+      "core language/adl/census/reconcile_dependencies()."
+     ],
+     "evidence": "body"
+    }
+   ],
+   "B rename local variable": [
+    {
+     "kind": "CHANGED",
+     "before": [
+      "core language/adl/census/entity_name()."
+     ],
+     "after": [
+      "core language/adl/census/entity_name()."
+     ],
+     "evidence": "body"
+    }
+   ],
+   "C rename function": [
+    {
+     "kind": "CHANGED",
+     "before": [
+      "core language/adl/census/derive_census_adl()."
+     ],
+     "after": [
+      "core language/adl/census/derive_census_adl()."
+     ],
+     "evidence": "body"
+    },
+    {
+     "kind": "RENAMED",
+     "before": [
+      "core language/adl/census/entity_name()."
+     ],
+     "after": [
+      "core language/adl/census/package_handle()."
+     ],
+     "evidence": "identical signature and body"
+    }
+   ],
+   "D move within file": [],
+   "E move to another module": [
+    {
+     "kind": "MOVED",
+     "before": [
+      "core language/adl/census/entity_name()."
+     ],
+     "after": [
+      "core language/adl/entity_name()."
+     ],
+     "evidence": "identical signature and body; visibility inherited -> pub(crate)"
+    }
+   ],
+   "F change signature": [
+    {
+     "kind": "CHANGED",
+     "before": [
+      "core language/adl/census/derive_census_adl()."
+     ],
+     "after": [
+      "core language/adl/census/derive_census_adl()."
+     ],
+     "evidence": "body"
+    },
+    {
+     "kind": "CHANGED",
+     "before": [
+      "core language/adl/census/entity_name()."
+     ],
+     "after": [
+      "core language/adl/census/entity_name()."
+     ],
+     "evidence": "signature,body"
+    }
+   ],
+   "G split function": [
+    {
+     "kind": "CHANGED",
+     "before": [
+      "core language/adl/census/entity_name()."
+     ],
+     "after": [
+      "core language/adl/census/entity_name()."
+     ],
+     "evidence": "body"
+    },
+    {
+     "kind": "CREATED",
+     "before": [],
+     "after": [
+      "core language/adl/census/unique()."
+     ],
+     "evidence": ""
+    }
+   ],
+   "H delete + recreate under new name elsewhere": [
+    {
+     "kind": "CHANGED",
+     "before": [
+      "core language/adl/census/derive_census_adl()."
+     ],
+     "after": [
+      "core language/adl/census/derive_census_adl()."
+     ],
+     "evidence": "body"
+    },
+    {
+     "kind": "MOVED_RENAMED",
+     "before": [
+      "core language/adl/census/entity_name()."
+     ],
+     "after": [
+      "core language/adl/adl_handle()."
+     ],
+     "evidence": "identical signature and body; visibility inherited -> pub(crate)"
+    }
+   ],
+   "I comment-only edit": [],
+   "K collateral: declared entity_name, undeclared derive_census_adl": [
+    {
+     "kind": "CHANGED",
+     "before": [
+      "core language/adl/census/derive_census_adl()."
+     ],
+     "after": [
+      "core language/adl/census/derive_census_adl()."
+     ],
+     "evidence": "body"
+    },
+    {
+     "kind": "CHANGED",
+     "before": [
+      "core language/adl/census/entity_name()."
+     ],
+     "after": [
+      "core language/adl/census/entity_name()."
+     ],
+     "evidence": "body"
+    }
+   ]
+  },
+  "additional": {
+   "I comment-only edit": "no entity change (PROVEN)",
+   "K collateral": "intended CHANGED entity_name declared; the undeclared CHANGED derive_census_adl is an unexpected change -> GENERATION_NOT_PROVEN (path-level intent accepted it before)"
+  }
+ },
+ "known_limits": [
+  "local-variable rename reports CHANGED body (token-exact, no alpha-equivalence)",
+  "module inference follows Cargo layout; #[path] is not seen",
+  "functions/methods only; types/traits/constants not yet in the entity layer",
+  ".atlas container unchanged: the entity layer is a self-recensus projection, not packaged canonical state"
+ ],
+ "terminal_state": "ABSORBED",
+ "extinction": {
+  "runtime_dependency": "none",
+  "build_dependency": "none",
+  "test_dependency": "none",
+  "references": "documentation/provenance only (pinned commit, license, provenance kept)",
+  "action": "git rm -r .atlas/temporary/donors/scip (226 tracked files, 3.6 MB)"
+ },
+ "p4_update": "descriptor identity is the prerequisite for cross-commit reuse: extraction batches embed the revision, so today no batch survives a commit; entity-keyed reuse would also let invalidation follow changed entities rather than changed files"
+}
