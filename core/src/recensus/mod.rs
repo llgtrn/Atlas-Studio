@@ -337,6 +337,32 @@ impl CensusSnapshot {
             .count();
         totals.insert("unknown_facts".into(), unknown_facts);
         totals.insert("unsupported_facts".into(), unsupported_facts);
+        // G122 (ADR 0044): the composed world model is recensused too, so a change in composed
+        // understanding (a new CONFLICT invariant, a dependency verdict, a lost relation) is a
+        // census change that must be intended.
+        let model = crate::composition::compose(report);
+        for (kind, n) in &model.accounting.composed_objects {
+            totals.insert(format!("composed:{kind}"), *n);
+        }
+        for relation in &model.relations {
+            bump(
+                &mut totals,
+                format!("composed:relation:{}", relation.kind.as_str()),
+            );
+        }
+        for invariant in &model.invariants {
+            bump(
+                &mut totals,
+                format!(
+                    "composed:invariant:{}|{}",
+                    format!("{:?}", invariant.kind).to_uppercase(),
+                    invariant.status.as_str()
+                ),
+            );
+        }
+        for edge in &model.architecture.dependencies {
+            bump(&mut totals, format!("composed:dependency:{}", edge.verdict));
+        }
 
         let closure = &report.dependency_closure;
         let mut edges: Vec<String> = closure

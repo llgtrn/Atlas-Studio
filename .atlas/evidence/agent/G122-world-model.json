@@ -1,0 +1,268 @@
+{
+  "schema": "atlas.agent.world-model-summary.v1",
+  "generation": "G122",
+  "produced_by": "atlas-systemizer agent model --root . (working tree of the G122 candidate, census revision field = base commit)",
+  "census_post_digest": "blake3-256:445a1bc67ede6a30a03b5cd0d530a0c21fff1e964449b0ff48e28cef944d8667",
+  "accounting": {
+    "records": {
+      "CALL": 29334,
+      "CONCURRENCY": 2,
+      "CONTROL_FLOW": 8618,
+      "DATA_FLOW": 41592,
+      "EFFECT": 3716,
+      "FUNCTION_IDENTITY": 2172,
+      "FUNCTION_SIGNATURE": 2172,
+      "OWNERSHIP": 11408,
+      "PERSISTENCE": 15,
+      "STATE": 446,
+      "SYMBOL": 5088,
+      "TYPE": 5204
+    },
+    "obligations": 1844,
+    "declared_facts": 37,
+    "composed_objects": {
+      "capability_model": 3,
+      "component_behavior": 120,
+      "function_behavior": 2172,
+      "invariant": 57,
+      "relation": 6736,
+      "state_variable": 258,
+      "subsystem_model": 5,
+      "understanding_gap": 6
+    }
+  },
+  "raw_records_total": 109767,
+  "subsystems": [
+    {
+      "name": "Adapter",
+      "root": "adapter",
+      "responsibility": "repository_observation",
+      "responsibility_status": "DECLARED",
+      "capabilities": [
+        "ObserveRepository"
+      ],
+      "components": 31,
+      "functions": 816,
+      "public_functions": 53,
+      "interface_functions": 23,
+      "effect_categories": [
+        "CLOCK_READ",
+        "ENVIRONMENT_READ",
+        "FILESYSTEM_READ",
+        "FILESYSTEM_WRITE",
+        "PANIC",
+        "PROCESS_SPAWN"
+      ],
+      "state_owned": 6,
+      "unresolved_calls": 5668
+    },
+    {
+      "name": "AtlasCli",
+      "root": "apps/cli",
+      "responsibility": null,
+      "responsibility_status": "UNKNOWN",
+      "capabilities": [],
+      "components": 2,
+      "functions": 11,
+      "public_functions": 0,
+      "interface_functions": 0,
+      "effect_categories": [
+        "CLOCK_READ",
+        "ENVIRONMENT_READ",
+        "FILESYSTEM_READ",
+        "FILESYSTEM_WRITE",
+        "PANIC"
+      ],
+      "state_owned": 0,
+      "unresolved_calls": 487
+    },
+    {
+      "name": "Core",
+      "root": "core",
+      "responsibility": "graph_semantics",
+      "responsibility_status": "DECLARED",
+      "capabilities": [
+        "ParseAtlas",
+        "CompileGraph"
+      ],
+      "components": 62,
+      "functions": 962,
+      "public_functions": 266,
+      "interface_functions": 70,
+      "effect_categories": [
+        "CLOCK_READ",
+        "PANIC"
+      ],
+      "state_owned": 11,
+      "unresolved_calls": 8607
+    },
+    {
+      "name": "Runtime",
+      "root": "runtime",
+      "responsibility": "orchestration",
+      "responsibility_status": "DECLARED",
+      "capabilities": [],
+      "components": 22,
+      "functions": 383,
+      "public_functions": 69,
+      "interface_functions": 32,
+      "effect_categories": [
+        "CLOCK_READ",
+        "ENVIRONMENT_READ",
+        "FILESYSTEM_READ",
+        "FILESYSTEM_WRITE",
+        "PANIC",
+        "PROCESS_SPAWN"
+      ],
+      "state_owned": 1,
+      "unresolved_calls": 5040
+    },
+    {
+      "name": "WebUI",
+      "root": "apps/studio",
+      "responsibility": "graph_visualization",
+      "responsibility_status": "DECLARED",
+      "capabilities": [],
+      "components": 3,
+      "functions": 0,
+      "public_functions": 0,
+      "interface_functions": 0,
+      "effect_categories": [],
+      "state_owned": 0,
+      "unresolved_calls": 0
+    }
+  ],
+  "architecture": {
+    "subsystems": [
+      "Adapter",
+      "AtlasCli",
+      "Core",
+      "Runtime",
+      "WebUI"
+    ],
+    "dependencies": [
+      {
+        "from": "Adapter",
+        "to": "Core",
+        "declared": ".atlas/declared/census.adl:24",
+        "cargo": true,
+        "resolved_calls": 91,
+        "verdict": "CONFIRMED",
+        "status": "OBSERVED"
+      },
+      {
+        "from": "AtlasCli",
+        "to": "Adapter",
+        "declared": null,
+        "cargo": false,
+        "resolved_calls": 1,
+        "verdict": "TRANSITIVE_VIA_REEXPORT",
+        "status": "DERIVED"
+      },
+      {
+        "from": "AtlasCli",
+        "to": "Core",
+        "declared": null,
+        "cargo": false,
+        "resolved_calls": 19,
+        "verdict": "TRANSITIVE_VIA_REEXPORT",
+        "status": "DERIVED"
+      },
+      {
+        "from": "AtlasCli",
+        "to": "Runtime",
+        "declared": ".atlas/declared/census.adl:26",
+        "cargo": true,
+        "resolved_calls": 33,
+        "verdict": "CONFIRMED",
+        "status": "OBSERVED"
+      },
+      {
+        "from": "Runtime",
+        "to": "Adapter",
+        "declared": ".atlas/declared/system.adl:57",
+        "cargo": true,
+        "resolved_calls": 63,
+        "verdict": "CONFIRMED",
+        "status": "OBSERVED"
+      },
+      {
+        "from": "Runtime",
+        "to": "Core",
+        "declared": ".atlas/declared/system.adl:56",
+        "cargo": true,
+        "resolved_calls": 191,
+        "verdict": "CONFIRMED",
+        "status": "OBSERVED"
+      },
+      {
+        "from": "WebUI",
+        "to": "Runtime",
+        "declared": ".atlas/declared/system.adl:58",
+        "cargo": false,
+        "resolved_calls": 0,
+        "verdict": "DECLARED_NOT_CENSUSABLE",
+        "status": "UNKNOWN"
+      }
+    ],
+    "unplaced_members": [],
+    "unassigned_components": []
+  },
+  "invariants": {
+    "AUTHORITY|INFERRED": 20,
+    "CONSTRUCTION|DERIVED": 5,
+    "DEPENDENCY|DERIVED": 4,
+    "DEPENDENCY|OBSERVED": 6,
+    "SAFETY|INFERRED": 4,
+    "STATE|INFERRED": 18
+  },
+  "gaps": [
+    {
+      "id": "GAP-COMPONENT-PURPOSE",
+      "question_class": "what is this component for?",
+      "missing": "module documentation is not censused; only ADL-declared subsystems carry a responsibility",
+      "magnitude": 120,
+      "debt": "DEBT-SEMANTIC-COMPOSITION"
+    },
+    {
+      "id": "GAP-UNRESOLVED-CALLEE",
+      "question_class": "what else reaches this function?",
+      "missing": "an unresolved call site records no callee spelling, so an impact residual cannot be narrowed to candidate call sites",
+      "magnitude": 19802,
+      "debt": "DEBT-CALL"
+    },
+    {
+      "id": "GAP-CAUSALITY",
+      "question_class": "what causes / precedes this?",
+      "missing": "no cross-function ordering or causation is represented; INVOKES, SUPPLIES_DATA and STATE_FLOW never imply cause",
+      "magnitude": 6736,
+      "debt": "DEBT-CAUSALITY"
+    },
+    {
+      "id": "GAP-RESOURCE",
+      "question_class": "what resource lifetime crosses this boundary?",
+      "missing": "no RESOURCE dimension: acquisition/release and lifetimes are not censused",
+      "magnitude": 2172,
+      "debt": "DEBT-RESOURCE"
+    },
+    {
+      "id": "GAP-CAPABILITY-REALIZATION",
+      "question_class": "what implementation realizes this capability?",
+      "missing": "declared capabilities are not mapped to realizing functions",
+      "magnitude": 3,
+      "debt": "DEBT-SEMANTIC-COMPOSITION"
+    },
+    {
+      "id": "GAP-TEST-IDENTITY",
+      "question_class": "which tests exercise this?",
+      "missing": "test attributes are not censused; test scope is INFERRED from a `tests` module or file",
+      "magnitude": 1141,
+      "debt": "DEBT-SEMANTIC-COMPOSITION"
+    }
+  ],
+  "semantic_compression": {
+    "raw_records": 109767,
+    "raw_obligations": 1844,
+    "composed_objects": 9357
+  }
+}

@@ -13,7 +13,7 @@
 #       -> generation evidence -> G_n+1
 
 schema = "atlas.self-build.generation-ledger.v1"
-current_generation = "G121"
+current_generation = "G122"
 
 [[generation]]
 id = "G35"
@@ -2083,6 +2083,7 @@ objective = "establish HISTORICAL_DONOR_REVALIDATION (capability-based triggers 
 writer = "coordinator (sole writer)"
 evidence = ".atlas/evidence/revalidation/R1-rust.json"
 self_recensus = ".atlas/evidence/census/G121/recensus.json"
+result_commits = ["f5aaff6e5b4710d2150f94578a189f839278f8bf", "c111cd90f06d7542196d57605afcfa55990e4d18"]
 
 [generation.verification]
 pre_census = "clean-HEAD census of 4bcabe62fd374df7b383da37560d2dbd504e6254 = G120 post digest b6438faf... (b61e0c4e49f4c19d76395b468fc8bff36add5351 adds only out-of-scope evidence)"
@@ -2097,5 +2098,85 @@ falsification = "3 mutants killed by historical_donor_revalidation_triggers_are_
 proof = "PROVEN on the first run after deletion (post 932b3fd4...): the self-recensus ran with the rust checkout physically absent; only runtime tests change in the census scope"
 
 [generation.next]
-objective = "G122 (P0): native attack queue head NA-QUANTITY-IN-CORE; next revalidation candidate rust-analyzer after a further capability milestone"
+objective = "G122 (P0): native attack queue head NA-QUANTITY-IN-CORE; next revalidation candidate rust-analyzer after a further capability milestone (superseded by the Agent-Worn directive, ADR 0044: G122 composition, G123 agent mission, G124 NA-QUANTITY-IN-CORE)"
 
+[[generation]]
+id = "G122"
+kind = "COMPOSITION_ATTACK"
+base_commit = "c111cd90f06d7542196d57605afcfa55990e4d18"
+priority = "P0"
+serves = "Agent-Worn Atlas (ADR 0044): new essential debt DEBT-SEMANTIC-COMPOSITION and its first attack NA-SEMANTIC-COMPOSITION; the directive orders composition and one agent mission before the native queue resumes (NA-QUANTITY-IN-CORE stays head, planned G124)"
+objective = "compose the census into function, component, subsystem, capability and architecture models with typed relations, invariants and understanding gaps; expose the agent interface (understand -> MissionContext, explain, impact, trace, why, hypothesis, verify); recensus the composed totals"
+writer = "coordinator (sole writer)"
+evidence = ".atlas/decisions/0044-agent-worn-atlas-semantic-composition.md"
+self_recensus = ".atlas/evidence/census/G122/recensus.json"
+
+[generation.verification]
+pre_census = "clean-HEAD census of f5aaff6e5b4710d2150f94578a189f839278f8bf = G121 post digest 932b3fd4... (c111cd90f06d7542196d57605afcfa55990e4d18 adds only out-of-scope evidence)"
+composition = "core/src/composition: every typed record joined to its function; syntactic and resolved records of one call or effect site merged (the stronger status wins); subsystems are ADL materializations; dependency verdicts reconcile ADL, Cargo reachability and resolved calls; composition is independent of record order and deterministic (model digest)"
+epistemics = "purpose only DECLARED (ADL responsibility) or UNKNOWN; STATE and AUTHORITY universals INFERRED with residuals on Atlas (STATE and EFFECT coverage UNKNOWN on every file); DEPENDENCY invariants OBSERVED from the Cargo closure and CONFLICT on any counterexample call; no path observed is UNKNOWN; no relation implies cause"
+finding = "the first composition of Atlas falsified a direct-edge dependency check: AtlasCli reaches Core functions through Runtime re-exports, now TRANSITIVE_VIA_REEXPORT (DERIVED); resolution was shown never to cross a missing dependency (an injected cross-dependency call is CALL_WITHOUT_DEPENDENCY and turns the dependency invariant CONFLICT)"
+interface = "atlas-systemizer agent model|understand|explain|impact|trace|why|compare|invariants|unknowns|effects|state|dependencies|capabilities|resources|causal|plan|hypothesis|verify; MissionContext structural digest excludes the mission text (two missions, one digest)"
+falsification = "13 mutants killed: signature joined by its own record id; unresolved calls uncounted; state writer sets always DERIVED; effect site keeps the first engine's status (survived once, killed by order independence); undeclared calls all re-exports; dependency counterexamples ignored; path prefix without separator; mission text in the structural digest; no-path reported as observed absence; extra writers ignored by hypothesis; built undeclared dependency accepted; purpose named from a module identifier; impact frontier without its lower-bound residual"
+revalidation = "SEMANTIC_COMPOSITION added as a capability milestone (G122); every audited donor re-evaluated: no historical verdict depended on DEBT-SEMANTIC-COMPOSITION, statuses unchanged (41 CURRENT, 3 REVALIDATION_REQUIRED, ...); sourcetrail and joern recorded as candidates for a debt-triggered attack, not revalidation"
+debts = "DEBT-SEMANTIC-COMPOSITION opened (M2_PARTIAL, last advance G122); DEBT-IMPACT_CLOSURE not advanced (impact is a call-graph lower bound, not the census affected-set equality)"
+enforcement = "native_queue_is_never_starved_and_agent_missions_recur (at most two consecutive interleaving generations; an AGENT_MISSION within five generations of the interface or the last mission; the interface generation composed the census); the queue head may skip one planned interleaving generation; DEBT_TRIGGERED_DONOR_ATTACK and AGENT_MISSION generations carry their records; 3 mutants of these rules killed"
+proof = "PROVEN (post 445a1bc6...): three new source files explained as carrying the standing per-file UNKNOWN obligations; composed:* totals enter the census snapshot for the first time"
+
+
+[[generation.metric]]
+key = "composed:function_behavior"
+after = 2172
+
+[[generation.metric]]
+key = "composed:component_behavior"
+after = 120
+
+[[generation.metric]]
+key = "composed:subsystem_model"
+after = 5
+
+[[generation.metric]]
+key = "composed:capability_model"
+after = 3
+
+[[generation.metric]]
+key = "composed:state_variable"
+after = 258
+
+[[generation.metric]]
+key = "composed:relation:INVOKES"
+after = 3361
+
+[[generation.metric]]
+key = "composed:relation:SUPPLIES_DATA"
+after = 3365
+
+[[generation.metric]]
+key = "composed:relation:STATE_FLOW"
+after = 10
+
+[[generation.metric]]
+key = "composed:invariant:DEPENDENCY|OBSERVED"
+after = 6
+
+[[generation.metric]]
+key = "composed:invariant:STATE|INFERRED"
+after = 18
+
+[[generation.metric]]
+key = "composed:invariant:AUTHORITY|INFERRED"
+after = 20
+
+[[generation.metric]]
+key = "composed:dependency:TRANSITIVE_VIA_REEXPORT"
+after = 2
+
+[[generation.metric]]
+key = "composed:understanding_gap"
+after = 6
+
+[[generation.metric]]
+key = "typed_records"
+before = 103737
+after = 109767

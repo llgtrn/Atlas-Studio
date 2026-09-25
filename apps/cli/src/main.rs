@@ -543,9 +543,95 @@ fn run(args: &[String]) -> Result<(), String> {
                 return Err("WORK_PREPARE_NOT_ALLOWED".into());
             }
         }
+        [cmd, op, rest @ ..] if cmd == "agent" => {
+            // G122 (ADR 0044): the Agent-Worn Atlas operations over the composed world model.
+            // `--model <world-model.json>` reuses a composed model; otherwise `--root` is censused
+            // and composed first.
+            use runtime::agent::lens;
+            let model = match value(rest, "--model")? {
+                Some(path) => {
+                    runtime::agent::read_world_model(&path).map_err(|e| format!("{path}: {e}"))?
+                }
+                None => {
+                    let root = value(rest, "--root")?.unwrap_or_else(|| ".".into());
+                    runtime::agent::world_model(&root).map_err(|e| format!("{root}: {e}"))?
+                }
+            };
+            let target = || value(rest, "--target")?.ok_or(format!("agent {op} requires --target"));
+            let text = match op.as_str() {
+                "model" => json(&model)?,
+                "understand" => {
+                    let mission = value(rest, "--mission")?.unwrap_or_default();
+                    let context = lens::understand(&model, &target()?, &mission)?;
+                    let digest = runtime::agent::structural_digest(&context);
+                    let mut value = serde_json::to_value(&context).map_err(|e| e.to_string())?;
+                    value["structural_digest"] = serde_json::Value::String(digest);
+                    json(&value)?
+                }
+                "explain" => json(&lens::explain(&model, &target()?)?)?,
+                "impact" => {
+                    let targets = target()?;
+                    let list: Vec<&str> = targets.split(',').collect();
+                    json(&lens::impact(&model, &list)?)?
+                }
+                "trace" | "why" | "compare" => {
+                    let from =
+                        value(rest, "--from")?.ok_or(format!("agent {op} requires --from"))?;
+                    let to = value(rest, "--to")?.ok_or(format!("agent {op} requires --to"))?;
+                    match op.as_str() {
+                        "trace" => json(&lens::trace(&model, &from, &to)?)?,
+                        "why" => json(&lens::why(&model, &from, &to)?)?,
+                        _ => json(&lens::compare(&model, &from, &to)?)?,
+                    }
+                }
+                "invariants" => json(&lens::invariants(&model, &target()?)?)?,
+                "unknowns" => {
+                    let index = lens::Index::new(&model);
+                    json(&lens::unknowns(&index, &index.resolve(&target()?)?))?
+                }
+                "effects" => {
+                    let index = lens::Index::new(&model);
+                    json(&lens::effects(&index, &index.resolve(&target()?)?))?
+                }
+                "state" => json(&lens::state_model(&model, &target()?)?)?,
+                "dependencies" => json(&lens::dependencies(&model, &target()?)?)?,
+                "capabilities" => json(&lens::capabilities(&model, &target()?)?)?,
+                "resources" => json(&lens::unanswerable(&model, "GAP-RESOURCE"))?,
+                "causal" => json(&lens::unanswerable(&model, "GAP-CAUSALITY"))?,
+                "plan" => json(&lens::plan(&model, &target()?)?)?,
+                "hypothesis" => {
+                    let claim =
+                        value(rest, "--claim")?.ok_or("agent hypothesis requires --claim")?;
+                    json(&lens::hypothesis(&model, &claim)?)?
+                }
+                "verify" => {
+                    let before =
+                        value(rest, "--before")?.ok_or("agent verify requires --before")?;
+                    let before = runtime::agent::read_world_model(&before)
+                        .map_err(|e| format!("{before}: {e}"))?;
+                    let delta = lens::verify(&before, &model);
+                    let regressed = delta.verdict != "HELD";
+                    let text = json(&delta)? + "\n";
+                    print!("{text}");
+                    if regressed {
+                        return Err("INVARIANTS_REGRESSED".into());
+                    }
+                    return Ok(());
+                }
+                other => {
+                    return Err(format!(
+                        "unknown agent operation `{other}`: model|understand|explain|impact|trace|why|compare|invariants|unknowns|effects|state|dependencies|capabilities|resources|causal|plan|hypothesis|verify"
+                    ));
+                }
+            } + "\n";
+            match value(rest, "--out")? {
+                Some(out) => write_report_to_out(&out, &text)?,
+                None => print!("{text}"),
+            }
+        }
         _ => {
             return Err(
-                "usage: atlas-systemizer <contract|systemize|docs audit|code analyze|parse|check|graph|observe|genome|search|create|physical|product|census certificate|adl derive|atlas pack|atlas verify|recensus snapshot|recensus prove|donors working-set|work prepare> ..."
+                "usage: atlas-systemizer <contract|systemize|docs audit|code analyze|parse|check|graph|observe|genome|search|create|physical|product|census certificate|adl derive|atlas pack|atlas verify|recensus snapshot|recensus prove|donors working-set|work prepare|agent> ..."
                     .into(),
             );
         }

@@ -1,5 +1,6 @@
 //! Atlas runtime orchestration.
 
+pub mod agent;
 pub mod atlas;
 pub mod census;
 pub mod certificate;
@@ -2595,7 +2596,10 @@ mod tests {
             };
             for (id, block) in ledger_generations() {
                 let metrics = blocks(&block, "generation.metric");
-                if generation(&id) >= 120 && text(&block, "kind") == "NATIVE_ATTACK" {
+                if generation(&id) >= 120
+                    && ["NATIVE_ATTACK", "COMPOSITION_ATTACK"]
+                        .contains(&text(&block, "kind").as_str())
+                {
                     assert!(
                         !metrics.is_empty(),
                         "{id}: a native attack states derived metrics"
@@ -2987,16 +2991,25 @@ mod tests {
                 "PRIORITY.toml next_native_attack must be the queue head"
             );
             // Rule B: the head is the next generation -- or the one after it when PRIORITY.toml
-            // plans exactly the next one as a HISTORICAL_DONOR_REVALIDATION generation (G121+).
+            // plans exactly the next one as an interleaving generation: a
+            // HISTORICAL_DONOR_REVALIDATION (G121+), an AGENT_MISSION or a
+            // DEBT_TRIGGERED_DONOR_ATTACK (G122+, ADR 0044).
             let current = current_generation();
             let planned = generation(&text(head, "planned_generation"));
-            let revalidation_next = blocks(&priority, "planned_generation").iter().any(|b| {
+            let interleaving_next = blocks(&priority, "planned_generation").iter().any(|b| {
                 string(b, "id") == Some(format!("G{}", current + 1))
-                    && string(b, "objective")
-                        .is_some_and(|o| o.starts_with("HISTORICAL_DONOR_REVALIDATION"))
+                    && string(b, "objective").is_some_and(|o| {
+                        [
+                            "HISTORICAL_DONOR_REVALIDATION",
+                            "AGENT_MISSION",
+                            "DEBT_TRIGGERED_DONOR_ATTACK",
+                        ]
+                        .iter()
+                        .any(|class| o.starts_with(class))
+                    })
             });
             assert!(
-                planned == current + 1 || (planned == current + 2 && revalidation_next),
+                planned == current + 1 || (planned == current + 2 && interleaving_next),
                 "the queue head is planned for the next native generation (G{planned} at G{current})"
             );
             // Dependency order before pressure: the selected head has a debt no open debt blocks.
@@ -3008,6 +3021,55 @@ mod tests {
                         .is_some_and(|b| list(b, "blocked_by").is_empty())),
                 "the queue head waits on a missing prerequisite"
             );
+        }
+
+        /// ADR 0044: interleaving generations never starve the native queue, and once the
+        /// Agent-Worn interface exists an agent mission recurs at a bounded cadence.
+        #[test]
+        fn native_queue_is_never_starved_and_agent_missions_recur() {
+            let priority = read(".atlas/roadmap/PRIORITY.toml");
+            let worn = table(&priority, "agent_worn");
+            let interleaving = list(worn, "interleaving_classes");
+            let classes = list(worn, "generation_classes");
+            let max_run = number(worn, "max_consecutive_interleaving");
+            let every = number(worn, "agent_mission_every");
+            let interface = generation(&text(worn, "interface_generation"));
+            let mut run = 0;
+            let mut last_mission = interface;
+            for (id, block) in ledger_generations() {
+                if generation(&id) < 116 {
+                    continue;
+                }
+                let kind = text(&block, "kind");
+                assert!(
+                    classes.contains(&kind),
+                    "{id}: {kind} is not a generation class"
+                );
+                run = if interleaving.contains(&kind) {
+                    run + 1
+                } else {
+                    0
+                };
+                assert!(
+                    run <= max_run,
+                    "{id}: more than {max_run} consecutive interleaving generations"
+                );
+                if kind == "AGENT_MISSION" {
+                    last_mission = generation(&id);
+                }
+            }
+            let current = current_generation();
+            assert!(
+                current - last_mission <= every,
+                "no AGENT_MISSION for {} generations (G{last_mission} at G{current})",
+                current - last_mission
+            );
+            // The generation that opened the interface composed the census.
+            let (_, block) = ledger_generations()
+                .into_iter()
+                .find(|(id, _)| generation(id) == interface)
+                .expect("the interface generation is in the ledger");
+            assert_eq!(text(&block, "kind"), "COMPOSITION_ATTACK");
         }
 
         #[test]
@@ -3476,9 +3538,53 @@ mod tests {
                 }
                 let kind = text(&block, "kind");
                 assert!(
-                    ["AUDIT", "NATIVE_ATTACK", "DONOR", "REVALIDATION"].contains(&kind.as_str()),
+                    [
+                        "AUDIT",
+                        "NATIVE_ATTACK",
+                        "DONOR",
+                        "REVALIDATION",
+                        "COMPOSITION_ATTACK",
+                        "AGENT_MISSION",
+                        "DEBT_TRIGGERED_DONOR_ATTACK"
+                    ]
+                    .contains(&kind.as_str()),
                     "{id}: kind {kind}"
                 );
+                // ADR 0044: a debt-triggered donor attack names an open essential debt, a
+                // hypothesis and an exact pin, and leaves no source behind.
+                if kind == "DEBT_TRIGGERED_DONOR_ATTACK" {
+                    let ledger = Ledger::load();
+                    let debts = ledger.debts();
+                    let debt = text(&block, "debt");
+                    let target = debts
+                        .get(&debt)
+                        .unwrap_or_else(|| panic!("{id}: unknown debt {debt}"));
+                    assert_eq!(text(target, "class"), "ESSENTIAL", "{id}");
+                    assert_ne!(text(target, "current_state"), "CLOSED", "{id}");
+                    text(&block, "hypothesis");
+                    assert_eq!(text(&block, "pinned_commit").len(), 40, "{id}: exact pin");
+                    assert!(
+                        !root().join(text(&block, "source_path")).exists(),
+                        "{id}: the donor source must be deleted again"
+                    );
+                }
+                // An agent mission records what Atlas knew and what the agent read by hand.
+                if kind == "AGENT_MISSION" {
+                    let mission: serde_json::Value =
+                        serde_json::from_str(&read(&text(&block, "mission"))).unwrap();
+                    for field in [
+                        "mission",
+                        "atlas_knew",
+                        "unknown",
+                        "manual_source_reads",
+                        "gaps",
+                    ] {
+                        assert!(
+                            !mission[field].is_null(),
+                            "{id}: mission record lacks {field}"
+                        );
+                    }
+                }
                 // A REVALIDATION generation is historical recensus, never new-donor progression:
                 // it must execute a triggered [[revalidation]] of a historical First-50 donor.
                 if kind == "REVALIDATION" {

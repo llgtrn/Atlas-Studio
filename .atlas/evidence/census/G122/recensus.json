@@ -1,0 +1,906 @@
+{
+  "schema": "atlas.self-recensus-report.v1",
+  "generation": "G122",
+  "base_revision": "b61e0c4e49f4c19d76395b468fc8bff36add5351",
+  "candidate_revision": "c111cd90f06d7542196d57605afcfa55990e4d18",
+  "candidate_dirty": true,
+  "before_census_digest": "blake3-256:932b3fd43ef5e1a3efdedc865d31ae164b639a33be2e9694659170dec85e175b",
+  "after_census_digest": "blake3-256:445a1bc67ede6a30a03b5cd0d530a0c21fff1e964449b0ff48e28cef944d8667",
+  "replay_digest": "blake3-256:445a1bc67ede6a30a03b5cd0d530a0c21fff1e964449b0ff48e28cef944d8667",
+  "inventory_delta": {
+    "created": [
+      "core/src/composition/lens.rs",
+      "core/src/composition/mod.rs",
+      "runtime/src/agent.rs"
+    ],
+    "modified": [
+      "apps/cli/src/main.rs",
+      "core/src/lib.rs",
+      "core/src/recensus/mod.rs",
+      "runtime/src/lib.rs"
+    ],
+    "deleted": []
+  },
+  "semantic_delta": {
+    "changed": [
+      "apps/cli/src/main.rs",
+      "core/src/lib.rs",
+      "core/src/recensus/mod.rs",
+      "runtime/src/lib.rs"
+    ],
+    "counts": {
+      "fact:FunctionIdentity|OBSERVED": 58,
+      "fact:FunctionSignature|OBSERVED": 58,
+      "fact:SemanticObligation|OBSERVED": 14,
+      "fact:SemanticObligation|UNKNOWN": 34,
+      "fact:SourceArtifact|OBSERVED": 6,
+      "fact:Symbol|OBSERVED": 431,
+      "fact:Type|DERIVED": 121,
+      "fact:Type|OBSERVED": 254,
+      "record:CALL|DERIVED": 101,
+      "record:CALL|OBSERVED": 1569,
+      "record:CONTROL_FLOW|INFERRED": 109,
+      "record:CONTROL_FLOW|OBSERVED": 361,
+      "record:DATA_FLOW|OBSERVED": 2299,
+      "record:EFFECT|DERIVED": 8,
+      "record:EFFECT|INFERRED": 117,
+      "record:FUNCTION_IDENTITY|OBSERVED": 58,
+      "record:FUNCTION_SIGNATURE|OBSERVED": 58,
+      "record:OWNERSHIP|OBSERVED": 543,
+      "record:STATE|OBSERVED": 1,
+      "record:SYMBOL|OBSERVED": 431,
+      "record:TYPE|DERIVED": 121,
+      "record:TYPE|OBSERVED": 254
+    }
+  },
+  "dependency_delta": {
+    "added": [],
+    "removed": []
+  },
+  "dependency_state": [
+    "Closed",
+    "Closed"
+  ],
+  "graph_delta": {
+    "graph_bindings": 4,
+    "graph_edges": 8361,
+    "graph_nodes": 6304
+  },
+  "obligation_delta": {
+    "obligation:CALL|OBSERVED": 2,
+    "obligation:CALL|UNKNOWN": 4,
+    "obligation:CONCURRENCY|UNKNOWN": 6,
+    "obligation:CONTROL_FLOW|UNKNOWN": 3,
+    "obligation:DATA_FLOW|UNKNOWN": 3,
+    "obligation:EFFECT|UNKNOWN": 6,
+    "obligation:FUNCTION_IDENTITY|OBSERVED": 3,
+    "obligation:FUNCTION_SIGNATURE|OBSERVED": 3,
+    "obligation:OWNERSHIP|UNKNOWN": 3,
+    "obligation:PERSISTENCE|UNKNOWN": 3,
+    "obligation:STATE|UNKNOWN": 3,
+    "obligation:SYMBOL|OBSERVED": 3,
+    "obligation:TYPE|OBSERVED": 3,
+    "obligation:TYPE|UNKNOWN": 3
+  },
+  "adl_delta": {
+    "added": [],
+    "removed": []
+  },
+  "entity_delta": [
+    {
+      "kind": "CHANGED",
+      "before": [
+        "`apps/cli` run()."
+      ],
+      "after": [
+        "`apps/cli` run()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core recensus/`impl:CensusSnapshot`/from_report()."
+      ],
+      "after": [
+        "core recensus/`impl:CensusSnapshot`/from_report()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "runtime tests/essential_complexity/generation_metrics_are_derived_from_snapshots()."
+      ],
+      "after": [
+        "runtime tests/essential_complexity/generation_metrics_are_derived_from_snapshots()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "runtime tests/essential_complexity/native_attack_queue_is_ordered_and_heads_selection()."
+      ],
+      "after": [
+        "runtime tests/essential_complexity/native_attack_queue_is_ordered_and_heads_selection()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "runtime tests/essential_complexity/remaining_donor_corpus_progress_blocked_until_audit_complete()."
+      ],
+      "after": [
+        "runtime tests/essential_complexity/remaining_donor_corpus_progress_blocked_until_audit_complete()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core composition/`impl:Claim`/unknown()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core composition/`impl:CompositionAccounting`/raw_records()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core composition/`impl:RelationKind`/as_str()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core composition/compose()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core composition/lens/`impl:From<&Invariant> for InvariantView`/from()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core composition/lens/`impl:Index<'m>`/callers_closure()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core composition/lens/`impl:Index<'m>`/function()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core composition/lens/`impl:Index<'m>`/label()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core composition/lens/`impl:Index<'m>`/new()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core composition/lens/`impl:Index<'m>`/resolve()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core composition/lens/`impl:Index<'m>`/subsystem_names()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core composition/lens/bounded()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core composition/lens/capabilities()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core composition/lens/compare()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core composition/lens/component_of()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core composition/lens/dependencies()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core composition/lens/effects()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core composition/lens/explain()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core composition/lens/frontier()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core composition/lens/function_ref()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core composition/lens/hypothesis()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core composition/lens/impact()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core composition/lens/invariants()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core composition/lens/invariants_for()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core composition/lens/plan()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core composition/lens/signature()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core composition/lens/state_model()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core composition/lens/state_view()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core composition/lens/trace()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core composition/lens/unanswerable()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core composition/lens/understand()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core composition/lens/unknowns()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core composition/lens/verify()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core composition/lens/why()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core composition/module_of()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core composition/push_unique()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core composition/status_rank()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core composition/stronger()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core composition/subsystem_of()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core composition/tests/a_path_belongs_to_the_longest_materialized_root()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core composition/tests/module_paths_follow_the_rust_module_file_convention()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core composition/tests/stronger_evidence_wins_and_ties_keep_the_first()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime agent/model_digest()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime agent/read_world_model()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime agent/structural_digest()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime agent/tests/a_call_without_a_dependency_path_contradicts_the_dependency_invariant()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime agent/tests/an_undeclared_dependency_is_a_conflict_and_verify_reports_new_authority()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime agent/tests/atlas_self_world_model_is_complete_and_deterministic()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime agent/tests/composition_is_independent_of_record_order()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime agent/tests/composition_joins_every_dimension_into_function_component_subsystem_and_architecture()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime agent/tests/fixture()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime agent/tests/fixture_with()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime agent/tests/function()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime agent/tests/impact_trace_and_hypotheses_never_turn_unresolved_into_absent()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime agent/tests/mission_context_is_bounded_structural_and_independent_of_the_mission_text()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime agent/tests/model_of()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime agent/world_model()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime tests/essential_complexity/native_queue_is_never_starved_and_agent_missions_recur()."
+      ],
+      "evidence": ""
+    }
+  ],
+  "coverage_delta": [],
+  "unknown_delta": {
+    "increased": [
+      "core/src/composition/lens.rs: 0 -> 11",
+      "core/src/composition/mod.rs: 0 -> 12",
+      "runtime/src/agent.rs: 0 -> 11"
+    ],
+    "decreased": [],
+    "total_before": 1329,
+    "total_after": 1363
+  },
+  "intent": {
+    "objective": "COMPOSITION_ATTACK (ADR 0044): semantic composition of the census into function, component, subsystem, capability and architecture models with typed relations, invariants and understanding gaps; the Agent-Worn interface (atlas-systemizer agent); composed totals recensused",
+    "changed_paths": [
+      "apps/cli/src/main.rs",
+      "core/src/composition/lens.rs",
+      "core/src/composition/mod.rs",
+      "core/src/lib.rs",
+      "core/src/recensus/mod.rs",
+      "runtime/src/agent.rs",
+      "runtime/src/lib.rs"
+    ],
+    "total_changes": [
+      "+artifacts",
+      "+composed:capability_model",
+      "+composed:component_behavior",
+      "+composed:dependency:CONFIRMED",
+      "+composed:dependency:DECLARED_NOT_CENSUSABLE",
+      "+composed:dependency:TRANSITIVE_VIA_REEXPORT",
+      "+composed:function_behavior",
+      "+composed:invariant",
+      "+composed:invariant:AUTHORITY|INFERRED",
+      "+composed:invariant:CONSTRUCTION|DERIVED",
+      "+composed:invariant:DEPENDENCY|DERIVED",
+      "+composed:invariant:DEPENDENCY|OBSERVED",
+      "+composed:invariant:SAFETY|INFERRED",
+      "+composed:invariant:STATE|INFERRED",
+      "+composed:relation",
+      "+composed:relation:INVOKES",
+      "+composed:relation:STATE_FLOW",
+      "+composed:relation:SUPPLIES_DATA",
+      "+composed:state_variable",
+      "+composed:subsystem_model",
+      "+composed:understanding_gap",
+      "+diagnostic:IncompleteAnalysis",
+      "+docs",
+      "+entities",
+      "+evidence",
+      "+facts",
+      "+graph_bindings",
+      "+graph_edges",
+      "+graph_nodes",
+      "+normalized_facts",
+      "+obligations",
+      "+obligations:CALL|atlas.resolution.rust-paths|UNKNOWN",
+      "+obligations:CALL|atlas.rust.source-semantic.v1|OBSERVED",
+      "+obligations:CALL|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:CONCURRENCY|atlas.resolution.rust-paths|UNKNOWN",
+      "+obligations:CONCURRENCY|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:CONTROL_FLOW|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:DATA_FLOW|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:EFFECT|atlas.resolution.rust-paths|UNKNOWN",
+      "+obligations:EFFECT|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1|OBSERVED",
+      "+obligations:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1|OBSERVED",
+      "+obligations:OWNERSHIP|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:PERSISTENCE|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:STATE|atlas.rust.source-semantic.v1|UNKNOWN",
+      "+obligations:SYMBOL|atlas.rust.source-semantic.v1|OBSERVED",
+      "+obligations:TYPE|atlas.resolution.rust-paths|UNKNOWN",
+      "+obligations:TYPE|atlas.rust.source-semantic.v1|OBSERVED",
+      "+records:CALL|atlas.resolution.rust-paths",
+      "+records:CALL|atlas.rust.source-semantic.v1",
+      "+records:CONTROL_FLOW|atlas.rust.source-semantic.v1",
+      "+records:DATA_FLOW|atlas.rust.source-semantic.v1",
+      "+records:EFFECT|atlas.resolution.rust-paths",
+      "+records:EFFECT|atlas.rust.source-semantic.v1",
+      "+records:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1",
+      "+records:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1",
+      "+records:OWNERSHIP|atlas.rust.source-semantic.v1",
+      "+records:STATE|atlas.rust.source-semantic.v1",
+      "+records:SYMBOL|atlas.rust.source-semantic.v1",
+      "+records:TYPE|atlas.resolution.rust-paths",
+      "+records:TYPE|atlas.rust.source-semantic.v1",
+      "+typed_records",
+      "+unknown_facts"
+    ],
+    "dependency_changes": [],
+    "adl_changes": [],
+    "coverage_changes": [],
+    "explained_unknowns": [
+      "core/src/composition/lens.rs: new source file carrying the workspace's standing per-file UNKNOWN obligations (flow, state, effect, ownership, concurrency and persistence coverage is UNKNOWN on every Rust file)",
+      "core/src/composition/mod.rs: new source file carrying the workspace's standing per-file UNKNOWN obligations (flow, state, effect, ownership, concurrency and persistence coverage is UNKNOWN on every Rust file)",
+      "runtime/src/agent.rs: new source file carrying the workspace's standing per-file UNKNOWN obligations (flow, state, effect, ownership, concurrency and persistence coverage is UNKNOWN on every Rust file)"
+    ],
+    "accepted_unexpected": [],
+    "entity_changes": [
+      "CHANGED `apps/cli` run().",
+      "CHANGED core recensus/`impl:CensusSnapshot`/from_report().",
+      "CHANGED runtime tests/essential_complexity/generation_metrics_are_derived_from_snapshots().",
+      "CHANGED runtime tests/essential_complexity/native_attack_queue_is_ordered_and_heads_selection().",
+      "CHANGED runtime tests/essential_complexity/remaining_donor_corpus_progress_blocked_until_audit_complete().",
+      "CREATED core composition/`impl:Claim`/unknown().",
+      "CREATED core composition/`impl:CompositionAccounting`/raw_records().",
+      "CREATED core composition/`impl:RelationKind`/as_str().",
+      "CREATED core composition/compose().",
+      "CREATED core composition/lens/`impl:From<&Invariant> for InvariantView`/from().",
+      "CREATED core composition/lens/`impl:Index<'m>`/callers_closure().",
+      "CREATED core composition/lens/`impl:Index<'m>`/function().",
+      "CREATED core composition/lens/`impl:Index<'m>`/label().",
+      "CREATED core composition/lens/`impl:Index<'m>`/new().",
+      "CREATED core composition/lens/`impl:Index<'m>`/resolve().",
+      "CREATED core composition/lens/`impl:Index<'m>`/subsystem_names().",
+      "CREATED core composition/lens/bounded().",
+      "CREATED core composition/lens/capabilities().",
+      "CREATED core composition/lens/compare().",
+      "CREATED core composition/lens/component_of().",
+      "CREATED core composition/lens/dependencies().",
+      "CREATED core composition/lens/effects().",
+      "CREATED core composition/lens/explain().",
+      "CREATED core composition/lens/frontier().",
+      "CREATED core composition/lens/function_ref().",
+      "CREATED core composition/lens/hypothesis().",
+      "CREATED core composition/lens/impact().",
+      "CREATED core composition/lens/invariants().",
+      "CREATED core composition/lens/invariants_for().",
+      "CREATED core composition/lens/plan().",
+      "CREATED core composition/lens/signature().",
+      "CREATED core composition/lens/state_model().",
+      "CREATED core composition/lens/state_view().",
+      "CREATED core composition/lens/trace().",
+      "CREATED core composition/lens/unanswerable().",
+      "CREATED core composition/lens/understand().",
+      "CREATED core composition/lens/unknowns().",
+      "CREATED core composition/lens/verify().",
+      "CREATED core composition/lens/why().",
+      "CREATED core composition/module_of().",
+      "CREATED core composition/push_unique().",
+      "CREATED core composition/status_rank().",
+      "CREATED core composition/stronger().",
+      "CREATED core composition/subsystem_of().",
+      "CREATED core composition/tests/a_path_belongs_to_the_longest_materialized_root().",
+      "CREATED core composition/tests/module_paths_follow_the_rust_module_file_convention().",
+      "CREATED core composition/tests/stronger_evidence_wins_and_ties_keep_the_first().",
+      "CREATED runtime agent/model_digest().",
+      "CREATED runtime agent/read_world_model().",
+      "CREATED runtime agent/structural_digest().",
+      "CREATED runtime agent/tests/a_call_without_a_dependency_path_contradicts_the_dependency_invariant().",
+      "CREATED runtime agent/tests/an_undeclared_dependency_is_a_conflict_and_verify_reports_new_authority().",
+      "CREATED runtime agent/tests/atlas_self_world_model_is_complete_and_deterministic().",
+      "CREATED runtime agent/tests/composition_is_independent_of_record_order().",
+      "CREATED runtime agent/tests/composition_joins_every_dimension_into_function_component_subsystem_and_architecture().",
+      "CREATED runtime agent/tests/fixture().",
+      "CREATED runtime agent/tests/fixture_with().",
+      "CREATED runtime agent/tests/function().",
+      "CREATED runtime agent/tests/impact_trace_and_hypotheses_never_turn_unresolved_into_absent().",
+      "CREATED runtime agent/tests/mission_context_is_bounded_structural_and_independent_of_the_mission_text().",
+      "CREATED runtime agent/tests/model_of().",
+      "CREATED runtime agent/world_model().",
+      "CREATED runtime tests/essential_complexity/native_queue_is_never_starved_and_agent_missions_recur()."
+    ]
+  },
+  "intended_changes": [
+    "path apps/cli/src/main.rs",
+    "path core/src/composition/lens.rs",
+    "path core/src/composition/mod.rs",
+    "path core/src/lib.rs",
+    "path core/src/recensus/mod.rs",
+    "path runtime/src/agent.rs",
+    "path runtime/src/lib.rs",
+    "total +artifacts",
+    "total +composed:capability_model",
+    "total +composed:component_behavior",
+    "total +composed:dependency:CONFIRMED",
+    "total +composed:dependency:DECLARED_NOT_CENSUSABLE",
+    "total +composed:dependency:TRANSITIVE_VIA_REEXPORT",
+    "total +composed:function_behavior",
+    "total +composed:invariant",
+    "total +composed:invariant:AUTHORITY|INFERRED",
+    "total +composed:invariant:CONSTRUCTION|DERIVED",
+    "total +composed:invariant:DEPENDENCY|DERIVED",
+    "total +composed:invariant:DEPENDENCY|OBSERVED",
+    "total +composed:invariant:SAFETY|INFERRED",
+    "total +composed:invariant:STATE|INFERRED",
+    "total +composed:relation",
+    "total +composed:relation:INVOKES",
+    "total +composed:relation:STATE_FLOW",
+    "total +composed:relation:SUPPLIES_DATA",
+    "total +composed:state_variable",
+    "total +composed:subsystem_model",
+    "total +composed:understanding_gap",
+    "total +diagnostic:IncompleteAnalysis",
+    "total +docs",
+    "total +entities",
+    "total +evidence",
+    "total +facts",
+    "total +graph_bindings",
+    "total +graph_edges",
+    "total +graph_nodes",
+    "total +normalized_facts",
+    "total +obligations",
+    "total +obligations:CALL|atlas.resolution.rust-paths|UNKNOWN",
+    "total +obligations:CALL|atlas.rust.source-semantic.v1|OBSERVED",
+    "total +obligations:CALL|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:CONCURRENCY|atlas.resolution.rust-paths|UNKNOWN",
+    "total +obligations:CONCURRENCY|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:CONTROL_FLOW|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:DATA_FLOW|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:EFFECT|atlas.resolution.rust-paths|UNKNOWN",
+    "total +obligations:EFFECT|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1|OBSERVED",
+    "total +obligations:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1|OBSERVED",
+    "total +obligations:OWNERSHIP|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:PERSISTENCE|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:STATE|atlas.rust.source-semantic.v1|UNKNOWN",
+    "total +obligations:SYMBOL|atlas.rust.source-semantic.v1|OBSERVED",
+    "total +obligations:TYPE|atlas.resolution.rust-paths|UNKNOWN",
+    "total +obligations:TYPE|atlas.rust.source-semantic.v1|OBSERVED",
+    "total +records:CALL|atlas.resolution.rust-paths",
+    "total +records:CALL|atlas.rust.source-semantic.v1",
+    "total +records:CONTROL_FLOW|atlas.rust.source-semantic.v1",
+    "total +records:DATA_FLOW|atlas.rust.source-semantic.v1",
+    "total +records:EFFECT|atlas.resolution.rust-paths",
+    "total +records:EFFECT|atlas.rust.source-semantic.v1",
+    "total +records:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1",
+    "total +records:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1",
+    "total +records:OWNERSHIP|atlas.rust.source-semantic.v1",
+    "total +records:STATE|atlas.rust.source-semantic.v1",
+    "total +records:SYMBOL|atlas.rust.source-semantic.v1",
+    "total +records:TYPE|atlas.resolution.rust-paths",
+    "total +records:TYPE|atlas.rust.source-semantic.v1",
+    "total +typed_records",
+    "total +unknown_facts",
+    "entity CHANGED `apps/cli` run().",
+    "entity CHANGED core recensus/`impl:CensusSnapshot`/from_report().",
+    "entity CHANGED runtime tests/essential_complexity/generation_metrics_are_derived_from_snapshots().",
+    "entity CHANGED runtime tests/essential_complexity/native_attack_queue_is_ordered_and_heads_selection().",
+    "entity CHANGED runtime tests/essential_complexity/remaining_donor_corpus_progress_blocked_until_audit_complete().",
+    "entity CREATED core composition/`impl:Claim`/unknown().",
+    "entity CREATED core composition/`impl:CompositionAccounting`/raw_records().",
+    "entity CREATED core composition/`impl:RelationKind`/as_str().",
+    "entity CREATED core composition/compose().",
+    "entity CREATED core composition/lens/`impl:From<&Invariant> for InvariantView`/from().",
+    "entity CREATED core composition/lens/`impl:Index<'m>`/callers_closure().",
+    "entity CREATED core composition/lens/`impl:Index<'m>`/function().",
+    "entity CREATED core composition/lens/`impl:Index<'m>`/label().",
+    "entity CREATED core composition/lens/`impl:Index<'m>`/new().",
+    "entity CREATED core composition/lens/`impl:Index<'m>`/resolve().",
+    "entity CREATED core composition/lens/`impl:Index<'m>`/subsystem_names().",
+    "entity CREATED core composition/lens/bounded().",
+    "entity CREATED core composition/lens/capabilities().",
+    "entity CREATED core composition/lens/compare().",
+    "entity CREATED core composition/lens/component_of().",
+    "entity CREATED core composition/lens/dependencies().",
+    "entity CREATED core composition/lens/effects().",
+    "entity CREATED core composition/lens/explain().",
+    "entity CREATED core composition/lens/frontier().",
+    "entity CREATED core composition/lens/function_ref().",
+    "entity CREATED core composition/lens/hypothesis().",
+    "entity CREATED core composition/lens/impact().",
+    "entity CREATED core composition/lens/invariants().",
+    "entity CREATED core composition/lens/invariants_for().",
+    "entity CREATED core composition/lens/plan().",
+    "entity CREATED core composition/lens/signature().",
+    "entity CREATED core composition/lens/state_model().",
+    "entity CREATED core composition/lens/state_view().",
+    "entity CREATED core composition/lens/trace().",
+    "entity CREATED core composition/lens/unanswerable().",
+    "entity CREATED core composition/lens/understand().",
+    "entity CREATED core composition/lens/unknowns().",
+    "entity CREATED core composition/lens/verify().",
+    "entity CREATED core composition/lens/why().",
+    "entity CREATED core composition/module_of().",
+    "entity CREATED core composition/push_unique().",
+    "entity CREATED core composition/status_rank().",
+    "entity CREATED core composition/stronger().",
+    "entity CREATED core composition/subsystem_of().",
+    "entity CREATED core composition/tests/a_path_belongs_to_the_longest_materialized_root().",
+    "entity CREATED core composition/tests/module_paths_follow_the_rust_module_file_convention().",
+    "entity CREATED core composition/tests/stronger_evidence_wins_and_ties_keep_the_first().",
+    "entity CREATED runtime agent/model_digest().",
+    "entity CREATED runtime agent/read_world_model().",
+    "entity CREATED runtime agent/structural_digest().",
+    "entity CREATED runtime agent/tests/a_call_without_a_dependency_path_contradicts_the_dependency_invariant().",
+    "entity CREATED runtime agent/tests/an_undeclared_dependency_is_a_conflict_and_verify_reports_new_authority().",
+    "entity CREATED runtime agent/tests/atlas_self_world_model_is_complete_and_deterministic().",
+    "entity CREATED runtime agent/tests/composition_is_independent_of_record_order().",
+    "entity CREATED runtime agent/tests/composition_joins_every_dimension_into_function_component_subsystem_and_architecture().",
+    "entity CREATED runtime agent/tests/fixture().",
+    "entity CREATED runtime agent/tests/fixture_with().",
+    "entity CREATED runtime agent/tests/function().",
+    "entity CREATED runtime agent/tests/impact_trace_and_hypotheses_never_turn_unresolved_into_absent().",
+    "entity CREATED runtime agent/tests/mission_context_is_bounded_structural_and_independent_of_the_mission_text().",
+    "entity CREATED runtime agent/tests/model_of().",
+    "entity CREATED runtime agent/world_model().",
+    "entity CREATED runtime tests/essential_complexity/native_queue_is_never_starved_and_agent_missions_recur()."
+  ],
+  "intended_but_unobserved": [],
+  "unexpected_changes": [],
+  "regressions": [],
+  "verdict": "PROVEN"
+}

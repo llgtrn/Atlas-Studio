@@ -104,6 +104,16 @@ rule_a = "do not implement complexity without evidence: every mechanism is falsi
 rule_b = "do not defer essential complexity once necessity is established: an escalated or skip-budget debt is queued before any donor"
 debt_ledger = ".atlas/roadmap/ESSENTIAL-COMPLEXITY-DEBT.toml"
 next_native_attack = "NA-QUANTITY-IN-CORE"
+# G122 (ADR 0044, contracts/AGENT-WORN-ATLAS.md): generation classes and their ordering.
+[agent_worn]
+contract = ".atlas/contracts/AGENT-WORN-ATLAS.md"
+interface_generation = "G122"
+generation_classes = ["NATIVE_ATTACK", "COMPOSITION_ATTACK", "AGENT_MISSION", "REVALIDATION", "DEBT_TRIGGERED_DONOR_ATTACK", "AUDIT", "DONOR"]
+native_classes = ["NATIVE_ATTACK", "COMPOSITION_ATTACK", "AUDIT"]
+interleaving_classes = ["REVALIDATION", "AGENT_MISSION", "DEBT_TRIGGERED_DONOR_ATTACK"]
+max_consecutive_interleaving = 2
+agent_mission_every = 5
+rule = "the pressure-selected queue head is planned for the next generation, or the one after it when exactly one interleaving generation is planned first; no more than two consecutive interleaving generations; an AGENT_MISSION at least every five generations after the interface exists"
 frontier_addition_requires = "a first-50 dependency needs it, or a missing foundational mechanism has no representative donor; recorded explicitly"
 
 # What a closed census of a selected scope requires. FULL_CENSUS_CLOSED is never claimed without
@@ -500,9 +510,19 @@ objective = "HISTORICAL_DONOR_REVALIDATION: recursive donor revalidation mechani
 [[planned_generation]]
 id = "G122"
 priority = "P0"
+objective = "COMPOSITION_ATTACK (ADR 0044): DEBT-SEMANTIC-COMPOSITION opened and NA-SEMANTIC-COMPOSITION landed; the agent interface over the composed world model (done: five composition levels, typed relations and invariants, MissionContext, 13 mutants killed)"
+
+[[planned_generation]]
+id = "G123"
+priority = "P0"
+objective = "AGENT_MISSION: the first mission on Atlas itself worked through the agent interface (understand -> MissionContext -> change -> impact -> verify -> recensus), recording what Atlas knew, what stayed UNKNOWN and what source was read manually; the agent-utility benchmark"
+
+[[planned_generation]]
+id = "G124"
+priority = "P0"
 objective = "native attack queue head (pressure map with dependency order): NA-QUANTITY-IN-CORE"
 
 [[planned_generation]]
-id = "G123+"
+id = "G125+"
 priority = "P0"
-objective = "the native_attack_queue in order (ESSENTIAL-COMPLEXITY-DEBT.toml); frontier expansion stays frozen until FOUNDATIONAL_ATLAS_READY"
+objective = "the native_attack_queue in order (ESSENTIAL-COMPLEXITY-DEBT.toml) interleaved with an AGENT_MISSION at least every five generations; frontier expansion stays frozen until FOUNDATIONAL_ATLAS_READY"

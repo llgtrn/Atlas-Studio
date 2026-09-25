@@ -9,6 +9,7 @@ pub mod capability;
 pub mod census;
 pub mod certificate;
 pub mod closure;
+pub mod composition;
 pub mod constraint;
 pub mod donor;
 pub mod evidence;
