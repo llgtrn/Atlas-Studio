@@ -1068,14 +1068,19 @@ default_branch = "main"
 retrieved_at = "2026-09-22T14:04:48.531781213Z"
 license = [".atlas/licenses/donors/duumbi/LICENSE"]
 technology_domains = ["graph_native_language", "cranelift_lowering", "ai_graph_mutation", "jsonld_surface_representation", "intent_driven_development", "mcp_graph_tools"]
-ingestion_status = "CLONED"
-storage_state = "MATERIALIZED_CHECKOUT"
+ingestion_status = "EXTINCT"
+storage_state = "SOURCE_DELETED"
 materialization_mode = "SHALLOW_CHECKOUT"
 census_status = "COARSE_CENSUSED_AND_TARGETED_DEEP_CENSUSED"
-decision_status = "STUDY_FOR_SEMANTIC_GRAPH_LANGUAGE_LANE"
+decision_status = "REFERENCE_ONLY"
+blocking_question = "resolved G93: the census left no open item (blueprint revision candidates: none). JSON-LD is REJECTED (no @context expansion exists; it would only cost Atlas its binary content-addressed representation). The one design precedent, mutate -> revalidate -> write only if valid, is already the ACP admission pipeline (ASIR-CONSTRUCTION-MODEL.md: every transaction is verified as an isolated candidate before it applies). Cranelift evidence belongs to the external backend, not to this donor"
+evidence_needed = "none outstanding (.atlas/evidence/campaign/29-duumbi.json)"
+cheapest_falsification = "performed G93: the recorded recensus requirements checked (no Atlas AI-mutation surface is implemented; ACP already requires validate-before-apply); extinction trial with the checkout moved aside -- the DC1 real-donor Cargo tests still pass with 7 of 15 donors present, exactly the half threshold"
+next_action = "none: TERMINAL REFERENCE_ONLY; source physically deleted"
+implementation_status = "REFERENCE_ONLY"
 native_replacement = "none selected -- JSON-LD surface explicitly REJECTed, see lane synthesis"
 runtime_dependency_status = "REFERENCE_ONLY"
-evidence = [".atlas/provenance/donors/duumbi.json", ".atlas/census/donors/duumbi.md", ".atlas/census/donors/semantic-graph-language-lane-2026-09-22.md"]
+evidence = [".atlas/evidence/campaign/29-duumbi.json", ".atlas/provenance/donors/duumbi.json", ".atlas/census/donors/duumbi.md", ".atlas/census/donors/semantic-graph-language-lane-2026-09-22.md"]
 
 [[donor]]
 id = "composer"

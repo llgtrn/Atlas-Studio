@@ -1392,6 +1392,7 @@ objective = "check the census's open items and recensus triggers, decide the ter
 writer = "coordinator (sole writer)"
 evidence = ".atlas/evidence/campaign/28-sigil-lang.json"
 self_recensus = ".atlas/evidence/census/G92/recensus.json"
+result_commits = ["0d84da84197b6c1a3fc39eb89ff804a826ca78e6", "a6e7e9a09c4cfb9d17c852485a121b6fda7a5ff7"]
 
 [generation.verification]
 pre_census = "clean-HEAD census of 93f2527fb0 = G91 post digest 1a41235c... (91c7032f74 adds only out-of-scope evidence)"
@@ -1402,3 +1403,24 @@ proof = "PROVEN on the first run (post 96829620...)"
 
 [generation.next]
 objective = "G93 (P3): first-50 #29 duumbi (AI-mutable JSON-LD graph lowered to Cranelift, P6)"
+
+[[generation]]
+id = "G93"
+base_commit = "a6e7e9a09c4cfb9d17c852485a121b6fda7a5ff7"
+priority = "P3"
+serves = "P3 FIRST_50_DONOR_CAMPAIGN: donor #29 duumbi to a terminal state (P6 graph-language lane)"
+objective = "check the census's open items and recensus triggers, run the DC1 extinction trial, decide the terminal state, physically extinct the checkout"
+writer = "coordinator (sole writer)"
+evidence = ".atlas/evidence/campaign/29-duumbi.json"
+self_recensus = ".atlas/evidence/census/G93/recensus.json"
+
+[generation.verification]
+pre_census = "clean-HEAD census of 0d84da8419 = G92 post digest 96829620... (a6e7e9a09c adds only out-of-scope evidence)"
+falsification = "no blueprint revision candidate was recorded; JSON-LD has no @context expansion (REJECTED); write-iff-valid mutation is already the ACP admission pipeline; no Atlas AI-mutation surface exists to trigger a recensus"
+extinction_trial = "checkout moved aside: adapter dependency tests pass (69) with 7 of the 15 DC1 real-donor Cargo inputs present -- exactly the half threshold; the next DC1 donor extinction (wasm-tools #35 is the first in campaign order) must re-base that test before deleting"
+no_code_change = "no DUUMBI mechanism absorbed; the only in-scope census change is the pinned deleted-donor list"
+extinction = "git rm -r .atlas/temporary/donors/duumbi (21 MB)"
+proof = "PROVEN on the first run (post 1d7b86ea...)"
+
+[generation.next]
+objective = "G94 (P3): first-50 #30 composer (nanopass PSG lowering, P6)"

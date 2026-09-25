@@ -15,19 +15,19 @@ decision = ".atlas/decisions/0024-self-recensus-proof-of-nextgen.md"
 [dashboard]
 first_50_total = 50
 historic_terminal = 3
-campaign_terminal = 24
+campaign_terminal = 25
 historically_proven = 4
 currently_censusing = 0
 deep_censused = 3
 absorbed = 9
-reference_only = 16
+reference_only = 17
 external_boundary = 1
 rejected = 0
 deferred = 1
-extinct = 27
-remaining = 23
-next_donor = "duumbi"
-next_step = "G93 (P3): duumbi (#29) -- AI-mutable JSON-LD graph lowered to Cranelift (P6)"
+extinct = 28
+remaining = 22
+next_donor = "composer"
+next_step = "G94 (P3): composer (#30) -- nanopass PSG lowering (P6)"
 
 [[donor]]
 ordinal = 1
@@ -504,13 +504,15 @@ canonical_url = "https://github.com/hgahub/duumbi.git"
 serves = "P6"
 target_capability = "graph -> Cranelift lowering"
 mechanism_hypothesis = "AI-mutable JSON-LD graph lowered to Cranelift"
-materialization_mode = "already materialized"
+materialization_mode = "n/a (source deleted)"
 dependency_expectation = "cranelift via wasmtime (#36)"
-current_status = "CURRENTLY_PENDING"
-lifecycle = "COARSE_CENSUSED"
-terminal_state = ""
+current_status = "CAMPAIGN_PROVEN"
+lifecycle = "TERMINAL"
+terminal_state = "REFERENCE_ONLY"
 terminal_goal = "DECIDED"
-note = "census COARSE_CENSUSED_AND_TARGETED_DEEP_CENSUSED, decision STUDY_FOR_SEMANTIC_GRAPH_LANGUAGE_LANE"
+completed_in = "G93"
+evidence = ".atlas/evidence/campaign/29-duumbi.json"
+note = "no open census item; JSON-LD REJECTED; write-iff-valid mutation is already the ACP admission pipeline; Cranelift evidence belongs to wasmtime (#36); source physically deleted (DC1 real-donor Cargo tests pass at exactly 7 of 15)"
 
 [[donor]]
 ordinal = 30

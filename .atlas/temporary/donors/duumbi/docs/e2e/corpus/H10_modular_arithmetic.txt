@@ -1,1 +1,0 @@
-Build a modular arithmetic toolkit: add, multiply, power (mod m)

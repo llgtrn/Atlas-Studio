@@ -1,0 +1,13 @@
+{
+  "objective": "P3 first-50 #29 duumbi: no open census item; JSON-LD REJECTED; write-iff-valid mutation is already the ACP admission pipeline; REFERENCE_ONLY; checkout physically extinct (DC1 real-donor Cargo tests pass at 7 of 15); census unchanged except the pinned deleted-donor list",
+  "changed_paths": [
+    "runtime/src/donor_storage.rs"
+  ],
+  "total_changes": [
+    "+graph_edges",
+    "+graph_nodes"
+  ],
+  "entity_changes": [
+    "CHANGED runtime donor_storage/tests/repository_donor_storage_has_no_unrecorded_violation()."
+  ]
+}

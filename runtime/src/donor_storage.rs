@@ -455,6 +455,7 @@ mod tests {
                 "clef",
                 "datafrog",
                 "differential-dataflow",
+                "duumbi",
                 "egglog",
                 "flatbuffers",
                 "glean",

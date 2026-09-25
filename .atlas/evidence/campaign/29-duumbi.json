@@ -1,0 +1,28 @@
+{
+ "schema": "atlas.campaign-donor-decision.v1",
+ "ordinal": 29,
+ "donor": "duumbi",
+ "commit_sha": "ab4c8776f795052d3669774a7ff12bdd3231fd02",
+ "generation": "G93",
+ "base_commit": "a6e7e9a09c",
+ "hypothesis": "AI-mutable JSON-LD graph lowered to Cranelift (P6)",
+ "blocking_question": "none recorded: the targeted deep census found no blueprint revision candidate; its recensus requirements trigger on an Atlas AI-graph-mutation surface or on a need for DUUMBI's visualizer/runtime",
+ "measurement": {
+  "json_ld": "REJECTED: @context is parsed nowhere (hardcoded literal keys), so DUUMBI gets none of JSON-LD's interop; adopting it would only replace Atlas's binary content-addressed representation with verbose, non-content-addressed text",
+  "mutation_discipline": "mutate -> reparse -> rebuild -> revalidate -> write only if valid is already ASIR-CONSTRUCTION-MODEL.md's admission pipeline (each ACP transaction verified as an isolated candidate before apply)",
+  "cranelift": "EXTERNAL_BOUNDARY evidence about Cranelift 0.135.2 as a LIR consumer -- belongs to wasmtime (#36) and COMPILER-IR-PIPELINE.md's external backends, not to this donor",
+  "dc1": "duumbi is one of the 15 real-donor Cargo test inputs (adapter/src/dependency/cargo.rs); with the checkout moved aside the dependency tests pass (69) with 7 donors present, exactly the half threshold (15 / 2); the next DC1 donor extinction (wasm-tools, wasmtime, object, mold, c2rust, zed or crubit) must re-base that test first"
+ },
+ "decision": {
+  "REFERENCE_ONLY": ["two-tier node identity (path id + package content hash)", "AI mutation / intent / query pipeline shape", "46-variant Op execution vocabulary", "flat graph -> Cranelift lowering"],
+  "REJECTED": ["JSON-LD-flavored surface as a canonical representation", "linear substring graph_query as a query engine"],
+  "EXTERNAL_BOUNDARY": ["Cranelift", "vendored SQLite 3.53.2 and libcurl"]
+ },
+ "terminal_state": "REFERENCE_ONLY",
+ "extinction": {
+  "runtime_dependency": "none",
+  "build_dependency": "none",
+  "test_dependency": "DC1 real-donor Cargo tests only, which tolerate a missing donor down to half the list; trial passed",
+  "action": "git rm -r .atlas/temporary/donors/duumbi"
+ }
+}

@@ -1,1 +1,0 @@
-Find the minimum, maximum, and average of three numbers

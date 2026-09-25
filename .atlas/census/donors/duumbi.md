@@ -206,3 +206,9 @@ The one place this census produced genuinely strong, falsifiable comparative evi
 ## Census State
 
 Status: COARSE_CENSUSED + TARGETED_DEEP_CENSUSED (mechanisms: graph schema, node identity, operation taxonomy, reference/binding model, graph mutation semantics, validation, Cranelift lowering boundary, AI-driven mutation/intent-query mechanism, JSON-LD-vs-binary representation comparison). This is a census-and-comparison pass only — no absorption, no code copied into Atlas production paths, no shared registry files modified. A coordinator must merge applicable Discoveries/target_owners into `.atlas/provenance/donors/donor-clone-index.json`, `.atlas/roadmap/DONOR-ABSORPTION-PLAN.toml`, and `.atlas/references/donor-corpus.toml` separately.
+
+## G93 — terminal REFERENCE_ONLY; source extinct
+
+The census left no open item. JSON-LD stays REJECTED, because no `@context` expansion exists. The one design precedent, write-only-if-valid mutation, is already the ACP admission pipeline. The Cranelift evidence belongs to wasmtime (#36).
+
+The checkout was physically deleted after an extinction trial. The DC1 real-donor Cargo tests still pass with 7 of their 15 donors present, exactly the half threshold, so the next DC1 donor extinction must re-base that test first. Evidence: `../../evidence/campaign/29-duumbi.json`.
