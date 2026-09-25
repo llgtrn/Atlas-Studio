@@ -1,7 +1,0 @@
-(module
-  (import "test-pairs"
-    (item "t1")
-    (item "t2")
-    (table 1 externref)
-  )
-)

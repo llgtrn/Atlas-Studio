@@ -1521,6 +1521,7 @@ objective = "check whether a capability boundary exists to test the recorded own
 writer = "coordinator (sole writer)"
 evidence = ".atlas/evidence/campaign/34-wasm-component-model.json"
 self_recensus = ".atlas/evidence/census/G98/recensus.json"
+result_commits = ["db6087ba0c1f43b45cb6373834cc9b0fafc435a4", "68af8beb23d17407edc5b744d32704d4fa815c99"]
 
 [generation.verification]
 pre_census = "clean-HEAD census of 85b171270f = G97 post digest 9a314e77... (c2eec7e27e adds only out-of-scope evidence)"
@@ -1532,3 +1533,25 @@ proof = "PROVEN on the first run (post b8f4e305...)"
 
 [generation.next]
 objective = "G99 (P3): first-50 #35 wasm-tools (wasmparser validation, P6) -- a DC1 real-donor Cargo test input: re-base that test before its extinction"
+
+[[generation]]
+id = "G99"
+base_commit = "68af8beb23d17407edc5b744d32704d4fa815c99"
+priority = "P3"
+serves = "P3 FIRST_50_DONOR_CAMPAIGN: donor #35 wasm-tools to a terminal state (P6 binary validation); P5 extinction discipline for test inputs"
+objective = "decide wasm-tools, re-base the DC1 real-donor Cargo tests so extinction of a test input is recorded rather than silently tolerated, physically extinct the checkout"
+writer = "coordinator (sole writer)"
+evidence = ".atlas/evidence/campaign/35-wasm-tools.json"
+self_recensus = ".atlas/evidence/census/G99/recensus.json"
+
+[generation.verification]
+pre_census = "clean-HEAD census of db6087ba0c = G98 post digest b8f4e305... (68af8beb23 adds only out-of-scope evidence)"
+falsification = "no Wasm artifact, code path or dependency exists in Atlas; the donor's Cargo-census contribution (literal-string workspace.members) is locked by a synthetic fixture"
+change = "the two real-donor Cargo tests replace 'at least half of 15 present, absent ones silently skipped' with materialized_cargo_donors(): each named donor must be present and census Closed unless the corpus records SOURCE_DELETED, in which case it must be absent"
+trial = "wasm-tools moved aside while still recorded MATERIALIZED: both tests fail ('checkout presence disagrees with its recorded storage state'); after the record changes: 362/362 adapter tests pass with the 6 remaining donors"
+decision = "REFERENCE_ONLY"
+extinction = "git rm -r .atlas/temporary/donors/wasm-tools (95 MB)"
+proof = "PROVEN on the first run (post b72daddb...)"
+
+[generation.next]
+objective = "G100 (P3): first-50 #36 wasmtime (cranelift lowering, WASI capability sandbox, P6)"

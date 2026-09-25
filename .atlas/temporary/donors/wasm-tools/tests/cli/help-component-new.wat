@@ -1,1 +1,0 @@
-;; RUN: component new --help

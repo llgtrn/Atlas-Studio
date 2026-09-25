@@ -1,8 +1,0 @@
-(component
-  (component (;0;)
-    (type (;0;)
-      (component)
-    )
-    (import "c" (component (;0;) (type 0)))
-  )
-)

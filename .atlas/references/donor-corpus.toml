@@ -901,14 +901,19 @@ retrieved_at = "2026-09-21T03:00:34.9575636Z"
 staging_mode = "FULL_SOURCE_TREE"
 license = [".atlas/licenses/donors/wasm-tools/LICENSE-APACHE", ".atlas/licenses/donors/wasm-tools/LICENSE-Apache-2.0_WITH_LLVM-exception", ".atlas/licenses/donors/wasm-tools/LICENSE-MIT"]
 technology_domains = ["wasm", "component_model", "binary_tools", "validation"]
-ingestion_status = "CLONED"
-storage_state = "MATERIALIZED_CHECKOUT"
+ingestion_status = "EXTINCT"
+storage_state = "SOURCE_DELETED"
 materialization_mode = "SHALLOW_CHECKOUT"
 census_status = "COARSE_CENSUSED"
-decision_status = "APPROVED_COMPILER_BINARY_LANE"
+decision_status = "REFERENCE_ONLY"
+blocking_question = "resolved G99: no consumer -- Atlas has no Wasm artifact, no Wasm code path and no Wasm dependency (no .wasm/.wat/.wit file, no wasm crate), so wasmparser validation and the component tooling serve nothing yet; a future Wasm exchange path would take wasmparser as a vetted dependency or re-derive validation natively, decided then. Its one contribution to Atlas -- the real-world TOML literal-string workspace.members case behind the Cargo census fix -- is locked by the synthetic fixture toml_literal_string_workspace_members_are_read, so no coverage is lost"
+evidence_needed = "none outstanding (.atlas/evidence/campaign/35-wasm-tools.json)"
+cheapest_falsification = "performed G99: Wasm usage searched across code, manifests and tracked files; the DC1 real-donor Cargo tests re-based to the corpus ledger and an unrecorded absence shown to fail them"
+next_action = "none: TERMINAL REFERENCE_ONLY; source physically deleted"
+implementation_status = "REFERENCE_ONLY"
 native_replacement = "adapter/exchange wasm encoding validation and component-model tooling"
 runtime_dependency_status = "REFERENCE_ONLY"
-evidence = [".atlas/provenance/donors/wasm-tools.json", ".atlas/census/donors/wasm-tools.md"]
+evidence = [".atlas/evidence/campaign/35-wasm-tools.json", ".atlas/provenance/donors/wasm-tools.json", ".atlas/census/donors/wasm-tools.md"]
 
 [[donor]]
 id = "object"

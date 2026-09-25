@@ -1,4 +1,0 @@
-(module
-  (type $f (;0;) (func))
-  (import "A" "f" (func (;0;) (exact (type $f))))
-)

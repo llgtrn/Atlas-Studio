@@ -2352,6 +2352,58 @@ version = "0.1.0"
 
     // --- 6. real-world verification: this repository's own donor corpus ------------------------
 
+    /// The real Cargo workspaces of the donor corpus these tests census.
+    const KNOWN_CARGO_DONORS: [&str; 15] = [
+        "ast-grep",
+        "buck2",
+        "c2rust",
+        "crubit",
+        "duumbi",
+        "egglog",
+        "miri",
+        "mold",
+        "object",
+        "rust-analyzer",
+        "rust",
+        "tree-sitter",
+        "wasm-tools",
+        "wasmtime",
+        "zed",
+    ];
+
+    /// The known Cargo donors still materialized, with their checkout roots. A donor whose corpus
+    /// record says `SOURCE_DELETED` was physically extinguished and must be absent; any other must
+    /// be present -- so an absence is always a recorded extinction, never a silent skip (G99).
+    fn materialized_cargo_donors() -> Vec<(&'static str, std::path::PathBuf)> {
+        let repository = Path::new(env!("CARGO_MANIFEST_DIR"))
+            .parent()
+            .expect("adapter/ has a parent directory");
+        let corpus =
+            std::fs::read_to_string(repository.join(".atlas/references/donor-corpus.toml"))
+                .expect("donor-corpus.toml");
+        let mut donors = Vec::new();
+        for name in KNOWN_CARGO_DONORS {
+            let id = format!("id = \"{name}\"");
+            let record = corpus
+                .split("[[donor]]")
+                .find(|block| block.lines().any(|line| line.trim() == id))
+                .unwrap_or_else(|| panic!("donor `{name}` has no corpus record"));
+            let deleted = record
+                .lines()
+                .any(|line| line.trim() == "storage_state = \"SOURCE_DELETED\"");
+            let root = repository.join(".atlas/temporary/donors").join(name);
+            assert_eq!(
+                root.exists(),
+                !deleted,
+                "donor `{name}`: checkout presence disagrees with its recorded storage state"
+            );
+            if !deleted {
+                donors.push((name, root));
+            }
+        }
+        donors
+    }
+
     #[test]
     fn real_census_of_every_cargo_based_donor_workspace_reaches_closed_state() {
         // Stronger verification than any synthetic fixture or Atlas's own small workspace (4
@@ -2360,41 +2412,17 @@ version = "0.1.0"
         // donor corpus (`.atlas/temporary/donors/`, not gitignored -- a permanent part of this
         // checkout), up to 1,827 packages (zed) and 10,000+ edges. Found and fixed the multi-line
         // `workspace.members` gap this way: 3 of the first 6 donors tested hit `Partial` purely
-        // because of it before that fix existed. Directories are looked up dynamically and skipped
-        // (not failed) if absent, so this test tolerates future donor-corpus reorganization without
-        // becoming flaky -- but asserts hard against dangling references or unsupported constructs
-        // for every donor it does find, and requires finding at least half of the named set so this
-        // can never silently degrade into a no-op.
-        let donor_root = Path::new(env!("CARGO_MANIFEST_DIR"))
-            .parent()
-            .expect("adapter/ has a parent directory")
-            .join(".atlas/temporary/donors");
-        let known_cargo_donors = [
-            "ast-grep",
-            "buck2",
-            "c2rust",
-            "crubit",
-            "duumbi",
-            "egglog",
-            "miri",
-            "mold",
-            "object",
-            "rust-analyzer",
-            "rust",
-            "tree-sitter",
-            "wasm-tools",
-            "wasmtime",
-            "zed",
-        ];
-
-        let mut donors_found = 0usize;
+        // because of it before that fix existed. It censuses every named donor the corpus still
+        // records as materialized (`materialized_cargo_donors`): a donor is absent only when its
+        // extinction is recorded, so the covered set shrinks by record as the campaign deletes
+        // sources (G99), never silently. Every fix these donors exposed also has a synthetic
+        // fixture, so coverage outlives the donor.
+        let donors = materialized_cargo_donors();
         let mut total_edges = 0usize;
-        for name in known_cargo_donors {
-            let root = donor_root.join(name);
-            let Ok(Some(report)) = census_cargo_workspace(&root) else {
-                continue;
-            };
-            donors_found += 1;
+        for (name, root) in &donors {
+            let report = census_cargo_workspace(root)
+                .unwrap_or_else(|e| panic!("donor `{name}`: {e}"))
+                .unwrap_or_else(|| panic!("donor `{name}` has no Cargo workspace"));
             total_edges += report.edges_total;
             assert_eq!(
                 report.state,
@@ -2441,12 +2469,7 @@ version = "0.1.0"
         }
 
         assert!(
-            donors_found >= known_cargo_donors.len() / 2,
-            "expected to find at least half of the known Cargo-based donors under {}; found {donors_found}",
-            donor_root.display()
-        );
-        assert!(
-            total_edges > 1000,
+            donors.is_empty() || total_edges > 1000,
             "expected substantial real edge coverage"
         );
     }
@@ -2459,28 +2482,6 @@ version = "0.1.0"
         // donor corpus genuinely exercises all of them: aggregate, real evidence that
         // classify_source_kind/manifest_dependency_roles produce non-trivial, real-world-shaped
         // output, not merely "does not crash" on real input.
-        let donor_root = Path::new(env!("CARGO_MANIFEST_DIR"))
-            .parent()
-            .expect("adapter/ has a parent directory")
-            .join(".atlas/temporary/donors");
-        let known_cargo_donors = [
-            "ast-grep",
-            "buck2",
-            "c2rust",
-            "crubit",
-            "duumbi",
-            "egglog",
-            "miri",
-            "mold",
-            "object",
-            "rust-analyzer",
-            "rust",
-            "tree-sitter",
-            "wasm-tools",
-            "wasmtime",
-            "zed",
-        ];
-
         let mut vcs_count = 0usize;
         let mut path_count = 0usize;
         let mut dev_role_count = 0usize;
@@ -2489,11 +2490,10 @@ version = "0.1.0"
         let mut target_conditional_count = 0usize;
         let mut optional_and_target_conditional_count = 0usize;
 
-        for name in known_cargo_donors {
-            let root = donor_root.join(name);
-            let Ok(Some(report)) = census_cargo_workspace(&root) else {
-                continue;
-            };
+        for (name, root) in materialized_cargo_donors() {
+            let report = census_cargo_workspace(&root)
+                .unwrap_or_else(|e| panic!("donor `{name}`: {e}"))
+                .unwrap_or_else(|| panic!("donor `{name}` has no Cargo workspace"));
             for edge in &report.edges {
                 match edge.provider.source_kind {
                     DependencySourceKind::Vcs => vcs_count += 1,

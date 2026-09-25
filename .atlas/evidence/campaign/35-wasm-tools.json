@@ -1,0 +1,25 @@
+{
+ "schema": "atlas.campaign-donor-decision.v1",
+ "ordinal": 35,
+ "donor": "wasm-tools",
+ "commit_sha": "5b9827a7eabc4e365c6e15ed2ab5059a3db8b215",
+ "generation": "G99",
+ "base_commit": "68af8beb23",
+ "hypothesis": "wasmparser validation (P6 binary validation tooling)",
+ "blocking_question": "none recorded (admission-stage COARSE_CENSUSED); corpus role 'adapter/exchange wasm encoding validation and component-model tooling'; the donor is also one of the 15 DC1 real-donor Cargo test inputs",
+ "measurement": {
+  "wasm_in_atlas": "none: no .wasm/.wat/.wit tracked outside donor checkouts, no wasm crate in any manifest, no Wasm code path in core/runtime/adapter/apps",
+  "dc1_contribution": "wasm-tools was the real-world case for TOML literal-string workspace.members entries (the Cargo census fix); the synthetic fixture toml_literal_string_workspace_members_are_read locks it",
+  "dc1_rebase": "the two real-donor Cargo tests required at least half of their 15 named donors present and silently skipped absent ones -- with 7 present, this extinction would have broken the bound. They now follow the corpus ledger (materialized_cargo_donors): a donor recorded SOURCE_DELETED must be absent, any other must be present and census Closed. Trial: wasm-tools moved aside while still recorded MATERIALIZED fails both tests ('checkout presence disagrees with its recorded storage state'); after the record changes they pass with the 6 remaining donors"
+ },
+ "decision": {
+  "REFERENCE_ONLY": ["wasmparser validation", "wasm-encoder / wat / wit-parser / wit-component tooling", "wasm-smith / wasm-mutate fuzzing"]
+ },
+ "terminal_state": "REFERENCE_ONLY",
+ "extinction": {
+  "runtime_dependency": "none",
+  "build_dependency": "none",
+  "test_dependency": "DC1 real-donor Cargo tests only, re-based to the ledger in this generation",
+  "action": "git rm -r .atlas/temporary/donors/wasm-tools"
+ }
+}

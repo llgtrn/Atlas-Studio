@@ -1,1 +1,0 @@
-;; RUN: metadata add --help

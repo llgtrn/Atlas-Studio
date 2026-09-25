@@ -1,3 +1,0 @@
-error: There are multiple worlds in `test:root`; one must be explicitly chosen:
-  test:root/w1
-  test:root/w2

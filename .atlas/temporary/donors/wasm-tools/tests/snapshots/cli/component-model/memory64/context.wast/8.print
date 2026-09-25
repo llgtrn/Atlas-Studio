@@ -1,4 +1,0 @@
-(component
-  (core func (;0;) (canon context.get i64 0))
-  (core func (;1;) (canon context.set i64 0))
-)

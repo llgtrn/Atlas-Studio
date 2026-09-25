@@ -1,2 +1,0 @@
-;; RUN: strip -h
-

@@ -1,4 +1,0 @@
-(module
-  (type (;0;) (func))
-  (import "" "" (func (;0;) (exact (type 0))))
-)

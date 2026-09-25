@@ -101,3 +101,9 @@ Status: COARSE_CENSUSED. This is an admission-stage inventory only. Deep census 
 ## Native Replacement
 
 adapter/exchange wasm encoding validation and component-model tooling
+
+## G99 — terminal REFERENCE_ONLY; source extinct
+
+Atlas has no Wasm artifact, code path or dependency, so wasmparser validation and the component tooling have no consumer. The donor's one contribution, the real-world literal-string `workspace.members` case behind a Cargo census fix, is locked by a synthetic fixture.
+
+Deleting it would have broken the DC1 real-donor Cargo tests' "at least half present" bound. Those tests now follow the corpus ledger instead: an absent donor must be a recorded extinction, and any other must be present and Closed. The checkout was physically deleted. Evidence: `../../evidence/campaign/35-wasm-tools.json`.

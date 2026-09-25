@@ -1,3 +1,0 @@
-(module
-  (import "a" "b" (memory (;0;) 4294967295 (pagesize 0x1)))
-)

@@ -1,5 +1,0 @@
-// FAIL: component embed --dummy --async-stackful % -t
-
-package a:b;
-
-world foo {}

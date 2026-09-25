@@ -1,0 +1,22 @@
+{
+  "objective": "P3 first-50 #35 wasm-tools: no Wasm artifact, code path or dependency in Atlas; its Cargo-census contribution is locked by a synthetic fixture; the DC1 real-donor Cargo tests are re-based to the corpus ledger (materialized_cargo_donors: an absence must be a recorded extinction); REFERENCE_ONLY; checkout physically extinct",
+  "changed_paths": [
+    "adapter/src/dependency/cargo.rs",
+    "runtime/src/donor_storage.rs"
+  ],
+  "total_changes": [
+    "+entities",
+    "+evidence",
+    "+facts",
+    "+graph_edges",
+    "+graph_nodes",
+    "+normalized_facts",
+    "+typed_records"
+  ],
+  "entity_changes": [
+    "CHANGED adapter dependency/cargo/tests/real_census_of_every_cargo_based_donor_workspace_reaches_closed_state().",
+    "CHANGED adapter dependency/cargo/tests/real_donor_corpus_exercises_every_source_kind_role_and_activation_combination().",
+    "CHANGED runtime donor_storage/tests/repository_donor_storage_has_no_unrecorded_violation().",
+    "CREATED adapter dependency/cargo/tests/materialized_cargo_donors()."
+  ]
+}

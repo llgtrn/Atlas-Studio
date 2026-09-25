@@ -479,6 +479,7 @@ mod tests {
                 "tree-sitter",
                 "wasm-component-model",
                 "wasm-spec",
+                "wasm-tools",
                 "xdsl",
                 "zstd"
             ]

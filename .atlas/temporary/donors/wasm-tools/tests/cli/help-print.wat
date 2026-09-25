@@ -1,1 +1,0 @@
-;; RUN: print --help

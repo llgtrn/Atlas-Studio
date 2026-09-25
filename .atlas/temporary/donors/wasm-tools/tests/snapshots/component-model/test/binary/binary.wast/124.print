@@ -1,4 +1,0 @@
-(component
-  (core module (;0;))
-  (export (;1;) "m" (core module 0))
-)

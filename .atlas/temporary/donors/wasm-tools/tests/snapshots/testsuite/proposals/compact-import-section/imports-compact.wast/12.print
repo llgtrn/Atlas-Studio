@@ -1,6 +1,0 @@
-(module
-  (type (;0;) (func))
-  (import "test"
-    (item "func->11i" (func (;0;) (type 0)))
-  )
-)

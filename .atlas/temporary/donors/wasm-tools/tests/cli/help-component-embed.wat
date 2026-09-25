@@ -1,2 +1,0 @@
-;; RUN: component embed --help
-

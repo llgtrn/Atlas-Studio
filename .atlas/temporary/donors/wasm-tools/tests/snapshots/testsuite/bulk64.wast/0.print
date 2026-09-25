@@ -1,4 +1,0 @@
-(module
-  (memory (;0;) i64 1)
-  (data (;0;) "foo")
-)

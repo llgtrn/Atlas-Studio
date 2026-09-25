@@ -15,19 +15,19 @@ decision = ".atlas/decisions/0024-self-recensus-proof-of-nextgen.md"
 [dashboard]
 first_50_total = 50
 historic_terminal = 3
-campaign_terminal = 30
+campaign_terminal = 31
 historically_proven = 4
 currently_censusing = 0
 deep_censused = 0
 absorbed = 9
-reference_only = 21
+reference_only = 22
 external_boundary = 2
 rejected = 0
 deferred = 1
-extinct = 33
-remaining = 17
-next_donor = "wasm-tools"
-next_step = "G99 (P3): wasm-tools (#35) -- wasmparser validation (P6; a DC1 real-donor Cargo test input: re-base that test before extinction)"
+extinct = 34
+remaining = 16
+next_donor = "wasmtime"
+next_step = "G100 (P3): wasmtime (#36) -- cranelift lowering, WASI capability sandbox (P6)"
 
 [[donor]]
 ordinal = 1
@@ -606,13 +606,15 @@ canonical_url = "https://github.com/bytecodealliance/wasm-tools.git"
 serves = "P6"
 target_capability = "binary validation tooling"
 mechanism_hypothesis = "wasmparser validation"
-materialization_mode = "already materialized"
+materialization_mode = "n/a (source deleted)"
 dependency_expectation = "none"
-current_status = "CURRENTLY_PENDING"
-lifecycle = "COARSE_CENSUSED"
-terminal_state = ""
+current_status = "CAMPAIGN_PROVEN"
+lifecycle = "TERMINAL"
+terminal_state = "REFERENCE_ONLY"
 terminal_goal = "DECIDED"
-note = "census COARSE_CENSUSED, decision APPROVED_COMPILER_BINARY_LANE"
+completed_in = "G99"
+evidence = ".atlas/evidence/campaign/35-wasm-tools.json"
+note = "no Wasm artifact, code path or dependency in Atlas; its Cargo-census contribution is locked by a synthetic fixture; the DC1 real-donor Cargo tests now follow the corpus ledger (an absence must be a recorded extinction); source physically deleted"
 
 [[donor]]
 ordinal = 36

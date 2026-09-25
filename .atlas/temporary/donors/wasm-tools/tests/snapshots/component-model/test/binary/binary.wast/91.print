@@ -1,3 +1,0 @@
-(component
-  (type (;0;) (map string u32))
-)
