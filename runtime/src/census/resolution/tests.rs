@@ -396,3 +396,81 @@ fn a_type_spelling_resolved_everywhere_in_its_artifact_is_a_canonical_type_claim
     assert_eq!(types.observation_ids.len(), claims.len());
     fs::remove_dir_all(&dir).unwrap();
 }
+
+/// G117 (NA-CONCURRENCY-RESOLVED): a path call resolved to a std path the declared concurrency
+/// table names is a DERIVED concurrency site of its caller; an undeclared std path, a workspace
+/// function merely named `spawn`, and a method call inside a closure are not.
+#[test]
+fn resolved_standard_library_paths_are_concurrency_sites_of_the_caller() {
+    let nonce = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap()
+        .as_nanos();
+    let dir = std::env::temp_dir().join(format!(
+        "atlas-g117-concurrency-{}-{nonce}",
+        std::process::id()
+    ));
+    fs::create_dir_all(dir.join("core/src")).unwrap();
+    fs::write(dir.join("core/Cargo.toml"), "[package]\nname = \"core\"\n").unwrap();
+    fs::write(dir.join("core/src/lib.rs"), "pub mod work;\n").unwrap();
+    fs::write(
+        dir.join("core/src/work.rs"),
+        "use std::sync::mpsc;\nuse std::thread;\npub fn run() {\n    thread::scope(|s| {\n        s.spawn(|| {});\n    });\n    std::thread::spawn(|| {});\n    let (_tx, _rx) = mpsc::channel::<u8>();\n    thread::sleep(std::time::Duration::from_millis(0));\n}\nmod pool {\n    pub fn spawn() {}\n}\npub fn fake() {\n    pool::spawn();\n}\n",
+    )
+    .unwrap();
+    let inventory = InventoryReport::new(
+        dir.to_string_lossy().into_owned(),
+        vec![
+            artifact("core/Cargo.toml", "toml"),
+            artifact("core/src/lib.rs", "rust"),
+            artifact("core/src/work.rs", "rust"),
+        ],
+    );
+    let batches = extract_semantics(&inventory, RepositoryId::new("atlas-studio"), revision());
+    let resolution = resolve_rust_path_calls(&inventory, &batches);
+    let work = resolution
+        .iter()
+        .find(|b| b.artifact.as_str() == "artifact:core/src/work.rs")
+        .unwrap();
+    let sites: Vec<(usize, &str)> = work
+        .observations
+        .iter()
+        .filter_map(|o| match o {
+            SemanticObservation::Concurrency(h) => {
+                Some((h.subject.span.line, h.subject.kind.as_str()))
+            }
+            _ => None,
+        })
+        .collect();
+    // thread::scope, std::thread::spawn, mpsc::channel; never thread::sleep (undeclared),
+    // pool::spawn (a workspace function) or s.spawn (a method call inside a closure).
+    assert_eq!(
+        sites,
+        [(4, "THREAD_SCOPE"), (7, "SPAWN"), (8, "CHANNEL_CREATE")]
+    );
+    let run = batches
+        .iter()
+        .flat_map(|b| &b.observations)
+        .find_map(|o| match o {
+            SemanticObservation::FunctionIdentity(h) if h.subject.symbol.name == "run" => {
+                Some(h.record_id.clone())
+            }
+            _ => None,
+        })
+        .unwrap();
+    for observation in &work.observations {
+        if let SemanticObservation::Concurrency(h) = observation {
+            assert_eq!(h.subject.function, run, "the caller owns the site");
+            assert_eq!(h.status, EpistemicStatus::Derived);
+            assert_eq!(h.extractor.id, RUST_PATH_RESOLUTION_ID);
+        }
+    }
+    let obligation = work
+        .obligations
+        .iter()
+        .find(|o| o.dimension == SemanticDimension::Concurrency)
+        .expect("the engine is asked for CONCURRENCY");
+    assert_eq!(obligation.status, EpistemicStatus::Unknown);
+    assert_eq!(obligation.observation_ids.len(), 3);
+    fs::remove_dir_all(&dir).unwrap();
+}

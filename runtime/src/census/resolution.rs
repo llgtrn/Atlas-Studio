@@ -14,7 +14,9 @@
 //! one canonical type is claimed as denoting it), CALL for path calls and (G79) `self.m()`
 //! method calls, and (G77) EFFECT for path calls it resolves to a
 //! standard-library path the declared std-path effect table (`atlas_core::std_path_effects`)
-//! names -- an effect site of the calling function, anchored at the call. Both obligations are
+//! names -- an effect site of the calling function, anchored at the call -- and (G117)
+//! CONCURRENCY for path calls resolved to a std path the declared std-path concurrency table
+//! (`atlas_core::std_path_concurrency`) names. Every obligation is
 //! UNKNOWN (method calls, closure bodies, macro arguments and every other effect source are
 //! outside it), and a resolution that cannot be attached -- no syntactic claim at the anchor, or
 //! no FunctionIdentity for the definition -- is a diagnosed disagreement, never a fabricated
@@ -38,8 +40,9 @@ pub const RUST_PATH_RESOLUTION_VERSION: &str = "1";
 
 /// The dimensions the resolution engine is asked to evaluate (accounting closure is checked
 /// against these, not against every dimension).
-pub const RUST_PATH_RESOLUTION_DIMENSIONS: [SemanticDimension; 3] = [
+pub const RUST_PATH_RESOLUTION_DIMENSIONS: [SemanticDimension; 4] = [
     SemanticDimension::Call,
+    SemanticDimension::Concurrency,
     SemanticDimension::Effect,
     SemanticDimension::Type,
 ];
@@ -51,6 +54,8 @@ struct ArtifactWork {
     call_evidence: Vec<Evidence>,
     effects: Vec<SemanticObservation>,
     effect_evidence: Vec<Evidence>,
+    concurrency: Vec<SemanticObservation>,
+    concurrency_evidence: Vec<Evidence>,
     types: Vec<SemanticObservation>,
     type_evidence: Vec<Evidence>,
     unattached: usize,
@@ -286,13 +291,61 @@ pub fn resolve_rust_path_calls(
             // names is an effect site of the calling function, anchored at the call.
             PathCallOutcome::External(path) => {
                 let categories = atlas_core::std_path_effects(path);
-                if categories.is_empty() {
+                let concurrency = atlas_core::std_path_concurrency(path);
+                if categories.is_empty() && concurrency.is_none() {
                     continue;
                 }
                 let Some(claim) = claim else {
                     entry.unattached += 1;
                     continue;
                 };
+                // G117: a call resolved to a std path the declared concurrency table names is a
+                // concurrency site of the calling function, anchored at the call.
+                if let Some(kind) = concurrency {
+                    let subject = atlas_core::ConcurrencyIdentity {
+                        repository: repository.clone(),
+                        revision: revision.clone(),
+                        function: claim.subject.function.clone(),
+                        kind,
+                        span: claim.subject.span.clone(),
+                    };
+                    let record_id = SemanticRecordId::new(
+                        SemanticDimension::Concurrency,
+                        &subject.identity_key(),
+                    );
+                    let evidence_id = EvidenceId::new(stable_id(
+                        "evidence",
+                        &format!("{RUST_PATH_RESOLUTION_ID}:{}", record_id.as_str()),
+                    ));
+                    entry.concurrency_evidence.push(Evidence {
+                        id: evidence_id.as_str().to_owned(),
+                        kind: "NAME_RESOLUTION".into(),
+                        path: resolution.path.clone(),
+                        summary: format!(
+                            "`{}` at {}:{}:{} resolves to `{path}`: {} (declared std-path concurrency table)",
+                            resolution.callee,
+                            resolution.path,
+                            resolution.line,
+                            resolution.column,
+                            kind.as_str()
+                        ),
+                        revision: Some(revision.clone()),
+                    });
+                    let observation = SemanticObservation::Concurrency(SemanticRecordHeader {
+                        record_id,
+                        dimension: SemanticDimension::Concurrency,
+                        status: EpistemicStatus::Derived,
+                        scope: claim.scope.clone(),
+                        repository: repository.clone(),
+                        revision: revision.clone(),
+                        extractor: extractor.clone(),
+                        evidence_refs: vec![evidence_id],
+                        provenance: provenance(resolution),
+                        subject,
+                    });
+                    assert!(observation.is_dimension_consistent());
+                    entry.concurrency.push(observation);
+                }
                 for &category in categories {
                     let subject = atlas_core::EffectIdentity {
                         repository: repository.clone(),
@@ -407,6 +460,15 @@ pub fn resolve_rust_path_calls(
             continue;
         };
         let reached = workspace.reached.contains(&path);
+        let concurrency_scope = if reached {
+            format!(
+                "{RUST_PATH_RESOLUTION_ID} derives concurrency only for path calls resolved to a standard-library path the declared std-path concurrency table names ({path}); method calls (spawn_scoped, lock, send, recv, atomics), closure bodies and macro arguments are outside it"
+            )
+        } else {
+            format!(
+                "{RUST_PATH_RESOLUTION_ID} did not evaluate {path}: no Cargo target's module tree reaches it"
+            )
+        };
         let (call_scope, effect_scope, type_scope) = if reached {
             (
                 format!(
@@ -447,6 +509,20 @@ pub fn resolve_rust_path_calls(
             ids(&work.effect_evidence),
             effect_diagnostic.id.clone(),
         );
+        let concurrency_diagnostic = ExtractionDiagnostic::new(
+            DiagnosticCode::IncompleteAnalysis,
+            Some(SemanticDimension::Concurrency),
+            concurrency_scope,
+        );
+        let concurrency_obligation = ObligationResult::unknown_with_observations(
+            SemanticDimension::Concurrency,
+            work.concurrency
+                .iter()
+                .map(|o| o.record_id().clone())
+                .collect(),
+            ids(&work.concurrency_evidence),
+            concurrency_diagnostic.id.clone(),
+        );
         let type_diagnostic = ExtractionDiagnostic::new(
             DiagnosticCode::IncompleteAnalysis,
             Some(SemanticDimension::Type),
@@ -458,7 +534,12 @@ pub fn resolve_rust_path_calls(
             ids(&work.type_evidence),
             type_diagnostic.id.clone(),
         );
-        let mut diagnostics = vec![call_diagnostic, effect_diagnostic, type_diagnostic];
+        let mut diagnostics = vec![
+            call_diagnostic,
+            concurrency_diagnostic,
+            effect_diagnostic,
+            type_diagnostic,
+        ];
         if work.unattached > 0 {
             let disagreement = ExtractionDiagnostic::new(
                 DiagnosticCode::IncompleteAnalysis,
@@ -472,9 +553,11 @@ pub fn resolve_rust_path_calls(
             diagnostics.push(disagreement);
         }
         let mut observations = work.calls;
+        observations.extend(work.concurrency);
         observations.extend(work.effects);
         observations.extend(work.types);
         let mut evidence = work.call_evidence;
+        evidence.extend(work.concurrency_evidence);
         evidence.extend(work.effect_evidence);
         evidence.extend(work.type_evidence);
         out.push(ExtractionBatch {
@@ -488,7 +571,12 @@ pub fn resolve_rust_path_calls(
             ),
             observations,
             evidence,
-            obligations: vec![call_obligation, effect_obligation, type_obligation],
+            obligations: vec![
+                call_obligation,
+                concurrency_obligation,
+                effect_obligation,
+                type_obligation,
+            ],
             diagnostics,
         });
     }

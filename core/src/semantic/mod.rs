@@ -22,7 +22,7 @@ pub mod symbol;
 pub mod types;
 
 pub use call::{CallDispatchKind, CallSiteIdentity};
-pub use concurrency::{ConcurrencyIdentity, ConcurrencyKind};
+pub use concurrency::{ConcurrencyIdentity, ConcurrencyKind, std_path_concurrency};
 pub use control_flow::{
     ControlFlowBlockIdentity, ControlFlowBlockKind, ControlFlowEdge, ControlFlowEdgeKind,
 };

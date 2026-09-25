@@ -102,7 +102,7 @@ frontier_expansion_frozen = true
 rule_a = "do not implement complexity without evidence: every mechanism is falsified before it is absorbed"
 rule_b = "do not defer essential complexity once necessity is established: an escalated or skip-budget debt is queued before any donor"
 debt_ledger = ".atlas/roadmap/ESSENTIAL-COMPLEXITY-DEBT.toml"
-next_native_attack = "NA-CONCURRENCY-RESOLVED"
+next_native_attack = "NA-MACRO-ARGUMENTS"
 frontier_addition_requires = "a first-50 dependency needs it, or a missing foundational mechanism has no representative donor; recorded explicitly"
 
 # What a closed census of a selected scope requires. FULL_CENSUS_CLOSED is never claimed without
@@ -474,9 +474,14 @@ objective = "retrospective architecture audit (ADR 0038): essential complexity d
 [[planned_generation]]
 id = "G117"
 priority = "P0"
-objective = "native attack queue head NA-CONCURRENCY-RESOLVED: CONCURRENCY from resolved std paths; the falsified zero (Atlas's own scoped worker) must be observed"
+objective = "native attack queue head NA-CONCURRENCY-RESOLVED: CONCURRENCY from resolved std paths (done: 2 of 2 workspace thread scopes DERIVED, SCIP-confirmed; CONCURRENCY left the multi-engine blocker)"
 
 [[planned_generation]]
-id = "G118+"
+id = "G118"
+priority = "P0"
+objective = "native attack queue head NA-MACRO-ARGUMENTS: walk macro-invocation arguments that parse as expressions in the eight expression walkers; per-file coverage where every macro is recovered"
+
+[[planned_generation]]
+id = "G119+"
 priority = "P0"
 objective = "the native_attack_queue in order (ESSENTIAL-COMPLEXITY-DEBT.toml); frontier expansion stays frozen until FOUNDATIONAL_ATLAS_READY"

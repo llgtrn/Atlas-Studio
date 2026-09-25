@@ -13,7 +13,7 @@
 #       -> generation evidence -> G_n+1
 
 schema = "atlas.self-build.generation-ledger.v1"
-current_generation = "G116"
+current_generation = "G117"
 
 [[generation]]
 id = "G35"
@@ -1909,6 +1909,7 @@ objective = "retrospective architecture audit: separate donor mechanism from cap
 writer = "coordinator (sole writer); three read-only lanes (ledger timeline, end-state/ontology, construction graph)"
 evidence = ".atlas/roadmap/ESSENTIAL-COMPLEXITY-DEBT.toml"
 self_recensus = ".atlas/evidence/census/G116/recensus.json"
+result_commits = ["3447c49bad289012b0da055ef29d0da00259b962", "0a9bce13eff1ec9d54ac6d2282f4814c7a5f9460"]
 
 [generation.lanes]
 timeline = "81 ledger blocks G35-G115: native P0 attacks at G59-G62, G74, G75, G77, G79, G83 (longest healthy gap 12); G84-G115 no native P0 attack; 53 avoidance quotes; first/last-advance generation per capability"
@@ -1926,3 +1927,25 @@ tests = "runtime essential_complexity (8 tests) enforce the ledger, alarms, skip
 [generation.next]
 objective = "G117 (P0): native attack queue head NA-CONCURRENCY-RESOLVED -- CONCURRENCY from resolved std paths; the falsified zero must be observed"
 
+
+[[generation]]
+id = "G117"
+base_commit = "0a9bce13eff1ec9d54ac6d2282f4814c7a5f9460"
+priority = "P0"
+serves = "P0 census closure: native attack queue head NA-CONCURRENCY-RESOLVED (DEBT-CONCURRENCY, DEBT-MULTI_ENGINE) under Rule B"
+objective = "turn the falsified CONCURRENCY zero into observed truth: a declared std-path concurrency table and the path-resolution engine deriving concurrency sites, verified against the SCIP oracle"
+writer = "coordinator (sole writer)"
+evidence = ".atlas/decisions/0039-concurrency-from-resolved-std-paths.md"
+self_recensus = ".atlas/evidence/census/G117/recensus.json"
+
+[generation.verification]
+pre_census = "clean-HEAD census of 3447c49bad = G116 post digest 3bca06c2... (0a9bce13ef adds only out-of-scope evidence)"
+measurement = "rust-analyzer 1.90.0 SCIP: the workspace's std concurrency surface is 2 thread::scope calls (each Builder::new().stack_size().spawn_scoped() + join inside the scope closure) and 1 thread::current().id(); no Mutex, Arc, channel or atomic"
+native = "2 DERIVED THREAD_SCOPE records (adapter/src/semantic/rust/mod.rs:204, resolve.rs:125), SCIP-confirmed 2 of 2 at the same anchor; CONCURRENCY left MULTI_ENGINE_RECONCILIATION_ABSENT; +97 UNKNOWN CONCURRENCY obligations of the second engine (explained)"
+falsification = "5 mutants killed: no derivation; guard skipping concurrency-only paths; scope mislabelled SPAWN; engine not asked for CONCURRENCY; site overclaimed OBSERVED"
+residual = "spawn_scoped and join inside closures (closure bodies are outside every profile; queued NA-CLOSURE-REGIONS); method receivers untyped"
+debt = "DEBT-CONCURRENCY and DEBT-MULTI_ENGINE last advance G117; queue head moves to NA-MACRO-ARGUMENTS"
+proof = "PROVEN on the first run with the explained unknowns (post e0fb415f...)"
+
+[generation.next]
+objective = "G118 (P0): native attack queue head NA-MACRO-ARGUMENTS"

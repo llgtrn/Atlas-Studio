@@ -28,6 +28,13 @@
 //! struct's own `.lock()`, a game's own `.send()`), and claiming them from a bare method name alone
 //! -- without resolving the receiver's type -- would fabricate compiler-resolved semantics exactly
 //! the way R4.8's EFFECT module explicitly declined to do for `FilesystemWrite`/`NetworkSend`/etc.
+//!
+//! G117 (P0, the native attack queue head of ADR 0038): the census recorded zero concurrency
+//! although Atlas runs scoped worker threads. The path-resolution engine now derives concurrency
+//! sites for path calls resolved to a declared standard-library path ([`std_path_concurrency`]):
+//! `std::thread::scope` (`ThreadScope`), `std::thread::spawn` (`Spawn`) and the `mpsc` channel
+//! constructors (`ChannelCreate`). These are DERIVED: name resolution fixes the callee, the std
+//! contract fixes its meaning.
 
 use super::SemanticRecordId;
 use crate::identity::RepositoryId;
@@ -56,6 +63,10 @@ pub enum ConcurrencyKind {
     ChannelReceive,
     /// Reserved; never emitted this wave.
     AtomicOp,
+    /// A call that opens a structured thread scope (`std::thread::scope`, G117): every thread
+    /// spawned inside the scope is joined before the call returns. Only derived from a call
+    /// resolved to a declared std path ([`std_path_concurrency`]).
+    ThreadScope,
 }
 
 impl ConcurrencyKind {
@@ -69,8 +80,32 @@ impl ConcurrencyKind {
             Self::ChannelSend => "CHANNEL_SEND",
             Self::ChannelReceive => "CHANNEL_RECEIVE",
             Self::AtomicOp => "ATOMIC_OP",
+            Self::ThreadScope => "THREAD_SCOPE",
         }
     }
+}
+
+/// The declared std-path concurrency table (G117), sorted by path: the standard-library functions
+/// whose call is a concurrency operation by their documented contract. A path is the canonical
+/// spelling through imports (`std::thread::spawn`); method calls (`Builder::spawn_scoped`,
+/// `Mutex::lock`, `Sender::send`) need receiver types and are not covered, and a path absent here
+/// declares nothing (never "no concurrency").
+const STD_PATH_CONCURRENCY: &[(&str, ConcurrencyKind)] = &[
+    ("std::sync::mpsc::channel", ConcurrencyKind::ChannelCreate),
+    (
+        "std::sync::mpsc::sync_channel",
+        ConcurrencyKind::ChannelCreate,
+    ),
+    ("std::thread::scope", ConcurrencyKind::ThreadScope),
+    ("std::thread::spawn", ConcurrencyKind::Spawn),
+];
+
+/// The concurrency operation [`STD_PATH_CONCURRENCY`] declares for `path`, if any.
+pub fn std_path_concurrency(path: &str) -> Option<ConcurrencyKind> {
+    STD_PATH_CONCURRENCY
+        .binary_search_by(|(declared, _)| declared.cmp(&path))
+        .ok()
+        .map(|index| STD_PATH_CONCURRENCY[index].1)
 }
 
 /// Identity of one concurrency-relevant operation site within a function.
@@ -163,5 +198,42 @@ mod tests {
         assert_eq!(ConcurrencyKind::ChannelSend.as_str(), "CHANNEL_SEND");
         assert_eq!(ConcurrencyKind::ChannelReceive.as_str(), "CHANNEL_RECEIVE");
         assert_eq!(ConcurrencyKind::AtomicOp.as_str(), "ATOMIC_OP");
+        assert_eq!(ConcurrencyKind::ThreadScope.as_str(), "THREAD_SCOPE");
+    }
+
+    #[test]
+    fn the_std_path_concurrency_table_is_sorted_unique_and_looked_up_exactly() {
+        assert!(
+            STD_PATH_CONCURRENCY.windows(2).all(|w| w[0].0 < w[1].0),
+            "binary search needs a strictly sorted table"
+        );
+        assert_eq!(
+            std_path_concurrency("std::thread::scope"),
+            Some(ConcurrencyKind::ThreadScope)
+        );
+        assert_eq!(
+            std_path_concurrency("std::thread::spawn"),
+            Some(ConcurrencyKind::Spawn)
+        );
+        assert_eq!(
+            std_path_concurrency("std::sync::mpsc::channel"),
+            Some(ConcurrencyKind::ChannelCreate)
+        );
+        assert_eq!(
+            std_path_concurrency("std::sync::mpsc::sync_channel"),
+            Some(ConcurrencyKind::ChannelCreate)
+        );
+        for undeclared in [
+            "std::thread",
+            "std::thread::sleep",
+            "std::thread::current",
+            "std::thread::Builder::new",
+            "std::sync::Mutex::new",
+            "thread::spawn",
+            "spawn",
+            "",
+        ] {
+            assert_eq!(std_path_concurrency(undeclared), None, "{undeclared}");
+        }
     }
 }
