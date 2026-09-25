@@ -1,0 +1,131 @@
+{
+  "evidence": [
+    {
+      "candidate": "blake3-256:2d117be01d5af0b7a4592eef10d17aecb0fa99cf95da3acfcfc2e4a4c0370e62",
+      "content_hash": "blake3-256:e98bc86b53c65778603f22348fe548c9c26048a465e0767bf25e715e19614d56",
+      "environment": "self-recensus report .atlas/evidence/census/G131/recensus.json",
+      "id": "evidence:recensus:G131",
+      "inputs": [
+        "blake3-256:b30ce16201151c6732938fa1f7452f5944cb2ee627fc6c5206e767714af7a538"
+      ],
+      "obligations": [
+        "OBL-SELF-SEMANTIC-RECENSUS"
+      ],
+      "producer": {
+        "tool": "atlas-systemizer recensus prove",
+        "version": "atlas.self-recensus-report.v1"
+      },
+      "result": "SATISFIED",
+      "run_id": "G131",
+      "status": "OBSERVED"
+    },
+    {
+      "candidate": "blake3-256:2d117be01d5af0b7a4592eef10d17aecb0fa99cf95da3acfcfc2e4a4c0370e62",
+      "content_hash": "blake3-256:f1ecd58658328b6fcd556ca7df770d2fc05f956f134b726264570bab7ae7f42a",
+      "environment": "ambient host process in . (not sandboxed: DEBT-SANDBOXED_EXECUTION)",
+      "id": "evidence:OBL-SELF-UNIT-WORKSPACE:eefc7d321259fbad",
+      "inputs": [
+        "blake3-256:2d117be01d5af0b7a4592eef10d17aecb0fa99cf95da3acfcfc2e4a4c0370e62"
+      ],
+      "obligations": [
+        "OBL-SELF-UNIT-WORKSPACE"
+      ],
+      "producer": {
+        "tool": "cargo",
+        "version": "cargo 1.90.0 (840b83a10 2025-07-30)"
+      },
+      "result": "SATISFIED",
+      "run_id": "cargo test -q --workspace --offline",
+      "status": "OBSERVED"
+    },
+    {
+      "candidate": "blake3-256:2d117be01d5af0b7a4592eef10d17aecb0fa99cf95da3acfcfc2e4a4c0370e62",
+      "content_hash": "blake3-256:f676c58ea8002967729cdfa2f6c0edfcc76cd11e08d4c61c3fc57eed789628e6",
+      "environment": "ambient host process in . (not sandboxed: DEBT-SANDBOXED_EXECUTION)",
+      "id": "evidence:OBL-SELF-COMPATIBILITY-SCHEMAS:41296e56b931578a",
+      "inputs": [
+        "blake3-256:2d117be01d5af0b7a4592eef10d17aecb0fa99cf95da3acfcfc2e4a4c0370e62"
+      ],
+      "obligations": [
+        "OBL-SELF-COMPATIBILITY-SCHEMAS"
+      ],
+      "producer": {
+        "tool": "cargo",
+        "version": "cargo 1.90.0 (840b83a10 2025-07-30)"
+      },
+      "result": "SATISFIED",
+      "run_id": "cargo test -q -p core --offline atlas::",
+      "status": "OBSERVED"
+    }
+  ],
+  "report": {
+    "blockers": [],
+    "candidate": "blake3-256:2d117be01d5af0b7a4592eef10d17aecb0fa99cf95da3acfcfc2e4a4c0370e62",
+    "coverage": {
+      "COMPATIBILITY": {
+        "failed": 0,
+        "obligations": 1,
+        "satisfied": 1,
+        "unresolved": 0,
+        "unverified": 0
+      },
+      "SEMANTIC": {
+        "failed": 0,
+        "obligations": 1,
+        "satisfied": 1,
+        "unresolved": 0,
+        "unverified": 0
+      },
+      "UNIT": {
+        "failed": 0,
+        "obligations": 1,
+        "satisfied": 1,
+        "unresolved": 0,
+        "unverified": 0
+      }
+    },
+    "failures": [],
+    "outcomes": [
+      {
+        "class": "SEMANTIC",
+        "evidence": [
+          "evidence:recensus:G131"
+        ],
+        "inadmissible": [],
+        "obligation": "OBL-SELF-SEMANTIC-RECENSUS",
+        "required": true,
+        "state": "SATISFIED"
+      },
+      {
+        "class": "UNIT",
+        "evidence": [
+          "evidence:OBL-SELF-UNIT-WORKSPACE:eefc7d321259fbad"
+        ],
+        "inadmissible": [],
+        "obligation": "OBL-SELF-UNIT-WORKSPACE",
+        "required": true,
+        "state": "SATISFIED"
+      },
+      {
+        "class": "COMPATIBILITY",
+        "evidence": [
+          "evidence:OBL-SELF-COMPATIBILITY-SCHEMAS:41296e56b931578a"
+        ],
+        "inadmissible": [],
+        "obligation": "OBL-SELF-COMPATIBILITY-SCHEMAS",
+        "required": true,
+        "state": "SATISFIED"
+      }
+    ],
+    "policy": {
+      "artifact_kind": "LIBRARY_PACKAGE",
+      "required_classes": [
+        "SEMANTIC",
+        "UNIT",
+        "COMPATIBILITY"
+      ]
+    },
+    "schema": "atlas.verification-report.v1",
+    "verdict": "ADMISSIBLE"
+  }
+}
