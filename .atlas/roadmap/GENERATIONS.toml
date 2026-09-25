@@ -1782,6 +1782,7 @@ objective = "decide the consumer-gated git/git without admission and without tou
 writer = "coordinator (sole writer)"
 evidence = ".atlas/evidence/campaign/46-git.json"
 self_recensus = ".atlas/evidence/census/G110/recensus.json"
+result_commits = ["46ceab8154f19f6ef676f418d41e656fd64f9002", "788767fc10658c097a6f6f9d0e463bcc5dee7134"]
 
 [generation.verification]
 pre_census = "clean-HEAD census of d99f6d3394 = G109 post digest 05977220... (9392941e49 adds only out-of-scope evidence)"
@@ -1792,3 +1793,23 @@ proof = "PROVEN on the first run with an empty intent (post 05977220..., equal t
 
 [generation.next]
 objective = "G111 (P3): first-50 #47 nix (derivation identity + closure of construction inputs, P6)"
+
+[[generation]]
+id = "G111"
+base_commit = "788767fc10658c097a6f6f9d0e463bcc5dee7134"
+priority = "P3"
+serves = "P3 FIRST_50_DONOR_CAMPAIGN: donor #47 nix to a terminal state (P6 hermetic derivations; P4 cache soundness)"
+objective = "test Nix's input-closure derivation identity against Atlas's extraction cache and cross-file derivations, decide without admission"
+writer = "coordinator (sole writer)"
+evidence = ".atlas/evidence/campaign/47-nix.json"
+self_recensus = ".atlas/evidence/census/G111/recensus.json"
+
+[generation.verification]
+pre_census = "clean-HEAD census of 46ceab8154 = G110 post digest 05977220... (788767fc10 adds only out-of-scope evidence)"
+falsification = "the ADR 0008 cache key already hashes the full per-artifact input closure (input, bytes, extractor id/version, build digest over all adapter/core source and Cargo.lock); the only cross-file derivation (path resolution) is recomputed every run and never cached; hermetic construction is unimplemented P6"
+no_code_change = "no in-scope census change (decision records only)"
+decision = "REFERENCE_ONLY, decided at the consumer gate"
+proof = "PROVEN on the first run with an empty intent (post 05977220..., equal to the pre-change census)"
+
+[generation.next]
+objective = "G112 (P3): first-50 #48 tlaplus (TLC exploration + counterexample traces for invariants, P0)"

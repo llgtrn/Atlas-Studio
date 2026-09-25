@@ -1,0 +1,23 @@
+{
+ "schema": "atlas.campaign-donor-decision.v1",
+ "ordinal": 47,
+ "donor": "nix",
+ "canonical_url": "https://github.com/NixOS/nix.git",
+ "verified_head": "8f7ed1c1d1246bfa98cefd152c87d1ea26a3d463",
+ "generation": "G111",
+ "base_commit": "788767fc10",
+ "hypothesis": "derivation identity + closure of construction inputs (P6)",
+ "blocking_question": "nix is QUEUED and CONSUMER_GATED: does any Atlas derivation lack an input-closure identity that Nix's derivation hashing would supply?",
+ "measurement": {
+  "extraction_cache": "ADR 0008 keys every cached batch by BLAKE3 over length-prefixed fields: key schema, the canonical ExtractionInput minus source text (repository, revision, artifact, path, frontend, language, dimensions), the digest of the bytes read, extractor id and version, and EXTRACTOR_BUILD_DIGEST over every file in adapter/src and core/src plus Cargo.lock -- an input-addressed derivation identity; entries are read or written only when the bytes read equal the inventory digest",
+  "cross_file": "the only cross-file derivation, rust path resolution (runtime/src/census/resolution.rs), is recomputed from the inventory and batches on every run and never cached, so no entry depends on inputs outside its key",
+  "construction": "hermetic construction of artifacts is P6 and unimplemented; Nix itself would be an external build tool if ever used"
+ },
+ "decision": {
+  "REFERENCE_ONLY": ["input-addressed derivation hashing (already native for extraction)", "store paths and closures", "content-addressed derivations", "sandboxed builders", "substituters and binary caches"]
+ },
+ "terminal_state": "REFERENCE_ONLY",
+ "extinction": {
+  "action": "none: never materialized; the frontier keeps nix CANDIDATE / CONSUMER_GATED"
+ }
+}

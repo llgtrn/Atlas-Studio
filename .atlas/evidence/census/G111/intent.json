@@ -1,0 +1,6 @@
+{
+  "objective": "P3 first-50 #47 nix: decided at the consumer gate without admission -- input-closure derivation identity is already native (ADR 0008 cache key) and the one cross-file derivation is never cached; REFERENCE_ONLY; no in-scope census change",
+  "changed_paths": [],
+  "total_changes": [],
+  "entity_changes": []
+}
