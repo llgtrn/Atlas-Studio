@@ -1,0 +1,111 @@
+{
+  "schema": "atlas.census-certificate.v2",
+  "certificate_id": "census-certificate:7d025904a1acd9570765a07099b59d0006b9469fe53dfdc9488a0fe2bff0c3b2",
+  "state": "RECONCILED",
+  "corpus": {
+    "corpus_id": "llgtrn/Atlas-Studio",
+    "root_hash": "blake3-256:e1bc9da4befa6292283c3226153cb622ba0dc7085defb8b78f20ccca77162da5",
+    "revisions": {
+      "llgtrn/Atlas-Studio": "7e90a0e91edddf340644fe693d8c9ce182563d02"
+    }
+  },
+  "genome": {
+    "schema": "atlas.genome.v1",
+    "hash": "blake3-256:e076b0d870969819e6606ab8b3ac21b035635e3d650f2dbcf1989ea2f2c8e4f9"
+  },
+  "inventory": {
+    "artifacts_total": 122,
+    "artifacts_accounted_total": 122,
+    "closed": true,
+    "dispositions": {
+      "IGNORED_BY_EXPLICIT_POLICY": 2,
+      "PARSED": 120
+    }
+  },
+  "dependency": {
+    "contexts_total": 1,
+    "nodes_total": 27,
+    "edges_total": 39,
+    "source_backed_total": 4,
+    "source_censused_total": 4,
+    "terminal_boundary_total": 20,
+    "unresolved_total": 0,
+    "fixed_point_converged": true,
+    "closed": true,
+    "root_hash": "blake3-256:5d9cbb00180673c03088c4e705db56aff05aa40c56845265d77ea31c00392742"
+  },
+  "semantic": {
+    "facts_total": 16851,
+    "obligations_total": 1844,
+    "obligations_accounted_total": 1844,
+    "coverage": {
+      "BUILD": "OBSERVED",
+      "CALL": "UNKNOWN",
+      "CONCURRENCY": "UNKNOWN",
+      "CONTROL_FLOW": "UNKNOWN",
+      "DATA_FLOW": "UNKNOWN",
+      "DECLARED_ADL": "DECLARED",
+      "EFFECT": "UNKNOWN",
+      "FUNCTION_IDENTITY": "OBSERVED",
+      "FUNCTION_SIGNATURE": "OBSERVED",
+      "OWNERSHIP": "UNKNOWN",
+      "PERSISTENCE": "UNKNOWN",
+      "SOURCE_ARTIFACT": "OBSERVED",
+      "STATE": "UNKNOWN",
+      "SYMBOL": "OBSERVED",
+      "TYPE": "OBSERVED"
+    },
+    "unknown_total": 1135,
+    "unsupported_total": 228,
+    "ignored_total": 2,
+    "conflict_total": 0,
+    "dynamic_edges_total": 9,
+    "binding_gaps_total": 1
+  },
+  "normalization": {
+    "input_records_total": 16851,
+    "normalized_records_total": 16851,
+    "exact_duplicates_merged": 0,
+    "equivalence_classes_total": 16851,
+    "conflict_candidates_total": 0,
+    "provenance_complete": true,
+    "root_hash": "blake3-256:abcfb97ad6e780630ba55cdd30bdc0430b83bbcb560ad83224fad68fa02d14af"
+  },
+  "reconciliation": {
+    "complete": true,
+    "unresolved_conflicts_total": 0
+  },
+  "fixed_point": {
+    "iterations": 2,
+    "converged": true,
+    "delta_at_exit": 0
+  },
+  "independent_passes": {
+    "passes_total": 2,
+    "agreement": "PARTIAL",
+    "conflicts_total": 0
+  },
+  "evidence": {
+    "root_hash": "blake3-256:b2826cacb7d5911cb10470be8865fc19a0b7b985f9c204b48a4d34e8b79c9bda",
+    "provenance_complete": true
+  },
+  "atlas": {
+    "root_hash": "blake3-256:52492bc15e4dae42518d6fed1428332818bc08f8158f92642224977aed8eba32"
+  },
+  "blockers": [
+    "ATLAS_ROOT_UNSEALED: the packaged .atlas is an unsealed census container (no seal gate exists)",
+    "COVERAGE_UNKNOWN: CALL",
+    "COVERAGE_UNKNOWN: CONCURRENCY",
+    "COVERAGE_UNKNOWN: CONTROL_FLOW",
+    "COVERAGE_UNKNOWN: DATA_FLOW",
+    "COVERAGE_UNKNOWN: EFFECT",
+    "COVERAGE_UNKNOWN: OWNERSHIP",
+    "COVERAGE_UNKNOWN: PERSISTENCE",
+    "COVERAGE_UNKNOWN: STATE",
+    "DYNAMIC_DEPENDENCY_OBLIGATIONS: 9",
+    "MULTI_ENGINE_RECONCILIATION_ABSENT: one engine for CONTROL_FLOW, DATA_FLOW, FUNCTION_IDENTITY, FUNCTION_SIGNATURE, OWNERSHIP, PERSISTENCE, STATE, SYMBOL (Genome: multi_engine_reconciliation_required)",
+    "REVISION_DIRTY: the census input is not a pinned commit",
+    "UNKNOWN_FACTS: 1135",
+    "UNSUPPORTED_FACTS: 228"
+  ]
+}
