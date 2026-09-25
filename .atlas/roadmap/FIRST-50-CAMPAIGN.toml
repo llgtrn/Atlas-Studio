@@ -15,19 +15,18 @@ decision = ".atlas/decisions/0024-self-recensus-proof-of-nextgen.md"
 [dashboard]
 first_50_total = 50
 historic_terminal = 3
-campaign_terminal = 45
+campaign_terminal = 46
 historically_proven = 4
 currently_censusing = 0
 deep_censused = 0
 absorbed = 10
-reference_only = 27
+reference_only = 28
 external_boundary = 10
 rejected = 0
 deferred = 1
-extinct = 43
-remaining = 2
-next_donor = "c2rust"
-next_step = "G114 (P3): c2rust (#50) -- C -> Rust translation with provenance (P6); a DC1 real-donor Cargo test input"
+extinct = 44
+remaining = 1
+next_step = "G115 (P4): salsa (#5) -- the last non-terminal first-50 donor: decide its remaining invalidation mechanisms (dependency tracking, early cutoff, durability) against the measured incremental-recensus cost"
 
 [[donor]]
 ordinal = 1
@@ -861,13 +860,15 @@ canonical_url = "https://github.com/immunant/c2rust.git"
 serves = "P6"
 target_capability = "translation IR"
 mechanism_hypothesis = "C -> Rust translation with provenance"
-materialization_mode = "already materialized"
+materialization_mode = "n/a (source deleted)"
 dependency_expectation = "clang: EXTERNAL_BOUNDARY"
-current_status = "CURRENTLY_PENDING"
-lifecycle = "MATERIALIZED"
-terminal_state = ""
+current_status = "CAMPAIGN_PROVEN"
+lifecycle = "TERMINAL"
+terminal_state = "REFERENCE_ONLY"
 terminal_goal = "REFERENCE_ONLY expected"
-note = "census SKELETON, decision PENDING"
+completed_in = "G114"
+evidence = ".atlas/evidence/campaign/50-c2rust.json"
+note = "no C semantic frontend and no migration pipeline in Atlas, so translation, refactoring and pointer-permission analysis have no consumer; clang is the donor's own boundary; source physically deleted (DC1 tests pass without it)"
 
 [[outside_first_50]]
 repository = "cytoscape-js"

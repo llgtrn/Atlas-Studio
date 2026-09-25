@@ -452,6 +452,7 @@ mod tests {
                 "ast-grep",
                 "blake3",
                 "buck2",
+                "c2rust",
                 "capnproto",
                 "clef",
                 "composer",

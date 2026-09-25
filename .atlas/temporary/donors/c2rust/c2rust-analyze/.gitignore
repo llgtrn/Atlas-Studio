@@ -1,3 +1,0 @@
-/inspect/
-*.rlib
-/tests/auto_fix_errors/*.json

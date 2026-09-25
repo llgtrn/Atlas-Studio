@@ -21,3 +21,13 @@ Status: SKELETON. Source is cloned and pinned; implementation inspection still n
 
 runtime migration planning and semantic preservation
 
+
+## G114 — bounded census; terminal REFERENCE_ONLY; source extinct
+
+Surfaces inspected:
+- clang AST export into unsafe-Rust transpilation;
+- the refactoring tool;
+- static pointer-permission analysis (`c2rust-analyze`);
+- the dynamic pointer derivation graph (`pdg`).
+
+Atlas has no C semantic frontend and no migration pipeline, so none of these has a consumer. clang is the donor's own boundary. The checkout was a DC1 Cargo test input; it was physically deleted, and the ledger-driven tests pass without it. Evidence: `../evidence/campaign/50-c2rust.json`.

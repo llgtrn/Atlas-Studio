@@ -60,14 +60,19 @@ default_branch = "master"
 retrieved_at = "2026-09-20T12:08:55.4960343Z"
 license = [".atlas/licenses/c2rust/LICENSE"]
 technology_domains = ["source_translation", "migration_ir"]
-ingestion_status = "CLONED"
-storage_state = "MATERIALIZED_CHECKOUT"
+ingestion_status = "EXTINCT"
+storage_state = "SOURCE_DELETED"
 materialization_mode = "SHALLOW_CHECKOUT"
 census_status = "SKELETON"
-decision_status = "PENDING"
+decision_status = "REFERENCE_ONLY"
+blocking_question = "resolved G114 (bounded census over a SKELETON record): c2rust translates C to unsafe Rust through a clang AST exporter (c2rust-ast-exporter -> c2rust-transpile), refactors the result (c2rust-refactor), and infers pointer ownership/permissions statically (c2rust-analyze) and dynamically (pdg, dynamic_instrumentation). Atlas has no C semantic frontend (semantic extraction is Rust-only; other languages get an UnsupportedLanguageOrProfile diagnostic, and the self-census holds no C artifact) and no migration pipeline (P6, secondary), so no mechanism has a consumer; clang is the donor's own external boundary. It was a DC1 real-donor Cargo test input; the ledger-driven tests pass without it"
+evidence_needed = "none outstanding (.atlas/evidence/campaign/50-c2rust.json)"
+cheapest_falsification = "performed G114: Atlas's language frontends and migration code checked (Rust-only extraction, no migration pipeline); workspace crates listed; DC1 tests run from the corpus record after extinction"
+next_action = "none: TERMINAL REFERENCE_ONLY; source physically deleted"
+implementation_status = "REFERENCE_ONLY"
 native_replacement = "runtime migration planning and semantic preservation"
 runtime_dependency_status = "REFERENCE_ONLY"
-evidence = [".atlas/provenance/donors/c2rust.json", ".atlas/census/c2rust.md"]
+evidence = [".atlas/evidence/campaign/50-c2rust.json", ".atlas/provenance/donors/c2rust.json", ".atlas/census/c2rust.md"]
 
 [[donor]]
 id = "crubit"

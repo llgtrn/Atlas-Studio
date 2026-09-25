@@ -1845,6 +1845,7 @@ objective = "run a bounded census over the SKELETON record, test lossless trees 
 writer = "coordinator (sole writer)"
 evidence = ".atlas/evidence/campaign/49-openrewrite.json"
 self_recensus = ".atlas/evidence/census/G113/recensus.json"
+result_commits = ["c9147fa48ea82714255cecfca12b6f83bffbbf1e", "10709699641f081d1a3670d4de81d54ede55ac5b"]
 
 [generation.verification]
 pre_census = "clean-HEAD census of 49207c1d4f = G112 post digest 05977220... (110b1132a4 adds only out-of-scope evidence)"
@@ -1855,3 +1856,23 @@ proof = "PROVEN on the first run (post f882e028...)"
 
 [generation.next]
 objective = "G114 (P3): first-50 #50 c2rust (C -> Rust translation with provenance, P6) -- the last first-50 donor; a DC1 real-donor Cargo test input"
+
+[[generation]]
+id = "G114"
+base_commit = "10709699641f081d1a3670d4de81d54ede55ac5b"
+priority = "P3"
+serves = "P3 FIRST_50_DONOR_CAMPAIGN: donor #50 c2rust to a terminal state (P6 translation IR)"
+objective = "run a bounded census over the SKELETON record, test translation/migration mechanisms against Atlas's frontends, physically extinct the checkout"
+writer = "coordinator (sole writer)"
+evidence = ".atlas/evidence/campaign/50-c2rust.json"
+self_recensus = ".atlas/evidence/census/G114/recensus.json"
+
+[generation.verification]
+pre_census = "clean-HEAD census of c9147fa48e = G113 post digest f882e028... (1070969964 adds only out-of-scope evidence)"
+falsification = "semantic extraction is Rust-only and the self-census holds no C artifact; no migration pipeline exists; clang is the donor's own boundary; nothing was built or run"
+no_code_change = "no c2rust mechanism absorbed; the only in-scope census change is the pinned deleted-donor list"
+extinction = "git rm -r .atlas/temporary/donors/c2rust (1,646 files, 16 MB); 362/362 adapter tests pass with the 2 remaining DC1 donors (crubit, zed)"
+proof = "PROVEN on the first run (post e5df9cac...)"
+
+[generation.next]
+objective = "G115 (P4): first-50 #5 salsa -- the last non-terminal first-50 donor: decide its remaining invalidation mechanisms against the measured incremental-recensus cost"

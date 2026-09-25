@@ -1,2 +1,0 @@
-repo/src/json_tokener.rs:
-  - json_tokener_parse_ex # large parser; invalid Rust output

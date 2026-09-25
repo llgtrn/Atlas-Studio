@@ -1,0 +1,26 @@
+{
+ "schema": "atlas.campaign-donor-decision.v1",
+ "ordinal": 50,
+ "donor": "c2rust",
+ "commit_sha": "1d37ebbf4d505c947f20947edc264f47e33ed14b",
+ "generation": "G114",
+ "base_commit": "1070969964",
+ "hypothesis": "C -> Rust translation with provenance (P6)",
+ "blocking_question": "none recorded; census SKELETON, decision PENDING -- this generation performed a bounded census",
+ "measurement": {
+  "surfaces": "c2rust-ast-exporter (clang AST export) -> c2rust-transpile (unsafe Rust), c2rust-refactor, c2rust-analyze (static pointer ownership/permission inference), pdg + dynamic_instrumentation (dynamic pointer derivation graph), cross-checks",
+  "atlas_consumer": "none: semantic extraction is Rust-only (other languages get an UnsupportedLanguageOrProfile diagnostic; the self-census holds no C artifact) and there is no migration pipeline (P6, secondary)",
+  "boundary": "clang is the donor's own external boundary; nothing was built or run",
+  "dc1": "a DC1 real-donor Cargo test input; after the corpus record changed, the ledger-driven tests pass with crubit and zed remaining"
+ },
+ "decision": {
+  "REFERENCE_ONLY": ["clang AST export and transpilation", "refactoring tool", "static pointer-permission analysis", "dynamic pointer derivation graph", "cross-checks"]
+ },
+ "terminal_state": "REFERENCE_ONLY",
+ "extinction": {
+  "runtime_dependency": "none",
+  "build_dependency": "none",
+  "test_dependency": "DC1 real-donor Cargo tests only (ledger-driven)",
+  "action": "git rm -r .atlas/temporary/donors/c2rust (1,646 files, 16 MB)"
+ }
+}

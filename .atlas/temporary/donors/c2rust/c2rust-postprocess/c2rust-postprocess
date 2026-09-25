@@ -1,2 +1,0 @@
-#!/bin/sh
-uv run --project "$(dirname "$0")" postprocess "$@"
