@@ -1,0 +1,25 @@
+{
+ "schema": "atlas.campaign-donor-decision.v1",
+ "ordinal": 37,
+ "donor": "object",
+ "commit_sha": "7770b8c580b07999a67226c4f9ae638e483e0314",
+ "generation": "G101",
+ "base_commit": "86b157a9cf",
+ "hypothesis": "ELF/COFF/Mach-O writer (P6)",
+ "blocking_question": "object emission and binary inspection belong to the Machine IR -> object stage, for which no compiler code exists; recorded as a sequencing block",
+ "measurement": {
+  "consumer": "none: no Machine IR/object stage in core/src, no Atlas path reads or writes ELF/Mach-O/COFF, no object crate in any manifest",
+  "future_shape": "when the stage is scheduled, the object crate is a registry dependency to evaluate (or a design to re-derive) -- holding its source checkout serves neither",
+  "cargo_census_case": "object's `members = [\"crates/*\"]` was the real-world case for glob member expansion; five synthetic glob fixtures lock it (expansion, no match, escaping prefix, symlink escape, per-subcrate roles); real_object_donor_glob_members_are_evidenced_not_dropped now follows the corpus ledger"
+ },
+ "decision": {
+  "REFERENCE_ONLY": ["read/write API over ELF, Mach-O, COFF/PE, XCOFF, Wasm objects", "relocation and symbol table model", "DWARF/unwind emission"]
+ },
+ "terminal_state": "REFERENCE_ONLY",
+ "extinction": {
+  "runtime_dependency": "none",
+  "build_dependency": "none",
+  "test_dependency": "DC1 real-donor Cargo tests and the object-specific test, all ledger-driven",
+  "action": "git rm -r .atlas/temporary/donors/object"
+ }
+}

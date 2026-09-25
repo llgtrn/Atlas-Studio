@@ -56,3 +56,7 @@ Status: COARSE_CENSUSED. This is an admission-stage inventory only. Deep census 
 ## Native Replacement
 
 compiler object emission and binary inspection primitives
+
+## G101 — terminal REFERENCE_ONLY; source extinct
+
+No Machine IR → object stage exists, and no Atlas path reads or writes ELF, Mach-O or COFF. When the stage is scheduled, the `object` crate is a dependency to evaluate, not a checkout to hold. Its glob-member Cargo-census case is locked by synthetic fixtures, and its dedicated real-donor test now follows the corpus ledger. The checkout was physically deleted. Evidence: `../../evidence/campaign/37-object.json`.

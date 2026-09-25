@@ -1,0 +1,17 @@
+{
+  "objective": "P3 first-50 #37 object: no Machine IR -> object stage or ELF/Mach-O/COFF consumer exists; glob-member census case locked by synthetic fixtures; the object-specific real-donor test follows the corpus ledger; REFERENCE_ONLY; checkout physically extinct",
+  "changed_paths": [
+    "adapter/src/dependency/cargo.rs",
+    "runtime/src/donor_storage.rs"
+  ],
+  "total_changes": [
+    "+evidence",
+    "+graph_edges",
+    "+graph_nodes",
+    "+typed_records"
+  ],
+  "entity_changes": [
+    "CHANGED adapter dependency/cargo/tests/real_object_donor_glob_members_are_evidenced_not_dropped().",
+    "CHANGED runtime donor_storage/tests/repository_donor_storage_has_no_unrecorded_violation()."
+  ]
+}

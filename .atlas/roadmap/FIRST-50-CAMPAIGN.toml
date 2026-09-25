@@ -15,19 +15,19 @@ decision = ".atlas/decisions/0024-self-recensus-proof-of-nextgen.md"
 [dashboard]
 first_50_total = 50
 historic_terminal = 3
-campaign_terminal = 32
+campaign_terminal = 33
 historically_proven = 4
 currently_censusing = 0
 deep_censused = 0
 absorbed = 9
-reference_only = 22
+reference_only = 23
 external_boundary = 3
 rejected = 0
 deferred = 1
-extinct = 35
-remaining = 15
-next_donor = "object"
-next_step = "G101 (P3): object (#37) -- ELF/COFF/Mach-O writer (P6)"
+extinct = 36
+remaining = 14
+next_donor = "regalloc2"
+next_step = "G102 (P3): regalloc2 (#38) -- SSA-based allocator boundary (P6)"
 
 [[donor]]
 ordinal = 1
@@ -640,13 +640,15 @@ canonical_url = "https://github.com/gimli-rs/object.git"
 serves = "P6"
 target_capability = "object file emission"
 mechanism_hypothesis = "ELF/COFF/Mach-O writer"
-materialization_mode = "already materialized"
+materialization_mode = "n/a (source deleted)"
 dependency_expectation = "none"
-current_status = "CURRENTLY_PENDING"
-lifecycle = "COARSE_CENSUSED"
-terminal_state = ""
+current_status = "CAMPAIGN_PROVEN"
+lifecycle = "TERMINAL"
+terminal_state = "REFERENCE_ONLY"
 terminal_goal = "DECIDED"
-note = "census COARSE_CENSUSED, decision APPROVED_COMPILER_BINARY_LANE"
+completed_in = "G101"
+evidence = ".atlas/evidence/campaign/37-object.json"
+note = "no Machine IR -> object stage and no ELF/Mach-O/COFF consumer exist; glob-member census case locked by synthetic fixtures; the object-specific real-donor test follows the corpus ledger; source physically deleted"
 
 [[donor]]
 ordinal = 38

@@ -2601,14 +2601,18 @@ version = "0.1.0"
         // crate under `crates/` was invisible to `workspace_members` (a literal, non-existent
         // `crates/*/Cargo.toml` path), so every dependency edge whose consumer was one of those
         // crates silently fell back to `role: None`.
-        let root = Path::new(env!("CARGO_MANIFEST_DIR"))
-            .parent()
-            .expect("adapter/ has a parent directory")
-            .join(".atlas/temporary/donors/object");
-        let Ok(Some(report)) = census_cargo_workspace(&root) else {
-            // Tolerate donor-corpus reorganization the same way the other real-donor tests do.
+        let Some((_, root)) = materialized_cargo_donors()
+            .into_iter()
+            .find(|(name, _)| *name == "object")
+        else {
+            // object's extinction is recorded in the corpus (G101); the synthetic fixture
+            // `a_glob_shaped_workspace_member_attributes_dependency_roles_for_every_real_subcrate`
+            // carries this case from then on.
             return;
         };
+        let report = census_cargo_workspace(&root)
+            .expect("object census")
+            .expect("object is a Cargo workspace");
         assert!(
             report.unsupported_constructs.is_empty(),
             "expected the glob member array to parse cleanly: {:?}",

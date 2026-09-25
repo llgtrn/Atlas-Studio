@@ -468,6 +468,7 @@ mod tests {
                 "llvm-project",
                 "miri",
                 "mlir",
+                "object",
                 "rkyv",
                 "rust",
                 "rust-analyzer",
