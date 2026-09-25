@@ -1,3 +1,0 @@
-go test fuzz v1
-string("package A0//\n//\n//  \n//   0\nfunc A()")
-int64(78)

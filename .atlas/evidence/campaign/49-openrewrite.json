@@ -1,0 +1,25 @@
+{
+ "schema": "atlas.campaign-donor-decision.v1",
+ "ordinal": 49,
+ "donor": "openrewrite",
+ "commit_sha": "f7372139f62f62a66e5b78d70bbad50aaea7d8ee",
+ "generation": "G113",
+ "base_commit": "110b1132a4",
+ "hypothesis": "lossless semantic trees + recipes as census-driven transforms (P2)",
+ "blocking_question": "none recorded; census SKELETON, decision PENDING -- this generation performed a bounded census",
+ "measurement": {
+  "surfaces": "rewrite-core: Tree/TreeVisitor/Cursor over lossless semantic trees (formatting and comments kept so a transform prints back byte-faithfully), Recipe/AbstractRecipe composition with preconditions and options, DataTable/DataTableStore outputs, Changeset and Result before/after diffs, LargeSourceSet, provenance markers (FindGitProvenance, FindLstProvenance); language modules for Java, Groovy, Gradle, Go, C#, HCL, Docker, and others",
+  "atlas_consumer": "none: Atlas never writes source back (its census reads source through syn, which is not lossless and does not need to be), and the construction change model (CandidateChangeSet in ASIR-CONSTRUCTION-MODEL.md) is TARGET with no code; the existing P2 'census -> declared change' path is adl derive (G63), which emits ADL declarations, not source edits",
+  "toolchain": "JVM (Gradle build); nothing was built or run"
+ },
+ "decision": {
+  "REFERENCE_ONLY": ["lossless semantic trees", "recipe composition, preconditions and options", "data tables", "Changeset/Result diffs", "search-then-change markers"]
+ },
+ "terminal_state": "REFERENCE_ONLY",
+ "extinction": {
+  "runtime_dependency": "none",
+  "build_dependency": "none",
+  "test_dependency": "none (no code or test references the checkout)",
+  "action": "git rm -r .atlas/temporary/donors/openrewrite (5,784 files, 94 MB)"
+ }
+}

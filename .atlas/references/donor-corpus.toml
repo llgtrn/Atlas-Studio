@@ -314,14 +314,19 @@ default_branch = "main"
 retrieved_at = "2026-09-20T12:08:55.4960343Z"
 license = [".atlas/licenses/openrewrite/LICENSE"]
 technology_domains = ["semantic_recipes", "large_scale_migration", "repeatable_transforms"]
-ingestion_status = "CLONED"
-storage_state = "MATERIALIZED_CHECKOUT"
+ingestion_status = "EXTINCT"
+storage_state = "SOURCE_DELETED"
 materialization_mode = "SHALLOW_CHECKOUT"
 census_status = "SKELETON"
-decision_status = "PENDING"
+decision_status = "REFERENCE_ONLY"
+blocking_question = "resolved G113 (bounded census over a SKELETON record): OpenRewrite's lossless semantic trees exist so a transform prints source back byte-faithfully (formatting and comments kept), and its recipes (visitors composed declaratively, preconditions, data tables, Changeset/Result diffs) drive source rewrites. Atlas never writes source back: its census reads source through syn, and the construction change model (CandidateChangeSet, ASIR-CONSTRUCTION-MODEL.md) is TARGET with no code. So neither the lossless tree nor the recipe engine has a consumer. The P2 'census -> declared change' path Atlas does have, adl derive (G63), produces declarations, not source edits. JVM toolchain boundary"
+evidence_needed = "none outstanding (.atlas/evidence/campaign/49-openrewrite.json)"
+cheapest_falsification = "performed G113: source-writing and change-set code searched (none); rewrite-core's recipe/Changeset/DataTable/LST surfaces listed"
+next_action = "none: TERMINAL REFERENCE_ONLY (design reference for the TARGET CandidateChangeSet and any future source-writing transform); source physically deleted"
+implementation_status = "REFERENCE_ONLY"
 native_replacement = "runtime/refactor recipe and ChangeSet model"
 runtime_dependency_status = "REFERENCE_ONLY"
-evidence = [".atlas/provenance/donors/openrewrite.json", ".atlas/census/openrewrite.md"]
+evidence = [".atlas/evidence/campaign/49-openrewrite.json", ".atlas/provenance/donors/openrewrite.json", ".atlas/census/openrewrite.md"]
 
 [[donor]]
 id = "py2many"

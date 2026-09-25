@@ -1824,6 +1824,7 @@ objective = "decide the consumer-gated tlaplus without admission"
 writer = "coordinator (sole writer)"
 evidence = ".atlas/evidence/campaign/48-tlaplus.json"
 self_recensus = ".atlas/evidence/census/G112/recensus.json"
+result_commits = ["49207c1d4f997fb2df5ac3fe8c707e95bd94c74c", "110b1132a4865ef6908ba79fa1c9b3c25574243d"]
 
 [generation.verification]
 pre_census = "clean-HEAD census of 61fb39f983 = G111 post digest 05977220... (2c61cee72c adds only out-of-scope evidence)"
@@ -1834,3 +1835,23 @@ proof = "PROVEN on the first run with an empty intent (post 05977220..., equal t
 
 [generation.next]
 objective = "G113 (P3): first-50 #49 openrewrite (lossless semantic trees + recipes as census-driven transforms, P2)"
+
+[[generation]]
+id = "G113"
+base_commit = "110b1132a4865ef6908ba79fa1c9b3c25574243d"
+priority = "P3"
+serves = "P3 FIRST_50_DONOR_CAMPAIGN: donor #49 openrewrite to a terminal state (P2 census -> declared change)"
+objective = "run a bounded census over the SKELETON record, test lossless trees and recipes against Atlas's change paths, physically extinct the checkout"
+writer = "coordinator (sole writer)"
+evidence = ".atlas/evidence/campaign/49-openrewrite.json"
+self_recensus = ".atlas/evidence/census/G113/recensus.json"
+
+[generation.verification]
+pre_census = "clean-HEAD census of 49207c1d4f = G112 post digest 05977220... (110b1132a4 adds only out-of-scope evidence)"
+falsification = "Atlas never writes source back (syn-based census; no source-writing code) and its construction change model is TARGET; the census -> declared-change path that exists is adl derive (G63), emitting declarations; lossless trees and the recipe engine have no consumer"
+no_code_change = "no OpenRewrite mechanism absorbed; the only in-scope census change is the pinned deleted-donor list"
+extinction = "git rm -r .atlas/temporary/donors/openrewrite (5,784 files, 94 MB)"
+proof = "PROVEN on the first run (post f882e028...)"
+
+[generation.next]
+objective = "G114 (P3): first-50 #50 c2rust (C -> Rust translation with provenance, P6) -- the last first-50 donor; a DC1 real-donor Cargo test input"

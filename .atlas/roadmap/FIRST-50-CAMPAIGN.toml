@@ -15,19 +15,19 @@ decision = ".atlas/decisions/0024-self-recensus-proof-of-nextgen.md"
 [dashboard]
 first_50_total = 50
 historic_terminal = 3
-campaign_terminal = 44
+campaign_terminal = 45
 historically_proven = 4
 currently_censusing = 0
 deep_censused = 0
 absorbed = 10
-reference_only = 26
+reference_only = 27
 external_boundary = 10
 rejected = 0
 deferred = 1
-extinct = 42
-remaining = 3
-next_donor = "openrewrite"
-next_step = "G113 (P3): openrewrite (#49) -- lossless semantic trees + recipes as census-driven transforms (P2)"
+extinct = 43
+remaining = 2
+next_donor = "c2rust"
+next_step = "G114 (P3): c2rust (#50) -- C -> Rust translation with provenance (P6); a DC1 real-donor Cargo test input"
 
 [[donor]]
 ordinal = 1
@@ -844,13 +844,15 @@ canonical_url = "https://github.com/openrewrite/rewrite.git"
 serves = "P2"
 target_capability = "census -> declared change"
 mechanism_hypothesis = "lossless semantic trees + recipes as census-driven transforms"
-materialization_mode = "already materialized"
+materialization_mode = "n/a (source deleted)"
 dependency_expectation = "jvm: TOOLCHAIN"
-current_status = "CURRENTLY_PENDING"
-lifecycle = "MATERIALIZED"
-terminal_state = ""
+current_status = "CAMPAIGN_PROVEN"
+lifecycle = "TERMINAL"
+terminal_state = "REFERENCE_ONLY"
 terminal_goal = "DECIDED"
-note = "census SKELETON, decision PENDING"
+completed_in = "G113"
+evidence = ".atlas/evidence/campaign/49-openrewrite.json"
+note = "Atlas never writes source back and its change model is TARGET, so lossless trees and the recipe engine have no consumer; adl derive (G63) is the census -> declared-change path that exists; source physically deleted"
 
 [[donor]]
 ordinal = 50

@@ -472,6 +472,7 @@ mod tests {
                 "mlir",
                 "mold",
                 "object",
+                "openrewrite",
                 "podman",
                 "regalloc2",
                 "rkyv",

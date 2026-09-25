@@ -1,0 +1,13 @@
+{
+  "objective": "P3 first-50 #49 openrewrite: bounded census; Atlas never writes source back and its change model is TARGET, so lossless trees and recipes have no consumer; REFERENCE_ONLY; checkout physically extinct; census unchanged except the pinned deleted-donor list",
+  "changed_paths": [
+    "runtime/src/donor_storage.rs"
+  ],
+  "total_changes": [
+    "+graph_edges",
+    "+graph_nodes"
+  ],
+  "entity_changes": [
+    "CHANGED runtime donor_storage/tests/repository_donor_storage_has_no_unrecorded_violation()."
+  ]
+}

@@ -21,3 +21,14 @@ Status: SKELETON. Source is cloned and pinned; implementation inspection still n
 
 runtime/refactor recipe and ChangeSet model
 
+
+## G113 — bounded census; terminal REFERENCE_ONLY; source extinct
+
+Surfaces inspected:
+- lossless semantic trees with visitors and cursors;
+- recipe composition, with preconditions and options;
+- data tables;
+- Changeset and Result diffs;
+- provenance markers.
+
+Atlas never writes source back, and its construction change model is TARGET, so neither the lossless tree nor the recipe engine has a consumer. The census → declared-change path that exists is `adl derive` (G63), which emits declarations, not source edits. The checkout was physically deleted. Evidence: `../evidence/campaign/49-openrewrite.json`.
