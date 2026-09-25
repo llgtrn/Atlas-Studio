@@ -26,44 +26,46 @@ Read in this order:
 16. `blueprints/PHYSICAL-REFOUNDATION.md`
 17. `roadmap/ROADMAP.md`
 18. `roadmap/SELF-BUILDING-R4-R8.md`
-19. `contracts/SELF-BUILD-CONTROLLER.md`
-20. `contracts/RECURSIVE-SELF-CENSUS.md`
-21. `contracts/BLUEPRINT-EVOLUTION.md`
-22. `roadmap/DONOR-ABSORPTION-ROADMAP.md`
-23. `roadmap/DONOR-ABSORPTION-PLAN.toml`
-24. `references/deepwiki/DONOR-ARCHITECTURE-SYNTHESIS.md`
-25. `contracts/ATLAS-DEVELOPMENT-LANGUAGE.md`
-26. `contracts/HUMAN-AI-ADL-AUTHORING.md`
-27. `contracts/ADL-TO-ATLAS.md`
-28. `contracts/ATLAS-CREATION-PIPELINE.md`
-29. `contracts/EXTERNAL-PROVIDER-TRUST.md`
-30. `contracts/DONOR-TO-LANGUAGE-GENESIS.md`
-31. `contracts/ATLAS-FORMAT.md`
-32. `contracts/ATLAS-SEMANTIC-COMPACTION.md`
-33. `contracts/ATLAS-BINARY-WIRE-FORMAT.md`
-34. `contracts/ATLAS-SHARDING.md`
-35. `contracts/SELECTED-DESIGN.md`
-36. `contracts/ATLAS-TO-ATLASX.md`
-37. `contracts/ATLASX-FORMAT.md`
-38. `contracts/ATLASX-BINARY-WIRE-FORMAT.md`
-39. `contracts/COMPILER-IR-PIPELINE.md`
-40. `contracts/COMPILER-IR-SCHEMAS.md`
-41. `architecture/DIGITAL-ORGANISM.md`
-42. `contracts/ORGANISM-GENOME-v1.md`
-43. `contracts/ORGANISM-LIFECYCLE.md`
-44. `contracts/ORGANISM-MODEL-ADMISSION.md`
-45. `contracts/ORGANISM-HOMEOSTASIS-METABOLISM.md`
-46. `standards/ORGANISM-SPECIES.md`
-47. `blueprints/ORGANISM-COMPILATION.md`
-48. `contracts/COMPILER-PRODUCT.md`
-49. `standards/COMPILER-OPTIMIZATION.md`
-50. `architecture/INVENTION-PIPELINE.md`
-51. `blueprints/SYSTEM-BLUEPRINT.md`
-52. `blueprints/COMPILER-ROADMAP.md`
-53. `blueprints/RUST-PARITY-AND-SURPASS-ROADMAP.md`
-54. `blueprints/BULK-DONOR-ABSORPTION.md`
-55. `contracts/SYSTEM-CONTRACT.md`
-56. `guides/DEVELOPMENT.md`
+19. `contracts/ESSENTIAL-COMPLEXITY.md`
+20. `roadmap/ESSENTIAL-COMPLEXITY-DEBT.toml`
+21. `contracts/SELF-BUILD-CONTROLLER.md`
+22. `contracts/RECURSIVE-SELF-CENSUS.md`
+23. `contracts/BLUEPRINT-EVOLUTION.md`
+24. `roadmap/DONOR-ABSORPTION-ROADMAP.md`
+25. `roadmap/DONOR-ABSORPTION-PLAN.toml`
+26. `references/deepwiki/DONOR-ARCHITECTURE-SYNTHESIS.md`
+27. `contracts/ATLAS-DEVELOPMENT-LANGUAGE.md`
+28. `contracts/HUMAN-AI-ADL-AUTHORING.md`
+29. `contracts/ADL-TO-ATLAS.md`
+30. `contracts/ATLAS-CREATION-PIPELINE.md`
+31. `contracts/EXTERNAL-PROVIDER-TRUST.md`
+32. `contracts/DONOR-TO-LANGUAGE-GENESIS.md`
+33. `contracts/ATLAS-FORMAT.md`
+34. `contracts/ATLAS-SEMANTIC-COMPACTION.md`
+35. `contracts/ATLAS-BINARY-WIRE-FORMAT.md`
+36. `contracts/ATLAS-SHARDING.md`
+37. `contracts/SELECTED-DESIGN.md`
+38. `contracts/ATLAS-TO-ATLASX.md`
+39. `contracts/ATLASX-FORMAT.md`
+40. `contracts/ATLASX-BINARY-WIRE-FORMAT.md`
+41. `contracts/COMPILER-IR-PIPELINE.md`
+42. `contracts/COMPILER-IR-SCHEMAS.md`
+43. `architecture/DIGITAL-ORGANISM.md`
+44. `contracts/ORGANISM-GENOME-v1.md`
+45. `contracts/ORGANISM-LIFECYCLE.md`
+46. `contracts/ORGANISM-MODEL-ADMISSION.md`
+47. `contracts/ORGANISM-HOMEOSTASIS-METABOLISM.md`
+48. `standards/ORGANISM-SPECIES.md`
+49. `blueprints/ORGANISM-COMPILATION.md`
+50. `contracts/COMPILER-PRODUCT.md`
+51. `standards/COMPILER-OPTIMIZATION.md`
+52. `architecture/INVENTION-PIPELINE.md`
+53. `blueprints/SYSTEM-BLUEPRINT.md`
+54. `blueprints/COMPILER-ROADMAP.md`
+55. `blueprints/RUST-PARITY-AND-SURPASS-ROADMAP.md`
+56. `blueprints/BULK-DONOR-ABSORPTION.md`
+57. `contracts/SYSTEM-CONTRACT.md`
+58. `guides/DEVELOPMENT.md`
 
 Canonical chain:
 
@@ -146,6 +148,7 @@ See `contracts/SELF-BUILD-CONTROLLER.md` and `contracts/RECURSIVE-SELF-CENSUS.md
 For implementation work between R4 and R8:
 
 - `roadmap/SELF-BUILDING-R4-R8.md` fixes the active self-building/census sequence;
+- `contracts/ESSENTIAL-COMPLEXITY.md` keeps essential capabilities open as debt (never closed by a donor verdict), with age/skip alarms and the native attack queue in `roadmap/ESSENTIAL-COMPLEXITY-DEBT.toml`;
 - `contracts/SELF-BUILD-CONTROLLER.md` fixes evidence-backed self-build planning authority;
 - `contracts/RECURSIVE-SELF-CENSUS.md` fixes generation recursion, stable-validator separation, scenario expansion, convergence and extinction probes;
 - `contracts/ARCHITECTURAL-INTEGRITY.md` fixes load-bearing classification, falsifiable architecture invariants, impact closure and collapse-prevention admission;

@@ -13,7 +13,7 @@
 #       -> generation evidence -> G_n+1
 
 schema = "atlas.self-build.generation-ledger.v1"
-current_generation = "G60"
+current_generation = "G116"
 
 [[generation]]
 id = "G35"
@@ -1887,6 +1887,7 @@ objective = "measure where recensus time goes and how large edits are, decide Sa
 writer = "coordinator (sole writer)"
 evidence = ".atlas/evidence/campaign/05-salsa.json"
 self_recensus = ".atlas/evidence/census/G115/recensus.json"
+result_commits = ["fd603365765d26605bfb18dcfd7dcd85a695842d", "ff4f425b2c9758bfb3cedc5052583ffd695b44f1"]
 
 [generation.verification]
 pre_census = "clean-HEAD census of 8991374da0 = G114 post digest e5df9cac... (9df5789b70 adds only out-of-scope evidence)"
@@ -1898,3 +1899,30 @@ proof = "PROVEN on the first run (post bece4bef...)"
 
 [generation.next]
 objective = "first-50 campaign complete; the next generation returns to the priority order (P0 census closure first) and the frontier beyond the first 50"
+
+[[generation]]
+id = "G116"
+base_commit = "ff4f425b2c9758bfb3cedc5052583ffd695b44f1"
+priority = "P0"
+serves = "P0 census closure first, and every essential debt: generation selection draws from the native attack queue before any donor (ADR 0038); P2/P6 exit E becomes a finite graph"
+objective = "retrospective architecture audit: separate donor mechanism from capability from current scale, record essential complexity as debt with derived age and skip-budget alarms, re-audit all 50 decisions, map the end-state and frontier onto debts, order the native attack queue"
+writer = "coordinator (sole writer); three read-only lanes (ledger timeline, end-state/ontology, construction graph)"
+evidence = ".atlas/roadmap/ESSENTIAL-COMPLEXITY-DEBT.toml"
+self_recensus = ".atlas/evidence/census/G116/recensus.json"
+
+[generation.lanes]
+timeline = "81 ledger blocks G35-G115: native P0 attacks at G59-G62, G74, G75, G77, G79, G83 (longest healthy gap 12); G84-G115 no native P0 attack; 53 avoidance quotes; first/last-advance generation per capability"
+ontology = "EpistemicStatus has 10 states but product, physical and graph keep parallel carriers; PREDICTED, COUNTERFACTUAL, FALSIFIED undecided, VALIDATED has four meanings; Quantity outside the semantic core; Chronica blockers are architectural (no declared typed state, no instance axis, no principal, untyped relations)"
+construction = "exit E is a 28-node graph; critical path E1 M1 M7 M8 M9 M10 M11 M13 MIN_ATLASX M15 M16 M17 FIRST_ARTIFACT; first missing node M1 typed-record .atlas sections; no generation after G65 attacked any prerequisite"
+
+[generation.verification]
+pre_census = "clean-HEAD census of fd60336576 = G115 post digest (ff4f425b2c adds only out-of-scope evidence)"
+falsification = "CONCURRENCY zero records falsified: adapter/src/semantic/rust/resolve.rs runs std::thread::scope + Builder::spawn_scoped and the census observes nothing; 27 of 50 decisions conflated NOT_NOW with NOT_REQUIRED; VerificationEvidence, the .atlas container, the seal gate and SandboxBackend were each called consumerless because their consumer was unbuilt"
+alarms = "36 of 39 debts escalated (stale > 24), 9 past the skip budget; every one queued, blocked by a queued debt, or frozen with an unfreeze gate; the tests recompute the alarms from the ledger head"
+no_revert = "no terminal donor state reverted and nothing re-absorbed; the 7 unadmitted checkouts stay BLOCKED_ON_USER"
+proof = "PROVEN on the first run (post 3bca06c2...)"
+tests = "runtime essential_complexity (8 tests) enforce the ledger, alarms, skip budget, queue head, re-audit classes and triggers, cluster routing, end-state ownership, construction graph and the gate/freeze coupling"
+
+[generation.next]
+objective = "G117 (P0): native attack queue head NA-CONCURRENCY-RESOLVED -- CONCURRENCY from resolved std paths; the falsified zero must be observed"
+

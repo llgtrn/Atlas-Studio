@@ -1,0 +1,44 @@
+{
+  "objective": "P0 retrospective architecture audit (ADR 0038): essential complexity debt ledger with derived age and skip-budget alarms, donor re-audit, end-state and frontier routing, native attack queue; the only production-crate change is the runtime essential_complexity test module that enforces them",
+  "changed_paths": [
+    "runtime/src/lib.rs"
+  ],
+  "total_changes": [
+    "+docs",
+    "+entities",
+    "+evidence",
+    "+facts",
+    "+graph_bindings",
+    "+graph_edges",
+    "+graph_nodes",
+    "+normalized_facts",
+    "+typed_records"
+  ],
+  "entity_changes": [
+    "CREATED runtime tests/essential_complexity/`impl:Ledger`/debts().",
+    "CREATED runtime tests/essential_complexity/`impl:Ledger`/known_ids().",
+    "CREATED runtime tests/essential_complexity/`impl:Ledger`/load().",
+    "CREATED runtime tests/essential_complexity/`impl:Ledger`/queued().",
+    "CREATED runtime tests/essential_complexity/`impl:Ledger`/scale_ids().",
+    "CREATED runtime tests/essential_complexity/blocks().",
+    "CREATED runtime tests/essential_complexity/construction_graph_is_finite_and_owned().",
+    "CREATED runtime tests/essential_complexity/current_generation().",
+    "CREATED runtime tests/essential_complexity/debt_ledger_is_complete_and_its_alarms_are_planned().",
+    "CREATED runtime tests/essential_complexity/donor_reaudit_separates_mechanism_from_capability().",
+    "CREATED runtime tests/essential_complexity/every_end_state_capability_is_owned_by_debt_or_closed().",
+    "CREATED runtime tests/essential_complexity/every_frontier_family_routes_to_a_capability_cluster().",
+    "CREATED runtime tests/essential_complexity/flag().",
+    "CREATED runtime tests/essential_complexity/foundational_gate_is_distinct_and_freezes_the_frontier().",
+    "CREATED runtime tests/essential_complexity/generation().",
+    "CREATED runtime tests/essential_complexity/list().",
+    "CREATED runtime tests/essential_complexity/native_attack_queue_is_ordered_and_heads_selection().",
+    "CREATED runtime tests/essential_complexity/non_advancing_streak().",
+    "CREATED runtime tests/essential_complexity/number().",
+    "CREATED runtime tests/essential_complexity/raw().",
+    "CREATED runtime tests/essential_complexity/read().",
+    "CREATED runtime tests/essential_complexity/root().",
+    "CREATED runtime tests/essential_complexity/scale_triggers_are_numeric().",
+    "CREATED runtime tests/essential_complexity/string().",
+    "CREATED runtime tests/essential_complexity/text()."
+  ]
+}

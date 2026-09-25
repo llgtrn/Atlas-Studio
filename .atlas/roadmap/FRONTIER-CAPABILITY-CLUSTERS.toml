@@ -1,0 +1,161 @@
+schema = "atlas.frontier-capability-clusters.v1"
+canonical = true
+established_in = "G116"
+contract = ".atlas/contracts/ESSENTIAL-COMPLEXITY.md"
+frontier = ".atlas/roadmap/RECOMMENDED-OSS-FRONTIER.toml"
+debt_ledger = ".atlas/roadmap/ESSENTIAL-COMPLEXITY-DEBT.toml"
+
+# The 153-repository frontier classified by the capability it could attack (G116 audit). This is
+# not a deep census: each repository is placed through its recorded `families`, and each cluster
+# names the essential or scale-triggered debts (ids in ESSENTIAL-COMPLEXITY-DEBT.toml) it is a
+# route into. A cluster with no debt is OPTIONAL. Enforced by runtime test
+# essential_complexity::every_frontier_family_routes_to_a_capability_cluster: every family of
+# every frontier repository appears in exactly one cluster, and every debt id named here exists.
+
+[[cluster]]
+id = "SEMANTIC_RESOLUTION"
+class = "ESSENTIAL"
+debts = ["DEBT-CALL", "DEBT-TYPE", "DEBT-SYMBOL", "DEBT-MULTI_ENGINE", "DEBT-MULTILANGUAGE"]
+families = ["compiler_frontend", "type_resolution", "rust_semantics", "borrow_checker", "symbol_identity", "semantic_index_exchange", "semantic_cross_reference", "cross_reference", "source_facts", "schema_indexing", "symbol_navigation", "syntax_trees", "incremental_parsing", "semantic_search", "pattern_matching", "structural_search", "static_analysis", "semantic_graph", "program_semantic_graph", "graph_native_language", "code_property_graph"]
+
+[[cluster]]
+id = "PROGRAM_FLOW_AND_STATE"
+class = "ESSENTIAL"
+debts = ["DEBT-CONTROL_FLOW", "DEBT-DATA_FLOW", "DEBT-STATE", "DEBT-EFFECT", "DEBT-OWNERSHIP", "DEBT-CONCURRENCY", "DEBT-PERSISTENCE"]
+families = ["data_flow", "rust_execution_semantics", "undefined_behavior_detection"]
+
+[[cluster]]
+id = "DERIVATION_AND_INCREMENTAL"
+class = "ESSENTIAL"
+debts = ["DEBT-IMPACT_CLOSURE", "SCALE-INCREMENTAL_RECOMPUTE", "SCALE-BRANCHING"]
+families = ["datalog", "fixed_point", "relational_inference", "incremental_analysis", "incremental_queries", "dependency_invalidation", "differential_computation", "incremental_graph_derivation", "equality_saturation", "e_graph_equivalence_classes", "build_graph", "target_identity"]
+
+[[cluster]]
+id = "COMPILER_IR"
+class = "ESSENTIAL"
+debts = ["DEBT-CONSTRUCTION_IR", "DEBT-COMPILER_LOWERING", "DEBT-BACKEND_ADAPTER"]
+families = ["compiler", "compiler/IR", "ir", "ir_design", "dialect_definition", "nanopass_compiler", "cranelift_lowering", "compiler_backend", "register_allocation", "object_files", "elf", "linker", "wasm", "instruction_validation_algorithm", "stack_machine_type_checking", "construction_pipeline_process", "trace_ir_process_pattern"]
+
+[[cluster]]
+id = "TRANSFORMATION_AND_TRANSLATION"
+class = "ESSENTIAL"
+debts = ["DEBT-TRANSFORMATION", "DEBT-MULTILANGUAGE"]
+families = ["source_translation", "language_conversion", "migration_ir", "cxx_rust_interop", "large_scale_migration", "semantic_recipes", "structural_rewrite"]
+
+[[cluster]]
+id = "INTERFACE_AND_COMPONENTS"
+class = "ESSENTIAL"
+debts = ["DEBT-CONSTRUCTION_IR", "DEBT-IDENTITY_AUTHORITY"]
+families = ["component_model", "component_boundary", "interface_definition_language", "ipc"]
+
+[[cluster]]
+id = "FORMAL_METHODS"
+class = "ESSENTIAL"
+debts = ["DEBT-VERIFICATION_EVIDENCE", "DEBT-CONSTRAINT_REASONING"]
+families = ["formal", "formal_verification", "model_checking", "proof_constraints", "proof_oriented_constraints"]
+
+[[cluster]]
+id = "STORAGE_ENCODING"
+class = "SCALE_TRIGGERED"
+debts = ["SCALE-COMPRESSION", "SCALE-COLUMNAR", "SCALE-SHARDING", "SCALE-ZERO_COPY", "DEBT-SEAL_GATE"]
+families = ["binary_encoding", "binary_payloads", "canonical_serialization", "serialization", "schema", "columnar_memory", "compression", "zero_copy_archive", "content_addressing", "hashing"]
+
+[[cluster]]
+id = "CONSTRUCTION_BUILD"
+class = "ESSENTIAL"
+debts = ["DEBT-ARTIFACT_IDENTITY", "DEBT-SANDBOXED_EXECUTION"]
+families = ["construction"]
+
+[[cluster]]
+id = "SANDBOXING"
+class = "ESSENTIAL"
+debts = ["DEBT-SANDBOXED_EXECUTION"]
+families = ["sandbox", "sandboxing", "wasm_runtime"]
+
+[[cluster]]
+id = "PROVENANCE_TRUST"
+class = "ESSENTIAL"
+debts = ["DEBT-ARTIFACT_IDENTITY", "DEBT-SEAL_GATE", "DEBT-IDENTITY_AUTHORITY"]
+families = ["provenance", "supply_chain", "trust", "security", "identity"]
+
+[[cluster]]
+id = "OBSERVATION_TELEMETRY"
+class = "ESSENTIAL"
+debts = ["DEBT-REAL_WORLD_OBSERVATION"]
+families = ["observability", "browser_observation", "creator_browser", "browser_engine", "visual_diff", "accessibility"]
+
+[[cluster]]
+id = "UNITS_QUANTITIES"
+class = "ESSENTIAL"
+debts = ["DEBT-QUANTITY_UNITS", "DEBT-UNCERTAINTY"]
+families = ["units"]
+
+[[cluster]]
+id = "SIMULATION_PHYSICS"
+class = "ESSENTIAL"
+debts = ["DEBT-SIMULATION", "DEBT-QUANTITY_UNITS"]
+families = ["modelica", "multibody", "CFD", "motion"]
+
+[[cluster]]
+id = "PHYSICAL_ENGINEERING"
+class = "ESSENTIAL"
+debts = ["DEBT-PHYSICAL_ONTOLOGY", "DEBT-SIMULATION"]
+families = ["CAD", "EDA", "robotics", "embedded", "product_parametric_cad"]
+
+[[cluster]]
+id = "MANUFACTURING"
+class = "ESSENTIAL"
+debts = ["DEBT-PHYSICAL_ONTOLOGY", "DEBT-ARTIFACT_IDENTITY"]
+families = ["CNC", "product_slicing"]
+
+[[cluster]]
+id = "PROBABILISTIC_AND_OPTIMIZATION"
+class = "ESSENTIAL"
+debts = ["DEBT-UNCERTAINTY", "DEBT-DESIGN_GENERATION"]
+families = ["probabilistic"]
+
+[[cluster]]
+id = "CAUSAL_INFERENCE"
+class = "ESSENTIAL"
+debts = ["DEBT-CAUSALITY"]
+families = ["causal"]
+
+[[cluster]]
+id = "AI_REASONING"
+class = "ESSENTIAL"
+debts = ["DEBT-DESIGN_GENERATION", "DEBT-IDENTITY_AUTHORITY"]
+families = ["multi-agent"]
+
+# PRODUCT and COMMERCE are declared end-state domains (frozen as secondary workloads). Their
+# donors' mechanisms are not needed, but a bill of materials and a price are quantities over
+# physical parts, so the cluster routes into the core primitives those domains depend on.
+[[cluster]]
+id = "PRODUCT_COMMERCE"
+class = "ESSENTIAL"
+debts = ["DEBT-QUANTITY_UNITS", "DEBT-PHYSICAL_ONTOLOGY"]
+families = ["product_bom_costing", "product_ecommerce"]
+
+# MEDIA is a declared domain, but media tools' mechanisms are optional to the architecture as long
+# as artifacts, effects and provenance (core debts) can represent media products.
+[[cluster]]
+id = "MEDIA"
+class = "OPTIONAL"
+debts = []
+families = ["media_workflow", "media_codegen", "higgsfield"]
+
+# The Studio is a projection over the engine (NORTH-STAR sequencing puts UI last); these
+# mechanisms do not block engine capabilities.
+[[cluster]]
+id = "STUDIO_PROJECTION"
+class = "OPTIONAL"
+debts = []
+families = ["ide", "editor", "graph_rendering", "large_graph_interaction", "graph_layout", "automatic_layout", "graph_interaction", "node_editor", "source_graph_visualization", "design_authoring", "visual_system", "scene_graph", "layout_constraints", "interaction_state", "front-end"]
+
+# Family-less frontier entries, placed by name.
+[[unfamilied]]
+name = "Docker"
+cluster = "SANDBOXING"
+
+[[unfamilied]]
+name = "Cargo"
+cluster = "SEMANTIC_RESOLUTION"

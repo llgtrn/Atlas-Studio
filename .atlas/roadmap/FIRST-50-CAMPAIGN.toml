@@ -26,7 +26,7 @@ rejected = 0
 deferred = 1
 extinct = 45
 remaining = 0
-next_step = "first-50 campaign complete: every donor terminal; the next generation returns to the priority order (P0 census closure) and the frontier beyond the first 50"
+next_step = "first-50 campaign complete (FIRST_50_CAMPAIGN_COMPLETE, not FOUNDATIONAL_ATLAS_READY -- ADR 0038); no donor remains to re-order (the G116 re-scoring found none pending); the next generation is the head of the essential-complexity native attack queue, and the frontier beyond the first 50 stays frozen until FOUNDATIONAL_ATLAS_READY"
 
 [[donor]]
 ordinal = 1

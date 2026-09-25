@@ -1,0 +1,238 @@
+schema = "atlas.futurism-end-state.v1"
+canonical = true
+established_in = "G116"
+contract = ".atlas/contracts/ESSENTIAL-COMPLEXITY.md"
+debt_ledger = ".atlas/roadmap/ESSENTIAL-COMPLEXITY-DEBT.toml"
+sources = [".atlas/architecture/constitution/NORTH-STAR.md", ".atlas/architecture/CAPABILITY-ARCHITECTURE.md", ".atlas/architecture/INVENTION-PIPELINE.md", ".atlas/roadmap/ROADMAP.md", ".atlas/roadmap/SELF-BUILDING-R4-R8.md"]
+
+# The reference architecture every decision is judged against (G116 retrospective audit). It is NOT
+# permission to implement every domain now; it is what "Atlas does not need X" must be tested
+# against. It restates what the canonical documents already require:
+#
+#   intent + reality -> ADL -> census -> semantic state -> CensusCertificate -> invention/selection
+#   -> SEALED .atlas -> .atlasx -> HIR/MIR/LIR/Machine IR -> codegen/link -> product / simulation /
+#   fabrication -> runtime evidence -> recensus -> NEXTGEN          (NORTH-STAR "Canonical chain")
+#
+# Each [[capability]] names the debts (ESSENTIAL-COMPLEXITY-DEBT.toml) that must close for it; a
+# capability with no open debt is recorded as such. Enforced by runtime test
+# essential_complexity::every_end_state_capability_is_owned_by_debt_or_closed.
+
+[target]
+name = "FUTURISM_ENGINEERING_SYSTEM"
+meaning = "understand, design, construct, verify and evolve systems across software and the physical world, from intent and observed reality to verified new systems"
+chronica = "Atlas is the engine beneath systems such as Chronica, and is not tied to any of them (NORTH-STAR)"
+
+[[capability]]
+id = "UNDERSTAND_EXISTING_SYSTEMS"
+meaning = "exhaustive inventory, dependency closure and multi-resolution semantic census of admitted reality, with explicit UNKNOWN"
+evidence = "NORTH-STAR canonical chain; CAPABILITY-ARCHITECTURE technical spine"
+native_state = "PARTIAL: Rust census engine, dependency closure and CensusCertificate exist (runtime/src/census, core/src/certificate)"
+debts = ["DEBT-CALL", "DEBT-CONTROL_FLOW", "DEBT-DATA_FLOW", "DEBT-STATE", "DEBT-EFFECT", "DEBT-OWNERSHIP", "DEBT-CONCURRENCY", "DEBT-PERSISTENCE", "DEBT-TYPE", "DEBT-SYMBOL", "DEBT-DEPENDENCY", "DEBT-MULTI_ENGINE", "DEBT-MULTILANGUAGE"]
+
+[[capability]]
+id = "MODEL_SEMANTICS"
+meaning = "typed universal semantics (identity, scope, node, edge, binding, state, event, temporal, evidence, provenance, constraint, invariant, interface, capability, effect, materialization) that survive all stages"
+evidence = "NORTH-STAR non-negotiable invariants; UNIVERSAL-GRAPH-CONTRACT.md; SEMANTIC-FACTS.md"
+native_state = "PARTIAL: typed observations and engineering graph (core/src/semantic, core/src/graph)"
+debts = ["DEBT-EPISTEMIC_UNIFICATION", "DEBT-QUANTITY_UNITS", "DEBT-CAUSALITY", "DEBT-UNCERTAINTY"]
+
+[[capability]]
+id = "REPRESENT_INTENT"
+meaning = "natural language and human/AI authoring become ADL declarations reconciled with census truth"
+evidence = "HUMAN-AI-ADL-AUTHORING.md; ADL-TO-ATLAS.md; exit criterion C"
+native_state = "PARTIAL: ADL compiler and census.adl derivation for package dependencies (G63)"
+debts = ["DEBT-ADL_BEYOND_DEPENDENCIES"]
+
+[[capability]]
+id = "REASON_ABOUT_CONSTRAINTS"
+meaning = "ground and non-ground constraints, invariants and adversarial gap queries with three-valued verdicts and provenance"
+evidence = "CAPABILITY-ARCHITECTURE 'Adversarial Gap Queries'; ADR 0007; ADR 0010"
+native_state = "PARTIAL: ground Datalog derivation (souffle, ADR 0003) and ConstraintVerdict (ADR 0007)"
+debts = ["DEBT-CONSTRAINT_REASONING"]
+
+[[capability]]
+id = "GENERATE_DESIGNS"
+meaning = "candidate mechanisms, designs and change sets from knowledge plus intent, including external synthesis treated as untrusted source"
+evidence = "INVENTION-PIPELINE 'Full pipeline'; MULTI-AI-CONSTRUCTION-FABRIC.md"
+native_state = "ABSENT outside the frozen Futures x Creator workload (ADR 0020)"
+debts = ["DEBT-DESIGN_GENERATION"]
+
+[[capability]]
+id = "COMPARE_AND_SELECT_ALTERNATIVES"
+meaning = "DecisionProposal over candidates, authorized SelectedDesign, BlueprintRevisionDecision"
+evidence = "SELECTED-DESIGN.md; CAPABILITY-ARCHITECTURE 'Epistemic planes'"
+native_state = "CONTRACT_ONLY"
+debts = ["DEBT-SELECTED_DESIGN", "DEBT-DESIGN_GENERATION"]
+
+[[capability]]
+id = "PREDICT"
+meaning = "predicted performance, cost and behavior as epistemically distinct claims, falsifiable against later observation"
+evidence = "ROADMAP VP1 (TheoreticalCost / PredictedPerformance / EmpiricalObservation); ADR 0002 amendments"
+native_state = "PARTIAL: epistemic statuses in core; no prediction pipeline"
+debts = ["DEBT-EPISTEMIC_UNIFICATION", "DEBT-UNCERTAINTY"]
+
+[[capability]]
+id = "SIMULATE"
+meaning = "simulation evidence (SIL before HIL, never labeled as hardware) for software, control and physical models"
+evidence = "PHYSICAL-ENGINEERING.md verification ladder; ADR 0019"
+native_state = "PARTIAL in a frozen workload: one SIMULATED planar arm (G51)"
+debts = ["DEBT-SIMULATION"]
+
+[[capability]]
+id = "CONSTRUCT"
+meaning = "ACP construction transactions against ASIR, admitted through the verification pipeline, producing CandidateChangeSets and artifacts"
+evidence = "ASIR-CONSTRUCTION-MODEL.md; ATLAS-CREATION-PIPELINE.md; CAPABILITY-ARCHITECTURE 'Transformation'"
+native_state = "CONTRACT_ONLY"
+debts = ["DEBT-CONSTRUCTION_IR", "DEBT-TRANSFORMATION", "DEBT-SANDBOXED_EXECUTION", "DEBT-ARTIFACT_IDENTITY"]
+
+[[capability]]
+id = "SEAL_AND_MATERIALIZE"
+meaning = "SEALED logical .atlas carrying complete typed semantics, then deterministic .atlasx selected executable meaning"
+evidence = "NORTH-STAR invariants; ATLAS-FORMAT.md; ATLAS-TO-ATLASX.md; exit criterion E"
+native_state = "PARTIAL: unsealed census container (G64), facts and obligations only"
+debts = ["DEBT-SEAL_GATE", "DEBT-ATLAS_COMPLETENESS", "DEBT-INTEGRITY_ENVELOPE", "DEBT-ATLASX"]
+
+[[capability]]
+id = "COMPILE"
+meaning = "AtlasX -> HIR -> MIR -> LIR -> Machine IR / delegated backend -> object -> link, preserving semantic barriers and lineage"
+evidence = "NORTH-STAR 'Canonical chain'; COMPILER-IR-PIPELINE.md; CAPABILITY-ARCHITECTURE 'Compiler boundary'"
+native_state = "CONTRACT_ONLY"
+debts = ["DEBT-COMPILER_LOWERING", "DEBT-BACKEND_ADAPTER"]
+
+[[capability]]
+id = "FABRICATE"
+meaning = "physical products and manufacturing artifacts from selected designs, gated by the physical verification ladder"
+evidence = "NORTH-STAR 'compile them into verified physical products'; PHYSICAL-ENGINEERING.md; PRODUCT-FOUNDRY.md"
+native_state = "ABSENT (frozen secondary workload)"
+debts = ["DEBT-PHYSICAL_ONTOLOGY", "DEBT-ARTIFACT_IDENTITY"]
+
+[[capability]]
+id = "INTERACT_WITH_REAL_WORLD"
+meaning = "bounded, authorized interaction with external systems and hardware; never autonomous hazardous actuation"
+evidence = "PHYSICAL-ENGINEERING.md safety rules; EXTERNAL-PROVIDER-TRUST.md; AGENT-HOST-EMBEDDED-RUNTIME.md"
+native_state = "PARTIAL: browser instrument observation only (G43, G55)"
+debts = ["DEBT-SANDBOXED_EXECUTION", "DEBT-IDENTITY_AUTHORITY", "DEBT-REAL_WORLD_OBSERVATION"]
+
+[[capability]]
+id = "OBSERVE_RESULTS"
+meaning = "runtime, telemetry, measurement and calibration evidence tied to target, workload and environment"
+evidence = "NORTH-STAR 'workload profile / PGO / tuning -> evidence + recensus'; VERIFICATION-METRICS-PERFORMANCE.md"
+native_state = "PARTIAL: OBSERVED browser records; no MEASURED/CALIBRATED states (ADR 0002 G51 amendment)"
+debts = ["DEBT-REAL_WORLD_OBSERVATION", "DEBT-VERIFICATION_EVIDENCE"]
+
+[[capability]]
+id = "FALSIFY"
+meaning = "tests, proofs, model checking, differential oracles and mutation batteries as typed VerificationEvidence against obligations"
+evidence = "VERIFICATION-METRICS-PERFORMANCE.md 'Evidence and obligations'"
+native_state = "PARTIAL: falsification happens in the generation loop and tests; no VerificationEvidence model"
+debts = ["DEBT-VERIFICATION_EVIDENCE"]
+
+[[capability]]
+id = "LEARN"
+meaning = "learning and self-modification produce candidates that require evaluation and admission before activation"
+evidence = "NORTH-STAR Digital Organism invariants; ORGANISM-* contracts"
+native_state = "ABSENT"
+debts = ["DEBT-DESIGN_GENERATION", "DEBT-IDENTITY_AUTHORITY"]
+
+[[capability]]
+id = "RECENSUS"
+meaning = "every change re-censused against an oracle; incremental, dependency-aware recompute equal to full census"
+evidence = "SELF-RECENSUS.md; P1; P4; NORTH-STAR sequencing 'incremental query/fixed-point reconciliation'"
+native_state = "PARTIAL: full self-recensus proof chain (P1, G57+); memoized extraction; no affected-impact closure"
+debts = ["DEBT-IMPACT_CLOSURE"]
+
+[[capability]]
+id = "EVOLVE"
+meaning = "blueprint evolution and NEXTGEN from evidence, with the census-to-construction loop closed on Atlas itself"
+evidence = "BLUEPRINT-EVOLUTION.md; SELF-BUILD-CONTROLLER.md"
+native_state = "PARTIAL: the generation ledger loop over Atlas's own source"
+debts = ["DEBT-SELECTED_DESIGN", "DEBT-CONSTRUCTION_IR"]
+
+# Domains the end-state spans. state: NOW (production code), FROZEN (secondary workload, frozen by
+# PRIORITY.toml until FOUNDATIONAL_ATLAS_READY), CONTRACT (specified only), ABSENT. `core_debts`
+# are the core primitives the domain depends on and that must exist before it is unfrozen, so
+# the domain never needs a second incompatible architecture.
+[[domain]]
+id = "SOFTWARE"
+state = "NOW"
+core_debts = ["DEBT-CALL", "DEBT-DATA_FLOW", "DEBT-MULTILANGUAGE"]
+
+[[domain]]
+id = "COMPILER"
+state = "CONTRACT"
+core_debts = ["DEBT-COMPILER_LOWERING", "DEBT-BACKEND_ADAPTER"]
+
+[[domain]]
+id = "DISTRIBUTED"
+state = "ABSENT"
+core_debts = ["DEBT-CONCURRENCY", "DEBT-PERSISTENCE", "DEBT-DISTRIBUTED_SEMANTICS"]
+
+[[domain]]
+id = "WEB"
+state = "FROZEN"
+core_debts = ["DEBT-MULTILANGUAGE", "DEBT-REAL_WORLD_OBSERVATION"]
+
+[[domain]]
+id = "AI"
+state = "CONTRACT"
+core_debts = ["DEBT-DESIGN_GENERATION", "DEBT-IDENTITY_AUTHORITY", "DEBT-UNCERTAINTY"]
+
+[[domain]]
+id = "PHYSICAL"
+state = "FROZEN"
+core_debts = ["DEBT-QUANTITY_UNITS", "DEBT-UNCERTAINTY", "DEBT-PHYSICAL_ONTOLOGY"]
+
+[[domain]]
+id = "ELECTRONICS"
+state = "ABSENT"
+core_debts = ["DEBT-QUANTITY_UNITS", "DEBT-PHYSICAL_ONTOLOGY"]
+
+[[domain]]
+id = "MECHANICAL"
+state = "FROZEN"
+core_debts = ["DEBT-QUANTITY_UNITS", "DEBT-PHYSICAL_ONTOLOGY"]
+
+[[domain]]
+id = "ROBOTICS"
+state = "FROZEN"
+core_debts = ["DEBT-PHYSICAL_ONTOLOGY", "DEBT-SIMULATION", "DEBT-CONCURRENCY"]
+
+[[domain]]
+id = "CONTROL"
+state = "FROZEN"
+core_debts = ["DEBT-SIMULATION", "DEBT-CAUSALITY", "DEBT-QUANTITY_UNITS"]
+
+[[domain]]
+id = "THERMAL"
+state = "ABSENT"
+core_debts = ["DEBT-QUANTITY_UNITS", "DEBT-SIMULATION"]
+
+[[domain]]
+id = "MANUFACTURING"
+state = "ABSENT"
+core_debts = ["DEBT-PHYSICAL_ONTOLOGY", "DEBT-ARTIFACT_IDENTITY"]
+
+[[domain]]
+id = "PRODUCT"
+state = "FROZEN"
+core_debts = ["DEBT-QUANTITY_UNITS", "DEBT-PHYSICAL_ONTOLOGY"]
+
+[[domain]]
+id = "COMMERCE"
+state = "FROZEN"
+core_debts = ["DEBT-QUANTITY_UNITS", "DEBT-IDENTITY_AUTHORITY"]
+
+[[domain]]
+id = "SOCIAL"
+state = "ABSENT"
+core_debts = ["DEBT-IDENTITY_AUTHORITY", "DEBT-DISTRIBUTED_SEMANTICS", "DEBT-STATE"]
+
+[[domain]]
+id = "MEDIA"
+state = "FROZEN"
+core_debts = ["DEBT-ARTIFACT_IDENTITY"]
+
+[[domain]]
+id = "FUTURES"
+state = "FROZEN"
+core_debts = ["DEBT-EPISTEMIC_UNIFICATION", "DEBT-UNCERTAINTY", "DEBT-CAUSALITY"]
