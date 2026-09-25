@@ -9,10 +9,13 @@ pub mod semantic;
 pub mod source;
 pub mod vcs;
 
-pub use dependency::census_cargo_workspace;
+pub use dependency::{ManifestTargets, census_cargo_workspace, manifest_targets};
+pub use semantic::rust::RUST_SEMANTIC_EXTRACTOR_ID;
 pub use semantic::{
-    DiagnosticCode, ExtractionBatch, ExtractionDiagnostic, ExtractionInput, ObligationResult,
-    SemanticExtractor, StaticUnsupportedExtractor, extractors_for_language, semantic_extractors,
+    CrateInput, DiagnosticCode, ExtractionBatch, ExtractionDiagnostic, ExtractionInput, FnTarget,
+    ObligationResult, PathCallOutcome, PathCallResolution, SemanticExtractor,
+    StaticUnsupportedExtractor, WorkspaceResolution, extractors_for_language, join_path,
+    resolve_path_calls, resolve_workspace, semantic_extractors,
 };
 pub use source::{
     IncludedFragment, SourceFrontend, SourceFrontendMatch, inventory_declared_source,

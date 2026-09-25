@@ -320,6 +320,8 @@ fn expand_glob_members(root: &Path, members: Vec<String>) -> Vec<String> {
 /// path = "../core" }` names the crate `core`, not `atlas_core`) and whether it declares
 /// `optional = true`.
 struct ManifestDependencyEntry {
+    /// The table key: the extern name source code spells (`atlas_core`).
+    key: String,
     resolved_name: String,
     optional: bool,
 }
@@ -382,6 +384,7 @@ fn manifest_dependency_entries(section: &str) -> Vec<ManifestDependencyEntry> {
             quoted_field_anywhere(&value, "package").unwrap_or_else(|| key.to_owned());
         let optional = bool_field_anywhere(&value, "optional").unwrap_or(false);
         entries.push(ManifestDependencyEntry {
+            key: key.to_owned(),
             resolved_name,
             optional,
         });
@@ -524,6 +527,69 @@ fn manifest_dependency_roles(
         }
     }
     result
+}
+
+/// The compilation targets of one package manifest and the dependencies they may name, as Rust
+/// name resolution sees them (G75): the library, binaries and build script with their root files
+/// (`[lib] path`/`[[bin]] path`/`build = ".."`, else Cargo's defaults when `exists` confirms the
+/// file), and every dependency's extern name (the table key, `atlas_core`) with the crate it
+/// names (`core`) and its role.
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct ManifestTargets {
+    pub package: String,
+    pub lib: Option<String>,
+    pub bins: Vec<String>,
+    pub build: Option<String>,
+    pub dependencies: Vec<(String, String, DependencyRole)>,
+}
+
+/// Reads [`ManifestTargets`] from a package manifest; target paths are relative to its directory.
+/// `None` for a manifest without a `[package]` (a virtual workspace root).
+pub fn manifest_targets(manifest: &str, exists: impl Fn(&str) -> bool) -> Option<ManifestTargets> {
+    let mut targets = ManifestTargets::default();
+    let mut has_package = false;
+    let field =
+        |body: &str, key: &str| body.lines().find_map(|line| quoted_field(line.trim(), key));
+    for (header, body) in manifest_sections(manifest) {
+        match header {
+            "[package]" => {
+                has_package = true;
+                targets.package = field(&body, "name").unwrap_or_default();
+                targets.build = field(&body, "build");
+            }
+            "[lib]" => targets.lib = field(&body, "path"),
+            "[[bin]]" => {
+                if let Some(path) = field(&body, "path") {
+                    targets.bins.push(path);
+                }
+            }
+            _ => {}
+        }
+        if let Some((role, _)) = dependency_section_role(header) {
+            for entry in manifest_dependency_entries(&body) {
+                targets
+                    .dependencies
+                    .push((entry.key, entry.resolved_name, role));
+            }
+        } else if let Some((key, role)) = dotted_dependency_header(header) {
+            let resolved =
+                quoted_field_anywhere(&body, "package").unwrap_or_else(|| key.to_owned());
+            targets.dependencies.push((key.to_owned(), resolved, role));
+        }
+    }
+    if !has_package {
+        return None;
+    }
+    if targets.lib.is_none() && exists("src/lib.rs") {
+        targets.lib = Some("src/lib.rs".into());
+    }
+    if targets.bins.is_empty() && exists("src/main.rs") {
+        targets.bins.push("src/main.rs".into());
+    }
+    if targets.build.is_none() && exists("build.rs") {
+        targets.build = Some("build.rs".into());
+    }
+    Some(targets)
 }
 
 fn read_to_string(path: &Path) -> io::Result<Option<String>> {

@@ -1,0 +1,49 @@
+{
+ "schema": "atlas.campaign-donor-decision.v1",
+ "ordinal": 4,
+ "donor": "rust-analyzer",
+ "commit_sha": "aaddfb73fd95f2c0bf001b474dca91ae28bcce3a",
+ "generation": "G75",
+ "base_commit": "f307807755",
+ "hypothesis": "hir-def's name resolution (DefMap, item scopes, use-import fixed point, module files, block scopes, extern prelude) resolves Rust path calls to their function from source alone, inside the never-rustc boundary",
+ "blocking_question_resolved": "the corpus question (a bounded slice of name resolution that moves CALL observations off UNRESOLVED without crossing the never-rustc/full-resolution boundary) is answered yes: path calls, resolved by module/import rules only; method calls need hir-ty inference and stay out",
+ "primary_sources": [
+  "crates/hir-def/src/nameres/collector.rs (import fixed point, glob propagation, shadowing)",
+  "crates/hir-def/src/nameres/path_resolution.rs (first segment, remaining segments, block DefMaps)",
+  "crates/hir-def/src/nameres/mod_resolution.rs (mod x; files, #[path])",
+  "crates/hir-def/src/item_scope.rs, per_ns.rs (namespaces, visibility, glob markers)",
+  "crates/hir-ty/src/method_resolution.rs (InherentImpls::for_crate)"
+ ],
+ "cheapest_falsification": {
+  "method": "on Atlas's own workspace, resolve every path call natively and compare each resolution with the pinned rust-analyzer 1.90.0 SCIP index at the same anchor",
+  "profile_path_calls": 6165,
+  "resolved": 3731,
+  "oracle_agreement": "3731 of 3731 (no resolution the oracle contradicts)",
+  "oracle_resolvable_workspace_calls_left_unresolved": 194,
+  "recall": "3731 of 3925 oracle-resolvable workspace-function path calls (95.1%)",
+  "unresolved_by_reason": {"external": 1777, "local-binding": 323, "unresolved-import": 154, "constructor": 136, "associated-not-found": 21, "open-scope": 16, "unresolved-prefix": 6, "ambiguous": 1},
+  "misses_are_sound_refusals": "unresolved-import/associated-not-found: macro-generated items (core::identity typed_id!) and derived impls (#[derive(Default)]) the pass does not expand; local-binding: a binding of the same name anywhere in the function (conservative); ambiguous: a cfg alternate",
+  "defect_found_by_the_oracle": "a block-level `use super::super::tests::element` was mis-resolved: chained `super` was not honoured and the unresolved import let the lookup fall through to the enclosing module's glob; fixed (chained super; an unresolvable named import binds its name as unknown) before promotion"
+ },
+ "absorbed_mechanism": {
+  "name": "hir-def-path-resolution",
+  "native_owner": "adapter::semantic::rust::resolve (DefMap, fixed point, path resolution) + runtime::census::resolution (engine atlas.resolution.rust-paths, observing the syntactic CALL claims)",
+  "deviations": [
+   "conflicting globs are AMBIGUOUS (hir-def keeps the first); never a pick",
+   "a lookup in a scope with item macros or an unresolvable glob is OPEN and never falls through",
+   "a local binding of the name anywhere in the function blocks resolution (hir-def scopes lets after their initializer)",
+   "Type::assoc uses inherent impls, then trait impls of the concrete type (hir-ty's probe reduced to unique-name lookup)"
+  ]
+ },
+ "decision": {
+  "ABSORBED": ["vfs-change-taxonomy (G37, ADR 0006)", "hir-def-path-resolution (G75, ADR 0031)"],
+  "REFERENCE_ONLY": ["hir-ty type inference and method resolution (needed for the 11,704 method calls; full trait solving, far beyond a bounded absorption -- the pinned rust-analyzer binary remains the verification oracle, EXTERNAL_BOUNDARY via rust #14)", "macro expansion, proc macros, salsa-backed IDE queries, base-db/project-model (the Cargo dependency census already owns the crate graph)"]
+ },
+ "terminal_state": "ABSORBED",
+ "extinction": {
+  "runtime_dependency": "none (native code; the rust-analyzer binary is a test-time oracle only, never a census input)",
+  "build_dependency": "none",
+  "test_dependency": "the DC1 real-donor Cargo census test iterated this checkout; with it absent 11 of 15 known Cargo donors remain (threshold 7), dependency cycles stay covered by crubit/wasm-tools/wasmtime/zed and the '(source)'-suffix shape by the synthetic fixture same_name_and_version_from_two_sources_resolve_to_the_right_one; adapter dependency tests pass with the checkout moved away (69/69)",
+  "action": "git rm -r .atlas/temporary/donors/rust-analyzer (2,345 tracked files, 29 MB)"
+ }
+}

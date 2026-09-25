@@ -15,19 +15,19 @@ decision = ".atlas/decisions/0024-self-recensus-proof-of-nextgen.md"
 [dashboard]
 first_50_total = 50
 historic_terminal = 3
-campaign_terminal = 9
-historically_proven = 5
+campaign_terminal = 10
+historically_proven = 4
 currently_censusing = 0
 deep_censused = 7
-absorbed = 6
+absorbed = 7
 reference_only = 5
 external_boundary = 1
 rejected = 0
 deferred = 0
-extinct = 12
-remaining = 38
+extinct = 13
+remaining = 37
 next_donor = "miri"
-next_step = "G75 (P0): rust-analyzer #4 name resolution absorbed natively for path calls (SCIP output as differential oracle); then miri (#15)"
+next_step = "G76 (P3): miri (#15)"
 
 [[donor]]
 ordinal = 1
@@ -81,13 +81,15 @@ canonical_url = "https://github.com/rust-lang/rust-analyzer.git"
 serves = "P4"
 target_capability = "incremental semantic analysis"
 mechanism_hypothesis = "vfs change taxonomy absorbed; name resolution / type inference for CALL coverage still open"
-materialization_mode = "SPARSE_CHECKOUT (hir, ide-db slices)"
+materialization_mode = "n/a (source deleted)"
 dependency_expectation = "salsa (queued #05), chalk/rustc_* crates REFERENCE_ONLY"
-current_status = "HISTORICALLY_PROVEN"
-lifecycle = "DECIDED"
-terminal_state = ""
+current_status = "CAMPAIGN_PROVEN"
+lifecycle = "TERMINAL"
+terminal_state = "ABSORBED"
 terminal_goal = "ABSORBED (vfs) ; remaining: DECIDED"
-note = "absorbed ['vfs-change-taxonomy'] (partial); remaining mechanisms pending; source still materialized"
+completed_in = "G75"
+evidence = ".atlas/evidence/campaign/04-rust-analyzer.json"
+note = "absorbed ['vfs-change-taxonomy' (G37), 'hir-def-path-resolution' (G75): native name resolution of path calls, a second CALL engine, 3,731/3,731 confirmed by the pinned SCIP oracle]; hir-ty inference REFERENCE_ONLY; source physically deleted"
 
 [[donor]]
 ordinal = 5

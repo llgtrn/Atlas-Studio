@@ -12,6 +12,7 @@
 //! `.atlas/contracts/SEMANTIC-EXTRACTION.md`).
 
 pub mod extraction;
+pub mod resolution;
 
 pub use extraction::{
     ALL_SEMANTIC_DIMENSIONS, CensusExtractionAccounting, ExtractorObligationRecord,

@@ -1004,6 +1004,7 @@ objective = "anchor every CALL site at a token that belongs to exactly one call 
 writer = "coordinator (sole writer)"
 evidence = ".atlas/evidence/census/G74/recensus.json"
 self_recensus = ".atlas/evidence/census/G74/recensus.json"
+result_commits = ["71e1713635808348ccecaae77f78f8157809c07d", "f30780775569e9956cacbf3b42a5c673ad405b3b"]
 
 [generation.verification]
 pre_census = "clean-HEAD census of 25c6b907a8 = G73 post digest fb6583ea... (ecbb3d8f14 adds only out-of-scope evidence)"
@@ -1016,3 +1017,25 @@ deferred = ["calls in const/static initializers have no caller identity (38, cor
 
 [generation.next]
 objective = "G75 (P0, rust-analyzer #4): absorb hir-def's name-resolution core natively -- module tree, items and use-imports (globs included) to a fixed point, then resolve path calls to workspace function descriptors; the pinned rust-analyzer SCIP output is the differential verification oracle, never a census input"
+
+[[generation]]
+id = "G75"
+base_commit = "f30780775569e9956cacbf3b42a5c673ad405b3b"
+priority = "P0"
+serves = "P0 CENSUS_KERNEL_CLOSURE: CALL callee resolution; P3 FIRST_50_DONOR_CAMPAIGN: donor #4 rust-analyzer to a terminal state"
+objective = "absorb hir-def name resolution natively as a second CALL engine that resolves path calls to their FunctionIdentity, verified against the pinned rust-analyzer SCIP oracle; terminal state and physical extinction of the rust-analyzer checkout"
+writer = "coordinator (sole writer); one read-only research agent summarized hir-def nameres with citations"
+evidence = ".atlas/evidence/campaign/04-rust-analyzer.json"
+self_recensus = ".atlas/evidence/census/G75/recensus.json"
+
+[generation.verification]
+pre_census = "clean-HEAD census of 71e1713635 = G74 post digest e25aea9a... (f307807755 adds only out-of-scope evidence)"
+falsification = "cheapest first: the corpus's recorded question (can module/import rules alone move CALL off UNRESOLVED?) was measured before wiring -- 3,785 workspace path calls resolve to workspace functions per SCIP, 85% free functions; the native resolver then resolved 3,731 of 6,165 profile path calls with 3,731/3,731 agreeing with rust-analyzer 1.90.0 SCIP at the same anchor (95.1% recall). The oracle exposed one mis-resolution (chained super + a failed block import falling through to an outer glob), fixed before promotion; a stale index first showed 14 false disagreements, all line-shift artifacts, re-run on a fresh index"
+change = "adapter::semantic::rust::resolve (DefMap: module tree, item scopes, import fixed point, block scopes, extern prelude, inherent/trait-impl lookup; recursion pre-scan + large stack); runtime::census::resolution (engine atlas.resolution.rust-paths observing syntactic CALL claims, crate targets from manifests); per-engine accounting closure; normalization: UNRESOLVED is no callee claim; graph CALLS edges; certificate names every single-engine dimension"
+certificate = "MULTI_ENGINE_RECONCILIATION_ABSENT stays, now naming the eleven single-engine dimensions (CALL has two engines); UNKNOWN_FACTS 736 -> 864 (one UNKNOWN CALL obligation of the new engine per Rust artifact, explained)"
+mutation_battery = "22/22 killed after closing two real test gaps (open-glob propagation; attachment to a missing claim)"
+extinction = "rust-analyzer checkout (2,345 files, 29 MB) physically deleted; adapter dependency tests pass with it absent (DC1 keeps 11 of 15 Cargo donors, threshold 7; (source) shape covered by the synthetic two-sources fixture)"
+proof = "PROVEN on the first run (post a53a8194...)"
+
+[generation.next]
+objective = "G76 (P3): first-50 #15 miri"

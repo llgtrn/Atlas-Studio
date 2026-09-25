@@ -8,4 +8,4 @@ pub mod cargo;
 #[cfg(test)]
 mod cargo_oracle;
 
-pub use cargo::census_cargo_workspace;
+pub use cargo::{ManifestTargets, census_cargo_workspace, manifest_targets};

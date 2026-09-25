@@ -15,7 +15,9 @@
 //! `TypeIdentity.canonical` stays `None` for every observation this extractor produces, and every
 //! `CALL` observation (R4.5) stays `CallDispatchKind::Unresolved` with an empty `callees` list --
 //! this extractor has no `use`-import tracking or type inference, so it can soundly observe WHERE
-//! a call syntactically occurs and WHO makes it, never WHOM it calls. CONTROL_FLOW (R4.6) and
+//! a call syntactically occurs and WHO makes it, never WHOM it calls (whole-workspace name
+//! resolution of path calls is a separate engine with its own identity, `resolve.rs`, G75).
+//! CONTROL_FLOW (R4.6) and
 //! DATA_FLOW (R4.7) are different in kind: a function's control-flow structure and its local
 //! def-use bindings are both fully determined by Rust's own syntax and scoping rules, not by
 //! name/type resolution, so real successor edges (see `cfg.rs`) and real local def-use resolution
@@ -50,6 +52,7 @@ mod dataflow;
 mod effect;
 mod ownership;
 mod persistence;
+pub mod resolve;
 mod spelling;
 mod state;
 

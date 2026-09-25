@@ -185,12 +185,16 @@ fn gather_census_inputs(
     let dependency_closure = resolve_dependency_closure(root)?;
     reconcile_adl_with_dependency_census(&mut adl, &dependency_closure);
     let repository_id = resolve_repository_id(&repository, root);
-    let extraction_batches = census::extraction::extract_semantics_cached(
+    let mut extraction_batches = census::extraction::extract_semantics_cached(
         &inventory,
         repository_id,
         snapshot.revision(),
         cache,
     );
+    // The second CALL engine (G75): name resolution over the whole workspace, observing the
+    // syntactic extractor's CALL claims it resolves.
+    let resolution = census::resolution::resolve_rust_path_calls(&inventory, &extraction_batches);
+    extraction_batches.extend(resolution);
     Ok(CensusInputs {
         snapshot,
         repository,
@@ -373,7 +377,7 @@ pub fn systemize_with(
     if !normalization.is_closed() {
         blockers.push("NORMALIZATION_ACCOUNTING_NOT_CLOSED".to_owned());
     }
-    if !extraction_accounting.is_closed(&census::extraction::ALL_SEMANTIC_DIMENSIONS) {
+    if !extraction_accounting.is_closed_per_extractor(census::extraction::requested_dimensions) {
         blockers.push("SEMANTIC_EXTRACTION_ACCOUNTING_NOT_CLOSED".to_owned());
     }
     // `NotApplicable` never blocks: absence of a Cargo workspace at this root is not itself a

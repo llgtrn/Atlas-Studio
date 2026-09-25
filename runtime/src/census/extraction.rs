@@ -291,6 +291,15 @@ fn extract_with_panic_isolation(
 /// never silently narrows what it asks an extractor to account for
 /// (`.atlas/contracts/CENSUS-COMPLETENESS.md`). `pub` so `build_census`/`systemize` and tests share
 /// the one canonical list rather than each keeping their own copy.
+/// The dimensions `extractor` is asked to account for (see `is_closed_per_extractor`).
+pub fn requested_dimensions(extractor: &ExtractorIdentity) -> &'static [SemanticDimension] {
+    if extractor.id == super::resolution::RUST_PATH_RESOLUTION_ID {
+        &super::resolution::RUST_PATH_RESOLUTION_DIMENSIONS
+    } else {
+        &ALL_SEMANTIC_DIMENSIONS
+    }
+}
+
 pub const ALL_SEMANTIC_DIMENSIONS: [SemanticDimension; 12] = [
     SemanticDimension::Symbol,
     SemanticDimension::Type,
@@ -577,6 +586,26 @@ impl CensusExtractionAccounting {
     /// `CensusReport` built from the same extraction batches can never disagree about what
     /// extraction actually produced (`.atlas/contracts/SEMANTIC-EXTRACTION.md#extractionbatch`).
     pub fn is_closed(&self, requested: &[SemanticDimension]) -> bool {
+        self.is_closed_per_extractor(|_| requested)
+    }
+
+    /// `is_closed`, with each extractor held to the dimensions it was asked for: every production
+    /// extractor is asked for all of them, the path-resolution engine (G75) for CALL only.
+    pub fn is_closed_per_extractor<'r>(
+        &self,
+        requested_for: impl Fn(&ExtractorIdentity) -> &'r [SemanticDimension],
+    ) -> bool {
+        let mut requested_by: BTreeMap<(&str, &str, &str), &[SemanticDimension]> = BTreeMap::new();
+        for record in &self.records {
+            requested_by.insert(
+                (
+                    record.artifact.as_str(),
+                    record.extractor.id.as_str(),
+                    record.extractor.version.as_str(),
+                ),
+                requested_for(&record.extractor),
+            );
+        }
         let mut grouped: BTreeMap<(&str, &str, &str), Vec<SemanticDimension>> = BTreeMap::new();
         for record in &self.records {
             grouped
@@ -588,7 +617,8 @@ impl CensusExtractionAccounting {
                 .or_default()
                 .push(record.obligation.dimension);
         }
-        grouped.values().all(|dimensions| {
+        grouped.iter().all(|(key, dimensions)| {
+            let requested = requested_by[key];
             dimensions.len() == requested.len()
                 && requested.iter().all(|dimension| {
                     dimensions.iter().filter(|seen| *seen == dimension).count() == 1

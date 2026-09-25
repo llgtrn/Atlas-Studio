@@ -150,6 +150,8 @@ Allowed outcomes include resolved target sets, partial sets, dynamic placeholder
 
 Independent extractors MAY analyze the same dimension. Their identities/evidence remain separate. Disagreement creates a reconciliation obligation; one extractor may not overwrite another.
 
+**Implementation note (G75, ADR 0031)**: CALL has two engines. `atlas.rust.source-semantic.v1` observes every call site (callee `UNRESOLVED`). `atlas.resolution.rust-paths` resolves path calls natively, crate-wide: module tree, items, `use` imports to a fixed point, block scopes, the extern prelude of workspace crates, and inherent/trait-impl associated functions. It observes the same claim (`record_id`) with `STATIC_RESOLVED` and the callee's FunctionIdentity record. It is asked for CALL only, so accounting closure holds each engine to the dimensions it was asked for. An UNRESOLVED observation makes no callee claim, so it is not a disagreement with a resolution; two different resolutions are. A resolution that matches no syntactic claim is a diagnosed engine disagreement, never a record. Unsound cases stay unresolved with a reason: locals, generic parameters, open scopes (item macros, external globs), ambiguity, trait dispatch, constructors. The pinned rust-analyzer SCIP output is the differential verification oracle, never a census input.
+
 ## Failure semantics
 
 Extractor crashes, parser errors, resource limits and unsupported syntax become diagnostics plus UNKNOWN or UNSUPPORTED according to cause. A failure must not remove the artifact from census accounting.

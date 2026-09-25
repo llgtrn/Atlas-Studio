@@ -147,6 +147,7 @@ G68 = "P2 artifact integrity from the glean cycle: .atlas schema_id derived from
 G69 = "P0 input from the joern cycle: CALL/DATA_FLOW/... UNKNOWN is a resolution gap (Joern itself resolves Rust through an external rust_ast_gen and falls back to Any); a graph layer cannot close it -- compiler-grade resolution can (rust #15, miri #16; rust-analyzer #4 DECIDED partial). Graph is 650-4,500x below columnar scale"
 G73 = "P0 measured: Atlas resolves 0 of 12,671 call sites; the pinned toolchain rust-analyzer (SCIP) resolves ~89% -- compiler-grade resolution is the EXTERNAL_BOUNDARY oracle that can close CALL coverage and MULTI_ENGINE_RECONCILIATION_ABSENT (G74)"
 G74 = "P0 CALL identity: a chain's calls shared their first token and collapsed into one record (3,888 of 18,035 call sites silently erased); anchored at the callee name, CALL records 12,671 -> 16,072 = an independent syntax enumeration of the profile. Oracle-as-census-engine rejected for now: CI has no rust-analyzer, so it would make the census environment-dependent; it becomes the verification oracle of native path resolution (G75)"
+G75 = "P0 CALL resolution: hir-def name resolution absorbed natively (rust-analyzer #4) as a second CALL engine; 3,731 path calls resolved to their FunctionIdentity, all confirmed by the pinned SCIP oracle (95.1% recall); CALLS graph edges; the multi-engine blocker now names each single-engine dimension instead of clearing on any one"
 
 # Exit criteria of the first phase; broad expansion stays frozen until all are MET.
 [exit_criteria]
@@ -156,7 +157,7 @@ C_adl_consumes_census_truth = "MET_G63 (minimum: member-level dependency archite
 D_atlas_writer_reader_validator = "MET_G64 (minimum: ATLAS wire v1 unsealed census container -- writer, verifying reader, transactional publication, certificate root identity; sealing, compression and sharding deferred)"
 E_atlasx_production_validation = "BLOCKED_ON_PREREQUISITES (G65 contract survey): canonical AtlasX requires a SEALED parent .atlas root, a SelectedDesign in state SELECTED (never selected merely because one candidate exists) and an ArchitecturalIntegrityEnvelope (ATLAS-TO-ATLASX.md L11/L55-96, SELECTED-DESIGN.md L427-443, genome [atlasx_format]); no AtlasX contract permits an unsealed/candidate profile. Next P2 step when unblocked: seal gate + SelectedDesign, then the AtlasX precondition gate, wire codec and validator"
 F_first_50_queue_canonical = "MET_G58 (FIRST-50-CAMPAIGN.toml, enforced by first_50_campaign_is_canonical_and_accounted)"
-G_first_50_sequential_lifecycle_substantial = "OPEN: 3 historic terminals + 9 campaign terminals (tree-sitter #6 G65 REFERENCE_ONLY; scip #7 G66 ABSORBED; kythe #8 G67 ABSORBED; glean #9 G68 ABSORBED; joern #10 G69 REFERENCE_ONLY; semgrep #11 G70 REFERENCE_ONLY; ast-grep #12 G71 REFERENCE_ONLY; sourcetrail #13 G72 REFERENCE_ONLY; rust #14 G73 EXTERNAL_BOUNDARY), all extinct; G74 P0 CALL identity done; next G75 P0 native path resolution (rust-analyzer #4), then miri (#15)"
+G_first_50_sequential_lifecycle_substantial = "OPEN: 3 historic terminals + 10 campaign terminals (rust-analyzer #4 G75 ABSORBED; tree-sitter #6 G65 REFERENCE_ONLY; scip #7 G66 ABSORBED; kythe #8 G67 ABSORBED; glean #9 G68 ABSORBED; joern #10 G69 REFERENCE_ONLY; semgrep #11 G70 REFERENCE_ONLY; ast-grep #12 G71 REFERENCE_ONLY; sourcetrail #13 G72 REFERENCE_ONLY; rust #14 G73 EXTERNAL_BOUNDARY), all extinct; G74 P0 CALL identity; rust-analyzer #4 G75 ABSORBED (path resolution); next miri (#15)"
 H_incremental_recensus_with_oracle = "OPEN"
 I_extinction_reclaim_under_bounded_storage = "PARTIAL: working set exists (G54); no post-extinction recensus yet"
 
@@ -249,7 +250,7 @@ objective = "CALL site identity: anchor at the callee-name token so chains are n
 [[planned_generation]]
 id = "G75"
 priority = "P0"
-objective = "rust-analyzer #4: absorb hir-def name resolution natively (module tree, items, use-imports to a fixed point, path calls -> workspace function descriptors); pinned rust-analyzer SCIP as differential verification oracle only; terminal state + extinction of the checkout"
+objective = "rust-analyzer #4: hir-def name resolution absorbed natively as a second CALL engine (done: ABSORBED, extinct)"
 
 [[planned_generation]]
 id = "G76+"

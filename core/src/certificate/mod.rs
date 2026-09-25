@@ -463,6 +463,18 @@ pub fn certify(report: &SystemizeReport, inputs: &CertificateInputs<'_>) -> Cens
             .insert(obligation.extractor.id.clone());
     }
     let max_engines = engines.values().map(BTreeSet::len).max().unwrap_or(0);
+    // Reconciliation is per dimension (G75): a second engine on one dimension does not reconcile
+    // the others, so every evaluated dimension no artifact has two engines for stays named.
+    let mut dimension_engines: BTreeMap<&str, usize> = BTreeMap::new();
+    for ((_, dimension), extractors) in &engines {
+        let most = dimension_engines.entry(dimension.as_str()).or_default();
+        *most = (*most).max(extractors.len());
+    }
+    let single_engine: Vec<&str> = dimension_engines
+        .iter()
+        .filter(|(_, engines)| **engines < 2)
+        .map(|(dimension, _)| *dimension)
+        .collect();
     let independent_passes = IndependentPasses {
         passes_total: max_engines,
         agreement: if max_engines >= 2 {
@@ -472,11 +484,15 @@ pub fn certify(report: &SystemizeReport, inputs: &CertificateInputs<'_>) -> Cens
         },
         conflicts_total: 0,
     };
-    if max_engines < 2 {
-        blockers.insert(
-            "MULTI_ENGINE_RECONCILIATION_ABSENT: one extractor per dimension (Genome: multi_engine_reconciliation_required)"
-                .into(),
-        );
+    if max_engines < 2 || !single_engine.is_empty() {
+        let dimensions = if single_engine.is_empty() {
+            "every dimension".to_owned()
+        } else {
+            single_engine.join(", ")
+        };
+        blockers.insert(format!(
+            "MULTI_ENGINE_RECONCILIATION_ABSENT: one engine for {dimensions} (Genome: multi_engine_reconciliation_required)"
+        ));
     }
 
     let evidence = EvidenceRoot {

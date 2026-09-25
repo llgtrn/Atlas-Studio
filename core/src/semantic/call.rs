@@ -6,10 +6,11 @@
 //! rustc-backed name resolution (never will, per every prior wave's epistemic discipline), so it
 //! can soundly observe WHERE a call syntactically occurs and WHO makes it, but not, in the general
 //! case, WHOM it calls -- an unqualified path or a method-call receiver's type is not determinable
-//! from `syn` alone. `dispatch`/`callees` are therefore always `Unresolved`/`[]` from this
-//! extractor today; the fields exist, typed and real, so a later wave that adds real resolution
-//! (still never rustc/full name resolution -- see `.atlas/contracts/SEMANTIC-EXTRACTION.md`) can
-//! populate them without a schema change.
+//! from `syn` alone. `dispatch`/`callees` are therefore always `Unresolved`/`[]` from that
+//! extractor. Since G75 a second engine, native Rust name resolution of path calls
+//! (`adapter::semantic::rust::resolve`, absorbed from rust-analyzer's `hir-def`; never rustc), observes
+//! the same claims with `StaticResolved` and the callee's FunctionIdentity record -- the reason
+//! these fields were never part of the identity.
 
 use super::SemanticRecordId;
 use super::place::PlaceRef;

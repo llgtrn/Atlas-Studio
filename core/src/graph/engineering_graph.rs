@@ -527,9 +527,8 @@ pub fn build_system_graph(
 /// (`.atlas/decisions/0001-one-normalized-semantic-path.md`: no parser/extractor bypass may create
 /// canonical semantics, but the typed kernel record is exactly the *normalized* semantic path this
 /// graph is meant to project from -- the lossy string projection was the bypass). Each observation
-/// gets a lightweight node keyed by its `record_id`; deeper graph modeling (call edges,
-/// control/data-flow projection) remains out of scope until those dimensions themselves become
-/// real (R4.4+). CALL/CONTROL_FLOW/DATA_FLOW/STATE/EFFECT observations are matched explicitly (never
+/// gets a lightweight node keyed by its `record_id`; a resolved CALL claim also gets a CALLS edge
+/// to its callee's FunctionIdentity node (G75). CALL/CONTROL_FLOW/DATA_FLOW/STATE/EFFECT observations are matched explicitly (never
 /// via a wildcard) precisely so a future dimension is impossible to forget here silently.
 fn add_typed_semantic_nodes(
     graph: &mut EngineeringGraph,
@@ -681,16 +680,36 @@ fn add_typed_semantic_nodes(
                     });
                 }
             }
-            // R4.5: one lightweight CallSite node per Call observation, plus a MAKES_CALL edge
-            // from the caller's FunctionIdentity node. Never an edge to a callee: every
-            // `CallSiteIdentity` produced this wave has `dispatch == Unresolved` and empty
-            // `callees` (see `core/src/semantic/call.rs`), so there is nothing to point at yet.
-            // The caller's node id is derived the same way `FunctionIdentity`'s own node id is
-            // derived above (`function-identity:<record_id>`), so the edge resolves correctly
-            // whether or not that FunctionIdentity observation is present in this same batch.
+            // R4.5: one lightweight CallSite node per Call claim, plus a MAKES_CALL edge from
+            // the caller's FunctionIdentity node. The caller's node id is derived the same way
+            // `FunctionIdentity`'s own node id is derived above (`function-identity:<record_id>`),
+            // so the edge resolves correctly whether or not that FunctionIdentity observation is
+            // present in this same batch. G75: a claim may be observed by more than one engine
+            // (the syntactic extractor and name resolution); its site edges are projected once,
+            // and every resolved callee adds a CALLS edge to that callee's FunctionIdentity node.
             SemanticObservation::Call(header) => {
                 let call_site_id =
                     stable_id("node", &format!("call-site:{}", header.record_id.as_str()));
+                for callee in &header.subject.callees {
+                    let callee_node_id =
+                        stable_id("node", &format!("function-identity:{}", callee.as_str()));
+                    graph.edges.push(Edge {
+                        id: stable_id("edge", &format!("{call_site_id}:CALLS:{callee_node_id}")),
+                        kind: "CALLS".into(),
+                        from: call_site_id.clone(),
+                        to: callee_node_id,
+                        attributes: BTreeMap::from([
+                            ("origin".into(), "semantic-extraction".into()),
+                            ("dispatch".into(), header.subject.dispatch.as_str().into()),
+                            ("extractor".into(), header.extractor.id.clone()),
+                        ]),
+                        provenance: header.provenance.clone(),
+                        revision: header.provenance.source_revision.clone(),
+                    });
+                }
+                if graph.node_index.contains(&graph.nodes, &call_site_id) {
+                    continue;
+                }
                 ensure_node(
                     graph,
                     call_site_id.clone(),
@@ -3159,14 +3178,59 @@ mod tests {
     }
 
     #[test]
-    fn no_call_edge_ever_targets_a_callee_this_wave() {
-        // Every Call observation this wave carries an empty `callees` list -- the graph must never
-        // synthesize a callee edge from thin air.
+    fn an_unresolved_call_never_targets_a_callee() {
+        // An unresolved Call carries an empty `callees` list -- the graph must never synthesize a
+        // callee edge from thin air.
         let caller = function_identity_observation("Foo");
         let call = call_observation(&caller.record_id().clone());
         let normalization = normalization_with(vec![caller, call], Vec::new());
         let graph = build_system_graph(&source(), &docs(), &normalization);
         assert!(graph.edges.iter().all(|edge| edge.kind != "CALLS"));
+    }
+
+    #[test]
+    fn a_resolution_of_a_claim_adds_one_calls_edge_and_no_second_call_site() {
+        // G75: the syntactic extractor and name resolution observe the same claim; the site is
+        // projected once and the resolved callee gets a CALLS edge at its FunctionIdentity node.
+        let caller = function_identity_observation("Foo");
+        let callee = function_identity_observation("Bar");
+        let call = call_observation(&caller.record_id().clone());
+        let SemanticObservation::Call(mut resolved) = call.clone() else {
+            unreachable!()
+        };
+        resolved.subject.dispatch = crate::semantic::CallDispatchKind::StaticResolved;
+        resolved.subject.callees = vec![callee.record_id().clone()];
+        resolved.extractor.id = "atlas.resolution.test".into();
+        let normalization = normalization_with(
+            vec![
+                caller,
+                callee.clone(),
+                call,
+                SemanticObservation::Call(resolved),
+            ],
+            Vec::new(),
+        );
+        let graph = build_system_graph(&source(), &docs(), &normalization);
+        let count = |kind: &str| graph.edges.iter().filter(|e| e.kind == kind).count();
+        assert_eq!(
+            graph.nodes.iter().filter(|n| n.kind == "CallSite").count(),
+            1
+        );
+        assert_eq!(count("MAKES_CALL"), 1);
+        assert_eq!(count("CALLS"), 1);
+        let calls = graph.edges.iter().find(|e| e.kind == "CALLS").unwrap();
+        assert_eq!(
+            calls.to,
+            stable_id(
+                "node",
+                &format!("function-identity:{}", callee.record_id().as_str())
+            )
+        );
+        assert!(graph.nodes.iter().any(|n| n.id == calls.to));
+        assert_eq!(
+            calls.attributes.get("dispatch").map(String::as_str),
+            Some("STATIC_RESOLVED")
+        );
     }
 
     #[test]

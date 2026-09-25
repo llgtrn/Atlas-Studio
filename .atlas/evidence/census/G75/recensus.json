@@ -1,0 +1,1547 @@
+{
+  "schema": "atlas.self-recensus-report.v1",
+  "generation": "G75",
+  "base_revision": "ecbb3d8f14ede4a9b0973783e7a004a5f8cb6d3b",
+  "candidate_revision": "f30780775569e9956cacbf3b42a5c673ad405b3b",
+  "candidate_dirty": true,
+  "before_census_digest": "blake3-256:e25aea9a2ec9dc2b0f40700bd202538689a9b6444d738631caaf8612542fab1f",
+  "after_census_digest": "blake3-256:a53a819452b56c5c9088baae2ea39c5cbaf17cb7550e2d083d5358a2a39cf720",
+  "replay_digest": "blake3-256:a53a819452b56c5c9088baae2ea39c5cbaf17cb7550e2d083d5358a2a39cf720",
+  "inventory_delta": {
+    "created": [
+      "adapter/src/semantic/rust/resolve.rs",
+      "adapter/src/semantic/rust/resolve/tests.rs",
+      "runtime/src/census/resolution.rs",
+      "runtime/src/census/resolution/tests.rs"
+    ],
+    "modified": [
+      "adapter/Cargo.toml",
+      "adapter/src/dependency/cargo.rs",
+      "adapter/src/dependency/mod.rs",
+      "adapter/src/lib.rs",
+      "adapter/src/semantic/mod.rs",
+      "adapter/src/semantic/rust/mod.rs",
+      "core/src/certificate/mod.rs",
+      "core/src/graph/engineering_graph.rs",
+      "core/src/semantic/call.rs",
+      "runtime/src/census/extraction.rs",
+      "runtime/src/census/mod.rs",
+      "runtime/src/certificate.rs",
+      "runtime/src/donor_storage.rs",
+      "runtime/src/lib.rs",
+      "runtime/src/normalize/mod.rs"
+    ],
+    "deleted": []
+  },
+  "semantic_delta": {
+    "changed": [
+      "adapter/build.rs",
+      "adapter/src/browser/mod.rs",
+      "adapter/src/dependency/cargo.rs",
+      "adapter/src/dependency/cargo_oracle.rs",
+      "adapter/src/dependency/mod.rs",
+      "adapter/src/lib.rs",
+      "adapter/src/semantic/batch.rs",
+      "adapter/src/semantic/boundary_tests.rs",
+      "adapter/src/semantic/extractor.rs",
+      "adapter/src/semantic/mod.rs",
+      "adapter/src/semantic/registry.rs",
+      "adapter/src/semantic/rust/cfg.rs",
+      "adapter/src/semantic/rust/concurrency.rs",
+      "adapter/src/semantic/rust/dataflow.rs",
+      "adapter/src/semantic/rust/effect.rs",
+      "adapter/src/semantic/rust/mod.rs",
+      "adapter/src/semantic/rust/ownership.rs",
+      "adapter/src/semantic/rust/persistence.rs",
+      "adapter/src/semantic/rust/spelling.rs",
+      "adapter/src/semantic/rust/state.rs",
+      "adapter/src/semantic/rust/tests.rs",
+      "adapter/src/source/frontend.rs",
+      "adapter/src/source/mod.rs",
+      "adapter/src/vcs/mod.rs",
+      "apps/cli/src/main.rs",
+      "core/src/atlas/mod.rs",
+      "core/src/atlas/schema.rs",
+      "core/src/atlas/tests.rs",
+      "core/src/capability/mod.rs",
+      "core/src/census/delta.rs",
+      "core/src/census/dependency.rs",
+      "core/src/census/mod.rs",
+      "core/src/certificate/mod.rs",
+      "core/src/closure/mod.rs",
+      "core/src/constraint/mod.rs",
+      "core/src/donor/mod.rs",
+      "core/src/evidence/mod.rs",
+      "core/src/graph/engineering_graph.rs",
+      "core/src/graph/mod.rs",
+      "core/src/identity/blake3.rs",
+      "core/src/identity/mod.rs",
+      "core/src/language/adl/census.rs",
+      "core/src/language/adl/census/tests.rs",
+      "core/src/language/adl/mod.rs",
+      "core/src/language/mod.rs",
+      "core/src/lib.rs",
+      "core/src/physical/dynamics.rs",
+      "core/src/physical/mod.rs",
+      "core/src/product/mod.rs",
+      "core/src/product/tests.rs",
+      "core/src/provenance/mod.rs",
+      "core/src/quantity/mod.rs",
+      "core/src/recensus/entity.rs",
+      "core/src/recensus/entity/tests.rs",
+      "core/src/recensus/mod.rs",
+      "core/src/recensus/tests.rs",
+      "core/src/schema/mod.rs",
+      "core/src/semantic/call.rs",
+      "core/src/semantic/concurrency.rs",
+      "core/src/semantic/control_flow.rs",
+      "core/src/semantic/data_flow.rs",
+      "core/src/semantic/diagnostic.rs",
+      "core/src/semantic/effect.rs",
+      "core/src/semantic/function.rs",
+      "core/src/semantic/mod.rs",
+      "core/src/semantic/obligation.rs",
+      "core/src/semantic/observation.rs",
+      "core/src/semantic/ownership.rs",
+      "core/src/semantic/persistence.rs",
+      "core/src/semantic/place.rs",
+      "core/src/semantic/state.rs",
+      "core/src/semantic/symbol.rs",
+      "core/src/semantic/types.rs",
+      "core/src/state/mod.rs",
+      "core/src/temporal/mod.rs",
+      "core/src/visual/compose.rs",
+      "core/src/visual/differential.rs",
+      "core/src/visual/genome.rs",
+      "core/src/visual/mod.rs",
+      "core/src/visual/search.rs",
+      "runtime/src/atlas.rs",
+      "runtime/src/census/extraction.rs",
+      "runtime/src/census/mod.rs",
+      "runtime/src/certificate.rs",
+      "runtime/src/donor_storage.rs",
+      "runtime/src/inventory/mod.rs",
+      "runtime/src/lib.rs",
+      "runtime/src/normalize/mod.rs",
+      "runtime/src/physical.rs",
+      "runtime/src/product.rs",
+      "runtime/src/recensus.rs",
+      "runtime/src/visual.rs"
+    ],
+    "counts": {
+      "fact:FunctionIdentity|OBSERVED": 88,
+      "fact:FunctionSignature|OBSERVED": 88,
+      "fact:SemanticObligation|OBSERVED": 16,
+      "fact:SemanticObligation|UNKNOWN": 128,
+      "fact:SourceArtifact|OBSERVED": 8,
+      "fact:Symbol|OBSERVED": 215,
+      "fact:Type|OBSERVED": 176,
+      "record:CALL|DERIVED": 3731,
+      "record:CALL|OBSERVED": 788,
+      "record:CONTROL_FLOW|INFERRED": 2,
+      "record:CONTROL_FLOW|OBSERVED": 404,
+      "record:DATA_FLOW|OBSERVED": 1835,
+      "record:EFFECT|INFERRED": 9,
+      "record:FUNCTION_IDENTITY|OBSERVED": 88,
+      "record:FUNCTION_SIGNATURE|OBSERVED": 88,
+      "record:OWNERSHIP|OBSERVED": 562,
+      "record:STATE|OBSERVED": 48,
+      "record:SYMBOL|OBSERVED": 215,
+      "record:TYPE|OBSERVED": 176
+    }
+  },
+  "dependency_delta": {
+    "added": [],
+    "removed": []
+  },
+  "dependency_state": [
+    "Closed",
+    "Closed"
+  ],
+  "graph_delta": {
+    "graph_bindings": 4,
+    "graph_edges": 10231,
+    "graph_nodes": 4641
+  },
+  "obligation_delta": {
+    "obligation:CALL|UNKNOWN": 100,
+    "obligation:CONCURRENCY|UNKNOWN": 4,
+    "obligation:CONTROL_FLOW|UNKNOWN": 4,
+    "obligation:DATA_FLOW|UNKNOWN": 4,
+    "obligation:EFFECT|UNKNOWN": 4,
+    "obligation:FUNCTION_IDENTITY|OBSERVED": 4,
+    "obligation:FUNCTION_SIGNATURE|OBSERVED": 4,
+    "obligation:OWNERSHIP|UNKNOWN": 4,
+    "obligation:PERSISTENCE|UNKNOWN": 4,
+    "obligation:STATE|UNKNOWN": 4,
+    "obligation:SYMBOL|OBSERVED": 4,
+    "obligation:TYPE|OBSERVED": 4
+  },
+  "adl_delta": {
+    "added": [],
+    "removed": []
+  },
+  "entity_delta": [
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter dependency/cargo/manifest_dependency_entries()."
+      ],
+      "after": [
+        "adapter dependency/cargo/manifest_dependency_entries()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core certificate/certify()."
+      ],
+      "after": [
+        "core certificate/certify()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core graph/engineering_graph/add_typed_semantic_nodes()."
+      ],
+      "after": [
+        "core graph/engineering_graph/add_typed_semantic_nodes()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "runtime census/extraction/`impl:CensusExtractionAccounting`/is_closed()."
+      ],
+      "after": [
+        "runtime census/extraction/`impl:CensusExtractionAccounting`/is_closed()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "runtime certificate/tests/the_self_scope_certificate_is_honest_and_every_condition_is_load_bearing()."
+      ],
+      "after": [
+        "runtime certificate/tests/the_self_scope_certificate_is_honest_and_every_condition_is_load_bearing()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "runtime donor_storage/tests/repository_donor_storage_has_no_unrecorded_violation()."
+      ],
+      "after": [
+        "runtime donor_storage/tests/repository_donor_storage_has_no_unrecorded_violation()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "runtime gather_census_inputs()."
+      ],
+      "after": [
+        "runtime gather_census_inputs()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "runtime normalize/detect_conflict_candidates()."
+      ],
+      "after": [
+        "runtime normalize/detect_conflict_candidates()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "runtime systemize_with()."
+      ],
+      "after": [
+        "runtime systemize_with()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "RENAMED",
+      "before": [
+        "core graph/engineering_graph/tests/no_call_edge_ever_targets_a_callee_this_wave()."
+      ],
+      "after": [
+        "core graph/engineering_graph/tests/an_unresolved_call_never_targets_a_callee()."
+      ],
+      "evidence": "identical signature and body"
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter dependency/cargo/manifest_targets()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:CallWalker<'_>`/enter_fn()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:CallWalker<'_>`/resolve_call()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:CallWalker<'_>`/scope()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/`impl:Visit<'b> for Blocks<'b>`/visit_block()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/`impl:Visit<'b> for Blocks<'b>`/visit_item()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/add_item()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/apply_import()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/associated()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/collect_block()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/collect_crate()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/collect_file()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/collect_impl()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/collect_items()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/extern_crate()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/is_within()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/lexical_lookup()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/module_of()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/new_module()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/new_type()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/resolve_first_type_segment()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/resolve_impls()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/resolve_imports()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/resolve_prefix()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/resolve_type_path()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/vis()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/visible()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:Scope`/insert()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:Scope`/ns()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:Scope`/ns_mut()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:Visit<'ast> for Bindings`/visit_expr_closure()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:Visit<'ast> for Bindings`/visit_item()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:Visit<'ast> for Bindings`/visit_pat_ident()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:Visit<'ast> for CallWalker<'_>`/visit_block()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:Visit<'ast> for CallWalker<'_>`/visit_expr_async()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:Visit<'ast> for CallWalker<'_>`/visit_expr_call()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:Visit<'ast> for CallWalker<'_>`/visit_expr_closure()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:Visit<'ast> for CallWalker<'_>`/visit_item_const()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:Visit<'ast> for CallWalker<'_>`/visit_item_fn()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:Visit<'ast> for CallWalker<'_>`/visit_item_impl()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:Visit<'ast> for CallWalker<'_>`/visit_item_mod()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:Visit<'ast> for CallWalker<'_>`/visit_item_static()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:Visit<'ast> for CallWalker<'_>`/visit_item_trait()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/dir_of()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/flatten_use()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/generic_names()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/join()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/normalize()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/outcome_of()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/path_attr()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/resolve_on_this_stack()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/resolve_path_calls()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/resolve_workspace()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/start()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/tests/a_file_the_recursion_pre_scan_refuses_is_open_and_never_parsed()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/tests/a_missing_module_file_is_open_not_empty()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/tests/a_sibling_glob_never_imports_private_items()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/tests/a_test_module_glob_sees_the_parents_private_items_and_imports()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/tests/an_item_shadows_a_glob_and_conflicting_globs_are_ambiguous()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/tests/an_open_scope_never_falls_through_and_never_trusts_its_globs()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/tests/an_unresolvable_import_binds_its_name_and_never_falls_through()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/tests/associated_functions_resolve_through_inherent_then_trait_impls()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/tests/block_items_shadow_module_items_and_locals_shadow_both()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/tests/constructors_traits_and_cfg_alternates_are_never_claimed_as_functions()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/tests/items_imports_renames_groups_and_relative_paths()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/tests/method_calls_closures_and_initializers_are_outside_the_pass()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/tests/module_files_follow_mod_rs_and_non_mod_rs_rules()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/tests/one_crate()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/tests/outcomes()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/tests/re_exports_resolve_to_a_fixed_point_regardless_of_order()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/tests/resolve()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/tests/sources()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/tests/workspace_crates_resolve_through_the_extern_prelude_and_only_see_pub_items()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core graph/engineering_graph/tests/a_resolution_of_a_claim_adds_one_calls_edge_and_no_second_call_site()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime census/extraction/`impl:CensusExtractionAccounting`/is_closed_per_extractor()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime census/extraction/requested_dimensions()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime census/resolution/crate_targets()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime census/resolution/identity()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime census/resolution/resolve_rust_path_calls()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime census/resolution/tests/a_resolution_without_a_syntactic_claim_is_a_diagnosed_disagreement()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime census/resolution/tests/artifact()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime census/resolution/tests/crate_targets_follow_manifests_renames_roles_and_own_library()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime census/resolution/tests/map()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime census/resolution/tests/resolutions_observe_the_syntactic_claims_and_name_their_callee_identity()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime census/resolution/tests/revision()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime census/resolution/tests/workspace()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime normalize/disagree()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime normalize/tests/an_unresolved_call_makes_no_callee_claim_to_disagree_with()."
+      ],
+      "evidence": ""
+    }
+  ],
+  "coverage_delta": [],
+  "unknown_delta": {
+    "increased": [
+      "adapter/build.rs: 8 -> 9",
+      "adapter/src/browser/mod.rs: 8 -> 9",
+      "adapter/src/dependency/cargo.rs: 8 -> 9",
+      "adapter/src/dependency/cargo_oracle.rs: 8 -> 9",
+      "adapter/src/dependency/mod.rs: 8 -> 9",
+      "adapter/src/lib.rs: 8 -> 9",
+      "adapter/src/semantic/batch.rs: 8 -> 9",
+      "adapter/src/semantic/boundary_tests.rs: 8 -> 9",
+      "adapter/src/semantic/extractor.rs: 8 -> 9",
+      "adapter/src/semantic/mod.rs: 8 -> 9",
+      "adapter/src/semantic/registry.rs: 8 -> 9",
+      "adapter/src/semantic/rust/cfg.rs: 8 -> 9",
+      "adapter/src/semantic/rust/concurrency.rs: 8 -> 9",
+      "adapter/src/semantic/rust/dataflow.rs: 8 -> 9",
+      "adapter/src/semantic/rust/effect.rs: 8 -> 9",
+      "adapter/src/semantic/rust/mod.rs: 8 -> 9",
+      "adapter/src/semantic/rust/ownership.rs: 8 -> 9",
+      "adapter/src/semantic/rust/persistence.rs: 8 -> 9",
+      "adapter/src/semantic/rust/spelling.rs: 8 -> 9",
+      "adapter/src/semantic/rust/state.rs: 8 -> 9",
+      "adapter/src/semantic/rust/tests.rs: 8 -> 9",
+      "adapter/src/source/frontend.rs: 8 -> 9",
+      "adapter/src/source/mod.rs: 8 -> 9",
+      "adapter/src/vcs/mod.rs: 8 -> 9",
+      "apps/cli/src/main.rs: 8 -> 9",
+      "core/src/atlas/mod.rs: 8 -> 9",
+      "core/src/atlas/schema.rs: 8 -> 9",
+      "core/src/atlas/tests.rs: 8 -> 9",
+      "core/src/capability/mod.rs: 8 -> 9",
+      "core/src/census/delta.rs: 8 -> 9",
+      "core/src/census/dependency.rs: 8 -> 9",
+      "core/src/census/mod.rs: 8 -> 9",
+      "core/src/certificate/mod.rs: 8 -> 9",
+      "core/src/closure/mod.rs: 8 -> 9",
+      "core/src/constraint/mod.rs: 8 -> 9",
+      "core/src/donor/mod.rs: 8 -> 9",
+      "core/src/evidence/mod.rs: 8 -> 9",
+      "core/src/graph/engineering_graph.rs: 8 -> 9",
+      "core/src/graph/mod.rs: 8 -> 9",
+      "core/src/identity/blake3.rs: 8 -> 9",
+      "core/src/identity/mod.rs: 8 -> 9",
+      "core/src/language/adl/census.rs: 8 -> 9",
+      "core/src/language/adl/census/tests.rs: 8 -> 9",
+      "core/src/language/adl/mod.rs: 8 -> 9",
+      "core/src/language/mod.rs: 8 -> 9",
+      "core/src/lib.rs: 8 -> 9",
+      "core/src/physical/dynamics.rs: 8 -> 9",
+      "core/src/physical/mod.rs: 8 -> 9",
+      "core/src/product/mod.rs: 8 -> 9",
+      "core/src/product/tests.rs: 8 -> 9",
+      "core/src/provenance/mod.rs: 8 -> 9",
+      "core/src/quantity/mod.rs: 8 -> 9",
+      "core/src/recensus/entity.rs: 8 -> 9",
+      "core/src/recensus/entity/tests.rs: 8 -> 9",
+      "core/src/recensus/mod.rs: 8 -> 9",
+      "core/src/recensus/tests.rs: 8 -> 9",
+      "core/src/schema/mod.rs: 8 -> 9",
+      "core/src/semantic/call.rs: 8 -> 9",
+      "core/src/semantic/concurrency.rs: 8 -> 9",
+      "core/src/semantic/control_flow.rs: 8 -> 9",
+      "core/src/semantic/data_flow.rs: 8 -> 9",
+      "core/src/semantic/diagnostic.rs: 8 -> 9",
+      "core/src/semantic/effect.rs: 8 -> 9",
+      "core/src/semantic/function.rs: 8 -> 9",
+      "core/src/semantic/mod.rs: 8 -> 9",
+      "core/src/semantic/obligation.rs: 8 -> 9",
+      "core/src/semantic/observation.rs: 8 -> 9",
+      "core/src/semantic/ownership.rs: 8 -> 9",
+      "core/src/semantic/persistence.rs: 8 -> 9",
+      "core/src/semantic/place.rs: 8 -> 9",
+      "core/src/semantic/state.rs: 8 -> 9",
+      "core/src/semantic/symbol.rs: 8 -> 9",
+      "core/src/semantic/types.rs: 8 -> 9",
+      "core/src/state/mod.rs: 8 -> 9",
+      "core/src/temporal/mod.rs: 8 -> 9",
+      "core/src/visual/compose.rs: 8 -> 9",
+      "core/src/visual/differential.rs: 8 -> 9",
+      "core/src/visual/genome.rs: 8 -> 9",
+      "core/src/visual/mod.rs: 8 -> 9",
+      "core/src/visual/search.rs: 8 -> 9",
+      "runtime/src/atlas.rs: 8 -> 9",
+      "runtime/src/census/extraction.rs: 8 -> 9",
+      "runtime/src/census/mod.rs: 8 -> 9",
+      "runtime/src/certificate.rs: 8 -> 9",
+      "runtime/src/donor_storage.rs: 8 -> 9",
+      "runtime/src/inventory/mod.rs: 8 -> 9",
+      "runtime/src/lib.rs: 8 -> 9",
+      "runtime/src/normalize/mod.rs: 8 -> 9",
+      "runtime/src/physical.rs: 8 -> 9",
+      "runtime/src/product.rs: 8 -> 9",
+      "runtime/src/recensus.rs: 8 -> 9",
+      "runtime/src/visual.rs: 8 -> 9",
+      "adapter/src/semantic/rust/resolve.rs: 0 -> 9",
+      "adapter/src/semantic/rust/resolve/tests.rs: 0 -> 9",
+      "runtime/src/census/resolution.rs: 0 -> 9",
+      "runtime/src/census/resolution/tests.rs: 0 -> 9"
+    ],
+    "decreased": [],
+    "total_before": 964,
+    "total_after": 1092
+  },
+  "intent": {
+    "objective": "P0 CALL resolution (first-50 #4 rust-analyzer): hir-def name resolution absorbed natively (adapter::semantic::rust::resolve) as a second CALL engine (atlas.resolution.rust-paths) observing the syntactic extractor's claims with STATIC_RESOLVED callees; 3,731 of 6,165 profile path calls resolved, all confirmed by the pinned rust-analyzer SCIP oracle (95.1% recall); per-engine accounting closure; UNRESOLVED is no callee claim in normalization; CALLS graph edges; per-dimension multi-engine blocker; rust-analyzer checkout physically extinct",
+    "changed_paths": [
+      "adapter/Cargo.toml",
+      "adapter/build.rs",
+      "adapter/src/browser/mod.rs",
+      "adapter/src/dependency/cargo.rs",
+      "adapter/src/dependency/cargo_oracle.rs",
+      "adapter/src/dependency/mod.rs",
+      "adapter/src/lib.rs",
+      "adapter/src/semantic/batch.rs",
+      "adapter/src/semantic/boundary_tests.rs",
+      "adapter/src/semantic/extractor.rs",
+      "adapter/src/semantic/mod.rs",
+      "adapter/src/semantic/registry.rs",
+      "adapter/src/semantic/rust/cfg.rs",
+      "adapter/src/semantic/rust/concurrency.rs",
+      "adapter/src/semantic/rust/dataflow.rs",
+      "adapter/src/semantic/rust/effect.rs",
+      "adapter/src/semantic/rust/mod.rs",
+      "adapter/src/semantic/rust/ownership.rs",
+      "adapter/src/semantic/rust/persistence.rs",
+      "adapter/src/semantic/rust/resolve.rs",
+      "adapter/src/semantic/rust/resolve/tests.rs",
+      "adapter/src/semantic/rust/spelling.rs",
+      "adapter/src/semantic/rust/state.rs",
+      "adapter/src/semantic/rust/tests.rs",
+      "adapter/src/source/frontend.rs",
+      "adapter/src/source/mod.rs",
+      "adapter/src/vcs/mod.rs",
+      "apps/cli/src/main.rs",
+      "core/src/atlas/mod.rs",
+      "core/src/atlas/schema.rs",
+      "core/src/atlas/tests.rs",
+      "core/src/capability/mod.rs",
+      "core/src/census/delta.rs",
+      "core/src/census/dependency.rs",
+      "core/src/census/mod.rs",
+      "core/src/certificate/mod.rs",
+      "core/src/closure/mod.rs",
+      "core/src/constraint/mod.rs",
+      "core/src/donor/mod.rs",
+      "core/src/evidence/mod.rs",
+      "core/src/graph/engineering_graph.rs",
+      "core/src/graph/mod.rs",
+      "core/src/identity/blake3.rs",
+      "core/src/identity/mod.rs",
+      "core/src/language/adl/census.rs",
+      "core/src/language/adl/census/tests.rs",
+      "core/src/language/adl/mod.rs",
+      "core/src/language/mod.rs",
+      "core/src/lib.rs",
+      "core/src/physical/dynamics.rs",
+      "core/src/physical/mod.rs",
+      "core/src/product/mod.rs",
+      "core/src/product/tests.rs",
+      "core/src/provenance/mod.rs",
+      "core/src/quantity/mod.rs",
+      "core/src/recensus/entity.rs",
+      "core/src/recensus/entity/tests.rs",
+      "core/src/recensus/mod.rs",
+      "core/src/recensus/tests.rs",
+      "core/src/schema/mod.rs",
+      "core/src/semantic/call.rs",
+      "core/src/semantic/concurrency.rs",
+      "core/src/semantic/control_flow.rs",
+      "core/src/semantic/data_flow.rs",
+      "core/src/semantic/diagnostic.rs",
+      "core/src/semantic/effect.rs",
+      "core/src/semantic/function.rs",
+      "core/src/semantic/mod.rs",
+      "core/src/semantic/obligation.rs",
+      "core/src/semantic/observation.rs",
+      "core/src/semantic/ownership.rs",
+      "core/src/semantic/persistence.rs",
+      "core/src/semantic/place.rs",
+      "core/src/semantic/state.rs",
+      "core/src/semantic/symbol.rs",
+      "core/src/semantic/types.rs",
+      "core/src/state/mod.rs",
+      "core/src/temporal/mod.rs",
+      "core/src/visual/compose.rs",
+      "core/src/visual/differential.rs",
+      "core/src/visual/genome.rs",
+      "core/src/visual/mod.rs",
+      "core/src/visual/search.rs",
+      "runtime/src/atlas.rs",
+      "runtime/src/census/extraction.rs",
+      "runtime/src/census/mod.rs",
+      "runtime/src/census/resolution.rs",
+      "runtime/src/census/resolution/tests.rs",
+      "runtime/src/certificate.rs",
+      "runtime/src/donor_storage.rs",
+      "runtime/src/inventory/mod.rs",
+      "runtime/src/lib.rs",
+      "runtime/src/normalize/mod.rs",
+      "runtime/src/physical.rs",
+      "runtime/src/product.rs",
+      "runtime/src/recensus.rs",
+      "runtime/src/visual.rs"
+    ],
+    "total_changes": [
+      "+artifacts",
+      "+diagnostic:IncompleteAnalysis",
+      "+docs",
+      "+entities",
+      "+evidence",
+      "+facts",
+      "+graph_bindings",
+      "+graph_edges",
+      "+graph_nodes",
+      "+normalized_facts",
+      "+obligations",
+      "+typed_records",
+      "+unknown_facts"
+    ],
+    "dependency_changes": [],
+    "adl_changes": [],
+    "coverage_changes": [],
+    "explained_unknowns": [
+      "adapter/build.rs: the path-resolution engine (atlas.resolution.rust-paths, G75) accounts one CALL obligation per Rust artifact, UNKNOWN because method calls, closure bodies and macro arguments are outside it",
+      "adapter/src/browser/mod.rs: the path-resolution engine (atlas.resolution.rust-paths, G75) accounts one CALL obligation per Rust artifact, UNKNOWN because method calls, closure bodies and macro arguments are outside it",
+      "adapter/src/dependency/cargo.rs: the path-resolution engine (atlas.resolution.rust-paths, G75) accounts one CALL obligation per Rust artifact, UNKNOWN because method calls, closure bodies and macro arguments are outside it",
+      "adapter/src/dependency/cargo_oracle.rs: the path-resolution engine (atlas.resolution.rust-paths, G75) accounts one CALL obligation per Rust artifact, UNKNOWN because method calls, closure bodies and macro arguments are outside it",
+      "adapter/src/dependency/mod.rs: the path-resolution engine (atlas.resolution.rust-paths, G75) accounts one CALL obligation per Rust artifact, UNKNOWN because method calls, closure bodies and macro arguments are outside it",
+      "adapter/src/lib.rs: the path-resolution engine (atlas.resolution.rust-paths, G75) accounts one CALL obligation per Rust artifact, UNKNOWN because method calls, closure bodies and macro arguments are outside it",
+      "adapter/src/semantic/batch.rs: the path-resolution engine (atlas.resolution.rust-paths, G75) accounts one CALL obligation per Rust artifact, UNKNOWN because method calls, closure bodies and macro arguments are outside it",
+      "adapter/src/semantic/boundary_tests.rs: the path-resolution engine (atlas.resolution.rust-paths, G75) accounts one CALL obligation per Rust artifact, UNKNOWN because method calls, closure bodies and macro arguments are outside it",
+      "adapter/src/semantic/extractor.rs: the path-resolution engine (atlas.resolution.rust-paths, G75) accounts one CALL obligation per Rust artifact, UNKNOWN because method calls, closure bodies and macro arguments are outside it",
+      "adapter/src/semantic/mod.rs: the path-resolution engine (atlas.resolution.rust-paths, G75) accounts one CALL obligation per Rust artifact, UNKNOWN because method calls, closure bodies and macro arguments are outside it",
+      "adapter/src/semantic/registry.rs: the path-resolution engine (atlas.resolution.rust-paths, G75) accounts one CALL obligation per Rust artifact, UNKNOWN because method calls, closure bodies and macro arguments are outside it",
+      "adapter/src/semantic/rust/cfg.rs: the path-resolution engine (atlas.resolution.rust-paths, G75) accounts one CALL obligation per Rust artifact, UNKNOWN because method calls, closure bodies and macro arguments are outside it",
+      "adapter/src/semantic/rust/concurrency.rs: the path-resolution engine (atlas.resolution.rust-paths, G75) accounts one CALL obligation per Rust artifact, UNKNOWN because method calls, closure bodies and macro arguments are outside it",
+      "adapter/src/semantic/rust/dataflow.rs: the path-resolution engine (atlas.resolution.rust-paths, G75) accounts one CALL obligation per Rust artifact, UNKNOWN because method calls, closure bodies and macro arguments are outside it",
+      "adapter/src/semantic/rust/effect.rs: the path-resolution engine (atlas.resolution.rust-paths, G75) accounts one CALL obligation per Rust artifact, UNKNOWN because method calls, closure bodies and macro arguments are outside it",
+      "adapter/src/semantic/rust/mod.rs: the path-resolution engine (atlas.resolution.rust-paths, G75) accounts one CALL obligation per Rust artifact, UNKNOWN because method calls, closure bodies and macro arguments are outside it",
+      "adapter/src/semantic/rust/ownership.rs: the path-resolution engine (atlas.resolution.rust-paths, G75) accounts one CALL obligation per Rust artifact, UNKNOWN because method calls, closure bodies and macro arguments are outside it",
+      "adapter/src/semantic/rust/persistence.rs: the path-resolution engine (atlas.resolution.rust-paths, G75) accounts one CALL obligation per Rust artifact, UNKNOWN because method calls, closure bodies and macro arguments are outside it",
+      "adapter/src/semantic/rust/spelling.rs: the path-resolution engine (atlas.resolution.rust-paths, G75) accounts one CALL obligation per Rust artifact, UNKNOWN because method calls, closure bodies and macro arguments are outside it",
+      "adapter/src/semantic/rust/state.rs: the path-resolution engine (atlas.resolution.rust-paths, G75) accounts one CALL obligation per Rust artifact, UNKNOWN because method calls, closure bodies and macro arguments are outside it",
+      "adapter/src/semantic/rust/tests.rs: the path-resolution engine (atlas.resolution.rust-paths, G75) accounts one CALL obligation per Rust artifact, UNKNOWN because method calls, closure bodies and macro arguments are outside it",
+      "adapter/src/source/frontend.rs: the path-resolution engine (atlas.resolution.rust-paths, G75) accounts one CALL obligation per Rust artifact, UNKNOWN because method calls, closure bodies and macro arguments are outside it",
+      "adapter/src/source/mod.rs: the path-resolution engine (atlas.resolution.rust-paths, G75) accounts one CALL obligation per Rust artifact, UNKNOWN because method calls, closure bodies and macro arguments are outside it",
+      "adapter/src/vcs/mod.rs: the path-resolution engine (atlas.resolution.rust-paths, G75) accounts one CALL obligation per Rust artifact, UNKNOWN because method calls, closure bodies and macro arguments are outside it",
+      "apps/cli/src/main.rs: the path-resolution engine (atlas.resolution.rust-paths, G75) accounts one CALL obligation per Rust artifact, UNKNOWN because method calls, closure bodies and macro arguments are outside it",
+      "core/src/atlas/mod.rs: the path-resolution engine (atlas.resolution.rust-paths, G75) accounts one CALL obligation per Rust artifact, UNKNOWN because method calls, closure bodies and macro arguments are outside it",
+      "core/src/atlas/schema.rs: the path-resolution engine (atlas.resolution.rust-paths, G75) accounts one CALL obligation per Rust artifact, UNKNOWN because method calls, closure bodies and macro arguments are outside it",
+      "core/src/atlas/tests.rs: the path-resolution engine (atlas.resolution.rust-paths, G75) accounts one CALL obligation per Rust artifact, UNKNOWN because method calls, closure bodies and macro arguments are outside it",
+      "core/src/capability/mod.rs: the path-resolution engine (atlas.resolution.rust-paths, G75) accounts one CALL obligation per Rust artifact, UNKNOWN because method calls, closure bodies and macro arguments are outside it",
+      "core/src/census/delta.rs: the path-resolution engine (atlas.resolution.rust-paths, G75) accounts one CALL obligation per Rust artifact, UNKNOWN because method calls, closure bodies and macro arguments are outside it",
+      "core/src/census/dependency.rs: the path-resolution engine (atlas.resolution.rust-paths, G75) accounts one CALL obligation per Rust artifact, UNKNOWN because method calls, closure bodies and macro arguments are outside it",
+      "core/src/census/mod.rs: the path-resolution engine (atlas.resolution.rust-paths, G75) accounts one CALL obligation per Rust artifact, UNKNOWN because method calls, closure bodies and macro arguments are outside it",
+      "core/src/certificate/mod.rs: the path-resolution engine (atlas.resolution.rust-paths, G75) accounts one CALL obligation per Rust artifact, UNKNOWN because method calls, closure bodies and macro arguments are outside it",
+      "core/src/closure/mod.rs: the path-resolution engine (atlas.resolution.rust-paths, G75) accounts one CALL obligation per Rust artifact, UNKNOWN because method calls, closure bodies and macro arguments are outside it",
+      "core/src/constraint/mod.rs: the path-resolution engine (atlas.resolution.rust-paths, G75) accounts one CALL obligation per Rust artifact, UNKNOWN because method calls, closure bodies and macro arguments are outside it",
+      "core/src/donor/mod.rs: the path-resolution engine (atlas.resolution.rust-paths, G75) accounts one CALL obligation per Rust artifact, UNKNOWN because method calls, closure bodies and macro arguments are outside it",
+      "core/src/evidence/mod.rs: the path-resolution engine (atlas.resolution.rust-paths, G75) accounts one CALL obligation per Rust artifact, UNKNOWN because method calls, closure bodies and macro arguments are outside it",
+      "core/src/graph/engineering_graph.rs: the path-resolution engine (atlas.resolution.rust-paths, G75) accounts one CALL obligation per Rust artifact, UNKNOWN because method calls, closure bodies and macro arguments are outside it",
+      "core/src/graph/mod.rs: the path-resolution engine (atlas.resolution.rust-paths, G75) accounts one CALL obligation per Rust artifact, UNKNOWN because method calls, closure bodies and macro arguments are outside it",
+      "core/src/identity/blake3.rs: the path-resolution engine (atlas.resolution.rust-paths, G75) accounts one CALL obligation per Rust artifact, UNKNOWN because method calls, closure bodies and macro arguments are outside it",
+      "core/src/identity/mod.rs: the path-resolution engine (atlas.resolution.rust-paths, G75) accounts one CALL obligation per Rust artifact, UNKNOWN because method calls, closure bodies and macro arguments are outside it",
+      "core/src/language/adl/census.rs: the path-resolution engine (atlas.resolution.rust-paths, G75) accounts one CALL obligation per Rust artifact, UNKNOWN because method calls, closure bodies and macro arguments are outside it",
+      "core/src/language/adl/census/tests.rs: the path-resolution engine (atlas.resolution.rust-paths, G75) accounts one CALL obligation per Rust artifact, UNKNOWN because method calls, closure bodies and macro arguments are outside it",
+      "core/src/language/adl/mod.rs: the path-resolution engine (atlas.resolution.rust-paths, G75) accounts one CALL obligation per Rust artifact, UNKNOWN because method calls, closure bodies and macro arguments are outside it",
+      "core/src/language/mod.rs: the path-resolution engine (atlas.resolution.rust-paths, G75) accounts one CALL obligation per Rust artifact, UNKNOWN because method calls, closure bodies and macro arguments are outside it",
+      "core/src/lib.rs: the path-resolution engine (atlas.resolution.rust-paths, G75) accounts one CALL obligation per Rust artifact, UNKNOWN because method calls, closure bodies and macro arguments are outside it",
+      "core/src/physical/dynamics.rs: the path-resolution engine (atlas.resolution.rust-paths, G75) accounts one CALL obligation per Rust artifact, UNKNOWN because method calls, closure bodies and macro arguments are outside it",
+      "core/src/physical/mod.rs: the path-resolution engine (atlas.resolution.rust-paths, G75) accounts one CALL obligation per Rust artifact, UNKNOWN because method calls, closure bodies and macro arguments are outside it",
+      "core/src/product/mod.rs: the path-resolution engine (atlas.resolution.rust-paths, G75) accounts one CALL obligation per Rust artifact, UNKNOWN because method calls, closure bodies and macro arguments are outside it",
+      "core/src/product/tests.rs: the path-resolution engine (atlas.resolution.rust-paths, G75) accounts one CALL obligation per Rust artifact, UNKNOWN because method calls, closure bodies and macro arguments are outside it",
+      "core/src/provenance/mod.rs: the path-resolution engine (atlas.resolution.rust-paths, G75) accounts one CALL obligation per Rust artifact, UNKNOWN because method calls, closure bodies and macro arguments are outside it",
+      "core/src/quantity/mod.rs: the path-resolution engine (atlas.resolution.rust-paths, G75) accounts one CALL obligation per Rust artifact, UNKNOWN because method calls, closure bodies and macro arguments are outside it",
+      "core/src/recensus/entity.rs: the path-resolution engine (atlas.resolution.rust-paths, G75) accounts one CALL obligation per Rust artifact, UNKNOWN because method calls, closure bodies and macro arguments are outside it",
+      "core/src/recensus/entity/tests.rs: the path-resolution engine (atlas.resolution.rust-paths, G75) accounts one CALL obligation per Rust artifact, UNKNOWN because method calls, closure bodies and macro arguments are outside it",
+      "core/src/recensus/mod.rs: the path-resolution engine (atlas.resolution.rust-paths, G75) accounts one CALL obligation per Rust artifact, UNKNOWN because method calls, closure bodies and macro arguments are outside it",
+      "core/src/recensus/tests.rs: the path-resolution engine (atlas.resolution.rust-paths, G75) accounts one CALL obligation per Rust artifact, UNKNOWN because method calls, closure bodies and macro arguments are outside it",
+      "core/src/schema/mod.rs: the path-resolution engine (atlas.resolution.rust-paths, G75) accounts one CALL obligation per Rust artifact, UNKNOWN because method calls, closure bodies and macro arguments are outside it",
+      "core/src/semantic/call.rs: the path-resolution engine (atlas.resolution.rust-paths, G75) accounts one CALL obligation per Rust artifact, UNKNOWN because method calls, closure bodies and macro arguments are outside it",
+      "core/src/semantic/concurrency.rs: the path-resolution engine (atlas.resolution.rust-paths, G75) accounts one CALL obligation per Rust artifact, UNKNOWN because method calls, closure bodies and macro arguments are outside it",
+      "core/src/semantic/control_flow.rs: the path-resolution engine (atlas.resolution.rust-paths, G75) accounts one CALL obligation per Rust artifact, UNKNOWN because method calls, closure bodies and macro arguments are outside it",
+      "core/src/semantic/data_flow.rs: the path-resolution engine (atlas.resolution.rust-paths, G75) accounts one CALL obligation per Rust artifact, UNKNOWN because method calls, closure bodies and macro arguments are outside it",
+      "core/src/semantic/diagnostic.rs: the path-resolution engine (atlas.resolution.rust-paths, G75) accounts one CALL obligation per Rust artifact, UNKNOWN because method calls, closure bodies and macro arguments are outside it",
+      "core/src/semantic/effect.rs: the path-resolution engine (atlas.resolution.rust-paths, G75) accounts one CALL obligation per Rust artifact, UNKNOWN because method calls, closure bodies and macro arguments are outside it",
+      "core/src/semantic/function.rs: the path-resolution engine (atlas.resolution.rust-paths, G75) accounts one CALL obligation per Rust artifact, UNKNOWN because method calls, closure bodies and macro arguments are outside it",
+      "core/src/semantic/mod.rs: the path-resolution engine (atlas.resolution.rust-paths, G75) accounts one CALL obligation per Rust artifact, UNKNOWN because method calls, closure bodies and macro arguments are outside it",
+      "core/src/semantic/obligation.rs: the path-resolution engine (atlas.resolution.rust-paths, G75) accounts one CALL obligation per Rust artifact, UNKNOWN because method calls, closure bodies and macro arguments are outside it",
+      "core/src/semantic/observation.rs: the path-resolution engine (atlas.resolution.rust-paths, G75) accounts one CALL obligation per Rust artifact, UNKNOWN because method calls, closure bodies and macro arguments are outside it",
+      "core/src/semantic/ownership.rs: the path-resolution engine (atlas.resolution.rust-paths, G75) accounts one CALL obligation per Rust artifact, UNKNOWN because method calls, closure bodies and macro arguments are outside it",
+      "core/src/semantic/persistence.rs: the path-resolution engine (atlas.resolution.rust-paths, G75) accounts one CALL obligation per Rust artifact, UNKNOWN because method calls, closure bodies and macro arguments are outside it",
+      "core/src/semantic/place.rs: the path-resolution engine (atlas.resolution.rust-paths, G75) accounts one CALL obligation per Rust artifact, UNKNOWN because method calls, closure bodies and macro arguments are outside it",
+      "core/src/semantic/state.rs: the path-resolution engine (atlas.resolution.rust-paths, G75) accounts one CALL obligation per Rust artifact, UNKNOWN because method calls, closure bodies and macro arguments are outside it",
+      "core/src/semantic/symbol.rs: the path-resolution engine (atlas.resolution.rust-paths, G75) accounts one CALL obligation per Rust artifact, UNKNOWN because method calls, closure bodies and macro arguments are outside it",
+      "core/src/semantic/types.rs: the path-resolution engine (atlas.resolution.rust-paths, G75) accounts one CALL obligation per Rust artifact, UNKNOWN because method calls, closure bodies and macro arguments are outside it",
+      "core/src/state/mod.rs: the path-resolution engine (atlas.resolution.rust-paths, G75) accounts one CALL obligation per Rust artifact, UNKNOWN because method calls, closure bodies and macro arguments are outside it",
+      "core/src/temporal/mod.rs: the path-resolution engine (atlas.resolution.rust-paths, G75) accounts one CALL obligation per Rust artifact, UNKNOWN because method calls, closure bodies and macro arguments are outside it",
+      "core/src/visual/compose.rs: the path-resolution engine (atlas.resolution.rust-paths, G75) accounts one CALL obligation per Rust artifact, UNKNOWN because method calls, closure bodies and macro arguments are outside it",
+      "core/src/visual/differential.rs: the path-resolution engine (atlas.resolution.rust-paths, G75) accounts one CALL obligation per Rust artifact, UNKNOWN because method calls, closure bodies and macro arguments are outside it",
+      "core/src/visual/genome.rs: the path-resolution engine (atlas.resolution.rust-paths, G75) accounts one CALL obligation per Rust artifact, UNKNOWN because method calls, closure bodies and macro arguments are outside it",
+      "core/src/visual/mod.rs: the path-resolution engine (atlas.resolution.rust-paths, G75) accounts one CALL obligation per Rust artifact, UNKNOWN because method calls, closure bodies and macro arguments are outside it",
+      "core/src/visual/search.rs: the path-resolution engine (atlas.resolution.rust-paths, G75) accounts one CALL obligation per Rust artifact, UNKNOWN because method calls, closure bodies and macro arguments are outside it",
+      "runtime/src/atlas.rs: the path-resolution engine (atlas.resolution.rust-paths, G75) accounts one CALL obligation per Rust artifact, UNKNOWN because method calls, closure bodies and macro arguments are outside it",
+      "runtime/src/census/extraction.rs: the path-resolution engine (atlas.resolution.rust-paths, G75) accounts one CALL obligation per Rust artifact, UNKNOWN because method calls, closure bodies and macro arguments are outside it",
+      "runtime/src/census/mod.rs: the path-resolution engine (atlas.resolution.rust-paths, G75) accounts one CALL obligation per Rust artifact, UNKNOWN because method calls, closure bodies and macro arguments are outside it",
+      "runtime/src/certificate.rs: the path-resolution engine (atlas.resolution.rust-paths, G75) accounts one CALL obligation per Rust artifact, UNKNOWN because method calls, closure bodies and macro arguments are outside it",
+      "runtime/src/donor_storage.rs: the path-resolution engine (atlas.resolution.rust-paths, G75) accounts one CALL obligation per Rust artifact, UNKNOWN because method calls, closure bodies and macro arguments are outside it",
+      "runtime/src/inventory/mod.rs: the path-resolution engine (atlas.resolution.rust-paths, G75) accounts one CALL obligation per Rust artifact, UNKNOWN because method calls, closure bodies and macro arguments are outside it",
+      "runtime/src/lib.rs: the path-resolution engine (atlas.resolution.rust-paths, G75) accounts one CALL obligation per Rust artifact, UNKNOWN because method calls, closure bodies and macro arguments are outside it",
+      "runtime/src/normalize/mod.rs: the path-resolution engine (atlas.resolution.rust-paths, G75) accounts one CALL obligation per Rust artifact, UNKNOWN because method calls, closure bodies and macro arguments are outside it",
+      "runtime/src/physical.rs: the path-resolution engine (atlas.resolution.rust-paths, G75) accounts one CALL obligation per Rust artifact, UNKNOWN because method calls, closure bodies and macro arguments are outside it",
+      "runtime/src/product.rs: the path-resolution engine (atlas.resolution.rust-paths, G75) accounts one CALL obligation per Rust artifact, UNKNOWN because method calls, closure bodies and macro arguments are outside it",
+      "runtime/src/recensus.rs: the path-resolution engine (atlas.resolution.rust-paths, G75) accounts one CALL obligation per Rust artifact, UNKNOWN because method calls, closure bodies and macro arguments are outside it",
+      "runtime/src/visual.rs: the path-resolution engine (atlas.resolution.rust-paths, G75) accounts one CALL obligation per Rust artifact, UNKNOWN because method calls, closure bodies and macro arguments are outside it",
+      "adapter/src/semantic/rust/resolve.rs: the path-resolution engine (atlas.resolution.rust-paths, G75) accounts one CALL obligation per Rust artifact, UNKNOWN because method calls, closure bodies and macro arguments are outside it (new artifact: 8 syntactic-extractor unknowns + 1 resolution-engine unknown)",
+      "adapter/src/semantic/rust/resolve/tests.rs: the path-resolution engine (atlas.resolution.rust-paths, G75) accounts one CALL obligation per Rust artifact, UNKNOWN because method calls, closure bodies and macro arguments are outside it (new artifact: 8 syntactic-extractor unknowns + 1 resolution-engine unknown)",
+      "runtime/src/census/resolution.rs: the path-resolution engine (atlas.resolution.rust-paths, G75) accounts one CALL obligation per Rust artifact, UNKNOWN because method calls, closure bodies and macro arguments are outside it (new artifact: 8 syntactic-extractor unknowns + 1 resolution-engine unknown)",
+      "runtime/src/census/resolution/tests.rs: the path-resolution engine (atlas.resolution.rust-paths, G75) accounts one CALL obligation per Rust artifact, UNKNOWN because method calls, closure bodies and macro arguments are outside it (new artifact: 8 syntactic-extractor unknowns + 1 resolution-engine unknown)"
+    ],
+    "accepted_unexpected": [],
+    "entity_changes": [
+      "CHANGED adapter dependency/cargo/manifest_dependency_entries().",
+      "CHANGED core certificate/certify().",
+      "CHANGED core graph/engineering_graph/add_typed_semantic_nodes().",
+      "CHANGED runtime census/extraction/`impl:CensusExtractionAccounting`/is_closed().",
+      "CHANGED runtime certificate/tests/the_self_scope_certificate_is_honest_and_every_condition_is_load_bearing().",
+      "CHANGED runtime donor_storage/tests/repository_donor_storage_has_no_unrecorded_violation().",
+      "CHANGED runtime gather_census_inputs().",
+      "CHANGED runtime normalize/detect_conflict_candidates().",
+      "CHANGED runtime systemize_with().",
+      "RENAMED core graph/engineering_graph/tests/no_call_edge_ever_targets_a_callee_this_wave(). -> core graph/engineering_graph/tests/an_unresolved_call_never_targets_a_callee().",
+      "CREATED adapter dependency/cargo/manifest_targets().",
+      "CREATED core graph/engineering_graph/tests/a_resolution_of_a_claim_adds_one_calls_edge_and_no_second_call_site().",
+      "CREATED runtime census/extraction/`impl:CensusExtractionAccounting`/is_closed_per_extractor().",
+      "CREATED runtime census/extraction/requested_dimensions().",
+      "CREATED runtime normalize/disagree().",
+      "CREATED runtime normalize/tests/an_unresolved_call_makes_no_callee_claim_to_disagree_with().",
+      "CREATED adapter semantic/rust/resolve/*",
+      "CREATED runtime census/resolution/*"
+    ]
+  },
+  "intended_changes": [
+    "path adapter/Cargo.toml",
+    "path adapter/build.rs",
+    "path adapter/src/browser/mod.rs",
+    "path adapter/src/dependency/cargo.rs",
+    "path adapter/src/dependency/cargo_oracle.rs",
+    "path adapter/src/dependency/mod.rs",
+    "path adapter/src/lib.rs",
+    "path adapter/src/semantic/batch.rs",
+    "path adapter/src/semantic/boundary_tests.rs",
+    "path adapter/src/semantic/extractor.rs",
+    "path adapter/src/semantic/mod.rs",
+    "path adapter/src/semantic/registry.rs",
+    "path adapter/src/semantic/rust/cfg.rs",
+    "path adapter/src/semantic/rust/concurrency.rs",
+    "path adapter/src/semantic/rust/dataflow.rs",
+    "path adapter/src/semantic/rust/effect.rs",
+    "path adapter/src/semantic/rust/mod.rs",
+    "path adapter/src/semantic/rust/ownership.rs",
+    "path adapter/src/semantic/rust/persistence.rs",
+    "path adapter/src/semantic/rust/resolve.rs",
+    "path adapter/src/semantic/rust/resolve/tests.rs",
+    "path adapter/src/semantic/rust/spelling.rs",
+    "path adapter/src/semantic/rust/state.rs",
+    "path adapter/src/semantic/rust/tests.rs",
+    "path adapter/src/source/frontend.rs",
+    "path adapter/src/source/mod.rs",
+    "path adapter/src/vcs/mod.rs",
+    "path apps/cli/src/main.rs",
+    "path core/src/atlas/mod.rs",
+    "path core/src/atlas/schema.rs",
+    "path core/src/atlas/tests.rs",
+    "path core/src/capability/mod.rs",
+    "path core/src/census/delta.rs",
+    "path core/src/census/dependency.rs",
+    "path core/src/census/mod.rs",
+    "path core/src/certificate/mod.rs",
+    "path core/src/closure/mod.rs",
+    "path core/src/constraint/mod.rs",
+    "path core/src/donor/mod.rs",
+    "path core/src/evidence/mod.rs",
+    "path core/src/graph/engineering_graph.rs",
+    "path core/src/graph/mod.rs",
+    "path core/src/identity/blake3.rs",
+    "path core/src/identity/mod.rs",
+    "path core/src/language/adl/census.rs",
+    "path core/src/language/adl/census/tests.rs",
+    "path core/src/language/adl/mod.rs",
+    "path core/src/language/mod.rs",
+    "path core/src/lib.rs",
+    "path core/src/physical/dynamics.rs",
+    "path core/src/physical/mod.rs",
+    "path core/src/product/mod.rs",
+    "path core/src/product/tests.rs",
+    "path core/src/provenance/mod.rs",
+    "path core/src/quantity/mod.rs",
+    "path core/src/recensus/entity.rs",
+    "path core/src/recensus/entity/tests.rs",
+    "path core/src/recensus/mod.rs",
+    "path core/src/recensus/tests.rs",
+    "path core/src/schema/mod.rs",
+    "path core/src/semantic/call.rs",
+    "path core/src/semantic/concurrency.rs",
+    "path core/src/semantic/control_flow.rs",
+    "path core/src/semantic/data_flow.rs",
+    "path core/src/semantic/diagnostic.rs",
+    "path core/src/semantic/effect.rs",
+    "path core/src/semantic/function.rs",
+    "path core/src/semantic/mod.rs",
+    "path core/src/semantic/obligation.rs",
+    "path core/src/semantic/observation.rs",
+    "path core/src/semantic/ownership.rs",
+    "path core/src/semantic/persistence.rs",
+    "path core/src/semantic/place.rs",
+    "path core/src/semantic/state.rs",
+    "path core/src/semantic/symbol.rs",
+    "path core/src/semantic/types.rs",
+    "path core/src/state/mod.rs",
+    "path core/src/temporal/mod.rs",
+    "path core/src/visual/compose.rs",
+    "path core/src/visual/differential.rs",
+    "path core/src/visual/genome.rs",
+    "path core/src/visual/mod.rs",
+    "path core/src/visual/search.rs",
+    "path runtime/src/atlas.rs",
+    "path runtime/src/census/extraction.rs",
+    "path runtime/src/census/mod.rs",
+    "path runtime/src/census/resolution.rs",
+    "path runtime/src/census/resolution/tests.rs",
+    "path runtime/src/certificate.rs",
+    "path runtime/src/donor_storage.rs",
+    "path runtime/src/inventory/mod.rs",
+    "path runtime/src/lib.rs",
+    "path runtime/src/normalize/mod.rs",
+    "path runtime/src/physical.rs",
+    "path runtime/src/product.rs",
+    "path runtime/src/recensus.rs",
+    "path runtime/src/visual.rs",
+    "total +artifacts",
+    "total +diagnostic:IncompleteAnalysis",
+    "total +docs",
+    "total +entities",
+    "total +evidence",
+    "total +facts",
+    "total +graph_bindings",
+    "total +graph_edges",
+    "total +graph_nodes",
+    "total +normalized_facts",
+    "total +obligations",
+    "total +typed_records",
+    "total +unknown_facts",
+    "entity CHANGED adapter dependency/cargo/manifest_dependency_entries().",
+    "entity CHANGED core certificate/certify().",
+    "entity CHANGED core graph/engineering_graph/add_typed_semantic_nodes().",
+    "entity CHANGED runtime census/extraction/`impl:CensusExtractionAccounting`/is_closed().",
+    "entity CHANGED runtime certificate/tests/the_self_scope_certificate_is_honest_and_every_condition_is_load_bearing().",
+    "entity CHANGED runtime donor_storage/tests/repository_donor_storage_has_no_unrecorded_violation().",
+    "entity CHANGED runtime gather_census_inputs().",
+    "entity CHANGED runtime normalize/detect_conflict_candidates().",
+    "entity CHANGED runtime systemize_with().",
+    "entity RENAMED core graph/engineering_graph/tests/no_call_edge_ever_targets_a_callee_this_wave(). -> core graph/engineering_graph/tests/an_unresolved_call_never_targets_a_callee().",
+    "entity CREATED adapter dependency/cargo/manifest_targets().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:CallWalker<'_>`/enter_fn().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:CallWalker<'_>`/resolve_call().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:CallWalker<'_>`/scope().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:DefMap`/`impl:Visit<'b> for Blocks<'b>`/visit_block().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:DefMap`/`impl:Visit<'b> for Blocks<'b>`/visit_item().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:DefMap`/add_item().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:DefMap`/apply_import().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:DefMap`/associated().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:DefMap`/collect_block().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:DefMap`/collect_crate().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:DefMap`/collect_file().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:DefMap`/collect_impl().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:DefMap`/collect_items().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:DefMap`/extern_crate().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:DefMap`/is_within().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:DefMap`/lexical_lookup().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:DefMap`/module_of().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:DefMap`/new_module().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:DefMap`/new_type().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:DefMap`/resolve_first_type_segment().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:DefMap`/resolve_impls().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:DefMap`/resolve_imports().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:DefMap`/resolve_prefix().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:DefMap`/resolve_type_path().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:DefMap`/vis().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:DefMap`/visible().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:Scope`/insert().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:Scope`/ns().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:Scope`/ns_mut().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:Visit<'ast> for Bindings`/visit_expr_closure().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:Visit<'ast> for Bindings`/visit_item().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:Visit<'ast> for Bindings`/visit_pat_ident().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:Visit<'ast> for CallWalker<'_>`/visit_block().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:Visit<'ast> for CallWalker<'_>`/visit_expr_async().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:Visit<'ast> for CallWalker<'_>`/visit_expr_call().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:Visit<'ast> for CallWalker<'_>`/visit_expr_closure().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:Visit<'ast> for CallWalker<'_>`/visit_item_const().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:Visit<'ast> for CallWalker<'_>`/visit_item_fn().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:Visit<'ast> for CallWalker<'_>`/visit_item_impl().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:Visit<'ast> for CallWalker<'_>`/visit_item_mod().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:Visit<'ast> for CallWalker<'_>`/visit_item_static().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:Visit<'ast> for CallWalker<'_>`/visit_item_trait().",
+    "entity CREATED adapter semantic/rust/resolve/dir_of().",
+    "entity CREATED adapter semantic/rust/resolve/flatten_use().",
+    "entity CREATED adapter semantic/rust/resolve/generic_names().",
+    "entity CREATED adapter semantic/rust/resolve/join().",
+    "entity CREATED adapter semantic/rust/resolve/normalize().",
+    "entity CREATED adapter semantic/rust/resolve/outcome_of().",
+    "entity CREATED adapter semantic/rust/resolve/path_attr().",
+    "entity CREATED adapter semantic/rust/resolve/resolve_on_this_stack().",
+    "entity CREATED adapter semantic/rust/resolve/resolve_path_calls().",
+    "entity CREATED adapter semantic/rust/resolve/resolve_workspace().",
+    "entity CREATED adapter semantic/rust/resolve/start().",
+    "entity CREATED adapter semantic/rust/resolve/tests/a_file_the_recursion_pre_scan_refuses_is_open_and_never_parsed().",
+    "entity CREATED adapter semantic/rust/resolve/tests/a_missing_module_file_is_open_not_empty().",
+    "entity CREATED adapter semantic/rust/resolve/tests/a_sibling_glob_never_imports_private_items().",
+    "entity CREATED adapter semantic/rust/resolve/tests/a_test_module_glob_sees_the_parents_private_items_and_imports().",
+    "entity CREATED adapter semantic/rust/resolve/tests/an_item_shadows_a_glob_and_conflicting_globs_are_ambiguous().",
+    "entity CREATED adapter semantic/rust/resolve/tests/an_open_scope_never_falls_through_and_never_trusts_its_globs().",
+    "entity CREATED adapter semantic/rust/resolve/tests/an_unresolvable_import_binds_its_name_and_never_falls_through().",
+    "entity CREATED adapter semantic/rust/resolve/tests/associated_functions_resolve_through_inherent_then_trait_impls().",
+    "entity CREATED adapter semantic/rust/resolve/tests/block_items_shadow_module_items_and_locals_shadow_both().",
+    "entity CREATED adapter semantic/rust/resolve/tests/constructors_traits_and_cfg_alternates_are_never_claimed_as_functions().",
+    "entity CREATED adapter semantic/rust/resolve/tests/items_imports_renames_groups_and_relative_paths().",
+    "entity CREATED adapter semantic/rust/resolve/tests/method_calls_closures_and_initializers_are_outside_the_pass().",
+    "entity CREATED adapter semantic/rust/resolve/tests/module_files_follow_mod_rs_and_non_mod_rs_rules().",
+    "entity CREATED adapter semantic/rust/resolve/tests/one_crate().",
+    "entity CREATED adapter semantic/rust/resolve/tests/outcomes().",
+    "entity CREATED adapter semantic/rust/resolve/tests/re_exports_resolve_to_a_fixed_point_regardless_of_order().",
+    "entity CREATED adapter semantic/rust/resolve/tests/resolve().",
+    "entity CREATED adapter semantic/rust/resolve/tests/sources().",
+    "entity CREATED adapter semantic/rust/resolve/tests/workspace_crates_resolve_through_the_extern_prelude_and_only_see_pub_items().",
+    "entity CREATED core graph/engineering_graph/tests/a_resolution_of_a_claim_adds_one_calls_edge_and_no_second_call_site().",
+    "entity CREATED runtime census/extraction/`impl:CensusExtractionAccounting`/is_closed_per_extractor().",
+    "entity CREATED runtime census/extraction/requested_dimensions().",
+    "entity CREATED runtime census/resolution/crate_targets().",
+    "entity CREATED runtime census/resolution/identity().",
+    "entity CREATED runtime census/resolution/resolve_rust_path_calls().",
+    "entity CREATED runtime census/resolution/tests/a_resolution_without_a_syntactic_claim_is_a_diagnosed_disagreement().",
+    "entity CREATED runtime census/resolution/tests/artifact().",
+    "entity CREATED runtime census/resolution/tests/crate_targets_follow_manifests_renames_roles_and_own_library().",
+    "entity CREATED runtime census/resolution/tests/map().",
+    "entity CREATED runtime census/resolution/tests/resolutions_observe_the_syntactic_claims_and_name_their_callee_identity().",
+    "entity CREATED runtime census/resolution/tests/revision().",
+    "entity CREATED runtime census/resolution/tests/workspace().",
+    "entity CREATED runtime normalize/disagree().",
+    "entity CREATED runtime normalize/tests/an_unresolved_call_makes_no_callee_claim_to_disagree_with()."
+  ],
+  "intended_but_unobserved": [],
+  "unexpected_changes": [],
+  "regressions": [],
+  "verdict": "PROVEN"
+}

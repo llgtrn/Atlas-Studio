@@ -455,6 +455,7 @@ mod tests {
                 "kythe",
                 "ladybird",
                 "rust",
+                "rust-analyzer",
                 "scip",
                 "semgrep",
                 "souffle",

@@ -74,8 +74,11 @@ fn detect_conflict_candidates(records: &[SemanticObservation]) -> Vec<ConflictCa
 
     let mut candidates = Vec::new();
     for group in by_record.values() {
-        let first_repr = group[0].subject_repr();
-        if group.iter().any(|o| o.subject_repr() != first_repr) {
+        let disagreement = group
+            .iter()
+            .enumerate()
+            .any(|(i, a)| group[i + 1..].iter().any(|b| disagree(a, b)));
+        if disagreement {
             candidates.push(ConflictCandidate {
                 record_id: group[0].record_id().clone(),
                 dimension: group[0].dimension(),
@@ -84,6 +87,25 @@ fn detect_conflict_candidates(records: &[SemanticObservation]) -> Vec<ConflictCa
         }
     }
     candidates
+}
+
+/// Whether two observations of one claim disagree. An UNRESOLVED call with no callees makes no
+/// callee claim at all (`.atlas/contracts/SEMANTIC-FACTS.md#callfact`), so it cannot disagree with
+/// another engine's resolution of the same call site (G75); every call-site field must still
+/// match. Everything else disagrees exactly when the subjects differ.
+fn disagree(a: &SemanticObservation, b: &SemanticObservation) -> bool {
+    if let (SemanticObservation::Call(x), SemanticObservation::Call(y)) = (a, b) {
+        let no_callee_claim = |call: &atlas_core::CallSiteIdentity| {
+            call.dispatch == atlas_core::CallDispatchKind::Unresolved && call.callees.is_empty()
+        };
+        if no_callee_claim(&x.subject) || no_callee_claim(&y.subject) {
+            let mut site = x.subject.clone();
+            site.dispatch = y.subject.dispatch;
+            site.callees.clone_from(&y.subject.callees);
+            return site != y.subject;
+        }
+    }
+    a.subject_repr() != b.subject_repr()
 }
 
 /// N0 typed normalization for the obligation ledger: deterministic ordering by `obligation_id`,
@@ -530,6 +552,63 @@ mod tests {
         assert_eq!(candidate.dimension, SemanticDimension::Call);
         assert_eq!(candidate.raw_observation_ids.len(), 2);
         assert!(report.typed_semantics_closed());
+    }
+
+    #[test]
+    fn an_unresolved_call_makes_no_callee_claim_to_disagree_with() {
+        // G75: the syntactic extractor leaves the callee UNRESOLVED; name resolution observes the
+        // same site with a callee. Absence of a claim is not disagreement -- but a site field the
+        // two observations disagree on still is.
+        let unresolved = call_observation(
+            atlas_core::CallDispatchKind::Unresolved,
+            Vec::new(),
+            "extractor-a",
+            vec![atlas_core::EvidenceId::new("evidence:a")],
+        );
+        let resolved = call_observation(
+            atlas_core::CallDispatchKind::StaticResolved,
+            vec![SemanticRecordId::new(
+                SemanticDimension::FunctionIdentity,
+                "callee-foo",
+            )],
+            "extractor-b",
+            vec![atlas_core::EvidenceId::new("evidence:b")],
+        );
+        let report = normalize(&census_with(vec![unresolved.clone(), resolved.clone()]));
+        assert!(report.conflict_candidates.is_empty());
+        assert_eq!(report.typed_semantic_records.len(), 2);
+
+        let SemanticObservation::Call(mut other_site) = resolved.clone() else {
+            unreachable!()
+        };
+        other_site.subject.result = atlas_core::PlaceRef::Resolved {
+            dimension: SemanticDimension::DataFlow,
+            record_id: SemanticRecordId::new(SemanticDimension::DataFlow, "definition"),
+        };
+        let report = normalize(&census_with(vec![
+            unresolved,
+            SemanticObservation::Call(other_site),
+        ]));
+        assert_eq!(report.conflict_candidates.len(), 1);
+
+        // Two resolutions to different callees remain a conflict even beside an unresolved one.
+        let other = call_observation(
+            atlas_core::CallDispatchKind::StaticResolved,
+            vec![SemanticRecordId::new(
+                SemanticDimension::FunctionIdentity,
+                "callee-bar",
+            )],
+            "extractor-c",
+            vec![atlas_core::EvidenceId::new("evidence:c")],
+        );
+        let unresolved = call_observation(
+            atlas_core::CallDispatchKind::Unresolved,
+            Vec::new(),
+            "extractor-a",
+            vec![atlas_core::EvidenceId::new("evidence:a")],
+        );
+        let report = normalize(&census_with(vec![unresolved, resolved, other]));
+        assert_eq!(report.conflict_candidates.len(), 1);
     }
 
     #[test]

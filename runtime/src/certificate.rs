@@ -252,39 +252,66 @@ mod tests {
         assert!(has("UNKNOWN_FACTS"));
         assert!(has("UNSUPPORTED_FACTS"));
 
-        // An engine is an extractor that evaluated the obligation: a second identity that only
-        // asserts UNSUPPORTED for the same (artifact, dimension) is not an independent pass; one
-        // that evaluated it is.
-        assert_eq!(cert.independent_passes.passes_total, 1);
+        // An engine is an extractor that evaluated the obligation, and reconciliation is per
+        // dimension (G75): CALL has two engines on this repository (the syntactic extractor and
+        // path resolution), every other evaluated dimension one, and the blocker names them.
+        let multi = |cert: &CensusCertificate| {
+            cert.blockers
+                .iter()
+                .find(|b| b.starts_with("MULTI_ENGINE_RECONCILIATION_ABSENT"))
+                .cloned()
+        };
+        assert_eq!(cert.independent_passes.passes_total, 2);
+        let named = multi(&cert).unwrap();
+        assert!(!named.contains("CALL"), "{named}");
+        assert!(
+            named.contains("SYMBOL") && named.contains("DATA_FLOW"),
+            "{named}"
+        );
+        // A second identity that only asserts UNSUPPORTED is not an engine; one that evaluated
+        // the obligation reconciles that dimension, and only that one.
         let evaluated = report
             .census
             .typed_obligations
             .iter()
-            .find(|o| o.status != atlas_core::EpistemicStatus::Unsupported)
+            .find(|o| {
+                o.status != atlas_core::EpistemicStatus::Unsupported
+                    && o.dimension != atlas_core::SemanticDimension::Call
+            })
             .unwrap()
             .clone();
+        let dimension = evaluated.dimension.as_str();
         let mut asserted_only = report.clone();
         let mut second = evaluated.clone();
         second.extractor.id = "atlas.test.second-engine".into();
         second.status = atlas_core::EpistemicStatus::Unsupported;
         asserted_only.census.typed_obligations.push(second.clone());
-        assert_eq!(
-            certify_with(&asserted_only, &[&pass, &pass])
-                .independent_passes
-                .passes_total,
-            1
+        assert!(
+            multi(&certify_with(&asserted_only, &[&pass, &pass]))
+                .unwrap()
+                .contains(dimension)
         );
         let mut two_engines = report.clone();
         second.status = evaluated.status;
         two_engines.census.typed_obligations.push(second);
         let doubled = certify_with(&two_engines, &[&pass, &pass]);
-        assert_eq!(doubled.independent_passes.passes_total, 2);
-        assert!(
-            !doubled
-                .blockers
-                .iter()
-                .any(|b| b.starts_with("MULTI_ENGINE_RECONCILIATION_ABSENT"))
-        );
+        let after = multi(&doubled).unwrap();
+        assert!(!after.contains(dimension), "{after}");
+        // Two engines on every evaluated (artifact, dimension): no blocker at all.
+        let mut everywhere = report.clone();
+        let seconds: Vec<_> = everywhere
+            .census
+            .typed_obligations
+            .iter()
+            .filter(|o| o.status != atlas_core::EpistemicStatus::Unsupported)
+            .map(|o| {
+                let mut o = o.clone();
+                o.extractor.id = "atlas.test.second-engine".into();
+                o
+            })
+            .collect();
+        everywhere.census.typed_obligations.extend(seconds);
+        assert_eq!(multi(&certify_with(&everywhere, &[&pass, &pass])), None);
 
         // A dirty input is not a pinned revision.
         let mut dirty = report.clone();

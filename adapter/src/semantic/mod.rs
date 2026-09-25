@@ -21,3 +21,7 @@ pub use batch::{ExtractionBatch, ObligationResult};
 pub use extractor::{DiagnosticCode, ExtractionDiagnostic, ExtractionInput, SemanticExtractor};
 pub use registry::{StaticUnsupportedExtractor, extractors_for_language, semantic_extractors};
 pub use rust::RustSemanticExtractor;
+pub use rust::resolve::{
+    CrateInput, FnTarget, PathCallOutcome, PathCallResolution, WorkspaceResolution,
+    join as join_path, resolve_path_calls, resolve_workspace,
+};
