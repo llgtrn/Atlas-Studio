@@ -1,0 +1,77 @@
+{
+  "schema": "atlas.evidence.method-call-scip-differential.v1",
+  "generation": "G143",
+  "oracle": "rust-analyzer SCIP (rust-analyzer scip, offline, the G143 working tree)",
+  "method": "the G142 engine and the G143 engine run on the same tree; every CALL record only the G143 engine derives (field and call-result receivers, lets bound to them) compared at its anchor with the SCIP occurrence there: the referenced symbol's definition must fall inside the callee Atlas names",
+  "resolved_call_records": {
+    "g142_engine_on_g143_tree": 5687,
+    "g143_engine_on_g143_tree": 5763
+  },
+  "new_resolutions": 76,
+  "lost_resolutions": 0,
+  "changed_resolutions": 0,
+  "agree": 76,
+  "disagree": [],
+  "sample": [
+    {
+      "anchor": "core/src/donor/mod.rs:345:25",
+      "callee": "core/src/donor/mod.rs:114:is_local",
+      "scip_symbol": "rust-analyzer cargo core 0.1.0 donor/impl#[MaterializationMode]is_local()."
+    },
+    {
+      "anchor": "core/src/quantity/mod.rs:848:13",
+      "callee": "core/src/quantity/mod.rs:179:checked_add",
+      "scip_symbol": "rust-analyzer cargo core 0.1.0 quantity/impl#[Interval]checked_add()."
+    },
+    {
+      "anchor": "core/src/quantity/mod.rs:915:13",
+      "callee": "core/src/quantity/mod.rs:59:combine",
+      "scip_symbol": "rust-analyzer cargo core 0.1.0 quantity/impl#[Dimension]combine()."
+    },
+    {
+      "anchor": "core/src/atlas/tests.rs:437:17",
+      "callee": "core/src/atlas/mod.rs:293:uvarint",
+      "scip_symbol": "rust-analyzer cargo core 0.1.0 atlas/impl#[Record]uvarint()."
+    },
+    {
+      "anchor": "core/src/quantity/mod.rs:943:22",
+      "callee": "core/src/quantity/mod.rs:360:approximate",
+      "scip_symbol": "rust-analyzer cargo core 0.1.0 quantity/impl#[Rational]approximate()."
+    },
+    {
+      "anchor": "core/src/donor/mod.rs:386:21",
+      "callee": "core/src/donor/mod.rs:114:is_local",
+      "scip_symbol": "rust-analyzer cargo core 0.1.0 donor/impl#[MaterializationMode]is_local()."
+    },
+    {
+      "anchor": "core/src/physical/mod.rs:815:29",
+      "callee": "core/src/quantity/mod.rs:355:to_f64",
+      "scip_symbol": "rust-analyzer cargo core 0.1.0 quantity/impl#[Rational]to_f64()."
+    },
+    {
+      "anchor": "core/src/quantity/mod.rs:206:21",
+      "callee": "core/src/quantity/mod.rs:302:checked_mul",
+      "scip_symbol": "rust-analyzer cargo core 0.1.0 quantity/impl#[Rational]checked_mul()."
+    },
+    {
+      "anchor": "core/src/quantity/mod.rs:755:58",
+      "callee": "core/src/quantity/mod.rs:680:with_kind",
+      "scip_symbol": "rust-analyzer cargo core 0.1.0 quantity/impl#[Quantity]with_kind()."
+    },
+    {
+      "anchor": "core/src/quantity/mod.rs:197:21",
+      "callee": "core/src/quantity/mod.rs:302:checked_mul",
+      "scip_symbol": "rust-analyzer cargo core 0.1.0 quantity/impl#[Rational]checked_mul()."
+    },
+    {
+      "anchor": "core/src/quantity/mod.rs:198:22",
+      "callee": "core/src/quantity/mod.rs:302:checked_mul",
+      "scip_symbol": "rust-analyzer cargo core 0.1.0 quantity/impl#[Rational]checked_mul()."
+    },
+    {
+      "anchor": "runtime/src/sandbox.rs:31:37",
+      "callee": "core/src/identity/mod.rs:135:as_str",
+      "scip_symbol": "rust-analyzer cargo core 0.1.0 identity/impl#[IntegrityDigest]as_str()."
+    }
+  ]
+}

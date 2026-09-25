@@ -494,6 +494,45 @@ fn signature_typed_lets_and_guarded_autoref_resolve_methods() {
     assert_eq!(got, expect);
 }
 
+#[test]
+fn field_and_call_result_receivers_are_typed_forward() {
+    // G143: a receiver's type follows its expression -- a field a non-generic struct declares
+    // (`T`, `&T`, `&mut T`), the result of a resolved call whose callee declares a plain output,
+    // a `let` bound once to either, or any of them in parentheses. Generic arguments, reference
+    // expressions, untyped bases and generic structs are never typed.
+    let lib = "pub struct Leaf;\nimpl Leaf {\n    fn touch(&self) {}\n    fn poke(&mut self) {}\n}\npub struct Wrap<T>(T);\nimpl<T> Wrap<T> {\n    fn touch(&self) {}\n}\npub struct Node {\n    leaf: Leaf,\n    shared: &'static Leaf,\n    many: Vec<Leaf>,\n    wrapped: Wrap<Leaf>,\n}\nimpl Node {\n    fn leaf(&self) -> Leaf {\n        Leaf\n    }\n    fn walk(&mut self) {\n        self.leaf.touch();\n        self.shared.touch();\n        self.leaf.poke();\n        self.leaf().touch();\n        self.many.len();\n        self.wrapped.touch();\n        let l = self.leaf();\n        l.touch();\n        let f = &self.leaf;\n        f.touch();\n        (self.leaf).touch();\n    }\n}\nfn make_node() -> Node {\n    unimplemented!()\n}\nfn free(other: Vec<Leaf>) {\n    make_node().walk();\n    let mut n = make_node();\n    n.leaf.poke();\n    other.first();\n    let n2 = make_node();\n    let l2 = n2.leaf();\n    l2.touch();\n}\npub struct Item;\nimpl Item {\n    fn touch(&self) {}\n}\npub struct G<Item> {\n    inner: Item,\n}\nimpl G<Leaf> {\n    fn look(&self) {\n        self.inner.touch();\n    }\n}\n";
+    let results = resolve(&[("src/lib.rs", lib)], "src/lib.rs");
+    let got: Vec<(String, String)> = outcomes(&results, "src/lib.rs")
+        .into_iter()
+        .filter(|(callee, _)| callee.contains('.'))
+        .collect();
+    let expect: Vec<(String, String)> = [
+        ("self.leaf.touch", "src/lib.rs:3:touch"),
+        // A `&Leaf` field is a `&self` receiver at the probe's first step.
+        ("self.shared.touch", "src/lib.rs:3:touch"),
+        ("self.leaf.poke", "src/lib.rs:4:poke"),
+        ("self.leaf", "src/lib.rs:17:leaf"),
+        ("self.leaf().touch", "src/lib.rs:3:touch"),
+        // `self.many` (`Vec<Leaf>`) and `self.wrapped` (`Wrap<Leaf>`) have generic arguments:
+        // never typed.
+        ("self.leaf", "src/lib.rs:17:leaf"),
+        ("l.touch", "src/lib.rs:3:touch"),
+        // `f` is bound to a reference expression: untyped.
+        ("self.leaf.touch", "src/lib.rs:3:touch"),
+        ("make_node().walk", "src/lib.rs:20:walk"),
+        ("n.leaf.poke", "src/lib.rs:4:poke"),
+        // A `let` typed from an earlier one.
+        ("n2.leaf", "src/lib.rs:17:leaf"),
+        ("l2.touch", "src/lib.rs:3:touch"),
+        // `G<Item>` is generic (its parameter shadows the type `Item`): its fields are never
+        // typed, so `self.inner.touch()` is never claimed as `Item::touch`.
+    ]
+    .iter()
+    .map(|(a, b)| ((*a).to_owned(), (*b).to_owned()))
+    .collect();
+    assert_eq!(got, expect);
+}
+
 /// `spelling -> canonical` for every type occurrence in `path` (first occurrence per spelling).
 fn canonical_types(files: &[(&str, &str)], root: &str, path: &str) -> BTreeMap<String, String> {
     let mut out = BTreeMap::new();

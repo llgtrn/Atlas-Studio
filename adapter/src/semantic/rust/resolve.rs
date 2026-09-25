@@ -386,6 +386,8 @@ struct DefMap {
     trait_fns: BTreeMap<TypeId, Vec<ImplFn>>,
     /// G142: each workspace function's declared output, by its target's (path, line, column).
     fn_outputs: BTreeMap<(String, usize, usize), FnOutput>,
+    /// G143: the named fields of each workspace struct without generics, as declared.
+    struct_fields: BTreeMap<TypeId, BTreeMap<String, (ModId, syn::Type)>>,
     /// An inherent impl on a trait object (`impl dyn Tr {}`) exists somewhere: its methods would
     /// compete with the trait's, so no call through `dyn` is claimed.
     dyn_inherent_impl: bool,
@@ -600,6 +602,18 @@ impl DefMap {
                     let name = item.ident.to_string();
                     let ty = self.new_type(module, &name, BTreeSet::new(), false, None);
                     self.add_item(module, Ns::Types, &name, Def::Type(ty), &item.vis);
+                    if let syn::Fields::Named(named) = &item.fields
+                        && item.generics.params.is_empty()
+                    {
+                        let fields = named
+                            .named
+                            .iter()
+                            .filter_map(|f| {
+                                Some((f.ident.as_ref()?.to_string(), (module, f.ty.clone())))
+                            })
+                            .collect();
+                        self.struct_fields.insert(ty, fields);
+                    }
                     if !matches!(item.fields, syn::Fields::Named(_)) {
                         self.add_item(module, Ns::Values, &name, Def::Ctor, &item.vis);
                     }
@@ -1423,6 +1437,54 @@ impl DefMap {
         (!self.types[ty].is_trait).then_some(ty)
     }
 
+    /// G143: the type of field `name` of the workspace struct `ty` (declared without generics)
+    /// with the form its spelling gives (`T`, `&T`, `&mut T`), when `T` is a plain workspace type.
+    fn field_type(
+        &self,
+        crates: &[CrateInput],
+        ty: TypeId,
+        name: &str,
+    ) -> Option<(TypeId, Receiver)> {
+        let (scope, spelled) = self.struct_fields.get(&ty)?.get(name)?;
+        let (form, inner) = match spelled {
+            syn::Type::Reference(reference) => (
+                if reference.mutability.is_some() {
+                    Receiver::RefMut
+                } else {
+                    Receiver::Ref
+                },
+                reference.elem.as_ref(),
+            ),
+            other => (Receiver::Value, other),
+        };
+        let syn::Type::Path(path) = inner else {
+            return None;
+        };
+        if path.qself.is_some()
+            || path
+                .path
+                .segments
+                .iter()
+                .any(|s| !matches!(s.arguments, syn::PathArguments::None))
+        {
+            return None;
+        }
+        let segments: Vec<String> = path
+            .path
+            .segments
+            .iter()
+            .map(|s| s.ident.to_string())
+            .collect();
+        let field = self.resolve_type_path(
+            crates,
+            *scope,
+            &segments,
+            path.path.leading_colon.is_some(),
+            0,
+        )?;
+        (!self.types[field].is_trait).then_some((field, form))
+    }
+
     /// G142: whether the probe's autoref step can be claimed for `ty.name(..)` from `scope`: no
     /// by-value method of that name can come first. A by-value workspace trait method, a std
     /// blanket by-value method (`into`, `try_into`, `into_iter`), a non-std import or an unseen
@@ -1637,6 +1699,15 @@ struct TypedLocal {
     ty: LocalType,
     form: Receiver,
     from: (usize, usize),
+}
+
+/// A receiver expression's type as the method probe first sees it (G143).
+struct ReceiverType {
+    ty: LocalType,
+    form: Receiver,
+    /// The impl shape the called method's impl must have (`self` in its own impl; else plain).
+    shape: String,
+    label: String,
 }
 
 /// What a declared type says about a receiver.
@@ -1875,6 +1946,106 @@ impl CallWalker<'_> {
         self.type_lets(sig, block);
     }
 
+    /// G143: the type of a receiver expression as the method probe first sees it, with the impl
+    /// shape its methods must match and a label for the call: `self` (G79; `Self: Trait` in a
+    /// default body, G140), a typed local (G139, G140, G142), a field of a typed receiver whose
+    /// struct declares it, the result of a resolved call whose callee declares a plain output,
+    /// or any of these in parentheses. `at` is the call's position (a local counts after its
+    /// binding).
+    fn receiver_type(&self, expr: &syn::Expr, at: (usize, usize)) -> Option<ReceiverType> {
+        match expr {
+            syn::Expr::Path(path) if path.qself.is_none() => {
+                let local = path.path.get_ident()?.to_string();
+                if local == "self"
+                    && let Some(FnCtx {
+                        receiver: Some(form),
+                        ..
+                    }) = self.fn_ctx.last()
+                    && let Some(Some(ImplCtx {
+                        ty: Some(ty),
+                        shape,
+                        ..
+                    })) = self.impl_self.last()
+                {
+                    return Some(ReceiverType {
+                        ty: LocalType::Concrete(*ty),
+                        form: *form,
+                        shape: shape.clone(),
+                        label: local,
+                    });
+                }
+                let typed = self.fn_ctx.last()?.typed.get(&local)?;
+                (at > typed.from).then(|| ReceiverType {
+                    ty: typed.ty.clone(),
+                    form: typed.form,
+                    shape: PLAIN_IMPL_SHAPE.into(),
+                    label: local,
+                })
+            }
+            syn::Expr::Field(field) => {
+                let syn::Member::Named(name) = &field.member else {
+                    return None;
+                };
+                let base = self.receiver_type(&field.base, at)?;
+                let LocalType::Concrete(ty) = base.ty else {
+                    return None;
+                };
+                let (ty, form) = self.map.field_type(self.crates, ty, &name.to_string())?;
+                Some(ReceiverType {
+                    ty: LocalType::Concrete(ty),
+                    form,
+                    shape: PLAIN_IMPL_SHAPE.into(),
+                    label: format!("{}.{name}", base.label),
+                })
+            }
+            syn::Expr::MethodCall(inner) => {
+                let (label, PathCallOutcome::Resolved(target)) = self.method_outcome(inner)? else {
+                    return None;
+                };
+                Some(ReceiverType {
+                    ty: LocalType::Concrete(self.map.output_type(self.crates, &target)?),
+                    form: Receiver::Value,
+                    shape: PLAIN_IMPL_SHAPE.into(),
+                    label: format!("{label}()"),
+                })
+            }
+            syn::Expr::Call(call) => {
+                let syn::Expr::Path(path) = call.func.as_ref() else {
+                    return None;
+                };
+                let PathCallOutcome::Resolved(target) = self.resolve_call(path) else {
+                    return None;
+                };
+                Some(ReceiverType {
+                    ty: LocalType::Concrete(self.map.output_type(self.crates, &target)?),
+                    form: Receiver::Value,
+                    shape: PLAIN_IMPL_SHAPE.into(),
+                    label: format!("{}()", target.name),
+                })
+            }
+            syn::Expr::Paren(inner) => self.receiver_type(&inner.expr, at),
+            _ => None,
+        }
+    }
+
+    /// The probe's decision for a method call whose receiver's type is known.
+    fn method_outcome(&self, call: &syn::ExprMethodCall) -> Option<(String, PathCallOutcome)> {
+        let at = start(call.method.span());
+        let receiver = self.receiver_type(&call.receiver, at)?;
+        let name = call.method.to_string();
+        let outcome = match &receiver.ty {
+            LocalType::Concrete(ty) => self.map.method_on_self(
+                *ty,
+                &receiver.shape,
+                &name,
+                receiver.form,
+                self.map.autoref_allowed(self.scope(), *ty, &name),
+            ),
+            LocalType::Bounded(bounds) => self.map.method_on_bounds(bounds, &name, receiver.form),
+        };
+        Some((format!("{}.{name}", receiver.label), outcome))
+    }
+
     /// G142: a top-level `let x = ..` bound once whose value's type the resolved callee declares:
     /// a function whose output is a plain workspace type (`Self` of a plain impl included), a
     /// struct literal, a tuple-struct or enum-variant constructor of such a type. The local holds
@@ -1885,7 +2056,6 @@ impl CallWalker<'_> {
             counts.visit_fn_arg(input);
         }
         counts.visit_block(block);
-        let mut found = Vec::new();
         for stmt in &block.stmts {
             let syn::Stmt::Local(local) = stmt else {
                 continue;
@@ -1907,17 +2077,26 @@ impl CallWalker<'_> {
             let Some(init) = &local.init else {
                 continue;
             };
-            if let Some(ty) = self.value_type(&init.expr) {
-                found.push((name, ty, start(local.let_token.span)));
-            }
-        }
-        if let Some(ctx) = self.fn_ctx.last_mut() {
-            for (name, ty, from) in found {
+            let from = start(local.let_token.span);
+            let typed = match self.value_type(&init.expr) {
+                Some(ty) => Some((ty, Receiver::Value)),
+                // G143: a field of a typed receiver, or a resolved method call's result.
+                None => match self.receiver_type(&init.expr, from) {
+                    Some(ReceiverType {
+                        ty: LocalType::Concrete(ty),
+                        form,
+                        ..
+                    }) => Some((ty, form)),
+                    _ => None,
+                },
+            };
+            // Each binding is typed in order, so a later `let` may use an earlier one.
+            if let (Some((ty, form)), Some(ctx)) = (typed, self.fn_ctx.last_mut()) {
                 ctx.typed.insert(
                     name,
                     TypedLocal {
                         ty: LocalType::Concrete(ty),
-                        form: Receiver::Value,
+                        form,
                         from,
                     },
                 );
@@ -2492,67 +2671,18 @@ impl<'ast> Visit<'ast> for CallWalker<'_> {
         syn::visit::visit_expr_call(self, call);
     }
 
-    /// `self.m(..)` inside an impl method (G79): the receiver's type is the impl's self type.
+    /// A method call whose receiver's type is known: `self.m(..)` in an impl method (G79), a typed
+    /// local (G139, G140, G142), a field of one or a call result (G143).
     fn visit_expr_method_call(&mut self, call: &'ast syn::ExprMethodCall) {
-        if let syn::Expr::Path(receiver) = call.receiver.as_ref()
-            && receiver.path.is_ident("self")
-            && let Some(FnCtx {
-                receiver: Some(form),
-                ..
-            }) = self.fn_ctx.last()
-            && let Some(Some(ImplCtx {
-                ty: Some(ty),
-                shape,
-                ..
-            })) = self.impl_self.last()
-        {
+        if let Some((callee, outcome)) = self.method_outcome(call) {
             let (line, column) = start(call.method.span());
-            let name = call.method.to_string();
             self.out.push(PathCallResolution {
                 path: self.file.to_owned(),
                 line,
                 column,
-                callee: format!("self.{name}"),
-                outcome: self.map.method_on_self(
-                    *ty,
-                    shape,
-                    &name,
-                    *form,
-                    self.map.autoref_allowed(self.scope(), *ty, &name),
-                ),
+                callee,
+                outcome,
             });
-        } else if let syn::Expr::Path(receiver) = call.receiver.as_ref()
-            && receiver.qself.is_none()
-            && let Some(local) = receiver.path.get_ident()
-            && let Some(ctx) = self.fn_ctx.last()
-            && let Some(typed) = ctx.typed.get(&local.to_string())
-        {
-            // G139 (NA-CALL-TYPE-RESIDUAL): a local whose declared type is a plain workspace
-            // type. The probe's first step is the same as for `self`: the inherent method whose
-            // receiver form equals the local's declared form wins, ahead of every trait.
-            let (line, column) = start(call.method.span());
-            if (line, column) > typed.from {
-                let name = call.method.to_string();
-                let outcome = match &typed.ty {
-                    LocalType::Concrete(ty) => self.map.method_on_self(
-                        *ty,
-                        PLAIN_IMPL_SHAPE,
-                        &name,
-                        typed.form,
-                        self.map.autoref_allowed(self.scope(), *ty, &name),
-                    ),
-                    LocalType::Bounded(bounds) => {
-                        self.map.method_on_bounds(bounds, &name, typed.form)
-                    }
-                };
-                self.out.push(PathCallResolution {
-                    path: self.file.to_owned(),
-                    line,
-                    column,
-                    callee: format!("{local}.{name}"),
-                    outcome,
-                });
-            }
         }
         syn::visit::visit_expr_method_call(self, call);
     }

@@ -1,0 +1,279 @@
+{
+  "schema": "atlas.self-recensus-report.v1",
+  "generation": "G143",
+  "base_revision": "d44f11573c9578f1c308d5901d97cce73864b80b",
+  "candidate_revision": "b692cfa21f6374ec77005db21226cda91a5c3c8e",
+  "candidate_dirty": true,
+  "before_census_digest": "blake3-256:2524afbc25eda4cccbbbd083ea07fd765a434de2fa916b349343f91d431818f4",
+  "after_census_digest": "blake3-256:547140f7ca44ba14f2dea97d5a2fee59382bbc58600d0896047774bec1a2140d",
+  "replay_digest": "blake3-256:547140f7ca44ba14f2dea97d5a2fee59382bbc58600d0896047774bec1a2140d",
+  "inventory_delta": {
+    "created": [],
+    "modified": [
+      "adapter/src/semantic/rust/resolve.rs",
+      "adapter/src/semantic/rust/resolve/tests.rs",
+      "runtime/src/census/resolution.rs"
+    ],
+    "deleted": []
+  },
+  "semantic_delta": {
+    "changed": [
+      "adapter/src/semantic/rust/resolve.rs",
+      "adapter/src/semantic/rust/resolve/tests.rs",
+      "core/src/atlas/mod.rs",
+      "core/src/atlas/tests.rs",
+      "core/src/donor/mod.rs",
+      "core/src/graph/engineering_graph.rs",
+      "core/src/identity/blake3.rs",
+      "core/src/physical/mod.rs",
+      "core/src/quantity/mod.rs",
+      "runtime/src/agent.rs",
+      "runtime/src/atlas.rs",
+      "runtime/src/census/mod.rs",
+      "runtime/src/census/resolution.rs",
+      "runtime/src/lib.rs",
+      "runtime/src/sandbox.rs",
+      "runtime/src/verification.rs"
+    ],
+    "counts": {
+      "fact:FunctionIdentity|OBSERVED": 10,
+      "fact:FunctionSignature|OBSERVED": 4,
+      "fact:Symbol|OBSERVED": 16,
+      "fact:Type|DERIVED": 2,
+      "fact:Type|OBSERVED": 9,
+      "record:CALL|DERIVED": 85,
+      "record:CALL|OBSERVED": 53,
+      "record:CONTROL_FLOW|INFERRED": 1,
+      "record:CONTROL_FLOW|OBSERVED": 29,
+      "record:DATA_FLOW|OBSERVED": 138,
+      "record:EFFECT|INFERRED": 1,
+      "record:FUNCTION_IDENTITY|OBSERVED": 10,
+      "record:FUNCTION_SIGNATURE|OBSERVED": 4,
+      "record:OWNERSHIP|OBSERVED": 42,
+      "record:STATE|OBSERVED": 4,
+      "record:SYMBOL|OBSERVED": 16,
+      "record:TYPE|DERIVED": 2,
+      "record:TYPE|OBSERVED": 9
+    }
+  },
+  "dependency_delta": {
+    "added": [],
+    "removed": []
+  },
+  "dependency_state": [
+    "Closed",
+    "Closed"
+  ],
+  "graph_delta": {
+    "graph_edges": 532,
+    "graph_nodes": 349
+  },
+  "obligation_delta": {},
+  "adl_delta": {
+    "added": [],
+    "removed": []
+  },
+  "entity_delta": [
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/resolve/`impl:CallWalker<'_>`/type_lets()."
+      ],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:CallWalker<'_>`/type_lets()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/collect_items()."
+      ],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/collect_items()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "adapter semantic/rust/resolve/`impl:Visit<'ast> for CallWalker<'_>`/visit_expr_method_call()."
+      ],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:Visit<'ast> for CallWalker<'_>`/visit_expr_method_call()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "runtime census/resolution/resolve_rust_path_calls()."
+      ],
+      "after": [
+        "runtime census/resolution/resolve_rust_path_calls()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:CallWalker<'_>`/method_outcome()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:CallWalker<'_>`/receiver_type()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/`impl:DefMap`/field_type()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "adapter semantic/rust/resolve/tests/field_and_call_result_receivers_are_typed_forward()."
+      ],
+      "evidence": ""
+    }
+  ],
+  "coverage_delta": [],
+  "unknown_delta": {
+    "increased": [],
+    "decreased": [],
+    "total_before": 1597,
+    "total_after": 1597
+  },
+  "intent": {
+    "objective": "native attack NA-CALL-TYPE-RESIDUAL (step four): receivers typed forward through declared struct fields and resolved call results (and lets bound to them); 76 new resolutions, all agreeing with rust-analyzer SCIP",
+    "changed_paths": [
+      "adapter/src/semantic/rust/resolve.rs",
+      "adapter/src/semantic/rust/resolve/tests.rs",
+      "core/src/atlas/mod.rs",
+      "core/src/atlas/tests.rs",
+      "core/src/donor/mod.rs",
+      "core/src/graph/engineering_graph.rs",
+      "core/src/identity/blake3.rs",
+      "core/src/physical/mod.rs",
+      "core/src/quantity/mod.rs",
+      "runtime/src/agent.rs",
+      "runtime/src/atlas.rs",
+      "runtime/src/census/mod.rs",
+      "runtime/src/census/resolution.rs",
+      "runtime/src/lib.rs",
+      "runtime/src/sandbox.rs",
+      "runtime/src/verification.rs"
+    ],
+    "total_changes": [
+      "+composed:function_behavior",
+      "+composed:function_purpose:DECLARED",
+      "+composed:function_purpose:UNKNOWN",
+      "+composed:relation",
+      "+composed:relation:ENCLOSES",
+      "+composed:relation:INVOKES",
+      "+composed:relation:SUPPLIES_DATA",
+      "+docs",
+      "+entities",
+      "+evidence",
+      "+facts",
+      "+graph_edges",
+      "+graph_nodes",
+      "+normalized_facts",
+      "+records:CALL|atlas.resolution.rust-paths",
+      "+records:CALL|atlas.rust.source-semantic.v1",
+      "+records:CONTROL_FLOW|atlas.rust.source-semantic.v1",
+      "+records:DATA_FLOW|atlas.rust.source-semantic.v1",
+      "+records:EFFECT|atlas.rust.source-semantic.v1",
+      "+records:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1",
+      "+records:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1",
+      "+records:OWNERSHIP|atlas.rust.source-semantic.v1",
+      "+records:STATE|atlas.rust.source-semantic.v1",
+      "+records:SYMBOL|atlas.rust.source-semantic.v1",
+      "+records:TYPE|atlas.resolution.rust-paths",
+      "+records:TYPE|atlas.rust.source-semantic.v1",
+      "+typed_records"
+    ],
+    "dependency_changes": [],
+    "adl_changes": [],
+    "coverage_changes": [],
+    "explained_unknowns": [],
+    "accepted_unexpected": [],
+    "entity_changes": [
+      "CHANGED adapter semantic/rust/resolve/`impl:CallWalker<'_>`/type_lets().",
+      "CHANGED adapter semantic/rust/resolve/`impl:DefMap`/collect_items().",
+      "CHANGED adapter semantic/rust/resolve/`impl:Visit<'ast> for CallWalker<'_>`/visit_expr_method_call().",
+      "CHANGED runtime census/resolution/resolve_rust_path_calls().",
+      "CREATED adapter semantic/rust/resolve/`impl:CallWalker<'_>`/method_outcome().",
+      "CREATED adapter semantic/rust/resolve/`impl:CallWalker<'_>`/receiver_type().",
+      "CREATED adapter semantic/rust/resolve/`impl:DefMap`/field_type().",
+      "CREATED adapter semantic/rust/resolve/tests/field_and_call_result_receivers_are_typed_forward()."
+    ]
+  },
+  "intended_changes": [
+    "path adapter/src/semantic/rust/resolve.rs",
+    "path adapter/src/semantic/rust/resolve/tests.rs",
+    "path core/src/atlas/mod.rs",
+    "path core/src/atlas/tests.rs",
+    "path core/src/donor/mod.rs",
+    "path core/src/graph/engineering_graph.rs",
+    "path core/src/identity/blake3.rs",
+    "path core/src/physical/mod.rs",
+    "path core/src/quantity/mod.rs",
+    "path runtime/src/agent.rs",
+    "path runtime/src/atlas.rs",
+    "path runtime/src/census/mod.rs",
+    "path runtime/src/census/resolution.rs",
+    "path runtime/src/lib.rs",
+    "path runtime/src/sandbox.rs",
+    "path runtime/src/verification.rs",
+    "total +composed:function_behavior",
+    "total +composed:function_purpose:DECLARED",
+    "total +composed:function_purpose:UNKNOWN",
+    "total +composed:relation",
+    "total +composed:relation:ENCLOSES",
+    "total +composed:relation:INVOKES",
+    "total +composed:relation:SUPPLIES_DATA",
+    "total +docs",
+    "total +entities",
+    "total +evidence",
+    "total +facts",
+    "total +graph_edges",
+    "total +graph_nodes",
+    "total +normalized_facts",
+    "total +records:CALL|atlas.resolution.rust-paths",
+    "total +records:CALL|atlas.rust.source-semantic.v1",
+    "total +records:CONTROL_FLOW|atlas.rust.source-semantic.v1",
+    "total +records:DATA_FLOW|atlas.rust.source-semantic.v1",
+    "total +records:EFFECT|atlas.rust.source-semantic.v1",
+    "total +records:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1",
+    "total +records:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1",
+    "total +records:OWNERSHIP|atlas.rust.source-semantic.v1",
+    "total +records:STATE|atlas.rust.source-semantic.v1",
+    "total +records:SYMBOL|atlas.rust.source-semantic.v1",
+    "total +records:TYPE|atlas.resolution.rust-paths",
+    "total +records:TYPE|atlas.rust.source-semantic.v1",
+    "total +typed_records",
+    "entity CHANGED adapter semantic/rust/resolve/`impl:CallWalker<'_>`/type_lets().",
+    "entity CHANGED adapter semantic/rust/resolve/`impl:DefMap`/collect_items().",
+    "entity CHANGED adapter semantic/rust/resolve/`impl:Visit<'ast> for CallWalker<'_>`/visit_expr_method_call().",
+    "entity CHANGED runtime census/resolution/resolve_rust_path_calls().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:CallWalker<'_>`/method_outcome().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:CallWalker<'_>`/receiver_type().",
+    "entity CREATED adapter semantic/rust/resolve/`impl:DefMap`/field_type().",
+    "entity CREATED adapter semantic/rust/resolve/tests/field_and_call_result_receivers_are_typed_forward()."
+  ],
+  "intended_but_unobserved": [],
+  "unexpected_changes": [],
+  "regressions": [],
+  "verdict": "PROVEN"
+}

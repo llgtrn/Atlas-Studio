@@ -13,7 +13,7 @@
 #       -> generation evidence -> G_n+1
 
 schema = "atlas.self-build.generation-ledger.v1"
-current_generation = "G142"
+current_generation = "G143"
 
 [[generation]]
 id = "G35"
@@ -2998,3 +2998,38 @@ after = 5678
 key = "composed:relation:INVOKES"
 before = 3908
 after = 4059
+
+[[generation]]
+id = "G143"
+kind = "NATIVE_ATTACK"
+base_commit = "b692cfa21f6374ec77005db21226cda91a5c3c8e"
+priority = "P0"
+serves = "native attack queue head NA-CALL-TYPE-RESIDUAL (DEBT-CALL), fourth step"
+objective = "receivers typed forward through declared struct fields and resolved call results, with lets bound to them typed in order"
+writer = "coordinator (sole writer)"
+evidence = ".atlas/evidence/census/G143/method-call-scip-differential.json"
+self_recensus = ".atlas/evidence/census/G143/recensus.json"
+
+[generation.verification]
+pre_census = "clean-HEAD census of 49ae294189 = G142 post digest (the evidence commit b692cfa21f adds only out-of-scope evidence)"
+atlas_first = "G142's measurement showed untyped receivers as the lever; the method-call visitor (two branches, G79 and G139-G142) was refactored around one receiver typing so every earlier outcome is preserved (the 53 earlier resolver tests pass unchanged)"
+change = "adapter resolve.rs: DefMap.struct_fields (named fields of structs without generics) and field_type; ReceiverType; CallWalker::receiver_type (self, typed locals, fields, method- and path-call results, parentheses) and method_outcome; visit_expr_method_call through method_outcome; type_lets types lets from fields and call results, in order; resolution scope text; ADR 0060"
+oracle = "the G142 and G143 engines on the same tree: 5,687 -> 5,763 resolved CALL records, 76 new, none lost or changed; all 76 agree with rust-analyzer SCIP"
+falsification = "5 mutants killed: generic structs' fields recorded; parentheses opaque; the binding position ignored; a field's generic arguments accepted; call results untyped"
+debts = "DEBT-CALL last advance G143; NA-CALL-TYPE-RESIDUAL stays queued (for and pattern bindings, generic instantiations, Box/Rc and std receivers); revalidation milestone FIELD_AND_RESULT_RECEIVERS"
+proof = "PROVEN (post 547140f7...): no new UNKNOWN obligation; 16 files gain resolved calls"
+
+[[generation.metric]]
+key = "typed_records"
+before = 146040
+after = 146434
+
+[[generation.metric]]
+key = "records:CALL|atlas.resolution.rust-paths"
+before = 5678
+after = 5763
+
+[[generation.metric]]
+key = "composed:relation:INVOKES"
+before = 4059
+after = 4120

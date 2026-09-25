@@ -613,6 +613,11 @@ priority = "P0"
 objective = "native attack queue head (pressure map, primary-debt dependency order): NA-CALL-TYPE-RESIDUAL (step three done: signature-typed lets and the guarded autoref step; 174 new resolutions, all agreeing with SCIP; 6 mutants killed)"
 
 [[planned_generation]]
-id = "G143+"
+id = "G143"
 priority = "P0"
-objective = "the native_attack_queue in order (ESSENTIAL-COMPLEXITY-DEBT.toml) interleaved with an AGENT_MISSION at least every five generations; frontier expansion stays frozen until FOUNDATIONAL_ATLAS_READY"
+objective = "native attack queue head: NA-CALL-TYPE-RESIDUAL step four (done: receivers typed forward through declared fields and resolved call results; 76 new resolutions, all agreeing with SCIP; 5 mutants killed)"
+
+[[planned_generation]]
+id = "G144+"
+priority = "P0"
+objective = "the native_attack_queue in order (ESSENTIAL-COMPLEXITY-DEBT.toml) interleaved with an AGENT_MISSION at least every five generations (next due by G146); frontier expansion stays frozen until FOUNDATIONAL_ATLAS_READY"
