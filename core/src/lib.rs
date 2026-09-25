@@ -57,7 +57,8 @@ pub use identity::{
 };
 pub use language::adl::census::{
     CENSUS_ADL_PATH, CENSUS_DERIVATION_ID, DependencyReconciliation, ObservedArchitecture,
-    ObservedMember, ObservedMemberDependency, derive_census_adl, reconcile_dependencies,
+    ObservedMember, ObservedMemberDependency, derive_census_adl, derive_effect_envelopes,
+    reconcile_dependencies,
 };
 pub use language::adl::{
     AdlCompileReport, AdlDeclaration, AdlDiagnostic, AdlProgram, AdlSource, AdlToken, AtlasIr,

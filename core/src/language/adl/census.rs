@@ -413,5 +413,88 @@ pub fn derive_census_adl(
     text
 }
 
+/// G137 (ADR 0055): the effect envelope of every composed subsystem with functions whose
+/// authored ADL declares none -- `forall f: function in <S> observed effect within <C>, ...`
+/// listing each category its functions definitely (OBSERVED or DERIVED) perform, or `none`.
+/// `model` must be composed from the authored ADL plus the census membership declarations, never
+/// from the committed census file, so regeneration stays a fixed point. Every later census
+/// decides each envelope: a definite effect site outside it is a named counterexample.
+pub fn derive_effect_envelopes(
+    authored: &DeclaredGraph,
+    model: &crate::composition::WorldModel,
+) -> String {
+    use super::{CensusForbidden, ConstraintCheck};
+    use crate::EpistemicStatus;
+    let declared: BTreeSet<&str> = authored
+        .constraints
+        .iter()
+        .chain(&authored.invariants)
+        .flat_map(|c| &c.checks)
+        .filter_map(|check| match check {
+            ConstraintCheck::CensusForbid {
+                subsystem,
+                forbidden: CensusForbidden::ObservedEffectOutside { .. },
+            } => Some(subsystem.as_str()),
+            _ => None,
+        })
+        .collect();
+    let mut taken: BTreeSet<String> = authored
+        .nodes
+        .iter()
+        .map(|n| n.name.clone())
+        .chain(
+            authored
+                .constraints
+                .iter()
+                .chain(&authored.invariants)
+                .map(|c| c.name.clone()),
+        )
+        .collect();
+    let mut text = String::new();
+    for subsystem in &model.subsystems {
+        let name = subsystem.name.as_str();
+        if declared.contains(name) {
+            continue;
+        }
+        let mut sites: BTreeSet<&str> = BTreeSet::new();
+        let mut functions = 0;
+        for f in model
+            .functions
+            .iter()
+            .filter(|f| f.subsystem.as_deref() == Some(name))
+        {
+            functions += 1;
+            for site in &f.effects {
+                if site.status == EpistemicStatus::Observed
+                    || site.status == EpistemicStatus::Derived
+                {
+                    sites.insert(site.kind.as_str());
+                }
+            }
+        }
+        if functions == 0 {
+            continue;
+        }
+        let mut invariant = format!("{name}EffectEnvelope");
+        while taken.contains(&invariant) {
+            invariant.push_str("Census");
+        }
+        taken.insert(invariant.clone());
+        // Categories only, never counts: the file changes when an envelope does, not whenever a
+        // function or a site is added.
+        let within = if sites.is_empty() {
+            "none".to_owned()
+        } else {
+            sites.into_iter().collect::<Vec<_>>().join(", ")
+        };
+        text.push_str(&format!(
+            "\n# census: effect envelope of `{name}` -- every category its functions definitely \
+             perform (OBSERVED\n# or DERIVED sites)\ninvariant {invariant} {{\n    forall f: \
+             function in {name} observed effect within {within}\n}}\n"
+        ));
+    }
+    text
+}
+
 #[cfg(test)]
 mod tests;

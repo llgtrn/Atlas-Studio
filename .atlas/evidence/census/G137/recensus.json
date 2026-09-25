@@ -1,0 +1,267 @@
+{
+  "schema": "atlas.self-recensus-report.v1",
+  "generation": "G137",
+  "base_revision": "994b949b299d805e1ad50ede317f38c96d1a28d8",
+  "candidate_revision": "051453b32615dd7bd317f2a3a888dc148963f709",
+  "candidate_dirty": true,
+  "before_census_digest": "blake3-256:d7ccc38b6815d4f6693125dd401b8e92c449f32c2609912c3ae006af06a4022c",
+  "after_census_digest": "blake3-256:34661d182c2b8cfa6a634567f8faa8d0f582c9b7332636c7930ccc61cad4d209",
+  "replay_digest": "blake3-256:34661d182c2b8cfa6a634567f8faa8d0f582c9b7332636c7930ccc61cad4d209",
+  "inventory_delta": {
+    "created": [],
+    "modified": [
+      "core/src/composition/quantified.rs",
+      "core/src/language/adl/census.rs",
+      "core/src/language/adl/mod.rs",
+      "core/src/lib.rs",
+      "runtime/src/agent.rs",
+      "runtime/src/lib.rs"
+    ],
+    "deleted": []
+  },
+  "semantic_delta": {
+    "changed": [
+      "core/src/composition/quantified.rs",
+      "core/src/language/adl/census.rs",
+      "core/src/language/adl/mod.rs",
+      "core/src/lib.rs",
+      "runtime/src/agent.rs",
+      "runtime/src/lib.rs"
+    ],
+    "counts": {
+      "fact:FunctionIdentity|OBSERVED": 25,
+      "fact:FunctionSignature|OBSERVED": 3,
+      "fact:Symbol|OBSERVED": 27,
+      "fact:Type|DERIVED": 1,
+      "fact:Type|OBSERVED": 2,
+      "record:CALL|DERIVED": 10,
+      "record:CALL|OBSERVED": 153,
+      "record:CONTROL_FLOW|INFERRED": 20,
+      "record:CONTROL_FLOW|OBSERVED": 59,
+      "record:DATA_FLOW|OBSERVED": 291,
+      "record:EFFECT|DERIVED": 4,
+      "record:EFFECT|INFERRED": 24,
+      "record:FUNCTION_IDENTITY|OBSERVED": 25,
+      "record:FUNCTION_SIGNATURE|OBSERVED": 3,
+      "record:OWNERSHIP|OBSERVED": 66,
+      "record:PERSISTENCE|DERIVED": 1,
+      "record:SYMBOL|OBSERVED": 27,
+      "record:TYPE|DERIVED": 1,
+      "record:TYPE|OBSERVED": 2
+    }
+  },
+  "dependency_delta": {
+    "added": [],
+    "removed": []
+  },
+  "dependency_state": [
+    "Closed",
+    "Closed"
+  ],
+  "graph_delta": {
+    "graph_edges": 1005,
+    "graph_nodes": 736
+  },
+  "obligation_delta": {},
+  "adl_delta": {
+    "added": [
+      "constraint AdapterEffectEnvelope SATISFIED",
+      "constraint AtlasCliEffectEnvelope SATISFIED",
+      "constraint CoreEffectEnvelope SATISFIED",
+      "constraint RuntimeEffectEnvelope SATISFIED"
+    ],
+    "removed": []
+  },
+  "entity_delta": [
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core composition/quantified/decide()."
+      ],
+      "after": [
+        "core composition/quantified/decide()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core language/adl/parse_constraint_check()."
+      ],
+      "after": [
+        "core language/adl/parse_constraint_check()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "runtime agent/tests/atlas_self_world_model_is_complete_and_deterministic()."
+      ],
+      "after": [
+        "runtime agent/tests/atlas_self_world_model_is_complete_and_deterministic()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "runtime derive_census_adl()."
+      ],
+      "after": [
+        "runtime derive_census_adl()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core language/adl/census/derive_effect_envelopes()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core language/adl/tests/effect_envelopes_parse_sorted_and_reject_malformed_lists()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "runtime agent/tests/effect_envelopes_are_lowered_into_census_adl_and_reconciled()."
+      ],
+      "evidence": ""
+    }
+  ],
+  "coverage_delta": [],
+  "unknown_delta": {
+    "increased": [],
+    "decreased": [],
+    "total_before": 1560,
+    "total_after": 1560
+  },
+  "intent": {
+    "objective": "native attack NA-ADL-BEYOND-DEPENDENCIES: effect envelopes lowered from the census into census.adl as 'observed effect within' invariants and reconciled every census (VIOLATED naming each definite site outside, else SATISFIED naming what the claim does not cover)",
+    "changed_paths": [
+      "core/src/composition/quantified.rs",
+      "core/src/language/adl/census.rs",
+      "core/src/language/adl/mod.rs",
+      "core/src/lib.rs",
+      "runtime/src/agent.rs",
+      "runtime/src/lib.rs"
+    ],
+    "total_changes": [
+      "+adl_semantics",
+      "+composed:function_behavior",
+      "+composed:function_purpose:DECLARED",
+      "+composed:function_purpose:UNKNOWN",
+      "+composed:invariant",
+      "+composed:invariant:AUTHORITY|DERIVED",
+      "+composed:relation",
+      "+composed:relation:INVOKES",
+      "+composed:relation:SUPPLIES_DATA",
+      "+docs",
+      "+entities",
+      "+evidence",
+      "+facts",
+      "+graph_edges",
+      "+graph_nodes",
+      "+normalized_facts",
+      "+records:CALL|atlas.resolution.rust-paths",
+      "+records:CALL|atlas.rust.source-semantic.v1",
+      "+records:CONTROL_FLOW|atlas.rust.source-semantic.v1",
+      "+records:DATA_FLOW|atlas.rust.source-semantic.v1",
+      "+records:EFFECT|atlas.resolution.rust-paths",
+      "+records:EFFECT|atlas.rust.source-semantic.v1",
+      "+records:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1",
+      "+records:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1",
+      "+records:OWNERSHIP|atlas.rust.source-semantic.v1",
+      "+records:PERSISTENCE|atlas.resolution.rust-paths",
+      "+records:SYMBOL|atlas.rust.source-semantic.v1",
+      "+records:TYPE|atlas.resolution.rust-paths",
+      "+records:TYPE|atlas.rust.source-semantic.v1",
+      "+typed_records"
+    ],
+    "dependency_changes": [],
+    "adl_changes": [
+      "+constraint AdapterEffectEnvelope SATISFIED",
+      "+constraint AtlasCliEffectEnvelope SATISFIED",
+      "+constraint CoreEffectEnvelope SATISFIED",
+      "+constraint RuntimeEffectEnvelope SATISFIED",
+      "source .atlas/declared",
+      "source .atlas/declared/census.adl"
+    ],
+    "coverage_changes": [],
+    "explained_unknowns": [],
+    "accepted_unexpected": [],
+    "entity_changes": [
+      "CHANGED core composition/quantified/decide().",
+      "CHANGED core language/adl/parse_constraint_check().",
+      "CHANGED runtime agent/tests/atlas_self_world_model_is_complete_and_deterministic().",
+      "CHANGED runtime derive_census_adl().",
+      "CREATED core language/adl/census/derive_effect_envelopes().",
+      "CREATED core language/adl/tests/effect_envelopes_parse_sorted_and_reject_malformed_lists().",
+      "CREATED runtime agent/tests/effect_envelopes_are_lowered_into_census_adl_and_reconciled()."
+    ]
+  },
+  "intended_changes": [
+    "path core/src/composition/quantified.rs",
+    "path core/src/language/adl/census.rs",
+    "path core/src/language/adl/mod.rs",
+    "path core/src/lib.rs",
+    "path runtime/src/agent.rs",
+    "path runtime/src/lib.rs",
+    "total +adl_semantics",
+    "total +composed:function_behavior",
+    "total +composed:function_purpose:DECLARED",
+    "total +composed:function_purpose:UNKNOWN",
+    "total +composed:invariant",
+    "total +composed:invariant:AUTHORITY|DERIVED",
+    "total +composed:relation",
+    "total +composed:relation:INVOKES",
+    "total +composed:relation:SUPPLIES_DATA",
+    "total +docs",
+    "total +entities",
+    "total +evidence",
+    "total +facts",
+    "total +graph_edges",
+    "total +graph_nodes",
+    "total +normalized_facts",
+    "total +records:CALL|atlas.resolution.rust-paths",
+    "total +records:CALL|atlas.rust.source-semantic.v1",
+    "total +records:CONTROL_FLOW|atlas.rust.source-semantic.v1",
+    "total +records:DATA_FLOW|atlas.rust.source-semantic.v1",
+    "total +records:EFFECT|atlas.resolution.rust-paths",
+    "total +records:EFFECT|atlas.rust.source-semantic.v1",
+    "total +records:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1",
+    "total +records:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1",
+    "total +records:OWNERSHIP|atlas.rust.source-semantic.v1",
+    "total +records:PERSISTENCE|atlas.resolution.rust-paths",
+    "total +records:SYMBOL|atlas.rust.source-semantic.v1",
+    "total +records:TYPE|atlas.resolution.rust-paths",
+    "total +records:TYPE|atlas.rust.source-semantic.v1",
+    "total +typed_records",
+    "adl +constraint AdapterEffectEnvelope SATISFIED",
+    "adl +constraint AtlasCliEffectEnvelope SATISFIED",
+    "adl +constraint CoreEffectEnvelope SATISFIED",
+    "adl +constraint RuntimeEffectEnvelope SATISFIED",
+    "adl source .atlas/declared",
+    "adl source .atlas/declared/census.adl",
+    "entity CHANGED core composition/quantified/decide().",
+    "entity CHANGED core language/adl/parse_constraint_check().",
+    "entity CHANGED runtime agent/tests/atlas_self_world_model_is_complete_and_deterministic().",
+    "entity CHANGED runtime derive_census_adl().",
+    "entity CREATED core language/adl/census/derive_effect_envelopes().",
+    "entity CREATED core language/adl/tests/effect_envelopes_parse_sorted_and_reject_malformed_lists().",
+    "entity CREATED runtime agent/tests/effect_envelopes_are_lowered_into_census_adl_and_reconciled()."
+  ],
+  "intended_but_unobserved": [],
+  "unexpected_changes": [],
+  "regressions": [],
+  "verdict": "PROVEN"
+}

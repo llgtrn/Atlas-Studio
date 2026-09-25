@@ -251,29 +251,46 @@ pub use atlas_core::CENSUS_ADL_PATH;
 
 /// The census-derived ADL for `root` (G63): what the dependency census observes that the
 /// authored ADL -- every `.atlas/declared` source except `atlas_core::CENSUS_ADL_PATH` itself --
-/// does not declare. Regenerating it is a fixed point; `adl derive --check` and the
-/// `census_adl_is_current` test fail when the committed file has drifted from census truth.
+/// does not declare, and (G137) the effect envelope of every subsystem the authored ADL leaves
+/// unbounded. Regenerating it is a fixed point: the envelopes come from a model composed with the
+/// authored ADL plus the derived membership, never the committed file. `adl derive --check` and
+/// the `census_adl_is_current` test fail when the committed file has drifted from census truth.
 pub fn derive_census_adl(root: impl AsRef<Path>) -> io::Result<String> {
+    use atlas_core::composition::{CompositionInput, compose_input};
     let root = root.as_ref();
-    let repository = adapter::audit_repository(root)?;
-    let inventory = inventory::build_inventory(root, repository.manifest.as_ref())?;
-    let source = adapter::source_report_from_inventory(&inventory);
+    let mut inputs = gather_census_inputs(root, None)?;
     let authored: Vec<atlas_core::AdlSource> = adapter::read_adl_sources(root)?
         .into_iter()
         .filter(|adl| adl.path != atlas_core::CENSUS_ADL_PATH)
         .collect();
-    let closure = resolve_dependency_closure(root)?;
+    let closure = &inputs.dependency_closure;
     if !closure.is_closed() {
         return Err(io::Error::other(format!(
             "dependency census is {:?}, not CLOSED: census truth is incomplete, nothing is derived",
             closure.state
         )));
     }
-    Ok(atlas_core::derive_census_adl(
-        &compile_adl(&authored, &source).ir.declared,
-        &atlas_core::ObservedArchitecture::from_closure(&closure),
-        &source,
-    ))
+    let declared = compile_adl(&authored, &inputs.source).ir.declared;
+    let membership = atlas_core::derive_census_adl(
+        &declared,
+        &atlas_core::ObservedArchitecture::from_closure(closure),
+        &inputs.source,
+    );
+    let mut sources = authored;
+    sources.push(atlas_core::AdlSource {
+        path: atlas_core::CENSUS_ADL_PATH.into(),
+        text: membership.clone(),
+    });
+    inputs.adl = compile_adl(&sources, &inputs.source);
+    let census = inputs.census();
+    let model = compose_input(CompositionInput {
+        census: &census,
+        inventory: &inputs.inventory,
+        adl: &inputs.adl,
+        dependency_closure: &inputs.dependency_closure,
+        revision: &inputs.snapshot.head_sha,
+    });
+    Ok(membership + &atlas_core::derive_effect_envelopes(&declared, &model))
 }
 
 pub fn systemize(root: impl AsRef<Path>) -> io::Result<SystemizeReport> {

@@ -13,7 +13,7 @@
 #       -> generation evidence -> G_n+1
 
 schema = "atlas.self-build.generation-ledger.v1"
-current_generation = "G136"
+current_generation = "G137"
 
 [[generation]]
 id = "G35"
@@ -2766,3 +2766,38 @@ after = 23327
 key = "composed:function_behavior"
 before = 4906
 after = 4912
+
+[[generation]]
+id = "G137"
+kind = "NATIVE_ATTACK"
+base_commit = "051453b32615dd7bd317f2a3a888dc148963f709"
+priority = "P2"
+serves = "native attack queue head NA-ADL-BEYOND-DEPENDENCIES (DEBT-ADL_BEYOND_DEPENDENCIES, stale since G63)"
+objective = "lower effect envelopes from the census into ADL and reconcile them every census; the declared/observed check catches a seeded mismatch"
+writer = "coordinator (sole writer)"
+evidence = ".atlas/decisions/0055-effect-envelopes-reconciled-with-census.md"
+self_recensus = ".atlas/evidence/census/G137/recensus.json"
+
+[generation.verification]
+pre_census = "clean-HEAD census of a89ab4a75b = G136 post digest (the evidence commit 051453b326 adds only out-of-scope evidence)"
+atlas_first = "the composed world model gave each subsystem's definite and INFERRED effect categories (Core: CLOCK_READ in one scaling test; every subsystem INFERRED PANIC); systemize showed an UNKNOWN invariant blocks admission, so a derived universal 'forbid effect' would lock the repository -- the design became a decided reconciliation over definite sites"
+change = "ADL 'forall f: function in <E> observed effect within <C>, ...' (CensusForbidden::ObservedEffectOutside), decided in core::composition::quantified; language::adl::census::derive_effect_envelopes lowers every unbounded subsystem's envelope (categories only) into census.adl from a model composed with the authored ADL plus derived membership; contract ADL-TO-ATLAS and ADR 0055"
+envelopes = "Adapter, AtlasCli and Runtime: CLOCK_READ, ENVIRONMENT_READ, FILESYSTEM_READ, FILESYSTEM_WRITE; Core: CLOCK_READ -- all SATISFIED, admission allowed"
+falsification = "5 mutants killed: an envelope never violated; INFERRED sites counted as counterexamples; INFERRED categories lowered; authored envelopes derived again; categories not normalized"
+debts = "DEBT-ADL_BEYOND_DEPENDENCIES last advance G137 (stays OPEN at M2_PARTIAL: state, external packages and symbols not lowered; NA-ADL-STATE-AND-PACKAGES queued); review batch G137 (evidence/census/G137/debt-review.json): 5 reviewed, 2 confirmed, 3 corrected"
+proof = "PROVEN (post 34661d18...): no new UNKNOWN obligation (a matches! in the new derivation made CALL coverage partial on its file; rewritten as a comparison instead of explained)"
+
+[[generation.metric]]
+key = "typed_records"
+before = 141223
+after = 141909
+
+[[generation.metric]]
+key = "facts"
+before = 23327
+after = 23393
+
+[[generation.metric]]
+key = "composed:function_behavior"
+before = 4912
+after = 4937

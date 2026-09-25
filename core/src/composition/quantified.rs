@@ -11,6 +11,10 @@
 //!   exists at all, which no call can cross;
 //! - `UNKNOWN` otherwise, with the residual that kept it from being decided.
 //!
+//! `observed effect within` (G137, ADR 0055) is the declared/observed effect reconciliation: it
+//! claims only that every definite effect site lies inside the declared envelope, so it is always
+//! decided, and its basis names the INFERRED sites and unobserved files it does not cover.
+//!
 //! `forbid effect` is about direct effect sites of the subsystem's own functions; an effect
 //! reached through a call into another subsystem is that subsystem's.
 
@@ -126,6 +130,58 @@ pub fn decide(model: &WorldModel, subsystem: &str, forbidden: &CensusForbidden) 
                     counterexamples: Vec::new(),
                     basis: residual,
                 }
+            }
+        }
+        CensusForbidden::ObservedEffectOutside { allowed } => {
+            let mut counterexamples = Vec::new();
+            let mut definite = 0;
+            let mut guessed = 0;
+            for f in &functions {
+                for site in &f.effects {
+                    match site.status {
+                        EpistemicStatus::Observed | EpistemicStatus::Derived => {
+                            definite += 1;
+                            if !allowed.contains(&site.kind) {
+                                counterexamples.push(format!(
+                                    "{} performs {} at line {}, outside the envelope",
+                                    label(f),
+                                    site.kind,
+                                    site.line
+                                ));
+                            }
+                        }
+                        _ => guessed += 1,
+                    }
+                }
+            }
+            if !counterexamples.is_empty() {
+                return Decision {
+                    verdict: ConstraintVerdict::Violated,
+                    counterexamples,
+                    basis: Vec::new(),
+                };
+            }
+            // Decided over the definite sites alone: what the claim does not cover is named, not
+            // guessed.
+            let envelope = if allowed.is_empty() {
+                "none".to_owned()
+            } else {
+                allowed.join(", ")
+            };
+            let mut basis = vec![format!(
+                "all {definite} definite (OBSERVED or DERIVED) effect sites of {subsystem}'s {} functions are within the envelope ({envelope})",
+                functions.len()
+            )];
+            let files = unobserved_files(model, subsystem, "EFFECT");
+            if guessed > 0 || files > 0 {
+                basis.push(format!(
+                    "not covered by the claim: {guessed} INFERRED effect sites and {files} files of {subsystem} where EFFECT is not OBSERVED"
+                ));
+            }
+            Decision {
+                verdict: ConstraintVerdict::Satisfied,
+                counterexamples: Vec::new(),
+                basis,
             }
         }
         CensusForbidden::CallTo { subsystem: target } => {

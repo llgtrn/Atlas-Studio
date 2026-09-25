@@ -1,0 +1,60 @@
+{
+  "objective": "native attack NA-ADL-BEYOND-DEPENDENCIES: effect envelopes lowered from the census into census.adl as 'observed effect within' invariants and reconciled every census (VIOLATED naming each definite site outside, else SATISFIED naming what the claim does not cover)",
+  "changed_paths": [
+    "core/src/composition/quantified.rs",
+    "core/src/language/adl/census.rs",
+    "core/src/language/adl/mod.rs",
+    "core/src/lib.rs",
+    "runtime/src/agent.rs",
+    "runtime/src/lib.rs"
+  ],
+  "total_changes": [
+    "+adl_semantics",
+    "+composed:function_behavior",
+    "+composed:function_purpose:DECLARED",
+    "+composed:function_purpose:UNKNOWN",
+    "+composed:invariant",
+    "+composed:invariant:AUTHORITY|DERIVED",
+    "+composed:relation",
+    "+composed:relation:INVOKES",
+    "+composed:relation:SUPPLIES_DATA",
+    "+docs",
+    "+entities",
+    "+evidence",
+    "+facts",
+    "+graph_edges",
+    "+graph_nodes",
+    "+normalized_facts",
+    "+records:CALL|atlas.resolution.rust-paths",
+    "+records:CALL|atlas.rust.source-semantic.v1",
+    "+records:CONTROL_FLOW|atlas.rust.source-semantic.v1",
+    "+records:DATA_FLOW|atlas.rust.source-semantic.v1",
+    "+records:EFFECT|atlas.resolution.rust-paths",
+    "+records:EFFECT|atlas.rust.source-semantic.v1",
+    "+records:FUNCTION_IDENTITY|atlas.rust.source-semantic.v1",
+    "+records:FUNCTION_SIGNATURE|atlas.rust.source-semantic.v1",
+    "+records:OWNERSHIP|atlas.rust.source-semantic.v1",
+    "+records:PERSISTENCE|atlas.resolution.rust-paths",
+    "+records:SYMBOL|atlas.rust.source-semantic.v1",
+    "+records:TYPE|atlas.resolution.rust-paths",
+    "+records:TYPE|atlas.rust.source-semantic.v1",
+    "+typed_records"
+  ],
+  "entity_changes": [
+    "CHANGED core composition/quantified/decide().",
+    "CHANGED core language/adl/parse_constraint_check().",
+    "CHANGED runtime agent/tests/atlas_self_world_model_is_complete_and_deterministic().",
+    "CHANGED runtime derive_census_adl().",
+    "CREATED core language/adl/census/derive_effect_envelopes().",
+    "CREATED core language/adl/tests/effect_envelopes_parse_sorted_and_reject_malformed_lists().",
+    "CREATED runtime agent/tests/effect_envelopes_are_lowered_into_census_adl_and_reconciled()."
+  ],
+  "adl_changes": [
+    "+constraint AdapterEffectEnvelope SATISFIED",
+    "+constraint AtlasCliEffectEnvelope SATISFIED",
+    "+constraint CoreEffectEnvelope SATISFIED",
+    "+constraint RuntimeEffectEnvelope SATISFIED",
+    "source .atlas/declared",
+    "source .atlas/declared/census.adl"
+  ]
+}

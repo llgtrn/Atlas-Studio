@@ -24,3 +24,27 @@ constraint AtlasCliIsMaterialized {
 Adapter ->depends_on-> Core
 # census: `atlas-cli` -> `runtime` (RUNTIME, apps/cli/Cargo.toml)
 AtlasCli ->depends_on-> Runtime
+
+# census: effect envelope of `Adapter` -- every category its functions definitely perform (OBSERVED
+# or DERIVED sites)
+invariant AdapterEffectEnvelope {
+    forall f: function in Adapter observed effect within CLOCK_READ, ENVIRONMENT_READ, FILESYSTEM_READ, FILESYSTEM_WRITE
+}
+
+# census: effect envelope of `AtlasCli` -- every category its functions definitely perform (OBSERVED
+# or DERIVED sites)
+invariant AtlasCliEffectEnvelope {
+    forall f: function in AtlasCli observed effect within CLOCK_READ, ENVIRONMENT_READ, FILESYSTEM_READ, FILESYSTEM_WRITE
+}
+
+# census: effect envelope of `Core` -- every category its functions definitely perform (OBSERVED
+# or DERIVED sites)
+invariant CoreEffectEnvelope {
+    forall f: function in Core observed effect within CLOCK_READ
+}
+
+# census: effect envelope of `Runtime` -- every category its functions definitely perform (OBSERVED
+# or DERIVED sites)
+invariant RuntimeEffectEnvelope {
+    forall f: function in Runtime observed effect within CLOCK_READ, ENVIRONMENT_READ, FILESYSTEM_READ, FILESYSTEM_WRITE
+}

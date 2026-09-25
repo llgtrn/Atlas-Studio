@@ -1,0 +1,50 @@
+{
+  "schema": "atlas.debt-review.v1",
+  "generation": "G137",
+  "trigger": "review cadence: DEBT-QUANTITY_UNITS (last advance G124, last reviewed G116) fell due at G137; the debts falling due through G140 are reviewed in the same batch",
+  "method": "each debt re-read against G124-G137 (uncertainty carrier, closure regions, persistence engine, verification evidence, sandbox) and checked on the composed self model where a claim is measurable (persistence sites inside closure regions); its next attack confirmed or corrected",
+  "reviews": [
+    {
+      "debt": "DEBT-QUANTITY_UNITS",
+      "verdict": "CORRECTED",
+      "finding": "its evidence omitted G131: every f64 drop of a quantity is now a recorded FloatDrop (Quantity::drop_to_f64) on one exact interval carrier",
+      "correction": {
+        "evidence": "appended: G131 (ADR 0051) recorded float drops"
+      }
+    },
+    {
+      "debt": "DEBT-PERSISTENCE",
+      "verdict": "CORRECTED",
+      "finding": "G133 made closure bodies regions the resolution engine walks: 7 DERIVED persistence sites (6 DURABLE_READ, 1 DURABLE_WRITE) now sit in closures on the self census; its next step still named NA-CLOSURE-REGIONS",
+      "correction": {
+        "unknowns": "closure bodies removed; async blocks named",
+        "nxt": "NA-CALL-TYPE-RESIDUAL, then NA-ASYNC-REGIONS"
+      }
+    },
+    {
+      "debt": "DEBT-MULTI_ENGINE",
+      "verdict": "CORRECTED",
+      "finding": "its reason said no generation targeted it after G83, but G117 (CONCURRENCY) and G125 (PERSISTENCE) each gained a second engine",
+      "correction": {
+        "why": "seven single-engine dimensions remain"
+      }
+    },
+    {
+      "debt": "DEBT-VERIFICATION_EVIDENCE",
+      "verdict": "CONFIRMED",
+      "finding": "no consumer of the report yet; NA-SEAL-GATE and NA-SANDBOX-FS-CONFINEMENT stay its next steps",
+      "correction": null
+    },
+    {
+      "debt": "DEBT-SANDBOXED_EXECUTION",
+      "verdict": "CONFIRMED",
+      "finding": "filesystem confinement still UNENFORCED; NA-SANDBOX-FS-CONFINEMENT",
+      "correction": null
+    }
+  ],
+  "summary": {
+    "reviewed": 5,
+    "confirmed": 2,
+    "corrected": 3
+  }
+}

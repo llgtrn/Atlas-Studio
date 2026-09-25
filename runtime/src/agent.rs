@@ -993,6 +993,107 @@ fn run(s: &core::store::Store) { s.save(); }
         assert_eq!(paths, vec!["examples/tool.rs", "src/bin/tool.rs"]);
     }
 
+    /// G137 (NA-ADL-BEYOND-DEPENDENCIES): an effect envelope is reconciled with the observed
+    /// effects -- VIOLATED naming each definite site outside it, else SATISFIED naming what the
+    /// claim does not cover; `adl derive` lowers the envelope of every subsystem the authored ADL
+    /// leaves unbounded (a census-derived member too); and a seeded effect outside the committed
+    /// envelope blocks admission.
+    #[test]
+    fn effect_envelopes_are_lowered_into_census_adl_and_reconciled() {
+        use atlas_core::constraint::ConstraintVerdict::{Satisfied, Violated};
+        let authored = format!(
+            "{ADL}\ninvariant CorePure {{\n    forall f: function in Core observed effect within none\n}}\n\
+             invariant CoreWrites {{\n    forall f: function in Core observed effect within FILESYSTEM_WRITE, CLOCK_READ\n}}\n"
+        );
+        // An assert is an INFERRED panic site: outside every envelope below, never a
+        // counterexample and never lowered.
+        let store = format!("{STORE}pub fn check(x: u64) {{ assert!(x > 0); }}\n");
+        let dir = fixture_with(
+            "envelope-authored",
+            &authored,
+            CORE_LIB,
+            &store,
+            BASE_LIB,
+            BASE_MANIFEST,
+            BASE_LOCK,
+        );
+        let report = crate::systemize(&dir).unwrap();
+        let derived_with_authored = crate::derive_census_adl(&dir).unwrap();
+        std::fs::remove_dir_all(&dir).unwrap();
+        let result = |report: &crate::SystemizeReport, name: &str| {
+            report
+                .adl
+                .constraint_results
+                .iter()
+                .find(|r| r.name == name)
+                .unwrap()
+                .clone()
+        };
+        let pure = result(&report, "CorePure");
+        assert_eq!(pure.verdict, Violated);
+        assert!(pure.diagnostics.iter().any(|d| d.code == "ATLAS-E064"
+            && d.message.contains("save@core/src/store.rs")
+            && d.message.contains("FILESYSTEM_WRITE")));
+        let writes = result(&report, "CoreWrites");
+        assert_eq!(writes.verdict, Satisfied, "{writes:?}");
+        assert!(writes.derivation[0].basis[0].contains("within the envelope"));
+        assert!(
+            writes.derivation[0].basis[1].contains("not covered by the claim: 1 INFERRED"),
+            "{writes:?}"
+        );
+        // An authored envelope is not derived again.
+        assert!(!derived_with_authored.contains("CoreEffectEnvelope"));
+
+        let dir = fixture_with(
+            "envelope-derived",
+            ADL,
+            CORE_LIB,
+            &store,
+            BASE_LIB,
+            BASE_MANIFEST,
+            BASE_LOCK,
+        );
+        let derived = crate::derive_census_adl(&dir).unwrap();
+        std::fs::remove_dir_all(&dir).unwrap();
+        assert!(derived.contains(
+            "invariant CoreEffectEnvelope {\n    forall f: function in Core observed effect within FILESYSTEM_WRITE\n}"
+        ), "{derived}");
+        assert!(derived.contains("forall f: function in App observed effect within none"));
+        // `base` is only seen as a provider: no entity, so no subsystem and no envelope (a
+        // census-derived member with a read manifest, like Atlas's own AtlasCli, is enveloped).
+        assert!(!derived.contains("function in Base"), "{derived}");
+
+        // Seeded mismatch: Core starts reading the environment against the committed envelope.
+        let seeded =
+            format!("{STORE}pub fn home() -> Option<String> {{ std::env::var(\"HOME\").ok() }}\n");
+        let dir = fixture_with(
+            "envelope-seeded",
+            ADL,
+            CORE_LIB,
+            &seeded,
+            BASE_LIB,
+            BASE_MANIFEST,
+            BASE_LOCK,
+        );
+        std::fs::write(dir.join(crate::CENSUS_ADL_PATH), &derived).unwrap();
+        let report = crate::systemize(&dir).unwrap();
+        let drift = crate::derive_census_adl(&dir).unwrap();
+        std::fs::remove_dir_all(&dir).unwrap();
+        let envelope = result(&report, "CoreEffectEnvelope");
+        assert_eq!(envelope.verdict, Violated, "{envelope:?}");
+        assert!(
+            envelope
+                .diagnostics
+                .iter()
+                .any(|d| d.message.contains("home@core/src/store.rs")
+                    && d.message.contains("ENVIRONMENT_READ"))
+        );
+        assert!(!report.coding_admission.allowed);
+        // Regenerating widens the envelope: the drift is visible, never silent.
+        assert_ne!(drift, derived);
+        assert!(drift.contains("within ENVIRONMENT_READ, FILESYSTEM_WRITE"));
+    }
+
     /// G130 (NA-CONSTRAINT-NONGROUND): invariants quantified over census truth are decided over
     /// the composed census with three values, identically by every entry point.
     #[test]
@@ -1384,13 +1485,36 @@ fn run(s: &core::store::Store) { s.save(); }
                 .iter()
                 .all(|i| i.status == EpistemicStatus::Inferred && !i.residual.is_empty())
         );
-        // The self-census has unresolved calls: every authority invariant is INFERRED.
+        // The self-census has unresolved calls: every composed authority invariant is INFERRED.
+        // A declared effect envelope (G137) is decided over the definite sites alone: DERIVED.
+        let (declared, composed): (Vec<_>, Vec<_>) = model
+            .invariants
+            .iter()
+            .filter(|i| i.kind == InvariantKind::Authority)
+            .partition(|i| i.id.starts_with("INV-ADL:"));
         assert!(
-            model
-                .invariants
+            composed
                 .iter()
-                .filter(|i| i.kind == InvariantKind::Authority)
                 .all(|i| i.status == EpistemicStatus::Inferred)
+        );
+        let envelopes: Vec<&str> = declared
+            .iter()
+            .filter(|i| i.id.ends_with("EffectEnvelope"))
+            .map(|i| i.id.as_str())
+            .collect();
+        assert_eq!(
+            envelopes,
+            [
+                "INV-ADL:AdapterEffectEnvelope",
+                "INV-ADL:AtlasCliEffectEnvelope",
+                "INV-ADL:CoreEffectEnvelope",
+                "INV-ADL:RuntimeEffectEnvelope"
+            ]
+        );
+        assert!(
+            declared
+                .iter()
+                .all(|i| i.status == EpistemicStatus::Derived)
         );
         // Purpose is declared or UNKNOWN, never named from an identifier: every DECLARED purpose
         // is the summary of the documented SYMBOL record it cites (G128).

@@ -136,6 +136,12 @@ pub enum CensusForbidden {
     Effect { category: String },
     /// A call reaching a function of this declared entity.
     CallTo { subsystem: String },
+    /// G137 (ADR 0055): a definite (OBSERVED or DERIVED) effect site whose category is not in
+    /// `allowed` -- the subsystem's declared effect envelope, reconciled with the observed
+    /// effects. Written `forall f: function in <Subsystem> observed effect within <C>, <C>` (or
+    /// `within none`). It claims nothing about INFERRED sites or unobserved files, so it is
+    /// always decided: VIOLATED with every site outside the envelope named, else SATISFIED.
+    ObservedEffectOutside { allowed: Vec<String> },
 }
 
 /// Relation a `require x.attr <op> value` clause demands.
@@ -668,6 +674,47 @@ fn parse_constraint_check(lines: &[(usize, String)]) -> Result<Vec<ConstraintChe
     {
         return Ok(vec![ConstraintCheck::MaterializationExists {
             target: (*target).into(),
+        }]);
+    }
+    // G137: `forall f: function in <Subsystem> observed effect within <C>, <C>` (or `none`).
+    if let [
+        "forall",
+        binder,
+        "function",
+        "in",
+        subsystem,
+        "observed",
+        "effect",
+        "within",
+        rest @ ..,
+    ] = words.as_slice()
+        && binder.ends_with(':')
+    {
+        let list = rest.join(" ");
+        let allowed: Vec<String> = list
+            .split(',')
+            .map(str::trim)
+            .filter(|c| !c.is_empty())
+            .map(str::to_owned)
+            .collect();
+        let well_formed = match allowed.as_slice() {
+            [] => false,
+            [only] if only == "none" => true,
+            categories => categories.iter().all(|c| {
+                c != "none"
+                    && c.chars()
+                        .all(|ch| ch.is_ascii_uppercase() || ch.is_ascii_digit() || ch == '_')
+            }),
+        };
+        if !well_formed {
+            return Err(joined);
+        }
+        let mut allowed: Vec<String> = allowed.into_iter().filter(|c| c != "none").collect();
+        allowed.sort();
+        allowed.dedup();
+        return Ok(vec![ConstraintCheck::CensusForbid {
+            subsystem: (*subsystem).into(),
+            forbidden: CensusForbidden::ObservedEffectOutside { allowed },
         }]);
     }
     // G130: `forall f: function in <Subsystem> forbid effect <CATEGORY>` and
@@ -1756,6 +1803,52 @@ constraint BackendIsRust {
 
     /// G130: the census-quantified forms parse into `CensusForbid`; a malformed one is ATLAS-E052,
     /// never a check that admits anything; the compiler alone leaves them UNKNOWN (ATLAS-E063).
+    #[test]
+    fn effect_envelopes_parse_sorted_and_reject_malformed_lists() {
+        let source = AdlSource {
+            path: ".atlas/declared/system.adl".into(),
+            text: "atlas 1\nsystem Example\n\
+                   invariant Io {\n    forall f: function in Core observed effect within FILESYSTEM_WRITE,\n        CLOCK_READ, FILESYSTEM_WRITE\n}\n\
+                   invariant Pure {\n    forall f: function in Core observed effect within none\n}\n\
+                   invariant Empty {\n    forall f: function in Core observed effect within\n}\n\
+                   invariant Lower {\n    forall f: function in Core observed effect within clock_read\n}\n\
+                   invariant Mixed {\n    forall f: function in Core observed effect within none, CLOCK_READ\n}\n"
+                .into(),
+        };
+        let program = parse_adl_source(&source);
+        let checks = |name: &str| {
+            program
+                .declarations
+                .iter()
+                .find_map(|decl| match decl {
+                    AdlDeclaration::Invariant(c) if c.name == name => Some(c.checks.clone()),
+                    _ => None,
+                })
+                .unwrap()
+        };
+        let envelope = |allowed: &[&str]| {
+            vec![ConstraintCheck::CensusForbid {
+                subsystem: "Core".into(),
+                forbidden: CensusForbidden::ObservedEffectOutside {
+                    allowed: allowed.iter().map(|c| (*c).to_owned()).collect(),
+                },
+            }]
+        };
+        assert_eq!(checks("Io"), envelope(&["CLOCK_READ", "FILESYSTEM_WRITE"]));
+        assert_eq!(checks("Pure"), envelope(&[]));
+        for malformed in ["Empty", "Lower", "Mixed"] {
+            assert!(checks(malformed).is_empty(), "{malformed}");
+        }
+        assert_eq!(
+            program
+                .diagnostics
+                .iter()
+                .filter(|d| d.code == "ATLAS-E052")
+                .count(),
+            3
+        );
+    }
+
     #[test]
     fn census_quantified_invariants_parse_and_stay_unknown_without_the_census() {
         let source = AdlSource {
