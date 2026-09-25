@@ -285,6 +285,14 @@ New semantic record kinds/fields use schema versions and compatibility rules. Ex
 
 A breaking change requires a new major wire version or a new incompatible schema identity explicitly rejected by older readers.
 
+Compatibility rules (G86, ADR 0035, absorbed from FlatBuffers' `flatc --conform`): a definition conforms to a newer one when all of the following hold:
+- the section keeps its name and dependencies;
+- no record kind disappears;
+- every field keeps its tag and wire type, is never removed (deprecate, never delete) and never becomes required;
+- every added field is optional.
+
+A renamed field with the same tag and wire type conforms. Every definition ever written is recorded (`core/src/atlas/schema_history.rs`), and a reader accepts a recorded identity exactly when its definition conforms to the reader's own. Any other change is breaking.
+
 ## Blueprint evolution and wire stability
 
 The chosen compaction/layout/codec strategy may evolve under `BLUEPRINT-EVOLUTION.md` when census or benchmark evidence finds a better mechanism.

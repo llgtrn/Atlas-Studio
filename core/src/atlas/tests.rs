@@ -492,7 +492,7 @@ fn hash_consistent_forgeries_are_rejected_by_the_semantic_checks() {
     let other = {
         let mut atlas = sample();
         atlas.certificate.certificate_id = "census-certificate:other".into();
-        encode(&atlas)
+        encode(&atlas, schema_id)
     };
     assert_eq!(
         rejected(&other),
@@ -506,7 +506,7 @@ fn hash_consistent_forgeries_are_rejected_by_the_semantic_checks() {
         origin: "declared".into(),
     });
     assert_eq!(
-        rejected(&encode(&unordered)),
+        rejected(&encode(&unordered, schema_id)),
         "records are not in canonical order"
     );
 }
@@ -530,4 +530,168 @@ fn table_driven_records_follow_their_declaration_on_the_wire() {
     let records = parse_records(&content, SEMANTIC_RECORDS).unwrap();
     let fields: Vec<(u16, u8)> = records[0].fields.iter().map(|f| (f.tag, f.flags)).collect();
     assert_eq!(fields, [(1, REQUIRED), (4, REQUIRED), (10, 0)]);
+}
+
+// --- G86: schema evolution conforms (FlatBuffers `flatc --conform`, absorbed) -----------------
+
+#[test]
+fn the_current_schema_is_the_latest_recorded_generation() {
+    // Changing `SECTIONS` without appending its definition to the history fails here, so every
+    // definition a container could carry stays recorded.
+    let generations = schema::recorded_generations(schema::HISTORY);
+    let (_, latest) = generations.last().expect("a recorded generation");
+    let recorded: String = latest.iter().map(|s| s.text.as_str()).collect();
+    let current: String = schema::SECTIONS
+        .iter()
+        .map(schema::definition_text)
+        .collect();
+    assert_eq!(recorded, current);
+    for section in latest {
+        let def = schema::SECTIONS
+            .iter()
+            .find(|d| d.name == section.name)
+            .unwrap();
+        assert_eq!(section.schema_id(), schema_id(def.section));
+    }
+}
+
+#[test]
+fn every_recorded_schema_conforms_to_the_current_one() {
+    for (generation, sections) in schema::recorded_generations(schema::HISTORY) {
+        for recorded in &sections {
+            let current = schema::SECTIONS
+                .iter()
+                .find(|d| d.name == recorded.name)
+                .unwrap_or_else(|| panic!("{generation}: section {} dropped", recorded.name));
+            assert_eq!(schema::conforms(recorded, current), Ok(()), "{generation}");
+            assert!(
+                schema::accepted_schema_ids(schema::HISTORY, current.section)
+                    .contains(&recorded.schema_id())
+            );
+        }
+    }
+}
+
+/// The census-certificate section as a recorded text, edited by `edit`.
+fn recorded_certificate(edit: impl Fn(String) -> String) -> schema::RecordedSection {
+    let current = schema::section(CENSUS_CERTIFICATE).unwrap();
+    let text = edit(schema::definition_text(current));
+    let history = format!("generation TEST\n{text}");
+    schema::recorded_generations(&history)
+        .pop()
+        .unwrap()
+        .1
+        .pop()
+        .unwrap()
+}
+
+#[test]
+fn conformance_refuses_every_breaking_evolution_and_admits_compatible_ones() {
+    let current = schema::section(CENSUS_CERTIFICATE).unwrap();
+    let same = recorded_certificate(|t| t);
+    assert_eq!(schema::conforms(&same, current), Ok(()));
+    // Compatible: an older definition without the blocker record kind (new kinds are allowed),
+    // or with a field under another name (the wire is tag-addressed).
+    let fewer_kinds =
+        recorded_certificate(|t| t.replace("record 2 blocker\nfield 1 text 9 required\n", ""));
+    assert_eq!(schema::conforms(&fewer_kinds, current), Ok(()));
+    let renamed = recorded_certificate(|t| t.replace("field 2 state", "field 2 status"));
+    assert_eq!(schema::conforms(&renamed, current), Ok(()));
+    // Breaking: a retagged, retyped, removed or newly required field, a dropped record kind.
+    let breaking = [
+        (
+            "field 2 state 9",
+            "field 3 state 9",
+            "field 3 (state) removed",
+        ),
+        ("field 2 state 9", "field 2 state 6", "changed wire type"),
+        ("record 2 blocker", "record 3 blocker", "record kind 3"),
+        (
+            "field 2 state 9 required",
+            "field 2 state 9 optional",
+            "became required",
+        ),
+        (
+            "field 1 text 9 required\n",
+            "field 1 text 9 required\nfield 2 note 6 optional\n",
+            "field 2 (note) removed",
+        ),
+        // An older definition without `state`: the current, required `state` is new.
+        (
+            "field 2 state 9 required\n",
+            "",
+            "new field 2 (state) is required",
+        ),
+        (
+            "depends string-table",
+            "depends root-manifest 00\ndepends string-table",
+            "dependency root-manifest dropped",
+        ),
+    ];
+    for (from, to, reason) in breaking {
+        let old = recorded_certificate(|t| t.replace(from, to));
+        let verdict = schema::conforms(&old, current);
+        assert!(
+            verdict.as_ref().is_err_and(|e| e.contains(reason)),
+            "{from} -> {to}: {verdict:?}"
+        );
+    }
+}
+
+#[test]
+fn a_reader_accepts_exactly_the_conforming_recorded_identities() {
+    let current = schema::section(CENSUS_CERTIFICATE).unwrap();
+    let older =
+        schema::definition_text(current).replace("record 2 blocker\nfield 1 text 9 required\n", "");
+    let retagged = schema::definition_text(current).replace("field 2 state 9", "field 5 state 9");
+    let history = format!("generation OLD\n{older}generation BAD\n{retagged}");
+    let ids = schema::accepted_schema_ids(&history, CENSUS_CERTIFICATE);
+    let recorded = schema::recorded_generations(&history);
+    assert_eq!(ids[0], schema_id(CENSUS_CERTIFICATE));
+    assert!(
+        ids.contains(&recorded[0].1[0].schema_id()),
+        "conforming older definition"
+    );
+    assert!(
+        !ids.contains(&recorded[1].1[0].schema_id()),
+        "retagged definition"
+    );
+    assert_eq!(ids.len(), 2);
+}
+
+#[test]
+fn a_container_an_older_conforming_writer_produced_is_read_with_its_history() {
+    // An older definition of the certificate section (without the blocker record kind) conforms
+    // to the current one: a container stamped with its identity is read when the history records
+    // it, and refused when it does not.
+    let current = schema::section(CENSUS_CERTIFICATE).unwrap();
+    let older =
+        schema::definition_text(current).replace("record 2 blocker\nfield 1 text 9 required\n", "");
+    let history = format!("{}generation OLDER\n{older}", schema::HISTORY);
+    let older_id = schema::recorded_generations(&history)
+        .pop()
+        .unwrap()
+        .1
+        .pop()
+        .unwrap()
+        .schema_id();
+    let mut atlas = sample();
+    atlas.certificate.blockers.clear();
+    atlas.canonicalize();
+    let bytes = encode(&atlas, |section| {
+        if section == CENSUS_CERTIFICATE {
+            older_id
+        } else {
+            schema_id(section)
+        }
+    });
+    let (decoded, _) = read_with_history(&bytes, &history).unwrap();
+    assert_eq!(decoded, atlas);
+    assert!(
+        read(&bytes)
+            .unwrap_err()
+            .to_string()
+            .contains("unknown schema id"),
+        "the compiled-in history does not record it"
+    );
 }

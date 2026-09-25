@@ -1,0 +1,33 @@
+{
+ "schema": "atlas.campaign-donor-decision.v1",
+ "ordinal": 22,
+ "donor": "flatbuffers",
+ "commit_sha": "b8431fbcd7a5c71817f314e18b332c0648554efa",
+ "generation": "G86",
+ "base_commit": "9d88f29fc4",
+ "hypothesis": "vtable-based schema evolution for the binary .atlas format (P2)",
+ "blocking_question": "does vtable-indirected field access add anything the wire contract does not provide, or do only the append-only/deprecate-never-remove rule and a flatc --conform-style conformance checker remain?",
+ "measurement": {
+  "vtables": "nothing new: the contract's length-delimited tag-length-value records already give absent-optional-field-means-default, which is what a vtable bounds check provides",
+  "evolution_gap": "the contract promises 'schema versions and compatibility rules' for new fields, but G68 derives schema_id from the full definition and the reader accepts only the current one -- appending an optional field would orphan every earlier container, and nothing distinguished a compatible change from a breaking one or stopped a breaking edit to SECTIONS from landing",
+  "donor_mechanism": "src/idl_parser.cpp Parser::ConformTo: a surviving field keeps offset (id), default and type; a rename keeps offset and type; deletion is refused; enum values never change",
+  "trigger": "the census recorded the conformance checker as the sole ABSORB_LATER item, triggered by the first .atlas section writer -- which exists since G64"
+ },
+ "absorbed_mechanism": {
+  "name": "schema-evolution-conformance",
+  "native_owner": "core::atlas::schema::{conforms, recorded_generations, accepted_schema_ids, HISTORY} + core/src/atlas/schema_history.rs; the reader checks accepted identities",
+  "rules": "section name and dependencies kept; no record kind removed; fields keep tag and wire type, are never removed and never become required; added fields optional; same-tag same-wire renames conform",
+  "verification": "latest recorded generation must equal SECTIONS; every recorded generation must conform; each rule has a breaking and a compatible case; a container stamped by a conforming older identity is read with its history and refused without; mutation battery 9/9 killed after closing two real test gaps"
+ },
+ "decision": {
+  "ABSORBED": ["schema-evolution-conformance (flatc --conform)"],
+  "REFERENCE_ONLY": ["vtables and offset-indirected access, flexbuffers, reflection, flatc code generation"]
+ },
+ "terminal_state": "ABSORBED",
+ "extinction": {
+  "runtime_dependency": "none (native code)",
+  "build_dependency": "none",
+  "test_dependency": "none (no code or test references the checkout; not a DC1 Cargo donor)",
+  "action": "git rm -r .atlas/temporary/donors/flatbuffers (1,902 tracked files, 19 MB)"
+ }
+}

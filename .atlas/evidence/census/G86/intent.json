@@ -1,0 +1,47 @@
+{
+  "objective": "P3 first-50 #22 flatbuffers: ABSORBED schema-evolution conformance -- every .atlas section definition ever written is recorded (core/src/atlas/schema_history.rs), conforms() refuses the seven breaking evolutions, and the reader accepts exactly the current and recorded-conforming schema identities; checkout physically extinct",
+  "changed_paths": [
+    "core/src/atlas/mod.rs",
+    "core/src/atlas/schema.rs",
+    "core/src/atlas/schema_history.rs",
+    "core/src/atlas/tests.rs",
+    "runtime/src/donor_storage.rs"
+  ],
+  "total_changes": [
+    "+artifacts",
+    "+diagnostic:IncompleteAnalysis",
+    "+docs",
+    "+entities",
+    "+evidence",
+    "+facts",
+    "+graph_bindings",
+    "+graph_edges",
+    "+graph_nodes",
+    "+normalized_facts",
+    "+obligations",
+    "+typed_records",
+    "+unknown_facts"
+  ],
+  "entity_changes": [
+    "CHANGED core atlas/encode().",
+    "CHANGED core atlas/read().",
+    "CHANGED core atlas/tests/hash_consistent_forgeries_are_rejected_by_the_semantic_checks().",
+    "CHANGED core atlas/write().",
+    "CHANGED runtime donor_storage/tests/repository_donor_storage_has_no_unrecorded_violation().",
+    "CREATED core atlas/read_with_history().",
+    "CREATED core atlas/schema/`impl:RecordedSection`/schema_id().",
+    "CREATED core atlas/schema/accepted_schema_ids().",
+    "CREATED core atlas/schema/conforms().",
+    "CREATED core atlas/schema/current().",
+    "CREATED core atlas/schema/recorded_generations().",
+    "CREATED core atlas/tests/a_container_an_older_conforming_writer_produced_is_read_with_its_history().",
+    "CREATED core atlas/tests/a_reader_accepts_exactly_the_conforming_recorded_identities().",
+    "CREATED core atlas/tests/conformance_refuses_every_breaking_evolution_and_admits_compatible_ones().",
+    "CREATED core atlas/tests/every_recorded_schema_conforms_to_the_current_one().",
+    "CREATED core atlas/tests/recorded_certificate().",
+    "CREATED core atlas/tests/the_current_schema_is_the_latest_recorded_generation()."
+  ],
+  "explained_unknowns": [
+    "core/src/atlas/schema_history.rs: a new Rust source carries the standard 11 per-dimension UNKNOWN obligations every Rust artifact carries (it holds one string constant, so nothing is there to resolve)"
+  ]
+}

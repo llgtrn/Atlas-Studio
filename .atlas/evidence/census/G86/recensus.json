@@ -1,0 +1,333 @@
+{
+  "schema": "atlas.self-recensus-report.v1",
+  "generation": "G86",
+  "base_revision": "72c5cb88d667d0a77d11f25d21f807720a0f51d9",
+  "candidate_revision": "9d88f29fc4777006c5abb6caf7a0f265f86c6c0e",
+  "candidate_dirty": true,
+  "before_census_digest": "blake3-256:c76171cc6f34136cba6cd7a7decb1608dd71df9e0c2cc6f77378ebec728269f3",
+  "after_census_digest": "blake3-256:cd1a4d869ec4e4426cfc27cf8992b4de8f944d957f4d9417dfa2ea348c5bd0fd",
+  "replay_digest": "blake3-256:cd1a4d869ec4e4426cfc27cf8992b4de8f944d957f4d9417dfa2ea348c5bd0fd",
+  "inventory_delta": {
+    "created": [
+      "core/src/atlas/schema_history.rs"
+    ],
+    "modified": [
+      "core/src/atlas/mod.rs",
+      "core/src/atlas/schema.rs",
+      "core/src/atlas/tests.rs",
+      "runtime/src/donor_storage.rs"
+    ],
+    "deleted": []
+  },
+  "semantic_delta": {
+    "changed": [
+      "core/src/atlas/mod.rs",
+      "core/src/atlas/schema.rs",
+      "core/src/atlas/tests.rs",
+      "runtime/src/donor_storage.rs"
+    ],
+    "counts": {
+      "fact:FunctionIdentity|OBSERVED": 12,
+      "fact:FunctionSignature|OBSERVED": 12,
+      "fact:SemanticObligation|OBSERVED": 4,
+      "fact:SemanticObligation|UNKNOWN": 11,
+      "fact:SourceArtifact|OBSERVED": 2,
+      "fact:Symbol|OBSERVED": 22,
+      "fact:Type|DERIVED": 12,
+      "fact:Type|OBSERVED": 19,
+      "record:CALL|DERIVED": 30,
+      "record:CALL|OBSERVED": 148,
+      "record:CONTROL_FLOW|INFERRED": 1,
+      "record:CONTROL_FLOW|OBSERVED": 50,
+      "record:DATA_FLOW|OBSERVED": 210,
+      "record:EFFECT|INFERRED": 1,
+      "record:FUNCTION_IDENTITY|OBSERVED": 12,
+      "record:FUNCTION_SIGNATURE|OBSERVED": 12,
+      "record:OWNERSHIP|OBSERVED": 47,
+      "record:SYMBOL|OBSERVED": 22,
+      "record:TYPE|DERIVED": 12,
+      "record:TYPE|OBSERVED": 19
+    }
+  },
+  "dependency_delta": {
+    "added": [],
+    "removed": []
+  },
+  "dependency_state": [
+    "Closed",
+    "Closed"
+  ],
+  "graph_delta": {
+    "graph_bindings": 3,
+    "graph_edges": 789,
+    "graph_nodes": 573
+  },
+  "obligation_delta": {
+    "obligation:CALL|UNKNOWN": 2,
+    "obligation:CONCURRENCY|UNKNOWN": 1,
+    "obligation:CONTROL_FLOW|UNKNOWN": 1,
+    "obligation:DATA_FLOW|UNKNOWN": 1,
+    "obligation:EFFECT|UNKNOWN": 2,
+    "obligation:FUNCTION_IDENTITY|OBSERVED": 1,
+    "obligation:FUNCTION_SIGNATURE|OBSERVED": 1,
+    "obligation:OWNERSHIP|UNKNOWN": 1,
+    "obligation:PERSISTENCE|UNKNOWN": 1,
+    "obligation:STATE|UNKNOWN": 1,
+    "obligation:SYMBOL|OBSERVED": 1,
+    "obligation:TYPE|OBSERVED": 1,
+    "obligation:TYPE|UNKNOWN": 1
+  },
+  "adl_delta": {
+    "added": [],
+    "removed": []
+  },
+  "entity_delta": [
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core atlas/encode()."
+      ],
+      "after": [
+        "core atlas/encode()."
+      ],
+      "evidence": "signature,body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core atlas/read()."
+      ],
+      "after": [
+        "core atlas/read()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core atlas/tests/hash_consistent_forgeries_are_rejected_by_the_semantic_checks()."
+      ],
+      "after": [
+        "core atlas/tests/hash_consistent_forgeries_are_rejected_by_the_semantic_checks()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "core atlas/write()."
+      ],
+      "after": [
+        "core atlas/write()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CHANGED",
+      "before": [
+        "runtime donor_storage/tests/repository_donor_storage_has_no_unrecorded_violation()."
+      ],
+      "after": [
+        "runtime donor_storage/tests/repository_donor_storage_has_no_unrecorded_violation()."
+      ],
+      "evidence": "body"
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlas/read_with_history()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlas/schema/`impl:RecordedSection`/schema_id()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlas/schema/accepted_schema_ids()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlas/schema/conforms()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlas/schema/current()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlas/schema/recorded_generations()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlas/tests/a_container_an_older_conforming_writer_produced_is_read_with_its_history()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlas/tests/a_reader_accepts_exactly_the_conforming_recorded_identities()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlas/tests/conformance_refuses_every_breaking_evolution_and_admits_compatible_ones()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlas/tests/every_recorded_schema_conforms_to_the_current_one()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlas/tests/recorded_certificate()."
+      ],
+      "evidence": ""
+    },
+    {
+      "kind": "CREATED",
+      "before": [],
+      "after": [
+        "core atlas/tests/the_current_schema_is_the_latest_recorded_generation()."
+      ],
+      "evidence": ""
+    }
+  ],
+  "coverage_delta": [],
+  "unknown_delta": {
+    "increased": [
+      "core/src/atlas/schema_history.rs: 0 -> 11"
+    ],
+    "decreased": [],
+    "total_before": 1284,
+    "total_after": 1295
+  },
+  "intent": {
+    "objective": "P3 first-50 #22 flatbuffers: ABSORBED schema-evolution conformance -- every .atlas section definition ever written is recorded (core/src/atlas/schema_history.rs), conforms() refuses the seven breaking evolutions, and the reader accepts exactly the current and recorded-conforming schema identities; checkout physically extinct",
+    "changed_paths": [
+      "core/src/atlas/mod.rs",
+      "core/src/atlas/schema.rs",
+      "core/src/atlas/schema_history.rs",
+      "core/src/atlas/tests.rs",
+      "runtime/src/donor_storage.rs"
+    ],
+    "total_changes": [
+      "+artifacts",
+      "+diagnostic:IncompleteAnalysis",
+      "+docs",
+      "+entities",
+      "+evidence",
+      "+facts",
+      "+graph_bindings",
+      "+graph_edges",
+      "+graph_nodes",
+      "+normalized_facts",
+      "+obligations",
+      "+typed_records",
+      "+unknown_facts"
+    ],
+    "dependency_changes": [],
+    "adl_changes": [],
+    "coverage_changes": [],
+    "explained_unknowns": [
+      "core/src/atlas/schema_history.rs: a new Rust source carries the standard 11 per-dimension UNKNOWN obligations every Rust artifact carries (it holds one string constant, so nothing is there to resolve)"
+    ],
+    "accepted_unexpected": [],
+    "entity_changes": [
+      "CHANGED core atlas/encode().",
+      "CHANGED core atlas/read().",
+      "CHANGED core atlas/tests/hash_consistent_forgeries_are_rejected_by_the_semantic_checks().",
+      "CHANGED core atlas/write().",
+      "CHANGED runtime donor_storage/tests/repository_donor_storage_has_no_unrecorded_violation().",
+      "CREATED core atlas/read_with_history().",
+      "CREATED core atlas/schema/`impl:RecordedSection`/schema_id().",
+      "CREATED core atlas/schema/accepted_schema_ids().",
+      "CREATED core atlas/schema/conforms().",
+      "CREATED core atlas/schema/current().",
+      "CREATED core atlas/schema/recorded_generations().",
+      "CREATED core atlas/tests/a_container_an_older_conforming_writer_produced_is_read_with_its_history().",
+      "CREATED core atlas/tests/a_reader_accepts_exactly_the_conforming_recorded_identities().",
+      "CREATED core atlas/tests/conformance_refuses_every_breaking_evolution_and_admits_compatible_ones().",
+      "CREATED core atlas/tests/every_recorded_schema_conforms_to_the_current_one().",
+      "CREATED core atlas/tests/recorded_certificate().",
+      "CREATED core atlas/tests/the_current_schema_is_the_latest_recorded_generation()."
+    ]
+  },
+  "intended_changes": [
+    "path core/src/atlas/mod.rs",
+    "path core/src/atlas/schema.rs",
+    "path core/src/atlas/schema_history.rs",
+    "path core/src/atlas/tests.rs",
+    "path runtime/src/donor_storage.rs",
+    "total +artifacts",
+    "total +diagnostic:IncompleteAnalysis",
+    "total +docs",
+    "total +entities",
+    "total +evidence",
+    "total +facts",
+    "total +graph_bindings",
+    "total +graph_edges",
+    "total +graph_nodes",
+    "total +normalized_facts",
+    "total +obligations",
+    "total +typed_records",
+    "total +unknown_facts",
+    "entity CHANGED core atlas/encode().",
+    "entity CHANGED core atlas/read().",
+    "entity CHANGED core atlas/tests/hash_consistent_forgeries_are_rejected_by_the_semantic_checks().",
+    "entity CHANGED core atlas/write().",
+    "entity CHANGED runtime donor_storage/tests/repository_donor_storage_has_no_unrecorded_violation().",
+    "entity CREATED core atlas/read_with_history().",
+    "entity CREATED core atlas/schema/`impl:RecordedSection`/schema_id().",
+    "entity CREATED core atlas/schema/accepted_schema_ids().",
+    "entity CREATED core atlas/schema/conforms().",
+    "entity CREATED core atlas/schema/current().",
+    "entity CREATED core atlas/schema/recorded_generations().",
+    "entity CREATED core atlas/tests/a_container_an_older_conforming_writer_produced_is_read_with_its_history().",
+    "entity CREATED core atlas/tests/a_reader_accepts_exactly_the_conforming_recorded_identities().",
+    "entity CREATED core atlas/tests/conformance_refuses_every_breaking_evolution_and_admits_compatible_ones().",
+    "entity CREATED core atlas/tests/every_recorded_schema_conforms_to_the_current_one().",
+    "entity CREATED core atlas/tests/recorded_certificate().",
+    "entity CREATED core atlas/tests/the_current_schema_is_the_latest_recorded_generation()."
+  ],
+  "intended_but_unobserved": [],
+  "unexpected_changes": [],
+  "regressions": [],
+  "verdict": "PROVEN"
+}

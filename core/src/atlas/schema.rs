@@ -250,3 +250,181 @@ pub fn definition_text(def: &SectionDef) -> String {
 pub fn schema_hash(def: &SectionDef) -> [u8; 32] {
     blake3::hash(definition_text(def).as_bytes())
 }
+
+/// Every definition this module has ever written, oldest first (G86): `generation <id>` lines,
+/// each followed by the `definition_text` of every section of that generation.
+pub const HISTORY: &str = super::schema_history::HISTORY;
+
+/// A recorded field: `(tag, name, wire, required)`.
+pub type RecordedField = (u16, String, u8, bool);
+
+/// A recorded record kind: `(kind, name, fields)`.
+pub type RecordedRecord = (u16, String, Vec<RecordedField>);
+
+/// One section definition read back from its recorded `definition_text`.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct RecordedSection {
+    pub name: String,
+    pub records: Vec<RecordedRecord>,
+    pub depends_on: Vec<String>,
+    /// The recorded definition text, whose hash is the section's schema identity.
+    pub text: String,
+}
+
+/// The recorded generations: `(generation id, sections)`. Malformed history is a programming
+/// error (the file is compiled in and checked by tests), so it panics.
+pub fn recorded_generations(history: &str) -> Vec<(String, Vec<RecordedSection>)> {
+    let mut generations: Vec<(String, Vec<RecordedSection>)> = Vec::new();
+    for line in history.lines() {
+        if line.starts_with('#') || line.is_empty() {
+            continue;
+        }
+        let mut words = line.split(' ');
+        match words.next() {
+            Some("generation") => {
+                let id = words.next().expect("generation id");
+                generations.push((id.to_owned(), Vec::new()));
+                continue;
+            }
+            Some(first) if first.starts_with("atlas.wire.v1/") => {
+                let sections = &mut generations.last_mut().expect("generation line").1;
+                sections.push(RecordedSection {
+                    name: first.trim_start_matches("atlas.wire.v1/").to_owned(),
+                    records: Vec::new(),
+                    depends_on: Vec::new(),
+                    text: String::new(),
+                });
+            }
+            Some("record") => {
+                let section = current(&mut generations);
+                let kind = words
+                    .next()
+                    .and_then(|k| k.parse().ok())
+                    .expect("record kind");
+                let name = words.next().expect("record name").to_owned();
+                section.records.push((kind, name, Vec::new()));
+            }
+            Some("field") => {
+                let section = current(&mut generations);
+                let tag = words
+                    .next()
+                    .and_then(|t| t.parse().ok())
+                    .expect("field tag");
+                let name = words.next().expect("field name").to_owned();
+                let wire = words
+                    .next()
+                    .and_then(|w| w.parse().ok())
+                    .expect("field wire");
+                let required = words.next() == Some("required");
+                let record = section.records.last_mut().expect("field inside a record");
+                record.2.push((tag, name, wire, required));
+            }
+            Some("depends") => {
+                let section = current(&mut generations);
+                section
+                    .depends_on
+                    .push(words.next().expect("dependency name").to_owned());
+            }
+            other => panic!("malformed schema history line {other:?}: {line}"),
+        }
+        let section = current(&mut generations);
+        section.text.push_str(line);
+        section.text.push('\n');
+    }
+    generations
+}
+
+fn current(generations: &mut [(String, Vec<RecordedSection>)]) -> &mut RecordedSection {
+    generations
+        .last_mut()
+        .and_then(|(_, sections)| sections.last_mut())
+        .expect("a line inside a section")
+}
+
+impl RecordedSection {
+    pub fn schema_id(&self) -> u64 {
+        let digest = blake3::hash(self.text.as_bytes());
+        u64::from_le_bytes(digest[..8].try_into().expect("8 bytes"))
+    }
+}
+
+/// Whether content written under the recorded definition `old` reads correctly under `new`
+/// (absorbed from FlatBuffers' `flatc --conform`, first-50 #22): the section keeps its name and
+/// dependencies; no record kind disappears; every recorded field keeps its tag and wire type and
+/// is never removed (deprecate, never delete) and never becomes required; a field `new` adds is
+/// optional. A renamed field with the same tag and wire type conforms: the wire is tag-addressed.
+pub fn conforms(old: &RecordedSection, new: &SectionDef) -> Result<(), String> {
+    if old.name != new.name {
+        return Err(format!("section renamed: {} -> {}", old.name, new.name));
+    }
+    for dependency in &old.depends_on {
+        let kept = new
+            .depends_on
+            .iter()
+            .any(|d| section(*d).is_some_and(|d| d.name == *dependency));
+        if !kept {
+            return Err(format!("{}: dependency {dependency} dropped", old.name));
+        }
+    }
+    for (kind, record_name, fields) in &old.records {
+        let Some(record) = new.records.iter().find(|r| r.kind == *kind) else {
+            return Err(format!(
+                "{}: record kind {kind} ({record_name}) removed",
+                old.name
+            ));
+        };
+        for (tag, field_name, wire, required) in fields {
+            let Some(field) = record.fields.iter().find(|f| f.tag == *tag) else {
+                return Err(format!(
+                    "{}/{}: field {tag} ({field_name}) removed",
+                    old.name, record.name
+                ));
+            };
+            if field.wire != *wire {
+                return Err(format!(
+                    "{}/{}: field {tag} changed wire type {wire} -> {}",
+                    old.name, record.name, field.wire
+                ));
+            }
+            if field.required && !required {
+                return Err(format!(
+                    "{}/{}: field {tag} became required",
+                    old.name, record.name
+                ));
+            }
+        }
+        for field in record.fields {
+            let recorded = fields.iter().any(|(tag, ..)| *tag == field.tag);
+            if !recorded && field.required {
+                return Err(format!(
+                    "{}/{}: new field {} ({}) is required",
+                    old.name, record.name, field.tag, field.name
+                ));
+            }
+        }
+    }
+    Ok(())
+}
+
+/// The schema identities a reader accepts for `section_type`: the current definition's, and
+/// every recorded definition of that section which conforms to it (G86). Content written under a
+/// conforming definition decodes with the current tables; anything else is refused.
+pub fn accepted_schema_ids(history: &str, section_type: u16) -> Vec<u64> {
+    let Some(current) = section(section_type) else {
+        return Vec::new();
+    };
+    let current_id = {
+        let digest = schema_hash(current);
+        u64::from_le_bytes(digest[..8].try_into().expect("8 bytes"))
+    };
+    let mut ids = vec![current_id];
+    for (_, sections) in recorded_generations(history) {
+        for recorded in sections.iter().filter(|s| s.name == current.name) {
+            let id = recorded.schema_id();
+            if !ids.contains(&id) && conforms(recorded, current).is_ok() {
+                ids.push(id);
+            }
+        }
+    }
+    ids
+}

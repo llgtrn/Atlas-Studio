@@ -113,3 +113,19 @@ Directly enabled by the same two mechanisms above: (1) vtable field-count bounds
 - The C++ reference implementation (`src/`, `include/flatbuffers/`) was read only for cross-reference (`docs/source/internals.md` describes it); the Rust crate (`rust/flatbuffers/src/`) was the primary code read for the Rust-specific deep-dive requirement, and only a subset of its files (`vtable.rs`, `verifier.rs`, partial `builder.rs`/`follow.rs`/`table.rs`) were read directly — the full ~3,700-line Rust crate was not read line-by-line.
 - `flexbuffers` (schema-less FlatBuffers variant, `rust/flexbuffers/`) and the `reflection/` runtime-reflection subsystem were inventoried but not deep-censused; both could carry additional lessons (flexbuffers in particular for a possible schema-less Atlas debug/interchange mode) left for a follow-up pass.
 - `CHANGELOG.md` at the repo root was not read for a historical account of actual breaking changes across FlatBuffers' own versions — the evolution-rules analysis above is based entirely on the current, normative `docs/source/evolution.md` spec, not on a review of how well FlatBuffers has actually held to it historically.
+
+## G86 — terminal ABSORBED (schema-evolution conformance); source extinct
+
+Vtable-indirected access adds nothing over the wire contract's tag-length-value records, where an absent optional field is the default. The real gap was evolution: G68 identities made any schema change orphan every earlier container, and nothing separated compatible changes from breaking ones.
+
+`Parser::ConformTo`'s discipline is absorbed natively as `core::atlas::schema::conforms`:
+- a surviving field keeps its tag and wire type;
+- a field is never removed and never tightened to required;
+- an added field is optional;
+- record kinds and dependencies are kept.
+
+Two more pieces complete it:
+- a committed history of every definition, which tests force to be recorded and to conform;
+- reader acceptance of every recorded conforming identity (ADR 0035).
+
+The checkout (1,902 files) was physically deleted. Evidence: `../../evidence/campaign/22-flatbuffers.json`.

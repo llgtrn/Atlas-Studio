@@ -1237,6 +1237,7 @@ objective = "answer both recorded questions (self-relative pointers; the conditi
 writer = "coordinator (sole writer)"
 evidence = ".atlas/evidence/campaign/21-rkyv.json"
 self_recensus = ".atlas/evidence/census/G85/recensus.json"
+result_commits = ["417e7f8475f9078341526c81621d81f7120d28fb", "9d88f29fc4777006c5abb6caf7a0f265f86c6c0e"]
 
 [generation.verification]
 pre_census = "clean-HEAD census of 95aff9e47d = G84 post digest 47ccbf20... (72c5cb88d6 adds only out-of-scope evidence)"
@@ -1246,3 +1247,25 @@ proof = "PROVEN (post c76171cc...); the first PROVEN run (post def12cb6...) had 
 
 [generation.next]
 objective = "G86 (P3): first-50 #22 flatbuffers (vtable-based schema evolution, P2)"
+
+[[generation]]
+id = "G86"
+base_commit = "9d88f29fc4777006c5abb6caf7a0f265f86c6c0e"
+priority = "P3"
+serves = "P3 FIRST_50_DONOR_CAMPAIGN: donor #22 flatbuffers to a terminal state (P2 schema-evolution question)"
+objective = "answer the recorded vtable/conformance question against the executing .atlas reader/writer, absorb the smallest missing mechanism, decide the terminal state, physically extinct the checkout"
+writer = "coordinator (sole writer)"
+evidence = ".atlas/evidence/campaign/22-flatbuffers.json"
+self_recensus = ".atlas/evidence/census/G86/recensus.json"
+
+[generation.verification]
+pre_census = "clean-HEAD census of 417e7f8475 = G85 post digest c76171cc... (9d88f29fc4 adds only out-of-scope evidence)"
+falsification = "vtables add nothing: tag-length-value records already make an absent optional field its default. The gap is real: G68 derives schema_id from the whole definition and the reader accepted only the current id, so appending an optional field would orphan every earlier container, and nothing stopped a breaking edit to SECTIONS"
+change = "core::atlas::schema: recorded_generations over the compiled-in history (core/src/atlas/schema_history.rs), conforms() with the flatc --conform rules (name and dependencies kept; no record kind or field removed; tag and wire type kept; nothing becomes required; added fields optional), accepted_schema_ids(); the reader accepts exactly the current and recorded-conforming identities"
+decision = "ABSORBED schema-evolution-conformance; vtables, flexbuffers, reflection and flatc code generation REFERENCE_ONLY"
+mutation_battery = "9/9 killed after closing two real test gaps (a new required field; a dropped dependency)"
+extinction = "git rm -r .atlas/temporary/donors/flatbuffers (1,902 tracked files); no build, runtime or test reference"
+proof = "PROVEN (post cd1a4d86...) after the history moved from a .txt file (census disposition Unknown, an inventory blocker) to a Rust source; a first PROVEN run (post 12cef5bc...) preceded a clippy fix (type aliases for recorded records, a needless reference), so the generation was re-proved with the unchanged intent"
+
+[generation.next]
+objective = "G87 (P3): first-50 #23 zstd (frame format for compressed .atlas payloads, P2)"

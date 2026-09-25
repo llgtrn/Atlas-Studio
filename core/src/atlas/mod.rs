@@ -11,7 +11,9 @@
 //! - varints are unsigned LEB128, at most 10 bytes, minimally encoded;
 //! - field wire types reuse the AtlasX wire table (1 UVARINT, 6 UTF8, 7 HASH32, 9 LOCAL_INDEX);
 //! - `field_flags` bit 0 is REQUIRED; header `flags` bit 0 is UNSEALED;
-//! - `schema_id` = the first 8 bytes (little-endian) of BLAKE3(`atlas.wire.v1/<section>`);
+//! - `schema_id` = the first 8 bytes (little-endian) of BLAKE3 over the section's declared
+//!   definition (`schema::definition_text`, G68); a reader also accepts every recorded earlier
+//!   definition that conforms to the current one (`schema::accepted_schema_ids`, G86);
 //! - the root identity is BLAKE3 over the ROOT_MANIFEST section's decoded content, and the
 //!   manifest commits to every other section's type, schema id, content hash and record count;
 //! - the string table is sorted by byte order and deduplicated; records reference it by index;
@@ -21,6 +23,7 @@
 //! strings, and the root identity covers decoded content only.
 
 pub mod schema;
+mod schema_history;
 
 use crate::identity::{IntegrityDigest, blake3};
 use std::collections::BTreeMap;
@@ -388,11 +391,13 @@ pub fn write(atlas: &CensusAtlas) -> Result<Vec<u8>, AtlasError> {
             "records are not in canonical order (call canonicalize)".into(),
         ));
     }
-    Ok(encode(atlas))
+    Ok(encode(atlas, schema_id))
 }
 
 /// The encoding itself, without `write`'s refusals (tests use it to build hostile containers).
-fn encode(atlas: &CensusAtlas) -> Vec<u8> {
+/// Encodes `atlas`, stamping each section with `id(section)` -- `schema_id` in production; tests
+/// substitute a recorded earlier identity to build a container an older writer produced.
+fn encode(atlas: &CensusAtlas, id: impl Fn(u16) -> u64) -> Vec<u8> {
     let strings = Strings::of(atlas);
     let mut body = vec![
         section(
@@ -502,7 +507,7 @@ fn encode(atlas: &CensusAtlas) -> Vec<u8> {
         manifest.push(
             Record::of(ROOT_MANIFEST, 2)
                 .number("section_type", u64::from(s.kind))
-                .number("schema_id", schema_id(s.kind))
+                .number("schema_id", id(s.kind))
                 .digest("content_hash", &blake3::hash(&s.content))
                 .number("record_count", s.records),
         );
@@ -520,7 +525,7 @@ fn encode(atlas: &CensusAtlas) -> Vec<u8> {
         directory.extend_from_slice(&0u16.to_le_bytes()); // section_flags
         directory.extend_from_slice(&COMPRESSION_NONE.to_le_bytes()); // codec
         directory.extend_from_slice(&0u16.to_le_bytes()); // reserved
-        directory.extend_from_slice(&schema_id(s.kind).to_le_bytes());
+        directory.extend_from_slice(&id(s.kind).to_le_bytes());
         directory.extend_from_slice(&offset.to_le_bytes());
         directory.extend_from_slice(&len.to_le_bytes()); // encoded_length
         directory.extend_from_slice(&len.to_le_bytes()); // decoded_length
@@ -779,6 +784,14 @@ pub fn root_identity(manifest_content: &[u8]) -> IntegrityDigest {
 
 /// Verifies `bytes` in the contract's reader order and decodes it. Any failed step rejects trust.
 pub fn read(bytes: &[u8]) -> Result<(CensusAtlas, IntegrityDigest), AtlasError> {
+    read_with_history(bytes, schema::HISTORY)
+}
+
+/// `read`, accepting the schema identities `history` records as conforming (G86).
+fn read_with_history(
+    bytes: &[u8],
+    history: &str,
+) -> Result<(CensusAtlas, IntegrityDigest), AtlasError> {
     // 1. magic, version, header bounds.
     if bytes.len() < HEADER_LEN {
         return reject("shorter than the 72-byte header");
@@ -882,7 +895,7 @@ pub fn read(bytes: &[u8]) -> Result<(CensusAtlas, IntegrityDigest), AtlasError> 
         if schema::section(e.kind).is_none() {
             return reject(format!("unknown section type {}", e.kind));
         }
-        if e.schema != schema_id(e.kind) {
+        if !schema::accepted_schema_ids(history, e.kind).contains(&e.schema) {
             return reject(format!("section {} has an unknown schema id", e.kind));
         }
     }
