@@ -41,3 +41,13 @@ invalidation", "revision-scoped cached derivation", "recursive/fixed-point seman
 "evidence/provenance lineage through derived facts") map directly onto the mechanism now recorded
 in the genome document above, though no absorption/implementation decision has been made yet.
 
+
+## G115 — terminal ABSORBED (memo); invalidation REFERENCE_ONLY; source extinct
+
+The P4 workload was measured.
+
+- **Whole recompute.** A release run over the 118 artifacts takes about 9–10 s. The ADR 0008 graph hotspot is gone, and stack sampling shows no dominant stage.
+- **Extraction.** Per-artifact extraction is about 14% of the run, and the absorbed memo already reuses it for unchanged artifacts.
+- **Changed sets.** Across G86–G114 the median change is 1 artifact of 118.
+
+Everything else is whole-program work over cross-artifact dependencies. Dependency tracking, early cutoff and durability would save at most about 8.5 s per run here, so they stay REFERENCE_ONLY until a workload's whole-program stages dominate an edit loop. The checkout was physically deleted. Evidence: `../evidence/campaign/05-salsa.json`.

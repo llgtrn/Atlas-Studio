@@ -1,0 +1,29 @@
+{
+ "schema": "atlas.campaign-donor-decision.v1",
+ "ordinal": 5,
+ "donor": "salsa",
+ "commit_sha": "5d8eaf1fa372a73d44f9b717407de41f19ef59d7",
+ "generation": "G115",
+ "base_commit": "9df5789b70",
+ "hypothesis": "memoized derivation reuse absorbed (G39, ADR 0008); revision-based invalidation open until an incremental workload exists (P4)",
+ "blocking_question": "which graph-construction stage dominates, is it algorithmic or inherent, and is the edit-to-recensus delta small relative to a whole recompute?",
+ "measurement": {
+  "whole_recompute": "release atlas-systemizer systemize --root . (118 artifacts): 10.45 s cold, 9.01 s and 8.86 s with a warm extraction cache; recensus snapshot 7.5 s",
+  "extraction_share": "the warm cache removes ~1.5 s (~14%): the only per-artifact derivation, already memoized by the absorbed ExtractionCache",
+  "stage_profile": "gdb stack sampling during systemize (17 samples): normalization 5, graph build 4, closure checks (is_closed / typed_references_resolve) 2, report serialization/write/drop 5, census 1 -- no dominant stage; ADR 0008's 166 s (debug) graph-summarization hotspot no longer exists",
+  "changed_sets": "changed census paths per generation, G86-G114: median 1, mean 1.72, max 16 of 118 artifacts",
+  "verdict": "the delta is small, but everything outside extraction is whole-program work over cross-artifact dependencies; dependency-tracked invalidation would need normalization and graph construction restructured as tracked queries to save at most ~8.5 s per run -- not justified at this scale (the same conclusion G80 reached for differential-dataflow)"
+ },
+ "decision": {
+  "ABSORBED": ["memoized-derivation-reuse (ADR 0008, since G39)"],
+  "REFERENCE_ONLY": ["revision-based dependency tracking and invalidation", "early cutoff (backdating)", "durability levels", "fixpoint cycle iteration", "interning and tracked structs"]
+ },
+ "terminal_state": "ABSORBED",
+ "reopen_trigger": "a real workload whose whole-program recensus stages dominate an edit loop (tens of seconds per edit)",
+ "extinction": {
+  "runtime_dependency": "none (native ExtractionCache)",
+  "build_dependency": "none",
+  "test_dependency": "none (no code or test references the checkout)",
+  "action": "git rm -r .atlas/temporary/donors/salsa (425 files, 4.4 MB)"
+ }
+}

@@ -479,6 +479,7 @@ mod tests {
                 "rkyv",
                 "rust",
                 "rust-analyzer",
+                "salsa",
                 "scip",
                 "semgrep",
                 "sigil-lang",

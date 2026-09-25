@@ -1,0 +1,13 @@
+{
+  "objective": "P4 first-50 #5 salsa: measured the incremental-recensus workload (whole release recompute ~9-10 s, no dominant stage, extraction ~14% already memoized, changed sets median 1 of 118) -- dependency-tracked invalidation stays REFERENCE_ONLY; terminal ABSORBED (memo); checkout physically extinct; census unchanged except the pinned deleted-donor list",
+  "changed_paths": [
+    "runtime/src/donor_storage.rs"
+  ],
+  "total_changes": [
+    "+graph_edges",
+    "+graph_nodes"
+  ],
+  "entity_changes": [
+    "CHANGED runtime donor_storage/tests/repository_donor_storage_has_no_unrecorded_violation()."
+  ]
+}

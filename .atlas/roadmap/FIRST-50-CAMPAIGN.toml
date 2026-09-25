@@ -14,19 +14,19 @@ decision = ".atlas/decisions/0024-self-recensus-proof-of-nextgen.md"
 
 [dashboard]
 first_50_total = 50
-historic_terminal = 3
+historic_terminal = 4
 campaign_terminal = 46
 historically_proven = 4
 currently_censusing = 0
 deep_censused = 0
-absorbed = 10
+absorbed = 11
 reference_only = 28
 external_boundary = 10
 rejected = 0
 deferred = 1
-extinct = 44
-remaining = 1
-next_step = "G115 (P4): salsa (#5) -- the last non-terminal first-50 donor: decide its remaining invalidation mechanisms (dependency tracking, early cutoff, durability) against the measured incremental-recensus cost"
+extinct = 45
+remaining = 0
+next_step = "first-50 campaign complete: every donor terminal; the next generation returns to the priority order (P0 census closure) and the frontier beyond the first 50"
 
 [[donor]]
 ordinal = 1
@@ -97,13 +97,15 @@ canonical_url = "https://github.com/salsa-rs/salsa.git"
 serves = "P4"
 target_capability = "incremental dependency-tracked recensus"
 mechanism_hypothesis = "memoized derivation reuse absorbed; revision-based invalidation open until an incremental workload exists (P4)"
-materialization_mode = "SPARSE_CHECKOUT (src/function, src/zalsa)"
+materialization_mode = "n/a (source deleted)"
 dependency_expectation = "none beyond std"
 current_status = "HISTORICALLY_PROVEN"
-lifecycle = "DECIDED"
-terminal_state = ""
-terminal_goal = "ABSORBED (memo) ; invalidation: ABSORB_LATER with P4 workload"
-note = "absorbed ['memoized-derivation-reuse'] (partial); remaining mechanisms pending; source still materialized"
+lifecycle = "TERMINAL"
+terminal_state = "ABSORBED"
+terminal_goal = "ABSORBED (memo) ; invalidation: REFERENCE_ONLY at the measured scale (G115)"
+completed_in = "G115"
+evidence = ".atlas/evidence/campaign/05-salsa.json"
+note = "memoized-derivation-reuse absorbed (G39, ADR 0008); G115 measured the P4 workload: whole recompute ~9-10 s (release), no dominant stage, per-artifact extraction ~14% already memoized, changed sets median 1 of 118 artifacts -- dependency-tracked invalidation would save at most ~8.5 s per run, so it stays REFERENCE_ONLY; source physically deleted"
 
 [[donor]]
 ordinal = 6

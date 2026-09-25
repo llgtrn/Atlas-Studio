@@ -1866,6 +1866,7 @@ objective = "run a bounded census over the SKELETON record, test translation/mig
 writer = "coordinator (sole writer)"
 evidence = ".atlas/evidence/campaign/50-c2rust.json"
 self_recensus = ".atlas/evidence/census/G114/recensus.json"
+result_commits = ["8991374da0a529dbc7825c082c0302e2d8f6b200", "9df5789b70236ee7cfc8357a72c06af132b681a5"]
 
 [generation.verification]
 pre_census = "clean-HEAD census of c9147fa48e = G113 post digest f882e028... (1070969964 adds only out-of-scope evidence)"
@@ -1876,3 +1877,24 @@ proof = "PROVEN on the first run (post e5df9cac...)"
 
 [generation.next]
 objective = "G115 (P4): first-50 #5 salsa -- the last non-terminal first-50 donor: decide its remaining invalidation mechanisms against the measured incremental-recensus cost"
+
+[[generation]]
+id = "G115"
+base_commit = "9df5789b70236ee7cfc8357a72c06af132b681a5"
+priority = "P4"
+serves = "P4 INCREMENTAL_RECENSUS: the salsa (#5) invalidation question against the measured workload; P3: the last non-terminal first-50 donor"
+objective = "measure where recensus time goes and how large edits are, decide Salsa's remaining invalidation mechanisms, physically extinct the checkout"
+writer = "coordinator (sole writer)"
+evidence = ".atlas/evidence/campaign/05-salsa.json"
+self_recensus = ".atlas/evidence/census/G115/recensus.json"
+
+[generation.verification]
+pre_census = "clean-HEAD census of 8991374da0 = G114 post digest e5df9cac... (9df5789b70 adds only out-of-scope evidence)"
+falsification = "whole release systemize 10.45 s cold / ~8.9 s warm; the warm cache saves ~1.5 s (extraction, already memoized); gdb sampling spreads the rest over normalization, graph build, closure checks and report serialization with no dominant stage (ADR 0008's 166 s debug hotspot is gone); changed census paths per generation G86-G114 median 1, max 16 of 118 -- dependency-tracked invalidation would save at most ~8.5 s per run"
+no_code_change = "no further Salsa mechanism absorbed (memo stays ABSORBED; invalidation, early cutoff, durability REFERENCE_ONLY); the only in-scope census change is the pinned deleted-donor list"
+extinction = "git rm -r .atlas/temporary/donors/salsa (425 files, 4.4 MB)"
+campaign = "every first-50 donor is now terminal (3 + 1 historic, 46 campaign)"
+proof = "PROVEN on the first run (post bece4bef...)"
+
+[generation.next]
+objective = "first-50 campaign complete; the next generation returns to the priority order (P0 census closure first) and the frontier beyond the first 50"
